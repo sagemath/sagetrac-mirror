@@ -21,9 +21,19 @@ from __future__ import absolute_import, print_function
 import os
 import re
 import shutil
+import warnings
 from tempfile import mkdtemp
+from textwrap import dedent
 from sage.env import SAGE_DOC_SRC
-from sphinx.application import Sphinx
+
+with warnings.catch_warnings():
+    # Some previous versions of Sphinx and its dependencies are producing
+    # DeprecationWarnings at import time on Python 3
+    warnings.filterwarnings(
+            'ignore',
+            'Flags not at the start of the expression',
+            DeprecationWarning)
+    from sphinx.application import Sphinx
 
 
 def sphinxify(docstring, format='html'):
@@ -80,18 +90,30 @@ def sphinxify(docstring, format='html'):
     # buildername, confoverrides, status, warning, freshenv).
     confdir = os.path.join(SAGE_DOC_SRC, 'en', 'introspect')
 
-    open(os.path.join(srcdir, 'docutils.conf'), 'w').write(r"""
-[parsers]
-smart_quotes = no
-""")
+    with open(os.path.join(srcdir, 'docutils.conf'), 'w') as f:
+        f.write(dedent(
+            r"""
+            [parsers]
+            smart_quotes = no
+            """))
     doctreedir = os.path.join(srcdir, 'doctrees')
     confoverrides = {'html_context': {}, 'master_doc': 'docstring'}
 
     import sys
     old_sys_path = list(sys.path)  # Sphinx modifies sys.path
-    sphinx_app = Sphinx(srcdir, confdir, srcdir, doctreedir, format,
-                        confoverrides, None, None, True)
-    sphinx_app.build(None, [rst_name])
+    with warnings.catch_warnings():
+        # Some previous versions of Sphinx and its dependencies are producing
+        # DeprecationWarnings in Sphinx.__init__ and Sphinx.build as well
+        msgs = [
+            "Flags not at the start of the expression",
+            "'U' mode is deprecated"
+        ]
+        for msg in msgs:
+            warnings.filterwarnings('ignore', msg, DeprecationWarning)
+
+        sphinx_app = Sphinx(srcdir, confdir, srcdir, doctreedir, format,
+                            confoverrides, None, None, True)
+        sphinx_app.build(None, [rst_name])
     sys.path = old_sys_path
 
     # We need to remove "_" from __builtin__ that the gettext module installs
@@ -99,7 +121,8 @@ smart_quotes = no
     builtins.__dict__.pop('_', None)
 
     if os.path.exists(output_name):
-        output = open(output_name, 'r').read()
+        with open(output_name) as f:
+            output = f.read()
         output = output.replace('<pre>', '<pre class="literal-block">')
 
         # Translate URLs for media from something like
