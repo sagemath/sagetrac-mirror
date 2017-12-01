@@ -12,6 +12,8 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import absolute_import
+
 
 import atexit
 
@@ -45,7 +47,7 @@ if six.PY2:
         def __exit__(self, *exc):
             atexit._exithandlers[:] = self._exithandlers
 else:
-    from ._context_py3 import *
+    from ._atexit_py3 import *
 
 
 # Wrapper class for the two restore_atexit implementations so that they
@@ -71,7 +73,7 @@ class restore_atexit(restore_atexit):
     manipulation of the ``atexit`` state.
 
     sage: import atexit
-    sage: from sage.misc.context import restore_atexit
+    sage: from sage.cpython.atexit import restore_atexit
     sage: def handler(*args, **kwargs):
     ....:     print((args, kwargs))
     sage: with restore_atexit(clear=True):

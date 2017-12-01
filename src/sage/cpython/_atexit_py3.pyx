@@ -2,14 +2,14 @@
 
 """Internal module with C implementations of some context managers."""
 
-
-__all__ = ['restore_atexit']
-
+from __future__ import absolute_import
 
 import atexit
 
-
 from cpython.ref cimport PyObject
+
+
+__all__ = ['restore_atexit']
 
 
 ctypedef struct atexit_callback:
