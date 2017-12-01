@@ -1792,6 +1792,77 @@ def _sage_getdoc_unformatted(obj):
         return ''
 
 
+def _sage_get_method_owner(cls, method):
+    """
+    Given a class and a method on that class determine in which class that
+    method was defined (e.g. if it was defined in a superclass).
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import _sage_get_method_owner as gmo
+
+    For methods defined in the body of a class it should simply return that
+    method::
+
+        sage: class MyClass(object):
+        ....:     def __init__(self): pass
+        sage: gmo(MyClass, MyClass.__init__)
+        <class '__main__.MyClass'>
+
+    If the method was defined on a superclass return the superclass::
+
+        sage: class MyClass2(MyClass): pass
+        sage: gmo(MyClass2, MyClass2.__init__)
+        <class '__main__.MyClass'>
+
+    However, if the subclass overrides a method, then it should return the
+    method from the subclass::
+
+        sage: class MyClass3(MyClass):
+        ....:     def __init__(self): pass
+        sage: gmo(MyClass3, MyClass3.__init__)
+        <class '__main__.MyClass3'>
+
+    If for some reason given a method from the class's superclass, we still
+    return the correct class for that method (all that matters for the class
+    argument is that the method's defining class is in the given class's MRO)::
+
+        sage: gmo(MyClass3, MyClass.__init__)
+        <class '__main__.MyClass'>
+
+    Therefore the opposite may not work (if no class is found `None` is
+    returned)::
+
+        sage: gmo(MyClass, MyClass3.__init__)
+
+    Similarly if the given class is not in any way related to the class that
+    owns the method::
+
+        sage: class MyClass4(object): pass
+        sage: gmo(MyClass4, MyClass.__init__)
+    """
+
+    if not inspect.isclass(cls):
+        cls = type(cls)
+
+    mro_set = set(cls.__mro__)
+
+    for attr in ('im_class', '__objclass__'):
+        # __objclass__ can be found on methods defined in C on built-in classes
+        owner = getattr(method, attr, None)
+        if owner is not None and owner in mro_set:
+            return owner
+
+    # Otherwise (particularly on Python 3) we need to search the class's MRO
+    last_seen = None
+    for owner in cls.__mro__:
+        found = getattr(owner, method.__name__, None)
+        if found is method:
+            last_seen = owner
+
+    return last_seen
+
+
 def sage_getdoc_original(obj):
     r"""
     Return the unformatted docstring associated to ``obj`` as a
@@ -1876,11 +1947,8 @@ def sage_getdoc_original(obj):
         else:
             # The docstring of obj is empty. To get something, we want to use
             # the documentation of the __init__ method, but only if it belongs
-            # to (the type of) obj. The type for which a method is defined is
-            # either stored in the attribute `__objclass__` (cython) or
-            # `im_class` (python) of the method.
-            if (getattr(init, '__objclass__', None) or
-                getattr(init, 'im_class', None)) == typ:
+            # to (the type of) obj.
+            if _sage_get_method_owner(typ, init) is typ:
                 return sage_getdoc_original(init)
     return s
 
