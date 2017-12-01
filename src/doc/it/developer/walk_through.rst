@@ -193,7 +193,9 @@ Una volta che sei soddisfatto della lista dei file in fase "stage" puoi creare u
      1 file changed, 1 insertion(+)
       create mode 100644 foobar.txt
 
-Questo aprira' un editor dove potrai scrivere il tuo messaggio di commit. Esso dovrebbe essere in generale una descrizione di una riga, seguito da una riga vuota, seguito da ulteriore testo di spiegazione::
+Questo aprira' un editor dove potrai scrivere il tuo messaggio di
+commit. Esso dovrebbe essere in generale una descrizione di una riga,
+seguito da una riga vuota, seguito da ulteriore testo di spiegazione::
 
     Added the last twin prime
 
@@ -201,4 +203,7 @@ Questo aprira' un editor dove potrai scrivere il tuo messaggio di commit. Esso d
     summary followed by more detailed description, if necessary.
 
 
-Poi puoi continuare a lavorare per il tuo prossimo obiettivo, effettuare un altro commit, e cosi' via finche' avrai finito. Finche' non effetui ``git checkout` di un altro branch, tutti i commit che fai saranno parte del branch che hai creato.
+Poi puoi continuare a lavorare per il tuo prossimo obiettivo,
+effettuare un altro commit, e cosi' via finche' avrai finito. Finche'
+non effetui ``git checkout`` di un altro branch, tutti i commit che
+fai saranno parte del branch che hai creato.
