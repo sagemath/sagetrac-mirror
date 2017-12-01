@@ -1845,19 +1845,23 @@ def _sage_get_method_owner(cls, method):
     if not inspect.isclass(cls):
         cls = type(cls)
 
-    mro_set = set(cls.__mro__)
+    # Use inspect.getmro since it works for old-style classes as well
+    mro_set = inspect.getmro(cls)
 
-    for attr in ('im_class', '__objclass__'):
-        # __objclass__ can be found on methods defined in C on built-in classes
-        owner = getattr(method, attr, None)
-        if owner is not None and owner in mro_set:
-            return owner
+    # __objclass__ can be found on methods defined in C on built-in classes
+    owner = getattr(method, '__objclass__', None)
+    if owner is not None and owner in mro_set:
+        return owner
 
-    # Otherwise (particularly on Python 3) we need to search the class's MRO
+    # On Python 2 methods are wrapped as instancemethods; for comparison
+    # purposes we want to use the underlying function
+    func = getattr(method, '__func__', method)
+
+    # Otherwise need to search the class's MRO
     last_seen = None
-    for owner in cls.__mro__:
+    for owner in inspect.getmro(cls):
         found = getattr(owner, method.__name__, None)
-        if found is method:
+        if getattr(found, '__func__', found) is func:
             last_seen = owner
 
     return last_seen
