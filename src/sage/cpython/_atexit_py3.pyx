@@ -64,6 +64,9 @@ cdef class restore_atexit:
 
         state = <atexitmodule_state*>PyModule_GetState(atexit)
 
+        if not state:
+            raise RuntimeError("atexit module state missing or corrupt")
+
         for idx in range(state.ncallbacks):
             callback = state.atexit_callbacks[idx][0]
             if callback.kwargs:
