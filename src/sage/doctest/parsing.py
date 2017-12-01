@@ -675,15 +675,27 @@ class SageDocTestParser(doctest.DocTestParser):
                     for tag in optional_tags:
                         self.optionals[tag] += 1
                     if (('not implemented' in optional_tags) or
-                            ('not tested' in optional_tags) or
-                            ('py2' in optional_tags and not six.PY2) or
-                            ('py3' in optional_tags and not six.PY3)):
+                            ('not tested' in optional_tags)):
                         continue
+
+                    if 'py2' in optional_tags:
+                        if six.PY2:
+                            optional_tags.remove('py2')
+                        else:
+                            continue
+
+                    if 'py3' in optional_tags:
+                        if six.PY3:
+                            optional_tags.remove('py3')
+                        else:
+                            continue
+
                     if 'long time' in optional_tags:
                         if self.long:
                             optional_tags.remove('long time')
                         else:
                             continue
+
                     if not self.optional_tags is True:
                         extra = optional_tags - self.optional_tags # set difference
                         if len(extra) > 0:
