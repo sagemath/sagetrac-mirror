@@ -24,35 +24,35 @@ __all__ = ['restore_atexit']
 
 
 if six.PY2:
-    class restore_atexit(object):
-        # Note: On Python 2 this is trivial because the list of registered
-        # callbacks is exposed as a (private) attribute atexit._exithandlers.
-        # On Python 3 however, that detail is not exposed and is instead buried
-        # in the internal module state.
+    # These are helper functions for implementing restore_atexit.  The only
+    # reason they're broken out from the class itself is because these require
+    # very different implements on Python 2 and 3
+    def _get_exithandlers():
+        """Return list of exit handlers registered with the atexit module."""
+        return atexit._exithandlers[:]
 
-        def __init__(self, clear=False):
-            self._clear = clear
-            self._exithandlers = None
+    def _set_exithandlers(exithandlers):
+        """
+        Replace the list of exit handlers registered with the atexit module
+        with a new list.
+        """
+        atexit._exithandlers[:] = exithandlers
 
-        def __enter__(self):
-            self._exithandlers = atexit._exithandlers[:]
-            if self._clear:
-                # It generally shouldn't matter, but this keeps the same list
-                # object in place rather than replacing it with a new one in
-                # case any other code is accessing this list directly.
-                del atexit._exithandlers[:]
-
-            return self
-
-        def __exit__(self, *exc):
-            atexit._exithandlers[:] = self._exithandlers
+    def _clear_exithandlers():
+        """Clear the atexit module of all registered exit handlers."""
+        # It generally shouldn't matter, but this keeps the same list
+        # object in place rather than replacing it with a new one in
+        # case any other code is accessing this list directly.
+        del atexit._exithandlers[:]
 else:
-    from ._atexit_py3 import *
+    # Python 3 implementations of the same helper functions
+    from ._atexit_py3 import (_get_exithandlers, _set_exithandlers,
+                              _clear_exithandlers)
 
 
 # Wrapper class for the two restore_atexit implementations so that they
 # can share a docstring
-class restore_atexit(restore_atexit):
+class restore_atexit(object):
     """
     Context manager that restores the state of the atexit module to its
     previous state when exiting the context.
@@ -86,3 +86,17 @@ class restore_atexit(restore_atexit):
     ((1, 2), {'c': 3})
     ((1, 2), {'c': 3})
     """
+
+    def __init__(self, clear=False):
+        self._clear = clear
+        self._exithandlers = None
+
+    def __enter__(self):
+        self._exithandlers = _get_exithandlers()
+        if self._clear:
+            _clear_exithandlers()
+
+        return self
+
+    def __exit__(self, *exc):
+        _set_exithandlers(self._exithandlers)
