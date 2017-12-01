@@ -17,9 +17,6 @@ from distutils.errors import (DistutilsSetupError, DistutilsModuleError,
 import fpickle_setup
 
 
-PY2 = sys.version_info[0]
-
-
 def excepthook(*exc):
     """
     When an error occurs, display an error message similar to the error
@@ -359,20 +356,12 @@ class sage_build_cython(Command):
 
         Cython.Compiler.Options.embed_pos_in_docstring = True
 
-        if PY2:
-            # Exclude any modules named *_py3.pyx, as they are for Python 3 and
-            # up only
-            exclude = ['*_py3.pyx']
-        else:
-            exclude = []
-
         log.info("Updating Cython code....")
         t = time.time()
         # We use [:] to change the list in-place because the same list
         # object is pointed to from different places.
         self.extensions[:] = cythonize(
             self.extensions,
-            exclude=exclude,
             nthreads=self.parallel,
             build_dir=self.build_dir,
             force=self.force,
