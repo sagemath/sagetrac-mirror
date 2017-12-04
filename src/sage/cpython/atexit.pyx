@@ -45,6 +45,10 @@ cdef class restore_atexit(object):
         sage: from sage.cpython.atexit import restore_atexit
         sage: def handler(*args, **kwargs):
         ....:     print((args, kwargs))
+        sage: atexit.register(handler, 1, 2, c=3)
+        <function handler at 0x...>
+        sage: atexit.register(handler, 4, 5, d=6)
+        <function handler at 0x...>
         sage: with restore_atexit(clear=True):
         ....:     atexit._run_exitfuncs()  # Should be none registered
         ....:     atexit.register(handler, 1, 2, c=3)
@@ -54,6 +58,43 @@ cdef class restore_atexit(object):
         <function handler at 0x...>
         ((1, 2), {'c': 3})
         ((1, 2), {'c': 3})
+        sage: atexit._run_exitfuncs()  # The original handlers are run
+        ((4, 5), {'d': 6})
+        ((1, 2), {'c': 3})
+
+    TESTS::
+
+        sage: from sage.cpython.atexit import (_get_exithandlers,
+        ....:                                  _clear_exithandlers)
+        sage: atexit.register(handler, 1, 2, c=3)
+        <function handler at 0x...>
+        sage: atexit.register(handler, 4, 5, d=6)
+        <function handler at 0x...>
+        sage: print("Initial exit handlers:\n{}".format(_get_exithandlers()))
+        Initial exit handlers:
+        [(<function handler at 0x...>, (1, 2), {'c': 3}),
+         (<function handler at 0x...>, (4, 5), {'d': 6})]
+
+        sage: with restore_atexit():
+        ....:     pass
+        sage: print("After restore_atexit:\n{}".format(_get_exithandlers()))
+        After restore_atexit:
+        [(<function handler at 0x...>, (1, 2), {'c': 3}),
+         (<function handler at 0x...>, (4, 5), {'d': 6})]
+
+        sage: with restore_atexit(clear=True):
+        ....:     print("Exit handlers in context manager: {}".format(
+        ....:           _get_exithandlers()))
+        Exit handlers in context manager: []
+
+        sage: print("After restore_atexit with clear=True:\n{}".format(
+        ....:       _get_exithandlers()))
+        After restore_atexit with clear=True:
+        [(<function handler at 0x...>, (1, 2), {'c': 3}),
+         (<function handler at 0x...>, (4, 5), {'d': 6})]
+        sage: _clear_exithandlers()
+        sage: _get_exithandlers()
+        []
     """
 
     cdef list _exithandlers
@@ -150,6 +191,9 @@ ELSE:
         Replace the list of exit handlers registered with the atexit module
         with a new list.
         """
+
+        # Clear the existing list
+        atexit._clear()
 
         # We could do this more efficiently by directly rebuilding the array
         # of atexit_callbacks, but this is much simpler
