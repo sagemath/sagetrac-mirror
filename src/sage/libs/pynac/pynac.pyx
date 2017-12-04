@@ -1327,6 +1327,8 @@ cdef py_float(n, PyObject* kwds):
         <type 'sage.rings.complex_number.ComplexNumber'>
         sage: type(py_float(CBF(1+I), {'parent':CDF}))
         <type 'sage.rings.complex_double.ComplexDoubleElement'>
+        sage: type(py_float(CBF(1+I), {'parent':RDF}))
+        <type 'sage.rings.complex_double.ComplexDoubleElement'>
     """
     if kwds is not NULL:
         p = (<object>kwds)['parent']
@@ -1347,7 +1349,10 @@ cdef py_float(n, PyObject* kwds):
                     try:
                         return p(RR(n))
                     except (TypeError, ValueError):
-                        return p(CC(n))
+                        try:
+                            return p(CC(n))
+                        except (TypeError,ValueError):
+                            return p.complex_field()(CC(n))
     else:
         try:
             return RR(n)
