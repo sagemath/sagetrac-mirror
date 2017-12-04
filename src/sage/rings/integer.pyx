@@ -154,7 +154,7 @@ from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.misc.superseded import deprecated_function_alias
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long, integer_check_long
 from sage.cpython.string cimport char_to_str, str_to_bytes
 
 from cpython.list cimport *
@@ -3113,20 +3113,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             ArithmeticError: reduction modulo 100 not defined
         """
-        cdef Integer y_int, z
-        cdef long y_long, res
-
-        if isinstance(y, long):
-            # This should be treated basically the same as if y is an Integer
-            # so go ahead and convert y to an Integer first
-            y_int = PY_NEW(Integer)
-            mpz_set_pylong(y_int.value, y)
+        cdef Integer z
 
         # First case: Integer % Integer
         if type(x) is type(y):
             if not mpz_sgn((<Integer>y).value):
                 raise ZeroDivisionError("Integer modulo by zero")
-            z = PY_NEW(Integer)
+            z = <Integer>PY_NEW(Integer)
             if mpz_size((<Integer>x).value) > 100000:
                 sig_on()
                 mpz_fdiv_r(z.value, (<Integer>x).value, (<Integer>y).value)
@@ -3135,22 +3128,30 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 mpz_fdiv_r(z.value, (<Integer>x).value, (<Integer>y).value)
             return z
 
-        # Next: Integer % python int
-        elif isinstance(y, int):
-            y_long = PyInt_AS_LONG(y)
-            if not y_long:
+        # Next: Integer % C long
+        cdef long yy = 0
+        cdef int err
+        if not isinstance(y, Element):
+            # x must be an Integer in this case
+            if not integer_check_long(y, &yy, &err):
+                # y cannot be converted to an integer
+                return NotImplemented
+            if err:
+                # y is some kind of integer,
+                # but too large for a C long
+                return x % Integer(y)
+
+            if yy == 0:
                 raise ZeroDivisionError("Integer modulo by zero")
-            z = PY_NEW(Integer)
-            if y_long > 0:
-                mpz_fdiv_r_ui(z.value, (<Integer>x).value, y_long)
+            z = <Integer>PY_NEW(Integer)
+            if yy > 0:
+                mpz_fdiv_r_ui(z.value, (<Integer>x).value, yy)
             else:
-                res = mpz_fdiv_r_ui(z.value, (<Integer>x).value, -y_long)
-                if res:
-                    mpz_sub_ui(z.value, z.value, -y_long)
+                mpz_cdiv_r_ui(z.value, (<Integer>x).value, -<unsigned long>yy)
             return z
 
         # Use the coercion model
-        return bin_op(x, y, operator.mod)
+        return coercion_model.bin_op(x, y, operator.mod)
 
     def quo_rem(Integer self, other):
         """
