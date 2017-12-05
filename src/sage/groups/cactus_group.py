@@ -25,7 +25,7 @@ from sage.categories.groups import Groups
 from sage.groups.group import Group
 from sage.groups.kernel_subgroup import KernelSubgroup
 from sage.combinat.permutation import Permutations
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 
 
 class CactusGroup(UniqueRepresentation, Group):
