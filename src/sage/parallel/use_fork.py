@@ -205,10 +205,10 @@ class p_iter_fork(object):
                         pass
                     else:
                         # collect data from process that successfully terminated
-                        sobj = os.path.join(dir, '%s.sobj'%pid)
+                        sobj = os.path.join(dir, '%s.sobj' % pid)
                         try:
-                            with open(sobj) as file:
-                                data = file.read()
+                            with open(sobj, 'rb') as f:
+                                data = f.read()
                         except IOError:
                             answer = "NO DATA" + W.failure
                         else:
@@ -218,10 +218,10 @@ class p_iter_fork(object):
                             except Exception as E:
                                 answer = "INVALID DATA {}".format(E)
 
-                        out = os.path.join(dir, '%s.out'%pid)
+                        out = os.path.join(dir, '%s.out' % pid)
                         try:
-                            with open(out) as file:
-                                sys.stdout.write(file.read())
+                            with open(out) as f:
+                                sys.stdout.write(f.read())
                             os.unlink(out)
                         except IOError:
                             pass
@@ -270,7 +270,7 @@ class p_iter_fork(object):
         TESTS:
 
         The method ``_subprocess`` is really meant to be run only in a
-        subprocess. It doesn't print not return anything, the output is
+        subprocess. It doesn't print or return anything; the output is
         saved in pickles. It redirects stdout, so we save and later
         restore stdout in order not to break the doctester::
 
@@ -284,23 +284,25 @@ class p_iter_fork(object):
 
         # Make it so all stdout is sent to a file so it can
         # be displayed.
-        out = os.path.join(dir, '%s.out'%os.getpid())
-        sys.stdout = open(out, 'w')
+        out = os.path.join(dir, '%s.out' % os.getpid())
 
-        # Run some commands to tell Sage that its
-        # pid has changed (forcing a reload of
-        # misc).
-        import sage.misc.misc
-        imp.reload(sage.misc.misc)
+        with open(out, 'w') as new_stdout:
+            sys.stdout = new_stdout
 
-        # The pexpect interfaces (and objects defined in them) are
-        # not valid.
-        if self.reset_interfaces:
-            sage.interfaces.quit.invalidate_all()
+            # Run some commands to tell Sage that its
+            # pid has changed (forcing a reload of
+            # misc).
+            import sage.misc.misc
+            imp.reload(sage.misc.misc)
 
-        # Now evaluate the function f.
-        value = f(*args, **kwds)
+            # The pexpect interfaces (and objects defined in them) are
+            # not valid.
+            if self.reset_interfaces:
+                sage.interfaces.quit.invalidate_all()
 
-        # And save the result to disk.
-        sobj = os.path.join(dir, '%s.sobj'%os.getpid())
-        save(value, sobj, compress=False)
+            # Now evaluate the function f.
+            value = f(*args, **kwds)
+
+            # And save the result to disk.
+            sobj = os.path.join(dir, '%s.sobj' % os.getpid())
+            save(value, sobj, compress=False)

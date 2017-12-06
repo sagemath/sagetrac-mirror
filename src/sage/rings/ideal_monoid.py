@@ -149,6 +149,9 @@ class IdealMonoid_c(Parent):
         else:
             return self.ring() == other.ring()
 
+    # TODO: Just inherit hash from superclass for now
+    __hash__ = Parent.__hash__
+
     def __ne__(self, other):
         r"""
         Check whether ``self`` is not equal to ``other``.

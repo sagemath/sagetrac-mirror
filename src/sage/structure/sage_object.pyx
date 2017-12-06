@@ -50,9 +50,9 @@ Test deprecations::
 from __future__ import absolute_import, print_function
 
 from six.moves import cPickle
+import io
 import os
 import sys
-from six.moves import cStringIO as StringIO
 from sage.misc.sage_unittest import TestSuite
 
 sys_modules = sys.modules
@@ -364,7 +364,7 @@ cdef class SageObject:
             <class 'sage.typeset.unicode_art.UnicodeArt'>
         """
         ascii_art = self._ascii_art_()
-        lines = map(unicode, ascii_art)
+        lines = [unicode(l) for l in ascii_art]
         from sage.typeset.unicode_art import UnicodeArt
         return UnicodeArt(lines)
 
@@ -472,7 +472,9 @@ cdef class SageObject:
             self._default_filename = filename
         except AttributeError:
             pass
-        open(filename, 'wb').write(self.dumps(compress))
+
+        with open(filename, 'wb') as f:
+            f.write(self.dumps(compress))
 
     def dump(self, filename, compress=True):
         """
@@ -489,10 +491,22 @@ cdef class SageObject:
 
         EXAMPLES::
 
-            sage: O=SageObject(); O.dumps()
-            'x\x9ck`J.NLO\xd5+.)*M.)-\x02\xb2\x80\xdc\xf8\xfc\xa4\xac\xd4\xe4\x12\xae` \xdb\x1f\xc2,d\xd4l,d\xd2\x03\x00\xb7X\x10\xf1'
-            sage: O.dumps(compress=False)
-            '\x80\x02csage.structure.sage_object\nSageObject\nq\x01)\x81q\x02.'
+            sage: from sage.structure.sage_object import comp
+            sage: O = SageObject()
+            sage: p_comp = O.dumps()
+            sage: p_uncomp = O.dumps(compress=False)
+            sage: comp.decompress(p_comp) == p_uncomp
+            True
+            sage: import pickletools
+            sage: pickletools.dis(p_uncomp)
+                0: \x80 PROTO      2
+                2: c    GLOBAL     'sage.structure.sage_object SageObject'
+               41: q    BINPUT     ...
+               43: )    EMPTY_TUPLE
+               44: \x81 NEWOBJ
+               45: q    BINPUT     ...
+               47: .    STOP
+            highest protocol among opcodes = 2
         """
         # the protocol=2 is very important -- this enables
         # saving extensions classes (with no attributes).
@@ -578,7 +592,7 @@ cdef class SageObject:
             sage: tester.assertTrue(1 == 0, "this is expected to fail")
             Traceback (most recent call last):
             ...
-            AssertionError: this is expected to fail
+            AssertionError:... this is expected to fail
 
             sage: tester.assertEqual(1, 1)
             sage: tester.assertEqual(1, 0)
@@ -633,7 +647,7 @@ cdef class SageObject:
                     tester.fail("Not implemented method: %s"%name)
                 except Exception:
                     pass
-        finally: 
+        finally:
             # Restore warnings
             warnings.filters.pop(0)
 
@@ -655,7 +669,7 @@ cdef class SageObject:
             sage: Bla()._test_pickling()
             Traceback (most recent call last):
             ...
-            PicklingError: Can't pickle <class '__main__.Bla'>: attribute lookup __main__.Bla failed
+            PicklingError: Can't pickle <class '__main__.Bla'>: attribute lookup ...__main__.Bla failed
 
         TODO: for a stronger test, this could send the object to a
         remote Sage session, and get it back.
@@ -1009,7 +1023,8 @@ def load(*filename, compress=True, verbose=True):
     We test loading a file or multiple files or even mixing loading files and objects::
 
         sage: t = tmp_filename(ext='.py')
-        sage: _ = open(t,'w').write("print('hello world')")
+        sage: with open(t, 'w') as f:
+        ....:     _ = f.write("print('hello world')")
         sage: load(t)
         hello world
         sage: load(t,t)
@@ -1036,7 +1051,8 @@ def load(*filename, compress=True, verbose=True):
 
         sage: code = '      subroutine hello\n         print *, "Hello World!"\n      end subroutine hello\n'
         sage: t = tmp_filename(ext=".F")
-        sage: _ = open(t, 'w').write(code)
+        sage: with open(t, 'w') as f:
+        ....:     _ = f.write(code)
         sage: load(t)
         sage: hello
         <fortran object>
@@ -1068,7 +1084,9 @@ def load(*filename, compress=True, verbose=True):
         filename = process(filename)
 
     ## Load file by absolute filename
-    X = loads(open(filename).read(), compress=compress)
+    with open(filename, 'rb') as f:
+        X = loads(f.read(), compress=compress)
+
     try:
         X._default_filename = os.path.abspath(filename)
     except AttributeError:
@@ -1143,14 +1161,15 @@ def save(obj, filename=None, compress=True, **kwds):
             s = cPickle.dumps(obj, protocol=2)
             if compress:
                 s = comp.compress(s)
-            open(process(filename), 'wb').write(s)
+            with open(process(filename), 'wb') as f:
+                f.write(s)
     else:
         # Saving an object to an image file.
         obj.save(filename, **kwds)
 
 def dumps(obj, compress=True):
     """
-    Dump obj to a string s.  To recover obj, use ``loads(s)``.
+    Dump obj to a `bytes` string.  To recover obj, use ``loads(s)``.
 
     .. SEEALSO:: :func:`dumps`
 
@@ -1382,18 +1401,18 @@ def unpickle_global(module, name):
         sage: del unpickle_override[('sage.rings.integer', 'Integer')]
         sage: unpickle_global('sage.rings.integer', 'Integer')
         <type 'sage.rings.integer.Integer'>
-        
+
     A meaningful error message with resolution instructions is displayed for
     old pickles that accidentally got broken because a class or entire module
     was moved or renamed::
-    
+
         sage: unpickle_global('sage.all', 'some_old_class')
         Traceback (most recent call last):
         ...
         ImportError: cannot import some_old_class from sage.all, call
         register_unpickle_override('sage.all', 'some_old_class', ...)
         to fix this
-        
+
         sage: unpickle_global('sage.some_old_module', 'some_old_class')
         Traceback (most recent call last):
         ...
@@ -1423,9 +1442,10 @@ def unpickle_global(module, name):
     mod = sys_modules[module]
     return getattr(mod, name)
 
+
 def loads(s, compress=True):
     """
-    Recover an object x that has been dumped to a string s
+    Recover an object x that has been dumped to `bytes` s
     using ``s = dumps(x)``.
 
     .. SEEALSO:: :func:`dumps`
@@ -1455,8 +1475,8 @@ def loads(s, compress=True):
         ...
         UnpicklingError: invalid load key, 'x'.
     """
-    if not isinstance(s, str):
-        raise TypeError("s must be a string")
+    if not isinstance(s, bytes):
+        raise TypeError("s must be bytes")
     if compress:
         try:
             s = comp.decompress(s)
@@ -1467,8 +1487,8 @@ def loads(s, compress=True):
                 # Maybe data is uncompressed?
                 pass
 
-    unpickler = cPickle.Unpickler(StringIO(s))
-    unpickler.find_global = unpickle_global
+    unpickler = cPickle.Unpickler(io.BytesIO(s))
+    #unpickler.find_global = unpickle_global
 
     return unpickler.load()
 
@@ -1526,7 +1546,7 @@ def picklejar(obj, dir=None):
         sage: os.chmod(dir, 0o755)
     """
     if dir is None:
-        dir = os.environ['SAGE_ROOT'] + '/tmp/pickle_jar/'
+        dir = os.path.join(os.environ['SAGE_ROOT'], '/tmp/pickle_jar/')
     try:
         os.makedirs(dir)
     except OSError as err:
@@ -1539,20 +1559,21 @@ def picklejar(obj, dir=None):
 
     typ = str(type(obj))
     name = ''.join([x if (x.isalnum() or x == '_') else '_' for x in typ])
-    base = '%s/%s'%(dir, name)
+    base = os.path.join(dir, name)
     if os.path.exists(base):
         i = 0
-        while os.path.exists(base + '-%s'%i):
+        while os.path.exists(base + f'-{i}'):
             i += 1
-        base += '-%s'%i
+        base += f'-{i}'
 
-    open(base + '.sobj', 'wb').write(s)
-    txt = "type(obj) = %s\n"%typ
-    import sage.version
-    txt += "version = %s\n"%sage.version.version
-    txt += "obj =\n'%s'\n"%str(obj)
+    with open(base + '.sobj', 'wb') as f:
+        f.write(s)
 
-    open(base + '.txt', 'w').write(txt)
+    from sage.version import version
+    txt = f"type(obj) = {type}\nversion = {version}\nobj =\n'{obj}'\n"
+    with open(base + '.txt', 'w') as f:
+        f.write(txt)
+
 
 def unpickle_all(dir = None, debug=False, run_test_suite=False):
     """

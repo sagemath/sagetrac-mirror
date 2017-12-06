@@ -237,6 +237,10 @@ class CongruenceSubgroupBase(ArithmeticSubgroup):
             # we shouldn't ever get here
             raise NotImplementedError
 
+    # Python 3: At least for now just fill in the missing __hash__ with the
+    # superclass's __hash__
+    __hash__ = ArithmeticSubgroup.__hash__
+
     def __ne__(self, other):
         """
         Check that ``self`` is not equal to ``other``.

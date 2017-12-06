@@ -63,6 +63,7 @@ EXAMPLES::
     {0: 0, 1: Z^16, 2: 0}
 """
 from six import iteritems
+from six.moves import reduce
 
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.structure.unique_representation import UniqueRepresentation

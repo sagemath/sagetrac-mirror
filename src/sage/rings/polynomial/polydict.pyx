@@ -57,7 +57,7 @@ cdef class PolyDict:
         """
         INPUT:
 
-        - ``pdict`` -- list, which represents a multi-variable polynomial with
+        - ``pdict`` -- dict or list, which represents a multi-variable polynomial with
           the distribute representation (a copy is not made)
 
         - ``zero`` --  (optional) zero in the base ring
@@ -115,7 +115,7 @@ cdef class PolyDict:
             pdict = new_pdict
         else:
             if remove_zero:
-                for k in pdict.keys():
+                for k in list(pdict):
                     if pdict[k] == zero:
                         del pdict[k]
         self.__repn = pdict
@@ -125,18 +125,23 @@ cdef class PolyDict:
         """
         Return the hash.
 
+        The hash of two PolyDicts is the same whether or not they use ETuples
+        for their keys since that's just an implementation detail.
+
         EXAMPLES::
 
+            sage: from sage.rings.polynomial.polydict import PolyDict
             sage: PD1 = PolyDict({(2,3):0, (1,2):3, (2,1):4})
             sage: PD2 = PolyDict({(2,3):0, (1,2):3, (2,1):4}, remove_zero=True)
-            sage: PD3 = PolyDict({(2,3):0, (1,2):3, (2,1):4}, force_etuples=False)
+            sage: PD3 = PolyDict({(2,3):0, (1,2):3, (2,1):4},
+            ....:                force_etuples=False, force_int_exponents=False)
             sage: PD4 = PolyDict({(2,3):0, (1,2):3, (2,1):4}, zero=4)
             sage: hash(PD1) == hash(PD2)
             False
             sage: hash(PD1) == hash(PolyDict({(2,3):0, (1,2):3, (2,1):4}))
             True
             sage: hash(PD1) == hash(PD3)
-            False
+            True
             sage: hash(PD3) == hash(PolyDict({(2,3):0, (1,2):3, (2,1):4},
             ....:                            force_etuples=False))
             True
@@ -147,7 +152,9 @@ cdef class PolyDict:
             True
         """
 
-        return hash((self.__class__, tuple(self.__repn.items()), self.__zero))
+        repn = tuple(sorted((tuple(key), val)
+                            for key, val in self.__repn.items()))
+        return hash((self.__class__, repn, self.__zero))
 
     def __richcmp__(PolyDict self, PolyDict right, int op):
         return PyObject_RichCompare(self.__repn, right.__repn, op)
@@ -566,14 +573,15 @@ cdef class PolyDict:
         """
         n = len(vars)
         poly = ""
-        E = self.__repn.keys()
+        sort_args = {'reverse': True}
         if sortkey:
-            E.sort(key=sortkey, reverse=True)
+            sort_args['key'] = sortkey
         elif cmpfn:
             deprecation(21766, 'the cmpfn keyword is deprecated, use sortkey')
-            E.sort(cmp=cmpfn, reverse=True)
-        else:
-            E.sort(reverse=True)
+            sort_args['cmp'] = cmpfn
+
+        E = sorted(self.__repn.keys(), **sort_args)
+
         try:
             pos_one = self.__zero.parent()(1)
             neg_one = -pos_one

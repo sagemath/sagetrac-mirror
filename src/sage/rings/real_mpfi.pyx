@@ -269,7 +269,7 @@ import sage.rings.complex_field
 import sage.rings.infinity
 
 from sage.structure.parent_gens cimport ParentWithGens
-from sage.cpython.string cimport char_to_str
+from sage.cpython.string cimport char_to_str, bytes_to_str, str_to_bytes
 
 
 #*****************************************************************************
@@ -1243,9 +1243,9 @@ cdef class RealIntervalFieldElement(RingElement):
                 ra = self._parent(a).lower()
                 rb = self._parent(b).upper()
                 mpfi_interv_fr(self.value, ra.value, rb.value)
-        elif isinstance(x, basestring):
-            s = str(x).replace('..', ',').replace(' ','').replace('+infinity', '@inf@').replace('-infinity','-@inf@')
-            if mpfi_set_str(self.value, s, base):
+        elif isinstance(x, str):
+            s = x.replace('..', ',').replace(' ','').replace('+infinity', '@inf@').replace('-infinity','-@inf@')
+            if mpfi_set_str(self.value, str_to_bytes(s), base):
                 raise TypeError("unable to convert {!r} to real interval".format(x))
         else:
             # try coercing to real
@@ -2128,15 +2128,15 @@ cdef class RealIntervalFieldElement(RingElement):
         digits = strlen(tmp_cstr)
         if tmp_cstr[0] == '-':
             digits -= 1
-            mant_string = str(tmp_cstr+1)
-            sign_string = '-'
+            mant_string = bytes_to_str(tmp_cstr+1)
+            sign_string = bytes_to_str(b'-')
         else:
-            mant_string = str(tmp_cstr)
-            sign_string = ''
+            mant_string = bytes_to_str(tmp_cstr)
+            sign_string = bytes_to_str(b'')
         PyMem_Free(tmp_cstr)
 
         if error_digits == 0:
-            error_string = ''
+            error_string = bytes_to_str(b'')
         else:
             tmp_cstr = <char *>PyMem_Malloc(mpz_sizeinbase(cur_error, 10) + 2)
             if tmp_cstr == NULL:

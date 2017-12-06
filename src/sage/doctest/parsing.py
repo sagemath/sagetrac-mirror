@@ -159,6 +159,82 @@ def normalize_type_repr(s):
     return _type_repr_re.sub(subst, s)
 
 
+_unbound_method_repr_re = re.compile(r"<unbound method (?P<name>[^>]+)>")
+
+def normalize_unbound_method_repr(s):
+    """
+    Converts the Python 2 representation of unbound methods to the Python 3
+    representation of unbound methods (which are just normal functions).
+
+    This can be used to normalize expected test output like::
+
+        <unbound method Class.meth>
+
+    to the Python 3 equivalent::
+
+        <function Class.meth at 0x...>
+
+    EXAMPLES::
+
+        sage: from sage.doctest.parsing import normalize_unbound_method_repr
+        sage: class Class(object):
+        ....:     def meth(self): pass
+        sage: Class.meth
+        <unbound method Class.meth>
+        sage: normalize_unbound_method_repr(repr(Class.meth))
+        '<function Class.meth at 0x...>'
+
+    The output contains literal ellipses ``...`` for passing back into the
+    doctest output checker with ellipses support enabled.
+    """
+
+    def subst(m):
+        return "<function {0} at 0x...>".format(m.group('name'))
+
+    return _unbound_method_repr_re.sub(subst, s)
+
+
+_nested_function_repr_re = re.compile(
+    r"<function (?:[^.]+\.)*(?P<basename>\S+) at 0x[^>]+>")
+
+def normalize_nested_function_repr(s):
+    """
+    Converts a Python 3 representation of function to its equivalent Python 2
+    representation.
+
+    The only difference between the two is that Python 3 functions contain the
+    function's entire ``__qualname__`` in their repr, while Python 2
+    contains just the function's base ``__name__``.
+
+    This applies to functions that are defined in some nested namespace--such
+    as methods defined on a class, or functions defined in and returned by a
+    function (thus having a closure).
+
+    EXAMPLES::
+
+        sage: from sage.doctest.parsing import normalize_nested_function_repr
+        sage: class Class(object):
+        ....:     def meth(self): pass
+        sage: func = getattr(Class.meth, '__func__', Class.meth)
+        sage: func
+        <function meth at 0x...>
+        sage: normalize_nested_function_repr(repr(func))
+        '<function meth at 0x...>'
+        sage: def foo():
+        ....:     return lambda: 1
+        sage: func = foo()
+        sage: func
+        <function <lambda> at 0x...>
+        sage: normalize_nested_function_repr(repr(func))
+        '<function <lambda> at 0x...>'
+    """
+
+    def subst(m):
+        return "<function {0} at 0x...>".format(m.group('basename'))
+
+    return _nested_function_repr_re.sub(subst, s)
+
+
 def parse_optional_tags(string):
     """
     Returns a set consisting of the optional tags from the following
@@ -981,16 +1057,21 @@ class SageOutputChecker(doctest.OutputChecker):
             repr_fixups = []
         else:
             repr_fixups = [
-                (lambda g, w: 'u"' in w or "u'" in w, remove_unicode_u),
+                (lambda g, w: 'u"' in w or "u'" in w,
+                 lambda g, w: (g, remove_unicode_u(w))),
                 (lambda g, w: '<class' in g and '<type' in w,
-                 normalize_type_repr)
+                 lambda g, w: (g, normalize_type_repr(w))),
+                (lambda g, w: '<function' in w,
+                 lambda g, w: (normalize_nested_function_repr(g), w)),
+                (lambda g, w: '<unbound method' in w,
+                 lambda g, w: (g, normalize_unbound_method_repr(w)))
             ]
 
         did_fixup = False
         for quick_check, fixup in repr_fixups:
             do_fixup = quick_check(got, want)
             if do_fixup:
-                want = fixup(want)
+                got, want = fixup(got, want)
                 did_fixup = True
 
         if not did_fixup:

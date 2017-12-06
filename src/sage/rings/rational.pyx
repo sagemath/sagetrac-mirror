@@ -56,9 +56,11 @@ import sys
 import operator
 import fractions
 
+import six
+
 from sage.misc.mathml import mathml
 from sage.arith.long cimport pyobject_to_long
-from sage.cpython.string cimport char_to_str
+from sage.cpython.string cimport char_to_str, str_to_bytes
 
 import sage.misc.misc as misc
 from sage.structure.sage_object cimport SageObject
@@ -531,7 +533,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             ...
             TypeError: Unable to coerce PARI x to an Integer
         """
-        mpq_set_str(self.value, s, 32)
+        mpq_set_str(self.value, str_to_bytes(s), 32)
 
     cdef __set_value(self, x, unsigned int base):
         cdef int n
@@ -576,9 +578,13 @@ cdef class Rational(sage.structure.element.FieldElement):
                     if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
                         raise TypeError("unable to convert {!r} to a rational".format(x))
                     mpq_canonicalize(self.value)
-
-        elif isinstance(x, basestring):
+        elif isinstance(x, bytes):
             n = mpq_set_str(self.value, x, base)
+            if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
+                raise TypeError("unable to convert {!r} to a rational".format(x))
+            mpq_canonicalize(self.value)
+        elif isinstance(x, str):
+            n = mpq_set_str(self.value, str_to_bytes(x), base)
             if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
                 raise TypeError("unable to convert {!r} to a rational".format(x))
             mpq_canonicalize(self.value)
@@ -2941,38 +2947,39 @@ cdef class Rational(sage.structure.element.FieldElement):
     #Define an alias for numerator
     numer = numerator
 
-    def __int__(self):
-        """
-        Convert this rational to a Python ``int``.
+    IF PY_MAJOR_VERSION <= 2:
+        def __int__(self):
+            """
+            Convert this rational to a Python ``int``.
 
-        This truncates ``self`` if ``self`` has a denominator (which is
-        consistent with Python's ``long(floats)``).
+            This truncates ``self`` if ``self`` has a denominator (which is
+            consistent with Python's ``long(floats)``).
 
-        EXAMPLES::
+            EXAMPLES::
 
-            sage: int(7/3)
-            2
-            sage: int(-7/3)
-            -2
-        """
-        return int(self.__long__())
+                sage: int(7/3)
+                2
+                sage: int(-7/3)
+                -2
+            """
+            return int(self.__long__())
 
     def __long__(self):
         """
-        Convert this rational to a Python ``long``.
+        Convert this rational to a Python ``long`` (``int`` on Python 3).
 
         This truncates ``self`` if ``self`` has a denominator (which is
         consistent with Python's ``long(floats)``).
 
         EXAMPLES::
 
-            sage: long(7/3)
+            sage: long(7/3)  # py2
             2L
-            sage: long(-7/3)
+            sage: long(-7/3)  # py2
             -2L
         """
         cdef mpz_t x
-        if mpz_cmp_si(mpq_denref(self.value),1) != 0:
+        if mpz_cmp_si(mpq_denref(self.value), 1) != 0:
             mpz_init(x)
             mpz_tdiv_q(x, mpq_numref(self.value), mpq_denref(self.value))
             n = mpz_get_pylong(x)
@@ -4091,6 +4098,7 @@ cdef class Q_to_Z(Map):
         """
         return Z_to_Q()
 
+
 cdef class int_to_Q(Morphism):
     r"""
     A morphism from ``int`` to `\QQ`.
@@ -4120,12 +4128,21 @@ cdef class int_to_Q(Morphism):
             sage: f = sage.rings.rational.int_to_Q()
             sage: f(int(4)) # indirect doctest
             4
-            sage: f(int(4^100))   # random garbage, not an int
+            sage: f(int(4^100))   # py2: random garbage, not an int
             14
+            sage: f(int(4^100))  # py3 should just work
+            1606938044258990275541962092341162602522202993782792835301376
         """
         cdef Rational rat
         rat = <Rational> Rational.__new__(Rational)
-        mpq_set_si(rat.value, PyInt_AS_LONG(a), 1)
+
+        if six.PY3 and isinstance(a, long):
+            # Should only get here on Python 3 anyways but just to be clear we
+            # only accept 'long' explicitly on Python 3
+            mpz_set_pylong(mpq_numref(rat.value), a)
+        else:
+            # Should be a Python 2 int
+            mpq_set_si(rat.value, PyInt_AS_LONG(a), 1)
         return rat
 
     def _repr_type(self):

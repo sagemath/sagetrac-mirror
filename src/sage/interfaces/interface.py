@@ -128,14 +128,14 @@ class Interface(WithEqualityById, ParentWithBase):
             sage: from sage.interfaces.interface import Interface
             sage: i = Interface("")
             sage: i.rand_seed() # random
-            318491487L
+            318491487
 
             sage: s = Singular()
             sage: s.rand_seed() # random
-            365260051L
+            365260051
         """
         from sage.misc.randstate import randstate
-        return long(randstate().seed()&0x1FFFFFFF)
+        return randstate().seed()&0x1FFFFFFF
 
     def set_seed(self,seed = None):
         """

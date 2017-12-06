@@ -591,13 +591,13 @@ cdef class Matrix_integer_dense(Matrix_dense):
                     t[1] = <char>0
                     t = t + 1
             sig_off()
-            data = str(s)[:-1]
+            data = bytes(s)[:-1]
             sig_free(s)
         return data
 
     def _unpickle(self, data, int version):
         if version == 0:
-            if isinstance(data, str):
+            if isinstance(data, bytes):
                 self._unpickle_version0(data)
             elif isinstance(data, list):
                 self._unpickle_matrix_2x2_version0(data)
@@ -617,7 +617,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             for j from 0 <= j < self._ncols:
                 s = data[k]
                 k += 1
-                if fmpz_set_str(fmpz_mat_entry(self._matrix,i,j), s, 32):
+                if fmpz_set_str(fmpz_mat_entry(self._matrix, i, j), s, 32):
                     raise RuntimeError("invalid pickle data")
 
     def _unpickle_matrix_2x2_version0(self, data):

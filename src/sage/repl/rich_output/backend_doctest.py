@@ -27,7 +27,7 @@ from sage.repl.rich_output.backend_base import BackendBase
 from sage.repl.rich_output.output_catalog import *
 
 
-    
+
 class BackendDoctest(BackendBase):
 
     def _repr_(self):
@@ -53,7 +53,7 @@ class BackendDoctest(BackendBase):
 
         Matches the IPython command line display preferences to keep
         the differences between that and the doctests to a minimum.
-        
+
         OUTPUT:
 
         Instance of
@@ -94,7 +94,7 @@ class BackendDoctest(BackendBase):
         """
         self._old_displayhook = sys.displayhook
         sys.displayhook = self.get_display_manager().displayhook
-    
+
     def uninstall(self):
         """
         Switch away from the doctest backend
@@ -115,7 +115,7 @@ class BackendDoctest(BackendBase):
     def supported_output(self):
         """
         Return the supported output types
-        
+
         OUTPUT:
 
         Set of subclasses of
@@ -134,7 +134,7 @@ class BackendDoctest(BackendBase):
         """
         return set([
             OutputPlainText, OutputAsciiArt, OutputUnicodeArt, OutputLatex,
-            OutputImagePng, OutputImageGif, OutputImageJpg, 
+            OutputImagePng, OutputImageGif, OutputImageJpg,
             OutputImageSvg, OutputImagePdf, OutputImageDvi,
             OutputSceneJmol, OutputSceneCanvas3d, OutputSceneWavefront,
             OutputVideoOgg, OutputVideoWebM, OutputVideoMp4,
@@ -216,7 +216,7 @@ class BackendDoctest(BackendBase):
     def validate(self, rich_output):
         """
         Perform checks on ``rich_output``
-        
+
         INPUT:
 
         - ``rich_output`` -- instance of a subclass of
@@ -267,7 +267,7 @@ class BackendDoctest(BackendBase):
         elif isinstance(rich_output, OutputLatex):
             assert rich_output.mathjax().startswith('<html>')
         elif isinstance(rich_output, OutputImagePng):
-            assert rich_output.png.get().startswith('\x89PNG')
+            assert rich_output.png.get().startswith(b'\x89PNG')
         elif isinstance(rich_output, OutputImageGif):
             assert rich_output.gif.get().startswith('GIF89a')
         elif isinstance(rich_output, OutputImageJpg):

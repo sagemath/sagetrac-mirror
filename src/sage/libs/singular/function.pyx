@@ -111,6 +111,8 @@ from sage.misc.misc import get_verbose
 from sage.structure.sequence import Sequence, Sequence_generic
 from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence, PolynomialSequence_generic
 
+from sage.cpython.string import str_to_bytes
+
 cdef poly* sage_vector_to_poly(v, ring *r) except <poly*> -1:
     """
     Convert a vector or list of multivariate polynomials to a
@@ -1311,7 +1313,7 @@ cdef class SingularFunction(SageObject):
             [[e + d + c + b + a, ...]]
         """
         global dummy_ring
-        
+
         if ring is None:
             ring = self.common_ring(args, ring)
             if ring is None:
@@ -1560,7 +1562,7 @@ cdef class SingularLibraryFunction(SingularFunction):
         self.call_handler = self.get_call_handler()
 
     cdef BaseCallHandler get_call_handler(self):
-        cdef idhdl* singular_idhdl = ggetid(self._name)
+        cdef idhdl* singular_idhdl = ggetid(str_to_bytes(self._name))
         if singular_idhdl==NULL:
             raise NameError("Singular library function {!r} is not defined".format(self._name))
         if singular_idhdl.typ!=PROC_CMD:
@@ -1571,7 +1573,7 @@ cdef class SingularLibraryFunction(SingularFunction):
         return res
 
     cdef bint function_exists(self):
-        cdef idhdl* singular_idhdl = ggetid(self._name)
+        cdef idhdl* singular_idhdl = ggetid(str_to_bytes(self._name))
         return singular_idhdl!=NULL
 
 cdef class SingularKernelFunction(SingularFunction):
@@ -1607,7 +1609,7 @@ cdef class SingularKernelFunction(SingularFunction):
 
     cdef BaseCallHandler get_call_handler(self):
         cdef int cmd_n = 0
-        arity = IsCmd(self._name, cmd_n) # call by reverence for CMD_n
+        arity = IsCmd(str_to_bytes(self._name), cmd_n) # call by reverence for CMD_n
         if not cmd_n:
             raise NameError("Singular kernel function {!r} is not defined".format(self._name))
 
@@ -1615,7 +1617,7 @@ cdef class SingularKernelFunction(SingularFunction):
 
     cdef bint function_exists(self):
         cdef int cmd_n = -1
-        arity = IsCmd(self._name, cmd_n) # call by reverence for CMD_n
+        arity = IsCmd(str_to_bytes(self._name), cmd_n) # call by reverence for CMD_n
         return cmd_n != -1
 
 
@@ -1831,7 +1833,7 @@ def lib(name):
          si_opt_2 &= ~Sy_bit(V_LOAD_LIB)
          si_opt_2 &= ~Sy_bit(V_REDEFINE)
 
-    cdef char* cname = omStrDup(name)
+    cdef char* cname = omStrDup(str_to_bytes(name))
     sig_on()
     cdef bint failure = iiLibCmd(cname, 1, 1, 1)
     sig_off()

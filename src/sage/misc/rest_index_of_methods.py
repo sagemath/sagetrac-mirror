@@ -237,7 +237,12 @@ def list_of_subfunctions(root, only_local_functions=True):
     else:
         raise ValueError("'root' must be a module or a class.")
 
-    def local_filter(f,name):
+    def func(f):
+        # If f is a method handle getting underlying function from the method
+        # in a manner that works on Python 2 and 3
+        return getattr(f, '__name__', f)
+
+    def local_filter(f, name):
         if only_local_functions:
             if ismodule:
                 return inspect.getmodule(root) == inspect.getmodule(f)
@@ -246,13 +251,19 @@ def list_of_subfunctions(root, only_local_functions=True):
         else:
             return inspect.isclass(root) or not (f is gen_rest_table_index)
 
-    functions =  {getattr(root,name):name for name,f in root.__dict__.items() if
-                  (not name.startswith('_')          and # private functions
-                   not hasattr(f,'trac_number')      and # deprecated functions
-                   not inspect.isclass(f)            and # classes
-                   callable(getattr(f,'__func__',f)) and # e.g. GenericGraph.graphics_array_defaults
-                   local_filter(f,name))                 # possibly filter imported functions
-                  }
+    def func_filter(f, name):
+        return (
+            not name.startswith('_') and       # private functions
+            not hasattr(f, 'trac_number') and  # deprecated functions
+            not inspect.isclass(f) and         # classes
+            callable(func(f)) and              # possibly an instancemethod
+            local_filter(f, name)              # possibly filter imported functions
+        )
+
+    functions =  {
+        func(getattr(root, name)): name for name, f in root.__dict__.items()
+        if func_filter(f, name)
+    }
 
     return list(functions.keys()), functions
 

@@ -146,7 +146,7 @@ class Sage(ExtraTabCompletion, Expect):
         """
         if python:
             command = "python -u"
-            prompt = ">>>"
+            prompt = b">>>"
             if init_code is None:
                 init_code = ['from sage.all import *',
                              'from six.moves import cPickle']
@@ -161,7 +161,7 @@ class Sage(ExtraTabCompletion, Expect):
                 '--no-term-title',
                 '--simple-prompt',
             ])
-            prompt = re.compile('In \[\d+\]: ')
+            prompt = re.compile(b'In \[\d+\]: ')
             if init_code is None:
                 init_code = ['from six.moves import cPickle']
 

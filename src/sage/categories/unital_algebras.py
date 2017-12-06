@@ -112,7 +112,11 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
             #
             # However, if there is a specialised from_base_ring method, then it should be used!
             try:
-                has_custom_conversion = self.category().parent_class.from_base_ring.__func__ is not self.from_base_ring.__func__
+                theirs = self.category().parent_class.from_base_ring
+                theirs = getattr(theirs, '__func__', theirs)
+                ours = self.from_base_ring
+                ours = getattr(ours, '__func__', ours)
+                has_custom_conversion = theirs is not ours
             except AttributeError:
                 # Sometimes from_base_ring is a lazy attribute
                 has_custom_conversion = True
@@ -167,7 +171,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
 
                     sage: A = AlgebrasWithBasis(QQ).example()
                     sage: A.one_basis()
-                    word: 
+                    word:
                     sage: A.one()
                     B[word: ]
                     sage: A.from_base_ring(4)
@@ -188,7 +192,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
 
                     sage: A = AlgebrasWithBasis(QQ).example()
                     sage: A.one_basis()
-                    word: 
+                    word:
                     sage: A.one_from_one_basis()
                     B[word: ]
                     sage: A.one()
@@ -226,7 +230,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
 
                     sage: A = AlgebrasWithBasis(QQ).example()
                     sage: A.one_basis()
-                    word: 
+                    word:
                     sage: A.one()
                     B[word: ]
                 """

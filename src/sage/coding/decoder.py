@@ -19,6 +19,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from six import get_unbound_function as get_func
+
 from sage.misc.abstract_method import abstract_method
 from sage.structure.sage_object import SageObject
 
@@ -362,7 +364,7 @@ class Decoder(SageObject):
         """
         raise NotImplementedError
 
-Decoder._instance_decoder_type.__func__.__doc__ = Decoder.decoder_type.__doc__
+get_func(Decoder._instance_decoder_type).__doc__ = Decoder.decoder_type.__doc__
 
 class DecodingError(Exception):
     r"""

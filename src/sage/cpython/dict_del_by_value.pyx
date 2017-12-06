@@ -31,7 +31,7 @@ from copy import deepcopy
 from cpython.list cimport PyList_New
 from cpython cimport Py_XINCREF, Py_XDECREF
 
-IF PY_VERSION_HEX<=0x02ffffff:
+IF PY_VERSION_HEX <= 0x02ffffff:
     cdef extern from "Python.h":
         ctypedef struct PyDictEntry:
             Py_ssize_t me_hash
@@ -175,7 +175,7 @@ IF PY_VERSION_HEX<=0x02ffffff:
         #avoid stack overflow in deleting deep structures.
         del T
 
-ELIF PY_VERSION_HEX>=0x03060000:
+ELIF PY_VERSION_HEX >= 0x03060000:
 
     from libc.stdint cimport int8_t,int16_t,int32_t,int64_t
     cdef extern from "Python.h":
@@ -440,4 +440,4 @@ def test_del_dictitem_by_exact_value(D, value, h):
         {1: Integer Ring}
 
     """
-    return del_dictitem_by_exact_value(<PyDictObject *>D, <PyObject *>value, h)
+    return del_dictitem_by_exact_value(<PyDictObject *>D, <PyObject *>value, int(h))

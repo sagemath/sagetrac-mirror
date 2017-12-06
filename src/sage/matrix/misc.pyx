@@ -442,7 +442,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
 
 ###########################
 
-def cmp_pivots(x,y):
+def cmp_pivots(x, y):
     """
     Compare two sequences of pivot columns.
 
@@ -475,6 +475,15 @@ def cmp_pivots(x,y):
         return -1
     if len(x) > len(y):
         return 1
+
+    if type(x) != type(y):
+        # Normalize both sequences to lists, since arbitrary sequences aren't
+        # necessarily comparable on Python 3
+        if not isinstance(x, list):
+            x = list(x)
+        if not isinstance(y, list):
+            y = list(y)
+
     if x < y:
         return 1
     elif x == y:

@@ -601,6 +601,9 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         return (self.polynomial_ring() == other.polynomial_ring() and
                 self.modulus() == other.modulus())
 
+    # TODO: Temporary until/unless we implement an explicit hash
+    __hash__ =  CommutativeRing.__hash__
+
     def __ne__(self, other):
         """
         Check whether ``self`` is not equal to ``other``.
@@ -1680,7 +1683,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
             # recursively try to rewrite the isomorphic_quotient
             isomorphic_ring_to_isomorphic_quotient, isomorphic_quotient_to_isomorphic_ring, isomorphic_ring = isomorphic_quotient._isomorphic_ring()
-            
+
             # the process has likely refined the category of
             # isomorphic_quotient (to Fields e.g.) so we use the same category
             # for self
@@ -1752,7 +1755,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             x = A.solve_left(A.column_space().basis()[1])
             primitive_element = sum(c*b for c,b in zip(x.list(), basis))
             from_isomorphic_ring = isomorphic_ring.hom([primitive_element], check=False)
-            
+
             return from_isomorphic_ring, to_isomorphic_ring, isomorphic_ring
 
         from sage.categories.all import NumberFields

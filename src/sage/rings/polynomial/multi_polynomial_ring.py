@@ -170,18 +170,21 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         Return the hash.
 
         EXAMPLES::
-            sage: R = PolynomialRing(Integers(10), 'x', 4)
-            sage: hash(R) == hash(PolynomialRing(Integers(10), 'x', 4))
+            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict as MPolyRing
+            sage: R = MPolyRing(Integers(10), 4, 'x', 'degrevlex')
+            sage: hash(R) == hash(MPolyRing(Integers(10), 4, 'x', 'degrevlex'))
             True
-            sage: hash(R) == hash(PolynomialRing(Integers(12), 'x', 4))
+            sage: hash(R) == hash(MPolyRing(Integers(12), 4, 'x', 'degrevlex'))
             False
-            sage: hash(R) == hash(PolynomialRing(Integers(10), 'y', 4))
+            sage: hash(R) == hash(MPolyRing(Integers(10), 4, 'y', 'degrevlex'))
             False
-            sage: hash(R) == hash(PolynomialRing(Integers(10), 'x', 3))
+            sage: hash(R) == hash(MPolyRing(Integers(10), 3, 'x', 'degrevlex'))
+            False
+            sage: hash(R) == hash(MPolyRing(Integers(10), 4, 'x', 'lex'))
             False
         """
 
-        return hash((self.__class__, self.base_ring(), self.variable_name(),
+        return hash((self.__class__, self.base_ring(), self.variable_names(),
                      self.term_order()))
 
     def __eq__(left, right):
@@ -821,8 +824,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         if not a:
             raise ZeroDivisionError
 
-        a = a.dict().keys()[0]
-        b = b.dict().keys()[0]
+        a = next(iter(a.dict()))
+        b = next(iter(b.dict()))
 
         for i in b.common_nonzero_positions(a):
             if b[i] - a[i] < 0:

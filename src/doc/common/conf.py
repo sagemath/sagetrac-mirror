@@ -209,30 +209,41 @@ html_static_path = [os.path.join(SAGE_DOC_SRC, 'common', 'static'), THEBE_DIR,
 # variable SAGE_DOC_MATHJAX is set to "no" or "False".  (Note that if
 # the user does not set this variable, then the script sage-env sets
 # it to "True".)
-
-if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
-            and os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'False'):
-
-    extensions.append('sphinx.ext.mathjax')
-    mathjax_path = 'MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js'
-
-    from sage.misc.latex_macros import sage_mathjax_macros
-    html_theme_options['mathjax_macros'] = sage_mathjax_macros()
-
+def setup_mathjax(app):
     from pkg_resources import Requirement, working_set
-    sagenb_path = working_set.find(Requirement.parse('sagenb')).location
-    mathjax_relative = os.path.join('sagenb','data','mathjax')
+    sagenb_dist = working_set.find(Requirement.parse('sagenb'))
+    use_mathjax = False
 
-    # It would be really nice if sphinx would copy the entire mathjax directory,
-    # (so we could have a _static/mathjax directory), rather than the contents of the directory
+    if os.environ.get('SAGE_DOC_MATHJAX', 'no').lower() not in ('no', 'false'):
+        if sagenb_dist is None:
+            app.warn('requested doc build using MathJax, but sagenb is not '
+                     'installed (we copy the MathJax files from the sagenb '
+                     'package); MathJax support can be disabled by setting '
+                     'the environment variable SAGE_DOC_MATHJAX=no')
+        else:
+            use_mathjax = True
+            mathjax_path = 'MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js'
 
-    mathjax_static = os.path.join(sagenb_path, mathjax_relative)
-    html_static_path.append(mathjax_static)
-    exclude_patterns += ['**/'+os.path.join(mathjax_relative, i)
-                         for i in ('docs', 'README*', 'test',
-                                   'unpacked', 'LICENSE')]
-else:
-     extensions.append('sphinx.ext.imgmath')
+            from sage.misc.latex_macros import sage_mathjax_macros
+            app.config.html_theme_options['mathjax_macros'] = sage_mathjax_macros()
+
+            sagenb_path = sagenb_dist.location
+            mathjax_relative = os.path.join('sagenb','data','mathjax')
+
+            # It would be really nice if sphinx would copy the entire mathjax directory,
+            # (so we could have a _static/mathjax directory), rather than the contents of the directory
+
+            mathjax_static = os.path.join(sagenb_path, mathjax_relative)
+            app.config.html_static_path.append(mathjax_static)
+            app.config.exclude_patterns += [
+                os.path.join('**', mathjax_relative, pth)
+                for pth in ('docs', 'README*', 'test', 'unpacked', 'LICENSE')
+            ]
+
+    if use_mathjax:
+        app.config.extensions.append('sphinx.ext.mathjax')
+    else:
+        app.config.extensions.append('sphinx.ext.imgmath')
 
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
@@ -790,6 +801,7 @@ def setup(app):
         #   app.connect('missing-reference', missing_reference)
         app.connect('missing-reference', find_sage_dangling_links)
         import sphinx.ext.intersphinx
+        app.connect('builder-inited', setup_mathjax)
         app.connect('builder-inited', set_intersphinx_mappings)
         app.connect('builder-inited', sphinx.ext.intersphinx.load_mappings)
         app.connect('builder-inited', nitpick_patch_config)

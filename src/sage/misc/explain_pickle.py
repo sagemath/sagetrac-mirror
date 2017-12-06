@@ -2438,7 +2438,7 @@ def unpickle_newobj(klass, args):
         return pers[int(id)]
 
     unp = cPickle.Unpickler(StringIO(pickle))
-    unp.persistent_load = pers_load
+    #unp.persistent_load = pers_load
     return unp.load()
 
 
@@ -2643,8 +2643,8 @@ def test_pickle(p, verbose_eval=False, pedantic=False, args=()):
     if verbose_eval:
         print("loading pickle with cPickle:")
     unp = cPickle.Unpickler(StringIO(p))
-    unp.persistent_load = pers_load
-    unp.find_global = unpickle_global
+    #unp.persistent_load = pers_load
+    #unp.find_global = unpickle_global
     try:
         cpickle_res = unp.load()
         cpickle_ok = True

@@ -21,6 +21,7 @@ from __future__ import absolute_import, print_function
 from cpython.object cimport *
 from cysignals.signals cimport sig_on, sig_off
 
+from sage.cpython.string cimport char_to_str, str_to_bytes
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object cimport SageObject
 from sage.structure.parent import Parent
@@ -99,7 +100,7 @@ cdef libGAP_Obj make_gap_record(sage_dict) except NULL:
     cdef libGAP_UInt rnam
     for d in data:
         key, val = d
-        rnam = libGAP_RNamName(key)
+        rnam = libGAP_RNamName(str_to_bytes(key))
         libGAP_AssPRec(rec, rnam, val.value)
     libgap_exit()
     return rec
@@ -147,7 +148,8 @@ cdef libGAP_Obj make_gap_string(sage_string) except NULL:
     """
     libgap_enter()
     cdef libGAP_Obj result
-    libGAP_C_NEW_STRING(result, len(sage_string), <char*>sage_string)
+    sage_string = str_to_bytes(sage_string)
+    libGAP_C_NEW_STRING(result, len(sage_string), sage_string)
     libgap_exit()
     return result
 
@@ -595,7 +597,7 @@ cdef class GapElement(RingElement):
             libgap_enter()
             libgap_start_interaction('')
             libGAP_ViewObjHandler(self.value)
-            s = libgap_get_output()
+            s = char_to_str(libgap_get_output())
             return s.strip()
         finally:
             libgap_finish_interaction()
@@ -1999,7 +2001,7 @@ cdef class GapElement_String(GapElement):
             <... 'str'>
         """
         libgap_enter()
-        s = libGAP_CSTR_STRING(self.value)
+        s = char_to_str(libGAP_CSTR_STRING(self.value))
         libgap_exit()
         return s
 

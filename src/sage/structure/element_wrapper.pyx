@@ -518,6 +518,8 @@ cdef class ElementWrapperCheckWrappedClass(ElementWrapper):
     """
     wrapped_class = object
 
+    __hash__ = ElementWrapper.__hash__
+
     def __richcmp__(left, right, int op):
         """
         Return ``True`` if ``left`` compares with ``right`` based on ``op``.
@@ -555,4 +557,3 @@ cdef class ElementWrapperCheckWrappedClass(ElementWrapper):
         if op == Py_NE:
             return self.value != (<ElementWrapper>right).value
         return False
-

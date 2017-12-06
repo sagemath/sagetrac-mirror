@@ -67,7 +67,7 @@ cpdef inline str bytes_to_str(bytes b, encoding=None, errors=None):
                            errors=errors)
 
 
-cpdef inline bytes str_to_bytes(str s, encoding=None, errors=None):
+cpdef inline bytes str_to_bytes(s, encoding=None, errors=None):
     """
     Convertes `str` to `bytes`.
 

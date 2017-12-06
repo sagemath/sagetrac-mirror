@@ -25,6 +25,8 @@ cdef extern from *: # hack to get at cython macro
 import re
 plusminus_pattern = re.compile("([^\(^])([\+\-])")
 
+from sage.cpython.string cimport bytes_to_str
+
 from sage.libs.singular.decl cimport number, ideal
 from sage.libs.singular.decl cimport currRing, rChangeCurrRing
 from sage.libs.singular.decl cimport p_Copy, p_Add_q, p_Neg, pp_Mult_nn, p_GetCoeff, p_IsConstant, p_Cmp, pNext
@@ -428,8 +430,8 @@ cdef object singular_polynomial_str(poly *p, ring *r):
     """
     if(r!=currRing): rChangeCurrRing(r)
 
-    s = p_String(p, r, r)
-    s = re.sub(plusminus_pattern, "\\1 \\2 ", s)
+    s = bytes_to_str(p_String(p, r, r))
+    s = plusminus_pattern.sub("\\1 \\2 ", s)
     return s
 
 

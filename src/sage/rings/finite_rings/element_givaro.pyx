@@ -50,7 +50,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, print_function, division
 
 from cysignals.signals cimport sig_on, sig_off
 
@@ -679,22 +679,22 @@ cdef class Cache_givaro(SageObject):
         quo = self.log_to_int(e.element)
         b   = int(self.characteristic())
 
-        ret = ""
+        ret = ''
         for i in range(self.exponent()):
-            coeff = quo%b
+            coeff = quo % b
             if coeff != 0:
-                if i>0:
-                    if coeff==1:
-                        coeff=""
+                if i > 0:
+                    if coeff == 1:
+                        coeff = ''
                     else:
-                        coeff=str(coeff)+"*"
-                    if i>1:
-                        ret = coeff + variable + "^" + str(i) + " + " + ret
+                        coeff = f'{coeff}*'
+                    if i > 1:
+                        ret = f'{coeff}{variable}^i + {ret}'
                     else:
-                        ret = coeff + variable + " + " + ret
+                        ret = f'{coeff}{variable} + {ret}'
                 else:
-                    ret = str(coeff) + " + " + ret
-            quo = quo/b
+                    ret = f'{coeff} + {ret}'
+            quo = quo // b
         if ret == '':
             return "0"
         return ret[:-3]
@@ -1520,9 +1520,9 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         b   = int(cache.characteristic())
         ret = []
         for i in range(K.degree()):
-            coeff = quo%b
+            coeff = quo % b
             ret.append(coeff)
-            quo = quo/b
+            quo = quo // b
         if not name is None and K.variable_name() != name:
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             return PolynomialRing(K.prime_subfield(), name)(ret)

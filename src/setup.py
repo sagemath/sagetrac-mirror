@@ -17,9 +17,6 @@ from distutils.errors import (DistutilsSetupError, DistutilsModuleError,
 import fpickle_setup
 
 
-PY2 = sys.version_info[0]
-
-
 def excepthook(*exc):
     """
     When an error occurs, display an error message similar to the error
@@ -310,7 +307,14 @@ class sage_build_cython(Command):
         # Read an already written version file if it exists and compare to the
         # current version stamp
         try:
-            if open(self._version_file).read() == self._version_stamp:
+            with open(self._version_file) as f:
+                current_version_stamp = f.read()
+        except IOError:
+            # Most likely, the version_file does not exist
+            # => (re)cythonize all Cython code.
+            force = True
+        else:
+            if current_version_stamp == self._version_stamp:
                 force = False
             else:
                 # version_file exists but its contents are not what we
@@ -323,10 +327,6 @@ class sage_build_cython(Command):
                 # we remove the version_file now to force a
                 # recythonization the next time we build Sage.
                 os.unlink(self._version_file)
-        except IOError:
-            # Most likely, the version_file does not exist
-            # => (re)cythonize all Cython code.
-            force = True
 
         # If the --force flag was given at the command line, always force;
         # otherwise use what we determined from reading the version file
@@ -359,20 +359,12 @@ class sage_build_cython(Command):
 
         Cython.Compiler.Options.embed_pos_in_docstring = True
 
-        if PY2:
-            # Exclude any modules named *_py3.pyx, as they are for Python 3 and
-            # up only
-            exclude = ['*_py3.pyx']
-        else:
-            exclude = []
-
         log.info("Updating Cython code....")
         t = time.time()
         # We use [:] to change the list in-place because the same list
         # object is pointed to from different places.
         self.extensions[:] = cythonize(
             self.extensions,
-            exclude=exclude,
             nthreads=self.parallel,
             build_dir=self.build_dir,
             force=self.force,

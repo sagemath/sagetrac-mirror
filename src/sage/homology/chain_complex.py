@@ -269,7 +269,7 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
         _, base_ring = prepare_dict(dict([n, data_dict[n].base_ring()(0)] for n in data_dict))
 
     # make sure values in data_dict are appropriate matrices
-    for n in data_dict.keys():
+    for n in list(data_dict):
         if not n in grading_group:
             raise ValueError('one of the dictionary keys is not an element of the grading group')
         mat = data_dict[n]
@@ -285,7 +285,7 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
         data_dict[n] = mat
 
     # include any "obvious" zero matrices that are not 0x0
-    for n in data_dict.keys():  # note: data_dict will be mutated in this loop
+    for n in list(data_dict):  # note: data_dict will be mutated in this loop
         mat1 = data_dict[n]
         if (mat1.nrows(), mat1.ncols()) == (0, 0):
             del data_dict[n]
@@ -306,7 +306,7 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
 
     # check that this is a complex: going twice is zero
     if check:
-        for n in data_dict.keys():
+        for n in data_dict:
             mat0 = data_dict[n]
             try:
                 mat1 = data_dict[n+degree]
@@ -567,7 +567,7 @@ class Chain_class(ModuleElement):
                     [8]       [4]
         """
         vectors = dict()
-        for d in set(self._vec.keys() + other._vec.keys()):
+        for d in set(self._vec) ^ set(other._vec):
             v = self.vector(d) + other.vector(d)
             if not v.is_zero():
                 v.set_immutable()
@@ -879,7 +879,7 @@ class ChainComplex_class(Parent):
         """
         if start is None:
             result = []
-            degrees = set(self._diff.keys())
+            degrees = set(self._diff)
             while len(degrees) > 0:
                 ordered = self.ordered_degrees(degrees.pop())
                 degrees.difference_update(ordered)

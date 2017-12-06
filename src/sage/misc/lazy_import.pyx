@@ -381,8 +381,9 @@ cdef class LazyImport(object):
         """
         TESTS::
 
+            sage: import six
             sage: lazy_import('sage.all', 'ZZ'); lazy_ZZ = ZZ
-            sage: unicode(lazy_ZZ)
+            sage: six.text_type(lazy_ZZ)
             u'Integer Ring'
         """
         return unicode(self.get_object())
@@ -414,7 +415,7 @@ cdef class LazyImport(object):
         TESTS::
 
             sage: lazy_import('sage.all', ['ZZ', 'QQ'])
-            sage: cmp(ZZ, QQ)
+            sage: cmp(ZZ, QQ)  # py2
             Traceback (most recent call last):
             ...
             NotImplementedError: old-style comparisons are not supported for lazily imported objects (see https://trac.sagemath.org/ticket/21247)
@@ -460,17 +461,21 @@ cdef class LazyImport(object):
         Now we lazy import it as a method of a new class ``Foo``::
 
             sage: from sage.misc.lazy_import import LazyImport
-            sage: class Foo:
+            sage: class Foo(object):
             ....:     my_method = LazyImport('sage.all', 'my_method')
 
         Now we can use it as a usual method::
 
             sage: Foo().my_method()
-            <__main__.Foo instance at ...>
-            sage: Foo.my_method
+            <__main__.Foo object at ...>
+            sage: Foo.my_method  # py2
             <unbound method Foo.my_method>
-            sage: Foo().my_method
-            <bound method Foo.my_method of <__main__.Foo instance at ...>>
+            sage: Foo.my_method  # py3
+            <function my_method at 0x...>
+            sage: Foo().my_method  # py2
+            <bound method Foo.my_method of <__main__.Foo object at ...>>
+            sage: Foo().my_method  # py 3
+            <bound method my_method of <__main__.Foo object at ...>>
 
         When a :class:`LazyImport` method is a method (or attribute)
         of a class, then extra work must be done to replace this
@@ -495,8 +500,10 @@ cdef class LazyImport(object):
 
            We access the ``plot`` method::
 
-               sage: Bar.plot
+               sage: Bar.plot  # py2
                <unbound method Bar.plot>
+               sage: Bar.plot  # py3
+               <function plot at 0x...>
 
            Now ``plot`` has been replaced in the dictionary of ``Foo``::
 
@@ -525,11 +532,13 @@ cdef class LazyImport(object):
         """
         TESTS::
 
+            sage: import sys
+            sage: py_version = sys.version_info[0]
             sage: lazy_import('sys', 'version_info')
             sage: type(version_info)
             <type 'sage.misc.lazy_import.LazyImport'>
-            sage: version_info[0]
-            2
+            sage: version_info[0] == py_version
+            True
         """
         return self.get_object()[key]
 
@@ -568,8 +577,10 @@ cdef class LazyImport(object):
             sage: lazy_import('sys', 'version_info')
             sage: type(version_info)
             <type 'sage.misc.lazy_import.LazyImport'>
-            sage: iter(version_info)
+            sage: iter(version_info)  # py2
             <iterator object at ...>
+            sage: iter(version_info)  # py3
+            <tuple_iterator object at ...>
         """
         return iter(self.get_object())
 
@@ -577,10 +588,12 @@ cdef class LazyImport(object):
         """
         TESTS::
 
+            sage: import sys
+            sage: py_version = sys.version_info[0]
             sage: lazy_import('sys', 'version_info')
             sage: type(version_info)
             <type 'sage.misc.lazy_import.LazyImport'>
-            sage: 2 in version_info
+            sage: py_version in version_info
             True
 
             sage: lazy_import('sys', 'version_info')
@@ -862,7 +875,7 @@ cdef class LazyImport(object):
             sage: lazy_import('sage.all', 'foo')
             sage: type(foo)
             <type 'sage.misc.lazy_import.LazyImport'>
-            sage: long(foo)
+            sage: long(foo)  # py2
             10L
         """
         return long(self.get_object())
@@ -888,8 +901,10 @@ cdef class LazyImport(object):
             sage: lazy_import('sage.all', 'foo')
             sage: type(foo)
             <type 'sage.misc.lazy_import.LazyImport'>
-            sage: oct(foo)
+            sage: oct(foo)  # py2
             '12'
+            sage: oct(foo)  # py3
+            '0o12'
         """
         return oct(self.get_object())
 
@@ -901,8 +916,10 @@ cdef class LazyImport(object):
             sage: lazy_import('sage.all', 'foo')
             sage: type(foo)
             <type 'sage.misc.lazy_import.LazyImport'>
-            sage: hex(foo)
+            sage: hex(foo)  # py2
             'a'
+            sage: hex(foo)  # py3
+            '0xa'
         """
         return hex(self.get_object())
 
@@ -1110,7 +1127,7 @@ def save_cache_file():
     cache_dir = os.path.dirname(cache_file)
 
     sage_makedirs(cache_dir)
-    with atomic_write(cache_file) as f:
+    with atomic_write(cache_file, binary=True) as f:
         pickle.dump(star_imports, f)
 
 def get_star_imports(module_name):
@@ -1130,7 +1147,7 @@ def get_star_imports(module_name):
 
         sage: import os, tempfile
         sage: fd, cache_file = tempfile.mkstemp()
-        sage: os.write(fd, 'invalid')
+        sage: os.write(fd, b'invalid')
         7
         sage: os.close(fd)
         sage: import sage.misc.lazy_import as lazy
@@ -1145,7 +1162,7 @@ def get_star_imports(module_name):
     if star_imports is None:
         star_imports = {}
         try:
-            with open(get_cache_file()) as cache_file:
+            with open(get_cache_file(), 'rb') as cache_file:
                 star_imports = pickle.load(cache_file)
         except IOError:        # file does not exist
             pass

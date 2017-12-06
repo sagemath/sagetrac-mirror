@@ -117,10 +117,6 @@ class OutputPlainText(OutputBase):
             sage: OutputPlainText('foo')
             OutputPlainText container
         """
-        # Internally, all buffers store bytes. Strings/Unicode is always utf-8
-        # encoded.
-        if not isinstance(plain_text, bytes):
-            plain_text = plain_text.encode('utf-8')
         self.text = OutputBuffer(plain_text)
 
     @classmethod
@@ -158,7 +154,7 @@ class OutputPlainText(OutputBase):
             sage: plain_text.print_to_stdout()
             Example plain text output
         """
-        print(self.text.get())
+        print(self.text.get_unicode())
 
 
 class OutputAsciiArt(OutputBase):

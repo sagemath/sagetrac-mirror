@@ -27,7 +27,6 @@ from sage.functions.exp_integral import Ei
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.arith.all import binomial as arith_binomial
 
-one_half = ~SR(2)
 
 class Function_abs(GinacFunction):
     def __init__(self):
@@ -1852,6 +1851,8 @@ class Function_beta(GinacFunction):
 
 beta = Function_beta()
 
+_one_half = None
+
 def _do_sqrt(x, prec=None, extend=True, all=False):
         r"""
         Used internally to compute the square root of x.
@@ -1901,7 +1902,11 @@ def _do_sqrt(x, prec=None, extend=True, all=False):
         if x == -1:
             z = I
         else:
-            z = SR(x) ** one_half
+            global _one_half
+            if _one_half is None:
+                _one_half = ~SR(2)
+
+            z = SR(x) ** _one_half
 
         if all:
             if z:
@@ -2644,7 +2649,7 @@ class Function_cases(GinacFunction):
             Traceback (most recent call last):
             ...
             TypeError: __call__() takes exactly 2 arguments (1 given)
-            
+
             sage: cases(x)
             Traceback (most recent call last):
             ...

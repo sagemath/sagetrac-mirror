@@ -1,6 +1,9 @@
 import os
 from glob import glob
 from distutils.extension import Extension
+
+import six
+
 from sage.env import SAGE_LOCAL
 
 SAGE_INC = os.path.join(SAGE_LOCAL, 'include')

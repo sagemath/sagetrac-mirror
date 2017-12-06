@@ -172,6 +172,9 @@ class pAdicExtensionGeneric(pAdicGeneric):
                 self.precision_cap() == other.precision_cap() and
                 self._printer.richcmp_modes(other._printer, op_EQ))
 
+    # Force __hash__ to be supplied by its superclass on Python 3
+    __hash__ = pAdicGeneric.__hash__
+
     def __ne__(self, other):
         """
         Test inequality.
@@ -420,7 +423,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         EXAMPLES::
 
             sage: R.<a> = Zq(125, 5); R.random_element()
-            (3*a^2 + 3*a + 3) + (a^2 + 4*a + 1)*5 + (3*a^2 + 4*a + 1)*5^2 + 
+            (3*a^2 + 3*a + 3) + (a^2 + 4*a + 1)*5 + (3*a^2 + 4*a + 1)*5^2 +
             (2*a^2 + 3*a + 3)*5^3 + (4*a^2 + 3)*5^4 + O(5^5)
             sage: R = Zp(5,3); S.<x> = ZZ[]; f = x^5 + 25*x^2 - 5; W.<w> = R.ext(f)
             sage: W.random_element()
