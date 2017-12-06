@@ -10996,7 +10996,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(100/49).factor_list()
             [(2, 2), (5, 2), (7, -2)]
             sage: (5/3*x/(x+1)).factor_list()
-            [(3, -1), (5, 1), (x + 1, -1), (x, 1)]
+            [(x + 1, -1), (x, 1), (3, -1), (5, 1)]
         """
         try:
             return self._factorization_from_pyobject()
@@ -11005,21 +11005,6 @@ cdef class Expression(CommutativeRingElement):
         vars = self.variables()
         l = []
         arg = self
-        if len(vars) == 1:
-            c = 1
-            try:
-                v = self.variables()[0]
-                c = arg.content(v)
-            except ValueError:
-                pass
-            else:
-                if c != arg.unit(v):
-                    try:
-                        for p,e in c._factorization_from_pyobject():
-                            l.append((p,e))
-                    except ValueError:
-                        pass
-                arg = arg / c
         r = arg.factor(dontfactor=dontfactor)._factor_list()
         for p,e in r:
             try:
