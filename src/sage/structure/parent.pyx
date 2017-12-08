@@ -612,6 +612,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         except (AttributeError, TypeError):
             # Remark: A TypeError can actually occur;
             # it is a possible reason for "hasattr" to return False
+            print(f"{type(self)} has no _element_constructor_ attribute")
             return
         assert callable(_element_constructor_)
         self._element_constructor = _element_constructor_

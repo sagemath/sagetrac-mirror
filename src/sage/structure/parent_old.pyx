@@ -151,6 +151,7 @@ cdef class Parent(parent.Parent):
                       From: Rational Field
                       To:   Multivariate Polynomial Ring in q, t over Rational Field
         """
+        raise BaseException(f"{type(self)} calling __coerce_map_from_c")
         check_old_coerce(self)
         if S is self:
             from sage.categories.homset import Hom
@@ -231,12 +232,14 @@ cdef class Parent(parent.Parent):
     def _coerce_(self, x):            # Call this from Python (do not override!)
         if self._element_constructor is not None:
             return self.coerce(x)
+        raise BaseException(f"{type(self)} calling _coerce_")
         check_old_coerce(self)
         return self._coerce_c(x)
 
     cpdef _coerce_c(self, x):          # DO NOT OVERRIDE THIS (call it)
         if self._element_constructor is not None:
             return self.coerce(x)
+        raise BaseException(f"{type(self)} calling _coerce_c")
         check_old_coerce(self)
         try:
             P = x.parent()   # todo -- optimize
@@ -276,6 +279,7 @@ cdef class Parent(parent.Parent):
              x -- Python object
              v -- parent object or list (iterator) of parent objects
         """
+        raise BaseException(f"{type(self)} calling _coerce_try")
         check_old_coerce(self)
         if not isinstance(v, list):
             v = [v]
@@ -289,6 +293,7 @@ cdef class Parent(parent.Parent):
         raise TypeError("no canonical coercion of element into self")
 
     cdef __has_coerce_map_from_c(self, S):
+        raise BaseException(f"{type(self)} calling __has_coerce_map_from_c")
         check_old_coerce(self)
         if self == S:
             return True
