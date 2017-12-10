@@ -240,7 +240,6 @@ from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import (CachedRepresentation,
                                                   UniqueRepresentation)
 from sage.structure.richcmp import richcmp_by_eq_and_lt
-from sage.rings.infinity import Infinity 
 
 class Variable(CachedRepresentation, SageObject):
     r"""
@@ -1518,18 +1517,16 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
             TypeError: Asymptotic Ring <z^ZZ> over Rational Field is not a valid base.
         """
         from .asymptotic_ring import AsymptoticRing
+        from sage.rings.infinity import Infinity
         if not isinstance(base, Parent) or \
            isinstance(base, AsymptoticRing):
             raise TypeError('%s is not a valid base.' % (base,))
 
         if var is None:
-            var = Variable('')
+            var = Variable('center')
         elif not isinstance(var, Variable):
             var = Variable(var, ignore=ignore_variables)
 
-        if center is None:
-            center = Infinity
-            
         from sage.categories.posets import Posets
         if category is None:
             # The following block can be removed once #19269 is fixed.
@@ -1551,9 +1548,9 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
                 initial_category=initial_category)
 
         return super(GenericGrowthGroup, cls).__classcall__(
-            cls, base, var, center, category)
+            cls, base, var, category)
 
-    def __init__(self, base, var, center, category):
+    def __init__(self, base, var, category):
         r"""
         See :class:`GenericGrowthElement` for more information.
 
@@ -1624,7 +1621,6 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
         """
         self._var_ = var
         super(GenericGrowthGroup, self).__init__(category=category,
-                                                 center=center,
                                                  base=base)
 
     def _repr_short_(self):
