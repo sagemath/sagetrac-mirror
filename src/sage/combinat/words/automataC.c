@@ -492,9 +492,8 @@ void printAutomaton (Automaton a)
 	printf("Etat initial %d.\n", a.i);
 }
 
-void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy)
+void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool verb)
 {
-	bool verb = false;
 	char tamp[1024];
 	FILE *f = fopen(temp_dot_file_name, "w");
 	if (!f)
@@ -533,6 +532,14 @@ void plotTikZ (Automaton a, const char **labels, const char *graph_name, double 
 			fprintf(f, "bold");
 		else
 			fprintf(f, "solid");
+		if (vlabels)
+		{
+			if (verb)
+			{
+				printf("ptz : i=%d : %s\n", i, vlabels[i]);
+			}
+			fprintf(f, ", label=%s", vlabels[i]);
+		}
 		fprintf(f, ", fontsize=20, margin=0]\n");
 	}
 	fprintf(f, "	\n");
@@ -2481,9 +2488,8 @@ void EpsilonCloture (NAutomaton a, Etats2 e, Etats2 ec)
 }
 
 //déterminise un automate non-déterministe
-Automaton DeterminiseN (NAutomaton a, bool puits)
+Automaton DeterminiseN (NAutomaton a, bool puits, int verb)
 {
-	int verb = 0;
 	if (verb)
 		printf("allocation...\n");
 	
@@ -2745,7 +2751,7 @@ Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb)
 	r.e[a->n].initial = false;
 	r.e[a->n].final = true;
 	
-	return DeterminiseN(r, etat_puits);
+	return DeterminiseN(r, etat_puits, 0);
 }
 
 Automaton ZeroInv (Automaton *a, int l0)
@@ -2792,7 +2798,7 @@ Automaton ZeroInv (Automaton *a, int l0)
 	r.e[a->n].initial = true;
 	r.e[a->n].final = true;
 	
-	return DeterminiseN(r, false);
+	return DeterminiseN(r, false, 0);
 }
 
 int compteurEtats = 0;

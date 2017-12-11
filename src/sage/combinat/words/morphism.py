@@ -2420,6 +2420,7 @@ class WordMorphism(SageObject):
         from sage.rings.number_field.number_field import NumberField
         
         K = NumberField(beta.minpoly(), 'b', embedding = QQbar(beta))
+        #vb = (self.incidence_matrix()-K.gen()).transpose().kernel().basis()[0]
         vb = (self.incidence_matrix()-K.gen()).kernel().basis()[0]
 
         # Projections of canonical base vectors from R^size_alphabet to C, using vb

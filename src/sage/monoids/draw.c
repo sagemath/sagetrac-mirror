@@ -370,15 +370,19 @@ bool addA (Automaton *a, int n)
 	return r;
 }
 
-Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int verb)
+Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, int verb)
 {
 	Automaton r = NewAutomaton(2, b.n);
 	r.i = 0;
 	int i;
-	for (i=0;i<b.n;i++)
+	if (!only_pos)
 	{
-		r.e[1].f[i] = 1; //état reconnaissant tout
+        for (i=0;i<b.n;i++)
+        {
+            r.e[1].f[i] = 1; //état reconnaissant tout
+        }
 	}
+	r.e[0].final = false;
 	r.e[1].final = true;
 
 	if (SDL_Init(SDL_INIT_VIDEO) == -1)

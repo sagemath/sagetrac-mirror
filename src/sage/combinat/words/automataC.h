@@ -33,7 +33,7 @@ Automaton CopyAutomaton (Automaton a, int nalloc, int naalloc);
 Automaton PieceAutomaton (Automaton a, int *w, int n, int e); //donne un automate reconnaissant w(w^(-1)L) où L est le langage de a partant de e
 void init (Automaton *a);
 void printAutomaton (Automaton a);
-void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy);
+void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool verb);
 bool equalsAutomaton (Automaton a1, Automaton a2); //détermine si les automates sont les mêmes (différents si états permutés)
 int contract (int i1, int i2, int n1);
 int geti1 (int c, int n1);
@@ -119,7 +119,7 @@ NAutomaton Concat (Automaton a, Automaton b, bool verb);
 NAutomaton CopyN (Automaton a, bool verb);
 NAutomaton Proj (Automaton a, Dict d, bool verb);
 
-Automaton DeterminiseN (NAutomaton a, bool puits);
+Automaton DeterminiseN (NAutomaton a, bool puits, int verb);
 
 //change l'alphabet en dupliquant des arêtes si nécessaire
 //the result is assumed deterministic !!!!

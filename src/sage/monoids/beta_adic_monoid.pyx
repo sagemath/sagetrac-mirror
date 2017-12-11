@@ -278,7 +278,7 @@ cdef extern from "draw.h":
 	BetaAdic2 NewBetaAdic2 (int n, int na)
 	void FreeBetaAdic2 (BetaAdic2 b)
 	void DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double coeff, int verb)
-	Automate UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int verb)
+	Automate UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, int verb)
 #	void WordZone (BetaAdic b, int *word, int nmax)
 	int *WordDrawn ()
 	void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int verb)
@@ -884,7 +884,7 @@ class BetaAdicMonoid(Monoid_class):
 #				 orbit_points = orbit_points.union(Set([place(b)*p+place(c) for p in orbit_points0]))
 #		 return orbit_points
 	
-	def user_draw (self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0,0,0,255), method=0, add_letters=True, verb=False):
+	def user_draw (self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0,0,0,255), method=0, add_letters=True, only_pos=False, verb=False):
 		if tss is None:
 			tss = self.reduced_words_automaton2()
 		sig_on()
@@ -903,7 +903,7 @@ class BetaAdicMonoid(Monoid_class):
 		if n is None:
 			n = -1
 		if method == 0:
-			a = UserDraw(b, sx, sy, n, ajust, col, verb)
+			a = UserDraw(b, sx, sy, n, ajust, col, only_pos, verb)
 		elif method == 1:
 			print "Not implemented !"
 			return

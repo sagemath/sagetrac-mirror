@@ -47,11 +47,11 @@ cdef extern from "automataC.h":
 	Automaton PieceAutomaton (Automaton a, int *w, int n, int e)
 	void init (Automaton *a)
 	void printAutomaton (Automaton a)
-	void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy)
+	void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool verb)
 	void NplotTikZ (NAutomaton a, const char **labels, const char *graph_name, double sx, double sy)
 	Automaton Product (Automaton a1, Automaton a2, Dict d, bool verb)
 	Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb)
-	Automaton DeterminiseN (NAutomaton a, bool puits)
+	Automaton DeterminiseN (NAutomaton a, bool puits, int verb)
 	NAutomaton Concat (Automaton a, Automaton b, bool verb)
 	NAutomaton CopyN (Automaton a, bool verb)
 	void AddEdgeN (NAutomaton *a, int e, int f, int l)
@@ -379,7 +379,7 @@ cdef class NFastAutomaton:
 		return self.a.n
 	
 	def n_succs (self, int i):
-		if i >= self.a.n or i < -1:
+		if i >= self.a.n or i < 0:
 			raise ValueError("There is no state %s !"%i)
 		return self.a.e[i].n
 	
@@ -400,17 +400,36 @@ cdef class NFastAutomaton:
 		return self.a.e[i].a[j].l
 	
 	def is_final (self, int i):
-		if i >= self.a.n or i < -1:
+		if i >= self.a.n or i < 0:
 			raise ValueError("There is no state %s !"%i)
 		return self.a.e[i].final
 	
 	def is_initial (self, int i):
-		if i >= self.a.n or i < -1:
+		if i >= self.a.n or i < 0:
 			raise ValueError("There is no state %s !"%i)
 		return self.a.e[i].initial
-		
+	
+	def initial_states (self):
+		l = []
+		for i in range(self.a.n):
+			if self.a.e[i].initial:
+				l.append(i)
+		return l
+	
+	def final_states (self):
+		l = []
+		for i in range(self.a.n):
+			if self.a.e[i].final:
+				l.append(i)
+		return l
+	
 	def Alphabet (self):
 		return self.A
+	
+	def set_initial (self, int e, bool initial=True):
+		if e < 0 or e >= self.a.n:
+			raise ValueError("There is no state %s !"%e)
+		self.a.e[e].initial = initial;
 	
 	def add_edge (self, e, f, l):
 		sig_on()
@@ -428,11 +447,11 @@ cdef class NFastAutomaton:
 		AddPathN(self.a, e, f, l, len(li), verb)
 		sig_off()
 	
-	def determinise (self, puits=False):
+	def determinise (self, puits=False, verb=0):
 		cdef Automaton a
 		sig_on()
 		r = FastAutomaton(None)
-		a = DeterminiseN(self.a[0], puits)
+		a = DeterminiseN(self.a[0], puits, verb)
 		r.a[0] = a
 		r.A = self.A
 		sig_off()
@@ -544,17 +563,46 @@ cdef class FastAutomaton:
 		sig_off()
 		return r
 	
-	def plot (self, int sx=10, int sy=8):
+	def plot (self, int sx=10, int sy=8, vlabels=None, html=False, verb=False):
 		sig_on()
-		cdef char** ll
-		ll = <char **>malloc(sizeof(char*)*self.a.na)
+		cdef char** ll #labels of edges
+		cdef char** vl #labels of vertices
 		cdef int i
+		ll = <char **>malloc(sizeof(char*)*self.a.na)
+		if vlabels is None:
+			vl = NULL
+		else:
+			if verb:
+				print "alloc %s..."%self.a.n
+			vl = <char **>malloc(sizeof(char*)*self.a.n)
+			strV = []
+			if verb:
+				print "len %s %s"%(self.a.n, len(vlabels))
+			for i in range(self.a.n):
+				if html:
+					strV.append("<"+vlabels[i]+">")
+				else:
+					strV.append("\""+vlabels[i]+"\"")
+				if verb:
+					print strV[i]
+				vl[i] = strV[i]
+				if verb:
+					print "i=%s : %s"%(i,vl[i])
 		strA = []
 		for i in range(self.a.na):
 			strA.append(str(self.A[i]))
 			ll[i] = strA[i]
-		plotTikZ(self.a[0], ll, "Automaton", sx, sy)
-		free(ll);
+		if verb:
+			for i in range(self.a.n):
+				print "i=%s : %s"%(i,vl[i])
+		if verb:
+			print "plot..."
+		plotTikZ(self.a[0], ll, "Automaton", sx, sy, vl, verb)
+		if verb:
+			print "free...plot"
+		free(ll)
+		if vlabels is not None:
+			free(vl)
 		sig_off()
 		#self.Automaton().plot2()
 	

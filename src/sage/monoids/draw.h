@@ -66,7 +66,7 @@ bool set_pix (Surface s, Complexe p);
 void print_word (BetaAdic b, int n, int etat);
 Color randColor (int a);
 void DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double coeff, int verb);
-Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int verb);
+Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, int verb);
 //void WordZone (BetaAdic b, int *word, int nmax);
 int *WordDrawn ();
 void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int verb);
