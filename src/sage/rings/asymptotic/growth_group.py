@@ -312,7 +312,7 @@ class Variable(CachedRepresentation, SageObject):
         sage: v = Variable('(e^(n*log(n)))', ignore=('e',)); repr(v), v.variable_names()
         ('e^(n*log(n))', ('n',))
     """
-    def __init__(self, var, repr=None, latex_name=None, ignore=None):
+    def __init__(self, var, center, repr=None, latex_name=None, ignore=None):
         r"""
         See :class:`Variable` for details.
 
@@ -1523,7 +1523,7 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
             raise TypeError('%s is not a valid base.' % (base,))
 
         if var is None:
-            var = Variable('center')
+            var = Variable('')
         elif not isinstance(var, Variable):
             var = Variable(var, ignore=ignore_variables)
 
