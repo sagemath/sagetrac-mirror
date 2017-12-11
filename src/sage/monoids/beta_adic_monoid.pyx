@@ -2815,13 +2815,14 @@ class BetaAdicMonoid(Monoid_class):
 			else:
 				a = FastAutomaton(self.default_ss())
 		if b is None:
-			if hasattr(self, 'tss'):
-				if isinstance(self.tss, FastAutomaton):
-					b = self.tss
-				else:
-					b = FastAutomaton(self.tss)
-			else:
-				b = FastAutomaton(self.default_ss())
+			b = FastAutomaton(self.default_ss())
+			#			if hasattr(self, 'tss'):
+			#				if isinstance(self.tss, FastAutomaton):
+			#					b = self.tss
+			#				else:
+			#					b = FastAutomaton(self.tss)
+			#			else:
+			#				b = FastAutomaton(self.default_ss())
 		if A is None:
 			A = list(set(a.A))
 		if B is None:
@@ -2831,7 +2832,7 @@ class BetaAdicMonoid(Monoid_class):
 			ar = self.relations_automaton4(t=t, A=A, B=B, couples=True, verb=False)
 		#compute the product of a and b
 		if verb: print("product...")
-		ap = a.product(b)
+		ap = a.zero_complete2().product(b.zero_complete2())
 		if verb: print "ap = %s"%ap
 		#compute the intersections
 		if verb: print("intersection...")
@@ -2850,6 +2851,7 @@ class BetaAdicMonoid(Monoid_class):
 		ai = ai.determinise_proj(d, verb=verb)
 		if verb: print "ai=%s"%ai
 		if verb: print("min")
+		ai.zero_completeOP()
 		return ai.emonde().minimise()
 	
 	#Not well tested !!!!
