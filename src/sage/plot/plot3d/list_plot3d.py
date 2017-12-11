@@ -29,21 +29,20 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
 
     OPTIONAL KEYWORDS:
 
-    - ``interpolation_type`` - 'linear', 'nn' (natural neighbor), 'spline'
+    - ``interpolation_type`` - 'linear', 'clough' (CloughTocher2D), 'spline'
 
       'linear' will perform linear interpolation
 
-      The option 'nn' An interpolation method for multivariate data in a 
-      Delaunay triangulation. The value for an interpolation point is 
-      estimated using weighted values of the closest surrounding points in 
-      the triangulation. These points, the natural neighbors, are the ones 
-      the interpolation point would connect to if inserted into the 
-      triangulation.
+      The option 'clough' will interpolate by using a piecewise cubic interpolating
+      Bezier polynomial on each triangle, using a Clough-Tocher scheme.
+      The interpolant is guaranteed to be continuously differentiable.
+      The gradients of the interpolant are chosen so that the curvature of the
+      interpolating surface is approximatively minimized.
 
       The option 'spline' interpolates using a bivariate B-spline.
 
       When v is a matrix the default is to use linear interpolation, when
-      v is a list of points the default is nearest neighbor.
+      v is a list of points the default is 'clough'.
 
     - ``degree`` - an integer between 1 and 5, controls the degree of spline
       used for spline interpolation. For data that is highly oscillatory
@@ -320,18 +319,18 @@ def list_plot3d_tuples(v, interpolation_type, texture, **kwds):
 
     OPTIONAL KEYWORDS:
 
-    - ``interpolation_type`` - 'linear', 'nn' (natural neighbor), 'spline'
+    - ``interpolation_type`` - 'linear', 'clough' (CloughTocher2D), 'spline'
 
       'linear' will perform linear interpolation
 
-      The option 'nn' will interpolate by using natural neighbors. The 
-      value for an interpolation point is estimated using weighted values 
-      of the closest surrounding points in the triangulation.
+      The option 'clough' will interpolate by using a piecewise cubic interpolating
+      Bezier polynomial on each triangle, using a Clough-Tocher scheme.
+      The interpolant is guaranteed to be continuously differentiable.
 
       The option 'spline' interpolates using a bivariate B-spline.
 
       When v is a matrix the default is to use linear interpolation, when
-      v is a list of points the default is nearest neighbor.
+      v is a list of points the default is 'clough'.
 
     - ``degree`` - an integer between 1 and 5, controls the degree of spline
       used for spline interpolation. For data that is highly oscillatory
@@ -373,7 +372,7 @@ def list_plot3d_tuples(v, interpolation_type, texture, **kwds):
         sage: list_plot3d([(1, 2, 3), (0, 1, 3), (2, 1, 4), (1, 0, -2)], texture='yellow', num_points=50)
         Graphics3d Object
     """
-    from matplotlib import tri, delaunay
+    from matplotlib import tri
     import numpy
     import scipy
     from random import random
@@ -439,19 +438,15 @@ def list_plot3d_tuples(v, interpolation_type, texture, **kwds):
         G._set_extra_kwds(kwds)
         return G
 
-    if interpolation_type == 'nn'  or interpolation_type =='default':
+    if interpolation_type == 'clough'  or interpolation_type =='default':
 
-        T=delaunay.Triangulation(x,y)
-        f=T.nn_interpolator(z)
-        f.default_value=0.0
-        j=numpy.complex(0,1)
-        vals=f[ymin:ymax:j*num_points,xmin:xmax:j*num_points]
+        points=[[x[i],y[i]] for i in range(len(x))]
+        j = numpy.complex(0, 1)
+        f = interpolate.CloughTocher2DInterpolator(points,z)
         from .parametric_surface import ParametricSurface
-        def g(x,y):
-            i=round( (x-xmin)/(xmax-xmin)*(num_points-1) )
-            j=round( (y-ymin)/(ymax-ymin)*(num_points-1) )
-            z=vals[int(j),int(i)]
-            return (x,y,z)
+        def g(x, y):
+            z = f([x, y])
+            return (x, y, z)
         G = ParametricSurface(g, (list(numpy.r_[xmin:xmax:num_points*j]), list(numpy.r_[ymin:ymax:num_points*j])), texture=texture, **kwds)
         G._set_extra_kwds(kwds)
         return G
