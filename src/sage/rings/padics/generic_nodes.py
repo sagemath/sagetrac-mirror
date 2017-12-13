@@ -389,10 +389,12 @@ class pAdicRingBaseGeneric(pAdicBaseGeneric, pAdicRingGeneric):
             True
         """
         from sage.categories.pushout import CompletionFunctor
-        return (CompletionFunctor(self.prime(),
-                                  self.precision_cap(),
-                                  {'print_mode':self._printer.dict(), 'type':self._prec_type(), 'names':self._names}),
-                ZZ)
+        extras = {'print_mode':self._printer.dict(), 'type':self._prec_type(), 'names':self._names}
+        try:
+            extras['label'] = self._label
+        except AttributeError:
+            pass
+        return (CompletionFunctor(self.prime(), self.precision_cap(), extras), ZZ)
 
     def random_element(self, algorithm='default'):
         r"""

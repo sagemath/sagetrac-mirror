@@ -2473,7 +2473,7 @@ class CompletionFunctor(ConstructionFunctor):
         return not (self == other)
 
     _real_types = ['Interval','Ball','MPFR','RDF','RLF']
-    _dvr_types = [None, 'fixed-mod','floating-point','capped-abs','capped-rel','lazy']
+    _dvr_types = [None, 'fixed-mod','floating-point','capped-abs','capped-rel','lazy','lattice']
 
     def merge(self, other):
         """
