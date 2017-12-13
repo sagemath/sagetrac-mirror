@@ -2218,7 +2218,7 @@ def cl_maximum_root_first_lambda(cl):
             posCounter = posCounter+1
 
     if len(neg) == 0:
-        return RIF._upper_field().zero()
+        return RIF.upper_field().zero()
 
     max_ub_log = RIF('-infinity')
     for j in xrange(len(neg)):
@@ -2347,7 +2347,7 @@ def root_bounds(p):
     if n == 0:
         # not RIF.zero().endpoints() because of MPFI's convention that the
         # upper bound is -0.
-        return RIF._lower_field().zero(), RIF._upper_field().zero()
+        return RIF.lower_field().zero(), RIF.upper_field().zero()
 
     ub = cl_maximum_root(cl)
 

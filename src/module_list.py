@@ -1200,6 +1200,8 @@ ext_modules = [
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']),
 
+    Extension('*', ['sage/rings/convert/*.pyx']),
+
     ################################
     ##
     ## sage.rings.finite_rings
