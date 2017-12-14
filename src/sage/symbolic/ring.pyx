@@ -246,6 +246,17 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR(complex(2,-3))
             (2-3j)
 
+        Any Sage set::
+
+            sage: SR(Set(ZZ))
+            Set of elements of Integer Ring
+            sage: SR(Primes())
+            Set of all prime numbers: 2, 3, 5, 7, ...
+            sage: SR(Set([1,2,3]))
+            {1, 2, 3}
+            sage: SR(RealSet(0,1))
+            (0, 1)
+
         TESTS::
 
             sage: SR._coerce_(int(5))
@@ -348,6 +359,7 @@ cdef class SymbolicRing(CommutativeRing):
         from sage.rings.infinity import (infinity, minus_infinity,
                                          unsigned_infinity)
         from sage.structure.factorization import Factorization
+        from sage.sets.set import is_Set
 
         if isinstance(x, RealNumber):
             if x.is_NaN():
@@ -376,6 +388,8 @@ cdef class SymbolicRing(CommutativeRing):
         elif isinstance(x, Factorization):
             from sage.misc.all import prod
             return prod([SR(p)**e for p,e in x], SR(x.unit()))
+        elif is_Set(x):
+            exp = x
         else:
             raise TypeError(f"unable to convert {x!r} to a symbolic expression")
 
