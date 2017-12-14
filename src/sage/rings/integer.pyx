@@ -1086,7 +1086,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         sig_off()
         k = <bytes>s
         sig_free(s)
-        return k
+        if isinstance(k, str):
+            return k
+        else:
+            return k.decode('utf8')
 
     def __format__(self, *args, **kwargs):
         """
@@ -1873,7 +1876,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                        mpq_denref((<Rational>right).value))
             return y
 
-        return coercion_model.bin_op(left, right, operator.div)
+        return coercion_model.bin_op(left, right, operator.truediv)
 
     cpdef _div_(self, right):
         r"""

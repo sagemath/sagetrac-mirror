@@ -7972,4 +7972,4 @@ _additional_categories = {
     "strong_orientations_iterator" : "Connectivity, orientations, trees"
     }
 
-__doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))
+# __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))
