@@ -2667,6 +2667,30 @@ class Function_limit(BuiltinFunction):
         BuiltinFunction.__init__(self, "limit", nargs=0,
                                conversions=dict(maxima='limit'))
 
+    def _eval_(self, x, s):
+        """
+        EXAMPLES::
+
+            sage: from sage.functions.other import element_of, set_of_all
+            sage: _ = var('n')
+            sage: element_of(x, SR(RealSet(-oo, oo)))
+            element_of(x, (-oo, +oo))
+            sage: element_of(x, set_of_all(1/n, element_of(n, SR(Set(ZZ)))))
+            element_of(x, set_of_all(1/n, element_of(n, Set of elements of Integer Ring)))
+            sage: element_of(x, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a formal set: 0
+        """
+        from sage.sets.set import is_Set
+        if not is_Set(s):
+            try:
+                if s.operator() == set_of_all:
+                    return
+            except AttributeError:
+               pass
+            raise ValueError("not a formal set: {}".format(s))
+
     def _latex_(self):
         r"""
         EXAMPLES::
@@ -2921,4 +2945,65 @@ class Function_crootof(BuiltinFunction):
         return sobj.n(ceil(prec*3/10))._sage_()
 
 complex_root_of = Function_crootof()
+
+class Function_setofall(GinacFunction):
+    """
+    Formal set comprehension function that is only accessible internally.
+
+    This function is called to express a set comprehension statement,
+    usually as part of a solution set returned by ``solve()``.
+    See :func:`element_of` for the required second argument.
+
+    EXAMPLES::
+
+        sage: from sage.functions.other import set_of_all, element_of as elem
+        sage: _ = var('x,y,z')
+        sage: reals = SR(RealSet(-oo, oo))
+        sage: set_of_all(x^2, elem(x, SR(Set(ZZ))))
+        set_of_all(x^2, element_of(x, Set of elements of Integer Ring))
+        sage: elem(z, set_of_all(x+I*y, [elem(x, reals), elem(y, reals)]))
+        element_of(z, set_of_all(x + I*y, (element_of(x, (-oo, +oo)), element_of(y, (-oo, +oo)))))
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.functions.other import set_of_all
+            sage: loads(dumps(set_of_all))
+            set_of_all
+        """
+        BuiltinFunction.__init__(self, "set_of_all", nargs=2)
+
+    def __call__(self, ex, arg, **kwargs):
+        """
+        TESTS::
+
+            sage: from sage.functions.other import set_of_all, element_of as elem
+            sage: set_of_all(x, 1)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: not a set membership statement: 1
+            sage: set_of_all(x, [elem(x, SR(Set(ZZ))), sin(x)])
+            Traceback (most recent call last):
+            ...
+            RuntimeError: not a set membership statement: sin(x)
+        """
+        return GinacFunction.__call__(self, ex,
+                SR._force_pyobject(arg), **kwargs)
+
+    def _print_latex_(self, ex, arg):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import set_of_all, element_of as elem
+            sage: _ = var('x,y,z')
+            sage: reals = SR(RealSet(-oo, oo))
+            sage: latex(set_of_all(x^2, elem(x, SR(Set(ZZ)))))
+            \left{x^{2} \,\mid| x \in \Bold{Z}\right}
+            sage: latex(elem(z, set_of_all(x+I*y, [elem(x, reals), elem(y, reals)])))
+            z \in \left{x + i \, y \,\mid| \left(x \in \text{\texttt{({-}oo,{ }+oo)}}, y \in \text{\texttt{({-}oo,{ }+oo)}}\right)\right}
+        """
+        return r"\left{{{} \,\mid| {}\right}}".format(latex(ex), latex(arg))
+
+set_of_all = Function_setofall()
 
