@@ -1019,7 +1019,7 @@ framework. Here is a comprehensive list:
 - **py2** or **py3:** Run the line on Python 2 *only* or Python 3 *only*
   respectively.  Generally this should be avoided as code should be tested on
   both Python 2 and Python 3, but there are on occasion tests that are simply
-  inapplicable on one or the other, such as tests that rely on optionl features
+  inapplicable on one or the other, such as tests that rely on optional features
   that are only available on one Python version or the other.
 
 - **optional:** A line flagged with ``optional - keyword`` is not tested unless
