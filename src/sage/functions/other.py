@@ -2917,7 +2917,7 @@ class Function_crootof(BuiltinFunction):
             prec = parent.precision()
         except AttributeError:
             prec = 53
-        sobj = CRootOf(Poly(poly._sympy_()), int(index))
+        sobj = CRootOf(Poly(poly._sympy_()), int(round(real_part(index))))
         return sobj.n(ceil(prec*3/10))._sage_()
 
 complex_root_of = Function_crootof()
