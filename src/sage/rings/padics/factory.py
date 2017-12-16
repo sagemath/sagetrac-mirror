@@ -118,7 +118,7 @@ def get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_se
          '|',
          ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B'),
          -1,
-         False,
+         True,
          None)
     """
     if prec is None:
@@ -577,7 +577,7 @@ class Qp_class(UniqueFactory):
 
         TESTS::
 
-            sage: Qp.create_object((3,4,2),(5, 41, 'capped-rel', 'series', '5', True, '|', (), -1, None))
+            sage: Qp.create_object((3,4,2),(5, 41, 'capped-rel', 'series', '5', True, '|', (), -1))
             5-adic Field with capped relative precision 41
         """
         if version[0] < 3 or (version[0] == 3 and version[1] < 2) or (version[0] == 3 and version[1] == 2 and version[2] < 3):
@@ -1100,6 +1100,14 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
         sage: Qq(125.factor(), names="alpha") is R
         True
 
+    Check that :trac:`18606` is resolved::
+
+        sage: x = QQ['x'].gen()
+        sage: F = Qp(5,20)
+        sage: K0 = F.extension(x^2-F(13),names = 'g')
+        sage: K1 = F.extension(x^2-13,names = 'g')
+        sage: K0 is K1
+        True
     """
     if is_Element(q):
         F = Integer(q).factor()
@@ -1190,6 +1198,31 @@ def QpFP(p, prec = None, *args, **kwds):
         sage: QpFP(5, 40)
         5-adic Field with floating precision 40
     """
+    return Qp(p, prec, 'floating-point', *args, **kwds)
+
+#def QpL(p, prec = DEFAULT_PREC, print_mode = None, halt = DEFAULT_HALT, names = None, print_pos = None,
+#        print_sep = None, print_alphabet = None, print_max_terms = None, check=True):
+#    """
+#    A shortcut function to create lazy p-adic fields.
+
+#    Currently deactivated.  See documentation for Qp for a description of the input parameters.
+
+#    EXAMPLES::
+
+def QpLP(p, prec = None, *args, **kwds):
+    """
+    A shortcut function to create `p`-adic fields with lattice precision.
+
+    See :func:`ZpLP` for more information about this model of precision.
+
+    EXAMPLES::
+
+        sage: R = QpLP(2)
+        sage: R
+        2-adic Field with lattice precision
+
+    """
+    return Qp(p, prec, 'lattice', *args, **kwds)
 
 def QqCR(q, prec = None, *args, **kwds):
     """
@@ -1661,7 +1694,7 @@ class Zp_class(UniqueFactory):
             print_max_terms = check
             check = True
         return get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_sep, print_alphabet,
-                            print_max_terms, show_prec, check, ['capped-rel', 'fixed-mod', 'capped-abs', 'floating-point', 'lattice'], label)
+                            print_max_terms, show_prec, check, ['capped-rel', 'fixed-mod', 'capped-abs', 'floating-point', 'lattice'], label=label)
 
     def create_object(self, version, key):
         """
@@ -1671,7 +1704,7 @@ class Zp_class(UniqueFactory):
 
         TESTS::
 
-            sage: Zp.create_object((3,4,2),(5, 41, 'capped-rel', 'series', '5', True, '|', (), -1, None))
+            sage: Zp.create_object((3,4,2),(5, 41, 'capped-rel', 'series', '5', True, '|', (), -1))
             5-adic Ring with capped relative precision 41
         """
         if (version[0] < 3 or (len(version) > 1 and version[0] == 3 and version[1] < 2) or
@@ -2388,36 +2421,36 @@ def ZpLP(p, prec = None, *args, **kwds):
     A shortcut function to create `p`-adic rings with lattice precision.
 
     Below is a small demo of the features by this model of precision::
-    
+
         sage: R = ZpLP(3, print_mode='terse')
         sage: x = R(1,10)
-    
-    Of course, when we multiply by 3, we gain one digit of absolute 
+
+    Of course, when we multiply by 3, we gain one digit of absolute
     precision::
-    
+
         sage: 3*x
         3 + O(3^11)
-    
+
     The lattice precision machinery sees this even if we decompose
     the computation into several steps::
-    
+
         sage: y = x+x
         sage: y
         2 + O(3^10)
         sage: x + y
         3 + O(3^11)
-    
+
     The same works for the multiplication::
-    
+
         sage: z = x^2
         sage: z
         1 + O(3^10)
         sage: x*z
         1 + O(3^11)
-    
+
     This comes more funny when we are working with elements given
     at different precisions::
-    
+
         sage: R = ZpLP(2, print_mode='terse')
         sage: x = R(1,10)
         sage: y = R(1,5)
@@ -2429,84 +2462,84 @@ def ZpLP(p, prec = None, *args, **kwds):
         2 + O(2^11)
         sage: z-t  # observe that z-t = 2*y
         2 + O(2^6)
-    
+
         sage: x = R(28888,15)
         sage: y = R(204,10)
         sage: z = x/y; z
         242 + O(2^9)
         sage: z*y  # which is x
         28888 + O(2^15)
-    
+
     The SOMOS sequence is the sequence defined by the recurrence::
-    
+
     ..MATH::
-    
+
         u_n = \frac {u_{n-1} u_{n-3} + u_{n-2}^2} {u_{n-4}}
-    
+
     It is known for its numerical instability.
     On the one hand, one can show that if the initial values are
     invertible in `\mathbb{Z}_p` and known at precision `O(p^N)`
-    then all the next terms of the SOMOS sequence will be known 
+    then all the next terms of the SOMOS sequence will be known
     at the same precision as well.
     On the other hand, because of the division, when we unroll
     the recurrence, we loose a lot of precision. Observe::
-    
+
         sage: R = Zp(2, 30, print_mode='terse')
         sage: a,b,c,d = R(1,15), R(1,15), R(1,15), R(3,15)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         4 + O(2^15)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         13 + O(2^15)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         55 + O(2^15)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         21975 + O(2^15)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         6639 + O(2^13)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         7186 + O(2^13)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         569 + O(2^13)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         253 + O(2^13)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         4149 + O(2^13)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         2899 + O(2^12)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         3072 + O(2^12)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         349 + O(2^12)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         619 + O(2^12)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         243 + O(2^12)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         3 + O(2^2)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         2 + O(2^2)
-    
+
     If instead, we use the lattice precision, everything goes well::
-    
+
         sage: R = ZpLP(2, 30, print_mode='terse')
         sage: a,b,c,d = R(1,15), R(1,15), R(1,15), R(3,15)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         4 + O(2^15)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         13 + O(2^15)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         55 + O(2^15)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         21975 + O(2^15)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         23023 + O(2^15)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         31762 + O(2^15)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         16953 + O(2^15)
-        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print d
+        sage: a,b,c,d = b,c,d,(b*d+c*c)/a; print(d)
         16637 + O(2^15)
-    
+
         sage: for _ in range(100):
         ....:     a,b,c,d = b,c,d,(b*d+c*c)/a
         sage: a
@@ -2520,7 +2553,7 @@ def ZpLP(p, prec = None, *args, **kwds):
 
     BEHIND THE SCENE:
 
-    The precision is global. 
+    The precision is global.
     It is encoded by a lattice in a huge vector space whose dimension
     is the number of elements having this parent.
 
@@ -2541,7 +2574,7 @@ def ZpLP(p, prec = None, *args, **kwds):
         Precision Lattice on 0 object
 
     This instance knows about all elements of the parent, it is
-    automatically updated when a new element (of this parent) is 
+    automatically updated when a new element (of this parent) is
     created::
 
         sage: x = R(3513,10)
@@ -2561,7 +2594,7 @@ def ZpLP(p, prec = None, *args, **kwds):
         [3513 + O(5^10), 176 + O(5^5), ...]
 
     Similarly, when a variable is collected by the garbage collector,
-    the precision lattice is updated. Note however that the update 
+    the precision lattice is updated. Note however that the update
     might be delayed. We can force it with the method :meth:`del_elements`::
 
         sage: z = 0
@@ -2592,7 +2625,7 @@ def ZpLP(p, prec = None, *args, **kwds):
 
     The matrix we get is no longer diagonal, meaning that
     some digits of precision are diffused among the two
-    new elements `x` and `y`. They nevertheless show up 
+    new elements `x` and `y`. They nevertheless show up
     when we compute for instance `x+y`::
 
         sage: x
@@ -2615,7 +2648,7 @@ def ZpLP(p, prec = None, *args, **kwds):
       is the number of tracked elements.
 
     - The destruction of one element has a cost `O(m^2)` where
-      `m` is the distance between the destroyed element and 
+      `m` is the distance between the destroyed element and
       the last one. Fortunately, it seems that `m` tends to
       be small in general (the dynamics of the list of tracked
       elements is rather close to that of a stack).
@@ -2634,8 +2667,8 @@ def ZpLP(p, prec = None, *args, **kwds):
         sage: prec.history_enable()
         sage: M = random_matrix(R, 5)
         sage: d = M.determinant()
-        sage: print prec.history()  # somewhat random
-           ---     
+        sage: print(prec.history())  # somewhat random
+           ---
         0.004212s  oooooooooooooooooooooooooooooooooooo
         0.000003s  oooooooooooooooooooooooooooooooooo~~
         0.000010s  oooooooooooooooooooooooooooooooooo
@@ -2684,6 +2717,13 @@ def ZpLP(p, prec = None, *args, **kwds):
 
     """
     return Zp(p, prec, 'lattice', *args, **kwds)
+
+#def ZpL(p, prec = DEFAULT_PREC, print_mode = None, halt = DEFAULT_HALT, names = None, print_pos = None,
+#         print_sep = None, print_alphabet = None, print_max_terms = None, check=True):
+#    """
+#    A shortcut function to create lazy `p`-adic rings.
+
+#    Currently deactivated.  See documentation for Zp for a description of the input parameters.
 
 
 #######################################################################################################
