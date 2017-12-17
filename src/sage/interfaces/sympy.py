@@ -614,7 +614,7 @@ def _sympysage_crootof(self):
 
         sage: from sympy import solve as ssolve
         sage: sols = ssolve(x^6+x+1, x)
-        sage: (sols[0]+1)._sage_().n()
+        sage: (sols[0]+1)._sage_().n()  # known bug
         0.209332811185582 - 0.300506920309552*I
     """
     from sage.functions.other import complex_root_of

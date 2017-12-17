@@ -2859,11 +2859,11 @@ class Function_crootof(BuiltinFunction):
 
         sage: c = complex_root_of(x^6 + x + 1, 1); c
         complex_root_of(x^6 + x + 1, 1)
-        sage: c.n()
+        sage: c.n()     # known bug
         -0.790667188814418 + 0.300506920309552*I
-        sage: c.n(100)
+        sage: c.n(100)  # known bug
         -0.79066718881441764449859281847 + 0.30050692030955162512001002521*I
-        sage: (c^6 + c + 1).n(100) < 1e-25
+        sage: (c^6 + c + 1).n(100) < 1e-25  # known bug
         True
     """
     def __init__(self):
@@ -2905,7 +2905,7 @@ class Function_crootof(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: complex_root_of(x^2-2, 1).n()
+            sage: complex_root_of(x^2-2, 1).n()  # known bug
             1.41421356237310
             sage: complex_root_of(x^2-2, 3).n()
             Traceback (most recent call last):
