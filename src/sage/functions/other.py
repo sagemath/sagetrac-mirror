@@ -2874,7 +2874,8 @@ class Function_crootof(BuiltinFunction):
             complex_root_of
         """
         BuiltinFunction.__init__(self, "complex_root_of", nargs=2,
-                                   conversions=dict(sympy='CRootOf'))
+                                   conversions=dict(sympy='CRootOf'),
+                                   evalf_params_first=False)
 
     def _eval_(self, poly, index):
         """
