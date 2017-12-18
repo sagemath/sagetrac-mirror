@@ -2922,3 +2922,58 @@ class Function_crootof(BuiltinFunction):
 
 complex_root_of = Function_crootof()
 
+
+class Function_elementof(BuiltinFunction):
+    """
+    Formal set membership function that is only accessible internally.
+
+    This function is called to express a set membership statement,
+    usually as part of a solution set returned by ``solve()``.
+    See :class:`sage.sets.set.Set` and :class:`sage.sets.real_set.RealSet`
+    for possible set arguments.
+
+    EXAMPLES::
+
+        sage: from sage.functions.other import element_of
+        sage: element_of(x, SR(Set(ZZ)))
+        element_of(x, Set of elements of Integer Ring)
+        sage: element_of(sin(x), SR(Set(QQ)))
+        element_of(sin(x), Set of elements of Rational Field)
+        sage: element_of(x, SR(RealSet.open_closed(0,1)))
+        element_of(x, (0, 1])
+        sage: element_of(x, SR(Set([4,6,8]).union(Primes())))
+        element_of(x, Set-theoretic union of {8, 4, 6} and Set of all prime...
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.functions.other import element_of
+            sage: loads(dumps(element_of))
+            element_of
+        """
+        BuiltinFunction.__init__(self, "element_of", nargs=2)
+
+    def _latex_(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import element_of
+            sage: latex(element_of)
+            \in
+        """
+        return r'\in'
+
+    def _print_latex_(self, ex, s):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import element_of
+            sage: latex(element_of(x, SR(Set(ZZ))))
+            x \in \Bold{Z}
+            sage: latex(element_of(x, SR(Set([4,6,8]))))
+            x \in \left\{8, 4, 6\right\}
+        """
+        return r"{} \in {}".format(latex(ex), latex(s))
+
+element_of = Function_elementof()
