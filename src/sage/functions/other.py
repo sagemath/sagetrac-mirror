@@ -2912,6 +2912,15 @@ class Function_crootof(BuiltinFunction):
             Traceback (most recent call last):
             ...
             IndexError: root index out of [-2, 1] range, got 3
+
+        TESTS:
+
+        Check that low precision is handled (:trac:`24378`)::
+
+            sage: complex_root_of(x^8-1, 7).n(2)
+            0.75 + 0.75*I
+            sage: complex_root_of(x^8-1, 7).n(20)
+            0.70711 + 0.70711*I
         """
         from sympy.polys import CRootOf, Poly
         try:
@@ -2919,7 +2928,7 @@ class Function_crootof(BuiltinFunction):
         except AttributeError:
             prec = 53
         sobj = CRootOf(Poly(poly._sympy_()), int(index))
-        return sobj.n(ceil(prec*3/10))._sage_()
+        return parent(sobj.n(max(2, ceil(prec*3/10)))._sage_())
 
 complex_root_of = Function_crootof()
 
