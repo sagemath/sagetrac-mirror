@@ -196,7 +196,7 @@ class pAdicLatticeElement(pAdicGenericElement):
         dx = [ [ self, self._approx_one ] ]
         return self.__class__(parent, self._value, self._parent.precision_cap(), dx=dx, check=False)
 
-    def list(self, lift_mode='simple', start_val=None):
+    def expansion(self, lift_mode='simple', start_val=None):
         # TODO: implement other lift modes
         p = self._parent.prime()
         prec = self.precision_absolute()
