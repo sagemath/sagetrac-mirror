@@ -872,15 +872,112 @@ class pAdicLatticeGeneric(pAdicGeneric):
         self._element_class = pAdicLatticeElement
 
     def _prec_type(self):
+        """
+        Return the precision handling type
+
+        EXAMPLES::
+
+            sage: ZpLP(5)._prec_type()
+            'lattice'
+        """
         return 'lattice'
 
     def precision(self):
+        """
+        Return the lattice precision object attached to this parent
+
+        EXAMPLES::
+
+            sage: R = ZpLP(5,label='precision')
+            sage: R.precision()
+            Precision Lattice on 0 object (label: precision)
+
+            sage: x = R(1,10); y = R(1,5)
+            sage: R.precision()
+            Precision Lattice on 2 objects (label: precision)
+
+        .. SEEALSO::
+
+            :class:`sage.rings.padics.lattice_precision.PrecisionLattice`
+        """
+
         return self._precision
 
     def label(self):
+        """
+        Return the label of this parent
+
+        NOTE:
+
+        Labels can be used to distinguish between parents with
+        the same defining data.
+
+        They are useful in the lattice precision framework in order
+        to limit the size of the lattice modeling the precision (which
+        is roughly the number of elements having this parent).
+
+        Elements of a parent with some label do not coerse to aparent 
+        with a different label. However conversions are allowed.
+
+        EXAMPLES:
+
+            sage: R = ZpLP(5)
+            sage: R.label()  # no label by default
+
+            sage: R = ZpLP(5, label='mylabel')
+            sage: R.label()
+            'mylabel'
+
+        Labels are typically useful to isolate computations.
+        For example, assume that we first want to do some calculations
+        with matrices::
+
+            sage: R = ZpLP(5, label='matrices')
+            sage: M = random_matrix(R, 4, 4)
+            sage: M.determinant()     # somewhat random
+
+        Now, if we want to do another unrelated computations, we can
+        use a different label::
+
+            sage: R = ZpLP(5, label='polynomials')
+            sage: S.<x> = PolynomialRing(R)
+            sage: P = (x-1)*(x-2)*(x-3)*(x-4)*(x-5)
+
+        If we have not used labels, the software would have modeled the
+        precision on the matrices and on the polynomials using the same
+        lattice (resulting then in manipulating a lattice of higher
+        dimension, having then a significant impact on performances).
+        """
         return self._label
 
     def _element_constructor_(self, x, prec=None):
+        """
+        Create an element of this parent
+
+        INPUT:
+
+        - ``x``: the datum from which the element is created
+
+        - ``prec`` -- an integer or ``None`` (the default); the
+          absolute precision of the created element
+
+        NOTE:
+
+        This function tries to be sharp on precision as much as
+        possible.
+        For instance, if the datum ``x`` is itself an element of the
+        same parent, the software remembers that the created element
+        is actually equal to ``x`` (at infinite precision)::
+
+            sage: R = ZpLP(2, prec=50)
+            sage: x = R(1,10); x
+            1 + O(2^10)
+            sage: y = R(x)   # indirect doctest
+            sage: y
+            1 + O(2^10)
+            sage: x - y
+            O(2^50)
+        """
         # We first try the __copy__ method which is sharp on precision
         try:
             if prec is None:
@@ -892,6 +989,60 @@ class pAdicLatticeGeneric(pAdicGeneric):
         return self._element_class(self, x, prec)
 
     def convert_multiple(self, *elts):
+        """
+        Convert a list of elements to this parent
+
+        NOTE:
+
+        This function tries to be sharp on precision as much as
+        possible.
+        In particular, if the precision of the input elements are 
+        handled by a lattice, diffused digits of precision are
+        preserved during the conversion.
+
+        EXAMPLES::
+
+            sage: R = ZpLP(2)
+            sage: x = R(1,10); y = R(1,5)
+            sage: x,y = x+y, x-y
+
+        Remark that the pair `(x,y)` has diffused digits of precision::
+
+            sage: x
+            2 + O(2^5)
+            sage: y
+            O(2^5)
+            sage: x + y
+            2 + O(2^11)
+
+            sage: R.precision().number_of_diffused_digits([x,y])
+            6
+
+        As a consequence, if we convert ``x`` and ``y`` separately, we
+        loose some precision::
+
+            sage: R2 = ZpLP(2, label='copy')
+            sage: x2 = R2(x); y2 = R2(y)
+            sage: x2
+            2 + O(2^5)
+            sage: y2
+            O(2^5)
+            sage: x2 + y2
+            2 + O(2^5)
+
+            sage: R2.precision().number_of_diffused_digits([x2,y2])
+            0
+
+        On the other hand, this issue dissapears when we use multiple
+        conversion::
+
+            sage: x2,y2 = R2.convert_multiple(x,y)
+            sage: x2 + y2
+            2 + O(2^11)
+
+            sage: R2.precision().number_of_diffused_digits([x2,y2])
+            6
+        """
         p = self.prime()
 
         # We sort elements by precision lattice
@@ -950,11 +1101,49 @@ class pAdicLatticeGeneric(pAdicGeneric):
 
 
 class pAdicRingLattice(pAdicLatticeGeneric, pAdicRingBaseGeneric):
-    def __init__(self, p, prec, print_mode, name, label=None, proof=False):
+    """
+    An implementation of the `p`-adic integers with lattice precision
+    """
+    def __init__(self, p, prec, print_mode, names, label=None, proof=False):
+        """
+        Initialization.
+
+        INPUT:
+
+        - ``p`` -- prime
+        - ``prec`` -- precision cap
+        - ``print_mode`` -- dictionary with print options
+        - ``names`` -- how to print the prime
+        - ``label`` -- the label of this ring
+
+        EXAMPLES::
+
+            sage: R = ZpLP(next_prime(10^60)) # indirect doctest
+            sage: type(R)
+            <class 'sage.rings.padics.padic_base_leaves.pAdicRingLattice_with_category'>
+
+            sage: R = ZpLP(2,label='init') # indirect doctest
+            sage: R
+            2-adic Ring with lattice precision (label: init)
+
+        .. SEEALSO::
+
+            :meth:`label`
+        """
         pAdicLatticeGeneric.__init__(self, p, prec, label, proof)
-        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, str(p), None)
+        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, None)
 
     def _repr_(self, do_latex=False):
+        """
+        Return a representation of this parent
+
+        EXAMPLES::
+
+            sage: R = ZpLP(2); R   # indirect doctest
+            2-adic Ring with lattice precision
+            sage: latex(R)
+            \mathbb Z_{2}
+        """
         if do_latex:
             if self._label is not None:
                 return "\\verb'%s' (\simeq \\mathbb Z_{%s})" % (self._label, self.prime())
@@ -967,10 +1156,33 @@ class pAdicRingLattice(pAdicLatticeGeneric, pAdicRingBaseGeneric):
                 return "%s-adic Ring with lattice precision" % self.prime()
 
     def _coerce_map_from_(self, R):
+        """
+        Return ``True`` if there is a coerce map from ``R`` to this ring
+
+        EXAMPLES::
+
+        """
         if isinstance(R, pAdicRingLattice) and R.precision() is self.precision():
             return True
 
     def random_element(self, prec=None):
+        """
+        Return a random element of this ring
+
+        INPUT:
+
+        - ``prec`` -- an integer or ``None`` (the default): the
+          absolute precision of the generated random element
+
+        EXAMPLES::
+
+            sage: R = ZpLP(2)
+            sage: R.random_element()    # random
+            2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^10 + 2^11 + 2^14 + 2^15 + 2^16 + 2^17 + 2^18 + 2^19 + O(2^20)
+
+            sage: R.random_element(prec=10)    # random
+            1 + 2^3 + 2^4 + 2^7 + O(2^10)
+        """
         if prec is None:
             prec = self._prec_cap
         p = self.prime()
@@ -978,6 +1190,43 @@ class pAdicRingLattice(pAdicLatticeGeneric, pAdicRingBaseGeneric):
         return self._element_class(self, x, prec=prec)
 
     def integer_ring(self, print_mode=None):
+        """
+        Return the integer ring of this ring
+
+        INPUT:
+
+        - ``print_mode`` -- the priting mode of the returned ring
+
+        EXAMPLES::
+
+            sage: R = ZpLP(2); R
+            2-adic Ring with lattice precision
+            sage: R.integer_ring()
+            2-adic Ring with lattice precision
+            sage: R.integer_ring() is R
+            True
+
+            sage: R2 = R.integer_ring(print_mode='terse'); R2
+            2-adic Ring with lattice precision
+            sage: R2 is R
+            False
+            sage: x = R(121,10); x
+            1 + 2^3 + 2^4 + 2^5 + 2^6 + O(2^10)
+            sage: x2 = R2(x); x2
+            121 + O(2^10)
+
+        Labels are kept unchanged by this function::
+
+            sage: R = ZpLP(2, label='test'); R
+            2-adic Ring with lattice precision (label: test)
+            sage: R.integer_ring()
+            2-adic Ring with lattice precision (label: test)
+
+        TESTS::
+
+            sage: R.integer_ring(print_mode='series') is R
+            True
+        """
         if print_mode is None:
             return self
         from sage.rings.padics.factory import Zp
@@ -985,18 +1234,85 @@ class pAdicRingLattice(pAdicLatticeGeneric, pAdicRingBaseGeneric):
                   names=self._uniformizer_print(), label=self._label)
 
     def fraction_field(self, print_mode=None):
+        """
+        Return the fraction field of this ring
+
+        INPUT:
+
+        - ``print_mode`` -- the priting mode of the returned ring
+
+        EXAMPLES::
+
+            sage: R = ZpLP(2); R
+            2-adic Ring with lattice precision
+            sage: K = R.fraction_field(); K
+            2-adic Field with lattice precision
+
+            sage: K2 = R.fraction_field(print_mode='terse'); K2
+            2-adic Field with lattice precision
+            sage: K2 is K
+            False
+            sage: x = R(121,10); x
+            1 + 2^3 + 2^4 + 2^5 + 2^6 + O(2^10)
+            sage: x2 = K2(x); x2
+            121 + O(2^10)
+ 
+        Labels are kept unchanged by this function::
+
+            sage: R = ZpLP(2, label='test'); R
+            2-adic Ring with lattice precision (label: test)
+            sage: R.fraction_field()
+            2-adic Field with lattice precision (label: test)
+        """
         from sage.rings.padics.factory import Qp
         return Qp(self.prime(), self.precision_cap(), 'lattice', print_mode=self._modified_print_mode(print_mode), 
                   names=self._uniformizer_print(), label=self._label)
 
 
-
 class pAdicFieldLattice(pAdicLatticeGeneric, pAdicFieldBaseGeneric):
-    def __init__(self, p, prec, print_mode, name, label=None, proof=False):
+    """
+    An implementation of the `p`-adic numbers with lattice precision
+    """
+    def __init__(self, p, prec, print_mode, names, label=None, proof=False):
+        """
+        Initialization.
+
+        INPUT:
+
+        - ``p`` -- prime
+        - ``prec`` -- precision cap
+        - ``print_mode`` -- dictionary with print options
+        - ``names`` -- how to print the prime
+        - ``label`` -- the label of this ring
+
+        EXAMPLES::
+
+            sage: R = QpLP(next_prime(10^60)) # indirect doctest
+            sage: type(R)
+            <class 'sage.rings.padics.padic_base_leaves.pAdicFieldLattice_with_category'>
+
+            sage: R = QpLP(2,label='init') # indirect doctest
+            sage: R
+            2-adic Field with lattice precision (label: init)
+
+        .. SEEALSO::
+
+            :meth:`label`
+        """
         pAdicLatticeGeneric.__init__(self, p, prec, label, proof)
-        pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, str(p), None)
+        pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, names, None)
 
     def _repr_(self, do_latex=False):
+        """
+        Return a representation of this parent
+
+        EXAMPLES::
+
+            sage: K = QpLP(2); K   # indirect doctest
+            2-adic Field with lattice precision
+            sage: latex(K)
+            \mathbb Q_{2}
+        """
         if do_latex:
             if self._label is not None:
                 return "\\verb'%s' (\simeq \\mathbb Q_{%s})" % (self._label, self.prime())
@@ -1009,10 +1325,35 @@ class pAdicFieldLattice(pAdicLatticeGeneric, pAdicFieldBaseGeneric):
                 return "%s-adic Field with lattice precision" % self.prime()
 
     def _coerce_map_from_(self, R):
+        """
+        Return ``True`` if there is a coerce map from ``R`` to this ring
+
+        EXAMPLES::
+
+        """
+
         if isinstance(R, (pAdicRingLattice, pAdicFieldLattice)) and R.precision() is self.precision():
             return True
 
-    def random_element(self, prec=None):
+    def random_element(self, prec=None): # integral=False
+        """
+        Return a random element of this ring
+
+        INPUT:
+
+        - ``prec`` -- an integer or ``None`` (the default): the
+          absolute precision of the generated random element
+
+        EXAMPLES::
+
+            sage: K = QpLP(2)
+            sage: K.random_element()    # random
+            2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^10 + 2^11 + 2^14 + 2^15 + 2^16 + 2^17 + 2^18 + 2^19 + O(2^20)
+
+            sage: K.random_element(prec=10)    # random
+            1 + 2^3 + 2^4 + 2^7 + O(2^10)
+        """
+        # TODO: do not pick only among integers
         if prec is None:
             prec = self._prec_cap
         p = self.prime()
@@ -1020,11 +1361,79 @@ class pAdicFieldLattice(pAdicLatticeGeneric, pAdicFieldBaseGeneric):
         return self._element_class(self, x, prec)
 
     def integer_ring(self, print_mode=None):
+        """
+        Return the integer ring of this field
+
+        INPUT:
+
+        - ``print_mode`` -- the priting mode of the returned ring
+
+        EXAMPLES::
+
+            sage: K = QpLP(2); K
+            2-adic Field with lattice precision
+            sage: R = K.integer_ring(); R
+            2-adic Ring with lattice precision
+
+            sage: R2 = K.integer_ring(print_mode='terse'); R2
+            2-adic Ring with lattice precision
+            sage: R2 is R
+            False
+            sage: x = R(121,10); x
+            1 + 2^3 + 2^4 + 2^5 + 2^6 + O(2^10)
+            sage: x2 = R2(x); x2
+            121 + O(2^10)
+
+        Labels are kept unchanged by this function::
+
+            sage: K = QpLP(2, label='test'); K
+            2-adic Field with lattice precision (label: test)
+            sage: K.integer_ring()
+            2-adic Ring with lattice precision (label: test)
+
+        """
         from sage.rings.padics.factory import Zp
         return Zp(self.prime(), self.precision_cap(), 'lattice', print_mode=self._modified_print_mode(print_mode), 
                   names=self._uniformizer_print(), label=self._label)
 
     def fraction_field(self, print_mode=None):
+        """
+        Return the fraction field of this ring
+
+        INPUT:
+
+        - ``print_mode`` -- the priting mode of the returned ring
+
+        EXAMPLES::
+
+            sage: K = QpLP(2); K
+            2-adic Field with lattice precision
+            sage: K.fraction_field()
+            2-adic Field with lattice precision
+            sage: K.fraction_field() is K
+            True
+
+            sage: K2 = K.fraction_field(print_mode='terse'); K2
+            2-adic Field with lattice precision
+            sage: K2 is K
+            False
+            sage: x = K(121,10); x
+            1 + 2^3 + 2^4 + 2^5 + 2^6 + O(2^10)
+            sage: x2 = K2(x); x2
+            121 + O(2^10)
+ 
+        Labels are kept unchanged by this function::
+
+            sage: K = QpLP(2, label='test'); K
+            2-adic Field with lattice precision (label: test)
+            sage: K.fraction_field()
+            2-adic Field with lattice precision (label: test)
+
+        TESTS::
+
+            sage: K.fraction_field(print_mode='series') is K
+            True
+        """
         if print_mode is None:
             return self
         from sage.rings.padics.factory import Qp

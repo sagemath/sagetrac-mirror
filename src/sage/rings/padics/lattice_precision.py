@@ -198,7 +198,7 @@ def list_of_padics(elements):
     Convert a list of p-adic composed elements (as polynomials, matrices)
     to a list of weak refererences of their p-adic coefficients.
 
-    This is an helper function for the methods meth:`precision_lattice`
+    This is an helper function for the methods :meth:`precision_lattice`
 
     TESTS::
 
@@ -226,7 +226,7 @@ def format_history(tme, status, timings):
     """
     Return a formated output for the history.
 
-    This is an helper function for the methods meth:`history`.
+    This is an helper function for the methods :meth:`history`.
 
     TESTS::
 
@@ -451,7 +451,7 @@ class PrecisionLattice(UniqueRepresentation, SageObject):
         If ``dx_mode`` is ``values``, the dictionary ``dx`` directly
         specifies the entries that have to stored in the precision lattice.
         This mode is only used for multiple conversion between different
-        parents (see meth:`multiple_conversion`).
+        parents (see :meth:`multiple_conversion`).
 
         TESTS::
 
@@ -524,7 +524,7 @@ class PrecisionLattice(UniqueRepresentation, SageObject):
         NOTE::
 
         This method does not update the precision lattice.
-        The actual update is performed when the method meth:`del_elements`
+        The actual update is performed when the method :meth:`del_elements`
         is called. This is automatically done at the creation of a new
         element but can be done manually as well.
 
@@ -647,7 +647,7 @@ class PrecisionLattice(UniqueRepresentation, SageObject):
         NOTE:
 
         This function is not meant to be called directly.
-        You should prefer call the method meth:`lift_to_precision`
+        You should prefer call the method :meth:`lift_to_precision`
         of ``x`` instead.
 
         EXAMPLES::
@@ -726,7 +726,7 @@ class PrecisionLattice(UniqueRepresentation, SageObject):
         NOTE:
 
         This function is not meant to be called directly.
-        You should prefer call the method meth:`precision_absolute`
+        You should prefer call the method :meth:`precision_absolute`
         of ``x`` instead.
 
         EXAMPLES::
@@ -997,7 +997,7 @@ class PrecisionLattice(UniqueRepresentation, SageObject):
         """
         Enable history.
 
-        We refer to the documentation of the method meth:`history` for 
+        We refer to the documentation of the method :meth:`history` for 
         a complete documentation (including examples) about history.
 
         TESTS::
@@ -1017,7 +1017,7 @@ class PrecisionLattice(UniqueRepresentation, SageObject):
 
         .. SEEALSO::
 
-            meth:`history`, meth:`history_disable`, meth:`history_clear`
+            :meth:`history`, :meth:`history_disable`, :meth:`history_clear`
         """
         if self._history is None:
             self._history_init = ( len(self._elements), list(self._marked_for_deletion) )
@@ -1027,7 +1027,7 @@ class PrecisionLattice(UniqueRepresentation, SageObject):
         """
         Disable history.
 
-        We refer to the documentation of the method meth:`history` for 
+        We refer to the documentation of the method :meth:`history` for 
         a complete documentation (including examples) about history.
 
         TESTS::
@@ -1053,7 +1053,7 @@ class PrecisionLattice(UniqueRepresentation, SageObject):
 
         .. SEEALSO::
 
-            meth:`history`, meth:`history_enable`, meth:`history_clear`
+            :meth:`history`, :meth:`history_enable`, :meth:`history_clear`
         """
         self._history = self._history_init = None
 
@@ -1061,7 +1061,7 @@ class PrecisionLattice(UniqueRepresentation, SageObject):
         """
         Clear history
 
-        We refer to the documentation of the method meth:`history` for 
+        We refer to the documentation of the method :meth:`history` for 
         a complete documentation (including examples) about history.
 
         TESTS::
@@ -1092,7 +1092,7 @@ class PrecisionLattice(UniqueRepresentation, SageObject):
 
         .. SEEALSO::
 
-            meth:`history`, meth:`history_enable`, meth:`history_disable`
+            :meth:`history`, :meth:`history_enable`, :meth:`history_disable`
         """
         if self._history is None:
             raise ValueError("History is not tracked")
@@ -1123,7 +1123,7 @@ class PrecisionLattice(UniqueRepresentation, SageObject):
         IMPORTANT NOTE:
 
         History is disabled by default.
-        It should then be enabled (through a call to the method meth:`history_enable`)
+        It should then be enabled (through a call to the method :meth:`history_enable`)
         before use.
 
         EXAMPLES::
@@ -1164,7 +1164,7 @@ class PrecisionLattice(UniqueRepresentation, SageObject):
         - 2nd line: elements at prime positions were marked for deletion
           (this corresponds to the ``for`` loop)
         - 3rd line: the above elements are indeed deleted
-          (this corresponds to the call of the method meth:`del_elements`
+          (this corresponds to the call of the method :meth:`del_elements`
 
         Here are some variants::
 
@@ -1210,7 +1210,7 @@ class PrecisionLattice(UniqueRepresentation, SageObject):
 
         .. SEEALSO::
 
-            meth:`history_enable`, meth:`history_disable`, meth:`history_clear`
+            :meth:`history_enable`, :meth:`history_disable`, :meth:`history_clear`
         """
 
         if self._history is None:
