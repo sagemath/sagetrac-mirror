@@ -371,10 +371,16 @@ class Variable(CachedRepresentation, SageObject):
         if len(var_bases) != len(set(var_bases)):
             raise ValueError('Variable names %s are not pairwise distinct.' %
                              (var_bases,))
+        
+        from sage.rings.Infinity import Infinity
+
+        if center is None:
+            center = Infinity
 
 
         self.var_bases = var_bases
         self.var_repr = var_repr
+        self.center = center
 
         self.latex_name = latex_name
 
@@ -1517,7 +1523,7 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
             TypeError: Asymptotic Ring <z^ZZ> over Rational Field is not a valid base.
         """
         from .asymptotic_ring import AsymptoticRing
-        from sage.rings.infinity import Infinity
+
         if not isinstance(base, Parent) or \
            isinstance(base, AsymptoticRing):
             raise TypeError('%s is not a valid base.' % (base,))

@@ -1,4 +1,4 @@
-r"""
+"""
 Asymptotic Ring
 
 This module provides a ring (called :class:`AsymptoticRing`) for
@@ -3501,7 +3501,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         self._coefficient_ring_ = coefficient_ring
         self._growth_group_ = growth_group
         self._default_prec_ = default_prec
-        self._center_ = center
+
         super(AsymptoticRing, self).__init__(base_ring=coefficient_ring,
                                              category=category)
 
