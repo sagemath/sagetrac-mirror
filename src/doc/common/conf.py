@@ -25,6 +25,7 @@ def sphinx_plot(plot):
     import matplotlib.image as mpimg
     from sage.misc.temporary_file import tmp_filename
     import matplotlib.pyplot as plt
+    plt.style.use('classic')
     if os.environ.get('SAGE_SKIP_PLOT_DIRECTIVE', 'no') != 'yes':
         fn = tmp_filename(ext=".png")
         plot.plot().save(fn)
