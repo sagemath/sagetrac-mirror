@@ -2907,7 +2907,7 @@ class Function_crootof(BuiltinFunction):
         EXAMPLES::
 
             sage: complex_root_of(x^2-2, 1).n()
-            1.41421356237309
+            1.41421356237310
             sage: complex_root_of(x^2-2, 3).n()
             Traceback (most recent call last):
             ...
@@ -2922,14 +2922,14 @@ class Function_crootof(BuiltinFunction):
             sage: complex_root_of(x^8-1, 7).n(20)
             0.70711 + 0.70711*I
         """
-        from .log import log
+        from math import log10
         from sympy.polys import CRootOf, Poly
         try:
             prec = parent.precision()
         except AttributeError:
             prec = 53
         sobj = CRootOf(Poly(poly._sympy_()), int(index))
-        return parent(sobj.n(max(2, ceil(prec*log(2,10))))._sage_())
+        return parent(sobj.n(max(2, int(prec * log10(2))))._sage_())
 
 complex_root_of = Function_crootof()
 
