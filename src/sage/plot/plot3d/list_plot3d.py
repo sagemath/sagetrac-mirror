@@ -92,14 +92,14 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
 
         sage: import warnings
         sage: warnings.simplefilter('ignore', UserWarning)
-        sage: list_plot3d(m, texture='yellow', interpolation_type='nn', frame_aspect_ratio=[1, 1, 1/3])
+        sage: list_plot3d(m, texture='yellow', interpolation_type='clough', frame_aspect_ratio=[1, 1, 1/3])
         Graphics3d Object
 
     We can make this look better by increasing the number of samples.
 
     ::
 
-        sage: list_plot3d(m, texture='yellow', interpolation_type='nn', frame_aspect_ratio=[1, 1, 1/3], num_points=40)
+        sage: list_plot3d(m, texture='yellow', interpolation_type='clough', frame_aspect_ratio=[1, 1, 1/3], num_points=40)
         Graphics3d Object
 
     Let's try a spline.
@@ -140,7 +140,7 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
         sage: for i in range(-5, 5):
         ....:     for j in range(-5, 5):
         ....:         l.append((normalvariate(0, 1), normalvariate(0, 1), normalvariate(0, 1)))
-        sage: list_plot3d(l, interpolation_type='nn', texture='yellow', num_points=100)
+        sage: list_plot3d(l, interpolation_type='clough', texture='yellow', num_points=100)
         Graphics3d Object
 
     TESTS:
@@ -164,7 +164,7 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
     different z coordinates, an exception will be raised::
 
         sage: pts =[(-4/5, -2/5, -2/5), (-4/5, -2/5, 2/5), (-4/5, 2/5, -2/5), (-4/5, 2/5, 2/5), (-2/5, -4/5, -2/5), (-2/5, -4/5, 2/5), (-2/5, -2/5, -4/5), (-2/5, -2/5, 4/5), (-2/5, 2/5, -4/5), (-2/5, 2/5, 4/5), (-2/5, 4/5, -2/5), (-2/5, 4/5, 2/5), (2/5, -4/5, -2/5), (2/5, -4/5, 2/5), (2/5, -2/5, -4/5), (2/5, -2/5, 4/5), (2/5, 2/5, -4/5), (2/5, 2/5, 4/5), (2/5, 4/5, -2/5), (2/5, 4/5, 2/5), (4/5, -2/5, -2/5), (4/5, -2/5, 2/5), (4/5, 2/5, -2/5), (4/5, 2/5, 2/5)]
-        sage: show(list_plot3d(pts, interpolation_type='nn'))
+        sage: show(list_plot3d(pts, interpolation_type='clough'))
         Traceback (most recent call last):
         ...
         ValueError: Two points with same x,y coordinates and different z coordinates were given. Interpolation cannot handle this.
@@ -172,7 +172,7 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
     Additionally we need at least 3 points to do the interpolation::
 
         sage: mat = matrix(RDF, 1, 2, [3.2, 1.550])
-        sage: show(list_plot3d(mat, interpolation_type='nn'))
+        sage: show(list_plot3d(mat, interpolation_type='clough'))
         Traceback (most recent call last):
         ...
         ValueError: We need at least 3 points to perform the interpolation
