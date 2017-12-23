@@ -545,7 +545,7 @@ class PrecisionLattice(UniqueRepresentation, SageObject):
         tme = walltime()
         try:
             index = len(self._lattice[ref]) - 1
-        except IndexError:
+        except (IndexError, KeyError):
             return
         self._marked_for_deletion.append(index)
         if self._history is not None:

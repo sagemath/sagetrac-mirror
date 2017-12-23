@@ -978,12 +978,12 @@ class pAdicLatticeGeneric(pAdicGeneric):
             sage: x - y
             O(2^50)
         """
-        # We first try the __copy__ method which is sharp on precision
+        # We first try the copy method which is sharp on precision
         try:
             if prec is None:
-                return x.__copy__(parent=self)
+                return x.copy(parent=self)
             else:
-                return x.__copy__(parent=self).add_bigoh(prec)
+                return x.copy(parent=self).add_bigoh(prec)
         except (TypeError, ValueError, AttributeError):
             pass
         return self._element_class(self, x, prec)
@@ -1072,10 +1072,10 @@ class pAdicLatticeGeneric(pAdicGeneric):
         # First the elements with precision lattice
         for (prec, L) in elt_by_prec.iteritems():
             if prec is selfprec:
-                # Here, we use the __copy__ method in order
+                # Here, we use the copy method in order
                 # to be sharp on precision
                 for x in L:
-                    y = x.__copy__(parent=self)
+                    y = x.copy(parent=self)
                     for i in indices[id(x)]:
                         ans[i] = y
             else:
