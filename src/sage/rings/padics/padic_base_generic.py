@@ -68,7 +68,8 @@ class pAdicBaseGeneric(pAdicGeneric):
         else:
             coerce_list = [ZZ]
             convert_list = []
-        self._populate_coercion_lists_(coerce_list=coerce_list, convert_list=convert_list, element_constructor=element_class)
+        self.Element = element_class
+        self._populate_coercion_lists_(coerce_list=coerce_list, convert_list=convert_list)
 
     def _repr_(self, do_latex=False):
         r"""
