@@ -4964,6 +4964,65 @@ cdef class Expression(CommutativeRingElement):
         cdef Expression p = self.coerce_in(pattern)
         return self._gobj.has(p._gobj)
 
+    def has_function(self, arg, all=False):
+        """
+        Return True if any or all function arguments are part
+        of this expression.
+
+        The argument must either be
+
+        - a function operator like ``sin``
+
+        - a Python list containing such operators
+
+        EXAMPLES::
+
+            sage: (1+sin(x)).has_function(sin)
+            True
+            sage: (1+x).has_function(sin)
+            False
+            sage: (1+sin(x)+cos(x)).has_function([sin,cos])
+            True
+            sage: (1+sin(x)+cos(x)).has_function([sin,tan])
+            True
+            sage: (1+sin(x)+cos(x)).has_function([sin,tan], all=True)
+            False
+            sage: (1+sin(x)+tan(x)).has_function([sin,tan], all=True)
+            True
+            sage: f = function('f')
+            sage: (f(x)+sin(x)+tan(x)).has_function([sin,tan,f], all=True)
+            True
+            sage: (1+x).has_function(x)
+            Traceback (most recent call last):
+            ...
+            TypeError: argument must be function or list
+            sage: (1+sin(x)+cos(x)).has_function([sin,cos,x])
+            Traceback (most recent call last):
+            ...
+            TypeError: arguments must be functions
+        """
+        from .function import Function
+        cdef stdstring s
+        cdef vector[stdstring] vec
+        if isinstance(arg, Function):
+            s = arg.name()
+            vec = [s]
+        elif isinstance(arg, list):
+            for a in arg:
+                if isinstance(a, Function):
+                    s = a.name()
+                    vec.push_back(s)
+                else:
+                    raise TypeError('arguments must be functions')
+        else:
+            raise TypeError('argument must be function or list')
+
+        sig_on()
+        try:
+            return has_function(self._gobj, vec, all is True)
+        finally:
+            sig_off()
+
     def substitute(self, *args, **kwds):
         """
         Substitute the given subexpressions in this expression.
