@@ -395,6 +395,10 @@ class Function_arcsinh(GinacFunction):
             arcsinh(1/2)
             sage: arcsinh(1 + I*1.0)
             1.06127506190504 + 0.666239432492515*I
+            sage: asinh(CIF(0.6))
+            0.5688248987322476?
+            sage: parent(asinh(CIF(0.6))) is CIF
+            True
 
         To prevent automatic evaluation use the ``hold`` argument::
 
@@ -458,6 +462,10 @@ class Function_arccosh(GinacFunction):
             2.0
             sage: arccosh(complex(1, 2))  # abs tol 1e-15
             (1.5285709194809982+1.1437177404024204j)
+            sage: acosh(CIF(0.6))
+            0.9272952180016122?*I
+            sage: parent(acosh(CIF(0.6))) is CIF
+            True
 
         .. warning::
 
@@ -539,6 +547,10 @@ class Function_arctanh(GinacFunction):
             arctanh(1/2)
             sage: arctanh(1 + I*1.0)
             0.402359478108525 + 1.01722196789785*I
+            sage: atanh(CIF(0.6))
+            0.6931471805599452?
+            sage: parent(atanh(CIF(0.6))) is CIF
+            True
 
         To prevent automatic evaluation use the ``hold`` argument::
 
@@ -600,6 +612,10 @@ class Function_arccoth(GinacFunction):
             0.402359478108525 - 0.553574358897045*I
             sage: arccoth(2).n(200)
             0.54930614433405484569762261846126285232374527891137472586735
+            sage: acoth(CIF(0.6))
+            0.693147180559945?
+            sage: parent(acoth(CIF(0.6))) is CIF
+            True
 
             sage: bool(diff(acoth(x), x) == diff(atanh(x), x))
             True
@@ -663,6 +679,10 @@ class Function_arcsech(GinacFunction):
             1.3169578969248167086250463473079684440269819714675164797685
             sage: float(arcsech(1/2))
             1.3169578969248168
+            sage: asech(CIF(0.6))
+            1.098612288668110?
+            sage: parent(asech(CIF(0.6))) is CIF
+            True
 
             sage: diff(asech(x), x)
             -1/(sqrt(-x^2 + 1)*x)
@@ -707,6 +727,10 @@ class Function_arccsch(GinacFunction):
             0.88137358701954302523260932497979230902816032826163541075330
             sage: float(arccsch(1))
             0.881373587019543
+            sage: acsch(CIF(0.6))
+            1.283795662743193?
+            sage: parent(acsch(CIF(0.6))) is CIF
+            True
 
             sage: diff(acsch(x), x)
             -1/(sqrt(x^2 + 1)*x)

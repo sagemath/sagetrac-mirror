@@ -491,6 +491,10 @@ class Function_arcsin(GinacFunction):
             1/6*pi
             sage: arcsin(1 + 1.0*I)
             0.666239432492515 + 1.06127506190504*I
+            sage: asin(CIF(0.6))
+            0.6435011087932843?
+            sage: parent(asin(CIF(0.6))) is CIF
+            True
 
         We can delay evaluation using the ``hold`` parameter::
 
@@ -557,6 +561,10 @@ class Function_arccos(GinacFunction):
             0.904556894302381 - 1.06127506190504*I
             sage: arccos(3/4).n(100)
             0.72273424781341561117837735264
+            sage: acos(CIF(1/3))
+            1.230959417340775?
+            sage: parent(acos(CIF(1/3))) is CIF
+            True
 
         We can delay evaluation using the ``hold`` parameter::
 
@@ -623,6 +631,10 @@ class Function_arctan(GinacFunction):
             arctan(I + 1)
             sage: arctan(1/2).n(100)
             0.46364760900080611621425623146
+            sage: atan(CIF(1/3))
+            0.321750554396643?
+            sage: parent(atan(CIF(1/3))) is CIF
+            True
 
         We can delay evaluation using the ``hold`` parameter::
 
@@ -693,6 +705,10 @@ class Function_arccot(GinacFunction):
             1.1071487177940905030170654602
             sage: float(arccot(1/2))  # abs tol 2e-16
             1.1071487177940906
+            sage: acot(CIF(1/3))
+            1.249045772398255?
+            sage: parent(acot(CIF(1/3))) is CIF
+            True
             sage: bool(diff(acot(x), x) == -diff(atan(x), x))
             True
             sage: diff(acot(x), x)
@@ -752,6 +768,10 @@ class Function_arccsc(GinacFunction):
             0.52359877559829887307710723055
             sage: float(arccsc(2))
             0.52359877559829...
+            sage: asec(CIF(7/3))
+            1.127885282721258?
+            sage: parent(asec(CIF(7/3))) is CIF
+            True
             sage: arccsc(1 + I)
             arccsc(I + 1)
             sage: diff(acsc(x), x)
@@ -810,6 +830,10 @@ class Function_arcsec(GinacFunction):
             NaN
             sage: RDF(arcsec(2))  # abs tol 1e-15
             1.0471975511965976
+            sage: acsc(CIF(7/3))
+            0.442911044073639?
+            sage: parent(acsc(CIF(7/3))) is CIF
+            True
             sage: arcsec(1 + I)
             arcsec(I + 1)
             sage: diff(asec(x), x)
