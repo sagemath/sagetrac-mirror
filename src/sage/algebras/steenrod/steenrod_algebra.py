@@ -1073,7 +1073,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         elements of some A[n], then convert them back to elements of A::
 
             sage: A[5].basis()
-            Finite family {(5,): milnor[(5,)], (2, 1): milnor[(2, 1)]}
+            Finite family {(2, 1): milnor[(2, 1)], (5,): milnor[(5,)]}
             sage: a = list(A[5].basis())[1]
             sage: a  # not in A, doesn't print like an element of A
             milnor[(5,)]

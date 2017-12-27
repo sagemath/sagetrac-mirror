@@ -1304,7 +1304,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             sage: L.lie_algebra_generators()
             Finite family {-alpha[1]: E[-alpha[1]], alpha[1]: E[alpha[1]], alphacheck[1]: h1}
             sage: L.lie_algebra_generators(True)
-            Finite family {'f1': E[-alpha[1]], 'h1': h1, 'e1': E[alpha[1]]}
+            Finite family {'e1': E[alpha[1]], 'f1': E[-alpha[1]], 'h1': h1}
         """
         index_set = self._cartan_type.index_set()
         RL = self._cartan_type.root_system().root_lattice()
