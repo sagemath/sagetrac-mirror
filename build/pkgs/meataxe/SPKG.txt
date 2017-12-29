@@ -1,27 +1,23 @@
-= MeatAxe =
+********************************************************************************
+SharedMeatAxe Version 1.0                                                 README
+********************************************************************************
 
-== Description ==
+This is an autotoolized shared library version of C MeatAxe 2.4.24, a set of
+programs for computing with modular representations.
 
-The MeatAxe is a set of programs for working with matrix representations
-over finite fields. Permutation representations are supported to some
-extent, too.
+See INSTALL for installing shared_meataxe-1.0.
 
-The MeatAxe is developed for the UNIX operating system. Supported platforms
-include Linux (x86), SunOS/Solaris (Sparc), HP/UX, DEC OSF/1 (Alpha), and
-Windows NT 4.0 (x86, Alpha, PPC).
+The package comprises a shared library "libmtx", as well as several
+executables.
 
-== License ==
+See COPYING for licence information.
 
-The C Meat-Axe is free software: you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation, either version 2 of the License, or (at your option) any later
-version.
+================================================================================
+PACKAGE OVERVIEW
+================================================================================
 
-== Upstream Contact ==
-
-Michael Ringe (mringe@math.rwth-aachen.de)
-
-== Special Update/Build Instructions ==
-
-The original upstream tarball was re-packaged, so that it unpacks into a single
-folder called meataxe-2.4.24
+Directory	Contents
+----------	--------------------------------------------
+src/		Source files.
+test/		Test suite.
+etc/ 		Helpers for creating docs with doxygen.
