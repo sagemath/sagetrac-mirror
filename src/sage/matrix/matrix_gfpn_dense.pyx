@@ -34,8 +34,6 @@ from cysignals.signals cimport sig_on, sig_off, sig_check
 
 import os
 
-meataxe_init()
-
 ####################
 #
 # import sage types
@@ -55,6 +53,9 @@ from sage.structure.element cimport Element, ModuleElement, RingElement, Matrix
 from libc.string cimport memset, memcpy
 
 cimport sage.matrix.matrix0
+
+# The following import is just to ensure that meataxe_init() is called.
+import sage.libs.meataxe
 
 ####################
 #

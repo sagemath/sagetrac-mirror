@@ -17,6 +17,10 @@ export ZZZ=0
 # We create a directory for the multiplication tables
 mkdir -p $MTXLIB
 
+# We delete a static meataxe library that might be leftover
+# from installation of MeatAxe (as opposed to SharedMeatAxe).
+rm -f $SAGE_LOCAL/lib/libmtx.a
+
 if [ $? -ne 0 ]; then
     echo >&2 "Error creating directory for multiplication tables."
     exit 1

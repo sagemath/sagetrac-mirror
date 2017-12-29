@@ -31,8 +31,28 @@ cdef dict ErrMsg = {
     "Not a permutation": TypeError
 }
 
+###############################################################
+## It is needed to do some initialisation. Since meataxe is
+## a static library, it is needed to do this initialisation
+## by calling meataxe_init() in all modules calling MeatAxe
+## library functions
+
+from cpython.bytes cimport PyBytes_AsString
+
 cdef void sage_meataxe_error_handler(const MtxErrorRecord_t *err):
     sig_block()
     cdef bytes ErrText = err.Text
     PyErr_SetObject(ErrMsg.get(ErrText.split(': ')[-1], RuntimeError), "{} in file {} (line {})".format(ErrText, err.FileInfo.BaseName, err.LineNo))
     sig_unblock()
+
+cdef inline meataxe_init():
+    ## Assign to a variable that enables MeatAxe to find
+    ## its multiplication tables.
+    import os
+    from sage.env import DOT_SAGE
+    global MtxLibDir
+    MtxLibDir = PyBytes_AsString(os.path.join(DOT_SAGE,'meataxe'))
+    ## Error handling for MeatAxe, to prevent immediate exit of the program
+    MtxSetErrorHandler(sage_meataxe_error_handler)
+
+meataxe_init()
