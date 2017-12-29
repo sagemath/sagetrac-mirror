@@ -365,7 +365,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                 sage: Matrix_gfpn_dense('foobarNONEXISTING_FILE')       # optional: meataxe
                 Traceback (most recent call last):
                 ...
-                OSError: .../foobarNONEXISTING_FILE: No such file or directory in file os.c (line 254)
+                OSError: .../foobarNONEXISTING_FILE: No such file or directory in file os.c (line 255)
                 sage: Matrix_gfpn_dense('')                             # optional: meataxe
                 Traceback (most recent call last):
                 ...
