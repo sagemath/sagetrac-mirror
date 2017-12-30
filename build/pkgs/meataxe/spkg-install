@@ -2,10 +2,10 @@ cd src
 
 # This is the place where arithmetic tables and some other input files are
 # searched by default.
-export MTXLIB="$DOT_SAGE/meataxe"
+export MTXLIB="$DOT_SAGE"/meataxe
 
 # Directory where executables are installed.
-export MTXBIN="$SAGE_LOCAL/bin"
+export MTXBIN="$SAGE_LOCAL"/bin
 
 # Field size up to GF(256)
 export ZZZ=0
@@ -19,7 +19,7 @@ mkdir -p $MTXLIB
 
 # We delete a static meataxe library that might be leftover
 # from installation of MeatAxe (as opposed to SharedMeatAxe).
-rm -f $SAGE_LOCAL/lib/libmtx.a
+rm -f "$SAGE_LOCAL"/lib/libmtx.a
 
 if [ $? -ne 0 ]; then
     echo >&2 "Error creating directory for multiplication tables."
