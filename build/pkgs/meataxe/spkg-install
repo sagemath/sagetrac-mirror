@@ -17,32 +17,22 @@ export ZZZ=0
 # We create a directory for the multiplication tables
 mkdir -p $MTXLIB
 
+if [ $? -ne 0 ]; then
+    echo >&2 "Error creating directory for ultiplication tables."
+    exit 1
+fi
+
 # We delete a static meataxe library that might be leftover
 # from installation of MeatAxe (as opposed to SharedMeatAxe).
 rm -f "$SAGE_LOCAL"/lib/libmtx.a
 
-if [ $? -ne 0 ]; then
-    echo >&2 "Error creating directory for multiplication tables."
-    exit 1
-fi
+# Use newer version of config.guess and config.sub (see Trac #23710)
+cp "$SAGE_ROOT"/config/config.* .
 
-./configure --prefix="$SAGE_LOCAL"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error configuring SharedMeatAxe."
-    exit 1
-fi
-
-$MAKE
-if [ $? -ne 0 ]; then
-    echo >&2 "Error building SharedMeatAxe."
-    exit 1
-fi
-
-$MAKE install
-if [ $? -ne 0 ]; then
-    echo >&2 "Error installing SharedMeatAxe."
-    exit 1
-fi
+export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
+sdh_configure
+sdh_make
+sdh_make_install
 
 if [ "x$SAGE_SPKG_INSTALL_DOCS" = xyes ] ; then
     $MAKE doc
