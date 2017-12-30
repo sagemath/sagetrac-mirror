@@ -1,6 +1,7 @@
-$(PYTHON) numpy $(BLAS) cephes gsl glpk | pkgconfig pip matplotlib
+$(PYTHON) numpy $(BLAS) cephes gsl glpk | pkgconfig pip matplotlib sphinx
 
 matplotlib is needed to test cvxopt (i.e., if SAGE_CHECK=yes). See #12742.
+sphinx is needed to build cvxopt's documentation (i.e., if SAGE_SPKG_INSTALL_DOCS=yes). See #24447.
 
 ----------
 All lines of this file are ignored except the first.
