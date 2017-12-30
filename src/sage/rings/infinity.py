@@ -873,7 +873,7 @@ class LessThanInfinity(_uniq, RingElement):
 class UnsignedInfinity(_uniq, AnInfinity, InfinityElement):
 
     _sign = 0
-    _sign_char = ''
+    _sign_char = u''
 
     def __init__(self):
         """
@@ -1489,7 +1489,7 @@ class FiniteNumber(RingElement):
 class MinusInfinity(_uniq, AnInfinity, InfinityElement):
 
     _sign = -1
-    _sign_char = '-'
+    _sign_char = u'-'
 
     def __init__(self):
         """
@@ -1588,7 +1588,7 @@ class MinusInfinity(_uniq, AnInfinity, InfinityElement):
 class PlusInfinity(_uniq, AnInfinity, InfinityElement):
 
     _sign = 1
-    _sign_char = '+'
+    _sign_char = u'+'
 
     def __init__(self):
         """
