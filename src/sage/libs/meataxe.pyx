@@ -32,10 +32,12 @@ cdef dict ErrMsg = {
 }
 
 ###############################################################
-## It is needed to do some initialisation. Since meataxe is
-## a static library, it is needed to do this initialisation
-## by calling meataxe_init() in all modules calling MeatAxe
-## library functions
+## It is needed to do some initialisation. Since the meataxe
+## version used in Sage (SharedMeatAxe) is a dynamic (shared)
+## library, it sufficed to do this initialisation only once.
+## For convenience, the meataxe_init() function is called in
+## this module. Hence, `import sage.libs.meataxe` is enough
+## to make sure that MeatAxe is initialised.
 
 from cpython.bytes cimport PyBytes_AsString
 
