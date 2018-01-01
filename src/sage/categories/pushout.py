@@ -2288,14 +2288,14 @@ class CompletionFunctor(ConstructionFunctor):
         5-adic Ring with capped relative precision 20
         sage: F1 = R.construction()[0]
         sage: F1
-        Completion[5]
+        Completion[5, prec=20]
         sage: F1(ZZ) is R
         True
         sage: F1(QQ)
         5-adic Field with capped relative precision 20
         sage: F2 = RR.construction()[0]
         sage: F2
-        Completion[+Infinity]
+        Completion[+Infinity, prec=53]
         sage: F2(QQ) is RR
         True
         sage: P.<x> = ZZ[]
@@ -2317,6 +2317,8 @@ class CompletionFunctor(ConstructionFunctor):
 
     """
     rank = 4
+    _real_types = ['Interval', 'Ball', 'MPFR', 'RDF', 'RLF', 'RR']
+    _dvr_types = [None, 'fixed-mod','floating-point','capped-abs','capped-rel','lazy']
 
     def __init__(self, p, prec, extras=None):
         """
@@ -2346,22 +2348,24 @@ class CompletionFunctor(ConstructionFunctor):
             5-adic Ring with capped relative precision 100
             sage: F2 = RR.construction()[0]
             sage: F2
-            Completion[+Infinity]
+            Completion[+Infinity, prec=53]
             sage: F2.extras
             {'rnd': 0, 'sci_not': False, 'type': 'MPFR'}
         """
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.infinity import Infinity
         Functor.__init__(self, Rings(), Rings())
         self.p = p
         self.prec = prec
+
         if extras is None:
             self.extras = {}
             self.type = None
         else:
             self.extras = dict(extras)
             self.type = extras.get('type', None)
-            from sage.rings.infinity import Infinity
             if self.p == Infinity:
-                if self.type not in self._real_types:
+                if self.prec != Infinity and self.type not in self._real_types:
                     raise ValueError("completion type must be one of %s"%(", ".join(self._real_types)))
             else:
                 if self.type not in self._dvr_types:
@@ -2371,10 +2375,17 @@ class CompletionFunctor(ConstructionFunctor):
         """
         TESTS::
 
-            sage: Zp(7).construction()  # indirect doctest
-            (Completion[7], Integer Ring)
+            sage: Zp(7).construction()         # indirect doctest
+            (Completion[7, prec=20], Integer Ring)
+
+            sage: RR.construction()            # indirect doctest
+            (Completion[+Infinity, prec=53], Rational Field)
+
+            sage: from sage.rings.real_field import RealField
+            sage: RealField().construction()   # indirect doctest
+            (Completion[+Infinity, prec=+Infinity], Rational Field)
         """
-        return 'Completion[%s]'%repr(self.p)
+        return 'Completion[%s, prec=%s]' % (self.p, self.prec)
 
     def _apply_functor(self, R):
         """
@@ -2465,9 +2476,6 @@ class CompletionFunctor(ConstructionFunctor):
             True
         """
         return not (self == other)
-
-    _real_types = ['Interval','Ball','MPFR','RDF','RLF']
-    _dvr_types = [None, 'fixed-mod','floating-point','capped-abs','capped-rel','lazy']
 
     def merge(self, other):
         """

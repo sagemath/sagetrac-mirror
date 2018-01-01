@@ -143,6 +143,10 @@ class EuclideanDomains(Category_singleton):
 
                 :meth:`_test_quo_rem`
             """
+            from sage.categories.sets_cat import Sets
+            if self in Sets().Facade():
+                return
+
             tester = self._tester(**options)
             S = [s for s in tester.some_elements() if not s.is_zero()]
 
@@ -179,6 +183,10 @@ class EuclideanDomains(Category_singleton):
 
                 :meth:`_test_euclidean_degree`
             """
+            from sage.categories.sets_cat import Sets
+            if self in Sets().Facade():
+                return
+
             tester = self._tester(**options)
             S = tester.some_elements()
             from sage.misc.misc import some_tuples
