@@ -130,7 +130,9 @@ class RegularSuperCrystals(Category_singleton):
                 for x in d:
                     y = x.f(i)
                     if y is not None:
-                        d[x][y] = i
+                        if not (i==0 and (atypical(x)>0 and atypical(x) == atypical(y))):
+                            d[x][y] = i
+                        #d[x][y] = i
             G = DiGraph(d, format='dict_of_dicts')
 
             def edge_options(data):
@@ -294,7 +296,7 @@ class RegularSuperCrystals(Category_singleton):
                 raise ValueError("all crystals must be of the same Cartan type")
             return FullTensorProductOfSuperCrystals((self,) + tuple(crystals), **options)
 
-        def character(self):
+        def character(self, subset=None):
             """
             Return the character of ``self``.
 
@@ -311,9 +313,11 @@ class RegularSuperCrystals(Category_singleton):
                 B[(1, 0, 0, 0, 0)] + B[(0, 1, 0, 0, 0)] + B[(0, 0, 1, 0, 0)]
                  + B[(0, 0, 0, 1, 0)] + B[(0, 0, 0, 0, 1)]
             """
+            if subset is None:
+                subset = self
             from sage.rings.all import ZZ
             A = self.weight_lattice_realization().algebra(ZZ)
-            return A.sum(A(x.weight()) for x in self)
+            return A.sum(A(x.weight()) for x in subset)
 
         @cached_method
         def highest_weight_vectors(self):
