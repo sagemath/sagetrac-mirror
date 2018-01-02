@@ -27,7 +27,7 @@ from sage.misc.latex import latex_variable_name
 from sage.structure.element cimport RingElement, Element, Matrix
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
-
+from sage.misc.six import u
 from sage.rings.all import RR, CC, ZZ
 
 import operator
@@ -672,6 +672,7 @@ cdef class SymbolicRing(CommutativeRing):
         cdef GSymbol symb
         cdef Expression e
 
+        name = u(name).encode('utf-8')
         # check if there is already a symbol with same name
         e = self.symbols.get(name)
 
