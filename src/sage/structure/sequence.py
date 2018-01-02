@@ -455,7 +455,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             for i in range(len(x)):
                 try:
                     x[i] = universe(x[i])
-                except TypeError:
+                except (TypeError, ValueError):
                     raise TypeError("unable to convert {} to an element of {}"
                                     .format(x[i], universe))
         list.__init__(self, x)

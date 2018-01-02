@@ -5247,6 +5247,15 @@ class Polyhedron_base(Element):
             sage: P = Polyhedron([[]])  # single point in 0 dimensions
             sage: P.integral_points()
             ((),)
+
+        We test that :trac:`24455` is fixed::
+
+            sage: P = Polyhedron([(AA(sqrt(3)),)])
+            sage: P.integral_points()
+            ()
+            sage: P = Polyhedron([(AA(sqrt(4)),)])
+            sage: P.integral_points()
+            ((2,))
         """
         if not self.is_compact():
             raise ValueError('Can only enumerate points in a compact polyhedron.')
