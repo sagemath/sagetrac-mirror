@@ -22,7 +22,7 @@ EXAMPLES::
 
 First we try a real embedding::
 
-    sage: emb = K.embeddings(RealField())[0]
+    sage: emb = K.embeddings(RealFloatingPointField())[0]
     sage: L = E.period_lattice(emb); L
     Period lattice associated to Elliptic Curve defined by y^2 = x^3 + x^2 + a*x + a over Number Field in a with defining polynomial x^3 - 2 with respect to the embedding Ring morphism:
     From: Number Field in a with defining polynomial x^3 - 2
@@ -102,8 +102,8 @@ AUTHORS:
 """
 
 from sage.modules.free_module import FreeModule_generic_pid
-from sage.rings.all import ZZ, QQ, RealField, ComplexField, QQbar, AA
-from sage.rings.real_mpfr import is_RealField
+from sage.rings.all import ZZ, QQ, RealFloatingPointField, ComplexField, QQbar, AA
+from sage.rings.real_mpfr import is_RealFloatingPointField
 from sage.rings.complex_field import is_ComplexField
 from sage.rings.real_mpfr import RealNumber as RealNumber
 from sage.rings.complex_number import ComplexNumber as ComplexNumber
@@ -148,7 +148,7 @@ class PeriodLattice_ell(PeriodLattice):
           - use the built-in coercion to `\RR` for `K=\QQ`;
 
           - use the first embedding into `\RR` given by
-          ``K.embeddings(RealField())``, if there are any;
+          ``K.embeddings(RealFloatingPointField())``, if there are any;
 
           - use the first embedding into `\CC` given by
           ``K.embeddings(ComplexField())``, if `K` is totally complex.
@@ -173,7 +173,7 @@ class PeriodLattice_ell(PeriodLattice):
         ::
 
             sage: K.<a> = NumberField(x^3-2)
-            sage: emb = K.embeddings(RealField())[0]
+            sage: emb = K.embeddings(RealFloatingPointField())[0]
             sage: E = EllipticCurve([0,1,0,a,a])
             sage: L = PeriodLattice_ell(E,emb); L
             Period lattice associated to Elliptic Curve defined by y^2 = x^3 + x^2 + a*x + a over Number Field in a with defining polynomial x^3 - 2 with respect to the embedding Ring morphism:
@@ -192,7 +192,7 @@ class PeriodLattice_ell(PeriodLattice):
 
             sage: from sage.schemes.elliptic_curves.period_lattice import PeriodLattice_ell
             sage: K.<a> = NumberField(x^3-2)
-            sage: emb = K.embeddings(RealField())[0]
+            sage: emb = K.embeddings(RealFloatingPointField())[0]
             sage: E = EllipticCurve([0,1,0,a,a])
             sage: L = PeriodLattice_ell(E,emb)
             sage: L == loads(dumps(L))
@@ -299,7 +299,7 @@ class PeriodLattice_ell(PeriodLattice):
         ::
 
             sage: K.<a> = NumberField(x^3-2)
-            sage: emb = K.embeddings(RealField())[0]
+            sage: emb = K.embeddings(RealFloatingPointField())[0]
             sage: E = EllipticCurve([0,1,0,a,a])
             sage: L = E.period_lattice(emb); L
             Period lattice associated to Elliptic Curve defined by y^2 = x^3 + x^2 + a*x + a over Number Field in a with defining polynomial x^3 - 2 with respect to the embedding Ring morphism:
@@ -417,14 +417,14 @@ class PeriodLattice_ell(PeriodLattice):
 
             sage: E = EllipticCurve('37a')
             sage: E.period_lattice().basis(prec=30)[0].parent()
-            Real Field with 30 bits of precision
+            Real Floating Point Field with 30 bits of precision
             sage: E.period_lattice().basis(prec=100)[0].parent()
-            Real Field with 100 bits of precision
+            Real Floating Point Field with 100 bits of precision
 
         ::
 
             sage: K.<a> = NumberField(x^3-2)
-            sage: emb = K.embeddings(RealField())[0]
+            sage: emb = K.embeddings(RealFloatingPointField())[0]
             sage: E = EllipticCurve([0,1,0,a,a])
             sage: L = E.period_lattice(emb)
             sage: L.basis(64)
@@ -482,7 +482,7 @@ class PeriodLattice_ell(PeriodLattice):
         ::
 
             sage: K.<a> = NumberField(x^3-2)
-            sage: emb = K.embeddings(RealField())[0]
+            sage: emb = K.embeddings(RealFloatingPointField())[0]
             sage: E = EllipticCurve([0,1,0,a,a])
             sage: L = E.period_lattice(emb)
             sage: L.normalised_basis(64)
@@ -533,7 +533,7 @@ class PeriodLattice_ell(PeriodLattice):
         ::
 
             sage: K.<a> = NumberField(x^3-2)
-            sage: emb = K.embeddings(RealField())[0]
+            sage: emb = K.embeddings(RealFloatingPointField())[0]
             sage: E = EllipticCurve([0,1,0,a,a])
             sage: L = E.period_lattice(emb)
             sage: tau = L.tau(); tau
@@ -594,8 +594,8 @@ class PeriodLattice_ell(PeriodLattice):
             1.9072648860892725468182549468 - 1.3404778596244020196600112394*I)
         """
         if prec is None:
-            prec = RealField().precision()
-        R = RealField(prec)
+            prec = RealFloatingPointField().precision()
+        R = RealFloatingPointField(prec)
         C = ComplexField(prec)
 
         if algorithm=='pari':
@@ -677,7 +677,7 @@ class PeriodLattice_ell(PeriodLattice):
             0.692321964451917
         """
         if prec is None:
-            prec = RealField().precision()
+            prec = RealFloatingPointField().precision()
         C = ComplexField(prec)
 
         # Up to now everything has been exact in AA, but now we
@@ -792,7 +792,7 @@ class PeriodLattice_ell(PeriodLattice):
         ::
 
             sage: K.<a> = NumberField(x^3-2)
-            sage: emb = K.embeddings(RealField())[0]
+            sage: emb = K.embeddings(RealFloatingPointField())[0]
             sage: E = EllipticCurve([0,1,0,a,a])
             sage: L = E.period_lattice(emb)
             sage: L.real_period(64)
@@ -849,7 +849,7 @@ class PeriodLattice_ell(PeriodLattice):
         ::
 
             sage: K.<a> = NumberField(x^3-2)
-            sage: emb = K.embeddings(RealField())[0]
+            sage: emb = K.embeddings(RealFloatingPointField())[0]
             sage: E = EllipticCurve([0,1,0,a,a])
             sage: L = E.period_lattice(emb)
             sage: L.omega(64)
@@ -901,7 +901,7 @@ class PeriodLattice_ell(PeriodLattice):
         ::
 
             sage: K.<a> = NumberField(x^3-2)
-            sage: emb = K.embeddings(RealField())[0]
+            sage: emb = K.embeddings(RealFloatingPointField())[0]
             sage: E = EllipticCurve([0,1,0,a,a])
             sage: L = E.period_lattice(emb)
             sage: L.basis_matrix(64)
@@ -1004,7 +1004,7 @@ class PeriodLattice_ell(PeriodLattice):
             2.60912163570108 - 0.200865080824587*I
         """
         if prec is None:
-            prec = RealField().precision()
+            prec = RealFloatingPointField().precision()
         try:
             return self.E.pari_curve().ellsigma(z, flag, precision=prec)
         except AttributeError:
@@ -1025,7 +1025,7 @@ class PeriodLattice_ell(PeriodLattice):
 
             sage: K.<a> = NumberField(x^3-2)
             sage: E = EllipticCurve([0,1,0,a,a])
-            sage: L = E.period_lattice(K.embeddings(RealField())[0])
+            sage: L = E.period_lattice(K.embeddings(RealFloatingPointField())[0])
             sage: L.curve() is E
             True
 
@@ -1053,7 +1053,7 @@ class PeriodLattice_ell(PeriodLattice):
 
             sage: K.<a> = NumberField(x^3-2)
             sage: E = EllipticCurve([0,1,0,a,a])
-            sage: L = E.period_lattice(K.embeddings(RealField())[0])
+            sage: L = E.period_lattice(K.embeddings(RealFloatingPointField())[0])
             sage: x1,x2,x3 = L.ei()
             sage: abs(x1.real())+abs(x2.real())<1e-14
             True
@@ -1118,7 +1118,7 @@ class PeriodLattice_ell(PeriodLattice):
             (12, 23)
         """
         C = z.parent()
-        if is_RealField(C):
+        if is_RealFloatingPointField(C):
             C = ComplexField(C.precision())
             z = C(z)
         else:
@@ -1183,7 +1183,7 @@ class PeriodLattice_ell(PeriodLattice):
         """
         C = z.parent()
         z_is_real = False
-        if is_RealField(C):
+        if is_RealFloatingPointField(C):
             z_is_real = True
             C = ComplexField(C.precision())
             z = C(z)
@@ -1313,13 +1313,13 @@ class PeriodLattice_ell(PeriodLattice):
             1.03355715602040 - 0.867257428417356*I
         """
         if prec is None:
-            prec = RealField().precision()
+            prec = RealFloatingPointField().precision()
         # Note: using log2(prec) + 3 guard bits is usually enough.
         # To avoid computing a logarithm, we use 40 guard bits which
         # should be largely enough in practice.
         prec2 = prec + 40
 
-        R = RealField(prec2)
+        R = RealFloatingPointField(prec2)
         C = ComplexField(prec2)
         pi = R.pi()
         e1,e2,e3 = self._ei
@@ -1595,7 +1595,7 @@ class PeriodLattice_ell(PeriodLattice):
         if not P.curve() is self.E:
             raise ValueError("Point is on the wrong curve")
         if prec is None:
-            prec = RealField().precision()
+            prec = RealFloatingPointField().precision()
         if P.is_zero():
             return ComplexField(prec)(0)
 
@@ -1648,7 +1648,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L.elliptic_exponential(z)
             (0.999999999999999 : -2.00000000000000 : 1.00000000000000)
             sage: _.curve()
-            Elliptic Curve defined by y^2 + 1.00000000000000*x*y + 1.00000000000000*y = x^3 + 1.00000000000000*x^2 - 8.00000000000000*x + 6.00000000000000 over Real Field with 53 bits of precision
+            Elliptic Curve defined by y^2 + 1.00000000000000*x*y + 1.00000000000000*y = x^3 + 1.00000000000000*x^2 - 8.00000000000000*x + 6.00000000000000 over Real Floating Point Field with 53 bits of precision
             sage: L.elliptic_exponential(z,to_curve=False)
             (1.41666666666667, -2.00000000000000)
             sage: z = L(P,prec=201); z
@@ -1731,14 +1731,14 @@ class PeriodLattice_ell(PeriodLattice):
 
             sage: (100/log(2.0,10))/0.8
             415.241011860920
-            sage: L.elliptic_exponential((RealField(415)(1e-100))).is_zero()
+            sage: L.elliptic_exponential((RealFloatingPointField(415)(1e-100))).is_zero()
             True
-            sage: L.elliptic_exponential((RealField(420)(1e-100))).is_zero()
+            sage: L.elliptic_exponential((RealFloatingPointField(420)(1e-100))).is_zero()
             False
         """
         C = z.parent()
         z_is_real = False
-        if is_RealField(C):
+        if is_RealFloatingPointField(C):
             z_is_real = True
             C = ComplexField(C.precision())
             z = C(z)

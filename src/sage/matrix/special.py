@@ -662,7 +662,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
         [0.000000000000000  1.30000000000000 0.000000000000000]
         [0.000000000000000 0.000000000000000  5.00000000000000]
         sage: A.parent()
-        Full MatrixSpace of 3 by 3 sparse matrices over Real Field with 53 bits of precision
+        Full MatrixSpace of 3 by 3 sparse matrices over Real Floating Point Field with 53 bits of precision
 
     Format 2: size specified, a tuple with initial entries. Note that a short list of entries
     is effectively padded with zeros.  ::
@@ -979,7 +979,7 @@ def ones_matrix(ring, nrows=None, ncols=None, sparse=False):
         [1.00000000000000 1.00000000000000]
         [1.00000000000000 1.00000000000000]
         sage: M.parent()
-        Full MatrixSpace of 2 by 2 dense matrices over Real Field with 53 bits of precision
+        Full MatrixSpace of 2 by 2 dense matrices over Real Floating Point Field with 53 bits of precision
 
     The ring defaults to the integers if not given. ::
 
@@ -3334,12 +3334,12 @@ def vector_on_axis_rotation_matrix(v, i, ring=None):
         sage: v = vector((1,2,3,4))
         sage: vector_on_axis_rotation_matrix(v, 0) * v
         (sqrt(30), 0, 0, 0)
-        sage: vector_on_axis_rotation_matrix(v, 0, ring=RealField(10))
+        sage: vector_on_axis_rotation_matrix(v, 0, ring=RealFloatingPointField(10))
         [ 0.18  0.37  0.55  0.73]
         [-0.98 0.068  0.10  0.14]
         [ 0.00 -0.93  0.22  0.30]
         [ 0.00  0.00 -0.80  0.60]
-        sage: vector_on_axis_rotation_matrix(v, 0, ring=RealField(10)) * v
+        sage: vector_on_axis_rotation_matrix(v, 0, ring=RealFloatingPointField(10)) * v
         (5.5, 0.00098, 0.00098, 0.00)
 
     AUTHORS:

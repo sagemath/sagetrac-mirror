@@ -1160,7 +1160,7 @@ def nullspace_RR(n=300, min=0, max=10, system='sage'):
     elif system == 'magma':
         code = """
 n := %s;
-A := RMatrixSpace(RealField(16), n+1,n)![Random(%s,%s) : i in [1..n*(n+1)]];
+A := RMatrixSpace(RealFloatingPointField(16), n+1,n)![Random(%s,%s) : i in [1..n*(n+1)]];
 t := Cputime();
 K := Kernel(A);
 s := Cputime(t);
@@ -1200,7 +1200,7 @@ def nullspace_RDF(n=300, min=0, max=10, system='sage'):
     elif system == 'magma':
         code = """
 n := %s;
-A := RMatrixSpace(RealField(16), n+1,n)![Random(%s,%s) : i in [1..n*(n+1)]];
+A := RMatrixSpace(RealFloatingPointField(16), n+1,n)![Random(%s,%s) : i in [1..n*(n+1)]];
 t := Cputime();
 K := Kernel(A);
 s := Cputime(t);

@@ -87,7 +87,7 @@ from sage.rings.qqbar import QQbar
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
-from sage.rings.real_mpfr import (RealField, is_RealField)
+from sage.rings.real_mpfr import (RealFloatingPointField, is_RealFloatingPointField)
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
 from sage.schemes.projective.projective_morphism import (
@@ -1113,7 +1113,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if int(N) < 1:
             raise TypeError("number of iterates must be a positive integer")
 
-        R = RealField(prec=prec)
+        R = RealFloatingPointField(prec=prec)
         if self.is_morphism():
             return R(self.degree())
         else:
@@ -1608,7 +1608,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         N = kwds.get('N', 10)                       #Get number of iterates (if entered)
         err = kwds.get('error_bound', None)         #Get error bound (if entered)
         prec = kwds.get('prec', 100)                #Get precision (if entered)
-        R = RealField(prec)
+        R = RealFloatingPointField(prec)
         localht = R(0)
         BR = FractionField(P.codomain().base_ring())
         GBR = self.change_ring(BR) #so the heights work
@@ -1868,7 +1868,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             x_i = Q[0]
             y_i = Q[1]
             d = self.degree()
-            R = RealField(prec)
+            R = RealFloatingPointField(prec)
             N = kwds.get('N', 10)
             err = kwds.get('error_bound', None)
             #computes the error bound as defined in Algorithm 3.1 of [WELLS]
@@ -1916,7 +1916,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         num_places = len(emb) + len(bad_primes)
         if not error_bound is None:
             error_bound /= num_places
-        R = RealField(prec)
+        R = RealFloatingPointField(prec)
         h = R.zero()
 
         ##update the keyword dictionary for use in green_function
@@ -1925,10 +1925,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         # Archimedean local heights
         # :: WARNING: If places is fed the default Sage precision of 53 bits,
-        # it uses Real or Complex Double Field in place of RealField(prec) or ComplexField(prec)
-        # the function is_RealField does not identify RDF as real, so we test for that ourselves.
+        # it uses Real or Complex Double Field in place of RealFloatingPointField(prec) or ComplexField(prec)
+        # the function is_RealFloatingPointField does not identify RDF as real, so we test for that ourselves.
         for v in emb:
-            if is_RealField(v.codomain()) or v.codomain() is RDF:
+            if is_RealFloatingPointField(v.codomain()) or v.codomain() is RDF:
                 dv = R.one()
             else:
                 dv = R(2)
@@ -1958,7 +1958,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         INPUT:
 
-        - ``prec`` -- (default: :class:`RealField` default)
+        - ``prec`` -- (default: :class:`RealFloatingPointField` default)
           positive integer, float point precision
 
         OUTPUT: a real number
@@ -2007,9 +2007,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         else:
             f = self.change_ring(FF)
         if prec is None:
-            R = RealField()
+            R = RealFloatingPointField()
         else:
-            R = RealField(prec)
+            R = RealFloatingPointField(prec)
         N = f.domain().dimension_relative()
         d = f.degree()
         D = (N + 1) * (d - 1) + 1
@@ -3694,7 +3694,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = f.conjugate(m)
             sage: f.reduced_form()
             (
-            Dynamical System of Projective Space of dimension 1 over Real Field with 53 bits of precision
+            Dynamical System of Projective Space of dimension 1 over Real Floating Point Field with 53 bits of precision
               Defn: Defined on coordinates by sending (x : y) to
                     (-x^4 + 2.86348722511320e-12*y^4 : -1.41421356237310*y^4)
             ,
@@ -3950,7 +3950,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             raise TypeError("must be positive characteristic")
         PS = self.domain()
         N = PS.dimension_relative()
-        R = RealField()
+        R = RealFloatingPointField()
         #compute the maximum p-adic precision needed to conclusively determine
         #if the rational point exists
         L = R((R(2 ** (N/2 + 1) * sqrt(N+1) * B**2).log()) / R(p).log() + 1).trunc()

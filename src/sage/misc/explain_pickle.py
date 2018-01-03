@@ -219,8 +219,8 @@ def explain_pickle(pickle=None, file=None, compress=True, **kwargs):
         {('a', 'b'):[1r, 2r]}
         sage: explain_pickle(dumps(RR(pi)), in_current_sage=True)
         from sage.rings.real_mpfr import __create__RealNumber_version0
-        from sage.rings.real_mpfr import __create__RealField_version0
-        __create__RealNumber_version0(__create__RealField_version0(53r, False, 'RNDN'), '3.4gvml245kc0@0', 32r)
+        from sage.rings.real_mpfr import __create__RealFloatingPointField_version0
+        __create__RealNumber_version0(__create__RealFloatingPointField_version0(53r, False, 'RNDN'), '3.4gvml245kc0@0', 32r)
         sage: s = 'hi'
         sage: explain_pickle(dumps((s, s)))
         ('hi', 'hi')

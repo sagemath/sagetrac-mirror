@@ -101,13 +101,13 @@ cpdef gen_to_sage(Gen z, locals=None):
         sage: a = gen_to_sage(z); a
         1.234000000000000000000000000000000000000000000000000000000000000000000000000
         sage: a.parent()
-        Real Field with 256 bits of precision
+        Real Floating Point Field with 256 bits of precision
         sage: pari.set_real_precision(15)
         70
         sage: a = gen_to_sage(pari('1.234')); a
         1.23400000000000000
         sage: a.parent()
-        Real Field with 64 bits of precision
+        Real Floating Point Field with 64 bits of precision
 
     For complex numbers, the parent depends on the PARI type::
 
@@ -171,7 +171,7 @@ cpdef gen_to_sage(Gen z, locals=None):
         (<... 'list'>, <... 'list'>)
         sage: [parent(b) for b in a1]
         [Integer Ring,
-         Real Field with 64 bits of precision,
+         Real Floating Point Field with 64 bits of precision,
          Number Field in i with defining polynomial x^2 + 1]
         sage: [parent(b) for b in a2]
         [Complex Field with 64 bits of precision, <... 'list'>]
@@ -226,9 +226,9 @@ cpdef gen_to_sage(Gen z, locals=None):
         from sage.rings.rational import Rational
         return Rational(z)
     elif t == t_REAL:
-        from sage.rings.all import RealField
+        from sage.rings.all import RealFloatingPointField
         prec = prec_words_to_bits(z.precision())
-        return RealField(prec)(z)
+        return RealFloatingPointField(prec)(z)
     elif t == t_COMPLEX:
         real = z.real()
         imag = z.imag()
@@ -246,8 +246,8 @@ cpdef gen_to_sage(Gen z, locals=None):
             else:
                 prec = max(prec_words_to_bits(xprec), prec_words_to_bits(yprec))
 
-            from sage.rings.all import RealField, ComplexField
-            R = RealField(prec)
+            from sage.rings.all import RealFloatingPointField, ComplexField
+            R = RealFloatingPointField(prec)
             C = ComplexField(prec)
             return C(R(real), R(imag))
         else:

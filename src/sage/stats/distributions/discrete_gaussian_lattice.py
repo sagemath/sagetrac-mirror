@@ -58,7 +58,7 @@ from six.moves import range
 
 from sage.functions.log import exp
 from sage.functions.other import ceil
-from sage.rings.all import RealField, RR, ZZ, QQ
+from sage.rings.all import RealFloatingPointField, RR, ZZ, QQ
 from .discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
 from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix, identity_matrix
@@ -162,13 +162,13 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
             sage: DiscreteGaussianDistributionLatticeSampler.compute_precision(100, RR(3))
             100
-            sage: DiscreteGaussianDistributionLatticeSampler.compute_precision(100, RealField(200)(3))
+            sage: DiscreteGaussianDistributionLatticeSampler.compute_precision(100, RealFloatingPointField(200)(3))
             100
             sage: DiscreteGaussianDistributionLatticeSampler.compute_precision(100, 3)
             100
             sage: DiscreteGaussianDistributionLatticeSampler.compute_precision(None, RR(3))
             53
-            sage: DiscreteGaussianDistributionLatticeSampler.compute_precision(None, RealField(200)(3))
+            sage: DiscreteGaussianDistributionLatticeSampler.compute_precision(None, RealFloatingPointField(200)(3))
             200
             sage: DiscreteGaussianDistributionLatticeSampler.compute_precision(None, 3)
             53
@@ -268,7 +268,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
         """
         precision = DiscreteGaussianDistributionLatticeSampler.compute_precision(precision, sigma)
 
-        self._RR = RealField(precision)
+        self._RR = RealFloatingPointField(precision)
         self._sigma = self._RR(sigma)
 
         try:

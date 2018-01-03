@@ -54,7 +54,7 @@ from sage.structure.all import parent
 from sage.libs.mpmath import utils as mpmath_utils
 mpmath_utils_call = mpmath_utils.call # eliminate some overhead in _evalf_
 
-from sage.rings.real_mpfr import RealField
+from sage.rings.real_mpfr import RealFloatingPointField
 from sage.rings.all import ZZ
 from sage.functions.log import exp, log
 from sage.functions.trig import sin, cos
@@ -81,7 +81,7 @@ class Function_exp_integral_e(BuiltinFunction):
 
         sage: N(exp_integral_e(1,1))
         0.219383934395520
-        sage: exp_integral_e(1, RealField(100)(1))
+        sage: exp_integral_e(1, RealFloatingPointField(100)(1))
         0.21938393439552027367716377546
 
     We can compare this to PARI's evaluation of
@@ -216,7 +216,7 @@ class Function_exp_integral_e(BuiltinFunction):
             0.219383934395520
             sage: N(exp_integral_e(1, 1+I))
             0.000281624451981418 - 0.179324535039359*I
-            sage: exp_integral_e(1, RealField(100)(1))
+            sage: exp_integral_e(1, RealFloatingPointField(100)(1))
             0.21938393439552027367716377546
 
         """
@@ -270,7 +270,7 @@ class Function_exp_integral_e1(BuiltinFunction):
 
         sage: N(exp_integral_e1(1))
         0.219383934395520
-        sage: exp_integral_e1(RealField(100)(1))
+        sage: exp_integral_e1(RealFloatingPointField(100)(1))
         0.21938393439552027367716377546
 
     We can compare this to PARI's evaluation of
@@ -320,7 +320,7 @@ class Function_exp_integral_e1(BuiltinFunction):
 
             sage: N(exp_integral_e1(1+I))
             0.000281624451981418 - 0.179324535039359*I
-            sage: exp_integral_e1(RealField(200)(0.5))
+            sage: exp_integral_e1(RealFloatingPointField(200)(0.5))
             0.55977359477616081174679593931508523522684689031635351524829
 
         """
@@ -448,7 +448,7 @@ class Function_log_integral(BuiltinFunction):
 
             sage: N(log_integral(1e6))
             78627.5491594622
-            sage: log_integral(RealField(200)(1e6))
+            sage: log_integral(RealFloatingPointField(200)(1e6))
             78627.549159462181919862910747947261161321874382421767074759
 
         """
@@ -633,7 +633,7 @@ class Function_log_integral_offset(BuiltinFunction):
 
             sage: N(log_integral_offset(1e6))
             78626.5039956821
-            sage: log_integral_offset(RealField(200)(1e6))
+            sage: log_integral_offset(RealFloatingPointField(200)(1e6))
             78626.503995682064427078066159058066548185351766843615873183
             sage: li(4.5)-li(2.0)-Li(4.5)
             0.000000000000000
@@ -702,7 +702,7 @@ class Function_sin_integral(BuiltinFunction):
     At 200 bits of precision `\operatorname{Si}(10^{23})` agrees with `\pi/2` up to
     `10^{-24}`::
 
-        sage: sin_integral(RealField(200)(1e23))
+        sage: sin_integral(RealFloatingPointField(200)(1e23))
         1.5707963267948966192313288218697837425815368604836679189519
         sage: N(pi/2, prec=200)
         1.5707963267948966192313216916397514420985846996875529104875
@@ -811,7 +811,7 @@ class Function_sin_integral(BuiltinFunction):
         At 200 bits of precision `\operatorname{Si}(10^{23})` agrees with `\pi/2` up to
         `10^{-24}`::
 
-            sage: sin_integral(RealField(200)(1e23))
+            sage: sin_integral(RealFloatingPointField(200)(1e23))
             1.5707963267948966192313288218697837425815368604836679189519
             sage: N(pi/2, prec=200)
             1.5707963267948966192313216916397514420985846996875529104875
@@ -1315,7 +1315,7 @@ class Function_exp_integral(BuiltinFunction):
     input. Convert the input to a higher precision explicitly if a
     result with higher precision is desired::
 
-        sage: Ei(RealField(300)(1.1))
+        sage: Ei(RealFloatingPointField(300)(1.1))
         2.16737827956340282358378734233807621497112737591639704719499002090327541763352339357795426
         
     ALGORITHM: Uses mpmath.
@@ -1422,12 +1422,12 @@ def exponential_integral_1(x, n=0):
         [0.000000000000000, 2.22854325868847e-37, 6.33732515501151e-55, 2.02336191509997e-72, 6.88522610630764e-90]
         sage: exponential_integral_1(0)
         +Infinity
-        sage: r = exponential_integral_1(RealField(150)(1))
+        sage: r = exponential_integral_1(RealFloatingPointField(150)(1))
         sage: r
         0.21938393439552027367716377546012164903104729
         sage: parent(r)
-        Real Field with 150 bits of precision
-        sage: exponential_integral_1(RealField(150)(100))
+        Real Floating Point Field with 150 bits of precision
+        sage: exponential_integral_1(RealFloatingPointField(150)(100))
         3.6835977616820321802351926205081189876552201e-46
 
     TESTS:
@@ -1435,8 +1435,8 @@ def exponential_integral_1(x, n=0):
     The relative error for a single value should be less than 1 ulp::
 
         sage: for prec in [20..1000]:  # long time (22s on sage.math, 2013)
-        ....:     R = RealField(prec)
-        ....:     S = RealField(prec+64)
+        ....:     R = RealFloatingPointField(prec)
+        ....:     S = RealFloatingPointField(prec+64)
         ....:     for t in range(8):  # Try 8 values for each precision
         ....:         a = R.random_element(-15,10).exp()
         ....:         x = exponential_integral_1(a)
@@ -1449,8 +1449,8 @@ def exponential_integral_1(x, n=0):
     `p` is the precision in bits of `x` and `c = 2` ``max(1, exponential_integral_1(x))``::
 
         sage: for prec in [20..128]:  # long time (15s on sage.math, 2013)
-        ....:     R = RealField(prec)
-        ....:     S = RealField(prec+64)
+        ....:     R = RealFloatingPointField(prec)
+        ....:     S = RealFloatingPointField(prec+64)
         ....:     a = R.random_element(-15,10).exp()
         ....:     n = 2^ZZ.random_element(14)
         ....:     x = exponential_integral_1(a, n)
@@ -1487,17 +1487,17 @@ def exponential_integral_1(x, n=0):
     except AttributeError:
         prec = 53
 
-    R = RealField(prec)
+    R = RealFloatingPointField(prec)
     if n <= 0:
         # Add extra bits to the input.
         # (experimentally verified -- Jeroen Demeyer)
         inprec = prec + 5 + math.ceil(math.log(prec))
-        x = RealField(inprec)(x).__pari__()
+        x = RealFloatingPointField(inprec)(x).__pari__()
         return R(x.eint1())
     else:
         # PARI's algorithm is less precise as n grows larger:
         # add extra bits.
         # (experimentally verified -- Jeroen Demeyer)
         inprec = prec + 1 + math.ceil(1.4427 * math.log(n))
-        x = RealField(inprec)(x).__pari__()
+        x = RealFloatingPointField(inprec)(x).__pari__()
         return [R(z) for z in x.eint1(n)]

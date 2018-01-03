@@ -380,7 +380,7 @@ class Function_erfc(BuiltinFunction):
         erfc(6)
         sage: erfc(6).n()
         2.15197367124989e-17
-        sage: erfc(RealField(100)(1/2))
+        sage: erfc(RealFloatingPointField(100)(1/2))
         0.47950012218695346231725334611
 
         sage: 1 - erfc(0.5)

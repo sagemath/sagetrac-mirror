@@ -34,8 +34,8 @@ AUTHORS:
 This is a binding for the MPFR arbitrary-precision floating point
 library.
 
-We define a class :class:`RealField`, where each instance of
-:class:`RealField` specifies a field of floating-point
+We define a class :class:`RealFloatingPointField`, where each instance of
+:class:`RealFloatingPointField` specifies a field of floating-point
 numbers with a specified precision and rounding mode. Individual
 floating-point numbers are of :class:`RealNumber`.
 
@@ -95,26 +95,26 @@ Make sure we don't have a new field for every new literal::
 
     sage: parent(2.0) is parent(2.0)
     True
-    sage: RealField(100, rnd='RNDZ') is RealField(100, rnd='RNDD')
+    sage: RealFloatingPointField(100, rnd='RNDZ') is RealFloatingPointField(100, rnd='RNDD')
     False
-    sage: RealField(100, rnd='RNDZ') is RealField(100, rnd='RNDZ')
+    sage: RealFloatingPointField(100, rnd='RNDZ') is RealFloatingPointField(100, rnd='RNDZ')
     True
-    sage: RealField(100, rnd='RNDZ') is RealField(100, rnd=1)
+    sage: RealFloatingPointField(100, rnd='RNDZ') is RealFloatingPointField(100, rnd=1)
     True
 
 TESTS:
 
 Test deprecation from :trac:`24456`::
 
-    sage: from sage.rings.real_mpfr import create_RealField
-    sage: create_RealField()
+    sage: from sage.rings.real_mpfr import create_RealFloatingPointField
+    sage: create_RealFloatingPointField()
     doctest:warning
     ...
-    DeprecationWarning: Importing create_RealField from here is
+    DeprecationWarning: Importing create_RealFloatingPointField from here is
     deprecated. If you need to use it, please import it directly from
     sage.rings.real_field
     See http://trac.sagemath.org/24456 for details.
-    Real Field with 53 bits of precision
+    Floating Point Field with 53 bits of precision
 """
 
 #*****************************************************************************
@@ -175,7 +175,7 @@ from sage.structure.parent_gens cimport ParentWithGens
 from sage.arith.numerical_approx cimport digits_to_bits
 
 from sage.misc.lazy_import import LazyImport
-create_RealField = LazyImport('sage.rings.real_field', 'create_RealField', deprecation=24456)
+create_RealFloatingPointField = LazyImport('sage.rings.real_field', 'create_RealFloatingPointField', deprecation=24456)
 
 #*****************************************************************************
 #
@@ -208,12 +208,12 @@ def mpfr_prec_min():
         sage: from sage.rings.real_mpfr import mpfr_prec_min
         sage: mpfr_prec_min()
         2
-        sage: R = RealField(2)
+        sage: R = RealFloatingPointField(2)
         sage: R(2) + R(1)
         3.0
         sage: R(4) + R(1)
         4.0
-        sage: R = RealField(1)
+        sage: R = RealFloatingPointField(1)
         Traceback (most recent call last):
         ...
         ValueError: prec (=1) must be >= 2 and <= 2147483391
@@ -229,10 +229,10 @@ def mpfr_prec_max():
         sage: from sage.rings.real_mpfr import mpfr_prec_max
         sage: mpfr_prec_max()
         2147483391
-        sage: R = RealField(2^31-257)
+        sage: R = RealFloatingPointField(2^31-257)
         sage: R
-        Real Field with 2147483391 bits of precision
-        sage: R = RealField(2^31-256)
+        Floating Point Field with 2147483391 bits of precision
+        sage: R = RealFloatingPointField(2^31-256)
         Traceback (most recent call last):
         ...
         ValueError: prec (=2147483392) must be >= 2 and <= 2147483391
@@ -374,11 +374,11 @@ cdef dict rounding_modes = dict(RNDN=MPFR_RNDN, RNDZ=MPFR_RNDZ,
 
 cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
 
-cdef object RealField_cache = sage.misc.weak_dict.WeakValueDictionary()
+cdef object RealFloatingPointField_cache = sage.misc.weak_dict.WeakValueDictionary()
 
-cpdef RealField(int prec=53, int sci_not=0, rnd=MPFR_RNDN):
+cpdef RealFloatingPointField(int prec=53, int sci_not=0, rnd=MPFR_RNDN):
     """
-    RealField(prec, sci_not, rnd):
+    RealFloatingPointField(prec, sci_not, rnd):
 
     INPUT:
 
@@ -407,19 +407,19 @@ cpdef RealField(int prec=53, int sci_not=0, rnd=MPFR_RNDN):
 
     EXAMPLES::
 
-        sage: RealField(10)
-        Real Field with 10 bits of precision
-        sage: RealField()
-        Real Field with 53 bits of precision
-        sage: RealField(100000)
-        Real Field with 100000 bits of precision
+        sage: RealFloatingPointField(10)
+        Floating Point Field with 10 bits of precision
+        sage: RealFloatingPointField()
+        Floating Point Field with 53 bits of precision
+        sage: RealFloatingPointField(100000)
+        Floating Point Field with 100000 bits of precision
 
     Here we show the effect of rounding::
 
-        sage: R17d = RealField(17,rnd='RNDD')
+        sage: R17d = RealFloatingPointField(17,rnd='RNDD')
         sage: a = R17d(1)/R17d(3); a.exact_rational()
         87381/262144
-        sage: R17u = RealField(17,rnd='RNDU')
+        sage: R17u = RealFloatingPointField(17,rnd='RNDU')
         sage: a = R17u(1)/R17u(3); a.exact_rational()
         43691/131072
 
@@ -443,14 +443,14 @@ cpdef RealField(int prec=53, int sci_not=0, rnd=MPFR_RNDN):
             raise ValueError("rounding mode (={!r}) must be one of {}".format(rnd, rounding_modes.keys()))
 
     try:
-        return RealField_cache[prec, sci_not, r]
+        return RealFloatingPointField_cache[prec, sci_not, r]
     except KeyError:
-        R = RealField_class(prec=prec, sci_not=sci_not, rnd=r)
-        RealField_cache[prec, sci_not, r] = R
+        R = RealFloatingPointField_class(prec=prec, sci_not=sci_not, rnd=r)
+        RealFloatingPointField_cache[prec, sci_not, r] = R
         return R
 
 
-cdef class RealField_class(sage.rings.ring.Field):
+cdef class RealFloatingPointField_class(sage.rings.ring.Field):
     """
     An approximation to the field of real numbers using floating point
     numbers with any specified precision. Answers derived from
@@ -468,46 +468,46 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: RealField()
-            Real Field with 53 bits of precision
-            sage: RealField(100000)
-            Real Field with 100000 bits of precision
-            sage: RealField(17,rnd='RNDD')
-            Real Field with 17 bits of precision and rounding RNDD
+            sage: RealFloatingPointField()
+            Floating Point Field with 53 bits of precision
+            sage: RealFloatingPointField(100000)
+            Floating Point Field with 100000 bits of precision
+            sage: RealFloatingPointField(17,rnd='RNDD')
+            Floating Point Field with 17 bits of precision and rounding RNDD
 
         TESTS:
 
         Test the various rounding modes::
 
-            sage: RealField(100, rnd="RNDN")
-            Real Field with 100 bits of precision
-            sage: RealField(100, rnd="RNDZ")
-            Real Field with 100 bits of precision and rounding RNDZ
-            sage: RealField(100, rnd="RNDU")
-            Real Field with 100 bits of precision and rounding RNDU
-            sage: RealField(100, rnd="RNDD")
-            Real Field with 100 bits of precision and rounding RNDD
-            sage: RealField(100, rnd="RNDA")
-            Real Field with 100 bits of precision and rounding RNDA
-            sage: RealField(100, rnd=0)
-            Real Field with 100 bits of precision
-            sage: RealField(100, rnd=1)
-            Real Field with 100 bits of precision and rounding RNDZ
-            sage: RealField(100, rnd=2)
-            Real Field with 100 bits of precision and rounding RNDU
-            sage: RealField(100, rnd=3)
-            Real Field with 100 bits of precision and rounding RNDD
-            sage: RealField(100, rnd=4)
-            Real Field with 100 bits of precision and rounding RNDA
-            sage: RealField(100, rnd=3.14)
+            sage: RealFloatingPointField(100, rnd="RNDN")
+            Floating Point Field with 100 bits of precision
+            sage: RealFloatingPointField(100, rnd="RNDZ")
+            Floating Point Field with 100 bits of precision and rounding RNDZ
+            sage: RealFloatingPointField(100, rnd="RNDU")
+            Floating Point Field with 100 bits of precision and rounding RNDU
+            sage: RealFloatingPointField(100, rnd="RNDD")
+            Floating Point Field with 100 bits of precision and rounding RNDD
+            sage: RealFloatingPointField(100, rnd="RNDA")
+            Floating Point Field with 100 bits of precision and rounding RNDA
+            sage: RealFloatingPointField(100, rnd=0)
+            Floating Point Field with 100 bits of precision
+            sage: RealFloatingPointField(100, rnd=1)
+            Floating Point Field with 100 bits of precision and rounding RNDZ
+            sage: RealFloatingPointField(100, rnd=2)
+            Floating Point Field with 100 bits of precision and rounding RNDU
+            sage: RealFloatingPointField(100, rnd=3)
+            Floating Point Field with 100 bits of precision and rounding RNDD
+            sage: RealFloatingPointField(100, rnd=4)
+            Floating Point Field with 100 bits of precision and rounding RNDA
+            sage: RealFloatingPointField(100, rnd=3.14)
             Traceback (most recent call last):
             ...
             ValueError: rounding mode (=3.14000000000000) must be one of ['RNDA', 'RNDZ', 'RNDD', 'RNDU', 'RNDN']
-            sage: RealField(100, rnd=5)
+            sage: RealFloatingPointField(100, rnd=5)
             Traceback (most recent call last):
             ...
             ValueError: unknown rounding mode 5
-            sage: RealField(100, rnd=10^100)
+            sage: RealFloatingPointField(100, rnd=10^100)
             Traceback (most recent call last):
             ...
             OverflowError: Sage Integer too large to convert to C long
@@ -546,14 +546,14 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: RealField() # indirect doctest
-            Real Field with 53 bits of precision
-            sage: RealField(100000) # indirect doctest
-            Real Field with 100000 bits of precision
-            sage: RealField(17,rnd='RNDD') # indirect doctest
-            Real Field with 17 bits of precision and rounding RNDD
+            sage: RealFloatingPointField() # indirect doctest
+            Floating Point Field with 53 bits of precision
+            sage: RealFloatingPointField(100000) # indirect doctest
+            Floating Point Field with 100000 bits of precision
+            sage: RealFloatingPointField(17,rnd='RNDD') # indirect doctest
+            Floating Point Field with 17 bits of precision and rounding RNDD
         """
-        s = "Real Field with %s bits of precision"%self.__prec
+        s = "Floating Point Field with %s bits of precision"%self.__prec
         if self.rnd != MPFR_RNDN:
             s = s + " and rounding %s"%(self.rnd_str)
         return s
@@ -564,7 +564,7 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: latex(RealField()) # indirect doctest
+            sage: latex(RealFloatingPointField()) # indirect doctest
             \Bold{R}
         """
         return "\\Bold{R}"
@@ -579,31 +579,31 @@ cdef class RealField_class(sage.rings.ring.Field):
             sage: sage_input(RR, verify=True)
             # Verified
             RR
-            sage: sage_input(RealField(25, rnd='RNDZ'), verify=True)
+            sage: sage_input(RealFloatingPointField(25, rnd='RNDZ'), verify=True)
             # Verified
-            RealField(25, rnd='RNDZ')
-            sage: k = (RR, RealField(75, rnd='RNDU'), RealField(13))
+            RealFloatingPointField(25, rnd='RNDZ')
+            sage: k = (RR, RealFloatingPointField(75, rnd='RNDU'), RealFloatingPointField(13))
             sage: sage_input(k, verify=True)
             # Verified
-            (RR, RealField(75, rnd='RNDU'), RealField(13))
+            (RR, RealFloatingPointField(75, rnd='RNDU'), RealFloatingPointField(13))
             sage: sage_input((k, k), verify=True)
             # Verified
-            RR75u = RealField(75, rnd='RNDU')
-            RR13 = RealField(13)
+            RR75u = RealFloatingPointField(75, rnd='RNDU')
+            RR13 = RealFloatingPointField(13)
             ((RR, RR75u, RR13), (RR, RR75u, RR13))
             sage: from sage.misc.sage_input import SageInputBuilder
-            sage: RealField(99, rnd='RNDD')._sage_input_(SageInputBuilder(), False)
-            {call: {atomic:RealField}({atomic:99}, rnd={atomic:'RNDD'})}
+            sage: RealFloatingPointField(99, rnd='RNDD')._sage_input_(SageInputBuilder(), False)
+            {call: {atomic:RealFloatingPointField}({atomic:99}, rnd={atomic:'RNDD'})}
         """
         if self.rnd == MPFR_RNDN and self.prec() == 53:
             return sib.name('RR')
 
         if self.rnd != MPFR_RNDN:
             rnd_abbrev = self.rnd_str[-1:].lower()
-            v = sib.name('RealField')(sib.int(self.prec()), rnd=self.rnd_str)
+            v = sib.name('RealFloatingPointField')(sib.int(self.prec()), rnd=self.rnd_str)
         else:
             rnd_abbrev = ''
-            v = sib.name('RealField')(sib.int(self.prec()))
+            v = sib.name('RealFloatingPointField')(sib.int(self.prec()))
 
         name = 'RR%d%s' % (self.prec(), rnd_abbrev)
         sib.cache(self, v, name)
@@ -618,7 +618,7 @@ cdef class RealField_class(sage.rings.ring.Field):
 
             sage: RR.is_exact()
             False
-            sage: RealField(100).is_exact()
+            sage: RealFloatingPointField(100).is_exact()
             False
         """
         return False
@@ -629,7 +629,7 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: R = RealField(20)
+            sage: R = RealFloatingPointField(20)
             sage: R('1.234')
             1.2340
             sage: R('2', base=2)
@@ -676,11 +676,11 @@ cdef class RealField_class(sage.rings.ring.Field):
             True
             sage: RR.has_coerce_map_from(float)
             True
-            sage: RealField(100).has_coerce_map_from(float)
+            sage: RealFloatingPointField(100).has_coerce_map_from(float)
             False
-            sage: RR.has_coerce_map_from(RealField(200))
+            sage: RR.has_coerce_map_from(RealFloatingPointField(200))
             True
-            sage: RR.has_coerce_map_from(RealField(20))
+            sage: RR.has_coerce_map_from(RealFloatingPointField(20))
             False
             sage: RR.has_coerce_map_from(RDF)
             True
@@ -694,10 +694,10 @@ cdef class RealField_class(sage.rings.ring.Field):
             3.40000000000000
             sage: RR.coerce(3.400000000000000000000000000000000000000000)
             3.40000000000000
-            sage: RealField(100).coerce(3.4)
+            sage: RealFloatingPointField(100).coerce(3.4)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Real Field with 53 bits of precision to Real Field with 100 bits of precision
+            TypeError: no canonical coercion from Floating Point Field with 53 bits of precision to Floating Point Field with 100 bits of precision
             sage: RR.coerce(17/5)
             3.40000000000000
             sage: RR.coerce(2^4000)
@@ -705,14 +705,14 @@ cdef class RealField_class(sage.rings.ring.Field):
             sage: RR.coerce_map_from(float)
             Generic map:
               From: Set of Python objects of class 'float'
-              To:   Real Field with 53 bits of precision
+              To:   Floating Point Field with 53 bits of precision
 
         TESTS::
 
-            sage: 1.0 - ZZ(1) - int(1) - long(1) - QQ(1) - RealField(100)(1) - AA(1) - RLF(1)
+            sage: 1.0 - ZZ(1) - int(1) - long(1) - QQ(1) - RealFloatingPointField(100)(1) - AA(1) - RLF(1)
             -6.00000000000000
             sage: RR['x'].get_action(ZZ)
-            Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+            Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Floating Point Field with 53 bits of precision
         """
         if S is ZZ:
             return ZZtoRR(ZZ, self)
@@ -722,7 +722,7 @@ cdef class RealField_class(sage.rings.ring.Field):
             return double_toRR(S, self)
         elif S is int:
             return int_toRR(int, self)
-        elif isinstance(S, RealField_class) and S.prec() >= self.__prec:
+        elif isinstance(S, RealFloatingPointField_class) and S.prec() >= self.__prec:
             return RRtoRR(S, self)
         elif QQ.has_coerce_map_from(S):
             return QQtoRR(QQ, self) * QQ._internal_coerce_map_from(S)
@@ -739,33 +739,33 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: RealField(10) == RealField(11)
+            sage: RealFloatingPointField(10) == RealFloatingPointField(11)
             False
-            sage: RealField(10) == RealField(10)
+            sage: RealFloatingPointField(10) == RealFloatingPointField(10)
             True
-            sage: RealField(10,rnd='RNDN') == RealField(10,rnd='RNDZ')
+            sage: RealFloatingPointField(10,rnd='RNDN') == RealFloatingPointField(10,rnd='RNDZ')
             False
 
         Scientific notation affects only printing, not mathematically how
         the field works, so this does not affect equality testing::
 
-            sage: RealField(10,sci_not=True) == RealField(10,sci_not=False)
+            sage: RealFloatingPointField(10,sci_not=True) == RealFloatingPointField(10,sci_not=False)
             True
-            sage: RealField(10) == IntegerRing()
+            sage: RealFloatingPointField(10) == IntegerRing()
             False
 
         ::
 
-            sage: RS = RealField(sci_not=True)
+            sage: RS = RealFloatingPointField(sci_not=True)
             sage: RR == RS
             True
             sage: RS.scientific_notation(False)
             sage: RR == RS
             True
         """
-        if not isinstance(other, RealField_class):
+        if not isinstance(other, RealFloatingPointField_class):
             return -1
-        cdef RealField_class _other
+        cdef RealFloatingPointField_class _other
         _other = other  # to access C structure
         if self.__prec == _other.__prec and self.rnd == _other.rnd: \
                #and self.sci_not == _other.sci_not:
@@ -778,11 +778,11 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: R = RealField(sci_not=1, prec=200, rnd='RNDU')
+            sage: R = RealFloatingPointField(sci_not=1, prec=200, rnd='RNDU')
             sage: loads(dumps(R)) == R
             True
         """
-        return __create__RealField_version0, (self.__prec, self.sci_not, self.rnd_str)
+        return __create__RealFloatingPointField_version0, (self.__prec, self.sci_not, self.rnd_str)
 
     def construction(self):
         r"""
@@ -795,7 +795,7 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: R = RealField(100, rnd='RNDU')
+            sage: R = RealFloatingPointField(100, rnd='RNDU')
             sage: c, S = R.construction(); S
             Rational Field
             sage: R == c(S)
@@ -813,7 +813,7 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: R=RealField(100)
+            sage: R=RealFloatingPointField(100)
             sage: R.gen(0)
             1.0000000000000000000000000000
             sage: R.gen(1)
@@ -836,9 +836,9 @@ cdef class RealField_class(sage.rings.ring.Field):
             Complex Field with 53 bits of precision
             sage: RR.complex_field() is CC
             True
-            sage: RealField(100,rnd='RNDD').complex_field()
+            sage: RealFloatingPointField(100,rnd='RNDD').complex_field()
             Complex Field with 100 bits of precision
-            sage: RealField(100).complex_field()
+            sage: RealFloatingPointField(100).complex_field()
             Complex Field with 100 bits of precision
         """
         from sage.rings.complex_field import ComplexField
@@ -855,9 +855,9 @@ cdef class RealField_class(sage.rings.ring.Field):
             Complex Field with 53 bits of precision
             sage: RR.algebraic_closure() is CC
             True
-            sage: RealField(100,rnd='RNDD').algebraic_closure()
+            sage: RealFloatingPointField(100,rnd='RNDD').algebraic_closure()
             Complex Field with 100 bits of precision
-            sage: RealField(100).algebraic_closure()
+            sage: RealFloatingPointField(100).algebraic_closure()
             Complex Field with 100 bits of precision
         """
         return self.complex_field()
@@ -898,7 +898,7 @@ cdef class RealField_class(sage.rings.ring.Field):
             True
             sage: RR._is_valid_homomorphism_(CDF,[CDF(-1)])
             False
-            sage: R=RealField(100)
+            sage: R=RealFloatingPointField(100)
             sage: RR._is_valid_homomorphism_(R,[R(1)])
             False
             sage: RR._is_valid_homomorphism_(CC,[CC(1)])
@@ -921,12 +921,12 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: RealField(10)._repr_option('element_is_atomic')
+            sage: RealFloatingPointField(10)._repr_option('element_is_atomic')
             True
         """
         if key == 'element_is_atomic':
             return True
-        return super(RealField_class, self)._repr_option(key)
+        return super(RealFloatingPointField_class, self)._repr_option(key)
 
     def is_finite(self):
         """
@@ -934,7 +934,7 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: RealField(10).is_finite()
+            sage: RealFloatingPointField(10).is_finite()
             False
         """
         return False
@@ -945,7 +945,7 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: RealField(10).characteristic()
+            sage: RealFloatingPointField(10).characteristic()
             0
         """
         return Integer(0)
@@ -958,11 +958,11 @@ cdef class RealField_class(sage.rings.ring.Field):
         EXAMPLES::
 
             sage: RR.name()
-            'RealField53_0'
-            sage: RealField(100,rnd='RNDU').name()
-            'RealField100_2'
+            'RealFloatingPointField53_0'
+            sage: RealFloatingPointField(100,rnd='RNDU').name()
+            'RealFloatingPointField100_2'
         """
-        return "RealField%s_%s"%(self.__prec,self.rnd)
+        return "RealFloatingPointField%s_%s"%(self.__prec,self.rnd)
 
     def __hash__(self):
         """
@@ -971,9 +971,9 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: hash(RealField(100,rnd='RNDU')) == hash(RealField(100,rnd='RNDU'))
+            sage: hash(RealFloatingPointField(100,rnd='RNDU')) == hash(RealFloatingPointField(100,rnd='RNDU'))
             True
-            sage: hash(RR) == hash(RealField(53))
+            sage: hash(RR) == hash(RealFloatingPointField(53))
             True
         """
         return hash(self.name())
@@ -986,7 +986,7 @@ cdef class RealField_class(sage.rings.ring.Field):
 
             sage: RR.precision()
             53
-            sage: RealField(20).precision()
+            sage: RealFloatingPointField(20).precision()
             20
         """
         return self.__prec
@@ -1003,14 +1003,14 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: magma(RealField(70)) # optional - magma # indirect doctest
+            sage: magma(RealFloatingPointField(70)) # optional - magma # indirect doctest
             Real field of precision 21
             sage: 10^21 < 2^70 < 10^22
             True
-            sage: s = magma(RealField(70)).sage(); s # optional - magma # indirect doctest
-            Real Field with 70 bits of precision
+            sage: s = magma(RealFloatingPointField(70)).sage(); s # optional - magma # indirect doctest
+            Floating Point Field with 70 bits of precision
         """
-        return "RealField(%s : Bits := true)" % self.prec()
+        return "RealFloatingPointField(%s : Bits := true)" % self.prec()
 
     def to_prec(self, prec):
         """
@@ -1020,15 +1020,15 @@ cdef class RealField_class(sage.rings.ring.Field):
         EXAMPLES::
 
             sage: RR.to_prec(212)
-            Real Field with 212 bits of precision
-            sage: R = RealField(30, rnd="RNDZ")
+            Floating Point Field with 212 bits of precision
+            sage: R = RealFloatingPointField(30, rnd="RNDZ")
             sage: R.to_prec(300)
-            Real Field with 300 bits of precision and rounding RNDZ
+            Floating Point Field with 300 bits of precision and rounding RNDZ
         """
         if prec == self.__prec:
             return self
         else:
-            return RealField(prec, self.sci_not, self.rnd)
+            return RealFloatingPointField(prec, self.sci_not, self.rnd)
 
     def pi(self):
         r"""
@@ -1036,12 +1036,12 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: R = RealField(100)
+            sage: R = RealFloatingPointField(100)
             sage: R.pi()
             3.1415926535897932384626433833
             sage: R.pi().sqrt()/2
             0.88622692545275801364908374167
-            sage: R = RealField(150)
+            sage: R = RealFloatingPointField(150)
             sage: R.pi().sqrt()/2
             0.88622692545275801364908374167057259139877473
         """
@@ -1065,7 +1065,7 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: RealField(100).euler_constant()
+            sage: RealFloatingPointField(100).euler_constant()
             0.57721566490153286060651209008
         """
         cdef RealNumber x = self._new()
@@ -1081,7 +1081,7 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: RealField(100).catalan_constant()
+            sage: RealFloatingPointField(100).catalan_constant()
             0.91596559417721901505460351493
         """
         cdef RealNumber x = self._new()
@@ -1098,7 +1098,7 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: R=RealField(100)
+            sage: R=RealFloatingPointField(100)
             sage: R.log2()
             0.69314718055994530941723212146
             sage: R(2).log()
@@ -1123,28 +1123,28 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: RealField(100).random_element(-5, 10)
+            sage: RealFloatingPointField(100).random_element(-5, 10)
             -1.7093633198207765227646362966
-            sage: RealField(10).random_element()
+            sage: RealFloatingPointField(10).random_element()
             -0.11
 
         TESTS::
 
-            sage: RealField(31).random_element()
+            sage: RealFloatingPointField(31).random_element()
             -0.676162510
-            sage: RealField(32).random_element()
+            sage: RealFloatingPointField(32).random_element()
             0.689774422
-            sage: RealField(33).random_element()
+            sage: RealFloatingPointField(33).random_element()
             0.396496861
-            sage: RealField(63).random_element()
+            sage: RealFloatingPointField(63).random_element()
             -0.339980711116375371
-            sage: RealField(64).random_element()
+            sage: RealFloatingPointField(64).random_element()
             -0.0453049884016705260
-            sage: RealField(65).random_element()
+            sage: RealFloatingPointField(65).random_element()
             -0.5926714709589708137
-            sage: RealField(10).random_element()
+            sage: RealFloatingPointField(10).random_element()
             0.23
-            sage: RealField(10).random_element()
+            sage: RealFloatingPointField(10).random_element()
             -0.41
             sage: RR.random_element()
             -0.0420335212948924
@@ -1191,11 +1191,11 @@ cdef class RealField_class(sage.rings.ring.Field):
 
             sage: RR.rounding_mode()
             'RNDN'
-            sage: RealField(20,rnd='RNDZ').rounding_mode()
+            sage: RealFloatingPointField(20,rnd='RNDZ').rounding_mode()
             'RNDZ'
-            sage: RealField(20,rnd='RNDU').rounding_mode()
+            sage: RealFloatingPointField(20,rnd='RNDU').rounding_mode()
             'RNDU'
-            sage: RealField(20,rnd='RNDD').rounding_mode()
+            sage: RealFloatingPointField(20,rnd='RNDD').rounding_mode()
             'RNDD'
         """
         return self.rnd_str
@@ -1224,7 +1224,7 @@ cdef class RealField_class(sage.rings.ring.Field):
             sage: RR.scientific_notation(False)
             sage: elt
             0.251200000000000
-            sage: R = RealField(20, sci_not=1)
+            sage: R = RealFloatingPointField(20, sci_not=1)
             sage: R.scientific_notation()
             True
             sage: R(0.2512)
@@ -1242,7 +1242,7 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: R = RealField()
+            sage: R = RealFloatingPointField()
             sage: R.zeta()
             -1.00000000000000
             sage: R.zeta(1)
@@ -1280,7 +1280,7 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         TESTS::
 
-            sage: k = RealField(100)
+            sage: k = RealFloatingPointField(100)
             sage: R.<x> = k[]
             sage: k._factor_univariate_polynomial( x )
             x
@@ -1334,29 +1334,29 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RealNumber.__new__(RealNumber, None)
             Traceback (most recent call last):
             ...
-            TypeError: Cannot convert NoneType to sage.rings.real_mpfr.RealField_class
+            TypeError: Cannot convert NoneType to sage.rings.real_mpfr.RealFloatingPointField_class
             sage: RealNumber.__new__(RealNumber, ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: Cannot convert sage.rings.integer_ring.IntegerRing_class to sage.rings.real_mpfr.RealField_class
+            TypeError: Cannot convert sage.rings.integer_ring.IntegerRing_class to sage.rings.real_mpfr.RealFloatingPointField_class
             sage: RealNumber.__new__(RealNumber, RR)
             NaN
         """
-        cdef RealField_class p = <RealField_class?>parent
+        cdef RealFloatingPointField_class p = <RealFloatingPointField_class?>parent
         mpfr_init2(self.value, p.__prec)
         self._parent = p
 
     def __init__(self, parent, x=0, int base=10):
         """
         Create a real number. Should be called by first creating a
-        RealField, as illustrated in the examples.
+        RealFloatingPointField, as illustrated in the examples.
 
         EXAMPLES::
 
-            sage: R = RealField()
+            sage: R = RealFloatingPointField()
             sage: R('1.2456')
             1.24560000000000
-            sage: R = RealField(3)
+            sage: R = RealFloatingPointField(3)
             sage: R('1.2456')
             1.2
 
@@ -1364,14 +1364,14 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         ::
 
-            sage: w = RealField(3)(5/2)
-            sage: RealField(2, rnd="RNDZ")(w).str(2)
+            sage: w = RealFloatingPointField(3)(5/2)
+            sage: RealFloatingPointField(2, rnd="RNDZ")(w).str(2)
             '10.'
-            sage: RealField(2, rnd="RNDD")(w).str(2)
+            sage: RealFloatingPointField(2, rnd="RNDD")(w).str(2)
             '10.'
-            sage: RealField(2, rnd="RNDU")(w).str(2)
+            sage: RealFloatingPointField(2, rnd="RNDU")(w).str(2)
             '11.'
-            sage: RealField(2, rnd="RNDN")(w).str(2)
+            sage: RealFloatingPointField(2, rnd="RNDN")(w).str(2)
             '10.'
 
         .. NOTE::
@@ -1402,9 +1402,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: magma(RR(10.5)) # indirect doctest, optional - magma
             10.5000000000000
-            sage: magma(RealField(200)(1/3)) # indirect, optional - magma
+            sage: magma(RealFloatingPointField(200)(1/3)) # indirect, optional - magma
             0.333333333333333333333333333333333333333333333333333333333333
-            sage: magma(RealField(1000)(1/3)) # indirect, optional - magma
+            sage: magma(RealFloatingPointField(1000)(1/3)) # indirect, optional - magma
             0.3333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333
         """
         real_string = self.str()
@@ -1427,7 +1427,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: numpy.array([1.000000000000000000000000000000000000]).dtype
             dtype('O')
         """
-        if (<RealField_class>self._parent).__prec <= 53:
+        if (<RealFloatingPointField_class>self._parent).__prec <= 53:
             return numpy_double_interface
         else:
             return numpy_object_interface
@@ -1435,7 +1435,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
     cdef _set(self, x, int base):
         # This should not be called except when the number is being created.
         # Real Numbers are supposed to be immutable.
-        cdef RealField_class parent
+        cdef RealFloatingPointField_class parent
         cdef Gen _gen
         parent = self._parent
         if isinstance(x, RealNumber):
@@ -1525,7 +1525,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         EXAMPLES::
 
-            sage: R = RealField(sci_not=1, prec=200, rnd='RNDU')
+            sage: R = RealFloatingPointField(sci_not=1, prec=200, rnd='RNDU')
             sage: b = R('393.39203845902384098234098230948209384028340')
             sage: loads(dumps(b)) == b
             True
@@ -1611,7 +1611,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: for prec in (2, 53, 200):
             ....:     for rnd_dir in ('RNDN', 'RNDD', 'RNDU', 'RNDZ'):
-            ....:         fld = RealField(prec, rnd=rnd_dir)
+            ....:         fld = RealFloatingPointField(prec, rnd=rnd_dir)
             ....:         var = polygen(fld)
             ....:         for v in [NaN, -infinity, -20, -e, 0, 1, 2^500, -2^4000, -2^-500, 2^-4000] + [fld.random_element() for _ in range(5)]:
             ....:             for preparse in (True, False, None):
@@ -1620,7 +1620,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sib_np = SageInputBuilder(preparse=False)
-            sage: RR60 = RealField(60)
+            sage: RR60 = RealFloatingPointField(60)
             sage: RR(-infinity)._sage_input_(sib, True)
             {unop:- {call: {atomic:RR}({atomic:Infinity})}}
             sage: RR(NaN)._sage_input_(sib, True)
@@ -1636,15 +1636,15 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR60(1.579)._sage_input_(sib, True)
             {atomic:1.5790000000000000008}
             sage: RR60(1.579)._sage_input_(sib_np, True)
-            {call: {call: {atomic:RealField}({atomic:60})}({atomic:'1.5790000000000000008'})}
+            {call: {call: {atomic:RealFloatingPointField}({atomic:60})}({atomic:'1.5790000000000000008'})}
             sage: RR(1.579)._sage_input_(sib_np, False)
             {call: {atomic:RR}({atomic:1.579})}
             sage: RR(1.579)._sage_input_(sib_np, 2)
             {atomic:1.579}
-            sage: RealField(150)(pi)._sage_input_(sib, True)
+            sage: RealFloatingPointField(150)(pi)._sage_input_(sib, True)
             {atomic:3.1415926535897932384626433832795028841971694008}
-            sage: RealField(150)(pi)._sage_input_(sib_np, True)
-            {call: {call: {atomic:RealField}({atomic:150})}({atomic:'3.1415926535897932384626433832795028841971694008'})}
+            sage: RealFloatingPointField(150)(pi)._sage_input_(sib_np, True)
+            {call: {call: {atomic:RealFloatingPointField}({atomic:150})}({atomic:'3.1415926535897932384626433832795028841971694008'})}
         """
         # We have a bewildering array of conditions to deal with:
         # 1) number, or NaN or infinity
@@ -1666,7 +1666,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         from sage.rings.integer_ring import ZZ
 
-        cdef mpfr_rnd_t rnd = (<RealField_class>self._parent).rnd
+        cdef mpfr_rnd_t rnd = (<RealFloatingPointField_class>self._parent).rnd
 
         cdef bint negative = mpfr_sgn(self.value) < 0
         if negative:
@@ -1729,9 +1729,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
                 # Since we always read nonnegative numbers, reading with
                 # RNDZ is the same as reading with RNDD.
                 if rnd == MPFR_RNDD or rnd == MPFR_RNDZ:
-                    fld = RealField(self.prec() + 1, rnd='RNDU')
+                    fld = RealFloatingPointField(self.prec() + 1, rnd='RNDU')
                 else:
-                    fld = RealField(self.prec() + 1, rnd='RNDD')
+                    fld = RealFloatingPointField(self.prec() + 1, rnd='RNDD')
                 s = fld(self).str()
             v = sib(self.parent())(sib.float_str(repr(s)))
 
@@ -1767,7 +1767,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: RR(2.1)._im_gens_(RDF, [RDF(1)])
             2.1
-            sage: R = RealField(20)
+            sage: R = RealFloatingPointField(20)
             sage: RR(2.1)._im_gens_(R, [R(1)])
             2.1000
         """
@@ -1783,7 +1783,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: RR(2).real()
             2.00000000000000
-            sage: RealField(200)(-4.5).real()
+            sage: RealFloatingPointField(200)(-4.5).real()
             -4.5000000000000000000000000000000000000000000000000000000000
         """
         return self
@@ -1798,7 +1798,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: RR.pi().imag()
             0
-            sage: RealField(100)(2).imag()
+            sage: RealFloatingPointField(100)(2).imag()
             0
         """
         return ZZ(0)
@@ -1896,16 +1896,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: x = -RR.pi()
             sage: x.str(digits=1)
             '-3.'
-            sage: y = RealField(53, rnd="RNDD")(x)
+            sage: y = RealFloatingPointField(53, rnd="RNDD")(x)
             sage: y.str(digits=1)
             '-4.'
-            sage: y = RealField(53, rnd="RNDU")(x)
+            sage: y = RealFloatingPointField(53, rnd="RNDU")(x)
             sage: y.str(digits=1)
             '-3.'
-            sage: y = RealField(53, rnd="RNDZ")(x)
+            sage: y = RealFloatingPointField(53, rnd="RNDZ")(x)
             sage: y.str(digits=1)
             '-3.'
-            sage: y = RealField(53, rnd="RNDA")(x)
+            sage: y = RealFloatingPointField(53, rnd="RNDA")(x)
             sage: y.str(digits=1)
             '-4.'
 
@@ -1973,7 +1973,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             # This avoids the confusion a lot of people have with the last
             # 1-2 binary digits being wrong due to rounding coming from
             # representing numbers in binary.
-            digits = <size_t>(((<RealField_class>self._parent).__prec - 1) * 0.3010299956)
+            digits = <size_t>(((<RealFloatingPointField_class>self._parent).__prec - 1) * 0.3010299956)
             if digits < 2:
                 digits = 2
 
@@ -1981,7 +1981,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef char *s
         cdef mp_exp_t exponent
         s = mpfr_get_str(NULL, &exponent, base, digits,
-                         self.value, (<RealField_class>self._parent).rnd)
+                         self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         if s is NULL:
             raise RuntimeError("unable to convert an mpfr number to a string")
@@ -1992,7 +1992,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             t = _re_skip_zeroes.match(t).group(1)
 
         if no_sci is None:
-            no_sci = not (<RealField_class>self._parent).sci_not
+            no_sci = not (<RealFloatingPointField_class>self._parent).sci_not
 
         if no_sci is True and abs(exponent-1) >= 6:
             no_sci = False
@@ -2095,7 +2095,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             TypeError: Attempt to coerce non-integral RealNumber to Integer
             sage: ZZ(-123456789.0)
             -123456789
-            sage: ZZ(RealField(300)(2.0)^290)
+            sage: ZZ(RealFloatingPointField(300)(2.0)^290)
             1989292945639146568621528992587283360401824603189390869761855907572637988050133502132224
             sage: ZZ(-2345.67)
             Traceback (most recent call last):
@@ -2188,7 +2188,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if sgn == 0:
             return z
 
-        cdef int prec = (<RealField_class>self._parent).__prec
+        cdef int prec = (<RealFloatingPointField_class>self._parent).__prec
 
         if mpfr_inf_p(self.value):
             mpz_set_ui(z.value, EXP_MAX+1-EXP_MIN)
@@ -2230,7 +2230,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         ::
 
-            sage: R2 = RealField(2)
+            sage: R2 = RealFloatingPointField(2)
             sage: R2(1).fp_rank_delta(R2(2))
             2
             sage: R2(2).fp_rank_delta(R2(1))
@@ -2263,12 +2263,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField()
+            sage: R = RealFloatingPointField()
             sage: R(-1.5) + R(2.5) # indirect doctest
             1.00000000000000
         """
         cdef RealNumber x = self._new()
-        mpfr_add(x.value, self.value, (<RealNumber>other).value, (<RealField_class>self._parent).rnd)
+        mpfr_add(x.value, self.value, (<RealNumber>other).value, (<RealFloatingPointField_class>self._parent).rnd)
         return x
 
     def __invert__(self):
@@ -2292,12 +2292,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField()
+            sage: R = RealFloatingPointField()
             sage: R(-1.5) - R(2.5) # indirect doctest
             -4.00000000000000
         """
         cdef RealNumber x = self._new()
-        mpfr_sub(x.value, self.value, (<RealNumber>right).value, (<RealField_class> self._parent).rnd)
+        mpfr_sub(x.value, self.value, (<RealNumber>right).value, (<RealFloatingPointField_class> self._parent).rnd)
         return x
 
     def _sympy_(self):
@@ -2322,15 +2322,15 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField()
+            sage: R = RealFloatingPointField()
             sage: R(-1.5) * R(2.5) # indirect doctest
             -3.75000000000000
 
         If two elements have different precision, arithmetic operations are
         performed after coercing to the lower precision::
 
-            sage: R20 = RealField(20)
-            sage: R100 = RealField(100)
+            sage: R20 = RealFloatingPointField(20)
+            sage: R100 = RealFloatingPointField(100)
             sage: a = R20('393.3902834028345')
             sage: b = R100('393.3902834028345')
             sage: a
@@ -2342,10 +2342,10 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: b*a
             154760.
             sage: parent(b*a)
-            Real Field with 20 bits of precision
+            Floating Point Field with 20 bits of precision
         """
         cdef RealNumber x = self._new()
-        mpfr_mul(x.value, self.value, (<RealNumber>right).value, (<RealField_class>self._parent).rnd)
+        mpfr_mul(x.value, self.value, (<RealNumber>right).value, (<RealFloatingPointField_class>self._parent).rnd)
         return x
 
 
@@ -2360,13 +2360,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
             0.333333333333333
             sage: RR(1)/RR(0)
             +infinity
-            sage: R = RealField()
+            sage: R = RealFloatingPointField()
             sage: R(-1.5) / R(2.5)
             -0.600000000000000
         """
         cdef RealNumber x = self._new()
         mpfr_div((<RealNumber>x).value, self.value,
-                 (<RealNumber>right).value, (<RealField_class>self._parent).rnd)
+                 (<RealNumber>right).value, (<RealFloatingPointField_class>self._parent).rnd)
         return x
 
     cpdef _neg_(self):
@@ -2383,7 +2383,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             NaN
         """
         cdef RealNumber x = self._new()
-        mpfr_neg(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_neg(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         return x
 
     def __abs__(self):
@@ -2419,7 +2419,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             NaN
         """
         cdef RealNumber x = self._new()
-        mpfr_abs(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_abs(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         return x
 
     # Bit shifting
@@ -2438,7 +2438,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if n > sys.maxsize:
             raise OverflowError("n (=%s) must be <= %s" % (n, sys.maxsize))
         x = self._new()
-        mpfr_mul_2ui(x.value, self.value, n, (<RealField_class>self._parent).rnd)
+        mpfr_mul_2ui(x.value, self.value, n, (<RealFloatingPointField_class>self._parent).rnd)
         return x
 
     def __lshift__(x, y):
@@ -2475,7 +2475,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if n > sys.maxsize:
             raise OverflowError("n (=%s) must be <= %s" % (n, sys.maxsize))
         cdef RealNumber x = self._new()
-        mpfr_div_2exp(x.value, self.value, n, (<RealField_class>self._parent).rnd)
+        mpfr_div_2exp(x.value, self.value, n, (<RealFloatingPointField_class>self._parent).rnd)
         return x
 
     def __rshift__(x, y):
@@ -2526,7 +2526,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R=RealField(100)
+            sage: R=RealFloatingPointField(100)
             sage: R(-2.4).sign()
             -1
             sage: R(2.1).sign()
@@ -2544,10 +2544,10 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: RR(1.0).precision()
             53
-            sage: RealField(101)(-1).precision()
+            sage: RealFloatingPointField(101)(-1).precision()
             101
         """
-        return (<RealField_class>self._parent).__prec
+        return (<RealFloatingPointField_class>self._parent).__prec
 
     prec = precision # alias
 
@@ -2558,7 +2558,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: x = RealField(100)(1.238)
+            sage: x = RealFloatingPointField(100)(1.238)
             sage: x.conjugate()
             1.2380000000000000000000000000
         """
@@ -2574,7 +2574,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         INPUT:
 
-        - ``field`` -- :class:`RealField` used as parent of the result.
+        - ``field`` -- :class:`RealFloatingPointField` used as parent of the result.
           If not specified, use ``parent(self)``.
 
         .. NOTE::
@@ -2601,7 +2601,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: a + a.ulp()/2 == a
             True
 
-            sage: a = RealField(500).pi()
+            sage: a = RealFloatingPointField(500).pi()
             sage: b = a + a.ulp()
             sage: (a+b)/2 in [a,b]
             True
@@ -2623,18 +2623,18 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         We use a different field::
 
-            sage: a = RealField(256).pi()
+            sage: a = RealFloatingPointField(256).pi()
             sage: a.ulp()
             3.454467422037777850154540745120159828446400145774512554009481388067436721265e-77
-            sage: e = a.ulp(RealField(64))
+            sage: e = a.ulp(RealFloatingPointField(64))
             sage: e
             3.45446742203777785e-77
             sage: parent(e)
-            Real Field with 64 bits of precision
+            Floating Point Field with 64 bits of precision
             sage: e = a.ulp(QQ)
             Traceback (most recent call last):
             ...
-            TypeError: field argument must be a RealField
+            TypeError: field argument must be a RealFloatingPointField
 
         For infinity and NaN, we get back positive infinity and NaN::
 
@@ -2646,17 +2646,17 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: a = RR('nan')
             sage: a.ulp()
             NaN
-            sage: parent(RR('nan').ulp(RealField(42)))
-            Real Field with 42 bits of precision
+            sage: parent(RR('nan').ulp(RealFloatingPointField(42)))
+            Floating Point Field with 42 bits of precision
         """
-        cdef RealField_class _parent
+        cdef RealFloatingPointField_class _parent
         if field is None:
             _parent = self._parent
         else:
             try:
                 _parent = field
             except TypeError:
-                raise TypeError("field argument must be a RealField")
+                raise TypeError("field argument must be a RealFloatingPointField")
 
         cdef RealNumber x = _parent._new()
         cdef mp_exp_t e
@@ -2688,7 +2688,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         INPUT:
 
-        - ``field`` -- :class:`RealField` used as parent of the result.
+        - ``field`` -- :class:`RealFloatingPointField` used as parent of the result.
           If not specified, use ``parent(self)``.
 
         OUTPUT:
@@ -2713,38 +2713,38 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         We use a different field::
 
-            sage: a = RealField(256).pi()
+            sage: a = RealFloatingPointField(256).pi()
             sage: a.epsilon()
             2.713132368784788677624750042896586252980746500631892201656843478528498954308e-77
-            sage: e = a.epsilon(RealField(64))
+            sage: e = a.epsilon(RealFloatingPointField(64))
             sage: e
             2.71313236878478868e-77
             sage: parent(e)
-            Real Field with 64 bits of precision
+            Floating Point Field with 64 bits of precision
             sage: e = a.epsilon(QQ)
             Traceback (most recent call last):
             ...
-            TypeError: field argument must be a RealField
+            TypeError: field argument must be a RealFloatingPointField
 
         Special values::
 
             sage: RR('nan').epsilon()
             NaN
-            sage: parent(RR('nan').epsilon(RealField(42)))
-            Real Field with 42 bits of precision
+            sage: parent(RR('nan').epsilon(RealFloatingPointField(42)))
+            Floating Point Field with 42 bits of precision
             sage: RR('+Inf').epsilon()
             +infinity
             sage: RR('-Inf').epsilon()
             +infinity
         """
-        cdef RealField_class _parent
+        cdef RealFloatingPointField_class _parent
         if field is None:
             _parent = self._parent
         else:
             try:
                 _parent = field
             except TypeError:
-                raise TypeError("field argument must be a RealField")
+                raise TypeError("field argument must be a RealFloatingPointField")
 
         cdef RealNumber x = _parent._new()
         mpfr_div_2exp(x.value, self.value, mpfr_get_prec(self.value), _parent.rnd)
@@ -2777,7 +2777,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         x = (<RealNumber>left)._new()
         mpfr_remainder (x.value, (<RealNumber>left).value,
                 (<RealNumber>right).value,
-                (<RealField_class>(<RealNumber>left)._parent).rnd)
+                (<RealFloatingPointField_class>(<RealNumber>left)._parent).rnd)
         return x
 
     def round(self):
@@ -2806,7 +2806,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField()
+            sage: R = RealFloatingPointField()
             sage: (2.99).floor()
             2
             sage: (2.00).floor()
@@ -2894,7 +2894,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x
         x = self._new()
-        mpfr_frac(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_frac(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         return x
 
     def nexttoward(self, other):
@@ -2999,7 +2999,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: type(RR(pi).__float__())
             <... 'float'>
         """
-        return mpfr_get_d(self.value, (<RealField_class>self._parent).rnd)
+        return mpfr_get_d(self.value, (<RealFloatingPointField_class>self._parent).rnd)
 
     def _rpy_(self):
         """
@@ -3086,7 +3086,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField(100)
+            sage: R = RealFloatingPointField(100)
             sage: R(pi)
             3.1415926535897932384626433833
             sage: axiom(R(pi))  # optional - axiom # indirect doctest
@@ -3119,7 +3119,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         Pari does maintain the same 250-bit number on both 32-bit and
         64-bit platforms::
 
-            sage: RealField(250).pi().__pari__()
+            sage: RealFloatingPointField(250).pi().__pari__()
             3.14159265358979
             sage: RR(0.0).__pari__()
             0.E-19
@@ -3131,7 +3131,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             1.41421356237309515
             sage: RR(2.0).sqrt().__pari__().sage().prec()
             64
-            sage: RealField(70)(pi).__pari__().sage().prec()
+            sage: RealFloatingPointField(70)(pi).__pari__().sage().prec()
             96                                         # 32-bit
             128                                        # 64-bit
             sage: for i in range(100, 200):
@@ -3143,7 +3143,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: RDF(0).__pari__().sizeword()
             2
-            sage: RealField(100)(0.0).__pari__().sizeword()
+            sage: RealFloatingPointField(100)(0.0).__pari__().sizeword()
             2
 
         Check that the largest and smallest exponents representable by
@@ -3169,7 +3169,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef unsigned long wordsize = sizeof(long)*8
 
         cdef int prec
-        prec = (<RealField_class>self._parent).__prec
+        prec = (<RealFloatingPointField_class>self._parent).__prec
 
         # We round up the precision to the nearest multiple of wordsize.
         cdef int rounded_prec
@@ -3177,7 +3177,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         # Yes, assigning to self works fine, even in Cython.
         if rounded_prec > prec:
-            self = RealField(rounded_prec)(self)
+            self = RealFloatingPointField(rounded_prec)(self)
 
         cdef mpz_t mantissa
         cdef mp_exp_t exponent
@@ -3213,7 +3213,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpf('-1.5')
         """
         if prec is not None:
-            return RealField(prec)(self)._mpmath_()
+            return RealFloatingPointField(prec)(self)._mpmath_()
         from sage.libs.mpmath.all import make_mpf
         return make_mpf(mpfr_to_mpfval(self.value))
 
@@ -3241,7 +3241,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField(53)
+            sage: R = RealFloatingPointField(53)
             sage: a = R(exp(1.0)); a
             2.71828182845905
             sage: sign, mantissa, exponent = R(exp(1.0)).sign_mantissa_exponent()
@@ -3308,7 +3308,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             42391158275216203520420085760
             sage: RR(3^60).exact_rational() - 3^60
             6125652559
-            sage: RealField(5)(-pi).exact_rational()
+            sage: RealFloatingPointField(5)(-pi).exact_rational()
             -25/8
 
         TESTS::
@@ -3340,7 +3340,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         Return the simplest rational which is equal to ``self`` (in the Sage
         sense). Recall that Sage defines the equality operator by coercing
         both sides to a single type and then comparing; thus, this finds
-        the simplest rational which (when coerced to this RealField) is
+        the simplest rational which (when coerced to this RealFloatingPointField) is
         equal to ``self``.
 
         Given rationals `a / b` and `c / d` (both in lowest terms), the former
@@ -3354,10 +3354,10 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: RRd = RealField(53, rnd='RNDD')
-            sage: RRz = RealField(53, rnd='RNDZ')
-            sage: RRu = RealField(53, rnd='RNDU')
-            sage: RRa = RealField(53, rnd='RNDA')
+            sage: RRd = RealFloatingPointField(53, rnd='RNDD')
+            sage: RRz = RealFloatingPointField(53, rnd='RNDZ')
+            sage: RRu = RealFloatingPointField(53, rnd='RNDU')
+            sage: RRa = RealFloatingPointField(53, rnd='RNDA')
             sage: def check(x):
             ....:     rx = x.simplest_rational()
             ....:     assert x == rx
@@ -3384,7 +3384,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             -1/3
             sage: check(RR(-1/3))
             -1/3
-            sage: check(RealField(20)(pi))
+            sage: check(RealFloatingPointField(20)(pi))
             355/113
             sage: check(RR(pi))
             245850922/78256779
@@ -3398,9 +3398,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             -1/348729667233025
             sage: (RR(23).cube_root()).simplest_rational()^3 - 23
             -1404915133/264743395842039084891584
-            sage: RRd5 = RealField(5, rnd='RNDD')
-            sage: RRu5 = RealField(5, rnd='RNDU')
-            sage: RR5 = RealField(5)
+            sage: RRd5 = RealFloatingPointField(5, rnd='RNDD')
+            sage: RRu5 = RealFloatingPointField(5, rnd='RNDU')
+            sage: RR5 = RealFloatingPointField(5)
             sage: below1 = RR5(1).nextbelow()
             sage: check(RRd5(below1))
             31/32
@@ -3425,9 +3425,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             1185
             sage: check(RR5(1184))
             1120
-            sage: RRd2 = RealField(2, rnd='RNDD')
-            sage: RRu2 = RealField(2, rnd='RNDU')
-            sage: RR2 = RealField(2)
+            sage: RRd2 = RealFloatingPointField(2, rnd='RNDD')
+            sage: RRu2 = RealFloatingPointField(2, rnd='RNDU')
+            sage: RR2 = RealFloatingPointField(2)
             sage: check(RR2(8))
             7
             sage: check(RRd2(8))
@@ -3474,15 +3474,15 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         from .real_mpfi import RealIntervalField
 
-        cdef mpfr_rnd_t rnd = (<RealField_class>self._parent).rnd
-        cdef int prec = (<RealField_class>self._parent).__prec
+        cdef mpfr_rnd_t rnd = (<RealFloatingPointField_class>self._parent).rnd
+        cdef int prec = (<RealFloatingPointField_class>self._parent).__prec
 
         cdef RealNumber low, high
         cdef int odd
 
         if rnd == MPFR_RNDN:
             # hp == "high precision"
-            hp_field = RealField(prec + 1)
+            hp_field = RealFloatingPointField(prec + 1)
             hp_val = hp_field(self)
             hp_intv_field = RealIntervalField(prec + 1)
             low = hp_val.nextbelow()
@@ -3994,9 +3994,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef RealNumber x
         if mpfr_cmp_ui(self.value, 0) >= 0:
             x = self._new()
-            if (<RealField_class>self._parent).__prec > 10*SIG_PREC_THRESHOLD: sig_on()
-            mpfr_sqrt(x.value, self.value, (<RealField_class>self._parent).rnd)
-            if (<RealField_class>self._parent).__prec > 10*SIG_PREC_THRESHOLD: sig_off()
+            if (<RealFloatingPointField_class>self._parent).__prec > 10*SIG_PREC_THRESHOLD: sig_on()
+            mpfr_sqrt(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
+            if (<RealFloatingPointField_class>self._parent).__prec > 10*SIG_PREC_THRESHOLD: sig_off()
             if all:
                 if x.is_zero():
                     return [x]
@@ -4040,9 +4040,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             -1.42108547152020e-14
         """
         cdef RealNumber x = self._new()
-        if (<RealField_class>self._parent).__prec > 10*SIG_PREC_THRESHOLD: sig_on()
-        mpfr_cbrt(x.value, self.value, (<RealField_class>self._parent).rnd)
-        if (<RealField_class>self._parent).__prec > 10*SIG_PREC_THRESHOLD: sig_off()
+        if (<RealFloatingPointField_class>self._parent).__prec > 10*SIG_PREC_THRESHOLD: sig_on()
+        mpfr_cbrt(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
+        if (<RealFloatingPointField_class>self._parent).__prec > 10*SIG_PREC_THRESHOLD: sig_off()
         return x
 
     def __pow(self, RealNumber exponent):
@@ -4052,7 +4052,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField(30)
+            sage: R = RealFloatingPointField(30)
             sage: a = R('1.23456')
             sage: a.__pow(20.0)
             67.646297
@@ -4060,7 +4060,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef RealNumber x
         x = self._new()
         sig_on()
-        mpfr_pow(x.value, self.value, exponent.value, (<RealField_class>self._parent).rnd)
+        mpfr_pow(x.value, self.value, exponent.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         if mpfr_nan_p(x.value):
             return self._complex_number_()**exponent._complex_number_()
@@ -4078,7 +4078,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField(30)
+            sage: R = RealFloatingPointField(30)
             sage: a = R('1.23456')
             sage: a^20
             67.646297
@@ -4119,7 +4119,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef mpfr_rnd_t rounding_mode
         if isinstance(self, RealNumber):
             base = <RealNumber>self
-            rounding_mode = (<RealField_class>base._parent).rnd
+            rounding_mode = (<RealFloatingPointField_class>base._parent).rnd
             x = base._new()
             sig_on()
             if isinstance(exponent, int):
@@ -4144,7 +4144,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField()
+            sage: R = RealFloatingPointField()
             sage: R(2).log()
             0.693147180559945
             sage: log(RR(2))
@@ -4180,9 +4180,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
                 return self._complex_number_().log(base)
         if base is None or base == 'e':
             x = self._new()
-            if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
-            mpfr_log(x.value, self.value, (<RealField_class>self._parent).rnd)
-            if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
+            if (<RealFloatingPointField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
+            mpfr_log(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
+            if (<RealFloatingPointField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
             return x
         elif base == 10:
             return self.log10()
@@ -4221,9 +4221,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if self < 0:
             return self._complex_number_().log(2)
         x = self._new()
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
-        mpfr_log2(x.value, self.value, (<RealField_class>self._parent).rnd)
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
+        if (<RealFloatingPointField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
+        mpfr_log2(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
+        if (<RealFloatingPointField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
         return x
 
     def log10(self):
@@ -4258,9 +4258,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if self < 0:
             return self._complex_number_().log(10)
         x = self._new()
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
-        mpfr_log10(x.value, self.value, (<RealField_class>self._parent).rnd)
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
+        if (<RealFloatingPointField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
+        mpfr_log10(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
+        if (<RealFloatingPointField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
         return x
 
     def log1p(self):
@@ -4282,7 +4282,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             2.99999999955000e-10
             sage: (1+r).log()
             3.00000024777111e-10
-            sage: r100 = RealField(100)(r)
+            sage: r100 = RealFloatingPointField(100)(r)
             sage: (1+r100).log()
             2.9999999995500000000978021372e-10
 
@@ -4307,9 +4307,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if self < -1:
             return (self+1.0)._complex_number_().log()
         x = self._new()
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
-        mpfr_log1p(x.value, self.value, (<RealField_class>self._parent).rnd)
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
+        if (<RealFloatingPointField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
+        mpfr_log1p(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
+        if (<RealFloatingPointField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
         return x
 
     def exp(self):
@@ -4338,7 +4338,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_exp(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_exp(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4365,9 +4365,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             1.89117248253021e-10
         """
         cdef RealNumber x = self._new()
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
-        mpfr_exp2(x.value, self.value, (<RealField_class>self._parent).rnd)
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
+        if (<RealFloatingPointField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
+        mpfr_exp2(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
+        if (<RealFloatingPointField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
         return x
 
     def exp10(self):
@@ -4393,9 +4393,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             5.01187233627276e-33
         """
         cdef RealNumber x = self._new()
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
-        mpfr_exp10(x.value, self.value, (<RealField_class>self._parent).rnd)
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
+        if (<RealFloatingPointField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
+        mpfr_exp10(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
+        if (<RealFloatingPointField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
         return x
 
     def expm1(self):
@@ -4417,9 +4417,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             1.00000000000000e-16
         """
         cdef RealNumber x = self._new()
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
-        mpfr_expm1(x.value, self.value, (<RealField_class>self._parent).rnd)
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
+        if (<RealFloatingPointField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
+        mpfr_expm1(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
+        if (<RealFloatingPointField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
         return x
 
     def eint(self):
@@ -4439,9 +4439,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             NaN
         """
         cdef RealNumber x = self._new()
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
-        mpfr_eint(x.value, self.value, (<RealField_class>self._parent).rnd)
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
+        if (<RealFloatingPointField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
+        mpfr_eint(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
+        if (<RealFloatingPointField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
         return x
 
     def cos(self):
@@ -4456,7 +4456,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_cos(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_cos(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4466,13 +4466,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField(100)
+            sage: R = RealFloatingPointField(100)
             sage: R(2).sin()
             0.90929742682568169539601986591
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_sin(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_sin(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4491,7 +4491,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_tan(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_tan(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4501,7 +4501,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField()
+            sage: R = RealFloatingPointField()
             sage: t = R.pi()/6
             sage: t.sincos()
             (0.500000000000000, 0.866025403784439)
@@ -4510,7 +4510,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         x = self._new()
         y = self._new()
         sig_on()
-        mpfr_sin_cos(x.value, y.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_sin_cos(x.value, y.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x,y
 
@@ -4527,7 +4527,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_acos(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_acos(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4546,7 +4546,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_asin(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_asin(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4563,7 +4563,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_atan(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_atan(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4579,7 +4579,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_cosh(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_cosh(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4595,7 +4595,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_sinh(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_sinh(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4611,7 +4611,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_tanh(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_tanh(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4621,12 +4621,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: RealField(100)(2).coth()
+            sage: RealFloatingPointField(100)(2).coth()
             1.0373147207275480958778097648
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_coth(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_coth(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4649,12 +4649,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: RealField(100)(2).cot()
+            sage: RealFloatingPointField(100)(2).cot()
             -0.45765755436028576375027741043
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_cot(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_cot(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4664,12 +4664,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: RealField(100)(2).csch()
+            sage: RealFloatingPointField(100)(2).csch()
             0.27572056477178320775835148216
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_csch(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_csch(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4692,12 +4692,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: RealField(100)(2).csc()
+            sage: RealFloatingPointField(100)(2).csc()
             1.0997501702946164667566973970
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_csc(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_csc(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4707,12 +4707,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: RealField(100)(2).sech()
+            sage: RealFloatingPointField(100)(2).sech()
             0.26580222883407969212086273982
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_sech(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_sech(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4735,12 +4735,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: RealField(100)(2).sec()
+            sage: RealFloatingPointField(100)(2).sec()
             -2.4029979617223809897546004014
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_sec(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_sec(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4758,7 +4758,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_acosh(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_acosh(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4776,7 +4776,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_asinh(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_asinh(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4794,7 +4794,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_atanh(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_atanh(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4823,7 +4823,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: b = 2.5
             sage: a.agm(b)
             1.96811775182478
-            sage: RealField(200)(a).agm(b)
+            sage: RealFloatingPointField(200)(a).agm(b)
             1.9681177518247777389894630877503739489139488203685819712291
             sage: a.agm(100)
             28.1189391225320
@@ -4870,9 +4870,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             _other = self._parent(other)
 
         x = self._new()
-        if (<RealField_class>self._parent).__prec > 10000: sig_on()
-        mpfr_agm(x.value, self.value, _other.value, (<RealField_class>self._parent).rnd)
-        if (<RealField_class>self._parent).__prec > 10000: sig_off()
+        if (<RealFloatingPointField_class>self._parent).__prec > 10000: sig_on()
+        mpfr_agm(x.value, self.value, _other.value, (<RealFloatingPointField_class>self._parent).rnd)
+        if (<RealFloatingPointField_class>self._parent).__prec > 10000: sig_off()
         return x
 
     def erf(self):
@@ -4881,7 +4881,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField(53)
+            sage: R = RealFloatingPointField(53)
             sage: R(2).erf()
             0.995322265018953
             sage: R(6).erf()
@@ -4889,7 +4889,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_erf(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_erf(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4900,7 +4900,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField(53)
+            sage: R = RealFloatingPointField(53)
             sage: R(2).erfc()
             0.00467773498104727
             sage: R(6).erfc()
@@ -4908,7 +4908,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_erfc(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_erfc(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4918,13 +4918,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField(53)
+            sage: R = RealFloatingPointField(53)
             sage: R(2).j0()
             0.223890779141236
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_j0(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_j0(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4934,13 +4934,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField(53)
+            sage: R = RealFloatingPointField(53)
             sage: R(2).j1()
             0.576724807756873
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_j1(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_j1(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4950,7 +4950,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField(53)
+            sage: R = RealFloatingPointField(53)
             sage: R(2).jn(3)
             0.128943249474402
             sage: R(2).jn(-17)
@@ -4958,7 +4958,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_jn(x.value, n, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_jn(x.value, n, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4968,13 +4968,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField(53)
+            sage: R = RealFloatingPointField(53)
             sage: R(2).y0()
             0.510375672649745
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_y0(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_y0(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -4984,13 +4984,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField(53)
+            sage: R = RealFloatingPointField(53)
             sage: R(2).y1()
             -0.107032431540938
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_y1(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_y1(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -5000,7 +5000,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField(53)
+            sage: R = RealFloatingPointField(53)
             sage: R(2).yn(3)
             -1.12778377684043
             sage: R(2).yn(-17)
@@ -5008,7 +5008,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_yn(x.value, n, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_yn(x.value, n, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -5018,16 +5018,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField()
+            sage: R = RealFloatingPointField()
             sage: R(6).gamma()
             120.000000000000
             sage: R(1.5).gamma()
             0.886226925452758
         """
         cdef RealNumber x = self._new()
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
-        mpfr_gamma(x.value, self.value, (<RealField_class>self._parent).rnd)
-        if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
+        if (<RealFloatingPointField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
+        mpfr_gamma(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
+        if (<RealFloatingPointField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
         return x
 
     def log_gamma(self):
@@ -5038,7 +5038,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField(53)
+            sage: R = RealFloatingPointField(53)
             sage: R(6).log_gamma()
             4.78749174278205
             sage: R(1e10).log_gamma()
@@ -5049,7 +5049,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             False
         """
         cdef RealNumber x = self._new()
-        parent = (<RealField_class>self._parent)
+        parent = (<RealFloatingPointField_class>self._parent)
         if not mpfr_sgn(self.value) < 0:
             if parent.__prec > SIG_PREC_THRESHOLD:
                 sig_on()
@@ -5072,7 +5072,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField()
+            sage: R = RealFloatingPointField()
             sage: R(2).zeta()
             1.64493406684823
             sage: R.pi()^2/6
@@ -5108,7 +5108,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x = self._new()
         sig_on()
-        mpfr_zeta(x.value, self.value, (<RealField_class>self._parent).rnd)
+        mpfr_zeta(x.value, self.value, (<RealFloatingPointField_class>self._parent).rnd)
         sig_off()
         return x
 
@@ -5159,7 +5159,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R = RealField()
+            sage: R = RealFloatingPointField()
             sage: R(8).nth_root(3)
             2.00000000000000
             sage: R(8).nth_root(3.7)    # illustrate rounding down
@@ -5214,7 +5214,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             ....:         if is_even(n) and sign == -1:
             ....:             continue
             ....:         for rounding in ('RNDN', 'RNDD', 'RNDU', 'RNDZ'):
-            ....:             fld = RealField(x.prec(), rnd=rounding)
+            ....:             fld = RealFloatingPointField(x.prec(), rnd=rounding)
             ....:             fx = fld(sign * x)
             ....:             alg_mpfr = fx.nth_root(n, algorithm=1)
             ....:             alg_mpfi = fx.nth_root(n, algorithm=2)
@@ -5254,14 +5254,14 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         And some different precisions::
 
-            sage: check(RealField(20)(22/7), 19)
+            sage: check(RealFloatingPointField(20)(22/7), 19)
             [1.0621, 1.0621, 1.0622, 1.0621]
-            sage: check(RealField(200)(e), 4)
+            sage: check(RealFloatingPointField(200)(e), 4)
             [1.2840254166877414840734205680624364583362808652814630892175, 1.2840254166877414840734205680624364583362808652814630892175, 1.2840254166877414840734205680624364583362808652814630892176, 1.2840254166877414840734205680624364583362808652814630892175]
 
         Check that :trac:`12105` is fixed::
 
-            sage: RealField(53)(0.05).nth_root(7 * 10^8)
+            sage: RealFloatingPointField(53)(0.05).nth_root(7 * 10^8)
             0.999999995720382
         """
         if n <= 0:
@@ -5277,7 +5277,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if sgn == 0 or n == 1 or not mpfr_number_p(self.value):
             return self
 
-        cdef RealField_class fld = <RealField_class>self._parent
+        cdef RealFloatingPointField_class fld = <RealFloatingPointField_class>self._parent
 
         if algorithm == 0 and n <= 10000 / fld.__prec:
             # This is a rough estimate for when it is probably
@@ -5292,11 +5292,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if algorithm == 1:
             x = self._new()
             sig_on()
-            mpfr_root(x.value, self.value, n, (<RealField_class>self._parent).rnd)
+            mpfr_root(x.value, self.value, n, (<RealFloatingPointField_class>self._parent).rnd)
             sig_off()
             return x
 
-        cdef mpfr_rnd_t rnd = (<RealField_class>self._parent).rnd
+        cdef mpfr_rnd_t rnd = (<RealFloatingPointField_class>self._parent).rnd
 
         cdef Integer mantissa
         cdef mp_exp_t exponent
@@ -5415,15 +5415,15 @@ cdef class RealLiteral(RealNumber):
     cdef readonly literal
     cdef readonly int base
 
-    def __init__(self, RealField_class parent, x=0, int base=10):
+    def __init__(self, RealFloatingPointField_class parent, x=0, int base=10):
         """
         Initialize ``self``.
 
         EXAMPLES::
 
-            sage: RealField(200)(float(1.3))
+            sage: RealFloatingPointField(200)(float(1.3))
             1.3000000000000000444089209850062616169452667236328125000000
-            sage: RealField(200)(1.3)
+            sage: RealFloatingPointField(200)(1.3)
             1.3000000000000000000000000000000000000000000000000000000000
             sage: 1.3 + 1.2
             2.50000000000000
@@ -5439,9 +5439,9 @@ cdef class RealLiteral(RealNumber):
 
         EXAMPLES::
 
-            sage: RealField(300)(-1.2)
+            sage: RealFloatingPointField(300)(-1.2)
             -1.20000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-            sage: RealField(300)(-(-1.2))
+            sage: RealFloatingPointField(300)(-(-1.2))
             1.20000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
         """
         if self.literal is not None and self.literal[0] == '-':
@@ -5479,7 +5479,7 @@ cdef class RealLiteral(RealNumber):
 
         Compare with::
 
-            sage: RealField(120)(RR(13/10))
+            sage: RealFloatingPointField(120)(RR(13/10))
             1.3000000000000000444089209850062616
             sage: n(RR(13/10), 120)
             Traceback (most recent call last):
@@ -5495,18 +5495,18 @@ cdef class RealLiteral(RealNumber):
         """
         if prec is None:
             prec = digits_to_bits(digits)
-        return RealField(prec)(self.literal)
+        return RealFloatingPointField(prec)(self.literal)
 
 
-RR = RealField()
+RR = RealFloatingPointField()
 
-RR_min_prec = RealField(MPFR_PREC_MIN)
+RR_min_prec = RealFloatingPointField(MPFR_PREC_MIN)
 
 
 def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
     r"""
     Return the real number defined by the string ``s`` as an element of
-    ``RealField(prec=n)``, where ``n`` potentially has slightly
+    ``RealFloatingPointField(prec=n)``, where ``n`` potentially has slightly
     more (controlled by pad) bits than given by ``s``.
 
     INPUT:
@@ -5536,7 +5536,7 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
         10.0000000000000
         sage: RealNumber('1.0000000000000000000000000000000000')
         1.000000000000000000000000000000000
-        sage: RealField(200)(1.2)
+        sage: RealFloatingPointField(200)(1.2)
         1.2000000000000000000000000000000000000000000000000000000000
         sage: (1.2).parent() is RR
         True
@@ -5569,9 +5569,9 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
     The rounding mode is respected in all cases::
 
         sage: RealNumber("1.5", rnd="RNDU").parent()
-        Real Field with 53 bits of precision and rounding RNDU
+        Floating Point Field with 53 bits of precision and rounding RNDU
         sage: RealNumber("1.50000000000000000000000000000000000000", rnd="RNDU").parent()
-        Real Field with 130 bits of precision and rounding RNDU
+        Floating Point Field with 130 bits of precision and rounding RNDU
 
     TESTS::
 
@@ -5627,24 +5627,24 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
         else:
             bits = int(math.log(base,2)*1.00001*sigfigs)+1
 
-        R = RealField(prec=max(bits+pad, min_prec), rnd=rnd)
+        R = RealFloatingPointField(prec=max(bits+pad, min_prec), rnd=rnd)
 
     return RealLiteral(R, s, base)
 
 
 
-def is_RealField(x):
+def is_RealFloatingPointField(x):
     """
     Returns ``True`` if ``x`` is technically of a Python real field type.
 
     EXAMPLES::
 
-        sage: sage.rings.real_mpfr.is_RealField(RR)
+        sage: sage.rings.real_mpfr.is_RealFloatingPointField(RR)
         True
-        sage: sage.rings.real_mpfr.is_RealField(CC)
+        sage: sage.rings.real_mpfr.is_RealFloatingPointField(CC)
         False
     """
-    return isinstance(x, RealField_class)
+    return isinstance(x, RealFloatingPointField_class)
 
 def is_RealNumber(x):
     """
@@ -5665,16 +5665,16 @@ def is_RealNumber(x):
     """
     return isinstance(x, RealNumber)
 
-def __create__RealField_version0(prec, sci_not, rnd):
+def __create__RealFloatingPointField_version0(prec, sci_not, rnd):
     """
-    Create a :class:`RealField_class` by calling :func:`RealField()`.
+    Create a :class:`RealFloatingPointField_class` by calling :func:`RealFloatingPointField()`.
 
     EXAMPLES::
 
-        sage: sage.rings.real_mpfr.__create__RealField_version0(53, 0, 'RNDN')
-        Real Field with 53 bits of precision
+        sage: sage.rings.real_mpfr.__create__RealFloatingPointField_version0(53, 0, 'RNDN')
+        Floating Point Field with 53 bits of precision
     """
-    return RealField(prec, sci_not, rnd)
+    return RealFloatingPointField(prec, sci_not, rnd)
 
 def __create__RealNumber_version0(parent, x, base=10):
     """
@@ -5694,8 +5694,8 @@ cdef class RRtoRR(Map):
         EXAMPLES::
 
             sage: from sage.rings.real_mpfr import RRtoRR
-            sage: R10 = RealField(10)
-            sage: R100 = RealField(100)
+            sage: R10 = RealFloatingPointField(10)
+            sage: R100 = RealFloatingPointField(100)
             sage: f = RRtoRR(R100, R10)
             sage: a = R100(1.2)
             sage: f(a)
@@ -5703,8 +5703,8 @@ cdef class RRtoRR(Map):
             sage: g = f.section()
             sage: g
             Generic map:
-              From: Real Field with 10 bits of precision
-              To:   Real Field with 100 bits of precision
+              From: Floating Point Field with 10 bits of precision
+              To:   Floating Point Field with 100 bits of precision
             sage: g(f(a)) # indirect doctest
             1.1992187500000000000000000000
             sage: b = R10(2).sqrt()
@@ -5713,7 +5713,7 @@ cdef class RRtoRR(Map):
             sage: f(g(b)) == b
             True
         """
-        cdef RealField_class parent = <RealField_class>self._codomain
+        cdef RealFloatingPointField_class parent = <RealFloatingPointField_class>self._codomain
         cdef RealNumber y = parent._new()
         if type(x) is RealLiteral:
             mpfr_set_str(y.value, (<RealLiteral>x).literal, (<RealLiteral>x).base, parent.rnd)
@@ -5726,13 +5726,13 @@ cdef class RRtoRR(Map):
         EXAMPLES::
 
             sage: from sage.rings.real_mpfr import RRtoRR
-            sage: R10 = RealField(10)
-            sage: R100 = RealField(100)
+            sage: R10 = RealFloatingPointField(10)
+            sage: R100 = RealFloatingPointField(100)
             sage: f = RRtoRR(R100, R10)
             sage: f.section()
             Generic map:
-              From: Real Field with 10 bits of precision
-              To:   Real Field with 100 bits of precision
+              From: Floating Point Field with 10 bits of precision
+              To:   Floating Point Field with 100 bits of precision
         """
         return RRtoRR(self._codomain, self.domain())
 
@@ -5742,11 +5742,11 @@ cdef class ZZtoRR(Map):
         EXAMPLES::
 
             sage: from sage.rings.real_mpfr import ZZtoRR
-            sage: f = ZZtoRR(ZZ, RealField(20))
+            sage: f = ZZtoRR(ZZ, RealFloatingPointField(20))
             sage: f(123456789) # indirect doctest
             1.2346e8
         """
-        cdef RealField_class parent = <RealField_class>self._codomain
+        cdef RealFloatingPointField_class parent = <RealFloatingPointField_class>self._codomain
         cdef RealNumber y = parent._new()
         mpfr_set_z(y.value, (<Integer>x).value, parent.rnd)
         return y
@@ -5757,11 +5757,11 @@ cdef class QQtoRR(Map):
         EXAMPLES::
 
             sage: from sage.rings.real_mpfr import QQtoRR
-            sage: f = QQtoRR(QQ, RealField(200))
+            sage: f = QQtoRR(QQ, RealFloatingPointField(200))
             sage: f(-1/3) # indirect doctest
             -0.33333333333333333333333333333333333333333333333333333333333
         """
-        cdef RealField_class parent = <RealField_class>self._codomain
+        cdef RealFloatingPointField_class parent = <RealFloatingPointField_class>self._codomain
         cdef RealNumber y = parent._new()
         mpfr_set_q(y.value, (<Rational>x).value, parent.rnd)
         return y
@@ -5774,14 +5774,14 @@ cdef class double_toRR(Map):
         EXAMPLES::
 
             sage: from sage.rings.real_mpfr import double_toRR
-            sage: f = double_toRR(RDF, RealField(22))
+            sage: f = double_toRR(RDF, RealFloatingPointField(22))
             sage: f(RDF.pi()) # indirect doctest
             3.14159
-            sage: f = double_toRR(RDF, RealField(200))
+            sage: f = double_toRR(RDF, RealFloatingPointField(200))
             sage: f(RDF.pi())
             3.1415926535897931159979634685441851615905761718750000000000
         """
-        cdef RealField_class parent = <RealField_class>self._codomain
+        cdef RealFloatingPointField_class parent = <RealFloatingPointField_class>self._codomain
         cdef RealNumber y = parent._new()
         mpfr_set_d(y.value, x, parent.rnd)
         return y
@@ -5809,7 +5809,7 @@ cdef class int_toRR(Map):
             sage: f(x-x+1)
             1.00000000000000
         """
-        cdef RealField_class parent = <RealField_class>self._codomain
+        cdef RealFloatingPointField_class parent = <RealFloatingPointField_class>self._codomain
         cdef RealNumber y = parent._new()
         mpfr_set_si(y.value, x, parent.rnd)
         return y

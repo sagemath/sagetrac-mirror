@@ -403,8 +403,8 @@ def bell_number(n, algorithm='flint', **options):
                 break
             b += v
             k += si
-        from sage.rings.all import RealField
-        R = RealField(b.exact_log(2) + 1, rnd='RNDD')
+        from sage.rings.all import RealFloatingPointField
+        R = RealFloatingPointField(b.exact_log(2) + 1, rnd='RNDD')
         return ( (R(-1).exp() / q) * b).ceil()
 
     raise ValueError("unknown algorithm %r" % algorithm)

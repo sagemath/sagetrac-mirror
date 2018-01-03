@@ -82,7 +82,7 @@ def is_RealDoubleField(x):
         sage: from sage.rings.real_double import is_RealDoubleField
         sage: is_RealDoubleField(RDF)
         True
-        sage: is_RealDoubleField(RealField(53))
+        sage: is_RealDoubleField(RealFloatingPointField(53))
         False
     """
     return isinstance(x, RealDoubleField_class)
@@ -123,7 +123,7 @@ cdef class RealDoubleField_class(Field):
     numbers and higher-precision ones, though of course there may be
     loss of precision::
 
-        sage: a = RealField(200)(2).sqrt(); a
+        sage: a = RealFloatingPointField(200)(2).sqrt(); a
         1.4142135623730950488016887242096980785696718753769480731767
         sage: b = RDF(a); b
         1.4142135623730951
@@ -346,8 +346,8 @@ cdef class RealDoubleField_class(Field):
         if S is ZZ or S is QQ or S is RLF:
             return ToRDF(S)
 
-        from .real_mpfr import RR, RealField_class
-        if isinstance(S, RealField_class):
+        from .real_mpfr import RR, RealFloatingPointField_class
+        if isinstance(S, RealFloatingPointField_class):
             if S.prec() >= 53:
                 return ToRDF(S)
             else:
@@ -380,9 +380,9 @@ cdef class RealDoubleField_class(Field):
         that has 53 bits of precision::
 
             sage: magma(RDF).sage() # optional - magma
-            Real Field with 53 bits of precision
+            Real Floating Point Field with 53 bits of precision
         """
-        return "RealField(%s : Bits := true)" % self.prec()
+        return "RealFloatingPointField(%s : Bits := true)" % self.prec()
 
     def _polymake_init_(self):
         r"""
@@ -419,15 +419,15 @@ cdef class RealDoubleField_class(Field):
         EXAMPLES::
 
             sage: RDF.to_prec(52)
-            Real Field with 52 bits of precision
+            Real Floating Point Field with 52 bits of precision
             sage: RDF.to_prec(53)
             Real Double Field
         """
         if prec == 53:
             return self
         else:
-            from .real_mpfr import RealField
-            return RealField(prec)
+            from .real_mpfr import RealFloatingPointField
+            return RealFloatingPointField(prec)
 
 
     def gen(self, n=0):
@@ -1091,7 +1091,7 @@ cdef class RealDoubleElement(FieldElement):
 
             sage: RDF(2.1)._im_gens_(RR, [RR(1)])
             2.10000000000000
-            sage: R = RealField(20)
+            sage: R = RealFloatingPointField(20)
             sage: RDF(2.1)._im_gens_(R, [R(1)])
             2.1000
         """
@@ -1994,7 +1994,7 @@ cdef class RealDoubleElement(FieldElement):
         Make sure that we can take the log of small numbers accurately
         and the fix doesn't break preexisting values (:trac:`12557`)::
 
-            sage: R = RealField(128)
+            sage: R = RealFloatingPointField(128)
             sage: def check_error(x):
             ....:   x = RDF(x)
             ....:   log_RDF = x.log()

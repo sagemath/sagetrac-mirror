@@ -60,7 +60,7 @@ REFERENCES:
 from __future__ import print_function
 
 from sage.all import prod
-from sage.rings.all import RealField, RR
+from sage.rings.all import RealFloatingPointField, RR
 from sage.schemes.elliptic_curves.all import EllipticCurve
 
 def c4c6_nonsingular(c4,c6):

@@ -16,11 +16,11 @@ function).
 
 ::
 
-    sage: RealField(9).pi()
+    sage: RealFloatingPointField(9).pi()
     3.1
-    sage: QQ(RealField(9).pi())
+    sage: QQ(RealFloatingPointField(9).pi())
     22/7
-    sage: QQ(RealField().pi())
+    sage: QQ(RealFloatingPointField().pi())
     245850922/78256779
     sage: QQ(35)
     35
@@ -126,7 +126,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         1.26920930427955
         sage: t = L/O; t
         0.200000000000000
-        sage: QQ(RealField(45)(t))
+        sage: QQ(RealFloatingPointField(45)(t))
         1/5
     """
     def __new__(cls):
@@ -319,7 +319,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         EXAMPLES::
 
             sage: QQ.completion(infinity, 53)
-            Real Field with 53 bits of precision
+            Real Floating Point Field with 53 bits of precision
             sage: QQ.completion(5, 15, {'print_mode': 'bars'})
             5-adic Field with capped relative precision 15
             sage: QQ.completion(infinity, infinity)
@@ -329,8 +329,8 @@ class RationalField(Singleton, number_field_base.NumberField):
         """
         from sage.rings.infinity import Infinity
         if p == Infinity:
-            from sage.rings.real_field import create_RealField
-            return create_RealField(prec, **extras)
+            from sage.rings.real_field import create_RealFloatingPointField
+            return create_RealFloatingPointField(prec, **extras)
         else:
             from sage.rings.padics.factory import Qp
             return Qp(p, prec, **extras)
@@ -648,7 +648,7 @@ class RationalField(Singleton, number_field_base.NumberField):
 
         By default, this returns homomorphisms into ``RR``.  If
         ``prec`` is not None, we simply return homomorphisms into
-        ``RealField(prec)`` (or ``RDF`` if ``prec=53``).
+        ``RealFloatingPointField(prec)`` (or ``RDF`` if ``prec=53``).
 
         There is an optional flag ``all_complex``, which defaults to
         False.  If ``all_complex`` is True, then the real embeddings
@@ -662,7 +662,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: QQ.places()
             [Ring morphism:
               From: Rational Field
-              To:   Real Field with 53 bits of precision
+              To:   Real Floating Point Field with 53 bits of precision
               Defn: 1 |--> 1.00000000000000]
             sage: QQ.places(prec=53)
             [Ring morphism:
@@ -687,7 +687,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             R = sage.rings.all.AA
             C = sage.rings.all.QQbar
         else:
-            R = sage.rings.all.RealField(prec)
+            R = sage.rings.all.RealFloatingPointField(prec)
             C = sage.rings.all.ComplexField(prec)
         domain = C if all_complex else R
         return [self.hom([domain(1)])]

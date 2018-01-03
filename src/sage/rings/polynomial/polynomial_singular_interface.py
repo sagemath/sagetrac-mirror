@@ -43,7 +43,7 @@ import sage.rings.number_field as number_field
 
 from sage.interfaces.all import singular
 from sage.rings.complex_field import is_ComplexField
-from sage.rings.real_mpfr import is_RealField
+from sage.rings.real_mpfr import is_RealFloatingPointField
 from sage.rings.complex_double import is_ComplexDoubleField
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.real_double import is_RealDoubleField
@@ -86,7 +86,7 @@ class PolynomialRing_singular_repr:
             //        block   1 : ordering dp
             //                  : names    x y
             //        block   2 : ordering C
-            sage: R.<x,y> = PolynomialRing(RealField(100))
+            sage: R.<x,y> = PolynomialRing(RealFloatingPointField(100))
             sage: singular(R)
             polynomial ring, over a field, global ordering
             //   coefficients: float
@@ -246,7 +246,7 @@ class PolynomialRing_singular_repr:
 
         base_ring = self.base_ring()
 
-        if is_RealField(base_ring):
+        if is_RealFloatingPointField(base_ring):
             # singular converts to bits from base_10 in mpr_complex.cc by:
             #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
             precision = base_ring.precision()
@@ -375,7 +375,7 @@ def can_convert_to_singular(R):
         or sage.rings.finite_rings.finite_field_constructor.is_FiniteField(base_ring)
         or is_RationalField(base_ring)
         or is_IntegerModRing(base_ring)
-        or is_RealField(base_ring)
+        or is_RealFloatingPointField(base_ring)
         or is_ComplexField(base_ring)
         or is_RealDoubleField(base_ring)
         or is_ComplexDoubleField(base_ring)):

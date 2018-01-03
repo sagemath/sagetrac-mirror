@@ -67,9 +67,9 @@ from .padics.padic_printing import _printer_defaults as padic_printing
 from .semirings.all import *
 
 # Real numbers
-from .real_mpfr import (RealField, RR,
+from .real_mpfr import (RealFloatingPointField, RR,
                        create_RealNumber as RealNumber)   # this is used by the preparser to wrap real literals -- very important.
-Reals = RealField
+Reals = RealFloatingPointField
 
 from .real_double import RealDoubleField, RDF, RealDoubleElement
 

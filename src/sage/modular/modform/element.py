@@ -29,7 +29,7 @@ from six.moves import range
 
 import sage.modular.hecke.element as element
 
-from sage.rings.all import ZZ, QQ, Integer, RealField, ComplexField
+from sage.rings.all import ZZ, QQ, Integer, RealFloatingPointField, ComplexField
 from sage.rings.fast_arith import prime_range
 from sage.arith.misc import euler_phi
 from sage.rings.morphism import RingHomomorphism
@@ -764,7 +764,7 @@ class ModularForm_abstract(ModuleElement):
             -1.35975973348831 + 1.09365931898146e-16*I
 
         """
-        R = RealField(prec)
+        R = RealFloatingPointField(prec)
 
         N = self.level()
         if not self.character().is_trivial():
@@ -1173,7 +1173,7 @@ class ModularForm_abstract(ModuleElement):
             sage: (X(F + G) + X(F - G) - 2*X(F) - 2*X(G)).abs() < 1e-25
             True
         """
-        pi = RealField(prec).pi()
+        pi = RealFloatingPointField(prec).pi()
         L = self.symsquare_lseries(prec=prec, embedding=embedding)
         k = self.weight()
         return (ZZ(k - 1).factorial() / 2**(2*k - 1) / pi**(k+1)) * L(k).real_part()

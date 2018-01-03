@@ -60,7 +60,7 @@ can be coerced into other systems or evaluated.
     pi + 4/5*e
     sage: maxima(a)
     %pi+(4*%e)/5
-    sage: RealField(15)(a)           # 15 *bits* of precision
+    sage: RealFloatingPointField(15)(a)           # 15 *bits* of precision
     5.316
     sage: gp(a)
     5.316218116357029426750873360              # 32-bit
@@ -76,8 +76,8 @@ We can obtain floating point approximations to each of these
 constants by coercing into the real field with given precision. For
 example, to 200 decimal places we have the following::
 
-    sage: R = RealField(200); R
-    Real Field with 200 bits of precision
+    sage: R = RealFloatingPointField(200); R
+    Real Floating Point Field with 200 bits of precision
 
 ::
 
@@ -183,9 +183,9 @@ floating point rings::
     Symbolic Ring
     sage: RR(a)  # abs tol 1e-13
     13.2713479401972
-    sage: RealField(212)(a)
+    sage: RealFloatingPointField(212)(a)
     13.2713479401972493100988191995758139408711068200030748178329712
-    sage: RealField(230)(a)
+    sage: RealFloatingPointField(230)(a)
     13.271347940197249310098819199575813940871106820003074817832971189555
     sage: RDF(a)  # abs tol 1e-13
     13.271347940197249
@@ -572,7 +572,7 @@ class Pi(Constant):
         """
         EXAMPLES::
 
-            sage: pi._mpfr_(RealField(100))
+            sage: pi._mpfr_(RealFloatingPointField(100))
             3.1415926535897932384626433833
         """
         return R.pi()
@@ -707,7 +707,7 @@ class NotANumber(Constant):
         """
         EXAMPLES::
 
-            sage: NaN._mpfr_(RealField(53))
+            sage: NaN._mpfr_(RealFloatingPointField(53))
             NaN
             sage: type(_)
             <type 'sage.rings.real_mpfr.RealNumber'>
@@ -749,7 +749,7 @@ class GoldenRatio(Constant):
         sage: gr = golden_ratio
         sage: RR(gr)
         1.61803398874989
-        sage: R = RealField(200)
+        sage: R = RealFloatingPointField(200)
         sage: R(gr)
         1.6180339887498948482045868343656381177203091798057628621354
         sage: grm = maxima(golden_ratio);grm
@@ -809,9 +809,9 @@ class GoldenRatio(Constant):
         """
         EXAMPLES::
 
-            sage: golden_ratio._mpfr_(RealField(100))
+            sage: golden_ratio._mpfr_(RealFloatingPointField(100))
             1.6180339887498948482045868344
-            sage: RealField(100)(golden_ratio)
+            sage: RealFloatingPointField(100)(golden_ratio)
             1.6180339887498948482045868344
         """
         return (R(1)+R(5).sqrt())/R(2)
@@ -855,8 +855,8 @@ class Log2(Constant):
         0.6931471805599453
         sage: RR(log2)
         0.693147180559945
-        sage: R = RealField(200); R
-        Real Field with 200 bits of precision
+        sage: R = RealFloatingPointField(200); R
+        Real Floating Point Field with 200 bits of precision
         sage: R(log2)
         0.69314718055994530941723212145817656807550013436025525412068
         sage: l = (1-log2)/(1+log2); l
@@ -870,7 +870,7 @@ class Log2(Constant):
         sage: gp(log2)
         0.6931471805599453094172321215             # 32-bit
         0.69314718055994530941723212145817656807   # 64-bit
-        sage: RealField(150)(2).log()
+        sage: RealFloatingPointField(150)(2).log()
         0.69314718055994530941723212145817656807550013
     """
     def __init__(self, name='log2'):
@@ -911,9 +911,9 @@ class Log2(Constant):
         """
         EXAMPLES::
 
-            sage: RealField(100)(log2)
+            sage: RealFloatingPointField(100)(log2)
             0.69314718055994530941723212146
-            sage: log2._mpfr_(RealField(100))
+            sage: log2._mpfr_(RealFloatingPointField(100))
             0.69314718055994530941723212146
         """
         return R.log2()
@@ -927,11 +927,11 @@ class EulerGamma(Constant):
 
     EXAMPLES::
 
-        sage: R = RealField()
+        sage: R = RealFloatingPointField()
         sage: R(euler_gamma)
         0.577215664901533
-        sage: R = RealField(200); R
-        Real Field with 200 bits of precision
+        sage: R = RealFloatingPointField(200); R
+        Real Floating Point Field with 200 bits of precision
         sage: R(euler_gamma)
         0.57721566490153286060651209008240243104215933593992359880577
         sage: eg = euler_gamma + euler_gamma; eg
@@ -956,9 +956,9 @@ class EulerGamma(Constant):
         """
         EXAMPLES::
 
-            sage: RealField(100)(euler_gamma)
+            sage: RealFloatingPointField(100)(euler_gamma)
             0.57721566490153286060651209008
-            sage: euler_gamma._mpfr_(RealField(100))
+            sage: euler_gamma._mpfr_(RealFloatingPointField(100))
             0.57721566490153286060651209008
         """
         return R.euler_constant()
@@ -1025,9 +1025,9 @@ class Catalan(Constant):
         """
         EXAMPLES::
 
-            sage: RealField(100)(catalan)
+            sage: RealFloatingPointField(100)(catalan)
             0.91596559417721901505460351493
-            sage: catalan._mpfr_(RealField(100))
+            sage: catalan._mpfr_(RealFloatingPointField(100))
             0.91596559417721901505460351493
         """
         return R.catalan_constant()
@@ -1101,9 +1101,9 @@ class Khinchin(Constant):
         """
         EXAMPLES::
 
-            sage: khinchin._mpfr_(RealField(100))
+            sage: khinchin._mpfr_(RealFloatingPointField(100))
             2.6854520010653064453097148355
-            sage: RealField(100)(khinchin)
+            sage: RealFloatingPointField(100)(khinchin)
             2.6854520010653064453097148355
 
         """
@@ -1149,9 +1149,9 @@ class TwinPrime(Constant):
         """
         EXAMPLES::
 
-            sage: twinprime._mpfr_(RealField(100))
+            sage: twinprime._mpfr_(RealFloatingPointField(100))
             0.66016181584686957392781211001
-            sage: RealField(100)(twinprime)
+            sage: RealFloatingPointField(100)(twinprime)
             0.66016181584686957392781211001
         """
         import sage.libs.mpmath.all as a
@@ -1197,9 +1197,9 @@ class Mertens(Constant):
         """
         EXAMPLES::
 
-            sage: mertens._mpfr_(RealField(100))
+            sage: mertens._mpfr_(RealFloatingPointField(100))
             0.26149721284764278375542683861
-            sage: RealField(100)(mertens)
+            sage: RealFloatingPointField(100)(mertens)
             0.26149721284764278375542683861
 
         """
@@ -1251,9 +1251,9 @@ class Glaisher(Constant):
         """
         EXAMPLES::
 
-            sage: glaisher._mpfr_(RealField(100))
+            sage: glaisher._mpfr_(RealFloatingPointField(100))
             1.2824271291006226368753425689
-            sage: RealField(100)(glaisher)
+            sage: RealFloatingPointField(100)(glaisher)
             1.2824271291006226368753425689
 
         """

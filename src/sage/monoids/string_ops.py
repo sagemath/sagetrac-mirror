@@ -9,7 +9,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import RealField
+from sage.rings.all import RealFloatingPointField
 from .string_monoid_element import StringMonoidElement
 
 def strip_encoding(S):
@@ -40,7 +40,7 @@ def frequency_distribution(S, n=1, field=None):
     elif isinstance(S,(str,StringMonoidElement)):
         S = [ S[i:i+n] for i in range(len(S)-n+1) ]
     if field is None:
-        field = RealField()
+        field = RealFloatingPointField()
     if isinstance(S,list):
         P = {}
         N = len(S)
@@ -79,7 +79,7 @@ def coincidence_index(S,n=1):
             X[c] += 1
         else:
             X[c] = 1
-    RR = RealField()
+    RR = RealFloatingPointField()
     return RR(sum([ m*(m-1) for m in X.values() ]))/RR(N*(N-1))
 
 def coincidence_discriminant(S,n=2):

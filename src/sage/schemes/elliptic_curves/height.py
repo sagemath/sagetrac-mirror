@@ -1108,7 +1108,7 @@ class EllipticCurveCanonicalHeight:
 
         In [TT]_ the value is given as 0.772::
 
-            sage: RealField(12)( H.B(5, 0.01) )
+            sage: RealFloatingPointField(12)( H.B(5, 0.01) )
             0.777
         """
         K = self.K

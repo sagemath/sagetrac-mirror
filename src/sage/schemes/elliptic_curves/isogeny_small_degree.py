@@ -535,7 +535,7 @@ def _sporadic_Q_data(j):
         ....:     assert g%f==0
 
     """
-    from sage.rings.all import RealField
+    from sage.rings.all import RealFloatingPointField
     from sage.misc.all import prod
     ell = sporadic_j[j]
     E = EllipticCurve(j=j).short_weierstrass_model()
@@ -547,7 +547,7 @@ def _sporadic_Q_data(j):
     elif ell>30:
         pr=300
     w1, w2 = L.basis(prec=pr)
-    X = polygen(RealField(pr),'X')
+    X = polygen(RealFloatingPointField(pr),'X')
     w = w1 # real period
     if j in [-121, -24729001, -162677523113838677, QQ(-882216989)/131072]:
         w = 2*w2-w1 # imaginary period

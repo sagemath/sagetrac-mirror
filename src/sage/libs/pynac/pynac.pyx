@@ -35,7 +35,7 @@ from sage.structure.sage_object import loads, dumps
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational
-from sage.rings.real_mpfr import RR, RealField
+from sage.rings.real_mpfr import RR, RealFloatingPointField
 from sage.rings.rational cimport rational_power_parts
 from sage.rings.real_double cimport RealDoubleElement
 from sage.rings.all import CC
@@ -1315,7 +1315,7 @@ cdef py_float(n, PyObject* kwds):
         sage: from sage.libs.pynac.pynac import py_float_for_doctests as py_float
         sage: py_float(I, {'parent':ComplexField(10)})
         1.0*I
-        sage: py_float(pi, {'parent':RealField(100)})
+        sage: py_float(pi, {'parent':RealFloatingPointField(100)})
         3.1415926535897932384626433833
         sage: py_float(10, {'parent':CDF})
         10.0
@@ -1353,9 +1353,9 @@ def py_float_for_doctests(n, kwds):
     EXAMPLES::
 
         sage: from sage.libs.pynac.pynac import py_float_for_doctests
-        sage: py_float_for_doctests(pi, {'parent':RealField(80)})
+        sage: py_float_for_doctests(pi, {'parent':RealFloatingPointField(80)})
         3.1415926535897932384626
-        sage: py_float_for_doctests(I, {'parent':RealField(80)})
+        sage: py_float_for_doctests(I, {'parent':RealFloatingPointField(80)})
         1.0000000000000000000000*I
         sage: py_float_for_doctests(I, {'parent':float})
         1j
@@ -1568,7 +1568,7 @@ cdef py_stieltjes(x):
         0.577215664901533
         sage: py_stieltjes(1.0)
         -0.0728158454836767
-        sage: py_stieltjes(RealField(100)(5))
+        sage: py_stieltjes(RealFloatingPointField(100)(5))
         0.00079332381730106270175333487744
         sage: py_stieltjes(-1)
         Traceback (most recent call last):
@@ -1611,7 +1611,7 @@ cdef py_zeta(x):
         0.00330022368532410 - 0.418155449141322*I
         sage: py_zeta(CDF(5))
         1.03692775514337
-        sage: py_zeta(RealField(100)(5))
+        sage: py_zeta(RealFloatingPointField(100)(5))
         1.0369277551433699263313654865
     """
     try:
@@ -1793,7 +1793,7 @@ cdef py_atan2(x, y):
         sage: CC100 = ComplexField(100)
         sage: py_atan2(CC100(0), CC100(1))
         1.5707963267948966192313216916
-        sage: RR100 = RealField(100)
+        sage: RR100 = RealFloatingPointField(100)
         sage: py_atan2(RR100(0), RR100(1))
         1.5707963267948966192313216916
 

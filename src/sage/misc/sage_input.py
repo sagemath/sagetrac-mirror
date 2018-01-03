@@ -228,16 +228,16 @@ def sage_input(x, preparse=True, verify=False, allow_locals=False):
     The result of :func:`sage_input` is actually a pair of strings with a
     special ``__repr__`` method to print nicely.::
 
-        sage: r = sage_input(RealField(20)(pi), verify=True)
+        sage: r = sage_input(RealFloatingPointField(20)(pi), verify=True)
         sage: r
         # Verified
-        RealField(20)(3.1415939)
+        RealFloatingPointField(20)(3.1415939)
         sage: isinstance(r, tuple)
         True
         sage: len(r)
         2
         sage: tuple(r)
-        ('# Verified\n', 'RealField(20)(3.1415939)')
+        ('# Verified\n', 'RealFloatingPointField(20)(3.1415939)')
 
     We cannot find an input form for a function.::
 
@@ -376,9 +376,9 @@ class SageInputBuilder:
             sage: sib = SageInputBuilder()
             sage: sib.result(sib(GF(17)(5), True))
             5
-            sage: sib.result(sib(RealField(200)(1.5), True))
+            sage: sib.result(sib(RealFloatingPointField(200)(1.5), True))
             1.5000000000000000000000000000000000000000000000000000000000000
-            sage: sib.result(sib(RealField(200)(1.5), 2))
+            sage: sib.result(sib(RealFloatingPointField(200)(1.5), 2))
             1.5
 
         Since :func:`sage_input` directly calls this method, all
@@ -1875,7 +1875,7 @@ class SIE_call(SageInputExpression):
             sage: from sage.misc.sage_input import SageInputBuilder
 
             sage: sib = SageInputBuilder()
-            sage: sie = sib('RealField')(53, rnd='RNDZ')
+            sage: sie = sib('RealFloatingPointField')(53, rnd='RNDZ')
         """
         super(SIE_call, self).__init__(sib)
         self._sie_func = func
@@ -1891,7 +1891,7 @@ class SIE_call(SageInputExpression):
             sage: from sage.misc.sage_input import SageInputBuilder
 
             sage: sib = SageInputBuilder()
-            sage: sie = sib('RealField')(53, rnd='RNDZ')
+            sage: sie = sib('RealFloatingPointField')(53, rnd='RNDZ')
         """
         func = repr(self._sie_func)
         args = [repr(arg) for arg in self._sie_args]
@@ -1909,9 +1909,9 @@ class SIE_call(SageInputExpression):
             sage: from sage.misc.sage_input import SageInputBuilder
 
             sage: sib = SageInputBuilder()
-            sage: sie = sib('RealField')(53, rnd='RNDZ')
+            sage: sie = sib('RealFloatingPointField')(53, rnd='RNDZ')
             sage: sie._sie_referenced()
-            [{atomic:53}, {atomic:'RealField'}, {atomic:'RNDZ'}]
+            [{atomic:53}, {atomic:'RealFloatingPointField'}, {atomic:'RNDZ'}]
         """
         refs = self._sie_args[:]
         refs.append(self._sie_func)
@@ -1929,10 +1929,10 @@ class SIE_call(SageInputExpression):
 
             sage: sib = SageInputBuilder()
             sage: sif = SageInputFormatter()
-            sage: sie = sib.name('RealField')(53, rnd='RNDZ')
+            sage: sie = sib.name('RealFloatingPointField')(53, rnd='RNDZ')
             sage: sie._sie_prepare(sif)
             sage: sie._sie_format(sif)
-            ("RealField(53, rnd='RNDZ')", 40)
+            ("RealFloatingPointField(53, rnd='RNDZ')", 40)
         """
         func = sif.format(self._sie_func, _prec_attribute)
         args = [sif.format(arg, 0) for arg in self._sie_args]

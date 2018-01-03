@@ -304,7 +304,7 @@ from __future__ import absolute_import
 
 import operator
 from copy import copy
-from sage.rings.real_mpfr cimport RealField_class, RealNumber
+from sage.rings.real_mpfr cimport RealFloatingPointField_class, RealNumber
 from sage.rings.complex_field import ComplexField_class
 from sage.rings.all import RDF, CDF
 from sage.rings.integer import Integer
@@ -462,7 +462,7 @@ def fast_callable(x, domain=None, vars=None,
         etb = ExpressionTreeBuilder(vars=vars, domain=domain)
         et = x._fast_callable_(etb)
 
-    if isinstance(domain, RealField_class):
+    if isinstance(domain, RealFloatingPointField_class):
         import sage.ext.interpreters.wrapper_rr
         builder = sage.ext.interpreters.wrapper_rr.Wrapper_rr
 
@@ -658,7 +658,7 @@ cdef class ExpressionTreeBuilder:
             sage: etb = ExpressionTreeBuilder('x')
             sage: etb.constant(pi)
             pi
-            sage: etb = ExpressionTreeBuilder('x', domain=RealField(200))
+            sage: etb = ExpressionTreeBuilder('x', domain=RealFloatingPointField(200))
             sage: etb.constant(pi)
             3.1415926535897932384626433832795028841971693993751058209749
         """
@@ -1728,7 +1728,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: def my_sqrt(x):
         ....:     if x < 0: raise ValueError("sqrt of negative number")
         ....:     return sqrt(x, extend=False)
-        sage: fc = fast_callable(expr, domain=RealField(130))
+        sage: fc = fast_callable(expr, domain=RealFloatingPointField(130))
         sage: fc(0)
         3.1415926535897932384626433832795028842
         sage: fc(1)
@@ -1753,7 +1753,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: fc = fast_callable(etb.call(my_sin, x), domain=RDF)
         sage: fc(3)
         0.1411200080598672
-        sage: fc = fast_callable(etb.call(my_sin, x), domain=RealField(100))
+        sage: fc = fast_callable(etb.call(my_sin, x), domain=RealFloatingPointField(100))
         sage: fc(3)
         0.14112000805986722210074480281
         sage: fc.op_list()

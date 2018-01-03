@@ -41,7 +41,7 @@ from sage.rings.number_field.order import is_NumberFieldOrder
 from sage.rings.padics.factory import Qp
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import QQ
-from sage.rings.real_mpfr import RealField
+from sage.rings.real_mpfr import RealFloatingPointField
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 from sage.schemes.product_projective.subscheme import AlgebraicScheme_subscheme_product_projective
 from sage.schemes.product_projective.space import ProductProjectiveSpaces
@@ -1634,7 +1634,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         """
         if not (v == 0 or v.is_prime()):
             raise ValueError("invalid valuation (= %s) entered"%v)
-        R = RealField(prec)
+        R = RealFloatingPointField(prec)
         if v == 0:
             K = R
         else:
@@ -1731,7 +1731,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             sage: X.lambda_minus(P, 2, 20, 2, 0, 200)
             -0.18573351672047135037172805779671791488351056677474271893705
         """
-        R = RealField(prec)
+        R = RealFloatingPointField(prec)
         if v == 0:
             K = R
         else:
