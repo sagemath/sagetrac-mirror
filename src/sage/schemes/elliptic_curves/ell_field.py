@@ -16,7 +16,7 @@ from __future__ import absolute_import
 from . import ell_generic
 import sage.rings.all as rings
 from sage.rings.complex_field import is_ComplexField
-from sage.rings.real_mpfr import is_RealField
+from sage.rings.real_mpfr import is_RealFloatingPointField
 from .constructor import EllipticCurve
 from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
 
@@ -1013,7 +1013,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 + x*y + y = x^3 + (-171)*x + (-874) over Number Field in e with defining polynomial x^2 - 2]
         """
         F = self.base_ring()
-        if is_RealField(F):
+        if is_RealFloatingPointField(F):
             raise NotImplementedError("This code could be implemented for general real fields, but has not been yet.")
         if is_ComplexField(F):
             raise NotImplementedError("This code could be implemented for general complex fields, but has not been yet.")

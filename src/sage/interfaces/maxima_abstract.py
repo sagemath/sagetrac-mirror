@@ -1316,7 +1316,7 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
 
         EXAMPLES::
 
-            sage: RealField(100)(maxima('sqrt(2)+1'))
+            sage: RealFloatingPointField(100)(maxima('sqrt(2)+1'))
             2.4142135623730950488016887242
         """
         return R(self._sage_())

@@ -63,7 +63,7 @@ from sage.libs.flint.fmpz_poly cimport fmpz_poly_reverse, fmpz_poly_revert_serie
 from sage.libs.flint.ntl_interface cimport fmpz_set_ZZ, fmpz_poly_set_ZZX, fmpz_poly_get_ZZX
 from sage.libs.ntl.ZZX cimport *
 from sage.rings.integer cimport smallInteger
-from sage.rings.real_mpfr cimport RealNumber, RealField_class
+from sage.rings.real_mpfr cimport RealNumber, RealFloatingPointField_class
 from sage.rings.real_mpfi cimport RealIntervalFieldElement
 
 from sage.rings.polynomial.evaluation cimport fmpz_poly_evaluation_mpfr, fmpz_poly_evaluation_mpfi

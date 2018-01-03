@@ -1370,7 +1370,7 @@ cdef class NumberFieldElement(FieldElement):
         -  ``P`` - a prime ideal of the parent of self
 
         - ``prec`` (int) -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         OUTPUT:
 
@@ -1396,11 +1396,11 @@ cdef class NumberFieldElement(FieldElement):
             sage: [b.abs_non_arch(P) for P in L.primes_above(b)]
             [0.447213595499958, 0.447213595499958]
         """
-        from sage.rings.real_mpfr import RealField
+        from sage.rings.real_mpfr import RealFloatingPointField
         if prec is None:
-            R = RealField()
+            R = RealFloatingPointField()
         else:
-            R = RealField(prec)
+            R = RealFloatingPointField(prec)
 
         if self.is_zero():
             return R.zero()
@@ -1779,7 +1779,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: K.<a> = NumberField(x^3+2, embedding=-1.25)
             sage: RR(a)
             -1.25992104989487
-            sage: RealField(prec=100)(a)
+            sage: RealFloatingPointField(prec=100)(a)
             -1.2599210498948731647672106073
         """
         if self.parent().coerce_embedding() is None:
@@ -1991,7 +1991,7 @@ cdef class NumberFieldElement(FieldElement):
             True
             sage: (a/b+sqrt2).is_totally_positive()
             True
-            sage: r = RealField(3020)(2).sqrt()*2^3000
+            sage: r = RealFloatingPointField(3020)(2).sqrt()*2^3000
             sage: a = floor(r)/2^3000
             sage: b = ceil(r)/2^3000
             sage: (a+sqrt2).is_totally_positive()
@@ -3637,7 +3637,7 @@ cdef class NumberFieldElement(FieldElement):
         -  ``P`` - a prime ideal of the parent of self
 
         - ``prec`` (int) -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         - ``weighted`` (bool, default False) -- if True, apply local
           degree weighting.
@@ -3673,11 +3673,11 @@ cdef class NumberFieldElement(FieldElement):
             1.38629436111989
         """
         if self.valuation(P) >= 0: ## includes the case self=0
-            from sage.rings.real_mpfr import RealField
+            from sage.rings.real_mpfr import RealFloatingPointField
             if prec is None:
-                return RealField().zero()
+                return RealFloatingPointField().zero()
             else:
-                return RealField(prec).zero()
+                return RealFloatingPointField(prec).zero()
         ht = self.abs_non_arch(P,prec).log()
         if not weighted:
             return ht
@@ -3695,7 +3695,7 @@ cdef class NumberFieldElement(FieldElement):
            signature of the parent field (so `n=r+2s` is the degree).
 
         - ``prec`` (int) -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         - ``weighted`` (bool, default False) -- if True, apply local
           degree weighting, i.e. double the value for complex places.
@@ -3713,8 +3713,8 @@ cdef class NumberFieldElement(FieldElement):
             sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^4+3*x^2-17)
             sage: [p.codomain() for p in K.places()]
-            [Real Field with 106 bits of precision,
-            Real Field with 106 bits of precision,
+            [Real Floating Point Field with 106 bits of precision,
+            Real Floating Point Field with 106 bits of precision,
             Complex Field with 53 bits of precision]
             sage: [a.local_height_arch(i) for i in range(3)]
             [0.5301924545717755083366563897519,
@@ -3741,8 +3741,8 @@ cdef class NumberFieldElement(FieldElement):
         if a <= Kv.one():
             return Kv.zero()
         ht = a.log()
-        from sage.rings.real_mpfr import is_RealField
-        if weighted and not is_RealField(Kv):
+        from sage.rings.real_mpfr import is_RealFloatingPointField
+        if weighted and not is_RealFloatingPointField(Kv):
             ht*=2
         return ht
 
@@ -3753,7 +3753,7 @@ cdef class NumberFieldElement(FieldElement):
         INPUT:
 
         - ``prec`` (int) -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         OUTPUT:
 
@@ -3791,11 +3791,11 @@ cdef class NumberFieldElement(FieldElement):
             sage: (c/10).global_height_non_arch()
             18.4206807439524
         """
-        from sage.rings.real_mpfr import RealField
+        from sage.rings.real_mpfr import RealFloatingPointField
         if prec is None:
-            R = RealField()
+            R = RealFloatingPointField()
         else:
-            R = RealField(prec)
+            R = RealFloatingPointField(prec)
         if self.is_zero():
             return R.zero()
         return R(self.denominator_ideal().absolute_norm()).log()
@@ -3807,7 +3807,7 @@ cdef class NumberFieldElement(FieldElement):
         INPUT:
 
         - ``prec`` (int) -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         OUTPUT:
 
@@ -3834,7 +3834,7 @@ cdef class NumberFieldElement(FieldElement):
         INPUT:
 
         - ``prec`` (int) -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         OUTPUT:
 

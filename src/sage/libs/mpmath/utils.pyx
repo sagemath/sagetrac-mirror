@@ -16,7 +16,7 @@ from sage.libs.mpfr cimport *
 from sage.libs.gmp.all cimport *
 
 from sage.rings.complex_field import ComplexField
-from sage.rings.real_mpfr cimport RealField
+from sage.rings.real_mpfr cimport RealFloatingPointField
 
 cpdef int bitcount(n):
     """
@@ -236,9 +236,9 @@ def mpmath_to_sage(x, prec):
 
     A real example::
 
-        sage: RealField(100)(pi)
+        sage: RealFloatingPointField(100)(pi)
         3.1415926535897932384626433833
-        sage: t = RealField(100)(pi)._mpmath_(); t
+        sage: t = RealFloatingPointField(100)(pi)._mpmath_(); t
         mpf('3.1415926535897932')
         sage: a.mpmath_to_sage(t, 100)
         3.1415926535897932384626433833
@@ -269,7 +269,7 @@ def mpmath_to_sage(x, prec):
     cdef RealNumber y
     cdef ComplexNumber z
     if hasattr(x, "_mpf_"):
-        y = RealField(prec)()
+        y = RealFloatingPointField(prec)()
         mpfr_from_mpfval(y.value, x._mpf_)
         return y
     elif hasattr(x, "_mpc_"):
@@ -326,7 +326,7 @@ def sage_to_mpmath(x, prec):
             if isinstance(x, RealNumber):
                 return x._mpmath_()
             else:
-                x = RealField(prec)(x)
+                x = RealFloatingPointField(prec)(x)
                 return x._mpmath_()
         except TypeError:
             if isinstance(x, ComplexNumber):
@@ -356,7 +356,7 @@ def call(func, *args, **kwargs):
     precision and the result will be coerced to P (or the
     corresponding complex field if necessary).
 
-    Arguments should be Sage objects that can be coerced into RealField
+    Arguments should be Sage objects that can be coerced into RealFloatingPointField
     or ComplexField elements. Arguments may also be tuples, lists or
     dicts (which are converted recursively), or any type that mpmath
     understands natively (e.g. Python floats, strings for options).
@@ -396,9 +396,9 @@ def call(func, *args, **kwargs):
         0.582240526465012
         sage: a.call(a.polylog, 2, 2, parent=RR)
         2.46740110027234 - 2.17758609030360*I
-        sage: a.call(a.polylog, 2, 1/2, parent=RealField(100))
+        sage: a.call(a.polylog, 2, 1/2, parent=RealFloatingPointField(100))
         0.58224052646501250590265632016
-        sage: a.call(a.polylog, 2, 2, parent=RealField(100))
+        sage: a.call(a.polylog, 2, 2, parent=RealFloatingPointField(100))
         2.4674011002723396547086227500 - 2.1775860903036021305006888982*I
         sage: a.call(a.polylog, 2, 1/2, parent=CC)
         0.582240526465012

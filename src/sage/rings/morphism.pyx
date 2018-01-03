@@ -53,7 +53,7 @@ Map from single variable polynomial ring::
 Identity map on the real numbers::
 
     sage: f = RR.hom([RR(1)]); f
-    Ring endomorphism of Real Field with 53 bits of precision
+    Ring endomorphism of Real Floating Point Field with 53 bits of precision
       Defn: 1.00000000000000 |--> 1.00000000000000
     sage: f(2.5)
     2.50000000000000
@@ -66,15 +66,15 @@ Homomorphism from one precision of field to another.
 
 From smaller to bigger doesn't make sense::
 
-    sage: R200 = RealField(200)
+    sage: R200 = RealFloatingPointField(200)
     sage: f = RR.hom( R200 )
     Traceback (most recent call last):
     ...
-    TypeError: natural coercion morphism from Real Field with 53 bits of precision to Real Field with 200 bits of precision not defined
+    TypeError: natural coercion morphism from Real Floating Point Field with 53 bits of precision to Real Floating Point Field with 200 bits of precision not defined
 
 From bigger to small does::
 
-    sage: f = RR.hom( RealField(15) )
+    sage: f = RR.hom( RealFloatingPointField(15) )
     sage: f(2.5)
     2.500
     sage: f(RR.pi())
@@ -84,7 +84,7 @@ Inclusion map from the reals to the complexes::
 
     sage: i = RR.hom([CC(1)]); i
     Ring morphism:
-      From: Real Field with 53 bits of precision
+      From: Real Floating Point Field with 53 bits of precision
       To:   Complex Field with 53 bits of precision
       Defn: 1.00000000000000 |--> 1.00000000000000
     sage: i(RR('3.1'))
@@ -295,7 +295,7 @@ Embedding a number field into the reals::
     sage: i = K.hom([alpha],check=False); i
     Ring morphism:
       From: Number Field in beta with defining polynomial x^3 - 2
-      To:   Real Field with 53 bits of precision
+      To:   Real Floating Point Field with 53 bits of precision
       Defn: beta |--> 1.25992104989487
     sage: i(beta)
     1.25992104989487

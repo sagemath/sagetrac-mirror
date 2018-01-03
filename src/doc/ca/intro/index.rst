@@ -472,7 +472,7 @@ Algunes operacions que podem fer amb els racionals són
 Reals
 -----
 
-El cos dels reals el denotem  amb ``RealField()`` o ``RR``. Algunes funcions per als reals són:
+El cos dels reals el denotem  amb ``RealFloatingPointField()`` o ``RR``. Algunes funcions per als reals són:
 
 - Operacions bàsiques: ``+, -, *, /, ^``.
 - ``ceil(r)``, ``floor(r)`` retorna la part entera superior o inferior de `r`.

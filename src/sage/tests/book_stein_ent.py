@@ -425,7 +425,7 @@ sage: L2 = line([(0,c.value()),(len(c)-1,c.value())], \
 ....:    thickness=0.5, rgbcolor=(0.7,0,0))
 sage: (L+L2+P).show(xmin=0,ymin=1)
 sage: def cf(bits):
-....:     x = (1 + sqrt(RealField(bits)(5))) / 2
+....:     x = (1 + sqrt(RealFloatingPointField(bits)(5))) / 2
 ....:     return continued_fraction(x)
 sage: cf(10)
 [1; 1, 1, 1, 1, 1, 1, 2]
@@ -434,14 +434,14 @@ sage: cf(30)
 sage: cf(50)
  [1; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2]
 sage: def cf_sqrt_d(d, bits):
-....:     x = sqrt(RealField(bits)(d))
+....:     x = sqrt(RealFloatingPointField(bits)(d))
 ....:     return continued_fraction(x)
 sage: cf_sqrt_d(389,50)
 [19; 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38]
 sage: cf_sqrt_d(389,100)
 [19; 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 2]
 sage: def newton_root(f, iterates=2, x0=0, prec=53):
-....:     x = RealField(prec)(x0)
+....:     x = RealFloatingPointField(prec)(x0)
 ....:     R = PolynomialRing(ZZ,'x')
 ....:     f = R(f)
 ....:     g = f.derivative()

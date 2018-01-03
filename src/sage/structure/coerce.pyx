@@ -698,7 +698,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         Sometimes with non-sage types there is not enough information to deduce
         what will actually happen::
 
-            sage: R100 = RealField(100)
+            sage: R100 = RealFloatingPointField(100)
             sage: cm.explain(R100, float, operator.add)
             Right operand is numeric, will attempt coercion in both directions.
             Unknown result parent.
@@ -906,7 +906,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.common_parent(ZZ, QQ)
             Rational Field
             sage: cm.common_parent(ZZ, QQ, RR)
-            Real Field with 53 bits of precision
+            Real Floating Point Field with 53 bits of precision
             sage: ZZT = ZZ[['T']]
             sage: QQT = QQ['T']
             sage: cm.common_parent(ZZT, QQT, RDF)
@@ -915,9 +915,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             <... 'int'>
             sage: cm.common_parent(int, float, ZZ)
             <... 'float'>
-            sage: real_fields = [RealField(prec) for prec in [10,20..100]]
+            sage: real_fields = [RealFloatingPointField(prec) for prec in [10,20..100]]
             sage: cm.common_parent(*real_fields)
-            Real Field with 10 bits of precision
+            Real Floating Point Field with 10 bits of precision
 
         There are some cases where the ordering does matter, but if a parent
         can be found it is always the same::
@@ -1442,7 +1442,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
               From: Integer Ring
               To:   Rational Field, Generic map:
               From: Rational Field
-              To:   Real Field with 53 bits of precision)
+              To:   Real Floating Point Field with 53 bits of precision)
         """
         if homs is None:
             return None
@@ -1515,7 +1515,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             (None, (map internal to coercion system -- copy before use)
              Generic map:
               From: Rational Field
-              To:   Real Field with 53 bits of precision)
+              To:   Real Floating Point Field with 53 bits of precision)
 
         Otherwise, try and compute an appropriate cover::
 

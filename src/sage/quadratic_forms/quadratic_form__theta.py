@@ -14,7 +14,7 @@ from __future__ import print_function
 
 from copy import deepcopy
 
-from sage.rings.real_mpfr import RealField
+from sage.rings.real_mpfr import RealFloatingPointField
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.integer_ring import ZZ
 from sage.functions.all import sqrt, floor, ceil
@@ -192,7 +192,7 @@ def theta_by_cholesky(self, q_prec):
     bit_prec = 53                                       ## TO DO: Set this precision to reflect the appropriate roundoff
     Cholesky = self.cholesky_decomposition(bit_prec)     ## error estimate, to be confident through our desired q-precision.
     Q = Cholesky      ##  <----  REDUNDANT!!!
-    R = RealField(bit_prec)
+    R = RealFloatingPointField(bit_prec)
     half = R(0.5)
 
 

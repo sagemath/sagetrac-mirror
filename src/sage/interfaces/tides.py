@@ -40,7 +40,7 @@ REFERENCES:
 
 
 
-from  sage.rings.real_mpfr import RealField
+from  sage.rings.real_mpfr import RealFloatingPointField
 from sage.calculus.all import symbolic_expression
 from sage.misc.flatten import flatten
 from sage.ext.fast_callable import fast_callable
@@ -368,7 +368,7 @@ def remove_constants(l1,l2):
     """
     i=0
     while i < len(l1):
-        if l1[i] in RealField():
+        if l1[i] in RealFloatingPointField():
             l1.pop(i)
             l2.pop(i)
         else:
@@ -469,7 +469,7 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
 
 
     """
-    RR = RealField()
+    RR = RealFloatingPointField()
 
     l1, l2 = subexpressions_list(f)
 
@@ -756,7 +756,7 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
         parameters = []
     if parameter_values is None:
         parameter_values = []
-    RR = RealField(ceil(dig * 3.3219))
+    RR = RealFloatingPointField(ceil(dig * 3.3219))
     l1, l2 = subexpressions_list(f, parameters)
     remove_repeated(l1, l2)
     remove_constants(l1, l2)

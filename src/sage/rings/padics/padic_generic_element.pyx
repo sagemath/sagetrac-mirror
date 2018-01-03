@@ -2887,10 +2887,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
         if not prec and K.e() > 1:
             prec = 53
         if prec:
-            from sage.rings.real_mpfr import RealField
+            from sage.rings.real_mpfr import RealFloatingPointField
             if self.is_zero():
-                return RealField(prec).zero()
-            return RealField(prec)(K.prime())**(-self.ordp())
+                return RealFloatingPointField(prec).zero()
+            return RealFloatingPointField(prec)(K.prime())**(-self.ordp())
         else:
             if self.is_zero():
                 return Rational(0)

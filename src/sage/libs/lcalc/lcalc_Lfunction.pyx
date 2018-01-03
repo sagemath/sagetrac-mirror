@@ -33,8 +33,8 @@ from sage.rings.complex_field import ComplexField
 CCC = ComplexField()
 
 from sage.rings.real_mpfr cimport RealNumber
-from sage.rings.real_mpfr import RealField
-RRR = RealField()
+from sage.rings.real_mpfr import RealFloatingPointField
+RRR = RealFloatingPointField()
 pi = RRR.pi()
 
 initialize_globals()

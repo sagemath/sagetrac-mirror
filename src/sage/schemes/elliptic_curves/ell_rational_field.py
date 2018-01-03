@@ -86,7 +86,7 @@ from sage.rings.all import (
     infinity as oo,
     ZZ, QQ,
     Integer,
-    IntegerRing, RealField,
+    IntegerRing, RealFloatingPointField,
     ComplexField, RationalField)
 
 import sage.misc.all as misc
@@ -104,7 +104,7 @@ from copy import copy
 
 Q = RationalField()
 C = ComplexField()
-R = RealField()
+R = RealFloatingPointField()
 Z = IntegerRing()
 IR = rings.RealIntervalField(20)
 
@@ -2488,7 +2488,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: EllipticCurve([0, 0, 1, -79, 342]).regulator(proof=False)  # long time (6s on sage.math, 2011)
             14.790527570131...
         """
-        R = rings.RealField(precision)
+        R = rings.RealFloatingPointField(precision)
 
         if proof is None:
             from sage.structure.proof.proof import get_flag
@@ -5662,8 +5662,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             7.45471994936400
         """
         if precision is None:
-            precision = RealField().precision()
-        R = RealField(precision)
+            precision = RealFloatingPointField().precision()
+        R = RealFloatingPointField(precision)
         c4 = self.c4()
         c6 = self.c6()
         j = self.j_invariant()
@@ -5984,7 +5984,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ei = pol.roots(RR,multiplicities=False)
             while len(ei)<3:
                 prec*=2
-                RR=RealField(prec)
+                RR=RealFloatingPointField(prec)
                 ei = pol.roots(RR,multiplicities=False)
             e1,e2,e3 = ei
             if r >= 1: #preprocessing of mw_base only necessary if rank > 0
@@ -6595,7 +6595,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ei = pol.roots(RR,multiplicities=False)
             while len(ei)<3:
                 prec*=2
-                RR=RealField(prec)
+                RR=RealFloatingPointField(prec)
                 ei = pol.roots(RR,multiplicities=False)
             e1,e2,e3 = ei
         elif disc < 0: # one real component => 1 root in RR (=: e3),
@@ -6957,9 +6957,9 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N, x_bound):
         except ValueError:
             return 0
 
-    prec = (2 * RealField()(x_bound).log(2)).ceil()
+    prec = (2 * RealFloatingPointField()(x_bound).log(2)).ceil()
     #print("coeff bound={}, x_bound = {}, using {} bits precision".format(N,x_bound,prec))
-    RR = RealField(prec)
+    RR = RealFloatingPointField(prec)
     ER = E.change_ring(RR)
     ER0 = ER(0)
 

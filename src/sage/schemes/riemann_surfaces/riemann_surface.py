@@ -69,7 +69,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.complex_field import ComplexField, CDF
-from sage.rings.real_mpfr import RealField
+from sage.rings.real_mpfr import RealFloatingPointField
 from sage.rings.real_double import RDF
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -303,7 +303,7 @@ class RiemannSurface(object):
             raise ValueError('equation must be of degree at least 2.')
         z, w = self._R.gen(0), self._R.gen(1)
         self._CC = ComplexField(self._prec)
-        self._RR = RealField(self._prec)
+        self._RR = RealFloatingPointField(self._prec)
         self._CCz = PolynomialRing(self._CC, [self._R.gen(0)])
         self._CCw = PolynomialRing(self._CC, [self._R.gen(1)])
         self.f = f

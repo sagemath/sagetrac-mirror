@@ -57,7 +57,7 @@ from .complex_number cimport ComplexNumber
 from .complex_field import ComplexField
 from sage.rings.integer cimport Integer
 cimport sage.rings.real_mpfi as real_mpfi
-from .real_mpfr cimport RealNumber, RealField
+from .real_mpfr cimport RealNumber, RealFloatingPointField
 
 
 cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
@@ -584,7 +584,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(RIF(1,2), RIF(3,4)).magnitude()
             4.47213595499958
             sage: parent(CIF(1).magnitude())
-            Real Field with 53 bits of precision and rounding RNDU
+            Real Floating Point Field with 53 bits of precision and rounding RNDU
         """
         cdef real_mpfi.RealIntervalField_class RIF = self._parent._real_field()
         cdef RealNumber x = RIF.__upper_field._new()
@@ -608,7 +608,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(RIF(1,2), RIF(3,4)).mignitude()
             3.16227766016837
             sage: parent(CIF(1).mignitude())
-            Real Field with 53 bits of precision and rounding RNDD
+            Real Floating Point Field with 53 bits of precision and rounding RNDD
         """
         cdef real_mpfi.RealIntervalField_class RIF = self._parent._real_field()
         cdef RealNumber x = RIF.__lower_field._new()
@@ -882,7 +882,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
             sage: RIF = RealIntervalField(27)
             sage: CIF = ComplexIntervalField(27)
-            sage: s = RealField(27, rnd="RNDZ")(1/2)^(1/3)
+            sage: s = RealFloatingPointField(27, rnd="RNDZ")(1/2)^(1/3)
             sage: a = CIF(RIF(-s/2,s/2), RIF(-s, s))
             sage: r = a^(10^10000)
             sage: print(r.str(style="brackets"))
@@ -1024,12 +1024,12 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: sage_input(ComplexIntervalField(64)(2)^I, preparse=False, verify=True)
             # Verified
             RIF64 = RealIntervalField(64)
-            RR64 = RealField(64)
+            RR64 = RealFloatingPointField(64)
             ComplexIntervalField(64)(RIF64(RR64('0.769238901363972126565'), RR64('0.769238901363972126619')), RIF64(RR64('0.638961276313634801076'), RR64('0.638961276313634801184')))
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: ComplexIntervalField(15)(3+I).log()._sage_input_(sib, False)
-            {call: {call: {atomic:ComplexIntervalField}({atomic:15})}({call: {call: {atomic:RealIntervalField}({atomic:15})}({call: {call: {atomic:RealField}({atomic:15})}({atomic:1.15125})}, {call: {call: {atomic:RealField}({atomic:15})}({atomic:1.15137})})}, {call: {call: {atomic:RealIntervalField}({atomic:15})}({call: {call: {atomic:RealField}({atomic:15})}({atomic:0.321655})}, {call: {call: {atomic:RealField}({atomic:15})}({atomic:0.321777})})})}
+            {call: {call: {atomic:ComplexIntervalField}({atomic:15})}({call: {call: {atomic:RealIntervalField}({atomic:15})}({call: {call: {atomic:RealFloatingPointField}({atomic:15})}({atomic:1.15125})}, {call: {call: {atomic:RealFloatingPointField}({atomic:15})}({atomic:1.15137})})}, {call: {call: {atomic:RealIntervalField}({atomic:15})}({call: {call: {atomic:RealFloatingPointField}({atomic:15})}({atomic:0.321655})}, {call: {call: {atomic:RealFloatingPointField}({atomic:15})}({atomic:0.321777})})})}
         """
         # Interval printing could often be much prettier,
         # but I'm feeling lazy :)
@@ -1800,7 +1800,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         if base is None or base == 'e':
             return ComplexIntervalFieldElement(self._parent, rho.log(), theta)
         else:
-            return ComplexIntervalFieldElement(self._parent, rho.log()/RealNumber(RealField(self.prec()),base).log(), theta/RealNumber(RealField(self.prec()),base).log())
+            return ComplexIntervalFieldElement(self._parent, rho.log()/RealNumber(RealFloatingPointField(self.prec()),base).log(), theta/RealNumber(RealFloatingPointField(self.prec()),base).log())
 
     def sqrt(self, bint all=False, **kwds):
         """

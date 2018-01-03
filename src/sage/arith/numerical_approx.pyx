@@ -15,7 +15,7 @@ Generic numerical approximation function
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport parent
 cdef Parent CDF
-from sage.rings.all import RealField, ComplexField, CDF
+from sage.rings.all import RealFloatingPointField, ComplexField, CDF
 
 
 def numerical_approx_generic(x, prec):
@@ -35,7 +35,7 @@ def numerical_approx_generic(x, prec):
     """
     P = parent(x)
 
-    cdef Parent RR = RealField(prec)
+    cdef Parent RR = RealFloatingPointField(prec)
     cmap = RR.coerce_map_from(P)
     if cmap is not None:
         return cmap(x)

@@ -33,7 +33,7 @@ from sage.libs.gmp.mpz cimport *
 from sage.rings.rational_field import RationalField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.real_mpfi import RealIntervalField
-from sage.rings.real_mpfr import RealField
+from sage.rings.real_mpfr import RealFloatingPointField
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 
@@ -217,7 +217,7 @@ cpdef lagrange_degree_3(int n, int an1, int an2, int an3):
     EXAMPLES::
 
         sage: ls = sage.rings.number_field.totallyreal_data.lagrange_degree_3(3,0,1,2)
-        sage: [RealField(10)(x) for x in ls]
+        sage: [RealFloatingPointField(10)(x) for x in ls]
         [-1.0, -1.0]
         sage: sage.rings.number_field.totallyreal_data.lagrange_degree_3(3,6,1,2) # random
         [-5.8878, -5.8878]
@@ -237,7 +237,7 @@ cpdef lagrange_degree_3(int n, int an1, int an2, int an3):
     cdef int s1, s1sq, s1cu, s1fo, s2, s2sq, s2cu, s3, s3sq
     cdef int found_minmax = 0
 
-    RRx = PolynomialRing(RealField(20),'x')
+    RRx = PolynomialRing(RealFloatingPointField(20),'x')
 
     # Newton's relations.
     s1 = -an1

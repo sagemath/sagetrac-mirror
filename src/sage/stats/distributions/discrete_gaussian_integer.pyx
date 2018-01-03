@@ -112,7 +112,7 @@ from __future__ import print_function
 
 from cysignals.signals cimport sig_on, sig_off
 
-from sage.rings.real_mpfr cimport RealNumber, RealField
+from sage.rings.real_mpfr cimport RealNumber, RealFloatingPointField
 from sage.libs.mpfr cimport mpfr_set, MPFR_RNDN
 from sage.rings.integer cimport Integer
 from sage.misc.randstate cimport randstate, current_randstate
@@ -332,7 +332,7 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
 
         if precision == "mp":
             if not isinstance(sigma, RealNumber):
-                RR = RealField()
+                RR = RealFloatingPointField()
                 sigma = RR(sigma)
 
             if not isinstance(c, RealNumber):
@@ -345,7 +345,7 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
             mpfr_set(self.sigma.value, self._gen_mp.sigma, MPFR_RNDN)
             self.c = c
         elif precision == "dp":
-            RR = RealField()
+            RR = RealFloatingPointField()
             if not isinstance(sigma, RealNumber):
                 sigma = RR(sigma)
             sig_on()

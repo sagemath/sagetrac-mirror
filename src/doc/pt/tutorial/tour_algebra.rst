@@ -344,7 +344,7 @@ de Euler:
 
 ::
 
-    sage: t,x,y = PolynomialRing(RealField(10),3,"txy").gens()
+    sage: t,x,y = PolynomialRing(RealFloatingPointField(10),3,"txy").gens()
     sage: f = y; g = -x - y * t
     sage: eulers_method_2x2(f,g, 0, 1, 0, 1/4, 1)
           t                x            h*f(t,x,y)                y       h*g(t,x,y)

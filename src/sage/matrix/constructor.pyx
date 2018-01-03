@@ -543,7 +543,7 @@ class MatrixFactory(object):
         ...
         ValueError: list of rows is not valid (rows are wrong types or lengths)
         sage: matrix(vector(RR,[1,2,3])).parent()
-        Full MatrixSpace of 1 by 3 dense matrices over Real Field with 53 bits of precision
+        Full MatrixSpace of 1 by 3 dense matrices over Real Floating Point Field with 53 bits of precision
 
     Check :trac:`10158`::
 

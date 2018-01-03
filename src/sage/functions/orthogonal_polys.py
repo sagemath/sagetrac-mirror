@@ -309,7 +309,7 @@ from sage.rings.all import ZZ, QQ, RR, CC
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.real_mpfr import is_RealField
+from sage.rings.real_mpfr import is_RealFloatingPointField
 from sage.rings.complex_field import is_ComplexField
 
 
@@ -495,7 +495,7 @@ class ChebyshevFunction(OrthogonalFunction):
             4*t^2 - 1
             sage: parent(chebyshev_T(4, RIF(5)))
             Real Interval Field with 53 bits of precision
-            sage: RR2 = RealField(5)
+            sage: RR2 = RealFloatingPointField(5)
             sage: chebyshev_T(100000,RR2(2))
             8.9e57180
             sage: chebyshev_T(5,Qp(3)(2))
@@ -640,7 +640,7 @@ class Func_chebyshev_T(ChebyshevFunction):
 
             sage: chebyshev_T._evalf_(10,3)
             2.26195370000000e7
-            sage: chebyshev_T._evalf_(10,3,parent=RealField(75))
+            sage: chebyshev_T._evalf_(10,3,parent=RealFloatingPointField(75))
             2.261953700000000000000e7
             sage: chebyshev_T._evalf_(10,I)
             -3363.00000000000
@@ -655,7 +655,7 @@ class Func_chebyshev_T(ChebyshevFunction):
             ...
             TypeError: cannot evaluate chebyshev_T with parent Ring of integers modulo 9
 
-        This simply evaluates using :class:`RealField` or :class:`ComplexField`::
+        This simply evaluates using :class:`RealFloatingPointField` or :class:`ComplexField`::
 
             sage: chebyshev_T(1234.5, RDF(2.1))
             5.48174256255782e735
@@ -677,7 +677,7 @@ class Func_chebyshev_T(ChebyshevFunction):
         except KeyError:
             real_parent = parent(x)
 
-            if not is_RealField(real_parent) and not is_ComplexField(real_parent):
+            if not is_RealFloatingPointField(real_parent) and not is_ComplexField(real_parent):
                 # parent is not a real or complex field: figure out a good parent
                 if x in RR:
                     x = RR(x)
@@ -686,7 +686,7 @@ class Func_chebyshev_T(ChebyshevFunction):
                     x = CC(x)
                     real_parent = CC
 
-        if not is_RealField(real_parent) and not is_ComplexField(real_parent):
+        if not is_RealFloatingPointField(real_parent) and not is_ComplexField(real_parent):
             raise TypeError("cannot evaluate chebyshev_T with parent {}".format(real_parent))
 
         from sage.libs.mpmath.all import call as mpcall
@@ -1036,7 +1036,7 @@ class Func_chebyshev_U(ChebyshevFunction):
         except KeyError:
             real_parent = parent(x)
 
-            if not is_RealField(real_parent) and not is_ComplexField(real_parent):
+            if not is_RealFloatingPointField(real_parent) and not is_ComplexField(real_parent):
                 # parent is not a real or complex field: figure out a good parent
                 if x in RR:
                     x = RR(x)
@@ -1045,7 +1045,7 @@ class Func_chebyshev_U(ChebyshevFunction):
                     x = CC(x)
                     real_parent = CC
 
-        if not is_RealField(real_parent) and not is_ComplexField(real_parent):
+        if not is_RealFloatingPointField(real_parent) and not is_ComplexField(real_parent):
             raise TypeError("cannot evaluate chebyshev_U with parent {}".format(real_parent))
 
         from sage.libs.mpmath.all import call as mpcall
@@ -1801,7 +1801,7 @@ class Func_hermite(GinacFunction):
         64*w^3 - 24*w
         sage: hermite(5,3.1416)
         5208.69733891963
-        sage: hermite(5,RealField(100)(pi))
+        sage: hermite(5,RealFloatingPointField(100)(pi))
         5208.6167627118104649470287166
 
     Check that :trac:`17192` is fixed::
@@ -1996,7 +1996,7 @@ class Func_ultraspherical(GinacFunction):
         ....:     assert ((n+1)*ultraspherical(n+1,a,x) - 2*x*(n+a)*ultraspherical(n,a,x) + (n+2*a-1)*ultraspherical(n-1,a,x)).expand().is_zero()
         sage: ultraspherical(5,9/10,3.1416)
         6949.55439044240
-        sage: ultraspherical(5,9/10,RealField(100)(pi))
+        sage: ultraspherical(5,9/10,RealFloatingPointField(100)(pi))
         6949.4695419382702451843080687
 
         sage: _ = var('a n')
@@ -2180,7 +2180,7 @@ class Func_laguerre(OrthogonalFunction):
 
         EXAMPLES::
 
-            sage: laguerre(100,RealField(300)(pi))
+            sage: laguerre(100,RealFloatingPointField(300)(pi))
             -0.638322077840648311606324...
             sage: laguerre(10,1.+I)
             4.22694003527337 + 1.25671075837743*I
@@ -2321,7 +2321,7 @@ class Func_gen_laguerre(OrthogonalFunction):
         """
         EXAMPLES::
 
-            sage: gen_laguerre(100,1,RealField(300)(pi))
+            sage: gen_laguerre(100,1,RealFloatingPointField(300)(pi))
             -0.89430788373354541911...
             sage: gen_laguerre(10,1/2,1.+I)
             5.34469635574906 + 5.23754057922902*I

@@ -806,7 +806,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         Ensure that :trac:`12020` is fixed::
 
             sage: x = polygen(QQ)
-            sage: for R in [ZZ, QQ, RealField(100), ComplexField(100), RDF, CDF,
+            sage: for R in [ZZ, QQ, RealFloatingPointField(100), ComplexField(100), RDF, CDF,
             ....:           SR, GF(2), GF(11), GF(2^8,'a'), GF(3^19,'a'),
             ....:           NumberField(x^3+2,'a'), CyclotomicField(4),
             ....:           PolynomialRing(QQ,'x'), PolynomialRing(CC,2,'x')]:
