@@ -433,8 +433,8 @@ def BIBD_from_TD(v,k,existence=False):
     """
     # First construction
     if (v%k == 0 and
-        balanced_incomplete_block_design(v//k,k,existence=True) and
-        transversal_design(k,v//k,existence=True)):
+        balanced_incomplete_block_design(v//k,k,existence=True) is True and
+        transversal_design(k,v//k,existence=True) is True):
 
         if existence:
             return True
