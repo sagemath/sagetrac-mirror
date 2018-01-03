@@ -809,7 +809,7 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
 
         - ``p`` -- either a prime (not implemented at present) or Infinity
         - ``prec`` -- precision of approximate field to return
-        - ``extras`` -- a dict of extra keyword arguments for the ``RealField``
+        - ``extras`` -- a dict of extra keyword arguments for the ``RealFloatingPointField``
           constructor
 
         EXAMPLES::
@@ -826,8 +826,8 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
             NotImplementedError
         """
         if p == infinity.Infinity:
-            from sage.rings.real_field import create_RealField
-            return create_RealField(prec, **extras)
+            from sage.rings.real_field import create_RealFloatingPointField
+            return create_RealFloatingPointField(prec, **extras)
         else:
             raise NotImplementedError
 
@@ -1204,7 +1204,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
         - ``p`` -- either a prime (not implemented at present) or Infinity
         - ``prec`` -- precision of approximate field to return
-        - ``extras`` -- a dict of extra keyword arguments for the ``RealField``
+        - ``extras`` -- a dict of extra keyword arguments for the ``RealFloatingPointField``
           constructor
 
         EXAMPLES::
@@ -1221,8 +1221,8 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             NotImplementedError
         """
         if p == infinity.Infinity:
-            from sage.rings.real_field import create_RealField
-            return create_RealField(prec, **extras).complex_field()
+            from sage.rings.real_field import create_RealFloatingPointField
+            return create_RealFloatingPointField(prec, **extras).complex_field()
         else:
             raise NotImplementedError
 
@@ -4181,7 +4181,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
     def _mpfr_(self, field):
         r"""
-        Given a ``RealField``, compute a good approximation to self in
+        Given a ``RealFloatingPointField``, compute a good approximation to self in
         that field. Works only if the imaginary component of self is
         exactly zero; otherwise it raises a ``ValueError``.
 
@@ -4441,7 +4441,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
         Given a ``ComplexField``, return the best possible approximation of
         this number in that field. Note that if either component is
         sufficiently close to the halfway point between two floating-point
-        numbers in the corresponding ``RealField``, then this will trigger
+        numbers in the corresponding ``RealFloatingPointField``, then this will trigger
         exact computation, which may be very slow.
 
         EXAMPLES::
@@ -5129,7 +5129,7 @@ class AlgebraicReal(AlgebraicNumber_base):
 
     def real_number(self, field):
         """
-        Given a ``RealField``, compute a good approximation to self in
+        Given a ``RealFloatingPointField``, compute a good approximation to self in
         that field. The approximation will be off by at most two
         ulp's, except for numbers which are very close to 0, which
         will have an absolute error at most
@@ -5141,36 +5141,36 @@ class AlgebraicReal(AlgebraicNumber_base):
             sage: x = AA(2).sqrt()^2
             sage: x.real_number(RR)
             2.00000000000000
-            sage: x.real_number(RealField(53, rnd='RNDD'))
+            sage: x.real_number(RealFloatingPointField(53, rnd='RNDD'))
             1.99999999999999
-            sage: x.real_number(RealField(53, rnd='RNDU'))
+            sage: x.real_number(RealFloatingPointField(53, rnd='RNDU'))
             2.00000000000001
-            sage: x.real_number(RealField(53, rnd='RNDZ'))
+            sage: x.real_number(RealFloatingPointField(53, rnd='RNDZ'))
             1.99999999999999
             sage: (-x).real_number(RR)
             -2.00000000000000
-            sage: (-x).real_number(RealField(53, rnd='RNDD'))
+            sage: (-x).real_number(RealFloatingPointField(53, rnd='RNDD'))
             -2.00000000000001
-            sage: (-x).real_number(RealField(53, rnd='RNDU'))
+            sage: (-x).real_number(RealFloatingPointField(53, rnd='RNDU'))
             -1.99999999999999
-            sage: (-x).real_number(RealField(53, rnd='RNDZ'))
+            sage: (-x).real_number(RealFloatingPointField(53, rnd='RNDZ'))
             -1.99999999999999
             sage: (x-2).real_number(RR)
             5.42101086242752e-20
-            sage: (x-2).real_number(RealField(53, rnd='RNDD'))
+            sage: (x-2).real_number(RealFloatingPointField(53, rnd='RNDD'))
             -1.08420217248551e-19
-            sage: (x-2).real_number(RealField(53, rnd='RNDU'))
+            sage: (x-2).real_number(RealFloatingPointField(53, rnd='RNDU'))
             2.16840434497101e-19
-            sage: (x-2).real_number(RealField(53, rnd='RNDZ'))
+            sage: (x-2).real_number(RealFloatingPointField(53, rnd='RNDZ'))
             0.000000000000000
             sage: y = AA(2).sqrt()
             sage: y.real_number(RR)
             1.41421356237309
-            sage: y.real_number(RealField(53, rnd='RNDD'))
+            sage: y.real_number(RealFloatingPointField(53, rnd='RNDD'))
             1.41421356237309
-            sage: y.real_number(RealField(53, rnd='RNDU'))
+            sage: y.real_number(RealFloatingPointField(53, rnd='RNDU'))
             1.41421356237310
-            sage: y.real_number(RealField(53, rnd='RNDZ'))
+            sage: y.real_number(RealFloatingPointField(53, rnd='RNDZ'))
             1.41421356237309
         """
         v = self.interval(RealIntervalField(field.prec()))
@@ -5215,7 +5215,7 @@ class AlgebraicReal(AlgebraicNumber_base):
 
     def real_exact(self, field):
         r"""
-        Given a ``RealField``, compute the best possible approximation of
+        Given a ``RealFloatingPointField``, compute the best possible approximation of
         this number in that field. Note that if this number is
         sufficiently close to the halfway point between two
         floating-point numbers in the field (for the default
@@ -5231,40 +5231,40 @@ class AlgebraicReal(AlgebraicNumber_base):
             sage: x = AA(2).sqrt()^2
             sage: x.real_exact(RR)
             2.00000000000000
-            sage: x.real_exact(RealField(53, rnd='RNDD'))
+            sage: x.real_exact(RealFloatingPointField(53, rnd='RNDD'))
             2.00000000000000
-            sage: x.real_exact(RealField(53, rnd='RNDU'))
+            sage: x.real_exact(RealFloatingPointField(53, rnd='RNDU'))
             2.00000000000000
-            sage: x.real_exact(RealField(53, rnd='RNDZ'))
+            sage: x.real_exact(RealFloatingPointField(53, rnd='RNDZ'))
             2.00000000000000
             sage: (-x).real_exact(RR)
             -2.00000000000000
-            sage: (-x).real_exact(RealField(53, rnd='RNDD'))
+            sage: (-x).real_exact(RealFloatingPointField(53, rnd='RNDD'))
             -2.00000000000000
-            sage: (-x).real_exact(RealField(53, rnd='RNDU'))
+            sage: (-x).real_exact(RealFloatingPointField(53, rnd='RNDU'))
             -2.00000000000000
-            sage: (-x).real_exact(RealField(53, rnd='RNDZ'))
+            sage: (-x).real_exact(RealFloatingPointField(53, rnd='RNDZ'))
             -2.00000000000000
             sage: y = (x-2).real_exact(RR).abs()
             sage: y == 0.0 or y == -0.0 # the sign of 0.0 is not significant in MPFI
             True
-            sage: y = (x-2).real_exact(RealField(53, rnd='RNDD'))
+            sage: y = (x-2).real_exact(RealFloatingPointField(53, rnd='RNDD'))
             sage: y == 0.0 or y == -0.0 # same as above
             True
-            sage: y = (x-2).real_exact(RealField(53, rnd='RNDU'))
+            sage: y = (x-2).real_exact(RealFloatingPointField(53, rnd='RNDU'))
             sage: y == 0.0 or y == -0.0 # idem
             True
-            sage: y = (x-2).real_exact(RealField(53, rnd='RNDZ'))
+            sage: y = (x-2).real_exact(RealFloatingPointField(53, rnd='RNDZ'))
             sage: y == 0.0 or y == -0.0 # ibidem
             True
             sage: y = AA(2).sqrt()
             sage: y.real_exact(RR)
             1.41421356237310
-            sage: y.real_exact(RealField(53, rnd='RNDD'))
+            sage: y.real_exact(RealFloatingPointField(53, rnd='RNDD'))
             1.41421356237309
-            sage: y.real_exact(RealField(53, rnd='RNDU'))
+            sage: y.real_exact(RealFloatingPointField(53, rnd='RNDU'))
             1.41421356237310
-            sage: y.real_exact(RealField(53, rnd='RNDZ'))
+            sage: y.real_exact(RealFloatingPointField(53, rnd='RNDZ'))
             1.41421356237309
         """
         for extra in (0, 40):

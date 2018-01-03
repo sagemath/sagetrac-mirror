@@ -66,7 +66,7 @@ Returns version of this integer in the multi-precision floating
 real field R::
 
     sage: n = 9390823
-    sage: RR = RealField(200)
+    sage: RR = RealFloatingPointField(200)
     sage: RR(n)
     9.3908230000000000000000000000000000000000000000000000000000e6
 
@@ -2513,7 +2513,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     def log(self, m=None, prec=None):
         r"""
         Returns symbolic log by default, unless the logarithm is exact (for
-        an integer argument). When precision is given, the RealField
+        an integer argument). When precision is given, the RealFloatingPointField
         approximation to that bit precision is used.
 
         This function is provided primarily so that Sage integers may be
@@ -2525,7 +2525,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         -  ``m`` - default: natural log base e
 
         -  ``prec`` - integer (default: None): if None, returns
-           symbolic, else to given bits of precision as in RealField
+           symbolic, else to given bits of precision as in RealFloatingPointField
 
         EXAMPLES::
 
@@ -2556,7 +2556,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         But approximations are probably more useful in this
         case, and work to as high a precision as we desire::
 
-            sage: x.log(3,53) # default precision for RealField
+            sage: x.log(3,53) # default precision for RealFloatingPointField
             100000.000000000
             sage: (x+1).log(3,53)
             100000.000000000
@@ -2595,10 +2595,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if m <= 0 and m is not None:
             raise ValueError("m must be positive")
         if prec:
-            from sage.rings.real_mpfr import RealField
+            from sage.rings.real_mpfr import RealFloatingPointField
             if m is None:
-                return RealField(prec)(self).log()
-            return RealField(prec)(self).log(m)
+                return RealFloatingPointField(prec)(self).log()
+            return RealFloatingPointField(prec)(self).log(m)
 
         if m is None:
             from sage.functions.log import function_log
@@ -2634,7 +2634,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
 
         -  ``prec`` - integer (default: None): if None, returns
-           symbolic, else to given bits of precision as in RealField
+           symbolic, else to given bits of precision as in RealFloatingPointField
 
 
         EXAMPLES::
@@ -2653,7 +2653,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: y=Integer(145^145)
             sage: y.exp()
             e^25024207011349079210459585279553675697932183658421565260323592409432707306554163224876110094014450895759296242775250476115682350821522931225499163750010280453185147546962559031653355159703678703793369785727108337766011928747055351280379806937944746847277089168867282654496776717056860661614337004721164703369140625
-            sage: y.exp(prec=53) # default RealField precision
+            sage: y.exp(prec=53) # default RealFloatingPointField precision
             +infinity
         """
         from sage.functions.all import exp
@@ -4520,7 +4520,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         INPUT:
 
         - ``prec`` (int) -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         OUTPUT:
 
@@ -4539,11 +4539,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: exp(_)
             2.0000000000000000000000000000
         """
-        from sage.rings.real_mpfr import RealField
+        from sage.rings.real_mpfr import RealFloatingPointField
         if prec is None:
-            R = RealField()
+            R = RealFloatingPointField()
         else:
-            R = RealField(prec)
+            R = RealFloatingPointField(prec)
         if self.is_zero():
             return R.zero()
         return R(self).abs().log()

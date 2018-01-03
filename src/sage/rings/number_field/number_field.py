@@ -360,7 +360,7 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
     to distinguish roots, and is exactly computed to any needed
     precision::
 
-        sage: RealField(200)(a)
+        sage: RealFloatingPointField(200)(a)
         1.2599210498948731647672106072782283505702514647015079800820
 
     One can embed into any other field::
@@ -2769,7 +2769,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             0
 
         """
-        K = sage.rings.real_mpfr.RealField(prec)
+        K = sage.rings.real_mpfr.RealFloatingPointField(prec)
         return self.embeddings(K)
 
     def specified_complex_embedding(self):
@@ -6022,9 +6022,9 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         try:
             return self.__regulator
         except AttributeError:
-            from sage.rings.all import RealField
+            from sage.rings.all import RealFloatingPointField
             k = self.pari_bnf(proof)
-            self.__regulator = RealField(53)(k.bnf_get_reg())
+            self.__regulator = RealFloatingPointField(53)(k.bnf_get_reg())
             return self.__regulator
 
     def residue_field(self, prime, names=None, check=True):
@@ -7019,9 +7019,9 @@ class NumberField_absolute(NumberField_generic):
 
         # Do not use CDF or RDF because of constraints on the
         # exponent of floating-point numbers
-        from sage.rings.all import RealField, ComplexField
+        from sage.rings.all import RealFloatingPointField, ComplexField
         CC = ComplexField(53)
-        RR = RealField(53)
+        RR = RealFloatingPointField(53)
 
         # Find a common field F into which KF and LF both embed.
         if CC.has_coerce_map_from(KF) and CC.has_coerce_map_from(LF):
@@ -8176,7 +8176,7 @@ class NumberField_absolute(NumberField_generic):
         `\alpha` is the generator of self over
         `\QQ`, i.e. self.gen(0). If B is not None, return
         the images of the vectors in B as the columns instead. If prec is
-        not None, use RealField(prec) instead of RDF.
+        not None, use RealFloatingPointField(prec) instead of RDF.
 
         This embedding is the so-called "Minkowski embedding" of a number
         field in `\RR^n`: given the `n` embeddings
@@ -8224,7 +8224,7 @@ class NumberField_absolute(NumberField_generic):
         if prec is None:
             R = sage.rings.real_double.RDF
         else:
-            R = sage.rings.real_mpfr.RealField(prec)
+            R = sage.rings.real_mpfr.RealFloatingPointField(prec)
         r,s = self.signature()
         places = self.places(prec=prec)
 
@@ -8262,7 +8262,7 @@ class NumberField_absolute(NumberField_generic):
         each pair of complex conjugate homomorphisms into CIF.
 
         On the other hand, if prec is not None, we simply return places
-        into RealField(prec) and ComplexField(prec) (or RDF, CDF if
+        into RealFloatingPointField(prec) and ComplexField(prec) (or RDF, CDF if
         prec=53). One can also use ``prec=infinity``, which returns embeddings
         into the field `\overline{\QQ}` of algebraic numbers (or its subfield
         `\mathbb{A}` of algebraic reals); this permits exact computation, but
@@ -8334,7 +8334,7 @@ class NumberField_absolute(NumberField_generic):
             C = sage.rings.all.QQbar
 
         else:
-            R = sage.rings.real_mpfr.RealField(prec)
+            R = sage.rings.real_mpfr.RealFloatingPointField(prec)
             C = sage.rings.complex_field.ComplexField(prec)
 
         ## first, find the intervals with roots, and see how much
@@ -8411,7 +8411,7 @@ class NumberField_absolute(NumberField_generic):
         """
         if prec is None:
             prec = 53
-        R = sage.rings.real_mpfr.RealField(prec)
+        R = sage.rings.real_mpfr.RealFloatingPointField(prec)
 
         try:
             p = v.smallest_integer()
@@ -9017,7 +9017,7 @@ class NumberField_absolute(NumberField_generic):
             codom = P.codomain()
             from sage.rings.complex_field import is_ComplexField
             from sage.rings.complex_interval_field import is_ComplexIntervalField
-            from sage.rings.real_mpfr import is_RealField
+            from sage.rings.real_mpfr import is_RealFloatingPointField
             from sage.rings.real_mpfi import is_RealIntervalField
             from sage.rings.all import (AA, CDF, QQbar, RDF)
             if is_ComplexField(codom) or is_ComplexIntervalField(codom) or \
@@ -9025,7 +9025,7 @@ class NumberField_absolute(NumberField_generic):
                 if P(self.gen()).imag() == 0:
                     raise ValueError("Possibly real place (=%s) given as complex embedding in hilbert_symbol. Is it real or complex?" % P)
                 return 1
-            if is_RealField(codom) or codom is RDF or codom is AA:
+            if is_RealFloatingPointField(codom) or codom is RDF or codom is AA:
                 if P(a) > 0 or P(b) > 0:
                     return 1
                 return -1
@@ -10178,7 +10178,7 @@ class NumberField_cyclotomic(NumberField_absolute):
               Defn: -1 |--> -1.00000000000000
             ]
         """
-        K = sage.rings.real_mpfr.RealField(prec)
+        K = sage.rings.real_mpfr.RealFloatingPointField(prec)
         n = self._n()
         if n > 2:
             return Sequence([], cr=False, immutable=True,
@@ -11006,11 +11006,11 @@ def refine_embedding(e, prec=None):
 
     Now we can obtain arbitrary precision values with no trouble::
 
-        sage: RealField(150)(e(a))
+        sage: RealFloatingPointField(150)(e(a))
         1.2599210498948731647672106072782283505702515
         sage: _^3
         2.0000000000000000000000000000000000000000000
-        sage: RealField(200)(e(a^2-3*a+7))
+        sage: RealFloatingPointField(200)(e(a^2-3*a+7))
         4.8076379022835799804500738174376232086807389337953290695624
 
     Complex embeddings can be extended into ``QQbar``::
@@ -11084,7 +11084,7 @@ def refine_embedding(e, prec=None):
         return e
 
     # We first compute all the embeddings at the new precision:
-    if sage.rings.real_mpfr.is_RealField(RC) or RC in (RDF, RLF):
+    if sage.rings.real_mpfr.is_RealFloatingPointField(RC) or RC in (RDF, RLF):
         if prec == Infinity:
             elist = K.embeddings(sage.rings.qqbar.AA)
         else:
@@ -11136,7 +11136,7 @@ def is_real_place(v):
         AttributeError: 'NumberFieldFractionalIdeal' object has no attribute 'im_gens'
 
     """
-    RR = sage.rings.real_mpfr.RealField(53)
+    RR = sage.rings.real_mpfr.RealFloatingPointField(53)
     try:
         RR(v.im_gens()[0])
         return True

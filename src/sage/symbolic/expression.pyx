@@ -1263,7 +1263,7 @@ cdef class Expression(CommutativeRingElement):
 
     def _mpfr_(self, R):
         """
-        Return a numerical approximation of this symbolic expression in the RealField R.
+        Return a numerical approximation of this symbolic expression in the RealFloatingPointField R.
 
         The precision of the approximation is determined by the precision of
         the input R.
@@ -1274,9 +1274,9 @@ cdef class Expression(CommutativeRingElement):
 
             sage: a = sin(3); a
             sin(3)
-            sage: RealField(200)(a)
+            sage: RealFloatingPointField(200)(a)
             0.14112000805986722210074480280811027984693326425226558415188
-            sage: a._mpfr_(RealField(100))
+            sage: a._mpfr_(RealFloatingPointField(100))
             0.14112000805986722210074480281
         """
         return self._eval_self(R)
@@ -5831,8 +5831,8 @@ cdef class Expression(CommutativeRingElement):
 
         s = DefiniteSumExpander(self)
         cdef Expression x = self._parent(s())
-        from sage.rings.real_mpfr import RealField
-        R = RealField(prec)
+        from sage.rings.real_mpfr import RealFloatingPointField
+        R = RealFloatingPointField(prec)
         kwds = {'parent': R, 'algorithm': algorithm}
         try:
             x = x._convert(kwds)
@@ -6717,7 +6717,7 @@ cdef class Expression(CommutativeRingElement):
             2.71828182845905*x^2 + x + 1.15572734979092
             sage: g.parent()
             Univariate Polynomial Ring in x over Real Field with 53 bits of precision
-            sage: f.polynomial(RealField(100))
+            sage: f.polynomial(RealFloatingPointField(100))
             2.7182818284590452353602874714*x^2 + x + 1.1557273497909217179100931833
             sage: f.polynomial(CDF)  # abs tol 5e-16
             2.718281828459045*x^2 + x + 1.1557273497909217
@@ -7946,7 +7946,7 @@ cdef class Expression(CommutativeRingElement):
             0
             sage: sin(SR(1))
             sin(1)
-            sage: sin(SR(RealField(150)(1)))
+            sage: sin(SR(RealFloatingPointField(150)(1)))
             0.84147098480789650665250232163029899962256306
 
         Using the ``hold`` parameter it is possible to prevent automatic
@@ -8001,7 +8001,7 @@ cdef class Expression(CommutativeRingElement):
             -1
             sage: cos(SR(1))
             cos(1)
-            sage: cos(SR(RealField(150)(1)))
+            sage: cos(SR(RealFloatingPointField(150)(1)))
             0.54030230586813971740093660744297660373231042
 
 
@@ -8061,7 +8061,7 @@ cdef class Expression(CommutativeRingElement):
             Infinity
             sage: tan(SR(1))
             tan(1)
-            sage: tan(SR(RealField(150)(1)))
+            sage: tan(SR(RealFloatingPointField(150)(1)))
             1.5574077246549022305069748074583601730872508
 
         To prevent automatic evaluation use the ``hold`` argument::

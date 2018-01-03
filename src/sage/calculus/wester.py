@@ -30,7 +30,7 @@ explicit calls to Maxima or other systems.
     sage: # (YES) Evaluate  e^(Pi*Sqrt(163)) to 50 decimal digits
     sage: a = e^(pi*sqrt(163)); a
     e^(sqrt(163)*pi)
-    sage: RealField(150)(a)
+    sage: RealFloatingPointField(150)(a)
     2.6253741264076874399999999999925007259719820e17
 
 ::

@@ -45,7 +45,7 @@ Beispiel) gefolgt von einem Fragezeichen eingegeben wird:
             0.69314718055994529
             sage: RR(log2)
             0.693147180559945
-            sage: R = RealField(200); R
+            sage: R = RealFloatingPointField(200); R
             Real Field with 200 bits of precision
             sage: R(log2)
             0.69314718055994530941723212145817656807550013436025525412068

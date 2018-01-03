@@ -698,7 +698,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         Sometimes with non-sage types there is not enough information to deduce
         what will actually happen::
 
-            sage: R100 = RealField(100)
+            sage: R100 = RealFloatingPointField(100)
             sage: cm.explain(R100, float, operator.add)
             Right operand is numeric, will attempt coercion in both directions.
             Unknown result parent.
@@ -915,7 +915,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             <... 'int'>
             sage: cm.common_parent(int, float, ZZ)
             <... 'float'>
-            sage: real_fields = [RealField(prec) for prec in [10,20..100]]
+            sage: real_fields = [RealFloatingPointField(prec) for prec in [10,20..100]]
             sage: cm.common_parent(*real_fields)
             Real Field with 10 bits of precision
 

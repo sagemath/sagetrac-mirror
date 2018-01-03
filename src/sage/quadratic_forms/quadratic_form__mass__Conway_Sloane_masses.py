@@ -706,7 +706,7 @@ def conway_mass(self):
 #    when $n$ is odd.
 #    (GHY, Prop 7.4 and 7.5, p121)
 #    """
-#    RR = RealField(200)
+#    RR = RealFloatingPointField(200)
 #    n = self.dim()
 #    if n % 2 == 0:
 #        s = n / 2

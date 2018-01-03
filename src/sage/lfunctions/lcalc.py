@@ -125,7 +125,7 @@ class LCalc(SageObject):
             [0.000000000, 5.00317001, 6.87039122]
         """
         L = self._compute_L(L)
-        RR = sage.rings.all.RealField(prec)
+        RR = sage.rings.all.RealFloatingPointField(prec)
         X = self('-z %s %s'%(int(n), L))
         return [RR(z) for z in X.split()]
 
@@ -160,7 +160,7 @@ class LCalc(SageObject):
             [(14.1347251, 0.184672916), (21.0220396, -0.0677893290), (25.0108576, -0.0555872781)]
         """
         L = self._compute_L(L)
-        RR = sage.rings.all.RealField(prec)
+        RR = sage.rings.all.RealFloatingPointField(prec)
         X = self('--zeros-interval -x %s -y %s --stepsize=%s %s'%(
             float(x), float(y), float(stepsize), L))
         return [tuple([RR(z) for z in t.split()]) for t in X.split('\n')]
@@ -333,7 +333,7 @@ class LCalc(SageObject):
             {-3: [8.03973716, 11.2492062, 15.7046192], 5: [6.64845335, 9.83144443, 11.9588456]}
         """
         L = self._compute_L(L)
-        RR = sage.rings.all.RealField(prec)
+        RR = sage.rings.all.RealFloatingPointField(prec)
         Z = sage.rings.all.Integer
         typ = '--twist-quadratic'
         n = int(n)

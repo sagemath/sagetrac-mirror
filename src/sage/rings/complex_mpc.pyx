@@ -77,7 +77,7 @@ from .complex_field import ComplexField_class
 
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.misc.superseded import deprecated_function_alias
-from .real_mpfr cimport RealField_class, RealNumber
+from .real_mpfr cimport RealFloatingPointField_class, RealNumber
 from .real_mpfr import mpfr_prec_min, mpfr_prec_max
 from sage.structure.richcmp cimport rich_to_bool, richcmp
 from sage.categories.fields import Fields
@@ -321,8 +321,8 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
         self.__rnd = n
         self.__rnd_str = rnd
 
-        self.__real_field = real_mpfr.RealField(prec, rnd=_mpfr_rounding_modes[rnd_re(n)])
-        self.__imag_field = real_mpfr.RealField(prec, rnd=_mpfr_rounding_modes[rnd_im(n)])
+        self.__real_field = real_mpfr.RealFloatingPointField(prec, rnd=_mpfr_rounding_modes[rnd_re(n)])
+        self.__imag_field = real_mpfr.RealFloatingPointField(prec, rnd=_mpfr_rounding_modes[rnd_im(n)])
 
         ParentWithGens.__init__(self, self._real_field(), ('I',), False, category=Fields().Infinite())
         self._populate_coercion_lists_(coerce_list=[MPFRtoMPC(self._real_field(), self)])
@@ -459,7 +459,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
             sage: a.parent()
             Complex Field with 20 bits of precision
         """
-        if isinstance(S, RealField_class):
+        if isinstance(S, RealFloatingPointField_class):
             return MPFRtoMPC(S, self)
         if isinstance(S, sage.rings.integer_ring.IntegerRing_class):
             return INTEGERtoMPC(S, self)
@@ -784,7 +784,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: MPC = MPComplexField(100)
-            sage: r = RealField(100).pi()
+            sage: r = RealFloatingPointField(100).pi()
             sage: z = MPC(r); z # indirect doctest
             3.1415926535897932384626433833
             sage: MPComplexField(10, rnd='RNDDD')(z)
@@ -851,7 +851,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
                 return
             # then, no imaginary part
             elif isinstance(z, RealNumber):
-                zz = sage.rings.real_mpfr.RealField(self._parent.prec())(z)
+                zz = sage.rings.real_mpfr.RealFloatingPointField(self._parent.prec())(z)
                 mpc_set_fr(self.value, (<RealNumber>zz).value, rnd)
                 return
             elif isinstance(z, Integer):
@@ -867,7 +867,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             real = z
             imag = y
 
-        cdef RealField_class R = self._parent._real_field()
+        cdef RealFloatingPointField_class R = self._parent._real_field()
         try:
             rr = R(real)
             ii = R(imag)
@@ -1010,7 +1010,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         """
         cdef RealNumber x
         x = RealNumber(self._parent._real_field())
-        mpfr_set (x.value, self.value.re, (<RealField_class>x._parent).rnd)
+        mpfr_set (x.value, self.value.re, (<RealFloatingPointField_class>x._parent).rnd)
         return x
 
     def imag(self):
@@ -1028,7 +1028,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         """
         cdef RealNumber y
         y = RealNumber(self._parent._imag_field())
-        mpfr_set (y.value, self.value.im, (<RealField_class>y._parent).rnd)
+        mpfr_set (y.value, self.value.im, (<RealFloatingPointField_class>y._parent).rnd)
         return y
 
     def str(self, base=10, **kwds):
@@ -1509,7 +1509,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         """
         cdef RealNumber x
         x = RealNumber(self._parent._real_field())
-        mpc_abs (x.value, self.value, (<RealField_class>x._parent).rnd)
+        mpc_abs (x.value, self.value, (<RealFloatingPointField_class>x._parent).rnd)
         return x
 
     def norm(self):
@@ -1544,7 +1544,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         """
         cdef RealNumber x
         x = RealNumber(self._parent._real_field())
-        mpc_norm(x.value, self.value, (<RealField_class>x._parent).rnd)
+        mpc_norm(x.value, self.value, (<RealFloatingPointField_class>x._parent).rnd)
         return x
 
     def __rdiv__(self, left):
@@ -1971,7 +1971,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         """
         cdef RealNumber x
         x = RealNumber(self._parent._real_field())
-        mpc_arg(x.value, self.value, (<RealField_class>x._parent).rnd)
+        mpc_arg(x.value, self.value, (<RealFloatingPointField_class>x._parent).rnd)
         return x
 
     def conjugate(self):
@@ -2135,7 +2135,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         if self.is_zero():
             return [self] if all else self
 
-        cdef RealField_class R = self._parent._real_field()
+        cdef RealFloatingPointField_class R = self._parent._real_field()
         cdef mpfr_rnd_t rrnd = R.rnd
         cdef mpc_rnd_t crnd = (<MPComplexField_class>(self._parent)).__rnd
 
@@ -2504,7 +2504,7 @@ cdef class MPFRtoMPC(Map):
         EXAMPLES::
 
             sage: from sage.rings.complex_mpc import *
-            sage: R10 = RealField(10)
+            sage: R10 = RealFloatingPointField(10)
             sage: C100 = MPComplexField(100)
             sage: f = MPFRtoMPC(R10, C100); f # indirect doctest
             Generic map:

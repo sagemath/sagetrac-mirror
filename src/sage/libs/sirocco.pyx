@@ -14,7 +14,7 @@ from cysignals.memory cimport check_allocarray, sig_free as free
 
 from sage.libs.mpfr cimport *
 from sage.rings.real_mpfr cimport RealNumber
-from sage.rings.real_mpfr import RealField
+from sage.rings.real_mpfr import RealFloatingPointField
 
 cdef extern from "sirocco.h":
     mpfr_t* homotopyPath_mp(int degree, mpfr_t *_coef, mpfr_t _y0R, mpfr_t _y0I, int prec)
@@ -60,7 +60,7 @@ cpdef list[list] contpath_mp(int deg, list values, RealNumber y0r, RealNumber y0
     cdef list l = []
     cdef list inner
     cdef RealNumber RN
-    field = RealField(prec)
+    field = RealFloatingPointField(prec)
     for i in range(n):
         inner = []
         for j in range(3*i+1, 3*(i+1)+1):

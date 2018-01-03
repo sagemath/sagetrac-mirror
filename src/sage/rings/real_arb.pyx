@@ -215,7 +215,7 @@ from sage.rings.ring cimport Field
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.real_double cimport RealDoubleElement
-from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
+from sage.rings.real_mpfr cimport RealFloatingPointField_class, RealFloatingPointField, RealNumber
 
 import operator
 
@@ -1493,7 +1493,7 @@ cdef class RealBall(RingElement):
         else:
             raise ValueError("{} does not contain a unique rational number".format(self))
 
-    def _mpfr_(self, RealField_class field):
+    def _mpfr_(self, RealFloatingPointField_class field):
         """
         Convert this real ball to a real number.
 
@@ -1610,7 +1610,7 @@ cdef class RealBall(RingElement):
         cdef long mid_prec = max(arb_bits(self.value), prec(self))
         if mid_prec < MPFR_PREC_MIN:
             mid_prec = MPFR_PREC_MIN
-        cdef RealField_class mid_field = RealField(mid_prec)
+        cdef RealFloatingPointField_class mid_field = RealFloatingPointField(mid_prec)
         return self._mpfr_(mid_field)
 
     center = mid
@@ -1637,7 +1637,7 @@ cdef class RealBall(RingElement):
         """
         # Should we return a real number with rounding towards +∞ (or away from
         # zero if/when implemented)?
-        cdef RealField_class rad_field = RealField(MAG_BITS)
+        cdef RealFloatingPointField_class rad_field = RealFloatingPointField(MAG_BITS)
         cdef RealNumber rad = RealNumber(rad_field, None)
         cdef arf_t tmp
         arf_init(tmp)

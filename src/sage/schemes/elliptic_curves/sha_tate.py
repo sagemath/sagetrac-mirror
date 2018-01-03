@@ -84,7 +84,7 @@ AUTHORS:
 from sage.structure.sage_object import SageObject
 from sage.rings.all import (
     Integer,
-    RealField,
+    RealFloatingPointField,
     RationalField,
     RIF,
     ZZ)
@@ -271,10 +271,10 @@ class Sha(SageObject):
             1.0000000000000000000000000]
         """
         if prec is None:
-            prec = RealField().precision()
-        RR = RealField(prec)
+            prec = RealFloatingPointField().precision()
+        RR = RealFloatingPointField(prec)
         prec2 = prec+2
-        RR2 = RealField(prec2)
+        RR2 = RealFloatingPointField(prec2)
         try:
             an = self.__an_numerical
             if an.parent().precision() >= prec:

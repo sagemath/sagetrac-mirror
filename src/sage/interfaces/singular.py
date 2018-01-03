@@ -1566,9 +1566,9 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             from sage.all import QQ
             br = QQ
         elif charstr[0]=='real':
-            from sage.all import RealField, ceil, log
+            from sage.all import RealFloatingPointField, ceil, log
             prec = singular.eval('ringlist(basering)[1][2][1]')
-            br = RealField(ceil((ZZ(prec)+1)/log(2,10)))
+            br = RealFloatingPointField(ceil((ZZ(prec)+1)/log(2,10)))
             is_extension = False
         elif charstr[0]=='complex':
             from sage.all import ComplexField, ceil, log

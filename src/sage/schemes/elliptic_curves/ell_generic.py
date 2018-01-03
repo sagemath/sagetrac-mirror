@@ -2544,7 +2544,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             ...
             NotImplementedError: Plotting of curves over Complex Field with 53 bits of precision not implemented yet
         """
-        RR = rings.RealField()
+        RR = rings.RealFloatingPointField()
         K = self.base_ring()
         try:
             RR._coerce_(K(1))

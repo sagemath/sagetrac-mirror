@@ -460,7 +460,7 @@ class Set_object(Set_generic):
 
         EXAMPLES::
 
-            sage: Set(RealField()) + Set(QQ^5)
+            sage: Set(RealFloatingPointField()) + Set(QQ^5)
              Set-theoretic union of Set of elements of Real Field with 53 bits of precision and Set of elements of Vector space of dimension 5 over Rational Field
             sage: Set(GF(3)) + Set(GF(2))
             {0, 1, 2, 0, 1}

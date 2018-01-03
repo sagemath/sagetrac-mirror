@@ -2083,7 +2083,7 @@ class NumberField_relative(NumberField_generic):
         each pair of complex conjugate homomorphisms into CIF.
 
         On the other hand, if prec is not None, we simply return places
-        into RealField(prec) and ComplexField(prec) (or RDF, CDF if
+        into RealFloatingPointField(prec) and ComplexField(prec) (or RDF, CDF if
         prec=53).
 
         There is an optional flag all_complex, which defaults to False. If

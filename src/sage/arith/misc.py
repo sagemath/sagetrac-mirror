@@ -114,7 +114,7 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
     compute a 200-bit approximation to `sqrt(2)` which is wrong in the
     33'rd bit::
 
-        sage: z = sqrt(RealField(200)(2)) + (1/2)^33
+        sage: z = sqrt(RealFloatingPointField(200)(2)) + (1/2)^33
         sage: p = algdep(z, 4); p
         227004321085*x^4 - 216947902586*x^3 - 99411220986*x^2 + 82234881648*x - 211871195088
         sage: factor(p)
@@ -2977,7 +2977,7 @@ def binomial(x, m, **kwds):
         -6
         sage: binomial(-5, -2)
         0
-        sage: binomial(RealField()('2.5'), 2)
+        sage: binomial(RealFloatingPointField()('2.5'), 2)
         1.87500000000000
         sage: n=var('n'); binomial(n,2)
         1/2*(n - 1)*n

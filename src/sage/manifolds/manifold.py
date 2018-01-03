@@ -331,7 +331,7 @@ from sage.categories.fields import Fields
 from sage.categories.manifolds import Manifolds
 from sage.categories.homset import Hom
 from sage.rings.all import CC
-from sage.rings.real_mpfr import RR, RealField_class
+from sage.rings.real_mpfr import RR, RealFloatingPointField_class
 from sage.rings.complex_field import ComplexField_class
 from sage.misc.prandom import getrandbits
 from sage.misc.cachefunc import cached_method
@@ -371,7 +371,7 @@ class TopologicalManifold(ManifoldSubset):
     - ``field`` -- field `K` on which the manifold is
       defined; allowed values are
 
-      - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
+      - ``'real'`` or an object of type ``RealFloatingPointField`` (e.g., ``RR``) for
         a manifold over `\RR`
       - ``'complex'`` or an object of type ``ComplexField`` (e.g., ``CC``)
         for a manifold over `\CC`
@@ -547,7 +547,7 @@ class TopologicalManifold(ManifoldSubset):
             if field not in Fields():
                 raise TypeError("the argument 'field' must be a field")
             self._field = field
-            if isinstance(field, RealField_class):
+            if isinstance(field, RealFloatingPointField_class):
                 self._field_type = 'real'
             elif isinstance(field, ComplexField_class):
                 self._field_type = 'complex'
@@ -2234,7 +2234,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
     - ``field`` -- (default: ``'real'``) field `K` on which the
       manifold is defined; allowed values are
 
-      - ``'real'`` or an object of type ``RealField`` (e.g. ``RR``) for a
+      - ``'real'`` or an object of type ``RealFloatingPointField`` (e.g. ``RR``) for a
         manifold over `\RR`
       - ``'complex'`` or an object of type ``ComplexField`` (e.g. ``CC``)
         for a manifold over `\CC`
@@ -2413,7 +2413,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         raise ValueError("the manifold dimension must be strictly positive")
 
     if structure in ['topological', 'top']:
-        if field == 'real' or isinstance(field, RealField_class):
+        if field == 'real' or isinstance(field, RealFloatingPointField_class):
             structure = RealTopologicalStructure()
         else:
             structure = TopologicalStructure()
@@ -2428,7 +2428,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
             diff_degree = extra_kwds['diff_degree']
         else:
             diff_degree = None
-        if field == 'real' or isinstance(field, RealField_class):
+        if field == 'real' or isinstance(field, RealFloatingPointField_class):
             structure = RealDifferentialStructure()
         else:
             structure = DifferentialStructure()

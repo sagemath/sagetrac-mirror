@@ -806,7 +806,7 @@ class PanAxiomElement(ExpectElement):
             2.12340000000000
             sage: _.parent()             #optional - axiom
             Real Field with 53 bits of precision
-            sage: a = RealField(100)(pi)
+            sage: a = RealFloatingPointField(100)(pi)
             sage: axiom(a)._sage_()      #optional - axiom
             3.1415926535897932384626433833
             sage: _.parent()             #optional - axiom
@@ -841,9 +841,9 @@ class PanAxiomElement(ExpectElement):
             return self._sage_domain()
 
         if type == "Float":
-            from sage.rings.all import RealField, ZZ
+            from sage.rings.all import RealFloatingPointField, ZZ
             prec = max(self.mantissa().length()._sage_(), 53)
-            R = RealField(prec)
+            R = RealFloatingPointField(prec)
             x,e,b = self.unparsed_input_form().lstrip('float(').rstrip(')').split(',')
             return R(ZZ(x)*ZZ(b)**ZZ(e))
         elif type == "DoubleFloat":

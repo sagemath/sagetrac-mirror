@@ -24,7 +24,7 @@ AUTHORS:
 from six.moves import range
 
 from sage.structure.sage_object import SageObject
-from sage.rings.all import RealField, RationalField
+from sage.rings.all import RealFloatingPointField, RationalField
 from math import sqrt, exp, log, ceil
 import sage.functions.exp_integral as exp_integral
 from sage.misc.all import verbose
@@ -515,10 +515,10 @@ class Lseries_ell(SageObject):
             # Use the same precision as deriv_at1() below for
             # consistency
             prec = int(9.065*k/sqrtN + 1.443*log(k)) + 12
-        R = RealField(prec)
+        R = RealFloatingPointField(prec)
         # Compute error term with bounded precision of 24 bits and
         # round towards +infinity
-        Rerror = RealField(24, rnd='RNDU')
+        Rerror = RealFloatingPointField(24, rnd='RNDU')
 
         if self.__E.root_number() == -1:
            return (R.zero(), Rerror.zero())
@@ -667,10 +667,10 @@ class Lseries_ell(SageObject):
             #    such that the precision is 24 bits when the conductor
             #    equals 11 and k is the default value 4)
             prec = int(9.065*k/sqrtN + 1.443*log(k)) + 12
-        R = RealField(prec)
+        R = RealFloatingPointField(prec)
         # Compute error term with bounded precision of 24 bits and
         # round towards +infinity
-        Rerror = RealField(24, rnd='RNDU')
+        Rerror = RealFloatingPointField(24, rnd='RNDU')
 
         if self.__E.root_number() == 1:
            # Order of vanishing at 1 of L(E) is even and assumed to be

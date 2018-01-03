@@ -21,17 +21,17 @@ The place to begin is the default decimal number types in Sage.
 Basic Analysis
 --------------
 
-- The ``RealField`` class using arbitrary precision (implemented with
+- The ``RealFloatingPointField`` class using arbitrary precision (implemented with
   `MPFR <http://www.mpfr.org/>`_).
 
-- The default real numbers (``RR``) is ``RealField(53)`` (i.e., 53 bits
+- The default real numbers (``RR``) is ``RealFloatingPointField(53)`` (i.e., 53 bits
   of precision).
 
 - But you can make them live at whatever precision you wish.
 
 ::
 
-    sage: ring=RealField(3)
+    sage: ring=RealFloatingPointField(3)
 
 To print the actual number (without rounding off the last few imprecise
 digits to only display correct digits), call the ``.str()`` method::
@@ -50,7 +50,7 @@ Let's change our precision.
 
 ::
 
-    sage: ring=RealField(20)
+    sage: ring=RealFloatingPointField(20)
     sage: print(ring('1').nextabove().str())
     1.0000019
     sage: print(ring('1').nextbelow().str())
@@ -60,8 +60,8 @@ You can also specify the rounding mode.
 
 ::
 
-    sage: ringup=RealField(3,rnd='RNDU')
-    sage: ringdown=RealField(3,rnd='RNDD')
+    sage: ringup=RealFloatingPointField(3,rnd='RNDU')
+    sage: ringdown=RealFloatingPointField(3,rnd='RNDD')
 
 ::
 
@@ -306,7 +306,7 @@ system.
 
 ::
 
-    sage: R=RealField(100) # 100 bits
+    sage: R=RealFloatingPointField(100) # 100 bits
     sage: g=fast_callable(f, vars=[x], domain=R)
     sage: plot(g,(x,0,2e4))
     Graphics object consisting of 1 graphics primitive

@@ -375,7 +375,7 @@ cdef class Function(SageObject):
 
             sage: arctan(RR(1))
             0.785398163397448
-            sage: arctan(RealField(100)(1))
+            sage: arctan(RealFloatingPointField(100)(1))
             0.78539816339744830961566084582
 
         Return types for non-exact input depends on the input type::
@@ -745,7 +745,7 @@ cdef class Function(SageObject):
             ....:         def _eval_(self, arg):
             ....:                 parent = arg.parent()
             ....:                 prec = parent.prec()
-            ....:                 assert parent == RealField(prec)
+            ....:                 assert parent == RealFloatingPointField(prec)
             ....:                 return prec
             sage: noMpmathFn = NoMpmathFn("noMpmathFn")
             sage: with mpmath.workprec(64): noMpmathFn(sqrt(mpmath.mpf('2')))

@@ -6,14 +6,14 @@ from sage.rings.ring cimport Field
 from sage.structure.element cimport RingElement
 
 from .rational cimport Rational
-from .real_mpfr cimport RealField_class
+from .real_mpfr cimport RealFloatingPointField_class
 
 cdef class RealIntervalFieldElement(RingElement)  # forward decl
 
 cdef class RealIntervalField_class(Field):
     cdef mpfr_prec_t __prec
     cdef bint sci_not
-    # Cache RealField instances for the lower, upper, and middle bounds.
+    # Cache RealFloatingPointField instances for the lower, upper, and middle bounds.
     # These have the same precision as the interval field;
     # __lower_field rounds down, __upper_field rounds up.
     # These fields with their roundings are not used for computation
@@ -27,9 +27,9 @@ cdef class RealIntervalField_class(Field):
     # gives the impression that the upper and lower bounds are not
     # equal, even though they really are).  Neither of these is very
     # satisfying, but I have chosen the latter for now.
-    cdef RealField_class __lower_field
-    cdef RealField_class __middle_field
-    cdef RealField_class __upper_field
+    cdef RealFloatingPointField_class __lower_field
+    cdef RealFloatingPointField_class __middle_field
+    cdef RealFloatingPointField_class __upper_field
 
     cdef inline RealIntervalFieldElement _new(self):
         """Return a new real interval with parent ``self``."""

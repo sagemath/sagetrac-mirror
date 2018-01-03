@@ -93,10 +93,10 @@ Conversions::
     sage: J.bid_get_cyc()
     [4, 2]
 
-    sage: int(pari(RealField(63)(2^63-1)))
+    sage: int(pari(RealFloatingPointField(63)(2^63-1)))
     9223372036854775807L  # 32-bit
     9223372036854775807   # 64-bit
-    sage: int(pari(RealField(63)(2^63+2)))
+    sage: int(pari(RealFloatingPointField(63)(2^63+2)))
     9223372036854775810L
 
     sage: K = Qp(11,5)

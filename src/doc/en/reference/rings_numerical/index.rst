@@ -4,7 +4,7 @@ Fixed and Arbitrary Precision Numerical Fields
 Floating-Point Arithmetic
 -------------------------
 
-Sage supports arbitrary precision real (RealField) and complex fields
+Sage supports arbitrary precision real (RealFloatingPointField) and complex fields
 (ComplexField). Sage also provides two optimized fixed precision fields for
 numerical computation, the real double (RealDoubleField) and complex double
 fields (ComplexDoubleField).

@@ -294,8 +294,8 @@ class ComplexField_class(ring.Field):
         try:
             return self.__real_field
         except AttributeError:
-            from .real_mpfr import RealField
-            self.__real_field = RealField(self._prec)
+            from .real_mpfr import RealFloatingPointField
+            self.__real_field = RealFloatingPointField(self._prec)
             return self.__real_field
 
     def __eq__(self, other):
@@ -433,9 +433,9 @@ class ComplexField_class(ring.Field):
 
         EXAMPLES::
 
-            sage: ComplexField(200)(1) + RealField(90)(1) # indirect doctest
+            sage: ComplexField(200)(1) + RealFloatingPointField(90)(1) # indirect doctest
             2.0000000000000000000000000
-            sage: parent(ComplexField(200)(1) + RealField(90)(1)) # indirect doctest
+            sage: parent(ComplexField(200)(1) + RealFloatingPointField(90)(1)) # indirect doctest
             Complex Field with 90 bits of precision
             sage: CC.0 + RLF(1/3) # indirect doctest
             0.333333333333333 + 1.00000000000000*I

@@ -226,9 +226,9 @@ cpdef gen_to_sage(Gen z, locals=None):
         from sage.rings.rational import Rational
         return Rational(z)
     elif t == t_REAL:
-        from sage.rings.all import RealField
+        from sage.rings.all import RealFloatingPointField
         prec = prec_words_to_bits(z.precision())
-        return RealField(prec)(z)
+        return RealFloatingPointField(prec)(z)
     elif t == t_COMPLEX:
         real = z.real()
         imag = z.imag()
@@ -246,8 +246,8 @@ cpdef gen_to_sage(Gen z, locals=None):
             else:
                 prec = max(prec_words_to_bits(xprec), prec_words_to_bits(yprec))
 
-            from sage.rings.all import RealField, ComplexField
-            R = RealField(prec)
+            from sage.rings.all import RealFloatingPointField, ComplexField
+            R = RealFloatingPointField(prec)
             C = ComplexField(prec)
             return C(R(real), R(imag))
         else:

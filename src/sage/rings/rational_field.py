@@ -16,11 +16,11 @@ function).
 
 ::
 
-    sage: RealField(9).pi()
+    sage: RealFloatingPointField(9).pi()
     3.1
-    sage: QQ(RealField(9).pi())
+    sage: QQ(RealFloatingPointField(9).pi())
     22/7
-    sage: QQ(RealField().pi())
+    sage: QQ(RealFloatingPointField().pi())
     245850922/78256779
     sage: QQ(35)
     35
@@ -126,7 +126,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         1.26920930427955
         sage: t = L/O; t
         0.200000000000000
-        sage: QQ(RealField(45)(t))
+        sage: QQ(RealFloatingPointField(45)(t))
         1/5
     """
     def __new__(cls):
@@ -329,8 +329,8 @@ class RationalField(Singleton, number_field_base.NumberField):
         """
         from sage.rings.infinity import Infinity
         if p == Infinity:
-            from sage.rings.real_field import create_RealField
-            return create_RealField(prec, **extras)
+            from sage.rings.real_field import create_RealFloatingPointField
+            return create_RealFloatingPointField(prec, **extras)
         else:
             from sage.rings.padics.factory import Qp
             return Qp(p, prec, **extras)
@@ -648,7 +648,7 @@ class RationalField(Singleton, number_field_base.NumberField):
 
         By default, this returns homomorphisms into ``RR``.  If
         ``prec`` is not None, we simply return homomorphisms into
-        ``RealField(prec)`` (or ``RDF`` if ``prec=53``).
+        ``RealFloatingPointField(prec)`` (or ``RDF`` if ``prec=53``).
 
         There is an optional flag ``all_complex``, which defaults to
         False.  If ``all_complex`` is True, then the real embeddings
@@ -687,7 +687,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             R = sage.rings.all.AA
             C = sage.rings.all.QQbar
         else:
-            R = sage.rings.all.RealField(prec)
+            R = sage.rings.all.RealFloatingPointField(prec)
             C = sage.rings.all.ComplexField(prec)
         domain = C if all_complex else R
         return [self.hom([domain(1)])]

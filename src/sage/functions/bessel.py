@@ -229,7 +229,7 @@ from sage.calculus.calculus import maxima
 from sage.functions.trig import sin, cos
 from sage.functions.other import real, imag, sqrt
 from sage.misc.sage_eval import sage_eval
-from sage.rings.real_mpfr import RealField
+from sage.rings.real_mpfr import RealFloatingPointField
 from sage.plot.plot import plot
 from sage.rings.all import ZZ, QQ
 
@@ -394,9 +394,9 @@ class Function_Bessel_J(BuiltinFunction):
 
         Check for correct rounding (:trac:`17122`)::
 
-            sage: R = RealField(113)
+            sage: R = RealFloatingPointField(113)
             sage: a = R("8.935761195587725798762818805462843676e-01")
-            sage: aa = RealField(200)(a)
+            sage: aa = RealFloatingPointField(200)(a)
             sage: for n in [-10..10]:
             ....:     b = bessel_J(R(n), a)
             ....:     bb = R(bessel_J(n, aa))
@@ -504,7 +504,7 @@ class Function_Bessel_Y(BuiltinFunction):
 
         sage: bessel_Y(0, 1).n(128)
         0.088256964215676957982926766023515162828
-        sage: bessel_Y(0, RealField(200)(1))
+        sage: bessel_Y(0, RealFloatingPointField(200)(1))
         0.088256964215676957982926766023515162827817523090675546711044
         sage: bessel_Y(0, ComplexField(200)(0.5+I))
         0.077763160184438051408593468823822434235010300228009867784073 + 1.0142336049916069152644677682828326441579314239591288411739*I
@@ -530,11 +530,11 @@ class Function_Bessel_Y(BuiltinFunction):
 
     Coercion works correctly (see :trac:`17130`)::
 
-        sage: r = bessel_Y(RealField(200)(1), 1.0); r
+        sage: r = bessel_Y(RealFloatingPointField(200)(1), 1.0); r
         -0.781212821300289
         sage: parent(r)
         Real Field with 53 bits of precision
-        sage: r = bessel_Y(RealField(200)(1), 1); r
+        sage: r = bessel_Y(RealFloatingPointField(200)(1), 1); r
         -0.78121282130028871654715000004796482054990639071644460784383
         sage: parent(r)
         Real Field with 200 bits of precision
@@ -607,9 +607,9 @@ class Function_Bessel_Y(BuiltinFunction):
 
         Check for correct rounding (:trac:`17122`)::
 
-            sage: R = RealField(113)
+            sage: R = RealFloatingPointField(113)
             sage: a = R("8.935761195587725798762818805462843676e-01")
-            sage: aa = RealField(200)(a)
+            sage: aa = RealFloatingPointField(200)(a)
             sage: for n in [-10..10]:
             ....:     b = bessel_Y(R(n), a)
             ....:     bb = R(bessel_Y(n, aa))
@@ -718,7 +718,7 @@ class Function_Bessel_I(BuiltinFunction):
 
         sage: bessel_I(0, 1).n(128)
         1.2660658777520083355982446252147175376
-        sage: bessel_I(0, RealField(200)(1))
+        sage: bessel_I(0, RealFloatingPointField(200)(1))
         1.2660658777520083355982446252147175376076703113549622068081
         sage: bessel_I(0, ComplexField(200)(0.5+I))
         0.80644357583493619472428518415019222845373366024179916785502 + 0.22686958987911161141397453401487525043310874687430711021434*I
@@ -904,7 +904,7 @@ class Function_Bessel_K(BuiltinFunction):
 
         sage: bessel_K(0, 1).n(128)
         0.42102443824070833333562737921260903614
-        sage: bessel_K(0, RealField(200)(1))
+        sage: bessel_K(0, RealFloatingPointField(200)(1))
         0.42102443824070833333562737921260903613621974822666047229897
         sage: bessel_K(0, ComplexField(200)(0.5+I))
         0.058365979093103864080375311643360048144715516692187818271179 - 0.67645499731334483535184142196073004335768129348518210260256*I
@@ -1005,7 +1005,7 @@ class Function_Bessel_K(BuiltinFunction):
             0.421024438240708
             sage: bessel_K(-1, 1).n(128)
             0.60190723019723457473754000153561733926
-            sage: bessel_K(0, RealField(128)(1))
+            sage: bessel_K(0, RealFloatingPointField(128)(1))
             0.42102443824070833333562737921260903614
         """
         import mpmath

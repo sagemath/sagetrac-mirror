@@ -60,7 +60,7 @@ from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.qqbar import QQbar
 from sage.rings.rational_field import QQ
-from sage.rings.real_mpfr import RealField_class
+from sage.rings.real_mpfr import RealFloatingPointField_class
 from sage.rings.real_mpfi import RealIntervalField_class
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.symbolic.constants import e
@@ -1161,7 +1161,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         INPUT:
 
         - ``prec`` -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         OUTPUT:
 
@@ -1230,7 +1230,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         - ``v`` -- a prime or prime ideal of the base ring.
 
         - ``prec`` -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         OUTPUT:
 
@@ -1280,7 +1280,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         - ``i`` -- an integer.
 
         - ``prec`` -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         OUTPUT:
 
@@ -1898,7 +1898,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             raise TypeError("must be an endomorphism of projective space")
         if not Q in self.codomain():
             raise TypeError("point must be in codomain of self")
-        if isinstance(BR.base_ring(),(ComplexField_class, RealField_class,RealIntervalField_class, ComplexIntervalField_class)):
+        if isinstance(BR.base_ring(),(ComplexField_class, RealFloatingPointField_class,RealIntervalField_class, ComplexIntervalField_class)):
             raise NotImplementedError("not implemented over precision fields")
         PS = self.domain().ambient_space()
         N = PS.dimension_relative()

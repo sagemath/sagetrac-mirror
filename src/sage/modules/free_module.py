@@ -247,7 +247,7 @@ class FreeModuleFactory(UniqueFactory):
 
     Of course we can make rank 0 free modules::
 
-        sage: FreeModule(RealField(100),0)
+        sage: FreeModule(RealFloatingPointField(100),0)
         Vector space of dimension 0 over Real Field with 100 bits of precision
 
     Next we create a free module with sparse representation of

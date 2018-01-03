@@ -5,7 +5,7 @@ The field of real number.
 
     The real lazy field (:class:`sage.rings.real_lazy.RealLazyField_class`) should be
     considered as the set of *computable* numbers and not the set of real numbers. The
-    precise interaction between the real lazy field and the ``RealField`` defined in
+    precise interaction between the real lazy field and the ``RealFloatingPointField`` defined in
     this module has to be precised.
 """
 #*****************************************************************************
@@ -26,7 +26,7 @@ from sage.structure.parent import Parent
 
 from .infinity import Infinity
 
-def create_RealField(prec=53, type=None, rnd="RNDN", sci_not=0):
+def create_RealFloatingPointField(prec=53, type=None, rnd="RNDN", sci_not=0):
     """
     Create a real field with given precision, type, rounding mode and
     scientific notation.
@@ -58,16 +58,16 @@ def create_RealField(prec=53, type=None, rnd="RNDN", sci_not=0):
 
     EXAMPLES::
 
-        sage: from sage.rings.real_field import create_RealField
-        sage: create_RealField(30)
+        sage: from sage.rings.real_field import create_RealFloatingPointField
+        sage: create_RealFloatingPointField(30)
         Real Field with 30 bits of precision
-        sage: create_RealField(oo)
+        sage: create_RealFloatingPointField(oo)
         Real Field
-        sage: create_RealField(20, 'RDF') # ignores precision
+        sage: create_RealFloatingPointField(20, 'RDF') # ignores precision
         Real Double Field
-        sage: create_RealField(60, 'Interval')
+        sage: create_RealFloatingPointField(60, 'Interval')
         Real Interval Field with 60 bits of precision
-        sage: create_RealField(40, 'RLF') # ignores precision
+        sage: create_RealFloatingPointField(40, 'RLF') # ignores precision
         Real Lazy Field
     """
     if type is None:
@@ -86,19 +86,19 @@ def create_RealField(prec=53, type=None, rnd="RNDN", sci_not=0):
         from .real_arb import RealBallField
         return RealBallField(prec)
     elif type == "MPFR" or type == "FloatingPoint":
-        from .real_mpfr import RealField
-        return RealField(prec, sci_not, rnd)
+        from .real_mpfr import RealFloatingPointField
+        return RealFloatingPointField(prec, sci_not, rnd)
     elif type == "RLF":
         from .real_lazy import RLF
         return RLF
     elif type == "RR":
-        from .real_field import RealField
-        return RealField()
+        from .real_field import RealFloatingPointField
+        return RealFloatingPointField()
     else:
         raise ValueError('unrecognized type {!r} for real field'.format(type))
 
 
-class RealField(Singleton, Parent):
+class RealFloatingPointField(Singleton, Parent):
     r"""
     The field of real numbers.
 
@@ -125,8 +125,8 @@ class RealField(Singleton, Parent):
         r"""
         TESTS::
 
-            sage: from sage.rings.real_field import RealField
-            sage: R = RealField()
+            sage: from sage.rings.real_field import RealFloatingPointField
+            sage: R = RealFloatingPointField()
             sage: TestSuite(R).run()
             sage: loads(dumps(R)) is R
             True
@@ -155,8 +155,8 @@ class RealField(Singleton, Parent):
         r"""
         TESTS::
 
-            sage: from sage.rings.real_field import RealField
-            sage: RealField()
+            sage: from sage.rings.real_field import RealFloatingPointField
+            sage: RealFloatingPointField()
             Real Field
         """
         return "Real Field"

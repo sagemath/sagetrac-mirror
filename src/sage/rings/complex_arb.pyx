@@ -166,7 +166,7 @@ from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
 from sage.rings.real_arb import RealBallField
-from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
+from sage.rings.real_mpfr cimport RealFloatingPointField_class, RealFloatingPointField, RealNumber
 from sage.rings.ring import Field
 from sage.structure.element cimport Element, ModuleElement
 from sage.structure.parent cimport Parent
@@ -997,7 +997,7 @@ cdef class ComplexBall(RingElement):
 
         INPUT:
 
-        - ``parent`` - :class:`~sage.rings.real_mpfr.RealField_class`,
+        - ``parent`` - :class:`~sage.rings.real_mpfr.RealFloatingPointField_class`,
           target parent.
 
         EXAMPLES::
@@ -1375,7 +1375,7 @@ cdef class ComplexBall(RingElement):
         """
         # Should we return a real number with rounding towards +∞ (or away from
         # zero if/when implemented)?
-        cdef RealField_class rad_field = RealField(MAG_BITS)
+        cdef RealFloatingPointField_class rad_field = RealFloatingPointField(MAG_BITS)
         cdef RealNumber rad = RealNumber(rad_field, None)
         cdef arf_t tmp
         arf_init(tmp)

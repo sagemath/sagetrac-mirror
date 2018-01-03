@@ -1002,7 +1002,7 @@ class FriCASElement(ExpectElement):
         from sage.rings.all import ZZ, QQ, QQbar, PolynomialRing, RDF
         from sage.rings.fraction_field import FractionField
         from sage.rings.finite_rings.integer_mod_ring import Integers
-        from sage.rings.real_mpfr import RealField
+        from sage.rings.real_mpfr import RealFloatingPointField
         from sage.symbolic.ring import SR
         from sage.matrix.constructor import matrix
 
@@ -1015,7 +1015,7 @@ class FriCASElement(ExpectElement):
         if head == "Float":
             P = self._check_valid()
             prec = max(P.new("length mantissa(%s)" %self._name).sage(), 53)
-            return RealField(prec)
+            return RealFloatingPointField(prec)
         if head == "DoubleFloat":
             return RDF
         if head == "AlgebraicNumber":
@@ -1146,7 +1146,7 @@ class FriCASElement(ExpectElement):
             2.12340000000000
             sage: _.parent()                                                    # optional - fricas
             Real Field with 53 bits of precision
-            sage: a = RealField(100)(pi)                                        # optional - fricas
+            sage: a = RealFloatingPointField(100)(pi)                                        # optional - fricas
             sage: fricas(a).sage()                                              # optional - fricas
             3.1415926535897932384626433833
             sage: _.parent()                                                    # optional - fricas
@@ -1276,7 +1276,7 @@ class FriCASElement(ExpectElement):
         from sage.rings.all import ZZ, QQ, QQbar, PolynomialRing, RDF
         from sage.rings.fraction_field import FractionField
         from sage.rings.finite_rings.integer_mod_ring import Integers
-        from sage.rings.real_mpfr import RealField
+        from sage.rings.real_mpfr import RealFloatingPointField
         from sage.symbolic.ring import SR
         from sage.matrix.constructor import matrix
         from sage.structure.factorization import Factorization
@@ -1335,7 +1335,7 @@ class FriCASElement(ExpectElement):
             # whereas length(mantissa(self)) gives the precision of
             # self.
             prec = max(P.new("length mantissa(%s)" %self._name).sage(), 53)
-            R = RealField(prec)
+            R = RealFloatingPointField(prec)
             x, e, b = unparsed_InputForm.lstrip('float(').rstrip(')').split(',')
             return R(ZZ(x)*ZZ(b)**ZZ(e))
 

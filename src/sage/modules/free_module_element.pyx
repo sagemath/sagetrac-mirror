@@ -753,7 +753,7 @@ def random_vector(ring, degree=None, *args, **kwds):
     Inexact rings may be used as well.  The reals have
     uniform distributions, with the range `(-1,1)` as
     the default.  More at:
-    :meth:`sage.rings.real_mpfr.RealField_class.random_element` ::
+    :meth:`sage.rings.real_mpfr.RealFloatingPointField_class.random_element` ::
 
         sage: random_vector(RR, 5)
         (0.248997268533725, -0.112200126330480, 0.776829203293064, -0.899146461031406, 0.534465018743125)
@@ -1106,9 +1106,9 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: sage_input(vector(ZZ, []), verify=True)
             # Verified
             vector(ZZ, [])
-            sage: sage_input(vector(RealField(27), [], sparse=True), verify=True)
+            sage: sage_input(vector(RealFloatingPointField(27), [], sparse=True), verify=True)
             # Verified
-            vector(RealField(27), {})
+            vector(RealFloatingPointField(27), {})
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: vector(ZZ, [42, 389])._sage_input_(SageInputBuilder(), False)
             {call: {atomic:vector}({atomic:ZZ}, {list: ({atomic:42}, {atomic:389})})}
@@ -1158,7 +1158,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
         EXAMPLES::
 
-            sage: v = vector(RealField(212), [1,2,3])
+            sage: v = vector(RealFloatingPointField(212), [1,2,3])
             sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
             sage: _.parent()
@@ -5035,7 +5035,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
         EXAMPLES::
 
-            sage: v = vector(RealField(200), [1,2,3], sparse=True)
+            sage: v = vector(RealFloatingPointField(200), [1,2,3], sparse=True)
             sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
             sage: _.parent()

@@ -80,7 +80,7 @@ cdef class Matrix(Matrix0):
         This function preserves precision for entries of inexact type (e.g.
         reals)::
 
-            sage: R = RealField(4)       # 4 bits of precision
+            sage: R = RealFloatingPointField(4)       # 4 bits of precision
             sage: a = matrix(R, 2, [1, 2, 3, 1]); a
             [1.0 2.0]
             [3.0 1.0]

@@ -86,7 +86,7 @@ class Function_exp(GinacFunction):
     the input. Convert the input to a higher precision explicitly
     if a result with higher precision is desired::
 
-        sage: t = exp(RealField(100)(2)); t
+        sage: t = exp(RealFloatingPointField(100)(2)); t
         7.3890560989306502272304274606
         sage: t.prec()
         100
@@ -298,7 +298,7 @@ def log(*args, **kwds):
 
     You can use
     :class:`RDF<sage.rings.real_double.RealDoubleField_class>`,
-    :class:`~sage.rings.real_mpfr.RealField` or ``n`` to get a
+    :class:`~sage.rings.real_mpfr.RealFloatingPointField` or ``n`` to get a
     numerical real approximation::
 
         sage: log(1024, 2)
@@ -640,10 +640,10 @@ class Function_dilog(GinacFunction):
             0.582240526465012
             sage: dilog(-1.0)
             -0.822467033424113
-            sage: y = dilog(RealField(13)(0.5))
+            sage: y = dilog(RealFloatingPointField(13)(0.5))
             sage: parent(y)
             Real Field with 13 bits of precision
-            sage: dilog(RealField(13)(1.1))
+            sage: dilog(RealFloatingPointField(13)(1.1))
             1.96 - 0.300*I
             sage: parent(_)
             Complex Field with 13 bits of precision
@@ -833,7 +833,7 @@ class Function_lambert_w(BuiltinFunction):
 
             sage: N(lambert_w(1))
             0.567143290409784
-            sage: lambert_w(RealField(100)(1))
+            sage: lambert_w(RealFloatingPointField(100)(1))
             0.56714329040978387299996866221
 
         SciPy is used to evaluate for float, RDF, and CDF inputs::

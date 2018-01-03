@@ -732,7 +732,7 @@ class UnsignedInfinityRing_class(Singleton, Ring):
                 return self.gen()
         else:
             try:
-                # For example, RealField() implements this
+                # For example, RealFloatingPointField() implements this
                 if x.is_infinity():
                     return self.gen()
             except AttributeError:
@@ -1174,7 +1174,7 @@ class InfinityRing_class(Singleton, Ring):
                 return self.gen(1)
         else:
             try:
-                # For example, RealField() implements this
+                # For example, RealFloatingPointField() implements this
                 if x.is_positive_infinity():
                     return self.gen(0)
                 if x.is_negative_infinity():
@@ -1244,8 +1244,8 @@ class InfinityRing_class(Singleton, Ring):
             sage: CC(0, oo) < CC(1)   # does not coerce to infinity ring
             True
         """
-        from sage.rings.real_mpfr import mpfr_prec_min, RealField
-        if RealField(mpfr_prec_min()).has_coerce_map_from(R):
+        from sage.rings.real_mpfr import mpfr_prec_min, RealFloatingPointField
+        if RealFloatingPointField(mpfr_prec_min()).has_coerce_map_from(R):
             return True
         from sage.rings.real_mpfi import RealIntervalField_class
         if isinstance(R, RealIntervalField_class):
@@ -1706,7 +1706,7 @@ def test_comparison(ring):
     EXAMPLES::
 
         sage: from sage.rings.infinity import test_comparison
-        sage: rings = [ZZ, QQ, RR, RealField(200), RDF, RLF, AA, RIF]
+        sage: rings = [ZZ, QQ, RR, RealFloatingPointField(200), RDF, RLF, AA, RIF]
         sage: for R in rings:
         ....:     print('testing {}'.format(R))
         ....:     test_comparison(R)

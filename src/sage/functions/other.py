@@ -10,7 +10,7 @@ from sage.symbolic.expression import Expression
 from sage.libs.pynac.pynac import (register_symbol, symbol_table,
         py_factorial_py, I)
 from sage.symbolic.all import SR
-from sage.rings.all import Integer, Rational, RealField, ZZ, ComplexField
+from sage.rings.all import Integer, Rational, RealFloatingPointField, ZZ, ComplexField
 from sage.rings.complex_number import is_ComplexNumber
 from sage.misc.latex import latex
 from sage.misc.decorators import rename_keyword
@@ -868,7 +868,7 @@ class Function_log_gamma(GinacFunction):
             4.78749174278205
             sage: log_gamma(6).n()
             4.78749174278205
-            sage: log_gamma(RealField(100)(6))
+            sage: log_gamma(RealFloatingPointField(100)(6))
             4.7874917427820459942477009345
             sage: log_gamma(2.4 + I)
             -0.0308566579348816 + 0.693427705955790*I
@@ -1055,7 +1055,7 @@ class Function_gamma_inc(BuiltinFunction):
 
         Check that :trac:`7099` is fixed::
 
-            sage: R = RealField(1024)
+            sage: R = RealFloatingPointField(1024)
             sage: gamma(R(9), R(10^-3))  # rel tol 1e-308
             40319.99999999999999999999999999988898884344822911869926361916294165058203634104838326009191542490601781777105678829520585311300510347676330951251563007679436243294653538925717144381702105700908686088851362675381239820118402497959018315224423868693918493033078310647199219674433536605771315869983788442389633
             sage: numerical_approx(gamma(9, 10^(-3)) - gamma(9), digits=40)  # abs tol 1e-36
@@ -1310,7 +1310,7 @@ def gamma(a, *args, **kwds):
     input. Convert the input to a higher precision explicitly if a result
     with higher precision is desired.::
 
-        sage: t = gamma(RealField(100)(2.5)); t
+        sage: t = gamma(RealFloatingPointField(100)(2.5)); t
         1.3293403881791370204736256125
         sage: t.prec()
         100
@@ -1380,7 +1380,7 @@ class Function_psi1(GinacFunction):
 
             sage: psi(.5)
             -1.96351002602142
-            sage: psi(RealField(100)(.5))
+            sage: psi(RealFloatingPointField(100)(.5))
             -1.9635100260214234794409763330
 
         TESTS::
@@ -1733,7 +1733,7 @@ class Function_binomial(GinacFunction):
             184756
             sage: binomial(-2, 5)
             -6
-            sage: binomial(RealField()('2.5'), 2)
+            sage: binomial(RealFloatingPointField()('2.5'), 2)
             1.87500000000000
             sage: n=var('n'); binomial(n,2)
             1/2*(n - 1)*n
@@ -2041,7 +2041,7 @@ def _do_sqrt(x, prec=None, extend=True, all=False):
         """
         if prec:
             if x >= 0:
-                 return RealField(prec)(x).sqrt(all=all)
+                 return RealFloatingPointField(prec)(x).sqrt(all=all)
             else:
                  return ComplexField(prec)(x).sqrt(all=all)
         if x == -1:

@@ -7,7 +7,7 @@ Tests extracted from ./nonlinear.tex.
 
 Sage example in ./nonlinear.tex, line 61::
 
-    sage: R.<x> = PolynomialRing(RealField(prec=10))
+    sage: R.<x> = PolynomialRing(RealFloatingPointField(prec=10))
     sage: p = 2*x^7 - 21*x^6 + 64*x^5 - 67*x^4 + 90*x^3 \
     ....:  + 265*x^2 - 900*x + 375
     sage: p.roots()

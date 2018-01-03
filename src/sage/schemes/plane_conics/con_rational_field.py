@@ -27,7 +27,7 @@ from __future__ import absolute_import
 
 from sage.rings.all import (PolynomialRing, ZZ, QQ)
 
-from sage.rings.real_mpfr import is_RealField
+from sage.rings.real_mpfr import is_RealFloatingPointField
 
 from sage.structure.sequence import Sequence
 from sage.schemes.projective.projective_space import ProjectiveSpace
@@ -231,11 +231,11 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
             return True
         a = -abc[0]/abc[2]
         b = -abc[1]/abc[2]
-        if is_RealField(p) or is_InfinityElement(p):
+        if is_RealFloatingPointField(p) or is_InfinityElement(p):
             p = -1
         elif isinstance(p, Map) and p.category_for().is_subcategory(Rings()):
             # p is a morphism of Rings
-            if p.domain() is QQ and is_RealField(p.codomain()):
+            if p.domain() is QQ and is_RealFloatingPointField(p.codomain()):
                 p = -1
             else:
                 raise TypeError("p (=%s) needs to be a prime of base field " \

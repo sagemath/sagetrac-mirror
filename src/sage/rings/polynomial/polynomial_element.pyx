@@ -50,7 +50,7 @@ TESTS::
 from __future__ import absolute_import
 from __future__ import print_function
 
-cdef is_FractionField, is_RealField, is_ComplexField
+cdef is_FractionField, is_RealFloatingPointField, is_ComplexField
 cdef ZZ, QQ, RR, CC, RDF, CDF
 
 cimport cython
@@ -79,7 +79,7 @@ from sage.structure.richcmp cimport (richcmp, richcmp_not_equal,
 from sage.interfaces.singular import singular as singular_default, is_SingularElement
 from sage.libs.all import pari, pari_gen, PariError
 
-from sage.rings.real_mpfr import RealField, is_RealField, RR
+from sage.rings.real_mpfr import RealFloatingPointField, is_RealFloatingPointField, RR
 
 from sage.rings.complex_field import is_ComplexField, ComplexField
 CC = ComplexField()
@@ -3743,7 +3743,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Arbitrary precision real and complex factorization::
 
-            sage: R.<x> = RealField(100)[]
+            sage: R.<x> = RealFloatingPointField(100)[]
             sage: F = factor(x^2-3); F
             (x - 1.7320508075688772935274463415) * (x + 1.7320508075688772935274463415)
             sage: expand(F)
@@ -5613,7 +5613,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: x = PolynomialRing(RealField(), 'x').gen()
+            sage: x = PolynomialRing(RealFloatingPointField(), 'x').gen()
             sage: f = x^2 - 2
             sage: f.newton_raphson(4, 1)
             [1.50000000000000, 1.41666666666667, 1.41421568627451, 1.41421356237469]
@@ -6926,7 +6926,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(1.25992104989487, 1)]
             sage: f.factor()
             (x - 1.25992104989487) * (x^2 + 1.25992104989487*x + 1.58740105196820)
-            sage: x = RealField(100)['x'].0
+            sage: x = RealFloatingPointField(100)['x'].0
             sage: f = x^3 -2
             sage: f.roots()
             [(1.2599210498948731647672106073, 1)]
@@ -7135,7 +7135,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Note that one should not use NumPy when wanting high precision
         output as it does not support any of the high precision types::
 
-            sage: R.<x> = RealField(200)[]
+            sage: R.<x> = RealFloatingPointField(200)[]
             sage: f = x^2 - R(pi)
             sage: f.roots()
             [(-1.7724538509055160272981674833411451827975494561223871282138, 1), (1.7724538509055160272981674833411451827975494561223871282138, 1)]
@@ -7156,7 +7156,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         ::
 
-            sage: rflds = (RR, RDF, RealField(100))
+            sage: rflds = (RR, RDF, RealFloatingPointField(100))
             sage: cflds = (CC, CDF, ComplexField(100))
             sage: def cross(a, b):
             ....:     return list(cartesian_product_iterator([a, b]))
@@ -7236,7 +7236,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Algorithms used:
 
-        For brevity, we will use RR to mean any RealField of any precision;
+        For brevity, we will use RR to mean any RealFloatingPointField of any precision;
         similarly for RIF, CC, and CIF. Since Sage has no specific
         implementation of Gaussian rationals (or of number fields with
         embedding, at all), when we refer to Gaussian rationals below we
@@ -7414,11 +7414,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         late_import()
 
-        input_fp = (is_RealField(K)
+        input_fp = (is_RealFloatingPointField(K)
                     or is_ComplexField(K)
                     or is_RealDoubleField(K)
                     or is_ComplexDoubleField(K))
-        output_fp = (is_RealField(L)
+        output_fp = (is_RealFloatingPointField(L)
                      or is_ComplexField(L)
                      or is_RealDoubleField(L)
                      or is_ComplexDoubleField(L))
@@ -7445,7 +7445,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             # We should support GSL, too.  We could also support PARI's
             # old Newton-iteration algorithm.
 
-            input_arbprec = (is_RealField(K) or
+            input_arbprec = (is_RealFloatingPointField(K) or
                              is_ComplexField(K))
 
             if algorithm == 'numpy' or algorithm == 'either':
@@ -7585,7 +7585,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 if is_ComplexDoubleField(L):
                     real_field = RDF
                 else:
-                    real_field = RealField(L.prec())
+                    real_field = RealFloatingPointField(L.prec())
 
                 return self.change_ring(real_field).roots(ring=L, multiplicities=multiplicities, algorithm=algorithm)
             elif is_pAdicRing(L) or is_pAdicField(L):
@@ -7671,7 +7671,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         TESTS::
 
-            sage: x = polygen(RealField(100))
+            sage: x = polygen(RealFloatingPointField(100))
             sage: (x^2 - x - 1).real_roots()[0].parent()
                 Real Field with 100 bits of precision
             sage: x = polygen(RDF)
@@ -7683,7 +7683,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
         """
         K = self.base_ring()
-        if is_RealField(K) or is_RealDoubleField(K):
+        if is_RealFloatingPointField(K) or is_RealDoubleField(K):
             return self.roots(multiplicities=False)
 
         return self.roots(ring=RR, multiplicities=False)
@@ -7711,7 +7711,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x = polygen(RDF)
             sage: (x^3 - 1).complex_roots()[0].parent()
             Complex Double Field
-            sage: x = polygen(RealField(200))
+            sage: x = polygen(RealFloatingPointField(200))
             sage: (x^3 - 1).complex_roots()[0].parent()
             Complex Field with 200 bits of precision
             sage: x = polygen(CDF)
@@ -7725,7 +7725,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
         """
         K = self.base_ring()
-        if is_RealField(K):
+        if is_RealFloatingPointField(K):
             return self.roots(ring=ComplexField(K.prec()), multiplicities=False)
         if is_RealDoubleField(K):
             return self.roots(ring=CDF, multiplicities=False)

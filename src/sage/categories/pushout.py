@@ -2381,8 +2381,8 @@ class CompletionFunctor(ConstructionFunctor):
             sage: RR.construction()            # indirect doctest
             (Completion[+Infinity, prec=53], Rational Field)
 
-            sage: from sage.rings.real_field import RealField
-            sage: RealField().construction()   # indirect doctest
+            sage: from sage.rings.real_field import RealFloatingPointField
+            sage: RealFloatingPointField().construction()   # indirect doctest
             (Completion[+Infinity, prec=+Infinity], Rational Field)
         """
         return 'Completion[%s, prec=%s]' % (self.p, self.prec)
@@ -2492,8 +2492,8 @@ class CompletionFunctor(ConstructionFunctor):
             sage: R2 = Qp(5,prec=40)
             sage: R2(1)+a         # indirect doctest
             (1 + O(5^20))*a + (1 + O(5^40))
-            sage: R3 = RealField(30)
-            sage: R4 = RealField(50)
+            sage: R3 = RealFloatingPointField(30)
+            sage: R4 = RealFloatingPointField(50)
             sage: R3(1) + R4(1)   # indirect doctest
             2.0000000
             sage: (R3(1) + R4(1)).parent()
@@ -2520,12 +2520,12 @@ class CompletionFunctor(ConstructionFunctor):
             sage: R3 = RealIntervalField(53, sci_not = True)
             sage: R4 = RealIntervalField(90)
             sage: R5 = RealIntervalField(90, sci_not = True)
-            sage: R6 = RealField(30)
-            sage: R7 = RealField(30, sci_not=True)
-            sage: R8 = RealField(53, rnd = 'RNDD')
-            sage: R9 = RealField(53, sci_not = True, rnd = 'RNDZ')
-            sage: R10 = RealField(53, sci_not = True)
-            sage: R11 = RealField(90, sci_not = True, rnd = 'RNDZ')
+            sage: R6 = RealFloatingPointField(30)
+            sage: R7 = RealFloatingPointField(30, sci_not=True)
+            sage: R8 = RealFloatingPointField(53, rnd = 'RNDD')
+            sage: R9 = RealFloatingPointField(53, sci_not = True, rnd = 'RNDZ')
+            sage: R10 = RealFloatingPointField(53, sci_not = True)
+            sage: R11 = RealFloatingPointField(90, sci_not = True, rnd = 'RNDZ')
             sage: Rlist = [R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11]
             sage: from sage.categories.pushout import pushout
             sage: pushouts = [R0,R0,R0,R1,R0,R1,R0,R1,R0,R1,R1,R1,R1,R1,R1,R1,R1,R1,R1,R1,R1,R1,R1,R1,R0,R1,R2,R2,R2,R3,R0,R1,R2,R3,R3,R3,R1,R1,R3,R3,R3,R3,R1,R1,R3,R3,R3,R3,R0,R1,R2,R3,R4,R4,R0,R1,R2,R3,R3,R5,R1,R1,R3,R3,R5,R5,R1,R1,R3,R3,R3,R5,R0,R1,R0,R1,R0,R1,R6,R6,R6,R7,R7,R7,R1,R1,R1,R1,R1,R1,R7,R7,R7,R7,R7,R7,R0,R1,R2,R3,R2,R3,R6,R7,R8,R9,R10,R9,R1,R1,R3,R3,R3,R3,R7,R7,R9,R9,R10,R9,R1,R1,R3,R3,R3,R3,R7,R7,R10,R10,R10,R10,R1,R1,R3,R3,R5,R5,R7,R7,R9,R9,R10,R11]

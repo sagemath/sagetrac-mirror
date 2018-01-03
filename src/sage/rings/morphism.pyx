@@ -66,7 +66,7 @@ Homomorphism from one precision of field to another.
 
 From smaller to bigger doesn't make sense::
 
-    sage: R200 = RealField(200)
+    sage: R200 = RealFloatingPointField(200)
     sage: f = RR.hom( R200 )
     Traceback (most recent call last):
     ...
@@ -74,7 +74,7 @@ From smaller to bigger doesn't make sense::
 
 From bigger to small does::
 
-    sage: f = RR.hom( RealField(15) )
+    sage: f = RR.hom( RealFloatingPointField(15) )
     sage: f(2.5)
     2.500
     sage: f(RR.pi())

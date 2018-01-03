@@ -126,7 +126,7 @@ from sage.rings.padics.factory import Qp
 from sage.rings.padics.precision_error import PrecisionError
 
 import sage.rings.all as rings
-from sage.rings.real_mpfr import is_RealField
+from sage.rings.real_mpfr import is_RealFloatingPointField
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.groups.additive_abelian.additive_abelian_wrapper import AdditiveAbelianGroupWrapper
@@ -2176,7 +2176,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         e = embedding
         # It is also trivially true if we have a complex embedding
         if not e is None:
-            if not is_RealField(e.codomain()):
+            if not is_RealFloatingPointField(e.codomain()):
                 return True
 
         # find a suitable embedding if none was supplied:
@@ -2184,12 +2184,12 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         K = E.base_field()
         if e is None:
             try:
-                e = K.embeddings(rings.RealField())[0]
+                e = K.embeddings(rings.RealFloatingPointField())[0]
             except IndexError:
                 e = K.embeddings(rings.ComplexField())[0]
 
         # If there is only one component, the result is True:
-        if not is_RealField(e.codomain()):  # complex embedding
+        if not is_RealFloatingPointField(e.codomain()):  # complex embedding
             return True
         if e(E.discriminant()) < 0:  # only one component
             return True
@@ -2613,14 +2613,14 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         K = E.base_ring()
 
         if precision is None:
-            precision = rings.RealField().precision()
+            precision = rings.RealFloatingPointField().precision()
 
         known_prec = -1
         try:
             height = self.__height
             known_prec = height.prec()
             if known_prec > precision:
-                height = rings.RealField(precision)(height)
+                height = rings.RealFloatingPointField(precision)(height)
         except AttributeError:
             pass
 
@@ -2630,7 +2630,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 iso = E.isomorphism_to(Emin)
                 P = iso(self)
                 h = Emin.pari_curve().ellheight(P, precision=precision)
-                height = rings.RealField(precision)(h)
+                height = rings.RealFloatingPointField(precision)(h)
             else:
                 height = (self.non_archimedean_local_height(prec=precision)
                             + self.archimedean_local_height(prec=precision))
@@ -2757,7 +2757,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         if prec is None:
             prec = prec_v
         if K is rings.QQ:
-            vv = K.embeddings(rings.RealField(max(2*prec, prec_v)))[0]
+            vv = K.embeddings(rings.RealFloatingPointField(max(2*prec, prec_v)))[0]
         else:
             vv = refine_embedding(v, 2*prec)  # vv.prec() = max(2*prec, prec_v)
 
@@ -2821,7 +2821,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                     t = w/(z-w)
                     beta = not beta
             four_to_n >>= 2
-        h = rings.RealField(prec)(lam + mu/4)
+        h = rings.RealFloatingPointField(prec)(lam + mu/4)
         if weighted and not v.im_gens()[0] in rings.RR:
             h *= 2
         return h
@@ -2932,7 +2932,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             -2/3*log(2)
         """
         if prec:
-            log = lambda x: rings.RealField(prec)(x).log()
+            log = lambda x: rings.RealFloatingPointField(prec)(x).log()
         else:
             from sage.functions.log import log
 
@@ -3138,7 +3138,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         """
         from sage.rings.number_field.number_field import refine_embedding
-        from sage.rings.all import RealField, ComplexField, QQ
+        from sage.rings.all import RealFloatingPointField, ComplexField, QQ
 
         # Check the trivial case:
 
@@ -3154,7 +3154,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         emb = embedding
 
         if emb is None:
-            emb = K.embeddings(RealField(precision))
+            emb = K.embeddings(RealFloatingPointField(precision))
             if len(emb) > 0:
                 emb = emb[0]
             else:
@@ -3168,14 +3168,14 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         L = E.period_lattice(emb)
 
-        if algorithm == 'sage' or not is_RealField(emb.codomain):
+        if algorithm == 'sage' or not is_RealFloatingPointField(emb.codomain):
             return L.elliptic_logarithm(self, precision)
 
         if algorithm != 'pari':
             raise ValueError("algorithm must be either 'pari' or 'sage'")
 
         # From now on emb() is a real embedding of K into
-        # RealField(precision).  We interface with the PARI library.
+        # RealFloatingPointField(precision).  We interface with the PARI library.
 
         x, y = self.xy()
         if rational:        # work with exact coordinates

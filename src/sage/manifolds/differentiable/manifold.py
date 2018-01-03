@@ -477,7 +477,7 @@ class DifferentiableManifold(TopologicalManifold):
     - ``field`` -- field `K` on which the manifold is
       defined; allowed values are
 
-      - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
+      - ``'real'`` or an object of type ``RealFloatingPointField`` (e.g., ``RR``) for
         a manifold over `\RR`
       - ``'complex'`` or an object of type ``ComplexField`` (e.g., ``CC``)
         for a manifold over `\CC`

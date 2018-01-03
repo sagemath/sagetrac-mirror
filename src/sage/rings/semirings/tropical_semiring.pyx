@@ -560,7 +560,7 @@ class TropicalSemiring(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: TR = TropicalSemiring(RR)
-            sage: T60 = TropicalSemiring(RealField(60))
+            sage: T60 = TropicalSemiring(RealFloatingPointField(60))
             sage: TR.has_coerce_map_from(T60)
             True
             sage: TQ = TropicalSemiring(QQ)

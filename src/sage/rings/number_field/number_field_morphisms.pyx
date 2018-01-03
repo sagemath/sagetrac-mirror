@@ -28,7 +28,7 @@ from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 from sage.categories.pushout import pushout
 
-from sage.rings.real_mpfr import RealField, mpfr_prec_min
+from sage.rings.real_mpfr import RealFloatingPointField, mpfr_prec_min
 from sage.rings.complex_field import ComplexField
 from sage.rings.real_lazy import RLF, CLF, LazyField, LazyAlgebraic
 
@@ -49,7 +49,7 @@ cdef class NumberFieldEmbedding(Morphism):
             sage: f = NumberFieldEmbedding(K, RLF, 1)
             sage: f(a)^3
             2.00000000000000?
-            sage: RealField(200)(f(a)^3)
+            sage: RealFloatingPointField(200)(f(a)^3)
             2.0000000000000000000000000000000000000000000000000000000000
 
             sage: sigma_a = K.polynomial().change_ring(CC).roots()[1][0]; sigma_a
@@ -488,7 +488,7 @@ def root_from_approx(f, a):
     P = a.parent()
     if P.is_exact() and not f(a):
         return a
-    elif RealField(mpfr_prec_min()).has_coerce_map_from(P):
+    elif RealFloatingPointField(mpfr_prec_min()).has_coerce_map_from(P):
         return LazyAlgebraic(RLF, f, a, prec=0)
     elif ComplexField(mpfr_prec_min()).has_coerce_map_from(P):
         return LazyAlgebraic(CLF, f, a, prec=0)
