@@ -34,6 +34,8 @@ sage: crystals.Tableaux(['A',[1,1]],shape=[5,1,1]).cardinality()
 92
 """
 
+from sage.misc.lazy_attribute import lazy_attribute
+
 class SuperWeylCharacterRing(WeylCharacterRing):
     """
     Character Ring for gl(m|n)
@@ -56,9 +58,12 @@ class SuperWeylCharacterRing(WeylCharacterRing):
         self.rho = self.rho0-self.rho1
         self.g0 = WeightRing(self)
         g0 = self.g0
-        self.l1 = prod(g0.one()+g0(-a) for a in self.odd_positive_roots)
-        self.L1 = self(self.l1)
     
+    @lazy_attribute
+    def L1(self):
+        l1 = self(prod(self.g0.one()+self.g0(-a) for a in self.odd_positive_roots))
+        return l1
+
     def KacCharacter(self, lam):
         return self(lam)*self.L1
 
