@@ -190,7 +190,7 @@ class RRInterpreter(StackInterpreter):
 
         self.pxd_header = ri(0,
             """
-            from sage.rings.real_mpfr cimport RealField_class, RealNumber
+            from sage.rings.real_mpfr cimport RealFloatingPointField_class, RealNumber
             from sage.libs.mpfr cimport *
 
             """)
