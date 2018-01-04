@@ -69,7 +69,10 @@ class SuperWeylCharacterRing(WeylCharacterRing):
 
     def inner_product(self, lam, mu):
         [m,n] = [self.m, self.n]
-        return sum(lam[i]*mu[i] for i in [0..m-1])-sum(lam[i]*mu[i] for i in [m,m+n-1])
+        return sum(lam[i]*mu[i] for i in [0..m-1])-sum(lam[i]*mu[i] for i in [m..m+n-1])
+
+    def odd_root(self, i, j):
+        return self._space(self.delt[i]-self.epsi[j])
 
     def atypical_roots(self, lam):
         lam = self._space(lam)
