@@ -46,7 +46,7 @@ from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
-from sage.rings.real_mpfr import RealField,is_RealField
+from sage.rings.real_mpfr import create_RealFloatingPointField as RealFloatingPointField,is_RealFloatingPointField
 from sage.arith.all import gcd, lcm, is_prime, binomial
 from sage.functions.other import ceil
 
@@ -769,7 +769,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         N = kwds.get('N', 10)                     #Get number of iterates (if entered)
         err = kwds.get('error_bound', None)         #Get error bound (if entered)
         prec = kwds.get('prec', 100)                #Get precision (if entered)
-        R = RealField(prec)
+        R = RealFloatingPointField(prec)
         localht = R(0)
         BR = FractionField(self.codomain().base_ring())
         GBR = G.change_ring(BR) #so the heights work
@@ -974,7 +974,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             x_i = self[0]
             y_i = self[1]
             d = F.degree()
-            R = RealField(prec)
+            R = RealFloatingPointField(prec)
             N = kwds.get('N', 10)
             err = kwds.get('error_bound', None)
             #computes the error bound as defined in Algorithm 3.1 of [WELLS]
@@ -1035,7 +1035,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         num_places = len(emb) + len(bad_primes)
         if not error_bound is None:
             error_bound /= num_places
-        R = RealField(prec)
+        R = RealFloatingPointField(prec)
         h = R(0)
 
         ##update the keyword dictionary for use in green_function
@@ -1044,10 +1044,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         # Archimedean local heights
         # :: WARNING: If places is fed the default Sage precision of 53 bits,
-        # it uses Real or Complex Double Field in place of RealField(prec) or ComplexField(prec)
-        # the function is_RealField does not identify RDF as real, so we test for that ourselves.
+        # it uses Real or Complex Double Field in place of RealFloatingPointField(prec) or ComplexField(prec)
+        # the function is_RealFloatingPointField does not identify RDF as real, so we test for that ourselves.
         for v in emb:
-            if is_RealField(v.codomain()) or v.codomain() is RDF:
+            if is_RealFloatingPointField(v.codomain()) or v.codomain() is RDF:
                 dv = R(1)
             else:
                 dv = R(2)
@@ -1069,7 +1069,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         INPUT:
 
         - ``prec`` -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         OUTPUT:
 
@@ -1122,7 +1122,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         - ``v`` -- a prime or prime ideal of the base ring.
 
         - ``prec`` -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         OUTPUT:
 
@@ -1156,7 +1156,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         - ``i`` -- an integer.
 
         - ``prec`` -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         OUTPUT:
 

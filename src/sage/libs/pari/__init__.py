@@ -26,7 +26,7 @@ up to the nearest multiple of the wordsize::
 
 With a higher precision::
 
-    sage: x = RealField(100).pi()
+    sage: x = RealFloatingPointField(100).pi()
     sage: x.precision()
     100
     sage: pari(x).bitprecision()
@@ -34,12 +34,12 @@ With a higher precision::
 
 When converting back to Sage, the precision from PARI is taken::
 
-    sage: x = RealField(100).pi()
+    sage: x = RealFloatingPointField(100).pi()
     sage: y = pari(x).sage()
     sage: y
     3.1415926535897932384626433832793333156
     sage: parent(y)
-    Real Field with 128 bits of precision
+    Real Floating Point Field with 128 bits of precision
 
 So ``pari(x).sage()`` is definitely not equal to ``x`` since it has
 28 bogus bits.
@@ -51,7 +51,7 @@ to be done by the user (or by Sage functions that use PARI library
 functions). For instance, if we want to use the PARI library to compute
 ``sqrt(pi)`` with a precision of 100 bits::
 
-    sage: R = RealField(100)
+    sage: R = RealFloatingPointField(100)
     sage: s = R(pi); s
     3.1415926535897932384626433833
     sage: p = pari(s).sqrt()
@@ -59,7 +59,7 @@ functions). For instance, if we want to use the PARI library to compute
     1.7724538509055160272981674833410973484
     sage: x.prec()           # has precision 'improved' from 100 to 128?
     128
-    sage: x == RealField(128)(pi).sqrt()  # sadly, no!
+    sage: x == RealFloatingPointField(128)(pi).sqrt()  # sadly, no!
     False
     sage: R(x)               # x should be brought back to precision 100
     1.7724538509055160272981674833
@@ -78,7 +78,7 @@ real can be set using the methods
 We create a very precise approximation of pi and see how it is printed
 in PARI::
 
-    sage: pi = pari(RealField(1000).pi())
+    sage: pi = pari(RealFloatingPointField(1000).pi())
 
 The default precision is 15 digits::
 
@@ -135,13 +135,13 @@ wordsize. ::
 
     sage: s = pari(1).sin(precision=180).sage(); print(s); print(parent(s))
     0.841470984807896506652502321630298999622563060798371065673
-    Real Field with 192 bits of precision
+    Real Floating Point Field with 192 bits of precision
     sage: s = pari(1).sin(precision=40).sage(); print(s); print(parent(s))
     0.841470984807896507
-    Real Field with 64 bits of precision
+    Real Floating Point Field with 64 bits of precision
     sage: s = pari(1).sin().sage(); print(s); print(parent(s))
     0.841470984807896507
-    Real Field with 64 bits of precision
+    Real Floating Point Field with 64 bits of precision
 
 In the third case, the precision is determined only by the inexact
 inputs and the ``precision`` argument is ignored::
@@ -150,7 +150,7 @@ inputs and the ``precision`` argument is ignored::
     0.841470984807896507
     sage: pari(1.0).sin(precision=40).sage()
     0.841470984807896507
-    sage: pari(RealField(100).one()).sin().sage()
+    sage: pari(RealFloatingPointField(100).one()).sin().sage()
     0.84147098480789650665250232163029899962
 
 Elliptic curve functions

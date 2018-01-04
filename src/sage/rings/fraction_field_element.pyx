@@ -167,7 +167,7 @@ cdef class FractionFieldElement(FieldElement):
 
         EXAMPLES::
 
-            sage: R.<x> = RealField(10)[]
+            sage: R.<x> = RealFloatingPointField(10)[]
             sage: f = (x^2+2*x+1)/(x+1); f
             (x^2 + 2.0*x + 1.0)/(x + 1.0)
             sage: f.reduce(); f

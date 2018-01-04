@@ -18,7 +18,8 @@ functions.
 from sage.structure.parent_base import ParentWithBase
 from sage.functions.log import log
 from sage.functions.all import sqrt
-from sage.rings.real_mpfr import (RealField, is_RealField)
+from sage.rings.real_mpfr import (is_RealFloatingPointField,
+                create_RealFloatingPointField as RealFloatingPointField)
 from sage.rings.rational_field import is_RationalField
 from sage.sets.set import Set
 
@@ -80,7 +81,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
         if check:
             raise NotImplementedError("Not implemented")
         if codomain is None:
-            RR = RealField()
+            RR = RealFloatingPointField()
         else:
             RR = codomain
         RandomVariable_generic.__init__(self, X, RR)
@@ -330,8 +331,8 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
             1.50000000000000
         """
         if codomain is None:
-            codomain = RealField()
-        if not is_RealField(codomain) and not is_RationalField(codomain):
+            codomain = RealFloatingPointField()
+        if not is_RealFloatingPointField(codomain) and not is_RationalField(codomain):
             raise TypeError("Argument codomain (= %s) must be the reals or rationals" % codomain)
         if check:
             one = sum([ P[x] for x in P.keys() ])

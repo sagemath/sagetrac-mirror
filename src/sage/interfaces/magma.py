@@ -2011,10 +2011,10 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
 
         Real and complex numbers::
 
-            sage: m = magma(RealField(200)(1/3))     # optional - magma
+            sage: m = magma(RealFloatingPointField(200)(1/3))     # optional - magma
             sage: m.sage()         # indirect doctest, optional - magma
             0.33333333333333333333333333333333333333333333333333333333333
-            sage: m = magma(RealField(1000)(1/3))    # optional - magma
+            sage: m = magma(RealFloatingPointField(1000)(1/3))    # optional - magma
             sage: m.sage()         # indirect doctest, optional - magma
             0.333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333
 

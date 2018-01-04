@@ -12,7 +12,8 @@ from copy import deepcopy
 from sage.quadratic_forms.extras import extend_to_primitive
 from sage.quadratic_forms.quadratic_form import QuadraticForm__constructor, is_QuadraticForm
 
-from sage.rings.real_mpfr import RealField_class, RealField
+from sage.rings.real_mpfr import (RealFloatingPointField_class,
+               create_RealFloatingPointField as RealFloatingPointField)
 from sage.rings.real_double import RDF
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
@@ -86,12 +87,12 @@ def cholesky_decomposition(self, bit_prec = 53):
     """
 
     ## Check that the precision passed is allowed.
-    if isinstance(self.base_ring(), RealField_class) and (self.base_ring().prec() < bit_prec):
+    if isinstance(self.base_ring(), RealFloatingPointField_class) and (self.base_ring().prec() < bit_prec):
         raise RuntimeError("Oops! The precision requested is greater than that of the given quadratic form!")
 
     ## 1. Initialization
     n = self.dim()
-    R = RealField(bit_prec)
+    R = RealFloatingPointField(bit_prec)
     MS = MatrixSpace(R, n, n)
     Q = MS(R(0.5)) * MS(self.matrix())               ## Initialize the real symmetric matrix A with the matrix for Q(x) = x^t * A * x
 

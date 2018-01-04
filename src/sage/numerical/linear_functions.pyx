@@ -716,8 +716,8 @@ cdef class LinearFunctionsParent_class(Parent):
         if R in [int, float, long, complex]:
             return True
         from sage.rings.real_mpfr import mpfr_prec_min
-        from sage.rings.all import RealField
-        if RealField(mpfr_prec_min()).has_coerce_map_from(R):
+        from sage.rings.all import RealFloatingPointField
+        if RealFloatingPointField(mpfr_prec_min()).has_coerce_map_from(R):
             return True
         return False
 

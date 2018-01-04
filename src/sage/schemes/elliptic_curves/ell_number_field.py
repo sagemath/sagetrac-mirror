@@ -90,7 +90,7 @@ from .ell_field import EllipticCurve_field
 from .ell_generic import is_EllipticCurve
 from .ell_point import EllipticCurvePoint_number_field
 from .constructor import EllipticCurve
-from sage.rings.all import PolynomialRing, ZZ, QQ, RealField, Integer
+from sage.rings.all import PolynomialRing, ZZ, QQ, RealFloatingPointField, Integer
 from sage.misc.all import cached_method, verbose, prod, union, flatten
 from six import reraise as raise_
 
@@ -532,7 +532,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
           used.
 
         - precision -- number of bits of precision of result
-          (default: None, for default RealField precision)
+          (default: None, for default RealFloatingPointField precision)
 
         EXAMPLES::
 
@@ -586,9 +586,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         r = len(points)
         if precision is None:
-            RR = RealField()
+            RR = RealFloatingPointField()
         else:
-            RR = RealField(precision)
+            RR = RealFloatingPointField(precision)
         from sage.matrix.all import MatrixSpace
         M = MatrixSpace(RR, r)
         mat = M()
@@ -3228,7 +3228,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
           the points, or ``None``. If ``None``, it will be computed.
 
         - ``precision`` - number of bits of precision of intermediate
-          computations (default: ``None``, for default RealField
+          computations (default: ``None``, for default RealFloatingPointField
           precision; ignored if ``height_matrix`` is supplied)
 
         OUTPUT: A tuple (newpoints, U) where U is a unimodular integer
@@ -3693,7 +3693,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         index = ZZ(1)
 
         if n == 0:
-            return Plist, index, RealField()(1)
+            return Plist, index, RealFloatingPointField()(1)
 
 
         # compute the list of primes p at which p-saturation is

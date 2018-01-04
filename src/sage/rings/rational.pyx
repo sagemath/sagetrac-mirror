@@ -1099,7 +1099,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         -  ``p`` -- a prime number
 
         - ``prec`` (int) -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         OUTPUT:
 
@@ -1116,11 +1116,11 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: a.local_height(5)
             0.000000000000000
         """
-        from sage.rings.real_mpfr import RealField
+        from sage.rings.real_mpfr import create_RealFloatingPointField as RealFloatingPointField
         if prec is None:
-            R = RealField()
+            R = RealFloatingPointField()
         else:
-            R = RealField(prec)
+            R = RealFloatingPointField(prec)
         if self.is_zero():
             return R.zero()
         val = self.valuation(p)
@@ -1136,7 +1136,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         INPUT:
 
         - ``prec`` (int) -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         OUTPUT:
 
@@ -1154,11 +1154,11 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (1/a).local_height_arch(100)
             1.4271163556401457483890413081
         """
-        from sage.rings.real_mpfr import RealField
+        from sage.rings.real_mpfr import create_RealFloatingPointField as RealFloatingPointField
         if prec is None:
-            R = RealField()
+            R = RealFloatingPointField()
         else:
-            R = RealField(prec)
+            R = RealFloatingPointField(prec)
         a = self.abs()
         if a <= 1:
             return R.zero()
@@ -1172,7 +1172,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         INPUT:
 
         - ``prec`` (int) -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         OUTPUT:
 
@@ -1197,11 +1197,11 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: sum([a.local_height(p) for p in a.support()])
             1.79175946922805
         """
-        from sage.rings.real_mpfr import RealField
+        from sage.rings.real_mpfr import create_RealFloatingPointField as RealFloatingPointField
         if prec is None:
-            R = RealField()
+            R = RealFloatingPointField()
         else:
-            R = RealField(prec)
+            R = RealFloatingPointField(prec)
         d = self.denominator()
         if d.is_one():
             return R.zero()
@@ -1215,7 +1215,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         INPUT:
 
         - ``prec`` (int) -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         OUTPUT:
 
@@ -1247,7 +1247,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         INPUT:
 
         - ``prec`` (int) -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         OUTPUT:
 
@@ -1274,11 +1274,11 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: QQ(1).global_height()
             0.000000000000000
         """
-        from sage.rings.real_mpfr import RealField
+        from sage.rings.real_mpfr import create_RealFloatingPointField as RealFloatingPointField
         if prec is None:
-            R = RealField()
+            R = RealFloatingPointField()
         else:
-            R = RealField(prec)
+            R = RealFloatingPointField(prec)
         return R(max(self.numerator().abs(),self.denominator())).log()
 
     def is_square(self):
@@ -1911,7 +1911,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: x = 333/106
             sage: x.period()
             13
-            sage: RealField(200)(x)
+            sage: RealFloatingPointField(200)(x)
             3.1415094339622641509433962264150943396226415094339622641509
         """
         cdef unsigned int alpha, beta
@@ -3066,7 +3066,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         When ``prec`` is not given, the log as an element in symbolic
         ring unless the logarithm is exact. Otherwise the log is a
-        :class:`RealField` approximation to ``prec`` bit precision.
+        :class:`RealFloatingPointField` approximation to ``prec`` bit precision.
 
         EXAMPLES::
 
@@ -3109,10 +3109,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         if m <= 0 and m is not None:
             raise ValueError("log base must be positive")
         if prec:
-            from sage.rings.real_mpfr import RealField
+            from sage.rings.real_mpfr import create_RealFloatingPointField as RealFloatingPointField
             if m is None:
-                return RealField(prec)(self).log()
-            return RealField(prec)(self).log(m)
+                return RealFloatingPointField(prec)(self).log()
+            return RealFloatingPointField(prec)(self).log(m)
 
         from sage.functions.log import function_log
         if m is None:

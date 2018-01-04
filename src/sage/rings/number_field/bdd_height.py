@@ -28,7 +28,7 @@ from six.moves import range
 
 from copy import copy
 from itertools import product
-from sage.rings.real_mpfr import RealField
+from sage.rings.real_mpfr import create_RealFloatingPointField as RealFloatingPointField
 from sage.rings.number_field.unit_group import UnitGroup
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import column_matrix
@@ -307,7 +307,7 @@ def integer_points_in_polytope(matrix, interval_radius):
 
         sage: from sage.rings.number_field.bdd_height import integer_points_in_polytope
         sage: m = matrix([[1, 2],[3, 4]])
-        sage: r = RealField()(1.3)
+        sage: r = RealFloatingPointField()(1.3)
         sage: integer_points_in_polytope(m,r)
         [(-3, -7), (-2, -5), (-2, -4), (-1, -3), (-1, -2), (-1, -1), (0, -1), (0, 0), (0, 1), (1, 1), (1, 2), (1, 3), (2, 4), (2, 5), (3, 7)]
 
@@ -446,7 +446,7 @@ def bdd_height(K, height_bound, precision=53, LLL=False):
         for zeta in roots_of_unity:
             yield zeta
         return
-    RF = RealField(precision)
+    RF = RealFloatingPointField(precision)
     embeddings = K.places(prec=precision)
     logB = RF(B).log()
 

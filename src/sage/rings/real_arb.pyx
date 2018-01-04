@@ -215,7 +215,8 @@ from sage.rings.ring cimport Field
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.real_double cimport RealDoubleElement
-from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
+from sage.rings.real_mpfr cimport (RealFloatingPointField_class, RealNumber,
+        create_RealFloatingPointField as RealFloatingPointField)
 
 import operator
 
@@ -1493,7 +1494,7 @@ cdef class RealBall(RingElement):
         else:
             raise ValueError("{} does not contain a unique rational number".format(self))
 
-    def _mpfr_(self, RealField_class field):
+    def _mpfr_(self, RealFloatingPointField_class field):
         """
         Convert this real ball to a real number.
 
@@ -1591,9 +1592,9 @@ cdef class RealBall(RingElement):
             sage: RealBallField(16)(1/3).mid()
             0.3333
             sage: RealBallField(16)(1/3).mid().parent()
-            Real Field with 16 bits of precision
+            Real Floating Point Field with 16 bits of precision
             sage: RealBallField(16)(RBF(1/3)).mid().parent()
-            Real Field with 53 bits of precision
+            Real Floating Point Field with 53 bits of precision
             sage: RBF('inf').mid()
             +infinity
 
@@ -1610,7 +1611,7 @@ cdef class RealBall(RingElement):
         cdef long mid_prec = max(arb_bits(self.value), prec(self))
         if mid_prec < MPFR_PREC_MIN:
             mid_prec = MPFR_PREC_MIN
-        cdef RealField_class mid_field = RealField(mid_prec)
+        cdef RealFloatingPointField_class mid_field = RealFloatingPointField(mid_prec)
         return self._mpfr_(mid_field)
 
     center = mid
@@ -1624,7 +1625,7 @@ cdef class RealBall(RingElement):
             sage: RBF(1/3).rad()
             5.5511151e-17
             sage: RBF(1/3).rad().parent()
-            Real Field with 30 bits of precision
+            Real Floating Point Field with 30 bits of precision
 
         .. SEEALSO:: :meth:`mid`, :meth:`rad_as_ball`, :meth:`diameter`
 
@@ -1637,7 +1638,7 @@ cdef class RealBall(RingElement):
         """
         # Should we return a real number with rounding towards +∞ (or away from
         # zero if/when implemented)?
-        cdef RealField_class rad_field = RealField(MAG_BITS)
+        cdef RealFloatingPointField_class rad_field = RealFloatingPointField(MAG_BITS)
         cdef RealNumber rad = RealNumber(rad_field, None)
         cdef arf_t tmp
         arf_init(tmp)
@@ -1658,7 +1659,7 @@ cdef class RealBall(RingElement):
             sage: RBF(1/3).diameter()
             1.1102230e-16
             sage: RBF(1/3).diameter().parent()
-            Real Field with 30 bits of precision
+            Real Floating Point Field with 30 bits of precision
             sage: RBF(RIF(1.02, 1.04)).diameter()
             0.020000000
 
@@ -1808,7 +1809,7 @@ cdef class RealBall(RingElement):
             sage: RBF(-1/3).upper()
             -0.333333333333333
             sage: RBF(-1/3).upper().parent()
-            Real Field with 53 bits of precision and rounding RNDU
+            Real Floating Point Field with 53 bits of precision and rounding RNDU
 
         .. SEEALSO::
 
@@ -1836,7 +1837,7 @@ cdef class RealBall(RingElement):
             sage: RBF(-1/3).lower()
             -0.333333333333334
             sage: RBF(-1/3).lower().parent()
-            Real Field with 53 bits of precision and rounding RNDD
+            Real Floating Point Field with 53 bits of precision and rounding RNDD
 
         .. SEEALSO:: :meth:`upper`, :meth:`endpoints`
         """

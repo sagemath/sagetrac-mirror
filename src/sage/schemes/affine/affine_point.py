@@ -33,7 +33,7 @@ from sage.categories.number_fields import NumberFields
 _NumberFields = NumberFields()
 from sage.rings.integer_ring import ZZ
 from sage.rings.number_field.order import is_NumberFieldOrder
-from sage.rings.real_mpfr import RealField
+from sage.rings.real_mpfr import create_RealFloatingPointField as RealFloatingPointField
 from sage.schemes.generic.morphism import (SchemeMorphism_point, SchemeMorphism, is_SchemeMorphism)
 from sage.structure.sequence import Sequence
 
@@ -185,7 +185,7 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
         INPUT:
 
         - ``prec`` -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         OUTPUT:
 
@@ -219,9 +219,9 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
         """
         if self.domain().base_ring() == ZZ:
             if prec is None:
-                R = RealField()
+                R = RealFloatingPointField()
             else:
-                R = RealField(prec)
+                R = RealFloatingPointField(prec)
             H = max([self[i].abs() for i in range(self.codomain().ambient_space().dimension_relative())])
             return(R(max(H,1)).log())
         if self.domain().base_ring() in _NumberFields or is_NumberFieldOrder(self.domain().base_ring()):

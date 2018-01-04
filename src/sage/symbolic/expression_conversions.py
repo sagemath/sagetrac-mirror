@@ -956,11 +956,11 @@ class AlgebraicConverter(Converter):
             sage: a.composition(exp(pi*I*RR(1), hold=True), exp)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Real Field with 53 bits of precision to Rational Field
+            TypeError: no canonical coercion from Real Floating Point Field with 53 bits of precision to Rational Field
             sage: a.composition(exp(pi*CC.gen(), hold=True), exp)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Real Field with 53 bits of precision to Rational Field
+            TypeError: no canonical coercion from Real Floating Point Field with 53 bits of precision to Rational Field
             sage: bool(sin(pi*RR("0.7000000000000002")) > 0)
             True
         """

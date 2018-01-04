@@ -105,7 +105,7 @@ class Bimodules(CategoryWithParameters):
         EXAMPLES::
 
             sage: Bimodules.an_instance()
-            Category of bimodules over Rational Field on the left and Real Field with 53 bits of precision on the right
+            Category of bimodules over Rational Field on the left and Real Floating Point Field with 53 bits of precision on the right
         """
         from sage.rings.all import QQ, RR
         return cls(QQ, RR)

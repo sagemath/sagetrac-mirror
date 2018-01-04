@@ -31,7 +31,8 @@ from sage.modules.free_module_element import vector
 from sage.rings.rational_field import QQ
 from sage.arith.misc import gcd
 from sage.rings.complex_interval_field import ComplexIntervalField
-from sage.rings.real_mpfr import RealField_class,RealField
+from sage.rings.real_mpfr import (create_RealFloatingPointField as
+                RealFloatingPointField, RealFloatingPointField_class)
 
 from .polydict cimport ETuple
 
@@ -2136,7 +2137,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
         #getting a numerical approximation of the roots of our polynomial
         CF = ComplexIntervalField(prec=prec) # keeps trac of our precision error
-        RF = RealField(prec=prec)
+        RF = RealFloatingPointField(prec=prec)
         R = self.parent()
         S = PolynomialRing(R.base_ring(),'z')
         phi = R.hom([S.gen(0), 1], S)# dehomogenization

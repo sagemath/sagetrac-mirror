@@ -96,8 +96,8 @@ from . import complex_number
 from .complex_field import ComplexField
 cdef CC = ComplexField()
 
-from .real_mpfr import RealField
-cdef RR = RealField()
+from .real_mpfr import create_RealFloatingPointField as RealFloatingPointField
+cdef RR = RealFloatingPointField()
 
 from .real_double cimport RealDoubleElement, double_repr, double_str
 from .real_double import RDF
@@ -394,11 +394,11 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             return FloatToCDF(S)
         from .rational_field import QQ
         from .real_lazy import RLF
-        from .real_mpfr import RR, RealField_class
+        from .real_mpfr import RR, RealFloatingPointField_class
         from .complex_field import ComplexField_class
         if S is ZZ or S is QQ or S is RDF or S is RLF:
             return FloatToCDF(S)
-        if isinstance(S, RealField_class):
+        if isinstance(S, RealFloatingPointField_class):
             if S.prec() >= 53:
                 return FloatToCDF(S)
             else:

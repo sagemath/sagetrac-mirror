@@ -225,7 +225,7 @@ from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_mo
 from sage.rings.rational cimport Rational
 from sage.rings.rational_field import RationalField
 from sage.rings.complex_field import is_ComplexField
-from sage.rings.real_mpfr import is_RealField
+from sage.rings.real_mpfr import is_RealFloatingPointField
 from sage.rings.integer_ring import is_IntegerRing, ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.integer import GCD_list
@@ -1413,7 +1413,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         base_ring = self.base_ring()
 
-        if is_RealField(base_ring):
+        if is_RealFloatingPointField(base_ring):
             # singular converts to bits from base_10 in mpr_complex.cc by:
             #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
             precision = base_ring.precision()

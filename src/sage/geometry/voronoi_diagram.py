@@ -16,7 +16,7 @@ Voronoi diagram of a finite list of points in `\RR^d`.
 from sage.structure.sage_object import SageObject
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.all import RDF, QQ, AA
-from sage.rings.real_mpfr import RealField_class
+from sage.rings.real_mpfr import RealFloatingPointField_class
 from sage.geometry.triangulation.point_configuration import PointConfiguration
 from sage.modules.all import vector
 from sage.plot.all import line, point, rainbow, plot
@@ -103,7 +103,7 @@ class VoronoiDiagram(SageObject):
             self._base_ring = QQ
         elif self._points.base_ring() in [RDF, AA]:
             self._base_ring = self._points.base_ring()
-        elif isinstance(self._points.base_ring(), RealField_class):
+        elif isinstance(self._points.base_ring(), RealFloatingPointField_class):
             self._base_ring = RDF
             self._points = PointConfiguration([[RDF(cor) for cor in poi]
                                                for poi in self._points])

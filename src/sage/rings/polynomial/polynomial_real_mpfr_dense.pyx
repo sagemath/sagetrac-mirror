@@ -30,7 +30,7 @@ from cpython cimport PyInt_AS_LONG, PyFloat_AS_DOUBLE
 
 from sage.structure.parent cimport Parent
 from .polynomial_element cimport Polynomial, _dict_to_list
-from sage.rings.real_mpfr cimport RealField_class, RealNumber
+from sage.rings.real_mpfr cimport RealFloatingPointField_class, RealNumber
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational
 
@@ -55,7 +55,7 @@ cdef class PolynomialRealDense(Polynomial):
 
     cdef Py_ssize_t _degree
     cdef mpfr_t* _coeffs
-    cdef RealField_class _base_ring
+    cdef RealFloatingPointField_class _base_ring
 
     def __cinit__(self):
         """
@@ -210,7 +210,7 @@ cdef class PolynomialRealDense(Polynomial):
 
         Test slices::
 
-            sage: R.<x> = RealField(10)[]
+            sage: R.<x> = RealFloatingPointField(10)[]
             sage: f = (x+1)^5; f
             x^5 + 5.0*x^4 + 10.*x^3 + 10.*x^2 + 5.0*x + 1.0
             sage: f[:3]
@@ -260,7 +260,7 @@ cdef class PolynomialRealDense(Polynomial):
         EXAMPLES::
 
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
-            sage: f = PolynomialRealDense(RealField(10)['x'], [1, 2, 4, 8])
+            sage: f = PolynomialRealDense(RealFloatingPointField(10)['x'], [1, 2, 4, 8])
             sage: f.truncate(3)
             4.0*x^2 + 2.0*x + 1.0
             sage: f.truncate(100)
@@ -288,7 +288,7 @@ cdef class PolynomialRealDense(Polynomial):
         EXAMPLES::
 
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
-            sage: f = PolynomialRealDense(RealField(10)['x'], [10^-k for k in range(10)])
+            sage: f = PolynomialRealDense(RealFloatingPointField(10)['x'], [10^-k for k in range(10)])
             sage: f
             1.0e-9*x^9 + 1.0e-8*x^8 + 1.0e-7*x^7 + 1.0e-6*x^6 + 0.000010*x^5 + 0.00010*x^4 + 0.0010*x^3 + 0.010*x^2 + 0.10*x + 1.0
             sage: f.truncate_abs(0.5e-6)
@@ -642,7 +642,7 @@ cdef class PolynomialRealDense(Polynomial):
             -3.00000000000000
             sage: f(2.0000000000000000000000000000000000000000000)
             2.00000000000000
-            sage: f(RealField(10)(2))
+            sage: f(RealFloatingPointField(10)(2))
             2.0
             sage: f(pi)
             1.00000000000000*pi^2 - 2.00000000000000
@@ -681,7 +681,7 @@ cdef class PolynomialRealDense(Polynomial):
         cdef RealNumber x = <RealNumber>xx
         cdef RealNumber res
 
-        if (<RealField_class>x._parent).__prec < self._base_ring.__prec:
+        if (<RealFloatingPointField_class>x._parent).__prec < self._base_ring.__prec:
             res = RealNumber(x._parent)
         else:
             res = RealNumber(self._base_ring)
@@ -715,15 +715,15 @@ cdef class PolynomialRealDense(Polynomial):
             sage: f = PolynomialRealDense(RR['x'], [-2, 0, 1.5])
             sage: f.change_ring(QQ)
             3/2*x^2 - 2
-            sage: f.change_ring(RealField(10))
+            sage: f.change_ring(RealFloatingPointField(10))
             1.5*x^2 - 2.0
-            sage: f.change_ring(RealField(100))
+            sage: f.change_ring(RealFloatingPointField(100))
             1.5000000000000000000000000000*x^2 - 2.0000000000000000000000000000
         """
         cdef Py_ssize_t i
         cdef mpfr_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense f
-        if isinstance(R, RealField_class):
+        if isinstance(R, RealFloatingPointField_class):
             f = PolynomialRealDense(R[self.variable_name()])
             f = f._new(self._degree)
             for i from 0 <= i <= self._degree:

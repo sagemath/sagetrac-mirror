@@ -313,9 +313,9 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: CC(1.579)._sage_input_(sib_np, True)
             {atomic:1.579}
             sage: ComplexField(150).zeta(37)._sage_input_(sib, True)
-            {call: {call: {atomic:ComplexField}({atomic:150})}({binop:+ {atomic:0.98561591034770846226477029397621845736859851519} {binop:* {call: {call: {atomic:RealField}({atomic:150})}({atomic:0.16900082032184907409303555538443060626072476297})} {atomic:I}}})}
+            {call: {call: {atomic:ComplexField}({atomic:150})}({binop:+ {atomic:0.98561591034770846226477029397621845736859851519} {binop:* {call: {call: {atomic:RealFloatingPointField}({atomic:150})}({atomic:0.16900082032184907409303555538443060626072476297})} {atomic:I}}})}
             sage: ComplexField(150).zeta(37)._sage_input_(sib_np, True)
-            {call: {call: {atomic:ComplexField}({atomic:150})}({binop:+ {call: {call: {atomic:RealField}({atomic:150})}({atomic:'0.98561591034770846226477029397621845736859851519'})} {binop:* {call: {call: {atomic:RealField}({atomic:150})}({atomic:'0.16900082032184907409303555538443060626072476297'})} {atomic:I}}})}
+            {call: {call: {atomic:ComplexField}({atomic:150})}({binop:+ {call: {call: {atomic:RealFloatingPointField}({atomic:150})}({atomic:'0.98561591034770846226477029397621845736859851519'})} {binop:* {call: {call: {atomic:RealFloatingPointField}({atomic:150})}({atomic:'0.16900082032184907409303555538443060626072476297'})} {atomic:I}}})}
         """
         if coerced and self.imag() == 0:
             return sib(self.real(), True)
@@ -900,7 +900,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: x = z.real(); x
             2.0000000000000000000000000000
             sage: x.parent()
-            Real Field with 100 bits of precision
+            Real Floating Point Field with 100 bits of precision
             sage: z.real_part()
             2.0000000000000000000000000000
         """
@@ -922,7 +922,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: x = z.imag(); x
             3.0000000000000000000000000000
             sage: x.parent()
-            Real Field with 100 bits of precision
+            Real Floating Point Field with 100 bits of precision
             sage: z.imag_part()
             3.0000000000000000000000000000
         """
@@ -2097,8 +2097,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         if base is None:
             return ComplexNumber(self._parent, rho.log(), theta)
         else:
-            from .real_mpfr import RealField
-            return ComplexNumber(self._parent, rho.log()/RealNumber(RealField(self.prec()),base).log(), theta/RealNumber(RealField(self.prec()),base).log())
+            from .real_mpfr import create_RealFloatingPointField as RealFloatingPointField
+            return ComplexNumber(self._parent, rho.log()/RealNumber(RealFloatingPointField(self.prec()),base).log(), theta/RealNumber(RealFloatingPointField(self.prec()),base).log())
 
     def additive_order(self):
         """
@@ -2515,7 +2515,7 @@ cdef class RRtoCC(Map):
             sage: from sage.rings.complex_number import RRtoCC
             sage: RRtoCC(RR, CC)
             Natural map:
-              From: Real Field with 53 bits of precision
+              From: Real Floating Point Field with 53 bits of precision
               To:   Complex Field with 53 bits of precision
         """
         Map.__init__(self, RR, CC)
@@ -2541,7 +2541,7 @@ cdef class RRtoCC(Map):
             sage: g = copy(f) # indirect doctest
             sage: g
             Natural map:
-              From: Real Field with 53 bits of precision
+              From: Real Floating Point Field with 53 bits of precision
               To:   Complex Field with 53 bits of precision
         """
         slots = Map._extra_slots(self)
@@ -2561,7 +2561,7 @@ cdef class RRtoCC(Map):
             sage: from sage.rings.complex_number import RRtoCC
             sage: RRtoCC(RR, CC)
             Natural map:
-              From: Real Field with 53 bits of precision
+              From: Real Floating Point Field with 53 bits of precision
               To:   Complex Field with 53 bits of precision
         """
         Map._update_slots(self, _slots)
@@ -2572,7 +2572,7 @@ cdef class RRtoCC(Map):
         EXAMPLES::
 
             sage: from sage.rings.complex_number import RRtoCC
-            sage: f = RRtoCC(RealField(100), ComplexField(10)) # indirect doctest
+            sage: f = RRtoCC(RealFloatingPointField(100), ComplexField(10)) # indirect doctest
             sage: f(1/3)
             0.33
         """

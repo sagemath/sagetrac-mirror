@@ -135,7 +135,7 @@ def multiple(a, n, operation='*', identity=None, inverse=None, op=None):
 
         sage: multiple(2,5)
         32
-        sage: multiple(RealField()('2.5'),4)
+        sage: multiple(RealFloatingPointField()('2.5'),4)
         39.0625000000000
         sage: multiple(2,-3)
         1/8

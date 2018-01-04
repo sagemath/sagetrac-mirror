@@ -2443,8 +2443,8 @@ class WordMorphism(SageObject):
         canonical_basis = VectorSpace(K,size_alphabet).basis()
         canonical_basis_proj = {}
 
-        from sage.rings.real_mpfr import RealField
-        RealField_prec = RealField(prec)
+        from sage.rings.real_mpfr import create_RealFloatingPointField as RealFloatingPointField
+        RealFloatingPointField_prec = RealFloatingPointField(prec)
         for a, x in zip(alphabet, canonical_basis):
             v = []
             for y in beta_conjugates:
@@ -2452,11 +2452,11 @@ class WordMorphism(SageObject):
                 if y.imag():
                     z = (vb*x).lift()(y)
                     z1, z2 = z.real(), z.imag()
-                    v += [RealField_prec(z1), RealField_prec(z2)]
+                    v += [RealFloatingPointField_prec(z1), RealFloatingPointField_prec(z2)]
                 # if y is real
                 else:
                     z = (vb*x).lift()(y)
-                    v += [RealField_prec(z)]
+                    v += [RealFloatingPointField_prec(z)]
             canonical_basis_proj[a] = vector(v)
 
         return canonical_basis_proj
@@ -2536,16 +2536,16 @@ class WordMorphism(SageObject):
             orbit_points[a].append(S)
 
         # Manage translated copies
-        from sage.rings.real_mpfr import RealField
-        RealField_prec = RealField(prec)
+        from sage.rings.real_mpfr import create_RealFloatingPointField as RealFloatingPointField
+        RealFloatingPointField_prec = RealFloatingPointField(prec)
         if translate is not None:
 
             if isinstance(translate, dict):
                 for a in translate:
-                    translate[a] = [vector(RealField_prec, v) for v in translate[a]]
+                    translate[a] = [vector(RealFloatingPointField_prec, v) for v in translate[a]]
 
             else:
-                translate = [vector(RealField_prec, v) for v in translate]
+                translate = [vector(RealFloatingPointField_prec, v) for v in translate]
 
             for a in alphabet:
                 translated_copies = dict([(i,[]) for i in alphabet])

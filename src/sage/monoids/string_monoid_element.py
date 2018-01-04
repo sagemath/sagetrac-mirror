@@ -24,7 +24,7 @@ from six import integer_types
 
 # import operator
 from sage.rings.integer import Integer
-from sage.rings.all import RealField
+from sage.rings.all import RealFloatingPointField
 from .free_monoid_element import FreeMonoidElement
 from sage.structure.richcmp import richcmp
 
@@ -331,9 +331,9 @@ class StringMonoidElement(FreeMonoidElement):
         Returns the probability of two randomly chosen characters being equal.
         """
         if prec == 0:
-            RR = RealField()
+            RR = RealFloatingPointField()
         else:
-            RR = RealField(prec)
+            RR = RealFloatingPointField(prec)
         char_dict = {}
         for i in self._element_list:
             if i in char_dict:
@@ -451,7 +451,7 @@ class StringMonoidElement(FreeMonoidElement):
           default value ``prec=0`` means that we use 53 bits to represent
           the mantissa of a floating-point number. For more information on
           the precision of floating-point numbers, see the function
-          :func:`RealField() <sage.rings.real_mpfr.RealField>` or refer to the module
+          :func:`RealFloatingPointField() <sage.rings.real_mpfr.RealFloatingPointField>` or refer to the module
           :mod:`real_mpfr <sage.rings.real_mpfr>`.
 
         EXAMPLES:
@@ -499,9 +499,9 @@ class StringMonoidElement(FreeMonoidElement):
         if not length in (1, 2):
             raise NotImplementedError("Not implemented")
         if prec == 0:
-            RR = RealField()
+            RR = RealFloatingPointField()
         else:
-            RR = RealField(prec)
+            RR = RealFloatingPointField(prec)
         S = self.parent()
         n = S.ngens()
         if length == 1:

@@ -641,7 +641,7 @@ class ContinuedFraction_base(SageObject):
             sage: fields = []
             sage: for prec in [17, 24, 53, 128, 256]:
             ....:     for rnd in ['RNDN', 'RNDD', 'RNDU', 'RNDZ', 'RNDA']:
-            ....:         fields.append(RealField(prec=prec, rnd=rnd))
+            ....:         fields.append(RealFloatingPointField(prec=prec, rnd=rnd))
             sage: for n in range(3000):  # long time
             ....:     a = QQ.random_element(num_bound=2^(n%100))
             ....:     cf = continued_fraction(a)
@@ -2432,7 +2432,7 @@ def continued_fraction(x, value=None):
     Note that initial rounding can result in incorrect trailing partial
     quotients::
 
-        sage: continued_fraction(RealField(39)(e))
+        sage: continued_fraction(RealFloatingPointField(39)(e))
         [2; 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 2]
 
     Note the value returned for floating point number is the continued fraction

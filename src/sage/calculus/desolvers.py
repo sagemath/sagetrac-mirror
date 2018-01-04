@@ -83,7 +83,7 @@ from sage.misc.decorators import rename_keyword
 from tempfile import mkdtemp
 import shutil
 import os
-from sage.rings.real_mpfr import RealField
+from sage.rings.real_mpfr import create_RealFloatingPointField as RealFloatingPointField
 
 
 maxima = Maxima()
@@ -876,14 +876,14 @@ def eulers_method(f,x0,y0,h,x1,algorithm="table"):
 
     ::
 
-        sage: RR = RealField(sci_not=0, prec=4, rnd='RNDU')
+        sage: RR = RealFloatingPointField(sci_not=0, prec=4, rnd='RNDU')
         sage: x,y = PolynomialRing(RR,2,"xy").gens()
         sage: eulers_method(5*x+y-5,0,1,1/2,1,algorithm="None")
         [[0, 1], [1/2, -1.0], [1, -2.7], [3/2, -4.0]]
 
     ::
 
-        sage: RR = RealField(sci_not=0, prec=4, rnd='RNDU')
+        sage: RR = RealFloatingPointField(sci_not=0, prec=4, rnd='RNDU')
         sage: x,y=PolynomialRing(RR,2,"xy").gens()
         sage: eulers_method(5*x+y-5,0,1,1/2,1)
              x                    y                  h*f(x,y)
@@ -974,7 +974,7 @@ def eulers_method_2x2(f,g, t0, x0, y0, h, t1,algorithm="table"):
 
     ::
 
-        sage: RR = RealField(sci_not=0, prec=4, rnd='RNDU')
+        sage: RR = RealFloatingPointField(sci_not=0, prec=4, rnd='RNDU')
         sage: t,x,y=PolynomialRing(RR,3,"txy").gens()
         sage: f = x+y+t; g = x-y
         sage: eulers_method_2x2(f,g, 0, 0, 0, 1/3, 1)
@@ -989,7 +989,7 @@ def eulers_method_2x2(f,g, t0, x0, y0, h, t1,algorithm="table"):
     convert to a system: `y_1' = y_2`, `y_1(0)=1`; `y_2' =
     \frac{y_1-y_2}{1+t^2}`, `y_2(0)=-1`.::
 
-         sage: RR = RealField(sci_not=0, prec=4, rnd='RNDU')
+         sage: RR = RealFloatingPointField(sci_not=0, prec=4, rnd='RNDU')
          sage: t, x, y=PolynomialRing(RR,3,"txy").gens()
          sage: f = y; g = (x-y)/(1+t^2)
          sage: eulers_method_2x2(f,g, 0, 1, -1, 1/4, 1)
@@ -1658,7 +1658,7 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
     res = outfile.readlines()
     outfile.close()
     for i in range(len(res)):
-        res[i] = [RealField()(_) for _ in res[i].split(' ') if len(_) > 2]
+        res[i] = [RealFloatingPointField()(_) for _ in res[i].split(' ') if len(_) > 2]
     shutil.rmtree(tempdir)
     return res
 
@@ -1764,7 +1764,7 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
     res = outfile.readlines()
     outfile.close()
     for i in range(len(res)):
-        res[i] = [RealField(ceil(digits*log(10,2)))(_) for _ in res[i].split(' ') if len(_) > 2]
+        res[i] = [RealFloatingPointField(ceil(digits*log(10,2)))(_) for _ in res[i].split(' ') if len(_) > 2]
     shutil.rmtree(tempdir)
     return res
 

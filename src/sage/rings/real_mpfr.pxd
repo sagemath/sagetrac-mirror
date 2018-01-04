@@ -7,7 +7,7 @@ from cypari2.types cimport GEN
 
 cdef class RealNumber(sage.structure.element.RingElement)  # forward decl
 
-cdef class RealField_class(sage.rings.ring.Field):
+cdef class RealFloatingPointField_class(sage.rings.ring.Field):
     cdef int __prec
     cdef bint sci_not
     cdef mpfr_rnd_t rnd
@@ -28,4 +28,4 @@ cdef class RealNumber(sage.structure.element.RingElement):
     cdef _set_from_GEN_REAL(self, GEN g)
     cdef RealNumber abs(RealNumber self)
 
-cpdef RealField(int prec=*, int sci_not=*, rnd=*)
+cpdef create_RealFloatingPointField(int prec=*, int sci_not=*, rnd=*)

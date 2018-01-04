@@ -160,7 +160,7 @@ import sage.misc.latex as latex
 from sage.misc.prandom import randint
 from sage.misc.cachefunc import cached_method
 
-from sage.rings.real_mpfr import is_RealField
+from sage.rings.real_mpfr import is_RealFloatingPointField
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.finite_rings.element_base import FiniteRingElement
@@ -377,7 +377,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Throw a TypeError if any of the coefficients cannot be coerced
         into the base ring (:trac:`6777`)::
 
-            sage: RealField(300)['x']( [ 1, ComplexField(300).gen(), 0 ])
+            sage: RealFloatingPointField(300)['x']( [ 1, ComplexField(300).gen(), 0 ])
             Traceback (most recent call last):
             ...
             TypeError: unable to convert '1.00...00*I' to a real number
@@ -945,7 +945,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         EXAMPLES::
 
             sage: R.<x> = RR[]; R
-            Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+            Univariate Polynomial Ring in x over Real Floating Point Field with 53 bits of precision
             sage: R.base_extend(CC)
             Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
             sage: R.base_extend(QQ)
@@ -1772,7 +1772,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
                 else:
                     from sage.rings.polynomial.polynomial_number_field import Polynomial_relative_number_field_dense
                     element_class = Polynomial_relative_number_field_dense
-            elif is_RealField(base_ring):
+            elif is_RealFloatingPointField(base_ring):
                 element_class = PolynomialRealDense
             elif isinstance(base_ring, sage.rings.complex_arb.ComplexBallField):
                 from sage.rings.polynomial.polynomial_complex_arb import Polynomial_complex_arb

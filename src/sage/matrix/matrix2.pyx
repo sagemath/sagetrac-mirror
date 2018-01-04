@@ -57,7 +57,7 @@ from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
-from sage.rings.real_mpfr import RealField
+from sage.rings.real_mpfr import create_RealFloatingPointField as RealFloatingPointField
 from sage.rings.complex_field import ComplexField
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.misc.derivative import multi_derivative
@@ -1131,7 +1131,7 @@ cdef class Matrix(Matrix1):
             Traceback (most recent call last):
             ...
             ValueError: unknown algorithm 'whatever', valid values are ('numpy', 'exact', 'exactconj')
-            sage: M.change_ring(RealField(54)).pseudoinverse()
+            sage: M.change_ring(RealFloatingPointField(54)).pseudoinverse()
             Traceback (most recent call last):
             ...
             NotImplementedError: pseudoinverse for real/complex field is only implemented for <= 53 bits of precision
@@ -1142,7 +1142,7 @@ cdef class Matrix(Matrix1):
             is_complex = ComplexField(2).has_coerce_map_from(ring)
             if is_complex:
                 if ring.is_exact():
-                    is_real = RealField(2).has_coerce_map_from(ring)
+                    is_real = RealFloatingPointField(2).has_coerce_map_from(ring)
                     algorithm = "exact" if is_real else "exactconj"
                 else:
                     if ring.precision() <= 53:
@@ -2597,7 +2597,7 @@ cdef class Matrix(Matrix1):
 
         Denominators are not defined for real numbers::
 
-            sage: A = MatrixSpace(RealField(),2)([1,2,3,4])
+            sage: A = MatrixSpace(RealFloatingPointField(),2)([1,2,3,4])
             sage: A.denominator()
             Traceback (most recent call last):
             ...
@@ -5513,7 +5513,7 @@ cdef class Matrix(Matrix1):
             sage: A.change_ring(RR).eigenspaces_left()
             Traceback (most recent call last):
             ...
-            NotImplementedError: eigenspaces cannot be computed reliably for inexact rings such as Real Field with 53 bits of precision,
+            NotImplementedError: eigenspaces cannot be computed reliably for inexact rings such as Real Floating Point Field with 53 bits of precision,
             consult numerical or symbolic matrix classes for other options
 
             sage: em = A.change_ring(RDF).eigenmatrix_left()
@@ -5781,7 +5781,7 @@ cdef class Matrix(Matrix1):
             sage: B.eigenspaces_right()
             Traceback (most recent call last):
             ...
-            NotImplementedError: eigenspaces cannot be computed reliably for inexact rings such as Real Field with 53 bits of precision,
+            NotImplementedError: eigenspaces cannot be computed reliably for inexact rings such as Real Floating Point Field with 53 bits of precision,
             consult numerical or symbolic matrix classes for other options
 
             sage: em = B.change_ring(RDF).eigenmatrix_right()
@@ -9194,11 +9194,11 @@ cdef class Matrix(Matrix1):
 
         Inexact rings are caught and ``CDF`` suggested.  ::
 
-            sage: A = matrix(RealField(100), 2, 2, range(4))
+            sage: A = matrix(RealFloatingPointField(100), 2, 2, range(4))
             sage: A.QR()
             Traceback (most recent call last):
             ...
-            NotImplementedError: QR decomposition is implemented over exact rings, try CDF for numerical results, not Real Field with 100 bits of precision
+            NotImplementedError: QR decomposition is implemented over exact rings, try CDF for numerical results, not Real Floating Point Field with 100 bits of precision
 
         Without a fraction field, we cannot hope to run the algorithm. ::
 
@@ -9855,7 +9855,7 @@ cdef class Matrix(Matrix1):
             Traceback (most recent call last):
             ...
             RuntimeError: Some eigenvalue does not exist in Rational Field.
-            sage: b.jordan_form(RealField(15))
+            sage: b.jordan_form(RealFloatingPointField(15))
             Traceback (most recent call last):
             ...
             ValueError: Jordan normal form not implemented over inexact rings.
@@ -9898,7 +9898,7 @@ cdef class Matrix(Matrix1):
         stable::
 
             sage: b = matrix(ZZ,3,3,range(9))
-            sage: jf, p = b.jordan_form(RealField(15), transformation=True)
+            sage: jf, p = b.jordan_form(RealFloatingPointField(15), transformation=True)
             Traceback (most recent call last):
             ...
             ValueError: Jordan normal form not implemented over inexact rings.
@@ -11405,12 +11405,12 @@ cdef class Matrix(Matrix1):
         :meth:`~sage.matrix.matrix_double_dense.Matrix_double_dense.cholesky`
         method for matrices of that type. ::
 
-            sage: F = RealField(100)
+            sage: F = RealFloatingPointField(100)
             sage: A = matrix(F, [[1.0, 3.0], [3.0, -6.0]])
             sage: A.cholesky()
             Traceback (most recent call last):
             ...
-            TypeError: base ring of the matrix must be exact, not Real Field with 100 bits of precision
+            TypeError: base ring of the matrix must be exact, not Real Floating Point Field with 100 bits of precision
 
         The base ring may not have a fraction field.  ::
 
@@ -11785,11 +11785,11 @@ cdef class Matrix(Matrix1):
         function is not implemented), then the pivot strategy needs
         to be 'nonzero'.  ::
 
-            sage: A = matrix(RealField(100), 3, 3, range(9))
+            sage: A = matrix(RealFloatingPointField(100), 3, 3, range(9))
             sage: P, L, U = A.LU()
             Traceback (most recent call last):
             ...
-            TypeError: base ring of the matrix must be exact, not Real Field with 100 bits of precision
+            TypeError: base ring of the matrix must be exact, not Real Floating Point Field with 100 bits of precision
 
             sage: A = matrix(Integers(6), 3, 2, range(6))
             sage: A.LU()
@@ -12148,13 +12148,13 @@ cdef class Matrix(Matrix1):
 
         The matrix must contain entries from an exact ring.  ::
 
-            sage: F = RealField(100)
+            sage: F = RealFloatingPointField(100)
             sage: A = matrix(F, [[1.0, 3.0], [3.0, -6.0]])
             sage: A._indefinite_factorization('symmetric')
             Traceback (most recent call last):
             ...
             TypeError: entries of the matrix must be in an exact ring,
-            not Real Field with 100 bits of precision
+            not Real Floating Point Field with 100 bits of precision
 
         The base ring must have a fraction field.  ::
 
@@ -12665,7 +12665,7 @@ cdef class Matrix(Matrix1):
         This is got using both the row norms and the column norms.
 
         This function only makes sense when the base field can be coerced
-        to the real double field RDF or the MPFR Real Field with 53-bits
+        to the real double field RDF or the MPFR Real Floating Point Field with 53-bits
         precision.
 
         EXAMPLES::
@@ -12688,7 +12688,7 @@ cdef class Matrix(Matrix1):
             sage: len(str(a.det()))
             12215
         """
-        from sage.rings.all import RDF, RealField
+        from sage.rings.all import RDF, RealFloatingPointField
         try:
             A = self.change_ring(RDF)
             m1 = A._hadamard_row_bound()
@@ -12698,7 +12698,7 @@ cdef class Matrix(Matrix1):
         except (OverflowError, TypeError):
             # Try using MPFR, which handles large numbers much better, but is slower.
             from . import misc
-            R = RealField(53, rnd='RNDU')
+            R = RealFloatingPointField(53, rnd='RNDU')
             A = self.change_ring(R)
             m1 = misc.hadamard_row_bound_mpfr(A)
             A = A.transpose()
@@ -13090,7 +13090,7 @@ cdef class Matrix(Matrix1):
             prec = digits_to_bits(digits)
 
         try:
-            return self.change_ring(sage.rings.real_mpfr.RealField(prec))
+            return self.change_ring(sage.rings.real_mpfr.RealFloatingPointField(prec))
         except TypeError:
             # try to return a complex result
             return self.change_ring(sage.rings.complex_field.ComplexField(prec))

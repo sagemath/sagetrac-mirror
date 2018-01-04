@@ -199,7 +199,7 @@ _init_qqbar()
 
 CC = ComplexField()
 QQ = RationalField()
-RR = RealField()  # default real field
+RR = RealFloatingPointField()  # default real field
 ZZ = IntegerRing()
 
 true = True

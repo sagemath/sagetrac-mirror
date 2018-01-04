@@ -1248,7 +1248,7 @@ cdef class Ring(ParentWithGens):
             2.220446049250313e-16
             sage: ComplexField(53).epsilon()
             2.22044604925031e-16
-            sage: RealField(10).epsilon()
+            sage: RealFloatingPointField(10).epsilon()
             0.0020
 
         For exact rings, zero is returned::
@@ -2088,7 +2088,7 @@ cdef class Field(PrincipalIdealDomain):
             sage: QQ.fraction_field()
             Rational Field
             sage: RR.fraction_field()
-            Real Field with 53 bits of precision
+            Real Floating Point Field with 53 bits of precision
             sage: CC.fraction_field()
             Complex Field with 53 bits of precision
 
