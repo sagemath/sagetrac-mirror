@@ -131,7 +131,7 @@ from sage.structure.sage_object import SageObject
 import sage.arith.all as arith
 import sage.misc.all as misc
 import sage.rings.all as rings
-from sage.rings.all import RealField, GF
+from sage.rings.all import RealFloatingPointField, GF
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from math import sqrt
@@ -1250,7 +1250,7 @@ class GaloisRepresentation(SageObject):
                 d = (self._E.ap(ell)**2 * ell.inverse_mod(p)) % p
                 res[d] += 1
                 co += 1
-        Rt = RealField(16)
+        Rt = RealFloatingPointField(16)
         res = [Rt(x)/Rt(co) for x in res]
         return res
 

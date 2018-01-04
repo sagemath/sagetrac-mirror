@@ -35,7 +35,7 @@ def read_data(f,t):
        sage: f = open(indata, "w")
        sage: _ = f.write("1.234\n5.678\n")
        sage: f.close()
-       sage: l = read_data(indata, RealField(17)); l
+       sage: l = read_data(indata, RealFloatingPointField(17)); l
        [1.234, 5.678]
    """
    fp = open(f,"r")

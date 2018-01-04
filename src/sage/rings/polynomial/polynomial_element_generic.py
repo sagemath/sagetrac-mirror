@@ -408,7 +408,7 @@ class Polynomial_generic_sparse(Polynomial):
             0.0
             sage: f[-1]
             0.0
-            sage: R.<x> = PolynomialRing(RealField(19), sparse=True)
+            sage: R.<x> = PolynomialRing(RealFloatingPointField(19), sparse=True)
             sage: f = (2-3.5*x)^3; f
             -42.875*x^3 + 73.500*x^2 - 42.000*x + 8.0000
 

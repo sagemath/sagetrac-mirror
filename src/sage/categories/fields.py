@@ -40,8 +40,8 @@ class Fields(CategoryWithAxiom):
         sage: K(PolynomialRing(GF(3), 'x'))
         Fraction Field of Univariate Polynomial Ring in x over
         Finite Field of size 3
-        sage: K(RealField())
-        Real Field with 53 bits of precision
+        sage: K(RealFloatingPointField())
+        Real Floating Point Field with 53 bits of precision
 
     TESTS::
 
@@ -170,8 +170,8 @@ class Fields(CategoryWithAxiom):
             sage: K(PolynomialRing(GF(3), 'x')) # indirect doctest
             Fraction Field of Univariate Polynomial Ring in x over
             Finite Field of size 3
-            sage: K(RealField())
-            Real Field with 53 bits of precision
+            sage: K(RealFloatingPointField())
+            Real Floating Point Field with 53 bits of precision
         """
         try:
             return x.fraction_field()

@@ -1325,7 +1325,7 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         Traceback (most recent call last):
         ...
         TypeError: cannot approximate to a precision of 70 bits, use at most 53 bits
-        sage: RealField(24).pi().n()
+        sage: RealFloatingPointField(24).pi().n()
         Traceback (most recent call last):
         ...
         TypeError: cannot approximate to a precision of 53 bits, use at most 24 bits

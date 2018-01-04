@@ -180,7 +180,7 @@ Yes, you can output some of your results into LaTeX.
 
 ::
 
-    sage: M = MatrixSpace(RealField(),3,3)
+    sage: M = MatrixSpace(RealFloatingPointField(),3,3)
     sage: A = M([1,2,3, 4,5,6, 7,8,9])
     sage: print(latex(A))
     \left(\begin{array}{rrr}

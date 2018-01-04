@@ -55,7 +55,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.integer import Integer
 from sage.rings.integer cimport Integer
-from sage.rings.real_mpfr cimport RealNumber, RealField_class
+from sage.rings.real_mpfr cimport RealNumber, RealFloatingPointField_class
 from sage.rings.real_mpfi cimport RealIntervalFieldElement
 
 from sage.libs.all import pari, pari_gen

@@ -23,7 +23,8 @@ from sage.functions.other import factorial, psi
 
 from sage.rings.all import (ComplexField, ZZ, RR, RDF)
 from sage.rings.complex_number import is_ComplexNumber
-from sage.rings.real_mpfr import (RealField, is_RealNumber)
+from sage.rings.real_mpfr import (is_RealNumber,
+                create_RealFloatingPointField as RealFloatingPointField)
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 
@@ -56,7 +57,7 @@ class Function_zeta(GinacFunction):
             1/6*pi^2
             sage: zeta(2.)
             1.64493406684823
-            sage: RR = RealField(200)
+            sage: RR = RealFloatingPointField(200)
             sage: zeta(RR(2))
             1.6449340668482264364724151666460251892189499012067984377356
             sage: zeta(I)
@@ -162,7 +163,7 @@ class Function_stieltjes(GinacFunction):
             stieltjes(2)
             sage: stieltjes(2).n(100)
             -0.0096903631928723184845303860352
-            sage: RR = RealField(200)
+            sage: RR = RealFloatingPointField(200)
             sage: stieltjes(RR(2))
             -0.0096903631928723184845303860352125293590658061013407498807014
 
@@ -387,7 +388,7 @@ def zeta_symmetric(s):
         0.497580414651127
         sage: zeta_symmetric(1-0.7)
         0.497580414651127
-        sage: RR = RealField(200)
+        sage: RR = RealFloatingPointField(200)
         sage: zeta_symmetric(RR(0.7))
         0.49758041465112690357779107525638385212657443284080589766062
         sage: C.<i> = ComplexField()
@@ -565,12 +566,12 @@ class DickmanRho(BuiltinFunction):
         """
         if n <= 1:
             if n <= -1:
-                return PolynomialRealDense(RealField(abs_prec)['x'])
+                return PolynomialRealDense(RealFloatingPointField(abs_prec)['x'])
             if n == 0:
-                return PolynomialRealDense(RealField(abs_prec)['x'], [1])
+                return PolynomialRealDense(RealFloatingPointField(abs_prec)['x'], [1])
             elif n == 1:
                 nterms = (RDF(abs_prec) * RDF(2).log()/RDF(3).log()).ceil()
-                R = RealField(abs_prec)
+                R = RealFloatingPointField(abs_prec)
                 neg_three = ZZ(-3)
                 coeffs = [1 - R(1.5).log()] + [neg_three**-k/k for k in range(1, nterms)]
                 f = PolynomialRealDense(R['x'], coeffs)
@@ -593,7 +594,7 @@ class DickmanRho(BuiltinFunction):
             rel_prec = int(abs_prec + abs(RR(f[i])).log2())
             if cache_ring is not None:
                 self._f[n] = ff.truncate_abs(ff[0] >> (cache_ring.prec()+1)).change_ring(cache_ring)
-            return ff.change_ring(RealField(rel_prec))
+            return ff.change_ring(RealFloatingPointField(rel_prec))
 
     def approximate(self, x, parent=None):
         r"""

@@ -60,7 +60,7 @@ def create_RealField(prec=53, type=None, rnd="RNDN", sci_not=0):
 
         sage: from sage.rings.real_field import create_RealField
         sage: create_RealField(30)
-        Real Field with 30 bits of precision
+        Real Floating Point Field with 30 bits of precision
         sage: create_RealField(oo)
         Real Field
         sage: create_RealField(20, 'RDF') # ignores precision
@@ -86,8 +86,8 @@ def create_RealField(prec=53, type=None, rnd="RNDN", sci_not=0):
         from .real_arb import RealBallField
         return RealBallField(prec)
     elif type == "MPFR" or type == "FloatingPoint":
-        from .real_mpfr import RealField
-        return RealField(prec, sci_not, rnd)
+        from .real_mpfr import create_RealFloatingPointField as RealFloatingPointField
+        return RealFloatingPointField(prec, sci_not, rnd)
     elif type == "RLF":
         from .real_lazy import RLF
         return RLF

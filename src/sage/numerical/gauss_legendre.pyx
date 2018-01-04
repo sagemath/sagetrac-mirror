@@ -34,9 +34,9 @@ optimized routine to compute the nodes.
 from __future__ import absolute_import, division, print_function
 from sage.libs.mpfr cimport *
 import math
-from sage.rings.real_mpfr import RealField
+from sage.rings.real_mpfr import create_RealFloatingPointField as RealFloatingPointField
 from sage.misc.cachefunc import cached_function
-from sage.rings.real_mpfr cimport RealNumber, RealField_class
+from sage.rings.real_mpfr cimport RealNumber, RealFloatingPointField_class
 
 @cached_function
 def nodes(degree,prec):
@@ -71,13 +71,13 @@ def nodes(degree,prec):
     cdef long j,j1,n
     cdef RealNumber r,t1,t2,t3,t4,a,w
     cdef mpfr_t u,v
-    cdef RealField_class R
+    cdef RealFloatingPointField_class R
     if prec < 53:
         prec = 53
     if degree !=3 and degree % 2 !=0:
         raise ValueError("degree=%s not supported (degree must be 3 or even)"%degree)
-    R = RealField(int(prec*3/2))
-    Rout = RealField(prec)
+    R = RealFloatingPointField(int(prec*3/2))
+    Rout = RealFloatingPointField(prec)
     mpfr_init2(u,R.__prec)
     mpfr_init2(v,R.__prec)
     ZERO = R.zero()
@@ -150,7 +150,7 @@ def estimate_error(results,prec,epsilon):
 
         sage: from sage.numerical.gauss_legendre import estimate_error
         sage: prec = 200
-        sage: K = RealField(prec)
+        sage: K = RealFloatingPointField(prec)
         sage: V = VectorSpace(K,2)
         sage: a = V([1,-1])
         sage: b = V([1,1/2])
@@ -198,7 +198,7 @@ def integrate_vector(f,prec,epsilon=None):
 
         sage: from sage.numerical.gauss_legendre import integrate_vector
         sage: prec=200
-        sage: K=RealField(prec)
+        sage: K=RealFloatingPointField(prec)
         sage: V=VectorSpace(K,2)
         sage: epsilon=K(2^(-prec+4))
         sage: f=lambda t:V((1+t^2,1/(1+t^2)))
@@ -210,7 +210,7 @@ def integrate_vector(f,prec,epsilon=None):
     We can also use complex-valued integrands::
 
         sage: prec=200
-        sage: Kreal=RealField(prec)
+        sage: Kreal=RealFloatingPointField(prec)
         sage: K=ComplexField(prec)
         sage: V=VectorSpace(K,2)
         sage: epsilon=Kreal(2^(-prec+4))
@@ -222,7 +222,7 @@ def integrate_vector(f,prec,epsilon=None):
     """
     results = []
     cdef long degree = 3
-    Rout = RealField(prec)
+    Rout = RealFloatingPointField(prec)
     if epsilon is None:
         epsilon = Rout(2)**(-prec+3)
     while True:

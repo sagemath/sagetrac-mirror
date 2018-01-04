@@ -696,7 +696,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         INPUT:
 
         - ``prec`` -- desired floating point precision (default:
-          default RealField precision).
+          default RealFloatingPointField precision).
 
         OUTPUT: A real number.
 

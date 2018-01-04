@@ -25,7 +25,7 @@ number with a question mark (for instance, ``3.1416?``). The question
 mark indicates that the preceding digit may have an error of `\pm 1`.
 These floating-point numbers are implemented using MPFR (the same
 as the :class:`RealNumber` elements of
-:class:`~sage.rings.real_mpfr.RealField_class`).
+:class:`~sage.rings.real_mpfr.RealFloatingPointField_class`).
 
 There is also an alternate method of printing, where the interval
 prints as ``[a .. b]`` (for instance, ``[3.1415 .. 3.1416]``).
@@ -258,7 +258,8 @@ cimport sage.structure.element
 from sage.structure.element cimport RingElement, Element, ModuleElement
 from sage.structure.richcmp cimport richcmp
 
-from .real_mpfr cimport RealField_class, RealNumber, RealField
+from .real_mpfr cimport (RealFloatingPointField_class, RealNumber,
+       create_RealFloatingPointField as RealFloatingPointField)
 from .integer cimport Integer
 from .real_double cimport RealDoubleElement
 
@@ -377,7 +378,7 @@ cdef class RealIntervalField_class(Field):
         3
         sage: RIF(pi)
         3.141592653589794?
-        sage: RIF(RealField(53)('1.5'))
+        sage: RIF(RealFloatingPointField(53)('1.5'))
         1.5000000000000000?
         sage: RIF(-2/19)
         -0.1052631578947369?
@@ -387,7 +388,7 @@ cdef class RealIntervalField_class(Field):
         -3939
         sage: RIF('1.5')
         1.5000000000000000?
-        sage: R200 = RealField(200)
+        sage: R200 = RealFloatingPointField(200)
         sage: RIF(R200.pi())
         3.141592653589794?
 
@@ -474,9 +475,9 @@ cdef class RealIntervalField_class(Field):
 
     TESTS::
 
-        sage: RIF._lower_field() is RealField(53, rnd='RNDD')
+        sage: RIF._lower_field() is RealFloatingPointField(53, rnd='RNDD')
         True
-        sage: RIF._upper_field() is RealField(53, rnd='RNDU')
+        sage: RIF._upper_field() is RealFloatingPointField(53, rnd='RNDU')
         True
         sage: RIF._middle_field() is RR
         True
@@ -499,66 +500,66 @@ cdef class RealIntervalField_class(Field):
                 prec, MPFR_PREC_MIN, MPFR_PREC_MAX))
         self.__prec = prec
         self.sci_not = sci_not
-        self.__lower_field = RealField(prec, sci_not, "RNDD")
-        self.__middle_field = RealField(prec, sci_not, "RNDN")
-        self.__upper_field = RealField(prec, sci_not, "RNDU")
+        self.__lower_field = RealFloatingPointField(prec, sci_not, "RNDD")
+        self.__middle_field = RealFloatingPointField(prec, sci_not, "RNDN")
+        self.__upper_field = RealFloatingPointField(prec, sci_not, "RNDU")
         from sage.categories.fields import Fields
         Field.__init__(self, self, category=Fields().Infinite())
 
     def _lower_field(self):
         """
-        Return the :class:`RealField_class` with rounding mode ``'RNDD'``
+        Return the :class:`RealFloatingPointField_class` with rounding mode ``'RNDD'``
         (rounding towards minus infinity).
 
         EXAMPLES::
 
             sage: RIF._lower_field()
-            Real Field with 53 bits of precision and rounding RNDD
+            Real Floating Point Field with 53 bits of precision and rounding RNDD
             sage: RealIntervalField(200)._lower_field()
-            Real Field with 200 bits of precision and rounding RNDD
+            Real Floating Point Field with 200 bits of precision and rounding RNDD
         """
         return self.__lower_field
 
     def _middle_field(self):
         """
-        Return the :class:`RealField_class` with rounding mode ``'RNDN'``
+        Return the :class:`RealFloatingPointField_class` with rounding mode ``'RNDN'``
         (rounding towards nearest).
 
         EXAMPLES::
 
             sage: RIF._middle_field()
-            Real Field with 53 bits of precision
+            Real Floating Point Field with 53 bits of precision
             sage: RealIntervalField(200)._middle_field()
-            Real Field with 200 bits of precision
+            Real Floating Point Field with 200 bits of precision
         """
         return self.__middle_field
 
     def _upper_field(self):
         """
-        Return the :class:`RealField_class` with rounding mode ``'RNDU'``
+        Return the :class:`RealFloatingPointField_class` with rounding mode ``'RNDU'``
         (rounding towards plus infinity).
 
         EXAMPLES::
 
             sage: RIF._upper_field()
-            Real Field with 53 bits of precision and rounding RNDU
+            Real Floating Point Field with 53 bits of precision and rounding RNDU
             sage: RealIntervalField(200)._upper_field()
-            Real Field with 200 bits of precision and rounding RNDU
+            Real Floating Point Field with 200 bits of precision and rounding RNDU
         """
         return self.__upper_field
 
     def _real_field(self, rnd):
         """
-        Return the :class:`RealField_class` with rounding mode ``rnd``.
+        Return the :class:`RealFloatingPointField_class` with rounding mode ``rnd``.
 
         EXAMPLES::
 
             sage: RIF._real_field('RNDN')
-            Real Field with 53 bits of precision
+            Real Floating Point Field with 53 bits of precision
             sage: RIF._real_field('RNDZ')
-            Real Field with 53 bits of precision and rounding RNDZ
+            Real Floating Point Field with 53 bits of precision and rounding RNDZ
             sage: RealIntervalField(200)._real_field('RNDD')
-            Real Field with 200 bits of precision and rounding RNDD
+            Real Floating Point Field with 200 bits of precision and rounding RNDD
         """
         if rnd == "RNDD":
             return self._lower_field()
@@ -567,7 +568,7 @@ cdef class RealIntervalField_class(Field):
         elif rnd == "RNDU":
             return self._upper_field()
         else:
-            return RealField(self.__prec, self.sci_not, rnd)
+            return RealFloatingPointField(self.__prec, self.sci_not, rnd)
 
     def _repr_(self):
         """
@@ -736,7 +737,7 @@ cdef class RealIntervalField_class(Field):
         """
         if isinstance(x, real_mpfr.RealNumber):
             P = x.parent()
-            if (<RealField_class> P).__prec >= self.__prec:
+            if (<RealFloatingPointField_class> P).__prec >= self.__prec:
                 return self(x)
             else:
                 raise TypeError("Canonical coercion from lower to higher precision not defined")
@@ -1002,7 +1003,7 @@ cdef class RealIntervalField_class(Field):
             sage: floor(RR(log(2**80, 10)))
             24
         """
-        return "RealField(%s : Bits := true)" % self.prec()
+        return "RealFloatingPointField(%s : Bits := true)" % self.prec()
 
     def pi(self):
         r"""
@@ -1387,14 +1388,14 @@ cdef class RealIntervalFieldElement(RingElement):
             RIF(RR(2.7182818284590451), RR(3.1415926535897936))
             sage: sage_input(RealIntervalField(64)(sqrt(2)), preparse=False, verify=True)
             # Verified
-            RR64 = RealField(64)
+            RR64 = RealFloatingPointField(64)
             RealIntervalField(64)(RR64('1.41421356237309504876'), RR64('1.41421356237309504887'))
             sage: sage_input(RealIntervalField(2)(12), verify=True)
             # Verified
-            RealIntervalField(2)(RealField(2)(12.))
+            RealIntervalField(2)(RealFloatingPointField(2)(12.))
             sage: sage_input(RealIntervalField(2)(13), verify=True)
             # Verified
-            RR2 = RealField(2)
+            RR2 = RealFloatingPointField(2)
             RealIntervalField(2)(RR2(12.), RR2(16.))
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
@@ -1543,7 +1544,7 @@ cdef class RealIntervalFieldElement(RingElement):
         For instance, we find the best 10-bit floating point representation
         of ``1/3``::
 
-            sage: RR10 = RealField(10)
+            sage: RR10 = RealFloatingPointField(10)
             sage: RR(RR10(1/3))
             0.333496093750000
 
@@ -2201,11 +2202,11 @@ cdef class RealIntervalFieldElement(RingElement):
         INPUT:
 
         - ``rnd`` -- the rounding mode (default: towards minus infinity,
-          see :class:`sage.rings.real_mpfr.RealField` for possible values)
+          see :class:`sage.rings.real_mpfr.RealFloatingPointField` for possible values)
 
         The rounding mode does not affect the value returned as a
         floating-point number, but it does control which variety of
-        ``RealField`` the returned number is in, which affects printing and
+        ``RealFloatingPointField`` the returned number is in, which affects printing and
         subsequent operations.
 
         EXAMPLES::
@@ -2229,11 +2230,11 @@ cdef class RealIntervalFieldElement(RingElement):
             sage: x.lower('RNDA')
             1.20
             sage: x.lower().parent()
-            Real Field with 13 bits of precision and rounding RNDD
+            Real Floating Point Field with 13 bits of precision and rounding RNDD
             sage: x.lower('RNDU').parent()
-            Real Field with 13 bits of precision and rounding RNDU
+            Real Floating Point Field with 13 bits of precision and rounding RNDU
             sage: x.lower('RNDA').parent()
-            Real Field with 13 bits of precision and rounding RNDA
+            Real Floating Point Field with 13 bits of precision and rounding RNDA
             sage: x.lower() == x.lower('RNDU')
             True
         """
@@ -2241,7 +2242,7 @@ cdef class RealIntervalFieldElement(RingElement):
         if rnd is None:
             x = (<RealIntervalField_class>self._parent).__lower_field._new()
         else:
-            x = (<RealField_class>(self._parent._real_field(rnd)))._new()
+            x = (<RealFloatingPointField_class>(self._parent._real_field(rnd)))._new()
         mpfi_get_left(x.value, self.value)
         return x
 
@@ -2252,11 +2253,11 @@ cdef class RealIntervalFieldElement(RingElement):
         INPUT:
 
         - ``rnd`` -- the rounding mode (default: towards plus infinity,
-          see :class:`sage.rings.real_mpfr.RealField` for possible values)
+          see :class:`sage.rings.real_mpfr.RealFloatingPointField` for possible values)
 
         The rounding mode does not affect the value returned as a
         floating-point number, but it does control which variety of
-        ``RealField`` the returned number is in, which affects printing and
+        ``RealFloatingPointField`` the returned number is in, which affects printing and
         subsequent operations.
 
         EXAMPLES::
@@ -2283,9 +2284,9 @@ cdef class RealIntervalFieldElement(RingElement):
             sage: x.upper('RNDA')
             1.31
             sage: x.upper().parent()
-            Real Field with 13 bits of precision and rounding RNDU
+            Real Floating Point Field with 13 bits of precision and rounding RNDU
             sage: x.upper('RNDD').parent()
-            Real Field with 13 bits of precision and rounding RNDD
+            Real Floating Point Field with 13 bits of precision and rounding RNDD
             sage: x.upper() == x.upper('RNDD')
             True
         """
@@ -2293,7 +2294,7 @@ cdef class RealIntervalFieldElement(RingElement):
         if rnd is None:
             x = (<RealIntervalField_class>self._parent).__upper_field._new()
         else:
-            x = ((<RealField_class>self._parent._real_field(rnd)))._new()
+            x = ((<RealFloatingPointField_class>self._parent._real_field(rnd)))._new()
         mpfi_get_right(x.value, self.value)
         return x
 
@@ -2322,7 +2323,7 @@ cdef class RealIntervalFieldElement(RingElement):
         As with ``lower()`` and ``upper()``, a rounding mode is accepted::
 
             sage: RIF(1,2).endpoints('RNDD')[0].parent()
-            Real Field with 53 bits of precision and rounding RNDD
+            Real Floating Point Field with 53 bits of precision and rounding RNDD
         """
         return self.lower(rnd), self.upper(rnd)
 
@@ -2489,7 +2490,7 @@ cdef class RealIntervalFieldElement(RingElement):
             sage: RIF(-1, 2).magnitude()
             2.00000000000000
             sage: parent(RIF(1).magnitude())
-            Real Field with 53 bits of precision and rounding RNDU
+            Real Floating Point Field with 53 bits of precision and rounding RNDU
         """
         cdef RealNumber x
         x = (<RealIntervalField_class>self._parent).__upper_field._new()
@@ -2511,7 +2512,7 @@ cdef class RealIntervalFieldElement(RingElement):
             sage: RIF(3, 4).mignitude()
             3.00000000000000
             sage: parent(RIF(1).mignitude())
-            Real Field with 53 bits of precision and rounding RNDD
+            Real Floating Point Field with 53 bits of precision and rounding RNDD
         """
         cdef RealNumber x
         x = (<RealIntervalField_class>self._parent).__lower_field._new()
@@ -3115,7 +3116,7 @@ cdef class RealIntervalFieldElement(RingElement):
     # Conversions
     ###########################################
 
-    def _mpfr_(self, RealField_class field):
+    def _mpfr_(self, RealFloatingPointField_class field):
         """
         Convert to a real field, honoring the rounding mode of the
         real field.
@@ -3131,17 +3132,17 @@ cdef class RealIntervalFieldElement(RingElement):
 
         With different rounding modes::
 
-            sage: RealField(53, rnd="RNDU")(a)
+            sage: RealFloatingPointField(53, rnd="RNDU")(a)
             1.20000000111759
-            sage: RealField(53, rnd="RNDD")(a)
+            sage: RealFloatingPointField(53, rnd="RNDD")(a)
             1.19999999925494
-            sage: RealField(53, rnd="RNDZ")(a)
+            sage: RealFloatingPointField(53, rnd="RNDZ")(a)
             1.19999999925494
-            sage: RealField(53, rnd="RNDU")(b)
+            sage: RealFloatingPointField(53, rnd="RNDU")(b)
             3.00000000000000
-            sage: RealField(53, rnd="RNDD")(b)
+            sage: RealFloatingPointField(53, rnd="RNDD")(b)
             -1.00000000000000
-            sage: RealField(53, rnd="RNDZ")(b)
+            sage: RealFloatingPointField(53, rnd="RNDZ")(b)
             0.000000000000000
         """
         cdef RealNumber x = field._new()
@@ -4816,7 +4817,7 @@ cdef class RealIntervalFieldElement(RingElement):
 
     # We implement some inverses in the obvious way (so they will
     # usually not be perfectly rounded).  This gets us closer to the
-    # API of RealField.
+    # API of RealFloatingPointField.
 
     def sec(self):
         r"""
@@ -5026,7 +5027,7 @@ cdef class RealIntervalFieldElement(RingElement):
             -3.54490770181104?
             sage: gamma(-1/2).n(100) in RIF(-1/2).gamma()
             True
-            sage: 0 in (RealField(2000)(-19/3).gamma() - RealIntervalField(1000)(-19/3).gamma())
+            sage: 0 in (RealFloatingPointField(2000)(-19/3).gamma() - RealIntervalField(1000)(-19/3).gamma())
             True
             sage: gamma(RIF(100))
             9.33262154439442?e155

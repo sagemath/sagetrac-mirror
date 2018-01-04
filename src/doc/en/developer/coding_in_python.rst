@@ -346,7 +346,7 @@ Here is another example:
 
 ::
 
-        sage: R = RealField(10000)
+        sage: R = RealFloatingPointField(10000)
         sage: a = R(1) + R(10)^-100
         sage: a == RDF(1)  # because the a gets coerced down to RDF
         True

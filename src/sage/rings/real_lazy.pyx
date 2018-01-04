@@ -37,9 +37,10 @@ from sage.rings.ring cimport Field
 import sage.rings.infinity
 from sage.rings.integer import Integer
 
-cdef QQ, RR, CC, RealField, ComplexField
+cdef QQ, RR, CC, RealFloatingPointField, ComplexField
 from sage.rings.rational_field import QQ
-from sage.rings.real_mpfr import RR, RealField
+from sage.rings.real_mpfr import (RR,
+                create_RealFloatingPointField as RealFloatingPointField)
 from sage.rings.complex_field import ComplexField
 CC = ComplexField(53)
 
@@ -126,7 +127,7 @@ cdef class LazyField(Field):
         .. NOTE::
 
             The rings into which this ring coerces are currently the
-            corresponding floating-point fields (RealField(p) or
+            corresponding floating-point fields (RealFloatingPointField(p) or
             ComplexField(p)), machine-precision floating-point fields (RDF,
             CDF), and interval fields (RealIntervalField(p),
             ComplexIntervalField(p)). This method should be updated if a new
@@ -224,7 +225,7 @@ class RealLazyField_class(LazyField):
         0.3333333333333334?
         sage: a + 5
         5.333333333333334?
-        sage: RealField(100)(a+5)
+        sage: RealFloatingPointField(100)(a+5)
         5.3333333333333333333333333333
 
     ::
@@ -877,7 +878,7 @@ cdef class LazyFieldElement(FieldElement):
             1.732050807568878?
             sage: sin(a)
             0.1411200080598673?
-            sage: RealField(160)(tanh(RLF(3)))
+            sage: RealFloatingPointField(160)(tanh(RLF(3)))
             0.99505475368673045133188018525548847509781385470
         """
         if name in named_unops:
@@ -1334,7 +1335,7 @@ cdef class LazyNamedUnop(LazyUnop):
             2.00000000000000
             sage: a.sqrt()
             1.414213562373095?
-            sage: RealField(212)(a)
+            sage: RealFloatingPointField(212)(a)
             2.00000000000000000000000000000000000000000000000000000000000000
             sage: float(a)
             2.0
@@ -1453,12 +1454,12 @@ cdef class LazyConstant(LazyFieldElement):
 
             sage: a = RLF.pi(); a
             3.141592653589794?
-            sage: RealField(300)(a)
+            sage: RealFloatingPointField(300)(a)
             3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482
 
             sage: from sage.rings.real_lazy import LazyConstant
             sage: a = LazyConstant(RLF, 'euler_constant')
-            sage: RealField(200)(a)
+            sage: RealFloatingPointField(200)(a)
             0.57721566490153286060651209008240243104215933593992359880577
         """
         LazyFieldElement.__init__(self, parent)
@@ -1578,7 +1579,7 @@ cdef class LazyAlgebraic(LazyFieldElement):
             from sage.rings.real_double import RDF
             if len(self._poly.roots(RDF)) == 0:
                 raise ValueError("%s has no real roots" % self._poly)
-            approx = (RR if prec == 0 else RealField(prec))(approx)
+            approx = (RR if prec == 0 else RealFloatingPointField(prec))(approx)
         else:
             approx = (CC if prec == 0 else ComplexField(prec))(approx)
         self._root_approx = approx

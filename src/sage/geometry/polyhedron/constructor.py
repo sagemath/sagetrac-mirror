@@ -206,7 +206,7 @@ triangle, that would be::
     available backend for such computation is `cdd` which uses machine floating 
     point numbers which have have limited precision. If the input consists of 
     floating point numbers and the `base_ring` is not specified, the base ring is 
-    set to be the `RealField` with the precision given by the minimal bit precision 
+    set to be the `RealFloatingPointField` with the precision given by the minimal bit precision 
     of the input. Then, if the obtained minimum is 53 bits of precision, the 
     constructor converts automatically the base ring to `RDF`. Otherwise, 
     it returns an error::
@@ -483,16 +483,16 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         ...
         ValueError: for polyhedra with floating point numbers, the only allowed ring is RDF with backend 'cdd'
     
-    Check that setting ``base_ring`` to a ``RealField`` returns an error (see :trac:`22552`)::
+    Check that setting ``base_ring`` to a ``RealFloatingPointField`` returns an error (see :trac:`22552`)::
     
-        sage: Polyhedron(vertices =[(8.3, 7.0), (6.4, 4.8)], base_ring=RealField(40))
+        sage: Polyhedron(vertices =[(8.3, 7.0), (6.4, 4.8)], base_ring=RealFloatingPointField(40))
         Traceback (most recent call last):
         ...
-        ValueError: no appropriate backend for computations with Real Field with 40 bits of precision
-        sage: Polyhedron(vertices =[(8.3, 7.0), (6.4, 4.8)], base_ring=RealField(53))
+        ValueError: no appropriate backend for computations with Real Floating Point Field with 40 bits of precision
+        sage: Polyhedron(vertices =[(8.3, 7.0), (6.4, 4.8)], base_ring=RealFloatingPointField(53))
         Traceback (most recent call last):
         ...
-        ValueError: no appropriate backend for computations with Real Field with 53 bits of precision
+        ValueError: no appropriate backend for computations with Real Floating Point Field with 53 bits of precision
     """
     # Clean up the arguments
     vertices = _make_listlist(vertices)

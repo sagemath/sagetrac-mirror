@@ -136,7 +136,7 @@ from copy import copy
 from random import Random
 import time
 
-from sage.rings.all import ZZ, QQ, RR, AA, RealField, RealIntervalField, RIF, RDF, infinity
+from sage.rings.all import ZZ, QQ, RR, AA, RealFloatingPointField, RealIntervalField, RIF, RDF, infinity
 from sage.arith.all import binomial, factorial
 from sage.modules.all import vector, FreeModule
 from sage.matrix.all import MatrixSpace
@@ -1871,7 +1871,7 @@ def wordsize_rational(a, b, wordsize):
         sub_1 = True
 
     cur_size = wordsize
-    # fld = RealField(cur_size, rnd='RNDU')
+    # fld = RealFloatingPointField(cur_size, rnd='RNDU')
     fld = get_realfield_rndu(cur_size)
     cdef RealNumber rf
     while True:
@@ -1882,7 +1882,7 @@ def wordsize_rational(a, b, wordsize):
             if rf <= -(fld(-b)):
                 if exp <= -3:
                     break
-                # rf2 = RealField(cur_size + exp - 1, rnd='RNDU')(a)
+                # rf2 = RealFloatingPointField(cur_size + exp - 1, rnd='RNDU')(a)
                 fld2 = get_realfield_rndu(cur_size + exp - 1)
                 rf2 = fld2(a)
                 if rf2 <= -(fld2(-b)):
@@ -1891,7 +1891,7 @@ def wordsize_rational(a, b, wordsize):
         if rf <= -(fld(-b)):
             break
         cur_size = cur_size + wordsize
-        fld = RealField(cur_size, rnd='RNDU')
+        fld = RealFloatingPointField(cur_size, rnd='RNDU')
 
     r = rf.exact_rational()
     if sub_1: r = r + one_QQ
@@ -2186,7 +2186,7 @@ def cl_maximum_root_first_lambda(cl):
         sage: bnd = cl_maximum_root_first_lambda(list(map(RIF, [0, 0, 0, 14, 1])))
         sage: bnd, bnd.parent()
         (0.000000000000000,
-        Real Field with 53 bits of precision and rounding RNDU)
+        Real Floating Point Field with 53 bits of precision and rounding RNDU)
     """
     n = len(cl) - 1
     assert(cl[n] > 0)
@@ -3928,7 +3928,7 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
 
         sage: p = x^71 - x^69 - 2*x^68 - x^67 + 2*x^66 + 2*x^65 + x^64 - x^63 - x^62 - x^61 - x^60 - x^59 + 2*x^58 + 5*x^57 + 3*x^56 - 2*x^55 - 10*x^54 - 3*x^53 - 2*x^52 + 6*x^51 + 6*x^50 + x^49 + 9*x^48 - 3*x^47 - 7*x^46 - 8*x^45 - 8*x^44 + 10*x^43 + 6*x^42 + 8*x^41 - 5*x^40 - 12*x^39 + 7*x^38 - 7*x^37 + 7*x^36 + x^35 - 3*x^34 + 10*x^33 + x^32 - 6*x^31 - 2*x^30 - 10*x^29 - 3*x^28 + 2*x^27 + 9*x^26 - 3*x^25 + 14*x^24 - 8*x^23 - 7*x^21 + 9*x^20 + 3*x^19 - 4*x^18 - 10*x^17 - 7*x^16 + 12*x^15 + 7*x^14 + 2*x^13 - 12*x^12 - 4*x^11 - 2*x^10 + 5*x^9 + x^7 - 7*x^6 + 7*x^5 - 4*x^4 + 12*x^3 - 6*x^2 + 3*x - 6
         sage: cc = real_roots(p, retval='algebraic_real')[2][0] # long time
-        sage: RealField(180)(cc)                                # long time
+        sage: RealFloatingPointField(180)(cc)                                # long time
         1.3035772690342963912570991121525518907307025046594049
 
     Now we play with algebraic real coefficients. ::
@@ -4239,23 +4239,23 @@ realfield_rndu_cache = {}
 
 def get_realfield_rndu(n):
     """
-    A simple cache for RealField fields (with rounding set to
+    A simple cache for RealFloatingPointField fields (with rounding set to
     round-to-positive-infinity).
 
     EXAMPLES::
 
         sage: from sage.rings.polynomial.real_roots import *
         sage: get_realfield_rndu(20)
-        Real Field with 20 bits of precision and rounding RNDU
+        Real Floating Point Field with 20 bits of precision and rounding RNDU
         sage: get_realfield_rndu(53)
-        Real Field with 53 bits of precision and rounding RNDU
+        Real Floating Point Field with 53 bits of precision and rounding RNDU
         sage: get_realfield_rndu(20)
-        Real Field with 20 bits of precision and rounding RNDU
+        Real Floating Point Field with 20 bits of precision and rounding RNDU
     """
     try:
         return realfield_rndu_cache[n]
     except KeyError:
-        fld = RealField(n, rnd='RNDU')
+        fld = RealFloatingPointField(n, rnd='RNDU')
         realfield_rndu_cache[n] = fld
         return fld
 

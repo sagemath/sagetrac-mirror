@@ -732,7 +732,7 @@ class HyperbolicGeodesic(SageObject):
             sage: g = H.UHP().get_geodesic(CC(0,1), CC(2,2))
             sage: gc = g.complete()
             sage: parent(gc.start().coordinates())
-            Real Field with 53 bits of precision
+            Real Floating Point Field with 53 bits of precision
 
         """
 
@@ -984,7 +984,7 @@ class HyperbolicGeodesic(SageObject):
             sage: UHP.dist(g.start(), g.end())
             1.45057451382258
             sage: parent(_)
-            Real Field with 53 bits of precision
+            Real Floating Point Field with 53 bits of precision
 
         """
 

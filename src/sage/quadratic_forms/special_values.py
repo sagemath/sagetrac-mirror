@@ -11,13 +11,13 @@ from __future__ import division, print_function
 
 from sage.combinat.combinat import bernoulli_polynomial
 from sage.misc.functional import denominator
-from sage.rings.all import RealField
 from sage.arith.all import kronecker_symbol, bernoulli, factorial, fundamental_discriminant
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import QQ
-from sage.rings.real_mpfr import is_RealField
+from sage.rings.real_mpfr import (is_RealFloatingPointField,
+                create_RealFloatingPointField as RealFloatingPointField)
 from sage.symbolic.constants import pi
 from sage.symbolic.all import I
 
@@ -102,7 +102,7 @@ def zeta__exact(n):
 
     Let us test the accuracy for negative special values::
 
-        sage: RR = RealField(100)
+        sage: RR = RealFloatingPointField(100)
         sage: for i in range(1,10):
         ....:     print("zeta({}): {}".format(1-2*i, RR(zeta__exact(1-2*i)) - zeta(RR(1-2*i))))
         zeta(-1): 0.00000000000000000000000000000
@@ -255,7 +255,7 @@ def quadratic_L_function__numerical(n, d, num_terms=1000):
 
     First, let us test several values for a given character::
 
-        sage: RR = RealField(100)
+        sage: RR = RealFloatingPointField(100)
         sage: for i in range(5):
         ....:     print("L({}, (-4/.)): {}".format(1+2*i, RR(quadratic_L_function__exact(1+2*i, -4)) - quadratic_L_function__numerical(RR(1+2*i),-4, 10000)))
         L(1, (-4/.)): 0.000049999999500000024999996962707
@@ -280,10 +280,10 @@ def quadratic_L_function__numerical(n, d, num_terms=1000):
         ....:         print("Oops! We have a problem at d = {}: exact = {}, numerical = {}".format(d, RR(quadratic_L_function__exact(1, d)), RR(quadratic_L_function__numerical(1, d))))
     """
     # Set the correct precision if it is given (for n).
-    if is_RealField(n.parent()):
+    if is_RealFloatingPointField(n.parent()):
         R = n.parent()
     else:
-        R = RealField()
+        R = RealFloatingPointField()
 
     if n < 0:
         raise ValueError('the Dirichlet series does not converge here')

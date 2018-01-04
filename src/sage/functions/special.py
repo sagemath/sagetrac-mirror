@@ -159,7 +159,7 @@ Added 16-02-2008 (wdj): optional calls to scipy and replace all
 #*****************************************************************************
 
 from sage.rings.integer import Integer
-from sage.rings.real_mpfr import RealField
+from sage.rings.real_mpfr import create_RealFloatingPointField as RealFloatingPointField
 from sage.rings.complex_field import ComplexField
 from sage.misc.latex import latex
 from sage.rings.all import ZZ, RR, RDF, CDF

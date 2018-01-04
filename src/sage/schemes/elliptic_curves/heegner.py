@@ -105,7 +105,7 @@ import sage.rings.number_field.number_field_element
 import sage.rings.number_field.number_field as number_field
 import sage.rings.all as rings
 from sage.rings.all import (ZZ, GF, QQ, CDF,
-                            Integers, RealField, ComplexField, QuadraticField,
+                            Integers, RealFloatingPointField, ComplexField, QuadraticField,
                             is_fundamental_discriminant)
 from sage.arith.all import (gcd, xgcd, lcm, prime_divisors, factorial,
         binomial)
@@ -3613,7 +3613,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         """
         v = self._numerical_approx_conjugates_over_QQ(prec)
         R = ComplexField(prec)['X']
-        S = RealField(prec)['X']
+        S = RealFloatingPointField(prec)['X']
         X = R.gen()
         fx = prod(X-a[0] for a in v)
         fx = S([b.real() for b in fx])
@@ -4246,7 +4246,7 @@ class KolyvaginPoint(HeegnerPoint):
             R = 2*P
         else:
             R = P + E.point([x.conjugate() for x in P],check=False)
-        F = self.curve().change_ring(rings.RealField(prec))
+        F = self.curve().change_ring(rings.RealFloatingPointField(prec))
         return F.point([x.real() for x in R], check=False)
 
     @cached_method
@@ -6196,7 +6196,7 @@ def simplest_rational_poly(f, prec):
         21/10*X^2 + 7/2*X - 6/5
     """
     R = QQ['X']
-    Z = RealField(prec)
+    Z = RealFloatingPointField(prec)
     return R([Z(a).simplest_rational() for a in f])
 
 def satisfies_weak_heegner_hypothesis(N, D):
@@ -6502,7 +6502,7 @@ def heegner_point_height(self, D, prec=2, check_rank=True):
     if eps == 1 and L1_vanishes:
         return IR(0) # rank even hence >= 2, so Heegner point is torsion.
 
-    RR = rings.RealField()
+    RR = rings.RealFloatingPointField()
     from math import sqrt
 
     alpha = RR(sqrt(abs(D)))/(2*self.period_lattice().complex_area())

@@ -1071,14 +1071,14 @@ class Text(PrimitiveObject):
 
     ::
 
-        sage: pts = [(RealField(10)^3).random_element() for k in range(20)]
+        sage: pts = [(RealFloatingPointField(10)^3).random_element() for k in range(20)]
         sage: sum(Text(str(P)).translate(P) for P in pts)
         Graphics3d Object
 
     .. PLOT::
 
         from sage.plot.plot3d.shapes import Text
-        pts = [(RealField(10)**3).random_element() for k in range(20)]
+        pts = [(RealFloatingPointField(10)**3).random_element() for k in range(20)]
         sphinx_plot(sum(Text(str(P)).translate(P) for P in pts))
 
     """

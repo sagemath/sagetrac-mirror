@@ -42,7 +42,7 @@ Since the base topological field has not been specified in the argument list
 of ``Manifold``, `\RR` is assumed::
 
     sage: M.base_field()
-    Real Field with 53 bits of precision
+    Real Floating Point Field with 53 bits of precision
     sage: dim(M)
     2
 
@@ -477,7 +477,7 @@ class DifferentiableManifold(TopologicalManifold):
     - ``field`` -- field `K` on which the manifold is
       defined; allowed values are
 
-      - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
+      - ``'real'`` or an object of type ``RealFloatingPointField`` (e.g., ``RR``) for
         a manifold over `\RR`
       - ``'complex'`` or an object of type ``ComplexField`` (e.g., ``CC``)
         for a manifold over `\CC`
@@ -529,7 +529,7 @@ class DifferentiableManifold(TopologicalManifold):
     Since the base field has not been specified, `\RR` has been assumed::
 
         sage: M.base_field()
-        Real Field with 53 bits of precision
+        Real Floating Point Field with 53 bits of precision
 
     Since the degree of differentiability has not been specified, the default
     value, `C^\infty`, has been assumed::
@@ -574,7 +574,7 @@ class DifferentiableManifold(TopologicalManifold):
         sage: isinstance(M, Parent)
         True
         sage: M.category()
-        Category of smooth manifolds over Real Field with 53 bits of precision
+        Category of smooth manifolds over Real Floating Point Field with 53 bits of precision
         sage: from sage.categories.manifolds import Manifolds
         sage: M.category() is Manifolds(RR).Smooth()
         True
@@ -611,7 +611,7 @@ class DifferentiableManifold(TopologicalManifold):
         Open subset U of the 4-dimensional differentiable manifold M
         sage: U.category()
         Join of Category of subobjects of sets and Category of smooth manifolds
-         over Real Field with 53 bits of precision
+         over Real Floating Point Field with 53 bits of precision
         sage: U.base_field() == M.base_field()
         True
         sage: dim(U) == dim(M)
@@ -756,7 +756,7 @@ class DifferentiableManifold(TopologicalManifold):
 
             sage: A.category()
             Join of Category of subobjects of sets and Category of smooth
-             manifolds over Real Field with 53 bits of precision
+             manifolds over Real Floating Point Field with 53 bits of precision
             sage: A.base_field() == M.base_field()
             True
             sage: dim(A) == dim(M)

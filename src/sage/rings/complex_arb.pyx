@@ -166,7 +166,8 @@ from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
 from sage.rings.real_arb import RealBallField
-from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
+from sage.rings.real_mpfr cimport (RealFloatingPointField_class, RealNumber,
+        create_RealFloatingPointField as RealFloatingPointField)
 from sage.rings.ring import Field
 from sage.structure.element cimport Element, ModuleElement
 from sage.structure.parent cimport Parent
@@ -997,7 +998,7 @@ cdef class ComplexBall(RingElement):
 
         INPUT:
 
-        - ``parent`` - :class:`~sage.rings.real_mpfr.RealField_class`,
+        - ``parent`` - :class:`~sage.rings.real_mpfr.RealFloatingPointField_class`,
           target parent.
 
         EXAMPLES::
@@ -1362,7 +1363,7 @@ cdef class ComplexBall(RingElement):
             sage: CBF(i/3).rad()
             1.1102230e-16
             sage: CBF(i/3).rad().parent()
-            Real Field with 30 bits of precision
+            Real Floating Point Field with 30 bits of precision
 
         .. SEEALSO:: :meth:`diameter`, :meth:`mid`
 
@@ -1375,7 +1376,7 @@ cdef class ComplexBall(RingElement):
         """
         # Should we return a real number with rounding towards +∞ (or away from
         # zero if/when implemented)?
-        cdef RealField_class rad_field = RealField(MAG_BITS)
+        cdef RealFloatingPointField_class rad_field = RealFloatingPointField(MAG_BITS)
         cdef RealNumber rad = RealNumber(rad_field, None)
         cdef arf_t tmp
         arf_init(tmp)
@@ -1401,7 +1402,7 @@ cdef class ComplexBall(RingElement):
             sage: CBF(i/3).diameter()
             2.2204460e-16
             sage: CBF(i/3).diameter().parent()
-            Real Field with 30 bits of precision
+            Real Floating Point Field with 30 bits of precision
             sage: CBF(CIF(RIF(1.02, 1.04), RIF(2.1, 2.2))).diameter()
             0.20000000
 

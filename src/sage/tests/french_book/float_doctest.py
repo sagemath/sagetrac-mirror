@@ -14,13 +14,13 @@ Sage example in ./float.tex, line 127::
 
 Sage example in ./float.tex, line 137::
 
-    sage: R100 = RealField(100) # précision : 100 bits.
+    sage: R100 = RealFloatingPointField(100) # précision : 100 bits.
     sage: x100 = R100(3/8); x100
     0.37500000000000000000000000000
 
 Sage example in ./float.tex, line 148::
 
-    sage: Rdefaut = RealField()  # précision par défaut de 53 bits
+    sage: Rdefaut = RealFloatingPointField()  # précision par défaut de 53 bits
     sage: xdefaut = Rdefaut(2/3)
 
 Sage example in ./float.tex, line 154::
@@ -41,27 +41,27 @@ Sage example in ./float.tex, line 168::
 
 Sage example in ./float.tex, line 182::
 
-    sage: x = 1.0         # x appartient à RealField()
-    sage: x = 0.1e+1      # idem : x appartient à RealField()
+    sage: x = 1.0         # x appartient à RealFloatingPointField()
+    sage: x = 0.1e+1      # idem : x appartient à RealFloatingPointField()
     sage: x = 1           # x est entier
     sage: x = RDF(1)      # x est un flottant double précision machine
     sage: x = RDF(1.)     # idem : x est un flottant double précision
     sage: x = RDF(0.1e+1) # idem
     sage: x = 4/3         # x est un nombre rationnel
-    sage: R = RealField(20)
+    sage: R = RealFloatingPointField(20)
     sage: x = R(1)        # x est un flottant de précision 20 bits
 
 Sage example in ./float.tex, line 194::
 
     sage: RDF(8/3)
     2.6666666666666665
-    sage: R100 = RealField(100); R100(8/3)
+    sage: R100 = RealFloatingPointField(100); R100(8/3)
     2.6666666666666666666666666667
 
 Sage example in ./float.tex, line 202::
 
     sage: x = R100(8/3)
-    sage: R = RealField(); R(x)
+    sage: R = RealFloatingPointField(); R(x)
     2.66666666666667
     sage: RDF(x)
     2.6666666666666665
@@ -84,7 +84,7 @@ Sage example in ./float.tex, line 225::
 
 Sage example in ./float.tex, line 256::
 
-    sage: R2 = RealField(2)
+    sage: R2 = RealFloatingPointField(2)
 
 Sage example in ./float.tex, line 303::
 
@@ -172,7 +172,7 @@ Sage example in ./float.tex, line 488::
 Sage example in ./float.tex, line 545::
 
     sage: def sumharmo(P):
-    ....:    RFP = RealField(P)
+    ....:    RFP = RealFloatingPointField(P)
     ....:    y = RFP(1.); x = RFP(0.); n = 1
     ....:    while x != y:
     ....:        y = x; x += 1/n; n += 1
@@ -244,7 +244,7 @@ Sage example in ./float.tex, line 697::
 
 Sage example in ./float.tex, line 714::
 
-    sage: R200 = RealField(200); R200.pi()
+    sage: R200 = RealFloatingPointField(200); R200.pi()
     3.1415926535897932384626433832795028841971693993751058209749
     sage: R200.euler_constant()
     0.57721566490153286060651209008240243104215933593992359880577

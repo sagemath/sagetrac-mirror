@@ -1236,7 +1236,7 @@ class FiniteWordPath_all(SageObject):
           considered.
 
         - ``ring`` - ring (optional, default: None) where to do the
-          computations. If None, RealField(53) is used.
+          computations. If None, RealFloatingPointField(53) is used.
 
         OUTPUT:
 
@@ -1264,7 +1264,7 @@ class FiniteWordPath_all(SageObject):
 
             sage: P = WordPaths('ab','ne')
             sage: p = P('aabbabbab')
-            sage: it = p.projected_point_iterator(ring=RealField(20))
+            sage: it = p.projected_point_iterator(ring=RealFloatingPointField(20))
             sage: for i in range(8): next(it)
             (0.00000)
             (0.78087)
@@ -1304,7 +1304,7 @@ class FiniteWordPath_all(SageObject):
           mapped to colors. If None, automatic colors are chosen.
 
         - ``ring`` - ring (optional, default: None) where to do the
-          computations. If None, RealField(53) is used.
+          computations. If None, RealFloatingPointField(53) is used.
 
         - ``size`` - number (optional, default: ``12``) size of the points.
 
@@ -1342,7 +1342,7 @@ class FiniteWordPath_all(SageObject):
         You can increase or decrease the precision of the computations by
         changing the ring of the projection matrix::
 
-            sage: w.plot_projection(v, ring=RealField(20))  # long time (2s)
+            sage: w.plot_projection(v, ring=RealFloatingPointField(20))  # long time (2s)
             Graphics object consisting of 200 graphics primitives
 
         You can change the size of the points::
@@ -1418,7 +1418,7 @@ class FiniteWordPath_all(SageObject):
           considered.
 
         - ``ring`` - ring (optional, default: None) where to do the
-          computations. If None, RealField(53) is used.
+          computations. If None, RealFloatingPointField(53) is used.
 
         OUTPUT:
 
@@ -1442,7 +1442,7 @@ class FiniteWordPath_all(SageObject):
         The ``ring`` argument allows to change the precision of the
         projected steps::
 
-            sage: p = w.projected_path(v, RealField(10))
+            sage: p = w.projected_path(v, RealFloatingPointField(10))
             sage: p
             Path: 1213121121312121312112131213121121312121...
             sage: p.parent().letters_to_steps()

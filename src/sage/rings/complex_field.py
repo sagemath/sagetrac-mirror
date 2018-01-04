@@ -100,7 +100,7 @@ def ComplexField(prec=53, names=None):
         sage: ComplexField(100)
         Complex Field with 100 bits of precision
         sage: ComplexField(100).base_ring()
-        Real Field with 100 bits of precision
+        Real Floating Point Field with 100 bits of precision
         sage: i = ComplexField(200).gen()
         sage: i^2
         -1.0000000000000000000000000000000000000000000000000000000000
@@ -287,15 +287,15 @@ class ComplexField_class(ring.Field):
         EXAMPLES::
 
             sage: RF = ComplexField(10)._real_field(); RF
-            Real Field with 10 bits of precision
+            Real Floating Point Field with 10 bits of precision
             sage: ComplexField(10)._real_field() is RF
             True
         """
         try:
             return self.__real_field
         except AttributeError:
-            from .real_mpfr import RealField
-            self.__real_field = RealField(self._prec)
+            from .real_mpfr import create_RealFloatingPointField as RealFloatingPointField
+            self.__real_field = RealFloatingPointField(self._prec)
             return self.__real_field
 
     def __eq__(self, other):
@@ -433,9 +433,9 @@ class ComplexField_class(ring.Field):
 
         EXAMPLES::
 
-            sage: ComplexField(200)(1) + RealField(90)(1) # indirect doctest
+            sage: ComplexField(200)(1) + RealFloatingPointField(90)(1) # indirect doctest
             2.0000000000000000000000000
-            sage: parent(ComplexField(200)(1) + RealField(90)(1)) # indirect doctest
+            sage: parent(ComplexField(200)(1) + RealFloatingPointField(90)(1)) # indirect doctest
             Complex Field with 90 bits of precision
             sage: CC.0 + RLF(1/3) # indirect doctest
             0.333333333333333 + 1.00000000000000*I
@@ -585,7 +585,7 @@ class ComplexField_class(ring.Field):
         EXAMPLES::
 
             sage: c, S = CC.construction(); S
-            Real Field with 53 bits of precision
+            Real Floating Point Field with 53 bits of precision
             sage: CC == c(S)
             True
         """
