@@ -27,6 +27,7 @@ mkdir -p $MTXLIB || \
 
 cd src
 sdh_configure
+$MAKE uninstall
 sdh_make
 sdh_make_install
 
