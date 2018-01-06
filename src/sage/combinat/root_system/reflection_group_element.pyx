@@ -21,12 +21,13 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
-from sage.misc.cachefunc import cached_method#, cached_in_parent_method
+from __future__ import absolute_import, print_function
+
+from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
-from sage.arith.misc import lcm
+from sage.arith.functions import lcm
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
 from sage.rings.all import ZZ, QQ
 from sage.interfaces.gap3 import gap3
@@ -34,6 +35,7 @@ from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.misc.sage_eval import sage_eval
 from sage.combinat.root_system.reflection_group_c import reduced_word_c
 from sage.matrix.all import Matrix, identity_matrix
+
 
 cdef class ComplexReflectionGroupElement(PermutationGroupElement):
     """

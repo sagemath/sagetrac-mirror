@@ -44,6 +44,8 @@ from __future__ import absolute_import, print_function
 from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.gmp.mpz cimport mpz_sgn, mpz_cmpabs_ui
+from sage.libs.mpfr cimport *
+from sage.libs.mpfi cimport *
 from sage.libs.flint.fmpz cimport *
 from cypari2.gen cimport Gen as pari_gen
 from sage.libs.mpfr cimport MPFR_RNDU, MPFR_RNDD
@@ -1371,12 +1373,17 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
+            sage: float(CIF(1))
+            1.0
             sage: float(CIF(1,1))
             Traceback (most recent call last):
             ...
             TypeError: can't convert complex interval to float
         """
-        raise TypeError("can't convert complex interval to float")
+        if self.imag() == 0:
+            return float(self.real().n(self._prec))
+        else:
+            raise TypeError("can't convert complex interval to float")
 
     def __complex__(self):
         """
@@ -1385,11 +1392,10 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: complex(CIF(1,1))
-            Traceback (most recent call last):
-            ...
-            TypeError: can't convert complex interval to complex
+            (1+1j)
         """
-        raise TypeError("can't convert complex interval to complex")
+        return complex(self.real().n(self._prec),
+                       self.imag().n(self._prec))
 
     def __nonzero__(self):
         """
