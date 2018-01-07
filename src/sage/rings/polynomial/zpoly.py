@@ -197,6 +197,139 @@ class PolynomialRingIntegerGenerators(InfinitePolynomialRing_sparse):
         """
         return self.shift_auto(r)(elt)
 
+    @cached_method
+    def swap_func(self, i):
+        r"""
+        The function that swaps i and i+1.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: R = PolynomialRingIntegerGenerators(QQ,['x','y'])
+            sage: sw = R.swap_func(-1)
+            sage: [(i,sw(i)) for i in range(-2,2)]
+            [(-2, -2), (-1, 0), (0, -1), (1, 1)]
+            sage: sw = R.swap_func(0)
+            sage: [(i,sw(i)) for i in range(-2,2)]
+            [(-2, -2), (-1, -1), (0, 1), (1, 0)]
+        """
+        return lambda x: i+1 if x==i else i if x==i+1 else x
+
+    @cached_method
+    def swap_auto(self, i):
+        r"""
+        The automorphism of ``self`` that swaps the i-th and i+1-th variables.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: R = PolynomialRingIntegerGenerators(QQ,['a','b'])
+            sage: sw = R.swap_auto(-1)
+            sage: sw(R.igen(-1)**2 + R.igen(0)*R.igen(3))
+            a_3*b_1 + b_0^2
+            sage: sw = R.swap_auto(3)
+            sage: sw(R.igen(-1)**2 + R.igen(0)*R.igen(3)+R.igen(4))
+            b_1^2 + a_4*b_0 + a_3
+        """
+        return self.map_induced_by_func(self.swap_func(i))
+
+    def swap_auto_on_element(self, i, elt):
+        r"""
+        Compute the automorphism of swapping i and i+1.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: P = PolynomialRingIntegerGenerators(QQ, ('a','b'))
+            sage: P.swap_auto_on_element(-3, P.igen(2)**2*P.igen(-3)+P.igen(0))
+            a_2^2*b_2 + b_0
+        """
+        return self.swap_auto(i)(elt)
+
+    def ddiff_on_element(self, i, elt):
+        r"""
+        Compute the divided difference on the element.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: P = PolynomialRingIntegerGenerators(QQ, ('a','b'))
+            sage: P.ddiff_on_element(1, P.igen(1)**2)
+            a_2 + a_1
+            sage: P.ddiff_on_element(2, P.igen(1)**3*P.igen(2)**2*P.igen(3))
+            a_3*a_2*a_1^3
+            sage: P.ddiff_on_element(1,_)
+            a_3*a_2^2*a_1 + a_3*a_2*a_1^2
+        """
+        num = elt - self.swap_auto(i)(elt)
+        den = self.igen(i) - self.igen(i+1)
+        par = (num*den).polynomial().parent()
+        nump = par(num.polynomial())
+        denp = par(den.polynomial())
+        return self(par(nump/denp))
+
+    @cached_method
+    def dynkin_reversal_func(self):
+        r"""
+        The function that sends i to 1-i.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: R = PolynomialRingIntegerGenerators(QQ,['x','y'])
+            sage: df = R.dynkin_reversal_func()
+            sage: [(i,df(i)) for i in range(-2,2)]
+            [(-2, 3), (-1, 2), (0, 1), (1, 0)]
+        """
+        return lambda x: 1-x
+
+    @cached_method
+    def dynkin_reversal_auto(self):
+        r"""
+        The automorphism of ``self`` induced by the dynkin_reversal_func.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: R = PolynomialRingIntegerGenerators(QQ,['a','b'])
+            sage: df = R.dynkin_reversal_auto()
+            sage: df(R.igen(-1)**2 + R.igen(0)*R.igen(3))
+            a_2^2 + a_1*b_2
+        """
+        return self.map_induced_by_func(self.dynkin_reversal_func())
+
+    def dynkin_reversal_auto_on_element(self, elt):
+        r"""
+        This does the above automorphism but also sends each variable to its negative.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: P = PolynomialRingIntegerGenerators(QQ, ('a','b'))
+            sage: P.dynkin_reversal_auto_on_element(P.igen(2)**2*P.igen(-3)+P.igen(0))
+            -a_4*b_1^2 - a_1
+            sage: P.dynkin_reversal_auto_on_element(P.igen(2)**2+P.igen(0))
+            b_1^2 - a_1
+        """
+        return self.negate_variables(self.dynkin_reversal_auto()(elt))
+
+    def negate_variables(self, f):
+        r"""
+        Negate all variables in f.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.zpoly import PolynomialRingIntegerGenerators
+            sage: P = PolynomialRingIntegerGenerators(QQ, ('a','b'))
+            sage: P.negate_variables(P.igen(2)**2*P.igen(-3)+P.igen(0)+P.igen(-2)**2)
+            -a_2^2*b_3 + b_2^2 - b_0
+        """
+        fp = f.polynomial()
+        if fp.parent() == self.base_ring():
+            return f
+        vars = fp.variables()
+        return self(fp.subs(dict([[v,-v] for v in vars])))
+
     def forget_to_loop_rotation(self, d, f, positive=True):
         r"""
         Apply to `f` the forgetful map to the polynomial ring with one generator.
