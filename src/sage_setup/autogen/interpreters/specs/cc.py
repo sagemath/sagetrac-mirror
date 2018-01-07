@@ -174,8 +174,8 @@ class CCInterpreter(StackInterpreter):
             """
             from sage.rings.real_mpfr cimport RealField_class, RealNumber
             from sage.libs.mpfr cimport *
-            from sage.rings.complex_field import ComplexField
-            from sage.rings.complex_number cimport ComplexNumber
+            from sage.rings.complex_mpfr import ComplexField
+            from sage.rings.complex_mpfr cimport ComplexNumber
             from sage.libs.mpc cimport *
             """)
 
