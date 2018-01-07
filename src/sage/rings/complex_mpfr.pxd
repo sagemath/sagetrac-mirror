@@ -1,3 +1,5 @@
+# distutils: libraries = gmp mpfr
+
 from sage.libs.mpfr.types cimport mpfr_t, mpfr_prec_t
 
 cimport sage.structure.element

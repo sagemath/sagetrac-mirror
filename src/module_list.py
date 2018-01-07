@@ -1122,8 +1122,8 @@ ext_modules = [
     Extension('sage.rings.complex_interval',
               sources = ['sage/rings/complex_interval.pyx']),
 
-    Extension('sage.rings.complex_number',
-              sources = ['sage/rings/complex_number.pyx']),
+    Extension('sage.rings.complex_mpfr',
+              sources = ['sage/rings/complex_mpfr.pyx']),
 
     Extension('sage.rings.integer',
               sources = ['sage/rings/integer.pyx'],
