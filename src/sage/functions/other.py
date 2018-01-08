@@ -11,7 +11,7 @@ from sage.libs.pynac.pynac import (register_symbol, symbol_table,
         py_factorial_py, I)
 from sage.symbolic.all import SR
 from sage.rings.all import Integer, Rational, RealField, ZZ, ComplexField
-from sage.rings.complex_number import is_ComplexNumber
+from sage.rings.complex_mpfr import is_ComplexNumber
 from sage.misc.latex import latex
 from sage.misc.decorators import rename_keyword
 import math

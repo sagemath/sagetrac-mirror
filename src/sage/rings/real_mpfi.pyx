@@ -268,7 +268,6 @@ import math # for log
 import sys
 import operator
 
-import sage.rings.complex_field
 import sage.rings.infinity
 
 #*****************************************************************************

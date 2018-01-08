@@ -160,7 +160,7 @@ Added 16-02-2008 (wdj): optional calls to scipy and replace all
 
 from sage.rings.integer import Integer
 from sage.rings.real_mpfr import RealField
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr import ComplexField
 from sage.misc.latex import latex
 from sage.rings.all import ZZ, RR, RDF, CDF
 from sage.functions.other import real, imag, log_gamma
@@ -342,7 +342,7 @@ def elliptic_j(z):
 
    """
    CC = z.parent()
-   from sage.rings.complex_field import is_ComplexField
+   from sage.rings.complex_mpfr import is_ComplexField
    if not is_ComplexField(CC):
       CC = ComplexField()
       try:

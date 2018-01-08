@@ -145,7 +145,7 @@ from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 from sage.misc.misc import verbose
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.libs.pari.all import pari
-import sage.rings.complex_field
+import sage.rings.complex_mpfr
 from sage.docs.instancedoc import instancedoc
 
 
@@ -999,7 +999,7 @@ class GpElement(ExpectElement):
         """
         # Retrieving values from another computer algebra system is
         # slow anyway, right?
-        cc_val = self._complex_mpfr_field_(sage.rings.complex_field.ComplexField())
+        cc_val = self._complex_mpfr_field_(sage.rings.complex_mpfr.ComplexField())
         return CDF(cc_val)
 
     def __len__(self):

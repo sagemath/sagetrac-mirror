@@ -72,8 +72,8 @@ from sage.categories.map cimport Map
 from sage.libs.pari.all import pari
 
 from .integer cimport Integer
-from .complex_number cimport ComplexNumber
-from .complex_field import ComplexField_class
+from .complex_mpfr cimport ComplexNumber
+from .complex_mpfr import ComplexField_class
 
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.misc.superseded import deprecated_function_alias
@@ -846,7 +846,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             elif isinstance(z, complex):
                 real, imag = z.real, z.imag
             elif isinstance(z, sage.symbolic.expression.Expression):
-                zz = sage.rings.complex_field.ComplexField(self._parent.prec())(z)
+                zz = sage.rings.complex_mpfr.ComplexField(self._parent.prec())(z)
                 self._set(zz)
                 return
             # then, no imaginary part

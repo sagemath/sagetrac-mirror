@@ -33,7 +33,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer, GCD_list
 from sage.rings.rational import Rational
 from sage.rings.real_mpfr import RealNumber
-from sage.rings.complex_number import ComplexNumber
+from sage.rings.complex_mpfr import ComplexNumber
 
 import sage.rings.fast_arith as fast_arith
 prime_range = fast_arith.prime_range

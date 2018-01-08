@@ -24,7 +24,7 @@ from __future__ import absolute_import
 
 from sage.rings.all import (RDF, CDF, AA, RLF, QQbar, PolynomialRing)
 
-from sage.rings.complex_field import is_ComplexField
+from sage.rings.complex_mpfr import is_ComplexField
 
 from sage.rings.ring import is_Ring
 from sage.rings.rational_field import is_RationalField

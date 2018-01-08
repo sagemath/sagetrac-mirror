@@ -161,7 +161,7 @@ from sage.libs.gsl.complex cimport gsl_complex_rect
 
 from sage.rings.real_double cimport RealDoubleElement
 from sage.rings.complex_double cimport ComplexDoubleElement
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
@@ -348,13 +348,13 @@ class ComplexBallField(UniqueRepresentation, Field):
         from sage.categories.pushout import AlgebraicClosureFunctor
         return (AlgebraicClosureFunctor(), self._base)
 
-    def complex_field(self):
+    def complex_mpfr(self):
         """
         Return the complex ball field with the same precision, i.e. ``self``
 
         EXAMPLES::
 
-            sage: CBF.complex_field() is CBF
+            sage: CBF.complex_mpfr() is CBF
             True
         """
         return ComplexBallField(self._prec)
@@ -944,7 +944,7 @@ cdef class ComplexBall(RingElement):
 
         INPUT:
 
-        - ``parent`` - :class:`~sage.rings.complex_field.ComplexField_class`,
+        - ``parent`` - :class:`~sage.rings.complex_mpfr.ComplexField_class`,
           target parent.
 
         EXAMPLES::
@@ -1284,7 +1284,7 @@ cdef class ComplexBall(RingElement):
 
         OUTPUT:
 
-        :class:`~sage.rings.complex_number.ComplexNumber`, floating-point
+        :class:`~sage.rings.complex_mpfr.ComplexNumber`, floating-point
         complex number formed by the centers of the real and imaginary parts of
         this ball.
 
@@ -1308,7 +1308,7 @@ cdef class ComplexBall(RingElement):
         .. SEEALSO:: :meth:`squash`
         """
         re, im = self.real().mid(), self.imag().mid()
-        field = sage.rings.complex_field.ComplexField(
+        field = sage.rings.complex_mpfr.ComplexField(
                 max(prec(self), re.prec(), im.prec()))
         return field(re, im)
 

@@ -3,7 +3,7 @@ Field of Arbitrary Precision Complex Intervals
 
 AUTHORS:
 
-- William Stein wrote complex_field.py.
+- William Stein wrote complex_field.py (later renamed complex_mpfr.pyx)
 
 - William Stein (2006-01-26): complete rewrite
 
@@ -40,7 +40,7 @@ from . import integer
 import weakref
 from . import real_mpfi
 from . import complex_interval
-from . import complex_field
+from . import complex_mpfr
 from sage.misc.sage_eval import sage_eval
 
 from sage.structure.parent_gens import ParentWithGens
@@ -373,7 +373,7 @@ class ComplexIntervalField_class(ring.Field):
         try:
             return self.__middle_field
         except AttributeError:
-            self.__middle_field = complex_field.ComplexField(self._prec)
+            self.__middle_field = complex_mpfr.ComplexField(self._prec)
             return self.__middle_field
 
     def __eq__(self, other):

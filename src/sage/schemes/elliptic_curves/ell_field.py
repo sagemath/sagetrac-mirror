@@ -15,7 +15,7 @@ from __future__ import absolute_import
 
 from . import ell_generic
 import sage.rings.all as rings
-from sage.rings.complex_field import is_ComplexField
+from sage.rings.complex_mpfr import is_ComplexField
 from sage.rings.real_mpfr import is_RealField
 from .constructor import EllipticCurve
 from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field

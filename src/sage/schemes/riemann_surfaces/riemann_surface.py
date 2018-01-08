@@ -68,7 +68,7 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.complex_field import ComplexField, CDF
+from sage.rings.complex_mpfr import ComplexField, CDF
 from sage.rings.real_mpfr import RealField
 from sage.rings.real_double import RDF
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing

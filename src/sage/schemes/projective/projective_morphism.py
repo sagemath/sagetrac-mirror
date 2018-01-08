@@ -48,7 +48,7 @@ from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import Integer
 from sage.arith.all import gcd, lcm
-from sage.rings.complex_field import ComplexField_class
+from sage.rings.complex_mpfr import ComplexField_class
 from sage.rings.complex_interval_field import ComplexIntervalField_class
 from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField
 from sage.rings.fraction_field import FractionField

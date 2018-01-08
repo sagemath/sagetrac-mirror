@@ -5941,7 +5941,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: type(Integer(5).sqrt(prec=53))
             <type 'sage.rings.real_mpfr.RealNumber'>
             sage: type(Integer(-5).sqrt(prec=53))
-            <type 'sage.rings.complex_number.ComplexNumber'>
+            <type 'sage.rings.complex_mpfr.ComplexNumber'>
 
         TESTS:
 

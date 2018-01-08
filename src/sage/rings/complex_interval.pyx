@@ -8,13 +8,13 @@ the intervals down.
 
 AUTHORS:
 
-These authors wrote ``complex_number.pyx``:
+These authors wrote ``complex_mpfr.pyx``:
 
 - William Stein (2006-01-26): complete rewrite
 - Joel B. Mohler (2006-12-16): naive rewrite into pyrex
 - William Stein(2007-01): rewrite of Mohler's rewrite
 
-Then ``complex_number.pyx`` was copied to ``complex_interval.pyx`` and
+Then ``complex_mpfr.pyx`` was copied to ``complex_interval.pyx`` and
 heavily modified:
 
 - Carl Witty (2007-10-24): rewrite to become a complex interval package
@@ -53,8 +53,8 @@ from sage.libs.mpfr cimport MPFR_RNDU, MPFR_RNDD
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
 from sage.structure.parent cimport Parent
-from .complex_number cimport ComplexNumber
-from .complex_field import ComplexField
+from .complex_mpfr cimport ComplexNumber
+from .complex_mpfr import ComplexField
 from sage.rings.integer cimport Integer
 cimport sage.rings.real_mpfi as real_mpfi
 from .real_mpfr cimport RealNumber, RealField
