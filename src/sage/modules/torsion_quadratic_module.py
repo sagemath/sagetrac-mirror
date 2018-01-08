@@ -20,10 +20,13 @@ AUTHORS:
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.fg_pid.fgp_element import DEBUG, FGP_Element
 from sage.arith.misc import gcd
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, IntegerModRing, QQ
 from sage.groups.additive_abelian.qmodnz import QmodnZ
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
+from sage.arith.misc import legendre_symbol
+from sage.rings.finite_rings.integer_mod import mod
+
 
 class TorsionQuadraticModuleElement(FGP_Element):
     r"""
@@ -643,3 +646,151 @@ class TorsionQuadraticModule(FGP_Module_class):
         """
         return QmodnZ(self._modulus_qf)
 
+    def Brown_invariant(self):
+        """
+        Return the Brown invariant of this torsion quadratic form.
+
+        Can we make sense of this in general?
+        """
+        if self._modulus_qf!=2:
+            raiseValueError("The Brown invariant is defined for quadra")
+        from sage.quadratic_forms.genera.normal_form import collect_small_blocks
+        brown = IntegerModRing(8).zero()
+        for p in self.annihilator().gen().prime_divisors():
+            q = self.primary_part(p).normal_form()
+            q = q.gram_matrix_quadratic()
+            L = collect_small_blocks(q)
+            for qi in L:
+                brown += _Brown_indecomposable(qi,p)
+        return brown
+
+    def is_even_Genus(self,signature_pair):
+        r"""
+        """
+        s_plus = signature_pair[0]
+        s_minus = signature_pair[1]
+        rank = s_plus + s_minus
+        signature = s_plus - s_minus
+        D = self.cardinality()
+        det = (-1)**s_minus * D
+        if rank < len(self.invariants()):
+            return False
+        for p in D.prime_divisors():
+            Q_p = self.primary_part(p)
+            gram_p = Q_p.gram_matrix_quadratic()
+            length_p = len(Q_p.invariants())
+            u = D.prime_to_m_part(p)
+            up = gram_p.det().numerator().prime_to_m_part(p)
+            if p!=2 and length_p==rank:
+                if legendre_symbol(u,p) != legendre_symbol(up, p):
+                    return False
+            if p == 2:
+                if mod(rank, 2) != mod(length_p, 2):
+                    return False
+                n = (rank - length_p)/2
+                if mod(u, 4) != mod((-1)**(n % 2) * up, 4):
+                    return False
+                if rank == length_p:
+                    a = QQ(1)/QQ(2)
+                    b = QQ(3)/QQ(2)
+                    diag = gram_p.diagonal()
+                    if not (a in diag or b in diag):
+                        if mod(u, 8) != mod(up, 8):
+                            return False
+        if self.Brown_invariant() != signature:
+            return False
+        return True
+
+    def Genus(self,signature_pair):
+        from sage.quadratic_forms.genera.Genus import (Genus_Symbol_p_adic_ring,
+                                                    GenusSymbol_global_ring)
+        from sage.quadratic_forms.genera.normal_form import            _get_homogeneous_block_indices
+        from sage.misc.misc_c import prod
+        s_plus = signature_pair[0]
+        s_minus = signature_pair[1]
+        rank = s_plus + s_minus
+        D = self.cardinality()
+        det = (-1)**s_minus * D
+        symbols = []
+        for p in (2*D).prime_divisors():
+            q = self.primary_part(p).normal_form().gram_matrix_quadratic()
+            I = _get_homogeneous_block_indices(q)[1:]
+            q.subdivide(I)
+            for i in range(len(L)+1):
+                qk = D.subdivision(i, i)
+                m = qk.denominator().valuation()
+                n = qk.ncols()
+                if p == 2:
+                    qz = qk._clear_denom()
+                    d = qz.det() % 8
+                    oddity = qz.trace()
+                    if mod(e, 8) == 0:
+                        is_odd = 0
+                    else:
+                        is_odd = 1
+                    local_symbol.append([m,n,d,is_odd,oddity])
+                else:
+                    d = qk[-1, -1]
+                    if d != 1:
+                        d = -1
+                    local_symbol.append([m,n,d])
+            r = rank - q.ncols()
+            if r>0 or p==2:
+                if p == 2:
+                    d = det.prime_to_m_part(2) % 8
+                    d *= prod([di[2] for di in local_symbol])
+                    d = d % 8
+                    local_symbol.append([0, r, d, 0 ,0])
+                else:
+                    d = legendre_symbol(det,p)
+                    d *= prod([di[2] for di in local_symbol])
+                    local_symbol.append([0, r, d])
+                local_symbol.sort()
+                local_symbol = Genus_Symbol_p_adic_ring(local_symbol,p)
+                symbols.append(local_symbol)
+
+def _Brown_indecomposable(q,p):
+    r"""
+    Return the Brown invariant of the indecomposable form ``q``.
+
+    EXAMPLES::
+
+        sage: from sage.modules.torsion_quadratic_module import _Brown_indecomposable
+        sage: q = Matrix(QQ, [1/3])
+        sage: _Brown_indecomposable(q,3)
+        4
+        sage: q = Matrix(QQ, [2/3])
+        sage: _Brown_indecomposable(q,3)
+        0
+        sage: q = Matrix(QQ, [5/4])
+        sage: _Brown_indecomposable(q,2)
+        sage: q = Matrix(QQ, [7/4])
+        sage: _Brown_indecomposable(q,2)
+        sage: q = Matrix(QQ, 2, [0,1,1,0])/2
+        sage: _Brown_indecomposable(q,2)
+        sage: q = Matrix(QQ, 2, [2,1,1,2])/2
+        sage: _Brown_indecomposable(q,2)
+    """
+    v = q.denominator().valuation(p)
+    if p == 2:
+        # Brown(U) = 0
+        if q.ncols() == 2:
+            if q[0,0].valuation(2)>v+1 and q[1,1].valuation(2)>v+1:
+                # type U
+                return mod(0, 8)
+            else:
+                # type V
+                return mod(4*v, 8)
+        u = q[0,0].numerator()
+        return mod(u + v*(u**2 - 1)/2, 8)
+    if p % 4 == 1:
+        e = -1 
+    if p % 4 == 3:
+        e = 1
+    if v % 2 == 1:
+        u = q[0,0].numerator()//2
+        if legendre_symbol(u,p) == 1:
+            return mod(1 + e, 8)
+        else:
+            return mod(-3 + e, 8)
+    return mod(0, 8)
