@@ -4437,7 +4437,7 @@ class GenericGraph(GenericGraph_pyx):
         del graph
         return result
 
-    # TODO: rename into _layout_planar
+    from sage.misc.superseded import deprecation
     def set_planar_positions(self, test = False, **layout_options):
         """
         Compute a planar layout for self using Schnyder's algorithm,
@@ -4454,6 +4454,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.layout(layout = "planar", save_pos = True)
             {0: [1, 4], 1: [5, 1], 2: [0, 5], 3: [1, 0], 4: [1, 2], 5: [2, 1], 6: [4, 1]}
         """
+        deprecation(24494, "use .layout(layout='planar' instead of .set_planar_positions()")
         self.layout(layout = "planar", save_pos = True, test = test, **layout_options)
         if test:    # Optional error-checking, ( looking for edge-crossings O(n^2) ).
             return self.is_drawn_free_of_edge_crossings() # returns true if tests pass
