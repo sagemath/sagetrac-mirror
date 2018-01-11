@@ -1316,22 +1316,44 @@ cdef class FiniteField(Field):
             sage: F = GF(2 ** 4, 'a')
             sage: F.extension(int(3), 'aa')
             Finite Field in aa of size 2^12
+
+        Check :trac:`24526`::
+
+            sage: K = GF(3)
+            sage: K.extension(SR.var('x')^2 + 1, 'a')
+            Finite Field in a of size 3^2
+            sage: K.extension('x^2 + 1', 'a')
+            Finite Field in a of size 3^2
+            sage: K.extension([1, 0, 1], 'a')
+            Finite Field in a of size 3^2
         """
         from .finite_field_constructor import GF
-        from sage.rings.polynomial.polynomial_element import is_Polynomial
         from sage.rings.integer import Integer
         if name is None and names is not None:
             name = names
         if self.degree() == 1:
             if isinstance(modulus, (int, Integer)):
                 E = GF(self.characteristic()**modulus, name=name, **kwds)
-            elif isinstance(modulus, (list, tuple)):
-                E = GF(self.characteristic()**(len(modulus) - 1), name=name, modulus=modulus, **kwds)
-            elif is_Polynomial(modulus):
-                if modulus.change_ring(self).is_irreducible():
+            else:
+                from sage.rings.polynomial.polynomial_element import is_Polynomial
+
+                if not is_Polynomial(modulus):
+                    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+                    try:
+                        variable_name = str(modulus.variables()[0])
+                    except (AttributeError, ValueError):
+                        variable_name = 'x'
+
+                    modulus = PolynomialRing(self, variable_name)(modulus)
+
+                else:
+                    modulus = modulus.change_ring(self)
+
+                if modulus.is_irreducible():
                     E = GF(self.characteristic()**(modulus.degree()), name=name, modulus=modulus, **kwds)
                 else:
                     E = Field.extension(self, modulus, name=name, embedding=embedding)
+
         elif isinstance(modulus, (int, Integer)):
             E = GF(self.order()**modulus, name=name, **kwds)
             if E is self:
