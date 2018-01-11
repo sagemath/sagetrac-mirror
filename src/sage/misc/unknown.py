@@ -19,32 +19,23 @@ class UnknownClass(UniqueRepresentation, SageObject):
     """
     def __init__(self):
         """
-        The ``Unknown`` truth value
-
-        EXAMPLES::
-
-            sage: l = [False, Unknown, True]
-            sage: for a in l: print([a and b for b in l])
-            [False, False, False]
-            [Unknown, Unknown, Unknown]
-            [False, Unknown, True]
-
-            sage: for a in l: print([a or b  for b in l])
-            [False, Unknown, True]
-            [False, Unknown, True]
-            [True, True, True]
-
         .. WARNING::
 
             Unless PEP 335 is accepted, in the following cases,
-            ``and``, ``not`` and ``or`` return a somewhat wrong value::
+            ``and``, ``not`` and ``or`` fail or return a somewhat wrong value::
 
                 sage: not Unknown         # should return Unknown
-                True
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: Unknown does not evaluate in boolean context
                 sage: Unknown and False   # should return False
-                Unknown
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: Unknown does not evaluate in boolean context
                 sage: Unknown or False    # should return Unknown
-                False
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: Unknown does not evaluate in boolean context
         """
 
     def _repr_(self):
@@ -58,17 +49,20 @@ class UnknownClass(UniqueRepresentation, SageObject):
 
     def __bool__(self):
         """
-        When evaluated in a boolean context ``Unknown()`` is evalutated into
-        ``False``.
+        When evaluated in a boolean context ``Unknown()`` raises an error.
 
         EXAMPLES::
 
             sage: bool(Unknown)
-            False
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Unknown does not evaluate in boolean context
             sage: not Unknown
-            True
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Unknown does not evaluate in boolean context
         """
-        return False
+        raise NotImplementedError('Unknown does not evaluate in boolean context')
 
     __nonzero__ = __bool__
 
@@ -92,7 +86,9 @@ class UnknownClass(UniqueRepresentation, SageObject):
         Compare with::
 
             sage: Unknown and False    # should return False
-            Unknown
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Unknown does not evaluate in boolean context
         """
         if other is False: return False
         else:              return self
@@ -110,14 +106,18 @@ class UnknownClass(UniqueRepresentation, SageObject):
             sage: Unknown | False
             Unknown
             sage: Unknown | Unknown
-            Unknown
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Unknown does not evaluate in boolean context
             sage: Unknown | True
             True
 
         Compare with::
 
             sage: Unknown or False    # should return Unknown
-            False
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Unknown does not evaluate in boolean context
         """
         if other: return True
         else:     return self
@@ -138,7 +138,9 @@ class UnknownClass(UniqueRepresentation, SageObject):
         Compare with::
 
             sage: not Unknown  # should return Unknown
-            True
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Unknown does not evaluate in boolean context
         """
         return self
 
