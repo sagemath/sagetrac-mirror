@@ -29,6 +29,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.categories.finite_fields import FiniteFields
 from sage.structure.parent cimport Parent
@@ -853,7 +854,7 @@ cdef class FiniteField(Field):
             pass
 
         from sage.rings.all import PolynomialRing
-        from finite_field_constructor import GF
+        from .finite_field_constructor import GF
         R = PolynomialRing(GF(self.characteristic()), 'x')
         self._modulus = R((-1,1))  # Polynomial x - 1
         return self._modulus
@@ -1045,6 +1046,12 @@ cdef class FiniteField(Field):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Finite Field of size 7 to Finite Field in a of size 2^3
+
+        There is no coercion from a `p`-adic ring to its residue field::
+
+            sage: R.<a> = Zq(81); k = R.residue_field()
+            sage: k.has_coerce_map_from(R)
+            False
         """
         from sage.rings.integer_ring import ZZ
         from sage.rings.finite_rings.finite_field_base import is_FiniteField
@@ -1056,7 +1063,7 @@ cdef class FiniteField(Field):
         if is_FiniteField(R):
             if R is self:
                 return True
-            from residue_field import ResidueField_generic
+            from .residue_field import ResidueField_generic
             if isinstance(R, ResidueField_generic):
                 return False
             if R.characteristic() == self.characteristic():
@@ -1065,6 +1072,30 @@ cdef class FiniteField(Field):
                 elif (R.degree().divides(self.degree())
                       and hasattr(self, '_prefix') and hasattr(R, '_prefix')):
                     return R.hom((self.gen() ** ((self.order() - 1)//(R.order() - 1)),))
+
+    cpdef _convert_map_from_(self, R):
+        """
+        Conversion from p-adic fields.
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(49); k = K.residue_field()
+            sage: k.convert_map_from(K)
+            Reduction morphism:
+              From: Unramified Extension in a defined by x^2 + 6*x + 3 with capped relative precision 20 over 7-adic Field
+              To:   Finite Field in a0 of size 7^2
+
+        Check that :trac:`8240 is resolved::
+
+            sage: R.<a> = Zq(81); k = R.residue_field()
+            sage: k.convert_map_from(R)
+            Reduction morphism:
+              From: Unramified Extension in a defined by x^4 + 2*x^3 + 2 with capped relative precision 20 over 3-adic Ring
+              To:   Finite Field in a0 of size 3^4
+        """
+        from sage.rings.padics.padic_generic import pAdicGeneric, ResidueReductionMap
+        if isinstance(R, pAdicGeneric) and R.residue_field() is self:
+            return ResidueReductionMap._create_(R, self)
 
     def construction(self):
         """
@@ -1163,7 +1194,7 @@ cdef class FiniteField(Field):
             sage: F.extension(int(3), 'aa')
             Finite Field in aa of size 2^12
         """
-        from finite_field_constructor import GF
+        from .finite_field_constructor import GF
         from sage.rings.polynomial.polynomial_element import is_Polynomial
         from sage.rings.integer import Integer
         if name is None and names is not None:
@@ -1246,7 +1277,7 @@ cdef class FiniteField(Field):
                   Defn: z21 |--> z21)]
         """
         from sage.rings.integer import Integer
-        from finite_field_constructor import GF
+        from .finite_field_constructor import GF
         p = self.characteristic()
         n = self.degree()
         if degree != 0:
@@ -1370,7 +1401,7 @@ cdef class FiniteField(Field):
             sage: GF(next_prime(2^16, 2), 'a').is_conway()
             False
         """
-        from conway_polynomials import conway_polynomial, exists_conway_polynomial
+        from .conway_polynomials import conway_polynomial, exists_conway_polynomial
         p = self.characteristic()
         n = self.degree()
         return (exists_conway_polynomial(p, n)

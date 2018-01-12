@@ -483,7 +483,7 @@ cdef class Map(Element):
             _dict = self.__dict__
         else:
             _dict = {}
-        return unpickle_map, (self.__class__, self._parent, _dict, self._extra_slots({}))
+        return unpickle_map, (type(self), self.parent(), _dict, self._extra_slots({}))
 
     def _repr_type(self):
         """
@@ -636,11 +636,12 @@ cdef class Map(Element):
             sage: f = R.hom([x+y, x-y], R)
             sage: f.category_for()
             Join of Category of unique factorization domains
-             and Category of commutative algebras over (quotient fields and metric spaces)
+             and Category of commutative algebras over
+                 (number fields and quotient fields and metric spaces)
             sage: f.category()
             Category of endsets of unital magmas
-             and right modules over (quotient fields and metric spaces)
-             and left modules over (quotient fields and metric spaces)
+             and right modules over (number fields and quotient fields and metric spaces)
+             and left modules over (number fields and quotient fields and metric spaces)
 
 
         FIXME: find a better name for this method
@@ -699,7 +700,7 @@ cdef class Map(Element):
             sage: phi(I)
             Ideal (y, x) of Multivariate Polynomial Ring in x, y over Rational Field
 
-        TEST:
+        TESTS:
 
         We test that the map can be applied to something that converts
         (but not coerces) into the domain and can *not* be dealt with
@@ -1002,7 +1003,7 @@ cdef class Map(Element):
             sage: phi_xz.category_for()
             Category of monoids
 
-        TEST:
+        TESTS:
 
         This illustrates that it is not tested whether the maps can actually
         be composed, i.e., whether codomain and domain match.
@@ -1544,10 +1545,10 @@ cdef class FormalCompositeMap(Map):
 
             sage: copy(QQ['q,t'].coerce_map_from(int))   # indirect doctest
             Composite map:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Multivariate Polynomial Ring in q, t over Rational Field
               Defn:   Native morphism:
-                      From: Set of Python objects of type 'int'
+                      From: Set of Python objects of class 'int'
                       To:   Rational Field
                     then
                       Polynomial base injection morphism:

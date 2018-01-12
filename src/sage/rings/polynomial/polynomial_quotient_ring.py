@@ -58,6 +58,8 @@ from sage.structure.category_object import normalize_names
 from sage.rings.polynomial.infinite_polynomial_ring import GenDictWithBasering
 from sage.all import sage_eval, parent
 
+from sage.structure.richcmp import richcmp
+
 
 def PolynomialQuotientRing(ring, polynomial, names=None):
     r"""
@@ -343,7 +345,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
     def __reduce__(self):
         """
-        TEST:
+        TESTS:
 
         Note the polynomial quotient rings are not unique parent structures::
 
@@ -470,12 +472,12 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             raise TypeError("unable to convert %r to an element of %s"%(x, self))
 
     def _coerce_map_from_(self, R):
-        """
-        Anything coercing into ``self``'s polynomial ring coerces into ``self``.
-        Any quotient polynomial ring whose polynomial ring coerces into
-        ``self``'s polynomial ring and whose modulus is divided by the modulus
-        of ``self`` coerces into ``self``. There is no coercion if the division
-        of the moduli fails.
+        r"""
+        Return a coerce map from ``R``.
+
+        Anything coercing into the underlying polynomial ring coerces into this
+        quotient. Furthermore, for quotients `R=A[x]/(f)` and `S=B[x]/(g)` with
+        a coercion `R\to S` there is a coercion iff `f` divides `g`.
 
         AUTHOR:
 
@@ -513,7 +515,9 @@ class PolynomialQuotientRing_generic(CommutativeRing):
                     return False
             except (ZeroDivisionError,ArithmeticError):
                 return False
-            return self.__ring.has_coerce_map_from(R.polynomial_ring())
+            from sage.all import Hom
+            parent = Hom(R, self, category=self.category()._meet_(R.category()))
+            return parent.__make_element_class__(PolynomialQuotientRing_coercion)(R, self, category=parent.homset_category())
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
@@ -572,9 +576,9 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         """
         return x.lift()
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Compare self and other.
+        Check whether ``self`` is equal to ``other``.
 
         EXAMPLES::
 
@@ -593,10 +597,31 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             True
         """
         if not isinstance(other, PolynomialQuotientRing_generic):
-            return cmp(type(self), type(other))
-        c = cmp(self.polynomial_ring(), other.polynomial_ring())
-        if c: return c
-        return cmp(self.modulus(), other.modulus())
+            return False
+        return (self.polynomial_ring() == other.polynomial_ring() and
+                self.modulus() == other.modulus())
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: Rx.<x> = PolynomialRing(QQ)
+            sage: Ry.<y> = PolynomialRing(QQ)
+            sage: Rx != Ry
+            True
+            sage: Qx = Rx.quotient(x^2+1)
+            sage: Qy = Ry.quotient(y^2+1)
+            sage: Qx != Qy
+            True
+            sage: Qx != Qx
+            False
+            sage: Qz = Rx.quotient(x^2+1)
+            sage: Qz != Qx
+            False
+        """
+        return  not (self == other)
 
     def _singular_init_(self, S=None):
         """
@@ -694,12 +719,19 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         """
         Return the number of elements of this quotient ring.
 
+        ``order`` is an alias of ``cardinality``.
+
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
             sage: R.quo(1).cardinality()
             1
             sage: R.quo(x^3-2).cardinality()
+            +Infinity
+
+            sage: R.quo(1).order()
+            1
+            sage: R.quo(x^3-2).order()
             +Infinity
 
         ::
@@ -711,6 +743,13 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             729
             sage: R.quo(2).cardinality()
             1
+
+        TESTS::
+
+            sage: parent(QQ['x'].quo(1).cardinality())
+            Integer Ring
+            sage: parent(QQ['x'].quo(1).order())
+            Integer Ring
         """
         if not self.is_finite():
             from sage.rings.infinity import Infinity
@@ -719,9 +758,77 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         # Two cases where the quotient is finite (see is_finite())
         # 1) R[x]/(1)
         if f.degree() == 0:
-            return 1
+            from sage.rings.integer_ring import ZZ
+            return ZZ.one()
         # 2) F[x]/(f) where F is finite
-        return self.base_ring().cardinality() ** f.degree()
+        else:
+            return self.base_ring().cardinality() ** f.degree()
+
+    order = cardinality
+
+    def is_finite(self):
+        """
+        Return whether or not this quotient ring is finite.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: R.quo(1).is_finite()
+            True
+            sage: R.quo(x^3-2).is_finite()
+            False
+
+        ::
+
+            sage: R.<x> = GF(9,'a')[]
+            sage: R.quo(2*x^3+x+1).is_finite()
+            True
+            sage: R.quo(2).is_finite()
+            True
+
+        ::
+
+            sage: P.<v> = GF(2)[]
+            sage: P.quotient(v^2-v).is_finite()
+            True
+        """
+        f = self.modulus()
+
+        # note: the constructor assumes that the leading coefficient is a
+        # unit. However, this function would be very wrong if otherwise.
+        # As a safety measure, we check that again here.
+        assert f.leading_coefficient().is_unit()
+
+        return f.degree() == 0 or self.base_ring().is_finite()
+
+    def __iter__(self):
+        r"""
+        EXAMPLES::
+
+            sage: R.<x> = GF(3)[]
+            sage: Q = R.quo(x^3 - x^2 - x - 1)
+            sage: list(Q)
+            [0,
+             1,
+             2,
+             xbar,
+             xbar + 1,
+             xbar + 2,
+             2*xbar,
+             ...
+             2*xbar^2 + 2*xbar + 1,
+             2*xbar^2 + 2*xbar + 2]
+            sage: len(_) == Q.cardinality() == 27
+            True
+        """
+        if not self.is_finite():
+            raise NotImplementedError('not possible to iterate through infinite quotient')
+
+        R = self.polynomial_ring()
+        yield self.zero()
+        for i in range(self.modulus().degree()):
+            for p in R.polynomials(of_degree=i):
+                yield self(p)
 
     def characteristic(self):
         """
@@ -902,26 +1009,6 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         if not isinstance(self.base_ring(), sage.rings.rational_field.RationalField):
             raise NotImplementedError("Computation of number field only implemented for quotients of the polynomial ring over the rational field.")
         return sage.rings.number_field.all.NumberField(self.modulus(), self.variable_name())
-
-    def order(self):
-        """
-        Return the number of elements of this quotient ring.
-
-        EXAMPLES::
-
-            sage: F1.<a> = GF(2^7)
-            sage: P1.<x> = F1[]
-            sage: F2 = F1.extension(x^2+x+1, 'u')
-            sage: F2.order()
-            16384
-
-            sage: F1 = QQ
-            sage: P1.<x> = F1[]
-            sage: F2 = F1.extension(x^2+x+1, 'u')
-            sage: F2.order()
-            +Infinity
-        """
-        return self.base_ring().order() ** self.degree()
 
     def polynomial_ring(self):
         """
@@ -1300,13 +1387,13 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             Unit group with structure C6 of Number Field in a with defining polynomial x^2 + 3
             sage: K.<a> = QQ['x'].quotient(x^2 + 3)
             sage: u,o = K.S_units([])[0]; u, o
-            (1/2*a + 1/2, 6)
+            (-1/2*a + 1/2, 6)
             sage: u^6
             1
             sage: u^3
             -1
             sage: u^2
-            1/2*a - 1/2
+            -1/2*a - 1/2
 
         ::
 
@@ -1315,19 +1402,19 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: L.<b> = K['y'].quotient(y^3 + 5); L
             Univariate Quotient Polynomial Ring in b over Number Field in a with defining polynomial x^2 + 3 with modulus y^3 + 5
             sage: L.S_units([])
-            [(1/2*a + 1/2, 6),
+            [(-1/2*a + 1/2, 6),
              ((-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, +Infinity),
              (2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2, +Infinity)]
             sage: L.S_units([K.ideal(1/2*a - 3/2)])
             [((-1/6*a - 1/2)*b^2 + (1/3*a - 1)*b + 4/3*a, +Infinity),
-             (1/2*a + 1/2, 6),
+             (-1/2*a + 1/2, 6),
              ((-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, +Infinity),
              (2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2, +Infinity)]
             sage: L.S_units([K.ideal(2)])
             [((1/2*a - 1/2)*b^2 + (a + 1)*b + 3, +Infinity),
              ((1/6*a + 1/2)*b^2 + (-1/3*a + 1)*b - 5/6*a + 1/2, +Infinity),
              ((1/6*a + 1/2)*b^2 + (-1/3*a + 1)*b - 5/6*a - 1/2, +Infinity),
-             (1/2*a + 1/2, 6),
+             (-1/2*a + 1/2, 6),
              ((-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, +Infinity),
              (2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2, +Infinity)]
 
@@ -1387,13 +1474,13 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             Unit group with structure C6 of Number Field in a with defining polynomial x^2 + 3
             sage: K.<a> = QQ['x'].quotient(x^2 + 3)
             sage: u = K.units()[0][0]; u
-            1/2*a + 1/2
+            -1/2*a + 1/2
             sage: u^6
             1
             sage: u^3
             -1
             sage: u^2
-            1/2*a - 1/2
+            -1/2*a - 1/2
             sage: K.<a> = QQ['x'].quotient(x^2 + 5)
             sage: K.units(())
             [(-1, 2)]
@@ -1405,7 +1492,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: L.<b> = K['y'].quotient(y^3 + 5); L
             Univariate Quotient Polynomial Ring in b over Number Field in a with defining polynomial x^2 + 3 with modulus y^3 + 5
             sage: L.units()
-            [(1/2*a + 1/2, 6),
+            [(-1/2*a + 1/2, 6),
              ((-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, +Infinity),
              (2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2, +Infinity)]
             sage: L.<b> = K.extension(y^3 + 5)
@@ -1725,6 +1812,125 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             tester.assertIn(y, ring)
             tester.assertEqual(from_isomorphic_ring(y), x)
 
+from sage.structure.coerce_maps import DefaultConvertMap_unique
+class PolynomialQuotientRing_coercion(DefaultConvertMap_unique):
+    r"""
+    A coercion map from a :class:`PolynomialQuotientRing` to a
+    :class:`PolynomialQuotientRing` that restricts to the coercion map on the
+    underlying ring of constants.
+
+    EXAMPLES::
+
+        sage: R.<x> = ZZ[]
+        sage: S.<x> = QQ[]
+        sage: f = S.quo(x^2 + 1).coerce_map_from(R.quo(x^2 + 1)); f
+        Coercion map:
+          From: Univariate Quotient Polynomial Ring in xbar over Integer Ring with modulus x^2 + 1
+          To:   Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus x^2 + 1
+
+    TESTS::
+
+        sage: from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing_coercion
+        sage: isinstance(f, PolynomialQuotientRing_coercion)
+        True
+        sage: TestSuite(f).run(skip=['_test_pickling'])
+
+    Pickling works but the returned value is not compare equal to the original
+    morphism::
+
+        sage: g = loads(dumps(f)); g
+        Coercion map:
+          From: Univariate Quotient Polynomial Ring in xbar over Integer Ring with modulus x^2 + 1
+          To:   Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus x^2 + 1
+        sage: f == g
+        False
+
+    The reason for this is that pickling of the domain is currently broken, and
+    therefore the parent of `f` and `g` are different::
+
+        sage: loads(dumps(f.domain())) is f.domain()
+        False
+        sage: f.parent() is g.parent()
+        False
+
+    """
+    def is_injective(self):
+        r"""
+        Return whether this coercion is injective.
+
+        EXAMPLES:
+
+        If the modulus of the domain and the codomain is the same and the
+        leading coefficient is a unit in the domain, then the map is injective
+        if the underlying map on the constants is::
+
+            sage: R.<x> = ZZ[]
+            sage: S.<x> = QQ[]
+            sage: f = S.quo(x^2 + 1).coerce_map_from(R.quo(x^2 + 1))
+            sage: f.is_injective()
+            True
+
+        """
+        if (self.domain().modulus().change_ring(self.codomain().base_ring()) == self.codomain().modulus()
+            and self.domain().modulus().leading_coefficient().is_unit()):
+            if self.codomain().base_ring().coerce_map_from(self.domain().base_ring()).is_injective():
+                return True
+            else:
+                return self.domain().modulus().degree() == 0 # domain and codomain are the zero ring
+        return super(PolynomialQuotientRing_coercion, self).is_injective()
+
+    def is_surjective(self):
+        r"""
+        Return whether this coercion is surjective.
+
+        EXAMPLES:
+
+        If the underlying map on constants is surjective, then this coercion is
+        surjective since the modulus of the codomain divides the modulus of the
+        domain::
+
+            sage: R.<x> = ZZ[]
+            sage: f = R.quo(x).coerce_map_from(R.quo(x^2))
+            sage: f.is_surjective()
+            True
+
+        If the modulus of the domain and the codomain is the same, then the map
+        is surjective iff the underlying map on the constants is::
+
+            sage: A.<a> = ZqCA(9)
+            sage: R.<x> = A[]
+            sage: S.<x> = A.fraction_field()[]
+            sage: f = S.quo(x^2 + 2).coerce_map_from(R.quo(x^2 + 2))
+            sage: f.is_surjective()
+            False
+
+        """
+        constant_map_is_surjective = self.codomain().base_ring().coerce_map_from(self.domain().base_ring()).is_surjective()
+        if constant_map_is_surjective:
+            return True
+        if self.domain().modulus().change_ring(self.codomain().base_ring()) == self.codomain().modulus():
+            return constant_map_is_surjective
+        return super(PolynomialQuotientRing_coercion, self).is_surjective()
+
+    def _richcmp_(self, other, op):
+        r"""
+        Compare this morphism to ``other``.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: S.<x> = ZZ[]
+            sage: f = S.quo(x).coerce_map_from(R.quo(x^2))
+            sage: g = S.quo(x).coerce_map_from(R.quo(x^3))
+            sage: f == g
+            False
+            sage: f == f
+            True
+
+        """
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp(self.parent(), other.parent(), op)
 
 class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, IntegralDomain):
     """
@@ -1760,44 +1966,6 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, IntegralDoma
     def __reduce__(self):
         return PolynomialQuotientRing_domain, (self.polynomial_ring(),
                                          self.modulus(), self.variable_names())
-
-    def is_finite(self):
-        """
-        Return whether or not this quotient ring is finite.
-
-        EXAMPLES::
-
-            sage: R.<x> = ZZ[]
-            sage: R.quo(1).is_finite()
-            True
-            sage: R.quo(x^3-2).is_finite()
-            False
-
-        ::
-
-            sage: R.<x> = GF(9,'a')[]
-            sage: R.quo(2*x^3+x+1).is_finite()
-            True
-            sage: R.quo(2).is_finite()
-            True
-        """
-        f = self.modulus()
-        if f.degree() < 0:
-            return False
-        if f.degree() == 0:
-            if f[0].is_unit():
-                return True
-            else:
-                # definitely infinite, since poly ring over
-                # a nonzero ring.
-                return False
-        # when the degree is at least 1, the quotient is finite
-        # if and only if the base ring is finite:  why?  If base
-        # ring infinite, clearly quotient isn't in this case, since
-        # quotient embeds in.  If base ring is finite, then since
-        # it is a domain it is a field, so this is a field mod a poly
-        # of degree at least 1, hence it is also a finite field.
-        return self.base_ring().is_finite()
 
     def field_extension(self, names):
         r"""

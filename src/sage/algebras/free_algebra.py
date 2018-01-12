@@ -404,7 +404,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             sage: F.<x,y,z> = FreeAlgebra(QQ, 3); F # indirect doctet
             Free Algebra on 3 generators (x, y, z) over Rational Field
 
-        TEST:
+        TESTS:
 
         Note that the following is *not* the recommended way to create
         a free algebra::
@@ -492,9 +492,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         Note that since :trac:`7797` there is a different
         implementation of free algebras. Two corresponding free
         algebras in different implementations are not equal, but there
-        is a coercion::
-
-
+        is a coercion.
         """
         if not isinstance(other, FreeAlgebra_generic):
             return False

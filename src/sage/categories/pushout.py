@@ -1564,7 +1564,7 @@ class MatrixFunctor(ConstructionFunctor):
         """
         Apply the functor to an object of ``self``'s domain.
 
-        TEST:
+        TESTS:
 
         The following is a test against a bug discussed at :trac:`8800`::
 
@@ -1887,7 +1887,7 @@ class VectorFunctor(ConstructionFunctor):
 
     def __eq__(self, other):
         """
-        Only the rank of the to-be-created modules is compared, *not* the inner product matrix.
+        The rank and the inner product matrix are compared.
 
         TESTS::
 
@@ -1895,16 +1895,14 @@ class VectorFunctor(ConstructionFunctor):
             sage: F1 = VectorFunctor(3, inner_product_matrix = Matrix(3,3,range(9)))
             sage: F2 = (ZZ^3).construction()[0]
             sage: F1 == F2
-            True
+            False
             sage: F1(QQ) == F2(QQ)
-            True
-            sage: F1(QQ).inner_product_matrix() == F2(QQ).inner_product_matrix()
             False
             sage: F1 == loads(dumps(F1))
             True
         """
         if isinstance(other, VectorFunctor):
-            return self.n == other.n
+            return (self.n == other.n and self.inner_product_matrix==other.inner_product_matrix)
         return False
 
     def __ne__(self, other):
@@ -1917,9 +1915,9 @@ class VectorFunctor(ConstructionFunctor):
             sage: F1 = VectorFunctor(3, inner_product_matrix = Matrix(3,3,range(9)))
             sage: F2 = (ZZ^3).construction()[0]
             sage: F1 != F2
-            False
+            True
             sage: F1(QQ) != F2(QQ)
-            False
+            True
             sage: F1 != loads(dumps(F1))
             False
         """
@@ -1927,7 +1925,7 @@ class VectorFunctor(ConstructionFunctor):
 
     def merge(self, other):
         """
-        Two constructors of free modules merge, if the module ranks coincide. If both
+        Two constructors of free modules merge, if the module ranks and the inner products coincide. If both
         have explicitly given inner product matrices, they must coincide as well.
 
         EXAMPLES:
@@ -1976,7 +1974,7 @@ class VectorFunctor(ConstructionFunctor):
             [6 7 8]'
 
         """
-        if self != other:
+        if not isinstance(other, VectorFunctor):
             return None
         if self.inner_product_matrix is None:
             return VectorFunctor(self.n, self.is_sparse and other.is_sparse, other.inner_product_matrix)
@@ -2371,7 +2369,7 @@ class CompletionFunctor(ConstructionFunctor):
                     raise ValueError("completion type must be one of %s"%(", ".join(self._real_types)))
             else:
                 if self.type not in self._dvr_types:
-                    raise ValueError("completion type must be one of %s"%(", ".join(self._dvr_types)))
+                    raise ValueError("completion type must be one of %s"%(", ".join(self._dvr_types[1:])))
 
     def _repr_(self):
         """
@@ -2473,7 +2471,7 @@ class CompletionFunctor(ConstructionFunctor):
         return not (self == other)
 
     _real_types = ['Interval','Ball','MPFR','RDF','RLF']
-    _dvr_types = [None, 'fixed-mod','capped-abs','capped-rel','lazy']
+    _dvr_types = [None, 'fixed-mod','floating-point','capped-abs','capped-rel','lazy']
 
     def merge(self, other):
         """
@@ -2557,9 +2555,9 @@ class CompletionFunctor(ConstructionFunctor):
                 return CompletionFunctor(self.p, new_prec, {'type':new_type, 'sci_not':new_scinot, 'rnd':new_rnd})
             else:
                 new_type = self._dvr_types[min(self._dvr_types.index(self.type), self._dvr_types.index(other.type))]
-                if new_type == 'fixed-mod':
-                    if self.type != 'fixed-mod' or other.type != 'fixed-mod':
-                        return None # no coercion into fixed-mod
+                if new_type in ('fixed-mod', 'floating-point'):
+                    if self.type != other.type:
+                        return None # no coercion into fixed-mod or floating-point
                     new_prec = min(self.prec, other.prec)
                 else:
                     new_prec = max(self.prec, other.prec) # since elements track their own precision, we don't want to truncate them
@@ -2585,7 +2583,7 @@ class CompletionFunctor(ConstructionFunctor):
             sage: F1.commutes(F2)
             True
 
-        TEST:
+        TESTS:
 
         The fraction field ``R`` in the example below has no completion
         method. But completion commutes with the fraction field functor,
@@ -2991,7 +2989,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             sage: R.<a> = K[]
             sage: AEF = sage.categories.pushout.AlgebraicExtensionFunctor([a^2-3], ['a'], [None])
             sage: AEF(K)
-            Eisenstein Extension of 3-adic Field with capped relative precision 3 in a defined by (1 + O(3^3))*a^2 + (O(3^4))*a + (2*3 + 2*3^2 + 2*3^3 + O(3^4))
+            Eisenstein Extension in a defined by a^2 - 3 with capped relative precision 6 over 3-adic Field
 
         """
         from sage.all import QQ, ZZ, CyclotomicField

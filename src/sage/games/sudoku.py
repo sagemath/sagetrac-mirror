@@ -94,13 +94,13 @@ class Sudoku(SageObject):
 
     INPUT:
 
-    - puzzle - the first argument can take one of three forms
+    - puzzle -- the first argument can take one of three forms
         * list - a Python list with elements of the puzzle in row-major order,
           where a blank entry is a zero
         * matrix - a square Sage matrix over `\ZZ`
         * string - a string where each character is an entry of
           the puzzle. For two-digit entries, a = 10, b = 11, etc.
-    - verify_input - default = ``True``, use ``False`` if you know the input is valid
+    - verify_input -- default = ``True``, use ``False`` if you know the input is valid
 
     EXAMPLES::
 
@@ -366,7 +366,7 @@ class Sudoku(SageObject):
             sage: s.to_list()
             [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 9, 0, 4, 0, 0, 0, 5, 0, 0, 0, 6, 0, 0, 0, 7, 0, 0, 0, 5, 0, 9, 0, 3, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 8, 5, 0, 0, 4, 0, 7, 0, 0, 0, 0, 0, 6, 0, 0, 0, 3, 0, 0, 0, 9, 0, 8, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1]
 
-        TEST:
+        TESTS:
 
         This tests the input and output of Sudoku puzzles as lists. ::
 
@@ -389,7 +389,7 @@ class Sudoku(SageObject):
             [0 0 1 4]
             [0 0 3 0]
 
-        TEST:
+        TESTS:
 
         This tests the input and output of Sudoku puzzles as matrices over `\ZZ`. ::
 
@@ -474,7 +474,7 @@ class Sudoku(SageObject):
 
         INPUT:
 
-        - algorithm - default = ``'dlx'``, specify choice of solution algorithm. The
+        - algorithm -- default = ``'dlx'``, specify choice of solution algorithm. The
           two possible algorithms are ``'dlx'`` and ``'backtrack'``.
 
         OUTPUT:
@@ -722,7 +722,7 @@ class Sudoku(SageObject):
 
         INPUT:
 
-        - count_only - boolean, default = False.
+        - count_only -- boolean, default = False.
           If set to ``True`` the generator returned as output will
           simply generate ``None`` for each solution, so the
           calling routine can count these.
