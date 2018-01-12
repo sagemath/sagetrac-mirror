@@ -1300,7 +1300,7 @@ When we apply ``Compl``, ``Matr`` and ``Poly`` to the ring of integers, we
 obtain::
 
     sage: (Poly*Matr*Compl)(ZZ)
-    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Real Field with 53 bits of precision
+    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Real Floating-point Field with 53 bits of precision
 
 .. end of output
 

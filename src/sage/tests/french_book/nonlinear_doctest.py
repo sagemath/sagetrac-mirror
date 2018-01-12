@@ -431,17 +431,17 @@ Sage example in ./nonlinear.tex, line 1287::
 
     sage: rings = [ZZ, QQ, QQbar, RDF, RIF, RR, AA, CDF, CIF, CC]
     sage: for ring in rings:
-    ....:   print("{0:50} {1}".format(ring, ring.is_exact()))
-    Integer Ring                                       True
-    Rational Field                                     True
-    Algebraic Field                                    True
-    Real Double Field                                  False
-    Real Interval Field with 53 bits of precision      False
-    Real Field with 53 bits of precision               False
-    Algebraic Real Field                               True
-    Complex Double Field                               False
-    Complex Interval Field with 53 bits of precision   False
-    Complex Field with 53 bits of precision            False
+    ....:   print("{0:52} {1}".format(ring, ring.is_exact()))
+    Integer Ring                                         True
+    Rational Field                                       True
+    Algebraic Field                                      True
+    Real Double Field                                    False
+    Real Interval Field with 53 bits of precision        False
+    Real Floating-point Field with 53 bits of precision  False
+    Algebraic Real Field                                 True
+    Complex Double Field                                 False
+    Complex Interval Field with 53 bits of precision     False
+    Complex Field with 53 bits of precision              False
 
 Sage example in ./nonlinear.tex, line 1403::
 

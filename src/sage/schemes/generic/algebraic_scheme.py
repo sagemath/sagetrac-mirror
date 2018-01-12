@@ -1800,8 +1800,8 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: X = P.subscheme(x-w*y)
             sage: X.change_ring(RR)
-            Closed subscheme of Projective Space of dimension 1 over Real Field
-            with 53 bits of precision defined by:
+            Closed subscheme of Projective Space of dimension 1 over Real
+            Floating-point Field with 53 bits of precision defined by:
               x - 1.73205080756888*y
 
         ::

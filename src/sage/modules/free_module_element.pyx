@@ -350,7 +350,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         sage: parent(vector(CDF, x))
         Vector space of dimension 10 over Complex Double Field
         sage: parent(vector(RR, x))
-        Vector space of dimension 10 over Real Field with 53 bits of precision
+        Vector space of dimension 10 over Real Floating-point Field with 53 bits of precision
         sage: v = numpy.random.randn(10) * numpy.complex(0,1)
         sage: w = vector(v)
         sage: parent(w)
@@ -557,7 +557,7 @@ def prepare(v, R, degree=None):
         ([1, 2/3, 5], Rational Field)
 
         sage: prepare([1,2/3,5],RR)
-        ([1.00000000000000, 0.666666666666667, 5.00000000000000], Real Field with 53 bits of precision)
+        ([1.00000000000000, 0.666666666666667, 5.00000000000000], Real Floating-point Field with 53 bits of precision)
 
         sage: prepare({1:4, 3:-2}, ZZ, 6)
         ([0, 4, 0, -2, 0, 0], Integer Ring)
@@ -566,7 +566,7 @@ def prepare(v, R, degree=None):
         ([0, 0, 0, 1, 0, 3], Rational Field)
 
         sage: prepare([1,2/3,'10',5],RR)
-        ([1.00000000000000, 0.666666666666667, 10.0000000000000, 5.00000000000000], Real Field with 53 bits of precision)
+        ([1.00000000000000, 0.666666666666667, 10.0000000000000, 5.00000000000000], Real Floating-point Field with 53 bits of precision)
 
         sage: prepare({},QQ, 0)
         ([], Rational Field)
@@ -1162,19 +1162,19 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
             sage: _.parent()
-            Vector space of dimension 3 over Real Field with 53 bits of precision
+            Vector space of dimension 3 over Real Floating-point Field with 53 bits of precision
             sage: numerical_approx(v)
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
             sage: _.parent()
-            Vector space of dimension 3 over Real Field with 53 bits of precision
+            Vector space of dimension 3 over Real Floating-point Field with 53 bits of precision
             sage: v.n(prec=75)
             (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
             sage: _.parent()
-            Vector space of dimension 3 over Real Field with 75 bits of precision
+            Vector space of dimension 3 over Real Floating-point Field with 75 bits of precision
             sage: numerical_approx(v, digits=3)
             (1.00, 2.00, 3.00)
             sage: _.parent()
-            Vector space of dimension 3 over Real Field with 14 bits of precision
+            Vector space of dimension 3 over Real Floating-point Field with 14 bits of precision
 
         Both functional and object-oriented usage is possible.  ::
 
@@ -1209,17 +1209,17 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
             sage: _.parent()
-            Vector space of dimension 3 over Real Field with 53 bits of precision
+            Vector space of dimension 3 over Real Floating-point Field with 53 bits of precision
             sage: v.n(prec=75)
             (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
             sage: _.parent()
-            Vector space of dimension 3 over Real Field with 75 bits of precision
+            Vector space of dimension 3 over Real Floating-point Field with 75 bits of precision
 
             sage: v = vector(RDF, [1,2,3])
             sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
             sage: _.parent()
-            Vector space of dimension 3 over Real Field with 53 bits of precision
+            Vector space of dimension 3 over Real Floating-point Field with 53 bits of precision
             sage: v = vector(CDF, [1,2,3])
             sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
@@ -1230,21 +1230,21 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
             sage: _.parent()
-            Vector space of dimension 3 over Real Field with 53 bits of precision
+            Vector space of dimension 3 over Real Floating-point Field with 53 bits of precision
             sage: v.n(prec=75)
             (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
             sage: _.parent()
-            Vector space of dimension 3 over Real Field with 75 bits of precision
+            Vector space of dimension 3 over Real Floating-point Field with 75 bits of precision
 
             sage: v = vector(QQ, [1,2,3])
             sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
             sage: _.parent()
-            Vector space of dimension 3 over Real Field with 53 bits of precision
+            Vector space of dimension 3 over Real Floating-point Field with 53 bits of precision
             sage: v.n(prec=75)
             (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
             sage: _.parent()
-            Vector space of dimension 3 over Real Field with 75 bits of precision
+            Vector space of dimension 3 over Real Floating-point Field with 75 bits of precision
 
         ::
 
@@ -1252,11 +1252,11 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v.n()
             (1.00000000000000, 0.000000000000000, 1.00000000000000)
             sage: _.parent()
-            Vector space of dimension 3 over Real Field with 53 bits of precision
+            Vector space of dimension 3 over Real Floating-point Field with 53 bits of precision
             sage: v.n(prec=75)
             (1.000000000000000000000, 0.0000000000000000000000, 1.000000000000000000000)
             sage: _.parent()
-            Vector space of dimension 3 over Real Field with 75 bits of precision
+            Vector space of dimension 3 over Real Floating-point Field with 75 bits of precision
 
         TESTS:
 
@@ -1673,7 +1673,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: numeric = N(nrm); numeric
             5.83095189484...
             sage: numeric.parent()
-            Real Field with 53 bits of precision
+            Real Floating-point Field with 53 bits of precision
 
         TESTS:
 
@@ -5039,11 +5039,11 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
             sage: _.parent()
-            Sparse vector space of dimension 3 over Real Field with 53 bits of precision
+            Sparse vector space of dimension 3 over Real Floating-point Field with 53 bits of precision
             sage: v.n(prec=75)
             (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
             sage: _.parent()
-            Sparse vector space of dimension 3 over Real Field with 75 bits of precision
+            Sparse vector space of dimension 3 over Real Floating-point Field with 75 bits of precision
         """
         if prec is None:
             prec = digits_to_bits(digits)

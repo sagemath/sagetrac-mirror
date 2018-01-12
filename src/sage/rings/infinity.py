@@ -1712,8 +1712,8 @@ def test_comparison(ring):
         ....:     test_comparison(R)
         testing Integer Ring
         testing Rational Field
-        testing Real Field with 53 bits of precision
-        testing Real Field with 200 bits of precision
+        testing Real Floating-point Field with 53 bits of precision
+        testing Real Floating-point Field with 200 bits of precision
         testing Real Double Field
         testing Real Lazy Field
         testing Algebraic Real Field

@@ -1124,7 +1124,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         EXAMPLES::
 
             sage: ZZ.completion(infinity, 53)
-            Real Field with 53 bits of precision
+            Real Floating-point Field with 53 bits of precision
             sage: ZZ.completion(5, 15, {'print_mode': 'bars'})
             5-adic Ring with capped relative precision 15
         """

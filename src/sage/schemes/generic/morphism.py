@@ -1357,8 +1357,8 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: H = Hom(A,A)
             sage: f = H([3*x^2/y, y^2/x])
             sage: f.change_ring(RR)
-            Scheme endomorphism of Affine Space of dimension 2 over Real Field with
-            53 bits of precision
+            Scheme endomorphism of Affine Space of dimension 2 over Real
+            Floating-point Field with 53 bits of precision
             Defn: Defined on coordinates by sending (x, y) to
                     (3.00000000000000*x^2/y, y^2/x)
 

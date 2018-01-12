@@ -3694,7 +3694,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = f.conjugate(m)
             sage: f.reduced_form()
             (
-            Dynamical System of Projective Space of dimension 1 over Real Field with 53 bits of precision
+            Dynamical System of Projective Space of dimension 1 over Real Floating-point Field with 53 bits of precision
               Defn: Defined on coordinates by sending (x : y) to
                     (-x^4 + 2.86348722511320e-12*y^4 : -1.41421356237310*y^4)
             ,

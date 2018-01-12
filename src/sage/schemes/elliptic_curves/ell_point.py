@@ -2480,7 +2480,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: (3*Q).height(precision=100)/Q.height(precision=100)
             9.0000000000000000000000000000
             sage: _.parent()
-            Real Field with 100 bits of precision
+            Real Floating-point Field with 100 bits of precision
 
         Canonical heights over number fields are implemented as well::
 

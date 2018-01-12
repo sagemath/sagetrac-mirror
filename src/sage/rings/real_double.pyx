@@ -380,7 +380,7 @@ cdef class RealDoubleField_class(Field):
         that has 53 bits of precision::
 
             sage: magma(RDF).sage() # optional - magma
-            Real Field with 53 bits of precision
+            Real Floating-point Field with 53 bits of precision
         """
         return "RealField(%s : Bits := true)" % self.prec()
 
@@ -419,7 +419,7 @@ cdef class RealDoubleField_class(Field):
         EXAMPLES::
 
             sage: RDF.to_prec(52)
-            Real Field with 52 bits of precision
+            Real Floating-point Field with 52 bits of precision
             sage: RDF.to_prec(53)
             Real Double Field
         """

@@ -217,7 +217,7 @@ Sage example in ./polynomes.tex, line 856::
 
   sage: x = polygen(RR); r = (1 + x)/(1 - x^2); r.parent()
   Fraction Field of Univariate Polynomial Ring in x over Real
-  Field with 53 bits of precision
+  Floating-point Field with 53 bits of precision
   sage: r
   (x + 1.00000000000000)/(-x^2 + 1.00000000000000)
 

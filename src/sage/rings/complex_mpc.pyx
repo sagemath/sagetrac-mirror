@@ -249,7 +249,7 @@ def MPComplexField(prec=53, rnd="RNDNN", names=None):
         sage: MPComplexField(100)
         Complex Field with 100 bits of precision
         sage: MPComplexField(100).base_ring()
-        Real Field with 100 bits of precision
+        Real Floating-point Field with 100 bits of precision
         sage: i = MPComplexField(200).gen()
         sage: i^2
         -1.0000000000000000000000000000000000000000000000000000000000
@@ -687,7 +687,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
         EXAMPLES::
 
             sage: MPComplexField()._real_field()
-            Real Field with 53 bits of precision
+            Real Floating-point Field with 53 bits of precision
         """
         return self.__real_field
 
@@ -698,7 +698,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
         EXAMPLES::
 
             sage: MPComplexField(prec=100)._imag_field()
-            Real Field with 100 bits of precision
+            Real Floating-point Field with 100 bits of precision
         """
         return self.__imag_field
 
@@ -1006,7 +1006,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: x = z.real(); x
             2.0000000000000000000000000000
             sage: x.parent()
-            Real Field with 100 bits of precision
+            Real Floating-point Field with 100 bits of precision
         """
         cdef RealNumber x
         x = RealNumber(self._parent._real_field())
@@ -1024,7 +1024,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: x = z.imag(); x
             3.0000000000000000000000000000
             sage: x.parent()
-            Real Field with 100 bits of precision
+            Real Floating-point Field with 100 bits of precision
         """
         cdef RealNumber y
         y = RealNumber(self._parent._imag_field())
@@ -2508,7 +2508,7 @@ cdef class MPFRtoMPC(Map):
             sage: C100 = MPComplexField(100)
             sage: f = MPFRtoMPC(R10, C100); f # indirect doctest
             Generic map:
-              From: Real Field with 10 bits of precision
+              From: Real Floating-point Field with 10 bits of precision
               To:   Complex Field with 100 bits of precision
             sage: a = R10(1.625)
             sage: f(a)

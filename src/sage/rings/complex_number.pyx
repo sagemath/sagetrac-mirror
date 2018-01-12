@@ -900,7 +900,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: x = z.real(); x
             2.0000000000000000000000000000
             sage: x.parent()
-            Real Field with 100 bits of precision
+            Real Floating-point Field with 100 bits of precision
             sage: z.real_part()
             2.0000000000000000000000000000
         """
@@ -922,7 +922,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: x = z.imag(); x
             3.0000000000000000000000000000
             sage: x.parent()
-            Real Field with 100 bits of precision
+            Real Floating-point Field with 100 bits of precision
             sage: z.imag_part()
             3.0000000000000000000000000000
         """
@@ -2515,7 +2515,7 @@ cdef class RRtoCC(Map):
             sage: from sage.rings.complex_number import RRtoCC
             sage: RRtoCC(RR, CC)
             Natural map:
-              From: Real Field with 53 bits of precision
+              From: Real Floating-point Field with 53 bits of precision
               To:   Complex Field with 53 bits of precision
         """
         Map.__init__(self, RR, CC)
@@ -2541,7 +2541,7 @@ cdef class RRtoCC(Map):
             sage: g = copy(f) # indirect doctest
             sage: g
             Natural map:
-              From: Real Field with 53 bits of precision
+              From: Real Floating-point Field with 53 bits of precision
               To:   Complex Field with 53 bits of precision
         """
         slots = Map._extra_slots(self)
@@ -2561,7 +2561,7 @@ cdef class RRtoCC(Map):
             sage: from sage.rings.complex_number import RRtoCC
             sage: RRtoCC(RR, CC)
             Natural map:
-              From: Real Field with 53 bits of precision
+              From: Real Floating-point Field with 53 bits of precision
               To:   Complex Field with 53 bits of precision
         """
         Map._update_slots(self, _slots)

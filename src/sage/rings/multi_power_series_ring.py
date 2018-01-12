@@ -118,8 +118,8 @@ Change from one base ring to another::
     sage: R.<t,u,v> = PowerSeriesRing(QQ); R
     Multivariate Power Series Ring in t, u, v over Rational Field
     sage: R.base_extend(RR)
-    Multivariate Power Series Ring in t, u, v over Real Field with 53
-    bits of precision
+    Multivariate Power Series Ring in t, u, v over Real Floating-point
+    Field with 53 bits of precision
     sage: R.change_ring(IntegerModRing(10))
     Multivariate Power Series Ring in t, u, v over Ring of integers
     modulo 10
@@ -504,8 +504,8 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             sage: R.<t,u,v> = PowerSeriesRing(QQ); R
             Multivariate Power Series Ring in t, u, v over Rational Field
             sage: R.base_extend(RR)
-            Multivariate Power Series Ring in t, u, v over Real Field with
-            53 bits of precision
+            Multivariate Power Series Ring in t, u, v over Real
+            Floating-point Field with 53 bits of precision
             sage: R.change_ring(IntegerModRing(10))
             Multivariate Power Series Ring in t, u, v over Ring of integers
             modulo 10

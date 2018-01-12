@@ -1362,7 +1362,7 @@ cdef class ComplexBall(RingElement):
             sage: CBF(i/3).rad()
             1.1102230e-16
             sage: CBF(i/3).rad().parent()
-            Real Field with 30 bits of precision
+            Real Floating-point Field with 30 bits of precision
 
         .. SEEALSO:: :meth:`diameter`, :meth:`mid`
 
@@ -1401,7 +1401,7 @@ cdef class ComplexBall(RingElement):
             sage: CBF(i/3).diameter()
             2.2204460e-16
             sage: CBF(i/3).diameter().parent()
-            Real Field with 30 bits of precision
+            Real Floating-point Field with 30 bits of precision
             sage: CBF(CIF(RIF(1.02, 1.04), RIF(2.1, 2.2))).diameter()
             0.20000000
 

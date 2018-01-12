@@ -725,7 +725,7 @@ not have :math:`I=\sqrt{-1}`, decimal points, or division.
     sage: parent(b)
     Rational Field
     sage: parent(c)
-    Real Field with 53 bits of precision
+    Real Floating-point Field with 53 bits of precision
     sage: parent(d)
     Symbolic Ring
     sage: parent(e)

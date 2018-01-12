@@ -383,7 +383,7 @@ cdef class Function(SageObject):
             sage: type(exp(float(0)))
             <... 'float'>
             sage: exp(RR(0)).parent()
-            Real Field with 53 bits of precision
+            Real Floating-point Field with 53 bits of precision
 
 
         TESTS:

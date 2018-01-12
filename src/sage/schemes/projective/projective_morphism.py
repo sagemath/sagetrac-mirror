@@ -2267,8 +2267,8 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: H = Hom(P1,P2)
             sage: h = H([y^3*z^3, x^3*z^3, y^3*z^3, x^2*y^2*z^2])
             sage: h.indeterminacy_locus()
-            Closed subscheme of Projective Space of dimension 2 over Real Field with
-            53 bits of precision defined by:
+            Closed subscheme of Projective Space of dimension 2 over Real
+            Floating-point Field with 53 bits of precision defined by:
               y^3*z^3,
               x^3*z^3,
               y^3*z^3,

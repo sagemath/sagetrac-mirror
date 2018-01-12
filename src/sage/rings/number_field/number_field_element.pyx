@@ -3713,8 +3713,8 @@ cdef class NumberFieldElement(FieldElement):
             sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^4+3*x^2-17)
             sage: [p.codomain() for p in K.places()]
-            [Real Field with 106 bits of precision,
-            Real Field with 106 bits of precision,
+            [Real Floating-point Field with 106 bits of precision,
+            Real Floating-point Field with 106 bits of precision,
             Complex Field with 53 bits of precision]
             sage: [a.local_height_arch(i) for i in range(3)]
             [0.5301924545717755083366563897519,
