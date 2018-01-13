@@ -59,7 +59,7 @@ class FiniteBinaryRelation(Set_object_enumerated):
         self._y_range = Set_object_enumerated(y_range)
         if not self._x_range.is_finite() or not self._y_range.is_finite():
             raise ValueError("FiniteBinaryRelation ranges must be finite.")
-        points = [ (p[0],p[1]) for p in points ]
+        points = [(p[0],p[1]) for p in points]
         super(Set_object_enumerated, self).__init__(points)
         if not self.is_finite():
             raise ValueError("FiniteBinaryRelation must be finite.")
@@ -89,7 +89,7 @@ class FiniteBinaryRelation(Set_object_enumerated):
         r"""
         :return: The reverse relation (x and y ranges are interchanged).
         """
-        return FiniteBinaryRelation(self.y_range, self.x_range, points=[ (p[1],p[0]) for p in self ])
+        return FiniteBinaryRelation(self.y_range, self.x_range, points=[(p[1],p[0]) for p in self])
 
     def compose(self, rel2):
         r"""
