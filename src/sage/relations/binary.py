@@ -43,6 +43,8 @@ def BinaryRelation(x_range, y_range, points=[]):
         {(2, 1)}
         sage: r2.compose(r1)
         {(0, 2)}
+        sage: r1.union(r2)
+        {(0, 1), (1, 2)}
 
     """
     return FiniteBinaryRelation(x_range, y_range, points)
