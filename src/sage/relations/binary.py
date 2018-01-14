@@ -47,6 +47,16 @@ def BinaryRelation(points=[]):
         True
         sage: r1.compose(id) == r1
         True
+        sage: id.is_symmetric()
+        True
+        sage: id.is_antisymmetric()
+        True
+        sage: id.is_transitive()
+        True
+        sage: (r1 | r2).is_transitive()
+        False
+        sage: id.is_reflexive(range(3))
+        True
 
         Set operations also work:
 
@@ -128,5 +138,43 @@ class FiniteBinaryRelation(Set_object_enumerated):
 
     def symmetric_difference(self, other):
         return FiniteBinaryRelation(self.set().symmetric_difference(other.set()))
+
+    def is_symmetric(self):
+        r"""
+        Check if the relation is symmetric.
+        """
+        for p in self:
+            if (p[1], p[0]) not in self:
+                return False
+        return True
+
+    def is_antisymmetric(self):
+        r"""
+        Check if the relation is antisymmetric.
+        """
+        for p in self:
+            if p[0] != p[1] and (p[1], p[0]) in self:
+                return False
+        return True
+
+    def is_transitive(self):
+        r"""
+        Check if the relation is transitive.
+        """
+        return self.compose(self).issubset(self)  # TODO: Can be made more efficient?
+
+    def is_reflexive(self, on=None):
+        r"""
+        Check if the relation is reflexive on a set.
+
+        Do not forget to specify the range, otherwise the union of x range and y range will be used,
+        what may be not what you need!
+        """
+        if on is None:
+            on = self.x_range().union(self.y_range)
+        for i in on:
+            if not (i, i) in self:
+                return False
+        return True
 
     # TODO: subsets() method?
