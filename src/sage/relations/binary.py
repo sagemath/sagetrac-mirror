@@ -72,6 +72,11 @@ def BinaryRelation(points=[]):
 
         sage: r1.union(r2)
         relation {(0, 1), (1, 2)}
+
+        Product relations:
+
+        sage: FiniteBinaryRelation.square(xrange(2)) - FiniteBinaryRelation.identity(xrange(2))
+        relation {(0, 1), (1, 0)}
     """
     return FiniteBinaryRelation(points)
 
@@ -237,5 +242,23 @@ class FiniteBinaryRelation(Set_object_enumerated):
             if not directed:
                 points.add((j, i))
         return FiniteBinaryRelation(points)
+
+    @staticmethod
+    def identity(A):
+        return FiniteBinaryRelation([(x, x) for x in A])
+
+    @staticmethod
+    def product(A, B):
+        r"""
+        Cartesian product relation.
+        """
+        return FiniteBinaryRelation([(x,y) for x in A for y in B])
+
+    @staticmethod
+    def square(A):
+        r"""
+        Cartesian product of a relation with itself.
+        """
+        return FiniteBinaryRelation.product(A, A)
 
     # TODO: subsets() method?
