@@ -17,6 +17,7 @@ Finite Binary Relations
 #******************************************************************************
 
 from sage.sets.set import Set, Set_object_enumerated
+from sage.graphs.graph import Graph
 
 def BinaryRelation(points=[]):
     r"""
@@ -57,6 +58,8 @@ def BinaryRelation(points=[]):
         False
         sage: id.is_reflexive(range(3))
         True
+        sage: id.to_graph()
+        Looped graph on 3 vertices
 
         Set operations also work:
 
@@ -176,5 +179,8 @@ class FiniteBinaryRelation(Set_object_enumerated):
             if not (i, i) in self:
                 return False
         return True
+
+    def to_graph(self):
+        return Graph(self.list(), loops=True)
 
     # TODO: subsets() method?
