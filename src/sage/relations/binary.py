@@ -227,6 +227,8 @@ class FiniteBinaryRelation(Set_object_enumerated):
     def from_graph(graph):
         r"""
         Returns the adjacency relation for the (di)graph.
+
+        TODO: Should instead be a method in GenericGraph class.
         """
         points = set()
         directed = graph.is_directed()
