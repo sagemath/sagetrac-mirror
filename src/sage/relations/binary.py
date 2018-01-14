@@ -16,103 +16,117 @@ Finite Binary Relations
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.sets.set import Set_object_enumerated
+from sage.sets.set import Set, Set_object_enumerated
 
-def BinaryRelation(x_range, y_range, points=[]):
+def BinaryRelation(points=[]):
     r"""
     Create a binary relation.
 
-    :param x_range: a set, list, or tuple
-    :param y_range: a set, list, or tuple
-    :param points:  a set, list, or tuple of points (like `{(1,2),(3,4)}` or `{[1,2],[3,4]}`)
+    :param points:  a set, list, or tuple of points (like `\{(1,2),(3,4)\}` or `\{[1,2],[3,4]\}`)
     :return: A binary relation
 
-    Create a binary relation. Currently only finite ranges and finite set of points are supported.
-
-    That points are in the specified range, is currently not tested.
+    Create a binary relation. Currently only finite sets of points are supported.
 
     EXAMPLES::
 
         sage: from sage.relations.binary import BinaryRelation
-        sage: id = BinaryRelation(xrange(3), xrange(3), {(0,0),(1,1),(2,2)})
+        sage: id = BinaryRelation({(0,0),(1,1),(2,2)})
         sage: id
-        {(0, 0), (1, 1), (2, 2)}
-        sage: r1 = BinaryRelation(xrange(3), xrange(3), {(0,1)})
-        sage: r2 = BinaryRelation(xrange(3), xrange(3), {(1,2)})
+        relation {(0, 0), (1, 1), (2, 2)}
+        sage: (id.x_range, id.y_range)
+        ({0, 1, 2}, {0, 1, 2})
+        sage: r1 = BinaryRelation({(0,1)})
+        sage: r2 = BinaryRelation({(1,2)})
         sage: r1.reverse
-        {(1, 0)}
+        relation {(1, 0)}
         sage: r2.reverse
-        {(2, 1)}
+        relation {(2, 1)}
         sage: r2.compose(r1)
-        {(0, 2)}
+        relation {(0, 2)}
+        sage: id.compose(r1) == r1
+        True
+        sage: r1.compose(id) == r1
+        True
 
-    TODO::
-
-        Set operations also work, but in current version they return plain sets
-        (not binary relations):
+        Set operations also work:
 
         sage: r1.union(r2)
-        {(0, 1), (1, 2)}
-
-    TODO::
-
-        Support infinite x/y ranges and infinite sets of pairs.
-
+        relation {(0, 1), (1, 2)}
     """
-    return FiniteBinaryRelation(x_range, y_range, points)
+    return FiniteBinaryRelation(points)
 
 #################################################################
 class FiniteBinaryRelation(Set_object_enumerated):
-    def __init__(self, x_range, y_range, points=[]):
-        self._x_range = Set_object_enumerated(x_range)
-        self._y_range = Set_object_enumerated(y_range)
-        if not self._x_range.is_finite() or not self._y_range.is_finite():
-            raise ValueError("FiniteBinaryRelation ranges must be finite.")
+    def __init__(self, points=[]):
         points = [(p[0],p[1]) for p in points]
         super(Set_object_enumerated, self).__init__(points)
         if not self.is_finite():
             raise ValueError("FiniteBinaryRelation must be finite.")
 
-    def contains(self, point_x, point_y):
+    def _repr_(self):
+        return "relation {" + ', '.join(["(%s, %s)" % (repr(p[0]), repr(p[1])) for p in self]) + "}"
+
+    def contains(self, x, y):
         r"""
         Test if the relation contains the given point.
         """
-        return (point_x,point_y) in self
+        return (x, y) in self
 
     @property
     def x_range(self):
         r"""
         :return: The x range for the relation.
         """
-        return self._x_range
+        return Set([p[0] for p in self])
 
     @property
     def y_range(self):
         r"""
         :return: The y range for the relation.
         """
-        return self._y_range
+        return Set([p[1] for p in self])
 
     @property
     def reverse(self):
         r"""
         :return: The reverse relation (x and y ranges are interchanged).
         """
-        return FiniteBinaryRelation(self.y_range, self.x_range, points=[(p[1],p[0]) for p in self])
+        return FiniteBinaryRelation(points=[(p[1],p[0]) for p in self])
 
     def compose(self, rel2):
         r"""
-        :return: Composition of the binary relation rel2 with self.
+        :return: Composition of the binary relation `rel2` with `self`.
 
-        Composition of the binary relation rel2 with self. See
+        Composition of the binary relation `rel2` with `self`. See
         https://en.wikipedia.org/wiki/Composition_of_relations
         """
-        if self.x_range != rel2.y_range:
-            raise ValueError("y_range of composed binary relation is not equal to x_range of self.")
         result = set()
-        for x in rel2.x_range:
-            for y in rel2.y_range:
-                for z in self.y_range:
-                    if (x,y) in rel2 and (y,z) in self:
-                        result.add((x,z))
-        return FiniteBinaryRelation(rel2.x_range, self.y_range, result)
+
+        yz_map = {}
+        for p in self:
+            if p[0] in self:
+                yz_map[p[0]].add(p[1])
+            else:
+                yz_map[p[0]] = [p[1]]
+
+        for p in rel2:
+            if p[1] in yz_map:
+                result.update([(p[0], z) for z in yz_map[p[1]]])
+
+        return FiniteBinaryRelation(result)
+
+    # Below we convert to list() to avoid "multilevel" linked datastructures
+
+    def union(self, other):
+        return FiniteBinaryRelation(self.set().union(other.set()))
+
+    def intersection(self, other):
+        return FiniteBinaryRelation(self.set().intersection(other.set()))
+
+    def difference(self, other):
+        return FiniteBinaryRelation(self.set().difference(other.set()))
+
+    def symmetric_difference(self, other):
+        return FiniteBinaryRelation(self.set().symmetric_difference(other.set()))
+
+    # TODO: subsets() method?
