@@ -48,17 +48,17 @@ def BinaryRelation(points=[]):
         True
         sage: r1.compose(id) == r1
         True
-        sage: id.is_symmetric()
+        sage: id.is_symmetric
         True
-        sage: id.is_antisymmetric()
+        sage: id.is_antisymmetric
         True
-        sage: id.is_transitive()
+        sage: id.is_transitive
         True
-        sage: (r1 | r2).is_transitive()
+        sage: (r1 | r2).is_transitive
         False
         sage: id.is_reflexive(range(3))
         True
-        sage: id.to_digraph()
+        sage: id.to_digraph
         Looped digraph on 3 vertices
 
         Set operations also work:
@@ -142,6 +142,7 @@ class FiniteBinaryRelation(Set_object_enumerated):
     def symmetric_difference(self, other):
         return FiniteBinaryRelation(self.set().symmetric_difference(other.set()))
 
+    @property
     def is_symmetric(self):
         r"""
         Check if the relation is symmetric.
@@ -151,6 +152,7 @@ class FiniteBinaryRelation(Set_object_enumerated):
                 return False
         return True
 
+    @property
     def is_antisymmetric(self):
         r"""
         Check if the relation is antisymmetric.
@@ -160,6 +162,7 @@ class FiniteBinaryRelation(Set_object_enumerated):
                 return False
         return True
 
+    @property
     def is_transitive(self):
         r"""
         Check if the relation is transitive.
@@ -180,7 +183,10 @@ class FiniteBinaryRelation(Set_object_enumerated):
                 return False
         return True
 
+    @property
     def to_digraph(self):
         return DiGraph(self.list(), loops=True)
+
+
 
     # TODO: subsets() method?
