@@ -20,6 +20,8 @@ from sage.sets.set import Set_object_enumerated
 
 def BinaryRelation(x_range, y_range, points=[]):
     r"""
+    Create a binary relation.
+
     :param x_range: a set, list, or tuple
     :param y_range: a set, list, or tuple
     :param points:  a set, list, or tuple of points (like `{(1,2),(3,4)}` or `{[1,2],[3,4]}`)
@@ -44,10 +46,16 @@ def BinaryRelation(x_range, y_range, points=[]):
         sage: r2.compose(r1)
         {(0, 2)}
 
-    Set operations also work:
+    TODO::
+        Set operations also work, but in current version they return plain sets
+        (not binary relations):
 
         sage: r1.union(r2)
         {(0, 1), (1, 2)}
+
+    TODO::
+
+        Support infinite x/y ranges and infinite sets of pairs.
 
     """
     return FiniteBinaryRelation(x_range, y_range, points)
@@ -94,6 +102,9 @@ class FiniteBinaryRelation(Set_object_enumerated):
     def compose(self, rel2):
         r"""
         :return: Composition of the binary relation rel2 with self.
+
+        Composition of the binary relation rel2 with self. See
+        https://en.wikipedia.org/wiki/Composition_of_relations
         """
         if self.x_range != rel2.y_range:
             raise ValueError("y_range of composed binary relation is not equal to x_range of self.")

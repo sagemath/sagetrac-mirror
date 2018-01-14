@@ -173,6 +173,8 @@ from sage.manifolds.all import *
 
 from cysignals.alarm import alarm, cancel_alarm
 
+from sage.relations.all import *
+
 # Lazily import notebook functions and interacts (#15335)
 lazy_import('sagenb.notebook.notebook_object', 'notebook')
 lazy_import('sagenb.notebook.notebook_object', 'inotebook')
