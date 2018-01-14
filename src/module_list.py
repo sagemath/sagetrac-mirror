@@ -815,6 +815,9 @@ ext_modules = [
     Extension('sage.matrix.matrix_modn_sparse',
               sources = ['sage/matrix/matrix_modn_sparse.pyx']),
 
+    Extension('sage.matrix.linbox_solver_modn_sparse',
+              sources = ['sage/matrix/linbox_solver_modn_sparse.pyx']),
+
     Extension('sage.matrix.matrix_mpolynomial_dense',
               sources = ['sage/matrix/matrix_mpolynomial_dense.pyx']),
 
