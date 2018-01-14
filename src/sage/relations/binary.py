@@ -63,6 +63,11 @@ def BinaryRelation(points=[]):
         sage: id.to_digraph()
         Looped digraph on 3 vertices
 
+        sage: from sage.relations.binary import FiniteBinaryRelation
+        sage: from sage.graphs.graph import Graph
+        sage: FiniteBinaryRelation.from_graph(Graph([[0,1,'x'], [1,1,'y']], loops=True))
+        relation {(0, 1), (1, 0), (1, 1)}
+
         Set operations also work:
 
         sage: r1.union(r2)
@@ -185,9 +190,6 @@ class FiniteBinaryRelation(Set_object_enumerated):
                 return False
         return True
 
-    def to_digraph(self):
-        return DiGraph(self.list(), loops=True)
-
     @property
     def transitive_closure(self):
         result = self
@@ -196,5 +198,21 @@ class FiniteBinaryRelation(Set_object_enumerated):
             if next == result:
                 return result
             result = next
+
+    def to_digraph(self):
+        return DiGraph(self.list(), loops=True)
+
+    @staticmethod
+    def from_graph(graph):
+        r"""
+        Returns the adjacency relation for the (di)graph.
+        """
+        points = set()
+        directed = graph.is_directed()
+        for i,j,l in graph.edge_iterator():
+            points.add((i,j))
+            if not directed:
+                points.add((j, i))
+        return FiniteBinaryRelation(points)
 
     # TODO: subsets() method?
