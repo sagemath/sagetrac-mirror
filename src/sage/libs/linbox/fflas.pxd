@@ -3,156 +3,136 @@
 # distutils: library_dirs = FFLASFFPACK_LIBDIR
 # distutils: language = c++ 
 
-from .modular cimport ModDoubleField, ModFloatField, ModDoubleFieldElement, ModFloatFieldElement
+from .givaro cimport (Modular_double as ModDoubleField,
+        Modular_float as ModFloatField, Dense, Sparse)
+from .givaro cimport givvector, Poly1Dom
+from libcpp.vector cimport vector
 
-cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "std":
-    cdef cppclass vector[T]:
-        cppclass iterator:
-            T operator*()
-            iterator operator++()
-            bint operator==(iterator)
-            bint operator!=(iterator)
-        vector()
-        void push_back(T&)
-        T& operator[](int)
-        T& at(int)
-        iterator begin()
-        iterator end()
-        size_t size()
 
-cdef extern from "givaro/givpoly1.h":
-    ## template < typename T, typename A=std::allocator<T> >
-    ## class givvector : public __GIV_STANDARD_VECTOR<T,A>
-    cdef cppclass givvector "Givaro::givvector" [T,ALLOCATOR=*]:
-        T& operator[](size_t i)
-        size_t size()
+ctypedef Poly1Dom[ModDoubleField, Dense] PolynomialRing_Modular_double
+ctypedef Poly1Dom[ModFloatField, Dense] PolynomialRing_Modular_float
+
+# bug in Cython
+# Modular.Element can not be used to instantiate templates
+# givvector below
+cdef extern from *:
+    cdef cppclass ModDoubleFieldElement "Givaro::Modular<double>::Element":
+        pass
+    cdef cppclass ModFloatFieldElement "Givaro::Modular<float>::Element":
+        pass
 
 ctypedef givvector[ModDoubleFieldElement] ModDoubleDensePolynomial
 ctypedef givvector[ModFloatFieldElement] ModFloatDensePolynomial
 
-cdef extern from "givaro/givpoly1.h":
-    ## template <class Domain, class StorageTag= Givaro::Dense>
-    ## class GivPolynomialRing : public Givaro::Poly1FactorDom< Domain,StorageTag>
-    cdef cppclass ModDoublePolynomialRing "Givaro::Poly1Dom<Givaro::Modular<double>, Givaro::Dense>":
-        ctypedef givvector[ModDoubleField] Element
-        ctypedef givvector[ModDoubleField] Polynomial
-        ModDoublePolynomialRing(ModDoubleField& F)
-    ## template <class Domain, class StorageTag= Givaro::Dense>
-    ## class GivPolynomialRing : public Givaro::Poly1FactorDom< Domain,StorageTag>
-    cdef cppclass ModFloatPolynomialRing "Givaro::Poly1Dom<Givaro::Modular<float>, Givaro::Dense>":
-        ctypedef givvector[ModFloatField] Element
-        ctypedef givvector[ModFloatField] Polynomial
-        ModFloatPolynomialRing(ModFloatField& F)
+cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
+    ctypedef enum FFLAS_TRANSPOSE:
+        FflasNoTrans
+        FflasTrans
 
-cdef extern from "fflas-ffpack/fflas-ffpack.h":
-    ctypedef enum fflas_trans_enum "FFLAS::FFLAS_TRANSPOSE":
-        fflas_no_trans  "FFLAS::FflasNoTrans"
-        fflas_trans  "FFLAS::FflasTrans"
-
-    ctypedef enum fflas_side_enum "FFLAS::FFLAS_SIDE":
-        fflas_right  "FFLAS::FflasRight"
+    ctypedef enum FFLAS_SIDE:
+        FflasRight
 
     # double
-    void ModDouble_fgemv "FFLAS::fgemv" \
-            (ModDoubleField F, fflas_trans_enum transA,
+    void fgemv \
+            (ModDoubleField F, FFLAS_TRANSPOSE transA,
              size_t nrows, size_t ncols,
-             ModDoubleFieldElement alpha, ModDoubleFieldElement* A,
-             size_t lda, ModDoubleFieldElement* X, size_t incX,
-             ModDoubleFieldElement beta, ModDoubleFieldElement* Y,
+             ModDoubleField.Element alpha, ModDoubleField.Element* A,
+             size_t lda, ModDoubleField.Element* X, size_t incX,
+             ModDoubleField.Element beta, ModDoubleField.Element* Y,
              size_t incY)
 
-    ModDoubleFieldElement* ModDouble_fgemm "FFLAS::fgemm" \
+    ModDoubleField.Element* fgemm \
             (ModDoubleField F,
-             fflas_trans_enum transA, fflas_trans_enum transB,
+             FFLAS_TRANSPOSE transA, FFLAS_TRANSPOSE transB,
              size_t nrowsA, size_t ncolsB, size_t ncolsA,
-             ModDoubleFieldElement alpha, ModDoubleFieldElement* A,
-             size_t A_stride, ModDoubleFieldElement* B, int B_stride,
-             ModDoubleFieldElement beta, ModDoubleFieldElement* C,
+             ModDoubleField.Element alpha, ModDoubleField.Element* A,
+             size_t A_stride, ModDoubleField.Element* B, int B_stride,
+             ModDoubleField.Element beta, ModDoubleField.Element* C,
              size_t C_stride)
 
 
     # float
-    void ModFloat_fgemv "FFLAS::fgemv" \
-            (ModFloatField F, fflas_trans_enum transA,
+    void fgemv \
+            (ModFloatField F, FFLAS_TRANSPOSE transA,
              size_t nrows, size_t ncols,
-             ModFloatFieldElement alpha, ModFloatFieldElement* A,
-             size_t lda, ModFloatFieldElement* X, size_t incX,
-             ModFloatFieldElement beta, ModFloatFieldElement* Y,
+             ModFloatField.Element alpha, ModFloatField.Element* A,
+             size_t lda, ModFloatField.Element* X, size_t incX,
+             ModFloatField.Element beta, ModFloatField.Element* Y,
              size_t incY)
 
-    ModFloatFieldElement* ModFloat_fgemm "FFLAS::fgemm" \
+    ModFloatField.Element* fgemm \
             (ModFloatField F,
-             fflas_trans_enum transA, fflas_trans_enum transB,
+             FFLAS_TRANSPOSE transA, FFLAS_TRANSPOSE transB,
              size_t nrowsA, size_t ncolsB, size_t ncolsA,
-             ModFloatFieldElement alpha, ModFloatFieldElement* A,
-             size_t A_stride, ModFloatFieldElement* B, int B_stride,
-             ModFloatFieldElement beta, ModFloatFieldElement* C,
+             ModFloatField.Element alpha, ModFloatField.Element* A,
+             size_t A_stride, ModFloatField.Element* B, int B_stride,
+             ModFloatField.Element beta, ModFloatField.Element* C,
              size_t C_stride)
 
-cdef extern from "fflas-ffpack/fflas-ffpack.h":
+cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFPACK":
     # double
-    bint ModDouble_is_singular "FFPACK::IsSingular" (ModDoubleField F,
-                                                     size_t nrows, size_t ncols, ModDoubleFieldElement* A,
-                                                     size_t A_stride)
+    bint IsSingular (ModDoubleField F,
+                     size_t nrows, size_t ncols, ModDoubleField.Element* A,
+                     size_t A_stride)
 
-    ModDoubleFieldElement* ModDouble_invert_in_place "FFPACK::Invert"  (ModDoubleField F, size_t order,
-                                                                        ModDoubleFieldElement* A, size_t A_stride, int nullity)
+    ModDoubleField.Element* Invert (ModDoubleField F, size_t order,
+                                    ModDoubleField.Element* A, size_t A_stride, int nullity)
 
-    ModDoubleFieldElement ModDoubleDet "FFPACK::Det" (ModDoubleField F,
-                                                      size_t nrows, size_t ncols,
-                                                      ModDoubleFieldElement* A, size_t A_stride)
+    ModDoubleField.Element Det (ModDoubleField F,
+                                size_t nrows, size_t ncols,
+                                ModDoubleField.Element* A, size_t A_stride)
 
-    int ModDoubleRank "FFPACK::Rank" (ModDoubleField,
-                                      size_t nrows, size_t ncols,
-                                      ModDoubleFieldElement *A, size_t lda)
+    int Rank (ModDoubleField,
+              size_t nrows, size_t ncols,
+              ModDoubleField.Element *A, size_t lda)
 
-    size_t ModDouble_echelon "FFPACK::ReducedRowEchelonForm" (ModDoubleField F, size_t a, size_t b,
-                                                              ModDoubleFieldElement* matrix,
-                                                              size_t s, size_t* P, size_t* Q)
+    size_t ReducedRowEchelonForm (ModDoubleField F, size_t a, size_t b,
+                                  ModDoubleField.Element* matrix,
+                                  size_t s, size_t* P, size_t* Q)
 
-    void ModDouble_applyp "FFPACK::applyP" (ModDoubleField F,
-                                            fflas_side_enum s, fflas_trans_enum tr,
-                                            size_t nr, size_t foo, size_t r,
-                                            ModDoubleFieldElement* matrix, size_t nc, size_t* Q)
+    void applyP (ModDoubleField F,
+                 FFLAS_SIDE s, FFLAS_TRANSPOSE tr,
+                 size_t nr, size_t foo, size_t r,
+                 ModDoubleField.Element* matrix, size_t nc, size_t* Q)
 
-    void ModDouble_MinPoly "FFPACK::MinPoly" ( ModDoubleField& F,
-                                               vector[ModDoubleFieldElement] minP, size_t N,
-                                               ModDoubleFieldElement*A, size_t lda)
+    void MinPoly ( ModDoubleField& F,
+                   vector[ModDoubleField.Element] minP, size_t N,
+                   ModDoubleField.Element*A, size_t lda)
 
-    void ModDouble_CharPoly "FFPACK::CharPoly" ( ModDoublePolynomialRing& R,
-                                                 ModDoubleDensePolynomial& charp, size_t N,
-                                                 ModDoubleFieldElement* A, size_t lda)
+    void CharPoly ( PolynomialRing_Modular_double& R,
+                    ModDoubleDensePolynomial& charp, size_t N,
+                    ModDoubleField.Element* A, size_t lda)
 
     # float
 
-    bint ModFloat_is_singular "FFPACK::IsSingular" (ModFloatField F,
-                                                    size_t nrows, size_t ncols, ModFloatFieldElement* A,
-                                                    size_t A_stride)
+    bint IsSingular (ModFloatField F,
+                     size_t nrows, size_t ncols, ModFloatField.Element* A,
+                     size_t A_stride)
 
-    ModFloatFieldElement* ModFloat_invert_in_place "FFPACK::Invert" (ModFloatField F, size_t order,
-                                                                     ModFloatFieldElement* A, size_t A_stride, int nullity)
+    ModFloatField.Element* Invert (ModFloatField F, size_t order,
+                                   ModFloatField.Element* A, size_t A_stride, int nullity)
 
-    ModFloatFieldElement ModFloatDet "FFPACK::Det" (ModFloatField F,
-                                                    size_t nrows, size_t ncols,
-                                                    ModFloatFieldElement* A, size_t A_stride)
+    ModFloatField.Element Det (ModFloatField F,
+                               size_t nrows, size_t ncols,
+                               ModFloatField.Element* A, size_t A_stride)
 
-    int ModFloatRank "FFPACK::Rank" (ModFloatField,
-                                     size_t nrows, size_t ncols,
-                                     ModFloatFieldElement *A, size_t lda)
+    int Rank (ModFloatField,
+              size_t nrows, size_t ncols,
+              ModFloatField.Element *A, size_t lda)
 
-    size_t ModFloat_echelon "FFPACK::ReducedRowEchelonForm" (ModFloatField F, size_t a, size_t b,
-                                                             ModFloatFieldElement* matrix,
-                                                             size_t s, size_t* P, size_t* Q)
+    size_t ReducedRowEchelonForm (ModFloatField F, size_t a, size_t b,
+                                  ModFloatField.Element* matrix,
+                                  size_t s, size_t* P, size_t* Q)
 
-    void ModFloat_applyp "FFPACK::applyP" (ModFloatField F,
-                                           fflas_side_enum s, fflas_trans_enum tr,
-                                           size_t nr, size_t foo, size_t r,
-                                           ModFloatFieldElement* matrix, size_t nc, size_t* Q)
+    void applyP (ModFloatField F,
+                 FFLAS_SIDE s, FFLAS_TRANSPOSE tr,
+                 size_t nr, size_t foo, size_t r,
+                 ModFloatField.Element* matrix, size_t nc, size_t* Q)
 
-    void ModFloat_MinPoly "FFPACK::MinPoly" ( ModFloatField F,
-                                              vector[ModFloatFieldElement] minP, size_t N,
-                                              ModFloatFieldElement* A, size_t lda)
+    void MinPoly ( ModFloatField F,
+                   vector[ModFloatField.Element] minP, size_t N,
+                   ModFloatField.Element* A, size_t lda)
 
-    void ModFloat_CharPoly "FFPACK::CharPoly" ( ModFloatPolynomialRing& F,
-                                                ModFloatDensePolynomial& charp, size_t N,
-                                                ModFloatFieldElement* A, size_t lda )
+    void CharPoly ( PolynomialRing_Modular_float& F,
+                    ModFloatDensePolynomial& charp, size_t N,
+                    ModFloatField.Element* A, size_t lda )
