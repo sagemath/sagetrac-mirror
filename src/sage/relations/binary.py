@@ -58,6 +58,8 @@ def BinaryRelation(points=[]):
         False
         sage: id.is_reflexive(range(3))
         True
+        sage: (r1 | r2).transitive_closure
+        relation {(0, 1), (1, 2), (0, 2)}
         sage: id.to_digraph
         Looped digraph on 3 vertices
 
@@ -187,6 +189,13 @@ class FiniteBinaryRelation(Set_object_enumerated):
     def to_digraph(self):
         return DiGraph(self.list(), loops=True)
 
-
+    @property
+    def transitive_closure(self):
+        result = self
+        while True:
+            next = result | result.compose(result)
+            if next == result:
+                return result
+            result = next
 
     # TODO: subsets() method?
