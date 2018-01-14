@@ -191,6 +191,27 @@ class FiniteBinaryRelation(Set_object_enumerated):
         return True
 
     @property
+    def is_preorder(self):
+        r"""
+        Check if the relation is a preorder.
+        """
+        return self.reflexive and self.transitive
+
+    @property
+    def is_strict_order(self):
+        r"""
+        Check if the relation is a strict partial order.
+        """
+        return self.is_preorder and self.is_symmetric
+
+    @property
+    def is_nonstrict_order(self):
+        r"""
+        Check if the relation is a nonstrict partial order.
+        """
+        return self.is_preorder and self.is_antisymmetric
+
+    @property
     def transitive_closure(self):
         result = self
         while True:
