@@ -80,16 +80,36 @@ TESTS::
 
 from __future__ import absolute_import
 
-from collections import Iterator, Sequence
+from cpython.sequence cimport *
+from cpython.int cimport PyInt_FromLong
+
+from libc.stdint cimport uint64_t
+from libcpp.vector cimport vector as cppvector
 
 from cysignals.memory cimport check_calloc, sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
+from sage.libs.gmp.mpz cimport mpz_init_set_si
+from sage.libs.linbox.givaro cimport Modular_uint64
+from sage.libs.linbox.linbox cimport (SparseMatrix_Modular_uint64,
+        DenseVector_Modular_uint64,
+        GaussDomain_Modular_uint64,
+        solve,
+        Method)
+
+from sage.libs.linbox.conversion cimport (
+    set_linbox_matrix_modn_sparse,
+    new_linbox_matrix_modn_sparse,
+    set_linbox_vector_modn_dense,
+    new_linbox_vector_modn_dense,
+    new_sage_vector_modn_dense)
+
 from sage.modules.vector_modn_sparse cimport *
 
-from cpython.sequence cimport *
+from .linbox_solver_modn_sparse cimport LinBoxSolver_modn_sparse
 
-from sage.libs.gmp.mpz cimport mpz_init_set_si
+from collections import Iterator, Sequence
+
 cimport sage.matrix.matrix as matrix
 cimport sage.matrix.matrix_sparse as matrix_sparse
 cimport sage.matrix.matrix_dense as matrix_dense
@@ -102,12 +122,11 @@ import sage.rings.all as rings
 from sage.matrix.matrix2 import Matrix as Matrix2
 from sage.arith.all import is_prime
 
-from sage.structure.element import is_Vector
-
 cimport sage.structure.element
 
 from sage.data_structures.binary_search cimport *
 from sage.modules.vector_integer_sparse cimport *
+from sage.modules.vector_modn_dense cimport Vector_modn_dense
 
 from .matrix_integer_sparse cimport Matrix_integer_sparse
 from sage.misc.decorators import rename_keyword
@@ -124,9 +143,14 @@ ai = arith_int()
 # Trac Ticket #12679.
 MAX_MODULUS = 46341
 
-from sage.libs.linbox.linbox cimport Linbox_modn_sparse
-cdef Linbox_modn_sparse linbox
-linbox = Linbox_modn_sparse()
+
+# without this function, Cython produces a wrong C file
+# Namely, at compilation
+#
+#
+def _dummy():
+    raise RuntimeError("this is a cython bug")
+
 
 cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
     def __cinit__(self, parent, entries, copy, coerce):
@@ -224,7 +248,6 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             for i from 0 <= i < self._nrows:
                 set_entry(&self.rows[i], i, s)
 
-
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         set_entry(&self.rows[i], j, (<IntegerMod_int> value).ivalue)
 
@@ -234,31 +257,6 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         IntegerMod_abstract.__init__(n, self._base_ring)
         n.ivalue = get_entry(&self.rows[i], j)
         return n
-
-    ########################################################################
-    # LEVEL 2 functionality
-    #   * def _pickle
-    #   * def _unpickle
-    #   * cdef _add_
-    #   * cdef _mul_
-    #   * cpdef _cmp_
-    #   * __neg__
-    #   * __invert__
-    #   * __copy__
-    #   * _multiply_classical
-    #   * _list -- list of underlying elements (need not be a copy)
-    #   * x _dict -- sparse dictionary of underlying elements (need not be a copy)
-    ########################################################################
-    # def _pickle(self):
-    # def _unpickle(self, data, int version):   # use version >= 0
-    # cpdef _add_(self, right):
-    # cdef _mul_(self, Matrix right):
-    # cpdef int _cmp_(self, Matrix right) except -2:
-    # def __neg__(self):
-    # def __invert__(self):
-    # def __copy__(self):
-    # def _multiply_classical(left, matrix.Matrix _right):
-    # def _list(self):
 
     def _dict(self):
         """
@@ -343,9 +341,9 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             sage: d = matrix(GF(43), 3, 8, range(24))
             sage: a*c == a*d
             True
-            
+
         TESTS:
-        
+
         The following shows that :trac:`23669` has been addressed::
 
             sage: p = next_prime(2**15)
@@ -443,16 +441,6 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                 #ans._matrix[i][j] = s
         return ans
 
-    ########################################################################
-    # LEVEL 3 functionality (Optional)
-    #    * cdef _sub_
-    #    * __deepcopy__
-    #    * __invert__
-    #    * Matrix windows -- only if you need strassen for that base
-    #    * Other functions (list them here):
-    # x      - echelon form in place
-    # x      - nonzero_positions
-    ########################################################################
     def swap_rows(self, r1, r2):
         self.check_bounds_and_mutability(r1,0)
         self.check_bounds_and_mutability(r2,0)
@@ -712,57 +700,106 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                     set_entry(&A.rows[i], cols[int(row.positions[j])], row.entries[j])
         return A
 
-    cdef _init_linbox(self):
-        sig_on()
-        linbox.set(self.p, self._nrows, self._ncols,  self.rows)
-        sig_off()
-
-    @rename_keyword(deprecation=6094, method="algorithm")
-    def _rank_linbox(self, algorithm):
+    def _rank_det_linbox(self):
         """
-        See self.rank().
-        """
-        if is_prime(self.p):
-            x = self.fetch('rank')
-            if not x is None:
-                return x
-            self._init_linbox()
-            sig_on()
-            # the returend pivots list is currently wrong
-            #r, pivots = linbox.rank(1)
-            r = linbox.rank(algorithm)
-            r = rings.Integer(r)
-            sig_off()
-            self.cache('rank', r)
-            return r
-        else:
-            raise TypeError("only GF(p) supported via LinBox")
+        Return the rank and determinant using linbox.
 
-    def rank(self, gauss=False):
-        """
-        Compute the rank of self.
+        .. NOTE::
 
-        INPUT:
-
-
-        -  ``gauss`` - if True LinBox' Gaussian elimination is
-           used. If False 'Symbolic Reordering' as implemented in LinBox is
-           used. If 'native' the native Sage implementation is used. (default:
-           False)
-
+            This method does not perform any caching contrarily to
+            :meth:`determinant` and :meth:`rank`.
 
         EXAMPLES::
 
-            sage: A = random_matrix(GF(127),200,200,density=0.01,sparse=True)
-            sage: r1 = A.rank(gauss=False)
-            sage: r2 = A.rank(gauss=True)
-            sage: r3 = A.rank(gauss='native')
-            sage: r1 == r2 == r3
-            True
-            sage: r1
-            155
+            sage: m = matrix(Zmod(13), 1, sparse=True)
+            sage: m[0,0] = 0
+            sage: m._rank_det_linbox()
+            (0, 0)
+            sage: for i in range(1, 13):
+            ....:     m[0,0] = i
+            ....:     assert m._rank_det_linbox() == (1, i)
 
-        ALGORITHM: Uses LinBox or native implementation.
+            sage: m = matrix(GF(5), 2, sparse=True)
+            sage: m[0,0] = 1
+            sage: m[0,1] = 2
+            sage: m[1,0] = 1
+            sage: m[1,1] = 3
+            sage: m._rank_det_linbox()
+            (2, 1)
+            sage: m
+            [1 2]
+            [1 3]
+        """
+        if self._nrows == 0 or self._ncols == 0:
+            # TODO: bug in linbox (gives segfault)
+            return 0, self.base_ring().zero()
+
+        cdef unsigned long A_rank = 0
+        cdef uint64_t A_det = 0
+
+        if not is_prime(self.p):
+            raise TypeError("only GF(p) supported via LinBox")
+
+        cdef Modular_uint64 * F = new Modular_uint64(self.p)
+        cdef SparseMatrix_Modular_uint64 * A
+        A = new_linbox_matrix_modn_sparse(F[0], self)
+
+        cdef GaussDomain_Modular_uint64 * dom = new GaussDomain_Modular_uint64(F[0])
+
+        dom.InPlaceLinearPivoting(A_rank, A_det, A[0], A.rowdim(), A.coldim())
+
+        del A
+        del F
+        del dom
+
+        return PyInt_FromLong(A_rank), self.base_ring()(A_det)
+
+    def rank(self, algorithm=None):
+        """
+        Return the rank of this matrix.
+
+        INPUT:
+
+        - ``algorithm`` - either ``"linbox"`` (only available for
+          matrices over prime fields) or ``"generic"``
+
+        EXAMPLES::
+
+            sage: A = matrix(GF(127), 2, 2, sparse=True)
+            sage: A[0,0] = 34
+            sage: A[0,1] = 102
+            sage: A[1,0] = 55
+            sage: A[1,1] = 74
+            sage: A.rank()
+            2
+
+            sage: A._clear_cache()
+            sage: A.rank(algorithm="generic")
+            2
+            sage: A._clear_cache()
+            sage: A.rank(algorithm="hey")
+            Traceback (most recent call last):
+            ...
+            ValueError: no algorithm 'hey'
+
+        TESTS::
+
+            sage: matrix(GF(3), 0, sparse=True).rank(algorithm="generic")
+            0
+            sage: matrix(GF(3), 0, sparse=True).rank(algorithm="linbox")
+            0
+
+            sage: for _ in range(50):
+            ....:     nrows = randint(0, 100)
+            ....:     ncols = randint(0, 100)
+            ....:     p = random_prime(10000)
+            ....:     M = MatrixSpace(GF(p), nrows, ncols, sparse=True)
+            ....:     m = M.random_element()
+            ....:     rank_linbox = m.rank(algorithm="linbox")
+            ....:     rank_generic = m.rank(algorithm="generic")
+            ....:     if rank_linbox != rank_generic:
+            ....:         print(m)
+            ....:         raise RuntimeError
 
         REFERENCES:
 
@@ -779,25 +816,95 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
            because it barly has anything to do. If the fill in needs to
            be considered, 'Symbolic Reordering' is usually much faster.
         """
-
         if self._nrows == 0 or self._ncols == 0:
             return 0
-        x = self.fetch('rank')
-        if not x is None: return x
 
-        if is_prime(self.p):
-            if gauss is False:
-                return self._rank_linbox(0)
-            elif gauss is True:
-                return self._rank_linbox(1)
-            elif gauss == "native":
-                return Matrix2.rank(self)
-            else:
-                raise TypeError("parameter 'gauss' not understood")
-        else:
+        x = self.fetch('rank')
+        if x is not None:
+            return x
+
+        if is_prime(self.p) and (algorithm is None or algorithm == "linbox"):
+            rank, det = self._rank_det_linbox()
+            self.cache("rank", rank)
+            self.cache("det", det)
+            return rank
+
+        if algorithm == "generic":
             return Matrix2.rank(self)
 
-    def _solve_right_nonsingular_square(self, B, algorithm=None, check_rank = True):
+        else:
+            raise ValueError("no algorithm '%s'"%algorithm)
+
+    def determinant(self, algorithm=None):
+        r"""
+        Return the determinant of this matrix.
+
+        INPUT:
+
+        - ``algorithm`` - either ``"linbox"`` (default) or ``"generic"``.
+
+        EXAMPLES::
+
+            sage: A = matrix(GF(3), 4, range(16), sparse=True)
+            sage: B = identity_matrix(GF(3), 4, sparse=True)
+            sage: (A + B).det()
+            2
+            sage: (A + B).det(algorithm="linbox")
+            2
+            sage: (A + B).det(algorithm="generic")
+            2
+            sage: (A + B).det(algorithm="hey")
+            Traceback (most recent call last):
+            ...
+            ValueError: no algorithm 'hey'
+
+            sage: matrix(GF(11), 1, 2, sparse=True).det()
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be a square matrix
+
+        TESTS::
+
+            sage: matrix(GF(3), 0, sparse=True).det(algorithm="generic")
+            1
+            sage: matrix(GF(3), 0, sparse=True).det(algorithm="linbox")
+            1
+
+            sage: for _ in range(100):
+            ....:     dim = randint(0, 50)
+            ....:     p = random_prime(10000)
+            ....:     M = MatrixSpace(GF(p), dim, sparse=True)
+            ....:     m = M.random_element()
+            ....:     det_linbox = m.det(algorithm="linbox")
+            ....:     det_generic = m.det(algorithm="generic")
+            ....:     assert parent(det_linbox) == m.base_ring()
+            ....:     assert parent(det_generic) == m.base_ring()
+            ....:     if det_linbox != det_generic:
+            ....:         print(m)
+            ....:         raise RuntimeError
+        """
+        if self._nrows != self._ncols:
+            raise ValueError("self must be a square matrix")
+        if self._nrows == 0:
+            return self.base_ring().one()
+
+        d = self.fetch('det')
+        if d is not None:
+            return d
+
+        if algorithm is None or algorithm == "linbox":
+            r, d = self._rank_det_linbox()
+            self.cache('rank', r)
+            self.cache('det', d)
+            return d
+        elif algorithm == 'generic':
+            d = matrix_sparse.Matrix_sparse.determinant(self)
+            self.cache('det', d)
+            return d
+        else:
+            raise ValueError("no algorithm '%s'"%algorithm)
+
+    def _solve_right_nonsingular_square(self, B, algorithm=None, check_rank=False):
         """
         If self is a matrix `A`, then this function returns a
         vector or matrix `X` such that `A X = B`. If
@@ -817,92 +924,54 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         -  ``algorithm`` - one of the following:
 
-        -  ``'LinBox:BlasElimination'`` - dense elimination
+            - ``'linbox'`` or ``'linbox_default'`` - (default) use LinBox
+              and let it chooses the appropriate algorithm
 
-        -  ``'LinBox:Blackbox'`` - LinBox chooses a Blackbox
-           algorithm
+            -  ``linbox_blas_elimination'`` - use LinBox dense elimination
 
-        -  ``'LinBox:Wiedemann'`` - Wiedemann's algorithm
+            - ``'linbox_sparse_elimination'`` - use LinBox sparse elimination
 
-        -  ``'generic'`` - use generic implementation
-           (inversion)
+            -  ``'linbox_ blackbox'`` - LinBox via a Blackbox algorithm
 
-        -  ``None`` - LinBox chooses an algorithm (default)
+            -  ``'linbox_wiedemann'`` - use LinBox implementation of
+               Wiedemann's algorithm
 
-        -  ``check_rank`` - check rank before attempting to
-           solve (default: True)
+            -  ``'generic'`` - use the Sage generic implementation
+               (via inversion)
 
+        - ``check_rank`` - whether to check that the rank is maximal
 
         OUTPUT: a matrix or vector
 
         EXAMPLES::
 
             sage: A = matrix(GF(127), 3, [1,2,3,-1,2,5,2,3,1], sparse=True)
-            sage: b = vector(GF(127),[1,2,3])
+            sage: b = vector(GF(127), [1,2,3])
             sage: x = A \ b; x
             (73, 76, 10)
             sage: A * x
             (1, 2, 3)
         """
         cdef Matrix_modn_sparse A = self
-        cdef Matrix_modn_sparse b
         cdef Matrix_modn_sparse X
         cdef c_vector_modint *x
 
+        if check_rank and self.rank() < self.nrows():
+            raise ValueError("not of full rank")
+
         if self.base_ring() != B.base_ring():
             B = B.change_ring(self.base_ring())
-
-        if algorithm == "generic" or not is_prime(self.p):
-            return Matrix2.solve_right(self, B)
-
-        if check_rank and self.rank() < self.nrows():
-            raise ValueError("self must be of full rank.")
-
         if self.nrows() != B.nrows():
             raise ValueError("input matrices must have the same number of rows.")
 
-        if not self.is_square():
-            raise NotImplementedError("input matrix must be square")
-
-        self._init_linbox()
-
-        matrix = True
-        if is_Vector(B):
-            matrix = False
-            b = self.matrix_space(1, self.ncols(),sparse=True)(B.list())
+        if algorithm == "generic" or not is_prime(self.p):
+            return Matrix2.solve_right(self, B)
         else:
-            if not B.is_sparse():
-                B = B.sparse_matrix()
-            if isinstance(B, Matrix_modn_sparse):
-                b = B
+            L = LinBoxSolver_modn_sparse(self)
+            if isinstance(B, sage.structure.element.Matrix):
+                return L.solve_matrix(B, algorithm)
             else:
-                raise TypeError("B must be a matrix or vector over the same base as self")
-
-        X = self.new_matrix(b.ncols(), A.ncols())
-
-        if algorithm is None:
-            algorithm = 0
-        elif algorithm == "LinBox:BlasElimination":
-            algorithm = 1
-        elif algorithm == "LinBox:Blackbox":
-            algorithm = 2
-        elif algorithm == "LinBox:Wiedemann":
-            algorithm = 3
-        else:
-            raise TypeError("parameter 'algorithm' not understood")
-
-        b = b.transpose() # to make walking the rows easier
-        for i in range(X.nrows()):
-            sig_on()
-            x = &X.rows[i]
-            linbox.solve(&x, &b.rows[i], algorithm)
-            sig_off()
-
-        if not matrix:
-            # Convert back to a vector
-            return (X.base_ring() ** X.ncols())(X.list())
-        else:
-            return X.transpose()
+                return L.solve_vector(B, algorithm)
 
     def lift(self):
         """
