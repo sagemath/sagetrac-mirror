@@ -60,7 +60,7 @@ def BinaryRelation(points=[]):
         True
         sage: (r1 | r2).transitive_closure
         relation {(0, 1), (1, 2), (0, 2)}
-        sage: id.to_digraph
+        sage: id.to_digraph()
         Looped digraph on 3 vertices
 
         Set operations also work:
@@ -185,7 +185,6 @@ class FiniteBinaryRelation(Set_object_enumerated):
                 return False
         return True
 
-    @property
     def to_digraph(self):
         return DiGraph(self.list(), loops=True)
 
