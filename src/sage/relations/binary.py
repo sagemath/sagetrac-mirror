@@ -47,6 +47,7 @@ def BinaryRelation(x_range, y_range, points=[]):
         {(0, 2)}
 
     TODO::
+
         Set operations also work, but in current version they return plain sets
         (not binary relations):
 
