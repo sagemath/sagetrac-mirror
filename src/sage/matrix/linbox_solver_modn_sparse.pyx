@@ -59,6 +59,7 @@ cdef int get_method(str algo):
 
 
 # TODO: Cython bug
+# https://groups.google.com/forum/#!topic/cython-users/FYIh0OZ1qeE
 def __dummy():
     raise RuntimeError()
 

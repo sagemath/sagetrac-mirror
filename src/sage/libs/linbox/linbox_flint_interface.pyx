@@ -43,7 +43,9 @@ from sage.libs.flint.fmpz_poly cimport fmpz_poly_set_coeff_mpz, fmpz_poly_fit_le
 cimport givaro
 cimport linbox
 
-# TODO: we want to use linbox.PolynomialRing_integer.Element (where Element is a ctypedef inside
+# TODO: Cython bug ?
+# https://groups.google.com/forum/#!topic/cython-users/81wTNLKZ2mw
+# We want to use linbox.PolynomialRing_integer.Element (where Element is a ctypedef inside
 # the class PolynomialRing_integer). Though, writing directly
 # linbox.linbox.PolynomialRing_integer.Element Cython complains
 ###############
@@ -60,8 +62,6 @@ cimport linbox
 #
 #    sage/libs/linbox/linbox_flint_interface.pyx:78:46: 'linbox.PolynomialRing_integer' is not a cimported module
 ##############
-#
-# Certainly a cython bug!!
 from linbox cimport PolynomialRing_integer
 
 # set the entries of A from m (no allocation performed)
