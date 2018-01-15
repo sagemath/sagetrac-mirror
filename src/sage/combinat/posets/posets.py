@@ -7285,6 +7285,12 @@ class FinitePoset(UniqueRepresentation, Parent):
                 other.subposet(self).hasse_diagram() == self.hasse_diagram())
 
     def order_relation(self, strict=False):
+        r"""
+        String or nonstrict order relation for the poset.
+
+        You usually should use `strict_order_relation()` or `nonstrict_order_relation()`
+        instead.
+        """
         return FiniteBinaryRelation(list(self.relations_iterator(strict)))
 
 

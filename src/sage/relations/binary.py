@@ -1,5 +1,12 @@
 """
 Finite Binary Relations
+
+Finite binary relations are finite sets of points.
+
+AUTHORS:
+
+- Victor Porton (2017-01-15): initial version
+
 """
 #*****************************************************************************
 #  Copyright (C) 2017 Victor Porton <porton@narod.ru>
@@ -23,8 +30,11 @@ def BinaryRelation(points=[]):
     r"""
     Create a binary relation.
 
-    :param points:  a set, list, or tuple of points (like `\{(1,2),(3,4)\}` or `\{[1,2],[3,4]\}`)
-    :return: A binary relation
+    INPUT:
+
+    - ``points``:  a set, list, or tuple of points (like `\{(1,2),(3,4)\}` or `\{[1,2],[3,4]\}`)
+
+    OUTPUT: A binary relation
 
     Create a binary relation. Currently only finite sets of points are supported.
 
@@ -100,27 +110,29 @@ class FiniteBinaryRelation(Set_object_enumerated):
     @property
     def x_range(self):
         r"""
-        :return: The x range for the relation.
+        OUTPUT: The x range for the relation.
         """
         return Set([p[0] for p in self])
 
     @property
     def y_range(self):
         r"""
-        :return: The y range for the relation.
+        OUTPUT: The y range for the relation.
         """
         return Set([p[1] for p in self])
 
     @property
     def reverse(self):
         r"""
-        :return: The reverse relation (x and y ranges are interchanged).
+        OUTPUT: The reverse relation (x and y ranges are interchanged).
         """
         return FiniteBinaryRelation(points=[(p[1],p[0]) for p in self])
 
     def compose(self, rel2):
         r"""
-        :return: Composition of the binary relation `rel2` with `self`.
+        Composition of the binary relations.
+
+        OUTPUT: Composition of the binary relation `rel2` with `self`.
 
         Composition of the binary relation `rel2` with `self`. See
         https://en.wikipedia.org/wiki/Composition_of_relations
@@ -143,15 +155,27 @@ class FiniteBinaryRelation(Set_object_enumerated):
     # Below we convert to list() to avoid "multilevel" linked datastructures
 
     def union(self, other):
+        r"""
+        Set theoretic union of two relations.
+        """
         return FiniteBinaryRelation(self.set().union(other.set()))
 
     def intersection(self, other):
+        r"""
+        Set theoretic intersection of two relations.
+        """
         return FiniteBinaryRelation(self.set().intersection(other.set()))
 
     def difference(self, other):
+        r"""
+        Set theoretic difference of two relations.
+        """
         return FiniteBinaryRelation(self.set().difference(other.set()))
 
     def symmetric_difference(self, other):
+        r"""
+        Set theoretic symmetric difference of two relations.
+        """
         return FiniteBinaryRelation(self.set().symmetric_difference(other.set()))
 
     @property
@@ -218,6 +242,9 @@ class FiniteBinaryRelation(Set_object_enumerated):
 
     @property
     def transitive_closure(self):
+        r"""
+        Transitive closure of a relation.
+        """
         result = self
         while True:
             next = result | result.compose(result)
@@ -226,6 +253,9 @@ class FiniteBinaryRelation(Set_object_enumerated):
             result = next
 
     def to_digraph(self):
+        r"""
+        Create a digraph from relation.
+        """
         return DiGraph(self.list(), loops=True)
 
     @staticmethod
@@ -245,12 +275,19 @@ class FiniteBinaryRelation(Set_object_enumerated):
 
     @staticmethod
     def identity(A):
+        r"""
+        Identity relation.
+
+        Identity relation on a set `A`.
+        """
         return FiniteBinaryRelation([(x, x) for x in A])
 
     @staticmethod
     def product(A, B):
         r"""
         Cartesian product relation.
+
+        Cartesian product of finite sets `A` and `B`.
         """
         return FiniteBinaryRelation([(x,y) for x in A for y in B])
 
