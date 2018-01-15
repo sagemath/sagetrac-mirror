@@ -1445,11 +1445,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
           - ``'pari'`` -- use the PARI library function.
           - ``'sympow'`` -- use Watkins's program sympow
-          - ``'rubinstein'`` -- use Rubinstein's L-function C++ program lcalc.
+          - ``'rubinstein'`` -- (deprecated) use Rubinstein's L-function C++ program lcalc.
           - ``'magma'`` -- use MAGMA
           - ``'zero_sum'`` -- Use the rank bounding zero sum method implemented
             in self.analytic_rank_upper_bound()
-          - ``'all'`` -- compute with PARI, sympow and lcalc, check that
+          - ``'all'`` -- compute with PARI and sympow, check that
             the answers agree, and return the common answer.
 
         - ``leading_coefficient`` -- (default: ``False``) Boolean; if set to
@@ -1485,6 +1485,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.analytic_rank(algorithm='pari')
             2
             sage: E.analytic_rank(algorithm='rubinstein')
+            doctest:...: DeprecationWarning: the lcalc library is deprecated; use PARI instead
+            See http://trac.sagemath.org/24532 for details.
             2
             sage: E.analytic_rank(algorithm='sympow')
             2
@@ -1556,8 +1558,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             if leading_coefficient:
                 S = set([self.analytic_rank('pari', True)])
             else:
-                S = set([self.analytic_rank('pari'),
-                    self.analytic_rank('rubinstein'), self.analytic_rank('sympow')])
+                S = set(self.analytic_rank(algo) for algo in ['pari', 'sympow'])
             if len(S) != 1:
                 raise RuntimeError("Bug in analytic_rank; algorithms don't agree! (E=%s)"%self)
             return list(S)[0]

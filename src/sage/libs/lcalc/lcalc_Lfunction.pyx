@@ -1,5 +1,5 @@
 r"""
-Rubinstein's lcalc library
+Rubinstein's lcalc library (deprecated)
 
 This is a wrapper around Michael Rubinstein's lcalc.
 See http://oto.math.uwaterloo.ca/~mrubinst/L_function_public/CODE/.
@@ -39,6 +39,9 @@ pi = RRR.pi()
 
 initialize_globals()
 
+from sage.misc.superseded import deprecation
+deprecation(24532, "the lcalc library is deprecated; use PARI instead")
+
 ##############################################################################
 # Lfunction: base class for L-functions
 ##############################################################################
@@ -55,6 +58,8 @@ cdef class Lfunction:
         EXAMPLES::
 
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
+            doctest:...: DeprecationWarning: the lcalc library is deprecated; use PARI instead
+            See http://trac.sagemath.org/24532 for details.
             sage: Lfunction_from_character(DirichletGroup(5)[1])
             L-function with complex Dirichlet coefficients
         """

@@ -28,6 +28,8 @@ from sage.rings.all import RealField, RationalField
 from math import sqrt, exp, log, ceil
 import sage.functions.exp_integral as exp_integral
 from sage.misc.all import verbose
+from sage.libs.pari import pari
+
 
 class Lseries_ell(SageObject):
     """
@@ -257,33 +259,93 @@ class Lseries_ell(SageObject):
         from sage.lfunctions.sympow import sympow
         return sympow.Lderivs(self.__E, n, prec, d)
 
-    def zeros(self, n):
+    def zeros(self, n, prec=32):
         r"""
         Return the imaginary parts of the first `n` nontrivial zeros
         on the critical line of the `L`-function in the upper half
-        plane, as 32-bit reals.
+        plane.
 
         EXAMPLES::
 
             sage: E = EllipticCurve('37a')
             sage: E.lseries().zeros(2)
             [0.000000000, 5.00317001]
+            sage: E.lseries().zeros(2, prec=64)
+            [0.000000000000000000, 5.00317001400665870]
 
             sage: a = E.lseries().zeros(20)             # long time
-            sage: point([(1,x) for x in a])             # graph  (long time)
+            sage: len(a)                                # long time
+            20
+            sage: point([(1,x) for x in a])             # long time
             Graphics object consisting of 1 graphics primitive
 
-        AUTHOR:
-            -- Uses Rubinstein's L-functions calculator.
+        TESTS::
+
+            sage: E.lseries().zeros(0)
+            []
+            sage: E.lseries().zeros(1)
+            [0.000000000]
         """
-        from sage.lfunctions.lcalc import lcalc
-        return lcalc.zeros(n, L=self.__E)
+        E = self.__E.pari_curve()
+        R = RealField(prec)
+        B = pari(1)
+        L = []
+        while len(L) < n:
+            L = E.lfunzeros(B, precision=prec)
+            B *= 2
+        return [R(x) for x in L[:n]]
+
+    def zeros_interval(self, x, y, prec=32, refine=1):
+        r"""
+        Return the imaginary parts of (most of) the nontrivial zeros
+        on the critical line `\Re(s)=1` with positive imaginary part
+        between ``x`` and ``y``.
+
+        INPUT:
+
+        - ``x``, ``y`` -- non-negative real numbers bounding the interval
+
+        - ``prec`` -- precision in bits to use (default: 32)
+
+        - ``refine`` -- real number (default: 1). Higher numbers imply a
+          more refined search, lower numbers a more sloppy search
+          (currently, any number less than ``0.25`` is treated equally).
+
+        OUTPUT: list
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a')
+            sage: E.lseries().zeros_interval(0, 6)
+            [0.000000000, 5.00317001]
+            sage: E.lseries().zeros_interval(6, 10)
+            [6.87039122, 8.01433081, 9.93309835]
+            sage: E.lseries().zeros_interval(6, 10, prec=64)
+            [6.87039121695443195, 8.01433080787287922, 9.93309835360535171]
+            sage: len(E.lseries().zeros_interval(0, 100))
+            115
+            sage: len(E.lseries().zeros_interval(0, 100, refine=0))
+            103
+        """
+        E = self.__E.pari_curve()
+        R = RealField(prec)
+        interval = [x, y] if x else y
+        divz = int(refine * 8)
+        if divz < 1:
+            divz = 1
+        L = E.lfunzeros(interval, divz, precision=prec)
+        return [R(x) for x in L]
 
     def zeros_in_interval(self, x, y, stepsize):
         r"""
         Return the imaginary parts of (most of) the nontrivial zeros
         on the critical line `\Re(s)=1` with positive imaginary part
         between ``x`` and ``y``, along with a technical quantity for each.
+
+        .. WARNING::
+
+            This method is deprecated, use :meth:`zeros_interval`
+            instead.
 
         INPUT:
 
@@ -304,7 +366,7 @@ class Lseries_ell(SageObject):
         EXAMPLES::
 
             sage: E = EllipticCurve('37a')
-            sage: E.lseries().zeros_in_interval(6, 10, 0.1)      # long time
+            sage: E.lseries().zeros_in_interval(6, 10, 0.1)
             [(6.87039122, 0.248922780), (8.01433081, -0.140168533), (9.93309835, -0.129943029)]
         """
         from sage.lfunctions.lcalc import lcalc

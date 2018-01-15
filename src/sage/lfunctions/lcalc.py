@@ -1,5 +1,5 @@
 r"""
-Rubinstein's `L`-function Calculator
+Rubinstein's `L`-function Calculator (deprecated)
 
 This interface provides complete
 access to Rubinstein's lcalc calculator with extra PARI
@@ -36,6 +36,10 @@ import sage.rings.all
 import sage.schemes.elliptic_curves.ell_generic
 
 prec = 32
+
+from sage.misc.superseded import deprecation
+deprecation(24532, "the lcalc library is deprecated; use PARI instead")
+
 
 class LCalc(SageObject):
     r"""
