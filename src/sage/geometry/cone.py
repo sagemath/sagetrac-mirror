@@ -6170,10 +6170,10 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
     Ensure that we can obtain a cone in three dimensions with a large
     number (in particular, more than 2*dim) rays::
 
-        sage: set_random_seed()                  # long time
+        sage: set_random_seed()
         sage: K = random_cone(min_ambient_dim=3, # long time
-        ....:                 max_ambient_dim=3, # long time
-        ....:                 min_rays=7)        # long time
+        ....:                 max_ambient_dim=3,
+        ....:                 min_rays=7)
         sage: K.nrays() >= 7                     # long time
         True
         sage: K.lattice_dim()                    # long time
@@ -6449,23 +6449,22 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
             d = random_min_max(min_ambient_dim, max_ambient_dim)
             L = ToricLattice(d)
 
-        r = random_min_max(min_rays, max_rays)
-
         # The rays are trickier to generate, since we could generate v and
         # 2*v as our "two rays." In that case, the resulting cone would
-        # have one generating ray. To avoid such a situation, we start by
-        # generating ``r`` rays where ``r`` is the number we want to end
-        # up with...
-        rays = [L.random_element() for i in range(r)]
+        # have one generating ray. We begin by generating ``min_rays``
+        # as starting cone...
+        rays = [L.random_element() for i in range(min_rays)]
 
         # The lattice parameter is required when no rays are given, so
-        # we pass it in case ``r == 0`` or ``d == 0`` (or ``d == 1``
+        # we pass it in case ``min_rays == 0`` or ``d == 0`` (or ``d == 1``
         # but we're making a strictly convex cone).
         K = Cone(rays, lattice=L)
 
         # Now, some of the rays that we generated were probably redundant,
         # so we need to come up with more. We can obviously stop if ``K``
-        # becomes the entire ambient vector space.
+        # becomes the entire ambient vector space. We also stop once we
+        # have ``r`` rays, which is a randomly chosen target number in
+        # the interval [min_rays, max_rays].
         #
         # We're still not guaranteed to have the correct number of
         # rays after this! Since we normalize the generators in the
@@ -6473,12 +6472,12 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
         # adding e.g. (1,1) to [(0,1), (0,-1)]. Rather than trying to
         # mangle what we have, we just start over if we get a cone
         # that won't work.
-        #
+
+        r = random_min_max(min_rays, max_rays)
         while r > K.nrays() and not K.is_full_space():
             rays.append(L.random_element())
             K = Cone(rays, lattice=L)
             rays = list(K.rays()) # Avoid re-normalizing next time around
-
 
         if strictly_convex is not None:
             if strictly_convex:
