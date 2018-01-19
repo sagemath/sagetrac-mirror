@@ -759,6 +759,8 @@ def preparse_numeric_literals(code, extract=False):
         postfix = m.groups()[-1].upper()
 
         if 'R' in postfix:
+            if not six.PY2:
+                postfix = postfix.replace('L', '')
             num_name = num_make = num + postfix.replace('R', '')
         elif 'L' in postfix:
             if six.PY2:
