@@ -2075,7 +2075,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         sig_off()
         if r < 0:  # MPFR free()s its buffer itself in this case
             raise RuntimeError("unable to convert an mpfr number to a string")
-        t = str(s)
+        t = char_to_str(s)
         mpfr_free_str(s)
         return t
 
@@ -2085,8 +2085,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: hex(RR(-1/3))  # py2
             doctest:warning...:
-                DeprecationWarning: use the method .hex instead
-                See http://trac.sagemath.org/ticket/24568 for details.
+            DeprecationWarning: use the method .hex instead
+            See http://trac.sagemath.org/ticket/24568 for details.
             '-0x5.5555555555554p-4'
         """
         deprecation(24568, 'use the method .hex instead')
