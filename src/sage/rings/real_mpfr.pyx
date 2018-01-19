@@ -88,7 +88,7 @@ TESTS::
 
     sage: -1e30
     -1.00000000000000e30
-    sage: hex(-1. + 2^-52)
+    sage: (-1. + 2^-52).hex()
     '-0xf.ffffffffffffp-4'
 
 Make sure we don't have a new field for every new literal::
