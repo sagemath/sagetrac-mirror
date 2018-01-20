@@ -779,43 +779,6 @@ class TorsionQuadraticModule(FGP_Module_class):
                 brown += _Brown_indecomposable(qi,p)
         return brown
 
-    def is_even_Genus(self,signature_pair):
-        r"""
-        """
-        s_plus = signature_pair[0]
-        s_minus = signature_pair[1]
-        rank = s_plus + s_minus
-        signature = s_plus - s_minus
-        D = self.cardinality()
-        det = (-1)**s_minus * D
-        if rank < len(self.invariants()):
-            return False
-        for p in D.prime_divisors():
-            Q_p = self.primary_part(p)
-            gram_p = Q_p.gram_matrix_quadratic()
-            length_p = len(Q_p.invariants())
-            u = D.prime_to_m_part(p)
-            up = gram_p.det().numerator().prime_to_m_part(p)
-            if p!=2 and length_p==rank:
-                if legendre_symbol(u,p) != legendre_symbol(up, p):
-                    return False
-            if p == 2:
-                if mod(rank, 2) != mod(length_p, 2):
-                    return False
-                n = (rank - length_p)/2
-                if mod(u, 4) != mod((-1)**(n % 2) * up, 4):
-                    return False
-                if rank == length_p:
-                    a = QQ(1)/QQ(2)
-                    b = QQ(3)/QQ(2)
-                    diag = gram_p.diagonal()
-                    if not (a in diag or b in diag):
-                        if mod(u, 8) != mod(up, 8):
-                            return False
-        if self.Brown_invariant() != signature:
-            return False
-        return True
-
     def Genus(self,signature_pair):
         from sage.quadratic_forms.genera.Genus import (Genus_Symbol_p_adic_ring,
                                                     GenusSymbol_global_ring)
