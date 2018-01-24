@@ -195,7 +195,7 @@ class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF_class):
             ncusps = len(lreps)
             for a in lreps:
                 if self._verbose > 0:
-                    print "Set cusp info for a={0}".format(a)
+                    print("Set cusp info for a={0}".format(a))
                 if a.is_trivial():
                     ca = NFCusp(K(1), K(0), lreps=lreps)
                 else:
@@ -617,7 +617,7 @@ class HilbertModularGroup_Conjugate_class(ArithmeticSubgroup_NF_class):
             ncusps = len(lreps)
             for a in lreps:
                 if self._verbose > 0:
-                    print "Set cusp info for a={0}".format(a)
+                    print("Set cusp info for a={0}".format(a))
                 if a.is_trivial():
                     ca = NFCusp(K(1), K(0), lreps=lreps)
                 else:
