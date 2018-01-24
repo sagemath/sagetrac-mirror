@@ -144,13 +144,13 @@ from sage.categories.morphism import SetMorphism
 from sage.categories.function_fields import FunctionFields
 CAT = FunctionFields()
 
-from .function_field_element import (
+from .element import (
     FunctionFieldElement,
     FunctionFieldElement_rational,
     FunctionFieldElement_polymod,
     FunctionFieldElement_global)
 
-from .function_field_order import (
+from .order import (
     FunctionFieldOrder_basis,
     FunctionFieldOrderInfinite_basis,
     FunctionFieldMaximalOrder_rational,
@@ -423,7 +423,7 @@ class FunctionField(Field):
             ...
             ValueError: The identity element must be in the module spanned by basis [x, x*y + x^2, 2/3*y^2]
         """
-        from .function_field_order import FunctionFieldOrder_basis
+        from .order import FunctionFieldOrder_basis
         return FunctionFieldOrder_basis([self(a) for a in basis], check=check)
 
     def order(self, x, check=True):
@@ -521,7 +521,7 @@ class FunctionField(Field):
             if not isinstance(basis, (list,tuple)):
                 basis = (basis,)
         basis = [self(g) for g in basis]
-        from .function_field_order import FunctionFieldOrderInfinite_basis
+        from .order import FunctionFieldOrderInfinite_basis
         return FunctionFieldOrderInfinite_basis(basis, check=check)
 
     def order_infinite(self, x, check=True):
@@ -603,7 +603,7 @@ class FunctionField(Field):
             sage: M.has_coerce_map_from(L)
             True
         """
-        from .function_field_order import FunctionFieldOrder
+        from .order import FunctionFieldOrder
         if isinstance(source, FunctionFieldOrder):
             K = source.fraction_field()
             if K is self:
