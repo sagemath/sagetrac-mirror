@@ -491,6 +491,20 @@ class TorsionQuadraticModule(FGP_Module_class):
 
     def orthogonal_group(self, gens=None):
         r"""
+        Orthognal group of the associated torsion quadratic form.
+
+        WARNING::
+
+            This is usually smaller than the orthogonal group of the bilinear form.
+
+        EXAMPLES::
+
+            sage: L = IntegralLattice(2*matrix.identity(3))
+            sage: D = L.discriminant_group()
+            sage: O = L.orthogonal_group()
+            sage: f = O.an_element()
+            sage: fd = D.hom([d*f for d in D.smith_form_gens()])
+            sage: D.orthogonal_group([fd])
         """
         from sage.groups.abelian_gps.abelian_aut import (AbelianGroupAutomorphismGroup_ambient,
                                                  AbelianGroupAutomorphismGroup_subgroup)
@@ -500,7 +514,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         gens_orders = [d.order() for d in self.smith_form_gens()]
         A = AbelianGroupGap(gens_orders)
         ambient = A.aut()
-        gens = [ambient(gens) for g in gens]
+        gens = [ambient(g) for g in gens]
         return ambient.subgroup(gens)
 
     def primary_part(self, m):
