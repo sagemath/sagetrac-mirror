@@ -489,6 +489,20 @@ class TorsionQuadraticModule(FGP_Module_class):
             gens += gens_p
         return self.submodule_with_gens(gens)
 
+    def orthogonal_group(self, gens=None):
+        r"""
+        """
+        from sage.groups.abelian_gps.abelian_aut import (AbelianGroupAutomorphismGroup_ambient,
+                                                 AbelianGroupAutomorphismGroup_subgroup)
+        from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+        if gens is None:
+            return NotImplementedError("This is not yet implemented")
+        gens_orders = [d.order() for d in self.smith_form_gens()]
+        A = AbelianGroupGap(gens_orders)
+        ambient = A.aut()
+        gens = [ambient(gens) for g in gens]
+        return ambient.subgroup(gens)
+
     def primary_part(self, m):
         r"""
         Return the ``m``-primary part of this torsion quadratic module
@@ -647,4 +661,3 @@ class TorsionQuadraticModule(FGP_Module_class):
             Q/2Z
         """
         return QmodnZ(self._modulus_qf)
-
