@@ -545,7 +545,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
         If ``trans=True``, then
         return either ``False`` or an element of ``self`` mapping x onto y.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K = QuadraticField(41)
@@ -642,7 +642,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
     #     generalised level. See the paper by Kiming, Schuett and Verrill for
     #     more examples.
 
-    #     EXAMPLE::
+    #     EXAMPLES::
 
     #         sage: Gamma0(18).generalised_level()
     #         18
@@ -672,7 +672,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
     #     This is equal to the degree of the natural map from the modular curve
     #     of self to the `j`-line.
 
-    #     EXAMPLE::
+    #     EXAMPLES::
 
     #         sage: Gamma0(5).projective_index()
     #         6
@@ -689,7 +689,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
         r"""
         Return ``True`` if ``self`` is a congruence subgroup.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K = QuadraticField(41)
@@ -706,7 +706,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
         The result is cached.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K = QuadraticField(41)
@@ -797,7 +797,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
         Return the dimension of the space of weight `k` modular forms for this
         group.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K = QuadraticField(41)
@@ -814,7 +814,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
         Return the dimension of the space of weight `k` cusp forms for this
         group.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K = QuadraticField(41)
