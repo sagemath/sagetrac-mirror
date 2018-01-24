@@ -414,7 +414,7 @@ class OrthogonalFunction(BuiltinFunction):
         return super(OrthogonalFunction,self).__call__(*args, **kwds)
 
 
-class Func_chebyshev_T(BuiltinFunction):
+class Func_chebyshev_T(GinacFunction):
     """
     The class of the function object that is returned when the
     :func:`chebyshev_T` function cannot create or evaluate a
@@ -424,7 +424,41 @@ class Func_chebyshev_T(BuiltinFunction):
 
         sage: chebyshev_T(x, x)
         chebyshev_T(x, x)
+
+        sage: _ = var('k n x')
+        sage: chebyshev_T(5,x)
+        16*x^5 - 20*x^3 + 5*x
+        sage: chebyshev_T(64, x, algorithm='recursive')
+        2*(2*(2*(2*(2*(2*x^2 - 1)^2 - 1)^2 - 1)^2 - 1)^2 - 1)^2 - 1
+        sage: chebyshev_T(n,-1)
+        (-1)^n
+        sage: chebyshev_T(-7,x)
+        64*x^7 - 112*x^5 + 56*x^3 - 7*x
+        sage: chebyshev_T(3/2,x)
+        chebyshev_T(3/2, x)
+        sage: R.<t> = QQ[]
+        sage: chebyshev_T(2,t)
+        2*t^2 - 1
+        sage: parent(chebyshev_T(4, RIF(5), algorithm='recursive'))
+        Real Interval Field with 53 bits of precision
+        sage: RR2 = RealField(5)
+        sage: chebyshev_T(100000,RR2(2), algorithm='recursive')
+        8.9e57180
+        sage: chebyshev_T(5,Qp(3)(2))
+        2 + 3^2 + 3^3 + 3^4 + 3^5 + O(3^20)
+        sage: chebyshev_T(100001/2, 2)
+        chebyshev_T(100001/2, 2)
+
+        sage: derivative(chebyshev_T(k,x),x)
+        k*chebyshev_U(k - 1, x)
+        sage: derivative(chebyshev_T(3,x),x)
+        12*x^2 - 3
+        sage: derivative(chebyshev_T(k,x),k)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: derivative w.r.t. to the index is not supported yet
     """
+
     def __init__(self):
         """
         Init method for the chebyshev polynomials of the first kind.
@@ -444,70 +478,11 @@ class Func_chebyshev_T(BuiltinFunction):
             sage: maxima(chebyshev_T(n, chebyshev_T(n, x)))
             chebyshev_t(_SAGE_VAR_n,chebyshev_t(_SAGE_VAR_n,_SAGE_VAR_x))
         """
-        BuiltinFunction.__init__(self, 'chebyshev_T', nargs=2,
+        GinacFunction.__init__(self, 'chebyshev_T', nargs=2,
                                    conversions=dict(maxima='chebyshev_t',
                                                     mathematica='ChebyshevT',
                                                     sympy='chebyshevt',
                                                     giac='tchebyshev1'))
-
-    def _eval_(self, n, x):
-        """
-        The :meth:`_eval_()` method decides which evaluation suits best
-        for the given input, and returns a proper value.
-
-        EXAMPLES::
-
-            sage: var('n,x')
-            (n, x)
-            sage: chebyshev_T(5,x)
-            16*x^5 - 20*x^3 + 5*x
-            sage: chebyshev_T(64, x)
-            2*(2*(2*(2*(2*(2*x^2 - 1)^2 - 1)^2 - 1)^2 - 1)^2 - 1)^2 - 1
-            sage: chebyshev_T(n,-1)
-            (-1)^n
-            sage: chebyshev_T(-7,x)
-            64*x^7 - 112*x^5 + 56*x^3 - 7*x
-            sage: chebyshev_T(3/2,x)
-            chebyshev_T(3/2, x)
-            sage: R.<t> = QQ[]
-            sage: chebyshev_T(2,t)
-            2*t^2 - 1
-            sage: parent(chebyshev_T(4, RIF(5)))
-            Real Interval Field with 53 bits of precision
-            sage: RR2 = RealField(5)
-            sage: chebyshev_T(100000,RR2(2))
-            8.9e57180
-            sage: chebyshev_T(5,Qp(3)(2))
-            2 + 3^2 + 3^3 + 3^4 + 3^5 + O(3^20)
-            sage: chebyshev_T(100001/2, 2)
-            chebyshev_T(100001/2, 2)
-        """
-        # n is an integer => evaluate algebraically (as polynomial)
-        if n in ZZ:
-            n = ZZ(n)
-            # Expanded symbolic expression only for small values of n
-            if isinstance(x, Expression) and n.abs() < 32:
-                return chebyshev_T.eval_formula(n, x)
-            return chebyshev_T.eval_algebraic(n, x)
-
-        if isinstance(x, Expression) or isinstance(n, Expression):
-            # Check for known identities
-            if x == 1:
-                return x
-            if x == -1:
-                return x**n
-            if x == 0:
-                return (1+(-1)**n)*(-1)**(n/2)/2
-            # Don't evaluate => keep symbolic
-            return None
-
-        # n is not an integer and neither n nor x is symbolic.
-        # We assume n and x are real/complex and evaluate numerically
-        try:
-            import sage.libs.mpmath.all as mpmath
-            return self._evalf_(n, x)
-        except mpmath.NoConvergence:
-            return None
 
     def _evalf_(self, n, x, **kwds):
         """
@@ -524,8 +499,10 @@ class Func_chebyshev_T(BuiltinFunction):
             sage: chebyshev_T(5,0.3)
             0.998880000000000
             sage: chebyshev_T(1/2, 0)
+            1/2*sqrt(2)
+            sage: chebyshev_T(1/2, 0).n()
             0.707106781186548
-            sage: chebyshev_T(1/2, 3/2)
+            sage: chebyshev_T(1/2, 3/2).n()
             1.11803398874989
 
         This simply evaluates using :class:`RealField` or :class:`ComplexField`::
@@ -535,8 +512,6 @@ class Func_chebyshev_T(BuiltinFunction):
             sage: chebyshev_T(1234.5, I)
             -1.21629397684152e472 - 1.21629397684152e472*I
             sage: chebyshev_T(10^6, 0.1, algorithm='recursive')
-            0.636384327171504
-            sage: chebyshev_T(10^6, 0.1)
             0.636384327171504
         """
         try:
@@ -593,30 +568,6 @@ class Func_chebyshev_T(BuiltinFunction):
         from scipy.special import eval_chebyt
         return eval_chebyt(n, x)
 
-    def _derivative_(self, n, x, diff_param):
-        """
-        Return the derivative of :class:`chebyshev_T` in form of the Chebyshev
-        polynomial of the second kind :class:`chebyshev_U`.
-
-        EXAMPLES::
-
-            sage: var('k')
-            k
-            sage: derivative(chebyshev_T(k,x),x)
-            k*chebyshev_U(k - 1, x)
-            sage: derivative(chebyshev_T(3,x),x)
-            12*x^2 - 3
-            sage: derivative(chebyshev_T(k,x),k)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: derivative w.r.t. to the index is not supported yet
-        """
-        if diff_param == 0:
-            raise NotImplementedError("derivative w.r.t. to the index is not supported yet")
-        elif diff_param == 1:
-            return n*chebyshev_U(n-1, x)
-        raise ValueError("illegal differentiation parameter {}".format(diff_param))
-
 Func_chebyshev_T_instance = Func_chebyshev_T()
 
 class Interface_chebyshev_T:
@@ -652,8 +603,6 @@ class Interface_chebyshev_T:
         -1.21629397684152e472 - 1.21629397684152e472*I
         sage: chebyshev_T(10^6, 0.1, algorithm='recursive')
         0.636384327171504
-        sage: chebyshev_T(10^6, 0.1)
-        0.636384327171504
         sage: K.<a> = NumberField(x^3-x-1)
         sage: chebyshev_T(5, a)
         16*a^2 + a - 4
@@ -666,7 +615,7 @@ class Interface_chebyshev_T:
         sage: chebyshev_T(n,1)
         1
         sage: chebyshev_T(n,0)
-        1/2*(-1)^(1/2*n)*((-1)^n + 1)
+        cos(1/2*pi*n)
         sage: chebyshev_T(n,-1)
         (-1)^n
     """
@@ -799,15 +748,15 @@ class Interface_chebyshev_T:
             1
             sage: chebyshev_T.eval_algebraic(1, t)
             t
-            sage: chebyshev_T(7^100, 1/2)
+            sage: chebyshev_T(7^100, 1/2, algorithm='recursive')
             1/2
-            sage: chebyshev_T(7^100, Mod(2,3))
+            sage: chebyshev_T(7^100, Mod(2,3), algorithm='recursive')
             2
             sage: n = 97; x = RIF(pi/2/n)
-            sage: chebyshev_T(n, cos(x)).contains_zero()
+            sage: chebyshev_T(n, cos(x), algorithm='recursive').contains_zero()
             True
             sage: R.<t> = Zp(2, 8, 'capped-abs')[]
-            sage: chebyshev_T(10^6+1, t)
+            sage: chebyshev_T(10^6+1, t, algorithm='recursive')
             (2^7 + O(2^8))*t^5 + (O(2^8))*t^4 + (2^6 + O(2^8))*t^3 + (O(2^8))*t^2 + (1 + 2^6 + O(2^8))*t + (O(2^8))
         """
         if n == 0:
@@ -841,7 +790,7 @@ class Interface_chebyshev_T:
 
 chebyshev_T = Interface_chebyshev_T()
 
-class Func_chebyshev_U(BuiltinFunction):
+class Func_chebyshev_U(GinacFunction):
     """
     The class of the function object that is returned when the
     :func:`chebyshev_U` function cannot create or evaluate a
@@ -851,6 +800,17 @@ class Func_chebyshev_U(BuiltinFunction):
 
         sage: chebyshev_U(x, x)
         chebyshev_U(x, x)
+
+        sage: var('k')
+        k
+        sage: derivative(chebyshev_U(k,x),x)
+        ((k + 1)*chebyshev_T(k + 1, x) - x*chebyshev_U(k, x))/(x^2 - 1)
+        sage: derivative(chebyshev_U(3,x),x)
+        24*x^2 - 4
+        sage: derivative(chebyshev_U(k,x),k)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: derivative w.r.t. to the index is not supported yet
     """
     def __init__(self):
         """
@@ -871,60 +831,12 @@ class Func_chebyshev_U(BuiltinFunction):
             sage: maxima(chebyshev_U(n,x, hold=True))
             chebyshev_u(_SAGE_VAR_n,_SAGE_VAR_x)
         """
-        BuiltinFunction.__init__(self, 'chebyshev_U', nargs=2,
+        GinacFunction.__init__(self, 'chebyshev_U', nargs=2,
                                    conversions=dict(maxima='chebyshev_u',
                                                     mathematica='ChebyshevU',
                                                     sympy='chebyshevu',
                                                     giac='tchebyshev2'))
 
-    def _eval_(self, n, x):
-        """
-        The :meth:`_eval_()` method decides which evaluation suits best
-        for the given input, and returns a proper value.
-
-        EXAMPLES::
-
-            sage: var('n,x')
-            (n, x)
-            sage: R.<t> = QQ[]
-            sage: chebyshev_U(2,t)
-            4*t^2 - 1
-
-            sage: chebyshev_U(n,1)
-            n + 1
-            sage: chebyshev_U(n,0)
-            1/2*(-1)^(1/2*n)*((-1)^n + 1)
-            sage: chebyshev_U(n,-1)
-            (-1)^n*(n + 1)
-        """
-        # n is an integer => evaluate algebraically (as polynomial)
-        if n in ZZ:
-            n = ZZ(n)
-            # Expanded symbolic expression only for small values of n
-            if isinstance(x, Expression) and n.abs() < 32:
-                return chebyshev_U.eval_formula(n, x)
-            return chebyshev_U.eval_algebraic(n, x)
-
-        if isinstance(x, Expression) or isinstance(n, Expression):
-            # Check for known identities
-            if x == 1:
-                return x*(n+1)
-
-            if x == -1:
-                return x**n*(n+1)
-
-            if x == 0:
-                return (1+(-1)**n)*(-1)**(n/2)/2
-            # Don't evaluate => keep symbolic
-            return None
-
-        # n is not an integer and neither n nor x is symbolic.
-        # We assume n and x are real/complex and evaluate numerically
-        try:
-            import sage.libs.mpmath.all as mpmath
-            return self._evalf_(n, x)
-        except mpmath.NoConvergence:
-            return None
 
     def _evalf_(self, n, x, **kwds):
         """
@@ -991,30 +903,6 @@ class Func_chebyshev_U(BuiltinFunction):
         """
         return r"U_{{{}}}\left({}\right)".format(latex(n), latex(z))
 
-    def _derivative_(self, n, x, diff_param):
-        """
-        Return the derivative of :class:`chebyshev_U` in form of the Chebyshev
-        polynomials of the first and second kind.
-
-        EXAMPLES::
-
-            sage: var('k')
-            k
-            sage: derivative(chebyshev_U(k,x),x)
-            ((k + 1)*chebyshev_T(k + 1, x) - x*chebyshev_U(k, x))/(x^2 - 1)
-            sage: derivative(chebyshev_U(3,x),x)
-            24*x^2 - 4
-            sage: derivative(chebyshev_U(k,x),k)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: derivative w.r.t. to the index is not supported yet
-        """
-        if diff_param == 0:
-            raise NotImplementedError("derivative w.r.t. to the index is not supported yet")
-        elif diff_param == 1:
-            return ((n+1)*chebyshev_T(n+1, x) - x*chebyshev_U(n,x)) / (x*x-1)
-        raise ValueError("illegal differentiation parameter {}".format(diff_param))
-
 Func_chebyshev_U_instance = Func_chebyshev_U()
 
 class Interface_chebyshev_U:
@@ -1050,7 +938,7 @@ class Interface_chebyshev_U:
         sage: chebyshev_U(n,1)
         n + 1
         sage: chebyshev_U(n,0)
-        1/2*(-1)^(1/2*n)*((-1)^n + 1)
+        cos(1/2*pi*n)
         sage: chebyshev_U(n,-1)
         (-1)^n*(n + 1)
     """
@@ -1180,7 +1068,7 @@ class Interface_chebyshev_U:
             sage: chebyshev_U.eval_algebraic(1, t)
             2*t
             sage: n = 97; x = RIF(pi/n)
-            sage: chebyshev_U(n-1, cos(x)).contains_zero()
+            sage: chebyshev_U(n-1, cos(x), algorithm='recursive').contains_zero()
             True
             sage: R.<t> = Zp(2, 6, 'capped-abs')[]
             sage: chebyshev_U(10^6+1, t)
