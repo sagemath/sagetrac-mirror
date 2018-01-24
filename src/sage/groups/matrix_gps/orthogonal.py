@@ -1,7 +1,7 @@
 r"""
 Orthogonal Linear Groups
 
-The general orthogonal group `GO(n,R)` consists of all `n\times n`
+The general orthogonal group `GO(n,R)` consists of all `n \times n`
 matrices over the ring `R` preserving an `n`-ary positive definite
 quadratic form. In cases where there are multiple non-isomorphic
 quadratic forms, additional data needs to be specified to
@@ -140,7 +140,7 @@ def GO(n, R, e=0, var='a'):
     """
     Return the general orthogonal group.
 
-    The general orthogonal group `GO(n,R)` consists of all `n\times n`
+    The general orthogonal group `GO(n,R)` consists of all `n \times n`
     matrices over the ring `R` preserving an `n`-ary positive definite
     quadratic form. In cases where there are multiple non-isomorphic
     quadratic forms, additional data needs to be specified to
@@ -213,7 +213,7 @@ def SO(n, R, e=None, var='a'):
     """
     Return the special orthogonal group.
 
-    The special orthogonal group `GO(n,R)` consists of all `n\times n`
+    The special orthogonal group `GO(n,R)` consists of all `n \times n`
     matrices with determinant one over the ring `R` preserving an
     `n`-ary positive definite quadratic form. In cases where there are
     multiple non-isomorphic quadratic forms, additional data needs to
@@ -411,7 +411,7 @@ class OrthogonalMatrixGroup_gap(OrthogonalMatrixGroup_generic, NamedMatrixGroup_
 
         The matrix `Q` defining "orthogonal" as follows. The matrix
         determines a quadratic form `q` on the natural vector space
-        `V`, on which `G` acts, by `q(v) = v Q v^t`. A matrix `M' is
+        `V`, on which `G` acts, by `q(v) = v Q v^t`. A matrix `M` is
         an element of the orthogonal group if `q(v) = q(v M)` for all
         `v \in V`.
 
@@ -448,296 +448,3 @@ class OrthogonalMatrixGroup_gap(OrthogonalMatrixGroup_generic, NamedMatrixGroup_
         m = self.gap().InvariantQuadraticForm()['matrix'].matrix()
         m.set_immutable()
         return m
-
-class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
-    r"""
-    A base class for Orthogonal matrix groups with a gap backend.
-
-    It remembers the bilinear form.
-    The difference to `OrthogonalMatrixGroup_gap` is that our groups do not have 
-    a specific name.
-
-    INPUT:
-
-        - ``degree`` -- integer, the degree (matrix size) of the matrix 
-        - ``base_ring`` -- ring, the base ring of the matrices
-        - ``gens`` -- a list of matrices over the base ring
-        - ``invariant_bilinear_form`` -- a symmetric matrix
-        - ``category`` -- (default:``None``) a category of groups
-        - ``check`` -- bool (default: ``True``) check if the generators preserve the bilinear form
-        - ``invariant_submodule`` -- a submodule preserved by the group action         (default: ``None``) registers an action on this submodule.
-        - ``invariant_submodule`` -- a quotient module preserved by the group action         (default: ``None``) registers an action on this quotient module.
-
-    EXAMPLES::
-
-        sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
-        sage: bil = Matrix(ZZ,2,[3,2,2,3])
-        sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
-        sage: O = OrthogonalMatrixGroup_with_gap(2,ZZ,gens,bil)
-        sage: O
-        Orthogonal group over Integer Ring with 1 generators (
-        [ 0 -1]
-        [-1  0]
-        )
-        sage: O.order()
-        2
-
-    Infinite groups are O.K. too::
-
-        sage: bil = Matrix(ZZ,4,[0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0])
-        sage: f = Matrix(ZZ,4,[0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, -1, 1, 1, 1])
-        sage: O = OrthogonalMatrixGroup_with_gap(2,ZZ,[f],bil)
-        sage: O.cardinality()
-        +Infinity
-    """
-
-    def __init__(self, degree, base_ring,
-                 gens, invariant_bilinear_form, 
-                 category=None, check=True,
-                 invariant_submodule=None,
-                 invariant_quotient_module=None):
-        r"""
-        Create this orthogonal group from the input. 
-
-        EXAMPLES::
-
-            sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
-            sage: bil = Matrix(ZZ,2,[3,2,2,3])
-            sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
-            sage: O = OrthogonalMatrixGroup_with_gap(2,ZZ,gens,bil)
-            sage: TestSuite(O).run()
-        """
-        from copy import copy
-        G = copy(invariant_bilinear_form)
-        G.set_immutable()
-        self._invariant_bilinear_form = G
-        self._invariant_submodule = invariant_submodule
-        self._invariant_quotient_module = invariant_quotient_module
-        if check:
-            for f in gens:
-                self._check_matrix(f)
-        if len(gens) == 0:    # handle the trivial group
-            gens = [G.parent().identity_matrix()]
-        from sage.libs.gap.libgap import libgap
-        gap_gens = [libgap(matrix_gen) for matrix_gen in gens]
-        gap_group = libgap.Group(gap_gens)
-        FinitelyGeneratedMatrixGroup_gap.__init__(self,
-                                                  degree,
-                                                  base_ring,
-                                                  gap_group,
-                                                  category=category)
-
-    def _repr_(self):
-        r"""
-        Return the string representation of this matrix group.
-
-        OUTPUT:
-
-            - a string
-
-        EXAMPLES::
-
-            sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
-            sage: bil = Matrix(ZZ,2,[3,2,2,3])
-            sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
-            sage: O = OrthogonalMatrixGroup_with_gap(2,ZZ,gens,bil)
-            sage: O
-            Orthogonal group over Integer Ring with 1 generators (
-            [ 0 -1]
-            [-1  0]
-            )
-        """
-        if self.ngens() > 5:
-            return 'Orthogonal group over {0} with {1} generators'.format(
-                self.base_ring(), self.ngens())
-        else:
-            from sage.repl.display.util import format_list
-            return 'Orthogonal group over {0} with {1} generators {2}'.format(
-                self.base_ring(), self.ngens(), format_list(self.gens()))
-
-    def invariant_bilinear_form(self):
-        r"""
-        Return the symmetric bilinear form preserved by the orthogonal group.
-
-        OUTPUT:
-
-            - the matrix defining the bilinear form
-
-        EXAMPLES::
-
-            sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
-            sage: bil = Matrix(ZZ,2,[3,2,2,3])
-            sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
-            sage: O = OrthogonalMatrixGroup_with_gap(2,ZZ,gens,bil)
-            sage: O.invariant_bilinear_form()
-            [3 2]
-            [2 3]
-        """
-        return self._invariant_bilinear_form
-
-    def _get_action_(self,S,op, self_on_left):
-        """
-        Provide the coercion system with an action.
-        """
-        import operator
-        if S is self._invariant_submodule and op == operator.mul and not self_on_left:
-            return GroupActionOnSubmodule(self,S)
-        if S is self._invariant_quotient_module and op == operator.mul and not self_on_left:
-            return GroupActionOnQuotientModule(self,S)
-        return None
-
-    def _check_matrix(self, x, *args):
-        r"""
-        Check whether the matrix ``x`` preserves the bilinear form.
-
-        See :meth:`~sage.groups.matrix_gps.matrix_group._check_matrix`
-        for details.
-
-        EXAMPLES::
-
-            sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
-            sage: bil = Matrix(ZZ,2,[3,2,2,3])
-            sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
-            sage: O = OrthogonalMatrixGroup_with_gap(2,ZZ,gens,bil)
-            sage: g = matrix.identity(2)*2
-            sage: O(g)
-            Traceback (most recent call last):
-            ...
-            TypeError: matrix must be orthogonal with respect to the invariant form
-        """
-        F = self.invariant_bilinear_form()
-        if x * F * x.transpose() != F:
-            raise TypeError('matrix must be orthogonal '
-                'with respect to the invariant form')
-
-class GroupActionOnSubmodule(Action):
-    r"""
-    Matrix group action on a submodule from the right.
-
-    INPUT:
-
-        - ``MatrixGroup`` --  a :class:`~sage.groups.matrix_gps.orthogonal.OrthogonalMatrixGroup_with_gap`
-        - ``submodule`` -- an invariant submodule
-        - ``is_left`` -- bool (default: False)
-
-    EXAMPLES::
-
-        sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
-        sage: S = span(ZZ,[[0,1]])
-        sage: g = Matrix(QQ,2,[1,0,0,-1])
-        sage: G = OrthogonalMatrixGroup_with_gap(2, ZZ, [g], invariant_bilinear_form=matrix.identity(2), invariant_submodule=S)
-        sage: g = G.an_element()
-        sage: x = S.an_element()
-        sage: x*g
-        (0, -1)
-        sage: (x*g).parent()
-        Free module of degree 2 and rank 1 over Integer Ring
-        Echelon basis matrix:
-        [0 1]
-    """
-    def __init__(self,MatrixGroup,submodule,is_left=False):
-        r"""
-        Initialize the action
-        """
-        import operator
-        Action.__init__(self, MatrixGroup, submodule, is_left, operator.mul)
-
-    def _call_(self, a, g):
-        r"""
-        This defines the group action.
-
-        INPUT:
-
-            - ``a`` -- an element of the invariant submodule
-            - ``g`` -- an element of the acting group
-
-        OUTPUT:
-
-            - an element of the invariant submodule
-
-        EXAMPLES::
-
-            sage: from sage.groups.matrix_gps.orthogonal import GroupActionOnSubmodule
-            sage: S = span(QQ,[[0,1]])
-            sage: g = Matrix(QQ,2,[1,1,0,1/2])
-            sage: G = MatrixGroup([g])
-            sage: A = GroupActionOnSubmodule(G,S)
-            sage: A
-            Right action by Matrix group over Rational Field with 1 generators (
-            [  1   1]
-            [  0 1/2]
-            ) on Vector space of degree 2 and dimension 1 over Rational Field
-            Basis matrix:
-            [0 1]
-            sage: s = S.an_element()
-            sage: g = G.an_element()
-            sage: A(s,g).parent()
-            Vector space of degree 2 and dimension 1 over Rational Field
-            Basis matrix:
-            [0 1]
-        """
-        return(a.parent()(a*g.matrix()))
-
-class GroupActionOnQuotientModule(Action):
-    r"""
-    Matrix group action on a quotient module from the right.
-
-    INPUT:
-
-        - ``MatrixGroup`` --  the group acting :class:`~sage.groups.matrix_gps.orthogonal.OrthogonalMatrixGroup_with_gap`
-        - ``submodule`` -- an invariant submodule
-        - ``is_left`` -- bool (default: False)
-
-    EXAMPLES::
-
-        sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
-        sage: S = span(ZZ,[[0,1]])
-        sage: Q = S/(6*S)
-        sage: g = Matrix(QQ,2,[1,0,0,-1])
-        sage: G = OrthogonalMatrixGroup_with_gap(2, ZZ, [g], invariant_bilinear_form=matrix.identity(2), invariant_quotient_module=Q)
-        sage: g = G.an_element()
-        sage: x = Q.an_element()
-        sage: x*g
-        (5)
-        sage: (x*g).parent()
-        Finitely generated module V/W over Integer Ring with invariants (6)
-    """
-    def __init__(self,MatrixGroup,quotient_module,is_left=False):
-        r"""
-        Initialize the action
-        """
-        import operator
-        Action.__init__(self, MatrixGroup, quotient_module, is_left, operator.mul)
-
-    def _call_(self, a, g):
-        r"""
-        This defines the group action.
-
-        INPUT:
-
-            - ``a`` -- an element of the invariant submodule
-            - ``g`` -- an element of the acting group
-
-        OUTPUT:
-
-            - an element of the invariant quotient module
-
-        EXAMPLES::
-
-            sage: from sage.groups.matrix_gps.orthogonal import GroupActionOnQuotientModule
-            sage: S = span(ZZ,[[0,1]])
-            sage: Q = S/(6*S)
-            sage: g = Matrix(QQ,2,[1,1,0,7])
-            sage: G = MatrixGroup([g])
-            sage: A = GroupActionOnQuotientModule(G,Q)
-            sage: A
-            Right action by Matrix group over Rational Field with 1 generators (
-            [1 1]
-            [0 7]
-            ) on Finitely generated module V/W over Integer Ring with invariants (6)
-            sage: q = Q.an_element()
-            sage: g = G.an_element()
-            sage: A(q,g).parent()
-            Finitely generated module V/W over Integer Ring with invariants (6)
-        """
-        return(a.parent()(a.lift()*g.matrix()))
