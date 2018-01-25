@@ -101,6 +101,16 @@ Make sure we don't have a new field for every new literal::
     True
     sage: RealField(100, rnd='RNDZ') is RealField(100, rnd=1)
     True
+
+Check deprecation from :trac:`13110`::
+
+    sage: RealNumber('1.0')
+    doctest:warning
+    ...
+    DeprecationWarning:
+    RealNumber is deprecated. Please use sage.rings.real_mpfr.create_RealNumber instead.
+    See http://trac.sagemath.org/13110 for details.
+    1.00000000000000
 """
 
 #*****************************************************************************
@@ -2991,7 +3001,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: n = RealNumber(2.0)
+            sage: n = RR(2.0)
             sage: n._rpy_()
             2.0
             sage: type(n._rpy_())
@@ -5513,11 +5523,13 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
 
     EXAMPLES::
 
-        sage: RealNumber('2.3') # indirect doctest
+        sage: from sage.rings.real_mpfr import create_RealNumber
+
+        sage: create_RealNumber('2.3') # indirect doctest
         2.30000000000000
-        sage: RealNumber(10)
+        sage: create_RealNumber(10)
         10.0000000000000
-        sage: RealNumber('1.0000000000000000000000000000000000')
+        sage: create_RealNumber('1.0000000000000000000000000000000000')
         1.000000000000000000000000000000000
         sage: RealField(200)(1.2)
         1.2000000000000000000000000000000000000000000000000000000000
@@ -5526,59 +5538,59 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
 
     We can use various bases::
 
-        sage: RealNumber("10101e2",base=2)
+        sage: create_RealNumber("10101e2",base=2)
         84.0000000000000
-        sage: RealNumber("deadbeef", base=16)
+        sage: create_RealNumber("deadbeef", base=16)
         3.73592855900000e9
-        sage: RealNumber("deadbeefxxx", base=16)
+        sage: create_RealNumber("deadbeefxxx", base=16)
         Traceback (most recent call last):
         ...
         TypeError: unable to convert 'deadbeefxxx' to a real number
-        sage: RealNumber("z", base=36)
+        sage: create_RealNumber("z", base=36)
         35.0000000000000
-        sage: RealNumber("AAA", base=37)
+        sage: create_RealNumber("AAA", base=37)
         14070.0000000000
-        sage: RealNumber("aaa", base=37)
+        sage: create_RealNumber("aaa", base=37)
         50652.0000000000
-        sage: RealNumber("3.4", base="foo")
+        sage: create_RealNumber("3.4", base="foo")
         Traceback (most recent call last):
         ...
         TypeError: an integer is required
-        sage: RealNumber("3.4", base=63)
+        sage: create_RealNumber("3.4", base=63)
         Traceback (most recent call last):
         ...
         ValueError: base (=63) must be an integer between 2 and 62
 
     The rounding mode is respected in all cases::
 
-        sage: RealNumber("1.5", rnd="RNDU").parent()
+        sage: create_RealNumber("1.5", rnd="RNDU").parent()
         Real Field with 53 bits of precision and rounding RNDU
-        sage: RealNumber("1.50000000000000000000000000000000000000", rnd="RNDU").parent()
+        sage: create_RealNumber("1.50000000000000000000000000000000000000", rnd="RNDU").parent()
         Real Field with 130 bits of precision and rounding RNDU
 
     TESTS::
 
-        sage: RealNumber('.000000000000000000000000000000001').prec()
+        sage: create_RealNumber('.000000000000000000000000000000001').prec()
         53
-        sage: RealNumber('-.000000000000000000000000000000001').prec()
+        sage: create_RealNumber('-.000000000000000000000000000000001').prec()
         53
 
-        sage: RealNumber('-.123456789123456789').prec()
+        sage: create_RealNumber('-.123456789123456789').prec()
         60
-        sage: RealNumber('.123456789123456789').prec()
+        sage: create_RealNumber('.123456789123456789').prec()
         60
-        sage: RealNumber('0.123456789123456789').prec()
+        sage: create_RealNumber('0.123456789123456789').prec()
         60
-        sage: RealNumber('00.123456789123456789').prec()
+        sage: create_RealNumber('00.123456789123456789').prec()
         60
-        sage: RealNumber('123456789.123456789').prec()
+        sage: create_RealNumber('123456789.123456789').prec()
         60
 
     Make sure we've rounded up ``log(10,2)`` enough to guarantee
     sufficient precision (:trac:`10164`)::
 
         sage: ks = 5*10**5, 10**6
-        sage: all(RealNumber("1." + "0"*k +"1")-1 > 0 for k in ks)
+        sage: all(create_RealNumber("1." + "0"*k +"1")-1 > 0 for k in ks)
         True
     """
     if not isinstance(s, str):

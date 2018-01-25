@@ -12,6 +12,19 @@ AUTHORS:
 - Vincent Delecroix (2010-01): plot function
 
 - Travis Scrimshaw (2012-10-18): Added documentation for full coverage
+
+TESTS::
+
+Check deprecation from :trac:`13110`::
+
+    sage: ComplexNumber('1.0')
+    doctest:warning
+    ...
+    DeprecationWarning:
+    ComplexNumber is deprecated. Please use sage.rings.complex_number.create_ComplexNumber instead.
+    See http://trac.sagemath.org/13110 for details.
+    1.00000000000000
+
 """
 
 #*****************************************************************************
@@ -78,11 +91,11 @@ def is_ComplexNumber(x):
     EXAMPLES::
 
         sage: from sage.rings.complex_number import is_ComplexNumber
-        sage: a = ComplexNumber(1,2); a
+        sage: a = CC(1,2); a
         1.00000000000000 + 2.00000000000000*I
         sage: is_ComplexNumber(a)
         True
-        sage: b = ComplexNumber(1); b
+        sage: b = CC(1); b
         1.00000000000000
         sage: is_ComplexNumber(b)
         True
@@ -136,7 +149,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: ComplexNumber(2,1) # indirect doctest
+            sage: CC(2,1) # indirect doctest
             2.00000000000000 + 1.00000000000000*I
         """
         self._prec = -1
@@ -147,7 +160,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: a = ComplexNumber(2,1)
+            sage: a = CC(2,1)
             sage: a.__init__(CC,2,1)
             sage: a
             2.00000000000000 + 1.00000000000000*I
@@ -362,7 +375,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: a = ComplexNumber(2,1); a
+            sage: a = CC(2,1); a
             2.00000000000000 + 1.00000000000000*I
             sage: a._repr_()
             '2.00000000000000 + 1.00000000000000*I'
@@ -398,10 +411,10 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: a = ComplexNumber(2,1)
-            sage: a.__getitem__(0)
+            sage: a = CC(2,1)
+            sage: a[0]   # indirect doctest
             2.00000000000000
-            sage: a.__getitem__(1)
+            sage: a[1]   # indirect doctest
             1.00000000000000
 
         ::
@@ -409,7 +422,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: b = CC(42,0)
             sage: b
             42.0000000000000
-            sage: b.__getitem__(1)
+            sage: b[1]
             0.000000000000000
         """
         if i == 0:
@@ -449,7 +462,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: a = ComplexNumber(2,1)
+            sage: a = CC(2,1)
             sage: a.multiplicative_order()
             +Infinity
             sage: a._set_multiplicative_order(5)
@@ -519,7 +532,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: a = ComplexNumber(2,1)
+            sage: a = CC(2,1)
             sage: a
             2.00000000000000 + 1.00000000000000*I
             sage: latex(a)
@@ -529,7 +542,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         ::
 
-            sage: b = ComplexNumber(7,4,min_prec=16)
+            sage: b = ComplexField(16)(7,4)
             sage: b
             7.000 + 4.000*I
             sage: latex(b)
@@ -539,7 +552,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         ::
 
-            sage: ComplexNumber(0).log()._latex_()
+            sage: CC(0).log()._latex_()
             '-\\infty'
         """
         import re
@@ -555,7 +568,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         Coerce the object using the ``pari`` function::
 
-            sage: a = ComplexNumber(2,1)
+            sage: a = CC(2,1)
             sage: pari(a)
             2.00000000000000 + 1.00000000000000*I
             sage: pari(a).type()
@@ -688,10 +701,10 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         This indeed acts as the square function when the
         imaginary component of ``self`` is equal to zero::
 
-            sage: a = ComplexNumber(2,1)
+            sage: a = CC(2,1)
             sage: a.norm()
             5.00000000000000
-            sage: b = ComplexNumber(4.2,0)
+            sage: b = CC(4.2,0)
             sage: b.norm()
             17.6400000000000
             sage: b^2
@@ -789,7 +802,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: a = ComplexNumber(2,0)
+            sage: a = CC(2,0)
             sage: a.__rdiv__(CC(1))
             0.500000000000000
             sage: CC(1)/a
@@ -943,7 +956,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: a = ComplexNumber(2,1)
+            sage: a = CC(2,1)
             sage: -a
             -2.00000000000000 - 1.00000000000000*I
             sage: a.__neg__()
@@ -961,7 +974,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: a = ComplexNumber(2,1)
+            sage: a = CC(2,1)
             sage: +a
             2.00000000000000 + 1.00000000000000*I
             sage: a.__pos__()
@@ -984,7 +997,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         ::
 
-            sage: a = ComplexNumber(2,1)
+            sage: a = CC(2,1)
             sage: abs(a)
             2.23606797749979
             sage: a.__abs__()
@@ -994,7 +1007,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         ::
 
-            sage: b = ComplexNumber(42,0)
+            sage: b = CC(42,0)
             sage: abs(b)
             42.0000000000000
             sage: b.__abs__()
@@ -1046,7 +1059,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: a = ComplexNumber(2,1)
+            sage: a = CC(2,1)
             sage: int(a)
             Traceback (most recent call last):
             ...
@@ -1068,7 +1081,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: a = ComplexNumber(2,1)
+            sage: a = CC(2,1)
             sage: long(a)
             Traceback (most recent call last):
             ...
@@ -1089,10 +1102,10 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: a = ComplexNumber(1, 0)
+            sage: a = CC(1, 0)
             sage: float(a)
             1.0
-            sage: a = ComplexNumber(2,1)
+            sage: a = CC(2,1)
             sage: float(a)
             Traceback (most recent call last):
             ...
@@ -1101,7 +1114,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             Traceback (most recent call last):
             ...
             TypeError: unable to convert 2.00000000000000 + 1.00000000000000*I to float; use abs() or real_part() as desired
-            sage: float(abs(ComplexNumber(1,1)))
+            sage: float(abs(CC(1,1)))
             1.4142135623730951
         """
         if mpfr_zero_p(self.__im) or mpfr_nan_p(self.__re):
@@ -1117,7 +1130,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: a = ComplexNumber(2,1)
+            sage: a = CC(2,1)
             sage: complex(a)
             (2+1j)
             sage: type(complex(a))
@@ -1944,7 +1957,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: a = ComplexNumber(1,0)
+            sage: a = CC(1,0)
             sage: a.dilog()
             1.64493406684823
             sage: float(pi^2/6)
@@ -1952,13 +1965,13 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         ::
 
-            sage: b = ComplexNumber(0,1)
+            sage: b = CC(0,1)
             sage: b.dilog()
             -0.205616758356028 + 0.915965594177219*I
 
         ::
 
-            sage: c = ComplexNumber(0,0)
+            sage: c = CC(0,0)
             sage: c.dilog()
             0.000000000000000
         """
@@ -2055,7 +2068,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: a = ComplexNumber(2,1)
+            sage: a = CC(2,1)
             sage: a.log()
             0.804718956217050 + 0.463647609000806*I
             sage: log(a.abs())
@@ -2065,26 +2078,26 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         ::
 
-            sage: b = ComplexNumber(float(exp(42)),0)
+            sage: b = CC(float(exp(42)),0)
             sage: b.log()
-            41.99999999999971
+            42.0000000000000
 
         ::
 
-            sage: c = ComplexNumber(-1,0)
+            sage: c = CC(-1,0)
             sage: c.log()
             3.14159265358979*I
 
         The option of a base is included for compatibility with other logs::
 
-            sage: c = ComplexNumber(-1,0)
+            sage: c = CC(-1,0)
             sage: c.log(2)
             4.53236014182719*I
 
         If either component (real or imaginary) of the complex number
         is NaN (not a number), log will return the complex NaN::
 
-            sage: c = ComplexNumber(NaN,2)
+            sage: c = CC(NaN,2)
             sage: c.log()
             NaN + NaN*I
         """
@@ -2249,14 +2262,14 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: a = ComplexNumber(2,1)
+            sage: a = CC(2,1)
             sage: a.is_square()
             True
 
         `\CC` is algebraically closed, hence every element
         is a square::
 
-            sage: b = ComplexNumber(5)
+            sage: b = CC(5)
             sage: b.is_square()
             True
         """
@@ -2456,22 +2469,24 @@ def create_ComplexNumber(s_real, s_imag=None, int pad=0, min_prec=53):
 
     EXAMPLES::
 
-        sage: ComplexNumber('2.3')
+        sage: from sage.rings.complex_number import create_ComplexNumber
+
+        sage: create_ComplexNumber('2.3')
         2.30000000000000
-        sage: ComplexNumber('2.3','1.1')
+        sage: create_ComplexNumber('2.3','1.1')
         2.30000000000000 + 1.10000000000000*I
-        sage: ComplexNumber(10)
+        sage: create_ComplexNumber(10)
         10.0000000000000
-        sage: ComplexNumber(10,10)
+        sage: create_ComplexNumber(10,10)
         10.0000000000000 + 10.0000000000000*I
-        sage: ComplexNumber(1.000000000000000000000000000,2)
+        sage: create_ComplexNumber(1.000000000000000000000000000,2)
         1.00000000000000000000000000 + 2.00000000000000000000000000*I
-        sage: ComplexNumber(1,2.000000000000000000000)
+        sage: create_ComplexNumber(1,2.000000000000000000000)
         1.00000000000000000000 + 2.00000000000000000000*I
 
     ::
 
-        sage: sage.rings.complex_number.create_ComplexNumber(s_real=2,s_imag=1)
+        sage: create_ComplexNumber(s_real=2,s_imag=1)
         2.00000000000000 + 1.00000000000000*I
 
     TESTS:
@@ -2480,9 +2495,9 @@ def create_ComplexNumber(s_real, s_imag=None, int pad=0, min_prec=53):
     sufficient precision (:trac:`10164`)::
 
         sage: s = "1." + "0"*10**6 + "1"
-        sage: sage.rings.complex_number.create_ComplexNumber(s,0).real()-1 == 0
+        sage: create_ComplexNumber(s,0).real()-1 == 0
         False
-        sage: sage.rings.complex_number.create_ComplexNumber(0,s).imag()-1 == 0
+        sage: create_ComplexNumber(0,s).imag()-1 == 0
         False
 
     """

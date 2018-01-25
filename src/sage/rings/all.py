@@ -13,6 +13,9 @@ Rings
 #*****************************************************************************
 from __future__ import absolute_import
 
+from sage.misc.lazy_import import lazy_import as _lazy_import
+from sage.misc.superseded import deprecated_function_alias as _deprecated_function_alias
+
 # Ring base classes
 from .ring import (Ring, Field, CommutativeRing, IntegralDomain,
     DedekindDomain, PrincipalIdealDomain, EuclideanDomain)
@@ -67,9 +70,11 @@ from .padics.padic_printing import _printer_defaults as padic_printing
 from .semirings.all import *
 
 # Real numbers
-from .real_mpfr import (RealField, RR,
-                       create_RealNumber as RealNumber)   # this is used by the preparser to wrap real literals -- very important.
+from .real_mpfr import RealField, RR
 Reals = RealField
+from .real_mpfr import create_RealNumber
+RealNumber = _deprecated_function_alias(13110, create_RealNumber)
+del create_RealNumber
 
 from .real_double import RealDoubleField, RDF, RealDoubleElement
 
@@ -96,10 +101,12 @@ from .real_mpfi import (RealIntervalField,
 
 # Complex numbers
 from .complex_field import ComplexField
-from .complex_number import (create_ComplexNumber as ComplexNumber)
 Complexes = ComplexField
 from .complex_interval_field import ComplexIntervalField
 from .complex_interval import (create_ComplexIntervalFieldElement as ComplexIntervalFieldElement)
+from .complex_number import create_ComplexNumber
+ComplexNumber = _deprecated_function_alias(13110, create_ComplexNumber)
+del create_ComplexNumber
 
 from .complex_double import ComplexDoubleField, ComplexDoubleElement, CDF
 
@@ -135,8 +142,8 @@ from .monomials import monomials
 CC = ComplexField()
 CIF = ComplexIntervalField()
 
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.rings.invariant_theory', 'invariant_theory')
+
+_lazy_import('sage.rings.invariant_theory', 'invariant_theory')
 
 from .fast_arith import prime_range
 
