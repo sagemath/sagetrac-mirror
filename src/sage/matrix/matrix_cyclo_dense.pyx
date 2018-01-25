@@ -62,7 +62,7 @@ from .misc import matrix_integer_dense_rational_reconstruction
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.arith.all import previous_prime, binomial
-from sage.rings.all import RealNumber
+from sage.rings.all import RR
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -1196,12 +1196,12 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             return max(1, 3*B, 6*B**2, 4*B**3)
 
         # This is an approximation to 2^(5/6*log_2(5) - 2/3*log_2(6))
-        alpha = RealNumber('1.15799718800731')
+        alpha = RR('1.15799718800731')
         # This is 2*e^(1-(2(7\gamma-4))/(13(3-2\gamma))), where \gamma
         # is Euler's constant.
-        delta = RealNumber('5.418236')
+        delta = RR('5.418236')
         # This is an approximation to 1/2. :)
-        half = RealNumber('0.5')
+        half = RR('0.5')
 
         D = (((1+2*delta*self._nrows*(B**2)).sqrt()-1)/(delta*B**2)).ceil()
 

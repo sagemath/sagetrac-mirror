@@ -279,7 +279,7 @@ Limitations". What Sage does is "preparse" the input and transforms it
 like this::
 
     sage: preparse("0.6**2")
-    "RealNumber('0.6')**Integer(2)"
+    "sage.rings.real_mpfr.create_RealNumber('0.6')**Integer(2)"
 
 So what is *actually* run is::
 
@@ -326,7 +326,7 @@ When you type in numbers into Sage, the pre-processor converts them to
 a base ring, which you can see by doing::
 
     sage: preparse("stats.uniform(0,15).ppf([0.5,0.7])")
-    "stats.uniform(Integer(0),Integer(15)).ppf([RealNumber('0.5'),RealNumber('0.7')])"
+    "stats.uniform(Integer(0),Integer(15)).ppf([sage.rings.real_mpfr.create_RealNumber('0.5'),sage.rings.real_mpfr.create_RealNumber('0.7')])"
 
 Unfortunately, NumPy support of these advanced Sage types like
 ``Integer`` or ``RealNumber`` is not yet at 100%. As a solution,

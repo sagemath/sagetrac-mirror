@@ -32,11 +32,18 @@ by
     sage: from cvxopt.base import spmatrix
     sage: from cvxopt.base import matrix as m
     sage: from cvxopt import umfpack
-    sage: Integer=int
-    sage: V = [2,3, 3,-1,4, 4,-3,1,2, 2, 6,1]
-    sage: I = [0,1, 0, 2,4, 1, 2,3,4, 2, 1,4]
-    sage: J = [0,0, 1, 1,1, 2, 2,2,2, 3, 4,4]
+    sage: V = [2r,3r, 3r,-1r,4r, 4r,-3r,1r,2r, 2r, 6r,1r]
+    sage: I = [0r,1r, 0r, 2r,4r, 1r, 2r,3r,4r, 2r, 1r,4r]
+    sage: J = [0r,0r, 1r, 1r,1r, 2r, 2r,2r,2r, 3r, 4r,4r]
     sage: A = spmatrix(V,I,J)
+
+.. NOTE::
+
+    In the above code, we turned out the Sage preparser by using the suffix
+    ``r`` when entering a number. This is in order for integers and floating
+    point numbers to be understood as native Python ``int`` and ``float``. By
+    default these would have been Sage ``Integer`` and ``RealNumber`` that are
+    not understood by cvxopt.
 
 To solve an equation :math:`AX=B`, with :math:`B=[1,1,1,1,1]`,
 we could do the following.
@@ -79,11 +86,9 @@ We could compute the approximate minimum degree ordering by doing
 
 ::
 
-    sage: RealNumber=float
-    sage: Integer=int
     sage: from cvxopt.base import spmatrix
     sage: from cvxopt import amd
-    sage: A=spmatrix([10,3,5,-2,5,2],[0,2,1,2,2,3],[0,0,1,1,2,3])
+    sage: A=spmatrix([10r,3r,5r,-2r,5r,2r],[0r,2r,1r,2r,2r,3r],[0r,0r,1r,1r,2r,3r])
     sage: P=amd.order(A)
     sage: print(P)
     [ 1]
@@ -106,13 +111,11 @@ For a simple linear programming example, if we want to solve
 
 ::
 
-    sage: RealNumber=float
-    sage: Integer=int
     sage: from cvxopt.base import matrix as m
     sage: from cvxopt import solvers
-    sage: c = m([-4., -5.])
-    sage: G = m([[2., 1., -1., 0.], [1., 2., 0., -1.]])
-    sage: h = m([3., 3., 0., 0.])
+    sage: c = m([-4.r, -5.r])
+    sage: G = m([[2.r, 1.r, -1.r, 0.r], [1.r, 2.r, 0.r, -1.r]])
+    sage: h = m([3.r, 3.r, 0.r, 0.r])
     sage: sol = solvers.lp(c,G,h) #random
          pcost       dcost       gap    pres   dres   k/t
      0: -8.1000e+00 -1.8300e+01  4e+00  0e+00  8e-01  1e+00

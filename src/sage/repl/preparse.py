@@ -48,7 +48,7 @@ Preparsing::
     sage: preparse('2/3')
     'Integer(2)/Integer(3)'
     sage: preparse('2.5')
-    "RealNumber('2.5')"
+    "sage.rings.real_mpfr.create_RealNumber('2.5')"
     sage: preparse('2^3')
     'Integer(2)**Integer(3)'
     sage: preparse('a^b')            # exponent
@@ -63,7 +63,7 @@ Preparsing::
     sage: preparse('a b c in L')     # implicit multiplication
     'a*b*c in L'
     sage: preparse('2e3x + 3exp(y)')
-    "RealNumber('2e3')*x + Integer(3)*exp(y)"
+    "sage.rings.real_mpfr.create_RealNumber('2e3')*x + Integer(3)*exp(y)"
 
 A string with escaped quotes in it (the point here is that the
 preparser doesn't get confused by the internal quotes)::
@@ -103,7 +103,7 @@ that in pure Python this would be a syntax error)::
     sage: preparse('87.sqrt()')
     'Integer(87).sqrt()'
     sage: preparse('15.10.sqrt()')
-    "RealNumber('15.10').sqrt()"
+    "sage.rings.real_mpfr.create_RealNumber('15.10').sqrt()"
 
 Note that calling methods on int literals in pure Python is a syntax
 error, but Sage allows this for Sage integers and reals, because users
@@ -654,7 +654,7 @@ def extract_numeric_literals(code):
         sage: print(code)
         _sage_const_1p2  + _sage_const_5
         sage: print(nums)
-        {'_sage_const_1p2': "RealNumber('1.2')", '_sage_const_5': 'Integer(5)'}
+        {'_sage_const_1p2': "sage.rings.real_mpfr.create_RealNumber('1.2')", '_sage_const_5': 'Integer(5)'}
 
         sage: extract_numeric_literals("[1, 1.1, 1e1, -1e-1, 1.]")[0]
         '[_sage_const_1 , _sage_const_1p1 , _sage_const_1e1 , -_sage_const_1en1 , _sage_const_1p ]'
@@ -691,7 +691,7 @@ def preparse_numeric_literals(code, extract=False):
         sage: preparse_numeric_literals("5")
         'Integer(5)'
         sage: preparse_numeric_literals("5j")
-        "ComplexNumber(0, '5')"
+        "sage.rings.complex_number.create_ComplexNumber(0, '5')"
         sage: preparse_numeric_literals("5jr")
         '5J'
         sage: preparse_numeric_literals("5l")
@@ -699,29 +699,29 @@ def preparse_numeric_literals(code, extract=False):
         sage: preparse_numeric_literals("5L")
         '5L'
         sage: preparse_numeric_literals("1.5")
-        "RealNumber('1.5')"
+        "sage.rings.real_mpfr.create_RealNumber('1.5')"
         sage: preparse_numeric_literals("1.5j")
-        "ComplexNumber(0, '1.5')"
+        "sage.rings.complex_number.create_ComplexNumber(0, '1.5')"
         sage: preparse_numeric_literals(".5j")
-        "ComplexNumber(0, '.5')"
+        "sage.rings.complex_number.create_ComplexNumber(0, '.5')"
         sage: preparse_numeric_literals("5e9j")
-        "ComplexNumber(0, '5e9')"
+        "sage.rings.complex_number.create_ComplexNumber(0, '5e9')"
         sage: preparse_numeric_literals("5.")
-        "RealNumber('5.')"
+        "sage.rings.real_mpfr.create_RealNumber('5.')"
         sage: preparse_numeric_literals("5.j")
-        "ComplexNumber(0, '5.')"
+        "sage.rings.complex_number.create_ComplexNumber(0, '5.')"
         sage: preparse_numeric_literals("5.foo()")
         'Integer(5).foo()'
         sage: preparse_numeric_literals("5.5.foo()")
-        "RealNumber('5.5').foo()"
+        "sage.rings.real_mpfr.create_RealNumber('5.5').foo()"
         sage: preparse_numeric_literals("5.5j.foo()")
-        "ComplexNumber(0, '5.5').foo()"
+        "sage.rings.complex_number.create_ComplexNumber(0, '5.5').foo()"
         sage: preparse_numeric_literals("5j.foo()")
-        "ComplexNumber(0, '5').foo()"
+        "sage.rings.complex_number.create_ComplexNumber(0, '5').foo()"
         sage: preparse_numeric_literals("1.exp()")
         'Integer(1).exp()'
         sage: preparse_numeric_literals("1e+10")
-        "RealNumber('1e+10')"
+        "sage.rings.real_mpfr.create_RealNumber('1e+10')"
         sage: preparse_numeric_literals("0x0af")
         'Integer(0x0af)'
         sage: preparse_numeric_literals("0x10.sqrt()")
@@ -789,12 +789,12 @@ def preparse_numeric_literals(code, extract=False):
             num_name = numeric_literal_prefix + num.replace('.', 'p').replace('-', 'n').replace('+', '')
 
             if 'J' in postfix:
-                num_make = "ComplexNumber(0, '%s')" % num
+                num_make = "sage.rings.complex_number.create_ComplexNumber(0, '%s')" % num
                 num_name += 'j'
             elif len(num) < 2 or num[1] in 'oObBxX':
                 num_make = "Integer(%s)" % num
             elif '.' in num or 'e' in num or 'E' in num:
-                num_make = "RealNumber('%s')" % num
+                num_make = "sage.rings.real_mpfr.create_RealNumber('%s')" % num
             elif num[0] == "0":
                 num_make = "Integer('%s')" % num
             else:

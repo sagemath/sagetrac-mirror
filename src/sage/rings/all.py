@@ -72,9 +72,8 @@ from .semirings.all import *
 # Real numbers
 from .real_mpfr import RealField, RR
 Reals = RealField
-from .real_mpfr import create_RealNumber
-RealNumber = _deprecated_function_alias(13110, create_RealNumber)
-del create_RealNumber
+from .real_mpfr import create_RealNumber as _Real
+RealNumber = _deprecated_function_alias(13110, _Real)
 
 from .real_double import RealDoubleField, RDF, RealDoubleElement
 
@@ -104,9 +103,8 @@ from .complex_field import ComplexField
 Complexes = ComplexField
 from .complex_interval_field import ComplexIntervalField
 from .complex_interval import (create_ComplexIntervalFieldElement as ComplexIntervalFieldElement)
-from .complex_number import create_ComplexNumber
-ComplexNumber = _deprecated_function_alias(13110, create_ComplexNumber)
-del create_ComplexNumber
+from .complex_number import create_ComplexNumber as _Complex
+ComplexNumber = _deprecated_function_alias(13110, _Complex)
 
 from .complex_double import ComplexDoubleField, ComplexDoubleElement, CDF
 

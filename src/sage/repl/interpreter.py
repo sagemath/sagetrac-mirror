@@ -383,7 +383,7 @@ def SagePreparseTransformer(line):
         sage: from sage.repl.interpreter import SagePreparseTransformer
         sage: spt = SagePreparseTransformer()
         sage: spt.push('1+1r+2.3^2.3r')
-        "Integer(1)+1+RealNumber('2.3')**2.3"
+        "Integer(1)+1+sage.rings.real_mpfr.create_RealNumber('2.3')**2.3"
         sage: preparser(False)
         sage: spt.push('2.3^2')
         '2.3^2'
