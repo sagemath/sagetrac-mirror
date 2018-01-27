@@ -1,0 +1,1 @@
+../../sage/static/thebe_status_field.js
