@@ -6,6 +6,26 @@ in addition to ``True`` and ``False``, in order to signal uncertainty
 about or inability to compute the result. ``Unknown`` can be identified
 using ``is``, or by catching :class:`UnknownError` from a boolean operation.
 
+.. WARNING::
+
+    Calling ``bool()`` with ``Unknown`` as argument will throw an
+    ``UnknownError``. This also means that, unless PEP 335 is accepted,
+    in the following cases, ``and``, ``not``, and ``or`` fail or return
+    a somewhat wrong value::
+
+        sage: not Unknown         # should return Unknown
+        Traceback (most recent call last):
+        ...
+        UnknownError: Unknown does not evaluate in boolean context
+        sage: Unknown and False   # should return False
+        Traceback (most recent call last):
+        ...
+        UnknownError: Unknown does not evaluate in boolean context
+        sage: Unknown or False    # should return Unknown
+        Traceback (most recent call last):
+        ...
+        UnknownError: Unknown does not evaluate in boolean context
+
 EXAMPLES::
 
     sage: [Unknown is val for val in [True, False, Unknown]]
@@ -22,24 +42,6 @@ EXAMPLES::
     ....:        return 'maybe'
     sage: [verbose(n) for n in range(3)]
     ['yes', 'no', 'maybe']
-
-.. WARNING::
-
-    Unless PEP 335 is accepted, in the following cases,
-    ``and``, ``not`` and ``or`` fail or return a somewhat wrong value::
-
-        sage: not Unknown         # should return Unknown
-        Traceback (most recent call last):
-        ...
-        UnknownError: Unknown does not evaluate in boolean context
-        sage: Unknown and False   # should return False
-        Traceback (most recent call last):
-        ...
-        UnknownError: Unknown does not evaluate in boolean context
-        sage: Unknown or False    # should return Unknown
-        Traceback (most recent call last):
-        ...
-        UnknownError: Unknown does not evaluate in boolean context
 
 AUTHORS:
 
@@ -75,14 +77,16 @@ class UnknownClass(UniqueRepresentation, SageObject):
     using ``is``, or by catching :class:`UnknownError` from a boolean
     operation.
 
+    .. WARNING::
+
+        Calling ``bool()`` with ``Unknown`` as argument will throw an
+        ``UnknownError``. This also means that applying ``and``, ``not``,
+        and ``or`` to ``Unknown`` might fail.
+
     TESTS::
 
         sage: TestSuite(Unknown).run()
     """
-    def __init__(self):
-        """
-        """
-
     def _repr_(self):
         """
         TESTS::
@@ -153,9 +157,7 @@ class UnknownClass(UniqueRepresentation, SageObject):
             sage: Unknown | False
             Unknown
             sage: Unknown | Unknown
-            Traceback (most recent call last):
-            ...
-            UnknownError: Unknown does not evaluate in boolean context
+            Unknown
             sage: Unknown | True
             True
 
@@ -166,7 +168,7 @@ class UnknownClass(UniqueRepresentation, SageObject):
             ...
             UnknownError: Unknown does not evaluate in boolean context
         """
-        if other:
+        if other is True:
             return True
         else:
             return self
@@ -213,7 +215,7 @@ class UnknownClass(UniqueRepresentation, SageObject):
         if other is self:
             return rich_to_bool(op, 0)
         if not isinstance(other, bool):
-            return Unknown
+            return NotImplemented
         if other:
             return rich_to_bool(op, -1)
         else:
