@@ -1,5 +1,5 @@
 from sage.rings.infinity import Infinity
-from sage.rings.all import GF
+from sage.rings.all import GF, ZZ
 from copy import copy
 from sage.matrix.all import Matrix
 from sage.modules.all import vector
@@ -465,7 +465,7 @@ def _basis_kernel(R, N, s=0):
             basis.append(b)
     return basis
 
-def _mod_p_kernel(G, b):
+def _mod_p_kernel(G, b, lift=False):
     r"""
     Return generators of the kernel of O(A/p^bA) --> O(A/pA).
 
@@ -531,7 +531,93 @@ def _mod_p_kernel(G, b):
                 break
         s1 = indices[i]
         basis = _basis_kernel(R, indices, s1)
-        gen = [E + p**k*F for F in basis]
+        if lift:
+            gen = [E + p**k*F for F in basis]
+        else:
+            gen = [Hensel_qf(G, E + p**k*F, k, b) for F in basis]
         gens += gen
         k *= 2
+    return gens
+
+def _gens_homogeneous(G):
+    r"""
+    """
+    from sage.groups.all import GO
+    from sage.quadratic_forms.genera.normal_form import p_adic_normal_form
+    from sage.quadratic_forms.genera.normal_form import _min_nonsquare
+    R = G.base_ring()
+    v = _min_val(G)
+    p = R.prime()
+    G = G/p**v
+    ug = G.det()
+    assert ug.valuation()==0
+    r = G.ncols()
+    O = GO(r, p, e=1)
+    uo = O.invariant_bilinear_form().det()
+    if legendre_symbol(uo, p) != legendre_symbol(ug,p):
+        if r % 2 == 0:
+            # there are two inequivalent orthogonal_groups
+            O = GO(r, p, e=-1)
+        else:
+            # there is only a single orthogonal group up to isomorphism
+            # as O(G) = O(cG) but G and cG are not isomorphic if c is not a square
+            c = ZZ(_min_nonsquare(p))
+            G = c * G
+    b = O.invariant_bilinear_form()
+    b = b.change_ring(R)
+    # compute an isomorphism
+    def normal(G):
+        from sage.quadratic_forms.genera.normal_form import _jordan_odd_adic, _normalize
+        D1, B1 = _jordan_odd_adic(G)
+        D2, B2 = _normalize(D1)
+        B = B2 * B1
+        return D2, B
+    bn, Ub = normal(b)
+    Gn, UG = normal(G)
+    assert bn == Gn
+    U = Ub*UG.inverse()
+    Ui = U.inverse()
+    gen = [Ui*g.matrix().change_ring(R)*U for g in O.gens()]
+    for g in gen:
+        err = g*G*g.T-G
+        assert _min_val(err) >= 1
+    return gen
+
+def _gens_odd(G):
+    n = G.ncols()
+    R = G.parent()
+    E = R.one()
+    p = G.base_ring().prime()
+    indices, valuations = _block_indices_vals(G)
+    indices.append(n)
+    gens = []
+    for k in range(len(indices)-1):
+        i1 = indices[k]
+        i2 = indices[k+1]
+        gens_homog = _gens_homogeneous(G[i1:i2,i1:i2])
+        for f in gens_homog:
+            g = copy(E)
+            g[i1:i2, i1:i2] = f
+            gens.append(g)
+    # generators below the block diagonal.
+    for i in range(n):
+        for j in range(i):
+            g = copy(E)
+            g[i,j] = 1
+            flag = True
+            for k in range(len(indices)-1):
+                if indices[k] <= i < indices[k+1] and indices[k] <= j < indices[k+1]:
+                    g[i,j] = 0
+                    flag = False
+                    break
+            if flag:
+                gens.append(g)
+    return gens
+
+def _gens(G, b):
+    r"""
+    """
+    gensK = _mod_p_kernel(G, b)
+    gens = _gens_odd(G)
+    gens = [Hensel_qf(G,g,1,b) for g in gens]
     return gens
