@@ -15,7 +15,6 @@ from libc.string cimport strlen
 from cpython.bytes cimport PyBytes_AS_STRING, PyBytes_FromString
 from cpython.unicode cimport PyUnicode_Decode, PyUnicode_AsEncodedString
 
-
 cdef extern from "Python.h":
     # Missing from cpython.unicode in Cython 0.27.3
     char* PyUnicode_AsUTF8(object s)
