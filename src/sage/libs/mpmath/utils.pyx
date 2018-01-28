@@ -18,7 +18,6 @@ from sage.libs.gmp.all cimport *
 from sage.rings.complex_field import ComplexField
 from sage.rings.real_mpfr cimport RealField
 
-from sage.cpython.string import str_to_bytes
 
 cpdef int bitcount(n):
     """
