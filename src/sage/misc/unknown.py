@@ -67,7 +67,7 @@ class UnknownClass(UniqueRepresentation, SageObject):
 
             sage: bool(Unknown)
             False
-            sage: not Unknown
+            sage: not Unknown    # should return Unknown
             True
         """
         return False
@@ -117,6 +117,14 @@ class UnknownClass(UniqueRepresentation, SageObject):
             Unknown
             sage: Unknown | True
             True
+            sage: False | Unknown
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for |: 'bool' and 'UnknownClass'
+            sage: True | Unknown
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for |: 'bool' and 'UnknownClass'
 
         Compare with::
 
@@ -127,26 +135,6 @@ class UnknownClass(UniqueRepresentation, SageObject):
             return True
         else:
             return self
-
-    def __not__(self):
-        """
-        The ``not`` logical connector.
-
-        .. WARNING::
-
-            This is not used by ``not`` unless PEP 335 is accepted.
-
-        EXAMPLES::
-
-            sage: Unknown.__not__()
-            Unknown
-
-        Compare with::
-
-            sage: not Unknown  # should return Unknown
-            True
-        """
-        return self
 
     def __richcmp__(self, other, op):
         """
