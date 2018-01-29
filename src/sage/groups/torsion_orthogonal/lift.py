@@ -539,7 +539,7 @@ def _mod_p_kernel(G, b, lift=False):
         k *= 2
     return gens
 
-def _gens_homogeneous(G):
+def _gens_homogeneous_odd(G):
     r"""
     """
     from sage.groups.all import GO
@@ -583,7 +583,76 @@ def _gens_homogeneous(G):
         assert _min_val(err) >= 1
     return gen
 
-def _gens_odd(G):
+def _gens_homogeneous_even(G):
+    r"""
+    """
+    from sage.groups.all import GO
+    from sage.quadratic_forms.genera.normal_form import p_adic_normal_form
+    from sage.quadratic_forms.genera.normal_form import _min_nonsquare
+    def normal(G):
+        from sage.quadratic_forms.genera.normal_form import _jordan_2_adic, _normalize, _two_adic_normal_forms
+        D1, B1 = _jordan_2_adic(G)
+        D1 = D1.change_ring(Zp(2,type='fixed-mod'))
+        D2, B2 = _normalize(D1)
+        D3, B3 = _two_adic_normal_forms(D2)
+        B = B3 * B2 * B1
+        return D3, B
+    R = G.base_ring()
+    v = _min_val(G)
+    p = R.prime()
+    G = G/p**v
+    ug = G.det()
+    assert ug.valuation() == 0
+    r = G.ncols()
+    Gn, UG = normal(G)
+    if r % 2 == 1:
+        if Gn[-2,-2] == 0:
+            e = 1
+        else:
+            e = -1
+        O = GO(r - 1, 2, e)
+        b = O.invariant_quadratic_form().change_ring(R)
+        b = b + b.T
+        bn, Ub = normal(b)
+        E1 = matrix.identity(R,1)
+        Ub = matrix.block_diagonal([Ub, E1])
+        U = Ub*UG.inverse()
+        Ui = U.inverse()
+        gen = [Ui*matrix.block_diagonal([g.matrix().change_ring(R),E1])*U
+               for g in O.gens()]
+        for g in gen:
+            err = g*G*g.T-G
+        assert _min_val(err) >= 1
+        assert _min_val(matrix.diagonal(err.diagonal())) >= 2
+        return gen
+    if Gn[-1,-1].valuation() == 0:
+        _gens_homog_even_odd_form(G)
+    if Gn[-1,-1] == 0:
+        e = 1
+    else:
+        e = -1
+    O = GO(r, 2, e)
+    b = O.invariant_quadratic_form().change_ring(R)
+    b = b + b.T
+    bn, Ub = normal(b)
+    U = Ub*UG.inverse()
+    Ui = U.inverse()
+    gen = [Ui*g.matrix().change_ring(R)*U for g in O.gens()]
+    for g in gen:
+        err = g*G*g.T-G
+        assert _min_val(err) >= 1
+        assert _min_val(matrix.diagonal(err.diagonal())) >= 2
+    return gen
+
+def _gens_homog_even_odd_form(G)
+    r"""
+    """
+    if (G[-1,-1] + G[-2,-2]) % 4 == 0:
+        gens = _gens_homogeneous_even(G[:-2,:-2])
+
+    if (G[-1,-1] + G[-2,-2]) % 4 == 2:
+
+def _gens_modp(G):
     n = G.ncols()
     R = G.parent()
     E = R.one()
