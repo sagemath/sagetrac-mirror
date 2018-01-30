@@ -1822,20 +1822,21 @@ cdef py_atan2(x, y):
         -1.8925468811915387
     """
     from sage.symbolic.constants import pi, NaN
+    from sage.functions.all import atan, log, sqrt
     P = coercion_model.common_parent(x, y)
     if P is ZZ:
         P = RR
     if y != 0:
         if RR.has_coerce_map_from(P):
             if x > 0:
-                res = py_atan(abs(y/x))
+                res = atan(abs(y/x))
             elif x < 0:
-                res = P(pi) - py_atan(abs(y/x))
+                res = P(pi) - atan(abs(y/x))
             else:
                 res = P(pi)/2
             return res if y > 0 else -res
         else:
-            return -I*py_log((x + I*y)/py_sqrt(x**2 + y**2))
+            return P(-I*log((x + I*y)/sqrt(x**2 + y**2)))
     else:
         if x > 0:
             return P(0)
