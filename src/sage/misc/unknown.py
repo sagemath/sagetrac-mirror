@@ -66,7 +66,7 @@ class UnknownError(TypeError):
     pass
 
 @richcmp_method
-class UnknownClass(UniqueRepresentation, SageObject):
+class UnknownClass(UniqueRepresentation):
     """
     The Unknown truth value
 
@@ -86,7 +86,7 @@ class UnknownClass(UniqueRepresentation, SageObject):
 
         sage: TestSuite(Unknown).run()
     """
-    def _repr_(self):
+    def __repr__(self):
         """
         TESTS::
 
