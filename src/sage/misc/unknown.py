@@ -9,9 +9,8 @@ using ``is``, or by catching :class:`UnknownError` from a boolean operation.
 .. WARNING::
 
     Calling ``bool()`` with ``Unknown`` as argument will throw an
-    ``UnknownError``. This also means that, unless PEP 335 is accepted,
-    in the following cases, ``and``, ``not``, and ``or`` fail or return
-    a somewhat wrong value::
+    ``UnknownError``. This also means that in the following cases,
+    ``and``, ``not``, and ``or`` fail or return a somewhat wrong value::
 
         sage: not Unknown         # should return Unknown
         Traceback (most recent call last):
@@ -114,72 +113,6 @@ class UnknownClass(UniqueRepresentation, SageObject):
         raise UnknownError('Unknown does not evaluate in boolean context')
 
     __nonzero__ = __bool__
-
-    def __and__(self, other):
-        """
-        The ``and`` logical connector.
-
-        .. WARNING::
-
-            This is not used by ``and`` unless PEP 335 is accepted.
-
-        EXAMPLES::
-
-            sage: Unknown & False
-            False
-            sage: Unknown & Unknown
-            Unknown
-            sage: Unknown & True
-            Unknown
-
-        Compare with::
-
-            sage: Unknown and False    # should return False
-            Traceback (most recent call last):
-            ...
-            UnknownError: Unknown does not evaluate in boolean context
-        """
-        if other is False:
-            return False
-        else:
-            return self
-
-    def __or__(self, other):
-        """
-        The ``or`` logical connector.
-
-        .. WARNING::
-
-            This is not used by ``or`` unless PEP 335 is accepted.
-
-        EXAMPLES::
-
-            sage: Unknown | False
-            Unknown
-            sage: Unknown | Unknown
-            Unknown
-            sage: Unknown | True
-            True
-            sage: False | Unknown
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand type(s) for |: 'bool' and 'UnknownClass'
-            sage: True | Unknown
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand type(s) for |: 'bool' and 'UnknownClass'
-
-        Compare with::
-
-            sage: Unknown or False    # should return Unknown
-            Traceback (most recent call last):
-            ...
-            UnknownError: Unknown does not evaluate in boolean context
-        """
-        if other is True:
-            return True
-        else:
-            return self
 
     def __richcmp__(self, other, op):
         """
