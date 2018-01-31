@@ -1,8 +1,9 @@
 from sage.rings.infinity import Infinity
-from sage.rings.all import GF, ZZ
+from sage.rings.all import GF, ZZ, mod
 from copy import copy
-from sage.matrix.all import Matrix
+from sage.matrix.all import matrix
 from sage.modules.all import vector
+from sage.groups.all import GO,Sp
 
 def Hensel_qf(G, F, a, b):
     r"""
@@ -28,8 +29,8 @@ def Hensel_qf(G, F, a, b):
 
         sage: from sage.groups.torsion_orthogonal.lift import Hensel_qf, _min_val
         sage: R = Qp(3, type='floating-point', prec=7, print_mode='terse')
-        sage: G = Matrix(R, 6, 6, [0, 243, 0, 0, 0, 0, 243, 0, 0, 0, 0, 0, 0, 0, 0, 27, 0, 0, 0, 0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0])
-        sage: F = Matrix(R, 6, 6, [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 1, 0, 1, 0, 0, 1, 2, 1, 0, 0, 0, 2, -1, 6, 3, 0, 1, 1, 9, 3, 6, 1, 0])
+        sage: G = matrix(R, 6, 6, [0, 243, 0, 0, 0, 0, 243, 0, 0, 0, 0, 0, 0, 0, 0, 27, 0, 0, 0, 0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0])
+        sage: F = matrix(R, 6, 6, [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 1, 0, 1, 0, 0, 1, 2, 1, 0, 0, 0, 2, -1, 6, 3, 0, 1, 1, 9, 3, 6, 1, 0])
         sage: G
         [  0 243   0   0   0   0]
         [243   0   0   0   0   0]
@@ -49,10 +50,10 @@ def Hensel_qf(G, F, a, b):
         True
 
         sage: R = Qp(2,type='floating-point', prec=10, print_mode='terse')
-        sage: U = Matrix(R, 2, [0, 1, 1 ,0])
-        sage: V = Matrix(R, 2, [2, 1, 1 ,2])
-        sage: G = Matrix.block_diagonal([2*U, 2*U, V])
-        sage: F = Matrix(R, 6, [1, 0, 0, 0, 0, 0,
+        sage: U = matrix(R, 2, [0, 1, 1 ,0])
+        sage: V = matrix(R, 2, [2, 1, 1 ,2])
+        sage: G = matrix.block_diagonal([2*U, 2*U, V])
+        sage: F = matrix(R, 6, [1, 0, 0, 0, 0, 0,
         ....:                   1, 1, 1, 1, 0, 0,
         ....:                   1, 0, 1, 0, 0, 0,
         ....:                   1, 0, 0, 1, 0, 0,
@@ -103,7 +104,7 @@ def _last_block_index(G):
     EXAMPLES::
 
         sage: from sage.groups.torsion_orthogonal.lift import _last_block_index
-        sage: G = Matrix(Zp(2), 3, [4,0,0, 0,2,1, 0,1,2])
+        sage: G = matrix(Zp(2), 3, [4,0,0, 0,2,1, 0,1,2])
         sage: _last_block_index(G)
         (1, 0, 2)
     """
@@ -122,7 +123,7 @@ def _block_indices_vals(G):
     EXAMPLES::
 
         sage: from sage.groups.torsion_orthogonal.lift import _block_indices_vals
-        sage: G = Matrix(Zp(2), 3, [4,0,0, 0,2,1, 0,1,2])
+        sage: G = matrix(Zp(2), 3, [4,0,0, 0,2,1, 0,1,2])
         sage: _block_indices_vals(G)
         ([0, 1], [2, 0])
     """
@@ -152,7 +153,7 @@ def _min_val(M):
 
     TESTS::
 
-        sage: G = Matrix(Zp(2),[])
+        sage: G = matrix(Zp(2),[])
         sage: _min_val(G)
         +Infinity
     """
@@ -268,13 +269,13 @@ def _Hensel_qf_modular_even(Z, G, F, a, b):
 
         sage: from sage.groups.torsion_orthogonal.lift import _Hensel_qf_modular_even, _min_val
         sage: R = Qp(2, type='floating-point', prec=10, print_mode='terse')
-        sage: G = Matrix(R, 4, [0,1,0,0, 1,0,0,0, 0,0,1,0, 0,0,0,5])
+        sage: G = matrix(R, 4, [0,1,0,0, 1,0,0,0, 0,0,1,0, 0,0,0,5])
         sage: G
         [0 1 0 0]
         [1 0 0 0]
         [0 0 1 0]
         [0 0 0 5]
-        sage: F = Matrix(R, 4, [1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0])
+        sage: F = matrix(R, 4, [1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0])
         sage: F
         [1 0 0 0]
         [1 1 1 1]
@@ -287,18 +288,18 @@ def _Hensel_qf_modular_even(Z, G, F, a, b):
         [ 925    0 1210  597]
         [ 761    0  297  198]
         sage: Er = Fl*G*Fl.T - G
-        sage: _min_val(Er), _min_val(Matrix(Er.diagonal()))
+        sage: _min_val(Er), _min_val(matrix(Er.diagonal()))
         (6, 6)
-        sage: F = Matrix(R, 4, [0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1])
+        sage: F = matrix(R, 4, [0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1])
         sage: Fl = _Hensel_qf_modular_even(G, G, F, 1, 4)
         sage: Er = Fl*G*Fl.T - G
-        sage: _min_val(Er), _min_val(Matrix(Er.diagonal()))
+        sage: _min_val(Er), _min_val(matrix(Er.diagonal()))
         (+Infinity, +Infinity)
 
     ::
 
-        sage: G = Matrix(R, 4, [2,1,0,0, 1,2,0,0, 0,0,3,0, 0,0,0,7])
-        sage: F = Matrix(R, 4, [1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0])
+        sage: G = matrix(R, 4, [2,1,0,0, 1,2,0,0, 0,0,3,0, 0,0,0,7])
+        sage: F = matrix(R, 4, [1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0])
         sage: G
         [2 1 0 0]
         [1 2 0 0]
@@ -311,21 +312,21 @@ def _Hensel_qf_modular_even(Z, G, F, a, b):
         [0 0 1 0]
         sage: Fl = _Hensel_qf_modular_even(G, G, F, 1, 5)
         sage: Er = Fl*G*Fl.T - G
-        sage: _min_val(Er), _min_val(Matrix(Er.diagonal()))
+        sage: _min_val(Er), _min_val(matrix(Er.diagonal()))
         (5, 5)
         sage: Z = G + matrix.identity(R, 4)*2^2
         sage: Fl = _Hensel_qf_modular_even(Z, G, F, 1, 5)
         sage: Er = Fl*G*Fl.T - Z
-        sage: _min_val(Er), _min_val(Matrix(Er.diagonal()))
+        sage: _min_val(Er), _min_val(matrix(Er.diagonal()))
         (5, 5)
 
     TESTS::
 
-        sage: G = Matrix(R, 3, [2,1,0, 1,2,0, 0,0,7])
-        sage: F = Matrix(R, 3, [0, 1, 0, 1, 1, 0, 0, 0, 1])
+        sage: G = matrix(R, 3, [2,1,0, 1,2,0, 0,0,7])
+        sage: F = matrix(R, 3, [0, 1, 0, 1, 1, 0, 0, 0, 1])
         sage: Fl = _Hensel_qf_modular_even(G, G, F, 1, 8)
         sage: Er = Fl*G*Fl.T - G
-        sage: _min_val(Er), _min_val(Matrix(Er.diagonal()))
+        sage: _min_val(Er), _min_val(matrix(Er.diagonal()))
         (9, 9)
     """
     R = Z.base_ring()
@@ -340,7 +341,7 @@ def _Hensel_qf_modular_even(Z, G, F, a, b):
         a = 2
     while a < b:
         Y = Z - F*G*F.T
-        D = Matrix.diagonal(Y.diagonal())
+        D = matrix.diagonal(Y.diagonal())
 
         # L is the the strictly lower triangular part of Y
         L = copy(Y)
@@ -381,7 +382,7 @@ def _solve_X(Y, b, g):
 
         sage: from sage.groups.torsion_orthogonal.lift import _solve_X
         sage: k = GF(2)
-        sage: Y = Matrix(k, 3, [0,0,1, 1,0,1, 1,0,0])
+        sage: Y = matrix(k, 3, [0,0,1, 1,0,1, 1,0,0])
         sage: b = vector(k, [1, 0, 0])
         sage: g = vector(k, [0, 1, 0])
         sage: _solve_X(Y, b, g)
@@ -390,14 +391,14 @@ def _solve_X(Y, b, g):
         [0 0 0]
     """
     k = GF(2)
-    Y = Matrix(k, Y)
+    Y = matrix(k, Y)
     b = vector(k, b)
     g = vector(k, g)
     n = Y.ncols()
 
     equations = []
     for i in range(0, n):
-        R = Matrix.zero(k, n, n)
+        R = matrix.zero(k, n, n)
         R[i,:] = g
         R[i,i] += 1
         eqn = R.list() + [b[i]]
@@ -405,17 +406,17 @@ def _solve_X(Y, b, g):
     # equations to be a symmetric matrix
     for i in range(0, n):
         for j in range(i+1, n):
-            R = Matrix.zero(n, n)
+            R = matrix.zero(n, n)
             R[i, j] = 1
             R[j, i] = 1
             eq = R.list() + [Y[i,j]]
             equations.append(eqn)
-    A = Matrix(k, equations)
+    A = matrix(k, equations)
     b = A[:,-1]
     A = A[:,:-1]
     # A*Xcoeff == b
     Xcoeff = A.solve_right(b)
-    X = Matrix(k, n, n, Xcoeff.list())
+    X = matrix(k, n, n, Xcoeff.list())
     return X
 
 def _basis_kernel(R, N, s=0):
@@ -465,7 +466,7 @@ def _basis_kernel(R, N, s=0):
             basis.append(b)
     return basis
 
-def _mod_p_kernel(G, b, lift=False):
+def _mod_p_kernel(G, b, lift=True):
     r"""
     Return generators of the kernel of O(A/p^bA) --> O(A/pA).
 
@@ -481,38 +482,20 @@ def _mod_p_kernel(G, b, lift=False):
     EXAMPLES::
 
         sage: from sage.groups.torsion_orthogonal.lift import _mod_p_kernel
-        sage: R = Qp(3, type='floating-point', prec=7, print_mode='terse')
-        sage: G = Matrix(R, 6, 6, [0, 243, 0, 0, 0, 0, 243, 0, 0, 0, 0, 0, 0, 0, 0, 27, 0, 0, 0, 0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0])
-        sage: F = Matrix(R, 6, 6, [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 1, 0, 1, 0, 0, 1, 2, 1, 0, 0, 0, 2, -1, 6, 3, 0, 1, 1, 9, 3, 6, 1, 0])
-        sage: _mod_p_kernel(G, 5)
+        sage: R = Zp(3, type='fixed-mod', prec=4, print_mode='terse', show_prec=False, print_pos=False)
+        sage: G = matrix.diagonal(R, [3^2, 3^2, 1, 1])
+        sage: ker_gens = _mod_p_kernel(G, 4, lift=False)
+        sage: ker_gens
         [
-        [1 0 0 0 0 0]  [1 0 0 0 0 0]  [1 0 0 0 0 0]  [1 0 0 0 0 0]
-        [0 1 0 0 0 0]  [0 1 0 0 0 0]  [0 1 0 0 0 0]  [0 1 0 0 0 0]
-        [0 0 1 3 0 0]  [0 0 1 0 0 0]  [0 0 1 0 0 0]  [0 0 1 0 0 0]
-        [0 0 3 1 0 0]  [0 0 0 1 0 0]  [0 0 0 1 0 0]  [0 0 0 1 0 0]
-        [0 0 0 0 1 0]  [0 0 3 0 1 0]  [0 0 0 3 1 0]  [0 0 0 0 1 0]
-        [0 0 0 0 0 1], [0 0 0 0 0 1], [0 0 0 0 0 1], [0 0 3 0 0 1],
+        [1 3 0 0]  [1 0 0 0]  [1 0 0 0]  [1 0 0 0]  [1 0 0 0]  [1 0 0 0]
+        [3 1 0 0]  [0 1 0 0]  [0 1 0 0]  [0 1 0 0]  [0 1 0 0]  [0 1 0 0]
+        [0 0 1 0]  [3 0 1 0]  [0 3 1 0]  [0 0 1 0]  [0 0 1 0]  [0 0 1 3]
+        [0 0 0 1], [0 0 0 1], [0 0 0 1], [3 0 0 1], [0 3 0 1], [0 0 3 1],
         <BLANKLINE>
-        [1 0 0 0 0 0]  [1 0 0 0 0 0]  [1 0 0 0 0 0]  [1 0 0 0 0 0]
-        [0 1 0 0 0 0]  [0 1 0 0 0 0]  [0 1 0 0 0 0]  [0 1 0 0 0 0]
-        [0 0 1 0 0 0]  [0 0 1 0 0 0]  [0 0 1 9 0 0]  [0 0 1 0 0 0]
-        [0 0 0 1 0 0]  [0 0 0 1 0 0]  [0 0 9 1 0 0]  [0 0 0 1 0 0]
-        [0 0 0 0 1 0]  [0 0 0 0 1 3]  [0 0 0 0 1 0]  [0 0 9 0 1 0]
-        [0 0 0 3 0 1], [0 0 0 0 3 1], [0 0 0 0 0 1], [0 0 0 0 0 1],
-        <BLANKLINE>
-        [1 0 0 0 0 0]  [1 0 0 0 0 0]  [1 0 0 0 0 0]  [1 0 0 0 0 0]
-        [0 1 0 0 0 0]  [0 1 0 0 0 0]  [0 1 0 0 0 0]  [0 1 0 0 0 0]
-        [0 0 1 0 0 0]  [0 0 1 0 0 0]  [0 0 1 0 0 0]  [0 0 1 0 0 0]
-        [0 0 0 1 0 0]  [0 0 0 1 0 0]  [0 0 0 1 0 0]  [0 0 0 1 0 0]
-        [0 0 0 9 1 0]  [0 0 0 0 1 0]  [0 0 0 0 1 0]  [0 0 0 0 1 9]
-        [0 0 0 0 0 1], [0 0 9 0 0 1], [0 0 0 9 0 1], [0 0 0 0 9 1],
-        <BLANKLINE>
-        [ 1  0  0  0  0  0]
-        [ 0  1  0  0  0  0]
-        [ 0  0  1  0  0  0]
-        [ 0  0  0  1  0  0]
-        [ 0  0  0  0  1 81]
-        [ 0  0  0  0 81  1]
+        [1 0 0 0]
+        [0 1 0 0]
+        [0 0 1 9]
+        [0 0 9 1]
         ]
     """
     n = G.ncols()
@@ -522,36 +505,148 @@ def _mod_p_kernel(G, b, lift=False):
 
     indices, valuations = _block_indices_vals(G)
     assert b >= valuations[0]
+    valuations = [b - v for v in valuations]
     indices.append(n)
     k = 1
     gens = []
-    while k <= b:
+    while k < b:
         for i in range(len(valuations)):
-            if k <= b - valuations[i]:
+            if k < valuations[i]:
                 break
         s1 = indices[i]
         basis = _basis_kernel(R, indices, s1)
+        gen = [E + p**k*F for F in basis]
         if lift:
-            gen = [E + p**k*F for F in basis]
-        else:
-            gen = [Hensel_qf(G, E + p**k*F, k, b) for F in basis]
+            gen = [Hensel_qf(G, f, k, b) for f in gens]
         gens += gen
         k *= 2
     return gens
 
+def _normal(G):
+    r"""
+    Return the transformation to normal form.
+
+    INPUT:
+
+    - ``G`` -- `p`-adic symmetric matrix.
+
+    OUTPUT:
+
+    - ``D`` -- the normal form
+    - ``B`` -- a transformation matrix
+
+    EXAMPLES::
+
+        sage:
+    """
+    from sage.quadratic_forms.genera.normal_form import (_jordan_odd_adic,
+                                                         _normalize,
+                                                         _jordan_2_adic,
+                                                         _two_adic_normal_forms)
+    p = G.base_ring().prime()
+    if p == 2:
+        D1, B1 = _jordan_2_adic(G)
+        D2, B2 = _normalize(D1)
+        D3, B3 = _two_adic_normal_forms(D2)
+        B = B3 * B2 * B1
+        return D3, B
+    else:
+        D1, B1 = _jordan_odd_adic(G)
+        D2, B2 = _normalize(D1)
+        B = B2 * B1
+        return D2, B
+
+def _gens_homogeneous(G):
+    r"""
+    Return generators of the orthogonal group modulo `p`
+
+    INPUT:
+
+    - ``G`` -- homogeneous `p`-adic matrix in normal form representing a
+      quadratic form on an $\FF_p$ vector space with values in `\Zmod{p}`.
+
+    OUTPUT:
+
+    - a list of matrices. Generators of the orthogonal group modulo `p`.
+
+    EXAMPLES::
+
+        sage: from sage.groups.torsion_orthogonal.lift import _gens_homogeneous
+        sage: R = Zp(2,type='fixed-mod', prec=4, print_mode='terse', show_prec=False, print_pos=False)
+        sage: U = matrix(R,2,[0,1,1,0])
+        sage: V = matrix(R,2,[2,1,1,2])
+        sage: W0 = matrix(R,2,[1,0,0,3])
+        sage: W1 = matrix(R,2,[1,0,0,1])
+        sage: G = matrix.block_diagonal([W0])
+        sage: gen = _gens_homogeneous(G)
+        sage: len(gen)
+        0
+        sage: G = 2 * matrix.block_diagonal([U, W0])
+        sage: gen = _gens_homogeneous(G)
+        sage: len(gen)
+        2
+        sage: G = 2 * matrix.block_diagonal([U, U, W0])
+        sage: gen = _gens_homogeneous(G)
+        sage: len(gen)
+        6
+        sage: G = 2 * matrix.block_diagonal([U, V, W0])
+        sage: gen = _gens_homogeneous(G)
+        sage: len(gen)
+        6
+
+    Some examples at odd primes::
+
+        sage: R = Zp(3,type='fixed-mod', prec=6, print_mode='terse', show_prec=False, print_pos=False)
+        sage: G = matrix.diagonal(R,[1,3,3,9])
+    """
+    R = G.base_ring()
+    p = R.prime()
+    v = _min_val(G)
+    Ghomogeneous = (G/p**v).change_ring(R)
+    if p == 2:
+        return _gens_homogeneous_even(Ghomogeneous)
+    else:
+        return _gens_homogeneous_odd(Ghomogeneous)
+
 def _gens_homogeneous_odd(G):
     r"""
+
+    EXAMPLES::
+
+        sage: from sage.groups.torsion_orthogonal.lift import _gens_homogeneous_odd
+        sage: R = Zp(3,type='fixed-mod', prec=2, print_mode='terse', show_prec=False, print_pos=False)
+        sage: G = matrix.diagonal(R,[])
+        sage: _gens_homogeneous_odd(G)
+        []
+        sage: G = matrix.diagonal(R,[1])
+        sage: _gens_homogeneous_odd(G)
+        [[-1]]
+        sage: G = matrix.diagonal(R,[1,1])
+        sage: _gens_homogeneous_odd(G)
+        [
+        [ 3 -2]  [-3 -2]
+        [-1  0], [ 1 -3]
+        ]
+        sage: G = matrix.diagonal(R,[1,2])
+        sage: _gens_homogeneous_odd(G)
+        [
+        [2 0]  [-1  0]
+        [0 2], [ 0  1]
+        ]
     """
-    from sage.groups.all import GO
     from sage.quadratic_forms.genera.normal_form import p_adic_normal_form
     from sage.quadratic_forms.genera.normal_form import _min_nonsquare
+    from sage.arith.misc import legendre_symbol
     R = G.base_ring()
-    v = _min_val(G)
     p = R.prime()
-    G = G/p**v
     ug = G.det()
-    assert ug.valuation()==0
+    if ug.valuation() != 0:
+        raise ValueError("G is not of scale 1.")
     r = G.ncols()
+    if r == 0:
+        return []
+    if r == 1:
+        return [matrix(R,[-1])]
     O = GO(r, p, e=1)
     uo = O.invariant_bilinear_form().det()
     if legendre_symbol(uo, p) != legendre_symbol(ug,p):
@@ -559,100 +654,267 @@ def _gens_homogeneous_odd(G):
             # there are two inequivalent orthogonal_groups
             O = GO(r, p, e=-1)
         else:
-            # there is only a single orthogonal group up to isomorphism
-            # as O(G) = O(cG) but G and cG are not isomorphic if c is not a square
+            # There is only a single orthogonal group up to isomorphism since
+            # O(G) = O(cG). But G and cG are not isomorphic if c is not a square
             c = ZZ(_min_nonsquare(p))
             G = c * G
     b = O.invariant_bilinear_form()
     b = b.change_ring(R)
     # compute an isomorphism
-    def normal(G):
-        from sage.quadratic_forms.genera.normal_form import _jordan_odd_adic, _normalize
-        D1, B1 = _jordan_odd_adic(G)
-        D2, B2 = _normalize(D1)
-        B = B2 * B1
-        return D2, B
-    bn, Ub = normal(b)
-    Gn, UG = normal(G)
-    assert bn == Gn
-    U = Ub*UG.inverse()
-    Ui = U.inverse()
-    gen = [Ui*g.matrix().change_ring(R)*U for g in O.gens()]
-    for g in gen:
-        err = g*G*g.T-G
+    bn, U = _normal(b)
+    assert bn == G
+    Uinv = U.adjoint()*U.det().inverse_of_unit()
+    gens = [U * g.matrix().change_ring(R) * Uinv for g in O.gens()]
+    for g in gens:
+        err = g*G*g.T - G
         assert _min_val(err) >= 1
-    return gen
+    return gens
 
 def _gens_homogeneous_even(G):
     r"""
+
+    INPUT:
+
+    - ``G`` -- homogeneous `2`-adic matrix of scale `1` and in normal form representing a
+      quadratic form on an $\FF_2$ vector space with values in `\Zmod{4}`.
+
+    OUTPUT:
+
+    - a list of matrices. Generators of the orthogonal group modulo `2`.
+
+    TESTS::
+
+        sage: from sage.groups.torsion_orthogonal.lift import _gens_homogeneous_even
+        sage: R = Zp(2,type='fixed-mod', prec=3, print_mode='terse', show_prec=False, print_pos=False)
+        sage: U = matrix(R,2,[0,1,1,0])
+        sage: V = matrix(R,2,[2,1,1,2])
+        sage: W0 = matrix(R,2,[1,0,0,3])
+        sage: W1 = matrix(R,2,[1,0,0,1])
+        sage: G = matrix.block_diagonal([W0])
+        sage: gen = _gens_homogeneous_even(G)
+        sage: G = matrix.block_diagonal([U, W0])
+        sage: gen = _gens_homogeneous_even(G)
+        sage: G = matrix.block_diagonal([U, U, W0])
+        sage: gen = _gens_homogeneous_even(G)
+        sage: G = matrix.block_diagonal([U, V, W0])
+        sage: gen = _gens_homogeneous_even(G)
+        sage: G = matrix(R,1,[1])
+        sage: gen = _gens_homogeneous_even(G)
+        sage: G = matrix.block_diagonal([W1])
+        sage: gen = _gens_homogeneous_even(G)
+        sage: G = matrix.block_diagonal([U, W1])
+        sage: gen = _gens_homogeneous_even(G)
+        sage: G = matrix.block_diagonal([U, U, W1])
+        sage: gen = _gens_homogeneous_even(G)
+        sage: G = matrix.block_diagonal([U, V, W1])
+        sage: gen = _gens_homogeneous_even(G)
+
+    TESTS:
+
+        sage: _gens_homogeneous_even(matrix([]))
+        []
     """
-    from sage.groups.all import GO
-    from sage.quadratic_forms.genera.normal_form import p_adic_normal_form
-    from sage.quadratic_forms.genera.normal_form import _min_nonsquare
-    def normal(G):
-        from sage.quadratic_forms.genera.normal_form import _jordan_2_adic, _normalize, _two_adic_normal_forms
-        D1, B1 = _jordan_2_adic(G)
-        D1 = D1.change_ring(Zp(2,type='fixed-mod'))
-        D2, B2 = _normalize(D1)
-        D3, B3 = _two_adic_normal_forms(D2)
-        B = B3 * B2 * B1
-        return D3, B
-    R = G.base_ring()
-    v = _min_val(G)
-    p = R.prime()
-    G = G/p**v
-    ug = G.det()
-    assert ug.valuation() == 0
     r = G.ncols()
-    Gn, UG = normal(G)
-    if r % 2 == 1:
-        if Gn[-2,-2] == 0:
+    R = G.base_ring()
+    if r <= 1:
+        gens = []
+    elif r == 2:
+        if mod(G[0,0] + G[1,1], 4) == 0:
+            gens = []
+        else:
+            gens = []
+    elif r % 2 == 1:
+        if G[-2,-2] == 0:
             e = 1
         else:
             e = -1
         O = GO(r - 1, 2, e)
         b = O.invariant_quadratic_form().change_ring(R)
         b = b + b.T
-        bn, Ub = normal(b)
+        _, U = _normal(b)
+        gens = [g.matrix().change_ring(R) for g in O.gens()]
+        Uinv = U.adjoint()
+        gens = [U * g * Uinv for g in gens]
         E1 = matrix.identity(R,1)
-        Ub = matrix.block_diagonal([Ub, E1])
-        U = Ub*UG.inverse()
-        Ui = U.inverse()
-        gen = [Ui*matrix.block_diagonal([g.matrix().change_ring(R),E1])*U
-               for g in O.gens()]
-        for g in gen:
-            err = g*G*g.T-G
-        assert _min_val(err) >= 1
-        assert _min_val(matrix.diagonal(err.diagonal())) >= 2
-        return gen
-    if Gn[-1,-1].valuation() == 0:
-        _gens_homog_even_odd_form(G)
-    if Gn[-1,-1] == 0:
-        e = 1
+        gens = [matrix.block_diagonal([g,E1]) for g in gens]
+    # now r % 2 == 0
+    elif G[-1,-1].valuation() == 0:
+        if mod(G[-1,-1] + G[-2,-2], 4) == 0:
+            gens = _gens_homogeneous_even(G[:-2,:-2])
+            gens = [_lift(G, g, 0) for g in gens]
+            Id = matrix.identity(R, r - 2)
+            gens += [_lift(G, Id, a) for a in (R**(r-2)).basis()]
+        else:
+            assert mod(G[-1,-1] + G[-2,-2], 4) == 2
+            O = Sp(r - 2, 2)
+            sp = O.invariant_form().change_ring(R)
+            _, U = _normal(sp)
+            Uinv = U.adjoint()*U.det().inverse_of_unit()
+            gens = [U * g.matrix().change_ring(R) * Uinv for g in O.gens()]
+            gens = [_lift(G, g, 0) for g in gens]
+            gens += [_lift(G, g.parent().one(), 1)]
     else:
-        e = -1
-    O = GO(r, 2, e)
-    b = O.invariant_quadratic_form().change_ring(R)
-    b = b + b.T
-    bn, Ub = normal(b)
-    U = Ub*UG.inverse()
-    Ui = U.inverse()
-    gen = [Ui*g.matrix().change_ring(R)*U for g in O.gens()]
-    for g in gen:
+        if G[-1,-1] == 0:
+            e = 1
+        else:
+            e = -1
+        O = GO(r, 2, e)
+        b = O.invariant_quadratic_form().change_ring(R)
+        b = b + b.T
+        _, U = _normal(b)
+        Uinv = U.adjoint()*U.det().inverse_of_unit()
+        gens = [U * g.matrix().change_ring(R) * Uinv for g in O.gens()]
+
+    # check that generators are isometries
+    for g in gens:
         err = g*G*g.T-G
-        assert _min_val(err) >= 1
-        assert _min_val(matrix.diagonal(err.diagonal())) >= 2
-    return gen
+        assert _min_val(err) >= 1, err.change_ring(IntegerModRing(4))
+        assert _min_val(matrix.diagonal(err.diagonal())) >= 2, err.change_ring(IntegerModRing(4))
+    return gens
 
-def _gens_homog_even_odd_form(G)
+def _lift(q, f, a):
     r"""
+
+    INPUT:
+
+    - ``q`` -- of scale `1` in homogeneous normal form
+    - ``f`` -- the `n-2 \times n-2` matrix to be lifted
+    - ``a`` -- ``0`` or ``1`` there are two possible lifts
+
+    OUTPUT:
+
+    - ``g`` -- the lift of ``f`` as determined by ``a``
+
+    EXAMPLES::
+
+        sage: from sage.groups.torsion_orthogonal.lift import _lift
+        sage: R = Zp(2,type='fixed-mod',prec=2,print_mode='terse', show_prec=False, print_pos=False)
+        sage: U = matrix(R,2,[0,1,1,0])
+        sage: W0 = matrix(R,2,[1,0,0,3])
+        sage: W1 = matrix(R,2,[1,0,0,1])
+        sage: q0 = matrix.block_diagonal([U,W0])
+        sage: g0 = matrix(R,2,[0,1,1,0])
+        sage: g0l = _lift(q0,g0,vector([1,1]))
+        sage: g0l
+        [0 1 1 1]
+        [1 0 1 1]
+        [3 3 0 3]
+        [1 1 1 2]
+
+    The essential property of the lifts is that is preserves the bilinear form
+    `\mod 2` and the quadratic `\mod 4`::
+
+        sage: (g0l.T*q0*g0l - q0)
+        [0 0 0 0]
+        [0 0 0 0]
+        [0 0 0 0]
+        [0 0 0 0]
+
+    The parameter ``a`` is ``g0l1[-2,:-2]``::
+
+        sage: _lift(q0,g0,vector([0,1]))
+        [0 1 0 0]
+        [1 0 1 1]
+        [0 3 1 0]
+        [0 1 0 1]
+
+    In the second case one can lift any form preserving the bilinear form on the
+    small part. This is the whole symplectic group::
+
+        sage: q1 = matrix.block_diagonal([U,W1])
+        sage: g1 = matrix(R,2,[1,1,1,0])
+        sage: g1l = _lift(q1,g1,1)
+        sage: (g1l.T*q1*g1l - q1)
+        [0 0 2 0]
+        [0 0 0 0]
+        [2 0 0 2]
+        [0 0 2 0]
     """
-    if (G[-1,-1] + G[-2,-2]) % 4 == 0:
-        gens = _gens_homogeneous_even(G[:-2,:-2])
+    if mod(q[-1,-2], 2) != 0:
+        raise ValueError("The form must be odd.")
+    # notation
+    g = matrix.block_diagonal([f, matrix.identity(2)])
+    b = copy(g.parent().one())
+    b[-2,-1] = 1
+    qb = b * q * b.T
+    G = qb[:-2,:-2]
+    fG = f * G
+    fGinv = fG.adjoint() * fG.det().inverse_of_unit()
 
-    if (G[-1,-1] + G[-2,-2]) % 4 == 2:
+    if mod(q[-2,-2] + q[-1,-1], 4) == 2:
+        g[-1, -2] = a
+        g[:-2,-2] = vector(((G - f*G*f.T)/2).diagonal())
+        g[-1,:-2] = (fGinv * g[:-2,-2]).T
+    else:
+        g[:-2,-2] = a
+        g[-1,:-2] = (fGinv * g[:-2,-2]).T
+        g[-1,-2] = (g[-1,:-2]*G*g[-1,:-2].T)[0,0].expansion(1)
+    err = g*qb*g.T-qb
+    # check that lifting succeeded
+    assert _min_val(err) >= 1
+    assert _min_val(matrix.diagonal(err.diagonal())) >= 2
+    binv = b.adjoint() * b.det().inverse_of_unit()
+    return binv * g * b
 
-def _gens_modp(G):
+def _gens_mod_p(G):
+    r"""
+    Return the generators of the orthogonal groups of ``G`` modulo `p`.
+
+    Let `V = \Zp^n` and `b: V \times V \rightarrow \Zp` be the bilinear form
+    `b(x,y)= x^T G y`. This method computes generators of the image of
+    the orthogonal group `O(V,b)` under
+
+    ..MATH:
+
+        O(V,b) \rightarrow GL(V/pV)
+
+    INPUT::
+
+        -``G`` -- gram matrix of a non-degenerate, symmetric, bilinear
+          `p`-adic form.
+
+    OUTPUT::
+
+        - generators modulo `p`
+
+    EXAMPLES::
+
+        sage: from sage.groups.torsion_orthogonal.lift import _gens_mod_p
+        sage: R = Zp(2, type='fixed-mod', prec=10, print_mode='terse', show_prec=False, print_pos=False)
+        sage: U = matrix(R, 2, [0, 1, 1, 0])
+        sage: V = matrix(R, 2, [2, 1, 1, 2])
+        sage: W0 = matrix(R, 2, [1, 0, 0, 3])
+        sage: W1 = matrix(R, 2, [1, 0, 0, 1])
+        sage: R3 = Zp(3, type='fixed-mod', prec=6, print_mode='terse', show_prec=False, print_pos=False)
+        sage: G = matrix.block_diagonal([U,2*V])
+        sage: _gens_mod_p(G)
+        [
+        [1 0 0 0]  [1 0 0 0]  [1 0 0 0]  [1 0 0 0]
+        [0 1 0 0]  [0 1 0 0]  [0 1 0 0]  [0 1 0 0]
+        [1 0 1 0]  [0 1 1 0]  [0 0 1 0]  [0 0 1 0]
+        [0 0 0 1], [0 0 0 1], [1 0 0 1], [0 1 0 1]
+        ]
+        sage: G = matrix.block_diagonal([U,2*W1])
+        sage: _gens_mod_p(G)
+        [
+        [1 0 0 0]  [1 0 0 0]  [1 0 0 0]  [1 0 0 0]
+        [0 1 0 0]  [0 1 0 0]  [0 1 0 0]  [0 1 0 0]
+        [1 0 1 0]  [0 1 1 0]  [0 0 1 0]  [0 0 1 0]
+        [0 0 0 1], [0 0 0 1], [1 0 0 1], [0 1 0 1]
+        ]
+
+    TESTS::
+
+        sage: R = Zp(3, type='fixed-mod', prec=10, print_mode='terse', show_prec=False, print_pos=False)
+        sage: G = matrix.diagonal(R,[])
+        sage: gens = _gens_mod_p(G)
+        sage: G = matrix.diagonal(R,[3*1])
+        sage: gens = _gens_mod_p(G)
+        sage: G = matrix.diagonal(R,[3*1,3*1])
+        sage: gens = _gens_mod_p(G)
+        sage: G = matrix.diagonal(R,[1,3*1,3*1,9,2*27])
+        sage: gens = _gens_mod_p(G)
+        """
     n = G.ncols()
     R = G.parent()
     E = R.one()
@@ -663,7 +925,8 @@ def _gens_modp(G):
     for k in range(len(indices)-1):
         i1 = indices[k]
         i2 = indices[k+1]
-        gens_homog = _gens_homogeneous(G[i1:i2,i1:i2])
+        Gi = G[i1:i2,i1:i2]
+        gens_homog = _gens_homogeneous(Gi)
         for f in gens_homog:
             g = copy(E)
             g[i1:i2, i1:i2] = f
@@ -685,8 +948,39 @@ def _gens_modp(G):
 
 def _gens(G, b):
     r"""
+    Return generators.
+
+    EXAMPLES::
+
+        sage: from sage.groups.torsion_orthogonal.lift import _gens
+        sage: R = Zp(2, type='fixed-mod', prec=10, print_mode='terse', show_prec=False, print_pos=False)
+        sage: U = matrix(R, 2, [0, 1, 1, 0])
+        sage: V = matrix(R, 2, [2, 1, 1, 2])
+        sage: W0 = matrix(R, 2, [1, 0, 0, 3])
+        sage: W1 = matrix(R, 2, [1, 0, 0, 1])
+        sage: G = matrix.block_diagonal([2*U,V])
+        sage: gens = _gens(G,2)
+        sage: G = matrix.block_diagonal([2*U,W1])
+        sage: gens = _gens(G,2)
+        sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+        sage: A = AbelianGroupGap([2,2,4,4])
+        sage: aut = A.aut()
+        sage: gens = [aut(g) for g in gens]
+        sage: Oq = aut.subgroup(gens)
+        sage: Oq.order()
+        32
+
+    TESTS::
+
+        sage: R = Zp(3, type='fixed-mod', prec=10, print_mode='terse', show_prec=False, print_pos=False)
+        sage: G = matrix.diagonal(R,[3*1])
+        sage: gens = _gens(G,1)
+        sage: G = matrix.diagonal(R,[3*1,3*1])
+        sage: gens = _gens(G,2)
+        sage: G = matrix.diagonal(R,[2*27,9,3*1,3*1,1])
+        sage: gens = _gens(G,4)
     """
     gensK = _mod_p_kernel(G, b)
-    gens = _gens_odd(G)
-    gens = [Hensel_qf(G,g,1,b) for g in gens]
-    return gens
+    gens = _gens_mod_p(G)
+    gens = [Hensel_qf(G, g, 1, b) for g in gens]
+    return gens + gensK
