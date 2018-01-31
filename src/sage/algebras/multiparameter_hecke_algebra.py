@@ -60,12 +60,12 @@ def ParameterFamilies(I, q1=None, q2=None):
             try:
                 return x.parent()
             except:
-                raise TypeError, "%s should be a Family or a ring element"%x
+                raise TypeError("%s should be a Family or a ring element"%x)
 
         if isinstance(q, FiniteFamily):
             F = parent_ring(q[I[0]])
             if not all(i in q.keys() and q[i] in F for i in I):
-                raise TypeError, "All parameters should be elements of a common ring"
+                raise TypeError("all parameters should be elements of a common ring")
         else:
             if q is None:
                 F = QQ['v'].fraction_field()
@@ -80,7 +80,7 @@ def ParameterFamilies(I, q1=None, q2=None):
     else:
         G, q2 = ParameterFamily(I, q2)
         if F != G:
-            raise TypeError, "All parameters should be elements of a common base ring"
+            raise TypeError("all parameters should be elements of a common base ring")
     return (F, q1, q2)
 
 class MultiParameterHeckeAlgebraElement(CombinatorialFreeModuleElement):
@@ -257,7 +257,7 @@ class MultiParameterHeckeAlgebra(CombinatorialFreeModule):
         on `I` defined by `f2[i] = -1/f1[i]` for all `i\in I`.
         """
         if not weyl_group in WeylGroups():
-            raise TypeError, "%s is not a Weyl group"%weyl_group
+            raise TypeError("%s is not a Weyl group"%weyl_group)
         self._weyl_group = weyl_group
         I = self._weyl_group.index_set()
         self._base_ring, self._q1, self._q2 = ParameterFamilies(I, q1, q2)
@@ -266,15 +266,18 @@ class MultiParameterHeckeAlgebra(CombinatorialFreeModule):
         # need to constantly add and multiply the parameters when applying the
         # quadratic relation
 
-        self._eigensum = Family(dict([[i,self._q1[i]+self._q2[i]] for i in I]))
-        self._eigenproduct = Family(dict([[i,self._q1[i]*self._q2[i]] for i in I]))
+        self._eigensum = Family({i: self._q1[i]+self._q2[i] for i in I})
+        self._eigenproduct = Family({i: self._q1[i]*self._q2[i] for i in I})
 
         if not prefix:
             prefix = "T"
         if not category:
             category=AlgebrasWithBasis(self._base_ring)
-        from sage.algebras.iwahori_hecke_algebra import index_cmp
-        CombinatorialFreeModule.__init__(self, self._base_ring, weyl_group, category=category, monomial_cmp = index_cmp, prefix=prefix)
+        from sage.algebras.iwahori_hecke_algebra import sorting_key
+        CombinatorialFreeModule.__init__(self, self._base_ring, weyl_group,
+                                         category=category,
+                                         sorting_key=sorting_key,
+                                         prefix=prefix)
 
     def _repr_(self):
         r"""

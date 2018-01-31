@@ -22,7 +22,6 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
 from sage.misc.abstract_method import abstract_method
-from sage.misc.sage_itertools import max_cmp, min_cmp
 from sage.categories.category import JoinCategory, Category
 from sage.categories.homsets import HomsetsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
@@ -918,7 +917,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             elif isinstance(category, TensorProductsCategory):
                 base_category = category.base_category()
             if base_category is None:
-                raise TypeError, "Category should be a subcategory of a module tensor category"
+                raise TypeError("category should be a subcategory of a module tensor category")
             if hasattr(parents[0], 'base_ring'):
                 R = parents[0].base_ring()
             else:
@@ -2407,7 +2406,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             elif isinstance(self, TensorProductsCategory):
                 categories = [self.base_category()]
             else:
-                raise TypeError, "%s should be a JoinCategory or TensorProductsCategory"%self
+                raise TypeError("%s should be a JoinCategory or TensorProductsCategory"%self)
             return categories
 
         class ParentMethods:

@@ -261,15 +261,15 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         sage: H.Lvtv()(x) == H.Lvtv()(z)
         True
     """
-
     @staticmethod
-    def __classcall_private__(cls, cartan_type, q1=None, q2=None, extended=None, dual_side=None, general_linear=None):
-        def boolean_input_handler(bool, default_value):
-            if bool is None:
+    def __classcall_private__(cls, cartan_type, q1=None, q2=None, extended=None,
+                              dual_side=None, general_linear=None):
+        def boolean_input_handler(val, default_value):
+            if val is None:
                 return default_value
-            if bool not in (True,False):
-                raise ValueError, "%s should be True or False"%bool
-            return bool
+            if val not in (True,False):
+                raise ValueError("%s should be True or False"%val)
+            return val
         from sage.combinat.root_system.cartan_type import CartanType
         cartan_type = CartanType(cartan_type)
         if isinstance(q1, dict):
@@ -284,11 +284,11 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
     def __init__(self, cartan_type, q1, q2, extended, dual_side, general_linear):
         # set the root system and parameters
         if cartan_type.is_reducible():
-            raise ValueError, "Cartan type should be irreducible"
+            raise ValueError("Cartan type should be irreducible")
         if cartan_type.is_finite(): # a finite Cartan type is an abbreviation for its untwisted affinization
             cartan_type = cartan_type.affine()
         elif not cartan_type.is_affine():
-            raise ValueError, "Cartan type must be finite or affine"
+            raise ValueError("Cartan type must be finite or affine")
         self._base_ring, self._q1, self._q2 = ParameterFamilies(cartan_type.index_set(), q1, q2)
         Parent.__init__(self, category = AlgebrasWithBasis(self._base_ring).WithRealizations())
 
@@ -945,7 +945,7 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
                 mu_wt = mu.to_weight_space(ZZ)
             pi, word, signs = H._FW(mu_wt).alcove_walk_signs()
             if not H._dual_reduced and pi != pi.parent().one():
-                raise ValueError, "%s should be in the root lattice"%mu
+                raise ValueError("%s should be in the root lattice"%mu)
             if H._dual_side:
                 signs = tuple(signs)
             else:
@@ -1218,7 +1218,8 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
                 return self.one()
             H = self.realization_of()
             if not H._dual_reduced:
-                raise ValueError, "Nontrivial fundamental group elements disallowed if the dual affine root system is nonreduced"
+                raise ValueError("nontrivial fundamental group elements disallowed"
+                                 " if the dual affine root system is nonreduced")
             # in the extended affine Weyl group, express pi as w t_mu with w in W(Y) and mu in Y.
             E = H.extended_affine_weyl()
             x = E.PvW0().from_fundamental(pi)
@@ -1374,7 +1375,8 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
                 return self.one()
             H = self.realization_of()
             if not H._dual_reduced:
-                raise ValueError, "Nontrivial fundamental group elements disallowed if the dual affine root system is nonreduced"
+                raise ValueError("nontrivial fundamental group elements disallowed"
+                                 " if the dual affine root system is nonreduced")
             # express pi as t_mu w with w in W(Y) and mu in Y.
             x = H.extended_affine_weyl().PvW0().from_fundamental(pi)
             rw = x.to_dual_classical_weyl().reduced_word()

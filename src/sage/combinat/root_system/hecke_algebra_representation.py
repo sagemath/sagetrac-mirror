@@ -65,16 +65,19 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
         sage: KW = WeylGroup(["A",3]).algebra(K)
         sage: H = KW.demazure_lusztig_operators(q1,q2); H
         A representation of the (q1, q2)-Hecke algebra of type ['A', 3, 1]
-        on Algebra of Weyl Group of type ['A', 3]
-        (as a matrix group acting on the ambient space)
-        over Rational Field
+         on Algebra of Weyl Group of type ['A', 3]
+          (as a matrix group acting on the ambient space)
+          over Fraction Field of Multivariate Polynomial Ring in q1, q2
+          over Rational Field
 
     Among other things, it implements the `T_w` operators, their
     inverses and compositions thereof::
 
         sage: H.Tw((1,2))
         Generic endomorphism of Algebra of Weyl Group of type ['A', 3]
-        (as a matrix group acting on the ambient space) over Rational Field
+         (as a matrix group acting on the ambient space)
+         over Fraction Field of Multivariate Polynomial Ring in q1, q2
+         over Rational Field
 
     and the Cherednik operators `Y^{\lambda^\vee}`::
 

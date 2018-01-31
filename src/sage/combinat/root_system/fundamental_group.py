@@ -290,7 +290,20 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
             sage: x <= y
             True
         """
-        return richcmp(self.value(), x.value(), op)
+        return richcmp(self._value, x._value, op)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: x = FundamentalGroupOfExtendedAffineWeylGroup(['A',4,1], prefix="f").an_element()
+            sage: hash(x) == hash(x)
+            True
+        """
+        return hash(self._value)
 
     def act_on_affine_weyl(self, w):
         r"""

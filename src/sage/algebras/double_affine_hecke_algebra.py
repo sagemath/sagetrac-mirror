@@ -454,7 +454,7 @@ class DoubleAffineType(SageObject):
         from sage.combinat.root_system.cartan_type import CartanType
         self._cartan_type_classical = CartanType(cartan_type)
         if not self._cartan_type_classical.is_finite():
-            raise ValueError, "Cartan type is not finite"
+            raise ValueError("Cartan type is not finite")
         if self._cartan_type_classical.rank() == 1:
             self._cartan_type_classical = CartanType(['A',1])
         # check that parameters are invertible
@@ -462,7 +462,7 @@ class DoubleAffineType(SageObject):
             try:
                 (parameters[par_name])**(-1)
             except ZeroDivisionError:
-                raise ValueError, "Parameters must be invertible"
+                raise ValueError("parameters must be invertible")
         if self._cartan_type_classical.is_simply_laced():
             # in simply-laced type, override `untwisted`
             self._untwisted = True
@@ -499,7 +499,8 @@ class DoubleAffineType(SageObject):
                 self._general_linear = True
                 self._n = self._cartan_type.n + 1
             else:
-                raise ValueError, "General linear double affine data should be untwisted type A, reduced, and dual-reduced"
+                raise ValueError("general linear double affine data should be"
+                                 " untwisted type A, reduced, and dual-reduced")
         else:
             self._general_linear = False
 
@@ -571,23 +572,25 @@ class DoubleAffineType(SageObject):
             param_dict = dict({'null_root':q})
             for orbit in self._orbits:
                 if orbit not in parameters.keys():
-                    raise ValueError, "There is no parameter supplied for the orbit %s"%orbit
+                    raise ValueError("there is no parameter supplied for the orbit %s"%orbit)
                 else:
                     param_dict[orbit] = parameters[orbit]
                     if param_dict[orbit] not in K:
-                        raise ValueError, "The parameter %s supplied for the orbit %s is not in the parent of %s"%(param_dict[orbit],orbit,q)
+                        raise ValueError("the parameter %s supplied for the orbit %s is not in the parent of %s"%(param_dict[orbit],orbit,q))
                         
             self._parameters = Family(dict([[key, param_dict[key]] for key in param_dict.keys()]))
         else:
-            if len(parameters.keys()) > 0:
-                raise ValueError, "Parameters were specified but the null_root parameter was not among them"
+            if parameters:
+                raise ValueError("parameters were specified but the null_root parameter was not among them")
             K = QQ['q,v,vl,v0,v2,vz'].fraction_field()
-            param_dict = dict({'null_root':K.gen(0),'short':K.gen(1),'long':K.gen(2),'zero':K.gen(3),'doubled':K.gen(4),'zero_doubled':K.gen(5)})
-            self._parameters = Family(dict([[root_type, param_dict[root_type]] for root_type in Set(['null_root'])+self._orbits]))
+            param_dict = {'null_root': K.gen(0), 'short': K.gen(1), 'long': K.gen(2),
+                          'zero':K.gen(3), 'doubled': K.gen(4), 'zero_doubled': K.gen(5)}
+            self._parameters = Family({root_type: param_dict[root_type]
+                                       for root_type in Set(['null_root'])+self._orbits})
         self._base_ring = K
 
-        self._q1 = Family(dict([[i, self._parameters[self._vi[i]]] for i in I]))
-        self._q2 = Family(dict([[i, -1/self._q1[i]] for i in I]))
+        self._q1 = Family({i: self._parameters[self._vi[i]] for i in I})
+        self._q2 = Family({i: -1/self._q1[i] for i in I})
         if self._general_linear:
             self._m = self._n
         else:
@@ -615,7 +618,6 @@ class DoubleAffineType(SageObject):
             False
             sage: DoubleAffineType(['A',2], untwisted=False, reduced=False, dual_reduced=False).reduced()
             True
-
         """
         return self._reduced
 
@@ -631,7 +633,6 @@ class DoubleAffineType(SageObject):
             False
             sage: DoubleAffineType(['A',2], untwisted=False, reduced=False, dual_reduced=False).dual_reduced()
             True
-
         """
         return self._dual_reduced
 
@@ -649,7 +650,6 @@ class DoubleAffineType(SageObject):
             True
             sage: DoubleAffineType(['B',2], untwisted=False, reduced=False, dual_reduced=False).properly_extended()
             False
-
         """
         return len(self.special_nodes()) > 1
 
@@ -664,7 +664,6 @@ class DoubleAffineType(SageObject):
 
             sage: DoubleAffineType(['B',2], untwisted=False, reduced=False, dual_reduced=False).doubled_nodes()
             (0, 2)
-
         """
         return self._doubled_nodes
 
@@ -676,7 +675,6 @@ class DoubleAffineType(SageObject):
 
             sage: DoubleAffineType(['B',2], untwisted=False, reduced=True, dual_reduced=False).cartan_type()
             ['C', 2, 1]^*
-
         """
         return self._cartan_type
 
@@ -688,7 +686,6 @@ class DoubleAffineType(SageObject):
 
             sage: DoubleAffineType(['B',2], untwisted=False, reduced=True, dual_reduced=False).cartan_type_classical()
             ['B', 2]
-
         """
         return self._cartan_type_classical
 
@@ -706,7 +703,6 @@ class DoubleAffineType(SageObject):
             (0,)
             sage: DoubleAffineType(['B',3], untwisted=False, reduced=False, dual_reduced=True).special_nodes()
             (0, 3)
-
         """
         return self._special_nodes
 
@@ -725,7 +721,6 @@ class DoubleAffineType(SageObject):
             sage: DoubleAffineType(['A',3], general_linear=True).properly_extended()
             True
         """
-
         return self._general_linear or len(self._special_nodes) >= 2
 
     def parameter(self, param):
@@ -750,7 +745,7 @@ class DoubleAffineType(SageObject):
         try:
             return self._parameters[param]
         except KeyError:
-            raise ValueError, "No parameter '%s'"%param
+            raise ValueError("no parameter '%s'"%param)
 
     def parameters(self):
         r"""
@@ -760,7 +755,6 @@ class DoubleAffineType(SageObject):
 
             sage: DoubleAffineType("B2",False,False,False).parameters()
             Finite family {'zero_doubled': vz, 'short': v, 'doubled': v2, 'zero': v0, 'long': vl, 'null_root': q}
-
         """
         return self._parameters
 
@@ -797,13 +791,13 @@ class DoubleAffineType(SageObject):
     @cached_method
     def doubled_parameters(self):
         r"""
-        A family on the set of doubled nodes whose values are the extra factor in the nonreduced Demazure-Lusztig operators.
+        A family on the set of doubled nodes whose values are the extra
+        factor in the nonreduced Demazure-Lusztig operators.
 
         EXAMPLES::
 
             sage: DoubleAffineType("B2",untwisted=False,reduced=False,dual_reduced=False).doubled_parameters()
             Finite family {0: (vz^2 - 1)/vz, 2: (v2^2 - 1)/v2}
-
         """
         def diff_reciprocal(x):
             return x - 1/x
@@ -814,8 +808,8 @@ class DoubleAffineType(SageObject):
         r"""
         Cherednik's eta automorphism of the base field.
 
-        It inverts all of the parameters, sending `q` and each `v_i` to its reciprocal.
-
+        It inverts all of the parameters, sending `q` and each `v_i`
+        to its reciprocal.
         """
         K = self.base_ring()
         return K.hom([1/x if x in self.parameters() else x for x in K.gens()])
@@ -909,9 +903,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
     Here the usual extended affine Hecke algebra of `SL_n` is replaced by that for `GL_n` and the
     group algebra of the weight lattice of `SL_n` is replaced by that of `GL_n`.
-
     """
-
     @staticmethod
     def __classcall_private__(cls, cartan_type, untwisted=True, reduced=True, dual_reduced=True, dual_side=False, general_linear=False, **parameters):
         from sage.combinat.root_system.cartan_type import CartanType
@@ -1138,7 +1130,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             def YXG(mu):
                 return self._L.from_vector(vector(((2*mu[0]+mu[1])/3,(mu[0]+2*mu[2])/3,(2*mu[1]+mu[2])/3),QQ))
             return YXG
-        raise TypeError, "%s should be an irreducible finite Cartan type"%self.cartan_type()
+        raise TypeError("%s should be an irreducible finite Cartan type"%self.cartan_type())
 
     @cached_method
     def Y_pair_X(self):
@@ -2371,19 +2363,21 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                 sage: a = KLv.an_element(); a
                 Y[(2, 2, 3)]
                 sage: a.parent()
-                Group algebra of the Ambient space of the Root system of type ['A', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
+                Algebra of the Ambient space of the Root system of type ['A', 2]
+                 over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz
+                 over Rational Field
                 sage: LtvLv = HH.LtvLv()
                 sage: b = LtvLv.from_dual_lattice_algebra(a); b
                 Y[(2, 2, 3)]
                 sage: b.parent()
                 LtvLv basis of The double affine Hecke algebra of type ['A', 2, 1]
-
             """
             return self.factor_embedding(1)(self.factor(1).factor_embedding(1)(a))
 
         def from_dual_classical_hecke(self, a):
             r"""
-            Returns the image of `a` from the finite Hecke algebra "tv" of dual type, to ``self``.
+            Return the image of `a` from the finite Hecke algebra "tv"
+            of dual type, to ``self``.
 
             EXAMPLES::
 
@@ -2402,20 +2396,23 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
         def signed_generator_product_dual(self, word, signs=None):
             r"""
-            Given a reduced word for an element `w` in the classical Weyl group of `Lv`, return the image of the basis element `T_w`
+            Given a reduced word for an element `w` in the classical Weyl
+            group of `Lv`, return the image of the basis element `T_w`
             in ``self``.
 
             EXAMPLES::
 
                 sage: DoubleAffineHeckeAlgebraSansDuality("A2").LtvLv().signed_generator_product_dual([2,1],[1,-1])
                 Ty[2,1] + ((-v^2+1)/v)*Ty[2]
-
             """
             return self.factor_embedding(1)(self.factor(1).signed_generator_product(word, signs=signs))
 
         def _to_polynomial_module_on_basis(self, (mu, u, nu)):
             r"""
-            Given a basis triple for ``self``, return the projected element in the polynomial module.
+            Given a basis triple for ``self``, return the projected
+            element in the polynomial module.
+
+            EXAMPLES::
 
                 sage: HH=DoubleAffineHeckeAlgebraSansDuality("A3",general_linear=True); M = HH.LtvLv()
                 sage: mu = HH.lattice().an_element(); mu
@@ -2426,7 +2423,6 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                 (2, 2, 3, 0)
                 sage: HH.LtvLv()._to_polynomial_module_on_basis((mu,u,nu))
                 v^8*X[(2, 2, 3, 0)]
-
             """
             HH = self.realization_of()
             return HH._KL.term(mu, HH.T_eigenvalue(u) * HH.Y_eigenvalue(nu))
@@ -2452,16 +2448,13 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - `HH` -- DAHA realization parent
+        - ``HH`` -- DAHA realization parent
 
         EXAMPLES::
 
             sage: DoubleAffineHeckeAlgebraSansDuality("A2").LLvtv()
             LLvtv basis of The double affine Hecke algebra of type ['A', 2, 1]
-
-
         """
-
         def __init__(self, HH):
             dat = HH.double_affine_type()
             # To define the product on LLvtv we just coerce to LT and back.
@@ -2513,7 +2506,9 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                 sage: a = KLv.an_element(); a
                 Y[(2, 2, 3)]
                 sage: a.parent()
-                Group algebra of the Ambient space of the Root system of type ['A', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
+                Algebra of the Ambient space of the Root system of type ['A', 2]
+                 over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz
+                 over Rational Field
                 sage: LLvtv = HH.LLvtv()
                 sage: b = LLvtv.from_dual_lattice_algebra(a); b
                 Y[(2, 2, 3)]
@@ -2525,7 +2520,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
         def from_dual_classical_hecke(self, a):
             r"""
-            Returns the image of `a` from the finite Hecke algebra "tv" of dual type, to ``self``.
+            Return the image of `a` from the finite Hecke algebra "tv" of dual type, to ``self``.
 
             EXAMPLES::
 

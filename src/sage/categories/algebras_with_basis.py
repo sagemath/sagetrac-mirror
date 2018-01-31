@@ -477,7 +477,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             @abstract_method
             def factors(self):
                 r"""
-                The tensor factor algebras of `self`.
+                The tensor factor algebras of ``self``.
 
                 EXAMPLES::
 
@@ -490,14 +490,12 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: A4 = tensor([A,A,A,A])
                     sage: A4.factors()
                     (A, A, A, A)
-
                 """
-                pass
 
             @abstract_method
             def factor(self, i):
                 r"""
-                The `i`-th tensor factor algebra of `self`.
+                The ``i``-th tensor factor algebra of ``self``.
 
                 EXAMPLES::
 
@@ -507,29 +505,27 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: A22 = tensor([A2,A2])
                     sage: A22.factor(1)
                     A # A
-
                 """
-                pass
 
             @abstract_method
             def index_to_indices(self):
                 r"""
-                The function which maps a basis index of ``self`` to a tuple of basis indices for ``self.factors()``.
+                The function which maps a basis index of ``self`` to a
+                tuple of basis indices for ``self.factors()``.
                 """
-                pass
 
             @abstract_method
             def indices_to_index(self):
                 r"""
-                The function which maps a tuple of basis indices for ``self.factors()`` to an index of ``self.basis()``.
+                The function which maps a tuple of basis indices for
+                ``self.factors()`` to an index of ``self.basis()``.
                 """
-                pass
 
             @cached_method
             def one_basis(self):
                 """
-                Returns the index of the one of this tensor product of
-                algebras, as per ``AlgebrasWithBasis.ParentMethods.one_basis``
+                Return the index of the one of this tensor product of
+                algebras, as per ``AlgebrasWithBasis.ParentMethods.one_basis``.
 
                 It is the tuple whose operands are the indices of the
                 ones of the operands, as returned by their
@@ -562,7 +558,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 INPUTS:
 
-                - t1, t2 -- indices for the basis of the tensor product
+                - ``t1``, ``t2`` -- indices for the basis of the tensor product
 
                 EXAMPLES::
 
@@ -584,14 +580,14 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: x*y
                     B[word: a] # B[word: c] + B[word: ac] # B[word: ca] + 2*B[word: b] # B[word: c] + 2*B[word: bc] # B[word: ca]
 
-
-                TODO: optimize this implementation!
+                .. TODO:: optimize this implementation!
                 """
                 return tensor( (module.monomial(x1)*module.monomial(x2) for (module, x1, x2) in zip(self.factors(), self.index_to_indices()(t1), self.index_to_indices()(t2))))
 
             def _monomial_almost_one(self, i, x):
                 r"""
-                The monomial with identities in every factor except the `i`-th, which contains `x`.
+                The monomial with identities in every factor except the
+                ``i``-th, which contains ``x``.
 
                 EXAMPLES::
 
@@ -609,7 +605,8 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             @cached_method
             def factor_embedding(self, i):
                 r"""
-                The algebra embedding from the `i`-th tensor factor of ``self`` to ``self``.
+                The algebra embedding from the `i`-th tensor factor
+                of ``self`` to ``self``.
 
                 EXAMPLES::
 
@@ -621,12 +618,13 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 """
                 if i not in range(len(self.factors())):
-                    raise ValueError, "index is out of range"
+                    raise ValueError("index is out of range")
                 return self.factors()[i].module_morphism(on_basis=partial(self._monomial_almost_one,i),codomain=self)
 
             def from_direct_product(self, tup):
                 r"""
-                The element of ``self`` given by the tensor of the elements in ``tup``.
+                The element of ``self`` given by the tensor of the elements
+                in ``tup``.
 
                 EXAMPLES::
 
@@ -637,12 +635,6 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     2*B[s1*s2*s1] + 4*B[s1*s2] + B[1]
                     sage: A2.from_direct_product((A.one(), A.one()+A.an_element()))
                     2*B[1] # B[s1*s2*s1] + 4*B[1] # B[s1*s2] + 2*B[1] # B[1]
-
                 """
                 return self(tensor(tup, category=self.category()))
 
-        class ElementMethods:
-            """
-            Implements operations on elements of tensor products of algebras with basis
-            """
-            pass
