@@ -609,7 +609,20 @@ class EllipticEU(BuiltinFunction):
             sage: elliptic_eu(1,1)
             elliptic_eu(1, 1)
         """
-        pass
+        from sage.structure.element import parent, coercion_model
+        from sage.symbolic.ring import SR
+        if SR(u).is_trivial_zero():
+            return m
+        elif SR(m).is_trivial_zero():
+            return Integer(0)
+        if not SR(u).is_numeric() or not SR(m).is_numeric():
+            return
+        P = coercion_model.common_parent(u, m)
+        try:
+            if P is float or P is complex or not P.is_exact():
+                return self._evalf_(u, m, P)
+        except AttributeError:
+            pass
 
     def _evalf_(self, u, m, parent=None, algorithm=None):
         """

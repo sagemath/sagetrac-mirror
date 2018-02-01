@@ -1081,9 +1081,9 @@ class JacobiAmplitude(BuiltinFunction):
         """
         from sage.structure.element import parent, coercion_model
         from sage.symbolic.ring import SR
-        if m == 0:
+        if SR(m).is_trivial_zero():
             return x
-        elif x == 0:
+        elif SR(x).is_trivial_zero():
             return Integer(0)
         if not SR(x).is_numeric() or not SR(m).is_numeric():
             return
