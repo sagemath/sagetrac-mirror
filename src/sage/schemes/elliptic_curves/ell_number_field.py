@@ -463,8 +463,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
           it work over number fields.
         """
         p = Integer(p)
-        if not p.is_prime():
-            raise ValueError("p must be a prime number")
+        # if not p.is_prime():
+        #     raise ValueError("p must be a prime number")
 
         verbose("Adjoining X-coordinates of %s-torsion points"%p)
         F = self.base_ring()
@@ -478,7 +478,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # The Galois group of the division field is a subgroup of GL(2,p).
         # The Galois group of the X-coordinates is a subgroup of GL(2,p)/{-1,+1}.
         # We need the map to change the elliptic curve invariants to K.
-        deg_mult = F.degree()*p*(p+1)*(p-1)*(p-1)//2
+
+        # deg_mult = F.degree()*p*(p+1)*(p-1)*(p-1)//2
+        deg_mult = None
         K, F_to_K = f.splitting_field(names, degree_multiple=deg_mult, map=True, **kwds)
 
         verbose("Adjoining Y-coordinates of %s-torsion points"%p)
@@ -505,8 +507,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # This implies that it suffices to adjoin the Y-coordinate
         # of just one point.
 
+        # If K contains all roots of the n-division polynomial and an n-torsion
+        # point that is not 2-torsion. Then K contains all n-torsion points.
+
         # First factor f over F and then compute a root X of f over K.
-        g = f.factor()[0][0]
+        # g = f.factor()[0][0]
+        g = next(x[0] for x in f.factor() if not
+                x[0].divides(self.division_polynomial(2)))
         X = g.map_coefficients(F_to_K).roots(multiplicities=False)[0]
 
         # Polynomial defining the corresponding Y-coordinate
