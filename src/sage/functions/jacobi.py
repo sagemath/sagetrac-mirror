@@ -1089,7 +1089,7 @@ class JacobiAmplitude(BuiltinFunction):
             return
         P = coercion_model.common_parent(x, m)
         try:
-            if not P.is_exact():
+            if P is float or P is complex or not P.is_exact():
                 return self._evalf_(x, m, P)
         except AttributeError:
             pass
