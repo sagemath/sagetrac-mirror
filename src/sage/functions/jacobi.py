@@ -1079,11 +1079,20 @@ class JacobiAmplitude(BuiltinFunction):
             sage: jacobi_am(3, 4.)
             -0.339059208303591
         """
+        from sage.structure.element import parent, coercion_model
+        from sage.symbolic.ring import SR
         if m == 0:
             return x
         elif x == 0:
             return Integer(0)
-        return
+        if not SR(x).is_numeric() or not SR(m).is_numeric():
+            return
+        P = coercion_model.common_parent(x, m)
+        try:
+            if not P.is_exact():
+                return self._evalf_(x, m, P)
+        except AttributeError:
+            pass
 
     def _evalf_(self, x, m, parent, algorithm=None):
         r"""
