@@ -11,12 +11,6 @@ Solver for sparse matrices over `\ZZ/n\ZZ` using LinBox.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-cdef extern from "<iostream>" namespace "std":
-    cdef cppclass ostream:
-        ostream& write(const char*, int) except +
-
-    ostream cout
-
 from sage.libs.linbox.conversion cimport (
     set_linbox_matrix_modn_sparse,
     set_linbox_vector_modn_dense,

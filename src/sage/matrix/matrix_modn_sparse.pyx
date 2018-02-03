@@ -84,7 +84,6 @@ from cpython.sequence cimport *
 from cpython.int cimport PyInt_FromLong
 
 from libc.stdint cimport uint64_t
-from libcpp.vector cimport vector as cppvector
 
 from cysignals.memory cimport check_calloc, sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
