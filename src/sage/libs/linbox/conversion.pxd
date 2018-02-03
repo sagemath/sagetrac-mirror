@@ -36,11 +36,16 @@ from sage.modules.vector_modn_sparse cimport c_vector_modint
 # matrix_modn_sparse (sparse matrix over Z/nZ) #
 ################################################
 
-# set the entries of a LinBox matrix from a Sage matrix
-# INPUT:
-#   A - LinBox matrix
-#   m - Sage matrix
 cdef inline void set_linbox_matrix_modn_sparse(SparseMatrix_Modular_uint64& A, Matrix_modn_sparse m):
+    r"""
+    set the entries of a LinBox matrix from a Sage matrix.
+
+    INPUT:
+
+    - A -- LinBox matrix
+    - m-- Sage matrix
+    """
+
     cdef c_vector_modint * row
     cdef size_t i, j
     for i in range(m._nrows):
@@ -48,12 +53,17 @@ cdef inline void set_linbox_matrix_modn_sparse(SparseMatrix_Modular_uint64& A, M
         for j in range(row.num_nonzero):
             A.setEntry(i, row.positions[j], row.entries[j])
 
-# return a new LinBox matrix from a Sage matrix
-# (such matrix has to be deallocated with a "del" statement)
-# INPUT:
-#   F - LinBox field
-#   m - Sage matrix
 cdef inline SparseMatrix_Modular_uint64 * new_linbox_matrix_modn_sparse(Modular_uint64 &F, Matrix_modn_sparse m):
+    r"""
+    Return a new LinBox matrix from a Sage matrix.
+
+    Such matrix has to be deallocated with a "del" statement.
+
+    INPUT:
+
+    - F -- LinBox field
+    - m -- Sage matrix
+    """
     cdef SparseMatrix_Modular_uint64 * A = new SparseMatrix_Modular_uint64(F, m._nrows, m._ncols)
     set_linbox_matrix_modn_sparse(A[0], m)
     return A
@@ -62,30 +72,43 @@ cdef inline SparseMatrix_Modular_uint64 * new_linbox_matrix_modn_sparse(Modular_
 # vector_modn_dense (dense vector over Z/nZ) #
 ##############################################
 
-# set the entries of a LinBox vector from a Sage vector
-# INPUT:
-#   res - LinBox vector
-#   v - Sage vector
 cdef inline void set_linbox_vector_modn_dense(DenseVector_Modular_uint64& res, Vector_modn_dense v):
+    r"""
+    Set the entries of a LinBox vector from a Sage vector.
+
+    NPUT:
+
+    - res -- LinBox vector
+    - v -- Sage vector
+    """
     cdef size_t i
     for i in range(v._degree):
         res.setEntry(i, v._entries[i])
 
-# return a new LinBox vector from a Sage vector
-# (such vector has to be deallocated with a "del" statement)
-# INPUT:
-#   F - LinBox field
-#   v - Sage vector
 cdef inline DenseVector_Modular_uint64 * new_linbox_vector_modn_dense(Modular_uint64& F, Vector_modn_dense v):
+    r"""
+    Return a new LinBox vector from a Sage vector.
+
+    Such vector has to be deallocated with a "del" statement.
+
+    INPUT:
+
+    - F -- LinBox field
+    - v -- Sage vector
+    """
     cdef DenseVector_Modular_uint64 * V = new DenseVector_Modular_uint64(F, v._degree)
     set_linbox_vector_modn_dense(V[0], v)
     return V
 
-# return a new Sage vector from a LinBox one
-# INPUT:
-#   P - parent for the Sage vector
-#   v - LinBox vector
 cdef inline Vector_modn_dense new_sage_vector_modn_dense(P, DenseVector_Modular_uint64& v):
+    r"""
+    Return a new Sage vector from a LinBox one.
+
+    INPUT:
+
+    - P -- parent for the Sage vector
+    - v -- LinBox vector
+    """
     cdef Vector_modn_dense res = <Vector_modn_dense?> P()
 
     vec = &v.refRep()
