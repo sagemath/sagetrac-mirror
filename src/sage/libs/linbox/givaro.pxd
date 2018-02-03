@@ -19,7 +19,7 @@ cdef extern from "gmp++/gmp++.h" namespace "Givaro":
     cdef cppclass Integer:
         Integer()
         Integer(int32_t)
-        Inteer(int64_t)
+        Integer(int64_t)
         Integer(uint32_t)
         Integer(uint64_t)
         Integer(Integer&)
