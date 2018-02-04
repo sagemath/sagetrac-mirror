@@ -193,26 +193,26 @@ cdef extern from "linbox/solutions/solve.h" namespace "LinBox":
     DenseVector_Modular_uint64& solve (DenseVector_Modular_uint64 &,
                                        SparseMatrix_Modular_uint64 &,
                                        DenseVector_Modular_uint64 &,
-                                       Method.BlasElimination) except +RuntimeError
+                                       Method.BlasElimination) except +
 
     DenseVector_Modular_uint64& solve (DenseVector_Modular_uint64 &,
                                        SparseMatrix_Modular_uint64 &,
                                        DenseVector_Modular_uint64 &,
-                                       Method.SparseElimination) except +RuntimeError
+                                       Method.SparseElimination) except +
 
     DenseVector_Modular_uint64& solve (DenseVector_Modular_uint64 &,
                                        SparseMatrix_Modular_uint64 &,
                                        DenseVector_Modular_uint64 &,
-                                       Method.Blackbox) except +RuntimeError
+                                       Method.Blackbox) except +
 
     DenseVector_Modular_uint64& solve (DenseVector_Modular_uint64 &,
                                        SparseMatrix_Modular_uint64 &,
                                        DenseVector_Modular_uint64 &,
-                                       Method.Wiedemann) except +RuntimeError
+                                       Method.Wiedemann) except +
 
     DenseVector_Modular_uint64& solve (DenseVector_Modular_uint64 &,
                                        SparseMatrix_Modular_uint64 &,
-                                       DenseVector_Modular_uint64 &) except +RuntimeError
+                                       DenseVector_Modular_uint64 &) except +
 
     # integer solve
 
@@ -220,16 +220,16 @@ cdef extern from "linbox/solutions/solve.h" namespace "LinBox":
                                 Integer &,
                                 SparseMatrix_integer &,
                                 DenseVector_integer &,
-                                Method.BlasElimination) except +RuntimeError
+                                Method.BlasElimination) except +
 
     DenseVector_integer& solve (DenseVector_integer &,
                                 Integer &,
                                 SparseMatrix_integer &,
                                 DenseVector_integer &,
-                                Method.SparseElimination) except +RuntimeError
+                                Method.SparseElimination) except +
 
     DenseVector_integer& solve (DenseVector_integer &,
                                 Integer &,
                                 SparseMatrix_integer &,
                                 DenseVector_integer &,
-                                Method.Wiedemann) except +RuntimeError
+                                Method.Wiedemann) except +

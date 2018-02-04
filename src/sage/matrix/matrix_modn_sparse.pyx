@@ -142,15 +142,6 @@ ai = arith_int()
 # Trac Ticket #12679.
 MAX_MODULUS = 46341
 
-
-# without this function, Cython produces a wrong C file
-# Namely, at compilation
-#
-#
-def _dummy():
-    raise RuntimeError("this is a cython bug")
-
-
 cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
     def __cinit__(self, parent, entries, copy, coerce):
         matrix.Matrix.__init__(self, parent)
