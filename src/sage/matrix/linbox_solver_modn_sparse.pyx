@@ -52,11 +52,6 @@ cdef int get_method(str algo):
         raise ValueError("unknown algo")
 
 
-# TODO: Cython bug
-# https://groups.google.com/forum/#!topic/cython-users/FYIh0OZ1qeE
-def __dummy():
-    raise RuntimeError()
-
 cdef class LinBoxSolver_modn_sparse(object):
     r"""
     Class to solve linear equations in Sage using LinBox.
