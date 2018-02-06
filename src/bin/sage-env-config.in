@@ -25,7 +25,7 @@ export SAGE_LOCAL="@prefix@"
 export CONFIGURED_CC="@CC@"
 export CONFIGURED_CXX="@CXX@"
 export CONFIGURED_FC="@FC@"
-export CONFIGURED_OBJC="@OBJ@"
+export CONFIGURED_OBJC="@OBJC@"
 export CONFIGURED_OBJCXX="@OBJCXX@"
 
 

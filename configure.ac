@@ -586,13 +586,50 @@ if test -n "$LD"; then
     fi
 fi
 
+AC_LANG(C++)
+
+###############################################################################
+# Support --enable-bits=32/64
+###############################################################################
+
+AC_ARG_ENABLE(bits,
+    [AS_HELP_STRING([--enable-bits=32|64],
+        [build a 32-bit/64-bit version of Sage (experimental)])],
+    [SAGE_BITS=$enableval])
+
+if test -n "$SAGE_BITS"; then
+    # If the number of bits equals the default produced by the
+    # compiler, there is nothing to do.
+    AC_CHECK_SIZEOF([void *])
+
+    case "$SAGE_BITS" in
+    32) if test $ac_cv_sizeof_void_p = 4; then
+            SAGE_BITS=""
+        fi;;
+    64) if test $ac_cv_sizeof_void_p = 8; then
+            SAGE_BITS=""
+        fi;;
+    *) AC_MSG_ERROR([value of --enable-bits must be 32 or 64]);;
+    esac
+fi
+
+if test -n "$SAGE_BITS"; then
+    # Now we actually need to do something.
+    # First of all, we add the -m32 or -m64 compiler flag. Second,
+    # we force building GCC and we change --build to ensure that
+    # the Sage-built GCC will produce the correct executables.
+    CC="$CC -m$SAGE_BITS"
+    CXX="$CXX -m$SAGE_BITS"
+
+    SAGE_SHOULD_INSTALL_GCC([--enable-bits=$SAGE_BITS was given])
+fi
+
 
 ###############################################################################
 # Check libraries
 ###############################################################################
 
 # First check for something that should be in any maths library (sqrt).
-AC_LANG(C++)
 AC_CHECK_LIB(m,sqrt,[],[
                        AC_MSG_NOTICE([This system has no maths library installed.])
                        # On AIX this is not installed by default - strange as that might seem.
