@@ -505,6 +505,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             gens += gens_p
         return self.submodule_with_gens(gens)
 
+    @cached_method
     def orthogonal_group(self, gens=None):
         r"""
         Orthognal group of the associated torsion quadratic form.
@@ -522,16 +523,8 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: fd = D.hom([d*f for d in D.smith_form_gens()])
             sage: D.orthogonal_group([fd])
         """
-        from sage.groups.abelian_gps.abelian_aut import (AbelianGroupAutomorphismGroup_ambient,
-                                                 AbelianGroupAutomorphismGroup_subgroup)
-        from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
-        if gens is None:
-            return NotImplementedError("This is not yet implemented")
-        gens_orders = [d.order() for d in self.smith_form_gens()]
-        A = AbelianGroupGap(gens_orders)
-        ambient = A.aut()
-        gens = [ambient(g) for g in gens]
-        return ambient.subgroup(gens)
+        from sage.groups.fqf_orthogonal.group import FqfOrthogonalGroup_ambient
+        return FqfOrthogonalGroup_ambient(self.normal_form())
 
     def primary_part(self, m):
         r"""
