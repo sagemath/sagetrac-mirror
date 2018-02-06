@@ -84,7 +84,7 @@
  */
 
 
-#if defined(__sun) || defined(__CYGWIN__)
+#if defined(__CYGWIN__)
 extern "C" long double fabsl (long double);
 extern "C" long double sinl (long double);
 extern "C" long double cosl (long double);
