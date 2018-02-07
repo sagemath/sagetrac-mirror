@@ -99,6 +99,11 @@ class ConstructionFunctor(Functor):
         (a + b)*x
 
     """
+
+    def __init__(self, dom, codom):
+        Functor.__init__(self, dom, codom)
+        self._expand_threshold = 100
+
     def __mul__(self, other):
         """
         Compose ``self`` and ``other`` to a composite construction
@@ -395,7 +400,6 @@ class ConstructionFunctor(Functor):
              other_functor, ', '.join(str(b) for b in other_bases),
              reason))
 
-
 class CompositeConstructionFunctor(ConstructionFunctor):
     """
     A Construction Functor composed by other Construction Functors.
@@ -438,7 +442,7 @@ class CompositeConstructionFunctor(ConstructionFunctor):
                 self.all += c.all
             else:
                 self.all.append(c)
-        Functor.__init__(self, self.all[0].domain(), self.all[-1].codomain())
+        ConstructionFunctor.__init__(self, self.all[0].domain(), self.all[-1].codomain())
 
     def _apply_functor_to_morphism(self, f):
         """
@@ -574,7 +578,6 @@ class CompositeConstructionFunctor(ConstructionFunctor):
         """
         return list(reversed(self.all))
 
-
 class IdentityConstructionFunctor(ConstructionFunctor):
     """
     A construction functor that is the identity functor.
@@ -698,7 +701,6 @@ class IdentityConstructionFunctor(ConstructionFunctor):
         else:
             return self
 
-
 class MultivariateConstructionFunctor(ConstructionFunctor):
     """
     An abstract base class for functors that take
@@ -775,7 +777,6 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
                         for S, O in zip(self_bases, other_bases))
         return self(Z_bases)
 
-
 class PolynomialFunctor(ConstructionFunctor):
     """
     Construction functor for univariate polynomial rings.
@@ -834,7 +835,7 @@ class PolynomialFunctor(ConstructionFunctor):
 
         """
         from .rings import Rings
-        Functor.__init__(self, Rings(), Rings())
+        ConstructionFunctor.__init__(self, Rings(), Rings())
         self.var = var
         self.multi_variate = multi_variate
         self.sparse = sparse
@@ -982,7 +983,6 @@ class MultiPolynomialFunctor(ConstructionFunctor):
                         b |--> a - b
         sage: F(f)(F(A)(x)*a)
         (a + b)*x
-
     """
 
     rank = 9
@@ -999,7 +999,7 @@ class MultiPolynomialFunctor(ConstructionFunctor):
             sage: F(CC)
             Multivariate Polynomial Ring in x, y over Complex Field with 53 bits of precision
         """
-        Functor.__init__(self, Rings(), Rings())
+        ConstructionFunctor.__init__(self, Rings(), Rings())
         self.vars = vars
         self.term_order = term_order
 
@@ -1132,15 +1132,28 @@ class MultiPolynomialFunctor(ConstructionFunctor):
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s) for +: 'Multivariate Polynomial Ring in x, y, z over Integer Ring' and 'Multivariate Polynomial Ring in y, s over Rational Field'
-            sage: R = PolynomialRing(ZZ, 'x', 500)
-            sage: S = PolynomialRing(GF(5), 'x', 200)
+            sage: R = PolynomialRing(ZZ, 'x', 50)
+            sage: S = PolynomialRing(GF(5), 'x', 20)
             sage: R.gen(0) + S.gen(0)
             2*x0
+
+        We don't expand functors with a large number of variables, though,
+        because constructing the intermediate parents is wasteful and tends to
+        hit the Python recursion limit. It is often possible to find a common
+        parent nevertheless::
+
+            sage: R1 = PolynomialRing(QQ, 't', 1000)
+            sage: S1 = PolynomialRing(R1, 'b', 10)
+            sage: S2 = PolynomialRing(QQ, 'b', 10)
+            sage: (S1.an_element() * S2.an_element()).parent()
+            Multivariate Polynomial Ring in b0, ...
+            over Multivariate Polynomial Ring in t0, ...
+            over Rational Field
         """
-        if len(self.vars) <= 1:
-            return [self]
-        else:
+        if 2 <= len(self.vars) <= self._expand_threshold:
             return [MultiPolynomialFunctor((x,), self.term_order) for x in reversed(self.vars)]
+        else:
+            return [self]
 
     def _repr_(self):
         """
@@ -1150,7 +1163,6 @@ class MultiPolynomialFunctor(ConstructionFunctor):
             MPoly[x,y,z,t]
         """
         return "MPoly[%s]" % ','.join(self.vars)
-
 
 class InfinitePolynomialFunctor(ConstructionFunctor):
     """
@@ -1517,11 +1529,11 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
             True
 
         """
-        if len(self._gens) == 1:
+        if 2 <= len(self._gens) <= self._expand_threshold:
+            return [InfinitePolynomialFunctor((x,), self._order, self._imple)
+                    for x in reversed(self._gens)]
+        else:
             return [self]
-        return [InfinitePolynomialFunctor((x,), self._order, self._imple)
-                for x in reversed(self._gens)]
-
 
 class MatrixFunctor(ConstructionFunctor):
     """
@@ -1575,10 +1587,10 @@ class MatrixFunctor(ConstructionFunctor):
             True
         """
         if nrows == ncols:
-            Functor.__init__(self, Rings(), Rings()) # Algebras() takes a base ring
+            ConstructionFunctor.__init__(self, Rings(), Rings()) # Algebras() takes a base ring
         else:
-            # Functor.__init__(self, Rings(), MatrixAlgebras()) # takes a base ring
-            Functor.__init__(self, Rings(), CommutativeAdditiveGroups()) # not a nice solution, but the best we can do.
+            # ConstructionFunctor.__init__(self, Rings(), MatrixAlgebras()) # takes a base ring
+            ConstructionFunctor.__init__(self, Rings(), CommutativeAdditiveGroups()) # not a nice solution, but the best we can do.
         self.nrows = nrows
         self.ncols = ncols
         self.is_sparse = is_sparse
@@ -1713,7 +1725,7 @@ class LaurentPolynomialFunctor(ConstructionFunctor):
             Multivariate Laurent Polynomial Ring in s, t over Rational Field
 
         """
-        Functor.__init__(self, Rings(), Rings())
+        ConstructionFunctor.__init__(self, Rings(), Rings())
         if not isinstance(var, (six.string_types,tuple,list)):
             raise TypeError("variable name or list of variable names expected")
         self.var = var
@@ -1811,7 +1823,6 @@ class LaurentPolynomialFunctor(ConstructionFunctor):
         else:
             return None
 
-
 class VectorFunctor(ConstructionFunctor):
     """
     A construction functor for free modules over commutative rings.
@@ -1858,10 +1869,10 @@ class VectorFunctor(ConstructionFunctor):
             True
 
         """
-#        Functor.__init__(self, Rings(), FreeModules()) # FreeModules() takes a base ring
-#        Functor.__init__(self, Objects(), Objects())   # Object() makes no sence, since FreeModule raises an error, e.g., on Set(['a',1]).
+#        ConstructionFunctor.__init__(self, Rings(), FreeModules()) # FreeModules() takes a base ring
+#        ConstructionFunctor.__init__(self, Objects(), Objects())   # Object() makes no sence, since FreeModule raises an error, e.g., on Set(['a',1]).
         ## FreeModule requires a commutative ring. Thus, we have
-        Functor.__init__(self, CommutativeRings(), CommutativeAdditiveGroups())
+        ConstructionFunctor.__init__(self, CommutativeRings(), CommutativeAdditiveGroups())
         self.n = n
         self.is_sparse = is_sparse
         self.inner_product_matrix = inner_product_matrix
@@ -2064,12 +2075,12 @@ class SubspaceFunctor(ConstructionFunctor):
             [1 2 3]
             [4 0 1]
         """
-##        Functor.__init__(self, FreeModules(), FreeModules()) # takes a base ring
-##        Functor.__init__(self, Objects(), Objects())   # is too general
+##        ConstructionFunctor.__init__(self, FreeModules(), FreeModules()) # takes a base ring
+##        ConstructionFunctor.__init__(self, Objects(), Objects())   # is too general
         ## It seems that the category of commutative additive groups
         ## currently is the smallest base ring free category that
         ## contains in- and output
-        Functor.__init__(self, CommutativeAdditiveGroups(), CommutativeAdditiveGroups())
+        ConstructionFunctor.__init__(self, CommutativeAdditiveGroups(), CommutativeAdditiveGroups())
         self.basis = basis
 
     def _apply_functor(self, ambient):
@@ -2298,7 +2309,7 @@ class FractionField(ConstructionFunctor):
         """
         from sage.categories.integral_domains import IntegralDomains
         from sage.categories.fields import Fields
-        Functor.__init__(self, IntegralDomains(), Fields())
+        ConstructionFunctor.__init__(self, IntegralDomains(), Fields())
 
     def _apply_functor(self, R):
         """
@@ -2311,7 +2322,6 @@ class FractionField(ConstructionFunctor):
             Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
         """
         return R.fraction_field()
-
 
 class CompletionFunctor(ConstructionFunctor):
     """
@@ -2389,7 +2399,7 @@ class CompletionFunctor(ConstructionFunctor):
             sage: F2.extras
             {'rnd': 0, 'sci_not': False, 'type': 'MPFR'}
         """
-        Functor.__init__(self, Rings(), Rings())
+        ConstructionFunctor.__init__(self, Rings(), Rings())
         self.p = p
         self.prec = prec
 
@@ -2711,7 +2721,7 @@ class QuotientFunctor(ConstructionFunctor):
             Ring of integers modulo 5
 
         """
-        Functor.__init__(self, Rings(), Rings()) # much more general...
+        ConstructionFunctor.__init__(self, Rings(), Rings()) # much more general...
         self.I = I
         if names is None:
             self.names = None
@@ -3001,7 +3011,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             True
 
         """
-        Functor.__init__(self, Rings(), Rings())
+        ConstructionFunctor.__init__(self, Rings(), Rings())
         if not (isinstance(polys, (list, tuple)) and isinstance(names, (list, tuple))):
             raise ValueError("Arguments must be lists or tuples")
         n = len(polys)
@@ -3284,13 +3294,12 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             Number Field in a1 with defining polynomial x^2 - 3
         """
         n = len(self.polys)
-        if n == 1:
+        if n == 1 or n >= self._expand_threshold:
             return [self]
         return [AlgebraicExtensionFunctor([self.polys[i]], [self.names[i]], [self.embeddings[i]],
                                           [self.structures[i]], precs=[self.precs[i]],
                                           implementations=[self.implementations[i]], **self.kwds)
                 for i in range(n)]
-
 
 class AlgebraicClosureFunctor(ConstructionFunctor):
     """
@@ -3323,7 +3332,7 @@ class AlgebraicClosureFunctor(ConstructionFunctor):
             True
 
         """
-        Functor.__init__(self, Rings(), Rings())
+        ConstructionFunctor.__init__(self, Rings(), Rings())
 
     def _apply_functor(self, R):
         """
@@ -3380,7 +3389,7 @@ class PermutationGroupFunctor(ConstructionFunctor):
             sage: PF = PermutationGroupFunctor([PermutationGroupElement([(1,2)])], [1,2]); PF
             PermutationGroupFunctor[(1,2)]
         """
-        Functor.__init__(self, Groups(), Groups())
+        ConstructionFunctor.__init__(self, Groups(), Groups())
         self._gens = gens
         self._domain = domain
 
