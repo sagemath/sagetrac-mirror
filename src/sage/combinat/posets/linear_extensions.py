@@ -766,3 +766,84 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             return self.element_class(self, lst, check)
 
     Element = LinearExtensionOfPoset
+
+class GreedyLinearExtensionsOfPoset(LinearExtensionsOfPoset):
+    """
+    The set of all greedy linear extensions of a finite poset
+
+    INPUT:
+
+    - ``poset`` -- a poset `P` of size `n`
+    - ``facade`` -- a boolean (default: ``False``)
+
+    .. SEEALSO::
+
+        - XX
+
+    EXAMPLES::
+
+        sage: None  # XX
+    """
+
+    def __init__(self, poset, facade):
+        """
+        TESTS::
+
+            sage: from sage.combinat.posets.linear_extensions import LinearExtensionsOfPoset
+        """
+        self._poset = poset
+        self._is_facade = facade
+        if facade:
+            raise NotImplemented("XXX not yet done")
+        if facade:
+            facade = (list,)
+        Parent.__init__(self, category = FiniteEnumeratedSets(), facade=facade)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: P = Poset(([1,2,3],[[1,2],[1,3]]))
+            sage: P.greedy_linear_extensions()
+            The set of all greedy linear extensions of Finite poset containing 3 elements
+        """
+        return "The set of all greedy linear extensions of %s" % (self._poset)
+
+    def cardinality(self):
+        """
+        Return the number of linear extensions.
+
+        XX Add examples. Say that this is NP-complete.
+        """
+        return sum(1 for _ in self._poset._hasse_diagram.greedy_linear_extensions_iterator())
+
+    def __iter__(self):
+        r"""
+        Iterate through the greedy linear extensions of the underlying poset.
+
+        EXAMPLES::
+
+            sage: p = posets.PentagonPoset().relabel(lambda x: chr(65+x))
+            sage: x = p.greedy_linear_extensions()
+            sage: list(x)
+            [['A', 'B', 'C', 'D', 'E'], ['A', 'C', 'D', 'B', 'E']]
+        """
+        vertex_to_element = self._poset._vertex_to_element
+        for lin_ext in self.poset()._hasse_diagram.greedy_linear_extensions_iterator():
+            yield self._element_constructor_([vertex_to_element(_) for _ in lin_ext])
+
+    def __contains__(self, obj):
+        """
+        Membership testing
+
+        EXAMPLES::
+
+            sage: None  # XXX add examples here
+        """
+        if not self._is_facade:
+            return super(LinearExtensionsOfPoset, self).__contains__(obj)
+        ## XXX is_greedy not yet closed ticket
+        return (isinstance(obj, (list, tuple)) and
+                self.poset().is_linear_extension(obj)) and self.poset().linear_extension(obj).is_greedy()
+    
+

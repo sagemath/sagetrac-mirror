@@ -1586,6 +1586,11 @@ class FinitePoset(UniqueRepresentation, Parent):
         from .linear_extensions import LinearExtensionsOfPoset
         return LinearExtensionsOfPoset(self, facade = facade)
 
+    @cached_method
+    def greedy_linear_extensions(self, facade=False):
+        from .linear_extensions import GreedyLinearExtensionsOfPoset
+        return GreedyLinearExtensionsOfPoset(self, facade=facade)
+
     def is_linear_extension(self, l):
         """
         Returns whether ``l`` is a linear extension of ``self``
