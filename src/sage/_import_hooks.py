@@ -185,15 +185,7 @@ class CythonModule(types.ModuleType):
                 isinstance(self.__loader__, CompiledPyxFileLoader)):
             return None
 
-        pyx_path = self.__loader__.pyx_path
-
-        if not os.path.isfile(pyx_path):
-            # The file should not have disappeared.  Maybe issue a warning
-            # here?
-            return None
-
-        with tokenize.open(pyx_path) as f:
-            return f.read()
+        return self.__loader__.get_source(self.__name__)
 
 
 class CompiledPyxFileLoader(ExtensionFileLoader):
@@ -237,6 +229,17 @@ class CompiledPyxFileLoader(ExtensionFileLoader):
         module = super().create_module(spec)
         module.__class__ = CythonModule
         return module
+
+    def get_source(self, fullname):
+        """Retrieve the Cython source from the .pyx file."""
+
+        if not os.path.isfile(self.pyx_path):
+            # The file should not have disappeared.  Maybe issue a warning
+            # here?
+            return None
+
+        with tokenize.open(self.pyx_path) as f:
+            return f.read()
 
     @classmethod
     def install(cls, basepath=None):
