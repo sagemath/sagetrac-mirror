@@ -44,3 +44,6 @@ def isfunction(obj):
 
 import inspect
 inspect.isfunction = isfunction
+
+# Load import system hooks for Sage
+import sage._import_hooks
