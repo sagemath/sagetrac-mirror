@@ -2,10 +2,17 @@
 r"""
 Linear Extensions of Posets
 
-This module defines two classes:
+This module defines two classes and subclasses of those:
 
 - :class:`LinearExtensionOfPoset`
+
+  * :class:`GreedyLinearExtensionOfPoset`
+  * SupergreedyLinearExtensionOfPoset (not yet implemented)
+
 - :class:`LinearExtensionsOfPoset`
+
+  * :class:`GreedyLinearExtensionsOfPoset`
+  * SupergreedyLinearExtensionsOfPoset (not yet implemented)
 
 Classes and methods
 -------------------
@@ -263,12 +270,12 @@ class LinearExtensionOfPoset(ClonableArray):
         P = self.poset()
         a = self[i-1]
         b = self[i  ]
-        if P.lt(a,b) or P.lt(b,a):
+        if P.lt(a, b) or P.lt(b, a):
             return self
-        with self.clone() as q:
-                q[i-1] = b
-                q[i  ] = a
-        return q
+        q = list(self)
+        q[i-1] = b
+        q[i  ] = a
+        return P.linear_extensions()(q, check=False) # We know this is a linear extension
 
     def promotion(self, i=1):
         r"""
@@ -769,7 +776,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
 
 class GreedyLinearExtensionsOfPoset(LinearExtensionsOfPoset):
     """
-    The set of all greedy linear extensions of a finite poset
+    The set of all greedy linear extensions of a finite poset.
 
     INPUT:
 
@@ -811,9 +818,26 @@ class GreedyLinearExtensionsOfPoset(LinearExtensionsOfPoset):
 
     def cardinality(self):
         """
-        Return the number of linear extensions.
+        Return the number of greedy linear extensions.
 
-        XX Add examples. Say that this is NP-complete.
+        EXAMPLES::
+
+            sage: N5 = posets.PentagonPoset()
+            sage: N5.greedy_linear_extensions().cardinality()
+            2
+
+        ALGORITHM:
+
+        Just enumerate them all. This has been proven to be NP-complete.
+
+        TESTS::
+
+            sage: Poset().greedy_linear_extensions().cardinality()
+            1
+            sage: posets.AntichainPoset(4).greedy_linear_extensions().cardinality() == factorial(4)
+            True
+            sage: posets.ChainPoset(4).greedy_linear_extensions().cardinality() == 1
+            True
         """
         return sum(1 for _ in self._poset._hasse_diagram.greedy_linear_extensions_iterator())
 
@@ -845,5 +869,22 @@ class GreedyLinearExtensionsOfPoset(LinearExtensionsOfPoset):
         ## XXX is_greedy not yet closed ticket
         return (isinstance(obj, (list, tuple)) and
                 self.poset().is_linear_extension(obj)) and self.poset().linear_extension(obj).is_greedy()
-    
 
+
+class GreedyLinearExtensionOfPoset(LinearExtensionOfPoset):
+    """
+    The set of all greedy linear extensions of a finite poset.
+
+    A linear extension is *greedy* if it "goes up when possible";
+    see :meth:`is_greedy` for exact definition.
+    """
+
+    def check(self):
+        r"""
+        Checks whether ``self`` is indeed a greedy linear extension of the underlying poset.
+
+        """
+        P = self.parent().poset()
+        if not P.is_linear_extension(self):
+            raise ValueError("%s is not a linear extension of %s"%(self, P))
+        # XX Add here a check for being greedy
