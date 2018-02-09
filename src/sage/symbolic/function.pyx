@@ -14,7 +14,7 @@ Classes for symbolic functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import division, absolute_import
-
+from sage.misc.six import u
 from sage.libs.pynac.pynac cimport *
 from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
@@ -87,10 +87,18 @@ cdef class Function(SageObject):
             ...
             ValueError: eval_func parameter must be callable
         """
+        if name:
+            name = u(name).encode('utf-8')
+        if latex_name:
+            latex_name = u(latex_name).encode('utf-8')
+        if alt_name:
+            alt_name = u(alt_name).encode('utf-8')
+
         self._name = name
-        self._alt_name = alt_name
-        self._nargs = nargs
         self._latex_name = latex_name
+        self._alt_name = alt_name
+
+        self._nargs = nargs
         self._evalf_params_first = evalf_params_first
         self._conversions = {} if conversions is None else conversions
 
@@ -106,7 +114,7 @@ cdef class Function(SageObject):
             raise ValueError("only one of _derivative_ or _tderivative_ should be defined.")
 
         for fname in sfunctions_funcs:
-            real_fname = '_%s_'%fname
+            real_fname = '_%s_' % fname
             if hasattr(self, real_fname) and not \
                     callable(getattr(self, real_fname)):
                 raise ValueError(real_fname + " parameter must be callable")
@@ -793,6 +801,15 @@ cdef class GinacFunction(BuiltinFunction):
             sage: s(pi/2)
             1
         """
+        if name:
+            name = u(name).encode('utf-8')
+        if latex_name:
+            latex_name = u(latex_name).encode('utf-8')
+        if alt_name:
+            alt_name = u(alt_name).encode('utf-8')
+        if ginac_name:
+            ginac_name = u(ginac_name).encode('utf-8')
+
         self._ginac_name = ginac_name
         BuiltinFunction.__init__(self, name, nargs, latex_name, conversions,
                 evalf_params_first=evalf_params_first,
@@ -803,6 +820,7 @@ cdef class GinacFunction(BuiltinFunction):
         # ginac's function registry
         fname = self._ginac_name if self._ginac_name is not None else self._name
         # get serial
+        fname = u(fname).encode('utf-8')
         try:
             self._serial = find_function(str_to_bytes(fname), self._nargs)
         except RuntimeError as err:
@@ -879,6 +897,13 @@ cdef class BuiltinFunction(Function):
             sage: c(pi/2)
             0
         """
+        if name:
+            name = u(name).encode('utf-8')
+        if latex_name:
+            latex_name = u(latex_name).encode('utf-8')
+        if alt_name:
+            alt_name = u(alt_name).encode('utf-8')
+
         self._preserved_arg = preserved_arg
         if preserved_arg and (preserved_arg < 1 or preserved_arg > nargs):
             raise ValueError("preserved_arg must be between 1 and nargs")
@@ -1146,6 +1171,11 @@ cdef class SymbolicFunction(Function):
             sage: foo(2,3).conjugate()
             2
         """
+        if name:
+            name = u(name).encode('utf-8')
+        if latex_name:
+            latex_name = u(latex_name).encode('utf-8')
+
         self.__hinit = False
         Function.__init__(self, name, nargs, latex_name, conversions,
                 evalf_params_first)

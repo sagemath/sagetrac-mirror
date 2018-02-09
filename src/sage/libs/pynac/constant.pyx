@@ -20,6 +20,7 @@ from .pynac cimport *
 from sage.symbolic.expression cimport new_Expression_from_GEx
 from sage.symbolic.ring import SR
 from sage.cpython.string cimport str_to_bytes
+from sage.misc.six import u
 
 
 cdef class PynacConstant:
@@ -52,6 +53,8 @@ cdef class PynacConstant:
         else:
             raise ValueError
 
+        name = u(name).encode('utf-8')
+        texname = u(texname).encode('utf-8')
         self._name = name
 
         # For the constants explicitly defined in constant.cpp in the
