@@ -422,8 +422,14 @@ class sage_build_cython(Command):
 
         # Libraries: add stdc++ if needed and sort them
         libs = kwds.get('libraries', [])
+        have_stdlib_libcpp = False
+        cxxflags = os.environ.get('CXXFLAGS')
         if cplusplus:
-            libs = libs + ['stdc++']
+            if cxxflags.find('-stdlib=libc++'):
+                libs = libs + ['c++']
+                have_stdlib_libcpp = True
+            else:
+                libs = libs + ['stdc++']
         kwds['libraries'] = sorted(set(libs),
                 key=lambda lib: library_order.get(lib, 0))
 
@@ -463,6 +469,12 @@ class sage_build_cython(Command):
 
         # Process extra_link_args
         ldflags = kwds.get('extra_link_args', []) + extra_link_args
+        if have_stdlib_libcpp:
+            tmp = []
+            for l in ldflags:
+                if not l.find('stdc++'):
+                    tmp.append(l)
+            ldflags = tmp
         kwds['extra_link_args'] = stable_uniq(ldflags)
 
         # Process library_dirs
