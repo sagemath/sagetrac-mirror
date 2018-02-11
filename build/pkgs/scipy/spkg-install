@@ -18,6 +18,7 @@ if [ "$UNAME" = "Darwin" ]; then
     export CPPFLAGS="-D__ACCELERATE__ $CPPFLAGS"
 else
     export {ATLAS,PTATLAS,OPENBLAS,MKL,MKLROOT}=None
+    LDFLAGS=${LDFLAGS//--stdlib=libc++/}
     export LDFLAGS="-shared $LDFLAGS"
 fi
 
