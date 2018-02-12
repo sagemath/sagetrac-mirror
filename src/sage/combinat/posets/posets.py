@@ -109,6 +109,8 @@ List of Poset methods
     :meth:`~FinitePoset.completion_by_cuts` | Return the Dedekind-MacNeille completion of the poset.
     :meth:`~FinitePoset.intervals_poset` | Return the poset of intervals of the poset.
     :meth:`~FinitePoset.connected_components` | Return the connected components of the poset as subposets.
+    :meth:`~FinitePoset.minimal_extensions` | Return an iterator over minimal extensions of a poset.
+    :meth:`~FinitePoset.minimal_unextensions` | Return an iterator over minimal un-extensions of a poset.
     :meth:`~FinitePoset.ordinal_summands` | Return the ordinal summands of the poset.
     :meth:`~FinitePoset.subposet` | Return the subposet containing elements with partial order induced by this poset.
     :meth:`~FinitePoset.random_subposet` | Return a random subposet that contains each element with given probability.
@@ -7312,6 +7314,84 @@ class FinitePoset(UniqueRepresentation, Parent):
         # or not, either remove this note or remove .hasse_diagram() below.
         return (set(self).issubset(set(other)) and
                 other.subposet(self).hasse_diagram() == self.hasse_diagram())
+
+    def minimal_extensions(self):
+        """
+        Return an iterator over minimal extensions of a poset.
+
+        A poset `P` is a minimal extension of a poset `Q` if
+        `P` is an extension of `Q` having exactly one less-than -relation
+        more.
+
+        EXAMPLES::
+
+            sage: P = Poset({1: [2, 3], 4: []})
+            sage: P_ = next(P.minimal_extensions())
+            sage: P_.cover_relations()
+            [[4, 2], [1, 2], [1, 3]]
+
+        .. SEEALSO::
+
+            - :meth:`minimal_unextensions`
+
+        TESTS::
+
+            sage: E = Poset()
+            sage: list(E.minimal_extensions())
+            []
+            sage: C4 = posets.ChainPoset(4)
+            sage: list(E.minimal_extensions())
+            []
+        """
+        from copy import copy
+        P_graph = self.hasse_diagram()
+
+        for x in self:
+            for y in self:
+                if (self.compare_elements(x, y) is None and
+                    all(x_low in self.principal_lower_set(y) for x_low in self.lower_covers(x)) and
+                    all(y_up in self.principal_upper_set(x) for y_up in self.upper_covers(y))):
+                        g = copy(P_graph)
+                        g.add_edge(x, y)
+                        yield Poset(g)
+
+    def minimal_unextensions(self):
+        """
+        Return an iterator over minimal un-extensions of a poset.
+
+        A poset `Q` is a minimal un-extension of a poset `P` if
+        `P` is an extension of `Q` having exactly one less-than -relation
+        more.
+
+        .. SEEALSO::
+
+            - :meth:`minimal_extensions`
+
+        EXAMPLES::
+
+            sage: Y = Poset({1: [2], 2: [3, 4]})
+            sage: L = list(Y.minimal_unextensions()); len(L)
+            3
+            sage: Poset({1: [3, 4], 2: [3, 4]}) in L
+            True
+
+        TESTS::
+
+            sage: E = Poset()
+            sage: list(E.minimal_unextensions())
+            []
+            sage: A4 = posets.AntichainPoset(4)
+            sage: list(E.minimal_unextensions())
+            []
+        """
+        from copy import copy
+        H = self.hasse_diagram()
+        for l, u in self.cover_relations_iterator():
+            g = copy(H)
+            g.add_edges([(l,b) for b in g.neighbors_out(u)])
+            g.add_edges([(a,u) for a in g.neighbors_in(l)])
+            g.delete_edge(l, u)
+            yield Poset(g)
 
 FinitePoset._dual_class = FinitePoset
 
