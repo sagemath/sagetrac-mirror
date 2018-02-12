@@ -250,7 +250,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         sage: a.parent() is C
         True
 
-    TESTS::
+    ::
 
         sage: XQ = SchubertPolynomialRing(QQ)
         sage: XZ = SchubertPolynomialRing(ZZ)
@@ -258,8 +258,21 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         False
         sage: XQ == XQ
         True
-    """
 
+    Test inheritance from categories::
+
+        sage: A = Algebras(QQ).WithBasis().example(); A
+        An example of an algebra with basis:
+        the free algebra on the generators ('a', 'b', 'c') over Rational Field
+
+        sage: A.element_class.mro()
+        [<class 'sage.categories.examples.algebras_with_basis.FreeAlgebra_with_category.element_class'>,
+         <... 'sage.modules.with_basis.indexed_element.IndexedFreeModuleElement'>,
+         ...]
+        sage: a,b,c = A.algebra_generators()
+        sage: a * b
+        B[word: ab]
+    """
     @staticmethod
     def __classcall_private__(cls, base_ring, basis_keys=None, category=None,
                               prefix=None, names=None, **keywords):
@@ -315,45 +328,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             base_ring, basis_keys, category=category, prefix=prefix, names=names,
             **keywords)
 
-    # We make this explicitly a Python class so that the methods,
-    #   specifically _mul_, from category framework still works. -- TCS
-    # We also need to deal with the old pickles too. -- TCS
     Element = IndexedFreeModuleElement
-
-    @lazy_attribute
-    def element_class(self):
-        """
-        The (default) class for the elements of this parent
-
-        Overrides :meth:`Parent.element_class` to force the
-        construction of Python class. This is currently needed to
-        inherit really all the features from categories, and in
-        particular the initialization of ``_mul_`` in
-        :meth:`Magmas.ParentMethods.__init_extra__`.
-
-        EXAMPLES::
-
-            sage: A = Algebras(QQ).WithBasis().example(); A
-            An example of an algebra with basis: 
-            the free algebra on the generators ('a', 'b', 'c') over Rational Field
-
-            sage: A.element_class.mro()
-            [<class 'sage.categories.examples.algebras_with_basis.FreeAlgebra_with_category.element_class'>,
-             <... 'sage.modules.with_basis.indexed_element.IndexedFreeModuleElement'>,
-             ...]
-            sage: a,b,c = A.algebra_generators()
-            sage: a * b
-            B[word: ab]
-
-        TESTS::
-
-            sage: A.__class__.element_class.__module__
-            'sage.combinat.free_module'
-        """
-        return self.__make_element_class__(self.Element,
-                                           name="%s.element_class"%self.__class__.__name__,
-                                           module=self.__class__.__module__,
-                                           inherit=True)
 
     def __init__(self, R, basis_keys=None, element_class=None, category=None,
                  prefix=None, names=None, **kwds):

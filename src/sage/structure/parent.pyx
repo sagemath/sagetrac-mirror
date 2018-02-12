@@ -123,7 +123,6 @@ from .coerce_exceptions import CoercionException
 from sage.structure.debug_options cimport debug
 from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.sage_object cimport SageObject
-from sage.structure.misc import is_extension_type
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError
 from sage.misc.lazy_format import LazyFormat
@@ -554,7 +553,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         """
         return self.category().element_class
 
-    # This probably should go into Sets().Parent
     @lazy_attribute
     def element_class(self):
         """
@@ -573,23 +571,17 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         except AttributeError: #else:
             return NotImplemented
 
-
-    def __make_element_class__(self, cls, name = None, module=None, inherit = None):
+    def __make_element_class__(self, cls, name=None, module=None):
         """
-        A utility to construct classes for the elements of this
-        parent, with appropriate inheritance from the element class of
-        the category (only for pure python types so far).
+        A utility to construct classes for the elements of this parent,
+        with appropriate inheritance from the element class of the
+        category.
         """
-        # By default, don't fiddle with extension types yet; inheritance from
-        # categories will probably be achieved in a different way
-        if inherit is None:
-            inherit = not is_extension_type(cls)
-        if inherit:
-            if name is None:
-                name = "%s_with_category"%cls.__name__
-            cls = dynamic_class(name, (cls, self._abstract_element_class))
-            if module is not None:
-                cls.__module__ = module
+        if name is None:
+            name = cls.__name__ + "_with_category"
+        cls = dynamic_class(name, (cls, self._abstract_element_class))
+        if module is not None:
+            cls.__module__ = module
         return cls
 
     def _set_element_constructor(self):
