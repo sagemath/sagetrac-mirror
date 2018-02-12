@@ -41,7 +41,7 @@ from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-from sage.structure.richcmp cimport rich_to_bool
+from cpython.object cimport Py_EQ, Py_NE
 
 from collections import defaultdict
 
@@ -462,10 +462,10 @@ cdef class ring_wrapper_Py(object):
         """
         return 'The ring pointer '+hex(self.__hash__())
 
-    def __richcmp__(ring_wrapper_Py left, ring_wrapper_Py right, int op):
+    def __richcmp__(self, other, op):
         """
-        Compare ``left`` and ``right`` so that instances can be used
-        as dictionary keys.
+        Equality comparison between two ``ring_wrapper_Py`` instances,
+        for use when hashing.
 
         INPUT:
 
@@ -473,21 +473,39 @@ cdef class ring_wrapper_Py(object):
 
         OUTPUT:
 
-        -1, 0, or +1 depending on whether ``left`` and ``right`` are
-         less than, equal, or greather than.
+        True if both ``ring_wrapper_Py`` wrap the same pointer.
 
         EXAMPLES::
 
-            sage: from sage.libs.singular.ring import ring_wrapper_Py
+            sage: from sage.libs.singular.ring import (ring_wrapper_Py,
+            ....:     currRing_wrapper)
             sage: t = ring_wrapper_Py()
             sage: t == t
             True
+            sage: P.<x,y,z> = QQ[]
+            sage: t2 = currRing_wrapper()
+            sage: t3 = currRing_wrapper()
+            sage: t == t2
+            False
+            sage: t2 == t3
+            True
+            sage: t2 != t3
+            False
         """
-        if left._ring < right._ring:
-            return rich_to_bool(op, -1)
-        if left._ring > right._ring:
-            return rich_to_bool(op, +1)
-        return rich_to_bool(op, 0)
+
+        cdef ring_wrapper_Py l, r
+
+        if not (op == Py_EQ or op == Py_NE):
+            return NotImplemented
+
+        if type(other) is not ring_wrapper_Py:
+            return op != Py_EQ
+
+        l = <ring_wrapper_Py>self
+        r = <ring_wrapper_Py>other
+
+        return ((l._ring == r._ring and op == Py_EQ) or
+                (l._ring != r._ring and op == Py_NE))
 
 
 cdef wrap_ring(ring* R):
