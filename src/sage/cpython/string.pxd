@@ -15,10 +15,17 @@ from libc.string cimport strlen
 from cpython.bytes cimport PyBytes_AS_STRING, PyBytes_FromString
 from cpython.unicode cimport PyUnicode_Decode, PyUnicode_AsEncodedString
 
+<<<<<<< HEAD
 
 cdef extern from "Python.h":
     # Missing from cpython.unicode in Cython 0.27.3
     char* PyUnicode_AsUTF8(object s)
+=======
+IF PY_MAJOR_VERSION >= 3:
+    cdef extern from "Python.h":
+        # Missing from cpython.unicode in Cython 0.27.3
+        char* PyUnicode_AsUTF8(object s)
+>>>>>>> 79235ac84c606b624c6f4aca720c1f949ab6acf8
 
 
 cdef inline str char_to_str(const char* c, encoding=None, errors=None):
@@ -34,9 +41,13 @@ cdef inline str char_to_str(const char* c, encoding=None, errors=None):
             err = PyUnicode_AsUTF8(errors)
 
         if encoding is None:
+<<<<<<< HEAD
             enc = NULL  # default to utf-8
         else:
             enc = PyUnicode_AsUTF8(encoding)
+=======
+            encoding = 'utf-8'
+>>>>>>> 79235ac84c606b624c6f4aca720c1f949ab6acf8
 
         return PyUnicode_Decode(c, strlen(c), enc, err)
 
@@ -81,9 +92,19 @@ cpdef inline bytes str_to_bytes(s, encoding=None, errors=None):
     On Python 3 this encodes the given ``str`` to a Python 3 ``bytes``
     using the specified encoding.
 
+<<<<<<< HEAD
     On Python 2 this is a no-op on ``str`` input since ``str is bytes``.
     However, this function also accepts Python 2 ``unicode`` objects and
     treats them the same as Python 3 unicode ``str`` objects.
+=======
+    On Python 3 this encodes the given ``str`` to a Python 3 ``bytes`` using
+    the specified encoding.
+
+
+    On Python 2 this is a no-op on ``str`` input since ``str is bytes``.
+    However, this function also accepts Python 2 ``unicode`` objects and treats
+    them the same as Python 3 unicode ``str`` objects.
+>>>>>>> 79235ac84c606b624c6f4aca720c1f949ab6acf8
 
     EXAMPLES::
 
@@ -100,14 +121,24 @@ cpdef inline bytes str_to_bytes(s, encoding=None, errors=None):
         ...
         TypeError: expected str ... list found
     """
+<<<<<<< HEAD
     cdef const char* err
     cdef const char* enc
+=======
+
+    cdef char* err
+    cdef char* enc
+>>>>>>> 79235ac84c606b624c6f4aca720c1f949ab6acf8
 
     IF PY_MAJOR_VERSION <= 2:
         # Make this check explicit to avoid obscure error message below
         if isinstance(s, str):
             # On Python 2 str is already bytes so this should be a no-op
+<<<<<<< HEAD
             return <bytes>s
+=======
+            return s
+>>>>>>> 79235ac84c606b624c6f4aca720c1f949ab6acf8
         elif not isinstance(s, unicode):
             raise TypeError(
                     f"expected str or unicode, {type(s).__name__} found")
@@ -131,8 +162,16 @@ cpdef inline bytes str_to_bytes(s, encoding=None, errors=None):
             err = PyUnicode_AsUTF8(errors)
 
         if encoding is None:
+<<<<<<< HEAD
             enc = NULL  # default to utf-8
         else:
             enc = PyUnicode_AsUTF8(encoding)
 
     return <bytes>PyUnicode_AsEncodedString(s, enc, err)
+=======
+            enc = 'utf-8'
+        else:
+            enc = PyUnicode_AsUTF8(encoding)
+
+    return PyUnicode_AsEncodedString(s, enc, err)
+>>>>>>> 79235ac84c606b624c6f4aca720c1f949ab6acf8
