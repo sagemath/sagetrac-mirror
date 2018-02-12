@@ -39,6 +39,7 @@ import __future__
 
 import hashlib, multiprocessing, os, sys, time, warnings, signal, linecache
 import errno
+import locale
 import doctest, traceback
 import tempfile
 import six
@@ -543,6 +544,17 @@ class SageDocTestRunner(doctest.DocTestRunner):
                 if self.debugger is not None:
                     self.debugger.set_continue() # ==== Example Finished ====
             got = self._fakeout.getvalue()
+
+            if not isinstance(got, six.text_type):
+                # On Python 3 got should already be unicode text, but on Python
+                # 2 it is not.  For comparison's sake we want the unicode text
+                # decoded from UTF-8. If there was some error such that the
+                # output is so malformed that it does not even decode from
+                # UTF-8 at all there will be an error in the test framework
+                # here. But this shouldn't happen at all, so we want it to be
+                # understood as an error in the test framework, and not some
+                # subtle error in the code under test.
+                got = got.decode(locale.getpreferredencoding())
 
             outcome = FAILURE   # guilty until proved innocent or insane
 
