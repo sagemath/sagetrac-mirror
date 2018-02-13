@@ -271,7 +271,7 @@ sage.structure.sage_object.register_unpickle_override('sage.categories.category_
 sage.structure.sage_object.register_unpickle_override('sage.libs.pari.gen_py', 'pari', pari)
 
 # Cache the contents of star imports.
-sage.misc.lazy_import.save_cache_file()
+# sage.misc.lazy_import.save_cache_file()
 
 
 ### Debugging for Singular, see trac #10903
