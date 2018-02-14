@@ -1076,18 +1076,19 @@ def _gens_mod_2(G):
             i2 = ind[k][1]
             i3 = ind[k+1][1]
             Gk = (G[i1:i3,i1:i3]/ZZ(2)**val[k+1]).change_ring(R)
-            gens_k = _gens_pair(Gk, i2-i1, False)
-        elif par[k] == 1 and par[k-1] == 1:
+            gens_k = _gens_pair(Gk, i2-i1, on_second=False)
+        elif par[k-1] == 1:
             i1 = ind[k-1][0]
             i2 = ind[k][0]
             i3 = ind[k][1]
             Gk = (G[i1:i3,i1:i3]/ZZ(2)**val[k]).change_ring(R)
-            gens_k = _gens_pair(Gk, i2-i1, True)
+            gens_k = _gens_pair(Gk, i2-i1, on_second=True)
         else:
             i1 = ind[k][0]
             i3 = ind[k][1]
             Gk = (G[i1:i3,i1:i3]/ZZ(2)**val[k]).change_ring(R)
             gens_k = _orthogonal_grp_quadratic(Gk)
+
         for h in gens_k:
             g = copy(E)
             g[i1:i3,i1:i3] = h
@@ -1220,9 +1221,6 @@ def _ker_gens(G, i1, i2, parity):
             if g[i,j] == 1:   # no need to append the identity
                 gens.append(g)
     return gens
-
-
-
 
 def _gens(G, b):
     r"""
