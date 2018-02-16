@@ -63,6 +63,7 @@ from sage.matrix.constructor import matrix
 from sage.structure.element import is_Matrix
 from sage.arith.misc import gcd
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
+from sage.categories.homset import Hom
 
 ###############################################################################
 #
@@ -672,4 +673,258 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         """
         from sage.quadratic_forms.genera.genus import Genus
         return Genus(self.gram_matrix())
+        
+    def mul(self, d):
+        r"""
+        Return the lattice defined by the inner product matrix of ``self`` 
+        multiplied by ``d``.
+        
+        INPUT::
 
+        - ``d`` -- an integer
+
+        EXAMPLES::
+
+            sage: L = IntegralLattice("A4")
+            sage: L.mul(3)
+            Lattice of degree 4 and rank 4 over Integer Ring
+            Basis matrix:
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+            Inner product matrix:
+            [ 6 -3  0  0]
+            [-3  6 -3  0]
+            [ 0 -3  6 -3]
+            [ 0  0 -3  6]
+
+            sage: L = IntegralLattice(3,[[2,1,0],[0,1,1]])
+            sage: L
+            Lattice of degree 3 and rank 2 over Integer Ring
+            Basis matrix:
+            [2 1 0]
+            [0 1 1]
+            Inner product matrix:
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: L.mul(1)
+            Lattice of degree 2 and rank 2 over Integer Ring
+            Basis matrix:
+            [1 0]
+            [0 1]
+            Inner product matrix:
+            [5 1]
+            [1 2]
+
+        """
+        return IntegralLattice(d*self.gram_matrix())
+
+def PrimitiveExtension(Lattices, glue):
+    r"""
+    Return the overlattice of L1+L2 spanned by the elements of the discriminant group
+    given by ``glue``
+    
+    INPUT::
+    
+    - ``Lattices`` - a list of lattices ``[L_1,...,L_n]`` 
+    - ``glue`` - a list where the elements are lists in the form ``[g_1,...,g_n]`` where ``g_i`` is an
+      element of the discriminant group of ``L_i``
+      
+    EXAMPLES::
+    
+        
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import PrimitiveExtension
+        sage: L1 = IntegralLattice(matrix([[4]]))
+        sage: g1 = L1.discriminant_group().gens()[0]
+        sage: glue = [[2*g1]]
+        sage: PrimitiveExtension([L1],glue)
+        (Lattice of degree 1 and rank 1 over Integer Ring
+         Basis matrix:
+         [1]
+         Inner product matrix:
+         [1], [Free module morphism defined by the matrix
+          [2]
+          Domain: Lattice of degree 1 and rank 1 over Integer Ring
+          Basis matrix:
+          [1]
+          Inner product matrix:
+          [4]
+          Codomain: Lattice of degree 1 and rank 1 over Integer Ring
+          Basis matrix:
+          [1]
+          Inner product matrix:
+          [1]])
+        
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import PrimitiveExtension
+        sage: L1 = IntegralLattice([[2]])
+        sage: L2 = IntegralLattice([[2]])
+        sage: AL1 = L1.discriminant_group()
+        sage: AL2 = L2.discriminant_group()         
+        sage: AL1            
+        Finite quadratic module over Integer Ring with invariants (2,)
+        Gram matrix of the quadratic form with values in Q/2Z:
+        [1/2]                                   
+        sage: g1 = L1.discriminant_group().gens()[0] 
+        sage: g2 = L2.discriminant_group().gens()[0]      
+        sage: glue = [[g1,g2]]                       
+        sage: PrimitiveExtension([L1,L2],glue)
+        (Lattice of degree 2 and rank 2 over Integer Ring
+         Basis matrix:
+         [1 0]
+         [0 1]
+         Inner product matrix:
+         [1 1]
+         [1 2], [Free module morphism defined by the matrix
+          [ 2 -1]
+          Domain: Lattice of degree 1 and rank 1 over Integer Ring
+          Basis matrix:
+          [1]
+          Inner product matrix:
+          [2]
+          Codomain: Lattice of degree 2 and rank 2 over Integer Ring
+          Basis matrix:
+          [1 0]
+          [0 1]
+          Inner product matrix:
+          [1 1]
+          [1 2], Free module morphism defined by the matrix
+          [0 1]
+          Domain: Lattice of degree 1 and rank 1 over Integer Ring
+          Basis matrix:
+          [1]
+          Inner product matrix:
+          [2]
+          Codomain: Lattice of degree 2 and rank 2 over Integer Ring
+          Basis matrix:
+          [1 0]
+          [0 1]
+          Inner product matrix:
+          [1 1]
+          [1 2]])
+
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import PrimitiveExtension
+        sage: L1 = IntegralLattice("A4")
+        sage: L2 = IntegralLattice("A4")
+        sage: g1 = L1.discriminant_group().gens()[0]
+        sage: g2 = L2.discriminant_group().gens()[0]
+        sage: glue = [[g1,2*g2]]
+        sage: [V,phi] = PrimitiveExtension([L1,L2],glue)
+        sage: V
+        Lattice of degree 8 and rank 8 over Integer Ring
+        Basis matrix:
+        [1 0 0 0 0 0 0 0]
+        [0 1 0 0 0 0 0 0]
+        [0 0 1 0 0 0 0 0]
+        [0 0 0 1 0 0 0 0]
+        [0 0 0 0 1 0 0 0]
+        [0 0 0 0 0 1 0 0]
+        [0 0 0 0 0 0 1 0]
+        [0 0 0 0 0 0 0 1]
+        Inner product matrix:
+        [ 2  0  0  1  0  1 -1  1]
+        [ 0  2 -1  0  0  0  0  0]
+        [ 0 -1  2 -1  0  0  0  0]
+        [ 1  0 -1  2  0  0  0  0]
+        [ 0  0  0  0  2 -1  0  0]
+        [ 1  0  0  0 -1  2 -1  0]
+        [-1  0  0  0  0 -1  2 -1]
+        [ 1  0  0  0  0  0 -1  2]
+        sage: V.sublattice(phi[0].image().basis_matrix())
+        Lattice of degree 8 and rank 4 over Integer Ring
+        Basis matrix:
+        [ 5  0  0  0 -2 -4 -1 -3]
+        [ 0  1  0  0  0  0  0  0]
+        [ 0  0  1  0  0  0  0  0]
+        [ 0  0  0  1  0  0  0  0]
+        Inner product matrix:
+        [ 2  0  0  1  0  1 -1  1]
+        [ 0  2 -1  0  0  0  0  0]
+        [ 0 -1  2 -1  0  0  0  0]
+        [ 1  0 -1  2  0  0  0  0]
+        [ 0  0  0  0  2 -1  0  0]
+        [ 1  0  0  0 -1  2 -1  0]
+        [-1  0  0  0  0 -1  2 -1]
+        [ 1  0  0  0  0  0 -1  2]
+        
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import PrimitiveExtension
+        sage: D4 = IntegralLattice("D4")
+        sage: D4.discriminant_group()
+        Finite quadratic module over Integer Ring with invariants (2, 2)
+        Gram matrix of the quadratic form with values in Q/2Z:
+        [  1 1/2]
+        [1/2   1] 
+        sage: L2 = IntegralLattice(2).mul(2)
+        sage: L2.discriminant_group()
+        Finite quadratic module over Integer Ring with invariants (2, 2)
+        Gram matrix of the quadratic form with values in Q/2Z:
+        [1/2   0]
+        [  0 1/2]
+        sage: g1 = D4.discriminant_group().gens()[0]
+        sage: g2 = L2.discriminant_group().gens()[0]+L2.discriminant_group().gens()[1]
+        sage: [D6,phi] = PrimitiveExtension([D4,L2],[[g1,g2]])
+        sage: AD6 = D6.discriminant_group()
+        sage: AD6.normal_form()
+        Finite quadratic module over Integer Ring with invariants (2, 2)
+        Gram matrix of the quadratic form with values in Q/2Z:
+        [3/2   0]
+        [  0 3/2]
+        sage: [f1,g1] = AD6.normal_form().gens()
+        sage: [f2,g2] = L2.discriminant_group().gens()
+        sage: [E8,psi] = PrimitiveExtension([D6,L2],[[f1,f2],[g1,g2]])
+        sage: D4embed = E8.sublattice(psi[0](phi[0].image()).basis_matrix())
+        sage: D4embed
+        Lattice of degree 8 and rank 4 over Integer Ring
+        Basis matrix:
+        [ 2  0  0  0  0 -1  0 -1]
+        [ 0  1  0  0  0  0  0  0]
+        [ 0  0  2  0 -2  0  1  1]
+        [ 0  0  0  1  0  0  0  0]
+        Inner product matrix:
+        [ 2 -1  1  1  1  1  0  1]
+        [-1  2 -1 -1  0  0  0  0]
+        [ 1 -1  2  1  1  1  0  0]
+        [ 1 -1  1  2  0  0  0  0]
+        [ 1  0  1  0  2  1  1  1]
+        [ 1  0  1  0  1  2  0  0]
+        [ 0  0  0  0  1  0  2  0]
+        [ 1  0  0  0  1  0  0  2]
+
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import PrimitiveExtension
+        sage: A7 = IntegralLattice("A7")
+        sage: D5 = IntegralLattice("D5")
+        sage: gA7 = A7.discriminant_group().gens()[0]
+        sage: gD5 = D5.discriminant_group().gens()[0]
+        sage: [L,phi] = PrimitiveExtension([A7,A7,D5,D5],[[gA7,gA7,gD5,2*gD5],[gA7,7*gA7,2*gD5,gD5]])
+        sage: L.determinant()
+        1       
+    """   
+    N = len(Lattices)
+    GramList = [L_i.gram_matrix() for L_i in Lattices]
+    M = matrix.block_diagonal(GramList)
+    L = IntegralLattice(M)
+    Dims = [L_i.dimension() for L_i in Lattices]
+    SumDims = [sum(Dims[:i]) for i in range(len(Dims)+1)]
+    EmbeddingList = [L.submodule(L.basis()[SumDims[i]:SumDims[i+1]]) for i in range(N)]
+    #It calculates the direct sum of L_i
+    AL = L.discriminant_group()
+    Discriminants = [L_i.discriminant_group() for L_i in Lattices]
+    Bases = [matrix.zero(SumDims[i],Dims[i]).stack(matrix.identity(Dims[i])).stack(
+            matrix.zero(SumDims[-1]-SumDims[i+1],Dims[i])) for i in range(N)]
+    vect_phi = [[AL(Bases[i]*(Discriminants[i].gen(x).lift())) for x in 
+               range(Discriminants[i].ngens())] for i in range(N)]
+    phi_bar = [Discriminants[i].hom(vect_phi[i]) for i in range(N)]
+    #It defines the injection from the discriminant groupa AL1,AL2 to AL
+    generators = [sum(phi_bar[i](g[i]) for i in range(N)) for g in glue]
+    HL = AL.submodule(generators)
+    #It takes the submodule spanned by ``glue``
+    if (HL.gram_matrix_bilinear()!=0):
+        raise ValueError("the generators (= %s) does not span "
+                         "a totally isotropic submodule" % generators)
+    V = L.overlattice(HL.V().gens())
+    Vnew = V.mul(1)
+    G = V.basis_matrix().inverse()
+    HomSpaces = [Hom(Lattices[i],Vnew) for i in range(N)]
+    phi = [HomSpaces[i](Bases[i].transpose()*G) for i in range(N)]
+    return (Vnew,phi)
