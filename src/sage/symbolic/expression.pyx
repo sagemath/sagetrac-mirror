@@ -140,7 +140,11 @@ from __future__ import print_function, absolute_import
 from cysignals.signals cimport sig_on, sig_off
 from sage.ext.cplusplus cimport ccrepr, ccreadstr
 
-from inspect import ismethod
+IF PY_MAJOR_VERSION < 3:
+    from inspect import ismethod as is_unbound_method
+ELSE:
+    from inspect import isfunction as is_unbound_method
+
 import operator
 from . import ring
 import sage.rings.integer
@@ -12613,7 +12617,7 @@ cdef get_dynamic_class_for_function(unsigned serial):
             from sage.symbolic.function_factory import eval_on_operands
             from sage.cpython.getattr import getattr_from_other_class
             for name in dir(eval_methods):
-                if ismethod(getattr(eval_methods, name)):
+                if is_unbound_method(getattr(eval_methods, name)):
                     new_m = eval_on_operands(getattr_from_other_class(
                         func_class, eval_methods, name))
                     setattr(eval_methods, name, new_m)
