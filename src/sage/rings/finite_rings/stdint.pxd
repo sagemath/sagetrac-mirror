@@ -11,7 +11,12 @@ C Integer Types Used in Finite Rings
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from libc.stdint cimport int_fast32_t, int_fast64_t
+from libc.stdint cimport int_fast32_t, int_fast64_t, uint_fast32_t, uint_fast64_t
+
+ctypedef fused uint_fast:
+    uint_fast32_t
+    uint_fast64_t
+
 
 cdef extern from "integer_mod_limits.h":
     int_fast32_t INTEGER_MOD_INT32_LIMIT

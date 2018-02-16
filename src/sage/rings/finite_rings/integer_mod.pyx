@@ -72,33 +72,25 @@ from __future__ import print_function, division, absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
 
-from cpython.int cimport *
-from cpython.list cimport *
-from cpython.ref cimport *
-
 from libc.math cimport log, ceil
 
 from sage.libs.gmp.all cimport *
-
-import operator
 
 cdef bint use_32bit_type(int_fast64_t modulus):
     return modulus <= INTEGER_MOD_INT32_LIMIT
 
 from sage.arith.long cimport integer_check_long, integer_check_long_py, ERR_OVERFLOW
 
-import sage.rings.rational as rational
+cimport sage.rings.rational as rational
 from sage.libs.pari.all import pari, PariError
 import sage.rings.integer_ring as integer_ring
 
 import sage.interfaces.all
 
-import sage.rings.integer
 import sage.rings.integer_ring
 cimport sage.rings.integer
 from sage.rings.integer cimport Integer
 
-import sage.structure.element
 cimport sage.structure.element
 coerce_binop = sage.structure.element.coerce_binop
 from sage.structure.element cimport RingElement, ModuleElement, Element
@@ -459,6 +451,85 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         if (<Element>self)._parent._IntegerModRing_generic__order % R.order():
             raise ArithmeticError(f"reduction modulo {modulus!r} not defined")
         return R(self)
+
+    cpdef _pow_int(self, n):
+        """
+        Generic powering by an integer.
+
+        EXAMPLES::
+
+            sage: R = IntegerModRing(100)
+            sage: R(37)._pow_int(0)
+            1
+            sage: R(37)._pow_int(1)
+            37
+            sage: R(37)._pow_int(-1)
+            73
+            sage: R(37)._pow_int(10^100)
+            1
+            sage: R(37)._pow_int(-10^100)
+            1
+
+        ::
+
+            sage: p = 10^30 + 57
+            sage: R = IntegerModRing(p)
+            sage: R(2)._pow_int(p-1)
+            1
+
+        ::
+
+            sage: R = Integers(10^10)
+            sage: R(2)^1000
+            5668069376
+            sage: mod(3, 10^100)^-2
+            8888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888889
+            sage: mod(2, 10^100)^-2
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: inverse does not exist
+
+        TESTS:
+
+        We define ``0^0`` to be unity, :trac:`13894`::
+
+            sage: p = next_prime(11^10)
+            sage: R = Integers(p)
+            sage: R(0)^0
+            1
+
+        The value returned from ``0^0`` should belong to our ring::
+
+            sage: type(R(0)^0) == type(R(0))
+            True
+
+        When the modulus is ``1``, the only element in the ring is
+        ``0`` (and it is equivalent to ``1``), so we return that
+        instead::
+
+            sage: from sage.rings.finite_rings.integer_mod \
+            ....:     import IntegerMod_gmp
+            sage: zero = IntegerMod_gmp(Integers(1),0)
+            sage: type(zero)
+            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
+            sage: zero^0
+            0
+        """
+        res = self._new_c_fast(0)
+        cdef mpz_t res_mpz
+        cdef Integer base = self.lift()
+        cdef Integer exp = Integer(n)
+        try:
+            sig_on()
+            mpz_init(res_mpz)
+            mpz_powm(res_mpz, base.value, exp.value, self.__modulus.sageInteger.value)
+            sig_off()
+            res.set_from_mpz(res_mpz)
+        except FloatingPointError:
+            raise ZeroDivisionError(f"inverse does not exist")
+        finally:
+            mpz_clear(res_mpz)
+        return res
 
     def is_nilpotent(self):
         r"""
@@ -2127,58 +2198,6 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
     def __long__(self):
         return long(self.lift())
 
-    def __pow__(IntegerMod_gmp self, exp, m): # NOTE: m ignored, always use modulus of parent ring
-        """
-        EXAMPLES:
-            sage: R = Integers(10^10)
-            sage: R(2)^1000
-            5668069376
-            sage: p = next_prime(11^10)
-            sage: R = Integers(p)
-            sage: R(9876)^(p-1)
-            1
-            sage: mod(3, 10^100)^-2
-            8888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888889
-            sage: mod(2, 10^100)^-2
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: Inverse does not exist.
-
-        TESTS:
-
-        We define ``0^0`` to be unity, :trac:`13894`::
-
-            sage: p = next_prime(11^10)
-            sage: R = Integers(p)
-            sage: R(0)^0
-            1
-
-        The value returned from ``0^0`` should belong to our ring::
-
-            sage: type(R(0)^0) == type(R(0))
-            True
-
-        When the modulus is ``1``, the only element in the ring is
-        ``0`` (and it is equivalent to ``1``), so we return that
-        instead::
-
-            sage: from sage.rings.finite_rings.integer_mod \
-            ....:     import IntegerMod_gmp
-            sage: zero = IntegerMod_gmp(Integers(1),0)
-            sage: type(zero)
-            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
-            sage: zero^0
-            0
-
-        """
-        cdef IntegerMod_gmp x = self._new_c()
-        sig_on()
-        try:
-            mpz_pow_helper(x.value, self.value, exp, self.__modulus.sageInteger.value)
-            return x
-        finally:
-            sig_off()
-
     def __invert__(IntegerMod_gmp self):
         """
         Return the multiplicative inverse of self.
@@ -2597,9 +2616,12 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         else:
             return self._new_c(self.ivalue >> (-k))
 
-    def __pow__(IntegerMod_int self, exp, m): # NOTE: m ignored, always use modulus of parent ring
+    cdef _pow_long(self, long n):
         """
-        EXAMPLES:
+        Fast powering by a C long.
+
+        EXAMPLES::
+
             sage: R = Integers(10)
             sage: R(2)^10
             4
@@ -2641,38 +2663,14 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: R = Integers(1)
             sage: R(0)^0
             0
-
         """
-        cdef long long_exp
-        cdef int_fast32_t res
-        cdef mpz_t res_mpz
-        if type(exp) is int and -100000 < PyInt_AS_LONG(exp) < 100000:
-            long_exp = PyInt_AS_LONG(exp)
-        elif type(exp) is Integer and mpz_cmpabs_ui((<Integer>exp).value, 100000) == -1:
-            long_exp = mpz_get_si((<Integer>exp).value)
+        cdef uint_fast32_t res
+        if n < 0:
+            res = mod_pow_int[uint_fast32_t](self.ivalue, -<unsigned long>n, self.__modulus.int32)
+            return ~self._new_c_fast(res)
         else:
-            sig_on()
-            try:
-                mpz_init(res_mpz)
-                base = self.lift()
-                mpz_pow_helper(res_mpz, (<Integer>base).value, exp, self.__modulus.sageInteger.value)
-                return self._new_c(mpz_get_ui(res_mpz))
-            finally:
-                mpz_clear(res_mpz)
-                sig_off()
-
-        if long_exp == 0 and self.ivalue == 0:
-            # Return 0 if the modulus is 1, otherwise return 1.
-            return self._new_c(self.__modulus.int32 != 1)
-        cdef bint invert = False
-        if long_exp < 0:
-            invert = True
-            long_exp = -long_exp
-        res = mod_pow_int(self.ivalue, long_exp, self.__modulus.int32)
-        if invert:
-            return ~self._new_c(res)
-        else:
-            return self._new_c(res)
+            res = mod_pow_int[uint_fast32_t](self.ivalue, n, self.__modulus.int32)
+            return self._new_c_fast(res)
 
     def __invert__(IntegerMod_int self):
         """
@@ -2859,7 +2857,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         if n > 100 and n % 4 == 3 and len(moduli) == 1 and moduli[0][1] == 1:
             if jacobi_int(self.ivalue, self.__modulus.int32) == 1:
                 # it's a non-zero square, sqrt(a) = a^(p+1)/4
-                i = mod_pow_int(self.ivalue, (self.__modulus.int32+1)/4, n)
+                i = mod_pow_int[uint_fast32_t](self.ivalue, (self.__modulus.int32+1)/4, n)
                 if i > n/2:
                     i = n-i
                 if all:
@@ -2990,48 +2988,6 @@ cdef int_fast32_t mod_inverse_int(int_fast32_t x, int_fast32_t n) except 0:
         t = next_t
         next_t = last_t - q * t
     raise ZeroDivisionError("Inverse does not exist.")
-
-
-cdef int_fast32_t mod_pow_int(int_fast32_t base, int_fast32_t exp, int_fast32_t n):
-    """
-    Returns base^exp mod n
-
-    For use in IntegerMod_int
-
-    EXAMPLES::
-
-        sage: z = Mod(2, 256)
-        sage: z^8
-        0
-
-    AUTHORS:
-
-    - Robert Bradshaw
-    """
-    cdef int_fast32_t prod, pow2
-    if exp <= 5:
-        if exp == 0: return 1
-        if exp == 1: return base
-        prod = base * base % n
-        if exp == 2: return prod
-        if exp == 3: return (prod * base) % n
-        if exp == 4: return (prod * prod) % n
-
-    pow2 = base
-    if exp % 2: prod = base
-    else: prod = 1
-    exp = exp >> 1
-    while(exp != 0):
-        pow2 = pow2 * pow2
-        if pow2 >= INTEGER_MOD_INT32_LIMIT: pow2 = pow2 % n
-        if exp % 2:
-            prod = prod * pow2
-            if prod >= INTEGER_MOD_INT32_LIMIT: prod = prod % n
-        exp = exp >> 1
-
-    if prod >= n:
-        prod = prod % n
-    return prod
 
 
 cdef int jacobi_int(int_fast32_t a, int_fast32_t m) except -2:
@@ -3388,9 +3344,12 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         else:
             return self._new_c(self.ivalue >> (-k))
 
-    def __pow__(IntegerMod_int64 self, exp, m): # NOTE: m ignored, always use modulus of parent ring
+    cdef _pow_long(self, long n):
         """
-        EXAMPLES:
+        Fast powering by a C long.
+
+        EXAMPLES::
+
             sage: R = Integers(10)
             sage: R(2)^10
             4
@@ -3443,42 +3402,14 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>
             sage: zero^0
             0
-
         """
-        cdef long long_exp
-        cdef int_fast64_t res
-        cdef mpz_t res_mpz
-        if type(exp) is int and -100000 < PyInt_AS_LONG(exp) < 100000:
-            long_exp = PyInt_AS_LONG(exp)
-        elif type(exp) is Integer and mpz_cmpabs_ui((<Integer>exp).value, 100000) == -1:
-            long_exp = mpz_get_si((<Integer>exp).value)
+        cdef uint_fast64_t res
+        if n < 0:
+            res = mod_pow_int[uint_fast64_t](self.ivalue, -<unsigned long>n, self.__modulus.int64)
+            return ~self._new_c_fast(res)
         else:
-            sig_on()
-            try:
-                mpz_init(res_mpz)
-                base = self.lift()
-                mpz_pow_helper(res_mpz, (<Integer>base).value, exp, self.__modulus.sageInteger.value)
-                if mpz_fits_ulong_p(res_mpz):
-                    res = mpz_get_ui(res_mpz)
-                else:
-                    res = mpz_get_pyintlong(res_mpz)
-                return self._new_c(res)
-            finally:
-                mpz_clear(res_mpz)
-                sig_off()
-
-        if long_exp == 0 and self.ivalue == 0:
-            # Return 0 if the modulus is 1, otherwise return 1.
-            return self._new_c(self.__modulus.int64 != 1)
-        cdef bint invert = False
-        if long_exp < 0:
-            invert = True
-            long_exp = -long_exp
-        res = mod_pow_int64(self.ivalue, long_exp, self.__modulus.int64)
-        if invert:
-            return self._new_c(mod_inverse_int64(res, self.__modulus.int64))
-        else:
-            return self._new_c(res)
+            res = mod_pow_int[uint_fast64_t](self.ivalue, n, self.__modulus.int64)
+            return self._new_c_fast(res)
 
     def __invert__(IntegerMod_int64 self):
         """
@@ -3573,28 +3504,54 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             g = 0
         return self._new_c(g)
 
+
 ### Helper functions
 
-cdef mpz_pow_helper(mpz_t res, mpz_t base, object exp, mpz_t modulus):
-    cdef bint invert = False
-    cdef long long_exp
+cdef uint_fast mod_pow_int(uint_fast base, uint_fast exp, uint_fast n):
+    """
+    Returns base^exp mod n
 
-    if type(exp) is int:
-        long_exp = PyInt_AS_LONG(exp)
-        if long_exp < 0:
-            long_exp = -long_exp
-            invert = True
-        mpz_powm_ui(res, base, long_exp, modulus)
+    EXAMPLES::
+
+        sage: z = Mod(2, 256)
+        sage: z^8
+        0
+
+    AUTHORS:
+
+    - Robert Bradshaw, Jeroen Demeyer
+    """
+    if n == 1:
+        return 0
+
+    # Largest number n such that n^2 fits in the type
+    cdef uint_fast LIMIT = ((<uint_fast>1) << (sizeof(uint_fast) // 2)) - 1
+
+    # Treat least significant bit
+    cdef uint_fast prod
+    if exp % 2:
+        prod = base
     else:
-        if type(exp) is not Integer:
-            exp = Integer(exp)
-        if mpz_sgn((<Integer>exp).value) < 0:
-            exp = -exp
-            invert = True
-        mpz_powm(res, base, (<Integer>exp).value, modulus)
-    if invert:
-        if not mpz_invert(res, res, modulus):
-            raise ZeroDivisionError("Inverse does not exist.")
+        prod = 1
+    exp >>= 1
+    if not exp:
+        return prod
+
+    cdef uint_fast pow2 = base
+    while True:
+        pow2 *= pow2
+        if pow2 > LIMIT:
+            pow2 %= n
+        if exp % 2:
+            prod *= pow2
+            if exp == 1:
+                # We must reach this: exp > 0 when entering the loop and
+                # if we keep shifting right, eventually exp will be 1.
+                return prod % n
+            if prod > LIMIT:
+                prod %= n
+        exp >>= 1
+
 
 cdef int_fast64_t gcd_int64(int_fast64_t a, int_fast64_t b):
     """
@@ -3648,42 +3605,6 @@ cdef int_fast64_t mod_inverse_int64(int_fast64_t x, int_fast64_t n) except 0:
         t = next_t
         next_t = last_t - q * t
     raise ZeroDivisionError("Inverse does not exist.")
-
-
-cdef int_fast64_t mod_pow_int64(int_fast64_t base, int_fast64_t exp, int_fast64_t n):
-    """
-    Returns base^exp mod n
-
-    For use in IntegerMod_int64
-
-    AUTHORS:
-
-    - Robert Bradshaw
-    """
-    cdef int_fast64_t prod, pow2
-    if exp <= 5:
-        if exp == 0: return 1
-        if exp == 1: return base
-        prod = base * base % n
-        if exp == 2: return prod
-        if exp == 3: return (prod * base) % n
-        if exp == 4: return (prod * prod) % n
-
-    pow2 = base
-    if exp % 2: prod = base
-    else: prod = 1
-    exp = exp >> 1
-    while(exp != 0):
-        pow2 = pow2 * pow2
-        if pow2 >= INTEGER_MOD_INT64_LIMIT: pow2 = pow2 % n
-        if exp % 2:
-            prod = prod * pow2
-            if prod >= INTEGER_MOD_INT64_LIMIT: prod = prod % n
-        exp = exp >> 1
-
-    if prod >= n:
-        prod = prod % n
-    return prod
 
 
 cdef int jacobi_int64(int_fast64_t a, int_fast64_t m) except -2:
