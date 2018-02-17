@@ -98,9 +98,9 @@ def load(filename, globals, attach=False):
         sage: t = tmp_filename(ext='.py')
         sage: _ = open(t,'w').write("print 'hi', 2/3; z = -2/7")
         sage: z = 1
-        sage: sage.repl.load.load(t, globals())  # optional - python2
+        sage: sage.repl.load.load(t, globals())  # py2
         hi 0
-        sage: z  # optional - python2
+        sage: z  # py2
         -1
 
     A ``.sage`` file *is* preparsed::
@@ -203,7 +203,7 @@ def load(filename, globals, attach=False):
 
     if filename.lower().startswith(('http://', 'https://')):
         if attach:
-            # But see http://en.wikipedia.org/wiki/HTTP_ETag for how
+            # But see https://en.wikipedia.org/wiki/HTTP_ETag for how
             # we will do this.
             # http://www.diveintopython.net/http_web_services/etags.html
             raise NotImplementedError("you can't attach a URL")

@@ -334,7 +334,7 @@ def line_graph(self, labels=True):
          ((1, 3, None), (3, 4, None), None),
          ((2, 3, None), (3, 4, None), None)]
 
-    Tests:
+    TESTS:
 
     :trac:`13787`::
 
@@ -574,13 +574,14 @@ def root_graph(g, verbose = False):
             print("Added clique", S)
 
     # Deal with even triangles
-    for u,v,w in even_triangles:
+    for u, v, w in even_triangles:
 
-        # According to Beineke, we must go through all even triangles, and for
-        # each triangle uvw consider its three pairs of adjacent verties uv, vw,
-        # wu. For all pairs xy among those such that xy do not appear together
-        # in any clique we have found so far, we add xy to the list of cliques
-        # describing our covering.
+        # According to Beineke, we must go through all even triangles,
+        # and for each triangle uvw consider its three pairs of
+        # adjacent vertices uv, vw, wu. For all pairs xy among those
+        # such that xy do not appear together in any clique we have
+        # found so far, we add xy to the list of cliques describing
+        # our covering.
 
         for x,y in [(u,v), (v,w), (w,u)]:
 

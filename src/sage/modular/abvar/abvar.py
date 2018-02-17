@@ -372,10 +372,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: J0(33)[0] >= J0(33)[1]
             False
         """
-        if not isinstance(other, ModularAbelianVariety_abstract):
-            return NotImplementedError
         if self is other:
             return rich_to_bool(op, 0)
+        if not isinstance(other, ModularAbelianVariety_abstract):
+            return NotImplemented
 
         lx = self.groups()
         rx = other.groups()
@@ -409,8 +409,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         # NOTE!! having the same newform level, isogeny class number,
         # and degen_t does not imply two abelian varieties are equal.
         # See the docstring for self.label.
-
-        return richcmp(self.lattice(), other.lattice(), op)
+        return self.lattice()._echelon_matrix_richcmp(other.lattice(), op)
 
     def __radd__(self,other):
         """
