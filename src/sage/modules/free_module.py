@@ -1306,6 +1306,8 @@ done from the right side.""")
         if not (self._inner_product_is_dot_product()
                 and other._inner_product_is_dot_product()):
             # This only affects free_quadratic_modules
+            if self.inner_product_ring() != other.inner_product_ring():
+                return False
             if self.inner_product_matrix() != other.inner_product_matrix():
                 return False
         from sage.modules.quotient_module import FreeModule_ambient_field_quotient
@@ -2121,6 +2123,31 @@ done from the right side.""")
             [0 0 1]
         """
         return sage.matrix.matrix_space.MatrixSpace(self.base_ring(), self.degree(), sparse=True)(1)
+
+    def inner_product_ring(self):
+        r"""
+        Return the codomain of the inner product.
+
+        EXAMPLES::
+
+            sage: G = Matrix(CC, 1, [1+ I])
+            sage: F = FreeQuadraticModule(QQ,1,G)
+            sage: F.inner_product_ring()
+            Complex Field with 53 bits of precision
+
+        TESTS::
+
+            sage: A = ZZ^2
+            sage: A.inner_product_ring()
+            Integer Ring
+            sage: V = A.span([(1,1/3)])
+            sage: V.inner_product_ring()
+            Rational Field
+        """
+        if self._inner_product_is_dot_product():
+            return self.coordinate_ring()
+        else:
+            return self.inner_product_matrix().base_ring()
 
     def _inner_product_is_dot_product(self):
         """
