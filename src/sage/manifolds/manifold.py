@@ -307,14 +307,11 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Lee11] \J.M. Lee : *Introduction to Topological Manifolds*,
-   2nd ed., Springer (New York) (2011).
-.. [Lee13] \J.M. Lee : *Introduction to Smooth Manifolds*,
-   2nd ed., Springer (New York) (2013)
-.. [KN63] \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
-   vol. 1, Interscience Publishers (New York) (1963).
-.. [Huybrechts05] \D. Huybrechts : *Complex Geometry*,
-   Springer (Berlin) (2005).
+- [Lee2011]_
+- [Lee2013]_
+- [KN1963]_
+- [Huy2005]_
+
 """
 
 #*****************************************************************************
@@ -592,6 +589,9 @@ class TopologicalManifold(ManifoldSubset):
         self._zero_scalar_field = self._scalar_field_algebra.zero()
         # The unit scalar field:
         self._one_scalar_field = self._scalar_field_algebra.one()
+        # The current calculus method on the manifold
+        #   (to be changed by set_calculus_method)
+        self._calculus_method = 'SR'
 
     def _repr_(self):
         r"""
@@ -722,7 +722,7 @@ class TopologicalManifold(ManifoldSubset):
                         break
                 else:
                     # A generic element with specific coordinates could not be
-                    # automatically generated, due to too complex cooordinate
+                    # automatically generated, due to too complex coordinate
                     # conditions. An element without any coordinate set is
                     # returned instead:
                     return self.element_class(self)
@@ -871,12 +871,13 @@ class TopologicalManifold(ManifoldSubset):
                                    self._structure, ambient=self._manifold,
                                    latex_name=latex_name,
                                    start_index=self._sindex)
+        resu._calculus_method = self._calculus_method
         resu._supersets.update(self._supersets)
         for sd in self._supersets:
             sd._subsets.add(resu)
         self._top_subsets.add(resu)
         # Charts on the result from the coordinate definition:
-        for chart, restrictions in coord_def.iteritems():
+        for chart, restrictions in coord_def.items():
             if chart not in self._atlas:
                 raise ValueError("the {} does not belong to ".format(chart) +
                                  "the atlas of {}".format(self))
@@ -1401,7 +1402,7 @@ class TopologicalManifold(ManifoldSubset):
         """
         return bool(self._covering_charts)
 
-    def chart(self, coordinates='', names=None):
+    def chart(self, coordinates='', names=None, calc_method=None):
         r"""
         Define a chart, the domain of which is the manifold.
 
@@ -1425,6 +1426,13 @@ class TopologicalManifold(ManifoldSubset):
           ``coordinates`` is not provided; it must then be a tuple containing
           the coordinate symbols (this is guaranteed if the shortcut operator
           ``<,>`` is used)
+        - ``calc_method`` -- (default: ``None``) string defining the calculus
+          method to be used on this chart; must be one of
+
+          - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+          - ``'sympy'``: SymPy
+          - ``None``: the current calculus method defined on the manifold is
+            used (cf. :meth:`set_calculus_method`)
 
         The coordinates declared in the string ``coordinates`` are
         separated by ``' '`` (whitespace) and each coordinate has at most three
@@ -1513,7 +1521,10 @@ class TopologicalManifold(ManifoldSubset):
         especially regarding the coordinates ranges and restrictions.
 
         """
-        return self._structure.chart(self, coordinates=coordinates, names=names)
+        if calc_method is None:
+            calc_method = self._calculus_method
+        return self._structure.chart(self, coordinates=coordinates,
+                                     names=names, calc_method=calc_method)
 
     def is_open(self):
         """
@@ -1522,7 +1533,7 @@ class TopologicalManifold(ManifoldSubset):
         In the present case (manifold or open subset of it), always
         return ``True``.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: M.is_open()
@@ -1774,16 +1785,16 @@ class TopologicalManifold(ManifoldSubset):
         """
         return self._one_scalar_field
 
-    options = GlobalOptions(name='manifolds',
-        module = 'sage.manifolds', option_class = 'TopologicalManifold',
-        doc=r"""
+    class options(GlobalOptions):
+        r"""
         Sets and displays the options for manifolds. If no parameters
         are set, then the function returns a copy of the options dictionary.
 
         The ``options`` to manifolds can be accessed as the method
         :obj:`Manifold.options`.
-        """,
-        end_doc=r"""
+
+        @OPTIONS@
+
         EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
@@ -1803,9 +1814,10 @@ class TopologicalManifold(ManifoldSubset):
 
             sage: Manifold.options.textbook_output=False
             sage: f
-            D[0](g)(x, y) + D[1](g)(x, y)
+            diff(g(x, y), x) + diff(g(x, y), y)
             sage: latex(f)
-            D[0]\left(g\right)\left(x, y\right) + D[1]\left(g\right)\left(x, y\right)
+            \frac{\partial}{\partial x}g\left(x, y\right)
+             + \frac{\partial}{\partial y}g\left(x, y\right)
             sage: Manifold.options._reset()
 
         If there is a clear understanding that `u` and `v` are functions of
@@ -1822,14 +1834,16 @@ class TopologicalManifold(ManifoldSubset):
             sage: f
             u*v
             sage: M.options._reset()
-        """,
-        textbook_output=dict(default=True,
+        """
+        NAME = 'manifolds'
+        module = 'sage.manifolds'
+        option_class = 'TopologicalManifold'
+        textbook_output = dict(default=True,
                              description='textbook-like output instead of the Pynac output for derivatives',
-                             checker=lambda x: isinstance(x, bool)),
-        omit_function_arguments=dict(default=False,
-                                     description='Determine if the arguments of symbolic functions are printed',
-                                     checker=lambda x: isinstance(x, bool)),
-    )
+                             checker=lambda x: isinstance(x, bool))
+        omit_function_arguments = dict(default=False,
+                                     description='Determine whether the arguments of symbolic functions are printed',
+                                     checker=lambda x: isinstance(x, bool))
 
     def _Hom_(self, other, category=None):
         r"""
@@ -2133,6 +2147,63 @@ class TopologicalManifold(ManifoldSubset):
         """
         return Hom(self, self).one()
 
+    def set_calculus_method(self, method):
+        r"""
+        Set the calculus method to be used for coordinate computations on this
+        manifold.
+
+        The provided method is transmitted to all coordinate charts defined on
+        the manifold.
+
+        INPUT:
+
+        - ``method`` -- string specifying the method to be used for
+          coordinate computations on this manifold; one of
+
+          - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+          - ``'sympy'``: SymPy
+
+        The default calculus method relies on Sage's Symbolic Ring::
+
+            sage: M = Manifold(3, 'M', structure='topological')
+            sage: X.<x,y,z> = M.chart()
+            sage: f = M.scalar_field(sin(x)*cos(y) + z^2, name='F')
+            sage: f.expr()
+            z^2 + cos(y)*sin(x)
+            sage: type(f.expr())
+            <type 'sage.symbolic.expression.Expression'>
+            sage: parent(f.expr())
+            Symbolic Ring
+            sage: f.display()
+            F: M --> R
+               (x, y, z) |--> z^2 + cos(y)*sin(x)
+
+        Changing to SymPy::
+
+            sage: M.set_calculus_method('sympy')
+            sage: f.expr()
+            z**2 + sin(x)*cos(y)
+            sage: type(f.expr())
+            <class 'sympy.core.add.Add'>
+            sage: parent(f.expr())
+            <class 'sympy.core.add.Add'>
+            sage: f.display()
+            F: M --> R
+               (x, y, z) |--> z**2 + sin(x)*cos(y)
+
+        Changing back to the Symbolic Ring::
+
+            sage: M.set_calculus_method('SR')
+            sage: f.display()
+            F: M --> R
+               (x, y, z) |--> z^2 + cos(y)*sin(x)
+
+        """
+        self._calculus_method = method
+        for chart in self._atlas :
+            chart.set_calculus_method(method)
+
+
 
 ##############################################################################
 ## Constructor function
@@ -2246,7 +2317,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         +Infinity
 
     Actually, since ``'smooth'`` is the default value of the parameter
-    ``structure``, the creation of a real smooth manifold can be shorten to::
+    ``structure``, the creation of a real smooth manifold can be shortened to::
 
         sage: M = Manifold(3, 'M'); M
         3-dimensional differentiable manifold M

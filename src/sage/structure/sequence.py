@@ -77,6 +77,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 ##########################################################################
 from __future__ import print_function
+from six.moves import range
 
 from sage.misc.latex import list_function as list_latex_function
 import sage.structure.sage_object
@@ -114,7 +115,7 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
       after each comma when calling ``str()`` on this sequence.
 
     - ``use_sage_types`` -- (default: False) if True, coerce the
-       built-in Python numerical types int, long, float, complex to the
+       built-in Python numerical types int, float, complex to the
        corresponding Sage types (this makes functions like vector()
        more flexible)
 
@@ -126,7 +127,7 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
 
         sage: v = Sequence(range(10))
         sage: v.universe()
-        <type 'int'>
+        <... 'int'>
         sage: v
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
@@ -298,7 +299,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
       after each comma when printing this sequence.
 
     - ``use_sage_types`` -- (default: False) if True, coerce the
-       built-in Python numerical types int, long, float, complex to the
+       built-in Python numerical types int, float, complex to the
        corresponding Sage types (this makes functions like vector()
        more flexible)
 
@@ -310,7 +311,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
 
         sage: v = Sequence(range(10))
         sage: v.universe()
-        <type 'int'>
+        <... 'int'>
         sage: v
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
@@ -451,7 +452,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         self.__universe = universe
         if check:
             x = list(x)
-            for i in xrange(len(x)):
+            for i in range(len(x)):
                 try:
                     x[i] = universe(x[i])
                 except TypeError:
@@ -498,7 +499,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: v
             [1, 5, 3, 4]
             sage: type(v[2])
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
         """
         self._require_mutable()
         if isinstance(n, slice):
@@ -552,7 +553,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: v = Sequence([1/3,2,3,4])
             sage: v.append(4)
             sage: type(v[4])
-            <type 'sage.rings.rational.Rational'>
+            <... 'sage.rings.rational.Rational'>
         """
         self._require_mutable()
         y = self.__universe(x)
@@ -616,14 +617,12 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         self._require_mutable()
         list.remove(self, value)
 
-    def sort(self, cmp=None, key=None, reverse=False):
+    def sort(self, key=None, reverse=False):
         """
         Sort this list *IN PLACE*.
 
         INPUT:
 
-        - ``cmp`` - see Python ``list sort``
-        
         - ``key`` - see Python ``list sort``
         
         - ``reverse`` - see Python ``list sort``
@@ -636,13 +635,9 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             [1/5, 2, 3]
             sage: B.sort(reverse=True); B
             [3, 2, 1/5]
-            sage: B.sort(cmp = lambda x,y: cmp(y,x)); B
-            [3, 2, 1/5]
-            sage: B.sort(cmp = lambda x,y: cmp(y,x), reverse=True); B
-            [1/5, 2, 3]
         """
         self._require_mutable()
-        list.sort(self, cmp=cmp, key=key, reverse=reverse)
+        list.sort(self, key=key, reverse=reverse)
 
     def __hash__(self):
         """
@@ -770,7 +765,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
 
         To make this object immutable use :meth:`set_immutable`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = Sequence([1,2,3,4/5])
             sage: v[0] = 5
@@ -796,7 +791,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             True
             sage: a[0] = 100
             sage: type(a[0])
-            <type 'sage.rings.rational.Rational'>
+            <... 'sage.rings.rational.Rational'>
             sage: a.set_immutable()
             sage: a[0] = 50
             Traceback (most recent call last):

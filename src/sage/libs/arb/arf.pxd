@@ -1,9 +1,9 @@
-# distutils: libraries = arb
+# distutils: libraries = gmp flint arb
 
 from sage.libs.arb.types cimport *
 from sage.libs.gmp.types cimport mpz_t
 from sage.libs.flint.types cimport fmpz_t
-from sage.libs.mpfr cimport mpfr_t, mpfr_rnd_t
+from sage.libs.mpfr.types cimport mpfr_t, mpfr_rnd_t
 
 cdef extern from "arf.h":
     void arf_init(arf_t x)

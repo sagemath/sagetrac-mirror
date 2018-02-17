@@ -28,26 +28,12 @@ AC_PREREQ([2.69])
 AC_DEFUN([SAGE_VERSION], m4_esyscmd_s([. src/bin/sage-version.sh && echo $SAGE_VERSION]))
 AC_INIT([Sage], SAGE_VERSION, [sage-devel@googlegroups.com])
 
-AC_COPYRIGHT([GPL version 3])
-AC_CONFIG_SRCDIR([configure.ac])
-AC_CONFIG_AUX_DIR([config])
-
-dnl We don't really use automake, but configure needs aclocal and the
-dnl automake library files (like config.guess).
-AM_INIT_AUTOMAKE([1.9.6 foreign])
-
-# Allow "configure --disable-maintainer-mode" to disable timestamp checking
-AM_MAINTAINER_MODE([enable])
-
-dnl Make sure the path to our own m4 macros is always properly set 
-dnl and doesn't depend on how autoconf is called.
-AC_CONFIG_MACRO_DIR([m4])
-
-#---------------------------------------------------------
+# The following needs to be immediately after calling AC_INIT
+#------------------------------------------------------------
 # We need to run this configure script with bash
-if test -z "$BASH_VERSION$CONFIG_SHELL"
+if test -z "$BASH_VERSION"
 then
-    CONFIG_SHELL=bash
+    CONFIG_SHELL=`command -v bash`
     export CONFIG_SHELL
     if $CONFIG_SHELL -c "exit 0"
     then
@@ -67,6 +53,27 @@ then
     fi
 fi
 
+
+AC_COPYRIGHT([GPL version 3])
+AC_CONFIG_SRCDIR([configure.ac])
+AC_CONFIG_AUX_DIR([config])
+
+dnl This is the hierarchy where everything gets installed (SAGE_LOCAL).
+dnl By default, it is the subdirectory local, but the user
+dnl can override it by supplying --prefix=....
+AC_PREFIX_DEFAULT(`pwd -P`/local)
+
+dnl We don't really use automake, but configure needs aclocal and the
+dnl automake library files (like config.guess).
+AM_INIT_AUTOMAKE([1.9.6 foreign])
+
+# Allow "configure --disable-maintainer-mode" to disable timestamp checking
+AM_MAINTAINER_MODE([enable])
+
+dnl Make sure the path to our own m4 macros is always properly set
+dnl and doesn't depend on how autoconf is called.
+AC_CONFIG_MACRO_DIR([m4])
+
 #---------------------------------------------------------
 #
 # This is essentially the configure part of the old "install" file.
@@ -75,15 +82,20 @@ fi
 #
 
 ########################################################################
-# Set various environment variables
+# Set various environment variables (needed at configure time)
 ########################################################################
 
-# Assume current directory is SAGE_ROOT
+# Assume current directory is SAGE_ROOT.
 SAGE_ROOT=`pwd -P`
+
+SAGE_LOCAL="$prefix"
+# The following line is necessary because the code below
+# inspects stuff in the installation prefix at configure time.
+# This is nonstandard.
+if test "$SAGE_LOCAL" = NONE; then
+    SAGE_LOCAL=local
+fi
 SAGE_SRC="$SAGE_ROOT/src"
-SAGE_LOCAL="$SAGE_ROOT/local"
-SAGE_SHARE="$SAGE_LOCAL/share"
-SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 
 #---------------------------------------------------------
@@ -200,7 +212,7 @@ then
     AC_MSG_NOTICE([On some systems it can be found in /usr/ccs/bin])
     AC_MSG_NOTICE([See also http://www.gnu.org/software/m4/])
     AC_MSG_ERROR([Exiting, as the macro processor 'm4' can not be found.])
-fi 
+fi
 
 AC_CHECK_PROG(found_ranlib, ranlib, yes, no)
 if test x$found_ranlib != xyes
@@ -294,6 +306,16 @@ AC_CACHE_CHECK([for git], [ac_cv_path_GIT], [
     [${ac_path_GIT} --version >/dev/null 2>/dev/null && ac_cv_path_GIT=${ac_path_GIT}],
     [need_to_install_git=yes; ac_cv_path_GIT=no])])
 
+# Yasm is only needed on x86(_64) systems; check also for system yasm
+# which must support "adox" (new Skylake instruction)
+need_to_install_yasm=no
+AC_CACHE_CHECK([for yasm], [ac_cv_path_YASM],
+    AS_CASE("$host_cpu",
+        [i@<:@0-9@:>@86|x86_64], [
+        AC_PATH_PROGS_FEATURE_CHECK([YASM], [yasm],
+        [[{ echo "BITS 64"; echo "adox rax, rax"; } | ${ac_path_YASM} - -o /dev/null >/dev/null 2>/dev/null && ac_cv_path_YASM=${ac_path_YASM}]],
+        [need_to_install_yasm=yes; ac_cv_path_YASM=no])],
+        [ac_cv_path_YASM="not needed for $host_cpu"]))
 
 ###############################################################################
 # Check C/C++/Fortran compilers
@@ -333,10 +355,25 @@ AC_DEFUN([SAGE_MUST_INSTALL_GCC], [
 
 # By default, do not install GCC
 need_to_install_gcc=no
+# or GFORTRAN
+need_to_install_gfortran=no
 
 if test -f "$SAGE_LOCAL/bin/gcc"; then
     # Special value for SAGE_INSTALL_GCC if GCC is already installed
     SAGE_INSTALL_GCC=exists
+
+    # Check whether it actually works...
+    # See https://trac.sagemath.org/ticket/24599
+    if test -x "$SAGE_LOCAL/bin/g++"; then
+        echo '#include <complex>' >conftest.cpp
+        echo 'auto inf = 1.0 / std::complex<double>();' >>conftest.cpp
+
+        if ! bash -c "source '$SAGE_LOCAL/bin/sage-env' && g++ -O3 -c -o conftest.o conftest.cpp"; then
+            SAGE_INSTALL_GCC=yes
+            SAGE_MUST_INSTALL_GCC([installed g++ is broken])
+        fi
+        rm -f conftest.*
+    fi
 elif test -n "$SAGE_INSTALL_GCC"; then
     # Check the value of the environment variable SAGE_INSTALL_GCC
     case "$SAGE_INSTALL_GCC" in
@@ -350,25 +387,58 @@ elif test -n "$SAGE_INSTALL_GCC"; then
 fi
 
 
-AC_LANG(C)
 AC_PROG_CC()
 AC_PROG_CPP()
-
-AC_LANG(C++)
 AC_PROG_CXX()
-
-AC_LANG(Fortran)
 AC_PROG_FC()
+
+AC_SUBST(CC)
+AC_SUBST(CXX)
+AC_SUBST(FC)
+
+# Figuring out if we are using clang instead of gcc.
+AX_COMPILER_VENDOR()
+IS_REALLY_GCC=no
+if test "x$ax_cv_c_compiler_vendor" = xgnu ; then
+    IS_REALLY_GCC=yes
+fi
+
+# On darwin, also set the objective C/C++ compilers
+# Checking on all platforms doesn't hurt and stops
+# configure from sending an error when run on non-darwin.
+AC_PROG_OBJC()
+AC_PROG_OBJCXX()
+AC_SUBST(OBJC)
+AC_SUBST(OBJCXX)
 
 if test "x$CXX" = x
 then
     AC_MSG_ERROR([a C++ compiler is missing])
 fi
 
+###############################################################################
+# Check libraries
+###############################################################################
+
+# Only install curl (and libcurl) if we cannot find version 7.22 or
+# later, since that is what R needs.
+need_to_install_curl=no
+AC_CACHE_CHECK([for curl 7.22], [ac_cv_path_CURL], [
+    AC_PATH_PROGS_FEATURE_CHECK(CURL, [curl],
+    [${ac_path_CURL}-config --checkfor 7.22 >/dev/null 2>/dev/null && ac_cv_path_CURL=${ac_path_CURL}],
+    [need_to_install_curl=yes; ac_cv_path_CURL=no])])
+
 
 ###############################################################################
 # Check header files
 ###############################################################################
+
+# If (lib)curl is installed, we need to check for the curl header
+# file, too.
+if test $need_to_install_curl = no;
+then
+    AC_CHECK_HEADER([curl/curl.h], [], [need_to_install_curl=yes])
+fi
 
 # complex.h is one that might not exist on older systems.
 AC_LANG(C++)
@@ -397,12 +467,16 @@ AC_LANG(C)
 if test -z "$CC"; then
     SAGE_MUST_INSTALL_GCC([a C compiler is missing])
 else
+    # Save compiler before checking for C99 support
+    save_CC=$CC
     # Check that we can compile C99 code
     AC_PROG_CC_C99()
     if test "x$ac_cv_prog_cc_c99" = xno
     then
         SAGE_MUST_INSTALL_GCC([your C compiler cannot compile C99 code])
     fi
+    # restore original CC
+    CC=$save_CC
 fi
 
 # Check that the Fortran compiler accepts free-format source code
@@ -412,7 +486,7 @@ fi
 # not a working Fortran compiler.
 AC_LANG(Fortran)
 if test -z "$FC"; then
-    SAGE_MUST_INSTALL_GCC([a Fortran compiler is missing])
+    need_to_install_gfortran=yes
 else
    # see http://www.gnu.org/software/hello/manual/autoconf/Fortran-Compiler.html
    AC_FC_FREEFORM([],
@@ -420,7 +494,7 @@ else
    AC_MSG_NOTICE([Your Fortran compiler does not accept free-format source code])
    AC_MSG_NOTICE([which means the compiler is either seriously broken, or])
    AC_MSG_NOTICE([is too old to build Sage.])
-   SAGE_MUST_INSTALL_GCC([the Fortran compiler is not suitable])
+   need_to_install_gfortran=yes
    ])
 fi
 
@@ -436,7 +510,7 @@ elif test $need_to_install_gcc = yes; then
 elif test x$GCC != xyes; then
     SAGE_SHOULD_INSTALL_GCC([your C compiler isn't GCC (GNU C)])
 elif test x$GFC != xyes; then
-    SAGE_SHOULD_INSTALL_GCC([your Fortran compiler isn't GCC (GNU Fortran)])
+    need_to_install_gfortran=yes
 else
     # Since need_to_install_gcc is "no", we know that
     # at least C, C++ and Fortran compilers are available.
@@ -446,13 +520,15 @@ else
     AX_GCC_VERSION()
     AX_GXX_VERSION()
 
-    # Add the .0 because Debian/Ubuntu gives version numbers like
-    # 4.6 instead of 4.6.4 (Trac #18885)
-    case "$GXX_VERSION.0" in
-        [[0-3]].*|4.[[0-7]].*)
-            # Install our own GCC if the system-provided one is older than gcc-4.8.
-            SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old]);;
-    esac
+    if test $IS_REALLY_GCC = yes ; then
+        # Add the .0 because Debian/Ubuntu gives version numbers like
+        # 4.6 instead of 4.6.4 (Trac #18885)
+        case "$GXX_VERSION.0" in
+            [[0-3]].*|4.[[0-7]].*)
+                # Install our own GCC if the system-provided one is older than gcc-4.8.
+                SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old]);;
+        esac
+    fi
 
     # The following tests check that the version of the compilers
     # are all the same.
@@ -460,43 +536,7 @@ else
         SAGE_SHOULD_INSTALL_GCC([$CC ($GCC_VERSION) and $CXX ($GXX_VERSION) are not the same version])
     fi
 
-    # In the paragraph below, 'gfortran' is used to indicate the GNU Fortran
-    # compiler, though it might be called something else.
-
-    # It's not easily possible to determine the Fortran version, as
-    # gfortran -dumpversion did not until GCC 4.5 return just the
-    # the version number, but the same as gfortran --version
-    # for example:
-
-    # drkirkby@hawk:~$ gcc -dumpversion
-    # 4.3.4
-
-    # drkirkby@hawk:~$ g++ -dumpversion
-    # 4.3.4
-
-    # drkirkby@hawk:~$ gfortran -dumpversion
-    # GNU Fortran (GCC) 4.3.4
-    # Copyright (C) 2008 Free Software Foundation, Inc.
-    # GNU Fortran comes with NO WARRANTY, to the extent permitted by law.
-    # You may redistribute copies of GNU Fortran
-    # under the terms of the GNU General Public License.
-    # For more information about these matters, see the file named COPYING
-
-    # This behaviour is fixed in the gcc 4.5 branch. Since we need to
-    # support older versions of the compiler, we can't change this.
-
-    # But I would expect that the version will be on the output
-    # of the compiler followed by -dumpversion (e.g. fortran -dumpversion)
-
-    # So we grep for the known gcc version on the output of gfortran -dumpversion.
-    # and hope we find the same string. If so, they are almost certainly
-    # the same version.
-    fortran_version_string="`$FC -dumpversion | grep $GCC_VERSION 2>&1`"
-
-    if test "x$fortran_version_string" = x
-    then
-        SAGE_SHOULD_INSTALL_GCC([the Fortran compiler is not the same version as the C compiler])
-    fi
+    # assuming gfortran does work.
 fi
 
 
@@ -620,6 +660,11 @@ AC_MSG_ERROR([["found Fink in $FINK_PATH. Either:
     fi
 fi
 
+# if GCC needs to be installed GFORTRAN shouldn't be installed
+# GCC will provide GFORTRAN in that case
+if test $need_to_install_gcc = yes ; then
+    need_to_install_gfortran=no
+fi
 
 ###############################################################################
 # Create $SAGE_ROOT/build/make/Makefile starting from build/make/deps
@@ -638,8 +683,12 @@ cat >&7 <<EOF
 # Always use bash for make rules
 SHELL = `command -v bash`
 
+ifndef SAGE_SPKG_INST
+\$(error This Makefile needs to be invoked by build/make/install)
+endif
+
 # Directory to keep track of which packages are installed
-INST = `echo "$SAGE_SPKG_INST" | sed 's/ /\\\\ /g'`
+INST = \$(SAGE_SPKG_INST)
 
 # Aliases for optional packages selected at configure time
 EOF
@@ -679,16 +728,16 @@ fi
 # BLAS library
 AC_MSG_CHECKING([BLAS library])
 AC_ARG_WITH([blas],
-[AS_HELP_STRING([--with-blas=atlas],
-    [use ATLAS as BLAS library (default)])]
 [AS_HELP_STRING([--with-blas=openblas],
-    [use OpenBLAS as BLAS library])],,
-    [with_blas=atlas]  # default
+    [use OpenBLAS as BLAS library (default)])]
+[AS_HELP_STRING([--with-blas=atlas],
+    [use ATLAS as BLAS library])],,
+    [with_blas=openblas]  # default
 )
 
 case "$with_blas" in
-    atlas) true;;
-    openblas) need_to_install_atlas=no;;
+    openblas) true;;
+    atlas) need_to_install_openblas=no;;
     *) AC_MSG_ERROR([allowed values for --with-blas are 'atlas' and 'openblas']);;
 esac
 
@@ -860,24 +909,22 @@ echo >&7
 echo >&7
 
 
-echo >&7 'SCRIPT_SOURCES = \'
-for file in "$SAGE_SRC/bin/"*; do
-    echo >&7 "                 \$(SAGE_SRC)${file#$SAGE_SRC} \\"
-done
-echo >&7
+# We need sage-env-config to exist before running this.
+# TODO: fix this in Trac #21524
+touch "$SAGE_SRC/bin/sage-env-config"
+
 echo >&7 'SCRIPTS = \'
 for file in "$SAGE_SRC/bin/"*; do
-    echo >&7 "                 \$(SAGE_LOCAL)${file#$SAGE_SRC} \\"
-done
-echo >&7
-echo >&7 'EXTCODE_SOURCES = \'
-for file in `find "$SAGE_SRC"/ext -type f`; do
-    echo >&7 "                  \$(SAGE_SRC)${file#$SAGE_SRC} \\"
+    # Skip files with ".in" extension
+    ext=${file##*.}
+    if test "$ext" != in; then
+        echo >&7 "    \$(SAGE_LOCAL)${file#$SAGE_SRC} \\"
+    fi
 done
 echo >&7
 echo >&7 'EXTCODE = \'
 for file in `find "$SAGE_SRC"/ext -type f`; do
-    echo >&7 "                  \$(SAGE_EXTCODE)${file#$SAGE_SRC/ext} \\"
+    echo >&7 "    \$(SAGE_EXTCODE)${file#$SAGE_SRC/ext} \\"
 done
 echo >&7
 
@@ -931,10 +978,12 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
         DEPS=""
     fi
 
+    # Below we have to obscure A""M_V_at, or autoconf would complain:
+    # "error: possibly undefined macro: A""M_V_at"
     if [ "$TYPE" = pip ]; then
         # Special rules using PIP
         echo >&7 "$PKG_NAME:$DEPS"
-        echo >&7 "	sage-logger -p 'sage --pip install $PKG_NAME' \$(SAGE_LOGS)/$PKG_NAME.log"
+        echo >&7 "	\$(A""M_V_at)sage-logger -p 'sage --pip install $PKG_NAME' \$(SAGE_LOGS)/$PKG_NAME.log"
         echo >&7
 
         # Add a target to remove the "installed" file for "sage -f"
@@ -944,21 +993,21 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
     elif [ "$TYPE" = script ]; then
         # Just run the spkg-install script
         echo >&7 "$PKG_NAME:$DEPS"
-        echo >&7 "	cd '$SAGE_ROOT' && \\"
+        echo >&7 "	\$(A""M_V_at)cd '$SAGE_ROOT' && \\"
         echo >&7 "	    source '$SAGE_ROOT/src/bin/sage-env' && \\"
         echo >&7 "	    sage-logger -p '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-install' \$(SAGE_LOGS)/$PKG_NAME.log"
         echo >&7
 
         # Just run the spkg-uninstall script if it exists
         echo >&7 "$PKG_NAME-clean:"
-        echo >&7 "	-cd '$SAGE_ROOT' && \\"
+        echo >&7 "	-\$(A""M_V_at)cd '$SAGE_ROOT' && \\"
         echo >&7 "	    source '$SAGE_ROOT/src/bin/sage-env' && \\"
         echo >&7 "	    '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-uninstall'"
         echo >&7
     else
         # Normal Sage packages
         echo >&7 "\$(INST)/$PKG_VERSION:$DEPS"
-        echo >&7 "	+sage-logger -p '\$(SAGE_SPKG) $PKG_VERSION' '\$(SAGE_LOGS)/$PKG_VERSION.log'"
+        echo >&7 "	+\$(A""M_V_at)sage-logger -p '\$(SAGE_SPKG) $PKG_VERSION' '\$(SAGE_LOGS)/$PKG_VERSION.log'"
         echo >&7
 
         # Add a target with just the bare package name for "sage -i"
@@ -982,16 +1031,13 @@ exec 7>&-
 
 
 dnl AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([build/make/Makefile-auto])
+AC_CONFIG_FILES([build/make/Makefile-auto src/Makefile])
+AC_CONFIG_FILES([src/bin/sage-env-config])
 AC_CONFIG_MACRO_DIR([m4])
 
 dnl Create basic directories needed for Sage
 AC_CONFIG_COMMANDS(mkdirs,
     [
-        SAGE_LOGS=${ac_abs_top_builddir}/logs/pkgs
-        SAGE_LOCAL=${ac_abs_top_builddir}/local
-        SAGE_SHARE=${ac_abs_top_builddir}/local/share
-        SAGE_INST=${ac_abs_top_builddir}/local/var/lib/sage/installed
         for d in "$SAGE_LOGS" "$SAGE_LOCAL" \
             "$SAGE_LOCAL/bin" "$SAGE_LOCAL/etc" \
             "$SAGE_LOCAL/include" "$SAGE_LOCAL/lib" \
@@ -1009,6 +1055,12 @@ AC_CONFIG_COMMANDS(mkdirs,
             AC_MSG_NOTICE([[creating symbolic link lib64 -> lib]])
             ln -s lib "$SAGE_LOCAL/lib64"
         fi
+    ],
+    [
+        SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
+        SAGE_LOCAL="$SAGE_LOCAL"
+        SAGE_SHARE="$SAGE_LOCAL/share"
+        SAGE_INST="$SAGE_SPKG_INST"
     ])
 
 AC_OUTPUT()
