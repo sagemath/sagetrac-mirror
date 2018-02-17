@@ -1559,9 +1559,11 @@ class SBox(SageObject):
         correctness of results, since the ordering of bits in the elements of
         Sage ``VectorSpace()`` use little-endian::
 
-            sage: S = mq.SBox(0, 1, 3, 6, 7, 4, 5, 2, big_endian=False)
+            sage: from sage.crypto.sbox import SBox
+            sage: S = SBox(0, 1, 3, 6, 7, 4, 5, 2, big_endian=False)
             sage: B = S.nonlinear_invariants()
-            sage: for f in B: print f
+            sage: for f in B:
+            ....:     print(f)
             0
             x0*x1*x2 + x0*x1 + x0*x2 + x0 + x1*x2 + x1 + x2
             x0*x1*x2 + x0*x1 + x0*x2 + x0 + 1
