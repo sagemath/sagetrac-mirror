@@ -500,7 +500,7 @@ cdef class BooleanFunction(SageObject):
         bitset_copy(anf, self._truth_table)
         reed_muller(anf.bits, ZZ(anf.limbs).exact_log(2))
         # TODO: this is a hack, introduced in #24748, because BooleanPolynomialRing leaks memory
-        from sage.rings.polynomial.pbori import BooleanPolynomialRing_constructor
+        from sage.rings.polynomial.polynomial_ring_constructor import BooleanPolynomialRing_constructor
         R = BooleanPolynomialRing_constructor(self._nvariables,"x")
         G = R.gens()
         P = R(0)
