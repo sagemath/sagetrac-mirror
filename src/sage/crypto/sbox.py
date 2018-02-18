@@ -1562,16 +1562,16 @@ class SBox(SageObject):
             sage: from sage.crypto.sbox import SBox
             sage: S = SBox(0, 1, 3, 6, 7, 4, 5, 2, big_endian=False)
             sage: B = S.nonlinear_invariants()
-            sage: for f in B:
+            sage: for f in sorted(B):
             ....:     print(f)
             0
-            x0*x1*x2 + x0*x1 + x0*x2 + x0 + x1*x2 + x1 + x2
-            x0*x1*x2 + x0*x1 + x0*x2 + x0 + 1
-            x1*x2 + x1 + x2 + 1
-            x0*x1*x2 + x0*x1 + x0*x2 + x0
-            x0*x1*x2 + x0*x1 + x0*x2 + x0 + x1*x2 + x1 + x2 + 1
             1
             x1*x2 + x1 + x2
+            x1*x2 + x1 + x2 + 1
+            x0*x1*x2 + x0*x1 + x0*x2 + x0
+            x0*x1*x2 + x0*x1 + x0*x2 + x0 + 1
+            x0*x1*x2 + x0*x1 + x0*x2 + x0 + x1*x2 + x1 + x2
+            x0*x1*x2 + x0*x1 + x0*x2 + x0 + x1*x2 + x1 + x2 + 1
             sage: [B[4](*v) + B[4](*S(v)) for v in VectorSpace(GF(2), 3)]
             [0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -1590,22 +1590,26 @@ class SBox(SageObject):
         m = self.m
         n = self.n
 
-        f = [self.component_function(1<<i).algebraic_normal_form() for i in xrange(n)]
+        f = [self.component_function(1<<i).algebraic_normal_form() for i in range(n)]
         R = f[0].ring()
         V = VectorSpace(GF(2), m)
         monomials = [R.monomial(*v) for v in V]
 
-        cl = [monomials[i] + prod(f[j]**V[i][j] for j in xrange(m)) for i in xrange(1<<m)]
+        cl = [monomials[i] + prod(f[j]**V[i][j] for j in range(m)) for i in xrange(1<<m)]
         L0 = [[c(*v) for c in cl] for v in V]
         L1 = [[GF(2)(1)] +  L[1:] for L in L0]
 
         M0, M1 = Matrix(GF(2), L0), Matrix(GF(2), L1)
         A0, A1 = M0.right_kernel().list(), M1.right_kernel().list()
 
-        T0 = [ sum([A0[i][j] * monomials[j] for j in xrange(1<<m)]) for i in xrange(len(A0)) ]
-        T1 = [ sum([A1[i][j] * monomials[j] for j in xrange(1<<m)]) for i in xrange(len(A1)) ]
+        T0 = [sum([A0[i][j] * monomials[j]
+              for j in range(1<<m)])
+              for i in range(len(A0))]
+        T1 = [sum([A1[i][j] * monomials[j]
+              for j in range(1<<m)])
+              for i in range(len(A1))]
 
-        return tuple(set(T0 + T1))
+        return list(set(T0 + T1))
 
 def feistel_construction(*args):
     r"""
