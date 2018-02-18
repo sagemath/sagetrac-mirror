@@ -1584,32 +1584,32 @@ class SBox(SageObject):
         if self.m != self.n:
             raise TypeError("nonlinear_invariants() is supported only if self.m=self.n")
 
-        from sage.misc.misc_c import prod
-        from sage.modules.free_module import VectorSpace
-
         m = self.m
-        n = self.n
 
-        f = [self.component_function(1<<i).algebraic_normal_form() for i in range(n)]
-        R = f[0].ring()
-        V = VectorSpace(GF(2), m)
-        monomials = [R.monomial(*v) for v in V]
+        from sage.rings.polynomial.pbori import BooleanPolynomialRing
+        R = BooleanPolynomialRing(m, 'x')
 
-        cl = [monomials[i] + prod(f[j]**V[i][j] for j in range(m)) for i in xrange(1<<m)]
-        L0 = [[c(*v) for c in cl] for v in V]
-        L1 = [[GF(2)(1)] +  L[1:] for L in L0]
+        def to_bits(i):
+            return tuple(ZZ(i).digits(base=2, padto=m))
 
-        M0, M1 = Matrix(GF(2), L0), Matrix(GF(2), L1)
-        A0, A1 = M0.right_kernel().list(), M1.right_kernel().list()
+        def poly_from_coeffs(c):
+            return R({to_bits(j): one for j,ci in enumerate(c) if ci})
 
-        T0 = [sum([A0[i][j] * monomials[j]
-              for j in range(1<<m)])
-              for i in range(len(A0))]
-        T1 = [sum([A1[i][j] * monomials[j]
-              for j in range(1<<m)])
-              for i in range(len(A1))]
+        F2 = GF(2)
+        one = F2.one()
+        zero = F2.zero()
 
-        return list(set(T0 + T1))
+        L = [[zero if ((v & w) == w) == ((sv & w) == w) else one
+            for w in range(1<<m)]
+            for v,sv in enumerate(self._S)]
+
+        M = Matrix(F2, L)
+        T0 = {poly_from_coeffs(Ai) for Ai in M.right_kernel()}
+
+        M[:,0] = one
+        T1 = {poly_from_coeffs(Ai) for Ai in M.right_kernel()}
+
+        return list(T0 | T1)
 
 def feistel_construction(*args):
     r"""
