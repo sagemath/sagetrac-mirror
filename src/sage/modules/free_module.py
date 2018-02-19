@@ -2921,7 +2921,6 @@ class FreeModule_generic_pid(FreeModule_generic):
         B = K*A1
         return self.ambient_module().span(B)
 
->>>>>>> develop
     def __and__(self, other):
         r"""
         Return the intersection of ``self`` and ``other``.
