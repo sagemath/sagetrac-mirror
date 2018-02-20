@@ -178,6 +178,7 @@ import sage.rings.infinity
 import sage.rings.integer
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.misc.randstate import current_randstate
+from sage.structure.element import is_Matrix
 from sage.structure.sequence import Sequence
 from sage.structure.richcmp import (richcmp_method, rich_to_bool, richcmp,
                                     richcmp_not_equal, revop,
@@ -340,7 +341,8 @@ class FreeModuleFactory(UniqueFactory):
         rank = int(sage.rings.integer.Integer(rank))
 
         if not (inner_product_matrix is None):
-            inner_product_matrix = sage.matrix.matrix_space.MatrixSpace(base_ring, rank)(inner_product_matrix)
+            if not is_Matrix(inner_product_matrix):
+                inner_product_matrix = sage.matrix.matrix_space.MatrixSpace(base_ring, rank)(inner_product_matrix)
             inner_product_matrix.set_immutable()
 
         return (base_ring, rank, sparse, inner_product_matrix)
