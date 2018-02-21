@@ -15,6 +15,8 @@
 
 from __future__ import absolute_import, division, print_function
 
+from collections import Sequence as SequenceABC
+
 from cysignals.signals cimport sig_on, sig_off
 from sage.ext.cplusplus cimport ccrepr, ccreadstr
 
@@ -93,7 +95,7 @@ cdef class ntl_ZZ_pX(object):
 
         if isinstance(v, ntl_ZZ_pX) and (<ntl_ZZ_pX>v).c is self.c:
             self.x = (<ntl_ZZ_pX>v).x
-        elif isinstance(v, list) or isinstance(v, tuple):
+        elif isinstance(v, SequenceABC):
             for i from 0 <= i < len(v):
                 x = v[i]
                 if not isinstance(x, ntl_ZZ_p):
