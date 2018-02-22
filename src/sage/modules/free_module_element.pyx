@@ -106,6 +106,10 @@ TESTS::
 #*****************************************************************************
 from __future__ import absolute_import
 
+import abc
+
+from collections import Sequence as SequenceABC
+
 cimport cython
 from cpython.slice cimport PySlice_GetIndicesEx
 
@@ -3905,6 +3909,10 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         return (vector(answers,sparse=self.is_sparse()), v)
 
     nintegrate=nintegral
+
+
+SequenceABC.register(FreeModuleElement)
+
 
 #############################################
 # Generic dense element
