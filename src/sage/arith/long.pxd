@@ -107,7 +107,7 @@ cdef inline bint integer_check_long(x, long* value, int* err) except -1:
       was raised calling ``__index__()``.
 
     - Other exceptions in ``__index__`` are simply propagated. This is
-      the only way how this function can raise an exception.
+      the only way this function can raise an exception.
 
     EXAMPLES:
 
@@ -176,10 +176,11 @@ cdef inline bint integer_check_long(x, long* value, int* err) except -1:
             err[0] = ERR_OVERFLOW
         return 1
     elif PyIndex_Check(x):
-        err[0] = ERR_INDEX
+        err[0] = 0
         try:
             x = PyNumber_Index(x)
         except TypeError:
+            err[0] = ERR_INDEX
             return 0
         return integer_check_long_py(x, value, err)
     else:
@@ -196,9 +197,7 @@ cdef inline bint integer_check_long_py(x, long* value, int* err):
     """
     Part of ``integer_check_long`` in ``long.pxd``, checking only for
     Python objects of type ``int`` and ``long``. See that function for
-    documentation and tests. The only difference is that
-    ``integer_check_long_py`` leaves the value of ``*err`` unchanged
-    when returning ``False``.
+    documentation and tests.
     """
     if not isinstance(x, long):
         if isinstance(x, int):
@@ -206,6 +205,7 @@ cdef inline bint integer_check_long_py(x, long* value, int* err):
             value[0] = PyInt_AS_LONG(x)
             err[0] = 0
             return 1
+        err[0] = ERR_TYPE
         return 0
 
     # x is a Python "long" (called "int" on Python 3)
