@@ -832,7 +832,7 @@ def prepare(w):
         return Sequence([], ZZ), ZZ
     entries = Sequence(w)
     ring = entries.universe()
-    if isinstance(ring,type):
+    if isinstance(ring, type):
         ring = py_scalar_parent(ring)
     if not is_Ring(ring):
         raise TypeError("unable to find a common ring for all elements")

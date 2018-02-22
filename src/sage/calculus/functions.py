@@ -137,7 +137,8 @@ def jacobian(functions, variables):
         [             0            e^x]
 
     """
-    if is_Matrix(functions) and (functions.nrows()==1 or functions.ncols()==1):
+    if (is_Matrix(functions) and
+            (functions.nrows() == 1 or functions.ncols() == 1)):
         functions = functions.list()
     elif not isinstance(functions, SequenceABC):
         functions = [functions]
