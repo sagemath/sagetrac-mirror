@@ -675,7 +675,8 @@ class MatrixFactory(object):
                 if not arg:
                     # no entries are specified, pass back the zero matrix
                     entries = 0
-                elif isinstance(arg[0], SequenceABC):
+                elif (isinstance(arg[0], SequenceABC) and
+                        not isinstance(arg[0], str)):
                     # Ensure we have a list of lists, each inner list having the same number of elements
                     first_len = len(arg[0])
                     if not all((isinstance(v, SequenceABC) and len(v) == first_len)
