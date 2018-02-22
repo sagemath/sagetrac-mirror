@@ -412,6 +412,101 @@ class TorsionQuadraticModule(FGP_Module_class):
         """
         return self._gens
 
+    def genus(self, signature_pair):
+        r"""
+        Return the genus defined by ``self`` and the ``signature_pair``.
+
+        EXAMPLES::
+
+            sage: L = IntegralLattice("D4")
+            sage: D = L.discriminant_group()
+            sage: Gen = D.genus(L.signature_pair())
+            sage: Gen == L.genus()
+            True
+        """
+        from sage.quadratic_forms.genera.genus import (Genus_Symbol_p_adic_ring,
+                                                    GenusSymbol_global_ring,
+                                                    is_GlobalGenus)
+        from sage.quadratic_forms.genera.normal_form import            _get_homogeneous_block_indices
+        from sage.misc.misc_c import prod
+        from sage.rings.all import Qp
+        s_plus = signature_pair[0]
+        s_minus = signature_pair[1]
+        rank = s_plus + s_minus
+        D = self.cardinality()
+        determinant = (-1)**s_minus * D
+        symbols = []
+        for p in (2*D).prime_divisors():
+            local_symbol = []
+            D = self.primary_part(p)
+            q = D.normal_form().gram_matrix_quadratic()
+            if len(D.invariants()) != 0:
+                pd = D.invariants()[-1]
+                I = _get_homogeneous_block_indices(pd*q.change_ring(Qp(p)))[0][1:]
+                q.subdivide(I, I)
+                for i in range(len(I)+1):
+                    qk = q.subdivision(i, i)
+                    qz, _ = qk._clear_denom()
+                    scale = qk.denominator().valuation(p)
+                    rk = qk.ncols()
+                    if p == 2:
+                        det_k = mod(qz.det(), 8)
+                        if qz[-1,-1].valuation(2) == 0:
+                            is_odd = 1
+                            if mod(qz.ncols(),2) == 0:
+                                oddity = mod(qz[-1,-1] + qz[-2,-2], 8)
+                            else:
+                                oddity = mod(qz[-1,-1],8)
+                        else:
+                            is_odd = 0
+                            oddity = 0
+                        local_symbol.append([scale, rk, det_k, is_odd, oddity])
+                    else:
+                        det_k = legendre_symbol(qz.det(), p)
+                        local_symbol.append([scale, rk, det_k])
+            # if necessary add the part of scale zero.
+            rk = rank - q.ncols()
+            if rk > 0:
+                if p == 2:
+                    det = determinant.prime_to_m_part(2) % 8
+                    det *= prod([di[2] for di in local_symbol])
+                    det = mod(det, 8)
+                    local_symbol.append([0, rk, det, 0 ,0])
+                else:
+                    det = legendre_symbol(determinant.prime_to_m_part(p),p)
+                    det *= prod([di[2] for di in local_symbol])
+                    local_symbol.append([0, rk, det])
+            local_symbol.sort()
+            local_symbol = Genus_Symbol_p_adic_ring(p, local_symbol)
+            symbols.append(local_symbol)
+        # a hack - unfortunately a genus symbol can be initialized only from a represenative
+        # matrix
+        genus = GenusSymbol_global_ring(matrix([1]))
+        genus._local_symbols = symbols
+        genus._representative = None
+        genus._signature = signature_pair
+        if not is_GlobalGenus(genus):
+            # the symbol for p=2 and scale 1 is only well defined mod 4
+            # when jordan block of scale 1 is odd.
+            # In this case the symbol is determined by the property
+            # that it forms a valid global genus symbol.
+            s2 = genus._local_symbols[0]
+            assert s2._prime == 2
+            s2 = s2.symbol_tuple_list()
+            if s2[0][1] == 0:
+                assert s2[1][0] == 1
+                i = 1
+            else:
+                assert s2[0][0] == 1
+                i = 0
+            s2[i][4] += mod(4,8)
+            if not is_GlobalGenus(genus):
+                s2[i][2] += mod(4,8)
+            if not is_GlobalGenus(genus):
+                s2[i][4] += mod(4,8)
+            assert is_GlobalGenus(genus)
+        return genus
+
     def is_genus(self, signature_pair, even=True):
         r"""
         Return ``True`` if there is a lattice with this signature and discriminant form.
