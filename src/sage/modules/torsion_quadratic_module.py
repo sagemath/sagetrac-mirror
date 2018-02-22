@@ -20,7 +20,7 @@ AUTHORS:
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.fg_pid.fgp_element import DEBUG, FGP_Element
 from sage.arith.misc import gcd
-from sage.rings.all import ZZ, IntegerModRing
+from sage.rings.all import ZZ, QQ, IntegerModRing
 from sage.groups.additive_abelian.qmodnz import QmodnZ
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
@@ -411,6 +411,77 @@ class TorsionQuadraticModule(FGP_Module_class):
             ((1, 0, 0), (0, 1, 0), (0, 0, 1))
         """
         return self._gens
+
+    def is_genus(self, signature_pair, even=True):
+        r"""
+        Return ``True`` if there is a lattice with this signature and discriminant form.
+
+        TODO:
+
+        - implement the same for odd lattices
+
+        INPUT:
+
+        - signature_pair -- a tuple of non negative integers ``(s_plus, s_minus)``
+        - even -- bool (default: ``True``)
+
+        EXAMPLES::
+
+            sage: L = IntegralLattice("D4").direct_sum(IntegralLattice(3 * Matrix(ZZ,2,[2,1,1,2])))
+            sage: D = L.discriminant_group()
+            sage: D.is_genus((6,0))
+            True
+
+        Let us see if there is a lattice in the genus defined by the same discriminant form
+        but with a different signature::
+
+            sage: D.is_genus((4,2))
+            False
+            sage: D.is_genus((16,2))
+            True
+        """
+        s_plus = signature_pair[0]
+        s_minus = signature_pair[1]
+        rank = s_plus + s_minus
+        signature = s_plus - s_minus
+        D = self.cardinality()
+        det = (-1)**s_minus * D
+        if rank < len(self.invariants()):
+            return False
+        if even and self._modulus_qf != 2:
+            raise ValueError("The discriminant form of an even lattice has"
+                                 "values modulo 2.")
+        if (not even) and not (self.modulus == self._modulus_qf == 1):
+            raise ValueError("The discriminant form of an odd lattice has"
+                             "values modulo 1.")
+        if not even:
+            raise NotImplementedError()
+        for p in D.prime_divisors():
+            # check the determinat conditions
+            Q_p = self.primary_part(p)
+            gram_p = Q_p.gram_matrix_quadratic()
+            length_p = len(Q_p.invariants())
+            u = det.prime_to_m_part(p)
+            up = gram_p.det().numerator().prime_to_m_part(p)
+            if p!=2 and length_p==rank:
+                if legendre_symbol(u, p) != legendre_symbol(up, p):
+                    return False
+            if p == 2:
+                if mod(rank, 2) != mod(length_p, 2):
+                    return False
+                n = (rank - length_p) / 2
+                if mod(u, 4) != mod((-1)**(n % 2) * up, 4):
+                    return False
+                if rank == length_p:
+                    a = QQ(1) / QQ(2)
+                    b = QQ(3) / QQ(2)
+                    diag = gram_p.diagonal()
+                    if not (a in diag or b in diag):
+                        if mod(u, 8) != mod(up, 8):
+                            return False
+        if self.Brown_invariant() != signature:
+            return False
+        return True
 
     def orthogonal_submodule_to(self, S):
         r"""
