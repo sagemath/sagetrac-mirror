@@ -25,7 +25,7 @@ cdef extern from "lcalc_sage.h":
         int (* compute_rank) ()
         double (* N) (double T)
         void  (* find_zeros_v)(double T1, double T2, double stepsize, doublevec result )
-        void (*find_zeros_via_N_v)(long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec result)
+#        void (*find_zeros_via_N_v)(long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec result)
         void (*print_data_L)()
 
         #Constructor and destructor
@@ -42,7 +42,7 @@ cdef extern from "lcalc_sage.h":
         double (* N) (double T)
         double *dirichlet_coefficient
         void  (* find_zeros_v)(double T1, double T2, double stepsize, doublevec result )
-        void (*find_zeros_via_N_v)(long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec result)
+#        void (*find_zeros_via_N_v)(long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec result)
         void (*print_data_L)()
 
         #Constructor and destructor
@@ -58,7 +58,7 @@ cdef extern from "lcalc_sage.h":
         int (* compute_rank) ()
         double (* N) (double T)
         void  (* find_zeros_v)(double T1, double T2, double stepsize, doublevec result )
-        void (*find_zeros_via_N_v)(long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec result)
+#        void (*find_zeros_via_N_v)(long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec result)
         void (*print_data_L)()
 
         #Constructor and destructor
@@ -74,7 +74,7 @@ cdef extern from "lcalc_sage.h":
         int (* compute_rank) ()
         double (* N) (double T)
         void  (* find_zeros_v)(double T1, double T2, double stepsize, doublevec result )
-        void (*find_zeros_via_N_v)(long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec result)#puts result in vector<double> result
+#        void (*find_zeros_via_N_v)(long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec result)#puts result in vector<double> result
         void (*find_zeros_via_N)(long count,int do_negative,double max_refine, int rank, int test_explicit_formula, char *filename) #puts result in filename
 
         #Constructor and destructor
@@ -115,7 +115,7 @@ cdef class Lfunction:
     #strange bug, replacing Double with double gives me a compile error
     cdef Double __typedN(self, double T)
     cdef void __find_zeros_v(self, double T1, double T2, double stepsize,doublevec *result)
-    cdef void __find_zeros_via_N_v(self, long count,int do_negative,double max_refine, int rank, int test_explicit_formula,doublevec *result)
+#    cdef void __find_zeros_via_N_v(self, long count,int do_negative,double max_refine, int rank, int test_explicit_formula,doublevec *result)
 
     cdef str _repr
 

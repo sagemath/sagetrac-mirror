@@ -300,9 +300,9 @@ cdef class Lfunction:
         return returnvalue
 
     #The default values are from L.h. See L.h
+        """
     def find_zeros_via_N(self, count=0, do_negative=False, max_refine=1025,
                          rank=-1, test_explicit_formula=0):
-        """
         Finds ``count`` number of zeros with positive imaginary part
         starting at real axis. This function also verifies that all
         the zeros have been found.
@@ -348,7 +348,6 @@ cdef class Lfunction:
             sage: L=Lfunction_Zeta()
             sage: L.find_zeros_via_N(3)
             [14.1347251417..., 21.0220396387..., 25.0108575801...]
-        """
         cdef Integer count_I = Integer(count)
         cdef Integer do_negative_I = Integer(do_negative)
         cdef RealNumber max_refine_R = RRR(max_refine)
@@ -363,6 +362,7 @@ cdef class Lfunction:
             returnvalue.append(  RRR(result.ind(i)))
         result.clear()
         return returnvalue
+        """
 
     #### Needs to be overriden
     cdef void __init_fun(self, char *NAME, int what_type, dirichlet_coeff, long long Period, double q,  c_Complex w, int A, double *g, c_Complex *l, int n_poles, c_Complex *p, c_Complex *r):
@@ -383,8 +383,8 @@ cdef class Lfunction:
     cdef void __find_zeros_v(self,double T1, double T2, double stepsize, doublevec *result):
         raise NotImplementedError
 
-    cdef void __find_zeros_via_N_v(self, long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec *result):
-        raise NotImplementedError
+#    cdef void __find_zeros_via_N_v(self, long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec *result):
+#        raise NotImplementedError
 
 ##############################################################################
 # Lfunction_I: L-functions with integer Dirichlet Coefficients
@@ -480,8 +480,8 @@ cdef class Lfunction_I(Lfunction):
     cdef double __typedN(self, double T):
         return (<c_Lfunction_I *>self.thisptr).N(T)
 
-    cdef void __find_zeros_via_N_v(self, long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec *result):
-        (<c_Lfunction_I *>self.thisptr).find_zeros_via_N_v(count, do_negative, max_refine, rank, test_explicit_formula, result[0])
+#    cdef void __find_zeros_via_N_v(self, long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec *result):
+#        (<c_Lfunction_I *>self.thisptr).find_zeros_via_N_v(count, do_negative, max_refine, rank, test_explicit_formula, result[0])
 
     ### debug tools
     def _print_data_to_standard_output(self):
@@ -496,6 +496,7 @@ cdef class Lfunction_I(Lfunction):
             sage: L=Lfunction_from_character(chi, type="int")
             sage: L._print_data_to_standard_output() # tol 1e-15
             -----------------------------------------------
+            DIGITSi3 SET TO 10
             <BLANKLINE>
             Name of L_function:
             number of dirichlet coefficients = 5
@@ -618,8 +619,8 @@ cdef class Lfunction_D(Lfunction):
     cdef double __typedN(self, double T):
         return (<c_Lfunction_D *>self.thisptr).N(T)
 
-    cdef void __find_zeros_via_N_v(self, long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec *result):
-        (<c_Lfunction_D *>self.thisptr).find_zeros_via_N_v(count, do_negative, max_refine, rank, test_explicit_formula, result[0])
+#    cdef void __find_zeros_via_N_v(self, long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec *result):
+#        (<c_Lfunction_D *>self.thisptr).find_zeros_via_N_v(count, do_negative, max_refine, rank, test_explicit_formula, result[0])
 
     ### debug tools
     def _print_data_to_standard_output(self):
@@ -633,6 +634,7 @@ cdef class Lfunction_D(Lfunction):
             sage: chi=DirichletGroup(5)[2] #This is a quadratic character
             sage: L=Lfunction_from_character(chi, type="double")
             sage: L._print_data_to_standard_output() # tol 1e-15
+            DIGITSi3 SET TO 10
             -----------------------------------------------
             <BLANKLINE>
             Name of L_function:
@@ -763,8 +765,8 @@ cdef class Lfunction_C:
     cdef double __typedN(self, double T):
         return (<c_Lfunction_C *>self.thisptr).N(T)
 
-    cdef void __find_zeros_via_N_v(self, long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec *result):
-        (<c_Lfunction_C *>self.thisptr).find_zeros_via_N_v(count, do_negative, max_refine, rank, test_explicit_formula, result[0])
+#    cdef void __find_zeros_via_N_v(self, long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec *result):
+#        (<c_Lfunction_C *>self.thisptr).find_zeros_via_N_v(count, do_negative, max_refine, rank, test_explicit_formula, result[0])
 
     ### debug tools
     def _print_data_to_standard_output(self):
@@ -778,6 +780,7 @@ cdef class Lfunction_C:
             sage: chi=DirichletGroup(5)[1]
             sage: L=Lfunction_from_character(chi, type="complex")
             sage: L._print_data_to_standard_output() # tol 1e-15
+            DIGITSi3 SET TO 10
             -----------------------------------------------
             <BLANKLINE>
             Name of L_function:
@@ -848,8 +851,8 @@ cdef class Lfunction_Zeta(Lfunction):
     cdef double __typedN(self, double T):
         return (<c_Lfunction_Zeta *>self.thisptr).N(T)
 
-    cdef void __find_zeros_via_N_v(self, long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec *result):
-        (<c_Lfunction_Zeta *>self.thisptr).find_zeros_via_N_v(count, do_negative, max_refine, rank, test_explicit_formula, result[0])
+#    cdef void __find_zeros_via_N_v(self, long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec *result):
+#        (<c_Lfunction_Zeta *>self.thisptr).find_zeros_via_N_v(count, do_negative, max_refine, rank, test_explicit_formula, result[0])
 
     def __dealloc__(self):
         """
