@@ -140,6 +140,11 @@ from six import iteritems
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import operator
+
+from collections import Sequence as SequenceABC
+from functools import reduce
+
 
 from .tri_plot import TrianglePlot
 from .index_face_set import IndexFaceSet
@@ -1041,9 +1046,8 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         elif is_CallableSymbolicExpression(f):
             params = f.variables()
 
-        from sage.modules.vector_callable_symbolic_dense import Vector_callable_symbolic_dense
-        if isinstance(transformation, (tuple, list,Vector_callable_symbolic_dense)):
-            if len(transformation)==3:
+        if isinstance(transformation, SequenceABC):
+            if len(transformation) == 3:
                 if params is None:
                     raise ValueError("must specify independent variable names in the ranges when using generic transformation")
                 indep_vars = params
@@ -1052,11 +1056,19 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
                 transformation = transformation[0:3]
             else:
                 raise ValueError("unknown transformation type")
-            # find out which variable is the function variable by
-            # eliminating the parameter variables.
-            all_vars = set(sum([list(s.variables()) for s in transformation],[]))
-            dep_var=all_vars - set(indep_vars)
-            if len(dep_var)==1:
+
+            for t in transformation:
+                if not callable(t):
+                    raise TypeError(
+                        "transformation {} is not callable".format(t))
+
+            # find out which variable is the function variable by eliminating
+            # the parameter variables.
+            all_vars = reduce(operator.or_,
+                              (set(s.variables()) for s in transformation),
+                              set())
+            dep_var = all_vars - set(indep_vars)
+            if len(dep_var) == 1:
                 dep_var = dep_var.pop()
                 transformation = _ArbitraryCoordinates(transformation, dep_var, indep_vars)
             else:
