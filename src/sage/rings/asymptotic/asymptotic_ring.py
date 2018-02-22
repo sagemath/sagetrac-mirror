@@ -3298,6 +3298,57 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         else:
             raise ValueError("Cannot determine limit of {}".format(self))
 
+    def apply_function(self, f, order=None):
+        """
+        Apply a function to this (convergent) symbolic expansion.
+
+        INPUT:
+
+        - ``f`` -- a function
+
+        - ``order`` -- an integer. The order of the series expansion.
+          This parameter has the same semantics as the parameter ``order`` of
+          :meth:`~sage.symbolic.expression.Expression.series`. If ``order`` is
+          ``None``, then the default precision of the parent of this symbolic
+          expansion is used.
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+        EXAMPLES::
+
+            sage: A.<S> = AsymptoticRing("S^ZZ", SR, default_prec=3)
+            sage: s = 1-1/S
+            sage: s.apply_function(zeta, 2)
+            -S + euler_gamma + stieltjes(1)*S^(-1) + O(S^(-2))
+            sage: s.apply_function(zeta)
+            -S + euler_gamma + stieltjes(1)*S^(-1) + 1/2*stieltjes(2)*S^(-2)
+            + O(S^(-3))
+            sage: S.apply_function(zeta)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot determine limit of S
+
+        .. SEEALSO::
+
+           :meth:`~sage.symbolic.expression.Expression.series`
+        """
+        from sage.ext.fast_callable import fast_callable
+        from sage.rings.big_oh import O
+        from sage.symbolic.ring import SR
+
+        if order is None:
+            order = self.parent().default_prec
+        x = SR.symbol('x')
+        x0 = self.limit()
+
+        symbolic_series = f(x).series(x==x0, order)
+        polynomial = symbolic_series.truncate()
+        return (fast_callable(polynomial, vars=['x'])(self)
+                + O((self-x0) ** symbolic_series.degree(x)))
+
+
 class AsymptoticRing(Algebra, UniqueRepresentation):
     r"""
     A ring consisting of :class:`asymptotic expansions <AsymptoticExpansion>`.
