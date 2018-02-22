@@ -40,6 +40,8 @@ import sys
 import types
 import operator
 
+from collections import Sequence as SequenceABC
+
 # Sage matrix imports
 from . import matrix_generic_dense
 from . import matrix_generic_sparse
@@ -1857,8 +1859,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 for v in x:
                     l = len(new_x)
                     try:
-                        from sage.structure.element import is_Vector
-                        if isinstance(v, (list, tuple)) or is_Vector(v):
+                        if isinstance(v, SequenceABC):
                             # The isinstance check should prevent the "flattening"
                             # of v if v is an iterable but not meant to be
                             # iterated (e.g., an element of a combinatorial free

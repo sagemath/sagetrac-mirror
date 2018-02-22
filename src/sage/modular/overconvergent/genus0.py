@@ -172,6 +172,9 @@ classical) does not apply.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
+
+from collections import Sequence as SequenceABC
+
 from six.moves import range
 from six import integer_types
 
@@ -185,7 +188,7 @@ from sage.modular.arithgroup.all import (Gamma1, is_Gamma0, is_Gamma1)
 from sage.modular.modform.element import ModularFormElement
 from sage.modules.all       import vector
 from sage.modules.module    import Module
-from sage.structure.element import Vector, ModuleElement
+from sage.structure.element import ModuleElement
 from sage.structure.richcmp import richcmp
 from sage.plot.plot         import plot
 from sage.rings.all         import (O, Infinity, ZZ, QQ, pAdicField, PolynomialRing, PowerSeriesRing, is_pAdicField)
@@ -729,7 +732,7 @@ class OverconvergentModularFormsSpace(Module):
             else:
                 raise TypeError("Cannot create an element of '%s' from element of incompatible space '%s'" % (self, input.parent()))
 
-        elif isinstance(input, (list, tuple, Vector)):
+        elif isinstance(input, SequenceABC):
             v = list(input)
             n = len(v)
             return OverconvergentModularFormElement(self, gexp=self._gsr(v).add_bigoh(n), qexp=None)

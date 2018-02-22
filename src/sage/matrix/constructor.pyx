@@ -15,12 +15,13 @@ General matrix Constructor
 from __future__ import absolute_import
 
 import types
+from collections import Sequence as SequenceABC
+
 from .matrix_space import MatrixSpace
 from sage.rings.ring import is_Ring
 from sage.rings.all import ZZ, RDF, CDF
 from sage.arith.srange import srange
 from sage.structure.coerce cimport is_numpy_type, py_scalar_parent
-from sage.structure.element cimport Vector
 from sage.structure.sequence import Sequence
 from sage.arith.long cimport pyobject_to_long
 
@@ -669,14 +670,16 @@ class MatrixFactory(object):
 
             if isinstance(arg, xrange):
                 arg = list(arg)
-            if isinstance(arg, (list, tuple)):
+
+            if isinstance(arg, SequenceABC):
                 if not arg:
                     # no entries are specified, pass back the zero matrix
                     entries = 0
-                elif isinstance(arg[0], (list, tuple)) or isinstance(arg[0], Vector):
+                elif isinstance(arg[0], SequenceABC):
                     # Ensure we have a list of lists, each inner list having the same number of elements
                     first_len = len(arg[0])
-                    if not all( (isinstance(v, (list, tuple)) or isinstance(v, Vector)) and len(v) == first_len for v in arg):
+                    if not all((isinstance(v, SequenceABC) and len(v) == first_len)
+                               for v in arg):
                         raise ValueError("list of rows is not valid (rows are wrong types or lengths)")
                     # We have a list of rows or vectors
                     if nrows is None:

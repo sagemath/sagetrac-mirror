@@ -2,9 +2,11 @@ r"""
 Calculus functions
 """
 from __future__ import absolute_import
+
+from collections import Sequence as SequenceABC
+
 from sage.matrix.all import matrix
 from sage.structure.element import is_Matrix
-from sage.structure.element import is_Vector
 from sage.symbolic.ring import is_SymbolicVariable
 from .functional import diff
 
@@ -137,10 +139,10 @@ def jacobian(functions, variables):
     """
     if is_Matrix(functions) and (functions.nrows()==1 or functions.ncols()==1):
         functions = functions.list()
-    elif not (isinstance(functions, (tuple, list)) or is_Vector(functions)):
+    elif not isinstance(functions, SequenceABC):
         functions = [functions]
 
-    if not isinstance(variables, (tuple, list)) and not is_Vector(variables):
+    if not isinstance(functions, SequenceABC):
         variables = [variables]
 
     return matrix([[diff(f, v) for v in variables] for f in functions])
