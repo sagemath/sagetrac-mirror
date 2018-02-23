@@ -291,7 +291,7 @@ def IntegralLattice(data, basis=None):
 
 def GlueLattice(Lattices, glue):
     r"""
-    Return the overlattice of L1+L2 spanned by the elements of the discriminant group
+    Return the overlattice of L1+...+Ln spanned by the elements of the discriminant group
     given by ``glue``
     
     INPUT::
@@ -337,8 +337,8 @@ def GlueLattice(Lattices, glue):
         [1/2]                                   
         sage: g1 = L1.discriminant_group().gens()[0] 
         sage: g2 = L2.discriminant_group().gens()[0]      
-        sage: glue = [[g1,g2]]                       
-        sage: GlueLattice([L1, L2],glue)
+        sage: glue = [[g1, g2]]                       
+        sage: GlueLattice([L1, L2], glue)
         (Lattice of degree 2 and rank 2 over Integer Ring
          Basis matrix:
          [1 0]
@@ -379,7 +379,7 @@ def GlueLattice(Lattices, glue):
         sage: g1 = L1.discriminant_group().gens()[0]
         sage: g2 = L2.discriminant_group().gens()[0]
         sage: glue = [[g1, 2 * g2]]
-        sage: [V,phi] = GlueLattice([L1, L2],glue)
+        sage: [V, phi] = GlueLattice([L1, L2],glue)
         sage: V
         Lattice of degree 8 and rank 8 over Integer Ring
         Basis matrix:
@@ -417,7 +417,7 @@ def GlueLattice(Lattices, glue):
         [-1  0  0  0  0 -1  2 -1]
         [ 1  0  0  0  0  0 -1  2]
         
-    More glueing could be composed::
+    Different glueing could be composed::
         
         sage: from sage.modules.free_quadratic_module_integer_symmetric import GlueLattice
         sage: D4 = IntegralLattice("D4")
@@ -434,7 +434,7 @@ def GlueLattice(Lattices, glue):
         [  0 1/2]
         sage: g1 = D4.discriminant_group().gens()[0]
         sage: g2 = L2.discriminant_group().gens()[0] + L2.discriminant_group().gens()[1]
-        sage: [D6,phi] = GlueLattice([D4,L2], [[g1,g2]])
+        sage: [D6,phi] = GlueLattice([D4, L2], [[g1, g2]])
         sage: AD6 = D6.discriminant_group()
         sage: AD6.normal_form()
         Finite quadratic module over Integer Ring with invariants (2, 2)
@@ -443,7 +443,7 @@ def GlueLattice(Lattices, glue):
         [  0 3/2]
         sage: [f1,g1] = AD6.normal_form().gens()
         sage: [f2,g2] = L2.discriminant_group().gens()
-        sage: [E8,psi] = GlueLattice([D6,L2], [[f1,f2], [g1,g2]])
+        sage: [E8,psi] = GlueLattice([D6, L2], [[f1, f2], [g1, g2]])
         sage: D4embed = E8.sublattice(psi[0](phi[0].image()).basis_matrix())
         sage: D4embed
         Lattice of degree 8 and rank 4 over Integer Ring
@@ -469,7 +469,7 @@ def GlueLattice(Lattices, glue):
         sage: D5 = IntegralLattice("D5")
         sage: gA7 = A7.discriminant_group().gens()[0]
         sage: gD5 = D5.discriminant_group().gens()[0]
-        sage: [L,phi] = GlueLattice([A7,A7,D5,D5],[[gA7,gA7,gD5,2*gD5],[gA7,7*gA7,2*gD5,gD5]])
+        sage: [L, phi] = GlueLattice([A7, A7, D5, D5], [[gA7, gA7, gD5, 2 * gD5], [gA7, 7 * gA7, 2 * gD5, gD5]])
         sage: L.determinant()
         1
         sage: B = phi[0].matrix()
@@ -479,11 +479,11 @@ def GlueLattice(Lattices, glue):
     The glueing work with lattices with basis::
     
         sage: from sage.modules.free_quadratic_module_integer_symmetric import GlueLattice
-        sage: L1 = IntegralLattice("D4",[[1,1,0,0],[0,1,1,0]])
-        sage: L2 = IntegralLattice("E6",[[0,2,0,0,0,0],[0,0,0,0,1,1]])
+        sage: L1 = IntegralLattice("D4", [[1,1,0,0], [0,1,1,0]])
+        sage: L2 = IntegralLattice("E6", [[0,2,0,0,0,0], [0,0,0,0,1,1]])
         sage: [f1,f2] = L1.discriminant_group().gens()
         sage: [g1,g2] = L2.discriminant_group().gens()
-        sage: [L,phi] = GlueLattice([L1,L2],[[f1,g1],[f2,2*g2]])
+        sage: [L,phi] = GlueLattice([L1, L2], [[f1, g1], [f2, 2 * g2]])
         sage: phi[0]
         Free module morphism defined by the matrix
         [ 2  0 -1  0]
@@ -509,7 +509,7 @@ def GlueLattice(Lattices, glue):
         [1 0 2 0]
         [0 1 0 2]
         sage: B = phi[0].matrix()
-        sage: B*L.inner_product_matrix()*B.transpose()==L1.gram_matrix()
+        sage: B * L.inner_product_matrix() * B.transpose()==L1.gram_matrix()
         True
     """   
     N = len(Lattices)
