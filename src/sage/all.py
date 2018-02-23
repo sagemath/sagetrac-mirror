@@ -15,7 +15,7 @@ intended effect of your patch.
     sage: from sage import *
     sage: frames = [x for x in gc.get_objects() if inspect.isframe(x)]
 
-We exclude the dependencies and check to see that there are no others 
+We exclude the dependencies and check to see that there are no others
 except for the known bad apples::
 
     sage: allowed = [
@@ -67,8 +67,6 @@ import os
 import sys
 import operator
 import math
-
-import six
 
 from sage.env import SAGE_ROOT, SAGE_SRC, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
@@ -212,6 +210,7 @@ copyright = license
 _cpu_time_ = cputime()
 _wall_time_ = walltime()
 
+
 def quit_sage(verbose=True):
     """
     If you use Sage in library mode, you should call this function
@@ -257,27 +256,6 @@ def quit_sage(verbose=True):
 
     from sage.libs.all import symmetrica
     symmetrica.end()
-
-
-if not six.PY2:
-    def long(x):
-        """
-        Deprecated replacement for the Python 2 ``long()`` built-in.
-
-        On Python 3 the ``long`` and ``int`` types have been merged into a
-        single ``int`` type, and there is no longer any reason to explicitly
-        create ``long`` objects.  We add this built-in function back in for
-        backwards compatibility but its only effect is to return a normal
-        Python 2 ``int``.  It is no longer a type.
-        """
-
-        import sage.doctest
-        if not sage.doctest.DOCTEST_MODE:
-            from sage.misc.superseded import deprecation
-            deprecation(24557, 'long() is deprecated on Python 3: the normal '
-                               'int type can hold arbitrary-precision integers')
-
-        return int(x)
 
 
 sage.structure.sage_object.register_unpickle_override('sage.categories.category', 'Sets', Sets)
