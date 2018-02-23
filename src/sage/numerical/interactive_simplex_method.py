@@ -1631,7 +1631,7 @@ class InteractiveLPProblem(SageObject):
             b = b.n().change_ring(QQ)
         F = self.feasible_set()
         if ymax is None:
-            ymax = max(map(abs, b) + [v[1] for v in F.vertices()])
+            ymax = max([abs(bb) for bb in b] + [v[1] for v in F.vertices()])
         if ymin is None:
             ymin = min([-ymax/4.0] + [v[1] for v in F.vertices()])
         if xmax is None:
@@ -4116,7 +4116,7 @@ class LPDictionary(LPAbstractDictionary):
             basic_variable = str(basic_variable)
 
         R = PolynomialRing(
-            BR, list(B.base_ring().gens()) + [basic_variable], order="neglex")
+            BR, list(B.base_ring().variable_names()) + [basic_variable], order="neglex")
         B = list(B) + [basic_variable]
         B = map(R, B)
         N = map(R, N)
@@ -5449,7 +5449,3 @@ class LPRevisedDictionary(LPAbstractDictionary):
     # Aliases for the standard notation
     x_B = basic_variables
     x_N = nonbasic_variables
-
-# DEPRECATION (those two lines should be removed when cleaning #17867)
-LPProblem = InteractiveLPProblem
-LPProblemStandardForm = InteractiveLPProblemStandardForm

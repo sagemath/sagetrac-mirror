@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Interfaces to R
 
@@ -361,7 +362,8 @@ class R(ExtraTabCompletion, Expect):
 
     def set_seed(self, seed=None):
         """
-        Sets the seed for R interpeter.
+        Set the seed for R interpreter.
+
         The seed should be an integer.
 
         EXAMPLES::
@@ -567,7 +569,7 @@ class R(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
-            sage: f.write('a <- 2+2\n')
+            sage: _ = f.write('a <- 2+2\n')
             sage: f.close()
             sage: r.read(filename)
             sage: r.get('a')
@@ -667,7 +669,11 @@ class R(ExtraTabCompletion, Expect):
             ...
             ImportError: ...
         """
-        ret = self.eval('require("%s")'%library_name)
+        ret = self.eval('require("%s")' % library_name)
+        try:
+            ret = ret.decode('utf-8')
+        except UnicodeDecodeError:
+            ret = ret.decode('latin-1')
         # try hard to parse the message string in a locale-independent way
         if ' library(' in ret:       # locale-independent key-word
             raise ImportError("%s"%ret)
@@ -1573,20 +1579,20 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
             sage: one = r(1)
             sage: two = r(2)
-            sage: cmp(one,one)
+            sage: one.__cmp__(one)
             0
-            sage: cmp(one,two)
+            sage: one.__cmp__(two)
             -1
-            sage: cmp(two,one)
+            sage: two.__cmp__(one)
             1
         """
         P = self.parent()
-        if P.eval("%s %s %s"%(self.name(), P._equality_symbol(),
+        if P.eval("%s %s %s" % (self.name(), P._equality_symbol(),
                                  other.name())) == P._true_symbol():
             return 0
-        elif P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
+        elif P.eval("%s %s %s" % (self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
             return -1
-        elif P.eval("%s %s %s"%(self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
+        elif P.eval("%s %s %s" % (self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
             return 1
         else:
             return -1  # everything is supposed to be comparable in Python, so we define
@@ -1884,7 +1890,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
         # c is an ordered list
         # list is a dictionary (where _Names give the entries names.
         #    map entries in names to (value, name) in each entry?
-        # structure is .. see above .. strucuture(DATA,**kw)
+        # structure is .. see above .. structure(DATA,**kw)
         # TODO: thinking of just replacing c( with ( to get a long tuple?
 
 

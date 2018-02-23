@@ -29,6 +29,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import zip
+from six import integer_types
 
 import os
 from math import isnan
@@ -43,32 +44,6 @@ from .colors import rgbcolor
 ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.pgf', '.png', '.ps', '.sobj', '.svg']
 DEFAULT_DPI = 100
 
-
-def show_default(default=None):
-    r"""
-    Set the default for showing plots using any plot commands. If
-    called with no arguments, returns the current default.
-
-    If this is ``True`` (the default) then any plot object
-    when displayed will be displayed as an actual plot instead of text,
-    i.e., the show command is not needed.
-
-    EXAMPLES:
-
-    The default starts out as ``True`` in interactive use and
-    ``False`` in doctests::
-
-        sage: show_default()  # long time
-        doctest:...: DeprecationWarning: this is done automatically by the doctest framework
-        See http://trac.sagemath.org/14469 for details.
-        False
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14469, 'this is done automatically by the doctest framework')
-    import sage.doctest
-    if default is None:
-        return not sage.doctest.DOCTEST_MODE
-    sage.doctest.DOCTEST_MODE = not bool(default)
 
 # If do_verify is True, options are checked when drawing a
 # GraphicsPrimitive.  See primitive.py
@@ -692,8 +667,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: c = circle((0,0), 1)
             sage: c.axes_labels(['axe des abscisses', u'axe des ordonnées'])
             sage: c._axes_labels
-            ('axe des abscisses', u'axe des ordonn\xc3\xa9es')
-
+            ('axe des abscisses', u'axe des ordonn\xe9es')
         """
         if l is None:
             try:
@@ -1025,7 +999,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: print(sum(v))
             Graphics object consisting of 2 graphics primitives
         """
-        if isinstance(other, (int, long)) and other == 0:
+        if isinstance(other, integer_types) and other == 0:
             return self
         raise TypeError
 
@@ -1575,7 +1549,7 @@ class Graphics(WithEqualityById, SageObject):
 
           - ``"default"`` -- Uses matplotlib's internal text rendering
             engine called Mathtext ( see
-            http://matplotlib.org/users/mathtext.html ). If you have
+            https://matplotlib.org/users/mathtext.html ). If you have
             modified the default matplotlib settings, for instance via
             a matplotlibrc file, then this option will not change any of
             those settings.
@@ -1626,12 +1600,14 @@ class Graphics(WithEqualityById, SageObject):
         requires that LaTeX, dvipng and Ghostscript be installed::
 
             sage: plot(x, typeset='latex') # optional - latex
+            Graphics object consisting of 1 graphics primitive
 
         If you want all the text in your plot to use Type 1 fonts, then
         set the ``typeset`` option to ``"type1"``. This requires that
         LaTeX, dvipng and Ghostscript be installed::
 
             sage: plot(x, typeset='type1') # optional - latex
+            Graphics object consisting of 1 graphics primitive
 
         You can turn on the drawing of a frame around the plots::
 
@@ -2481,6 +2457,7 @@ class Graphics(WithEqualityById, SageObject):
                    axes_pad=None, ticks_integer=None,
                    tick_formatter=None, ticks=None, title=None,
                    title_pos=None, base=None, scale=None,
+                   stylesheet='classic',
                    typeset='default'):
         r"""
         Return a matplotlib figure object representing the graphic
@@ -2549,6 +2526,11 @@ class Graphics(WithEqualityById, SageObject):
         """
         if not isinstance(ticks, (list, tuple)):
             ticks = (ticks, None)
+
+        import matplotlib.pyplot as plt
+        if stylesheet not in plt.style.available:
+            stylesheet = 'classic'
+        plt.style.use(stylesheet)
 
         from sage.symbolic.ring import SR
         if not isinstance(tick_formatter, (list, tuple)):  # make sure both formatters typeset or both don't
@@ -3027,14 +3009,15 @@ class Graphics(WithEqualityById, SageObject):
 
     def save_image(self, filename=None, *args, **kwds):
         r"""
-        Save an image representation of self.  The image type is
-        determined by the extension of the filename.  For example,
-        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
-        ``.svg``.  Currently this is implemented by calling the
-        :meth:`save` method of self, passing along all arguments and
-        keywords.
+        Save an image representation of self.
 
-        .. Note::
+        The image type is determined by the extension of the filename.
+        For example, this could be ``.png``, ``.jpg``, ``.gif``,
+        ``.pdf``, ``.svg``.  Currently this is implemented by calling
+        the :meth:`save` method of self, passing along all arguments
+        and keywords.
+
+        .. NOTE::
 
             Not all image types are necessarily implemented for all
             graphics types.  See :meth:`save` for more details.
@@ -3182,7 +3165,7 @@ class Graphics(WithEqualityById, SageObject):
                 if latex_implementations[0] == "pdflatex":
                     # use pdflatex and set font encoding as per
                     # matplotlib documentation:
-                    # http://matplotlib.org/users/pgf.html#pgf-tutorial
+                    # https://matplotlib.org/users/pgf.html#pgf-tutorial
                     pgf_options= {"pgf.texsystem": "pdflatex",
                                   "pgf.preamble": [
                                       r"\usepackage[utf8x]{inputenc}",

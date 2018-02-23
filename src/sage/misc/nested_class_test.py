@@ -44,7 +44,7 @@ alternative is to use ClasscallMetaclass as metaclass::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 from six import add_metaclass
 
 __all__ = [] # Don't document any parents
@@ -61,7 +61,7 @@ class TestParent1(Parent):
         EXAMPLES::
 
             sage: sage.misc.nested_class_test.TestParent1()
-            <class 'sage.misc.nested_class_test.TestParent1_with_category'>
+            <sage.misc.nested_class_test.TestParent1_with_category object at ...>
         """
         from sage.categories.all import Sets
         Parent.__init__(self, category = Sets())
@@ -93,7 +93,7 @@ class TestParent3(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: sage.misc.nested_class_test.TestParent3()
-            <class 'sage.misc.nested_class_test.TestParent3_with_category'>
+            <sage.misc.nested_class_test.TestParent3_with_category object at ...>
         """
         from sage.categories.all import Sets
         Parent.__init__(self, category = Sets())
@@ -109,7 +109,7 @@ class TestParent4(Parent):
         EXAMPLES::
 
             sage: sage.misc.nested_class_test.TestParent4()
-            <class 'sage.misc.nested_class_test.TestParent4_with_category'>
+            <sage.misc.nested_class_test.TestParent4_with_category object at ...>
         """
         from sage.categories.all import Sets
         Parent.__init__(self, category = Sets())

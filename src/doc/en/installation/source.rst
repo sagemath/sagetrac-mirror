@@ -153,10 +153,6 @@ variable :envvar:`SAGE_INSTALL_GCC`, see :ref:`section_compilers` and
 Other notes
 ^^^^^^^^^^^
 
-Although some of Sage is written in `Python <http://www.python.org/>`_, you do
-not need Python pre-installed on your computer, since the Sage installation
-includes virtually everything you need.
-
 After extracting the Sage tarball, the subdirectory :file:`upstream`
 contains the source distributions for everything on which Sage depends.
 If cloned from a git repository, the upstream tarballs will be downloaded,
@@ -359,28 +355,23 @@ but provide additional capabilities:
 - **dvipng**.
 - **ffmpeg**.
 - **ImageMagick**.
-- **latex**: highly recommended.
+- **LaTeX**: highly recommended.
 
 It is highly recommended that you have
-`Latex <http://en.wikipedia.org/wiki/LaTeX>`_
+`LaTeX <http://en.wikipedia.org/wiki/LaTeX>`_
 installed, but it is not required.
-
-The most popular packaging is `TeX Live <www.tug.org/texlive/>`_ ,
-which you can install locally inside Sage with the commands::
-
-    sage -sh -c '$SAGE_ROOT/src/ext/texlive/texlive-install'
-
+The most popular packaging is `TeX Live <http://www.tug.org/texlive/>`_,
+which can be installed following the directions on their web site.
 On Linux systems you can alternatively install your distribution's
 texlive packages::
 
     sudo apt-get install texlive       # debian
     sudo yum install texlive           # redhat
 
-or similar commands. In addition to the base texlive install you will
-probably need a number of optional texlive packages, for example
+or similar commands. In addition to the base TeX Live install, you may
+need some optional TeX Live packages, for example
 country-specific babel packages for the localized Sage
-documentation. The required texlive packages are listed in
-``SAGE_ROOT/src/ext/texlive/package-list.txt``.
+documentation.
 
 If you don't have either ImageMagick or ffmpeg, you won't be able to
 view animations.
@@ -522,6 +513,14 @@ Running Sage from a directory with spaces in its name will also fail.
 
 #. Optional:  Set various other environment variables that influence the
    build process; see :ref:`section_envvar`.
+
+   Some environment variables deserve a special mention: `CC`, `CXX` and `FC`;
+   and on OS X, `OBJC` and `OBJCXX`. Those variables defining your compilers
+   can be set at configuration time and their values will be recorded for
+   further use at runtime. Those initial values are over-ridden if Sage builds
+   its own compiler or they are set to a different value again before calling
+   Sage. Note that some packages will ignore the compiler settings and use
+   values deemed safe for that package on a particular OS.
 
 #. Optional:  Run the configure script to set some options that
    influence the build process.
@@ -968,15 +967,15 @@ Here are some of the more commonly used variables affecting the build process:
   An entry ``package-name`` means to run the test suite for the named package
   regardless of the setting of :envvar:`SAGE_CHECK`.
   An entry ``!package-name`` means to skip its test suite.
-  So if this is set to ``mpir,!python``, then always run the test suite for
-  MPIR, but always skip the test suite for Python.
+  So if this is set to ``mpir,!python2``, then always run the test suite for
+  MPIR, but always skip the test suite for Python 2.
 
   .. note::
 
-     As of this writing (April 2013, Sage 5.8), the test suite for the Python
-     spkg fails on most platforms.
+     As of this writing (September 2017, Sage 8.1), the test suites for the
+     Python 2 and 3 spkgs fail on most platforms.
      So when this variable is empty or unset, Sage uses a default of
-     ``!python``.
+     ``!python2,!python3``.
 
 - :envvar:`SAGE64` - if set to ``yes``, then build a 64-bit binary on platforms
   which default to 32-bit, even though they can build 64-bit binaries.
@@ -1033,7 +1032,7 @@ Here are some of the more commonly used variables affecting the build process:
 
 - :envvar:`SAGE_PROFILE` - controls profiling support. If this is set
   to ``yes``, profiling support is enabled where possible. Note that
-  Python-level profiling is always avaliable; This option enables
+  Python-level profiling is always available; This option enables
   profiling in Cython modules.
 
 - :envvar:`SAGE_SPKG_INSTALL_DOCS` - if set to ``yes``, then install
@@ -1296,6 +1295,9 @@ Some standard environment variables which are used by Sage:
   :envvar:`CPPFLAGS`, :envvar:`LDFLAGS`, :envvar:`CXXFLAG64`,
   :envvar:`LDFLAG64`, and :envvar:`LD`.
 
+- :envvar:`OPENBLAS_CONFIGURE` - adds additional configuration flags for
+  the OpenBLAS package that gets added to the make command. (see :trac:`23272`)
+
 Sage uses the following environment variables when it runs:
 
 - :envvar:`DOT_SAGE` - this is the directory, to which the user has read and
@@ -1313,15 +1315,6 @@ Sage uses the following environment variables when it runs:
   run a web browser, but if this doesn't seem to work on your machine, set this
   variable to the appropriate command.
 
-Sage overrides the user's settings of the following variables:
-
-- :envvar:`MPLCONFIGDIR` - ordinarily, this variable lets the user set their
-  matplotlib config directory.
-  Due to incompatibilities in the contents of this directory among different
-  versions of matplotlib, Sage overrides the user's setting, defining it
-  instead to be :file:`$DOT_SAGE/matplotlib-VER`, with ``VER`` replaced by the
-  current matplotlib version number.
-
 Variables dealing with doctesting:
 
 - :envvar:`SAGE_TIMEOUT` - used for Sage's doctesting: the number of seconds
@@ -1332,16 +1325,6 @@ Variables dealing with doctesting:
   seconds to allow a doctest before timing it out, if tests are run using
   ``sage -t --long``.
   If this isn't set, the default is 1800 seconds (30 minutes).
-
-- :envvar:`SAGE_PICKLE_JAR` - if you want to update the standard pickle
-  jar, set this to something non-empty and run the doctest suite.
-  See the documentation for the functions :func:`picklejar` and
-  :func:`unpickle_all` in
-  :file:`$SAGE_ROOT/src/sage/structure/sage_object.pyx`, online
-  `here (picklejar)
-  <http://doc.sagemath.org/html/en/reference/sage/structure/sage_object.html#sage.structure.sage_object.picklejar>`_
-  and `here (unpickle_all)
-  <http://doc.sagemath.org/html/en/reference/sage/structure/sage_object.html#sage.structure.sage_object.unpickle_all>`_.
 
 - :envvar:`SAGE_TEST_GLOBAL_ITER`, :envvar:`SAGE_TEST_ITER`: these can
   be used instead of passing the flags ``--global-iterations`` and
@@ -1439,48 +1422,7 @@ the directory where you want to install Sage.
    processes.
    You can also omit ``long`` to skip tests which take a long time.
 
-Some common problems
---------------------
-
-ATLAS
-~~~~~
-
-Usually Sage will build ATLAS with architectural defaults that are not tuned
-to your particular CPU.
-In particular, if your CPU has powersaving enabled then no accurate timings
-can be made to tune the ATLAS build for your hardware.
-If BLAS performance is critical for you, you must recompile ATLAS after
-installing Sage either with architecture settings that match your hardware,
-or run through ATLAS' automatic tuning process where timings of different
-implementations are compared and the best choice used to build a custom ATLAS
-library.
-To do so, you have to
-
-- Leave the computer idle while you are reinstalling ATLAS.
-  Most of ATLAS will intentionally only compile/run on a single core.
-  Accurate timings of cache edges require that the CPU is otherwise idle.
-
-- Make sure that CPU powersaving mode (that is, anything but the
-  ``performance`` CPU scaling governor in Linux) is turned off when building
-  ATLAS.
-  This requires administrator privileges.
-
-- If your architecture is listed in :envvar:`SAGE_ATLAS_ARCH`, you should set
-  it as it can help ATLAS in narrowing down the timing search.
-
-To help you disable CPU power saving, Sage includes an ``atlas-config`` script
-that will turn off CPU powersave and rebuild ATLAS.
-The script will call ``sudo`` to gain the necessary rights, which may prompt
-you for your password. For example::
-
-    atlas-config
-
-will run through the full automated tuning, and::
-
-    SAGE_ATLAS_ARCH=Corei2,AVX,SSE3,SSE2,SSE1 atlas-config
-
-would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
 
-**This page was last updated in February 2017 (Sage 7.6).**
+**This page was last updated in September 2017 (Sage 8.1).**

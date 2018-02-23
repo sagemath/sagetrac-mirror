@@ -114,7 +114,8 @@ defined Cython code, and with rather tricky argument lines::
 """
 from __future__ import print_function, absolute_import
 from six.moves import range
-from six import iteritems
+from six import iteritems, string_types, class_types, text_type
+from sage.misc.six import u
 
 import ast
 import inspect
@@ -200,15 +201,23 @@ def _extract_embedded_position(docstring):
        sage: _extract_embedded_position(inspect.getdoc(var))[1][-21:]
        'sage/calculus/var.pyx'
 
+    TESTS:
+
     The following has been fixed in :trac:`13916`::
 
         sage: cython('''cpdef test_funct(x,y): return''')
         sage: print(open(_extract_embedded_position(inspect.getdoc(test_funct))[1]).read())
-        <BLANKLINE>
-        include "cysignals/signals.pxi"  # ctrl-c interrupt block support
-        include "stdsage.pxi"
-        <BLANKLINE>
-        include "cdefs.pxi"
+        cpdef test_funct(x,y): return
+
+    Ensure that the embedded filename of the compiled function is correct.  In
+    particular it should be relative to ``SPYX_TMP`` in order for certain
+    docmentation functions to work properly.  See :trac:`24097`::
+
+        sage: from sage.env import DOT_SAGE
+        sage: from sage.misc.sage_ostools import restore_cwd
+        sage: with restore_cwd(DOT_SAGE):
+        ....:     cython('''cpdef test_funct(x,y): return''')
+        sage: print(open(_extract_embedded_position(inspect.getdoc(test_funct))[1]).read())
         cpdef test_funct(x,y): return
 
     AUTHORS:
@@ -226,10 +235,25 @@ def _extract_embedded_position(docstring):
         return None
 
     raw_filename = res.group('FILENAME')
-    filename = os.path.join(SAGE_SRC, raw_filename)
-    if not os.path.isfile(filename):
+    filename = raw_filename
+
+    if not os.path.isabs(filename):
+        # Try some common path prefixes for Cython modules built by/for Sage
+        # 1) Module in the sage src tree
+        # 2) Module compiled by Sage's inline cython() compiler
         from sage.misc.misc import SPYX_TMP
-        filename = os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]), raw_filename)
+        try_filenames = [
+            os.path.join(SAGE_SRC, raw_filename),
+            os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]),
+                         raw_filename)
+        ]
+        for try_filename in try_filenames:
+            if os.path.exists(try_filename):
+                filename = try_filename
+                break
+        # Otherwise we keep the relative path and just hope it's relative to
+        # the cwd; otherwise there's no way to be sure.
+
     lineno = int(res.group('LINENO'))
     original = res.group('ORIGINAL')
     return (original, filename, lineno)
@@ -359,9 +383,9 @@ def _extract_source(lines, lineno):
         raise ValueError("Line numbering starts at 1! (tried to extract line {})".format(lineno))
     lineno -= 1
 
-    if isinstance(lines, str):
+    if isinstance(lines, string_types):
         lines = lines.splitlines(True) # true keeps the '\n'
-    if len(lines) > 0:
+    if len(lines):
         # Fixes an issue with getblock
         lines[-1] += '\n'
 
@@ -414,7 +438,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: [vis(n) for n in ['True', 'False', 'None', 'foo', 'bar']]
             [True, False, None, 'foo', 'bar']
             sage: [type(vis(n)) for n in ['True', 'False', 'None', 'foo', 'bar']]
-            [<... 'bool'>, <... 'bool'>, <type 'NoneType'>, <... 'str'>, <... 'str'>]
+            [<... 'bool'>, <... 'bool'>, <... 'NoneType'>, <... 'str'>, <... 'str'>]
         """
         what = node.id
         if what == 'None':
@@ -656,7 +680,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: import ast, sage.misc.sageinspect as sms
             sage: visitor = sms.SageArgSpecVisitor()
             sage: vis = lambda x: visitor.visit(ast.parse(x).body[0].value)
-            sage: [vis(d) for d in ['(3+(2*4))', '7|8', '5^3', '7/3', '7//3', '3<<4']] #indirect doctest # optional - python2
+            sage: [vis(d) for d in ['(3+(2*4))', '7|8', '5^3', '7/3', '7//3', '3<<4']] #indirect doctest # py2
             [11, 15, 6, 2, 2, 48]
         """
         op = node.op.__class__.__name__
@@ -844,7 +868,7 @@ def _split_syntactical_unit(s):
         sage: _split_syntactical_unit('123')
         ('1', '23')
 
-    TEST:
+    TESTS:
 
     The following was fixed in :trac:`16309`::
 
@@ -1638,12 +1662,14 @@ def _sage_getdoc_unformatted(obj):
 
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.
-    if not isinstance(r, types.StringTypes):
-        return ''
-    elif isinstance(r, unicode):
+    if isinstance(r, str):
+        return r
+    elif isinstance(r, text_type):
+        # On Python 2, we want str, not unicode
         return r.encode('utf-8', 'ignore')
     else:
-        return r
+        # Not a string of any kind
+        return ''
 
 
 def sage_getdoc_original(obj):
@@ -1712,7 +1738,7 @@ def sage_getdoc_original(obj):
     """
     # typ is the type corresponding to obj, which is obj itself if
     # that was a type or old-style class
-    if isinstance(obj, (type, types.ClassType) ):
+    if isinstance(obj, class_types):
         typ = obj
     else:
         typ = type(obj)
@@ -1979,7 +2005,7 @@ def sage_getsourcelines(obj):
 
         sage: from sage.misc.sageinspect import sage_getsourcelines
         sage: sage_getsourcelines(matrix)[1]
-        26
+        28
         sage: sage_getsourcelines(matrix)[0][0][6:]
         'MatrixFactory(object):\n'
 
@@ -1997,16 +2023,16 @@ def sage_getsourcelines(obj):
 
         sage: cython('''cpdef test_funct(x,y): return''')
         sage: sage_getsourcelines(test_funct)
-        (['cpdef test_funct(x,y): return\n'], 6)
+        (['cpdef test_funct(x,y): return\n'], 1)
 
     The following tests that an instance of ``functools.partial`` is correctly
     dealt with (see :trac:`9976`)::
 
-        sage: obj = sage.combinat.partition_algebra.SetPartitionsAk
-        sage: sage_getsourcelines(obj)
-        (['def create_set_partition_function(letter, k):\n',
+        sage: from sage.tests.functools_partial_src import test_func
+        sage: sage_getsourcelines(test_func)
+        (['def base(x):\n',
         ...
-        '    raise ValueError("k must be an integer or an integer + 1/2")\n'], 36)
+        '    return x\n'], 7)
 
     Here are some cases that were covered in :trac:`11298`;
     note that line numbers may easily change, and therefore we do
@@ -2109,7 +2135,7 @@ def sage_getsourcelines(obj):
 
     # First, we deal with nested classes. Their name contains a dot, and we
     # have a special function for that purpose.
-    if (not hasattr(obj, '__class__')) or hasattr(obj,'__metaclass__'):
+    if (not hasattr(obj, '__class__')) or (isinstance(obj, type) and type(obj) is not type):
         # That happens for ParentMethods
         # of categories
         if '.' in obj.__name__ or '.' in getattr(obj,'__qualname__',''):
@@ -2120,7 +2146,11 @@ def sage_getsourcelines(obj):
     pos = _extract_embedded_position(d)
     if pos is None:
         try:
+            # BEWARE HERE
+            # inspect gives str (=bytes) in python2
+            # and str (=unicode) in python3
             return inspect.getsourcelines(obj)
+
         except (IOError, TypeError) as err:
             try:
                 objinit = obj.__init__
@@ -2262,7 +2292,7 @@ def __internal_tests():
         ''
 
         sage: sage_getsource(sage)
-        "...all..."
+        '...all...'
 
     A cython function with default arguments (one of which is a string)::
 

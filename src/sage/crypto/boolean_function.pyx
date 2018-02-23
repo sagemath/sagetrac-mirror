@@ -22,11 +22,14 @@ EXAMPLES::
 
 AUTHOR:
 
+- Rusydi H. Makarim (2016-10-13): add functions related to linear structures
 - Rusydi H. Makarim (2016-07-09): add is_plateaued()
 - Yann Laigle-Chapuy (2010-02-26): add basic arithmetic
 - Yann Laigle-Chapuy (2009-08-28): first implementation
 
 """
+from __future__ import absolute_import
+
 from libc.string cimport memcpy
 
 from sage.structure.sage_object cimport SageObject
@@ -65,7 +68,7 @@ cdef walsh_hadamard(long *f, int ldn):
         sage: from sage.crypto.boolean_function import BooleanFunction
         sage: B = BooleanFunction([1,0,0,1])
         sage: B.walsh_hadamard_transform() # indirect doctest
-        (0, 0, 0, 4)
+        (0, 0, 0, -4)
     """
     cdef long n, ldm, m, mh, t1, t2, r
     n = 1 << ldn
@@ -551,6 +554,22 @@ cdef class BooleanFunction(SageObject):
             sage: BooleanFunction('00ab').truth_table(format='hex')
             '00ab'
 
+            sage: H = '0abbacadabbacad0'
+            sage: len(H)
+            16
+            sage: T = BooleanFunction(H).truth_table(format='hex')
+            sage: T == H
+            True
+            sage: H = H * 4
+            sage: T = BooleanFunction(H).truth_table(format='hex')
+            sage: T == H
+            True
+            sage: H = H * 4
+            sage: T = BooleanFunction(H).truth_table(format='hex')
+            sage: T == H
+            True
+            sage: len(T)
+            256
             sage: B.truth_table(format='oct')
             Traceback (most recent call last):
             ...
@@ -561,15 +580,8 @@ cdef class BooleanFunction(SageObject):
         if format == 'int':
             return tuple(map(int,self))
         if format == 'hex':
-            S = ""
             S = ZZ(self.truth_table(),2).str(16)
             S = "0"*((1<<(self._nvariables-2)) - len(S)) + S
-            for 1 <= i < self._truth_table.limbs:
-                if sizeof(long)==4:
-                    t = "%04x"%self._truth_table.bits[i]
-                if sizeof(long)==8:
-                    t = "%08x"%self._truth_table.bits[i]
-                S = t + S
             return S
         raise ValueError("unknown output format")
 
@@ -624,14 +636,14 @@ cdef class BooleanFunction(SageObject):
             1
             sage: B([1,0])
             1
-            sage: B(7)
+            sage: B(4)
             Traceback (most recent call last):
             ...
             IndexError: index out of bound
 
         """
         if isinstance(x, (int,long,Integer)):
-            if x > self._truth_table.size:
+            if x >= self._truth_table.size:
                 raise IndexError("index out of bound")
             return bitset_in(self._truth_table,x)
         elif isinstance(x, list):
@@ -681,7 +693,7 @@ cdef class BooleanFunction(SageObject):
             sage: R.<x> = GF(2^3,'a')[]
             sage: B = BooleanFunction( x^3 )
             sage: B.walsh_hadamard_transform()
-            (0, 4, 0, -4, 0, -4, 0, -4)
+            (0, -4, 0, 4, 0, 4, 0, 4)
         """
         cdef long *temp
 
@@ -690,7 +702,7 @@ cdef class BooleanFunction(SageObject):
             temp = <long *>sig_malloc(sizeof(long)*n)
 
             for 0<= i < n:
-                temp[i] = (bitset_in(self._truth_table,i)<<1)-1
+                temp[i] = 1 - (bitset_in(self._truth_table,i)<<1)
 
             walsh_hadamard(temp, self._nvariables)
             self._walsh_hadamard_transform = tuple(temp[i] for i in xrange(n))
@@ -846,7 +858,7 @@ cdef class BooleanFunction(SageObject):
 
     def autocorrelation(self):
         r"""
-        Return the autocorrelation fo the function, defined by
+        Return the autocorrelation of the function, defined by
 
         .. MATH:: \Delta_f(j) = \sum_{i\in\{0,1\}^n} (-1)^{f(i)\oplus f(i\oplus j)}.
 
@@ -951,8 +963,8 @@ cdef class BooleanFunction(SageObject):
             {0}
         """
         # NOTE: this is a toy implementation
-        from sage.rings.polynomial.pbori import BooleanPolynomialRing
-        R = BooleanPolynomialRing(self._nvariables,'x')
+        from sage.rings.polynomial.polynomial_ring_constructor import BooleanPolynomialRing_constructor
+        R = BooleanPolynomialRing_constructor(self._nvariables,'x')
         G = R.gens()
         r = [R(1)]
 
@@ -997,7 +1009,7 @@ cdef class BooleanFunction(SageObject):
 
         INPUT:
 
-        - annihilator - a Boolean (default: False), if True, returns also an annihilator of minimal degree.
+        - annihilator -- a Boolean (default: False), if True, returns also an annihilator of minimal degree.
 
         EXAMPLES::
 
@@ -1039,12 +1051,144 @@ cdef class BooleanFunction(SageObject):
             sage: R.<x0, x1, x2, x3> = BooleanPolynomialRing()
             sage: f = BooleanFunction(x0*x1 + x2 + x3)
             sage: f.walsh_hadamard_transform()
-            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -8, -8, -8, 8)
+            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, -8)
             sage: f.is_plateaued()
             True
         """
         W = self.absolute_walsh_spectrum()
         return (len(W) == 1) or (len(W) == 2 and 0 in W)
+
+    def is_linear_structure(self, val):
+        """
+        Return ``True`` if ``val`` is a linear structure of this Boolean
+        function.
+
+        INPUT:
+
+        - ``val`` -- either an integer or a tuple/list of `\GF{2}` elements
+          of length equal to the number of variables
+
+        .. SEEALSO::
+
+            :meth:`has_linear_structure`,
+            :meth:`linear_structures`.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: f = BooleanFunction([0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0])
+            sage: f.is_linear_structure(1)
+            True
+            sage: l = [1, 0, 0, 1]
+            sage: f.is_linear_structure(l)
+            True
+            sage: v = vector(GF(2), l)
+            sage: f.is_linear_structure(v)
+            True
+            sage: f.is_linear_structure(7)
+            False
+            sage: f.is_linear_structure(20) #parameter is out of range
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+            sage: v = vector(GF(3), [1, 0, 1, 1])
+            sage: f.is_linear_structure(v)
+            Traceback (most recent call last):
+            ...
+            TypeError: base ring of input vector must be GF(2)
+            sage: v = vector(GF(2), [1, 0, 1, 1, 1])
+            sage: f.is_linear_structure(v)
+            Traceback (most recent call last):
+            ...
+            TypeError: input vector must be an element of a vector space with dimension 4
+            sage: f.is_linear_structure('X') #failure case
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot compute is_linear_structure() using parameter X
+        """
+        from sage.structure.element import is_Vector
+        nvars = self._nvariables
+
+        if isinstance(val, (tuple, list)):
+            i = ZZ(val, base=2)
+        elif is_Vector(val):
+            if val.base_ring() != GF(2):
+                raise TypeError("base ring of input vector must be GF(2)")
+            elif val.parent().dimension() != nvars:
+                raise TypeError("input vector must be an element of a vector space with dimension %d" % (nvars,))
+            i = ZZ(val.list(), base=2)
+        else:
+            i = val
+
+        a = self.autocorrelation()
+        try:
+            return abs(a[i]) == 1<<nvars
+        except IndexError:
+            raise IndexError("index out of range")
+        except TypeError:
+            raise TypeError("cannot compute is_linear_structure() using parameter %s" % (val,))
+
+    def has_linear_structure(self):
+        """
+        Return ``True`` if this function has a linear structure.
+
+        An `n`-variable Boolean function `f` has a linear structure if
+        there exists a nonzero `a \in \GF{2}^n` such that
+        `f(x \oplus a) \oplus f(x)` is a constant function.
+
+        .. SEEALSO::
+
+            :meth:`is_linear_structure`,
+            :meth:`linear_structures`.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: f = BooleanFunction([0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0])
+            sage: f.has_linear_structure()
+            True
+            sage: f.autocorrelation()
+            (16, -16, 0, 0, 0, 0, 0, 0, -16, 16, 0, 0, 0, 0, 0, 0)
+            sage: g = BooleanFunction([0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1])
+            sage: g.has_linear_structure()
+            False
+            sage: g.autocorrelation()
+            (16, 4, 4, 4, 4, -4, -4, -4, -4, 4, -4, -4, -4, 4, -4, -4)
+        """
+        a = self.autocorrelation()
+        nvars = self._nvariables
+        return any(abs(a[i]) == 1<<nvars for i in range(1, 1<<nvars))
+
+    def linear_structures(self):
+        """
+        Return all linear structures of this Boolean function as a vector subspace
+        of `\GF{2}^n`.
+
+        .. SEEALSO::
+
+            :meth:`is_linear_structure`,
+            :meth:`has_linear_structure`.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: f = BooleanFunction([0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0])
+            sage: LS = f.linear_structures()
+            sage: LS.dimension()
+            2
+            sage: LS.basis_matrix()
+            [1 0 0 0]
+            [0 0 0 1]
+            sage: LS.list()
+            [(0, 0, 0, 0), (1, 0, 0, 0), (0, 0, 0, 1), (1, 0, 0, 1)]
+        """
+        from sage.modules.free_module import VectorSpace
+
+        nvars = self.nvariables()
+        a = self.autocorrelation()
+        l = [ZZ(i).digits(base=2, padto=nvars) for i in range(1<<nvars) if abs(a[i]) == 1<<nvars]
+        V = VectorSpace(GF(2), nvars)
+        return V.subspace(l)
 
     def __setitem__(self, i, y):
         """

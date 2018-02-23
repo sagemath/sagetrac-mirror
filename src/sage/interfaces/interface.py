@@ -38,8 +38,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six import iteritems
-import six
+from six import iteritems, integer_types, string_types
 
 import operator
 
@@ -48,6 +47,7 @@ from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, parent
 
 import sage.misc.sage_eval
+from sage.misc.fast_methods import WithEqualityById
 from sage.docs.instancedoc import instancedoc
 
 
@@ -56,11 +56,33 @@ class AsciiArtString(str):
         return str(self)
 
 
-class Interface(ParentWithBase):
+class Interface(WithEqualityById, ParentWithBase):
     """
     Interface interface object.
+
+    .. NOTE::
+
+        Two interfaces compare equal if and only if they are identical
+        objects (this is a critical constraint so that caching of
+        representations of objects in interfaces works
+        correctly). Otherwise they are never equal.
     """
     def __init__(self, name):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: Maxima() == maxima
+            False
+            sage: maxima == maxima
+            True
+
+            sage: Maxima() != maxima
+            True
+            sage: maxima != maxima
+            False
+        """
         self.__name = name
         self.__coerce_name = '_' + name.lower() + '_'
         self.__seq = -1
@@ -76,10 +98,11 @@ class Interface(ParentWithBase):
 
     def get_seed(self):
         """
-        Returns the seed used to set the random
-        number generator in this interface.
-        The seed is initialized as None
-        but should be set when the interface starts.
+        Return the seed used to set the random number generator in
+        this interface.
+
+        The seed is initialized as ``None`` but should be set when the
+        interface starts.
 
         EXAMPLES::
 
@@ -93,16 +116,14 @@ class Interface(ParentWithBase):
 
     def rand_seed(self):
         """
-        Returns a random seed that can be
-        put into set_seed function for
-        any interpreter.
-        This should be overridden if
-        the particular interface needs something
-        other than a small positive integer.
+        Return a random seed that can be put into ``set_seed`` function
+        for any interpreter.
+
+        This should be overridden if the particular interface needs
+        something other than a small positive integer.
 
         EXAMPLES::
 
-            from sage.misc.random_testing import random_testing
             sage: from sage.interfaces.interface import Interface
             sage: i = Interface("")
             sage: i.rand_seed() # random
@@ -113,18 +134,17 @@ class Interface(ParentWithBase):
             365260051L
         """
         from sage.misc.randstate import randstate
-        return long(randstate().seed()&0x1FFFFFFF)
+        return randstate().seed()&0x1FFFFFFF
 
-    def set_seed(self,seed = None):
+    def set_seed(self, seed=None):
         """
-        Sets the random seed for the interpreter
-        and returns the new value of the seed.
-        This is dependent on which interpreter
-        so must be implemented in each
-        separately. For examples see
-        gap.py or singular.py.
-        If seed is None then should generate
-        a random seed.
+        Set the random seed for the interpreter and return the new
+        value of the seed.
+
+        This is dependent on which interpreter so must be implemented
+        in each separately. For examples see gap.py or singular.py.
+
+        If seed is ``None`` then should generate a random seed.
 
         EXAMPLES::
 
@@ -185,7 +205,7 @@ class Interface(ParentWithBase):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
-            sage: f.write('x = 2\n')
+            sage: _ = f.write('x = 2\n')
             sage: f.close()
             sage: octave.read(filename)  # optional - octave
             sage: octave.get('x')        # optional - octave
@@ -256,7 +276,7 @@ class Interface(ParentWithBase):
             except (NotImplementedError, TypeError):
                 pass
 
-        if isinstance(x, six.string_types):
+        if isinstance(x, string_types):
             return cls(self, x, name=name)
         try:
             return self._coerce_from_special_method(x)
@@ -290,7 +310,7 @@ class Interface(ParentWithBase):
             return self(x._interface_init_())
 
     def _coerce_impl(self, x, use_special=True):
-        if isinstance(x, (int, long)):
+        if isinstance(x, integer_types):
             import sage.rings.all
             return self(sage.rings.all.Integer(x))
         elif isinstance(x, float):
@@ -585,28 +605,6 @@ class Interface(ParentWithBase):
             if attrname[:1] == "_":
                 raise
             return self._function_class()(self, attrname)
-
-    def __cmp__(self, other):
-        """
-        Compare two pseudo-tty interfaces. Two interfaces compare
-        equal if and only if they are identical objects (this is a
-        critical constraint so that caching of representations of
-        objects in interfaces works correctly). Otherwise they are
-        never equal.
-
-        EXAMPLES::
-
-            sage: Maxima() == maxima
-            False
-            sage: maxima == maxima
-            True
-        """
-        if self is other:
-            return 0
-        c = cmp(type(self), type(other))
-        if c:
-            return c
-        return -1  # sucky, but I can't think of anything better; it is important that different interfaces to the same system still compare differently; unfortunately there is nothing to distinguish them.
 
     def console(self):
         raise NotImplementedError
@@ -1097,7 +1095,7 @@ class InterfaceElement(Element):
         except ValueError as msg:
             return '(invalid {} object -- {})'.format(self.parent() or type(self), msg)
         cr = getattr(self, '_cached_repr', None)
-        if isinstance(cr, six.string_types):
+        if isinstance(cr, string_types):
             s = cr
         else:
             s = self._repr_()
@@ -1154,9 +1152,9 @@ class InterfaceElement(Element):
         P = self.parent()
         try:
             if self._get_using_file:
-                return P.get_using_file(self._name).strip()
+                return P.get_using_file(self._name).rstrip()
         except AttributeError:
-            return self.parent().get(self._name).strip()
+            return self.parent().get(self._name).rstrip()
 
     def __getattr__(self, attrname):
         P = self._check_valid()
@@ -1353,7 +1351,7 @@ class InterfaceElement(Element):
             's5'
         """
         if new_name is not None:
-            if not isinstance(new_name, str):
+            if not isinstance(new_name, string_types):
                 raise TypeError("new_name must be a string")
             p = self.parent()
             p.set(new_name, self._name)

@@ -1,15 +1,15 @@
 r"""
 Interface to Axiom
 
-TODO:
+.. TODO::
 
-- Evaluation using a file is not done. Any input line with more than a
-  few thousand characters would hang the system, so currently it
-  automatically raises an exception.
+    - Evaluation using a file is not done. Any input line with more than a
+      few thousand characters would hang the system, so currently it
+      automatically raises an exception.
 
-- All completions of a given command.
+    - All completions of a given command.
 
-- Interactive help.
+    - Interactive help.
 
 Axiom is a free GPL-compatible (modified BSD license) general
 purpose computer algebra system whose development started in 1973
@@ -262,7 +262,7 @@ class PanAxiom(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename(ext='.input')
             sage: f = open(filename, 'w')
-            sage: f.write('xx := 22;\n')
+            sage: _ = f.write('xx := 22;\n')
             sage: f.close()
             sage: axiom.read(filename)    # optional - axiom
             sage: axiom.get('xx')         # optional - axiom

@@ -574,9 +574,10 @@ class Func_chebyshev_T(ChebyshevFunction):
             chebyshev_t(_SAGE_VAR_n,chebyshev_t(_SAGE_VAR_n,_SAGE_VAR_x))
         """
         ChebyshevFunction.__init__(self, 'chebyshev_T', nargs=2,
-                                     conversions=dict(maxima='chebyshev_t',
-                                                      mathematica='ChebyshevT',
-                                                      sympy='chebyshevt'))
+                                   conversions=dict(maxima='chebyshev_t',
+                                                    mathematica='ChebyshevT',
+                                                    sympy='chebyshevt',
+                                                    giac='tchebyshev1'))
 
     def _latex_(self):
         r"""
@@ -883,9 +884,10 @@ class Func_chebyshev_U(ChebyshevFunction):
             chebyshev_u(_SAGE_VAR_n,_SAGE_VAR_x)
         """
         ChebyshevFunction.__init__(self, 'chebyshev_U', nargs=2,
-                                     conversions=dict(maxima='chebyshev_u',
-                                                      mathematica='ChebyshevU',
-                                                      sympy='chebyshevu'))
+                                   conversions=dict(maxima='chebyshev_u',
+                                                    mathematica='ChebyshevU',
+                                                    sympy='chebyshevu',
+                                                    giac='tchebyshev2'))
 
     def _latex_(self):
         r"""
@@ -1142,9 +1144,11 @@ class Func_legendre_P(BuiltinFunction):
             sage: loads(dumps(legendre_P))
             legendre_P
         """
-        BuiltinFunction.__init__(self, "legendre_P", nargs=2, latex_name=r"P",
-                conversions={'maxima':'legendre_p', 'mathematica':'LegendreP',
-                    'maple':'LegendreP'})
+        BuiltinFunction.__init__(self, 'legendre_P', nargs=2, latex_name=r"P",
+                                 conversions={'maxima':'legendre_p',
+                                              'mathematica':'LegendreP',
+                                              'maple':'LegendreP',
+                                              'giac':'legendre'})
 
     def _eval_(self, n, x, *args, **kwds):
         r"""
@@ -1331,7 +1335,7 @@ class Func_legendre_Q(BuiltinFunction):
             sage: var('n')
             n
             sage: legendre_Q(n, 0)
-            -1/2*sqrt(pi)*sin(1/2*pi*n)*gamma(1/2*n + 1/2)/gamma(1/2*n + 1)
+            -1/2*sqrt(pi)*gamma(1/2*n + 1/2)*sin(1/2*pi*n)/gamma(1/2*n + 1)
             sage: legendre_Q(-1., 0.)
             +infinity
             sage: legendre_Q(-1/2, 2)
@@ -1350,8 +1354,9 @@ class Func_legendre_Q(BuiltinFunction):
             return SR(unsigned_infinity)
 
         if x == 0:
-            from sage.functions.other import gamma, sqrt
-            from sage.functions.trig import sin
+            from .gamma import gamma
+            from .other import sqrt
+            from .trig import sin
             try:
                 gam = gamma((n+1)/2)/gamma(n/2 + 1)
                 if gam.is_infinity():
@@ -1537,6 +1542,7 @@ class Func_assoc_legendre_P(BuiltinFunction):
         Special values known.
 
         EXAMPLES::
+
             sage: gen_legendre_P(2,3,4)
             0
             sage: gen_legendre_P(2,0,4)==legendre_P(2,4)
@@ -1562,8 +1568,9 @@ class Func_assoc_legendre_P(BuiltinFunction):
         if n == m:
             return factorial(2*m)/2**m/factorial(m) * (x**2-1)**(m/2)
         if x == 0:
-            from sage.functions.other import gamma, sqrt
-            from sage.functions.trig import cos
+            from .gamma import gamma
+            from .other import sqrt
+            from .trig import cos
             if m in QQ and n in QQ:
                 return 2**m/sqrt(SR.pi())*cos((n+m)/2*SR.pi())*(gamma(QQ(n+m+1)/2)/gamma(QQ(n-m)/2+1))
             elif isinstance(n, Expression) or isinstance(m, Expression):
@@ -1662,7 +1669,7 @@ class Func_assoc_legendre_Q(BuiltinFunction):
         EXAMPLES::
 
             sage: gen_legendre_Q(2,1,3)
-            -1/4*sqrt(-2)*(-36*I*pi + 36*log(4) - 36*log(2) - 25)
+            -1/4*sqrt(-2)*(-36*I*pi + 36*log(2) - 25)
         """
         ret = self._eval_special_values_(n, m, x)
         if ret is not None:
@@ -1680,13 +1687,14 @@ class Func_assoc_legendre_Q(BuiltinFunction):
 
             sage: n, m = var('n m')
             sage: gen_legendre_Q(n,m,0)
-            -sqrt(pi)*2^(m - 1)*sin(1/2*pi*m + 1/2*pi*n)*gamma(1/2*m + 1/2*n + 1/2)/gamma(-1/2*m + 1/2*n + 1)
+            -sqrt(pi)*2^(m - 1)*gamma(1/2*m + 1/2*n + 1/2)*sin(1/2*pi*m + 1/2*pi*n)/gamma(-1/2*m + 1/2*n + 1)
         """
         if m == 0:
             return legendre_Q(n, x)
         if x.is_zero():
-            from sage.functions.other import gamma, sqrt
-            from sage.functions.trig import sin
+            from .gamma import gamma
+            from .other import sqrt
+            from .trig import sin
             if m in QQ and n in QQ:
                 return -(sqrt(SR.pi()))*sin(SR.pi()/2*(m+n))*gamma(QQ(m+n+1)/2)/gamma(QQ(n-m)/2 + 1)*2**(m-1)
             elif isinstance(n, Expression) or isinstance(m, Expression):
@@ -1919,7 +1927,7 @@ class Func_jacobi_P(OrthogonalFunction):
             raise ValueError("n must be greater than -1, got n = {0}".format(n))
         if not n in ZZ:
             return
-        from sage.functions.other import gamma
+        from .gamma import gamma
         s = sum(binomial(n,m) * gamma(a+b+n+m+1) / gamma(a+m+1) * ((x-1)/2)**m for m in range(n+1))
         r = gamma(a+n+1) / factorial(n) / gamma(n+a+b+1) * s
         return r.to_gamma().gamma_normalize().normalize()
@@ -1942,7 +1950,7 @@ class Func_jacobi_P(OrthogonalFunction):
         prec = the_parent.precision()
         BF = CBF(prec+5)
         ret = BF(x).jacobi_P(BF(n), BF(a), BF(b))
-        return the_parent(ret)
+        return SR(ret)._eval_self(the_parent)
 
 jacobi_P = Func_jacobi_P()
 

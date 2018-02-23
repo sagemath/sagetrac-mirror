@@ -30,7 +30,7 @@ REFERENCES:
 Functions
 ---------
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
@@ -1043,7 +1043,7 @@ def is_polhill(int v,int k,int l,int mu):
         [(1,0),(3,0),(0,2),(1,3),(3,1)],
         [(1,2),(3,2),(2,1),(2,3),(2,2)]
         ]
-    D = [map(G,x) for x in D]
+    D = [[G(e) for e in x] for x in D]
 
     # The K_i are hyperplanes partitionning the nonzero elements of
     # GF(2^s)^2. See section 6.
@@ -1113,8 +1113,8 @@ def is_polhill(int v,int k,int l,int mu):
                     product(D[0],PQ[1,i]),
                     product(D[1],PQ[2,i]),
                     product(D[2],PQ[3,i])]
-            Dtmp = map(set,Dtmp)
-            Dtmp = map(Gprod,sum(map(list,Dtmp),[]))
+            Dtmp = map(set, Dtmp)
+            Dtmp = [Gprod(e) for e in sum(map(list, Dtmp), [])]
             DD.append(Dtmp)
 
     # Now that we have the data, we can return the graphs.
@@ -1453,7 +1453,7 @@ def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
     `\lambda^*-\mu^*=\lambda-\mu`.  Further, there is a quadratic relation
     `2 k^2-(v+1+4 \mu) k+ 2 v \mu=0`.
 
-    If we can contruct such `G` then we return a function to build a
+    If we can construct such `G` then we return a function to build a
     `(v,k_0,\lambda,\mu)`-s.r.g.  For more information,
     see 10.3 in http://www.win.tue.nl/~aeb/2WF02/spectra.pdf
 
@@ -1649,9 +1649,8 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
         not orthogonal_array(c+1,n,existence=True,resolvable=True)):
         return None
 
-    def switch_OA_srg(c,n):
-        from builtins import zip
-        OA = map(tuple,orthogonal_array(c+1,n,resolvable=True))
+    def switch_OA_srg(c, n):
+        OA = map(tuple, orthogonal_array(c+1, n, resolvable=True))
         g = Graph([OA, lambda x,y: any(xx==yy for xx,yy in zip(x,y))],
                   loops=False)
         g.add_vertex(0)
@@ -1659,6 +1658,50 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
         return g
 
     return (switch_OA_srg,c,n)
+
+
+def is_nowhere0_twoweight(int v, int k, int l, int mu):
+    r"""
+    Test whether some graph of nowhere 0 words is `(v,k,\lambda,\mu)`-strongly regular.
+
+    Test whether a :meth:`~sage.graphs.graph_generators.GraphGenerators.Nowhere0WordsTwoWeightCodeGraph`
+    is `(v,k,\lambda,\mu)`-strongly regular.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if the
+    parameters match, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: graphs.strongly_regular_graph(196, 60, 14, 20)
+        Nowhere0WordsTwoWeightCodeGraph(8): Graph on 196 vertices
+
+    TESTS::
+
+        sage: from sage.graphs.strongly_regular_db import is_nowhere0_twoweight
+        sage: t = is_nowhere0_twoweight(1800, 728, 268, 312); t
+        (<function Nowhere0WordsTwoWeightCodeGraph at ...>, 16)
+        sage: t = is_nowhere0_twoweight(5,5,5,5); t
+
+    """
+    from sage.graphs.generators.classical_geometries import Nowhere0WordsTwoWeightCodeGraph
+    cdef int q
+    r,s = eigenvalues(v,k,l,mu)
+    if r is None:
+        return
+    if r<s:
+        r,s = s,r
+    q = r*2
+    if  q > 4 and is_prime_power(q) and 0==r%2 and \
+        v    ==  r*(q-1)**2                    and \
+        4*k  == q*(q-2)*(q-3)                  and \
+        8*mu == q*(q-3)*(q-4):
+        return (Nowhere0WordsTwoWeightCodeGraph, q)
 
 cdef eigenvalues(int v,int k,int l,int mu):
     r"""
@@ -2003,16 +2046,16 @@ def SRG_176_49_12_14():
 
     # Looking for an involution that maps a point of the design to one of the
     # blocks that contains it. It is called a polarity with only absolute
-    # points in
+    # points.
     for aut in ag:
         try:
             0 in aut(0)
         except TypeError:
             continue
         if (aut.order() == 2 and
-            all(i in aut(i) for i in d.ground_set())):
+                all(i in aut(i) for i in d.ground_set())):
             g = Graph()
-            g.add_edges((u,v) for u in d.ground_set() for v in aut(u))
+            g.add_edges(((u,v) for u in d.ground_set() for v in aut(u)), loops=False)
             return g
 
 def SRG_176_105_68_54():
@@ -2208,7 +2251,7 @@ def SRG_276_140_58_84():
     r"""
     Return a `(276, 140, 58, 84)`-strongly regular graph.
 
-    The graph is built from from
+    The graph is built from
     :meth:`~sage.graphs.graph_generators.GraphGenerators.McLaughlinGraph`, with
     an added isolated vertex. We then perform a
     :meth:`~Graph.seidel_switching` on a set of 28 disjoint 5-cliques, which
@@ -2300,7 +2343,7 @@ def SRG_280_117_44_52():
     """
     from sage.graphs.hypergraph_generators import hypergraphs
 
-    # V is the set of partions {{a,b,c},{d,e,f},{g,h,i}} of {0,...,8}
+    # V is the set of partitions {{a,b,c},{d,e,f},{g,h,i}} of {0,...,8}
     H = hypergraphs.CompleteUniform(9,3)
     g = H.intersection_graph()
     V = g.complement().cliques_maximal()
@@ -2354,7 +2397,7 @@ def strongly_regular_from_two_weight_code(L):
       http://dx.doi.org/10.1016/0012-365X(72)90024-6.
 
     """
-    from sage.matrix.matrix import is_Matrix
+    from sage.structure.element import is_Matrix
     if is_Matrix(L):
         L = LinearCode(L)
     V = map(tuple,list(L))
@@ -2893,6 +2936,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
                       is_cossidente_penttila,
                       is_mathon_PC_srg,
                       is_muzychuk_S6,
+                      is_nowhere0_twoweight,
                       is_switch_skewhad]
 
     # Going through all test functions, for the set of parameters and its
@@ -3084,6 +3128,8 @@ def _build_small_srg_database():
     from sage.graphs.generators.smallgraphs import LocalMcLaughlinGraph
     from sage.graphs.generators.smallgraphs import SuzukiGraph
     from sage.graphs.generators.smallgraphs import MathonStronglyRegularGraph
+    from sage.graphs.generators.smallgraphs import U42Graph216
+    from sage.graphs.generators.smallgraphs import U42Graph540
 
     global _small_srg_database
     _small_srg_database = {
@@ -3108,6 +3154,7 @@ def _build_small_srg_database():
         (176, 105,  68, 54): [SRG_176_105_68_54],
         (196,  91,  42, 42): [SRG_196_91_42_42],
         (210,  99,  48, 45): [SRG_210_99_48_45],
+        (216,  40,   4,  8): [U42Graph216],
         (220,  84,  38, 28): [SRG_220_84_38_28],
         (231,  30,   9,  3): [CameronGraph],
         (243, 110,  37, 60): [SRG_243_110_37_60],
@@ -3117,6 +3164,7 @@ def _build_small_srg_database():
         (280, 117, 44,  52): [SRG_280_117_44_52],
         (280, 135,  70, 60): [SRG_280_135_70_60],
         (416, 100,  36, 20): [SRG_416_100_36_20],
+        (540, 187,  58, 68): [U42Graph540],
         (560, 208,  72, 80): [SRG_560_208_72_80],
         (630,  85,  20, 10): [SRG_630_85_20_10],
         (765, 192,  48, 48): [IoninKharaghani765Graph],
@@ -3180,7 +3228,7 @@ def _check_database():
 
         sage: from sage.graphs.strongly_regular_db import _check_database
         sage: _check_database() # long time
-        Sage cannot build a (196  60   14   20  ) that exists. Comment ...
+        Sage cannot build a (512  133  24   38  ) that exists. Comment ...
         ...
         In Andries Brouwer's database:
         - 462 impossible entries

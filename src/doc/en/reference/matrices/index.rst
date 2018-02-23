@@ -54,7 +54,7 @@ objects like operation tables (e.g. the multiplication table of a group).
 
    sage/matrix/matrix_misc
 
-   sage/matrix/matrix
+   sage/matrix/special
 
    sage/matrix/matrix0
 

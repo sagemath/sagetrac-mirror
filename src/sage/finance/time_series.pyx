@@ -45,10 +45,12 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "cysignals/memory.pxi"
+from __future__ import absolute_import
+
 from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AsString
 from libc.math cimport exp, floor, log, pow, sqrt
 from libc.string cimport memcpy
+from cysignals.memory cimport sig_malloc, sig_free
 
 cimport numpy as cnumpy
 
@@ -233,8 +235,7 @@ cdef class TimeSeries:
             sage: v = finance.TimeSeries([1,3,-4,5])
             sage: del v
         """
-        if self._values:
-            sig_free(self._values)
+        sig_free(self._values)
 
     def vector(self):
         """
@@ -501,7 +502,7 @@ cdef class TimeSeries:
 
         Note that both summands must be a time series::
 
-            sage: v + range(4)
+            sage: v + list(range(4))
             Traceback (most recent call last):
             ...
             TypeError: right operand must be a time series
@@ -2087,7 +2088,7 @@ cdef class TimeSeries:
             sage: w = v.numpy(copy=False); w
             array([ 1. , -3. ,  4.5, -2. ])
             sage: type(w)
-            <type 'numpy.ndarray'>
+            <... 'numpy.ndarray'>
             sage: w.shape
             (4,)
 

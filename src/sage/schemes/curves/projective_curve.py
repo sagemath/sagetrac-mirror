@@ -57,7 +57,7 @@ from sage.schemes.projective.projective_space import ProjectiveSpace, is_Project
 
 from . import point
 
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
+from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
 from sage.schemes.projective.projective_space import (is_ProjectiveSpace,
                                                       ProjectiveSpace)
 
@@ -1490,6 +1490,53 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         # there is only one tangent at a nonsingular point of a plane curve
         return not self.tangents(P)[0] == C.tangents(P)[0]
 
+    def fundamental_group(self):
+        r"""
+        Return a presentation of the fundamental group of the complement
+        of ``self``.
+
+        .. NOTE::
+
+            The curve must be defined over the rationals or a number field
+            with an embedding over `\QQbar`.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: C = P.curve(x^2*z-y^3)
+            sage: C.fundamental_group() # optional - sirocco
+            Finitely presented group < x0 | x0^3 >
+
+        In the case of number fields, they need to have an embedding
+        into the algebraic field::
+
+            sage: a = QQ[x](x^2+5).roots(QQbar)[0][0]
+            sage: a
+            -2.236067977499790?*I
+            sage: F = NumberField(a.minpoly(), 'a', embedding=a)
+            sage: P.<x,y,z> = ProjectiveSpace(F, 2)
+            sage: F.inject_variables()
+            Defining a
+            sage: C = P.curve(x^2 + a * y^2)
+            sage: C.fundamental_group() # optional - sirocco
+            Finitely presented group < x0 |  >
+
+        .. WARNING::
+
+            This functionality requires the sirocco package to be installed.
+        """
+        from sage.schemes.curves.zariski_vankampen import fundamental_group
+        F = self.base_ring()
+        from sage.rings.qqbar import QQbar
+        if QQbar.coerce_map_from(F) is None:
+            raise NotImplementedError("the base field must have an embedding"
+                                      " to the algebraic field")
+        f = self.affine_patch(2).defining_polynomial()
+        if f.degree() == self.degree():
+            return fundamental_group(f, projective=True)
+        else:  #in this case, the line at infinity is part of the curve, so the complement lies in the affine patch
+            return fundamental_group(f, projective=False)
+
     def rational_parameterization(self):
         r"""
         Return a rational parameterization of this curve.
@@ -1551,6 +1598,23 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         C = self.change_ring(R.base_ring())
         H = Hom(ProjectiveSpace(R.base_ring(), 1, R.gens()), C)
         return H(param)
+
+    def riemann_surface(self,**kwargs):
+        r"""Return the complex riemann surface determined by this curve
+
+        OUTPUT:
+
+         - RiemannSurface object
+
+        EXAMPLES::
+
+            sage: R.<x,y,z>=QQ[]
+            sage: C=Curve(x^3+3*y^3+5*z^3)
+            sage: C.riemann_surface()
+            Riemann surface defined by polynomial f = x0^3 + 3*x1^3 + 5 = 0, with 53 bits of precision
+
+        """
+        return self.affine_patch(2).riemann_surface(**kwargs)
 
 class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
 

@@ -116,8 +116,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, division, absolute_import
 
 import math
 
@@ -129,11 +128,13 @@ from sage.rings.padics.precision_error import PrecisionError
 import sage.rings.all as rings
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.integer import Integer
-from sage.groups.all import AbelianGroup
+from sage.rings.integer_ring import ZZ
+from sage.groups.additive_abelian.additive_abelian_wrapper import AdditiveAbelianGroupWrapper
 import sage.groups.generic as generic
 from sage.libs.pari import pari
-from sage.libs.cypari2.pari_instance import prec_words_to_bits
+from cypari2.pari_instance import prec_words_to_bits
 from sage.structure.sequence import Sequence
+from sage.structure.richcmp import richcmp
 
 from sage.schemes.curves.projective_curve import Hasse_bounds
 from sage.schemes.projective.projective_point import (SchemeMorphism_point_projective_ring,
@@ -150,32 +151,7 @@ class EllipticCurvePoint(SchemeMorphism_point_projective_ring):
     """
     A point on an elliptic curve.
     """
-    def __cmp__(self, other):
-        """
-        Standard comparison function for points on elliptic curves, to
-        allow sorting and equality testing.
-
-        .. NOTE::
-
-            ``__eq__`` and ``__ne__`` are implemented in
-            SchemeMorphism_point_projective_ring
-
-        EXAMPLES:
-            sage: E=EllipticCurve(QQ,[1,1])
-            sage: P=E(0,1)
-            sage: P.order()
-            +Infinity
-            sage: Q=P+P
-            sage: P==Q
-            False
-            sage: Q+Q == 4*P
-            True
-        """
-        assert isinstance(other, (int, long, Integer)) and other == 0
-        if self.is_zero():
-            return 0
-        else:
-            return -1
+    pass
 
 
 class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
@@ -394,14 +370,9 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         """
         return tuple(self._coords)  # Warning: _coords is a list!
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Comparison function for points to allow sorting and equality testing.
-
-        .. NOTE::
-
-            ``__eq__`` and ``__ne__`` are implemented in
-            SchemeMorphism_point_projective_field
 
         EXAMPLES::
 
@@ -416,8 +387,8 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             try:
                 other = self.codomain().ambient_space()(other)
             except TypeError:
-                return -1
-        return cmp(self._coords, other._coords)
+                return NotImplemented
+        return richcmp(self._coords, other._coords, op)
 
     def __pari__(self):
         r"""
@@ -652,9 +623,9 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         Example to show that bug :trac:`4820` is fixed::
 
             sage: [type(c) for c in 2*EllipticCurve('37a1').gen(0)]
-            [<type 'sage.rings.rational.Rational'>,
-            <type 'sage.rings.rational.Rational'>,
-            <type 'sage.rings.rational.Rational'>]
+            [<... 'sage.rings.rational.Rational'>,
+            <... 'sage.rings.rational.Rational'>,
+            <... 'sage.rings.rational.Rational'>]
 
         Checks that :trac:`15964` is fixed::
 
@@ -754,9 +725,9 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         Example to show that bug :trac:`4820` is fixed::
 
             sage: [type(c) for c in -EllipticCurve('37a1').gen(0)]
-            [<type 'sage.rings.rational.Rational'>,
-            <type 'sage.rings.rational.Rational'>,
-            <type 'sage.rings.rational.Rational'>]
+            [<... 'sage.rings.rational.Rational'>,
+            <... 'sage.rings.rational.Rational'>,
+            <... 'sage.rings.rational.Rational'>]
         """
         if self.is_zero():
             return self
@@ -1087,18 +1058,18 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         r"""
         Return `(Q,k)` where `p^kQ` == self and `Q` cannot be divided by `p`.
 
-        ..WARNING:
+        .. WARNING::
 
-        It is up to the caller to make sure that this does not loop
-        endlessly.  It is used in
-        ``EllipticCurve_generic._p_primary_torsion_basis()``, when
-        self will always have (finite) order which is a power of `p`,
-        so that the order of `Q` increases by a factor of `p` at each
-        stage.
+            It is up to the caller to make sure that this does not loop
+            endlessly.  It is used in
+            ``EllipticCurve_generic._p_primary_torsion_basis()``, when
+            self will always have (finite) order which is a power of `p`,
+            so that the order of `Q` increases by a factor of `p` at each
+            stage.
 
-        Since it will clearly be in danger of looping when
-        self.is_zero(), this case is caught, but otherwise caveat
-        user.
+            Since it will clearly be in danger of looping when
+            self.is_zero(), this case is caught, but otherwise caveat
+            user.
 
         EXAMPLES::
 
@@ -1285,7 +1256,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             ...
             ValueError: Q must be nonzero.
 
-        ..NOTES:
+        .. NOTE::
 
             This function is used in _miller_ algorithm.
 
@@ -1371,7 +1342,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: Px._miller_(2*Px,41)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: division by zero in finite field.
+            ZeroDivisionError: division by zero in finite field
 
         A small example of embedding degree 6::
 
@@ -2073,11 +2044,13 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         E = self.curve()
 
-        # Special code for curves over Q, calling PARI
+        # First try PARI
         from sage.libs.pari.all import PariError
         try:
-            n = int(E.pari_curve().ellorder(self))
-            if n == 0:
+            n = E.pari_curve().ellorder(self)
+            if n:
+                n = Integer(n)
+            else:
                 n = oo
             self._order = n
             return n
@@ -2175,7 +2148,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         For `K=\QQ` there is no need to specify an embedding::
 
             sage: E=EllipticCurve('5077a1')
-            sage: [E.lift_x(x).is_on_identity_component() for x in range(-3,5)]
+            sage: [E.lift_x(x).is_on_identity_component() for x in srange(-3,5)]
             [False, False, False, False, False, True, True, True]
 
         An example over a field with two real embeddings::
@@ -2913,7 +2886,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: Q.non_archimedean_local_height(K.ideal(1-2*i))
             0
             sage: Q.non_archimedean_local_height()
-            1/2*log(16)
+            2*log(2)
 
         An example over the rational numbers::
 
@@ -3001,7 +2974,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         if is_minimal:
             E = self.curve()
             P = self
-            offset = 0
+            offset = ZZ.zero()
         else:
             E = self.curve().local_minimal_model(v)
             P = self.curve().isomorphism_to(E)(self)
@@ -3029,14 +3002,14 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             r = -C/4
         r -= offset/6
         if not r:
-            return rings.QQ(0)
+            return rings.QQ.zero()
         else:
             if E.base_ring() is rings.QQ:
                 Nv = Integer(v)
             else:
                 Nv = v.norm()
                 if not weighted:
-                    r /= v.ramification_index() * v.residue_class_degree()
+                    r = r / (v.ramification_index() * v.residue_class_degree())
             return r * log(Nv)
 
     nonarchimedian_local_height = deprecated_function_alias(13951, non_archimedean_local_height)
@@ -3064,15 +3037,14 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         ALGORITHM:
 
-        See [Co2] Cohen H., A Course in Computational Algebraic Number
-        Theory GTM 138, Springer 1996 for the case of real embeddings,
-        and Cremona, J.E. and Thongjunthug , T. 2010 for the complex
+        See [Coh1993]_ for the case of real embeddings,
+        and Cremona, J.E. and Thongjunthug, T. 2010 for the complex
         case.
 
         AUTHORS:
 
         - Michael Mardaus (2008-07),
-        - Tobias Nagel (2008-07) -- original version from [Co2].
+        - Tobias Nagel (2008-07) -- original version from [Coh1993]_.
         - John Cremona (2008-07) -- revision following eclib code.
         - John Cremona (2010-03) -- implementation for complex embeddings.
 
@@ -3572,8 +3544,9 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         if 2*N > bounds[1]:  # then we have a generator, so cache this
             if not hasattr(E, '_order'):
                 E._order = N
-            if not hasattr(E, '__abelian_group'):
-                E.__abelian_group = AbelianGroup([N]), (self, )
+            if not E.abelian_group.is_in_cache():
+                g = AdditiveAbelianGroupWrapper(E.point_homset(), [self], [N])
+                E.abelian_group.set_cache(g)
 
         self._order = N
         return self._order

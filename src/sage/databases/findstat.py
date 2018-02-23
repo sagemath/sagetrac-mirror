@@ -90,7 +90,7 @@ lists::
     1: (St000042: The number of crossings of a perfect matching. , [], 105)
     ...
 
-This results tells us that the database contains another entriy that is
+This results tells us that the database contains another entry that is
 equidistributed with the number of nestings on perfect matchings of
 length `8`, namely the number of crossings.
 
@@ -168,7 +168,7 @@ Classes and methods
 #*****************************************************************************
 from __future__ import print_function
 from six.moves import range
-from six import iteritems, add_metaclass
+from six import iteritems, add_metaclass, string_types
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
@@ -179,6 +179,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 
 from sage.categories.sets_cat import Sets
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp
 
 from sage.misc.misc import verbose
 from sage.rings.integer import Integer
@@ -844,7 +845,8 @@ class FindStatStatistic(SageObject):
             raise ValueError("FindStatStatistic._query should be either 'ID' or 'data', but is %s.  This should not happen.  Please send an email to the developers." %self._query)
 
     def __eq__(self, other):
-        """Return ``True`` if ``self`` is equal to ``other`` and ``False``
+        """
+        Return ``True`` if ``self`` is equal to ``other`` and ``False``
         otherwise.
 
         INPUT:
@@ -897,7 +899,8 @@ class FindStatStatistic(SageObject):
             return False
 
     def __ne__(self, other):
-        """Determine whether ``other`` is a different query.
+        """
+        Determine whether ``other`` is a different query.
 
         INPUT:
 
@@ -908,9 +911,9 @@ class FindStatStatistic(SageObject):
 
         A boolean.
 
-        SEEALSO:
+        .. SEEALSO::
 
-        :meth:`__eq__`
+            :meth:`__eq__`
 
         EXAMPLES::
 
@@ -1853,10 +1856,9 @@ class FindStatCollection(Element):
         sage: FindStatCollection(DyckWords(2))                                  # optional -- internet
         Cc0005: Dyck paths
 
-    SEEALSO:
+    .. SEEALSO::
 
-    :class:`FindStatCollections`
-
+        :class:`FindStatCollections`
     """
     @staticmethod
     def __classcall_private__(cls, entry):
@@ -1923,7 +1925,7 @@ class FindStatCollection(Element):
         """
         return (FindStatCollection, (self.id(),))
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         TESTS::
 
@@ -1949,7 +1951,7 @@ class FindStatCollection(Element):
             sage: sorted(c for c in FindStatCollections())[0]                                       # optional -- internet
             Cc0001: Permutations
         """
-        return self.id().__cmp__(other.id())
+        return richchmp(self.id(), other.id(), op)
 
     def is_supported(self):
         """
@@ -1966,7 +1968,7 @@ class FindStatCollection(Element):
 
         """
         try:
-            self._sageconstructor(self._levels.keys()[0])
+            self._sageconstructor(next(iter(self._levels.keys())))
             return True
         except NotImplementedError:
             return False
@@ -2441,7 +2443,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
         if isinstance(entry, FindStatCollection):
             return entry
 
-        if isinstance(entry, (str, unicode)):
+        if isinstance(entry, string_types):
             # find by name in _findstat_collections
             for (id, c) in iteritems(self._findstat_collections):
                 if entry.upper() in (c[0].upper(), c[1].upper(), c[2].upper()):
@@ -2645,7 +2647,7 @@ class FindStatMap(Element):
         """
         return "%s: %s" %(self.id_str(), self._map[FINDSTAT_MAP_NAME])
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         TESTS::
 
@@ -2671,7 +2673,7 @@ class FindStatMap(Element):
             sage: sorted(c for c in FindStatMaps())[0]                          # optional -- internet
             Mp00001: to semistandard tableau
         """
-        return self.id().__cmp__(other.id())
+        return richcmp(self.id(), other.id(), op)
 
     def name(self):
         r"""
@@ -2837,7 +2839,7 @@ class FindStatMaps(Parent, UniqueRepresentation):
         elif entry in self._findstat_maps:
             return self.element_class(self, entry)
 
-        elif isinstance(entry, (str, unicode)):
+        elif isinstance(entry, string_types):
             # find by name in _findstat_maps
             for c in self._findstat_maps:
                 if entry.upper() == c[FINDSTAT_MAP_NAME].upper():

@@ -157,7 +157,7 @@ class SageKernel(IPythonKernel):
             },
             {
                 'text': "Matplotlib",
-                'url': "http://matplotlib.org/contents.html",
+                'url': "https://matplotlib.org/contents.html",
             },
             {
                 'text': "Markdown",
@@ -180,7 +180,7 @@ class SageKernel(IPythonKernel):
             sage: k = SageKernel.__new__(SageKernel)
             sage: k.pre_handler_hook()
             sage: k.saved_sigint_handler
-            <built-in function python_check_interrupt>
+            <cyfunction python_check_interrupt at ...>
         """
         from cysignals import init_cysignals
         self.saved_sigint_handler = init_cysignals()

@@ -24,9 +24,9 @@ Development supported by NSF award No. 0702939.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.misc.decorators import options
 from sage.plot.all import list_plot, Graphics
@@ -579,7 +579,7 @@ cdef class Riemann_Map:
         the interior of the mapped region, ``riemann_map`` will return
         the point on the unit disk that ``pt`` maps to. Note that this
         method only works for interior points; accuracy breaks down very close
-        to the boundary. To get boundary corrospondance, use
+        to the boundary. To get boundary correspondance, use
         :meth:`get_theta_points`.
 
         INPUT:

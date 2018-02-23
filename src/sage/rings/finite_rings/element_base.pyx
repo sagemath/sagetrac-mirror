@@ -28,6 +28,7 @@ def is_FiniteFieldElement(x):
     from sage.rings.finite_rings.finite_field_base import is_FiniteField
     return isinstance(x, Element) and is_FiniteField(x.parent())
 
+
 cdef class FiniteRingElement(CommutativeRingElement):
     def _nth_root_common(self, n, all, algorithm, cunningham):
         """
@@ -98,6 +99,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
                 return self
         else:
             raise ValueError("unknown algorithm")
+
 
 cdef class FinitePolyExtElement(FiniteRingElement):
     """
@@ -324,7 +326,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             sage: t_element
             3*b^2 + 2*b + 4
             sage: type(t_element)
-            <type 'sage.libs.cypari2.gen.Gen'>
+            <type 'cypari2.gen.Gen'>
         """
         if var is None:
             var = self.parent().variable_name()
@@ -606,9 +608,9 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         except ValueError:
             raise ValueError("must be a perfect square.")
 
-    def sqrt(self, extend=False, all = False):
+    def sqrt(self, extend=False, all=False):
         """
-        See :meth:square_root().
+        See :meth:`square_root`.
 
         EXAMPLES::
 
@@ -795,4 +797,3 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             b^11 + b^10 + b^9 + b^7 + b^5 + b^4 + b^2 + b
         """
         return self.pth_power(-k)
-

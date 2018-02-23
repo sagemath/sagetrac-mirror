@@ -15,7 +15,7 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import iteritems
+from six import iteritems, string_types
 from six.moves import cPickle
 
 import os
@@ -161,7 +161,7 @@ class Sage(ExtraTabCompletion, Expect):
                 '--no-term-title',
                 '--simple-prompt',
             ])
-            prompt = re.compile('In \[\d+\]: ')
+            prompt = re.compile('sage: ')
             if init_code is None:
                 init_code = ['from six.moves import cPickle']
 
@@ -232,7 +232,7 @@ class Sage(ExtraTabCompletion, Expect):
             else:
                 return self(x.sage())
 
-        if isinstance(x, str):
+        if isinstance(x, string_types):
             return SageElement(self, x)
 
         if self.is_local():

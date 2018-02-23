@@ -1,14 +1,13 @@
-********
-Contents
-********
+.. _reference-manual:
 
-Welcome to Sage's Reference Manual!
+************************************
+Welcome to the Sage Reference Manual
+************************************
 
-This manual is a thematic index of all of `Sage's <http://www.sagemath.org/>`_
-features. It also contains many examples that illustrate their use, all of them
-systematically tested with each release.
-
-Enjoy Sage!
+This manual contains documentation for (almost) all of `Sage's
+<http://www.sagemath.org/>`_ features, each illustrated with examples
+that are systematically tested with each release. A thematic index is
+available below.
 
 User Interface
 ==============
@@ -56,7 +55,7 @@ Calculus and Analysis
 * :doc:`Symbolic Calculus <calculus/index>`
 * :doc:`Mathematical Constants <constants/index>`
 * :doc:`Elementary and Special Functions <functions/index>`
-* :doc:`Asymptotic Expansions <asymptotic/index>` (experimental)
+* :doc:`Asymptotic Expansions <asymptotic/index>`
 * :doc:`Numerical Optimization <numerical/index>`
 
 Probability and Statistics
@@ -94,18 +93,18 @@ Geometry and Topology
 ---------------------
 
 * :doc:`Combinatorial and Discrete Geometry <discrete_geometry/index>`
-* :doc:`Hyperbolic Geometry <hyperbolic_geometry/index>`
 * :doc:`Cell Complexes and their Homology <homology/index>`
-* :doc:`Differential Forms <tensor/index>`
-* :doc:`Manifolds <manifolds/index>`
+* :doc:`Manifolds and differential geometry <manifolds/index>`
+* :doc:`Hyperbolic Geometry <hyperbolic_geometry/index>`
 * :doc:`Parametrized Surfaces <riemannian_geometry/index>`
 * :doc:`Knot Theory <knots/index>`
 
-Number Fields and Function Fields
----------------------------------
+Number Fields, Function Fields, and Valuations
+----------------------------------------------
 
 * :doc:`Number Fields <number_fields/index>`
 * :doc:`Function Fields <function_fields/index>`
+* :doc:`Discrete Valuations <valuations/index>`
 
 Number Theory
 -------------
@@ -145,6 +144,7 @@ Interfaces
 
 * :doc:`Interpreter Interfaces <interfaces/index>`
 * :doc:`C/C++ Library Interfaces <libs/index>`
+* :doc:`Python technicalities <cpython/index>`
 
 General Information
 ===================

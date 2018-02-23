@@ -15,6 +15,7 @@ Miscellaneous arithmetic functions
 
 from __future__ import absolute_import, print_function
 from six.moves import range
+from six import integer_types
 
 import math
 
@@ -24,7 +25,7 @@ from sage.misc.misc_c import prod
 from sage.libs.pari.all import pari
 import sage.libs.flint.arith as flint_arith
 
-from sage.structure.element import parent
+from sage.structure.element import parent, Element
 from sage.structure.coerce import py_scalar_to_element
 
 from sage.rings.rational_field import QQ
@@ -37,6 +38,11 @@ from sage.rings.complex_number import ComplexNumber
 import sage.rings.fast_arith as fast_arith
 prime_range = fast_arith.prime_range
 
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.arith.all', 'lcm', deprecation=22630)
+lazy_import('sage.arith.all', 'lcm', '__LCM_sequence', deprecation=22630)
+lazy_import('sage.arith.all', 'lcm', 'LCM', deprecation=22630)
+
 
 ##################################################################
 # Elementary Arithmetic
@@ -44,11 +50,8 @@ prime_range = fast_arith.prime_range
 
 def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_digits=None, height_bound=None, proof=False):
     """
-    Returns a polynomial of degree at most `degree` which is
-    approximately satisfied by the number `z`. Note that the returned
-    polynomial need not be irreducible, and indeed usually won't be if
-    `z` is a good approximation to an algebraic number of degree less
-    than `degree`.
+    Returns an irreducible polynomial of degree at most `degree` which
+    is approximately satisfied by the number `z`.
 
     You can specify the number of known bits or digits of `z` with
     ``known_bits=k`` or ``known_digits=k``. PARI is then told to
@@ -96,12 +99,8 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
 
         sage: z = (1/2)*(1 + RDF(sqrt(3)) *CC.0); z
         0.500000000000000 + 0.866025403784439*I
-        sage: p = algdep(z, 6); p
-        x^3 + 1
-        sage: p.factor()
-        (x + 1) * (x^2 - x + 1)
-        sage: z^2 - z + 1   # abs tol 2e-16
-        0.000000000000000
+        sage: algdep(z, 6)
+        x^2 - x + 1
 
     This example involves a `p`-adic number::
 
@@ -168,18 +167,35 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
 
         sage: algdep(complex("1+2j"), 4)
         x^2 - 2*x + 5
+
+    We get an irreducible polynomial even if PARI returns a reducible
+    one::
+
+        sage: z = CDF(1, RR(3).sqrt())/2
+        sage: pari(z).algdep(5)
+        x^5 + x^2
+        sage: algdep(z, 5)
+        x^2 - x + 1
+
+    Check that cases where a constant polynomial might look better
+    get handled correctly::
+
+        sage: z=CC(-1)**(1/3)
+        sage: algdep(z,1)
+        x
     """
     if proof and not height_bound:
         raise ValueError("height_bound must be given for proof=True")
 
-    x = ZZ['x'].gen()
+    R = ZZ['x']
+    x = R.gen()
 
     z = py_scalar_to_element(z)
 
     if isinstance(z, Integer):
         if height_bound and abs(z) >= height_bound:
             return None
-        return x - ZZ(z)
+        return x - z
 
     degree = ZZ(degree)
 
@@ -219,6 +235,12 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
                 M[k, -1] = r.round()
         LLL = M.LLL(delta=.75)
         coeffs = LLL[0][:n]
+        #we're supposed to find an irreducible polynomial, so we cannot
+        #return a constant one. If the first LLL basis vector gives
+        #a constant polynomial, use the next one.
+        if all(c==0 for c in coeffs[1:]):
+            coeffs = LLL[1][:n]
+
         if height_bound:
             def norm(v):
                 # norm on an integer vector invokes Integer.sqrt() which tries to factor...
@@ -244,7 +266,9 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         y = pari(z)
         f = y.algdep(degree)
 
-    return x.parent()(f)
+    # f might be reducible. Find the best fitting irreducible factor
+    factors = [p for p, e in R(f).factor()]
+    return min(factors, key=lambda f: abs(f(z)))
 
 
 algebraic_dependency = algdep
@@ -1311,7 +1335,7 @@ def divisors(n):
     if not n:
         raise ValueError("n must be nonzero")
 
-    if isinstance(n, (int, long)):
+    if isinstance(n, integer_types):
         n = ZZ(n) # we have specialized code for this case, make sure it gets used
 
     try:
@@ -1624,11 +1648,6 @@ def __GCD_sequence(v, **kwargs):
             return g
     return g
 
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.arith.functions', 'lcm', deprecation=22630)
-lazy_import('sage.arith.functions', 'lcm', '__LCM_sequence', deprecation=22630)
-lazy_import('sage.arith.functions', 'lcm', 'LCM', deprecation=22630)
-
 def xlcm(m, n):
     r"""
     Extended lcm function: given two positive integers `m,n`, returns
@@ -1768,17 +1787,14 @@ def xkcd(n=""):
 
     INPUT:
 
-    -  ``n`` - an integer (optional)
+    - ``n`` -- an integer (optional)
 
-    OUTPUT:
-
-    This function outputs nothing it just prints something. Note that this
-    function does not feel itself at ease in a html deprived environment.
+    OUTPUT: a fragment of HTML
 
     EXAMPLES::
 
-        sage: xkcd(353) # optional - internet
-        <html><font color='black'><h1>Python</h1><img src="http://imgs.xkcd.com/comics/python.png" title="I wrote 20 short programs in Python yesterday.  It was wonderful.  Perl, I'm leaving you."><div>Source: <a href="http://xkcd.com/353" target="_blank">http://xkcd.com/353</a></div></font></html>
+        sage: xkcd(353)  # optional - internet
+        <h1>Python</h1><img src="https://imgs.xkcd.com/comics/python.png" title="I wrote 20 short programs in Python yesterday.  It was wonderful.  Perl, I'm leaving you."><div>Source: <a href="http://xkcd.com/353" target="_blank">http://xkcd.com/353</a></div>
     """
     import contextlib
     import json
@@ -1809,13 +1825,12 @@ def xkcd(n=""):
         alt = data['alt']
         title = data['safe_title']
         link = "http://xkcd.com/{}".format(data['num'])
-        html('<h1>{}</h1><img src="{}" title="{}">'.format(title, img, alt)
+        return html('<h1>{}</h1><img src="{}" title="{}">'.format(title, img, alt)
             + '<div>Source: <a href="{0}" target="_blank">{0}</a></div>'.format(link))
-        return
 
     # TODO: raise this error in such a way that it's not clear that
     # it is produced by sage, see http://xkcd.com/1024/
-    html('<script> alert("Error: -41"); </script>')
+    return html('<script> alert("Error: -41"); </script>')
 
 
 def inverse_mod(a, m):
@@ -2264,25 +2279,48 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: [p^e for p,e in f]
         [4, 3, 5, 7]
 
+    We can factor Python and numpy numbers::
+
+        sage: factor(math.pi)
+        3.141592653589793
+        sage: import numpy
+        sage: factor(numpy.int8(30))
+        2 * 3 * 5
+
+    TESTS::
+
+        sage: factor(Mod(4, 100))
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to factor 4
+        sage: factor("xyz")
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to factor 'xyz'
     """
-    if isinstance(n, (int, long)):
-        n = ZZ(n)
+    try:
+        m = n.factor
+    except AttributeError:
+        # Maybe n is not a Sage Element, try to convert it
+        e = py_scalar_to_element(n)
+        if e is n:
+            # Either n was a Sage Element without a factor() method
+            # or we cannot it convert it to Sage
+            raise TypeError("unable to factor {!r}".format(n))
+        n = e
+        m = n.factor
 
     if isinstance(n, Integer):
-        return n.factor(proof=proof, algorithm=algorithm,
-                        int_ = int_, verbose=verbose)
-    else:
-        # e.g. n = x**2 + y**2 + 2*x*y
-        try:
-            return n.factor(proof=proof, **kwds)
-        except AttributeError:
-            raise TypeError("unable to factor n")
-        except TypeError:
-            # Just in case factor method doesn't have a proof option.
-            try:
-                return n.factor(**kwds)
-            except AttributeError:
-                raise TypeError("unable to factor n")
+        return m(proof=proof, algorithm=algorithm, int_=int_,
+                 verbose=verbose, **kwds)
+
+    # Polynomial or other factorable object
+    try:
+        return m(proof=proof, **kwds)
+    except TypeError:
+        # Maybe the factor() method doesn't have a proof option
+        return m(**kwds)
+
 
 def radical(n, *args, **kwds):
     """
@@ -2445,7 +2483,7 @@ def is_square(n, root=False):
         sage: is_square(4, True)
         (True, 2)
     """
-    if isinstance(n, (int,long)):
+    if isinstance(n, integer_types):
         n = ZZ(n)
     try:
         if root:
@@ -2502,7 +2540,7 @@ def is_squarefree(n):
         ...
         ArithmeticError: non-principal ideal in factorization
     """
-    if isinstance(n, (int,long)):
+    if isinstance(n, integer_types):
         n = Integer(n)
 
     try:
@@ -2754,7 +2792,7 @@ def crt(a,b,m=None,n=None):
     """
     if isinstance(a, list):
         return CRT_list(a, b)
-    if isinstance(a, (int, long)):
+    if isinstance(a, integer_types):
         a = Integer(a) # otherwise we get an error at (b-a).quo_rem(g)
     g, alpha, beta = XGCD(m, n)
     q, r = (b - a).quo_rem(g)
@@ -3269,7 +3307,7 @@ def multinomial_coefficients(m, n):
     ALGORITHM: The algorithm we implement for computing the multinomial
     coefficients is based on the following result:
 
-    ..math::
+    .. MATH::
 
         \binom{n}{k_1, \cdots, k_m} =
         \frac{k_1+1}{n-k_1}\sum_{i=2}^m \binom{n}{k_1+1, \cdots, k_i-1, \cdots}
@@ -3691,7 +3729,7 @@ class Moebius:
             sage: Moebius().__call__(7)
             -1
         """
-        if isinstance(n, (int, long)):
+        if isinstance(n, integer_types):
             n = ZZ(n)
         elif not isinstance(n, Integer):
             # Use a generic algorithm.
@@ -4202,8 +4240,8 @@ def falling_factorial(x, a):
     Check that :trac:`16770` is fixed::
 
         sage: d = var('d')
-        sage: type(falling_factorial(d, 0))
-        <type 'sage.symbolic.expression.Expression'>
+        sage: parent(falling_factorial(d, 0))
+        Symbolic Ring
 
     Check that :trac:`20075` is fixed::
 
@@ -4216,7 +4254,7 @@ def falling_factorial(x, a):
     """
     from sage.symbolic.expression import Expression
     x = py_scalar_to_element(x)
-    if (isinstance(a, (Integer, int, long)) or
+    if (isinstance(a, (Integer,) + integer_types) or
         (isinstance(a, Expression) and
          a.is_integer())) and a >= 0:
         return prod(((x - i) for i in range(a)), z=x.parent().one())
@@ -4297,8 +4335,8 @@ def rising_factorial(x, a):
     Check that :trac:`16770` is fixed::
 
         sage: d = var('d')
-        sage: type(rising_factorial(d, 0))
-        <type 'sage.symbolic.expression.Expression'>
+        sage: parent(rising_factorial(d, 0))
+        Symbolic Ring
 
     Check that :trac:`20075` is fixed::
 
@@ -4311,7 +4349,7 @@ def rising_factorial(x, a):
     """
     from sage.symbolic.expression import Expression
     x = py_scalar_to_element(x)
-    if (isinstance(a, (Integer, int, long)) or
+    if (isinstance(a, (Integer,) + integer_types) or
         (isinstance(a, Expression) and
          a.is_integer())) and a >= 0:
         return prod(((x + i) for i in range(a)), z=x.parent().one())
@@ -5120,3 +5158,112 @@ def dedekind_sum(p, q, algorithm='default'):
 
     raise ValueError('unknown algorithm')
 
+
+def gauss_sum(char_value, finite_field):
+    r"""
+    Return the Gauss sums for a general finite field.
+
+    INPUT:
+
+    - ``char_value`` -- choice of multiplicative character, given by
+      its value on the ``finite_field.multiplicative_generator()``
+
+    - ``finite_field`` -- a finite field
+
+    OUTPUT:
+
+    an element of the parent ring of ``char_value``, that can be any
+    field containing enough roots of unity, for example the
+    ``UniversalCyclotomicField``, ``QQbar`` or ``ComplexField``
+
+    For a finite field `F` of characteristic `p`, the Gauss sum
+    associated to a multiplicative character `\chi` (with values in a
+    ring `K`) is defined as
+
+    .. MATH::
+
+        \sum_{x \in F^{\times}} \chi(x) \zeta_p^{\operatorname{Tr} x},
+
+    where `\zeta_p \in K` is a primitive root of unity of order `p` and
+    Tr is the trace map from `F` to its prime field `\GF{p}`.
+
+    For more info on Gauss sums, see :wikipedia:`Gauss_sum`.
+
+    .. TODO::
+
+        Implement general Gauss sums for an arbitrary pair
+        ``(multiplicative_character, additive_character)``
+
+    EXAMPLES::
+
+        sage: from sage.arith.misc import gauss_sum
+        sage: F = GF(5); q = 5
+        sage: zq = UniversalCyclotomicField().zeta(q-1)
+        sage: L = [gauss_sum(zq**i,F) for i in range(5)]; L
+        [-1,
+         E(20)^4 + E(20)^13 - E(20)^16 - E(20)^17,
+         E(5) - E(5)^2 - E(5)^3 + E(5)^4,
+         E(20)^4 - E(20)^13 - E(20)^16 + E(20)^17,
+         -1]
+        sage: [g*g.conjugate() for g in L]
+        [1, 5, 5, 5, 1]
+
+        sage: F = GF(11**2); q = 11**2
+        sage: zq = UniversalCyclotomicField().zeta(q-1)
+        sage: g = gauss_sum(zq**4,F)
+        sage: g*g.conjugate()
+        121
+
+    TESTS::
+
+        sage: F = GF(11); q = 11
+        sage: zq = UniversalCyclotomicField().zeta(q-1)
+        sage: gauss_sum(zq**2,F).n(60)
+        2.6361055643248352 + 2.0126965627574471*I
+
+        sage: zq = QQbar.zeta(q-1)
+        sage: gauss_sum(zq**2,F)
+        2.636105564324836? + 2.012696562757447?*I
+
+        sage: zq = ComplexField(60).zeta(q-1)
+        sage: gauss_sum(zq**2,F)
+        2.6361055643248352 + 2.0126965627574471*I
+
+        sage: F = GF(7); q = 7
+        sage: zq = QQbar.zeta(q-1)
+        sage: D = DirichletGroup(7, QQbar)
+        sage: all(D[i].gauss_sum()==gauss_sum(zq**i,F) for i in range(6))
+        True
+
+        sage: gauss_sum(1,QQ)
+        Traceback (most recent call last):
+        ...
+        ValueError: second input must be a finite field
+
+    .. SEEALSO::
+
+        - :func:`sage.rings.padics.misc.gauss_sum` for a `p`-adic version
+        - :meth:`sage.modular.dirichlet.DirichletCharacter.gauss_sum`
+          for prime finite fields
+        - :meth:`sage.modular.dirichlet.DirichletCharacter.gauss_sum_numerical`
+          for prime finite fields
+    """
+    from sage.categories.fields import Fields
+    if finite_field not in Fields().Finite():
+        raise ValueError('second input must be a finite field')
+
+    ring = char_value.parent()
+    q = finite_field.cardinality()
+    p = finite_field.characteristic()
+    gen = finite_field.multiplicative_generator()
+    zeta_p_powers = ring.zeta(p).powers(p)
+    zeta_q = char_value
+
+    resu = ring.zero()
+    gen_power = finite_field.one()
+    zq_power = ring.one()
+    for k in range(q - 1):
+        resu += zq_power * zeta_p_powers[gen_power.trace().lift()]
+        gen_power *= gen
+        zq_power *= zeta_q
+    return resu

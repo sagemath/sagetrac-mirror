@@ -27,7 +27,7 @@ from sage.structure.sage_object import SageObject
 from sage.rings.all import RealField, RationalField
 from math import sqrt, exp, log, ceil
 import sage.functions.exp_integral as exp_integral
-import sage.misc.all as misc
+from sage.misc.all import verbose
 
 class Lseries_ell(SageObject):
     """
@@ -212,17 +212,17 @@ class Lseries_ell(SageObject):
 
         INPUT:
 
-        -   n -- integer
+        - n -- integer
 
-        -   prec -- integer
+        - prec -- integer
 
-        -   d -- integer
+        - d -- integer
 
         OUTPUT:
 
         - a string, exactly as output by sympow
 
-        .. note ::
+        .. NOTE::
 
             To use this function you may have to run a few commands
             like ``sympow('-new_data 1d2')``, each which takes a few
@@ -374,7 +374,7 @@ class Lseries_ell(SageObject):
 
             sage: E = EllipticCurve('37a')
             sage: vals = E.lseries().twist_values(1, -12, -4)
-            sage: vals  # abs tol 1e-17
+            sage: vals  # abs tol 1e-15
             [(-11, 1.47824342), (-8, 8.9590946e-18), (-7, 1.85307619), (-4, 2.45138938)]
             sage: F = E.quadratic_twist(-8)
             sage: F.rank()
@@ -877,7 +877,7 @@ class Lseries_ell(SageObject):
                 self.__lratio = quo / self.__E.real_components()
                 return self.__lratio
             k += sqrtN
-            misc.verbose("Increasing precision to %s terms."%k)
+            verbose("Increasing precision to %s terms." % k)
 
     def zero_sums(self, N=None):
         r"""

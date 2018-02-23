@@ -1,6 +1,12 @@
 r"""
 Labelled permutations
 
+.. WARNING::
+
+    This module is deprecated. You are advised to install and use the
+    surface_dynamics package instead available at
+    https://pypi.python.org/pypi/surface_dynamics/
+
 A labelled (generalized) permutation is better suited to study the
 dynamic of a translation surface than a reduced one (see the module
 :mod:`sage.dynamics.interval_exchanges.reduced`). The latter is more
@@ -169,6 +175,19 @@ class LabelledPermutation(SageObject):
         TESTS::
 
             sage: p = iet.Permutation('a b c','c b a')
+            doctest:warning
+            ...
+            DeprecationWarning: Permutation is deprecated and will be removed from Sage.
+            You are advised to install the surface_dynamics package via:
+            sage -pip install surface_dynamics
+            If you do not have write access to the Sage installation you can
+            alternatively do
+            sage -pip install surface_dynamics --user
+            The package surface_dynamics subsumes all flat surface related
+            computation that are currently available in Sage. See more
+            information at
+            http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+            See http://trac.sagemath.org/20695 for details.
             sage: q = copy(p)
             sage: p == q
             True
@@ -225,6 +244,19 @@ class LabelledPermutation(SageObject):
             sage: iet.Permutation('a b c','c b a').length_top()
             3
             sage: iet.GeneralizedPermutation('a a','b b c c').length_top()
+            doctest:warning
+            ...
+            DeprecationWarning: GeneralizedPermutation is deprecated and will be removed from Sage.
+            You are advised to install the surface_dynamics package via:
+                sage -pip install surface_dynamics
+            If you do not have write access to the Sage installation you can
+            alternatively do
+                sage -pip install surface_dynamics --user
+            The package surface_dynamics subsumes all flat surface related
+            computation that are currently available in Sage. See more
+            information at
+                http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+            See http://trac.sagemath.org/20695 for details.
             2
             sage: iet.GeneralizedPermutation('a a b b','c c').length_top()
             4
@@ -337,7 +369,7 @@ class LabelledPermutation(SageObject):
         r"""
         .. TODO::
 
-            resolve properly the mutablility problem with the
+            resolve properly the mutability problem with the
             :meth:`_twin` attribute.
 
         TESTS::
@@ -640,6 +672,19 @@ def LabelledPermutationsIET_iterator(nintervals=None,
         sage: for p in iet.Permutations_iterator(2, alphabet="ab"):
         ....:     print(p)
         ....:     print("****")   #indirect doctest
+        doctest:warning
+        ...
+        DeprecationWarning: iet_Permutations_iterator is deprecated and will be removed from Sage.
+        You are advised to install the surface_dynamics package via:
+            sage -pip install surface_dynamics
+        If you do not have write access to the Sage installation you can
+        alternatively do
+            sage -pip install surface_dynamics --user
+        The package surface_dynamics subsumes all flat surface related
+        computation that are currently available in Sage. See more
+        information at
+            http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+        See http://trac.sagemath.org/20695 for details.
         a b
         b a
         ****
@@ -1440,7 +1485,7 @@ class LabelledPermutationLI(LabelledPermutation, PermutationLI):
         r"""
         The twin list of the permutation
 
-        TEST::
+        TESTS::
 
             sage: p = iet.GeneralizedPermutation('a a','b b')
             sage: p._twin
@@ -1766,6 +1811,19 @@ class FlippedLabelledPermutationIET(
     Rauzy diagrams::
 
         sage: d = iet.RauzyDiagram('a b c d','d a b c',flips='a')
+        doctest:warning
+        ...
+        DeprecationWarning: RauzyDiagram is deprecated and will be removed from Sage.
+        You are advised to install the surface_dynamics package via:
+        sage -pip install surface_dynamics
+        If you do not have write access to the Sage installation you can
+        alternatively do
+        sage -pip install surface_dynamics --user
+        The package surface_dynamics subsumes all flat surface related
+        computation that are currently available in Sage. See more
+        information at
+        http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+        See http://trac.sagemath.org/20695 for details.
 
     AUTHORS:
 
@@ -2175,11 +2233,11 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         def orbit_substitution(self):
             r"""
-            Returns the substitution on the orbit of the left extremity.
+            Return the substitution on the orbit of the left extremity.
 
             OUTPUT:
 
-            WordMorhpism -- the word morphism corresponding to the orbit
+            WordMorphism -- the word morphism corresponding to the orbit
 
             EXAMPLES::
 

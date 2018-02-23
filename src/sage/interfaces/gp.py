@@ -221,7 +221,8 @@ class Gp(ExtraTabCompletion, Expect):
 
     def set_seed(self, seed=None):
         """
-        Sets the seed for gp interpeter.
+        Set the seed for gp interpreter.
+
         The seed should be an integer.
 
         EXAMPLES::
@@ -328,7 +329,7 @@ class Gp(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
-            sage: f.write('x = 22;\n')
+            sage: _ = f.write('x = 22;\n')
             sage: f.close()
             sage: gp.read(filename)
             sage: gp.get('x').strip()

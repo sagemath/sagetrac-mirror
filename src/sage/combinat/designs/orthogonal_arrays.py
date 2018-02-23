@@ -134,7 +134,7 @@ def transversal_design(k,n,resolvable=False,check=True,existence=False):
 
     .. SEEALSO::
 
-        :func:`orthogonal_array` -- a tranversal design `TD(k,n)` is equivalent to an
+        :func:`orthogonal_array` -- a transversal design `TD(k,n)` is equivalent to an
         orthogonal array `OA(k,n,2)`.
 
     EXAMPLES::
@@ -469,7 +469,7 @@ def is_transversal_design(B,k,n, verbose=False):
 
     .. NOTE::
 
-        The tranversal design must have `\{0, \ldots, kn-1\}` as a ground set,
+        The transversal design must have `\{0, \ldots, kn-1\}` as a ground set,
         partitioned as `k` sets of size `n`: `\{0, \ldots, k-1\} \sqcup
         \{k, \ldots, 2k-1\} \sqcup \cdots \sqcup \{k(n-1), \ldots, kn-1\}`.
 
@@ -1424,7 +1424,7 @@ def OA_find_disjoint_blocks(OA,k,n,x):
 
     `x` blocks of an `OA` are said to be disjoint if they all have
     different values for a every given index, i.e. if they correspond to
-    disjoint blocks in the `TD` assciated with the `OA`.
+    disjoint blocks in the `TD` associated with the `OA`.
 
     INPUT:
 
