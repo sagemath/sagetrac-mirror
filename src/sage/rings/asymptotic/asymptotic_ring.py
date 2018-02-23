@@ -3340,7 +3340,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         if order is None:
             order = self.parent().default_prec
-        x = SR.symbol('x')
+
+        x = SR.symbol()
         x0 = self.limit()
 
         symbolic_series = f(x).series(x==x0, order)
