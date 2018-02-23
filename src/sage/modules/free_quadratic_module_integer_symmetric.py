@@ -423,7 +423,7 @@ def PrimitiveExtension(Lattices, glue):
         Gram matrix of the quadratic form with values in Q/2Z:
         [  1 1/2]
         [1/2   1] 
-        sage: L2 = IntegralLattice(2).mul(2)
+        sage: L2 = IntegralLattice(2).scale(2, True)
         sage: L2.discriminant_group()
         Finite quadratic module over Integer Ring with invariants (2, 2)
         Gram matrix of the quadratic form with values in Q/2Z:
@@ -478,9 +478,9 @@ def PrimitiveExtension(Lattices, glue):
     #It calculates the direct sum of L_i
     AL = L.discriminant_group()
     Discriminants = [L_i.discriminant_group() for L_i in Lattices]
-    Bases = [matrix.zero(SumDims[i],Dims[i]).stack(matrix.identity(Dims[i])).stack(
-            matrix.zero(SumDims[-1]-SumDims[i+1],Dims[i])) for i in range(N)]
-    vect_phi = [[AL(Bases[i]*(Discriminants[i].gen(x).lift())) for x in 
+    Bases = [matrix.zero(SumDims[i], Dims[i]).stack(matrix.identity(Dims[i])).stack(
+            matrix.zero(SumDims[-1] - SumDims[i+1], Dims[i])) for i in range(N)]
+    vect_phi = [[AL(Bases[i] * (Discriminants[i].gen(x).lift())) for x in 
                range(Discriminants[i].ngens())] for i in range(N)]
     phi_bar = [Discriminants[i].hom(vect_phi[i]) for i in range(N)]
     #It defines the injection from the discriminant groupa AL1,AL2 to AL
@@ -491,11 +491,12 @@ def PrimitiveExtension(Lattices, glue):
         raise ValueError("the generators (= %s) does not span "
                          "a totally isotropic submodule" % generators)
     V = L.overlattice(HL.V().gens())
-    Vnew = V.mul(1)
+    Vnew = V.scale(1, True)
     G = V.basis_matrix().inverse()
-    HomSpaces = [Hom(Lattices[i],Vnew) for i in range(N)]
-    phi = [HomSpaces[i](Bases[i].transpose()*G) for i in range(N)]
+    HomSpaces = [Hom(Lattices[i], Vnew) for i in range(N)]
+    phi = [HomSpaces[i](Bases[i].transpose() * G) for i in range(N)]
     return (Vnew,phi)
+®
 ###############################################################################
 #
 # Base class for Lattices
@@ -880,3 +881,4 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         """
         from sage.quadratic_forms.genera.genus import Genus
         return Genus(self.gram_matrix())
+
