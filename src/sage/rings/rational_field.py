@@ -324,10 +324,14 @@ class RationalField(Singleton, number_field_base.NumberField):
             Real Field with 53 bits of precision
             sage: QQ.completion(5, 15, {'print_mode': 'bars'})
             5-adic Field with capped relative precision 15
+            sage: QQ.completion(infinity, infinity)
+            Real Field
+            sage: QQ.completion(infinity, infinity, {'type': 'RLF'})
+            Real Lazy Field
         """
         from sage.rings.infinity import Infinity
         if p == Infinity:
-            from sage.rings.real_mpfr import create_RealField
+            from sage.rings.real_field import create_RealField
             return create_RealField(prec, **extras)
         else:
             from sage.rings.padics.factory import Qp
