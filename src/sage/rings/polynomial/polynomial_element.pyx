@@ -70,9 +70,10 @@ import sage.rings.infinity as infinity
 from sage.misc.sage_eval import sage_eval
 from sage.misc.abstract_method import abstract_method
 from sage.misc.latex import latex
+from sage.arith.power cimport generic_power
 from sage.arith.long cimport pyobject_to_long
 from sage.structure.factorization import Factorization
-from sage.structure.richcmp cimport (richcmp, richcmp_not_equal,
+from sage.structure.richcmp cimport (richcmp, richcmp_item,
         rich_to_bool, rich_to_bool_sgn)
 
 from sage.interfaces.singular import singular as singular_default, is_SingularElement
@@ -87,7 +88,7 @@ from sage.rings.real_double import is_RealDoubleField, RDF
 from sage.rings.complex_double import is_ComplexDoubleField, CDF
 from sage.rings.real_mpfi import is_RealIntervalField
 
-from sage.structure.element import generic_power, coerce_binop
+from sage.structure.element import coerce_binop
 from sage.structure.element cimport (parent, have_same_parent,
         Element, RingElement, coercion_model)
 
@@ -116,7 +117,7 @@ from sage.misc.cachefunc import cached_function
 from sage.categories.map cimport Map
 from sage.categories.morphism cimport Morphism
 
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation, deprecated_function_alias
 from sage.misc.cachefunc import cached_method
 
 cpdef is_Polynomial(f):
@@ -963,13 +964,49 @@ cdef class Polynomial(CommutativeAlgebraElement):
             False
             sage: R(0) == R(0)
             True
+
+        TESTS::
+
+        Test that comparisons are consistent when using interval
+        coefficients::
+
+            sage: R.<x> = RIF[]
+            sage: a = RIF(0,1) * x
+            sage: b = RIF(1,2) * x
+            sage: a == a
+            False
+            sage: a != a
+            False
+            sage: a == b
+            False
+            sage: a < b
+            False
+            sage: a > b
+            False
+            sage: a <= b
+            True
+            sage: a >= b
+            False
+            sage: a != b
+            False
+
+        For ``RBF``, identical elements are considered equal::
+
+            sage: R.<x> = RBF[]
+            sage: pol = RBF(1.0, 0.1)
+            sage: pol == pol
+            True
+            sage: pol == copy(pol)
+            False
         """
+        cdef Polynomial pol = <Polynomial?>other
+
         cdef Py_ssize_t d1 = self.degree()
-        cdef Py_ssize_t d2 = other.degree()
+        cdef Py_ssize_t d2 = pol.degree()
 
         # Special case constant polynomials
         if d1 <= 0 and d2 <= 0:
-            return richcmp(self[0], other[0], op)
+            return richcmp(self[0], pol[0], op)
 
         # For different degrees, compare the degree
         if d1 != d2:
@@ -978,9 +1015,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         cdef Py_ssize_t i
         for i in reversed(range(d1+1)):
             x = self.get_unsafe(i)
-            y = other[i]
-            if x != y:
-                return richcmp_not_equal(x, y, op)
+            y = pol.get_unsafe(i)
+            res = richcmp_item(x, y, op)
+            if res is not NotImplemented:
+                return res
         return rich_to_bool(op, 0)
 
     def __nonzero__(self):
@@ -1520,6 +1558,29 @@ cdef class Polynomial(CommutativeAlgebraElement):
             z = current._mul_trunc_(self, next_prec)._mul_trunc_(current, next_prec)
             current = current + current - z
         return current
+
+    def revert_series(self, n):
+        r"""
+        Return a polynomial ``f`` such that
+        ``f(self(x)) = self(f(x)) = x mod x^n``.
+
+        Currently, this is only implemented over some coefficient rings.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: (x + x^3/6 + x^5/120).revert_series(6)
+            3/40*x^5 - 1/6*x^3 + x
+            sage: Pol.<x> = CBF[]
+            sage: (x + x^3/6 + x^5/120).revert_series(6)
+            ([0.075000000000000 +/- 9.75e-17])*x^5 + ([-0.166666666666667 +/- 4.45e-16])*x^3 + x
+            sage: Pol.<x> = SR[]
+            sage: x.revert_series(6)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only implemented for certain base rings
+        """
+        raise NotImplementedError("only implemented for certain base rings")
 
     def __long__(self):
         """
@@ -2188,7 +2249,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Check that the algorithm used is indeed correct::
 
-            sage: from sage.structure.element import generic_power
+            sage: from sage.arith.power import generic_power
             sage: R1 = PolynomialRing(GF(8,'a'), 'x')
             sage: R2 = PolynomialRing(GF(9,'b'), 'x', sparse=True)
             sage: R3 = PolynomialRing(R2, 'y')
@@ -2196,7 +2257,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: for d in range(20,40): # long time
             ....:     for R in [R1, R2, R3, R3]:
             ....:         a = R.random_element()
-            ....:         assert a^d == generic_power(a,d)
+            ....:         assert a^d == generic_power(a, d)
 
         Test the powering modulo ``x^n`` (calling :meth:`power_trunc`)::
 
@@ -2256,8 +2317,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 p = -1
             if 0 < p <= right and (self.base_ring() in sage.categories.integral_domains.IntegralDomains() or p.is_prime()):
                 x = self.parent().gen()
-                one = self.parent().one()
-                ret = one
+                ret = self.parent().one()
                 e = 1
                 q = right
                 sparse = self.parent().is_sparse()
@@ -2275,11 +2335,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
                             for i in range(len(c)):
                                 tmp[e*i] = c[i]**e
                             tmp = self.parent()(tmp)
-                        ret *= generic_power(tmp, r, one=one)
+                        ret *= generic_power(tmp, r)
                     e *= p
                 return ret
 
-        return generic_power(self,right)
+        return generic_power(self, right)
 
     def power_trunc(self, n, prec):
         r"""
@@ -2403,7 +2463,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         We verify that :trac:`23020` has been resolved. (There are no elements
         in the Sage library yet that do not implement ``__nonzero__``, so we
-        have to create one artifically.)::
+        have to create one artificially.)::
 
             sage: class PatchedAlgebraicNumber(sage.rings.qqbar.AlgebraicNumber):
             ....:     def __nonzero__(self): raise NotImplementedError()
@@ -6290,8 +6350,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         REFERENCES:
 
-        .. [BFSS] A. Bostan, P. Flajolet, B. Salvy and E. Schost,
-           "Fast Computation of special resultants",
+        .. [BFSS] \A. Bostan, P. Flajolet, B. Salvy and E. Schost,
+           *Fast Computation of special resultants*,
            Journal of Symbolic Computation 41 (2006), 1-29
         """
         cdef long j
@@ -8788,9 +8848,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         # a square-free polynomial has a square-free content
         if not B.is_field():
-            content = self.content()
-            if content not in self._parent.base_ring():
-                content = content.gen()
+            content = self.content_ideal().gen()
             if not content.is_squarefree():
                 return False
 
@@ -8851,18 +8909,29 @@ cdef class Polynomial(CommutativeAlgebraElement):
         else:  # The above method is not always correct (see Trac 8736)
             return self.factor().radical_value()
 
-    def content(self):
+    def content_ideal(self):
         """
-        Return the content of ``self``, which is the ideal generated by the coefficients of ``self``.
+        Return the content ideal of this polynomial, defined as the ideal
+        generated by its coefficients.
 
         EXAMPLES::
 
             sage: R.<x> = IntegerModRing(4)[]
             sage: f = x^4 + 3*x^2 + 2
-            sage: f.content()
+            sage: f.content_ideal()
             Ideal (2, 3, 1) of Ring of integers modulo 4
+
+        When the base ring is a gcd ring, the content as a ring element is
+        the generator of the content ideal::
+
+            sage: R.<x> = ZZ[]
+            sage: f = 2*x^3 - 4*x^2 + 6*x - 10
+            sage: f.content_ideal().gen()
+            2
         """
         return self.base_ring().ideal(self.coefficients())
+
+    content = deprecated_function_alias(16613, content_ideal)
 
     def norm(self, p):
         r"""
@@ -9441,7 +9510,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.homogenize('x')
             3*x^2
 
-        In positive characterstic, the degree can drop in this case::
+        In positive characteristic, the degree can drop in this case::
 
             sage: R.<x> = GF(2)[]
             sage: f = x + 1
