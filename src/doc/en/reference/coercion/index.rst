@@ -632,7 +632,7 @@ These are accessed via the :meth:`construction` method, which returns a
      (AlgebraicClosureFunctor, Real Double Field),
      (Completion[+Infinity, prec=53], Rational Field),
      (FractionField, Integer Ring)]
-    
+
 Given Parents R and S, such that there is no coercion either from R to
 S or from S to R, one can find a common Z with coercions
 `R \rightarrow Z` and `S \rightarrow Z` by considering the sequence of
