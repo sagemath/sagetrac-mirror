@@ -302,6 +302,7 @@ def GlueLattice(Lattices, glue):
       
     EXAMPLES::
     
+    A glueing could be done with just one lattice::    
         
         sage: from sage.modules.free_quadratic_module_integer_symmetric import GlueLattice
         sage: L1 = IntegralLattice(matrix([[4]]))
@@ -416,6 +417,8 @@ def GlueLattice(Lattices, glue):
         [-1  0  0  0  0 -1  2 -1]
         [ 1  0  0  0  0  0 -1  2]
         
+    More glueing could be composed::
+        
         sage: from sage.modules.free_quadratic_module_integer_symmetric import GlueLattice
         sage: D4 = IntegralLattice("D4")
         sage: D4.discriminant_group()
@@ -458,6 +461,8 @@ def GlueLattice(Lattices, glue):
         [ 1  0  1  0  1  2  0  0]
         [ 0  0  0  0  1  0  2  0]
         [ 1  0  0  0  1  0  0  2]
+        
+    A glueing could take as input a list of three or more lattices ::       
 
         sage: from sage.modules.free_quadratic_module_integer_symmetric import GlueLattice
         sage: A7 = IntegralLattice("A7")
@@ -466,7 +471,46 @@ def GlueLattice(Lattices, glue):
         sage: gD5 = D5.discriminant_group().gens()[0]
         sage: [L,phi] = GlueLattice([A7,A7,D5,D5],[[gA7,gA7,gD5,2*gD5],[gA7,7*gA7,2*gD5,gD5]])
         sage: L.determinant()
-        1       
+        1
+        sage: B = phi[0].matrix()
+        sage: B*L.inner_product_matrix()*B.transpose()==A7.gram_matrix()
+        True
+        
+    The glueing work with lattices with basis::
+    
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import GlueLattice
+        sage: L1 = IntegralLattice("D4",[[1,1,0,0],[0,1,1,0]])
+        sage: L2 = IntegralLattice("E6",[[0,2,0,0,0,0],[0,0,0,0,1,1]])
+        sage: [f1,f2] = L1.discriminant_group().gens()
+        sage: [g1,g2] = L2.discriminant_group().gens()
+        sage: [L,phi] = GlueLattice([L1,L2],[[f1,g1],[f2,2*g2]])
+        sage: phi[0]
+        Free module morphism defined by the matrix
+        [ 2  0 -1  0]
+        [ 0  2  0 -1]
+        Domain: Lattice of degree 4 and rank 2 over Integer Ring
+        Basis matrix:
+        [1 1 0 0]
+        [0 1 1 0]
+        Inner product matrix:
+        [ 2 -1  0  0]
+        [-1  2 -1 -1]
+        [ 0 -1  2  0]
+        [ 0 -1  0  2]
+        Codomain: Lattice of degree 4 and rank 4 over Integer Ring
+        Basis matrix:
+        [1 0 0 0]
+        [0 1 0 0]
+        [0 0 1 0]
+        [0 0 0 1]
+        Inner product matrix:
+        [1 0 1 0]
+        [0 1 0 1]
+        [1 0 2 0]
+        [0 1 0 2]
+        sage: B = phi[0].matrix()
+        sage: B*L.inner_product_matrix()*B.transpose()==L1.gram_matrix()
+        True
     """   
     N = len(Lattices)
     GramList = [L_i.gram_matrix() for L_i in Lattices]
@@ -479,8 +523,8 @@ def GlueLattice(Lattices, glue):
     AL = L.discriminant_group()
     Discriminants = [L_i.discriminant_group() for L_i in Lattices]
     Bases = [matrix.zero(SumDims[i], Dims[i]).stack(matrix.identity(Dims[i])).stack(
-            matrix.zero(SumDims[-1] - SumDims[i+1], Dims[i])) for i in range(N)]
-    vect_phi = [[AL(Bases[i] * (Discriminants[i].gen(x).lift())) for x in 
+            matrix.zero(SumDims[-1] - SumDims[i+1], Dims[i])) for i in range(N)]           
+    vect_phi = [[AL(Bases[i] * Lattices[i].basis_matrix().solve_left(Discriminants[i].gen(x).lift())) for x in 
                range(Discriminants[i].ngens())] for i in range(N)]
     phi_bar = [Discriminants[i].hom(vect_phi[i]) for i in range(N)]
     #It defines the injection from the discriminant groupa AL1,AL2 to AL
@@ -488,7 +532,7 @@ def GlueLattice(Lattices, glue):
     HL = AL.submodule(generators)
     #It takes the submodule spanned by ``glue``
     if (HL.gram_matrix_bilinear()!=0):
-        raise ValueError("the generators (= %s) does not span "
+        raise ValueError("the generators (= %s) do not span "
                          "a totally isotropic submodule" % generators)
     V = L.overlattice(HL.V().gens())
     Vnew = V.scale(1, True)
