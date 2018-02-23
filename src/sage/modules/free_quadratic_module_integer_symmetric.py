@@ -289,7 +289,7 @@ def IntegralLattice(data, basis=None):
                                                  inner_product_matrix=inner_product_matrix,
                                                  already_echelonized=False)
 
-def PrimitiveExtension(Lattices, glue):
+def GlueLattice(Lattices, glue):
     r"""
     Return the overlattice of L1+L2 spanned by the elements of the discriminant group
     given by ``glue``
@@ -303,11 +303,11 @@ def PrimitiveExtension(Lattices, glue):
     EXAMPLES::
     
         
-        sage: from sage.modules.free_quadratic_module_integer_symmetric import PrimitiveExtension
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import GlueLattice
         sage: L1 = IntegralLattice(matrix([[4]]))
         sage: g1 = L1.discriminant_group().gens()[0]
-        sage: glue = [[2*g1]]
-        sage: PrimitiveExtension([L1],glue)
+        sage: glue = [[2 * g1]]
+        sage: GlueLattice([L1], glue)
         (Lattice of degree 1 and rank 1 over Integer Ring
          Basis matrix:
          [1]
@@ -325,7 +325,7 @@ def PrimitiveExtension(Lattices, glue):
           Inner product matrix:
           [1]])
         
-        sage: from sage.modules.free_quadratic_module_integer_symmetric import PrimitiveExtension
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import GlueLattice
         sage: L1 = IntegralLattice([[2]])
         sage: L2 = IntegralLattice([[2]])
         sage: AL1 = L1.discriminant_group()
@@ -337,7 +337,7 @@ def PrimitiveExtension(Lattices, glue):
         sage: g1 = L1.discriminant_group().gens()[0] 
         sage: g2 = L2.discriminant_group().gens()[0]      
         sage: glue = [[g1,g2]]                       
-        sage: PrimitiveExtension([L1,L2],glue)
+        sage: GlueLattice([L1, L2],glue)
         (Lattice of degree 2 and rank 2 over Integer Ring
          Basis matrix:
          [1 0]
@@ -372,13 +372,13 @@ def PrimitiveExtension(Lattices, glue):
           [1 1]
           [1 2]])
 
-        sage: from sage.modules.free_quadratic_module_integer_symmetric import PrimitiveExtension
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import GlueLattice
         sage: L1 = IntegralLattice("A4")
         sage: L2 = IntegralLattice("A4")
         sage: g1 = L1.discriminant_group().gens()[0]
         sage: g2 = L2.discriminant_group().gens()[0]
-        sage: glue = [[g1,2*g2]]
-        sage: [V,phi] = PrimitiveExtension([L1,L2],glue)
+        sage: glue = [[g1, 2 * g2]]
+        sage: [V,phi] = GlueLattice([L1, L2],glue)
         sage: V
         Lattice of degree 8 and rank 8 over Integer Ring
         Basis matrix:
@@ -416,7 +416,7 @@ def PrimitiveExtension(Lattices, glue):
         [-1  0  0  0  0 -1  2 -1]
         [ 1  0  0  0  0  0 -1  2]
         
-        sage: from sage.modules.free_quadratic_module_integer_symmetric import PrimitiveExtension
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import GlueLattice
         sage: D4 = IntegralLattice("D4")
         sage: D4.discriminant_group()
         Finite quadratic module over Integer Ring with invariants (2, 2)
@@ -430,8 +430,8 @@ def PrimitiveExtension(Lattices, glue):
         [1/2   0]
         [  0 1/2]
         sage: g1 = D4.discriminant_group().gens()[0]
-        sage: g2 = L2.discriminant_group().gens()[0]+L2.discriminant_group().gens()[1]
-        sage: [D6,phi] = PrimitiveExtension([D4,L2],[[g1,g2]])
+        sage: g2 = L2.discriminant_group().gens()[0] + L2.discriminant_group().gens()[1]
+        sage: [D6,phi] = GlueLattice([D4,L2], [[g1,g2]])
         sage: AD6 = D6.discriminant_group()
         sage: AD6.normal_form()
         Finite quadratic module over Integer Ring with invariants (2, 2)
@@ -440,7 +440,7 @@ def PrimitiveExtension(Lattices, glue):
         [  0 3/2]
         sage: [f1,g1] = AD6.normal_form().gens()
         sage: [f2,g2] = L2.discriminant_group().gens()
-        sage: [E8,psi] = PrimitiveExtension([D6,L2],[[f1,f2],[g1,g2]])
+        sage: [E8,psi] = GlueLattice([D6,L2], [[f1,f2], [g1,g2]])
         sage: D4embed = E8.sublattice(psi[0](phi[0].image()).basis_matrix())
         sage: D4embed
         Lattice of degree 8 and rank 4 over Integer Ring
@@ -459,12 +459,12 @@ def PrimitiveExtension(Lattices, glue):
         [ 0  0  0  0  1  0  2  0]
         [ 1  0  0  0  1  0  0  2]
 
-        sage: from sage.modules.free_quadratic_module_integer_symmetric import PrimitiveExtension
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import GlueLattice
         sage: A7 = IntegralLattice("A7")
         sage: D5 = IntegralLattice("D5")
         sage: gA7 = A7.discriminant_group().gens()[0]
         sage: gD5 = D5.discriminant_group().gens()[0]
-        sage: [L,phi] = PrimitiveExtension([A7,A7,D5,D5],[[gA7,gA7,gD5,2*gD5],[gA7,7*gA7,2*gD5,gD5]])
+        sage: [L,phi] = GlueLattice([A7,A7,D5,D5],[[gA7,gA7,gD5,2*gD5],[gA7,7*gA7,2*gD5,gD5]])
         sage: L.determinant()
         1       
     """   
@@ -882,3 +882,67 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         from sage.quadratic_forms.genera.genus import Genus
         return Genus(self.gram_matrix())
 
+    def scale(self, s, discard_basis=False):
+        r"""
+        Return the lattice with the inner product matrix scaled by ``s``.
+        The lattice will have a new basis if the optional argument ``discard_basis`` is True.
+        
+        INPUT:
+
+        - ``s`` -- a nonzero integer
+        - ``discard_basis`` -- (optional) a boolean
+
+        EXAMPLES::
+
+            sage: L = IntegralLattice("A4")
+            sage: L.scale(3)
+            Lattice of degree 4 and rank 4 over Integer Ring
+            Basis matrix:
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+            Inner product matrix:
+            [ 6 -3  0  0]
+            [-3  6 -3  0]
+            [ 0 -3  6 -3]
+            [ 0  0 -3  6]
+
+            sage: L = IntegralLattice(3,[[2,1,0],[0,1,1]])
+            sage: L
+            Lattice of degree 3 and rank 2 over Integer Ring
+            Basis matrix:
+            [2 1 0]
+            [0 1 1]
+            Inner product matrix:
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: L.scale(1)
+            Lattice of degree 3 and rank 2 over Integer Ring
+            Basis matrix:
+            [2 1 0]
+            [0 1 1]
+            Inner product matrix:
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: L.scale(1,True)
+            Lattice of degree 2 and rank 2 over Integer Ring
+            Basis matrix:
+            [1 0]
+            [0 1]
+            Inner product matrix:
+            [5 1]
+            [1 2]
+
+        """
+        if (s==0):
+            raise ValueError("the scale factor must be non zero")
+        if (discard_basis):
+            return IntegralLattice(s * self.gram_matrix()) 
+        else:
+            n = self.degree()
+            inner_product_matrix = s * self.inner_product_matrix()
+            ambient = FreeQuadraticModule(self.base_ring(), n, inner_product_matrix)
+            return FreeQuadraticModule_integer_symmetric(ambient=ambient, basis=self.basis(), inner_product_matrix=inner_product_matrix)
