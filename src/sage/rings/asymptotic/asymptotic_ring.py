@@ -3329,6 +3329,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: Cannot determine limit of S
+            sage: s.apply_function(lambda t: x*t)
+            x - x*S^(-1)
+            sage: s.apply_function(lambda t: sin(x*t), 3)
+            sin(x) - x*cos(x)*S^(-1) - 1/2*x^2*sin(x)*S^(-2) + O(S^(-3))
 
         .. SEEALSO::
 
@@ -3346,8 +3350,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         symbolic_series = f(x).series(x==x0, order)
         polynomial = symbolic_series.truncate()
-        return (fast_callable(polynomial, vars=['x'])(self)
-                + O((self-x0) ** symbolic_series.degree(x)))
+        vars = list(polynomial.variables())
+        vars.remove(x)
+        exact_part = fast_callable(polynomial, vars=[x] + vars)(*([self] + vars))
+
+        if symbolic_series.is_terminating_series():
+            return exact_part
+        else:
+            return exact_part + O((self-x0) ** symbolic_series.degree(x))
 
 
 class AsymptoticRing(Algebra, UniqueRepresentation):
