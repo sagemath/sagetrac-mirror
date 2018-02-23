@@ -795,7 +795,7 @@ class DirichletSeries(SageObject):
             ...
             RuntimeError: The leading term is not invertible ...
         """
-        from sage.rings.arith import divisors
+        from sage.arith.misc import divisors
         R = self.base_ring()
 
         if self.has_infinite_precision():
