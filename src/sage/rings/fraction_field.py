@@ -812,6 +812,129 @@ class FractionField_generic(ring.Field):
                     ret.append(self(a)/self(b))
         return ret
 
+    def _gcd_univariate_polynomial(self, f, g):
+        """
+        Return the greatest common divisor of univariate polynomials over a fraction field ``f`` and ``g``.  
+        For univariate polynomials over a fraction field that were dense and of degree greater than 5,  
+        the computation of GCD used to be extremely slow (:trac:`23909`). 
+        This function rectifies that. 
+
+        INPUT:
+
+          - ``f``, ``g`` -- two univariate polynomials defined over this Fraction Field.
+
+        EXAMPLES : 
+        
+        
+
+        sage: A.<x,y>=ZZ[]
+
+
+        sage: B= Frac(A)
+
+        sage: C.<z> = B[]
+
+        sage: p = C.random_element(6) 
+
+        sage: q = C.random_element(6)
+
+        sage: gcd(p,q)
+        
+        1       
+        """
+        
+        
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.polynomial.polynomial_element import Polynomial
+        
+        from sage.rings.polynomial.multi_polynomial_element import MPolynomial
+        from sage.rings.polynomial.flatten import FlatteningMorphism
+        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+        from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+        from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+        #from sage.rings.polynomial.multi_polynomial_libsingular import gcd
+        from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
+        from sage.rings.finite_rings.finite_field_base import is_FiniteField
+        from sage.rings.integer_ring import is_IntegerRing
+        from sage.rings.polynomial.flatten import FlatteningMorphism
+        
+        from sage.rings.number_field.order import GaussianIntegers
+        
+        
+        
+        if (is_IntegerRing(f.base_ring().base_ring()) == True or is_IntegerRing(g.base_ring().base_ring())== True  or  (f.base_ring().base_ring().is_field() == True and (is_IntegerModRing(f.base_ring().base_ring()) == False or is_FiniteField(f.base_ring().base_ring()) == True)) or  (g.base_ring().base_ring().is_field() == True and (is_IntegerModRing(g.base_ring().base_ring()) == False or is_FiniteField(g.base_ring().base_ring()) == True)) ) :
+            
+            if f.degree() < g.degree():
+                A,B = g, f
+            else:
+                A,B = f, g
+
+            if B.is_zero():
+               return A
+       
+            a = b = self.zero()
+        
+            for c in A.coefficients():
+               a = a.gcd(c)
+              
+            for c in B.coefficients():
+               b = b.gcd(c)
+                     
+            d=1
+
+            
+            A = A / a
+            B = B / b
+            
+        
+            variablesf = f.base_ring().variable_names()
+            variablesg = g.base_ring().variable_names()
+            
+        
+            Ring1 = PolynomialRing(f.base_ring().base_ring(), variablesf)
+            Ring2 = PolynomialRing(g.base_ring().base_ring(), variablesg)
+            Ring3 = PolynomialRing(Ring1, f.parent().variable_names())
+            Ring4 = PolynomialRing(Ring2, g.parent().variable_names())
+            
+            domain3 = Ring3
+            if not is_PolynomialRing(domain3) and not is_MPolynomialRing(domain3):
+                raise ValueError("domain should be a polynomial ring")
+            phi3 = FlatteningMorphism(domain3)
+            domain4 = Ring4
+            if not is_PolynomialRing(domain4) and not is_MPolynomialRing(domain4):
+                raise ValueError("domain should be a polynomial ring")
+            phi4 = FlatteningMorphism(domain4)
+            if f.degree() < g.degree():
+                m = phi3(B)
+            
+                l = phi4(A)
+                
+                
+            else:
+                m = phi3(A)
+            
+                l = phi4(B)
+                
+                
+            
+            k = m.gcd(l)
+            R = f.parent()
+            d = R(k)
+            
+            return d
+
+
+            
+        else:
+            
+            while g:
+               q, r = f.quo_rem(g)
+               f, g = g, r
+            if f:
+               f = f.monic()
+            return f 
+
+       
 
 class FractionField_1poly_field(FractionField_generic):
     """
