@@ -469,7 +469,13 @@ cdef class Function(SageObject):
                 #     [e^x   0]
                 #     [  0  -1]
                 if len(args) == 1:
-                    method = getattr(args[0], self._name, None)
+                    arg = args[0]
+                    try:
+                        if self.extend_for(arg):
+                            arg = parent(arg).complex_field()(arg)
+                    except AttributeError:
+                        pass
+                    method = getattr(arg, self._name, None)
                     if callable(method):
                         return method()
                 raise TypeError("cannot coerce arguments: %s" % (err))
@@ -982,6 +988,11 @@ cdef class BuiltinFunction(Function):
             # then try to see whether there exists a method on the object with
             # the given name
             arg = py_scalar_to_element(args[0])
+            try:
+                if self.extend_for(arg):
+                    arg = parent(arg).complex_field()(arg)
+            except AttributeError:
+                pass
             method = getattr(arg, self._name, None)
             if method is None and self._alt_name is not None:
                 method = getattr(arg, self._alt_name, None)
