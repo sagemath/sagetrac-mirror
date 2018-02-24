@@ -951,6 +951,17 @@ cdef class BuiltinFunction(Function):
             sage: bar = BuiltinFunction(name='bar', alt_name='foo')
             sage: bar(A())
             'foo'
+
+            sage: class AFunction(BuiltinFunction):
+            ....:       def __init__(self):
+            ....:           BuiltinFunction.__init__(self, name='sin', nargs=1)
+            ....:       def extend_for(self, arg):
+            ....:               return arg > 1
+            sage: odd_sin = AFunction()
+            sage: parent(odd_sin(0.0))
+            Real Field with 53 bits of precision
+            sage: parent(odd_sin(2.0))
+            Complex Field with 53 bits of precision
         """
         res = None
         if args and not hold:
