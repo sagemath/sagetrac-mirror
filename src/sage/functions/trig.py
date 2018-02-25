@@ -528,17 +528,30 @@ class Function_arcsin(GinacFunction):
             sage: arcsin(x).operator()
             arcsin
             sage: asin(complex(1,1))
-            (0.6662394324925152+1.0612750619050357j)
-
-        Check that :trac:`22823` is fixed::
-
-            sage: bool(asin(SR(2.1)) == NaN)
-            True
-            sage: asin(SR(2.1)).is_real()
-            False
+            (0.666239432492515...+1.0612750619050...j)
+            sage: asin(2.1)
+            1.57079632679490 - 1.37285914424258*I
+            sage: asin(SR(2.1))
+            1.57079632679490 - 1.37285914424258*I
         """
-        GinacFunction.__init__(self, 'arcsin', latex_name=r"\arcsin",
-                conversions=dict(maxima='asin', sympy='asin', fricas="asin", giac="asin"))
+        GinacFunction.__init__(self, 'arcsin', alt_name='asin',
+                latex_name=r"\arcsin",
+                conversions=dict(maxima='asin',
+                    sympy='asin', fricas="asin", giac="asin"))
+
+    def extend_for(self, x):
+        """
+        Return True if domain should be extended for this argument
+
+        EXAMPLES::
+
+            sage: asin(0.9)
+            1.11976951499863
+            sage: asin(2.1)
+            1.57079632679490 - 1.37285914424258*I
+        """
+        from sage.symbolic.ring import SR
+        return SR(x).is_real() and abs(x) > 1
 
 arcsin = asin = Function_arcsin()
 
@@ -595,16 +608,27 @@ class Function_arccos(GinacFunction):
             arccos
             sage: acos(complex(1,1))
             (0.9045568943023814-1.0612750619050357j)
-
-        Check that :trac:`22823` is fixed::
-
-            sage: bool(acos(SR(2.1)) == NaN)
-            True
-            sage: acos(SR(2.1)).is_real()
-            False
+            sage: acos(SR(2.1))
+            1.37285914424258*I
         """
-        GinacFunction.__init__(self, 'arccos', latex_name=r"\arccos",
-                conversions=dict(maxima='acos', sympy='acos', fricas='acos', giac='acos'))
+        GinacFunction.__init__(self, 'arccos', alt_name='acos',
+                latex_name=r"\arccos",
+                conversions=dict(maxima='acos',
+                    sympy='acos', fricas='acos', giac='acos'))
+
+    def extend_for(self, x):
+        """
+        Return True if domain should be extended for this argument
+
+        EXAMPLES::
+
+            sage: acos(0.9)
+            0.451026811796262
+            sage: acos(2.1)
+            1.37285914424258*I
+        """
+        from sage.symbolic.ring import SR
+        return SR(x).is_real() and abs(x) > 1
 
 arccos = acos = Function_arccos()
 
@@ -662,7 +686,7 @@ class Function_arctan(GinacFunction):
             sage: arctan(x).operator()
             arctan
             sage: atan(complex(1,1))
-            (1.0172219678978514+0.4023594781085251j)
+            (1.01722196789785...+0.402359478108525...j)
 
         Check that :trac:`19918` is fixed::
 
@@ -671,8 +695,10 @@ class Function_arctan(GinacFunction):
             sage: arctan(-x).subs(x=-oo)
             1/2*pi
         """
-        GinacFunction.__init__(self, 'arctan', latex_name=r"\arctan",
-                conversions=dict(maxima='atan', sympy='atan', fricas='atan', giac='atan'))
+        GinacFunction.__init__(self, 'arctan', alt_name='atan', 
+                latex_name=r"\arctan",
+                conversions=dict(maxima='atan',
+                    sympy='atan', fricas='atan', giac='atan'))
 
 arctan = atan = Function_arctan()
 
@@ -721,8 +747,10 @@ class Function_arccot(GinacFunction):
             0.553574358897045 - 0.402359478108525*I
 
         """
-        GinacFunction.__init__(self, 'arccot', latex_name=r"\operatorname{arccot}",
-                conversions=dict(maxima='acot', sympy='acot', fricas='acot',giac='acot'))
+        GinacFunction.__init__(self, 'arccot', alt_name='acot',
+                latex_name=r"\operatorname{arccot}",
+                conversions=dict(maxima='acot',
+                   sympy='acot', fricas='acot',giac='acot'))
 
     def _eval_numpy_(self, x):
         """
@@ -777,8 +805,24 @@ class Function_arccsc(GinacFunction):
             sage: arccsc(complex(1,1))  # rel tol 1e-15
             (0.45227844715119064-0.5306375309525178j)
         """
-        GinacFunction.__init__(self, 'arccsc', latex_name=r"\operatorname{arccsc}",
-                               conversions=dict(maxima='acsc', sympy='acsc', fricas='acsc', giac='acsc'))
+        GinacFunction.__init__(self, 'arccsc', alt_name='acsc',
+                latex_name=r"\operatorname{arccsc}",
+                conversions=dict(maxima='acsc',
+                    sympy='acsc', fricas='acsc', giac='acsc'))
+
+    def extend_for(self, x):
+        """
+        Return True if domain should be extended for this argument
+
+        EXAMPLES::
+
+            sage: acsc(0.9)
+            1.57079632679490 - 0.467145308103262*I
+            sage: acsc(2.1)
+            0.496317362125467
+        """
+        from sage.symbolic.ring import SR
+        return SR(x).is_real() and abs(x) < 1
 
     def _eval_numpy_(self, x):
         """
@@ -807,7 +851,7 @@ class Function_arcsec(GinacFunction):
             sage: arcsec(2).n(100)
             1.0471975511965977461542144611
             sage: arcsec(1/2).n(100)
-            NaN
+            1.3169578969248167086250463473*I
             sage: RDF(arcsec(2))  # abs tol 1e-15
             1.0471975511965976
             sage: arcsec(1 + I)
@@ -835,8 +879,24 @@ class Function_arcsec(GinacFunction):
             sage: arcsec(complex(1,1))  # rel tol 1e-15
             (1.118517879643706+0.5306375309525178j)
         """
-        GinacFunction.__init__(self, 'arcsec', latex_name=r"\operatorname{arcsec}",
-                               conversions=dict(maxima='asec', sympy='asec', fricas='asec', giac='asec'))
+        GinacFunction.__init__(self, 'arcsec', alt_name='asec',
+                latex_name=r"\operatorname{arcsec}",
+                conversions=dict(maxima='asec',
+                    sympy='asec', fricas='asec', giac='asec'))
+
+    def extend_for(self, x):
+        """
+        Return True if domain should be extended for this argument
+
+        EXAMPLES::
+
+            sage: asec(0.9)
+            0.467145308103262*I
+            sage: asec(2.1)
+            1.07447896466943
+        """
+        from sage.symbolic.ring import SR
+        return SR(x).is_real() and abs(x) < 1
 
     def _eval_numpy_(self, x):
         """

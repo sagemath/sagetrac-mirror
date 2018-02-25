@@ -383,7 +383,7 @@ class Function_arcsinh(GinacFunction):
             sage: asinh(x)._sympy_()
             asinh(x)
         """
-        GinacFunction.__init__(self, "arcsinh",
+        GinacFunction.__init__(self, "arcsinh", alt_name='asinh',
                 latex_name=r"\operatorname{arsinh}",
                 conversions=dict(maxima='asinh', sympy='asinh', fricas='asinh',
                                 giac='asinh'))
@@ -409,17 +409,10 @@ class Function_arccosh(GinacFunction):
             sage: acosh(complex(1, 2))  # abs tol 1e-15
             (1.5285709194809982+1.1437177404024204j)
 
-        .. warning::
-
-            If the input is in the complex field or symbolic (which
-            includes rational and integer input), the output will
-            be complex.  However, if the input is a real decimal, the
-            output will be real or `NaN`.  See the examples for details.
-
         ::
 
             sage: acosh(0.5)
-            NaN
+            1.04719755119660*I
             sage: acosh(1/2)
             arccosh(1/2)
             sage: acosh(1/2).n()
@@ -468,10 +461,24 @@ class Function_arccosh(GinacFunction):
             sage: acosh(x)._sympy_()
             acosh(x)
         """
-        GinacFunction.__init__(self, "arccosh",
+        GinacFunction.__init__(self, "arccosh", alt_name='acosh',
                 latex_name=r"\operatorname{arcosh}",
                 conversions=dict(maxima='acosh', sympy='acosh', fricas='acosh',
                                 giac='acosh'))
+
+    def extend_for(self, x):
+        """
+        Return True if domain should be extended for this argument
+
+        EXAMPLES::
+
+            sage: acosh(0.9)
+            0.451026811796262*I
+            sage: acosh(1.1)
+            0.443568254385115
+        """
+        from sage.symbolic.ring import SR
+        return SR(x).is_real() and x < 1
 
 arccosh = acosh = Function_arccosh()
 
@@ -527,10 +534,24 @@ class Function_arctanh(GinacFunction):
             sage: atanh(x)._sympy_()
             atanh(x)
         """
-        GinacFunction.__init__(self, "arctanh",
+        GinacFunction.__init__(self, "arctanh", alt_name='atanh',
                 latex_name=r"\operatorname{artanh}",
                 conversions=dict(maxima='atanh', sympy='atanh', fricas='atanh',
                                 giac='atanh'))
+
+    def extend_for(self, x):
+        """
+        Return True if domain should be extended for this argument
+
+        EXAMPLES::
+
+            sage: atanh(0.9)
+            1.47221948958322
+            sage: atanh(1.1)
+            1.52226121886171 - 1.57079632679490*I
+        """
+        from sage.symbolic.ring import SR
+        return SR(x).is_real() and abs(x) > 1
 
 arctanh = atanh = Function_arctanh()
 
@@ -575,9 +596,23 @@ class Function_arccoth(GinacFunction):
             sage: acoth(float(1.1))
             1.5222612188617113
         """
-        GinacFunction.__init__(self, "arccoth",
+        GinacFunction.__init__(self, "arccoth", alt_name='acoth',
                 latex_name=r"\operatorname{arcoth}",
                 conversions=dict(maxima='acoth', sympy='acoth', fricas='acoth'))
+
+    def extend_for(self, x):
+        """
+        Return True if domain should be extended for this argument
+
+        EXAMPLES::
+
+            sage: acoth(0.9)
+            1.47221948958322 - 1.57079632679490*I
+            sage: acoth(1.1)
+            1.52226121886171
+        """
+        from sage.symbolic.ring import SR
+        return SR(x).is_real() and abs(x) < 1
 
     def _eval_numpy_(self, x):
         """
@@ -618,9 +653,23 @@ class Function_arcsech(GinacFunction):
             sage: asech(x)._sympy_()
             asech(x)
         """
-        GinacFunction.__init__(self, "arcsech",
+        GinacFunction.__init__(self, "arcsech", alt_name='asech',
                 latex_name=r"\operatorname{arsech}",
                 conversions=dict(maxima='asech', sympy='asech', fricas='asech'))
+
+    def extend_for(self, x):
+        """
+        Return True if domain should be extended for this argument
+
+        EXAMPLES::
+
+            sage: asech(0.9)
+            0.467145308103262
+            sage: asech(1.1)
+            0.429699666151425*I
+        """
+        from sage.symbolic.ring import SR
+        return SR(x).is_real() and (x < 0 or x > 1)
 
     def _eval_numpy_(self, x):
         """
@@ -669,7 +718,7 @@ class Function_arccsch(GinacFunction):
             sage: acsch(x)._sympy_()
             acsch(x)
         """
-        GinacFunction.__init__(self, "arccsch",
+        GinacFunction.__init__(self, "arccsch", alt_name='acsch',
                 latex_name=r"\operatorname{arcsch}",
                 conversions=dict(maxima='acsch', sympy='acsch', fricas='acsch'))
 
