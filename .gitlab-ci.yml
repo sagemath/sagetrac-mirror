@@ -12,7 +12,8 @@ image: docker:latest
 stages:
   - build
   - test
-  - release
+  - upload
+  - review
 
 variables:
   DOCKER_TAG: $CI_COMMIT_REF_SLUG
@@ -91,7 +92,7 @@ test-jupyter:
 # Pushes the built images to Docker Hub if the Settings -> CI/CD -> Secret
 # variables DOCKER_USER and SECRET_DOCKER_PASS have been set up.
 dockerhub:
-  stage: release
+  stage: upload
   only:
     - branches
     - tags
@@ -100,3 +101,16 @@ dockerhub:
     - . .ci/push-dockerhub.sh sagemath-dev
     - . .ci/pull-gitlab.sh sagemath
     - . .ci/push-dockerhub.sh sagemath
+
+# Create a configuration for binder to allow experimenting with the image that
+# we have just built.
+binder:
+  stage: review
+  only:
+    - branches
+    - tags
+  script:
+    - apk update
+    - apk add gettext
+    - . .ci/pull-gitlab.sh sagemath-jupyter
+    - . .ci/build-binder.sh
