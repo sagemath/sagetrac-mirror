@@ -499,11 +499,11 @@ class WeightSpaceElement(CombinatorialFreeModule.Element):
         # TODO: Find some better test
         if lambdacheck not in self.parent().coroot_lattice() and lambdacheck not in self.parent().coroot_space():
             raise ValueError("{} is not in the coroot space".format(lambdacheck))
-        zero = self.parent().base_ring().zero()
+        BR = self.parent().base_ring()
         if len(self) < len(lambdacheck):
-            return sum( (lambdacheck[i]*c for (i,c) in self), zero)
+            return BR.sum(lambdacheck[i] * c for (i, c) in self)
         else:
-            return sum( (self[i]*c for (i,c) in lambdacheck), zero)
+            return BR.sum(self[i] * c for (i, c) in lambdacheck)
 
     def is_dominant(self):
         """
