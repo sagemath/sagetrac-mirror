@@ -347,7 +347,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         p = MAX_MODULUS + 1
     t = None
     X = []
-    best_pivots = []
+    best_pivots = tuple()
     prod = 1
     problem = 0
     lifts = {}
@@ -375,7 +375,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
                     E.set_unsafe(i, i, one)
                 return E, tuple(range(self._nrows))
 
-            c = cmp_pivots(best_pivots, list(A.pivots()))
+            c = cmp_pivots(best_pivots, A.pivots())
             if c <= 0:
                 best_pivots = A.pivots()
                 X.append(A)
@@ -390,16 +390,16 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         # recompute product, since may drop bad matrices
         prod = 1
         t = verbose("now comparing pivots and dropping any bad ones", level=2, t=t, caller_name="multimod echelon")
-        for i in range(len(X)):
-            if cmp_pivots(best_pivots, list(X[i].pivots())) <= 0:
-                p = X[i].base_ring().order()
+        for Xi in X:
+            if cmp_pivots(best_pivots, Xi.pivots()) <= 0:
+                p = Xi.base_ring().order()
                 if p not in lifts:
                     t0 = verbose("Lifting a good matrix", level=2, caller_name = "multimod echelon")
-                    lift = X[i].lift()
+                    lift = Xi.lift()
                     lifts[p] = (lift, p)
                     verbose("Finished lift", level=2, caller_name= "multimod echelon", t=t0)
                 Y.append(lifts[p])
-                prod = prod * X[i].base_ring().order()
+                prod = prod * Xi.base_ring().order()
         verbose("finished comparing pivots", level=2, t=t, caller_name="multimod echelon")
         try:
             if len(Y) == 0:
@@ -442,7 +442,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
 
 ###########################
 
-def cmp_pivots(x,y):
+def cmp_pivots(x, y):
     """
     Compare two sequences of pivot columns.
 
@@ -454,7 +454,7 @@ def cmp_pivots(x,y):
 
     INPUT:
 
-    - x, y -- list of integers
+    - x, y -- two lists of integers (or two tuples of integers)
 
     EXAMPLES:
 

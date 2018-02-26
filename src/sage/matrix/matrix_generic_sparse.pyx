@@ -437,7 +437,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         """
         cdef list v = self.fetch('nonzero_positions')
         if v is None:
-            v = self._entries.keys()
+            v = list(self._entries)
             v.sort()
             self.cache('nonzero_positions', v)
         if copy:
