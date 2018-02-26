@@ -268,7 +268,7 @@ def _mutation_class_iter( dg, n, m, depth=infinity, return_dig6=False, show_dept
 
     while gets_bigger and depth_counter < depth:
         gets_bigger = False
-        keys = dig6s.keys()
+        keys = list(dig6s.keys())
         for key in keys:
             mutation_indices = [ i for i in dig6s[key][0] if i < n ]
             if mutation_indices:
