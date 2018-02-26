@@ -111,7 +111,7 @@ binder:
     - tags
   script:
     - apk update
-    - apk add gettext git ssh
+    - apk add gettext git openssh
     - export BRANCH=${CI_COMMIT_REF_SLUG}
     - export CI_URL="${CI_PROJECT_URL}/commits/${CI_COMMIT_REF_SLUG}"
     - export CI_BADGE="${CI_PROJECT_URL}/badges/${CI_COMMIT_REF_SLUG}/pipeline.svg"
