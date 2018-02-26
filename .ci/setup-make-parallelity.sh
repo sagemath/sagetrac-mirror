@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # ****************************************************************************
 #       Copyright (C) 2018 Julian Rüth <julian.rueth@fsfe.org>

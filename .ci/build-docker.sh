@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # This script gets called from CI to build several flavours of docker images
 # which contain Sage.

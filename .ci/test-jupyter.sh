@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # This script gets called from CI to run minimal tests on the sagemath-jupyter
 # image.

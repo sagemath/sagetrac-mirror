@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # This script gets called from CI to push a docker image for binder to Docker
 # Hub and also to push corresponding binder configuration to the github
@@ -70,7 +70,7 @@ export COMMIT_URL="https://github.com/${SAGE_GITHUB:-sagemath/sage}/commit/$(git
 export BINDER_URL="https://mybinder.org/v2/gh/${SAGE_BINDER_ENV_GITHUB}/${BRANCH}?filepath=review.ipynb"
 
 # Substitute the above variables in all files in .ci/binder.
-pushd .ci/binder
+cd .ci/binder
 git init
 for template in *;do
     mv "$template" "${template}.tmpl"
@@ -83,4 +83,4 @@ git -c user.name=circleci -c user.email=circleci@build.invalid commit -m "automa
 unset SSH_AUTH_SOCK
 unset SSH_ASKPASS
 git push --force "git@github.com:${SAGE_BINDER_ENV_GITHUB}.git" "HEAD:${BRANCH}"
-popd
+cd ../..
