@@ -121,8 +121,8 @@ binder:
     - apk add gettext git openssh
     - mkdir -p ~/.ssh && cp .ci/known_hosts.github ~/.ssh/known_hosts
     - export BRANCH=${CI_COMMIT_REF_SLUG}
-    - export CI_URL="${CI_PROJECT_URL}/commits/${CI_COMMIT_REF_SLUG}"
-    - export CI_BADGE="${CI_PROJECT_URL}/badges/${CI_COMMIT_REF_SLUG}/pipeline.svg"
+    - export CI_URL="${CI_PROJECT_URL}/commits/${CI_COMMIT_REF_NAME}"
+    - export CI_BADGE="${CI_PROJECT_URL}/badges/${CI_COMMIT_REF_NAME}/pipeline.svg"
     - . .ci/pull-gitlab.sh sagemath
     - . .ci/build-binder.sh
   environment:
