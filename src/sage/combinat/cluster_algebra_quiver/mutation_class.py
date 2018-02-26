@@ -181,7 +181,7 @@ def _dg_canonical_form( dg, n, m ):
         ({0: 0, 1: 3, 2: 1, 3: 2}, [[0], [3], [1], [2]])
         [(0, 3, (1, -1)), (1, 2, (1, -2)), (1, 3, (1, -1))]
     """
-    vertices = [ v for v in dg ]
+    vertices = list(dg)
     if m > 0:
         partition = [ vertices[:n], vertices[n:] ]
     else:
@@ -191,9 +191,11 @@ def _dg_canonical_form( dg, n, m ):
     automorphism_group, obsolete, iso = search_tree(dg, partition=partition, lab=True, dig=True, certificate=True)
     orbits = get_orbits( automorphism_group, n+m )
     orbits = [ [ iso[i] for i in orbit] for orbit in orbits ]
-    for v in iso.keys():
-        if v >= n+m:
-            del iso[v]
+
+    removed = []
+    for v in iso:
+        if v >= n + m:
+            removed.append(v)
             v1,v2,label1 = next(dg._backend.iterator_in_edges([v],True))
             w1,w2,label2 = next(dg._backend.iterator_out_edges([v],True))
             dg._backend.del_edge(v1,v2,label1,True)
@@ -207,7 +209,9 @@ def _dg_canonical_form( dg, n, m ):
                     dg._backend.add_edge(v1,w2,edges[index],True)
                     add_index = False
                 index += 1
-    dg._backend.relabel( iso, True )
+    for v in removed:
+        del iso[v]
+    dg._backend.relabel(iso, True)
     return iso, orbits
 
 
