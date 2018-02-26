@@ -127,4 +127,4 @@ binder:
     - . .ci/build-binder.sh
   environment:
     name: "binder/${CI_COMMIT_REF_SLUG}"
-    url: "https://github.com/${SAGE_GITHUB}/tree/${CI_COMMIT_REF_SLUG}"
+    url: "https://github.com/${SAGE_BINDER_ENV_GITHUB}/tree/${CI_COMMIT_REF_SLUG}"
