@@ -112,5 +112,8 @@ binder:
   script:
     - apk update
     - apk add gettext
-    - . .ci/pull-gitlab.sh sagemath-jupyter
+    - export BRANCH=${CI_COMMIT_REF_SLUG}
+    - export CI_URL="${CI_PROJECT_URL}/commits/${CI_COMMIT_REF_SLUG}"
+    - export CI_BADGE="${CI_PROJECT_URL}/badges/${CI_COMMIT_REF_SLUG}/pipeline.svg"
+    - . .ci/pull-gitlab.sh sagemath
     - . .ci/build-binder.sh
