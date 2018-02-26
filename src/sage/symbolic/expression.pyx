@@ -8591,8 +8591,8 @@ cdef class Expression(CommutativeRingElement):
             1/2*I*pi
             sage: SR(1/2).arccosh()
             arccosh(1/2)
-            sage: SR(CDF(1/2)).arccosh()  # rel tol 1e-15
-            1.0471975511965976*I
+            sage: SR(CDF(1/2)).arccosh() # abs tol 1e-15
+            0 + 1.0471975511965976*I
             sage: maxima('acosh(0.5)')
             1.04719755119659...*%i
 
@@ -11622,7 +11622,7 @@ cdef class Expression(CommutativeRingElement):
             sage: a.solve(t)
             []
             sage: b = a.canonicalize_radical(); b
-            -23040.0*(-2.0*e^(1800*t) + 25.0*e^(900*t) - 32.0)*e^(-2400*t)
+            (46080.0*e^(1800*t) - 576000.0*e^(900*t) + 737280.0)*e^(-2400*t)
             sage: b.solve(t)
             []
             sage: b.solve(t, to_poly_solve=True)
