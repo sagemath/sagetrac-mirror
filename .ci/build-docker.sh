@@ -12,6 +12,7 @@
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
+
 set -ex
 
 [[ -z "$DOCKER_TAG" ]] && DOCKER_TAG=none

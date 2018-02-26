@@ -9,6 +9,7 @@
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
+
 set -ex
 
 # Determine the number of threads that can run simultaneously on this system

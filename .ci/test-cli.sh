@@ -13,6 +13,7 @@
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
+
 set -exo pipefail
 
 echo "Checking that Sage starts and can calculate 1+1…"

@@ -13,6 +13,7 @@
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
+
 set -exo pipefail
 
 IMAGE="$1"
