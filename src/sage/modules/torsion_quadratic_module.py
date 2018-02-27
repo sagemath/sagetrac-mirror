@@ -318,6 +318,32 @@ class TorsionQuadraticModule(FGP_Module_class):
             submodules.append(self.submodule(gen))
         return submodules
 
+    def all_totally_isotropic_submodules(self, bilinear=False):
+        r"""
+        Return a list of all totally isotropic submodules.
+
+        Be aware that the number of such submodules grows quickly.
+        The method works by first creating all subgroups and then discarding the
+        non - isotropic ones. This can be time and memory consuming.
+
+        EXAMPLES::
+
+            sage: q = Matrix(QQ,2,[2,1,1,2])/2
+            sage: T = TorsionQuadraticForm(q)
+            sage: T.all_totally_isotropic_submodules()
+            sage: T.all_totally_isotropic_submodules(bilinear=True)
+        """
+        isotropic = []
+        n = self.value_module_qf().n
+        for sub in self.all_submodules():
+            if bilinear:
+                q = sub.gram_matrix_bilinear()
+            else:
+                q = sub.gram_matrix_quadratic()
+            if q == 0:
+                isotropic.append(sub)
+        return isotropic
+
     @cached_method
     def gram_matrix_bilinear(self):
         r"""

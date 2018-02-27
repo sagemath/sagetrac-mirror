@@ -368,6 +368,71 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
                 "Inner product matrix:\n%s" % self.inner_product_matrix()
         return s
 
+    def all_overlattices(self, only_even=False):
+        r"""
+        Return a list of all overlattices.
+
+        If the discriminant is large, this is very slow and memory consuming.
+
+        INPUT:
+
+        - ``only_even`` -- bool (default: `False`) return only the even overlattices.
+
+        EXAMPLES::
+
+            sage: G = Matrix(ZZ, 2, [4, 2, 2, 4])
+            sage: L = IntegralLattice(G)
+
+        There is no non-trivial even overlattice::
+
+            sage: L.all_overlattices(only_even=True)
+            [Lattice of degree 2 and rank 2 over Integer Ring
+            Basis matrix:
+            [1 0]
+            [0 1]
+            Inner product matrix:
+            [4 2]
+            [2 4]]
+
+        but there are a lot of odd ones::
+
+            sage: L.all_overlattices()
+            [Lattice of degree 2 and rank 2 over Integer Ring
+            Basis matrix:
+            [1 0]
+            [0 1]
+            Inner product matrix:
+            [4 2]
+            [2 4], Lattice of degree 2 and rank 2 over Integer Ring
+            Basis matrix:
+            [  1   0]
+            [  0 1/2]
+            Inner product matrix:
+            [4 2]
+            [2 4], Lattice of degree 2 and rank 2 over Integer Ring
+            Basis matrix:
+            [1/2   0]
+            [  0   1]
+            Inner product matrix:
+            [4 2]
+            [2 4], Lattice of degree 2 and rank 2 over Integer Ring
+            Basis matrix:
+            [1/2 1/2]
+            [  0   1]
+            Inner product matrix:
+            [4 2]
+            [2 4]]
+        """
+        if only_even and not self.is_even():
+            # an odd lattice has no even overlattices
+            return []
+        overlattices = []
+        D = self.discriminant_group()
+        for sub in D.all_totally_isotropic_submodules(bilinear=not(only_even)):
+            over = self.overlattice([g.lift() for g in sub.gens()])
+            overlattices.append(over)
+        return overlattices
+
     def is_even(self):
         r"""
         Return whether the diagonal entries of the Gram matrix are even.
