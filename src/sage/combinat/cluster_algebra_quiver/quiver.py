@@ -1474,8 +1474,8 @@ class ClusterQuiver(SageObject):
             raise ValueError('The quiver can only be mutated at a vertex or at a sequence of vertices')
         if not isinstance(inplace, bool):
             raise ValueError('The second parameter must be boolean.  To mutate at a sequence of length 2, input it as a list.')
-        if any( v not in V for v in seq ):
-            v = filter( lambda v: v not in V, seq )[0]
+        if any(v not in V for v in seq):
+            v = next(v for v in seq if v not in V)
             raise ValueError('The quiver cannot be mutated at the vertex %s'%v)
 
         for v in seq:
@@ -1529,8 +1529,8 @@ class ClusterQuiver(SageObject):
             sequence = list( sequence )
         if not isinstance(sequence, list):
             raise ValueError('The quiver can only be mutated at a vertex or at a sequence of vertices')
-        if any( v not in V for v in sequence ):
-            v = filter( lambda v: v not in V, sequence )[0]
+        if any(v not in V for v in sequence):
+            v = next(v for v in sequence if v not in V)
             raise ValueError('The quiver can only be mutated at the vertex %s'%v )
 
         quiver = copy( self )

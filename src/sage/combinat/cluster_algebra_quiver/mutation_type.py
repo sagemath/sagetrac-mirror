@@ -1173,7 +1173,7 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
         cycle = [e]
         v = e[1]
         while tmp:
-            e = [x for x in tmp if v in x][0]
+            e = next(x for x in tmp if v in x)
             if v == e[0]:
                 cycle.append(e)
                 v = e[1]
