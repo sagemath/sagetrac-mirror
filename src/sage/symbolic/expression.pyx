@@ -7454,14 +7454,23 @@ cdef class Expression(CommutativeRingElement):
 
             sage: SR(0.1)._evaluate_polynomial(pol)
             0.123400000000000
+
+        Check that :trac:`24853` is fixed::
+
+            sage: R.<r>=SR[];
+            sage: (r^2-1)(1)
+            0
         """
+        from sage.structure.element import parent
         cdef Expression zero
         try:
-            return new_Expression_from_pyobject(self._parent, pol(self.pyobject()))
+            return new_Expression_from_pyobject(self._parent,
+                    pol(parent(pol)(self.pyobject())))
         except TypeError:
             zero = self._parent.zero()
             return zero.add(*(pol[i]*self**i
                               for i in xrange(pol.degree() + 1)))
+
     def collect_common_factors(self):
         """
         This function does not perform a full factorization but only

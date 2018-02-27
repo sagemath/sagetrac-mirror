@@ -645,8 +645,7 @@ cdef class PolynomialRealDense(Polynomial):
             sage: f(RealField(10)(2))
             2.0
             sage: f(pi)
-            1.00000000000000*pi^2 - 2.00000000000000
-
+            7.86960440108936
 
             sage: f = PolynomialRealDense(RR['x'], range(5))
             sage: f(1)
