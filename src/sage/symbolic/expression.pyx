@@ -7453,7 +7453,7 @@ cdef class Expression(CommutativeRingElement):
         TESTS::
 
             sage: SR(0.1)._evaluate_polynomial(pol)
-            0.123400000000000
+            617/5000
 
         Check that :trac:`24853` is fixed::
 
