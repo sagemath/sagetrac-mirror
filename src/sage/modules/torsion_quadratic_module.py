@@ -477,6 +477,9 @@ class TorsionQuadraticModule(FGP_Module_class):
         from sage.quadratic_forms.genera.normal_form import            _get_homogeneous_block_indices
         from sage.misc.misc_c import prod
         from sage.rings.all import Qp
+        if self.value_module_qf().n != 2:
+            raise NotImplementedError("Currently, this is only implemted for even genera. " +
+                                      "Want to help us implement this for odd lattices?")
         s_plus = signature_pair[0]
         s_minus = signature_pair[1]
         rank = s_plus + s_minus
@@ -488,16 +491,18 @@ class TorsionQuadraticModule(FGP_Module_class):
             D = self.primary_part(p)
             q = D.normal_form().gram_matrix_quadratic()
             if len(D.invariants()) != 0:
-                pd = D.invariants()[-1]
-                I = _get_homogeneous_block_indices(pd*q.change_ring(Qp(p)))[0][1:]
+                # _get_homogeneous_block_indices assumes ascending valuations
+                # our vals are decending. But taking the inverse fixes this.
+                I = _get_homogeneous_block_indices(q.inverse().change_ring(Qp(p)))[0][1:]
                 q.subdivide(I, I)
                 for i in range(len(I)+1):
+                    # create a symbol for this jordan block
                     qk = q.subdivision(i, i)
-                    qz, _ = qk._clear_denom()
                     scale = qk.denominator().valuation(p)
                     rk = qk.ncols()
+                    qk, _ = qk._clear_denom()
                     if p == 2:
-                        det_k = mod(qz.det(), 8)
+                        det_k = mod(qz.det().prime_to_m_part(2), 8)
                         if qz[-1,-1].valuation(2) == 0:
                             is_odd = 1
                             if mod(qz.ncols(),2) == 0:
@@ -518,7 +523,7 @@ class TorsionQuadraticModule(FGP_Module_class):
                     det = determinant.prime_to_m_part(2) % 8
                     det *= prod([di[2] for di in local_symbol])
                     det = mod(det, 8)
-                    local_symbol.append([0, rk, det, 0 ,0])
+                    local_symbol.append([0, rk, det, 0, 0])
                 else:
                     det = legendre_symbol(determinant.prime_to_m_part(p),p)
                     det *= prod([di[2] for di in local_symbol])
@@ -526,7 +531,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             local_symbol.sort()
             local_symbol = Genus_Symbol_p_adic_ring(p, local_symbol)
             symbols.append(local_symbol)
-        # a hack - unfortunately a genus symbol can be initialized only from a represenative
+        # a hack - unfortunately a genus symbol can be initialized only from a representative
         # matrix
         genus = GenusSymbol_global_ring(matrix([1]))
         genus._local_symbols = symbols
