@@ -147,6 +147,23 @@ if [ "$UNAME" = "Darwin" ]; then
     fi
 fi
 
+# Workaround for https://trac.sagemath.org/ticket/24575
+# Because the build process for R (particularly for some standard packages)
+# invokes the R interpreter that was just built, it results in adding
+# $SAGE_LOCAL/lib to LD_LIBRARY_PATH. Normally this would not be a problem
+# for anything in R, however, if *make* itself was built with libguile support
+# it will load libgc (a dependency of libguile).  Since LD_LIBRARY_PATH was
+# modified we get the libgc from Sage, which may not be compatible with the
+# one the system's libguile was built against.  So we get around this by
+# ensuring we pre-load the system's libgc for the remainder of the R build.
+if [ "$UNAME" = "Linux" ]; then
+    # Check whether libgc is loaded by make and extract its path
+    LIBGC="$(ldd $(which make) | sed -n 's/\s*libgc\.so.* => \(.\+\) .*/\1/p')"
+    if [ -n "$LIBGC" ]; then
+        export LD_PRELOAD="$LIBGC"
+    fi
+fi
+
 # Build R
 $MAKE R
 if [ $? -ne 0 ]; then
