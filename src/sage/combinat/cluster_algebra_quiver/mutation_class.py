@@ -78,6 +78,12 @@ def _digraph_mutate(dg, k, n, m):
         with mutable vertices 0 through n-1 and frozen vertices n
         through n+m-1.
 
+    .. WARNING::
+
+        This is still broken for non-simply-lacedquivers with frozen
+        variables, as can be tested in type B2 with principal
+        coefficients.
+
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.mutation_class import _digraph_mutate

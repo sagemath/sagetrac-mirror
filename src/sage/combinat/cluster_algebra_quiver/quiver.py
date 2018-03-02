@@ -1156,6 +1156,20 @@ class ClusterQuiver(SageObject):
             doctest:...: DeprecationWarning: use the option 'certificate' instead of 'certify'
             See http://trac.sagemath.org/21111 for details.
             {0: 0, 1: 3, 2: 1, 3: 2}
+
+            sage: Q = ClusterQuiver(['B',4]).principal_extension()
+            sage: T, iso = Q.canonical_label(certificate=True)
+            sage: T.b_matrix()
+            [ 0  0  0  1]
+            [ 0  0  1  1]
+            [ 0 -2  0  0]
+            [-1 -1  0  0]
+            [ 0  0  0  1]
+            [ 1  0  0  0]
+            [ 0  1  0  0]
+            [ 0  0  1  0]
+            sage: iso
+            {0: 0, 1: 3, 2: 1, 3: 2, 4: 5, 5: 4, 6: 6, 7: 7}
         """
         n = self._n
         m = self._m
@@ -1163,7 +1177,7 @@ class ClusterQuiver(SageObject):
         # computing the canonical form respecting the frozen variables
         dg = copy( self._digraph )
         iso, orbits = _dg_canonical_form( dg, n, m )
-        Q = ClusterQuiver( dg )
+        Q = ClusterQuiver( dg, frozen=[iso[i] for i in self._mlist] )
         # getting the new ordering for the mutation type if necessary
         if self._mutation_type:
             if dg.is_connected():
@@ -1730,10 +1744,10 @@ class ClusterQuiver(SageObject):
                                        sink_source=sink_source)
         for data in MC_iter:
             if data_type == "quiver":
-                next_element = ClusterQuiver( data[0], frozen=list(range(self._m)) )
+                next_element = ClusterQuiver( data[0], frozen=list(range(self._n,self._n+self._m)) )
                 next_element._mutation_type = self._mutation_type
             elif data_type == "matrix":
-                next_element = ClusterQuiver(data[0], frozen=list(range(self._m)))._M
+                next_element = ClusterQuiver(data[0], frozen=list(range(self._n,self._n+self._m)))._M
             elif data_type == "digraph":
                 next_element = data[0]
             elif data_type == "dig6":
