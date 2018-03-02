@@ -54,6 +54,13 @@
 #    Runs `pip install` with the given arguments, as well as additional
 #    default arguments used for installing packages into Sage with pip.
 #    Currently this is just a wrapper around the `sage-pip-install` command.
+#
+# - sdh_preload_lib EXECUTABLE SONAME
+#
+#    (Linux only--no-op on other platforms.)  Check shared libraries loaded by
+#    EXECUTABLE (may be a program or another library) for a library starting
+#    with SONAME, and if found appends SONAME to the LD_PRELOAD environment
+#    variable.  See https://trac.sagemath.org/24885.
 
 set -o allexport
 
@@ -149,5 +156,27 @@ sdh_pip_install() {
         sdh_die "Error installing $PKG_NAME"
 }
 
+
+sdh_preload_lib() {
+    local executable="$1"
+    local soname="$2"
+    if [ "$UNAME" != "Linux" ]; then
+        return 0
+    fi
+
+    local ldlibs="$(ldd $(which $executable))"
+    if [ $? -ne 0 ]; then
+        sdh_die "Could not get shared library dependencies for $executable"
+    fi
+
+    local lib=$(echo "$ldlibs" | sed -n 's/\s*'$soname'.* => \(.\+\) .*/\1/p')
+    if [ -n "$lib" ]; then
+        if [ -n "$LD_PRELOAD" ]; then
+            export LD_PRELOAD="$LD_PRELOAD:$lib"
+        else
+            export LD_PRELOAD="$lib"
+        fi
+    fi
+}
 
 set +o allexport
