@@ -139,6 +139,7 @@ from __future__ import print_function, absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
 from sage.ext.cplusplus cimport ccrepr, ccreadstr
+from sage.docs.instancedoc import instancedoc
 
 from inspect import ismethod
 import operator
@@ -438,6 +439,13 @@ cdef class Expression(CommutativeRingElement):
         self._parent = SR
         cdef Expression exp = self.coerce_in(x)
         self._gobj = GEx(exp._gobj)
+
+    def _instancedoc_(self):
+        try:
+            return self.pyobject().__doc__
+        except AttributeError:
+            pass
+        return self.__doc__
 
     def __getstate__(self):
         """
@@ -12625,6 +12633,8 @@ cdef get_dynamic_class_for_function(unsigned serial):
         dynamic_class_cache[serial] = cls
 
     return cls
+
+instancedoc(Expression)
 
 cdef Expression new_Expression_from_GEx(parent, GEx juice):
     cdef type cls

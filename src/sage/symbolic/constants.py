@@ -204,6 +204,11 @@ Check that :trac:`8237` is fixed::
     +Infinity
     sage: maxima('minf').sage()
     -Infinity
+
+Check that docstrings are displayed (:trac:`18077`)::
+
+    sage: "The symbolic constant pi." in pi.__doc__
+    True
 """
 ###############################################################################
 #   Sage: Open Source Mathematical Software
@@ -264,6 +269,12 @@ def unpickle_Constant(class_name, name, conversions, latex, mathml, domain):
         return cls(name=name)
 
 class Constant(object):
+    """
+    The base class for symbolic constants.
+
+    Instances of constants are usually embedded as ``PyObject`` in
+    a symbolic expression.
+    """
     def __init__(self, name, conversions=None, latex=None, mathml="",
                  domain='complex'):
         """
@@ -540,6 +551,12 @@ class Constant(object):
 
 
 class Pi(Constant):
+    """
+    The symbolic constant pi.
+    
+    Instances of constants are usually embedded as ``PyObject`` in
+    a symbolic expression.
+    """
     def __init__(self, name="pi"):
         """
         TESTS::
@@ -672,6 +689,7 @@ TESTS::
     'I'
     sage: latex(I)
     i
+
 """
 
 # The base of the natural logarithm, e, is not a constant in GiNaC/Sage. It is
@@ -682,7 +700,10 @@ e = E()
 
 class NotANumber(Constant):
     """
-    Not a Number
+    The symbolic constant Not a Number
+    
+    Instances of constants are usually embedded as ``PyObject`` in
+    a symbolic expression.
     """
     def __init__(self, name="NaN"):
         """
@@ -742,7 +763,10 @@ NaN = NotANumber().expression()
 
 class GoldenRatio(Constant):
     """
-    The number (1+sqrt(5))/2
+    The constant (1+sqrt(5))/2
+    
+    Instances of constants are usually embedded as ``PyObject`` in
+    a symbolic expression.
 
     EXAMPLES::
 
@@ -846,6 +870,9 @@ golden_ratio = GoldenRatio().expression()
 class Log2(Constant):
     """
     The natural logarithm of the real number 2.
+    
+    Instances of constants are usually embedded as ``PyObject`` in
+    a symbolic expression.
 
     EXAMPLES::
 
@@ -924,6 +951,9 @@ class EulerGamma(Constant):
     """
     The limiting difference between the harmonic series and the natural
     logarithm.
+    
+    Instances of constants are usually embedded as ``PyObject`` in
+    a symbolic expression.
 
     EXAMPLES::
 
@@ -998,8 +1028,11 @@ euler_gamma = EulerGamma().expression()
 
 class Catalan(Constant):
     """
-    A number appearing in combinatorics defined as the Dirichlet beta
+    A constant appearing in combinatorics defined as the Dirichlet beta
     function evaluated at the number 2.
+    
+    Instances of constants are usually embedded as ``PyObject`` in
+    a symbolic expression.
 
     EXAMPLES::
 
@@ -1070,6 +1103,9 @@ class Khinchin(Constant):
     """
     The geometric mean of the continued fraction expansion of any
     (almost any) real number.
+    
+    Instances of constants are usually embedded as ``PyObject`` in
+    a symbolic expression.
 
     EXAMPLES::
 
@@ -1125,6 +1161,9 @@ class TwinPrime(Constant):
     r"""
     The Twin Primes constant is defined as
     `\prod 1 - 1/(p-1)^2` for primes `p > 2`.
+    
+    Instances of constants are usually embedded as ``PyObject`` in
+    a symbolic expression.
 
     EXAMPLES::
 
@@ -1173,6 +1212,9 @@ class Mertens(Constant):
     """
     The Mertens constant is related to the Twin Primes constant and
     appears in Mertens' second theorem.
+    
+    Instances of constants are usually embedded as ``PyObject`` in
+    a symbolic expression.
 
     EXAMPLES::
 
@@ -1221,6 +1263,9 @@ mertens = Mertens().expression()
 class Glaisher(Constant):
     r"""
     The Glaisher-Kinkelin constant `A = \exp(\frac{1}{12}-\zeta'(-1))`.
+    
+    Instances of constants are usually embedded as ``PyObject`` in
+    a symbolic expression.
 
     EXAMPLES::
 
