@@ -36,13 +36,13 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-include "cysignals/memory.pxi"
 from libc.string cimport memcpy
 from cpython.dict cimport *
 from cpython.object cimport (PyObject_RichCompare, Py_EQ, Py_NE,
                              Py_LT, Py_LE, Py_GT, Py_GE)
+from cysignals.memory cimport sig_malloc, sig_free
 
 import copy
 from functools import reduce
@@ -108,10 +108,10 @@ cdef class PolyDict:
             if remove_zero:
                 for k, c in pdict.iteritems():
                     if not c == zero:
-                        new_pdict[ETuple(map(int, k))] = c
+                        new_pdict[ETuple(list(map(int, k)))] = c
             else:
                 for k, c in pdict.iteritems():
-                    new_pdict[ETuple(map(int, k))] = c
+                    new_pdict[ETuple(list(map(int, k)))] = c
             pdict = new_pdict
         else:
             if remove_zero:
@@ -307,6 +307,10 @@ cdef class PolyDict:
 
     def monomial_coefficient(PolyDict self, mon):
         """
+        INPUT:
+
+        a PolyDict with a single key
+
         EXAMPLES::
 
             sage: from sage.rings.polynomial.polydict import PolyDict
@@ -314,7 +318,7 @@ cdef class PolyDict:
             sage: f.monomial_coefficient(PolyDict({(2,1):1}).dict())
             4
         """
-        K = mon.keys()[0]
+        K, = mon.keys()
         if K not in self.__repn:
             return 0
         return self.__repn[K]
@@ -368,7 +372,7 @@ cdef class PolyDict:
         polynomial, then the coefficient is the sum T/mon where the
         sum is over terms T in f that are exactly divisible by mon.
         """
-        K = mon.keys()[0]
+        K, = mon.keys()
         nz = K.nonzero_positions()  # set([i for i in range(len(K)) if K[i] != 0])
         ans = {}
         for S in self.__repn.keys():
@@ -744,7 +748,7 @@ cdef class PolyDict:
         if len(self.__repn) == 0:
             v = {(0):one}
         else:
-            v = {ETuple({}, len(self.__repn.keys()[0])):one}
+            v = {ETuple({}, len(next(iter(self.__repn)))): one}
         return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)
 
     def __pow__(PolyDict self, n, ignored):
@@ -947,6 +951,15 @@ cdef class ETuple:
             (1, 1, 0)
             sage: ETuple({int(1):int(2)}, int(3))
             (0, 2, 0)
+
+        TESTS:
+
+        Iterators are not accepted::
+
+            sage: ETuple(iter([2,3,4]))
+            Traceback (most recent call last):
+            ...
+            TypeError: Error in ETuple((),<listiterator object at ...>,None)
         """
         if data is None:
             return
@@ -982,7 +995,7 @@ cdef class ETuple:
                     self._data[ind+1] = v
                     ind += 2
         else:
-            raise TypeError
+            raise TypeError("Error in ETuple(%s,%s,%s)" % (self, data, length))
 
     def __cinit__(ETuple self):
         self._data = <int*>0

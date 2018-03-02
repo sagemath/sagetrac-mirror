@@ -266,12 +266,30 @@ class KirillovReshetikhinCrystals(Category_singleton):
                 sage: K = crystals.KirillovReshetikhin(['D',4,1],2,1)
                 sage: K.maximal_vector()
                 [[1], [2]]
+
+            TESTS:
+
+            Check that :trac:`23028` is fixed::
+
+                sage: ct = CartanType(['A',8,2]).dual()
+                sage: K = crystals.KirillovReshetikhin(ct, 4, 1)
+                sage: K.maximal_vector()
+                [[1], [2], [3], [4]]
+                sage: K = crystals.KirillovReshetikhin(ct, 4, 2)
+                sage: K.maximal_vector()
+                [[1, 1], [2, 2], [3, 3], [4, 4]]
             """
             R = self.weight_lattice_realization()
             Lambda = R.fundamental_weights()
             r = self.r()
             s = self.s()
-            weight = s*Lambda[r] - s*Lambda[0] * Lambda[r].level() / Lambda[0].level()
+            if self.cartan_type().dual().type() == 'BC':
+                if self.cartan_type().rank() - 1 == r:
+                    weight = 2*s*Lambda[r] - s*Lambda[0]
+                else:
+                    weight = s*Lambda[r] - s*Lambda[0]
+            else:
+                weight = s*Lambda[r] - s*Lambda[0] * Lambda[r].level() / Lambda[0].level()
 
             # First check the module generators as it is likely to be in here
             for b in self.module_generators:
@@ -284,6 +302,20 @@ class KirillovReshetikhinCrystals(Category_singleton):
                     return b
 
             assert False, "BUG: invalid Kirillov-Reshetikhin crystal"
+
+        def module_generator(self):
+            r"""
+            Return the unique module generator of classical weight
+            `s \Lambda_r` of the Kirillov-Reshetikhin crystal `B^{r,s}`.
+
+            EXAMPLES::
+
+                sage: La = RootSystem(['G',2,1]).weight_space().fundamental_weights()
+                sage: K = crystals.ProjectedLevelZeroLSPaths(La[1])
+                sage: K.module_generator()
+                (-Lambda[0] + Lambda[1],)
+            """
+            return self.maximal_vector()
 
         # TODO: Should this be in one of the super categories?
         def affinization(self):
@@ -855,7 +887,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
                     sage: T = crystals.TensorProduct(K,K,K)
                     sage: hw = T.classically_highest_weight_vectors()
                     sage: for b in hw:
-                    ....:     print b, b.energy_function()
+                    ....:     print("{} {}".format(b, b.energy_function()))
                     [[[1]], [[1]], [[1]]] 0
                     [[[2]], [[1]], [[1]]] 1
                     [[[1]], [[2]], [[1]]] 2
@@ -865,7 +897,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
                     sage: T = crystals.TensorProduct(K,K)
                     sage: hw = T.classically_highest_weight_vectors()
                     sage: for b in hw:
-                    ....:     print b, b.energy_function()
+                    ....:     print("{} {}".format(b, b.energy_function()))
                     [[], []] 4
                     [[[1, 1]], []] 3
                     [[], [[1, 1]]] 1
@@ -955,7 +987,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
                     sage: T = crystals.TensorProduct(K,K,K)
                     sage: hw = T.classically_highest_weight_vectors()
                     sage: for b in hw:
-                    ....:     print b, b.affine_grading()
+                    ....:     print("{} {}".format(b, b.affine_grading()))
                     [[[1]], [[1]], [[1]]] 3
                     [[[2]], [[1]], [[1]]] 2
                     [[[1]], [[2]], [[1]]] 1
@@ -965,7 +997,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
                     sage: T = crystals.TensorProduct(K,K,K)
                     sage: hw = T.classically_highest_weight_vectors()
                     sage: for b in hw:
-                    ....:     print b, b.affine_grading()
+                    ....:     print("{} {}".format(b, b.affine_grading()))
                     [[[1]], [[1]], [[1]]] 2
                     [[[2]], [[1]], [[1]]] 1
                     [[[-1]], [[1]], [[1]]] 1
@@ -1102,12 +1134,23 @@ class LocalEnergyFunction(Map):
             sage: K2 = crystals.KirillovReshetikhin(['A',7,2], 2,1)
             sage: H = K.local_energy_function(K2)
             sage: TestSuite(H).run(skip=['_test_category', '_test_pickling'])
+
+        TESTS:
+
+        Check that :trac:`23014` is fixed::
+
+            sage: La = RootSystem(['G',2,1]).weight_space().fundamental_weights()
+            sage: K = crystals.ProjectedLevelZeroLSPaths(La[1])
+            sage: H = K.local_energy_function(K)
+            sage: hw = H.domain().classically_highest_weight_vectors()
+            sage: [H(x) for x in hw]
+            [0, 1, 2, 1]
         """
         self._B = B
         self._Bp = Bp
         self._R_matrix = self._B.R_matrix(self._Bp)
         T = B.tensor(Bp)
-        self._known_values = {T(*[K.module_generator() for K in T.crystals]):
+        self._known_values = {T(*[K.maximal_vector() for K in T.crystals]):
                               ZZ(normalization)}
         self._I0 = T.cartan_type().classical().index_set()
         from sage.categories.homset import Hom

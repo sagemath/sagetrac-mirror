@@ -24,8 +24,8 @@ from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from functools import reduce
 
-from sage.structure.sage_object import (op_LT, op_LE, op_EQ, op_NE,
-                                        op_GT, op_GE)
+from sage.structure.richcmp import (op_LT, op_LE, op_EQ, op_NE,
+                                    op_GT, op_GE)
 
 
 class FiniteDimensionalAlgebraIdeal(Ideal_generic):
@@ -68,7 +68,7 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
             gens = FiniteDimensionalAlgebraElement(A, gens)
         elif isinstance(gens, FiniteDimensionalAlgebraElement):
             gens = gens.vector()
-            B = Matrix([gens * b for b in A.table()])
+            B = Matrix([(gens * b).list() for b in A.table()])
             self._basis_matrix = B.echelon_form().image().basis_matrix()
         Ideal_generic.__init__(self, A, gens)
 

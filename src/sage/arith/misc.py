@@ -1774,17 +1774,14 @@ def xkcd(n=""):
 
     INPUT:
 
-    -  ``n`` - an integer (optional)
+    - ``n`` -- an integer (optional)
 
-    OUTPUT:
-
-    This function outputs nothing it just prints something. Note that this
-    function does not feel itself at ease in a html deprived environment.
+    OUTPUT: a fragment of HTML
 
     EXAMPLES::
 
-        sage: xkcd(353) # optional - internet
-        <html><font color='black'><h1>Python</h1><img src="http://imgs.xkcd.com/comics/python.png" title="I wrote 20 short programs in Python yesterday.  It was wonderful.  Perl, I'm leaving you."><div>Source: <a href="http://xkcd.com/353" target="_blank">http://xkcd.com/353</a></div></font></html>
+        sage: xkcd(353)  # optional - internet
+        <h1>Python</h1><img src="https://imgs.xkcd.com/comics/python.png" title="I wrote 20 short programs in Python yesterday.  It was wonderful.  Perl, I'm leaving you."><div>Source: <a href="http://xkcd.com/353" target="_blank">http://xkcd.com/353</a></div>
     """
     import contextlib
     import json
@@ -1815,13 +1812,12 @@ def xkcd(n=""):
         alt = data['alt']
         title = data['safe_title']
         link = "http://xkcd.com/{}".format(data['num'])
-        html('<h1>{}</h1><img src="{}" title="{}">'.format(title, img, alt)
+        return html('<h1>{}</h1><img src="{}" title="{}">'.format(title, img, alt)
             + '<div>Source: <a href="{0}" target="_blank">{0}</a></div>'.format(link))
-        return
 
     # TODO: raise this error in such a way that it's not clear that
     # it is produced by sage, see http://xkcd.com/1024/
-    html('<script> alert("Error: -41"); </script>')
+    return html('<script> alert("Error: -41"); </script>')
 
 
 def inverse_mod(a, m):
@@ -3275,7 +3271,7 @@ def multinomial_coefficients(m, n):
     ALGORITHM: The algorithm we implement for computing the multinomial
     coefficients is based on the following result:
 
-    ..math::
+    .. MATH::
 
         \binom{n}{k_1, \cdots, k_m} =
         \frac{k_1+1}{n-k_1}\sum_{i=2}^m \binom{n}{k_1+1, \cdots, k_i-1, \cdots}
@@ -4208,8 +4204,8 @@ def falling_factorial(x, a):
     Check that :trac:`16770` is fixed::
 
         sage: d = var('d')
-        sage: type(falling_factorial(d, 0))
-        <type 'sage.symbolic.expression.Expression'>
+        sage: parent(falling_factorial(d, 0))
+        Symbolic Ring
 
     Check that :trac:`20075` is fixed::
 
@@ -4303,8 +4299,8 @@ def rising_factorial(x, a):
     Check that :trac:`16770` is fixed::
 
         sage: d = var('d')
-        sage: type(rising_factorial(d, 0))
-        <type 'sage.symbolic.expression.Expression'>
+        sage: parent(rising_factorial(d, 0))
+        Symbolic Ring
 
     Check that :trac:`20075` is fixed::
 
@@ -5126,3 +5122,112 @@ def dedekind_sum(p, q, algorithm='default'):
 
     raise ValueError('unknown algorithm')
 
+
+def gauss_sum(char_value, finite_field):
+    r"""
+    Return the Gauss sums for a general finite field.
+
+    INPUT:
+
+    - ``char_value`` -- choice of multiplicative character, given by
+      its value on the ``finite_field.multiplicative_generator()``
+
+    - ``finite_field`` -- a finite field
+
+    OUTPUT:
+
+    an element of the parent ring of ``char_value``, that can be any
+    field containing enough roots of unity, for example the
+    ``UniversalCyclotomicField``, ``QQbar`` or ``ComplexField``
+
+    For a finite field `F` of characteristic `p`, the Gauss sum
+    associated to a multiplicative character `\chi` (with values in a
+    ring `K`) is defined as
+
+    .. MATH::
+
+        \sum_{x \in F^{\times}} \chi(x) \zeta_p^{\operatorname{Tr} x},
+
+    where `\zeta_p \in K` is a primitive root of unity of order `p` and
+    Tr is the trace map from `F` to its prime field `\GF{p}`.
+
+    For more info on Gauss sums, see :wikipedia:`Gauss_sum`.
+
+    .. TODO::
+
+        Implement general Gauss sums for an arbitrary pair
+        ``(multiplicative_character, additive_character)``
+
+    EXAMPLES::
+
+        sage: from sage.arith.misc import gauss_sum
+        sage: F = GF(5); q = 5
+        sage: zq = UniversalCyclotomicField().zeta(q-1)
+        sage: L = [gauss_sum(zq**i,F) for i in range(5)]; L
+        [-1,
+         E(20)^4 + E(20)^13 - E(20)^16 - E(20)^17,
+         E(5) - E(5)^2 - E(5)^3 + E(5)^4,
+         E(20)^4 - E(20)^13 - E(20)^16 + E(20)^17,
+         -1]
+        sage: [g*g.conjugate() for g in L]
+        [1, 5, 5, 5, 1]
+
+        sage: F = GF(11**2); q = 11**2
+        sage: zq = UniversalCyclotomicField().zeta(q-1)
+        sage: g = gauss_sum(zq**4,F)
+        sage: g*g.conjugate()
+        121
+
+    TESTS::
+
+        sage: F = GF(11); q = 11
+        sage: zq = UniversalCyclotomicField().zeta(q-1)
+        sage: gauss_sum(zq**2,F).n(60)
+        2.6361055643248352 + 2.0126965627574471*I
+
+        sage: zq = QQbar.zeta(q-1)
+        sage: gauss_sum(zq**2,F)
+        2.636105564324836? + 2.012696562757447?*I
+
+        sage: zq = ComplexField(60).zeta(q-1)
+        sage: gauss_sum(zq**2,F)
+        2.6361055643248352 + 2.0126965627574471*I
+
+        sage: F = GF(7); q = 7
+        sage: zq = QQbar.zeta(q-1)
+        sage: D = DirichletGroup(7, QQbar)
+        sage: all(D[i].gauss_sum()==gauss_sum(zq**i,F) for i in range(6))
+        True
+
+        sage: gauss_sum(1,QQ)
+        Traceback (most recent call last):
+        ...
+        ValueError: second input must be a finite field
+
+    .. SEEALSO::
+
+        - :func:`sage.rings.padics.misc.gauss_sum` for a `p`-adic version
+        - :meth:`sage.modular.dirichlet.DirichletCharacter.gauss_sum`
+          for prime finite fields
+        - :meth:`sage.modular.dirichlet.DirichletCharacter.gauss_sum_numerical`
+          for prime finite fields
+    """
+    from sage.categories.fields import Fields
+    if finite_field not in Fields().Finite():
+        raise ValueError('second input must be a finite field')
+
+    ring = char_value.parent()
+    q = finite_field.cardinality()
+    p = finite_field.characteristic()
+    gen = finite_field.multiplicative_generator()
+    zeta_p_powers = ring.zeta(p).powers(p)
+    zeta_q = char_value
+
+    resu = ring.zero()
+    gen_power = finite_field.one()
+    zq_power = ring.one()
+    for k in range(q - 1):
+        resu += zq_power * zeta_p_powers[gen_power.trace().lift()]
+        gen_power *= gen
+        zq_power *= zeta_q
+    return resu

@@ -39,12 +39,14 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
+import sys
+from cysignals.memory cimport sig_malloc, sig_free
 
 import sage.plot.plot
-include "cysignals/memory.pxi"
 from sage.libs.gsl.all cimport *
 import sage.misc.prandom as random
-import sys
 from sage.modules.free_module_element import vector
 
 #TODO: Add more distributions available in gsl
@@ -92,7 +94,7 @@ cdef class ProbabilityDistribution:
 
         raise NotImplementedError("implement in derived class")
 
-    def generate_histogram_data(self, num_samples = 1000, bins = 50):
+    def generate_histogram_data(self, num_samples=1000, bins=50):
         """
         Compute a histogram of the probability distribution.
 
@@ -130,10 +132,9 @@ cdef class ProbabilityDistribution:
             sage: b
             [0.0, 0.20000000000000001, 0.40000000000000002, 0.60000000000000009, 0.80000000000000004, 1.0, 1.2000000000000002, 1.4000000000000001, 1.6000000000000001, 1.8, 2.0]
         """
-
         import pylab
         l = [float(self.get_random_element()) for _ in range(num_samples)]
-        S = pylab.hist(l, bins, normed = True, hold = False)
+        S = pylab.hist(l, bins, normed=True)
         return [list(S[0]), list(S[1])]
 
     def generate_histogram_plot(self, name, num_samples = 1000, bins = 50):
@@ -164,10 +165,9 @@ cdef class ProbabilityDistribution:
             sage: file = os.path.join(SAGE_TMP, "my_general_distribution_plot")
             sage: X.generate_histogram_plot(file)
         """
-
         import pylab
         l = [float(self.get_random_element()) for _ in range(num_samples)]
-        pylab.hist(l, bins, normed = True, hold = False)
+        pylab.hist(l, bins, normed=True)
         pylab.savefig(name)
 
 
@@ -590,8 +590,7 @@ cdef class RealDistribution(ProbabilityDistribution):
     def __dealloc__(self):
         if self.r != NULL:
             gsl_rng_free(self.r)
-        if self.parameters != NULL:
-            sig_free(self.parameters)
+        sig_free(self.parameters)
 
     def __str__(self):
         """
@@ -658,8 +657,7 @@ cdef class RealDistribution(ProbabilityDistribution):
             sage: T.set_distribution('gaussian', 1)
             sage: T.set_distribution('pareto', [0, 1])
         """
-        if self.parameters != NULL:
-            sig_free(self.parameters)
+        sig_free(self.parameters)
 
         if name == 'uniform':
           self.distribution_type = uniform

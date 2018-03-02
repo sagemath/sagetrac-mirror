@@ -14,10 +14,12 @@ Utility functions for libGAP
 
 from __future__ import print_function, absolute_import
 
-from sage.interfaces.gap_workspace import prepare_workspace_dir
+from cpython.exc cimport PyErr_SetObject
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cysignals.signals cimport sig_on, sig_off, sig_error
+
+from sage.interfaces.gap_workspace import prepare_workspace_dir
 from sage.env import SAGE_LOCAL, GAP_ROOT_DIR
-from libc.stdint cimport uintptr_t
 from .element cimport *
 
 
@@ -278,16 +280,31 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
                        ^
         sage: libgap.eval('1+1')   # testing that we have successfully recovered
         2
+
+    TESTS:
+
+    Check that we fail gracefully if this is called within
+    ``libgap_enter()``::
+
+        sage: cython('''
+        ....: # distutils: libraries = gap
+        ....: from sage.libs.gap.gap_includes cimport libgap_enter
+        ....: libgap_enter()
+        ....: ''')
+        sage: libgap.eval('1+1')
+        Traceback (most recent call last):
+        ...
+        ValueError: libGAP: Entered a critical block twice
     """
     initialize()
     cdef libGAP_ExecStatus status
 
     cmd = gap_string + ';\n'
     try:
-        libgap_enter()
-        libgap_start_interaction(cmd)
         try:
             sig_on()
+            libgap_enter()
+            libgap_start_interaction(cmd)
             status = libGAP_ReadEvalCommand(libGAP_BottomLVars, NULL)
             if status != libGAP_STATUS_END:
                 libgap_call_error_handler()
@@ -337,9 +354,6 @@ cdef void hold_reference(libGAP_Obj obj):
 ############################################################################
 ### Error handler ##########################################################
 ############################################################################
-
-include "cysignals/signals.pxi"
-from cpython.exc cimport PyErr_SetObject
 
 cdef void error_handler(char* msg):
     """

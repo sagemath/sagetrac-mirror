@@ -45,7 +45,8 @@ from __future__ import absolute_import, print_function
 from libc.string cimport memcpy
 from cpython.mem cimport *
 from cpython.object cimport PyObject_RichCompare
-include "cysignals/memory.pxi"
+from cysignals.memory cimport sig_malloc, sig_realloc, sig_free
+
 from sage.structure.element import is_Matrix
 from sage.misc.misc import cputime
 from sage.rings.integer cimport Integer
@@ -1254,7 +1255,7 @@ cdef class OrbitPartition:
     which also keeps track of the minimum element and size of each
     cell of the partition, and the size of the partition.
 
-    * http://en.wikipedia.org/wiki/Disjoint-set_data_structure
+    See :wikipedia:`Disjoint-set_data_structure`
 
     """
     def __cinit__(self, int nrows, int ncols):
@@ -3123,7 +3124,7 @@ cdef class BinaryCodeClassifier:
         INPUT:
 
         - CC - a BinaryCode object
-        - verbosity - a nonnegative integer
+        - verbosity -- a nonnegative integer
 
         OUTPUT:
             a tuple, (gens, labeling, size, base)

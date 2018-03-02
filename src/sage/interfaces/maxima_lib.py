@@ -86,6 +86,7 @@ Maxima has some flags that affect how the result gets simplified (By default, be
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six import string_types
 
 from sage.symbolic.ring import SR
 
@@ -111,7 +112,7 @@ ecl_eval('(defun principal nil (cond ($noprincipal (diverg)) ((not pcprntd) (mer
 ecl_eval("(remprop 'mfactorial 'grind)") # don't use ! for factorials (#11539)
 ecl_eval("(setf $errormsg nil)")
 
-# the following is a direct adaption of the definition of "retrieve"
+# the following is a direct adaptation of the definition of "retrieve"
 # in the Maxima file macsys.lisp. This routine is normally responsible
 # for displaying a question and returning the answer. We change it to
 # throw an error in which the text of the question is included. We do
@@ -504,7 +505,7 @@ class MaximaLib(MaximaAbstract):
             sage: maxima_lib.get('xxxxx')
             '2'
         """
-        if not isinstance(value, str):
+        if not isinstance(value, string_types):
             raise TypeError
         cmd = '%s : %s$'%(var, value.rstrip(';'))
         self.eval(cmd)
@@ -903,6 +904,16 @@ class MaximaLib(MaximaAbstract):
     def sr_prod(self,*args):
         """
         Helper function to wrap calculus use of Maxima's product.
+
+        TESTS::
+
+            sage: from sage.calculus.calculus import symbolic_product
+            sage: _ = var('n')
+            sage: symbolic_product(x,x,1,n)
+            factorial(n)
+            sage: symbolic_product(2*x,x,1,n)
+            2^n*factorial(n)
+
         """
         try:
             return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_prod],([max_prod],[sr_to_max(SR(a)) for a in args])]]));
@@ -1210,7 +1221,7 @@ lisp_length=EclObject("length")
 sage_op_dict = {
     sage.functions.other.abs : "MABS",
     add_vararg : "MPLUS",
-    sage.symbolic.expression.operator.div : "MQUOTIENT",
+    sage.symbolic.expression.operator.truediv : "MQUOTIENT",
     sage.symbolic.expression.operator.eq : "MEQUAL",
     sage.symbolic.expression.operator.ge : "MGEQP",
     sage.symbolic.expression.operator.gt : "MGREATERP",

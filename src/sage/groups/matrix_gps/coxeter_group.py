@@ -28,6 +28,7 @@ from sage.combinat.root_system.coxeter_matrix import CoxeterMatrix
 from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_generic
 from sage.groups.matrix_gps.group_element import MatrixGroupElement_generic
 from sage.graphs.graph import Graph
+from sage.graphs.graph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
 
@@ -41,6 +42,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
 from sage.misc.cachefunc import cached_method
 
+from sage.sets.family import Family
 
 class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_generic):
     r"""
@@ -254,9 +256,9 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         We check that :trac:`16630` is fixed::
 
             sage: CoxeterGroup(['D',4], base_ring=QQ).category()
-            Category of finite coxeter groups
+            Category of finite irreducible coxeter groups
             sage: CoxeterGroup(['H',4], base_ring=QQbar).category()
-            Category of finite coxeter groups
+            Category of finite irreducible coxeter groups
             sage: F = CoxeterGroups().Finite()
             sage: all(CoxeterGroup([letter,i]) in F
             ....:     for i in range(2,5) for letter in ['A','B','D'])
@@ -264,9 +266,9 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             sage: all(CoxeterGroup(['E',i]) in F for i in range(6,9))
             True
             sage: CoxeterGroup(['F',4]).category()
-            Category of finite coxeter groups
+            Category of finite irreducible coxeter groups
             sage: CoxeterGroup(['G',2]).category()
-            Category of finite coxeter groups
+            Category of finite irreducible coxeter groups
             sage: all(CoxeterGroup(['H',i]) in F for i in range(3,5))
             True
             sage: all(CoxeterGroup(['I',i]) in F for i in range(2,5))
@@ -316,6 +318,8 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             category = category.Finite()
         else:
             category = category.Infinite()
+        if self._matrix.is_irreducible():
+            category = category.Irreducible()
         self._index_set_inverse = {i: ii for ii,i in enumerate(self._matrix.index_set())}
         FinitelyGeneratedMatrixGroup_generic.__init__(self, ZZ(n), base_ring,
                                                       gens, category=category)
@@ -396,6 +400,18 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         return self._matrix.coxeter_graph()
 
     coxeter_graph = deprecated_function_alias(17798, coxeter_diagram)
+
+    def coxeter_type(self):
+        """
+        Return the Coxeter type of ``self``.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['H',3])
+            sage: W.coxeter_type()
+            Coxeter type of ['H', 3]
+        """
+        return self._matrix.coxeter_type()
 
     def bilinear_form(self):
         r"""
@@ -560,7 +576,6 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             rt.set_immutable()
             resu += [rt]
             d[rt] = ref
-        from sage.sets.family import Family
         return Family(resu, lambda rt: d[rt])
 
     def positive_roots(self, as_reflections=None):
@@ -666,6 +681,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         rt = roots[0].parent().gen(self._index_set_inverse[i])
         return roots.index(rt)
 
+    @cached_method
     def fundamental_weights(self):
         """
         Return the fundamental weights for ``self``.
@@ -678,11 +694,12 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
 
             sage: W = CoxeterGroup(['A',3], implementation='reflection')
             sage: W.fundamental_weights()
-            {1: (3/2, 1, 1/2), 2: (1, 2, 1), 3: (1/2, 1, 3/2)}
+            Finite family {1: (3/2, 1, 1/2), 2: (1, 2, 1), 3: (1/2, 1, 3/2)}
         """
         simple_weights = self.bilinear_form().inverse()
-        return {i: simple_weights[k]
-                for k, i in enumerate(self.index_set())}
+        I = self.index_set()
+        D = {i: simple_weights[k] for k, i in enumerate(I)}
+        return Family(I, D.__getitem__)
 
     def fundamental_weight(self, i):
         r"""

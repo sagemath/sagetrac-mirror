@@ -503,7 +503,7 @@ class BinaryRecurrenceSequence(SageObject):
                             n = b
                     perp = n
 
-                #Now compute the period mod p^e by steping up by multiples of p
+                #Now compute the period mod p^e by stepping up by multiples of p
                 F = A.change_ring(Integers(p**e))
                 v = w.change_ring(Integers(p**e))
                 FF = F**perp
@@ -560,7 +560,7 @@ class BinaryRecurrenceSequence(SageObject):
             sage: Q.pthpowers(11,10**30)          # long time (7.5 seconds)
             [1]
 
-        If the sequence is degenerate, and there are are no ``p`` th powers, returns `[]`.  Otherwise, if
+        If the sequence is degenerate, and there are no ``p`` th powers, returns `[]`.  Otherwise, if
         there are many ``p`` th powers, raises ``ValueError``.
 
         ::

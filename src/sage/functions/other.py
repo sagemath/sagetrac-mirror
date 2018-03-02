@@ -106,7 +106,9 @@ class Function_abs(GinacFunction):
             (pi + e)*abs(x)
         """
         GinacFunction.__init__(self, "abs", latex_name=r"\mathrm{abs}",
-                               conversions=dict(sympy='Abs'))
+                               conversions=dict(sympy='Abs',
+                                                mathematica='Abs',
+                                                giac='abs'))
 
 abs = abs_symbolic = Function_abs()
 
@@ -195,7 +197,8 @@ class Function_ceil(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "ceil",
                                    conversions=dict(maxima='ceiling',
-                                                    sympy='ceiling'))
+                                                    sympy='ceiling',
+                                                    giac='ceil'))
 
     def _print_latex_(self, x):
         r"""
@@ -351,7 +354,7 @@ class Function_floor(BuiltinFunction):
             floor
         """
         BuiltinFunction.__init__(self, "floor",
-                                 conversions=dict(sympy='floor'))
+                                 conversions=dict(sympy='floor', giac='floor'))
 
     def _print_latex_(self, x):
         r"""
@@ -468,7 +471,7 @@ class Function_Order(GinacFunction):
                 conversions=dict(sympy='O'),
                 latex_name=r"\mathcal{O}")
 
-Function_Order()
+Order = Function_Order()
 
 class Function_frac(BuiltinFunction):
     def __init__(self):
@@ -684,12 +687,13 @@ class Function_gamma(GinacFunction):
 
             :meth:`sage.functions.other.gamma`
         """
-        GinacFunction.__init__(self, "gamma", latex_name=r'\Gamma',
-                ginac_name='tgamma',
-                conversions={'mathematica':'Gamma',
-                             'maple':'GAMMA',
-                             'sympy':'gamma',
-                             'fricas':'Gamma'})
+        GinacFunction.__init__(self, 'gamma', latex_name=r"\Gamma",
+                               ginac_name='tgamma',
+                               conversions={'mathematica':'Gamma',
+                                            'maple':'GAMMA',
+                                            'sympy':'gamma',
+                                            'fricas':'Gamma',
+                                            'giac':'Gamma'})
 
 gamma1 = Function_gamma()
 
@@ -768,15 +772,15 @@ class Function_log_gamma(GinacFunction):
             sage: log_gamma(CC(6))
             4.78749174278205
             sage: log_gamma(CC(-2.5))
-            -0.0562437164976740 - 9.42477796076938*I
+            -0.0562437164976741 - 9.42477796076938*I
             sage: log_gamma(RDF(-2.5))
-            -0.0562437164976740 - 9.42477796076938*I
+            -0.056243716497674054 - 9.42477796076938*I
             sage: log_gamma(CDF(-2.5))
-            -0.0562437164976740 - 9.42477796076938*I
+            -0.056243716497674054 - 9.42477796076938*I
             sage: log_gamma(float(-2.5))
-            (-0.05624371649767403-9.42477796076938j)
+            (-0.056243716497674054-9.42477796076938j)
             sage: log_gamma(complex(-2.5))
-            (-0.05624371649767403-9.42477796076938j)
+            (-0.056243716497674054-9.42477796076938j)
 
         ``conjugate(log_gamma(x)) == log_gamma(conjugate(x))`` unless on the
         branch cut, which runs along the negative real axis.::
@@ -852,7 +856,7 @@ class Function_gamma_inc(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "gamma", nargs=2, latex_name=r"\Gamma",
                 conversions={'maxima':'gamma_incomplete', 'mathematica':'Gamma',
-                    'maple':'GAMMA', 'sympy':'uppergamma'})
+                    'maple':'GAMMA', 'sympy':'uppergamma', 'giac':'ugamma'})
 
     def _eval_(self, x, y):
         """
@@ -990,8 +994,7 @@ class Function_gamma_inc_lower(BuiltinFunction):
 
         Interfaces to other software::
 
-            sage: import sympy
-            sage: sympy.sympify(gamma_inc_lower(x,x))
+            sage: gamma_inc_lower(x,x)._sympy_()
             lowergamma(x, x)
             sage: maxima(gamma_inc_lower(x,x))
             gamma_greek(_SAGE_VAR_x,_SAGE_VAR_x)
@@ -1002,7 +1005,7 @@ class Function_gamma_inc_lower(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "gamma_inc_lower", nargs=2, latex_name=r"\gamma",
                 conversions={'maxima':'gamma_greek', 'mathematica':'Gamma',
-                    'maple':'GAMMA', 'sympy':'lowergamma'})
+                    'maple':'GAMMA', 'sympy':'lowergamma', 'giac':'igamma'})
 
     def _eval_(self, x, y):
         """
@@ -1301,7 +1304,8 @@ class Function_psi2(GinacFunction):
         """
         GinacFunction.__init__(self, "psi", nargs=2, latex_name='\psi',
                                conversions=dict(mathematica='PolyGamma',
-                                                sympy='polygamma'))
+                                                sympy='polygamma',
+                                                giac='Psi'))
 
     def _maxima_init_evaled_(self, *args):
         """
@@ -1379,6 +1383,9 @@ def psi(x, *args, **kwds):
 # We have to add the wrapper function manually to the symbol_table when we have
 # two functions with different number of arguments and the same name
 symbol_table['functions']['psi'] = psi
+
+def _swap_psi(a, b): return psi(b, a)
+register_symbol(_swap_psi, {'giac':'Psi'})
 
 class Function_factorial(GinacFunction):
     def __init__(self):
@@ -1492,7 +1499,7 @@ class Function_factorial(GinacFunction):
 
             sage: RBF=RealBallField(53)
             sage: factorial(RBF(4.2))
-            [32.5780960503313 +/- 6.71e-14]
+            [32.5780960503313 +/- 6.72e-14]
 
         Test pickling::
 
@@ -1503,7 +1510,8 @@ class Function_factorial(GinacFunction):
                 conversions=dict(maxima='factorial',
                                  mathematica='Factorial',
                                  sympy='factorial',
-                                 fricas='factorial'))
+                                 fricas='factorial',
+                                 giac='factorial'))
 
     def _eval_(self, x):
         """
@@ -1635,7 +1643,8 @@ class Function_binomial(GinacFunction):
                 conversions=dict(maxima='binomial',
                                  mathematica='Binomial',
                                  sympy='binomial',
-                                 fricas='binomial'))
+                                 fricas='binomial',
+                                 giac='comb'))
 
     def _binomial_sym(self, n, k):
         """
@@ -1833,11 +1842,13 @@ class Function_beta(GinacFunction):
             sage: beta(-1.3,-0.4)
             -4.92909641669610
         """
-        GinacFunction.__init__(self, "beta", nargs=2,
-                conversions=dict(maxima='beta',
-                                 mathematica='Beta',
-                                 sympy='beta',
-                                 fricas='Beta'))
+        GinacFunction.__init__(self, 'beta', nargs=2,
+                               latex_name=r"\operatorname{B}",
+                               conversions=dict(maxima='beta',
+                                                mathematica='Beta',
+                                                sympy='beta',
+                                                fricas='Beta',
+                                                giac='Beta'))
 
 beta = Function_beta()
 
@@ -2055,7 +2066,8 @@ class Function_arg(BuiltinFunction):
         BuiltinFunction.__init__(self, "arg",
                 conversions=dict(maxima='carg',
                                  mathematica='Arg',
-                                 sympy='arg'))
+                                 sympy='arg',
+                                 giac='arg'))
 
     def _eval_(self, x):
         """
@@ -2182,6 +2194,23 @@ class Function_real_part(GinacFunction):
             sage: real(complex(3, 4))
             3.0
 
+        Sage can recognize some expressions as real and accordingly
+        return the identical argument::
+
+            sage: SR.var('x', domain='integer').real_part()
+            x
+            sage: SR.var('x', domain='integer').imag_part()
+            0
+            sage: real_part(sin(x)+x)
+            x + sin(x)
+            sage: real_part(x*exp(x))
+            x*e^x
+            sage: imag_part(sin(x)+x)
+            0
+            sage: real_part(real_part(x))
+            x
+            sage: forget()
+
         TESTS::
 
             sage: loads(dumps(real_part))
@@ -2206,7 +2235,8 @@ class Function_real_part(GinacFunction):
         """
         GinacFunction.__init__(self, "real_part",
                                conversions=dict(maxima='realpart',
-                                                sympy='re'),
+                                                sympy='re',
+                                                giac='re'),
                                alt_name="real")
 
     def __call__(self, x, **kwargs):
@@ -2265,7 +2295,8 @@ class Function_imag_part(GinacFunction):
         """
         GinacFunction.__init__(self, "imag_part",
                                conversions=dict(maxima='imagpart',
-                                                sympy='im'),
+                                                sympy='im',
+                                                giac='im'),
                                alt_name="imag")
 
     def __call__(self, x, **kwargs):
@@ -2351,13 +2382,20 @@ class Function_conjugate(GinacFunction):
             sage: conjugate(a*sqrt(-2)*sqrt(-3))
             conjugate(sqrt(-2))*conjugate(sqrt(-3))*conjugate(a)
 
+        Check that sums are handled correctly::
+
+            sage: y = var('y', domain='real')
+            sage: conjugate(y + I)
+            y - I
+
         Test pickling::
 
             sage: loads(dumps(conjugate))
             conjugate
         """
         GinacFunction.__init__(self, "conjugate",
-                               conversions=dict(sympy='conjugate'))
+                               conversions=dict(sympy='conjugate',
+                                                giac='conj'))
 
 conjugate = Function_conjugate()
 
@@ -2391,9 +2429,10 @@ class Function_sum(BuiltinFunction):
 
             sage: from sage.functions.other import symbolic_sum as ssum
             sage: latex(ssum(x^2, x, 1, 10))
-            {\sum_{x=1}^{10} x^2}
+            {\sum_{x=1}^{10} x^{2}}
         """
-        return r"{{\sum_{{{}={}}}^{{{}}} {}}}".format(var, a, b, x)
+        return r"{{\sum_{{{}={}}}^{{{}}} {}}}".format(latex(var), latex(a),
+                                                      latex(b), latex(x))
 
 symbolic_sum = Function_sum()
 
@@ -2438,9 +2477,10 @@ class Function_prod(BuiltinFunction):
 
             sage: from sage.functions.other import symbolic_product as sprod
             sage: latex(sprod(x^2, x, 1, 10))
-            {\prod_{x=1}^{10} x^2}
+            {\prod_{x=1}^{10} x^{2}}
         """
-        return r"{{\prod_{{{}={}}}^{{{}}} {}}}".format(var, a, b, x)
+        return r"{{\prod_{{{}={}}}^{{{}}} {}}}".format(latex(var), latex(a),
+                                                       latex(b), latex(x))
 
 symbolic_product = Function_prod()
 
@@ -2544,4 +2584,115 @@ class Function_limit(BuiltinFunction):
                 latex(to), dir_str, latex(ex))
 
 symbolic_limit = Function_limit()
+
+
+class Function_cases(GinacFunction):
+    """
+    Formal function holding ``(condition, expression)`` pairs.
+
+    Numbers are considered conditions with zero being ``False``.
+    A true condition marks a default value. The function is not
+    evaluated as long as it contains a relation that cannot be
+    decided by Pynac.
+
+    EXAMPLES::
+
+        sage: ex = cases([(x==0, pi), (True, 0)]); ex
+        cases(((x == 0, pi), (1, 0)))
+        sage: ex.subs(x==0)
+        pi
+        sage: ex.subs(x==2)
+        0
+        sage: ex + 1
+        cases(((x == 0, pi), (1, 0))) + 1
+        sage: _.subs(x==0)
+        pi + 1
+
+    The first encountered default is used, as well as the first relation
+    that can be trivially decided::
+
+        sage: cases(((True, pi), (True, 0)))
+        pi
+
+        sage: _ = var('y')
+        sage: ex = cases(((x==0, pi), (y==1, 0))); ex
+        cases(((x == 0, pi), (y == 1, 0)))
+        sage: ex.subs(x==0)
+        pi
+        sage: ex.subs(x==0, y==1)
+        pi
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: loads(dumps(cases))
+            cases
+        """
+        GinacFunction.__init__(self, "cases")
+
+    def __call__(self, l, **kwargs):
+        """
+        EXAMPLES::
+
+            sage: ex = cases([(x==0, pi), (True, 0)]); ex
+            cases(((x == 0, pi), (1, 0)))
+
+        TESTS::
+
+            sage: cases()
+            Traceback (most recent call last):
+            ...
+            TypeError: __call__() takes exactly 2 arguments (1 given)
+            
+            sage: cases(x)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: cases argument not a sequence
+        """
+        return GinacFunction.__call__(self,
+                SR._force_pyobject(l), **kwargs)
+
+    def _print_latex_(self, l, **kwargs):
+        r"""
+        EXAMPLES::
+
+            sage: ex = cases([(x==0, pi), (True, 0)]); ex
+            cases(((x == 0, pi), (1, 0)))
+            sage: latex(ex)
+            \begin{cases}{\pi} & {x = 0}\\{0} & {1}\end{cases}
+        """
+        if not isinstance(l, (list, tuple)):
+            raise ValueError("cases() argument must be a list")
+        str = r"\begin{cases}"
+        for pair in l:
+            left = None
+            if (isinstance(pair, tuple)):
+                right,left = pair
+            else:
+                right = pair
+            str += r"{%s} & {%s}\\" % (latex(left), latex(right))
+        print(str[:-2] + r"\end{cases}")
+
+    def _sympy_(self, l):
+        """
+        Convert this cases expression to its SymPy equivalent.
+
+        EXAMPLES::
+
+            sage: ex = cases(((x<0, pi), (x==1, 1), (True, 0)))
+            sage: assert ex == ex._sympy_()._sage_()
+        """
+        from sage.symbolic.ring import SR
+        from sympy import Piecewise as pw
+        args = []
+        for tup in l.operands():
+            cond,expr = tup.operands()
+            if SR(cond).is_numeric():
+                args.append((SR(expr)._sympy_(), bool(SR(cond)._sympy_())))
+            else:
+                args.append((SR(expr)._sympy_(), SR(cond)._sympy_()))
+        return pw(*args)
+
+cases = Function_cases()
 

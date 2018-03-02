@@ -69,7 +69,7 @@ class PseudoRiemannianMetric(TensorField):
 
     INPUT:
 
-    - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` with values on `\Phi(U)\subset M`
     - ``name`` -- name given to the metric
     - ``signature`` -- (default: ``None``) signature `S` of the metric as a
@@ -433,7 +433,7 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
@@ -458,7 +458,7 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         Delete the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
@@ -483,7 +483,7 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         Delete the inverse metric.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
@@ -1597,7 +1597,6 @@ class PseudoRiemannianMetric(TensorField):
             sage: latex(eps)
             \epsilon_{g}
 
-
         The tensor field of components `\epsilon^i_{\ \, jk}` (``contra=1``)::
 
             sage: eps1 = g.volume_form(1) ; eps1
@@ -1625,8 +1624,10 @@ class PseudoRiemannianMetric(TensorField):
         The tensor field of components `\epsilon^{ijk}` (``contra=3``)::
 
             sage: eps3 = g.volume_form(3) ; eps3
-            Tensor field of type (3,0) on the Open subset U of the
-             3-dimensional differentiable manifold M
+            3-vector field on the Open subset U of the 3-dimensional
+             differentiable manifold M
+            sage: eps3.tensor_type()
+            (3, 0)
             sage: eps3.symmetries()
             no symmetry;  antisymmetry: (0, 1, 2)
             sage: eps3[:]
@@ -1881,7 +1882,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
     INPUT:
 
-    - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- free module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` with values on `\Phi(U)\subset M`
     - ``name`` -- name given to the metric
     - ``signature`` -- (default: ``None``) signature `S` of the metric as a
@@ -2012,7 +2013,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         r"""
         Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
@@ -2033,7 +2034,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         - ``del_restrictions`` -- (default: True) determines whether the
           restrictions of ``self`` to subdomains are deleted.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
@@ -2050,7 +2051,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         r"""
         Delete the inverse metric.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable

@@ -40,16 +40,19 @@ Test NumPy conversions::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-from cpython.object cimport *
-from cpython.float cimport *
-include "sage/ext/python_debug.pxi"
-include 'sage/ext/stdsage.pxi'
-include "cysignals/signals.pxi"
-from sage.libs.gsl.all cimport *
 cimport libc.math
 from libc.string cimport memcpy
+from cpython.object cimport *
+from cpython.float cimport *
+
+from cysignals.signals cimport sig_on, sig_off
+
+from sage.ext.stdsage cimport PY_NEW
+from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
+
+from sage.libs.gsl.all cimport *
 
 gsl_set_error_handler_off()
 
@@ -66,7 +69,8 @@ from sage.rings.integer_ring import ZZ
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 from sage.misc.randstate cimport randstate, current_randstate
-from sage.structure.sage_object cimport rich_to_bool
+from sage.structure.richcmp cimport rich_to_bool
+from sage.arith.constants cimport *
 
 
 def is_RealDoubleField(x):
@@ -336,12 +340,12 @@ cdef class RealDoubleField_class(Field):
         if S is int or S is float:
             return ToRDF(S)
 
-        from rational_field import QQ
-        from real_lazy import RLF
+        from .rational_field import QQ
+        from .real_lazy import RLF
         if S is ZZ or S is QQ or S is RLF:
             return ToRDF(S)
 
-        from real_mpfr import RR, RealField_class
+        from .real_mpfr import RR, RealField_class
         if isinstance(S, RealField_class):
             if S.prec() >= 53:
                 return ToRDF(S)
@@ -421,7 +425,7 @@ cdef class RealDoubleField_class(Field):
         if prec == 53:
             return self
         else:
-            from real_mpfr import RealField
+            from .real_mpfr import RealField
             return RealField(prec)
 
 
@@ -513,7 +517,7 @@ cdef class RealDoubleField_class(Field):
         """
         Return the hash value of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: hash(RDF) % 2^32 == hash(str(RDF)) % 2^32
             True
@@ -532,7 +536,6 @@ cdef class RealDoubleField_class(Field):
             0.8862269254527579
         """
         return self(M_PI)
-
 
     def euler_constant(self):
         """
@@ -1320,8 +1323,13 @@ cdef class RealDoubleElement(FieldElement):
             1.5
             sage: abs(RDF(-1.5))
             1.5
+            sage: abs(RDF(0.0))
+            0.0
+            sage: abs(RDF(-0.0))
+            0.0
         """
-        if self._value >= 0:
+        # Use signbit instead of >= to handle -0.0 correctly
+        if not libc.math.signbit(self._value):
             return self
         else:
             return self._new_c(-self._value)
@@ -2033,13 +2041,13 @@ cdef class RealDoubleElement(FieldElement):
         ::
 
             sage: r = RDF(31.9); r.log2()
-            4.995484518877507
+            4.9954845188775066
         """
         if self < 0:
             from sage.rings.complex_double import CDF
             return CDF(self).log(2)
         sig_on()
-        a = self._new_c(gsl_sf_log(self._value) / M_LN2)
+        a = self._new_c(gsl_sf_log(self._value) * M_1_LN2)
         sig_off()
         return a
 
@@ -2051,7 +2059,7 @@ cdef class RealDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: r = RDF('16.0'); r.log10()
-            1.2041199826559246
+            1.2041199826559248
             sage: r.log() / RDF(log(10))
             1.2041199826559246
             sage: r = RDF('39.9'); r.log10()
@@ -2061,7 +2069,7 @@ cdef class RealDoubleElement(FieldElement):
             from sage.rings.complex_double import CDF
             return CDF(self).log(10)
         sig_on()
-        a = self._new_c(gsl_sf_log(self._value) / M_LN10)
+        a = self._new_c(gsl_sf_log(self._value) * M_1_LN10)
         sig_off()
         return a
 
@@ -2080,9 +2088,9 @@ cdef class RealDoubleElement(FieldElement):
         """
         if self < 0:
             from sage.rings.complex_double import CDF
-            return CDF(self).log(math.pi)
+            return CDF(self).log(M_PI)
         sig_on()
-        a = self._new_c(gsl_sf_log(self._value) / M_LNPI)
+        a = self._new_c(gsl_sf_log(self._value) * M_1_LNPI)
         sig_off()
         return a
 
@@ -2573,13 +2581,13 @@ cdef class ToRDF(Morphism):
             0.5
             sage: f = RDF.coerce_map_from(int); f
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Real Double Field
             sage: f(3r)
             3.0
             sage: f = RDF.coerce_map_from(float); f
             Native morphism:
-              From: Set of Python objects of type 'float'
+              From: Set of Python objects of class 'float'
               To:   Real Double Field
             sage: f(3.5)
             3.5

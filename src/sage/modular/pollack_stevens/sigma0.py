@@ -51,7 +51,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.abstract_method import abstract_method
 from sage.structure.factory import UniqueFactory
 from sage.structure.element import MonoidElement
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 from sage.categories.monoids import Monoids
 from sage.categories.morphism import Morphism
 from sage.structure.parent import Parent
@@ -235,9 +235,8 @@ class Sigma0Element(MonoidElement):
             sage: from sage.modular.pollack_stevens.sigma0 import Sigma0
             sage: s = Sigma0(3)([1,4,3,3])
             sage: hash(s) # indirect doctest
-            11
-
-        # TODO: the doctest is probably wrong on 32-bit machines
+            8095169151987216923  # 64-bit
+            619049499            # 32-bit
         """
         return hash(self.matrix())
 
