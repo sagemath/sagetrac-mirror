@@ -69,6 +69,14 @@ def _digraph_mutate(dg, k, n, m):
 
     - ``dg`` -- a digraph with integral edge labels with ``n+m`` vertices
     - ``k`` -- the vertex at which ``dg`` is mutated
+    - ``n`` -- number of mutable vertices
+    - ``m`` -- number of frozen vertices
+
+    .. WARNING::
+
+        This assumes that the vertices of ``dg`` are 0 through n+m-1 and
+        with mutable vertices 0 through n-1 and frozen vertices n
+        through n+m-1.
 
     EXAMPLES::
 

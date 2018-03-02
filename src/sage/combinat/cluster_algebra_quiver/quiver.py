@@ -1355,10 +1355,11 @@ class ClusterQuiver(SageObject):
 
         INPUT:
 
-        - ``sequence`` -- a vertex of ``self``, an iterator of vertices of ``self``,
+        - ``data`` -- a vertex of ``self``, an iterator of vertices of ``self``,
           a function which takes in the ClusterQuiver and returns a vertex or an iterator of vertices,
           or a string of the parameter wanting to be called on ClusterQuiver that will return a vertex or 
           an iterator of vertices.
+
         - ``inplace`` -- (default: True) if False, the result is returned, otherwise ``self`` is modified.
 
         EXAMPLES::
@@ -1474,9 +1475,9 @@ class ClusterQuiver(SageObject):
             raise ValueError('The quiver can only be mutated at a vertex or at a sequence of vertices')
         if not isinstance(inplace, bool):
             raise ValueError('The second parameter must be boolean.  To mutate at a sequence of length 2, input it as a list.')
-        if any( v not in V for v in seq ):
-            v = filter( lambda v: v not in V, seq )[0]
-            raise ValueError('The quiver cannot be mutated at the vertex %s'%v)
+        for v in seq:
+            if v not in V:
+                raise ValueError('The quiver cannot be mutated at the vertex %s'%v)
 
         for v in seq:
             dg = _digraph_mutate( dg, v, n, m )
