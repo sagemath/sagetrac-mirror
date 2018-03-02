@@ -156,13 +156,7 @@ fi
 # modified we get the libgc from Sage, which may not be compatible with the
 # one the system's libguile was built against.  So we get around this by
 # ensuring we pre-load the system's libgc for the remainder of the R build.
-if [ "$UNAME" = "Linux" ]; then
-    # Check whether libgc is loaded by make and extract its path
-    LIBGC="$(ldd $(which make) | sed -n 's/\s*libgc\.so.* => \(.\+\) .*/\1/p')"
-    if [ -n "$LIBGC" ]; then
-        export LD_PRELOAD="$LIBGC"
-    fi
-fi
+sdh_preload_lib make libgc.so
 
 # Build R
 $MAKE R
