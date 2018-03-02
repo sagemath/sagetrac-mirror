@@ -969,6 +969,8 @@ cdef class FastAutomaton:
 		return a
 	
 	def unshift (self, int a, int np, final=None):
+		if np == 0:
+			return self
 		if final is None:
 			if self.a.i == -1:
 				r = FastAutomaton(None)

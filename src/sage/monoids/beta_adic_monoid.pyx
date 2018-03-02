@@ -3414,7 +3414,7 @@ class BetaAdicMonoid(Monoid_class):
 			raise ValueError("Erreur : l'échange de morceaux ne pave pas !!!")
 		return [(at[t],t) for t in at.keys()]
 
-	def compute_morceaux3 (self, FastAutomaton a, FastAutomaton ap=None, bound=100, iplus=1, getad = False, verb=False, step=None):
+	def compute_morceaux3 (self, FastAutomaton a, FastAutomaton ap=None, bound=100, iplus=1, getad = False, verb=False, need_included=True, step=None):
 		r"""
 		Compute the domain exchange describing the g-beta-expansion given by the automaton aoc.
 		

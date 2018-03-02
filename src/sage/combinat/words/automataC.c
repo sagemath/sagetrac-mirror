@@ -2433,7 +2433,7 @@ NAutomaton Proj (Automaton a, Dict d, bool verb)
 		nv = 0;
 		for (j=0;j<a.na;j++)
 		{
-			if (a.e[i].f[j] != -1)
+			if (a.e[i].f[j] != -1 && d.e[j] != -1)
 				nv++;
 		}
 		//alloue les nouvelles arêtes
@@ -2443,7 +2443,7 @@ NAutomaton Proj (Automaton a, Dict d, bool verb)
 		nv = 0;
 		for (j=0;j<a.na;j++)
 		{
-			if (a.e[i].f[j] != -1)
+			if (a.e[i].f[j] != -1 && d.e[j] != -1)
 			{
 				r.e[i].a[nv].l = d.e[j];
 				r.e[i].a[nv].e = a.e[i].f[j];
