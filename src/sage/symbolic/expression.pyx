@@ -6110,7 +6110,7 @@ cdef class Expression(CommutativeRingElement):
     ############################################################################
     # Polynomial functions
     ############################################################################
-    def coefficient(self, s, n=1):
+    def coefficient(self, s, n=1, expand=False):
         """
         Return the coefficient of `s^n` in this symbolic expression.
 
@@ -6125,7 +6125,8 @@ cdef class Expression(CommutativeRingElement):
         A symbolic expression. The coefficient of `s^n`.
 
         Sometimes it may be necessary to expand or factor first, since this
-        is not done automatically.
+        is not done automatically. For additional expansion the keyword
+        ``expand`` can be set (default: ``False``).
 
         EXAMPLES::
 
@@ -6173,7 +6174,16 @@ cdef class Expression(CommutativeRingElement):
             sage: (2^x + 5*x^x).coefficient(x, x)
             5
 
-        TESTS:
+            sage: (x*(x*y+y^2)).coefficient(x)
+            y
+            sage: (x*(x*y+y^2)).coefficient(x,2)
+            0
+            sage: (x*(x*y+y^2)).coefficient(x, expand=True)
+            y^2
+            sage: (x*(x*y+y^2)).coefficient(x,2, expand=True)
+            y
+
+    TESTS:
 
         Check if :trac:`9505` is fixed::
 
@@ -6207,9 +6217,13 @@ cdef class Expression(CommutativeRingElement):
         if n != 1 and not is_a_symbol(ss._gobj):
             raise TypeError("n != 1 only allowed for s being a variable")
 
+        cdef Expression res
+        if expand:
+            res = self.expand()
+        else:
+            res = self
         # the following is a temporary fix for GiNaC bug #9505
         if is_a_mul(ss._gobj): # necessarily n=1 here
-            res = self
             for i from 0 <= i < ss._gobj.nops():
                 res = res.coefficient(new_Expression_from_GEx(self._parent, ss._gobj.op(i)))
             return res
@@ -6218,7 +6232,8 @@ cdef class Expression(CommutativeRingElement):
             r = self._gobj.coeff(ss._gobj, nn._gobj)
         finally:
             sig_off()
-        return new_Expression_from_GEx(self._parent, r)
+        return new_Expression_from_GEx(self._parent,
+                res._gobj.coeff(ss._gobj, nn._gobj))
 
     coeff = deprecated_function_alias(17438, coefficient)
 
