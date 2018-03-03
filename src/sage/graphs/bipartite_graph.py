@@ -995,7 +995,7 @@ class BipartiteGraph(Graph):
 
             sage: from sage.functions.orthogonal_polys import chebyshev_U
             sage: g = next(graphs.trees(60))
-            sage: chebyshev_U(60, x/2) == BipartiteGraph(g).matching_polynomial(algorithm='rook')
+            sage: chebyshev_U(60, x/2, algorithm='recursive') == BipartiteGraph(g).matching_polynomial(algorithm='rook')
             True
 
         The matching polynomial of a tree graphs is equal to its characteristic

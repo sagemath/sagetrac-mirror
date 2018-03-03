@@ -256,7 +256,7 @@ def splitting_field(poly, name, map=False, degree_multiple=None, abort_degree=No
     Some bigger examples::
 
         sage: R.<x> = PolynomialRing(QQ)
-        sage: pol15 = chebyshev_T(31, x) - 1    # 2^30*(x-1)*minpoly(cos(2*pi/31))^2
+        sage: pol15 = chebyshev_T(31, x, algorithm='recursive') - 1    # 2^30*(x-1)*minpoly(cos(2*pi/31))^2
         sage: pol15.splitting_field('a')
         Number Field in a with defining polynomial x^15 - x^14 - 14*x^13 + 13*x^12 + 78*x^11 - 66*x^10 - 220*x^9 + 165*x^8 + 330*x^7 - 210*x^6 - 252*x^5 + 126*x^4 + 84*x^3 - 28*x^2 - 8*x + 1
         sage: pol48 = x^6 - 4*x^4 + 12*x^2 - 12

@@ -7835,7 +7835,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pol = (x-1)^2 * (x-2)^2 * (x-3)
             sage: pol.number_of_roots_in_interval(1, 2)
             2
-            sage: pol = chebyshev_T(5,x)
+            sage: pol = chebyshev_T(5,x, algorithm='recursive')
             sage: pol.number_of_roots_in_interval(-1,2)
             5
             sage: pol.number_of_roots_in_interval(0,2)
@@ -7894,10 +7894,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
             sage: pol.all_roots_in_interval(1.01, 3)
             False
-            sage: pol = chebyshev_T(5,x)
+            sage: pol = chebyshev_T(5,x, algorithm='recursive')
             sage: pol.all_roots_in_interval(-1,1)
             True
-            sage: pol = chebyshev_T(5,x/2)
+            sage: pol = chebyshev_T(5,x/2, algorithm='recursive')
             sage: pol.all_roots_in_interval(-1,1)
             False
             sage: pol.all_roots_in_interval()
@@ -7913,7 +7913,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         EXAMPLES::
 
             sage: R.<x> = PolynomialRing(ZZ)
-            sage: pol = chebyshev_T(5, x)
+            sage: pol = chebyshev_T(5, x, algorithm='recursive')
             sage: pol.is_real_rooted()
             True
             sage: pol = x^2 + 1
