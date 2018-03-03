@@ -361,6 +361,19 @@ need_to_install_gfortran=no
 if test -f "$SAGE_LOCAL/bin/gcc"; then
     # Special value for SAGE_INSTALL_GCC if GCC is already installed
     SAGE_INSTALL_GCC=exists
+
+    # Check whether it actually works...
+    # See https://trac.sagemath.org/ticket/24599
+    if test -x "$SAGE_LOCAL/bin/g++"; then
+        echo '#include <complex>' >conftest.cpp
+        echo 'auto inf = 1.0 / std::complex<double>();' >>conftest.cpp
+
+        if ! bash -c "source '$SAGE_LOCAL/bin/sage-env' && g++ -O3 -c -o conftest.o conftest.cpp"; then
+            SAGE_INSTALL_GCC=yes
+            SAGE_MUST_INSTALL_GCC([installed g++ is broken])
+        fi
+        rm -f conftest.*
+    fi
 elif test -n "$SAGE_INSTALL_GCC"; then
     # Check the value of the environment variable SAGE_INSTALL_GCC
     case "$SAGE_INSTALL_GCC" in
@@ -473,7 +486,7 @@ fi
 # not a working Fortran compiler.
 AC_LANG(Fortran)
 if test -z "$FC"; then
-    SAGE_MUST_INSTALL_GCC([a Fortran compiler is missing])
+    need_to_install_gfortran=yes
 else
    # see http://www.gnu.org/software/hello/manual/autoconf/Fortran-Compiler.html
    AC_FC_FREEFORM([],
@@ -481,7 +494,7 @@ else
    AC_MSG_NOTICE([Your Fortran compiler does not accept free-format source code])
    AC_MSG_NOTICE([which means the compiler is either seriously broken, or])
    AC_MSG_NOTICE([is too old to build Sage.])
-   SAGE_MUST_INSTALL_GCC([the Fortran compiler is not suitable])
+   need_to_install_gfortran=yes
    ])
 fi
 
@@ -497,7 +510,7 @@ elif test $need_to_install_gcc = yes; then
 elif test x$GCC != xyes; then
     SAGE_SHOULD_INSTALL_GCC([your C compiler isn't GCC (GNU C)])
 elif test x$GFC != xyes; then
-    SAGE_SHOULD_INSTALL_GCC([your Fortran compiler isn't GCC (GNU Fortran)])
+    need_to_install_gfortran=yes
 else
     # Since need_to_install_gcc is "no", we know that
     # at least C, C++ and Fortran compilers are available.
@@ -507,13 +520,15 @@ else
     AX_GCC_VERSION()
     AX_GXX_VERSION()
 
-    # Add the .0 because Debian/Ubuntu gives version numbers like
-    # 4.6 instead of 4.6.4 (Trac #18885)
-    case "$GXX_VERSION.0" in
-        [[0-3]].*|4.[[0-7]].*)
-            # Install our own GCC if the system-provided one is older than gcc-4.8.
-            SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old]);;
-    esac
+    if test $IS_REALLY_GCC = yes ; then
+        # Add the .0 because Debian/Ubuntu gives version numbers like
+        # 4.6 instead of 4.6.4 (Trac #18885)
+        case "$GXX_VERSION.0" in
+            [[0-3]].*|4.[[0-7]].*)
+                # Install our own GCC if the system-provided one is older than gcc-4.8.
+                SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old]);;
+        esac
+    fi
 
     # The following tests check that the version of the compilers
     # are all the same.
@@ -521,43 +536,7 @@ else
         SAGE_SHOULD_INSTALL_GCC([$CC ($GCC_VERSION) and $CXX ($GXX_VERSION) are not the same version])
     fi
 
-    # In the paragraph below, 'gfortran' is used to indicate the GNU Fortran
-    # compiler, though it might be called something else.
-
-    # It's not easily possible to determine the Fortran version, as
-    # gfortran -dumpversion did not until GCC 4.5 return just the
-    # the version number, but the same as gfortran --version
-    # for example:
-
-    # drkirkby@hawk:~$ gcc -dumpversion
-    # 4.3.4
-
-    # drkirkby@hawk:~$ g++ -dumpversion
-    # 4.3.4
-
-    # drkirkby@hawk:~$ gfortran -dumpversion
-    # GNU Fortran (GCC) 4.3.4
-    # Copyright (C) 2008 Free Software Foundation, Inc.
-    # GNU Fortran comes with NO WARRANTY, to the extent permitted by law.
-    # You may redistribute copies of GNU Fortran
-    # under the terms of the GNU General Public License.
-    # For more information about these matters, see the file named COPYING
-
-    # This behaviour is fixed in the gcc 4.5 branch. Since we need to
-    # support older versions of the compiler, we can't change this.
-
-    # But I would expect that the version will be on the output
-    # of the compiler followed by -dumpversion (e.g. fortran -dumpversion)
-
-    # So we grep for the known gcc version on the output of gfortran -dumpversion.
-    # and hope we find the same string. If so, they are almost certainly
-    # the same version.
-    fortran_version_string="`$FC -dumpversion | grep $GCC_VERSION 2>&1`"
-
-    if test "x$fortran_version_string" = x
-    then
-        SAGE_SHOULD_INSTALL_GCC([the Fortran compiler is not the same version as the C compiler])
-    fi
+    # assuming gfortran does work.
 fi
 
 
@@ -681,6 +660,13 @@ AC_MSG_ERROR([["found Fink in $FINK_PATH. Either:
     fi
 fi
 
+# if GCC needs to be installed GFORTRAN shouldn't be installed.
+# if GCC is already installed GFORTRAN shouldn't be installed either.
+# GCC will provide GFORTRAN in both cases.
+if test x$need_to_install_gcc = xyes -o x$SAGE_INSTALL_GCC = xexists ; then
+    need_to_install_gfortran=no
+fi
+
 ###############################################################################
 # Create $SAGE_ROOT/build/make/Makefile starting from build/make/deps
 ###############################################################################
@@ -710,11 +696,26 @@ EOF
 
 
 # Python version
-if test "$SAGE_PYTHON3" = yes; then
-    echo >&7 'PYTHON = $(inst_python3)'
-else
-    echo >&7 'PYTHON = $(inst_python2)'
-fi
+AC_MSG_CHECKING([Python version to install])
+AC_ARG_WITH([python],
+[AS_HELP_STRING([--with-python=2],
+    [build and use Python 2 (default)])]
+[AS_HELP_STRING([--with-python=3],
+    [build and use Python 3])])
+
+case "$with_python" in
+    2*) SAGE_PYTHON_VERSION=2;;
+    3*) SAGE_PYTHON_VERSION=3;;
+    "") SAGE_PYTHON_VERSION=2;;
+    *)
+        AC_MSG_ERROR([allowed values for --with-python are 2 and 3]);;
+esac
+
+AC_MSG_RESULT([$SAGE_PYTHON_VERSION])
+AC_SUBST(SAGE_PYTHON_VERSION)
+
+echo >&7 "PYTHON = \$(inst_python${SAGE_PYTHON_VERSION})"
+
 
 # Sage MP library
 AC_MSG_CHECKING([multiprecision library])
@@ -968,6 +969,16 @@ cat >&7 <<EOF
 
 EOF
 
+
+# To deal with ABI incompatibilities when gcc is upgraded, every package
+# (except gcc) should depend on gcc if gcc is already installed.
+# See https://trac.sagemath.org/ticket/24703
+if test x$SAGE_INSTALL_GCC = xexists; then
+    GCC_DEP=' $(SAGE_LOCAL)/bin/gcc'
+else
+    GCC_DEP=''
+fi
+
 # Add a Makefile target corresponding to a given package
 filtered_packages_list all | {
 while read PKG_NAME PKG_VERSION PKG_VAR; do
@@ -992,6 +1003,7 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
     else
         DEPS=""
     fi
+    test "$PKG_NAME" = gcc || DEPS="$GCC_DEP$DEPS"
 
     # Below we have to obscure A""M_V_at, or autoconf would complain:
     # "error: possibly undefined macro: A""M_V_at"
