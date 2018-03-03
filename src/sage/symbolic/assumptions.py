@@ -24,13 +24,13 @@ The default domain of a symbolic variable is the complex plane::
     sage: var('x')
     x
     sage: x.is_real()
-    False
+    Unknown
     sage: assume(x,'real')
     sage: x.is_real()
     True
     sage: forget()
     sage: x.is_real()
-    False
+    Unknown
 
 Here is the list of acceptable features::
 

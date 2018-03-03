@@ -313,11 +313,11 @@ cdef class SymbolicRing(CommutativeRing):
             sage: sin(x).subs(x=RR('NaN'))
             sin(NaN)
             sage: SR(RR('NaN')).is_real()
-            False
+            Unknown
             sage: sin(x).subs(x=float('NaN'))
             sin(NaN)
             sage: SR(float('NaN')).is_real()
-            False
+            Unknown
             sage: sin(x).subs(x=complex('NaN'))
             sin(NaN)
 

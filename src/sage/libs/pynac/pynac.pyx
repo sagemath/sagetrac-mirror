@@ -2419,12 +2419,14 @@ def init_pynac_I():
 
     Check that :trac:`10064` is fixed::
 
-        sage: y = I*I*x / x # so y is the expression -1
+        sage: y = I*I*x / x # so y is the expression -x
         sage: y.is_positive()
-        False
+        Unknown
+        sage: (I*I).is_positive()
+        True
         sage: z = -x / x
         sage: z.is_positive()
-        False
+        Unknown
         sage: bool(z == y)
         True
     """

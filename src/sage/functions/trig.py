@@ -535,7 +535,7 @@ class Function_arcsin(GinacFunction):
             sage: bool(asin(SR(2.1)) == NaN)
             True
             sage: asin(SR(2.1)).is_real()
-            False
+            Unknown
         """
         GinacFunction.__init__(self, 'arcsin', latex_name=r"\arcsin",
                 conversions=dict(maxima='asin', sympy='asin', fricas="asin", giac="asin"))
@@ -601,7 +601,7 @@ class Function_arccos(GinacFunction):
             sage: bool(acos(SR(2.1)) == NaN)
             True
             sage: acos(SR(2.1)).is_real()
-            False
+            Unknown
         """
         GinacFunction.__init__(self, 'arccos', latex_name=r"\arccos",
                 conversions=dict(maxima='acos', sympy='acos', fricas='acos', giac='acos'))
