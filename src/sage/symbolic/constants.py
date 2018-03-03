@@ -264,6 +264,12 @@ def unpickle_Constant(class_name, name, conversions, latex, mathml, domain):
         return cls(name=name)
 
 class Constant(object):
+    """
+    The base class for symbolic constants.
+
+    Instances of constants are usually embedded as ``PyObject`` in
+    a symbolic expression.
+    """
     def __init__(self, name, conversions=None, latex=None, mathml="",
                  domain='complex'):
         """
@@ -540,6 +546,11 @@ class Constant(object):
 
 
 class Pi(Constant):
+    r"""
+    The symbolic constant `\pi`.
+
+    Instances of constants are usually embedded in a symbolic expression.
+    """
     def __init__(self, name="pi"):
         """
         TESTS::
@@ -601,78 +612,6 @@ class Pi(Constant):
 
 pi = Pi().expression()
 
-"""
-The formal square root of -1.
-
-EXAMPLES::
-
-    sage: I
-    I
-    sage: I^2
-    -1
-
-Note that conversions to real fields will give TypeErrors::
-
-    sage: float(I)
-    Traceback (most recent call last):
-    ...
-    TypeError: unable to simplify to float approximation
-    sage: gp(I)
-    I
-    sage: RR(I)
-    Traceback (most recent call last):
-    ...
-    TypeError: unable to convert '1.00000000000000*I' to a real number
-
-Expressions involving I that are real-valued can be converted to real fields::
-
-    sage: float(I*I)
-    -1.0
-    sage: RR(I*I)
-    -1.00000000000000
-
-We can convert to complex fields::
-
-    sage: C = ComplexField(200); C
-    Complex Field with 200 bits of precision
-    sage: C(I)
-    1.0000000000000000000000000000000000000000000000000000000000*I
-    sage: I._complex_mpfr_field_(ComplexField(53))
-    1.00000000000000*I
-
-    sage: I._complex_double_(CDF)
-    1.0*I
-    sage: CDF(I)
-    1.0*I
-
-    sage: z = I + I; z
-    2*I
-    sage: C(z)
-    2.0000000000000000000000000000000000000000000000000000000000*I
-    sage: 1e8*I
-    1.00000000000000e8*I
-
-    sage: complex(I)
-    1j
-
-    sage: QQbar(I)
-    I
-
-    sage: abs(I)
-    1
-
-    sage: I.minpoly()
-    x^2 + 1
-    sage: maxima(2*I)
-    2*%i
-
-TESTS::
-
-    sage: repr(I)
-    'I'
-    sage: latex(I)
-    i
-"""
 
 # The base of the natural logarithm, e, is not a constant in GiNaC/Sage. It is
 # represented by exp(1). A dummy class to make this work with arithmetic and
@@ -682,7 +621,9 @@ e = E()
 
 class NotANumber(Constant):
     """
-    Not a Number
+    The symbolic constant Not a Number
+    
+    Instances of constants are usually embedded in a symbolic expression.
     """
     def __init__(self, name="NaN"):
         """
@@ -742,7 +683,9 @@ NaN = NotANumber().expression()
 
 class GoldenRatio(Constant):
     """
-    The number (1+sqrt(5))/2
+    The constant `\phi = (1+sqrt(5))/2`
+    
+    Instances of constants are usually embedded in a symbolic expression.
 
     EXAMPLES::
 
@@ -846,6 +789,8 @@ golden_ratio = GoldenRatio().expression()
 class Log2(Constant):
     """
     The natural logarithm of the real number 2.
+    
+    Instances of constants are usually embedded in a symbolic expression.
 
     EXAMPLES::
 
@@ -924,6 +869,8 @@ class EulerGamma(Constant):
     """
     The limiting difference between the harmonic series and the natural
     logarithm.
+    
+    Instances of constants are usually embedded in a symbolic expression.
 
     EXAMPLES::
 
@@ -998,8 +945,10 @@ euler_gamma = EulerGamma().expression()
 
 class Catalan(Constant):
     """
-    A number appearing in combinatorics defined as the Dirichlet beta
+    A constant appearing in combinatorics defined as the Dirichlet beta
     function evaluated at the number 2.
+    
+    Instances of constants are usually embedded in a symbolic expression.
 
     EXAMPLES::
 
@@ -1070,6 +1019,8 @@ class Khinchin(Constant):
     """
     The geometric mean of the continued fraction expansion of any
     (almost any) real number.
+    
+    Instances of constants are usually embedded in a symbolic expression.
 
     EXAMPLES::
 
@@ -1125,6 +1076,8 @@ class TwinPrime(Constant):
     r"""
     The Twin Primes constant is defined as
     `\prod 1 - 1/(p-1)^2` for primes `p > 2`.
+    
+    Instances of constants are usually embedded in a symbolic expression.
 
     EXAMPLES::
 
@@ -1173,6 +1126,8 @@ class Mertens(Constant):
     """
     The Mertens constant is related to the Twin Primes constant and
     appears in Mertens' second theorem.
+    
+    Instances of constants are usually embedded in a symbolic expression.
 
     EXAMPLES::
 
@@ -1221,6 +1176,8 @@ mertens = Mertens().expression()
 class Glaisher(Constant):
     r"""
     The Glaisher-Kinkelin constant `A = \exp(\frac{1}{12}-\zeta'(-1))`.
+    
+    Instances of constants are usually embedded in a symbolic expression.
 
     EXAMPLES::
 

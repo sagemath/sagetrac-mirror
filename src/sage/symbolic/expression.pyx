@@ -139,6 +139,7 @@ from __future__ import print_function, absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
 from sage.ext.cplusplus cimport ccrepr, ccreadstr
+from sage.docs.instancedoc import instancedoc
 
 from inspect import ismethod
 import operator
@@ -353,6 +354,26 @@ def _subs_make_dict(s):
 
 
 cdef class Expression(CommutativeRingElement):
+    """
+    Symbolic expressions are wrappers for operators and functions that
+    link symbolic variables and other Python/Sage objects.
+
+    Note that using arbitrary objects in symbolic expressions can lead
+    to strange results.
+
+    For extensive documentation please see the reference manual.
+
+    EXAMPLES::
+
+        sage: sin(x).operator()
+        sin
+        sage: sin(x).operands()
+        [x]
+        sage: (sin(x) + 1).operator()
+        <function add_vararg at ...
+        sage: (sin(x) + 1).operands()
+        [sin(x), 1]
+    """
     cpdef object pyobject(self):
         """
         Get the underlying Python object.
@@ -414,7 +435,7 @@ cdef class Expression(CommutativeRingElement):
 
     def __init__(self, SR, x=0):
         """
-        Nearly all expressions are created by calling new_Expression_from_*,
+        Internally all expressions are created by calling new_Expression_from_*,
         but we need to make sure this at least does not leave self._gobj
         uninitialized and segfault.
 
@@ -438,6 +459,24 @@ cdef class Expression(CommutativeRingElement):
         self._parent = SR
         cdef Expression exp = self.coerce_in(x)
         self._gobj = GEx(exp._gobj)
+
+    def _instancedoc_(self):
+        """
+        EXAMPLES:
+
+        Check that docstrings are displayed (:trac:`18077`)::
+
+            sage: "The symbolic constant `\pi`." in pi.__doc__
+            True
+        """
+        try:
+            doc = self.pyobject().__doc__
+            if doc:
+                    return doc
+            return type(self).__doc__
+        except TypeError:
+            pass
+        return type(self).__doc__
 
     def __getstate__(self):
         """
@@ -5379,7 +5418,7 @@ cdef class Expression(CommutativeRingElement):
 
     def __call__(self, *args, **kwds):
         """
-        Call the :meth:`subs` on this expression.
+        Calling an expression applies :meth:`subs` on this expression.
 
         EXAMPLES::
 
@@ -12674,6 +12713,8 @@ cdef get_dynamic_class_for_function(unsigned serial):
         dynamic_class_cache[serial] = cls
 
     return cls
+
+instancedoc(Expression)
 
 cdef Expression new_Expression_from_GEx(parent, GEx juice):
     cdef type cls
