@@ -25,7 +25,7 @@ AUTHORS:
 from libc.stdlib cimport malloc, free
 
 cimport sage.combinat.words.cautomata
-include "sage/ext/interrupt.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 #ctypedef Automate Automaton
 

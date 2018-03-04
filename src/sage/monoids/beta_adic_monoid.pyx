@@ -46,7 +46,7 @@ from sage.combinat.words.automata import Automaton
 
 #from sage.structure.factory import UniqueFactory
 #from sage.misc.cachefunc import cached_method
-include "sage/ext/interrupt.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 #calcul de la valeur absolue p-adique (car non encore implémenté autrement)
 def absp (c, p, d):
