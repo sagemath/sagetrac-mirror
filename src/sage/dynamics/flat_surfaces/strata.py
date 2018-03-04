@@ -1,6 +1,12 @@
 r"""
 Strata of differentials on Riemann surfaces
 
+.. WARNING::
+
+    This module is deprecated. You are advised to install and use the
+    surface_dynamics package instead available at
+    https://pypi.python.org/pypi/surface_dynamics/
+
 The space of Abelian (or quadratic) differentials is stratified by the
 degrees of the zeroes (and simple poles for quadratic
 differentials). Each stratum has one, two or three connected
@@ -45,6 +51,19 @@ EXAMPLES:
 Construction of a stratum from a list of singularity degrees::
 
     sage: a = AbelianStratum(1,1)
+    doctest:warning
+    ...
+    DeprecationWarning: AbelianStratum is deprecated and will be removed from Sage.
+    You are advised to install the surface_dynamics package via:
+    sage -pip install surface_dynamics
+    If you do not have write access to the Sage installation you can
+    alternatively do
+    sage -pip install surface_dynamics --user
+    The package surface_dynamics subsumes all flat surface related
+    computation that are currently available in Sage. See more
+    information at
+    http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+    See http://trac.sagemath.org/20695 for details.
     sage: a
     H(1, 1)
     sage: a.genus()
@@ -92,6 +111,19 @@ of a representative::
 
     sage: for a in AbelianStrata(genus=3):
     ....:     print(a)
+    doctest:warning
+    ...
+    DeprecationWarning: AbelianStrata is deprecated and will be removed from Sage.
+    You are advised to install the surface_dynamics package via:
+        sage -pip install surface_dynamics
+    If you do not have write access to the Sage installation you can
+    alternatively do
+        sage -pip install surface_dynamics --user
+    The package surface_dynamics subsumes all flat surface related
+    computation that are currently available in Sage. See more
+    information at
+        http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+    See http://trac.sagemath.org/20695 for details.
     H(4)
     H(3, 1)
     H(2, 2)
@@ -233,6 +265,7 @@ Rauzy diagrams from the classification of strata::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 from sage.structure.sage_object import SageObject
 
@@ -351,6 +384,9 @@ def AbelianStrata(genus=None, nintervals=None, marked_separatrix=None):
         H^out(2, 3, 3)
         H^out(3, 3, 2)
     """
+    from sage.dynamics.surface_dynamics_deprecation import surface_dynamics_deprecation
+    surface_dynamics_deprecation("AbelianStrata")
+
     if genus is None:
         if nintervals is None:
             return AbelianStrata_all()
@@ -663,7 +699,7 @@ class AbelianStratum(SageObject):
     :meth:`sage.dynamics.interval_exchanges.template.Permutation.symmetric`
     operation of Boissy-Lanneau).
 
-    When you want to specify a marked separatrix, the degree on which it is is
+    When you want to specify a marked separatrix, the degree on which it is
     the first term of your degrees list.
 
     INPUT:
@@ -749,6 +785,9 @@ class AbelianStratum(SageObject):
             ...
             ValueError: marked_separatrix must be one of 'no', 'in', 'out'
         """
+        from sage.dynamics.surface_dynamics_deprecation import surface_dynamics_deprecation
+        surface_dynamics_deprecation("AbelianStratum")
+
         if l == ():
             pass
 
@@ -1213,6 +1252,19 @@ class ConnectedComponentOfAbelianStratum(SageObject):
         EXAMPLES::
 
             sage: p = iet.Permutation('a b','b a')
+            doctest:warning
+            ...
+            DeprecationWarning: Permutation is deprecated and will be removed from Sage.
+            You are advised to install the surface_dynamics package via:
+                sage -pip install surface_dynamics
+            If you do not have write access to the Sage installation you can
+            alternatively do
+                sage -pip install surface_dynamics --user
+            The package surface_dynamics subsumes all flat surface related
+            computation that are currently available in Sage. See more
+            information at
+                http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+            See http://trac.sagemath.org/20695 for details.
             sage: c = p.connected_component()
             sage: c.parent()
             H(0)
@@ -1256,7 +1308,7 @@ class ConnectedComponentOfAbelianStratum(SageObject):
         zeroes = [x for x in self._parent._zeroes if x > 0]
         n = self._parent._zeroes.count(0)
 
-        l0 = range(0, 4*g-3)
+        l0 = list(range(4 * g - 3))
         l1 = [4, 3, 2]
         for k in range(5, 4*g-6, 4):
             l1 += [k, k+3, k+2, k+1]
@@ -1270,7 +1322,7 @@ class ConnectedComponentOfAbelianStratum(SageObject):
             k += 2
 
         if n != 0:
-            interval = range(4*g-3, 4*g-3+n)
+            interval = list(range(4 * g - 3, 4 * g - 3 + n))
 
             if self._parent._zeroes[0] == 0:
                 k = l0.index(4)
@@ -1492,13 +1544,13 @@ class HypConnectedComponentOfAbelianStratum(CCA):
                 l0 = [0, 1, 2]
                 l1 = [2, 1, 0]
             else:
-                l0 = range(1, n+2)
-                l1 = [n+1] + range(1, n+1)
+                l0 = list(range(1, n + 2))
+                l1 = [n + 1] + list(range(1, n + 1))
 
         elif m == 1:  # H(2g-2,0^n) or H(0,2g-2,0^(n-1))
-            l0 = range(1, 2*g+1)
-            l1 = range(2*g, 0, -1)
-            interval = range(2*g+1, 2*g+n+1)
+            l0 = list(range(1, 2*g+1))
+            l1 = list(range(2*g, 0, -1))
+            interval = list(range(2*g+1, 2*g+n+1))
 
             if self._parent._zeroes[0] == 0:
                 l0[-1:-1] = interval
@@ -1508,9 +1560,9 @@ class HypConnectedComponentOfAbelianStratum(CCA):
                 l1[1:1] = interval
 
         else:  # H(g-1,g-1,0^n) or H(0,g-1,g-1,0^(n-1))
-            l0 = range(1, 2*g+2)
-            l1 = range(2*g+1, 0, -1)
-            interval = range(2*g+2, 2*g+n+2)
+            l0 = list(range(1, 2*g+2))
+            l1 = list(range(2*g+1, 0, -1))
+            interval = list(range(2*g+2, 2*g+n+2))
 
             if self._parent._zeroes[0] == 0:
                 l0[-1:-1] = interval
@@ -1594,7 +1646,7 @@ class EvenConnectedComponentOfAbelianStratum(CCA):
         n = self._parent._zeroes.count(0)
         g = self._parent._genus
 
-        l0 = range(3*g-2)
+        l0 = list(range(3*g-2))
         l1 = [6, 5, 4, 3, 2, 7, 9, 8]
         for k in range(10, 3*g-4, 3):
             l1 += [k, k+2, k+1]
@@ -1610,7 +1662,7 @@ class EvenConnectedComponentOfAbelianStratum(CCA):
 
         # if there are marked points we transform 0 in [3g-2, 3g-3, ...]
         if n != 0:
-            interval = range(3*g-2, 3*g - 2 + n)
+            interval = list(range(3*g-2, 3*g - 2 + n))
 
             if self._parent._zeroes[0] == 0:
                 k = l0.index(6)
@@ -1673,7 +1725,7 @@ class OddConnectedComponentOfAbelianStratum(CCA):
         n = self._parent._zeroes.count(0)
         g = self._parent._genus
 
-        l0 = range(3*g-2)
+        l0 = list(range(3*g-2))
         l1 = [3, 2]
         for k in range(4, 3*g-4, 3):
             l1 += [k, k+2, k+1]
@@ -1689,7 +1741,7 @@ class OddConnectedComponentOfAbelianStratum(CCA):
 
         # marked points
         if n != 0:
-            interval = range(3*g-2, 3*g-2+n)
+            interval = list(range(3*g-2, 3*g-2+n))
 
             if self._parent._zeroes[0] == 0:
                 k = l0.index(3)

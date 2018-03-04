@@ -18,6 +18,7 @@ Miscellaneous matrix functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from six.moves import range
+from six import iteritems
 
 from sage.categories.fields import Fields
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -153,10 +154,10 @@ def prm_mul(p1, p2, mask_free, prec):
     p = {}
     if not p2:
         return p
-    for exp1, v1 in p1.iteritems():
+    for exp1, v1 in iteritems(p1):
         if v1.is_zero():
             continue
-        for exp2, v2 in p2.iteritems():
+        for exp2, v2 in iteritems(p2):
             if exp1 & exp2:
                 continue
             v = v1 * v2
@@ -197,7 +198,7 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
     ``A.permanental_minor(i)``).
 
     The algorithm implemented by that function has been developed by P. Butera
-    and M. Pernici, see [BP2015]. Its complexity is `O(2^n m^2 n)` where `m` and
+    and M. Pernici, see [BP2015]_. Its complexity is `O(2^n m^2 n)` where `m` and
     `n` are the number of rows and columns of `A`.  Moreover, if `A` is a banded
     matrix with width `w`, that is `A_{ij}=0` for `|i - j| > w` and `w < n/2`,
     then the complexity of the algorithm is `O(4^w (w+1) n^2)`.

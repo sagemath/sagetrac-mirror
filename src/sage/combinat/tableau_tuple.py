@@ -3,7 +3,7 @@ TableauTuples
 
 A :class:`TableauTuple` is a tuple of tableaux. These objects arise naturally
 in representation theory of the wreath products of cyclic groups and the
-symmetric groups where the standard tableau tulpes index bases for the ordinary
+symmetric groups where the standard tableau tuples index bases for the ordinary
 irreducible representations. This generalises the well-known fact the ordinary
 irreducible representations of the symmetric groups have bases indexed by the
 standard tableaux of a given shape. More generally, :class:`TableauTuples`, or
@@ -211,6 +211,7 @@ REFERENCES:
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
+from six import add_metaclass
 
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.words.word import Word
@@ -273,14 +274,14 @@ class TableauTuple(CombinatorialElement):
 
     In sage a :class:`TableauTuple` looks an behaves like a real tuple of
     (level 1) :class:`Tableaux`. Many of the operations which are defined
-    on :class:`Tableau` extend to :class:`TableauTuples`. Tableau tulpes of
+    on :class:`Tableau` extend to :class:`TableauTuples`. Tableau tuples of
     level 1 are just ordinary :class:`Tableau`.
 
     In sage, the entries of :class:`Tableaux` can be very general, including
     arbitrarily nested lists, so some lists can be interpreted either as a
     tuple of tableaux or simply as tableaux. If it is possible to interpret
     the input to :class:`TableauTuple` as a tuple of tableaux then
-    :class:`TableauTuple` returns the corresponding tuple. Given a 1-tulpe of
+    :class:`TableauTuple` returns the corresponding tuple. Given a 1-tuple of
     tableaux the tableau itself is returned.
 
     EXAMPLES::
@@ -1380,6 +1381,7 @@ class TableauTuple(CombinatorialElement):
 #--------------------------------------------------
 # Standard tableau tuple - element class
 #--------------------------------------------------
+@add_metaclass(ClasscallMetaclass)
 class StandardTableauTuple(TableauTuple):
     r"""
     A class to model a standard tableau of shape a partition tuple. This is
@@ -1487,8 +1489,6 @@ class StandardTableauTuple(TableauTuple):
         sage: TestSuite(  StandardTableauTuple([[[1,3,4],[6]],[], [[2],[5]]]) ).run()
         sage: TestSuite(  StandardTableauTuple([[[1,3,4],[6]],[[7]], [[2],[5]]]) ).run()
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(self, t):
         r"""
@@ -1895,7 +1895,7 @@ class TableauTuples(UniqueRepresentation, Parent):
         sage: t.category()
         Category of elements of Tableau tuples of level 3
 
-    .. SEE ALSO::
+    .. SEEALSO::
 
        - :class:`Tableau`
        - :class:`StandardTableau`
@@ -2584,7 +2584,9 @@ class StandardTableauTuples(TableauTuples):
     def __classcall_private__(cls, *args, **kwargs):
         r"""
         This is a factory class which returns the appropriate parent based on
-        arguments.  See the documentation for:class:`StandardTableauTuples``
+        arguments.
+
+        See the documentation for :class:`StandardTableauTuples`
         for more information.
 
         EXAMPLES::
@@ -2889,9 +2891,11 @@ class StandardTableauTuples_level(StandardTableauTuples):
 
     def __init__(self, level):
         r"""
-        Initializes the class of semistandard tableaux of level ``level`` of
-        arbitrary ``size``. Input is not checked; please use
-        :class:`:class:`StandardTableauTuples`` to ensure the options are
+        Initialize the class of semistandard tableaux of level ``level`` of
+        arbitrary ``size``.
+
+        Input is not checked; please use
+        :class:`StandardTableauTuples` to ensure the options are
         properly parsed.
 
         EXAMPLES::
@@ -3316,7 +3320,7 @@ class StandardTableauTuples_shape(StandardTableauTuples):
     def __iter__(self):
         r"""
         Iterate through the finite class of :class:`StandardTableauTuples` of
-        a given :class:`PartitionTulpe` shape.
+        a given :class:`PartitionTuple` shape.
 
         The algorithm below is modelled on, but different than, the
         corresponding iterator for the standard tableau of partition shape. In
@@ -3418,7 +3422,8 @@ class StandardTableauTuples_shape(StandardTableauTuples):
                 for col in range(len(t[row])):
                     cols[t[row][col]]=col+offset
                     mins[t[row][col]-1]=row+col
-            if len(t)>0: offset+=len(t[0])
+            if t:
+                offset += len(t[0])
 
         # To generate all of the tableaux we look for the first place where
         # cols[r]<cols[r-1]. Then swap r and s where s<r is maximal such that it
@@ -3582,6 +3587,7 @@ class StandardTableauTuples_shape(StandardTableauTuples):
         # Just to be safe we check that tab is standard and has shape mu by
         # using the class StandardTableauTuples(mu) to construct the tableau
         return self.element_class(self,tab)
+
 
 class StandardTableaux_residue(StandardTableauTuples):
     r"""

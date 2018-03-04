@@ -478,7 +478,7 @@ We test that ``imshow`` works as well, verifying that
 
 ::
 
-    sage: plt.imshow([[(0,0,0)]])
+    sage: plt.imshow([[(0.0,0.0,0.0)]])
     <matplotlib.image.AxesImage object at ...>
     sage: plt.savefig(os.path.join(SAGE_TMP, 'foo.png'))
 
@@ -555,9 +555,9 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 from six.moves import range
+from six import iteritems
 
 import os
 from functools import reduce
@@ -1011,6 +1011,12 @@ def plot(funcs, *args, **kwds):
 
     - ``fillalpha`` - (default: 0.5) How transparent the fill is.
       A number between 0 and 1.
+      
+    MATPLOTLIB STYLE SHEET OPTION:
+    
+    - ``stylesheet`` - (Default: classic) Support for loading a full matplotlib style sheet.
+      Any style sheet listed in ``matplotlib.pyplot.style.available`` is acceptable. If a
+      non-existing style is provided the default classic is applied.
 
     EXAMPLES:
 
@@ -1709,6 +1715,7 @@ def plot(funcs, *args, **kwds):
     Ghostscript be installed::
 
         sage: plot(x, typeset='type1') # optional - latex
+        Graphics object consisting of 1 graphics primitive
 
     A example with excluded values::
 
@@ -2179,7 +2186,7 @@ def _plot(funcs, xrange, parametric=False,
                     linestyle_entry = default_line_styles[i]
             elif linestyle_temp == 'automatic':
                 linestyle_entry = default_line_styles[i]
-            elif linestyle_temp == None:
+            elif linestyle_temp is None:
                 linestyle_entry = 'solid'
             else:
                 linestyle_entry = linestyle_temp
@@ -2222,7 +2229,7 @@ def _plot(funcs, xrange, parametric=False,
     exclude = options.pop('exclude')
     if exclude is not None:
         from sage.symbolic.expression import Expression
-        if isinstance(exclude, Expression) and exclude.is_relational() == True:
+        if isinstance(exclude, Expression) and exclude.is_relational():
             if len(exclude.variables()) > 1:
                 raise ValueError('exclude has to be an equation of only one variable')
             v = exclude.variables()[0]
@@ -2343,7 +2350,7 @@ def _plot(funcs, xrange, parametric=False,
 
     detect_poles = options.pop('detect_poles', False)
     legend_label = options.pop('legend_label', None)
-    if excluded_points or detect_poles != False:
+    if excluded_points or detect_poles:
         start_index = 0
         # setup for pole detection
         from sage.rings.all import RDF
@@ -2364,7 +2371,7 @@ def _plot(funcs, xrange, parametric=False,
             x1, y1 = exclude_data[i+1]
 
             # detect poles
-            if (not (polar or parametric)) and detect_poles != False \
+            if (not (polar or parametric)) and detect_poles \
                and ((y1 > 0 and y0 < 0) or (y1 < 0 and y0 > 0)):
                 # calculate the slope of the line segment
                 dy = abs(y1-y0)
@@ -2907,11 +2914,14 @@ def list_plot(data, plotjoined=False, **kwargs):
         If ``plotjoined`` is ``False`` then the axis that is in log scale
         must have all points strictly positive. For instance, the following
         plot will show no points in the figure since the points in the
-        horizontal axis starts from `(0,1)`.
+        horizontal axis starts from `(0,1)`. Further, matplotlib will display
+        a user warning.
 
         ::
 
             sage: list_plot(yl, scale='loglog')         # both axes are log
+            doctest:warning
+            ...
             Graphics object consisting of 1 graphics primitive
 
         Instead this will work. We drop the point `(0,1)`.::
@@ -2970,9 +2980,9 @@ def list_plot(data, plotjoined=False, **kwargs):
                     "and 'y' against each other, use 'list_plot(list(zip(x,y)))'.")
     if isinstance(data, dict):
         if plotjoined:
-            list_data = sorted(list(data.iteritems()))
+            list_data = sorted(list(iteritems(data)))
         else:
-            list_data = list(data.iteritems())
+            list_data = list(iteritems(data))
         return list_plot(list_data, plotjoined=plotjoined, **kwargs)
     try:
         from sage.rings.all import RDF
@@ -3042,7 +3052,7 @@ def plot_loglog(funcs, *args, **kwds):
         sage: plot_loglog(exp, (1,10), base=2.1) # long time # with base 2.1 on both axes
         Graphics object consisting of 1 graphics primitive
 
-    .. PLOT ::
+    .. PLOT::
 
         g = plot_loglog(exp, (1,10), base=2.1) # long time # with base 2.1 on both axes
         sphinx_plot(g)
@@ -3287,19 +3297,21 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
 
         If ``plotjoined`` is ``False`` then the vertical axis must have all
         points strictly positive. Otherwise the plot will come up empty.
-        For instance the following plot contains a point at `(1,0)`.
+        For instance the following plot contains a point at `(1,0)`. Further, 
+        matplotlib will display a user warning.
 
         ::
 
             sage: xl = [2**k for k in range(12)]; yl = range(len(xl))
             sage: list_plot_semilogy(list(zip(xl,yl))) # plot empty due to (1,0)
+            doctest:warning
+            ...
             Graphics object consisting of 1 graphics primitive
 
         We remove `(1,0)` to fix this.::
 
             sage: list_plot_semilogy(list(zip(xl[1:],yl[1:])))
             Graphics object consisting of 1 graphics primitive
-
 
     ::
 
@@ -3313,6 +3325,7 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
 
     """
     return list_plot(data, plotjoined=plotjoined, scale='semilogy', **kwds)
+
 
 def to_float_list(v):
     """
@@ -3411,7 +3424,7 @@ def graphics_array(array, nrows=None, ncols=None):
        if necessary. If only one is specified, the other is chosen
        automatically.
 
-    EXAMPLE: Make some plots of `\sin` functions::
+    EXAMPLES: Make some plots of `\sin` functions::
 
         sage: f(x) = sin(x)
         sage: g(x) = sin(2*x)
@@ -3909,7 +3922,8 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
 
     return data
 
-#Lovely cruft to keep the pickle jar working
+
+# Old imports required for unpickling old pickles
 from .line import line, line2d, Line as GraphicPrimitive_Line
 from .arrow import arrow, Arrow as GraphicPrimitive_Arrow
 from .bar_chart import bar_chart, BarChart as GraphicPrimitive_BarChart

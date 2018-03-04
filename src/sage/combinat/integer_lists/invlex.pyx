@@ -27,9 +27,10 @@ limitations and lack of robustness w.r.t. input.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
-from builtins import object
+from __future__ import print_function, absolute_import
+
+import builtins
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.cachefunc import cached_method
@@ -38,7 +39,7 @@ from sage.combinat.integer_lists.lists import IntegerLists
 from sage.combinat.integer_lists.base import Infinity
 
 
-class IntegerListsLex(IntegerLists):
+class IntegerListsLex(IntegerLists, metaclass=ClasscallMetaclass):
     r"""
     Lists of nonnegative integers with constraints, in inverse
     lexicographic order.
@@ -783,8 +784,6 @@ class IntegerListsLex(IntegerLists):
     """
     backend_class = IntegerListsBackend_invlex
 
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, n=None, **kwargs):
         r"""
@@ -1090,7 +1089,7 @@ DECREASE  = 2
 POP       = 1
 STOP      = 0
 
-class IntegerListsLexIter(object):
+class IntegerListsLexIter(builtins.object):
     r"""
     Iterator class for IntegerListsLex.
 
@@ -1472,7 +1471,7 @@ class IntegerListsLexIter(object):
 
         lower_bound = max(0, p.floor(i))
         upper_bound = min(max_sum, p.ceiling(i))
-        if prev != None:
+        if prev is not None:
             lower_bound = max(lower_bound, prev + p.min_slope)
             upper_bound = min(upper_bound, prev + p.max_slope)
 
@@ -1549,7 +1548,7 @@ class IntegerListsLexIter(object):
         ``self._current_list``. The current algorithm computes,
         for `k = j, j+1, \ldots`, a lower bound `l_k` and an upper
         bound `u_k` for `v_0+\dots+v_k`, and stops if none of the
-        invervals `[l_k, u_k]` intersect ``[min_sum, max_sum]``.
+        intervals `[l_k, u_k]` intersect ``[min_sum, max_sum]``.
 
         The lower bound `l_k` is given by the area below
         `v_0,\dots,v_{j-1}` prolongated by the lower envelope

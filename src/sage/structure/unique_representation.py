@@ -383,7 +383,7 @@ This is because an attribute is stored that explains how the instance was
 created::
 
     sage: a._factory_data
-    (<class '__main__.MyFactory'>, (...), (1, 1), {})
+    (<__main__.MyFactory object at ...>, (...), (1, 1), {})
 
 .. NOTE::
 
@@ -561,11 +561,12 @@ accordingly, for example by inheriting from
 #******************************************************************************
 from __future__ import print_function
 
+from sage.misc import six
 from sage.misc.cachefunc import weak_cached_function
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.fast_methods import WithEqualityById
 
-class CachedRepresentation:
+class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
     """
     Classes derived from CachedRepresentation inherit a weak cache for their
     instances.
@@ -1000,8 +1001,6 @@ class CachedRepresentation:
     unprocessed arguments will be passed down to
     :meth:`__init__<object.__init__>`.
     """
-    __metaclass__ = ClasscallMetaclass
-
     _included_private_doc_ = ["__classcall__"]
 
     @weak_cached_function # automatically a staticmethod
@@ -1266,7 +1265,6 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
         ....:         if c: return c
         ....:         print("custom cmp")
         ....:         return cmp(self.value, other.value)
-        ....:
 
     Two coexisting instances of ``MyClass`` created with the same argument
     data are guaranteed to share the same identity. Since :trac:`12215`, this
@@ -1291,10 +1289,8 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
         sage: x.value, y.value
         (1, 1)
 
-    Rich comparison by identity is used when possible (hence, for ``==``, for
-    ``!=``, and for identical arguments in the case of ``<``, ``<=``, ``>=``
-    and ``>``), which is as fast as it can get. Only if identity is not enough
-    to decide the answer of a comparison, the custom comparison is called::
+    Comparison by identity is used for ``==`` and for ``!=``. For other
+    operators, the custom comparison is called::
 
         sage: x == y
         True
@@ -1302,6 +1298,7 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
         sage: x == z, x is z
         (False, False)
         sage: x <= x
+        custom cmp
         True
         sage: x != z
         True

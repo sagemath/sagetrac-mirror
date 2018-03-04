@@ -24,10 +24,11 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import add_metaclass
 
 from sage.arith.all import factorial
 import sage.rings.integer
-from sage.sets.set import Set, is_Set
+from sage.sets.set import Set, Set_generic
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.all import prod
@@ -41,6 +42,7 @@ import sage.combinat.permutation as permutation
 from functools import reduce
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class OrderedSetPartition(ClonableArray):
     """
     An ordered partition of a set.
@@ -126,8 +128,6 @@ class OrderedSetPartition(ClonableArray):
 
     :wikipedia:`Ordered_partition_of_a_set`
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, parts):
         """
@@ -324,7 +324,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
         #is a set
         u = Set([])
         for s in x:
-            if not isinstance(s, (set, frozenset)) and not is_Set(s):
+            if not isinstance(s, (set, frozenset, Set_generic)):
                 return False
             u = u.union(s)
 

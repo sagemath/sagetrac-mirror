@@ -46,12 +46,15 @@ result no matter how a generator is identified::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+from six import iteritems
 
 import collections
 
+
 class KeyConvertingDict(dict):
     r"""
-    A dictionary which automatically applys a conversions to its keys.
+    A dictionary which automatically applies a conversions to its keys.
 
     The most common application is the case where the conversion
     function is the object representing some category, so that key
@@ -203,7 +206,7 @@ class KeyConvertingDict(dict):
 
     def pop(self, key, *args):
         r"""
-        Remove and retreive a given element from the dictionary
+        Remove and retrieve a given element from the dictionary.
 
         INPUT:
 
@@ -287,5 +290,5 @@ class KeyConvertingDict(dict):
                 seq = ((f(k), v) for k, v in arg)
             u(seq)
         if kwds:
-            seq = ((f(k), v) for k, v in kwds.iteritems())
+            seq = ((f(k), v) for k, v in iteritems(kwds))
             u(seq)
