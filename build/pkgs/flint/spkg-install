@@ -37,6 +37,9 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# See https://trac.sagemath.org/ticket/24575
+sdh_preload_lib make libgc.so
+
 echo "Building FLINT shared library."
 $MAKE verbose
 if [ $? -ne 0 ]; then
