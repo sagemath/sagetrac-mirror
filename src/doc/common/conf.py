@@ -1,5 +1,5 @@
 import sys, os, sphinx
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR, SAGE_SHARE
 from datetime import date
 from six import iteritems
 
@@ -26,6 +26,12 @@ def sphinx_plot(plot):
     from sage.misc.temporary_file import tmp_filename
     import matplotlib.pyplot as plt
     if os.environ.get('SAGE_SKIP_PLOT_DIRECTIVE', 'no') != 'yes':
+        import matplotlib as mpl
+        mpl.rcParams['image.interpolation'] = 'bilinear'
+        mpl.rcParams['image.resample'] = False
+        mpl.rcParams['figure.figsize'] = [8.0, 6.0]
+        mpl.rcParams['figure.dpi'] = 80
+        mpl.rcParams['savefig.dpi'] = 100
         fn = tmp_filename(ext=".png")
         plot.plot().save(fn)
         img = mpimg.imread(fn)
@@ -219,14 +225,12 @@ if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
     from sage.misc.latex_macros import sage_mathjax_macros
     html_theme_options['mathjax_macros'] = sage_mathjax_macros()
 
-    from pkg_resources import Requirement, working_set
-    sagenb_path = working_set.find(Requirement.parse('sagenb')).location
-    mathjax_relative = os.path.join('sagenb','data','mathjax')
+    mathjax_relative = 'mathjax'
 
     # It would be really nice if sphinx would copy the entire mathjax directory,
     # (so we could have a _static/mathjax directory), rather than the contents of the directory
 
-    mathjax_static = os.path.join(sagenb_path, mathjax_relative)
+    mathjax_static = os.path.join(SAGE_SHARE, mathjax_relative)
     html_static_path.append(mathjax_static)
     exclude_patterns += ['**/'+os.path.join(mathjax_relative, i)
                          for i in ('docs', 'README*', 'test',

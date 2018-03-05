@@ -1335,7 +1335,7 @@ class Func_legendre_Q(BuiltinFunction):
             sage: var('n')
             n
             sage: legendre_Q(n, 0)
-            -1/2*sqrt(pi)*sin(1/2*pi*n)*gamma(1/2*n + 1/2)/gamma(1/2*n + 1)
+            -1/2*sqrt(pi)*gamma(1/2*n + 1/2)*sin(1/2*pi*n)/gamma(1/2*n + 1)
             sage: legendre_Q(-1., 0.)
             +infinity
             sage: legendre_Q(-1/2, 2)
@@ -1354,8 +1354,9 @@ class Func_legendre_Q(BuiltinFunction):
             return SR(unsigned_infinity)
 
         if x == 0:
-            from sage.functions.other import gamma, sqrt
-            from sage.functions.trig import sin
+            from .gamma import gamma
+            from .other import sqrt
+            from .trig import sin
             try:
                 gam = gamma((n+1)/2)/gamma(n/2 + 1)
                 if gam.is_infinity():
@@ -1541,6 +1542,7 @@ class Func_assoc_legendre_P(BuiltinFunction):
         Special values known.
 
         EXAMPLES::
+
             sage: gen_legendre_P(2,3,4)
             0
             sage: gen_legendre_P(2,0,4)==legendre_P(2,4)
@@ -1566,8 +1568,9 @@ class Func_assoc_legendre_P(BuiltinFunction):
         if n == m:
             return factorial(2*m)/2**m/factorial(m) * (x**2-1)**(m/2)
         if x == 0:
-            from sage.functions.other import gamma, sqrt
-            from sage.functions.trig import cos
+            from .gamma import gamma
+            from .other import sqrt
+            from .trig import cos
             if m in QQ and n in QQ:
                 return 2**m/sqrt(SR.pi())*cos((n+m)/2*SR.pi())*(gamma(QQ(n+m+1)/2)/gamma(QQ(n-m)/2+1))
             elif isinstance(n, Expression) or isinstance(m, Expression):
@@ -1684,13 +1687,14 @@ class Func_assoc_legendre_Q(BuiltinFunction):
 
             sage: n, m = var('n m')
             sage: gen_legendre_Q(n,m,0)
-            -sqrt(pi)*2^(m - 1)*sin(1/2*pi*m + 1/2*pi*n)*gamma(1/2*m + 1/2*n + 1/2)/gamma(-1/2*m + 1/2*n + 1)
+            -sqrt(pi)*2^(m - 1)*gamma(1/2*m + 1/2*n + 1/2)*sin(1/2*pi*m + 1/2*pi*n)/gamma(-1/2*m + 1/2*n + 1)
         """
         if m == 0:
             return legendre_Q(n, x)
         if x.is_zero():
-            from sage.functions.other import gamma, sqrt
-            from sage.functions.trig import sin
+            from .gamma import gamma
+            from .other import sqrt
+            from .trig import sin
             if m in QQ and n in QQ:
                 return -(sqrt(SR.pi()))*sin(SR.pi()/2*(m+n))*gamma(QQ(m+n+1)/2)/gamma(QQ(n-m)/2 + 1)*2**(m-1)
             elif isinstance(n, Expression) or isinstance(m, Expression):
@@ -1923,7 +1927,7 @@ class Func_jacobi_P(OrthogonalFunction):
             raise ValueError("n must be greater than -1, got n = {0}".format(n))
         if not n in ZZ:
             return
-        from sage.functions.other import gamma
+        from .gamma import gamma
         s = sum(binomial(n,m) * gamma(a+b+n+m+1) / gamma(a+m+1) * ((x-1)/2)**m for m in range(n+1))
         r = gamma(a+n+1) / factorial(n) / gamma(n+a+b+1) * s
         return r.to_gamma().gamma_normalize().normalize()
