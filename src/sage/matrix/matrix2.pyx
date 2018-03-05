@@ -6670,6 +6670,11 @@ cdef class Matrix(Matrix1):
         self.check_mutability()
 
         if algorithm == 'default':
+            R = self._base_ring
+            if hasattr(R, '_matrix_echelonize'):
+                pivots, left = R._matrix_echelonize(self, **kwds)
+                self.cache('pivots', pivots)
+                return left
             if self._will_use_strassen_echelon():
                 algorithm = 'strassen'
             else:
