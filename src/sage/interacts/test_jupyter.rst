@@ -286,9 +286,8 @@ Test all interacts from the Sage interact library::
       show_euler: Checkbox(value=False, description=u"Euler's Line")
 
     sage: test(interacts.statistics.coin)
+    ...
     Interactive function <function coin at ...> with 2 widgets
       n: IntSlider(value=1000, description=u'Number of Tosses', max=10000, min=2, step=100)
       interval: IntRangeSlider(value=(0, 0), description=u'Plotting range (y)', max=1)
-    doctest:...: UserWarning: Attempting to set identical bottom==top results
-    in singular transformations; automatically expanding.
-    bottom=0.0, top=0.0
+    ...
