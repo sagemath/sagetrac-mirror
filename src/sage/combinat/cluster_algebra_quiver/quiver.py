@@ -45,7 +45,8 @@ from copy import copy
 from sage.rings.all import ZZ, CC, infinity
 from sage.graphs.all import Graph, DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType, QuiverMutationType_Irreducible, QuiverMutationType_Reducible, _edge_list_to_matrix
-from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part, _digraph_mutate, _matrix_to_digraph, _dg_canonical_form, _mutation_class_iter, _digraph_to_dig6, _dig6_to_matrix
+from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part, _matrix_to_digraph, _dg_canonical_form, _digraph_to_dig6, _dig6_to_matrix
+from sage.combinat.cluster_algebra_quiver.mutation_class_new import _matrix_mutation_class_iter, _fast_copy
 from sage.combinat.cluster_algebra_quiver.mutation_type import _connected_mutation_type, _mutation_type_from_data, is_mutation_finite
 
 from sage.misc.decorators import rename_keyword
@@ -1291,7 +1292,6 @@ class ClusterQuiver(SageObject):
         else:
             return Q
 
-
     def first_sink(self):
         r"""
         Return the first vertex of ``self`` that is a sink
@@ -1308,7 +1308,6 @@ class ClusterQuiver(SageObject):
         if sinks:
             return sinks[0]
         return None
-
 
     def sinks(self):
         r"""
@@ -1462,7 +1461,7 @@ class ClusterQuiver(SageObject):
 
         n = self._n
         m = self._m
-        dg = self._digraph
+        M = _fast_copy(self._M, n, m)
         V = nlist = self._nlist
         mlist = self._mlist
 
@@ -1494,14 +1493,13 @@ class ClusterQuiver(SageObject):
                 raise ValueError('The quiver cannot be mutated at the vertex %s'%v)
 
         for v in seq:
-            dg = _digraph_mutate( dg, v, n, m )
-        M = _edge_list_to_matrix(dg.edge_iterator(), nlist, mlist)
+            M.mutate(v)
         if inplace:
             self._M = M
             self._M.set_immutable()
-            self._digraph = dg
+            self._digraph = _matrix_to_digraph(M)
         else:
-            Q = ClusterQuiver(dg, frozen=self._mlist)
+            Q = ClusterQuiver(M, frozen=self._mlist)
             Q._mutation_type = self._mutation_type
             return Q
 
@@ -1638,7 +1636,6 @@ class ClusterQuiver(SageObject):
             * "quiver"
             * "matrix"
             * "digraph"
-            * "dig6"
             * "path"
 
         - ``up_to_equivalence`` -- (default: True) if True, only one quiver for each graph-isomorphism class is recorded.
@@ -1731,33 +1728,32 @@ class ClusterQuiver(SageObject):
              Quiver on 3 vertices with 1 frozen vertex]
         """
         if data_type == 'path':
-            return_paths = False
-        if data_type == "dig6":
-            return_dig6 = True
-        else:
-            return_dig6 = False
-        dg = DiGraph(ClusterQuiver(self._M)._digraph)
-        MC_iter = _mutation_class_iter(dg, self._n, self._m, depth=depth,
-                                       return_dig6=return_dig6,
-                                       show_depth=show_depth,
-                                       up_to_equivalence=up_to_equivalence,
-                                       sink_source=sink_source)
+            return_paths = True
+        MC_iter = _matrix_mutation_class_iter(self._M, 
+                                       depth            = depth,
+                                       show_depth       = show_depth,
+                                       return_paths     = return_paths,
+                                       up_to_equivalence= up_to_equivalence,
+                                       sink_source      = sink_source)
         for data in MC_iter:
+            if return_paths:
+                M, path = data
+            else:
+                M = data
+
             if data_type == "quiver":
-                next_element = ClusterQuiver( data[0], frozen=list(range(self._n,self._n+self._m)) )
+                next_element = ClusterQuiver(M)
                 next_element._mutation_type = self._mutation_type
             elif data_type == "matrix":
-                next_element = ClusterQuiver(data[0], frozen=list(range(self._n,self._n+self._m)))._M
+                next_element = M
             elif data_type == "digraph":
-                next_element = data[0]
-            elif data_type == "dig6":
-                next_element = data[0]
+                next_element = _matrix_to_digraph(M)
             elif data_type == "path":
-                next_element = data[1]
+                next_element = path
             else:
                 raise ValueError("the parameter for data_type was "
                                  "not recognized")
-            if return_paths:
+            if return_paths and not data_type == 'path':
                 yield (next_element, data[1])
             else:
                 yield next_element
@@ -1780,7 +1776,6 @@ class ClusterQuiver(SageObject):
           the following:
 
           * ``"quiver"`` -- the quiver is returned
-          * ``"dig6"`` -- the dig6-data is returned
           * ``"path"`` -- shortest paths of mutation sequences from
             ``self`` are returned
 
