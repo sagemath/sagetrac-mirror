@@ -216,7 +216,7 @@ class AbelianGroupAutomorphismGroup_gap(UniqueRepresentation,
 
     Do not construct this directly.
 
-     INPUT:
+    INPUT:
 
     - ``domain`` -- :class:`~sage.groups.abelian_gps.abelian_group_gap.AbelianGroup_gap`
     - ``libgap_parent`` -- the libgap element that is the parent in GAP
