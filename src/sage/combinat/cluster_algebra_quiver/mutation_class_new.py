@@ -11,8 +11,7 @@ AUTHORS:
 """
 
 # ****************************************************************************
-#       Copyright (C) 2018 Gregg Musiker <musiker@math.mit.edu>
-#                          Christian Stump <christian.stump@gmail.com>
+#       Copyright (C) 2018 Christian Stump <christian.stump@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
