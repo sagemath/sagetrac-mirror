@@ -132,7 +132,8 @@ def _get_parity_string(y):
 def _is_horizontal(n, insertion):
     """
     TESTS:
-
+        sage: from sage.combinat.rsk import *
+        sage: from sage.combinat.rsk import _is_horizontal
         sage: _is_horizontal(even(1), 'even')
         True
         sage: _is_horizontal(even(1), 'odd')
@@ -242,6 +243,9 @@ def _bump_col(p, q, col_index, (i,x), insertion):
 def bump(p, q, (y,x), insertion='RSK'):
     """
     TESTS:
+
+        sage: from sage.combinat.rsk import *
+        sage: from sage.combinat.rsk import bump
 
     Super RSK::
 
@@ -444,6 +448,9 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
 
     EXAMPLES:
 
+        sage: from sage.combinat.rsk import *
+        sage: from sage.combinat.rsk import RSK
+
     If we only give one line, we treat the top line as being
     `(1, 2, \ldots, n)`::
 
@@ -571,7 +578,7 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
         sage: RSK([odd(1), even(1), odd(2), even(2), odd(3), odd(3), odd(3), even(3)], [even(3), odd(2), even(3), even(2), odd(3), odd(3), odd(1), even(2)], insertion='sRSK')
         [[[odd(1), even(2), even(2), odd(3)], [odd(2), even(3), even(3)], [odd(3)]], [[odd(1), odd(2), odd(3), even(3)], [even(1), even(2), odd(3)], [odd(3)]]]
     """
-    from sage.combinat.tableau import SemistandardTableau, StandardTableau
+    from sage.combinat.tableau import SemistandardTableau, StandardTableau, Tableau
 
     # Preprocessing
     # TEMP:
