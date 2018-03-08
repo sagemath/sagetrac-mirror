@@ -14,6 +14,7 @@ AUTHORS:
 from __future__ import absolute_import
 pushover_defaults = {"token": "Eql67F14ohOZJ0AtEBJJU7FiLAk8wK"}
 
+
 def pushover(message, **kwds):
     """
     Send a push notification with ``message`` to ``user`` using https://pushover.net/.
@@ -53,7 +54,7 @@ def pushover(message, **kwds):
 
       - ``token`` - your application's API token (default: Sage's default App token)
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: import sage.misc.messaging
         sage: sage.misc.messaging.pushover("Hi, how are you?", user="XXX") # not tested
@@ -68,10 +69,9 @@ def pushover(message, **kwds):
         You may want to populate ``sage.misc.messaging.pushover_defaults`` with default values such
         as the default user in ``$HOME/.sage/init.sage``.
     """
-    import httplib
-
     # import compatible with py2 and py3
-    from .six.moves.urllib.parse import urlencode
+    from six.moves import http_client as httplib
+    from six.moves.urllib.parse import urlencode
 
     request = {"message": message}
     request.update(pushover_defaults)
@@ -80,5 +80,5 @@ def pushover(message, **kwds):
     conn = httplib.HTTPSConnection("api.pushover.net:443")
     conn.request("POST", "/1/messages.json",
                  urlencode(request),
-                 { "Content-type": "application/x-www-form-urlencoded" })
+                 {"Content-type": "application/x-www-form-urlencoded"})
     return conn.getresponse().status == 200
