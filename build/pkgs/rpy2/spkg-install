@@ -10,4 +10,7 @@ cd src
 
 export RHOMES="$SAGE_LOCAL"/lib/R
 
+# See https://trac.sagemath.org/ticket/24575
+sdh_preload_lib make libgc.so
+
 sdh_pip_install .
