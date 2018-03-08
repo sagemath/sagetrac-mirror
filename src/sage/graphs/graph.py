@@ -431,7 +431,6 @@ from sage.graphs.digraph import DiGraph
 from sage.graphs.independent_sets import IndependentSets
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.rest_index_of_methods import doc_index, gen_thematic_rest_table_index
-from sage.misc.decorators import rename_keyword
 
 class Graph(GenericGraph):
     r"""
@@ -1087,13 +1086,14 @@ class Graph(GenericGraph):
             (not data[1] or callable(getattr(data[1][0],"__iter__",None)))):
             format = "vertices_and_edges"
 
-        if format is None and isinstance(data,dict):
-            keys = data.keys()
-            if len(keys) == 0: format = 'dict_of_dicts'
+        if format is None and isinstance(data, dict):
+            if not data:
+                format = 'dict_of_dicts'
             else:
-                if isinstance(data[keys[0]], list):
+                val = next(iter(data.values()))
+                if isinstance(val, list):
                     format = 'dict_of_lists'
-                elif isinstance(data[keys[0]], dict):
+                elif isinstance(val, dict):
                     format = 'dict_of_dicts'
         if format is None and hasattr(data, 'adj'):
             import networkx
@@ -1379,9 +1379,7 @@ class Graph(GenericGraph):
             edges.sort(key=lambda e: (e[1],e[0])) # reverse lexicographic order
 
             # encode bit vector
-            from math import ceil
-            from sage.misc.functional import log
-            k = int(ceil(log(n,2)))
+            k = int((ZZ(n) - 1).nbits())
             v = 0
             i = 0
             m = 0
@@ -1415,28 +1413,6 @@ class Graph(GenericGraph):
             return ':' + generic_graph_pyx.small_integer_to_graph6(n) + six_bits
 
     ### Attributes
-
-    @combinatorial_map(name="partition of connected components")
-    @doc_index("Deprecated")
-    def to_partition(self):
-        """
-        Return the partition of connected components of ``self``.
-
-        EXAMPLES::
-
-            sage: for x in graphs(3):    print(x.to_partition())
-            doctest:...: DeprecationWarning: Please use G.connected_components_sizes() instead
-            See http://trac.sagemath.org/17449 for details.
-            [1, 1, 1]
-            [2, 1]
-            [3]
-            [3]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(17449, "Please use G.connected_components_sizes() instead")
-
-        from sage.combinat.partition import Partition
-        return Partition(sorted([len(y) for y in self.connected_components()], reverse=True))
 
     @doc_index("Basic methods")
     def is_directed(self):
@@ -1802,6 +1778,63 @@ class Graph(GenericGraph):
                     return (False, cycle)
 
     @doc_index("Graph properties")
+    def is_cactus(self):
+        """
+        Check whether the graph is cactus graph.
+
+        A graph is called *cactus graph* if it is connected and every pair of
+        simple cycles have at most one common vertex.
+
+        There are other definitions, see :wikipedia:`Cactus_graph`.
+
+        EXAMPLES::
+
+            sage: g = Graph({1: [2], 2: [3, 4], 3: [4, 5, 6, 7], 8: [3, 5], 9: [6, 7]})
+            sage: g.is_cactus()
+            True
+
+            sage: c6 = graphs.CycleGraph(6)
+            sage: naphthalene = c6 + c6
+            sage: naphthalene.is_cactus()  # Not connected
+            False
+            sage: naphthalene.merge_vertices([0, 6])
+            sage: naphthalene.is_cactus()
+            True
+            sage: naphthalene.merge_vertices([1, 7])
+            sage: naphthalene.is_cactus()
+            False
+
+        TESTS::
+
+            sage: all(graphs.PathGraph(i).is_cactus() for i in range(5))
+            True
+
+            sage: Graph('Fli@?').is_cactus()
+            False
+
+        Test a graph that is not outerplanar, see :trac:`24480`::
+
+            sage: graphs.Balaban10Cage().is_cactus()
+            False
+        """
+        self._scream_if_not_simple()
+
+        # Special cases
+        if self.order() < 4:
+            return True
+
+        # Every cactus graph is outerplanar
+        if not self.is_circular_planar():
+            return False
+
+        if not self.is_connected():
+            return False
+
+        # the number of faces is 1 plus the number of blocks of order > 2
+        B = self.blocks_and_cut_vertices()[0]
+        return len(self.faces()) == sum(1 for b in B if len(b) > 2) + 1
+
+    @doc_index("Graph properties")
     def is_biconnected(self):
         """
         Test if the graph is biconnected.
@@ -1884,6 +1917,50 @@ class Graph(GenericGraph):
 
         B,C = self.blocks_and_cut_vertices()
         return all(self.is_clique(vertices=block) for block in B)
+
+    @doc_index("Graph properties")
+    def is_cograph(self):
+        """
+        Check whether the graph is cograph.
+
+        A cograph is defined recursively: the single-vertex graph is
+        cograph, complement of cograph is cograph, and disjoint union
+        of two cographs is cograph. There are many other
+        characterizations, see :wikipedia:`Cograph`.
+
+        EXAMPLES::
+
+            sage: graphs.HouseXGraph().is_cograph()
+            True
+            sage: graphs.HouseGraph().is_cograph()
+            False
+
+        .. TODO::
+
+            Implement faster recognition algorithm, as for instance
+            the linear time recognition algorithm using LexBFS proposed
+            in [Bre2008]_.
+
+        TESTS::
+
+            sage: [graphs.PathGraph(i).is_cograph() for i in range(6)]
+            [True, True, True, True, False, False]
+            sage: graphs.CycleGraph(5).is_cograph()  # Self-complemented
+            False
+        """
+        # A cograph has no 4-vertex path as an induced subgraph.
+        # We will first try to "decompose" graph by complements and
+        # split to connected components, and use fairly slow
+        # subgraph search if that fails.
+        self._scream_if_not_simple()
+        if self.order() < 4:
+            return True
+        if self.density()*2 > 1:
+            return self.complement().is_cograph()
+        if not self.is_connected():
+            return all(part.is_cograph() for part in self.connected_components_subgraphs())
+        P4 = Graph({0: [1], 1: [2], 2: [3]})
+        return self.subgraph_search(P4, induced=True) is None
 
     @doc_index("Graph properties")
     def is_apex(self):
@@ -2876,7 +2953,7 @@ class Graph(GenericGraph):
                 v = next(T[0].vertex_iterator())
                 for t in T[1:]:
                     tree.add_edge(next(t.vertex_iterator()),v)
-                return tree 
+                return tree
 
         # Forcing k to be defined
         if k is None:
@@ -3302,7 +3379,7 @@ class Graph(GenericGraph):
         """
         Returns true if self is semi-symmetric.
 
-        A graph is semi-symmetric if it is regular, edge-transitve but not
+        A graph is semi-symmetric if it is regular, edge-transitive but not
         vertex-transitive.
 
         See :wikipedia:`the wikipedia article on semi-symmetric graphs
@@ -3879,6 +3956,13 @@ class Graph(GenericGraph):
             sage: G = graphs.PetersenGraph()
             sage: next(G.orientations())
             An orientation of Petersen graph: Digraph on 10 vertices
+
+        An orientation must have the same ground set of vertices as the original
+        graph (:trac:`24366`)::
+
+            sage: G = Graph(1)
+            sage: next(G.orientations())
+            Digraph on 1 vertex
         """
         if sparse is not None:
             if data_structure is not None:
@@ -3899,7 +3983,9 @@ class Graph(GenericGraph):
             name = 'An orientation of ' + name
 
         if self.num_edges() == 0:
-            D = DiGraph(name=name,
+            D = DiGraph(data=[self.vertices(), []],
+                        format='vertices_and_edges',
+                        name=name,
                         pos=self._pos,
                         multiedges=self.allows_multiple_edges(),
                         loops=self.allows_loops(),
@@ -4045,7 +4131,7 @@ class Graph(GenericGraph):
         """
         if self.order() == 0 or self.size() == 0:
             return 0
-        
+
         from sage.graphs.graph_coloring import edge_coloring
         return edge_coloring(self, value_only=True, solver=solver, verbose=verbose)
 
@@ -4704,9 +4790,9 @@ class Graph(GenericGraph):
             return False
 
     @doc_index("Leftovers")
-    def fractional_chromatic_index(self, solver = None, verbose_constraints = 0, verbose = 0):
+    def fractional_chromatic_index(self, solver="PPL", verbose_constraints=False, verbose=0):
         r"""
-        Computes the fractional chromatic index of ``self``
+        Return the fractional chromatic index of the graph.
 
         The fractional chromatic index is a relaxed version of edge-coloring. An
         edge coloring of a graph being actually a covering of its edges into the
@@ -4735,7 +4821,7 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+        - ``solver`` -- (default: ``"PPL"``) Specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
           more information on LP solvers and which default solver is used, see
           the method
@@ -4745,13 +4831,17 @@ class Graph(GenericGraph):
 
           .. NOTE::
 
-              If you want exact results, i.e. a rational number, use
-              ``solver="PPL"``. This may be slower, though.
+              The default solver used here is ``"PPL"`` which provides exact
+              results, i.e. a rational number, although this may be slower that
+              using other solvers. Be aware that this method may loop endlessly
+              when using some non exact solvers as reported in :trac:`23658` and
+              :trac:`23798`.
 
-        - ``verbose_constraints`` -- whether to display which constraints are
-          being generated.
+        - ``verbose_constraints`` -- boolean (default: ``False``) whether to
+          display which constraints are being generated.
 
-        - ``verbose`` -- level of verbosity required from the LP solver
+        - ``verbose`` -- integer (default: `0`) level of verbosity required from
+          the LP solver
 
         EXAMPLES:
 
@@ -4759,16 +4849,11 @@ class Graph(GenericGraph):
 
             sage: g = graphs.CycleGraph(5)
             sage: g.fractional_chromatic_index()
-            2.5
-
-        With PPL::
-
-            sage: g.fractional_chromatic_index(solver="PPL")
             5/2
 
         TESTS:
 
-        Ticket :trac:`23658` is fixed::
+        Issue reported in :trac:`23658` and :trac:`23798` with non exact solvers::
 
             sage: g = graphs.PetersenGraph()
             sage: g.fractional_chromatic_index(solver='GLPK')  # known bug (#23798)
@@ -4799,21 +4884,21 @@ class Graph(GenericGraph):
 
         #
         # Initialize LP for fractional chromatic number
-        p = MixedIntegerLinearProgram(solver=solver, constraint_generation = True)
+        p = MixedIntegerLinearProgram(solver=solver, constraint_generation=True)
 
         # One variable per edge
         r = p.new_variable(nonnegative=True)
         R = lambda x,y : r[x,y] if x<y else r[y,x]
 
         # We want to maximize the sum of weights on the edges
-        p.set_objective( p.sum( R(u,v) for u,v in self.edges(labels = False)))
+        p.set_objective( p.sum( R(u,v) for u,v in self.edge_iterator(labels=False)))
 
         # Each edge being by itself a matching, its weight can not be more than
         # 1
-        for u,v in self.edges(labels = False):
+        for u,v in self.edge_iterator(labels=False):
             p.add_constraint( R(u,v), max = 1)
 
-        obj = p.solve(log = verbose)
+        obj = p.solve(log=verbose)
 
         while True:
 
@@ -4821,17 +4906,17 @@ class Graph(GenericGraph):
             M.set_objective( M.sum( p.get_values(R(u,v)) * B(u,v) for u,v in self.edge_iterator(labels=0) ) )
 
             # If the maximum matching has weight at most 1, we are done !
-            if M.solve(log = verbose) <= 1:
+            if M.solve(log=verbose) <= 1:
                 break
 
             # Otherwise, we add a new constraint
             matching = [(u,v) for u,v in self.edge_iterator(labels=0) if M.get_values(B(u,v)) == 1]
-            p.add_constraint( p.sum( R(u,v) for u,v in matching), max = 1)
+            p.add_constraint( p.sum( R(u,v) for u,v in matching), max=1)
             if verbose_constraints:
                 print("Adding a constraint on matching : {}".format(matching))
 
             # And solve again
-            obj = p.solve(log = verbose)
+            obj = p.solve(log=verbose)
 
         # Accomplished !
         return obj
@@ -5354,7 +5439,7 @@ class Graph(GenericGraph):
         Immutable graphs yield immutable graphs::
 
             sage: Graph([[1, 2]], immutable=True).to_directed()._backend
-            <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            <sage.graphs.base.static_sparse_backend.StaticSparseBackend object at ...>
 
         :trac:`17005`::
 
@@ -5422,13 +5507,11 @@ class Graph(GenericGraph):
         return self.copy()
 
     @doc_index("Basic methods")
-    def join(self, other, verbose_relabel=None, labels="pairs", immutable=None):
+    def join(self, other, labels="pairs", immutable=None):
         """
         Returns the join of ``self`` and ``other``.
 
         INPUT:
-
-        - ``verbose_relabel`` - deprecated.
 
         - ``labels`` - (defaults to 'pairs') If set to 'pairs', each
           element ``v`` in the first graph will be named ``(0,v)`` and
@@ -5476,13 +5559,6 @@ class Graph(GenericGraph):
             sage: J.edges()
             [(0, 3, None), (0, 4, None), (1, 3, None), (1, 4, None), (2, 3, None), (2, 4, None)]
         """
-        if verbose_relabel is not None:
-            deprecation(17053, "Instead of verbose_relabel=True/False use labels='pairs'/'integers'.")
-            if verbose_relabel is True:
-                labels="pairs"
-            if verbose_relabel is False:
-                labels="integers"
-
         G = self.disjoint_union(other, labels=labels, immutable=False)
         if labels=="integers":
             G.add_edges((u,v) for u in range(self.order())
@@ -6351,8 +6427,8 @@ class Graph(GenericGraph):
 
         A minimum vertex cover of a graph is a set `S` of vertices such that
         each edge is incident to at least one element of `S`, and such that `S`
-        is of minimum cardinality. For more information, see the
-        :wikipedia:`Wikipedia article on vertex cover <Vertex_cover>`.
+        is of minimum cardinality. For more information, see
+        :wikipedia:`Vertex_cover`.
 
         Equivalently, a vertex cover is defined as the complement of an
         independent set.
@@ -6368,7 +6444,7 @@ class Graph(GenericGraph):
         INPUT:
 
         - ``algorithm`` -- string (default: ``"Cliquer"``). Indicating
-          which algorithm to use. It can be one of those two values.
+          which algorithm to use. It can be one of those values.
 
           - ``"Cliquer"`` will compute a minimum vertex cover
             using the Cliquer package.
@@ -6469,14 +6545,15 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().vertex_cover(algorithm = "guess")
             Traceback (most recent call last):
             ...
-            ValueError: The algorithm must be "Cliquer" "MILP" or "mcqd".
+            ValueError: the algorithm must be "Cliquer", "MILP" or "mcqd"
 
-        REFERENCE:
+        Ticket :trac:`24287` is fixed::
 
-        .. [ACFLSS04] \F. N. Abu-Khzam, R. L. Collins, M. R. Fellows, M. A.
-          Langston, W. H. Suters, and C. T. Symons: Kernelization Algorithm for
-          the Vertex Cover Problem: Theory and Experiments. *SIAM ALENEX/ANALCO*
-          2004: 62-69.
+            sage: G = Graph([(0,1)]*5 + [(1,2)]*2, multiedges=True)
+            sage: G.vertex_cover(reduction_rules=True, algorithm='MILP')
+            [1]
+            sage: G.vertex_cover(reduction_rules=False)
+            [1]
         """
         self._scream_if_not_simple(allow_multiple_edges=True)
         g = self
@@ -6492,11 +6569,11 @@ class Graph(GenericGraph):
             # We apply simple reduction rules allowing to identify vertices that
             # belongs to an optimal vertex cover
 
-            # We first create manually a copy of the graph to prevent creating
-            # multi-edges when merging vertices, if edges have labels (e.g., weights).
+            # We first take a copy of the graph without multiple edges, if any.
             g = copy(self)
+            g.allow_multiple_edges(False)
 
-            degree_at_most_two = set([u for u,du in g.degree(labels = True).items() if du <= 2])
+            degree_at_most_two = {u for u in g if g.degree(u) <= 2}
 
             while degree_at_most_two:
 
@@ -6513,7 +6590,7 @@ class Graph(GenericGraph):
                 elif du == 1:
                     # RULE 2: If a vertex u has degree 1, we select its neighbor
                     # v and remove both u and v from g.
-                    v = g.neighbors(u)[0]
+                    v = next(g.neighbor_iterator(u))
                     ppset.append(v)
                     g.delete_vertex(u)
 
@@ -6529,14 +6606,14 @@ class Graph(GenericGraph):
                 elif du == 2:
                     v,w  = g.neighbors(u)
 
-                    if g.has_edge(v,w):
+                    if g.has_edge(v, w):
                         # RULE 3: If the neighbors v and w of a degree 2 vertex
                         # u are incident, then we select both v and w and remove
                         # u, v, and w from g.
                         ppset.append(v)
                         ppset.append(w)
                         g.delete_vertex(u)
-                        neigh = set(g.neighbors(v) + g.neighbors(w)).difference(set([v,w]))
+                        neigh = set(g.neighbors(v) + g.neighbors(w)).difference([v, w])
                         g.delete_vertex(v)
                         g.delete_vertex(w)
 
@@ -6547,16 +6624,16 @@ class Graph(GenericGraph):
                     else:
                         # RULE 4, folded vertices: If the neighbors v and w of a
                         # degree 2 vertex u are not incident, then we contract
-                        # edges (u, v), (u,w). Then, if the solution contains u,
+                        # edges (u, v), (u, w). Then, if the solution contains u,
                         # we replace it with v and w. Otherwise, we let u in the
                         # solution.
-                        neigh = set(g.neighbors(v) + g.neighbors(w)).difference(set([u,v,w]))
+                        neigh = set(g.neighbors(v) + g.neighbors(w)).difference([u, v, w])
                         g.delete_vertex(v)
                         g.delete_vertex(w)
                         for z in neigh:
                             g.add_edge(u,z)
 
-                        folded_vertices += [(u,v,w)]
+                        folded_vertices.append((u, v, w))
 
                         if g.degree(u) <= 2:
                             degree_at_most_two.add(u)
@@ -6579,11 +6656,15 @@ class Graph(GenericGraph):
             cover_g = []
 
         elif algorithm == "Cliquer" or algorithm == "mcqd":
+            if g.has_multiple_edges() and not reduction_rules:
+                g = copy(g)
+                g.allow_multiple_edges(False)
+
             independent = g.complement().clique_maximum(algorithm=algorithm)
             if value_only:
                 size_cover_g = g.order() - len(independent)
             else:
-                cover_g = [u for u in g.vertices() if not u in independent]
+                cover_g = [u for u in g if not u in independent]
 
         elif algorithm == "MILP":
 
@@ -6592,7 +6673,7 @@ class Graph(GenericGraph):
             b = p.new_variable(binary=True)
 
             # minimizes the number of vertices in the set
-            p.set_objective(p.sum(b[v] for v in g.vertices()))
+            p.set_objective(p.sum(b[v] for v in g))
 
             # an edge contains at least one vertex of the minimum vertex cover
             for (u,v) in g.edges(labels=None):
@@ -6603,9 +6684,9 @@ class Graph(GenericGraph):
             else:
                 p.solve(log=verbosity)
                 b = p.get_values(b)
-                cover_g = [v for v in g.vertices() if b[v] == 1]
+                cover_g = [v for v in g if b[v] == 1]
         else:
-            raise ValueError("The algorithm must be \"Cliquer\" \"MILP\" or \"mcqd\".")
+            raise ValueError('the algorithm must be "Cliquer", "MILP" or "mcqd"')
 
         #########################
         # Returning the results #
@@ -6622,9 +6703,10 @@ class Graph(GenericGraph):
             for u,v,w in folded_vertices:
                 if u in cover_g:
                     cover_g.remove(u)
-                    cover_g += [v,w]
+                    cover_g.append(v)
+                    cover_g.append(w)
                 else:
-                    cover_g += [u]
+                    cover_g.append(u)
             cover_g.sort()
             return cover_g
 
@@ -6978,12 +7060,6 @@ class Graph(GenericGraph):
         r"""
         Returns the modular decomposition of the current graph.
 
-        .. NOTE::
-
-            In order to use this method you must install the
-            ``modular_decomposition`` optional package. See
-            :mod:`sage.misc.package`.
-
         Crash course on modular decomposition:
 
         A module `M` of a graph `G` is a proper subset of its vertices
@@ -7036,9 +7112,9 @@ class Graph(GenericGraph):
 
         * The type of the current module :
 
-          * ``"Parallel"``
-          * ``"Prime"``
-          * ``"Serie"``
+          * ``"PARALLEL"``
+          * ``"PRIME"``
+          * ``"SERIES"``
 
         * The list of submodules (as list of pairs ``(type, list)``,
           recursively...) or the vertex's name if the module is a
@@ -7048,13 +7124,13 @@ class Graph(GenericGraph):
 
         The Bull Graph is prime::
 
-            sage: graphs.BullGraph().modular_decomposition() # optional -- modular_decomposition
-            ('Prime', [3, 4, 0, 1, 2])
+            sage: graphs.BullGraph().modular_decomposition()
+            (PRIME, [1, 2, 0, 3, 4])
 
         The Petersen Graph too::
 
-            sage: graphs.PetersenGraph().modular_decomposition() # optional -- modular_decomposition
-            ('Prime', [2, 6, 3, 9, 7, 8, 0, 1, 5, 4])
+            sage: graphs.PetersenGraph().modular_decomposition()
+            (PRIME, [1, 4, 5, 0, 3, 7, 2, 8, 9, 6])
 
         This a clique on 5 vertices with 2 pendant edges, though, has a more
         interesting decomposition ::
@@ -7062,17 +7138,14 @@ class Graph(GenericGraph):
             sage: g = graphs.CompleteGraph(5)
             sage: g.add_edge(0,5)
             sage: g.add_edge(0,6)
-            sage: g.modular_decomposition() # optional -- modular_decomposition
-            ('Serie', [0, ('Parallel', [5, ('Serie', [1, 4, 3, 2]), 6])])
+            sage: g.modular_decomposition()
+            (SERIES, [(PARALLEL, [(SERIES, [4, 3, 2, 1]), 5, 6]), 0])
 
         ALGORITHM:
 
-        This function uses a C implementation of a 2-step algorithm
-        implemented by Fabien de Montgolfier [FMDec]_ :
-
-            * Computation of a factorizing permutation [HabibViennot1999]_.
-
-            * Computation of the tree itself [CapHabMont02]_.
+        This function uses python implementation of algorithm published by
+        Marc Tedder, Derek Corneil, Michel Habib and Christophe Paul
+        [TedCorHabPaul08]
 
         .. SEEALSO::
 
@@ -7080,49 +7153,256 @@ class Graph(GenericGraph):
 
         REFERENCE:
 
-        .. [FMDec] Fabien de Montgolfier
-          http://www.liafa.jussieu.fr/~fm/algos/index.html
-
-        .. [HabibViennot1999] Michel Habib, Christiphe Paul, Laurent Viennot
-          Partition refinement techniques: An interesting algorithmic tool kit
-          International Journal of Foundations of Computer Science
-          vol. 10 n2 pp.147--170, 1999
-
-        .. [CapHabMont02] \C. Capelle, M. Habib et F. de Montgolfier
-          Graph decomposition and Factorising Permutations
-          Discrete Mathematics and Theoretical Computer Sciences, vol 5 no. 1 , 2002.
-
         .. [HabPau10] Michel Habib and Christophe Paul
           A survey of the algorithmic aspects of modular decomposition
           Computer Science Review
           vol 4, number 1, pages 41--59, 2010
           http://www.lirmm.fr/~paul/md-survey.pdf
 
+        .. [TedCorHabPaul08] Marc Tedder, Derek Corneil, Michel Habib and
+          Christophe Paul
+          https://arxiv.org/pdf/0710.3901.pdf
+
         TESTS::
 
-            sage: graphs.EmptyGraph().modular_decomposition() # optional -- modular_decomposition
+            sage: graphs.EmptyGraph().modular_decomposition()
             ()
         """
-        try:
-            from sage.graphs.modular_decomposition import modular_decomposition
-        except ImportError:
-            raise RuntimeError("In order to use this method you must "
-                               "install the modular_decomposition package")
+        from sage.graphs.modular_decomposition import modular_decomposition, NodeType
 
         self._scream_if_not_simple()
-        from sage.misc.stopgap import stopgap
-        stopgap("Graph.modular_decomposition is known to return wrong results",13744)
 
         if self.order() == 0:
             return tuple()
-        
+
+        if self.order() == 1:
+            return (NodeType.PRIME, self.vertices())
+
         D = modular_decomposition(self)
 
         id_label = dict(enumerate(self.vertices()))
 
-        relabel = lambda x : (x[0], [relabel(_) for _ in x[1]]) if isinstance(x,tuple) else id_label[x]
+        relabel = lambda x : (x.node_type, [relabel(_) for _ in x.children]) if x.node_type != NodeType.NORMAL else id_label[x.children[0]]
 
         return relabel(D)
+
+    @doc_index("Graph properties")
+    def is_polyhedral(self):
+        """
+        Test whether the graph is the graph of the polyhedron.
+
+        By a theorem of Steinitz (Satz 43, p. 77 of [St1922]_),
+        graphs of three-dimensional polyhedra are exactly
+        the simple 3-vertex-connected planar graphs.
+
+        EXAMPLES::
+
+            sage: C = graphs.CubeGraph(3)
+            sage: C.is_polyhedral()
+            True
+            sage: K33=graphs.CompleteBipartiteGraph(3, 3)
+            sage: K33.is_polyhedral()
+            False
+            sage: graphs.CycleGraph(17).is_polyhedral()
+            False
+            sage: [i for i in range(9) if graphs.CompleteGraph(i).is_polyhedral()]
+            [4]
+
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.generic_graph.GenericGraph.vertex_connectivity`
+            * :meth:`~sage.graphs.generic_graph.GenericGraph.is_planar`
+            * :meth:`is_circumscribable`
+            * :meth:`is_inscribable`
+            * :wikipedia:`Polyhedral_graph`
+
+        TESTS::
+
+            sage: G = Graph([[1, 2, 3, 4], [[1, 2], [1,1]]], loops=True)
+            sage: G.is_polyhedral()
+            False
+
+            sage: G = Graph([[1, 2, 3], [[1, 2], [3, 1], [1, 2], [2, 3]]], multiedges=True)
+            sage: G.is_polyhedral()
+            False
+
+        .. TODO::
+
+            Implement a faster 3-vertex-connectivity test: :trac:`24635`.
+        """
+
+        return (not self.has_loops()
+                and not self.has_multiple_edges()
+                and (self.vertex_connectivity() >= 3)
+                and self.is_planar())
+
+    @doc_index("Graph properties")
+    def is_circumscribable(self):
+        """
+        Test whether the graph is the graph of a circumscribed polyhedron.
+
+        A polyhedron is circumscribed if all of its facets are tangent to a
+        sphere. By a theorem of Rivin ([HRS1993]_), this can be checked by
+        solving a linear program that assigns weights between 0 and 1/2 on each
+        edge of the polyhedron, so that the weights on any face add to exactly
+        one and the weights on any non-facial cycle add to more than one.
+        If and only if this can be done, the polyhedron can be circumscribed.
+
+        EXAMPLES::
+
+            sage: C = graphs.CubeGraph(3)
+            sage: C.is_circumscribable()
+            True
+
+            sage: O = graphs.OctahedralGraph()
+            sage: O.is_circumscribable()
+            True
+
+            sage: TT = polytopes.truncated_tetrahedron().graph()
+            sage: TT.is_circumscribable()
+            False
+
+
+        Stellating in a face of the octahedral graph is not circumscribable::
+
+            sage: f = set(flatten(choice(O.faces())))
+            sage: O.add_edges([[6, i] for i in f])
+            sage: O.is_circumscribable()
+            False
+
+
+        .. SEEALSO::
+
+            * :meth:`is_polyhedral`
+            * :meth:`is_inscribable`
+
+        TESTS::
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: G.is_circumscribable()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this method only works for polyhedral graphs
+
+        .. TODO::
+
+            Allow the use of other, inexact but faster solvers.
+        """
+        if not self.is_polyhedral():
+            raise NotImplementedError('this method only works for polyhedral graphs')
+
+        from sage.numerical.mip import MixedIntegerLinearProgram
+        # For a description of the algorithm see paper by Rivin and:
+        # https://www.ics.uci.edu/~eppstein/junkyard/uninscribable/
+        # In order to simulate strict inequalities in the following LP, we
+        # introduce a variable c[0] and maximize it. If it is positive, then
+        # the LP has a solution, such that all inequalities are strict
+        # after removing the auxiliary variable c[0].
+        M = MixedIntegerLinearProgram(maximization=True, solver="ppl")
+        e = M.new_variable(nonnegative=True)
+        c = M.new_variable()
+        M.set_min(c[0], -1)
+        M.set_max(c[0], 1)
+        M.set_objective(c[0])
+
+        for u, v in self.edge_iterator(labels=0):
+            if u > v:
+                u, v = v, u
+            M.set_max(e[u, v], ZZ(1)/ZZ(2))
+            M.add_constraint(e[u, v] - c[0], min=0)
+            M.add_constraint(e[u, v] + c[0], max=ZZ(1)/ZZ(2))
+
+        # The faces are completely determined by the graph structure:
+        # for polyhedral graph, there is only one way to choose the faces.
+        # We add an equality constraint for each face.
+        efaces = self.faces()
+        vfaces = set(frozenset([_[0] for _ in face]) for face in efaces)
+        for edges in efaces:
+            M.add_constraint(M.sum(e[tuple(sorted(_))] for _ in edges) == 1)
+
+        # In order to generate all simple cycles of G, which are not faces,
+        # we use the "all_simple_cycles" method of directed graphs, generating
+        # each cycle twice (in both directions). The set below make sure only
+        # one direction gives rise to an (in)equality
+        D = self.to_directed()
+        inequality_constraints = set()
+        for cycle in D.all_simple_cycles():
+            if len(cycle) > 3:
+                scycle = frozenset(cycle)
+                if scycle not in vfaces:
+                    edges = (tuple(sorted([cycle[i], cycle[i+1]])) for i in range(len(cycle)-1))
+                    inequality_constraints.add(frozenset(edges))
+
+        for ieq in inequality_constraints:
+            M.add_constraint(M.sum(e[_] for _ in ieq) - c[0] >= 1)
+
+        from sage.numerical.mip import MIPSolverException
+        try:
+            solution = M.solve()
+        except MIPSolverException as e:
+            if str(e) == "PPL : There is no feasible solution":
+                return False
+        return solution > 0
+
+    @doc_index("Graph properties")
+    def is_inscribable(self):
+        """
+        Test whether the graph is the graph of an inscribed polyhedron.
+
+        A polyhedron is inscribed if all of its vertices are on a sphere.
+        This is dual to the notion of circumscribed polyhedron: A Polyhedron is
+        inscribed if and only if its polar dual is circumscribed and hence a
+        graph is inscribable if and only if its planar dual is circumscribable.
+
+        EXAMPLES::
+
+            sage: H = graphs.HerschelGraph()
+            sage: H.is_inscribable()               # long time (> 1 sec)
+            False
+            sage: H.planar_dual().is_inscribable() # long time (> 1 sec)
+            True
+
+            sage: C = graphs.CubeGraph(3)
+            sage: C.is_inscribable()
+            True
+
+        Cutting off a vertex from the cube yields an uninscribable graph::
+
+            sage: C = graphs.CubeGraph(3)
+            sage: v = next(C.vertex_iterator())
+            sage: triangle = [_ + v for _ in C.neighbors(v)]
+            sage: C.add_edges(Combinations(triangle, 2))
+            sage: C.add_edges(zip(triangle, C.neighbors(v)))
+            sage: C.delete_vertex(v)
+            sage: C.is_inscribable()
+            False
+
+        Breaking a face of the cube yields an uninscribable graph::
+
+            sage: C = graphs.CubeGraph(3)
+            sage: face = choice(C.faces())
+            sage: C.add_edge([face[0][0], face[2][0]])
+            sage: C.is_inscribable()
+            False
+
+
+        .. SEEALSO::
+
+            * :meth:`is_polyhedral`
+            * :meth:`is_circumscribable`
+
+        TESTS::
+
+            sage: G = graphs.CompleteBipartiteGraph(3,3)
+            sage: G.is_inscribable()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this method only works for polyhedral graphs
+        """
+        if not self.is_polyhedral():
+            raise NotImplementedError('this method only works for polyhedral graphs')
+        return self.planar_dual().is_circumscribable()
 
     @doc_index("Graph properties")
     def is_prime(self):
@@ -7132,24 +7412,18 @@ class Graph(GenericGraph):
         A graph is prime if all its modules are trivial (i.e. empty, all of the
         graph or singletons) -- see :meth:`modular_decomposition`.
 
-        .. NOTE::
-
-            In order to use this method you must install the
-            ``modular_decomposition`` optional package. See
-            :mod:`sage.misc.package`.
-
         EXAMPLES:
 
         The Petersen Graph and the Bull Graph are both prime::
 
-            sage: graphs.PetersenGraph().is_prime() # optional - modular_decomposition
+            sage: graphs.PetersenGraph().is_prime()
             True
-            sage: graphs.BullGraph().is_prime()     # optional - modular_decomposition
+            sage: graphs.BullGraph().is_prime()
             True
 
         Though quite obviously, the disjoint union of them is not::
 
-            sage: (graphs.PetersenGraph() + graphs.BullGraph()).is_prime() # optional - modular_decomposition
+            sage: (graphs.PetersenGraph() + graphs.BullGraph()).is_prime()
             False
 
         TESTS::
@@ -7157,14 +7431,15 @@ class Graph(GenericGraph):
             sage: graphs.EmptyGraph().is_prime()
             True
         """
-        if self.order() == 0:
+        from sage.graphs.modular_decomposition import NodeType
+
+        if self.order() <= 1:
             return True
 
         D = self.modular_decomposition()
 
-        return D[0] == "Prime" and len(D[1]) == self.order()
+        return D[0] == NodeType.PRIME and len(D[1]) == self.order()
 
-    @rename_keyword(deprecation=19550, method='algorithm')
     def _gomory_hu_tree(self, vertices, algorithm=None):
         r"""
         Return a Gomory-Hu tree associated to self.
@@ -7255,7 +7530,6 @@ class Graph(GenericGraph):
         return g
 
     @doc_index("Connectivity, orientations, trees")
-    @rename_keyword(deprecation=19550, method='algorithm')
     def gomory_hu_tree(self, algorithm=None):
         r"""
         Returns a Gomory-Hu tree of self.
@@ -7776,12 +8050,12 @@ class Graph(GenericGraph):
             problem: put a binary variable ``b[e]`` on each edge ``e``, and for
             each vertex ``v``, require that the sum of the values of the edges
             incident to ``v`` is 1.
-            
+
         - ``solver`` -- (default: ``None``) specify a Linear Program (LP)
           solver to be used; if set to ``None``, the default one is used
 
         - ``verbose`` -- integer (default: ``0``); sets the level of verbosity:
-          set to 0 by default, which means quiet (only useful when 
+          set to 0 by default, which means quiet (only useful when
           ``algorithm == "LP_matching"`` or ``algorithm == "LP"``)
 
         For more information on LP solvers and which default solver is
@@ -7816,7 +8090,7 @@ class Graph(GenericGraph):
             False
 
         TESTS::
-    
+
             sage: G = graphs.EmptyGraph()
             sage: all(G.has_perfect_matching(algorithm=algo) for algo in ['Edmonds', 'LP_matching', 'LP'])
             True
@@ -7877,24 +8151,25 @@ class Graph(GenericGraph):
 
 
 _additional_categories = {
-    Graph.is_long_hole_free         : "Graph properties",
-    Graph.is_long_antihole_free     : "Graph properties",
-    Graph.is_weakly_chordal         : "Graph properties",
-    Graph.is_asteroidal_triple_free : "Graph properties",
-    Graph.chromatic_polynomial      : "Algorithmically hard stuff",
-    Graph.rank_decomposition        : "Algorithmically hard stuff",
-    Graph.pathwidth                 : "Algorithmically hard stuff",
-    Graph.matching_polynomial       : "Algorithmically hard stuff",
-    Graph.cliques_maximum           : "Clique-related methods",
-    Graph.random_spanning_tree      : "Connectivity, orientations, trees",
-    Graph.is_cartesian_product      : "Graph properties",
-    Graph.is_distance_regular       : "Graph properties",
-    Graph.is_strongly_regular       : "Graph properties",
-    Graph.is_line_graph             : "Graph properties",
-    Graph.is_partial_cube           : "Graph properties",
-    Graph.tutte_polynomial          : "Algorithmically hard stuff",
-    Graph.lovasz_theta              : "Leftovers",
-    Graph.strong_orientations_iterator : "Orientations"
+    "is_long_hole_free"         : "Graph properties",
+    "is_long_antihole_free"     : "Graph properties",
+    "is_weakly_chordal"         : "Graph properties",
+    "is_asteroidal_triple_free" : "Graph properties",
+    "chromatic_polynomial"      : "Algorithmically hard stuff",
+    "rank_decomposition"        : "Algorithmically hard stuff",
+    "pathwidth"                 : "Algorithmically hard stuff",
+    "matching_polynomial"       : "Algorithmically hard stuff",
+    "all_max_cliques"           : "Clique-related methods",
+    "cliques_maximum"           : "Clique-related methods",
+    "random_spanning_tree"      : "Connectivity, orientations, trees",
+    "is_cartesian_product"      : "Graph properties",
+    "is_distance_regular"       : "Graph properties",
+    "is_strongly_regular"       : "Graph properties",
+    "is_line_graph"             : "Graph properties",
+    "is_partial_cube"           : "Graph properties",
+    "tutte_polynomial"          : "Algorithmically hard stuff",
+    "lovasz_theta"              : "Leftovers",
+    "strong_orientations_iterator" : "Connectivity, orientations, trees"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

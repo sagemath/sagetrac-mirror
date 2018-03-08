@@ -28,6 +28,7 @@ from sage.rings.complex_double import CDF
 from sage.rings.real_double import RDF, RealDoubleElement
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
+from sage.misc.superseded import deprecation
 
 ##############################################################################
 # There are many functions on elements of a ring, which mathematicians
@@ -726,6 +727,27 @@ def integral(x, *args, **kwds):
         sage: y = (x^2)*exp(x) / (1 + exp(x))^2
         sage: _ = integrate(y, x, -1000, 1000)
 
+    When SymPy cannot solve an integral it gives it back, so we must
+    be able to convert SymPy's ``Integral`` (:trac:`14723`)::
+
+        sage: x, y, z = var('x,y,z')
+        sage: f = function('f')
+        sage: integrate(f(x), x, algorithm='sympy')
+        integrate(f(x), x)
+        sage: integrate(f(x), x, 0, 1,algorithm='sympy')
+        integrate(f(x), x, 0, 1)
+        sage: integrate(integrate(integrate(f(x,y,z), x, algorithm='sympy'), y, algorithm='sympy'), z, algorithm='sympy')
+        integrate(integrate(integrate(f(x, y, z), x), y), z)
+        sage: integrate(sin(x)*tan(x)/(1-cos(x)), x, algorithm='sympy')
+        -integrate(sin(x)*tan(x)/(cos(x) - 1), x)
+        sage: _ = var('a,b,x')
+        sage: integrate(sin(x)*tan(x)/(1-cos(x)), x, a, b, algorithm='sympy')
+        -integrate(sin(x)*tan(x)/(cos(x) - 1), x, a, b)
+        sage: import sympy
+        sage: x, y, z = sympy.symbols('x y z')
+        sage: f = sympy.Function('f')
+        sage: SR(sympy.Integral(f(x,y,z), x, y, z))
+        integrate(integrate(integrate(f(x, y, z), x), y), z)
     """
     if hasattr(x, 'integral'):
         return x.integral(*args, **kwds)
@@ -954,6 +976,8 @@ def log(x, b=None):
     r"""
     Return the log of ``x`` to the base `b`. The default base is `e`.
 
+    DEPRECATED by :trac:`19444`
+
     INPUT:
 
     - ``x`` -- number
@@ -970,17 +994,24 @@ def log(x, b=None):
 
     EXAMPLES::
 
+        sage: from sage.misc.functional import log
         sage: log(e^2)
+        doctest:warning...
+        DeprecationWarning: use .log() or log() from sage.functions.log instead
+        See http://trac.sagemath.org/19444 for details.
         2
         sage: log(16,2)
         4
         sage: log(3.)
         1.09861228866811
+        sage: log(float(3))  # abs tol 1e-15
+        1.0986122886681098
     """
+    deprecation(19444, 'use .log() or log() from sage.functions.log instead')
     if b is None:
         if hasattr(x, 'log'):
             return x.log()
-        return RDF(x)._log_base(1)
+        return RDF(x).log()
     else:
         if hasattr(x, 'log'):
             return x.log(b)
@@ -1487,6 +1518,10 @@ def round(x, ndigits=0):
         sage: round(b)
         5
 
+    This example addresses :trac:`23502`::
+
+        sage: n = round(6); type(n)
+        <type 'sage.rings.integer.Integer'>
 
     Since we use floating-point with a limited range, some roundings can't
     be performed::

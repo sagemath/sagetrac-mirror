@@ -502,7 +502,7 @@ cdef class TimeSeries:
 
         Note that both summands must be a time series::
 
-            sage: v + range(4)
+            sage: v + list(range(4))
             Traceback (most recent call last):
             ...
             TypeError: right operand must be a time series
@@ -2088,7 +2088,7 @@ cdef class TimeSeries:
             sage: w = v.numpy(copy=False); w
             array([ 1. , -3. ,  4.5, -2. ])
             sage: type(w)
-            <type 'numpy.ndarray'>
+            <... 'numpy.ndarray'>
             sage: w.shape
             (4,)
 

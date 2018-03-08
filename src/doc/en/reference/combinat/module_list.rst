@@ -127,6 +127,7 @@ Comprehensive Module list
     sage/combinat/graph_path
     sage/combinat/gray_codes
     sage/combinat/growth
+    sage/combinat/grossman_larson_algebras
     sage/combinat/hall_polynomial
     sage/combinat/integer_lists/base
     sage/combinat/integer_lists/lists
@@ -300,6 +301,7 @@ Comprehensive Module list
     sage/combinat/sf/sfa
     sage/combinat/sf/witt
     sage/combinat/shard_order
+    sage/combinat/shifted_primed_tableau
     sage/combinat/shuffle
     sage/combinat/sidon_sets
     sage/combinat/similarity_class_type

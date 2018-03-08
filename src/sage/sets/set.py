@@ -45,6 +45,7 @@ from sage.misc.misc import is_iterator
 from sage.structure.category_object import CategoryObject
 from sage.structure.element import Element
 from sage.structure.parent import Parent, Set_generic
+from sage.structure.richcmp import richcmp_method, richcmp, rich_to_bool
 
 from sage.categories.sets_cat import Sets
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -186,7 +187,7 @@ def Set(X=[]):
         {}
     """
     if isinstance(X, CategoryObject):
-        if is_Set(X):
+        if isinstance(X, Set_generic):
             return X
         elif X in Sets().Finite():
             return Set_object_enumerated(X)
@@ -204,27 +205,7 @@ def Set(X=[]):
         return Set_object_enumerated(X)
 
 
-def is_Set(x):
-    """
-    Returns ``True`` if ``x`` is a Sage :class:`Set_object` (not to be confused
-    with a Python set).
-
-    EXAMPLES::
-
-        sage: from sage.sets.set import is_Set
-        sage: is_Set([1,2,3])
-        False
-        sage: is_Set(set([1,2,3]))
-        False
-        sage: is_Set(Set([1,2,3]))
-        True
-        sage: is_Set(Set(QQ))
-        True
-        sage: is_Set(Primes())
-        True
-    """
-    return isinstance(x, Set_generic)
-
+@richcmp_method
 class Set_object(Set_generic):
     r"""
     A set attached to an almost arbitrary object.
@@ -391,13 +372,13 @@ class Set_object(Set_generic):
         """
         return x in self.__object
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Compare ``self`` and ``right``.
 
-        If right is not a :class:`Set_object` compare types.  If ``right`` is
-        also a :class:`Set_object`, returns comparison on the underlying
-        objects.
+        If ``right`` is not a :class:`Set_object`, return ``NotImplemented``.
+        If ``right`` is also a :class:`Set_object`, returns comparison
+        on the underlying objects.
 
         .. NOTE::
 
@@ -422,8 +403,8 @@ class Set_object(Set_generic):
             True or False
         """
         if not isinstance(right, Set_object):
-            return cmp(type(self), type(right))
-        return cmp(self.__object, right.__object)
+            return NotImplemented
+        return richcmp(self.__object, right.__object, op)
 
     def union(self, X):
         """
@@ -446,7 +427,7 @@ class Set_object(Set_generic):
             sage: Set(GF(7)) + Set(GF(3))
             {0, 1, 2, 3, 4, 5, 6, 1, 2, 0}
         """
-        if is_Set(X):
+        if isinstance(X, Set_generic):
             if self is X:
                 return self
             return Set_object_union(self, X)
@@ -506,7 +487,7 @@ class Set_object(Set_generic):
             sage: X
             {}
         """
-        if is_Set(X):
+        if isinstance(X, Set_generic):
             if self is X:
                 return self
             return Set_object_intersection(self, X)
@@ -536,7 +517,7 @@ class Set_object(Set_generic):
             sage: X
             {0, 1, 2, b, b + 1, b + 2, 2*b, 2*b + 1, 2*b + 2}
         """
-        if is_Set(X):
+        if isinstance(X, Set_generic):
             if self is X:
                 return Set([])
             return Set_object_difference(self, X)
@@ -553,7 +534,7 @@ class Set_object(Set_generic):
             {1, 2, 4}
         """
 
-        if is_Set(X):
+        if isinstance(X, Set_generic):
             if self is X:
                 return Set([])
             return Set_object_symmetric_difference(self, X)
@@ -731,7 +712,7 @@ class Set_object_enumerated(Set_object):
     A finite enumerated set.
     """
     def __init__(self, X):
-        """
+        r"""
         Initialize ``self``.
 
         EXAMPLES::
@@ -921,7 +902,7 @@ class Set_object_enumerated(Set_object):
         """
         return hash(self.frozenset())
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare the sets ``self`` and ``other``.
 
@@ -935,12 +916,11 @@ class Set_object_enumerated(Set_object):
             sage: Set(QQ) == Set(ZZ)
             False
         """
-        if isinstance(other, Set_object_enumerated):
-            if self.set() == other.set():
-                return 0
-            return -1
-        else:
-            return Set_object.__cmp__(self, other)
+        if not isinstance(other, Set_object_enumerated):
+            return NotImplemented
+        if self.set() == other.set():
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, -1)
 
     def issubset(self, other):
         r"""
@@ -1208,7 +1188,7 @@ class Set_object_union(Set_object_binary):
         """
         return self._X.is_finite() and self._Y.is_finite()
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Try to compare ``self`` and ``right``.
 
@@ -1236,14 +1216,14 @@ class Set_object_union(Set_object_binary):
             sage: Set(ZZ).union(Set(QQ)) == Set(QQ)
             False
         """
-        if not is_Set(right):
-            return -1
+        if not isinstance(right, Set_generic):
+            return rich_to_bool(op, -1)
         if not isinstance(right, Set_object_union):
-            return -1
+            return rich_to_bool(op, -1)
         if self._X == right._X and self._Y == right._Y or \
            self._X == right._Y and self._Y == right._X:
-            return 0
-        return -1
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, -1)
 
     def __iter__(self):
         """
@@ -1342,7 +1322,7 @@ class Set_object_intersection(Set_object_binary):
             return True
         raise NotImplementedError
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Try to compare ``self`` and ``right``.
 
@@ -1370,14 +1350,14 @@ class Set_object_intersection(Set_object_binary):
             sage: Set(ZZ).intersection(Set(QQ)) == Set(QQ)
             False
         """
-        if not is_Set(right):
-            return -1
+        if not isinstance(right, Set_generic):
+            return rich_to_bool(op, -1)
         if not isinstance(right, Set_object_intersection):
-            return -1
+            return rich_to_bool(op, -1)
         if self._X == right._X and self._Y == right._Y or \
            self._X == right._Y and self._Y == right._X:
-            return 0
-        return -1
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, -1)
 
     def __iter__(self):
         """
@@ -1484,7 +1464,7 @@ class Set_object_difference(Set_object_binary):
             return False
         raise NotImplementedError
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Try to compare ``self`` and ``right``.
 
@@ -1516,13 +1496,13 @@ class Set_object_difference(Set_object_binary):
             sage: X == Set(QQ).difference(Set(ZZ))
             True
         """
-        if not is_Set(right):
-            return -1
+        if not isinstance(right, Set_generic):
+            return rich_to_bool(op, -1)
         if not isinstance(right, Set_object_difference):
-            return -1
+            return rich_to_bool(op, -1)
         if self._X == right._X and self._Y == right._Y:
-            return 0
-        return -1
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, -1)
 
     def __iter__(self):
         """
@@ -1621,7 +1601,7 @@ class Set_object_symmetric_difference(Set_object_binary):
             return False
         raise NotImplementedError
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Try to compare ``self`` and ``right``.
 
@@ -1643,14 +1623,14 @@ class Set_object_symmetric_difference(Set_object_binary):
             True
 
         """
-        if not is_Set(right):
-            return -1
+        if not isinstance(right, Set_generic):
+            return rich_to_bool(op, -1)
         if not isinstance(right, Set_object_symmetric_difference):
-            return -1
+            return rich_to_bool(op, -1)
         if self._X == right._X and self._Y == right._Y or \
            self._X == right._Y and self._Y == right._X:
-            return 0
-        return -1
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, -1)
 
     def __iter__(self):
         """
@@ -1712,3 +1692,19 @@ class Set_object_symmetric_difference(Set_object_binary):
         """
         return (x in self._X and x not in self._Y) \
                or (x in self._Y and x not in self._X)
+
+def is_Set(x):
+    """
+    Deprecated. Use ``isinstance(x, Set_generic)`` instead.
+
+    TESTS::
+
+        sage: from sage.sets.set import is_Set
+        sage: is_Set(Primes())
+        doctest:...: DeprecationWarning: Please use isinstance(x, Set_generic)
+        See http://trac.sagemath.org/24443 for details.
+        True
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(24443, "Please use isinstance(x, Set_generic)")
+    return isinstance(x, Set_generic)

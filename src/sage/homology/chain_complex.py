@@ -566,8 +566,8 @@ class Chain_class(ModuleElement):
             0 <---- [6] <---- [2] <----- 0
                     [8]       [4]
         """
-        vectors = dict()
-        for d in set(self._vec.keys() + other._vec.keys()):
+        vectors = {}
+        for d in set(list(self._vec) + list(other._vec)):
             v = self.vector(d) + other.vector(d)
             if not v.is_zero():
                 v.set_immutable()
@@ -1851,8 +1851,8 @@ class ChainComplex_class(Parent):
         deg = self.degree_of_differential()
         ring = self.base_ring()
         if self.grading_group() != ZZ:
-            guess = dict.keys()[0]
-            if guess-deg in dict:
+            guess = next(iter(dict.keys()))
+            if guess - deg in dict:
                 string += "\\dots \\xrightarrow{d_{%s}} " % latex(guess-deg)
             string += _latex_module(ring, mat.ncols())
             string += " \\xrightarrow{d_{%s}} \\dots" % latex(guess)
