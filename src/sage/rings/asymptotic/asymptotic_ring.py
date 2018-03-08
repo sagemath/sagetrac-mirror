@@ -235,7 +235,7 @@ Not all elements are invertible, for instance,
 is not invertible, since it includes `0`.
 
 
-Powers, Expontials and Logarithms
+Powers, Exponentials and Logarithms
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It works as simple as it can be; just use the usual operators ``^``,
@@ -3834,18 +3834,43 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         if isinstance(P, SymbolicRing):
             from sage.symbolic.operators import add_vararg
+            from sage.functions.other import Function_Order
             if data.operator() == add_vararg:
                 summands = []
                 for summand in data.operands():
-                    # TODO: check if summand is an O-Term here
-                    # (see #19425, #19426)
                     try:
-                        summands.append(self.create_summand('exact', summand))
+                        # checking if this is an O-Term
+                        # (see #19425, #19426)
+                        if isinstance(summand.operator(), Function_Order):
+                            assert len(summand.operands()) == 1
+                            operand = summand.operands()[0]
+                            if operand.operator() == add_vararg:
+                                for inner_summand in operand.operands():
+                                    summands.append(self.create_summand('O', inner_summand))
+                            else:
+                                summands.append(self.create_summand('O', operand))
+                        else:
+                            summands.append(self.create_summand('exact', summand))
                     except ValueError as e:
                         raise combine_exceptions(
                             ValueError('Symbolic expression %s is not in %s.' %
                                        (data, self)), e)
                 return sum(summands, self.zero())
+            elif isinstance(data.operator(), Function_Order):
+                try:
+                    assert len(data.operands()) == 1
+                    operand = data.operands()[0]
+                    if operand.operator() == add_vararg:
+                        summands = []
+                        for inner_summand in operand.operands():
+                            summands.append(self.create_summand('O', inner_summand))
+                        return sum(summands, self.zero())
+                    else:
+                        return self.create_summand('O', operand)
+                except ValueError as e:
+                    raise combine_exceptions(
+                        ValueError('Symbolic expression %s is not in %s.' %
+                                    (data, self)), e)
 
         elif is_PolynomialRing(P):
             p = P.gen()
