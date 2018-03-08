@@ -11,13 +11,13 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-$MAKE verbose
+$MAKE verbose DLPATH_ADD=
 if [ $? -ne 0 ]; then
     echo >&2 "Error building arb."
     exit 1
 fi
 
-$MAKE install
+$MAKE install DLPATH_ADD=
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing arb."
     exit 1

@@ -38,7 +38,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Building FLINT shared library."
-$MAKE verbose
+$MAKE verbose DLPATH_ADD=
 if [ $? -ne 0 ]; then
     echo >&2 "Error: Failed to build FLINT shared library."
     exit 1
@@ -49,7 +49,7 @@ rm -f $SAGE_LOCAL/lib/libflint*
 rm -rf $SAGE_LOCAL/include/flint
 
 echo "Installing new FLINT files."
-$MAKE install
+$MAKE install DLPATH_ADD=
 if [ $? -ne 0 ]; then
     echo >&2 "Error: Failed to install FLINT."
     exit 1
