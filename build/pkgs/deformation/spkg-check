@@ -1,2 +1,5 @@
+# see https://trac.sagemath.org/ticket/24575
+sdh_preload_lib make libgc.so
+
 cd src
 $MAKE check

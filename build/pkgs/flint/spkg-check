@@ -11,6 +11,10 @@ if [ "$SAGE_LOCAL" = "" ]; then
 fi
 
 cd src
+
+# see https://trac.sagemath.org/ticket/24575
+sdh_preload_lib make libgc.so
+
 $MAKE check AT= QUIET_CC= QUIET_CXX= QUIET_AR=
 
 if [ $? -ne 0 ]; then
