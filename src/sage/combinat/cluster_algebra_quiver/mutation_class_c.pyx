@@ -4,7 +4,11 @@
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
+from operator import itemgetter
+
 from sage.matrix.matrix0 cimport Matrix
+from sage.graphs.bliss import canonical_form_from_edge_list
+from __builtin__ import frozenset
 
 cpdef matrix_to_edge_list(Matrix M):
     r"""
@@ -17,16 +21,18 @@ cpdef matrix_to_edge_list(Matrix M):
     cdef Py_ssize_t i, j
     cdef int a,b, x
 
-    cdef list edges = list()
+    cdef list Vout = list()
+    cdef list Vin  = list()
+    cdef list labels = list()
     cdef dict edge_labels = dict()
-    cdef list new_partition = list()
 
     cdef bint pos
 
     cdef int n = M._ncols
     cdef int m = M._nrows - n
 
-    cdef int Vnew = n+m
+    cdef int Lnr = 1
+    cdef int lab = 0
 
     for i from 0 <= i < n:
         for j from 0 <= j < i:
@@ -35,9 +41,13 @@ cpdef matrix_to_edge_list(Matrix M):
             if a == 0:
                 pass
             elif a == 1 and b == -1:
-                edges.append((i,j))
+                Vout.append(i)
+                Vin.append(j)
+                labels.append(0)
             elif a == -1 and b == 1:
-                edges.append((j,i))
+                Vout.append(j)
+                Vin.append(i)
+                labels.append(0)
             else:
                 if a > 0:
                     pos = True
@@ -45,23 +55,25 @@ cpdef matrix_to_edge_list(Matrix M):
                     pos = False
                 try:
                     if pos:
-                        x = edge_labels[(a,b)]
+                        lab = edge_labels[(a,b)]
                     else:
-                        x = edge_labels[(b,a)]
+                        lab = edge_labels[(b,a)]
                 except KeyError:
-                    x = len(new_partition)
+                    lab = Lnr
+                    Lnr = Lnr+1
                     if pos:
-                        edge_labels[(a,b)] = x
+                        edge_labels[(a,b)] = lab
                     else:
-                        edge_labels[(b,a)] = x
-                    new_partition.append([])
+                        edge_labels[(b,a)] = lab
                 finally:
                     if pos:
-                        edges.extend([(i,Vnew),(Vnew,j)])
+                        Vout.append(i)
+                        Vin.append(j)
+                        labels.append(lab)
                     else:
-                        edges.extend([(j,Vnew),(Vnew,i)])
-                    new_partition[x].append(Vnew)
-                    Vnew += 1
+                        Vout.append(j)
+                        Vin.append(i)
+                        labels.append(lab)
 
     for i from n <= i < n+m:
         for j from 0 <= j < n:
@@ -69,9 +81,13 @@ cpdef matrix_to_edge_list(Matrix M):
             if a == 0:
                 pass
             elif a == 1:
-                edges.append((i,j))
+                Vout.append(i)
+                Vin.append(j)
+                labels.append(0)
             elif a == -1:
-                edges.append((j,i))
+                Vout.append(j)
+                Vin.append(i)
+                labels.append(0)
             else:
                 if a > 0:
                     pos = True
@@ -80,28 +96,41 @@ cpdef matrix_to_edge_list(Matrix M):
                 b = -a
                 try:
                     if pos:
-                        x = edge_labels[(a,b)]
+                        lab = edge_labels[(a,b)]
                     else:
-                        x = edge_labels[(b,a)]
+                        lab = edge_labels[(b,a)]
                 except KeyError:
-                    x = len(new_partition)
+                    lab = Lnr
                     if pos:
-                        edge_labels[(a,b)] = x
+                        edge_labels[(a,b)] = lab
                     else:
-                        edge_labels[(b,a)] = x
-                    new_partition.append([])
+                        edge_labels[(b,a)] = lab
                 finally:
                     if pos:
-                        edges.extend([(i,Vnew),(Vnew,j)])
+                        Vout.append(i)
+                        Vin.append(j)
+                        labels.append(lab)
                     else:
-                        edges.extend([(j,Vnew),(Vnew,i)])
-                    new_partition[x].append(Vnew)
-                    Vnew += 1
+                        Vout.append(j)
+                        Vin.append(i)
+                        labels.append(lab)
 
-    partition = [list(range(n))]
-    if m > 0:
-        partition.append(list(range(n,n+m)))
-    if new_partition:
-        partition.extend(new_partition)
+    lab_relabels = [0] + [ lab for _,lab in sorted(edge_labels.iteritems(), key=itemgetter(0)) ]
+    labels = [lab_relabels[i] for i in labels]
 
-    return edges, Vnew, partition
+    return Vout, Vin, Lnr, labels
+
+cpdef matrix_canonical_hash_cython(Matrix M):
+    cdef int n = M._ncols
+    cdef int m = M._nrows-n
+    cdef list Vout
+    cdef list Vin
+    cdef list labels
+    cdef int Lnr
+    cdef list partition
+
+    Vout, Vin, Lnr, labels = matrix_to_edge_list(M)
+
+    #   def canonical_form_from_edge_list(int Vnr, list Vout, list Vin, int Lnr=1, list labels=[], list partition=[], bint directed=False, bint certificate=False):
+    edges = canonical_form_from_edge_list(n+m, Vout, Vin, Lnr, labels, partition=[list(range(n)),list(range(n,n+m))], directed=True, certificate=False)
+    return hash(frozenset(edges))

@@ -24,6 +24,8 @@ from sage.graphs.digraph import DiGraph
 from sage.rings.infinity import Infinity
 from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree, get_orbits
 
+from sage.combinat.cluster_algebra_quiver.mutation_class_c import matrix_canonical_hash_cython
+
 def _matrix_mutation_class_iter(M, depth=Infinity, show_depth=False, return_paths=False, up_to_equivalence=True, sink_source=False):
     """
     Returns an iterator for mutation class of matrix with respect to several parameters.
@@ -46,7 +48,7 @@ def _matrix_mutation_class_iter(M, depth=Infinity, show_depth=False, return_path
     m = M.nrows() - n
 
     if up_to_equivalence:
-        Mhash = matrix_canonical_hash(M, n, m)
+        Mhash = matrix_canonical_hash_cython(M)#, n, m)
     else:
         M.set_immutable()
         Mhash = hash(M)
@@ -76,7 +78,7 @@ def _matrix_mutation_class_iter(M, depth=Infinity, show_depth=False, return_path
                     M_new.mutate(i)
 
                     if up_to_equivalence:
-                        Mhash_new = matrix_canonical_hash(M_new, n, m)
+                        Mhash_new = matrix_canonical_hash_cython(M_new)#, n, m)
                     else:
                         M_new.set_immutable()
                         Mhash_new = hash(M_new)
@@ -98,66 +100,6 @@ def _matrix_mutation_class_iter(M, depth=Infinity, show_depth=False, return_path
             nr = str(len(have_seen))
             nr += ' ' * (10-len(nr))
             print("Depth: %s found: %s time: %.2f s" % (dc, nr, timer2 - timer))
-
-def matrix_canonical_hash(M, n, m):
-    dg,partition = _matrix_to_unlabelled_digraph(M, n, m)
-    dg_canon = dg.canonical_label(partition=partition, algorithm="bliss", return_graph=False)
-    return hash(tuple(sorted(dg_canon)))
-
-def _matrix_to_unlabelled_digraph(M, n, m):
-    dg = DiGraph(sparse=True)
-    dg.add_vertices(range(n+m))
-
-    edge_labels = {}
-    new_vertex  = n+m
-
-    new_partition = []
-
-    for i, j in M.nonzero_positions():
-        if i < n:
-            a, b = M[i, j], M[j, i]
-        else:
-            a, b = M[i, j], -M[i, j]
-        if a > 0:
-            if a == 1 and b == -1:
-                dg._backend.add_edge(i,j,None,True)
-            else:
-                try:
-                    x = edge_labels[(a,b)]
-                except KeyError:
-                    x = len(new_partition)
-                    edge_labels[(a,b)] = x
-                    new_partition.append([])
-                finally:
-                    dg.add_vertex(new_vertex)
-                    dg._backend.add_edge(i,new_vertex,None,True)
-                    dg._backend.add_edge(new_vertex,j,None,True)
-                    new_partition[x].append(new_vertex)
-                    new_vertex += 1
-        elif i >= n:
-            if a == -1 and b == 1:
-                dg._backend.add_edge(j,i,None,True)
-            else:
-                a = -a
-                b = -b
-                try:
-                    x = edge_labels[(a,b)]
-                except KeyError:
-                    x = len(new_partition)
-                    edge_labels[(a,b)] = x
-                    new_partition.append([])
-                finally:
-                    dg.add_vertex(new_vertex)
-                    dg._backend.add_edge(j,new_vertex,None,True)
-                    dg._backend.add_edge(new_vertex,i,None,True)
-                    new_partition[x].append(new_vertex)
-                    new_vertex += 1
-    partition = [list(range(n))]
-    if m > 0:
-        partition.append(list(range(n,n+m)))
-    if new_partition:
-        partition.extend(new_partition)
-    return dg, partition
 
 def _fast_copy(M, n, m):
     Mnew = zero_matrix(n+m,n)
