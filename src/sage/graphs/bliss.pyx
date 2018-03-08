@@ -20,6 +20,7 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2015 Jernej Azarija
 #       Copyright (C) 2015 Nathann Cohen <nathann.cohen@gail.com>
+#       Copyright (C) 2018 Christian Stump <christian.stump@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,9 +28,9 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+import numpy
 from cpython cimport PyObject
 from libc.limits cimport LONG_MAX
-
 
 cdef extern from "bliss/graph.hh" namespace "bliss":
 
@@ -58,7 +59,6 @@ cdef extern from "bliss/graph.hh" namespace "bliss":
         const unsigned int* canonical_form(Stats&, void (*)(void*,unsigned int,
                     const unsigned int*), void*)
         unsigned int get_hash()
-
 
 cdef void add_gen(void *user_param, unsigned int n, const unsigned int *aut):
     r"""
@@ -323,3 +323,222 @@ def canonical_form(G, partition=None, return_graph=False, certificate=False):
 
     return sorted(edges)
 
+#####################################################
+# constucting the canonical form from a list of edges
+#####################################################
+
+cdef Digraph *bliss_digraph_from_labelled_edges(int Vnr, int Lnr, list Vout, list Vin, list labels, list partition, bint verbose=False):
+    r"""
+    Return a bliss copy of a digraph G
+
+    INPUT:
+
+    - ``Vnr`` (number of vertices such that the vertices are 0 ... Vnr-1)
+
+    - ``Lnr`` (number of labels such that the labels are 0 ... Lnr-1)
+
+    - ``Vout`` (the list of vertices of outgoing edges)
+
+    - ``Vin`` (the list of vertices of ingoing edges)
+
+    - ``labels`` (the list of edge labels)
+
+    - ``partition`` -- a partition of the vertex set
+    """
+    cdef Py_ssize_t i, j
+    cdef int logLnr
+    cdef str binrep
+    cdef str ind
+
+    cdef Digraph *g
+    cdef int x,y, lab
+
+    if Lnr == 1:
+        g = new Digraph(Vnr)
+        if g == NULL:
+            raise MemoryError("Allocation Failed")
+    else:
+        logLnr = len(numpy.binary_repr(Lnr))
+        g = new Digraph(Vnr*logLnr)
+        if g == NULL:
+            raise MemoryError("Allocation Failed")
+        for i from 0 <= i < Vnr:
+            for j from 1 <= j < logLnr:
+                g.add_edge((j-1)*Vnr+i,j*Vnr+i)
+                if verbose:
+                    print "edge init", ((j-1)*Vnr+i,j*Vnr+i)
+
+    cdef int Enr = len(Vout)
+
+    for i from 0 <= i < Enr:
+        x   = Vout[i]
+        y   = Vin[i]
+        if Lnr == 1:
+            lab = 0
+        else:
+            lab = labels[i]
+
+        if lab != 0:
+            lab = lab+1
+            binrep = numpy.binary_repr(lab)
+
+            for j from 0 <= j < logLnr:
+                ind = binrep[j]
+                if ind == "1":
+                    g.add_edge((logLnr-1-j)*Vnr+x,(logLnr-1-j)*Vnr+y)
+                    if verbose:
+                        print "edge", ((logLnr-1-j)*Vnr+x,(logLnr-1-j)*Vnr+y)
+        else:
+            g.add_edge(x,y)
+            if verbose:
+                print "edge unlab", (x,y)
+
+    if partition == []:
+        partition = [list(range(Vnr))]
+    cdef Pnr = len(partition)
+    for i from 0 <= i < Pnr:
+        for v in partition[i]:
+            if Lnr == 1:
+                g.change_color(v, i)
+                if verbose:
+                    print "color",(v, i)
+            else:
+                for j from 0 <= j < logLnr:
+                    g.change_color(j*Vnr+v, j*Pnr+i)
+                    if verbose:
+                        print "color",(j*Vnr+v, j*Pnr+i)
+    return g
+
+cdef Graph *bliss_graph_from_labelled_edges(int Vnr, int Lnr, list Vout, list Vin, list labels, list partition, bint verbose=False):
+    r"""
+    Return a bliss copy of a digraph G
+
+    INPUT:
+
+    - ``Vnr`` (number of vertices such that the vertices are 0 ... Vnr-1)
+
+    - ``Lnr`` (number of labels such that the labels are 0 ... Lnr-1)
+
+    - ``Vout`` (the list of vertices of outgoing edges)
+
+    - ``Vin`` (the list of vertices of ingoing edges)
+
+    - ``labels`` (the list of edge labels)
+
+    - ``partition`` -- a partition of the vertex set
+    """
+    cdef Py_ssize_t i, j
+    cdef int logLnr
+    cdef str binrep
+    cdef str ind
+
+    cdef Graph *g
+    cdef int x,y, lab
+
+    if Lnr == 1:
+        g = new Graph(Vnr)
+        if g == NULL:
+            raise MemoryError("Allocation Failed")
+    else:
+        logLnr = len(numpy.binary_repr(Lnr))
+        g = new Graph(Vnr*logLnr)
+        if g == NULL:
+            raise MemoryError("Allocation Failed")
+        for i from 0 <= i < Vnr:
+            for j from 1 <= j < logLnr:
+                g.add_edge((j-1)*Vnr+i,j*Vnr+i)
+                if verbose:
+                    print "edge init", ((j-1)*Vnr+i,j*Vnr+i)
+
+    cdef int Enr = len(Vout)
+
+    for i from 0 <= i < Enr:
+        x   = Vout[i]
+        y   = Vin[i]
+        if Lnr == 1:
+            lab = 0
+        else:
+            lab = labels[i]
+
+        if lab != 0:
+            lab = lab+1
+            binrep = numpy.binary_repr(lab)
+
+            for j from 0 <= j < logLnr:
+                ind = binrep[j]
+                if ind == "1":
+                    g.add_edge((logLnr-1-j)*Vnr+x,(logLnr-1-j)*Vnr+y)
+                    if verbose:
+                        print "edge", ((logLnr-1-j)*Vnr+x,(logLnr-1-j)*Vnr+y)
+        else:
+            g.add_edge(x,y)
+            if verbose:
+                print "edge unlab", (x,y)
+
+    if partition == []:
+        partition = [list(range(Vnr))]
+    cdef Pnr = len(partition)
+    for i from 0 <= i < Pnr:
+        for v in partition[i]:
+            if Lnr == 1:
+                g.change_color(v, i)
+                if verbose:
+                    print "color",(v, i)
+            else:
+                for j from 0 <= j < logLnr:
+                    g.change_color(j*Vnr+v, j*Pnr+i)
+                    if verbose:
+                        print "color",(j*Vnr+v, j*Pnr+i)
+    return g
+
+cpdef canonical_form_from_edge_list(int Vnr, list Vout, list Vin, int Lnr=1, list labels=[], list partition=[], bint directed=False, bint certificate=False):
+    # We need this to convert the numbers from <unsigned int> to
+    # <long>. This assertion should be true simply for memory reasons.
+    assert <unsigned long>(Vnr) <= <unsigned long>LONG_MAX
+
+    cdef const unsigned int* aut
+    cdef Graph* g
+    cdef Digraph* d
+    cdef Stats s
+    cdef dict relabel
+
+    cdef list new_edges = []
+    cdef long e, f
+
+    if directed:
+        d = bliss_digraph_from_labelled_edges(Vnr, Lnr, Vout, Vin, labels, partition)
+        aut = d.canonical_form(s, empty_hook, NULL)
+        for i from 0 <= i < len(Vout):
+            x = Vout[i]
+            y = Vin[i]
+            e = aut[x]
+            f = aut[y]
+            if Lnr == 1:
+                new_edges.append( (e,f) )
+            else:
+                lab = labels[i]
+                new_edges.append( (e,f,lab) )
+        if certificate:
+            relabel = {v: <long>aut[v] for v in range(Vnr)}
+        del d
+    else:
+        g = bliss_graph_from_labelled_edges(Vnr, Lnr, Vout, Vin, labels, partition)
+        aut = g.canonical_form(s, empty_hook, NULL)
+        for i from 0 <= i < len(Vout):
+            x = Vout[i]
+            y = Vin[i]
+            e = aut[x]
+            f = aut[y]
+            if Lnr == 1:
+                new_edges.append( (e,f) if e > f else (f,e))
+            else:
+                lab = labels[i]
+                new_edges.append( (e,f,lab) if e > f else (f,e,lab))
+        if certificate:
+            relabel = {v: <long>aut[v] for v in range(Vnr)}
+        del g
+
+    if certificate:
+        return new_edges, relabel
+    else:
+        return new_edges
