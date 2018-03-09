@@ -1228,24 +1228,6 @@ class AbsoluteOrder(Order):
             raise TypeError("Not an element of the order.")
         return self._element_type(self, x)
 
-    def __reduce__(self):
-        r"""
-        Used in pickling.
-
-        We test that :trac:`6462` is fixed. This used to fail because
-        pickling the order also pickled the cached results of the
-        ``basis`` call, which were elements of the order.
-
-        ::
-
-            sage: L.<a> = QuadraticField(-1)
-            sage: OL = L.maximal_order()
-            sage: _ = OL.basis()
-            sage: loads(dumps(OL)) == OL
-            True
-        """
-        return (AbsoluteOrder, (self.number_field(), self.free_module(), self._is_maximal, False))
-
     def __add__(left, right):
         """
         Add two orders.
@@ -1669,20 +1651,6 @@ class RelativeOrder(Order):
         else:
             return self._absolute_order.change_names(names)
 
-    def __reduce__(self):
-        r"""
-        Used for pickling.
-
-        EXAMPLES::
-
-            sage: L.<a, b> = NumberField([x^2 + 1, x^2 - 5])
-            sage: O = L.maximal_order()
-            sage: _ = O.basis()
-            sage: O == loads(dumps(O))
-            True
-        """
-        return (RelativeOrder, (self.number_field(), self.absolute_order(), self._is_maximal, False))
-
     def basis(self):
         """
         Return a basis for this order as `\ZZ`-module.
@@ -2055,7 +2023,7 @@ class AbsoluteOrderFactory(UniqueFactory):
 
         return AbsoluteOrder(K, W, check=False, is_maximal=is_maximal)  # we have already checked everything
 
-absolute_order_from_module_generators = AbsoluteOrderFactory("absolute_order_from_module_generators")
+absolute_order_from_module_generators = AbsoluteOrderFactory("sage.rings.number_field.order.absolute_order_from_module_generators")
 
 class RelativeOrderFactory(UniqueFactory):
     r"""
@@ -2124,7 +2092,7 @@ class RelativeOrderFactory(UniqueFactory):
     
         return RelativeOrder(K, abs_order, check=False, is_maximal=is_maximal)
 
-relative_order_from_ring_generators = RelativeOrderFactory("relative_order_from_ring_generators")
+relative_order_from_ring_generators = RelativeOrderFactory("sage.rings.number_field.order.relative_order_from_ring_generators")
 
 
 def GaussianIntegers(names="I"):
