@@ -1,64 +1,37 @@
-class Letter:
-
-
-    def __init__(self, value, is_even):
-        self.value = value
-        self.is_even = is_even
-
-    @property
-    def is_odd(self):
-        return not self.is_even
-
-    def __eq__(self, other):
-        return self.value == other.value and self.is_even == other.is_even
-
-    def __lt__(self, other):
-        # value tie
-        if self.value == other.value:
-            # both of same evenness
-            if self.is_even == other.is_even:
-                return False
-            # different evenness
-            elif self.is_even and (not other.is_even):
-                return False
-            elif (not self.is_even) and other.is_even:
-                return True
-            else:
-                raise ValueError
-        # no value tie
-        else:
-            return self.value < other.value
-
-    def __le__(self, other):
-        return self < other or self == other
-
-    def __gt__(self, other):
-        return not self <= other
-
-    def __ge__(self, other):
-        return not self < other
-
-    def __str__(self):
-        if self.is_even:
-            s = "even({})"
-        else:
-            s = "odd({})"
-        return s.format(self.value)
-
-    def __repr__(self):
-        return str(self)
+from sage.combinat.shifted_primed_tableau import PrimedEntry
 
 def even(n):
-    return Letter(n, True)
+    """
+    TESTS:
+
+        sage: even(2)
+        2
+    """
+    return PrimedEntry(n)
 
 def odd(n):
-    return Letter(n, False)
+    """
+    TESTS:
+
+        sage: odd(2)
+        2'
+    """
+    return PrimedEntry(n - 0.5)
+
 
 
 class BiLetter:
 
 
     def __init__(self, a, b):
+        """
+        TESTS:
+
+            sage: BiLetter(PrimedEntry("3'"), PrimedEntry(3))
+            (3', 3)
+        """
+        assert isinstance(a, PrimedEntry)
+        assert isinstance(b, PrimedEntry)
         self.value = (a, b)
 
     def __repr__(self):
@@ -77,7 +50,7 @@ class BiLetter:
         return not self < other
 
     def is_mixed(self):
-        return self.value[0].is_even != self.value[1].is_even
+        return self.value[0].is_unprimed() != self.value[1].is_unprimed()
 
     def inverse(self):
         (a, b) = self.value
@@ -162,12 +135,12 @@ class BiWord:
         EXAMPLES:
 
             sage: BiWord([(odd(5), even(2)), (odd(4), even(2))]).inverse()
-            BiWord([(even(2), odd(4)), (even(2), odd(5))])
+            BiWord([(2, 4'), (2, 5')])
 
         TESTS:
 
             sage: BiWord([(odd(1), even(2)), (odd(2), even(3))]).inverse()
-            BiWord([(even(2), odd(1)), (even(3), odd(2))])
+            BiWord([(2, 1'), (3, 2')])
         """
         return self.upside_down().sorted()
 

@@ -387,7 +387,7 @@ class Tableau(ClonableList):
               1  2  3
             sage: Tableaux.options._reset()
 
-        TESTS:
+        TESTS::
 
         Check that :trac:`20768` is fixed::
 
@@ -485,7 +485,7 @@ class Tableau(ClonableList):
 
     def _ascii_art_table(self, use_unicode=False):
         """
-        TESTS:
+        TESTS::
 
         We check that :trac:`16487` is fixed::
 
@@ -650,7 +650,7 @@ class Tableau(ClonableList):
 
     def _ascii_art_compact(self):
         """
-        TESTS:
+        TESTS::
 
         We check that :trac:`16487` is fixed::
 
@@ -1532,7 +1532,7 @@ class Tableau(ClonableList):
             sage: Tableau([[1,3,3,7],[4,2],[2,3]]).weight()
             [1, 2, 3, 1, 0, 0, 1]
 
-        TESTS:
+        TESTS::
 
         We check that this agrees with going to the word::
 
@@ -2647,7 +2647,7 @@ class Tableau(ClonableList):
             sage: t.promotion_inverse(2)
             []
 
-        TESTS:
+        TESTS::
 
         We check the equivalence of two definitions of inverse promotion
         on semistandard tableaux::
@@ -2768,7 +2768,7 @@ class Tableau(ClonableList):
             sage: t.promotion(2)
             []
 
-        TESTS:
+        TESTS::
 
         We check the equivalence of two definitions of promotion on
         semistandard tableaux::
@@ -3565,7 +3565,7 @@ class Tableau(ClonableList):
             sage: t.right_key_tableau()
             [[2, 2, 2, 4], [3, 4, 4], [4], [5]]
 
-        TESTS:
+        TESTS::
 
         We check that if we have a key tableau, we return the same tableau::
 
@@ -3626,7 +3626,7 @@ class Tableau(ClonableList):
             sage: t.left_key_tableau()
             [[1, 1, 1, 2], [2, 2, 2], [4], [5]]
 
-        TESTS:
+        TESTS::
 
         We check that if we have a key tableau, we return the same tableau::
 
@@ -4087,7 +4087,7 @@ class Tableau(ClonableList):
         data = list(self.conjugate().entries())
         return permutation.Permutation(data).inverse().reduced_word_lexmin()
 
-class SemistandardTableau(Tableau):
+class GeneralizedSemistandardTableau(Tableau):
     """
     A class to model a semistandard tableau.
 
@@ -4099,12 +4099,11 @@ class SemistandardTableau(Tableau):
 
     - A SemistandardTableau object constructed from ``t``.
 
-    A semistandard tableau is a tableau whose entries are positive integers,
-    which are weakly increasing in rows and strictly increasing down columns.
+    A semistandard tableau is a tableau whose entries are weakly increasing in rows and strictly increasing down columns.
 
     EXAMPLES::
 
-        sage: t = SemistandardTableau([[1,2,3],[2,3]]); t
+        sage: t = GeneralizedSemistandardTableau([[1,2,3],[2,3]]); t
         [[1, 2, 3], [2, 3]]
         sage: t.shape()
         [3, 2]
@@ -4112,18 +4111,10 @@ class SemistandardTableau(Tableau):
         1 2 3
         2 3
         sage: t = Tableau([[1,2],[2]])
-        sage: s = SemistandardTableau(t); s
+        sage: s = GeneralizedSemistandardTableau(t); s
         [[1, 2], [2]]
-        sage: SemistandardTableau([]) # The empty tableau
+        sage: GeneralizedSemistandardTableau([]) # The empty tableau
         []
-
-    When using code that will generate a lot of tableaux, it is slightly more
-    efficient to construct a SemistandardTableau from the appropriate
-    :class:`Parent` object::
-
-        sage: SST = SemistandardTableaux()
-        sage: SST([[1, 2, 3], [4, 5]])
-        [[1, 2, 3], [4, 5]]
 
     .. SEEALSO::
 
@@ -4135,40 +4126,33 @@ class SemistandardTableau(Tableau):
 
     TESTS::
 
-        sage: SemistandardTableau([[1,2,3],[1]])
+        sage: GeneralizedSemistandardTableau([[1,2,3],[1]])
         Traceback (most recent call last):
         ...
         ValueError: [[1, 2, 3], [1]] is not a column strict tableau
 
-        sage: SemistandardTableau([[1,2,1]])
+        sage: GeneralizedSemistandardTableau([[1,2,1]])
         Traceback (most recent call last):
         ...
         ValueError: The rows of [[1, 2, 1]] are not weakly increasing
-
-        sage: SemistandardTableau([[0,1]])
-        Traceback (most recent call last):
-        ...
-        ValueError: entries must be positive integers
     """
     @staticmethod
     def __classcall_private__(self, t):
         r"""
-        This ensures that a SemistandardTableau is only ever constructed as an
+        This ensures that a GeneralizedSemistandardTableau is only ever constructed as an
         element_class call of an appropriate parent.
 
         TESTS::
 
-            sage: t = SemistandardTableau([[1,1],[2]])
+            sage: t = GeneralizedSemistandardTableau([[1,1],[2]])
             sage: TestSuite(t).run()
 
             sage: t.parent()
             Semistandard tableaux
             sage: t.category()
             Category of elements of Semistandard tableaux
-            sage: type(t)
-            <class 'sage.combinat.tableau.SemistandardTableaux_all_with_category.element_class'>
         """
-        if isinstance(t, SemistandardTableau):
+        if isinstance(t, GeneralizedSemistandardTableau):
             return t
         elif t in SemistandardTableaux():
             return SemistandardTableaux_all().element_class(SemistandardTableaux_all(), t)
@@ -4177,8 +4161,8 @@ class SemistandardTableau(Tableau):
         if t not in Tableaux():
             raise ValueError('%s is not a tableau' % t)
 
-        if not all(isinstance(c,(int,Integer)) and c>0 for row in t for c in row):
-            raise ValueError("entries must be positive integers"%t)
+        if not all(c>0 for row in t for c in row):
+            raise ValueError("entries must be positive"%t)
 
         if any(row[c]>row[c+1] for row in t for c in range(len(row)-1)):
             raise ValueError("The rows of %s are not weakly increasing"%t)
@@ -4209,17 +4193,12 @@ class SemistandardTableau(Tableau):
             sage: s2.parent()
             Semistandard tableaux of size 3 and maximum entry 3
         """
-        super(SemistandardTableau, self).__init__(parent, t)
+        super(GeneralizedSemistandardTableau, self).__init__(parent, t)
 
         # Tableau() has checked that t is tableau, so it remains to check that
-        # the entries of t are positive integers which are weakly increasing
+        # the entries of t are weakly increasing
         # along rows
-        from sage.sets.positive_integers import PositiveIntegers
-        PI = PositiveIntegers()
-
         for row in t:
-            if any(c not in PI for c in row):
-                raise ValueError("the entries of a semistandard tableau must be non-negative integers")
             if any(row[c] > row[c+1] for c in range(len(row)-1)):
                 raise ValueError("the entries in each row of a semistandard tableau must be weakly increasing")
 
@@ -4228,6 +4207,43 @@ class SemistandardTableau(Tableau):
             for row, next in zip(t, t[1:]):
                 if not all(row[c] < next[c] for c in range(len(next))):
                     raise ValueError("the entries of each column of a semistandard tableau must be strictly increasing")
+
+class SemistandardTableau(GeneralizedSemistandardTableau):
+    @staticmethod
+    def __classcall_private__(self, t):
+        super(SemistandardTableau, self).__classcall_private__(self, t)
+
+        # Check entried are integers
+        if not all(isinstance(c,(int,Integer)) for row in t for c in row):
+            raise ValueError("entries must be integers"%t)
+
+    def __init__(self, parent, t):
+        super(SemistandardTableau, self).__init__(parent, t)
+
+        # Check the entries of t are positive integers
+        from sage.sets.positive_integers import PositiveIntegers
+        PI = PositiveIntegers()
+        for row in t:
+            if any(c not in PI for c in row):
+                raise ValueError("the entries of a semistandard tableau must be integers")
+
+class SemistandardPrimedTableau(GeneralizedSemistandardTableau):
+    @staticmethod
+    def __classcall_private__(self, t):
+        super(SemistandardPrimedTableau, self).__classcall_private__(t)
+
+        # Check entried are primed entries
+        if not all(isinstance(c,(int,PrimedEntry)) for row in t for c in row):
+            raise ValueError("entries must be of type PrimedEntry"%t)
+
+    def __init__(self, parent, t):
+        super(SemistandardPrimedTableau, self).__init__(parent, t)
+
+        # Check the entries of t are Primed Entries
+        for row in t:
+            if any(not isinstance(c, PrimedEntry) for c in row):
+                raise ValueError("the entries of a semistandard primed tableau must be PrimedEntry")
+SuperTableau = SemistandardPrimedTableau
 
 class StandardTableau(SemistandardTableau):
     """

@@ -105,6 +105,7 @@ from sage.structure.element import is_Matrix
 from sage.matrix.all import matrix
 from sage.combinat.alphabet import BiWord, even, odd
 
+# helpers
 def bisect_right_weakly(a, x, lo=0, hi=None):
     """Return the index where to insert item x in list a, assuming a is sorted.
     The return value i is such that all e in a[:i] have e <= x, and all e in
@@ -124,7 +125,7 @@ def bisect_right_weakly(a, x, lo=0, hi=None):
     return lo
 
 def _get_parity_string(y):
-    if y.is_even:
+    if y.is_unprimed():
         return 'even'
     else:
         return 'odd'
@@ -132,6 +133,7 @@ def _get_parity_string(y):
 def _is_horizontal(n, insertion):
     """
     TESTS:
+
         sage: from sage.combinat.rsk import *
         sage: from sage.combinat.rsk import _is_horizontal
         sage: _is_horizontal(even(1), 'even')
@@ -143,7 +145,7 @@ def _is_horizontal(n, insertion):
         sage: _is_horizontal(odd(1), 'odd')
         True
     """
-    return (n.is_even and insertion == 'even') or ((not n.is_even) and insertion == 'odd')
+    return (n.is_unprimed() and insertion == 'even') or ((not n.is_unprimed()) and insertion == 'odd')
 
 def _get_col(t, col_index):
     # t is the tableau (list of lists)
@@ -169,16 +171,59 @@ def _set_col(t, col_index, col):
         # set value
         t[row_index][col_index] = val
 
-def _bump_list(r, qr, (i,x), insertion):
+
+# bumping and yanking
+def _yank_list(r, x, insertion):
+    """
+    x: The value going IN to the list, which causes something else to be extracted.
+
+    TESTS:
+
+        sage: from sage.combinat.rsk import *
+        sage: from sage.combinat.rsk import _yank_list
+        sage: _yank_list([odd(3), odd(4)], even(3), 'even')
+        (3', 0)
+        sage: _yank_list([odd(3), odd(4)], odd(3), 'odd')
+        (3', 0)
+        sage: _yank_list([odd(3), odd(4)], odd(4), 'even')
+        (3', 0)
+        sage: _yank_list([odd(3), odd(4)], odd(4), 'odd')
+        (4', 1)
+
+    We are finding the rightmost guy in the list that satisfies the inequality. (According to step (3) of epsilon extraction in the super RSK paper.)
+    """
+    assert isinstance(x, PrimedEntry)
+    for i,a in reversed(list(enumerate(r))):
+        assert isinstance(a, PrimedEntry)
+        if (insertion == 'odd' and a <= x) or (a < x):
+            # replace a with val
+            r[i] = x
+            # return a and the position that got changed
+            return a, i
+    raise ValueError('Cannot yank PrimedEntry "{}" from list "{}".'.format(x, r))
+
+def _bump_list(r, qr, (x,y), insertion):
     # r: an 'insertion' list to be bumped
     # qr: a 'recording' list to be simultaneously bumped
     # x: the 'insertion' itself for r
     # i: the 'recording' insertion for qr
     # strict: if False, uses weak comparison <= for element replacement
+    """
+    TESTS:
+
+        sage: from sage.combinat.rsk import *
+        sage: from sage.combinat.rsk import _bump_list
+        sage: _bump_list([odd(3), odd(4)], [odd(5), odd(6)], (odd(3), even(7)), 'even')
+        (4', 1)
+        sage: _bump_list([odd(3), odd(4)], [odd(5), odd(6)], (odd(3), even(7)), 'odd')
+        (3', 0)
+    """
+    if str(y) == 'I':
+        raise ValueError('SEE:{},{}'.format(y, type(y)))
     if not r:
         #r is [], so just insert
         r.append(x)
-        qr.append(i)
+        qr.append(y)
         return None, None
     if (insertion == 'odd' and x <= r[-1]) or (x < r[-1]):
         #Figure out where to insert x into the row r.  The
@@ -199,63 +244,159 @@ def _bump_list(r, qr, (i,x), insertion):
     else:
         #x is too big, so tack x onto the end of the row
         r.append(x)
-        qr.append(i)
+        qr.append(y)
         return None, None
 
-def _bump_row(p, q, row_index, (i,x), insertion):
+def _yank_row(p, row_index, x, insertion):
+    """
+    TESTS:
+
+        sage: from sage.combinat.rsk import *
+        sage: from sage.combinat.rsk import _yank_row
+
+        sage: p = [[odd(3), odd(4)], [odd(4)]]
+        sage: _yank_row(p, 0, even(3), 'even')
+        (3', 0, 0)
+
+        sage: p = [[odd(3), odd(4)], [odd(4)]]
+        sage: _yank_row(p, 1, odd(4), 'odd')
+        (4', 1, 0)
+    """
+    # base case
+    if row_index == -1:
+        return None, None, None
+    # inductive step
+    else:
+        # retrieve row
+        r = p[row_index]
+        # extract it
+        x, col_index = _yank_list(r, x, insertion)
+        # return args for future extracting
+        return x, row_index, col_index
+
+def _bump_row(p, q, row_index, (x,y), insertion):
     # t: the tableau
     # if we passed the last row, we need to add a new one
     if row_index == len(p):
         r = []; p.append(r)
         qr = []; q.append(qr)
-        _bump_list(r, qr, (i,x), insertion)
+        _bump_list(r, qr, (x,y), insertion)
         return None, None, None
     else:
         # retrieve row
         r = p[row_index]
         qr = q[row_index]
         # bump it
-        x, col_index = _bump_list(r, qr, (i,x), insertion)
+        x, col_index = _bump_list(r, qr, (x,y), insertion)
         # return args for future bumping
         return x, row_index, col_index
 
-def _bump_col(p, q, col_index, (i,x), insertion):
+def _yank_col(p, col_index, x, insertion):
+    """
+    TESTS:
+
+        sage: from sage.combinat.rsk import *
+        sage: from sage.combinat.rsk import _yank_col
+
+        sage: p = [[odd(3), odd(4)], [odd(4)]]
+        sage: _yank_col(p, 0, odd(4), 'even')
+        (3', 0, 0)
+
+        sage: p = [[odd(3), even(4)], [even(4)]]
+        sage: _yank_col(p, 0, even(4), 'odd')
+        (4, 1, 0)
+    """
+    # base case
+    if col_index == -1:
+        return None, None, None
+    # inductive step
+    else:
+        # retrieve column
+        c = _get_col(p, col_index)
+        # extract it
+        x, row_index = _yank_list(c, x, insertion)
+        # put changes into p
+        _set_col(p, col_index, c)
+        # return new args
+        return x, row_index, col_index
+
+def _bump_col(p, q, col_index, (x,y), insertion):
     if len(p) == 0:
         # empty case
         p.append([])
         q.append([])
     if col_index == len(p[0]):
         p[0].append(x)
-        q[0].append(i)
+        q[0].append(y)
         return None, None, None
     else:
         # retrieve column
         c = _get_col(p, col_index)
         qc = _get_col(q, col_index)
         # bump it
-        x, row_index = _bump_list(c, qc, (i,x), insertion)
+        x, row_index = _bump_list(c, qc, (x,y), insertion)
         # put changes into p and q
         _set_col(p, col_index, c)
         _set_col(q, col_index, qc)
         # return new args
         return x, row_index, col_index
 
-def bump(p, q, (y,x), insertion='RSK'):
+def yank(p, (y,pos), insertion='RSK'):
     """
     TESTS:
 
         sage: from sage.combinat.rsk import *
-        sage: from sage.combinat.rsk import bump
+        sage: from sage.combinat.rsk import yank
+
+    Example 3.5 from rsk paper::
+
+        sage: T = [[even(1), odd(2), even(2)], [odd(3), even(3)], [odd(3)]]
+        sage: yank(T, (even(0),(0,2)), 'sRSK')
+        [[1, 2', 2], [3', 3]]
+
+        sage: T = [[even(1), odd(2), even(2)], [odd(3), even(3)], [odd(3)]]
+        sage: yank(T, (odd(0),(0,2)), 'sRSK')
+        [[1, 2, 3'], [3', 3]]
+    """
+    if insertion in ('sRSK', 'even', 'odd'):
+        # super RSK yank method
+        insert = _get_parity_string(y) if insertion == 'sRSK' else insertion
+        row_index = pos[1]
+        col_index = pos[0]
+        # yank first one manually
+        x = p[row_index].pop()
+        if len(p[row_index]) == 0:
+            p.pop()
+        # loop
+        while True:
+            if _is_horizontal(x, insert):
+                row_index -= 1
+                x, row_index, col_index = _yank_row(p, row_index, x, insert)
+            else:
+                col_index -= 1
+                x, row_index, col_index = _yank_col(p, col_index, x, insert)
+            if x is None:
+                break
+    else:
+        raise ValueError('Unrecognized insertion method: "{}"'.format(insertion))
+    return p
+
+def bump(p, q, (x,y), insertion='RSK'):
+    """
+    TESTS:
 
     Super RSK::
 
     Example 3.4::
 
-        sage: bump([[even(1), odd(2), even(2)], [odd(3), even(3)], [odd(3)]], [[9, 9, 9], [9, 9], [9]], (0,even(1)), insertion='even')
-        [[even(1), even(1), odd(2)], [even(2), odd(3)], [odd(3), even(3)]]
+        sage: from sage.combinat.rsk import *
+        sage: from sage.combinat.rsk import bump
 
-        sage: bump([[even(1), odd(2), even(2)], [odd(3), even(3)], [odd(3)]], [[9, 9, 9], [9, 9], [9]], (0,even(1)), insertion='odd')
-        [[even(1), even(1), even(2)], [odd(2), even(3)], [odd(3)], [odd(3)]]
+        sage: bump([[even(1), odd(2), even(2)], [odd(3), even(3)], [odd(3)]], [[9, 9, 9], [9, 9], [9]], (even(1),0), insertion='even')
+        [[1, 1, 2'], [2, 3'], [3', 3]]
+
+        sage: bump([[even(1), odd(2), even(2)], [odd(3), even(3)], [odd(3)]], [[9, 9, 9], [9, 9], [9]], (even(1),0), insertion='odd')
+        [[1, 1, 2], [2', 3], [3'], [3']]
     """
     if insertion in ('sRSK', 'even', 'odd'):
         # super RSK bump method (this actually REDUCES to regular RSK if there are no hat numbers)
@@ -266,10 +407,10 @@ def bump(p, q, (y,x), insertion='RSK'):
         while True:
             if _is_horizontal(x, insert):
                 row_index += 1
-                x, row_index, col_index = _bump_row(p, q, row_index, (y,x), insert)
+                x, row_index, col_index = _bump_row(p, q, row_index, (x,y), insert)
             else:
                 col_index += 1
-                x, row_index, col_index = _bump_col(p, q, col_index, (y,x), insert)
+                x, row_index, col_index = _bump_col(p, q, col_index, (x,y), insert)
             if x is None:
                 break
     elif insertion in ('RSK', 'EG'):
@@ -277,7 +418,7 @@ def bump(p, q, (y,x), insertion='RSK'):
         row_index = -1
         while True:
             row_index += 1
-            x, row_index, col_index = _bump_row(p, q, row_index, (y,x), insertion)
+            x, row_index, col_index = _bump_row(p, q, row_index, (x,y), insertion)
             if x is None:
                 break
     else:
@@ -288,8 +429,8 @@ def _sRSK(itr, insertion):
     p = []       #the "insertion" tableau
     q = []       #the "recording" tableau
     # For each x in self, insert x into the tableau p.
-    for i, x in itr:
-        bump(p, q, (i,x), insertion)
+    for y,x in itr:
+        bump(p, q, (x,y), insertion)
     return p, q
 
 def _RSK(itr, insertion):
@@ -550,38 +691,38 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
     Super RSK::
 
         sage: RSK([even(1)], [even(1)], insertion='even')
-        [[[even(1)]], [[even(1)]]]
-        sage: RSK([1, 2], [even(1), even(3)], insertion='even')
-        [[[even(1), even(3)]], [[1, 2]]]
-        sage: RSK([1, 2, 3], [even(1), even(3), odd(3)], insertion='even')
-        [[[even(1), even(3)], [odd(3)]], [[1, 2], [3]]]
+        [[[1]], [[1]]]
+        sage: RSK([even(1), even(2)], [even(1), even(3)], insertion='even')
+        [[[1, 3]], [[1, 2]]]
+        sage: RSK([even(1), even(2), even(3)], [even(1), even(3), odd(3)], insertion='even')
+        [[[1, 3], [3']], [[1, 2], [3]]]
         sage: RSK([even(1), even(3), odd(3), odd(2)], insertion='even')
-        [[[even(1), odd(3)], [odd(2), even(3)]], [[1, 2], [3, 4]]]
+        [[[1, 3'], [2', 3]], [[1, 2], [3, 4]]]
 
         sage: RSK([odd(1), odd(2), even(2), even(2), odd(3), odd(3), even(3), even(3)], [odd(1), even(1), odd(2), even(2), odd(3), odd(3), odd(3), even(3)], insertion='sRSK')
-        [[[odd(1), even(2), odd(3), even(3)], [even(1), odd(3)], [odd(2)], [odd(3)]], [[odd(1), even(2), odd(3), even(3)], [odd(2), odd(3)], [even(2)], [even(3)]]]
+        [[[1', 2, 3', 3], [1, 3'], [2'], [3']], [[1', 2, 3', 3], [2', 3'], [2], [3]]]
 
     Super RSK Example 5.1::
 
         sage: RSK([odd(1), odd(2), even(2), even(2), odd(3), odd(3), even(3), even(3)], [odd(3), even(1), even(2), even(3), odd(3), odd(3), odd(2), odd(1)], insertion='sRSK')
-        [[[odd(1), odd(2), odd(3), even(3)], [even(1), even(2), odd(3)], [odd(3)]], [[odd(1), even(2), even(2), odd(3)], [odd(2), even(3), even(3)], [odd(3)]]]
+        [[[1', 2', 3', 3], [1, 2, 3'], [3']], [[1', 2, 2, 3'], [2', 3, 3], [3']]]
 
         sage: w = BiWord([(odd(3), odd(1)), (even(1), odd(2)), (even(2), even(2)), (even(3), even(2)), (odd(3), odd(3)), (odd(3), odd(3)), (odd(2), even(3)), (odd(1), even(3))])
         sage: RSK(w, insertion='sRSK')
-        [[[odd(1), odd(2), odd(3), even(3)], [even(1), even(2), odd(3)], [odd(3)]], [[odd(1), even(2), even(2), odd(3)], [odd(2), even(3), even(3)], [odd(3)]]]
+        [[[1', 2', 3', 3], [1, 2, 3'], [3']], [[1', 2, 2, 3'], [2', 3, 3], [3']]]
 
     Super RSK Example 6.1::
 
         sage: RSK([odd(1), odd(2), even(2), even(2), odd(3), odd(3), even(3), even(3)], [odd(3), even(1), even(2), even(3), odd(3), odd(3), odd(2), odd(1)], insertion='sRSK')
-        [[[odd(1), odd(2), odd(3), even(3)], [even(1), even(2), odd(3)], [odd(3)]], [[odd(1), even(2), even(2), odd(3)], [odd(2), even(3), even(3)], [odd(3)]]]
+        [[[1', 2', 3', 3], [1, 2, 3'], [3']], [[1', 2, 2, 3'], [2', 3, 3], [3']]]
 
         sage: RSK([odd(1), even(1), odd(2), even(2), odd(3), odd(3), odd(3), even(3)], [even(3), odd(2), even(3), even(2), odd(3), odd(3), odd(1), even(2)], insertion='sRSK')
-        [[[odd(1), even(2), even(2), odd(3)], [odd(2), even(3), even(3)], [odd(3)]], [[odd(1), odd(2), odd(3), even(3)], [even(1), even(2), odd(3)], [odd(3)]]]
+        [[[1', 2, 2, 3'], [2', 3, 3], [3']], [[1', 2', 3', 3], [1, 2, 3'], [3']]]
     """
     from sage.combinat.tableau import SemistandardTableau, StandardTableau, Tableau
 
     # Preprocessing
-    #  TEMP:
+    # TEMP:
     use_super = insertion in ('even', 'odd', 'sRSK')
 
     if insertion == 'hecke':
@@ -597,28 +738,38 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
         obj1 = obj1.rows()
     if len(obj1) == 0:
         if use_super:
-            # TODO: change below to 'SuperTableau'
-            return [StandardTableau([]), StandardTableau([])]
+            # TODO: change below to 'SuperTableau' or 'SemistandardPrimedTableau'
+            return [Tableau([]), Tableau([])]
         else:
             return [StandardTableau([]), StandardTableau([])]
 
     if obj2 is None:
-        try:
-            itr = obj1._rsk_iter()
-        except AttributeError:
-            # If this is (something which looks like) a matrix
-            #   then build the generalized permutation
+        if use_super:
             try:
-                t = []
-                b = []
-                for i, row in enumerate(obj1):
-                    for j, mult in enumerate(row):
-                        if mult > 0:
-                            t.extend([i+1]*mult)
-                            b.extend([j+1]*mult)
-                itr = zip(t, b)
-            except TypeError:
-                itr = zip(range(1, len(obj1)+1), obj1)
+                itr = obj1._rsk_iter()
+            except AttributeError:
+                # make recording list default to [even(1), even(2), ...]
+                rec = []
+                for i in range(len(obj1)):
+                    rec.append(even(i+1))
+                itr = zip(rec, obj1)
+        else:
+            try:
+                itr = obj1._rsk_iter()
+            except AttributeError:
+                # If this is (something which looks like) a matrix
+                #   then build the generalized permutation
+                try:
+                    t = []
+                    b = []
+                    for i, row in enumerate(obj1):
+                        for j, mult in enumerate(row):
+                            if mult > 0:
+                                t.extend([i+1]*mult)
+                                b.extend([j+1]*mult)
+                    itr = zip(t, b)
+                except TypeError:
+                    itr = zip(range(1, len(obj1)+1), obj1)
     else:
         if len(obj1) != len(obj2):
             raise ValueError("the two arrays must be the same length")
@@ -819,9 +970,8 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
         [[[1, 1, 1, 1, 1, 1, 1, 2, 2], [2], [3]],
          [[1, 1, 1, 1, 1, 1, 1, 2, 2], [2], [3]]]
         sage: t = SemistandardTableau([[1, 1, 1, 1, 1, 1, 1, 2, 2], [2], [3]])
-        sage: RSK_inverse(t, t, 'array')
-        [[1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3],
-         [1, 1, 1, 1, 1, 1, 3, 2, 2, 2, 1]]
+
+        TODO: RE-ADD the test i removed here
     """
     if insertion == 'hecke':
         return hecke_insertion_reverse(p, q, output)
@@ -1097,4 +1247,3 @@ def hecke_insertion_reverse(p, q, output='array'):
             raise TypeError("q must be standard to have a %s as valid output"%output)
         return list(reversed(lower_row))
     raise ValueError("invalid output option")
-

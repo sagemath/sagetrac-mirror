@@ -1015,8 +1015,13 @@ class PrimedEntry(SageObject):
 
         TESTS::
 
-            sage: ShiftedPrimedTableau([[1,"2p"]])[0][1]
+            sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
+            sage: PrimedEntry("2p")
             2'
+            sage: PrimedEntry(1)
+            1
+            sage: PrimedEntry("1'")
+            1'
         """
         if self.is_unprimed():
             return repr(self._entry // 2)
@@ -1079,6 +1084,8 @@ class PrimedEntry(SageObject):
             sage: a = PrimedEntry("2p")
             sage: b = PrimedEntry(2)
             sage: a < b
+            True
+            sage: PrimedEntry("2'") < PrimedEntry(2)
             True
         """
         return self._entry < PrimedEntry(other)._entry
