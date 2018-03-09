@@ -581,7 +581,7 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
     from sage.combinat.tableau import SemistandardTableau, StandardTableau, Tableau
 
     # Preprocessing
-    # TEMP:
+    #  TEMP:
     use_super = insertion in ('even', 'odd', 'sRSK')
 
     if insertion == 'hecke':
