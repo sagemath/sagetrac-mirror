@@ -1005,11 +1005,12 @@ cdef class SymbolicRing(CommutativeRing):
             sage: f.roots(RR)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert 'do_not_use_this_name_in_a_polynomial_coefficient' to a real number
+            TypeError: Cannot evaluate symbolic expression to a numeric value.
+
             sage: f.roots(CC)
             Traceback (most recent call last):
             ...
-            NameError: name 'do_not_use_this_name_in_a_polynomial_coefficient' is not defined
+            TypeError: Cannot evaluate symbolic expression to a numeric value.
         """
         if p.degree() == 2:
             from sage.functions.other import sqrt

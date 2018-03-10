@@ -7438,20 +7438,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
              (0.500000000000000 + 0.866025403784439*I, 5)]
         """
         K = self._parent.base_ring()
+        L = K if ring is None else ring
         # If the base ring has a method _roots_univariate_polynomial,
         # try to use it. An exception is raised if the method does not
         # handle the current parameters
-        if hasattr(K, '_roots_univariate_polynomial'):
+        if hasattr(L, '_roots_univariate_polynomial'):
             try:
-                return K._roots_univariate_polynomial(self, ring=ring, multiplicities=multiplicities, algorithm=algorithm, **kwds)
+                return L._roots_univariate_polynomial(self, ring=ring, multiplicities=multiplicities, algorithm=algorithm, **kwds)
             except NotImplementedError:
                 # This does not handle something, so keep calm and continue on
                 pass
 
         if kwds:
             raise TypeError("roots() got unexpected keyword argument(s): {}".format(kwds.keys()))
-
-        L = K if ring is None else ring
 
         late_import()
 
