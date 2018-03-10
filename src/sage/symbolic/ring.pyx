@@ -978,6 +978,68 @@ cdef class SymbolicRing(CommutativeRing):
 
         return _the_element.subs(d, **kwds)
 
+    def _roots_univariate_polynomial(self, p, ring=None, multiplicities=True,
+            algorithm=None):
+        r"""
+        At the moment this delegates to
+        :meth:`sage.symbolic.expression.Expression.solve`
+        which in turn uses Maxima to find radical solutions.
+        Some solutions may be lost in this approach.
+        Once :trac:`17516` gets implemented, all possible radical
+        solutions should become available.
+
+        EXAMPLES::
+
+            sage: R.<x> = SR[]
+            sage: (x^2 + x + 1).roots(SR)
+            [(-1/2*I*sqrt(3) - 1/2, 1), (1/2*I*sqrt(3) - 1/2, 1)]
+            sage: (x^3 + x^2 + x + 1).roots(SR)
+            [(-I, 1), (I, 1), (-1, 1)]
+
+        TESTS:
+
+        This shows that the issue at :trac:`10901` is fixed::
+
+            sage: a = var('a'); R.<x> = SR[]
+            sage: f = x - a
+            sage: f.roots(RR)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert 'do_not_use_this_name_in_a_polynomial_coefficient' to a real number
+            sage: f.roots(CC)
+            Traceback (most recent call last):
+            ...
+            NameError: name 'do_not_use_this_name_in_a_polynomial_coefficient' is not defined
+        """
+        if p.degree() == 2:
+            from sage.functions.other import sqrt
+            from sage.libs.pynac.pynac import I
+            coeffs = p.list()
+            D = coeffs[1]*coeffs[1] - 4*coeffs[0]*coeffs[2]
+            if D > 0:
+                l = [((-coeffs[1]-sqrt(D))/2/coeffs[2], 1), 
+                     ((-coeffs[1]+sqrt(D))/2/coeffs[2], 1)] 
+            elif D < 0:
+                l = [((-coeffs[1]-I*sqrt(-D))/2/coeffs[2], 1), 
+                     ((-coeffs[1]+I*sqrt(-D))/2/coeffs[2], 1)]
+            else:
+                l = [(-coeffs[1]/2/coeffs[2]), 2]
+            if multiplicities:
+                return l
+            else:
+                return [val for val,m in l]
+        L = self if ring is None else ring
+        vname = 'do_not_use_this_name_in_a_polynomial_coefficient'
+        var = L(vname)
+        expr = p(var)
+        rts = expr.solve(var,
+                         explicit_solutions=True,
+                         multiplicities=multiplicities)
+        if multiplicities:
+            return [(rt.rhs(), mult) for rt, mult in zip(*rts)]
+        else:
+            return [rt.rhs() for rt in rts]
+
     def subring(self, *args, **kwds):
         r"""
         Create a subring of this symbolic ring.

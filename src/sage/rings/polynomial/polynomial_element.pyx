@@ -7318,12 +7318,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         If L is SR, then the roots will be radical expressions,
         computed as the solutions of a symbolic polynomial expression.
-        At the moment this delegates to
-        :meth:`sage.symbolic.expression.Expression.solve`
-        which in turn uses Maxima to find radical solutions.
-        Some solutions may be lost in this approach.
-        Once :trac:`17516` gets implemented, all possible radical
-        solutions should become available.
 
         If L is AA or RIF, and K is ZZ, QQ, or AA, then the root isolation
         algorithm sage.rings.polynomial.real_roots.real_roots() is used.
@@ -7403,19 +7397,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: eps = 2^(-50)   # we test the roots numerically
             sage: [abs(p(rt)) < eps for rt in rts] == [True]*50
             True
-
-        This shows that the issue at :trac:`10901` is fixed::
-
-            sage: a = var('a'); R.<x> = SR[]
-            sage: f = x - a
-            sage: f.roots(RR)
-            Traceback (most recent call last):
-            ...
-            TypeError: Cannot evaluate symbolic expression to a numeric value.
-            sage: f.roots(CC)
-            Traceback (most recent call last):
-            ...
-            TypeError: Cannot evaluate symbolic expression to a numeric value.
 
         We can find roots of polynomials defined over `\ZZ` or `\QQ`
         over the `p`-adics, see :trac:`15422`::
@@ -7556,36 +7537,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return rts_mult
             else:
                 return [rt for (rt, mult) in rts_mult]
-
-        from sage.symbolic.ring import SR
-        if L is SR:
-            if self.degree() == 2:
-                from sage.functions.other import sqrt
-                from sage.libs.pynac.pynac import I
-                coeffs = self.list()
-                D = coeffs[1]*coeffs[1] - 4*coeffs[0]*coeffs[2]
-                if D > 0:
-                    l = [((-coeffs[1]-sqrt(D))/2/coeffs[2], 1), 
-                         ((-coeffs[1]+sqrt(D))/2/coeffs[2], 1)] 
-                elif D < 0:
-                    l = [((-coeffs[1]-I*sqrt(-D))/2/coeffs[2], 1), 
-                         ((-coeffs[1]+I*sqrt(-D))/2/coeffs[2], 1)]
-                else:
-                    l = [(-coeffs[1]/2/coeffs[2]), 2]
-                if multiplicities:
-                    return l
-                else:
-                    return [val for val,m in l]
-            vname = 'do_not_use_this_name_in_a_polynomial_coefficient'
-            var = SR(vname)
-            expr = self(var)
-            rts = expr.solve(var,
-                             explicit_solutions=True,
-                             multiplicities=multiplicities)
-            if multiplicities:
-                return [(rt.rhs(), mult) for rt, mult in zip(*rts)]
-            else:
-                return [rt.rhs() for rt in rts]
 
         if L != K or is_AlgebraicField_common(L):
             # So far, the only "special" implementations are for real
