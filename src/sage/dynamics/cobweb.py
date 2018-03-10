@@ -2,7 +2,7 @@ from sage.plot.plot import plot
 from sage.plot.line import line
 from sage.rings.real_double import RDF
 from sage.misc.prandom import random
-from sage.misc.misc import srange
+from sage.arith.srange import srange
 from sage.plot.point import point
 
 
