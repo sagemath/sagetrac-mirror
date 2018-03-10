@@ -231,6 +231,13 @@ def numerical_integral(func, a, b=None,
         Traceback (most recent call last):
         ...
         TypeError: unable to simplify to float approximation
+     
+     Check that :trac:`16788` is fixed::
+
+        sage: numerical_integral(sin(x^2)/(x^2), 1,infinity, max_points=10^10)
+        Traceback (most recent call last):
+        ...
+        MemoryError: could not allocate workspace: max_points too big
    """
 
    import inspect
@@ -317,45 +324,45 @@ def numerical_integral(func, a, b=None,
       gsl_integration_qng(&F,_a,_b,eps_abs,eps_rel,&result,&abs_err,&n)
       sig_off()
 
-   elif algorithm=="qag":
+   elif algorithm == "qag":
+      W = <gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
+      if W == NULL:
+         raise MemoryError('could not allocate workspace: max_points too big')
+      
       from sage.rings.infinity import Infinity
       if a is -Infinity and b is +Infinity:
-         W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
          sig_on()
          gsl_integration_qagi(&F,eps_abs,eps_rel,n,W,&result,&abs_err)
          sig_off()
 
       elif a is -Infinity:
-         _b=b
-         W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
+         _b = b
          sig_on()
          gsl_integration_qagil(&F,_b,eps_abs,eps_rel,n,W,&result,&abs_err)
          sig_off()
 
       elif b is +Infinity:
-         _a=a
-         W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
+         _a = a
          sig_on()
          gsl_integration_qagiu(&F,_a,eps_abs,eps_rel,n,W,&result,&abs_err)
          sig_off()
 
       else:
-         _a=a
-         _b=b
-         W = <gsl_integration_workspace*> gsl_integration_workspace_alloc(n)
+         _a = a
+         _b = b
          sig_on()
          gsl_integration_qag(&F,_a,_b,eps_abs,eps_rel,n,rule,W,&result,&abs_err)
          sig_off()
 
-
    elif algorithm == "qags":
-
-        W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
-        sig_on()
-        _a=a
-        _b=b
-        gsl_integration_qags(&F,_a,_b,eps_abs,eps_rel,n,W,&result,&abs_err)
-        sig_off()
+      W = <gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
+      if W == NULL:
+         raise MemoryError('could not allocate workspace: max_points too big')
+      sig_on()
+      _a = a
+      _b = b
+      gsl_integration_qags(&F,_a,_b,eps_abs,eps_rel,n,W,&result,&abs_err)
+      sig_off()
 
    else:
       raise TypeError("invalid integration algorithm")
