@@ -225,7 +225,7 @@ cdef class SymbolicRing(CommutativeRing):
             Symbolic Ring
             sage: K.<a> = QuadraticField(-3)
             sage: a + sin(x)
-            I*sqrt(3) + sin(x)
+            sin(x) + 1.732050807568878?*I
             sage: x=var('x'); y0,y1=PolynomialRing(ZZ,2,'y').gens()
             sage: x+y0/y1
             x + y0/y1
@@ -977,6 +977,70 @@ cdef class SymbolicRing(CommutativeRing):
                     raise ValueError("the number of arguments must be less than or equal to %s"%len(vars))
 
         return _the_element.subs(d, **kwds)
+
+    def _roots_univariate_polynomial(self, p, ring=None, multiplicities=True,
+            algorithm=None):
+        r"""
+        At the moment this delegates to
+        :meth:`sage.symbolic.expression.Expression.solve`
+        which in turn uses Maxima to find radical solutions.
+        Some solutions may be lost in this approach.
+        Once :trac:`17516` gets implemented, all possible radical
+        solutions should become available.
+
+        EXAMPLES::
+
+            sage: R.<x> = SR[]
+            sage: (x^2 + x + 1).roots(SR)
+            [(-1/2*I*sqrt(3) - 1/2, 1), (1/2*I*sqrt(3) - 1/2, 1)]
+            sage: (x^3 + x^2 + x + 1).roots(SR)
+            [(-I, 1), (I, 1), (-1, 1)]
+
+        TESTS:
+
+        This shows that the issue at :trac:`10901` is fixed::
+
+            sage: a = var('a'); R.<x> = SR[]
+            sage: f = x - a
+            sage: f.roots(RR)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot evaluate symbolic expression to a numeric value.
+
+            sage: f.roots(CC)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot evaluate symbolic expression to a numeric value.
+        """
+        if p.degree() == 2:
+            from sage.functions.other import sqrt
+            from sage.libs.pynac.pynac import I
+            coeffs = p.list()
+            D = coeffs[1]*coeffs[1] - 4*coeffs[0]*coeffs[2]
+            if D > 0:
+                l = [((-coeffs[1]-sqrt(D))/2/coeffs[2], 1), 
+                     ((-coeffs[1]+sqrt(D))/2/coeffs[2], 1)] 
+            elif D < 0:
+                l = [((-coeffs[1]-I*sqrt(-D))/2/coeffs[2], 1), 
+                     ((-coeffs[1]+I*sqrt(-D))/2/coeffs[2], 1)]
+            else:
+                l = [(-coeffs[1]/2/coeffs[2]), 2]
+            if multiplicities:
+                return l
+            else:
+                return [val for val,m in l]
+        vname = 'do_not_use_this_name_in_a_polynomial_coefficient'
+        var = SR(vname)
+        if ring is not None:
+            var = ring(var)
+        expr = p(var)
+        rts = expr.solve(var,
+                         explicit_solutions=True,
+                         multiplicities=multiplicities)
+        if multiplicities:
+            return [(rt.rhs(), mult) for rt, mult in zip(*rts)]
+        else:
+            return [rt.rhs() for rt in rts]
 
     def subring(self, *args, **kwds):
         r"""
