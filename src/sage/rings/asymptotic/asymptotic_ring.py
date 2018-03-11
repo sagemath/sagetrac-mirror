@@ -236,7 +236,7 @@ is not invertible, since it includes `0`.
 
 
 Powers, Exponentials and Logarithms
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It works as simple as it can be; just use the usual operators ``^``,
 ``exp`` and ``log``. For example, we obtain the usual series expansion
@@ -3738,6 +3738,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             x + y
             sage: S(2*x - 4*x*y^6)  # indirect doctest
             -4*x*y^6 + 2*x
+            sage: S(x^3 + y^2 + (x+y).Order())
+            x^3 + O(x) + y^2 + O(y)
 
         ::
 
