@@ -225,7 +225,7 @@ cdef class SymbolicRing(CommutativeRing):
             Symbolic Ring
             sage: K.<a> = QuadraticField(-3)
             sage: a + sin(x)
-            sin(x) + 1.732050807568878?*I
+            I*sqrt(3) + sin(x)
             sage: x=var('x'); y0,y1=PolynomialRing(ZZ,2,'y').gens()
             sage: x+y0/y1
             x + y0/y1
@@ -1012,7 +1012,12 @@ cdef class SymbolicRing(CommutativeRing):
             ...
             TypeError: Cannot evaluate symbolic expression to a numeric value.
         """
-        if p.degree() == 2:
+        deg = p.degree()
+        if deg < 1:
+            p = p.list()[0]
+            if is_Expression(p):
+                deg = p.degree(p.variables()[0])
+        if deg == 2:
             from sage.functions.other import sqrt
             from sage.libs.pynac.pynac import I
             coeffs = p.list()
@@ -1029,11 +1034,15 @@ cdef class SymbolicRing(CommutativeRing):
                 return l
             else:
                 return [val for val,m in l]
-        vname = 'do_not_use_this_name_in_a_polynomial_coefficient'
-        var = SR(vname)
-        if ring is not None:
-            var = ring(var)
-        expr = p(var)
+        if is_Expression(p):
+            expr = p
+            var = p.variables()[0]
+        else:
+            vname = 'do_not_use_this_name_in_a_polynomial_coefficient'
+            var = SR(vname)
+            if ring is not None:
+                var = ring(var)
+            expr = p(var)
         rts = expr.solve(var,
                          explicit_solutions=True,
                          multiplicities=multiplicities)
