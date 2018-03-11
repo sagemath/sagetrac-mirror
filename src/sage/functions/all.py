@@ -86,3 +86,5 @@ from .hypergeometric import hypergeometric, hypergeometric_M, hypergeometric_U
 
 from .gamma import (gamma, psi, beta, log_gamma,
                     gamma_inc, incomplete_gamma, gamma_inc_lower)
+
+from .riemann_theta import RiemannTheta
