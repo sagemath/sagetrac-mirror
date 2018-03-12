@@ -568,12 +568,13 @@ class Maxima(MaximaAbstract, Expect):
         self._display_prompt = '<sage-display>'
         # See #15440 for the importance of the trailing space
         self._output_prompt_re = re.compile('\(\%o[0-9]+\) ')
-        self._ask = ['zero or nonzero\\?', 'an integer\\?',
-                     'positive, negative or zero\\?', 'positive or negative\\?',
-                     'positive or zero\\?', 'equal to .*\\?']
-        self._prompt_wait = [self._prompt] + [re.compile(x) for x in self._ask] + \
-                            ['Break [0-9]+'] #note that you might need to change _expect_expr if you
-                                             #change this
+        self._ask = [b'zero or nonzero\\?', b'an integer\\?',
+                     b'positive, negative or zero\\?', b'positive or negative\\?',
+                     b'positive or zero\\?', b'equal to .*\\?']
+        self._prompt_wait = ([self._prompt.encode('ascii')] +
+                             [re.compile(x) for x in self._ask] +
+                             [b'Break [0-9]+'])  # note that you might need to change _expect_expr if you
+                                                 # change this
         self._error_re = re.compile('(Principal Value|debugmode|incorrect syntax|Maxima encountered a Lisp error)')
         self._display2d = False
 
@@ -652,7 +653,7 @@ class Maxima(MaximaAbstract, Expect):
             '9'
         """
         self._sendstr(string)
-        os.write(self._expect.child_fd, os.linesep)
+        os.write(self._expect.child_fd, os.linesep.encode('ascii'))
 
     def _expect_expr(self, expr=None, timeout=None):
         """
@@ -712,7 +713,7 @@ class Maxima(MaximaAbstract, Expect):
             self._start()
         try:
             if timeout:
-                i = self._expect.expect(expr,timeout=timeout)
+                i = self._expect.expect(expr, timeout=timeout)
             else:
                 i = self._expect.expect(expr)
             if i > 0:
