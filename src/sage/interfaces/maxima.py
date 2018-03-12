@@ -790,7 +790,7 @@ class Maxima(MaximaAbstract, Expect):
         else:
             self._sendline(line)
 
-        line_echo = self._expect.readline()
+        line_echo = self._readline()
         if not wait_for_prompt:
             return
         # line_echo sometimes has randomly inserted terminal echo in front #15811
