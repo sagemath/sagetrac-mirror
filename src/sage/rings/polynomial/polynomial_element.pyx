@@ -2479,6 +2479,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x = coeffs[n]
             is_nonzero = False
             try:
+                print(4,x,type(x))
                 is_nonzero = bool(x)
             except NotImplementedError:
                 # for some elements it is not possible/feasible to determine
@@ -10401,6 +10402,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             sage: parent(x._new_constant_poly(y+1, R))
             Univariate Polynomial Ring in x over Univariate Polynomial Ring in y over Rational Field
         """
+        print(3,a,type(a))
         if a:
             return self._new_c([a],P)
         else:
@@ -10447,6 +10449,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         """
         cdef list x = self.__coeffs
         cdef Py_ssize_t n = len(x) - 1
+        print(1, n, x)
         while n >= 0 and not x[n]:
             del x[n]
             n -= 1

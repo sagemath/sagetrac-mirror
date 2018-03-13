@@ -2840,6 +2840,7 @@ cdef class Expression(CommutativeRingElement):
         if self_is_zero:
             return False
         else:
+            print(2,self,self._parent)
             return not bool(self == self._parent.zero())
 
     def test_relation(self, int ntests=20, domain=None, proof=True):

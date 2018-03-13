@@ -1568,6 +1568,7 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
             raise TypeError("Base ring %s must be a commutative ring."%repr(base_ring))
         # We trust that, if a category is given, that it is useful.
         if category is None:
+            print(0, base_ring)
             if base_ring.is_zero():
                 category = categories.rings.Rings().Finite()
             else:
