@@ -719,7 +719,7 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
         sage: RSK([odd(1), even(1), odd(2), even(2), odd(3), odd(3), odd(3), even(3)], [even(3), odd(2), even(3), even(2), odd(3), odd(3), odd(1), even(2)], insertion='sRSK')
         [[[1', 2, 2, 3'], [2', 3, 3], [3']], [[1', 2', 3', 3], [1, 2, 3'], [3']]]
     """
-    from sage.combinat.tableau import SemistandardTableau, StandardTableau, Tableau
+    from sage.combinat.tableau import SemistandardTableau, StandardTableau, Tableau, SemistandardSuperTableau
 
     # Preprocessing
     # TEMP:
@@ -738,8 +738,7 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
         obj1 = obj1.rows()
     if len(obj1) == 0:
         if use_super:
-            # TODO: change below to 'SuperTableau' or 'SemistandardPrimedTableau'
-            return [Tableau([]), Tableau([])]
+            return [SemistandardSuperTableau([]), SemistandardSuperTableau([])]
         else:
             return [StandardTableau([]), StandardTableau([])]
 
@@ -793,8 +792,8 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
         raise ValueError('Unrecognized insertion method: "{}"'.format(insertion))
 
     # Return correct object
-    if use_super: # <-- Temp.  change to SuperTableau
-        return [Tableau(p), Tableau(q)]
+    if use_super:
+        return [SemistandardSuperTableau(p), SemistandardSuperTableau(q)]
     if check_standard:
         try:
             P = StandardTableau(p)

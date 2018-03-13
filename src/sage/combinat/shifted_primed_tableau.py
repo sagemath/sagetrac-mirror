@@ -51,7 +51,7 @@ class ShiftedPrimedTableau(ClonableArray):
     r"""
     A shifted primed tableau.
 
-    A primed tableau is a tableau of shifted shape in the alphabet
+    A shifted primed tableau is a tableau of shifted shape in the alphabet
     `X' = \{1' < 1 < 2' < 2 < \cdots < n' < n\}` such that
 
     1. the entries are weakly increasing along rows and columns;
