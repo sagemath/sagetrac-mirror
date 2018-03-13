@@ -259,7 +259,6 @@ from sage.misc.misc import uniq
 from sage.misc.cachefunc import cached_method
 from .backtrack import GenericBacktracker
 from sage.combinat.combinatorial_map import combinatorial_map
-from sage.combinat.rsk import RSK, RSK_inverse
 from sage.combinat.permutation_cython import (left_action_product,
              right_action_product, left_action_same_n, right_action_same_n,
              map_to_list, next_perm)
@@ -432,6 +431,7 @@ class Permutation(CombinatorialElement):
             Standard permutations
         """
         import sage.combinat.tableau as tableau
+        from sage.combinat.rsk import RSK_inverse
         if isinstance(l, Permutation):
             return l
         elif isinstance(l, PermutationGroupElement):
@@ -4214,6 +4214,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([6,2,3,1,7,5,4]).robinson_schensted()
             [[[1, 3, 4], [2, 5], [6, 7]], [[1, 3, 5], [2, 6], [4, 7]]]
         """
+        from sage.combinat.rsk import RSK
         return RSK(self, check_standard=True)
 
     def _rsk_iter(self):
@@ -4247,6 +4248,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1,4,3,2]).left_tableau()
             [[1, 2], [3], [4]]
         """
+        from sage.combinat.rsk import RSK
         return RSK(self, check_standard=True)[0]
 
     @combinatorial_map(name='Robinson-Schensted recording tableau')
@@ -4260,6 +4262,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1,4,3,2]).right_tableau()
             [[1, 2], [3], [4]]
         """
+        from sage.combinat.rsk import RSK
         return RSK(self, check_standard=True)[1]
 
     def increasing_tree(self, compare=min):
@@ -4498,6 +4501,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1,4,3,2]).RS_partition()
             [2, 1, 1]
         """
+        from sage.combinat.rsk import RSK
         return RSK(self)[1].shape()
 
     def remove_extra_fixed_points(self):
