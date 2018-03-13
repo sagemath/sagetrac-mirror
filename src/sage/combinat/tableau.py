@@ -4132,13 +4132,13 @@ class PositiveTableau(Tableau):
 class IntegerTableau(Tableau):
     @staticmethod
     def __classcall_private__(self, t):
-        super(SemistandardTableau, self).__classcall_private__(self, t)
+        super(IntegerTableau, self).__classcall_private__(self, t)
         # Check entried are integers
         if not all(isinstance(c, (int,Integer)) for row in t for c in row):
             raise ValueError("entries must be integers"%t)
 
     def __init__(self, parent, t):
-        super(SemistandardTableau, self).__init__(parent, t)
+        super(IntegerTableau, self).__init__(parent, t)
         # Check the entries of t are positive integers
         for row in t:
             if any(not isinstance(c, (int,Integer)) for c in row):
