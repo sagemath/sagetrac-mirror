@@ -821,6 +821,28 @@ def is_commutative(x):
     """
     return x.is_commutative()
 
+def is_trivial_zero(x):
+    """
+    Return ``True`` if ``x`` equals ``x.parent()(0)`` or ``0`` without
+    simplification.
+
+    EXAMPLES:
+
+    The first example does not try to simplify the expression, and
+    so is very fast::
+
+        sage: x = SR.var('x')
+        sage: is_trivial_zero(x*(x+1) - x^2 - x)
+        False
+        sage: bool(x*(x+1) - x^2 - x == 0)
+        True
+        sage: is_trivial_zero(RR(0))
+        True
+    """
+    if hasattr(x, 'is_trivial_zero'):
+        return x.is_trivial_zero()
+    return x == 0
+
 
 def is_even(x):
     """
