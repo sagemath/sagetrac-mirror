@@ -1,7 +1,7 @@
-$(PYTHON) numpy $(BLAS) cephes gsl glpk sphinx| pkgconfig pip matplotlib typing
+$(PYTHON) numpy $(BLAS) cephes gsl glpk | sphinx pkgconfig pip matplotlib
 
 matplotlib is needed to test cvxopt (i.e., if SAGE_CHECK=yes). See #12742.
-sphinx and typing are used to build docs (see #14645).
+sphinx is used to build docs (see #14645).
 ----------
 All lines of this file are ignored except the first.
 It is copied by SAGE_ROOT/build/make/install into SAGE_ROOT/build/make/Makefile.

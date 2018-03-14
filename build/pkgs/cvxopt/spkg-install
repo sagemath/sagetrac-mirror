@@ -28,24 +28,12 @@ fi
 
 sdh_pip_install .
 
-if [ $? -ne 0 ]; then
-    echo "Error building/installing cvxopt"
-    exit 1
-fi
-
 # install docs
-if [ "x$SAGE_SPKG_INSTALL_DOCS" = xyes ] ; then
-   cd doc
-   ${MAKE} -B html
-   if [ $? -ne 0 ]; then
-      echo "Error building the documentation"
-      exit 1
-   fi
-# checking to see if there is previously installed documentation.
-   if [ -d $SAGE_LOCAL/share/doc/cvxopt/html ] ; then
-      rm -rf $SAGE_LOCAL/share/doc/cvxopt/html
-   fi
-   mkdir -p $SAGE_LOCAL/share/doc/cvxopt/html
-   cp -r build/html/* $SAGE_LOCAL/share/doc/cvxopt/html/
-fi
+if [ "$SAGE_SPKG_INSTALL_DOCS" = yes ]; then
+    cd doc
+    $MAKE -B html || sdh_die "Error building the documentation"
 
+    docdir="$SAGE_LOCAL/share/doc/cvxopt"
+    rm -rf "$docdir"
+    mv build/html "$docdir"
+fi
