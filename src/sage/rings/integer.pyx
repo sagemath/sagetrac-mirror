@@ -4317,7 +4317,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ValueError("factorial -- self = (%s) must be nonnegative"%self)
 
         if not mpz_fits_uint_p(self.value):
-            from sage.functions.all import factorial
+            from sage.arith.all import factorial
             return factorial(self, hold=True)
 
         cdef Integer z = PY_NEW(Integer)

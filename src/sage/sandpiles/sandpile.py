@@ -327,7 +327,7 @@ from sage.combinat.set_partition import SetPartitions
 from sage.combinat.vector_partition import IntegerVectorsIterator
 from sage.env import SAGE_LOCAL
 from sage.functions.log import exp
-from sage.functions.other import binomial
+from sage.arith.all import binomial
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.graphs.all import DiGraph, Graph, graphs, digraphs
 from sage.probability.probability_distribution import GeneralDiscreteDistribution

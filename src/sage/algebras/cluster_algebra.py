@@ -350,13 +350,13 @@ from future_builtins import map
 
 from copy import copy
 
+from sage.arith.all import binomial
 from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism
 from sage.categories.rings import Rings
 from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
 from sage.combinat.permutation import Permutation
 from sage.functions.generalized import sign
-from sage.functions.other import binomial
 from sage.geometry.cone import Cone
 from sage.geometry.fan import Fan
 from sage.matrix.constructor import identity_matrix, matrix

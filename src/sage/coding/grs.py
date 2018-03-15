@@ -59,7 +59,8 @@ from .linear_code import AbstractLinearCode
 from .encoder import Encoder
 from .decoder import Decoder, DecodingError
 from sage.misc.misc_c import prod
-from sage.functions.other import binomial, floor, sqrt
+from sage.arith.all import binomial
+from sage.functions.other import floor, sqrt
 from sage.calculus.var import var
 from sage.misc.functional import symbolic_sum
 from sage.rings.integer_ring import ZZ

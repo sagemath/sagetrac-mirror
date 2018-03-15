@@ -53,7 +53,7 @@ from sage.combinat.partition import Partition, Partitions
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.combinat import bell_number, stirling_number2
 from sage.combinat.permutation import Permutation
-from sage.functions.other import factorial
+from sage.arith.all import factorial
 from sage.misc.prandom import random, randint
 from sage.probability.probability_distribution import GeneralDiscreteDistribution
 

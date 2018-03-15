@@ -3140,11 +3140,9 @@ def binomial(x, m, **kwds):
         sage: R7(binomial(17, 7))
         2
 
-    For symbolic manipulation, you should use the function
-    :func:`~sage.functions.other.binomial` from the module
-    :mod:`sage.functions.other`::
+    For symbolic manipulation, we delegate to the function
+    :func:`~sage.functions.other.binomial`::
 
-        sage: from sage.functions.other import binomial
         sage: binomial(k, i)
         binomial(k, i)
     """

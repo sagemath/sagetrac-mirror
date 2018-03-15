@@ -316,7 +316,7 @@ from sage.rings.complex_field import is_ComplexField
 from sage.symbolic.ring import SR, is_SymbolicVariable
 from sage.symbolic.function import BuiltinFunction, GinacFunction
 from sage.symbolic.expression import Expression
-from sage.functions.other import factorial, binomial
+from sage.arith.all import factorial, binomial
 from sage.structure.all import parent
 
 class OrthogonalFunction(BuiltinFunction):
@@ -1540,7 +1540,7 @@ class Func_assoc_legendre_P(BuiltinFunction):
 
         - T. M. Dunster, Legendre and Related Functions, http://dlmf.nist.gov/14.7#E10
         """
-        from sage.functions.other import factorial
+        from sage.arith.all import factorial
         if n < 0 or m < 0:
             return
         R = PolynomialRing(QQ, 'x')

@@ -181,8 +181,7 @@ from six import add_metaclass
 from operator import mul
 from itertools import chain, product
 from sage.misc.all import prod
-from sage.functions.all import factorial
-from sage.arith.all import moebius, divisors
+from sage.arith.all import moebius, divisors, factorial
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
 from sage.structure.parent import Parent

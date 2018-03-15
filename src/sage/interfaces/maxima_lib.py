@@ -1233,7 +1233,7 @@ sage_op_dict = {
     sage.functions.log.ln : "%LOG",
     sage.functions.log.log : "%LOG",
     sage.functions.log.lambert_w : "%LAMBERT_W",
-    sage.functions.other.factorial : "MFACTORIAL",
+    sage.arith.misc.factorial : "MFACTORIAL",
     sage.functions.error.erf : "%ERF",
     sage.functions.gamma.gamma_inc : "%GAMMA_INCOMPLETE",
 }

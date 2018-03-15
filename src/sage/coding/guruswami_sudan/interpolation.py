@@ -20,7 +20,8 @@ from __future__ import absolute_import
 #*****************************************************************************
 
 
-from sage.functions.other import ceil, binomial
+from sage.functions.other import ceil
+from sage.arith.all import binomial
 from sage.matrix.constructor import matrix
 from sage.misc.misc_c import prod
 

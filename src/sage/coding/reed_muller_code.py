@@ -28,7 +28,7 @@ from six.moves import range
 
 from operator import mul
 from sage.matrix.constructor import matrix
-from sage.functions.other import binomial
+from sage.arith.all import binomial
 from sage.calculus.var import var
 from sage.misc.functional import symbolic_sum
 from sage.coding.linear_code import AbstractLinearCode, LinearCodeSyndromeDecoder

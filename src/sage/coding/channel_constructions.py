@@ -56,7 +56,7 @@ from sage.modules.free_module_element import vector
 from sage.misc.abstract_method import abstract_method
 from sage.categories.cartesian_product import cartesian_product
 from sage.modules.free_module import VectorSpace
-from sage.functions.other import binomial
+from sage.arith.all import binomial
 from copy import copy
 
 def random_error_vector(n, F, error_positions):

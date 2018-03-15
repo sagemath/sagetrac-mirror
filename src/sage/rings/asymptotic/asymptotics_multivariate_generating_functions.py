@@ -1783,9 +1783,10 @@ class FractionWithFactoredDenominator(RingElement):
              1/12*sqrt(3)*2^(2/3)*gamma(1/3)/(pi*r^(1/3))
               - 1/96*sqrt(3)*2^(1/3)*gamma(2/3)/(pi*r^(5/3)))
         """
+        from sage.arith.all import factorial
         from sage.calculus.functions import jacobian
         from sage.calculus.var import function
-        from sage.functions.other import factorial, sqrt
+        from sage.functions.other import sqrt
         from sage.functions.gamma import gamma
         from sage.functions.log import exp, log
         from sage.matrix.constructor import matrix
@@ -2162,11 +2163,12 @@ class FractionWithFactoredDenominator(RingElement):
             (3*((1/3)^(-a)*(1/3)^(-b))^r*e^(2/3), (1/3)^(-a)*(1/3)^(-b), 3*e^(2/3))
         """
         from itertools import product
+        from sage.arith.all import factorial
         from sage.calculus.functions import jacobian
         from sage.calculus.var import function
         from sage.combinat.combinat import stirling_number1
         from sage.functions.log import exp, log
-        from sage.functions.other import factorial, sqrt
+        from sage.functions.other import sqrt
         from sage.matrix.constructor import matrix
         from sage.misc.mrange import xmrange
         from sage.modules.free_module_element import vector

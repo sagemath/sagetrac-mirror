@@ -30,7 +30,8 @@ from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.modules.vector_space_morphism import linear_transformation
 from sage.matrix.constructor import matrix
-from sage.functions.other import sqrt, floor, ceil, binomial
+from sage.functions.other import sqrt, floor, ceil
+from sage.arith.all import binomial
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.graphs.graph import Graph
 from sage.graphs.digraph import DiGraph

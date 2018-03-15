@@ -22,7 +22,7 @@ from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
 from sage.categories.rings import Rings
 from sage.categories.fields import Fields
 
-from sage.functions.other import factorial
+from sage.arith.all import factorial
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.ncsym.bases import NCSymBases, MultiplicativeNCSymBases, NCSymBasis_abstract
 from sage.combinat.set_partition import SetPartitions

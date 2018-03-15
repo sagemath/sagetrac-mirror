@@ -861,7 +861,7 @@ cdef class Parser:
             operand2 = self.p_factor(tokens)
             return operand1 ** operand2
         elif token == "!":
-            from sage.functions.all import factorial
+            from sage.arith.all import factorial
             operand1 = factorial(operand1)
             if tokens.peek() == '^':
                 tokens.next()

@@ -234,7 +234,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
             sage: TestSuite(A).run()
 
         """
-        from sage.functions.other import binomial
+        from sage.arith.all import binomial
         self._fmodule = fmodule
         self._degree = degree
         rank = binomial(fmodule._rank, degree)
@@ -607,7 +607,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
             sage: TestSuite(A).run()
 
         """
-        from sage.functions.other import binomial
+        from sage.arith.all import binomial
         self._fmodule = fmodule
         self._degree = degree
         rank = binomial(fmodule._rank, degree)

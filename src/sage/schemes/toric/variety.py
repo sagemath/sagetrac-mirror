@@ -327,7 +327,7 @@ from six.moves import range
 
 import sys
 
-from sage.functions.all import factorial
+from sage.arith.all import factorial
 from sage.geometry.cone import Cone, is_Cone
 from sage.geometry.fan import Fan
 from sage.misc.all import latex, prod, cached_method

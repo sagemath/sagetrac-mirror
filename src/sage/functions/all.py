@@ -23,7 +23,6 @@ reciprocal_trig_functions = {'sec': cos, 'csc': sin, 'cot': tan, 'sech': cosh, '
 
 from .other import ( ceil, floor, abs_symbolic, sqrt,
                     arg, real_part, real, frac,
-                    factorial, binomial,
                     imag_part, imag, imaginary, conjugate, cases,
                     complex_root_of)
 from .log import (exp, exp_polar, log, ln, polylog, dilog, lambert_w, harmonic_number)

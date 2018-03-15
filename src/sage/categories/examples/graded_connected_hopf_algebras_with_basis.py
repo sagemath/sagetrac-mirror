@@ -8,9 +8,9 @@ Examples of graded connected Hopf algebras with basis
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.arith.all import binomial
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.functions.other import binomial
 from sage.misc.cachefunc import cached_method
 from sage.sets.non_negative_integers import NonNegativeIntegers
 

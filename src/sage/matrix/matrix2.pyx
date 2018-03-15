@@ -15181,7 +15181,7 @@ def _matrix_power_symbolic(A, n):
     """
     from sage.rings.qqbar import AlgebraicNumber
     from sage.matrix.constructor import matrix
-    from sage.functions.other import binomial
+    from sage.arith.all import binomial
     from sage.symbolic.ring import SR
     from sage.rings.qqbar import QQbar
 

@@ -1859,7 +1859,7 @@ class PseudoRiemannianMetric(TensorField):
             True
 
         """
-        from sage.functions.other import factorial
+        from sage.arith.all import factorial
         from sage.tensor.modules.format_utilities import format_unop_txt, \
                                                          format_unop_latex
         p = pform.tensor_type()[1]

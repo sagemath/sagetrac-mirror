@@ -3615,7 +3615,7 @@ class ExactTerm(TermWithCoefficient):
                 'Cannot build the factorial of {} since it has growth '
                 '!= 1.'.format(self))
 
-        from sage.functions.other import factorial
+        from sage.arith.all import factorial
         return self.parent()._create_element_in_extension_(
             self.growth, factorial(self.coefficient))
 

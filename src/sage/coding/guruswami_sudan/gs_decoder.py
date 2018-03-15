@@ -32,7 +32,8 @@ from sage.coding.guruswami_sudan.interpolation import gs_interpolation_linalg, g
 from sage.coding.guruswami_sudan.utils import (johnson_radius,
                                                gilt,
                                                solve_degree2_to_integer_range)
-from sage.functions.other import binomial, floor, sqrt
+from sage.functions.other import floor, sqrt
+from sage.arith.all import binomial
 
 def n_k_params(C, n_k):
     r"""
