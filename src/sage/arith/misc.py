@@ -432,19 +432,15 @@ def factorial(n, **kwds):
        very efficient at memory usage when doing factorial
        calculations.)
     """
-    def sym_factorial(x, **kwds):
-        if kwds.has_key('algorithm'):
-            kwds.pop('algorithm')
-        from sage.functions.other import factorial as sfactorial
-        return sfactorial(n, **kwds)
+    from sage.functions.other import factorial as sfactorial
     algorithm = kwds.get('algorithm', 'gmp')
     hold = kwds.get('hold', False)
     if hold:
-        return sym_factorial(n, **kwds)
+        return sfactorial(n, hold=hold)
     try:
         n = ZZ(n)
     except TypeError:
-        return sym_factorial(n, **kwds)
+        return sfactorial(n, hold=hold)
     if n < 0:
         raise ValueError("factorial -- must be nonnegative")
     if algorithm == 'gmp':
@@ -3151,9 +3147,9 @@ def binomial(x, m, **kwds):
         sage: binomial(x, x^2)
         binomial(x, x^2)
     """
+    from sage.functions.other import binomial as sbinomial
     hold = kwds.get('hold', False)
     if hold:
-        from sage.functions.other import binomial as sbinomial
         return sbinomial(x, m, hold=hold)
     try:
         m = ZZ(m)
@@ -3162,7 +3158,6 @@ def binomial(x, m, **kwds):
             m = ZZ(x-m)
         except TypeError:
             try:
-                from sage.functions.other import binomial as sbinomial
                 return sbinomial(x, m, hold=hold)
             except TypeError:
                 raise TypeError("either m or x-m must be an integer")
