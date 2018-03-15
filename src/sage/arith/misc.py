@@ -371,7 +371,7 @@ def bernoulli(n, algorithm='default', num_threads=1):
         raise ValueError("invalid choice of algorithm")
 
 
-def factorial(n, algorithm='gmp'):
+def factorial(n, **kwds):
     r"""
     Compute the factorial of `n`, which is the product
     `1\cdot 2\cdot 3 \cdots (n-1)\cdot n`.
@@ -432,10 +432,23 @@ def factorial(n, algorithm='gmp'):
        very efficient at memory usage when doing factorial
        calculations.)
     """
+    def sym_factorial(x, **kwds):
+        if kwds.has_key('algorithm'):
+            kwds.pop('algorithm')
+        from sage.functions.other import factorial as sfactorial
+        return sfactorial(n, **kwds)
+    algorithm = kwds.get('algorithm', 'gmp')
+    hold = kwds.get('hold', False)
+    if hold:
+        return sym_factorial(n, **kwds)
+    try:
+        n = ZZ(n)
+    except TypeError:
+        return sym_factorial(n, **kwds)
     if n < 0:
         raise ValueError("factorial -- must be nonnegative")
     if algorithm == 'gmp':
-        return ZZ(n).factorial()
+        return n.factorial()
     elif algorithm == 'pari':
         return pari.factorial(n)
     else:
@@ -3100,18 +3113,6 @@ def binomial(x, m, **kwds):
 
     Invalid inputs::
 
-        sage: x = polygen(ZZ)
-        sage: binomial(x, x^2)
-        Traceback (most recent call last):
-        ...
-        TypeError: either m or x-m must be an integer
-
-        sage: k, i = var('k,i')
-        sage: binomial(k,i)
-        Traceback (most recent call last):
-        ...
-        TypeError: either m or x-m must be an integer
-
         sage: R6 = Zmod(6)
         sage: binomial(R6(5), 2)
         Traceback (most recent call last):
@@ -3143,16 +3144,28 @@ def binomial(x, m, **kwds):
     For symbolic manipulation, we delegate to the function
     :func:`~sage.functions.other.binomial`::
 
+        sage: k, i = var('k,i')
         sage: binomial(k, i)
         binomial(k, i)
+        sage: x = polygen(ZZ)
+        sage: binomial(x, x^2)
+        binomial(x, x^2)
     """
+    hold = kwds.get('hold', False)
+    if hold:
+        from sage.functions.other import binomial as sbinomial
+        return sbinomial(x, m, hold=hold)
     try:
         m = ZZ(m)
     except TypeError:
         try:
             m = ZZ(x-m)
         except TypeError:
-            raise TypeError("either m or x-m must be an integer")
+            try:
+                from sage.functions.other import binomial as sbinomial
+                return sbinomial(x, m, hold=hold)
+            except TypeError:
+                raise TypeError("either m or x-m must be an integer")
 
     P = parent(x)
     x = py_scalar_to_element(x)

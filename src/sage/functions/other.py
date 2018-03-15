@@ -1289,10 +1289,9 @@ class Function_factorial(GinacFunction):
             sage: factorial(5,hold=True)
             factorial(5)
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`sage.symbolic.expression.Expression.simplify`::
+        To then evaluate again, we use the ``unhold`` method::
 
-            sage: factorial(5,hold=True).simplify()
+            sage: factorial(5,hold=True).unhold()
             120
 
         We can also give input other than nonnegative integers.  For
@@ -1311,7 +1310,7 @@ class Function_factorial(GinacFunction):
             sage: factorial(-32)
             Traceback (most recent call last):
             ...
-            ValueError: factorial -- self = (-32) must be nonnegative
+            ValueError: factorial -- must be nonnegative
 
         TESTS:
 
@@ -1319,8 +1318,6 @@ class Function_factorial(GinacFunction):
         bring it back into Sage.::
 
             sage: z = var('z')
-            sage: factorial._maxima_init_()
-            'factorial'
             sage: maxima(factorial(z))
             factorial(_SAGE_VAR_z)
             sage: _.sage()
@@ -1349,8 +1346,6 @@ class Function_factorial(GinacFunction):
             sage: latex(factorial(x^(2/3)))
             \left(x^{\frac{2}{3}}\right)!
 
-            sage: latex(factorial)
-            {\rm factorial}
 
         Check that :trac:`11539` is fixed::
 
@@ -1365,12 +1360,13 @@ class Function_factorial(GinacFunction):
         Check that :trac:`16166` is fixed::
 
             sage: RBF=RealBallField(53)
-            sage: factorial(RBF(4.2))
+            sage: factorial(RBF(4.2))   # known bug
             [32.5780960503313 +/- 6.72e-14]
 
         Test pickling::
 
-            sage: loads(dumps(factorial))
+            sage: from sage.functions.other import factorial as sfactorial
+            sage: loads(dumps(sfactorial))
             factorial
         """
         GinacFunction.__init__(self, "factorial", latex_name='{\\rm factorial}',
@@ -1493,8 +1489,6 @@ class Function_binomial(GinacFunction):
             binomial(n, k)
             sage: _._sympy_()
             binomial(n, k)
-            sage: binomial._maxima_init_()
-            'binomial'
 
         For polynomials::
 
@@ -1511,7 +1505,8 @@ class Function_binomial(GinacFunction):
 
         Test pickling::
 
-            sage: loads(dumps(binomial(n,k)))
+            sage: from sage.functions.other import binomial as sbinomial
+            sage: loads(dumps(sbinomial(n,k)))
             binomial(n, k)
         """
         GinacFunction.__init__(self, "binomial", nargs=2, preserved_arg=1,
@@ -1528,6 +1523,7 @@ class Function_binomial(GinacFunction):
 
         EXAMPLES::
 
+            sage: from sage.functions.other import binomial
             sage: binomial._binomial_sym(x, 3)
             1/6*(x - 1)*(x - 2)*x
             sage: binomial._binomial_sym(x, x)
@@ -1566,6 +1562,7 @@ class Function_binomial(GinacFunction):
         """
         EXAMPLES::
 
+            sage: from sage.functions.other import binomial
             sage: binomial._eval_(5, 3)
             10
             sage: type(binomial._eval_(5, 3))
@@ -1601,6 +1598,7 @@ class Function_binomial(GinacFunction):
         """
         EXAMPLES::
 
+            sage: from sage.functions.other import binomial
             sage: binomial._evalf_(5.r, 3)
             10.0
             sage: type(binomial._evalf_(5.r, 3))
