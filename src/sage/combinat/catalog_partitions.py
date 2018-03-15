@@ -20,6 +20,7 @@ Catalog
 - :ref:`sage.combinat.k_tableau`
 - :ref:`sage.combinat.rsk`
 - :ref:`sage.combinat.growth`
+- :ref:`sage.combinat.tableau_shifted`
 - :ref:`sage.combinat.tableau_residues`
 - :ref:`sage.combinat.shifted_primed_tableau`
 """
