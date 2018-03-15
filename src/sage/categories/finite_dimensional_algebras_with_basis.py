@@ -152,6 +152,9 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 'sage.categories.finite_dimensional_algebras_with_basis'
                 sage: A.radical_basis()
                 ()
+                sage: A = MatrixSpace(QQ, 3, 3)
+                sage: A.radical_basis()
+                ()
             """
             F = self.base_ring()
             if not F.is_field():
@@ -161,6 +164,9 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             from sage.modules.free_module_element import vector
 
             product_on_basis = self.product_on_basis
+            if product_on_basis is NotImplemented:
+                bs = self.basis()
+                product_on_basis = lambda x, y : (bs[x]*bs[y]).monomial_coefficients().items()
 
             if p == 0:
                 keys = list(self.basis().keys())
