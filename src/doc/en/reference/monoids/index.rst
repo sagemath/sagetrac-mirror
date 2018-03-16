@@ -18,5 +18,6 @@ finite number of indeterminates.
    sage/monoids/string_ops
    sage/monoids/hecke_monoid
    sage/monoids/automatic_semigroup
+   sage/monoids/beta_adic_monoid
 
 .. include:: ../footer.txt

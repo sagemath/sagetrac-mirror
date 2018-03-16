@@ -1,20 +1,23 @@
 # coding=utf8
 r"""
-Beta-adic Monoids
-
-AUTHORS:
-
-- Paul Mercat (2013)
+Beta-adic Monoids tools.
 
 Beta-adic monoids are finitely generated monoids with generators of the form
-	x -> beta*x + c
+
+    - :math:`x -> \beta  x + c`
+    
 where beta is a element of a field (for example a complex number),
 and c is varying in a finite set of numerals.
 It permits to describe beta-adic expansions, that is writing of numbers of the form
-	x = c_0 + c_1*beta + c_2*beta^2 + ...
-for c_i's in a finite set of numerals.
+    
+    - :math:`x = c_{0} + c_{1} \beta + c_{2} \beta^{2} +  ...`
+      for :math:`c_{i}` 's in a finite set of numerals.
 
+AUTHORS:
 
+- Paul Mercat (2013) initial version
+- Dominique Benielli (2018) 
+  AMU Aix-Marseille Universite - Integration in SageMath
 """
 
 #*****************************************************************************
@@ -53,9 +56,9 @@ from cysignals.signals cimport sig_on, sig_off
 #calcul de la valeur absolue p-adique (car non encore implémenté autrement)
 def absp (c, p, d):
 	"""
-	caculus of the p-adic absolute value (not yet implemented)
-	
-	INPUT:
+    caculus of the p-adic absolute value (not yet implemented)
+    
+    INPUT:
 	
 	- ``c`` first argument
 	- ``p`` second argument
@@ -70,6 +73,20 @@ def absp (c, p, d):
 
 #garde la composante fortement connexe de 0
 def emonde (a, K):
+	"""
+	Return the strongly connex component
+	
+	INPUT:
+	
+	- ``a`` a tree
+	- ``K`` 
+	
+	OUTPUT:
+    
+    the the strongly  connex component of a which 
+    correspond the the K zeros
+	
+	"""
 	for s in a.strongly_connected_components_subgraphs():
 		if K.zero() in s:
 			return s
@@ -210,7 +227,7 @@ cdef InfoBetaAdic initInfoBetaAdic (self, Cd=None, plus=True, verb=False) except
 	if verb: print "alloc..."
 	i = allocInfoBetaAdic(n, na, ncmax, verb)
 	cdef int j
-	#initialise bn
+	# initialise bn
 	if verb: print "init bn..."
 	getElement(b**n, i.bn, n)
 	#initialise b1
@@ -451,7 +468,7 @@ cdef BetaAdic2 getBetaAdic2 (self, la=None, ss=None, tss=None, prec=53, add_lett
 	cdef BetaAdic2 b
 	if la is None:
 		la = self.get_la(ss=ss, tss=tss, verb=verb)
-	  
+	
 	if add_letters:
 		C = set(self.C)
 		for a in la:
@@ -477,8 +494,21 @@ def PrintWord (m, n):
 
 ###used by compute_substitution()
 #donne la liste des feuilles du sous-arbre partant de e
-def fils (arbre, e):
-	if arbre[e] == []: #e est une feuille
+def fils (tree, e):
+	"""
+	Return the list of sheet's sub-tree  starting on e.
+	
+	INPUT:
+
+    - ``tree`` the tree.
+    - ``e`` the starting sheet.
+    
+    OUTPUT:
+    
+    list of ``tree`` sheet's sub-tree  starting on e.
+    
+	"""
+	if arbre[e] == []: # e is a 
 		return [e]
 	r = []
 	for f in arbre[e]:
@@ -487,11 +517,28 @@ def fils (arbre, e):
 
 #teste si a est inclus dans un des morceaux de l ou pas
 def included (a, l, lm):
+	"""
+	Return the index of 
+	
+	INPUT:
+	
+	- ``a`` word to find in ``l``.
+	- ``l`` including word to test
+	
+	OUTPUT:
+	
+	- the word in ``l`` if a is present
+	
+	- ``True`` if the aomata is empty
+	
+	- ``None`` 
+	
+	"""
 	#teste vite fait si l'on est inclus dans un morceau ou pas
 	incl = False
 	w = a.find_word()
 	if w is None:
-		print("Erreur : automate vide !")
+		print("Error : empty automata!")
 		return True
 	lr = []
 	for j in l:
@@ -501,7 +548,7 @@ def included (a, l, lm):
 				return j
 			else:
 				return None
-	print "******* Erreur : mot %s reconnu par aucun automate ! *********"%w
+	print "******* Error : word %s is conconize by any automata ! *********"%w
 	return None
 
 #split a1 selon ba (rend un couple (a11, a12) avec a11 la partie dans ba et a12 celle disjointe de ba)
@@ -902,7 +949,7 @@ class BetaAdicMonoid(Monoid_class):
 						place = p
 						#break
 		
-	   #from sage.rings.qqbar import QQbar
+		#from sage.rings.qqbar import QQbar
 		#from sage.rings.qqbar import QQbar, AA
 		#if QQbar(self.b) not in AA:
 		#	#print "not in AA !"
@@ -957,9 +1004,9 @@ class BetaAdicMonoid(Monoid_class):
 		sig_on()
 		cdef BetaAdic b
 		b = getBetaAdic(self, prec=prec, tss=tss, ss=ss, iss=iss, add_letters=add_letters, transpose=True, verb=verb)
-		#if verb:
-		#	printAutomaton(b.a)
-		#dessin
+		# if verb:
+		#	 printAutomaton(b.a)
+		# dessin
 		cdef Color col
 		col.r = color[0]
 		col.g = color[1]
@@ -2047,7 +2094,7 @@ class BetaAdicMonoid(Monoid_class):
 			return ssd
 		return p
 	
-	def intersection2 (self, ss1, ss2, verb = False): #calcule le sous-shift correspondant à l'intersection des deux monoïdes avec sous-shifts, utilise des FastAutomaton
+	def intersection2(self, ss1, ss2, verb = False): #calcule le sous-shift correspondant à l'intersection des deux monoïdes avec sous-shifts, utilise des FastAutomaton
 		r"""
 		Compute the intersection of two beta-adic monoid with subshifts given by FastAutomaton
 		
@@ -2934,7 +2981,7 @@ class BetaAdicMonoid(Monoid_class):
 		return a
 	
 	#calcule l'intersection des ensembles limites
-	def intersection2 (self, FastAutomaton a, FastAutomaton b, ext=True):
+	def intersection3(self, FastAutomaton a, FastAutomaton b, ext=True):
 		a2 = self.complete(a, ext=ext)
 		b2 = self.complete(b, ext=ext)
 		return a2.intersection(b2).emonde()
