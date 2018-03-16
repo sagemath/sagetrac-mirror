@@ -2537,6 +2537,23 @@ cdef class Expression(CommutativeRingElement):
 
     rhs = right = right_hand_side
 
+    def is_equal(self, other, simplify=False):
+        """
+        Check if this expression is equal to ``other`` with or without any
+        simplification.
+
+        EXAMPLES::
+
+            sage: (x*(x+1)).is_equal(x^2 + x)
+            False
+            sage: (x*(x+1)).is_equal(x^2 + x, simplify=True)
+            True
+        """
+        if simplify:
+            return bool(self == other)
+        else:
+            return self.is_trivially_equal(other)
+
     def is_trivially_equal(self, other):
         """
         Check if this expression is trivially equal to the argument
