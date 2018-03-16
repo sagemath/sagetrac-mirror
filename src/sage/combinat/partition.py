@@ -7670,11 +7670,15 @@ class StrictPartitions_size(StrictPartitions):
         """
         return ZZ(len( [1 for p in self._fast_iterator(self.n, self.n+1)] ))
 
-    def random_element(self, measure = 'uniform'):
+    def random_element(self, measure='uniform'):
         r"""
         Return a random strict partition.
 
-        EXAMPLE:
+        INPUT:
+
+        - ``measure`` -- (default ``"uniform"``) others not yet implemented
+
+        EXAMPLES::
 
             sage: from sage.combinat.partition import StrictPartitions
             sage: StrictPartitions(7).cardinality()  # random
