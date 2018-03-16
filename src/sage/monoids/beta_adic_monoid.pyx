@@ -13,6 +13,8 @@ and c is varying in a finite set of numerals.
 It permits to describe beta-adic expansions, that is writing of numbers of the form
 	x = c_0 + c_1*beta + c_2*beta^2 + ...
 for c_i's in a finite set of numerals.
+
+
 """
 
 #*****************************************************************************
@@ -50,6 +52,20 @@ from cysignals.signals cimport sig_on, sig_off
 
 #calcul de la valeur absolue p-adique (car non encore implémenté autrement)
 def absp (c, p, d):
+	"""
+	caculus of the p-adic absolute value (not yet implemented)
+	
+	INPUT:
+	
+	- ``c`` first argument
+	- ``p`` second argument
+	- ``d`` third argument
+	
+	OUTPUT:
+	
+	The p-adic absolute value
+	
+	"""
 	return ((c.polynomial())(p).norm().abs())**(1/d)
 
 #garde la composante fortement connexe de 0
