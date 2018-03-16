@@ -252,7 +252,7 @@ from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
 from sage.libs.gap.element cimport *
-
+from past.builtins import basestring
 
 ############################################################################
 ### Debugging ##############################################################

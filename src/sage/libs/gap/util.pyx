@@ -192,11 +192,11 @@ cdef initialize():
     cdef char* argv[14]
     argv[0] = "sage"
     argv[1] = "-l"
-    s = gap_root()
+    s = bytes(gap_root(), encoding="utf-8")
     argv[2] = s
 
     from sage.interfaces.gap import _get_gap_memory_pool_size_MB
-    memory_pool = _get_gap_memory_pool_size_MB()
+    memory_pool = bytes(_get_gap_memory_pool_size_MB(), encoding="utf-8")
     argv[3] = "-o"
     argv[4] = memory_pool
     argv[5] = "-s"
@@ -224,7 +224,7 @@ cdef initialize():
     libgap_initialize(argc, argv)
     gap_error_msg = str(libgap_get_output())
     libgap_finish_interaction()
-    if gap_error_msg:
+    if len(gap_error_msg) > 3: # i.e. it is not just b''
         raise RuntimeError('libGAP initialization failed\n' + gap_error_msg)
 
     # The error handler is called if a GAP evaluation fails, e.g. 1/0
