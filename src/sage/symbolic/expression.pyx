@@ -2586,6 +2586,23 @@ cdef class Expression(CommutativeRingElement):
         finally:
             sig_off()
 
+    def is_zero(self, simplify=False):
+        """
+        Check if this expression is equal to zero with or without any
+        simplification.
+
+        EXAMPLES::
+
+            sage: (x*(x+1) - x^2 - x).is_zero()
+            False
+            sage: (x*(x+1) - x^2 - x).is_zero(simplify=True)
+            True
+        """
+        if simplify:
+            return bool(self == 0)
+        else:
+            return self.is_trivial_zero()
+
     def is_trivial_zero(self):
         """
         Check if this expression is trivially equal to zero without any
@@ -2615,12 +2632,12 @@ cdef class Expression(CommutativeRingElement):
             sage: t = pi + (pi - 1)*pi - pi^2
             sage: t.is_trivial_zero()
             False
-            sage: t.is_zero()
+            sage: t.is_zero(simplify=True)
             True
             sage: u = sin(x)^2 + cos(x)^2 - 1
             sage: u.is_trivial_zero()
             False
-            sage: u.is_zero()
+            sage: u.is_zero(simplify=True)
             True
         """
         return self._gobj.is_zero()
@@ -2646,11 +2663,11 @@ cdef class Expression(CommutativeRingElement):
 
             sage: k = var('k')
             sage: pol = 1/(k-1) - 1/k - 1/k/(k-1)
-            sage: pol.is_zero()
+            sage: pol.is_zero(simplify=True)
             True
 
             sage: f = sin(x)^2 + cos(x)^2 - 1
-            sage: f.is_zero()
+            sage: f.is_zero(simplify=True)
             True
 
         TESTS:
@@ -2725,12 +2742,12 @@ cdef class Expression(CommutativeRingElement):
             sage: assume(a, 'integer')
             sage: assume(x, 'integer')
             sage: expr = a^(4*x) - (a^4)^x
-            sage: expr.is_zero()
+            sage: expr.is_zero(simplify=True)
             True
             sage: forget()
             sage: assume(a, 'complex')
             sage: assume(x, 'complex')
-            sage: expr.is_zero()
+            sage: expr.is_zero(simplify=True)
             False
             sage: forget()
 
@@ -11401,7 +11418,7 @@ cdef class Expression(CommutativeRingElement):
             sage: e=15*f6*x^2 + 5*f5*x + f4
             sage: res = e.roots(x); res
             [(-1/30*(5*f5 + sqrt(25*f5^2 - 60*f4*f6))/f6, 1), (-1/30*(5*f5 - sqrt(25*f5^2 - 60*f4*f6))/f6, 1)]
-            sage: e.subs(x=res[0][0]).is_zero()
+            sage: e.subs(x=res[0][0]).is_zero(simplify=True)
             True
         """
         if x is None:
