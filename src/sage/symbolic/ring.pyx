@@ -535,7 +535,7 @@ cdef class SymbolicRing(CommutativeRing):
         """
         try:
             x2 = self(x)
-            return bool(x2 == x)
+            return x2.is_equal(x, simplify=False)
         except TypeError:
             return False
 

@@ -218,7 +218,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
                 if (i < 0 or i >= self._nrows or j < 0 or j >= self._ncols):
                     raise IndexError("matrix indices {} out of range".format(key))
                 w = R(x)
-                if w:
+                if not w.is_zero():
                     v[(i,j)] = w
             entries = v
         else:

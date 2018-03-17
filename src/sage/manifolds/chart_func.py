@@ -735,7 +735,7 @@ class ChartFunction(AlgebraElement):
         """
         curr = self._calc_method._current
         if curr == 'SR' :
-            val = self.expr(curr).is_zero()
+            val = self.expr(curr).is_zero(simplify=True)
         elif curr == 'sympy' :
             val = self.expr(curr).is_zero
         return not val

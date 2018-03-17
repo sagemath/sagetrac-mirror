@@ -1098,7 +1098,8 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
                         error = abs(g(aa))
                         if error < expected_error:
                             # See if we can prove equality exactly
-                            if g(ex).simplify_trig().canonicalize_radical() == 0:
+                            t = g(ex).simplify_trig().canonicalize_radical()
+                            if t.is_zero(simplify=True):
                                 return g
                             # Otherwise fall back to numerical guess
                             elif epsilon and error < epsilon:

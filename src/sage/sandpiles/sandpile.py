@@ -1999,7 +1999,7 @@ class Sandpile(DiGraph):
         else:
             ker = self.laplacian().left_kernel().basis()
             tau = abs(ker[self._sink_ind])
-            if tau==1:
+            if tau.is_equal(1):
                 easy = True
             else:
                 easy = False

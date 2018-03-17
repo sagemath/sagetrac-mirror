@@ -121,7 +121,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
             self._entries = [zero]*(self._nrows*self._nrows)
             for i in range(self._nrows):
                 self._entries[i+self._ncols*i]=entries
-        elif entries == zero:
+        elif entries.is_zero():
             self._entries = [zero]*(self._nrows*self._ncols)
         else:
             raise TypeError("nonzero scalar matrix must be square")

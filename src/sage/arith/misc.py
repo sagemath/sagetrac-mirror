@@ -4254,9 +4254,11 @@ def falling_factorial(x, a):
     """
     from sage.symbolic.expression import Expression
     x = py_scalar_to_element(x)
-    if (isinstance(a, (Integer,) + integer_types) or
-        (isinstance(a, Expression) and
-         a.is_integer())) and a >= 0:
+    if ((isinstance(a, (Integer,) + integer_types)
+          and a >= 0)
+         or (isinstance(a, Expression)
+         and a.is_integer()
+         and (a.is_zero() or a.is_positive()))):
         return prod(((x - i) for i in range(a)), z=x.parent().one())
     from sage.functions.all import gamma
     return gamma(x+1) / gamma(x-a+1)

@@ -1665,15 +1665,16 @@ class FastCallableConverter(Converter):
         # instead gives a chance to notice powers with an integer
         # exponent before the exponent gets (potentially) converted
         # to another type.
+        from sage.rings.all import ZZ
         operands = ex.operands()
         if operator is _operator.pow:
             exponent = operands[1]
-            if exponent == -1:
+            if exponent.is_equal(-1):
                 return self.etb.call(_operator.truediv, 1, operands[0])
-            elif exponent == 0.5:
+            elif exponent.is_equal(ZZ(1)/2):
                 from sage.functions.all import sqrt
                 return self.etb.call(sqrt, operands[0])
-            elif exponent == -0.5:
+            elif exponent.is_equal(ZZ(-1)/2):
                 from sage.functions.all import sqrt
                 return self.etb.call(_operator.truediv, 1, self.etb.call(sqrt, operands[0]))
         elif operator is _operator.neg:

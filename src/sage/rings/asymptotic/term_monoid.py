@@ -2671,7 +2671,7 @@ class TermWithCoefficient(GenericTerm):
         except (ValueError, TypeError):
             raise ValueError('%s is not a coefficient in %s.' %
                              (coefficient, parent))
-        if coefficient == 0:
+        if coefficient.is_zero():
             raise ZeroCoefficientError(
                 'Zero coefficient %s is not allowed in %s.' %
                 (coefficient, parent))

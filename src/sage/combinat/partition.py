@@ -3208,11 +3208,12 @@ class Partition(CombinatorialElement):
         """
         size = prod(i ** mi * factorial(mi)
                     for i, mi in six.iteritems(self.to_exp_dict()))
-        if t or q:
-            size *= prod((ZZ.one() - q ** j) / (ZZ.one() - t ** j)
-                         for j in self)
 
-        return size
+        if ZZ(t).is_zero() and ZZ(q).is_zero():
+            return size
+
+        return size * prod((ZZ.one() - q ** j) / (ZZ.one() - t ** j)
+                         for j in self)
 
     def aut(self):
         r"""

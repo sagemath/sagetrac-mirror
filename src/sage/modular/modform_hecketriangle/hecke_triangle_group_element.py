@@ -3139,7 +3139,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: G.U().acton(p) == HyperbolicPlane().UHP().get_point(G.lam()).to_model('PD')
             True
         """
-
+        from sage.symbolic.expression import Expression
         if tau.parent() == self.parent():
             return self*tau*self.inverse()
 
@@ -3151,15 +3151,26 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         a,b,c,d = self._matrix.list()
 
-        if tau == infinity:
-            if c.is_zero():
+        if isinstance(tau, Expression):
+            if tau.is_equal(infinity):
+                if c.is_zero():
+                    result = infinity
+                else:
+                    result = a/c
+            elif (c*tau + d).is_zero():
                 result = infinity
             else:
-                result = a/c
-        elif c*tau + d == 0:
-            result = infinity
+                result = (a*tau + b) / (c*tau + d)
         else:
-            result = (a*tau + b) / (c*tau + d)
+            if tau == infinity:
+                if c.is_zero():
+                    result = infinity
+                else:
+                    result = a/c
+            elif c*tau + d == 0:
+                result = infinity
+            else:
+                result = (a*tau + b) / (c*tau + d)
 
         if model is None:
             return result

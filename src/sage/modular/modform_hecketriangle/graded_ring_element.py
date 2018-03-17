@@ -2164,18 +2164,18 @@ class FormsRingElement(six.with_metaclass(
 
         # In case the order is known
         try:
-            if (check or\
-                    tau == infinity or\
-                    tau == i or\
-                    tau == self.group().rho() or\
-                    tau == -self.group().rho().conjugate()):
+            if (check or
+                    tau.is_equal(infinity) or
+                    tau.is_equal(i) or
+                    tau.is_equal(self.group().rho()) or
+                    tau.is_equal(-self.group().rho().conjugate())):
                 order_tau = self.order_at(tau)
 
                 if (order_tau > 0):
                     return ZZ(0)
                 elif (order_tau < 0):
                     return infinity
-                elif (tau == infinity):
+                elif tau.is_equal(infinity):
                     return self.q_expansion(prec=1)[0]
         except (TypeError, NotImplementedError):
             pass

@@ -2512,6 +2512,9 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
+        #if isinstance(number, Expression):
+        #    if number.is_zero(simplify=True):
+        #        return self.parent().zero()
         if number == 0:
             return self.parent().zero()
         result = type(self)(self.parent())

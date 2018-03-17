@@ -4026,15 +4026,17 @@ def diff_all(f, V, n, ending=[], sub=None, sub_final=None,
         # Substitute sub_final into the values of derivs.
         for k in derivs:
             derivs[k] = subs_all(derivs[k], sub_final)
-    if rekey:
-        # Rekey the derivs dictionary by the value of rekey.
-        F = rekey
-        if singleton:
-            # F must be a singleton.
-            derivs = {diff(F, list(k)): derivs[k] for k in derivs}
-        else:
-            # F must be a list.
-            derivs = {diff(F[k[0]], list(k)[1:]): derivs[k] for k in derivs}
+    if rekey is None or rekey.is_zero():
+        return derivs
+
+    # Rekey the derivs dictionary by the value of rekey.
+    F = rekey
+    if singleton:
+        # F must be a singleton.
+        derivs = {diff(F, list(k)): derivs[k] for k in derivs}
+    else:
+        # F must be a list.
+        derivs = {diff(F[k[0]], list(k)[1:]): derivs[k] for k in derivs}
     return derivs
 
 
@@ -4127,7 +4129,7 @@ def diff_op(A, B, AB_derivs, V, M, r, N):
                 diffo = ZZ.zero()
                 for t in P:
                     idx = (j, k, l) + diff_seq(V, t)
-                    if product_derivs[idx] != ZZ.zero():
+                    if not product_derivs[idx].is_zero():
                         MM = ZZ.one()
                         for (a, b) in t:
                             MM *= M[a][b]

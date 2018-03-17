@@ -117,7 +117,10 @@ def xsrange(start, end=None, step=1, universe=None, *, coerce=True, bint include
             universe = Sequence([start, end, step]).universe()
         start, end, step = universe(start), universe(end), universe(step)
 
-    if not step:
+    if hasattr(step, 'is_zero'):
+        if step.is_zero():
+            raise ValueError("step argument must not be zero")
+    elif step == 0:
         raise ValueError("step argument must not be zero")
 
     count = (end - start) / step

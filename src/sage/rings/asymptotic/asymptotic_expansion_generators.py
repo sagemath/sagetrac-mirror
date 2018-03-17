@@ -1128,7 +1128,8 @@ class AsymptoticExpansionGenerators(SageObject):
         y, u = SR('y'), SR('u')
         one_half = QQ(1)/2
 
-        if phi(QQ(0)).is_zero() or phi(u) == phi(0) + u*phi(u).diff(u)(u=0):
+        if (phi(QQ(0)).is_zero()
+            or phi(u).is_equal(phi(0) + u*phi(u).diff(u)(u=0), simplify=True)):
             raise ValueError('The function phi does not satisfy the requirements')
 
         if tau is None:

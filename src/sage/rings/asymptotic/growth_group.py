@@ -900,7 +900,10 @@ def _rpow_(self, base):
         sage: _.parent()
         Growth Group QQ^n * n^QQ
     """
-    if base == 0:
+    if isinstance(base, str) and base == '0':
+        raise ValueError('%s is not an allowed base for calculating the '
+                         'power to %s.' % (base, self))
+    if not isinstance(base, str) and base.is_zero():
         raise ValueError('%s is not an allowed base for calculating the '
                          'power to %s.' % (base, self))
 
@@ -3083,7 +3086,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: GrowthGroup('x^QQ')(GrowthGroup('x^ZZ')(1))
             1
         """
-        if data == 1 or data == '1':
+        from sage.symbolic.ring import SR
+        if SR(data).is_equal(1) or SR(data).is_equal('1'):
             return self.base().zero()
         var = repr(self._var_)
         if str(data) == var:
@@ -3094,7 +3098,6 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         except AttributeError:
             if var not in str(data):
                 return  # this has to end here
-            from sage.symbolic.ring import SR
             return self._convert_(SR(data))
 
         from sage.symbolic.ring import SymbolicRing

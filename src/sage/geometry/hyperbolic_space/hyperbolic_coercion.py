@@ -292,7 +292,7 @@ class CoercionPDtoUHP(HyperbolicModelCoercion):
             sage: phi.image_coordinates(-I)
             0
         """
-        if x == I:
+        if (x - I).is_zero():
             return infinity
         return (x + I)/(Integer(1) + I*x)
 
