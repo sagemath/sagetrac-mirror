@@ -2595,13 +2595,10 @@ cdef class Expression(CommutativeRingElement):
             sage: x.is_trivially_equal(QQbar(1/2))
             True
         """
-        from .ring import SR
-        cdef Expression _other = <Expression>(SR(other))
-        sig_on()
         try:
-            return self._gobj.is_equal(_other._gobj)
-        finally:
-            sig_off()
+            return (self - other).is_trivial_zero()
+        except TypeError:
+            return False
 
     def is_zero(self, simplify=False):
         """

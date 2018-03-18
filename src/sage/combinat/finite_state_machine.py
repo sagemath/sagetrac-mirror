@@ -4168,7 +4168,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: F = Transducer([(0, 0, p, 1), (0, 0, q, 0)],
             ....:                on_duplicate_transition=duplicate_transition_add_input)
             sage: assume(p + q == 1)
-            sage: (p + q - 1).is_zero()
+            sage: (p + q - 1).is_zero(simplify=True)
             True
             sage: F.is_Markov_chain()
             True
@@ -4190,7 +4190,8 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             True
         """
         def default_is_zero(expression):
-            return expression.is_zero()
+            from sage.symbolic.ring import SR
+            return SR(expression).is_zero(simplify=True)
 
         is_zero_function = default_is_zero
         if is_zero is not None:

@@ -3209,8 +3209,11 @@ class Partition(CombinatorialElement):
         size = prod(i ** mi * factorial(mi)
                     for i, mi in six.iteritems(self.to_exp_dict()))
 
-        if ZZ(t).is_zero() and ZZ(q).is_zero():
-            return size
+        if hasattr(t, 'is_zero') and hasattr(q, 'is_zero'):
+                if t.is_zero() and q.is_zero():
+                        return size
+        elif t == 0 and q == 0:
+                return size
 
         return size * prod((ZZ.one() - q ** j) / (ZZ.one() - t ** j)
                          for j in self)

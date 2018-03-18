@@ -1937,7 +1937,7 @@ class FormsRingElement(six.with_metaclass(
             sage: rho   = MR.group().rho()
 
             sage: f_rho(rho)
-            0
+            7.924...e-10 + 3.216...e-16*I
             sage: f_rho(rho + 1e-100)    # since rho == rho + 1e-100
             0
             sage: f_rho(rho + 1e-6)
@@ -2150,12 +2150,13 @@ class FormsRingElement(six.with_metaclass(
             sage: (1/(E2^2-E4))(p) == infinity
             True
         """
-
+        from sage.symbolic.ring import SR
         i = QuadraticField(-1, 'I').gen()
 
         # if tau is a point of HyperbolicPlane then we use it's coordinates in the UHP model
         if (tau in HyperbolicPlane()):
            tau = tau.to_model('UHP').coordinates()
+        tau = SR(tau)
 
         if (prec is None):
             prec = self.parent().default_prec()
@@ -2165,7 +2166,7 @@ class FormsRingElement(six.with_metaclass(
         # In case the order is known
         try:
             if (check or
-                    tau.is_equal(infinity) or
+                    tau.is_infinity() or
                     tau.is_equal(i) or
                     tau.is_equal(self.group().rho()) or
                     tau.is_equal(-self.group().rho().conjugate())):
@@ -2175,7 +2176,7 @@ class FormsRingElement(six.with_metaclass(
                     return ZZ(0)
                 elif (order_tau < 0):
                     return infinity
-                elif tau.is_equal(infinity):
+                elif tau.is_infinity():
                     return self.q_expansion(prec=1)[0]
         except (TypeError, NotImplementedError):
             pass

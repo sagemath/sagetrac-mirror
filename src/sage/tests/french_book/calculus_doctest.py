@@ -150,7 +150,7 @@ Sage example in ./calculus.tex, line 460::
 
     sage: c.simplify_trig()
     0
-    sage: c.is_zero()
+    sage: c.is_zero(simplify=True)
     True
 
 Sage example in ./calculus.tex, line 516::
