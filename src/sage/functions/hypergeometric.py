@@ -536,7 +536,7 @@ class Hypergeometric(BuiltinFunction):
                 sage: hypergeometric([1, -2], [], x).is_terminating()
                 True
             """
-            if z == 0:
+            if z.is_zero():
                 return True
             for aa in a:
                 if (aa in ZZ) and (aa <= 0):

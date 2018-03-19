@@ -1515,7 +1515,7 @@ class FastFloatConverter(Converter):
             return operator(self(operands[0]))
 
         from sage.rings.all import Rational
-        if operator is _operator.pow and operands[1] == Rational(((1,2))):
+        if operator is _operator.pow and operands[1].is_equal(Rational(((1,2)))):
             from sage.functions.all import sqrt
             return sqrt(self(operands[0]))
         fops = map(self, operands)

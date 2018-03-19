@@ -171,7 +171,7 @@ class GenericDeclaration(SageObject):
         """
         if not isinstance(other, GenericDeclaration):
             return False
-        return (bool(self._var == other._var) and
+        return (self._var.is_equal(other._var) and
                 self._assumption == other._assumption)
 
     def __ne__(self, other):
@@ -207,7 +207,7 @@ class GenericDeclaration(SageObject):
             sage: d.has(y)
             False
         """
-        return (arg - self._var).is_trivial_zero()
+        return arg.is_equal(self._var)
 
     def assume(self):
         """
@@ -335,7 +335,7 @@ class GenericDeclaration(SageObject):
             value = soln.get(self._var)
             if value is None:
                 return False
-        elif soln.lhs() == self._var:
+        elif soln.lhs().is_equal(self._var):
             value = soln.rhs()
         else:
             return False

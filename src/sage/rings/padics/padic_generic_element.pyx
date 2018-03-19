@@ -3194,7 +3194,7 @@ def _findprec(c_1, c_2, c_3, p):
     from sage.functions.other import ceil
     k = Integer(max(ceil(c_2/c_1), 2))
     while True:
-        if c_1*k - c_2*k.log(p) > c_3:
+        if (c_1*k - c_2*k.log(p)).n() > c_3:
             return k
         k += 1
 

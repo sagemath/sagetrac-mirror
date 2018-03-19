@@ -2076,9 +2076,9 @@ class Func_laguerre(OrthogonalFunction):
             sage: laguerre(1, x)
             -x + 1
         """
-        if n == 0 or x == 0:
+        if n.is_zero() or x.is_zero():
             return ZZ(1)
-        if n == 1:
+        if n.is_equal(1):
             return ZZ(1) - x
 
     def _pol_laguerre(self, n, x):

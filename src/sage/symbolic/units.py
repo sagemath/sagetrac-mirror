@@ -1459,7 +1459,7 @@ def convert_temperature(expr, target):
         if target is not None:
             target_temp = target.variables()[0]
         a = sage_eval(unitdict['temperature'][str(expr_temp)], locals = {'x':coeff})
-        if  target is None or target_temp == units.temperature.kelvin:
+        if  target is None or target_temp.is_equal(units.temperature.kelvin):
             return a[0]*units.temperature.kelvin
         elif target_temp == units.temperature.celsius or target_temp == units.temperature.centigrade:
             return a[1]*target_temp
