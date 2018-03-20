@@ -44,3 +44,11 @@ def isfunction(obj):
 
 import inspect
 inspect.isfunction = isfunction
+
+# Set __version__ to the current version number.
+# This allows users to require a specific version of Sage with a simple assert, for example:
+# import sage
+# from distutils.version import LooseVersion
+# assert sage.__version__ >= LooseVersion('7.0')
+import pkg_resources
+__version__ = pkg_resources.require('sage')[0].version
