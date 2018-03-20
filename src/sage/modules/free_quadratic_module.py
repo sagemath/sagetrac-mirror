@@ -209,6 +209,14 @@ def FreeQuadraticModule(
             raise ValueError("An inner product ring different from the base ring may "+
                              "only be defined for integral domains.")
 
+    # We intentionally create a new matrix instead of using the given
+    # inner_product_matrix. This ensures that the matrix has the correct
+    # parent space. It also gets rid of subdivisions which is good
+    # because matrices with and without subdivisions compare equal.
+    # Because of uniqueness, we need a canonical matrix, which is the one
+    # without subdivisions.
+    MS = MatrixSpace(inner_product_ring, rank)
+    inner_product_matrix = MS(list(inner_product_matrix))
     inner_product_matrix.set_immutable()
 
     key = (base_ring, rank, inner_product_matrix, sparse)
