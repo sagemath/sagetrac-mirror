@@ -456,7 +456,10 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
     col.g = 80;
     col.b = 80;
     drawTransf(s, sf, un(), zero(), col);
-    SDL_BlitSurface(sf, NULL, screen, NULL);
+    if (SDL_BlitSurface(sf, NULL, screen, NULL) < 0)
+    {
+        printf("Error : %s", SDL_GetError());
+    }
     int np = 4;
     Complexe f = powC(b.b, -np);
     Complexe t;
@@ -529,7 +532,10 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
 					if (addA(&r, np)) //ajoute le morceau à l'automate
 					{ //si morceau ajouté
 						drawTransf(s, sf, f, t, colf);
-						SDL_BlitSurface(sf, NULL, screen, NULL);
+						if (SDL_BlitSurface(sf, NULL, screen, NULL) < 0)
+                        {
+                            printf("Error : %s", SDL_GetError());
+                        }
 						ComplexeToPoint(zero(), &x, &y, screen->w, screen->h);
 						DrawRond(x, y, screen);
 						SDL_UpdateWindowSurface(win);
@@ -538,7 +544,10 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
 				{
 					if (rt.x != t.x || rt.y != t.y)
 					{
-						SDL_BlitSurface(sf, NULL, screen, NULL);
+						if (SDL_BlitSurface(sf, NULL, screen, NULL) < 0)
+                        {
+                            printf("Error : %s", SDL_GetError());
+                        }
 						drawTransf(s, screen, f, t, col);
 						ComplexeToPoint(zero(), &x, &y, screen->w, screen->h);
 						DrawRond(x, y, screen);
