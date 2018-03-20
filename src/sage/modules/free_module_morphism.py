@@ -274,7 +274,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             sage: A = FreeQuadraticModule(ZZ,1,matrix([2]))
             sage: f = A.Hom(A).an_element()
             sage: f.inverse_image(A)
-            Free module of degree 1 and rank 1 over Integer Ring
+            Free quadratic module of degree 1 and rank 1 over Integer Ring
             Echelon basis matrix:
             [1]
         """

@@ -435,7 +435,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sage: L = IntegralLattice("A2")
             sage: Ldual=L.dual_lattice()
             sage: Ldual
-            Free module of degree 2 and rank 2 over Integer Ring
+            Free quadratic module of degree 2 and rank 2 over Integer Ring
             Echelon basis matrix:
             [1/3 2/3]
             [  0   1]
