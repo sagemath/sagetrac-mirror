@@ -79,7 +79,7 @@ from cysignals.signals cimport sig_on, sig_off
 #calcul de la valeur absolue p-adique (car non encore implémenté autrement)
 def absp (c, p, d):
     """
-    caculus of the p-adic absolute value (not yet implemented)
+    computation of the p-adic absolute value (not yet implemented)
 
     INPUT:
     
@@ -531,11 +531,11 @@ def fils (tree, e):
     list of ``tree`` sheet's sub-tree  starting on e.
     
     """
-    if arbre[e] == []: # e is a 
+    if tree[e] == []: # e is a 
         return [e]
     r = []
-    for f in arbre[e]:
-        r+=fils(arbre, f)
+    for f in tree[e]:
+        r+=fils(tree, f)
     return r
 
 #teste si a est inclus dans un des morceaux de l ou pas
@@ -739,7 +739,7 @@ class BetaAdicMonoid(Monoid_class):
                 else:
                     return "Monoid of b-adic expansion with b root of %s and numerals set %s"%(K.modulus(),self.C) + str
     
-    def testSDL (self):
+    def testSDL(self):
         sig_on()
         TestSDL()
         sig_off()    
@@ -931,13 +931,13 @@ class BetaAdicMonoid(Monoid_class):
 
         EXAMPLES:
 
-        #. The dragon fractal::
-        # sage: P = m.points()
-        #  sage: len(P)
-        #   32768
+            #. The dragon fractal::
+            
             sage: e = QQbar(1/(1+I))
-            sage: m = BetaAdicMonoid(e, {0,1})
-
+            sage: m = BetaAdicMonoid(e, {0,1})e = QQbar(1/(1+I))
+            sage: P = m.points() # long time
+            sage: len(P)
+            32768
         """
         
         C = self.C
@@ -957,7 +957,7 @@ class BetaAdicMonoid(Monoid_class):
             else:
                 n = 5
             from sage.functions.log import log
-            n = int(5.2/-log(abs(self.b.N(prec=prec))))
+            n = int(5.2/-log(abs(self.b.n(prec=prec))))
         
         from sage.rings.complex_field import ComplexField
         CC = ComplexField(prec)
@@ -965,7 +965,7 @@ class BetaAdicMonoid(Monoid_class):
             if abs(b) < 1:
                 #garde la place courante
                 #place = lambda x: CC(x.n())
-                return [CC(c).N(prec) for c in self.points_exact(n=n, ss=ss, iss=iss)]
+                return [CC(c).n(prec) for c in self.points_exact(n=n, ss=ss, iss=iss)]
             else:
                 #choisis une place
                 places = K.places()
@@ -983,7 +983,7 @@ class BetaAdicMonoid(Monoid_class):
         #else:
         #    #print "in AA !"
         #    return [place(c).conjugate().N() for c in self.points_exact(n=n, ss=ss, iss=iss)]
-        return [place(c).N(prec) for c in self.points_exact(n=n, ss=ss, iss=iss)]
+        return [place(c).n(prec) for c in self.points_exact(n=n, ss=ss, iss=iss)]
     
 #          if n == 0:
 #             #donne un point au hasard dans l'ensemble limite
@@ -2039,7 +2039,8 @@ class BetaAdicMonoid(Monoid_class):
             
             #. Compute the boundary of the dragon fractal (see intersection_words for a easier way) ::
 
-                sage: m = BetaAdicMonoid(1/(1+I), {0,1})
+                sage: e = QQbar(1/(1+I))
+                sage: m = BetaAdicMonoid(e, {0,1})
                 sage: ss=m.default_ss()
                 sage: iss=ss.I[0]
                 sage: ss0 = ss.prefix(w=[0], i=iss)
@@ -2201,7 +2202,8 @@ class BetaAdicMonoid(Monoid_class):
             
             #. Compute the boundary of the dragon fractal::
 
-                sage: m = BetaAdicMonoid(1/(1+I), {0,1})
+                sage: e = QQbar(1/(1+I))
+                sage: m = BetaAdicMonoid(e, {0,1})
                 sage: m.intersection_words(w1=[0], w2=[1])
                 Finite automaton with 21 states
             
@@ -2594,8 +2596,9 @@ class BetaAdicMonoid(Monoid_class):
                 1.0000000000...
                 
             #. Hausdorff dimension of the boundary of the dragon fractal::
-            
-                sage: m = BetaAdicMonoid(1/(1+I), {0,1})
+             
+                sage: e = QQbar(1/(1+I))
+                sage: m = BetaAdicMonoid(e, {0,1})
                 sage: ssi = m.intersection_words(w1=[0], w2=[1])
                 sage: m.critical_exponent_free(ss=ssi)
                 log(y)/log(|b|) where y is the max root of x^3 - x^2 - 2
@@ -2636,11 +2639,11 @@ class BetaAdicMonoid(Monoid_class):
             y = max(e, key=abs)
             if verb: print ""
             print "log(y)/log(|%s|) where y is the max root of %s"%(self.b, QQbar(y).minpoly())
-            y = y.N(prec)
+            y = y.n(prec)
         from sage.functions.log import log
-        b = self.b.N(prec)
+        b = self.b.n(prec)
         if verb: print "y=%s, b=%s"%(y, b)
-        return abs(log(y)/log(abs(b))).N()
+        return abs(log(y)/log(abs(b))).n()
         
     def critical_exponent (self, ss=None, prec = None, verb=False):
         r"""
@@ -3546,10 +3549,10 @@ class BetaAdicMonoid(Monoid_class):
         INPUT:
         
         - ``a``- FastAutomaton
-            Automaton of the g-beta-expansion.
+          Automaton of the g-beta-expansion.
         
         -  ``ap``- FastAutomaton (default: ``None``)
-            Langage used for the computations. Everything is projected on it.
+           Langage used for the computations. Everything is projected on it.
         
         - ``verb``- bool (default: ``False``)
           If True, print informations about the computing.
@@ -3560,8 +3563,8 @@ class BetaAdicMonoid(Monoid_class):
 
         EXAMPLES:
             
-            #. Full Tribonnacci::
-           
+            #. Full Tribonnacci::   
+                  
             sage: m = BetaAdicMonoid((x^3-x^2-x-1).roots(ring=QQbar)[1][0], {0,1})
             sage: pm = m.b.parent().places()[1]
             sage: a = m.Approx(13, lambda x: (pm(x).real())^2 + (pm(x).imag())^2 < .4 )
