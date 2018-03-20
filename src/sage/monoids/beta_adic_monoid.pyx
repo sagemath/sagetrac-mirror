@@ -1587,7 +1587,7 @@ class BetaAdicMonoid(Monoid_class):
             if p(b).abs() < 1:
                 parch += [p]
         pi = K.defining_polynomial()
-        from sage.rings.fast_arith import gcd
+        from sage.arith.misc import gcd
         pi = pi / gcd(pi.list()) #rend le polynôme à coefficients entiers et de contenu 1
 #        den = pi.constant_coefficient().denominator()
 #        lp = (pi.list()[pi.degree()].numerator()*den).prime_divisors() #liste des nombres premiers concernés
@@ -1698,7 +1698,7 @@ class BetaAdicMonoid(Monoid_class):
             if p(b).abs() < 1:
                 parch += [p]
         pi = K.defining_polynomial()
-        from sage.rings.fast_arith import gcd
+        from sage.arith.misc import gcd
         pi = pi/gcd(pi.list()) #rend le polynôme à coefficients entiers et de contenu 1
         lp = (Integer(pi.list()[0])).prime_divisors() #liste des nombres premiers concernés
         pultra = [] #liste des places ultramétriques considérées
@@ -1954,7 +1954,7 @@ class BetaAdicMonoid(Monoid_class):
         parch = K.places()
         r = len(parch)
         pi = K.defining_polynomial()
-        from sage.rings.fast_arith import gcd
+        from sage.arith.misc import gcd
         pi = pi/gcd(pi.list()) #rend le polynôme à coefficients entiers et de contenu 1
 #        den = pi.constant_coefficient().denominator()
 #        lp = (pi.list()[pi.degree()].numerator()*den).prime_divisors() #liste des nombres premiers concernés
