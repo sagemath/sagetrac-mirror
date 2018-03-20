@@ -458,7 +458,7 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
     drawTransf(s, sf, un(), zero(), col);
     if (SDL_BlitSurface(sf, NULL, screen, NULL) < 0)
     {
-        printf("Error : %s", SDL_GetError());
+        printf("Error : %s\n", SDL_GetError());
     }
     int np = 4;
     Complexe f = powC(b.b, -np);
@@ -534,7 +534,7 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
 						drawTransf(s, sf, f, t, colf);
 						if (SDL_BlitSurface(sf, NULL, screen, NULL) < 0)
                         {
-                            printf("Error : %s", SDL_GetError());
+                            printf("Error : %s\n", SDL_GetError());
                         }
 						ComplexeToPoint(zero(), &x, &y, screen->w, screen->h);
 						DrawRond(x, y, screen);
@@ -544,9 +544,10 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
 				{
 					if (rt.x != t.x || rt.y != t.y)
 					{
+					    SDL_FillRect(sf, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00)); //////pour tests
 						if (SDL_BlitSurface(sf, NULL, screen, NULL) < 0)
                         {
-                            printf("Error : %s", SDL_GetError());
+                            printf("Error : %s\n", SDL_GetError());
                         }
 						drawTransf(s, screen, f, t, col);
 						ComplexeToPoint(zero(), &x, &y, screen->w, screen->h);
