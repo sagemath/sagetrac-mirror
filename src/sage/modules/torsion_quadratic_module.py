@@ -894,6 +894,27 @@ class TorsionQuadraticModule(FGP_Module_class):
             gens += gens_p
         return self.submodule_with_gens(gens)
 
+    @cached_method
+    def orthogonal_group(self, gens=None):
+        r"""
+        Orthognal group of the associated torsion quadratic form.
+
+        WARNING::
+
+            This is usually smaller than the orthogonal group of the bilinear form.
+
+        EXAMPLES::
+
+            sage: L = IntegralLattice(2*matrix.identity(3))
+            sage: D = L.discriminant_group()
+            sage: O = L.orthogonal_group()
+            sage: f = O.an_element()
+            sage: fd = D.hom([d*f for d in D.smith_form_gens()])
+            sage: D.orthogonal_group([fd])
+        """
+        from sage.groups.fqf_orthogonal.group import FqfOrthogonalGroup_ambient
+        return FqfOrthogonalGroup_ambient(self.normal_form())
+
     def primary_part(self, m):
         r"""
         Return the ``m``-primary part of this torsion quadratic module
