@@ -451,7 +451,7 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
     //SDL_SetAlpha(sf, 0, 255);
          
     //SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
-    SDL_FillRect(sf, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00));
+    SDL_FillRect(sf, NULL, SDL_MapRGB(sf->format, 0x00, 0x00, 0x00));
     col.r = 80;
     col.g = 80;
     col.b = 80;
@@ -544,7 +544,6 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
 				{
 					if (rt.x != t.x || rt.y != t.y)
 					{
-					    SDL_FillRect(sf, NULL, SDL_MapRGB(screen->format, 0x00, 0x00, 0x00)); //////pour tests
 						if (SDL_BlitSurface(sf, NULL, screen, NULL) < 0)
                         {
                             printf("Error : %s\n", SDL_GetError());

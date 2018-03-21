@@ -375,10 +375,10 @@ cdef surface_to_img (Surface s):
     #img.save("/Users/mercat/Desktop/output.png")
     img.save("output.png")
 
-cdef Automate getAutomate (a, d, list C, iss=None, verb=False):
+cdef Automate getAutomate(a, d, list C, iss=None, verb=False):
     cdef int i
     if verb:
-        print "getAutomate %s..."%a
+        print("getAutomate %s..."%a)
     cdef FastAutomaton fa
     if isinstance(a, FastAutomaton):
         fa = a
@@ -386,7 +386,7 @@ cdef Automate getAutomate (a, d, list C, iss=None, verb=False):
         #fa = fa.permut(C, verb=verb)
         return fa.a[0]
     else:
-        raise ValueError("FastAutomaton attendu.")
+        raise ValueError("FastAutomaton expected.")
 
 #    #assume in the following that a is a Automaton
 #    lv = a.vertices()
@@ -431,30 +431,30 @@ cdef Automate getAutomate (a, d, list C, iss=None, verb=False):
 #        print "...getAutomate"
 #    return r
 
-cdef BetaAdic getBetaAdic (self, prec=53, ss=None, tss=None, iss=None, transpose=True, add_letters=True, verb=False):
+cdef BetaAdic getBetaAdic(input_a, prec=53, ss=None, tss=None, iss=None, transpose=True, add_letters=True, verb=False):
     from sage.rings.complex_field import ComplexField
     CC = ComplexField(prec)
     cdef BetaAdic b
     if ss is None:
-        if hasattr(self, 'ss'):
-            ss = self.ss
+        if hasattr(input_a, 'ss'):
+            ss = input_a.ss
         else:
-            ss = self.default_ss()
+            ss = input_a.default_ss()
     else:
         if transpose and tss is None:
             if verb:
-                print "Calcul de la transposée...\n"
+                print("Transpose computation...\n") # "Calcul de la transposée...\n"
             tss = ss.transpose().determinize()
             self.tss = tss
             if verb:
                 print tss
     if transpose:
         if tss is None:
-            if hasattr(self, 'tss'):
-                tss = self.tss
+            if hasattr(input_a, 'tss'):
+                tss = input_a.tss
             else:
                 if verb:
-                    print "Calcul de la transposée...\n"
+                    print("Transpose computation...\n") # "Calcul de la transposée...\n"
                 tss = ss.transpose().determinize()
                 self.tss = tss
                 if verb:
@@ -464,14 +464,14 @@ cdef BetaAdic getBetaAdic (self, prec=53, ss=None, tss=None, iss=None, transpose
         a = ss
         
     if add_letters:
-        C = set(self.C)
+        C = set(input_a.C)
         C.update(a.Alphabet())
     else:
         C = a.Alphabet()
     C = list(C)
     
     b = NewBetaAdic(len(C))
-    b.b = complex(CC(self.b))
+    b.b = complex(CC(input_a.b))
     d = {}
     for i,c in zip(range(b.n), C):
         b.t[i] = complex(CC(c))
@@ -482,24 +482,24 @@ cdef BetaAdic getBetaAdic (self, prec=53, ss=None, tss=None, iss=None, transpose
     b.a = getAutomate(a, d, C=C, iss=iss, verb=verb)
     return b
 
-cdef BetaAdic2 getBetaAdic2 (self, la=None, ss=None, tss=None, prec=53, add_letters=True, verb=False):
+cdef BetaAdic2 getBetaAdic2(input_a, la=None, ss=None, tss=None, prec=53, add_letters=True, verb=False):
     if verb:
-        print "getBetaAdic %s"%self
+        print("getBetaAdic %s"%input_a)
     from sage.rings.complex_field import ComplexField
     from sage.combinat.words.automata import Automaton
     CC = ComplexField(prec)
     cdef BetaAdic2 b
     if la is None:
-        la = self.get_la(ss=ss, tss=tss, verb=verb)
+        la = input_a.get_la(ss=ss, tss=tss, verb=verb)
     
     if add_letters:
-        C = set(self.C)
+        C = set(input_a.C)
         for a in la:
             C.update(a.Alphabet())
     C = list(C)
     
     b = NewBetaAdic2(len(C), len(la))
-    b.b = complex(CC(self.b))
+    b.b = complex(CC(input_a.b))
     d = {}
     for i,c in zip(range(b.n), C):
         b.t[i] = complex(CC(c))
@@ -511,7 +511,7 @@ cdef BetaAdic2 getBetaAdic2 (self, la=None, ss=None, tss=None, prec=53, add_lett
         b.a[i] = getAutomate(la[i], d, C=C, iss=None, verb=verb);
     return b
 
-def PrintWord (m, n):
+def PrintWord(m, n):
     b = getBetaAdic(m, prec=53, ss=None, tss=None, iss=None, transpose=False, add_letters=True, verb=False)
     print_word(b, n, b.a.i)
 
@@ -539,7 +539,7 @@ def fils (tree, e):
     return r
 
 #teste si a est inclus dans un des morceaux de l ou pas
-def included (a, l, lm):
+def included(a, l, lm):
     """
     Return the index of 
     
@@ -571,11 +571,11 @@ def included (a, l, lm):
                 return j
             else:
                 return None
-    print "******* Error : word %s is conconize by any automata ! *********"%w
+    print( "******* Error : word %s is conconize by any automata ! *********"%w)
     return None
 
 #split a1 selon ba (rend un couple (a11, a12) avec a11 la partie dans ba et a12 celle disjointe de ba)
-def split_ba (i, tr, np, lm, m, aa, ap, verb=False):
+def split_ba(i, tr, np, lm, m, aa, ap, verb=False):
     b = m.b
     a1 = lm[i][0]
     #teste l'intersection avec ba
@@ -597,7 +597,7 @@ def split_ba (i, tr, np, lm, m, aa, ap, verb=False):
 
 
 #split a1 selon baoc (rend un couple (a11, a12) avec a11 la partie dans baoc et a12 celle disjointe de baoc)
-def split_baoc (i, tr, np, lm, m, aoc, verb=False):
+def split_baoc(i, tr, np, lm, m, aoc, verb=False):
     b = m.b
     a1 = lm[i][0]
     #teste l'intersection avec baoc
@@ -682,7 +682,7 @@ class BetaAdicMonoid(Monoid_class):
             try:
                 K.places()
             except:
-                print "b=%s must be a algebraic number, ring %s not accepted."%(b,K)
+                print("b=%s must be a algebraic number, ring %s not accepted."%(b,K))
             
 #        print K
         self.b = K.gen() #beta (element of an NumberField)
@@ -690,20 +690,20 @@ class BetaAdicMonoid(Monoid_class):
         self.C = Set([K(c) for c in C]) #set of numerals
 #        print "C="; print self.C
     
-    def gen (self, i):
+    def gen(self, i):
         r"""
         Return the element of C of index i.
         """
 #        g(x) = self.b*x+self.C[i]
         return self.C[i]
     
-    def ngens (self):
+    def ngens(self):
         r"""
         Return the number of elements of C.
         """
         return len(self.C)
     
-    def _repr_ (self):
+    def _repr_(self):
         r"""
         Returns the string representation of the beta-adic monoid.
 
@@ -744,7 +744,7 @@ class BetaAdicMonoid(Monoid_class):
         TestSDL()
         sig_off()    
     
-    def default_ss (self, C=None):
+    def default_ss(self, C=None):
         r"""
         Returns the full subshift (given by an Automaton) corresponding to the beta-adic monoid.
 
@@ -824,7 +824,7 @@ class BetaAdicMonoid(Monoid_class):
                 print a[v]
         return [tss]+a.values()
     
-    def points_exact (self, n=None, ss=None, iss=None):
+    def points_exact(self, n=None, ss=None, iss=None):
         r"""
         Returns a set of exacts values (in the number field of beta) corresponding to the drawing of the limit set of the beta-adic monoid.
 
@@ -905,7 +905,7 @@ class BetaAdicMonoid(Monoid_class):
         #print "no=%s"%orbit_points.cardinality()
         return orbit_points
     
-    def points (self, n=None, place=None, ss=None, iss=None, prec=53):
+    def points(self, n=None, place=None, ss=None, iss=None, prec=53):
         r"""
         Returns a set of values (real or complex) corresponding to the drawing of the limit set of the beta-adic monoid.
 
@@ -934,8 +934,8 @@ class BetaAdicMonoid(Monoid_class):
             #. The dragon fractal::
             
             sage: e = QQbar(1/(1+I))
-            sage: m = BetaAdicMonoid(e, {0,1})e = QQbar(1/(1+I))
-            sage: P = m.points() # long time
+            sage: m = BetaAdicMonoid(e, {0,1})
+            sage: P = m.points()     # long time
             sage: len(P)
             32768
         """
@@ -995,7 +995,7 @@ class BetaAdicMonoid(Monoid_class):
 #                 orbit_points = orbit_points.union(Set([place(b)*p+place(c) for p in orbit_points0]))
 #         return orbit_points
     
-    def user_draw (self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0,0,0,255), method=0, add_letters=True, only_pos=False, verb=False):
+    def user_draw(self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0,0,0,255), method=0, add_letters=True, only_pos=False, verb=False):
         if tss is None:
             tss = self.reduced_words_automaton2()
         sig_on()
@@ -1024,7 +1024,7 @@ class BetaAdicMonoid(Monoid_class):
         r.A = list(self.C)
         return r
     
-    def draw_zoom (self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0, 0, 0, 255), method=0, add_letters=True, coeff=8., verb=False):
+    def draw_zoom(self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0, 0, 0, 255), method=0, add_letters=True, coeff=8., verb=False):
         if tss is None:
             tss = self.reduced_words_automaton2()
         sig_on()
@@ -1050,7 +1050,7 @@ class BetaAdicMonoid(Monoid_class):
     #give a word corresponding to one of the previously drawn points
     def word_drawn (self):
         sig_on()
-        cdef int *word = WordDrawn ()
+        cdef int *word = WordDrawn()
         sig_off()
         cdef int i
         res = []
@@ -1061,7 +1061,7 @@ class BetaAdicMonoid(Monoid_class):
         res.reverse()
         return res
     
-    def plot2 (self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0,0,0,255), method=0, add_letters=True, coeff=8., verb=False):
+    def plot2(self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0,0,0,255), method=0, add_letters=True, coeff=8., verb=False):
         r"""
         Draw the limit set of the beta-adic monoid (with or without subshift).
 
@@ -1102,6 +1102,10 @@ class BetaAdicMonoid(Monoid_class):
             sage: e = QQbar(1/(1+I))
             sage: m = BetaAdicMonoid(e, {0,1})
             sage: m.plot2()     # long time
+            ValueError                                Traceback (most recent call last)
+            ValueError: FastAutomaton expected.
+
+            Exception ValueError: ValueError('FastAutomaton expected.',) in 'sage.monoids.beta_adic_monoid.getAutomate' ignored
 
         #. The Rauzy fractal of the Tribonacci substitution::
 
@@ -1140,7 +1144,7 @@ class BetaAdicMonoid(Monoid_class):
         
         """
         sig_on()
-        cdef Surface s = NewSurface (sx, sy)
+        cdef Surface s = NewSurface(sx, sy)
         cdef BetaAdic b
         if tss is not None:
             tss = tss.emonde()
@@ -1174,7 +1178,7 @@ class BetaAdicMonoid(Monoid_class):
         FreeBetaAdic(b)
         sig_off()
         
-    def plot3 (self, n=None, la=None, ss=None, tss=None, sx=800, sy=600, ajust=True, prec=53, colormap = 'hsv', backcolor=None, opacity = 1., add_letters=True, verb=False):
+    def plot3(self, n=None, la=None, ss=None, tss=None, sx=800, sy=600, ajust=True, prec=53, colormap = 'hsv', backcolor=None, opacity = 1., add_letters=True, verb=False):
         r"""
         Draw the limit set of the beta-adic monoid with colors.
 
@@ -1216,7 +1220,7 @@ class BetaAdicMonoid(Monoid_class):
         #. The dragon fractal::
             sage: e = QQbar(1/(1+I))
             sage: m=BetaAdicMonoid(e, {0,1})
-            sage: m.plot2()     # long time
+            sage: m.plot3()     # long time
 
         #. The Rauzy fractal of the Tribonacci substitution::
 
@@ -1229,7 +1233,7 @@ class BetaAdicMonoid(Monoid_class):
             sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
             sage: m = s.rauzy_fractal_beta_adic_monoid()
             sage: m.b = 1/m.b
-            sage: m.plot2(tss=m.ss)     # long time
+            sage: m.plot3(tss=m.ss)     # long time
         
         #. The dragon fractal and its boundary::
             
@@ -1256,7 +1260,7 @@ class BetaAdicMonoid(Monoid_class):
         """
         if tss is not None:
             tss = tss.emonde()
-        cdef Surface s = NewSurface (sx, sy)
+        cdef Surface s = NewSurface(sx, sy)
         cdef BetaAdic2 b
         sig_on()
         b = getBetaAdic2(self, la=la, ss=ss, tss=tss, prec=prec, add_letters=add_letters, verb=verb)
@@ -1282,7 +1286,7 @@ class BetaAdicMonoid(Monoid_class):
         elif isinstance(colormap, str):
             from matplotlib import cm
             if not colormap in cm.datad.keys():
-                raise RuntimeError("Color map %s not known (type 'from matplotlib import cm' and look at cm for valid names)" % colormap)
+                raise ValueError("Color map %s not known (type 'from matplotlib import cm' and look at cm for valid names)" % colormap)
             colormap = cm.__dict__[colormap]
             cl[0] = getColor(backcolor)
             for i in range(b.na-1):
@@ -1314,7 +1318,7 @@ class BetaAdicMonoid(Monoid_class):
         FreeColorList(cl)
         sig_off()
         
-    def plot (self, n=None, place=None, ss=None, iss=None, prec=53, point_size=None, color='blue', verb=False):
+    def plot(self, n=None, place=None, ss=None, iss=None, prec=53, point_size=None, color='blue', verb=False):
         r"""
         Draw the limit set of the beta-adic monoid (with or without subshift).
 
@@ -1356,7 +1360,8 @@ class BetaAdicMonoid(Monoid_class):
             sage: s = WordMorphism('1->12,2->13,3->1')
             sage: m = s.rauzy_fractal_beta_adic_monoid()
             sage: m.plot()     # long time
-        
+            Graphics object consisting of 1 graphics primitive
+
         #. A non-Pisot Rauzy fractal::
             
             sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
@@ -1364,12 +1369,14 @@ class BetaAdicMonoid(Monoid_class):
             sage: m.b = 1/m.b
             sage: m.ss = m.ss.transpose().determinize().minimize()
             sage: m.plot()     # long time
-        
+            Graphics object consisting of 1 graphics primitive
+
         #. The dragon fractal and its boundary::
         
             sage: e = QQbar(1/(1+I))
             sage: m = BetaAdicMonoid(e, {0,1})
-            sage: p1 = m.plot()                                  # long time
+            sage: p1 = m.plot()      # long time
+            Graphics object consisting of 1 graphics primitive
             sage: ssi = m.intersection_words(w1=[0], w2=[1])     # long time
             sage: p2 = m.plot(ss = ssi, n=18)                    # long time
             sage: p1+p2                                          # long time
@@ -1379,16 +1386,18 @@ class BetaAdicMonoid(Monoid_class):
             sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
             sage: m = s.rauzy_fractal_beta_adic_monoid()
             sage: p1 = m.plot()                                     # long time
+            Graphics object consisting of 1 graphics primitive
             sage: ssi = m.intersection_words(w1=[0], w2=[1])        # long time
             sage: p2 = m.plot(ss=ssi, n=40)                         # long time
             sage: p1+p2                                             # long time
         
         #. A limit set that look like a tiling::
             
-            sage: P=x^4 + x^3 - x + 1
+            sage: P = x^4 + x^3 - x + 1
             sage: b = P.roots(ring=QQbar)[2][0]
             sage: m = BetaAdicMonoid(b, {0,1})
             sage: m.plot(18)                                    # long time
+            Graphics object consisting of 1 graphics primitive
         
         """
         
@@ -1666,7 +1675,7 @@ class BetaAdicMonoid(Monoid_class):
             res.F = res.vertices()
         return res
     
-    def relations_automaton2 (self, verb=False, step=100, limit=None, niter=None):
+    def relations_automaton2(self, verb=False, step=100, limit=None, niter=None):
         r"""
         
         Do the same as relations_automaton, but avoid recursivity in order to avoid the crash of sage.
@@ -1804,7 +1813,7 @@ class BetaAdicMonoid(Monoid_class):
         res.emonde()
         return res
     
-    def relations_automaton3 (self, t=0, isvide=False, Cd=None, ext=False, verb=False):
+    def relations_automaton3(self, t=0, isvide=False, Cd=None, ext=False, verb=False):
         r"""
             Compute the relation automaton of the beta-adic monoid.
             For beta algebraic integer only.
@@ -1818,7 +1827,9 @@ class BetaAdicMonoid(Monoid_class):
         
             sage: pi = x^3-x^2-x-1
             sage: b = pi.roots(ring=QQbar)[1][0]
-            sage: m = BetaAdicMonoid(b, [0,1]).relations_automaton3()        
+            sage: m = BetaAdicMonoid(b, [0,1])
+            sage: m .relations_automaton3()
+            FastAutomaton with 7 states and an alphabet of 3 letters    
         """
         if Cd is None:
             Cd = Set([c-c2 for c in self.C for c2 in self.C])
@@ -1842,7 +1853,7 @@ class BetaAdicMonoid(Monoid_class):
             r2 = r.emonde()
         return r2.transpose_det()
     
-    def relations_automaton4 (self, t=0, isvide=False, Cd=None, A=None, B=None, couples=False, ext=False, transp=False, emonde=True, verb=False):
+    def relations_automaton4(self, t=0, isvide=False, Cd=None, A=None, B=None, couples=False, ext=False, transp=False, emonde=True, verb=False):
         r"""
             Compute the relation automaton of the beta-adic monoid.
             For beta algebraic integer only.
@@ -1941,9 +1952,10 @@ class BetaAdicMonoid(Monoid_class):
 
         EXAMPLES::
 
-            sage: m = BetaAdicMonoid(3, {0,1,3})
+            sage: b = (x^3-x^2-x-1).roots(ring=QQbar)[1][0]
+            sage: m = BetaAdicMonoid(b, [0,1])
             sage: m.complexity()
-            3.0...
+            108.523461211014
         """
         K = self.C[0].parent()
         b = self.b
@@ -2148,7 +2160,8 @@ class BetaAdicMonoid(Monoid_class):
             
             #. Compute the boundary of the dragon fractal (see intersection_words for a easier way) ::
 
-                sage: m = BetaAdicMonoid(1/(1+I), {0,1})
+                sage: e = QQbar(1/(1+I)) 
+                sage: m = BetaAdicMonoid(e, {0,1})
                 sage: import sage.combinat.words.cautomata
                 sage: from sage.combinat.words.cautomata import FastAutomaton
                 sage: ss0 = FastAutomaton([(0,1,0)]+[(1,1,l) for l in m.C], i=0, final_states=[1])

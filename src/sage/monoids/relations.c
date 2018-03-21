@@ -628,6 +628,9 @@ Automate RelationsAutomatonT (InfoBetaAdic iba2, Element t, bool isvide, bool ex
 					if (n >= npile)
 					{
 						printf("*****************************************\n*** Erreur : dépassement de la pile !!! ***\n*****************************************\n");
+						FreeElement(s);
+						FreeElement(e);
+						exit(EXIT_FAILURE);
 					}
 				}else
 				{//on retombe sur un état déjà vu
