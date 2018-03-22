@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+# Note: Version to download should be indicated in package-verson.txt
+
+set -e
+
+SPKG_ROOT="$(cd "$(dirname "$0")" ; pwd -P)"
+
+[ -n "${SAGE_ROOT}" ] || SAGE_ROOT="$(readlink -f "$SPKG_ROOT/../../../")"
+
+
+
+# prepare a clean directory.
+TMP="$SPKG_ROOT"/tmp
+#[ -d "$TMP" ] && rm -rf "$TMP"
+#mkdir "$TMP"
+cd "$TMP"
+
+VERSION=$(cat "$SPKG_ROOT"/package-version.txt)
+VERSION_MAJOR_MINOR=$(echo $VERSION | sed 's/\([0-9]\+\.[0-9]\+\).*/\1/')
+
+UPSTREAM_ZIP="Jmol-${VERSION}-binary.zip"
+DOWNSTREAM_TARBALL="jmol-${VERSION}.tar.bz2"
+UPSTREAM_URL='https://downloads.sourceforge.net/project/jmol/Jmol/Version%20'$VERSION_MAJOR_MINOR'/Jmol%20'$VERSION'/'$UPSTREAM_ZIP
+
+#curl -OL "$UPSTREAM_URL"
+
+unzip "$UPSTREAM_ZIP"
+cd "jmol-$VERSION"
+
+# Extract and then delete the contained jsmol.zip
+unzip jsmol.zip
+rm jsmol.zip
+
+# Delete unnecessary subdirectories, see
+# http://wiki.jmol.org/index.php/Jmol_JavaScript_Object#In_detail
+cd jsmol
+rm -rf data flot images inchi jcse jsme
+
+# tar up the remianing files
+cd ../..
+tar cjf "$DOWNSTREAM_TARBALL" jmol-$VERSION/
+
+[ -d "$SAGE_ROOT"/upstream ] || mkdir "$SAGE_ROOT"/upstream
+mv "$DOWNSTREAM_TARBALL" "$SAGE_ROOT"/upstream
+
+# update package info
+cd "$SAGE_ROOT"
+./sage --package fix-checksum jmol
+
+rm -rf "$TMP"
