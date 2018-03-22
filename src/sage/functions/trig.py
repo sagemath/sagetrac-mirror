@@ -948,7 +948,9 @@ class Function_arctan2(GinacFunction):
             sage: atan2(0,0,hold=True)
             arctan2(0, 0)
             sage: atan2(0,0,hold=True).n()
-            NaN
+            Traceback (most recent call last):
+            ...
+            RuntimeError: atan2(): division by zero
 
         Check if :trac:`10062` is fixed, this was caused by
         ``(I*I).is_positive()`` returning ``True``::

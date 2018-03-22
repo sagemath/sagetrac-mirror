@@ -5005,7 +5005,7 @@ cdef class Expression(CommutativeRingElement):
             a^3 + b^3 + (x + y)^3
 
             sage: t.subs(w0 == w0^2)
-            (x^2 + y^2)^18 + a^16 + b^16
+            a^8 + b^8 + (x^2 + y^2)^6
 
             sage: t.subs(a == b, b == c)
             (x + y)^3 + b^2 + c^2
@@ -8376,9 +8376,13 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(I).arctan2(1)
             arctan2(I, 1)
             sage: SR(CDF(0,1)).arctan2(1)
-            NaN + +infinity*I
-            sage: SR(1).arctan2(CDF(0,1))   # known bug
-            0.7853981633974484 - 19.012501686914433*I
+            Traceback (most recent call last):
+            ...
+            ValueError: power::eval(): division by zero
+            sage: SR(1).arctan2(CDF(0,1))
+            Traceback (most recent call last):
+            ...
+            ValueError: power::eval(): division by zero
 
             sage: arctan2(0,oo)
             0
@@ -8641,7 +8645,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(1/2).arccosh()
             arccosh(1/2)
             sage: SR(CDF(1/2)).arccosh() # abs tol 1e-15
-            0 + 1.0471975511965976*I
+            1.0471975511965976*I
             sage: maxima('acosh(0.5)')
             1.04719755119659...*%i
 
