@@ -935,7 +935,7 @@ class BetaAdicMonoid(Monoid_class):
             
             sage: e = QQbar(1/(1+I))
             sage: m = BetaAdicMonoid(e, {0,1})
-            sage: P = m.points()     # long time
+            sage: P = m.points()     # long time (360 s)
             sage: len(P)
             32768
         """
@@ -1248,6 +1248,7 @@ class BetaAdicMonoid(Monoid_class):
             sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
             sage: m = s.rauzy_fractal_beta_adic_monoid()
             sage: ssi = m.intersection_words(w1=[0], w2=[1])                # long time
+            
             sage: m.plot3(la=[la[0], ssi]+la[1:], colormap='gist_rainbow')  # long time
         
         #. A limit set that look like a tiling::

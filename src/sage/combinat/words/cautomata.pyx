@@ -270,7 +270,7 @@ def TestEmonde (a, noempty=True, verb=True):
 	return AutomatonGet(r)
 	
 
-cdef Automaton getAutomaton (a, initial=None, F=None, A=None):
+cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
 	sig_on()
 	d = {}
 	da = {}
@@ -318,7 +318,7 @@ cdef Automaton getAutomaton (a, initial=None, F=None, A=None):
 	sig_off()
 	return r
 
-cdef AutomatonGet (Automaton a, A=None):
+cdef AutomatonGet(Automaton a, A=None):
 	from sage.combinat.words.automata import Automaton
 	r = Automaton(multiedges=True, loops=True)
 	cdef int i,j
