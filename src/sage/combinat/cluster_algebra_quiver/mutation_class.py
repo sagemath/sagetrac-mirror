@@ -101,7 +101,7 @@ def _dg_canonical_form( dg, n, m ):
         ({0: 0, 1: 3, 2: 1, 3: 2}, [[0], [3], [1], [2]])
         [(0, 3, (1, -1)), (1, 2, (1, -2)), (1, 3, (1, -1))]
     """
-    vertices = [ v for v in dg ]
+    vertices = list(dg)
     if m > 0:
         partition = [ vertices[:n], vertices[n:] ]
     else:
@@ -111,9 +111,11 @@ def _dg_canonical_form( dg, n, m ):
     automorphism_group, obsolete, iso = search_tree(dg, partition=partition, lab=True, dig=True, certificate=True)
     orbits = get_orbits( automorphism_group, n+m )
     orbits = [ [ iso[i] for i in orbit] for orbit in orbits ]
-    for v in iso.keys():
-        if v >= n+m:
-            del iso[v]
+
+    removed = []
+    for v in iso:
+        if v >= n + m:
+            removed.append(v)
             v1,v2,label1 = next(dg._backend.iterator_in_edges([v],True))
             w1,w2,label2 = next(dg._backend.iterator_out_edges([v],True))
             dg._backend.del_edge(v1,v2,label1,True)
@@ -127,10 +129,110 @@ def _dg_canonical_form( dg, n, m ):
                     dg._backend.add_edge(v1,w2,edges[index],True)
                     add_index = False
                 index += 1
-    dg._backend.relabel( iso, True )
+    for v in removed:
+        del iso[v]
+    dg._backend.relabel(iso, True)
     return iso, orbits
 
-def _digraph_to_dig6( dg, hashable=False ):
+def _mutation_class_iter( dg, n, m, depth=infinity, return_dig6=False, show_depth=False, up_to_equivalence=True, sink_source=False ):
+    """
+    Returns an iterator for mutation class of dg with respect to several parameters.
+
+    INPUT:
+
+    - ``dg`` -- a digraph with n+m vertices
+    - ``depth`` -- a positive integer or infinity specifying (roughly) how many steps away from the initial seed to mutate
+    - ``return_dig6`` -- indicates whether to convert digraph data to dig6 string data
+    - ``show_depth`` -- if True, indicates that a running count of the depth is to be displayed
+    - ``up_to_equivalence``  -- if True, only one digraph for each graph-isomorphism class is recorded
+    - ``sink_source`` -- if True, only mutations at sinks or sources are applied
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.mutation_class import _mutation_class_iter
+        sage: from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
+        sage: dg = ClusterQuiver(['A',[1,2],1]).digraph()
+        sage: itt = _mutation_class_iter(dg, 3,0)
+        sage: next(itt)[0].edges()
+        [(0, 1, (1, -1)), (0, 2, (1, -1)), (1, 2, (1, -1))]
+        sage: next(itt)[0].edges()
+        [(0, 2, (1, -1)), (1, 0, (2, -2)), (2, 1, (1, -1))]
+    """
+    timer = time.time()
+    depth_counter = 0
+    if up_to_equivalence:
+        iso, orbits = _dg_canonical_form( dg, n, m )
+        iso_inv = dict( (iso[a],a) for a in iso )
+
+    dig6 = _digraph_to_dig6( dg, hashable=True )
+    dig6s = {}
+    if up_to_equivalence:
+        orbits = [ orbit[0] for orbit in orbits ]
+        dig6s[dig6] = [ orbits, [], iso_inv ]
+    else:
+        dig6s[dig6] = [list(range(n)), [] ]
+    if return_dig6:
+        yield (dig6, [])
+    else:
+        yield (dg, [])
+
+    gets_bigger = True
+    if show_depth:
+        timer2 = time.time()
+        dc = str(depth_counter)
+        dc += ' ' * (5-len(dc))
+        nr = str(len(dig6s))
+        nr += ' ' * (10-len(nr))
+        print("Depth: %s found: %s Time: %.2f s" % (dc, nr, timer2 - timer))
+
+    while gets_bigger and depth_counter < depth:
+        gets_bigger = False
+        keys = list(dig6s.keys())
+        for key in keys:
+            mutation_indices = [ i for i in dig6s[key][0] if i < n ]
+            if mutation_indices:
+                dg = _dig6_to_digraph( key )
+            while mutation_indices:
+                i = mutation_indices.pop()
+                if not sink_source or _dg_is_sink_source( dg, i ):
+                    dg_new = _digraph_mutate( dg, i, n, m )
+                    if up_to_equivalence:
+                        iso, orbits = _dg_canonical_form( dg_new, n, m )
+                        i_new = iso[i]
+                        iso_inv = dict( (iso[a],a) for a in iso )
+                    else:
+                        i_new = i
+                    dig6_new = _digraph_to_dig6( dg_new, hashable=True )
+                    if dig6_new in dig6s:
+                        if i_new in dig6s[dig6_new][0]:
+                            dig6s[dig6_new][0].remove(i_new)
+                    else:
+                        gets_bigger = True
+                        if up_to_equivalence:
+                            orbits = [ orbit[0] for orbit in orbits if i_new not in orbit ]
+                            iso_history = dict( (a, dig6s[key][2][iso_inv[a]]) for a in iso )
+                            i_history = iso_history[i_new]
+                            history = dig6s[key][1] + [i_history]
+                            dig6s[dig6_new] = [orbits,history,iso_history]
+                        else:
+                            orbits = list(range(n))
+                            del orbits[i_new]
+                            history = dig6s[key][1] + [i_new]
+                            dig6s[dig6_new] = [orbits,history]
+                        if return_dig6:
+                            yield (dig6_new,history)
+                        else:
+                            yield (dg_new,history)
+        depth_counter += 1
+        if show_depth and gets_bigger:
+            timer2 = time.time()
+            dc = str(depth_counter)
+            dc += ' ' * (5-len(dc))
+            nr = str(len(dig6s))
+            nr += ' ' * (10-len(nr))
+            print("Depth: %s found: %s Time: %.2f s" % (dc, nr, timer2 - timer))
+
+#def _digraph_to_dig6( dg, hashable=False ):
     """
     Returns the dig6 and edge data of the digraph dg.
 
