@@ -2015,7 +2015,7 @@ class Function_diff(BuiltinFunction):
         sage: r = diff(x^3, x, hold=True); r
         diff(x^3, x)
         sage: latex(r)
-        {\frac{\partial}{\partial x} x^{3}}
+        {\frac{\partial}{{\partial x}} x^{3}}
         sage: r.unhold()
         3*x^2
     """
@@ -2034,11 +2034,32 @@ class Function_diff(BuiltinFunction):
         EXAMPLES::
 
             sage: latex(diff(x^3, x, hold=True))
-            {\frac{\partial}{\partial x} x^{3}}
+            {\frac{\partial}{{\partial x}} x^{3}}
+            sage: _ = var('y')
+            sage: latex(diff(x^3*y, x, 2, y, hold=True))
+            {\frac{\partial^{3}}{{\partial x^2}{\partial y}} x^{3} y}
         """
-        if len(args)==1:
-            var = args[0]
-            return r"{{\frac{{\partial}}{{\partial {}}} {}}}".format(latex(var), latex(x))
+        if not all([SR(a).is_symbol() or SR(a).is_numeric() for a in args]):
+            raise TypeError("wrong argument in diff")
+        i = 0
+        total = 0
+        den_str = ""
+        while i < len(args):
+            c = 1
+            s = args[i]
+            if i+1 < len(args) and SR(args[i+1]).is_numeric():
+                c = SR(args[i+1]).pyobject()
+                i = i + 2
+            else:
+                i = i + 1
+            total = total + c
+            if c == 1:
+                den_str = den_str + r"{{\partial {}}}".format(latex(s))
+            else:
+                den_str = den_str + r"{{\partial {}^{}}}".format(latex(s), latex(c))
+        if total == 1:
+            return r"{{\frac{{\partial}}{{{}}} {}}}".format(den_str, latex(x))
+        return r"{{\frac{{\partial^{{{}}}}}{{{}}} {}}}".format(total, den_str, latex(x))
 
 symbolic_diff = Function_diff()
 
