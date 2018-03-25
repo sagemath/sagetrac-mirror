@@ -2089,14 +2089,17 @@ class HoldRemover(ExpressionTreeWalker):
             sage: h()
             0
         """
-        from sage.functions.other import Function_sum, Function_prod
+        from sage.functions.other import Function_sum, Function_prod, Function_diff
         from sage.calculus.calculus import symbolic_sum, symbolic_product
+        from sage.calculus.all import derivative
         if not operator:
             return self
         if isinstance(operator, Function_sum):
             return symbolic_sum(*map(self, ex.operands()))
         if isinstance(operator, Function_prod):
             return symbolic_product(*map(self, ex.operands()))
+        if isinstance(operator, Function_diff):
+            return derivative(*map(self, ex.operands()))
         if operator in self._exclude:
             return operator(*map(self, ex.operands()), hold=True)
         else:

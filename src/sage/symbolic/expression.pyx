@@ -3980,7 +3980,7 @@ cdef class Expression(CommutativeRingElement):
         """
         return self._pow_(self._parent(other))
 
-    def derivative(self, *args):
+    def derivative(self, *args, **kwds):
         """
         Return the derivative of this expressions with respect to the
         variables supplied in args.
@@ -4101,6 +4101,10 @@ cdef class Expression(CommutativeRingElement):
             ...
             ValueError: No differentiation variable specified.
         """
+        hold = kwds.get('hold', False)
+        if (hold):
+            from sage.functions.other import symbolic_diff
+            return symbolic_diff(self, *args)
         return multi_derivative(self, args)
 
     diff = differentiate = derivative

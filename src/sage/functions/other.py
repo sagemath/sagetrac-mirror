@@ -2005,3 +2005,41 @@ class Function_crootof(BuiltinFunction):
 
 complex_root_of = Function_crootof()
 
+
+class Function_diff(BuiltinFunction):
+    """
+    Placeholder symbolic diff function that is used when holding derivatives.
+
+    EXAMPLES::
+
+        sage: r = diff(x^3, x, hold=True); r
+        diff(x^3, x)
+        sage: latex(r)
+        {\frac{\partial}{\partial x} x^{3}}
+        sage: r.unhold()
+        3*x^2
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: loads(dumps(diff(x, x, hold=True)))
+            diff(x, x)
+        """
+        BuiltinFunction.__init__(self, "diff", nargs=0,
+                               conversions=dict())
+
+    def _print_latex_(self, x, *args):
+        r"""
+        EXAMPLES::
+
+            sage: latex(diff(x^3, x, hold=True))
+            {\frac{\partial}{\partial x} x^{3}}
+        """
+        if len(args)==1:
+            var = args[0]
+            return r"{{\frac{{\partial}}{{\partial {}}} {}}}".format(latex(var), latex(x))
+
+symbolic_diff = Function_diff()
+
+
