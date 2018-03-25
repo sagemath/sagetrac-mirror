@@ -95,9 +95,9 @@ class Automaton (DiGraph):
                 txt += 'solid'
             txt += ', fontsize=20, margin=0]\n'
         txt += '\n'
-        for e, f, l in self.edges():
-            txt += '    "' + str(e) + '" -> "' +
-            str(f) + '" [label="' + str(l) + '"];\n'
+        #for e, f, l in self.edges():
+        #    txt += '    "' + str(e) + '" -> "' +
+        #    str(f) + '" [label="' + str(l) + '"];\n'
         txt += '}\n'
         SaveTikZ(txt, name, sx, sy)
 
