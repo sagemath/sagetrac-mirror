@@ -5,6 +5,8 @@ Finite state machines
 AUTHORS:
 
 - Paul Mercat
+
+
 """
 
 #*****************************************************************************
@@ -43,7 +45,7 @@ def SaveTikZ(data, name, sx, sy):
 #            keep = True
 
 
-class Automaton (DiGraph):
+class Automaton(DiGraph):
 #    def __init__(self, I, F, **args):
 #        DiGraph.__init__(self, **args)
 #        self._I = I
@@ -474,7 +476,7 @@ class Automaton (DiGraph):
         return a
 
     # donne un état atteint en partant de i et en lisant a (rend None si n'existe pas)
-    def succ(self, i, a): 
+    def succ(self, i, a):
         if i is None:
             return
         for u, v, l in self.outgoing_edges(i):
@@ -482,7 +484,7 @@ class Automaton (DiGraph):
                 return v
 
     def transpose(self):
-        a  = Automaton(loops=True, multiedges=True)
+        a = Automaton(loops=True, multiedges=True)
         for u, v, l in self.edges():
             a.add_edge(v, u, l)
         if hasattr(self, 'F'):
@@ -533,7 +535,7 @@ class Automaton (DiGraph):
            #         if not a[S].has_key(set([])):
            #             a[S][set([])] = []
            #         a[S][set([])] += [l]
-                        
+
             #for l in o.keys():
             for l in A:
                 if o.has_key(l) or not noempty:
@@ -575,7 +577,7 @@ class Automaton (DiGraph):
             #        if f in v:
             #            res.F.add(v)
         return res
-       
+
     def determinize2(self, I=None, A=None, nof=set(), noempty=True, verb=False):
         if I is None:
             if hasattr(self, 'I'):
@@ -625,6 +627,8 @@ class Automaton (DiGraph):
 
         EXAMPLES::
 
+            sage: a = Automaton({ 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] })
+            sage: a.complete()
             sage: BetaAdicMonoid(3, {0, 1, 3/2}).relations_automaton().complete()
             Finite automaton with 4 states
         """

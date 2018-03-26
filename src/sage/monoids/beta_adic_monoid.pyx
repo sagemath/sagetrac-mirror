@@ -18,7 +18,7 @@ AUTHORS:
 - Paul Mercat (2013) initial version
 - Dominique Benielli (2018) 
   AMU Aix-Marseille Universite - Integration in SageMath
-  
+
 EXAMPLES::
 
     sage: pi = x^3-x^2-x-1 # Tribonacci
@@ -110,7 +110,7 @@ def emonde(a, K):
 
     the the strongly  connex component of a which 
     correspond the the K zeros
-    
+
     """
     for s in a.strongly_connected_components_subgraphs():
         if K.zero() in s:
@@ -145,7 +145,7 @@ cdef extern from "Automaton.h":
 cdef extern from "relations.h":
     cdef cppclass Element:
         int *c    #liste des n coeffs
-    
+
     cdef cppclass PlaceArch:
         Complexe *c    #1, b, b^2, ... pour cette place
 
@@ -160,7 +160,7 @@ cdef extern from "relations.h":
         PlaceArch *p #liste des na places
         double *cM   #carré des valeurs absolues max
         int na         #nombre de va
-    
+
     Element NewElement (int n)
     void FreeElement (Element e)
     InfoBetaAdic allocInfoBetaAdic (int n, int na, int ncmax, bool verb)
@@ -221,14 +221,14 @@ cdef InfoBetaAdic initInfoBetaAdic(self, Cd=None, plus=True, verb=False) except 
             else:
                 if (c.norm().abs())**(1/f[0].degree()) < 1:
                     pultra += [(c, f[0].degree())]    
-    
+
     if verb: print "places: "; print parch; print pultra
-    
+
     self.parch = parch
-    
+
     if (len(pultra) > 0):
         raise ValueError("Not implemented for b algebraic non-integer.")
-    
+
     #calcule les bornes max pour chaque valeur absolue
     if Cd is None:
         Cd = Set([c-c2 for c in C for c2 in C])
@@ -236,15 +236,15 @@ cdef InfoBetaAdic initInfoBetaAdic(self, Cd=None, plus=True, verb=False) except 
 #        Cd = [K(c).lift()(1/b) for c in Cd]
         Cd = [K(c) for c in Cd]
     if verb: print "Cd = %s"%Cd
-    
+
 #    m = dict([])
 #    for p in parch:
 #        m[p] = max([p(c).abs() for c in Cd])/abs(1-p(b).abs())
 #    for p, d in pultra:
 #        m[p] = max([absp(c, p, d) for c in Cd])
 #    if verb: print "bornes : %s"%m
-    
-    #convert the data in C
+
+    # convert the data in C
     n = K.degree()
     na = len(parch)
     ncmax = len(set([c-c2 for c in self.C for c2 in self.C]))
@@ -255,21 +255,21 @@ cdef InfoBetaAdic initInfoBetaAdic(self, Cd=None, plus=True, verb=False) except 
     # initialise bn
     if verb: print "init bn..."
     getElement(b**n, i.bn, n)
-    #initialise b1
+    # initialise b1
     if verb: print "init b1..."
     getElement(1/b, i.b1, n)
-    #initialise les places
+    # initialise les places
     if verb: print "init places..."
     for k in range(na):
         for j in range(n):
             i.p[k].c[j] = complex(parch[k](b**j))
-    #initialise les chiffres et bornes
+    # initialise les chiffres et bornes
     if verb: print "init chiffres..."
     initCdInfoBetaAdic(self, &i, Cd=Cd, verb=verb)
     return i
 
 cdef initCdInfoBetaAdic (self, InfoBetaAdic *i, Cd, verb=False):
-    #recalcule les bornes max pour chaque valeur absolue
+    # recalcule les bornes max pour chaque valeur absolue
 #    if Cd is None:
 #        Cd = Set([c-c2 for c in self.C for c2 in self.C])
     Cd = list(Cd)
@@ -280,7 +280,7 @@ cdef initCdInfoBetaAdic (self, InfoBetaAdic *i, Cd, verb=False):
     if verb: print "bornes : %s"%m
 #    for p, d in self.pultra:
 #        m[p] = max([absp(c, p, d) for c in Cd])
-    #conversion en C
+    # conversion en C
     i.nc = len(Cd)
     if i.nc > i.ncmax:
         raise ValueError("Trop de chiffres : %d > %d max (initialiser le BetaAdicMonoid avec plus de chiffre)."%(i.nc, i.ncmax))
@@ -362,7 +362,7 @@ cdef Color getColor (c):
 
 cdef surface_to_img (Surface s):
     import numpy as np
-    from PIL import Image    
+    from PIL import Image
     arr = np.zeros([s.sy, s.sx], dtype = [('r', 'uint8'), ('g', 'uint8'), ('b', 'uint8'), ('a', 'uint8')])
     cdef int x, y
     cdef Color c
@@ -374,7 +374,7 @@ cdef surface_to_img (Surface s):
             arr[y,x][2] = c.b
             arr[y,x][3] = c.a
     img = Image.fromarray(arr, 'RGBA')
-    #img.save("/Users/mercat/Desktop/output.png")
+    # img.save("/Users/mercat/Desktop/output.png")
     img.save("output.png")
 
 cdef Automate getAutomate(a, d, list C, iss=None, verb=False):
@@ -385,7 +385,7 @@ cdef Automate getAutomate(a, d, list C, iss=None, verb=False):
     if isinstance(a, FastAutomaton):
         fa = a
         fa.permut_op(C, verb=verb)
-        #fa = fa.permut(C, verb=verb)
+        # fa = fa.permut(C, verb=verb)
         return fa.a[0]
     else:
         raise ValueError("FastAutomaton expected.")
@@ -433,7 +433,8 @@ cdef Automate getAutomate(a, d, list C, iss=None, verb=False):
 #        print "...getAutomate"
 #    return r
 
-cdef BetaAdic getBetaAdic(input_a, prec=53, ss=None, tss=None, iss=None, transpose=True, add_letters=True, verb=False):
+cdef BetaAdic getBetaAdic(input_a, prec=53, ss=None, tss=None, iss=None,
+                          transpose=True, add_letters=True, verb=False):
     from sage.rings.complex_field import ComplexField
     CC = ComplexField(prec)
     cdef BetaAdic b
@@ -464,49 +465,49 @@ cdef BetaAdic getBetaAdic(input_a, prec=53, ss=None, tss=None, iss=None, transpo
         a = tss
     else:
         a = ss
-        
+
     if add_letters:
         C = set(input_a.C)
         C.update(a.Alphabet())
     else:
         C = a.Alphabet()
     C = list(C)
-    
+
     b = NewBetaAdic(len(C))
     b.b = complex(CC(input_a.b))
     d = {}
-    for i,c in zip(range(b.n), C):
+    for i, c in zip(range(b.n), C):
         b.t[i] = complex(CC(c))
         d[c] = i
-    #automaton
-    #if isinstance(a, FastAutomaton):
+    # automaton
+    # if isinstance(a, FastAutomaton):
     #    a = a.permut(C, verb=verb)
     b.a = getAutomate(a, d, C=C, iss=iss, verb=verb)
     return b
 
 cdef BetaAdic2 getBetaAdic2(input_a, la=None, ss=None, tss=None, prec=53, add_letters=True, verb=False):
     if verb:
-        print("getBetaAdic %s"%input_a)
+        print("getBetaAdic %s" % input_a)
     from sage.rings.complex_field import ComplexField
     from sage.combinat.words.automata import Automaton
     CC = ComplexField(prec)
     cdef BetaAdic2 b
     if la is None:
         la = input_a.get_la(ss=ss, tss=tss, verb=verb)
-    
+
     if add_letters:
         C = set(input_a.C)
         for a in la:
             C.update(a.Alphabet())
     C = list(C)
-    
+
     b = NewBetaAdic2(len(C), len(la))
     b.b = complex(CC(input_a.b))
     d = {}
-    for i,c in zip(range(b.n), C):
+    for i, c in zip(range(b.n), C):
         b.t[i] = complex(CC(c))
         d[c] = i
-    #automata
+    # automata
     for i in range(len(la)):
         #if isinstance(la[i], FastAutomaton):
         #    la[i] = la[i].permut(C, verb=verb)
@@ -522,44 +523,45 @@ def PrintWord(m, n):
 def fils (tree, e):
     """
     Return the list of sheet's sub-tree  starting on e.
-    
+
     INPUT:
 
     - ``tree`` the tree.
     - ``e`` the starting sheet.
-    
+
     OUTPUT:
-    
+
     list of ``tree`` sheet's sub-tree  starting on e.
-    
+
     """
-    if tree[e] == []: # e is a 
+    if tree[e] == []:  # e is a 
         return [e]
     r = []
     for f in tree[e]:
-        r+=fils(tree, f)
+        r += fils(tree, f)
     return r
 
-#teste si a est inclus dans un des morceaux de l ou pas
+# teste si a est inclus dans un des morceaux de l ou pas
 def included(a, l, lm):
     """
-    Return the index of 
-    
+    Return the index of
+
     INPUT:
-    
+
     - ``a`` word to find in ``l``.
+
     - ``l`` including word to test
-    
+
     OUTPUT:
-    
+
     - the word in ``l`` if a is present
-    
-    - ``True`` if the aomata is empty
-    
-    - ``None`` 
-    
+
+    - ``True`` if the automata is empty
+
+    - ``None``
+
     """
-    #teste vite fait si l'on est inclus dans un morceau ou pas
+    # teste vite fait si l'on est inclus dans un morceau ou pas
     incl = False
     w = a.find_word()
     if w is None:
@@ -573,24 +575,27 @@ def included(a, l, lm):
                 return j
             else:
                 return None
-    print( "******* Error : word %s is conconize by any automata ! *********"%w)
+    print("******* Error : word %s is conconize by any automata ! *********" % w)
     return None
 
-#split a1 selon ba (rend un couple (a11, a12) avec a11 la partie dans ba et a12 celle disjointe de ba)
+
+# split a1 selon ba (rend un couple (a11, a12) avec a11 la partie dans ba et a12 celle disjointe de ba)
 def split_ba(i, tr, np, lm, m, aa, ap, verb=False):
     b = m.b
     a1 = lm[i][0]
-    #teste l'intersection avec ba
-    #at = m.move2(t=(b**(-np))*tr, a=aoc)                   #TODO : utiliser les automates des relations précalculés pour les translations de l'échange
+    # teste l'intersection avec ba
+    # at = m.move2(t=(b**(-np))*tr, a=aoc)
+    # TODO : utiliser les automates des relations précalculés
+    # pour les translations de l'échange
     at = m.Proj(aa, ap, t=(b**(-np))*tr)
     if at.intersect(a1):
         ar = at.intersection(a1)
-        #détermine si l'on est inclus dans ba
+        # détermine si l'on est inclus dans ba
         ar.zero_completeOP()
         if ar.equals_langages(a1):
             return (a1, None)
         else:
-            #on subdivise en deux
+            # on subdivise en deux
             ar2 = a1.intersection(ar.complementary())
             ar2.zero_completeOP()
             return (ar, ar2)
@@ -598,84 +603,91 @@ def split_ba(i, tr, np, lm, m, aa, ap, verb=False):
         return (None, a1)
 
 
-#split a1 selon baoc (rend un couple (a11, a12) avec a11 la partie dans baoc et a12 celle disjointe de baoc)
+# split a1 selon baoc (rend un couple (a11, a12) avec a11 la partie dans baoc
+# et a12 celle disjointe de baoc)
 def split_baoc(i, tr, np, lm, m, aoc, verb=False):
     b = m.b
     a1 = lm[i][0]
-    #teste l'intersection avec baoc
-    at = m.move2(t=(b**(-np))*tr, a=aoc)                   #TODO : utiliser les automates des relations précalculés pour les translations de l'échange
+    # teste l'intersection avec baoc
+    at = m.move2(t=(b**(-np))*tr, a=aoc)
+    # TODO : utiliser les automates des relations précalculés
+    # pour les translations de l'échange
     if at.intersect(a1):
         ar = at.intersection(a1)
-        #détermine si l'on est inclus dans baoc
+        # détermine si l'on est inclus dans baoc
         ar.zero_completeOP()
         if ar.equals_langages(a1):
             return (a1, None)
         else:
-            #on subdivise en deux
+            # on subdivise en deux
             return (ar, a1.intersection(ar.complementary()))
     else:
         return (None, a1)
 
-###
 
 cdef class ImageIn:
     cdef void** s
-    
-    def __cinit__ (self):
+
+    def __cinit__(self):
         self.s = <void **>malloc(sizeof(void*))
-    
+
     def __init__(self, file_name):
         self.s[0] = OpenImage(file_name)
-    
-    def __dealloc__ (self):
+
+    def __dealloc__(self):
         CloseImage(self.s[0])
         free(self.s)
-    
-    def __repr__ (self):
+
+    def __repr__(self):
         w = ImageWidth(self.s[0])
         h = ImageHeight(self.s[0])
         return "Image of size %sx%s"%(w, h)
-    
-    def __contains__ (self, p):
+
+    def __contains__(self, p):
         from sage.rings.complex_field import ComplexField
         CC = ComplexField(53)
         if p in CC:
             return InImage(self.s[0], p.real(), p.imag())
         else:
             return InImage(self.s[0], p[0], p[1])
-    
-    def width (self):
+
+    def width(self):
         return ImageWidth(self.s[0])
-    
-    def height (self):
+
+    def height(self):
         return ImageHeight(self.s[0])
 
-###
 
 class BetaAdicMonoid(Monoid_class):
     r"""
     ``b``-adic monoid with numerals set ``C``.
     It is the beta-adic monoid generated by the set of affine transformations ``{x -> b*x + c | c in C}``.
-    
+
     EXAMPLES::
-    
+
         sage: m1 = BetaAdicMonoid(3, {0,1,3})
-        sage: m2 = BetaAdicMonoid((1+sqrt(5))/2, {0,1})
+        sage: print(m1)
+        Monoid of 3-adic expansion with numerals set {0, 1, 3}
+        sage: m2 = BetaAdicMonoid((1 + sqrt(5)) / 2, {0,1})
+        sage: print(m2)
+        Monoid of b-adic expansion with b root of x^2 - x - 1 and numerals set {0, 1}
         sage: b = (x^3-x-1).roots(ring=QQbar)[0][0]
         sage: m3 = BetaAdicMonoid(b, {0,1})
+        sage: print(m3)
+        Monoid of b-adic expansion with b root of x^3 - x - 1 and numerals set {0, 1}
     """
-    def __init__ (self, b, C):
+    def __init__(self, b, C):
         r"""
         Construction of the b-adic monoid generated by the set of affine transformations ``{x -> b*x + c | c in C}``.
-        
+
         EXAMPLES::
-        
+
             sage: m1 = BetaAdicMonoid(3, {0,1,3})
             sage: m2 = BetaAdicMonoid((1+sqrt(5))/2, {0,1})
             sage: b = (x^3-x-1).roots(ring=QQbar)[0][0]
             sage: m3 = BetaAdicMonoid(b, {0,1})
         """
-        #print "init BAM with (%s,%s)"%(b,C)
+        # print "init BAM with (%s,%s)"%(b,C)
         if b in QQbar:
             #            print b
             pi = QQbar(b).minpoly()
@@ -685,27 +697,27 @@ class BetaAdicMonoid(Monoid_class):
             try:
                 K.places()
             except:
-                print("b=%s must be a algebraic number, ring %s not accepted."%(b,K))
-            
+                print("b=%s must be a algebraic number, ring %s not accepted." % (b, K))
+
 #        print K
-        self.b = K.gen() #beta (element of an NumberField)
+        self.b = K.gen()  # beta (element of an NumberField)
 #        print "b="; print self.b
-        self.C = Set([K(c) for c in C]) #set of numerals
+        self.C = Set([K(c) for c in C])  # set of numerals
 #        print "C="; print self.C
-    
+
     def gen(self, i):
         r"""
         Return the element of C of index i.
         """
 #        g(x) = self.b*x+self.C[i]
         return self.C[i]
-    
+
     def ngens(self):
         r"""
         Return the number of elements of C.
         """
         return len(self.C)
-    
+
     def _repr_(self):
         r"""
         Returns the string representation of the beta-adic monoid.
@@ -723,30 +735,30 @@ class BetaAdicMonoid(Monoid_class):
             sage: repr(m)
             'Monoid of b-adic expansion with b root of x^2 - 9/2 and numerals set {0, 1}'
         """
-        
+
         str = ""
         if hasattr(self, 'ss'):
             if self.ss is not None:
-                str=" with subshift of %s states"%self.ss.num_verts()
-        
+                str = " with subshift of %s states" % self.ss.num_verts()
+
         from sage.rings.rational_field import QQ
         if self.b in QQ:
-            return "Monoid of %s-adic expansion with numerals set %s"%(self.b,self.C) + str
+            return "Monoid of %s-adic expansion with numerals set %s" % (self.b, self.C) + str
         else:
             K = self.b.parent()
             if K.base_field() == QQ:
-                return "Monoid of b-adic expansion with b root of %s and numerals set %s"%(self.b.minpoly(),self.C) + str
+                return "Monoid of b-adic expansion with b root of %s and numerals set %s" % (self.b.minpoly(), self.C) + str
             else:
                 if K.characteristic() != 0:
                     return "Monoid of b-adic expansion with b root of %s and numerals set %s, in characteristic %s"%(self.b.minpoly(), self.C, K.characteristic()) + str
                 else:
                     return "Monoid of b-adic expansion with b root of %s and numerals set %s"%(K.modulus(),self.C) + str
-    
+
     def testSDL(self):
         sig_on()
         TestSDL()
-        sig_off()    
-    
+        sig_off()
+
     def default_ss(self, C=None):
         r"""
         Returns the full subshift (given by an Automaton) corresponding to the beta-adic monoid.
@@ -769,9 +781,9 @@ class BetaAdicMonoid(Monoid_class):
         ss.F = [0]
         ss.A = C
         return ss
-        
-    #liste des automates donnant le coloriage de l'ensemble limite
-    def get_la (self, ss=None, tss=None, verb=False):
+
+    # liste des automates donnant le coloriage de l'ensemble limite
+    def get_la(self, ss=None, tss=None, verb=False):
         if hasattr(self, 'la'):
             return self.la
         if tss is None:
@@ -787,7 +799,7 @@ class BetaAdicMonoid(Monoid_class):
         if ss is None:
             if tss is None:
                 tss = FastAutomaton(None).full(list(self.C))
-                #raise ValueError("la, ss, or tss must be defined !")
+                # raise ValueError("la, ss, or tss must be defined !")
             if verb:
                 print "Compute the transposition of tss=%s..."%tss
             ss = tss.transpose().determinise() #ze()
@@ -811,7 +823,7 @@ class BetaAdicMonoid(Monoid_class):
             if verb:
                 print tss
 
-        #compute la
+        # compute la
         a = {}
         for v in ss.states(): #ss.vertices():
             a[v] = ss.copy() #Automaton(ss) ##################################################################################
@@ -826,22 +838,22 @@ class BetaAdicMonoid(Monoid_class):
             if verb:
                 print a[v]
         return [tss]+a.values()
-    
+
     def points_exact(self, n=None, ss=None, iss=None):
         r"""
         Returns a set of exacts values (in the number field of beta) corresponding to the drawing of the limit set of the beta-adic monoid.
 
         INPUT:
-        
+
         - ``n`` - integer (default: ``None``)
           The number of iterations used to plot the fractal.
           Default values: between ``5`` and ``16`` depending on the number of generators.
-        
+
         - ``ss`` - Automaton (default: ``None``)
           The subshift to associate to the beta-adic monoid for this drawing.
-        
+
         - ``iss`` - set of initial states of the automaton ss (default: ``None``)
-        
+
         OUTPUT:
 
             list of exact values
@@ -857,26 +869,26 @@ class BetaAdicMonoid(Monoid_class):
             sage: len(P)
             65536
         """
-        #global co
-        
+        # global co
+
         C = self.C
         K = self.b.parent()
         b = self.b
         ng = C.cardinality()
-        
+
         if ss is None:
             if hasattr(self, 'ss'):
                 ss = self.ss
             else:
                 ss = self.default_ss()
-        
+
         if iss is None:
             if hasattr(ss, 'I'):
                 iss = [i for i in ss.I][0]
             if iss is None:
                 print "Donner l'état de départ iss de l'automate ss !"
                 return
-        
+
         if n is None:
             if ng == 2:
                 n = 16
@@ -905,29 +917,29 @@ class BetaAdicMonoid(Monoid_class):
             #    v = self.succ(i, c)
             #    if v is not None:
             #       orbit_points = orbit_points.union(Set([b*p+c for p in orbit_points0]))
-        #print "no=%s"%orbit_points.cardinality()
+        # print "no=%s"%orbit_points.cardinality()
         return orbit_points
-    
+
     def points(self, n=None, place=None, ss=None, iss=None, prec=53):
         r"""
         Returns a set of values (real or complex) corresponding to the drawing of the limit set of the beta-adic monoid.
 
         INPUT:
-        
+
         - ``n`` - integer (default: ``None``)
           The number of iterations used to plot the fractal.
           Default values: between ``5`` and ``16`` depending on the number of generators.
-        
+
         - ``place`` - place of the number field of beta (default: ``None``)
           The place we should use to evaluate elements of the number field given by points_exact()
-        
+
         - ``ss`` - Automaton (default: ``None``)
           The subshift to associate to the beta-adic monoid for this drawing.
-        
+
         - ``iss`` - set of initial states of the automaton ss (default: ``None``)
-        
+
         - ``prec`` - precision of returned values (default: ``53``)
-        
+
         OUTPUT:
 
             list of real or complex numbers
@@ -935,19 +947,19 @@ class BetaAdicMonoid(Monoid_class):
         EXAMPLES:
 
             #. The dragon fractal::
-            
+
             sage: e = QQbar(1/(1+I))
             sage: m = BetaAdicMonoid(e, {0,1})
             sage: P = m.points()     # long time (360 s)
             sage: len(P)
             32768
         """
-        
+
         C = self.C
         K = self.b.parent()
         b = self.b
         ng = C.cardinality()
-        
+
         if n is None:
             if ng == 2:
                 n = 18
@@ -966,11 +978,11 @@ class BetaAdicMonoid(Monoid_class):
         CC = ComplexField(prec)
         if place is None:
             if abs(b) < 1:
-                #garde la place courante
-                #place = lambda x: CC(x.n())
+                # garde la place courante
+                # place = lambda x: CC(x.n())
                 return [CC(c).n(prec) for c in self.points_exact(n=n, ss=ss, iss=iss)]
             else:
-                #choisis une place
+                # choisis une place
                 places = K.places()
                 place = places[0]
                 for p in places:
@@ -978,16 +990,16 @@ class BetaAdicMonoid(Monoid_class):
                         place = p
                         #break
 
-        #from sage.rings.qqbar import QQbar
-        #from sage.rings.qqbar import QQbar, AA
-        #if QQbar(self.b) not in AA:
+        # from sage.rings.qqbar import QQbar
+        # from sage.rings.qqbar import QQbar, AA
+        # if QQbar(self.b) not in AA:
         #    #print "not in AA !"
         #    return [(place(c).conjugate().N().real(), place(c).conjugate().N().imag()) for c in self.points_exact(n=n, ss=ss, iss=iss)]
-        #else:
+        # else:
         #    #print "in AA !"
         #    return [place(c).conjugate().N() for c in self.points_exact(n=n, ss=ss, iss=iss)]
         return [place(c).n(prec) for c in self.points_exact(n=n, ss=ss, iss=iss)]
-    
+
 #          if n == 0:
 #             #donne un point au hasard dans l'ensemble limite
 #             return [0]
@@ -1006,9 +1018,9 @@ class BetaAdicMonoid(Monoid_class):
         cdef Automate a
         cdef FastAutomaton r
         b = getBetaAdic(self, prec=prec, tss=tss, ss=ss, iss=iss, add_letters=add_letters, transpose=True, verb=verb)
-        #if verb:
+        # if verb:
         #    printAutomaton(b.a)
-        #dessin
+        # dessin
         cdef Color col
         col.r = color[0]
         col.g = color[1]
@@ -1026,13 +1038,16 @@ class BetaAdicMonoid(Monoid_class):
         r.a[0] = a
         r.A = list(self.C)
         return r
-    
-    def draw_zoom(self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0, 0, 0, 255), method=0, add_letters=True, coeff=8., verb=False):
+
+    def draw_zoom(self, n=None, tss=None, ss=None, iss=None,
+                  sx=800, sy=600, ajust=True, prec=53, color=(0, 0, 0, 255),
+                  method=0, add_letters=True, coeff=8., verb=False):
         if tss is None:
             tss = self.reduced_words_automaton2()
         sig_on()
         cdef BetaAdic b
-        b = getBetaAdic(self, prec=prec, tss=tss, ss=ss, iss=iss, add_letters=add_letters, transpose=True, verb=verb)
+        b = getBetaAdic(self, prec=prec, tss=tss, ss=ss, iss=iss,
+                        add_letters=add_letters, transpose=True, verb=verb)
         # if verb:
         #     printAutomaton(b.a)
         # dessin
@@ -1049,9 +1064,9 @@ class BetaAdicMonoid(Monoid_class):
             print "Not implemented !"
             return
         sig_off()
-    
-    #give a word corresponding to one of the previously drawn points
-    def word_drawn (self):
+
+    # give a word corresponding to one of the previously drawn points
+    def word_drawn(self):
         sig_on()
         cdef int *word = WordDrawn()
         sig_off()
@@ -1063,37 +1078,39 @@ class BetaAdicMonoid(Monoid_class):
             res.append(word[i])
         res.reverse()
         return res
-    
-    def plot2(self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600, ajust=True, prec=53, color=(0,0,0,255), method=0, add_letters=True, coeff=8., verb=False):
+
+    def plot2(self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600,
+              ajust=True, prec=53, color=(0, 0, 0, 255), method=0, add_letters=True,
+              coeff=8., verb=False):
         r"""
         Draw the limit set of the beta-adic monoid (with or without subshift).
 
         INPUT:
-        
+
         - ``n`` - integer (default: ``None``)
           The number of iterations used to plot the fractal.
           Default values: between ``5`` and ``16`` depending on the number of generators.
-        
+
         - ``place`` - place of the number field of beta (default: ``None``)
           The place used to evaluate elements of the number field.
-        
+
         - ``ss`` - Automaton (default: ``None``)
           The subshift to associate to the beta-adic monoid for this drawing.
-        
+
         - ``iss`` - set of initial states of the automaton ss (default: ``None``)
-        
+
         - ``sx, sy`` - dimensions of the resulting image (default : ``800, 600``)
-        
+
         - ``ajust`` - adapt the drawing to fill all the image, with ratio 1 (default: ``True``)
-        
+
         - ``prec`` - precision of returned values (default: ``53``)
-        
+
         - ``color`` - list of three integer between 0 and 255 (default: ``(0,0,255,255)``)
           Color of the drawing.
-        
+
         - ``verb`` - bool (default: ``False``)
           Print informations for debugging.
-        
+
         OUTPUT:
 
             A Graphics object.
@@ -1115,14 +1132,14 @@ class BetaAdicMonoid(Monoid_class):
             sage: s = WordMorphism('1->12,2->13,3->1')
             sage: m = s.rauzy_fractal_beta_adic_monoid()
             sage: m.plot2()     # long time
-        
+
         #. A non-Pisot Rauzy fractal::
-            
+
             sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
             sage: m = s.rauzy_fractal_beta_adic_monoid()
             sage: m.b = 1/m.b
             sage: m.plot2(tss=m.ss)     # long time
-        
+
         #. The dragon fractal and its boundary::
 
             sage: e = QQbar(1/(1+I))
@@ -1130,21 +1147,21 @@ class BetaAdicMonoid(Monoid_class):
             sage: ssi = m.intersection_words(w1=[0], w2=[1])     # long time
             sage: m.plot2(tss=ssi)                               # long time
             sage: m.plot2()                                      # long time
-            
+
         #. The "Hokkaido" fractal and its boundary::
-          
+
             sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
             sage: m = s.rauzy_fractal_beta_adic_monoid()
             sage: ssi = m.intersection_words(w1=[0], w2=[1])                  # long time
             sage: m.plot2(la=[la[0], ssi]+la[1:], colormap='gist_rainbow')    # long time
-        
+
         #. A limit set that look like a tiling::
-            
+
             sage: P=x^4 + x^3 - x + 1
             sage: b = P.roots(ring=QQbar)[2][0]
             sage: m = BetaAdicMonoid(b, {0,1})
             sage: m.plot2(19)                                   # long time
-        
+
         """
         sig_on()
         cdef Surface s = NewSurface(sx, sy)
@@ -1152,9 +1169,9 @@ class BetaAdicMonoid(Monoid_class):
         if tss is not None:
             tss = tss.emonde()
         b = getBetaAdic(self, prec=prec, tss=tss, ss=ss, iss=iss, add_letters=add_letters, transpose=True, verb=verb)
-        #if verb:
+        # if verb:
         #    printAutomaton(b.a)
-        #dessin
+        # dessin
         cdef Color col
         col.r = color[0]
         col.g = color[1]
@@ -1180,40 +1197,40 @@ class BetaAdicMonoid(Monoid_class):
 #            FreeAutomaton(&b.a)
         FreeBetaAdic(b)
         sig_off()
-        
+
     def plot3(self, n=None, la=None, ss=None, tss=None, sx=800, sy=600, ajust=True, prec=53, colormap = 'hsv', backcolor=None, opacity = 1., add_letters=True, verb=False):
         r"""
         Draw the limit set of the beta-adic monoid with colors.
 
         INPUT:
-        
+
         - ``n`` - integer (default: ``None``)
           The number of iterations used to plot the fractal.
           Default values: between ``5`` and ``16`` depending on the number of generators.
-        
+
         - ``place`` - place of the number field of beta (default: ``None``)
           The place we should use to evaluate elements of the number field.
-        
+
         - ``ss`` - Automaton (default: ``None``)
           The subshift to associate to the beta-adic monoid for this drawing.
-        
+
         - ``iss`` - set of initial states of the automaton ss (default: ``None``)
-        
+
         - ``sx, sy`` - dimensions of the resulting image (default : ``800, 600``)
-        
+
         - ``ajust`` - adapt the drawing to fill all the image, with ratio 1 (default: ``True``)
-        
+
         - ``prec`` - precision of returned values (default: ``53``)
-        
+
         - ``colormap`` - list of colors (default: ``hsv``)
           Colors of the drawing.
-        
+
         - ``opacity``- float (default: ``1.``)
           Transparency of the drawing.
-        
+
         - ``verb`` - bool (default: ``False``)
           Print informations for debugging.
-        
+
         OUTPUT:
 
             A Graphics object.

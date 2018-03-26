@@ -211,8 +211,10 @@ def TestAutomaton(a):
 
     EXAMPLES::
 
-        sage:
-        sage: TestAutomaton()
+        sage: a = DiGraph({a: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1]})
+        sage: fa = FastAutomaton(a)
+        ['(0,3)', '(2,3)', '(0,2)', '(1,2)', '(0,1)', '(4,5)', '(1,0)', '(4,0)', '(3,4)', '(5,1)']
+        sage: TestAutomaton(fa)
 
     """
     cdef Automaton r
@@ -220,8 +222,8 @@ def TestAutomaton(a):
     # da = {}
     r = getAutomaton(a)  # , d, da)
     printAutomaton(r)
-    # print d, da
-    print(a.vertices(), list(a.Alphabet()))
+    # print d, da, a.vertices(),
+    print(list(a.Alphabet()))
 
 
 def TestProduct(a1, a2, di):
@@ -298,6 +300,7 @@ def TestEmonde(a, noempty=True, verb=True):
 
 
 cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
+    print("ds getAutomaton")
     sig_on()
     d = {}
     da = {}
@@ -307,12 +310,14 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
         else:
             F = a.F
     cdef Automaton r
+    print("ds getAutomaton 2")
     if A is None:
         A = list(a.Alphabet())
     V = list(a.vertices())
     cdef int n = len(V)
     cdef int na = len(A)
     r = NewAutomaton(n, na)
+    print("ds getAutomaton 3")
     init(&r)
     for i in range(na):
         da[A[i]] = i
@@ -326,6 +331,7 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
             print("Error : Incorrect set of final states.")
             return r
         r.e[d[v]].final = 1
+    print("ds getAutomaton 4")
     if initial is None:
         if not hasattr(a, 'I'):
             I = []
@@ -341,8 +347,10 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
             r.i = -1
     else:
         r.i = initial
+    print("ds getAutomaton 5")
     for e, f, l in a.edges():
         r.e[d[e]].f[da[l]] = d[f]
+    print("ds getAutomaton 6")
     sig_off()
     return r
 
@@ -568,6 +576,8 @@ cdef class FastAutomaton:
                 else:
                     A = list(set(a.edge_labels()))
             self.A = A
+            print("ds FA A:")
+            print(A)
             sig_on()
             self.a[0] = getAutomaton(a, initial=i, F=final_states, A=self.A)
             sig_off()
@@ -614,7 +624,7 @@ cdef class FastAutomaton:
     cdef set_a(self, Automaton a):
         self.a[0] = a
 
-    #give a FastAutomaton recognizing the full language over A.
+    # give a FastAutomaton recognizing the full language over A.
     def full(self, list A):
         cdef Automaton a
         sig_on()
@@ -1552,7 +1562,8 @@ cdef class FastAutomaton:
         try:
             k = self.A.index(l)
         except:
-            raise ValueError("The letter %s doesn't exist."%l) # La lettre %s n'existe pas.
+            # La lettre %s n'existe pas.
+            raise ValueError("The letter %s doesn't exist." % l) 
         self.a.e[i].f[k] = j
 
     def n_states(self):
