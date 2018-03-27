@@ -544,21 +544,22 @@ cdef class NFastAutomaton:
         from sage.misc.temporary_file import tmp_filename
         file_name = tmp_filename()
         file = file_name
-        if verb: print("file=%s"%file_name)
+        if verb:
+            print("file=%s" % file_name)
         NplotDot(file, self.a[0], ll, "Automaton", sx, sy)
         free(ll)
         sig_off()
         from PIL import Image
-		return Image.open(file_name+'.png')
+        return Image.open(file_name+'.png')
 
 # cdef set_FastAutomaton (FastAutomaton a, Automaton a2):
 #    a.a[0] = a2
 
 cdef class FastAutomaton:
     """
-     INPUT:
+    INPUT:
 
-     EXAMPLES:
+    EXAMPLES:
 
         sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
         sage: a
@@ -570,6 +571,12 @@ cdef class FastAutomaton:
         sage: a = FastAutomaton(g)
         sage: a
         FastAutomaton with 5 states and an alphabet of 4 letters
+        sage: a = FastAutomaton([(0,1,'a') ,(2, 3,'b')], i = 2)
+        sage: a
+        FastAutomaton with 4 states and an alphabet of 2 letters
+        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')], final_states=[0,3])
+        sage: a
+        FastAutomaton with 4 states and an alphabet of 2 letters   
     """
 
 #    cdef Automaton* a
@@ -718,24 +725,79 @@ cdef class FastAutomaton:
 
     def Alphabet(self):
         """
+        EXAMPLES::
+
         sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
         sage: a.Alphabet()
         ['a', 'b']
-        
+
         """
         return self.A
 
     def setAlphabet(self, list A):
+        """
+        EXAMPLES::
+
+        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+        sage: a.setAlphabet(['a', 'b', 'c'])
+        sage: a.Alphabet()
+        ['a', 'b', 'c']
+        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+        sage: a.setAlphabet(['a','e'])
+        sage: a.Alphabet()
+        ['a', 'e']
+
+        """
         self.A = A
         self.a[0].na = len(A)
 
     def initial_state(self):
+        """
+        EXAMPLES::
+
+        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+        sage: a.initial_state()
+        -1
+        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')], i=2)
+        sage: a.initial_state()
+        2
+        """
         return self.a.i
 
     def set_initial_state(self, int i):
-        self.a.i = i
+        """
+        EXAMPLES::
+
+        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+        sage: a.set_initial_state(2)
+        sage: a.initial_state()
+        2
+        sage: a.set_initial_state(6)
+        Traceback (click to the left of this block for traceback)
+        ...
+        ValueError: initial state must be a current state : 6 not in [-1, 3]
+        """
+        if i < self.a.n and i >= -1:
+            self.a.i = i
+        else:
+            raise ValueError("initial state must be a current state : %s" % i +
+                             " not in [-1, %s]" % self.a.n-1)
 
     def final_states(self):
+        """
+        EXAMPLES::
+
+        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+        sage: a.final_states()
+        [0, 1, 2, 3]
+        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')], )
+        sage: a.final_states()
+        [0, 1, 2, 3]
+        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')], final_states=[0,3])
+        sage: a.final_states()
+        [0, 3]
+        """
+
         l = []
         for i in range(self.a.n):
             if self.a.e[i].final:
@@ -743,9 +805,30 @@ cdef class FastAutomaton:
         return l
 
     def states(self):
+        """
+        EXAMPLES::
+
+        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+        sage: a.states()
+        [0, 1, 2, 3]
+        """
         return range(self.a.n)
 
     def set_final_states(self, lf):
+        """
+        EXAMPLES::
+
+        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+        sage: a.set_final_states([0,3])
+        sage: a.final_states()
+        [0, 3]
+        sage: a.set_final_states([0,4])
+        sage: a.final_states()
+        Traceback (click to the left of this block for traceback)
+        ...
+        ValueError: 4 is not a state !
+
+        """
         cdef int f
         for f in range(self.a.n):
             self.a.e[f].final = 0
