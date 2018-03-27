@@ -1,13 +1,6 @@
 ###########################################
 ## GAP
 ###########################################
-
-if [ -z "$SAGE_LOCAL" ]; then
-    echo >&2 "SAGE_LOCAL undefined ... exiting"
-    echo >&2 "Maybe run 'sage --sh'?"
-    exit 1
-fi
-
 # Read gap-version, which was written by spkg-src
 VERSION=`cat src/gap-version`
 GAP_DIR="gap-$VERSION"
@@ -38,49 +31,33 @@ echo "Configuring GAP..."
 ./configure \
     --prefix="$SAGE_LOCAL" PREFIX="$SAGE_LOCAL" \
     --with-gmp="$SAGE_LOCAL" \
-    CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS"
-if [[ $? -ne 0 ]]; then
-    echo >&2 "Error configuring GAP."
-    exit 1
-fi
+    CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" || \
+    sdh_die "Error configuring GAP."
 
 echo "Building GAP..."
 # Building config only works with 1 thread
-$MAKE -j1 config && $MAKE
-if [[ $? -ne 0 ]]; then
-    echo >&2 "Error building GAP."
-    exit 1
-fi
-if [[ ! -f bin/gap.sh ]]; then
-    echo "Error building GAP ('gap.sh' not found)."
-    exit 1
-fi
+sdh_make -j1 config
+sdh_make
+
+[ -f bin/gap.sh ] || sdh_die "Error building GAP ('gap.sh' not found)."
 
 # Wipe the installation directory.
 # This fixes https://trac.sagemath.org/ticket/22272
 echo "Removing previous installation of GAP..."
 rm -rf "$INSTALL_DIR"
+rm -f "$SAGE_LOCAL/gap/latest"
+rm -f "$SAGE_LOCAL/bin/gap"
 
 echo "Installing (copying) files..."
 # gap has no notion of installing itself (similar to sage), copy everything
 # See http://trac.sagemath.org/13211 for rationale of the filesystem layout
-mkdir -p "$SAGE_GAP" && mkdir "$INSTALL_DIR" && cp -R * "$INSTALL_DIR"
-if [[ $? -ne 0 ]]; then
-    echo >&2 "Error copying built GAP files."
-    exit 1
-fi
+sdh_install * "$INSTALL_DIR"
 
 echo "Creating symlink to new GAP installation..."
-rm -f "$SAGE_LOCAL/gap/latest"
-ln -s "$GAP_DIR" "$SAGE_LOCAL/gap/latest"
+ln -s "$GAP_DIR" "$SAGE_DESTDIR_LOCAL/gap/latest"
 
 echo "Copying GAP startup script..."
-rm -f "$SAGE_LOCAL/bin/gap"
-cp bin/gap.sh "$SAGE_LOCAL/bin/gap"
-if [[ $? -ne 0 ]]; then
-    echo >&2 "Error copying customized GAP startup script."
-    exit 1
-fi
+sdh_install -T bin/gap.sh "$SAGE_LOCAL/bin/gap"
 
 if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]]; then
     # The (pre-built) HTML documentation is currently (GAP 4.6.3)
@@ -88,15 +65,10 @@ if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]]; then
     # echo "Now building GAP's documentation..."
     # <COMMAND TO BUILD THE [HTML] DOCUMENTATION>
     echo "Now copying GAP's (HTML) documentation..."
-    mkdir -p "$SAGE_LOCAL/share/doc/gap" &&
-    cp -R doc/ref doc/tut "$SAGE_LOCAL/share/doc/gap/"
-    if [[ $? -ne 0 ]]; then
-        echo >&2 "Error copying GAP's HTML documentation."
-        exit 1
-    fi
+    sdh_install doc/ref doc/tut "$SAGE_LOCAL/share/doc/gap"
 fi
 
 # Delete tests that rely on the non-GPL small group library
-rm "$INSTALL_DIR"/tst/testinstall/ctblsolv.tst
-rm "$INSTALL_DIR"/tst/testinstall/grppc.tst
-rm "$INSTALL_DIR"/tst/testinstall/morpheus.tst
+rm "${SAGE_DESTDIR}${INSTALL_DIR}"/tst/testinstall/ctblsolv.tst
+rm "${SAGE_DESTDIR}${INSTALL_DIR}"/tst/testinstall/grppc.tst
+rm "${SAGE_DESTDIR}${INSTALL_DIR}"/tst/testinstall/morpheus.tst
