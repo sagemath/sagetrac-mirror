@@ -550,10 +550,19 @@ cdef class NFastAutomaton:
 cdef class FastAutomaton:
     """
      INPUT:
-     
+
      EXAMPLES:
-     
-         sage: a = FastAutomaton(
+
+        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+        sage: a
+        FastAutomaton([(0,1,'a') ,(2,3,'b')])
+         age: d = DiGraph( {0: [1,2,3], 1: [0,2]})
+        sage: a = FastAutomaton(d)
+        FastAutomaton with 4 states and an alphabet of 1 letters
+        sage: g = DiGraph({0:{1:'x',2:'z',3:'a'}, 2:{5:'o'}})
+        sage: a = FastAutomaton(g)
+        sage: a
+        FastAutomaton with 5 states and an alphabet of 4 letters
     """
 
 #    cdef Automaton* a
@@ -702,9 +711,10 @@ cdef class FastAutomaton:
 
     def Alphabet(self):
         """
-
+        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
         sage: a.Alphabet()
-
+        ['a', 'b']
+        
         """
         return self.A
 
