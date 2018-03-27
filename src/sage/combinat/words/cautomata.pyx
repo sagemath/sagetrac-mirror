@@ -201,58 +201,58 @@ cdef Dict getProductDict(dict d, list A1, list A2, dict dv=None, verb=True):
     return r
 
 
-def TestAutomaton(a):
-    """
-    Test automaton print vertices and alphabet
+# def TestAutomaton(a):
+#     """
+#     Test automaton print vertices and alphabet
+# 
+#     INPUT:
+# 
+#     - ``a`` automaton to test
+# 
+#     EXAMPLES::
+# 
+#         sage: a = DiGraph({0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1]})
+#         sage: fa = FastAutomaton(a)
+#         ['(0,3)', '(2,3)', '(0,2)', '(1,2)', '(0,1)', '(4,5)', '(1,0)', '(4,0)', '(3,4)', '(5,1)']
+#         sage: TestAutomaton(fa)
+# 
+#     """
+#     cdef Automaton r
+#     # d = {}
+#     # da = {}
+#     r = getAutomaton(a)  # , d, da)
+#     printAutomaton(r)
+#     # print d, da, a.vertices(),
+#     print( a.vertices(), list(a.Alphabet()))
 
-    INPUT:
 
-    - ``a`` automaton to test
-
-    EXAMPLES::
-
-        sage: a = DiGraph({a: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1]})
-        sage: fa = FastAutomaton(a)
-        ['(0,3)', '(2,3)', '(0,2)', '(1,2)', '(0,1)', '(4,5)', '(1,0)', '(4,0)', '(3,4)', '(5,1)']
-        sage: TestAutomaton(fa)
-
-    """
-    cdef Automaton r
-    # d = {}
-    # da = {}
-    r = getAutomaton(a)  # , d, da)
-    printAutomaton(r)
-    # print d, da, a.vertices(),
-    print(list(a.Alphabet()))
-
-
-def TestProduct(a1, a2, di):
-    """
-    Test and print the product of automaton
-
-    INPUT:
-
-    - ``a1`` first automaton term of product
-
-    - ``a2`` second automaton term of product
-
-    - ``di`` alphabet dictionnary
-
-    """
-    cdef Automaton a, b, c
-    a = getAutomaton(a1)
-    b = getAutomaton(a2)
-    printAutomaton(a)
-    print(a1.vertices(), a1.Alphabet())
-    printAutomaton(b)
-    print(a2.vertices(), a2.Alphabet())
-    cdef Dict d
-    d = getProductDict(di, list(a1.Alphabet()), list(a2.Alphabet()))
-    print("product dictionnary :")  # "dictionnaire du produit :"
-    printDict(d)
-    c = Product(a, b, d, False)
-    print("result :")  # "résultat :"
-    printAutomaton(c)
+# def TestProduct(a1, a2, di):
+#     """
+#     Test and print the product of automaton
+# 
+#     INPUT:
+# 
+#     - ``a1`` first automaton term of product
+# 
+#     - ``a2`` second automaton term of product
+# 
+#     - ``di`` alphabet dictionnary
+# 
+#     """
+#     cdef Automaton a, b, c
+#     a = getAutomaton(a1)
+#     b = getAutomaton(a2)
+#     printAutomaton(a)
+#     print(a1.vertices(), a1.Alphabet())
+#     printAutomaton(b)
+#     print(a2.vertices(), a2.Alphabet())
+#     cdef Dict d
+#     d = getProductDict(di, list(a1.Alphabet()), list(a2.Alphabet()))
+#     print("product dictionnary :")  # "dictionnaire du produit :"
+#     printDict(d)
+#     c = Product(a, b, d, False)
+#     print("result :")  # "résultat :"
+#     printAutomaton(c)
 
 #def TestDeterminise (a, d, noempty=True, verb=True):
 #    cdef Dict di = getDict(d, a.Alphabet())
@@ -283,24 +283,24 @@ def TestProduct(a1, a2, di):
 #        print "differents !"
 
 
-def TestEmonde(a, noempty=True, verb=True):
-    cdef Automaton au = getAutomaton(a)
-    if verb:
-        print("bebore mondation :")  # Avant émondation :"
-        printAutomaton(au)
-    cdef Automaton r = emonde_inf(au, verb)
-    if verb:
-        print("After montation  :")
-        printAutomaton(r)
-    if equalsAutomaton(r, au):
-        print("equal !")
-    else:
-        print("different !")
-    return AutomatonGet(r)
+# def TestEmonde(a, noempty=True, verb=True):
+#     cdef Automaton au = getAutomaton(a)
+#     if verb:
+#         print("bebore mondation :")  # Avant émondation :"
+#         printAutomaton(au)
+#     cdef Automaton r = emonde_inf(au, verb)
+#     if verb:
+#         print("After montation  :")
+#         printAutomaton(r)
+#     if equalsAutomaton(r, au):
+#         print("equal !")
+#     else:
+#         print("different !")
+#     return AutomatonGet(r)
 
 
 cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
-    print("ds getAutomaton")
+
     sig_on()
     d = {}
     da = {}
@@ -310,14 +310,14 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
         else:
             F = a.F
     cdef Automaton r
-    print("ds getAutomaton 2")
+
     if A is None:
         A = list(a.Alphabet())
     V = list(a.vertices())
     cdef int n = len(V)
     cdef int na = len(A)
     r = NewAutomaton(n, na)
-    print("ds getAutomaton 3")
+
     init(&r)
     for i in range(na):
         da[A[i]] = i
@@ -331,7 +331,7 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
             print("Error : Incorrect set of final states.")
             return r
         r.e[d[v]].final = 1
-    print("ds getAutomaton 4")
+ 
     if initial is None:
         if not hasattr(a, 'I'):
             I = []
@@ -347,10 +347,10 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
             r.i = -1
     else:
         r.i = initial
-    print("ds getAutomaton 5")
+
     for e, f, l in a.edges():
         r.e[d[e]].f[da[l]] = d[f]
-    print("ds getAutomaton 6")
+
     sig_off()
     return r
 
@@ -548,6 +548,13 @@ cdef class NFastAutomaton:
 #    a.a[0] = a2
 
 cdef class FastAutomaton:
+    """
+     INPUT:
+     
+     EXAMPLES:
+     
+         sage: a = FastAutomaton(
+    """
 
 #    cdef Automaton* a
 #    cdef list A
@@ -571,16 +578,13 @@ cdef class FastAutomaton:
             a = DiGraph(a, multiedges=True, loops=True)
         if isinstance(a, DiGraph):
             if A is None:
-                if hasattr(a, 'A'):
-                    A = list(a.A)
-                else:
-                    A = list(set(a.edge_labels()))
+#                 if hasattr(a, 'A'):
+#                     A = list(a.A)
+#                 else:
+#                     
+                A = list(set(a.edge_labels()))
             self.A = A
-            print("ds FA A:")
-            print(A)
-            sig_on()
             self.a[0] = getAutomaton(a, initial=i, F=final_states, A=self.A)
-            sig_off()
         else:
             raise ValueError("Cannot convert the input to FastAutomaton.")
 
@@ -618,14 +622,28 @@ cdef class FastAutomaton:
         # print "cmp %s"%r
         return (r == 0)
 
-    def Automaton(self):
-        return AutomatonGet(self.a[0], self.A)
+#     def Automaton(self):
+#         return AutomatonGet(self.a[0], self.A)
 
-    cdef set_a(self, Automaton a):
-        self.a[0] = a
+#    cdef set_a(self, Automaton a):
+#        self.a[0] = a
 
     # give a FastAutomaton recognizing the full language over A.
     def full(self, list A):
+        """
+
+        EXEMPLES::
+
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a
+            FastAutomaton with 4 states and an alphabet of 2 letters
+            sage: a.full(['a'])
+            FastAutomaton with 1 states and an alphabet of 1 letters
+            sage: a.full(['a','b'])
+            FastAutomaton with 1 states and an alphabet of 2 letters
+            sage: a.full(['a','b','c'])
+            FastAutomaton with 1 states and an alphabet of 3 letters
+         """
         cdef Automaton a
         sig_on()
         r = FastAutomaton(None)
@@ -683,6 +701,11 @@ cdef class FastAutomaton:
         # self.Automaton().plot2()
 
     def Alphabet(self):
+        """
+
+        sage: a.Alphabet()
+
+        """
         return self.A
 
     def setAlphabet(self, list A):
