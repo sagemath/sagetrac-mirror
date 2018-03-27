@@ -548,10 +548,8 @@ cdef class NFastAutomaton:
         NplotDot(file, self.a[0], ll, "Automaton", sx, sy)
         free(ll)
         sig_off()
-        from sage.misc.html import html
-        h = '<img src="'+file_name+'.png">'
-        print("h=%s"%h)
-        html(h)
+        from PIL import Image
+		return Image.open(file_name+'.png')
 
 # cdef set_FastAutomaton (FastAutomaton a, Automaton a2):
 #    a.a[0] = a2
