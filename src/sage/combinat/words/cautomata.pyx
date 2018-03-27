@@ -549,7 +549,7 @@ cdef class NFastAutomaton:
         free(ll)
         sig_off()
         from PIL import Image
-		return Image.open(file_name+'.png')
+        return Image.open(file_name+'.png')
 
 # cdef set_FastAutomaton (FastAutomaton a, Automaton a2):
 #    a.a[0] = a2

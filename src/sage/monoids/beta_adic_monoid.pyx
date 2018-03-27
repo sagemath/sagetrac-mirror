@@ -373,9 +373,9 @@ cdef surface_to_img (Surface s):
             arr[y,x][1] = c.g
             arr[y,x][2] = c.b
             arr[y,x][3] = c.a
-    img = Image.fromarray(arr, 'RGBA')
+    return Image.fromarray(arr, 'RGBA')
     # img.save("/Users/mercat/Desktop/output.png")
-    img.save("output.png")
+    #img.save(file)
 
 cdef Automate getAutomate(a, d, list C, iss=None, verb=False):
     cdef int i
@@ -1163,6 +1163,12 @@ class BetaAdicMonoid(Monoid_class):
             sage: m.plot2(19)                                   # long time
 
         """
+        #cdef char *file
+        #from sage.misc.temporary_file import tmp_filename
+        #file_name = tmp_filename()
+        #file = file_name
+        #if verb:
+        #    print("file=%s"%file_name)
         sig_on()
         cdef Surface s = NewSurface(sx, sy)
         cdef BetaAdic b
@@ -1189,7 +1195,7 @@ class BetaAdicMonoid(Monoid_class):
             #        b.t[i] = complex(CC(v))
             #Draw2(b, s, n, ajust, col, verb)
         #enregistrement du résultat
-        surface_to_img(s)
+        im = surface_to_img(s)
         if verb:
             print "Free..."
         FreeSurface(s)
@@ -1197,6 +1203,8 @@ class BetaAdicMonoid(Monoid_class):
 #            FreeAutomaton(&b.a)
         FreeBetaAdic(b)
         sig_off()
+        #from PIL import Image
+        return im #Image.open(file_name+'.png')
 
     def plot3(self, n=None, la=None, ss=None, tss=None, sx=800, sy=600, ajust=True, prec=53, colormap = 'hsv', backcolor=None, opacity = 1., add_letters=True, verb=False):
         r"""
@@ -1321,7 +1329,7 @@ class BetaAdicMonoid(Monoid_class):
         sig_off()
         #enregistrement du résultat
         sig_on()
-        surface_to_img(s)
+        im = surface_to_img(s)
         sig_off()
         if verb:
             print "Free..."
@@ -1338,6 +1346,7 @@ class BetaAdicMonoid(Monoid_class):
         FreeBetaAdic2(b)
         FreeColorList(cl)
         sig_off()
+        return im
         
     def plot(self, n=None, place=None, ss=None, iss=None, prec=53, point_size=None, color='blue', verb=False):
         r"""
