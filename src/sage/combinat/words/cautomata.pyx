@@ -47,7 +47,7 @@ cdef extern from "automataC.h":
     void init(Automaton *a)
     void printAutomaton(Automaton a)
     void plotTikZ(Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool verb)
-    void NplotTikZ(NAutomaton a, const char **labels, const char *graph_name, double sx, double sy)
+    void NplotDot(const char *file, NAutomaton a, const char **labels, const char *graph_name, double sx, double sy)
     Automaton Product(Automaton a1, Automaton a2, Dict d, bool verb)
     Automaton Determinise(Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb)
     Automaton DeterminiseN(NAutomaton a, bool puits, int verb)
@@ -531,7 +531,7 @@ cdef class NFastAutomaton:
         sig_off()
         return r
 
-    def plot(self, int sx=10, int sy=8):
+    def plot(self, int sx=10, int sy=8, verb=False):
         sig_on()
         cdef char** ll
         ll = <char **>malloc(sizeof(char*) * self.a.na)
@@ -540,9 +540,16 @@ cdef class NFastAutomaton:
         for i in range(self.a.na):
             strA.append(str(self.A[i]))
             ll[i] = strA[i]
-        NplotTikZ(self.a[0], ll, "Automaton", sx, sy)
+        cdef char *file
+        from sage.misc.temporary_file import tmp_filename
+        file_name = tmp_filename()
+        file = file_name
+        if verb: print("file=%s"%file_name)
+        NplotDot(file, self.a[0], ll, "Automaton", sx, sy)
         free(ll)
         sig_off()
+        from PIL import Image
+		return Image.open(file_name+'.png')
 
 # cdef set_FastAutomaton (FastAutomaton a, Automaton a2):
 #    a.a[0] = a2

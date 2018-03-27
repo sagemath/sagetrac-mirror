@@ -561,11 +561,12 @@ void plotTikZ (Automaton a, const char **labels, const char *graph_name, double 
 	system(tamp);
 }
 
-void NplotTikZ (NAutomaton a, const char **labels, const char *graph_name, double sx, double sy)
+void NplotDot (const char *file, NAutomaton a, const char **labels, const char *graph_name, double sx, double sy)
 {
 	bool verb = false;
 	char tamp[1024];
-	FILE *f = fopen(temp_dot_file_name, "w");
+	//FILE *f = fopen(temp_dot_file_name, "w");
+	FILE *f = fopen(file, "w");
 	if (!f)
 	{
 		printf("Impossible d'ouvrir le fichier a.dot !\n");
@@ -623,7 +624,9 @@ void NplotTikZ (NAutomaton a, const char **labels, const char *graph_name, doubl
 	fclose(f);
 	if (verb)
 		printf("draw...\n");
-	sprintf(tamp, "dot %s -Gname -Tsvg > output%ld%ld.svg", temp_dot_file_name, time(NULL), clock());
+	sprintf(tamp, "dot %s -Gname -Tpng > %s.png", file, file);
+	system(tamp);
+	sprintf(tamp, "scp %s %s", file, temp_dot_file_name); //copy the file in the choosen place
 	system(tamp);
 }
 
