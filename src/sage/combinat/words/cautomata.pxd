@@ -21,8 +21,8 @@ ctypedef Automate Automaton
 
 cdef class FastAutomaton:
     cdef Automate* a
-    cdef public list A
-    cdef set_a(self, Automate a)
+    cdef list A
+    # cdef set_a(self, Automate a)
 
 cdef extern from "Automaton.h":
     ctypedef char bool
