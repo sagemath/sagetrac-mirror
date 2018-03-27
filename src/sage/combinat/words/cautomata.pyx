@@ -47,7 +47,7 @@ cdef extern from "automataC.h":
     void init(Automaton *a)
     void printAutomaton(Automaton a)
     void plotTikZ(Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool verb)
-    void NplotDot(const char *file, NAutomaton a, const char **labels, const char *graph_name, double sx, double sy)
+    void NplotDot (const char *file, NAutomaton a, const char **labels, const char *graph_name, double sx, double sy, bool run_dot)
     Automaton Product(Automaton a1, Automaton a2, Dict d, bool verb)
     Automaton Determinise(Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb)
     Automaton DeterminiseN(NAutomaton a, bool puits, int verb)
@@ -410,7 +410,37 @@ cdef class NFastAutomaton:
 
     def __repr__(self):
         return "NFastAutomaton with %d states and an alphabet of %d letters"%(self.a.n, self.a.na)
+    
+    def _latex_(self):
+        r"""
+        Return a latex representation of the automaton.
 
+        EXAMPLES::
+
+        TESTS:
+
+        """
+        sx = 800
+        sy = 600
+        from sage.misc.latex import LatexExpr
+        cdef char *file
+        from sage.misc.temporary_file import tmp_filename
+        file_name = tmp_filename()+".dot"
+        file = file_name
+        from dot2tex import dot2tex
+        cdef char** ll
+        ll = <char **>malloc(sizeof(char*) * self.a.na)
+        cdef int i
+        strA = []
+        for i in range(self.a.na):
+            strA.append(str(self.A[i]))
+            ll[i] = strA[i]
+        sig_on()
+        NplotDot(file, self.a[0], ll, "Automaton", sx, sy, False)
+        sig_off()
+        dotfile = open(file_name)
+        return LatexExpr(dot2tex(dotfile.read()))
+    
     def n_states(self):
         return self.a.n
 
@@ -545,8 +575,8 @@ cdef class NFastAutomaton:
         file_name = tmp_filename()
         file = file_name
         if verb:
-            print("file=%s" % file_name)
-        NplotDot(file, self.a[0], ll, "Automaton", sx, sy)
+            print("file=%s"%file_name)
+        NplotDot(file, self.a[0], ll, "Automaton", sx, sy, True)
         free(ll)
         sig_off()
         from PIL import Image

@@ -561,7 +561,7 @@ void plotTikZ (Automaton a, const char **labels, const char *graph_name, double 
 	system(tamp);
 }
 
-void NplotDot (const char *file, NAutomaton a, const char **labels, const char *graph_name, double sx, double sy)
+void NplotDot (const char *file, NAutomaton a, const char **labels, const char *graph_name, double sx, double sy, bool run_dot)
 {
 	bool verb = false;
 	char tamp[1024];
@@ -622,10 +622,13 @@ void NplotDot (const char *file, NAutomaton a, const char **labels, const char *
 	fprintf(f, "}\n");
 	
 	fclose(f);
-	if (verb)
-		printf("draw...\n");
-	sprintf(tamp, "dot %s -Gname -Tpng > %s.png", file, file);
-	system(tamp);
+	if (run_dot)
+	{
+        if (verb)
+            printf("draw...\n");
+        sprintf(tamp, "dot %s -Gname -Tpng > %s.png", file, file);
+        system(tamp);
+	}
 	sprintf(tamp, "scp %s %s", file, temp_dot_file_name); //copy the file in the choosen place
 	system(tamp);
 }
