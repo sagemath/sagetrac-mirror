@@ -755,12 +755,12 @@ cdef class FastAutomaton:
         """
         EXAMPLES::
 
-        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-        sage: a.initial_state()
-        -1
-        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')], i=2)
-        sage: a.initial_state()
-        2
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a.initial_state()
+            -1
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')], i=2)
+            sage: a.initial_state()
+            2
         """
         return self.a.i
 
@@ -768,14 +768,14 @@ cdef class FastAutomaton:
         """
         EXAMPLES::
 
-        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-        sage: a.set_initial_state(2)
-        sage: a.initial_state()
-        2
-        sage: a.set_initial_state(6)
-        Traceback (click to the left of this block for traceback)
-        ...
-        ValueError: initial state must be a current state : 6 not in [-1, 3]
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a.set_initial_state(2)
+            sage: a.initial_state()
+            2
+            sage: a.set_initial_state(6)
+            Traceback (click to the left of this block for traceback)
+            ...
+            ValueError: initial state must be a current state : 6 not in [-1, 3]
         """
         if i < self.a.n and i >= -1:
             self.a.i = i
@@ -787,15 +787,15 @@ cdef class FastAutomaton:
         """
         EXAMPLES::
 
-        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-        sage: a.final_states()
-        [0, 1, 2, 3]
-        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')], )
-        sage: a.final_states()
-        [0, 1, 2, 3]
-        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')], final_states=[0,3])
-        sage: a.final_states()
-        [0, 3]
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a.final_states()
+            [0, 1, 2, 3]
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')], )
+            sage: a.final_states()
+            [0, 1, 2, 3]
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')], final_states=[0,3])
+            sage: a.final_states()
+            [0, 3]
         """
 
         l = []
@@ -808,9 +808,9 @@ cdef class FastAutomaton:
         """
         EXAMPLES::
 
-        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-        sage: a.states()
-        [0, 1, 2, 3]
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a.states()
+            [0, 1, 2, 3]
         """
         return range(self.a.n)
 
@@ -818,15 +818,15 @@ cdef class FastAutomaton:
         """
         EXAMPLES::
 
-        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-        sage: a.set_final_states([0,3])
-        sage: a.final_states()
-        [0, 3]
-        sage: a.set_final_states([0,4])
-        sage: a.final_states()
-        Traceback (click to the left of this block for traceback)
-        ...
-        ValueError: 4 is not a state !
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a.set_final_states([0,3])
+            sage: a.final_states()
+            [0, 3]
+            sage: a.set_final_states([0,4])
+            sage: a.final_states()
+            Traceback (click to the left of this block for traceback)
+            ...
+            ValueError: 4 is not a state !
 
         """
         cdef int f
@@ -838,30 +838,82 @@ cdef class FastAutomaton:
             self.a.e[f].final = 1
 
     def is_final(self, int e):
+        """
+
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a.is_final(3)
+            True
+            sage: a.is_final(4)
+            False
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')], final_states=[0,3])
+            sage: a.is_final(2)
+            False
+        """
         if e >= 0 and e < self.a.n:
             return Bool(self.a.e[e].final)
         else:
             return False
 
     def set_final_state(self, int e, final=True):
+        """
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a.set_final_state(3)
+            sage: a.final_states()
+            [0, 1, 2, 3]
+            sage: a.set_final_state(4)
+            sage: a.final_states()
+            [0, 1, 2, 3]
+        """
         self.a.e[e].final = final
 
     def succ(self, int i, int j):
+        """
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0,1,'a'), (2,3,'b')])
+            sage: a.succ(0, 1)
+            -1
+            sage: a.succ(2,1)
+            3
+        """
         if i < 0 or i >= self.a.n or j < 0 or j >= self.a.na:
             return -1
         return self.a.e[i].f[j]
 
     # donne les fils de l'état i
     def succs(self, int i):
+        """
+
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0,1,'a'), (2,3,'b')])
+            sage: a.succs(2)
+            [1]
+            sage: a.succs(4)
+            []
+        """
 #        if i is None:
 #            i = self.a.i
 #        el
-        if i < 0 or i > self.a.n:
+        if i < 0 or i >= self.a.n:
             return []
         return [j for j in range(self.a.na) if self.a.e[i].f[j] != -1]
 
     # suit le chemin étiqueté par l et rend l'état atteint
     def path(self, list l, i=None):
+        """
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0,1,'a'), (2,3,'b')], i=2)
+            sage: a.path([1])
+            3
+            sage: a.path([0, 2])
+            -1
+        """
         if i is None:
             i = self.a.i
         for j in l:
@@ -869,11 +921,32 @@ cdef class FastAutomaton:
         return i
 
     def set_succ(self, int i, int j, int k):
+        """
+
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0,1,'a'), (2,3,'b')], i=2)
+            sage: a.set_succ(0, 1, 2)
+            sage: a.succs(0)
+            [0, 1]
+            sage: a.set_succ(0, 4, 2)
+            Traceback (click to the left of this block for traceback)
+            ...
+            ValueError: set_succ(0, 4) : index out of bounds !
+
+
+        """
         if i < 0 or i >= self.a.n or j < 0 or j >= self.a.na:
             raise ValueError("set_succ(%s, %s) : index out of bounds !" % (i, j))
         self.a.e[i].f[j] = k
 
     def zero_completeOP(self, verb=False):
+        """
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0,1,'a'), (2,3,'b')], i=2)
+            sage: a.zero_completeOP()
+        """
         sig_on()
         ZeroComplete(self.a, list(self.A).index(0), verb)
         sig_off()
