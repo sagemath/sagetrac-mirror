@@ -80,6 +80,7 @@ def _compute_gens(T):
         # the blocks of G are descending
         # our blocks are ascendings
         U = _reverse_homogeneous_blocks(G_p)
+        U = U.parent()(1)
         Uinv = (~U).change_ring(ZZ)
         gens_mat = _gens(U.T*G_p*U, b)
         gens_mat = [U * g * Uinv for g in gens_mat]

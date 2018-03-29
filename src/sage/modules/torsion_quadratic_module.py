@@ -1074,6 +1074,36 @@ class TorsionQuadraticModule(FGP_Module_class):
         """
         return QmodnZ(self._modulus_qf)
 
+    def orthogonal_types(self, S):
+        r"""
+
+        INPUT:
+
+            - ``S`` -- a submodule
+
+        OUTPUT:
+
+            - a list of submodules
+        """
+        from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+        from sage.libs.gap.libgap import libgap
+        Oq = self.orthogonal_group()
+        A = Oq.domain()
+        aut = Oq.ambient()
+        gensS = [A(self(s)).gap() for s in S.gens()]
+        Sgap = A.gap().Subgroup(gensS)
+        # the action morphism (it is a right action)
+        # take the image of g or of g inverse?
+        print(aut.cardinality())
+        print(Oq.cardinality())
+        mu = libgap.function_factory("mu:=function(x,g) return(Image(g,x)); end;")
+        stab = libgap.Stabilizer(aut.gap(), Sgap, mu)
+        print(stab.Size())
+        gen = [g.gap() for g in Oq.gens()] + list(stab.GeneratorsOfGroup())
+        gen = aut.gap().Subgroup(gen).SmallGeneratingSet()
+        stabOq = aut.gap().Subgroup(gen)
+        return aut.gap().RightCosets(stabOq)
+
 def _Brown_indecomposable(q, p):
     r"""
     Return the Brown invariant of the indecomposable form ``q``.
