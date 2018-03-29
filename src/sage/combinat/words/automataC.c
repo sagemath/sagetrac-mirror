@@ -139,7 +139,7 @@ Automaton NewAutomaton (int n, int na)
 	return a;
 }
 
-void FreeAutomaton (Automaton *a)
+void FreeAutomaton(Automaton *a)
 {
 #if DISP_MEMORY
 	printf("Free %d ...\n", a->n);
@@ -477,7 +477,7 @@ void init (Automaton *a)
 
 void printAutomaton (Automaton a)
 {
-	printf("Automate ayant %d états, %d lettres.\n", a.n, a.na);
+	printf("Automaton with %d states, %d letters.\n", a.n, a.na);
 	int i, j;
 	for (i=0;i<a.n;i++)
 	{
@@ -489,7 +489,7 @@ void printAutomaton (Automaton a)
 			}
 		}
 	}
-	printf("Etat initial %d.\n", a.i);
+	printf("initial State %d.\n", a.i);
 }
 
 void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool verb)
@@ -1254,7 +1254,7 @@ void Product_rec(Automaton r, int i1, int i2, Automaton a1, Automaton a2, Dict d
 	}
 }
 
-Automaton Product (Automaton a1, Automaton a2, Dict d, bool verb)
+Automaton Product(Automaton a1, Automaton a2, Dict d, bool verb)
 {
 	if (verb)
 	{
@@ -1865,7 +1865,7 @@ bool addH (const ListEtats *l, Etats e, int* nf)
 	return true;
 }
 
-InvertDict NewInvertDict (int n)
+InvertDict NewInvertDict(int n)
 {
 	InvertDict r;
 	r.n = n;
@@ -1880,7 +1880,7 @@ InvertDict NewInvertDict (int n)
 	return r;
 }
 
-InvertDict invertDict (Dict d)
+InvertDict invertDict(Dict d)
 {
 	//compte le nombre de valeurs différentes (supposées consécutives)
 	int i;
@@ -2669,10 +2669,10 @@ void PrefixStabilize (Automaton *a)
 }
 */
 
-void ZeroComplete_rec (Automaton *a, int etat, bool *vu, int l0, bool verb)
+void ZeroComplete_rec(Automaton *a, int etat, bool *vu, int l0, bool verb)
 {
 	if (verb)
-		printf("etat %d ..\n", etat);
+		printf("state %d ..\n", etat);
 	vu[etat] = true;
 	int i, e;
 	for (i=0;i<a->na;i++)
@@ -2688,7 +2688,7 @@ void ZeroComplete_rec (Automaton *a, int etat, bool *vu, int l0, bool verb)
 	}
 }
 
-void ZeroComplete (Automaton *a, int l0, bool verb)
+void ZeroComplete(Automaton *a, int l0, bool verb)
 {
 	if (verb)
 		printf("l0 = %d\n", l0);
@@ -2760,7 +2760,7 @@ Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb)
 	return DeterminiseN(r, etat_puits, 0);
 }
 
-Automaton ZeroInv (Automaton *a, int l0)
+Automaton ZeroInv(Automaton *a, int l0)
 {
 	NAutomaton r = NewNAutomaton(a->n+1, a->na);
 	
@@ -2808,7 +2808,7 @@ Automaton ZeroInv (Automaton *a, int l0)
 }
 
 int compteurEtats = 0;
-bool emonde_inf_rec (Automaton a, int etat)
+bool emonde_inf_rec(Automaton a, int etat)
 {
 	int i, f;
 	bool cycle = false;
@@ -2862,7 +2862,7 @@ void emonde_inf_rec2 (Automaton a, Automaton r, int *l, int etat)
 */
 
 //retire tous les états à partir desquels il n'y a pas de chemin infini
-Automaton emonde_inf (Automaton a, bool verb)
+Automaton emonde_inf(Automaton a, bool verb)
 {
 	int *l = (int *)malloc(sizeof(int)*a.n);
 	if (!l)
@@ -2885,7 +2885,7 @@ Automaton emonde_inf (Automaton a, bool verb)
 		a.e[i].final = 0; //états non vus
 	}
 	if (verb)
-		printf("récurrence...\n");
+		printf("recurrence...\n");
 	compteurEtats = 0;
 	if (a.i != -1)
 		emonde_inf_rec (a, a.i);
@@ -2893,8 +2893,8 @@ Automaton emonde_inf (Automaton a, bool verb)
 	
 	if (verb)
 	{
-		printf("compteurEtats=%d\n", compteurEtats);
-		printf("comptage...\n");
+		printf("States counter = %d\n", compteurEtats);
+		printf("count...\n");
 	}
 	
 	//compte le nombre de sommets à garder
@@ -2933,7 +2933,7 @@ Automaton emonde_inf (Automaton a, bool verb)
 	}
 	
 	if (verb)
-		printf("états finaux...\n");
+		printf("final states...\n");
 	
 	//remet les états finaux comme ils étaient
 	for (i=0;i<a.n;i++)
@@ -3139,7 +3139,7 @@ Automaton Contract (Automaton a, int *l)
 */
 
 //détermine les sommets accessible et co-accessibles
-void emonde_rec (Automaton a, int *l, InvertDict id, int etat)
+void emonde_rec(Automaton a, int *l, InvertDict id, int etat)
 {
 	//printf("emonde_rec %d...\n", etat);
 	int i, j, f;
@@ -3198,7 +3198,7 @@ void emonde_rec3 (Automaton a, Automaton r, int *l, int etat)
 //
 // fonction pas très éfficace : à revoir !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 //
-Automaton emonde (Automaton a, bool verb)
+Automaton emonde(Automaton a, bool verb)
 {
 	int i,j,f;
 	
@@ -3212,7 +3212,7 @@ Automaton emonde (Automaton a, bool verb)
 	int ncc = StronglyConnectedComponents(a, l);
 	if (verb)
 	{
-		printf("%d composantes : [", ncc);
+		printf("%d components : [", ncc);
 		for (i=0;i<a.n;i++)
 		{
 			printf(" %d", l[i]);
@@ -3301,7 +3301,7 @@ Automaton emonde (Automaton a, bool verb)
 	//remet les états finaux de a
 	if (verb)
 	{
-		printf("Etats supprimés : [");
+		printf("deleted States : [");
 		fflush(stdout);
 	}
 	for (i=0;i<a.n;i++)
@@ -3417,7 +3417,7 @@ void CoAcc (Automaton *a, int *coa)
 }
 
 //détermine les sommets accessibles
-void emondeI_rec (Automaton a, int etat)
+void emondeI_rec(Automaton a, int etat)
 {
 	int i, f;
 	a.e[etat].final |= 2; //note que le sommet est en cours d'étude
@@ -3434,20 +3434,21 @@ void emondeI_rec (Automaton a, int etat)
 }
 
 //retire tous les états non accessible
-Automaton emondeI (Automaton a, bool verb)
+Automaton emondeI(Automaton a, bool verb)
 {
+
 	int i,j,f;
 	//détermine les états accessibles
 	if (a.i != -1)
-		emondeI_rec (a, a.i);
-	
+		emondeI_rec(a, a.i);
+
 	int *l = (int *)malloc(sizeof(int)*a.n);
 	if (!l)
 	{
 		printf("Out of memory !\n");
 		exit(15);
 	}
-	
+
 	//compte le nombre de sommets à garder
 	int cpt = 0;
 	for (i=0;i<a.n;i++)
@@ -3463,6 +3464,7 @@ Automaton emondeI (Automaton a, bool verb)
 	
 	//créé le nouvel automate
 	Automaton r = NewAutomaton(cpt, a.na);
+
 	for (i=0;i<a.n;i++)
 	{
 		if (l[i] == -1)
@@ -3479,10 +3481,13 @@ Automaton emondeI (Automaton a, bool verb)
 			}
 		}
 	}
-	
+
 	//remet les états finaux de a
 	if (verb)
-		printf("Etats supprimés : [");
+	{
+		printf("deleted States : [");
+    	fflush(stdout);
+	}
 	for (i=0;i<a.n;i++)
 	{
 		if (verb)
@@ -3491,9 +3496,9 @@ Automaton emondeI (Automaton a, bool verb)
 			{
 				printf(" %d(", i);
 				if (!(a.e[i].final & 2))
-					printf(" non-acc");
+					printf(" not-acc");
 				if (!(a.e[i].final & 4))
-					printf(" non-co-acc");
+					printf(" not-co-acc");
 				printf(" )");
 			}
 		}
@@ -3502,14 +3507,15 @@ Automaton emondeI (Automaton a, bool verb)
 	}
 	if (verb)
 		printf(" ]\n");
-	
+
 	//état initial
 	if (a.i != -1)
 		r.i = l[a.i];
 	else
 		r.i = -1;
-	
+
 	free(l);
+
 	return r;
 }
 

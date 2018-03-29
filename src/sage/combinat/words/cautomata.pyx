@@ -24,7 +24,8 @@ AUTHORS:
 from __future__ import print_function
 from libc.stdlib cimport malloc, free
 cimport sage.combinat.words.cautomata
-from cysignals.signals cimport sig_on, sig_off
+
+from cysignals.signals cimport sig_on, sig_off, sig_check
 
 #ctypedef Automate Automaton
 
@@ -300,8 +301,6 @@ cdef Dict getProductDict(dict d, list A1, list A2, dict dv=None, verb=True):
 
 
 cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
-
-    sig_on()
     d = {}
     da = {}
     if F is None:
@@ -316,9 +315,11 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
     V = list(a.vertices())
     cdef int n = len(V)
     cdef int na = len(A)
-    r = NewAutomaton(n, na)
 
+    sig_on()
+    r = NewAutomaton(n, na)
     init(&r)
+    sig_off()
     for i in range(na):
         da[A[i]] = i
     for i in range(n):
@@ -326,12 +327,14 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
         d[V[i]] = i
     for v in F:
         if not d.has_key(v):
+            sig_on()
             FreeAutomaton(&r)
             r = NewAutomaton(0,0)
+            sig_off()
             print("Error : Incorrect set of final states.")
             return r
         r.e[d[v]].final = 1
- 
+
     if initial is None:
         if not hasattr(a, 'I'):
             I = []
@@ -350,8 +353,6 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
 
     for e, f, l in a.edges():
         r.e[d[e]].f[da[l]] = d[f]
-
-    sig_off()
     return r
 
 cdef AutomatonGet(Automaton a, A=None):
@@ -410,7 +411,7 @@ cdef class NFastAutomaton:
 
     def __repr__(self):
         return "NFastAutomaton with %d states and an alphabet of %d letters"%(self.a.n, self.a.na)
-    
+
     def _latex_(self):
         r"""
         Return a latex representation of the automaton.
@@ -440,7 +441,7 @@ cdef class NFastAutomaton:
         sig_off()
         dotfile = open(file_name)
         return LatexExpr(dot2tex(dotfile.read()))
-    
+
     def n_states(self):
         return self.a.n
 
@@ -528,6 +529,7 @@ cdef class NFastAutomaton:
         return l
 
     def Alphabet(self):
+        
         return self.A
 
     def set_initial(self, int e, bool initial=True):
@@ -540,14 +542,15 @@ cdef class NFastAutomaton:
         AddEdgeN(self.a, e, f, l)
         sig_off()
 
+
     def add_state(self, bool final):
         raise NotImplemented()
 
     def add_path(self, int e, int f, list li, verb=False):
-        sig_on()
         cdef int *l = <int *>malloc(sizeof(int)*len(li));
         for i in range(len(li)):
             l[i] = li[i]
+        sig_on()
         AddPathN(self.a, e, f, l, len(li), verb)
         sig_off()
 
@@ -556,13 +559,13 @@ cdef class NFastAutomaton:
         sig_on()
         r = FastAutomaton(None)
         a = DeterminiseN(self.a[0], puits, verb)
+        sig_off()
         r.a[0] = a
         r.A = self.A
-        sig_off()
         return r
 
     def plot(self, int sx=10, int sy=8, verb=False):
-        sig_on()
+
         cdef char** ll
         ll = <char **>malloc(sizeof(char*) * self.a.na)
         cdef int i
@@ -575,7 +578,8 @@ cdef class NFastAutomaton:
         file_name = tmp_filename()
         file = file_name
         if verb:
-            print("file=%s"%file_name)
+            print("file=%s" % file_name)
+        sig_on()
         NplotDot(file, self.a[0], ll, "Automaton", sx, sy, True)
         free(ll)
         sig_off()
@@ -593,9 +597,10 @@ cdef class FastAutomaton:
 
         sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
         sage: a
-        FastAutomaton([(0,1,'a') ,(2,3,'b')])
-         age: d = DiGraph( {0: [1,2,3], 1: [0,2]})
+        FastAutomaton with 4 states and an alphabet of 2 letters
+        sage: d = DiGraph({0: [1,2,3], 1: [0,2]})
         sage: a = FastAutomaton(d)
+        sage: a
         FastAutomaton with 4 states and an alphabet of 1 letters
         sage: g = DiGraph({0:{1:'x',2:'z',3:'a'}, 2:{5:'o'}})
         sage: a = FastAutomaton(g)
@@ -649,8 +654,8 @@ cdef class FastAutomaton:
         free(self.a)
         sig_off()
 
-    def __repr__ (self):
-        return "FastAutomaton with %d states and an alphabet of %d letters"%(self.a.n, self.a.na)
+    def __repr__(self):
+        return "FastAutomaton with %d states and an alphabet of %d letters" % (self.a.n, self.a.na)
 
     def __hash__(self):
         h = 3
@@ -698,20 +703,20 @@ cdef class FastAutomaton:
             FastAutomaton with 1 states and an alphabet of 3 letters
          """
         cdef Automaton a
-        sig_on()
         r = FastAutomaton(None)
+        sig_on()
         a = NewAutomaton(1, len(A))
+        sig_off()
         for i in range(len(A)):
             a.e[0].f[i] = 0
         a.e[0].final = True
         a.i = 0
         r.a[0] = a
         r.A = A
-        sig_off()
+
         return r
 
     def plot(self, int sx=10, int sy=8, vlabels=None, html=False, verb=False):
-        sig_on()
         cdef char** ll #labels of edges
         cdef char** vl #labels of vertices
         cdef int i
@@ -744,13 +749,15 @@ cdef class FastAutomaton:
                 print("i=%s : %s" % (i, vl[i]))
         if verb:
             print("plot...")
+        sig_on()
         plotTikZ(self.a[0], ll, "Automaton", sx, sy, vl, verb)
+        sig_off()
         if verb:
             print("free...plot")
         free(ll)
         if vlabels is not None:
             free(vl)
-        sig_off()
+
         # self.Automaton().plot2()
 
     def Alphabet(self):
@@ -803,15 +810,15 @@ cdef class FastAutomaton:
             sage: a.initial_state()
             2
             sage: a.set_initial_state(6)
-            Traceback (click to the left of this block for traceback)
+            Traceback (most recent call last):
             ...
             ValueError: initial state must be a current state : 6 not in [-1, 3]
         """
         if i < self.a.n and i >= -1:
             self.a.i = i
         else:
-            raise ValueError("initial state must be a current state : %s" % i +
-                             " not in [-1, %s]" % self.a.n-1)
+            raise ValueError("initial state must be a current state : " +
+                             "%d not in [-1, %d]" % (i, self.a.n - 1))
 
     def final_states(self):
         """
@@ -853,8 +860,7 @@ cdef class FastAutomaton:
             sage: a.final_states()
             [0, 3]
             sage: a.set_final_states([0,4])
-            sage: a.final_states()
-            Traceback (click to the left of this block for traceback)
+            Traceback (most recent call last):
             ...
             ValueError: 4 is not a state !
 
@@ -895,10 +901,14 @@ cdef class FastAutomaton:
             sage: a.final_states()
             [0, 1, 2, 3]
             sage: a.set_final_state(4)
-            sage: a.final_states()
-            [0, 1, 2, 3]
+            Traceback (most recent call last):
+            ...
+            ValueError: 4 is not a state !
         """
-        self.a.e[e].final = final
+        if e >= 0 and e < self.a.n:
+            self.a.e[e].final = final
+        else:
+            raise ValueError("%d is not a state !" % e)
 
     def succ(self, int i, int j):
         """
@@ -960,10 +970,9 @@ cdef class FastAutomaton:
             sage: a.succs(0)
             [0, 1]
             sage: a.set_succ(0, 4, 2)
-            Traceback (click to the left of this block for traceback)
+            Traceback (most recent call last):
             ...
             ValueError: set_succ(0, 4) : index out of bounds !
-
 
         """
         if i < 0 or i >= self.a.n or j < 0 or j >= self.a.na:
@@ -974,37 +983,68 @@ cdef class FastAutomaton:
         """
         EXAMPLES::
 
-            sage: a = FastAutomaton([(0,1,'a'), (2,3,'b')], i=2)
-            sage: a.zero_completeOP()
+            sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
+            sage: a.zero_completeOP(True)
+            l0 = 0
+            state 0 ..
+            state 1 ..
+            state 2 ..
+
         """
         sig_on()
-        ZeroComplete(self.a, list(self.A).index(0), verb)
+        ZeroComplete(self.a, list(self.A).index(self.A[0]), verb)
         sig_off()
 
     def zero_complete2(self, etat_puits=False, verb=False):
-        sig_on()
+        """
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
+            sage: a.zero_complete2(True)
+            FastAutomaton with 2 states and an alphabet of 2 letters
+
+        """
         cdef Automaton a
         r = FastAutomaton(None)
-        a = ZeroComplete2(self.a, list(self.A).index(0), etat_puits, verb)
+        sig_on()
+        a = ZeroComplete2(self.a, list(self.A).index(self.A[0]), etat_puits, verb)
+        sig_off()
         r.a[0] = a
         r.A = self.A
-        sig_off()
+
         return r.emonde().minimise()
 
     def zero_inv(self, z=0):
-        sig_on()
+        """
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
+            sage: a.zero_inv(0)
+            FastAutomaton with 2 states and an alphabet of 2 letters
+            sage: a.zero_inv(1)
+            FastAutomaton with 2 states and an alphabet of 2 letters
+        """
         cdef Automaton a
         r = FastAutomaton(None)
-        a = ZeroInv(self.a, list(self.A).index(z))
+        sig_on()
+        a = ZeroInv(self.a, list(self.A).index(self.A[z]))
+        sig_off()
         r.a[0] = a
         r.A = self.A
-        sig_off()
         return r.emonde().minimise()
 
     # change the final states of the automaton
     # new final states are the one in a strongly connected component containing a final state, others states are not final
     # this function can be accelerated
     def emonde_inf2OP(self, verb=False):
+        """
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
+            sage: a.emonde_inf2OP(True)
+            sage: a
+            FastAutomaton with 3 states and an alphabet of 2 letters
+        """
         cc = self.strongly_connected_components()
         f = []
         for c in cc:
@@ -1024,33 +1064,81 @@ cdef class FastAutomaton:
 
     # new final states are the ones in strongly connected components
     def emonde_inf(self, verb=False):
-        sig_on()
+        """
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
+            sage: a.emonde_inf(True)
+            recurrence...
+            States counter = 0
+            count...
+            cpt = 0
+            final states...
+            FastAutomaton with 0 states and an alphabet of 2 letters
+
+        """
         cdef Automaton a
         r = FastAutomaton(None)
+        sig_on()
         a = emonde_inf(self.a[0], verb)
+        sig_off()
         r.a[0] = a
         r.A = self.A
-        sig_off()
         return r
 
     def emonde_i(self, verb=False):
-        sig_on()
+        """
+
+
+
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b'), (0, 3, 'b')], i=0)
+            sage: a.emonde_i(True)
+            deleted States : [ ]
+            FastAutomaton with 3 states and an alphabet of 2 letters
+
+        """
         cdef Automaton a
         r = FastAutomaton(None)
+
+        sig_on()
         a = emondeI(self.a[0], verb)
+        sig_off()
         r.a[0] = a
         r.A = self.A
-        sig_off()
         return r
 
     def emonde(self, verb=False):
-        sig_on()
+        """
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a.emonde(True)
+            4 components : [ 1 0 3 2 ]
+            0 : [ 1 ]
+            1 : [ 0 ]
+            2 : [ 3 ]
+            3 : [ 2 ]
+            0 co-acc
+            1 co-acc
+            2 co-acc
+            3 co-acc
+            rec...
+            l : [ 0(7) 1(7) -1(5) -1(5) ]
+            create the new automaton 2 2...
+            pass 2
+            pass 3
+            deleted States : [ 2( non-acc ) 3( non-acc ) ]
+            FastAutomaton with 2 states and an alphabet of 2 letters
+        """
         cdef Automaton a
         r = FastAutomaton(None)
+        sig_on()
         a = emonde(self.a[0], verb)
+        sig_off()
         r.a[0] = a
         r.A = self.A
-        sig_off()
         return r
 
 #    def equals (self, FastAutomaton b):
@@ -1058,6 +1146,32 @@ cdef class FastAutomaton:
 
     # assume that the dictionnary d is injective !!!
     def product(self, FastAutomaton b, dict d=None, verb=False):
+        """
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: b = FastAutomaton([(3, 2, 'c'), (1, 2, 'd')], i=2)
+            sage: a.product(b)
+            FastAutomaton with 12 states and an alphabet of 4 letters
+            sage: a.product(b, verb =True)
+            {('b', 'c'): ('b', 'c'), ('a', 'd'): ('a', 'd'), ('a', 'c'): ('a', 'c'), ('b', 'd'): ('b', 'd')}
+            Av=[('a', 'c'), ('a', 'd'), ('b', 'c'), ('b', 'd')]
+            dv={('b', 'c'): 2, ('a', 'd'): 1, ('a', 'c'): 0, ('b', 'd'): 3}
+            {'a': 0, 'b': 1}
+            {'c': 0, 'd': 1}
+            Keys=[('b', 'c'), ('a', 'd'), ('a', 'c'), ('b', 'd')]
+            dC=
+            [ 0 2 1 3 ]
+            Automaton with 4 states, 2 letters.
+            0 --0--> 1
+            2 --1--> 3
+            initial State 0.
+            Automaton with 3 states, 2 letters.
+            0 --1--> 1
+            2 --0--> 1
+            initial State 2.
+            FastAutomaton with 12 states and an alphabet of 4 letters
+        """
         if d is None:
             d = {}
             for la in self.A:
@@ -1065,27 +1179,42 @@ cdef class FastAutomaton:
                     d[(la, lb)] = (la, lb)
             if verb:
                 print(d)
-        sig_on()
         cdef Automaton a
         cdef Dict dC
         r = FastAutomaton(None)
         Av = []
+        sig_on()
         dv = imagProductDict(d, self.A, b.A, Av=Av)
+        sig_off()
         if verb:
             print("Av=%s" % Av)
             print("dv=%s" % dv)
+        sig_on()
         dC = getProductDict(d, self.A, b.A, dv=dv, verb=verb)
+        sig_off()
         if verb:
             print("dC=")
             printDict(dC)
+        sig_on()
         a = Product(self.a[0], b.a[0], dC, verb)
         FreeDict(&dC)
+        sig_off()
         r.a[0] = a
         r.A = Av
-        sig_off()
+
         return r
 
     def intersection(self, FastAutomaton a, verb=False, simplify=True):
+        """
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: b = FastAutomaton([(3, 2, 'c'), (1, 2, 'd')], i=2)
+            sage: a.intersection(b)
+            FastAutomaton with 1 states and an alphabet of 0 letters
+            sage: a.intersection(b, simplify=False)
+            FastAutomaton with 12 states and an alphabet of 0 letters
+        """
         d = {}
         for l in self.A:
             if l in a.A:
@@ -1100,6 +1229,15 @@ cdef class FastAutomaton:
 
     # determine if the automaton is complete (i.e. with his hole state)
     def is_complete(self):
+        """
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a.is_complete()
+            False
+            sage: a = FastAutomaton([(0, 0, 'a')])
+            True
+        """
         sig_on()
         res = IsCompleteAutomaton(self.a[0])
         sig_off()
@@ -1107,6 +1245,15 @@ cdef class FastAutomaton:
 
     # give a complete automaton (i.e. with his hole state)
     def complete(self):
+        """
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a.complete()
+            True
+            sage: a.is_complete()
+            True
+        """
         sig_on()
         res = CompleteAutomaton(self.a)
         sig_off()
@@ -1115,6 +1262,16 @@ cdef class FastAutomaton:
     # give the smallest language stable by prefix containing the language of self
     # i.e. every states begin finals
     def prefix_closure(self):
+        """
+        give the smallest language stable by prefix containing the language of self
+        i.e. every states begin finals
+
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a.prefix_closure()
+            FastAutomaton with 2 states and an alphabet of 2 letters
+        """
         cdef int i
         cdef Automaton a
         r = FastAutomaton(None)
@@ -1129,6 +1286,48 @@ cdef class FastAutomaton:
 
     # FastAutomaton
     def union(self, FastAutomaton a, simplify=True, verb=False):
+        """
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: b = FastAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
+            sage: a.union(b, verb=True)
+            Av=['a']
+            dv={'a': 0}
+            {'a': 0, 'b': 1}
+            {'a': 0, 'd': 1}
+            Keys=[('a', 'a')]
+            dC=
+            [ 0 -1 -1 -1 ]
+            Automaton with 5 states, 2 letters.
+            0 --0--> 1
+            0 --1--> 4
+            1 --0--> 4
+            1 --1--> 4
+            2 --0--> 4
+            2 --1--> 3
+            3 --0--> 4
+            3 --1--> 4
+            4 --0--> 4
+            4 --1--> 4
+            initial State 0.
+            Automaton with 4 states, 2 letters.
+            0 --0--> 3
+            0 --1--> 1
+            1 --0--> 3
+            1 --1--> 3
+            2 --0--> 1
+            2 --1--> 3
+            3 --0--> 3
+            3 --1--> 3
+            initial State 2.
+            FastAutomaton with 2 states and an alphabet of 1 letters
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: b = FastAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
+            sage: a.union(b, simplify=True)
+            FastAutomaton with 2 states and an alphabet of 1 letters
+
+        """
         # complete the automata
         sig_on()
         CompleteAutomaton(self.a)
@@ -1161,20 +1360,19 @@ cdef class FastAutomaton:
         ap = Product(self.a[0], a.a[0], dC, verb)
         FreeDict(&dC)
         sig_off()
-
         # set final states
         cdef int i, j
         cdef n1 = self.a.n
         for i in range(n1):
             for j in range(a.a.n):
-                ap.e[i+n1*j].final = self.a.e[i].final or a.a.e[j].final
+                ap.e[i + n1 * j].final = self.a.e[i].final or a.a.e[j].final
 
         r.a[0] = ap
         r.A = Av
-        #if verb:
+        # if verb:
         #    print r
-        #r = r.emonde()
-        #r = r.minimise()
+        # r = r.emonde()
+        # r = r.minimise()
         if simplify:
             return r.emonde().minimise()
         else:
@@ -1182,11 +1380,42 @@ cdef class FastAutomaton:
 
     # split the automaton with respect to a  FastAutomaton
     def split(self, FastAutomaton a, verb=False):
+        """
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: b = FastAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
+            sage: a.split(b, verb=True)
+            Av=['a']
+            dv={'a': 0}
+            {'a': 0, 'b': 1}
+            {'a': 0, 'd': 1}
+            Keys=[('a', 'a')]
+            dC=
+            [ 0 -1 -1 -1 ]
+            Automaton with 4 states, 2 letters.
+            0 --0--> 1
+            2 --1--> 3
+            initial State 0.
+            Automaton with 4 states, 2 letters.
+            0 --0--> 3
+            0 --1--> 1
+            1 --0--> 3
+            1 --1--> 3
+            2 --0--> 1
+            2 --1--> 3
+            3 --0--> 3
+            3 --1--> 3
+            initial State 2.
+
+            [FastAutomaton with 2 states and an alphabet of 1 letters,
+             FastAutomaton with 1 states and an alphabet of 1 letters]
+
+        """
         # complete the automaton a
         sig_on()
         CompleteAutomaton(a.a)
         sig_off()
-
         # make the product
         d = {}
         for l in self.A:
@@ -1202,8 +1431,8 @@ cdef class FastAutomaton:
         dv = imagProductDict(d, self.A, a.A, Av=Av)
         sig_off()
         if verb:
-            print("Av=%s" %Av)
-            print("dv=%s" %dv)
+            print("Av=%s" % Av)
+            print("dv=%s" % dv)
         sig_on()
         dC = getProductDict(d, self.A, a.A, dv=dv, verb=verb)
         sig_off()
@@ -1214,7 +1443,6 @@ cdef class FastAutomaton:
         ap = Product(self.a[0], a.a[0], dC, verb)
         FreeDict(&dC)
         sig_off()
-
         # set final states for the intersection
         cdef int i, j
         cdef n1 = self.a.n
@@ -1224,7 +1452,9 @@ cdef class FastAutomaton:
 
         # complementary of a in self
         cdef Automaton ap2
+        sig_on()
         ap2 = CopyAutomaton(ap, ap.n, ap.na)
+        sig_off()
         # set final states
         for i in range(n1):
             for j in range(a.a.n):
@@ -1238,20 +1468,50 @@ cdef class FastAutomaton:
 
     # modify the automaton to recognize the langage shifted by a (letter given by its index)
     def shift1OP(self, int a, verb=False):
+        """
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage:  a.initial_state()
+            0
+            sage: a.shift1OP(0, verb=True)
+            sage:  a.initial_state()
+            1
+        """
         if self.a.i != -1:
             self.a.i = self.a.e[self.a.i].f[a]
 
     # modify the automaton to recognize the langage shifted by a (letter given by its index)
     def shiftOP(self, a, int np, verb=False):
+        """
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage:  a.initial_state()
+            0
+            sage: a.shiftOP(0, 2)
+            sage:  a.initial_state()
+            -1
+        """
         for i in range(np):
             if self.a.i != -1:
                 self.a.i = self.a.e[self.a.i].f[a]
 
     def unshift1(self, a, final=False):
+        """
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a.initial_state()
+            0
+            sage: a.unshift1(1)
+            FastAutomaton with 5 states and an alphabet of 2 letters
+        """
         r = FastAutomaton(None)
-        sig_on()
         cdef Automaton aut
+        sig_on()
         aut = CopyAutomaton(self.a[0], self.a.n+1, self.a.na)
+        sig_off()
         cdef int i
         cdef int ne = self.a.n
         for i in range(aut.na):
@@ -1265,6 +1525,15 @@ cdef class FastAutomaton:
 
     # this function could be written in a more efficient way
     def unshiftl(self, l):
+        """
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a.initial_state()
+            0
+            sage: a.unshiftl([0, 1])
+            FastAutomaton with 6 states and an alphabet of 2 letters
+        """
         a = self
         l.reverse()
         for i in l:
@@ -1282,9 +1551,10 @@ cdef class FastAutomaton:
                 return r
             final = self.a.e[self.a.i].final
         r = FastAutomaton(None)
-        sig_on()
         cdef Automaton aut
+        sig_on()
         aut = CopyAutomaton(self.a[0], self.a.n+np, self.a.na)
+        sig_off()
         cdef int i
         cdef int ne = self.a.n
         for j in range(np):
@@ -1301,13 +1571,13 @@ cdef class FastAutomaton:
         return r
 
     def copyn(self, verb=False):
-        sig_on()
         cdef NAutomaton a
         r = NFastAutomaton(None)
+        sig_on()
         a = CopyN(self.a[0], verb)
+        sig_off()
         r.a[0] = a
         r.A = self.A
-        sig_off()
         return r
 
     def concat(self, FastAutomaton b, det=True, verb=False):
@@ -1323,14 +1593,15 @@ cdef class FastAutomaton:
             a = self
             A = self.A
         if verb:
-            print("a=%s (A=%s)\nb=%s (A=%s)" %(a, a.A, b, b.A))
-        sig_on()
+            print("a=%s (A=%s)\nb=%s (A=%s)" % (a, a.A, b, b.A))
         cdef NAutomaton na
         r = NFastAutomaton(None)
+        sig_on()
         na = Concat(a.a[0], b.a[0], verb)
+        sig_off()
         r.a[0] = na
         r.A = A
-        sig_off()
+
         if det:
             if verb:
                 print("Determinist and simplified...")  # "Determinise et simplifie...")
@@ -1339,20 +1610,22 @@ cdef class FastAutomaton:
             return r
 
     def proj(self, dict d, det=True, verb=False):
-        sig_on()
         cdef NAutomaton a
         cdef Dict dC
         r = NFastAutomaton(None)
         A2 = []
+        sig_on()
         d1 = imagDict(d, self.A, A2=A2)
+        sig_off()
         if verb:
-            print("d1=%s, A2=%s"%(d1, A2))
+            print("d1=%s, A2=%s" % (d1, A2))
+        sig_on()
         dC = getDict(d, self.A, d1=d1)
         a = Proj(self.a[0], dC, verb)
         FreeDict(&dC)
+        sig_off()
         r.a[0] = a
         r.A = A2
-        sig_off()
         if det:
             return r.determinise().emonde().minimise()
         else:
@@ -1371,29 +1644,29 @@ cdef class FastAutomaton:
         if noempty and not onlyfinals and not nof:
             return self.proj(d=d, verb=verb)
         else:
-            sig_on()
             r = FastAutomaton(None)
             A2 = []
+            sig_on()
             d1 = imagDict(d, self.A, A2=A2)
             if verb:
                 print("d1=%s, A2=%s" % (d1, A2))
             dC = getDict(d, self.A, d1=d1)
             a = Determinise(self.a[0], dC, noempty, onlyfinals, nof, verb)
             FreeDict(&dC)
+            sig_off()
             # FreeAutomaton(self.a[0])
             r.a[0] = a
             r.A = A2
-            sig_off()
             return r
 
     # change les lettres selon d, en dupliquant les arêtes si nécessaire
     # the result is assumed deterministic !!!
-    def duplicate(self, d, verb=False):
-        sig_on()
+    def duplicate(self, d, verb=False): 
         cdef Automaton a
         cdef InvertDict dC
         r = FastAutomaton(None)
         A2 = []
+        sig_on()
         d1 = imagDict2(d, self.A, A2=A2)
         if verb:
             print("d1=%s, A2=%s" %(d1, A2))
@@ -1404,54 +1677,24 @@ cdef class FastAutomaton:
         if verb:
             print("end...")
         FreeInvertDict(dC)
+        sig_off()
         r.a[0] = a
         r.A = A2
-        sig_off()
         return r
 
     # change les lettres
     # le dictionnaire est supposé bijectif de A dans le nouvel alphabet
     # opération sur place !
     def relabel(self, d):
-        self.A = [d[c] for c in self.A] 
+        self.A = [d[c] for c in self.A]
 
     # permute les lettres
     # A = liste des lettres dans le nouvel ordre (il peut y en avoir moins)
     def permut(self, list A, verb=False):
         if verb:
             print("A=%s" % A)
-        sig_on()
         cdef Automaton a
         r = FastAutomaton(None)
-        cdef int *l = <int*>malloc(sizeof(int) * len(A))
-        cdef int i
-        for i in range(self.a.na):
-            l[i] = -1
-        d = {}
-        for i, c in enumerate(self.A):
-            d[c] = i
-        for i, c in enumerate(A):
-            if d.has_key(c):
-                l[i] = d[c] #l gives the old index from the new one
-        if verb:
-            str = "l=["
-            for i in range(len(A)):
-                str += " %s" % l[i]
-            str += " ]"
-            print(str)
-        a = Permut(self.a[0], l, len(A), verb)
-        free(l)
-        r.a[0] = a
-        r.A = A
-        sig_off()
-        return r
-
-    # permute les lettres SUR PLACE
-    # A = liste des lettres dans le nouvel ordre (il peut y en avoir moins)
-    def permut_op(self, list A, verb=False):
-        if verb:
-            print("A=%s" % A)
-        sig_on()
         cdef int *l = <int*>malloc(sizeof(int) * len(A))
         cdef int i
         for i in range(self.a.na):
@@ -1468,23 +1711,55 @@ cdef class FastAutomaton:
                 str += " %s" % l[i]
             str += " ]"
             print(str)
+        sig_on()
+        a = Permut(self.a[0], l, len(A), verb)
+        sig_off()
+        free(l)
+        r.a[0] = a
+        r.A = A
+
+        return r
+
+    # permute les lettres SUR PLACE
+    # A = liste des lettres dans le nouvel ordre (il peut y en avoir moins)
+    def permut_op(self, list A, verb=False):
+        if verb:
+            print("A=%s" % A)
+        cdef int *l = <int*>malloc(sizeof(int) * len(A))
+        cdef int i
+        for i in range(self.a.na):
+            l[i] = -1
+        d = {}
+        for i, c in enumerate(self.A):
+            d[c] = i
+        for i, c in enumerate(A):
+            if d.has_key(c):
+                l[i] = d[c]  # l gives the old index from the new one
+        if verb:
+            str = "l=["
+            for i in range(len(A)):
+                str += " %s" % l[i]
+            str += " ]"
+            print(str)
+        sig_on()
         PermutOP(self.a[0], l, len(A), verb)
         free(l)
-        self.A = A
         sig_off()
+        self.A = A
 
     # Compute the transposition, assuming it is deterministic
     def transpose_det(self):
-        sig_on()
         r = FastAutomaton(None)
+        sig_on()
         r.a[0] = TransposeDet(self.a[0])
         r.A = self.A
         sig_off()
         return r
 
     def transpose(self):
-        sig_on()
         r = NFastAutomaton(None)
+        r = NFastAutomaton(None)
+        sig_on()
         r.a[0] = Transpose(self.a[0])
         r.A = self.A
         sig_off()
@@ -1580,7 +1855,6 @@ cdef class FastAutomaton:
         sig_off()
 
     def spectral_radius(self, only_non_trivial=False, verb=False):
-        sig_on()
         a = self.minimise()
         if verb:
             print("minimal Automata : %s" % a)
@@ -1604,7 +1878,6 @@ cdef class FastAutomaton:
                     from sage.functions.other import real_part
                     from sage.rings.qqbar import AlgebraicRealField
                     r = max([ro[0] for ro in f[0].roots(ring=AlgebraicRealField())] + [r])
-        sig_off()
         return r
 
     def test(self):
@@ -1707,7 +1980,9 @@ cdef class FastAutomaton:
         r = []
         for i in range(w.n):
             r.append(self.A[w.e[i]])
+        sig_on()
         FreeDict(&w)
+        sig_off()
         return r
 
     def shortest_word(self, i=None, f=None, bool verb=False):
@@ -1724,7 +1999,9 @@ cdef class FastAutomaton:
         r = []
         for i in range(w.n):
             r.append(self.A[w.e[i]])
+        sig_on()
         FreeDict(&w)
+        sig_off()
         return r
 
     def shortest_words(self, i=None, verb=False):
@@ -1742,7 +2019,9 @@ cdef class FastAutomaton:
             for i in range(w[j].n):
                 r.append(self.A[w[j].e[i]])
             rt.append(r)
+            sig_on()
             FreeDict(&w[j])
+            sig_off()
         free(w)
         return rt
 
@@ -1797,11 +2076,11 @@ cdef class FastAutomaton:
 
     def bigger_alphabet(self, nA):
         cdef Dict d
+        r = FastAutomaton(None)
+        sig_on()
         d = NewDict(self.a.na)
         for i in range(self.a.na):
             d.e[i] = nA.index(self.A[i])
-        r = FastAutomaton(None)
-        sig_on()
         r.a[0] = BiggerAlphabet(self.a[0], d, len(nA))
         sig_off()
         r.A = nA
