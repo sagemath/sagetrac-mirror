@@ -27,14 +27,7 @@ cd src
 cp "$SAGE_ROOT"/config/config.* cnf
 
 # Configure
-echo "Configuring GAP..."
-./configure \
-    --prefix="$SAGE_LOCAL" PREFIX="$SAGE_LOCAL" \
-    --with-gmp="$SAGE_LOCAL" \
-    CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" || \
-    sdh_die "Error configuring GAP."
-
-echo "Building GAP..."
+sdh_configure --with-gmp="$SAGE_LOCAL"
 # Building config only works with 1 thread
 sdh_make -j1 config
 sdh_make
