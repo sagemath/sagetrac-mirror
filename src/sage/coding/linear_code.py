@@ -218,7 +218,7 @@ from sage.modules.free_module_element import vector
 from sage.arith.all import GCD, rising_factorial, binomial
 from sage.groups.all import SymmetricGroup
 from sage.misc.all import prod
-from sage.misc.functional import log, is_even
+from sage.misc.functional import is_even
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.structure.parent import Parent
@@ -310,16 +310,17 @@ def _explain_constructor(cl):
     r"""
     Internal function for use error messages when constructing encoders and decoders.
 
-    EXAMPLES:
-    sage: from sage.coding.linear_code import _explain_constructor, LinearCodeSyndromeDecoder
-    sage: cl = LinearCodeSyndromeDecoder
-    sage: _explain_constructor(cl)
-    "The constructor requires no arguments.\nIt takes the optional arguments ['maximum_error_weight'].\nSee the documentation of sage.coding.linear_code.LinearCodeSyndromeDecoder for more details."
+    EXAMPLES::
 
-    sage: from sage.coding.information_set_decoder import LinearCodeInformationSetDecoder
-    sage: cl = LinearCodeInformationSetDecoder
-    sage: _explain_constructor(cl)
-    "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['algorithm'].\nIt accepts unspecified arguments as well.\nSee the documentation of sage.coding.information_set_decoder.LinearCodeInformationSetDecoder for more details."
+        sage: from sage.coding.linear_code import _explain_constructor, LinearCodeSyndromeDecoder
+        sage: cl = LinearCodeSyndromeDecoder
+        sage: _explain_constructor(cl)
+        "The constructor requires no arguments.\nIt takes the optional arguments ['maximum_error_weight'].\nSee the documentation of sage.coding.linear_code.LinearCodeSyndromeDecoder for more details."
+
+        sage: from sage.coding.information_set_decoder import LinearCodeInformationSetDecoder
+        sage: cl = LinearCodeInformationSetDecoder
+        sage: _explain_constructor(cl)
+        "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['algorithm'].\nIt accepts unspecified arguments as well.\nSee the documentation of sage.coding.information_set_decoder.LinearCodeInformationSetDecoder for more details."
     """
     import inspect
     if inspect.isclass(cl):
@@ -1317,7 +1318,7 @@ class AbstractLinearCode(Module):
     @cached_method
     def covering_radius(self):
         r"""
-        Return the minimimal integer `r` such that any element in the ambient space of ``self`` has distance at most `r` to a codeword of ``self``.
+        Return the minimal integer `r` such that any element in the ambient space of ``self`` has distance at most `r` to a codeword of ``self``.
 
         This method requires the optional GAP package Guava.
 
@@ -1469,7 +1470,7 @@ class AbstractLinearCode(Module):
             sage: C.decoder('Try')
             Traceback (most recent call last):
             ...
-            ValueError: There is no Decoder named 'Try'. The known Decoders are: ['InformationSet', 'Syndrome', 'NearestNeighbor']
+            ValueError: There is no Decoder named 'Try'. The known Decoders are: ['InformationSet', 'NearestNeighbor', 'Syndrome']
 
         Some decoders take extra arguments. If the user forgets to supply these,
         the error message attempts to be helpful::
@@ -1491,10 +1492,14 @@ class AbstractLinearCode(Module):
             try:
                 return decClass(self, *args, **kwargs)
             except TypeError:
-                raise ValueError("Constructing the {0} decoder failed, possibly due to missing or incorrect parameters.\n{1}"\
-                                     .format(decoder_name, _explain_constructor(decClass)))
+                raise ValueError(
+                        "Constructing the {0} decoder failed, possibly due "
+                        "to missing or incorrect parameters.\n{1}".format(
+                            decoder_name, _explain_constructor(decClass)))
         else:
-            raise ValueError("There is no Decoder named '%s'. The known Decoders are: %s" % (decoder_name, self.decoders_available()))
+            raise ValueError(
+                    "There is no Decoder named '{0}'. The known Decoders are: "
+                    "{1}".format(decoder_name, self.decoders_available()))
 
     def decoders_available(self, classes=False):
         r"""
@@ -1512,7 +1517,7 @@ class AbstractLinearCode(Module):
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: sorted(C.decoders_available())
+            sage: C.decoders_available()
             ['InformationSet', 'NearestNeighbor', 'Syndrome']
 
             sage: dictionary = C.decoders_available(True)
@@ -1523,7 +1528,8 @@ class AbstractLinearCode(Module):
         """
         if classes:
             return copy(self._registered_decoders)
-        return self._registered_decoders.keys()
+
+        return sorted(self._registered_decoders)
 
     def divisor(self):
         r"""
@@ -1554,7 +1560,7 @@ class AbstractLinearCode(Module):
         A linear code `C` over a field is called *projective* when its dual `Cd`
         has minimum weight `\geq 3`, i.e. when no two coordinate positions of
         `C` are linearly independent (cf. definition 3 from [BS2011]_ or 9.8.1 from
-        [BH12]).
+        [BH12]_).
 
         EXAMPLES::
 
@@ -1901,10 +1907,14 @@ class AbstractLinearCode(Module):
             try:
                 return encClass(self, *args, **kwargs)
             except TypeError:
-                raise ValueError("Constructing the {0} encoder failed, possibly due to missing or incorrect parameters.\n{1}"\
-                                     .format(encoder_name, _explain_constructor(encClass)))
+                raise ValueError(
+                        "Constructing the {0} encoder failed, possibly due "
+                        "to missing or incorrect parameters.\n{1}".format(
+                            encoder_name, _explain_constructor(encClass)))
         else:
-            raise ValueError("There is no Encoder named '%s'. The known Encoders are: %s" % (encoder_name, self.encoders_available()))
+            raise ValueError(
+                    "There is no Encoder named '{0}'. The known Encoders are: "
+                    "{1}".format(encoder_name, self.encoders_available()))
 
     def encoders_available(self, classes=False):
         r"""
@@ -1922,7 +1932,7 @@ class AbstractLinearCode(Module):
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: sorted(C.encoders_available())
+            sage: C.encoders_available()
             ['GeneratorMatrix', 'Systematic']
             sage: dictionary = C.encoders_available(True)
             sage: sorted(dictionary.items())
@@ -1931,7 +1941,8 @@ class AbstractLinearCode(Module):
         """
         if classes:
             return copy(self._registered_encoders)
-        return self._registered_encoders.keys()
+
+        return sorted(self._registered_encoders)
 
     def extended_code(self):
         r"""
@@ -1977,7 +1988,7 @@ class AbstractLinearCode(Module):
         F = self.base_ring()
         q = F.order()
         q0 = F0.order()
-        a = log(q,q0)  # test if F/F0 is a field extension
+        a = q.log(q0)  # test if F/F0 is a field extension
         if not isinstance(a, Integer):
             raise ValueError("Base field must be an extension of given field %s"%F0)
         n = len(G.columns())
@@ -2069,7 +2080,6 @@ class AbstractLinearCode(Module):
         # then the implementation here must also be changed so that
         # list(self)[i] and self[i] both return the same element.
 
-        from sage.rings.padics.factory import Zp
         F = self.base_ring()
         maxindex = F.order()**self.dimension()-1
         if i < 0 or i > maxindex:
@@ -2084,8 +2094,7 @@ class AbstractLinearCode(Module):
         A = [a ** k for k in range(m)]
         G = self.generator_matrix()
         N = self.dimension()*F.degree() # the total length of p-adic vector
-        Z = Zp(p, N)
-        ivec = Z(i).padded_list(N)
+        ivec = Integer(i).digits(p, padto=N)
 
         codeword = 0
         row = 0
@@ -3554,8 +3563,7 @@ class AbstractLinearCode(Module):
             s^7 + 7*s^4*t^3 + 7*s^3*t^4 + t^7
             sage: C.weight_enumerator(names="var1, var2")
             var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
-            sage: (var1, var2) = var('var1, var2')
-            sage: C.weight_enumerator(names=(var1, var2))
+            sage: C.weight_enumerator(names=('var1', 'var2'))
             var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
             sage: C.weight_enumerator(bivariate=False)
             x^7 + 7*x^4 + 7*x^3 + 1
@@ -4785,6 +4793,26 @@ class LinearCodeSyndromeDecoder(Decoder):
              (2, 0, 0, 0): (2, 0, 0, 0, 0, 0, 0, 0),
              (2, 1, 0, 1): (0, 0, 0, 0, 0, 2, 0, 0),
              (2, 1, 1, 0): (0, 0, 0, 2, 0, 0, 0, 0)}
+
+        TESTS:
+
+        Check that :trac:`24114` is fixed::
+
+            sage: R.<x> = PolynomialRing(GF(3))
+            sage: f = x^2 + x + 2
+            sage: K.<a> = f.root_field()
+            sage: H = Matrix(K,[[1,2,1],[2*a+1,a,1]])
+            sage: C = codes.from_parity_check_matrix(H)
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
+            sage: D.syndrome_table()         
+             {(0, 0): (0, 0, 0),
+              (0, 1): (0, 1, 0),
+              (0, 2): (0, 2, 0),
+              (0, a): (0, a, 0),
+             ...
+              (2*a + 2, 2*a): (0, 0, 2),
+              (2*a + 2, 2*a + 1): (2*a + 2, 2*a + 1, 0),
+              (2*a + 2, 2*a + 2): (2*a + 2, 2*a + 2, 0)}
         """
         t = self._maximum_error_weight
         self._code_covering_radius = None
@@ -4796,7 +4824,7 @@ class LinearCodeSyndromeDecoder(Decoder):
         k = C.dimension()
         H = C.parity_check_matrix()
         F = C.base_ring()
-        l = copy(F.list())
+        l = list(F)
         zero = F.zero()
         #Builds a list of generators of all error positions for all
         #possible error weights

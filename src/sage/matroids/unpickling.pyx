@@ -36,6 +36,7 @@ from .basis_matroid cimport BasisMatroid
 from .linear_matroid cimport LinearMatroid, RegularMatroid, BinaryMatroid, TernaryMatroid, QuaternaryMatroid
 from .lean_matrix cimport GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix
 from sage.matroids.transversal_matroid import TransversalMatroid
+from .graphic_matroid import GraphicMatroid
 
 
 #############################################################################
@@ -596,6 +597,7 @@ def unpickle_minor_matroid(version, data):
         M.rename(data[3])
     return M
 
+
 #############################################################################
 # Transversal matroids
 #############################################################################
@@ -621,6 +623,7 @@ def unpickle_transversal_matroid(version, data):
 
     A :class:`TransversalMatroid` instance.
 
+
     .. WARNING::
 
         Users should never call this function directly.
@@ -640,6 +643,47 @@ def unpickle_transversal_matroid(version, data):
         raise TypeError("object was created with newer version of Sage. Please upgrade.")
     sets, groundset, set_labels, matching, name = data
     M = TransversalMatroid(sets, groundset, set_labels, matching)
+    if name is not None:
+        M.rename(name)
+    return M
+
+
+#############################################################################
+# Graphic Matroids
+#############################################################################
+
+def unpickle_graphic_matroid(version, data):
+    """
+    Unpickle a GraphicMatroid.
+
+    *Pickling* is Python's term for the loading and saving of objects.
+    Functions like these serve to reconstruct a saved object. This all happens
+    transparently through the ``load`` and ``save`` commands, and you should
+    never have to call this function directly.
+
+    INPUT:
+
+    - ``version`` -- an integer (currently 0).
+    - ``data`` -- a tuple consisting of a SageMath graph and a name.
+
+    OUTPUT:
+
+    A :class:`GraphicMatroid` instance.
+
+    .. WARNING::
+
+        Users should never call this function directly.
+
+    EXAMPLES::
+
+        sage: M = Matroid(graphs.DiamondGraph())
+        sage: M == loads(dumps(M))
+        True
+    """
+    if version != 0:
+        raise TypeError("object was created with newer version of Sage. Please upgrade.")
+    G, name = data
+    M = GraphicMatroid(G)
     if name is not None:
         M.rename(name)
     return M

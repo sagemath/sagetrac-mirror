@@ -13,7 +13,7 @@ Group algebras of root lattice realizations
 from __future__ import print_function
 
 import functools, operator
-from sage.misc.cachefunc import cached_method, cached_function
+from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import lazy_import
 from sage.misc.misc_c import prod
 from sage.categories.algebra_functor import AlgebrasCategory
@@ -737,7 +737,7 @@ class Algebras(AlgebrasCategory):
             # In type BC dual we used q^2 and q elsewhere
             # Not sure this is the right thing to do or just a workaround ...
             # This probably makes up for the fact that, in type BC
-            # dual, the null null coroot is twice Sage's deltacheck
+            # dual, the null coroot is twice Sage's deltacheck
             # whereas the null root is delta. So we need to map delta
             # to q^2 in the q_projection.
             # Should this go in q_project instead?
@@ -1092,7 +1092,7 @@ class Algebras(AlgebrasCategory):
                     sage: T = KL.twisted_demazure_lusztig_operators(q1,q2, convention="dominant")
                     sage: T._test_relations()
                     Traceback (most recent call last):
-                    ... tester.assert_(Ti(Ti(x,i,-q2),i,-q1).is_zero()) ...
+                    ... tester.assertTrue(Ti(Ti(x,i,-q2),i,-q1).is_zero()) ...
                     AssertionError: False is not true
 
             Comparison with T0::
@@ -1170,13 +1170,13 @@ class Algebras(AlgebrasCategory):
             TESTS::
 
                 sage: type(p.expand(F.gens()))
-                <type 'sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_mpair'>
+                <... 'sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_mpair'>
 
                 sage: p = KL.zero()
                 sage: p.expand(F.gens())
                 0
                 sage: type(p.expand(F.gens()))
-                <type 'sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_mpair'>
+                <... 'sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_mpair'>
             """
             codomain = alphabet[0].parent()
             return codomain.sum( c * prod(X**int(n) for X,n in zip(alphabet,vector(m))) for m,c in self)

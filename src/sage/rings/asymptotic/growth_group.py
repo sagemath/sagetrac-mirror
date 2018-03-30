@@ -1463,9 +1463,6 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
             sage: P3 = MonomialGrowthGroup(ZZ, SR.var('x'))
             sage: P1 is P2 and P2 is P3
             True
-            sage: P4 = MonomialGrowthGroup(ZZ, buffer('xylophone', 0, 1))
-            sage: P1 is P4
-            True
             sage: P5 = MonomialGrowthGroup(ZZ, 'x ')
             sage: P1 is P5
             True
@@ -1795,8 +1792,7 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
         if raw_element.parent() is self.base():
             parent = self
         else:
-            from .misc import underlying_class
-            parent = underlying_class(self)(raw_element.parent(), self._var_,
+            parent = self._underlying_class()(raw_element.parent(), self._var_,
                                             category=self.category())
         return parent(raw_element=raw_element)
 
@@ -1912,7 +1908,7 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
             sage: GrowthGroup('QQ^x')(GrowthGroup('ZZ^x')('2^x'))
             2^x
         """
-        from .misc import underlying_class, combine_exceptions
+        from .misc import combine_exceptions
 
         if raw_element is None:
             if isinstance(data, int) and data == 0:
@@ -2042,8 +2038,7 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
             sage: GrowthGroup('x^QQ').has_coerce_map_from(GrowthGroup('QQ^x'))  # indirect doctest
             False
         """
-        from .misc import underlying_class
-        if isinstance(S, underlying_class(self)) and self._var_ == S._var_:
+        if isinstance(S, self._underlying_class()) and self._var_ == S._var_:
             if self.base().has_coerce_map_from(S.base()):
                 return True
 

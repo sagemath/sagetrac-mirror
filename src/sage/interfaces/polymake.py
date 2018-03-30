@@ -411,7 +411,7 @@ class Polymake(ExtraTabCompletion, Expect):
         """
         Interrupt a computation with <Ctrl-c>
 
-        TEST:
+        TESTS:
 
         For reasons that are not clear to the author, the following test
         is very flaky. Therefore, this test is marked as "not tested".
@@ -846,7 +846,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
         When requesting help, polymake sometimes expect the user to choose
         from a list. In that situation, we abort with a warning, and show
-        the list from which the user can chose; we could demonstrate this using
+        the list from which the user can choose; we could demonstrate this using
         the :meth:`help` method, but here we use an explicit code evaluation::
 
             sage: print(polymake.eval('help "TRIANGULATION";'))     # optional - polymake # random

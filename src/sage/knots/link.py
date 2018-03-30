@@ -154,7 +154,7 @@ class Link(object):
         L = Link([[1, 4, 2, 3], [4, 1, 3, 2]])
         sphinx_plot(L.plot())
 
-    We can construct links from from the braid group::
+    We can construct links from the braid group::
 
         sage: B = BraidGroup(4)
         sage: L = Link(B([-1, -1, -1, -2, 1, -2, 3, -2]))
@@ -382,9 +382,9 @@ class Link(object):
             following negative one; of there exist a closed arc,
             it is returned as a list of positive numbers only
 
-        OUPUT:
+        OUTPUT:
 
-        A list of lists represeting the arcs based upon ``presentation``.
+        A list of lists representing the arcs based upon ``presentation``.
 
         EXAMPLES::
 
@@ -558,6 +558,18 @@ class Link(object):
             if self.oriented_gauss_code() == other.oriented_gauss_code():
                 return True
         return self.braid() == other.braid()
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(8)
+            sage: L1 = Link(B([-1, -1, -1, -2, 1, -2, 3, -2, 5, 4]))
+            sage: H = hash(L1)
+        """
+        return hash(self.braid())
 
     def __ne__(self, other):
         """
@@ -2774,7 +2786,7 @@ class Link(object):
         values = MLP.get_values(v)
         for i in range(len(edges)):
             s[i] = int(values[2*i] - values[2*i + 1])
-        # segments represents the different parts of the previos edges after bending
+        # segments represents the different parts of the previous edges after bending
         segments = {e: [(e,i) for i in range(abs(s[edges.index(e)])+1)] for e in edges}
         pieces = {tuple(i): [i] for j in segments.values() for i in j}
         nregions = []
@@ -2879,15 +2891,16 @@ class Link(object):
         used_edges = []
         ims = line([], **kwargs)
         while len(used_edges) < len(edges):
+            cross_keys = list(crossings.keys())
             i = 0
             j = 0
-            while crossings.keys()[i][j] in used_edges:
+            while cross_keys[i][j] in used_edges:
                 if j < 3:
                     j += 1
                 else:
                     j = 0
-                    i+=1
-            c = crossings.keys()[i]
+                    i += 1
+            c = cross_keys[i]
             e = c[j]
             used_edges.append(e)
             direction = (crossings[c][2] - c.index(e)) % 4

@@ -30,6 +30,7 @@ Concrete implementations
    sage/matroids/linear_matroid
    sage/matroids/rank_matroid
    sage/matroids/transversal_matroid
+   sage/matroids/graphic_matroid
 
 Abstract matroid classes
 ------------------------

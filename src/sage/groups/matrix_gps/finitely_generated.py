@@ -67,7 +67,7 @@ from sage.rings.integer import is_Integer
 from sage.rings.ring import is_Ring
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.interfaces.gap import gap
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace, is_MatrixSpace
 from sage.matrix.all import matrix
 from sage.misc.latex import latex
@@ -1110,7 +1110,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: G.reynolds_operator(f, chi)
             Traceback (most recent call last):
             ...
-            NotImplementedError: nontrivial characters not implemented for charateristic > 0
+            NotImplementedError: nontrivial characters not implemented for characteristic > 0
             sage: G.reynolds_operator(f)
             x^6
 
@@ -1194,7 +1194,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
                     L1 = fields[0].composite_fields(fields[1])[0]
                     L = L1.composite_fields(fields[2])[0]
         else:
-            raise NotImplementedError("nontrivial characters not implemented for charateristic > 0")
+            raise NotImplementedError("nontrivial characters not implemented for characteristic > 0")
         poly = poly.change_ring(L)
         poly_gens = vector(poly.parent().gens())
         F = L.zero()
@@ -1270,10 +1270,18 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: chi = G.character(G.character_table()[1])
             sage: R.<x,y,z> = K[]
             sage: G.invariants_of_degree(2, R=R, chi=chi)
-            [x^2 + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*y^2 + (2*izeta3^3 +
-            3*izeta3^2 + 8*izeta3 + 3)*z^2,
-             x*y + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*x*z + (-2*izeta3^3 -
-            3*izeta3^2 - 8*izeta3 - 4)*y*z]
+            [x*y + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*x*z +
+             (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*y*z,
+             x^2 + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*y^2 +
+             (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*z^2]
+
+        ::
+
+            sage: S3 = MatrixGroup(SymmetricGroup(3))
+            sage: chi = S3.character(S3.character_table()[0])
+            sage: S3.invariants_of_degree(5, chi=chi)
+            [x0^4*x1 - x0*x1^4 - x0^4*x2 + x1^4*x2 + x0*x2^4 - x1*x2^4,
+             x0^3*x1^2 - x0^2*x1^3 - x0^3*x2^2 + x1^3*x2^2 + x0^2*x2^3 - x1^2*x2^3]
         """
         D = self.degree()
         deg = int(deg)
@@ -1288,13 +1296,11 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         if ms[deg].is_zero():
             return []
         inv = set()
-        count = 0
         for e in IntegerVectors(deg, D):
             F = self.reynolds_operator(R.monomial(*e), chi=chi)
             if not F.is_zero():
                 F = F/F.lc()
                 inv.add(F)
-                count += 1
-                if count == ms[deg]:
+                if len(inv) == ms[deg]:
                     break
         return list(inv)

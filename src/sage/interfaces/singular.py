@@ -400,7 +400,8 @@ class Singular(ExtraTabCompletion, Expect):
 
     def set_seed(self,seed=None):
         """
-        Sets the seed for singular interpeter.
+        Set the seed for singular interpreter.
+
         The seed should be an integer at least 1
         and not more than 30 bits.
         See
@@ -1611,7 +1612,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         from sage.all import PolynomialRing
         # Meanwhile Singulars quotient rings are also of 'ring' type, not 'qring' as it was in the past.
         # To find out if a singular ring is a quotient ring or not checking for ring type does not help
-        # and instead of that we we check if the quotient ring is zero or not:
+        # and instead of that we check if the quotient ring is zero or not:
         if (singular.eval('ideal(basering)==0')=='1'):
             return PolynomialRing(BR, names=singular.eval('varstr(basering)'), order=termorder_from_singular(singular))
         P = PolynomialRing(BR, names=singular.eval('varstr(basering)'), order=termorder_from_singular(singular))
@@ -2235,36 +2236,6 @@ def is_SingularElement(x):
     """
     return isinstance(x, SingularElement)
 
-# This is only for backwards compatibility, in order to be able
-# to unpickle the invalid objects that are in the pickle jar.
-def reduce_load():
-    """
-    This is for backwards compatibility only.
-
-    To be precise, it only serves at unpickling the invalid
-    singular elements that are stored in the pickle jar.
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.singular import reduce_load
-        sage: reduce_load()
-        doctest:...: DeprecationWarning: This function is only used to unpickle invalid objects
-        See http://trac.sagemath.org/18848 for details.
-        (invalid <class 'sage.interfaces.singular.SingularElement'> object -- The session in which this object was defined is no longer running.)
-
-    By :trac:`18848`, pickling actually often works::
-
-        sage: loads(dumps(singular.ring()))
-        polynomial ring, over a field, global ordering
-        //   coefficients: QQ
-        //   number of vars : 1
-        //        block   1 : ordering lp
-        //                  : names    x
-        //        block   2 : ordering C
-
-    """
-    deprecation(18848, "This function is only used to unpickle invalid objects")
-    return SingularElement(None, None, None)
 
 nodes = {}
 node_names = {}

@@ -11,6 +11,7 @@ Utilities for subprocess management.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import errno
 import signal
@@ -109,9 +110,9 @@ cdef class ContainChildren(object):
         The flushing solves the following double-output problem::
 
             sage: try:
-            ....:     sys.stdout.write("X ")
+            ....:     _ = sys.stdout.write("X ")
             ....:     if os.fork() == 0:
-            ....:         sys.stdout.write("Y ")
+            ....:         _ = sys.stdout.write("Y ")
             ....:         sys.stdout.flush()
             ....:         os._exit(0)
             ....:     sleep(0.5)  # Give the child process time
@@ -124,9 +125,9 @@ cdef class ContainChildren(object):
 
             sage: from sage.interfaces.process import ContainChildren
             sage: try:
-            ....:     sys.stdout.write("X ")
+            ....:     _ = sys.stdout.write("X ")
             ....:     with ContainChildren():
-            ....:         sys.stdout.write("Y ")
+            ....:         _ = sys.stdout.write("Y ")
             ....:     sleep(0.5)  # Give the child process time
             ....:     print("Z")
             ....: finally:
