@@ -3735,20 +3735,20 @@ void split (int C, int a, bool verb)
 			if (!pt_visited_class[cp])
 			{ //la classe de p n'a pas encore été vue dans cet appel de split
 				if (verb)
-					printf("nouvelle classe visitée : %d (%d parent de %d)\n", cp, p, e);
+					printf("new visited class : %d (%d parent de %d)\n", cp, p, e);
 				visited_class[nrc] = cp;
 				pt_visited_class[cp] = class_indices[cp][0]; //lowest indice of the class of p
 				nrc++;
 			}else
 			{
 				if (verb)
-					printf("classe revisitée : %d (%d parent de %d)\n", cp, p, e);
+					printf("re-visited class : %d (%d parent de %d)\n", cp, p, e);
 			}
 			ep = pt_visited_class[cp]; //indice de l'élément à permuter avec p
 			if (ep > partition[p])
 			{
 				if (verb)
-					printf("sommet %d déjà vu\n", p);
+					printf("vertex %d already seen\n", p);
 				continue; //on a déjà vu l'état p
 			}
 			ep = partitioni[ep]; //élément à permuter avec p
@@ -3763,7 +3763,7 @@ void split (int C, int a, bool verb)
 	{
 		//print_partition();
 		print_classes();
-		printf("%d classes rencontrées\n", nrc);
+		printf("%d class encountered\n", nrc);
 	}
 	
 	//create new classes
@@ -3783,7 +3783,7 @@ void split (int C, int a, bool verb)
 		j = pt_visited_class[cp];
 		
 		if (verb)
-			printf("classe %d : l = %d %d %d = h\n", cp, l, j, h);
+			printf("class %d : l = %d %d %d = h\n", cp, l, j, h);
 		
 		if (j < h)
 		{ //on doit ajouter une nouvelle classe
@@ -3815,7 +3815,7 @@ void split (int C, int a, bool verb)
 
 //minimisation par l'algo d'Hopcroft
 //voir "Around Hopcroft’s Algorithm" de Manuel BACLET and Claire PAGETTI
-Automaton Minimise (Automaton a, bool verb)
+Automaton Minimise(Automaton a, bool verb)
 {
 	if (verb)
 		global_n = a.n;
@@ -3879,7 +3879,7 @@ Automaton Minimise (Automaton a, bool verb)
 		{
 			for (j=0;j<a.na;j++)
 			{
-				printf("transitioni[%d][%d] = [", i, j);
+				printf("transition i[%d][%d] = [", i, j);
 				for (f=0;f<transitioni[i][j].n;f++)
 				{
 					printf(" %d", transitioni[i][j].e[f]);
@@ -3912,7 +3912,7 @@ Automaton Minimise (Automaton a, bool verb)
 			class[i] = 1;
 	}
 	class[a.n] = 1;
-	//classe 0 : états finaux, classe 1 : le reste
+	//classe 0 : final states, classe 1 : the rest
 	class_indices[0][0] = 0;
 	class_indices[0][1] = f;
 	class_indices[1][0] = f;
@@ -3926,7 +3926,7 @@ Automaton Minimise (Automaton a, bool verb)
 	
 	if (verb)
 	{
-		printf("Partition initiale :\n");
+		printf("Initial partition :\n");
 		print_classes();
 	}
 	
@@ -3955,7 +3955,7 @@ Automaton Minimise (Automaton a, bool verb)
 	
 	if (verb)
 	{
-		printf("Partition finale :\n");
+		printf("Final partition :\n");
 		print_classes();
 	}
 	
@@ -3989,7 +3989,7 @@ Automaton Minimise (Automaton a, bool verb)
 		printf("a.i = %d", a.i);
 		if (a.i != -1)
 		{
-			printf(" classe %d", class[a.i]);
+			printf(" class %d", class[a.i]);
 		}
 		printf("\n");
 	}
@@ -4004,7 +4004,7 @@ Automaton Minimise (Automaton a, bool verb)
 	if (class_indices[i][1] == class_indices[i][0]+1)
 	{ //il faut retirer l'état puits
 		if (verb)
-			printf("retire l'état puits %d...\n", i);
+			printf("removes the hole state  %d...\n", i);
 		DeleteVertexOP(&r, i);
 	}
 	
@@ -4042,10 +4042,10 @@ int delta (int a)
 }
 */
 
-void DeleteVertexOP (Automaton *a, int e)
+void DeleteVertexOP(Automaton *a, int e)
 {
 	if (e < 0 || e >= a->n)
-		printf("L'état %d n'est pas dans l'automate !\n", e);
+		printf("The states %d is not in the automaton !\n", e);
 	int i,j,f;
 	a->n--;
 	if (!a->n)
@@ -4075,7 +4075,7 @@ void DeleteVertexOP (Automaton *a, int e)
 Automaton DeleteVertex (Automaton a, int e)
 {
 	if (e < 0 || e >= a.n)
-		printf("L'état %d n'est pas dans l'automate !\n", e);
+		printf("The state %d is not in the automaton !\n", e);
 	Automaton r = NewAutomaton(a.n-1, a.na);
 	int i,j,f;
 	for (i=0;i<a.n-1;i++)
