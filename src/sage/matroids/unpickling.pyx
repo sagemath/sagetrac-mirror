@@ -35,7 +35,7 @@ from .circuit_closures_matroid cimport CircuitClosuresMatroid
 from .basis_matroid cimport BasisMatroid
 from .linear_matroid cimport LinearMatroid, RegularMatroid, BinaryMatroid, TernaryMatroid, QuaternaryMatroid
 from .lean_matrix cimport GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix
-from sage.matroids.transversal_matroid import TransversalMatroid
+from .transversal_matroid cimport TransversalMatroid
 from .graphic_matroid import GraphicMatroid
 
 

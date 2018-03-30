@@ -102,7 +102,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
     ::
 
         sage: from sage.matroids.transversal_matroid import TransversalMatroid
-        sage: M = TransversalMatroid(sets=[['a','c']], groundset = ['a', 'c', 'd'])
+        sage: M = TransversalMatroid(sets=[['a', 'c']], groundset=['a', 'c', 'd'])
         sage: M.loops()
         frozenset({'d'})
         sage: M.full_rank()
@@ -116,8 +116,8 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         EXAMPLES::
 
             sage: from sage.matroids.transversal_matroid import TransversalMatroid
-            sage: sets = [[0,1,2,3], [1,2], [1,3,4]]
-            sage: set_labels = [5,6,7]
+            sage: sets = [[0, 1, 2, 3], [1, 2], [1, 3, 4]]
+            sage: set_labels = [5, 6, 7]
             sage: M = TransversalMatroid(sets, set_labels=set_labels)
             sage: M.groundset()
             frozenset({0, 1, 2, 3, 4})
@@ -127,16 +127,16 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             sage: from sage.matroids.transversal_matroid import TransversalMatroid
             sage: M = TransversalMatroid([[],[],[]], groundset=range(3)); M
             Transversal matroid of rank 0 on 3 elements, with 0 sets.
-            sage: sets = [[0,1,2,3,4],[4,5]]
-            sage: M = TransversalMatroid(sets, groundset=[0,1,2,3])
+            sage: sets = [[0, 1, 2, 3, 4], [4, 5]]
+            sage: M = TransversalMatroid(sets, groundset=[0, 1, 2, 3])
             Traceback (most recent call last):
             ...
             ValueError: ground set and sets do not match
-            sage: M = TransversalMatroid(sets, set_labels=[1,2,3])
+            sage: M = TransversalMatroid(sets, set_labels=[1, 2, 3])
             Traceback (most recent call last):
             ...
             ValueError: set labels do not match sets
-            sage: M = TransversalMatroid(sets, set_labels=[1,2])
+            sage: M = TransversalMatroid(sets, set_labels=[1, 2])
             Traceback (most recent call last):
             ...
             ValueError: set labels cannot be element labels
@@ -144,7 +144,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         ::
 
             sage: from sage.matroids.transversal_matroid import TransversalMatroid
-            sage: M = TransversalMatroid([[0,1],[1,2],[2,3],[3,4]])
+            sage: M = TransversalMatroid([[0, 1], [1, 2], [2, 3], [3, 4]])
             sage: TestSuite(M).run(verbose=True)
             running ._test_category() . . . pass
             running ._test_new() . . . pass
@@ -286,7 +286,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         EXAMPLES::
 
             sage: from sage.matroids.transversal_matroid import TransversalMatroid
-            sage: sets = [[0,1,2,3], [1,2], [3,4]]
+            sage: sets = [[0, 1, 2, 3], [1, 2], [3, 4]]
             sage: set_labels = [5,6,7]
             sage: M = TransversalMatroid(sets, set_labels=set_labels)
             sage: sorted(M.sets()) == sorted(sets)
@@ -310,18 +310,18 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         EXAMPLES::
 
             sage: from sage.matroids.transversal_matroid import TransversalMatroid
-            sage: sets = [['a','b','c'], ['c','d'], ['a','d'], ['e']]
+            sage: sets = [['a', 'b', 'c'], ['c', 'd'], ['a','d'], ['e']]
             sage: M = TransversalMatroid(sets)
             sage: M1 = TransversalMatroid(sets)
-            sage: sets2 = [['a','b','c'], ['c','d'], ['a','d','e'], ['e']]
+            sage: sets2 = [['a', 'b', 'c'], ['c', 'd'], ['a', 'd', 'e'], ['e']]
             sage: M2 = TransversalMatroid(sets2)
             sage: M1 == M2
             False
             sage: M1.equals(M2)
             True
             sage: from sage.matroids.transversal_matroid import TransversalMatroid
-            sage: sets = [[0,1,2,3], [1,2], [1,3,4]]
-            sage: M = TransversalMatroid(sets, groundset=range(5), set_labels=[5,6,7])
+            sage: sets = [[0, 1, 2, 3], [1, 2], [1, 3, 4]]
+            sage: M = TransversalMatroid(sets, groundset=range(5), set_labels=[5, 6, 7])
             sage: M2 = TransversalMatroid(sets)
             sage: M == M2
             True
@@ -360,10 +360,10 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         EXAMPLES::
 
             sage: from sage.matroids.transversal_matroid import TransversalMatroid
-            sage: sets1 = [[0,1,2,3], [1,2], [3,4]]
+            sage: sets1 = [[0, 1, 2, 3], [1, 2], [3, 4]]
             sage: M1 = TransversalMatroid(sets1)
-            sage: M2 = TransversalMatroid(sets1, set_labels=[5,6,7])
-            sage: sets3 = [['a','b','c'], ['c','d'], ['a','d','e']]
+            sage: M2 = TransversalMatroid(sets1, set_labels=[5, 6, 7])
+            sage: sets3 = [['a', 'b', 'c'], ['c', 'd'], ['a', 'd', 'e']]
             sage: M3 = TransversalMatroid(sets3)
             sage: hash(M1) == hash(M2)
             True
@@ -670,7 +670,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         EXAMPLES::
 
             sage: from sage.matroids.transversal_matroid import TransversalMatroid
-            sage: M = TransversalMatroid([['a','c']], groundset=['a','c'], set_labels=['b'])
+            sage: M = TransversalMatroid([['a', 'c']], groundset=['a', 'c'], set_labels=['b'])
             sage: M1 = M.transversal_extension(element='d', newset='e')
             sage: M2 = M.transversal_extension(element='d', newset=True)
             sage: M1.coloops()
@@ -680,7 +680,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             sage: M1.is_isomorphic(M2)
             True
             sage: M3 = M.transversal_extension('d', sets=['b'])
-            sage: M3.is_isomorphic(matroids.Uniform(1,3))
+            sage: M3.is_isomorphic(matroids.Uniform(1, 3))
             True
             sage: M4 = M.transversal_extension('d', sets=['a'])
             Traceback (most recent call last):
@@ -703,10 +703,10 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         ::
 
             sage: from sage.matroids.transversal_matroid import TransversalMatroid
-            sage: sets = [[0,1,2,3], [1,2], [1,3,4]]
-            sage: M = TransversalMatroid(sets, groundset=range(5), set_labels=[5,6,7])
+            sage: sets = [[0, 1, 2, 3], [1, 2], [1, 3, 4]]
+            sage: M = TransversalMatroid(sets, groundset=range(5), set_labels=[5, 6, 7])
             sage: N = M.delete(2)
-            sage: M1 = N.transversal_extension(element=2, sets=[5,6])
+            sage: M1 = N.transversal_extension(element=2, sets=[5, 6])
             sage: M1 == M
             True
 
@@ -714,7 +714,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
             sage: from sage.matroids.transversal_matroid import TransversalMatroid
             sage: sets = [[0, 1, 2, 3]] * 3
-            sage: M = TransversalMatroid(sets, set_labels=[4,5,6])
+            sage: M = TransversalMatroid(sets, set_labels=[4, 5, 6])
             sage: N = M.transversal_extension(element='a', newset=True, sets=[4])
             sage: N.graph().degree('a')
             2
@@ -782,11 +782,11 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         EXAMPLES::
 
             sage: from sage.matroids.transversal_matroid import TransversalMatroid
-            sage: sets = [[3,4,5,6]] * 3
-            sage: M = TransversalMatroid(sets, set_labels=[0,1,2])
+            sage: sets = [[3, 4, 5, 6]] * 3
+            sage: M = TransversalMatroid(sets, set_labels=[0, 1, 2])
             sage: len([N for N in M.transversal_extensions()])
             8
-            sage: len([N for N in M.transversal_extensions(sets=[0,1])])
+            sage: len([N for N in M.transversal_extensions(sets=[0, 1])])
             4
             sage: set(sorted([N.groundset() for N in M.transversal_extensions(element=7)]))
             {frozenset({3, 4, 5, 6, 7})}
