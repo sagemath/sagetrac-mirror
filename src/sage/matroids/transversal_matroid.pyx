@@ -83,7 +83,9 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
     OUTPUT:
 
-    An instance of ``TransversalMatroid``.
+    An instance of ``TransversalMatroid``. The sets specified in ``sets`` define
+    the matroid. If ``matching`` is not specified, the constructor will determine
+    a matching to use for basis exchange.
 
     EXAMPLES::
 
