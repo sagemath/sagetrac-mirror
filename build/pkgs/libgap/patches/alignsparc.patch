@@ -1,0 +1,15 @@
+diff --git a/src/intfuncs.c b/src/intfuncs.c
+index 13dc067..226525d 100644
+--- a/src/intfuncs.c
++++ b/src/intfuncs.c
+@@ -279,7 +279,9 @@ libGAP_FORCE_INLINE uint32_t libGAP_getblock4 ( const uint32_t * p, int i )
+ 
+ libGAP_FORCE_INLINE uint64_t libGAP_getblock8 ( const uint64_t * p, int i )
+ {
+-  return p[i];
++  uint64_t val; /* backport of SPARC-specific github.com/gap-system/gap/pull/2196 */
++  memcpy(&val, p + i, sizeof(uint64_t));
++  return val;
+ }
+ 
+ //-----------------------------------------------------------------------------
