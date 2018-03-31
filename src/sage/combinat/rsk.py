@@ -231,6 +231,7 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
       are currently supported:
 
       - ``'RSK'`` -- Robinson-Schensted-Knuth
+      - ``'dualRSK'`` -- dual Robinson-Schensted-Knuth
       - ``'EG'`` -- Edelman-Greene (only for reduced words of
         permutations/elements of a type-`A` Coxeter group)
       - ``'hecke'`` -- Hecke insertion (only guaranteed for
@@ -294,6 +295,39 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
           [(6,)],
           [(8, 10)]]]
 
+    Using dual RSK insertion, where given only one line,
+    we treat the top line as being `(1, 2, \ldots, n)`::
+
+        sage: RSK([3,3,2,4,1], insertion='dualRSK')
+        [[[1, 4], [2], [3], [3]], [[1, 4], [2], [3], [5]]]
+        sage: RSK(Word([3,3,2,4,1]), insertion='dualRSK')
+        [[[1, 4], [2], [3], [3]], [[1, 4], [2], [3], [5]]]
+        sage: RSK(Word([2,3,3,2,1,3,2,3]), insertion='dualRSK')
+        [[[1, 2, 3], [2, 3], [2, 3], [3]], [[1, 2, 8], [3, 6], [4, 7], [5]]]
+
+    Using dual RSK insertion with a strict biword::
+
+        sage: RSK([1,1,2,4,4,5],[2,4,1,1,3,2], insertion='dualRSK')
+        [[[1, 2], [1, 3], [2, 4]], [[1, 1], [2, 4], [4, 5]]]
+        sage: RSK([1,1,2,3,3,4,5],[1,3,2,1,3,3,2], insertion='dualRSK')
+        [[[1, 2, 3], [1, 2], [3], [3]], [[1, 1, 3], [2, 4], [3], [5]]]
+        sage: RSK([1, 2, 2, 2], [2, 1, 2, 4], insertion='dualRSK')
+        [[[1, 2, 4], [2]], [[1, 2, 2], [2]]]
+        sage: RSK(Word([1,1,3,4,4]), [1,4,2,1,3], insertion='dualRSK')
+        [[[1, 2, 3], [1], [4]], [[1, 1, 4], [3], [4]]]
+        sage: RSK([1,3,3,4,4], Word([6,1,2,1,7]), insertion='dualRSK')
+        [[[1, 2, 7], [1], [6]], [[1, 3, 4], [3], [4]]]
+
+    Using dual RSK insertion with a `\{0, 1\}`-matrix::
+
+        sage: RSK(matrix([[0,1],[1,1]]), insertion='dualRSK')
+        [[[1, 2], [2]], [[1, 2], [2]]]
+
+    We can also give it something looking like a matrix::
+
+        sage: RSK([[0,1],[1,1]], insertion='dualRSK')
+        [[[1, 2], [2]], [[1, 2], [2]]]
+
     There is also :func:`~sage.combinat.rsk.RSK_inverse` which performs
     the inverse of the bijection on a pair of semistandard tableaux. We
     note that the inverse function takes 2 separate tableaux as inputs, so
@@ -305,6 +339,13 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
         sage: P,Q = RSK([1, 2, 2, 2], [2, 1, 1, 2])
         sage: RSK_inverse(P, Q)
         [[1, 2, 2, 2], [2, 1, 1, 2]]
+
+        sage: RSK_inverse(*RSK([1, 2, 2, 2], [2, 1, 2, 3], insertion='dualRSK'),
+        ....:             insertion='dualRSK')
+        [[1, 2, 2, 2], [2, 1, 2, 3]]
+        sage: P,Q = RSK([1, 2, 2, 2], [2, 1, 2, 3], insertion='dualRSK')
+        sage: RSK_inverse(P, Q, insertion='dualRSK')
+        [[1, 2, 2, 2], [2, 1, 2, 3]]
 
     TESTS:
 
@@ -324,8 +365,21 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
         [[], []]
         sage: RSK(Word([]), insertion='hecke')
         [[], []]
+
+    Empty objects for dual RSK::
+
+        sage: RSK(Permutation([]), insertion='dualRSK')
+        [[], []]
+        sage: RSK(Word([]), insertion='dualRSK')
+        [[], []]
+        sage: RSK(matrix([[]]), insertion='dualRSK')
+        [[], []]
+        sage: RSK([], [], insertion='dualRSK')
+        [[], []]
+        sage: RSK([[]], insertion='dualRSK')
+        [[], []]
     """
-    from sage.combinat.tableau import SemistandardTableau, StandardTableau
+    from sage.combinat.tableau import Tableau, SemistandardTableau, StandardTableau
 
     if insertion == 'hecke':
         return hecke_insertion(obj1, obj2)
@@ -341,6 +395,8 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
     if len(obj1) == 0:
         return [StandardTableau([]), StandardTableau([])]
 
+    use_dual = (insertion == 'dualRSK')
+
     if obj2 is None:
         try:
             itr = obj1._rsk_iter()
@@ -353,6 +409,8 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
                 for i, row in enumerate(obj1):
                     for j, mult in enumerate(row):
                         if mult > 0:
+                            if use_dual and mult > 1:
+                                raise ValueError("the matrix is not a {0, 1}-matrix")
                             t.extend([i+1]*mult)
                             b.extend([j+1]*mult)
                 itr = zip(t, b)
@@ -367,11 +425,13 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
         for t,b in zip(obj1, obj2):
             if t < lt or (lt == t and b < lb):
                 raise ValueError("invalid generalized permutation")
+            if use_dual and lt == t and b == lb:
+                raise ValueError("invalid strict biword")
             lt = t
             lb = b
         itr = zip(obj1, obj2)
 
-    from bisect import bisect_right
+    from bisect import bisect_right, bisect_left
     p = []       #the "insertion" tableau
     q = []       #the "recording" tableau
 
@@ -380,13 +440,14 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
     #For each x in self, insert x into the tableau p.
     lt = 0
     lb = 0
+    bisection = bisect_right if not use_dual else bisect_left
     for i, x in itr:
         for r, qr in zip(p,q):
-            if r[-1] > x:
+            if r[-1] > x or (use_dual and r[-1] == x):
                 #Figure out where to insert x into the row r.  The
                 #bisect command returns the position of the least
                 #element of r greater than x.  We will call it y.
-                y_pos = bisect_right(r, x)
+                y_pos = bisection(r, x)
                 if use_EG and r[y_pos] == x + 1 and y_pos > 0 and x == r[y_pos - 1]:
                     #Special bump: Nothing to do except increment x by 1
                     x += 1
@@ -404,17 +465,20 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
         r.append(x)
         qr.append(i) # Values are always inserted to the right
 
+    tab_class = SemistandardTableau if not use_dual else Tableau
+
     if check_standard:
         try:
             P = StandardTableau(p)
         except ValueError:
-            P = SemistandardTableau(p)
+            P = tab_class(p)
         try:
             Q = StandardTableau(q)
         except ValueError:
-            Q = SemistandardTableau(q)
+            Q = tab_class(q)
         return [P, Q]
-    return [SemistandardTableau(p), SemistandardTableau(q)]
+
+    return [tab_class(p), tab_class(q)]
 
 robinson_schensted_knuth = RSK
 
@@ -451,6 +515,7 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
       bijection. Currently the following are supported:
 
       - ``'RSK'`` -- Robinson-Schensted-Knuth insertion
+      - ``'dualRSK'`` -- dual Robinson-Schensted-Knuth insertion
       - ``'EG'`` -- Edelman-Greene insertion
       - ``'hecke'`` -- Hecke insertion
 
@@ -504,6 +569,48 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
         [1 0]
         [0 2]
 
+    If both ``p`` and ``q`` are standard, the dual RSK insertion
+    behaves identically to the usual RSK insertion::
+
+        sage: t1 = Tableau([[1, 2, 5], [3], [4]])
+        sage: t2 = Tableau([[1, 2, 3], [4], [5]])
+        sage: RSK_inverse(t1, t2, insertion='dualRSK')
+        [[1, 2, 3, 4, 5], [1, 4, 5, 3, 2]]
+        sage: RSK_inverse(t1, t2, 'word', insertion='dualRSK')
+        word: 14532
+        sage: RSK_inverse(t1, t2, 'matrix', insertion='dualRSK')
+        [1 0 0 0 0]
+        [0 0 0 1 0]
+        [0 0 0 0 1]
+        [0 0 1 0 0]
+        [0 1 0 0 0]
+        sage: RSK_inverse(t1, t2, 'permutation', insertion='dualRSK')
+        [1, 4, 5, 3, 2]
+        sage: RSK_inverse(t1, t1, 'permutation', insertion='dualRSK')
+        [1, 4, 3, 2, 5]
+        sage: RSK_inverse(t2, t2, 'permutation', insertion='dualRSK')
+        [1, 2, 5, 4, 3]
+        sage: RSK_inverse(t2, t1, 'permutation', insertion='dualRSK')
+        [1, 5, 4, 2, 3]
+
+    For dual RSK, the first tableau is merely transpose semistandard::
+
+        sage: p = Tableau([[1,2,2],[1]]); q = Tableau([[1,2,4],[3]])
+        sage: ret = RSK_inverse(p, q, insertion='dualRSK'); ret
+        [[1, 2, 3, 4], [1, 2, 1, 2]]
+        sage: RSK_dual_inverse(p, q, 'word', insertion='dualRSK')
+        word: 1212
+
+    In general for dual RSK::
+
+        sage: p = Tableau([[1,1,2],[1]]); q = Tableau([[1,3,3],[2]])
+        sage: RSK_inverse(p, q, insertion='dualRSK')
+        [[1, 2, 3, 3], [1, 1, 1, 2]]
+        sage: RSK_inverse(p, q, 'matrix', insertion='dualRSK')
+        [1 0]
+        [1 0]
+        [1 1]
+
     Using Edelman-Greene insertion::
 
         sage: pq = RSK([2,1,2,3,2], insertion='EG'); pq
@@ -534,6 +641,8 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
     From empty tableaux::
 
         sage: RSK_inverse(Tableau([]), Tableau([]))
+        [[], []]
+        sage: RSK_inverse(Tableau([]), Tableau([]), insertion='dualRSK')
         [[], []]
 
     Check that :func:`RSK_inverse` is the inverse of :func:`RSK` on the
@@ -566,9 +675,35 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
         sage: is_fine = True if p == f(p) else p ; is_fine
         True
 
+    Same for dual RSK::
+
+        sage: f = lambda p: RSK_inverse(*RSK(p, insertion='dualRSK'),
+        ....:                           output='permutation', insertion='dualRSK')
+        sage: all(p == f(p) for n in range(7) for p in Permutations(n))
+        True
+        sage: all(RSK_inverse(*RSK(w, insertion='dualRSK'),
+        ....:                 output='word', insertion='dualRSK') == w
+        ....:     for n in range(4) for w in Words(5, n))
+        True
+        sage: from sage.combinat.integer_matrices import IntegerMatrices
+        sage: M = IntegerMatrices([1,2,2,1], [3,1,1,1]) # this is probably wrong
+        sage: all(RSK_inverse(*RSK(m, insertion='dualRSK'), output='matrix',
+        ....:                 insertion='dualRSK') == m
+        ....:     for m in M if all(x in [0, 1] for x in m))
+        True
+
+        sage: n = ZZ.random_element(200)
+        sage: p = Permutations(n).random_element()
+        sage: True if p == f(p) else p
+        True
+
     Both tableaux must be of the same shape::
 
         sage: RSK_inverse(Tableau([[1,2,3]]), Tableau([[1,2]]))
+        Traceback (most recent call last):
+        ...
+        ValueError: p(=[[1, 2, 3]]) and q(=[[1, 2]]) must have the same shape
+        sage: RSK_inverse(Tableau([[1,2,3]]), Tableau([[1,2]]), insertion='dualRSK')
         Traceback (most recent call last):
         ...
         ValueError: p(=[[1, 2, 3]]) and q(=[[1, 2]]) must have the same shape
@@ -586,13 +721,16 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
     if insertion == 'hecke':
         return hecke_insertion_reverse(p, q, output)
 
+    use_dual = (insertion == 'dualRSK')
+
     if p.shape() != q.shape():
         raise ValueError("p(=%s) and q(=%s) must have the same shape"%(p, q))
     from sage.combinat.tableau import SemistandardTableaux
-    if p not in SemistandardTableaux():
+    if not use_dual and p not in SemistandardTableaux():
         raise ValueError("p(=%s) must be a semistandard tableau"%p)
 
-    from bisect import bisect_left
+    from bisect import bisect_left, bisect_right
+    bisection = bisect_left if not use_dual else bisect_right
     # Make a copy of p since this is destructive to it
     p_copy = [list(row) for row in p]
 
@@ -608,7 +746,7 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
             i = d[key]
             x = p_copy[i].pop() # Always the right-most entry
             for row in reversed(p_copy[:i]):
-                y_pos = bisect_left(row,x) - 1
+                y_pos = bisection(row,x) - 1
                 if use_EG and row[y_pos] == x - 1 and y_pos < len(row)-1 and row[y_pos+1] == x:
                     # Nothing to do except decrement x by 1.
                     # (Case 1 on p. 74 of Edelman-Greene [EG1987]_.)
@@ -635,8 +773,8 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
         raise ValueError("invalid output option")
 
     # Checks
-    if insertion != 'RSK':
-        raise NotImplementedError("only RSK is implemented for non-standard q")
+    if insertion not in ['RSK', 'dualRSK']:
+        raise NotImplementedError("only (dual) RSK is implemented for non-standard q")
     if q not in SemistandardTableaux():
         raise ValueError("q(=%s) must be a semistandard tableau"%q)
 
@@ -659,7 +797,7 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
             i = row_dict[key]
             x = p_copy[i].pop() # Always the right-most entry
             for row in reversed(p_copy[:i]):
-                y = bisect_left(row,x) - 1
+                y = bisection(row, x) - 1
                 x, row[y] = row[y], x
             upper_row.append(value)
             lower_row.append(x)
@@ -863,431 +1001,4 @@ def hecke_insertion_reverse(p, q, output='array'):
             raise TypeError("q must be standard to have a %s as valid output"%output)
         return list(reversed(lower_row))
     raise ValueError("invalid output option")
-
-#####################################################################
-## dual RSK
-
-def RSK_dual(obj1=None, obj2=None, insertion='dualRSK', check_standard=False, **options):
-    r"""
-    Perform the dual Robinson-Schensted-Knuth (RSK) correspondence.
-
-    The dual Robinson-Schensted-Knuth (RSK) correspondence (also known
-    as the dual RSK algorithm) is most naturally stated as a bijection
-    between strict biwords and pairs of Young tableaux `(P, Q)` of
-    identical shape, where `P` is transpose semi-standard (i.e., the
-    transpose of `P` is semistandard) and `Q` is semistandard.
-    The tableau `P` is known as the insertion tableau, and `Q` is
-    known as the recording tableau.
-
-    The basic operation is known as dual row insertion `P \leftarrow k`
-    (where `P` is a given transpose semi-standard Young tableau, and
-    `k` is an integer). Dual row insertion is a recursive algorithm
-    which starts by setting `k_0 = k`, and in its `i`-th step inserts
-    the number `k_i` into the `i`-th row of `P` (we start counting the
-    rows at `0`) by replacing the first integer greater or equal to
-    `k_i` in the row by `k_i` and defines `k_{i+1}` as the integer
-    that has been replaced. If no integer greater than `k_i` exists
-    in the `i`-th row, then `k_i` is simply appended to the row and
-    the algorithm terminates at this point.
-
-    A *strict biword* is a list
-    `((j_0, k_0), (j_1, k_1), \ldots, (j_{\ell-1}, k_{\ell-1}))`
-    of pairs such that the letters `j_0, j_1, \ldots, j_{\ell-1}`
-    are weakly increasing (that is,
-    `j_0 \leq j_1 \leq \cdots \leq j_{\ell-1}`), whereas the letters
-    `k_i` satisfy `k_i < k_{i+1}` whenever `j_i = j_{i+1}`.
-    The `\ell`-tuple `(j_0, j_1, \ldots, j_{\ell-1})` is called the
-    *top line* of this strict biword,
-    whereas the `\ell`-tuple `(k_0, k_1, \ldots, k_{\ell-1})` is
-    called its *bottom line*.
-
-    Now the dual RSK algorithm, applied to a strict biword
-    `p = ((j_0, k_0), (j_1, k_1), \ldots, (j_{\ell-1}, k_{\ell-1}))`
-    starts by initializing two tableaux `P_0` and `Q_0` as empty
-    tableaux. For each nonnegative integer `t` starting at `0`, take
-    the pair `(j_t, k_t)` from `p` and set
-    `P_{t+1} = P_t \leftarrow k_t`, and define `Q_{t+1}` by adding a
-    new box filled with `j_t` to the tableau `Q_t` at the same
-    location the dual row insertion on `P_t` ended (that is to say,
-    adding a new box with entry `j_t` such that `P_{t+1}` and
-    `Q_{t+1}` have the same shape). The iterative process stops when
-    `t` reaches the size of `p`, and the pair `(P_t, Q_t)` at this
-    point is the image of `p` under the dual
-    Robinson-Schensted-Knuth correspondence.
-
-    This correspondence has been introduced in [Knu1970]_, Section 5.
-
-    For more information, see Chapter 7 in [Sta-EC2]_.
-
-    We also note that `\{0, 1\}`-matrices are in bijection with strict
-    biwords. Furthermore, we can convert any word `w` (and, in
-    particular, any permutation) to a strict biword by
-    considering the top line to be `(1, 2, \ldots, n)` where `n` is the
-    length of `w`.
-
-    The optional argument ``insertion`` allows to specify an alternative
-    insertion procedure to be used instead of the standard
-    Robinson-Schensted-Knuth insertion. At the moment, however, only
-    the algorithm described above (``insertion='dualRSK'``) is supported.
-
-    INPUT:
-
-    - ``obj1, obj2`` -- Can be one of the following:
-
-      - A word in an ordered alphabet
-      - A `\{0, 1\}`-matrix
-      - Two lists of equal length representing a strict biword
-        (namely, the lists `(j_0, j_1, \ldots, j_{\ell-1})` and
-        `(k_0, k_1, \ldots, k_{\ell-1})` represent the strict biword
-        ((j_0, k_0), (j_1, k_1), \ldots, (j_{\ell-1}, k_{\ell-1}))`)
-      - Any object which has a method ``_rsk_iter()`` which returns an
-        iterator over the object represented as biword or
-        a pair of lists.
-
-    - ``insertion`` -- (Default: ``'dualRSK'``) The following types of insertion
-      are currently supported:
-
-      - ``'dualRSK'`` -- dual Robinson-Schensted-Knuth
-
-    - ``check_standard`` -- (Default: ``False``) Check if either of the
-      resulting tableaux is a standard tableau, and if so, typecast it
-      as such
-
-    EXAMPLES:
-
-    If we only give one line, we treat the top line as being
-    `(1, 2, \ldots, n)`::
-
-        sage: RSK_dual([3,3,2,4,1])
-        [[[1, 4], [2], [3], [3]], [[1, 4], [2], [3], [5]]]
-        sage: RSK_dual(Word([3,3,2,4,1]))
-        [[[1, 4], [2], [3], [3]], [[1, 4], [2], [3], [5]]]
-        sage: RSK_dual(Word([2,3,3,2,1,3,2,3]))
-        [[[1, 2, 3], [2, 3], [2, 3], [3]], [[1, 2, 8], [3, 6], [4, 7], [5]]]
-
-    With a strict biword::
-
-        sage: RSK_dual([1,1,2,4,4,5],[2,4,1,1,3,2])
-        [[[1, 2], [1, 3], [2, 4]], [[1, 1], [2, 4], [4, 5]]]
-        sage: RSK_dual([1,1,2,3,3,4,5],[1,3,2,1,3,3,2])
-        [[[1, 2, 3], [1, 2], [3], [3]], [[1, 1, 3], [2, 4], [3], [5]]]
-        sage: RSK_dual([1, 2, 2, 2], [2, 1, 2, 4])
-        [[[1, 2, 4], [2]], [[1, 2, 2], [2]]]
-        sage: RSK_dual(Word([1,1,3,4,4]), [1,4,2,1,3])
-        [[[1, 2, 3], [1], [4]], [[1, 1, 4], [3], [4]]]
-        sage: RSK_dual([1,3,3,4,4], Word([6,1,2,1,7]))
-        [[[1, 2, 7], [1], [6]], [[1, 3, 4], [3], [4]]]
-
-    If we give it a `\{0, 1\}`-matrix::
-
-        sage: RSK_dual(matrix([[0,1],[1,1]]))
-        [[[1, 2], [2]], [[1, 2], [2]]]
-
-    We can also give it something looking like a matrix::
-
-        sage: RSK_dual([[0,1],[1,1]])
-        [[[1, 2], [2]], [[1, 2], [2]]]
-
-    There is also :func:`~sage.combinat.rsk.RSK_dual_inverse` which
-    performs the inverse of the bijection on a pair of tableaux. We
-    note that the inverse function takes 2 separate tableaux as inputs, so
-    to compose with :func:`~sage.combinat.rsk.RSK_dual`, we need to use the
-    python ``*`` on the output::
-
-        sage: RSK_dual_inverse(*RSK_dual([1, 2, 2, 2], [2, 1, 2, 3]))
-        [[1, 2, 2, 2], [2, 1, 2, 3]]
-        sage: P,Q = RSK_dual([1, 2, 2, 2], [2, 1, 2, 3])
-        sage: RSK_dual_inverse(P, Q)
-        [[1, 2, 2, 2], [2, 1, 2, 3]]
-
-    TESTS:
-
-    Empty objects::
-
-        sage: RSK_dual(Permutation([]))
-        [[], []]
-        sage: RSK_dual(Word([]))
-        [[], []]
-        sage: RSK_dual(matrix([[]]))
-        [[], []]
-        sage: RSK_dual([], [])
-        [[], []]
-        sage: RSK_dual([[]])
-        [[], []]
-    """
-    from sage.combinat.tableau import Tableau, StandardTableau, SemistandardTableau
-
-    if obj1 is None and obj2 is None:
-        if 'matrix' in options:
-            obj1 = matrix(options['matrix'])
-        else:
-            raise ValueError("invalid input")
-
-    if is_Matrix(obj1):
-        obj1 = obj1.rows()
-    if len(obj1) == 0:
-        return [StandardTableau([]), StandardTableau([])]
-
-    if obj2 is None:
-        try:
-            itr = obj1._rsk_iter()
-        except AttributeError:
-            # If this is (something which looks like) a matrix
-            #   then build the strict biword
-            try:
-                t = []
-                b = []
-                for i, row in enumerate(obj1):
-                    for j, mult in enumerate(row):
-                        if mult == 1:
-                            t.extend([i+1])
-                            b.extend([j+1])
-                        elif mult != 0:
-                            raise ValueError("the matrix should be a {0, 1}-matrix")
-                itr = zip(t, b)
-            except TypeError:
-                itr = zip(range(1, len(obj1)+1), obj1)
-    else:
-        if len(obj1) != len(obj2):
-            raise ValueError("the two arrays must be the same length")
-        # Check it is a generalized permutation
-        lt = 0
-        lb = 0
-        for t,b in zip(obj1, obj2):
-            if t < lt or (lt == t and b <= lb):
-                raise ValueError("invalid strict biword")
-            lt = t
-            lb = b
-        itr = zip(obj1, obj2)
-
-    from bisect import bisect_left
-    p = []       #the "insertion" tableau
-    q = []       #the "recording" tableau
-
-    #For each x in self, insert x into the tableau p.
-    lt = 0
-    lb = 0
-    for i, x in itr:
-        for r, qr in zip(p,q):
-            if r[-1] >= x:
-                #Figure out where to insert x into the row r.  The
-                #bisect command returns the position of the least
-                #element of r greater or equal to x.  We will call it y.
-                y_pos = bisect_left(r, x)
-                #Switch x and y
-                x, r[y_pos] = r[y_pos], x
-            else:
-                break
-        else:
-            #We made through all of the rows of p without breaking
-            #so we need to add a new row to p and q.
-            r = []; p.append(r)
-            qr = []; q.append(qr)
-
-        r.append(x)
-        qr.append(i) # Values are always inserted to the right
-
-    if check_standard:
-        try:
-            P = StandardTableau(p)
-        except ValueError:
-            P = Tableau(p)
-        try:
-            Q = StandardTableau(q)
-        except ValueError:
-            Q = Tableau(q)
-        return [P, Q]
-    return [Tableau(p), Tableau(q)]
-
-def RSK_dual_inverse(p, q, output='array', insertion='dualRSK'):
-    r"""
-    Return the strict biword corresponding to the pair of
-    tableaux `(p,q)` under the inverse of the dual
-    Robinson-Schensted-Knuth algorithm.
-
-    For more information on the bijection, see :func:`RSK_dual`.
-
-    INPUT:
-
-    - ``p``, ``q`` -- Two tableaux of the same shape, with `p`
-      being transpose semi-standard and `q` being semi-standard
-
-    - ``output`` -- (Default: ``'array'``) if ``q`` is semi-standard:
-
-      - ``'array'`` -- as a two-line array (i.e. strict biword)
-      - ``'matrix'`` -- as a `\{0, 1\}`-matrix
-
-      and if ``q`` is standard, we can have the output:
-
-      - ``'word'`` -- as a word
-
-      and additionally if ``p`` is standard, we can also have the output:
-
-      - ``'permutation'`` -- as a permutation
-
-    - ``insertion`` -- (Default: ``RSK``) The insertion algorithm used in the
-      bijection. Currently the following are supported:
-
-      - ``'dualRSK'`` -- dual Robinson-Schensted-Knuth insertion
-
-    EXAMPLES:
-
-    If both ``p`` and ``q`` are standard, ``RSK_dual_inverse``
-    behaves identically to :meth:`RSK_inverse`::
-
-        sage: t1 = Tableau([[1, 2, 5], [3], [4]])
-        sage: t2 = Tableau([[1, 2, 3], [4], [5]])
-        sage: RSK_dual_inverse(t1, t2)
-        [[1, 2, 3, 4, 5], [1, 4, 5, 3, 2]]
-        sage: RSK_dual_inverse(t1, t2, 'word')
-        word: 14532
-        sage: RSK_dual_inverse(t1, t2, 'matrix')
-        [1 0 0 0 0]
-        [0 0 0 1 0]
-        [0 0 0 0 1]
-        [0 0 1 0 0]
-        [0 1 0 0 0]
-        sage: RSK_dual_inverse(t1, t2, 'permutation')
-        [1, 4, 5, 3, 2]
-        sage: RSK_dual_inverse(t1, t1, 'permutation')
-        [1, 4, 3, 2, 5]
-        sage: RSK_dual_inverse(t2, t2, 'permutation')
-        [1, 2, 5, 4, 3]
-        sage: RSK_dual_inverse(t2, t1, 'permutation')
-        [1, 5, 4, 2, 3]
-
-    If the first tableau is merely transpose semistandard::
-
-        sage: p = Tableau([[1,2,2],[1]]); q = Tableau([[1,2,4],[3]])
-        sage: ret = RSK_dual_inverse(p, q); ret
-        [[1, 2, 3, 4], [1, 2, 1, 2]]
-        sage: RSK_dual_inverse(p, q, 'word')
-        word: 1212
-
-    In general::
-
-        sage: p = Tableau([[1,1,2],[1]]); q = Tableau([[1,3,3],[2]])
-        sage: RSK_dual_inverse(p, q)
-        [[1, 2, 3, 3], [1, 1, 1, 2]]
-        sage: RSK_dual_inverse(p, q, 'matrix')
-         [1 0]
-         [1 0]
-         [1 1]
-
-    .. NOTE::
-
-        The constructor of ``Tableau`` accepts not only semistandard
-        tableaux, but also arbitrary lists that are fillings of a
-        partition diagram.
-        The user is responsible for ensuring that the tableaux passed to
-        ``RSK_dual_inverse`` are of the right types (semistandard, standard,
-        transpose semistandard as needed).
-
-    TESTS:
-
-    From empty tableaux::
-
-        sage: RSK_dual_inverse(Tableau([]), Tableau([]))
-        [[], []]
-
-    Check that :func:`RSK_dual_inverse` is the inverse of :func:`RSK_dual`
-    on the different types of inputs/outputs::
-
-        sage: f = lambda p: RSK_dual_inverse(*RSK_dual(p), output='permutation')
-        sage: all(p == f(p) for n in range(7) for p in Permutations(n))
-        True
-        sage: all(RSK_dual_inverse(*RSK_dual(w), output='word') == w for n in range(4) for w in Words(5, n))
-        True
-        sage: from sage.combinat.integer_matrices import IntegerMatrices
-        sage: M = IntegerMatrices([1,2,2,1], [3,1,1,1]) # this is probably wrong
-        sage: all(RSK_dual_inverse(*RSK_dual(m), output='matrix') == m for m in M if all(x in [0, 1] for x in m))
-        True
-
-        sage: n = ZZ.random_element(200)
-        sage: p = Permutations(n).random_element()
-        sage: is_fine = True if p == f(p) else p ; is_fine
-        True
-
-    Both tableaux must be of the same shape::
-
-        sage: RSK_dual_inverse(Tableau([[1,2,3]]), Tableau([[1,2]]))
-        Traceback (most recent call last):
-        ...
-        ValueError: p(=[[1, 2, 3]]) and q(=[[1, 2]]) must have the same shape
-    """
-    if p.shape() != q.shape():
-        raise ValueError("p(=%s) and q(=%s) must have the same shape"%(p, q))
-    from sage.combinat.tableau import SemistandardTableaux
-    if q not in SemistandardTableaux():
-        raise ValueError("q(=%s) must be a semistandard tableau"%p)
-
-    from bisect import bisect_right
-    # Make a copy of p since this is destructive to it
-    p_copy = [list(row) for row in p]
-
-    if q.is_standard():
-        rev_word = [] # This will be our word in reverse
-        d = {qij: i for i, Li in enumerate(q) for qij in Li}
-        # d is now a dictionary which assigns to each integer k the
-        # number of the row of q containing k.
-
-        for key in sorted(d, reverse=True): # Delete last entry from i-th row of p_copy
-            i = d[key]
-            x = p_copy[i].pop() # Always the right-most entry
-            for row in reversed(p_copy[:i]):
-                y_pos = bisect_right(row,x) - 1
-                # switch x and y
-                x, row[y_pos] = row[y_pos], x
-            rev_word.append(x)
-
-        if output == 'word':
-            from sage.combinat.words.word import Word
-            return Word(reversed(rev_word))
-        if output == 'matrix':
-            return to_matrix(list(range(1, len(rev_word)+1)), list(reversed(rev_word)))
-        if output == 'array':
-            return [list(range(1, len(rev_word)+1)), list(reversed(rev_word))]
-        if output == 'permutation':
-            if not p.is_standard():
-                raise TypeError("p must be standard to have a valid permutation as output")
-            from sage.combinat.permutation import Permutation
-            return Permutation(reversed(rev_word))
-        raise ValueError("invalid output option")
-
-    # Checks
-    if insertion != 'dualRSK':
-        raise NotImplementedError("only dualRSK is implemented")
-
-    upper_row = []
-    lower_row = []
-    #upper_row and lower_row will be the upper and lower rows of the
-    #strict biword we get as a result, but both reversed.
-    d = {}
-    for row, Li in enumerate(q):
-        for col, val in enumerate(Li):
-            if val in d:
-                d[val][col] = row
-            else:
-                d[val] = {col: row}
-    #d is now a double family such that for every integers k and j,
-    #the value d[k][j] is the row i such that the (i, j)-th cell of
-    #q is filled with k.
-    for value, row_dict in sorted(d.items(), reverse=True, key=lambda x: x[0]):
-        for key in sorted(row_dict, reverse=True):
-            i = row_dict[key]
-            x = p_copy[i].pop() # Always the right-most entry
-            for row in reversed(p_copy[:i]):
-                y = bisect_right(row,x) - 1
-                x, row[y] = row[y], x
-            upper_row.append(value)
-            lower_row.append(x)
-
-    if output == 'matrix':
-        return to_matrix(list(reversed(upper_row)), list(reversed(lower_row)))
-    if output == 'array':
-        return [list(reversed(upper_row)), list(reversed(lower_row))]
-    if output in ['permutation', 'word']:
-        raise TypeError("q must be standard to have a %s as valid output"%output)
-    raise ValueError("invalid output option")
-
 
