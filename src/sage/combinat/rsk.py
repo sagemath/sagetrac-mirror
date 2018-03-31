@@ -963,7 +963,7 @@ def RSK_dual(obj1=None, obj2=None, insertion='dualRSK', check_standard=False, **
         sage: RSK_dual(Word([3,3,2,4,1]))
         [[[1, 4], [2], [3], [3]], [[1, 4], [2], [3], [5]]]
         sage: RSK_dual(Word([2,3,3,2,1,3,2,3]))
-        XXX
+        [[[1, 2, 3], [2, 3], [2, 3], [3]], [[1, 2, 8], [3, 6], [4, 7], [5]]]
 
     With a strict biword::
 
@@ -1160,9 +1160,9 @@ def RSK_dual_inverse(p, q, output='array', insertion='dualRSK'):
 
         sage: p = Tableau([[1,2,2],[1]]); q = Tableau([[1,2,4],[3]])
         sage: ret = RSK_dual_inverse(p, q); ret
-        XXX
+        [[1, 2, 3, 4], [1, 2, 1, 2]]
         sage: RSK_dual_inverse(p, q, 'word')
-        word: XXX
+        word: 1212
 
     In general::
 
