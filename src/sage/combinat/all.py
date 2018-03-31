@@ -45,7 +45,8 @@ from .derangements import Derangements
 lazy_import('sage.combinat.baxter_permutations', ['BaxterPermutations'])
 
 #RSK
-from .rsk import RSK, RSK_inverse, robinson_schensted_knuth, robinson_schensted_knuth_inverse
+from .rsk import RSK, RSK_inverse, robinson_schensted_knuth, robinson_schensted_knuth_inverse, \
+                 RSK_dual, RSK_dual_inverse
 
 #PerfectMatchings
 from .perfect_matching import PerfectMatching, PerfectMatchings
