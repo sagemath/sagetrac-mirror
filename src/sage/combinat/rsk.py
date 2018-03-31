@@ -972,21 +972,21 @@ def RSK_dual(obj1=None, obj2=None, insertion='dualRSK', check_standard=False, **
         sage: RSK_dual([1,1,2,3,3,4,5],[1,3,2,1,3,3,2])
         [[[1, 2, 3], [1, 2], [3], [3]], [[1, 1, 3], [2, 4], [3], [5]]]
         sage: RSK_dual([1, 2, 2, 2], [2, 1, 2, 4])
-        XXX
+        [[[1, 2, 4], [2]], [[1, 2, 2], [2]]]
         sage: RSK_dual(Word([1,1,3,4,4]), [1,4,2,1,3])
-        XXX
+        [[[1, 2, 3], [1], [4]], [[1, 1, 4], [3], [4]]]
         sage: RSK_dual([1,3,3,4,4], Word([6,1,2,1,7]))
-        XXX
+        [[[1, 2, 7], [1], [6]], [[1, 3, 4], [3], [4]]]
 
     If we give it a `\{0, 1\}`-matrix::
 
         sage: RSK_dual(matrix([[0,1],[1,1]]))
-        XXX
+        [[[1, 2], [2]], [[1, 2], [2]]]
 
     We can also give it something looking like a matrix::
 
         sage: RSK_dual([[0,1],[1,1]])
-        XXX
+        [[[1, 2], [2]], [[1, 2], [2]]]
 
     There is also :func:`~sage.combinat.rsk.RSK_dual_inverse` which
     performs the inverse of the bijection on a pair of tableaux. We
@@ -1168,9 +1168,11 @@ def RSK_dual_inverse(p, q, output='array', insertion='dualRSK'):
 
         sage: p = Tableau([[1,1,2],[1]]); q = Tableau([[1,3,3],[2]])
         sage: RSK_dual_inverse(p, q)
-        XXX
+        [[1, 2, 3, 3], [1, 1, 1, 2]]
         sage: RSK_dual_inverse(p, q, 'matrix')
-        XXX
+         [1 0]
+         [1 0]
+         [1 1]
 
     .. NOTE::
 
