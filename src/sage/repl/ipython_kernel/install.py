@@ -73,12 +73,12 @@ class SageKernelSpec(object):
 
     def symlink(self, src, dst):
         """
-        Symlink ``src`` to ``dst``
+        Create a symlink named ``dst`` which points to ``src``.
 
         This is not an atomic operation.
 
-        Already-existing symlinks will be deleted, already existing
-        non-empty directories will be kept.
+        If ``dst`` already exists and is a directory it will be kept. If it is
+        not a directory it will be deleted.
 
         EXAMPLES::
 
@@ -89,11 +89,23 @@ class SageKernelSpec(object):
             sage: os.listdir(path)
             ['b']
         """
+        if os.path.islink(dst) and os.path.samefile(src, dst):
+            # Do not delete and recreate dst as we might not have the
+            # permission to do so.
+            return
+
         try:
             os.remove(dst)
         except OSError as err:
             if err.errno == errno.EEXIST:
+                # dst is a directory
                 return
+            elif err.errno == errno.ENOENT:
+                # dst does not exist
+                pass
+            else:
+                raise
+
         os.symlink(src, dst)
 
     def use_local_mathjax(self):
