@@ -3670,6 +3670,19 @@ cdef class Matrix(ModuleElement):
         """
         if have_same_parent(left, right):
             return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
+        cdef int cl = classify_elements(left, right)
+        if BOTH_ARE_ELEMENT(cl):
+            return coercion_model.bin_op(left, right, mul)
+
+        cdef long value
+        cdef int err = -1
+        # Special case multiplication with Python int
+        integer_check_long_py(right, &value, &err)
+        if not err:
+            return (<Element>left)._mul_long(value)
+        integer_check_long_py(left, &value, &err)
+        if not err:
+            return (<Element>right)._mul_long(value)
         return coercion_model.bin_op(left, right, mul)
 
     def __truediv__(left, right):
