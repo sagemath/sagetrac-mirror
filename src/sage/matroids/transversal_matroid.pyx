@@ -12,17 +12,18 @@ Construction
 
 To construct a transversal matroid, first import TransversalMatroid from
 :class:`sage.matroids.transversal_matroid`.
-The input should be a set system, formatted as a list of lists::
+The input should be a set system, formatted as an iterable of iterables::
 
     sage: from sage.matroids.transversal_matroid import *
-    sage: sets = [[3,4,5,6,7,8]] * 3
+    sage: sets = [[3, 4, 5, 6, 7, 8]] * 3
     sage: M = TransversalMatroid(sets); M
     Transversal matroid of rank 3 on 6 elements, with 3 sets.
     sage: M.groundset()
     frozenset({3, 4, 5, 6, 7, 8})
-    sage: M.is_isomorphic(matroids.Uniform(3,6))
+    sage: M.is_isomorphic(matroids.Uniform(3, 6))
     True
-    sage: M = TransversalMatroid([[0,1], [1,2,3], [3,4,5]], set_labels=['1','2','3'])
+    sage: M = TransversalMatroid([[0, 1], [1, 2, 3], [3, 4, 5]],
+    ....: set_labels=['1', '2', '3'])
     sage: M.graph().vertices()
     [0, 1, 2, 3, 4, 5, '1', '2', '3']
 
@@ -156,11 +157,14 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             groundset = contents
         elif not contents.issubset(groundset):
             raise ValueError("ground set and sets do not match")
+        groundset = tuple(groundset)
 
         # keep the original list as input so we don't lose order between minors etc.
-        self._sets_input = [s for s in sets if s]
+        self._sets_input = [s for s in sets]
         self._sets = Counter([frozenset(s) for s in self._sets_input])
 
+        # This might be redundant with self._idx from BasisExchangeMatroid
+        # However, BasisExchangeMatroid has not been called yet
         element_int_map = {e:i for i, e in enumerate(groundset)}
         int_element_map = {i:e for i, e in enumerate(groundset)}
 
@@ -206,23 +210,26 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
         # matching_temp uses actual ground set labels
         # self._matching will use the translated ones
-        self._matching = {element_int_map[e]: matching_temp[e] for e in matching_temp.keys()}
+        self._matching = {self._idx[e]: matching_temp[e] for e in matching_temp.keys()}
 
         # Build a DiGraph for doing basis exchange
         self._D = nx.DiGraph()
         # Make sure we get isolated vertices, corresponding to loops
-        for v in groundset:
-            self._D.add_node(element_int_map[v])
+        self._D.add_nodes_from(self._idx.itervalues())
+        # Also get isolated vertices corresponding to empty sets
+        self._D.add_nodes_from(self._set_labels)
 
         # For sets in the matching, orient them as starting from the collections
-        for u in self._matching.keys():
-            self._D.add_edge(self._matching[u], u)
+        matching_reversed = [(v,k) for k,v in self._matching.iteritems()]
+        self._D.add_edges_from(matching_reversed)
 
+        other_edges = []
         for i, s in enumerate(sets):
             for e in s:
                 if (not (e in matching_temp.keys()) or
                     not (matching_temp[e] == set_labels[i])):
-                    self._D.add_edge(element_int_map[e], set_labels[i])
+                    other_edges.append((self._idx[e], set_labels[i]))
+        self._D.add_edges_from(other_edges)
 
     cdef bint __is_exchange_pair(self, long x, long y) except -1:
         r"""
@@ -244,11 +251,8 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             self._matching[sh[i]] = sh[i+1]
 
         # update the graph to reflect this new matching
-        sh_edges = []
-        sh_edges_r = []
-        for i in range(len(sh[:-1])):
-            sh_edges.append((sh[i], sh[i+1]))
-            sh_edges_r.append((sh[i+1], sh[i]))
+        sh_edges = [(sh[i], sh[i + 1]) for i in xrange(len(sh) - 1)]
+        sh_edges_r = [(sh[i + 1], sh[i]) for i in xrange(len(sh) - 1)]
         self._D.remove_edges_from(sh_edges)
         self._D.add_edges_from(sh_edges_r)
 
@@ -265,7 +269,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             sage: M = TransversalMatroid(sets); M
             Transversal matroid of rank 3 on 4 elements, with 3 sets.
         """
-        sets_number = sum(i for i in self._sets.values())
+        sets_number = len(self._sets_input)
         S = ("Transversal matroid of rank " + str(self.rank()) + " on "
             + str(self.size()) + " elements, with " + str(sets_number)
             + " sets.")
@@ -486,8 +490,10 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         for i, l in enumerate(self._set_labels):
             vertex_map[l] = self._set_labels_input[i]
         D.relabel(vertex_map)
-        partition = [self._E, self._set_labels_input]
-        return BipartiteGraph(D, partition)
+        partition = [list(self._E), self._set_labels_input]
+
+        print(partition) #debugging
+        return BipartiteGraph(D, partition=partition)
 
     cpdef _minor(self, contractions, deletions):
         """
