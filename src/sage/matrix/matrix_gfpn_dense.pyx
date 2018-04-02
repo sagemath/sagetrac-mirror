@@ -283,6 +283,20 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
     ways of creating a :class:`Matrix_gfpn_dense` instance.
     However, these should only be of internal use.
 
+    TESTS:
+
+    Check that :trac:`25076` is fixed::
+
+        sage: k.<a> = GF(9)
+        sage: M = matrix(k, 2, 3, lambda i, j: a*i + j); M
+        [    0     1     2]
+        [    a a + 1 a + 2]
+        sage: M * int(1)
+        [    0     1     2]
+        [    a a + 1 a + 2]
+        sage: int(2) * M
+        [      0       2       1]
+        [    2*a 2*a + 2 2*a + 1]
     """
 ##################
 ## Init, Dealloc, Copy
