@@ -380,6 +380,23 @@ cdef AutomatonGet(Automaton a, A=None):
             r.F.append(i)
     r.I = [a.i]
     return r
+    
+cdef AutomatonToSageAutomaton(Automaton a, A):
+	from sage.combinat.finite_state_machine import Automaton as SageAutomaton
+    L = []
+    if a.i == -1:
+    	I = []
+    else:
+	    I = [a.i]
+	F = []
+    cdef int i, j
+    for i in range(a.n):
+        for j in range(a.na):
+            if a.e[i].f[j] != -1:
+                L.append((i, a.e[i].f[j], A[j]))
+        if a.e[i].final:
+            F.append(i)
+    return SageAutomaton(L, initial_states=I, final_states=F)
 
 # cdef initFA (Automaton *a):
 #    *a = NewAutomaton(1,1)
@@ -779,6 +796,10 @@ cdef class FastAutomaton:
 #    cdef set_a(self, Automaton a):
 #        self.a[0] = a
 
+	#give a Sage Automon from the FastAutomaton
+	def get_automaton(self):
+		return AutomatonToSageAutomaton(self.a, self.A)
+	
     # give a FastAutomaton recognizing the full language over A.
     def full(self, list A):
         """
