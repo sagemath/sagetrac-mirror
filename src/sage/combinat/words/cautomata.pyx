@@ -39,6 +39,7 @@ cdef extern from "automataC.h":
         Dict* d
         int n
 
+    bool DotExists ()
 #    Automaton NewAutomaton (int n, int na)
 #    void FreeAutomaton (Automaton *a)
     int hashAutomaton(Automaton a)
@@ -47,7 +48,7 @@ cdef extern from "automataC.h":
     Automaton PieceAutomaton(Automaton a, int *w, int n, int e)
     void init(Automaton *a)
     void printAutomaton(Automaton a)
-    void plotTikZ(Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool verb)
+    void plotDot(const char *file, Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool verb, bool run_dot)
     void NplotDot (const char *file, NAutomaton a, const char **labels, const char *graph_name, double sx, double sy, bool run_dot)
     Automaton Product(Automaton a1, Automaton a2, Dict d, bool verb)
     Automaton Determinise(Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb)
@@ -117,7 +118,7 @@ cdef imagDict2(dict d, list A, list A2=[]):
     """
     Dictionary which is numbering a new alphabet
     """
-    # print "d=%s, A=%s"%(d,A)
+    # print("d=%s, A=%s"%(d,A))
     d1 = {}
     i = 0
     for a in A:
@@ -158,7 +159,7 @@ cdef InvertDict getDict2(dict d, list A, dict d1=None):
     cdef int i
     if d1 is None:
         d1 = imagDict2(d, A)
-    # print d1
+    # print(d1)
     for i in range(r.n):
         if d.has_key(A[i]):
             r.d[i] = NewDict(len(d[A[i]]))
@@ -282,15 +283,15 @@ cdef Dict getProductDict(dict d, list A1, list A2, dict dv=None, verb=True):
 #    if verb:
 #        printAutomaton(au)
 #    cdef Automaton r = Determinise(au, di, noempty, verb)
-#    print "Avant émondation :"
+#    print("Avant émondation :"
 #    printAutomaton(r)
 #    cdef Automaton r2 = emonde_inf(r)
-#    print "Après émondation :"
+#    print("Après émondation :"
 #    printAutomaton(r2)
 #    if equalsAutomaton(r, r2):
-#        print "equals !"
+#        print("equals !"
 #    else:
-#        print "differents !"
+#        print("differents !"
 
 
 # def TestEmonde(a, noempty=True, verb=True):
@@ -394,7 +395,7 @@ cdef class NFastAutomaton:
     #    cdef list A
 
     def __cinit__(self):
-        # print "cinit"
+        # print("cinit"
         self.a = <NAutomaton *>malloc(sizeof(NAutomaton))
         # initialise
         self.a.e = NULL
@@ -403,7 +404,7 @@ cdef class NFastAutomaton:
         self.A = []
 
     def __init__(self, a, I=None, F=None, A=None):
-        # print "init"
+        # print("init"
         cdef NAutomaton r
         if a is None:
             return
@@ -414,7 +415,7 @@ cdef class NFastAutomaton:
                 raise ValueError("Cannot construct directly a NFastAutomaton for the moment, except from a deterministic one.")
 
     def __dealloc__(self):
-        # print "free"
+        # print("free"
         FreeNAutomaton(self.a)
         free(self.a)
 
@@ -437,7 +438,12 @@ cdef class NFastAutomaton:
         from sage.misc.temporary_file import tmp_filename
         file_name = tmp_filename()+".dot"
         file = file_name
-        from dot2tex import dot2tex
+        try:
+            from dot2tex import dot2tex
+        except ImportError:
+            print("dot2tex must be installed in order to have the LaTeX representation of the NFastAutomaton.")
+            print("You can install it by doing './sage -i dot2tex' in a shell in the sage directory, or by doing 'install_package(package='dot2tex')' in the notebook.")
+            return None
         cdef char** ll
         ll = <char **>malloc(sizeof(char*) * self.a.na)
         cdef int i
@@ -511,7 +517,6 @@ cdef class NFastAutomaton:
             raise ValueError("There is no state %s !" % i)
         return self.a.e[i].final
     
-    @property
     def is_initial(self, int i):
         """
         Return True/False if i state  is/or not  initial
@@ -575,26 +580,28 @@ cdef class NFastAutomaton:
         return r
 
     def plot(self, int sx=10, int sy=8, verb=False):
-
         cdef char** ll
-        ll = <char **>malloc(sizeof(char*) * self.a.na)
         cdef int i
-        strA = []
-        for i in range(self.a.na):
-            strA.append(str(self.A[i]))
-            ll[i] = strA[i]
         cdef char *file
-        from sage.misc.temporary_file import tmp_filename
-        file_name = tmp_filename()
-        file = file_name
-        if verb:
-            print("file=%s" % file_name)
-        sig_on()
-        NplotDot(file, self.a[0], ll, "Automaton", sx, sy, True)
-        free(ll)
-        sig_off()
-        from PIL import Image
-        return Image.open(file_name+'.png')
+        if DotExists ():
+            ll = <char **>malloc(sizeof(char*) * self.a.na)
+            strA = []
+            for i in range(self.a.na):
+                strA.append(str(self.A[i]))
+                ll[i] = strA[i]
+            from sage.misc.temporary_file import tmp_filename
+            file_name = tmp_filename()
+            file = file_name
+            if verb:
+                print("file=%s" % file_name)
+            sig_on()
+            NplotDot(file, self.a[0], ll, "Automaton", sx, sy, True)
+            free(ll)
+            sig_off()
+            from PIL import Image
+            return Image.open(file_name+'.png')
+        else:
+            raise NotImplementedError("You cannot plot the NFastAutomaton without dot. Install the dot command of the GraphViz package.")
 
 # cdef set_FastAutomaton (FastAutomaton a, Automaton a2):
 #    a.a[0] = a2
@@ -636,7 +643,7 @@ cdef class FastAutomaton:
 #    cdef list A
 
     def __cinit__(self):
-        # print "cinit"
+        # print("cinit"
         self.a = <Automaton *>malloc(sizeof(Automaton))
         # initialise
         self.a.e = NULL
@@ -646,7 +653,7 @@ cdef class FastAutomaton:
         self.A = []
 
     def __init__(self, a, i=None, final_states=None, A=None):
-        # print "init"
+        # print("init"
         if a is None:
             return
         from sage.graphs.digraph import DiGraph
@@ -665,16 +672,84 @@ cdef class FastAutomaton:
             raise ValueError("Cannot convert the input to FastAutomaton.")
 
     def __dealloc__(self):
-        # print "free (%s etats) "%self.a.n
+        # print("free (%s etats) "%self.a.n
         sig_on()
         FreeAutomaton(self.a)
-        # print "free self.a"
+        # print("free self.a"
         free(self.a)
         sig_off()
 
     def __repr__(self):
         return "FastAutomaton with %d states and an alphabet of %d letters" % (self.a.n, self.a.na)
+    
+    def _latex_(self):
+        r"""
+        Return a latex representation of the automaton.
 
+        EXAMPLES::
+
+        TESTS:
+
+        """
+        sx = 800
+        sy = 600
+        vlabels = None
+        html = False
+        verb = False
+        from sage.misc.latex import LatexExpr
+        cdef char *file
+        from sage.misc.temporary_file import tmp_filename
+        file_name = tmp_filename()+".dot"
+        file = file_name
+        try:
+            from dot2tex import dot2tex
+        except ImportError:
+            print("dot2tex must be installed in order to have the LaTeX representation of the NFastAutomaton.")
+            print("You can install it by doing './sage -i dot2tex' in a shell in the sage directory, or by doing 'install_package(package='dot2tex')' in the notebook.")
+            return None
+        cdef char** ll #labels of edges
+        cdef char** vl #labels of vertices
+        cdef int i
+        ll = <char **>malloc(sizeof(char*) * self.a.na)
+        if vlabels is None:
+            vl = NULL
+        else:
+            if verb:
+                print("alloc %s..."%self.a.n)
+            vl = <char **>malloc(sizeof(char*) * self.a.n)
+            strV = []
+            if verb:
+                print("len %s %s" % (self.a.n, len(vlabels)))
+            for i in range(self.a.n):
+                if html:
+                    strV.append("<" + vlabels[i] + ">")
+                else:
+                    strV.append("\"" + vlabels[i] + "\"")
+                if verb:
+                    print(strV[i])
+                vl[i] = strV[i]
+                if verb:
+                    print("i=%s : %s" % (i, vl[i]))
+        strA = []
+        for i in range(self.a.na):
+            strA.append(str(self.A[i]))
+            ll[i] = strA[i]
+        if verb:
+            for i in range(self.a.n):
+                print("i=%s : %s" % (i, vl[i]))
+        if verb:
+            print("plot...")
+        sig_on()
+        plotDot(file, self.a[0], ll, "Automaton", sx, sy, vl, verb, False)
+        sig_off()
+        if verb:
+            print("free...plot")
+        free(ll)
+        if vlabels is not None:
+            free(vl)
+        dotfile = open(file_name)
+        return LatexExpr(dot2tex(dotfile.read()))
+    
     def __hash__(self):
         h = 3
         for a in self.A:
@@ -760,48 +835,55 @@ cdef class FastAutomaton:
             sage: a.plot()
 
         """
+        cdef char *file
         cdef char** ll #labels of edges
         cdef char** vl #labels of vertices
         cdef int i
-        ll = <char **>malloc(sizeof(char*) * self.a.na)
-        if vlabels is None:
-            vl = NULL
-        else:
-            if verb:
-                print("alloc %s..."%self.a.n)
-            vl = <char **>malloc(sizeof(char*) * self.a.n)
-            strV = []
-            if verb:
-                print("len %s %s" % (self.a.n, len(vlabels)))
-            for i in range(self.a.n):
-                if html:
-                    strV.append("<" + vlabels[i] + ">")
-                else:
-                    strV.append("\"" + vlabels[i] + "\"")
+        if DotExists():
+            from sage.misc.temporary_file import tmp_filename
+            file_name = tmp_filename()+".dot"
+            file = file_name
+            ll = <char **>malloc(sizeof(char*) * self.a.na)
+            if vlabels is None:
+                vl = NULL
+            else:
                 if verb:
-                    print(strV[i])
-                vl[i] = strV[i]
+                    print("alloc %s..."%self.a.n)
+                vl = <char **>malloc(sizeof(char*) * self.a.n)
+                strV = []
                 if verb:
+                    print("len %s %s" % (self.a.n, len(vlabels)))
+                for i in range(self.a.n):
+                    if html:
+                        strV.append("<" + vlabels[i] + ">")
+                    else:
+                        strV.append("\"" + vlabels[i] + "\"")
+                    if verb:
+                        print(strV[i])
+                    vl[i] = strV[i]
+                    if verb:
+                        print("i=%s : %s" % (i, vl[i]))
+            strA = []
+            for i in range(self.a.na):
+                strA.append(str(self.A[i]))
+                ll[i] = strA[i]
+            if verb:
+                for i in range(self.a.n):
                     print("i=%s : %s" % (i, vl[i]))
-        strA = []
-        for i in range(self.a.na):
-            strA.append(str(self.A[i]))
-            ll[i] = strA[i]
-        if verb:
-            for i in range(self.a.n):
-                print("i=%s : %s" % (i, vl[i]))
-        if verb:
-            print("plot...")
-        sig_on()
-        plotTikZ(self.a[0], ll, "Automaton", sx, sy, vl, verb)
-        sig_off()
-        if verb:
-            print("free...plot")
-        free(ll)
-        if vlabels is not None:
-            free(vl)
-
-        # self.Automaton().plot2()
+            if verb:
+                print("plot...")
+            sig_on()
+            plotDot(file, self.a[0], ll, "Automaton", sx, sy, vl, verb, True)
+            sig_off()
+            if verb:
+                print("free...plot")
+            free(ll)
+            if vlabels is not None:
+                free(vl)
+            from PIL import Image
+            return Image.open(file_name+'.png')
+        else:
+            raise NotImplementedError("You cannot plot the FastAutomaton without dot. Install the dot command of the GraphViz package.")
 
     @property
     def Alphabet(self):
@@ -2284,11 +2366,11 @@ cdef class FastAutomaton:
 #        Av = []
 #        dv = imagProductDict(d, self.A, a2.A, Av=Av)
 #        if verb:
-#            print "Av=%s"%Av
-#            print "dv=%s"%dv
+#            print("Av=%s"%Av
+#            print("dv=%s"%dv
 #        dC = getProductDict(d, self.A, a2.A, dv=dv, verb=verb)
 #        if verb:
-#            print "dC="
+#            print("dC="
 #            printDict(dC)
 #        res = EmptyProduct(self.a[0], a2.a[0], dC, verb)
 #        sig_off()
@@ -2331,7 +2413,7 @@ cdef class FastAutomaton:
 #            for j in range(a2.a.na):
 #                if self.A[i] == a2.A[j]:
 #                    d.e[i] = j
-#                    if verb: print "%d -> %d"%(i, j)
+#                    if verb: print("%d -> %d"%(i, j))
 #                    break
 #        if verb:
 #            printDict(d)
@@ -2585,7 +2667,7 @@ cdef class FastAutomaton:
 #            if l in a.A:
 #                d[(l,l)] = l
 #        if verb:
-#            print "d=%s"%d
+#            print("d=%s"%d)
 #        a.complete()
 #        cdef FastAutomaton p = self.product(a, d, verb=verb)
 #

@@ -13,6 +13,8 @@ struct Dict
 };
 typedef struct Dict Dict;
 
+bool DotExists ();
+
 int hashAutomaton (Automaton a);
 bool findWord (Automaton a, Dict *w, bool verb); //rend un mot dans le langage de a
 bool rec_word (Automaton a, Dict d); //vérifie que le mot w est reconnu par l'automate a
@@ -33,7 +35,7 @@ Automaton CopyAutomaton (Automaton a, int nalloc, int naalloc);
 Automaton PieceAutomaton (Automaton a, int *w, int n, int e); //donne un automate reconnaissant w(w^(-1)L) où L est le langage de a partant de e
 void init (Automaton *a);
 void printAutomaton (Automaton a);
-void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool verb);
+void plotDot (const char *file, Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool verb, bool run_dot);
 bool equalsAutomaton (Automaton a1, Automaton a2); //détermine si les automates sont les mêmes (différents si états permutés)
 int contract (int i1, int i2, int n1);
 int geti1 (int c, int n1);
