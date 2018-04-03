@@ -23,6 +23,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 from libc.stdlib cimport malloc, free
+
 cimport sage.combinat.words.cautomata
 
 from cysignals.signals cimport sig_on, sig_off, sig_check
@@ -1177,18 +1178,19 @@ cdef class FastAutomaton:
     def emonde_i(self, verb=False):
         """
 
-
-
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b'), (0, 3, 'b')], i=0)
             sage: a.emonde_i(True)
             deleted States : [ ]
             FastAutomaton with 3 states and an alphabet of 2 letters
-
+            sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b'), (0, 3, 'b')])
+            FastAutomaton with 0 states and an alphabet of 2 letters
         """
         if self.initial_state == -1:
-            raise ValueError("initial state is not initialised")
+            empty = FastAutomaton([])
+            empty.setAlphabet(self.Alphabet)
+            return empty
         cdef Automaton a
         r = FastAutomaton(None)
         sig_on()
