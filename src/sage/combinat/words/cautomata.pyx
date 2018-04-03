@@ -99,6 +99,9 @@ cdef extern from "automataC.h":
 
 # dictionnaire numérotant l'alphabet projeté
 cdef imagDict(dict d, list A, list A2=[]):
+    """
+    Dictionary which is numbering projected alphabet
+    """
     d1 = {}
     i = 0
     for a in A:
@@ -111,6 +114,9 @@ cdef imagDict(dict d, list A, list A2=[]):
 
 # dictionnaire numérotant le nouvel alphabet
 cdef imagDict2(dict d, list A, list A2=[]):
+    """
+    Dictionary which is numbering a new alphabet
+    """
     # print "d=%s, A=%s"%(d,A)
     d1 = {}
     i = 0
@@ -164,6 +170,9 @@ cdef InvertDict getDict2(dict d, list A, dict d1=None):
 
 # dictionnaire numérotant l'alphabet projeté
 cdef imagProductDict(dict d, list A1, list A2, list Av=[]):
+    """
+    Dictionary which is numbering the prjeted alphabet
+    """
     dv = {}
     i = 0
     for a1 in A1:
@@ -224,7 +233,7 @@ cdef Dict getProductDict(dict d, list A1, list A2, dict dv=None, verb=True):
 #     r = getAutomaton(a)  # , d, da)
 #     printAutomaton(r)
 #     # print d, da, a.vertices(),
-#     print( a.vertices(), list(a.Alphabet()))
+#     print( a.vertices(), list(a.Alphabet))
 
 
 # def TestProduct(a1, a2, di):
@@ -244,11 +253,11 @@ cdef Dict getProductDict(dict d, list A1, list A2, dict dv=None, verb=True):
 #     a = getAutomaton(a1)
 #     b = getAutomaton(a2)
 #     printAutomaton(a)
-#     print(a1.vertices(), a1.Alphabet())
+#     print(a1.vertices(), a1.Alphabet)
 #     printAutomaton(b)
-#     print(a2.vertices(), a2.Alphabet())
+#     print(a2.vertices(), a2.Alphabet)
 #     cdef Dict d
-#     d = getProductDict(di, list(a1.Alphabet()), list(a2.Alphabet()))
+#     d = getProductDict(di, list(a1.Alphabet), list(a2.Alphabet))
 #     print("product dictionnary :")  # "dictionnaire du produit :"
 #     printDict(d)
 #     c = Product(a, b, d, False)
@@ -256,7 +265,7 @@ cdef Dict getProductDict(dict d, list A1, list A2, dict dv=None, verb=True):
 #     printAutomaton(c)
 
 #def TestDeterminise (a, d, noempty=True, verb=True):
-#    cdef Dict di = getDict(d, a.Alphabet())
+#    cdef Dict di = getDict(d, a.Alphabet)
 #    cdef Automaton au = getAutomaton(a)
 #    if verb:
 #        printDict(di)
@@ -266,7 +275,7 @@ cdef Dict getProductDict(dict d, list A1, list A2, dict dv=None, verb=True):
 #    printAutomaton(r)
 
 #def TestDeterminiseEmonde (a, d, noempty=True, verb=True):
-#    cdef Dict di = getDict(d, a.Alphabet())
+#    cdef Dict di = getDict(d, a.Alphabet)
 #    cdef Automaton au = getAutomaton(a)
 #    if verb:
 #        printDict(di)
@@ -311,7 +320,7 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
     cdef Automaton r
 
     if A is None:
-        A = list(a.Alphabet())
+        A = list(a.Alphabet)
     V = list(a.vertices())
     cdef int n = len(V)
     cdef int na = len(A)
@@ -501,7 +510,8 @@ cdef class NFastAutomaton:
         if i >= self.a.n or i < 0:
             raise ValueError("There is no state %s !" % i)
         return self.a.e[i].final
-
+    
+    @property
     def is_initial(self, int i):
         """
         Return True/False if i state  is/or not  initial
@@ -528,8 +538,8 @@ cdef class NFastAutomaton:
                 l.append(i)
         return l
 
+    @property
     def Alphabet(self):
-
         return self.A
 
     def set_initial(self, int e, bool initial=True):
@@ -593,6 +603,14 @@ cdef class FastAutomaton:
     """
     INPUT:
 
+    - ``i`` -- (default None) initial state
+
+    - ``final_states`` -- (default None) list of final states
+
+    OUTPUT:
+
+    Return a instance of ``FastAutomaton``
+
     EXAMPLES:
 
         sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
@@ -606,7 +624,7 @@ cdef class FastAutomaton:
         sage: a = FastAutomaton(g)
         sage: a
         FastAutomaton with 5 states and an alphabet of 4 letters
-        sage: a = FastAutomaton([(0,1,'a') ,(2, 3,'b')], i = 2)
+        sage: a = FastAutomaton([(0, 1,'a') ,(2, 3,'b')], i = 2)
         sage: a
         FastAutomaton with 4 states and an alphabet of 2 letters
         sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')], final_states=[0,3])
@@ -690,6 +708,15 @@ cdef class FastAutomaton:
     def full(self, list A):
         """
 
+        INPUT:
+
+        - ``A`` -- list of letters of alphabet
+
+
+        OUTPUT:
+
+        Return a full ``FastAutomaton``
+
         EXEMPLES::
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
@@ -717,6 +744,22 @@ cdef class FastAutomaton:
         return r
 
     def plot(self, int sx=10, int sy=8, vlabels=None, html=False, verb=False):
+        """
+
+        INPUT:
+
+        - ``A`` -- list of letters of alphabet
+
+        OUTPUT:
+
+        Return a full ``FastAutomaton``
+
+        EXEMPLES::
+
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a.plot()
+
+        """
         cdef char** ll #labels of edges
         cdef char** vl #labels of vertices
         cdef int i
@@ -760,12 +803,19 @@ cdef class FastAutomaton:
 
         # self.Automaton().plot2()
 
+    @property
     def Alphabet(self):
         """
+        To get the ``FastAutomaton`` attribut Alphabet
+
+        OUTPUT:
+
+        Return a the alphabet ``A`` of  ``FastAutomaton``
+
         EXAMPLES::
 
         sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-        sage: a.Alphabet()
+        sage: a.Alphabet
         ['a', 'b']
 
         """
@@ -773,41 +823,59 @@ cdef class FastAutomaton:
 
     def setAlphabet(self, list A):
         """
+        Set the alphabet
+
+        INPUT:
+
+        - ``A`` -- list of letters of alphabet
+
         EXAMPLES::
 
         sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
         sage: a.setAlphabet(['a', 'b', 'c'])
-        sage: a.Alphabet()
+        sage: a.Alphabet
         ['a', 'b', 'c']
         sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
         sage: a.setAlphabet(['a','e'])
-        sage: a.Alphabet()
+        sage: a.Alphabet
         ['a', 'e']
 
         """
         self.A = A
         self.a[0].na = len(A)
 
+    @property
     def initial_state(self):
         """
+        Get the initial state ``FastAutomaton`` attribut
+
+        OUTPUT:
+
+        Return the initial state ``i``  of  ``FastAutomaton``
+
         EXAMPLES::
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: a.initial_state()
+            sage: a.initial_state
             -1
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')], i=2)
-            sage: a.initial_state()
+            sage: a.initial_state
             2
         """
         return self.a.i
 
     def set_initial_state(self, int i):
         """
+        
+        OUTPUT:
+
+        Return the initial state ``i``  of  ``FastAutomaton``
+        
         EXAMPLES::
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.set_initial_state(2)
-            sage: a.initial_state()
+            sage: a.initial_state
             2
             sage: a.set_initial_state(6)
             Traceback (most recent call last):
@@ -1472,10 +1540,10 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage:  a.initial_state()
+            sage:  a.initial_state
             0
             sage: a.shift1OP(0, verb=True)
-            sage:  a.initial_state()
+            sage:  a.initial_state
             1
         """
         if self.a.i != -1:
@@ -1487,10 +1555,10 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage:  a.initial_state()
+            sage:  a.initial_state
             0
             sage: a.shiftOP(0, 2)
-            sage:  a.initial_state()
+            sage:  a.initial_state
             -1
         """
         for i in range(np):
@@ -1502,7 +1570,7 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.initial_state()
+            sage: a.initial_state
             0
             sage: a.unshift1(1)
             FastAutomaton with 5 states and an alphabet of 2 letters
@@ -1529,7 +1597,7 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.initial_state()
+            sage: a.initial_state
             0
             sage: a.shiftOP(0, 2)
             sage: a.unshiftl([0, 1])
@@ -1719,7 +1787,7 @@ cdef class FastAutomaton:
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage d = { 'a' : 'a', 'b': 'c', 'c':'c', 'd':'b'}
             sage: b = a.duplicate(d)
-            sage: b.Alphabet()
+            sage: b.Alphabet
             ['a', 'c']
         """
         cdef Automaton a
@@ -1752,7 +1820,7 @@ cdef class FastAutomaton:
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage d = { 'a' : 'a', 'b': 'c', 'c':'b', 'd':'b'}
             sage: a.relabel(d)
-            sage: a.Alphabet()
+            sage: a.Alphabet
             ['a', 'c']
         """
         self.A = [d[c] for c in self.A]
@@ -1769,7 +1837,7 @@ cdef class FastAutomaton:
             A=['b', 'c', 'a']
             l=[ 1 -1 0 ]
             l = [ 1 -1 0 ]
-            sage: b.Alphabet()
+            sage: b.Alphabet
             ['b', 'c', 'a']
 
         """
@@ -1809,11 +1877,11 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.a.Alphabet()
+            sage: a.a.Alphabet
             ['a', 'b']
             sage: l = [ 'b', 'c', 'a']
             sage: a.permut_op(l, verb=True)
-            sage: a.Alphabet()
+            sage: a.Alphabet
             ['b', 'c', 'a']
 
         """

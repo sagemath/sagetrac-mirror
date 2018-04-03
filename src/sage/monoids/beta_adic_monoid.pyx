@@ -398,7 +398,7 @@ cdef Automate getAutomate(a, d, list C, iss=None, verb=False):
 #        F = lv
 #    #alloue l'automate
 #    cdef Automate r
-#    r = NewAutomaton(a.num_verts(), len(a.Alphabet()))
+#    r = NewAutomaton(a.num_verts(), len(a.Alphabet))
 #    #réindice les sommets
 #    dv = {}
 #    for u,i in zip(lv, range(len(lv))):
@@ -468,9 +468,9 @@ cdef BetaAdic getBetaAdic(input_a, prec=53, ss=None, tss=None, iss=None,
 
     if add_letters:
         C = set(input_a.C)
-        C.update(a.Alphabet())
+        C.update(a.Alphabet)
     else:
-        C = a.Alphabet()
+        C = a.Alphabet
     C = list(C)
 
     b = NewBetaAdic(len(C))
@@ -498,7 +498,7 @@ cdef BetaAdic2 getBetaAdic2(input_a, la=None, ss=None, tss=None, prec=53, add_le
     if add_letters:
         C = set(input_a.C)
         for a in la:
-            C.update(a.Alphabet())
+            C.update(a.Alphabet)
     C = list(C)
 
     b = NewBetaAdic2(len(C), len(la))
@@ -2141,8 +2141,8 @@ class BetaAdicMonoid(Monoid_class):
                     m[c-c2] = [(c,c2)]
         if verb: print "m = %s"%m
         
-        L = a.Alphabet() #a.edge_labels()
-        LA = ar.Alphabet() #ar.edge_labels()
+        L = a.Alphabet #a.edge_labels()
+        LA = ar.Alphabet #ar.edge_labels()
         d = dict([])
         for u, v in L:
             for ka in LA:
@@ -2205,15 +2205,15 @@ class BetaAdicMonoid(Monoid_class):
         ssp = ss1.product(ss2)
         ssp = ssp.emonde()
         d = {}
-        for (la1,la2) in ssp.Alphabet():
-            for lb in a.Alphabet():
+        for (la1,la2) in ssp.Alphabet:
+            for lb in a.Alphabet:
                 if lb == la1-la2:
                     d[((la1,la2), lb)] = (la1,la2)
         ssi = ssp.product(a, d)
         ssi = ssi.emonde_inf()
         ssi = ssi.emonde()
         d = {}
-        for (l1,l2) in ssi.Alphabet():
+        for (l1,l2) in ssi.Alphabet:
             d[(l1,l2)] = l1
         ssi = ssi.determinise_proj(d)
         ssi = ssi.emonde_inf()
@@ -2309,7 +2309,7 @@ class BetaAdicMonoid(Monoid_class):
         
         #add a new state
         cdef int ne, ei
-        ei = arel.initial_state()
+        ei = arel.initial_state
         ne = arel.n_states() #new added state
         arel.add_state(True)
         arel.set_final_state(ei, final=False) #it is the new final state
@@ -2859,7 +2859,7 @@ class BetaAdicMonoid(Monoid_class):
         if C is None:
             C = list(set(self.C))
         if C2 is None:
-            C2 = list(set(tss.Alphabet()))
+            C2 = list(set(tss.Alphabet))
         if verb:
             print "Calcul de l'automate des relations..."
         Cd = list(set([c1-c2 for c1 in C2 for c2 in C]))
@@ -2887,7 +2887,7 @@ class BetaAdicMonoid(Monoid_class):
             print d
         a2 = a.duplicate(d, verb=verb)
         if verb:
-            print a2.Alphabet()
+            print a2.Alphabet
             print a2
         if step == 3:
             return a2
@@ -2910,7 +2910,7 @@ class BetaAdicMonoid(Monoid_class):
         if verb:
             print "déterminise..."
         d={}
-        for c1,c2 in a2.Alphabet():
+        for c1,c2 in a2.Alphabet:
             d[(c1,c2)] = c2
         a2 = a2.determinise_proj(d, verb=verb)
         if step == 8:
@@ -2941,14 +2941,14 @@ class BetaAdicMonoid(Monoid_class):
         if C is None:
             C = list(set(self.C))
         
-        A = tss.Alphabet()
+        A = tss.Alphabet
         k = self.b.parent()
         nA = list(set([k(a+t2) for a in A for t2 in [0,t]]))
         a = tss.bigger_alphabet(nA)
         
         #add a new state
         cdef int ne, ei
-        ei = a.initial_state()
+        ei = a.initial_state
         ne = a.n_states() #new added state
         a.add_state(a.is_final(ei))
         a.set_initial_state(ne) #it is the new initial state
@@ -2967,14 +2967,14 @@ class BetaAdicMonoid(Monoid_class):
     
     #project a translated by t on b (do the same as move2)
     def Proj(self, a, b, t=0, arel=None):
-        m2 = BetaAdicMonoid(self.b, set(a.Alphabet()+b.Alphabet()))
+        m2 = BetaAdicMonoid(self.b, set(a.Alphabet+b.Alphabet))
         if arel is None:
             #compute the relations automaton with translation t
-            arel = m2.relations_automaton4(t=t, couples=True, A=a.Alphabet(), B=b.Alphabet())
+            arel = m2.relations_automaton4(t=t, couples=True, A=a.Alphabet, B=b.Alphabet)
         ai = arel.intersection(a.zero_complete2().product(b))
         d = {}
-        for i in a.Alphabet():
-            for j in b.Alphabet():
+        for i in a.Alphabet:
+            for j in b.Alphabet:
                 d[(i,j)] = j
         r = ai.proj(d)
         r.zero_completeOP()
@@ -3046,7 +3046,7 @@ class BetaAdicMonoid(Monoid_class):
             print "états à considérer : %s"%l
         #calcule l'union des automates translatés
         a = FastAutomaton(None)
-        A = aa.Alphabet()
+        A = aa.Alphabet
         a.setAlphabet(A)
         for i in range(0, len(l)):
             a2 = aa.copy()
@@ -3083,7 +3083,7 @@ class BetaAdicMonoid(Monoid_class):
         
         from sage.graphs.graph import Graph
         n = a.n_states()
-        na = len(a.Alphabet())
+        na = len(a.Alphabet)
         d = dict([]) #dictionnaire des automates complétés
         if verb: print "Automate des relations..."
         arel = self.relations_automaton3(ext=ext)
@@ -3127,13 +3127,13 @@ class BetaAdicMonoid(Monoid_class):
                 a = FastAutomaton(None).full(self.C)
         
         n = a.n_states()
-        na = len(a.Alphabet())
-        rules = [[[l] for l in a.Alphabet()] for i in range(n)]
+        na = len(a.Alphabet)
+        rules = [[[l] for l in a.Alphabet] for i in range(n)]
         gvois = [Graph(na) for i in range(n)] #graphe des morceaux voisins
         gnvois = [Graph(na) for i in range(n)] #graphe des morceaux non voisins
         
         #liste des morceaux dont il faut tester la connexité du graphe de voisinage
-        m = [a.initial_state()]
+        m = [a.initial_state]
         
         while len(m) > 0:
             i = m.pop()
@@ -3302,7 +3302,7 @@ class BetaAdicMonoid(Monoid_class):
         adr = ad
         #compute the list of points
         if verb: print "Parcours %s..."%imax
-        l = self.Parcours(adr.Alphabet(), adr, adr.initial_state(), 0, imax, 1)
+        l = self.Parcours(adr.Alphabet, adr, adr.initial_state, 0, imax, 1)
         if verb: print ("%s points calculés"%len(l))
         #sort
         if verb: print ("tri...")
@@ -3315,7 +3315,7 @@ class BetaAdicMonoid(Monoid_class):
     # WARNING : IF DOES NOT CONTAIN 0 THE PIECE EXCHANGE IS NOT NECESSARLY INVERSIBLE
     def correct_morceaux (self, FastAutomaton aoc, list lm, bool verb=False):
         u = FastAutomaton(None)
-        u.setAlphabet(aoc.Alphabet())
+        u.setAlphabet(aoc.Alphabet)
         #verify that the union of the pieces is equal to aoc
         for a,t in lm:
             u = u.union(a)
@@ -3324,7 +3324,7 @@ class BetaAdicMonoid(Monoid_class):
             return False
         #verify that the union of the translated pieces is equal to aoc
         u = FastAutomaton(None)
-        u.setAlphabet(aoc.Alphabet())
+        u.setAlphabet(aoc.Alphabet)
         u.add_state(True)
         u.set_initial_state(0)
         u.add_edge(0,0,0) #reconnait 0 (le seul élément à ne pas avoir forcément d'inverse)
@@ -3419,9 +3419,9 @@ class BetaAdicMonoid(Monoid_class):
     #
     def ParcoursUnic(self, a, pp, n, verb=False):
         r = dict()
-        A = a.Alphabet()
+        A = a.Alphabet
         b = self.b
-        p = [(a.initial_state(),0,1)] #pile des éléments à traiter
+        p = [(a.initial_state,0,1)] #pile des éléments à traiter
         r[0] = None
         res = []
         bnm = b**n
@@ -3524,7 +3524,7 @@ class BetaAdicMonoid(Monoid_class):
                 if imax >= 1000:
                     return "imax trop grand !", ad, uc, [(at[t],t) for t in at.keys()]
                 if verb: print "Parcours %s..."%imax
-                l = self.Parcours(ad.Alphabet(), ad, ad.initial_state(), 0, imax, 1)
+                l = self.Parcours(ad.Alphabet, ad, ad.initial_state, 0, imax, 1)
                 if len(l) == 0:
                     imax += 1
                     continue
@@ -3620,7 +3620,7 @@ class BetaAdicMonoid(Monoid_class):
             1),
              (FastAutomaton with 39 states and an alphabet of 2 letters, b^2 + b),
              (FastAutomaton with 120 states and an alphabet of 2 letters, b),
-             (FastAutomaton with 81 states and an alphabet of 2 letters, b + 1)]    
+             (FastAutomaton with 81 states and an alphabet of 2 letters, b + 1)]
         """
         m = self
         if ap is None:
@@ -3630,35 +3630,39 @@ class BetaAdicMonoid(Monoid_class):
                 ap = FastAutomaton(None).full(list(self.C))
         cdef FastAutomaton aa
         if not a.included(ap):
-            if verb: print "Project a on ap..."
+            if verb:
+                print("Project a on ap...")
             aa = a.copy()
-            #check that Qap contains Qaa
+            # check that Qap contains Qaa
             if not m.Proj(ap, aa).equals_langages(aa) and need_included:
                 raise ValueError("The g-beta-set described by a is not included in the one described by ap.")
-            #project aa on ap
+            # project aa on ap
             aa = m.Proj(aa, ap)
         else:
             aa = a
         A = ap.A
-        if verb: print "A=%s, aa=%s, ap=%s"%(A, aa, ap)
+        if verb:
+            print("A=%s, aa=%s, ap=%s" % (A, aa, ap))
         b = self.b
         p = b.parent().places()
         d = dict()
         for t1 in A:
             for t2 in A:
-                d[(t1,t2)] = t2-t1
+                d[(t1, t2)] = t2 - t1
         if abs(p[0](b)) > 1:
             pp = p[0]
-            #pm = p[1]
+            # pm = p[1]
         else:
             pp = p[1]
-            #pm = p[0]
-        if verb: print "pp=%s"%pp
-        #check that the alphabet of ap is non-negative
-        for i in ap.Alphabet():
+            # pm = p[0]
+        if verb:
+            print("pp=%s" % pp)
+        # check that the alphabet of ap is non-negative
+        for i in ap.Alphabet:
             if pp(i) < 0:
                 raise ValueError("The alphabet of ap must be non-negative in the expanding direction !")
-        if verb: print("Compute the pieces...")
+        if verb:
+            print("Compute the pieces...")
         u = FastAutomaton(None)
         u.setAlphabet(list(A))
         uc = u.complementary().intersection(aa)
@@ -3666,49 +3670,58 @@ class BetaAdicMonoid(Monoid_class):
         while True:
             #############
             #compute uc-aa
-            if verb: print "product..."
+            if verb:
+                print("product...")
             ad = uc.product(aa)
-            if verb: print "determinise..."
+            if verb:
+                print("determinise...")
             ad = ad.determinise_proj(d)
-            if verb: print "minimise..."
+            if verb:
+                print("minimise...")
             ad = ad.emonde().minimise()
-            if verb: print "ad = %s"%ad
-            #project on ap
-            if verb: print "proj on ap..."
+            if verb:
+                print("ad = %s" % ad)
+            # project on ap
+            if verb:
+                print("proj on ap...")
             ad = m.Proj(ad, ap)
-            if verb: print "ad = %s"%ad
+            if verb:
+                print("ad = %s" % ad)
             if getad:
                 return ad
             #############
-            #compute the list of points
+            # compute the list of points
             R = set()
             while len(R) == 0:
-                if verb: print "bound=%s"%bound
+                if verb:
+                    print("bound=%s" % bound)
                 S = set()
                 R = set()
-                TS = [(ad.initial_state(), 0, 1)]
+                TS = [(ad.initial_state, 0, 1)]
                 while len(TS) > 0:
                     TS2 = []
-                    #print TS
-                    for s,t,bn in TS:
-                        for i in ad.Alphabet():
+                    # print TS
+                    for s, t, bn in TS:
+                        for i in ad.Alphabet:
                             ss = ad.succ(s, i)
                             if ss != -1:
                                 tt = t + i*bn
                                 if pp(tt) < bound:
-                                    if (ss,tt) not in S:
-                                        S.add((ss,tt))
-                                        TS2.append((ss,tt,bn*m.b))
+                                    if (ss, tt) not in S:
+                                        S.add((ss, tt))
+                                        TS2.append((ss, tt, bn * m.b))
                                         if ad.is_final(ss) and pp(tt) > 0:
                                             R.add(tt)
                     TS = TS2
-                bound = bound*2
+                bound = bound * 2
             l = sorted(R, key=pp)
-            if verb: print l
+            if verb:
+                print(l)
             #############
-            #compute the pieces for these translations
+            # compute the pieces for these translations
             for t in l:
-                if verb: print "t=%s"%t
+                if verb:
+                    print("t=%s" % t)
                 if at.has_key(t):
                     return "tr deja vu",at, uc
                     raise ValueError("Erreur : translation calculée déjà vue !!!")
@@ -3730,13 +3743,13 @@ class BetaAdicMonoid(Monoid_class):
             if uc.is_empty():
                 break
         return [(at[t],t) for t in at.keys()]
-    
+
     def compute_substitution (self, FastAutomaton a=None, np=None, lt = None, method = 2, method_tr = 1, iplus=2, imax=None, get_aut=False, verb=True):
         r"""
         Compute a substitution whose fixed point is the g-beta-expansion given by the beta-adic monoid with automaton a.
-        
+
         INPUT:
-        
+
         - ``a``- FastAutomaton (default: ``None``)
             Automaton of the g-beta-expansion.
         
