@@ -23,6 +23,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 from libc.stdlib cimport malloc, free
+
 cimport sage.combinat.words.cautomata
 
 from cysignals.signals cimport sig_on, sig_off, sig_check
@@ -365,13 +366,11 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
         r.e[d[e]].f[da[l]] = d[f]
     return r
 
-cdef AutomatonGet(Automaton a, A=None):
-    from sage.combinat.words.automata import Automaton
-    r = Automaton(multiedges=True, loops=True)
+cdef AutomatonGet(Automaton a, A):
+    from sage.graphs.digraph import DiGraph
+    r = DiGraph(multiedges=True, loops=True)
     cdef int i, j
     r.F = []
-    if A is None:
-        A = [i for i in range(a.na)]
     for i in range(a.n):
         for j in range(a.na):
             if a.e[i].f[j] != -1:
@@ -382,13 +381,13 @@ cdef AutomatonGet(Automaton a, A=None):
     return r
     
 cdef AutomatonToSageAutomaton(Automaton a, A):
-	from sage.combinat.finite_state_machine import Automaton as SageAutomaton
+    from sage.combinat.finite_state_machine import Automaton as SageAutomaton
     L = []
     if a.i == -1:
-    	I = []
+        I = []
     else:
-	    I = [a.i]
-	F = []
+        I = [a.i]
+    F = []
     cdef int i, j
     for i in range(a.n):
         for j in range(a.na):
@@ -533,7 +532,7 @@ cdef class NFastAutomaton:
         if i >= self.a.n or i < 0:
             raise ValueError("There is no state %s !" % i)
         return self.a.e[i].final
-    
+
     def is_initial(self, int i):
         """
         Return True/False if i state  is/or not  initial
@@ -546,6 +545,7 @@ cdef class NFastAutomaton:
             raise ValueError("There is no state %s !" % i)
         return self.a.e[i].initial
 
+    @property
     def initial_states(self):
         l = []
         for i in range(self.a.n):
@@ -660,7 +660,11 @@ cdef class FastAutomaton:
 #    cdef list A
 
     def __cinit__(self):
-        # print("cinit"
+        """
+        
+
+        """
+        # print "cinit"
         self.a = <Automaton *>malloc(sizeof(Automaton))
         # initialise
         self.a.e = NULL
@@ -670,7 +674,14 @@ cdef class FastAutomaton:
         self.A = []
 
     def __init__(self, a, i=None, final_states=None, A=None):
-        # print("init"
+        """
+        TESTS:
+
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a
+            FastAutomaton with 4 states and an alphabet of 2 letters
+        """
+        # print "init"
         if a is None:
             return
         from sage.graphs.digraph import DiGraph
@@ -697,6 +708,14 @@ cdef class FastAutomaton:
         sig_off()
 
     def __repr__(self):
+        """
+        TESTS:
+
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: repr(a)
+            'FastAutomaton with 3 states and an alphabet of 2 letters'
+
+        """
         return "FastAutomaton with %d states and an alphabet of %d letters" % (self.a.n, self.a.na)
     
     def _latex_(self):
@@ -796,10 +815,10 @@ cdef class FastAutomaton:
 #    cdef set_a(self, Automaton a):
 #        self.a[0] = a
 
-	#give a Sage Automon from the FastAutomaton
-	def get_automaton(self):
-		return AutomatonToSageAutomaton(self.a, self.A)
-	
+    #give a Sage Automon from the FastAutomaton
+    def get_automaton(self):
+        return AutomatonToSageAutomaton(self.a[0], self.A)
+    
     # give a FastAutomaton recognizing the full language over A.
     def full(self, list A):
         """
@@ -824,7 +843,7 @@ cdef class FastAutomaton:
             FastAutomaton with 1 states and an alphabet of 2 letters
             sage: a.full(['a','b','c'])
             FastAutomaton with 1 states and an alphabet of 3 letters
-         """
+        """
         cdef Automaton a
         r = FastAutomaton(None)
         sig_on()
@@ -904,7 +923,8 @@ cdef class FastAutomaton:
             from PIL import Image
             return Image.open(file_name+'.png')
         else:
-            raise NotImplementedError("You cannot plot the FastAutomaton without dot. Install the dot command of the GraphViz package.")
+            AutomatonToSageAutomaton(self.a[0], self.A).plot()
+            #raise NotImplementedError("You cannot plot the FastAutomaton without dot. Install the dot command of the GraphViz package.")
 
     @property
     def Alphabet(self):
@@ -969,11 +989,11 @@ cdef class FastAutomaton:
 
     def set_initial_state(self, int i):
         """
-        
+
         OUTPUT:
 
         Return the initial state ``i``  of  ``FastAutomaton``
-        
+
         EXAMPLES::
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
@@ -1098,6 +1118,7 @@ cdef class FastAutomaton:
     # donne les fils de l'état i
     def succs(self, int i):
         """
+        return lines of state ``i``
 
         EXAMPLES::
 
@@ -1136,7 +1157,7 @@ cdef class FastAutomaton:
 
         EXAMPLES::
 
-            sage: a = FastAutomaton([(0,1,'a'), (2,3,'b')], i=2)
+            sage: a = FastAutomaton([(0,1,'a'), (2, 3,'b')], i=2)
             sage: a.set_succ(0, 1, 2)
             sage: a.succs(0)
             [0, 1]
@@ -1260,19 +1281,21 @@ cdef class FastAutomaton:
     def emonde_i(self, verb=False):
         """
 
-
-
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b'), (0, 3, 'b')], i=0)
             sage: a.emonde_i(True)
             deleted States : [ ]
             FastAutomaton with 3 states and an alphabet of 2 letters
-
+            sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b'), (0, 3, 'b')])
+            FastAutomaton with 0 states and an alphabet of 2 letters
         """
+        if self.initial_state == -1:
+            empty = FastAutomaton([])
+            empty.setAlphabet(self.Alphabet)
+            return empty
         cdef Automaton a
         r = FastAutomaton(None)
-
         sig_on()
         a = emondeI(self.a[0], verb)
         sig_off()

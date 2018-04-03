@@ -573,7 +573,7 @@ void plotDot (const char *file, Automaton a, const char **labels, const char *gr
         sprintf(tamp, "dot %s -Gname -Tpng > %s.png", file, file);
         system(tamp);
 	}
-	sprintf(tamp, "scp %s %s", file, temp_dot_file_name); //copy the file in the choosen place
+	sprintf(tamp, "scp %s %s &> /dev/null", file, temp_dot_file_name); //copy the file in the choosen place
 	system(tamp);
 }
 
@@ -645,7 +645,7 @@ void NplotDot (const char *file, NAutomaton a, const char **labels, const char *
         sprintf(tamp, "dot %s -Gname -Tpng > %s.png", file, file);
         system(tamp);
 	}
-	sprintf(tamp, "scp %s %s", file, temp_dot_file_name); //copy the file in the choosen place
+	sprintf(tamp, "scp %s %s &> /dev/null", file, temp_dot_file_name); //copy the file in the choosen place
 	system(tamp);
 }
 
