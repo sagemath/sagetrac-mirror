@@ -510,8 +510,7 @@ cdef class NFastAutomaton:
         if i >= self.a.n or i < 0:
             raise ValueError("There is no state %s !" % i)
         return self.a.e[i].final
-    
-    @property
+
     def is_initial(self, int i):
         """
         Return True/False if i state  is/or not  initial
@@ -524,6 +523,7 @@ cdef class NFastAutomaton:
             raise ValueError("There is no state %s !" % i)
         return self.a.e[i].initial
 
+    @property
     def initial_states(self):
         l = []
         for i in range(self.a.n):
@@ -636,6 +636,10 @@ cdef class FastAutomaton:
 #    cdef list A
 
     def __cinit__(self):
+        """
+        
+
+        """
         # print "cinit"
         self.a = <Automaton *>malloc(sizeof(Automaton))
         # initialise
@@ -646,6 +650,13 @@ cdef class FastAutomaton:
         self.A = []
 
     def __init__(self, a, i=None, final_states=None, A=None):
+        """
+        TESTS:
+
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a
+            FastAutomaton with 4 states and an alphabet of 2 letters
+        """
         # print "init"
         if a is None:
             return
@@ -673,6 +684,14 @@ cdef class FastAutomaton:
         sig_off()
 
     def __repr__(self):
+        """
+        TESTS:
+
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: repr(a)
+            'FastAutomaton with 3 states and an alphabet of 2 letters'
+
+        """
         return "FastAutomaton with %d states and an alphabet of %d letters" % (self.a.n, self.a.na)
 
     def __hash__(self):
@@ -728,7 +747,7 @@ cdef class FastAutomaton:
             FastAutomaton with 1 states and an alphabet of 2 letters
             sage: a.full(['a','b','c'])
             FastAutomaton with 1 states and an alphabet of 3 letters
-         """
+        """
         cdef Automaton a
         r = FastAutomaton(None)
         sig_on()
@@ -866,11 +885,11 @@ cdef class FastAutomaton:
 
     def set_initial_state(self, int i):
         """
-        
+
         OUTPUT:
 
         Return the initial state ``i``  of  ``FastAutomaton``
-        
+
         EXAMPLES::
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
@@ -995,6 +1014,7 @@ cdef class FastAutomaton:
     # donne les fils de l'état i
     def succs(self, int i):
         """
+        return lines of state ``i``
 
         EXAMPLES::
 
@@ -1033,7 +1053,7 @@ cdef class FastAutomaton:
 
         EXAMPLES::
 
-            sage: a = FastAutomaton([(0,1,'a'), (2,3,'b')], i=2)
+            sage: a = FastAutomaton([(0,1,'a'), (2, 3,'b')], i=2)
             sage: a.set_succ(0, 1, 2)
             sage: a.succs(0)
             [0, 1]
@@ -1167,9 +1187,10 @@ cdef class FastAutomaton:
             FastAutomaton with 3 states and an alphabet of 2 letters
 
         """
+        if self.initial_state == -1:
+            raise ValueError("initial state is not initialised")
         cdef Automaton a
         r = FastAutomaton(None)
-
         sig_on()
         a = emondeI(self.a[0], verb)
         sig_off()
