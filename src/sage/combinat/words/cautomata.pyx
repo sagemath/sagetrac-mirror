@@ -365,13 +365,11 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
         r.e[d[e]].f[da[l]] = d[f]
     return r
 
-cdef AutomatonGet(Automaton a, A=None):
-    from sage.combinat.words.automata import Automaton
-    r = Automaton(multiedges=True, loops=True)
+cdef AutomatonGet(Automaton a, A):
+    from sage.graphs.digraph import DiGraph
+    r = DiGraph(multiedges=True, loops=True)
     cdef int i, j
     r.F = []
-    if A is None:
-        A = [i for i in range(a.na)]
     for i in range(a.n):
         for j in range(a.na):
             if a.e[i].f[j] != -1:
