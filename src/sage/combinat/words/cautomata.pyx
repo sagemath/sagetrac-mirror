@@ -820,7 +820,7 @@ cdef class FastAutomaton:
 
         Return a full ``FastAutomaton``
 
-        EXEMPLES::
+        EXAMPLES::
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a
@@ -857,7 +857,7 @@ cdef class FastAutomaton:
 
         Return a full ``FastAutomaton``
 
-        EXEMPLES::
+        EXAMPLES::
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.plot()
@@ -924,9 +924,9 @@ cdef class FastAutomaton:
 
         EXAMPLES::
 
-        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-        sage: a.Alphabet
-        ['a', 'b']
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a.Alphabet
+            ['a', 'b']
 
         """
         return self.A
@@ -942,13 +942,13 @@ cdef class FastAutomaton:
         EXAMPLES::
 
         sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-        sage: a.setAlphabet(['a', 'b', 'c'])
-        sage: a.Alphabet
-        ['a', 'b', 'c']
-        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-        sage: a.setAlphabet(['a','e'])
-        sage: a.Alphabet
-        ['a', 'e']
+            sage: a.setAlphabet(['a', 'b', 'c'])
+            sage: a.Alphabet
+            ['a', 'b', 'c']
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a.setAlphabet(['a','e'])
+            sage: a.Alphabet
+            ['a', 'e']
 
         """
         self.A = A
@@ -2718,6 +2718,17 @@ cdef class FastAutomaton:
     # de a partant de e
     def piece(self, w, e=None):
         """
+        return a automaton recognizing ``w`` as :math:`w (w^{-1}L)` where ``L``
+        is the language of automaton a from e entry state
+
+        INPUT:
+
+        - ``w`` --  word
+        - ``e`` -- (default: None) the entry state
+
+        OUTPUT:
+        return  a automaton recognizing ``w`` 
+
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
@@ -2743,8 +2754,14 @@ cdef class FastAutomaton:
 
     # tell if the language of the automaton is empty
     # (this function is not very efficient)
-    def is_empty(self, ext=False):
+    def is_empty(self):
         """
+        Examines if the language of the automaton is empty
+
+        OUTPUT:
+
+        return ``True``  if automaton is empty or ``False`` is not
+
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
@@ -2753,26 +2770,23 @@ cdef class FastAutomaton:
 
         """
         return (self.find_word() is None)
-        #if ext:
-        #    return self.emonde().emonde_inf().n_states() == 0
-        #else:
-        #    return self.emonde().n_states() == 0
-
-    # determine if the languages intersect
-    # def intersect (self, FastAutomaton b, ext=False):
-    #    return not self.intersection(b).is_empty(ext)
 
     def random_word(self, nmin=-1, nmax=100):
         """
+        return a random word
 
         INPUT:
-        
-        - ``nmin`` 
-        
+
+        - ``nmin`` -- (default: -1) n min value
+        - ``nmax`` -- (default: 100) n max value
+
+        OUTPUT:
+        return a random word
+
         EXAMPLES::
 
-            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.random_word()
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b'), (0, 3, 'c')], i=0)
+            sage: a.random_word() # random
             ['a']
 
 

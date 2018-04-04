@@ -5,18 +5,18 @@ Beta-adic Monoids tools.
 Beta-adic monoids are finitely generated monoids with generators of the form
 
     - :math:`x -> \beta  x + c`
-    
+
 where beta is a element of a field (for example a complex number),
 and c is varying in a finite set of numerals.
 It permits to describe beta-adic expansions, that is writing of numbers of the form
-    
+
     - :math:`x = c_{0} + c_{1} \beta + c_{2} \beta^{2} +  ...`
       for :math:`c_{i}` 's in a finite set of numerals.
 
 AUTHORS:
 
 - Paul Mercat (2013) initial version
-- Dominique Benielli (2018) 
+- Dominique Benielli (2018)
   AMU Aix-Marseille Universite - Integration in SageMath
 
 EXAMPLES::
@@ -51,7 +51,7 @@ EXAMPLES::
 #    This code is distributed in the hope that it will be useful, 
 #    but WITHOUT ANY WARRANTY; without even the implied warranty 
 #    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# 
+#
 #  See the GNU General Public License for more details; the full text 
 #  is available at:
 #
@@ -75,9 +75,13 @@ from sage.combinat.words.automata import Automaton
 #from sage.structure.factory import UniqueFactory
 #from sage.misc.cachefunc import cached_method
 from cysignals.signals cimport sig_on, sig_off
+cimport sage.combinat.words.cautomata
+from sage.combinat.words.cautomata cimport Automate, FastAutomaton, FreeAutomaton
+from sage.combinat.words.cautomata import FastAutomaton
+
 
 # calcul de la valeur absolue p-adique (car non encore implémenté autrement)
-def absp (c, p, d):
+def absp(c, p, d):
     """
     computation of the p-adic absolute value (not yet implemented)
 
@@ -96,6 +100,7 @@ def absp (c, p, d):
     """
     return ((c.polynomial())(p).norm().abs())**(1/d)
 
+
 # garde la composante fortement connexe de 0
 def emonde(a, K):
     """
@@ -104,7 +109,7 @@ def emonde(a, K):
     INPUT:
 
     - ``a`` a tree
-    - ``K`` 
+    - ``K``
 
     OUTPUT:
 
@@ -118,11 +123,8 @@ def emonde(a, K):
 
 cdef extern from "complex.h":
     cdef cppclass Complexe:
-        double x,y
+        double x, y
 
-cimport sage.combinat.words.cautomata
-from sage.combinat.words.cautomata cimport Automate, FastAutomaton, FreeAutomaton
-from sage.combinat.words.cautomata import FastAutomaton
 
 #cdef extern from "Automaton.h":
 #    cdef cppclass Etat:
@@ -183,13 +185,14 @@ cdef InfoBetaAdic initInfoBetaAdic(self, Cd=None, plus=True, verb=False) except 
 #    C = [c.lift()(1/b) for c in self.C]
     C = self.C
     if verb:
-        print "C = %s"%C
+        print("C = %s" % C)
 
-    if verb: print K
+    if verb:
+        print(K)
 
-    #détermine les places qu'il faut considérer
+    # détermine les places qu'il faut considérer
     parch = []
-    for p in K.places(): #places archimédiennes
+    for p in K.places(): # places archimédiennes
         if plus:
             if p(b).abs() > 1:
                 parch += [p]
@@ -198,13 +201,18 @@ cdef InfoBetaAdic initInfoBetaAdic(self, Cd=None, plus=True, verb=False) except 
                 parch += [p]
     pi = K.defining_polynomial()
     from sage.arith.misc import gcd
-    pi = pi/gcd(pi.list()) #rend le polynôme à coefficients entiers et de contenu 1
-    if verb: print "pi=%s"%pi
-    lp = (Integer(pi.list()[0])).prime_divisors() #liste des nombres premiers concernés
-    if verb: print "lp=%s"%lp
-    pultra = [] #liste des places ultramétriques considérées
+    # rend le polynôme à coefficients entiers et de contenu 1
+    pi = pi / gcd(pi.list())
+    if verb:
+        print("pi=%s" % pi)
+    #liste des nombres premiers concernés
+    lp = (Integer(pi.list()[0])).prime_divisors()
+    if verb:
+        print("lp=%s" % lp)
+    # liste des places ultramétriques considérées
+    pultra = []
     for p in lp:
-        #détermine toutes les places au dessus de p dans le corps de nombres K
+        # détermine toutes les places au dessus de p dans le corps de nombres K
         k = Qp(p)
         Kp = k['a']
         a = Kp.gen()
@@ -214,28 +222,33 @@ cdef InfoBetaAdic initInfoBetaAdic(self, Cd=None, plus=True, verb=False) except 
                 c = f[0].roots(kp)[0][0]
             else:
                 c = kp.gen()
-            if verb: print "c=%s (abs=%s)"%(c, (c.norm().abs())**(1/f[0].degree()))
+            if verb:
+                print("c=%s (abs=%s)" % (c, (c.norm().abs())**(1/f[0].degree())))
             if plus:
                 if (c.norm().abs())**(1/f[0].degree()) > 1:
                     pultra += [(c, f[0].degree())]
             else:
                 if (c.norm().abs())**(1/f[0].degree()) < 1:
-                    pultra += [(c, f[0].degree())]    
+                    pultra += [(c, f[0].degree())]
 
-    if verb: print "places: "; print parch; print pultra
+    if verb:
+        print("places: ")
+        print(parch)
+        print(pultra)
 
     self.parch = parch
 
     if (len(pultra) > 0):
         raise ValueError("Not implemented for b algebraic non-integer.")
 
-    #calcule les bornes max pour chaque valeur absolue
+    # calcule les bornes max pour chaque valeur absolue
     if Cd is None:
         Cd = Set([c-c2 for c in C for c2 in C])
     else:
 #        Cd = [K(c).lift()(1/b) for c in Cd]
         Cd = [K(c) for c in Cd]
-    if verb: print "Cd = %s"%Cd
+    if verb:
+        print("Cd = %s" % Cd)
 
 #    m = dict([])
 #    for p in parch:
@@ -249,26 +262,31 @@ cdef InfoBetaAdic initInfoBetaAdic(self, Cd=None, plus=True, verb=False) except 
     na = len(parch)
     ncmax = len(set([c-c2 for c in self.C for c2 in self.C]))
     cdef InfoBetaAdic i
-    if verb: print "alloc..."
+    if verb:
+        print("alloc...")
     i = allocInfoBetaAdic(n, na, ncmax, verb)
     cdef int j
     # initialise bn
-    if verb: print "init bn..."
+    if verb:
+        print("init bn...")
     getElement(b**n, i.bn, n)
     # initialise b1
-    if verb: print "init b1..."
+    if verb:
+        print("init b1...")
     getElement(1/b, i.b1, n)
     # initialise les places
-    if verb: print "init places..."
+    if verb:
+        print("init places...")
     for k in range(na):
         for j in range(n):
             i.p[k].c[j] = complex(parch[k](b**j))
     # initialise les chiffres et bornes
-    if verb: print "init chiffres..."
+    if verb:
+        print("init chiffres...")
     initCdInfoBetaAdic(self, &i, Cd=Cd, verb=verb)
     return i
 
-cdef initCdInfoBetaAdic (self, InfoBetaAdic *i, Cd, verb=False):
+cdef initCdInfoBetaAdic(self, InfoBetaAdic *i, Cd, verb=False):
     # recalcule les bornes max pour chaque valeur absolue
 #    if Cd is None:
 #        Cd = Set([c-c2 for c in self.C for c2 in self.C])
@@ -3411,8 +3429,8 @@ class BetaAdicMonoid(Monoid_class):
                 if verb: print at[t]
         if stop == -1 and not ai.is_empty():
             raise ValueError("Liste de translations incorrecte pour calculer l'échange de morceaux. Essayez d'augmenter imax.")
-        return [(at[t],t) for t in at.keys()]
-    
+        return [(at[t], t) for t in at.keys()]
+
     #décrit les éléments de a de longueur n (utilisé par compute_morceaux2)
     #
     #  NE FONCTIONNE PAS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -3421,12 +3439,12 @@ class BetaAdicMonoid(Monoid_class):
         r = dict()
         A = a.Alphabet
         b = self.b
-        p = [(a.initial_state,0,1)] #pile des éléments à traiter
+        p = [(a.initial_state, 0, 1)] # pile des éléments à traiter
         r[0] = None
         res = []
         bnm = b**n
         while len(p) != 0:
-            e,t,bn = p.pop()
+            e, t, bn = p.pop()
             r[t] = None
             if verb: print "%s, %s, %s"%(e,t,bn)
             #print "p = %s"%p
@@ -3453,15 +3471,15 @@ class BetaAdicMonoid(Monoid_class):
         
         - ``verb``- bool (default: ``False``)
           If True, print informations about the computing.
-        
+
         OUTPUT:
 
         A list of (FastAutomaton, translation).
 
         EXAMPLES:
-            
+
             #. Full Tribonnacci::
-            
+
                 sage: m = BetaAdicMonoid((x^3-x^2-x-1).roots(ring=QQbar)[1][0], {0,1})
                 sage: pm = m.b.parent().places()[1]
                 sage: a = m.Approx(13, lambda x: (pm(x).real())^2 + (pm(x).imag())^2 < .4 )
@@ -3585,42 +3603,40 @@ class BetaAdicMonoid(Monoid_class):
             raise ValueError("Erreur : l'échange de morceaux ne pave pas !!!")
         return [(at[t],t) for t in at.keys()]
 
-    def compute_morceaux3 (self, FastAutomaton a, FastAutomaton ap=None, bound=100, iplus=1, getad = False, verb=False, need_included=True, step=None):
+    def compute_morceaux3(self, FastAutomaton a, FastAutomaton ap=None, bound=100, iplus=1, getad = False, verb=False, need_included=True, step=None):
         r"""
         Compute the domain exchange describing the g-beta-expansion given by the automaton aoc.
-        
+
         INPUT:
-        
+
         - ``a``- FastAutomaton
           Automaton of the g-beta-expansion.
-        
         -  ``ap``- FastAutomaton (default: ``None``)
            Langage used for the computations. Everything is projected on it.
-        
         - ``verb``- bool (default: ``False``)
           If True, print informations about the computing.
-        
+
         OUTPUT:
 
         A list of (FastAutomaton, translation).
 
-        EXAMPLES:
-            
-            #. Full Tribonnacci::   
-                  
-            sage: m = BetaAdicMonoid((x^3-x^2-x-1).roots(ring=QQbar)[1][0], {0,1})
-            sage: pm = m.b.parent().places()[1]
-            sage: a = m.Approx(13, lambda x: (pm(x).real())^2 + (pm(x).imag())^2 < .4 )
-            sage: aoc = m.zero_complete(a)
-            sage: m.compute_morceaux3(aoc) # long time
-            [(FastAutomaton with 86 states and an alphabet of 2 letters, 1),
-             (FastAutomaton with 164 states and an alphabet of 2 letters, b^2),
-             (FastAutomaton with 70 states and an alphabet of 2 letters, b^2 + 1),
-             (FastAutomaton with 60 states and an alphabet of 2 letters, b^2 + b +
-            1),
-             (FastAutomaton with 39 states and an alphabet of 2 letters, b^2 + b),
-             (FastAutomaton with 120 states and an alphabet of 2 letters, b),
-             (FastAutomaton with 81 states and an alphabet of 2 letters, b + 1)]
+        EXAMPLES::
+
+            # Full Tribonnacci::
+
+                sage: m = BetaAdicMonoid((x^3-x^2-x-1).roots(ring=QQbar)[1][0], {0,1})
+                sage: pm = m.b.parent().places()[1]
+                sage: a = m.Approx(13, lambda x: (pm(x).real())^2 + (pm(x).imag())^2 < .4 )
+                sage: aoc = m.zero_complete(a)
+                sage: m.compute_morceaux3(aoc) # long time
+                [(FastAutomaton with 86 states and an alphabet of 2 letters, 1),
+                 (FastAutomaton with 164 states and an alphabet of 2 letters, b^2),
+                 (FastAutomaton with 70 states and an alphabet of 2 letters, b^2 + 1),
+                 (FastAutomaton with 60 states and an alphabet of 2 letters, b^2 + b +
+                1),
+                 (FastAutomaton with 39 states and an alphabet of 2 letters, b^2 + b),
+                 (FastAutomaton with 120 states and an alphabet of 2 letters, b),
+                 (FastAutomaton with 81 states and an alphabet of 2 letters, b + 1)]
         """
         m = self
         if ap is None:
