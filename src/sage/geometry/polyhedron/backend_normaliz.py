@@ -277,6 +277,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         """
         if ieqs is None: ieqs = []
         nmz_ieqs = []
+        # FIXME: For number fields, don't try to cancel ......
         for ieq in ieqs:
             d = LCM_list([denominator(ieq_i) for ieq_i in ieq])
             dieq = [ ZZ(d*ieq_i) for ieq_i in ieq ]
@@ -424,12 +425,26 @@ class Polyhedron_normaliz(Polyhedron_base):
             cone 0
             # ----8<-------------------8<-------------------8<----
         """
+        from sage.rings.real_arb import RealBallField
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        def format_number(x):
+            try:
+                return '{}'.format(QQ(x))
+            except (ValueError, TypeError):
+                return '({})'.format(x.polynomial('a'))
+
         s = 'amb_space {}\n'.format(self.ambient_dim())
+        R = self.base_ring()
+        if not R.fraction_field() is QQ:
+            emb = RealBallField(53)(R.gen(0))
+            R_a = PolynomialRing(QQ, 'a')
+            min_poly = R_a(R.polynomial())
+            s += 'number_field min_poly ({}) embedding {}\n'.format(min_poly, emb)
         for key, value in dict.iteritems():
             s += '{} {}\n'.format(key, len(value))
             for e in value:
                 for x in e:
-                    s += ' ' + repr(x)
+                    s += ' ' + format_number(x)
                 s += '\n'
 
         if file_output is not None:
@@ -438,6 +453,26 @@ class Polyhedron_normaliz(Polyhedron_base):
             in_file.close()
         else:
             return s
+
+
+#########################################################################
+class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
+    r"""
+    Polyhedra over `\QQ` with normaliz.
+
+    INPUT:
+
+    - ``Vrep`` -- a list ``[vertices, rays, lines]`` or ``None``
+    - ``Hrep`` -- a list ``[ieqs, eqns]`` or ``None``
+
+    EXAMPLES::
+
+        sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)],                 # optional - pynormaliz
+        ....:                rays=[(1,1)], lines=[],
+        ....:                backend='normaliz', base_ring=QQ)
+        sage: TestSuite(p).run(skip='_test_pickling')                      # optional - pynormaliz
+    """
+    pass
 
     def integral_hull(self):
         r"""
@@ -708,29 +743,8 @@ class Polyhedron_normaliz(Polyhedron_base):
             points.append(vector(ZZ, g[:-1]))
         return tuple(points)
 
-
 #########################################################################
-class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
-    r"""
-    Polyhedra over `\QQ` with normaliz.
-
-    INPUT:
-
-    - ``Vrep`` -- a list ``[vertices, rays, lines]`` or ``None``
-    - ``Hrep`` -- a list ``[ieqs, eqns]`` or ``None``
-
-    EXAMPLES::
-
-        sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)],                 # optional - pynormaliz
-        ....:                rays=[(1,1)], lines=[],
-        ....:                backend='normaliz', base_ring=QQ)
-        sage: TestSuite(p).run(skip='_test_pickling')                      # optional - pynormaliz
-    """
-    pass
-
-
-#########################################################################
-class Polyhedron_ZZ_normaliz(Polyhedron_normaliz, Polyhedron_ZZ):
+class Polyhedron_ZZ_normaliz(Polyhedron_QQ_normaliz, Polyhedron_ZZ):
     r"""
     Polyhedra over `\ZZ` with normaliz.
 
