@@ -38,6 +38,18 @@ void printAutomaton (Automaton a)
 }
 */
 
+bool DotExists ()
+{
+    bool res = true;
+    system("command -v dot > testdot");
+    FILE *f = fopen("testdot","r");
+    fseek(f, 0, SEEK_END);
+    if (ftell(f) == 0)
+        res = false;
+    fclose(f);
+    return res;
+}
+
 Dict NewDict (int n)
 {
 	Dict r;
@@ -492,13 +504,13 @@ void printAutomaton (Automaton a)
 	printf("initial State %d.\n", a.i);
 }
 
-void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool verb)
+void plotDot (const char *file, Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool verb, bool run_dot)
 {
 	char tamp[1024];
-	FILE *f = fopen(temp_dot_file_name, "w");
+	FILE *f = fopen(file, "w");
 	if (!f)
 	{
-		printf("Impossible d'ouvrir le fichier a.dot !\n");
+		printf("Impossible d'ouvrir le fichier %s !\n", file);
 		return;
 	}
 	
@@ -554,10 +566,14 @@ void plotTikZ (Automaton a, const char **labels, const char *graph_name, double 
 	fprintf(f, "}\n");
 	
 	fclose(f);
-	if (verb)
-		printf("draw...\n");
-	//sprintf(tamp, "dot %s -Gname -Tsvg > output%ld%ld.svg", temp_dot_file_name, time(NULL), clock());
-	sprintf(tamp, "dot %s -Gname -Tpng > output%ld%ld.png", temp_dot_file_name, time(NULL), clock());
+	if (run_dot)
+	{
+        if (verb)
+            printf("draw...\n");
+        sprintf(tamp, "dot %s -Gname -Tpng > %s.png", file, file);
+        system(tamp);
+	}
+	sprintf(tamp, "scp %s %s", file, temp_dot_file_name); //copy the file in the choosen place
 	system(tamp);
 }
 
