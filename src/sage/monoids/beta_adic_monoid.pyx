@@ -966,11 +966,11 @@ class BetaAdicMonoid(Monoid_class):
 
             #. The dragon fractal::
 
-            sage: e = QQbar(1/(1+I))
-            sage: m = BetaAdicMonoid(e, {0,1})
-            sage: P = m.points()     # long time (360 s)
-            sage: len(P)
-            32768
+                sage: e = QQbar(1/(1+I))
+                sage: m = BetaAdicMonoid(e, {0,1})
+                sage: P = m.points()     # long time (360 s)
+                sage: len(P)
+                32768
         """
 
         C = self.C

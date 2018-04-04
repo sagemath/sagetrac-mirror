@@ -1,10 +1,14 @@
 # coding=utf8
 """
-Finite state machines using C
+Fast automaton using Finite state machines using C
+FastAutomaton for determinist automata and NFastAutomaton for non determinist
+
 
 AUTHORS:
 
-- Paul Mercat
+- Paul Mercat (2013) initial version
+- Dominique Benielli (2018)
+  AMU Aix-Marseille Universite - Integration in SageMath
 """
 
 #*****************************************************************************
@@ -624,7 +628,7 @@ cdef class FastAutomaton:
 
     Return a instance of ``FastAutomaton``
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
         sage: a
@@ -941,7 +945,7 @@ cdef class FastAutomaton:
 
         EXAMPLES::
 
-        sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.setAlphabet(['a', 'b', 'c'])
             sage: a.Alphabet
             ['a', 'b', 'c']
@@ -949,7 +953,6 @@ cdef class FastAutomaton:
             sage: a.setAlphabet(['a','e'])
             sage: a.Alphabet
             ['a', 'e']
-
         """
         self.A = A
         self.a[0].na = len(A)
@@ -1021,6 +1024,7 @@ cdef class FastAutomaton:
 
     def states(self):
         """
+        
         EXAMPLES::
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
@@ -1849,7 +1853,8 @@ cdef class FastAutomaton:
 
     def proji(self, int i, det=True, verb=False):
         """
-        a verifier l[i] lettre a plusieur caractere???
+        a verifier l[i] lettre a plusieurs caracteres???
+        
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
@@ -2502,6 +2507,16 @@ cdef class FastAutomaton:
 
     def shortest_words(self, i=None, verb=False):
         """
+        Compute the shortest words of the automaton
+
+        INPUT:
+
+        - ``i`` -- (default: None)  the initial state
+        - ``verb`` -- (default: False)  the verbose parameter
+
+        OUTPUT:
+        return 1 if the word is recognized (i.e. 0)
+
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
@@ -2532,6 +2547,15 @@ cdef class FastAutomaton:
     # determine if the word is recognized by the automaton or not
     def rec_word2(self, list w):
         """
+        Determine if the word ``w`` is recognized or nor not by the automaton
+
+        INPUT:
+
+        - ``w`` -- a list of letters
+
+        OUTPUT:
+        return 1 if the word is recognized (i.e. 0)
+
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
@@ -2555,6 +2579,15 @@ cdef class FastAutomaton:
     # determine if the word is recognized by the automaton or not
     def rec_word(self, list w):
         """
+        Determine if the word ``w`` is recognized or nor not by the automaton
+
+        INPUT:
+
+        - ``w`` -- a list of letters
+
+        OUTPUT:
+        return ``True`` if the word is recognized (i.e. ``False``)
+
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
@@ -2578,6 +2611,15 @@ cdef class FastAutomaton:
 
     def add_state(self, bool final):
         """
+        Add a state in the automaton
+
+        INPUT:
+
+        - ``final`` -- boolean indicate if the added state is final
+
+        OUTPUT:
+        return the numbers of states
+
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
@@ -2593,6 +2635,14 @@ cdef class FastAutomaton:
 
     def add_edge(self, int i, l, int j):
         """
+        Add a edge in the automaton
+
+        INPUT:
+
+        - ``i`` -- the first state
+        - ``l`` -- the label of edge
+        - ``j`` -- the second state
+
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
@@ -2621,6 +2671,11 @@ cdef class FastAutomaton:
 
     def n_states(self):
         """
+        return the numbers of states
+
+        OUTPUT:
+        return the numbers of states
+
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
@@ -2631,6 +2686,15 @@ cdef class FastAutomaton:
 
     def bigger_alphabet(self, nA):
         """
+        Computes new automaton ``FastAutomaton`` with a bigger alphabet
+
+        INPUT:
+
+        - ``na`` --  number of letter for the new automaton
+
+        OUTPUT:
+        return a ``FastAutomaton`` with a bigger alphabet of ``nA`` letters
+
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
@@ -2650,6 +2714,11 @@ cdef class FastAutomaton:
 
     def complementaryOP(self):
         """
+        Return the complementary automaton (with no copy erase ``self``).
+
+        OUTPUT:
+        return  a new automaton complementary of ``seff``
+
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
@@ -2664,6 +2733,11 @@ cdef class FastAutomaton:
 
     def complementary(self):
         """
+        Computes the complementary automaton with copy.
+
+        OUTPUT:
+        return  a new automaton complementary of ``seff``
+
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
@@ -2676,6 +2750,17 @@ cdef class FastAutomaton:
 
     def included(self, FastAutomaton a, bool verb=False, emonded=False):
         """
+        test if automaton ``a`` is included
+
+        INPUT:
+
+        - ``a`` --  a ``FastAutomaton`` to test
+        - ``verb`` -- (default: False) verbose parameter
+        - ``emonded`` -- (default: False) emandation parameter
+
+        OUTPUT:
+        return  ``True`` if automaton ``a`` is included (i.e. ``False`` if not)
+
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
@@ -2727,7 +2812,7 @@ cdef class FastAutomaton:
         - ``e`` -- (default: None) the entry state
 
         OUTPUT:
-        return  a automaton recognizing ``w`` 
+        return  a automaton recognizing ``w``
 
         EXAMPLES::
 
