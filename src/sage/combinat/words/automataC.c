@@ -3379,7 +3379,7 @@ bool AccCoAccRec (Automaton *a, int *coa, int e)
 // 0 : non co-accessible mais accessible
 // 1 : accessible et co-accessible
 // 2 : non-accessible (et on ne sais rien sur la co-accessibilité)
-void AccCoAcc (Automaton *a, int *coa)
+void AccCoAcc(Automaton *a, int *coa)
 {
 	int i;
 	for (i=0;i<a->n;i++)
@@ -3535,7 +3535,7 @@ Automaton emondeI(Automaton a, bool verb)
 	return r;
 }
 
-Automaton SubAutomaton (Automaton a, Dict d, bool verb)
+Automaton SubAutomaton(Automaton a, Dict d, bool verb)
 {
 	if (verb)
 	{
