@@ -1,2 +1,14 @@
-#!/usr/bin/env bash
-pip-lock SHARED install --ignore-installed --verbose --no-deps --no-index --isolated git+https://github.com/SCIP-Interfaces/PySCIPOpt.git
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+export SCIPOPTDIR="$SAGE_LOCAL"
+
+cd src
+
+sdh_pip_install .
+if [ $? -ne 0 ]; then
+    echo "Error installing pyscipopt ... exiting"
+    exit 1
+fi
