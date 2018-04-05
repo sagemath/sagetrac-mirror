@@ -50,7 +50,7 @@ echo "Creating symlink to new GAP installation..."
 ln -s "$GAP_DIR" "$SAGE_DESTDIR_LOCAL/gap/latest"
 
 echo "Copying GAP startup script..."
-sdh_install -T bin/gap.sh "$SAGE_LOCAL/bin/gap"
+sdh_install -T bin/gap-default*.sh "$SAGE_LOCAL/bin/gap"
 
 if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]]; then
     # The (pre-built) HTML documentation is currently (GAP 4.6.3)
