@@ -45,7 +45,7 @@ cdef class SCIPBackend(GenericBackend):
 
             sage: p = MixedIntegerLinearProgram(solver="SCIP")
         """
-        self.model = Model()
+        self.model = Model('')
 
     cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
         """
@@ -104,7 +104,7 @@ cdef class SCIPBackend(GenericBackend):
         elif vtype != 1:
             raise ValueError("Exactly one parameter of 'binary', 'integer' and 'continuous' must be 'True'.")
         raise NotImplementedError()
-        
+
     cpdef set_variable_type(self, int variable, int vtype):
         """
         Set the type of a variable
@@ -198,7 +198,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: print(p.problem_name())
             There once was a french fry
         """
-        raise NotImplementedError()
+        return self.model.getProbName()
 
     cpdef set_objective(self, list coeff, d = 0.0):
         """
@@ -679,7 +679,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.ncols()
             2
         """
-        raise NotImplementedError()
+        return len(self.model.getVars())
 
     cpdef int nrows(self):
         """
@@ -695,7 +695,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.nrows()
             2
         """
-        raise NotImplementedError()
+        return len(self.model.getConss())
 
     cpdef col_name(self, int index):
         """
