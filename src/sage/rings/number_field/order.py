@@ -1983,8 +1983,20 @@ class AbsoluteOrderFactory(UniqueFactory):
 
     """
     def create_key_and_extra_args(self, gens, check_integral=True, check_rank=True, check_is_ring=True, is_maximal=None, allow_subfield=False):
+        r"""
+        Return a key that uniquely identifies the order specified by the parameters.
+
+        TESTS:
+
+        Check that :trac:`24934` has been fixed::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: loads(dumps(K.maximal_order())) is K.maximal_order() # indirect doctest
+            True
+
+        """
         if allow_subfield:
-            raise NotImplementedError
+            raise NotImplementedError("the allow_subfield parameter is not supported yet")
         if len(gens) == 0:
             raise ValueError("gens must span an order over ZZ")
         gens = Sequence(gens)
@@ -1999,6 +2011,20 @@ class AbsoluteOrderFactory(UniqueFactory):
                            "is_maximal": is_maximal}
 
     def create_object(self, version, key, check_integral, check_rank, check_is_ring, is_maximal):
+        r"""
+        Return the order defined by ``key``.
+
+        TESTS::
+
+        Check that caching does not break maximal orders:
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: O = K.order(i); O # indirect doctest
+            Order in Number Field in i with defining polynomial x^2 + 1
+            sage: K.maximal_order()
+            Gaussian Integers in Number Field in i with defining polynomial x^2 + 1
+
+        """
         K, gens = key
 
         if check_integral and not each_is_integral(gens):
@@ -2055,8 +2081,21 @@ class RelativeOrderFactory(UniqueFactory):
         [1, 7*i - 2*a, -a*i + 8, 25*i - 7*a]
     """
     def create_key_and_extra_args(self, gens, check_is_integral=True, check_rank=True, is_maximal = None, allow_subfield=False):
+        r"""
+        Return a key that uniquely identifies the order specified by the parameters.
+
+        TESTS:
+
+        Check that :trac:`24934` has been fixed::
+
+            sage: K.<i, a> = NumberField([x^2 + 1, x^2 - 17])
+            sage: S = relative_order_from_ring_generators([i,a]) # indirect doctest
+            sage: loads(dumps(S)) is S
+            True
+
+        """
         if allow_subfield:
-            raise NotImplementedError()
+            raise NotImplementedError("the allow_subfield parameter is not supported yet")
 
         gens = Sequence(gens)
 
@@ -2070,6 +2109,15 @@ class RelativeOrderFactory(UniqueFactory):
                            "is_maximal": is_maximal}
 
     def create_object(self, version, key, check_is_integral, check_rank, is_maximal):
+        r"""
+        Return the order defined by ``key``.
+
+        TESTS::
+
+            sage: K.<i, a> = NumberField([x^2 + 1, x^2 - 19])
+            sage: S = relative_order_from_ring_generators([i,i + a]); S # indirect doctest
+
+        """
         K, gens = key
 
         if check_is_integral and not each_is_integral(gens):
