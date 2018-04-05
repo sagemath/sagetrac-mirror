@@ -348,21 +348,12 @@ if [ "$1" = '-i' ]; then
     fi
 
     # Make sure that the toolchain is up-to-date
-    # (which is a dependency of every package)
+    # (which is considered to be a dependency of every package)
     $MAKE all-toolchain
 
     # Now install the packages
     for PKG in $PACKAGES; do
         echo
-        # First check that $PKG is actually a Makefile target
-        # Since https://trac.sagemath.org/ticket/21524 there is not explicitly
-        # a target for the package, but if it has a vers_<pkgname> variable
-        # there will also be a generated rule for it
-        if ! grep "^vers_$PKG = " build/make/Makefile >/dev/null; then
-            echo >&2 "Error: package '$PKG' not found"
-            echo >&2 "Note: if it is an old-style package, use -p instead of -i to install it"
-            exit 1
-        fi
         $MAKE SAGE_SPKG="sage-spkg $INSTALL_OPTIONS" "$PKG"
     done
     exit 0
