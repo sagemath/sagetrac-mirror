@@ -1209,7 +1209,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
     cdef _mul_long(self, long n):
         """
-        Multiply an MTX matrix with a field element represented by a Python integer.
+        Multiply an MTX matrix with a field element represented by an integer.
 
         TESTS::
 
