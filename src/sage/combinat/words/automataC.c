@@ -197,7 +197,7 @@ int hashAutomaton (Automaton a)
 	return h;
 }
 
-NAutomaton NewNAutomaton (int n, int na)
+NAutomaton NewNAutomaton(int n, int na)
 {
 	NAutomaton a;
 	a.n = n;
@@ -411,7 +411,7 @@ void ReallocAutomaton (Automaton *a, int n)
 }
 */
 
-Automaton CopyAutomaton (Automaton a, int nalloc, int naalloc)
+Automaton CopyAutomaton(Automaton a, int nalloc, int naalloc)
 {
 	//a.n, a.na
 	Automaton r = NewAutomaton(nalloc, naalloc);
@@ -510,7 +510,7 @@ void plotDot (const char *file, Automaton a, const char **labels, const char *gr
 	FILE *f = fopen(file, "w");
 	if (!f)
 	{
-		printf("Impossible d'ouvrir le fichier %s !\n", file);
+		printf("Impossible to open file %s !\n", file);
 		return;
 	}
 	
@@ -585,7 +585,7 @@ void NplotDot (const char *file, NAutomaton a, const char **labels, const char *
 	FILE *f = fopen(file, "w");
 	if (!f)
 	{
-		printf("Impossible d'ouvrir le fichier a.dot !\n");
+		printf("Impossible to open file a.dot !\n");
 		return;
 	}
 	
@@ -746,7 +746,7 @@ bool equalsLangages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, i
 				if (a2.e[e2].f[a1toa2.e[i]] == -1)
 				{//cette arête ne correspond pas à une arête dans a2
 					if (verb)
-						printf("%d -%d-> existe dans a1 mais %d -%d-> n'existe pas dans a2.", e1, i, e2, a1toa2.e[i]);
+						printf("%d -%d-> existe in a1 but %d -%d-> doesn't existe in a2.", e1, i, e2, a1toa2.e[i]);
 					return false;
 				}
 				if (!equalsLangages_rec(a1, a2, a1toa2, a2toa1, a1.e[e1].f[i], a2.e[e2].f[a1toa2.e[i]], verb))
@@ -756,7 +756,7 @@ bool equalsLangages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, i
 			}else
 			{
 				if (verb)
-					printf("%d -%d-> existe dans a1 mais %d -%d-> n'existe pas dans a2.", e1, i, e2, a1toa2.e[i]);
+					printf("%d -%d-> existe in a1 but %d -%d-> doesn't existe in a2.", e1, i, e2, a1toa2.e[i]);
 				return false;
 			}
 		}else
@@ -766,7 +766,7 @@ bool equalsLangages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, i
 				if (a2.e[e2].f[a1toa2.e[i]] != -1)
 				{				
 					if (verb)
-						printf("%d -%d-> n'existe pas dans a1 mais %d -%d-> existe dans a2.", e1, i, e2, a1toa2.e[i]);				
+						printf("%d -%d-> doesn't existe in a1 but %d -%d-> existe in a2.", e1, i, e2, a1toa2.e[i]);
 					return false;
 				}
 			}
@@ -807,7 +807,7 @@ bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, 
 	}
 	if (verb)
 	{
-		printf("Automates : ");
+		printf("Automata : ");
 		printAutomaton(*a1);
 		printAutomaton(*a2);
 	}
@@ -963,7 +963,7 @@ bool findWord_rec (Automaton a, int e, int n, Dict *w, bool verb)
 	if (a.e[e].final)
 	{
 		if (verb)
-			printf("Alloue un mot de taille %d.\n", n);
+			printf("Allocated one word of size %d.\n", n);
 		*w = NewDict(n);
 		return true;
 	}
@@ -1198,7 +1198,7 @@ bool shortestWords (Automaton a, Dict *w, int init, bool verb)
 		}
 	}
 	if (verb)
-		printf("fin...\n");
+		printf("end...\n");
 	free(prec);
 	return true;
 }
@@ -1340,7 +1340,7 @@ bool Intersect (Automaton a1, Automaton a2, bool verb)
 	if (a1.i == -1 || a2.i == -1)
 	{
 		if (verb)
-			printf("Un des automates n'a pas détat initial !\n");
+			printf("One of the automata doesn't have a initial state !\n");
 		return false;
 	}
 	bool *vu = (bool *)malloc(sizeof(bool)*a1.n*a2.n);
@@ -1379,7 +1379,7 @@ bool Included_rec(int i1, int i2, Automaton a1, Automaton a2, bool *vu)
 }
 
 //détermine si l'on a inclusion des langages
-bool Included (Automaton a1, Automaton a2, bool emonded, bool verb)
+bool Included(Automaton a1, Automaton a2, bool emonded, bool verb)
 {
 	if (!emonded)
 	{
@@ -1485,7 +1485,7 @@ bool equals (Etats e1, Etats e2)
 	return true;
 }
 
-Etats copyEtats (Etats e)
+Etats copyEtats(Etats e)
 {
 	Etats r = NewEtats(e.n);
 	int i;
@@ -1639,12 +1639,12 @@ bool equalsEtats2 (Etats2 e1, Etats2 e2)
 	return true;
 }
 
-bool hasEtats2 (Etats2 e, uint64 i)
+bool hasEtats2(Etats2 e, uint64 i)
 {
 	return (e.e[i/64] & ((uint64)1<<(i%64))) != 0;
 }
 
-Etats2 copyEtats2 (Etats2 e)
+Etats2 copyEtats2(Etats2 e)
 {
 	Etats2 r = NewEtats2(e.n);
 	int i;
@@ -1713,7 +1713,7 @@ void printListEtats2 (ListEtats2 l)
 		printf("%d : ", i);
 		printEtats2(l.e[i]);
 	}
-	printf("(%d Etats2 alloués)\n", l.na);
+	printf("(%d allocated states2 )\n", l.na);
 }
 
 /*
@@ -1825,7 +1825,7 @@ bool addEtats2 (const ListEtats2* l, Etats2 e, int *k)
 		////////verif
 		if (lhash[h].e[i] >= l->n)
 		{
-			printf("***************\nErreur : élément de la table de hachage trop grand !!!\n****************\n");
+			printf("***************\nError : element of the hash table too big !!!\n****************\n");
 		}
 		/////////////
 		v = lhash[h].e[i];
@@ -1859,7 +1859,7 @@ bool addH (const ListEtats *l, Etats e, int* nf)
 		////////verif
 		if (lhash[h].e[i] >= l->n)
 		{
-			printf("***************\nErreur : élément de la table de hachage trop grand !!!\n****************\n");
+			printf("***************\nError : element of the hash table too big !!!\n****************\n");
 		}
 		/////////////
 		v = lhash[h].e[i];
@@ -2044,7 +2044,7 @@ void Determinise_rec (Automaton a, InvertDict id, Automaton *r, ListEtats* l, bo
 }
 
 //Déterminise l'automate obtenu par changement de l'alphabet
-Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb)
+Automaton Determinise(Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb)
 {
 	int i;
 	
@@ -2060,7 +2060,7 @@ Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool 
 		}
 		//
 		if (verb)
-			printf("Pas d'état initial !\n");
+			printf("No initial state !\n");
 		if (nof)
 		{
 			r = NewAutomaton(1, nv);
@@ -2106,7 +2106,7 @@ Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool 
 			printf("nof\n");
 		if (noempty)
 			printf("noempty\n");
-		printf("Dictionnaire : ");
+		printf("Dictionary : ");
 		printDict(d);
 	}
 	
@@ -2114,12 +2114,12 @@ Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool 
 	InvertDict id = invertDict(d);
 	if (verb && id.n == d.n)
 	{
-		printf("Le dictionnaire est inversible : déterminisation triviale !\n");
+		printf("The dictionary is inversible : trivial determination !\n");
 	}
 	
 	if (verb)
 	{
-		printf("Dictionnaire inverse :\n");
+		printf("Inverse Dictionary :\n");
 		printInvertDict(id);
 	}
 	
@@ -2131,7 +2131,7 @@ Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool 
 		Etats e = NewEtats(0); //ensemble vide
 		int h = hashEtats(e);
 		if (verb)
-			printf("hash vide : %d\n", h);
+			printf("hash empty : %d\n", h);
 		dictAdd(&lhash[h], -1);
 	}
 	
@@ -2185,7 +2185,7 @@ Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool 
 		printListEtats(l);
 	
 	if (verb)
-		printf("Récurrence...\n");
+		printf("Recurrence...\n");
 	
 	Determinise_rec(a, id, &r, &l, onlyfinals, nof, 0);
 	
@@ -2403,7 +2403,7 @@ NAutomaton Concat (Automaton a, Automaton b, bool verb)
 }
 
 //convertit un automate déterministe en un automate non déterministe
-NAutomaton CopyN (Automaton a, bool verb)
+NAutomaton CopyN(Automaton a, bool verb)
 {
 	int i,j;
 	NAutomaton r = NewNAutomaton(a.n, a.na);
@@ -2521,12 +2521,12 @@ Automaton DeterminiseN (NAutomaton a, bool puits, int verb)
 		return r;
 	
 	if (verb >= 20)
-		printf("alloue la table de hashage...\n");
+		printf("allocates the hash table...\n");
 	
 	AllocHash();
 	
 	if (verb >= 20)
-		printf("alloue les états...\n");
+		printf("allocates states...\n");
 	
 	int i,j,k,u;
 	ListEtats2 l = NewListEtats2(1, 1024);
@@ -2539,7 +2539,7 @@ Automaton DeterminiseN (NAutomaton a, bool puits, int verb)
 	Etats2 ec = NewEtats2(a.n);
 	
 	if (verb >= 20)
-		printf("alloue le premier état...\n");
+		printf("allocates the first state...\n");
 	
 	//initialise le premier état
 	r.i = 0;
@@ -2555,14 +2555,14 @@ Automaton DeterminiseN (NAutomaton a, bool puits, int verb)
 	l.n++;
 	
 	if (verb)
-		printf("parcours...\n");
+		printf("way...\n");
 	
 	for (i=0;i<l.n;i++)
 	{ //parcours les états du nouvel automate
 		
 		if (verb >= 20)
 		{
-			printf("état %d : ", i);
+			printf("state %d : ", i);
 			printEtats2(l.e[i]);
 		}
 		
@@ -2588,7 +2588,7 @@ Automaton DeterminiseN (NAutomaton a, bool puits, int verb)
 			}
 		}
 		if (verb > 20)
-			printf(" -> états atteints :\n");
+			printf(" -> reached states :\n");
 		for (j=0;j<a.na;j++)
 		{ //parcours les états atteints
 			if (verb > 20)
@@ -2981,7 +2981,7 @@ Automaton emonde_inf(Automaton a, bool verb)
 }
 
 //Compute the transposition, assuming it is deterministic
-Automaton TransposeDet (Automaton a)
+Automaton TransposeDet(Automaton a)
 {
 	Automaton r = NewAutomaton(a.n, a.na);
 	int i,j;
@@ -3015,7 +3015,7 @@ Automaton TransposeDet (Automaton a)
 }
 
 //Compute the transposition
-NAutomaton Transpose (Automaton a)
+NAutomaton Transpose(Automaton a)
 {
 	NAutomaton r = NewNAutomaton(a.n, a.na);
 	
