@@ -651,7 +651,7 @@ class ToricPlotter(SageObject):
             if lsd == 0:    # Strictly convex wall
                 r1, r2 = (rays[i] for i in wall.ambient_ray_indices())
             elif lsd == 1:  # wall is a half-plane
-                for i, ray in zip(wall.ambient_ray_indices(), wall.rays()):
+                for i, ray in zip(wall.ambient_ray_indices(), wall.rays().matrix()):
                     if ray in S:
                         r1 = rays[i]
                     else:

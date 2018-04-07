@@ -1007,6 +1007,12 @@ class IntegralRayCollection(SageObject,
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: quadrant.plot()
             Graphics object consisting of 9 graphics primitives
+
+        Let's plot a halfplane. See :trac:`25114`.
+
+            sage: halfplane = Cone([(1,0), (0,1), (-1,0)])
+            sage: halfplane.plot()
+            Graphics object consisting of 12 graphics primitives
         """
         tp = ToricPlotter(options, self.lattice().degree(), self.rays())
         return tp.plot_lattice() + tp.plot_rays() + tp.plot_generators()
