@@ -829,7 +829,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         shorthand for generating new variables with default settings::
 
             sage: mip.<x, y, z> = MixedIntegerLinearProgram(solver='GLPK')
-            sage: mip.add_constraint(x[0] + y[1] + z[2] <= 10) 
+            sage: mip.add_constraint(x[0] + y[1] + z[2] <= 10)
             sage: mip.show()
             Maximization:
             <BLANKLINE>
@@ -907,7 +907,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
     def gen(self, i):
         """
         Return the linear variable `x_i`.
-        
+
         .. warning::
 
             This method is deprecated.  The variable is not created
@@ -1363,7 +1363,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             name = varid_explainer[i]
             lb, ub = b.col_bounds(i)
             print('  {0} is {1} variable (min={2}, max={3})'.format(
-                name, var_type, 
+                name, var_type,
                 lb if lb is not None else "-oo",
                 ub if ub is not None else "+oo"))
 
@@ -1690,7 +1690,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             sage: p.add_constraint(x[5] + 3*x[7] == x[6] + 3)
             sage: p.add_constraint(x[5] + 3*x[7] <= x[6] + 3 <= x[8] + 27)
-        
+
         Using this notation, the previous program can be written as::
 
             sage: p = MixedIntegerLinearProgram(maximization=True, solver='GLPK')
@@ -1805,7 +1805,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
               <BLANKLINE>
               Constraints:
                 1.0 <= x_0 - x_1
-                -2.0 <= -2.0 x_0 + 2.0 x_1 
+                -2.0 <= -2.0 x_0 + 2.0 x_1
               Variables:
                 x_0 is a continuous variable (min=-oo, max=+oo)
                 x_1 is a continuous variable (min=-oo, max=+oo)
@@ -1873,8 +1873,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
                 raise ValueError('min and max must not be specified for (in)equalities')
             relation = linear_function
             M = relation.parent().linear_tensors().free_module()
-            self.add_constraint(relation.lhs() - relation.rhs(), 
-                                min=M(0) if relation.is_equation() else None, 
+            self.add_constraint(relation.lhs() - relation.rhs(),
+                                min=M(0) if relation.is_equation() else None,
                                 max=M(0), name=name)
         else:
             raise ValueError('argument must be a linear function or constraint, got '+str(linear_function))
@@ -2766,7 +2766,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             if back_end.variable_lower_bound(i) != 0:
                 raise ValueError('Problem variables must have 0 as lower bound')
             if back_end.variable_upper_bound(i) is not None:
-                raise ValueError('Problem variables must not have upper bound') 
+                raise ValueError('Problem variables must not have upper bound')
 
         # Construct 'A'
         coef_matrix = []
@@ -2989,14 +2989,14 @@ cdef class MIPVariable(SageObject):
         j = self._p._backend.add_variable(
             lower_bound=self._lower_bound,
             upper_bound=self._upper_bound,
-            binary=False,
-            continuous=True,
-            integer=False,
+            binary=self._vtype==0,
+            continuous=self._vtype==-1,
+            integer=self._vtype==1,
             obj=zero,
             name=name)
         v = self._p.linear_functions_parent()({j : 1})
         self._p._variables[v] = j
-        self._p._backend.set_variable_type(j, self._vtype)
+        #self._p._backend.set_variable_type(j, self._vtype)
         self._dict[i] = v
         return v
 
