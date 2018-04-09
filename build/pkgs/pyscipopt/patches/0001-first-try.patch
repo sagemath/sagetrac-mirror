@@ -1,0 +1,79 @@
+From e21d0e60da49d0c85d4e5d306658bf16c78baa9e Mon Sep 17 00:00:00 2001
+From: Moritz Firsching <moritz@math.fu-berlin.de>
+Date: Mon, 9 Apr 2018 16:51:44 +0200
+Subject: [PATCH 1/2] first try
+
+---
+ src/pyscipopt/scip.pxd |  1 +
+ src/pyscipopt/scip.pyx | 43 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 44 insertions(+)
+
+diff --git a/src/pyscipopt/scip.pxd b/src/pyscipopt/scip.pxd
+index a6baf68..b486246 100644
+--- a/src/pyscipopt/scip.pxd
++++ b/src/pyscipopt/scip.pxd
+@@ -814,6 +814,7 @@ cdef extern from "scip/scip.h":
+     SCIP_RETCODE SCIPsetRealParam(SCIP* scip, char* name, SCIP_Real value)
+     SCIP_RETCODE SCIPsetCharParam(SCIP* scip, char* name, char value)
+     SCIP_RETCODE SCIPsetStringParam(SCIP* scip, char* name, char* value)
++    SCIP_RETCODE SCIPsetParam(SCIP* scip, char* name, value)
+     SCIP_RETCODE SCIPreadParams(SCIP* scip, char* file)
+     SCIP_RETCODE SCIPwriteParams(SCIP* scip, char* file, SCIP_Bool comments, SCIP_Bool onlychanged)
+     SCIP_RETCODE SCIPreadProb(SCIP* scip, char* file, char* extension)
+diff --git a/src/pyscipopt/scip.pyx b/src/pyscipopt/scip.pyx
+index c288229..a21ac4e 100644
+--- a/src/pyscipopt/scip.pyx
++++ b/src/pyscipopt/scip.pyx
+@@ -2330,6 +2330,49 @@ cdef class Model:
+         n = str_conversion(name)
+         PY_SCIP_CALL(SCIPsetStringParam(self._scip, n, value))
+ 
++    def setParam(self, name, value):
++        """Set a parameter with value in int, bool, real, long, char or str.
++
++        :param name: name of parameter
++        :param value: value of parameter
++        """
++        try:
++            self.setIntParam(name, value)
++            return
++        except LookupError:
++            pass
++
++        try:
++            self.setBoolParam(name, value)
++            return
++        except LookupError:
++            pass
++
++        try:
++            self.setRealParam(name, value)
++            return
++        except LookupError:
++            pass
++
++        try:
++            self.setLongintParam(name, value)
++            return
++        except LookupError:
++            pass
++
++        try:
++            self.setCharParam(name, value)
++            return
++        except LookupError:
++            pass
++
++        try:
++            self.setStringParam(name, value)
++            return
++        except LookupError:
++            pass
++
++
+     def readParams(self, file):
+         """Read an external parameter file.
+ 
+-- 
+2.17.0
+

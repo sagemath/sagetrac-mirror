@@ -126,9 +126,7 @@ cdef class SCIPBackend(GenericBackend):
             vtypestr = 'B'
         if integer:
             vtypestr = 'I'
-        # the following two lines can be removed, once this bug is fixed: https://github.com/SCIP-Interfaces/PySCIPOpt/issues/145
-        if lower_bound==None:
-            lower_bound = -self.model.infinity()
+
 
         self.model.addVar(name=vname, vtype=vtypestr, ub=upper_bound, lb=lower_bound, obj=obj, pricedVar = False)
         return self.ncols() - 1
@@ -582,7 +580,7 @@ cdef class SCIPBackend(GenericBackend):
 
             sage: g = graphs.CubeGraph(9)
             sage: p = MixedIntegerLinearProgram(solver = "SCIP")
-            sage: p.solver_parameter("limits/absgap", 1000)
+            sage: p.solver_parameter("limits/absgap", 10)
             sage: b = p.new_variable(binary=True)
             sage: p.set_objective(p.sum(b[v] for v in g))
             sage: for v in g:
@@ -594,7 +592,7 @@ cdef class SCIPBackend(GenericBackend):
         Same, now with a time limit::
 
             sage: p.solver_parameter("limits/absgap", 1)
-            sage: p.solver_parameter("timelimit",1)
+            sage: p.solver_parameter("timelimit",0.001)
             sage: p.solve() # rel tol 1
             1
         """
@@ -1137,44 +1135,10 @@ cdef class SCIPBackend(GenericBackend):
         if value is not None:
             if name.lower() == 'timelimit':
                 self.model.setRealParam("limits/time", float(value))
-                return
+            else:
+                self.model.setParam(name, value)
+        else:
+            return self.model.getParam(name)
 
 
-            try:
-                self.model.setIntParam(name, int(value))
-                return
-            except KeyError:
-                raise
-            except LookupError or ValueError:
-                pass
-
-            try:
-                self.model.setBoolParam(name, bool(value))
-                return
-            except LookupError or ValueError:
-                pass
-
-            try:
-                self.model.setRealParam(name, float(value))
-                return
-            except LookupError or ValueError:
-                pass
-
-            try:
-                self.model.setLongintParam(name, long(value))
-                return
-            except LookupError or ValueError:
-                pass
-
-            try:
-                self.model.setCharParam(name, str(value))
-                return
-            except LookupError or ValueError:
-                pass
-
-            try:
-                self.model.setStringParam(name, str(value))
-                return
-            except LookupError or ValueError:
-                pass
 

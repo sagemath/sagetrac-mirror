@@ -1,4 +1,4 @@
-From 96cba2d655a5bf927140438f485a893979d942c7 Mon Sep 17 00:00:00 2001
+From 3de1ccdf294c490e15eb9cbf48b3002bf7a75e23 Mon Sep 17 00:00:00 2001
 From: Moritz Firsching <moritz@math.fu-berlin.de>
 Date: Sun, 8 Apr 2018 23:39:40 +0200
 Subject: [PATCH] allow multiple dots in filename
@@ -8,7 +8,7 @@ Subject: [PATCH] allow multiple dots in filename
  1 file changed, 9 insertions(+), 6 deletions(-)
 
 diff --git a/src/pyscipopt/scip.pyx b/src/pyscipopt/scip.pyx
-index c5d7365..640c0b6 100644
+index c288229..fda6d33 100644
 --- a/src/pyscipopt/scip.pyx
 +++ b/src/pyscipopt/scip.pyx
 @@ -1,5 +1,6 @@
@@ -18,7 +18,7 @@ index c5d7365..640c0b6 100644
  import sys
  import warnings
  
-@@ -722,17 +723,19 @@ cdef class Model:
+@@ -732,17 +733,19 @@ cdef class Model:
          :param trans: indicates whether the transformed problem is written to file (Default value = False)
  
          """

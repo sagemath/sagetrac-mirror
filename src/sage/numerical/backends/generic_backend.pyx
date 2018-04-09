@@ -1260,18 +1260,28 @@ cdef class GenericBackend:
         Does not test whether solutions or solver parameters are copied.
         """
         tester = self._tester(**options)
-        cp = copy(self)
-        self._do_test_problem_data(tester, cp)
+        try:
+            cp = copy(self)
+            self._do_test_problem_data(tester, cp)
+        except NotImplementedError:
+            # SCIP does not implement copying
+            pass
+
 
     def _test_copy_does_not_share_data(self, **options):
         """
         Test whether copy makes an independent copy of the backend.
         """
         tester = self._tester(**options)
-        cp = copy(self)
-        cpcp = copy(cp)
-        del cp
-        self._do_test_problem_data(tester, cpcp)
+        try:
+            cp = copy(self)
+            cpcp = copy(cp)
+            del cp
+            self._do_test_problem_data(tester, cpcp)
+        except NotImplementedError:
+            # SCIP does not implement copying
+            pass
+
 
     # TODO: We should have a more systematic way of generating MIPs for testing.
     @classmethod
