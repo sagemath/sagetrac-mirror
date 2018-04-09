@@ -5,8 +5,8 @@ SCIP Backend
 AUTHORS:
 
 - Nathann Cohen (2010-10): generic backend
-- Matthias Koeppe (2017):
-- Moritz Firsching (2018-04):
+- Matthias Koeppe (2017): stubs
+- Moritz Firsching (2018-04): rest
 """
 
 #*****************************************************************************
@@ -20,6 +20,8 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
+from os import sys
+from os.path import splitext
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.numerical.mip import MIPSolverException
 from libc.float cimport DBL_MAX
@@ -105,6 +107,8 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.objective_coefficient(3)
             1.0
         """
+        if self.model.getStatus() != 'unknown':
+            self.model.freeTransform()
         cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
         if  vtype == 0:
             continuous = True
@@ -142,7 +146,7 @@ cdef class SCIPBackend(GenericBackend):
 
             *  1  Integer
             *  0  Binary
-            * -1 Real
+            * -1  Real
 
         EXAMPLE::
 
@@ -156,7 +160,9 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.is_variable_integer(0)
             True
         """
-        vtypenames = {1:'I', 0:'B', -1:'R'}
+        if self.model.getStatus() != 'unknown':
+            self.model.freeTransform()
+        vtypenames = {1:'I', 0:'B', -1:'C'}
         self.model.chgVarType(var = self.model.getVars()[variable], vtype = vtypenames[vtype])
 
     cpdef set_sense(self, int sense):
@@ -180,6 +186,8 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.is_maximization()
             False
         """
+        if self.model.getStatus() != 'unknown':
+            self.model.freeTransform()
         if sense == 1:
             self.model.setMaximize()
         elif sense == -1:
@@ -210,6 +218,8 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.objective_coefficient(0)
             2.0
         """
+        if self.model.getStatus() != 'unknown':
+            self.model.freeTransform()
         if coeff==None:
             return self.model.getVars()[variable].getObj()
         else:
@@ -231,14 +241,15 @@ cdef class SCIPBackend(GenericBackend):
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
-            sage: p.problem_name("There once was a french fry")
-            sage: print(p.problem_name())
-            There once was a french fry
+            sage: p.problem_name("Nomen est omen")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Cannot return or define problem name for SCIP problem
         """
-        if name==NULL:
-            return self.model.getProbName()
-        else:
-            raise NotImplementedError()
+        #if name is NULL:
+        #    return self.model.getProbName()
+        #else:
+        raise NotImplementedError("Cannot return or define problem name for SCIP problem")
 
     cpdef set_objective(self, list coeff, d = 0.0):
         """
@@ -261,6 +272,8 @@ cdef class SCIPBackend(GenericBackend):
             sage: map(lambda x :p.objective_coefficient(x), range(5))
             [1.0, 1.0, 2.0, 1.0, 3.0]
         """
+        if self.model.getStatus() != 'unknown':
+            self.model.freeTransform()
         linfun = sum([c*x for c,x in zip(coeff, self.model.getVars())]) + d
         self.model.setObjective(linfun, sense = self.model.getObjectiveSense())
 
@@ -279,7 +292,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.set_verbosity(2)
 
         """
-        raise NotImplementedError()
+        NotImplementedError()
 
     cpdef remove_constraint(self, int i):
         r"""
@@ -313,6 +326,8 @@ cdef class SCIPBackend(GenericBackend):
         """
         if i < 0 or i >= self.nrows():
             raise ValueError("The constraint's index i must satisfy 0 <= i < number_of_constraints")
+        if self.model.getStatus() != 'unknown':
+            self.model.freeTransform()
         self.model.delCons(self.model.getConss()[i])
 
     cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=None):
@@ -338,26 +353,28 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.add_variables(5)
             4
             sage: p.add_linear_constraint( zip(range(5), range(5)), 2.0, 2.0)
-            sage: p.row(0)
-            ([4, 3, 2, 1], [4.0, 3.0, 2.0, 1.0])
             sage: p.row_bounds(0)
             (2.0, 2.0)
             sage: p.add_linear_constraint( zip(range(5), range(5)), 1.0, 1.0, name='foo')
             sage: p.row_name(1)
             u'foo'
         """
+        if self.model.getStatus() != 'unknown':
+            self.model.freeTransform()
         mvars = self.model.getVars()
-        linfun = sum([v*mvars[c] for c,v in coefficients])
+        from pyscipopt.scip import quicksum
+        linfun = quicksum([v*mvars[c] for c,v in coefficients])
+        #we introduced patch 0001 for pyscipopt, in order to handle the case
+        #when linfun is an empty expression.
         if name==None:
             name=''
 
-        if lower_bound != None and upper_bound != None:
-            cons = lower_bound <= (linfun <= upper_bound)
-        elif lower_bound != None:
-            cons = lower_bound <= linfun
-        elif upper_bound != None:
-            cons = linfun <= upper_bound
+        if lower_bound is None:
+            lower_bound = -self.model.infinity()
+        if upper_bound is None:
+            upper_bound = self.model.infinity()
 
+        cons = lower_bound <= (linfun <= upper_bound)
         self.model.addCons(cons, name=name)
 
     cpdef row(self, int index):
@@ -377,13 +394,22 @@ cdef class SCIPBackend(GenericBackend):
 
         EXAMPLE::
 
+
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
             sage: p.add_variables(5)
             4
             sage: p.add_linear_constraint(zip(range(5), range(5)), 2, 2)
+            sage: p.row(0)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: SCIP backend doesn't provide the row
+            sage: p.row_bounds(0)
+            (2.0, 2.0)
         """
-        raise NotImplementedError()
+        #This could be fixed as soon as pyscipopt provides a way to get back
+        #the expression (not lhs or rhs, but middle) of a constraint.
+        raise NotImplementedError("SCIP backend doesn't provide the row")
 
     cpdef row_bounds(self, int index):
         """
@@ -410,7 +436,13 @@ cdef class SCIPBackend(GenericBackend):
             (2.0, 2.0)
         """
         cons = self.model.getConss()[index]
-        return (self.model.getLhs(cons), self.model.getRhs(cons))
+        lhs = self.model.getLhs(cons)
+        rhs = self.model.getRhs(cons)
+        if lhs == -self.model.infinity():
+            lhs = None
+        if rhs == self.model.infinity():
+            rhs = None
+        return (lhs, rhs)
 
     cpdef col_bounds(self, int index):
         """
@@ -544,15 +576,40 @@ cdef class SCIPBackend(GenericBackend):
             sage: lp.solve()
             0.0
 
+        Solving a LP within the acceptable gap. No exception is raised, even if
+        the result is not optimal. To do this, we try to compute the maximum
+        number of disjoint balls (of diameter 1) in a hypercube::
+
+            sage: g = graphs.CubeGraph(9)
+            sage: p = MixedIntegerLinearProgram(solver = "SCIP")
+            sage: p.solver_parameter("limits/absgap", 1000)
+            sage: b = p.new_variable(binary=True)
+            sage: p.set_objective(p.sum(b[v] for v in g))
+            sage: for v in g:
+            ....:     p.add_constraint(b[v]+p.sum(b[u] for u in g.neighbors(v)) <= 1)
+            sage: p.add_constraint(b[v] == 1) # Force an easy non-0 solution
+            sage: p.solve() # rel tol 100
+            1
+
         Same, now with a time limit::
 
-            sage: p.solver_parameter("mip_gap_tolerance",1)
-            sage: p.solver_parameter("timelimit",0.01)
+            sage: p.solver_parameter("limits/absgap", 1)
+            sage: p.solver_parameter("timelimit",1)
             sage: p.solve() # rel tol 1
             1
         """
         self.model.hideOutput()
         self.model.optimize()
+
+        status = self.model.getStatus()
+
+        if status=='unbounded':
+            raise MIPSolverException("SCIP : Solution is unbounded")
+        elif status=='infeasible':
+            raise MIPSolverException("SCIP : There is no feasible solution")
+        #elif status=='timelimit':
+        #    raise MIPSolverException("SCIP : Time limit reached")
+        return 0
 
     cpdef get_objective_value(self):
         """
@@ -885,11 +942,11 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.variable_upper_bound(2)
             Traceback (most recent call last):
             ...
-            SCIPError: ...
+            ValueError: The variable's id must satisfy 0 <= id < number_of_variables
             sage: p.variable_upper_bound(3, 5)
             Traceback (most recent call last):
             ...
-            SCIPError: ...
+            ValueError: The variable's id must satisfy 0 <= id < number_of_variables
 
             sage: p.add_variable()
             0
@@ -898,6 +955,8 @@ cdef class SCIPBackend(GenericBackend):
             ...
             TypeError: a float is required
         """
+        if index < 0 or index >= self.ncols():
+            raise ValueError("The variable's id must satisfy 0 <= id < number_of_variables")
         var = self.model.getVars()[index]
         if value is False:
             return var.getUbOriginal()
@@ -946,11 +1005,11 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.variable_lower_bound(2)
             Traceback (most recent call last):
             ...
-            SCIPError: ...
+            ValueError: The variable's id must satisfy 0 <= id < number_of_variables
             sage: p.variable_lower_bound(3, 5)
             Traceback (most recent call last):
             ...
-            SCIPError: ...
+            ValueError: The variable's id must satisfy 0 <= id < number_of_variables
 
             sage: p.add_variable()
             0
@@ -959,11 +1018,34 @@ cdef class SCIPBackend(GenericBackend):
             ...
             TypeError: a float is required
         """
+        if index < 0 or index >= self.ncols():
+            raise ValueError("The variable's id must satisfy 0 <= id < number_of_variables")
         var = self.model.getVars()[index]
         if value is False:
             return var.getLbOriginal()
         else:
             self.model.chgVarLb(var = var, lb = value)
+
+    cpdef write_cip(self, char * filename):
+        """
+        Write the problem to a .cip file
+
+        INPUT:
+
+        - ``filename`` (string)
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "SCIP")
+            sage: p.add_variables(2)
+            1
+            sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)
+            sage: p.set_objective([2, 5])
+            sage: p.write_cip(os.path.join(SAGE_TMP, "lp_problem.cip"))
+            wrote original problem to file ...
+        """
+        self.model.writeProblem(filename)
 
     cpdef write_lp(self, char * filename):
         """
@@ -982,10 +1064,16 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)
             sage: p.set_objective([2, 5])
             sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))
-            Writing problem data to ...
-            9 lines were written
+            wrote original problem to file ...
         """
-        raise NotImplementedError()
+        filenamestr = filename
+        fname, fext = splitext(filenamestr)
+
+        if fext.lower() != 'lp':
+            filenamestr = filename + '.lp'
+
+        self.model.writeProblem(filenamestr)
+
 
     cpdef write_mps(self, char * filename, int modern):
         """
@@ -1004,10 +1092,16 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)
             sage: p.set_objective([2, 5])
             sage: p.write_mps(os.path.join(SAGE_TMP, "lp_problem.mps"), 2)
-            Writing problem data to...
-            17 records were written
+            wrote original problem to file ...
         """
-        raise NotImplementedError()
+        filenamestr = filename
+        fname, fext = splitext(filenamestr)
+
+        if fext.lower() != 'mps':
+            filenamestr = filename + '.mps'
+
+        self.model.writeProblem(filenamestr)
+
 
     cpdef __copy__(self):
         """
@@ -1020,10 +1114,13 @@ cdef class SCIPBackend(GenericBackend):
             sage: b = p.new_variable()
             sage: p.add_constraint(b[1] + b[2] <= 6)
             sage: p.set_objective(b[1] + b[2])
-            sage: copy(p).solve()
-            6.0
+            sage: copy(p)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: copying not yet implemented
+
         """
-        raise NotImplementedError()
+        raise NotImplementedError("copying not yet implemented")
 
     cpdef solver_parameter(self, name, value = None):
         """
@@ -1035,6 +1132,49 @@ cdef class SCIPBackend(GenericBackend):
 
         - ``value`` -- the parameter's value if it is to be defined,
           or ``None`` (default) to obtain its current value.
+
         """
-        raise NotImplementedError()
+        if value is not None:
+            if name.lower() == 'timelimit':
+                self.model.setRealParam("limits/time", float(value))
+                return
+
+
+            try:
+                self.model.setIntParam(name, int(value))
+                return
+            except KeyError:
+                raise
+            except LookupError or ValueError:
+                pass
+
+            try:
+                self.model.setBoolParam(name, bool(value))
+                return
+            except LookupError or ValueError:
+                pass
+
+            try:
+                self.model.setRealParam(name, float(value))
+                return
+            except LookupError or ValueError:
+                pass
+
+            try:
+                self.model.setLongintParam(name, long(value))
+                return
+            except LookupError or ValueError:
+                pass
+
+            try:
+                self.model.setCharParam(name, str(value))
+                return
+            except LookupError or ValueError:
+                pass
+
+            try:
+                self.model.setStringParam(name, str(value))
+                return
+            except LookupError or ValueError:
+                pass
 

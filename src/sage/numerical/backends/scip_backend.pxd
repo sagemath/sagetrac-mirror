@@ -15,3 +15,5 @@ cdef class SCIPBackend(GenericBackend):
     cdef model
 
     cpdef get_row_prim(self, int i)
+    cpdef write_cip(self, char * filename)
+

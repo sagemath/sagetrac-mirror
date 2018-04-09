@@ -506,7 +506,7 @@ cdef class GenericBackend:
             for i, c in coefficients:
                 coefficients_d.append((i, c[d]))
             lower_bound_d = None if lower_bound is None else lower_bound[d]
-            upper_bound_d = None if upper_bound is None else upper_bound[d] 
+            upper_bound_d = None if upper_bound is None else upper_bound[d]
             self.add_linear_constraint(coefficients_d, lower_bound_d, upper_bound_d, name=name)
 
     @classmethod
@@ -598,7 +598,11 @@ cdef class GenericBackend:
         tester.assertIsNone(p.add_col([0, 1, 2, 3, 4], [0, 1, 2, 3, 4]))
         tester.assertEqual(p.nrows(), 5)
         for 1 <= i <= 4:
-            tester.assertEqual(p.row(i), ([0], [i]))
+            try:
+                tester.assertEqual(p.row(i), ([0], [i]))
+            except NotImplementedError:
+                # SCIP does not implement row
+                pass
 
     cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=None):
         """
@@ -656,7 +660,11 @@ cdef class GenericBackend:
         tester.assertEqual(nrows_after, nrows_before+nrows_added, "Added the wrong number of rows")
         # Test contents of the new rows are correct (sparse zero)
         for i in range(nrows_before, nrows_after):
-            tester.assertEqual(p.row(i), ([], []))
+            try:
+                tester.assertEqual(p.row(i), ([], []))
+            except NotImplementedError:
+                # SCIP does not implement row
+                pass
             tester.assertEqual(p.row_bounds(i), (None, 2.0))
         # Test from COINBackend.add_linear_constraints:
         tester.assertIsNone(p.add_linear_constraints(2, None, 2, names=['foo', 'bar']))
@@ -865,7 +873,7 @@ cdef class GenericBackend:
         tester = self._tester(**options)
         p = self
         tester.assertGreaterEqual(self.ncols(), 0)
-    
+
     cpdef int nrows(self):
         """
         Return the number of rows/constraints.
@@ -1244,7 +1252,7 @@ cdef class GenericBackend:
                                    "{}({}) does not match".format(method, i))
         for method in ("row_bounds", "row", "row_name"):
             assert_equal_row_data(method)
-    
+
     def _test_copy(self, **options):
         """
         Test whether the backend can be copied
@@ -1280,7 +1288,11 @@ cdef class GenericBackend:
             # Gurobi does not implement add_col
             pass
         # From doctest of GenericBackend.problem_name:
-        p.problem_name("There once was a french fry")
+        try:
+            p.problem_name("There once was a french fry")
+        except NotImplementedError:
+            # SCIP does not implement problem_name
+            pass
         p._test_copy(**options)
         p._test_copy_does_not_share_data(**options)
 

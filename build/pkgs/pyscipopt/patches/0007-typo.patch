@@ -1,0 +1,25 @@
+From 13dba12aaa4f3235d0acea204d3f9137d6c9eec3 Mon Sep 17 00:00:00 2001
+From: Moritz Firsching <moritz@math.fu-berlin.de>
+Date: Sun, 8 Apr 2018 23:23:59 +0200
+Subject: [PATCH 7/9] typo
+
+---
+ src/pyscipopt/scip.pyx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/pyscipopt/scip.pyx b/src/pyscipopt/scip.pyx
+index aca188c..e2b0258 100644
+--- a/src/pyscipopt/scip.pyx
++++ b/src/pyscipopt/scip.pyx
+@@ -727,7 +727,7 @@ cdef class Model:
+         fname, fext = splitext(fn)
+         ext = str_conversion(fext)
+         if ext == '':
+-            fn = str_convertsion(fn + '.cip')
++            fn = str_conversion(fn + '.cip')
+             ext = str_conversion('cip')
+         print(ext, fn)
+         if trans:
+-- 
+2.17.0
+

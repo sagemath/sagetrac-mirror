@@ -1,0 +1,49 @@
+From 96cba2d655a5bf927140438f485a893979d942c7 Mon Sep 17 00:00:00 2001
+From: Moritz Firsching <moritz@math.fu-berlin.de>
+Date: Sun, 8 Apr 2018 23:39:40 +0200
+Subject: [PATCH] allow multiple dots in filename
+
+---
+ src/pyscipopt/scip.pyx | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/src/pyscipopt/scip.pyx b/src/pyscipopt/scip.pyx
+index c5d7365..640c0b6 100644
+--- a/src/pyscipopt/scip.pyx
++++ b/src/pyscipopt/scip.pyx
+@@ -1,5 +1,6 @@
+ import weakref
+ from os.path import abspath
++from os.path import splitext
+ import sys
+ import warnings
+ 
+@@ -722,17 +723,19 @@ cdef class Model:
+         :param trans: indicates whether the transformed problem is written to file (Default value = False)
+ 
+         """
+-        if filename.find('.') < 0:
+-            filename = filename + '.cip'
+-            ext = str_conversion('cip')
+-        else:
+-            ext = str_conversion(filename.split('.')[1])
+         fn = str_conversion(filename)
++        fname, fext = splitext(fn)
++        ext = str_conversion(fext)
++        if ext == '':
++            fn = str_conversion(fn + '.cip')
++            ext = str_conversion('.cip')
++        ext = str_conversion(ext[1:])
++
+         if trans:
+             PY_SCIP_CALL(SCIPwriteTransProblem(self._scip, fn, ext, False))
+         else:
+             PY_SCIP_CALL(SCIPwriteOrigProblem(self._scip, fn, ext, False))
+-        print('wrote original problem to file ' + filename)
++        print('wrote original problem to file ' + fn)
+ 
+     # Variable Functions
+ 
+-- 
+2.17.0
+
