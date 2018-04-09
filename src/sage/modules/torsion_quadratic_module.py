@@ -1104,6 +1104,26 @@ class TorsionQuadraticModule(FGP_Module_class):
         stabOq = aut.gap().Subgroup(gen)
         return aut.gap().RightCosets(stabOq)
 
+    def _subgroup_to_gap(self, S):
+        r"""
+        """
+        A = Oq.domain()
+        gensS = [A(self(s)).gap() for s in S.gens()]
+        Sgap = A.gap().Subgroup(gensS)
+        return Sgap
+
+    def stab(self, G, S):
+        r"""
+        """
+        Oq = self.orthogonal_group()
+        mu = libgap.function_factory("mu:=function(x,g) return(Image(g,x)); end;")
+        stab = libgap.Stabilizer(G.gap(), Sgap, mu)
+        return stab
+
+    def orthogonal_group_degenerate(self):
+        r"""
+        """
+
 def _Brown_indecomposable(q, p):
     r"""
     Return the Brown invariant of the indecomposable form ``q``.
