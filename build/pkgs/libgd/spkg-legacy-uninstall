@@ -1,0 +1,2 @@
+# instead of what is in the build directory!
+rm "$SAGE_LOCAL"/lib/libgd.*

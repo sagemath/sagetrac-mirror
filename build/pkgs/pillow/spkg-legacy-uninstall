@@ -1,0 +1,5 @@
+# Delete old version
+rm -rf \
+   "$SAGE_LOCAL"/lib/python*/site-packages/PIL \
+   "$SAGE_LOCAL"/lib/python*/site-packages/PIL-*.egg* \
+   "$SAGE_LOCAL"/lib/python*/site-packages/Pillow-*.egg*

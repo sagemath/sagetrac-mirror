@@ -1,0 +1,4 @@
+# clean old install
+rm -rf "${SAGE_LOCAL}"/include/libqhull
+rm -rf "${SAGE_LOCAL}"/include/qhull
+rm -rf "${SAGE_LOCAL}"/lib/libqhull*

@@ -1,0 +1,5 @@
+# The following file may be present from old builds of freetype, and
+# its presence can break the matplotlib build. So remove it. (The
+# current version is $SAGE_LOCAL/include/freetype2/ftbuild.h.)
+
+rm -f "$SAGE_LOCAL/include/ft2build.h"

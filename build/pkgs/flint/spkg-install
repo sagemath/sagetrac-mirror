@@ -39,10 +39,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo "Deleting old FLINT files."
-rm -f $SAGE_LOCAL/lib/libflint*
-rm -rf $SAGE_LOCAL/include/flint
-
 echo "Installing new FLINT files."
 $MAKE install
 if [ $? -ne 0 ]; then

@@ -24,10 +24,6 @@ if [[ ! -f gfan ]]; then
     exit 1
 fi
 
-echo "Removing old version of gfan (if any)..."
-rm -f "$SAGE_LOCAL"/bin/gfan*
-
-
 cp -pf gfan "$SAGE_LOCAL/bin/"
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error copying gfan executable."

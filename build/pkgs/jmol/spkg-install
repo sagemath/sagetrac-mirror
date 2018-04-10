@@ -2,19 +2,6 @@ SPKGDIR=`pwd`
 
 cd "$SPKGDIR/src"
 
-# Cleanup of of previous installation
-if [ -d "$SAGE_LOCAL"/share/jsmol ]; then
-    echo "Deleting all files from $SAGE_LOCAL/share/jsmol/..."
-    rm -rf "$SAGE_LOCAL"/share/jsmol/*
-    echo "Replacing jsmol directory and contents..."
-fi
-
-if [ -d "$SAGE_LOCAL"/share/jmol ]; then
-    echo "Deleting all files from $SAGE_LOCAL/share/jmol/..."
-    rm -rf "$SAGE_LOCAL"/share/jmol/*
-    echo "Replacing jmol directory and contents..."
-fi
-
 SAGE_DESTDIR_SHARE="$SAGE_DESTDIR_LOCAL/share"
 
 # Installation

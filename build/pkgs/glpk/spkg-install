@@ -24,9 +24,4 @@ export CFLAGS LDFLAGS CPPFLAGS
 
 sdh_configure --with-gmp --disable-static
 sdh_make
-
-# Remove old libraries to make sure we can downgrade it if needed.
-# See https://trac.sagemath.org/ticket/23596#comment:4 and later.
-rm -f "$SAGE_LOCAL"/lib/libglpk.*
-
 sdh_make_install

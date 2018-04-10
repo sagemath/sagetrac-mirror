@@ -1,0 +1,11 @@
+# Removing old jsmol files if they exist
+if [ -d "$SAGE_SHARE"/jsmol ]; then
+    echo "Deleting all files from "$SAGE_SHARE"/jsmol/..."
+    rm -rf "$SAGE_SHARE"/jsmol/*
+fi
+
+# Remove old Jmol files if they exist
+if [ -d "$SAGE_SHARE"/jmol ]; then
+    echo "Deleting all files from "$SAGE_SHARE"/jmol/..."
+    rm -rf "$SAGE_SHARE"/jmol/*
+fi

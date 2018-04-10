@@ -109,9 +109,6 @@ sdh_make
 #######################################################################
 TARGET="$SAGE_LOCAL/lib/sympow"
 
-# Remove old install if any
-rm -rf "$TARGET"
-
 sdh_install sympow *.gp new_data datafiles "$TARGET"
 
 # Create binary versions of datafiles

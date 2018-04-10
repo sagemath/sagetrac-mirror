@@ -1,0 +1,6 @@
+echo "Clean out old boost headers"
+rm -rf "${SAGE_LOCAL}"/include/boost
+if ! [ $? -eq 0 ]; then
+    echo "Failed to delete old boost headers."
+    exit 1
+fi

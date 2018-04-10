@@ -1,0 +1,6 @@
+# distribute doesn't allow itself to be replaced by setuptools
+# so we manually have to delete it
+# (pip actually can uninstall setuptools but we may not have pip
+# install yet)
+rm -rf "$SAGE_LOCAL"/lib/python*/site-packages/setuptools*
+rm -rf "$SAGE_LOCAL"/lib/python*/site-packages/distribute*
