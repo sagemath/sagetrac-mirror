@@ -1,7 +1,7 @@
 From 021ee6b49d675d5e9b337d7ce075ec3d4ce5342f Mon Sep 17 00:00:00 2001
 From: Moritz Firsching <moritz@math.fu-berlin.de>
 Date: Sun, 8 Apr 2018 18:54:57 +0200
-Subject: [PATCH] fix degree of empty expression
+Subject: [PATCH 2/5] fix degree of empty expression
 
 ---
  src/pyscipopt/expr.pxi | 5 ++++-

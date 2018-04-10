@@ -54,7 +54,19 @@ cdef class SCIPBackend(GenericBackend):
             self.set_sense(1)
         else:
             self.set_sense(-1)
+        self.model.hideOutput()
 
+    cpdef _get_model(self):
+        """
+        Get the model as a pyscipopt Model.
+
+        EXAMPLE::
+        sage: from sage.numerical.backends.generic_backend import get_solver
+        sage: p = get_solver(solver = "SCIP")
+        sage: p._get_model()
+        <pyscipopt.scip.Model object at ...
+        """
+        return self.model
 
     cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
         """
@@ -118,8 +130,9 @@ cdef class SCIPBackend(GenericBackend):
         if name==None:
             vname=''
         else:
-            assert(type(name)==str)
+            assert(type(name) in [str, unicode])
             vname=name
+
         if continuous:
             vtypestr = 'C'
         if binary:
@@ -240,14 +253,13 @@ cdef class SCIPBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
             sage: p.problem_name("Nomen est omen")
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Cannot return or define problem name for SCIP problem
+            sage: p.problem_name()
+            u'Nomen est omen'
         """
-        #if name is NULL:
-        #    return self.model.getProbName()
-        #else:
-        raise NotImplementedError("Cannot return or define problem name for SCIP problem")
+        if name is NULL:
+            return self.model.getProbName()
+        else:
+            self.model.setProbName(name)
 
     cpdef set_objective(self, list coeff, d = 0.0):
         """
@@ -281,16 +293,28 @@ cdef class SCIPBackend(GenericBackend):
 
         INPUT:
 
-        - ``level`` (integer) -- From 0 (no verbosity) to 3.
+        - ``level`` (integer) -- From 0 (no verbosity) to 1.
 
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
-            sage: p.set_verbosity(2)
+            sage: p.set_verbosity(1)
 
+        TODOs::
+
+            - Currently, the output is written to stdout, even when running
+            Jupyter: https://github.com/SCIP-Interfaces/PySCIPOpt/issues/116 .
+            This should be fixed upstream
+            - get access to more verbosity levels (e.g. via parameter settings)
         """
-        NotImplementedError()
+        if level == 0:
+            self.model.hideOutput()
+        elif level == 1:
+            self.model.hideOutput(False)
+        else:
+            raise AssertionError('level must be "0" or "1"')
+
 
     cpdef remove_constraint(self, int i):
         r"""
@@ -399,15 +423,15 @@ cdef class SCIPBackend(GenericBackend):
             4
             sage: p.add_linear_constraint(zip(range(5), range(5)), 2, 2)
             sage: p.row(0)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: SCIP backend doesn't provide the row
+            ([1, 2, 3, 4], [1.0, 2.0, 3.0, 4.0])
             sage: p.row_bounds(0)
             (2.0, 2.0)
         """
-        #This could be fixed as soon as pyscipopt provides a way to get back
-        #the expression (not lhs or rhs, but middle) of a constraint.
-        raise NotImplementedError("SCIP backend doesn't provide the row")
+        namedvars = [_.name for _ in self.model.getVars()]
+        valslinear = self.model.getValsLinear(self.model.getConss()[index])
+        pair = zip(*[[namedvars.index(_),v]
+                            for _,v in  valslinear.iteritems()])
+        return (list(pair[0]), list(pair[1])) if pair !=[] else ([], [])
 
     cpdef row_bounds(self, int index):
         """
@@ -564,7 +588,6 @@ cdef class SCIPBackend(GenericBackend):
             ...
             MIPSolverException: ...
 
-        EXAMPLE::
 
             sage: lp = MixedIntegerLinearProgram(solver = "SCIP")
             sage: v = lp.new_variable(nonnegative=True)
@@ -580,23 +603,20 @@ cdef class SCIPBackend(GenericBackend):
 
             sage: g = graphs.CubeGraph(9)
             sage: p = MixedIntegerLinearProgram(solver = "SCIP")
-            sage: p.solver_parameter("limits/absgap", 10)
+
             sage: b = p.new_variable(binary=True)
             sage: p.set_objective(p.sum(b[v] for v in g))
             sage: for v in g:
             ....:     p.add_constraint(b[v]+p.sum(b[u] for u in g.neighbors(v)) <= 1)
             sage: p.add_constraint(b[v] == 1) # Force an easy non-0 solution
+            sage: p.solver_parameter("limits/absgap", 100)
             sage: p.solve() # rel tol 100
             1
 
-        Same, now with a time limit::
-
-            sage: p.solver_parameter("limits/absgap", 1)
-            sage: p.solver_parameter("timelimit",0.001)
-            sage: p.solve() # rel tol 1
-            1
         """
-        self.model.hideOutput()
+        if (self.model.getStatus() != 'unknown') or (self.model.getStage()>1):
+            #This should actually be self.model.freeReoptSolve, but it seems to fail.
+            self.model.freeTransform()
         self.model.optimize()
 
         status = self.model.getStatus()
@@ -728,6 +748,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
             sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
             sage: lp.set_objective([60, 30, 20])
+            sage: lp.solver_parameter('presolving/maxrounds',0)
             sage: lp.solve()
             0
             sage: lp.get_objective_value()
@@ -1112,13 +1133,30 @@ cdef class SCIPBackend(GenericBackend):
             sage: b = p.new_variable()
             sage: p.add_constraint(b[1] + b[2] <= 6)
             sage: p.set_objective(b[1] + b[2])
-            sage: copy(p)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: copying not yet implemented
-
+            sage: copy(p).solve()
+            6.0
         """
-        raise NotImplementedError("copying not yet implemented")
+        cdef SCIPBackend cp = type(self)(maximization = self.is_maximization())
+        cp.problem_name(self.problem_name())
+        for i,v in enumerate(self.model.getVars()):
+            vtype = v.vtype
+            cp.add_variable(self.variable_lower_bound(i),
+                            self.variable_upper_bound(i),
+                            binary = vtype == 'BINARY',
+                            continuous = vtype == 'CONTINUOUS',
+                            integer = vtype == 'INTEGER',
+                            obj = self.objective_coefficient(i),
+                            name = self.col_name(i))
+        assert(self.ncols() == cp.ncols())
+
+        for i in range(self.nrows()):
+            cp.add_linear_constraint(zip(*self.row(i)),
+                                     self.row_bounds(i)[0],
+                                     self.row_bounds(i)[1],
+                                     name = self.row_name(i))
+        assert(self.nrows() == cp.nrows())
+        return cp
+
 
     cpdef solver_parameter(self, name, value = None):
         """

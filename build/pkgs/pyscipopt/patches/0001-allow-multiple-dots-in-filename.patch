@@ -1,7 +1,7 @@
 From 3de1ccdf294c490e15eb9cbf48b3002bf7a75e23 Mon Sep 17 00:00:00 2001
 From: Moritz Firsching <moritz@math.fu-berlin.de>
 Date: Sun, 8 Apr 2018 23:39:40 +0200
-Subject: [PATCH] allow multiple dots in filename
+Subject: [PATCH 1/5] allow multiple dots in filename
 
 ---
  src/pyscipopt/scip.pyx | 15 +++++++++------

@@ -598,11 +598,7 @@ cdef class GenericBackend:
         tester.assertIsNone(p.add_col([0, 1, 2, 3, 4], [0, 1, 2, 3, 4]))
         tester.assertEqual(p.nrows(), 5)
         for 1 <= i <= 4:
-            try:
-                tester.assertEqual(p.row(i), ([0], [i]))
-            except NotImplementedError:
-                # SCIP does not implement row
-                pass
+            tester.assertEqual(p.row(i), ([0], [i]))
 
     cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=None):
         """
@@ -660,11 +656,7 @@ cdef class GenericBackend:
         tester.assertEqual(nrows_after, nrows_before+nrows_added, "Added the wrong number of rows")
         # Test contents of the new rows are correct (sparse zero)
         for i in range(nrows_before, nrows_after):
-            try:
-                tester.assertEqual(p.row(i), ([], []))
-            except NotImplementedError:
-                # SCIP does not implement row
-                pass
+            tester.assertEqual(p.row(i), ([], []))
             tester.assertEqual(p.row_bounds(i), (None, 2.0))
         # Test from COINBackend.add_linear_constraints:
         tester.assertIsNone(p.add_linear_constraints(2, None, 2, names=['foo', 'bar']))
@@ -1260,12 +1252,8 @@ cdef class GenericBackend:
         Does not test whether solutions or solver parameters are copied.
         """
         tester = self._tester(**options)
-        try:
-            cp = copy(self)
-            self._do_test_problem_data(tester, cp)
-        except NotImplementedError:
-            # SCIP does not implement copying
-            pass
+        cp = copy(self)
+        self._do_test_problem_data(tester, cp)
 
 
     def _test_copy_does_not_share_data(self, **options):
@@ -1273,14 +1261,11 @@ cdef class GenericBackend:
         Test whether copy makes an independent copy of the backend.
         """
         tester = self._tester(**options)
-        try:
-            cp = copy(self)
-            cpcp = copy(cp)
-            del cp
-            self._do_test_problem_data(tester, cpcp)
-        except NotImplementedError:
-            # SCIP does not implement copying
-            pass
+
+        cp = copy(self)
+        cpcp = copy(cp)
+        del cp
+        self._do_test_problem_data(tester, cpcp)
 
 
     # TODO: We should have a more systematic way of generating MIPs for testing.
@@ -1298,11 +1283,8 @@ cdef class GenericBackend:
             # Gurobi does not implement add_col
             pass
         # From doctest of GenericBackend.problem_name:
-        try:
-            p.problem_name("There once was a french fry")
-        except NotImplementedError:
-            # SCIP does not implement problem_name
-            pass
+        p.problem_name("There once was a french fry")
+
         p._test_copy(**options)
         p._test_copy_does_not_share_data(**options)
 
@@ -1669,9 +1651,10 @@ def default_mip_solver(solver = None):
     elif solver == "Interactivelp":
         default_solver = solver
 
-    elif solver == "SCIP":
+    elif solver == "SCIP" or solver == "Scip":
         try:
             from sage.libs.scip.scip import SCIP
+            from pyscipopt import Model
             default_solver = solver
         except ImportError:
             raise ValueError("SCIP is not available. Please refer to the documentation to install it.")
