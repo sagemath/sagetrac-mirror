@@ -694,11 +694,11 @@ cdef class NFastAutomaton:
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: b = NFastAutomaton(a)
-            sage: b.initial_state
+            sage: b.initial_states
             -1
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')], i=2)
             sage: b = NFastAutomaton(a)
-            sage: b.initial_state
+            sage: b.initial_states
             2
         """
         l = []
@@ -776,10 +776,10 @@ cdef class NFastAutomaton:
             ...
             ValueError: initial state must be a current state : 6 not in [-1, 3]
         """
-        if e < 0 or e >= self.a.n:
+        if i < 0 or i >= self.a.n:
             raise ValueError("initial state must be a current state : " +
                              "%d not in [-1, %d]" % (i, self.a.n - 1))
-        self.a.e[e].initial = initial
+        self.a.e[i].initial = initial
 
     def add_edge(self, i, f, l):
         """
