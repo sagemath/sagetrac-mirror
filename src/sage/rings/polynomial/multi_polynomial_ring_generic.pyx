@@ -1366,6 +1366,18 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         from sage.algebras.weyl_algebra import DifferentialWeylAlgebra
         return DifferentialWeylAlgebra(self)
 
+    def derivation(self, factor):
+        
+        from sage.rings.derivation import RingDerivation_polynomial
+        from sage.categories.homset import End, Homset
+        if factor in self.gens():
+            factor = {factor : 1}
+        if isinstance(factor, dict):
+            factor = [factor[g] if factor.has_key(g) else 0 for g in self.gens()]
+        H = Homset(self, self)
+        theta = End(self).identity()
+        return RingDerivation_polynomial(H, theta, factor)
+
 ####################
 # Leave *all* old versions!
 

@@ -1559,6 +1559,14 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         raise ValueError("you should pass exactly one of of_degree and max_degree")
 
 
+    def derivation(self, factor = 1):
+        from sage.rings.derivation import RingDerivation_polynomial
+        from sage.categories.homset import End, Homset
+        H = Homset(self, self)
+        theta = End(self).identity()
+        return RingDerivation_polynomial(H, theta, [factor])
+
+
 class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.CommutativeAlgebra):
     """
     Univariate polynomial ring over a commutative ring.
