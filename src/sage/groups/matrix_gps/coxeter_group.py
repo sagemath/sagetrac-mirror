@@ -709,7 +709,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         """
         A Coxeter group element.
         """
-        def first_descent(self, side = 'right', index_set=None, positive=False):
+        def first_descent(self, side=None, index_set=None, positive=False):
             """
             Return the first left (resp. right) descent of ``self``, as
             ane element of ``index_set``, or ``None`` if there is none.
@@ -726,7 +726,11 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
                 sage: elt.first_descent(side='left')
                 2
             """
+            if side is None:
+                side = self.parent()._default_side
             M = self.matrix()
+            if side is None:
+                side = self.parent()._default_side
             if side != 'right':
                 M = ~M
             I = self.parent().index_set()
@@ -747,7 +751,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
                         return I[i]
             return None
 
-        def descents(self, side='right', index_set=None, positive=False):
+        def descents(self, side=None, index_set=None, positive=False):
             """
             Return the descents of ``self``, as a list of elements of the
             ``index_set``.
@@ -774,6 +778,8 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
                 [2]
             """
             M = self.matrix()
+            if side is None:
+                side = self.parent()._default_side
             if side != 'right':
                 M = ~M
             I = self.parent().index_set()

@@ -215,7 +215,8 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             covers = tuple([u, v] for v in self for u in v.bruhat_lower_covers() )
             return Poset((self, covers), cover_relations=True, facade=facade)
 
-        def shard_poset(self, side='right'):
+        # FIXME: side is not used in this code
+        def shard_poset(self, side=None):
             """
             Return the shard intersection order attached to `W`.
 
@@ -223,8 +224,8 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             contains the noncrossing partition lattice, as the induced lattice
             on the subset of `c`-sortable elements.
 
-            The partial order is given by simultaneous inclusion of inversion sets
-            and subgroups attached to every element.
+            The partial order is given by simultaneous inclusion of inversion
+            sets and subgroups attached to every element.
 
             The precise description used here can be found in [StThWi]_.
 
@@ -431,20 +432,20 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             This poset is in fact a lattice::
 
                 sage: W = WeylGroup(["B", 3])
-                sage: P = W.weak_poset(side = "left")
+                sage: P = W.weak_poset(side="left")
                 sage: P.is_lattice()
                 True
 
             so this method has an alias :meth:`weak_lattice`::
 
-                sage: W.weak_lattice(side = "left") is W.weak_poset(side = "left")
+                sage: W.weak_lattice(side="left") is W.weak_poset(side="left")
                 True
 
             As a bonus feature, one can create the left-right weak
             poset::
 
                 sage: W = WeylGroup(["A",2])
-                sage: P = W.weak_poset(side = "twosided")
+                sage: P = W.weak_poset(side="twosided")
                 sage: P.show()
                 sage: len(P.hasse_diagram().edges())
                 8
@@ -474,9 +475,9 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
 
             TESTS::
 
-                sage: [len(WeylGroup(["A", n]).weak_poset(side = "right").cover_relations()) for n in [1,2,3]]
+                sage: [len(WeylGroup(["A", n]).weak_poset(side="right").cover_relations()) for n in [1,2,3]]
                 [1, 6, 36]
-                sage: [len(WeylGroup(["A", n]).weak_poset(side = "left" ).cover_relations()) for n in [1,2,3]]
+                sage: [len(WeylGroup(["A", n]).weak_poset(side="left" ).cover_relations()) for n in [1,2,3]]
                 [1, 6, 36]
 
             .. todo::
