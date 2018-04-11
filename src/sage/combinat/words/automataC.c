@@ -706,7 +706,7 @@ bool CompleteAutomaton (Automaton *a)
 }
 
 //détermine si les automates sont les mêmes (différents si états permutés)
-bool equalsAutomaton (Automaton a1, Automaton a2)
+bool equalsAutomaton(Automaton a1, Automaton a2)
 {
 	if (a1.n != a2.n || a1.na != a2.na || a1.i != a2.i)
 		return false;

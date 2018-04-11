@@ -457,7 +457,15 @@ cdef class NFastAutomaton:
         return self
 
     def __init__(self, a): # TO DO i=None, final_states=None, A=None
-        # print("init"
+        """
+        TESTS::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=1)
+            sage: b = NFastAutomaton(a)
+
+        """
+        #  print("init"
+
         if a is None:
             pass
         else:
@@ -699,7 +707,7 @@ cdef class NFastAutomaton:
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')], i=2)
             sage: b = NFastAutomaton(a)
             sage: b.initial_states
-            2
+            [2]
         """
         l = []
         for i in range(self.a.n):
@@ -837,26 +845,24 @@ cdef class NFastAutomaton:
 
     def add_path(self, int e, int f, list li, verb=False):
         """
-        
-        TO DO
-        Follows the path labeled by ``li`` and return the reached state
+        Add a path between states ``e`` and ``f``
+        of :class:`NFastAutomaton` following ``li``
 
         INPUT:
 
-        - ``li`` -- list indicate the  way label
-        - ``i`` -- (default: ``None``) the initial state
+        - ``e`` -- int the input state
+        - ``f`` -- int the final state 
+        - ``li`` -- list of states
+        - ``verb`` -- boolean (default: ``False``) fix
+          to ``True`` for activation the verbose mode
 
-        OUTPUT:
-
-        return the state reached after the following way
 
         EXAMPLES::
 
             sage: a = FastAutomaton([(0,1,'a'), (2,3,'b')], i=2)
-            sage: a.path([1])
-            3
-            sage: a.path([0, 2])
-            -1
+            sage: b = NFastAutomaton(a)
+            sage: b.add_path(1, 2, [1])
+
         """
         cdef int *l = <int *>malloc(sizeof(int)*len(li));
         for i in range(len(li)):
@@ -866,6 +872,26 @@ cdef class NFastAutomaton:
         sig_off()
 
     def determinise(self, puits=False, verb=0):
+        """
+        Determines a non determinist automaton with the same alphabet of ``self``
+
+        INPUT:
+
+        - ``puits``  -- (default: ``False``)
+        - ``verb`` -- boolean (default: ``False``) fix
+          to ``True`` for activation the verbose mode
+
+        OUTPUT:
+
+        Return a non determinist automaton  :class:`NFastAutomaton`
+
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: b = NFastAutomaton(a)
+            sage: a.determinise()
+            FastAutomaton with 2 states and an alphabet of 2 letters
+        """
         cdef Automaton a
         sig_on()
         r = FastAutomaton(None)
@@ -1204,11 +1230,11 @@ cdef class FastAutomaton:
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: b = FastAutomaton([(0, 1, 'a'),(1,2,'c')], i=0)
-            sage: a > b
+            sage: a > b  # indirect doctest
             True
-            sage: a < b
+            sage: a < b  # indirect doctest
             False
-            sage: a == b
+            sage: a == b  # indirect doctest
             False
         """
         # if type(other) != FastAutomaton:
@@ -1276,8 +1302,8 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: a.plot()
-
+            sage: a.plot()  # random
+            <PIL.PngImagePlugin.PngImageFile image mode=RGBA size=189x147 at 0x7FD4B6D94390>
         """
         cdef char *file
         cdef char** ll # labels of edges
@@ -1343,7 +1369,6 @@ cdef class FastAutomaton:
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.Alphabet
             ['a', 'b']
-
         """
         return self.A
 
