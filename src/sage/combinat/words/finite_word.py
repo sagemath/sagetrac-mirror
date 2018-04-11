@@ -872,11 +872,13 @@ class FiniteWord_class(Word_class):
 
     def to_ordered_set_partition(self):
         r"""
-        Return the ordered set partition `(P_1, P_2, \ldots, P_k)`
-        of `\{1, 2, \ldots, n\}`, where `n` is the length of ``self``,
-        and where each block `P_i` is the set of positions at which
-        the `i`-th smallest letter occurring in ``self`` occurs in
-        ``self``.
+        Return the ordered set partition correspond to ``self``.
+
+        If `w` is a finite word of length `n`, then the corresponding
+        ordered set partition is an ordered set partition
+        `(P_1, P_2, \ldots, P_k)` of `\{1, 2, \ldots, n\}`, where
+        each block `P_i` is the set of positions at which the `i`-th
+        smallest letter occurring in `w` occurs in `w`.
 
         EXAMPLES::
 
@@ -890,8 +892,16 @@ class FiniteWord_class(Word_class):
             sage: Word('aaaaa').to_ordered_set_partition()
             [{1, 2, 3, 4, 5}]
         """
-        from sage.combinat.set_partition_ordered import OrderedSetPartition
-        return OrderedSetPartition(word_to_ordered_set_partition(self))
+        from sage.misc.all import uniq
+        n = len(w)
+        vals = sorted(uniq(w))
+        dc = {val: i for (i, val) in enumerate(vals)}
+        P = [[] for _ in vals]
+        for i, val in enumerate(w):
+            P[dc[val]].append(i+1)
+        from sage.combinat.set_partition_ordered import OrderedSetPartitions
+        OSP = OrderedSetPartitions(n)
+        return OSP(P)
 
     # To fix : do not slice here ! (quite expensive in copy)
     def is_suffix(self, other):
@@ -7257,13 +7267,5 @@ def word_to_ordered_set_partition(w):
         sage: word_to_ordered_set_partition([])
         []
     """
-    from sage.misc.all import uniq
-    n = len(w)
-    vals = sorted(uniq(w))
-    dc = {val: i for (i, val) in enumerate(vals)}
-    P = [[] for _ in vals]
-    for i, val in enumerate(w):
-        P[dc[val]].append(i+1)
-    return P
 
 
