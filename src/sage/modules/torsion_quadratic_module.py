@@ -72,7 +72,7 @@ def TorsionQuadraticForm(q):
     Q = FreeQuadraticModule(ZZ, q.ncols(), inner_product_matrix=d**2 * q)
     denoms = [D[i,i].denominator() for i in range(D.ncols())]
     rels = Q.span(diagonal_matrix(ZZ, denoms) * U)
-    return TorsionQuadraticModule((1/d)*Q, (1/d)*rels)
+    return TorsionQuadraticModule((1/d)*Q, (1/d)*rels, modulus=1)
 
 class TorsionQuadraticModuleElement(FGP_Element):
     r"""
@@ -541,19 +541,19 @@ class TorsionQuadraticModule(FGP_Module_class):
                     rk = qk.ncols()
                     qk, _ = qk._clear_denom()
                     if p == 2:
-                        det_k = mod(qz.det().prime_to_m_part(2), 8)
-                        if qz[-1,-1].valuation(2) == 0:
+                        det_k = mod(qk.det().prime_to_m_part(2), 8)
+                        if qk[-1,-1].valuation(2) == 0:
                             is_odd = 1
-                            if mod(qz.ncols(),2) == 0:
-                                oddity = mod(qz[-1,-1] + qz[-2,-2], 8)
+                            if mod(qk.ncols(),2) == 0:
+                                oddity = mod(qk[-1,-1] + qk[-2,-2], 8)
                             else:
-                                oddity = mod(qz[-1,-1],8)
+                                oddity = mod(qk[-1,-1],8)
                         else:
                             is_odd = 0
                             oddity = 0
                         local_symbol.append([scale, rk, det_k, is_odd, oddity])
                     else:
-                        det_k = legendre_symbol(qz.det(), p)
+                        det_k = legendre_symbol(qk.det(), p)
                         local_symbol.append([scale, rk, det_k])
             # if necessary add the part of scale zero.
             rk = rank - q.ncols()

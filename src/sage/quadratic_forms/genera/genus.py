@@ -241,6 +241,7 @@ def symbol_from_canonical_symbol(canonical_symbol):
     if rk == 2:
         t, det, sign in  [(0,-1,1), (2,1,1), (2,5,-1), (4,3,-1), (6,5,-1), (6,1,1)]
     if rk % 2 == 1:
+        pass
 
 def _canonical_block_to_block(block):
     r"""
@@ -276,7 +277,7 @@ def _canonical_block_to_block(block):
                 sig = -1
             if sig != sign:
                 det *= (-1)**(rk/2 - 2) * 3
-            else
+            else:
                 det *= (-1)**(rk/2 - 1)
     elif rk % 2 == 1:
         if t in (1, 7):
