@@ -778,7 +778,7 @@ bool equalsLangages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, i
 //détermine si les langages des automates sont les mêmes
 //le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
 //if minimized is true, the automaton a1 and a2 are assumed to be minimal.
-bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool emonded, bool verb)
+bool equalsLangages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool emonded, bool verb)
 {
 	int i;
 	if (!emonded)
@@ -3706,7 +3706,7 @@ void print_classes ()
 	int l,h,i,j;
 	for (i=0;i<nclass;i++)
 	{
-		printf("classe %d : ", i);
+		printf("class %d : ", i);
 		l = class_indices[i][0];
 		h = class_indices[i][1];
 		for (j=l;j<h;j++)
@@ -3751,14 +3751,14 @@ void split (int C, int a, bool verb)
 			if (!pt_visited_class[cp])
 			{ //la classe de p n'a pas encore été vue dans cet appel de split
 				if (verb)
-					printf("new visited class : %d (%d parent de %d)\n", cp, p, e);
+					printf("new visited class : %d (%d parent of %d)\n", cp, p, e);
 				visited_class[nrc] = cp;
 				pt_visited_class[cp] = class_indices[cp][0]; //lowest indice of the class of p
 				nrc++;
 			}else
 			{
 				if (verb)
-					printf("re-visited class : %d (%d parent de %d)\n", cp, p, e);
+					printf("re-visited class : %d (%d parent of %d)\n", cp, p, e);
 			}
 			ep = pt_visited_class[cp]; //indice de l'élément à permuter avec p
 			if (ep > partition[p])
