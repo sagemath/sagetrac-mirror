@@ -893,11 +893,11 @@ class FiniteWord_class(Word_class):
             [{1, 2, 3, 4, 5}]
         """
         from sage.misc.all import uniq
-        n = len(w)
-        vals = sorted(uniq(w))
+        n = len(self)
+        vals = sorted(uniq(self))
         dc = {val: i for (i, val) in enumerate(vals)}
         P = [[] for _ in vals]
-        for i, val in enumerate(w):
+        for i, val in enumerate(self):
             P[dc[val]].append(i+1)
         from sage.combinat.set_partition_ordered import OrderedSetPartitions
         OSP = OrderedSetPartitions(n)
