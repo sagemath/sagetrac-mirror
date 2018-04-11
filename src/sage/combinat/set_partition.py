@@ -48,7 +48,6 @@ from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
 from sage.combinat.misc import IterableFunctionCall
 from sage.combinat.combinatorial_map import combinatorial_map
-import sage.combinat.subset as subset
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.combinat import bell_number, stirling_number2
@@ -1150,7 +1149,7 @@ class SetPartition(ClonableArray):
         ret = []
         for part in self:
             newpart = [i for i in part if i in I]
-            if len(newpart) != 0:
+            if newpart:
                 ret.append(newpart)
         return SetPartition(ret)
 
@@ -1587,13 +1586,15 @@ class SetPartitions(UniqueRepresentation, Parent):
             return False
 
         # Check that all parts are disjoint
-        base_set = Set([e for p in x for e in p])
-        if len(base_set) != sum(map(len, x)):
-            return False
-
-        # Check to make sure each element of x is a set
+        cur = Set([])
+        num_elts = 0
         for s in x:
+            # Check to make sure each element of x is a set
             if not isinstance(s, (set, frozenset, Set_generic)):
+                return False
+            cur = cur.union(Set(s))
+            num_elts += len(s)
+            if len(cur) < num_elts:
                 return False
 
         return True
@@ -1621,7 +1622,7 @@ class SetPartitions(UniqueRepresentation, Parent):
         if isinstance(s, SetPartition):
             if isinstance(s.parent(), SetPartitions):
                 return self.element_class(self, s, check=check)
-            raise ValueError("cannot convert %s into an element of %s"%(s, self))
+            raise ValueError("cannot convert {} into an element of {}".format(s, self))
         return self.element_class(self, s, check=check)
 
     Element = SetPartition
@@ -1800,7 +1801,7 @@ class SetPartitions_all(SetPartitions):
         n = 0
         while True:
             for x in SetPartitions_set(frozenset(range(1, n+1))):
-                yield self.element_class(self, list(x))
+                yield self.element_class(self, list(x), check=False)
             n += 1
 
 class SetPartitions_set(SetPartitions):
@@ -1861,19 +1862,24 @@ class SetPartitions_set(SetPartitions):
             sage: SetPartition([[2],[1,3,4]]) in SetPartitions(4, [3,1])
             True
         """
-        # Must pass the general check
-        if not SetPartitions.__contains__(self, x):
+        # x must be a set
+        if not isinstance(x, (SetPartition, set, frozenset, Set_generic)):
             return False
 
-        # Make sure that the number of elements match up
-        if sum(map(len, x)) != len(self._set):
-            return False
+        # Check that all parts are disjoint and equals the original set
+        cur = set(self._set)
+        for s in x:
+            # Check to make sure each element of x is a set
+            if not isinstance(s, (set, frozenset, Set_generic)):
+                return False
+            before = len(cur)
+            cur.difference_update(s)
+            # There were elements in s that are not deleted
+            if len(cur) != before - len(s):
+                return False
 
-        # Make sure that the union of all the sets is the original set
-        if Set([e for p in x for e in p]) != Set(self._set):
-            return False
-
-        return True
+        # Make sure that we did find every element in the defining set
+        return not cur
 
     def random_element(self):
         r"""
@@ -1937,7 +1943,7 @@ class SetPartitions_set(SetPartitions):
         """
         for p in Partitions(len(self._set)):
             for sp in self._iterator_part(p):
-                yield self.element_class(self, sp)
+                yield self.element_class(self, sp, check=False)
 
     def base_set(self):
         """
@@ -2058,7 +2064,7 @@ class SetPartitions_setparts(SetPartitions_set):
             [{{1}, {2, 3}}, {{1, 3}, {2}}, {{1, 2}, {3}}]
         """
         for sp in self._iterator_part(self.parts):
-            yield self.element_class(self, sp)
+            yield self.element_class(self, sp, check=False)
 
     def __contains__(self, x):
         """
@@ -2138,7 +2144,7 @@ class SetPartitions_setn(SetPartitions_set):
         """
         for p in Partitions(len(self._set), length=self.n):
             for sp in self._iterator_part(p):
-                yield self.element_class(self, sp)
+                yield self.element_class(self, sp, check=False)
 
     def __contains__(self, x):
         """
@@ -2218,11 +2224,10 @@ def _listbloc(n, nbrepets, listint=None):
     smallest = Set(l[:1])
     new_listint = Set(l[1:])
 
-    f = lambda u, v: u.union(_set_union([smallest,v]))
-
-    for ssens in subset.Subsets(new_listint, n-1):
+    from sage.combinat.subset import Subsets
+    for ssens in Subsets(new_listint, n-1):
         for z in _listbloc(n, nbrepets-1, new_listint-ssens):
-            yield f(z,ssens)
+            yield z.union(Set([smallest.union(ssens)]))
 
 def _union(s):
     """
