@@ -37,8 +37,8 @@ cdef class SCIPBackend(GenericBackend):
 
     General backend testsuite::
 
-        sage: p = MixedIntegerLinearProgram(solver="SCIP")
-        sage: TestSuite(p.get_backend()).run(skip="_test_pickling")
+        sage: p = MixedIntegerLinearProgram(solver="SCIP")                      # optional - pyscipopt
+        sage: TestSuite(p.get_backend()).run(skip="_test_pickling")             # optional - pyscipopt
     """
 
     def __cinit__(self, maximization = True):
@@ -47,7 +47,7 @@ cdef class SCIPBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: p = MixedIntegerLinearProgram(solver="SCIP")
+            sage: p = MixedIntegerLinearProgram(solver="SCIP")                  # optional - pyscipopt
         """
         self.model = Model('')
         if maximization:
@@ -61,9 +61,9 @@ cdef class SCIPBackend(GenericBackend):
         Get the model as a pyscipopt Model.
 
         EXAMPLE::
-        sage: from sage.numerical.backends.generic_backend import get_solver
-        sage: p = get_solver(solver = "SCIP")
-        sage: p._get_model()
+        sage: from sage.numerical.backends.generic_backend import get_solver    # optional - pyscipopt
+        sage: p = get_solver(solver = "SCIP")                                   # optional - pyscipopt
+        sage: p._get_model()                                                    # optional - pyscipopt
         <pyscipopt.scip.Model object at ...
         """
         return self.model
@@ -97,26 +97,26 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.ncols()
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.ncols()                                                     # optional - pyscipopt
             0
-            sage: p.add_variable()
+            sage: p.add_variable()                                              # optional - pyscipopt
             0
-            sage: p.ncols()
+            sage: p.ncols()                                                     # optional - pyscipopt
             1
-            sage: p.add_variable(binary=True)
+            sage: p.add_variable(binary=True)                                   # optional - pyscipopt
             1
-            sage: p.add_variable(lower_bound=-2.0, integer=True)
+            sage: p.add_variable(lower_bound=-2.0, integer=True)                # optional - pyscipopt
             2
-            sage: p.add_variable(continuous=True, integer=True)
+            sage: p.add_variable(continuous=True, integer=True)                 # optional - pyscipopt
             Traceback (most recent call last):
             ...
             ValueError: ...
-            sage: p.add_variable(name='x', obj=1.0)
+            sage: p.add_variable(name='x', obj=1.0)                             # optional - pyscipopt
             3
-            sage: p.col_name(3)
+            sage: p.col_name(3)                                                 # optional - pyscipopt
             u'x'
-            sage: p.objective_coefficient(3)
+            sage: p.objective_coefficient(3)                                    # optional - pyscipopt
             1.0
         """
         if self.model.getStatus() != 'unknown':
@@ -162,13 +162,13 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.ncols()
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.ncols()                                                     # optional - pyscipopt
             0
-            sage: p.add_variable()
+            sage: p.add_variable()                                              # optional - pyscipopt
             0
-            sage: p.set_variable_type(0,1)
-            sage: p.is_variable_integer(0)
+            sage: p.set_variable_type(0,1)                                      # optional - pyscipopt
+            sage: p.is_variable_integer(0)                                      # optional - pyscipopt
             True
         """
         if self.model.getStatus() != 'unknown':
@@ -190,11 +190,11 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.is_maximization()
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.is_maximization()                                           # optional - pyscipopt
             True
-            sage: p.set_sense(-1)
-            sage: p.is_maximization()
+            sage: p.set_sense(-1)                                               # optional - pyscipopt
+            sage: p.is_maximization()                                           # optional - pyscipopt
             False
         """
         if self.model.getStatus() != 'unknown':
@@ -220,13 +220,13 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.add_variable()
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.add_variable()                                              # optional - pyscipopt
             0
-            sage: p.objective_coefficient(0)
+            sage: p.objective_coefficient(0)                                    # optional - pyscipopt
             0.0
-            sage: p.objective_coefficient(0,2)
-            sage: p.objective_coefficient(0)
+            sage: p.objective_coefficient(0,2)                                  # optional - pyscipopt
+            sage: p.objective_coefficient(0)                                    # optional - pyscipopt
             2.0
         """
         if self.model.getStatus() != 'unknown':
@@ -251,9 +251,9 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.problem_name("Nomen est omen")
-            sage: p.problem_name()
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.problem_name("Nomen est omen")                              # optional - pyscipopt
+            sage: p.problem_name()                                              # optional - pyscipopt
             u'Nomen est omen'
         """
         if name is NULL:
@@ -275,11 +275,11 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.add_variables(5)
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.add_variables(5)                                            # optional - pyscipopt
             4
-            sage: p.set_objective([1, 1, 2, 1, 3])
-            sage: map(lambda x :p.objective_coefficient(x), range(5))
+            sage: p.set_objective([1, 1, 2, 1, 3])                              # optional - pyscipopt
+            sage: map(lambda x :p.objective_coefficient(x), range(5))           # optional - pyscipopt
             [1.0, 1.0, 2.0, 1.0, 3.0]
         """
         if self.model.getStatus() != 'unknown':
@@ -298,8 +298,8 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.set_verbosity(1)
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.set_verbosity(1)                                            # optional - pyscipopt
 
         TODOs::
 
@@ -326,22 +326,22 @@ cdef class SCIPBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: p = MixedIntegerLinearProgram(solver='SCIP')
-            sage: x, y = p['x'], p['y']
-            sage: p.add_constraint(2*x + 3*y <= 6)
-            sage: p.add_constraint(3*x + 2*y <= 6)
-            sage: p.add_constraint(x >= 0)
-            sage: p.set_objective(x + y + 7)
-            sage: p.set_integer(x); p.set_integer(y)
-            sage: p.solve()
+            sage: p = MixedIntegerLinearProgram(solver='SCIP')                  # optional - pyscipopt
+            sage: x, y = p['x'], p['y']                                         # optional - pyscipopt
+            sage: p.add_constraint(2*x + 3*y <= 6)                              # optional - pyscipopt
+            sage: p.add_constraint(3*x + 2*y <= 6)                              # optional - pyscipopt
+            sage: p.add_constraint(x >= 0)                                      # optional - pyscipopt
+            sage: p.set_objective(x + y + 7)                                    # optional - pyscipopt
+            sage: p.set_integer(x); p.set_integer(y)                            # optional - pyscipopt
+            sage: p.solve()                                                     # optional - pyscipopt
             9.0
-            sage: p.remove_constraint(0)
-            sage: p.solve()
+            sage: p.remove_constraint(0)                                        # optional - pyscipopt
+            sage: p.solve()                                                     # optional - pyscipopt
             10.0
 
         Removing fancy constraints does not make Sage crash::
 
-            sage: MixedIntegerLinearProgram(solver = "SCIP").remove_constraint(-2)
+            sage: MixedIntegerLinearProgram(solver = "SCIP").remove_constraint(-2) # optional - pyscipopt
             Traceback (most recent call last):
             ...
             ValueError: The constraint's index i must satisfy 0 <= i < number_of_constraints
@@ -371,14 +371,14 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.add_variables(5)
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.add_variables(5)                                            # optional - pyscipopt
             4
-            sage: p.add_linear_constraint( zip(range(5), range(5)), 2.0, 2.0)
-            sage: p.row_bounds(0)
+            sage: p.add_linear_constraint( zip(range(5), range(5)), 2.0, 2.0)   # optional - pyscipopt
+            sage: p.row_bounds(0)                                               # optional - pyscipopt
             (2.0, 2.0)
-            sage: p.add_linear_constraint( zip(range(5), range(5)), 1.0, 1.0, name='foo')
-            sage: p.row_name(1)
+            sage: p.add_linear_constraint( zip(range(5), range(5)), 1.0, 1.0, name='foo') # optional - pyscipopt
+            sage: p.row_name(1)                                                 # optional - pyscipopt
             u'foo'
         """
         if self.model.getStatus() != 'unknown':
@@ -418,13 +418,13 @@ cdef class SCIPBackend(GenericBackend):
 
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.add_variables(5)
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.add_variables(5)                                            # optional - pyscipopt
             4
-            sage: p.add_linear_constraint(zip(range(5), range(5)), 2, 2)
-            sage: p.row(0)
+            sage: p.add_linear_constraint(zip(range(5), range(5)), 2, 2)        # optional - pyscipopt
+            sage: p.row(0)                                                      # optional - pyscipopt
             ([1, 2, 3, 4], [1.0, 2.0, 3.0, 4.0])
-            sage: p.row_bounds(0)
+            sage: p.row_bounds(0)                                               # optional - pyscipopt
             (2.0, 2.0)
         """
         namedvars = [_.name for _ in self.model.getVars()]
@@ -450,11 +450,11 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.add_variables(5)
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.add_variables(5)                                            # optional - pyscipopt
             4
-            sage: p.add_linear_constraint(zip(range(5), range(5)), 2, 2)
-            sage: p.row_bounds(0)
+            sage: p.add_linear_constraint(zip(range(5), range(5)), 2, 2)        # optional - pyscipopt
+            sage: p.row_bounds(0)                                               # optional - pyscipopt
             (2.0, 2.0)
         """
         cons = self.model.getConss()[index]
@@ -483,13 +483,13 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.add_variable()
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.add_variable()                                              # optional - pyscipopt
             0
-            sage: p.col_bounds(0)
+            sage: p.col_bounds(0)                                               # optional - pyscipopt
             (0.0, None)
-            sage: p.variable_upper_bound(0, 5)
-            sage: p.col_bounds(0)
+            sage: p.variable_upper_bound(0, 5)                                  # optional - pyscipopt
+            sage: p.col_bounds(0)                                               # optional - pyscipopt
             (0.0, 5.0)
         """
         var = self.model.getVars()[index]
@@ -526,14 +526,14 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.ncols()
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.ncols()                                                     # optional - pyscipopt
             0
-            sage: p.nrows()
+            sage: p.nrows()                                                     # optional - pyscipopt
             0
-            sage: p.add_linear_constraints(5, 0, None)
-            sage: p.add_col(range(5), range(5))
-            sage: p.nrows()
+            sage: p.add_linear_constraints(5, 0, None)                          # optional - pyscipopt
+            sage: p.add_col(range(5), range(5))                                 # optional - pyscipopt
+            sage: p.nrows()                                                     # optional - pyscipopt
             5
         """
         mcons = self.model.getConss()
@@ -556,16 +556,16 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: lp = MixedIntegerLinearProgram(solver = 'SCIP', maximization = False)
-            sage: x, y = lp[0], lp[1]
-            sage: lp.add_constraint(-2*x + y <= 1)
-            sage: lp.add_constraint(x - y <= 1)
-            sage: lp.add_constraint(x + y >= 2)
-            sage: lp.set_objective(x + y)
-            sage: lp.set_integer(x)
-            sage: lp.set_integer(y)
-            sage: lp.solve()
+            sage: x, y = lp[0], lp[1]                                           # optional - pyscipopt
+            sage: lp.add_constraint(-2*x + y <= 1)                              # optional - pyscipopt
+            sage: lp.add_constraint(x - y <= 1)                                 # optional - pyscipopt
+            sage: lp.add_constraint(x + y >= 2)                                 # optional - pyscipopt
+            sage: lp.set_objective(x + y)                                       # optional - pyscipopt
+            sage: lp.set_integer(x)                                             # optional - pyscipopt
+            sage: lp.set_integer(y)                                             # optional - pyscipopt
+            sage: lp.solve()                                                    # optional - pyscipopt
             2.0
-            sage: lp.get_values([x, y])
+            sage: lp.get_values([x, y])                                         # optional - pyscipopt
             [1.0, 1.0]
 
         .. NOTE::
@@ -577,24 +577,24 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.add_linear_constraints(5, 0, None)
-            sage: p.add_col(range(5), range(5))
-            sage: p.solve()
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.add_linear_constraints(5, 0, None)                          # optional - pyscipopt
+            sage: p.add_col(range(5), range(5))                                 # optional - pyscipopt
+            sage: p.solve()                                                     # optional - pyscipopt
             0
-            sage: p.objective_coefficient(0,1)
-            sage: p.solve()
+            sage: p.objective_coefficient(0,1)                                  # optional - pyscipopt
+            sage: p.solve()                                                     # optional - pyscipopt
             Traceback (most recent call last):
             ...
             MIPSolverException: ...
 
 
-            sage: lp = MixedIntegerLinearProgram(solver = "SCIP")
-            sage: v = lp.new_variable(nonnegative=True)
-            sage: lp.add_constraint(v[1] +v[2] -2.0 *v[3], max=-1.0)
-            sage: lp.add_constraint(v[0] -4.0/3 *v[1] +1.0/3 *v[2], max=-1.0/3)
-            sage: lp.add_constraint(v[0] +0.5 *v[1] -0.5 *v[2] +0.25 *v[3], max=-0.25)
-            sage: lp.solve()
+            sage: lp = MixedIntegerLinearProgram(solver = "SCIP")               # optional - pyscipopt
+            sage: v = lp.new_variable(nonnegative=True)                         # optional - pyscipopt
+            sage: lp.add_constraint(v[1] +v[2] -2.0 *v[3], max=-1.0)            # optional - pyscipopt
+            sage: lp.add_constraint(v[0] -4.0/3 *v[1] +1.0/3 *v[2], max=-1.0/3) # optional - pyscipopt
+            sage: lp.add_constraint(v[0] +0.5 *v[1] -0.5 *v[2] +0.25 *v[3], max=-0.25) # optional - pyscipopt
+            sage: lp.solve()                                                    # optional - pyscipopt
             0.0
 
         Solving a LP within the acceptable gap. No exception is raised, even if
@@ -602,15 +602,15 @@ cdef class SCIPBackend(GenericBackend):
         number of disjoint balls (of diameter 1) in a hypercube::
 
             sage: g = graphs.CubeGraph(9)
-            sage: p = MixedIntegerLinearProgram(solver = "SCIP")
+            sage: p = MixedIntegerLinearProgram(solver = "SCIP")                # optional - pyscipopt
 
-            sage: b = p.new_variable(binary=True)
-            sage: p.set_objective(p.sum(b[v] for v in g))
-            sage: for v in g:
-            ....:     p.add_constraint(b[v]+p.sum(b[u] for u in g.neighbors(v)) <= 1)
-            sage: p.add_constraint(b[v] == 1) # Force an easy non-0 solution
-            sage: p.solver_parameter("limits/absgap", 100)
-            sage: p.solve() # rel tol 100
+            sage: b = p.new_variable(binary=True)                               # optional - pyscipopt
+            sage: p.set_objective(p.sum(b[v] for v in g))                       # optional - pyscipopt
+            sage: for v in g:                                                   # optional - pyscipopt
+            ....:     p.add_constraint(b[v]+p.sum(b[u] for u in g.neighbors(v)) <= 1) # optional - pyscipopt
+            sage: p.add_constraint(b[v] == 1) # Force an easy non-0 solution    # optional - pyscipopt
+            sage: p.solver_parameter("limits/absgap", 100)                      # optional - pyscipopt
+            sage: p.solve() # rel tol 100                                       # optional - pyscipopt
             1
 
         """
@@ -640,18 +640,18 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.add_variables(2)
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.add_variables(2)                                            # optional - pyscipopt
             1
-            sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)
-            sage: p.set_objective([2, 5])
-            sage: p.solve()
+            sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)            # optional - pyscipopt
+            sage: p.set_objective([2, 5])                                       # optional - pyscipopt
+            sage: p.solve()                                                     # optional - pyscipopt
             0
-            sage: p.get_objective_value()
+            sage: p.get_objective_value()                                       # optional - pyscipopt
             7.5
-            sage: p.get_variable_value(0) # abs tol 1e-15
+            sage: p.get_variable_value(0) # abs tol 1e-15                       # optional - pyscipopt
             0.0
-            sage: p.get_variable_value(1)
+            sage: p.get_variable_value(1)                                       # optional - pyscipopt
             1.5
         """
         return self.model.getObjVal()
@@ -714,18 +714,18 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.add_variables(2)
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.add_variables(2)                                            # optional - pyscipopt
             1
-            sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)
-            sage: p.set_objective([2, 5])
-            sage: p.solve()
+            sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)            # optional - pyscipopt
+            sage: p.set_objective([2, 5])                                       # optional - pyscipopt
+            sage: p.solve()                                                     # optional - pyscipopt
             0
-            sage: p.get_objective_value()
+            sage: p.get_objective_value()                                       # optional - pyscipopt
             7.5
-            sage: p.get_variable_value(0) # abs tol 1e-15
+            sage: p.get_variable_value(0) # abs tol 1e-15                       # optional - pyscipopt
             0.0
-            sage: p.get_variable_value(1)
+            sage: p.get_variable_value(1)                                       # optional - pyscipopt
             1.5
         """
         return self.model.getVal(self.model.getVars()[variable])
@@ -741,23 +741,23 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: lp = get_solver(solver = "SCIP")
-            sage: lp.add_variables(3)
+            sage: lp = get_solver(solver = "SCIP")                              # optional - pyscipopt
+            sage: lp.add_variables(3)                                           # optional - pyscipopt
             2
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)
-            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)
-            sage: lp.set_objective([60, 30, 20])
-            sage: lp.solver_parameter('presolving/maxrounds',0)
-            sage: lp.solve()
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48) # optional - pyscipopt
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20) # optional - pyscipopt
+            sage: lp.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8) # optional - pyscipopt
+            sage: lp.set_objective([60, 30, 20])                                # optional - pyscipopt
+            sage: lp.solver_parameter('presolving/maxrounds',0)                 # optional - pyscipopt
+            sage: lp.solve()                                                    # optional - pyscipopt
             0
-            sage: lp.get_objective_value()
+            sage: lp.get_objective_value()                                      # optional - pyscipopt
             280.0
-            sage: lp.get_row_prim(0)
+            sage: lp.get_row_prim(0)                                            # optional - pyscipopt
             24.0
-            sage: lp.get_row_prim(1)
+            sage: lp.get_row_prim(1)                                            # optional - pyscipopt
             20.0
-            sage: lp.get_row_prim(2)
+            sage: lp.get_row_prim(2)                                            # optional - pyscipopt
             8.0
         """
         return self.model.getActivity(self.model.getConss()[i])
@@ -770,12 +770,12 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.ncols()
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.ncols()                                                     # optional - pyscipopt
             0
-            sage: p.add_variables(2)
+            sage: p.add_variables(2)                                            # optional - pyscipopt
             1
-            sage: p.ncols()
+            sage: p.ncols()                                                     # optional - pyscipopt
             2
         """
         return len(self.model.getVars())
@@ -787,11 +787,11 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.nrows()
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.nrows()                                                     # optional - pyscipopt
             0
-            sage: p.add_linear_constraints(2, 2, None)
-            sage: p.nrows()
+            sage: p.add_linear_constraints(2, 2, None)                          # optional - pyscipopt
+            sage: p.nrows()                                                     # optional - pyscipopt
             2
         """
         return len(self.model.getConss())
@@ -807,10 +807,10 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.add_variable(name='I am a variable')
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.add_variable(name='I am a variable')                        # optional - pyscipopt
             0
-            sage: p.col_name(0)
+            sage: p.col_name(0)                                                 # optional - pyscipopt
             u'I am a variable'
         """
         return self.model.getVars()[index].name
@@ -826,9 +826,9 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.add_linear_constraints(1, 2, None, names=['Empty constraint 1'])
-            sage: p.row_name(0)
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.add_linear_constraints(1, 2, None, names=['Empty constraint 1']) # optional - pyscipopt
+            sage: p.row_name(0)                                                 # optional - pyscipopt
             u'Empty constraint 1'
         """
         return self.model.getConss()[index].name
@@ -844,13 +844,13 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.ncols()
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.ncols()                                                     # optional - pyscipopt
             0
-            sage: p.add_variable()
+            sage: p.add_variable()                                              # optional - pyscipopt
             0
-            sage: p.set_variable_type(0,0)
-            sage: p.is_variable_binary(0)
+            sage: p.set_variable_type(0,0)                                      # optional - pyscipopt
+            sage: p.is_variable_binary(0)                                       # optional - pyscipopt
             True
 
         """
@@ -867,13 +867,13 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.ncols()
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.ncols()                                                     # optional - pyscipopt
             0
-            sage: p.add_variable()
+            sage: p.add_variable()                                              # optional - pyscipopt
             0
-            sage: p.set_variable_type(0,1)
-            sage: p.is_variable_integer(0)
+            sage: p.set_variable_type(0,1)                                      # optional - pyscipopt
+            sage: p.is_variable_integer(0)                                      # optional - pyscipopt
             True
         """
         return self.model.getVars()[index].vtype() == 'INTEGER'
@@ -890,15 +890,15 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.ncols()
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.ncols()                                                     # optional - pyscipopt
             0
-            sage: p.add_variable()
+            sage: p.add_variable()                                              # optional - pyscipopt
             0
-            sage: p.is_variable_continuous(0)
+            sage: p.is_variable_continuous(0)                                   # optional - pyscipopt
             True
-            sage: p.set_variable_type(0,1)
-            sage: p.is_variable_continuous(0)
+            sage: p.set_variable_type(0,1)                                      # optional - pyscipopt
+            sage: p.is_variable_continuous(0)                                   # optional - pyscipopt
             False
 
         """
@@ -912,11 +912,11 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.is_maximization()
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.is_maximization()                                           # optional - pyscipopt
             True
-            sage: p.set_sense(-1)
-            sage: p.is_maximization()
+            sage: p.set_sense(-1)                                               # optional - pyscipopt
+            sage: p.is_maximization()                                           # optional - pyscipopt
             False
         """
         return self.model.getObjectiveSense() != 'minimize'
@@ -936,29 +936,29 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.add_variable()
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.add_variable()                                              # optional - pyscipopt
             0
-            sage: p.col_bounds(0)
+            sage: p.col_bounds(0)                                               # optional - pyscipopt
             (0.0, None)
-            sage: p.variable_upper_bound(0, 5)
-            sage: p.col_bounds(0)
+            sage: p.variable_upper_bound(0, 5)                                  # optional - pyscipopt
+            sage: p.col_bounds(0)                                               # optional - pyscipopt
             (0.0, 5.0)
 
         TESTS:
 
         :trac:`14581`::
 
-            sage: P = MixedIntegerLinearProgram(solver="SCIP")
-            sage: x = P["x"]
-            sage: P.set_max(x, 0)
-            sage: P.get_max(x)
+            sage: P = MixedIntegerLinearProgram(solver="SCIP")                  # optional - pyscipopt
+            sage: x = P["x"]                                                    # optional - pyscipopt
+            sage: P.set_max(x, 0)                                               # optional - pyscipopt
+            sage: P.get_max(x)                                                  # optional - pyscipopt
             0.0
 
         Check that :trac:`10232` is fixed::
 
-            sage: p = get_solver(solver="SCIP")
-            sage: p.variable_upper_bound(2)
+            sage: p = get_solver(solver="SCIP")                                 # optional - pyscipopt
+            sage: p.variable_upper_bound(2)                                     # optional - pyscipopt
             Traceback (most recent call last):
             ...
             ValueError: The variable's id must satisfy 0 <= id < number_of_variables
@@ -967,9 +967,9 @@ cdef class SCIPBackend(GenericBackend):
             ...
             ValueError: The variable's id must satisfy 0 <= id < number_of_variables
 
-            sage: p.add_variable()
+            sage: p.add_variable()                                              # optional - pyscipopt
             0
-            sage: p.variable_upper_bound(0, 'hey!')
+            sage: p.variable_upper_bound(0, 'hey!')                             # optional - pyscipopt
             Traceback (most recent call last):
             ...
             TypeError: a float is required
@@ -998,41 +998,41 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.add_variable()
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.add_variable()                                              # optional - pyscipopt
             0
-            sage: p.col_bounds(0)
+            sage: p.col_bounds(0)                                               # optional - pyscipopt
             (0.0, None)
-            sage: p.variable_lower_bound(0, 5)
-            sage: p.col_bounds(0)
+            sage: p.variable_lower_bound(0, 5)                                  # optional - pyscipopt
+            sage: p.col_bounds(0)                                               # optional - pyscipopt
             (5.0, None)
 
         TESTS:
 
         :trac:`14581`::
 
-            sage: P = MixedIntegerLinearProgram(solver="SCIP")
-            sage: x = P["x"]
-            sage: P.set_min(x, 5)
-            sage: P.set_min(x, 0)
-            sage: P.get_min(x)
+            sage: P = MixedIntegerLinearProgram(solver="SCIP")                  # optional - pyscipopt
+            sage: x = P["x"]                                                    # optional - pyscipopt
+            sage: P.set_min(x, 5)                                               # optional - pyscipopt
+            sage: P.set_min(x, 0)                                               # optional - pyscipopt
+            sage: P.get_min(x)                                                  # optional - pyscipopt
             0.0
 
         Check that :trac:`10232` is fixed::
 
-            sage: p = get_solver(solver="SCIP")
-            sage: p.variable_lower_bound(2)
+            sage: p = get_solver(solver="SCIP")                                 # optional - pyscipopt
+            sage: p.variable_lower_bound(2)                                     # optional - pyscipopt
             Traceback (most recent call last):
             ...
             ValueError: The variable's id must satisfy 0 <= id < number_of_variables
-            sage: p.variable_lower_bound(3, 5)
+            sage: p.variable_lower_bound(3, 5)                                  # optional - pyscipopt
             Traceback (most recent call last):
             ...
             ValueError: The variable's id must satisfy 0 <= id < number_of_variables
 
-            sage: p.add_variable()
+            sage: p.add_variable()                                              # optional - pyscipopt
             0
-            sage: p.variable_lower_bound(0, 'hey!')
+            sage: p.variable_lower_bound(0, 'hey!')                             # optional - pyscipopt
             Traceback (most recent call last):
             ...
             TypeError: a float is required
@@ -1056,12 +1056,12 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.add_variables(2)
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.add_variables(2)                                            # optional - pyscipopt
             1
-            sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)
-            sage: p.set_objective([2, 5])
-            sage: p.write_cip(os.path.join(SAGE_TMP, "lp_problem.cip"))
+            sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)            # optional - pyscipopt
+            sage: p.set_objective([2, 5])                                       # optional - pyscipopt
+            sage: p.write_cip(os.path.join(SAGE_TMP, "lp_problem.cip"))         # optional - pyscipopt
             wrote original problem to file ...
         """
         self.model.writeProblem(filename)
@@ -1077,12 +1077,12 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.add_variables(2)
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.add_variables(2)                                            # optional - pyscipopt
             1
-            sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)
-            sage: p.set_objective([2, 5])
-            sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))
+            sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)            # optional - pyscipopt
+            sage: p.set_objective([2, 5])                                       # optional - pyscipopt
+            sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))           # optional - pyscipopt
             wrote original problem to file ...
         """
         filenamestr = filename
@@ -1105,12 +1105,12 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "SCIP")
-            sage: p.add_variables(2)
+            sage: p = get_solver(solver = "SCIP")                               # optional - pyscipopt
+            sage: p.add_variables(2)                                            # optional - pyscipopt
             1
-            sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)
-            sage: p.set_objective([2, 5])
-            sage: p.write_mps(os.path.join(SAGE_TMP, "lp_problem.mps"), 2)
+            sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)            # optional - pyscipopt
+            sage: p.set_objective([2, 5])                                       # optional - pyscipopt
+            sage: p.write_mps(os.path.join(SAGE_TMP, "lp_problem.mps"), 2)      # optional - pyscipopt
             wrote original problem to file ...
         """
         filenamestr = filename
@@ -1129,11 +1129,11 @@ cdef class SCIPBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = MixedIntegerLinearProgram(solver = "SCIP")
-            sage: b = p.new_variable()
-            sage: p.add_constraint(b[1] + b[2] <= 6)
-            sage: p.set_objective(b[1] + b[2])
-            sage: copy(p).solve()
+            sage: p = MixedIntegerLinearProgram(solver = "SCIP")                # optional - pyscipopt
+            sage: b = p.new_variable()                                          # optional - pyscipopt
+            sage: p.add_constraint(b[1] + b[2] <= 6)                            # optional - pyscipopt
+            sage: p.set_objective(b[1] + b[2])                                  # optional - pyscipopt
+            sage: copy(p).solve()                                               # optional - pyscipopt
             6.0
         """
         cdef SCIPBackend cp = type(self)(maximization = self.is_maximization())
