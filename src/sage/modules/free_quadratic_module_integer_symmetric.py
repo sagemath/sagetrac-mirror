@@ -906,19 +906,10 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             [1 0]
             [0 1]
         """
-        IM = matrix.block_diagonal([self.inner_product_matrix(),
-                                    M.inner_product_matrix()])
-        ambient = FreeQuadraticModule(ZZ,
-                                      self.degree() + M.degree(), IM)
-        smzero = matrix.zero(self.rank(), M.degree())
-        mszero = matrix.zero(M.rank(), self.degree())
-        basis = self.basis_matrix().augment(smzero).stack(
-                            mszero.augment(M.basis_matrix()))
-        ipm = ambient.inner_product_matrix()
-        return FreeQuadraticModule_integer_symmetric(ambient=ambient,
-                                                     basis=basis,
-                                                     inner_product_matrix=ipm,
-                                                     already_echelonized=False)
+        try:
+            return IntegralLatticeDirectSum([self, M], return_embeddings=True)
+        except ValueError:
+            return super(FreeQuadraticModule_submodule_with_basis_pid, self).direct_sum(M)
 
     def is_primitive(self, M):
         r"""

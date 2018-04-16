@@ -1074,6 +1074,17 @@ class TorsionQuadraticModule(FGP_Module_class):
         """
         return QmodnZ(self._modulus_qf)
 
+    def direct_sum(self, other):
+        r"""
+        """
+        V, fVs, fVo = self.V().direct_sum(other.V())
+        W, _, _ = self.W().direct_sum(other.W())
+        n = len(self.V().gens())
+        T = TorsionQuadraticModule(V, W, modulus=self._modulus)
+        fs = self.hom([T(fVs(g.lift())) for g in self.gens()])
+        fo = other.hom([T(fVo(g.lift())) for g in other.gens()])
+        return T, fs, fo
+
     def orthogonal_types(self, S):
         r"""
 
@@ -1123,6 +1134,47 @@ class TorsionQuadraticModule(FGP_Module_class):
     def orthogonal_group_degenerate(self):
         r"""
         """
+        return
+
+    def all_primitive_modulo(self, H1, H2, G):
+        r"""
+        Return all totally isotropic subgroups S of H1+H2 such that
+        H1 & S = 1 and H2 & S = 1 modulo the subgroup
+        G of the orthogonal group of self
+
+        Algorithm:
+
+        - brute force
+
+        Input:
+
+        - ``H1``, ``H2`` -- subgroups of self
+        - ``G`` - a subgroup of the automorphism group of self.
+        """
+        Oq = self.orthogonal_group()
+        A = Oq.domain()
+        aut = Oq.ambient()
+        H = self.submodule(H1.gens()+H2.gens())
+        extensions = []
+        if len(H.invariants()) > 5:
+            print("this might take a while")
+        for S in H.all_submodules():
+            if S.gram_matrix_quadratic() == 0:
+                if S.V() & H1.V() == self.W() and S.V() & H2.V() == self.W():
+                    extensions.append(S)
+        extensionsg = []
+        for S in extensions:
+            Sg = A.gap().Subgroup([A(self(g)).gap() for g in S.gens()])
+            extensionsg.append(Sg)
+        from sage.libs.gap.libgap import libgap
+        extensionsg = libgap(extensionsg)
+        mu = libgap.function_factory("mu:=function(x,g) return(Image(g,x)); end;")
+        representatives = []
+        for orbit in G.gap().OrbitsDomain(extensionsg, mu):
+            Sg = orbit[0]
+            S = self.submodule([self.linear_combination_of_smith_form_gens(A(g).exponents()) for g in Sg.GeneratorsOfGroup()])
+            representatives.append(S)
+        return representatives
 
 def _Brown_indecomposable(q, p):
     r"""
