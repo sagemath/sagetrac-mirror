@@ -55,6 +55,7 @@ cdef class SCIPBackend(GenericBackend):
         else:
             self.set_sense(-1)
         self.model.hideOutput()
+        self.obj_constant_term = 0.0
 
     cpdef _get_model(self):
         """
@@ -236,7 +237,8 @@ cdef class SCIPBackend(GenericBackend):
         else:
             objexpr = self.model.getObjective()
             var = self.model.getVars()[variable]
-            linfun = sum([e*c for e,c in objexpr.terms.iteritems() if e!=var]) + var*coeff
+            from pyscipopt.scip import quicksum
+            linfun = quicksum([e*c for e,c in objexpr.terms.iteritems() if e!=var]) + var*coeff
             self.model.setObjective(linfun, sense = self.model.getObjectiveSense())
 
     cpdef problem_name(self, char * name = NULL):
@@ -284,8 +286,10 @@ cdef class SCIPBackend(GenericBackend):
         """
         if self.model.getStatus() != 'unknown':
             self.model.freeTransform()
-        linfun = sum([c*x for c,x in zip(coeff, self.model.getVars())]) + d
+        from pyscipopt.scip import quicksum
+        linfun = quicksum([c*x for c,x in zip(coeff, self.model.getVars())]) + d
         self.model.setObjective(linfun, sense = self.model.getObjectiveSense())
+
 
     cpdef set_verbosity(self, int level):
         """
@@ -601,7 +605,7 @@ cdef class SCIPBackend(GenericBackend):
         the result is not optimal. To do this, we try to compute the maximum
         number of disjoint balls (of diameter 1) in a hypercube::
 
-            sage: g = graphs.CubeGraph(9)
+            sage: g = graphs.CubeGraph(4)
             sage: p = MixedIntegerLinearProgram(solver = "SCIP")                # optional - pyscipopt
 
             sage: b = p.new_variable(binary=True)                               # optional - pyscipopt
@@ -615,7 +619,6 @@ cdef class SCIPBackend(GenericBackend):
 
         """
         if (self.model.getStatus() != 'unknown') or (self.model.getStage()>1):
-            #This should actually be self.model.freeReoptSolve, but it seems to fail.
             self.model.freeTransform()
         self.model.optimize()
 
@@ -962,7 +965,7 @@ cdef class SCIPBackend(GenericBackend):
             Traceback (most recent call last):
             ...
             ValueError: The variable's id must satisfy 0 <= id < number_of_variables
-            sage: p.variable_upper_bound(3, 5)
+            sage: p.variable_upper_bound(3, 5)                                  # optional - pyscipopt
             Traceback (most recent call last):
             ...
             ValueError: The variable's id must satisfy 0 <= id < number_of_variables
@@ -1062,7 +1065,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)            # optional - pyscipopt
             sage: p.set_objective([2, 5])                                       # optional - pyscipopt
             sage: p.write_cip(os.path.join(SAGE_TMP, "lp_problem.cip"))         # optional - pyscipopt
-            wrote original problem to file ...
+            wrote problem to file ...
         """
         self.model.writeProblem(filename)
 
@@ -1083,12 +1086,12 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)            # optional - pyscipopt
             sage: p.set_objective([2, 5])                                       # optional - pyscipopt
             sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))           # optional - pyscipopt
-            wrote original problem to file ...
+            wrote problem to file ...
         """
         filenamestr = filename
         fname, fext = splitext(filenamestr)
 
-        if fext.lower() != 'lp':
+        if fext.lower() != '.lp':
             filenamestr = filename + '.lp'
 
         self.model.writeProblem(filenamestr)
@@ -1111,12 +1114,12 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)            # optional - pyscipopt
             sage: p.set_objective([2, 5])                                       # optional - pyscipopt
             sage: p.write_mps(os.path.join(SAGE_TMP, "lp_problem.mps"), 2)      # optional - pyscipopt
-            wrote original problem to file ...
+            wrote problem to file ...
         """
         filenamestr = filename
         fname, fext = splitext(filenamestr)
 
-        if fext.lower() != 'mps':
+        if fext.lower() != '.mps':
             filenamestr = filename + '.mps'
 
         self.model.writeProblem(filenamestr)
