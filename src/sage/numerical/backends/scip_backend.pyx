@@ -605,7 +605,7 @@ cdef class SCIPBackend(GenericBackend):
         the result is not optimal. To do this, we try to compute the maximum
         number of disjoint balls (of diameter 1) in a hypercube::
 
-            sage: g = graphs.CubeGraph(4)
+            sage: g = graphs.CubeGraph(9)
             sage: p = MixedIntegerLinearProgram(solver = "SCIP")                # optional - pyscipopt
 
             sage: b = p.new_variable(binary=True)                               # optional - pyscipopt
