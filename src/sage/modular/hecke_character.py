@@ -229,9 +229,9 @@ class HeckeCharacter(DualAbelianGroupElement):
         if cond == self.modulus():
             return self
         F = cond.number_field()
-        #R = F.ray_class_group(cond)
         H = HeckeCharacterGroup(cond)
-        Rgens = [cond.equivalent_ideal_coprime_to_other(I, self.modulus()) for I in H.ray_class_gens()]
+        Rgens = [cond.equivalent_ideal_coprime_to_other(I, self.modulus())
+                 for I in H.ray_class_gens()]
         return H.element_from_values_on_gens([self(I) for I in Rgens])
 
     def extend(self, m, check=True):
@@ -273,26 +273,24 @@ class HeckeCharacter(DualAbelianGroupElement):
 
     def analytic_conductor(self):
         r"""
-        Return the analytic conductor of this Hecke character; i.e. that appearing in the functional
-        equation of this character's `L`-function.
+        Return the analytic conductor of this Hecke character;
+        i.e. that appearing in the functional equation of this
+        character's `L`-function.
 
-        The analytic conductor of a Hecke character is merely the norm of the finite part of its
-        conductor times the absolute value of the discriminant of the number field which it is over.
+        The analytic conductor of a Hecke character is merely the norm
+        of the finite part of its conductor times the absolute value
+        of the discriminant of the number field which it is over.
 
         EXAMPLES:
 
-        Over a real quadratic field.
-
-        ::
+        Over a real quadratic field::
 
             sage: F.<a> = QuadraticField(5)
             sage: H = HeckeCharacterGroup(F.modulus(F.ideal(a), [0,1]))
             sage: H.gens()[0].analytic_conductor()
             25
 
-        Over an imaginary quadratic field.
-
-        ::
+        Over an imaginary quadratic field::
 
             sage: F.<a> = QuadraticField(-13)
             sage: H = HeckeCharacterGroup(F.ideal(7).modulus())
@@ -308,9 +306,7 @@ class HeckeCharacter(DualAbelianGroupElement):
 
         EXAMPLES:
 
-        Some root numbers over a pure cubic field.
-
-        ::
+        Some root numbers over a pure cubic field ::
 
             sage: F.<a> = NumberField(x^3-3)
             sage: H = HeckeCharacterGroup(F.ideal(5*a).modulus([0]))
@@ -319,9 +315,7 @@ class HeckeCharacter(DualAbelianGroupElement):
             sage: rns
             [1, 1, 1]
 
-        A quadratic character whose root number is not 1.
-
-        ::
+        A quadratic character whose root number is not 1 ::
 
             sage: F.<a> = QuadraticField(-11)
             sage: H = HeckeCharacterGroup(F.modulus(a + 2))
@@ -348,7 +342,7 @@ class HeckeCharacter(DualAbelianGroupElement):
             Is = Idict[n]
             if len(Is) == 0:
                 continue
-            ans[n-1] = sum(self(I) for I in Is)
+            ans[n - 1] = sum(self(I) for I in Is)
         return ans
 
     def Lfunction(self, prec=53):
@@ -365,7 +359,7 @@ class HeckeCharacter(DualAbelianGroupElement):
 
         EXAMPLES:
 
-            A totally odd character of a real quadratic field.
+        A totally odd character of a real quadratic field::
 
             sage: F.<a> = NumberField(x^2 - 5)
             sage: mf = F.modulus(F.ideal(4), [0, 1])
@@ -376,7 +370,7 @@ class HeckeCharacter(DualAbelianGroupElement):
             sage: [L(-n) for n in range(3)]
             [1.00000000000000, 0.000000000000000, 15.0000000000000]
         """
-        #Figure out Gamma factors for more general characters
+        # Figure out Gamma factors for more general characters
         gamma_factors = [0] * self.parent().number_field().degree()
         for i in self.conductor().infinite_part():
             gamma_factors[i] = 1
@@ -394,8 +388,9 @@ class HeckeCharacter(DualAbelianGroupElement):
                 it_worked = True
             except RuntimeError:
                 number_of_allocs += 1
-        L.rename('Hecke L-function of %s'%(self))
+        L.rename('Hecke L-function of %s' % self)
         return L
+
 
 class HeckeCharacterGroup_class(DualAbelianGroup_class):
     r"""
@@ -436,13 +431,11 @@ class HeckeCharacterGroup_class(DualAbelianGroup_class):
     def element_from_values_on_gens(self, vals):
         gens_orders = self.gens_orders()
         if len(vals) != len(gens_orders):
-            raise ValueError("Incorrect number of values specified. %s specified, but needed %s"%(len(vals), len(gens_orders)))
-        exponents = [gens_orders[i].divide_knowing_divisible_by(vals[i].multiplicative_order()) if vals[i] != 1 else ZZ.zero() for i in range(len(gens_orders))]
-        #print "in elem..."
-        #print vals
-        #print gens_orders
-        #print exponents
+            raise ValueError("Incorrect number of values specified. %s specified, but needed %s" % (len(vals), len(gens_orders)))
+        exponents = [gens_orders[i].divide_knowing_divisible_by(vals[i].multiplicative_order()) if vals[i] != 1 else ZZ.zero()
+                     for i in range(len(gens_orders))]
         return self.element_class(self, exponents)
+
     #def _element_constructor_(self, *args, **kwds):
     #    if isinstance(args[0], basestring):
     #        raise TypeError("Wrong type to coerce into HeckeCharacterGroup.")
