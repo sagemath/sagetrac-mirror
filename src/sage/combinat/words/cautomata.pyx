@@ -1630,7 +1630,6 @@ cdef class FastAutomaton:
             -1
             sage: a.succ(2,1)
             3
-
         """
         if i < 0 or i >= self.a.n or j < 0 or j >= self.a.na:
             return -1
