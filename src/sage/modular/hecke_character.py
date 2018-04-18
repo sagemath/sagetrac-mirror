@@ -170,7 +170,7 @@ class HeckeCharacter(DualAbelianGroupElement):
         Uses pari to compute the conductor of this character, i.e. the smallest
         modulus for which this character is defined.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<a> = NumberField(x^3 - 3*x -1)
             sage: H = HeckeCharacterGroup(F.modulus(3, [0,1,2]))
@@ -437,7 +437,7 @@ class HeckeCharacterGroup_class(DualAbelianGroup_class):
         return self.element_class(self, exponents)
 
     #def _element_constructor_(self, *args, **kwds):
-    #    if isinstance(args[0], basestring):
+    #    if isinstance(args[0], (str,  bytes)):
     #        raise TypeError("Wrong type to coerce into HeckeCharacterGroup.")
     #    try:
     #        n = len(args[0])

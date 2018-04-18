@@ -13,11 +13,9 @@ AUTHORS:
 - ??? (???): Initial version
 - Robert Harron (2016-08-15): implemented ray class groups and moduli
 
-EXAMPLES::
+EXAMPLES:
 
-Computations with the class group of a quadratic field.
-
-::
+Computations with the class group of a quadratic field::
 
     sage: K.<a> = NumberField(x^2 + 23)
     sage: H = K.class_group(); H
@@ -52,9 +50,7 @@ Computations with the class group of a quadratic field.
     sage: (O*(2, 1/2*a + 1/2))^3
     Fractional ideal (1/2*a - 3/2)
 
-Computations with an `S`-class group of a quadratic field.
-
-::
+Computations with an `S`-class group of a quadratic field::
 
     sage: K.<a> = QuadraticField(40)
     sage: CS = K.S_class_group(K.primes_above(31)); CS
@@ -72,9 +68,7 @@ Computations with an `S`-class group of a quadratic field.
     sage: c1.order()
     2
 
-Computations with a ray class group of a quadratic field.
-
-::
+Computations with a ray class group of a quadratic field::
 
     sage: F = QuadraticField(40)
     sage: m = F.ideal(3).modulus([0, 1]); m
@@ -104,9 +98,7 @@ Nevertheless, one can be demanded. The returned ideal should be somewhat
     sage: R(R.gen(0).ideal()^2).ideal()
     Fractional ideal (2)
 
-Narrow class groups are implemented via ray class groups.
-
-::
+Narrow class groups are implemented via ray class groups::
 
     sage: F.<a> = QuadraticField(3)
     sage: F.class_group()
@@ -431,11 +423,10 @@ class Modulus(SageObject):
         V = GF(2)**k
         it = _integer_n_tuple_L1_iterator(k)
         while len(beta_is) < k:
-            e = it.next()
-            beta = sum([e[i] * gammas[i] for i in range(k)])
+            e = next(it)
+            beta = sum(e[i] * gammas[i] for i in range(k))
             sbeta = V(self._signs(beta))
             Acols_new = Acols + [sbeta]
-            #beta_is_new = beta_is + [sbeta]
             A = column_matrix(GF(2), Acols_new)
             if A.rank() == len(Acols_new):
                 Acols = Acols_new
