@@ -98,6 +98,10 @@ from __future__ import absolute_import
 import operator
 
 from .infinity import infinity, is_Infinite
+
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 import sage.rings.polynomial.polynomial_element
 import sage.misc.misc
@@ -1075,6 +1079,42 @@ cdef class PowerSeries(AlgebraElement):
             return PowerSeriesRing(IntegerModRing(other), self.variable())(self)
         raise NotImplementedError("Mod on power series ring elements not defined except modulo an integer.")
 
+    def __pow__(self, r, dummy):
+        """
+        EXAMPLES::
+
+            sage: x = QQ[['x']].0
+            sage: f = x^2 + x^4 + O(x^6)
+            sage: f^(1/2)
+            x + 1/2*x^3 + O(x^5)
+            sage: f^7
+            x^14 + 7*x^16 + O(x^18)
+            sage: f^(7/2)
+            x^7 + 7/2*x^9 + O(x^11)
+            sage: h = x^2 + 2*x^4 + x^6
+            sage: h^(1/2)
+            x + x^3
+            sage: O(x^4)^(1/2)
+            O(x^1)
+
+        """
+        right=int(r)
+        if right == r:
+            return super().__pow__(r, dummy)
+
+        try:
+            right=QQ(r)
+        except TypeError:
+            raise ValueError("exponent must be a rational number")
+
+        if self.is_zero():
+            return self.parent()(0).O((self.prec()*right).floor())
+
+        d = right.denominator()
+        n = right.numerator()
+
+        return self.nth_root(d)**n
+
     def shift(self, n):
         r"""
         Return this power series multiplied by the power `t^n`. If
@@ -1183,7 +1223,201 @@ cdef class PowerSeries(AlgebraElement):
             except TypeError:
                 return False
 
-    def sqrt(self, prec=None, extend=False, all=False, name=None):
+    def nth_root(self, n, prec=None, extend=False, all=False, name=None):
+        r"""
+        Raturn the ``n``-th root of self.
+
+        INPUT:
+
+          - ``prec`` - integer (default: None): if not None and the series
+            has infinite precision, truncates series at precision
+            prec.
+
+          - ``extend`` - bool (default: False); if True, return an nth
+            root in an extension ring, if necessary. Otherwise, raise
+            a ValueError if the nth root is not in the base power series
+            ring. For example, if ``extend`` is True the square root of a
+            power series with odd degree leading coefficient is
+            defined as an element of a formal extension ring.
+
+          - ``name`` - string; if ``extend`` is True, you must also specify the print
+            name of the formal nth root.
+
+          - ``all`` - bool (default: False); if True, return a list of all `n`-th
+            roots of self, instead of just one.
+
+        ALGORITHM: Newton's method
+
+        .. MATH::
+
+           x_{i+1} = \frac{1}{n}( (n-1) x_i + \mathrm{self}/{x_i^{n-1}} )
+
+        EXAMPLES::
+
+            sage: K.<t> = PowerSeriesRing(QQ, 't', 5)
+            sage: (t^3).nth_root(3)
+            t
+            sage: (1+t).nth_root(2)
+            1 + 1/2*t - 1/8*t^2 + 1/16*t^3 - 5/128*t^4 + O(t^5)
+            sage: (8+t).nth_root(3)
+            2 + 1/12*t - 1/288*t^2 + 5/20736*t^3 - 5/248832*t^4 + O(t^5)
+            sage: u = (2+t).nth_root(3, prec=2, extend=True, name = 'u')
+            sage: u^3
+            2 + t
+            sage: u.parent()
+            Univariate Quotient Polynomial Ring in alpha over Power Series Ring in t over Rational Field with modulus u^3 - 2 - t
+            sage: K.<t> = PowerSeriesRing(QQ, 't', 50)
+            sage: (1+3*t+3*t^2+t^3).nth_root(3)
+            1 + t
+            sage: (t^3 +3*t^6 + 3*t^9 + t^12).nth_root(3)
+            t + t^4
+            sage: (1 + t + t^2 + 7*t^3).nth_root(3)^3
+            1 + t + t^2 + 7*t^3 + O(t^50)
+            sage: K(0).nth_root(3)
+            0
+            sage: (t^3).nth_root(3)
+            t
+
+        ::
+
+            sage: K.<t> = PowerSeriesRing(QQbar, 2)
+            sage: v = (-1 + t).nth_root(3, all=True); v
+            [0.500000000000000? + 0.866025403784439?*I + (-0.1666666666666667? - 0.2886751345948129?*I)*t + O(t^2),
+             -1 + 1/3*t + O(t^2),
+             0.500000000000000? - 0.866025403784439?*I + (-0.1666666666666667? + 0.2886751345948129?*I)*t + O(t^2)]
+            sage: for a in v: map(lambda x: x.exactify(), a);
+            sage: [a^3 for a in v]
+            [-1 + t + O(t^2), -1 + t + O(t^2), -1 + t + O(t^2)]
+
+        A formal square root::
+
+            sage: K.<t> = PowerSeriesRing(QQ, 5)
+            sage: f = 2*t + t^3 + O(t^4)
+            sage: s = f.nth_root(3, extend=True, name='s')
+            sage: s^3
+            2*t + t^3 + O(t^4)
+            sage: parent(s)
+            Univariate Quotient Polynomial Ring in s over Power Series Ring in t over Rational Field with modulus s^3 - 2*t - t^3 + O(t^4)
+
+        TESTS::
+
+            sage: R.<x> = QQ[[]]
+            sage: (x^10/2).nth_root(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to take the cube root of 1/2 in Rational Field
+
+        AUTHORS:
+
+        - Brent Baccala
+
+        - Robert Bradshaw
+
+        - William Stein
+        """
+        if self.is_zero():
+            if self.prec() == infinity:
+                ans = self._parent(0)
+            else:
+                ans = self._parent(0).O(self.prec()//n)
+            if all:
+                return [ans]
+            else:
+                return ans
+
+        if all and not self.base_ring().is_integral_domain():
+            raise NotImplementedError('all roots not implemented over a non-integral domain')
+
+        formal_root = False
+        u = self.valuation_zero_part()
+
+        if all:
+            if n == 2:
+                roots_of_unity = [1, -1]
+            else:
+                roots_of_unity = u[0].parent()(1).nth_root(n, all=True)
+
+        # TODO, fix underlying element sqrt()
+        # TODO, check if underlying element has sqrt() but not nth_root
+        try:
+            try:
+                s = u[0].nth_root(n, extend=False)
+            except TypeError:
+                s = u[0].nth_root(n)
+        except ValueError:
+            formal_root = True
+        if self.degree() == 0:
+            if not formal_root:
+                a = self.parent()([s], self.prec())
+                if all:
+                    return map(lambda rou: rou*a, roots_of_unity)
+                else:
+                    return a
+
+        val = self.valuation()
+
+        if n == 2:
+            root_str = "square"
+        elif n == 3:
+            root_str = "cube"
+        else:
+            root_str = ZZ(n).ordinal_str()
+
+        if formal_root or val % n != 0:
+            if extend:
+                if name is None:
+                    raise ValueError("the %s root generates an extension, so you must specify the name of the root" % root_str)
+                R = self._parent[name]
+                S = R.quotient(R.gen(0)**n - self, names=name)
+                a = S.gen()
+                if all:
+                    if not self.base_ring().is_integral_domain():
+                        raise NotImplementedError('all roots not implemented over a non-integral domain')
+                    return map(lambda rou: rou*a, roots_of_unity)
+                else:
+                    return a
+            elif formal_root:
+                raise ValueError("unable to take %s root of %s in %s" % (root_str, u[0], u[0].parent()))
+            else:
+                raise ValueError("power series does not have a %s root since its valuation isn't a multiple of %d" % (root_str, n))
+
+
+        pr = self.prec()
+        if pr == infinity:
+            test_exact = True
+            if prec is None:
+                pr = self._parent.default_prec()
+            else:
+                pr = prec
+        else:
+            test_exact = False
+        prec = pr
+
+        R = s.parent()
+        a = self.valuation_zero_part()
+        P = self._parent
+        if not R is P.base_ring():
+            a = a.change_ring(R)
+        frac = ~R(n)
+
+        s = a.parent()([s])
+        for cur_prec in sage.misc.misc.newton_method_sizes(prec)[1:]:
+            (<PowerSeries>s)._prec = cur_prec
+            s = frac * ((n-1)*s + a/s**(n-1))
+
+        ans = s
+        if val != 0:
+            ans *= P.gen(0)**(val/n)
+        if test_exact and ans.degree() < prec/n:
+            if ans**n == self:
+                (<PowerSeries>ans)._prec = infinity
+
+        if all:
+            return map(lambda rou: rou*ans, roots_of_unity)
+        else:
+            return ans
+
+    def sqrt(self, **kwargs):
         r"""
         Return a square root of self.
 
@@ -1206,11 +1440,7 @@ cdef class PowerSeries(AlgebraElement):
           - ``all`` - bool (default: False); if True, return all square
             roots of self, instead of just one.
 
-        ALGORITHM: Newton's method
-
-        .. MATH::
-
-           x_{i+1} = \frac{1}{2}( x_i + \mathrm{self}/x_i )
+        ALGORITHM: See :meth:`.nth_root`.
 
         EXAMPLES::
 
@@ -1226,7 +1456,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: u^2
             2 + t
             sage: u.parent()
-            Univariate Quotient Polynomial Ring in alpha over Power Series Ring in t over Rational Field with modulus x^2 - 2 - t
+            Univariate Quotient Polynomial Ring in alpha over Power Series Ring in t over Rational Field with modulus alpha^2 - 2 - t
             sage: K.<t> = PowerSeriesRing(QQ, 't', 50)
             sage: sqrt(1+2*t+t^2)
             1 + t
@@ -1252,12 +1482,11 @@ cdef class PowerSeries(AlgebraElement):
 
             sage: K.<t> = PowerSeriesRing(QQ, 5)
             sage: f = 2*t + t^3 + O(t^4)
-            sage: s = f.sqrt(extend=True, name='sqrtf'); s
-            sqrtf
+            sage: s = f.sqrt(extend=True, name='sqrtf')
             sage: s^2
             2*t + t^3 + O(t^4)
             sage: parent(s)
-            Univariate Quotient Polynomial Ring in sqrtf over Power Series Ring in t over Rational Field with modulus x^2 - 2*t - t^3 + O(t^4)
+            Univariate Quotient Polynomial Ring in s over Power Series Ring in t over Rational Field with modulus s^2 - 2*t - t^3 + O(t^4)
 
         TESTS::
 
@@ -1265,97 +1494,13 @@ cdef class PowerSeries(AlgebraElement):
             sage: (x^10/2).sqrt()
             Traceback (most recent call last):
             ...
-            ValueError: unable to take the square root of 1/2
+            ValueError: unable to take the square root of 1/2 in Rational Field
 
         AUTHORS:
 
-        - Robert Bradshaw
-
-        - William Stein
+        - Brent Baccala
         """
-        if self.is_zero():
-            ans = self._parent(0).O(self.prec()/2)
-            if all:
-                return [ans]
-            else:
-                return ans
-
-        if all and not self.base_ring().is_integral_domain():
-            raise NotImplementedError('all roots not implemented over a non-integral domain')
-
-        formal_sqrt = False
-        u = self.valuation_zero_part()
-        # TODO, fix underlying element sqrt()
-        try:
-            try:
-                s = u[0].sqrt(extend=False)
-            except TypeError:
-                s = u[0].sqrt()
-        except ValueError:
-            formal_sqrt = True
-        if self.degree() == 0:
-            if not formal_sqrt:
-                a = self.parent()([s], self.prec())
-                if all:
-                    return [a, -a]
-                else:
-                    return a
-
-        val = self.valuation()
-
-        if formal_sqrt or val % 2 == 1:
-            if extend:
-                if name is None:
-                    raise ValueError("the square root generates an extension, so you must specify the name of the square root")
-                R = self._parent['x']
-                S = R.quotient(R([-self,0,1]), names=name)
-                a = S.gen()
-                if all:
-                    if not self.base_ring().is_integral_domain():
-                        raise NotImplementedError('all roots not implemented over a non-integral domain')
-                    return [a, -a]
-                else:
-                    return a
-            elif formal_sqrt:
-                raise ValueError("unable to take the square root of %s" % u[0])
-            else:
-                raise ValueError("power series does not have a square root since it has odd valuation.")
-
-
-        pr = self.prec()
-        if pr == infinity:
-            test_exact = True
-            if prec is None:
-                pr = self._parent.default_prec()
-            else:
-                pr = prec
-        else:
-            test_exact = False
-        prec = pr
-
-        R = s.parent()
-        a = self.valuation_zero_part()
-        P = self._parent
-        if not R is P.base_ring():
-            a = a.change_ring(R)
-        half = ~R(2)
-
-        s = a.parent()([s])
-        for cur_prec in sage.misc.misc.newton_method_sizes(prec)[1:]:
-            (<PowerSeries>s)._prec = cur_prec
-            s = half * (s + a/s)
-
-        ans = s
-        if val != 0:
-            ans *= P.gen(0)**(val/2)
-        if test_exact and ans.degree() < prec/2:
-            if ans*ans == self:
-                (<PowerSeries>ans)._prec = infinity
-
-        if all:
-            return [ans, -ans]  # since over an integral domain
-        else:
-            return ans
+        return self.nth_root(2, **kwargs)
 
     def square_root(self):
         """
