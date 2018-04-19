@@ -506,13 +506,6 @@ Check that :trac:`22202` is fixed::
     sage: a = QQbar.polynomial_root((-4*v + 2)*s + (v - 1/2), CIF(RIF(0.24, 0.26), RIF(0)))
     sage: QQ(a)
     1/4
-
-Check that :trac:`25199` is fixed::
-
-    sage: R.<x> = QQbar[]
-    sage: (1/x).subs({x: 2})
-    1/2
-
 """
 
 from __future__ import absolute_import, print_function, division
@@ -3147,9 +3140,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         # for equality often requires exact computation. (If a==b,
         # then checking a==b requires exact computation unless (a is b).)
 
-        if isinstance(self._descr, ANRational):
-            return hash(self._descr._value)
-        elif self.parent() is AA:
+        if self.parent() is AA:
             return hash((self + AA_hash_offset).interval_exact(RIF))
         else:
             return hash((self + QQbar_hash_offset).interval_exact(CIF))
