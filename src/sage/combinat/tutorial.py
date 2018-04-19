@@ -1418,7 +1418,7 @@ Automata
 Definition automaton
 ^^^^^^^^^^^^^^^^^^^^
 
-It's calling automaton a quintuplet `\mathcal A := (\Sigma,\mathrm{Q},\mathrm{T},\mathrm{I},\mathrm{F})`, where
+It's calling automaton a quintuplet :math:`A := (\Sigma,\mathrm{Q},\mathrm{T},\mathrm{I},\mathrm{F})`, where
 
     - :math:`\Sigma` is a finite set called alphabet
     - :math:`\mathrm{Q}` is a finite set of states
@@ -1440,7 +1440,7 @@ which set of states :math:`\mathrm{Q}` is infinite.
 
     :math:`p \overset{a}{\rightarrow} q  \quad if \quad \left( p, a, q \right) \in \mathrm{T}` .
 
-.. note:: 
+.. note::
 
     For :math:`\Sigma` a alphabet, we note :math:`\Sigma^* := \Sigma^{(\mathbb N)}` the set of finish words. 
     For :math:`u \in \Sigma^{*}`, we note :math:`u^* := \cup_{n \in \mathbb N} = \{ u^n \}^*`.
@@ -1452,12 +1452,12 @@ Automata are represented as graphs whose edges are labeled by letters of the alp
 On the drawings in this section, the initial state is in bold, and the final states are the circles drawn with a double line
 Determinist Automaton can be created in sage by the use of :class:`sage.combinat.words.FastAutomaton` as follow::
 
-    sage:  a = FastAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
-    a.set_final_states([0])
-    a.set_initial_state(0)
-    a.add_edge(0,'(1,0)',1)
+    sage: a = FastAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
+    sage: a.set_final_states([0])
+    sage: a.set_initial_state(0)
+    sage: a.add_edge(0,'(1,0)',1)
     sage: a.plot().show()
-    
+
 .. PLOT::
 
     a = FastAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
@@ -1478,6 +1478,7 @@ Automaton of states \{0, 1, 2, 3, 4\}, alphabet \{(0,0), (0,1), (1,0), (1,1)\} f
 Automaton of states  \{0, 1, 2, 3, 4\},  alphabet \{0, 1, *\}, for inital state \{0\} and finals states \{0\}.
 
 .. PLOT::
+    :scale: 80%
 
     a = FastAutomaton([(0,0,'(0,0)'),(0,1,'(1,1)'),(0,3,'(0,1)'),(0,5,'(1,0)'),(3,4,'(0,1)'),(4,2,'(1,0)'),(2,1,'(1,1)'),(1,5,'(1,0)'),(5,6,'(0,1)'),(6,5,'(0,0)'),(6,5,'(1,1)')])
     a.add_edge(1,'(1,1)',1)
@@ -1493,8 +1494,8 @@ Automaton of states \{0, 1, 2, 3, 4, 5, 6\},  alphabet \{(0,0), (0,1), (1,0), (1
 Language
 ~~~~~~~~
 
-Definition rational language
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Definition: rational language
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :math:`A` automaton-recognized language :math:`A = (\Sigma, Q, T, I, F)` the set :math:`L_A` of words :math:`a_1 \dots a_n \in \Sigma^*` such that there  exists a path
 :math:`\mathrm{I}  \ni q_0 \xrightarrow{a_1} q_1 \xrightarrow{a_2} \dots \dots \xrightarrow{a_{n-1}} q_{n-1} \xrightarrow{a_n} q_n \in \mathrm{F}`
@@ -1517,7 +1518,7 @@ some examples of automaton.
     a.set_initial_state(0)
     sphinx_plot(a)
 
-Automaton recognizing all the numbers written in binaries that are divisible by 3.
+Above Automaton recognizing all the numbers written in binaries that are divisible by 3.
 
 .. PLOT::
 
@@ -1526,8 +1527,7 @@ Automaton recognizing all the numbers written in binaries that are divisible by 
     a.set_initial_state(0)
     sphinx_plot(a)
 
-Automaton recognizing set of words like $a(baa)^n$
-
+Above Automaton recognizing set of words like :math:`a(baa)^n`.
 
 .. PLOT::
 
@@ -1536,12 +1536,11 @@ Automaton recognizing set of words like $a(baa)^n$
     a.set_initial_state(0)
     b= NFastAutomaton(a)
     b.add_edge(0,'l',1)
-
-
     sphinx_plot(a)
 
-Non determinist Automaton recognizing set of words \{lapin, laitue\}, obtained with the followed code and the class :class:`sage.combinat.words.NFastAutomaton` ::
-    
+Above Non determinist Automaton recognizing set of words
+\{lapin, laitue\}, obtained with the followed code and the class :class:`sage.combinat.words.NFastAutomaton`::
+
     sage: a = FastAutomaton([(0,1,'l'),(1,2,'a'),(2,3,'p') ,(3,4,'i'),(4,10,'n'),(0,5,'l'),(5,6,'a'),(6,7,'i'),(7,8,'t'),(8,9,'u'),(9,11,'e') ])
     sage: a.set_final_states([10,11])
     sage: a.set_initial_state(0)
@@ -1549,15 +1548,109 @@ Non determinist Automaton recognizing set of words \{lapin, laitue\}, obtained w
     sage: b.add_edge(0,'l',1)
     sage: b.plot().show()
 
-
-
 Equivalent automata
 ^^^^^^^^^^^^^^^^^^^
 
-Two automata :math:`A` and :math:`A` are equivalent if they reconize the same language  $L_A = L_{A'}$.
+Two automata :math:`A` and :math:`A'` are equivalent if they recognize the same language  $L_A = L_{A'}$.
+Automaton equivalent to the previous one is::
+
+    sage: c = b.determinise()
+    sage: c.plot().show()
+
+.. PLOT::
+
+    a = FastAutomaton([(0,1,'l'),(1,2,'a'),(2,3,'i') ,(3,5,'t'),(5,7,'u'),(7,9,'e'),(2,4,'p'),(4,6,'i'),(6,8,'n') ])
+    a.set_final_states([8,9])
+    a.set_initial_state(0)
+    sphinx_plot(a)
+
+.. note::
+
+    Any automaton is equivalent to a deterministic automaton.
+
+Minimal automata
+^^^^^^^^^^^^^^^^
+
+   A minimal automaton of an automaton :math:`A` is a deterministic automaton :math:`A '`, equivalent to :math:`A`,
+   and having a minimal number of vertices for these properties.
+
+.. note::
+
+   The minimum automaton of a  automaton :math:`A` is unique. Moreover, if the automaton :math:`A` is deterministic
+   and complete, then the minimal automaton is obtained like the quotient of the automaton :math:`A` by an equivalence
+   relation consisting of identifying vertices between them.
+
+The followed determinist Automaton of \{ lapin laitue } is minimal::
+
+    sage: d = c.minimise()
+    sage: c.plot().show()
+
+.. PLOT::
+
+    a = FastAutomaton([(7,6,'l'),(6,5,'a'),(5,1,'i') ,(1,8,'t'),(8,2,'u'),(2,0,'e'),(5,4,'p'),(4,3,'i'),(3,0,'n') ])
+    a.set_final_states([0])
+    a.set_initial_state(7)
+    sphinx_plot(a)
 
 
+Transpose automaton
+^^^^^^^^^^^^^^^^^^^
 
+The transpose automaton of an automaton :math:`A := (\Sigma,\mathrm{Q},\mathrm{T},\mathrm{I},\mathrm{F})` the automaton
+
+.. MATH::
+    A^t := (\Sigma, \mathrm{Q}, \mathrm{T}^t, \mathrm{F}, \mathrm{I})
+    \text{ where } \mathrm{T}^t := \{ (p, a, q) \in \mathrm{Q} \times \Sigma \times \mathrm{Q}  |  (q, a, p) \in \mathrm{T} \}
+
+.. note::
+
+   The language recognized by the transposed automaton :math:`A^t` is the transpose of the recognized language by the
+   initial automaton :math:`A`.
+
+The transposed automaton of \{lapin, laitue\}::
+
+    sage: b = a.transpose()
+    sage: b.plot().show()
+
+.. PLOT::
+
+    a = FastAutomaton([(7,6,'l'),(6,5,'a'),(5,1,'i') ,(1,8,'t'),(8,2,'u'),(2,0,'e'),(5,4,'p'),(4,3,'i'),(3,0,'n') ])
+    a.set_final_states([0])
+    a.set_initial_state(7)
+    b = a.transpose()
+    sphinx_plot(b)
+
+Emonded automaton
+^^^^^^^^^^^^^^^^^
+
+the emonded automaton is the automaton restricted to
+vertices through which a path is  passed from an initial state to a final state.
+An automaton is emonded if it is equal to its emonded.
+
+.. note::
+
+An automaton (possibly infinite) determinist emonded, and with a determinist  transpose is minimal.
+In particular, if it is infinite, the language that it recognizes is not rational::
+
+    sage: a = FastAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
+    sage: a.set_final_states([0])
+    sage: a.set_initial_state(0)
+    sage: a.add_edge(0,'(1,0)',1)
+    sage: b = a.emonde()
+    sage: b.plot().show()
+
+This automaton can be saw below:
+
+.. PLOT::
+
+    a = FastAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
+    a.set_final_states([0])
+    a.set_initial_state(0)
+    a.add_edge(0,'(1,0)',1)
+    b = a.emonde()
+    sphinx_plot(b)
+
+The emonded example automaton.
 
 .. _section-constructions:
 
@@ -1807,7 +1900,7 @@ iterator or non-naive counting::
     M(4, 2, 3),
     M(5, 2, 3)
     in 3-d lattice M
-    sage: L.npoints()                                 # random
+    sage: L.npoints()                    # random
     11
 
 This polytope can be visualized in 3D with ``L.plot3d()`` (see
@@ -2014,9 +2107,9 @@ REFERENCES:
    .. [CMS2012] Alexandre Casamayou, Nathann Cohen, Guillaume Connan, Thierry Dumont, Laurent Fousse, François Maltey, Matthias Meulien, Marc Mezzarobba, Clément Pernet, Nicolas M. Thiéry, Paul Zimmermann
          *Calcul Mathématique avec Sage*
          http://sagebook.gforge.inria.fr/
-   
-   .. [Ca] O. Carton Langages formels, calculabilit\'e et complexit\'e, Chapitre 1, Editions Vuibert, ISBN : 978-2-7117-2077-4.
-      http ://www.liafa.jussieu.fr/∼carton/Lfcc/chap1.pdf
+
+   .. [Ca] O. Carton Langages formels, calculabilitè et complexitè, Chapitre 1, Editions Vuibert, ISBN : 978-2-7117-2077-4.
+         http://www.liafa.jussieu.fr/∼carton/Lfcc/chap1.pdf
 
 .. [1]
    Or at least that should be the case; there are still many corners to
