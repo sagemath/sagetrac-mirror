@@ -1338,12 +1338,19 @@ cdef class PowerSeries(AlgebraElement):
                 roots_of_unity = u[0].parent()(1).nth_root(n, all=True)
 
         # TODO, fix underlying element sqrt()
-        # TODO, check if underlying element has sqrt() but not nth_root
         try:
             try:
                 s = u[0].nth_root(n, extend=False)
             except TypeError:
                 s = u[0].nth_root(n)
+            except AttributeError as e:
+                if n == 2:
+                    try:
+                        s = u[0].sqrt(extend=False)
+                    except TypeError:
+                        s = u[0].sqrt()
+                else:
+                    raise e
         except ValueError:
             formal_root = True
         if self.degree() == 0:
