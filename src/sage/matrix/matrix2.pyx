@@ -197,20 +197,17 @@ cdef class Matrix(Matrix1):
             Traceback (most recent call last):
             ...
             ValueError: number of columns of self must equal number of columns of B
-
-
         """
-        from string import replace
         if is_Vector(B):
             try:
                 return self.transpose().solve_right(B, check=check)
             except ValueError as e:
-                raise ValueError(replace(str(e), 'row', 'column'))
+                raise ValueError(str(e).replace('row', 'column'))
         else:
             try:
                 return self.transpose().solve_right(B.transpose(), check=check).transpose()
             except ValueError as e:
-                raise ValueError(replace(str(e), 'row', 'column'))
+                raise ValueError(str(e).replace('row', 'column'))
 
     def solve_right(self, B, check=True):
         r"""
@@ -449,7 +446,7 @@ cdef class Matrix(Matrix1):
 
     def _solve_right_nonsingular_square(self, B, check_rank=True):
         r"""
-        If self is a matrix `A` of full rank, then this function
+        If ``self`` is a matrix `A` of full rank, then this function
         returns a matrix `X` such that `A X = B`.
 
         .. SEEALSO::
@@ -458,11 +455,9 @@ cdef class Matrix(Matrix1):
 
         INPUT:
 
+        - ``B`` -- a matrix
 
-        -  ``B`` - a matrix
-
-        -  ``check_rank`` - bool (default: True)
-
+        - ``check_rank`` -- boolean (default: ``True``)
 
         OUTPUT: matrix
 
@@ -482,7 +477,8 @@ cdef class Matrix(Matrix1):
             sage: A*X == B
             True
         """
-        D = self.augment(B).echelon_form()
+        D = self.augment(B)
+        D.echelonize()
         return D.matrix_from_columns(range(self.ncols(),D.ncols()))
 
     def pivot_rows(self):
@@ -2586,7 +2582,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES::
 
-            sage: A = MatrixSpace(QQ,2)(['1/2', '1/3', '1/5', '1/7'])
+            sage: A = MatrixSpace(QQ,2)([1/2, 1/3, 1/5, 1/7])
             sage: A.denominator()
             210
 
@@ -3719,7 +3715,6 @@ cdef class Matrix(Matrix1):
 
         - Rob Beezer (2011-02-05)
         """
-        from sage.matrix.constructor import identity_matrix
         R = self.base_ring()
 
         # First: massage keywords
@@ -3772,7 +3767,7 @@ cdef class Matrix(Matrix1):
         if self._ncols == 0 and R.is_integral_domain():
             return self.new_matrix(nrows=0, ncols=self._ncols)
         if self._nrows == 0 and R.is_integral_domain():
-            return identity_matrix(R, self._ncols)
+            return self.matrix_space(self._ncols, self._ncols).identity_matrix()
 
         # Third: generic first, if requested explicitly
         #   then try specialized class methods, and finally
@@ -3815,7 +3810,8 @@ cdef class Matrix(Matrix1):
             return M
         elif basis == 'echelon':
             if not format[:7] == 'echelon':
-                return M.echelon_form()
+                M.echelonize()
+                return M
             else:
                 return M
         elif basis == 'pivot':
@@ -4467,7 +4463,7 @@ cdef class Matrix(Matrix1):
         The integer kernel even makes sense for matrices with fractional
         entries::
 
-            sage: A = MatrixSpace(QQ, 2)(['1/2',0,  0, 0])
+            sage: A = MatrixSpace(QQ, 2)([1/2, 0, 0, 0])
             sage: A.integer_kernel()
             Free module of degree 2 and rank 1 over Integer Ring
             Echelon basis matrix:
@@ -7036,11 +7032,10 @@ cdef class Matrix(Matrix1):
 
         - Rob Beezer (2011-02-02)
         """
-        from sage.matrix.constructor import identity_matrix
         if not subdivide in [True, False]:
             raise TypeError("subdivide must be True or False, not %s" % subdivide)
         R = self.base_ring()
-        ident = identity_matrix(R, self.nrows())
+        ident = self.matrix_space(self.nrows(), self.nrows()).one()
         E = self.augment(ident)
         extended = E.echelon_form(**kwds)
         if subdivide:
@@ -8007,7 +8002,7 @@ cdef class Matrix(Matrix1):
 
         ``None``.  A new subdivision is created between ``top`` and
         ``bottom`` for ``self``.  If possible, column subdivisions are
-        preserved in ``self``, but if the two sets of solumn subdivisions
+        preserved in ``self``, but if the two sets of column subdivisions
         are incompatible, they are removed.
 
         EXAMPLES::
@@ -10741,7 +10736,7 @@ cdef class Matrix(Matrix1):
 
         - Rob Beezer (2011-03-15, 2015-05-25)
         """
-        from sage.matrix.matrix import is_Matrix
+        from sage.structure.element import is_Matrix
 
         if not is_Matrix(other):
             raise TypeError('similarity requires a matrix as an argument, not {0}'.format(other))
@@ -12014,7 +12009,6 @@ cdef class Matrix(Matrix1):
         if format == 'compact':
             return compact
         elif format == 'plu':
-            from sage.matrix.constructor import identity_matrix
             import sage.combinat.permutation
             perm = compact[0]
             M = compact[1].__copy__()
@@ -12024,7 +12018,7 @@ cdef class Matrix(Matrix1):
             zero = F(0)
             perm = [perm[i]+1 for i in range(m)]
             P = sage.combinat.permutation.Permutation(perm).to_matrix()
-            L = identity_matrix(F, m)
+            L = M.matrix_space(m,m).identity_matrix().__copy__()
             for i in range(1, m):
                 for k in range(min(i,d)):
                     L[i,k] = M[i,k]
@@ -14980,28 +14974,6 @@ def decomp_seq(v):
     list.sort(v, key=lambda x: x[0].dimension())
     return Sequence(v, universe=tuple, check=False, cr=True)
 
-def cmp_pivots(x,y):
-    """
-    Compare two sequences of pivot columns.
-
-    - If x is shorter than y, return -1, i.e., x < y, "not as good".
-
-    - If x is longer than y, x > y, "better".
-
-    - If the length is the same then x is better, i.e., x > y if the
-      entries of x are correspondingly >= those of y with one being
-      greater.
-    """
-    if len(x) < len(y):
-        return -1
-    if len(x) > len(y):
-        return 1
-    if x < y:
-        return 1
-    elif x == y:
-        return 0
-    else:
-        return -1
 
 def _choose(Py_ssize_t n, Py_ssize_t t):
     """
@@ -15129,39 +15101,80 @@ def _jordan_form_vector_in_difference(V, W):
 
 def _matrix_power_symbolic(A, n):
     r"""
-    Symbolic matrix power.
+    Return the symbolic `n`-th power `A^n` of the matrix `A`
 
-    This function implements `f(A) = A^n` and relies in the Jordan normal form
-    of `A`, available for exact rings as ``jordan_form()``.
-    See Sec. 1.2 of [Hig2008]_ for further details.
+    This function implements the computation of `A^n` for symbolic `n`,
+    relying on the Jordan normal form of `A`, available for exact rings
+    as :meth:`jordan_form`. See [Hig2008]_, §1.2, for further details.
 
     INPUT:
 
     - ``A`` -- a square matrix over an exact field
 
-    - ``n`` -- the symbolic exponent
+    - ``n`` -- a symbolic exponent
 
     OUTPUT:
 
-    Matrix `A^n` (symbolic).
+    The matrix `A^n` (with symbolic entries involving the exponent).
 
-    EXAMPLES::
+    EXAMPLES:
 
+    General power of a two by two matrix::
+
+        sage: n = SR.var('n')
         sage: A = matrix(QQ, [[2, -1], [1,  0]])
-        sage: n = var('n')
-        sage: A^n
+        sage: B = A^n; B
         [ n + 1     -n]
         [     n -n + 1]
+        sage: all(A^k == B.subs({n: k}) for k in range(8))
+        True
 
-    TESTS::
+    General power of a three by three matrix in Jordan form::
+
+        sage: n = SR.var('n')
+        sage: A = matrix(QQ, 3, [[2, 1, 0], [0, 2, 0], [0, 0, 3]])
+        sage: A
+        [2 1 0]
+        [0 2 0]
+        [0 0 3]
+        sage: B = A^n; B
+        [        2^n 2^(n - 1)*n           0]
+        [          0         2^n           0]
+        [          0           0         3^n]
+        sage: all(A^k == B.subs({n: k}) for k in range(8))
+        True
+
+    General power of a three by three matrix not in Jordan form::
+
+        sage: A = matrix([[4, 1, 2], [0, 2, -4], [0, 1, 6]])
+        sage: A
+        [ 4  1  2]
+        [ 0  2 -4]
+        [ 0  1  6]
+        sage: B = A^n; B
+        [                 4^n          4^(n - 1)*n        2*4^(n - 1)*n]
+        [                   0 -2*4^(n - 1)*n + 4^n       -4*4^(n - 1)*n]
+        [                   0          4^(n - 1)*n  2*4^(n - 1)*n + 4^n]
+        sage: [B.subs({n: k}) for k in range(4)]
+        [
+        [1 0 0]  [ 4  1  2]  [ 16   8  16]  [  64   48   96]
+        [0 1 0]  [ 0  2 -4]  [  0   0 -32]  [   0  -32 -192]
+        [0 0 1], [ 0  1  6], [  0   8  32], [   0   48  160]
+        ]
+        sage: all(A^k == B.subs({n: k}) for k in range(8))
+        True
+
+    TESTS:
 
     Testing exponentiation in the symbolic ring::
 
         sage: n = var('n')
         sage: A = matrix([[pi, e],[0, -2*I]])
-        sage: A^n
-        [                                                              pi^n -(-2*I)^n/(pi*e^(-1) + 2*I*e^(-1)) + pi^n/(pi*e^(-1) + 2*I*e^(-1))]
-        [                                                                 0                                                           (-2*I)^n]
+        sage: (A^n).list()
+        [pi^n,
+         -(-2*I)^n/(pi*e^(-1) + 2*I*e^(-1)) + pi^n/(pi*e^(-1) + 2*I*e^(-1)),
+         0,
+         (-2*I)^n]
 
     If the base ring is inexact, the Jordan normal form is not available::
 
@@ -15181,9 +15194,11 @@ def _matrix_power_symbolic(A, n):
     Check if :trac:`23215` is fixed::
 
         sage: a, b, k = var('a, b, k')
-        sage: matrix(2, [a, b, -b, a])^k
-        [     1/2*(a + I*b)^k + 1/2*(a - I*b)^k -1/2*I*(a + I*b)^k + 1/2*I*(a - I*b)^k]
-        [ 1/2*I*(a + I*b)^k - 1/2*I*(a - I*b)^k      1/2*(a + I*b)^k + 1/2*(a - I*b)^k]
+        sage: (matrix(2, [a, b, -b, a])^k).list()
+        [1/2*(a + I*b)^k + 1/2*(a - I*b)^k,
+         -1/2*I*(a + I*b)^k + 1/2*I*(a - I*b)^k,
+         1/2*I*(a + I*b)^k - 1/2*I*(a - I*b)^k,
+         1/2*(a + I*b)^k + 1/2*(a - I*b)^k]
     """
     from sage.rings.qqbar import AlgebraicNumber
     from sage.matrix.constructor import matrix
@@ -15191,50 +15206,49 @@ def _matrix_power_symbolic(A, n):
     from sage.symbolic.ring import SR
     from sage.rings.qqbar import QQbar
 
-    got_SR = True if A.base_ring() == SR else False
+    got_SR = A.base_ring() == SR
 
-    # transform to QQbar if possible
+    # Change to QQbar if possible
     try:
         A = A.change_ring(QQbar)
     except (TypeError, NotImplementedError):
         pass
 
-    # returns jordan matrix J and invertible matrix P such that A = P*J*~P
-    [J, P] = A.jordan_form(transformation=True)
+    # Get Jordan matrix J and invertible matrix P such that A = P*J*~P
+    # From that, we will compute M = J^n, and obtain A^n = P*J^n*~P
+    J, P = A.jordan_form(transformation=True)
 
-    # the number of Jordan blocks
-    num_jordan_blocks = 1+len(J.subdivisions()[0])
+    # Where each Jordan block starts, and number of blocks
+    block_start = [0] + J.subdivisions()[0]
+    num_blocks = len(block_start)
 
-    # FJ stores the application of f = x^n to the Jordan blocks
-    FJ = matrix(SR, J.ncols())
-    FJ.subdivide(J.subdivisions())
+    # Prepare matrix M to store `J^n`, computed by Jordan block
+    M = matrix(SR, J.ncols())
+    M.subdivide(J.subdivisions())
 
-    for k in range(num_jordan_blocks):
+    for k in range(num_blocks):
 
-        # get Jordan block Jk
+        # Jordan block Jk, its dimension nk, the eigenvalue m
         Jk = J.subdivision(k, k)
+        nk = Jk.ncols()
+        mk = Jk[0,0]
 
-        # dimension of Jordan block Jk
-        mk = Jk.ncols()
+        # First row of block Mk; its entries are of the form
+        # D^i(f) / i! with f = x^n and D = differentiation wrt x
+        if hasattr(mk, 'radical_expression'):
+            mk = mk.radical_expression()
+        vk = [(binomial(n, i) * mk**(n-i)).simplify_full()
+              for i in range(nk)]
 
-        # compute the first row of f(Jk)
-        vk = []
-        for i in range(mk):
-            Jk_ii = Jk[i, i]
-            if hasattr(Jk_ii, 'radical_expression'):
-                Jk_ii = Jk_ii.radical_expression()
+        # Form block Mk and insert it in M
+        Mk = matrix(SR, [[SR.zero()]*i + vk[:nk-i] for i in range(nk)])
+        M.set_block(block_start[k], block_start[k], Mk)
 
-            # corresponds to \frac{D^i(f)}{i!}, with f = x^n and D the differential operator wrt x
-            vk += [(binomial(n, i) * Jk_ii**(n-i)).simplify_full()]
-
-        # insert vk into each row (above the main diagonal)
-        FJ.set_block(k, k, matrix(SR, [[SR.zero()]*i + vk[0:mk-i] for i in range(mk)]))
-
-    # we change the entries of P and P^-1 into symbolic expressions
+    # Change entries of P and P^-1 into symbolic expressions
     if not got_SR:
         Pinv = (~P).apply_map(AlgebraicNumber.radical_expression)
         P = P.apply_map(AlgebraicNumber.radical_expression)
     else:
         Pinv = ~P
 
-    return P * FJ * Pinv
+    return P * M * Pinv
