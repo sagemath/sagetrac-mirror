@@ -8,11 +8,6 @@ PySCIPOpt provides an interface from Python to the SCIP Optimization Suite.
 
 MIT License
 
-== SPKG Maintainers ==
-
-* Matthias Koeppe (original spkg)
-* Moritz Firsching (updates)
-
 == Upstream Contact ==
 
 https://github.com/SCIP-Interfaces/PySCIPOpt
@@ -20,6 +15,4 @@ https://github.com/SCIP-Interfaces/PySCIPOpt
 == Dependencies ==
 
 * scipoptsuite
-
-== Special Update/Build Instructions ==
 

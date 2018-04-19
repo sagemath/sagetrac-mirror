@@ -18,10 +18,6 @@ source code.
 
 http://scip.zib.de/academic.txt
 
-== SPKG Maintainers ==
-
-* Martin Albrecht (original spkg)
-* Matthias Koeppe (updates for new spkg style)
 
 == Upstream Contact ==
 
@@ -29,7 +25,10 @@ http://scip.zib.de/doc/html/AUTHORS.shtml
 
 == Dependencies ==
 
-cmake
+* cmake
+* bliss
+* readline
+* gmp/mpir
 
 == Special Update/Build Instructions ==
 

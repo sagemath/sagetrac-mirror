@@ -2999,7 +2999,6 @@ cdef class MIPVariable(SageObject):
             name=name)
         v = self._p.linear_functions_parent()({j : 1})
         self._p._variables[v] = j
-        #self._p._backend.set_variable_type(j, self._vtype)
         self._dict[i] = v
         return v
 
