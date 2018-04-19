@@ -1095,7 +1095,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: h^(1/2)
             x + x^3
             sage: O(x^4)^(1/2)
-            O(x^1)
+            O(x^2)
 
         """
         right=int(r)
@@ -1265,7 +1265,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: u^3
             2 + t
             sage: u.parent()
-            Univariate Quotient Polynomial Ring in alpha over Power Series Ring in t over Rational Field with modulus u^3 - 2 - t
+            Univariate Quotient Polynomial Ring in u over Power Series Ring in t over Rational Field with modulus u^3 - 2 - t
             sage: K.<t> = PowerSeriesRing(QQ, 't', 50)
             sage: (1+3*t+3*t^2+t^3).nth_root(3)
             1 + t
@@ -1281,11 +1281,14 @@ cdef class PowerSeries(AlgebraElement):
         ::
 
             sage: K.<t> = PowerSeriesRing(QQbar, 2)
-            sage: v = (-1 + t).nth_root(3, all=True); v
+            sage: v = (-1 + t).nth_root(3, all=True)
+            sage: for a in v:
+            ....:     for x in a:
+            ....:         x.exactify()
+            sage: v
             [0.500000000000000? + 0.866025403784439?*I + (-0.1666666666666667? - 0.2886751345948129?*I)*t + O(t^2),
              -1 + 1/3*t + O(t^2),
              0.500000000000000? - 0.866025403784439?*I + (-0.1666666666666667? + 0.2886751345948129?*I)*t + O(t^2)]
-            sage: for a in v: map(lambda x: x.exactify(), a);
             sage: [a^3 for a in v]
             [-1 + t + O(t^2), -1 + t + O(t^2), -1 + t + O(t^2)]
 
@@ -1305,7 +1308,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: (x^10/2).nth_root(3)
             Traceback (most recent call last):
             ...
-            ValueError: unable to take the cube root of 1/2 in Rational Field
+            ValueError: unable to take cube root of 1/2 in Rational Field
 
         AUTHORS:
 
@@ -1489,7 +1492,7 @@ cdef class PowerSeries(AlgebraElement):
 
             sage: K.<t> = PowerSeriesRing(QQ, 5)
             sage: f = 2*t + t^3 + O(t^4)
-            sage: s = f.sqrt(extend=True, name='sqrtf')
+            sage: s = f.sqrt(extend=True, name='s')
             sage: s^2
             2*t + t^3 + O(t^4)
             sage: parent(s)
@@ -1501,7 +1504,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: (x^10/2).sqrt()
             Traceback (most recent call last):
             ...
-            ValueError: unable to take the square root of 1/2 in Rational Field
+            ValueError: unable to take square root of 1/2 in Rational Field
 
         AUTHORS:
 
