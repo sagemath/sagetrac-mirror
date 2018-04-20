@@ -218,17 +218,13 @@ class Modulus(SageObject):
 
         EXAMPLES::
 
-        ::
-
             sage: K = NumberField(x^3 - 2, 'a')
             sage: m1 = K.modulus(K.ideal(2), [0])
             sage: m2 = K.modulus(K.ideal(3), [0])
             sage: m1 * m2
             Fractional ideal (6)
 
-        A higher degree totally real field.
-
-        ::
+        A higher degree totally real field::
 
             sage: K = NumberField(x^5 - x^4 - 4*x^3 + 3*x^2 + 3*x - 1, 'a')
             sage: m1 = K.modulus(K.ideal(5), [2, 3])
@@ -299,7 +295,7 @@ class Modulus(SageObject):
         such that `\beta I` is coprime to the modulus ``other`` and equivalent to
         ``I`` `\mathrm{mod}^\ast m`; in particular, `\beta` will be `1 \mathrm{mod}^\ast m`.
 
-        EXAMPLES::
+        EXAMPLES:
 
         An example with two prime factors difference between this modulus and ``other``.
 
@@ -454,7 +450,7 @@ class Modulus(SageObject):
         of the real places of the number field in Sage and the ordering of the
         underlying pari nf object.
 
-        EXAMPLES::
+        EXAMPLES:
 
         An example where the places in Sage and pari are in a different order.
 
@@ -489,16 +485,14 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
         sage: I.ideal()
         Fractional ideal (2, 1/2*a - 1/2)
 
-        EXAMPLES::
-
-            sage: K.<w>=QuadraticField(-23)
-            sage: OK=K.ring_of_integers()
-            sage: C=OK.class_group()
-            sage: P2a,P2b=[P for P,e in (2*OK).factor()]
-            sage: c = C(P2a); c
-            Fractional ideal class (2, 1/2*w - 1/2)
-            sage: c.gens()
-            (2, 1/2*w - 1/2)
+        sage: K.<w> = QuadraticField(-23)
+        sage: OK = K.ring_of_integers()
+        sage: C = OK.class_group()
+        sage: P2a, P2b = [P for P,e in (2*OK).factor()]
+        sage: c = C(P2a); c
+        Fractional ideal class (2, 1/2*w - 1/2)
+        sage: c.gens()
+        (2, 1/2*w - 1/2)
     """
     def __init__(self, parent, element, ideal=None):
         """
@@ -518,7 +512,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
         r"""
         Return string representation of this fractional ideal class.
 
-         EXAMPLES::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 + 23,'a'); G = K.class_group()
             sage: G(K.ideal(13, a + 4))._repr_()
@@ -666,11 +660,11 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
 
         EXAMPLES::
 
-            sage: K.<w>=QuadraticField(-23)
-            sage: OK=K.ring_of_integers()
-            sage: C=OK.class_group()
-            sage: P2a,P2b=[P for P,e in (2*OK).factor()]
-            sage: c=C(P2a); c
+            sage: K.<w> = QuadraticField(-23)
+            sage: OK = K.ring_of_integers()
+            sage: C = OK.class_group()
+            sage: P2a, P2b = [P for P,e in (2*OK).factor()]
+            sage: c = C(P2a); c
             Fractional ideal class (2, 1/2*w - 1/2)
             sage: c.ideal()
             Fractional ideal (2, 1/2*w - 1/2)
@@ -723,7 +717,6 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
                 return P
         raise RuntimeError("No prime of norm less than %s found in class %s" % (norm_bound, c))
 
-
     def gens(self):
         r"""
         Return generators for a representative ideal in this
@@ -731,16 +724,17 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
 
         EXAMPLES::
 
-            sage: K.<w>=QuadraticField(-23)
+            sage: K.<w> = QuadraticField(-23)
             sage: OK = K.ring_of_integers()
             sage: C = OK.class_group()
-            sage: P2a,P2b=[P for P,e in (2*OK).factor()]
+            sage: P2a, P2b = [P for P,e in (2*OK).factor()]
             sage: c = C(P2a); c
             Fractional ideal class (2, 1/2*w - 1/2)
             sage: c.gens()
             (2, 1/2*w - 1/2)
        """
         return self.ideal().gens()
+
 
 class RayClassGroupElement(AbelianGroupElement):
     #@@def __init__(self, parent, element, ideal=None):
@@ -792,7 +786,7 @@ class RayClassGroupElement(AbelianGroupElement):
         used at each step of computing this representative). Otherwise, the output is just
         the appropriate product of the powers of the generators of the ray class group.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Over a real quadratic field field of class number 1.
 
@@ -865,50 +859,46 @@ class RayClassGroupElement(AbelianGroupElement):
     #    nf = self.parent()._number_field.pari_nf()
     #    return RayClassGroupElement(self.parent(), self.exponents(), nf.idealred(self.value()))
 
+
 class SFractionalIdealClass(FractionalIdealClass):
     r"""
     An S-fractional ideal class in a number field for a tuple of primes S.
 
-        EXAMPLES::
+    EXAMPLES::
 
-            sage: K.<a> = QuadraticField(-14)
-            sage: I = K.ideal(2,a)
-            sage: S = (I,)
-            sage: CS = K.S_class_group(S)
-            sage: J = K.ideal(7,a)
-            sage: G = K.ideal(3,a+1)
-            sage: CS(I)
-            Trivial S-ideal class
-            sage: CS(J)
-            Trivial S-ideal class
-            sage: CS(G)
-            Fractional S-ideal class (3, a + 1)
+        sage: K.<a> = QuadraticField(-14)
+        sage: I = K.ideal(2,a)
+        sage: S = (I,)
+        sage: CS = K.S_class_group(S)
+        sage: J = K.ideal(7,a)
+        sage: G = K.ideal(3,a+1)
+        sage: CS(I)
+        Trivial S-ideal class
+        sage: CS(J)
+        Trivial S-ideal class
+        sage: CS(G)
+        Fractional S-ideal class (3, a + 1)
 
-        EXAMPLES::
+        sage: K.<a> = QuadraticField(-14)
+        sage: I = K.ideal(2,a)
+        sage: S = (I,)
+        sage: CS = K.S_class_group(S)
+        sage: J = K.ideal(7,a)
+        sage: G = K.ideal(3,a+1)
+        sage: CS(I).ideal()
+        Fractional ideal (2, a)
+        sage: CS(J).ideal()
+        Fractional ideal (7, a)
+        sage: CS(G).ideal()
+        Fractional ideal (3, a + 1)
 
-            sage: K.<a> = QuadraticField(-14)
-            sage: I = K.ideal(2,a)
-            sage: S = (I,)
-            sage: CS = K.S_class_group(S)
-            sage: J = K.ideal(7,a)
-            sage: G = K.ideal(3,a+1)
-            sage: CS(I).ideal()
-            Fractional ideal (2, a)
-            sage: CS(J).ideal()
-            Fractional ideal (7, a)
-            sage: CS(G).ideal()
-            Fractional ideal (3, a + 1)
-
-
-        EXAMPLES::
-
-            sage: K.<a> = QuadraticField(-14)
-            sage: I = K.ideal(2,a)
-            sage: S = (I,)
-            sage: CS = K.S_class_group(S)
-            sage: G = K.ideal(3,a+1)
-            sage: CS(G).inverse()
-            Fractional S-ideal class (3, a + 2)
+        sage: K.<a> = QuadraticField(-14)
+        sage: I = K.ideal(2,a)
+        sage: S = (I,)
+        sage: CS = K.S_class_group(S)
+        sage: G = K.ideal(3,a+1)
+        sage: CS(G).inverse()
+        Fractional S-ideal class (3, a + 2)
 
     TESTS::
 
@@ -1253,7 +1243,7 @@ class RayClassGroup(AbelianGroup_class):
 
         - The class field corresponding to the given subgroup, or the ray class field if ``subgroup`` is ``None, as a relative number field.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Class fields of `\QQ(\sqrt{3})`.
 
@@ -1387,6 +1377,7 @@ class RayClassGroup(AbelianGroup_class):
 
     def pari_gens(self):
         return self._bnr[4][2]
+
 
 class SClassGroup(ClassGroup):
     r"""
