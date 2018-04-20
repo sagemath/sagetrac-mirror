@@ -21,7 +21,10 @@ ctypedef Automate Automaton
 
 cdef class FastAutomaton:
     cdef Automate* a
-    cdef list A
+    cdef list A	#alphabet
+    cdef dict dA #dictionnary giving the index in A
+    cdef list S	#states
+    cdef dict dS #dictionnary giving the index in S
     # cdef set_a(self, Automate a)
 
 cdef extern from "Automaton.h":
