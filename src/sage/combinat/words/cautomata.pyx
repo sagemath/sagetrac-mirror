@@ -9,7 +9,7 @@ AUTHORS:
 - Paul Mercat (2013) initial version
 - Dominique Benielli (2018)
   AMU Aix-Marseille Universite - Integration in SageMath
-  
+
 REFERENCES:
 
 .. [Hopcroft] "Around Hopcroft’s Algorithm"  Manuel of BACLET and
@@ -476,8 +476,8 @@ cdef class NFastAutomaton:
 
         EXAMPLES::
                 sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-                sage: #b = NFastAutomaton()
-                sage: #b = b.initialise_automaton(a)
+                sage: b = NFastAutomaton(a)
+                sage: b
                 NFastAutomaton with 4 states and an alphabet of 2 letters
         """
         if type(a) == FastAutomaton:
@@ -487,7 +487,15 @@ cdef class NFastAutomaton:
         return self
 
     def __init__(self, a): # TO DO i=None, final_states=None, A=None
-        # print("init"
+        """
+        TESTS::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=1)
+            sage: b = NFastAutomaton(a)
+
+        """
+        #  print("init"
+
         if a is None:
             pass
         else:
@@ -505,7 +513,7 @@ cdef class NFastAutomaton:
         r"""
         Return a latex representation of the automaton.
 
-        EXAMPLES::
+        TESTS::
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: b = NFastAutomaton(a)
@@ -667,30 +675,70 @@ cdef class NFastAutomaton:
 
     def is_final(self, int i):
         """
-        Return True/False if i state  is/or not  final
+        Return ``True``/``False`` if ``i`` state  is/or not  final
 
         INPUT:
 
         -``i`` -- int state number
+
+        OUTPUT:
+
+        Return ``True``/``False`` if ``i`` state  is/or not  final
+
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'),(1, 2, 'c'), (2, 3, 'b')], i=0)
+            sage: b = NFastAutomaton(a)
+            sage: b.is_final(1)
+            True
         """
         if i >= self.a.n or i < 0:
             raise ValueError("There is no state %s !" % i)
-        return self.a.e[i].final
+        return Bool(self.a.e[i].final)
 
     def is_initial(self, int i):
         """
-        Return True/False if i state  is/or not  initial
+        Return `True``/``False`` if ``i`` state  is/or not  initial
 
         INPUT:
 
         -``i`` -- int state number
+
+        OUTPUT:
+
+        Return ``True``/``False`` if ``i`` state  is/or not  initial
+
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'),(1, 2, 'c'), (2, 3, 'b')], i=0)
+            sage: b = NFastAutomaton(a)
+            sage: b.is_initial(1)
+            False
         """
         if i >= self.a.n or i < 0:
             raise ValueError("There is no state %s !" % i)
-        return self.a.e[i].initial
+        return Bool(self.a.e[i].initial)
 
     @property
     def initial_states(self):
+        """
+        Get the initial state :class:`NFastAutomaton` attribut
+
+        OUTPUT:
+
+        Return the initial state ``i``  of  :class:`NFastAutomaton`
+
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: b = NFastAutomaton(a)
+            sage: b.initial_states
+            []
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')], i=2)
+            sage: b = NFastAutomaton(a)
+            sage: b.initial_states
+            [2]
+        """
         l = []
         for i in range(self.a.n):
             if self.a.e[i].initial:
@@ -698,6 +746,28 @@ cdef class NFastAutomaton:
         return l
 
     def final_states(self):
+        """
+        Indicate all final states
+
+        OUTPUT:
+
+        Return the list of final states
+
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: b = NFastAutomaton(a)
+            sage: b.final_states()
+            [0, 1, 2, 3]
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')], )
+            sage: b = NFastAutomaton(a)
+            sage: b.final_states()
+            [0, 1, 2, 3]
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')], final_states=[0,3])
+            sage: b = NFastAutomaton(a)
+            sage: b.final_states()
+            [0, 3]
+        """
         l = []
         for i in range(self.a.n):
             if self.a.e[i].final:
@@ -706,23 +776,136 @@ cdef class NFastAutomaton:
 
     @property
     def Alphabet(self):
+        """
+        To get the :class:`NFastAutomaton` attribut Alphabet
+
+        OUTPUT:
+
+        Return a the alphabet ``A`` of  :class:`NFastAutomaton`
+
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: b = NFastAutomaton(a)
+            sage: b.Alphabet
+            ['a', 'b']
+
+        """
         return self.A
 
-    def set_initial(self, int e, bool initial=True):
-        if e < 0 or e >= self.a.n:
-            raise ValueError("There is no state %s !" % e)
-        self.a.e[e].initial = initial
+    def set_initial_state(self, int i, bool initial=True):
+        """
+        Set the initial state.
 
-    def add_edge(self, e, f, l):
+        INPUT:
+
+        - ``i` -- int the initial state of the automaton
+        - ``initial`` -- (default: ``True``) in the case is initial
+
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: b = NFastAutomaton(a)
+            sage: b.set_initial_state(2)
+            sage: b.initial_states
+            [2]
+            sage: b.set_initial_state(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: initial state must be a current state : 6 not in [-1, 3]
+
+        """
+        if i < 0 or i >= self.a.n:
+            raise ValueError("initial state must be a current state : " +
+                             "%d not in [-1, %d]" % (i, self.a.n - 1))
+        self.a.e[i].initial = initial
+
+    def add_edge(self, i, l, f):
+        """
+        Add a edge in the automaton
+
+        INPUT:
+
+        - ``i`` -- the first state
+        - ``l`` -- the label of edge
+        - ``f`` -- the second state
+
+
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: b = NFastAutomaton(a)
+            sage: b.add_edge(2,'a',1)
+            sage: b.add_edge(2,'v',1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The letter v doesn't exist.
+            sage: b.add_edge(2,'v',6)
+            Traceback (most recent call last):
+            ValueError: The state  6 doesn't exist.
+            sage: b.add_edge(5,'v',6)
+            Traceback (most recent call last):
+            ValueError: The state  5 doesn't exist.
+
+        """
+        if i >= self.a.n:
+            raise ValueError("The state %s doesn't exist." % i)
+        if f >= self.a.n:
+            raise ValueError("The state  %s doesn't exist." % f)
+        try:
+            k = self.A.index(l)
+        except:
+            # La lettre %s n'existe pas.
+            raise ValueError("The letter %s doesn't exist." % l)
+
         sig_on()
-        AddEdgeN(self.a, e, f, l)
+        AddEdgeN(self.a, i, f, k)
         sig_off()
 
-
     def add_state(self, bool final):
+        """
+        Add a state in the automaton
+
+        INPUT:
+
+        - ``final`` -- boolean indicate if the added state is final
+
+        OUTPUT:
+
+        return the numbers of states
+
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: b = NFastAutomaton(a)
+            sage: b.add_state(True)  # not implemented
+            TypeError                                 Traceback (most recent call last)
+            ...
+            TypeError: 'NotImplementedType' object is not callable
+        """
         raise NotImplemented()
 
     def add_path(self, int e, int f, list li, verb=False):
+        """
+        Add a path between states ``e`` and ``f``
+        of :class:`NFastAutomaton` following ``li``
+
+        INPUT:
+
+        - ``e`` -- int the input state
+        - ``f`` -- int the final state 
+        - ``li`` -- list of states
+        - ``verb`` -- boolean (default: ``False``) fix
+          to ``True`` for activation the verbose mode
+
+
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0,1,'a'), (2,3,'b')], i=2)
+            sage: b = NFastAutomaton(a)
+            sage: b.add_path(1, 2, [1])
+
+        """
         cdef int *l = <int *>malloc(sizeof(int)*len(li));
         for i in range(len(li)):
             l[i] = li[i]
@@ -731,6 +914,26 @@ cdef class NFastAutomaton:
         sig_off()
 
     def determinise(self, puits=False, verb=0):
+        """
+        Determines a non determinist automaton with the same alphabet of ``self``
+
+        INPUT:
+
+        - ``puits``  -- (default: ``False``)
+        - ``verb`` -- boolean (default: ``False``) fix
+          to ``True`` for activation the verbose mode
+
+        OUTPUT:
+
+        Return a non determinist automaton  :class:`NFastAutomaton`
+
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: b = NFastAutomaton(a)
+            sage: b.determinise()
+            FastAutomaton with 2 states and an alphabet of 2 letters
+        """
         cdef Automaton a
         sig_on()
         r = FastAutomaton(None)
@@ -741,6 +944,29 @@ cdef class NFastAutomaton:
         return r
 
     def plot(self, int sx=10, int sy=8, verb=False):
+        """
+        plot a representation of the :class:`FastAutomaton`.
+
+        INPUT:
+
+        - ``sx`` -- int (default: 10)
+        - ``sy`` -- int (default: 8)
+        - ``verb`` -- boolean (default: ``False``) fix
+          to ``True`` for activation the verbose mode
+
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: b = NFastAutomaton(a)
+            sage: g = b.plot().show()
+
+        .. PLOT::
+
+            a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            b = NFastAutomaton(a)
+            sphinx_plot(b)
+
+        """
         cdef char** ll
         cdef int i
         cdef char *file
@@ -787,7 +1013,7 @@ cdef class FastAutomaton:
         FastAutomaton with 4 states and an alphabet of 2 letters
         sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')], final_states=[0,3])
         sage: a
-        FastAutomaton with 4 states and an alphabet of 2 letters   
+        FastAutomaton with 4 states and an alphabet of 2 letters
     """
 
 #    cdef Automaton* a
@@ -873,7 +1099,7 @@ cdef class FastAutomaton:
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: repr(a)
-            'FastAutomaton with 3 states and an alphabet of 2 letters'
+            'FastAutomaton with 4 states and an alphabet of 2 letters'
 
         """
         return "FastAutomaton with %d states and an alphabet of %d letters" % (self.a.n, self.a.na)
@@ -889,8 +1115,7 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: latex(a)
-
+            sage: latex(a)  # indirect doctest
             \documentclass{article}
             \usepackage[x11names, rgb]{xcolor}
             \usepackage[utf8]{inputenc}
@@ -899,17 +1124,17 @@ cdef class FastAutomaton:
             \usepackage{amsmath}
             %
             %
-
+            <BLANKLINE>
             %
-
+            <BLANKLINE>
             %
-
+            <BLANKLINE>
             \begin{document}
             \pagestyle{empty}
             %
             %
             %
-
+            <BLANKLINE>
             \enlargethispage{100cm}
             % Start of code
             % \begin{tikzpicture}[anchor=mid,>=latex',line join=bevel,]
@@ -960,14 +1185,13 @@ cdef class FastAutomaton:
             %
             \end{tikzpicture}
             % End of code
-
+            <BLANKLINE>
             %
             \end{document}
             %
-
-
-
-
+            <BLANKLINE>
+            <BLANKLINE>
+            <BLANKLINE>
         """
         sx = 800
         sy = 600
@@ -1137,7 +1361,7 @@ cdef class FastAutomaton:
 
     def plot(self, int sx=10, int sy=8, vlabels=None, html=False, verb=False):
         """
-        Plot the :class:`FastAutomaton`.
+        Plot the :class:`FastAutomaton`. Draw using the dot command, if installed on the platform.
         
         It is recommanded to install the dot command of the Graphviz package in your system in order to get a nice picture. Otherwise it will draw using the function plot of :class:`Automaton` of Sage.
         
@@ -1146,14 +1370,24 @@ cdef class FastAutomaton:
         - ``sx`` - int (default: 10) - width of the picture
         - ``sy`` - int (default: 8) - height of the picture
         - ``vlabels`` - (default: None) - labels of the vertices
-        - ``html`` - (default: False) - tell if dot should draw vertices in html mode
-        - ``verb`` - (default: False) - active or not the verbose mode
+        - ``html`` - (default: ``False``) - tell if dot should draw vertices in html mode
+        - ``verb`` - (default: ``False``) - active or not the verbose mode
         
+        TESTS::
+
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a.plot()  # random
+            <PIL.PngImagePlugin.PngImageFile image mode=RGBA size=189x147 at 0x7FD4B6D94390>
+
         EXAMPLES::
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: a.plot()
+            sage: a.plot().show()
 
+        .. PLOT::
+
+            a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sphinx_plot(a)
         """
         cdef char *file
         cdef char** ll # labels of edges
@@ -1220,7 +1454,6 @@ cdef class FastAutomaton:
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.Alphabet
             ['a', 'b']
-
         """
         return self.A
 
@@ -1272,7 +1505,7 @@ cdef class FastAutomaton:
 
         INPUT:
 
-        - ``i` -- int the initial state of the automaton
+        - ``i`` -- int the initial state of the automaton
 
         EXAMPLES::
 
@@ -1416,7 +1649,7 @@ cdef class FastAutomaton:
 
     def succ(self, int i, int j):
         """
-        return the successor of state
+        return the successor of state.
 
         INPUT:
 
@@ -1442,7 +1675,7 @@ cdef class FastAutomaton:
     # donne les fils de l'état i
     def succs(self, int i):
         """
-        return lines of state ``i``
+        return lines of state ``i``.
 
         INPUT:
 
@@ -1459,6 +1692,7 @@ cdef class FastAutomaton:
             [1]
             sage: a.succs(4)
             []
+
         """
 #        if i is None:
 #            i = self.a.i
@@ -1708,6 +1942,7 @@ cdef class FastAutomaton:
             deleted States : [ ]
             FastAutomaton with 3 states and an alphabet of 2 letters
             sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b'), (0, 3, 'b')])
+            sage: a.emonde_i(True)
             FastAutomaton with 0 states and an alphabet of 2 letters
         """
         if self.initial_state == -1:
@@ -2102,7 +2337,6 @@ cdef class FastAutomaton:
             3 --0--> 3
             3 --1--> 3
             initial State 2.
-
             [FastAutomaton with 2 states and an alphabet of 1 letters,
              FastAutomaton with 1 states and an alphabet of 1 letters]
 
@@ -2176,10 +2410,10 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage:  a.initial_state
+            sage: a.initial_state
             0
             sage: a.shift1OP(0, verb=True)
-            sage:  a.initial_state
+            sage: a.initial_state
             1
         """
         if self.a.i != -1:
@@ -2201,10 +2435,10 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage:  a.initial_state
+            sage: a.initial_state
             0
             sage: a.shiftOP(0, 2)
-            sage:  a.initial_state
+            sage: a.initial_state
             -1
         """
         for i in range(np):
@@ -2344,7 +2578,7 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: b = NFastAutomaton()
+            sage: b = NFastAutomaton(a)
             sage: a.copyn(b)
             NFastAutomaton with 4 states and an alphabet of 2 letters
         """
@@ -2432,7 +2666,7 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage d = { 'a' : 'a', 'b': 'c', 'c':'c', 'd':'b'}
+            sage: d = { 'a' : 'a', 'b': 'c', 'c':'c', 'd':'b'}
             sage: a.proj(d)
             FastAutomaton with 2 states and an alphabet of 2 letters
         """
@@ -2480,9 +2714,6 @@ cdef class FastAutomaton:
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.proji(0)
             FastAutomaton with 2 states and an alphabet of 2 letters
-            ValueError                                Traceback (most recent call last)
-            ...
-            ValueError: index i 1 must be smaller then label size  1
         """
         d = {}
         for l in self.A:
@@ -2513,8 +2744,8 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage d = { 'a' : 'a', 'b': 'c', 'c':'c', 'd':'b'}
-            sage: a.determinise_proj(0)
+            sage: d = { 'a' : 'a', 'b': 'c', 'c':'c', 'd':'b'}
+            sage: a.determinise_proj(d)
             FastAutomaton with 2 states and an alphabet of 2 letters
         """
         cdef Automaton a
@@ -2557,7 +2788,7 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage d = { 'a' : 'a', 'b': 'c', 'c':'c', 'd':'b'}
+            sage: d = { 'a' : 'a', 'b': 'c', 'c':'c', 'd':'b'}
             sage: b = a.duplicate(d)
             sage: b.Alphabet
             ['a', 'c']
@@ -2597,7 +2828,7 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage d = { 'a' : 'a', 'b': 'c', 'c':'b', 'd':'b'}
+            sage: d = { 'a' : 'a', 'b': 'c', 'c':'b', 'd':'b'}
             sage: a.relabel(d)
             sage: a.Alphabet
             ['a', 'c']
@@ -2676,10 +2907,13 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.a.Alphabet
+            sage: a.Alphabet
             ['a', 'b']
             sage: l = [ 'b', 'c', 'a']
             sage: a.permut_op(l, verb=True)
+            A=['b', 'c', 'a']
+            l=[ 1 -1 0 ]
+            l = [ 1 -1 0 ]
             sage: a.Alphabet
             ['b', 'c', 'a']
 
@@ -2855,6 +3089,7 @@ cdef class FastAutomaton:
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: l = [0, 1]
             sage: a.sub_automaton(l)
+            FastAutomaton with 2 states and an alphabet of 2 letters
             sage: a
             FastAutomaton with 4 states and an alphabet of 2 letters
         """
@@ -2901,20 +3136,20 @@ cdef class FastAutomaton:
             class 0 : 0 1 2 3
             class 1 : 4
             split 1 0...
-            new visited class : 0 (1 parent de 4)
-            re-visited class : 0 (2 parent de 4)
-            re-visited class : 0 (3 parent de 4)
-            new visited class : 1 (4 parent de 4)
+            new visited class : 0 (1 parent of 4)
+            re-visited class : 0 (2 parent of 4)
+            re-visited class : 0 (3 parent of 4)
+            new visited class : 1 (4 parent of 4)
             class 0 : 1 2 3 0
             class 1 : 4
             2 class encountered
             class 0 : l = 0 3 4 = h
             class 1 : l = 4 5 5 = h
             split 1 1...
-            new visited class : 2 (0 parent de 4)
-            new visited class : 0 (1 parent de 4)
-            re-visited class : 0 (3 parent de 4)
-            new visited class : 1 (4 parent de 4)
+            new visited class : 2 (0 parent of 4)
+            new visited class : 0 (1 parent of 4)
+            re-visited class : 0 (3 parent of 4)
+            new visited class : 1 (4 parent of 4)
             class 0 : 1 3 2
             class 1 : 4
             class 2 : 0
@@ -3042,6 +3277,7 @@ cdef class FastAutomaton:
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.delete_vertex_op(2)
+            sage: a
             FastAutomaton with 3 states and an alphabet of 2 letters
 
         """
@@ -3068,6 +3304,7 @@ cdef class FastAutomaton:
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.spectral_radius(only_non_trivial=False, verb=True)
+            minimal Automata : FastAutomaton with 3 states and an alphabet of 2 letters
             3 component strongly connex.
             component with 1 states...
             x
@@ -3431,7 +3668,7 @@ cdef class FastAutomaton:
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: w = ['a', 'b', 'b']
-            sage: a.rec_word2(w)
+            sage: a.rec_word(w)
             False
 
 
@@ -3479,23 +3716,26 @@ cdef class FastAutomaton:
 
         INPUT:
 
-        - ``i`` -- the first state
+        - ``i`` -- int the first state
         - ``l`` -- the label of edge
-        - ``j`` -- the second state
+        - ``j`` -- int  the second state
 
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.add_edge(2,'a',1)
+
             sage: a.add_edge(2,'v',1)
             Traceback (most recent call last):
             ...
             ValueError: The letter v doesn't exist.
-            sage:a.add_edge(2,'v',6)
+            sage: a.add_edge(2,'v',6)
             Traceback (most recent call last):
+            ...
             ValueError: The state  6 doesn't exist.
-            sage:a.add_edge(5,'v',6)
+            sage: a.add_edge(5,'v',6)
             Traceback (most recent call last):
+            ...
             ValueError: The state  5 doesn't exist.
         """
         if i >= self.a.n:
@@ -3567,7 +3807,6 @@ cdef class FastAutomaton:
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.complementaryOP()
-            FastAutomaton with 5 states and an alphabet of 2 letters
 
         """
         self.complete()
@@ -3611,7 +3850,6 @@ cdef class FastAutomaton:
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.complementaryOP()
-            FastAutomaton with 5 states and an alphabet of 2 letters
 
         """
         cdef FastAutomaton b
@@ -3665,7 +3903,7 @@ cdef class FastAutomaton:
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.piece([1])
-            FastAutomaton with 5 states and an alphabet of 2 letters
+            FastAutomaton with 0 states and an alphabet of 2 letters
 
         """
         cdef int* l = <int*>malloc(sizeof(int)*self.a.n)
