@@ -63,6 +63,7 @@ from __future__ import absolute_import, print_function
 from libc.stdint cimport int64_t
 from libc.string cimport strcpy, strlen
 
+from sage.cpython.string cimport char_to_str, str_to_bytes
 from sage.ext.stdsage cimport PY_NEW
 from cysignals.signals cimport sig_check, sig_on, sig_str, sig_off
 from cysignals.memory cimport sig_malloc, sig_free, check_allocarray
@@ -74,7 +75,8 @@ from sage.modules.vector_integer_dense cimport Vector_integer_dense
 from sage.misc.misc import verbose, get_verbose, cputime
 
 from sage.arith.all import previous_prime
-from sage.structure.element cimport Element, generic_power_c
+from sage.arith.power cimport generic_power
+from sage.structure.element cimport Element
 from sage.structure.proof.proof import get_flag as get_proof_flag
 from sage.misc.randstate cimport randstate, current_randstate
 
@@ -304,8 +306,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         Actually it is only necessary that the input can be coerced to a
         list, so the following also works::
 
-            sage: v = reversed(range(4)); type(v)
-            <... 'listreverseiterator'>
+            sage: v = reversed(range(4))
             sage: A(v)
             [3 2]
             [1 0]
@@ -536,7 +537,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             ('1 61 f', 0)
 
         """
-        return self._export_as_string(32)
+        return str_to_bytes(self._export_as_string(32), 'ascii')
 
     cpdef _export_as_string(self, int base=10):
         """
@@ -591,13 +592,13 @@ cdef class Matrix_integer_dense(Matrix_dense):
                     t[1] = <char>0
                     t = t + 1
             sig_off()
-            data = str(s)[:-1]
+            data = char_to_str(s)[:-1]
             sig_free(s)
         return data
 
     def _unpickle(self, data, int version):
         if version == 0:
-            if isinstance(data, str):
+            if isinstance(data, bytes):
                 self._unpickle_version0(data)
             elif isinstance(data, list):
                 self._unpickle_matrix_2x2_version0(data)
@@ -1006,8 +1007,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
                 e = mpz_get_ui((<Integer>n).value)
             else:
                 # it is very likely that the following will never finish except
-                # if self is nilpotent
-                return generic_power_c(self, n, self._parent.one())
+                # if self has only eigenvalues 0, 1 or -1.
+                return generic_power(self, n)
 
         if e == 0:
             return self._parent.identity_matrix()
@@ -1148,6 +1149,10 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
     def charpoly(self, var='x', algorithm=None):
         """
+        .. NOTE::
+
+            The characteristic polynomial is defined as `\det(xI-A)`.
+
         INPUT:
 
 
