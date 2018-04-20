@@ -356,9 +356,10 @@ cdef class FractionFieldElement(FieldElement):
         # This is same algorithm as used for members of QQ
         #cdef long n, d
         n = hash(self.__numerator)
-        d = hash(self.__denominator)
-        if d == 1:
+        if self.__denominator == 1:
             return n
+        d = hash(self.__denominator)
+
         n = n ^ d
         if n == -1:
             return -2
