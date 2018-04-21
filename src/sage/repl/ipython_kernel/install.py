@@ -98,13 +98,26 @@ class SageKernelSpec(object):
             os.remove(link_name)
         except OSError as err:
             if err.errno == errno.EEXIST:
+                # EEXIST should not be possible here. We leave it in here
+                # because the old implementation of this function had it. It's
+                # unclear what this is good for (EEXIST happens during an rmdir
+                # when the directory is not empty, but that's not relevant for
+                # os.remove().)
+                return
+            elif err.errno == errno.EISDIR:
                 # link_name is a directory
                 return
+            elif err.errno == errno.EACCESS:
+                # Permission denied, let the caller know.
+                raise
             elif err.errno == errno.ENOENT:
-                # link_name does not exist
+                # link_name does not exist, no need to delete it.
                 pass
             else:
-                raise
+                # Something that we did not expect happened.
+                # Let's hope for the best, and let symlink fail with an error
+                # that is easier to debug.
+                pass
 
         os.symlink(src, link_name)
 
