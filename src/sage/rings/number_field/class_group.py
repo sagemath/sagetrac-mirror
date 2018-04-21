@@ -329,7 +329,7 @@ class Modulus(SageObject):
         return beta_fixed
 
     def equivalent_ideal_coprime_to_other(self, I, other):
-        """
+        r"""
         Given ``I`` coprime to this modulus `m`, return an ideal `J` such that `J` is coprime
         to the modulus ``other`` and equivalent to ``I`` `\mathrm{mod}^\ast m`.
 
@@ -337,12 +337,12 @@ class Modulus(SageObject):
 
         INPUT:
 
-        - ``I`` -- an ideal relatively prime to this modulus (this is not checked).
+        - ``I`` -- an ideal relatively prime to this modulus (not checked).
         - ``other`` -- some other modulus.
 
         OUTPUT:
 
-        - an ideal coprime to ``other`` and equivalent to ``I`` in the ray class
+        an ideal coprime to ``other`` and equivalent to ``I`` in the ray class
         group modulo this modulus.
         """
         return self.equivalent_coprime_ideal_multiplier(I, other) * I
@@ -374,7 +374,7 @@ class Modulus(SageObject):
                 positive.append(i)
             else:
                 negative.append(i)
-        if len(negative) == 0:
+        if not negative:
             return a
         t = self.get_one_mod_star_finite_with_fixed_signs(positive, negative)
         return t * a
@@ -382,7 +382,6 @@ class Modulus(SageObject):
     def get_one_mod_star_finite_with_fixed_signs(self, positive, negative):
         if len(negative) == 0:
             return self.number_field().one()
-        #positive = tuple(positive)
         negative = tuple(negative)
         try:
             return self._one_mod_star[negative]
