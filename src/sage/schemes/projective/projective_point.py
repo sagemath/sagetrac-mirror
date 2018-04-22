@@ -1012,9 +1012,12 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                 elif f.base_ring() == QQ:
                     f = f.change_ring(K)
                 else:
-                    K, phi, psi, b = K.composite_fields(f.base_ring(), both_maps=True)[0]
-                    P = P.change_ring(K, embedding=phi)
-                    f = f.change_ring(K, embedding=psi)
+                    from sage.rings.number_field.number_field import NumberField
+                    L = NumberField(f.base_ring().defining_polynomial().parent()(K.defining_polynomial()), name='a')
+                    phi2 = K.embeddings(L)[0]
+                    K, phi, psi, b = L.composite_fields(f.base_ring(), both_maps=True)[0]
+                    P = P.change_ring(phi*phi2)
+                    f = f.change_ring(psi)
         else:
             if not K.is_absolute():
                 raise TypeError("must be an absolute field")

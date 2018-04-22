@@ -1836,9 +1836,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 elif f.base_ring() == QQ:
                     f = f.change_ring(K)
                 else:
-                    K, phi, psi, b = K.composite_fields(f.base_ring(), both_maps=True)[0]
-                    Q = Q.change_ring(K, embedding=phi)
-                    f = f.change_ring(K, embedding=psi)
+                    #make variable names match
+                    from sage.rings.number_field.number_field import NumberField
+                    L = NumberField(f.base_ring().defining_polynomial().parent()(K.defining_polynomial()), name='a')
+                    phi2 = K.embeddings(L)[0]
+                    K, phi, psi, b = L.composite_fields(f.base_ring(), both_maps=True)[0]
+                    Q = Q.change_ring(phi*phi2)
+                    f = f.change_ring(psi)
         else:
             if not K.is_absolute():
                 raise TypeError("must be an absolute field")
@@ -2788,6 +2792,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([6*x^2+16*x*y+16*y^2, -3*x^2-4*x*y-4*y^2])
             sage: f.is_postcritically_finite()
             True
+
+        ::
+
+            sage: K.<v> = QuadraticField(-7)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: f = DynamicalSystem([x^3 + v*x*y^2, y^3])
+            sage: fbar = f.change_ring(QQbar)
+            sage: fbar.is_postcritically_finite()
+            False
         """
         #iteration of subschemes not yet implemented
         if self.domain().dimension_relative() > 1:
