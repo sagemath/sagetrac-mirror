@@ -682,17 +682,19 @@ class NumberFieldIdeal(Ideal_generic):
 
     def modulus(self, infinite=None):
         """
-        Return a modulus whose finite part is this ideal and with specified infinite part.
+        Return a modulus whose finite part is this ideal and with
+        specified infinite part.
 
         INPUT:
 
-        - ``infinite`` (default: ``None``) -- A list of indices indicating which real
-        places appear in the modulus. The indices refer to the list returned by
-        :func:`sage.rings.number_field.number_field.places`.
+        - ``infinite`` (default: ``None``) -- A list of indices
+          indicating which real places appear in the modulus. The
+          indices refer to the list returned by
+          :func:`sage.rings.number_field.number_field.places`.
 
         OUTPUT:
 
-        - A :class:`sage.rings.number_field.class_group.Modulus` whose finite part
+        A :class:`sage.rings.number_field.class_group.Modulus` whose finite part
         is given by ``finite`` and whose infinite part is given by ``infinite``.
         The latter being ``None`` is the same as it being empty.
 
@@ -708,8 +710,9 @@ class NumberFieldIdeal(Ideal_generic):
 
         .. TODO::
 
-            Allow infinite to be a list of real places, or even images of the generator
-            of the number field, rather than just their indices like
+            Allow infinite to be a list of real places, or even images
+            of the generator of the number field, rather than just
+            their indices like
             K.ideal(3).modulus(infinite=[K.places()[1]]).
         """
         from .class_group import Modulus
@@ -721,8 +724,8 @@ class NumberFieldIdeal(Ideal_generic):
 
     def reduce_equiv(self, modulus=None):
         """
-        Return a small ideal that is equivalent to this ideal in the class group,
-        or in the ray class group of the given modulus.
+        Return a small ideal that is equivalent to this ideal in the
+        class group, or in the ray class group of the given modulus.
 
         INPUT:
 
@@ -730,24 +733,25 @@ class NumberFieldIdeal(Ideal_generic):
 
         OUTPUT:
 
-        - An ideal that is 'small' in some sense and equivalent to ``self`` in the class group, or
-        the ray class group modulo ``modulus``.
+        An ideal that is 'small' in some sense and equivalent to
+        ``self`` in the class group, or the ray class group modulo
+        ``modulus``.
 
-        When ``modulus`` is ``None``, very often (but not always) if this ideal is principal, then
-        this function returns the unit ideal.
+        When ``modulus`` is ``None``, very often (but not always) if
+        this ideal is principal, then this function returns the unit
+        ideal.
 
-        ALGORITHM: Calls pari's idealred function if ``modulus`` is ``None``, or
-        pari's :func:`sage.libs.pari.gen.idealmoddivisor` otherwise.
+        ALGORITHM: Calls pari's :pari:`idealred` function if
+        ``modulus`` is ``None``, or pari's
+        :func:`sage.libs.pari.gen.idealmoddivisor` otherwise.
 
         .. NOTE::
 
             When ``modulus`` is non-trivial, this may be slow for large input.
 
-        EXAMPLES::
+        EXAMPLES:
 
-        Finding equivalent ideals in the class group.
-
-        ::
+        Finding equivalent ideals in the class group::
 
             sage: K.<w> = NumberField(x^2 + 23)
             sage: I = ideal(w*23^5); I
@@ -759,9 +763,7 @@ class NumberFieldIdeal(Ideal_generic):
             sage: I.reduce_equiv()
             Fractional ideal (2, 1/2*w - 1/2)
 
-        Now, in a ray class group.
-
-        ::
+        Now, in a ray class group::
 
             sage: I.reduce_equiv(K.ideal(3).modulus())
             Fractional ideal (13, 1/2*w + 9/2)

@@ -3216,14 +3216,14 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         INPUT:
 
         - ``finite`` -- An integral ideal of this number field, or something that
-        :func:`ideal` will accept.
+          :func:`ideal` will accept.
         - ``infinite`` (default: ``None``) -- A list of indices indicating which real
-        places appear in the modulus. The indices refer to the list returned by
-        :func:`places`.
+          places appear in the modulus. The indices refer to the list returned by
+          :func:`places`.
 
         OUTPUT:
 
-        - A :class:`sage.rings.number_field.class_group.Modulus` whose finite part
+        A :class:`sage.rings.number_field.class_group.Modulus` whose finite part
         is given by ``finite`` and whose infinite part is given by ``infinite``.
         The latter being ``None`` is the same as it being empty.
 

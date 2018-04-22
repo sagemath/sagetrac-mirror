@@ -172,7 +172,8 @@ class Modulus(SageObject):
         INPUT:
 
         - ``finite`` -- a non-zero fractional ideal in a number field.
-        - ``infinite`` -- a list of indices corresponding to real places of the number field, sorted.
+        - ``infinite`` -- a list of indices corresponding to real places
+          of the number field, sorted.
         - ``check`` (default: True) -- If ``True``, run a few checks on the input.
         """
         self._finite = finite
@@ -770,26 +771,28 @@ class RayClassGroupElement(AbelianGroupElement):
 
     def ideal(self, reduce=True):
         """
-        Return an ideal representing this ray class; if ``reduce`` is True (by default)
-        the returned ideal is reduced to 'small' (this can be slow on large inputs).
+        Return an ideal representing this ray class.
+
+        If ``reduce`` is ``True`` (by default) the returned ideal is
+        reduced to 'small' (this can be slow on large inputs).
 
         INPUT:
 
-        - ``reduce`` -- (default: True) determine whether or not to output a 'small'
-        representative.
+        - ``reduce`` -- (default: ``True``) determine whether or not
+          to output a 'small' representative.
 
         OUTPUT:
 
-        - An ideal representing this ray class. If ``reduce`` is True, the ideal returned
-        is made 'small' by the ideal's ``reduce_equiv`` function (and ``reduce_equiv`` is
-        used at each step of computing this representative). Otherwise, the output is just
-        the appropriate product of the powers of the generators of the ray class group.
+        An ideal representing this ray class. If ``reduce`` is ``True``,
+        the ideal returned is made 'small' by the ideal's
+        ``reduce_equiv`` function (and ``reduce_equiv`` is used at
+        each step of computing this representative). Otherwise, the
+        output is just the appropriate product of the powers of the
+        generators of the ray class group.
 
         EXAMPLES:
 
-        Over a real quadratic field field of class number 1.
-
-        ::
+        Over a real quadratic field field of class number 1::
 
             sage: F.<a> = NumberField(x^2 - 5)
             sage: m = F.ideal(11).modulus([0, 1])
@@ -800,7 +803,7 @@ class RayClassGroupElement(AbelianGroupElement):
             sage: c.ideal(False)
             Fractional ideal (-6242265*a + 1268055)
 
-        Over a real quadratic field of class number 2 ::
+        Over a real quadratic field of class number 2::
 
             sage: F = QuadraticField(40)
             sage: R = F.ray_class_group(F.prime_above(13).modulus([0, 1]))
@@ -1228,25 +1231,30 @@ class RayClassGroup(AbelianGroup_class):
 
     def ray_class_field(self, subgroup=None, names=None, algorithm='stark'):
         r"""
-        Two different algorithms are possible: pari's bnrstark and rnfkummer. The first one uses the Stark conjecture
-        and only deals with totally real extensions of a totally real base field. The second one uses Kummer theory and
-        only deals with extensions of prime degree.
+        Two different algorithms are possible: pari's :pari:`bnrstark` and
+        :pari:`rnfkummer`. The first one uses the Stark conjecture and only
+        deals with totally real extensions of a totally real base
+        field. The second one uses Kummer theory and only deals with
+        extensions of prime degree.
 
         INPUT:
 
-        - algorithm -- (default: ``stark``) if the value is ``stark``, then pari's bnrstark function is tried first, and if that
-        fails, rnfkummer will be attempted. If the value is ``kummer``, then pari's rnfkummer is tried first, with bnrstark as a
-        backup. Using ``stark_only`` or ``kummer_only`` will just raise an exception if the first attempt fails.
+        - algorithm -- (default: ``stark``) if the value is ``stark``,
+          then pari's :pari:`bnrstark` function is tried first, and if that
+          fails, :pari:`rnfkummer` will be attempted. If the value is
+          ``kummer``, then pari's :pari:`rnfkummer` is tried first, with
+          :pari:`bnrstark` as a backup. Using ``stark_only`` or ``kummer_only``
+          will just raise an exception if the first attempt fails.
 
         OUTPUT:
 
-        - The class field corresponding to the given subgroup, or the ray class field if ``subgroup`` is ``None, as a relative number field.
+        The class field corresponding to the given subgroup, or the
+        ray class field if ``subgroup`` is ``None``, as a relative
+        number field.
 
         EXAMPLES:
 
-        Class fields of `\QQ(\sqrt{3})`.
-
-        ::
+        Class fields of `\QQ(\sqrt{3})`::
 
             sage: F.<a> = QuadraticField(3)
             sage: m = F.ideal(7).modulus()
@@ -1262,9 +1270,7 @@ class RayClassGroup(AbelianGroup_class):
             sage: R.ray_class_field(S, names='b')
             Number Field in b with defining polynomial x^2 + (a - 1)*x + 2*a - 4 over its base field
 
-        An example where bnrstark fails, but rnfkummer saves the day.
-
-        ::
+        An example where bnrstark fails, but rnfkummer saves the day::
 
             sage: F.<a> = NumberField(x^8 - 12*x^6 + 36*x^4 - 36*x^2 + 9)
             sage: m = F.ideal(2).modulus()
