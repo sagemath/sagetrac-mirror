@@ -325,7 +325,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
             sage: type(y)
-            <type 'sage.rings.function_field.function_field_element.FunctionFieldElement_polymod'>
+            <... 'sage.rings.function_field.function_field_element.FunctionFieldElement_polymod'>
         """
         FieldElement.__init__(self, parent)
         if reduce:
@@ -345,7 +345,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             sage: f.element()
             1/x^2*y + x/(x^2 + 1)
             sage: type(f.element())
-            <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category.element_class'>
+            <... 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category.element_class'>
         """
         return self._x
 
@@ -538,13 +538,13 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
             sage: t.element()
             t
             sage: type(t.element())
-            <type 'sage.rings.fraction_field_FpT.FpTElement'>
+            <... 'sage.rings.fraction_field_FpT.FpTElement'>
 
             sage: K.<t> = FunctionField(GF(131101))
             sage: t.element()
             t
             sage: type(t.element())
-            <class 'sage.rings.fraction_field_element.FractionFieldElement_1poly_field'>
+            <... 'sage.rings.fraction_field_element.FractionFieldElement_1poly_field'>
         """
         return self._x
 
