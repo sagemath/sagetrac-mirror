@@ -130,6 +130,11 @@ class EuclideanDomains(Category_singleton):
             res.difference_update(units)
             return Sequence(res, universe=self, check=False)
 
+        def _is_irreducible_univariate_polynomial(self, f):
+            if self is not self.fraction_field():
+                return f.content_ideal().is_trivial() and f.change_ring(self.fraction_field()).is_irreducible()
+            return f._is_irreducible_generic()
+
         def _test_euclidean_degree(self, **options):
             r"""
             Test that the assumptions on an Euclidean degree are met.
