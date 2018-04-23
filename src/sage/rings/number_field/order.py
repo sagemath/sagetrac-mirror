@@ -1105,42 +1105,6 @@ class Order(IntegralDomain):
                 elements.append(self(a))
         return elements
 
-##     def absolute_polynomial(self):
-##         """
-##         Returns the absolute polynomial of this order, which is just the absolute polynomial of the number field.
-
-##         EXAMPLES::
-
-##         sage: K.<a, b> = NumberField([x^2 + 1, x^3 + x + 1]); OK = K.maximal_order()
-##         Traceback (most recent call last):
-##         ...
-##         NotImplementedError
-
-##         #sage: OK.absolute_polynomial()
-##         #x^6 + 5*x^4 - 2*x^3 + 4*x^2 + 4*x + 1
-##         """
-##         return self.number_field().absolute_polynomial()
-
-##     def polynomial(self):
-##         """
-##         Returns the polynomial defining the number field that contains self.
-##         """
-##         return self.number_field().polynomial()
-
-##     def polynomial_ntl(self):
-##         """
-##         Return defining polynomial of the parent number field as a
-##         pair, an ntl polynomial and a denominator.
-
-##         This is used mainly to implement some internal arithmetic.
-
-##         EXAMPLES::
-
-##             sage: NumberField(x^2 + 1,'a').maximal_order().polynomial_ntl()
-##             ([1 0 1], 1)
-##         """
-##         return self.number_field().polynomial_ntl()
-
 class AbsoluteOrder(Order):
 
     def __init__(self, K, module_rep, is_maximal=None, check=True):
