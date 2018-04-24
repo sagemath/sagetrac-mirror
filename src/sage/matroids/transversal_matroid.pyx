@@ -127,7 +127,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
             sage: from sage.matroids.transversal_matroid import TransversalMatroid
             sage: M = TransversalMatroid([[],[],[]], groundset=range(3)); M
-            Transversal matroid of rank 0 on 3 elements, with 0 sets.
+            Transversal matroid of rank 0 on 3 elements, with 3 sets.
             sage: sets = [[0, 1, 2, 3, 4], [4, 5]]
             sage: M = TransversalMatroid(sets, groundset=[0, 1, 2, 3])
             Traceback (most recent call last):
@@ -492,7 +492,6 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         D.relabel(vertex_map)
         partition = [list(self._E), self._set_labels_input]
 
-        print(partition) #debugging
         return BipartiteGraph(D, partition=partition)
 
     cpdef _minor(self, contractions, deletions):
