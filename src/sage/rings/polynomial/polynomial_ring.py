@@ -1334,10 +1334,22 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         if degree[0] <= -2:
             raise ValueError("degree should be an integer greater or equal than -1")
 
-        p = self([R.random_element(*args,**kwds) for _ in range(degree[1]+1)])
+        # If the bounds are 0 and 1, the only choice for coefficients is 0
+        if args == (0, 1):
+            return self(0)
 
-        if p.degree() < degree[0]:
-            p += R._random_nonzero_element() * self.gen()**randint(degree[0],degree[1])
+        # Pick a random degree 
+        d = randint(degree[0], degree[1])
+
+        # If degree is -1, return the 0 polynomial
+        if d == -1:
+            return self(0)
+
+        # Pick random coefficients
+        p = self([R.random_element(*args, **kwds) for _ in range(d - 1)])
+
+        # Add non-zero leading coefficient
+        p += R._random_nonzero_element(*args, **kwds) * self.gen() ** d
 
         return p
 
