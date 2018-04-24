@@ -966,9 +966,13 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             of Projective Space of dimension 2 over Rational Field defined by:
               x^2 - y*z
         """
+        from sage.rings.qqbar import QQbar
+        if self.base_ring() == QQbar:
+            #touch them to get exact values or check failes
+            [u.as_number_field_element() for u in v]
         coords = list(v)
         for f in self.defining_polynomials():
-            if f(coords) != 0:   # it must be "!=0" instead of "if f(v)", e.g.,
+            if f(coords) != f.base_ring().zero():   # it must be "!=0" instead of "if f(v)", e.g.,
                                  # because of p-adic base rings.
                 raise TypeError("Coordinates %s do not define a point on %s"%(coords,self))
         try:

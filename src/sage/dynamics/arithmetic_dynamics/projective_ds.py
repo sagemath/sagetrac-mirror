@@ -2613,6 +2613,16 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             [1 0]  [0 w]  [0 1]  [w 0]  [-w - 1      0]  [     0 -w - 1]
             [0 1], [1 0], [1 0], [0 1], [     0      1], [     1      0]
             ]
+
+        TESTS::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem([16*x^2 - 21*y^2, 16*y^2])
+            sage: f.automorphism_group()
+            [
+            [1 0]
+            [0 1]
+            ]
         """
         alg = kwds.get('algorithm', None)
         p = kwds.get('starting_prime', 5)
