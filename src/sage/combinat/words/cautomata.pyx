@@ -491,8 +491,8 @@ cdef class NFastAutomaton:
         TESTS::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=1)
-            sage: b = NFastAutomaton(a)
-
+            sage: NFastAutomaton(a)
+            NFastAutomaton with 4 states and an alphabet of 2 letters
         """
         #  print("init"
 
