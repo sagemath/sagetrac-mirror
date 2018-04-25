@@ -1282,8 +1282,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: R.random_element(6)
             -x^6 + x^5 - x^4 + 4*x^3 - x^2 + x
 
-        If a tuple of two integers is given for the degree argument, a
-        polynomial of degree in between the bound is given::
+        If a tuple of two integers is given for the degree argument, a degree
+        is first uniformly chosen, then a polynomial of that degree is given::
 
             sage: R.random_element(degree=(0,8))
             x^8 + 4*x^7 + 2*x^6 - x^4 + 4*x^3 - 5*x^2 + x + 14
@@ -1334,9 +1334,12 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         if degree[0] <= -2:
             raise ValueError("degree should be an integer greater or equal than -1")
 
-        # If the bounds are 0 and 1, the only choice for coefficients is 0
+        # If coefficients will all be 0, return the 0 polynomial if the degree could be -1, otherwise raise ValueError
         if args == (0, 1):
-            return self(0)
+            if degree[0] == -1:
+                return self(0)
+            else:
+                raise ValueError("Polynomial degree > -1 specified but coefficients will all be 0")
 
         # Pick a random degree 
         d = randint(degree[0], degree[1])
@@ -1347,7 +1350,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         # If degree is 0, return a random constant term
         if d == 0:
-            return self(R.random_element(*args, **kwds))
+            return self(R._random_nonzero_element(*args, **kwds))
 
         # Pick random coefficients
         p = self([R.random_element(*args, **kwds) for _ in range(d)])
