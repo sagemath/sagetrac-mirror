@@ -89,7 +89,7 @@ class SageKernelSpec(object):
             sage: os.listdir(path)
             ['b']
         """
-        if os.path.islink(link_name) and os.path.samefile(src, link_name):
+        if os.path.islink(link_name) and os.path.exists(src) and os.path.samefile(src, link_name):
             # Do not delete and recreate link_name as we might not have the
             # permission to do so.
             return
