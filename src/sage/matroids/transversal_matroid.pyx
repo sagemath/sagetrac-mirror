@@ -613,6 +613,12 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             True
             sage: N == M
             False
+            sage: sets = [[0,1], [], [], [2]]
+            sage: M1 = TransversalMatroid(sets); M1
+            Transversal matroid of rank 2 on 3 elements, with 4 sets.
+            sage: M1.reduce_presentation()
+            Transversal matroid of rank 2 on 3 elements, with 2 sets.
+
 
         ::
 
@@ -634,7 +640,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             5
         """
         element_int_map = {e:i for i,e in enumerate(self._groundset)}
-        if len(self.sets()) == self.full_rank():
+        if (len(self.sets()) == self.full_rank()):
             return self
         else:
             coloops = self.coloops()
@@ -644,6 +650,12 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             # reuse the old set labels
             # this does not respect containment
             labels = N.set_labels()
+            # remove empty sets HERE
+            if [] in sets:
+                indices = [i for i, x in enumerate(sets) if x == []]
+                for i in reversed(indices):
+                    del sets[i]
+                    del labels[i]
             free_labels = set(self._set_labels_input).difference(labels)
             for c in coloops_to_delete:
                 l = free_labels.pop()
