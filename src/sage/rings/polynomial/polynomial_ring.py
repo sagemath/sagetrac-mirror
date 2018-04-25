@@ -1345,8 +1345,12 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         if d == -1:
             return self(0)
 
+        # If degree is 0, return a random constant term
+        if d == 0:
+            return self(R.random_element(*args, **kwds))
+
         # Pick random coefficients
-        p = self([R.random_element(*args, **kwds) for _ in range(d - 1)])
+        p = self([R.random_element(*args, **kwds) for _ in range(d)])
 
         # Add non-zero leading coefficient
         p += R._random_nonzero_element(*args, **kwds) * self.gen() ** d
