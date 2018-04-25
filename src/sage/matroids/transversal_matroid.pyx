@@ -342,7 +342,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             res = False
         # res gets inverted if matroids are deemed different.
         if (left.groundset() == right.groundset() and
-            sorted([sorted(s) for s in left.sets()]) == sorted([sorted(s) for s in right.sets()])):
+            Counter([frozenset(s) for s in left.sets()]) == Counter([frozenset(s) for s in right.sets()])):
             return res
         else:
             return not res
@@ -350,6 +350,9 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
     def __hash__(self):
         r"""
         Return an invariant of the matroid.
+
+        The hash is based on the ground set and an internal Counter of the
+        collection of sets.
 
         This function is called when matroids are added to a set. It is very
         desirable to override it so it can distinguish matroids on the same
@@ -374,7 +377,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             sage: hash(M1) == hash(M3)
             False
         """
-        return hash((self._E, iteritems(self._sets)))
+        return hash((frozenset(self._E), frozenset(iteritems(self._sets))))
 
     cdef __translate_matching(self):
         """
