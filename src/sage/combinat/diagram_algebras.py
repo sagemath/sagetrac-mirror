@@ -683,7 +683,7 @@ class BrauerDiagram(AbstractPartitionDiagram):
         sage: TestSuite(bd).run()
     """
     @staticmethod
-    def __classcall_private__(cls, diag):
+    def __classcall_private__(cls, arg1, arg2=None):
         """
         Normalize input to initialize diagram.
 
@@ -692,15 +692,28 @@ class BrauerDiagram(AbstractPartitionDiagram):
 
         EXAMPLES::
 
-            sage: from sage.combinat.diagram_algebras import BrauerDiagram
+            sage: from sage.combinat.diagram_algebras import BrauerDiagram, BrauerDiagrams
             sage: bd = BrauerDiagram([[1,-1]]); bd
             {{-1, 1}}
             sage: bd.parent()
             Brauer diagrams of order 1
+            sage: BrauerDiagram(BrauerDiagrams(1), [[1,-1]])
+            doctest:...: DeprecationWarning: the usage
+            BrauerDiagram(BrauerDiagrams(k), d) is deprecated, use
+            BrauerDiagrams(k)(d) instead.
+            See https://trac.sagemath.org/25146 for details.
+            {{-1, 1}}
+            sage: BrauerDiagram(BrauerDiagrams(2), [[1,-1]]).parent()
+            Brauer diagrams of order 2
         """
-        order = max(v for p in diag for v in p)
-        BD = BrauerDiagrams(order)
-        return BD(diag)
+        if isinstance(arg1, (BrauerDiagrams)) and arg2 is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(25146, 'the usage BrauerDiagram(BrauerDiagrams(k), d) is deprecated, use BrauerDiagrams(k)(d) instead.')
+            return arg1(arg2)
+        else:
+            order = max(v for p in arg1 for v in p)
+            BD = BrauerDiagrams(order)
+            return BD(arg1)
 
     def check(self):
         r"""
