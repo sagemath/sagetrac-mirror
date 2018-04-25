@@ -2987,17 +2987,18 @@ cdef class FastAutomaton:
         return r
 
     def strongly_connected_components(self, no_trivials=False):
-        """
-        Determine strongly connected components
-
+        r"""
+        Determine a partition into strongly connected components.
+        A strongly connected component is a minimal subset of the set of states such that
+        there is no path going outside of the subset, from a state of the subset to a state of the subset.
+        
         INPUT:
 
-        - ``no_trivials`` -- (default: ``False``) if  components
-          are strongly connected by non trivial links
+        - ``no_trivials`` -- (default: ``False``) If True, do not take into account components without any transition from itself to itself (such component contains only one element).
 
         OUTPUT:
 
-        Return list of list of strongly connected components
+        Return list of strongly connected components
 
         EXAMPLES::
 
@@ -3036,7 +3037,7 @@ cdef class FastAutomaton:
 
         OUTPUT:
 
-        Return list accessible and coaccessible states
+        Return the list of accessible and coaccessible states
 
         EXAMPLES::
 
@@ -3072,12 +3073,12 @@ cdef class FastAutomaton:
 
     def sub_automaton(self, l, verb=False):
         """
-        Compute a sub automaton
+        Compute the sub automaton whose states are given by the list ``l``.
 
         INPUT:
 
          - ``l``  -- list of states to keep
-         - ``verb`` -- boolean (default: ``False``) fix to ``True`` for activation
+         - ``verb`` -- boolean (default: ``False``) fix to ``True`` to activate
           the verbose mode
 
         OUTPUT:
@@ -3100,15 +3101,15 @@ cdef class FastAutomaton:
         sig_off()
         return r
 
-    def minimise(self, verb=False):
+    def minimize(self, verb=False):
         """
-        Compute a minimized automaton
-        minimisation by Hopcroft's algorithm
+        Compute the minimal automaton
+        by Hopcroft's algorithm
         see [Hopcroft]
 
         INPUT:
 
-         - ``verb`` -- boolean (default: ``False``) fix to ``True`` for activation
+         - ``verb`` -- boolean (default: ``False``) fix to ``True`` to activate
            the verbose mode
 
 
@@ -3199,16 +3200,15 @@ cdef class FastAutomaton:
 
     def adjacency_matrix(self, sparse=None):
         """
-        Compute the corresponded adjacency matrix
+        Compute the adjacency matrix of the :class:`FastAutomaton`
 
         INPUT:
 
         - ``sparse`` -- indicate if the return matrix is sparse or not
-          if ``sparse``
 
         OUTPUT:
 
-        Return the corresponded adjacency matrix
+        Return the corresponding adjacency matrix
 
         EXAMPLES::
 
@@ -3241,11 +3241,11 @@ cdef class FastAutomaton:
 
     def delete_vertex(self, int i):
         """
-        Delete vertex with copy
+        Gives a copy of the :class:`FastAutomaton`but without the vertex ``i``.
 
         INPUT:
 
-        - ``i``  -- int number of vertex to remove
+        - ``i``  - int - the vertex to remove
 
         OUTPUT:
 
@@ -3267,7 +3267,7 @@ cdef class FastAutomaton:
 
     def delete_vertex_op(self, int i):
         """
-        Delete vertex
+        Delete vertex ``i`` on place.
 
         INPUT:
 
@@ -3287,13 +3287,12 @@ cdef class FastAutomaton:
 
     def spectral_radius(self, only_non_trivial=False, verb=False):
         """
-        Return spectral radius of strongly connex component
+        Return the spectral radius of the underlying graph.
 
         INPUT:
 
-        - ``only_non_trivial``  -- (default: ``False``) if non trivial spectral
-          radius is required
-        - ``verb`` -- boolean (default: ``False``) fix to ``True`` for activation
+        - ``only_non_trivial``  - (default: ``False``) - if True, don't take into account strongly connected components of cardinality one.
+        - ``verb`` - boolean (default: ``False``) - fix to ``True`` to activate
           the verbose mode
 
         OUTPUT:
@@ -3381,8 +3380,8 @@ cdef class FastAutomaton:
         return r
 
     def has_empty_langage(self):
-        """
-        Test if the  :class:`FastAutomaton` has a empty language
+        r"""
+        Test if the  :class:`FastAutomaton` has an empty language.
 
         OUTPUT:
 
@@ -3403,16 +3402,15 @@ cdef class FastAutomaton:
 
     def equals_langages(self, FastAutomaton a2, minimized=False, emonded=False, verb=False):
         """
-        Test if the  :class:`FastAutomaton` language are equal or not to
-        :class:`FastAutomaton`  ``a2``
+        Test if the languages of :class:`FastAutomaton` ``self`` and ``a2`` are equal or not.
 
         INPUT:
 
-        - ``a2``  -- the :class:`Fastautomaton` to compare
+        - ``a2``  -- the :class:`FastAutomaton` to compare
         - ``minimized``  -- (default: ``False``) if minimization is
           required or not
-        - ``emonded``  -- (default: ``False``) if emaondation if require or not
-        - ``verb`` -- boolean (default: ``False``) fix to ``True`` for activation
+        - ``emonded``  -- (default: ``False``) if emondation is required or not
+        - ``verb`` -- boolean (default: ``False``) fix to ``True`` to activate
           the verbose mode
 
         OUTPUT:
@@ -3466,8 +3464,7 @@ cdef class FastAutomaton:
 
     def intersect(self, FastAutomaton a2, bool verb=False):
         """
-        Compute if the  :class:`FastAutomaton` element  intersert
-        :class:`FastAutomaton` ``a2``
+        Determine if the languages of the :class:`FastAutomaton` ``self`` and ``a2`` have a non-empty intersection.
 
         INPUT:
 
@@ -3477,8 +3474,7 @@ cdef class FastAutomaton:
 
         OUTPUT:
 
-        Return ``True`` if the both :class:`FastAutomaton` have
-        intersection ``False`` if not
+        Return ``True`` if the intersection of the languages is non-empty, return ``False`` otherwise.
 
         EXAMPLES::
 
@@ -3510,7 +3506,7 @@ cdef class FastAutomaton:
 
     def find_word(self, bool verb=False):
         """
-        Find a word of the language of the automaton
+        Find a word in the language of the automaton
 
         INPUT:
 
@@ -3518,7 +3514,7 @@ cdef class FastAutomaton:
 
         OUTPUT:
 
-        return a word of the language of Automaton as list of letters
+        return a word of the language of the Automaton as list of letters
 
         EXAMPLES::
 
@@ -3542,7 +3538,7 @@ cdef class FastAutomaton:
 
     def shortest_word(self, i=None, f=None, bool verb=False):
         """
-        Compute the shortest words of the automaton
+        Compute a shortest words of the automaton
 
         INPUT:
 
@@ -3552,7 +3548,7 @@ cdef class FastAutomaton:
 
         OUTPUT:
 
-        return a list of word
+        return a word, as list of letters
 
         EXAMPLES::
 
@@ -3589,7 +3585,7 @@ cdef class FastAutomaton:
 
         OUTPUT:
 
-        return 1 if the word is recognized (i.e. 0)
+        return a list of words, as a list of list of letters.
 
         EXAMPLES::
 
@@ -3629,7 +3625,7 @@ cdef class FastAutomaton:
 
         OUTPUT:
 
-        return 1 if the word is recognized (i.e. 0)
+        return 1 if the word is recognized, otherwise 0
 
         EXAMPLES::
 
@@ -3662,7 +3658,7 @@ cdef class FastAutomaton:
 
         OUTPUT:
 
-        return ``True`` if the word is recognized (i.e. ``False``)
+        return ``True`` if the word is recognized, otherwise ``False``
 
         EXAMPLES::
 
@@ -3695,7 +3691,7 @@ cdef class FastAutomaton:
 
         OUTPUT:
 
-        return the numbers of states
+        return the new state (which is an integer)
 
         EXAMPLES::
 
@@ -3712,13 +3708,13 @@ cdef class FastAutomaton:
 
     def add_edge(self, int i, l, int j):
         """
-        Add a edge in the automaton
+        Add an edge in the automaton
 
         INPUT:
 
-        - ``i`` -- int the first state
+        - ``i`` - int - the first state
         - ``l`` -- the label of edge
-        - ``j`` -- int  the second state
+        - ``j`` - int - the second state
 
         EXAMPLES::
 
@@ -3768,15 +3764,15 @@ cdef class FastAutomaton:
 
     def bigger_alphabet(self, nA):
         """
-        Computes new automaton :class:`FastAutomaton` with a bigger alphabet
+        Gives a copy of the :class:`FastAutomaton`, but with the bigger alphabet ``nA``
 
         INPUT:
 
-        - ``na`` --  number of letter for the new automaton
+        - ``nA`` --  Alphabet of the new automaton. We assume that it contains the current alphabet of the automaton.
 
         OUTPUT:
 
-        return a :class:`FastAutomaton` with a bigger alphabet of ``nA`` letters
+        return a :class:`FastAutomaton` with a bigger alphabet ``nA``
 
         EXAMPLES::
 
@@ -3797,11 +3793,12 @@ cdef class FastAutomaton:
 
     def complementaryOP(self):
         """
-        Return the complementary automaton (with no copy erase ``self``).
+        Change the language of the automaton to the complementary.
 
         OUTPUT:
 
-        return  a new automaton complementary of ``seff``
+        return None
+        (the operation is on place)
 
         EXAMPLES::
 
@@ -3816,11 +3813,11 @@ cdef class FastAutomaton:
 
     def complementary(self):
         """
-        Computes the complementary automaton with copy.
+        Gives an automaton whose language is the complementary.
 
         OUTPUT:
 
-        return  a new automaton complementary of ``seff``
+        return  a new automaton whose language is the complementary of the language of ``self``
 
         EXAMPLES::
 
@@ -3833,18 +3830,19 @@ cdef class FastAutomaton:
         return a
 
     def included(self, FastAutomaton a, bool verb=False, emonded=False):
-        """
-        test if automaton ``a`` is included
+        r"""
+        Test if the language of self is included in the language of ``a``
 
         INPUT:
 
-        - ``a`` --  a :class:`FastAutomaton` to test
+        - ``a`` --  a :class:`FastAutomaton`
         - ``verb`` -- (default: False) verbose parameter
-        - ``emonded`` -- (default: False) emandation parameter
+        - ``emonded`` -- (default: False) set to True if the automaton is already emonded, in order to avoid unuseful computation.
 
         OUTPUT:
 
-        return  ``True`` if automaton ``a`` is included (i.e. ``False`` if not)
+        return  ``True`` if the language of ``self`` is included in the language of ``a``
+        return    ``False`` otherwise
 
         EXAMPLES::
 
@@ -3930,7 +3928,7 @@ cdef class FastAutomaton:
 
         OUTPUT:
 
-        return ``True``  if automaton is empty or ``False`` is not
+        return ``True`` if the language of the automaton is empty, ``False`` otherwise
 
         EXAMPLES::
 
@@ -3942,17 +3940,18 @@ cdef class FastAutomaton:
         return (self.find_word() is None)
 
     def random_word(self, nmin=-1, nmax=100):
-        """
-        return a random word
+        r"""
+        Return a random word recognized by the automaton, by following a random path in the automaton from the initial state. If we don't fall into the set of final states before reaching the maximal length ``nmax``, then return ``word not found !``.
 
         INPUT:
 
-        - ``nmin`` -- (default: -1) n min value
-        - ``nmax`` -- (default: 100) n max value
+        - ``nmin`` -- (default: -1) minimal length of the word
+        - ``nmax`` -- (default: 100) maximal length of the word
 
         OUTPUT:
 
-        return a random word
+        Return a random word of length between ``nmin``and ``nmax`` if found.
+        Otherwise return ``word not found !``.
 
         EXAMPLES::
 
