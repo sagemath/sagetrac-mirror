@@ -1337,7 +1337,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         # If coefficients will all be 0, return the 0 polynomial if the degree could be -1, otherwise raise ValueError
         if args == (0, 1):
             if degree[0] == -1:
-                return self(0)
+                return self.zero()
             else:
                 raise ValueError("Polynomial degree > -1 specified but coefficients will all be 0")
 
@@ -1346,7 +1346,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         # If degree is -1, return the 0 polynomial
         if d == -1:
-            return self(0)
+            return self.zero()
 
         # If degree is 0, return a random constant term
         if d == 0:
