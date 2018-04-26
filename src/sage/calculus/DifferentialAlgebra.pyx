@@ -276,7 +276,7 @@ EXAMPLE:
 #******************************************************************************
 
 # To avoid eval ('1/7') giving 0, use eval (preparse (...))
-from sage.misc.preparser import preparse
+from sage.repl.preparse import preparse
 from sage.calculus.var import function
 
 # __all__ = (DifferentialRing, RegularDifferentialChain, BaseFieldExtension)
