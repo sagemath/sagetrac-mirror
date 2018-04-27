@@ -1341,7 +1341,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             if degree[0] == -1:
                 return self.zero()
             else:
-                raise ValueError("No nonzero polynomial has all coefficients zero")
+                raise ValueError("No polynomial of degree >= 0 has all coefficients zero")
 
         # Pick a random degree 
         d = randint(degree[0], degree[1])
