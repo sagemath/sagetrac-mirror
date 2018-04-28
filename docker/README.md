@@ -23,7 +23,7 @@ There are several flavours of this image.
     ```
     You can start a graphical [Jupyter Notebook](https://jupyter.org) at http://localhost:8888 instead. To use the notebook, follow the instructions printed when you run:
     ```
-    docker run -p8888:8888 sagemath/sagemath:latest "sage -n jupyter --no-browser --ip='*' --port=8888"
+    docker run -p8888:8888 sagemath/sagemath:latest sage-jupyter
     ```
 * [`sagemath/sagemath-dev`![image size](https://img.shields.io/microbadger/image-size/sagemath/sagemath-dev:develop.svg)](https://hub.docker.com/sagemath/sagemath-dev) contains all the build artifacts to rebuild Sage quickly. This version is probably only relevant for Sage developers. Run this image with:
     ```
@@ -31,7 +31,7 @@ There are several flavours of this image.
     ```
     This triggers a rebuild and drops you in a shell afterwards. Note that the git repository has been emptied to save space. If you want to use git, fetch from your git repository with `git fetch trac` and go to the commit that was used to create this image with
     ```
-    git reset $(cat docker/commit)
+    git reset $(cat docker/.commit)
     ```
 
 # How to build your own SageMath images
@@ -50,3 +50,5 @@ Have a look at `.circleci/` and `.gitlab-ci.yml` if you want to setup either con
 # License
 
 The whole Sage software distribution is licensed under the General Public License, version 3. More details can be found in our [COPYING.txt](https://github.com/sagemath/sage/blob/master/COPYING.txt)
+
+[//]: # (Please don't break long lines in this files as dockerhub then gets the formatting of this file wrong.)

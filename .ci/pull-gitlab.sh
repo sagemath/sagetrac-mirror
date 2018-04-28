@@ -20,14 +20,11 @@
 
 set -ex
 
-[[ -z "$DOCKER_TAG" ]] && (echo "Can not pull untagged build."; exit 0)
-[[ "$DOCKER_TAG" = "master" ]] && DOCKER_TAG=latest
-
 # Pull the built images from the gitlab registry and give them the original
 # names they had after built.
 # Note that "set -x" prints the $CI_BUILD_TOKEN here but GitLab removes it
 # automatically from the log output.
 docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
 docker pull $CI_REGISTRY_IMAGE/$1:$DOCKER_TAG
-DOCKER_IMAGE="${DOCKER_USER:-sagemath}/$1:$DOCKER_TAG"
+export DOCKER_IMAGE="${DOCKER_USER:-sagemath}/$1:$DOCKER_TAG"
 docker tag $CI_REGISTRY_IMAGE/$1:$DOCKER_TAG $DOCKER_IMAGE

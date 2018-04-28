@@ -5,7 +5,7 @@
 # created docker images, see the README.md please.                             #
 #                                                                              #
 # This Dockerfile builds sagemath (for end-users) and sagemath-dev (for        #
-# developers) it consists of lots of intermediate targets, mostly to shrink    #
+# developers.) It consists of lots of intermediate targets, mostly to shrink   #
 # the resulting images but also to make this hopefully easier to maintain.     #
 # The aims of this Dockerfile are:                                             #
 # (1) Make it build in reasonable time.                                        #
@@ -29,8 +29,8 @@
 ################################################################################
 # If you don't mind downloading a 2GB docker image from time to time, you      #
 # could use this file for local Sage development. As of early 2018 each build  #
-# takes about five minutes but you don't have to through the sadly frequent    #
-# rebuilds of Sage the whole Sage distribution...                              #
+# takes about five minutes but you don't have to go through the sadly frequent #
+# rebuilds the whole Sage distribution...                                      #
 # To build Sage, run this command from your sage/ directory:                   #
 # $ docker build --build-arg MAKE="make -j4" --build-arg ARTIFACT_BASE="sagemath/sagemath-dev:develop" -f docker/Dockerfile --target=make-build --tag sage .
 # To run Sage:                                                                 #
@@ -58,10 +58,11 @@ RUN ln -s "$SAGE_ROOT/sage" /usr/bin/sage
 RUN ln -s /usr/bin/sage /usr/bin/sagemath
 # Sage needs the fortran libraries at run-time because we do not build gfortran
 # with Sage but use the system's.
+# We need gcc/g++ and libstdc++-5-dev to allow compilation of cython at run-time from the notebook.
 # We also install sudo for the sage user, see below.
-RUN apt-get update -qq \
-    && apt-get install -y --no-install-recommends gfortran sudo \
-    && apt-get clean \
+RUN apt-get -qq update \
+    && apt-get -qq install -y --no-install-recommends gfortran gcc g++ libstdc++-5-dev sudo \
+    && apt-get -qq clean \
     && rm -r /var/lib/apt/lists/*
 # Sage refuses to build as root, so we add a "sage" user that can sudo without a password.
 # We also want this user at runtime as some commands in sage know about the user that was used during build.
@@ -79,10 +80,10 @@ WORKDIR $HOME
 # completes without errors                                                     #
 ################################################################################
 FROM run-time-dependencies as build-time-dependencies
-# Install the build time dependencies & git
-RUN sudo apt-get update -qq \
-    && sudo apt-get install -y wget build-essential automake m4 dpkg-dev sudo python libssl-dev git \
-    && sudo apt-get clean \
+# Install the build time dependencies & git & rdfind
+RUN sudo apt-get -qq update \
+    && sudo apt-get -qq install -y wget build-essential automake m4 dpkg-dev sudo python libssl-dev git rdfind \
+    && sudo apt-get -qq clean \
     && sudo rm -r /var/lib/apt/lists/*
 
 ################################################################################
@@ -112,27 +113,31 @@ COPY --chown=sage:sage . sage-context
 # This is a bit complicated because our local .git/ is empty and we want to
 # make sure that we only change the mtimes of a minimal number of files.
 # 1) Restore the git checkout ARTIFACT_BASE was built from, recorded in
-#    docker/commit. (Or go directly to FETCH_HEAD if there is no history to
-#    restore.)
+#    docker/.commit. (Or go directly to FETCH_HEAD if there is no history to
+#    restore, i.e., set ARTIFACT_BASE=source-clean if you want to build from
+#    scratch.)
 # 2) Merge in FETCH_HEAD but only if it is a fast-forward, i.e., if it is an
 #    ancestor of the commit restored in 1. If we would not do that we would get
-#    a new commit hash in docker/commit that is not known outside of this build
-#    run. Since docker/commit was in the history of FETCH_HEAD this should
+#    a new commit hash in docker/.commit that is not known outside of this build
+#    run. Since docker/.commit was in the history of FETCH_HEAD this should
 #    automatically be a fast-forward.
 # 3) Trash .git again to save some space.
 ARG SAGE_ROOT=/home/sage/sage
 WORKDIR $SAGE_ROOT
+# We create a list of all files present in the artifact-base (with a timestamp
+# of now) so we can find out later which files were added/changed/removed.
+RUN find . -type f > $HOME/artifact-base.manifest
 RUN git fetch "$HOME/sage-context" HEAD \
-    && if [ -e docker/commit ]; then \
-          git reset `cat docker/commit` \
-          || ( echo "Could not find commit `cat docker/commit` in your local Git history. Please merge in the latest built develop branch to fix this: git fetch trac && git merge `cat docker/commit`." && exit 1 ) \
+    && if [ -e docker/.commit ]; then \
+          git reset `cat docker/.commit` \
+          || ( echo "Could not find commit `cat docker/.commit` in your local Git history. Please merge in the latest built develop branch to fix this: git fetch trac && git merge `cat docker/.commit`." && exit 1 ) \
        else \
-          echo "You are building from $ARTIFACT_BASE which has no docker/commit file. That's a bug unless you are building from source-clean or something similar." \
+          echo "You are building from $ARTIFACT_BASE which has no docker/.commit file. That's a bug unless you are building from source-clean or something similar." \
           && git reset FETCH_HEAD \
           && git checkout -f FETCH_HEAD; \
        fi \
     && git merge --ff-only FETCH_HEAD \
-    && git log -1 --format=%H > docker/commit \
+    && git log -1 --format=%H > docker/.commit \
     && rm -rf .git
 # Copy over all the untracked/staged/unstaged changes from sage-context. This
 # is relevant for non-CI invocations of this Dockerfile.
@@ -150,12 +155,14 @@ RUN patch -p1 < "$HOME"/sage-context.patch
 # Image with a built sage but without sage's documentation.                    #
 ################################################################################
 FROM source-from-context as make-build
-# Make sure that the results runs on most CPUs.
+# Make sure that the result runs on most CPUs.
 ENV SAGE_FAT_BINARY yes
 # Just to be sure Sage doesn't try to build its own GCC (even though
 # it shouldn't with a recent GCC package from the system and with gfortran)
 ENV SAGE_INSTALL_GCC no
-# Make everything in the build use multiple cores (this causes trouble for some packages outside Sage but it still seems to be they way Sage is doing this.)
+# Make everything in the build use multiple cores (setting this variable causes
+# trouble for some packages outside Sage but it still seems to be they way Sage
+# is doing this.)
 ARG MAKE="make -j2"
 ENV MAKE $MAKE
 RUN make build
@@ -174,13 +181,42 @@ FROM make-all as make-fast-rebuild-clean
 RUN make fast-rebuild-clean
 
 ################################################################################
+# Depending on whether we built from source-clean or not, this image is either #
+# identical to make-fast-rebuild-clean or contains a "patch" which can be used #
+# to upgrade ARTIFACT_BASE to make-fast-rebuild-clean.                         #
+################################################################################
+FROM make-fast-rebuild-clean as sagemath-dev-patch
+ARG ARTIFACT_BASE=source-clean
+ARG SAGE_ROOT=/home/sage/sage
+# Build a patch containing of a tar file which contains all the modified files
+# and a list of all modified files (added/updated/removed).
+RUN if [ x"$ARTIFACT_BASE" != x"source-clean" ]; then \
+        mkdir -p $HOME/patch \
+        && find . -type f > $HOME/make-fast-rebuild-clean.manifest \
+        && cat $HOME/make-fast-rebuild-clean.manifest $HOME/artifact-base.manifest | sort | uniq -u > $HOME/obsolete \
+        && find . -type f -cnewer $HOME/artifact-base.manifest > $HOME/modified \
+        && tar -cJf $HOME/patch/modified.tar.xz -T $HOME/modified \
+        && cat $HOME/obsolete $HOME/modified | xz > $HOME/patch/modified.xz \
+        && rm -rf $SAGE_ROOT \
+        && mkdir -p $SAGE_ROOT \
+        && mv $HOME/patch $SAGE_ROOT/; \
+    fi
+
+################################################################################
 # A releasable (relatively small, but still huge) image of this build with all #
 # the build artifacts intact so developers can make changes and rebuild        #
 # quickly                                                                      #
 ################################################################################
-FROM source-clean as sagemath-dev
+FROM $ARTIFACT_BASE as sagemath-dev
 ARG SAGE_ROOT=/home/sage/sage
-COPY --chown=sage:sage --from=make-fast-rebuild-clean $SAGE_ROOT $SAGE_ROOT
+COPY --chown=sage:sage --from=sagemath-dev-patch $SAGE_ROOT $SAGE_ROOT
+ARG ARTIFACT_BASE=source-clean
+# Apply the patch from sagemath-dev-patch if we created one.
+RUN if [ x"$ARTIFACT_BASE" != x"source-clean" ]; then \
+        xzcat patch/modified.xz | xargs rm -rf \
+        && tar -Jxf patch/modified.tar.xz \
+        && rm -rf patch; \
+    fi
 COPY ./docker/entrypoint-dev.sh /usr/local/bin/sage-entrypoint
 ENTRYPOINT ["/usr/local/bin/sage-entrypoint"]
 CMD ["bash"]

@@ -3,7 +3,7 @@
 # This script gets called from CI to run minimal tests on the sagemath-jupyter
 # image.
 
-# Usage: ./test-jupyter.sh sage-jupyter-image [host]
+# Usage: ./test-jupyter.sh IMAGE-NAME [HOST]
 
 # ****************************************************************************
 #       Copyright (C) 2018 Julian Rüth <julian.rueth@fsfe.org>
@@ -17,7 +17,7 @@
 
 set -ex
 
-docker run --name sage-jupyter -p 8888:8888 -d "$1" "sage -n jupyter --no-browser --ip='*' --port=8888"
+docker run --name sage-jupyter -p 8888:8888 -d "$1" sage-jupyter
 echo "Checking that the Jupyter notebook is running…"
 sleep 10 # giving the server some time to start
 docker logs sage-jupyter
