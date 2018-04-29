@@ -20,11 +20,14 @@
 
 set -ex
 
-# Pull the built images from the gitlab registry and give them the original
+# Pull the built images from the dockerhub registry and give them the original
 # names they had after built.
-# Note that "set -x" prints the $CI_BUILD_TOKEN here but GitLab removes it
-# automatically from the log output.
-docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
-docker pull $CI_REGISTRY_IMAGE/$1:$DOCKER_TAG
-export DOCKER_IMAGE="${DOCKER_USER:-sagemath}/$1:$DOCKER_TAG"
-docker tag $CI_REGISTRY_IMAGE/$1:$DOCKER_TAG $DOCKER_IMAGE
+# We require $DOCKER_USER and $SECRET_DOCKER_PASS to be set. Otherwise we would
+# be pulling some stale images here. (Sadly, CircleCI does not provide us with
+# an integrated container registry like GitLab does.)
+if [ -z "$DOCKER_USER" -o -z "$SECRET_DOCKER_PASS" ]; then
+  echo "DOCKER_USER/SECRET_DOCKER_PASS variables have not been configured in your Continuous Integration setup. Not pulling as the images would not be the one that has just been built."
+fi
+
+export DOCKER_IMAGE="$DOCKER_USER/$1:$DOCKER_TAG"
+docker pull $DOCKER_IMAGE
