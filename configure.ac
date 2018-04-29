@@ -191,7 +191,6 @@ http://groups.google.com/group/sage-devel
 The Sage community would also appreciate any patches you submit]]);;
 esac
 
-
 ###############################################################################
 # Check general programs
 ###############################################################################
@@ -677,6 +676,15 @@ fi
 ###############################################################################
 # Collect substitutions for build/make/Makefile.in
 ###############################################################################
+
+# sage-* script directory
+AC_ARG_WITH([scriptsdir],
+    AS_HELP_STRING([--with-scriptsdir], [The location here sage-* scripts are installed to]),
+    [], [with_scriptsdir=no])
+
+AS_IF([test "x$with_scriptsdir" != "xno"],
+      [AC_SUBST([scriptsdir], [$with_scriptsdir])],
+      [AC_SUBST([scriptsdir], [\${SAGE_LOCAL}/bin])])
 
 # Python version
 AC_MSG_CHECKING([Python version to install])
