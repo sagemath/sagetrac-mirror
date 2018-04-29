@@ -76,6 +76,7 @@ import sage.modular.modform.constructor
 from sage.matrix.constructor import zero_matrix
 from sage.arith.all import gcd
 from sage.rings.infinity import PlusInfinity
+from sage.rings.integer import Integer
 
 WARN=False
 
@@ -136,9 +137,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             WARN=False
         if not arithgroup.is_CongruenceSubgroup(group):
             raise TypeError("group (=%s) must be a congruence subgroup"%group)
-        weight = int(weight)
-        #if not isinstance(weight, int):
-        #    raise TypeError, "weight must be an int"
+        weight = Integer(weight)
         if not ((character is None) or isinstance(character, dirichlet.DirichletCharacter)):
             raise TypeError("character must be a Dirichlet character")
         if not isinstance(base_ring, rings.Ring):
@@ -1167,7 +1166,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         if self.is_ambient() or x.is_ambient():
             return richcmp(self.dimension(), x.dimension(), op)
         else:
-            return richcmp(self.free_module(), x.free_module(), op)
+            return self.free_module()._echelon_matrix_richcmp(x.free_module(), op)
 
     def span_of_basis(self, B):
         """

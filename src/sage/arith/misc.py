@@ -25,7 +25,7 @@ from sage.misc.misc_c import prod
 from sage.libs.pari.all import pari
 import sage.libs.flint.arith as flint_arith
 
-from sage.structure.element import parent
+from sage.structure.element import parent, Element
 from sage.structure.coerce import py_scalar_to_element
 
 from sage.rings.rational_field import QQ
@@ -176,6 +176,13 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         x^5 + x^2
         sage: algdep(z, 5)
         x^2 - x + 1
+
+    Check that cases where a constant polynomial might look better
+    get handled correctly::
+
+        sage: z=CC(-1)**(1/3)
+        sage: algdep(z,1)
+        x
     """
     if proof and not height_bound:
         raise ValueError("height_bound must be given for proof=True")
@@ -228,6 +235,12 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
                 M[k, -1] = r.round()
         LLL = M.LLL(delta=.75)
         coeffs = LLL[0][:n]
+        #we're supposed to find an irreducible polynomial, so we cannot
+        #return a constant one. If the first LLL basis vector gives
+        #a constant polynomial, use the next one.
+        if all(c==0 for c in coeffs[1:]):
+            coeffs = LLL[1][:n]
+
         if height_bound:
             def norm(v):
                 # norm on an integer vector invokes Integer.sqrt() which tries to factor...
@@ -1511,11 +1524,11 @@ def gcd(a, b=None, **kwargs):
     :trac:`4988` the following wrongly returned 3 since the third parameter
     was just ignored::
 
-        sage: gcd(3,6,2)
+        sage: gcd(3, 6, 2)
         Traceback (most recent call last):
         ...
-        TypeError: gcd() takes at most 2 arguments (3 given)
-        sage: gcd([3,6,2])
+        TypeError: gcd() takes ...
+        sage: gcd([3, 6, 2])
         1
 
     Similarly, giving just one element (which is not a list) gives an error::
@@ -1586,7 +1599,7 @@ def gcd(a, b=None, **kwargs):
     from sage.structure.sequence import Sequence
     seq = Sequence(a)
     U = seq.universe()
-    if U is ZZ or U is int or U is long:# ZZ.has_coerce_map_from(U):
+    if U is ZZ or U in integer_types:  # ZZ.has_coerce_map_from(U):
         return GCD_list(a)
     return __GCD_sequence(seq, **kwargs)
 
@@ -2266,25 +2279,48 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: [p^e for p,e in f]
         [4, 3, 5, 7]
 
+    We can factor Python and numpy numbers::
+
+        sage: factor(math.pi)
+        3.141592653589793
+        sage: import numpy
+        sage: factor(numpy.int8(30))
+        2 * 3 * 5
+
+    TESTS::
+
+        sage: factor(Mod(4, 100))
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to factor 4
+        sage: factor("xyz")
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to factor 'xyz'
     """
-    if isinstance(n, integer_types):
-        n = ZZ(n)
+    try:
+        m = n.factor
+    except AttributeError:
+        # Maybe n is not a Sage Element, try to convert it
+        e = py_scalar_to_element(n)
+        if e is n:
+            # Either n was a Sage Element without a factor() method
+            # or we cannot it convert it to Sage
+            raise TypeError("unable to factor {!r}".format(n))
+        n = e
+        m = n.factor
 
     if isinstance(n, Integer):
-        return n.factor(proof=proof, algorithm=algorithm,
-                        int_ = int_, verbose=verbose)
-    else:
-        # e.g. n = x**2 + y**2 + 2*x*y
-        try:
-            return n.factor(proof=proof, **kwds)
-        except AttributeError:
-            raise TypeError("unable to factor n")
-        except TypeError:
-            # Just in case factor method doesn't have a proof option.
-            try:
-                return n.factor(**kwds)
-            except AttributeError:
-                raise TypeError("unable to factor n")
+        return m(proof=proof, algorithm=algorithm, int_=int_,
+                 verbose=verbose, **kwds)
+
+    # Polynomial or other factorable object
+    try:
+        return m(proof=proof, **kwds)
+    except TypeError:
+        # Maybe the factor() method doesn't have a proof option
+        return m(**kwds)
+
 
 def radical(n, *args, **kwds):
     """
@@ -4204,8 +4240,8 @@ def falling_factorial(x, a):
     Check that :trac:`16770` is fixed::
 
         sage: d = var('d')
-        sage: type(falling_factorial(d, 0))
-        <type 'sage.symbolic.expression.Expression'>
+        sage: parent(falling_factorial(d, 0))
+        Symbolic Ring
 
     Check that :trac:`20075` is fixed::
 
@@ -4299,8 +4335,8 @@ def rising_factorial(x, a):
     Check that :trac:`16770` is fixed::
 
         sage: d = var('d')
-        sage: type(rising_factorial(d, 0))
-        <type 'sage.symbolic.expression.Expression'>
+        sage: parent(rising_factorial(d, 0))
+        Symbolic Ring
 
     Check that :trac:`20075` is fixed::
 
@@ -5122,3 +5158,112 @@ def dedekind_sum(p, q, algorithm='default'):
 
     raise ValueError('unknown algorithm')
 
+
+def gauss_sum(char_value, finite_field):
+    r"""
+    Return the Gauss sums for a general finite field.
+
+    INPUT:
+
+    - ``char_value`` -- choice of multiplicative character, given by
+      its value on the ``finite_field.multiplicative_generator()``
+
+    - ``finite_field`` -- a finite field
+
+    OUTPUT:
+
+    an element of the parent ring of ``char_value``, that can be any
+    field containing enough roots of unity, for example the
+    ``UniversalCyclotomicField``, ``QQbar`` or ``ComplexField``
+
+    For a finite field `F` of characteristic `p`, the Gauss sum
+    associated to a multiplicative character `\chi` (with values in a
+    ring `K`) is defined as
+
+    .. MATH::
+
+        \sum_{x \in F^{\times}} \chi(x) \zeta_p^{\operatorname{Tr} x},
+
+    where `\zeta_p \in K` is a primitive root of unity of order `p` and
+    Tr is the trace map from `F` to its prime field `\GF{p}`.
+
+    For more info on Gauss sums, see :wikipedia:`Gauss_sum`.
+
+    .. TODO::
+
+        Implement general Gauss sums for an arbitrary pair
+        ``(multiplicative_character, additive_character)``
+
+    EXAMPLES::
+
+        sage: from sage.arith.misc import gauss_sum
+        sage: F = GF(5); q = 5
+        sage: zq = UniversalCyclotomicField().zeta(q-1)
+        sage: L = [gauss_sum(zq**i,F) for i in range(5)]; L
+        [-1,
+         E(20)^4 + E(20)^13 - E(20)^16 - E(20)^17,
+         E(5) - E(5)^2 - E(5)^3 + E(5)^4,
+         E(20)^4 - E(20)^13 - E(20)^16 + E(20)^17,
+         -1]
+        sage: [g*g.conjugate() for g in L]
+        [1, 5, 5, 5, 1]
+
+        sage: F = GF(11**2); q = 11**2
+        sage: zq = UniversalCyclotomicField().zeta(q-1)
+        sage: g = gauss_sum(zq**4,F)
+        sage: g*g.conjugate()
+        121
+
+    TESTS::
+
+        sage: F = GF(11); q = 11
+        sage: zq = UniversalCyclotomicField().zeta(q-1)
+        sage: gauss_sum(zq**2,F).n(60)
+        2.6361055643248352 + 2.0126965627574471*I
+
+        sage: zq = QQbar.zeta(q-1)
+        sage: gauss_sum(zq**2,F)
+        2.636105564324836? + 2.012696562757447?*I
+
+        sage: zq = ComplexField(60).zeta(q-1)
+        sage: gauss_sum(zq**2,F)
+        2.6361055643248352 + 2.0126965627574471*I
+
+        sage: F = GF(7); q = 7
+        sage: zq = QQbar.zeta(q-1)
+        sage: D = DirichletGroup(7, QQbar)
+        sage: all(D[i].gauss_sum()==gauss_sum(zq**i,F) for i in range(6))
+        True
+
+        sage: gauss_sum(1,QQ)
+        Traceback (most recent call last):
+        ...
+        ValueError: second input must be a finite field
+
+    .. SEEALSO::
+
+        - :func:`sage.rings.padics.misc.gauss_sum` for a `p`-adic version
+        - :meth:`sage.modular.dirichlet.DirichletCharacter.gauss_sum`
+          for prime finite fields
+        - :meth:`sage.modular.dirichlet.DirichletCharacter.gauss_sum_numerical`
+          for prime finite fields
+    """
+    from sage.categories.fields import Fields
+    if finite_field not in Fields().Finite():
+        raise ValueError('second input must be a finite field')
+
+    ring = char_value.parent()
+    q = finite_field.cardinality()
+    p = finite_field.characteristic()
+    gen = finite_field.multiplicative_generator()
+    zeta_p_powers = ring.zeta(p).powers(p)
+    zeta_q = char_value
+
+    resu = ring.zero()
+    gen_power = finite_field.one()
+    zq_power = ring.one()
+    for k in range(q - 1):
+        resu += zq_power * zeta_p_powers[gen_power.trace().lift()]
+        gen_power *= gen
+        zq_power *= zeta_q
+    return resu
