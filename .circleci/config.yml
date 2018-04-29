@@ -47,7 +47,7 @@ jobs:
         command: |
           . .circleci/before-script.sh
 
-          .ci/pull-dockerhub sagemath
+          .ci/pull-dockerhub.sh sagemath
 
           # Run doctests. Note that the limits on CircleCI are not sufficient
           # to run --long doctests as of early 2018.
@@ -63,7 +63,7 @@ jobs:
         command: |
           . .circleci/before-script.sh
 
-          .ci/pull-dockerhub sagemath
+          .ci/pull-dockerhub.sh sagemath
 
           # Run doctests. Note that the limits on CircleCI are not sufficient
           # to run --long doctests as of early 2018.
