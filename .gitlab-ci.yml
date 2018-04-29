@@ -168,6 +168,13 @@ push-dockerhub-dev:
 # Run doctests
 test-doctest:
   stage: test
+  script:
+    - . .ci/pull-gitlab.sh sagemath
+    - sh .ci/test-doctest.sh sagemath
+
+# Run doctests --long
+test-doctest-long:
+  stage: test
   variables:
     DOCTEST_PARAMETERS: "--long"
   script:
