@@ -107,7 +107,7 @@ class SageKernelSpec(object):
             elif err.errno == errno.EISDIR:
                 # link_name is a directory
                 return
-            elif err.errno == errno.EACCESS:
+            elif err.errno == errno.EACCES:
                 # Permission denied, let the caller know.
                 raise
             elif err.errno == errno.ENOENT:
