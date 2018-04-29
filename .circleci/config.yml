@@ -25,8 +25,7 @@ jobs:
     steps:
       - checkout
       - run:
-          # The docker commands sometimes take a while to produce output
-          no_output_timeout: 30m
+          name: build-check-release-test
           command: |
             # CircleCI has no mechanism to hide secret variables.
             # Therefore we roll our own to protect $SECRET_* variables.
@@ -57,10 +56,14 @@ jobs:
             .ci/build-docker.sh
 
             # Test that the images work
-            .ci/test-dev.sh $DOCKER_IMAGE_DEV
-            .ci/test-cli.sh $DOCKER_IMAGE_CLI
-            .ci/test-jupyter.sh $DOCKER_IMAGE_CLI localhost
+            .ci/check-dev.sh $DOCKER_IMAGE_DEV
+            .ci/check-cli.sh $DOCKER_IMAGE_CLI
+            .ci/check-jupyter.sh $DOCKER_IMAGE_CLI localhost
 
             # Push docker images to dockerhub if a dockerhub user has been configured
             .ci/push-dockerhub.sh sagemath-dev
             .ci/push-dockerhub.sh sagemath
+
+            # Run doctests. Note that the limits on CircleCI are not sufficient
+            # to run --long doctests as of early 2018.
+            .ci/test-doctest.sh $DOCKER_IMAGE_CLI

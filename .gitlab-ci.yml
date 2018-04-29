@@ -39,8 +39,9 @@ image: docker:latest
 
 stages:
   - build
-  - test
+  - check
   - release
+  - test
 
 variables:
   DOCKER_TAG: $CI_COMMIT_REF_NAME
@@ -118,20 +119,20 @@ build-from-clean:
     # 60 GB of HDD are available
     - do
 
-test-dev:
-  stage: test
+check-dev:
+  stage: check
   script:
     - . .ci/pull-gitlab.sh sagemath-dev
-    - sh .ci/test-dev.sh "$DOCKER_IMAGE"
+    - sh .ci/check-dev.sh "$DOCKER_IMAGE"
 
-test-cli:
-  stage: test
+check-cli:
+  stage: check
   script:
     - . .ci/pull-gitlab.sh sagemath
-    - sh .ci/test-cli.sh "$DOCKER_IMAGE"
+    - sh .ci/check-cli.sh "$DOCKER_IMAGE"
 
-test-jupyter:
-  stage: test
+check-jupyter:
+  stage: check
   script:
     # Force usage of docker-in-docker (and don't start docker on a bind-mounted
     # /var/run/docker.sock set through a private GitLab CI variable) so that
@@ -140,7 +141,7 @@ test-jupyter:
     - apk update
     - apk add wget
     - . .ci/pull-gitlab.sh sagemath
-    - sh .ci/test-jupyter.sh "$DOCKER_IMAGE" docker
+    - sh .ci/check-jupyter.sh "$DOCKER_IMAGE" docker
 
 # Pushes the built images to Docker Hub if the Settings -> CI/CD -> Secret
 # variables DOCKER_USER and SECRET_DOCKER_PASS have been set up.
@@ -163,3 +164,15 @@ push-dockerhub-dev:
   script:
     - . .ci/pull-gitlab.sh sagemath-dev
     - sh .ci/push-dockerhub.sh sagemath-dev
+
+# Run doctests
+test-doctest:
+  stage: test
+  variables:
+    DOCTEST_PARAMETERS: "--long"
+  script:
+    - . .ci/pull-gitlab.sh sagemath
+    - sh .ci/test-doctest.sh sagemath
+  # Long doctests take a lot of time and resources, they should only run if
+  # requested manually (or by a bot.)
+  when: manual
