@@ -53,11 +53,34 @@ jobs:
           # to run --long doctests as of early 2018.
           .ci/test-doctest.sh $DOCKER_IMAGE_CLI
 
+  doctest-long:
+    machine: true
+    steps:
+    - checkout
+    - run:
+        environment:
+          DOCTEST_PARAMETERS: "--long"
+        command: |
+          . .circleci/before-script.sh
+
+          .ci/pull-dockerhub sagemath
+
+          # Run doctests. Note that the limits on CircleCI are not sufficient
+          # to run --long doctests as of early 2018.
+          .ci/test-doctest.sh $DOCKER_IMAGE_CLI
+
 workflows:
   version: 2
   build-check-release-test:
     jobs:
     - build-check-release
-    - test:
+    - doctest:
         requires:
         - build-check-release
+    - doctest-long-approval:
+        type: approval
+        requires:
+        - build-check-release
+    - doctest-long:
+        requires:
+        - doctest-long-approval
