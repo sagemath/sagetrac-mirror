@@ -34,6 +34,8 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import absolute_import
 
+import six
+
 from . import category
 
 
@@ -212,7 +214,9 @@ cdef class Functor(SageObject):
             Category of rings
 
         """
-        return _Functor_unpickle, (self.__class__, self.__dict__.items(), self.__domain, self.__codomain)
+        return (_Functor_unpickle,
+                (self.__class__, list(six.iteritems(self.__dict__)),
+                 self.__domain, self.__codomain))
 
     def _apply_functor(self, x):
         """

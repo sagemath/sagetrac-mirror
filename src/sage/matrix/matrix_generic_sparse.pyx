@@ -240,7 +240,8 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
             # that in such case the user knows what he/she is doing.
             if copy:
                 entries = entries.copy()
-            for key in entries.keys():
+
+            for key in list(entries):
                 i,j = key
                 if i < 0: i += self._nrows
                 if j < 0: j += self._ncols
@@ -437,8 +438,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         """
         cdef list v = self.fetch('nonzero_positions')
         if v is None:
-            v = self._entries.keys()
-            v.sort()
+            v = sorted(self._entries)
             self.cache('nonzero_positions', v)
         if copy:
             return v[:]
@@ -456,8 +456,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         """
         cdef list v = self.fetch('nonzero_positions_by_column')
         if v is None:
-            v = self._entries.keys()
-            v.sort(key=lambda x: (x[1], x[0]))
+            v = sorted(self._entries, key=lambda x: (x[1], x[0]))
             self.cache('nonzero_positions_by_column', v)
         if copy:
             return v[:]

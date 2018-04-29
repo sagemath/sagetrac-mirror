@@ -11,6 +11,9 @@ from __future__ import print_function, absolute_import
 include "sage/data_structures/bitset.pxi"
 
 from libc.string cimport memset
+
+from six import itervalues
+
 from cysignals.memory cimport sig_malloc, sig_calloc, sig_realloc, sig_free
 
 from sage.misc.unknown import Unknown
@@ -292,7 +295,7 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
             for j in range(i+1,n):
                 if matrix[i*n+j] == 0:
                     groups.union(i,j)
-        groups = groups.root_to_elements_dict().values()
+        groups = list(itervalues(groups.root_to_elements_dict()))
 
     # Group sizes are element of G
     if G is not None:
