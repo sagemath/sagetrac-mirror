@@ -180,7 +180,7 @@ from six import string_types
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from .gap_workspace import gap_workspace_file, prepare_workspace_dir
 from sage.cpython.string import bytes_to_str
-from sage.env import SAGE_LOCAL, SAGE_EXTCODE
+from sage.env import SAGE_BIN, SAGE_EXTCODE
 from sage.misc.misc import is_in_string
 from sage.misc.superseded import deprecation
 from sage.misc.cachefunc import cached_method
@@ -197,7 +197,7 @@ import string
 
 WORKSPACE = gap_workspace_file()
 
-GAP_BINARY = os.path.join(SAGE_LOCAL, 'bin', 'gap')
+GAP_BINARY = os.path.join(SAGE_BIN, 'gap')
 
 first_try = True
 

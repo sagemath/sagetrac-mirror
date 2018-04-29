@@ -325,7 +325,7 @@ from sage.combinat.integer_vector import integer_vectors_nk_fast_iter
 from sage.combinat.parking_functions import ParkingFunctions
 from sage.combinat.set_partition import SetPartitions
 from sage.combinat.vector_partition import IntegerVectorsIterator
-from sage.env import SAGE_LOCAL
+from sage.env import SAGE_BIN
 from sage.functions.log import exp
 from sage.functions.other import binomial
 from sage.geometry.polyhedron.constructor import Polyhedron
@@ -343,7 +343,7 @@ from sage.rings.all import Integer, PolynomialRing, QQ, ZZ
 from sage.symbolic.all import I, pi
 
 # TODO: remove the following line once 4ti2 functions are removed
-path_to_zsolve = os.path.join(SAGE_LOCAL,'bin','zsolve')
+path_to_zsolve = os.path.join(SAGE_BIN, 'zsolve')
 
 class Sandpile(DiGraph):
     """

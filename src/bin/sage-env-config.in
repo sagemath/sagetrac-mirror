@@ -19,6 +19,16 @@
 # ./configure --prefix
 export SAGE_LOCAL="@prefix@"
 
+# SAGE_BIN is the location where all the binaries that come with SageMath such
+# as GAP, PARI/GP and the actual sage executable are installed to. It defaults
+# to SAGE_LOCAL/bin but can be customized with ./configure --bindir.
+export SAGE_BIN="@bindir@"
+
+# SAGE_SCRIPTS_DIR is the location where all the sage-* scripts are installed
+# to, it defaults to SAGE_LOCAL/bin but can be customized with ./configure
+# --with-scriptsdir.
+export SAGE_SCRIPTS_DIR="@scriptsdir@"
+
 #######################################
 # Compilers set at configuration time
 #######################################

@@ -19,7 +19,7 @@ from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from cysignals.signals cimport sig_on, sig_off, sig_error
 
 from sage.interfaces.gap_workspace import prepare_workspace_dir
-from sage.env import SAGE_LOCAL, GAP_ROOT_DIR
+from sage.env import SAGE_LOCAL, GAP_ROOT_DIR, SAGE_BIN
 from .element cimport *
 
 
@@ -166,7 +166,7 @@ def gap_root():
     if os.path.exists(GAP_ROOT_DIR):
         return GAP_ROOT_DIR
     print('The gap-4.5.5.spkg (or later) seems to be not installed!')
-    gap_sh = open(os.path.join(SAGE_LOCAL, 'bin', 'gap')).read().splitlines()
+    gap_sh = open(os.path.join(SAGE_BIN, 'gap')).read().splitlines()
     gapdir = filter(lambda dir:dir.strip().startswith('GAP_DIR'), gap_sh)[0]
     gapdir = gapdir.split('"')[1]
     gapdir = gapdir.replace('$SAGE_LOCAL', SAGE_LOCAL)
