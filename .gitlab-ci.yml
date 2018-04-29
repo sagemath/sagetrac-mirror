@@ -170,7 +170,7 @@ test-doctest:
   stage: test
   script:
     - . .ci/pull-gitlab.sh sagemath
-    - sh .ci/test-doctest.sh sagemath
+    - sh .ci/test-doctest.sh "$DOCKER_IMAGE"
 
 # Run doctests --long
 test-doctest-long:
@@ -179,7 +179,7 @@ test-doctest-long:
     DOCTEST_PARAMETERS: "--long"
   script:
     - . .ci/pull-gitlab.sh sagemath
-    - sh .ci/test-doctest.sh sagemath
+    - sh .ci/test-doctest.sh "$DOCKER_IMAGE"
   # Long doctests take a lot of time and resources, they should only run if
   # requested manually (or by a bot.)
   when: manual

@@ -51,7 +51,7 @@ jobs:
 
           # Run doctests. Note that the limits on CircleCI are not sufficient
           # to run --long doctests as of early 2018.
-          .ci/test-doctest.sh $DOCKER_IMAGE_CLI
+          .ci/test-doctest.sh "$DOCKER_IMAGE"
 
   doctest-long:
     machine: true
@@ -67,7 +67,7 @@ jobs:
 
           # Run doctests. Note that the limits on CircleCI are not sufficient
           # to run --long doctests as of early 2018.
-          .ci/test-doctest.sh $DOCKER_IMAGE_CLI
+          .ci/test-doctest.sh "$DOCKER_IMAGE"
 
 workflows:
   version: 2
