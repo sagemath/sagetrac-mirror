@@ -27,6 +27,7 @@ TESTS::
 from __future__ import absolute_import
 
 from cysignals.memory cimport check_calloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 from collections import Iterator, Sequence
         
 from sage.data_structures.binary_search cimport *
@@ -47,6 +48,8 @@ import sage.matrix.matrix_space as matrix_space
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
+######### linbox interface ##########
+from sage.libs.linbox.sparse_integer cimport *
 
 cdef class Matrix_integer_sparse(Matrix_sparse):
     def __cinit__(self, parent, entries, copy, coerce):
@@ -603,3 +606,42 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
            :meth:`elementary_divisors`
         """
         return self.dense_matrix().smith_form()
+
+    def rank(self, algorithm='generic'):
+        """
+        Return the rank of this matrix.
+
+        INPUT:
+
+        - ``algorithm`` -- either ``'generic'`` (default) or ``'linbox'``
+        """
+        r = self.fetch('rank')
+        if not r is None:
+            return r
+
+        if algorithm == 'linbox':
+            # Algorithm is 'linbox'
+            # use LinBox's general algorithm.
+            r = self._rank_linbox()
+            self.cache('rank', r)
+            return r
+        return super(self, Matrix_integer_sparse).rank()
+
+    def _rank_linbox(self):
+        """
+        Compute the rank of this matrix using Linbox.
+
+        TESTS::
+
+            sage: matrix(ZZ, 4, 6, 0, sparse=True)._rank_linbox()
+            0
+            sage: matrix(ZZ, 3, 4, range(12), sparse=True)._rank_linbox()
+            2
+            sage: matrix(ZZ, 5, 10, [1+i+i^2 for i in range(50)], sparse=True)._rank_linbox()
+            3
+        """
+        sig_on()
+        cdef unsigned long r = linbox_sparse_mat_rank(self._dict(), self.nrows(), self.ncols())
+        sig_off()
+        return Integer(r)
+
