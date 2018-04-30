@@ -19,19 +19,23 @@ set -ex
 # provision fewer vCPUs than shown in /proc/cpuinfo. Also, setting this value
 # too high can lead to RAM being insufficient, so it's best to set the NTHREADS
 # variable manually in your CI configuration.
-if [ -z "$NTHREADS" ]; then
-    CPUTHREADS=`grep -E '^processor' /proc/cpuinfo | wc -l`
+if [ -z "$CPUTHREADS" ]; then
+    CPUTHREADS=$((`grep -E '^processor' /proc/cpuinfo | wc -l`+1))
+fi
+if [ -z "$RAMTHREADS" ]; then
     RAMTHREADS=$(( `grep MemTotal /proc/meminfo | awk '{ print $2 }'` / 1024 / 1024 / 2 ))
     if [ $RAMTHREADS = 0 ];then
         RAMTHREADS=1;
     fi
+fi
+if [ -z "$NTHREADS" ]; then
     NTHREADS=$([ $RAMTHREADS -le $CPUTHREADS ] && echo "$RAMTHREADS" || echo "$CPUTHREADS")
 fi
 export NTHREADS="$NTHREADS"
 
 # Set -j and -l for make (though -l is probably stripped by Sage)
 if [ -z "$MAKEOPTS" ]; then
-    MAKEOPTS="-j $NTHREADS -l $((NTHREADS-1)).8"
+    MAKEOPTS="-j $RAMTHREADS -l $((CPUTHREADS-1)).8"
 fi
 export MAKEOPTS="$MAKEOPTS"
 
