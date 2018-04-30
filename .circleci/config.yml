@@ -80,7 +80,7 @@ workflows:
     - doctest-long-approval:
         type: approval
         requires:
-        - build-check-release
+        - doctest
     - doctest-long:
         requires:
         - doctest-long-approval
