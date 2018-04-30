@@ -20,7 +20,7 @@ set -ex
 # too high can lead to RAM being insufficient, so it's best to set the NTHREADS
 # variable manually in your CI configuration.
 if [ -z "$CPUTHREADS" ]; then
-    CPUTHREADS=`grep -E '^processor' /proc/cpuinfo | wc -l`
+    CPUTHREADS=$((`grep -E '^processor' /proc/cpuinfo | wc -l`+1))
 fi
 if [ -z "$RAMTHREADS" ]; then
     RAMTHREADS=$(( `grep MemTotal /proc/meminfo | awk '{ print $2 }'` / 1024 / 1024 / 2 ))
