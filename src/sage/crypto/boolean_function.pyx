@@ -554,11 +554,11 @@ cdef class BooleanFunction(SageObject):
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-        P = PolynomialRing(base_ring, self._nvariables, "x")
+        P = PolynomialRing(base_ring, n, "x")
         f = P.zero()
         for i in range(len(v)):
             if v[i] != 0:
-                e = ZZ(i).digits(base=2, padto=self._nvariables)
+                e = ZZ(i).digits(base=2, padto=n)
                 f += v[i] * P.monomial(*e)
 
         return f
