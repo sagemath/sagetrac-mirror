@@ -525,8 +525,8 @@ cdef class BooleanFunction(SageObject):
         """
         Return the numerical normal form (NNF) of this Boolean function.
 
-        The coefficient of the polynomial is defined over the `base_ring`.
-        It can be either `QQ`, `RR`, or `ZZ`.
+        The coefficient of the polynomial is defined over the base_ring.
+        It can be either `\QQ`, `\RR`, or `\ZZ`.
 
         EXAMPLES::
 
