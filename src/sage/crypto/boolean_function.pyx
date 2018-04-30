@@ -36,11 +36,14 @@ from sage.structure.sage_object cimport SageObject
 from sage.structure.richcmp cimport rich_to_bool
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
+from sage.rings.rational_field import QQ
+from sage.rings.real_mpfr import RR
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.polynomial.pbori import BooleanPolynomial
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.polynomial.polynomial_element import is_Polynomial
+from sage.modules.free_module_element import vector
 
 include "sage/data_structures/bitset.pxi"
 
@@ -518,6 +521,66 @@ cdef class BooleanFunction(SageObject):
         bitset_free(anf)
         return P
 
+    def numerical_normal_form(self, base_ring=QQ):
+        """
+        Return the numerical normal form (NNF) of this Boolean function.
+
+        The coefficient of the polynomial is defined over the `base_ring`.
+        It can be either `QQ`, `RR`, or `ZZ`.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: B = BooleanFunction([0, 1, 0, 1, 1, 0, 0, 1])
+            sage: B.algebraic_normal_form()
+            x0 + x1*x2 + x2
+            sage: B.numerical_normal_form()
+            2*x0*x1*x2 - 2*x0*x2 - x1*x2 + x0 + x2
+        """
+
+        if base_ring not in (QQ, RR, ZZ):
+            raise ValueError("base ring must be either QQ, RR, or ZZ")
+
+        v = vector(base_ring, self.truth_table('int'))
+        n = self.nvariables()
+
+        for i in range(n):
+            sz = 1 << i
+            pos = 0
+            while pos < (1 << n):
+                for j in range(sz):
+                    v[pos + sz + j] = v[pos + sz + j] - v[pos + j]
+                pos += 2*sz
+
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+        P = PolynomialRing(base_ring, self._nvariables, "x")
+        f = P.zero()
+        for i in range(len(v)):
+            if v[i] != 0:
+                e = ZZ(i).digits(base=2, padto=self._nvariables)
+                f += v[i] * P.monomial(*e)
+
+        return f
+
+    def numerical_degree(self):
+        """
+        Return the numerical degree of this Boolean function.
+
+        The numerical degree of a Boolean function is the degree of its
+        numerical normal form.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: B = BooleanFunction([0, 1, 0, 1, 1, 0, 0, 1])
+            sage: B.numerical_normal_form()
+            2*x0*x1*x2 - 2*x0*x2 - x1*x2 + x0 + x2
+            sage: B.numerical_degree()
+            3
+        """
+        return self.numerical_normal_form().degree()
+
     def nvariables(self):
         """
         The number of variables of this function.
@@ -971,7 +1034,6 @@ cdef class BooleanFunction(SageObject):
         G = R.gens()
         r = [R(1)]
 
-        from sage.modules.all import vector
         s = vector(self.truth_table()).support()
 
         from sage.combinat.combination import Combinations
