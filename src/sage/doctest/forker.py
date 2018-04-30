@@ -45,7 +45,7 @@ import six
 
 import sage.misc.randstate as randstate
 from .util import Timer, RecordingDict, count_noun
-from .sources import DictAsObject
+from .sources import DictAsObject, FileDocTestSource
 from .parsing import OriginalSource, reduce_hex
 from sage.structure.sage_object import SageObject
 from .parsing import SageOutputChecker, pre_hash, get_source
@@ -1736,7 +1736,8 @@ class DocTestDispatcher(SageObject):
                             source_iter = None
                         else:
                             # Start a new worker.
-                            w = DocTestWorker(source, options=opt, funclist=[sel_exit])
+                            w = DocTestWorker(source, opt,
+                                              funclist=[sel_exit])
                             heading = self.controller.reporter.report_head(w.source)
                             if not self.controller.options.only_errors:
                                 w.messages = heading + "\n"
@@ -1875,21 +1876,18 @@ class DocTestWorker(multiprocessing.Process):
 
     EXAMPLES::
 
-        sage: from sage.doctest.forker import DocTestWorker, DocTestTask
-        sage: from sage.doctest.sources import FileDocTestSource
+        sage: from sage.doctest.forker import DocTestWorker
+        sage: from sage.doctest.control import DocTestController
         sage: from sage.doctest.reporting import DocTestReporter
-        sage: from sage.doctest.control import DocTestController, DocTestDefaults
         sage: from sage.env import SAGE_SRC
-        sage: filename = os.path.join(SAGE_SRC,'sage','doctest','util.py')
-        sage: DD = DocTestDefaults()
-        sage: FDS = FileDocTestSource(filename,DD)
-        sage: W = DocTestWorker(FDS, DD)
+        sage: filename = os.path.join(SAGE_SRC, 'sage', 'doctest', 'util.py')
+        sage: W = DocTestWorker.for_file(filename)
+        sage: controller = DocTestController(W.options, filename)
+        sage: reporter = DocTestReporter(controller)
         sage: W.start()
-        sage: DC = DocTestController(DD, filename)
-        sage: reporter = DocTestReporter(DC)
         sage: W.join()  # Wait for worker to finish
         sage: result = W.result_queue.get()
-        sage: reporter.report(FDS, False, W.exitcode, result, "")
+        sage: reporter.report(W.source, False, W.exitcode, result, "")
             [... tests, ... s]
     """
     def __init__(self, source, options, funclist=[]):
@@ -1936,6 +1934,30 @@ class DocTestWorker(multiprocessing.Process):
 
         # Has this worker been killed (because of a time out)?
         self.killed = False
+
+    @classmethod
+    def for_file(cls, filename, funclist=[], **options):
+        """
+        Shortcut constructor used for primarily for testing.
+
+        Constructs the :class:`DocTestDefaults` and :class:`FileDocTestSource``
+        objects for a single filename.
+
+        INPUT:
+
+        - ``filename`` -- the path to a file to test
+
+        - ``funclist`` -- same as the ``funclist`` argument to the main
+        :class:DocTestTask: constructor
+
+        - ``**options`` -- any overrides to the default options in
+        :class:`DocTestDefaults`
+        """
+
+        from .control import DocTestDefaults
+        options = DocTestDefaults(**options)
+        source = FileDocTestSource(filename, options)
+        return cls(source, options, funclist=funclist)
 
     def run(self):
         """
@@ -2012,15 +2034,11 @@ class DocTestWorker(multiprocessing.Process):
 
         TESTS::
 
-            sage: from sage.doctest.forker import DocTestWorker, DocTestTask
-            sage: from sage.doctest.sources import FileDocTestSource
-            sage: from sage.doctest.reporting import DocTestReporter
-            sage: from sage.doctest.control import DocTestController, DocTestDefaults
+            sage: from sage.doctest.forker import DocTestWorker
             sage: from sage.env import SAGE_SRC
-            sage: filename = os.path.join(SAGE_SRC,'sage','doctest','util.py')
-            sage: DD = DocTestDefaults()
-            sage: FDS = FileDocTestSource(filename,DD)
-            sage: W = DocTestWorker(FDS, DD)
+            sage: filename = os.path.join(SAGE_SRC, 'sage', 'doctest',
+            ....:     'util.py')
+            sage: W = DocTestWorker.for_file(filename)
             sage: W.start()
             sage: try:
             ....:     os.fstat(W.wmessages)
@@ -2052,15 +2070,12 @@ class DocTestWorker(multiprocessing.Process):
 
         EXAMPLES::
 
-            sage: from sage.doctest.forker import DocTestWorker, DocTestTask
-            sage: from sage.doctest.sources import FileDocTestSource
-            sage: from sage.doctest.reporting import DocTestReporter
-            sage: from sage.doctest.control import DocTestController, DocTestDefaults
+            sage: from sage.doctest.forker import DocTestWorker
             sage: from sage.env import SAGE_SRC
-            sage: filename = os.path.join(SAGE_SRC,'sage','doctest','util.py')
-            sage: DD = DocTestDefaults(verbose=True,nthreads=2)
-            sage: FDS = FileDocTestSource(filename,DD)
-            sage: W = DocTestWorker(FDS, DD)
+            sage: filename = os.path.join(SAGE_SRC, 'sage', 'doctest',
+            ....:     'util.py')
+            sage: W = DocTestWorker.for_file(filename, verbose=True,
+            ....:                            nthreads=2)
             sage: W.start()
             sage: while W.rmessages is not None:
             ....:     W.read_messages()
@@ -2087,15 +2102,11 @@ class DocTestWorker(multiprocessing.Process):
 
         EXAMPLES::
 
-            sage: from sage.doctest.forker import DocTestWorker, DocTestTask
-            sage: from sage.doctest.sources import FileDocTestSource
-            sage: from sage.doctest.reporting import DocTestReporter
-            sage: from sage.doctest.control import DocTestController, DocTestDefaults
+            sage: from sage.doctest.forker import DocTestWorker
             sage: from sage.env import SAGE_SRC
-            sage: filename = os.path.join(SAGE_SRC,'sage','doctest','util.py')
-            sage: DD = DocTestDefaults()
-            sage: FDS = FileDocTestSource(filename,DD)
-            sage: W = DocTestWorker(FDS, DD)
+            sage: filename = os.path.join(SAGE_SRC, 'sage', 'doctest',
+            ....:     'util.py')
+            sage: W = DocTestWorker.for_file(filename)
             sage: W.start()
             sage: W.join()
             sage: W.save_result_output()
@@ -2139,14 +2150,10 @@ class DocTestWorker(multiprocessing.Process):
         EXAMPLES::
 
             sage: import time
-            sage: from sage.doctest.forker import DocTestWorker, DocTestTask
-            sage: from sage.doctest.sources import FileDocTestSource
-            sage: from sage.doctest.reporting import DocTestReporter
-            sage: from sage.doctest.control import DocTestController, DocTestDefaults
+            sage: from sage.doctest.forker import DocTestWorker
             sage: from sage.env import SAGE_SRC
-            sage: filename = os.path.join(SAGE_SRC,'sage','doctest','tests','99seconds.rst')
-            sage: DD = DocTestDefaults()
-            sage: FDS = FileDocTestSource(filename,DD)
+            sage: filename = os.path.join(SAGE_SRC, 'sage', 'doctest',
+            ....:     'tests', '99seconds.rst')
 
         We set up the worker to start by blocking ``SIGQUIT``, such that
         killing will fail initially::
@@ -2156,7 +2163,7 @@ class DocTestWorker(multiprocessing.Process):
             sage: def block_hup():
             ....:     # We never __exit__()
             ....:     PSelecter([signal.SIGQUIT]).__enter__()
-            sage: W = DocTestWorker(FDS, DD, [block_hup])
+            sage: W = DocTestWorker.for_file(filename, [block_hup])
             sage: W.start()
             sage: W.killed
             False
