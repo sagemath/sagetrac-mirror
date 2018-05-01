@@ -39,7 +39,7 @@ jobs:
           .ci/push-dockerhub.sh sagemath-dev
           .ci/push-dockerhub.sh sagemath
 
-  doctest:
+  doctest-short:
     machine: true
     steps:
     - checkout
@@ -72,13 +72,13 @@ workflows:
   build-check-release-test:
     jobs:
     - build-check-release
-    - doctest-new:
+    - doctest-short:
         requires:
         - build-check-release
     - doctest-long-approval:
         type: approval
         requires:
-        - doctest-new
+        - doctest-short
     - doctest-long:
         requires:
         - doctest-long-approval
