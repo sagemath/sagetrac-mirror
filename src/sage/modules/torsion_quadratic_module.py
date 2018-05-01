@@ -541,19 +541,19 @@ class TorsionQuadraticModule(FGP_Module_class):
                     rk = qk.ncols()
                     qk, _ = qk._clear_denom()
                     if p == 2:
-                        det_k = mod(qz.det().prime_to_m_part(2), 8)
-                        if qz[-1,-1].valuation(2) == 0:
+                        det_k = mod(qk.det().prime_to_m_part(2), 8)
+                        if qk[-1,-1].valuation(2) == 0:
                             is_odd = 1
-                            if mod(qz.ncols(),2) == 0:
-                                oddity = mod(qz[-1,-1] + qz[-2,-2], 8)
+                            if mod(qk.ncols(),2) == 0:
+                                oddity = mod(qk[-1,-1] + qk[-2,-2], 8)
                             else:
-                                oddity = mod(qz[-1,-1],8)
+                                oddity = mod(qk[-1,-1],8)
                         else:
                             is_odd = 0
                             oddity = 0
                         local_symbol.append([scale, rk, det_k, is_odd, oddity])
                     else:
-                        det_k = legendre_symbol(qz.det(), p)
+                        det_k = legendre_symbol(qk.det(), p)
                         local_symbol.append([scale, rk, det_k])
             # if necessary add the part of scale zero.
             rk = rank - q.ncols()
@@ -1175,54 +1175,6 @@ class TorsionQuadraticModule(FGP_Module_class):
             S = self.submodule([self.linear_combination_of_smith_form_gens(A(g).exponents()) for g in Sg.GeneratorsOfGroup()])
             representatives.append(S)
         return representatives
-
-    def Genus(self,signature_pair):
-        from sage.quadratic_forms.genera.Genus import (Genus_Symbol_p_adic_ring,
-                                                    GenusSymbol_global_ring)
-        from sage.quadratic_forms.genera.normal_form import            _get_homogeneous_block_indices
-        from sage.misc.misc_c import prod
-        s_plus = signature_pair[0]
-        s_minus = signature_pair[1]
-        rank = s_plus + s_minus
-        D = self.cardinality()
-        det = (-1)**s_minus * D
-        symbols = []
-        for p in (2*D).prime_divisors():
-            q = self.primary_part(p).normal_form().gram_matrix_quadratic()
-            I = _get_homogeneous_block_indices(q)[1:]
-            q.subdivide(I)
-            for i in range(len(L)+1):
-                qk = D.subdivision(i, i)
-                m = qk.denominator().valuation()
-                n = qk.ncols()
-                if p == 2:
-                    qz = qk._clear_denom()
-                    d = qz.det() % 8
-                    oddity = qz.trace()
-                    if mod(e, 8) == 0:
-                        is_odd = 0
-                    else:
-                        is_odd = 1
-                    local_symbol.append([m,n,d,is_odd,oddity])
-                else:
-                    d = qk[-1, -1]
-                    if d != 1:
-                        d = -1
-                    local_symbol.append([m,n,d])
-            r = rank - q.ncols()
-            if r>0 or p==2:
-                if p == 2:
-                    d = det.prime_to_m_part(2) % 8
-                    d *= prod([di[2] for di in local_symbol])
-                    d = d % 8
-                    local_symbol.append([0, r, d, 0 ,0])
-                else:
-                    d = legendre_symbol(det,p)
-                    d *= prod([di[2] for di in local_symbol])
-                    local_symbol.append([0, r, d])
-                local_symbol.sort()
-                local_symbol = Genus_Symbol_p_adic_ring(local_symbol,p)
-                symbols.append(local_symbol)
 
 def _Brown_indecomposable(q, p):
     r"""

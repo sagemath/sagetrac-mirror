@@ -941,6 +941,59 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         """
         return (gcd((self/M).invariants()) == 0)
 
+    def maximal_overlattice(self):
+        r"""
+        Return a maximal integral overlattice of this lattice.
+
+        EXAMPLES::
+
+            sage: L = IntegralLattice("A4").twist(25*89)
+            sage: L.maximal_overlattice().determinant()
+            5
+        """
+        L = self
+        from sage.arith.misc import hilbert_symbol
+        from sage.rings.all import GF
+        for p in ZZ(self.determinant()).prime_divisors():
+            # go squarefree
+            Lold = 0
+            k = GF(p)
+            while Lold != L:
+                Lold = L
+                L = L.overlattice((p*L.dual_lattice() & (1/p)*L).gens())
+            d = L.discriminant_group(p).gram_matrix_bilinear().det().numerator()
+            # now the p-discriminant_group is a vector space
+            while L.determinant().valuation(p) > 1 and (L.determinant().valuation(p) > 2
+                   or ZZ(-1).kronecker(p) == d.kronecker(p)
+                   or p==2):
+                D = L.discriminant_group(p).normal_form()
+                gen = D.gens()
+                if p!=2:
+                    G = D.gram_matrix_quadratic().diagonal()
+                    a = k(G[0].numerator()); b = k(G[1].numerator());
+                    if (-b/a).is_square():
+                        # solve:  a*x^2 + b *y^2  = 0
+                        x = (-b/a).sqrt()
+                        y = 1
+                        z = 0
+                        t = ZZ(x)*gen[0] + ZZ(y)*gen[1]
+                    else:
+                        c = k(G[2].numerator())
+                        # or solve a*x^2 + b*y^2 + c = 0
+                        z = 1
+                        for y in GF(p):
+                            x = ((-c - b*y**2)/a)
+                            if x.is_square():
+                                x = x.sqrt()
+                                break
+                        t = ZZ(x)*gen[0] + ZZ(y)*gen[1] + ZZ(z)*gen[2]
+                else:
+                    t = gen[0]
+                assert t.b(t) == 0
+                L = L.overlattice([t.lift()])
+                d = L.discriminant_group(p).gram_matrix_bilinear().det().numerator()
+        return L
+
     def orthogonal_complement(self, M):
         r"""
         Return the orthogonal complement of ``M`` in this lattice.
