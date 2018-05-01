@@ -84,11 +84,12 @@ def tmp_dir(name="dir_", ext=""):
 
     EXAMPLES::
 
+        sage: from sage.misc.sage_ostools import restore_cwd
         sage: d = tmp_dir('dir_testing_', '.extension')
         sage: d   # random output
         '/home/username/.sage/temp/hostname/7961/dir_testing_XgRu4p.extension/'
-        sage: os.chdir(d)
-        sage: f = open('file_inside_d', 'w')
+        sage: with restore_cwd(d):
+        ....:     f = open('file_inside_d', 'w')
 
     Temporary directories are unaccessible by other users::
 

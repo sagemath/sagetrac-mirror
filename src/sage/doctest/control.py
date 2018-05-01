@@ -23,6 +23,9 @@ AUTHORS:
 from __future__ import absolute_import, division, print_function
 
 import random, os, sys, time, json, re, types
+import atexit
+import shutil
+import socket
 import six
 import sage.misc.flatten
 from sage.structure.sage_object import SageObject
@@ -109,6 +112,7 @@ class DocTestDefaults(SageObject):
         # We don't want to use the real stats file by default so that
         # we don't overwrite timings for the actual running doctests.
         self.stats_path = os.path.join(DOT_SAGE, "timings_dt_test.json")
+        self.coverage = False
         self.__dict__.update(kwds)
 
     def _repr_(self):
@@ -299,6 +303,12 @@ class DocTestController(SageObject):
                 options.timeout = int(os.getenv('SAGE_TIMEOUT_LONG', 30 * 60))
             else:
                 options.timeout = int(os.getenv('SAGE_TIMEOUT', 5 * 60))
+
+            if options.coverage:
+                # Coverage testing makes things extra slow, so just double
+                # whatever the timeout would be otherwise
+                options.timeout *= 2
+
         if options.nthreads == 0:
             options.nthreads = int(os.getenv('SAGE_NUM_THREADS_PARALLEL',1))
         if options.failed and not (args or options.new or options.sagenb):
@@ -381,6 +391,7 @@ class DocTestController(SageObject):
         self.stats = {}
         self.load_stats(options.stats_path)
         self._init_warn_long()
+        self._init_coverage()
 
     def __del__(self):
         if getattr(self, 'logfile', None) is not None:
@@ -420,6 +431,54 @@ class DocTestController(SageObject):
         except RuntimeError as err:
             if not sage.doctest.DOCTEST_MODE:
                 print(err)   # No usable timing information
+
+    def _init_coverage(self):
+        # TODO: Determine what should be passed to source depending on
+        # which packages are being tested
+        self.coverage_dir = None
+        self.coverage = None
+
+        if self.options.coverage:
+            import coverage
+            from sage.env import SAGE_SRC, SAGE_LIB
+            if not self.options.serial:
+                cov_dirname = '.coverage.{}.{}'.format(
+                        socket.gethostname(), os.getpid())
+                cov_dir = os.path.join(os.getcwd(), cov_dirname)
+                if os.path.exists(cov_dir):
+                    shutil.rmtree(cov_dir)
+                os.mkdir(cov_dir)
+                data_file = os.path.join(cov_dir, 'coverage')
+                self.coverage_dir = cov_dir
+
+                def cleanup_coverage_dir():
+                    try:
+                        if os.path.exists(cov_dir):
+                            shutil.rmtree(cov_dir)
+                    except Exception:
+                        pass
+
+                #atexit.register(cleanup_coverage_dir)
+            else:
+                data_file = os.path.join(os.getcwd(), '.coverage')
+
+            self.coverage = coverage.Coverage(
+                data_file=data_file,
+                config_file=os.path.join(SAGE_SRC, '.coveragerc'),
+                source=[os.path.join(SAGE_LIB, 'sage')]
+            )
+            self.coverage.erase()
+
+    def collect_coverage(self):
+        if not (self.coverage and self.coverage.config.parallel):
+            return
+
+        self.coverage.combine()
+        self.coverage.save()
+        os.rename(self.coverage.config.data_file,
+                  os.path.join(os.path.dirname(self.coverage_dir),
+                               '.coverage'))
+        #shutil.rmtree(self.coverage_dir)
 
     def second_on_modern_computer(self):
         """
@@ -1200,7 +1259,6 @@ def run_doctests(module, options=None):
             cpu time: ... seconds
             cumulative wall time: ... seconds
     """
-    import sys
     sys.stdout.flush()
     def stringify(x):
         if isinstance(x, (list, tuple)):

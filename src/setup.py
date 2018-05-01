@@ -286,6 +286,7 @@ class sage_build_cython(Command):
             fast_getattr=True,
             preliminary_late_includes_cy28=True,
             profile=self.profile,
+            linetrace=True
         )
         self.compile_time_env = dict(
             PY_VERSION_HEX=sys.hexversion,
@@ -793,6 +794,8 @@ class sage_build_ext(build_ext):
         macros = ext.define_macros[:]
         for undef in ext.undef_macros:
             macros.append((undef,))
+
+        macros.append(('CYTHON_TRACE', '1'))
 
         objects = self.compiler.compile(sources,
                                         output_dir=self.build_temp,

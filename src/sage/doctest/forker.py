@@ -423,6 +423,9 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
         - ``optionflags`` -- Controls the comparison with the expected
           output.  See :mod:`testmod` for more information.
 
+        - ``coverage`` -- an instance of :class:`coverage.Coverage` for
+        tracing test coverage, or ``None`` for no coverage.
+
         EXAMPLES::
 
             sage: from sage.doctest.parsing import SageOutputChecker
@@ -436,6 +439,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
         O = kwds.pop('outtmpfile', None)
         self.msgfile = kwds.pop('msgfile', None)
         self.options = kwds.pop('sage_options')
+        self.coverage = kwds.pop('coverage', None)
         doctest.DocTestRunner.__init__(self, *args, **kwds)
         self._fakeout = SageSpoofInOut(O)
         if self.msgfile is None:
@@ -657,6 +661,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
 
         # Record and return the number of failures and tries.
         self._DocTestRunner__record_outcome(test, failures, tries)
+
         return doctest.TestResults(failures, tries)
 
     def run(self, test, compileflags=None, out=None, clear_globs=True):
@@ -958,9 +963,17 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
         try:
             compiled = compiler(example)
             timer.start()    # reset timer
+
+            if self.coverage is not None:
+                self.coverage.start()
+
             exec(compiled, globs)
         finally:
+            if self.coverage is not None:
+                self.coverage.stop()
+
             timer.stop().annotate(example)
+
             if isinstance(globs, RecordingDict):
                 example.predecessors = []
                 for name in globs.got:
@@ -1521,7 +1534,8 @@ class DocTestDispatcher(SageObject):
 
             with tempfile.TemporaryFile() as outtmpfile:
                 result = DocTestTask(source)(self.controller.options,
-                        outtmpfile, self.controller.logger)
+                        outtmpfile, self.controller.logger,
+                        coverage=self.controller.coverage)
                 outtmpfile.seek(0)
                 output = bytes_to_str(outtmpfile.read())
 
@@ -1736,8 +1750,10 @@ class DocTestDispatcher(SageObject):
                             source_iter = None
                         else:
                             # Start a new worker.
-                            w = DocTestWorker(source, opt,
-                                              funclist=[sel_exit])
+                            w = DocTestWorker(
+                                    source, opt,
+                                    funclist=[sel_exit],
+                                    coverage=self.controller.coverage)
                             heading = self.controller.reporter.report_head(w.source)
                             if not self.controller.options.only_errors:
                                 w.messages = heading + "\n"
@@ -1849,6 +1865,8 @@ class DocTestDispatcher(SageObject):
         else:
             self.parallel_dispatch()
 
+        self.controller.collect_coverage()
+
 
 class DocTestWorker(multiprocessing.Process):
     """
@@ -1874,6 +1892,8 @@ class DocTestWorker(multiprocessing.Process):
     - ``funclist`` -- a list of callables to be called at the start of
       the child process.
 
+    - ``coverage`` -- an optional coverage controller
+
     EXAMPLES::
 
         sage: from sage.doctest.forker import DocTestWorker
@@ -1890,7 +1910,7 @@ class DocTestWorker(multiprocessing.Process):
         sage: reporter.report(W.source, False, W.exitcode, result, "")
             [... tests, ... s]
     """
-    def __init__(self, source, options, funclist=[]):
+    def __init__(self, source, options, funclist=[], coverage=None):
         """
         Initialization.
 
@@ -1934,6 +1954,10 @@ class DocTestWorker(multiprocessing.Process):
 
         # Has this worker been killed (because of a time out)?
         self.killed = False
+
+        self.coverage = coverage
+        if coverage is not None:
+            coverage.data_suffix = source.basename
 
     @classmethod
     def for_file(cls, filename, funclist=[], **options):
@@ -2007,7 +2031,8 @@ class DocTestWorker(multiprocessing.Process):
         os.close(self.rmessages)
         msgpipe = os.fdopen(self.wmessages, "w")
         try:
-            task(self.options, self.outtmpfile, msgpipe, self.result_queue)
+            task(self.options, self.outtmpfile, msgpipe, self.result_queue,
+                 self.coverage)
         finally:
             msgpipe.close()
             # Note: This closes the tempfile in the child process, but in the
@@ -2251,7 +2276,8 @@ class DocTestTask(object):
         """
         self.source = source
 
-    def __call__(self, options, outtmpfile=None, msgfile=None, result_queue=None):
+    def __call__(self, options, outtmpfile=None, msgfile=None,
+                 result_queue=None, coverage=None):
         """
         Calling the task does the actual work of running the doctests.
 
@@ -2267,6 +2293,9 @@ class DocTestTask(object):
 
         - ``result_queue`` -- an instance of :class:`multiprocessing.Queue`
           to store the doctest result. For testing, this can also be None.
+
+        - ``coverage`` -- an instance of :class:`coverage.Coverage` for
+        tracing test coverage, or ``None`` for no coverage.
 
         OUTPUT:
 
@@ -2303,7 +2332,8 @@ class DocTestTask(object):
                     outtmpfile=outtmpfile,
                     msgfile=msgfile,
                     sage_options=options,
-                    optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
+                    optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS,
+                    coverage=coverage)
             runner.basename = self.source.basename
             runner.filename = self.source.path
             N = options.file_iterations
@@ -2328,7 +2358,6 @@ class DocTestTask(object):
             # We subtract 1 to remove the sig_on_count() tests
             result = (sum(max(0,len(test.examples) - 1) for test in doctests),
                       results)
-
         except BaseException:
             exc_info = sys.exc_info()
             tb = "".join(traceback.format_exception(*exc_info))
@@ -2336,6 +2365,9 @@ class DocTestTask(object):
 
         if result_queue is not None:
             result_queue.put(result, False)
+
+        if coverage:
+            coverage.save()
 
         return result
 
