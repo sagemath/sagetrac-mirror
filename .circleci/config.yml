@@ -49,9 +49,9 @@ jobs:
 
           . .ci/pull-dockerhub.sh sagemath
 
-          # Run doctests. Note that the limits on CircleCI are not sufficient
-          # to run --long doctests as of early 2018.
-          .ci/test-doctest.sh "$DOCKER_IMAGE"
+          .ci/test-doctest.sh "$DOCKER_IMAGE" --new
+          # TODO: Enable this once we have https://trac.sagemath.org/ticket/25270
+          # .ci/test-doctest.sh "$DOCKER_IMAGE" --short
 
   doctest-long:
     machine: true
@@ -65,22 +65,20 @@ jobs:
 
           . .ci/pull-dockerhub.sh sagemath
 
-          # Run doctests. Note that the limits on CircleCI are not sufficient
-          # to run --long doctests as of early 2018.
-          .ci/test-doctest.sh "$DOCKER_IMAGE"
+          .ci/test-doctest.sh "$DOCKER_IMAGE" --long
 
 workflows:
   version: 2
   build-check-release-test:
     jobs:
     - build-check-release
-    - doctest:
+    - doctest-new:
         requires:
         - build-check-release
     - doctest-long-approval:
         type: approval
         requires:
-        - doctest
+        - doctest-new
     - doctest-long:
         requires:
         - doctest-long-approval
