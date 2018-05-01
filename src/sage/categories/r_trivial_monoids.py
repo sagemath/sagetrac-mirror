@@ -16,11 +16,11 @@ class RTrivialMonoids(Category):
     """
     The category of `R`-trivial monoids
 
-    Let `M` be a monoid. The *`R`-preorder* is defined by `x\leq_R y`
-    if `x \in yM`.  The *`R`-classes* are the equivalence classes
-    for the associated equivalence relation.  A monoid is `R`-trivial
+    Let `M` be a monoid. The `R`-*preorder* is defined by `x\leq_R y`
+    if `x \in yM`.  The `R`-*classes* are the equivalence classes
+    for the associated equivalence relation.  A monoid is `R`-*trivial*
     if all its `R`-classes are trivial, that is of cardinality `1`, or
-    equivalently if the `R`-preoder is in fact an order.
+    equivalently if the `R`-preorder is in fact an order.
 
     EXAMPLES::
 
@@ -46,11 +46,11 @@ class RTrivialMonoids(Category):
 
     def example(self, alphabet=('a', 'b', 'c')):
         """
-        Returns an example of (finite) right trivial monoid
+        Return an example of (finite) right trivial monoid.
 
         .. seealso:: :meth:`Category.example`
 
-        .. todo:: this cheating a bit: this is just a semigroup, not a monoid!
+        .. TODO:: this cheating a bit: this is just a semigroup, not a monoid!
 
         EXAMPLES::
 
@@ -69,11 +69,11 @@ class RTrivialMonoids(Category):
 
             def index_of_regular_j_class(self, idempotent):
                 """
-                Returns the index that should be used for an idempotent in the transversal
+                Return the index that should be used for an idempotent in the transversal.
 
                 In this implementation, each idempotent e is indexed
                 by the subset of the indices `i` of the generators
-                `s_i` such that `es_i=e` (that is `s_1` acts by `1` on
+                `s_i` such that `es_i=e` (that is `s_i` acts by `1` on
                 the corresponding simple module).
 
                 .. seealso:: :meth:`FiniteSemigroups.ParentMethods.j_transversal_of_idempotents`
@@ -95,4 +95,5 @@ class RTrivialMonoids(Category):
 
                 """
                 s = self.semigroup_generators()
-                return tuple(i for i in s.keys() if idempotent * s[i] == idempotent)
+                return tuple(i for i in s.keys()
+                             if idempotent * s[i] == idempotent)

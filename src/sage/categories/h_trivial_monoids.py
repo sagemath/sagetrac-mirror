@@ -8,14 +8,16 @@ class HTrivialMonoids(Category):
     """
     The category of `H`-trivial monoids
 
-    Let `M` be a monoid. The *`H`-preorder* is defined by `x\leq_H y`
-    if `x \in My` and `x \in yM`. The *`H`-classes* are the
+    Let `M` be a monoid. The `H`-*preorder* is defined by `x\leq_H y`
+    if `x \in My` and `x \in yM`. The `H`-*classes* are the
     equivalence classes for the associated equivalence relation.  A
-    monoid is *`H`-trivial* if all its `H`-classes are trivial, that
-    is of cardinality `1`, or equivalently if the `H`-preoder is in
+    monoid is `H`-*trivial* if all its `H`-classes are trivial, that
+    is of cardinality `1`, or equivalently if the `H`-preorder is in
     fact an order.
 
     A `H`-trivial monoid is also called an aperiodic monoid.
+
+    See :wikipedia:`Aperiodic_semigroup`
 
     EXAMPLES::
 
@@ -26,7 +28,6 @@ class HTrivialMonoids(Category):
         [Category of monoids]
         sage: C.example()
         NotImplemented
-
 
     .. seealso:: :class:`LTrivialMonoids`, :class:`RTrivialMonoids`, :class:`JTrivialMonoids`
     """
