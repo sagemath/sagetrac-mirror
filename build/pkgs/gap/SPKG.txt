@@ -30,7 +30,20 @@ Steve Linton, sal@dcs.st-and.ac.uk, is basically the lead developer)
 
 This is a stripped-down version of GAP. The downloading of the sources
 and removal of unneeded parts is done by the script spkg-src. When you
-update GAP, please also update and use the spkg-src script.
+update GAP, please also update and use the spkg-src script as follow
+(the instructions assume the commands are run from the same directory
+as SPKG.txt):
+
+    wget http://www.gap-system.org/pub/gap/gap48/tar.gz/gap4r8p10_2018_01_15-13_02.tar.gz 
+    bash spkg-src gap4r8p10_2018_01_15-13_02.tar.gz
+    Using gap4r8p10_2018_01_15-13_02.tar.gz instead of downloading tarball
+    echo 4.8.10 > package-version.txt
+    sage --package fix-checksum
+    git diff                           # for double checking
+
+Presumably the libgap spkg should be upgraded at the same time as this one.
+
+Notes:
 
  * Do we really want to copy everything from the build directory???
    You need the full GAP tree to compile/install many GAP packages.
