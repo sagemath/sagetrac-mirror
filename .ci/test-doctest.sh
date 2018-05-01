@@ -17,7 +17,7 @@
 set -ex
 
 # Run tests once, and then try the failing files twice to work around flaky doctests.
-docker run --entrypoint sh "$1" -c 'sage -tp --all $DOCTEST_PARAMETERS ||
-                                    sage -tp --all $DOCTEST_PARAMETERS --failed ||
-                                    sage -tp --all $DOCTEST_PARAMETERS --failed'
+docker run --entrypoint sh -e DOCTEST_PARAMETERS "$1" -c 'sage -tp --all $DOCTEST_PARAMETERS ||
+                                                          sage -tp --all $DOCTEST_PARAMETERS --failed ||
+                                                          sage -tp --all $DOCTEST_PARAMETERS --failed'
 
