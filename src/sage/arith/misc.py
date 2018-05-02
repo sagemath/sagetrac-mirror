@@ -19,7 +19,7 @@ from six import integer_types
 
 import math
 
-from sage.misc.misc import powerset
+from sage.misc.misc import powerset, get_verbose
 from sage.misc.misc_c import prod
 
 from sage.libs.pari.all import pari
@@ -4043,7 +4043,6 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
         return ans_pari
     else:
         raise ValueError("Algorithm %s not defined"%algorithm)
-
 
 def hilbert_conductor(a, b):
     """
