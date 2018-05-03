@@ -32,11 +32,11 @@
 # takes about five minutes but you don't have to go through the sadly frequent #
 # rebuilds the whole Sage distribution...                                      #
 # To build Sage, run this command from your sage/ directory:                   #
-# $ docker build --build-arg MAKE="make -j4" --build-arg ARTIFACT_BASE="sagemath/sagemath-dev:develop" -f docker/Dockerfile --target=make-build --tag sage .
+# $ docker build --build-arg MAKEOPTS="-j4" --build-arg SAGE_NUM_THREADS="4" --build-arg ARTIFACT_BASE="sagemath/sagemath-dev:develop" -f docker/Dockerfile --target=make-build --tag sage .
 # To run Sage:                                                                 #
 # $ docker run -it sage                                                        #
 # To run doctests:                                                             #
-# $ docker run -e "MAKE=make -j4" -it sage sage -tp src/sage                   #
+# $ docker run -e "MAKEOPTS=-j4" -e "SAGE_NUM_THREADS=4" -it sage sage -tp src/sage
 # Make sure that you always have the latest develop branch merged into your    #
 # local branch for this to work.                                               #
 ################################################################################
@@ -160,18 +160,53 @@ ENV SAGE_FAT_BINARY yes
 # Just to be sure Sage doesn't try to build its own GCC (even though
 # it shouldn't with a recent GCC package from the system and with gfortran)
 ENV SAGE_INSTALL_GCC no
-# Make everything in the build use multiple cores (setting this variable causes
-# trouble for some packages outside Sage but it still seems to be they way Sage
-# is doing this.)
-ARG MAKE="make -j2"
-ENV MAKE $MAKE
+# Set MAKEOPTS and SAGE_NUM_THREADS to build things in parallel during the
+# docker build. Note that these do not leak into the sagemath and sagemath-dev
+# images.
+ARG MAKEOPTS="-j2"
+ENV MAKEOPTS $MAKEOPTS
+ARG SAGE_NUM_THREADS="2"
+ENV SAGE_NUM_THREADS $SAGE_NUM_THREADS
 RUN make build
 
 ################################################################################
 # Image with a full build of sage and its documentation.                       #
 ################################################################################
 FROM make-build as make-all
+# The docbuild needs quite some RAM (as of May 2018). It sometimes calls
+# os.fork() to spawn an external program which then exceeds easily the
+# overcommit limit of the system (no RAM is actually used, but this limit is
+# very low because there is not even swap on most CI systems.)
+ARG MAKEOPTS_DOCBUILD=$MAKEOPTS
+ENV MAKEOPTS_DOCBUILD $MAKEOPTS_DOCBUILD
+ARG SAGE_NUM_THREADS_DOCBUILD=$SAGE_NUM_THREADS
+ENV SAGE_NUM_THREADS_DOCBUILD $SAGE_NUM_THREADS_DOCBUILD
 RUN make
+
+################################################################################
+# Image with a full build of sage, ready to release, i.e., with stripped       #
+# binaries and some extras to run the jupyter notebook.                        #
+################################################################################
+FROM make-all as make-release
+RUN sage -pip install terminado "notebook>=5" "ipykernel>=4.6"
+RUN sage -i gap_jupyter singular_jupyter pari_jupyter
+RUN make micro_release
+
+################################################################################
+# A releasable (relatively small) image which contains a copy of sage without  #
+# temporary build artifacts which is set up to start the command line          #
+# interface if no parameters are passed in.                                    #
+################################################################################
+FROM run-time-dependencies as sagemath
+ARG SAGE_ROOT=/home/sage/sage
+COPY --chown=sage:sage --from=make-release $SAGE_ROOT/ $SAGE_ROOT/
+# Put scripts to start gap, gp, maxima, ... in /usr/bin
+WORKDIR $SAGE_ROOT
+RUN sudo sage --nodotsage -c "install_scripts('/usr/bin')"
+COPY ./docker/entrypoint.sh /usr/local/bin/sage-entrypoint
+ENTRYPOINT ["/usr/local/bin/sage-entrypoint"]
+EXPOSE 8888
+CMD ["sage"]
 
 ################################################################################
 # Image with a full build of sage and its documentation but everything         #
@@ -220,28 +255,3 @@ RUN if [ x"$ARTIFACT_BASE" != x"source-clean" ]; then \
 COPY ./docker/entrypoint-dev.sh /usr/local/bin/sage-entrypoint
 ENTRYPOINT ["/usr/local/bin/sage-entrypoint"]
 CMD ["bash"]
-
-################################################################################
-# Image with a full build of sage, ready to release, i.e., with stripped       #
-# binaries and some extras to run the jupyter notebook.                        #
-################################################################################
-FROM make-all as make-release
-RUN sage -pip install terminado "notebook>=5" "ipykernel>=4.6"
-RUN sage -i gap_jupyter singular_jupyter pari_jupyter
-RUN make micro_release
-
-################################################################################
-# A releasable (relatively small) image which contains a copy of sage without  #
-# temporary build artifacts which is set up to start the command line          #
-# interface if no parameters are passed in.                                    #
-################################################################################
-FROM run-time-dependencies as sagemath
-ARG SAGE_ROOT=/home/sage/sage
-COPY --chown=sage:sage --from=make-release $SAGE_ROOT/ $SAGE_ROOT/
-# Put scripts to start gap, gp, maxima, ... in /usr/bin
-WORKDIR $SAGE_ROOT
-RUN sudo sage --nodotsage -c "install_scripts('/usr/bin')"
-COPY ./docker/entrypoint.sh /usr/local/bin/sage-entrypoint
-ENTRYPOINT ["/usr/local/bin/sage-entrypoint"]
-EXPOSE 8888
-CMD ["sage"]
