@@ -422,6 +422,9 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
         """
         return richcmp(self._triple, other._triple, op)
 
+    def _cache_key(self):
+        return self._triple
+
     def _repr_(self):
         """
         EXAMPLES::
@@ -2211,6 +2214,9 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
             True
         """
         return richcmp(self._f, other._f, op)
+
+    def _cache_key(self):
+        return self._f
 
     def change_ring(self, R):
         """
