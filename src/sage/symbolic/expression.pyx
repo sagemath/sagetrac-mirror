@@ -140,12 +140,15 @@ from __future__ import print_function, absolute_import
 from cysignals.signals cimport sig_on, sig_off
 from sage.ext.cplusplus cimport ccrepr, ccreadstr
 
-from inspect import ismethod
+from inspect import isfunction
 import operator
 from . import ring
 import sage.rings.integer
 import sage.rings.rational
+
 from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
+
+from sage.cpython.string cimport str_to_bytes
 from sage.structure.element cimport ModuleElement, RingElement, Element, \
   classify_elements, HAVE_SAME_PARENT, BOTH_ARE_ELEMENT, coercion_model
 from sage.symbolic.comparison import mixed_order
@@ -154,8 +157,9 @@ from sage.symbolic.series cimport SymbolicSeries
 from sage.symbolic.complexity_measures import string_length
 from sage.symbolic.function import get_sfunction_from_serial, SymbolicFunction
 cimport sage.symbolic.comparison
-from sage.rings.rational import Rational  # Used for sqrt.
+from sage.rings.rational import Rational
 from sage.misc.derivative import multi_derivative
+from sage.misc.decorators import sage_wraps
 from sage.misc.superseded import deprecated_function_alias, deprecation
 from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_infinity
 from sage.misc.decorators import rename_keyword
@@ -1919,7 +1923,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x.is_real()
             True
         """
-        pynac_assume_gdecl(self._gobj, decl)
+        pynac_assume_gdecl(self._gobj, str_to_bytes(decl))
 
     def decl_forget(self, decl):
         """
@@ -1936,7 +1940,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x.is_integer()
             False
         """
-        pynac_forget_gdecl(self._gobj, decl)
+        pynac_forget_gdecl(self._gobj, str_to_bytes(decl))
 
     def has_wild(self):
         """
@@ -2208,7 +2212,7 @@ cdef class Expression(CommutativeRingElement):
 
     def _is_registered_constant_(self):
         """
-        Return True if this symbolic expression is interally represented as
+        Return True if this symbolic expression is internally represented as
         a constant.
 
         This function is intended to provide an interface to query the internal
@@ -3295,7 +3299,7 @@ cdef class Expression(CommutativeRingElement):
         Check if Pynac can compute inverses of Python longs (:trac:`13107`)::
 
             sage: SR(4L)*SR(2L)^(-1)
-            2.0
+            2
 
         Check for simplifications when multiplying instances of exp::
 
@@ -3496,7 +3500,7 @@ cdef class Expression(CommutativeRingElement):
         Check if Pynac can compute divisions of Python longs (:trac:`13107`)::
 
             sage: SR(1L)/SR(2L)
-            0.5
+            1/2
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -3915,7 +3919,7 @@ cdef class Expression(CommutativeRingElement):
         Test if we can compute inverses of Python longs (:trac:`13107`)::
 
             sage: SR(2L)^(-1)
-            0.5
+            1/2
 
         Symbolic powers with ``None`` shouldn't crash (:trac:`17523`)::
 
@@ -5328,6 +5332,55 @@ cdef class Expression(CommutativeRingElement):
         from sage.symbolic.expression_conversions import SubstituteFunction
         return SubstituteFunction(self, original, new)()
 
+    def substitution_delayed(self, pattern, replacement):
+        """
+        Replace all occurrences of pattern by the result of replacement.
+
+        In contrast to :meth:`subs`, the pattern may contains wildcards
+        and the replacement can depend on the particular term matched by the
+        pattern.
+
+        INPUT:
+
+        - ``pattern`` -- an :class:`Expression`, usually
+          containing wildcards.
+
+        - ``replacement`` -- a function. Its argument is a dictionary
+          mapping the wildcard occurring in ``pattern`` to the actual
+          values.  If it returns ``None``, this occurrence of ``pattern`` is
+          not replaced. Otherwise, it is replaced by the output of
+          ``replacement``.
+
+        OUTPUT:
+
+        An :class:`Expression`.
+
+        EXAMPLES::
+
+            sage: var('x y')
+            (x, y)
+            sage: w0 = SR.wild(0)
+            sage: sqrt(1 + 2*x + x^2).substitution_delayed(
+            ....:     sqrt(w0), lambda d: sqrt(factor(d[w0]))
+            ....: )
+            sqrt((x + 1)^2)
+            sage: def r(d):
+            ....:    if x not in d[w0].variables():
+            ....:        return cos(d[w0])
+            sage: (sin(x^2 + x) + sin(y^2 + y)).substitution_delayed(sin(w0), r)
+            cos(y^2 + y) + sin(x^2 + x)
+
+        .. SEEALSO::
+
+            :meth:`match`
+        """
+        result = self
+        for matched in self.find(pattern):
+            r = replacement(matched.match(pattern))
+            if r is not None:
+                result = result.subs({matched: r})
+        return result
+
     def __call__(self, *args, **kwds):
         """
         Call the :meth:`subs` on this expression.
@@ -5566,7 +5619,7 @@ cdef class Expression(CommutativeRingElement):
             sage: abs(x).operator()
             abs
             sage: r = gamma(x).operator(); type(r)
-            <class 'sage.functions.other.Function_gamma'>
+            <class 'sage.functions.gamma.Function_gamma'>
 
             sage: psi = function('psi', nargs=1)
             sage: psi(x).operator()
@@ -5815,6 +5868,11 @@ cdef class Expression(CommutativeRingElement):
             162.000000000000
             sage: (ex+1).n()
             163.000000000000
+
+        Check if :trac:`24418` is fixed::
+
+            sage: numerical_approx(2^(450232897/4888643760))
+            1.06591892580915
         """
         if prec is None:
             prec = digits_to_bits(digits)
@@ -7449,14 +7507,26 @@ cdef class Expression(CommutativeRingElement):
 
             sage: SR(0.1)._evaluate_polynomial(pol)
             0.123400000000000
+
+            sage: Pol.<x> = SR[]
+            sage: pol = x^2 - 1
+            sage: pol(1)
+            0
+            sage: pol(1).parent()
+            Symbolic Ring
         """
         cdef Expression zero
-        try:
-            return new_Expression_from_pyobject(self._parent, pol(self.pyobject()))
-        except TypeError:
-            zero = self._parent.zero()
-            return zero.add(*(pol[i]*self**i
-                              for i in xrange(pol.degree() + 1)))
+        if not isinstance(pol[0], Expression): # avoid infinite recursion
+            try:
+                x = self.pyobject()
+                y = pol(x) # may fail if x is a symbolic constant
+            except TypeError:
+                pass
+            else:
+                return new_Expression_from_pyobject(self._parent, y)
+        zero = self._parent.zero()
+        return zero.add(*(pol[i]*self**i for i in xrange(pol.degree() + 1)))
+
     def collect_common_factors(self):
         """
         This function does not perform a full factorization but only
@@ -8322,9 +8392,9 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(I).arctan2(1)
             arctan2(I, 1)
             sage: SR(CDF(0,1)).arctan2(1)
-            arctan2(1.0*I, 1)
-            sage: SR(1).arctan2(CDF(0,1))
-            arctan2(1, 1.0*I)
+            NaN + +infinity*I
+            sage: SR(1).arctan2(CDF(0,1))   # known bug
+            0.7853981633974484 - 19.012501686914433*I
 
             sage: arctan2(0,oo)
             0
@@ -8633,7 +8703,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(0).arctanh()
             0
             sage: SR(1/2).arctanh()
-            arctanh(1/2)
+            1/2*log(3)
             sage: SR(0.5).arctanh()
             0.549306144334055
             sage: SR(0.5).arctanh().tanh()
@@ -8644,7 +8714,7 @@ cdef class Expression(CommutativeRingElement):
         To prevent automatic evaluation use the ``hold`` argument::
 
             sage: SR(-1/2).arctanh()
-            -arctanh(1/2)
+            -1/2*log(3)
             sage: SR(-1/2).arctanh(hold=True)
             arctanh(-1/2)
 
@@ -8653,12 +8723,12 @@ cdef class Expression(CommutativeRingElement):
             sage: arctanh(-1/2,hold=True)
             arctanh(-1/2)
             sage: arctanh(-1/2)
-            -arctanh(1/2)
+            -1/2*log(3)
 
         To then evaluate again, we use :meth:`unhold`::
 
             sage: a = SR(-1/2).arctanh(hold=True); a.unhold()
-            -arctanh(1/2)
+            -1/2*log(3)
 
         TESTS::
 
@@ -12525,6 +12595,40 @@ def solve_diophantine(f,  *args, **kwds):
         f = SR(f)
     return f.solve_diophantine(*args, **kwds)
 
+
+def _eval_on_operands(f):
+    """
+    Given a function ``f``, return a new function which takes a symbolic
+    expression as first argument and prepends the operands of that
+    expression to the arguments of ``f``.
+
+    EXAMPLES::
+
+        sage: def f(ex, x, y):
+        ....:     '''
+        ....:     Some documentation.
+        ....:     '''
+        ....:     return x + 2*y
+        ....:
+        sage: f(None, x, 1)
+        x + 2
+        sage: from sage.symbolic.expression import _eval_on_operands
+        sage: g = _eval_on_operands(f)
+        sage: var('a,b')
+        (a, b)
+        sage: g(a + b)
+        a + 2*b
+        sage: print(g.__doc__.strip())
+        Some documentation.
+    """
+    @sage_wraps(f)
+    def new_f(ex, *args, **kwds):
+        new_args = list(ex._unpack_operands())
+        new_args.extend(args)
+        return f(ex, *new_args, **kwds)
+    return new_f
+
+
 cdef dict dynamic_class_cache = {}
 cdef get_dynamic_class_for_function(unsigned serial):
     r"""
@@ -12543,7 +12647,7 @@ cdef get_dynamic_class_for_function(unsigned serial):
         ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=1)
         ....:
         ....:     class EvaluationMethods(object):
-        ....:         def argp1(fn, self, x):
+        ....:         def argp1(self, x):
         ....:             '''
         ....:             Some documentation about a bogus function.
         ....:             '''
@@ -12588,7 +12692,7 @@ cdef get_dynamic_class_for_function(unsigned serial):
         ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=2)
         ....:
         ....:     class EvaluationMethods(object):
-        ....:         def argsum(fn, self, x, y):
+        ....:         def argsum(self, x, y):
         ....:             return x + y
         ....:
         sage: tfunc2 = TFunc2()
@@ -12597,29 +12701,29 @@ cdef get_dynamic_class_for_function(unsigned serial):
         x + 1
     """
     cls = dynamic_class_cache.get(serial)
-    if cls is None:
-        # if operator is a special function defined by us
-        # find the python equivalent and return it
-        func_class = get_sfunction_from_serial(serial)
-        eval_methods = getattr(func_class, 'EvaluationMethods', None)
-        if eval_methods is not None:
-            # callable methods need to be wrapped to extract the operands
-            # and pass them as arguments
-            from sage.symbolic.function_factory import eval_on_operands
-            from sage.cpython.getattr import getattr_from_other_class
-            for name in dir(eval_methods):
-                if ismethod(getattr(eval_methods, name)):
-                    new_m = eval_on_operands(getattr_from_other_class(
-                        func_class, eval_methods, name))
-                    setattr(eval_methods, name, new_m)
-            cls = dynamic_class('Expression_with_dynamic_methods',
-                    (Expression,), eval_methods, prepend_cls_bases=False)
-        else:
-            cls = Expression
+    if cls is not None:
+        return cls
 
-        dynamic_class_cache[serial] = cls
+    func_class = get_sfunction_from_serial(serial)
+    try:
+        eval_methods = func_class.EvaluationMethods
+    except AttributeError:
+        cls = Expression
+    else:
+        cls = dynamic_class('Expression_with_dynamic_methods',
+                            (Expression,),
+                            eval_methods, prepend_cls_bases=False)
+        # Fix methods from eval_methods, wrapping them to extract
+        # the operands and pass them as arguments
+        for name, meth in eval_methods.__dict__.items():
+            if not isfunction(meth):
+                continue
+            meth = _eval_on_operands(meth)
+            setattr(cls, name, meth)
 
+    dynamic_class_cache[serial] = cls
     return cls
+
 
 cdef Expression new_Expression_from_GEx(parent, GEx juice):
     cdef type cls
