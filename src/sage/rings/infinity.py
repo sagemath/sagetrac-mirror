@@ -1297,6 +1297,9 @@ class FiniteNumber(RingElement):
             return rich_to_bool(op, 1)
         return richcmp(self.value, other.value, op)
 
+    def _cache_key(self):
+        return self.value
+    
     def _add_(self, other):
         """
         EXAMPLES::
