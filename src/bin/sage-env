@@ -521,6 +521,12 @@ if [ -z "$CCACHE_BASEDIR" ]; then
     export CCACHE_BASEDIR="$SAGE_ROOT"
 fi
 
+# Setup a location for Cython to cache its generated .c[pp] files
+# We do not respect the user's CYTHON_CACHE_DIR as the version of Cython that
+# writes to CYTHON_CACHE_DIR might be incompatible with the (patched) version
+# shipped with Sage.
+export CYTHON_CACHE_DIR=${SAGE_CYTHON_CACHE_DIR:-${SAGE_ROOT}/cython}
+
 # Set AS to assembler used by $CC ("as" by default)
 if [ "$AS" = "" ]; then
     CC_as=`$CC -print-file-name=as 2>/dev/null`
