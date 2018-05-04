@@ -1809,7 +1809,7 @@ cdef class FastAutomaton:
         r.a[0] = a
         r.A = self.A
 
-        return r.emonde().minimise()
+        return r.emonde().minimize()
 
     def zero_inv(self, z=0):
         """
@@ -1838,7 +1838,7 @@ cdef class FastAutomaton:
         sig_off()
         r.a[0] = a
         r.A = self.A
-        return r.emonde().minimise()
+        return r.emonde().minimize()
 
     # change the final states of the automaton
     # new final states are the one in a strongly connected component containing a final state, others states are not final
@@ -2114,7 +2114,7 @@ cdef class FastAutomaton:
             print("d=%s" % d)
         p = self.product(a, d, verb=verb)
         if simplify:
-            return p.emonde().minimise()
+            return p.emonde().minimize()
         else:
             return p
 
@@ -2292,9 +2292,9 @@ cdef class FastAutomaton:
         # if verb:
         #    print r
         # r = r.emonde()
-        # r = r.minimise()
+        # r = r.minimize()
         if simplify:
-            return r.emonde().minimise()
+            return r.emonde().minimize()
         else:
             return r
 
@@ -2393,7 +2393,7 @@ cdef class FastAutomaton:
         r.A = Av
         r2.a[0] = ap2
         r2.A = Av
-        return [r.emonde().minimise(), r2.emonde().minimise()]
+        return [r.emonde().minimize(), r2.emonde().minimize()]
 
     # modify the automaton to recognize the langage shifted by a (letter given by its index)
     def shift1OP(self, int a, verb=False):
@@ -2642,7 +2642,7 @@ cdef class FastAutomaton:
             # "Determinise et simplifie...")
             if verb:
                 print("Determinist and simplified...")
-            return r.determinise().emonde().minimise()
+            return r.determinise().emonde().minimize()
         else:
             return r
 
@@ -2687,7 +2687,7 @@ cdef class FastAutomaton:
         r.a[0] = a
         r.A = A2
         if det:
-            return r.determinise().emonde().minimise()
+            return r.determinise().emonde().minimize()
         else:
             return r
 
@@ -3120,7 +3120,7 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.minimise(True)
+            sage: a.minimize(True)
             transition i[0][0] = [ ]
             transition i[0][1] = [ ]
             transition i[1][0] = [ 0 ]
@@ -3317,7 +3317,7 @@ cdef class FastAutomaton:
             0
 
         """
-        a = self.minimise()
+        a = self.minimize()
         if verb:
             print("minimal Automata : %s" % a)
         l = a.strongly_connected_components()

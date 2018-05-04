@@ -2328,7 +2328,7 @@ class BetaAdicMonoid(Monoid_class):
         #add a new state
         cdef int ne, ei
         ei = arel.initial_state
-        ne = arel.n_states() #new added state
+        ne = arel.n_states #new added state
         arel.add_state(True)
         arel.set_final_state(ei, final=False) #it is the new final state
         if step == 2:
@@ -2829,7 +2829,7 @@ class BetaAdicMonoid(Monoid_class):
         if ext:
             ap = ap.prefix_closure()
         if verb:
-            if ap.n_states() < 100:
+            if ap.n_states < 100:
                 ap.plot()
             print "ap=%s"%ap
         d = dict()
@@ -2844,7 +2844,7 @@ class BetaAdicMonoid(Monoid_class):
         else:
             arel = arel.duplicate(d)
         if verb:
-            if arel.n_states() < 100:
+            if arel.n_states < 100:
                 arel.plot()
             print "arel=%s"%arel
         ai = ap.intersection(arel)
@@ -2853,7 +2853,7 @@ class BetaAdicMonoid(Monoid_class):
         ai = ai.emonde()
         ai = ai.minimise()
         if verb:
-            if ai.n_states() < 100:
+            if ai.n_states < 100:
                 ai.plot()
             print "ai=%s"%ai
         d = dict()
@@ -2967,7 +2967,7 @@ class BetaAdicMonoid(Monoid_class):
         #add a new state
         cdef int ne, ei
         ei = a.initial_state
-        ne = a.n_states() #new added state
+        ne = a.n_states #new added state
         a.add_state(a.is_final(ei))
         a.set_initial_state(ne) #it is the new initial state
         if step == 2:
@@ -3100,7 +3100,7 @@ class BetaAdicMonoid(Monoid_class):
                 a = FastAutomaton(None).full(list(self.C))
         
         from sage.graphs.graph import Graph
-        n = a.n_states()
+        n = a.n_states
         na = len(a.Alphabet)
         d = dict([]) #dictionnaire des automates complétés
         if verb: print "Automate des relations..."
@@ -3144,7 +3144,7 @@ class BetaAdicMonoid(Monoid_class):
             else:
                 a = FastAutomaton(None).full(self.C)
         
-        n = a.n_states()
+        n = a.n_states
         na = len(a.Alphabet)
         rules = [[[l] for l in a.Alphabet] for i in range(n)]
         gvois = [Graph(na) for i in range(n)] #graphe des morceaux voisins
