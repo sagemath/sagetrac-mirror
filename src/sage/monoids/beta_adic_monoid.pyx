@@ -2236,7 +2236,7 @@ class BetaAdicMonoid(Monoid_class):
         ssi = ssi.determinise_proj(d)
         ssi = ssi.emonde_inf()
         ssi = ssi.emonde()
-        return ssi.minimise()
+        return ssi.minimize()
         
     def intersection_words (self, w1, w2, ss=None, iss=None):
         r"""
@@ -2379,7 +2379,7 @@ class BetaAdicMonoid(Monoid_class):
         arel = arel.emonde_inf()
         if step == 10:
             return arel
-        return arel.minimise()
+        return arel.minimize()
     
     
     
@@ -2851,7 +2851,7 @@ class BetaAdicMonoid(Monoid_class):
         if ext:
             ai = ai.emonde_inf()
         ai = ai.emonde()
-        ai = ai.minimise()
+        ai = ai.minimize()
         if verb:
             if ai.n_states < 100:
                 ai.plot()
@@ -2864,7 +2864,7 @@ class BetaAdicMonoid(Monoid_class):
         if ext:
             ac = ac.emonde_inf()
         ac = ac.emonde()
-        ac = ac.minimise()
+        ac = ac.minimize()
         return ac
     
     #donne l'automate décrivant l'adhérence de l'ensemble limite avec un nouvel alphabet C
@@ -2922,7 +2922,7 @@ class BetaAdicMonoid(Monoid_class):
         a2 = a2.emonde()
         if step == 6:
             return a2
-        a2 = a2.minimise()
+        a2 = a2.minimize()
         if step == 7:
             return a2
         if verb:
@@ -2942,7 +2942,7 @@ class BetaAdicMonoid(Monoid_class):
             return a2
         if verb:
             print "Après simplification : %s"%a2
-        return a2.minimise()
+        return a2.minimize()
     
     #obsolete
     #donne l'automate décrivant le translaté de +t, avec les chiffres C
@@ -3034,7 +3034,7 @@ class BetaAdicMonoid(Monoid_class):
         ai = ar.intersection(ap)
         if verb: print "ai = %s"%ai
         if verb: print("min...")
-        ai = ai.minimise()
+        ai = ai.minimize()
         if verb: print "ai = %s"%ai
         #project on one side
         d={}
@@ -3047,7 +3047,7 @@ class BetaAdicMonoid(Monoid_class):
         if verb: print "ai=%s"%ai
         if verb: print("min")
         ai.zero_completeOP()
-        return ai.emonde().minimise()
+        return ai.emonde().minimize()
     
     #return the automaton recognizing the division by beta and translation t
     def shift (self, FastAutomaton aa, FastAutomaton bb, t=0, verb=False):
@@ -3069,7 +3069,7 @@ class BetaAdicMonoid(Monoid_class):
         for i in range(0, len(l)):
             a2 = aa.copy()
             a2.set_initial_state(aa.a.e[aa.a.i].f[l[i]])
-            a2 = a2.emonde().minimise()
+            a2 = a2.emonde().minimize()
             a2 = self.move2(t=-(A[l[i]]-t)/self.b, a=a2, b=bb)
             a = a.union(a2)
         return a
@@ -3115,8 +3115,8 @@ class BetaAdicMonoid(Monoid_class):
                         continue
                     if verb: print " intersection %s et %s..."%(j,k)
                     la = []
-                    la.append(a.piece(j, e=i).minimise())
-                    la.append(a.piece(k, e=i).minimise())
+                    la.append(a.piece(j, e=i).minimize())
+                    la.append(a.piece(k, e=i).minimize())
                     for l in range(2):
                         a2 = d.get(la[l]) #récupère le complété dans le dictionnaire s'il y est
                         if a2 is None:
@@ -3412,9 +3412,9 @@ class BetaAdicMonoid(Monoid_class):
             at[t] = at[t].intersection(uc)
             at[t].zero_completeOP()
             #if verb: print "union..."
-            u = u.union(at[t]).emonde().minimise()
+            u = u.union(at[t]).emonde().minimize()
             #if verb: print "emonde..."
-            at[t] = at[t].emonde().minimise()
+            at[t] = at[t].emonde().minimize()
             #teste si c'est fini
             #if verb: print "compl..."
             uc = u.complementary()
@@ -3532,7 +3532,7 @@ class BetaAdicMonoid(Monoid_class):
             if verb: print "determinise..."
             ad = ad.determinise_proj(d)
             if verb: print "minimise..."
-            ad = ad.emonde().minimise()
+            ad = ad.emonde().minimize()
             ad.zero_completeOP()
             if verb: print "ad = %s"%ad
             #compute the list of points
@@ -3580,9 +3580,9 @@ class BetaAdicMonoid(Monoid_class):
             at[t] = at[t].intersection(uc)
             at[t].zero_completeOP()
             #if verb: print "emonde..."
-            at[t] = at[t].emonde().minimise()
+            at[t] = at[t].emonde().minimize()
             #if verb: print "union..."
-            u = u.union(at[t]).emonde().minimise()
+            u = u.union(at[t]).emonde().minimize()
             at[t] = at[t].emonde()
             #teste si c'est fini
             #if verb: print "compl..."
@@ -3694,7 +3694,7 @@ class BetaAdicMonoid(Monoid_class):
             ad = ad.determinise_proj(d)
             if verb:
                 print("minimise...")
-            ad = ad.emonde().minimise()
+            ad = ad.emonde().minimize()
             if verb:
                 print("ad = %s" % ad)
             # project on ap
@@ -3805,7 +3805,7 @@ class BetaAdicMonoid(Monoid_class):
         #complete a
         aoc = m.move2(t=0, a=a)
         aoc.zero_completeOP()
-        aoc = aoc.emonde().minimise()
+        aoc = aoc.emonde().minimize()
         if verb: print "aoc = %s"%aoc
         #test if np is big enough
         if np is None:
@@ -3871,7 +3871,7 @@ class BetaAdicMonoid(Monoid_class):
                         break
                     tr += lm[j][1]
                 #calcule b^np*a + tr
-            a = a1.unshift(0, np).emonde().minimise()
+            a = a1.unshift(0, np).emonde().minimize()
             if tr != 0:
                 if verb: print "Translation de %s..."%tr
                 a = m.move2(t=-tr, a=a)                   #TODO : ne pas recalculer cet automate déjà calculé
@@ -3893,7 +3893,7 @@ class BetaAdicMonoid(Monoid_class):
                         a = m.move2(t=tr, a=a2) #translate a2 de -tr
                         a.zero_completeOP()
                         a.shiftOP(0, np) #multiplie par b^(-np)
-                        a = a.emonde().minimise()
+                        a = a.emonde().minimize()
                         k = len(lm) #indice du nouveau morceau
                         lf.append(k) #nouvelle feuille
                         arbre[i].append(k)
@@ -3974,7 +3974,7 @@ class BetaAdicMonoid(Monoid_class):
                         break
                     if arbre[j] != []: #il faut recalculer cette lettre
                         #calcule b^np*a + tr
-                        a = a1.unshift(0, np).emonde().minimise()
+                        a = a1.unshift(0, np).emonde().minimize()
                         if tr != 0:
                             if verb: print "Translation de %s..."%tr
                             a = m.move2(t=-tr, a=a)                   #TODO : ne pas recalculer cet automate déjà calculé
@@ -3998,7 +3998,7 @@ class BetaAdicMonoid(Monoid_class):
                                 a = m.move2(t=tr, a=a2) #translate a2 de -tr
                                 a.zero_completeOP()
                                 a.shiftOP(0, np) #multiplie par b^(-np)
-                                a = a.emonde().minimise()
+                                a = a.emonde().minimize()
                                 k = len(lm) #indice du nouveau morceau
                                 lf.append(k) #nouvelle feuille
                                 arbre[i].append(k)
@@ -4153,7 +4153,7 @@ class BetaAdicMonoid(Monoid_class):
                         break
                     tr += lm[j][1]
             #calcule b^np*a + tr
-            a = a1.unshift(0, np).emonde().minimise()
+            a = a1.unshift(0, np).emonde().minimize()
             if tr != 0:
                 if verb: print "Translation de %s..."%tr
             a = m.Proj(a, ap, t=-tr) #m.move2(t=-tr, a=a)                   #TODO : ne pas recalculer cet automate déjà calculé
@@ -4174,7 +4174,7 @@ class BetaAdicMonoid(Monoid_class):
                         #découpe a selon a2
                         a = m.Proj(a2, ap.unshift(0, np), t=tr) #m.move2(t=tr, a=a2) #translate a2 de -tr
                         a.shiftOP(0, np) #multiplie par b^(-np)
-                        a = a.emonde().minimise()
+                        a = a.emonde().minimize()
                         k = len(lm) #indice du nouveau morceau
                         lf.append(k) #nouvelle feuille
                         arbre[i].append(k)
@@ -4255,7 +4255,7 @@ class BetaAdicMonoid(Monoid_class):
                         break
                     if arbre[j] != []: #il faut recalculer cette lettre
                         #calcule b^np*a + tr
-                        a = a1.unshift(0, np).emonde().minimise()
+                        a = a1.unshift(0, np).emonde().minimize()
                         if tr != 0:
                             if verb: print "Translation de %s..."%tr
                         a = m.Proj(a, ap, t=-tr) #m.move2(t=-tr, a=a)                   #TODO : ne pas recalculer cet automate déjà calculé
@@ -4280,7 +4280,7 @@ class BetaAdicMonoid(Monoid_class):
                                 #a.zero_completeOP()
                                 a = m.Proj(a2, ap.unshift(0,np), t=tr)
                                 a.shiftOP(0, np) #multiplie par b^(-np)
-                                a = a.emonde().minimise()
+                                a = a.emonde().minimize()
                                 k = len(lm) #indice du nouveau morceau
                                 lf.append(k) #nouvelle feuille
                                 arbre[i].append(k)
