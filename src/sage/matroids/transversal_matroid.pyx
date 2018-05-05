@@ -837,8 +837,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
         # Adapted from the Python documentation
         from itertools import chain, combinations
-        sets_list = list(sets)
-        powerset = chain.from_iterable(combinations(sets_list, r) for r in range(len(sets_list)+1))
+        powerset = chain.from_iterable(combinations(sets, r) for r in range(len(sets)+1))
 
         for collection in powerset:
             yield self.transversal_extension(element=element, sets=collection)
