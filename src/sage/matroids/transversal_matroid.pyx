@@ -151,6 +151,15 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             running ._test_new() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_pickling() . . . pass
+
+        ::
+            sage: sets = [['s1', 's2'], ['s1', 's3']]
+            sage: M = TransversalMatroid(sets); M
+            Transversal matroid of rank 2 on 3 elements, with 2 sets.
+            sage: M.sets()
+            [['s1', 's2'], ['s1', 's3']]
+            sage: M.set_labels()
+            ['s0', 's4']
         """
         contents = set([e for subset in sets for e in subset])
         if groundset is None:
@@ -160,7 +169,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         groundset = tuple(groundset)
 
         # keep the original list as input so we don't lose order between minors etc.
-        self._sets_input = [s for s in sets]
+        self._sets_input = [list(s) for s in sets]
         self._sets = Counter([frozenset(s) for s in self._sets_input])
 
         # This might be redundant with self._idx from BasisExchangeMatroid
@@ -181,7 +190,15 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         else:
             if matching:
                 raise ValueError("set labels must be provided if matching is provided")
-            self._set_labels_input = ['s' + str(i) for i in range(len(sets))]
+            self._set_labels_input = []
+            increment = 0
+            for i in range(len(sets)): # make sure "sn" is not in ground set
+                label = 's' + str(i + increment)
+                while label in groundset:
+                    increment += 1
+                    label = 's' + str(i + increment)
+                self._set_labels_input.append(label)
+        # for internal use with integers representing elements
         set_labels = ['s' + str(i) for i in range(len(sets))]
 
         if not matching:
@@ -751,6 +768,12 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             sage: N = M.transversal_extension(element='a', newset=True, sets=[4])
             sage: N.graph().degree('a')
             2
+
+        TESTS::
+
+            sage: N = TransversalMatroid(['abc', 'abd', 'cde']); N
+            Transversal matroid of rank 3 on 5 elements, with 3 sets.
+            sage: Ne = N.transversal_extension(element='f', sets=['s2'])
         """
         sets = set(sets)
         if element is None:
