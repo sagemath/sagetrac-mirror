@@ -551,7 +551,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
         """
         # if contractions are just coloops, we can just delete them
-        if self.corank(contractions) == 0:
+        if self._corank(contractions) == 0:
             deletions = deletions.union(contractions)
             contractions = set()
 
@@ -569,7 +569,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
             N = TransversalMatroid(new_sets, groundset, new_set_labels)
             # Check if what remains is just coloops
-            return N.contract(contractions)
+            return N._minor(contractions=contractions, deletions=set())
         else:
             N = self
 
@@ -607,7 +607,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         Return an equal transversal matroid where the number of sets equals the rank.
 
         Every transversal matroid `M` has a presentation with `r(M)` sets, and if `M`
-        has no coloops, then every presentation has `r(M)` sets. This method
+        has no coloops, then every presentation has `r(M)` nonempty sets. This method
         discards extra sets if `M` has coloops.
 
         OUTPUT:
@@ -652,13 +652,13 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             sage: len(M1.graph().edges())
             5
         """
-        element_int_map = {e:i for i,e in enumerate(self._groundset)}
         if (len(self.sets()) == self.full_rank()):
             return self
         else:
+            element_int_map = {e:i for i,e in enumerate(self._groundset)}
             coloops = self.coloops()
             coloops_to_delete = [e for e in coloops if self._D.degree(element_int_map[e]) > 1]
-            N = self.delete(coloops_to_delete)
+            N = self._minor(contractions=set(), deletions=set(coloops_to_delete))
             sets = N.sets()
             # reuse the old set labels
             # this does not respect containment
@@ -770,7 +770,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         # newset should not be a ground set element or existing set
         if newset in self._E or newset in self._set_labels_input:
             # keywords `True` and `False` give us problems here
-            if newset is not False and newset is not True:
+            if not isinstance(newset, bool):
                 raise ValueError("newset is already a vertex in the presentation")
 
         new_sets = []
