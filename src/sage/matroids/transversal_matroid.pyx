@@ -462,10 +462,9 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         """
         Return a bipartite graph representing the transversal matroid.
 
-        The TransversalMatroid object keeps track of a particular correspondence
-        between ground set elements and sets as specified by the input. The graph
-        returned by this method will reflect this correspondence, as opposed to
-        giving a minimal presentation.
+        A transversal matroid can be represented as a set system, or as a
+        bipartite graph with one color class corresponding to the ground set and
+        the other to the sets of the set system. This method returns that bipartite graph.
 
         OUTPUT:
 
@@ -536,6 +535,20 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             sage: M = TransversalMatroid(sets, groundset=gs)
             sage: N = M.delete(['d','e']); N
             Transversal matroid of rank 1 on 2 elements, with 1 sets.
+
+        TESTS::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: sets = [['a', 'c'], ['e']]
+            sage: gs = ['a', 'c', 'd', 'e']
+            sage: M = TransversalMatroid(sets, groundset=gs)
+            sage: M.contract(['e'])
+            Transversal matroid of rank 1 on 3 elements, with 1 sets.
+            sage: M.contract(['d', 'e'])
+            Transversal matroid of rank 1 on 2 elements, with 1 sets.
+            sage: M.contract(['a', 'e'])
+            M / {'a', 'e'}, where M is Transversal matroid of rank 2 on 4 elements, with 2 sets.
+
         """
         # if contractions are just coloops, we can just delete them
         if self.corank(contractions) == 0:
