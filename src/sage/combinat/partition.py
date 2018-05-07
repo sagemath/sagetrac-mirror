@@ -689,7 +689,7 @@ class Partition(CombinatorialElement):
                 txt += [u'├' + u'┼' * q + u'┴' * (p - q - 1) + u'┘']
         txt += [u'└' + u'┴' * (data[-1] - 1) + u'┘']
 
-        from sage.typeset.unicode_art import UnicodeArt        
+        from sage.typeset.unicode_art import UnicodeArt
         return UnicodeArt(txt, baseline=0)
 
     def _repr_list(self):
@@ -1261,6 +1261,55 @@ class Partition(CombinatorialElement):
             Standard tableaux of shape [3, 2, 2, 1]
         """
         return tableau.StandardTableaux(self)
+
+    def is_k_irreducible(self, k):
+        """
+        See if the partition is `k`-irreducible for the provided natural number `k`.
+
+        TESTS:
+
+            # sage: p = Partition([])
+            # sage: p.is_k_irreducible(0)
+            # False
+
+            # # 3-rectangles are NOT 3-irreducible
+            # sage: p = Partition([1, 1, 1])
+            # sage: p.is_k_irreducible(3)
+            # False
+            # sage: p = Partition([2, 2])
+            # sage: p.is_k_irreducible(3)
+            # False
+            # sage: p = Partition([3])
+            # sage: p.is_k_irreducible(3)
+            # False
+
+
+        """
+        # k must be a natural number
+        k = NN(k)
+        if k == 0:
+            # do anything speciall???
+            # return is_empty(l) ?
+            # TODO: edit this
+            return True
+        # if there's more than k-i rows of length i, it fails the condition
+        l_reversed = list(reversed(l))
+        i = 1
+        num_rows_of_len_i = 0
+        index = 0
+        while True:
+            if index == len(l_reversed) or l_reversed[index] > i:
+                # check for failure, move on to next i
+                if num_rows_of_len_i > k-i:
+                    return False
+                i += 1
+                num_rows_of_len_i = 0
+            else:
+                # add to the count, keep going
+                assert l_reversed[index] == i # sanity check
+                num_rows_of_len_i += 1
+                index += 1
+        return True
 
     def up(self):
         r"""
@@ -2198,7 +2247,7 @@ class Partition(CombinatorialElement):
         r"""
         Return the initial column tableau of shape ``self``.
 
-        The initial column taleau of shape self is the standard tableau 
+        The initial column taleau of shape self is the standard tableau
         that has the numbers `1` to `n`, where `n` is the :meth:`size` of ``self``,
         entered in order from top to bottom and then left to right down the
         columns of ``self``.
@@ -2499,7 +2548,7 @@ class Partition(CombinatorialElement):
 
         OUTPUT:
 
-        A non-negative integer 
+        A non-negative integer
 
         The degree of a partition `\lambda` is the sum of the
         `e`-:meth:`degree` of the standard tableaux of shape `\lambda`, for
@@ -2518,7 +2567,7 @@ class Partition(CombinatorialElement):
             sage: Partition([4,3]).prime_degree(7)
             0
 
-        THerefore, the Gram determinant of `S(5,3)` when `q = 1` is 
+        THerefore, the Gram determinant of `S(5,3)` when `q = 1` is
         `2^{36} 3^{15} 5^{13}`.  Compare with :meth:`degree`.
         """
         ps = [p]
@@ -3293,14 +3342,14 @@ class Partition(CombinatorialElement):
         The `e`-defect is the number of (connected) `e`-rim hooks that
         can be removed from the partition.
 
-        The defect of a partition is given by 
+        The defect of a partition is given by
 
         .. MATH::
 
             \text{defect}(\beta) = (\Lambda, \beta) - \tfrac12(\beta, \beta)
 
         where `\Lambda = \sum_r \Lambda_{\kappa_r}` for the multicharge
-        `(\kappa_1, \ldots, \kappa_{\ell})` and 
+        `(\kappa_1, \ldots, \kappa_{\ell})` and
         `\beta = \sum_{(r,c)} \alpha_{(c-r) \pmod e}`, with the sum
         being over the cells in the partition.
 
@@ -4771,6 +4820,38 @@ class Partition(CombinatorialElement):
             self._DEG = Graph([T, edges], format="vertices_and_edges",
                               immutable=True, multiedges=True)
         return self.dual_equivalence_graph(directed, coloring)
+
+
+class kIrreduciblePartition (Partition, CachedRepresentation):
+    """
+    matt
+    Definition: A partition is __k-irreducible__ if its shape has at most k-i rows of length i for all 1 \leq i < k, and no rows of length \geq k.
+
+    EXAMPLES:
+
+        sage: kip = kIrreduciblePartition([2, 1], 3)
+    """
+    def _validate(self, l, k):
+        """matt"""
+        assert l.is_k_irreducible(k)
+
+    @staticmethod
+    def __classcall_private__(cls, l, k):
+        """matt
+        Normalize input to ensure a unique representation. """
+        l = Partition(l)
+        k = NN(k)
+        # I DONT THINK WE ALLOW k=0.  NOT SURE.  I THINK THE DEFINITION IS WRONG.
+        return super(kIrreduciblePartition, cls).__classcall__(cls, l, k)
+
+    # def __init__(self, l, k):
+
+
+def get_k_irreducible_partitions(k):
+    """matt
+    Given k, output a list of all k-irreducible partitions """
+    pass
+
 
 ##############
 # Partitions #

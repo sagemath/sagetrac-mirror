@@ -166,6 +166,7 @@ from sage.combinat.partition import Partitions, _Partitions
 from sage.combinat.tableau import Tableaux
 from sage.combinat.composition import Compositions
 
+
 class SkewPartition(CombinatorialElement):
     r"""
     A skew partition.
@@ -504,7 +505,7 @@ class SkewPartition(CombinatorialElement):
 
         if self.parent().options.convention == "French":
             txt = list(reversed(txt))
-        from sage.typeset.unicode_art import UnicodeArt        
+        from sage.typeset.unicode_art import UnicodeArt
         return UnicodeArt(txt, baseline=0)
 
     def inner(self):
@@ -555,6 +556,53 @@ class SkewPartition(CombinatorialElement):
         o = skp[0]
         i = skp[1]+[0]*(len(skp[0])-len(skp[1]))
         return [x[0]-x[1] for x in zip(o,i)]
+
+    def is_skew_linked_diagram(self):
+        """
+        matt
+        A __skew-linked diagram__ is a skew-shape `s` where both the row-shape and column-shape of `s` are partitions.
+
+        TESTS:
+            # empty skew
+            sage: sp = SkewPartition([[], []])
+            sage: sp.is_skew_linked_diagram()
+            True
+            # # valid row shape but invalid col shape
+            # sage: sp = SkewPartition([[3, 2], [1, 0]])
+            # sage: sp.is_skew_linked_diagram()
+            # False
+            # sage: assert False
+        """
+        def is_weakly_decreasing(li):
+            return all(li[i] >= li[i+1] for i in range(len(li)-1))
+        return is_weakly_decreasing(self.row_lengths()) and is_weakly_decreasing(self.column_lengths())
+
+    def minimal_containing_partition(self):
+        """ Returns the smallest possible partition that could contain this skew shape.
+        Simply go down and left of all cells in skew_shape
+        """
+        current_row_len = 0
+        partition_reversed = []
+        for row in reversed(skew_shape.rows()):
+          current_row_len = max(current_row_len, rightmost(row))
+          partition_reversed.append(current_row_len)
+        partition = list(reversed(partition_reversed))
+        return partition
+
+    def is_k_boundary(self, k):
+        """ matt """
+        if k == 0:
+            # the only valid 0-boundary is the empty shape
+            return self.outer() == self.inner()
+        else:
+            """We go down and left of each cell to create the only possible partition that could have led to this potential k-boundary
+
+            (Any other partition containing this skew_shape would necessarily have a northeast corner that the skew_shape does *not have*.  But in order for the skew-shape to be a k-boundary, it *must have* that northeast corner.)
+            """
+            l = k_boundary_to_partition(self, strict=False)
+            """now that we have the partition, we simply compute it's hook-length for each cell and verify that for each cell of values k or less, it appears in the skew_shape"""
+            correct_k_boundary = l.k_boundary(k)
+            return self == correct_k_boundary
 
     def size(self):
         """
@@ -696,7 +744,7 @@ class SkewPartition(CombinatorialElement):
         l_out = len(lam)
         l_in = len(mu)
         mu += [0]*(l_out-l_in)
-        
+
         if l_out == 0:
             return True
         else:
@@ -710,7 +758,7 @@ class SkewPartition(CombinatorialElement):
                 else:
                     u += 1
 
-            # Find the least v strictly greater than u for which 
+            # Find the least v strictly greater than u for which
             # lam[v] != mu[v-1]+1
             v = u + 1
             v_test = True
