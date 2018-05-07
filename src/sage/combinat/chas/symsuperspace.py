@@ -1,15 +1,15 @@
 r"""
 Symmetric functions in super space
 
-Symmetric functions in super space is an algebra whose bases are indexed by 
+Symmetric functions in super space is an algebra whose bases are indexed by
 ``SuperPartitions``.
 
 Let `P_{\Theta_n, X_n}` be the polynomial ring in two sets of variables
 `Theta_n = \theta_1, theta_2, \ldots, \theta_n` and
 `X_n = x_1, x_2, \ldots, x_n`
 where the first set of variables anti-commute and the second set
-of variables commute and commutes with the first set.  The symmetric group 
-acts diagonally on this polynomial ring and the symmetric functions in 
+of variables commute and commutes with the first set.  The symmetric group
+acts diagonally on this polynomial ring and the symmetric functions in
 superspace are isomorphic to the invariants in this polynomial ring.
 
 ``SummetricFunctionsinSuperSpace`` is isomorphic to the graded ring with
@@ -47,7 +47,7 @@ from `Theta_n`.  These are given
     e_{(n; )} = \sum_{i\geq1} \sum_{J:|J|=n,i \notin J} \theta_i x_{j_1} x_{j_2} \cdots x_{j_n}
 
 The complete fermionic generator is most clearly expressed in terms of the monomial
-basis (discussed below). 
+basis (discussed below).
 
 The space of symmetric functions in super space is bigraded by the bosonic and
 fermionic degree.
@@ -113,7 +113,6 @@ class SFSuperSpaceAlgebraMorphism(AlgebraMorphism):
 
         EXAMPLES::
 
-            sage: 
             sage: SFSS = SymmetricFunctionsinSuperSpace(QQ)
             sage: p = SFSS.p()
             sage: h = SFSS.h()
@@ -194,7 +193,7 @@ def m_prod_fixed_a_match(SFSS_m, sp1, sp2, a_sp3, mt):
     parts of ``sp1`` and ``sp2`` considered as monomial symmetric functions.
 
     INPUT:
-    
+
     - ``SFSS_m`` -- a monomial basis
     - ``sp1, sp2`` -- super partitions
     - ``a_sp3`` -- a strict partition
@@ -678,7 +677,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
                     sage: SFSS = SymmetricFunctionsinSuperSpace(QQ)
                     sage: p = SFSS.p()
-                    sage: neg = lambda i: p.algebra_generators()[-i] 
+                    sage: neg = lambda i: p.algebra_generators()[-i]
                     sage: f = p.algebra_morphism(neg, codomain = p)
                     sage: f
                     Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field in the Psi basis
@@ -814,7 +813,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
     class Schur_sb(CombinatorialFreeModule, BindableClass):
         r"""
         The Schur basis arising from `q=t=0` specialization of Macdonald.
-        
+
         The Pieri rule for this basis is described in [JL2016]_ .
 
         EXAMPLES::
@@ -876,7 +875,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
                           theorem_10(sp2, sp[1][0]) if spa!=sp)
             else:
                 return self._h.prod(self._h([[a],[]]) for a in sp[0])
-    
+
         def complete_to_self_by_triangularity(self, h_expr):
             r"""
             Convert an expression in the complete basis to the Schur basis
@@ -917,7 +916,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
         The basis is calculated by the Pieri rule in order to obtain the
         the expansion in the complete basis.  It is calculated from the
         complete basis by identifying a triangularity relation.
-        
+
         The Pieri rule for this basis is described in [JL2016]_ .
 
         EXAMPLES::
@@ -979,7 +978,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
                           sp2.add_horizontal_border_strip(sp[1][0]) if spa!=sp)
             else:
                 return self._h.prod(self._h([[a],[]]) for a in sp[0])
-    
+
         def complete_to_self_by_triangularity(self, h_expr):
             r"""
             Convert an expression in the complete basis to the Schur-* basis
@@ -1024,7 +1023,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
         This basis is dual to the one-true Schur basis.
         It is also the involution omega applied to the Schur-* basis.
-        
+
         The Pieri rule for this basis is described in [JL2016]_ .
 
         EXAMPLES::
@@ -1069,8 +1068,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             mc2 = binomial(sp.fermionic_degree(),2)
             return (-1)**mc2*self._e.sum(self._e.term(sp,c) for (sp,c) in \
                 self._ss.self_to_complete_on_basis(sp.conjugate()))
-            
-    
+
         def elementary_to_self(self, e_expr):
             r"""
             Convert an expression in the elementary basis to the Schur-bar basis
@@ -1114,7 +1112,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
         This basis is the one-true Schur basis (except that there are 4).
         It is also the involution omega applied to the Schur-star-bar basis.
-        
+
         The Pieri rule for this basis is described in [JL2016]_ .
 
         EXAMPLES::
@@ -1159,8 +1157,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             mc2 = binomial(sp.fermionic_degree(),2)
             return (-1)**mc2*self._e.sum(self._e.term(sp,c) for (sp,c) in \
                 self._ssb.self_to_complete_on_basis(sp.conjugate()))
-            
-    
+
         def elementary_to_self(self, e_expr):
             r"""
             Convert an expression in the elementary basis to the Schur basis
@@ -1218,7 +1215,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             integers are mapped to the symmetric generator.
 
             EXAMPLES::
-            
+
                 sage: e = SymmetricFunctionsinSuperSpace(QQ).e()
                 sage: e.p_to_self_on_generator(2)
                 e[; 1, 1] - 2*e[; 2]
@@ -1240,7 +1237,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             - ``n`` -- a positive integer
 
             EXAMPLES::
-            
+
                 sage: e = SymmetricFunctionsinSuperSpace(QQ).e()
                 sage: e.sgen_p_to_self(4)
                 e[; 1, 1, 1, 1] - 4*e[; 2, 1, 1] + 2*e[; 2, 2] + 4*e[; 3, 1] - 4*e[; 4]
@@ -1264,7 +1261,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             This is equation (3.44) of [DLM2006]_.
 
             EXAMPLES::
-            
+
                 sage: e = SymmetricFunctionsinSuperSpace(QQ).e()
                 sage: e.agen_p_to_self(3)
                 e[0; 1, 1, 1] - 2*e[0; 2, 1] + e[0; 3] - e[1; 1, 1] + e[1; 2] + e[2; 1] - e[3; ]
@@ -1293,7 +1290,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             integers are mapped to the symmetric generator.
 
             EXAMPLES::
-            
+
                 sage: e = SymmetricFunctionsinSuperSpace(QQ).e()
                 sage: e.h_to_self_on_generator(2)
                 e[; 1, 1] - e[; 2]
@@ -1377,7 +1374,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             integers are mapped to the symmetric generator.
 
             EXAMPLES::
-            
+
                 sage: h = SymmetricFunctionsinSuperSpace(QQ).h()
                 sage: h.p_to_self_on_generator(2)
                 -h[; 1, 1] + 2*h[; 2]
@@ -1399,7 +1396,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             - ``n`` -- a positive integer
 
             EXAMPLES::
-            
+
                 sage: h = SymmetricFunctionsinSuperSpace(QQ).h()
                 sage: h.sgen_p_to_self(4)
                 -h[; 1, 1, 1, 1] + 4*h[; 2, 1, 1] - 2*h[; 2, 2] - 4*h[; 3, 1] + 4*h[; 4]
@@ -1423,7 +1420,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             This is equation (3.43) of [DLM2006]_.
 
             EXAMPLES::
-            
+
                 sage: h = SymmetricFunctionsinSuperSpace(QQ).h()
                 sage: h.agen_p_to_self(3)
                 -h[0; 1, 1, 1] + 2*h[0; 2, 1] - h[0; 3] + h[1; 1, 1] - h[1; 2] - h[2; 1] + h[3; ]
@@ -1450,7 +1447,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             integers are mapped to the symmetric generator.
 
             EXAMPLES::
-            
+
                 sage: h = SymmetricFunctionsinSuperSpace(QQ).h()
                 sage: h.e_to_self_on_generator(2)
                 h[; 1, 1] - h[; 2]
