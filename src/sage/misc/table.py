@@ -10,6 +10,7 @@ AUTHORS:
 - John H. Palmieri (2012-11)
 """
 from __future__ import absolute_import
+from six import text_type
 from six.moves import cStringIO as StringIO
 from six.moves import range, zip
 
@@ -414,14 +415,21 @@ class table(SageObject):
 
             sage: table([['a', 'bb', 'ccccc'], [10, -12, 0], [1, 2, 3]])._widths()
             (2, 3, 5)
+
+        TESTS:
+
+        Regression test for :trac:`23528`::
+
+            sage: table([[u'\N{SNOWMAN}']])._widths()
+            (1,)
         """
         nc = len(self._rows[0])
 
         widths = [0] * nc
         for row in self._rows:
             w = []
-            for (idx, x) in zip(range(nc), row):
-                w.append(max(widths[idx], len(str(x))))
+            for (idx, x) in enumerate(row):
+                w.append(max(widths[idx], len(text_type(x))))
             widths = w
         return tuple(widths)
 
