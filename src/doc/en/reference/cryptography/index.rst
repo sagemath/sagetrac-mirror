@@ -31,4 +31,7 @@ Cryptography
    sage/crypto/lattice
    sage/crypto/lwe
 
+   sage/crypto/smc/shamir_ss
+   sage/crypto/smc/rabin_ids
+
 .. include:: ../footer.txt
