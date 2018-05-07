@@ -82,7 +82,20 @@ from sage.misc.bindable_class import BindableClass
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 from sage.rings.integer import Integer
 from sage.combinat.ncsf_qsym.generic_basis_code import AlgebraMorphism
-#from sage.combinat.superpartition import SuperPartition as SP
+from sage.combinat.free_module import CombinatorialFreeModule
+from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
+from sage.combinat.superpartition import SuperPartition, SuperPartitions
+from sage.combinat.sf.sf import SymmetricFunctions
+from sage.misc.misc_c import prod
+from sage.combinat.partition import Partition, Partitions
+from sage.functions.other import factorial
+from sage.sets.set import Set
+from sage.combinat.subset import Subsets
+from sage.combinat.permutation import Permutations
+from sage.misc.misc import uniq
+from sage.functions.other import binomial
+from sage.rings.finite_rings.integer_mod_ring import Integers
 
 class SFSuperSpaceAlgebraMorphism(AlgebraMorphism):
     r"""
@@ -872,7 +885,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
                 sp2 = SuperPartition([sp[0],sp[1][1:]])
                 return self.self_to_complete_on_basis(sp2)*self._h([[],[sp[1][0]]])\
                     - sum(self.self_to_complete_on_basis(spa) for spa in \
-                          theorem_10(sp2, sp[1][0]) if spa!=sp)
+                          sp2.add_horizontal_border_strip_star_bar(sp[1][0]) if spa!=sp)
             else:
                 return self._h.prod(self._h([[a],[]]) for a in sp[0])
 
@@ -975,7 +988,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
                 sp2 = SuperPartition([sp[0],sp[1][1:]])
                 return self.self_to_complete_on_basis(sp2)*self._h([[],[sp[1][0]]])\
                     - sum(self.self_to_complete_on_basis(spa) for spa in \
-                          sp2.add_horizontal_border_strip(sp[1][0]) if spa!=sp)
+                          sp2.add_horizontal_border_strip_star(sp[1][0]) if spa!=sp)
             else:
                 return self._h.prod(self._h([[a],[]]) for a in sp[0])
 
@@ -1320,7 +1333,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             if n==0:
                 return self.term(SuperPartition([[],[]]))
             return self.sum(self.term(SuperPartition([[],la.to_list()]), \
-                (-1)**(n-len(la))*factorial(len(la))/mul([factorial(a) \
+                (-1)**(n-len(la))*factorial(len(la))/prod([factorial(a) \
                     for a in la.to_exp()])) for la in Partitions(n))
 
         @cached_method
@@ -1477,7 +1490,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             if n==0:
                 return self.term(SuperPartition([[],[]]))
             return self.sum(self.term(SuperPartition([[],la.to_list()]), \
-                (-1)**(n-len(la))*factorial(len(la))/mul([factorial(a) for a in \
+                (-1)**(n-len(la))*factorial(len(la))/prod([factorial(a) for a in \
                     la.to_exp()])) for la in Partitions(n))
 
         @cached_method
@@ -1542,7 +1555,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             SFSS_m = m_expr.parent() # monomial basis
             while m_expr!=self.zero():
                 (sp, c) = m_expr.trailing_item()
-                ft = mul(factorial(p) for p in Partition(sp[1]).to_exp())
+                ft = prod(factorial(p) for p in Partition(sp[1]).to_exp())
                 out += self.term(sp, c/ft)
                 m_expr -= c/ft*SFSS_m.power_to_self_on_basis(sp)
             return out
