@@ -2497,6 +2497,29 @@ cdef class Expression(CommutativeRingElement):
         """
         return is_a_infinity(self._gobj) and self._gobj.info(info_negative)
 
+    def is_prime(self):
+        """
+        Return ``True`` if `self` is a prime number, and ``False`` otherwise.
+        Raise TypeError if `self` is not a numeric expression.
+        
+        EXAMPLES::
+
+            sage: f(n,m) = n^2 + m
+            sage: f(2,1).is_prime()
+            True
+            sage: f(5,8).is_prime()
+            False
+            sage: f(n,m).is_prime()
+            Traceback (most recent call last):
+            ...
+            TypeError: self must be a numeric expression
+            sage: SR(42).is_prime()
+            False
+            sage: SR(5).is_prime()
+            True
+        """
+        return self.pyobject().is_prime()
+
     def left_hand_side(self):
         """
         If self is a relational expression, return the left hand side
