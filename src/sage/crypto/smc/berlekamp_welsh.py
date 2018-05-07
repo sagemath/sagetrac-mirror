@@ -45,8 +45,6 @@ def berlekamp_welsh(deg, points):
     EXAMPLES::
 
         sage: from sage.crypto.smc.berlekamp_welsh import berlekamp_welsh
-        sage: from sage.rings.finite_rings.constructor import FiniteField
-        sage: from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
     Reconstruction with errors::
 

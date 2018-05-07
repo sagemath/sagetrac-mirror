@@ -100,8 +100,6 @@ class ShamirSS(SageObject):
 
     Working in prime fields::
 
-        sage: from sage.rings.arith import random_prime
-
         sage: order = random_prime(10**10)
         sage: secret = randint(0, order-1)
         sage: sss = ShamirSS(7, 3, order)
@@ -155,16 +153,17 @@ class ShamirSS(SageObject):
             sage: secret == sss.reconstruct(shares)
             True
         """
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
         self._k = k  # threshold
         self._n = n  # number shares
         self._order = order  # order of field
 
-        from sage.rings.finite_rings.constructor import FiniteField
         self._F = FiniteField(self._order, 'a')
         if not self._F.is_prime_field() and not hasattr(self._F, 'fetch_int'):
             raise TypeError("field order not supported")
 
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         self._P = PolynomialRing(self._F, 'x')
 
     ### begin module private api
@@ -380,7 +379,6 @@ class ShamirSS(SageObject):
 
         Working in prime fields::
 
-            sage: from sage.rings.arith import random_prime
             sage: order = random_prime(10**10)
             sage: secret = randint(0, order-1)
             sage: sss = ShamirSS(7, 3, order)
