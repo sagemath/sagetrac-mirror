@@ -873,9 +873,9 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
                 sage: ssb = SymmetricFunctionsinSuperSpace(QQ).Schur_sb()
                 sage: ssb.self_to_complete_on_basis(SuperPartition([[1],[1]]))
-                -h[0; 2] + h[1; 1]
+                h[1; 1] - h[2; ]
                 sage: ssb.self_to_complete_on_basis(SuperPartition([[1],[1,1]]))
-                -h[0; 2, 1] + h[0; 3] + h[1; 1, 1] - h[1; 2]
+                h[1; 1, 1] - h[1; 2] - h[2; 1] + h[3; ]
             """
             if SuperPartition(sp).bosonic_length()>0:
                 sp2 = SuperPartition([sp[0],sp[1][1:]])
@@ -902,11 +902,11 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
                 sage: ssb = SymmetricFunctionsinSuperSpace(QQ).Schur_sb()
                 sage: h = SymmetricFunctionsinSuperSpace(QQ).Complete()
                 sage: ssb.complete_to_self_by_triangularity(-h[[0],[2]]+h[[1],[1]])
-                ss[1; 1]
+                -ssb[0; 2] + ssb[1; 1]
                 sage: ssb.self_to_complete_on_basis(SuperPartition([[1],[1,1]]))
-                -h[0; 2, 1] + h[0; 3] + h[1; 1, 1] - h[1; 2]
+                h[1; 1, 1] - h[1; 2] - h[2; 1] + h[3; ]
                 sage: ssb(ssb.self_to_complete_on_basis(SuperPartition([[1],[1,1]])))
-                ss[1; 1, 1]
+                ssb[1; 1, 1]
             """
             out = self.zero()
             while h_expr!=0:
@@ -1039,6 +1039,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             sage: sb = SymmetricFunctionsinSuperSpace(QQ).Schur_b()
             sage: sb[[1,0],[]]*sb[[],[3]]
+            sb[4, 0; ]
         """
         def __init__(self, SFSS):
             r"""
@@ -1070,9 +1071,9 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
                 sage: sb = SymmetricFunctionsinSuperSpace(QQ).Schur_b()
                 sage: sb.self_to_elementary_on_basis(SuperPartition([[1],[1]]))
-                -e[0; 2] + e[1; 1]
+                e[0; 2]
                 sage: sb.self_to_elementary_on_basis(SuperPartition([[1],[1,1]]))
-                -e[0; 2, 1] + e[0; 3] + e[1; 1, 1] - e[1; 2]
+                e[0; 3]
             """
             mc2 = binomial(sp.fermionic_degree(),2)
             return (-1)**mc2*self._e.sum(self._e.term(sp,c) for (sp,c) in \
@@ -1099,9 +1100,9 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
                 sage: sb = SymmetricFunctionsinSuperSpace(QQ).Schur_b()
                 sage: e = SymmetricFunctionsinSuperSpace(QQ).Elementary()
                 sage: sb.elementary_to_self(-e[[0],[2]]+e[[1],[1]])
-                sb[1; 1]
+                sb[0; 2]
                 sage: sb.self_to_elementary_on_basis(SuperPartition([[1],[1,1]]))
-                -e[0; 2, 1] + e[0; 3] + e[1; 1, 1] - e[1; 2]
+                e[0; 3]
             """
             ss_e_expr = self._ss(e_expr.omega())
             return self.sum_of_terms((sp.conjugate(), \
@@ -1126,8 +1127,9 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: sb = SymmetricFunctionsinSuperSpace(QQ).Schur_b()
-            sage: sb[[1,0],[]]*sb[[],[3]]
+            sage: s = SymmetricFunctionsinSuperSpace(QQ).Schur()
+            sage: s[[1,0],[]]*s[[],[3]]
+            s[1, 0; 3] + s[3, 0; 1] + s[4, 0; ]
         """
         def __init__(self, SFSS):
             r"""
@@ -1157,11 +1159,11 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: s = SymmetricFunctionsinSuperSpace(QQ).Schur_b()
+                sage: s = SymmetricFunctionsinSuperSpace(QQ).Schur()
                 sage: s.self_to_elementary_on_basis(SuperPartition([[1],[1]]))
-                -e[0; 2] + e[1; 1]
+                e[0; 2] - e[2; ]
                 sage: s.self_to_elementary_on_basis(SuperPartition([[1],[1,1]]))
-                -e[0; 2, 1] + e[0; 3] + e[1; 1, 1] - e[1; 2]
+                e[0; 3] - e[3; ]
             """
             mc2 = binomial(sp.fermionic_degree(),2)
             return (-1)**mc2*self._e.sum(self._e.term(sp,c) for (sp,c) in \
@@ -1185,12 +1187,14 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: sb = SymmetricFunctionsinSuperSpace(QQ).Schur_b()
+                sage: s = SymmetricFunctionsinSuperSpace(QQ).Schur()
                 sage: e = SymmetricFunctionsinSuperSpace(QQ).Elementary()
-                sage: sb.elementary_to_self(-e[[0],[2]]+e[[1],[1]])
-                sb[1; 1]
-                sage: sb.self_to_elementary_on_basis(SuperPartition([[1],[1,1]]))
-                -e[0; 2, 1] + e[0; 3] + e[1; 1, 1] - e[1; 2]
+                sage: s.elementary_to_self(-e[[0],[2]]+e[[1],[1]])
+                s[0; 2] - s[1; 1]
+                sage: s.elementary_to_self(e[0,2]-e[-2])
+                s[1; 1]
+                sage: s.self_to_elementary_on_basis(SuperPartition([[1],[1,1]]))
+                e[0; 3] - e[3; ]
             """
             ssb_e_expr = self._ssb(e_expr.omega())
             return self.sum_of_terms((sp.conjugate(), \
@@ -1666,7 +1670,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
                 sage: p = SymmetricFunctionsinSuperSpace(QQ).p()
                 sage: p.antipode_on_basis(SuperPartition([[2,1],[2]]))
-                -p[2, 1; 2]
+                p[2, 1; 2]
                 sage: p.antipode_on_basis(SuperPartition([[2],[1]]))
                 p[2; 1]
             """
@@ -1707,9 +1711,9 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
                     sage: p = SymmetricFunctionsinSuperSpace(QQ).p()
                     sage: p[[1,0],[2,2,1]].omega()
                     -p[1, 0; 2, 2, 1]
-                    sage: all(p[[n],[]].omega()==p[[n],[]] for n in range(5))
+                    sage: all(p[[n],[]].omega()==(-1)**n*p[[n],[]] for n in range(5))
                     True
-                    sage: all(all(p[[],[n]].omega()==(-1)**n*p[[],[n]] for n in range(5)))
+                    sage: all(p[[],[n]].omega()==(-1)**(n+1)*p[[],[n]] for n in range(1,6))
                     True
                 """
                 p = self.parent()
