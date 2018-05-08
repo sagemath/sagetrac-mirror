@@ -13,6 +13,24 @@ acts diagonally on this polynomial ring and the symmetric functions in
 superspace are isomorphic to the invariants in this polynomial ring.
 See [DLM2006]_ for a description of this space presented here.
 
+When `n=2` the following are symmetric polynomials in super space
+
+.. MATH::
+    x_1^2x_2^2, \that_1 x_1^4 + \theta_2 x_2^4, \theta_1 x_2^2 + \theta_2 x_1^2,
+    \theta_1 \theta_2(x_1^3 x_2 - x_1 x_2^3)
+
+In this implementation (as with the symmetric functions), the symmetric
+functions in super space are developed without referencing the variables
+in the ambient polynomial ring.  Instead the ring is represented as a vector
+space with distinguished bases that are indexed by combinatorial objects
+called super partitions.
+
+ .. SEEALSO::
+
+    :class:`sage.combinat.superpartition.SuperPartitions`,
+    :class:`sage.combinat.superpartition.SuperPartition`,
+    :class:`sage.combinat.sf.sf.SymmetricFunctions`
+
 ``SummetricFunctionsinSuperSpace`` is isomorphic to the graded ring with
 generators `p_{(0;)}, p_{(;1)}, p_{(1;)}, p_{(;2)}, p_{(2;)}, \ldots`
 satisfying the relations
@@ -47,13 +65,34 @@ from `Theta_n`.  These are given
 
     e_{(n; )} = \sum_{i\geq1} \sum_{J:|J|=n,i \notin J} \theta_i x_{j_1} x_{j_2} \cdots x_{j_n}
 
-The complete fermionic generator is most clearly expressed in terms of the monomial
-basis (discussed below).
+The complete fermionic generator is most clearly expressed in terms of the
+monomial basis (discussed below).
+
+The bases of the symmetric functions in super space are indexed by super
+partitions `\Lambda = (\Lambda_1, \ldots, \Lambda_m; \Lambda_{m+1}, \ldots, \Lambda_N)`
+where `\Lambda_i > \Lambda_{i+1} \geq 0` for `1 \leq i \leq m-1` and
+`\Lambda_j \geq \Lambda_{j+1} \geq 0` for `m+1 \leq j \leq N-1`.  The
+degree (or bosonic degree) of `\Lambda` is `|\Lambda| = \sum_{i=1}^N \Lambda_i`
+and the fermionic degree (or sector) is `m`.  The super partitions of degree
+`n` and bosnic degree `m` will be denoted `SPar(n|m)`.
+
+The monomial symmetric polynomial `m_\Lambda[X_n;\Theta_n]` indexed by the
+super partition `\Lambda \in SPar(n|m)` is equal to the sum over all distinct
+rearrangments of the monomial
+
+.. MATH::
+
+    \theta_1 \theta_2 \cdots \theta_m x_1^{\Lambda_1} \cdots x_N^{\Lambda_N}
+
+where the indicies of both alphabets are permuted simultaneously.  The basis
+element of the symmetric functions in super space will be denoted `m_\Lambda`
+and will have the same coefficients in the product as `m_\Lambda[X_n;\Theta_n]`
+as long as `n` is sufficiently large.
 
 The space of symmetric functions in super space is bigraded by the bosonic and
 fermionic degree.
 
-::
+TESTS::
 
     sage: SFSS = SymmetricFunctionsinSuperSpace(QQ).inject_shorthands(verbose=False)
     sage: bases = [m,p,e,h,s,ss,sb,ssb]
@@ -664,8 +703,6 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
                 basis ``self``, return the algebra morphism that extends
                 this map to the whole algebra of symmetric functions in super
                 space.
-                # FIX DOCUMENTATION
-                # written for NCSF
 
                 INPUT:
 
