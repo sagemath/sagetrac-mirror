@@ -221,6 +221,47 @@ def has_gurobi():
     except Exception:
         return False
 
+def has_graphviz():
+    """
+    Test if graphviz (dot, twopi, neato) are available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_graphviz
+        sage: has_graphviz() # random
+        True
+    """
+    from sage.features import find_executable
+    return (find_executable('dot') is not None and
+            find_executable('neato') is not None and
+            find_executable('twopi') is not None)
+
+def has_ffmpeg():
+    """
+    Test if ffmpeg is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_ffmpeg
+        sage: has_ffmpeg() # random
+        True
+    """
+    from sage.features import find_executable
+    return find_executable('ffmpeg') is not None
+
+def has_imagemagick():
+    """
+    Test if ImageMagick (command convert) is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_imagemagick
+        sage: has_imagemagick() # random
+        True
+    """
+    from sage.features import find_executable
+    return find_executable('convert') is not None
+
 def external_software():
     """
     Return the alphabetical list of external software supported by this module.
