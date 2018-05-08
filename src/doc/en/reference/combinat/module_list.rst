@@ -29,6 +29,7 @@ Comprehensive Module list
     sage/combinat/catalog_partitions
     sage/combinat/chas/__init__
     sage/combinat/chas/wqsym
+    sage/combinat/chas/symsuperspace
     sage/combinat/cluster_algebra_quiver/__init__
     sage/combinat/cluster_algebra_quiver/all
     sage/combinat/cluster_algebra_quiver/cluster_seed

@@ -747,6 +747,10 @@ REFERENCES:
              Leçons mathématiques de Bordeaux, vol. 4, pages 259-300,
              Cassini (2011).
 
+.. [DLM2006] \P. Desrosiers, L. Lapointe, P. Mathieu, Classical
+             symmetric functions in superspace, J. Algebr Comb. (2006) 24:209--238,
+             :arXiv:`0509408`
+
 .. [deG2000] Willem A. de Graaf. *Lie Algebras: Theory and Algorithms*.
              North-Holland Mathematical Library. (2000).
              Elsevier Science B.V.

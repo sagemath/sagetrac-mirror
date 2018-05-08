@@ -11,6 +11,7 @@ where the first set of variables anti-commute and the second set
 of variables commute and commutes with the first set.  The symmetric group
 acts diagonally on this polynomial ring and the symmetric functions in
 superspace are isomorphic to the invariants in this polynomial ring.
+See [DLM2006]_ for a description of this space presented here.
 
 ``SummetricFunctionsinSuperSpace`` is isomorphic to the graded ring with
 generators `p_{(0;)}, p_{(;1)}, p_{(1;)}, p_{(;2)}, p_{(2;)}, \ldots`
@@ -54,16 +55,11 @@ fermionic degree.
 
 ::
 
-    sage: SFSS = SymmetricFunctionsinSuperSpace(QQ)
-    sage: (m,p,e,h,ss,sb) = (SFSS.m(),SFSS.p(),SFSS.e(),SFSS.h(),SFSS.ss(),SFSS.sb())
+    sage: SFSS = SymmetricFunctionsinSuperSpace(QQ).inject_shorthands(verbose=False)
+    sage: bases = [m,p,e,h,s,ss,sb,ssb]
     sage: all(b1(b2(b1([[3,2],[1,1]]))) == b1([[3,2],[1,1]])
-    ....:     for b1 in [m,p,e,h,ss,sb] for b2 in [m,p,e,h,ss,sb] if b1!=b2)
-
-REFERENCES:
-
-    .. [DLM2006] P. Desrosiers, L. Lapointe, P. Mathieu, Classical
-        symmetric functions in superspace, J. Algebr Comb. (2006) 24:209--238,
-        :arXiv:`0509408`
+    ....:     for b1 in bases for b2 in bases if b1!=b2)
+    True
 
 AUTHORS:
 
@@ -73,13 +69,11 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.rings import Rings
 from sage.categories.fields import Fields
-from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
+from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.realizations import Category_realization_of_parent
 from sage.combinat.permutation import Permutation
 from sage.sets.family import Family
-from sage.sets.positive_integers import PositiveIntegers
 from sage.misc.bindable_class import BindableClass
-from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 from sage.rings.integer import Integer
 from sage.combinat.ncsf_qsym.generic_basis_code import AlgebraMorphism
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -129,6 +123,7 @@ class SFSuperSpaceAlgebraMorphism(AlgebraMorphism):
             sage: SFSS = SymmetricFunctionsinSuperSpace(QQ)
             sage: p = SFSS.p()
             sage: h = SFSS.h()
+            sage: from sage.combinat.chas.symsuperspace import SFSuperSpaceAlgebraMorphism
             sage: f = SFSuperSpaceAlgebraMorphism(p, lambda i : h[[],[abs(i)]], codomain=h)
             sage: f._on_basis([[1,0],[3,2]])
             h[; 3, 2, 1]
@@ -144,7 +139,6 @@ class SFSuperSpaceAlgebraMorphism(AlgebraMorphism):
             c = self.super_partition_to_generators(sp)
         return self.codomain().prod(self._on_generators(i) for i in c)
 
-#from sage.combinat.sf import SymmetricFunctions
 def valid_fermionic_matchings(sp1, sp2, a_sp3):
     r"""
     Generator for ways of matching the fermionic parts.
@@ -162,7 +156,7 @@ def valid_fermionic_matchings(sp1, sp2, a_sp3):
 
     EXAMPLES::
 
-        sage: #from sage.combinat.????.sfss import valid_fermionic_matchings
+        sage: from sage.combinat.chas.symsuperspace import valid_fermionic_matchings
         sage: [p for p in valid_fermionic_matchings([[1,0],[1]], [[0],[2,1,1]], [2,1,0])]
         [[[1, 2], [0, 2], [0], [0]],
          [[2, 1], [1, 1], [0], [0]],
@@ -189,7 +183,7 @@ def remove_parts(la, SS):
 
     EXAMPLES::
 
-        sage: #from sage.combinat.????.sfss import remove_parts
+        sage: from sage.combinat.chas.symsuperspace import remove_parts
         sage: remove_parts([4,4,3,3,3,2,2,2,1,1],[3,3,2,1,1])
         [4, 4, 3, 2, 2]
     """
@@ -222,6 +216,7 @@ def m_prod_fixed_a_match(SFSS_m, sp1, sp2, a_sp3, mt):
     EXAMPLES::
 
         sage: m = SymmetricFunctionsinSuperSpace(QQ).m()
+        sage: from sage.combinat.chas.symsuperspace import m_prod_fixed_a_match
         sage: m_prod_fixed_a_match(m,[[1,0],[1]],[[0],[2,1,1]],[2,1,0],[[1,2],[0,2],[0],[0]])
         3*m[2, 1, 0; 1, 1, 1] + m[2, 1, 0; 2, 1]
         sage: m_prod_fixed_a_match(m,[[1,0],[1]],[[0],[2,1,1]],[2,1,0],[[2,1],[1,1],[0],[0]])
@@ -238,6 +233,8 @@ def m_prod_fixed_a_match(SFSS_m, sp1, sp2, a_sp3, mt):
     nu = remove_parts(sp1[1], mt[3])
     return SFSS_m.sum(SFSS_m.term(SuperPartition([a_sp3,list(la)]),c) \
         for (la,c) in m(ga)*m(nu))
+
+#BIG TODO: Document this.
 
 def sign_matching(sp1, sp2, mt):
     tp = list(mt[0])+list(mt[2])
@@ -263,7 +260,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
         """
         assert(R in Fields() or R in Rings())
         self._base = R # Won't be needed once CategoryObject won't override base_ring
-        Parent.__init__(self, category = GradedHopfAlgebras(R).WithRealizations())
+        Parent.__init__(self, category = HopfAlgebras(R).Graded().Connected().WithRealizations())
         h = self.Complete()
         e = self.Elementary()
         p = self.Power()
@@ -300,6 +297,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: SymmetricFunctionsinSuperSpace(QQ).a_realization()
+            Symmetric Functions in super space over the Rational Field in the Power basis
         """
         return self.Power()
 
@@ -342,14 +340,13 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
                 sage: SFSS = SymmetricFunctionsinSuperSpace(QQ)
                 sage: SFSS.Bases().super_categories()
                 [Category of realizations of Symmetric Functions in super space over the Rational Field,
-                 Category of graded hopf algebras with basis over Rational Field,
-                 Join of Category of realizations of hopf algebras over Rational Field and Category of graded algebras over Rational Field]
+                 Join of Category of realizations of hopf algebras over Rational Field and Category of graded algebras over Rational Field,
+                 Category of graded connected hopf algebras with basis over Rational Field]
             """
             R = self.base().base_ring()
-            #from sage.combinat.ncsf_qsym.generic_basis_code import GradedModulesWithInternalProduct
-            # if we can implement an internal product add this category
-            return [self.base().Realizations(), GradedHopfAlgebrasWithBasis(R), \
-                GradedHopfAlgebras(R).Realizations()]
+            cat = HopfAlgebras(R).Graded().WithBasis().Graded()
+            return [self.base().Realizations(),
+                    HopfAlgebras(R).Graded().Realizations(), cat.Connected()]
 
         class ParentMethods:
             def one_basis(self):
@@ -363,9 +360,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
                 EXAMPLES::
 
                     sage: p=SymmetricFunctionsinSuperSpace(QQ).Power()
-                    sage: parent(p)
-                    <class '__main__.SymmetricFunctionsinSuperSpace.Power_with_category'>
-                    sage: parent(p).one_basis()
+                    sage: p.one_basis()
                     [; ]
                     sage: p.one()
                     p[; ]
@@ -384,7 +379,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
                     sage: p[SuperPartition([[2],[1]])]
                     p[2; 1]
                     sage: p[-2, 1, 0]
-                    p[-2, 0, 1]
+                    p[2, 0; 1]
                 """
                 if isinstance(c, SuperPartition):
                     assert len(rest) == 0
@@ -465,6 +460,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
                     sage: h = SymmetricFunctionsinSuperSpace(QQ).Complete()
                     sage: (h[[1],[2,1]]+h[[1,0],[3]]).bi_degree()
+                    Traceback (most recent call last):
                     ...
                     ValueError: element is not of homogeneous bi-degree
                     sage: (h[[1],[2,1]]+h[[0],[4]]).bi_degree()
@@ -648,7 +644,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
                     sage: e = SymmetricFunctionsinSuperSpace(QQ).Elementary()
                     sage: e.algebra_generators()
-                    Lazy family (pos_int_to_gen(i))_{i in Positive integers}
+                    Lazy family (pos_int_to_gen(i))_{i in Integer Ring}
                     sage: it = e.algebra_generators().__iter__()
                     sage: [next(it) for i in range(6)]
                     [e[0; ], e[; 1], e[1; ], e[; 2], e[2; ], e[; 3]]
@@ -693,7 +689,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
                     sage: neg = lambda i: p.algebra_generators()[-i]
                     sage: f = p.algebra_morphism(neg, codomain = p)
                     sage: f
-                    Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field in the Psi basis
+                    Generic endomorphism of Symmetric Functions in super space over the Rational Field in the Power basis
                     sage: f(2*p[[1],[2]] + 3 * p[[2,1],[]] + p[[2,0],[]])
                     3*p[; 2, 1] + p[0; 2] + 2*p[2; 1]
                     sage: f.category()
@@ -783,7 +779,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: m = SymmetricFunctionsinSuperSpace(QQ).Monomial()
-                sage: m.power_to_self_on_basis([[2,0],[1,1]])
+                sage: m.power_to_self_on_basis(SuperPartition([[2,0],[1,1]]))
                 2*m[2, 0; 1, 1] + m[2, 0; 2] + 2*m[2, 1; 1] + 2*m[3, 0; 1] + 2*m[3, 1; ] + m[4, 0; ]
             """
             return self.sum(self.term(SuperPartition([sp[0],[]]))*\
@@ -831,29 +827,29 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: s = SymmetricFunctionsinSuperSpace(QQ).Schur_sb()
-            sage: s[[1,0],[]]*s[[],[3]]
-            ss[1, 0; 3]
-            sage: s[[1],[2]]*s[[],[3]]   ################
-            ss[0; 4, 2] + ss[1; 3, 2] + ss[1; 4, 1] + ss[1; 5]
-            sage: s[[1],[2]]*ss[[3],[]]
-            ss[1, 0; 5] - ss[3, 1; 2]
-            sage: ss[[0],[1]].coproduct()
-            ss[; ] # ss[0; 1] + ss[; 1] # ss[0; ] + ss[0; ] # ss[; 1] + ss[0; 1] # ss[; ]
-            sage: ss[[1],[2]].omega()
-            ss[0; 1, 1, 1] + ss[0; 2, 1] - ss[1; 1, 1]
+            sage: ssb = SymmetricFunctionsinSuperSpace(QQ).Schur_sb()
+            sage: ssb[[1,0],[]]*ssb[[],[3]]
+            ssb[1, 0; 3] + ssb[3, 0; 1] + ssb[4, 0; ]
+            sage: ssb[[1],[2]]*ssb[[],[3]]
+            ssb[1; 3, 2] + ssb[1; 4, 1] + ssb[1; 5]
+            sage: ssb[[1],[2]]*ssb[[3],[]]
+            -ssb[3, 1; 2] - ssb[4, 1; 1] - ssb[5, 1; ]
+            sage: ssb[[0],[1]].coproduct()
+            ssb[; ] # ssb[0; 1] + ssb[0; 1] # ssb[; ]
+            sage: ssb[[1],[2]].omega()
+            -ssb[0; 1, 1, 1] - 2*ssb[0; 2, 1] - ssb[0; 3]
             sage: sb = SymmetricFunctionsinSuperSpace(QQ).Schur_b()
-            sage: sb(ss[[1],[2]].omega())
-            sb[1; 2]
-            sage: ss[[2],[1]].antipode()
-            2*ss[0; 1, 1, 1] + 2*ss[0; 2, 1] - 2*ss[1; 1, 1] - 2*ss[1; 2] + ss[2; 1]
+            sage: sb(ssb[[1],[2]])
+            -sb[0; 2, 1] + sb[0; 3] + 2*sb[1; 2] - sb[2; 1] - sb[3; ]
+            sage: ssb[[2],[1]].antipode()
+            -ssb[0; 1, 1, 1] + 2*ssb[0; 2, 1] + ssb[0; 3] + ssb[1; 2] + ssb[2; 1]
         """
         def __init__(self, SFSS):
             r"""
             TESTS::
 
-                sage: ss = SymmetricFunctionsinSuperSpace(QQ).Schur_s()
-                sage: TestSuite(ss).run()
+                sage: ssb = SymmetricFunctionsinSuperSpace(QQ).Schur_sb()
+                sage: TestSuite(ssb).run()
             """
             CombinatorialFreeModule.__init__(self, SFSS.base_ring(), \
                 SuperPartitions(), prefix='ssb', bracket=False, \
@@ -875,10 +871,10 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: ss = SymmetricFunctionsinSuperSpace(QQ).Schur_s()
-                sage: ss.self_to_complete_on_basis(SuperPartition([[1],[1]]))
+                sage: ssb = SymmetricFunctionsinSuperSpace(QQ).Schur_sb()
+                sage: ssb.self_to_complete_on_basis(SuperPartition([[1],[1]]))
                 -h[0; 2] + h[1; 1]
-                sage: ss.self_to_complete_on_basis(SuperPartition([[1],[1,1]]))
+                sage: ssb.self_to_complete_on_basis(SuperPartition([[1],[1,1]]))
                 -h[0; 2, 1] + h[0; 3] + h[1; 1, 1] - h[1; 2]
             """
             if SuperPartition(sp).bosonic_length()>0:
@@ -903,13 +899,13 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: ss = SymmetricFunctionsinSuperSpace(QQ).Schur_s()
+                sage: ssb = SymmetricFunctionsinSuperSpace(QQ).Schur_sb()
                 sage: h = SymmetricFunctionsinSuperSpace(QQ).Complete()
-                sage: ss.complete_to_self_by_triangularity(-h[[0],[2]]+h[[1],[1]])
+                sage: ssb.complete_to_self_by_triangularity(-h[[0],[2]]+h[[1],[1]])
                 ss[1; 1]
-                sage: ss.self_to_complete_on_basis(SuperPartition([[1],[1,1]]))
+                sage: ssb.self_to_complete_on_basis(SuperPartition([[1],[1,1]]))
                 -h[0; 2, 1] + h[0; 3] + h[1; 1, 1] - h[1; 2]
-                sage: ss(ss.self_to_complete_on_basis(SuperPartition([[1],[1,1]])))
+                sage: ssb(ssb.self_to_complete_on_basis(SuperPartition([[1],[1,1]])))
                 ss[1; 1, 1]
             """
             out = self.zero()
