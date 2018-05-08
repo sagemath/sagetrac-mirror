@@ -221,6 +221,25 @@ def has_gurobi():
     except Exception:
         return False
 
+def has_graphviz():
+    """
+    Test if graphviz (dot, twopi, neato) are available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_graphviz
+        sage: has_graphviz() # random
+        True
+    """
+    from subprocess import check_call, PIPE
+    try:
+        check_call(['dot', '-V'], stdout=PIPE, stderr=PIPE)
+        check_call(['neato', '-V'], stdout=PIPE, stderr=PIPE)
+        check_call(['twopi', '-V'], stdout=PIPE, stderr=PIPE)
+        return True
+    except Exception:
+        return False
+
 def external_software():
     """
     Return the alphabetical list of external software supported by this module.
