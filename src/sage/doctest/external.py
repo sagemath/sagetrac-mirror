@@ -231,14 +231,36 @@ def has_graphviz():
         sage: has_graphviz() # random
         True
     """
-    from subprocess import check_call, PIPE
-    try:
-        check_call(['dot', '-V'], stdout=PIPE, stderr=PIPE)
-        check_call(['neato', '-V'], stdout=PIPE, stderr=PIPE)
-        check_call(['twopi', '-V'], stdout=PIPE, stderr=PIPE)
-        return True
-    except Exception:
-        return False
+    from sage.misc.sage_ostools import have_program
+    return (have_program('dot') and
+            have_program('neato') and
+            have_program('twopi'))
+
+def has_ffmpeg():
+    """
+    Test if ffmpeg is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_ffmpeg
+        sage: has_ffmpeg() # random
+        True
+    """
+    from sage.misc.sage_ostools import have_program
+    return have_program('ffmpeg')
+
+def has_imagemagick():
+    """
+    Test if ImageMagick (command convert) is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_imagemagick
+        sage: has_imagemagick() # random
+        True
+    """
+    from sage.misc.sage_ostools import have_program
+    return have_program('convert')
 
 def external_software():
     """
