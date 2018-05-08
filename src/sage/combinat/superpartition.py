@@ -983,9 +983,9 @@ class SuperPartitions(UniqueRepresentation, Parent):
             sp = [a for a in x if a <= 0]
             return (all(sp[i] > sp[i-1] for i in range(1,len(sp)))
                     and [a for a in x if a > 0] in _Partitions)
-        elif (isinstance(x, (list, tuple)) and len(x) == 2
+        elif (isinstance(x, (list, tuple)) and len(x) == 2 \
               and isinstance(x[0], (list, tuple)) and isinstance(x[1], (list, tuple))):
-            for i in x[0] + x[1]:
+            for i in list(x[0]) + list(x[1]):
                 if i not in ZZ:
                     return False
                 if i < 0:
