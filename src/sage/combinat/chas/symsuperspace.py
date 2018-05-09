@@ -13,7 +13,7 @@ acts diagonally on this polynomial ring and the symmetric functions in
 superspace are isomorphic to the invariants in this polynomial ring.
 See [DLM2006]_ for a description of this space presented here.
 
-When `n=2` the following are symmetric polynomials in super space
+When `n=2`, the following are examples of symmetric polynomials in super space
 
 .. MATH::
     x_1^2x_2^2, \that_1 x_1^4 + \theta_2 x_2^4, \theta_1 x_2^2 + \theta_2 x_1^2,
@@ -101,8 +101,6 @@ fermionic degree.
 
 # product
 # coproduct
-# omega
-# scalar product
 
 There are four bases of the symmetric functions in super space which are
 analogues of the Schur functions.  These bases were introduced in [JL2017]_
@@ -112,16 +110,6 @@ functions.
 The shorthand for these bases are ``s``, ``sb``, ``ss`` and ``ssb`` for the
 Schur, Schur-bar, Schur-star and Schur-star-bar bases.  All of the bases
 are positive in the monomial basis except for the Schur-star-bar basis.
-
-The bases are related by duality in pairs
-
-::
-
-sage: all(s(la).scalar(ss(la)) for la in SuperPartitions(5,2))
-True
-sage: all(sb(la).scalar(ssb(la)) for la in SuperPartitions(5,2))
-True
-
 
 For `\lambda \vdash n`, it is the case that `s_\lambda = s^\ast_\lambda =
 {\bar s}_\lambda = {\bar s}^\ast_\lambda`, but for a general super partition
@@ -145,6 +133,72 @@ For `\lambda \vdash n`, it is the case that `s_\lambda = s^\ast_\lambda =
     -m[2, 0; 1] - 2*m[2, 1; ] - 2*m[3, 0; ]
     sage: m(ssb[-2,1])
     2*m[0; 1, 1, 1] + m[0; 2, 1] + 3*m[1; 1, 1] + m[1; 2] + 2*m[2; 1] - m[3; ]
+
+There is a scalar product defined so that for super partitions
+`\Lambda = (\Lambda_a; \Lambda_s), \Gamma`,
+`\left<\left< p_\Lambda, p_\Gamma \right>\right> = \delta_{\Lambda\Gamma} z_{\Lambda^s}`
+where `z_{\Lambda^s}` is the usual constant `z_\lambda` which is the size of
+the centralizer of an element of cycle type `\lambda`.
+
+SEEALSO::
+
+    :meth:`sage.combinat.partition.Partition.centralizer_size`,
+    :meth:`sage.combinat.superpartition.SuperPartition.zee`
+
+Given this definition, the complete and monomial bases of the symmetric
+functions in super space are dual.
+
+::
+
+    sage: matrix([[h(la).scalar(m(mu)) for mu in SuperPartitions(2)]
+    ....: for la in SuperPartitions(2)]).is_one()
+    True
+    sage: matrix([[p(la).scalar(p(mu)) for mu in SuperPartitions(2)] for la in SuperPartitions(2)])
+    [2 0 0 0 0 0 0 0]
+    [0 2 0 0 0 0 0 0]
+    [0 0 1 0 0 0 0 0]
+    [0 0 0 1 0 0 0 0]
+    [0 0 0 0 2 0 0 0]
+    [0 0 0 0 0 2 0 0]
+    [0 0 0 0 0 0 1 0]
+    [0 0 0 0 0 0 0 1]
+
+The four Schur bases are related by duality with respect to this scalar product
+in pairs.  For all `\Lambda, \Gamma in SPar(n|m)`,
+
+.. MATH::
+
+    \left\left< s_\Lambda, s^\ast_\Gamma \right>\right>
+    = \left\left< {\bar s}_\Lambda, {\bar s}^\ast_\Gamma \right>\right>
+    = \delta_{\Lambda\Gamma}
+
+::
+
+    sage: all(s(la).scalar(ss(la)) for la in SuperPartitions(5,2))
+    True
+    sage: all(sb(la).scalar(ssb(la)) for la in SuperPartitions(5,2))
+    True
+
+As with the space of symmetric functions, there is an involution `\omega`
+that for all super partitions `\Lambda`, `\omega(h_\Lambda) = e_\Lambda`.
+This involution is an algebra morphism with
+`\omega(p_{(; r)}) = (-1)^{r-1} p_{(; r)}` and
+`\omega(p_{(r; )}) = (-1)^r p_{(r; )}`.  The Schur bases are related by
+
+.. MATH::
+
+    s^\ast_\Lambda = (-1)^{\binomial{m}{2}} \omega {\bar s}_{\Lambda'} \qquad
+    and \qquad {\bar s}^\ast_\Lambda = (-1)^{\binomial{m}{2}} \omega s_{\Lambda'}
+
+::
+    sage: all(e(la).omega()==h(la.conjugate()) for la in SuperPartitions(5,2))
+    True
+    sage: [f.omega() for f in [p[r] for r in range(-4,5)]
+    [p[4; ], -p[3; ], p[2; ], -p[1; ], p[0; ], p[; 1], -p[; 2], p[; 3], -p[; 4]]
+    sage: [ssb(s(la).omega()) for la in SuperPartitions(3,2)]
+    [-ssb[1, 0; 2], -ssb[1, 0; 1, 1], -ssb[2, 0; 1], -ssb[2, 1; ], -ssb[3, 0; ]]
+    sage: [ss(sb(la).omega()) for la in SuperPartitions(3,2)]
+    [-ss[1, 0; 2], -ss[1, 0; 1, 1], -ss[2, 0; 1], -ss[2, 1; ], -ss[3, 0; ]]
 
 TESTS::
 
