@@ -37,8 +37,8 @@ satisfying the relations
 
 .. MATH::
 
-    p_{(;i)} p_{(;j)} = p_{(;j)} p_{(;i)} \quad
-    p_{(i;)} p_{(;j)} = p_{(;j)} p_{(i;)} \quad
+    p_{(;i)} p_{(;j)} = p_{(;j)} p_{(;i)} \qquad
+    p_{(i;)} p_{(;j)} = p_{(;j)} p_{(i;)} \qquad
     p_{(i;)} p_{(j;)} = - p_{(j;)} p_{(i;)}
 
 There are three natural sets of generators that are analogues of the power,
@@ -89,8 +89,62 @@ element of the symmetric functions in super space will be denoted `m_\Lambda`
 and will have the same coefficients in the product as `m_\Lambda[X_n;\Theta_n]`
 as long as `n` is sufficiently large.
 
+The complete homogeneous basis is then defined as
+
+.. MATH::
+
+    h_{(n; )} = \sum_{\Lambda \in SPar(n|1)} m_\Lambda \qquad
+    h_{(; n)} = \sum_{\lambda \vdash n} m_\lambda
+
 The space of symmetric functions in super space is bigraded by the bosonic and
 fermionic degree.
+
+# product
+# coproduct
+# omega
+# scalar product
+
+There are four bases of the symmetric functions in super space which are
+analogues of the Schur functions.  These bases were introduced in [JL2017]_
+and are related to specializations of an analogue of the Macdonald symmetric
+functions.
+
+The shorthand for these bases are ``s``, ``sb``, ``ss`` and ``ssb`` for the
+Schur, Schur-bar, Schur-star and Schur-star-bar bases.  All of the bases
+are positive in the monomial basis except for the Schur-star-bar basis.
+
+The bases are related by duality in pairs
+
+::
+
+sage: all(s(la).scalar(ss(la)) for la in SuperPartitions(5,2))
+True
+sage: all(sb(la).scalar(ssb(la)) for la in SuperPartitions(5,2))
+True
+
+
+For `\lambda \vdash n`, it is the case that `s_\lambda = s^\ast_\lambda =
+{\bar s}_\lambda = {\bar s}^\ast_\lambda`, but for a general super partition
+`\Lambda` the bases are different.
+
+::
+
+    sage: all(s(la)==ss(la) for la in SuperPartitions(5,0))
+    True
+    sage: all(s(la)==sb(la) for la in SuperPartitions(5,0))
+    True
+    sage: all(s(la)==ssb(la) for la in SuperPartitions(5,0))
+    True
+    sage: m(s[-2,0,1])
+    m[2, 0; 1]
+    sage: m(sb[-2,0,1])
+    2*m[1, 0; 1, 1] + m[1, 0; 2] + m[2, 0; 1]
+    sage: m(ss[-2,0,1])
+    2*m[1, 0; 1, 1] + m[1, 0; 2] + 3*m[2, 0; 1] + 2*m[2, 1; ] + 2*m[3, 0; ]
+    sage: m(ssb[-2,0,1])
+    -m[2, 0; 1] - 2*m[2, 1; ] - 2*m[3, 0; ]
+    sage: m(ssb[-2,1])
+    2*m[0; 1, 1, 1] + m[0; 2, 1] + 3*m[1; 1, 1] + m[1; 2] + 2*m[2; 1] - m[3; ]
 
 TESTS::
 
