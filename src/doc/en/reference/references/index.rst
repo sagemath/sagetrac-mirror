@@ -753,6 +753,10 @@ REFERENCES:
              Leçons mathématiques de Bordeaux, vol. 4, pages 259-300,
              Cassini (2011).
 
+.. [DLM2006] \P. Desrosiers, L. Lapointe, P. Mathieu, Classical
+             symmetric functions in superspace, J. Algebr Comb. (2006) 24:209--238,
+             :arXiv:`0509408`
+
 .. [deG2000] Willem A. de Graaf. *Lie Algebras: Theory and Algorithms*.
              North-Holland Mathematical Library. (2000).
              Elsevier Science B.V.
@@ -1339,6 +1343,9 @@ REFERENCES:
 .. [JL2009] Nicolas Jacon and Cedric Lecouvey.
             *Kashiwara and Zelevinsky involutions in affine type A*.
             Pac. J. Math. 243(2):287-311 (2009).
+
+.. [JL2016] \M. Jones and L. Lapointe. *Pieri rules for Schur
+            functions in superspace*. Preprint, :arXiv:`1608.08577`
 
 .. [Joh1990] \D.L. Johnson. *Presentations of Groups*. Cambridge
              University Press. (1990).
