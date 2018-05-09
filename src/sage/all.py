@@ -314,6 +314,23 @@ warnings.filterwarnings('ignore',
 warnings.filterwarnings('default',
     '[\s\S]*See http://trac.sagemath.org/[0-9]* for details.')
 
+# Hotpatch around https://bugs.python.org/issue5755 which won't be fixed for
+# python 2.7. Idea by https://stackoverflow.com/a/36293331.
+from distutils.command.build_ext import build_ext
+from distutils.sysconfig import customize_compiler
+
+_build_extensions = build_ext.build_extensions
+
+def build_extensions_patched(self):
+    customize_compiler(self.compiler)
+    try:
+        self.compiler.compiler_so.remove("-Wstrict-prototypes")
+    except (AttributeError, ValueError):
+        pass
+    _build_extensions(self)
+
+build_ext.build_extensions = build_extensions_patched
+
 
 # Set a new random number seed as the very last thing
 # (so that printing initial_seed() and using that seed
