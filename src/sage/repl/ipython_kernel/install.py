@@ -13,8 +13,8 @@ from sage.env import (
     SAGE_DOC, SAGE_LOCAL, SAGE_EXTCODE,
     SAGE_VERSION
 )
-from jupyter_core.paths import ENV_JUPYTER_PATH
-JUPYTER_PATH = ENV_JUPYTER_PATH[0]
+from jupyter_core import paths
+JUPYTER_PATH = paths.jupyter_path()[0] # Get the path with the highest priority
 
 
 class SageKernelSpec(object):
