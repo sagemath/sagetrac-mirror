@@ -1,13 +1,12 @@
-# Copyright (C) 2017 by Kiran S. Kedlaya <kskedl@gmail.com>
+# Sage wrapper for Jeffery Hain's code to compute spaces of newforms by Birch's method
+# Copyright (C) 2017-8 by Kiran S. Kedlaya <kskedl@gmail.com>
 #
-# distutils: language = c++
 #encoding=utf8
-
-#clang C++
-#clib gmpxx gmp m pthread
-#cargs -g -Wall -O3 -Wextra -Werror -pedantic -std=c++11
-#cinclude /usr/local/include
-#cfile AutomorphismZZ.cpp CharacterZZ.cpp Eigenvector.cpp GenusZZ.cpp IsometryZZ.cpp MathZZ.cpp NeighborIteratorZZ.cpp QuadFormZZ.cpp SparseMatrix.cpp
+#distutils: language = c++
+#distutils: libraries = ['gmpxx', 'gmp', 'm', 'pthread']
+#distutils: sources = ['AutomorphismZZ.cpp', 'CharacterZZ.cpp', 'Eigenvector.cpp', 'GenusZZ.cpp', 'IsometryZZ.cpp', 'MathZZ.cpp', 'NeighborIteratorZZ.cpp', 'QuadFormZZ.cpp', 'SparseMatrix.cpp']
+#distutils: include_dirs = ['/usr/local/include', '.']
+#distutils: extra_compile_args = ['-g', '-Wall', '-O3', '-Wextra', '-Werror', '-pedantic', '-std=c++11']
 
 import sys
 reload(sys)
@@ -25,11 +24,11 @@ from sage.libs.gmp.types cimport mpz_t
 from sage.quadratic_forms.ternary_qf import find_a_ternary_qf_by_level_disc
 from sage.arith.misc import squarefree_divisors
 from sage.matrix.constructor import matrix
-    
+
 cdef extern from "gmpxx.h":
     cdef cppclass mpz_class:
         mpz_class(mpz_t a)
-        
+
     cdef cppclass mpq_class:
         pass
 
@@ -84,27 +83,50 @@ cpdef hecke_birch(N, l):
     r"""
     Compute Hecke operators at level N for each prime in l via Birch's method.
 
-    INPUT:
+    INPUT::
   
     - ``N`` -- a squarefree positive integer
 
     - ``l`` -- a list of prime positive integers not dividing ``N``
 
-    OUTPUT:
+    OUTPUT::
 
-    A dictionary with one entry for each pair (d, p) where d is a squarefree
+    A dict with one entry for each pair (d, p) where d is a squarefree
     divisor of N and p is an entry of l. This entry is a sparse integer matrix
-    representing the action of the Hecke operator T_p on the subspace of the 
-    space S_2(Gamma_0(N), QQ)^{new} on which the Atkin-Lehner involutions act 
-    via the Kronecker character of level d. 
+    which, when N has an odd number of prime factors, represents the action of the 
+    Hecke operator T_p on the subspace of the space M_2(Gamma_0(N), QQ)^{new} on which 
+    the Atkin-Lehner involutions act via the Kronecker character of level d. (Note that
+    the Eisenstein series is included for d=1.)
+
+    When N has an even number of prime factors, one gets a similar answer except that
+    the space includes forms that are old at the smallest prime factor of N.
 
     EXAMPLES::
+
+    In this example, there are no forms that are old at 7 because X_0(7) has genus 0::
 
         sage: h = hecke_birch(91, [2, 3])
         sage: h[(13, 3)]
         [-2]
 
-    TESTS:
+    Note the presence of the Eisenstein series for the trivial character::
+
+        sage: h[(1,2)].charpoly().factor()
+        (x - 3) * (x^2 - 2)
+        sage: h[(1,3)].charpoly().factor()
+        (x - 4) * (x^2 - 2)
+
+    The following example demonstrates the presence of oldforms::
+
+        sage: hecke_birch(11, [19])[1,19].charpoly().factor()
+        (x - 20) * x
+        sage: hecke_birch(11*13, [19])[1,19].charpoly().factor()
+        (x - 20) * x * (x^4 - 8*x^3 - 25*x^2 + 154*x + 387)
+        sage: V = ModularSymbols(11*13, sign=-1).new_subspace()
+        sage: V.hecke_polynomial(19).factor()   # No factor of x
+        (x - 2) * (x^4 - 8*x^3 - 25*x^2 + 154*x + 387) * (x^6 + 10*x^5 + 3*x^4 - 196*x^3 - 561*x^2 - 454*x - 104)
+
+    TESTS::
 
     Compare with Brandt symbols::
 
