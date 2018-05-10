@@ -468,7 +468,7 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
         """
         return self.gram_matrix().determinant()
 
-    def direct_sum(self, M):
+    def direct_sum(self, M, return_embeddings=False):
         r"""
         Return the direct sum of this quadratic module with ``M``.
 
@@ -510,7 +510,10 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
         n = self.dimension()
         fs = self.hom(basis[:n])
         fo = M.hom(basis[n:])
-        return DS, fs, fo
+        if return_embeddings:
+            return DS, fs, fo
+        else:
+            return DS
 
     def discriminant(self):
         """

@@ -1077,8 +1077,8 @@ class TorsionQuadraticModule(FGP_Module_class):
     def direct_sum(self, other):
         r"""
         """
-        V, fVs, fVo = self.V().direct_sum(other.V())
-        W, _, _ = self.W().direct_sum(other.W())
+        V, fVs, fVo = self.V().direct_sum(other.V(),return_embeddings=True)
+        W = self.W().direct_sum(other.W())
         n = len(self.V().gens())
         T = TorsionQuadraticModule(V, W, modulus=self._modulus)
         fs = self.hom([T(fVs(g.lift())) for g in self.gens()])
@@ -1159,7 +1159,9 @@ class TorsionQuadraticModule(FGP_Module_class):
         if len(H.invariants()) > 5:
             print("this might take a while")
         for S in H.all_submodules():
+            # only isotropic ones
             if S.gram_matrix_quadratic() == 0:
+                # only primitive ones
                 if S.V() & H1.V() == self.W() and S.V() & H2.V() == self.W():
                     extensions.append(S)
         extensionsg = []

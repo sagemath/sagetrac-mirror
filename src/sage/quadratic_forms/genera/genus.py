@@ -1737,6 +1737,18 @@ class Genus_Symbol_p_adic_ring(object):
             assert Genus_Symbol_p_adic_ring(p, symG) == self, "oops"
         return G
 
+    def prime(self):
+        r"""
+        """
+        return self._prime
+
+    def is_even(self):
+        r"""
+        """
+        if self.prime != 2:
+            return True
+        sym = self.symbol_tuple_list()[0]
+        return sym[0] > 0 or sym[3]==0
 
     def symbol_tuple_list(self):
         """
@@ -2275,6 +2287,10 @@ class GenusSymbol_global_ring(object):
         """
         return not self == other
 
+    def is_even(self):
+        r"""
+        """
+        return self._local_symbols[0].is_even()
 
     def signature_pair_of_matrix(self):
         """
@@ -2331,6 +2347,10 @@ class GenusSymbol_global_ring(object):
         r, s = self.signature_pair_of_matrix()
         return (-1)**s*prod([ G.determinant() for G in self._local_symbols ])
 
+    def rank(self):
+        r"""
+        """
+        return self._local_symbols[0].rank()
 
     def discriminant_form(self):
         r"""
@@ -2366,14 +2386,117 @@ class GenusSymbol_global_ring(object):
         q = matrix.block_diagonal(qL)
         return TorsionQuadraticForm(q)
 
-    def represenative(self):
+    def rational_representative(self):
         r"""
-        Return a representative of this genus.
+
+        EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.genus import all_genera_by_det
+            sage: g = all_genera_by_det([1,3],24)[0]
+
+        A representative is not known::
+
+            sage: g
+            Genus of
+            None
+            Genus symbol at 2:    1^-2 [2^1 4^1]_0
+            Genus symbol at 3:     1^3 3^1
+
+        Let us trigger its computation::
+
+            sage: g.representative()
+            [ 0  1  2  0]
+            [ 1  0  2  0]
+            [ 2  2  4  0]
+            [ 0  0  0 -6]
+        """
+        from sage.quadratic_forms.all import QuadraticForm
+        sminus = self.signature_pair_of_matrix()[1]
+        det = self.determinant()
+        m = self.rank()
+        P = []
+        for sym in self._local_symbols:
+            p = sym._prime
+            if QuadraticForm(ZZ,2*sym.gram_matrix()).hasse_invariant(p) == -1:
+                P.append(p)
+        return rational_qf_from_invariants(m, det, P, sminus)
+
+    def representative(self):
+        r"""
+
+
         """
         if self._representative is None:
-            pass
-        else:
-            return self._representative
+            self._compute_representative()
+        return self._representative
+
+    def _compute_representative(self):
+        r"""
+        Return a representative of this genus.
+
+
+        """
+        from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
+        even = self.is_even()
+        q = self.rational_representative()
+        n = q.nrows()
+        L = IntegralLattice(4*q).maximal_overlattice(even=even)#.gram_matrix()
+        for sym in self._local_symbols:
+            p = sym._prime
+            L = local_modification(L, sym.gram_matrix(), p)
+        self._representative = L.gram_matrix()
+
+
+def rational_qf_from_invariants(m, det, P, sminus):
+    r"""
+    """
+    from sage.arith.misc import hilbert_symbol
+    from sage.rings.infinity import Infinity
+    P = [ZZ(p) for p in P]
+    m = ZZ(m)
+    d = ZZ(det).squarefree_part()
+    sminus = ZZ(sminus)
+    if d.sign() != (-1)**sminus:
+        raise ValueError("")
+    if m == 1 and len(P) == 0:
+        raise ValueError
+    if m == 2:
+        for p in P:
+            if QQ.quadratic_defect(-d, p) == Infinity:
+                raise ValueError("")
+    if sminus % 4 in (2, 3) and len(P) % 2 == 0:
+        raise ValueError("")
+    D = []
+    while m >= 2:
+        if m >= 4:
+            if sminus > 0:
+                a = ZZ(-1)
+            else:
+                a = ZZ(1)
+        elif m == 3:
+            Pprime = [p for p in P if hilbert_symbol(-1, -d, p)==1]
+            Pprime += [p for p in (2*d).prime_divisors() if hilbert_symbol(-1, -d, p)==-1 and p not in P]
+            if sminus > 0:
+                a = ZZ(-1)
+            else:
+                a = ZZ(1)
+            for p in Pprime:
+                if d.valuation(p) % 2 == 0:
+                    a *= p
+            assert all([(a*d).valuation(p)%2==1 for p in Pprime])
+        elif m == 2:
+            S = P
+            if sminus == 2:
+                S += [-1]
+            a = QQ.hilbert_conductor_inverse(S,-d)
+        P = [p for p in P if hilbert_symbol(a, -d, p) == 1] + [p for p in ZZ(2*a*d).prime_divisors() if hilbert_symbol(a, -d, p)==-1 and p not in P]
+        sminus = max(0, sminus-1)
+        m = m - 1
+        d = a*d
+        D.append(ZZ(a).squarefree_part())
+    d = ZZ(d).squarefree_part()
+    D.append(d.squarefree_part())
+    return matrix.diagonal(D)
 
 def local_modification(M, Lp, p, check=True):
     r"""
@@ -2412,31 +2535,66 @@ def local_modification(M, Lp, p, check=True):
     """
     from sage.quadratic_forms.genera.normal_form import p_adic_normal_form
     from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
+    from sage.rings.finite_rings.finite_field_constructor import GF
+    from sage.matrix.special import random_matrix
     d = Lp.inverse().denominator()
+    n = M.rank()
     level = d.valuation(p)
     d = p**level
 
-    Mp = IntegralLattice(Lp).maximal_overlattice()
+    Mp = IntegralLattice(Lp).maximal_overlattice(p=p)
+    even = Mp.is_even()
+    symMp = Genus_Symbol_p_adic_ring(p, p_adic_symbol(Mp.gram_matrix(), p,  2))
+    V = MatrixSpace(GF(p),n,n)
+    #for S in V.subspaces(n-2):
+    #    symM = Genus_Symbol_p_adic_ring(p, p_adic_symbol(M.gram_matrix(), p,  2))
+    #    print(symM,even)
+    #    if symMp == symM:
+    #        print("heureka")
+    #        break
+    #    else:
+    #        S = S.basis_matrix().lift()
+    #        S = S.stack(p*matrix.identity(n)).hermite_form()[:n,:]
+    #        B = M.basis_matrix()
+    #        M = M.sublattice(S*B)
+    #        M = M.maximal_overlattice(even=even,p=p)#.gram_matrix()
+    #else:
+    #    raise ValueError()
+    while True:
+        symM = Genus_Symbol_p_adic_ring(p, p_adic_symbol(M.gram_matrix(), p,  2))
+        if symMp == symM:
+            break
+        else:
+            # compute a random sublattice S with p*M < S < M
+            dim = ZZ.random_element(1,n)
+            S = random_matrix(GF(p),n,n,algorithm="echelon_form",num_pivots=dim)
+            S = S.lift()#S.basis_matrix().lift()
+            S = S.stack(p*matrix.identity(n)).hermite_form()[:n,:]
+            B = M.basis_matrix()
+            M = M.sublattice(S*B)
+            M = M.maximal_overlattice(even=even,p=p)#.gram_matrix()
+    else:
+        raise ValueError()
     #
     if check:
         s1 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(Mp.gram_matrix(), p, 1))
-        s2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(M, p, 1))
+        s2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(M.gram_matrix(), p, 1))
         if not s1 == s2:
             raise ValueError("the forms must be locally equivalent at p=%s" %p)
 
     _, U = p_adic_normal_form(Mp.gram_matrix(), p, precision=level+3)
     B = (~Mp.basis_matrix()).change_ring(ZZ)*~U.change_ring(ZZ)
 
-    _, UM = p_adic_normal_form(M, p, precision=level+3)
-    B = B * UM
-    M = IntegralLattice(M)
-    S = M.sublattice((M.sublattice(B) + d * M).gens())
+    _, UM = p_adic_normal_form(M.gram_matrix(), p, precision=level+3)
+    B = B * UM.change_ring(ZZ) * M.basis_matrix()
+    #M = IntegralLattice(M)
+    S = M.sublattice(((M.span(B) & M) + d * M).gens())
     G = S.gram_matrix()
     if check:
         s1 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(G, p, level))
         s2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(Lp, p, level))
         assert s1 == s2, "oops"
-    return G
+    return S
 
 def _gram_from_jordan_block(p, block, discr_form=False):
     r"""

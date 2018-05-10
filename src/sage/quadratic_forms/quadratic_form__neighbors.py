@@ -255,7 +255,7 @@ def find_p_neighbor_from_vec(self, p, v):
 
 #def find_classes_in_genus(self):
 
-def neighbor_method(self, p=None):
+def neighbor_method(self, p=None, verbose=False):
     r"""
     Return all classes in the `p`-neighbor graph of ``self``.
 
@@ -276,13 +276,13 @@ def neighbor_method(self, p=None):
         sage: Q.det()
         46
         sage: Q.apply_p_neighbor_method(3)
-        [Quadratic form in 3 variables over Integer Ring with coefficients: 
+        [Quadratic form in 3 variables over Integer Ring with coefficients:
         [ 1 0 0 ]
         [ * 2 1 ]
-        [ * * 3 ], Quadratic form in 3 variables over Integer Ring with coefficients: 
+        [ * * 3 ], Quadratic form in 3 variables over Integer Ring with coefficients:
         [ 1 0 -1 ]
         [ * 1 0 ]
-        [ * * 6 ], Quadratic form in 3 variables over Integer Ring with coefficients: 
+        [ * * 6 ], Quadratic form in 3 variables over Integer Ring with coefficients:
         [ 1 -1 -1 ]
         [ * 1 1 ]
         [ * * 8 ]]
@@ -304,6 +304,8 @@ def neighbor_method(self, p=None):
                 isom_classes.append(Q_neighbor)
                 waiting_list.append(Q_neighbor)
                 c_mass += Q_neighbor.number_of_automorphisms()**(-1)
+                if verbose:
+                    print(Q_neighbor,c_mass_0 - c_mass)
             v = Q.find_primitive_p_divisible_vector__next(p, v)
     # sanity check
     assert c_mass == c_mass_0, "some classes are missed!"

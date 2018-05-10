@@ -886,7 +886,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         from sage.quadratic_forms.quadratic_form import QuadraticForm
         return QuadraticForm(QQ, self.gram_matrix()).signature_vector()[:2]
 
-    def direct_sum(self, M):
+    def direct_sum(self, M, return_embeddings=False):
         r"""
         Return the direct sum of this lattice with ``M``.
 
@@ -907,7 +907,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             [0 1]
         """
         try:
-            return IntegralLatticeDirectSum([self, M], return_embeddings=True)
+            return IntegralLatticeDirectSum([self, M], return_embeddings=return_embeddings)
         except ValueError:
             return super(FreeQuadraticModule_submodule_with_basis_pid, self).direct_sum(M)
 
@@ -941,7 +941,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         """
         return (gcd((self/M).invariants()) == 0)
 
-    def maximal_overlattice(self):
+    def maximal_overlattice(self, p=None, even=False):
         r"""
         Return a maximal integral overlattice of this lattice.
 
@@ -951,10 +951,44 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sage: L.maximal_overlattice().determinant()
             5
         """
-        L = self
-        from sage.arith.misc import hilbert_symbol
         from sage.rings.all import GF
-        for p in ZZ(self.determinant()).prime_divisors():
+        L = self
+        if even and not self.is_even():
+            raise ValueError("odd lattices do not have an even overlattice")
+        if p is None:
+            P = ZZ(self.determinant()).prime_factors()
+        else:
+            P = ZZ(p).prime_factors()
+        # even case
+        if 2 in P:
+            D = L.discriminant_group(2)
+            if D.cardinality() > 512:
+                D = D.normal_form(partial=True)
+            iso = []
+            if not even and len(D.gens())>=2: #try to go odd
+                t = D.gens()[0] + D.gens()[1]
+                if t.b(t)==0:
+                    iso.append(t)
+            i = 0
+            while i < len(D.gens()):
+                t = D.gens()[i]
+                if (t.q() == 0 or (t.b(t)==0 and not even)) and all([t.b(g)==0 for g in iso]):
+                    iso.append(t)
+                i += 1
+            iso = [g.lift() for g in iso]
+            L = L.overlattice(iso)
+            D = L.discriminant_group(2)
+            while D.cardinality().valuation(2) > 1:
+                for t in D:
+                    if t != 0 and t.b(t)==0 and (t.q()==0 or not even):
+                        break
+                if t.b(t)!=0 or (t.q()!=0 and even):
+                    break
+                L = L.overlattice([t.lift()])
+                D = L.discriminant_group(2)
+        for p in P:
+            if p == 2:
+                continue
             # go squarefree
             Lold = 0
             k = GF(p)
@@ -963,35 +997,32 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
                 L = L.overlattice((p*L.dual_lattice() & (1/p)*L).gens())
             d = L.discriminant_group(p).gram_matrix_bilinear().det().numerator()
             # now the p-discriminant_group is a vector space
-            while L.determinant().valuation(p) > 1 and (L.determinant().valuation(p) > 2
-                   or ZZ(-1).kronecker(p) == d.kronecker(p)
-                   or p==2):
+            # odd case
+            while p != 2:
+                v = L.determinant().valuation(p)
+                if v<=1 or (v == 2 and ZZ(-1).kronecker(p) != d.kronecker(p)):
+                    break
                 D = L.discriminant_group(p).normal_form()
                 gen = D.gens()
-                if p!=2:
-                    G = D.gram_matrix_quadratic().diagonal()
-                    a = k(G[0].numerator()); b = k(G[1].numerator());
-                    if (-b/a).is_square():
-                        # solve:  a*x^2 + b *y^2  = 0
-                        x = (-b/a).sqrt()
-                        y = 1
-                        z = 0
-                        t = ZZ(x)*gen[0] + ZZ(y)*gen[1]
-                    else:
-                        c = k(G[2].numerator())
-                        # or solve a*x^2 + b*y^2 + c = 0
-                        z = 1
-                        for y in GF(p):
-                            x = ((-c - b*y**2)/a)
-                            if x.is_square():
-                                x = x.sqrt()
-                                break
-                        t = ZZ(x)*gen[0] + ZZ(y)*gen[1] + ZZ(z)*gen[2]
+                G = D.gram_matrix_quadratic().diagonal()
+                a = k(G[0].numerator()); b = k(G[1].numerator());
+                if (-b/a).is_square():
+                    # solve:  a*x^2 + b *y^2  = 0
+                    x = (-b/a).sqrt()
+                    y = 1
+                    z = 0
+                    t = ZZ(x)*gen[0] + ZZ(y)*gen[1]
                 else:
-                    t = gen[0]
-                assert t.b(t) == 0
+                    c = k(G[2].numerator())
+                    # or solve a*x^2 + b*y^2 + c = 0
+                    z = 1
+                    for y in GF(p):
+                        x = ((-c - b*y**2)/a)
+                        if x.is_square():
+                            x = x.sqrt()
+                            break
+                    t = ZZ(x)*gen[0] + ZZ(y)*gen[1] + ZZ(z)*gen[2]
                 L = L.overlattice([t.lift()])
-                d = L.discriminant_group(p).gram_matrix_bilinear().det().numerator()
         return L
 
     def orthogonal_complement(self, M):
