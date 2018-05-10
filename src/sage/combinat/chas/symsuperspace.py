@@ -86,7 +86,7 @@ rearrangments of the monomial
 
 where the indicies of both alphabets are permuted simultaneously.  The basis
 element of the symmetric functions in super space will be denoted `m_\Lambda`
-and will have the same coefficients in the product as `m_\Lambda[X_n;\Theta_n]`
+and will have the same coefficients in the products as `m_\Lambda[X_n;\Theta_n]`
 as long as `n` is sufficiently large.
 
 The complete homogeneous basis is then defined as
@@ -99,8 +99,34 @@ The complete homogeneous basis is then defined as
 The space of symmetric functions in super space is bigraded by the bosonic and
 fermionic degree.
 
-# product
-# coproduct
+There are several acceptable input formats for the index set of basis
+elements.  A super partition can be represented as a pair consisting
+of a strict partition and a partition.  The entries can also be expressed
+as a list of negative entries or zero for the fermionic parts (and hence
+must all be distinct) followed by positive entries for the bosonic parts.
+Alternatively, the input may also be a ``Partition``.  The default display
+of basis elements is with the fermionic parts first, followed by a semicolon,
+followed by the bosonic parts.  This can be changed through the options
+in super partitions.::
+
+    sage: SymmetricFunctionsinSuperSpace(QQ).inject_shorthands(verbose=False)
+    sage: h(((2,1),(1,1)))
+    h[2, 1; 1, 1]
+    sage: p([[2,1],[1,1]])
+    p[2, 1; 1, 1]
+    sage: e[-1,0,2,1]
+    e[1, 0; 2, 1]
+    sage: e[[1,0],[2,1]]
+    e[1, 0; 2, 1]
+    sage: SuperPartitions.options.display = "list"
+    sage: h[[3,1,0],[2,2,1]]
+    h[-3, -1, 0, 2, 2, 1]
+    sage: SuperPartitions.options.display = "pair"
+    sage: h[[3,1,0],[2,2,1]]
+    h[[3, 1, 0], [2, 2, 1]]
+    sage: SuperPartitions.options.display = "default"
+    sage: h[[3,1,0],[2,2,1]]
+    h[3, 1, 0; 2, 2, 1]
 
 There are four bases of the symmetric functions in super space which are
 analogues of the Schur functions.  These bases were introduced in [JL2017]_
@@ -117,6 +143,7 @@ For `\lambda \vdash n`, it is the case that `s_\lambda = s^\ast_\lambda =
 
 ::
 
+    sage: SymmetricFunctionsinSuperSpace(QQ).inject_shorthands(verbose=False)
     sage: all(s(la)==ss(la) for la in SuperPartitions(5,0))
     True
     sage: all(s(la)==sb(la) for la in SuperPartitions(5,0))
@@ -150,10 +177,12 @@ functions in super space are dual.
 
 ::
 
+    sage: SymmetricFunctionsinSuperSpace(QQ).inject_shorthands(verbose=False)
     sage: matrix([[h(la).scalar(m(mu)) for mu in SuperPartitions(2)]
     ....: for la in SuperPartitions(2)]).is_one()
     True
-    sage: matrix([[p(la).scalar(p(mu)) for mu in SuperPartitions(2)] for la in SuperPartitions(2)])
+    sage: matrix([[p(la).scalar(p(mu)) for mu in SuperPartitions(2)]
+    ....: for la in SuperPartitions(2)])
     [2 0 0 0 0 0 0 0]
     [0 2 0 0 0 0 0 0]
     [0 0 1 0 0 0 0 0]
@@ -174,6 +203,7 @@ in pairs.  For all `\Lambda, \Gamma in SPar(n|m)`,
 
 ::
 
+    sage: SymmetricFunctionsinSuperSpace(QQ).inject_shorthands(verbose=False)
     sage: all(s(la).scalar(ss(la)) for la in SuperPartitions(5,2))
     True
     sage: all(sb(la).scalar(ssb(la)) for la in SuperPartitions(5,2))
@@ -191,21 +221,42 @@ This involution is an algebra morphism with
     and \qquad {\bar s}^\ast_\Lambda = (-1)^{\binomial{m}{2}} \omega s_{\Lambda'}
 
 ::
-    sage: all(e(la).omega()==h(la.conjugate()) for la in SuperPartitions(5,2))
+
+    sage: SymmetricFunctionsinSuperSpace(QQ).inject_shorthands(verbose=False)
+    sage: all(e(la).omega()==h(la) for la in SuperPartitions(5,2))
     True
-    sage: [f.omega() for f in [p[r] for r in range(-4,5)]
+    sage: [f.omega() for f in [p[r] for r in range(-4,5)]]
     [p[4; ], -p[3; ], p[2; ], -p[1; ], p[0; ], p[; 1], -p[; 2], p[; 3], -p[; 4]]
     sage: [ssb(s(la).omega()) for la in SuperPartitions(3,2)]
     [-ssb[1, 0; 2], -ssb[1, 0; 1, 1], -ssb[2, 0; 1], -ssb[2, 1; ], -ssb[3, 0; ]]
     sage: [ss(sb(la).omega()) for la in SuperPartitions(3,2)]
     [-ss[1, 0; 2], -ss[1, 0; 1, 1], -ss[2, 0; 1], -ss[2, 1; ], -ss[3, 0; ]]
 
+The algebra of symmetric functions in super space is also a (bi-)graded
+Hopf algebra and the coproduct is defined bby declaring that the power sum
+generators are primitive.::
+
+    sage: SymmetricFunctionsinSuperSpace(QQ).inject_shorthands(verbose=False)
+    sage: p[3].coproduct()
+    p[; ] # p[; 3] + p[; 3] # p[; ]
+    sage: p[-3].coproduct()
+    p[; ] # p[3; ] + p[3; ] # p[; ]
+    sage: sb[-2,1].coproduct()
+    sb[; ] # sb[2; 1] + sb[; 1] # sb[1; 1] + sb[; 1] # sb[2; ] + sb[; 1, 1]
+    # sb[1; ] + sb[; 2] # sb[1; ] + sb[; 2, 1] # sb[0; ] + sb[0; ] # sb[; 2, 1]
+    + sb[1; ] # sb[; 1, 1] + sb[1; ] # sb[; 2] + sb[1; 1] # sb[; 1] + sb[2; ]
+    # sb[; 1] + sb[2; 1] # sb[; ]
+    sage: [f.antipode() for f in [p[r] for r in range(-3,4)]]
+    [-p[3; ], -p[2; ], -p[1; ], -p[0; ], -p[; 1], -p[; 2], -p[; 3]]
+    sage: ss(sb[-2,2].antipode())
+    -ss[0; 2, 2]
+
 TESTS::
 
-    sage: SFSS = SymmetricFunctionsinSuperSpace(QQ).inject_shorthands(verbose=False)
+    sage: SymmetricFunctionsinSuperSpace(QQ).inject_shorthands(verbose=False)
     sage: bases = [m,p,e,h,s,ss,sb,ssb]
     sage: all(b1(b2(b1([[3,2],[1,1]]))) == b1([[3,2],[1,1]])
-    ....:     for b1 in bases for b2 in bases if b1!=b2)
+    ....:     for b1 in bases for b2 in bases if b1!=b2) # long time (17s)
     True
 
 AUTHORS:
