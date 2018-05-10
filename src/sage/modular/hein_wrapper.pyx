@@ -24,11 +24,19 @@ from sage.libs.gmp.types cimport mpz_t
 from sage.quadratic_forms.ternary_qf import find_a_ternary_qf_by_level_disc
 from sage.arith.misc import squarefree_divisors
 from sage.matrix.constructor import matrix
+<<<<<<< HEAD
 
 cdef extern from "gmpxx.h":
     cdef cppclass mpz_class:
         mpz_class(mpz_t a)
 
+=======
+    
+cdef extern from "gmpxx.h":
+    cdef cppclass mpz_class:
+        mpz_class(mpz_t a)
+        
+>>>>>>> 890a13a748e171006f4f4a7b6d951d5251707e87
     cdef cppclass mpq_class:
         pass
 
