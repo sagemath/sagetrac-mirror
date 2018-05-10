@@ -24,19 +24,11 @@ from sage.libs.gmp.types cimport mpz_t
 from sage.quadratic_forms.ternary_qf import find_a_ternary_qf_by_level_disc
 from sage.arith.misc import squarefree_divisors
 from sage.matrix.constructor import matrix
-<<<<<<< HEAD
 
 cdef extern from "gmpxx.h":
     cdef cppclass mpz_class:
         mpz_class(mpz_t a)
 
-=======
-    
-cdef extern from "gmpxx.h":
-    cdef cppclass mpz_class:
-        mpz_class(mpz_t a)
-        
->>>>>>> 890a13a748e171006f4f4a7b6d951d5251707e87
     cdef cppclass mpq_class:
         pass
 
@@ -68,7 +60,7 @@ cdef extern from "Genus.h":
 cdef extern from "HeckeOperator.h":
     cdef cppclass HeckeOperator[R,F]:
         SparseMatrix& matrix() const;
-          
+
 ctypedef Genus[mpz_class, mpq_class] GenusZZ
 ctypedef QuadForm[mpz_class, mpq_class] QuadFormZZ
 ctypedef Character[mpz_class, mpq_class] CharacterZZ
@@ -92,7 +84,7 @@ cpdef hecke_birch(N, l):
     Compute Hecke operators at level N for each prime in l via Birch's method.
 
     INPUT::
-  
+
     - ``N`` -- a squarefree positive integer
 
     - ``l`` -- a list of prime positive integers not dividing ``N``
@@ -163,7 +155,7 @@ cpdef hecke_birch(N, l):
     cdef GenusZZPtr genus = create_genus_from_coeffs(a, b, c, f, g, h)
     for d in squarefree_divisors(N):
         deref(genus).add_character(CharacterZZ(mpz_class(d.value)))
-            
+
     for p in l:
         deref(genus).compute_hecke_operators(mpz_class(p.value), 0)
         for d in squarefree_divisors(N):
