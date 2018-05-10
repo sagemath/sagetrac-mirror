@@ -1524,11 +1524,11 @@ def gcd(a, b=None, **kwargs):
     :trac:`4988` the following wrongly returned 3 since the third parameter
     was just ignored::
 
-        sage: gcd(3,6,2)
+        sage: gcd(3, 6, 2)
         Traceback (most recent call last):
         ...
-        TypeError: gcd() takes at most 2 arguments (3 given)
-        sage: gcd([3,6,2])
+        TypeError: gcd() takes ...
+        sage: gcd([3, 6, 2])
         1
 
     Similarly, giving just one element (which is not a list) gives an error::
@@ -1599,7 +1599,7 @@ def gcd(a, b=None, **kwargs):
     from sage.structure.sequence import Sequence
     seq = Sequence(a)
     U = seq.universe()
-    if U is ZZ or U is int or U is long:# ZZ.has_coerce_map_from(U):
+    if U is ZZ or U in integer_types:  # ZZ.has_coerce_map_from(U):
         return GCD_list(a)
     return __GCD_sequence(seq, **kwargs)
 
@@ -1634,6 +1634,13 @@ def __GCD_sequence(v, **kwargs):
         sage: X=polygen(ZZ)
         sage: __GCD_sequence(Sequence((2*X+4,2*X^2,2)))
         2
+        sage: __GCD_sequence(Sequence((1/1,1/2)))
+        1/2
+
+    TESTS::
+
+        sage: __GCD_sequence(Sequence((1,1/2,1/5)))
+        1/10
     """
     if len(v) == 0:
         return ZZ(0)
@@ -1641,11 +1648,8 @@ def __GCD_sequence(v, **kwargs):
         g = v.universe()(0)
     else:
         g = ZZ(0)
-    one = v.universe()(1)
     for vi in v:
         g = vi.gcd(g, **kwargs)
-        if g == one:
-            return g
     return g
 
 def xlcm(m, n):

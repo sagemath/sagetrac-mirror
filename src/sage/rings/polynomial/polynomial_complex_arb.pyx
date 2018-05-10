@@ -30,7 +30,6 @@ from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.complex_arb cimport ComplexBall
 from sage.structure.element cimport Element
 
-from sage.rings.complex_arb import ComplexBallField
 from sage.structure.element import coerce_binop
 
 cdef inline long prec(Polynomial_complex_arb pol):
@@ -577,7 +576,7 @@ cdef class Polynomial_complex_arb(Polynomial):
             sage: (x^2 + 1)._power_trunc(10^20, 0)
             Traceback (most recent call last):
                 ...
-            OverflowError: long int too large to convert
+            OverflowError: ... int too large to convert...
 
         TESTS::
 
