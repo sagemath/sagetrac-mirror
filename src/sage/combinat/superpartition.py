@@ -138,7 +138,8 @@ class SuperPartition(ClonableArray):
             [1; 1]
             sage: SuperPartition([])
             [; ]
-
+            sage: SuperPartition(Partition([2,1]))
+            [; 2, 1]
             sage: SP = SuperPartitions(8,4)([[3,2,1,0],[2]])
             sage: SuperPartition(SP) is SP
             True
@@ -151,6 +152,8 @@ class SuperPartition(ClonableArray):
         elif isinstance(lst[0], (list, tuple)):
             return SPs([[Integer(a) for a in lst[0]],
                         [Integer(a) for a in lst[1]]])
+        elif isinstance(lst, Partition):
+            return SPs([[], list(lst)])
         else:
             return SPs([[-a for a in lst if a <= 0],
                         [a for a in lst if a > 0]])
@@ -912,9 +915,9 @@ class SuperPartitions(UniqueRepresentation, Parent):
                        description="Specifies how the super partitions should "
                                    "be printed",
                        values=dict(list="the super partitions are displayed in "
-                                        "a list of two lists",
-                                   pair="the super partition is displayed as a "
                                         "list of integers",
+                                   pair="the super partition is displayed as a "
+                                        "a list of two lists",
                                    default="the super partition is displayed in "
                                            "a form [fermionic part; bosonic part]"),
                        case_sensitive=False)
@@ -975,8 +978,10 @@ class SuperPartitions(UniqueRepresentation, Parent):
             True
             sage: [0] in SuperPartitions()
             True
+            sage: Partition([2,1]) in SuperPartitions()
+            True
         """
-        if isinstance(x, SuperPartition):
+        if isinstance(x, (SuperPartition, Partition)):
             return True
         if isinstance(x, (list, tuple)) and all(isinstance(i, (int, Integer))
             or i in ZZ for i in x):
