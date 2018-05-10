@@ -432,7 +432,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
 
         EXAMPLES::
 
-            sage: maxima.version()
+            sage: maxima.version()  # not tested
             '5.39.0'
         """
         return maxima_version()
@@ -2192,7 +2192,7 @@ def maxima_version():
     EXAMPLES::
 
         sage: from sage.interfaces.maxima_abstract import maxima_version
-        sage: maxima_version()
+        sage: maxima_version()  # not tested
         '5.39.0'
     """
     return os.popen('maxima --version').read().split()[-1]
