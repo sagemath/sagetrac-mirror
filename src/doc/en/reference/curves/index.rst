@@ -9,6 +9,7 @@ Plane curves
    sage/schemes/curves/projective_curve
    sage/schemes/curves/curve
    sage/schemes/curves/point
+   sage/schemes/riemann_surfaces/riemann_surface
 
    sage/schemes/plane_conics/constructor
    sage/schemes/plane_conics/con_field
@@ -65,6 +66,7 @@ Elliptic curves over number fields
 
    sage/schemes/elliptic_curves/ell_number_field
    sage/schemes/elliptic_curves/height
+   sage/schemes/elliptic_curves/saturation
 
    sage/schemes/elliptic_curves/ell_torsion
    sage/schemes/elliptic_curves/gal_reps

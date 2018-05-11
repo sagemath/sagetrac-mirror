@@ -11,8 +11,9 @@ Utility classes for multi-modular algorithms
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-include "cysignals/memory.pxi"
+from cysignals.memory cimport check_allocarray, check_reallocarray, sig_free
 
 from sage.libs.gmp.mpz cimport *
 from sage.rings.integer cimport Integer, smallInteger
@@ -799,7 +800,7 @@ cdef class MultiModularBasis_base(object):
             sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([10007, 10009])
             sage: t = iter(mm); t
-            <listiterator object at ...>
+            <list...iterator object at ...>
             sage: list(mm.__iter__())
             [10007, 10009]
         """

@@ -509,7 +509,7 @@ It is trivial to verify this equation on the closed form::
     sage: bool(equadiff.substitute_function(Cf, s0))
     True
 
-.. On veut non seulement remplacer les occurences de C(z), mais
+.. On veut non seulement remplacer les occurrences de C(z), mais
 .. aussi de C tout court (par exemple dans D[0](C)). Y-a-t'il mieux
 .. pour retrouver C à partir de C(z)?
 .. Cf. also:
@@ -574,7 +574,7 @@ identities (Gosper’s algorithm, Zeilberger’s algorithm, and their
 generalizations; see also :ref:`Exercise: alternating sign matrices
 <exercise-alternating-sign-matrices>`).
 
-.. todo: add link to some tutorial on summation
+.. TODO:: add link to some tutorial on summation
 
 All these techniques and their many generalizations are at the heart of
 very active topics of research: automatic combinatorics and analytic
@@ -1270,26 +1270,17 @@ The itertools methods ``imap`` and ``ifilter`` have been renamed to
 
     sage: from builtins import map, filter
 
+but they should rather be avoided, using list comprehension instead.
+
 To apply a function to all the elements, one can do::
 
-    sage: from builtins import map
-    sage: list(map(lambda z: z.cycle_type(), Permutations(3)))
+    sage: list(z.cycle_type() for z in Permutations(3))
     [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
 
 and similarly to select the elements satisfying a certain condition::
 
-    sage: from builtins import filter
-    sage: list(filter(lambda z: z.has_pattern([1,2]), Permutations(3)))
+    sage: list(z for z in Permutations(3) if z.has_pattern([1,2]))
     [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2]]
-
-In all these situations, ``attrcall`` can be an advantageous alternative
-to creating an anonymous function::
-
-    sage: from builtins import map
-    sage: list(map(lambda z: z.cycle_type(), Permutations(3)))
-    [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
-    sage: list(map(attrcall("cycle_type"), Permutations(3)))
-    [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
 
 Implementation of new iterators
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

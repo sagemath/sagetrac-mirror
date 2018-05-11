@@ -265,10 +265,10 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             - ``self.cardinality()``
             - ``self.unrank()``
 
-            .. seealso:: :meth:`_cardinality_from_list`,
+            .. SEEALSO:: :meth:`_cardinality_from_list`,
                 :meth:`_iterator_from_list`, and :meth:`_unrank_from_list`
 
-            .. warning::
+            .. WARNING::
 
                 The overriding of ``self.__iter__`` to use the cache
                 is ignored upon calls such as ``for x in C:`` or
@@ -618,9 +618,14 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
             # Ambiguity resolution between methods inherited from
             # Sets.CartesianProducts and from EnumeratedSets.Finite.
-            random_element = Sets.CartesianProducts.ParentMethods.random_element.__func__
-            cardinality = Sets.CartesianProducts.ParentMethods.cardinality.__func__
-            __iter__ = Sets.CartesianProducts.ParentMethods.__iter__.__func__
+            try:  #PY2
+                random_element = Sets.CartesianProducts.ParentMethods.random_element.__func__
+                cardinality = Sets.CartesianProducts.ParentMethods.cardinality.__func__
+                __iter__ = Sets.CartesianProducts.ParentMethods.__iter__.__func__
+            except AttributeError:  #PY3
+                random_element = Sets.CartesianProducts.ParentMethods.random_element
+                cardinality = Sets.CartesianProducts.ParentMethods.cardinality
+                __iter__ = Sets.CartesianProducts.ParentMethods.__iter__
 
             def last(self):
                 r"""

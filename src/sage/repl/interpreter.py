@@ -80,12 +80,12 @@ Check that Cython source code appears in tracebacks::
     <ipython-input-...> in <module>()
     ----> 1 Integer(1)/Integer(0)
     <BLANKLINE>
-    .../src/sage/rings/integer.pyx in sage.rings.integer.Integer.__div__ (.../cythonized/sage/rings/integer.c:...)()
-       ...          if type(left) is type(right):
-       ...              if mpz_sgn((<Integer>right).value) == 0:
+    .../sage/rings/integer.pyx in sage.rings.integer.Integer.__div__ (.../cythonized/sage/rings/integer.c:...)()
+       ....:        if type(left) is type(right):
+       ....:            if mpz_sgn((<Integer>right).value) == 0:
     -> ...                  raise ZeroDivisionError("rational division by zero")
-       ...              x = <Rational> Rational.__new__(Rational)
-       ...              mpq_div_zz(x.value, (<Integer>left).value, (<Integer>right).value)
+       ....:            x = <Rational> Rational.__new__(Rational)
+       ....:            mpq_div_zz(x.value, (<Integer>left).value, (<Integer>right).value)
     <BLANKLINE>
     ZeroDivisionError: rational division by zero
     sage: shell.quit()

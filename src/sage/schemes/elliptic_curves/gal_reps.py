@@ -1019,11 +1019,11 @@ class GaloisRepresentation(SageObject):
                         misc.verbose("the image cannot be exceptional, found u=%s"%u,2)
                         could_be_exc = 0
                     if a_ell != 0 and arith.kronecker(a_ell**2 - 4*ell,p) == 1 and could_be_non_split == 1:
-                        # it can not be in the noramlizer of the non-split Cartan
+                        # it can not be in the normalizer of the non-split Cartan
                         misc.verbose("the image cannot be non-split, found u=%s"%u,2)
                         could_be_non_split = 0
                     if a_ell != 0 and arith.kronecker(a_ell**2 - 4*ell,p) == -1 and could_be_split == 1:
-                        # it can not be in the noramlizer of the split Cartan
+                        # it can not be in the normalizer of the split Cartan
                         misc.verbose("the image cannot be split, found u=%s"%u,2)
                         could_be_split = 0
 
@@ -1086,7 +1086,12 @@ class GaloisRepresentation(SageObject):
             d = K.absolute_degree()
 
             misc.verbose("field of degree %s.  try to compute Galois group"%(d),2)
+            # If the degree is too big, we have no chance at the Galois
+            # group.  K.galois_group calls is_galois which used to rely on
+            # pari's Galois group computations, so degree < 12
             try:
+                if d > 15:
+                    raise Exception()
                 G = K.galois_group()
             except Exception:
                 self.__image_type[p] = "The image is a group of order %s."%d

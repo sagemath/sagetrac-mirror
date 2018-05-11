@@ -1,14 +1,7 @@
-#!/usr/bin/env bash
-
 if [ "$SAGE_LOCAL" = "" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
    echo "Maybe run 'sage -sh'?"
    exit 1
-fi
-
-if [  "$SAGE64" = "yes" ]; then
-   CFLAGS="-O2 -g -m64 "; export CFLAGS
-   LDFLAGS="-m64 $LDFLAGS"; export LDFLAGS
 fi
 
 cd src

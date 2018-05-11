@@ -504,9 +504,9 @@ def cremona_to_lmfdb(cremona_label, CDB=None):
     TESTS::
 
         sage: for label in ['5077a1','66a3','102b','420c2']:
-        ...       assert(lmfdb_to_cremona(cremona_to_lmfdb(label)) == label)
+        ....:     assert(lmfdb_to_cremona(cremona_to_lmfdb(label)) == label)
         sage: for label in ['438.c2','306.b','462.f3']:
-        ...       assert(cremona_to_lmfdb(lmfdb_to_cremona(label)) == label)
+        ....:     assert(cremona_to_lmfdb(lmfdb_to_cremona(label)) == label)
     """
     from sage.libs.pari.all import pari
     m = cremona_label_regex.match(cremona_label)
@@ -754,7 +754,7 @@ class MiniCremonaDatabase(SQLDatabase):
         Note the 'h3', which is the unique case in the tables where
         the optimal curve doesn't have label ending in 1::
 
-            sage: list(sorted(CremonaDatabase().curves(990).keys()))
+            sage: sorted(CremonaDatabase().curves(990))
             ['a1', 'b1', 'c1', 'd1', 'e1', 'f1', 'g1', 'h3', 'i1', 'j1', 'k1', 'l1']
 
         TESTS::

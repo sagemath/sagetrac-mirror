@@ -25,9 +25,8 @@ from six.moves import range
 
 from sage.categories.algebras import Algebras
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.structure.element import generic_power
-from sage.combinat.free_module import (CombinatorialFreeModule,
-    CombinatorialFreeModuleElement)
+from sage.arith.power import generic_power
+from sage.combinat.free_module import CombinatorialFreeModule
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.combinat import bell_number, catalan_number
@@ -240,38 +239,6 @@ class AbstractPartitionDiagram(SetPartition):
         self._base_diagram = tuple(sorted(tuple(sorted(i)) for i in d))
         super(AbstractPartitionDiagram, self).__init__(parent, self._base_diagram)
 
-    # add options to class
-    options=GlobalOptions('Brauer diagram', option_class='AbstractPartitionDiagram',
-        module='sage.combinat.diagram_algebras',
-        doc=r"""
-        Set and display the global options for Brauer diagram (algebras). If no
-        parameters are set, then the function returns a copy of the options
-        dictionary.
-
-        The ``options`` to diagram algebras can be accessed as the method
-        :obj:`BrauerAlgebra.options` of :class:`BrauerAlgebra` and
-        related classes.
-        """,
-        end_doc=r"""
-        EXAMPLES::
-
-            sage: R.<q> = QQ[]
-            sage: BA = BrauerAlgebra(2, q)
-            sage: E = BA([[1,2],[-1,-2]])
-            sage: E
-            B{{-2, -1}, {1, 2}}
-            sage: BrauerAlgebra.options.display="compact"
-            sage: E
-            B[12/12;]
-            sage: BrauerAlgebra.options._reset()
-        """,
-        display=dict(default="normal",
-                       description='Specifies how the Brauer diagrams should be printed',
-                       values=dict(normal="Using the normal representation",
-                                   compact="Using the compact representation"),
-                                   case_sensitive=False),
-    )
-
     def check(self):
         r"""
         Check the validity of the input for the diagram.
@@ -438,6 +405,57 @@ class BrauerDiagram(AbstractPartitionDiagram):
             sage: bd1 = da.BrauerDiagram(bd, ((-2,-1),(1,2)) )
         """
         super(BrauerDiagram, self).__init__(parent,d)
+
+    # add options to class
+    class options(GlobalOptions):
+        r"""
+        Set and display the global options for Brauer diagram (algebras). If no
+        parameters are set, then the function returns a copy of the options
+        dictionary.
+
+        The ``options`` to diagram algebras can be accessed as the method
+        :obj:`BrauerAlgebra.options` of :class:`BrauerAlgebra` and
+        related classes.
+
+        @OPTIONS@
+
+        The compact representation ``[A/B;pi]`` of the Brauer algebra diagram
+        (see [GL1996]_) has the following components:
+
+        - ``A`` -- is a list of pairs of positive elements (upper row) that 
+          are connected, 
+
+        - ``B`` -- is a list of pairs of negative elements (lower row) that
+          are connected, and
+
+        - ``pi`` --  is a permutation that is to be interpreted as the relative
+          order of the remaining elements in the top row and the bottom row.
+
+        EXAMPLES::
+
+            sage: R.<q> = QQ[]
+            sage: BA = BrauerAlgebra(2, q)
+            sage: E = BA([[1,2],[-1,-2]])
+            sage: E
+            B{{-2, -1}, {1, 2}}
+            sage: BA8 = BrauerAlgebra(8, q)
+            sage: BA8([[1,-4],[2,4],[3,8],[-7,-2],[5,7],[6,-1],[-3,-5],[-6,-8]])
+            B{{-8, -6}, {-7, -2}, {-5, -3}, {-4, 1}, {-1, 6}, {2, 4}, {3, 8}, {5, 7}}
+            sage: BrauerAlgebra.options.display = "compact"
+            sage: E
+            B[12/12;]
+            sage: BA8([[1,-4],[2,4],[3,8],[-7,-2],[5,7],[6,-1],[-3,-5],[-6,-8]])
+            B[24.38.57/35.27.68;21]
+            sage: BrauerAlgebra.options._reset()
+        """
+        NAME = 'Brauer diagram'
+        module = 'sage.combinat.diagram_algebras'
+        option_class='BrauerDiagram'
+        display = dict(default="normal",
+                       description='Specifies how the Brauer diagrams should be printed',
+                       values=dict(normal="Using the normal representation",
+                                   compact="Using the compact representation"),
+                                   case_sensitive=False)
 
     def check(self):
         r"""
@@ -858,7 +876,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         sage: bd.options._reset()
     """
     Element = BrauerDiagram
-    options = AbstractPartitionDiagram.options
+    options = BrauerDiagram.options
 
     def __init__(self, order, category=None):
         r"""
@@ -920,7 +938,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
 
     def symmetric_diagrams(self,l=None,perm=None):
         r"""
-        Return the list of brauer diagrams with symmetric placement of `l` arcs,
+        Return the list of Brauer diagrams with symmetric placement of `l` arcs,
         and with free nodes permuted according to `perm`.
 
         EXAMPLES::
@@ -952,7 +970,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
 
     def from_involution_permutation_triple(self, D1_D2_pi):
         r"""
-        Construct a Bruaer diagram of ``self`` from an involution
+        Construct a Brauer diagram of ``self`` from an involution
         permutation triple.
 
         A Brauer diagram can be represented as a triple where the first
@@ -987,7 +1005,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
             raise ValueError("argument %s not in correct form; must be a tuple (D1, D2, pi)" % D1_D2_pi)
         D1 = [[abs(x) for x in b] for b in D1 if len(b) == 2] # not needed if argument correctly passed at outset.
         D2 = [[abs(x) for x in b] for b in D2 if len(b) == 2] # ditto.
-        nD2 = [map(lambda i: -i,b) for b in D2]
+        nD2 = [[-i for i in b] for b in D2]
         pi = list(pi)
         nn = set(range(1, self.order+1))
         dom = sorted(nn.difference(flatten([list(x) for x in D1])))
@@ -1462,7 +1480,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
 
     # The following subclass provides a few additional methods for
     # partition algebra elements.
-    class Element(CombinatorialFreeModuleElement):
+    class Element(CombinatorialFreeModule.Element):
         r"""
         An element of a diagram algebra.
 
@@ -1910,6 +1928,8 @@ class BrauerAlgebra(SubPartitionAlgebra):
             sage: TestSuite(BA).run()
         """
         SubPartitionAlgebra.__init__(self, k, q, base_ring, prefix, BrauerDiagrams(k))
+
+    options = BrauerDiagram.options
 
     def _repr_(self):
         """
@@ -2688,8 +2708,3 @@ def set_partition_composition(sp1, sp2):
 # END BORROWED CODE
 ##########################################################################
 
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-AbstractPartitionDiagram.global_options=deprecated_function_alias(18555, AbstractPartitionDiagram.options)
-BrauerDiagramOptions = deprecated_function_alias(18555, AbstractPartitionDiagram.options)
-BrauerDiagrams.global_options = deprecated_function_alias(18555, BrauerDiagrams.options)
