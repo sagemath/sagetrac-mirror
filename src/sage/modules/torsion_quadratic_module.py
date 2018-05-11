@@ -19,13 +19,60 @@ AUTHORS:
 
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.fg_pid.fgp_element import DEBUG, FGP_Element
+from sage.modules.free_quadratic_module import FreeQuadraticModule
 from sage.arith.misc import gcd
-from sage.rings.all import ZZ, IntegerModRing, QQ
+from sage.rings.all import ZZ, Zp, QQ, IntegerModRing
 from sage.groups.additive_abelian.qmodnz import QmodnZ
 from sage.matrix.constructor import matrix
+from sage.matrix.special import diagonal_matrix
 from sage.misc.cachefunc import cached_method
 from sage.arith.misc import legendre_symbol
 from sage.rings.finite_rings.integer_mod import mod
+
+def TorsionQuadraticForm(q):
+    r"""
+    Create a torsion quadratic form module from a rational matrix.
+
+    The resulting quadratic form takes values in `\QQ / \ZZ`
+    or `\QQ / 2 \ZZ` (depending on ``q``).
+    If it takes values modulo `2`, then it is non-degenerate.
+    In any case the bilinear form is non-degenerate.
+
+    INPUT:
+
+    - ``q`` -- a symmetric rational matrix
+
+    EXAMPLES::
+
+        sage: q1 = Matrix(QQ,2,[1,1/2,1/2,1])
+        sage: TorsionQuadraticForm(q1)
+        Finite quadratic module over Integer Ring with invariants (2, 2)
+        Gram matrix of the quadratic form with values in Q/2Z:
+        [  1 1/2]
+        [1/2   1]
+
+    In the following example the quadratic form is degenerate.
+    But the bilinear form is still non-degenerate::
+
+        sage: q2 = diagonal_matrix(QQ,[1/4,1/3])
+        sage: TorsionQuadraticForm(q2)
+        Finite quadratic module over Integer Ring with invariants (12,)
+        Gram matrix of the quadratic form with values in Q/Z:
+        [7/12]
+    """
+    q = matrix(QQ, q)
+    if q.nrows() != q.ncols():
+        raise ValueError("the input must be a square matrix")
+    if q != q.transpose():
+        raise ValueError("the input must be a symmetric matrix")
+
+    Q, d = q._clear_denom()
+    S, U, V = Q.smith_form()
+    D = U * q * V
+    Q = FreeQuadraticModule(ZZ, q.ncols(), inner_product_matrix=d**2 * q)
+    denoms = [D[i,i].denominator() for i in range(D.ncols())]
+    rels = Q.span(diagonal_matrix(ZZ, denoms) * U)
+    return TorsionQuadraticModule((1/d)*Q, (1/d)*rels)
 
 class TorsionQuadraticModuleElement(FGP_Element):
     r"""
@@ -64,7 +111,7 @@ class TorsionQuadraticModuleElement(FGP_Element):
 
     def _mul_(self, other):
         r"""
-        Compute the inner product of two elements
+        Compute the inner product of two elements.
 
         OUTPUT:
 
@@ -282,11 +329,11 @@ class TorsionQuadraticModule(FGP_Module_class):
         return TorsionQuadraticModule(V, W, check=check)
 
     @cached_method
-    def Brown_invariant(self):
+    def brown_invariant(self):
         r"""
         Return the Brown invariant of this torsion quadratic form.
 
-        Let `(D,q)` be a torsion quadratic module with values in `\QQ / \2 \ZZ`.
+        Let `(D,q)` be a torsion quadratic module with values in `\QQ / 2 \ZZ`.
         The Brown invariant `Br(D,q) \in \Zmod{8}` is defined by the equation
 
         .. MATH::
@@ -305,7 +352,7 @@ class TorsionQuadraticModule(FGP_Module_class):
 
             sage: L = IntegralLattice("D4")
             sage: D = L.discriminant_group()
-            sage: D.Brown_invariant()
+            sage: D.brown_invariant()
             4
 
         We require the quadratic form to be defined modulo `2 \ZZ`::
@@ -313,7 +360,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
             sage: V = FreeQuadraticModule(ZZ,3,matrix.identity(3))
             sage: T = TorsionQuadraticModule((1/10)*V, V)
-            sage: T.Brown_invariant()
+            sage: T.brown_invariant()
             Traceback (most recent call last):
             ...
             ValueError: The torsion quadratic form must have values in\QQ / 2\ZZ
@@ -328,13 +375,13 @@ class TorsionQuadraticModule(FGP_Module_class):
             q = q.gram_matrix_quadratic()
             L = collect_small_blocks(q)
             for qi in L:
-                brown += _Brown_indecomposable(qi,p)
+                brown += _brown_indecomposable(qi,p)
         return brown
 
     @cached_method
     def gram_matrix_bilinear(self):
         r"""
-        The gram matrix with respect to the generators
+        Return the gram matrix with respect to the generators.
 
         OUTPUT:
 
@@ -412,9 +459,9 @@ class TorsionQuadraticModule(FGP_Module_class):
         """
         return self._gens
 
-    def is_Genus(self, signature_pair, even):
+    def is_genus(self, signature_pair, even=True):
         r"""
-        Return if there is an even lattice with this signature and discriminant form.
+        Return ``True`` if there is a lattice with this signature and discriminant form.
 
         TODO:
 
@@ -422,16 +469,28 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         INPUT:
 
-        - signature_pair -- a tuple of integers ``(s_plus,s_minus)``
-        - even -- bool (default: ``True`)
+        - signature_pair -- a tuple of non negative integers ``(s_plus, s_minus)``
+        - even -- bool (default: ``True``)
 
         EXAMPLES::
 
-            sage:
-            sage:
+            sage: L = IntegralLattice("D4").direct_sum(IntegralLattice(3 * Matrix(ZZ,2,[2,1,1,2])))
+            sage: D = L.discriminant_group()
+            sage: D.is_genus((6,0))
+            True
+
+        Let us see if there is a lattice in the genus defined by the same discriminant form
+        but with a different signature::
+
+            sage: D.is_genus((4,2))
+            False
+            sage: D.is_genus((16,2))
+            True
         """
-        s_plus = signature_pair[0]
-        s_minus = signature_pair[1]
+        s_plus = ZZ(signature_pair[0])
+        s_minus = ZZ(signature_pair[1])
+        if s_plus<0 or s_minus<0:
+            raise ValueError("signature invariants must be non negative")
         rank = s_plus + s_minus
         signature = s_plus - s_minus
         D = self.cardinality()
@@ -439,13 +498,14 @@ class TorsionQuadraticModule(FGP_Module_class):
         if rank < len(self.invariants()):
             return False
         if even and self._modulus_qf != 2:
-            raise ValueError("The discriminant form of an even lattice has"
+            raise ValueError("the discriminant form of an even lattice has"
                                  "values modulo 2.")
         if (not even) and not (self.modulus == self._modulus_qf == 1):
-            raise ValueError("The discriminant form of an odd lattice has"
+            raise ValueError("the discriminant form of an odd lattice has"
                              "values modulo 1.")
         if not even:
-            raise NotImplementedError()
+            raise NotImplementedError("at the moment sage knows how to do this only for even genera. " +
+                                      " Help us to implement this for odd genera.")
         for p in D.prime_divisors():
             # check the determinat conditions
             Q_p = self.primary_part(p)
@@ -454,22 +514,22 @@ class TorsionQuadraticModule(FGP_Module_class):
             u = det.prime_to_m_part(p)
             up = gram_p.det().numerator().prime_to_m_part(p)
             if p!=2 and length_p==rank:
-                if legendre_symbol(u,p) != legendre_symbol(up, p):
+                if legendre_symbol(u, p) != legendre_symbol(up, p):
                     return False
             if p == 2:
-                if mod(rank, 2) != mod(length_p, 2):
+                if rank % 2 != length_p % 2:
                     return False
-                n = (rank - length_p)/2
-                if mod(u, 4) != mod((-1)**(n % 2) * up, 4):
+                n = (rank - length_p) / 2
+                if u % 4 != (-1)**(n % 2) * up % 4:
                     return False
                 if rank == length_p:
-                    a = QQ(1)/QQ(2)
-                    b = QQ(3)/QQ(2)
+                    a = QQ(1) / QQ(2)
+                    b = QQ(3) / QQ(2)
                     diag = gram_p.diagonal()
                     if not (a in diag or b in diag):
-                        if mod(u, 8) != mod(up, 8):
+                        if u % 8 !=  up % 8:
                             return False
-        if self.Brown_invariant() != signature:
+        if self.brown_invariant() != signature:
             return False
         return True
 
@@ -523,8 +583,8 @@ class TorsionQuadraticModule(FGP_Module_class):
 
     @cached_method
     def normal_form(self, partial=False):
-        """
-        Return the normal form of this torsion quadratic module
+        r"""
+        Return the normal form of this torsion quadratic module.
 
         Two torsion quadratic modules are isomorphic if and only if they have
         the same value modules and the same normal form.
@@ -537,15 +597,31 @@ class TorsionQuadraticModule(FGP_Module_class):
         Below are some of its properties.
         Let `p` be odd and `u` be the smallest non-square modulo `p`.
         The normal form is a diagonal matrix with diagonal entries either `p^n`
-        or `u*p^n`.
+        or `u p^n`.
 
         If `p = 2` is even, then the normal form consists of
         1 x 1 blocks of the form
-        `0`, `[2^n]`, `[3*2^n]`, `[5*2^n]`, `[7*2^n]`
-        or of 2 x 2 blocks of the form
-        [2 1]           [0 1]
-        [1 2] * 2^n or  [1 0] * 2^n
-        The entries are ordered by their valuation.
+
+        .. MATH::
+
+            (0), \quad 2^n(1),\quad 2^n(3),\quad 2^n(5) ,\quad 2^n(7)
+
+        or of `2 \times 2` blocks of the form
+
+        .. MATH::
+
+            2^n
+            \left(\begin{matrix}
+                2 & 1\\
+                1 & 2
+            \end{matrix}\right), \quad
+            2^n
+            \left(\begin{matrix}
+                0 & 1\\
+                1 & 0
+            \end{matrix}\right).
+
+       The blocks are ordered by their valuation.
 
         INPUT:
 
@@ -557,6 +633,40 @@ class TorsionQuadraticModule(FGP_Module_class):
         - a torsion quadratic module
 
         EXAMPLES::
+
+            sage: L1=IntegralLattice(matrix([[-2,0,0],[0,1,0],[0,0,4]]))
+            sage: L1.discriminant_group().normal_form()
+            Finite quadratic module over Integer Ring with invariants (2, 4)
+            Gram matrix of the quadratic form with values in Q/Z:
+            [1/2   0]
+            [  0 1/4]
+            sage: L2=IntegralLattice(matrix([[-2,0,0],[0,1,0],[0,0,-4]]))
+            sage: L2.discriminant_group().normal_form()
+            Finite quadratic module over Integer Ring with invariants (2, 4)
+            Gram matrix of the quadratic form with values in Q/Z:
+            [1/2   0]
+            [  0 1/4]
+
+        We check that :trac:`24864` is fixed::
+
+            sage: L1=IntegralLattice(matrix([[-4,0,0],[0,4,0],[0,0,-2]]))
+            sage: AL1=L1.discriminant_group()
+            sage: L2=IntegralLattice(matrix([[-4,0,0],[0,-4,0],[0,0,2]]))
+            sage: AL2=L2.discriminant_group()
+            sage: AL1.normal_form()
+            Finite quadratic module over Integer Ring with invariants (2, 4, 4)
+            Gram matrix of the quadratic form with values in Q/2Z:
+            [1/2   0   0]
+            [  0 1/4   0]
+            [  0   0 5/4]
+            sage: AL2.normal_form()
+            Finite quadratic module over Integer Ring with invariants (2, 4, 4)
+            Gram matrix of the quadratic form with values in Q/2Z:
+            [1/2   0   0]
+            [  0 1/4   0]
+            [  0   0 5/4]
+
+        Some exotic cases::
 
             sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
             sage: D4_gram = Matrix(ZZ,4,4,[2,0,0,-1,0,2,0,-1,0,0,2,-1,-1,-1,-1,2])
@@ -573,26 +683,71 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: T.normal_form()
             Finite quadratic module over Integer Ring with invariants (6, 6, 12, 12)
             Gram matrix of the quadratic form with values in Q/(1/3)Z:
-            [1/12 1/24    0    0    0    0    0    0]
-            [1/24 1/12    0    0    0    0    0    0]
-            [   0    0  1/6 1/12    0    0    0    0]
-            [   0    0 1/12  1/6    0    0    0    0]
+            [ 1/6 1/12    0    0    0    0    0    0]
+            [1/12  1/6    0    0    0    0    0    0]
+            [   0    0 1/12 1/24    0    0    0    0]
+            [   0    0 1/24 1/12    0    0    0    0]
             [   0    0    0    0  1/9    0    0    0]
             [   0    0    0    0    0  1/9    0    0]
             [   0    0    0    0    0    0  1/9    0]
             [   0    0    0    0    0    0    0  1/9]
+
+        TESTS:
+
+        A degenerate case::
+
+            sage: T = TorsionQuadraticModule((1/6)*D4dual, D4, modulus=1/36)
+            sage: T.normal_form()
+            Finite quadratic module over Integer Ring with invariants (6, 6, 12, 12)
+            Gram matrix of the quadratic form with values in Q/(1/18)Z:
+            [1/36 1/72    0    0    0    0    0    0]
+            [1/72 1/36    0    0    0    0    0    0]
+            [   0    0    0    0    0    0    0    0]
+            [   0    0    0    0    0    0    0    0]
+            [   0    0    0    0    0    0    0    0]
+            [   0    0    0    0    0    0    0    0]
+            [   0    0    0    0    0    0    0    0]
+            [   0    0    0    0    0    0    0    0]
         """
         gens = []
-        from sage.quadratic_forms.genera.normal_form import p_adic_normal_form
+        from sage.quadratic_forms.genera.normal_form import p_adic_normal_form, _normalize
         for p in self.annihilator().gen().prime_divisors():
             D_p = self.primary_part(p)
             q_p = D_p.gram_matrix_quadratic()
             q_p = q_p / D_p._modulus_qf
-            prec = self.annihilator().gen().valuation(p) + 3
-            D, U = p_adic_normal_form(q_p, p, precision=prec, partial=False)
+
+            # continue with the non-degenerate part
+            r = q_p.rank()
+            if r != q_p.ncols():
+                U = q_p._clear_denom()[0].hermite_form(transformation=True)[1]
+            else:
+                U = q_p.parent().identity_matrix()
+            kernel = U[r:,:]
+            nondeg = U[:r,:]
+            q_p = nondeg * q_p * nondeg.T
+
+            # the normal form is implemented for p-adic lattices
+            # so we should work with the lattice q_p --> q_p^-1
+            q_p1 = q_p.inverse()
+            prec = self.annihilator().gen().valuation(p) + 5
+            D, U = p_adic_normal_form(q_p1, p, precision=prec + 5, partial=partial)
+            # if we compute the inverse in the p-adics everything explodes --> go to ZZ
+            U = U.change_ring(ZZ).inverse().transpose()
+
+            # the inverse is in normal form - so to get a normal form for the original one
+            # it is enough to massage each 1x1 resp. 2x2 block.
+            U = U.change_ring(Zp(p, type='fixed-mod', prec=prec)).change_ring(ZZ)
+            D = U * q_p * U.T * p**q_p.denominator().valuation(p)
+            D = D.change_ring(Zp(p, type='fixed-mod', prec=prec))
+            _, U1 = _normalize(D, normal_odd=False)
+            U = U1.change_ring(ZZ) * U
+
+            # reattach the degenerate part
+            nondeg = U * nondeg
+            U = nondeg.stack(kernel)
+
             #apply U to the generators
             n = U.ncols()
-            U = U.change_ring(ZZ)
             gens_p = []
             for i in range(n):
                 g = self.V().zero()
@@ -776,7 +931,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             q = q.gram_matrix_quadratic()
             L = collect_small_blocks(q)
             for qi in L:
-                brown += _Brown_indecomposable(qi,p)
+                brown += _brown_indecomposable(qi,p)
         return brown
 
     def Genus(self,signature_pair):
@@ -827,7 +982,7 @@ class TorsionQuadraticModule(FGP_Module_class):
                 local_symbol = Genus_Symbol_p_adic_ring(local_symbol,p)
                 symbols.append(local_symbol)
 
-def _Brown_indecomposable(q, p):
+def _brown_indecomposable(q, p):
     r"""
     Return the Brown invariant of the indecomposable form ``q``.
 
@@ -841,29 +996,29 @@ def _Brown_indecomposable(q, p):
 
     EXAMPLES::
 
-        sage: from sage.modules.torsion_quadratic_module import _Brown_indecomposable
+        sage: from sage.modules.torsion_quadratic_module import _brown_indecomposable
         sage: q = Matrix(QQ, [1/3])
-        sage: _Brown_indecomposable(q,3)
+        sage: _brown_indecomposable(q,3)
         6
         sage: q = Matrix(QQ, [2/3])
-        sage: _Brown_indecomposable(q,3)
+        sage: _brown_indecomposable(q,3)
         2
         sage: q = Matrix(QQ, [5/4])
-        sage: _Brown_indecomposable(q,2)
+        sage: _brown_indecomposable(q,2)
         5
         sage: q = Matrix(QQ, [7/4])
-        sage: _Brown_indecomposable(q,2)
+        sage: _brown_indecomposable(q,2)
         7
         sage: q = Matrix(QQ, 2, [0,1,1,0])/2
-        sage: _Brown_indecomposable(q,2)
+        sage: _brown_indecomposable(q,2)
         0
         sage: q = Matrix(QQ, 2, [2,1,1,2])/2
-        sage: _Brown_indecomposable(q,2)
+        sage: _brown_indecomposable(q,2)
         4
     """
     v = q.denominator().valuation(p)
     if p == 2:
-        # Brown(U) = 0
+        # brown(U) = 0
         if q.ncols() == 2:
             if q[0,0].valuation(2)>v+1 and q[1,1].valuation(2)>v+1:
                 # type U

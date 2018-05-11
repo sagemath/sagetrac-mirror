@@ -22,7 +22,6 @@ from sage.structure.element import Element, coerce_binop, is_Vector
 from sage.structure.richcmp import rich_to_bool, op_NE
 
 from sage.misc.all import cached_method, prod
-from sage.misc.package import is_package_installed, PackageNotFoundError
 from sage.misc.randstate import current_randstate
 
 from sage.rings.all import QQ, ZZ, AA
@@ -288,24 +287,33 @@ class Polyhedron_base(Element):
             [0 1 1]
             [1 0 1]
             [1 1 0]
+
+        Checks that :trac:`22455` is fixed::
+
+            sage: s = polytopes.simplex(2)
+            sage: s._facet_adjacency_matrix()
+            [0 1 1]
+            [1 0 1]
+            [1 1 0]
+
         """
         # TODO: This implementation computes the whole face lattice,
         # which is much more information than necessary.
-        M = matrix(ZZ, self.n_Hrepresentation(), self.n_Hrepresentation(), 0)
+        M = matrix(ZZ, self.n_facets(), self.n_facets(), 0)
+        codim = self.ambient_dim()-self.dim()
 
         def set_adjacent(h1, h2):
             if h1 is h2:
                 return
-            i = h1.index()
-            j = h2.index()
+            i = h1.index() - codim
+            j = h2.index() - codim
             M[i, j] = 1
             M[j, i] = 1
 
-        face_lattice = self.face_lattice()
-        for face in face_lattice:
+        for face in self.faces(self.dim()-2):
             Hrep = face.ambient_Hrepresentation()
-            if len(Hrep) == 2:
-                set_adjacent(Hrep[0], Hrep[1])
+            assert(len(Hrep) == codim+2)
+            set_adjacent(Hrep[-2], Hrep[-1])
         return M
 
     def _vertex_adjacency_matrix(self):
@@ -3062,6 +3070,69 @@ class Polyhedron_base(Element):
 
     _mul_ = product
 
+    def join(self, other):
+        """
+        Return the join of ``self`` and ``other``.
+
+        The join of two polyhedra is obtained by first placing the two objects in
+        two non-intersecting affine subspaces `V`, and `W` whose affine hull is
+        the whole ambient space, and finally by taking the convex hull of their
+        union. The dimension of the join is the sum of the dimensions of the
+        two polyhedron plus 1.
+
+        INPUT:
+
+        - ``other`` -- a polyhedron
+
+        EXAMPLES::
+
+            sage: P1 = Polyhedron([[0],[1]], base_ring=ZZ)
+            sage: P2 = Polyhedron([[0],[1]], base_ring=QQ)
+            sage: P1.join(P2)
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
+            sage: P1.join(P1)
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+            sage: P2.join(P2)
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
+
+        An unbounded example::
+
+            sage: R1 = Polyhedron(rays=[[1]])
+            sage: R1.join(R1)
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 2 vertices and 2 rays
+
+        TESTS::
+
+            sage: C = polytopes.hypercube(5)
+            sage: S = Polyhedron([[1]])
+            sage: C.join(S).is_combinatorially_isomorphic(C.pyramid())
+            True
+        """
+        try:
+            new_ring = self.parent()._coerce_base_ring(other)
+        except TypeError:
+            raise TypeError("no common canonical parent for objects with parents: " + str(self.parent())
+                     + " and " + str(other.parent()))
+
+        dim_self = self.ambient_dim()
+        dim_other = other.ambient_dim()
+
+        new_vertices = [list(x)+[0]*dim_other+[0] for x in self.vertex_generator()] + \
+                       [[0]*dim_self+list(x)+[1] for x in other.vertex_generator()]
+        new_rays = []
+        new_rays.extend( [ r+[0]*dim_other+[0]
+                           for r in self.ray_generator() ] )
+        new_rays.extend( [ [0]*dim_self+r+[1]
+                           for r in other.ray_generator() ] )
+        new_lines = []
+        new_lines.extend( [ l+[0]*dim_other+[0]
+                            for l in self.line_generator() ] )
+        new_lines.extend( [ [0]*dim_self+l+[1]
+                            for l in other.line_generator() ] )
+        return Polyhedron(vertices=new_vertices,
+                          rays=new_rays, lines=new_lines,
+                          base_ring=new_ring)
+
     def dilation(self, scalar):
         """
         Return the dilated (uniformly stretched) polyhedron.
@@ -4272,8 +4343,7 @@ class Polyhedron_base(Element):
 
              David Avis's lrs program.
         """
-        if not is_package_installed('lrslib'):
-            raise PackageNotFoundError('lrslib')
+        Lrs().require()
 
         from sage.misc.temporary_file import tmp_filename
         from subprocess import Popen, PIPE
@@ -6120,7 +6190,7 @@ class Polyhedron_base(Element):
             sage: A = L.affine_hull(orthonormal=True)
             Traceback (most recent call last):
             ...
-            ValueError: The base ring needs to be extented; try with "extend=True"
+            ValueError: The base ring needs to be extended; try with "extend=True"
             sage: A = L.affine_hull(orthonormal=True, extend=True); A
             A 1-dimensional polyhedron in AA^1 defined as the convex hull of 2 vertices
             sage: A.vertices()
@@ -6185,7 +6255,7 @@ class Polyhedron_base(Element):
             sage: A = P.affine_hull(orthonormal=True)
             Traceback (most recent call last):
             ...
-            ValueError: The base ring needs to be extented; try with "extend=True"
+            ValueError: The base ring needs to be extended; try with "extend=True"
             sage: A = P.affine_hull(orthonormal=True, extend=True); A
             A 1-dimensional polyhedron in AA^1 defined as the convex hull of 2 vertices
             sage: A.vertices()
@@ -6340,7 +6410,7 @@ class Polyhedron_base(Element):
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             except TypeError:
                 if not extend:
-                    raise ValueError('The base ring needs to be extented; try with "extend=True"')
+                    raise ValueError('The base ring needs to be extended; try with "extend=True"')
                 M = matrix(AA, M)
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             if as_affine_map:
