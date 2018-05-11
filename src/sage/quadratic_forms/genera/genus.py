@@ -20,7 +20,7 @@ from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from copy import deepcopy, copy
 
-def all_genera_by_det(sig_vec, determinant, max_scale=None, even=True):
+def all_genera_by_det(sig_vec, determinant, max_level=None, even=True):
     r"""
     Return a list of all global genera with the given conditions.
 
@@ -35,7 +35,7 @@ def all_genera_by_det(sig_vec, determinant, max_scale=None, even=True):
 
     OUTPUT:
 
-    A list of global genus symbols.
+    A list of all global genera with the given conditions.
 
     EXAMPLES::
 
@@ -62,17 +62,17 @@ def all_genera_by_det(sig_vec, determinant, max_scale=None, even=True):
     determinant = ZZ(determinant)
     sig_vec = (ZZ(sig_vec[0]), ZZ(sig_vec[1]))
     if not all([s >= 0 for s in sig_vec]):
-        raise ValueError("The signature vector must be a pair of non negative integers.")
+        raise ValueError("the signature vector must be a pair of non negative integers.")
     if max_scale == None:
         max_scale = determinant
     else:
         max_scale = ZZ(max_scale)
     if type(even) != bool:
-        raise ValueError
+        raise ValueError("not a boolean")
 
     rank = sig_vec[0] + sig_vec[1]
     genera = []
-    local_genus_symbols = []
+    local_symbols = []
     # every global genus has a 2-adic symbol
     if determinant % 2 != 0:
         local_genus_symbols.append(_all_p_adic_genera(2, rank, 0, 0, even=even))
@@ -81,7 +81,14 @@ def all_genera_by_det(sig_vec, determinant, max_scale=None, even=True):
         p = pn[0]
         det_val = pn[1]
         mscale_p = max_scale.valuation(p)
-        local_genus_symbols.append(_all_p_adic_genera(p, rank, det_val, mscale_p, even))
+        local_symbol_p = _all_p_adic_genera(p, rank, det_val, mscale_p, even)
+        local_symbols.append(local_symbol_p)
+    # take the cartesian product of the collection of all possible
+    # local genus symbols one for each prime
+    # and check which combinations produce a global genus
+    # TODO:
+    # we are overcounting. Find a more
+    # clever way to directly match the symbols
     for g in mrange_iter(local_genus_symbols):
         # create a Genus from a list of local symbols
         G = GenusSymbol_global_ring(matrix.identity(1))
@@ -91,6 +98,7 @@ def all_genera_by_det(sig_vec, determinant, max_scale=None, even=True):
         # discard the empty genera
         if is_GlobalGenus(G):
             genera.append(G)
+    genera.sort()
     return(genera)
 
 def _all_p_adic_genera_new(p, rank, det_val, max_scale, even):
@@ -304,7 +312,7 @@ def _all_p_adic_genera(p, rank, det_val, max_scale, even):
     - ``rank`` -- the rank of this genus
     - ``det_val`` -- valuation of the determinant at p
     - ``max_scale`` -- an integer the maximal scale of a jordan block
-    - ``even`` -- bool; is igored if `p` is not `2`
+    - ``even`` -- ``bool``; is igored if `p` is not `2`
 
     EXAMPLES::
 
@@ -364,7 +372,8 @@ def _all_p_adic_genera(p, rank, det_val, max_scale, even):
                 g1 = Genus_Symbol_p_adic_ring(p, g1)
                 symbols.append(g1)
      # for p == 2 we have to include determinant, even/odd, oddity
-     # further restrictions apply and are defered to _blocks (brute force sieving is too slow)
+     # further restrictions apply and are defered to _blocks
+     # (brute force sieving is too slow)
      # TODO: If this is too slow, enumerate only the canonical symbols.
     if p == 2:
         for g in symbols0:

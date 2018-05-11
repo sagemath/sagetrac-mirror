@@ -897,7 +897,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         return self.submodule_with_gens(gens)
 
     @cached_method
-    def orthogonal_group(self, gens=None):
+    def orthogonal_group(self):
         r"""
         Orthognal group of the associated torsion quadratic form.
 
@@ -909,10 +909,8 @@ class TorsionQuadraticModule(FGP_Module_class):
 
             sage: L = IntegralLattice(2*matrix.identity(3))
             sage: D = L.discriminant_group()
-            sage: O = L.orthogonal_group()
-            sage: f = O.an_element()
-            sage: fd = D.hom([d*f for d in D.smith_form_gens()])
-            sage: D.orthogonal_group([fd])
+            sage: O = D.orthogonal_group()
+            sage: O
         """
         from sage.groups.fqf_orthogonal.group import FqfOrthogonalGroup_ambient
         return FqfOrthogonalGroup_ambient(self.normal_form())
@@ -1120,7 +1118,6 @@ class TorsionQuadraticModule(FGP_Module_class):
         """
         return QmodnZ(self._modulus_qf)
 
-<<<<<<< HEAD
     def direct_sum(self, other):
         r"""
         """
@@ -1225,10 +1222,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             representatives.append(S)
         return representatives
 
-def _Brown_indecomposable(q, p):
-=======
 def _brown_indecomposable(q, p):
->>>>>>> develop
     r"""
     Return the Brown invariant of the indecomposable form ``q``.
 
