@@ -5439,10 +5439,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^4+2*x^2+1
             sage: f.exponents()
             [0, 2, 4]
+
+        TESTS::
+
+            sage: a = RIF['x'](1/3)
+            sage: (a - a).exponents()
+            [0]
         """
-        zero = self._parent.base_ring().zero()
-        l = self.list()
-        return [i for i in range(len(l)) if l[i] != zero]
+        return [i for i, c in enumerate(self) if c]
 
     cpdef list list(self, bint copy=True):
         """
