@@ -1,0 +1,30 @@
+#! /bin/sh
+die () {
+    echo "$@" 1>&2
+    exit 1
+}
+
+[ -n "$SAGE_LOCAL" ] || die 'Error: $SAGE_LOCAL not set. Source sage-env or run this script from `sage -sh`.'
+
+set -e
+
+HOL_REPO=https://github.com/jrh13/hol-light.git
+HOL_BRANCH=master
+HOL_COMMIT=8902edfec5cec8b077dbaa2508a908c83532df3d
+
+HOL_DIR="$SAGE_LOCAL/share/hol-light"
+
+if [ -d "$HOL_DIR" ]; then
+    (cd "$HOL_DIR" && git fetch origin ${HOL_BRANCH})
+else
+    cd "$SAGE_LOCAL/share/"
+    git clone --branch=${HOL_BRANCH} --single-branch $HOL_REPO
+fi
+cd "$HOL_DIR"
+if [ -n "${HOL_COMMIT}" ]; then
+    git checkout ${HOL_COMMIT}
+else
+    git pull --ff-only
+fi
+
+$MAKE

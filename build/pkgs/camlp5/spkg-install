@@ -1,0 +1,16 @@
+cd src/
+./configure --strict --prefix "$SAGE_LOCAL"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error configuring camlp5."
+    exit 1
+fi
+$MAKE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building camlp5."
+    exit 1
+fi
+$MAKE install
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing camlp5."
+    exit 1
+fi

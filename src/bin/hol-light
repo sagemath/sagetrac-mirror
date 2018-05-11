@@ -1,0 +1,3 @@
+#! /usr/bin/env bash
+export HOLLIGHT_DIR="$SAGE_LOCAL"/share/hol-light
+exec ocaml -I "$SAGE_LOCAL/lib/ocaml/camlp5" -init "$SAGE_LOCAL"/share/hol-light/hol.ml $*
