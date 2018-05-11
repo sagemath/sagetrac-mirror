@@ -1,4 +1,9 @@
-# Sage wrapper for Jeffery Hain's code to compute spaces of newforms by Birch's method
+"""
+Spaces of newforms using Birch's method
+
+This is a wrapper aroung Jeffery Hein's code.
+"""
+# Sage wrapper for Jeffery Hein's code to compute spaces of newforms by Birch's method
 # Copyright (C) 2017-8 by Kiran S. Kedlaya <kskedl@gmail.com>
 #
 #encoding=utf8
@@ -79,17 +84,18 @@ cdef GenusZZPtr create_genus_from_coeffs(Integer a, Integer b,
     genus = make_shared[GenusZZ](deref(q))
     return(genus)
 
+
 cpdef hecke_birch(N, l):
     r"""
     Compute Hecke operators at level N for each prime in l via Birch's method.
 
-    INPUT::
+    INPUT:
 
     - ``N`` -- a squarefree positive integer
 
     - ``l`` -- a list of prime positive integers not dividing ``N``
 
-    OUTPUT::
+    OUTPUT:
 
     A dict with one entry for each pair (d, p) where d is a squarefree
     divisor of N and p is an entry of l. This entry is a sparse integer matrix
@@ -101,10 +107,11 @@ cpdef hecke_birch(N, l):
     When N has an even number of prime factors, one gets a similar answer except that
     the space includes forms that are old at the smallest prime factor of N.
 
-    EXAMPLES::
+    EXAMPLES:
 
-    In this example, there are no forms that are old at 7 because X_0(7) has genus 0::
+    In this example, there are no forms that are old at 7 because `X_0(7)` has genus 0::
 
+        sage: from sage.modular.hein_wrapper import hecke_birch
         sage: h = hecke_birch(91, [2, 3])
         sage: h[(13, 3)]
         [-2]
@@ -126,7 +133,7 @@ cpdef hecke_birch(N, l):
         sage: V.hecke_polynomial(19).factor()   # No factor of x
         (x - 2) * (x^4 - 8*x^3 - 25*x^2 + 154*x + 387) * (x^6 + 10*x^5 + 3*x^4 - 196*x^3 - 561*x^2 - 454*x - 104)
 
-    TESTS::
+    TESTS:
 
     Compare with Brandt symbols::
 
@@ -141,11 +148,10 @@ cpdef hecke_birch(N, l):
     cdef SparseMatrix.dataMap dat
 
     if not N.is_squarefree():
-        raise ValueError("level " + str(N) +
-                         " is not squarefree")
+        raise ValueError("level {} is not squarefree".format(N))
     for p in l:
         if not p.is_prime:
-            raise ValueError("index " + str(p) + " is not prime")
+            raise ValueError("index {} is not prime".format(p))
         if N % p == 0:
             raise ValueError("prime " + str(p) +
                              " divides level " + str(N))
