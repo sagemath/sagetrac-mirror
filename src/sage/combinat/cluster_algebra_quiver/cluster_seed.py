@@ -5112,7 +5112,7 @@ class ClusterVariable(FractionFieldElement):
         (x0*x2 + 1)/x1 alpha[2]
         (x0*x2 + x1 + 1)/(x1*x2) alpha[2] + alpha[3]
     """
-    def __init__( self, parent, numerator, denominator, coerce=True, reduce=True, mutation_type=None, variable_type=None, xdim=0 ):
+    def __init__( self, parent, numerator, denominator, coerce=True, reduce=True, is_reduced=False, mutation_type=None, variable_type=None, xdim=0 ):
         r"""
         Initialize a cluster variable in the same way that elements in the field of rational functions are initialized.
 
@@ -5129,7 +5129,7 @@ class ClusterVariable(FractionFieldElement):
             sage: S.variable_class()
             [(x0 + x1 + 1)/(x0*x1), (x1 + 1)/x0, (x0 + 1)/x1, x1, x0]
         """
-        FractionFieldElement.__init__( self, parent, numerator, denominator, coerce=coerce, reduce=reduce )
+        FractionFieldElement.__init__( self, parent, numerator, denominator, coerce=coerce, reduce=reduce, is_reduced=is_reduced )
         self._n = xdim;
         self._mutation_type = mutation_type
         self._variable_type = variable_type
