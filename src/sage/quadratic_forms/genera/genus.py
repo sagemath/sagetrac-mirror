@@ -30,7 +30,7 @@ def all_genera_by_det(sig_vec, determinant, max_level=None, even=True):
 
     - ``sig_vec`` -- a pair of non-negative integers giving the signature
     - ``determinant`` -- an integer the sign is ignored
-    - ``max_scale`` -- (default: ``True``) an integer the maximum scale of a jordan block
+    - ``max_level`` -- (default: ``True``) an integer the maximum level of a jordan block
     - ``even`` -- bool (default: ``True``)
 
     OUTPUT:
@@ -40,20 +40,20 @@ def all_genera_by_det(sig_vec, determinant, max_level=None, even=True):
     EXAMPLES::
 
         sage: from sage.quadratic_forms.genera.genus import all_genera_by_det
-        all_genera_by_det((4,0), 125, even=True)
+        sage: all_genera_by_det((4,0), 125, even=True)
         [Genus of
-        None
-        Genus symbol at 2:    1^-4
-        Genus symbol at 5:     1^3 125^1, Genus of
-        None
-        Genus symbol at 2:    1^-4
-        Genus symbol at 5:     1^-2 5^1 25^-1, Genus of
-        None
-        Genus symbol at 2:    1^-4
-        Genus symbol at 5:     1^2 5^1 25^1, Genus of
-        None
-        Genus symbol at 2:    1^-4
-        Genus symbol at 5:     1^1 5^3]
+         None
+         Genus symbol at 2:    1^-4
+         Genus symbol at 5:     1^2 5^1 25^1, Genus of
+         None
+         Genus symbol at 2:    1^-4
+         Genus symbol at 5:     1^1 5^3, Genus of
+         None
+         Genus symbol at 2:    1^-4
+         Genus symbol at 5:     1^3 125^1, Genus of
+         None
+         Genus symbol at 2:    1^-4
+         Genus symbol at 5:     1^-2 5^1 25^-1]
     """
     from sage.misc.mrange import mrange_iter
     from sage.matrix.constructor import matrix
@@ -63,10 +63,10 @@ def all_genera_by_det(sig_vec, determinant, max_level=None, even=True):
     sig_vec = (ZZ(sig_vec[0]), ZZ(sig_vec[1]))
     if not all([s >= 0 for s in sig_vec]):
         raise ValueError("the signature vector must be a pair of non negative integers.")
-    if max_scale == None:
-        max_scale = determinant
+    if max_level == None:
+        max_level = determinant
     else:
-        max_scale = ZZ(max_scale)
+        max_level = ZZ(max_level)
     if type(even) != bool:
         raise ValueError("not a boolean")
 
@@ -75,21 +75,21 @@ def all_genera_by_det(sig_vec, determinant, max_level=None, even=True):
     local_symbols = []
     # every global genus has a 2-adic symbol
     if determinant % 2 != 0:
-        local_genus_symbols.append(_all_p_adic_genera(2, rank, 0, 0, even=even))
+        local_symbols.append(_all_p_adic_genera(2, rank, 0, 0, even=even))
     # collect the p-adic symbols
     for pn in determinant.factor():
         p = pn[0]
         det_val = pn[1]
-        mscale_p = max_scale.valuation(p)
-        local_symbol_p = _all_p_adic_genera(p, rank, det_val, mscale_p, even)
+        mlevel_p = max_level.valuation(p)
+        local_symbol_p = _all_p_adic_genera(p, rank, det_val, mlevel_p, even)
         local_symbols.append(local_symbol_p)
     # take the cartesian product of the collection of all possible
     # local genus symbols one for each prime
     # and check which combinations produce a global genus
     # TODO:
     # we are overcounting. Find a more
-    # clever way to directly match the symbols
-    for g in mrange_iter(local_genus_symbols):
+    # clever way to directly match the symbols for different primes.
+    for g in mrange_iter(local_symbols):
         # create a Genus from a list of local symbols
         G = GenusSymbol_global_ring(matrix.identity(1))
         G._signature = sig_vec
@@ -299,7 +299,7 @@ def _canonical_block_to_block(block):
         det = t*(-1)**((rk - 3) / 2)*e
     return [block[0], rk, det, 1, t]
 
-def _all_p_adic_genera(p, rank, det_val, max_scale, even):
+def _all_p_adic_genera(p, rank, det_val, max_level, even):
     r"""
     Return all `p`-adic genera with the given conditions.
 
@@ -311,7 +311,7 @@ def _all_p_adic_genera(p, rank, det_val, max_scale, even):
     - ``p`` -- a prime number
     - ``rank`` -- the rank of this genus
     - ``det_val`` -- valuation of the determinant at p
-    - ``max_scale`` -- an integer the maximal scale of a jordan block
+    - ``max_level`` -- an integer the maximal level of a jordan block
     - ``even`` -- ``bool``; is igored if `p` is not `2`
 
     EXAMPLES::
@@ -319,51 +319,51 @@ def _all_p_adic_genera(p, rank, det_val, max_scale, even):
         sage: from sage.quadratic_forms.genera.genus import _all_p_adic_genera
         sage: _all_p_adic_genera(2,3,1,2,False)
         [Genus symbol at 2:    1^-2 [2^1]_1,
-        Genus symbol at 2:    1^2 [2^1]_1,
-        Genus symbol at 2:    1^2 [2^1]_7,
-        Genus symbol at 2:    [1^2 2^1]_1,
-        Genus symbol at 2:    1^-2 [2^1]_7,
-        Genus symbol at 2:    [1^2 2^1]_3,
-        Genus symbol at 2:    [1^-2 2^1]_7,
-        Genus symbol at 2:    [1^2 2^1]_7,
-        Genus symbol at 2:    [1^-2 2^1]_1,
-        Genus symbol at 2:    [1^-2 2^1]_5,
-        Genus symbol at 2:    [1^-2 2^1]_3,
-        Genus symbol at 2:    [1^2 2^1]_5]
+         Genus symbol at 2:    1^2 [2^1]_1,
+         Genus symbol at 2:    1^2 [2^1]_7,
+         Genus symbol at 2:    [1^2 2^1]_3,
+         Genus symbol at 2:    1^-2 [2^1]_7,
+         Genus symbol at 2:    [1^-2 2^1]_7,
+         Genus symbol at 2:    [1^-2 2^1]_1,
+         Genus symbol at 2:    [1^2 2^1]_7,
+         Genus symbol at 2:    [1^2 2^1]_5,
+         Genus symbol at 2:    [1^-2 2^1]_3,
+         Genus symbol at 2:    [1^-2 2^1]_5,
+         Genus symbol at 2:    [1^2 2^1]_1]
 
-    Setting a maximum scale::
+    Setting a maximum level::
 
         sage: _all_p_adic_genera(5, 2, 2, 1, True)
         [Genus symbol at 5:     5^-2, Genus symbol at 5:     5^2]
         sage: _all_p_adic_genera(5, 2, 2, 2, True)
         [Genus symbol at 5:     1^-1 25^-1,
-        Genus symbol at 5:     1^1 25^-1,
-        Genus symbol at 5:     1^-1 25^1,
-        Genus symbol at 5:     1^1 25^1,
-        Genus symbol at 5:     5^-2,
-        Genus symbol at 5:     5^2]
+         Genus symbol at 5:     1^1 25^-1,
+         Genus symbol at 5:     1^-1 25^1,
+         Genus symbol at 5:     1^1 25^1,
+         Genus symbol at 5:     5^-2,
+         Genus symbol at 5:     5^2]
     """
     from sage.misc.mrange import cantor_product
     from sage.combinat.integer_lists.invlex import IntegerListsLex
     from copy import deepcopy
-    symbols0 = [] # contains possibilities for scales and ranks
-    for rkseq in IntegerListsLex(rank, length=max_scale+1):   # rank sequences
+    levels_rks = [] # contains possibilities for levels and ranks
+    for rkseq in IntegerListsLex(rank, length=max_level+1):   # rank sequences
         # sum(rkseq) = rank
         # len(rkseq) = max_level + 1
         # now assure that we get the right determinant
         d = 0
         pgensymbol = []
-        for i in range(max_scale + 1):
+        for i in range(max_level + 1):
             d += i * rkseq[i]
             # blocks of rank 0 are omitted
             if rkseq[i] != 0:
                 pgensymbol.append([i, rkseq[i], 0])
         if d == det_val:
-            symbols0.append(pgensymbol)
+            levels_rks.append(pgensymbol)
     # add possible determinant square classes
     symbols = []
     if p != 2:
-        for g in symbols0:
+        for g in levels_rks:
             n = len(g)
             for v in cantor_product([-1, 1], repeat=n):
                 g1 = deepcopy(g)
@@ -371,12 +371,12 @@ def _all_p_adic_genera(p, rank, det_val, max_scale, even):
                     g1[k][2] = v[k]
                 g1 = Genus_Symbol_p_adic_ring(p, g1)
                 symbols.append(g1)
-     # for p == 2 we have to include determinant, even/odd, oddity
-     # further restrictions apply and are defered to _blocks
-     # (brute force sieving is too slow)
-     # TODO: If this is too slow, enumerate only the canonical symbols.
+    # for p == 2 we have to include determinant, even/odd, oddity
+    # further restrictions apply and are defered to _blocks
+    # (brute force sieving is too slow)
+    # TODO: If this is too slow, enumerate only the canonical symbols.
     if p == 2:
-        for g in symbols0:
+        for g in levels_rks:
             n = len(g)
             poss_blocks = []
             for b in g:
@@ -387,7 +387,8 @@ def _all_p_adic_genera(p, rank, det_val, max_scale, even):
                 if is_2_adic_genus(g1):
                     g1 = Genus_Symbol_p_adic_ring(p, g1)
                     # some of our symbols have the same canonical symbol
-                    # thus they are equivalent - we want only one in each equivalence class
+                    # thus they are equivalent - we want only one in
+                    # each equivalence class
                     if not g1 in symbols:
                         symbols.append(g1)
     return(symbols)
@@ -395,14 +396,15 @@ def _all_p_adic_genera(p, rank, det_val, max_scale, even):
 
 def _blocks(b, even_only=False):
     r"""
-    Return a list of all viable `2`-adic jordan blocks with rank and scale given by ``b``
+    Return all viable `2`-adic jordan blocks with rank and level given by ``b``
 
-    This is a helper function for :meth:`_all_p_adic_genera`
+    This is a helper function for :meth:`_all_p_adic_genera`.
+    It is based on the existence conditions for a modular `2`-adic genus symbol.
 
     INPUT:
 
-    - ``b`` -- a list of `5` non-negative integers
-    the first two are kept and all possibilities for the remaining `3` are enumerated
+    - ``b`` -- a list of `5` non-negative integers the first two are kept
+      and all possibilities for the remaining `3` are enumerated
     - ``even_only`` -- bool (default: ``True``) if set, the blocks are even
 
     EXAMPLES::
@@ -425,17 +427,17 @@ def _blocks(b, even_only=False):
     """
     blocks = []
     rk = b[1]
-    # recall: 2-genus_symbol [level, rank, det, even/odd, oddity]
-    if b[1] == 1 and not even_only:
-        for d in [1, 3, 5, 7]:
+    # recall: 2-genus_symbol is [level, rank, det, even/odd, oddity]
+    if rk == 1 and not even_only:
+        for det in [1, 3, 5, 7]:
             b1 = copy(b)
-            b1[2] = d
+            b1[2] = det
             b1[3] = 1
-            b1[4] = d
+            b1[4] = det
             blocks.append(b1)
-    elif b[1] == 2:
-        # even case
+    elif rk == 2:
         b1 = copy(b)
+        # even case
         b1[3] = 0
         b1[4] = 0
         b1[2] = 3
@@ -445,43 +447,44 @@ def _blocks(b, even_only=False):
         blocks.append(b1)
         # odd case
         if not even_only:
-            for s in [(1,2), (5,6),(1,6),(5,2),(7,0),(3,4)]:
+            # format (det, oddity)
+            for s in [(1,2), (5,6), (1,6), (5,2), (7,0), (3,4)]:
                 b1 = copy(b)
                 b1[2] = s[0]
                 b1[3] = 1
                 b1[4] = s[1]
                 blocks.append(b1)
-    elif b[1] % 2 == 0:
+    elif rk % 2 == 0:
         # the even case has even rank
         b1 = copy(b)
         b1[3] = 0
         b1[4] = 0
-        det = (-1)**(rk//2) % 8
-        for d in [det, det * (-3) % 8]:
+        d = (-1)**(rk//2) % 8
+        for det in [d, d * (-3) % 8]:
             b1 = copy(b1)
-            b1[2] = d
+            b1[2] = det
             blocks.append(b1)
-        # odd
+        # odd case
         if not even_only:
-            for s in [(1,2), (5,6),(1,6),(5,2),(7,0),(3,4)]:
+            for s in [(1,2), (5,6), (1,6), (5,2), (7,0), (3,4)]:
                 b1 = copy(b)
                 b1[2] = s[0]*(-1)**(rk//2 -1) % 8
                 b1[3] = 1
                 b1[4] = s[1]
                 blocks.append(b1)
-            for s in [(1,4),(5,0)]:
+            for s in [(1,4), (5,0)]:
                 b1 = copy(b)
                 b1[2] = s[0]*(-1)**(rk//2 - 2) % 8
                 b1[3] = 1
                 b1[4] = s[1]
                 blocks.append(b1)
-    elif b[1] % 2 == 1 and not even_only:
+    elif rk % 2 == 1 and not even_only:
         # odd case
         for t in [1, 3, 5, 7]:
-            det = (-1)**(rk//2)*t % 8
-            for d in [det, -3*det % 8]:
+            d = (-1)**(rk//2)*t % 8
+            for det in [d, -3*d % 8]:
                 b1 = copy(b)
-                b1[2] = d
+                b1[2] = det
                 b1[3] = 1
                 b1[4] = t
                 blocks.append(b1)
