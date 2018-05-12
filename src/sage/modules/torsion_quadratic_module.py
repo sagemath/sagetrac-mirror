@@ -517,8 +517,9 @@ class TorsionQuadraticModule(FGP_Module_class):
         from sage.misc.misc_c import prod
         from sage.rings.all import Qp
         if self.value_module_qf().n != 2:
-            raise NotImplementedError("Currently, this is only implemted for even genera. " +
-                                      "Want to help us implement this for odd lattices?")
+            raise NotImplementedError(
+                "Currently, this is only implemted for even genera. " +
+                "Want to help us implement this for odd lattices?")
         s_plus = signature_pair[0]
         s_minus = signature_pair[1]
         rank = s_plus + s_minus
@@ -531,30 +532,32 @@ class TorsionQuadraticModule(FGP_Module_class):
             q = D.normal_form().gram_matrix_quadratic()
             if len(D.invariants()) != 0:
                 # _get_homogeneous_block_indices assumes ascending valuations
-                # our vals are decending. But taking the inverse fixes this.
+                # our vals are descending. But taking the inverse fixes this.
                 I = _get_homogeneous_block_indices(q.inverse().change_ring(Qp(p)))[0][1:]
                 q.subdivide(I, I)
                 for i in range(len(I)+1):
                     # create a symbol for this jordan block
-                    qk = q.subdivision(i, i)
-                    scale = qk.denominator().valuation(p)
-                    rk = qk.ncols()
-                    qk, _ = qk._clear_denom()
+                    qi = q.subdivision(i, i)
+                    scale = qi.denominator().valuation(p)
+                    rk_i = qi.ncols()
+                    qi, _ = qi._clear_denom()
                     if p == 2:
-                        det_k = mod(qk.det().prime_to_m_part(2), 8)
-                        if qk[-1,-1].valuation(2) == 0:
+                        det_i = mod(qi.det().prime_to_m_part(2), 8)
+                        # qi is in normal form. So if it is odd,
+                        # then the last entry is odd.
+                        if qi[-1,-1].valuation(2) == 0:
                             is_odd = 1
-                            if mod(qk.ncols(),2) == 0:
-                                oddity = mod(qk[-1,-1] + qk[-2,-2], 8)
+                            if mod(qi.ncols(), 2) == 0:
+                                oddity = mod(qi[-1,-1] + qi[-2,-2], 8)
                             else:
-                                oddity = mod(qk[-1,-1],8)
+                                oddity = mod(qi[-1,-1], 8)
                         else:
                             is_odd = 0
                             oddity = 0
-                        local_symbol.append([scale, rk, det_k, is_odd, oddity])
+                        local_symbol.append([scale, rk_i, det_i, is_odd, oddity])
                     else:
-                        det_k = legendre_symbol(qk.det(), p)
-                        local_symbol.append([scale, rk, det_k])
+                        det_i = legendre_symbol(qi.det(), p)
+                        local_symbol.append([scale, rk_i, det_i])
             # if necessary add the part of scale zero.
             rk = rank - q.ncols()
             if rk > 0:
@@ -570,15 +573,15 @@ class TorsionQuadraticModule(FGP_Module_class):
             local_symbol.sort()
             local_symbol = Genus_Symbol_p_adic_ring(p, local_symbol)
             symbols.append(local_symbol)
-        # a hack - unfortunately a genus symbol can be initialized only from a representative
-        # matrix
+        # a hack - unfortunately a genus symbol can be initialized only
+        # from the gram matrix of a representative
         genus = GenusSymbol_global_ring(matrix([1]))
         genus._local_symbols = symbols
         genus._representative = None
         genus._signature = signature_pair
         if not is_GlobalGenus(genus):
             # the symbol for p=2 and scale 1 is only well defined mod 4
-            # when jordan block of scale 1 is odd.
+            # when a jordan block of scale 1 is odd.
             # In this case the symbol is determined by the property
             # that it forms a valid global genus symbol.
             s2 = genus._local_symbols[0]
@@ -590,11 +593,11 @@ class TorsionQuadraticModule(FGP_Module_class):
             else:
                 assert s2[0][0] == 1
                 i = 0
-            s2[i][4] += mod(4,8)
+            s2[i][4] += mod(4, 8)
             if not is_GlobalGenus(genus):
-                s2[i][2] += mod(4,8)
+                s2[i][2] += mod(4, 8)
             if not is_GlobalGenus(genus):
-                s2[i][4] += mod(4,8)
+                s2[i][4] += mod(4, 8)
             assert is_GlobalGenus(genus)
         return genus
 
