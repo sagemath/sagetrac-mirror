@@ -10,4 +10,5 @@ cdef class FractionFieldElement(FieldElement):
     cpdef bint is_one(self)
 
     cpdef reduce(self)
+    cdef try_reduce(self)
     cdef normalize_unit_denominator(self)

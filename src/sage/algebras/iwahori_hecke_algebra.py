@@ -1389,7 +1389,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 -1/(q1*q2)*T[1] + ((q1+q2)/(q1*q2))
                 sage: H = IwahoriHeckeAlgebra("A2", q1, base_ring=F).T()
                 sage: H.inverse_generator(2)
-                -(1/(-q1))*T[2] + ((q1-1)/(-q1))
+                1/q1*T[2] + ((-q1+1)/q1)
                 sage: P1.<r1, r2> = LaurentPolynomialRing(QQ)
                 sage: H1 = IwahoriHeckeAlgebra("B2", r1, q2=r2, base_ring=P1).T()
                 sage: H1.base_ring()
