@@ -4,7 +4,7 @@ Symmetric functions in super space
 Symmetric functions in super space is an algebra whose bases are indexed by
 ``SuperPartitions``.
 
-Let `P_{\Theta_N, X_N}` be the polynomial ring in two sets of variables
+Let `{\mathbb Q\}[\Theta_N, X_N]` be the polynomial ring in two sets of variables
 `\Theta_N = \theta_1, \theta_2, \ldots, \theta_N` and
 `X_N = x_1, x_2, \ldots, x_N`
 where the first set of variables anti-commute, `\theta_i^2 = 0`,
@@ -14,7 +14,7 @@ acts diagonally on this polynomial ring and the symmetric functions in
 superspace are isomorphic to the invariants in this polynomial ring.
 See [DLM2006]_ for a description of this space presented here.
 
-When `n=2`, the following are examples of symmetric polynomials in super space
+When `N=2`, the following are examples of symmetric polynomials in super space
 
 .. MATH::
 
@@ -84,10 +84,10 @@ following products of the generators
 .. MATH::
 
     p_\Lambda = p_{(\Lambda_1; 0)} \cdots p_{(\Lambda_m; 0)}
-    p_{(\Lambda_{m+1}; 0)} \cdots p_{(\Lambda_N; 0)}~.
+    p_{(\Lambda_{m+1}; 0)} \cdots p_{(\Lambda_N; 0)}~,
 
     e_\Lambda = e_{(\Lambda_1; 0)} \cdots e_{(\Lambda_m; 0)}
-    e_{(\Lambda_{m+1}; 0)} \cdots e_{(\Lambda_N; 0)}~.
+    e_{(\Lambda_{m+1}; 0)} \cdots e_{(\Lambda_N; 0)}~,
 
     h_\Lambda = h_{(\Lambda_1; 0)} \cdots h_{(\Lambda_m; 0)}
     h_{(\Lambda_{m+1}; 0)} \cdots h_{(\Lambda_N; 0)}~.
@@ -110,7 +110,7 @@ The complete homogeneous basis is then defined as
 .. MATH::
 
     h_{(n; )} = \sum_{\Lambda \in SPar(n|1)} m_\Lambda, \qquad
-    h_{(; n)} = \sum_{\lambda \vdash n} m_\lambda
+    h_{(; n)} = \sum_{\lambda \vdash n} m_\lambda~.
 
 The space of symmetric functions in super space is bigraded by the bosonic and
 fermionic degree.
@@ -180,8 +180,8 @@ For `\lambda \vdash n`, it is the case that `s_\lambda = s^\ast_\lambda =
     2*m[0; 1, 1, 1] + m[0; 2, 1] + 3*m[1; 1, 1] + m[1; 2] + 2*m[2; 1] - m[3; ]
 
 There is a scalar product defined so that for super partitions
-`\Lambda = (\Lambda^a; \Lambda^s), \Gamma`,
-`\left<\left< p_\Lambda, p_\Gamma \right>\right> = \delta_{\Lambda\Gamma} z_{\Lambda^s}`
+`\Lambda = (\Lambda^a; \Lambda^s)` and `\Gamma`,
+`\left<\!\left< p_\Lambda, p_\Gamma \right>\!\right> = \delta_{\Lambda\Gamma} z_{\Lambda^s}`
 where `z_{\Lambda^s}` is the usual constant `z_\lambda` which is the size of
 the centralizer of an element of cycle type `\lambda`.
 
@@ -215,8 +215,8 @@ in pairs.  For all `\Lambda, \Gamma \in SPar(n|m)` ,
 
 .. MATH::
 
-    \left<\left< s_\Lambda, s^\ast_\Gamma \right>\right>
-    = \left<\left< {\bar s}_\Lambda, {\bar s}^\ast_\Gamma \right>\right>
+    \left<\!\left< s_\Lambda, s^\ast_\Gamma \right>\!\right>
+    = \left<\!\left< {\bar s}_\Lambda, {\bar s}^\ast_\Gamma \right>\!\right>
     = \delta_{\Lambda\Gamma}
 
 ::
@@ -835,9 +835,9 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
                 INPUT:
 
-                - ``other`` - a supersymmetric function
+                - ``other`` -- a supersymmetric function
 
-                - ``side`` - either 'right' or 'left' (default: 'right')
+                - ``side`` -- either 'right' or 'left' (default: 'right')
 
                 OUTPUT:
 
@@ -1162,7 +1162,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             INPUT:
 
-            - ``h_expr`` - an expression in the complete basis
+            - ``h_expr`` -- an expression in the complete basis
 
             OUTPUT:
 
@@ -1271,7 +1271,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             INPUT:
 
-            - ``h_expr`` - an expression in the complete basis
+            - ``h_expr`` -- an expression in the complete basis
 
             OUTPUT:
 
@@ -1374,7 +1374,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             INPUT:
 
-            - ``e_expr`` - an expression in the elementary basis
+            - ``e_expr`` -- an expression in the elementary basis
 
             OUTPUT:
 
@@ -1472,7 +1472,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             INPUT:
 
-            - ``e_expr`` - an expression in the elementary basis
+            - ``e_expr`` -- an expression in the elementary basis
 
             OUTPUT:
 
@@ -2018,9 +2018,9 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
                 INPUT:
 
-                - ``other`` - a supersymmetric function
+                - ``other`` -- a supersymmetric function
 
-                - ``side`` - either 'right' or 'left' (default: 'right')
+                - ``side`` -- either 'right' or 'left' (default: 'right')
 
                 OUTPUT:
 
