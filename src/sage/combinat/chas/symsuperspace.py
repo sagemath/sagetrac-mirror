@@ -6,7 +6,7 @@ Symmetric functions in super space is an algebra whose bases are indexed by
 
 Let `P_{\Theta_N, X_N}` be the polynomial ring in two sets of variables
 `\Theta_N = \theta_1, \theta_2, \ldots, \theta_N` and
-`X_n = x_1, x_2, \ldots, x_N`
+`X_N = x_1, x_2, \ldots, x_N`
 where the first set of variables anti-commute, `\theta_i^2 = 0`,
 and the second set
 of variables commute and commutes with the first set.  The symmetric group
@@ -58,9 +58,9 @@ by the super partition `(; n)` and `(n; )`.  Define the generators
 
     h_{(; n)} = \sum_{1 \leq i_1\leq i_2\leq\cdots\leq i_n} x_{i_1} x_{i_2} \cdots x_{i_n}
 
-where `p_n, e_n` and `h_n` are the symmetric function elements in the `X_n`
+where `p_n, e_n` and `h_n` are the symmetric function elements in the `X_N`
 variables.  In addition there are fermonionic generators which include variables
-from `\Theta_n`.  These are given
+from `\Theta_N`.  These are given
 
 .. MATH::
 
