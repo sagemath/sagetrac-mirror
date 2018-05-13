@@ -859,12 +859,6 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
                 p = self.parent().realization_of().Power()
                 return self.parent()(p(self).omega())
 
-            def to_symmetric_function():
-                """
-                Default implementation: convert to other and do the operation there
-                """
-                pass
-
     class MultiplicativeBases(Category_realization_of_parent):
         def super_categories(self):
             r"""
