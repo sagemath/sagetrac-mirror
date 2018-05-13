@@ -51,15 +51,14 @@ q(x) <= the precision which we want for the Fourier expansion.
     - Change matrix in ``compute_theta_series`` to an integral matrix.
     - Consider other functions.
     - Add documentation for all the functions.
-    - Copywrite statement.
 
 REFERENCES:
 
-.. [deQ2010] Victoria de Quehen. Jacobi Forms. Master's thesis, Department of
+.. [deQ2010] Victoria de Quehen. *Jacobi Forms*. Master's thesis, Department of
     Mathematics, McGill University, 2010.
 
-.. [EZ1985] Martin Eichler and Don Zagier. The Theory of Jacobi
-    Forms, Progress in Mathematics, 55, Boston, MA: Birkhäuser Boston,
+.. [EZ1985] Martin Eichler and Don Zagier. *The Theory of Jacobi
+    Forms*, Progress in Mathematics, 55, Boston, MA: Birkhäuser Boston,
     1985.
 
 AUTHORS:
@@ -68,14 +67,22 @@ AUTHORS:
 - Andrew Fiori
 - David Roe
 """
+# ****************************************************************************
+#       Copyright (C) 2018 Victoria de Quehen, Andrew Fiori, David Roe
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 cdef extern from "math.h":
     double sqrt(double)
     double floor(double)
     double ceil(double)
     double round(double)
-include "../../ext/stdsage.pxi"
 
-# TODO -- Copywrite statement
+from cysignals.memory cimport sig_free, sig_malloc
 
 from warnings import warn
 from copy import copy
@@ -92,7 +99,8 @@ from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational
 
-#cdef compute_theta_series_precomp_nomaloc(self,mtx, mtx_inv, vec, index, LRing, PRing, double* mtx_final_col, double* adjust_radius, double * mtxs_inv_tip, double** center):
+
+# cdef compute_theta_series_precomp_nomaloc(self,mtx, mtx_inv, vec, index, LRing, PRing, double* mtx_final_col, double* adjust_radius, double * mtxs_inv_tip, double** center):
 #        """
 #           Secretly an internal function of jacobi forms for the purpose of using precomputed values
 #
@@ -102,120 +110,120 @@ from sage.rings.rational import Rational
 #           Functions the same as Jacobi_Form::compute_theta_series except that it takes as parameters values that
 #               are purely precomputed
 #        """
-        # #### Initialize Various Values ####
-        # cdef int z_prec = Integer(4*index*self._prec).isqrt() + 1
-        # q = self._q
-        # cdef int dim = q.dim()
-        # cdef int dim_minus_one = dim - 1
-        # cdef double error=.01
-        # cdef double radius=<double>(self._prec)+.01
-        # cdef double orig_radius = radius
+# # Initialize Various Values #
+# cdef int z_prec = Integer(4*index*self._prec).isqrt() + 1
+# q = self._q
+# cdef int dim = q.dim()
+# cdef int dim_minus_one = dim - 1
+# cdef double error=.01
+# cdef double radius=<double>(self._prec)+.01
+# cdef double orig_radius = radius
 
-        # #### Precomputations ####
-        # _bil_mtx = 2*mtx*vec
-        # #### Convert Python Variables to C Variables ####
-        # cdef int i, k
-        # cdef int* bil_mtx = <int*>sage_malloc(dim*sizeof(int))
-        # for i from 0 <= i < dim:
-        #     bil_mtx[i] = _bil_mtx[i]
+# # Precomputations #
+# _bil_mtx = 2*mtx*vec
+# # Convert Python Variables to C Variables #
+# cdef int i, k
+# cdef int* bil_mtx = <int*>sig_malloc(dim * sizeof(int))
+# for i from 0 <= i < dim:
+#     bil_mtx[i] = _bil_mtx[i]
 
-        # cdef double* boundary = <double*>sage_malloc(dim*sizeof(double))
-        # for i from 0 <= i < dim:
-        #     boundary[i] = 0
-        # boundary[0]=sqrt(<double>radius*(mtx_inv[0,0]))
-        # cdef int* x = <int*>sage_malloc(dim*sizeof(int))
-        # for i from 0 <= i < dim:
-        #     x[i] = 0
-        # x[0] = <int>ceil(-boundary[0])
-        # cdef int** coeff = <int**>sage_malloc((self._prec+1)*sizeof(int*))
-        # for i from 0 <= i <= self._prec:
-        #     coeff[i] = <int*>sage_malloc((z_prec*2)*sizeof(int))
-        #     for k from 0 <= k < z_prec*2:
-        #         coeff[i][k] = 0
-        # cdef double* cen = <double*>sage_malloc(dim*sizeof(double))
-        # for i from 0 <= i < dim:
-        #     cen[i] = 0
+# cdef double* boundary = <double*>sig_malloc(dim * sizeof(double))
+# for i from 0 <= i < dim:
+#     boundary[i] = 0
+# boundary[0] = sqrt(<double>radius*(mtx_inv[0,0]))
+# cdef int* x = <int*>sig_malloc(dim * sizeof(int))
+# for i from 0 <= i < dim:
+#     x[i] = 0
+# x[0] = <int>ceil(-boundary[0])
+# cdef int** coeff = <int**>sig_malloc((self._prec+1)*sizeof(int*))
+# for i from 0 <= i <= self._prec:
+#     coeff[i] = <int*>sig_malloc((z_prec*2)*sizeof(int))
+#     for k from 0 <= k < z_prec*2:
+#         coeff[i][k] = 0
+# cdef double* cen = <double*>sig_malloc(dim * sizeof(double))
+# for i from 0 <= i < dim:
+#     cen[i] = 0
 
-        # #### Initialize ####
-        # cdef int num_hyperpl=0
-        # cdef double eval_bil = bil_mtx[0]*x[0] # eval_bil = <x, vec>, calculated iteratively
-        # cdef int eval_q # eval_q = q(x), calculated iteratively
-        # cdef int adjust_eval_q = <int>(2*mtx_final_col[0]*x[0])
-        # cdef int top
-        # cdef double diff
+# # Initialize #
+# cdef int num_hyperpl=0
+# cdef double eval_bil = bil_mtx[0]*x[0] # eval_bil = <x, vec>, calculated iteratively
+# cdef int eval_q # eval_q = q(x), calculated iteratively
+# cdef int adjust_eval_q = <int>(2*mtx_final_col[0]*x[0])
+# cdef int top
+# cdef double diff
 
-        # #### Main Iteration ####
-        # while 1:
-        #     top = <int>floor(boundary[num_hyperpl] + cen[num_hyperpl])
-        #     while num_hyperpl < dim - 1 and x[num_hyperpl]<=top:
-        #         num_hyperpl=num_hyperpl+1
+# # Main Iteration #
+# while 1:
+#     top = <int>floor(boundary[num_hyperpl] + cen[num_hyperpl])
+#     while num_hyperpl < dim - 1 and x[num_hyperpl]<=top:
+#         num_hyperpl=num_hyperpl+1
 
-        #         ## Compute new boundary while we advance in hyperplanes
-        #         radius=radius+adjust_radius[num_hyperpl]*(x[num_hyperpl-1]-cen[num_hyperpl-1])**2
-        #         if -error<radius and radius<0:
-        #             # correct rounding errors
-        #             radius=0
-        #         boundary[num_hyperpl]=sqrt(radius*mtxs_inv_tip[num_hyperpl])
-        #         cen[num_hyperpl]=0
-        #         ## Compute the new adjust_center
-        #         for i from 1 <= i <= num_hyperpl:
-        #             cen[num_hyperpl]=cen[num_hyperpl]+adjust_center[i][num_hyperpl]*(x[i-1]-cen[i-1])
-        #         ## Initialize next iteration
-        #         x[num_hyperpl] = <int>ceil(-boundary[num_hyperpl]+cen[num_hyperpl])
-        #         eval_bil += bil_mtx[num_hyperpl]*x[num_hyperpl]
-        #         adjust_eval_q += 2*x[num_hyperpl]*mtx_final_col[num_hyperpl]
-        #         top=<int>floor( boundary[num_hyperpl]+ cen[num_hyperpl])
+#         # Compute new boundary while we advance in hyperplanes
+#         radius=radius+adjust_radius[num_hyperpl]*(x[num_hyperpl-1]-cen[num_hyperpl-1])**2
+#         if -error<radius and radius<0:
+#             # correct rounding errors
+#             radius=0
+#         boundary[num_hyperpl] = sqrt(radius*mtxs_inv_tip[num_hyperpl])
+#         cen[num_hyperpl] = 0
+#         # Compute the new adjust_center
+#         for i from 1 <= i <= num_hyperpl:
+#             cen[num_hyperpl] = cen[num_hyperpl]+adjust_center[i][num_hyperpl]*(x[i-1]-cen[i-1])
+#         # Initialize next iteration
+#         x[num_hyperpl] = <int>ceil(-boundary[num_hyperpl]+cen[num_hyperpl])
+#         eval_bil += bil_mtx[num_hyperpl]*x[num_hyperpl]
+#         adjust_eval_q += 2*x[num_hyperpl]*mtx_final_col[num_hyperpl]
+#         top=<int>floor( boundary[num_hyperpl]+ cen[num_hyperpl])
 
-        #     ## Check the next vector
-        #     if x[num_hyperpl]<=top:
-        #         ## In order to iteratively compute quadratic form we
-        #         ## precompute its value at first integral point
-        #         diff = boundary[num_hyperpl]-cen[num_hyperpl]+x[num_hyperpl]
-        #         eval_q= <int>(orig_radius + adjust_eval_q*diff - diff**2 * mtx_final_col[dim-1] + .5)
-        #         # .5 so that it rounds to the nearest integer.  We shouldn't need nearly this much.
-        #         ## Check the first one before iterating
-        #         coeff[eval_q][<int>(eval_bil+z_prec)] = coeff[eval_q][<int>(eval_bil+z_prec)]+ 1
+#     # Check the next vector
+#     if x[num_hyperpl]<=top:
+#         # In order to iteratively compute quadratic form we
+#         # precompute its value at first integral point
+#         diff = boundary[num_hyperpl]-cen[num_hyperpl]+x[num_hyperpl]
+#         eval_q= <int>(orig_radius + adjust_eval_q*diff - diff**2 * mtx_final_col[dim-1] + .5)
+#         # .5 so that it rounds to the nearest integer.  We shouldn't need nearly this much.
+#         # Check the first one before iterating
+#         coeff[eval_q][<int>(eval_bil+z_prec)] = coeff[eval_q][<int>(eval_bil+z_prec)]+ 1
 
-        #     while x[num_hyperpl] < top:
-        #         ## Tight iteration over final dimension
-        #         x[num_hyperpl]=x[num_hyperpl]+1
-        #         eval_bil +=  bil_mtx[num_hyperpl]
-        #         ## q(x+[0,..,1]) = q(x)+B(x,[0,...,0,1])+q([0,..,0,1])
-        #         eval_q = <int>(eval_q + adjust_eval_q + mtx_final_col[dim-1])
-        #              ## B(x+1,1) = B(x,1) + 2q(1)
-        #         adjust_eval_q += 2*mtx_final_col[num_hyperpl]
-        #         coeff[eval_q][<int>(eval_bil+z_prec)] = coeff[eval_q][<int>(eval_bil+z_prec)]+ 1
+#     while x[num_hyperpl] < top:
+#         # Tight iteration over final dimension
+#         x[num_hyperpl] = x[num_hyperpl]+1
+#         eval_bil +=  bil_mtx[num_hyperpl]
+#         # q(x+[0,..,1]) = q(x)+B(x,[0,...,0,1])+q([0,..,0,1])
+#         eval_q = <int>(eval_q + adjust_eval_q + mtx_final_col[dim-1])
+#              # B(x+1,1) = B(x,1) + 2q(1)
+#         adjust_eval_q += 2*mtx_final_col[num_hyperpl]
+#         coeff[eval_q][<int>(eval_bil+z_prec)] = coeff[eval_q][<int>(eval_bil+z_prec)]+ 1
 
-        #     while x[num_hyperpl] >=floor(boundary[num_hyperpl]+cen[num_hyperpl]) - 1 + error:
-        #         ## Step back through to higher dimensional hyperplanes we have
-        #         ## completed
-        #         radius = radius - adjust_radius[num_hyperpl]*(x[num_hyperpl-1]-cen[num_hyperpl-1])**2
-        #         eval_bil -= bil_mtx[num_hyperpl]*x[num_hyperpl]
-        #         adjust_eval_q -= 2*mtx_final_col[num_hyperpl]*x[num_hyperpl]
-        #         num_hyperpl=num_hyperpl-1
-        #         if num_hyperpl < 0:
-        #             ## We are done now!
-        #             coeff_list = []
-        #             for i from 0 <= i <= self._prec:
-        #                 coeff_list.append([])
-        #                 for k from 0 <= k < 2*z_prec:
-        #                     coeff_list[i].append(coeff[i][k])
-        #             tmp = [ LRing(coeff_list[i],-z_prec) for i in range(self._prec+1) ]
-        #             returnresult = PRing(tmp, self._prec+1)
-        #             #### Clean up C variables ####
-        #             sage_free(bil_mtx)
-        #             sage_free(boundary)
-        #             sage_free(x)
-        #             for i from 0 <= i <= self._prec:
-        #                 sage_free(coeff[i])
-        #             sage_free(coeff)
-        #             sage_free(cen)
-        #             return Jacobi_Form(q, vec, self._prec,self._weight, index, self._level, returnresult)
+#     while x[num_hyperpl] >=floor(boundary[num_hyperpl]+cen[num_hyperpl]) - 1 + error:
+#         # Step back through to higher dimensional hyperplanes we have
+#         # completed
+#         radius = radius - adjust_radius[num_hyperpl]*(x[num_hyperpl-1]-cen[num_hyperpl-1])**2
+#         eval_bil -= bil_mtx[num_hyperpl]*x[num_hyperpl]
+#         adjust_eval_q -= 2*mtx_final_col[num_hyperpl]*x[num_hyperpl]
+#         num_hyperpl=num_hyperpl-1
+#         if num_hyperpl < 0:
+#             # We are done now!
+#             coeff_list = []
+#             for i from 0 <= i <= self._prec:
+#                 coeff_list.append([])
+#                 for k from 0 <= k < 2*z_prec:
+#                     coeff_list[i].append(coeff[i][k])
+#             tmp = [ LRing(coeff_list[i],-z_prec) for i in range(self._prec+1) ]
+#             returnresult = PRing(tmp, self._prec+1)
+#             # Clean up C variables #
+#             sig_free(bil_mtx)
+#             sig_free(boundary)
+#             sig_free(x)
+#             for i from 0 <= i <= self._prec:
+#                 sig_free(coeff[i])
+#             sig_free(coeff)
+#             sig_free(cen)
+#             return Jacobi_Form(q, vec, self._prec,self._weight, index, self._level, returnresult)
 
-        #     #### Advance the next iteration ####
-        #     x[num_hyperpl]=x[num_hyperpl]+1
-        #     eval_bil += bil_mtx[num_hyperpl]
-        #     adjust_eval_q += 2*mtx_final_col[num_hyperpl]
+#     # Advance the next iteration #
+#     x[num_hyperpl] = x[num_hyperpl]+1
+#     eval_bil += bil_mtx[num_hyperpl]
+#     adjust_eval_q += 2*mtx_final_col[num_hyperpl]
 
 
 class Jacobi_Form():
@@ -242,18 +250,18 @@ class Jacobi_Form():
     - David Roe
     """
     def _reduce_basis(self, q, vec):
-       """
-       Changes basis to try to minimize radius
+        """
+        Changes basis to try to minimize radius
 
-       TODO - enable once basis of short vectors works
-       (ie fix basis of short vectors)
-       """
+        TODO - enable once basis of short vectors works
+        (ie fix basis of short vectors)
+        """
 #       M = Matrix(q.basis_of_short_vectors());
-#       self._q = quadraticForm(M*q.matrix()*M.transpose())
-#       self._vec = M.transpose().inverse()*vec
-       self._q = q
-       self._vec = vec
-       return
+#       self._q = quadraticForm(M * q.matrix() * M.transpose())
+#       self._vec = M.transpose().inverse() * vec
+        self._q = q
+        self._vec = vec
+        return
 
     def _compute_radius(self):
         """
@@ -261,26 +269,26 @@ class Jacobi_Form():
         quadratic form defines.
         """
         from sage.functions.all import sqrt
-        MinEigen = min( self._q.matrix().eigenvalues() )
-        radius = floor(sqrt(self._prec / MinEigen)) + 1
-        return radius
+        MinEigen = min(self._q.matrix().eigenvalues())
+        return floor(sqrt(self._prec / MinEigen)) + 1
 
     def _compute_rectangle(self):
         """
         Computes a bounding rectangle for our ellipse.
         """
         from sage.functions.all import sqrt
-
         mtx = (self._q.matrix()) / 2
         mtx_inv = mtx.inverse()
-        boundary = [floor(sqrt(self._prec*abs(mtx_inv[i, i])))
+        boundary = [floor(sqrt(self._prec * abs(mtx_inv[i, i])))
                     for i in range(self._q.dim())]
 
     def compute_theta_series(self):
         """
         Compute the the Fourier coefficients of this Jacobi theta
-        series. (See page 1 of [EZ1985]_ for a definition of Jacobi
-        theta series.)
+        series.
+
+        See page 1 of [EZ1985]_ for a definition of Jacobi
+        theta series.
 
         INPUT:
 
@@ -291,7 +299,7 @@ class Jacobi_Form():
 
         OUTPUT:
 
-        - An object with the Jacobi form Fourier expansion of
+        An object with the Jacobi form Fourier expansion of
         the Jacobi theta series associated to the quadratic form ._q
         and vector ._vec.
 
@@ -402,7 +410,6 @@ class Jacobi_Form():
             - use shortest basis and mention this in input
             - are the lattice condition in input the right ones?
             - general code cleanup
-            - change tabs to space
             - throw exceptions
             - use relations between coefficients to make the algorithm far
               more efficient
@@ -414,7 +421,7 @@ class Jacobi_Form():
         - David Roe
         """
 
-        #### Variables that are precomputed
+        # Variables that are precomputed
         # q = self._q = The quadratic form q(x) whose Jacobi theta
         # series we are computing.
         # self._v = The vector whose Jacobi theta series we are
@@ -447,7 +454,7 @@ class Jacobi_Form():
         # adjust_radius[m] = A value used to compute how the bound for
         # the (dim-m) dimensional ellipse changes as we iterate.
 
-        ##### Variables changed during iterations
+        # Variables changed during iterations
         # x = The current lattice point on which we are iterating.
         # radius = The distance to the boundary for the current
         # hyperplane.
@@ -505,12 +512,11 @@ class Jacobi_Form():
         .. TODO::
 
             - general code cleanup
-            - change tabs to space
             - change variable names (consistent capitalization)
             - Improve variable descriptions
             - Most Arithmetic could be made integral, this would make things a little faster (LCM of the det of the upper principle minors for some stuff, 2 for mtx stuff)
         """
-        #### Variables that are precomputed
+        # Variables that are precomputed
         # q = The Quadratic Form.
         # self._vec = The vector whose Jacobi theta series we are computing.
         # dim = The dimension of the quadratic space.
@@ -529,7 +535,7 @@ class Jacobi_Form():
         # adjust_radius[m] = A value used to compute how the bound for the (dim-m) dimensional ellipse changes as we iterate.
         # error = Assumed bound on rounding errors from taking square roots, used to round back to values known to be integral.
 
-        ##### Variables changed during iterations
+        # Variables changed during iterations
         # x = The current lattice point on which we are iterating.
         # radius = The distance to the boundary for the current hyperplane.
         # boundary[m] = The computed bounds for the current iteration in the mth-dimension
@@ -542,161 +548,162 @@ class Jacobi_Form():
         # top = The upper bound on iteration for x in the current dimension.
         # diff = Variable to compute distance between boundary and first lattice point on during an iteration.
 
-        #### Initialize Various Values ####
-        cdef int z_prec = Integer(4*self._index*self._prec).isqrt() + 1
+        # Initialize Various Values #
+        cdef int z_prec = Integer(4 * self._index * self._prec).isqrt() + 1
         q = self._q
         cdef int dim = q.dim()
         cdef int dim_minus_one = dim - 1
         cdef double error = .01
-        cdef double radius = <double>(self._prec)+.01
+        cdef double radius = <double>(self._prec) + .01
         cdef double orig_radius = radius
 
-        #### Precomputations ####
-        mtx = (q.matrix())
+        # Precomputations #
+        mtx = q.matrix()
         mtx_inv = mtx.inverse()
         mtxs = [copy(q.matrix())]
         mtxs_inv = [mtxs[0].inverse()]
-        _adjust_center = [Matrix(QQ, [[0] for i in range(dim)])]
+        _adjust_center = [Matrix(QQ, [[0] * dim])]
         _adjust_radius = [0]
         for m in range(1, dim):
-             mtxs[m-1].subdivide(1, 1)
-             M2 = mtxs[m-1].subdivision(1, 0)
-             mtxs.append(copy(mtxs[m-1].subdivision(1,1)))
-             mtxs_inv.append(mtxs[m].inverse())
-             _adjust_center.append(-mtxs_inv[m]*M2)
-             _adjust_radius.append(-(mtxs[m-1])[0,0]/2+(M2.transpose()*mtxs_inv[m]/2*M2)[0,0])
+            mtxs[m - 1].subdivide(1, 1)
+            M2 = mtxs[m - 1].subdivision(1, 0)
+            mtxs.append(copy(mtxs[m - 1].subdivision(1, 1)))
+            mtxs_inv.append(mtxs[m].inverse())
+            _adjust_center.append(-mtxs_inv[m] * M2)
+            _adjust_radius.append(-(mtxs[m - 1])[0, 0] / 2 + (M2.transpose() * mtxs_inv[m] / 2 * M2)[0, 0])
         _bil_mtx = mtx * self._vec
         LRing = LaurentSeriesRing(ZZ, 'Z')
         PRing = PowerSeriesRing(LRing, 'q')
 
-        #### Convert Python Variables to C Variables ####
+        # Convert Python Variables to C Variables #
         cdef int i, k
-        cdef int* bil_mtx = <int*>sage_malloc(dim*sizeof(int))
+        cdef int* bil_mtx = <int*>sig_malloc(dim * sizeof(int))
         for i from 0 <= i < dim:
             bil_mtx[i] = _bil_mtx[i]
 
-        cdef int* mtx_final_col = <int*>sage_malloc(dim*sizeof(int))
+        cdef int* mtx_final_col = <int*>sig_malloc(dim * sizeof(int))
         for i from 0 <= i < dim:
             mtx_final_col[i] = <int>(mtx[i, dim-1])
 
-        cdef double* adjust_radius = <double*>sage_malloc(dim*sizeof(double))
+        cdef double* adjust_radius = <double*>sig_malloc(dim * sizeof(double))
         for i from 0 <= i < dim:
             adjust_radius[i] = _adjust_radius[i]
 
-        cdef double* mtxs_inv_tip = <double*>sage_malloc(dim*sizeof(double))
+        cdef double* mtxs_inv_tip = <double*>sig_malloc(dim * sizeof(double))
         for i from 0 <= i < dim:
-            mtxs_inv_tip[i] = mtxs_inv[i][0,0]
+            mtxs_inv_tip[i] = mtxs_inv[i][0, 0]
 
-        cdef double** adjust_center = <double**>sage_malloc(dim*sizeof(double*))
+        cdef double** adjust_center = <double**>sig_malloc(dim * sizeof(double*))
         for k from 0 <= k < dim:
-            adjust_center[k] = <double*>sage_malloc(dim*sizeof(double))
+            adjust_center[k] = <double*>sig_malloc(dim * sizeof(double))
         for k from 0 <= k < dim:
             for i from 1 <= i <= k:
-                adjust_center[i][k] = _adjust_center[i][k-i,0]
+                adjust_center[i][k] = _adjust_center[i][k - i, 0]
 
-        cdef double* boundary = <double*>sage_malloc(dim*sizeof(double))
+        cdef double* boundary = <double*>sig_malloc(dim * sizeof(double))
         for i from 0 <= i < dim:
             boundary[i] = 0
-        boundary[0]=sqrt(<double>radius*(2)*(mtx_inv[0,0]))
+        boundary[0] = sqrt(<double>radius * 2 * (mtx_inv[0, 0]))
 
-        cdef int* x = <int*>sage_malloc(dim*sizeof(int))
+        cdef int* x = <int*>sig_malloc(dim * sizeof(int))
         for i from 0 <= i < dim:
             x[i] = 0
         x[0] = <int>ceil(-boundary[0])
 
-        cdef int** coeff = <int**>sage_malloc((self._prec+1)*sizeof(int*))
+        cdef int** coeff = <int**>sig_malloc((self._prec + 1) * sizeof(int*))
         for i from 0 <= i <= self._prec:
-            coeff[i] = <int*>sage_malloc((z_prec*2)*sizeof(int))
-            for k from 0 <= k < z_prec*2:
+            coeff[i] = <int*>sig_malloc((z_prec*2) * sizeof(int))
+            for k from 0 <= k < z_prec * 2:
                 coeff[i][k] = 0
 
-        cdef double* cen = <double*>sage_malloc(dim*sizeof(double))
+        cdef double* cen = <double*>sig_malloc(dim * sizeof(double))
         for i from 0 <= i < dim:
             cen[i] = 0
 
-        #### Initialize ####
+        # Initialize #
         cdef int num_hyperpl = 0
-        cdef int eval_bil = bil_mtx[0]*x[0] # eval_bil = <x, vec>, calculated iteratively.
-        cdef int eval_q # eval_q = q(x), calculated iteratively.
+        cdef int eval_bil = bil_mtx[0] * x[0]  # eval_bil = <x, vec>, calculated iteratively.
+        cdef int eval_q  # eval_q = q(x), calculated iteratively.
         cdef int adjust_eval_q = mtx_final_col[0] * x[0]
         cdef int top
         cdef double diff
 
-        #### Main Iteration ####
+        # Main Iteration #
         while 1:
             top = <int>floor(boundary[num_hyperpl] + cen[num_hyperpl])
-            while num_hyperpl < dim - 1 and x[num_hyperpl]<=top:
+            while num_hyperpl < dim - 1 and x[num_hyperpl] <= top:
                 num_hyperpl += 1
 
-                ## Compute new the boundary while we advance in hyperplanes.
-                radius += adjust_radius[num_hyperpl]*(x[num_hyperpl-1]-cen[num_hyperpl-1])**2
+                # Compute new the boundary while we advance in hyperplanes.
+                radius += adjust_radius[num_hyperpl] * (x[num_hyperpl - 1] - cen[num_hyperpl - 1])**2
                 if -error<radius and radius < 0:
                     # Correct any rounding errors.
                     radius = 0
-                boundary[num_hyperpl]=sqrt(radius*mtxs_inv_tip[num_hyperpl]*2)
+                boundary[num_hyperpl] = sqrt(radius * mtxs_inv_tip[num_hyperpl] * 2)
                 cen[num_hyperpl] = 0
-                ## Compute the new centre.
+                # Compute the new centre.
                 for i from 1 <= i <= num_hyperpl:
-                    cen[num_hyperpl]=cen[num_hyperpl]+adjust_center[i][num_hyperpl]*(x[i-1]-cen[i-1])
-                ## Initialize the next iteration.
-                x[num_hyperpl] = <int>ceil(-boundary[num_hyperpl]+cen[num_hyperpl])
-                eval_bil += bil_mtx[num_hyperpl]*x[num_hyperpl]
-                adjust_eval_q += x[num_hyperpl]*mtx_final_col[num_hyperpl]
-                top=<int>floor( boundary[num_hyperpl]+ cen[num_hyperpl])
+                    cen[num_hyperpl] = cen[num_hyperpl] + adjust_center[i][num_hyperpl] * (x[i - 1] - cen[i - 1])
+                # Initialize the next iteration.
+                x[num_hyperpl] = <int>ceil(-boundary[num_hyperpl] + cen[num_hyperpl])
+                eval_bil += bil_mtx[num_hyperpl] * x[num_hyperpl]
+                adjust_eval_q += x[num_hyperpl] * mtx_final_col[num_hyperpl]
+                top = <int>floor(boundary[num_hyperpl] + cen[num_hyperpl])
 
-            ## Check the next vector.
-            if x[num_hyperpl]<=top:
-                ## In order to iteratively compute quadratic form we
-                ## precompute its value at first integral point.
-                diff = boundary[num_hyperpl]-cen[num_hyperpl]+x[num_hyperpl]
-                eval_q= <int>(orig_radius + adjust_eval_q*diff - diff**2 * mtx_final_col[dim-1]/2 + error)
+            # Check the next vector.
+            if x[num_hyperpl] <= top:
+                # In order to iteratively compute quadratic form we
+                # precompute its value at first integral point.
+                diff = boundary[num_hyperpl] - cen[num_hyperpl] + x[num_hyperpl]
+                eval_q= <int>(orig_radius + adjust_eval_q * diff - diff**2 * mtx_final_col[dim - 1] / 2 + error)
                 # error so that it rounds to the nearest integer.
-                ## Check the first one before iterating.
-                coeff[eval_q][<int>(eval_bil+z_prec)] = coeff[eval_q][<int>(eval_bil+z_prec)]+ 1
+                # Check the first one before iterating.
+                coeff[eval_q][<int>(eval_bil + z_prec)] = coeff[eval_q][<int>(eval_bil + z_prec)]+ 1
 
             while x[num_hyperpl] < top:
-                ## A tight iteration over final dimension.
-                x[num_hyperpl]=x[num_hyperpl]+1
-                eval_bil +=  bil_mtx[num_hyperpl]
-                ## q(x+[0,..,1]) = q(x)+B(x,[0,...,0,1])+q([0,..,0,1])
-                eval_q = <int>(eval_q + adjust_eval_q + mtx_final_col[dim-1]/2)
-                ## B(x+1,1) = B(x,1) + 2q(1)
+                # A tight iteration over final dimension.
+                x[num_hyperpl] = x[num_hyperpl] + 1
+                eval_bil += bil_mtx[num_hyperpl]
+                # q(x+[0,..,1]) = q(x)+B(x,[0,...,0,1])+q([0,..,0,1])
+                eval_q = <int>(eval_q + adjust_eval_q + mtx_final_col[dim - 1] / 2)
+                # B(x+1,1) = B(x,1) + 2q(1)
                 adjust_eval_q += mtx_final_col[num_hyperpl]
-                coeff[eval_q][<int>(eval_bil+z_prec)] = coeff[eval_q][<int>(eval_bil+z_prec)]+ 1
+                coeff[eval_q][<int>(eval_bil + z_prec)] = coeff[eval_q][<int>(eval_bil + z_prec)] + 1
 
-            while x[num_hyperpl] >=floor(boundary[num_hyperpl]+cen[num_hyperpl]) - 1 + error:
-                ## Step back through to higher dimensional hyperplanes we have
-                ## completed.
-                radius = radius - adjust_radius[num_hyperpl]*(x[num_hyperpl-1]-cen[num_hyperpl-1])**2
-                eval_bil -= bil_mtx[num_hyperpl]*x[num_hyperpl]
-                adjust_eval_q -= mtx_final_col[num_hyperpl]*x[num_hyperpl]
-                num_hyperpl=num_hyperpl-1
+            while x[num_hyperpl] >= floor(boundary[num_hyperpl] + cen[num_hyperpl]) - 1 + error:
+                # Step back through to higher dimensional hyperplanes we have
+                # completed.
+                radius = radius - adjust_radius[num_hyperpl] * (x[num_hyperpl - 1] - cen[num_hyperpl - 1])**2
+                eval_bil -= bil_mtx[num_hyperpl] * x[num_hyperpl]
+                adjust_eval_q -= mtx_final_col[num_hyperpl] * x[num_hyperpl]
+                num_hyperpl -= 1
                 if num_hyperpl < 0:
-                    ## We are done now!
+                    # We are done now!
                     coeff_list = []
                     for i from 0 <= i <= self._prec:
                         coeff_list.append([])
-                        for k from 0 <= k < 2*z_prec:
+                        for k from 0 <= k < 2 * z_prec:
                             coeff_list[i].append(coeff[i][k])
-                    tmp = [ LRing(coeff_list[i],-z_prec) for i in range(self._prec+1) ]
-                    self._Fourier_expansion = PRing(tmp, self._prec+1)
-                    #### Clean up the C variables ####
-                    sage_free(bil_mtx)
-                    sage_free(mtx_final_col)
-                    sage_free(adjust_radius)
-                    sage_free(mtxs_inv_tip)
+                    tmp = [LRing(coeff_list[i], -z_prec)
+                           for i in range(self._prec + 1)]
+                    self._Fourier_expansion = PRing(tmp, self._prec + 1)
+                    # Clean up the C variables #
+                    sig_free(bil_mtx)
+                    sig_free(mtx_final_col)
+                    sig_free(adjust_radius)
+                    sig_free(mtxs_inv_tip)
                     for k from 0 <= k < dim:
-                        sage_free(adjust_center[k])
-                    sage_free(adjust_center)
-                    sage_free(boundary)
-                    sage_free(x)
+                        sig_free(adjust_center[k])
+                    sig_free(adjust_center)
+                    sig_free(boundary)
+                    sig_free(x)
                     for i from 0 <= i <= self._prec:
-                        sage_free(coeff[i])
-                    sage_free(coeff)
-                    sage_free(cen)
+                        sig_free(coeff[i])
+                    sig_free(coeff)
+                    sig_free(cen)
                     return
 
-            #### Advance the next iteration ####
+            # Advance the next iteration #
             x[num_hyperpl] += 1
             eval_bil += bil_mtx[num_hyperpl]
             adjust_eval_q += mtx_final_col[num_hyperpl]
@@ -751,23 +758,23 @@ class Jacobi_Form():
         - Andrew Fiori
         - David Roe
         """
-        if not isinstance(form,QuadraticForm):
+        if not isinstance(form, QuadraticForm):
             raise TypeError("Form must be a quadratic form.")
 
         if form.base_ring() is not ZZ:
             try:
                 form = QuadraticForm(form.matrix().change_ring(ZZ))
             except TypeError as err:
-                raise TypeError("The matrix associated to the quadratic form must be integral (%s)."%err.msg)
+                raise TypeError("The matrix associated to the quadratic form must be integral (%s)." % err.msg)
         if not form.is_positive_definite():
             raise ValueError("The quadratic form must be positive-definite.")
-        if form.dim() % 2 != 0:
+        if form.dim() % 2:
             raise ValueError("The quadratic form must be even dimensional.")
         self._q = form
         self._weight = form.dim() // 2
 
         try:
-            self._vec = vector(ZZ,vec)
+            self._vec = vector(ZZ, vec)
         except (AttributeError, TypeError, ValueError):
             raise TypeError("vec must be a vector or list with integral entries")
         if len(vec) != form.dim():
@@ -803,10 +810,10 @@ class Jacobi_Form():
     def __repr__(self):
         """
         Return the representation of self.
-        
+
         .. TODO:: level
         """
-        return "Jacobi Form of weight %i and index %i with Fourier expansion:\n %s"%(self._weight, self._index, self._Fourier_expansion)
+        return "Jacobi Form of weight %i and index %i with Fourier expansion:\n %s" % (self._weight, self._index, self._Fourier_expansion)
 
     def _latex_(self):
         """
@@ -814,7 +821,7 @@ class Jacobi_Form():
 
         .. TODO:: make pretty
         """
-        return "Jacobi Form of weight %i and index %i with Fourier expansion:\n %s"%(self._weight, self._index, self._Fourier_expansion)
+        return "Jacobi Form of weight %i and index %i with Fourier expansion:\n %s" % (self._weight, self._index, self._Fourier_expansion)
 
     def __getitem__(self, ij):
         """
@@ -832,7 +839,7 @@ class Jacobi_Form():
         # gets the coefficient of q^i
         L = self._Fourier_expansion.padded_list(i + 1)[i]
         # returns the coefficient of Z^j
-        return L.list()[L.degree()+j]
+        return L.list()[L.degree() + j]
 
     def __setitem__(self, ij, coeff):
         """
@@ -863,13 +870,15 @@ class Jacobi_Form():
         ToDo We might be able to do more things in the event of theta series if they are
              in the same space and vectors in diff irreducible lattices, this is a theta series
         """
-        if self._index != right._index :
+        if self._index != right._index:
             raise NotImplementedError("Oops, the index should be the same")
-        if self._weight != right._weight :
+        if self._weight != right._weight:
             raise NotImplementedError("Oops, the weight should be the same")
-        if self._level != right._level :
+        if self._level != right._level:
             raise NotImplementedError("Currently we do not know how to add modular forms of different levels")
-        return Jacobi_Form(Fourier = self._Fourier_expansion+right._Fourier_expansion, adjust_radius = min(self._prec,right._prec), weight = self._weight, index = self._index)
+        return Jacobi_Form(Fourier=self._Fourier_expansion + right._Fourier_expansion,
+                           adjust_radius=min(self._prec, right._prec),
+                           weight=self._weight, index=self._index)
 
     def __mul__(self, right):
         """
@@ -880,9 +889,13 @@ class Jacobi_Form():
         The product of two jacobi theta series is a jacobi theta series
         ToDo we know the Quadratic form and vector to use, could track this
         """
-        if self._level != right._level :
+        if self._level != right._level:
             raise NotImplementedError("Currently we do not know how to multiply modular forms of different levels")
-        return Jacobi_Form(Fourier = self._Fourier_expansion*right._Fourier_expansion,adjust_radius = min(self._prec,right._prec) ,weight = self._weight+right._weight,index = self._index+right._index, level=self._level)
+        return Jacobi_Form(Fourier=self._Fourier_expansion * right._Fourier_expansion,
+                           adjust_radius=min(self._prec, right._prec),
+                           weight=self._weight + right._weight,
+                           index=self._index + right._index,
+                           level=self._level)
 
     def __call__(self, n1, n2):
         """
@@ -946,14 +959,14 @@ class Jacobi_Form():
                3. As we recurse to the lower dimensions, we also iteratively
                compute the changing values.
 
-           TODO
-                - general code cleanup
-                - reduce boundary
-                - change tabs to space
-                - change variable names (consistend capitalization)
-                - Improve variable descriptions
+        .. TODO::
+
+            - general code cleanup
+            - reduce boundary
+            - change variable names (consistend capitalization)
+            - Improve variable descriptions
         """
-        #### Variables that are precomputed
+        # Variables that are precomputed
         # q = The Quadratic Form.
         # self._vec = The vector whose Jacobi theta series we are computing.
         # dim = The dimension of the quadratic space.
@@ -969,15 +982,15 @@ class Jacobi_Form():
         # mtxs_inv[m] = The inverse of mtxs[m]
         # mtxs_inv_tip[m] = The upper left entry of mtx_inv[m] which is used to compute the boundary of iteration for mth-coordinate of x.
         # adjust_center[m] = A vector calculated at the beginning which is used to calculate how the center of the (dim-m) dimensional ellipse moves as we iterate.
-             #### TODO - change to adjust_center ####
+        # TODO - change to adjust_center #
         # adjust_radius[m] = A value used to compute how the bound for the (dim-m) dimensional ellipse changes as we iterate.
-             #### TODO - change variable name of adjust_radius to Adjustradius ####
+        # TODO - change variable name of adjust_radius to Adjustradius #
         # error = Assumed bound on rounding errors from taking square roots, used to round back to values known to be integral.
 
-        ##### Variables changed during iterations
+        # Variables changed during iterations
         # x = The current lattice point on which we are iterating.
         # radius = The distance to the boundary for the current hyperplane.
-             #### TODO - rename radius to radius ####
+        # TODO - rename radius to radius #
         # boundary[m] = The computed bounds for the current iteration in the mth-dimension
         # cen = The centre of the current ellipse.
         # coeff[n][r] = The number of vectors we have already found with q(x)=n and B(x,_vec)=r.
@@ -988,7 +1001,7 @@ class Jacobi_Form():
         # top = The upper bound on iteration for x in the current dimension.
         # diff = Variable to compute distance between boundary and first lattice point on during an iteration.
 
-        #### Initialize Various Values ####
+        # Initialize Various Values #
         # cdef int z_prec = Integer(4*index*self._prec).isqrt() + 1
         # q = self._q
         # cdef int dim = q.dim()
@@ -997,49 +1010,49 @@ class Jacobi_Form():
         # cdef double radius=<double>(self._prec)+.01
         # cdef double orig_radius = radius
 
-        # #### Precomputations ####
+        # # Precomputations #
         # _bil_mtx = 2*mtx*vec
         # LRing = LaurentSeriesRing(ZZ, 'Z')
         # PRing = PowerSeriesRing(LRing, 'q')
-        # #### Convert Python Variables to C Variables ####
+        # # Convert Python Variables to C Variables #
         # cdef int i, k
-        # cdef int* bil_mtx = <int*>sage_malloc(dim*sizeof(int))
+        # cdef int* bil_mtx = <int*>sig_malloc(dim * sizeof(int))
         # for i from 0 <= i < dim:
         #     bil_mtx[i] = _bil_mtx[i]
 
-        # cdef double* mtx_final_col = <double*>sage_malloc(dim*sizeof(double))
+        # cdef double* mtx_final_col = <double*>sig_malloc(dim * sizeof(double))
         # for i from 0 <= i < dim:
         #     mtx_final_col[i] = mtx[i, dim-1]
-        # cdef double* adjust_radius = <double*>sage_malloc(dim*sizeof(double))
+        # cdef double* adjust_radius = <double*>sig_malloc(dim * sizeof(double))
         # for i from 0 <= i < dim:
         #     adjust_radius[i] = _adjust_radius[i]
-        # cdef double* mtxs_inv_tip = <double*>sage_malloc(dim*sizeof(double))
+        # cdef double* mtxs_inv_tip = <double*>sig_malloc(dim * sizeof(double))
         # for i from 0 <= i < dim:
         #     mtxs_inv_tip[i] = mtxs_inv[i][0,0]
-        # cdef double** adjust_center = <double**>sage_malloc(dim*sizeof(double*))
+        # cdef double** adjust_center = <double**>sig_malloc(dim * sizeof(double*))
         # for k from 0 <= k < dim:
-        #     adjust_center[k] = <double*>sage_malloc(dim*sizeof(double))
+        #     adjust_center[k] = <double*>sig_malloc(dim * sizeof(double))
         # for k from 0 <= k < dim:
         #     for i from 1 <= i <= k:
         #         adjust_center[i][k] = _adjust_center[i][k-i,0]
-        # cdef double* boundary = <double*>sage_malloc(dim*sizeof(double))
+        # cdef double* boundary = <double*>sig_malloc(dim * sizeof(double))
         # for i from 0 <= i < dim:
         #     boundary[i] = 0
-        # boundary[0]=sqrt(<double>radius*(mtx_inv[0,0]))
-        # cdef int* x = <int*>sage_malloc(dim*sizeof(int))
+        # boundary[0] = sqrt(<double>radius*(mtx_inv[0,0]))
+        # cdef int* x = <int*>sig_malloc(dim * sizeof(int))
         # for i from 0 <= i < dim:
         #     x[i] = 0
         # x[0] = <int>ceil(-boundary[0])
-        # cdef int** coeff = <int**>sage_malloc((self._prec+1)*sizeof(int*))
+        # cdef int** coeff = <int**>sig_malloc((self._prec+1)*sizeof(int*))
         # for i from 0 <= i <= self._prec:
-        #     coeff[i] = <int*>sage_malloc((z_prec*2)*sizeof(int))
+        #     coeff[i] = <int*>sig_malloc((z_prec*2)*sizeof(int))
         #     for k from 0 <= k < z_prec*2:
         #         coeff[i][k] = 0
-        # cdef double* cen = <double*>sage_malloc(dim*sizeof(double))
+        # cdef double* cen = <double*>sig_malloc(dim * sizeof(double))
         # for i from 0 <= i < dim:
         #     cen[i] = 0
 
-        # #### Initialize ####
+        # # Initialize #
         # cdef int num_hyperpl=0
         # cdef double eval_bil = bil_mtx[0]*x[0] # eval_bil = <x, vec>, calculated iteratively
         # cdef int eval_q # eval_q = q(x), calculated iteratively
@@ -1047,57 +1060,57 @@ class Jacobi_Form():
         # cdef int top
         # cdef double diff
 
-        # #### Main Iteration ####
+        # # Main Iteration #
         # while 1:
         #     top = <int>floor(boundary[num_hyperpl] + cen[num_hyperpl])
         #     while num_hyperpl < dim - 1 and x[num_hyperpl]<=top:
         #         num_hyperpl=num_hyperpl+1
 
-        #         ## Compute new boundary while we advance in hyperplanes
+        #         # Compute new boundary while we advance in hyperplanes
         #         radius=radius+adjust_radius[num_hyperpl]*(x[num_hyperpl-1]-cen[num_hyperpl-1])**2
         #         if -error<radius and radius<0:
         #             # correct rounding errors
         #             radius=0
-        #         boundary[num_hyperpl]=sqrt(radius*mtxs_inv_tip[num_hyperpl])
-        #         cen[num_hyperpl]=0
-        #         ## Compute the new centre
+        #         boundary[num_hyperpl] = sqrt(radius*mtxs_inv_tip[num_hyperpl])
+        #         cen[num_hyperpl] = 0
+        #         # Compute the new centre
         #         for i from 1 <= i <= num_hyperpl:
-        #             cen[num_hyperpl]=cen[num_hyperpl]+adjust_center[i][num_hyperpl]*(x[i-1]-cen[i-1])
-        #         ## Initialize next iteration
+        #             cen[num_hyperpl] = cen[num_hyperpl]+adjust_center[i][num_hyperpl]*(x[i-1]-cen[i-1])
+        #         # Initialize next iteration
         #         x[num_hyperpl] = <int>ceil(-boundary[num_hyperpl]+cen[num_hyperpl])
         #         eval_bil += bil_mtx[num_hyperpl]*x[num_hyperpl]
         #         adjust_eval_q += 2*x[num_hyperpl]*mtx_final_col[num_hyperpl]
         #         top=<int>floor( boundary[num_hyperpl]+ cen[num_hyperpl])
 
-        #     ## Check the next vector
+        #     # Check the next vector
         #     if x[num_hyperpl]<=top:
-        #         ## In order to iteratively compute quadratic form we
-        #         ## precompute its value at first integral point
+        #         # In order to iteratively compute quadratic form we
+        #         # precompute its value at first integral point
         #         diff = boundary[num_hyperpl]-cen[num_hyperpl]+x[num_hyperpl]
         #         eval_q= <int>(orig_radius + adjust_eval_q*diff - diff**2 * mtx_final_col[dim-1] + .5)
         #         # .5 so that it rounds to the nearest integer.  We shouldn't need nearly this much.
-        #         ## Check the first one before iterating
+        #         # Check the first one before iterating
         #         coeff[eval_q][<int>(eval_bil+z_prec)] = coeff[eval_q][<int>(eval_bil+z_prec)]+ 1
 
         #     while x[num_hyperpl] < top:
-        #         ## Tight iteration over final dimension
-        #         x[num_hyperpl]=x[num_hyperpl]+1
+        #         # Tight iteration over final dimension
+        #         x[num_hyperpl] = x[num_hyperpl]+1
         #         eval_bil +=  bil_mtx[num_hyperpl]
-        #         ## q(x+[0,..,1]) = q(x)+B(x,[0,...,0,1])+q([0,..,0,1])
+        #         # q(x+[0,..,1]) = q(x)+B(x,[0,...,0,1])+q([0,..,0,1])
         #         eval_q = <int>(eval_q + adjust_eval_q + mtx_final_col[dim-1])
-        #                ## B(x+1,1) = B(x,1) + 2q(1)
+        #                # B(x+1,1) = B(x,1) + 2q(1)
         #         adjust_eval_q += 2*mtx_final_col[num_hyperpl]
         #         coeff[eval_q][<int>(eval_bil+z_prec)] = coeff[eval_q][<int>(eval_bil+z_prec)]+ 1
 
         #     while x[num_hyperpl] >=floor(boundary[num_hyperpl]+cen[num_hyperpl]) - 1 + error:
-        #         ## Step back through to higher dimensional hyperplanes we have
-        #         ## completed
+        #         # Step back through to higher dimensional hyperplanes we have
+        #         # completed
         #         radius = radius - adjust_radius[num_hyperpl]*(x[num_hyperpl-1]-cen[num_hyperpl-1])**2
         #         eval_bil -= bil_mtx[num_hyperpl]*x[num_hyperpl]
         #         adjust_eval_q -= 2*mtx_final_col[num_hyperpl]*x[num_hyperpl]
         #         num_hyperpl=num_hyperpl-1
         #         if num_hyperpl < 0:
-        #             ## We are done now!
+        #             # We are done now!
         #             coeff_list = []
         #             for i from 0 <= i <= self._prec:
         #                 coeff_list.append([])
@@ -1105,36 +1118,33 @@ class Jacobi_Form():
         #                     coeff_list[i].append(coeff[i][k])
         #             tmp = [ LRing(coeff_list[i],-z_prec) for i in range(self._prec+1) ]
         #             returnresult = PRing(tmp, self._prec+1)
-        #             #### Clean up C variables ####
-        #             sage_free(bil_mtx)
-        #             sage_free(mtx_final_col)
-        #             sage_free(adjust_radius)
-        #             sage_free(mtxs_inv_tip)
+        #             # Clean up C variables #
+        #             sig_free(bil_mtx)
+        #             sig_free(mtx_final_col)
+        #             sig_free(adjust_radius)
+        #             sig_free(mtxs_inv_tip)
         #             for k from 0 <= k < dim:
-        #                 sage_free(adjust_center[k])
-        #             sage_free(adjust_center)
-        #             sage_free(boundary)
-        #             sage_free(x)
+        #                 sig_free(adjust_center[k])
+        #             sig_free(adjust_center)
+        #             sig_free(boundary)
+        #             sig_free(x)
         #             for i from 0 <= i <= self._prec:
-        #                 sage_free(coeff[i])
-        #             sage_free(coeff)
-        #             sage_free(cen)
+        #                 sig_free(coeff[i])
+        #             sig_free(coeff)
+        #             sig_free(cen)
         #             return Jacobi_Form(q, vec, self._prec,self._weight, index, self._level, returnresult)
 
-        #     #### Advance the next iteration ####
-        #     x[num_hyperpl]=x[num_hyperpl]+1
+        #     # Advance the next iteration #
+        #     x[num_hyperpl] = x[num_hyperpl]+1
         #     eval_bil += bil_mtx[num_hyperpl]
         #     adjust_eval_q += 2*mtx_final_col[num_hyperpl]
 
 
-
-
-
-#    def compute_all_theta_series(self,coefs, extra=0):
-        """
-            Code being messed with
-        """
-        #### Variables that are precomputed
+#    def compute_all_theta_series(self, coefs, extra=0):
+#        """
+#            Code being messed with
+#        """
+        # Variables that are precomputed
         # q = The quadratic Form.
         # self._vec = The vector whose Jacobi theta series we are computing.
         # dim = The dimension of the quadratic space.
@@ -1150,15 +1160,15 @@ class Jacobi_Form():
         # mtxs_inv[m] = The inverse of mtxs[m]
         # mtxs_inv_tip[m] = The upper left entry of mtx_inv[m] which is used to compute the boundary of iteration for mth-coordinate of x.
         # adjust_center[m] = A vector calculated at the beginning which is used to calculate how the center of the (dim-m) dimensional ellipse moves as we iterate.
-             #### TODO - change to adjust_center ####
+        # TODO - change to adjust_center #
         # adjust_radius[m] = A value used to compute how the bound for the (dim-m) dimensional ellipse changes as we iterate.
-             #### TODO - change variable name of adjust_radius to Adjustradius ####
+        # TODO - change variable name of adjust_radius to Adjustradius #
         # error = Assumed bound on rounding errors from taking square roots, used to round back to values known to be integral.
 
-        ##### Variables changed during iterations
+        # Variables changed during iterations
         # x = The current lattice point on which we are iterating.
         # radius = The distance to the boundary for the current hyperplane.
-             #### TODO - rename radius to radius ####
+        # TODO - rename radius to radius #
         # boundary[m] = The computed bounds for the current iteration in the mth-dimension
         # cen = The centre of the current ellipse.
         # coeff[n][r] = The number of vectors we have already found with q(x)=n and B(x,_vec)=r.
@@ -1170,7 +1180,7 @@ class Jacobi_Form():
         # diff = Variable to compute distance between boundary and first lattice point on during an iteration.
 
         # tmpprec = self._prec
-        # #### Initialize Various Values ####
+        # # Initialize Various Values #
         # cdef int z_prec = Integer(4*self._index*self._prec).isqrt() + 1
         # q = self._q
         # cdef int dim = q.dim()
@@ -1179,7 +1189,7 @@ class Jacobi_Form():
         # cdef double radius=<double>(self._prec)+.01
         # cdef double orig_radius = radius
 
-        # #### Precomputations ####
+        # # Precomputations #
         # mtx=(q.matrix())/2
         # mtx_inv=mtx.inverse()
         # mtxs = [copy(q.matrix())/2]
@@ -1197,39 +1207,39 @@ class Jacobi_Form():
         # LRing = LaurentSeriesRing(ZZ, 'Z')
         # PRing = PowerSeriesRing(LRing, 'q')
 
-        # #### Convert Python Variables to C Variables ####
+        # # Convert Python Variables to C Variables #
         # cdef int i, k
-        # cdef int* bil_mtx = <int*>sage_malloc(dim*sizeof(int))
+        # cdef int* bil_mtx = <int*>sig_malloc(dim * sizeof(int))
         # for i from 0 <= i < dim:
         #     bil_mtx[i] = _bil_mtx[i]
-        # cdef double* mtx_final_col = <double*>sage_malloc(dim*sizeof(double))
+        # cdef double* mtx_final_col = <double*>sig_malloc(dim * sizeof(double))
         # for i from 0 <= i < dim:
         #     mtx_final_col[i] = mtx[i, dim-1]
-        # cdef double* adjust_radius = <double*>sage_malloc(dim*sizeof(double))
+        # cdef double* adjust_radius = <double*>sig_malloc(dim * sizeof(double))
         # for i from 0 <= i < dim:
         #     adjust_radius[i] = _adjust_radius[i]
-        # cdef double* mtxs_inv_tip = <double*>sage_malloc(dim*sizeof(double))
+        # cdef double* mtxs_inv_tip = <double*>sig_malloc(dim * sizeof(double))
         # for i from 0 <= i < dim:
         #     mtxs_inv_tip[i] = mtxs_inv[i][0,0]
-        # cdef double** adjust_center = <double**>sage_malloc(dim*sizeof(double*))
+        # cdef double** adjust_center = <double**>sig_malloc(dim * sizeof(double*))
         # for k from 0 <= k < dim:
-        #     adjust_center[k] = <double*>sage_malloc(dim*sizeof(double))
+        #     adjust_center[k] = <double*>sig_malloc(dim * sizeof(double))
         # for k from 0 <= k < dim:
         #     for i from 1 <= i <= k:
         #         adjust_center[i][k] = _adjust_center[i][k-i,0]
-        # cdef double* boundary = <double*>sage_malloc(dim*sizeof(double))
+        # cdef double* boundary = <double*>sig_malloc(dim * sizeof(double))
         # for i from 0 <= i < dim:
         #     boundary[i] = 0
-        # boundary[0]=sqrt(<double>radius*(mtx_inv[0,0]))
-        # cdef int* x = <int*>sage_malloc(dim*sizeof(int))
+        # boundary[0] = sqrt(<double>radius*(mtx_inv[0,0]))
+        # cdef int* x = <int*>sig_malloc(dim * sizeof(int))
         # for i from 0 <= i < dim:
         #     x[i] = 0
         # x[0] = <int>ceil(-boundary[0])
-        # cdef double* cen = <double*>sage_malloc(dim*sizeof(double))
+        # cdef double* cen = <double*>sig_malloc(dim * sizeof(double))
         # for i from 0 <= i < dim:
         #     cen[i] = 0
 
-        # #### Initialize ####
+        # # Initialize #
         # cdef int num_hyperpl=0
         # cdef double eval_bil = bil_mtx[0]*x[0] # eval_bil = <x, vec>, calculated iteratively
         # cdef int eval_q # eval_q = q(x), calculated iteratively
@@ -1243,36 +1253,36 @@ class Jacobi_Form():
 
         # self._prec = coefs
 
-        # #### Main Iteration ####
+        # # Main Iteration #
         # while 1:
         #     top = <int>floor(boundary[num_hyperpl] + cen[num_hyperpl])
         #     while num_hyperpl < dim - 1 and x[num_hyperpl]<=top:
         #         num_hyperpl=num_hyperpl+1
 
-        #         ## Compute new boundary while we advance in hyperplanes
+        #         # Compute new boundary while we advance in hyperplanes
         #         radius=radius+adjust_radius[num_hyperpl]*(x[num_hyperpl-1]-cen[num_hyperpl-1])**2
         #         if -error<radius and radius<0:
         #             # correct rounding errors
         #             radius=0
-        #         boundary[num_hyperpl]=sqrt(radius*mtxs_inv_tip[num_hyperpl])
-        #         cen[num_hyperpl]=0
-        #         ## Compute the new centre
+        #         boundary[num_hyperpl] = sqrt(radius*mtxs_inv_tip[num_hyperpl])
+        #         cen[num_hyperpl] = 0
+        #         # Compute the new centre
         #         for i from 1 <= i <= num_hyperpl:
-        #             cen[num_hyperpl]=cen[num_hyperpl]+adjust_center[i][num_hyperpl]*(x[i-1]-cen[i-1])
-        #         ## Initialize next iteration
+        #             cen[num_hyperpl] = cen[num_hyperpl]+adjust_center[i][num_hyperpl]*(x[i-1]-cen[i-1])
+        #         # Initialize next iteration
         #         x[num_hyperpl] = <int>ceil(-boundary[num_hyperpl]+cen[num_hyperpl])
         #         eval_bil += bil_mtx[num_hyperpl]*x[num_hyperpl]
         #         adjust_eval_q += 2*x[num_hyperpl]*mtx_final_col[num_hyperpl]
         #         top=<int>floor( boundary[num_hyperpl]+ cen[num_hyperpl])
 
-        #     ## Check the next vector
+        #     # Check the next vector
         #     if x[num_hyperpl]<=top:
-        #         ## In order to iteratively compute quadratic form we
-        #         ## precompute its value at first integral point
+        #         # In order to iteratively compute quadratic form we
+        #         # precompute its value at first integral point
         #         diff = boundary[num_hyperpl]-cen[num_hyperpl]+x[num_hyperpl]
         #         eval_q= <int>(orig_radius + adjust_eval_q*diff - diff**2 * mtx_final_col[dim-1] + .5)
         #         # .5 so that it rounds to the nearest integer.  We shouldn't need nearly this much.
-        #         ## Check the first one before iterating
+        #         # Check the first one before iterating
         #         xx = vector([x[i] for i in range(dim)])
         #         J3 = compute_theta_series_precomp_nomaloc(self, mtx, mtx_inv, xx, eval_q, LRing, PRing, mtx_final_col, adjust_radius, mtxs_inv_tip, adjust_center)
         #         #J3 = self.compute_theta_series_precomp(mtx,mtx_inv,mtxs_inv,_adjust_center,_adjust_radius,xx,eval_q)
@@ -1289,12 +1299,12 @@ class Jacobi_Form():
         #             VLIST.append(xx)
 
         #     while x[num_hyperpl] < top:
-        #         ## Tight iteration over final dimension
-        #         x[num_hyperpl]=x[num_hyperpl]+1
+        #         # Tight iteration over final dimension
+        #         x[num_hyperpl] = x[num_hyperpl]+1
         #         eval_bil +=  bil_mtx[num_hyperpl]
-        #         ## q(x+[0,..,1]) = q(x)+B(x,[0,...,0,1])+q([0,..,0,1])
+        #         # q(x+[0,..,1]) = q(x)+B(x,[0,...,0,1])+q([0,..,0,1])
         #         eval_q = <int>(eval_q + adjust_eval_q + mtx_final_col[dim-1])
-        #                ## B(x+1,1) = B(x,1) + 2q(1)
+        #                # B(x+1,1) = B(x,1) + 2q(1)
         #         adjust_eval_q += 2*mtx_final_col[num_hyperpl]
         #         xx = vector([x[i] for i in range(dim)])
         #         J3 = compute_theta_series_precomp_nomaloc(self, mtx, mtx_inv, xx, eval_q, LRing, PRing, mtx_final_col, adjust_radius, mtxs_inv_tip, adjust_center)
@@ -1312,14 +1322,14 @@ class Jacobi_Form():
         #             VLIST.append(xx)
 
         #     while x[num_hyperpl] >=floor(boundary[num_hyperpl]+cen[num_hyperpl]) - 1 + error:
-        #         ## Step back through to higher dimensional hyperplanes we have
-        #         ## completed
+        #         # Step back through to higher dimensional hyperplanes we have
+        #         # completed
         #         radius = radius - adjust_radius[num_hyperpl]*(x[num_hyperpl-1]-cen[num_hyperpl-1])**2
         #         eval_bil -= bil_mtx[num_hyperpl]*x[num_hyperpl]
         #         adjust_eval_q -= 2*mtx_final_col[num_hyperpl]*x[num_hyperpl]
         #         num_hyperpl=num_hyperpl-1
         #         if num_hyperpl < 0:
-        #             ## We are done now!
+        #             # We are done now!
         #             if extra > 0:
         #                 LIST=[]
         #                 self._prec = self._prec + extra
@@ -1327,21 +1337,21 @@ class Jacobi_Form():
         #                     J3 = compute_theta_series_precomp_nomaloc(self, mtx, mtx_inv, xx, q(xx), LRing, PRing, mtx_final_col, adjust_radius, mtxs_inv_tip, adjust_center)
         #                     LIST.append(J3)
 
-        #             #### Clean up C variables ####
-        #             sage_free(bil_mtx)
-        #             sage_free(mtx_final_col)
-        #             sage_free(adjust_radius)
-        #             sage_free(mtxs_inv_tip)
+        #             # Clean up C variables #
+        #             sig_free(bil_mtx)
+        #             sig_free(mtx_final_col)
+        #             sig_free(adjust_radius)
+        #             sig_free(mtxs_inv_tip)
         #             for k from 0 <= k < dim:
-        #                 sage_free(adjust_center[k])
-        #             sage_free(adjust_center)
-        #             sage_free(boundary)
-        #             sage_free(x)
-        #             sage_free(cen)
+        #                 sig_free(adjust_center[k])
+        #             sig_free(adjust_center)
+        #             sig_free(boundary)
+        #             sig_free(x)
+        #             sig_free(cen)
         #             self._prec = tmpprec
         #             return LIST
 
-        #     #### Advance the next iteration ####
-        #     x[num_hyperpl]=x[num_hyperpl]+1
+        #     # Advance the next iteration #
+        #     x[num_hyperpl] = x[num_hyperpl]+1
         #     eval_bil += bil_mtx[num_hyperpl]
         #     adjust_eval_q += 2*mtx_final_col[num_hyperpl]
