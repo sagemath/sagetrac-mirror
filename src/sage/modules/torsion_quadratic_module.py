@@ -601,6 +601,19 @@ class TorsionQuadraticModule(FGP_Module_class):
             assert is_GlobalGenus(genus)
         return genus
 
+    def is_degenerate(self):
+        r"""
+        Return if the underlying bilinear form is degenerate.
+
+        EXAMLES::
+
+            sage: T = TorsionQuadraticForm(matrix(1/27))
+            sage: D = T.submodule([T.gen(0)*3])
+            sage: D.is_degenerate()
+            True
+        """
+        return 0 != self.orthogonal_submodule_to(self.gens())
+
     def is_genus(self, signature_pair, even=True):
         r"""
         Return ``True`` if there is a lattice with this signature and discriminant form.
@@ -674,6 +687,39 @@ class TorsionQuadraticModule(FGP_Module_class):
         if self.brown_invariant() != signature:
             return False
         return True
+
+    def is_isomorphic_to(self, other):
+        r"""
+        Return if the underlying quadratic forms are isomorphic.
+        """
+        if self.value_module_qf() != other.value_module():
+            return False
+        if self.invariants() != other.invariants():
+            return False
+        if self.is_degenerate() != other.is_degenerate():
+            return False
+        qf1 = self.normal_form().gram_matrix_quadratic()
+        qf2 = other.normal_form().gram_matrix_quadratic()
+        if qf1 != qf2:
+            return False
+        if not self.is_degenerate():
+            return True
+        if len(set(self.invariants())) == 1:
+            return True
+        # now the normal form is not unique anymore.
+        ker1 = self.orthogonal_submodule_to(self.gens())
+        ker2 = other.orthogonal_submodule_to(other.gens())
+        if ker1.invariant() != ker2.invariants():
+            return False
+        for p in self.order().prime_divisors():
+            N = self.primary_part(p)
+            M = other.primary_part(p)
+            qN = N.gram_matrix_quadratic()
+            qM = M.gram_matrix_quadratic()
+            invs = N.invariants()
+        # do it in gap?
+        # do it in cython?
+        # use the orthogonal group?
 
     def orthogonal_submodule_to(self, S):
         r"""
@@ -872,7 +918,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             # so we should work with the lattice q_p --> q_p^-1
             q_p1 = q_p.inverse()
             prec = self.annihilator().gen().valuation(p) + 5
-            D, U = p_adic_normal_form(q_p1, p, precision=prec + 5, partial=partial)
+            D, U = p_adic_normal_form(q_p1, p, precision=2*prec + 5, partial=partial)
             # if we compute the inverse in the p-adics everything explodes --> go to ZZ
             U = U.change_ring(ZZ).inverse().transpose()
 

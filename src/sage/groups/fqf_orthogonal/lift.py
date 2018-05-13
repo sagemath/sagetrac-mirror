@@ -234,8 +234,8 @@ def _Hensel_qf(Z, G, F, a, b):
     else:
         _Hensel_qf_modular = _Hensel_qf_modular_odd
     Zn = Z[i:,i:] - F[i:,:i]*G[:i,:i]*F[i:,:i].T
-    G2 = G[i:,i:]
-    F[i:,i:] = _Hensel_qf_modular(Zn, G[i:,i:], F[i:,i:], a, b)
+    Gn = G[i:,i:]
+    F[i:,i:] = _Hensel_qf_modular(Zn, Gn, F[i:,i:], a, b)
     if i == 0:
         return F
     while a < b:
@@ -1103,7 +1103,7 @@ def _gens_mod_2(G):
     trafoinv = trafo.inverse().change_ring(R)
     Gt = trafo * G * trafo.T
 
-    # ker
+    # kernel
     # row wise starting with the last row
     for k in range(len(ind)-2,2,-1):
         pa = par[k-2:k+1]
@@ -1215,7 +1215,7 @@ def _ker_gens(G, i1, i2, parity):
                     g[i,j] = 1
             if parity[0]==1 and parity[2]==1:
                 # compensate
-                G[e, i1-1] = (g[e,i1:i2]*G[i1:i2,i1:i2]*g[e,i1:i2].T)[0,0]//4
+                g[e, i1-1] = (g[e,i1:i2]*G[i1:i2,i1:i2]*g[e,i1:i2].T)[0,0]//4
                 # the second row depends on the third
                 g[i1:i2,i1-1] = - (G[i1:i2,i1:i2]* g[i2:,i1:i2].T * G[i2:,i2:].inverse())[:,-1]/2
             if g[i,j] == 1:   # no need to append the identity
