@@ -5,7 +5,7 @@ Symmetric functions in super space is an algebra whose bases are indexed by
 ``SuperPartitions``.
 
 Let `P_{\Theta_n, X_n}` be the polynomial ring in two sets of variables
-`Theta_n = \theta_1, theta_2, \ldots, \theta_n` and
+`\Theta_n = \theta_1, \theta_2, \ldots, \theta_n` and
 `X_n = x_1, x_2, \ldots, x_n`
 where the first set of variables anti-commute and the second set
 of variables commute and commutes with the first set.  The symmetric group
@@ -17,20 +17,21 @@ When `n=2`, the following are examples of symmetric polynomials in super space
 
 .. MATH::
 
-    x_1^2x_2^2, \that_1 x_1^4 + \theta_2 x_2^4, \theta_1 x_2^2 + \theta_2 x_1^2,
+    x_1^2x_2^2, \qquad \theta_1 x_1^4 + \theta_2 x_2^4, \qquad
+    \theta_1 x_2^2 + \theta_2 x_1^2,  \qquad
     \theta_1 \theta_2(x_1^3 x_2 - x_1 x_2^3)
 
 In this implementation (as with the symmetric functions), the symmetric
 functions in super space are developed without referencing the variables
-in the ambient polynomial ring.  Instead the ring is represented as a vector
+in the ambient polynomial ring.  Instead, the ring is represented as a vector
 space with distinguished bases that are indexed by combinatorial objects
 called super partitions.
 
- .. SEEALSO::
+.. SEEALSO::
 
-    :class:`sage.combinat.superpartition.SuperPartitions`,
-    :class:`sage.combinat.superpartition.SuperPartition`,
-    :class:`sage.combinat.sf.sf.SymmetricFunctions`
+    :class:`~sage.combinat.superpartition.SuperPartitions`,
+    :class:`~sage.combinat.superpartition.SuperPartition`,
+    :class:`~sage.combinat.sf.sf.SymmetricFunctions`
 
 ``SummetricFunctionsinSuperSpace`` is isomorphic to the graded ring with
 generators `p_{(0;)}, p_{(;1)}, p_{(1;)}, p_{(;2)}, p_{(2;)}, \ldots`
@@ -132,7 +133,7 @@ in super partitions.::
     h[3, 1, 0; 2, 2, 1]
 
 There are four bases of the symmetric functions in super space which are
-analogues of the Schur functions.  These bases were introduced in [JL2017]_
+analogues of the Schur functions.  These bases were introduced in [JL2016]_
 and are related to specializations of an analogue of the Macdonald symmetric
 functions.
 
@@ -170,10 +171,10 @@ There is a scalar product defined so that for super partitions
 where `z_{\Lambda^s}` is the usual constant `z_\lambda` which is the size of
 the centralizer of an element of cycle type `\lambda`.
 
-SEEALSO::
+.. SEEALSO::
 
-    :meth:`sage.combinat.partition.Partition.centralizer_size`,
-    :meth:`sage.combinat.superpartition.SuperPartition.zee`
+    :meth:`~sage.combinat.partition.Partition.centralizer_size`,
+    :meth:`~sage.combinat.superpartition.SuperPartition.zee`
 
 Given this definition, the complete and monomial bases of the symmetric
 functions in super space are dual.
@@ -196,12 +197,12 @@ functions in super space are dual.
     [0 0 0 0 0 0 0 1]
 
 The four Schur bases are related by duality with respect to this scalar product
-in pairs.  For all `\Lambda, \Gamma in SPar(n|m)`,
+in pairs.  For all `\Lambda, \Gamma in SPar(n|m)` ,
 
 .. MATH::
 
-    \left\left< s_\Lambda, s^\ast_\Gamma \right>\right>
-    = \left\left< {\bar s}_\Lambda, {\bar s}^\ast_\Gamma \right>\right>
+    \left<\left< s_\Lambda, s^\ast_\Gamma \right>\right>
+    = \left<\left< {\bar s}_\Lambda, {\bar s}^\ast_\Gamma \right>\right>
     = \delta_{\Lambda\Gamma}
 
 ::
@@ -220,8 +221,8 @@ This involution is an algebra morphism with
 
 .. MATH::
 
-    s^\ast_\Lambda = (-1)^{\binomial{m}{2}} \omega {\bar s}_{\Lambda'} \qquad
-    and \qquad {\bar s}^\ast_\Lambda = (-1)^{\binomial{m}{2}} \omega s_{\Lambda'}
+    s^\ast_\Lambda = (-1)^{\binom{m}{2}} \omega {\bar s}_{\Lambda'} \qquad
+    and \qquad {\bar s}^\ast_\Lambda = (-1)^{\binom{m}{2}} \omega s_{\Lambda'}
 
 ::
 
@@ -237,7 +238,7 @@ This involution is an algebra morphism with
 
 The algebra of symmetric functions in super space is also a (bi-)graded
 Hopf algebra and the coproduct is defined bby declaring that the power sum
-generators are primitive.::
+generators are primitive. ::
 
     sage: SymmetricFunctionsinSuperSpace(QQ).inject_shorthands(verbose=False)
     sage: p[3].coproduct()
@@ -264,7 +265,7 @@ TESTS::
 
 AUTHORS:
 
-- Mike Zabrocki (Sept 2017) - initial implementation
+- Mike Zabrocki (May 2018) - initial implementation
 """
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -349,11 +350,15 @@ def valid_fermionic_matchings(sp1, sp2, a_sp3):
     all ways of covering ``a_sp3`` with the fermionic parts of ``sp1`` and ``sp2``.
     The output of this function will be a list of matchings, where a matching
     is a list of 4 objects:
+
     - a permutation of a subset of the parts of ``a_sp3``
+    - the difference of the bosonic parts of ``sp1`` and this permutation
+    - a permutation of the complement of the subset of parts of ``a_sp3``
+    - the difference of the complement and the bosonic parts of ``sp2``
 
     OUTPUT:
 
-    - a list
+    - a generator of matchings
 
     EXAMPLES::
 
