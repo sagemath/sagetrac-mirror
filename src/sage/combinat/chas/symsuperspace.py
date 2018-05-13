@@ -1068,6 +1068,9 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
         The Schur basis arising from `q=t=0` specialization of Macdonald.
 
         The Pieri rule for this basis is described in [JL2016]_ .
+        The Schur-star-bar basis elements are (up to sign) an application
+        of omega applied to the Schur basis.
+        The basis is also dual to the Schur-bar basis.
 
         EXAMPLES::
 
@@ -1087,6 +1090,11 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             -sb[0; 2, 1] + sb[0; 3] + 2*sb[1; 2] - sb[2; 1] - sb[3; ]
             sage: ssb[[2],[1]].antipode()
             -ssb[0; 1, 1, 1] + 2*ssb[0; 2, 1] + ssb[0; 3] + ssb[1; 2] + ssb[2; 1]
+            sage: [ssb[-2,0,2,1].scalar(sb(la)) for la in SuperPartitions(5,2)]
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+            sage: s = SymmetricFunctionsinSuperSpace(QQ).Schur()
+            sage: ssb(s[-2,0,2,1].omega())
+            -ssb[3, 0; 2]
         """
         def __init__(self, SFSS):
             r"""
@@ -1171,6 +1179,9 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
         complete basis by identifying a triangularity relation.
 
         The Pieri rule for this basis is described in [JL2016]_ .
+        The Schur-star basis elements are (up to sign) an element
+        of the Schur-bar basis.  The Schur-star basis is dual to the
+        Schur basis.
 
         EXAMPLES::
 
@@ -1190,6 +1201,9 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             sb[1; 2]
             sage: ss[[2],[1]].antipode()
             2*ss[0; 1, 1, 1] + 2*ss[0; 2, 1] - 2*ss[1; 1, 1] - 2*ss[1; 2] + ss[2; 1]
+            sage: s = SymmetricFunctionsinSuperSpace(QQ).Schur()
+            sage: [ss[-2,0,2,1].scalar(s(la)) for la in SuperPartitions(5,2)]
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
         """
         def __init__(self, SFSS):
             r"""
@@ -1274,8 +1288,9 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
         basis for the Schur-bar.  It is calculated from the
         elementary basis by identifying a triangularity relation.
 
-        This basis is dual to the one-true Schur basis.
-        It is also the involution omega applied to the Schur-* basis.
+        This basis is dual to the Schur-star-bar basis.
+        It is also (up to sign) the involution omega applied to the
+        Schur-star basis.
 
         The Pieri rule for this basis is described in [JL2016]_ .
 
@@ -1284,6 +1299,12 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             sage: sb = SymmetricFunctionsinSuperSpace(QQ).Schur_b()
             sage: sb[[1,0],[]]*sb[[],[3]]
             sb[4, 0; ]
+            sage: ss = SymmetricFunctionsinSuperSpace(QQ).Schur_s()
+            sage: sb(ss[-2,0,2,1].omega())
+            -sb[3, 0; 2]
+            sage: ssb = SymmetricFunctionsinSuperSpace(QQ).Schur_sb()
+            sage: [sb[-2,0,2,1].scalar(ssb(la)) for la in SuperPartitions(5,2)]
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
         """
         def __init__(self, SFSS):
             r"""
@@ -1365,7 +1386,9 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
         elementary basis by identifying a triangularity relation.
 
         This basis is the one-true Schur basis (except that there are 4).
-        It is also the involution omega applied to the Schur-star-bar basis.
+        It is dual to the Schur-star basis.
+        It is also the involution omega (up to sign) applied to the
+        Schur-star-bar basis.
 
         The Pieri rule for this basis is described in [JL2016]_ .
 
@@ -1374,6 +1397,12 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             sage: s = SymmetricFunctionsinSuperSpace(QQ).Schur()
             sage: s[[1,0],[]]*s[[],[3]]
             s[1, 0; 3] + s[3, 0; 1] + s[4, 0; ]
+            sage: ssb = SymmetricFunctionsinSuperSpace(QQ).Schur_sb()
+            sage: s(ssb[-2,0,2,1].omega())
+            -s[3, 0; 2]
+            sage: ss = SymmetricFunctionsinSuperSpace(QQ).Schur_s()
+            sage: [s[-2,0,2,1].scalar(ss(la)) for la in SuperPartitions(5,2)]
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
         """
         def __init__(self, SFSS):
             r"""
