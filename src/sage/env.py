@@ -254,9 +254,11 @@ def sage_include_directories(use_sources=False):
 
     opj = os.path.join
 
+    additional_include = os.environ.get('SAGE_INCLUDE_DIRECTORIES', '').split(':')
     include_directories = [SAGE_INC,
                            distutils.sysconfig.get_python_inc(),
-                           numpy.get_include()]
+                           numpy.get_include()
+                          ] + additional_include
 
     if use_sources :
         include_directories.extend([SAGE_SRC,
