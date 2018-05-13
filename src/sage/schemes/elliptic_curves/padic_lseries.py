@@ -199,8 +199,9 @@ class pAdicLseries(SageObject):
 
         try :
             crla = E.label()
-        except RuntimeError :
-            print("Warning : Curve outside Cremona's table. Computations of modular symbol space might take very long !")
+        except LookupError :
+            if implementation != 'num':
+                print("Warning : Curve outside Cremona's table. Computations of modular symbol space might take very long !")
 
         self._modular_symbol = E.modular_symbol(sign=+1, implementation=implementation, normalize=normalize)
 
