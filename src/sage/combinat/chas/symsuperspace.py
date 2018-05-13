@@ -309,7 +309,7 @@ from sage.rings.finite_rings.integer_mod_ring import Integers
 
 class SFSuperSpaceAlgebraMorphism(AlgebraMorphism):
     r"""
-    An algebra morphism on symmetric functions in super space
+    An algebra morphism on symmetric functions in super space.
 
     The generators are indexed by integers, non-positive integers are
     indices of the fermionic generators and the positive integers
@@ -317,7 +317,7 @@ class SFSuperSpaceAlgebraMorphism(AlgebraMorphism):
     """
     def super_partition_to_generators(self, sp):
         r"""
-        A list of integers representing the generators from a multiplicative basis
+        A list of integers representing the generators from a multiplicative basis.
         """
         return [-a for a in sp[0]]+[a for a in sp[1]]
 
@@ -456,7 +456,7 @@ def m_prod_fixed_a_match(SFSS_m, sp1, sp2, a_sp3, mt):
 
 def sign_matching(sp1, sp2, mt):
     r"""
-    The sign for a matching between ``sp1`` and ``sp2``
+    The sign for a matching between ``sp1`` and ``sp2``.
 
     INPUT:
 
@@ -487,7 +487,7 @@ def sign_matching(sp1, sp2, mt):
 
 def m_m_mult_fixed_a(SFSS_m, sp1, sp2, a_sp3):
     r"""
-    For a fixed a-matching, return the sum of the terms in the monomial product
+    For a fixed a-matching, return the sum of the terms in the monomial product.
 
     INPUT:
 
@@ -567,8 +567,10 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
         """
         return self.Power()
 
-    def _repr_(self): # could be taken care of by the category
+    def _repr_(self):
         r"""
+        The name of the symmetric functions in super space over a base ring.
+
         EXAMPLES::
 
             sage: SFSS = SymmetricFunctionsinSuperSpace(ZZ)
@@ -673,6 +675,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
                 The degree of a basis element is the degree of the super partition.
 
                 EXAMPLES::
+
                     sage: h = SymmetricFunctionsinSuperSpace(QQ).Complete()
                     sage: h.degree_on_basis(SuperPartition([[2,1],[3,1,1]]))
                     8
@@ -757,7 +760,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             def all_bi_degrees(self):
                 r"""
-                A list of all the bi-degrees in the support of the element
+                A list of all the bi-degrees in the support of the element.
 
                 OUTPUT:
 
@@ -776,7 +779,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             def homogeneous_bi_degree_component(self, bd):
                 r"""
-                Take the component of fixed bi_degree
+                Take the component of fixed bi_degree.
 
                 INPUT:
 
@@ -828,7 +831,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             def skew_by(self, other, side='right'):
                 r"""
-                Compute the ``skew_by`` operation by coersion to the power basis
+                Compute the ``skew_by`` operation by coersion to the power basis.
 
                 INPUT:
 
@@ -859,7 +862,8 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
                 r"""
                 The involution omega.
 
-                The omega is computed by coercion to the power sum basis.
+                The involution omega is computed by coercion to the power
+                sum basis.
 
                 EXAMPLES::
 
@@ -918,7 +922,8 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             def algebra_morphism(self, on_generators, **keywords):
                 """
-                Extend a map on the generators of a multiplicative basis to the whole basis.
+                Extend a map on the generators of a multiplicative basis to
+                the whole basis.
 
                 Given a map defined on the generators of the multiplicative
                 basis ``self``, return the algebra morphism that extends
@@ -1153,7 +1158,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
         def complete_to_self_by_triangularity(self, h_expr):
             r"""
-            Convert an expression in the complete basis to the Schur basis
+            Convert an expression in the complete basis to the Schur basis.
 
             INPUT:
 
@@ -1262,7 +1267,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
         def complete_to_self_by_triangularity(self, h_expr):
             r"""
-            Convert an expression in the complete basis to the Schur-star basis
+            Convert an expression in the complete basis to the Schur-star basis.
 
             INPUT:
 
@@ -1360,7 +1365,8 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
         def elementary_to_self(self, e_expr):
             r"""
-            Convert an expression in the elementary basis to the Schur-bar basis
+            Convert an expression in the elementary basis to the Schur-bar
+            basis.
 
             The conversion applies ``omega`` to the expression, converts to the
             Schur-star basis and then applies the relation that ``omega``
@@ -1969,11 +1975,11 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
                 r"""
                 The scalar product between ``self`` and ``other``.
 
+                The power sum elements are orthonormal.
+
                 INPUT:
 
                 - ``other`` -- an element of symmetric functions in super space
-
-                The power sum elements are orthonormal
 
                 EXAMAPLES::
 
@@ -2008,7 +2014,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             def skew_by(self, other, side='right'):
                 r"""
-                Operation that is dual to multiplication in the scalar product
+                Operation that is dual to multiplication in the scalar product.
 
                 INPUT:
 
