@@ -4,10 +4,11 @@ Symmetric functions in super space
 Symmetric functions in super space is an algebra whose bases are indexed by
 ``SuperPartitions``.
 
-Let `P_{\Theta_n, X_n}` be the polynomial ring in two sets of variables
-`\Theta_n = \theta_1, \theta_2, \ldots, \theta_n` and
-`X_n = x_1, x_2, \ldots, x_n`
-where the first set of variables anti-commute and the second set
+Let `P_{\Theta_N, X_N}` be the polynomial ring in two sets of variables
+`\Theta_N = \theta_1, \theta_2, \ldots, \theta_N` and
+`X_n = x_1, x_2, \ldots, x_N`
+where the first set of variables anti-commute, `\theta_i^2 = 0`,
+and the second set
 of variables commute and commutes with the first set.  The symmetric group
 acts diagonally on this polynomial ring and the symmetric functions in
 superspace are isomorphic to the invariants in this polynomial ring.
@@ -39,9 +40,9 @@ satisfying the relations
 
 .. MATH::
 
-    p_{(;i)} p_{(;j)} = p_{(;j)} p_{(;i)} \qquad
-    p_{(i;)} p_{(;j)} = p_{(;j)} p_{(i;)} \qquad
-    p_{(i;)} p_{(j;)} = - p_{(j;)} p_{(i;)}
+    p_{(;i)} p_{(;j)} = p_{(;j)} p_{(;i)}, \qquad
+    p_{(i;)} p_{(;j)} = p_{(;j)} p_{(i;)}, \qquad
+    p_{(i;)} p_{(j;)} = - p_{(j;)} p_{(i;)}, \qquad p_{(i;)}^2 = 0
 
 There are three natural sets of generators that are analogues of the power,
 complete and elementary bases of the symmetric functions.  They are indexed
@@ -49,7 +50,7 @@ by the super partition `(; n)` and `(n; )`.  Define the generators
 
 .. MATH::
 
-    p_{(; n)} = p_n \quad e_{(; n)} = e_n \quad h_{(; n)} = h_n
+    p_{(; n)} = p_n, \quad e_{(; n)} = e_n, \quad h_{(; n)} = h_n
 
     p_{(; n)} = \sum_{i\geq1} x_i^n
 
@@ -59,7 +60,7 @@ by the super partition `(; n)` and `(n; )`.  Define the generators
 
 where `p_n, e_n` and `h_n` are the symmetric function elements in the `X_n`
 variables.  In addition there are fermonionic generators which include variables
-from `Theta_n`.  These are given
+from `\Theta_n`.  These are given
 
 .. MATH::
 
@@ -76,9 +77,22 @@ where `\Lambda_i > \Lambda_{i+1} \geq 0` for `1 \leq i \leq m-1` and
 `\Lambda_j \geq \Lambda_{j+1} \geq 0` for `m+1 \leq j \leq N-1`.  The
 degree (or bosonic degree) of `\Lambda` is `|\Lambda| = \sum_{i=1}^N \Lambda_i`
 and the fermionic degree (or sector) is `m`.  The super partitions of degree
-`n` and bosnic degree `m` will be denoted `SPar(n|m)`.
+`n` and bosonic degree `m` will be denoted `SPar(n|m)`.
+The power, elementary and complete basis elements are defined by the
+following products of the generators
 
-The monomial symmetric polynomial `m_\Lambda[X_n;\Theta_n]` indexed by the
+.. MATH::
+
+    p_\Lambda = p_{(\Lambda_1; 0)} \cdots p_{(\Lambda_m; 0)}
+    p_{(\Lambda_{m+1}; 0)} \cdots p_{(\Lambda_N; 0)}~.
+
+    e_\Lambda = e_{(\Lambda_1; 0)} \cdots e_{(\Lambda_m; 0)}
+    e_{(\Lambda_{m+1}; 0)} \cdots e_{(\Lambda_N; 0)}~.
+
+    h_\Lambda = h_{(\Lambda_1; 0)} \cdots h_{(\Lambda_m; 0)}
+    h_{(\Lambda_{m+1}; 0)} \cdots h_{(\Lambda_N; 0)}~.
+
+The monomial symmetric polynomial `m_\Lambda[X_N;\Theta_N]` indexed by the
 super partition `\Lambda \in SPar(n|m)` is equal to the sum over all distinct
 rearrangments of the monomial
 
@@ -88,14 +102,14 @@ rearrangments of the monomial
 
 where the indicies of both alphabets are permuted simultaneously.  The basis
 element of the symmetric functions in super space will be denoted `m_\Lambda`
-and will have the same coefficients in the products as `m_\Lambda[X_n;\Theta_n]`
-as long as `n` is sufficiently large.
+and will have the same coefficients in the products as `m_\Lambda[X_N;\Theta_N]`
+as long as `N` is sufficiently large.
 
 The complete homogeneous basis is then defined as
 
 .. MATH::
 
-    h_{(n; )} = \sum_{\Lambda \in SPar(n|1)} m_\Lambda \qquad
+    h_{(n; )} = \sum_{\Lambda \in SPar(n|1)} m_\Lambda, \qquad
     h_{(; n)} = \sum_{\lambda \vdash n} m_\lambda
 
 The space of symmetric functions in super space is bigraded by the bosonic and
@@ -166,7 +180,7 @@ For `\lambda \vdash n`, it is the case that `s_\lambda = s^\ast_\lambda =
     2*m[0; 1, 1, 1] + m[0; 2, 1] + 3*m[1; 1, 1] + m[1; 2] + 2*m[2; 1] - m[3; ]
 
 There is a scalar product defined so that for super partitions
-`\Lambda = (\Lambda_a; \Lambda_s), \Gamma`,
+`\Lambda = (\Lambda^a; \Lambda^s), \Gamma`,
 `\left<\left< p_\Lambda, p_\Gamma \right>\right> = \delta_{\Lambda\Gamma} z_{\Lambda^s}`
 where `z_{\Lambda^s}` is the usual constant `z_\lambda` which is the size of
 the centralizer of an element of cycle type `\lambda`.
@@ -197,7 +211,7 @@ functions in super space are dual.
     [0 0 0 0 0 0 0 1]
 
 The four Schur bases are related by duality with respect to this scalar product
-in pairs.  For all `\Lambda, \Gamma in SPar(n|m)` ,
+in pairs.  For all `\Lambda, \Gamma \in SPar(n|m)` ,
 
 .. MATH::
 
@@ -214,7 +228,7 @@ in pairs.  For all `\Lambda, \Gamma in SPar(n|m)` ,
     True
 
 As with the space of symmetric functions, there is an involution `\omega`
-that for all super partitions `\Lambda`, `\omega(h_\Lambda) = e_\Lambda`.
+that for all super partitions `\Lambda`, satisfies `\omega(h_\Lambda) = e_\Lambda`.
 This involution is an algebra morphism with
 `\omega(p_{(; r)}) = (-1)^{r-1} p_{(; r)}` and
 `\omega(p_{(r; )}) = (-1)^r p_{(r; )}`.  The Schur bases are related by
@@ -237,7 +251,7 @@ This involution is an algebra morphism with
     [-ss[1, 0; 2], -ss[1, 0; 1, 1], -ss[2, 0; 1], -ss[2, 1; ], -ss[3, 0; ]]
 
 The algebra of symmetric functions in super space is also a (bi-)graded
-Hopf algebra and the coproduct is defined bby declaring that the power sum
+Hopf algebra and the coproduct is defined by declaring that the power sum
 generators are primitive. ::
 
     sage: SymmetricFunctionsinSuperSpace(QQ).inject_shorthands(verbose=False)
