@@ -16,6 +16,7 @@ See [DLM2006]_ for a description of this space presented here.
 When `n=2`, the following are examples of symmetric polynomials in super space
 
 .. MATH::
+
     x_1^2x_2^2, \that_1 x_1^4 + \theta_2 x_2^4, \theta_1 x_2^2 + \theta_2 x_1^2,
     \theta_1 \theta_2(x_1^3 x_2 - x_1 x_2^3)
 
@@ -1147,7 +1148,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - an expression in the Schur-* basis
+            - an expression in the Schur-star basis
 
             EXAMPLES::
 
@@ -1172,7 +1173,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
     class Schur_s(CombinatorialFreeModule, BindableClass):
         r"""
-        The Schur-* basis arising from `q=t=0` specialization of Macdonald.
+        The Schur-star basis arising from `q=t=0` specialization of Macdonald.
 
         The basis is calculated by the Pieri rule in order to obtain the
         the expansion in the complete basis.  It is calculated from the
@@ -1220,7 +1221,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
         @cached_method
         def self_to_complete_on_basis(self, sp):
             r"""
-            Convert the Schur-* basis to complete basis using the Pieri rule.
+            Convert the Schur-star basis to complete basis using the Pieri rule.
 
             INPUT:
 
@@ -1248,7 +1249,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
         def complete_to_self_by_triangularity(self, h_expr):
             r"""
-            Convert an expression in the complete basis to the Schur-* basis
+            Convert an expression in the complete basis to the Schur-star basis
 
             INPUT:
 
@@ -1256,7 +1257,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - an expression in the Schur-* basis
+            - an expression in the Schur-star basis
 
             EXAMPLES::
 
