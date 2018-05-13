@@ -118,6 +118,8 @@ in super partitions.::
     e[1, 0; 2, 1]
     sage: e[[1,0],[2,1]]
     e[1, 0; 2, 1]
+    sage: e(Partition([2,1]))
+    e[; 2, 1]
     sage: SuperPartitions.options.display = "list"
     sage: h[[3,1,0],[2,2,1]]
     h[-3, -1, 0, 2, 2, 1]
@@ -432,14 +434,60 @@ def m_prod_fixed_a_match(SFSS_m, sp1, sp2, a_sp3, mt):
     return SFSS_m.sum(SFSS_m.term(SuperPartition([a_sp3,list(la)]),c) \
         for (la,c) in m(ga)*m(nu))
 
-#BIG TODO: Document this.
-
 def sign_matching(sp1, sp2, mt):
+    r"""
+    The sign for a matching between ``sp1`` and ``sp2``
+
+    INPUT:
+
+    - ``sp1, sp2`` -- super partitions
+    - ``mt`` -- a list
+
+    OUTPUT:
+
+    - the sign of the permutation
+
+    EXAMPLES::
+
+        sage: from sage.combinat.chas.symsuperspace import sign_matching
+        sage: sign_matching([[1,0],[1]],[[0],[2,1,1]],[[1,2],[0,2],[0],[0]])
+        -1
+        sage: sign_matching([[1,0],[1]],[[0],[2,1,1]],[[2,1],[1,1],[0],[0]])
+        1
+        sage: sign_matching([[1,0],[1]],[[0],[2,1,1]],[[2,0],[1,0],[1],[1]])
+        -1
+        sage: sign_matching([[1,0],[1]],[[0],[2,1,1]],[[3,1],[2,1],[0],[0]])
+        1
+        sage: sign_matching([[1,0],[1]],[[0],[2,1,1]],[[3,0],[2,0],[1],[1]])
+        -1
+    """
     tp = list(mt[0])+list(mt[2])
     prm2 = Permutation([j for (i,j) in sorted([(tp[-k-1],k+1) for k in range(len(tp))])])
     return prm2.sign()
 
 def m_m_mult_fixed_a(SFSS_m, sp1, sp2, a_sp3):
+    r"""
+    For a fixed a-matching, return the sum of the terms in the monomial product
+
+    INPUT:
+
+    - ``SFSS_m`` -- a monomial basis
+    - ``sp1, sp2`` -- super partitions
+    - ``a_sp3`` -- a strict partition
+
+    OUTPUT:
+
+    - an element of the monomial basis
+
+    EXAMPLES::
+
+        sage: from sage.combinat.chas.symsuperspace import m_m_mult_fixed_a
+        sage: m = SymmetricFunctionsinSuperSpace(QQ).m()
+        sage: m_m_mult_fixed_a(m,[[1,0],[1]],[[0],[2,1,1]],[2,1,0])
+        -3*m[2, 1, 0; 1, 1, 1] - m[2, 1, 0; 2, 1] + m[2, 1, 0; 3]
+        sage: m_m_mult_fixed_a(m,[[1,0],[1]], [[0],[2,1,1]], [3,1,0])
+        m[3, 1, 0; 1, 1] + m[3, 1, 0; 2]
+    """
     if len(sp1[0])+len(sp2[0])!=len(a_sp3):
         return SFSS_m.zero()
     if sum(sp1[0])+sum(sp2[0])>sum(a_sp3):
