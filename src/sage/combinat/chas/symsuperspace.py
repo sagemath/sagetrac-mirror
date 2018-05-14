@@ -4,7 +4,7 @@ Symmetric functions in super space
 Symmetric functions in super space is an algebra whose bases are indexed by
 ``SuperPartitions``.
 
-Let `{\mathbb Q\}[\Theta_N, X_N]` be the polynomial ring in two sets of variables
+Let `{\mathbb Q}[\Theta_N, X_N]` be the polynomial ring in two sets of variables
 `\Theta_N = \theta_1, \theta_2, \ldots, \theta_N` and
 `X_N = x_1, x_2, \ldots, x_N`
 where the first set of variables anti-commute, `\theta_i^2 = 0`,
@@ -84,13 +84,13 @@ following products of the generators
 .. MATH::
 
     p_\Lambda = p_{(\Lambda_1; 0)} \cdots p_{(\Lambda_m; 0)}
-    p_{(\Lambda_{m+1}; 0)} \cdots p_{(\Lambda_N; 0)}~,
+    p_{(; \Lambda_{m+1})} \cdots p_{(; \Lambda_N)}~,
 
     e_\Lambda = e_{(\Lambda_1; 0)} \cdots e_{(\Lambda_m; 0)}
-    e_{(\Lambda_{m+1}; 0)} \cdots e_{(\Lambda_N; 0)}~,
+    e_{(; \Lambda_{m+1})} \cdots e_{(; \Lambda_N)}~,
 
     h_\Lambda = h_{(\Lambda_1; 0)} \cdots h_{(\Lambda_m; 0)}
-    h_{(\Lambda_{m+1}; 0)} \cdots h_{(\Lambda_N; 0)}~.
+    h_{(; \Lambda_{m+1})} \cdots h_{(; \Lambda_N)}~.
 
 The monomial symmetric polynomial `m_\Lambda[X_N;\Theta_N]` indexed by the
 super partition `\Lambda \in SPar(n|m)` is equal to the sum over all distinct
@@ -237,6 +237,8 @@ This involution is an algebra morphism with
 
     s^\ast_\Lambda = (-1)^{\binom{m}{2}} \omega {\bar s}_{\Lambda'} \qquad
     and \qquad {\bar s}^\ast_\Lambda = (-1)^{\binom{m}{2}} \omega s_{\Lambda'}
+
+where `\Lambda` is a super partition with femionic sector `m`.
 
 ::
 
@@ -1997,7 +1999,8 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
                 r"""
                 The involution omega.
 
-                The omega is computed by coercion to the power sum basis.
+                The involution omega is computed by coercion to the power
+                sum basis.
 
                 EXAMPLES::
 
