@@ -15,6 +15,14 @@
 #
 ##########################################################################
 
+# Variables such as @bindir@ contain unexpanded variables such as
+# ${exec_prefix}. This is a autoconf feature for Makefiles (see the
+# correspending comments in the created configure script) so we need to make
+# sure that variables referenced in the default values are defined here.
+prefix="@prefix@"
+exec_prefix="@exec_prefix@"
+datarootdir="@datarootdir@"
+
 # SAGE_LOCAL is the installation prefix and can be customized by using
 # ./configure --prefix
 export SAGE_LOCAL="@prefix@"
