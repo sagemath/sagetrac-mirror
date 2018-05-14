@@ -1,26 +1,24 @@
-diff -ru src/configure.ac b/configure.ac
---- src/configure.ac	2013-04-06 16:02:41.000000000 +0200
-+++ b/configure.ac	2013-04-11 18:11:17.947929754 +0200
-@@ -1051,9 +1051,6 @@
- then
-     case $GCC in
-     yes)
--        if test "$CC" != 'g++' ; then
--	    STRICT_PROTO="-Wstrict-prototypes"
--	fi
-         # For gcc 4.x we need to use -fwrapv so lets check if its supported
-         if "$CC" -v --help 2>/dev/null |grep -- -fwrapv > /dev/null; then
-            WRAP="-fwrapv"
-diff -ru src/configure b/configure
---- src/configure	2013-04-06 16:02:41.000000000 +0200
-+++ b/configure	2013-04-11 18:11:25.737930322 +0200
-@@ -5931,9 +5931,6 @@
- then
-     case $GCC in
-     yes)
--        if test "$CC" != 'g++' ; then
--	    STRICT_PROTO="-Wstrict-prototypes"
--	fi
-         # For gcc 4.x we need to use -fwrapv so lets check if its supported
-         if "$CC" -v --help 2>/dev/null |grep -- -fwrapv > /dev/null; then
-            WRAP="-fwrapv"
+See https://github.com/python/cpython/pull/6791
+
+commit 990b44bd70cd772bf5d1b14dffa25958ad1ec5d9
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Mon May 14 12:05:32 2018 +0200
+
+    Don't compile extensions with -Wstrict-prototypes
+
+diff --git a/Lib/distutils/sysconfig.py b/Lib/distutils/sysconfig.py
+index e07a6c8..a1dc5f6 100644
+--- a/Lib/distutils/sysconfig.py
++++ b/Lib/distutils/sysconfig.py
+@@ -207,6 +207,11 @@ def customize_compiler(compiler):
+         else:
+             archiver = ar + ' ' + ar_flags
+ 
++        # bpo-5755: remove -Wstrict-prototypes from flags because this
++        # flag is invalid for C++ code (and distutils uses the same
++        # compiler for both C and C++).
++        cflags = cflags.replace("-Wstrict-prototypes", "")
++
+         cc_cmd = cc + ' ' + cflags
+         compiler.set_executables(
+             preprocessor=cpp,
