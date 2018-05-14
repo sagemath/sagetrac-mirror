@@ -28,7 +28,9 @@ REFERENCES:
 
 from __future__ import absolute_import
 
-from sage.structure.element cimport FieldElement, parent
+from cpython.object cimport Py_EQ, Py_NE
+
+from sage.structure.element cimport parent
 from sage.structure.richcmp cimport richcmp
 
 from . import integer_ring
@@ -67,7 +69,7 @@ cdef class FractionFieldElement(FieldElement):
         True
         sage: x = K.gen()
         sage: f = (x^3 + x)/(17 - x^19); f
-        (x^3 + x)/(-x^19 + 17)
+        (-x^3 - x)/(x^19 - 17)
         sage: loads(f.dumps()) == f
         True
 
@@ -89,11 +91,9 @@ cdef class FractionFieldElement(FieldElement):
         sage: F.one().quo_rem(F.one())
         (1, 0)
     """
-    cdef object __numerator
-    cdef object __denominator
 
     def __init__(self, parent, numerator, denominator=1,
-                 coerce=True, reduce=True):
+                 coerce=True, reduce=True, is_reduced=False):
         """
         Initialize ``self``.
 
@@ -123,11 +123,10 @@ cdef class FractionFieldElement(FieldElement):
         else:
             self.__numerator   = numerator
             self.__denominator = denominator
-        if reduce and parent.is_exact():
-            try:
-                self.reduce()
-            except ArithmeticError:
-                pass
+        self._is_reduced = is_reduced # should it be considered reduced? (including
+                                      # cases where reducing would fail)
+        if reduce:
+            self.try_reduce()
         if self.__denominator.is_zero():
             raise ZeroDivisionError("fraction field element division by zero")
 
@@ -157,9 +156,29 @@ cdef class FractionFieldElement(FieldElement):
         nden = codomain.coerce(self.__denominator._im_gens_(codomain, im_gens))
         return codomain.coerce(nnum/nden)
 
-    def reduce(self):
+    cdef normalize_unit_denominator(self):
         """
-        Divides out the gcd of the numerator and denominator.
+        See :meth:`reduce`.
+        """
+        if self.__denominator.is_one() or self._is_reduced:
+            return
+        try:
+            is_unit = self.__denominator.is_unit()
+        except (AttributeError, NotImplementedError):
+            return
+        if is_unit:
+            inv = self.__denominator.inverse_of_unit()
+            self.__numerator *= inv
+            self.__denominator = self.__denominator.parent().one()
+
+    cpdef reduce(self):
+        """
+        Reduce this fraction.
+
+        Divides out the gcd of the numerator and denominator. If the
+        denominator becomes a unit, it becomes 1. Additionally, depending on
+        the base ring, the leading coefficients of the numerator and the
+        denominator may be normalized to 1.
 
         Automatically called for exact rings, but because it may be
         numerically unstable for inexact rings it must be called manually
@@ -173,28 +192,22 @@ cdef class FractionFieldElement(FieldElement):
             sage: f.reduce(); f
             x + 1.0
         """
+        if self._is_reduced:
+            return
+        g = self.__numerator.gcd(self.__denominator)
+        if not g.is_unit():
+            self.__numerator //= g
+            self.__denominator //= g
+        self.normalize_unit_denominator()
+        self._is_reduced = True
+
+    cdef try_reduce(self):
+        if not self._parent.is_exact():
+            return
         try:
-            g = self.__numerator.gcd(self.__denominator)
-            if not g.is_unit():
-                num, _ = self.__numerator.quo_rem(g)
-                den, _ = self.__denominator.quo_rem(g)
-            else:
-                num = self.__numerator
-                den = self.__denominator
-            if not den.is_one() and den.is_unit():
-                try:
-                    num *= den.inverse_of_unit()
-                    den  = den.parent().one()
-                except Exception:
-                    pass
-            self.__numerator   = num
-            self.__denominator = den
-        except AttributeError:
-            raise ArithmeticError("unable to reduce because lack of gcd or quo_rem algorithm")
-        except TypeError:
-            raise ArithmeticError("unable to reduce because gcd algorithm doesn't work on input")
-        except NotImplementedError:
-            raise ArithmeticError("unable to reduce because gcd algorithm not implemented on input")
+            self.reduce()
+        except (AttributeError, TypeError, NotImplementedError):
+            pass
 
     def __copy__(self):
         """
@@ -209,7 +222,8 @@ cdef class FractionFieldElement(FieldElement):
             (x + y)/y
         """
         return self.__class__(self._parent, self.__numerator,
-                self.__denominator, coerce=False, reduce=False)
+                self.__denominator, coerce=False, reduce=False,
+                is_reduced=self._is_reduced)
 
     def numerator(self):
         """
@@ -283,9 +297,7 @@ cdef class FractionFieldElement(FieldElement):
 
             sage: R.<x> = QQ[]
             sage: a = 2*(x+1)^2 / (2*(x-1)^2); a
-            (2*x^2 + 4*x + 2)/(2*x^2 - 4*x + 2)
-            sage: a.numerator().is_square()
-            False
+            (x^2 + 2*x + 1)/(x^2 - 2*x + 1)
             sage: a.is_square()
             True
             sage: (0/x).is_square()
@@ -341,17 +353,41 @@ cdef class FractionFieldElement(FieldElement):
             1
             sage: hash(R(1)/R(2))==hash(1/2)
             True
+
+        Check that :trac:`16268` is fixed::
+
+            sage: ku.<u> = FractionField(PolynomialRing(QQ,'u'))
+            sage: a = 27*u^2+81*u+243
+            sage: b = 27*u-81
+            sage: c = u^2 + 3*u + 9
+            sage: d = u-3
+            sage: s = a/b
+            sage: t = c/d
+            sage: s == t
+            True
+            sage: len(set([s,t]))
+            1
         """
-        # This is same algorithm as used for members of QQ
-        #cdef long n, d
+        if self.__denominator.is_one():
+            # Handle this case even over rings that don't support reduction, to
+            # avoid breaking existing code that carelessly mixes p and p/1
+            return hash(self.__numerator)
+        if self._parent.is_exact():
+            # May fail; let the exception propagate then.
+            # (In contrast, over inexact rings, we hash unreduced fractions
+            # without complaining. This is not ideal, but there is code in Sage
+            # that uses dictionaries indexed by rational functions with
+            # floating-point coefficients, and since the equality test involves
+            # potentially inexact operations, there would be compatibility
+            # issues even if we didn't...)
+            self.reduce()
+        # Same algorithm as for elements of QQ
         n = hash(self.__numerator)
         d = hash(self.__denominator)
         if d == 1:
             return n
-        n = n ^ d
-        if n == -1:
-            return -2
-        return n
+        else:
+            return n ^ d
 
     def __call__(self, *x, **kwds):
         """
@@ -515,55 +551,47 @@ cdef class FractionFieldElement(FieldElement):
         snum = (<FractionFieldElement> right).__numerator
         sden = (<FractionFieldElement> right).__denominator
 
-        if (rnum.is_zero()):
-            return <FractionFieldElement> right
-        if (snum.is_zero()):
+        if rnum.is_zero():
+            return right
+        if snum.is_zero():
             return self
 
         if self._parent.is_exact():
             try:
                 d = rden.gcd(sden)
-                if d.is_unit():
-                    return self.__class__(self._parent, rnum*sden + rden*snum,
-                        rden*sden, coerce=False, reduce=False)
-                else:
-                    rden = rden // d
-                    sden = sden // d
-                    tnum = rnum * sden + rden * snum
-                    if tnum.is_zero():
-                        return self.__class__(self._parent, tnum,
-                            self._parent.ring().one(), coerce=False,
-                            reduce=False)
-                    else:
-                        tden = self.__denominator * sden
-                        e    = tnum.gcd(d)
-                        if not e.is_unit():
-                            tnum = tnum // e
-                            tden = tden // e
-                        if not tden.is_one() and tden.is_unit():
-                            try:
-                                tnum = tnum * tden.inverse_of_unit()
-                                tden = self._parent.ring().one()
-                            except AttributeError:
-                                pass
-                            except NotImplementedError:
-                                pass
-                        return self.__class__(self._parent, tnum, tden,
-                            coerce=False, reduce=False)
-            except AttributeError:
+            except (AttributeError, NotImplementedError, TypeError):
+                d = rden.parent().one()
+            if d.is_unit():
+                return self.__class__(self._parent, rnum*sden + rden*snum,
+                    rden*sden, coerce=False, reduce=False, is_reduced=True)
+            try: # some rings implement gcd() but not // (!)
+                rden = rden // d
+                sden = sden // d
+            except (AttributeError, NotImplementedError, TypeError):
                 pass
-            except NotImplementedError:
-                pass
+            tnum = rnum * sden + rden * snum
+            if tnum.is_zero():
+                return self.__class__(self._parent, tnum,
+                        self._parent.ring().one(), coerce=False,
+                        reduce=False, is_reduced=True)
+            tden = self.__denominator * sden
+            try: # some rings implement gcd() but not // (!)
+                e    = tnum.gcd(d)
+                tnum = tnum // e
+                tden = tden // e
             except TypeError:
                 pass
-
-        rnum = self.__numerator
-        rden = self.__denominator
-        snum = (<FractionFieldElement> right).__numerator
-        sden = (<FractionFieldElement> right).__denominator
-
-        return self.__class__(self._parent, rnum*sden + rden*snum, rden*sden,
-            coerce=False, reduce=False)
+            res = self.__class__(self._parent, tnum, tden, coerce=False,
+                    reduce=False)
+            try:
+                (<FractionFieldElement> res).normalize_unit_denominator()
+            except (AttributeError, NotImplementedError):
+                pass
+            (<FractionFieldElement> res)._is_reduced = True
+            return res
+        else:
+            return self.__class__(self._parent, rnum*sden + rden*snum,
+                    rden*sden, coerce=False, reduce=False)
 
     cpdef _mul_(self, right):
         """
@@ -587,48 +615,45 @@ cdef class FractionFieldElement(FieldElement):
         """
         rnum = self.__numerator
         rden = self.__denominator
-        snum = (<FractionFieldElement> right).__numerator
-        sden = (<FractionFieldElement> right).__denominator
+        cdef FractionFieldElement _right = <FractionFieldElement> right
+        snum = _right.__numerator
+        sden = _right.__denominator
 
-        if (rnum.is_zero() or snum.is_zero()):
+        if rnum.is_zero() or snum.is_zero():
             return self._parent.zero()
+        elif self.is_one():
+            return right
+        elif _right.is_one():
+            return self
 
         if self._parent.is_exact():
             try:
                 d1 = rnum.gcd(sden)
                 d2 = snum.gcd(rden)
+            except (AttributeError, NotImplementedError, TypeError):
+                d1 = d2 = rnum.parent().one()
+            try: # some rings implement gcd() but not // (!)
                 if not d1.is_unit():
                     rnum = rnum // d1
                     sden = sden // d1
                 if not d2.is_unit():
                     rden = rden // d2
                     snum = snum // d2
-                tnum = rnum * snum
-                tden = rden * sden
-                if not tden.is_one() and tden.is_unit():
-                    try:
-                        tnum = tnum * tden.inverse_of_unit()
-                        tden = self._parent.ring().one()
-                    except AttributeError:
-                        pass
-                    except NotImplementedError:
-                        pass
-                return self.__class__(self._parent, tnum, tden,
-                    coerce=False, reduce=False)
-            except AttributeError:
-                pass
-            except NotImplementedError:
-                pass
             except TypeError:
                 pass
-
-        rnum = self.__numerator
-        rden = self.__denominator
-        snum = (<FractionFieldElement> right).__numerator
-        sden = (<FractionFieldElement> right).__denominator
-
-        return self.__class__(self._parent, rnum * snum, rden * sden,
-            coerce=False, reduce=False)
+            tnum = rnum * snum
+            tden = rden * sden
+            res = self.__class__(self._parent, tnum, tden, coerce=False,
+                   reduce=False)
+            try:
+                (<FractionFieldElement> res).normalize_unit_denominator()
+            except (AttributeError, NotImplementedError):
+                pass
+            (<FractionFieldElement> res)._is_reduced = True
+            return res
+        else:
+            return self.__class__(self._parent, rnum * snum, rden * sden,
+                coerce=False, reduce=False)
 
     cpdef _div_(self, right):
         """
@@ -655,11 +680,12 @@ cdef class FractionFieldElement(FieldElement):
 
         if snum.is_zero():
             raise ZeroDivisionError("fraction field element division by zero")
-
-        rightinv = self.__class__(self._parent, sden, snum,
-            coerce=True, reduce=False)
-
-        return self._mul_(rightinv)
+        elif self.is_one():
+            return ~right
+        else:
+            rightinv = self.__class__(self._parent, sden, snum,
+                coerce=True, reduce=False)
+            return self._mul_(rightinv)
 
     def __int__(self):
         """
@@ -724,11 +750,24 @@ cdef class FractionFieldElement(FieldElement):
         """
         return long(int(self))
 
-    def __pow__(self, right, dummy):
+    cdef _pow_(self, right):
         r"""
-        Returns self raised to the `right^{th}` power.
+        For compatibility with old code that calls ``__pow__`` with non-integer
+        exponents.
 
-        Note that we need to check whether or not right is negative so we
+        TESTS::
+
+            sage: Pol.<x> = QQ[]
+            sage: (1/x)^QQ(2)
+            1/x^2
+        """
+        return self._pow_int(ZZ(right))
+
+    cpdef _pow_int(self, n):
+        r"""
+        Returns self raised to the `n^{th}` power.
+
+        Note that we need to check whether or not n is negative so we
         don't set ``__numerator`` or ``__denominator`` to an element of the
         fraction field instead of the underlying ring.
 
@@ -760,20 +799,20 @@ cdef class FractionFieldElement(FieldElement):
         """
         snum = (<FractionFieldElement> self).__numerator
         sden = (<FractionFieldElement> self).__denominator
-        if right == 0:
-            R = self.parent().ring()
+        if n == 0:
+            return self.parent().one()
+        elif n > 0:
             return self.__class__(self.parent(),
-                R.one(), R.one(),
-                coerce=False, reduce=False)
-        elif right > 0:
-            return self.__class__(self.parent(),
-                snum**right, sden**right,
-                coerce=False, reduce=False)
+                snum**n, sden**n,
+                coerce=False, reduce=False, is_reduced=True)
         else:
-            right = -right
-            return self.__class__(self.parent(),
-                sden**right, snum**right,
+            n = -n
+            res = self.__class__(self.parent(),
+                sden**n, snum**n,
                 coerce=False, reduce=False)
+            (<FractionFieldElement> res).normalize_unit_denominator()
+            (<FractionFieldElement> res)._is_reduced = True
+            return res
 
     def __neg__(self):
         """
@@ -787,7 +826,7 @@ cdef class FractionFieldElement(FieldElement):
         """
         return self.__class__(self._parent,
             -self.__numerator, self.__denominator,
-            coerce=False, reduce=False)
+            coerce=False, reduce=False, is_reduced=True)
 
     def __abs__(self):
         """
@@ -810,8 +849,11 @@ cdef class FractionFieldElement(FieldElement):
         """
         if self.is_zero():
             raise ZeroDivisionError("Cannot invert 0")
-        return self.__class__(self._parent,
+        inv = self.__class__(self._parent,
             self.__denominator, self.__numerator, coerce=False, reduce=False)
+        (<FractionFieldElement> inv).normalize_unit_denominator()
+        (<FractionFieldElement> inv)._is_reduced = True
+        return inv
 
     def __float__(self):
         """
@@ -823,7 +865,7 @@ cdef class FractionFieldElement(FieldElement):
         """
         return float(self.__numerator) / float(self.__denominator)
 
-    cpdef _richcmp_(self, other, int op):
+    cpdef _richcmp_(self, other_, int op):
         """
         EXAMPLES::
 
@@ -842,11 +884,24 @@ cdef class FractionFieldElement(FieldElement):
             True
             sage: 1 > y
             False
+
+        ::
+
+            sage: Pol.<x,y> = GF(47)[]
+            sage: a = (21*x^9 + 5*x^6 + 21*x^3 - 19)/(x^8 + 8*x^5 + 16*x^2)
+            sage: b = (x^9 - 2*x^6 + x^3 + 17)/(9*x^8 - 22*x^5 + 3*x^2)
+            sage: a == b
+            True
         """
-        return richcmp(self.__numerator *
-                       (<FractionFieldElement>other).__denominator,
-                       self.__denominator *
-                       (<FractionFieldElement>other).__numerator, op)
+        cdef FractionFieldElement other = other_
+        if ((op == Py_EQ or op == Py_NE)
+                and self.__denominator == other.__denominator):
+            return richcmp(self.__numerator, other.__numerator, op)
+        else:
+            return richcmp(
+                    self.__numerator * other.__denominator,
+                    self.__denominator * other.__numerator,
+                    op)
 
     def valuation(self, v=None):
         """
@@ -858,7 +913,7 @@ cdef class FractionFieldElement(FieldElement):
             sage: x = PolynomialRing(RationalField(),'x').gen()
             sage: f = (x^3 + x)/(x^2 - 2*x^3)
             sage: f
-            (x^2 + 1)/(-2*x^2 + x)
+            (-1/2*x^2 - 1/2)/(x^2 - 1/2*x)
             sage: f.valuation()
             -1
             sage: f.valuation(x^2+1)
@@ -885,7 +940,7 @@ cdef class FractionFieldElement(FieldElement):
         """
         return not self.__numerator.is_zero()
 
-    def is_zero(self):
+    cpdef bint is_zero(self):
         """
         Return ``True`` if this element is equal to zero.
 
@@ -904,7 +959,7 @@ cdef class FractionFieldElement(FieldElement):
         """
         return self.__numerator.is_zero()
 
-    def is_one(self):
+    cpdef bint is_one(self):
         """
         Return ``True`` if this element is equal to one.
 
@@ -984,13 +1039,39 @@ cdef class FractionFieldElement(FieldElement):
             raise NotImplementedError
 
 
-class FractionFieldElement_1poly_field(FractionFieldElement):
+cdef class FractionFieldElement_1poly_field(FractionFieldElement):
     """
     A fraction field element where the parent is the fraction field of a
-    univariate polynomial ring.
+    univariate polynomial ring over a field.
 
     Many of the functions here are included for coherence with number fields.
     """
+
+    def __init__(self, parent, numerator, denominator=1,
+                 coerce=True, reduce=True, is_reduced=False):
+        """
+        TESTS:
+
+            sage: P.<x> = QQ[]
+            sage: a = (2*x^2)/x
+            sage: ~a
+            1/2/x
+            sage: 1/a
+            1/2/x
+        """
+        FractionFieldElement.__init__(self, parent, numerator, denominator,
+                coerce, reduce, is_reduced)
+        if not reduce and not is_reduced:
+            self.normalize_leading_coefficients()
+
+    cdef normalize_leading_coefficients(self):
+        """
+        See :meth:`reduce`.
+        """
+        invlc = ~self.__denominator.leading_coefficient()
+        self.__denominator = self.__denominator.monic()
+        self.__numerator *= invlc
+
     def is_integral(self):
         """
         Returns whether this element is actually a polynomial.
@@ -1008,7 +1089,7 @@ class FractionFieldElement_1poly_field(FractionFieldElement):
             False
         """
         if self.denominator() != 1:
-            self.reduce()
+            self.try_reduce()
         return self.denominator() == 1
 
     def support(self):
@@ -1027,6 +1108,54 @@ class FractionFieldElement_1poly_field(FractionFieldElement):
         L.sort()
         return L
 
+    cpdef reduce(self):
+        """
+        Pick a normalized representation of self.
+
+        In particular, for any a == b, after normalization they will have the
+        same numerator and denominator.
+
+        EXAMPLES:
+
+        For univariate rational functions over a field, we have::
+
+            sage: R.<x> = QQ[]
+            sage: (2 + 2*x) / (4*x) # indirect doctest
+            (1/2*x + 1/2)/x
+
+        Compare with::
+
+            sage: R.<x> = ZZ[]
+            sage: (2 + 2*x) / (4*x)
+            (x + 1)/(2*x)
+        """
+        if self._is_reduced:
+            return
+        super(self.__class__, self).reduce()
+        self.normalize_leading_coefficients()
+
+    cpdef _richcmp_(self, other_, int op):
+        """
+        EXAMPLES::
+
+            sage: K.<t> = Frac(GF(7)['t'])
+            sage: t/t == 1
+            True
+            sage: t+1/t == (t^2+1)/t
+            True
+            sage: t == t/5
+            False
+        """
+        cdef FractionFieldElement other = other_
+        if op == Py_EQ or op == Py_NE:
+            if self.__denominator == other.__denominator:
+                return richcmp(self.__numerator, other.__numerator, op)
+            elif self._is_reduced and other._is_reduced:
+                return op == Py_NE
+        return richcmp(
+                self.__numerator * other.__denominator,
+                self.__denominator * other.__numerator,
+                op)
 
 def make_element(parent, numerator, denominator):
     """
