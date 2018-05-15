@@ -39,7 +39,7 @@ from copy import copy
 from six import itervalues
 from six.moves import range
 
-from pprint import pformat
+from pprint import saferepr
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
@@ -662,8 +662,18 @@ class FiniteFamily(AbstractFamily):
             sage: FiniteFamily({3: 'a'}) # indirect doctest
             Finite family {3: 'a'}
         """
-        d = ' '.join(pformat(self._dictionary).splitlines())
-        return "Finite family %s" % d
+        if self._keys:
+            def sort_key(x):
+                try:
+                    return (self._keys.index(x[0]), x[0])
+                except ValueError:
+                    return (len(self._keys), x[0])
+        else:
+            sort_key = None
+
+        return 'Finite family {{{}}}'.format(', '.join(
+            '{}: {}'.format(saferepr(k), saferepr(v))
+            for k, v in sorted(self._dictionary.items(), key=sort_key)))
 
     def __contains__(self, x):
         """

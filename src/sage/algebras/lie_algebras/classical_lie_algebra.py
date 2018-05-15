@@ -1302,7 +1302,8 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
 
             sage: L = LieAlgebra(QQ, cartan_type=['A', 1])
             sage: L.lie_algebra_generators()
-            Finite family {-alpha[1]: E[-alpha[1]], alpha[1]: E[alpha[1]], alphacheck[1]: h1}
+            Finite family {alphacheck[1]: h1, -alpha[1]: E[-alpha[1]],
+            alpha[1]: E[alpha[1]]}
             sage: L.lie_algebra_generators(True)
             Finite family {'e1': E[alpha[1]], 'f1': E[-alpha[1]], 'h1': h1}
         """

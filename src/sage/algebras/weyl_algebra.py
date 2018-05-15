@@ -789,7 +789,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             sage: R.<x,y,z> = QQ[]
             sage: W = DifferentialWeylAlgebra(R)
             sage: W.algebra_generators()
-            Finite family {'dx': dx, 'dy': dy, 'dz': dz, 'x': x, 'y': y, 'z': z}
+            Finite family {'x': x, 'y': y, 'z': z, 'dx': dx, 'dy': dy, 'dz': dz}
         """
         d = {x: self.gen(i) for i,x in enumerate(self.variable_names())}
         return Family(self.variable_names(), lambda x: d[x])

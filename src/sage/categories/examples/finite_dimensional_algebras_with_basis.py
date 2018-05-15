@@ -122,7 +122,7 @@ class KroneckerQuiverPathAlgebra(CombinatorialFreeModule):
             the path algebra of the Kronecker quiver
             (containing the arrows a:x->y and b:x->y) over Rational Field
             sage: A.algebra_generators()
-            Finite family {'a': a, 'b': b, 'x': x, 'y': y}
+            Finite family {'x': x, 'y': y, 'a': a, 'b': b}
         """
         return self.basis()
 
