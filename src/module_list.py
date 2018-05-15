@@ -690,6 +690,11 @@ ext_modules = [
               libraries = ["ntl", "gmp", "m"],
               language='c++'),
 
+    Extension('sage.libs.ntl.ntl_mat_ZZ_p',
+              sources = ["sage/libs/ntl/ntl_mat_ZZ_p.pyx"],
+              libraries = ["ntl", "gmp", "m"],
+              language='c++'),
+
     Extension('sage.libs.ntl.ntl_ZZ',
               sources = ["sage/libs/ntl/ntl_ZZ.pyx"],
               libraries = ["ntl", "gmp", "m"],
