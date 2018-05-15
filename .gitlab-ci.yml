@@ -58,7 +58,7 @@ before_script:
   - .ci/describe-system.sh
   # Set DOCKER_TAG according to the current branch/tag
   - . .ci/update-env.sh
-  # Set MAKE and NTHREADS according to the machine we are running on
+  # Set MAKEOPTS and SAGE_NUM_THREADS according to the machine we are running on
   - . .ci/setup-make-parallelity.sh
 
 # We use docker-in-docker to build our docker images, i.e., we run a
@@ -100,6 +100,7 @@ build-from-latest: &build
   except:
     - master
     - develop
+    - tags
 
 # Build Sage and its documentation from a clean checkout of Sage.
 # Note that this takes several hours. You probably want to run this on your own
@@ -115,6 +116,7 @@ build-from-clean:
   only:
     - master
     - develop
+    - tags
   except: []
   tags:
     # 60 GB of HDD are available
@@ -162,6 +164,7 @@ push-dockerhub-dev:
   only:
     - master
     - develop
+    - tags
   script:
     - . .ci/pull-gitlab.sh sagemath-dev
     - sh .ci/push-dockerhub.sh sagemath-dev

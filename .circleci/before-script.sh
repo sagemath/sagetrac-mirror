@@ -28,14 +28,4 @@ export DOCKER_TAG=${CIRCLE_TAG:-$CIRCLE_BRANCH}
 . .ci/update-env.sh
 
 # Select ARTIFACT_BASE depending on the current branch/tag
-case $DOCKER_TAG in
-"develop" | "latest")
-  export ARTIFACT_BASE=source-clean
-  ;;
-*)
-  # Select sagemath/sagemath-dev:develop as the ARTIFACT_BASE
-  # unless the user has explicitly selected a differnt one as a
-  # CircleCI environment variable.
-  export ARTIFACT_BASE=${ARTIFACT_BASE:-sagemath/sagemath-dev:develop}
-  ;;
-esac
+TODO: port the changes from 24655 here to build tags from scratch.
