@@ -80,6 +80,9 @@ from cpython.object cimport (PyObject, PyTypeObject,
 from cpython.weakref cimport PyWeakref_GET_OBJECT, PyWeakref_NewRef
 from libc.string cimport strncmp
 
+IF HAVE_GMPY2:
+    import gmpy2
+
 cdef add, sub, mul, div, truediv, isub, imul
 import operator
 cdef dict operator_dict = operator.__dict__
@@ -89,7 +92,7 @@ try:
 except ImportError:
     div = object()  # Unique object not equal to anything else
 
-from .richcmp cimport rich_to_bool
+from .richcmp cimport rich_to_bool, revop
 from .sage_object cimport SageObject
 from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
 from .element cimport bin_op_exception, parent, Element
@@ -115,7 +118,7 @@ cpdef py_scalar_parent(py_type):
         sage: from sage.structure.coerce import py_scalar_parent
         sage: py_scalar_parent(int)
         Integer Ring
-        sage: py_scalar_parent(long)
+        sage: py_scalar_parent(long)  # py2
         Integer Ring
         sage: py_scalar_parent(float)
         Real Double Field
@@ -145,6 +148,16 @@ cpdef py_scalar_parent(py_type):
 
         sage: py_scalar_parent(numpy.complex)
         Complex Double Field
+        
+        sage: import gmpy2                  # optional - gmpy2
+        sage: py_scalar_parent(gmpy2.mpz)   # optional - gmpy2
+        Integer Ring
+        sage: py_scalar_parent(gmpy2.mpq)   # optional - gmpy2
+        Rational Field
+        sage: py_scalar_parent(gmpy2.mpfr)  # optional - gmpy2
+        Real Double Field
+        sage: py_scalar_parent(gmpy2.mpc)   # optional - gmpy2
+        Complex Double Field
     """
     if issubclass(py_type, int) or issubclass(py_type, long):
         import sage.rings.integer_ring
@@ -171,6 +184,18 @@ cpdef py_scalar_parent(py_type):
             return sage.rings.complex_double.CDF
         else:
             return None
+    elif HAVE_GMPY2 and issubclass(py_type, gmpy2.mpz):
+        import sage.rings.integer_ring
+        return sage.rings.integer_ring.ZZ
+    elif HAVE_GMPY2 and issubclass(py_type, gmpy2.mpq):
+        import sage.rings.rational_field
+        return sage.rings.rational_field.QQ
+    elif HAVE_GMPY2 and issubclass(py_type, gmpy2.mpfr):
+        import sage.rings.real_double
+        return sage.rings.real_double.RDF
+    elif HAVE_GMPY2 and issubclass(py_type, gmpy2.mpc):
+        import sage.rings.complex_double
+        return sage.rings.complex_double.CDF
     else:
         return None
 
@@ -212,6 +237,22 @@ cpdef py_scalar_to_element(x):
         sage: py_scalar_to_element(False), py_scalar_to_element(True)
         (0, 1)
 
+    Test gmpy2's types::
+
+        sage: import gmpy2                               # optional - gmpy2 
+        sage: x = py_scalar_to_element(gmpy2.mpz(42))    # optional - gmpy2
+        sage: x, parent(x)                               # optional - gmpy2
+        (42, Integer Ring)
+        sage: x = py_scalar_to_element(gmpy2.mpq('3/4')) # optional - gmpy2
+        sage: x, parent(x)                               # optional - gmpy2
+        (3/4, Rational Field) 
+        sage: x = py_scalar_to_element(gmpy2.mpfr(42.57))# optional - gmpy2
+        sage: x, parent(x)                               # optional - gmpy2
+        (42.57, Real Double Field)
+        sage: x = py_scalar_to_element(gmpy2.mpc(int(42), int(42))) # optional - gmpy2
+        sage: x, parent(x)                               # optional - gmpy2
+        (42.0 + 42.0*I, Complex Double Field)
+
     Test compatibility with :func:`py_scalar_parent`::
 
         sage: from sage.structure.coerce import py_scalar_parent
@@ -228,6 +269,11 @@ cpdef py_scalar_to_element(x):
         ....:        numpy.float64('-3.412'), numpy.complex64(1.2+I),
         ....:         numpy.complex128(-2+I)]
         sage: for x in elt:
+        ....:     assert py_scalar_parent(type(x)) == py_scalar_to_element(x).parent()
+        
+        sage: elt = [gmpy2.mpz(42), gmpy2.mpq('3/4'),               # optional - gmpy2
+        ....:        gmpy2.mpfr(42.57), gmpy2.mpc(int(42), int(42))]
+        sage: for x in elt:                                         # optional - gmpy2
         ....:     assert py_scalar_parent(type(x)) == py_scalar_to_element(x).parent()
     """
     if isinstance(x, Element):
@@ -257,6 +303,18 @@ cpdef py_scalar_to_element(x):
             return CDF(x)
         else:
             return x
+    elif HAVE_GMPY2 and type(x) is gmpy2.mpz:
+            from sage.rings.integer import Integer
+            return Integer(x)
+    elif HAVE_GMPY2 and type(x) is gmpy2.mpq:
+        from sage.rings.rational import Rational
+        return Rational(x)
+    elif HAVE_GMPY2 and type(x) is gmpy2.mpfr:
+        from sage.rings.real_double import RDF
+        return RDF(x)
+    elif HAVE_GMPY2 and type(x) is gmpy2.mpc:
+        from sage.rings.complex_double import CDF
+        return CDF(x)
     else:
         return x
 
@@ -1903,14 +1961,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: richcmp(int(1), float(2), op_GE)
             False
 
-        If there is no coercion, compare types::
+        If there is no coercion, only comparisons for equality make
+        sense::
 
             sage: x = QQ.one(); y = GF(2).one()
             sage: richcmp(x, y, op_EQ)
             False
             sage: richcmp(x, y, op_NE)
-            True
-            sage: richcmp(x, y, op_LT if cmp(type(x), type(y)) == -1 else op_GT)
             True
 
         We support non-Sage types with the usual Python convention::
@@ -1936,7 +1993,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         # x.__richcmp__ would already have been called)
         if y_is_Element:
             if (<Element>y)._parent.get_flag(Parent_richcmp_element_without_coercion):
-                return Py_TYPE(y).tp_richcompare(x, y, op)
+                return Py_TYPE(y).tp_richcompare(y, x, revop(op))
 
         # Coerce to a common parent
         try:
@@ -1956,21 +2013,10 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         # operation (<= becomes >=).
         # This only makes sense when y is not a Sage Element, otherwise
         # we would end up trying the same coercion again.
-        cdef int revop
         if not y_is_Element and Py_TYPE(y).tp_richcompare:
-            revop = (5 - op) ^ 1
-            res = Py_TYPE(y).tp_richcompare(y, x, revop)
+            res = Py_TYPE(y).tp_richcompare(y, x, revop(op))
             if res is not NotImplemented:
                 return res
-
-        # If types are not equal: compare types
-        # avoiding call to cmp() for compatibility with python3
-        cdef type tx = type(x)
-        cdef type ty = type(y)
-        if tx < ty:
-            return rich_to_bool(op, -1)
-        elif tx > ty:
-            return rich_to_bool(op, 1)
 
         # Final attempt: compare by id()
         if (<unsigned long><PyObject*>x) >= (<unsigned long><PyObject*>y):
@@ -1993,11 +2039,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             ...
             RuntimeError: There is a bug in the coercion code in Sage.
             Both x (='f(a)') and y (='g(b)') are supposed to have identical parents but they don't.
-            In fact, x has parent '<... 'str'>'
-            whereas y has parent '<... 'str'>'
-            Original elements 'a' (parent <... 'str'>) and 'b' (parent <... 'str'>) and maps
-            <... 'str'> 'f'
-            <... 'str'> 'g'
+            In fact, x has parent '<type 'str'>'
+            whereas y has parent '<type 'str'>'
+            Original elements 'a' (parent <type 'str'>) and 'b' (parent <type 'str'>) and maps
+            <type 'str'> 'f'
+            <type 'str'> 'g'
         """
         raise RuntimeError("""There is a bug in the coercion code in Sage.
 Both x (=%r) and y (=%r) are supposed to have identical parents but they don't.
