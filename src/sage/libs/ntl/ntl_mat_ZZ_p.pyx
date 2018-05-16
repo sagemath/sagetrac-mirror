@@ -502,41 +502,42 @@ cdef class ntl_mat_ZZ_p(object):
         sig_off()
         return bool(isZero)
 
-    #def _sage_(ntl_mat_ZZ_p self, k=None):
-    #    """
-    #    Returns a ``Matrix`` over a ``IntegerMod`` representation
-    #    of this element.
+    def _sage_(ntl_mat_ZZ_p self, k=None):
+        """
+        Returns a ``Matrix`` over a ``IntegerMod`` representation
+        of this element.
 
-    #    INPUT:
+        INPUT:
 
-    #    - ``k`` - optional IntegerModRing(p)
+        - ``k`` - optional IntegerModRing(N)
 
-    #    OUTPUT:
-    #        Matrix over k
+        OUTPUT:
+        - Sage matrix over ``\ZZ/p\ZZ`` or ``k``, if supplied
 
-    #    EXAMPLES::
+        EXAMPLES::
 
-    #        sage: ctx = ntl.ZZ_pContext([1,1,0,1])
-    #        sage: m = ntl.mat_ZZ_p(ctx, 2,2,[3..6])
-    #        sage: m
-    ##        [[[1 1] [0 0 1]]
-    ##        [[1 0 1] [0 1 1]]
-    #        ]
-    #        sage: m._sage_()
-    #        [  a + 1     a^2]
-    #        [a^2 + 1 a^2 + a]
-    #    """
-    #    cdef ZZ_c p
-    ##    if k is None:
-    #        from sage.rings.finite_rings.integer_mod_ring import Integers
-    #        f = self.c.m._sage_()
-    #        ZZ_p_modulus(&p, self.x)
-    #        k = Integers(make_ZZ(&p), name='a', modulus=f)
+            sage: ctx = ntl.ZZ_pContext(20)
+            sage: m = ntl.mat_ZZ_p(ctx, 2,3,[9..16])
+            sage: m
+            [[9 10 11]
+            [12 13 14]
+            ]
+            sage: m._sage_()
+            [ 9 10 11]
+            [12 13 14]
+            sage: m._sage_(Integers(10))
+            [9 0 1]
+            [2 3 4]
+        """
+        cdef ZZ_c p
+        if k is None:
+            from sage.rings.finite_rings.integer_mod_ring import Integers
+            k = Integers(self.c.modulus())
 
-    #    l = [e._sage_(k) for e in self.list()] # we actually can do faster than this
+        l = [k(e._sage_()) for e in self.list()] # we actually can do faster than this
 
-    #    from sage.matrix.constructor import Matrix
-    #    return Matrix(k,self.x.NumRows(),self.x.NumCols(),l)
+        from sage.matrix.constructor import Matrix
+        return Matrix(k,self.x.NumRows(),self.x.NumCols(),l)
 
     def transpose(ntl_mat_ZZ_p self):
         """
