@@ -5082,6 +5082,9 @@ class Permutation(CombinatorialElement):
         return self.shifted_concatenation(other, "right").\
         right_permutohedron_interval(self.shifted_concatenation(other, "left"))
 
+    def new_test_method(self):
+        return None
+
 ################################################################
 # Parent classes
 ################################################################
