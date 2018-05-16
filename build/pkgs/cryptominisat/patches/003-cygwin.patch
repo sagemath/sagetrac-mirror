@@ -1,0 +1,34 @@
+Fixes two issues for building cryptominisat on Cygwin:
+* Cygwin should use -std=gnu++11 since its libc (newlib) does not enable
+  GNU extensions by default
+* Ensure that the cryptominisat DLL is installed in the appropriate bin/
+See https://trac.sagemath.org/ticket/25374
+diff -ruN a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt	2016-09-10 15:30:17.000000000 +0200
++++ b/CMakeLists.txt	2018-05-16 15:25:43.613992000 +0200
+@@ -145,7 +145,13 @@
+ 
+ # Note: O3 gives slight speed increase, 1 more solved from SAT Comp'14 @ 3600s
+ if (NOT WIN32)
+-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g")
++    if(CYGWIN)
++        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
++    else()
++        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
++    endif()
++    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
++
+     if (USE_PTHREADS)
+         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+     endif()
+diff -ruN a/src/CMakeLists.txt b/src/CMakeLists.txt
+--- a/src/CMakeLists.txt	2018-05-16 15:26:16.669514800 +0200
++++ b/src/CMakeLists.txt	2018-05-16 15:26:04.703104200 +0200
+@@ -191,6 +191,7 @@
+     EXPORT ${CRYPTOMINISAT5_EXPORT_NAME}
+     LIBRARY DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
+     ARCHIVE DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
++    RUNTIME DESTINATION "${CMAKE_INSTALL_FULL_BINDIR}"
+     PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}/cryptominisat5"
+ )
+ 
