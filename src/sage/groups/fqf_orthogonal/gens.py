@@ -28,7 +28,10 @@ from copy import copy
 from sage.matrix.all import matrix
 from sage.modules.all import vector
 from sage.groups.all import GO, Sp
-from sage.groups.fqf_orthogonal.lift import Hensel_qf
+from sage.groups.fqf_orthogonal.lift import (Hensel_qf,
+                                             _block_indices_vals,
+                                             _min_val,
+                                             _solve_X)
 
 def _mod_p_to_a_kernel(G, a):
     r"""
@@ -56,7 +59,7 @@ def _mod_p_to_a_kernel(G, a):
         Ek = matrix.identity(R, i2 - i1)
         Zk = matrix.zero(R, i2 - i1)
         if p == 2 and a == 1:
-            gensk = _solve_X(matrix.zero(R,ni,ni),matrix.zero(R,1,ni).list(),Gk_inv.diagonal(),ker=True)
+            gensk = _solve_X(matrix.zero(R,ni,ni), matrix.zero(R,1,ni).list(),Gk_inv.diagonal(), ker=True)
         else:
             # basis for the space of anti-symmetric matrices
             gensk = []
