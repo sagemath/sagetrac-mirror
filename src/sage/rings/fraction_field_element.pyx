@@ -894,14 +894,16 @@ cdef class FractionFieldElement(FieldElement):
             True
         """
         cdef FractionFieldElement other = other_
-        if ((op == Py_EQ or op == Py_NE)
-                and self.__denominator == other.__denominator):
-            return richcmp(self.__numerator, other.__numerator, op)
-        else:
-            return richcmp(
-                    self.__numerator * other.__denominator,
-                    self.__denominator * other.__numerator,
-                    op)
+        if (op == Py_EQ or op == Py_NE):
+            if self.__denominator == other.__denominator:
+                return richcmp(self.__numerator, other.__numerator, op)
+            elif not self._parent.is_exact():
+                # over inexact rings, compare unreduced representations
+                return op == Py_NE
+        return richcmp(
+                self.__numerator * other.__denominator,
+                self.__denominator * other.__numerator,
+                op)
 
     def valuation(self, v=None):
         """
@@ -1150,7 +1152,8 @@ cdef class FractionFieldElement_1poly_field(FractionFieldElement):
         if op == Py_EQ or op == Py_NE:
             if self.__denominator == other.__denominator:
                 return richcmp(self.__numerator, other.__numerator, op)
-            elif self._is_reduced and other._is_reduced:
+            elif (self._is_reduced and other._is_reduced
+                    or not self._parent.is_exact()):
                 return op == Py_NE
         return richcmp(
                 self.__numerator * other.__denominator,
