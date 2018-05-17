@@ -55,6 +55,8 @@ from sage.matrix.constructor import diagonal_matrix, matrix
 from sage.structure.sequence import Sequence
 from sage.structure.element import is_RingElement
 from sage.structure.factory import UniqueFactory
+from sage.structure.unique_representation import (UniqueRepresentation,
+        InheritComparisonUniqueRepresentation)
 from sage.modules.free_module import VectorSpace, FreeModule
 from sage.modules.free_module_element import vector
 
@@ -560,7 +562,7 @@ class QuaternionAlgebra_abstract(Algebra):
             return V
 
 
-class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
+class QuaternionAlgebra_ab(UniqueRepresentation, QuaternionAlgebra_abstract):
     """
     The quaternion algebra of the form `(a, b/K)`, where `i^2=a`, `j^2 = b`,
     and `j*i = -i*j`.  ``K`` is a field not of characteristic 2 and ``a``,
@@ -578,6 +580,13 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
 
         sage: QuaternionAlgebra(QQ, -7, -21)  # indirect doctest
         Quaternion Algebra (-7, -21) with base ring Rational Field
+
+    TESTS::
+
+        sage: QuaternionAlgebra(-1,-7) == QuaternionAlgebra(-1,-7)
+        True
+        sage: QuaternionAlgebra(-1,-7) == QuaternionAlgebra(-1,-5)
+        False
     """
     def __init__(self, base_ring, a, b, names='i,j,k'):
         """
@@ -864,35 +873,6 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         """
         return self._a, self._b
 
-    def __eq__(self, other):
-        """
-        Compare self and other.
-
-        EXAMPLES::
-
-            sage: QuaternionAlgebra(-1,-7) == QuaternionAlgebra(-1,-7)
-            True
-            sage: QuaternionAlgebra(-1,-7) == QuaternionAlgebra(-1,-5)
-            False
-        """
-        if not isinstance(other, QuaternionAlgebra_abstract):
-            return False
-        return (self.base_ring() == other.base_ring() and
-                (self._a, self._b) == (other._a, other._b))
-
-    def __ne__(self, other):
-        """
-        Compare self and other.
-
-        EXAMPLES::
-
-            sage: QuaternionAlgebra(-1,-7) != QuaternionAlgebra(-1,-7)
-            False
-            sage: QuaternionAlgebra(-1,-7) != QuaternionAlgebra(-1,-5)
-            True
-        """
-        return not self.__eq__(other)
-
     def gen(self, i=0):
         """
         Return the `i^{th}` generator of ``self``.
@@ -1060,9 +1040,9 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         We test out ``check=False``::
 
             sage: Q.quaternion_order([1,i,j,k], check=False)
-            Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis [1, i, j, k]
+            Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis (1, i, j, k)
             sage: Q.quaternion_order([i,j,k], check=False)
-            Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis [i, j, k]
+            Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis (i, j, k)
         """
         return QuaternionOrder(self, basis, check=check)
 
@@ -1253,42 +1233,46 @@ def unpickle_QuaternionAlgebra_v0(*key):
     return QuaternionAlgebra(*key)
 
 
-class QuaternionOrder(Algebra):
+class QuaternionOrder(UniqueRepresentation, Algebra):
     """
     An order in a quaternion algebra.
 
+    INPUT:
+
+    - ``A`` - a quaternion algebra
+    - ``basis`` - list of 4 integral quaternions in ``A``
+    - ``check`` - whether to do type and other consistency checks
+
+    .. WARNING::
+
+        Currently most methods silently assume that the ``A.base_ring()``
+        is ``QQ``.
+
     EXAMPLES::
+
+        sage: A.<i,j,k> = QuaternionAlgebra(-3,-5)
+        sage: sage.algebras.quatalg.quaternion_algebra.QuaternionOrder(A, [1,i,j,k])
+        Order of Quaternion Algebra (-3, -5) with base ring Rational Field with basis (1, i, j, k)
+        sage: R = sage.algebras.quatalg.quaternion_algebra.QuaternionOrder(A, [1,2*i,2*j,2*k]); R
+        Order of Quaternion Algebra (-3, -5) with base ring Rational Field with basis (1, 2*i, 2*j, 2*k)
+        sage: type(R)
+        <class 'sage.algebras.quatalg.quaternion_algebra.QuaternionOrder_with_category'>
 
         sage: QuaternionAlgebra(-1,-7).maximal_order()
         Order of Quaternion Algebra (-1, -7) with base ring Rational Field with basis (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
         sage: type(QuaternionAlgebra(-1,-7).maximal_order())
         <class 'sage.algebras.quatalg.quaternion_algebra.QuaternionOrder_with_category'>
     """
-    def __init__(self, A, basis, check=True):
+
+    @staticmethod
+    def __classcall__(cls, A, basis, check=True):
         """
-        INPUT:
+        Implements optional argument checking before the call to ``__init__``.
 
-        - ``A`` - a quaternion algebra
-        - ``basis`` - list of 4 integral quaternions in ``A``
-        - ``check`` - whether to do type and other consistency checks
+        EXAMPLES:
 
-        .. WARNING::
-
-            Currently most methods silently assume that the ``A.base_ring()``
-            is ``QQ``.
-
-        EXAMPLES::
-
-            sage: A.<i,j,k> = QuaternionAlgebra(-3,-5)
-            sage: sage.algebras.quatalg.quaternion_algebra.QuaternionOrder(A, [1,i,j,k])
-            Order of Quaternion Algebra (-3, -5) with base ring Rational Field with basis (1, i, j, k)
-            sage: R = sage.algebras.quatalg.quaternion_algebra.QuaternionOrder(A, [1,2*i,2*j,2*k]); R
-            Order of Quaternion Algebra (-3, -5) with base ring Rational Field with basis (1, 2*i, 2*j, 2*k)
-            sage: type(R)
-            <class 'sage.algebras.quatalg.quaternion_algebra.QuaternionOrder_with_category'>
-
-            Over QQ and number fields it is checked whether the given
-            basis actually gives a an order (as a module over the maximal order):
+        Over QQ and number fields it is checked whether the given
+        basis actually gives a an order (as a module over the maximal order)::
 
             sage: A.<i,j,k> = QuaternionAlgebra(-1,-1)
             sage: A.quaternion_order([1,i,j,i-j])
@@ -1312,11 +1296,8 @@ class QuaternionOrder(Algebra):
             Traceback (most recent call last):
             ...
             ValueError: given lattice must be a ring
-
-        TESTS::
-
-            sage: TestSuite(R).run()
         """
+
         if check:
             # right data type
             if not isinstance(basis, (list, tuple)):
@@ -1369,6 +1350,31 @@ class QuaternionOrder(Algebra):
                     if any([ not a in O for x in X for a in x ]):
                         raise ValueError("given lattice must be a ring")
 
+        # Ensure that the basis is a tuple; if check=True we also ensure
+        # above that all its elements are coerced to the associated algebra
+        basis = tuple(basis)
+        return super(QuaternionOrder, cls).__classcall__(cls, A, basis)
+
+    def __init__(self, A, basis):
+        """
+        TESTS::
+
+            sage: TestSuite(R).run()
+
+            sage: R = QuaternionAlgebra(-11,-1).maximal_order()
+            sage: R == R                       # indirect doctest
+            True
+            sage: R == QuaternionAlgebra(-1,-1).maximal_order()
+            False
+            sage: R == 5
+            False
+
+            sage: R = QuaternionAlgebra(-11,-1).maximal_order()
+            sage: R != R                       # indirect doctest
+            False
+            sage: R != QuaternionAlgebra(-1,-1).maximal_order()
+            True
+        """
         self.__basis = basis
         self.__quaternion_algebra = A
         Parent.__init__(self, base=ZZ, facade=(A,), category=Algebras(ZZ))
@@ -1417,41 +1423,6 @@ class QuaternionOrder(Algebra):
             -k
         """
         return self.__basis[n]
-
-    def __eq__(self, R):
-        """
-        Compare orders self and other.  Two orders are equal if they
-        have the same basis and are in the same quaternion algebra.
-
-        EXAMPLES::
-
-            sage: R = QuaternionAlgebra(-11,-1).maximal_order()
-            sage: R == R                       # indirect doctest
-            True
-            sage: R == QuaternionAlgebra(-1,-1).maximal_order()
-            False
-            sage: R == 5
-            False
-        """
-        if not isinstance(R, QuaternionOrder):
-            return False
-        return (self.__quaternion_algebra == R.__quaternion_algebra and
-                self.__basis == R.__basis)
-
-    def __ne__(self, other):
-        """
-        Compare orders self and other.  Two orders are equal if they
-        have the same basis and are in the same quaternion algebra.
-
-        EXAMPLES::
-
-            sage: R = QuaternionAlgebra(-11,-1).maximal_order()
-            sage: R != R                       # indirect doctest
-            False
-            sage: R != QuaternionAlgebra(-1,-1).maximal_order()
-            True
-        """
-        return not self.__eq__(other)
 
     def basis(self):
         """
@@ -1761,19 +1732,10 @@ class QuaternionOrder(Algebra):
             return Q
 
 class QuaternionFractionalIdeal(Ideal_fractional):
-    def __hash__(self):
-        r"""
-        Stupid constant hash function!
+    """Base class for fractional ideals in quaternion algebras."""
 
-        TESTS::
 
-            sage: R = QuaternionAlgebra(-11,-1).maximal_order()
-            sage: hash(R.right_ideal(R.basis()))
-            0
-        """
-        return 0
-
-class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
+class QuaternionFractionalIdeal_rational(InheritComparisonUniqueRepresentation, QuaternionFractionalIdeal):
     """
     A fractional ideal in a rational quaternion algebra.
 
@@ -1789,7 +1751,44 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
     - ``check`` -- bool (default: ``True``); if ``False``, do no type
       checking, and the input basis *must* be in Hermite form.
     """
-    def __init__(self, basis, left_order=None, right_order=None, check=True):
+
+    @staticmethod
+    def __classcall__(cls, basis, left_order=None, right_order=None,
+                      check=True):
+        """
+        Implements optional checking for the ``check=True`` argument,
+        and handling the ``left_order`` and ``right_order`` arguments.
+        """
+
+        if check:
+            if left_order is not None and not isinstance(left_order, QuaternionOrder):
+                raise TypeError("left_order must be a quaternion order or None")
+            if right_order is not None and not isinstance(right_order, QuaternionOrder):
+                raise TypeError("right_order must be a quaternion order or None")
+            if not isinstance(basis, (list, tuple)):
+                raise TypeError("basis must be a list or tuple")
+
+            try:
+                O = cls._quaternion_order(left_order, right_order)
+            except RuntimeError:
+                Q = basis[0].parent()
+            else:
+                Q = O.quaternion_algebra()
+
+            basis = tuple([Q(v) for v in
+                           (QQ**4).span([Q(v).coefficient_tuple()
+                                         for v in basis], ZZ).basis()])
+        else:
+            # Ensure that basis is at least a tuple
+            basis = tuple(basis)
+
+        inst = super(QuaternionFractionalIdeal_rational, cls).__classcall__(
+                cls, basis)
+        inst.__left_order = left_order
+        inst.__right_order = right_order
+        return inst
+
+    def __init__(self, basis):
         """
         EXAMPLES::
 
@@ -1799,24 +1798,6 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             sage: R.right_ideal(tuple(R.basis()), check=False)
             Fractional ideal (1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k)
         """
-        if check:
-            if left_order is not None and not isinstance(left_order, QuaternionOrder):
-                raise TypeError("left_order must be a quaternion order or None")
-            if right_order is not None and not isinstance(right_order, QuaternionOrder):
-                raise TypeError("right_order must be a quaternion order or None")
-            if not isinstance(basis, (list, tuple)):
-                raise TypeError("basis must be a list or tuple")
-
-        self.__left_order = left_order
-        self.__right_order = right_order
-
-        if check:
-            try:
-                Q = self.quaternion_order().quaternion_algebra()
-            except RuntimeError:
-                Q = basis[0].parent()
-            basis = tuple([Q(v) for v in
-                           (QQ**4).span([Q(v).coefficient_tuple() for v in basis], ZZ).basis()])
         self.__basis = basis
 
     def scale(self, alpha, left=False):
@@ -1840,11 +1821,11 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             sage: B = BrandtModule(5,37); I = B.right_ideals()[0]; i,j,k = B.quaternion_algebra().gens(); I
             Fractional ideal (2 + 2*j + 106*k, i + 2*j + 105*k, 4*j + 64*k, 148*k)
             sage: I.scale(i)
-            Fractional ideal [2*i + 212*j - 2*k, -2 + 210*j - 2*k, 128*j - 4*k, 296*j]
+            Fractional ideal (2*i + 212*j - 2*k, -2 + 210*j - 2*k, 128*j - 4*k, 296*j)
             sage: I.scale(i, left=True)
-            Fractional ideal [2*i - 212*j + 2*k, -2 - 210*j + 2*k, -128*j + 4*k, -296*j]
+            Fractional ideal (2*i - 212*j + 2*k, -2 - 210*j + 2*k, -128*j + 4*k, -296*j)
             sage: I.scale(i, left=False)
-            Fractional ideal [2*i + 212*j - 2*k, -2 + 210*j - 2*k, 128*j - 4*k, 296*j]
+            Fractional ideal (2*i + 212*j - 2*k, -2 + 210*j - 2*k, 128*j - 4*k, 296*j)
             sage: i * I.gens()[0]
             2*i - 212*j + 2*k
             sage: I.gens()[0] * i
@@ -2017,6 +1998,23 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         """
         return 'Fractional ideal %s'%(self.gens(),)
 
+    @staticmethod
+    def _quaternion_order(left_order, right_order):
+        """
+        Implements the ``quaternion_order`` method below.
+
+        The public method just calls this and caches the result in the
+        ``__quaternion_order`` attribute.
+        """
+
+        if left_order is not None:
+            return left_order
+        elif right_order is not None:
+            return right_order
+        else:
+            raise RuntimeError("unable to determine quaternion order "
+                               "of ideal without known order")
+
     def quaternion_order(self):
         """
         Return the order for which this ideal is a left or right
@@ -2032,15 +2030,11 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             sage: R.unit_ideal().quaternion_order() is R
             True
         """
-        try: return self.__quaternion_order
-        except AttributeError: pass
-        if self.__left_order is not None:
-            A = self.__left_order
-        elif self.__right_order is not None:
-            A = self.__right_order
-        else:
-            raise RuntimeError("unable to determine quaternion order of ideal without known order")
-        self.__quaternion_order = A
+        try:
+            A = self.__quaternion_order
+        except AttributeError:
+            A = self._quaternion_order(self.left_order(), self.right_order())
+            self.__quaternion_order = A
         return A
 
     def ring(self):
@@ -2101,26 +2095,11 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             True
             sage: I == 5
             False
-        """
-        if not isinstance(right, QuaternionFractionalIdeal_rational):
-            return False
-        return self.__basis == right.__basis
-
-    def __ne__(self, other):
-        """
-        Compare this fractional quaternion ideal to ``right``.
-
-        INPUT:
-
-        - ``right`` - another fractional quaternion ideal
-
-        EXAMPLES::
-
-            sage: I = QuaternionAlgebra(-11,-1).maximal_order().unit_ideal()
-            sage: I != I                # indirect doctest
+            sage: I != I
             False
         """
-        return not self.__eq__(other)
+        return (isinstance(right, QuaternionFractionalIdeal_rational) and
+                self.__basis == right.__basis)
 
     def basis_matrix(self):
         r"""
