@@ -5,7 +5,7 @@ Lifting of quadratic matrix equations over the `p`-adics.
 
 EXAMPLES::
 
-<Lots and lots of examples>
+    sage:
 
 AUTHORS:
 
@@ -115,6 +115,11 @@ def Hensel_qf(G, F, a, b):
 
 def _reverse_homogeneous_blocks(G):
     r"""
+    Reverses the order of the homogeneous blocks of ``G``.
+
+    Input:
+
+    - ``G`` -- a block diagonal matrix over the `p`-adics
 
     EXAMPLES::
 
@@ -183,6 +188,12 @@ def _last_block_index(G):
 
 def _block_indices_vals(G):
     r"""
+    Return a list of indices and a list of valuation of the homogeneous blocks.
+
+    Input:
+
+    - ``G`` -- a symmetric `p`-adic block diagonal matrix with modular blocks
+      which have descending valuations
 
     EXAMPLES::
 
@@ -204,7 +215,7 @@ def _block_indices_vals(G):
 
 def _min_val(M):
     r"""
-    Return the minimum valuation of an entry of M
+    Return the minimum valuation of an entry of ``M``
 
     Helper function for :meth:`Hensel` No input checks.
 
@@ -229,7 +240,9 @@ def _min_val(M):
 
 def _Hensel_qf(Z, G, F, a, b):
     r"""
-    The real worker for :meth:`Hensel`.
+    The real worker for :meth:`Hensel_qf`.
+
+    No input checks.
 
     INPUT:
 
@@ -239,13 +252,22 @@ def _Hensel_qf(Z, G, F, a, b):
     - ``a`` -- integer
     - ``b`` -- integer
 
-    We require that the triple `(Z,G,F)` is `a`-adapted.
+    We require that the triple `(Z, G, F)` is `a`-adapted.
 
     OUTPUT:
 
-    Fl such that ``(Z,G,Fl)`` is `b`-adapted.
+    a matrix ``Fl`` such that `(Z, G, Fl)` is `b`-adapted.
 
     EXAMPLES::
+
+        sage: from sage.groups.fqf_orthogonal.lift import _Hensel_qf
+        sage: R = Zp(3, type='fixed-mod', prec=5, print_mode='terse', show_prec=False, print_pos=False)
+        sage: G = matrix.diagonal(R, [3^2,1,1])
+        sage: Z = G + matrix(R, 3, [0,3^2,0, 3^2,0,0, 0,0,3])
+        sage: F = matrix(R,3, [1,0,0, 0,0,1, 0,1,0])
+        sage: Z - F*G*F.T
+        sage: Fn = _Hensel_qf(Z, G, F, 1, 4)#
+        sage: Z - F*G*F.T
     """
     i, s1, s2 = _last_block_index(G)
     s = s2 - s1
@@ -257,12 +279,16 @@ def _Hensel_qf(Z, G, F, a, b):
     else:
         _Hensel_qf_modular = _Hensel_qf_modular_odd
     Zn = Z[i:,i:] - F[i:,:i]*G[:i,:i]*F[i:,:i].T
-    G2 = G[i:,i:]
-    F[i:,i:] = _Hensel_qf_modular(Zn, G[i:,i:], F[i:,i:], a, b)
+    Gn = G[i:,i:]
+    F[i:,i:] = _Hensel_qf_modular(Zn, Gn, F[i:,i:], a, b)
     if i == 0:
         return F
     while a < b:
+        # an extra line that recomputes the upper block diagonal
+        # if the input really is adapted this should not be necessary
+        # but in any case it does not hurt
         F[:i,i:] = (Z[:i,i:] - F[:i,:i]*G[:i,:i]*F[i:,:i].T) * (G[i:,i:]*F[i:,i:].T).inverse()
+
         Zn = Z[:i,:i] - F[:i,i:]*G[i:,i:]*F[:i,i:].T
         F[:i,:i] = _Hensel_qf(Zn, G[:i,:i], F[:i,:i], a, a+s)
         F[:i,i:] = (Z[:i,i:] - F[:i,:i]*G[:i,:i]*F[i:,:i].T) * (G[i:,i:]*F[i:,i:].T).inverse()
@@ -314,7 +340,7 @@ def _Hensel_qf_modular_even(Z, G, F, a, b):
     r"""
     Helper function for :meth:`_Hensel_qf`.
 
-    No input checks. Let `p` be an odd prime number.
+    Deals with the case that `G` is modular and `p=2`.
 
     INPUT:
 
@@ -324,11 +350,11 @@ def _Hensel_qf_modular_even(Z, G, F, a, b):
     - ``a`` -- integer
     - ``b`` -- integer
 
-    We require that the triple `(Z,G,F)` is `a`-adapted.
+    We require that the triple `(Z, G, F)` is `a`-adapted.
 
     OUTPUT:
 
-    - `Fl` such that ``(Z,G,Fl)`` is `b`-adapted
+    - `Fl` such that ``(Z, G, Fl)`` is `b`-adapted
     - raises a ``ValueError`` if ``F`` cannot be lifted
 
     EXAMPLES::
@@ -426,7 +452,7 @@ def _Hensel_qf_modular_even(Z, G, F, a, b):
 
 def _solve_X(Y, b, g, ker=False):
     r"""
-    Solve a certain linear equation.
+    Solve a certain linear equation mod `2`.
 
     This is a helper function for :meth:`_Hensel_qf_modular_even`.
 
@@ -440,9 +466,9 @@ def _solve_X(Y, b, g, ker=False):
 
     INPUT:
 
-    - ``Y`` - converts to an `n \times n` matrix over `\FF_2`
-    - ``b`` - converts to `\FF_2^n`
-    - ``g`` - converts to `\FF_2^n`
+    - ``Y`` -- converts to an `n \times n` matrix over `\FF_2`
+    - ``b`` -- converts to `\FF_2^n`
+    - ``g`` -- converts to `\FF_2^n`
 
     OUTPUT:
 
