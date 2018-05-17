@@ -561,12 +561,13 @@ accordingly, for example by inheriting from
 #******************************************************************************
 from __future__ import print_function
 
-from sage.misc import six
+from six import with_metaclass
 from sage.misc.cachefunc import weak_cached_function
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.fast_methods import WithEqualityById
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
-class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
+class CachedRepresentation(with_metaclass(ClasscallMetaclass)):
     """
     Classes derived from CachedRepresentation inherit a weak cache for their
     instances.
@@ -1335,4 +1336,28 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
         ....:     pass
         ....:
         sage: b = bla()
+    """
+
+
+class InheritComparisonUniqueRepresentation(with_metaclass(InheritComparisonClasscallMetaclass, UniqueRepresentation)):
+    """
+    Implementation of :class:`UniqueRepresentation` that can be used as a
+    base class for classes that have :class:`InheritComparisonMetaclass` as
+    a metaclass (such as :class:`Element`).
+
+    EXAMPLES::
+
+        sage: from sage.structure.unique_representation \
+        ....:     import InheritComparisonUniqueRepresentation
+        sage: from sage.structure.element import Element
+        sage: class MyUniqueElement(InheritComparisonUniqueRepresentation,
+        ....:                       Element):
+        ....:     def __init__(self, a):
+        ....:         self.a = a
+        ....:
+        sage: el = MyUniqueElement(1)
+        sage: el is MyUniqueElement(1)
+        True
+        sage: el is MyUniqueElement(2)
+        False
     """
