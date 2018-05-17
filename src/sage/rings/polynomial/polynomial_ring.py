@@ -1560,7 +1560,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
 
     def derivation(self, factor = 1):
-        from sage.rings.derivation import RingDerivation_polynomial
+        from sage.rings.derivation import RingDerivation_polynomial, RingDerivation
         from sage.categories.homset import End, Homset
         H = Homset(self, self)
         theta = End(self).identity()
