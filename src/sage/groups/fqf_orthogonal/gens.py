@@ -28,10 +28,32 @@ from copy import copy
 from sage.matrix.all import matrix
 from sage.modules.all import vector
 from sage.groups.all import GO, Sp
-from sage.groups.fqf_orthogonal.lift import Hensel_qf
+from sage.groups.fqf_orthogonal.lift import (Hensel_qf,
+                                             _block_indices_vals,
+                                             _min_val,
+                                             _solve_X)
 
 def _mod_p_to_a_kernel(G, a):
     r"""
+    Return the kernel of the orthogonal group under mod `p` reduction.
+
+    Let `L` be a `p`-adic lattice. For a positive integer `a` define
+    `O(L/p^aL)` as the image of `O(L)` in `GL(L/p^aL)`.
+    This function returns generators of the kernel of `O(L/p^aL)`--> `O(L/pL)`.
+
+    INPUT:
+
+    - ``G`` -- a non-singular, symmetric, integral, block diagonal
+      `p`-adic matrix with modular blocks of descending valuation
+    - ``a``-- an integer
+
+    OUTPUT:
+
+    - a list of `p`-adic matrices
+
+    EXAMPLES::
+
+        sage:
     """
     n = G.ncols()
     R = G.base_ring()
@@ -56,7 +78,7 @@ def _mod_p_to_a_kernel(G, a):
         Ek = matrix.identity(R, i2 - i1)
         Zk = matrix.zero(R, i2 - i1)
         if p == 2 and a == 1:
-            gensk = _solve_X(matrix.zero(R,ni,ni),matrix.zero(R,1,ni).list(),Gk_inv.diagonal(),ker=True)
+            gensk = _solve_X(matrix.zero(R,ni,ni), matrix.zero(R,1,ni).list(),Gk_inv.diagonal(), ker=True)
         else:
             # basis for the space of anti-symmetric matrices
             gensk = []
@@ -119,12 +141,63 @@ def _normal(G):
         B = B2 * B1
         return D2, B
 
-def _orthogonal_grp_gens_odd(G):
+def _gens_normal_form(O, R):
     r"""
+    Return generators for the orthogonal group `O` with normal invariant form.
+
+    INPUT:
+
+    - ``O`` -- an orthogonal or sympletic group
+    - ``R`` -- a `p`-adic ring
+
+    OUTPUT:
+
+    - a list of matrices over `R`
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.lift import _orthogonal_grp_gens_odd
+        sage: from sage.groups.fqf_orthogonal.gens import _gens_normal_form
+        sage: R = Zp(3,type='fixed-mod', prec=2, print_mode='terse', show_prec=False, print_pos=False)
+        sage: O = GO(4,3, e=1)
+        sage: _gens_normal_form(O, R)
+        [
+        [2 2 2 1]  [2 1 1 2]
+        [2 1 1 1]  [1 1 2 2]
+        [2 2 1 2]  [2 1 2 1]
+        [1 2 1 1], [1 1 1 1]
+        ]
+    """
+    p = R.prime()
+    gens = []
+    try:
+        b = O.invariant_quadratic_form().change_ring(R)
+        b = b + b.T
+    except AttributeError:
+        b = O.invariant_form().change_ring(R)
+    _, U = _normal(b)
+    U = U.change_ring(GF(p))
+    Uinv = U.inverse()
+    gens = [U * g.matrix() * Uinv for g in O.gens()]
+    gens = [g.change_ring(R) for g in gens]
+    return gens
+
+def _orthogonal_grp_gens_odd(G):
+    r"""
+    Return generators of the orthogonal group modulo `p` for odd `p`.
+
+    `G` is the gram matrix of the bilinear form.
+
+    INPUT:
+
+    - ``G`` -- a unimodular, symmetric, integral `p`-adic matrix; `p` odd
+
+    OUTPUT:
+
+    - a list of `p`-adic matrices well defined modulo `p`
+
+    EXAMPLES::
+
+        sage: from sage.groups.fqf_orthogonal.gens import _orthogonal_grp_gens_odd
         sage: R = Zp(3,type='fixed-mod', prec=2, print_mode='terse', show_prec=False, print_pos=False)
         sage: G = matrix.diagonal(R,[])
         sage: _orthogonal_grp_gens_odd(G)
@@ -135,15 +208,20 @@ def _orthogonal_grp_gens_odd(G):
         sage: G = matrix.diagonal(R,[1,1])
         sage: _orthogonal_grp_gens_odd(G)
         [
-        [ 3 -2]  [  6  -2]
-        [-1  0], [  1 -12]
+        [0 1]  [0 1]
+        [2 0], [1 0]
         ]
         sage: G = matrix.diagonal(R,[1,2])
         sage: _orthogonal_grp_gens_odd(G)
         [
-        [2 0]  [-1  0]
-        [0 2], [ 0  1]
+        [2 0]  [2 0]
+        [0 2], [0 1]
         ]
+
+    TESTS:
+
+        sage: _orthogonal_grp_gens_odd(matrix(R,[]))
+        []
     """
     from sage.quadratic_forms.genera.normal_form import p_adic_normal_form
     from sage.quadratic_forms.genera.normal_form import _min_nonsquare
@@ -160,6 +238,7 @@ def _orthogonal_grp_gens_odd(G):
         return [matrix(R,[-1])]
     O = GO(r, p, e=1)
     uo = O.invariant_bilinear_form().det()
+    Ud = G.parent().one()
     if legendre_symbol(uo, p) != legendre_symbol(ug, p):
         if r % 2 == 0:
             # there are two inequivalent orthogonal_groups
@@ -169,15 +248,11 @@ def _orthogonal_grp_gens_odd(G):
             # O(G) = O(cG). But G and cG are not isomorphic if c is not a square
             c = ZZ(_min_nonsquare(p))
             G = c * G # destroys the normal form of G
-    b = O.invariant_bilinear_form()
-    b = b.change_ring(R)
-    # compute an isomorphism of b and G
-    bn, Ub = _normal(b)
-    Dn, Ud = _normal(G)
-    U = Ud.inverse() * Ub
-    assert bn == Dn
-    Uinv = U.adjoint()*U.det().inverse_of_unit()
-    gens = [U * g.matrix().change_ring(R) * Uinv for g in O.gens()]
+            _, Ud = _normal(G) # restore it
+    gens = _gens_normal_form(O, R)
+    Uinv = Ud.adjoint()*Ud.det().inverse_of_unit()
+    gens = [Uinv * g * Ud for g in gens]
+    # check that generators are indeed isometries
     for g in gens:
         err = g*G*g.T - G
         assert _min_val(err) >= 1
@@ -185,10 +260,21 @@ def _orthogonal_grp_gens_odd(G):
 
 def _orthogonal_gens_bilinear(G):
     r"""
+    Return generators of the orthogonal group of the bilinear form modulo `2`.
+
+    Here `G` is the gram matrix of the bilinear form.
+
+    INPUT:
+
+    - ``G`` -- a modular, symmetric `2`-adic matrix in homogeneous normal form
+
+    OUTPUT:
+
+    - a list of `2`-adic matrices well defined modulo `2`
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.lift import _orthogonal_gens_bilinear
+        sage: from sage.groups.fqf_orthogonal.gens import _orthogonal_gens_bilinear
         sage: R = Zp(2, type='fixed-mod', prec=10, print_mode='terse', show_prec=False, print_pos=False)
         sage: U = matrix(R, 2, [0, 1, 1, 0])
         sage: V = matrix(R, 2, [2, 1, 1, 2])
@@ -203,24 +289,20 @@ def _orthogonal_gens_bilinear(G):
         ]
         sage: _orthogonal_gens_bilinear(matrix.block_diagonal([V,W1]))
         [
-        [  1   0|  0   0]  [  0   1|  0   0]
-        [513   1|  0   0]  [  1 512|  0   0]  [1 0 1 1]  [1 0 0 0]  [1 0 0 0]
-        [-------+-------]  [-------+-------]  [0 1 0 0]  [0 1 1 1]  [0 1 0 0]
-        [  0   0|  1   0]  [  0   0|  1   0]  [2 1 1 0]  [1 2 1 0]  [0 0 0 1]
-        [  0   0|  0   1], [  0   0|  0   1], [2 1 0 1], [1 2 0 1], [0 0 1 0]
+        [1 0|0 0]  [0 1|0 0]
+        [1 1|0 0]  [1 0|0 0]  [1 0 1 1]  [1 0 0 0]  [1 0 0 0]
+        [---+---]  [---+---]  [0 1 0 0]  [0 1 1 1]  [0 1 0 0]
+        [0 0|1 0]  [0 0|1 0]  [2 1 1 0]  [1 2 1 0]  [0 0 0 1]
+        [0 0|0 1], [0 0|0 1], [2 1 0 1], [1 2 0 1], [0 0 1 0]
         ]
-    """
 
+    TESTS:
+
+        sage: _orthogonal_gens_bilinear(matrix([]))
+        []
+    """
     r = G.ncols()
     R = G.base_ring()
-    def gens_normal_form(O):
-        gens = []
-        b = O.invariant_form().change_ring(R)
-        _, U = _normal(b)
-        gens = [g.matrix().change_ring(R) for g in O.gens()]
-        Uinv = U.change_ring(GF(2)).inverse().change_ring(R)
-        gens = [U * g * Uinv for g in gens]
-        return gens
     # corner cases
     if r <= 1:
         gens = []
@@ -228,13 +310,20 @@ def _orthogonal_gens_bilinear(G):
         return [matrix(R,2,[0,1,1,0])]
     # odd cases
     elif r % 2 == 1:
+        # the space of points of 0 square is non degenerate and preserved
+        # there the bilinear form is alternating and the group is a
+        # sympletic group
+        # the orthogonal complement has rank one and is invariant as well
         O = Sp(r - 1, 2)
-        gens = gens_normal_form(O)
+        gens = _gens_normal_form(O, R)
         E1 = matrix.identity(R,1)
-        gens = [matrix.block_diagonal([g,E1]) for g in gens]
+        gens = [matrix.block_diagonal([g, E1]) for g in gens]
     elif G[-1,-1].valuation() == 0:
+        # the space of points of 0 square is degenerate with kernel of dim 1
+        # the quotient by the kernel is again sympletic
+        # but we obtain several possible lifts
         O = Sp(r - 2, 2)
-        gens = gens_normal_form(O)
+        gens = _gens_normal_form(O, R)
         gens = [matrix.block_diagonal(g,matrix.identity(R,2)) for g in gens]
         E = matrix.identity(R,r)
         for a in (R**(r-2)).basis():
@@ -247,12 +336,10 @@ def _orthogonal_gens_bilinear(G):
         g[-2:,-2:] = matrix(R,2,[0,1,1,0])
         gens.append(g)
     # even case
+    # just a symplectic group nothing special
     else:
         O = Sp(r, 2)
-        sp = O.invariant_form().change_ring(R)
-        _, U = _normal(sp)
-        Uinv = U.change_ring(GF(2)).inverse().change_ring(R)
-        gens = [U * g.matrix().change_ring(R) * Uinv for g in O.gens()]
+        gens = _gens_normal_form(O, R)
     # check that generators are isometries
     for g in gens:
         err = g*G*g.T-G
@@ -261,19 +348,22 @@ def _orthogonal_gens_bilinear(G):
 
 def _orthogonal_grp_quadratic(G):
     r"""
+    Return generators of the orthogonal group of the quadratic form modulo `4`.
+
+    Here `G`represents a quadratic form on an $\FF_2$ vector space with
+    values in `\Zmod{4}` given by `q(x) = xGx^T \mod 4`.
 
     INPUT:
 
-    - ``G`` -- homogeneous `2`-adic matrix of scale `1` and in normal form representing a
-      quadratic form on an $\FF_2$ vector space with values in `\Zmod{4}`.
+    - ``G`` -- a homogeneous, symmetric `2`-adic matrix in normal form
 
     OUTPUT:
 
     - a list of matrices. Generators of the orthogonal group modulo `2`.
 
-    TESTS::
+    EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.lift import _orthogonal_grp_quadratic
+        sage: from sage.groups.fqf_orthogonal.gens import _orthogonal_grp_quadratic
         sage: R = Zp(2,type='fixed-mod', prec=3, print_mode='terse', show_prec=False, print_pos=False)
         sage: U = matrix(R,2,[0,1,1,0])
         sage: V = matrix(R,2,[2,1,1,2])
@@ -309,8 +399,8 @@ def _orthogonal_grp_quadratic(G):
         sage: gen = _orthogonal_grp_quadratic(G)
         sage: gen
         [
-        [1 0 0 0]  [4 1 0 0]  [1 0 0 0]
-        [1 1 3 3]  [1 4 0 0]  [0 1 0 0]
+        [1 0 0 0]  [0 1 0 0]  [1 0 0 0]
+        [1 1 3 3]  [1 0 0 0]  [0 1 0 0]
         [5 0 1 0]  [0 0 1 0]  [0 0 0 7]
         [3 0 0 1], [0 0 0 1], [0 0 1 2]
         ]
@@ -319,7 +409,7 @@ def _orthogonal_grp_quadratic(G):
         sage: G = matrix.block_diagonal([U, V, W1])
         sage: gen = _orthogonal_grp_quadratic(G)
 
-    TESTS:
+    TESTS::
 
         sage: _orthogonal_grp_quadratic(matrix([]))
         []
@@ -344,52 +434,54 @@ def _orthogonal_grp_quadratic(G):
                     matrix(R,2,[0, 1, 1, 1])]
         else:
             gens = [matrix(R, 2, [0, 1, 1, 0])]
-    # normal cases
+    # usual cases
     elif r % 2 == 1:
+        # an odd case
         # the space of points of even square is preserved
-        # so is its orthogonal complement -> invariant vector
+        # there the quadratic form is classical
+        # so is its orthogonal complement -> we get an invariant vector
         if G[-2,-2] == 0:
             e = 1
         else:
             e = -1
         O = GO(r - 1, 2, e)
-        b = O.invariant_quadratic_form().change_ring(R)
-        b = b + b.T
-        _, U = _normal(b)
-        gens = [g.matrix().change_ring(R) for g in O.gens()]
-        Uinv = U.adjoint()
-        gens = [U * g * Uinv for g in gens]
+        gens = _gens_normal_form(O, R)
+        # the invariant vector is the last one
+        # continue the isometry as the identity there
         E1 = matrix.identity(R,1)
         gens = [matrix.block_diagonal([g,E1]) for g in gens]
     # now r % 2 == 0
     elif G[-1,-1].valuation() == 0:
         # odd case
+        # the space of points of even square is preserved
+        # but it is degenerate
+        # modulo the degenerate part the form is
         if mod(G[-1,-1] + G[-2,-2], 4) == 0:
+            # the degenerate part v has q(v) = 0
+            # thus q is preserved an we get
+            # a classical form
             gens = _orthogonal_grp_quadratic(G[:-2,:-2])
             gens = [_lift(G, g, 0) for g in gens]
             Id = matrix.identity(R, r - 2)
             gens += [_lift(G, Id, a) for a in (R**(r-2)).basis()]
         else:
+            # here the degenerate part v has q(v) = 2
+            # thus only the bilinear form descends to the quotient
+            # and we get a sympletic group
             assert mod(G[-1,-1] + G[-2,-2], 4) == 2
             O = Sp(r - 2, 2)
-            sp = O.invariant_form().change_ring(R)
-            _, U = _normal(sp)
-            Uinv = U.adjoint()*U.det().inverse_of_unit()
-            gens = [U * g.matrix().change_ring(R) * Uinv for g in O.gens()]
+            gens = _gens_normal_form(O, R)
             gens = [_lift(G, g, 0) for g in gens]
             gens += [_lift(G, matrix.identity(R,r-2), 1)]
     else:
         # even case
+        # the groups are classical we just need to bring them to the right basis
         if G[-1,-1] == 0:
             e = 1
         else:
             e = -1
         O = GO(r, 2, e)
-        b = O.invariant_quadratic_form().change_ring(R)
-        b = b + b.T
-        _, U = _normal(b)
-        Uinv = U.adjoint()*U.det().inverse_of_unit()
-        gens = [U * g.matrix().change_ring(R) * Uinv for g in O.gens()]
+        gens = _gens_normal_form(O, R)
     # check that generators are isometries
     for g in gens:
         err = g*G*g.T-G
@@ -399,12 +491,13 @@ def _orthogonal_grp_quadratic(G):
 
 def _lift(q, f, a):
     r"""
+    Return a list of the lifts of f.
 
     INPUT:
 
-    - ``q`` -- of scale `1` in homogeneous normal form
+    - ``q`` -- odd of scale `1` in homogeneous normal form
     - ``f`` -- the `n-2 \times n-2` matrix to be lifted
-    - ``a`` -- ``0`` or ``1`` there are two possible lifts
+    - ``a`` -- ``0``, ``1`` or a row matrix depending on the case
 
     OUTPUT:
 
@@ -412,7 +505,7 @@ def _lift(q, f, a):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.lift import _lift
+        sage: from sage.groups.fqf_orthogonal.gens import _lift
         sage: R = Zp(2,type='fixed-mod',prec=2,print_mode='terse', show_prec=False, print_pos=False)
         sage: U = matrix(R,2,[0,1,1,0])
         sage: W0 = matrix(R,2,[1,0,0,3])
@@ -504,40 +597,34 @@ def _gens_mod_p(G):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.lift import _gens_mod_p
+        sage: from sage.groups.fqf_orthogonal.gens import _gens_mod_p
         sage: R = Zp(3, type='fixed-mod', prec=10, print_mode='terse', show_prec=False, print_pos=False)
         sage: G = matrix.diagonal(R, [3*1, 3*1])
         sage: _gens_mod_p(G)
         [
-        [-8088  8080]  [-8085  2689]
-        [ 8081  8091], [ 2692  8088]
+        [0 1]  [0 1]
+        [2 0], [1 0]
         ]
         sage: G = matrix.diagonal(R, [1, 3, 3, 9, 2*27])
         sage: _gens_mod_p(G)
         [
-        [-1  0  0  0  0]  [    1     0     0     0     0]
-        [ 0  1  0  0  0]  [    0 -8088  8080     0     0]
-        [ 0  0  1  0  0]  [    0  8081  8091     0     0]
-        [ 0  0  0  1  0]  [    0     0     0     1     0]
-        [ 0  0  0  0  1], [    0     0     0     0     1],
+        [-1  0  0  0  0]  [1 0 0 0 0]  [1 0 0 0 0]  [ 1  0  0  0  0]
+        [ 0  1  0  0  0]  [0 0 1 0 0]  [0 0 1 0 0]  [ 0  1  0  0  0]
+        [ 0  0  1  0  0]  [0 2 0 0 0]  [0 1 0 0 0]  [ 0  0  1  0  0]
+        [ 0  0  0  1  0]  [0 0 0 1 0]  [0 0 0 1 0]  [ 0  0  0 -1  0]
+        [ 0  0  0  0  1], [0 0 0 0 1], [0 0 0 0 1], [ 0  0  0  0  1],
         <BLANKLINE>
-        [    1     0     0     0     0]  [ 1  0  0  0  0]  [ 1  0  0  0  0]
-        [    0 -8085  2689     0     0]  [ 0  1  0  0  0]  [ 0  1  0  0  0]
-        [    0  2692  8088     0     0]  [ 0  0  1  0  0]  [ 0  0  1  0  0]
-        [    0     0     0     1     0]  [ 0  0  0 -1  0]  [ 0  0  0  1  0]
-        [    0     0     0     0     1], [ 0  0  0  0  1], [ 0  0  0  0 -1],
+        [ 1  0  0  0  0]  [1 0 0 0 0]  [1 0 0 0 0]  [1 0 0 0 0]  [1 0 0 0 0]
+        [ 0  1  0  0  0]  [1 1 0 0 0]  [0 1 0 0 0]  [0 1 0 0 0]  [0 1 0 0 0]
+        [ 0  0  1  0  0]  [0 0 1 0 0]  [1 0 1 0 0]  [0 0 1 0 0]  [0 0 1 0 0]
+        [ 0  0  0  1  0]  [0 0 0 1 0]  [0 0 0 1 0]  [1 0 0 1 0]  [0 1 0 1 0]
+        [ 0  0  0  0 -1], [0 0 0 0 1], [0 0 0 0 1], [0 0 0 0 1], [0 0 0 0 1],
         <BLANKLINE>
         [1 0 0 0 0]  [1 0 0 0 0]  [1 0 0 0 0]  [1 0 0 0 0]  [1 0 0 0 0]
-        [1 1 0 0 0]  [0 1 0 0 0]  [0 1 0 0 0]  [0 1 0 0 0]  [0 1 0 0 0]
-        [0 0 1 0 0]  [1 0 1 0 0]  [0 0 1 0 0]  [0 0 1 0 0]  [0 0 1 0 0]
-        [0 0 0 1 0]  [0 0 0 1 0]  [1 0 0 1 0]  [0 1 0 1 0]  [0 0 1 1 0]
-        [0 0 0 0 1], [0 0 0 0 1], [0 0 0 0 1], [0 0 0 0 1], [0 0 0 0 1],
-        <BLANKLINE>
-        [1 0 0 0 0]  [1 0 0 0 0]  [1 0 0 0 0]  [1 0 0 0 0]
-        [0 1 0 0 0]  [0 1 0 0 0]  [0 1 0 0 0]  [0 1 0 0 0]
-        [0 0 1 0 0]  [0 0 1 0 0]  [0 0 1 0 0]  [0 0 1 0 0]
-        [0 0 0 1 0]  [0 0 0 1 0]  [0 0 0 1 0]  [0 0 0 1 0]
-        [1 0 0 0 1], [0 1 0 0 1], [0 0 1 0 1], [0 0 0 1 1]
+        [0 1 0 0 0]  [0 1 0 0 0]  [0 1 0 0 0]  [0 1 0 0 0]  [0 1 0 0 0]
+        [0 0 1 0 0]  [0 0 1 0 0]  [0 0 1 0 0]  [0 0 1 0 0]  [0 0 1 0 0]
+        [0 0 1 1 0]  [0 0 0 1 0]  [0 0 0 1 0]  [0 0 0 1 0]  [0 0 0 1 0]
+        [0 0 0 0 1], [1 0 0 0 1], [0 1 0 0 1], [0 0 1 0 1], [0 0 0 1 1]
         ]
 
     TESTS::
@@ -598,7 +685,7 @@ def _gens_mod_2(G):
     EXAMPLES::
 
 
-        sage: from sage.groups.fqf_orthogonal.lift import _gens_mod_2
+        sage: from sage.groups.fqf_orthogonal.gens import _gens_mod_2
         sage: R = Zp(2,type='fixed-mod',print_mode='terse',show_prec=False,prec=6)
         sage: U = matrix(R, 2, [0, 1, 1, 0])
         sage: V = matrix(R, 2, [2, 1, 1, 2])
@@ -716,7 +803,7 @@ def _ker_gens(G, i1, i2, parity):
 
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.lift import _ker_gens
+        sage: from sage.groups.fqf_orthogonal.gens import _ker_gens
         sage: from sage.groups.fqf_orthogonal.lift import Hensel_qf
         sage: R = Zp(2, type='fixed-mod', prec=10, print_mode='terse', show_prec=False, print_pos=False)
         sage: U = matrix(R, 2, [0, 1, 1, 0])
@@ -804,9 +891,15 @@ def _gens(G, b):
     r"""
     Return generators.
 
+    INPUT:
+
+    - ``G`` -- a non-singular, integral, symmetric `p`-adic matrix in
+      descending normal form
+    - ``b`` -- a positive integer
+
     EXAMPLES::
 
-        sage: from sage.groups.fqf_orthogonal.lift import _gens
+        sage: from sage.groups.fqf_orthogonal.gens import _gens
         sage: R = Zp(2, type='fixed-mod', prec=10, print_mode='terse', show_prec=False, print_pos=False)
         sage: U = matrix(R, 2, [0, 1, 1, 0])
         sage: V = matrix(R, 2, [2, 1, 1, 2])
