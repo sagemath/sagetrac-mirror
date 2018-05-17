@@ -1113,9 +1113,6 @@ cdef class FastAutomaton:
         string - latex representation of the automaton.
 
         EXAMPLES::
-
-            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: latex(a)  # indirect doctest
             \documentclass{article}
             \usepackage[x11names, rgb]{xcolor}
             \usepackage[utf8]{inputenc}
@@ -1146,10 +1143,10 @@ cdef class FastAutomaton:
               \draw [-stealth'] (44.302bp,22.0bp) .. controls (54.895bp,22.0bp) and (67.905bp,22.0bp)  .. (89.894bp,22.0bp);
               \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
               \pgfsetstrokecolor{strokecol}
-              \draw (67.0bp,33.0bp) node {a};
+              \draw (67.0bp,32.0bp) node {a};
               % Edge: 2 -> 3
               \draw [-stealth'] (44.302bp,80.0bp) .. controls (54.895bp,80.0bp) and (67.905bp,80.0bp)  .. (89.894bp,80.0bp);
-              \draw (67.0bp,91.0bp) node {b};
+              \draw (67.0bp,90.0bp) node {b};
               % Node: 1
             \begin{scope}
               \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
@@ -1264,7 +1261,7 @@ cdef class FastAutomaton:
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: hash(a)
-            731776466
+            -3816799034168020408
         """
         h = hash(tuple(self.A))
         sig_on()
@@ -2045,7 +2042,7 @@ cdef class FastAutomaton:
             Automaton with 3 states, 2 letters.
             0 --1--> 1
             2 --0--> 1
-            initial State 2.
+            initial State 1.
             FastAutomaton with 12 states and an alphabet of 4 letters
         """
         if d is None:
@@ -2240,13 +2237,8 @@ cdef class FastAutomaton:
             2 --1--> 3
             3 --0--> 3
             3 --1--> 3
-            initial State 2.
+            initial State 1.
             FastAutomaton with 2 states and an alphabet of 1 letters
-            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: b = FastAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
-            sage: a.union(b, simplify=True)
-            FastAutomaton with 2 states and an alphabet of 1 letters
-
         """
         # complete the automata
         sig_on()
@@ -2336,10 +2328,9 @@ cdef class FastAutomaton:
             2 --1--> 3
             3 --0--> 3
             3 --1--> 3
-            initial State 2.
-            [FastAutomaton with 2 states and an alphabet of 1 letters,
-             FastAutomaton with 1 states and an alphabet of 1 letters]
-
+            initial State 1.
+            [FastAutomaton with 1 states and an alphabet of 1 letters,
+             FastAutomaton with 2 states and an alphabet of 1 letters]
         """
         # complete the automaton a
         sig_on()
@@ -2612,7 +2603,7 @@ cdef class FastAutomaton:
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = FastAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
             sage: a.concat(b)
-            FastAutomaton with 3 states and an alphabet of 3 letters
+            FastAutomaton with 2 states and an alphabet of 3 letters
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.concat(b, det=False)
             NFastAutomaton with 7 states and an alphabet of 3 letters
@@ -2648,15 +2639,14 @@ cdef class FastAutomaton:
 
     def proj(self, dict d, det=True, verb=False):
         """
-        Projection following the image of dictionary ``d``
-
+        Project following the dictionary ``d``.
+        Give an automaton where labels are replaced according to ``d``
+        
         INPUT:
 
         - ``d`` -- dictionary to determine projection
-        - ``det``  --  (default: ``true``) determinist flag
-          for return automaton
-        - ``verb`` -- boolean (default: ``False``) fix
-          to ``True`` for activation the verbose mode
+        - ``det``  --  (default: ``true``) determinise the result or not
+        - ``verb`` -- boolean (default: ``False``) activate or desactivate the verbose mode
 
         OUTPUT:
 
@@ -2693,15 +2683,14 @@ cdef class FastAutomaton:
 
     def proji(self, int i, det=True, verb=False):
         """
-        Projection on one letter of the alphabet label.
+        Assuming that the alphabet of the automaton are tuples, project on the ith coordinate.
+        Give a new automaton where labels are replaced by the projection on the ith coordinate.
 
         INPUT:
 
         - ``i`` -- int index of the label projection
-        - ``det``  --  (default: ``true``) determinist flag
-          for return automaton
-        - ``verb`` -- boolean (default: ``False``) fix
-          to ``True`` for activation the verbose mode
+        - ``det``  --  (default: ``true``) determinise or not the result
+        - ``verb`` -- boolean (default: ``False``) to activate or desactivate the verbose mode
 
         OUTPUT:
 
@@ -2726,12 +2715,12 @@ cdef class FastAutomaton:
     def determinise_proj(self, d, noempty=True,
                          onlyfinals=False, nof=False, verb=False):
         """
-        Projection following the image of dictonary ``d``
+        Project following the dictonary ``d`` and determinise the result.
 
         INPUT:
 
         - ``d`` -- dictionary to determine projection
-        - ``noempty``  -- (default: ``True``)
+        - ``noempty``  -- (default: ``True``) 
         - ``onlyfinals``  -- (default: ``False``)
         - ``nof``  -- (default: ``False``)
         - ``verb`` -- boolean (default: ``False``) fix
@@ -3421,7 +3410,7 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: b = FastAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
+            sage: b = FastAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=3)
             sage: c = FastAutomaton([(3, 2, 'd'), (1, 2, 'c')], i=2)
             sage: a.equals_langages(b)
             True
