@@ -1356,13 +1356,15 @@ class BrandtModule_class(AmbientHeckeModule):
                             ideals_theta[J_theta] = [J]
                         verbose("found %s of %s ideals"%(len(ideals), self.dimension()), level=2)
                         if len(ideals) >= self.dimension():
-                            ideals = tuple(sorted(ideals))
+                            ideals.sort(key=lambda I: I.basis())
+                            ideals = tuple(ideals)
                             self.__right_ideals = ideals
                             return ideals
                         got_something_new = True
             new_ideals = list(newly_computed_ideals)
 
-        return tuple(sorted(ideals))
+        ideals.sort(key=lambda I: I.basis())
+        return tuple(ideals)
 
     @cached_method
     def _ideal_products(self, diagonal_only=False):
