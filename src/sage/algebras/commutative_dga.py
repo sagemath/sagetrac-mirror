@@ -74,11 +74,10 @@ AUTHORS:
 from __future__ import print_function, absolute_import
 from six import string_types
 
-from sage.misc.six import with_metaclass
-from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.unique_representation import (
+        InheritComparisonUniqueRepresentation, UniqueRepresentation)
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
-from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.functional import is_odd, is_even
 from sage.misc.misc_c import prod
 from sage.categories.algebras import Algebras
@@ -99,10 +98,7 @@ from sage.rings.quotient_ring import QuotientRing_nc
 from sage.rings.quotient_ring_element import QuotientRingElement
 
 
-class Differential(with_metaclass(
-        InheritComparisonClasscallMetaclass,
-        UniqueRepresentation, Morphism
-    )):
+class Differential(InheritComparisonUniqueRepresentation, Morphism):
     r"""
     Differential of a commutative graded algebra.
 
@@ -935,7 +931,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             sage: A
             Graded Commutative Algebra with generators ('x', 'y', 'z', 't') in degrees (3, 4, 2, 1) over Rational Field
             sage: A.quotient(A.ideal(3*x*z - 2*y*t))
-            Graded Commutative Algebra with generators ('x', 'y', 'z', 't') in degrees (3, 4, 2, 1) with relations [3*x*z - 2*y*t] over Rational Field 
+            Graded Commutative Algebra with generators ('x', 'y', 'z', 't') in degrees (3, 4, 2, 1) with relations [3*x*z - 2*y*t] over Rational Field
         """
         s = "Graded Commutative Algebra with generators {} in degrees {}".format(self._names, self._degrees)
         # Find any nontrivial relations.

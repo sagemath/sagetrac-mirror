@@ -17,9 +17,9 @@ AUTHORS:
 #*****************************************************************************
 from six import iteritems
 
-from sage.misc.six import with_metaclass
 from sage.misc.cachefunc import cached_method
-from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.unique_representation import (
+        InheritComparisonUniqueRepresentation)
 from copy import copy
 
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
@@ -35,7 +35,6 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.subset import SubsetsSorted
 from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.algebras.weyl_algebra import repr_from_monomials
-from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 
 class CliffordAlgebraElement(CombinatorialFreeModule.Element):
@@ -2161,10 +2160,8 @@ class ExteriorAlgebra(CliffordAlgebra):
 #####################################################################
 ## Differentials
 
-class ExteriorAlgebraDifferential(with_metaclass(
-        InheritComparisonClasscallMetaclass,
-        ModuleMorphismByLinearity, UniqueRepresentation
-    )):
+class ExteriorAlgebraDifferential(ModuleMorphismByLinearity,
+                                  InheritComparisonUniqueRepresentation):
     r"""
     Internal class to store the data of a boundary or coboundary of
     an exterior algebra `\Lambda(L)` defined by the structure

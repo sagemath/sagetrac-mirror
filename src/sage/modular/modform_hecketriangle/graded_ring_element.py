@@ -17,7 +17,6 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc import six
 from sage.rings.all import ZZ, infinity, LaurentSeries, O
 from sage.functions.all import exp
 from sage.rings.number_field.number_field import QuadraticField
@@ -26,13 +25,13 @@ from sage.symbolic.all import pi
 from sage.structure.parent_gens import localvars
 from sage.structure.richcmp import op_NE, op_EQ
 from sage.structure.element import CommutativeAlgebraElement
-from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.unique_representation import (
+        InheritComparisonUniqueRepresentation)
 
 from sage.modules.free_module_element import vector
 from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 from .constructor import rational_type, FormsSpace, FormsRing
 from .series_constructor import MFSeriesConstructor
@@ -42,10 +41,8 @@ from .series_constructor import MFSeriesConstructor
 # corresponding operations (e.g. __pow__) even though the category
 # (and class) of the parent is in some cases not
 # CommutativeAlgebras but Modules
-class FormsRingElement(six.with_metaclass(
-        InheritComparisonClasscallMetaclass,
-        CommutativeAlgebraElement, UniqueRepresentation
-    )):
+class FormsRingElement(CommutativeAlgebraElement,
+                       InheritComparisonUniqueRepresentation):
     r"""
     Element of a FormsRing.
     """
