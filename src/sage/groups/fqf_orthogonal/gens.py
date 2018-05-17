@@ -891,6 +891,12 @@ def _gens(G, b):
     r"""
     Return generators.
 
+    INPUT:
+
+    - ``G`` -- a non-singular, integral, symmetric `p`-adic matrix in
+      descending normal form
+    - ``b`` -- a positive integer
+
     EXAMPLES::
 
         sage: from sage.groups.fqf_orthogonal.gens import _gens

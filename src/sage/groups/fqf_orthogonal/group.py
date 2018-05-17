@@ -24,7 +24,6 @@ AUTHORS:
 
 from sage.groups.abelian_gps.abelian_aut import AbelianGroupAutomorphismGroup_subgroup, AbelianGroupAutomorphism
 from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
-from sage.groups.fqf_orthogonal.lift import _reverse_homogeneous_blocks
 from sage.groups.fqf_orthogonal.gens import _gens
 from sage.misc.cachefunc import cached_method
 from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
@@ -35,6 +34,32 @@ from sage.categories.action import Action
 class FqfIsometry(AbelianGroupAutomorphism):
     r"""
     """
+    def __init__(self, parent, x, check=True):
+        """
+        The Python constructor.
+
+        TESTS::
+
+            sage: q = matrix.diagonal([1/3,2/3])
+            sage: q = TorsionQuadraticForm(q)
+            sage: G = q.orthogonal_group()
+            sage: f = G.an_element()
+            sage: TestSuite(f).run()
+        """
+        if check:
+            if not x in parent.gap():
+                raise ValueError("%s is not in the group %s" % (x, parent))
+        AbelianGroupAutomorphism.__init__(self, parent, x)
+        if check:
+            # check that the form is preserved
+            # this is expensive
+            g = self.parent().invariant_form().smith_form_gens()
+            for i in range(len(g)):
+                if (g[i]*self).q() != g[i].q():
+                    raise ValueError("not an isometry")
+                for j in range(i+1, len(g)):
+                    if (g[i]*self).b(g[j]*self) != (g[i]*self).b(g[j]*self):
+                        raise ValueError("not an isometry")
 
     def _repr_(self):
         r"""
@@ -134,6 +159,51 @@ class FqfOrthogonalGroup_ambient(AbelianGroupAutomorphismGroup_subgroup):
         """
         return self._invariant_form
 
+
+    def _element_constructor_(self, x, check=True):
+        r"""
+        Construct an element from ``x`` and handle conversions.
+
+        INPUT:
+
+        - ``x`` -- something that converts in can be:
+
+          * a libgap element
+          * an integer matrix in the covering matrix ring
+          * a class:`sage.modules.fg_pid.fgp_morphism.FGP_Morphism`
+            defining an automorphism -- the domain of ``x`` must have
+            invariants equal to ``self.domain().gens_orders()``
+            if x in self.invariant_form().W().orthogonal_group()
+          * something that acts on the invariant form module
+
+        EXAMPLES::
+
+            sage: L = IntegralLattice("A4").twist(2).direct_sum(IntegralLattice("A2"))
+            sage: D = L.discriminant_group()
+            sage: OL = L.orthogonal_group()
+            sage: OD = D.orthogonal_group()
+            sage: f = OL.an_element()
+            sage: fbar = OD(f)
+            sage: fbar
+            [ 0  0  0 15]
+            [ 1  1  0  0]
+            [ 1  0  0  0]
+            [ 1  0  1  1]
+
+        TESTS::
+
+            sage: all([x*f==x*fbar for x in D.gens()])
+            True
+        """
+        try:
+            # if there is an action try that
+            gen = self.invariant_form().smith_form_gens()
+            x = matrix(ZZ,[(g*x).vector() for g in gen])
+        except TypeError:
+            pass
+        # the super class knows what to do
+        return AbelianGroupAutomorphismGroup_subgroup._element_constructor_(self, x, check=check)
+
     def _get_action_(self, S, op, self_on_left):
             """
             Provide the coercion system with an action.
@@ -219,6 +289,10 @@ def _compute_gens(T):
         q_p = T.gram_matrix_quadratic()[indices, indices]
         b = invs[-1].valuation(p)
         G_p = q_p * p**b
+        if p != 2:
+            # make sure each homogeneous block of G_p stays in normal form
+            G_p = G_p/2
+
         R = Zp(p, type='fixed-mod', prec=b+5, show_prec=False)
         G_p = G_p.change_ring(R)
 
@@ -266,7 +340,16 @@ class ActionOnFqf(Action):
         r"""
         Initialize the action
 
+        TESTS::
 
+            sage: from sage.groups.fqf_orthogonal.group import ActionOnFqf
+            sage: q = matrix.diagonal([1/3, 2/3])
+            sage: q = TorsionQuadraticForm(q)
+            sage: G = q.orthogonal_group()
+            sage: A = ActionOnFqf(G, q, True)
+            Traceback (most recent call last):
+            ...
+            ValueError: the action is from the right
         """
         import operator
         if is_left:
