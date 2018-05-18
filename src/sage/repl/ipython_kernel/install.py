@@ -307,6 +307,7 @@ def have_prerequisites(debug=True):
     """
     try:
         from notebook.notebookapp import NotebookApp
+        NotebookApp # silence pyflakes warning about unused import
         return True
     except ImportError:
         if debug:
