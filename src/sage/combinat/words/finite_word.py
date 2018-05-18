@@ -5378,7 +5378,7 @@ class FiniteWord_class(Word_class):
         from `w` by first listing the conjugates of `w` in lexicographic order
         and then concatenating the final letters of the conjugates in this
         order. See [1].
-
+TEST
         EXAMPLES::
 
             sage: Word('abaccaaba').BWT()
