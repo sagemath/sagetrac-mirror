@@ -27,7 +27,6 @@ import random
 import doctest
 from Cython.Utils import is_package_dir
 from sage.cpython.string import bytes_to_str
-from sage.repl.preparse import preparse
 from sage.repl.load import load
 from sage.misc.lazy_attribute import lazy_attribute
 from .parsing import SageDocTestParser
@@ -286,7 +285,6 @@ class DocTestSource(object):
         self.linking = False
         doctests = []
         in_docstring = False
-        tab_found = False
         unparsed_doc = False
         doc = []
         start = None
@@ -787,6 +785,10 @@ class FileDocTestSource(DocTestSource):
         """
         expected = []
         rest = isinstance(self, RestSource)
+        # initialize starting_indent to silence pyflakes; note that this
+        # variable is only read once it has been set in the code block that
+        # sets in_block=True below.
+        starting_indent = None
         if rest:
             skipping = False
             in_block = False
