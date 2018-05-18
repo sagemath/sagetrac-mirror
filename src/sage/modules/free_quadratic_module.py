@@ -77,7 +77,6 @@ import sage.rings.integer
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.categories.integral_domains import IntegralDomains
 from . import free_module
-from sage.structure.richcmp import richcmp_not_equal, rich_to_bool, richcmp
 
 ###############################################################################
 #
@@ -172,6 +171,18 @@ def FreeQuadraticModule(
         [  x   1]
         [  1 2*x]
          Inner product ring: Univariate Polynomial Ring in x over Finite Field in z2 of size 3^2
+
+    TESTS::
+
+    Check for :trac:`10577`::
+
+        sage: m = matrix.diagonal(GF(2), [1,1])
+        sage: V2 = VectorSpace(GF(2), 2, inner_product_matrix=m)
+        sage: deepcopy(V2)
+        Ambient quadratic space of dimension 2 over Finite Field of size 2
+        Inner product matrix:
+        [1 0]
+        [0 1]
     """
     global _cache
     rank = int(rank)
@@ -284,8 +295,8 @@ def QuadraticSpace(K, dimension, inner_product_matrix, sparse=False):
     """
     if not K.is_field():
         raise TypeError("Argument K (= %s) must be a field." % K)
-    if not sparse in (True,False):
-        raise TypeError("Argument sparse (= %s) must be a boolean."%sparse)
+    if sparse not in (True, False):
+        raise TypeError("Argument sparse (= %s) must be a boolean." % sparse)
     return FreeQuadraticModule(K, rank=dimension, inner_product_matrix=inner_product_matrix, sparse=sparse)
 
 InnerProductSpace = QuadraticSpace
@@ -393,7 +404,7 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
         """
         free_module.FreeModule_generic.__init__(
             self, base_ring=base_ring, rank=rank, degree=degree, sparse=sparse)
-        self._inner_product_matrix=inner_product_matrix
+        self._inner_product_matrix = inner_product_matrix
 
     def _dense_module(self):
         """
@@ -629,10 +640,11 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
             sage: M3._inner_product_is_diagonal()
             False
 
-        TODO: Actually use the diagonal form of the inner product.
+        .. TODO:: Actually use the diagonal form of the inner product.
         """
         A = self.inner_product_matrix()
-        D = sage.matrix.constructor.diagonal_matrix([ A[i,i] for i in range(A.nrows()) ])
+        D = sage.matrix.constructor.diagonal_matrix([A[i, i]
+                                                     for i in range(A.nrows())])
         return A == D
 
     def inner_product_ring(self):
@@ -1874,4 +1886,3 @@ class FreeQuadraticModule_submodule_field(
 #        self._inner_product_matrix = inner_product_matrix
 
 ######################################################
-
