@@ -226,11 +226,14 @@ def FreeQuadraticModule(
     # because matrices with and without subdivisions compare equal.
     # Because of uniqueness, we need a canonical matrix, which is the one
     # without subdivisions.
-    MS = MatrixSpace(inner_product_ring, rank)
+    if base_ring == inner_product_matrix.base_ring():
+        MS = MatrixSpace(base_ring, rank)
+    else:
+        MS = MatrixSpace(inner_product_ring, rank)
     inner_product_matrix = MS(list(inner_product_matrix))
     inner_product_matrix.set_immutable()
 
-    key = (base_ring, rank, inner_product_matrix, sparse)
+    key = (base_ring, rank, inner_product_matrix, sparse, inner_product_ring)
 
     if key in _cache:
         M = _cache[key]()
@@ -248,23 +251,23 @@ def FreeQuadraticModule(
 
     elif base_ring.is_field():
         M = FreeQuadraticModule_ambient_field(
-            base_ring, rank, sparse=sparse, inner_product_matrix=inner_product_matrix)
+            base_ring, rank, sparse=sparse, inner_product_matrix=inner_product_matrix, inner_product_ring=inner_product_ring)
 
     elif base_ring in PrincipalIdealDomains():
         M = FreeQuadraticModule_ambient_pid(
-            base_ring, rank, sparse=sparse, inner_product_matrix=inner_product_matrix)
+            base_ring, rank, sparse=sparse, inner_product_matrix=inner_product_matrix, inner_product_ring=inner_product_ring)
 
     elif isinstance(base_ring, ring.IntegralDomain) or base_ring.is_integral_domain():
         M = FreeQuadraticModule_ambient_domain(
-            base_ring, rank, sparse=sparse, inner_product_matrix=inner_product_matrix)
+            base_ring, rank, sparse=sparse, inner_product_matrix=inner_product_matrix, inner_product_ring=inner_product_ring)
     else:
         M = FreeQuadraticModule_ambient(
-            base_ring, rank, sparse=sparse, inner_product_matrix=inner_product_matrix)
+            base_ring, rank, sparse=sparse, inner_product_matrix=inner_product_matrix, inner_product_ring=inner_product_ring)
 
     _cache[key] = weakref.ref(M)
     return M
 
-def QuadraticSpace(K, dimension, inner_product_matrix, sparse=False):
+def QuadraticSpace(K, dimension, inner_product_matrix, sparse=False, inner_product_ring=None):
     """
     EXAMPLES:
 
@@ -297,7 +300,7 @@ def QuadraticSpace(K, dimension, inner_product_matrix, sparse=False):
         raise TypeError("Argument K (= %s) must be a field." % K)
     if sparse not in (True, False):
         raise TypeError("Argument sparse (= %s) must be a boolean." % sparse)
-    return FreeQuadraticModule(K, rank=dimension, inner_product_matrix=inner_product_matrix, sparse=sparse)
+    return FreeQuadraticModule(K, rank=dimension, inner_product_matrix=inner_product_matrix, sparse=sparse, inner_product_ring=inner_product_ring)
 
 InnerProductSpace = QuadraticSpace
 
@@ -382,7 +385,7 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
         sage: M1 == M2
         False
     """
-    def __init__(self, base_ring, rank, degree, inner_product_matrix, sparse=False):
+    def __init__(self, base_ring, rank, degree, inner_product_matrix, inner_product_ring, sparse=False):
         """
         Create the free module of given rank over the given base_ring.
 
@@ -405,6 +408,7 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
         free_module.FreeModule_generic.__init__(
             self, base_ring=base_ring, rank=rank, degree=degree, sparse=sparse)
         self._inner_product_matrix = inner_product_matrix
+        self._inner_product_ring = inner_product_ring
 
     def _dense_module(self):
         """
@@ -657,18 +661,14 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
             sage: M.inner_product_ring()
             Complex Field with 53 bits of precision
         """
-        ipr = self._inner_product_matrix.base_ring()
-        if ipr.is_subring(self.coordinate_ring()):
-            return self.coordinate_ring()
-        else:
-            return ipr
+        return self._inner_product_ring
 
 class FreeQuadraticModule_generic_pid(
     free_module.FreeModule_generic_pid, FreeQuadraticModule_generic):
     """
     Class of all free modules over a PID.
     """
-    def __init__(self, base_ring, rank, degree, inner_product_matrix, sparse=False):
+    def __init__(self, base_ring, rank, degree, inner_product_matrix, inner_product_ring, sparse=False):
         """
         Create a free module over a PID.
 
@@ -684,6 +684,7 @@ class FreeQuadraticModule_generic_pid(
             self, base_ring=base_ring, rank=rank, degree=degree, sparse=sparse)
         #self._FreeQuadraticModule_generic_inner_product_matrix = inner_product_matrix
         self._inner_product_matrix = inner_product_matrix
+        self._inner_product_ring = inner_product_ring
 
     def span(self, gens, check=True, already_echelonized=False):
         """
@@ -706,8 +707,15 @@ class FreeQuadraticModule_generic_pid(
             ...
             ArithmeticError: Argument gens (= [(0, 1, 0)]) does not generate a submodule of self.
         """
+        try:
+            gens = [self.ambient_module()(g) for g in gens]
+            inner_product_ring = self.inner_product_ring()
+        except TypeError:
+            # the inner product ring can get larger
+            inner_product_ring = self.inner_product_ring().fraction_field()
         return FreeQuadraticModule_submodule_pid(
             self.ambient_module(), gens, inner_product_matrix=self.inner_product_matrix(),
+            inner_product_ring=inner_product_ring,
             check=check, already_echelonized=already_echelonized)
 
     def span_of_basis(self, basis, check=True, already_echelonized=False):
@@ -748,9 +756,16 @@ class FreeQuadraticModule_generic_pid(
             ...
             ValueError: The given basis vectors must be linearly independent.
         """
+        try:
+            basis = [self.ambient_module()(g) for g in basis]
+            inner_product_ring = self.inner_product_ring()
+        except TypeError:
+            # the inner product ring can get larger
+            inner_product_ring = self.inner_product_ring().fraction_field()
         return FreeQuadraticModule_submodule_with_basis_pid(
             self.ambient_module(), basis=basis, inner_product_matrix=self.inner_product_matrix(),
-            check=check, already_echelonized=already_echelonized)
+            inner_product_ring=inner_product_ring, check=check,
+            already_echelonized=already_echelonized)
 
     def zero_submodule(self):
         """
@@ -758,21 +773,22 @@ class FreeQuadraticModule_generic_pid(
 
         EXAMPLES::
 
-            sage: V = FreeModule(ZZ,2)
+            sage: V = FreeModule(ZZ, 2, inner_product_matrix=-matrix.identity(2))
             sage: V.zero_submodule()
-            Free module of degree 2 and rank 0 over Integer Ring
+            Free quadratic module of degree 2 and rank 0 over Integer Ring
             Echelon basis matrix:
             []
         """
         return FreeQuadraticModule_submodule_pid(
-            self.ambient_module(), [], self.inner_product_matrix(), check=False)
+            self.ambient_module(), [], self.inner_product_matrix(),
+            inner_product_ring=self.inner_product_ring(), check=False)
 
 class FreeQuadraticModule_generic_field(
     free_module.FreeModule_generic_field, FreeQuadraticModule_generic_pid):
     """
     Base class for all free modules over fields.
     """
-    def __init__(self, base_field, dimension, degree, inner_product_matrix, sparse=False):
+    def __init__(self, base_field, dimension, degree, inner_product_matrix, inner_product_ring, sparse=False):
         """
         Creates a vector space over a field.
 
@@ -796,15 +812,12 @@ class FreeQuadraticModule_generic_field(
         """
         if not isinstance(base_field, ring.Field):
             raise TypeError("The base_field (=%s) must be a field" %base_field)
-        inner_product_ring = inner_product_matrix.base_ring()
-        if not inner_product_ring.has_coerce_map_from(base_ring):
-           raise ValueError("The base field (=%s) must coerce into the " +
-                            "inner_product_ring(=%s)." %(base_ring, inner_product_ring))
 
         free_module.FreeModule_generic_field.__init__(
             self, base_field=base_field, dimension=dimension, degree=degree, sparse=sparse)
         #self._FreeQuadraticModule_generic_inner_product_matrix = inner_product_matrix
         self._inner_product_matrix = inner_product_matrix
+        self._inner_product_ring = inner_product_ring
 
     def span(self, gens, check=True, already_echelonized=False):
         """
@@ -842,6 +855,7 @@ class FreeQuadraticModule_generic_field(
         return FreeQuadraticModule_submodule_field(
             self.ambient_module(), gens,
             inner_product_matrix=self.inner_product_matrix(),
+            inner_product_ring=self.inner_product_ring(),
             check=check, already_echelonized=already_echelonized)
 
     def span_of_basis(self, basis, check=True, already_echelonized=False):
@@ -885,6 +899,7 @@ class FreeQuadraticModule_generic_field(
         return FreeQuadraticModule_submodule_with_basis_field(
             self.ambient_module(), basis=basis,
             inner_product_matrix=self.inner_product_matrix(),
+            inner_product_ring=self.inner_product_ring(),
             check=check, already_echelonized=already_echelonized)
 
 ###############################################################################
@@ -898,7 +913,7 @@ class FreeQuadraticModule_ambient(
     """
     Ambient free module over a commutative ring.
     """
-    def __init__(self, base_ring, rank, inner_product_matrix, sparse=False):
+    def __init__(self, base_ring, rank, inner_product_matrix, inner_product_ring, sparse=False):
         """
         The free module of given rank over the given base_ring.
 
@@ -917,6 +932,7 @@ class FreeQuadraticModule_ambient(
         free_module.FreeModule_ambient.__init__(self, base_ring=base_ring, rank=rank, sparse=sparse)
         #self._FreeQuadraticModule_generic_inner_product_matrix = inner_product_matrix
         self._inner_product_matrix = inner_product_matrix
+        self._inner_product_ring = inner_product_ring
 
     def _repr_(self):
         """
@@ -1023,7 +1039,7 @@ class FreeQuadraticModule_ambient_domain(
     """
     Ambient free quadratic module over an integral domain.
     """
-    def __init__(self, base_ring, rank, inner_product_matrix, sparse=False):
+    def __init__(self, base_ring, rank, inner_product_matrix, inner_product_ring, sparse=False):
         """
         EXAMPLES::
 
@@ -1034,6 +1050,7 @@ class FreeQuadraticModule_ambient_domain(
         free_module.FreeModule_ambient.__init__(self, base_ring=base_ring, rank=rank, sparse=sparse)
         #self._FreeQuadraticModule_generic_inner_product_matrix = inner_product_matrix
         self._inner_product_matrix = inner_product_matrix
+        self._inner_product_ring = inner_product_ring
 
     def _repr_(self):
         """
@@ -1118,7 +1135,7 @@ class FreeQuadraticModule_ambient_pid(
     """
     Ambient free quadratic module over a principal ideal domain.
     """
-    def __init__(self, base_ring, rank, inner_product_matrix, sparse=False):
+    def __init__(self, base_ring, rank, inner_product_matrix, inner_product_ring, sparse=False):
         """
         Create the ambient free module of given rank over the given
         principal ideal domain
@@ -1147,6 +1164,7 @@ class FreeQuadraticModule_ambient_pid(
         free_module.FreeModule_ambient_pid.__init__(self, base_ring=base_ring, rank=rank, sparse=sparse)
         #self._FreeQuadraticModule_generic_inner_product_matrix = inner_product_matrix
         self._inner_product_matrix = inner_product_matrix
+        self._inner_product_ring = inner_product_ring
 
     def _repr_(self):
         """
@@ -1208,7 +1226,7 @@ class FreeQuadraticModule_ambient_field(
     free_module.FreeModule_ambient_field,
     FreeQuadraticModule_generic_field, FreeQuadraticModule_ambient_pid):
 
-    def __init__(self, base_field, dimension, inner_product_matrix, sparse=False):
+    def __init__(self, base_field, dimension, inner_product_matrix, inner_product_ring, sparse=False):
         """
         Create the ambient vector space of given dimension over the given field.
 
@@ -1233,6 +1251,7 @@ class FreeQuadraticModule_ambient_field(
             self, base_field=base_field, dimension=dimension, sparse=sparse)
         #self._FreeQuadraticModule_generic_inner_product_matrix = inner_product_matrix
         self._inner_product_matrix = inner_product_matrix
+        self._inner_product_ring = inner_product_ring
 
     def _repr_(self):
         """
@@ -1319,7 +1338,7 @@ class FreeQuadraticModule_submodule_with_basis_pid(
         sage: M < V
         False
     """
-    def __init__(self, ambient, basis, inner_product_matrix,
+    def __init__(self, ambient, basis, inner_product_matrix, inner_product_ring,
         check=True, echelonize=False, echelonized_basis=None, already_echelonized=False):
         """
         Create a free module with basis over a PID.
@@ -1363,6 +1382,7 @@ class FreeQuadraticModule_submodule_with_basis_pid(
             echelonize=echelonize, echelonized_basis=echelonized_basis, already_echelonized=already_echelonized)
         #self._FreeQuadraticModule_generic_inner_product_matrix = inner_product_matrix
         self._inner_product_matrix = inner_product_matrix
+        self._inner_product_ring = inner_product_ring
 
     def _repr_(self):
         """
@@ -1513,7 +1533,7 @@ class FreeQuadraticModule_submodule_pid(
         sage: loads(v.dumps()) == v
         True
     """
-    def __init__(self, ambient, gens, inner_product_matrix, check=True, already_echelonized=False):
+    def __init__(self, ambient, gens, inner_product_matrix, inner_product_ring, check=True, already_echelonized=False):
         """
         Create an embedded free module over a PID.
 
@@ -1531,6 +1551,7 @@ class FreeQuadraticModule_submodule_pid(
             self, ambient=ambient, gens=gens, check=check, already_echelonized=already_echelonized)
         #self._FreeQuadraticModule_generic_inner_product_matrix = inner_product_matrix
         self._inner_product_matrix = inner_product_matrix
+        self._inner_product_ring = inner_product_ring
 
     def _repr_(self):
         """
@@ -1609,7 +1630,7 @@ class FreeQuadraticModule_submodule_with_basis_field(
         sage: loads(W.dumps()) == W
         True
     """
-    def __init__(self, ambient, basis, inner_product_matrix,
+    def __init__(self, ambient, basis, inner_product_matrix, inner_product_ring,
                  check=True, echelonize=False, echelonized_basis=None, already_echelonized=False):
         """
         Create a vector space with given basis.
@@ -1639,6 +1660,7 @@ class FreeQuadraticModule_submodule_with_basis_field(
             echelonize=echelonize, echelonized_basis=echelonized_basis, already_echelonized=already_echelonized)
         #self._FreeQuadraticModule_generic_inner_product_matrix = inner_product_matrix
         self._inner_product_matrix = inner_product_matrix
+        self._inner_product_ring = inner_product_ring
 
     def _repr_(self):
         """
@@ -1758,7 +1780,7 @@ class FreeQuadraticModule_submodule_field(
         sage: vector(QQ, W.coordinates(v)) * W.basis_matrix()
         (1, 5, 9)
     """
-    def __init__(self, ambient, gens, inner_product_matrix, check=True, already_echelonized=False):
+    def __init__(self, ambient, gens, inner_product_matrix, inner_product_ring, check=True, already_echelonized=False):
         """
         Create an embedded vector subspace with echelonized basis.
 
@@ -1776,6 +1798,7 @@ class FreeQuadraticModule_submodule_field(
             self, ambient=ambient, gens=gens, check=check, already_echelonized=already_echelonized)
         #self._FreeQuadraticModule_generic_inner_product_matrix = inner_product_matrix
         self._inner_product_matrix = inner_product_matrix
+        self._inner_product_ring = inner_product_ring
 
     def _repr_(self):
         """

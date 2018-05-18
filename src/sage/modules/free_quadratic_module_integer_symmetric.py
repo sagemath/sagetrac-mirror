@@ -675,7 +675,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         [0 1]
         [1 0]
     """
-    def __init__(self, ambient, basis, inner_product_matrix,
+    def __init__(self, ambient, basis, inner_product_matrix, inner_product_ring=None,
                  check=True, already_echelonized=False):
         r"""
         Create the integral lattice spanned by ``basis`` in the ambient space.
@@ -685,11 +685,14 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sage: L = IntegralLattice("U")
             sage: TestSuite(L).run()
         """
+        if inner_product_ring is None:
+            inner_product_ring = ambient.base_ring().fraction_field()
         FreeQuadraticModule_submodule_with_basis_pid.__init__(
                                         self,
-                                        ambient,
-                                        basis,
-                                        inner_product_matrix,
+                                        ambient=ambient,
+                                        basis=basis,
+                                        inner_product_matrix=inner_product_matrix,
+                                        inner_product_ring=inner_product_ring,
                                         check=check,
                                         already_echelonized=already_echelonized)
         if self.determinant() == 0:
