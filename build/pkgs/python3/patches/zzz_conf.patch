@@ -1,0 +1,229 @@
+diff --git a/aclocal.m4 b/aclocal.m4
+index 9a9cc55..df7895b 100644
+--- a/aclocal.m4
++++ b/aclocal.m4
+@@ -1,6 +1,6 @@
+-# generated automatically by aclocal 1.15 -*- Autoconf -*-
++# generated automatically by aclocal 1.15.1 -*- Autoconf -*-
+ 
+-# Copyright (C) 1996-2014 Free Software Foundation, Inc.
++# Copyright (C) 1996-2017 Free Software Foundation, Inc.
+ 
+ # This file is free software; the Free Software Foundation
+ # gives unlimited permission to copy and/or distribute it,
+@@ -12,9 +12,9 @@
+ # PARTICULAR PURPOSE.
+ 
+ m4_ifndef([AC_CONFIG_MACRO_DIRS], [m4_defun([_AM_CONFIG_MACRO_DIRS], [])m4_defun([AC_CONFIG_MACRO_DIRS], [_AM_CONFIG_MACRO_DIRS($@)])])
+-dnl pkg.m4 - Macros to locate and utilise pkg-config.   -*- Autoconf -*-
+-dnl serial 11 (pkg-config-0.29)
+-dnl
++# pkg.m4 - Macros to locate and utilise pkg-config.   -*- Autoconf -*-
++# serial 11 (pkg-config-0.29.1)
++
+ dnl Copyright © 2004 Scott James Remnant <scott@netsplit.com>.
+ dnl Copyright © 2012-2015 Dan Nicholson <dbn.lists@gmail.com>
+ dnl
+@@ -55,7 +55,7 @@ dnl
+ dnl See the "Since" comment for each macro you use to see what version
+ dnl of the macros you require.
+ m4_defun([PKG_PREREQ],
+-[m4_define([PKG_MACROS_VERSION], [0.29])
++[m4_define([PKG_MACROS_VERSION], [0.29.1])
+ m4_if(m4_version_compare(PKG_MACROS_VERSION, [$1]), -1,
+     [m4_fatal([pkg.m4 version $1 or higher is required but ]PKG_MACROS_VERSION[ found])])
+ ])dnl PKG_PREREQ
+@@ -288,3 +288,71 @@ AS_VAR_COPY([$1], [pkg_cv_][$1])
+ AS_VAR_IF([$1], [""], [$5], [$4])dnl
+ ])dnl PKG_CHECK_VAR
+ 
++dnl PKG_WITH_MODULES(VARIABLE-PREFIX, MODULES,
++dnl   [ACTION-IF-FOUND],[ACTION-IF-NOT-FOUND],
++dnl   [DESCRIPTION], [DEFAULT])
++dnl ------------------------------------------
++dnl
++dnl Prepare a "--with-" configure option using the lowercase
++dnl [VARIABLE-PREFIX] name, merging the behaviour of AC_ARG_WITH and
++dnl PKG_CHECK_MODULES in a single macro.
++AC_DEFUN([PKG_WITH_MODULES],
++[
++m4_pushdef([with_arg], m4_tolower([$1]))
++
++m4_pushdef([description],
++           [m4_default([$5], [build with ]with_arg[ support])])
++
++m4_pushdef([def_arg], [m4_default([$6], [auto])])
++m4_pushdef([def_action_if_found], [AS_TR_SH([with_]with_arg)=yes])
++m4_pushdef([def_action_if_not_found], [AS_TR_SH([with_]with_arg)=no])
++
++m4_case(def_arg,
++            [yes],[m4_pushdef([with_without], [--without-]with_arg)],
++            [m4_pushdef([with_without],[--with-]with_arg)])
++
++AC_ARG_WITH(with_arg,
++     AS_HELP_STRING(with_without, description[ @<:@default=]def_arg[@:>@]),,
++    [AS_TR_SH([with_]with_arg)=def_arg])
++
++AS_CASE([$AS_TR_SH([with_]with_arg)],
++            [yes],[PKG_CHECK_MODULES([$1],[$2],$3,$4)],
++            [auto],[PKG_CHECK_MODULES([$1],[$2],
++                                        [m4_n([def_action_if_found]) $3],
++                                        [m4_n([def_action_if_not_found]) $4])])
++
++m4_popdef([with_arg])
++m4_popdef([description])
++m4_popdef([def_arg])
++
++])dnl PKG_WITH_MODULES
++
++dnl PKG_HAVE_WITH_MODULES(VARIABLE-PREFIX, MODULES,
++dnl   [DESCRIPTION], [DEFAULT])
++dnl -----------------------------------------------
++dnl
++dnl Convenience macro to trigger AM_CONDITIONAL after PKG_WITH_MODULES
++dnl check._[VARIABLE-PREFIX] is exported as make variable.
++AC_DEFUN([PKG_HAVE_WITH_MODULES],
++[
++PKG_WITH_MODULES([$1],[$2],,,[$3],[$4])
++
++AM_CONDITIONAL([HAVE_][$1],
++               [test "$AS_TR_SH([with_]m4_tolower([$1]))" = "yes"])
++])dnl PKG_HAVE_WITH_MODULES
++
++dnl PKG_HAVE_DEFINE_WITH_MODULES(VARIABLE-PREFIX, MODULES,
++dnl   [DESCRIPTION], [DEFAULT])
++dnl ------------------------------------------------------
++dnl
++dnl Convenience macro to run AM_CONDITIONAL and AC_DEFINE after
++dnl PKG_WITH_MODULES check. HAVE_[VARIABLE-PREFIX] is exported as make
++dnl and preprocessor variable.
++AC_DEFUN([PKG_HAVE_DEFINE_WITH_MODULES],
++[
++PKG_HAVE_WITH_MODULES([$1],[$2],[$3],[$4])
++
++AS_IF([test "$AS_TR_SH([with_]m4_tolower([$1]))" = "yes"],
++        [AC_DEFINE([HAVE_][$1], 1, [Enable ]m4_tolower([$1])[ support])])
++])dnl PKG_HAVE_DEFINE_WITH_MODULES
++
+diff --git a/configure b/configure
+index 8fb95fd..ab4d12d 100755
+--- a/configure
++++ b/configure
+@@ -7766,7 +7766,7 @@ $as_echo "#define STDC_HEADERS 1" >>confdefs.h
+ 
+ fi
+ 
+-for ac_header in asm/types.h conio.h direct.h dlfcn.h errno.h \
++for ac_header in asm/types.h conio.h crypt.h direct.h dlfcn.h errno.h \
+ fcntl.h grp.h \
+ ieeefp.h io.h langinfo.h libintl.h process.h pthread.h \
+ sched.h shadow.h signal.h stropts.h termios.h \
+@@ -9576,6 +9576,51 @@ _ACEOF
+ 
+ fi
+ 	# Dynamic linking for HP-UX
++{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for crypt in -lcrypt" >&5
++$as_echo_n "checking for crypt in -lcrypt... " >&6; }
++if ${ac_cv_lib_crypt_crypt+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++  ac_check_lib_save_LIBS=$LIBS
++LIBS="-lcrypt  $LIBS"
++cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++
++/* Override any GCC internal prototype to avoid an error.
++   Use char because int might match the return type of a GCC
++   builtin and then its argument prototype would still apply.  */
++#ifdef __cplusplus
++extern "C"
++#endif
++char crypt ();
++int
++main ()
++{
++return crypt ();
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_c_try_link "$LINENO"; then :
++  ac_cv_lib_crypt_crypt=yes
++else
++  ac_cv_lib_crypt_crypt=no
++fi
++rm -f core conftest.err conftest.$ac_objext \
++    conftest$ac_exeext conftest.$ac_ext
++LIBS=$ac_check_lib_save_LIBS
++fi
++{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_crypt_crypt" >&5
++$as_echo "$ac_cv_lib_crypt_crypt" >&6; }
++if test "x$ac_cv_lib_crypt_crypt" = xyes; then :
++  cat >>confdefs.h <<_ACEOF
++#define HAVE_LIBCRYPT 1
++_ACEOF
++
++  LIBS="-lcrypt $LIBS"
++
++fi
++	# crypt() on Linux
+ 
+ # only check for sem_init if thread support is requested
+ if test "$with_threads" = "yes" -o -z "$with_threads"; then
+@@ -11235,8 +11280,8 @@ fi
+ 
+ # checks for library functions
+ for ac_func in alarm accept4 setitimer getitimer bind_textdomain_codeset chown \
+- clock confstr ctermid dup3 execv faccessat fchmod fchmodat fchown fchownat \
+- fexecve fdopendir fork fpathconf fstatat ftime ftruncate futimesat \
++ clock confstr crypt_r ctermid dup3 execv faccessat fchmod fchmodat fchown \
++ fchownat fexecve fdopendir fork fpathconf fstatat ftime ftruncate futimesat \
+  futimens futimes gai_strerror getentropy \
+  getgrouplist getgroups getlogin getloadavg getpeername getpgid getpid \
+  getpriority getresuid getresgid getpwent getspnam getspent getsid getwd \
+@@ -13163,6 +13208,18 @@ cat >>confdefs.h <<_ACEOF
+ _ACEOF
+ 
+ 
++fi
++
++# Issue #21085: In Cygwin, siginfo_t does not have si_band field.
++ac_fn_c_check_member "$LINENO" "siginfo_t" "si_band" "ac_cv_member_siginfo_t_si_band" "#include <signal.h>
++"
++if test "x$ac_cv_member_siginfo_t_si_band" = xyes; then :
++
++cat >>confdefs.h <<_ACEOF
++#define HAVE_SIGINFO_T_SI_BAND 1
++_ACEOF
++
++
+ fi
+ 
+ 
+diff --git a/pyconfig.h.in b/pyconfig.h.in
+index c758915..760b157 100644
+--- a/pyconfig.h.in
++++ b/pyconfig.h.in
+@@ -140,6 +140,12 @@
+ /* Define to 1 if you have the `copysign' function. */
+ #undef HAVE_COPYSIGN
+ 
++/* Define to 1 if you have the <crypt.h> header file. */
++#undef HAVE_CRYPT_H
++
++/* Define to 1 if you have the `crypt_r' function. */
++#undef HAVE_CRYPT_R
++
+ /* Define to 1 if you have the `ctermid' function. */
+ #undef HAVE_CTERMID
+ 
+@@ -523,6 +529,9 @@
+ /* Define to 1 if you have the `lgamma' function. */
+ #undef HAVE_LGAMMA
+ 
++/* Define to 1 if you have the `crypt' library (-lcrypt). */
++#undef HAVE_LIBCRYPT
++
+ /* Define to 1 if you have the `dl' library (-ldl). */
+ #undef HAVE_LIBDL
+ 

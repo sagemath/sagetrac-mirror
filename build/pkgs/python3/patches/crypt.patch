@@ -1,0 +1,60 @@
+diff -r 4b6e6a77e501 Modules/_cryptmodule.c
+--- a/Modules/_cryptmodule.c	Sat Oct 22 03:21:55 2016 +0000
++++ b/Modules/_cryptmodule.c	Sat Oct 22 09:40:16 2016 +0200
+@@ -5,6 +5,11 @@
+ 
+ #include <sys/types.h>
+ 
++#ifdef HAVE_CRYPT_H
++#include <crypt.h>
++#endif
++#include <unistd.h>
++
+ /* Module crypt */
+ 
+ /*[clinic input]
+@@ -36,7 +41,13 @@
+ {
+     /* On some platforms (AtheOS) crypt returns NULL for an invalid
+        salt. Return None in that case. XXX Maybe raise an exception?  */
++#ifdef HAVE_CRYPT_R
++    struct crypt_data data;
++    data.initialized = 0;
++    return Py_BuildValue("s", crypt_r(word, salt, &data));
++#else
+     return Py_BuildValue("s", crypt(word, salt));
++#endif
+ }
+ 
+ 
+diff -r 4b6e6a77e501 configure.ac
+--- a/configure.ac	Sat Oct 22 03:21:55 2016 +0000
++++ b/configure.ac	Sat Oct 22 09:40:16 2016 +0200
+@@ -2033,7 +2033,7 @@
+ 
+ # checks for header files
+ AC_HEADER_STDC
+-AC_CHECK_HEADERS(asm/types.h conio.h direct.h dlfcn.h errno.h \
++AC_CHECK_HEADERS(asm/types.h conio.h crypt.h direct.h dlfcn.h errno.h \
+ fcntl.h grp.h \
+ ieeefp.h io.h langinfo.h libintl.h process.h pthread.h \
+ sched.h shadow.h signal.h stropts.h termios.h \
+@@ -2671,6 +2671,7 @@
+ AC_CHECK_LIB(sendfile, sendfile)
+ AC_CHECK_LIB(dl, dlopen)	# Dynamic linking for SunOS/Solaris and SYSV
+ AC_CHECK_LIB(dld, shl_load)	# Dynamic linking for HP-UX
++AC_CHECK_LIB(crypt, crypt)	# crypt() on Linux
+ 
+ # only check for sem_init if thread support is requested
+ if test "$with_threads" = "yes" -o -z "$with_threads"; then
+@@ -3403,8 +3404,8 @@
+ 
+ # checks for library functions
+ AC_CHECK_FUNCS(alarm accept4 setitimer getitimer bind_textdomain_codeset chown \
+- clock confstr ctermid dup3 execv faccessat fchmod fchmodat fchown fchownat \
+- fexecve fdopendir fork fpathconf fstatat ftime ftruncate futimesat \
++ clock confstr crypt_r ctermid dup3 execv faccessat fchmod fchmodat fchown \
++ fchownat fexecve fdopendir fork fpathconf fstatat ftime ftruncate futimesat \
+  futimens futimes gai_strerror getentropy \
+  getgrouplist getgroups getlogin getloadavg getpeername getpgid getpid \
+  getpriority getresuid getresgid getpwent getspnam getspent getsid getwd \
