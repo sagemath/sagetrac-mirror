@@ -69,9 +69,9 @@ jobs:
       - run:
           name: doctest
           command: |
-          . .circleci/before-script.sh
-          . .ci/pull-dockerhub.sh sagemath
-          .ci/test-doctest.sh "$DOCKER_IMAGE" $DOCTEST_FLAVOUR
+            . .circleci/before-script.sh
+            . .ci/pull-dockerhub.sh sagemath
+            .ci/test-doctest.sh "$DOCKER_IMAGE" $DOCTEST_FLAVOUR
   doctest-new:
     <<: *doctest
     environment:
