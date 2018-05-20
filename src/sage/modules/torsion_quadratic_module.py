@@ -950,7 +950,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         r"""
         Orthognal group of the associated torsion quadratic form.
 
-        WARNING::
+        WARNING:
 
         This is usually smaller than the orthogonal group of the bilinear form.
 
