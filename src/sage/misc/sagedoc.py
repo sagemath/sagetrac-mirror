@@ -786,13 +786,11 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
 
     The examples are nice, but marking them "random" means we're not
     really testing if the function works, just that it completes. These
-    tests aren't perfect, but are reasonable.
-
-    ::
+    tests aren't perfect, but are reasonable::
 
         sage: len(_search_src_or_doc('src', r'matrix\(', 'incidence_structures', 'self', 'combinat', interact=False).splitlines()) > 1
         True
-        sage: 'abvar/homology' in _search_src_or_doc('doc', 'homology', 'variety', interact=False)  # long time (4s on sage.math, 2012)
+        sage: 'abvar/homology' in _search_src_or_doc('doc', 'homology', 'variety', interact=False)  # long time (4s on sage.math, 2012), requires a built documentation, optional: doc
         True
         sage: 'divisors' in _search_src_or_doc('src', '^ *def prime', interact=False)
         True
@@ -1160,9 +1158,9 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='',
     counting the length of ``search_doc('tree',
     interact=False).splitlines()`` gives the number of matches. ::
 
-        sage: len(search_doc('tree', interact=False).splitlines()) > 4000  # long time
+        sage: len(search_doc('tree', interact=False).splitlines()) > 4000  # long time, requires a built documentation, optional: doc
         True
-        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 2000  # long time
+        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 2000  # long time, requires a built documentation, optional: doc
         True
     """
     return _search_src_or_doc('doc', string, extra1=extra1, extra2=extra2,

@@ -4,7 +4,7 @@
 # This script expects a single argument, the full name of the docker image to
 # test.
 
-# Usage: ./test-dev.sh IMAGE-NAME
+# Usage: ./check-dev.sh IMAGE-NAME
 
 # ****************************************************************************
 #       Copyright (C) 2018 Julian Rüth <julian.rueth@fsfe.org>
