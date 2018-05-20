@@ -780,8 +780,14 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: OD(fd)
             [ f1, f2, f3 ] -> [ f2, f1, f3 ]
         """
-        from sage.groups.fqf_orthogonal.group import FqfOrthogonalGroup_ambient
-        return FqfOrthogonalGroup_ambient(self)
+        from sage.groups.fqf_orthogonal.group import FqfOrthogonalGroup
+        from sage.groups.fqf_orthogonal.group import _compute_gens
+        from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+        ambient = AbelianGroupGap(self.invariants()).aut()
+        gens = _compute_gens(self.normal_form())
+        gens = [ambient(g) for g in gens]
+        gens = tuple(g for g in gens if g != ambient.one())
+        return FqfOrthogonalGroup(ambient, gens, self)
 
     def primary_part(self, m):
         r"""
