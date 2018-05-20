@@ -76,9 +76,9 @@ jobs:
     <<: *doctest
     environment:
       DOCTEST_FLAVOUR: --new --long
+  doctest-short:
+    <<: *doctest
   # TODO: Enable this once we have https://trac.sagemath.org/ticket/25270
-  # doctest-short:
-  #   <<: *doctest
   #   environment:
   #     DOCTEST_FLAVOUR: --short
   doctest-long:
@@ -118,6 +118,9 @@ workflows:
               ignore:
                 - master
                 - develop
+      - doctest-new:
+          requires:
+          - build-from-latest-check-release
       - doctest-short:
           requires:
           - build-from-latest-check-release
@@ -125,6 +128,7 @@ workflows:
           type: approval
           requires:
           - doctest-short
+          - doctest-new
       - doctest-long:
           requires:
           - doctest-long-approval
