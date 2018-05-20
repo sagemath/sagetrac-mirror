@@ -1,9 +1,7 @@
 #!/bin/sh
 
-# This script gets called from CircleCI to setup some common environment
-# variables and print some diagnostic messages.
-
-# Source this script before the individual CI steps.
+# Source this script during a CI run to set environment variables and print
+# some informational messages about the system we are running on.
 
 # ****************************************************************************
 #       Copyright (C) 2018 Julian Rüth <julian.rueth@fsfe.org>
@@ -20,12 +18,9 @@
 . .ci/protect-secrets.sh
 # Collect debug infos about the system we are running on
 .ci/describe-system.sh
-# Set MAKE and NTHREADS according to the machine we are running on
+# Set MAKEOPTS and SAGE_NUM_THREADS 
 . .ci/setup-make-parallelity.sh
 
 # Set DOCKER_TAG according to the current branch/tag
 export DOCKER_TAG=${CIRCLE_TAG:-$CIRCLE_BRANCH}
 . .ci/update-env.sh
-
-# Select ARTIFACT_BASE depending on the current branch/tag
-TODO: port the changes from 24655 here to build tags from scratch.
