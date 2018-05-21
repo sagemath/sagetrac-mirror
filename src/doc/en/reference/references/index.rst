@@ -582,6 +582,11 @@ REFERENCES:
              Combinatorial Algorithms, Proceedings of 27th International Workshop,
              IWOCA 2016, August 17-19, 2016, pages 83--95.
 
+.. [CGPM2001] Carsten Gutwenger and Petra Mutzel,
+              A linear time implementation of spqr-trees, 
+              In: Marks, J. (ed.) GD 2000. LNCS, vol. 1984, pp. 77-90. Springer, Heidelberg (2001).
+              :doi:`10.1007/3-540-44541-2_8`.
+
 .. [Ch2012] Cho-Ho Chu. *Jordan Structures in Geometry and
             Analysis*. Cambridge University Press, New
             York. 2012. IBSN 978-1-107-01617-0.

@@ -4531,6 +4531,100 @@ class Graph(GenericGraph):
             ret += M.term(sigma.to_composition(), t**asc(sigma))
         return ret
 
+    def cleave(self):
+        r"""
+        Computes a two-vertex separation of a simple biconnected graph and
+        cocyle at the cut.
+
+        This function is primarily included as a helper function for spqr_tree.
+
+        OUTPUT: `(S,C,f)` , where `S` is a list of the graphs that are sides of
+        the two-vertex separation with a virtual edge at the separation,
+        `cocycles` is a dipole graph on the two-vertex cut with virtual edges
+        for each side of the separation and a real edge if self has an edge
+        between the vertices of the cut, and `f` the pair of vertices in the cut
+
+        For more information see [CGPM2001]_.
+
+        EXAMPLES::
+
+          If cut vertices doesn't have edge between them::
+
+            sage: G = Graph({0:[1,2,3],1:[4,5],2:[3,4],3:[5],4:[5],6:[2,4]})
+            sage: G.cleave()
+            ([Subgraph of (): Multi-graph on 6 vertices,
+              Subgraph of (): Multi-graph on 3 vertices],
+             Multi-graph on 2 vertices,
+             (2, 4))
+
+          If there is an edge between cut vertices::
+
+            sage: G = Graph({0:[1,2,3],1:[4,5],2:[3,4],3:[5],4:[5],6:[2,4]})
+            sage: G.cleave()
+            ([Subgraph of (): Multi-graph on 6 vertices,
+              Subgraph of (): Multi-graph on 3 vertices],
+             Multi-graph on 2 vertices,
+             (2, 4))
+
+        TESTS::
+   
+            sage: graphs.PetersenGraph().cleave()
+            Traceback (most recent call last)
+            ...
+            ValueError: cleave is only implemented on graphs with vertex connectivity 2
+        """
+        from sage.graphs.graph import Graph
+        G = self
+
+        if not G.is_connected():
+            raise ValueError("G must be a simple connected graph.")
+
+        cut_size,cut_vertices = G.vertex_connectivity(value_only=False)
+        if cut_size != 2:
+            raise ValueError("cleave is only implemented on graphs with vertex connectivity 2")
+
+        G.remove_loops()
+        G.remove_multiple_edges()
+
+        H = Graph(G.edges(labels=False))
+        H.delete_vertices(cut_vertices)
+
+        # Deletion of separating pair leaves connected components; we add to
+        # each of those components a virtual edge between the separating pair
+        # and restore edges incident to them
+        virtual_edge = tuple(cut_vertices)
+        Comps = 0
+        cut_sides = []
+        for component in H.connected_components_subgraphs():
+            # Create a set of component vertices
+            componentVertices = set(component.vertices())
+            for u in cut_vertices:
+                component.add_edges([(u,v) for v in G.neighbor_iterator(u) if v in componentVertices])
+            component.allow_multiple_edges(True)
+
+            # Add virtual edge if not present
+            if not component.has_edge(virtual_edge):
+                component.add_edge(virtual_edge)
+
+            cut_sides.append(component)
+            Comps += 1
+
+        # if the original graph has an edge between the separating pair of
+        # vertices, a bond with one edge more than the number of auxiliary
+        # graphs is needed for re-assembly
+        cocycles = Graph(multiedges=True)
+        if G.has_edge(virtual_edge):
+            cocycles.add_edges([virtual_edge]*(Comps+1))
+
+        # if the original graph has no edge between the separating pair of
+        # vertices but deletion of the separating pair leaves more than two
+        # components, a bond with one edge per component is needed for
+        # re-assembly
+        elif Comps > 2:
+            cocycles.add_edges([virtual_edge]*Comps)
+
+        return cut_sides, cocycles, virtual_edge
+
     @doc_index("Leftovers")
     def matching(self, value_only=False, algorithm="Edmonds",
                  use_edge_labels=False, solver=None, verbose=0):
