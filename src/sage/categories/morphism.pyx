@@ -298,31 +298,6 @@ cdef class Morphism(Map):
         """
         self._codomain.register_conversion(self)
 
-    def __hash__(self):
-        """
-        Return a hash of this morphism.
-
-        It is the hash of the triple (domain, codomain, definition)
-        where ``definition`` is:
-
-        - a tuple consisting of the images of the generators
-          of the domain if domain has generators
-
-        - the string representation of this morphism otherwise
-
-        AUTHOR:
-
-        - Xavier Caruso (2012-07-09)
-        """
-        domain = self.domain()
-        codomain = self.codomain()
-        try:
-            gens = domain.gens()
-            definition = tuple([self(x) for x in gens])
-        except (AttributeError, NotImplementedError):
-            definition = repr(self)
-        return hash((domain, codomain, definition))
-
     cpdef _richcmp_(self, other, int op):
         """
         Generic comparison function for morphisms.
