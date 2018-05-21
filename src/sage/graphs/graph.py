@@ -4533,8 +4533,8 @@ class Graph(GenericGraph):
 
     def cleave(self):
         r"""
-        Computes a two-vertex separation of a simple biconnected graph and
-        cocyle at the cut.
+        Computes a two-vertex separation of a biconnected multigraph and cocycle
+        at the cut.
 
         This function is primarily included as a helper function for spqr_tree.
 
