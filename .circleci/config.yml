@@ -33,17 +33,17 @@ jobs:
           name: test-dev
           command: |
             . .circleci/before-script.sh
-            .ci/test-dev.sh $DOCKER_IMAGE_DEV
+            .ci/check-dev.sh $DOCKER_IMAGE_DEV
       - run: &test-cli
           name: test-cli
           command: |
             . .circleci/before-script.sh
-            .ci/test-cli.sh $DOCKER_IMAGE_CLI
+            .ci/check-cli.sh $DOCKER_IMAGE_CLI
       - run: &test-jupyter
           name: test-jupyter
           command: |
             . .circleci/before-script.sh
-            .ci/test-jupyter.sh $DOCKER_IMAGE_CLI localhost
+            .ci/check-jupyter.sh $DOCKER_IMAGE_CLI localhost
       - run: &release
           # The docker commands sometimes take a while to produce output
           no_output_timeout: 30m
