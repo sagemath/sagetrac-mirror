@@ -39,9 +39,11 @@ image: docker:latest
 
 stages:
   - build
-  - test
-  - upload
+  - check
+  - release
   - review
+  - test
+  - test-long
 
 variables:
   DOCKER_TAG: $CI_COMMIT_REF_NAME
@@ -57,7 +59,7 @@ before_script:
   - .ci/describe-system.sh
   # Set DOCKER_TAG according to the current branch/tag
   - . .ci/update-env.sh
-  # Set MAKE and NTHREADS according to the machine we are running on
+  # Set MAKEOPTS and SAGE_NUM_THREADS according to the machine we are running on
   - . .ci/setup-make-parallelity.sh
 
 # We use docker-in-docker to build our docker images, i.e., we run a
@@ -79,19 +81,17 @@ services:
 - docker:dind
 
 # Build Sage and its documentation.
-# The build starts from the build artifacts of ARTIFACT_BASE which is usually
-# much faster than building from a clean checkout of Sage.
+# The build starts from the build artifacts of DEFAULT_ARTIFACT_BASE which is
+# usually much faster than building from a clean checkout of Sage.
 build-from-latest: &build
   stage: build
-  variables:
-    ARTIFACT_BASE: $DEFAULT_ARTIFACT_BASE
   artifacts:
     when: always
     paths:
     - gitlab-build-docker.log
     expire_in: 1 month
   script:
-    - apk update && apk add coreutils
+    - apk --update add coreutils
     # The output of the build can get larger than gitlab.com's limit; only print the first 3MB (and the last 80 lines.)
     - .ci/build-docker.sh | tee gitlab-build-docker.log | .ci/head-tail.sh 3145728
     - .ci/push-gitlab.sh sagemath-dev
@@ -99,6 +99,7 @@ build-from-latest: &build
   except:
     - master
     - develop
+    - tags
 
 # Build Sage and its documentation from a clean checkout of Sage.
 # Note that this takes several hours. You probably want to run this on your own
@@ -114,34 +115,29 @@ build-from-clean:
   only:
     - master
     - develop
+    - tags
   except: []
   tags:
     # 60 GB of HDD are available
     - do
 
-test-dev:
-  stage: test
+check-dev:
+  stage: check
   script:
     - . .ci/pull-gitlab.sh sagemath-dev
-    - sh .ci/test-dev.sh "$DOCKER_IMAGE"
+    - sh .ci/check-dev.sh "$DOCKER_IMAGE"
 
-test-cli:
-  stage: test
+check-cli:
+  stage: check
   script:
     - . .ci/pull-gitlab.sh sagemath
-    - sh .ci/test-cli.sh "$DOCKER_IMAGE"
+    - sh .ci/check-cli.sh "$DOCKER_IMAGE"
 
-test-jupyter:
-  stage: test
+check-jupyter:
+  stage: check
   script:
-    # Force usage of docker-in-docker (and don't start docker on a bind-mounted
-    # /var/run/docker.sock set through a private GitLab CI variable) so that
-    # the -p flag to docker run works as expected.
-    - export DOCKER_HOST='tcp://docker:2375'
-    - apk update
-    - apk add wget
     - . .ci/pull-gitlab.sh sagemath
-    - sh .ci/test-jupyter.sh "$DOCKER_IMAGE" docker
+    - sh .ci/check-jupyter.sh "$DOCKER_IMAGE" docker
 
 # Pushes the built images to Docker Hub if the Settings -> CI/CD -> Secret
 # variables DOCKER_USER and SECRET_DOCKER_PASS have been set up.
@@ -161,6 +157,7 @@ push-dockerhub-dev:
   only:
     - master
     - develop
+    - tags
   script:
     - . .ci/pull-gitlab.sh sagemath-dev
     - sh .ci/push-dockerhub.sh sagemath-dev
@@ -184,3 +181,20 @@ binder:
   environment:
     name: "binder/${CI_COMMIT_REF_SLUG}"
     url: "https://github.com/${SAGE_BINDER_ENV_GITHUB}/tree/${CI_COMMIT_REF_SLUG}"
+
+# Run fast doctests
+test-doctest:
+  stage: test
+  script:
+    - apk update
+    - apk add git
+    - . .ci/pull-gitlab.sh sagemath
+    - sh .ci/test-doctest.sh "$DOCKER_IMAGE" --new
+    - sh .ci/test-doctest.sh "$DOCKER_IMAGE" --short
+
+# Run doctests --long
+test-doctest-long:
+  stage: test-long
+  script:
+    - . .ci/pull-gitlab.sh sagemath
+    - sh .ci/test-doctest.sh "$DOCKER_IMAGE" --long

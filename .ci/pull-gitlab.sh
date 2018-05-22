@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # This script gets called from CI to pull the Sage docker images that were
-# built during the "build" phase to pull all the connected docker daemon
+# built during the "build" phase to pull to the connected docker daemon
 # (likely a docker-in-docker.)
 # This script expects a single parameter, the base name of the docker image
 # such as sagemath or sagemath-dev.
