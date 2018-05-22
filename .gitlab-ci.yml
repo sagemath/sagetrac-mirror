@@ -40,7 +40,7 @@ image: docker:latest
 stages:
   - build
   - check
-  - release
+  - upload
   - review
   - test
   - test-long
