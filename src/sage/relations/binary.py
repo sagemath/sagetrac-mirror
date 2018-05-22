@@ -70,6 +70,10 @@ def BinaryRelation(points=[]):
         True
         sage: (r1 | r2).transitive_closure
         relation {(0, 1), (1, 2), (0, 2)}
+        sage: id.image({0, 1})
+        {0, 1}
+        sage: id.reverse_image({0, 1})
+        {0, 1}
         sage: id.to_digraph()
         Looped digraph on 3 vertices
 
@@ -87,6 +91,10 @@ def BinaryRelation(points=[]):
 
         sage: FiniteBinaryRelation.square(xrange(2)) - FiniteBinaryRelation.identity(xrange(2))
         relation {(0, 1), (1, 0)}
+        sage: FiniteBinaryRelation.square(xrange(2)).image({0})
+        {0, 1}
+        sage: FiniteBinaryRelation.square(xrange(2)).reverse_image({})
+        {}
     """
     return FiniteBinaryRelation(points)
 
@@ -297,5 +305,17 @@ class FiniteBinaryRelation(Set_object_enumerated):
         Cartesian product of a relation with itself.
         """
         return FiniteBinaryRelation.product(A, A)
+
+    def image(self, X):
+        r"""
+        OUTPUT: The direct image of set `X`.
+        """
+        return Set([p[1] for p in self if p[0] in X])
+
+    def reverse_image(self, Y):
+        r"""
+        OUTPUT: The direct image of set `Y`.
+        """
+        return Set([p[0] for p in self if p[1] in Y])
 
     # TODO: subsets() method?
