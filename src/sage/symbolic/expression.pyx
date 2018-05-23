@@ -4824,15 +4824,20 @@ cdef class Expression(CommutativeRingElement):
             sage: ((x+y)^(x+y)).match(w0^w0)
             {$0: x + y}
             sage: t = ((a+b)*(a+c)).match((a+w0)*(a+w1))
-            sage: t[w0], t[w1]
-            (c, b)
+            sage: set([t[w0], t[w1]]) == set([b, c])
+            True
             sage: ((a+b)*(a+c)).match((w0+b)*(w0+c))
             {$0: a}
             sage: t = ((a+b)*(a+c)).match((w0+w1)*(w0+w2))
-            sage: t[w0], t[w1], t[w2]
-            (a, c, b)
-            sage: print(((a+b)*(a+c)).match((w0+w1)*(w1+w2)))
-            None
+            sage: t[w0]
+            a
+            sage: set([t[w1], t[w2]]) == set([b, c])
+            True
+            sage: t = ((a+b)*(a+c)).match((w0+w1)*(w1+w2))
+            sage: t[w1]
+            a
+            sage: set([t[w0], t[w2]]) == set([b, c])
+            True
             sage: t = (a*(x+y)+a*z+b).match(a*w0+w1)
             sage: t[w0], t[w1]
             (x + y, a*z + b)
@@ -4844,7 +4849,7 @@ cdef class Expression(CommutativeRingElement):
             {$0: a + b + d + f + g}
             sage: (a+b+c+d+f+g).match(c+g+w0)
             {$0: a + b + d + f}
-            sage: (a+b).match(a+b+w0)
+            sage: (a+b).match(a+b+w0) # known bug
             {$0: 0}
             sage: print((a*b^2).match(a^w0*b^w1))
             None
