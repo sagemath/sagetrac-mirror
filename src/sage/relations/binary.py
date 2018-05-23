@@ -95,6 +95,12 @@ def BinaryRelation(points=[]):
         {0, 1}
         sage: FiniteBinaryRelation.square(xrange(2)).reverse_image({})
         {}
+        
+        Enumerating relations:
+        
+        sage: len(list(FiniteBinaryRelation.enumerate_all({0, 1}, {0, 1})))
+        16
+        
     """
     return FiniteBinaryRelation(points)
 
@@ -318,4 +324,39 @@ class FiniteBinaryRelation(Set_object_enumerated):
         """
         return Set([p[0] for p in self if p[1] in Y])
 
+    @staticmethod
+    def enumerate_all(X, Y):
+        r"""
+        OUTPUT: Enumerator of all binary relations between sets `X` and `Y`.
+        """
+        return AllBinaryRelationsIterator(X, Y)
+
     # TODO: subsets() method?
+
+class AllBinaryRelationsIterator:
+    r"""
+    TODO: Should it instead be implemented as a generator function?
+    """
+    def __init__(self, X, Y):
+        self.X = X
+        self.Y = Y
+        self.i = 0
+        self.max = 1 << (len(X) * len(Y))
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.i >= self.max:
+            raise StopIteration
+        s = set()
+        j = 0
+        for x in self.X:
+            for y in self.Y:
+                if self.i & (1 << j):
+                    s.add((x, y))
+                j += 1
+        self.i += 1
+        return Set(s)
+
+    next = __next__  # Python 2
