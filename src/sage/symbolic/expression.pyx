@@ -4839,8 +4839,9 @@ cdef class Expression(CommutativeRingElement):
             sage: set([t[w0], t[w2]]) == set([b, c])
             True
             sage: t = (a*(x+y)+a*z+b).match(a*w0+w1)
-            sage: t[w0], t[w1]
-            (x + y, a*z + b)
+            sage: s = set([t[w0], t[w1]])
+            sage: s == set([x+y, a*z+b]) or s == set([z, a*(x+y)+b])
+            True
             sage: print((a+b+c+d+f+g).match(c))
             None
             sage: (a+b+c+d+f+g).has(c)
