@@ -933,8 +933,8 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
                 except (TypeError, NotImplementedError):
                     uN2 = 1 + h(x0)/y0**(2*p)
                     #yfrob2 = f(x)
-                    c = uN2.expansion(0)
                     v = uN2.valuation()
+                    c = K(uN2.expansion()[0])
                     a = uN2.parent().gen()
                     uN = self.newton_sqrt(uN2,c.sqrt()*a**(v//2),K.precision_cap())
                     yres = y0**p *uN
@@ -1239,7 +1239,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         M_sys = matrix(K, M_frob).transpose() - 1
         B = (~M_sys)
         BL = B.list()
-        v = [c.valuation() for c in B.list()]
+        v = [c.valuation() for c in BL]
         vv= min(v)
         B = (p**(-vv)*B).change_ring(K)
         B = p**(vv)*B
