@@ -5231,15 +5231,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.is_connected()
             True
         """
-        if self.order() == 0:
-            return True
+        from sage.graphs.connectivity import is_connected
+        return is_connected(self)
 
-        try:
-            return self._backend.is_connected()
-        except AttributeError:
-            v = next(self.vertex_iterator())
-            conn_verts = list(self.depth_first_search(v, ignore_direction=True))
-            return len(conn_verts) == self.num_verts()
 
     def connected_components(self):
         """
@@ -5258,15 +5252,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.connected_components()
             [[0, 1, 2, 3], [4, 5, 6]]
         """
-        seen = set()
-        components = []
-        for v in self:
-            if v not in seen:
-                c = self.connected_component_containing_vertex(v)
-                seen.update(c)
-                components.append(c)
-        components.sort(key=lambda comp: -len(comp))
-        return components
+        from sage.graphs.connectivity import connected_components
+        return connected_components(self)
 
     def connected_components_number(self):
         """
@@ -5283,6 +5270,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         return len(self.connected_components())
 
+
     def connected_components_subgraphs(self):
         """
         Returns a list of connected components as graph objects.
@@ -5296,11 +5284,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: L = D.connected_components_subgraphs()
             sage: graphs_list.show_graphs(L)
         """
-        cc = self.connected_components()
-        list = []
-        for c in cc:
-            list.append(self.subgraph(c, inplace=False))
-        return list
+        from sage.graphs.connectivity import connected_components_subgraphs
+        return connected_components_subgraphs(self)
+
 
     def connected_component_containing_vertex(self, vertex):
         """
@@ -5315,13 +5301,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.connected_component_containing_vertex(0)
             [0, 1, 2, 3]
         """
-        try:
-            c = list(self._backend.depth_first_search(vertex, ignore_direction=True))
-        except AttributeError:
-            c = list(self.depth_first_search(vertex, ignore_direction=True))
+        from sage.graphs.connectivity import connected_component_containing_vertex
+        return connected_component_containing_vertex(self, vertex)
 
-        c.sort()
-        return c
 
     def connected_components_sizes(self):
         """
@@ -5337,7 +5319,9 @@ class GenericGraph(GenericGraph_pyx):
             [3]
             [3]
         """
-        return sorted((len(cc) for cc in self.connected_components()),reverse=True)
+        from sage.graphs.connectivity import connected_components_sizes
+        return connected_components_sizes(self)
+
 
     def blocks_and_cut_vertices(self):
         """
@@ -5400,109 +5384,9 @@ class GenericGraph(GenericGraph_pyx):
         .. [Tarjan72] \R.E. Tarjan. Depth-First Search and Linear Graph
           Algorithms. SIAM J. Comput. 1(2): 146-160 (1972).
         """
-        blocks = []
-        cut_vertices = set()
+        from sage.graphs.connectivity import blocks_and_cut_vertices
+        return blocks_and_cut_vertices(self)
 
-        # We iterate over all vertices to ensure that we visit each connected
-        # component of the graph
-        seen = set()
-        for start in self.vertex_iterator():
-            if start in seen:
-                continue
-
-            # Special case of an isolated vertex
-            if not self.degree(start):
-                blocks.append([start])
-                seen.add(start)
-                continue
-
-            # Each vertex is numbered with an integer from 1...|V(G)|,
-            # corresponding to the order in which it is discovered during the
-            # DFS.
-            number = {}
-            num = 1
-
-            # Associates to each vertex v the smallest number of a vertex that
-            # can be reached from v in the orientation of the graph that the
-            # algorithm creates.
-            low_point = {}
-
-            # Associates to each vertex an iterator over its neighbors
-            neighbors = {}
-
-            stack = [start]
-            edge_stack = []
-            start_already_seen = False
-
-            while stack:
-                v = stack[-1]
-                seen.add(v)
-
-                # The first time we meet v
-                if not v in number:
-                    # We number the vertices in the order they are reached
-                    # during DFS
-                    number[v] = num
-                    neighbors[v] = self.neighbor_iterator(v)
-                    low_point[v] = num
-                    num += 1
-
-                try:
-                    # We consider the next of its neighbors
-                    w = next(neighbors[v])
-
-                    # If we never met w before, we remember the direction of
-                    # edge vw, and add w to the stack.
-                    if not w in number:
-                        edge_stack.append( (v,w) )
-                        stack.append(w)
-
-                    # If w is an ancestor of v in the DFS tree, we remember the
-                    # direction of edge vw
-                    elif number[w]<number[v]:
-                        edge_stack.append( (v,w) )
-                        low_point[v] = min(low_point[v], number[w])
-
-                # We went through all of v's neighbors
-                except StopIteration:
-                    # We trackback, so w takes the value of v and we pop the
-                    # stack
-                    w = stack.pop()
-
-                    # Test termination of the algorithm
-                    if not stack:
-                        break
-
-                    v = stack[-1]
-
-                    # Propagating the information : low_point[v] indicates the
-                    # smallest vertex (the vertex x with smallest number[x])
-                    # that can be reached from v
-                    low_point[v] = min(low_point[v], low_point[w])
-
-                    # The situation in which there is no path from w to an
-                    # ancestor of v : we have identified a new biconnected
-                    # component
-                    if low_point[w] >= number[v]:
-                        new_block = set()
-                        nw = number[w]
-                        u1,u2 = edge_stack.pop()
-                        while number[u1] >= nw:
-                            new_block.add(u1)
-                            u1,u2 = edge_stack.pop()
-                        new_block.add(u1)
-                        blocks.append(sorted(list(new_block)))
-
-                        # We update the set of cut vertices.
-                        #
-                        # If v is start, then we add it only if it belongs to
-                        # several blocks.
-                        if (not v is start) or start_already_seen:
-                            cut_vertices.add(v)
-                        else:
-                            start_already_seen = True
-
-        return blocks,sorted(list(cut_vertices))
 
     def blocks_and_cuts_tree(self):
         """
@@ -5566,16 +5450,9 @@ class GenericGraph(GenericGraph_pyx):
            Glieder und trennenden Punkte von Graphen, Magyar
            Tud. Akad. Mat. Kutato Int. Kozl. 9 (1964) 235-236
         """
-        from sage.graphs.graph import Graph
-        B, C = self.blocks_and_cut_vertices()
-        B = map(tuple, B)
-        G = Graph()
-        for bloc in B:
-            G.add_vertex(('B', bloc))
-            for c in bloc:
-                if c in C:
-                    G.add_edge(('B', bloc), ('C', c))
-        return G
+        from sage.graphs.connectivity import blocks_and_cuts_tree
+        return blocks_and_cuts_tree(self)
+
 
     def is_cut_edge(self, u, v=None, label=None):
         """
@@ -5630,38 +5507,8 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: edge not in graph
         """
-        if label is None:
-            if v is None:
-                try:
-                    u, v, label = u
-                except ValueError:
-                    u, v = u
-                    label = None
-
-        if not self.has_edge(u,v):
-            raise ValueError('edge not in graph')
-
-        # If edge (u,v) is a pending edge, it is also a cut-edge
-        if self.degree(u) == 1 or self.degree(v) == 1:
-            return True
-        elif self.allows_multiple_edges():
-            # If we have two or more edges between u and v, it is not a cut-edge
-            if len([(uu,vv) for uu,vv,ll in self.edges_incident(u) if uu == v or vv == v]) > 1:
-                return False
-
-        G = self.copy(immutable=False) if self.is_immutable() else self
-        G.delete_edge(u,v,label)
-        if G.is_directed():
-            # (u,v) is a cut-edge if u is not in the connected
-            # component containing v of self-(u,v)
-            sol = not u in G.connected_component_containing_vertex(v)
-        else:
-            # (u,v) is a cut-edge if there is no path from u to v in
-            # self-(u,v)
-            sol = not G.distance(u,v) < G.order()
-
-        G.add_edge(u,v,label)
-        return sol
+        from sage.graphs.connectivity import is_cut_edge
+        return is_cut_edge(self, u, v, label)
 
 
     def is_cut_vertex(self, u, weak=False):
@@ -5713,60 +5560,8 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: The input vertex is not in the vertex set.
         """
-        if not u in self:
-            raise ValueError('The input vertex is not in the vertex set.')
-
-        # Initialization
-        if not self.is_directed() or weak:
-            # Weak connectivity
-
-            if self.degree(u) < 2:
-                # An isolated or a leaf vertex is not a cut vertex
-                return False
-
-            neighbors_func = [self.neighbor_iterator]
-            start = next(self.neighbor_iterator(u))
-            CC = set(self.vertex_iterator())
-
-        else:
-            # Strong connectivity for digraphs
-
-            if self.out_degree(u) == 0 or self.in_degree(u) == 0:
-                # A vertex without in or out neighbors is not a cut vertex
-                return False
-
-            # We consider only the strongly connected component containing u
-            CC = set(self.strongly_connected_component_containing_vertex(u))
-
-            # We perform two DFS starting from an out neighbor of u and avoiding
-            # u. The first DFS follows the edges directions, and the second is
-            # in the reverse order. If both allow to reach all neighbors of u,
-            # then u is not a cut vertex
-            neighbors_func = [self.neighbor_out_iterator, self.neighbor_in_iterator]
-            start = next(self.neighbor_out_iterator(u))
-
-        CC.discard(u)
-        CC.discard(start)
-        for neighbors in neighbors_func:
-
-            # We perform a DFS starting from a neighbor of u and avoiding u
-            queue = [start]
-            seen = set(queue)
-            targets = set(self.neighbor_iterator(u))&CC
-            targets.discard(start)
-            while queue and targets:
-                v = queue.pop()
-                for w in neighbors(v):
-                    if not w in seen and w in CC:
-                        seen.add(w)
-                        queue.append(w)
-                        targets.discard(w)
-
-            # If some neighbors cannot be reached, u is a cut vertex.
-            if targets:
-                return True
-
-        return False
+        from sage.graphs.connectivity import is_cut_vertex
+        return is_cut_vertex(self, u, weak)
 
 
     def steiner_tree(self,vertices, weighted = False, solver = None, verbose = 0):
@@ -9694,149 +9489,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: (2*g).edge_connectivity(vertices=True)
             [0, [], [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]]
         """
-        self._scream_if_not_simple(allow_loops=True)
-        g=self
-
-        if vertices:
-            value_only=False
-
-        if implementation is None:
-            if use_edge_labels or g.is_directed():
-                implementation = "sage"
-            else:
-                implementation = "boost"
-
-        implementation = implementation.lower()
-        if implementation not in ["boost", "sage"]:
-            raise ValueError("'implementation' must be set to 'boost', 'sage' or None.")
-        elif implementation=="boost" and use_edge_labels:
-            raise ValueError("The Boost implementation is currently not able to handle edge labels")
-
-        # Otherwise, an error is created
-        if g.num_edges() == 0 or g.num_verts() == 0:
-            if value_only:
-                return 0
-            elif vertices:
-                return [0,[],[[],[]]]
-            else:
-                return [0,[]]
-
-        if implementation == "boost":
-            from sage.graphs.base.boost_graph import edge_connectivity
-
-            [obj, edges] = edge_connectivity(g)
-
-            if value_only:
-                return obj
-
-            val = [obj, edges]
-
-            if vertices and not obj == 0:
-                H = copy(self)
-                H.delete_edges(edges)
-
-                if H.is_directed():
-                    a = set(H.breadth_first_search([x for x,y in edges]))
-                    b = set(H).difference(a)
-                    val.append([a,b])
-                else:
-                    val.append(H.connected_components())
-            elif vertices:
-                val.append(self.connected_components())
-
-            return val
-
-        if use_edge_labels:
-            from sage.rings.real_mpfr import RR
-            weight=lambda x: x if x in RR else 1
-        else:
-            weight=lambda x: 1
-
-
-        # Better methods for small connectivity tests,
-        # when one is not interested in cuts...
-        if value_only and not use_edge_labels:
-
-            if self.is_directed():
-                if not self.is_strongly_connected():
-                    return 0.0
-
-            else:
-                if not self.is_connected():
-                    return 0.0
-
-                h = self.strong_orientation()
-                if not h.is_strongly_connected():
-                    return 1.0
-
-
-        if g.is_directed():
-            reorder_edge = lambda x,y : (x,y)
-        else:
-            reorder_edge = lambda x,y : (x,y) if x<= y else (y,x)
-
-        from sage.numerical.mip import MixedIntegerLinearProgram
-
-        p = MixedIntegerLinearProgram(maximization=False, solver=solver)
-
-        in_set = p.new_variable(binary = True)
-        in_cut = p.new_variable(binary = True)
-
-        # A vertex has to be in some set
-        for v in g:
-            p.add_constraint(in_set[0,v]+in_set[1,v],max=1,min=1)
-
-        # There is no empty set
-        p.add_constraint(p.sum([in_set[1,v] for v in g]),min=1)
-        p.add_constraint(p.sum([in_set[0,v] for v in g]),min=1)
-
-        if g.is_directed():
-            # There is no edge from set 0 to set 1 which
-            # is not in the cut
-            for (u,v) in g.edge_iterator(labels=None):
-                p.add_constraint(in_set[0,u] + in_set[1,v] - in_cut[(u,v)], max = 1)
-        else:
-
-            # Two adjacent vertices are in different sets if and only if
-            # the edge between them is in the cut
-            for (u,v) in g.edge_iterator(labels=None):
-                p.add_constraint(in_set[0,u]+in_set[1,v]-in_cut[reorder_edge(u,v)],max=1)
-                p.add_constraint(in_set[1,u]+in_set[0,v]-in_cut[reorder_edge(u,v)],max=1)
-
-        p.set_objective(p.sum([weight(l ) * in_cut[reorder_edge(u,v)] for (u,v,l) in g.edge_iterator()]))
-
-        obj = p.solve(objective_only=value_only, log=verbose)
-
-        if use_edge_labels is False:
-            obj = Integer(round(obj))
-
-        if value_only:
-            return obj
-
-        else:
-            val = [obj]
-
-            in_cut = p.get_values(in_cut)
-            in_set = p.get_values(in_set)
-
-            edges = []
-            for (u,v,l) in g.edge_iterator():
-                if in_cut[reorder_edge(u,v)] == 1:
-                    edges.append((u,v,l))
-
-            val.append(edges)
-
-            if vertices:
-                a = []
-                b = []
-                for v in g:
-                    if in_set[0,v] == 1:
-                        a.append(v)
-                    else:
-                        b.append(v)
-                val.append([a,b])
-
-            return val
+        from sage.graphs.connectivity import edge_connectivity
+        return edge_connectivity(self, value_only, implementation,
+                                        use_edge_labels, vertices, solver, verbose)
 
     def vertex_connectivity(self, value_only=True, sets=False, k=None, solver=None, verbose=0):
         r"""
@@ -9978,114 +9633,8 @@ class GenericGraph(GenericGraph_pyx):
            sage: DiGraph().vertex_connectivity(k=1) == DiGraph().is_strongly_connected()
            True
         """
-        g = self
-
-        if k is not None:
-            if k < 1:
-                raise ValueError("parameter k must be strictly positive")
-            if g.order() == 0:
-                # We follow the convention of is_connected, is_biconnected and
-                # is_strongly_connected
-                return k == 1
-            if (g.is_directed() and k > min(min(g.in_degree()), min(g.out_degree()))) \
-               or (not g.is_directed() and (k > min(g.degree()))):
-                return False
-            value_only = True
-            sets = False
-
-        elif sets:
-            value_only = False
-
-        # When the graph is complete, the MILP below is infeasible.
-        if g.is_clique(directed_clique=g.is_directed()):
-            if k is not None:
-                return g.order() > k
-            if value_only:
-                return max(g.order()-1, 0)
-            elif not sets:
-                return max(g.order()-1, 0), []
-            else:
-                return max(g.order()-1, 0), [], [[], []]
-
-        if value_only:
-            if self.is_directed():
-                if not self.is_strongly_connected():
-                    return 0 if k is None else False
-
-            else:
-                if not self.is_connected():
-                    return 0 if k is None else False
-
-                if len(self.blocks_and_cut_vertices()[0]) > 1:
-                    return 1 if k is None else (k == 1)
-
-            if k == 1:
-                # We know that the (di)graph is (strongly) connected
-                return True
-
-        from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
-
-        p = MixedIntegerLinearProgram(maximization=False, solver=solver)
-
-        # Sets 0 and 2 are "real" sets while set 1 represents the cut
-        in_set = p.new_variable(binary=True)
-
-        # A vertex has to be in some set
-        for v in g:
-            p.add_constraint(in_set[0, v] + in_set[1, v] + in_set[2, v], max=1, min=1)
-
-        # There is no empty set
-        p.add_constraint(p.sum(in_set[0, v] for v in g), min=1)
-        p.add_constraint(p.sum(in_set[2, v] for v in g), min=1)
-
-        if g.is_directed():
-            # There is no edge from set 0 to set 1 which is not in the cut
-            for u, v in g.edge_iterator(labels=None):
-                p.add_constraint(in_set[0, u] + in_set[2, v], max=1)
-        else:
-            # Two adjacent vertices are in different sets if and only if
-            # the edge between them is in the cut
-            for u, v in g.edge_iterator(labels=None):
-                p.add_constraint(in_set[0, u] + in_set[2, v], max=1)
-                p.add_constraint(in_set[2, u] + in_set[0, v], max=1)
-
-        if k is not None:
-            # To check if the vertex connectivity is at least k, we check if
-            # there exists a cut of order at most k-1. If the ILP is infeasible,
-            # the vertex connectivity is >= k.
-            p.add_constraint(p.sum(in_set[1, v] for v in g) <= k-1)
-            try:
-                p.solve(objective_only=True, log=verbose)
-                return False
-            except MIPSolverException:
-                return True
-
-        else:
-            p.set_objective(p.sum(in_set[1, v] for v in g))
-
-        if value_only:
-            return Integer(round(p.solve(objective_only=True, log=verbose)))
-
-        val = Integer(round(p.solve(log=verbose)))
-
-        in_set = p.get_values(in_set)
-
-        cut = []
-        a = []
-        b = []
-
-        for v in g:
-            if in_set[0, v]:
-                a.append(v)
-            elif in_set[1, v]:
-                cut.append(v)
-            else:
-                b.append(v)
-
-        if sets:
-            return val, cut, [a, b]
-
-        return val, cut
+        from sage.graphs.connectivity import vertex_connectivity
+        return vertex_connectivity(self, value_only, sets, k, solver, verbose)
 
     ### Vertex handlers
 
@@ -22915,6 +22464,7 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.base.boost_graph import dominator_tree
     from sage.graphs.base.static_sparse_graph import spectral_radius
     from sage.graphs.line_graph import line_graph
+    # from sage.graphs.connectivity import is_connected as is_connected
 
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),

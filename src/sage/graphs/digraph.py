@@ -3143,15 +3143,9 @@ class DiGraph(GenericGraph):
             sage: d.strongly_connected_component_containing_vertex(0)
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         """
+        from sage.graphs.connectivity import strongly_connected_component_containing_vertex
+        return strongly_connected_component_containing_vertex(self, v)
 
-        if self.order()==1:
-            return [v]
-
-        try:
-            return self._backend.strongly_connected_component_containing_vertex(v)
-
-        except AttributeError:
-            raise AttributeError("This function is only defined for C graphs.")
 
     def strongly_connected_components_subgraphs(self):
         r"""
@@ -3168,7 +3162,9 @@ class DiGraph(GenericGraph):
             [Subgraph of (Petersen graph): Digraph on 10 vertices]
 
         """
-        return [self.subgraph(_) for _ in self.strongly_connected_components()]
+        from sage.graphs.connectivity import strongly_connected_components_subgraphs
+        return strongly_connected_components_subgraphs(self)
+
 
     def strongly_connected_components_digraph(self, keep_labels = False):
         r"""
@@ -3232,32 +3228,8 @@ class DiGraph(GenericGraph):
              ({1, 2}, {3}, '1-3'),
              ({1, 2}, {3}, '2-3')]
         """
-
-        from sage.sets.set import Set
-
-        scc = self.strongly_connected_components()
-        scc_set = [Set(_) for _ in scc]
-
-        d = {}
-        for i,c in enumerate(scc):
-            for v in c:
-                d[v] = i
-
-        if keep_labels:
-            g = DiGraph(multiedges=True, loops=True)
-            g.add_vertices(range(len(scc)))
-
-            g.add_edges( set((d[u], d[v], label) for (u,v,label) in self.edges() ) )
-            g.relabel(scc_set, inplace=True)
-
-        else:
-            g = DiGraph(multiedges=False, loops=False)
-            g.add_vertices(range(len(scc)))
-
-            g.add_edges(((d[u], d[v]) for u, v in self.edges(labels=False)), loops=False)
-            g.relabel(scc_set, inplace=True)
-
-        return g
+        from sage.graphs.connectivity import strongly_connected_components_digraph
+        return strongly_connected_components_digraph(self, keep_labels)
 
     def is_strongly_connected(self):
         r"""
@@ -3277,14 +3249,8 @@ class DiGraph(GenericGraph):
             sage: g.is_strongly_connected()
             False
         """
-        if self.order()==1:
-            return True
-
-        try:
-            return self._backend.is_strongly_connected()
-
-        except AttributeError:
-            return len(self.strongly_connected_components()) == 1
+        from sage.graphs.connectivity import is_strongly_connected
+        return is_strongly_connected(self)
 
 
     def immediate_dominators(self, r, reverse=False):

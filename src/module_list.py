@@ -394,6 +394,9 @@ ext_modules = [
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),
 
+    Extension('sage.graphs.connectivity',
+          sources = ['sage/graphs/connectivity.pyx']),
+
     Extension('sage.graphs.trees',
               sources = ['sage/graphs/trees.pyx']),
 
@@ -1595,4 +1598,5 @@ ext_modules = [
 
     Extension('sage.tests.cython',
               sources = ['sage/tests/cython.pyx']),
+
 ]
