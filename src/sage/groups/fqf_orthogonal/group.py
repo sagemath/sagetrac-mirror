@@ -27,7 +27,7 @@ from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
 from sage.groups.fqf_orthogonal.gens import _gens
 from sage.misc.cachefunc import cached_method
 from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
-from sage.rings.all import mod, ZZ, IntegerModRing, Zp
+from sage.rings.all import mod, ZZ, IntegerModRing, Zp, QQ
 from sage.matrix.all import matrix
 from sage.categories.action import Action
 
@@ -106,6 +106,56 @@ class FqfIsometry(AbelianGroupAutomorphism):
         else:
             return AbelianGroupAutomorphism.__call__(self, x)
 
+    def det_spin(self):
+        r"""
+        Return the spinor norm of an adelic lift of ``self``.
+
+        OUTPUT:
+
+        A list consisting of tuples ``(p, spinor_norm_at_p)``.
+        The spinor norm is returned as an element of ``QQ`` which should be
+        thought of as contained in `\QQ_p/\QQ_p^2`
+
+        EXAMPLES::
+
+            sage: bla
+        """
+        from sage.groups.fqf_orthogonal.lift import Hensel_qf
+        from sage.rings.all import Zp, QQ
+        from sage.quadratic_forms.all import QuadraticForm
+        T = self.parent().invariant_form()
+        det_spin = []
+        for p in T.cardinality().prime_divisors():
+            Tp = T.primary_part(p).normal_form()
+            Op = Tp.orthogonal_group()
+            f = Op(self).matrix()
+            u = matrix([g.vector() for g in Tp.gens()])
+            q = Tp.gram_matrix_quadratic()
+            q *= q.denominator()
+            g = u * f * u.inverse()
+            qf = QuadraticForm(QQ, q)
+            diag, t = qf.rational_diagonal_form(return_matrix=True)
+            diag = diag.Hessian_matrix()
+            t = t.T
+            v1 = t.denominator().valuation(p)
+            v2 = t.inverse().denominator().valuation(p)
+            v = -v1 -v2 # lower bound for precision loss due to diagonalization
+            prec = 20 # initial precision
+            while True:
+                R = Zp(p, type='fixed-mod', prec=prec, print_mode='terse',
+                       show_prec=False, print_pos=False)
+                g = Hensel_qf(q.change_ring(R), g.change_ring(R), 1, prec)
+                g = g.change_ring(ZZ)
+                try:
+                    gg = t*g*t.inverse()
+                    det_p, spin_p = det_spin_p(diag, gg, p, prec + v)
+                    det_spin.append((p, (det_p, spin_p)))
+                    break
+                except ArithmeticError:
+                    # retry with higher precision
+                    prec = 2 * prec
+        return det_spin
+
 class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
     r"""
     Return the orthogonal group of this torsion quadratic form.
@@ -167,7 +217,6 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
         r"""
         """
         return self._invariant_form
-
 
     def _element_constructor_(self, x, check=True):
         r"""
@@ -484,3 +533,98 @@ class ActionOnFqf(Action):
             v = (a.vector()*g.matrix())
             P = a.parent()
             return P.linear_combination_of_smith_form_gens(v)
+
+
+def det_spin_p(G, T, p, nu):
+    r"""
+    Return approximations for  `(det_p, spin_p)` of ``T``.
+
+    - ``G`` -- a diagonal matrix
+    - ``T`` -- an isometry up to some precision
+    - ``p`` -- a prime number
+    - ``nu`` -- an integer giving the valuation of the approximation
+      error of ``T``
+    """
+    from sage.groups.fqf_orthogonal.lift import _min_val
+    from sage.rings.all import Qp
+    def mv(A):
+        return _min_val(A.change_ring(Qp(p)))
+    if p == 2:
+        delta = 1
+    else:
+        delta = 0
+    gammaL = [d.valuation(p) for d in G.diagonal()]
+    gamma = min(gammaL)
+    l = G.ncols()
+    E = G.parent()(1)
+    spinor_norm = QQ(1)
+    determinant = QQ(1)
+    k = 0
+    while k < l:
+        g = T.row(k)
+        # error estimates
+        lambd = mv(g)
+        rho = min(delta + nu + gamma, 2*nu + gamma)
+        sigma = min( delta + nu + gamma, delta + nu + lambd, 2*nu + gamma)
+        kappa = sigma - gammaL[k] - 2*delta
+        if (rho <= gammaL[k] + delta) or (kappa < 1 + 2*delta):
+            raise ArithmeticError("Recompute with higher precision") #or a ValueError ?
+        bm = g - E.row(k)
+        qm = bm * G * bm
+        if qm.valuation(p) <= gammaL[k] + 2*delta:
+            tau1 = reflection(G, bm)
+            tau2 = E
+            determinant *= QQ(-1)
+            spinor_norm *= qm
+        else:
+            bp = g + E.row(k)
+            qp = bp * G * bp
+            assert qp.valuation(p) <= gammaL[k] + 2*delta
+            tau1 = reflection(G, bp)
+            tau2 = reflection(G, E.row(k))
+            # the determinant is unchanged as there are 2 reflections
+            spinor_norm *= qp * G[k,k]
+        lambdaT = mv(T)
+        alpha = mv(tau1)
+        beta = mv(tau2)
+        theta = gamma + min(kappa + 2*min(0,lambd), nu + min(0,lambd), 2*nu)
+        nu = min(nu + alpha, lambdaT + theta - gammaL[k] - delta, nu + theta - gammaL[k] - delta) + beta
+        T = T * tau1 * tau2
+        k += 1
+    err = mv(T-E)
+    assert err >= nu
+    v = spinor_norm.valuation(p)
+    if p == 2:
+        u = (spinor_norm / p**v) % 8
+    else:
+        u = (spinor_norm / p**v) % p
+    spinor_norm = u * p**(v % 2)
+    return determinant, spinor_norm#, T, nu, err
+
+def reflection(G, v):
+    r"""
+    Return the matrix represenation of the orthogonal reflection in `v`.
+
+    INPUT:
+
+    - ``v`` -- a vector
+    - ``G`` -- a symmetric matrix
+
+    OUTPUT:
+
+    - a matrix
+
+    EXAMPLES::
+
+        sage: G = matrix.identity(2)
+        sage: v = vector([1,0])
+        sage: reflection(G,v)
+    """
+    n = v.degree()
+    E = v.parent().basis()
+    vsq = v*G*v
+    ref = []
+    for k in range(n):
+        tk = E[k] - 2/vsq*(E[k]*G*v)*v
+        ref.append(tk)
+    return matrix(ref)
