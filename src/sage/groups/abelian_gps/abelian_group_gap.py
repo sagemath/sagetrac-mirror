@@ -328,7 +328,13 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
             f2
         """
         if isinstance(x, AbelianGroupElement_gap):
-            x = x.gap()
+            try :
+                if x in self._cover:
+                    x = self.gap().NaturalHomomorphism().Image(x.gap())
+                else:
+                    x = x.gap()
+            except AttributeError:
+                x = x.gap()
         elif x == 1 or x == ():
             x = self.gap().Identity()
         elif not isinstance(x, GapElement):
@@ -547,6 +553,25 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
         generators = libgap_subgroup.GeneratorsOfGroup()
         generators = tuple([ambient(g) for g in generators])
         return AbelianGroupSubgroup_gap(ambient, generators)
+
+    def quotient(self, N):
+        r"""
+        Return the quotient of this group by the normal subgroup N.
+
+        INPUT:
+
+        - ``N`` -- a subgroup
+        - ``check`` -- bool (default: ``True``) check if `N` is normal
+
+        EXAMPLES::
+
+
+        """
+        if not isinstance(N, AbelianGroup_gap):
+            raise TypeError("not an abelian group")
+        if not N.is_subgroup_of(self):
+            raise ValueError("not a subgroup")
+        return AbelianGroupQuotient_gap(self, N)
 
     def subgroup(self, gens):
         r"""
@@ -794,3 +819,100 @@ class AbelianGroupSubgroup_gap(AbelianGroup_gap):
         gens = tuple([amb(g) for g in self.gens()])
         return amb.subgroup, (gens,)
 
+class AbelianGroupQuotient_gap(AbelianGroup_gap):
+    r"""
+    Quotients of abelian groups by a subgroup.
+
+    Do not call this directly. Instead use :meth:`quotient`.
+
+    EXAMPLES::
+
+        sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+        sage: A = AbelianGroupGap([4,3])
+        sage: N = A.subgroup([A.gen(0)^2])
+        sage: Q1 = A.quotient(N)
+        sage: Q1
+        Quotient abelian group with generator orders (2, 3)
+        sage: Q2 = Q1.quotient(Q1.subgroup(Q1.gens()[:1]))
+        sage: Q2
+        Quotient abelian group with generator orders (1, 3)
+    """
+    def __init__(self, G, N):
+        r"""
+        Constructor.
+
+        TESTS::
+
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: G = AbelianGroupGap([2,3,4,5])
+            sage: gen = G.gens()[:2]
+            sage: S = G.subgroup(gen)
+            sage: Q = G.quotient(S)
+            sage: TestSuite(Q).run()
+        """
+        self._cover = G
+        self._relations = N
+        libgap_group = G.gap().FactorGroup(N.gap())
+        category = G.category()
+        AbelianGroup_gap.__init__(self, libgap_group, category=category, ambient=None)
+
+    def _repr_(self):
+        r"""
+        Return a string representation of this subgroup.
+
+        EXAMPLES::
+
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: G = AbelianGroupGap([2,3,4,5])
+            sage: gen = G.gens()[:2]
+            sage: S = G.subgroup(gen)
+            sage: G.quotient(S)
+            Quotient abelian group with generator orders (1, 1, 4, 5)
+        """
+        return "Quotient abelian group with generator orders " + str(
+               self.gens_orders())
+
+    def __reduce__(self):
+        r"""
+        Implements pickling.
+
+        We have to work around the fact that gap does not provide pickling.
+
+        EXAMPLES::
+
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: A = AbelianGroupGap([4])
+            sage: N = A.subgroup([A.gen(0)^2])
+            sage: Q = A.quotient(N)
+            sage: Q is loads(dumps(Q))
+            True
+        """
+        G = self._cover
+        N = self._relations
+        return G.quotient, (N, )
+
+    def _coerce_map_from_(self, S):
+        r"""
+        Return whether ``S`` canonically coerces to ``self``.
+
+        INPUT:
+
+        - ``S`` -- anything
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: G = AbelianGroupGap([2,3,4,5])
+            sage: gen = G.gens()[:2]
+            sage: S = G.subgroup(gen)
+            sage: G._coerce_map_from_(S)
+            True
+            sage: S._coerce_map_from_(G)
+            False
+        """
+        if isinstance(S, AbelianGroup_gap):
+            return self._cover._coerce_map_from_(S)
