@@ -358,9 +358,14 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
         """
         from sage.groups.fqf_orthogonal.spinor import GammaA
         S = (2*self.domain().order()).prime_divisors()
-        codom = GammaA(S)
-        # this might not define a group homomorphism ... crap
-        return self.hom([codom(g) for g in self.gens()])
+        q = self._invariant_form
+        L = q.W()
+        rk = L.rank()
+        det = L.determinant()
+        Gamma = GammaA(S)
+        sigma_sharp = Gamma.sigma_sharp(rk, det, q)
+        codom = Gamma.quotient(sigma_sharp)
+        return self.hom([codom(Gamma(g)) for g in self.gens()])
 
 def _compute_gens(T):
     r"""
