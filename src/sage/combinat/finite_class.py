@@ -15,11 +15,21 @@ Finite combinatorial classes
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from combinat import CombinatorialClass
+from __future__ import absolute_import
+from six.moves import range
+
+from .combinat import CombinatorialClass
+from sage.misc.superseded import deprecation
+
 
 class FiniteCombinatorialClass(CombinatorialClass):
     """
+    This class is deprecated, and will disappear as soon as all derived
+    classes in Sage's library will have been fixed. Please derive
+    directly from Parent and use the category :class:`FiniteEnumeratedSets`.
+
     INPUT:
+
      - l a list or iterable
 
     Returns l, wrapped as a combinatorial class
@@ -27,6 +37,9 @@ class FiniteCombinatorialClass(CombinatorialClass):
     EXAMPLES::
 
         sage: F = FiniteCombinatorialClass([1,2,3])
+        doctest:warning...:
+        DeprecationWarning: Please use FiniteEnumeratedSets instead.
+        See http://trac.sagemath.org/13552 for details.
         sage: F.list()
         [1, 2, 3]
         sage: F.cardinality()
@@ -43,9 +56,13 @@ class FiniteCombinatorialClass(CombinatorialClass):
         TESTS::
 
             sage: F = FiniteCombinatorialClass([1,2,3])
+            doctest:warning...:
+            DeprecationWarning: Please use FiniteEnumeratedSets instead.
+            See http://trac.sagemath.org/13552 for details.
             sage: F == loads(dumps(F))
             True
         """
+        deprecation(13552, "Please use FiniteEnumeratedSets instead.")
         self.l = list(l) # Probably would be better to use a tuple
 
     def _element_constructor_(self, x):
@@ -53,6 +70,9 @@ class FiniteCombinatorialClass(CombinatorialClass):
         EXAMPLES::
 
             sage: F = FiniteCombinatorialClass([1,2,3])
+            doctest:warning...:
+            DeprecationWarning: Please use FiniteEnumeratedSets instead.
+            See http://trac.sagemath.org/13552 for details.
             sage: F._element_constructor_(1)
             1
             sage: F(1)
@@ -65,6 +85,9 @@ class FiniteCombinatorialClass(CombinatorialClass):
         TESTS::
 
             sage: F = FiniteCombinatorialClass([1,2,3])
+            doctest:warning...:
+            DeprecationWarning: Please use FiniteEnumeratedSets instead.
+            See http://trac.sagemath.org/13552 for details.
             sage: repr(F)
             'Combinatorial class with elements in [1, 2, 3]'
         """
@@ -75,6 +98,9 @@ class FiniteCombinatorialClass(CombinatorialClass):
         EXAMPLES::
 
             sage: F = FiniteCombinatorialClass([1,2,3])
+            doctest:warning...:
+            DeprecationWarning: Please use FiniteEnumeratedSets instead.
+            See http://trac.sagemath.org/13552 for details.
             sage: 1 in F
             True
             sage: 2 in F
@@ -91,6 +117,9 @@ class FiniteCombinatorialClass(CombinatorialClass):
         TESTS::
 
             sage: F = FiniteCombinatorialClass([1,2,3])
+            doctest:warning...:
+            DeprecationWarning: Please use FiniteEnumeratedSets instead.
+            See http://trac.sagemath.org/13552 for details.
             sage: F.list()
             [1, 2, 3]
         """
@@ -101,6 +130,9 @@ class FiniteCombinatorialClass(CombinatorialClass):
         EXAMPLES::
 
             sage: F = FiniteCombinatorialClass([1,2,3])
+            doctest:warning...:
+            DeprecationWarning: Please use FiniteEnumeratedSets instead.
+            See http://trac.sagemath.org/13552 for details.
             sage: F.cardinality()
             3
         """
@@ -112,6 +144,9 @@ class FiniteCombinatorialClass(CombinatorialClass):
         EXAMPLES::
 
             sage: F = FiniteCombinatorialClass(["a", "b", "c"])
+            doctest:warning...:
+            DeprecationWarning: Please use FiniteEnumeratedSets instead.
+            See http://trac.sagemath.org/13552 for details.
             sage: F[2]
             'c'
         """
@@ -122,10 +157,13 @@ class FiniteCombinatorialClass(CombinatorialClass):
         EXAMPLES::
 
             sage: F = FiniteCombinatorialClass([1,2,3])
+            doctest:warning...:
+            DeprecationWarning: Please use FiniteEnumeratedSets instead.
+            See http://trac.sagemath.org/13552 for details.
             sage: F.keys()
             [0, 1, 2]
         """
-        return range(len(self.l))
+        return list(range(len(self.l)))
 
 # Backward compatibility pointer
 # Needed for unpickling.

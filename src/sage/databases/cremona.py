@@ -12,9 +12,9 @@ rank, and torsion for curves up to conductor 10000.
 The large database includes all curves in John Cremona's tables. It
 also includes data related to the BSD conjecture and modular degrees
 for all of these curves, and generators for the Mordell-Weil
-groups. To install it type the following in Sage::
+groups. To install it, run the following in the shell::
 
-    !sage -i database_cremona_ellcurve
+    sage -i database_cremona_ellcurve
 
 This causes the latest version of the database to be downloaded from
 the internet.
@@ -46,14 +46,16 @@ while the full version has the layout::
 #*****************************************************************************
 
 from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 from sage.misc.prandom import randint
 
 import sage.schemes.elliptic_curves.constructor as elliptic
-from sql_db import SQLDatabase, verify_column
+from .sql_db import SQLDatabase, verify_column
 from sage.misc.package import is_package_installed
-from sage.misc.misc import SAGE_SHARE, walltime
+from sage.env import SAGE_SHARE
+from sage.misc.all import walltime
 
 import re
 import string
@@ -103,7 +105,7 @@ def build(name, data_tgz, largest_conductor=0, mini=False, decompress=True):
     Build the CremonaDatabase with given name from scratch
     using the data_tgz tarball.
 
-    ... note::
+    .. note::
 
            For data up to level 350000, this function takes about
            3m40s.  The resulting database occupies 426MB disk space.
@@ -429,9 +431,10 @@ def split_code(key):
         sage: cremona.split_code('ba2')
         ('ba', '2')
     """
-    cu = re.split("[a-z]*",key)[1]
-    cl =  re.split("[0-9]*",key)[0]
-    return (cl,cu)
+    cu = re.split("[a-z]*", key)[1]
+    cl =  re.split("[0-9]*", key)[0]
+    return (cl, cu)
+
 
 def class_to_int(k):
     """
@@ -450,11 +453,12 @@ def class_to_int(k):
     """
     kk = [string.ascii_lowercase.index(ch) for ch in list(k)]
     kk.reverse()
-    return sum([kk[i]*26**i for i in range(len(kk))])
+    return sum([kk[i] * 26 ** i for i in range(len(kk))])
 
-def cmp_code(key1,key2):
+
+def sort_key(key1):
     """
-    Comparison function for curve id strings.
+    Comparison key for curve id strings.
 
     .. note::
 
@@ -462,20 +466,14 @@ def cmp_code(key1,key2):
 
     EXAMPLES::
 
-        sage: import sage.databases.cremona as cremona
-        sage: cremona.cmp_code('ba1','z1')
-        1
-
-    By contrast::
-
-        sage: cmp('ba1','z1')
-        -1
+        sage: from sage.databases.cremona import sort_key
+        sage: l = ['ba1', 'z1']
+        sage: sorted(l, key=sort_key)
+        ['z1', 'ba1']
     """
-    cl1,cu1 = split_code(key1)
-    cl2,cu2 = split_code(key2)
-    d = class_to_int(cl1)-class_to_int(cl2)
-    if d!=0:  return d
-    return cmp(cu1,cu2)
+    cl1, cu1 = split_code(key1)
+    return (class_to_int(cl1), cu1)
+
 
 def cremona_to_lmfdb(cremona_label, CDB=None):
     """
@@ -506,9 +504,9 @@ def cremona_to_lmfdb(cremona_label, CDB=None):
     TESTS::
 
         sage: for label in ['5077a1','66a3','102b','420c2']:
-        ...       assert(lmfdb_to_cremona(cremona_to_lmfdb(label)) == label)
+        ....:     assert(lmfdb_to_cremona(cremona_to_lmfdb(label)) == label)
         sage: for label in ['438.c2','306.b','462.f3']:
-        ...       assert(cremona_to_lmfdb(lmfdb_to_cremona(label)) == label)
+        ....:     assert(cremona_to_lmfdb(lmfdb_to_cremona(label)) == label)
     """
     from sage.libs.pari.all import pari
     m = cremona_label_regex.match(cremona_label)
@@ -635,16 +633,16 @@ class MiniCremonaDatabase(SQLDatabase):
         TESTS::
 
             sage: it = CremonaDatabase().__iter__()
-            sage: it.next().label()
+            sage: next(it).label()
             '11a1'
-            sage: it.next().label()
+            sage: next(it).label()
             '11a2'
-            sage: it.next().label()
+            sage: next(it).label()
             '11a3'
-            sage: it.next().label()
+            sage: next(it).label()
             '14a1'
-            sage: skip = [it.next() for _ in range(100)]
-            sage: it.next().label()
+            sage: skip = [next(it) for _ in range(100)]
+            sage: next(it).label()
             '45a3'
         """
         query = "SELECT curve FROM t_curve,t_class USING(class) ORDER BY conductor"
@@ -756,7 +754,7 @@ class MiniCremonaDatabase(SQLDatabase):
         Note the 'h3', which is the unique case in the tables where
         the optimal curve doesn't have label ending in 1::
 
-            sage: list(sorted(CremonaDatabase().curves(990).keys()))
+            sage: sorted(CremonaDatabase().curves(990))
             ['a1', 'b1', 'c1', 'd1', 'e1', 'f1', 'g1', 'h3', 'i1', 'j1', 'k1', 'l1']
 
         TESTS::
@@ -794,6 +792,13 @@ class MiniCremonaDatabase(SQLDatabase):
             0
             sage: d['torsion_order']
             2
+
+        Check that :trac:`17904` is fixed::
+
+            sage: 'gens' in CremonaDatabase().coefficients_and_data('100467a2')[1] # optional - database_cremona_ellcurve
+            True
+
+
         """
         # There are two possible strings: the Cremona label and the LMFDB label.
         # They are distinguished by the presence of a period.
@@ -814,7 +819,7 @@ class MiniCremonaDatabase(SQLDatabase):
                 + "deg,gens,cp,om,L,reg,sha FROM t_curve,t_class " \
                 + "USING(class) WHERE curve=?",(label,))
         try:
-            c = q.next()
+            c = next(q)
         except StopIteration:
             if N < self.largest_conductor():
                 message = "There is no elliptic curve with label " + label \
@@ -836,13 +841,9 @@ class MiniCremonaDatabase(SQLDatabase):
         if lmfdb_label:
             data['lmfdb_label'] = lmfdb_label
         if len(c) > 3:
-            if num == 1:
-                data['modular_degree'] = (c[3])
-                data['gens'] = eval(c[4])
-                data['db_extra'] = list(c[5:])
-            elif c[1] == 0:
-                # we know the rank is 0, so the gens are empty
-                data['gens'] = []
+            data['modular_degree'] = (c[3])
+            data['gens'] = eval(c[4])
+            data['db_extra'] = list(c[5:])
         return ainvs, data
 
     def data_from_coefficients(self, ainvs):
@@ -861,6 +862,12 @@ class MiniCremonaDatabase(SQLDatabase):
             1
             sage: d['torsion_order']
             2
+
+        Check that :trac:`17904` is fixed::
+
+            sage: ai = EllipticCurve('100467a2').ainvs() # optional - database_cremona_ellcurve
+            sage: 'gens' in CremonaDatabase().data_from_coefficients(ai) # optional - database_cremona_ellcurve
+            True
         """
         ainvs = str(list(ainvs))
         if self.get_skeleton() == _miniCremonaSkeleton:
@@ -873,7 +880,7 @@ class MiniCremonaDatabase(SQLDatabase):
                 + "USING(class) WHERE eqn=?",
                 (ainvs.replace(' ', ''),))
         try:
-            c = q.next()
+            c = next(q)
         except StopIteration:
             raise RuntimeError("There is no elliptic curve with coefficients "
                                + ainvs + " in the database")
@@ -884,13 +891,9 @@ class MiniCremonaDatabase(SQLDatabase):
                 'torsion_order': c[2],
                 'conductor': N}
         if len(c) > 3:
-            if num == 1:
-                data['modular_degree'] = (c[3])
-                data['gens'] = eval(c[4])
-                data['db_extra'] = list(c[5:])
-            elif c[1] == 0:
-                # we know the rank is 0, so the gens are empty
-                data['gens'] = []
+            data['modular_degree'] = (c[3])
+            data['gens'] = eval(c[4])
+            data['db_extra'] = list(c[5:])
         return data
 
     def elliptic_curve_from_ainvs(self, ainvs):
@@ -1009,11 +1012,11 @@ class MiniCremonaDatabase(SQLDatabase):
              [[[0, 0, 1, -4, -18], 1, 1]],
              [[[0, 1, 1, -10, 18], 1, 1]]]
         """
-        conductor=int(conductor)
+        conductor = int(conductor)
         classes = []
         A = self.allcurves(conductor)
         K = A.keys()
-        K.sort(cmp_code)
+        K.sort(key=sort_key)
         for k in K:
             v = A[k]
             # test if not first curve in class
@@ -1151,7 +1154,7 @@ class MiniCremonaDatabase(SQLDatabase):
         #print "Computing largest conductor."
         q = self.__connection__.cursor().execute('SELECT conductor FROM ' \
             + 't_class ORDER BY conductor DESC LIMIT 1')
-        self.__largest_conductor__ = q.next()[0]
+        self.__largest_conductor__ = next(q)[0]
         return self.__largest_conductor__
 
     def smallest_conductor(self):
@@ -1223,18 +1226,18 @@ class MiniCremonaDatabase(SQLDatabase):
                 return self.__number_of_curves__
             q = self.__connection__.cursor().execute('SELECT COUNT(curve) ' \
                 + 'FROM t_curve')
-            self.__number_of_curves__ = q.next()[0]
+            self.__number_of_curves__ = next(q)[0]
             return self.__number_of_curves__
         if i == 0:
             q = self.__connection__.cursor().execute('SELECT COUNT(curve) ' \
                 + 'FROM t_curve,t_class USING(class) WHERE conductor=?', \
                 (int(N),))
-            return q.next()[0]
+            return next(q)[0]
         if not isinstance(i, str):
             i = cremona_letter_code(i)
         q = self.__connection__.cursor().execute('SELECT COUNT(curve) FROM ' \
             + 't_curve WHERE class=?',(str(N)+i,))
-        return q.next()[0]
+        return next(q)[0]
 
     def number_of_isogeny_classes(self, N=0):
         """
@@ -1262,11 +1265,11 @@ class MiniCremonaDatabase(SQLDatabase):
                 return self.__number_of_isogeny_classes__
             q = self.__connection__.cursor().execute('SELECT COUNT(class) ' \
                 + 'FROM t_class')
-            self.__number_of_isogeny_classes__ = q.next()[0]
+            self.__number_of_isogeny_classes__ = next(q)[0]
             return self.__number_of_isogeny_classes__
         q = self.__connection__.cursor().execute('SELECT COUNT(class) FROM ' \
             + 't_class WHERE conductor=?',(int(N),))
-        return q.next()[0]
+        return next(q)[0]
 
     def random(self):
         """
@@ -1281,7 +1284,7 @@ class MiniCremonaDatabase(SQLDatabase):
         q = self.__connection__.cursor().execute('SELECT conductor FROM ' \
             + 't_class WHERE conductor>=? ORDER BY conductor',(int(N),))
         try:
-            N = q.next()[0]
+            N = next(q)[0]
         except StopIteration:
             N = 11
         iso = randint(0, self.number_of_isogeny_classes(N)-1)
@@ -1318,7 +1321,7 @@ class MiniCremonaDatabase(SQLDatabase):
             self.__largest_conductor__ =  largest_conductor
 
         # Since July 2014 the data files have been arranged in
-        # subdirectories (see :trac:`16903`).
+        # subdirectories (see trac #16903).
         allcurves_dir = os.path.join(ftpdata,'allcurves')
         allbsd_dir = os.path.join(ftpdata,'allbsd')
         allgens_dir = os.path.join(ftpdata,'allgens')
@@ -1401,8 +1404,9 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
 
         sage: c = CremonaDatabase('cremona')  # optional - database_cremona_ellcurve
         sage: c.allcurves(11)                 # optional - database_cremona_ellcurve
-        {'a1': [[0, -1, 1, -10, -20], 0, 5], 'a3': [[0, -1, 1, 0, 0], 0, 5],
-         'a2': [[0, -1, 1, -7820, -263580], 0, 1]}
+        {'a1': [[0, -1, 1, -10, -20], 0, 5],
+        'a2': [[0, -1, 1, -7820, -263580], 0, 1],
+        'a3': [[0, -1, 1, 0, 0], 0, 5]}
     """
     def __init__(self, name, read_only=True, build=False):
         """
@@ -1659,7 +1663,7 @@ def CremonaDatabase(name=None,mini=None,set_global=None):
         Traceback (most recent call last):
         ...
         ValueError: Desired database (='should not exist') does not exist
-        sage: from sage.misc.misc import SAGE_SHARE
+        sage: from sage.env import SAGE_SHARE
         sage: os.path.isfile(os.path.join(SAGE_SHARE,'cremona','should_not_exist.db'))
         False
     """

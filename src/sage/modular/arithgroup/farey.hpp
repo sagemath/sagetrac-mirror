@@ -29,6 +29,12 @@
 #include <gmpxx.h>
 #include "sl2z.hpp"
 
+#if PY_MAJOR_VERSION >= 3
+  #define PyInt_FromLong               PyLong_FromLong
+  #define PyInt_AsLong                 PyLong_AsLong
+  #define PyInt_AS_LONG                PyLong_AS_LONG
+#endif
+
 //--- pure virtual base class for helper class for membership test --------
 
 class is_element_group {
@@ -147,6 +153,7 @@ public:
   friend std::istream& operator>>(std::istream&,       FareySymbol&);
   //--- communication with sage -------------------------------------------
   PyObject* is_element(const mpz_t, const mpz_t, const mpz_t, const mpz_t) const;
+  PyObject* word_problem(const mpz_t, const mpz_t, const mpz_t, const mpz_t, SL2Z *) const;
   PyObject* get_transformation_to_cusp(const mpz_t, const mpz_t) const;
   PyObject* get_cusps() const;
   PyObject* get_cusp_widths() const;

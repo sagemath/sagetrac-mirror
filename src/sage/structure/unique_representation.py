@@ -157,7 +157,7 @@ result in the cache. This has the following implications:
 
 .. WARNING::
 
-    If there is preprocessing, then the preprocessed arguments passed to
+    If there is preprocessing, then the preprocessed arguments
     passed to :meth:`CachedRepresentation.__classcall__` must be invariant
     under the preprocessing. That is to say, preprocessing the input
     arguments twice must have the same effect as preprocessing the input
@@ -383,7 +383,7 @@ This is because an attribute is stored that explains how the instance was
 created::
 
     sage: a._factory_data
-    (<class '__main__.MyFactory'>, (...), (1, 1), {})
+    (<__main__.MyFactory object at ...>, (...), (1, 1), {})
 
 .. NOTE::
 
@@ -559,12 +559,14 @@ accordingly, for example by inheriting from
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
+from sage.misc import six
 from sage.misc.cachefunc import weak_cached_function
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.fast_methods import WithEqualityById
 
-class CachedRepresentation:
+class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
     """
     Classes derived from CachedRepresentation inherit a weak cache for their
     instances.
@@ -601,10 +603,10 @@ class CachedRepresentation:
         sage: class MyClass(CachedRepresentation):
         ....:     def __init__(self, value):
         ....:         self.value = value
-        ....:     def __cmp__(self, other):
-        ....:         c = cmp(type(self),type(other))
-        ....:         if c: return c
-        ....:         return cmp(self.value, other.value)
+        ....:     def __eq__(self, other):
+        ....:         if type(self) != type(other):
+        ....:             return False
+        ....:         return self.value == other.value
 
     Two coexisting instances of ``MyClass`` created with the same argument data
     are guaranteed to share the same identity. Since :trac:`12215`, this is
@@ -810,10 +812,10 @@ class CachedRepresentation:
 
         sage: class SomeClass(UniqueRepresentation):
         ....:     def __init__(self, i):
-        ....:         print "creating new instance for argument %s"%i
+        ....:         print("creating new instance for argument %s" % i)
         ....:         self.i = i
         ....:     def __del__(self):
-        ....:         print "deleting instance for argument %s"%self.i
+        ....:         print("deleting instance for argument %s" % self.i)
         ....:
         sage: O = SomeClass(1)
         creating new instance for argument 1
@@ -973,7 +975,7 @@ class CachedRepresentation:
 
         sage: class MyClass(CachedRepresentation):
         ....:     def __init__(self, value):
-        ....:         print "initializing object"
+        ....:         print("initializing object")
         ....:         self.value = value
         ....:
 
@@ -999,8 +1001,6 @@ class CachedRepresentation:
     unprocessed arguments will be passed down to
     :meth:`__init__<object.__init__>`.
     """
-    __metaclass__ = ClasscallMetaclass
-
     _included_private_doc_ = ["__classcall__"]
 
     @weak_cached_function # automatically a staticmethod
@@ -1074,7 +1074,7 @@ class CachedRepresentation:
             sage: class B(A):
             ....:     @staticmethod
             ....:     def __classcall_private__(cls, *args, **kwds):
-            ....:         print "Private B"
+            ....:         print("Private B")
             ....:         return super(B,cls).__classcall__(cls,*args,**kwds)
             sage: class C(B): pass
             sage: a = A(1)
@@ -1108,7 +1108,7 @@ class CachedRepresentation:
                 cache = C.__classcall__.cache
             except AttributeError:
                 pass
-        for k in cache.iterkeys():
+        for k in cache:
             if issubclass(k[0][0],cls):
                 del_list.append(k)
         for k in del_list:
@@ -1260,12 +1260,6 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
         sage: class MyClass(UniqueRepresentation):
         ....:     def __init__(self, value):
         ....:         self.value = value
-        ....:     def __cmp__(self, other):
-        ....:         c = cmp(type(self),type(other))
-        ....:         if c: return c
-        ....:         print "custom cmp"
-        ....:         return cmp(self.value, other.value)
-        ....:
 
     Two coexisting instances of ``MyClass`` created with the same argument
     data are guaranteed to share the same identity. Since :trac:`12215`, this
@@ -1290,26 +1284,22 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
         sage: x.value, y.value
         (1, 1)
 
-    Rich comparison by identity is used when possible (hence, for ``==``, for
-    ``!=``, and for identical arguments in the case of ``<``, ``<=``, ``>=``
-    and ``>``), which is as fast as it can get. Only if identity is not enough
-    to decide the answer of a comparison, the custom comparison is called::
+    When comparing two instances of a unique representation with ``==``
+    or ``!=`` comparison by identity is used::
 
         sage: x == y
         True
-        sage: z = MyClass(2)
-        sage: x == z, x is z
-        (False, False)
-        sage: x <= x
+        sage: x is y
         True
+        sage: z = MyClass(2)
+        sage: x == z
+        False
+        sage: x is z
+        False
+        sage: x != y
+        False
         sage: x != z
         True
-        sage: x <= z
-        custom cmp
-        True
-        sage: x > z
-        custom cmp
-        False
 
     A hash function equivalent to :meth:`object.__hash__` is used, which is
     compatible with comparison by identity. However this means that the hash

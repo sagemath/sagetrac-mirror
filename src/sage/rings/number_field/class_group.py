@@ -40,13 +40,14 @@ EXAMPLES::
     sage: (O*(2, 1/2*a + 1/2))^3
     Fractional ideal (1/2*a - 3/2)
 """
+from six.moves import range
 
 from sage.groups.abelian_gps.values import AbelianGroupWithValues_class, AbelianGroupWithValuesElement
 from sage.groups.abelian_gps.abelian_group_element import AbelianGroupElement
 from sage.structure.sequence import Sequence
 from sage.structure.element import MonoidElement
 from sage.groups.old import Group
-from sage.rings.arith import LCM
+from sage.arith.all import LCM
 from sage.rings.all import ZZ
 
 
@@ -78,7 +79,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
         """
         Returns the ideal class of this fractional ideal.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 + 23,'a'); G = K.class_group()
             sage: G(K.ideal(13, a + 4))
@@ -92,7 +93,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
         r"""
         Return string representation of this fractional ideal class.
 
-         EXAMPLE::
+         EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 + 23,'a'); G = K.class_group()
             sage: G(K.ideal(13, a + 4))._repr_()
@@ -108,7 +109,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
         r"""
         Multiplication of two (S-)ideal classes.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = NumberField(x^2 + 23,'a').class_group(); G
             Class group of order 3 with structure C3 of Number Field in a with defining polynomial x^2 + 23
@@ -135,7 +136,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
         r"""
         Division of two ideal classes.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = NumberField(x^2 + 23,'a').class_group(); G
             Class group of order 3 with structure C3 of Number Field in a with defining polynomial x^2 + 23
@@ -154,7 +155,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
         r"""
         Raise this element to the power n.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 - 3*x + 8)
             sage: C=K.class_group()
@@ -179,7 +180,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
         r"""
         Return the multiplicative inverse of this ideal class.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 - 3*x + 8); G = K.class_group()
             sage: G(2, a).inverse()
@@ -238,7 +239,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
         r"""
         Return a representative ideal in this ideal class.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<w>=QuadraticField(-23)
             sage: OK=K.ring_of_integers()
@@ -250,6 +251,53 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
             Fractional ideal (2, 1/2*w - 1/2)
         """
         return self.value()
+
+    def representative_prime(self, norm_bound=1000):
+        r"""
+        Return a prime ideal in this ideal class.
+
+        INPUT:
+
+        ``norm_bound`` (positive integer) -- upper bound on the norm of primes tested.
+
+        EXAMPLES::
+
+           sage: K.<a> = NumberField(x^2+31)
+           sage: K.class_number()
+           3
+           sage: Cl = K.class_group()
+           sage: [c.representative_prime() for c in Cl]
+           [Fractional ideal (3),
+           Fractional ideal (2, 1/2*a + 1/2),
+           Fractional ideal (2, 1/2*a - 1/2)]
+
+           sage: K.<a> = NumberField(x^2+223)
+           sage: K.class_number()
+           7
+           sage: Cl = K.class_group()
+           sage: [c.representative_prime() for c in Cl]
+           [Fractional ideal (3),
+           Fractional ideal (2, 1/2*a + 1/2),
+           Fractional ideal (17, 1/2*a + 7/2),
+           Fractional ideal (7, 1/2*a - 1/2),
+           Fractional ideal (7, 1/2*a + 1/2),
+           Fractional ideal (17, 1/2*a + 27/2),
+           Fractional ideal (2, 1/2*a - 1/2)]
+        """
+        if self.value().is_prime():
+            return self.value()
+        c = self.reduce()
+        if c.value().is_prime():
+            return c.value()
+        # otherwise we just search:
+        Cl = self.parent()
+        K = Cl.number_field()
+        from sage.rings.all import RR
+        for P in K.primes_of_bounded_norm_iter(RR(norm_bound)):
+            if Cl(P)==c:
+                return P
+        raise RuntimeError("No prime of norm less than %s found in class %s" % (norm_bound, c))
+
 
     def gens(self):
         r"""
@@ -336,7 +384,7 @@ class SFractionalIdealClass(FractionalIdealClass):
         r"""
         Returns a string representation of the S-ideal class of this fractional ideal.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = QuadraticField(-14)
             sage: I = K.ideal(2,a)
@@ -364,7 +412,7 @@ class ClassGroup(AbelianGroupWithValues_class):
         sage: G = K.class_group(); G
         Class group of order 3 with structure C3 of Number Field in a with defining polynomial x^2 + 23
         sage: G.category()
-        Category of finite commutative groups
+        Category of finite enumerated commutative groups
 
     Note the distinction between abstract generators, their ideal, and
     exponents::
@@ -423,7 +471,7 @@ class ClassGroup(AbelianGroupWithValues_class):
             sage: CK = K.class_group()
             sage: CL = L.class_group()
             sage: [CL(I).exponents() for I in CK]
-            [(0,), (2,), (4,)]
+            [(0,), (4,), (2,)]
         """
         if isinstance(args[0], FractionalIdealClass):
             return self.element_class(self, None, self._number_field.ideal(args[0].ideal()))
@@ -464,16 +512,16 @@ class ClassGroup(AbelianGroupWithValues_class):
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^4 + 23)
-            sage: K.class_group().gens()   # random gens (platform dependent)
-            [Fractional ideal class (2, 1/2*a^2 - a + 3/2)]
+            sage: K.class_group().gens_ideals()   # random gens (platform dependent)
+            (Fractional ideal (2, 1/4*a^3 - 1/4*a^2 + 1/4*a - 1/4),)
 
             sage: C = NumberField(x^2 + x + 23899, 'a').class_group(); C
             Class group of order 68 with structure C34 x C2 of Number Field
             in a with defining polynomial x^2 + x + 23899
             sage: C.gens()
             (Fractional ideal class (7, a + 5), Fractional ideal class (5, a + 3))
-            sage: C.ngens()
-            2
+            sage: C.gens_ideals()
+            (Fractional ideal (7, a + 5), Fractional ideal (5, a + 3))
         """
         return self.gens_values()
 
@@ -508,17 +556,35 @@ class ClassGroup(AbelianGroupWithValues_class):
             sage: G.list()
             (Trivial principal fractional ideal class,)
         """
-        from sage.misc.mrange import mrange
-        orders = self.gens_orders()
-        T = mrange(orders)
-        g = self.gens()
-        for t in T:
-            I = self(1)
-            for i, j in enumerate(t):
-                I *= g[i]**j
-            yield I
-        if not T:
-            yield self(1)
+        return self._iter_inner(self.one(), 0)
+
+    def _iter_inner(self, i0, k):
+        r"""
+        Yield all elements of the coset `i0 * \{h in H_k\}`, where
+        `H_k` is the subgroup of ``self`` generated by ``self.gens()[k:]``.
+
+        Each new element provided costs exactly one group operation, and is
+        not necessarily reduced.
+
+        EXAMPLES::
+
+            sage: x = ZZ['x'].gen()
+            sage: K.<v> = NumberField(x^4 + 90*x^2 + 45)
+            sage: OK = K.maximal_order()
+            sage: G = OK.class_group()
+            sage: iter = G._iter_inner(G.gen(0)^2,1)
+            sage: all(next(iter) in G for _ in range(4))
+            True
+        """
+        if k == self.ngens():
+            yield i0
+            return
+        gk = self.gen(k)
+        for _ in range(self._gens_orders[k]):
+            for J in self._iter_inner(i0, k + 1):
+                yield J
+            i0 = i0 * gk
+        return
 
     def _repr_(self):
         r"""

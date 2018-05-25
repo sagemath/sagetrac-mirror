@@ -6,6 +6,7 @@ AUTHORS:
 - Peter Bruin (June 2013): initial version, based on
   finite_field_ext_pari.py by William Stein et al.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2013 Peter Bruin <peter.bruin@math.uzh.ch>
@@ -17,9 +18,9 @@ AUTHORS:
 #*****************************************************************************
 
 
-from element_pari_ffelt import FiniteFieldElement_pari_ffelt
-from finite_field_base import FiniteField
-from constructor import GF
+from .element_pari_ffelt import FiniteFieldElement_pari_ffelt
+from .finite_field_base import FiniteField
+from .finite_field_constructor import GF
 
 class FiniteField_pari_ffelt(FiniteField):
     """
@@ -103,7 +104,7 @@ class FiniteField_pari_ffelt(FiniteField):
         polynomial ``modulus``, with distinguished generator called
         ``name``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.finite_rings.finite_field_pari_ffelt import FiniteField_pari_ffelt
             sage: R.<x> = PolynomialRing(GF(3))
@@ -118,7 +119,6 @@ class FiniteField_pari_ffelt(FiniteField):
 
         self._modulus = modulus
         self._degree = n
-        self._kwargs = {}
 
         self._gen_pari = modulus._pari_with_name(self._names[0]).ffgen()
         self._zero_element = self.element_class(self, 0)
@@ -131,7 +131,7 @@ class FiniteField_pari_ffelt(FiniteField):
         """
         For pickling.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<b> = FiniteField(5^20, impl='pari_ffelt')
             sage: type(k)
@@ -182,7 +182,7 @@ class FiniteField_pari_ffelt(FiniteField):
         """
         Return the characteristic of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = FiniteField(3^4, 'a', impl='pari_ffelt')
             sage: F.characteristic()
@@ -195,7 +195,7 @@ class FiniteField_pari_ffelt(FiniteField):
         """
         Returns the degree of ``self`` over its prime field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = FiniteField(3^20, 'a', impl='pari_ffelt')
             sage: F.degree()
@@ -237,7 +237,7 @@ class FiniteField_pari_ffelt(FiniteField):
         the polynomial at the field's generator::
 
             sage: R.<x> = QQ[]
-            sage: k, a = FiniteField(5^2, 'a', impl='pari_ffelt').objgen()
+            sage: k.<a> = FiniteField(5^2, 'a', impl='pari_ffelt')
             sage: k(R(2/3))
             4
             sage: k(x^2)
@@ -251,7 +251,7 @@ class FiniteField_pari_ffelt(FiniteField):
             sage: k(x^25)
             a
 
-            sage: Q, q = FiniteField(5^7, 'q', impl='pari_ffelt').objgen()
+            sage: Q.<q> = FiniteField(5^7, 'q', impl='pari_ffelt')
             sage: L = GF(5)
             sage: LL.<xx> = L[]
             sage: Q(xx^2 + 2*xx + 4)

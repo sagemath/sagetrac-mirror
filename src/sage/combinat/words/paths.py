@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Word paths
 
@@ -58,7 +58,6 @@ use ``help(p)``::
     ...
     Methods inherited from FiniteWordPath_all:
     ...
-    This only works on Python classes that derive from SageObject.
 
 Since p is a finite word, many functions from the word library are available::
 
@@ -156,21 +155,21 @@ a callable or a finite iterator::
 
 REFERENCES:
 
-- [1] Freeman, H.: On the encoding of arbitrary geometric configurations.
+- [1] Freeman, H.: *On the encoding of arbitrary geometric configurations*.
   IRE Trans. Electronic Computer 10 (1961) 260-268.
-- [2] Freeman, H.: Boundary encoding and processing. In Lipkin, B., Rosenfeld,
+- [2] Freeman, H.: *Boundary encoding and processing*. In Lipkin, B., Rosenfeld,
   A., eds.: Picture Processing and Psychopictorics, Academic Press, New York
   (1970) 241-266.
-- [3] Braquelaire, J.P., Vialard, A.: Euclidean paths: A new representation of
-  boundary of discrete regions. Graphical Models and Image Processing 61 (1999)
+- [3] Braquelaire, J.P., Vialard, A.: *Euclidean paths: A new representation of
+  boundary of discrete regions*. Graphical Models and Image Processing 61 (1999)
   16-43.
-- [4] http://en.wikipedia.org/wiki/Regular_tiling
-- [5] http://en.wikipedia.org/wiki/Dyck_word
+- [4] :wikipedia:`Regular_tiling`
+- [5] :wikipedia:`Dyck_word`
 
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Arnaud bergeron <abergeron@gmail.coms>,
-#       Copyrigth (C) 2009 Sebastien Labbe <slabqc@gmail.com>,
+#       Copyright (C) 2009 Sebastien Labbe <slabqc@gmail.com>,
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -178,23 +177,25 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-from itertools import izip
+from builtins import zip
+
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.combinat.words.words import Words_over_OrderedAlphabet
+from sage.combinat.words.words import FiniteWords
 from sage.combinat.words.word import FiniteWord_class
 from sage.combinat.words.alphabet import build_alphabet
 from sage.plot.all import arrow, line, polygon, point, Graphics
 from sage.modules.free_module_element import vector
 from sage.rings.all import ZZ, RR, QuadraticField
-from word_datatypes import (WordDatatype_str,
+from .word_datatypes import (WordDatatype_str,
                             WordDatatype_list,
                             WordDatatype_tuple)
                             #WordDatatype_cpp_basic_string)
 
-from word_infinite_datatypes import (
+from .word_infinite_datatypes import (
                             WordDatatype_iter_with_caching,
                             WordDatatype_iter,
                             WordDatatype_callable_with_caching,
@@ -357,7 +358,7 @@ def WordPaths(alphabet, steps=None):
 #                                                                     #
 #######################################################################
 
-class WordPaths_all(Words_over_OrderedAlphabet):
+class WordPaths_all(FiniteWords):
     r"""
     The combinatorial class of all paths, i.e of all words over
     an alphabet where each letter is mapped to a step (a vector).
@@ -409,11 +410,9 @@ class WordPaths_all(Words_over_OrderedAlphabet):
             ...
             ValueError: Can't make summable vectors from steps
         """
-        #temporary hack
-        alphabet = build_alphabet(alphabet)
-
         #Construction of the words class
-        super(WordPaths_all, self).__init__(alphabet)
+        FiniteWords.__init__(self, alphabet)
+        alphabet = self.alphabet()
 
         #Checking the size of alphabet and steps
         ls = len(steps)
@@ -424,11 +423,11 @@ of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinalit
 
         #Construction of the steps
         from sage.structure.element import Vector
-        if all(map(lambda x: isinstance(x, Vector), steps)):
+        if all((isinstance(x, Vector) for x in steps)):
             vsteps = steps
         else:
             try:
-                vsteps = map(vector, steps)
+                vsteps = [vector(_) for _ in steps]
             except (TypeError):
                 raise ValueError("Can't make vectors from steps")
         try:
@@ -442,6 +441,37 @@ of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinalit
 
         self._steps = dict(zip(alphabet, vsteps))
         self._vector_space = s.parent()
+
+    def __eq__(self, other):
+        r"""
+        TESTS::
+
+            sage: W1 = WordPaths(['a','b'], [vector((0,1)), vector((0,2))])
+            sage: W2 = WordPaths(['a','b'], [vector((0,1)), vector((0,2))])
+            sage: W3 = WordPaths(['a','b'], [vector((0,2)), vector((1,0))])
+            sage: W1 == W2
+            True
+            sage: W1 == W3
+            False
+        """
+        return self is other or (type(self) == type(other) and \
+               self.alphabet() == other.alphabet() and \
+               self.vector_space() == other.vector_space() and \
+               self.letters_to_steps() == other.letters_to_steps())
+
+    def __ne__(self, other):
+        r"""
+        TESTS::
+
+            sage: W1 = WordPaths(['a','b'], [vector((0,1)), vector((0,2))])
+            sage: W2 = WordPaths(['a','b'], [vector((0,1)), vector((0,2))])
+            sage: W3 = WordPaths(['a','b'], [vector((0,2)), vector((1,0))])
+            sage: W1 != W2
+            False
+            sage: W1 != W3
+            True
+        """
+        return not (self == other)
 
     @lazy_attribute
     def _element_classes(self):
@@ -458,10 +488,10 @@ of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinalit
 
             sage: d = WordPaths('ab',steps=[(1,2),(3,4)])._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
-            sage: d['FiniteWord_tuple']
+            sage: d['tuple']
             <class 'sage.combinat.words.paths.FiniteWordPath_2d_tuple'>
 
         ::
@@ -469,7 +499,7 @@ of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinalit
             sage: d = WordPaths('ab',steps=[(1,2,3),(3,4,5)])._element_classes
             sage: len(d)
             7
-            sage: d['FiniteWord_tuple']
+            sage: d['tuple']
             <class 'sage.combinat.words.paths.FiniteWordPath_3d_tuple'>
 
         ::
@@ -478,7 +508,7 @@ of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinalit
             sage: d = WordPaths('ab',steps=steps)._element_classes
             sage: len(d)
             7
-            sage: d['FiniteWord_tuple']
+            sage: d['tuple']
             <class 'sage.combinat.words.paths.FiniteWordPath_all_tuple'>
 
         ::
@@ -486,57 +516,39 @@ of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinalit
             sage: d = WordPaths('ab',steps=[(1,),(3,)])._element_classes
             sage: len(d)
             7
-            sage: d['FiniteWord_tuple']
+            sage: d['tuple']
             <class 'sage.combinat.words.paths.FiniteWordPath_all_tuple'>
         """
         dimension = self._vector_space.dimension()
         if dimension == 2:
-            return {'FiniteWord_list': FiniteWordPath_2d_list,
-            'FiniteWord_str': FiniteWordPath_2d_str,
-            'FiniteWord_tuple': FiniteWordPath_2d_tuple,
-            #'FiniteWord_cpp_vector': FiniteWordPath_2d_cpp_vector,
-            'FiniteWord_callable_with_caching': FiniteWordPath_2d_callable_with_caching,
-            'FiniteWord_callable': FiniteWordPath_2d_callable,
-            'FiniteWord_iter_with_caching': FiniteWordPath_2d_iter_with_caching,
-            'FiniteWord_iter': FiniteWordPath_2d_iter,
-            #'InfiniteWord_callable_with_caching': InfiniteWordPath_2d_callable_with_caching,
-            #'InfiniteWord_callable': InfiniteWordPath_2d_callable,
-            #'InfiniteWord_iter_with_caching': InfiniteWordPath_2d_iter_with_caching,
-            #'InfiniteWord_iter': InfiniteWordPath_2d_iter,
-            #'Word_iter_with_caching': WordPath_2d_iter_with_caching,
-            #'Word_iter': WordPath_2d_iter
+            return {
+             'list': FiniteWordPath_2d_list,
+             'str': FiniteWordPath_2d_str,
+             'tuple': FiniteWordPath_2d_tuple,
+             'callable_with_caching': FiniteWordPath_2d_callable_with_caching,
+             'callable': FiniteWordPath_2d_callable,
+             'iter_with_caching': FiniteWordPath_2d_iter_with_caching,
+             'iter': FiniteWordPath_2d_iter,
             }
         elif dimension == 3:
-            return {'FiniteWord_list': FiniteWordPath_3d_list,
-            'FiniteWord_str': FiniteWordPath_3d_str,
-            'FiniteWord_tuple': FiniteWordPath_3d_tuple,
-            #'FiniteWord_cpp_vector': FiniteWordPath_3d_cpp_vector,
-            'FiniteWord_callable_with_caching': FiniteWordPath_3d_callable_with_caching,
-            'FiniteWord_callable': FiniteWordPath_3d_callable,
-            'FiniteWord_iter_with_caching': FiniteWordPath_3d_iter_with_caching,
-            'FiniteWord_iter': FiniteWordPath_3d_iter,
-            #'InfiniteWord_callable_with_caching': InfiniteWordPath_3d_callable_with_caching,
-            #'InfiniteWord_callable': InfiniteWordPath_3d_callable,
-            #'InfiniteWord_iter_with_caching': InfiniteWordPath_3d_iter_with_caching,
-            #'InfiniteWord_iter': InfiniteWordPath_3d_iter,
-            #'Word_iter_with_caching': WordPath_3d_iter_with_caching,
-            #'Word_iter': WordPath_3d_iter
+            return {
+             'list': FiniteWordPath_3d_list,
+             'str': FiniteWordPath_3d_str,
+             'tuple': FiniteWordPath_3d_tuple,
+             'callable_with_caching': FiniteWordPath_3d_callable_with_caching,
+             'callable': FiniteWordPath_3d_callable,
+             'iter_with_caching': FiniteWordPath_3d_iter_with_caching,
+             'iter': FiniteWordPath_3d_iter,
             }
         else:
-            return {'FiniteWord_list': FiniteWordPath_all_list,
-            'FiniteWord_str': FiniteWordPath_all_str,
-            'FiniteWord_tuple': FiniteWordPath_all_tuple,
-            #'FiniteWord_cpp_vector': FiniteWordPath_all_cpp_vector,
-            'FiniteWord_callable_with_caching': FiniteWordPath_all_callable_with_caching,
-            'FiniteWord_callable': FiniteWordPath_all_callable,
-            'FiniteWord_iter_with_caching': FiniteWordPath_all_iter_with_caching,
-            'FiniteWord_iter': FiniteWordPath_all_iter,
-            #'InfiniteWord_callable_with_caching': InfiniteWordPath_all_callable_with_caching,
-            #'InfiniteWord_callable': InfiniteWordPath_all_callable,
-            #'InfiniteWord_iter_with_caching': InfiniteWordPath_all_iter_with_caching,
-            #'InfiniteWord_iter': InfiniteWordPath_all_iter,
-            #'Word_iter_with_caching': WordPath_all_iter_with_caching,
-            #'Word_iter': WordPath_all_iter
+            return {
+             'list': FiniteWordPath_all_list,
+             'str': FiniteWordPath_all_str,
+             'tuple': FiniteWordPath_all_tuple,
+             'callable_with_caching': FiniteWordPath_all_callable_with_caching,
+             'callable': FiniteWordPath_all_callable,
+             'iter_with_caching': FiniteWordPath_all_iter_with_caching,
+             'iter': FiniteWordPath_all_iter,
             }
 
     def __repr__(self):
@@ -550,7 +562,7 @@ of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinalit
             sage: WordPaths_all('abAB',d).__repr__()
             'Word Paths over 4 steps'
         """
-        return "Word Paths over %s steps" % self.size_of_alphabet()
+        return "Word Paths over %s steps" % self.alphabet().cardinality()
 
     def letters_to_steps(self):
         r"""
@@ -639,26 +651,20 @@ class WordPaths_square_grid(WordPaths_all):
 
             sage: d = WordPaths('abcd')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
-            sage: d['FiniteWord_tuple']
+            sage: d['tuple']
             <class 'sage.combinat.words.paths.FiniteWordPath_square_grid_tuple'>
         """
-        return {'FiniteWord_list': FiniteWordPath_square_grid_list,
-        'FiniteWord_str': FiniteWordPath_square_grid_str,
-        'FiniteWord_tuple': FiniteWordPath_square_grid_tuple,
-        #'FiniteWord_cpp_vector': FiniteWordPath_square_grid_cpp_vector,
-        'FiniteWord_callable_with_caching': FiniteWordPath_square_grid_callable_with_caching,
-        'FiniteWord_callable': FiniteWordPath_square_grid_callable,
-        'FiniteWord_iter_with_caching': FiniteWordPath_square_grid_iter_with_caching,
-        'FiniteWord_iter': FiniteWordPath_square_grid_iter,
-        #'InfiniteWord_callable_with_caching': InfiniteWordPath_square_grid_callable_with_caching,
-        #'InfiniteWord_callable': InfiniteWordPath_square_grid_callable,
-        #'InfiniteWord_iter_with_caching': InfiniteWordPath_square_grid_iter_with_caching,
-        #'InfiniteWord_iter': InfiniteWordPath_square_grid_iter,
-        #'Word_iter_with_caching': WordPath_square_grid_iter_with_caching,
-        #'Word_iter': WordPath_square_grid_iter
+        return {
+         'list': FiniteWordPath_square_grid_list,
+         'str': FiniteWordPath_square_grid_str,
+         'tuple': FiniteWordPath_square_grid_tuple,
+         'callable_with_caching': FiniteWordPath_square_grid_callable_with_caching,
+         'callable': FiniteWordPath_square_grid_callable,
+         'iter_with_caching': FiniteWordPath_square_grid_iter_with_caching,
+         'iter': FiniteWordPath_square_grid_iter,
         }
 
     def __repr__(self):
@@ -726,24 +732,18 @@ class WordPaths_triangle_grid(WordPaths_all):
             sage: len(d)
             7
             sage: type(d)
-            <type 'dict'>
-            sage: d['FiniteWord_tuple']
+            <... 'dict'>
+            sage: d['tuple']
             <class 'sage.combinat.words.paths.FiniteWordPath_triangle_grid_tuple'>
         """
-        return {'FiniteWord_list': FiniteWordPath_triangle_grid_list,
-        'FiniteWord_str': FiniteWordPath_triangle_grid_str,
-        'FiniteWord_tuple': FiniteWordPath_triangle_grid_tuple,
-        #'FiniteWord_cpp_vector': FiniteWordPath_triangle_grid_cpp_vector,
-        'FiniteWord_callable_with_caching': FiniteWordPath_triangle_grid_callable_with_caching,
-        'FiniteWord_callable': FiniteWordPath_triangle_grid_callable,
-        'FiniteWord_iter_with_caching': FiniteWordPath_triangle_grid_iter_with_caching,
-        'FiniteWord_iter': FiniteWordPath_triangle_grid_iter,
-        #'InfiniteWord_callable_with_caching': InfiniteWordPath_triangle_grid_callable_with_caching,
-        #'InfiniteWord_callable': InfiniteWordPath_triangle_grid_callable,
-        #'InfiniteWord_iter_with_caching': InfiniteWordPath_triangle_grid_iter_with_caching,
-        #'InfiniteWord_iter': InfiniteWordPath_triangle_grid_iter,
-        #'Word_iter_with_caching': WordPath_triangle_grid_iter_with_caching,
-        #'Word_iter': WordPath_triangle_grid_iter
+        return {
+         'list': FiniteWordPath_triangle_grid_list,
+         'str': FiniteWordPath_triangle_grid_str,
+         'tuple': FiniteWordPath_triangle_grid_tuple,
+         'callable_with_caching': FiniteWordPath_triangle_grid_callable_with_caching,
+         'callable': FiniteWordPath_triangle_grid_callable,
+         'iter_with_caching': FiniteWordPath_triangle_grid_iter_with_caching,
+         'iter': FiniteWordPath_triangle_grid_iter,
         }
 
     def __repr__(self):
@@ -798,26 +798,20 @@ class WordPaths_hexagonal_grid(WordPaths_triangle_grid):
 
             sage: d = WordPaths('abcdef', steps='hexagon')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
-            sage: d['FiniteWord_tuple']
+            sage: d['tuple']
             <class 'sage.combinat.words.paths.FiniteWordPath_hexagonal_grid_tuple'>
         """
-        return {'FiniteWord_list': FiniteWordPath_hexagonal_grid_list,
-        'FiniteWord_str': FiniteWordPath_hexagonal_grid_str,
-        'FiniteWord_tuple': FiniteWordPath_hexagonal_grid_tuple,
-        #'FiniteWord_cpp_vector': FiniteWordPath_hexagonal_grid_cpp_vector,
-        'FiniteWord_callable_with_caching': FiniteWordPath_hexagonal_grid_callable_with_caching,
-        'FiniteWord_callable': FiniteWordPath_hexagonal_grid_callable,
-        'FiniteWord_iter_with_caching': FiniteWordPath_hexagonal_grid_iter_with_caching,
-        'FiniteWord_iter': FiniteWordPath_hexagonal_grid_iter,
-        #'InfiniteWord_callable_with_caching': InfiniteWordPath_hexagonal_grid_callable_with_caching,
-        #'InfiniteWord_callable': InfiniteWordPath_hexagonal_grid_callable,
-        #'InfiniteWord_iter_with_caching': InfiniteWordPath_hexagonal_grid_iter_with_caching,
-        #'InfiniteWord_iter': InfiniteWordPath_hexagonal_grid_iter,
-        #'Word_iter_with_caching': WordPath_hexagonal_grid_iter_with_caching,
-        #'Word_iter': WordPath_hexagonal_grid_iter
+        return {
+         'list': FiniteWordPath_hexagonal_grid_list,
+         'str': FiniteWordPath_hexagonal_grid_str,
+         'tuple': FiniteWordPath_hexagonal_grid_tuple,
+         'callable_with_caching': FiniteWordPath_hexagonal_grid_callable_with_caching,
+         'callable': FiniteWordPath_hexagonal_grid_callable,
+         'iter_with_caching': FiniteWordPath_hexagonal_grid_iter_with_caching,
+         'iter': FiniteWordPath_hexagonal_grid_iter,
         }
 
     def __repr__(self):
@@ -840,9 +834,9 @@ class WordPaths_cube_grid(WordPaths_all):
 
         INPUT:
 
-        - ``alphabet - ordered alphabet of length 6. The order for the steps
-          is : e_x, e_y, e_z, -e_x, -e_y, -e_z, where e_v denotes
-          the canonical basis.
+        - ``alphabet`` -- ordered alphabet of length 6. The order for
+          the steps is `e_x, e_y, e_z, -e_x, -e_y, -e_z`, where `e_v`
+          denotes the canonical basis.
 
         EXAMPLES::
 
@@ -872,26 +866,19 @@ class WordPaths_cube_grid(WordPaths_all):
 
             sage: d = WordPaths('abcdef', steps='cube')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
-            sage: d['FiniteWord_tuple']
+            sage: d['tuple']
             <class 'sage.combinat.words.paths.FiniteWordPath_cube_grid_tuple'>
         """
-        return {'FiniteWord_list': FiniteWordPath_cube_grid_list,
-        'FiniteWord_str': FiniteWordPath_cube_grid_str,
-        'FiniteWord_tuple': FiniteWordPath_cube_grid_tuple,
-        #'FiniteWord_cpp_vector': FiniteWordPath_cube_grid_cpp_vector,
-        'FiniteWord_callable_with_caching': FiniteWordPath_cube_grid_callable_with_caching,
-        'FiniteWord_callable': FiniteWordPath_cube_grid_callable,
-        'FiniteWord_iter_with_caching': FiniteWordPath_cube_grid_iter_with_caching,
-        'FiniteWord_iter': FiniteWordPath_cube_grid_iter,
-        #'InfiniteWord_callable_with_caching': InfiniteWordPath_cube_grid_callable_with_caching,
-        #'InfiniteWord_callable': InfiniteWordPath_cube_grid_callable,
-        #'InfiniteWord_iter_with_caching': InfiniteWordPath_cube_grid_iter_with_caching,
-        #'InfiniteWord_iter': InfiniteWordPath_cube_grid_iter,
-        #'Word_iter_with_caching': WordPath_cube_grid_iter_with_caching,
-        #'Word_iter': WordPath_cube_grid_iter
+        return {'list': FiniteWordPath_cube_grid_list,
+        'str': FiniteWordPath_cube_grid_str,
+        'tuple': FiniteWordPath_cube_grid_tuple,
+        'callable_with_caching': FiniteWordPath_cube_grid_callable_with_caching,
+        'callable': FiniteWordPath_cube_grid_callable,
+        'iter_with_caching': FiniteWordPath_cube_grid_iter_with_caching,
+        'iter': FiniteWordPath_cube_grid_iter,
         }
 
     def __repr__(self):
@@ -906,7 +893,7 @@ class WordPaths_cube_grid(WordPaths_all):
 
 class WordPaths_dyck(WordPaths_all):
     r"""
-    The combinatorial class of all dyck paths.
+    The combinatorial class of all Dyck paths.
     """
     def __init__(self, alphabet):
         r"""
@@ -946,26 +933,19 @@ class WordPaths_dyck(WordPaths_all):
 
             sage: d = WordPaths('ab', steps='dyck')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
-            sage: d['FiniteWord_tuple']
+            sage: d['tuple']
             <class 'sage.combinat.words.paths.FiniteWordPath_dyck_tuple'>
         """
-        return {'FiniteWord_list': FiniteWordPath_dyck_list,
-        'FiniteWord_str': FiniteWordPath_dyck_str,
-        'FiniteWord_tuple': FiniteWordPath_dyck_tuple,
-        #'FiniteWord_cpp_vector': FiniteWordPath_dyck_cpp_vector,
-        'FiniteWord_callable_with_caching': FiniteWordPath_dyck_callable_with_caching,
-        'FiniteWord_callable': FiniteWordPath_dyck_callable,
-        'FiniteWord_iter_with_caching': FiniteWordPath_dyck_iter_with_caching,
-        'FiniteWord_iter': FiniteWordPath_dyck_iter,
-        #'InfiniteWord_callable_with_caching': InfiniteWordPath_dyck_callable_with_caching,
-        #'InfiniteWord_callable': InfiniteWordPath_dyck_callable,
-        #'InfiniteWord_iter_with_caching': InfiniteWordPath_dyck_iter_with_caching,
-        #'InfiniteWord_iter': InfiniteWordPath_dyck_iter,
-        #'Word_iter_with_caching': WordPath_dyck_iter_with_caching,
-        #'Word_iter': WordPath_dyck_iter
+        return {'list': FiniteWordPath_dyck_list,
+        'str': FiniteWordPath_dyck_str,
+        'tuple': FiniteWordPath_dyck_tuple,
+        'callable_with_caching': FiniteWordPath_dyck_callable_with_caching,
+        'callable': FiniteWordPath_dyck_callable,
+        'iter_with_caching': FiniteWordPath_dyck_iter_with_caching,
+        'iter': FiniteWordPath_dyck_iter,
         }
 
     def __repr__(self):
@@ -1020,26 +1000,19 @@ class WordPaths_north_east(WordPaths_all):
 
             sage: d = WordPaths('ab', steps='NE')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
-            sage: d['FiniteWord_tuple']
+            sage: d['tuple']
             <class 'sage.combinat.words.paths.FiniteWordPath_north_east_tuple'>
         """
-        return {'FiniteWord_list': FiniteWordPath_north_east_list,
-        'FiniteWord_str': FiniteWordPath_north_east_str,
-        'FiniteWord_tuple': FiniteWordPath_north_east_tuple,
-        #'FiniteWord_cpp_vector': FiniteWordPath_north_east_cpp_vector,
-        'FiniteWord_callable_with_caching': FiniteWordPath_north_east_callable_with_caching,
-        'FiniteWord_callable': FiniteWordPath_north_east_callable,
-        'FiniteWord_iter_with_caching': FiniteWordPath_north_east_iter_with_caching,
-        'FiniteWord_iter': FiniteWordPath_north_east_iter,
-        #'InfiniteWord_callable_with_caching': InfiniteWordPath_north_east_callable_with_caching,
-        #'InfiniteWord_callable': InfiniteWordPath_north_east_callable,
-        #'InfiniteWord_iter_with_caching': InfiniteWordPath_north_east_iter_with_caching,
-        #'InfiniteWord_iter': InfiniteWordPath_north_east_iter,
-        #'Word_iter_with_caching': WordPath_north_east_iter_with_caching,
-        #'Word_iter': WordPath_north_east_iter
+        return {'list': FiniteWordPath_north_east_list,
+        'str': FiniteWordPath_north_east_str,
+        'tuple': FiniteWordPath_north_east_tuple,
+        'callable_with_caching': FiniteWordPath_north_east_callable_with_caching,
+        'callable': FiniteWordPath_north_east_callable,
+        'iter_with_caching': FiniteWordPath_north_east_iter_with_caching,
+        'iter': FiniteWordPath_north_east_iter,
         }
 
     def __repr__(self):
@@ -1279,7 +1252,7 @@ class FiniteWordPath_all(SageObject):
             sage: P = WordPaths('123',[(1,0,0),(0,1,0),(0,0,1)])
             sage: w = P(D[:200])
             sage: it = w.projected_point_iterator(v)
-            sage: for i in range(6): it.next()
+            sage: for i in range(6): next(it)
             (0.000000000000000, 0.000000000000000)
             (-0.526233343362516, 0.000000000000000)
             (0.220830337618112, -0.477656250512816)
@@ -1292,7 +1265,7 @@ class FiniteWordPath_all(SageObject):
             sage: P = WordPaths('ab','ne')
             sage: p = P('aabbabbab')
             sage: it = p.projected_point_iterator(ring=RealField(20))
-            sage: for i in range(8): it.next()
+            sage: for i in range(8): next(it)
             (0.00000)
             (0.78087)
             (1.5617)
@@ -1352,41 +1325,49 @@ class FiniteWordPath_all(SageObject):
             sage: v = s.pisot_eigenvector_right()
             sage: P = WordPaths('123',[(1,0,0),(0,1,0),(0,0,1)])
             sage: w = P(D[:200])
-            sage: w.plot_projection(v) # optional long time (2 s)
+            sage: w.plot_projection(v)  # long time (2s)
+            Graphics object consisting of 200 graphics primitives
 
         In this case, the abelianized vector doesn't give a good
         projection::
 
-            sage: w.plot_projection()     # optional long time (2 s)
+            sage: w.plot_projection()  # long time (2s)
+            Graphics object consisting of 200 graphics primitives
 
         You can project only the letters you want::
 
-            sage: w.plot_projection(v, letters='12') # optional long time (2 s)
+            sage: w.plot_projection(v, letters='12')  # long time (2s)
+            Graphics object consisting of 168 graphics primitives
 
         You can increase or decrease the precision of the computations by
         changing the ring of the projection matrix::
 
-            sage: w.plot_projection(v, ring=RealField(20)) # optional long time (2 s)
+            sage: w.plot_projection(v, ring=RealField(20))  # long time (2s)
+            Graphics object consisting of 200 graphics primitives
 
         You can change the size of the points::
 
-            sage: w.plot_projection(v, size=30) # optional long time (2 s)
+            sage: w.plot_projection(v, size=30)  # long time (2s)
+            Graphics object consisting of 200 graphics primitives
 
         You can assign the color of a letter to the projected prefix to the
         right or the left of the letter::
 
-            sage: w.plot_projection(v, kind='left') # optional long time (2 s)
+            sage: w.plot_projection(v, kind='left')  # long time (2s)
+            Graphics object consisting of 200 graphics primitives
 
         To remove the axis, do like this::
 
             sage: r = w.plot_projection(v)
             sage: r.axes(False)
-            sage: r               # optional long time (2 s)
+            sage: r               # long time (2s)
+            Graphics object consisting of 200 graphics primitives
 
         You can assign different colors to each letter::
 
             sage: color = {'1':'purple', '2':(.2,.3,.4), '3': 'magenta'}
-            sage: w.plot_projection(v, color=color)   # optional long time (2 s)
+            sage: w.plot_projection(v, color=color)  # long time (2s)
+            Graphics object consisting of 200 graphics primitives
 
         The 3d-Rauzy fractal::
 
@@ -1395,7 +1376,8 @@ class FiniteWordPath_all(SageObject):
             sage: v = s.pisot_eigenvector_right()
             sage: P = WordPaths('1234',[(1,0,0,0), (0,1,0,0), (0,0,1,0), (0,0,0,1)])
             sage: w = P(D[:200])
-            sage: w.plot_projection(v)      # optional long time (1 s)
+            sage: w.plot_projection(v)
+            Graphics3d Object
 
         The dimension of vector space of the parent must be 3 or 4::
 
@@ -1418,10 +1400,10 @@ class FiniteWordPath_all(SageObject):
             color = dict( (a, hue(A.rank(a)/float(A.cardinality()))) for a in A )
         it = self.projected_point_iterator(v, ring=ring)
         if kind == 'right':
-            start = it.next()
+            start = next(it)
         elif kind != 'left':
             raise ValueError('unknown value for kind (=%s)'%kind)
-        tout = [point([c], color=color[a], size=size) for a, c in izip(self, it) if a in letters]
+        tout = [point([c], color=color[a], size=size) for a, c in zip(self, it) if a in letters]
         return sum(tout)
 
     def projected_path(self, v=None, ring=None):
@@ -1514,7 +1496,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
           the path is closed, the inside is colored
 
         - ``filloptions`` - (dict,
-          default:dict(rgbcolor='red',alpha=0.2)), ptions for the
+          default:dict(rgbcolor='red',alpha=0.2)), options for the
           inside filling
 
         - ``startpoint`` - (boolean, default: True), draw the start point?
@@ -1547,7 +1529,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
             sage: P('abababAABABB').plot()
             Graphics object consisting of 4 graphics primitives
 
-        A dyck path::
+        A Dyck path::
 
             sage: P = WordPaths('()', steps='dyck')
             sage: P('()()()((()))').plot()
@@ -1585,7 +1567,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
         #Bug: plot needs float for coordinates
         ####################
         ####################
-        pts = [map(RR, x) for x in pts]
+        pts = [[RR(_) for _ in x] for x in pts]
 
         #Inside
         if fill and self.is_closed():
@@ -1623,16 +1605,18 @@ class FiniteWordPath_2d(FiniteWordPath_all):
 
             sage: P = WordPaths('abAB')
             sage: p = P('aaababbb')
-            sage: a = p.animate(); a
+            sage: a = p.animate(); a    # optional -- ImageMagick
             Animation with 9 frames
-            sage: show(a)       # optional -- ImageMagick
-            sage: a.gif(delay=35, iterations=3)       # optional
+            sage: show(a)               # optional -- ImageMagick
+            sage: a.gif(delay=35, iterations=3)    # optional -- ImageMagick
+            doctest:...: DeprecationWarning: use tmp_filename instead
+            See http://trac.sagemath.org/17234 for details.
 
         ::
 
             sage: P = WordPaths('abcdef',steps='triangle')
             sage: p =  P('abcdef')
-            sage: p.animate()
+            sage: p.animate()           # optional -- ImageMagick
             Animation with 8 frames
 
         If the path is closed, the plain polygon is added at the end of the
@@ -1640,13 +1624,13 @@ class FiniteWordPath_2d(FiniteWordPath_all):
 
             sage: P = WordPaths('abAB')
             sage: p = P('ababAbABABaB')
-            sage: a = p.animate(); a
+            sage: a = p.animate(); a    # optional -- ImageMagick
             Animation with 14 frames
 
         Another example illustrating a Fibonacci tile::
 
             sage: w = words.fibonacci_tile(2)
-            sage: show(w.animate())      # optional
+            sage: show(w.animate())  # optional -- ImageMagick
 
         The first 4 Fibonacci tiles in an animation::
 
@@ -1654,7 +1638,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
             sage: b = words.fibonacci_tile(1).animate()
             sage: c = words.fibonacci_tile(2).animate()
             sage: d = words.fibonacci_tile(3).animate()
-            sage: (a*b*c*d).show()       # optional
+            sage: (a*b*c*d).show()  # optional -- ImageMagick
 
         .. note::
 
@@ -1680,7 +1664,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
         #Bug: plot needs float for coordinates
         ####################
         ####################
-        pts = [map(RR, x) for x in pts]
+        pts = [[RR(_) for _ in x] for x in pts]
 
         images = [line(pts[:i]) for i in range(1,len(pts)+1)]
 
@@ -1706,8 +1690,10 @@ class FiniteWordPath_2d(FiniteWordPath_all):
 
         INPUT:
 
-        - ``options`` - (dictionary, default: {'rgbcolor': 'blue'} graphic
+        - ``options`` - dictionary, default: {'rgbcolor': 'blue'} graphic
           options for the arrow
+
+        If the start is the same as the end, a single point is returned.
 
         EXAMPLES::
 
@@ -1716,18 +1702,21 @@ class FiniteWordPath_2d(FiniteWordPath_all):
             sage: p = P('aaaccaccacacacaccccccbbdd'); p
             Path: aaaccaccacacacaccccccbbdd
             sage: R = p.plot() + p.plot_directive_vector()
-            sage: show(R, axes=False, aspect_ratio=1)
+            sage: R.axes(False)
+            sage: R.set_aspect_ratio(1)
+            sage: R.plot()
+            Graphics object consisting of 4 graphics primitives
 
         TESTS:
 
         A closed path::
 
             sage: P('acbd').plot_directive_vector()
-            Graphics object consisting of 0 graphics primitives
+            Graphics object consisting of 1 graphics primitive
         """
         start = self.start_point()
         end = self.end_point()
-        if (start == end) :
+        if (start == end):
             G = point(start, pointsize=10, **options)
         else:
             G = arrow(start, end, **options)
@@ -2062,7 +2051,9 @@ class FiniteWordPath_square_grid(FiniteWordPath_2d):
              8822750406821,
              51422757785981,
              299713796309065,
-             1746860020068409)
+             1746860020068409,
+             10181446324101389,
+             59341817924539925)
 
         TESTS::
 

@@ -1,7 +1,7 @@
 /*** EXAMPLE: L-function of a genus 4 curve over Q                   ***/
 /*** (illustration of precision issues when not enough coefficients) ***/
 /***                                                                 ***/
-/*** v1.0, July 2002, questions to tim.dokchitser@durham.ac.uk       ***/
+/*** v1.2, July 2013, questions to tim.dokchitser@bristol.ac.uk      ***/
 /*** type \rex-gen4 or read("ex-gen4") at pari prompt to run this    ***/
 
 
@@ -42,9 +42,9 @@ print("EXAMPLE: L-function of a genus 4 curve over Q");
 print("         with ",default(realprecision)," digits precision");
 print("C: y^2+(x^5+x+1)y=x^7-x^6+x^4 (genus 4, hyperelliptic)");
 
-print("Actually need ",cflength()," coeficients to properly verify functional equation");
-print("          and ",cflength(1)," coeficients to compute L(s)");
-print("        given ",length(coef)," coeficients only, but let's try anyway:");
+print("Actually need ",cflength()," coefficients to properly verify functional equation");
+print("          and ",cflength(1)," coefficients to compute L(s)");
+print("        given ",length(coef)," coefficients only, but let's try anyway:");
 print("Functional eq. = ", errprint(checkfeq(1.1))," <- indication of actual precision");
 print("Conductor      = ", conductor);
 print("Sign           = ", sgn);

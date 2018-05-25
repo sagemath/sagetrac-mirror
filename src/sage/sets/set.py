@@ -14,10 +14,15 @@ AUTHORS:
 - Florent Hivert (2010-06-17) - Adapted to categories
 
 - Nicolas M. Thiery (2011-03-15) - Added subset and superset methods
+
+- Julian Rueth (2013-04-09) - Collected common code in
+  :class:`Set_object_binary`, fixed ``__hash__``.
+
 """
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#                     2013 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -30,16 +35,59 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+import six
+from six import integer_types
 
+from sage.misc.latex import latex
+from sage.misc.prandom import choice
+from sage.misc.misc import is_iterator
+
+from sage.structure.category_object import CategoryObject
 from sage.structure.element import Element
 from sage.structure.parent import Parent, Set_generic
-from sage.misc.latex import latex
-import sage.rings.infinity
-from sage.misc.misc import is_iterator
+from sage.structure.richcmp import richcmp_method, richcmp, rich_to_bool
+
 from sage.categories.sets_cat import Sets
 from sage.categories.enumerated_sets import EnumeratedSets
 
-def Set(X=frozenset()):
+import sage.rings.infinity
+
+
+def has_finite_length(obj):
+    """
+    Return ``True`` if ``obj`` is known to have finite length.
+
+    This is mainly meant for pure Python types, so we do not call any
+    Sage-specific methods.
+
+    EXAMPLES::
+
+        sage: from sage.sets.set import has_finite_length
+        sage: has_finite_length(tuple(range(10)))
+        True
+        sage: has_finite_length(list(range(10)))
+        True
+        sage: has_finite_length(set(range(10)))
+        True
+        sage: has_finite_length(iter(range(10)))
+        False
+        sage: has_finite_length(GF(17^127))
+        True
+        sage: has_finite_length(ZZ)
+        False
+    """
+    try:
+        len(obj)
+    except OverflowError:
+        return True
+    except Exception:
+        return False
+    else:
+        return True
+
+
+def Set(X=[]):
     r"""
     Create the underlying set of ``X``.
 
@@ -90,24 +138,36 @@ def Set(X=frozenset()):
         sage: 5 in X
         False
 
-    Set also accepts iterators, but be careful to only give *finite* sets.
+    Set also accepts iterators, but be careful to only give *finite*
+    sets::
 
-    ::
-
-        sage: list(Set(iter([1, 2, 3, 4, 5])))
+        sage: from six.moves import range
+        sage: sorted(Set(range(1,6)))
+        [1, 2, 3, 4, 5]
+        sage: sorted(Set(list(range(1,6))))
+        [1, 2, 3, 4, 5]
+        sage: sorted(Set(iter(range(1,6))))
         [1, 2, 3, 4, 5]
 
     We can also create sets from different types::
 
-        sage: Set([Sequence([3,1], immutable=True), 5, QQ, Partition([3,1,1])])
-        {Rational Field, [3, 1, 1], [3, 1], 5}
+        sage: sorted(Set([Sequence([3,1], immutable=True), 5, QQ, Partition([3,1,1])]), key=str)
+        [5, Rational Field, [3, 1, 1], [3, 1]]
 
-    However each of the objects must be hashable::
+    Sets with unhashable objects work, but with less functionality::
 
-        sage: Set([QQ, [3, 1], 5])
+        sage: A = Set([QQ, (3, 1), 5])  # hashable
+        sage: sorted(A.list(), key=repr)
+        [(3, 1), 5, Rational Field]
+        sage: type(A)
+        <class 'sage.sets.set.Set_object_enumerated_with_category'>
+        sage: B = Set([QQ, [3, 1], 5])  # unhashable
+        sage: sorted(B.list(), key=repr)
         Traceback (most recent call last):
         ...
-        TypeError: unhashable type: 'list'
+        AttributeError: 'Set_object_with_category' object has no attribute 'list'
+        sage: type(B)
+        <class 'sage.sets.set.Set_object_with_category'>
 
     TESTS::
 
@@ -115,9 +175,9 @@ def Set(X=frozenset()):
         Set of all prime numbers: 2, 3, 5, 7, ...
         sage: Set(Subsets([1,2,3])).cardinality()
         8
-        sage: Set(iter([1,2,3]))
+        sage: S = Set(iter([1,2,3])); S
         {1, 2, 3}
-        sage: type(_)
+        sage: type(S)
         <class 'sage.sets.set.Set_object_enumerated_with_category'>
         sage: S = Set([])
         sage: TestSuite(S).run()
@@ -127,46 +187,26 @@ def Set(X=frozenset()):
         sage: Set()
         {}
     """
-    if is_Set(X):
-        return X
+    if isinstance(X, CategoryObject):
+        if isinstance(X, Set_generic):
+            return X
+        elif X in Sets().Finite():
+            return Set_object_enumerated(X)
+        else:
+            return Set_object(X)
 
     if isinstance(X, Element):
         raise TypeError("Element has no defined underlying set")
-    elif isinstance(X, (list, tuple, set, frozenset)):
-        return Set_object_enumerated(frozenset(X))
+
     try:
-        if X.is_finite():
-            return Set_object_enumerated(X)
-    except AttributeError:
-        pass
-    if is_iterator(X):
-        # Note we are risking an infinite loop here,
-        # but this is the way Python behaves too: try
-        # sage: set(an iterator which does not terminate)
-        return Set_object_enumerated(list(X))
-    return Set_object(X)
+        X = frozenset(X)
+    except TypeError:
+        return Set_object(X)
+    else:
+        return Set_object_enumerated(X)
 
-def is_Set(x):
-    """
-    Returns ``True`` if ``x`` is a Sage :class:`Set_object` (not to be confused
-    with a Python set).
 
-    EXAMPLES::
-
-        sage: from sage.sets.set import is_Set
-        sage: is_Set([1,2,3])
-        False
-        sage: is_Set(set([1,2,3]))
-        False
-        sage: is_Set(Set([1,2,3]))
-        True
-        sage: is_Set(Set(QQ))
-        True
-        sage: is_Set(Primes())
-        True
-    """
-    return isinstance(x, Set_generic)
-
+@richcmp_method
 class Set_object(Set_generic):
     r"""
     A set attached to an almost arbitrary object.
@@ -194,7 +234,7 @@ class Set_object(Set_generic):
         sage: 1 == Set([0]), Set([0]) == 1
         (False, False)
     """
-    def __init__(self, X):
+    def __init__(self, X, category=None):
         """
         Create a Set_object
 
@@ -205,6 +245,8 @@ class Set_object(Set_generic):
 
             sage: type(Set(QQ))
             <class 'sage.sets.set.Set_object_with_category'>
+            sage: Set(QQ).category()
+            Category of sets
 
         TESTS::
 
@@ -216,10 +258,13 @@ class Set_object(Set_generic):
             and 'Integer Ring'
         """
         from sage.rings.integer import is_Integer
-        if isinstance(X, (int,long)) or is_Integer(X):
+        if isinstance(X, integer_types) or is_Integer(X):
             # The coercion model will try to call Set_object(0)
             raise ValueError('underlying object cannot be an integer')
-        Parent.__init__(self, category=Sets())
+
+        if category is None:
+            category = Sets()
+        Parent.__init__(self, category=category)
         self.__object = X
 
     def __hash__(self):
@@ -250,9 +295,9 @@ class Set_object(Set_generic):
 
         ::
 
-            sage: print latex(Primes())
+            sage: print(latex(Primes()))
             \text{\texttt{Set{ }of{ }all{ }prime{ }numbers:{ }2,{ }3,{ }5,{ }7,{ }...}}
-            sage: print latex(Set([1,1,1,5,6]))
+            sage: print(latex(Set([1,1,1,5,6])))
             \left\{1, 5, 6\right\}
         """
         return latex(self.__object)
@@ -270,7 +315,7 @@ class Set_object(Set_generic):
             sage: X
             { integers }
         """
-        return "Set of elements of %s"%self.__object
+        return "Set of elements of " + repr(self.__object)
 
     def __iter__(self):
         """
@@ -280,16 +325,16 @@ class Set_object(Set_generic):
 
             sage: X = Set(ZZ)
             sage: I = X.__iter__()
-            sage: I.next()
+            sage: next(I)
             0
-            sage: I.next()
+            sage: next(I)
             1
-            sage: I.next()
+            sage: next(I)
             -1
-            sage: I.next()
+            sage: next(I)
             2
         """
-        return self.__object.__iter__()
+        return iter(self.__object)
 
     an_element = EnumeratedSets.ParentMethods.__dict__['_an_element_from_iterator']
 
@@ -328,13 +373,13 @@ class Set_object(Set_generic):
         """
         return x in self.__object
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Compare ``self`` and ``right``.
 
-        If right is not a :class:`Set_object` compare types.  If ``right`` is
-        also a :class:`Set_object`, returns comparison on the underlying
-        objects.
+        If ``right`` is not a :class:`Set_object`, return ``NotImplemented``.
+        If ``right`` is also a :class:`Set_object`, returns comparison
+        on the underlying objects.
 
         .. NOTE::
 
@@ -359,8 +404,8 @@ class Set_object(Set_generic):
             True or False
         """
         if not isinstance(right, Set_object):
-            return cmp(type(self), type(right))
-        return cmp(self.__object, right.__object)
+            return NotImplemented
+        return richcmp(self.__object, right.__object, op)
 
     def union(self, X):
         """
@@ -383,7 +428,7 @@ class Set_object(Set_generic):
             sage: Set(GF(7)) + Set(GF(3))
             {0, 1, 2, 3, 4, 5, 6, 1, 2, 0}
         """
-        if is_Set(X):
+        if isinstance(X, Set_generic):
             if self is X:
                 return self
             return Set_object_union(self, X)
@@ -443,7 +488,7 @@ class Set_object(Set_generic):
             sage: X
             {}
         """
-        if is_Set(X):
+        if isinstance(X, Set_generic):
             if self is X:
                 return self
             return Set_object_intersection(self, X)
@@ -473,7 +518,7 @@ class Set_object(Set_generic):
             sage: X
             {0, 1, 2, b, b + 1, b + 2, 2*b, 2*b + 1, 2*b + 2}
         """
-        if is_Set(X):
+        if isinstance(X, Set_generic):
             if self is X:
                 return Set([])
             return Set_object_difference(self, X)
@@ -490,7 +535,7 @@ class Set_object(Set_generic):
             {1, 2, 4}
         """
 
-        if is_Set(X):
+        if isinstance(X, Set_generic):
             if self is X:
                 return Set([])
             return Set_object_symmetric_difference(self, X)
@@ -555,19 +600,21 @@ class Set_object(Set_generic):
             sage: Set(GF(5^2,'a')).cardinality()
             25
         """
-        try:
-            if not self.is_finite():
-                return sage.rings.infinity.infinity
-        except AttributeError:
-            pass
-        try:
-            return self.__object.cardinality()
-        except AttributeError:
-            pass
-        try:
-            return len(self.__object)
-        except TypeError:
-            raise NotImplementedError("computation of cardinality of %s not yet implemented"%self.__object)
+        if not self.is_finite():
+            return sage.rings.infinity.infinity
+
+        if self is not self.__object:
+            try:
+                return self.__object.cardinality()
+            except (AttributeError, NotImplementedError):
+                pass
+            from sage.rings.integer import Integer
+            try:
+                return Integer(len(self.__object))
+            except TypeError:
+                pass
+
+        raise NotImplementedError("computation of cardinality of %s not yet implemented"%self.__object)
 
     def is_empty(self):
         """
@@ -603,7 +650,7 @@ class Set_object(Set_generic):
             sage: Set(QQ).is_empty()
             False
         """
-        return not self.__nonzero__()
+        return not self
 
     def is_finite(self):
         """
@@ -620,10 +667,13 @@ class Set_object(Set_generic):
             sage: Set([1,'a',ZZ]).is_finite()
             True
         """
-        if isinstance(self.__object, (set, frozenset, tuple, list)):
-            return True
+        obj = self.__object
+        try:
+            is_finite = obj.is_finite
+        except AttributeError:
+            return has_finite_length(obj)
         else:
-            return self.__object.is_finite()
+            return is_finite()
 
     def object(self):
         """
@@ -639,7 +689,6 @@ class Set_object(Set_generic):
             Set of all prime numbers: 2, 3, 5, 7, ...
         """
         return self.__object
-
 
     def subsets(self,size=None):
         """
@@ -658,23 +707,52 @@ class Set_object(Set_generic):
         from sage.combinat.subset import Subsets
         return Subsets(self,size)
 
+
 class Set_object_enumerated(Set_object):
     """
     A finite enumerated set.
     """
     def __init__(self, X):
-        """
+        r"""
         Initialize ``self``.
 
         EXAMPLES::
 
             sage: S = Set(GF(19)); S
             {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18}
-            sage: print latex(S)
+            sage: S.category()
+            Category of finite sets
+            sage: print(latex(S))
             \left\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18\right\}
             sage: TestSuite(S).run()
         """
-        Set_object.__init__(self, X)
+        Set_object.__init__(self, X, category=Sets().Finite())
+
+    def random_element(self):
+        r"""
+        Return a random element in this set.
+
+        EXAMPLES::
+
+            sage: Set([1,2,3]).random_element() # random
+            2
+        """
+        try:
+            return self.object().random_element()
+        except AttributeError:
+            # TODO: this very slow!
+            return choice(self.list())
+
+    def is_finite(self):
+        r"""
+        Return ``True`` as this is a finite set.
+
+        EXAMPLES::
+
+            sage: Set(GF(19)).is_finite()
+            True
+        """
+        return True
 
     def cardinality(self):
         """
@@ -685,7 +763,8 @@ class Set_object_enumerated(Set_object):
             sage: Set([1,1]).cardinality()
             1
         """
-        return len(self.set())
+        from sage.rings.integer import Integer
+        return Integer(len(self.set()))
 
     def __len__(self):
         """
@@ -694,8 +773,7 @@ class Set_object_enumerated(Set_object):
             sage: len(Set([1,1]))
             1
         """
-        return self.cardinality()
-
+        return len(self.set())
 
     def __iter__(self):
         r"""
@@ -705,17 +783,16 @@ class Set_object_enumerated(Set_object):
 
             sage: S = Set(GF(19))
             sage: I = iter(S)
-            sage: I.next()
+            sage: next(I)
             0
-            sage: I.next()
+            sage: next(I)
             1
-            sage: I.next()
+            sage: next(I)
             2
-            sage: I.next()
+            sage: next(I)
             3
         """
-        for x in self.set():
-            yield x
+        return iter(self.set())
 
     def _latex_(self):
         r"""
@@ -740,7 +817,10 @@ class Set_object_enumerated(Set_object):
             {0, 1}
         """
         s = repr(self.set())
-        return "{" + s[5:-2] + "}"
+        if six.PY3:
+            return s
+        else:
+            return "{" + s[5:-2] + "}"
 
     def list(self):
         """
@@ -754,7 +834,7 @@ class Set_object_enumerated(Set_object):
             sage: X.list()
             [0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1]
             sage: type(X.list())
-            <type 'list'>
+            <... 'list'>
 
         .. TODO::
 
@@ -782,7 +862,7 @@ class Set_object_enumerated(Set_object):
             sage: X.set()
             {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1}
             sage: type(X.set())
-            <type 'set'>
+            <... 'set'>
             sage: type(X)
             <class 'sage.sets.set.Set_object_enumerated_with_category'>
         """
@@ -810,7 +890,7 @@ class Set_object_enumerated(Set_object):
             -1390224788            # 32-bit
              561411537695332972    # 64-bit
             sage: type(s)
-            <type 'frozenset'>
+            <... 'frozenset'>
         """
         return frozenset(self.object())
 
@@ -826,7 +906,7 @@ class Set_object_enumerated(Set_object):
         """
         return hash(self.frozenset())
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare the sets ``self`` and ``other``.
 
@@ -840,12 +920,11 @@ class Set_object_enumerated(Set_object):
             sage: Set(QQ) == Set(ZZ)
             False
         """
-        if isinstance(other, Set_object_enumerated):
-            if self.set() == other.set():
-                return 0
-            return -1
-        else:
-            return Set_object.__cmp__(self, other)
+        if not isinstance(other, Set_object_enumerated):
+            return NotImplemented
+        if self.set() == other.set():
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, -1)
 
     def issubset(self, other):
         r"""
@@ -985,7 +1064,97 @@ class Set_object_enumerated(Set_object):
             return Set_object.symmetric_difference(self, other)
         return Set_object_enumerated(self.set().symmetric_difference(other.set()))
 
-class Set_object_union(Set_object):
+class Set_object_binary(Set_object):
+    r"""
+    An abstract common base class for sets defined by a binary operation (ex.
+    :class:`Set_object_union`, :class:`Set_object_intersection`,
+    :class:`Set_object_difference`, and
+    :class:`Set_object_symmetric_difference`).
+
+    INPUT:
+
+    - ``X``, ``Y`` -- sets, the operands to ``op``
+
+    - ``op`` -- a string describing the binary operation
+
+    - ``latex_op`` -- a string used for rendering this object in LaTeX
+
+    EXAMPLES::
+
+        sage: X = Set(QQ^2)
+        sage: Y = Set(ZZ)
+        sage: from sage.sets.set import Set_object_binary
+        sage: S = Set_object_binary(X, Y, "union", "\\cup"); S
+        Set-theoretic union of Set of elements of Vector space of dimension 2
+         over Rational Field and Set of elements of Integer Ring
+    """
+    def __init__(self, X, Y, op, latex_op):
+        r"""
+        Initialization.
+
+        TESTS::
+
+            sage: from sage.sets.set import Set_object_binary
+            sage: X = Set(QQ^2)
+            sage: Y = Set(ZZ)
+            sage: S = Set_object_binary(X, Y, "union", "\\cup")
+            sage: type(S)
+            <class 'sage.sets.set.Set_object_binary_with_category'>
+        """
+        self._X = X
+        self._Y = Y
+        self._op = op
+        self._latex_op = latex_op
+        Set_object.__init__(self, self)
+
+    def _repr_(self):
+        r"""
+        Return a string representation of this set.
+
+        EXAMPLES::
+
+            sage: Set(ZZ).union(Set(GF(5)))
+            Set-theoretic union of Set of elements of Integer Ring and {0, 1, 2, 3, 4}
+        """
+        return "Set-theoretic {} of {} and {}".format(self._op, self._X, self._Y)
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of this set.
+
+        EXAMPLES::
+
+            sage: latex(Set(ZZ).union(Set(GF(5))))
+            \Bold{Z} \cup \left\{0, 1, 2, 3, 4\right\}
+        """
+        return latex(self._X) + self._latex_op + latex(self._Y)
+
+    def __hash__(self):
+        """
+        The hash value of this set.
+
+        EXAMPLES:
+
+        The hash values of equal sets are in general not equal since it is not
+        decidable whether two sets are equal::
+
+            sage: X = Set(GF(13)).intersection(Set(ZZ))
+            sage: Y = Set(ZZ).intersection(Set(GF(13)))
+            sage: hash(X) == hash(Y)
+            False
+
+        TESTS:
+
+        Test that :trac:`14432` has been resolved::
+
+            sage: S = Set(ZZ).union(Set([infinity]))
+            sage: T = Set(ZZ).union(Set([infinity]))
+            sage: hash(S) == hash(T)
+            True
+        """
+        return hash((self._X, self._Y, self._op))
+
+class Set_object_union(Set_object_binary):
     """
     A formal union of two sets.
     """
@@ -1005,11 +1174,25 @@ class Set_object_union(Set_object):
 
             sage: TestSuite(X).run()
         """
-        self.__X = X
-        self.__Y = Y
-        Set_object.__init__(self, self)
+        Set_object_binary.__init__(self, X, Y, "union", "\\cup")
 
-    def __cmp__(self, right):
+    def is_finite(self):
+        r"""
+        Return whether this set is finite.
+
+        EXAMPLES::
+
+            sage: X = Set(range(10))
+            sage: Y = Set(range(-10,0))
+            sage: Z = Set(Primes())
+            sage: X.union(Y).is_finite()
+            True
+            sage: X.union(Z).is_finite()
+            False
+        """
+        return self._X.is_finite() and self._Y.is_finite()
+
+    def __richcmp__(self, right, op):
         r"""
         Try to compare ``self`` and ``right``.
 
@@ -1037,37 +1220,14 @@ class Set_object_union(Set_object):
             sage: Set(ZZ).union(Set(QQ)) == Set(QQ)
             False
         """
-        if not is_Set(right):
-            return -1
+        if not isinstance(right, Set_generic):
+            return rich_to_bool(op, -1)
         if not isinstance(right, Set_object_union):
-            return -1
-        if self.__X == right.__X and self.__Y == right.__Y or \
-           self.__X == right.__Y and self.__Y == right.__X:
-            return 0
-        return -1
-
-    def _repr_(self):
-        r"""
-        Return string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: Set(ZZ).union(Set(GF(5)))
-            Set-theoretic union of Set of elements of Integer Ring and {0, 1, 2, 3, 4}
-        """
-        return "Set-theoretic union of %s and %s"%(self.__X,
-                                                   self.__Y)
-
-    def _latex_(self):
-        r"""
-        Return latex representation of ``self``.
-
-        EXAMPLES::
-
-            sage: latex(Set(ZZ).union(Set(GF(5))))
-            \Bold{Z} \cup \left\{0, 1, 2, 3, 4\right\}
-        """
-        return '%s \\cup %s'%(latex(self.__X), latex(self.__Y))
+            return rich_to_bool(op, -1)
+        if self._X == right._X and self._Y == right._Y or \
+           self._X == right._Y and self._Y == right._X:
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, -1)
 
     def __iter__(self):
         """
@@ -1078,9 +1238,9 @@ class Set_object_union(Set_object):
             sage: [x for x in Set(GF(3)).union(Set(GF(2)))]
             [0, 1, 2, 0, 1]
         """
-        for x in self.__X:
+        for x in self._X:
             yield x
-        for y in self.__Y:
+        for y in self._Y:
             yield y
 
     def __contains__(self, x):
@@ -1099,7 +1259,7 @@ class Set_object_union(Set_object):
             sage: GF(5)(0) in X
             False
         """
-        return x in self.__X or x in self.__Y
+        return x in self._X or x in self._Y
 
     def cardinality(self):
         """
@@ -1117,9 +1277,9 @@ class Set_object_union(Set_object):
             sage: X.cardinality()
             +Infinity
         """
-        return self.__X.cardinality() + self.__Y.cardinality()
+        return self._X.cardinality() + self._Y.cardinality()
 
-class Set_object_intersection(Set_object):
+class Set_object_intersection(Set_object_binary):
     """
     Formal intersection of two sets.
     """
@@ -1137,14 +1297,36 @@ class Set_object_intersection(Set_object):
             \Bold{Q}^{2} \cap \Bold{Z}
 
             sage: X = Set(IntegerRange(100)).intersection(Primes())
+            sage: X.is_finite()
+            True
             sage: TestSuite(X).run()
         """
-        self.__X = X
-        self.__Y = Y
-        Set_object.__init__(self, self)
+        Set_object_binary.__init__(self, X, Y, "intersection", "\\cap")
 
+    def is_finite(self):
+        r"""
+        Return whether this set is finite.
 
-    def __cmp__(self, right):
+        EXAMPLES::
+
+            sage: X = Set(IntegerRange(100))
+            sage: Y = Set(ZZ)
+            sage: X.intersection(Y).is_finite()
+            True
+            sage: Y.intersection(X).is_finite()
+            True
+            sage: Y.intersection(Set(QQ)).is_finite()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        if self._X.is_finite():
+            return True
+        elif self._Y.is_finite():
+            return True
+        raise NotImplementedError
+
+    def __richcmp__(self, right, op):
         r"""
         Try to compare ``self`` and ``right``.
 
@@ -1172,41 +1354,14 @@ class Set_object_intersection(Set_object):
             sage: Set(ZZ).intersection(Set(QQ)) == Set(QQ)
             False
         """
-        if not is_Set(right):
-            return -1
+        if not isinstance(right, Set_generic):
+            return rich_to_bool(op, -1)
         if not isinstance(right, Set_object_intersection):
-            return -1
-        if self.__X == right.__X and self.__Y == right.__Y or \
-           self.__X == right.__Y and self.__Y == right.__X:
-            return 0
-        return -1
-
-    def _repr_(self):
-        """
-        Return string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: X = Set(ZZ).intersection(Set(QQ)); X
-            Set-theoretic intersection of Set of elements of Integer Ring and Set of elements of Rational Field
-            sage: X.rename('Z /\ Q')
-            sage: X
-            Z /\ Q
-        """
-        return "Set-theoretic intersection of %s and %s"%(self.__X,
-                                                          self.__Y)
-
-    def _latex_(self):
-        r"""
-        Return latex representation of ``self``.
-
-        EXAMPLES::
-
-            sage: X = Set(ZZ).intersection(Set(QQ))
-            sage: latex(X)
-            \Bold{Z} \cap \Bold{Q}
-        """
-        return '%s \\cap %s'%(latex(self.__X), latex(self.__Y))
+            return rich_to_bool(op, -1)
+        if self._X == right._X and self._Y == right._Y or \
+           self._X == right._Y and self._Y == right._X:
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, -1)
 
     def __iter__(self):
         """
@@ -1220,11 +1375,22 @@ class Set_object_intersection(Set_object):
 
             sage: X = Set(ZZ).intersection(Primes())
             sage: I = X.__iter__()
-            sage: I.next()
+            sage: next(I)
             2
+
+        Check that known finite intersections have finite iterators (see
+        :trac:`18159`)::
+
+            sage: P = Set(ZZ).intersection(Set(range(10,20)))
+            sage: list(P)
+            [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
         """
-        for x in self.__X:
-            if x in self.__Y:
+        X = self._X
+        Y = self._Y
+        if not self._X.is_finite() and self._Y.is_finite():
+            X,Y = Y,X
+        for x in X:
+            if x in Y:
                 yield x
 
     def __contains__(self, x):
@@ -1253,28 +1419,9 @@ class Set_object_intersection(Set_object):
             sage: pi in X
             False
         """
-        return x in self.__X and x in self.__Y
+        return x in self._X and x in self._Y
 
-    def cardinality(self):
-        """
-        This tries to return the cardinality of this formal intersection.
-
-        .. WARNING::
-
-            This is not likely to work in very much generality,
-            and may just hang if either set involved is infinite.
-
-        EXAMPLES::
-
-            sage: X = Set(GF(13)).intersection(Set(ZZ))
-            sage: X.cardinality()
-            13
-        """
-        return len(list(self))
-
-
-
-class Set_object_difference(Set_object):
+class Set_object_difference(Set_object_binary):
     """
     Formal difference of two sets.
     """
@@ -1287,18 +1434,41 @@ class Set_object_difference(Set_object):
             sage: S = Set(QQ)
             sage: T = Set(ZZ)
             sage: X = S.difference(T); X
-            Set-theoretic difference between Set of elements of Rational Field and Set of elements of Integer Ring
+            Set-theoretic difference of Set of elements of Rational Field and Set of elements of Integer Ring
             sage: latex(X)
             \Bold{Q} - \Bold{Z}
 
             sage: TestSuite(X).run()
         """
-        self.__X = X
-        self.__Y = Y
-        Set_object.__init__(self, self)
+        Set_object_binary.__init__(self, X, Y, "difference", "-")
 
+    def is_finite(self):
+        r"""
+        Return whether this set is finite.
 
-    def __cmp__(self, right):
+        EXAMPLES::
+
+            sage: X = Set(range(10))
+            sage: Y = Set(range(-10,5))
+            sage: Z = Set(QQ)
+            sage: X.difference(Y).is_finite()
+            True
+            sage: X.difference(Z).is_finite()
+            True
+            sage: Z.difference(X).is_finite()
+            False
+            sage: Z.difference(Set(ZZ)).is_finite()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        if self._X.is_finite():
+            return True
+        elif self._Y.is_finite():
+            return False
+        raise NotImplementedError
+
+    def __richcmp__(self, right, op):
         r"""
         Try to compare ``self`` and ``right``.
 
@@ -1330,40 +1500,13 @@ class Set_object_difference(Set_object):
             sage: X == Set(QQ).difference(Set(ZZ))
             True
         """
-        if not is_Set(right):
-            return -1
+        if not isinstance(right, Set_generic):
+            return rich_to_bool(op, -1)
         if not isinstance(right, Set_object_difference):
-            return -1
-        if self.__X == right.__X and self.__Y == right.__Y:
-            return 0
-        return -1
-
-    def _repr_(self):
-        """
-        Return string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: X = Set(QQ).difference(Set(ZZ)); X
-            Set-theoretic difference between Set of elements of Rational Field and Set of elements of Integer Ring
-            sage: X.rename('Q - Z')
-            sage: X
-            Q - Z
-        """
-        return "Set-theoretic difference between %s and %s"%(self.__X,
-                                                          self.__Y)
-
-    def _latex_(self):
-        r"""
-        Return latex representation of ``self``.
-
-        EXAMPLES::
-
-            sage: X = Set(QQ).difference(Set(ZZ))
-            sage: latex(X)
-            \Bold{Q} - \Bold{Z}
-        """
-        return '%s - %s'%(latex(self.__X), latex(self.__Y))
+            return rich_to_bool(op, -1)
+        if self._X == right._X and self._Y == right._Y:
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, -1)
 
     def __iter__(self):
         """
@@ -1377,19 +1520,19 @@ class Set_object_difference(Set_object):
 
             sage: X = Set(ZZ).difference(Primes())
             sage: I = X.__iter__()
-            sage: I.next()
+            sage: next(I)
             0
-            sage: I.next()
+            sage: next(I)
             1
-            sage: I.next()
+            sage: next(I)
             -1
-            sage: I.next()
+            sage: next(I)
             -2
-            sage: I.next()
+            sage: next(I)
             -3
         """
-        for x in self.__X:
-            if x not in self.__Y:
+        for x in self._X:
+            if x not in self._Y:
                 yield x
 
     def __contains__(self, x):
@@ -1413,26 +1556,9 @@ class Set_object_difference(Set_object):
             sage: 5/2 in X
             True
         """
-        return x in self.__X and x not in self.__Y
+        return x in self._X and x not in self._Y
 
-    def cardinality(self):
-        """
-        This tries to return the cardinality of this formal intersection.
-
-        .. WARNING::
-
-            This is not likely to work in very much generality,
-            and may just hang if either set involved is infinite.
-
-        EXAMPLES::
-
-            sage: X = Set(GF(13)).difference(Set(Primes()))
-            sage: X.cardinality()
-            8
-        """
-        return len(list(self))
-
-class Set_object_symmetric_difference(Set_object):
+class Set_object_symmetric_difference(Set_object_binary):
     """
     Formal symmetric difference of two sets.
     """
@@ -1451,12 +1577,35 @@ class Set_object_symmetric_difference(Set_object):
 
             sage: TestSuite(X).run()
         """
-        self.__X = X
-        self.__Y = Y
-        Set_object.__init__(self, self)
+        Set_object_binary.__init__(self, X, Y, "symmetric difference", "\\bigtriangleup")
 
+    def is_finite(self):
+        r"""
+        Return whether this set is finite.
 
-    def __cmp__(self, right):
+        EXAMPLES::
+
+            sage: X = Set(range(10))
+            sage: Y = Set(range(-10,5))
+            sage: Z = Set(QQ)
+            sage: X.symmetric_difference(Y).is_finite()
+            True
+            sage: X.symmetric_difference(Z).is_finite()
+            False
+            sage: Z.symmetric_difference(X).is_finite()
+            False
+            sage: Z.symmetric_difference(Set(ZZ)).is_finite()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        if self._X.is_finite():
+            return self._Y.is_finite()
+        elif self._Y.is_finite():
+            return False
+        raise NotImplementedError
+
+    def __richcmp__(self, right, op):
         r"""
         Try to compare ``self`` and ``right``.
 
@@ -1478,41 +1627,14 @@ class Set_object_symmetric_difference(Set_object):
             True
 
         """
-        if not is_Set(right):
-            return -1
+        if not isinstance(right, Set_generic):
+            return rich_to_bool(op, -1)
         if not isinstance(right, Set_object_symmetric_difference):
-            return -1
-        if self.__X == right.__X and self.__Y == right.__Y or \
-           self.__X == right.__Y and self.__Y == right.__X:
-            return 0
-        return -1
-
-    def _repr_(self):
-        """
-        Return string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: X = Set(ZZ).symmetric_difference(Set(QQ)); X
-            Set-theoretic symmetric difference of Set of elements of Integer Ring and Set of elements of Rational Field
-            sage: X.rename('Z symdif Q')
-            sage: X
-            Z symdif Q
-        """
-        return "Set-theoretic symmetric difference of %s and %s"%(self.__X,
-                                                          self.__Y)
-
-    def _latex_(self):
-        r"""
-        Return latex representation of ``self``.
-
-        EXAMPLES::
-
-            sage: X = Set(ZZ).symmetric_difference(Set(QQ))
-            sage: latex(X)
-            \Bold{Z} \bigtriangleup \Bold{Q}
-        """
-        return '%s \\bigtriangleup %s'%(latex(self.__X), latex(self.__Y))
+            return rich_to_bool(op, -1)
+        if self._X == right._X and self._Y == right._Y or \
+           self._X == right._Y and self._Y == right._X:
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, -1)
 
     def __iter__(self):
         """
@@ -1527,25 +1649,24 @@ class Set_object_symmetric_difference(Set_object):
 
             sage: X = Set(ZZ).symmetric_difference(Primes())
             sage: I = X.__iter__()
-            sage: I.next()
+            sage: next(I)
             0
-            sage: I.next()
+            sage: next(I)
             1
-            sage: I.next()
+            sage: next(I)
             -1
-            sage: I.next()
+            sage: next(I)
             -2
-            sage: I.next()
+            sage: next(I)
             -3
         """
-        for x in self.__X:
-            if x not in self.__Y:
+        for x in self._X:
+            if x not in self._Y:
                 yield x
 
-        for y in self.__Y:
-            if y not in self.__X:
+        for y in self._Y:
+            if y not in self._X:
                 yield y
-
 
     def __contains__(self, x):
         """
@@ -1573,22 +1694,21 @@ class Set_object_symmetric_difference(Set_object):
             sage: 3 in X
             False
         """
-        return (x in self.__X and x not in self.__Y) \
-               or (x in self.__Y and x not in self.__X)
+        return (x in self._X and x not in self._Y) \
+               or (x in self._Y and x not in self._X)
 
-    def cardinality(self):
-        """
-        Try to return the cardinality of this formal symmetric difference.
+def is_Set(x):
+    """
+    Deprecated. Use ``isinstance(x, Set_generic)`` instead.
 
-        ..WARNING::
+    TESTS::
 
-            This is not likely to work in very much generality,
-            and may just hang if either set involved is infinite.
-
-        EXAMPLES::
-
-            sage: X = Set(GF(13)).symmetric_difference(Set(range(5)))
-            sage: X.cardinality()
-            8
-        """
-        return len(list(self))
+        sage: from sage.sets.set import is_Set
+        sage: is_Set(Primes())
+        doctest:...: DeprecationWarning: Please use isinstance(x, Set_generic)
+        See http://trac.sagemath.org/24443 for details.
+        True
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(24443, "Please use isinstance(x, Set_generic)")
+    return isinstance(x, Set_generic)

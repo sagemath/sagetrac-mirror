@@ -1,30 +1,36 @@
 r"""
 Base class for multivariate polynomial rings
 """
+from __future__ import absolute_import, print_function
 
-include 'sage/ext/stdsage.pxi'
-
-
-from sage.structure.parent_gens cimport ParentWithGens
 import sage.misc.latex
-import multi_polynomial_ideal
-from term_order import TermOrder
-from sage.rings.integer_ring import ZZ
-from sage.rings.polynomial.polydict import PolyDict
-from sage.misc.latex import latex_variable_name
-import multi_polynomial_element
-import polynomial_ring
+from sage.misc.cachefunc import cached_method
+from sage.misc.misc_c import prod
+
+from sage.structure.element cimport parent
+from sage.structure.parent cimport Parent
+from sage.structure.richcmp cimport rich_to_bool, richcmp
+from cpython.object cimport Py_NE
+
+import sage.categories as categories
 from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRings = CommutativeRings()
-from sage.rings.polynomial.polynomial_ring_constructor import polynomial_default_category
-# added for macaulay_resultant:
-from sage.misc.misc_c import prod
+
+from sage.arith.all import binomial
+from sage.misc.decorators import rename_keyword
+
 from sage.combinat.integer_vector import IntegerVectors
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.arith import binomial
+
+from sage.rings.integer_ring import ZZ
+
+from .polydict import PolyDict
+from . import (multi_polynomial_ideal, polynomial_ring, multi_polynomial_element)
+from .term_order import TermOrder
+from .polynomial_ring_constructor import (PolynomialRing, polynomial_default_category)
+
 
 def is_MPolynomialRing(x):
-    return bool(PY_TYPE_CHECK(x, MPolynomialRing_generic))
+    return isinstance(x, MPolynomialRing_generic)
 
 cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
     def __init__(self, base_ring, n, names, order):
@@ -36,19 +42,19 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: R.<x,y> = ZZ['x,y']; R
             Multivariate Polynomial Ring in x, y over Integer Ring
             sage: class CR(CommutativeRing):
-            ...       def __init__(self):
-            ...           CommutativeRing.__init__(self,self)
-            ...       def __call__(self,x):
-            ...           return None
+            ....:     def __init__(self):
+            ....:         CommutativeRing.__init__(self,self)
+            ....:     def __call__(self,x):
+            ....:         return None
             sage: cr = CR()
             sage: cr.is_commutative()
             True
             sage: cr['x,y']
-            Multivariate Polynomial Ring in x, y over <class '....CR_with_category'>
+            Multivariate Polynomial Ring in x, y over <__main__.CR_with_category object at ...>
 
         TESTS:
 
-        Check that containment works correctly (ticket #10355)::
+        Check that containment works correctly (:trac:`10355`)::
 
             sage: A1.<a> = PolynomialRing(QQ)
             sage: A2.<a,b> = PolynomialRing(QQ)
@@ -58,13 +64,13 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             True
         """
         if base_ring not in _CommutativeRings:
-            raise TypeError, "The base ring %s is not a commutative ring"%base_ring
+            raise TypeError("The base ring %s is not a commutative ring" % base_ring)
 
         n = int(n)
         if n < 0:
-            raise ValueError, "Multivariate Polynomial Rings must " + \
-                  "have more than 0 variables."
-        order = TermOrder(order,n)
+            raise ValueError("Multivariate Polynomial Rings must " + \
+                  "have more than 0 variables.")
+        order = TermOrder(order, n)
         self.__ngens = n
         self.__term_order = order
         self._has_singular = False #cannot convert to Singular by default
@@ -73,8 +79,12 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         # It would be a mistake to call ParentWithGens.__init__
         # as well, assigning the names twice.
         #ParentWithGens.__init__(self, base_ring, names)
-        sage.rings.ring.Ring.__init__(self, base_ring, names,
-                                      category=polynomial_default_category(base_ring.category(),n>1))
+        if base_ring.is_zero():
+            category = categories.rings.Rings().Finite()
+        else:
+            category = polynomial_default_category(base_ring.category(), n)
+
+        sage.rings.ring.Ring.__init__(self, base_ring, names, category=category)
 
     def is_integral_domain(self, proof = True):
         """
@@ -98,6 +108,22 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         """
         return self.base_ring().is_noetherian()
 
+    @cached_method
+    def flattening_morphism(self):
+        r"""
+        Return the flattening morphism of this polynomial ring
+
+        EXAMPLES::
+
+            sage: QQ['a','b']['x','y'].flattening_morphism()
+            Flattening morphism:
+              From: Multivariate Polynomial Ring in x, y over Multivariate Polynomial Ring in a, b over Rational Field
+              To:   Multivariate Polynomial Ring in a, b, x, y over Rational Field
+
+        """
+        from .flatten import FlatteningMorphism
+        return FlatteningMorphism(self)
+
     def construction(self):
         """
         Returns a functor F and base ring R such that F(R) == self.
@@ -115,7 +141,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             False
 
         """
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from .polynomial_ring_constructor import PolynomialRing
         from sage.categories.pushout import MultiPolynomialFunctor
         return MultiPolynomialFunctor(self.variable_names(), self.term_order()), self.base_ring()
 
@@ -133,25 +159,29 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         """
         return self.ideal(self.gens(), check=False)
 
-    def completion(self, p, prec=20, extras=None):
+    @rename_keyword(deprecation=23377, p='names')
+    def completion(self, names, prec=20, extras=None):
         """
-        Return the completion of self with respect to the ideal generated
-        by the variable(s) ``p``.
+        Return the completion of self with respect to the ideal
+        generated by the variable(s) ``names``.
 
         INPUT:
 
-        - ``p`` -- variable or tuple of variables
+        - ``names`` -- variable or list/tuple of variables (given either
+          as elements of the polynomial ring or as strings)
 
         - ``prec`` -- default precision of resulting power series ring
 
-        - ``extras`` -- ignored; present for backward compatibility
+        - ``extras`` -- deprecated and ignored
 
         EXAMPLES::
 
             sage: P.<x,y,z,w> = PolynomialRing(ZZ)
+            sage: P.completion('w')
+            Power Series Ring in w over Multivariate Polynomial Ring in x, y, z over Integer Ring
             sage: P.completion((w,x,y))
             Multivariate Power Series Ring in w, x, y over Univariate Polynomial Ring in z over Integer Ring
-            sage: P.completion((w,x,y,z))
+            sage: Q.<w,x,y,z> = P.completion(); Q
             Multivariate Power Series Ring in w, x, y, z over Integer Ring
 
             sage: H = PolynomialRing(PolynomialRing(ZZ,3,'z'),4,'f'); H
@@ -167,30 +197,58 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             Multivariate Polynomial Ring in f0, f1, f3 over
             Multivariate Polynomial Ring in z0, z1, z2 over Integer Ring
 
+        TESTS::
+
+            sage: P.<x,y> = PolynomialRing(ZZ)
+            sage: P.completion([]) is P
+            True
+            sage: P.completion(SR.var('x'))
+            Traceback (most recent call last):
+            ...
+            TypeError: x is not an element of Multivariate Polynomial Ring in x, y over Integer Ring
+            sage: P.completion(x + y)
+            Traceback (most recent call last):
+            ...
+            ValueError: x + y is not a variable of Multivariate Polynomial Ring in x, y over Integer Ring
+            sage: P.completion('q')
+            Traceback (most recent call last):
+            ...
+            ValueError: q is not a variable of Multivariate Polynomial Ring in x, y over Integer Ring
+            sage: P.completion(p='x')
+            doctest:...: DeprecationWarning: use the option 'names' instead of 'p'
+            See http://trac.sagemath.org/23377 for details.
+            Power Series Ring in x over Univariate Polynomial Ring in y over Integer Ring
+            sage: P.completion('x', extras="foo")
+            doctest:...: DeprecationWarning: the 'extras' keyword to completion() is deprecated and ignored
+            See http://trac.sagemath.org/23377 for details.
+            Power Series Ring in x over Univariate Polynomial Ring in y over Integer Ring
         """
-        if p in self or isinstance(p,str) and set(p).issubset(set([str(g) for g in self.gens()])):
-            p = tuple([p])
-        elif isinstance(p,(list,tuple)):
-            p = tuple(p)
-        else:
-            raise TypeError("input %s is not of type list or tuple, and is not a variable of %s" % (p,self))
+        if extras is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(23377, "the 'extras' keyword to completion() is deprecated and ignored")
 
-        try:
-            from sage.rings.power_series_ring import PowerSeriesRing
-            if len(p) > 1:
-                return PowerSeriesRing(self.remove_var(*p), names=p, default_prec=prec)
-            elif len(p) == 1:
-                p = p[0]
-                return PowerSeriesRing(self.remove_var(p), name=str(p), default_prec=prec)
+        if not isinstance(names, (list, tuple)):
+            names = [names]  # Single variable
+        elif not names:
+            return self      # 0 variables => completion is self
+
+        vars = []
+        for v in names:
+            # Convert variable names to str and check that they really
+            # are variables of self
+            if isinstance(v, str):
+                pass
+            elif parent(v) is self:
+                v = str(v)
             else:
-                return self
+                raise TypeError(f"{v!r} is not an element of {self}")
+            if v not in self.variable_names():
+                raise ValueError(f"{v} is not a variable of {self}")
+            vars.append(v)
 
-            # p is one variable; possibly as a string
-            # check to make sure it is one of the variables of self
-            #if p in self or type(p) == str and set(p).issubset(set([str(g) for g in self.gens()])):
-
-        except ValueError:
-            raise TypeError, "Cannot complete %s with respect to %s" % (self, p)
+        from sage.rings.power_series_ring import PowerSeriesRing
+        new_base = self.remove_var(*vars)
+        return PowerSeriesRing(new_base, names=vars, default_prec=prec)
 
     def remove_var(self, *var, order=None):
         """
@@ -216,13 +274,13 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         If possible, the term order is kept::
 
-             sage: R.<x,y,z,w> = PolynomialRing(ZZ, order='deglex')
-             sage: R.remove_var(y).term_order()
-             Degree lexicographic term order
+            sage: R.<x,y,z,w> = PolynomialRing(ZZ, order='deglex')
+            sage: R.remove_var(y).term_order()
+            Degree lexicographic term order
 
-             sage: R.<x,y,z,w> = PolynomialRing(ZZ, order='lex')
-             sage: R.remove_var(y).term_order()
-             Lexicographic term order
+            sage: R.<x,y,z,w> = PolynomialRing(ZZ, order='lex')
+            sage: R.remove_var(y).term_order()
+            Lexicographic term order
 
         Be careful with block orders when removing variables::
 
@@ -240,7 +298,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             vars.remove(str(v))
         if len(vars) == 0:
             return self.base_ring()
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from .polynomial_ring_constructor import PolynomialRing
         if order is None:
             try:
                 return PolynomialRing(self.base_ring(), vars,  order=self.term_order())
@@ -257,7 +315,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         - ``x`` -- a variable of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y,z> = QQ[]
             sage: P.univariate_ring(y)
@@ -323,26 +381,38 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         a dict with respect to ``self.variable_names()``.
         """
         # This is probably horribly inefficient
-        from polydict import ETuple
+        from .polydict import ETuple
         other_vars = list(x.parent().variable_names())
         name_mapping = [(other_vars.index(var) if var in other_vars else -1) for var in self.variable_names()]
         K = self.base_ring()
         D = {}
-        var_range = range(len(self.variable_names()))
+        var_range = xrange(len(self.variable_names()))
         for ix, a in x.dict().iteritems():
             ix = ETuple([0 if name_mapping[t] == -1 else ix[name_mapping[t]] for t in var_range])
             D[ix] = K(a)
         return D
 
     def __richcmp__(left, right, int op):
-        return (<ParentWithGens>left)._richcmp(right, op)
+        if left is right:
+            return rich_to_bool(op, 0)
 
-    cdef int _cmp_c_impl(left, Parent right) except -2:
+        if not isinstance(right, Parent) or not isinstance(left, Parent):
+            # One is not a parent -- not equal and not ordered
+            return op == Py_NE
+
         if not is_MPolynomialRing(right):
-            return cmp(type(left),type(right))
-        else:
-            return cmp((left.base_ring(), left.__ngens, left.variable_names(), left.__term_order),
-                       (right.base_ring(), (<MPolynomialRing_generic>right).__ngens, right.variable_names(), (<MPolynomialRing_generic>right).__term_order))
+            return op == Py_NE
+
+        lft = <MPolynomialRing_generic>left
+        other = <MPolynomialRing_generic>right
+
+        lx = (lft.base_ring(), lft.__ngens,
+              lft.variable_names(),
+              lft.__term_order)
+        rx = (other.base_ring(), other.__ngens,
+              other.variable_names(),
+              other.__term_order)
+        return richcmp(lx, rx, op)
 
     def _repr_(self):
         """
@@ -369,7 +439,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         EXAMPLES::
 
             sage: P.<x,y,z> = PolynomialRing(QQ,order=TermOrder('degrevlex',1)+TermOrder('lex',2))
-            sage: print P.repr_long()
+            sage: print(P.repr_long())
             Polynomial Ring
              Base Ring : Rational Field
                   Size : 3 Variables
@@ -458,17 +528,76 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         s = 'PolynomialRing(%s,%s,%s)'%(Bref, self.ngens(), self.term_order().magma_str())
         return magma._with_names(s, self.variable_names())
 
+    def _gap_init_(self, gap=None):
+        """
+        Return a string that yields a representation of ``self`` in GAP.
+
+        INPUT:
+
+        ``gap`` -- (optional GAP instance) Interface to which the
+                   string is addressed.
+
+        NOTE:
+
+        - If the optional argument ``gap`` is provided, the base ring
+          of ``self`` will be represented as ``gap(self.base_ring()).name()``.
+        - The result of applying the GAP interface to ``self`` is cached.
+
+        EXAMPLES::
+
+            sage: F = CyclotomicField(8)
+            sage: P.<x,y> = F[]
+            sage: gap(P)     # indirect doctest
+            PolynomialRing( CF(8), ["x", "y"] )
+            sage: libgap(P)
+            <field in characteristic 0>[x,y]
+        """
+        L = ['"%s"'%t for t in self.variable_names()]
+        if gap is not None:
+            return 'PolynomialRing(%s,[%s])'%(gap(self.base_ring()).name(),','.join(L))
+        return 'PolynomialRing(%s,[%s])'%(self.base_ring()._gap_init_(),','.join(L))
+
     def is_finite(self):
-        if self.ngens() == 0:
-            return self.base_ring().is_finite()
-        return False
+        r"""
+        Test whether this multivariate polynomial ring is finite.
+
+        .. TODO::
+
+            This should be handled by categories but ``sage.rings.Ring`` does
+            implement a ``is_finite`` method that overrides that category
+            implementation.
+
+        EXAMPLES::
+
+            sage: PolynomialRing(QQ, names=[]).is_finite()
+            False
+            sage: PolynomialRing(GF(5), names=[]).is_finite()
+            True
+            sage: PolynomialRing(GF(5),names=['x']).is_finite()
+            False
+            sage: PolynomialRing(Zmod(1), names=['x','y']).is_finite()
+            True
+        """
+        category = self.category()
+        return category is category.Finite()
 
     def is_field(self, proof = True):
         """
-        Return True if this multivariate polynomial ring is a field, i.e.,
-        it is a ring in 0 generators over a field.
+        Test whether this multivariate polynomial ring is a field.
+
+        A polynomial ring is a field when there are no variable and the base
+        ring is a field.
+
+        EXAMPLES::
+
+            sage: PolynomialRing(QQ, 'x', 2).is_field()
+            False
+            sage: PolynomialRing(QQ, 'x', 0).is_field()
+            True
+            sage: PolynomialRing(ZZ, 'x', 0).is_field()
+            False
         """
-        if self.ngens() == 0:
+        if not self.ngens():
             return self.base_ring().is_field(proof)
         return False
 
@@ -492,11 +621,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
     def gen(self, n=0):
         if n < 0 or n >= self.__ngens:
-            raise ValueError, "Generator not defined."
+            raise ValueError("Generator not defined.")
         return self._gens[int(n)]
-
-    #def gens(self):
-        #return self._gens
 
     def variable_names_recursive(self, depth=sage.rings.infinity.infinity):
         r"""
@@ -542,7 +668,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         elif not set(my_vars).issubset(set(vars)):
             while my_vars[-1] in vars:
                 my_vars.pop()
-            from polynomial_ring_constructor import PolynomialRing
+            from .polynomial_ring_constructor import PolynomialRing
             return PolynomialRing(self.base_ring(), my_vars)
         else:
             try:
@@ -610,7 +736,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             3
 
         """
-        from sage.rings.arith import binomial
         C = [1]  #d = 0
         for dbar in xrange(1, d+1):
             C.append(binomial(n+dbar-1, dbar))
@@ -638,13 +763,13 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: P._to_monomial(54,10,2)
             (2, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-        .. note::
+        .. NOTE::
 
             We do not check if the provided index/rank is within the allowed
             range. If it is not an infinite loop will occur.
         """
-        from sage.combinat import choose_nk
-        comb = choose_nk.from_rank(i, n+d-1, n-1)
+        from sage.combinat import combination
+        comb = combination.from_rank(i, n+d-1, n-1)
         if comb == []:
             return (d,)
         monomial = [ comb[0] ]
@@ -675,7 +800,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             (0, 0, 0, 3, 0)
             """
         # bug: doesn't handle n=1
-        from sage.rings.arith import binomial
         #Select random degree
         d = ZZ.random_element(0,degree+1)
         total = binomial(n+d-1, d)
@@ -737,9 +861,14 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         INPUT:
 
         - ``degree`` -- maximal degree (likely to be reached) (default: 2)
-        - ``terms`` -- number of terms requested (default: 5)
+
+        - ``terms`` -- number of terms requested (default: 5). If more
+          terms are requested than exist, then this parameter is
+          silently reduced to the maximum number of available terms.
+
         - ``choose_degree`` -- choose degrees of monomials randomly first
           rather than monomials uniformly random.
+
         - ``**kwargs`` -- passed to the random element generator of the base
           ring
 
@@ -750,42 +879,63 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             -6/5*x^2 + 2/3*z^2 - 1
 
             sage: P.random_element(2, 5, choose_degree=True)
-            -1/4*x*y - 1/5*x*z - 1/14*y*z - z^2
+            -1/4*x*y - x - 1/14*z - 1
 
         Stacked rings::
 
             sage: R = QQ['x,y']
             sage: S = R['t,u']
             sage: S.random_element(degree=2, terms=1)
-            -3*x*y + 5/2*y^2 - 1/2*x - 1/4*y + 4
+            -1/2*x^2 - 1/4*x*y - 3*y^2 + 4*y
             sage: S.random_element(degree=2, terms=1)
-            (-1/2*x^2 - x*y - 2/7*y^2 + 3/2*x - y)*t*u
+            (-x^2 - 2*y^2 - 1/3*x + 2*y + 9)*u^2
 
         Default values apply if no degree and/or number of terms is
         provided::
 
             sage: random_matrix(QQ['x,y,z'], 2, 2)
-            [        2*y^2 - 2/27*y*z - z^2 + 2*z        1/2*x*y - 1/2*y^2 + 2*x - 2*y]
-            [-1/27*x^2 + 2/5*y^2 - 1/10*z^2 - 2*z              -13*y^2 + 2/3*z^2 + 2*y]
+            [357*x^2 + 1/4*y^2 + 2*y*z + 2*z^2 + 28*x      2*x*y + 3/2*y^2 + 2*y*z - 2*z^2 - z]
+            [                       x*y - y*z + 2*z^2         -x^2 - 4/3*x*z + 2*z^2 - x + 4*y]
 
             sage: random_matrix(QQ['x,y,z'], 2, 2, terms=1, degree=2)
-            [-1/4*x    1/2]
-            [ 1/3*x    x*y]
+            [ 1/2*y -1/4*x]
+            [   1/2  1/3*x]
 
             sage: P.random_element(0, 1)
-            -1
+            1
 
             sage: P.random_element(2, 0)
             0
 
             sage: R.<x> = PolynomialRing(Integers(3), 1)
             sage: R.random_element()
-            x + 1
+            2*x^2 + x
+
+        To produce a dense polynomial, pick ``terms=Infinity``::
+
+            sage: P.<x,y,z> = GF(127)[]
+            sage: P.random_element(degree=2, terms=Infinity)
+            -55*x^2 - 51*x*y + 5*y^2 + 55*x*z - 59*y*z + 20*z^2 + 19*x - 55*y - 28*z + 17
+            sage: P.random_element(degree=3, terms=Infinity)
+            -54*x^3 + 15*x^2*y - x*y^2 - 15*y^3 + 61*x^2*z - 12*x*y*z + 20*y^2*z - 61*x*z^2 - 5*y*z^2 + 62*z^3 + 15*x^2 - 47*x*y + 31*y^2 - 14*x*z + 29*y*z + 13*z^2 + 61*x - 40*y - 49*z + 30
+            sage: P.random_element(degree=3, terms=Infinity, choose_degree=True)
+            57*x^3 - 58*x^2*y + 21*x*y^2 + 36*y^3 + 7*x^2*z - 57*x*y*z + 8*y^2*z - 11*x*z^2 + 7*y*z^2 + 6*z^3 - 38*x^2 - 18*x*y - 52*y^2 + 27*x*z + 4*y*z - 51*z^2 - 63*x + 7*y + 48*z + 14
+
+        The number of terms is silently reduced to the maximum
+        available if more terms are requested::
+
+            sage: P.<x,y,z> = GF(127)[]
+            sage: P.random_element(degree=2, terms=1000)
+            5*x^2 - 10*x*y + 10*y^2 - 44*x*z + 31*y*z + 19*z^2 - 42*x - 50*y - 49*z - 60
+
         """
         k = self.base_ring()
         n = self.ngens()
 
         counts, total = self._precomp_counts(n, degree)
+
+        if terms > total:
+            terms = total
 
         if terms is None:
             if total >= 5:
@@ -794,17 +944,14 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
                 terms = total
 
         if terms < 0:
-            raise TypeError, "Cannot compute polynomial with a negative number of terms."
+            raise TypeError("Cannot compute polynomial with a negative number of terms.")
         elif terms == 0:
             return self._zero_element
         if degree == 0:
-            if terms != 1:
-                raise TypeError, "Cannot compute polynomial with more terms than exist."
             return k.random_element(**kwargs)
 
 
         from sage.combinat.integer_vector import IntegerVectors
-        from sage.rings.arith import binomial
 
         #total is 0. Just return
         if total == 0:
@@ -842,13 +989,10 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
                 for mi in xrange(terms):
                     d = ZZ.random_element(0,len(M)) #choose degree at random
                     m = ZZ.random_element(0,len(M[d])) # choose monomial at random
-                    Mbar.append( M[degree].pop(m) ) # remove and insert
-                    if len(M[degree]) == 0:
-                        M.pop(degree) # bookkeeping
+                    Mbar.append( M[d].pop(m) ) # remove and insert
+                    if len(M[d]) == 0:
+                        M.pop(d) # bookkeeping
                 M = map(tuple, Mbar)
-
-        else:
-            raise TypeError, "Cannot compute polynomial with more terms than exist."
 
         C = [k.random_element(*args,**kwargs) for _ in range(len(M))]
 
@@ -882,8 +1026,26 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         if order is None:
             order = self.term_order()
 
-        from polynomial_ring_constructor import PolynomialRing
+        from .polynomial_ring_constructor import PolynomialRing
         return PolynomialRing(base_ring, self.ngens(), names, order=order)
+
+    def monomial(self,*exponents):
+        """
+        Return the monomial with given exponents.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = PolynomialRing(ZZ, 3)
+            sage: R.monomial(1,1,1)
+            x*y*z
+            sage: e=(1,2,3)
+            sage: R.monomial(*e)
+            x*y^2*z^3
+            sage: m = R.monomial(1,2,3)
+            sage: R.monomial(*m.degrees()) == m
+            True
+        """
+        return self({exponents:self.base_ring().one()})
 
     def _macaulay_resultant_getS(self,mon_deg_tuple,dlist):
         r"""
@@ -909,7 +1071,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: R._macaulay_resultant_getS([29,21,8],[10,20,30])
             0
 
-            sage: R._macaulay_resultant_getS(range(0,9)+[10],range(1,11))
+            sage: R._macaulay_resultant_getS(list(range(9))+[10],list(range(1,11)))
             9
         """
         for i in xrange(len(dlist)):
@@ -995,13 +1157,13 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         REFERENCES:
 
-        .. [CLO] D. Cox, J. Little, D. O'Shea. Using Algebraic Geometry.
+        .. [CLO] \D. Cox, J. Little, D. O'Shea. Using Algebraic Geometry.
                  Springer, 2005.
 
-        .. [Can] J. Canny. Generalised characteristic polynomials.
+        .. [Can] \J. Canny. Generalised characteristic polynomials.
                  J. Symbolic Comput. Vol. 9, No. 3, 1990, 241--250.
 
-        .. [Mac] F.S. Macaulay. The algebraic theory of modular systems
+        .. [Mac] \F.S. Macaulay. The algebraic theory of modular systems
                  Cambridge university press, 1916.
 
         AUTHORS:
@@ -1069,7 +1231,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: R.macaulay_resultant(flist)
             -u2*u4*u6 + u1*u5*u6 + u2*u3*u7 - u0*u5*u7 - u1*u3*u8 + u0*u4*u8
 
-        The following example is by Patrick Ingram(arxiv:1310.4114)::
+        The following example is by Patrick Ingram (:arxiv:`1310.4114`)::
 
             sage: U = PolynomialRing(ZZ,'y',2); y0,y1 = U.gens()
             sage: R = PolynomialRing(U,'x',3); x0,x1,x2 = R.gens()
@@ -1208,11 +1370,11 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 # Leave *all* old versions!
 
 def unpickle_MPolynomialRing_generic_v1(base_ring, n, names, order):
-    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+    from .polynomial_ring_constructor import PolynomialRing
     return PolynomialRing(base_ring, n, names=names, order=order)
 
 
 def unpickle_MPolynomialRing_generic(base_ring, n, names, order):
-    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+    from .polynomial_ring_constructor import PolynomialRing
 
     return PolynomialRing(base_ring, n, names=names, order=order)

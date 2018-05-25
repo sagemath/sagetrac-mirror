@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 if [ -z "$SAGE_LOCAL" ]; then
     echo >&2 "SAGE_LOCAL undefined ... exiting"
     echo >&2 "Maybe run 'sage --sh'?"
@@ -7,17 +5,7 @@ if [ -z "$SAGE_LOCAL" ]; then
 fi
 
 # Apply fixes to upstream source
-echo "Applying patches..."
 cd src
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    echo "Using $patch"
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
 
 # Exit on error
 set -e
@@ -81,9 +69,15 @@ if { uname -sr | grep 'Darwin 14\.' ;} &>/dev/null; then
     fi
 fi
 
-# On OSX: isl/cloog libraries are almost certainly from Homebrew and won't work
+# On OSX:
 if [ "$UNAME" = "Darwin" ]; then
+    # isl/cloog libraries are almost certainly from Homebrew and won't work
     GCC_CONFIGURE="--without-isl --without-cloog $GCC_CONFIGURE"
+
+    # Use 'bootstrap-debug' build configuration to force stripping of object
+    # files prior to comparison during bootstrap (broken by Xcode 6.3).
+    # See #18156
+    GCC_CONFIGURE="--with-build-config=bootstrap-debug $GCC_CONFIGURE"
 fi
 
 # Let GCC build on Raspberry Pi using hard floats.
@@ -123,11 +117,18 @@ fi
     --disable-libitm \
     $GCC_CONFIGURE "$CONFIGURE_AS" "$CONFIGURE_LD"
 
-$MAKE
+$MAKE BOOT_LDFLAGS="-Wl,-rpath,$SAGE_LOCAL/lib"
 
 $MAKE install
 
 
-# Force re-installation of mpir, mpfr and mpc with the GCC we just built.
+# Force re-installation of gmp, mpir, mpfr and mpc with the GCC that we
+# just built. This is needed in particular because gmp/mpir was first
+# built without C++ support. Also mark gfortran as not installed in case
+# somebody first built gfortran and then GCC.
 cd "$SAGE_SPKG_INST"
-rm -f mpir-* mpfr-* mpc-*
+rm -f gmp-* mpir-* mpfr-* mpc-* gfortran-*
+
+# Force re-configuration: the next time that "make" is run, we need to
+# rebuild all packages (#24703) but we should not rebuild gcc (#19324)
+touch "$SAGE_ROOT/configure"

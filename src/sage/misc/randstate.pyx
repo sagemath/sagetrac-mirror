@@ -29,15 +29,15 @@ and showing that these lead to reproducible results. ::
     sage: G = PermutationGroup([[(1,2,3),(4,5)], [(1,2)]])
     sage: rgp = Gp()
     sage: def gap_randstring(n):
-    ...       current_randstate().set_seed_gap()
-    ...       return gap(n).SCRRandomString()
+    ....:     current_randstate().set_seed_gap()
+    ....:     return gap(n).SCRRandomString()
     sage: def rtest():
-    ...       current_randstate().set_seed_gp(rgp)
-    ...       return (ZZ.random_element(1000), RR.random_element(),
-    ...               K.random_element(), G.random_element(),
-    ...               gap_randstring(5),
-    ...               rgp.random(), ntl.ZZ_random(99999),
-    ...               random())
+    ....:     current_randstate().set_seed_gp(rgp)
+    ....:     return (ZZ.random_element(1000), RR.random_element(),
+    ....:             K.random_element(), G.random_element(),
+    ....:             gap_randstring(5),
+    ....:             rgp.random(), ntl.ZZ_random(99999),
+    ....:             random())
 
 The above test shows the results of six different random number
 generators, in three different processes.  The random elements from
@@ -55,28 +55,22 @@ results of these random number generators reproducible. ::
 
     sage: set_random_seed(0)
     sage: rtest()
-    (303, -0.266166246380421, 1/2*x^2 - 1/95*x - 1/2, (1,3,2), [ 0, 0, 0, 0, 1 ], 963229057, 8045, 0.9661911734708414)  # 32-bit
-    (303, -0.266166246380421, 1/2*x^2 - 1/95*x - 1/2, (1,3,2), [ 0, 0, 0, 0, 1 ], 265625921, 8045, 0.9661911734708414)  # 64-bit
+    (303, -0.266166246380421, 1/2*x^2 - 1/95*x - 1/2, (1,3), [ 0, 0, 0, 0, 1 ], 265625921, 5842, 0.9661911734708414)
     sage: set_random_seed(1)
     sage: rtest()
-    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,3,2), [ 0, 1, 1, 0, 0 ], 1161603091, 60359, 0.8335077654199736)  # 32-bit
-    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,3,2), [ 0, 1, 1, 0, 0 ],  807447831, 60359, 0.8335077654199736)  # 64-bit
+    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,2), [ 0, 1, 1, 0, 0 ], 807447831, 29982, 0.8335077654199736)
     sage: set_random_seed(2)
     sage: rtest()
-    (207, -0.0141049486533456, 4*x^2 + 1/2, (1,3,2), [ 0, 0, 1, 0, 1 ],  637693405, 27695, 0.19982565117278328)  # 32-bit
-    (207, -0.0141049486533456, 4*x^2 + 1/2, (1,3,2), [ 0, 0, 1, 0, 1 ], 1642898426, 27695, 0.19982565117278328)  # 64-bit
+    (207, -0.0141049486533456, 4*x^2 + 1/2, (1,2)(4,5), [ 0, 0, 1, 0, 1 ], 1642898426, 41662, 0.19982565117278328)
     sage: set_random_seed(0)
     sage: rtest()
-    (303, -0.266166246380421, 1/2*x^2 - 1/95*x - 1/2, (1,3,2), [ 0, 0, 0, 0, 1 ], 963229057, 8045, 0.9661911734708414)  # 32-bit
-    (303, -0.266166246380421, 1/2*x^2 - 1/95*x - 1/2, (1,3,2), [ 0, 0, 0, 0, 1 ], 265625921, 8045, 0.9661911734708414)  # 64-bit
+    (303, -0.266166246380421, 1/2*x^2 - 1/95*x - 1/2, (1,3), [ 0, 0, 0, 0, 1 ], 265625921, 5842, 0.9661911734708414)
     sage: set_random_seed(1)
     sage: rtest()
-    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,3,2), [ 0, 1, 1, 0, 0 ], 1161603091, 60359, 0.8335077654199736)  # 32-bit
-    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,3,2), [ 0, 1, 1, 0, 0 ],  807447831, 60359, 0.8335077654199736)  # 64-bit
+    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,2), [ 0, 1, 1, 0, 0 ], 807447831, 29982, 0.8335077654199736)
     sage: set_random_seed(2)
     sage: rtest()
-    (207, -0.0141049486533456, 4*x^2 + 1/2, (1,3,2), [ 0, 0, 1, 0, 1 ],  637693405, 27695, 0.19982565117278328)  # 32-bit
-    (207, -0.0141049486533456, 4*x^2 + 1/2, (1,3,2), [ 0, 0, 1, 0, 1 ], 1642898426, 27695, 0.19982565117278328)  # 64-bit
+    (207, -0.0141049486533456, 4*x^2 + 1/2, (1,2)(4,5), [ 0, 0, 1, 0, 1 ], 1642898426, 41662, 0.19982565117278328)
 
 Once we've set the random number seed, we can check what seed was used.
 (This is not the current random number state; it does not change when
@@ -86,8 +80,7 @@ random numbers are generated.)  ::
     sage: initial_seed()
     12345L
     sage: rtest()
-    (720, -0.612180244315804, x^2 - x, (2,3), [ 1, 0, 0, 0, 0 ], 912534076, 14005, 0.9205331599518184)   # 32-bit
-    (720, -0.612180244315804, x^2 - x, (2,3), [ 1, 0, 0, 0, 0 ], 1911581957, 14005, 0.9205331599518184)  # 64-bit
+    (720, -0.612180244315804, x^2 - x, (1,2,3), [ 1, 0, 0, 0, 0 ], 1911581957, 27093, 0.9205331599518184)
     sage: initial_seed()
     12345L
 
@@ -222,11 +215,9 @@ that you get without intervening ``with seed``. ::
 
     sage: set_random_seed(0)
     sage: r1 = rtest(); r1
-    (303, -0.266166246380421, 1/2*x^2 - 1/95*x - 1/2, (1,3,2), [ 0, 0, 0, 0, 1 ], 963229057, 8045, 0.9661911734708414)  # 32-bit
-    (303, -0.266166246380421, 1/2*x^2 - 1/95*x - 1/2, (1,3,2), [ 0, 0, 0, 0, 1 ], 265625921, 8045, 0.9661911734708414)  # 64-bit
+    (303, -0.266166246380421, 1/2*x^2 - 1/95*x - 1/2, (1,3), [ 0, 0, 0, 0, 1 ], 265625921, 5842, 0.9661911734708414)
     sage: r2 = rtest(); r2
-    (105, 0.642309615982449, -x^2 - x - 6, (1,2,3), [ 1, 0, 0, 1, 1 ], 14082860, 1271, 0.001767155077382232)  # 32-bit
-    (105, 0.642309615982449, -x^2 - x - 6, (1,2,3), [ 1, 0, 0, 1, 1 ], 53231108, 1271, 0.001767155077382232)  # 64-bit
+    (105, 0.642309615982449, -x^2 - x - 6, (1,2)(4,5), [ 1, 0, 0, 1, 1 ], 53231108, 77132, 0.001767155077382232)
 
 We get slightly different results with an intervening ``with seed``. ::
 
@@ -234,11 +225,9 @@ We get slightly different results with an intervening ``with seed``. ::
     sage: r1 == rtest()
     True
     sage: with seed(1): rtest()
-    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,3,2), [ 0, 1, 1, 0, 0 ], 1161603091, 60359, 0.8335077654199736)  # 32-bit
-    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,3,2), [ 0, 1, 1, 0, 0 ],  807447831, 60359, 0.8335077654199736)  # 64-bit
+    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,2), [ 0, 1, 1, 0, 0 ], 807447831, 29982, 0.8335077654199736)
     sage: r2m = rtest(); r2m
-    (105, 0.642309615982449, -x^2 - x - 6, (1,2,3), [ 1, 0, 0, 1, 1 ], 14082860, 19769, 0.001767155077382232)  # 32-bit
-    (105, 0.642309615982449, -x^2 - x - 6, (1,2,3), [ 1, 0, 0, 1, 1 ], 53231108, 19769, 0.001767155077382232)  # 64-bit
+    (105, 0.642309615982449, -x^2 - x - 6, (1,2)(4,5), [ 1, 0, 0, 1, 1 ], 53231108, 40267, 0.001767155077382232)
     sage: r2m == r2
     False
 
@@ -253,33 +242,22 @@ case, as we see in this example::
     sage: r1 == rtest()
     True
     sage: with seed(1):
-    ...       rtest();
-    ...       rtest();
-    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,3,2), [ 0, 1, 1, 0, 0 ], 1161603091, 60359, 0.8335077654199736)  # 32-bit
-    (138, -0.0404945051288503, 2*x - 24, (2,3), [ 1, 1, 1, 0, 1 ], 1966097838, 10234, 0.0033332230808060803)      # 32-bit
-    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,3,2), [ 0, 1, 1, 0, 0 ], 807447831, 60359, 0.8335077654199736)   # 64-bit
-    (138, -0.0404945051288503, 2*x - 24, (2,3), [ 1, 1, 1, 0, 1 ], 1010791326, 10234, 0.0033332230808060803)      # 64-bit
+    ....:     rtest()
+    ....:     rtest()
+    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,2), [ 0, 1, 1, 0, 0 ], 807447831, 29982, 0.8335077654199736)
+    (138, -0.0404945051288503, 2*x - 24, (2,3), [ 1, 1, 1, 0, 1 ], 1010791326, 91360, 0.0033332230808060803)
     sage: r2m == rtest()
     True
 
 The NTL results after the ``with seed`` don't depend on how many
 NTL random numbers were generated inside the ``with seed``.
-Unfortunately, Cython does not yet support the ``with`` statement.
-Instead, you must use the equivalent ``try``/``finally`` statement::
 
     sage: set_random_seed(0)
     sage: r1 == rtest()
     True
-    sage: ctx = seed(1)
-    sage: try:
-    ...       ctx.__enter__()
-    ...       rtest()
-    ... finally:
-    ...       ctx.__exit__(None, None, None)
-    <sage.misc.randstate.randstate object at 0x...>
-    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,3,2), [ 0, 1, 1, 0, 0 ], 1161603091, 60359, 0.8335077654199736)  # 32-bit
-    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,3,2), [ 0, 1, 1, 0, 0 ],  807447831, 60359, 0.8335077654199736)  # 64-bit
-    False
+    sage: with seed(1):
+    ....:     rtest()
+    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,2), [ 0, 1, 1, 0, 0 ], 807447831, 29982, 0.8335077654199736)
     sage: r2m == rtest()
     True
 
@@ -429,13 +407,13 @@ Otherwise, it depends on what random number generator you want to use.
 Classes and methods
 ===================
 """
-
-cdef extern from "mpz_pylong.h":
-    cdef int mpz_set_pylong(mpz_t dst, src) except -1
+from __future__ import absolute_import
 
 cdef extern from "stdlib.h":
     long c_libc_random "random"()
     void c_libc_srandom "srandom"(unsigned int seed)
+
+from sage.libs.gmp.all cimport *
 
 import binascii
 import os
@@ -487,442 +465,440 @@ randstate_stack = []
 # to remove "# random" from doctests)
 
 cdef class randstate:
-     r"""
-     The :class:`randstate` class.  This class keeps track of random number
-     states and seeds.  Type ``sage.misc.randstate?`` for much more
-     information on random numbers in Sage.
-     """
-     def __cinit__(self, *args, **opts):
-         """
-         Initialise c-data for randstate, in a fail-safe way.
-
-         TESTS:
-
-         The following used to segfault (see :trac:`10113`). Now,
-         there is a proper type error::
-
-             sage: seed(1,2)   # indirect doctest
-             Traceback (most recent call last):
-             ...
-             TypeError: __init__() takes at most 1 positional argument (2 given)
-
-         AUTHOR:
-
-         - Simon King <simon.king@uni-jena.de>
-         """
-         gmp_randinit_default(self.gmp_state)
-
-     def __init__(self, seed=None):
-         r"""
-         Initialize a new :class:`randstate` object with the given seed
-         (which must be coercible to a Python long).
-
-         If no seed is given, then a seed is automatically selected
-         using :func:`os.urandom` if it is available, or the current
-         time otherwise.
-
-         EXAMPLES::
-
-             sage: from sage.misc.randstate import randstate
-             sage: r = randstate(54321); r
-             <sage.misc.randstate.randstate object at 0x...>
-             sage: r.seed()
-             54321L
-             sage: r = randstate(); r
-             <sage.misc.randstate.randstate object at 0x...>
-             sage: r.seed()     # random
-             305866218880103397618377824640007711767L
-
-         Note that creating a :class:`randstate` with a seed of 0
-         is vastly faster than any other seed (over a thousand times
-         faster in my test). ::
-
-             sage: timeit('randstate(0)') # random
-             625 loops, best of 3: 1.38 us per loop
-             sage: timeit('randstate(1)') # random
-             125 loops, best of 3: 3.59 ms per loop
-         """
-         cdef mpz_t mpz_seed
-
-         if seed is None:
-             if use_urandom:
-                 seed = long(binascii.hexlify(os.urandom(16)), 16)
-             else:
-                 seed = long(time.time() * 256)
-         else:
-             seed = long(seed)
-
-         # If seed==0, leave it at the default seed used by
-         # gmp_randinit_default()
-         if seed:
-             mpz_init(mpz_seed)
-             mpz_set_pylong(mpz_seed, seed)
-             gmp_randseed(self.gmp_state, mpz_seed)
-             mpz_clear(mpz_seed)
-
-         self._seed = seed
-
-     def seed(self):
-         r"""
-         Return the initial seed of a :class:`randstate` object.  (This is not
-         the current state; it does not change when you get random
-         numbers.)
-
-         EXAMPLES::
-
-             sage: from sage.misc.randstate import randstate
-             sage: r = randstate(314159)
-             sage: r.seed()
-             314159L
-             sage: r.python_random().random()
-             0.111439293741037
-             sage: r.seed()
-             314159L
-         """
-         return self._seed
-
-     def python_random(self):
-         r"""
-         Return a :class:`random.Random` object.  The first time it is
-         called on a given :class:`randstate`, a new :class:`random.Random`
-         is created (seeded from the *current* :class:`randstate`);
-         the same object is returned on subsequent calls.
-
-         It is expected that ``python_random`` will only be
-         called on the current :class:`randstate`.
-
-         EXAMPLES::
-
-             sage: set_random_seed(5)
-             sage: rnd = current_randstate().python_random()
-             sage: rnd.random()
-             0.013558022446944151
-             sage: rnd.randrange(1000)
-             544
-         """
-         if self._python_random is not None:
-             return self._python_random
-
-         import random
-         from sage.rings.integer_ring import ZZ
-         rand = random.Random()
-         rand.seed(long(ZZ.random_element(long(1)<<128)))
-         self._python_random = rand
-         return rand
-
-     cpdef ZZ_seed(self):
-         r"""
-         When called on the current :class:`randstate`, returns a 128-bit
-         :mod:`Integer <sage.rings.integer_ring>` suitable for seeding another
-         random number generator.
-
-         EXAMPLES::
-
-             sage: set_random_seed(1414)
-             sage: current_randstate().ZZ_seed()
-             48314508034782595865062786044921182484
-         """
-         from sage.rings.integer_ring import ZZ
-         return ZZ.random_element(long(1)<<128)
-
-     cpdef long_seed(self):
-         r"""
-         When called on the current :class:`randstate`, returns a 128-bit
-         Python long suitable for seeding another random number generator.
-
-         EXAMPLES::
-
-             sage: set_random_seed(1618)
-             sage: current_randstate().long_seed()
-             256056279774514099508607350947089272595L
-         """
-         from sage.rings.integer_ring import ZZ
-         return long(ZZ.random_element(long(1)<<128))
-
-     cpdef set_seed_libc(self, bint force):
-         r"""
-         Checks to see if ``self`` was the most recent :class:`randstate`
-         to seed the libc random number generator.  If not, seeds the
-         libc random number generator.  (Do not use the libc random
-         number generator if you have a choice; its randomness is poor,
-         and the random number sequences it produces are not portable
-         across operating systems.)
-
-         If the argument ``force`` is ``True``, seeds the generator
-         unconditionally.
-
-         EXAMPLES::
-
-             sage: from sage.misc.randstate import _doctest_libc_random
-             sage: set_random_seed(0xBAD)
-             sage: current_randstate().set_seed_libc(False)
-             sage: _doctest_libc_random()   # random
-             1070075918
-         """
-         global _libc_seed_randstate
-         if force or _libc_seed_randstate is not self:
-             c_libc_srandom(gmp_urandomb_ui(self.gmp_state, sizeof(int)*8))
-             _libc_seed_randstate = self
-
-     cpdef set_seed_ntl(self, bint force):
-         r"""
-         Checks to see if ``self`` was the most recent :class:`randstate`
-         to seed the NTL random number generator.  If not, seeds
-         the generator.  If the argument ``force`` is ``True``,
-         seeds the generator unconditionally.
-
-         EXAMPLES::
-
-             sage: set_random_seed(2008)
-
-         This call is actually redundant; :func:`ntl.ZZ_random` will
-         seed the generator itself.  However, we put the call in
-         to make the coverage tester happy. ::
-
-             sage: current_randstate().set_seed_ntl(False)
-             sage: ntl.ZZ_random(10^40)
-             9121810031060285085432621721962973171231
-         """
-         global _ntl_seed_randstate
-         if force or _ntl_seed_randstate is not self:
-             import sage.libs.ntl.ntl_ZZ as ntl_ZZ
-             from sage.rings.integer_ring import ZZ
-             ntl_ZZ.ntl_setSeed(ZZ.random_element(long(1)<<128))
-             _ntl_seed_randstate = self
-
-     def set_seed_gap(self):
-         r"""
-         Checks to see if ``self`` was the most recent :class:`randstate`
-         to seed the GAP random number generator.  If not, seeds
-         the generator.
-
-         EXAMPLES::
-
-             sage: set_random_seed(99900000999)
-             sage: current_randstate().set_seed_gap()
-             sage: gap.Random(1, 10^50)
-             1496738263332555434474532297768680634540939580077
-             sage: gap(35).SCRRandomString()
-             [ 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0,
-               0, 0, 1, 0, 0, 1, 1, 0, 0, 1 ]
-         """
-         global _gap_seed_randstate
-         if _gap_seed_randstate is not self:
-             from sage.interfaces.gap import gap
-
-             if self._gap_saved_seed is not None:
-                 mersenne_seed, classic_seed = self._gap_saved_seed
-             else:
-                 import sage.rings.integer_ring as integer_ring
-                 from sage.rings.integer_ring import ZZ
-                 seed = ZZ.random_element(long(1)<<128)
-                 classic_seed = seed
-                 mersenne_seed = seed
-
-             prev_mersenne_seed = gap.Reset(gap.GlobalMersenneTwister, mersenne_seed)
-             prev_classic_seed = gap.Reset(gap.GlobalRandomSource, classic_seed)
-
-             if _gap_seed_randstate is not None:
-                 _gap_seed_randstate._gap_saved_seed = \
-                     prev_mersenne_seed, prev_classic_seed
-
-             _gap_seed_randstate = self
-
-     def set_seed_gp(self, gp=None):
-         r"""
-         Checks to see if ``self`` was the most recent :class:`randstate`
-         to seed the random number generator in the given instance
-         of gp.  (If no instance is given, uses the one in
-         :class:`gp <sage.interfaces.gp.Gp>`.)  If not, seeds the generator.
-
-         EXAMPLES::
-
-             sage: set_random_seed(987654321)
-             sage: current_randstate().set_seed_gp()
-             sage: gp.random()
-             1931284353  # 32-bit
-             23289294    # 64-bit
-         """
-         if gp is None:
-             import sage.interfaces.gp
-             gp = sage.interfaces.gp.gp
-
-         cdef randstate prev
-
-         try:
-             prev = _gp_seed_randstates[gp]
-         except KeyError:
-             prev = None
-
-
-         if prev is not self:
-             if self._gp_saved_seeds is not None and gp in self._gp_saved_seeds:
-                 seed = self._gp_saved_seeds[gp]
-             else:
-                 seed = self.c_random()
-
-             prev_seed = gp.getrand()
-             gp.setrand(seed)
-
-             if prev is not None:
-                 if prev._gp_saved_seeds is None:
-                     prev._gp_saved_seeds = weakref.WeakKeyDictionary()
-                 prev._gp_saved_seeds[gp] = prev_seed
-
-             _gp_seed_randstates[gp] = self
-
-     def set_seed_pari(self):
-         r"""
-         Checks to see if ``self`` was the most recent :class:`randstate` to
-         seed the Pari random number generator.  If not, seeds the
-         generator.
-
-         .. note::
-
-            Since pari 2.4.3, pari's random number generator has
-            changed a lot.  the seed output by getrand() is now a
-            vector of integers.
-
-         EXAMPLES::
-
-             sage: set_random_seed(5551212)
-             sage: current_randstate().set_seed_pari()
-             sage: pari.getrand()
-             Vecsmall([-605155968, -1710928329, -1586713982, 499606189, 1618483736, -1576529895, 43752884, 106717308, -930071483, 321538842, 1598474461, -347743590, 406716006, 1810575783, 2056270826, -1166689962, 1040293387, 1959748388, 788074441, -1464580713, -274308295, 1299084471, -2104338911, 1399323735, 1646180886, -832278110, 1898800809, -675539172, -1593631013, 523869351, -1994395393, 219942282, 368424265, -555925403, -1867770858, 698342297, -818805590, -994607464, -116865284, 1265614805, 1900252922, -580722552, -198531351, -2129882509, 1812284405, -1347877145, -1164666614, -1313549603, -1159399033, -1658818513, -272488410, -229831451, 851469787, -87177366, -1740037903, -1765688758, -985138574, -97899122, -1903726536, 1887390007, -682552913, -1971130091, 1574966855, 148970122, -541177543, 1736709846, 1183724135, -19019183, 2053918935, 840490301, 1182271528, 1273421407, 1572561663, 225512395, 626565962, -1181253471, -758780888, -1434727901, -819573175, -1314265692, 384348303, 1184100459, -1595624266, -556662155, 2074310573, -1060134905, -1168907598, -1343043075, -1187655433, -1162605861, -1444211612, 2031155316, 614148563, -1392900660, -1714827481, 418310157, 1448291330, 1446480041, -852337341, 1827182600, -703341877, 877294120, -829811728, 1433119270, -1824496768, 1798300852, 942179844, 1224738346, 336655421, 814117162, -939789708, -1291158718, 236676176, 669389667, -388213090, 684046529, 1743246921, -56037182, -2139646720, 1685369617, -1483380073, 732016251, 1267219746, 668469280, 1810986717, -1007997717, 296256694, -94638339, 127, -1815312131])  # 32-bit
-             Vecsmall([-1663504465577119476, 8784837841516067975, -5753820859304384612, 7910476022165771223, 6378811681469992489, 3478119678794873599, -2969132587832846191, -3501245520902282933, 6835709013821079552, -5453456450671134746, 7485350670722002798, -646198498812561273, -5390830345676571461, 8485485875220951568, 729073405459086082, -6366318137081412331, 6509501773447610965, -2428457494199180088, 2453229052993118398, 942525059941410610, -1789843958132559410, 4356190189040894223, 3525704091742193738, -8518257892859783591, 92775841648694346, 7768952332531732783, -4483009232668131904, -6882047105209150443, -6711255991514678457, 603154967604764575, 1531681864397401475, 3744295157733453159, 8219445972183904765, 5726668509346246433, -5951285653740875571, 2989724034427842683, 4634723722544563791, 5985631780997324708, -5444928501739116290, -8236943782181590783, -7930915159867723920, 7190903677779160790, -3005634491680269223, -6640192508636844517, 9081091515770721720, -4476134377013530545, 6038719886506739235, -8891904444113652620, -4056426994021598076, -7549519269445664567, 2429707123854672246, -5349282552507482407, -6453423111075279821, -2166555251751144085, -6556578877414952876, -6701501356744638311, -3768552090916039196, 421962326293278732, -3780592489230588979, -8642986562900432216, -2161270029258166700, -3989783790516916031, 2852524366008151172, -638377516970894249, 63, 6396282526910566589])  # 64-bit
-         """
-         global _pari_seed_randstate
-         if _pari_seed_randstate is not self:
-             from sage.libs.pari.all import pari
-
-             if self._pari_saved_seed is not None:
-                 seed = self._pari_saved_seed
-             else:
-                 seed = self.c_random()
-
-             prev_seed = pari.getrand()
-             pari.setrand(seed)
-
-             if _pari_seed_randstate is not None:
-                 _pari_seed_randstate._pari_saved_seed = prev_seed
-
-             _pari_seed_randstate = self
-
-     cpdef int c_random(self):
-         r"""
-         Returns a 31-bit random number.  Intended for internal
-         use only; instead of calling ``current_randstate().c_random()``,
-         it is equivalent (but probably faster) to call the
-         :meth:`random <sage.misc.randstate.random>` method of this
-         :class:`randstate` class.
-
-         EXAMPLES::
-
-             sage: set_random_seed(1207)
-             sage: current_randstate().c_random()
-             2008037228
-
-         We verify the equivalence mentioned above. ::
-
-             sage: from sage.misc.randstate import random
-             sage: set_random_seed(1207)
-             sage: random()
-             2008037228
-         """
-         return gmp_urandomb_ui(self.gmp_state, 31)
-
-     cpdef double c_rand_double(self):
-         r"""
-         Returns a random floating-point number between 0 and 1.
-
-         EXAMPLES::
-
-             sage: set_random_seed(2718281828)
-             sage: current_randstate().c_rand_double()
-             0.22437207488974298
-         """
-         cdef double a = gmp_urandomb_ui(self.gmp_state, 25) * (1.0 / 33554432.0) # divide by 2^25
-         cdef double b = gmp_urandomb_ui(self.gmp_state, 28) * (1.0 / 9007199254740992.0) # divide by 2^53
-         return a+b
-
-     def __dealloc__(self):
-         r"""
-         Free up the memory from the ``gmp_randstate_t`` in a
-         :class:`randstate`.
-
-         EXAMPLES::
-
-             sage: from sage.misc.randstate import randstate
-             sage: foo = randstate()
-             sage: foo = None
-         """
-         gmp_randclear(self.gmp_state)
-
-     def __enter__(self):
-         r"""
-         Use a :class:`randstate` object as a ``with`` statement context
-         manager; switches this :class:`randstate` to be the current
-         :class:`randstate`, to be switched back on exit from the ``with``
-         statement.
-
-         For this purpose, we usually use the ``seed`` alias for
-         :class:`randstate`.
-
-         EXAMPLES::
-
-             sage: from sage.misc.randstate import randstate
-             sage: seed is randstate
-             True
-             sage: set_random_seed(-12345)
-             sage: ZZ.random_element(10^30)
-             197130468050826967386035500824
-             sage: ZZ.random_element(10^30)
-             601704412330400807050962541983
-             sage: set_random_seed(-12345)
-             sage: ZZ.random_element(10^30)
-             197130468050826967386035500824
-             sage: with seed(12345):
-             ...       ZZ.random_element(10^30)
-             197130468050826967386035500824
-             sage: ZZ.random_element(10^30)
-             601704412330400807050962541983
-         """
-         global _current_randstate
-         randstate_stack.append(_current_randstate)
-         _current_randstate = self
-         return self
-
-     def __exit__(self, ty, value, traceback):
-         r"""
-         Use a :class:`randstate` object as a ``with`` statement context
-         manager; restores the previous :class:`randstate` as the current
-         :class:`randstate`.
-
-         For this purpose, we usually use the ``seed`` alias for
-         :class:`randstate`.
-
-         EXAMPLES::
-
-             sage: from sage.misc.randstate import randstate
-             sage: seed is randstate
-             True
-             sage: set_random_seed(-12345)
-             sage: ZZ.random_element(10^30)
-             197130468050826967386035500824
-             sage: ZZ.random_element(10^30)
-             601704412330400807050962541983
-             sage: set_random_seed(-12345)
-             sage: ZZ.random_element(10^30)
-             197130468050826967386035500824
-             sage: with seed(12345):
-             ...       ZZ.random_element(10^30)
-             197130468050826967386035500824
-             sage: ZZ.random_element(10^30)
-             601704412330400807050962541983
-         """
-         global _current_randstate
-         _current_randstate = randstate_stack.pop()
-         return False
+    r"""
+    The :class:`randstate` class.  This class keeps track of random number
+    states and seeds.  Type ``sage.misc.randstate?`` for much more
+    information on random numbers in Sage.
+    """
+    def __cinit__(self, *args, **opts):
+        """
+        Initialise c-data for randstate, in a fail-safe way.
+
+        TESTS:
+
+        The following used to segfault (see :trac:`10113`). Now,
+        there is a proper type error::
+
+            sage: seed(1,2)   # indirect doctest
+            Traceback (most recent call last):
+            ...
+            TypeError: __init__() takes at most 1 positional argument (2 given)
+
+        AUTHOR:
+
+        - Simon King <simon.king@uni-jena.de>
+        """
+        gmp_randinit_default(self.gmp_state)
+
+    def __init__(self, seed=None):
+        r"""
+        Initialize a new :class:`randstate` object with the given seed
+        (which must be coercible to a Python long).
+
+        If no seed is given, then a seed is automatically selected
+        using :func:`os.urandom` if it is available, or the current
+        time otherwise.
+
+        EXAMPLES::
+
+            sage: from sage.misc.randstate import randstate
+            sage: r = randstate(54321); r
+            <sage.misc.randstate.randstate object at 0x...>
+            sage: r.seed()
+            54321L
+            sage: r = randstate(); r
+            <sage.misc.randstate.randstate object at 0x...>
+            sage: r.seed()     # random
+            305866218880103397618377824640007711767L
+
+        Note that creating a :class:`randstate` with a seed of 0
+        is vastly faster than any other seed (over a thousand times
+        faster in my test). ::
+
+            sage: timeit('randstate(0)') # random
+            625 loops, best of 3: 1.38 us per loop
+            sage: timeit('randstate(1)') # random
+            125 loops, best of 3: 3.59 ms per loop
+        """
+        cdef mpz_t mpz_seed
+
+        if seed is None:
+            if use_urandom:
+                seed = long(binascii.hexlify(os.urandom(16)), 16)
+            else:
+                seed = long(time.time() * 256)
+        else:
+            seed = long(seed)
+
+        # If seed==0, leave it at the default seed used by
+        # gmp_randinit_default()
+        if seed:
+            mpz_init(mpz_seed)
+            mpz_set_pylong(mpz_seed, seed)
+            gmp_randseed(self.gmp_state, mpz_seed)
+            mpz_clear(mpz_seed)
+
+        self._seed = seed
+
+    def seed(self):
+        r"""
+        Return the initial seed of a :class:`randstate` object.  (This is not
+        the current state; it does not change when you get random
+        numbers.)
+
+        EXAMPLES::
+
+            sage: from sage.misc.randstate import randstate
+            sage: r = randstate(314159)
+            sage: r.seed()
+            314159L
+            sage: r.python_random().random()
+            0.111439293741037
+            sage: r.seed()
+            314159L
+        """
+        return self._seed
+
+    def python_random(self):
+        r"""
+        Return a :class:`random.Random` object.  The first time it is
+        called on a given :class:`randstate`, a new :class:`random.Random`
+        is created (seeded from the *current* :class:`randstate`);
+        the same object is returned on subsequent calls.
+
+        It is expected that ``python_random`` will only be
+        called on the current :class:`randstate`.
+
+        EXAMPLES::
+
+            sage: set_random_seed(5)
+            sage: rnd = current_randstate().python_random()
+            sage: rnd.random()
+            0.013558022446944151
+            sage: rnd.randrange(1000)
+            544
+        """
+        if self._python_random is not None:
+            return self._python_random
+
+        import random
+        from sage.rings.integer_ring import ZZ
+        rand = random.Random()
+        rand.seed(long(ZZ.random_element(long(1)<<128)))
+        self._python_random = rand
+        return rand
+
+    cpdef ZZ_seed(self):
+        r"""
+        When called on the current :class:`randstate`, returns a 128-bit
+        :mod:`Integer <sage.rings.integer_ring>` suitable for seeding another
+        random number generator.
+
+        EXAMPLES::
+
+            sage: set_random_seed(1414)
+            sage: current_randstate().ZZ_seed()
+            48314508034782595865062786044921182484
+        """
+        from sage.rings.integer_ring import ZZ
+        return ZZ.random_element(long(1)<<128)
+
+    cpdef long_seed(self):
+        r"""
+        When called on the current :class:`randstate`, returns a 128-bit
+        Python long suitable for seeding another random number generator.
+
+        EXAMPLES::
+
+            sage: set_random_seed(1618)
+            sage: current_randstate().long_seed()
+            256056279774514099508607350947089272595L
+        """
+        from sage.rings.integer_ring import ZZ
+        return long(ZZ.random_element(long(1)<<128))
+
+    cpdef set_seed_libc(self, bint force):
+        r"""
+        Checks to see if ``self`` was the most recent :class:`randstate`
+        to seed the libc random number generator.  If not, seeds the
+        libc random number generator.  (Do not use the libc random
+        number generator if you have a choice; its randomness is poor,
+        and the random number sequences it produces are not portable
+        across operating systems.)
+
+        If the argument ``force`` is ``True``, seeds the generator
+        unconditionally.
+
+        EXAMPLES::
+
+            sage: from sage.misc.randstate import _doctest_libc_random
+            sage: set_random_seed(0xBAD)
+            sage: current_randstate().set_seed_libc(False)
+            sage: _doctest_libc_random()   # random
+            1070075918
+        """
+        global _libc_seed_randstate
+        if force or _libc_seed_randstate is not self:
+            c_libc_srandom(gmp_urandomb_ui(self.gmp_state, sizeof(int)*8))
+            _libc_seed_randstate = self
+
+    cpdef set_seed_ntl(self, bint force):
+        r"""
+        Checks to see if ``self`` was the most recent :class:`randstate`
+        to seed the NTL random number generator.  If not, seeds
+        the generator.  If the argument ``force`` is ``True``,
+        seeds the generator unconditionally.
+
+        EXAMPLES::
+
+            sage: set_random_seed(2008)
+
+        This call is actually redundant; :func:`ntl.ZZ_random` will
+        seed the generator itself.  However, we put the call in
+        to make the coverage tester happy. ::
+
+            sage: current_randstate().set_seed_ntl(False)
+            sage: ntl.ZZ_random(10^40)
+            1495283511775355459459209288047895196007
+        """
+        global _ntl_seed_randstate
+        if force or _ntl_seed_randstate is not self:
+            import sage.libs.ntl.ntl_ZZ as ntl_ZZ
+            from sage.rings.integer_ring import ZZ
+            ntl_ZZ.ntl_setSeed(ZZ.random_element(long(1)<<128))
+            _ntl_seed_randstate = self
+
+    def set_seed_gap(self):
+        r"""
+        Checks to see if ``self`` was the most recent :class:`randstate`
+        to seed the GAP random number generator.  If not, seeds
+        the generator.
+
+        EXAMPLES::
+
+            sage: set_random_seed(99900000999)
+            sage: current_randstate().set_seed_gap()
+            sage: gap.Random(1, 10^50)
+            1496738263332555434474532297768680634540939580077
+            sage: gap(35).SCRRandomString()
+            [ 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0,
+              0, 0, 1, 0, 0, 1, 1, 0, 0, 1 ]
+        """
+        global _gap_seed_randstate
+        if _gap_seed_randstate is not self:
+            from sage.interfaces.gap import gap
+
+            if self._gap_saved_seed is not None:
+                mersenne_seed, classic_seed = self._gap_saved_seed
+            else:
+                import sage.rings.integer_ring as integer_ring
+                from sage.rings.integer_ring import ZZ
+                seed = ZZ.random_element(long(1)<<128)
+                classic_seed = seed
+                mersenne_seed = seed
+
+            prev_mersenne_seed = gap.Reset(gap.GlobalMersenneTwister, mersenne_seed)
+            prev_classic_seed = gap.Reset(gap.GlobalRandomSource, classic_seed)
+
+            if _gap_seed_randstate is not None:
+                _gap_seed_randstate._gap_saved_seed = \
+                    prev_mersenne_seed, prev_classic_seed
+
+            _gap_seed_randstate = self
+
+    def set_seed_gp(self, gp=None):
+        r"""
+        Checks to see if ``self`` was the most recent :class:`randstate`
+        to seed the random number generator in the given instance
+        of gp.  (If no instance is given, uses the one in
+        :class:`gp <sage.interfaces.gp.Gp>`.)  If not, seeds the generator.
+
+        EXAMPLES::
+
+            sage: set_random_seed(987654321)
+            sage: current_randstate().set_seed_gp()
+            sage: gp.random()
+            23289294
+        """
+        if gp is None:
+            import sage.interfaces.gp
+            gp = sage.interfaces.gp.gp
+
+        cdef randstate prev
+
+        try:
+            prev = _gp_seed_randstates[gp]
+        except KeyError:
+            prev = None
+
+
+        if prev is not self:
+            if self._gp_saved_seeds is not None and gp in self._gp_saved_seeds:
+                seed = self._gp_saved_seeds[gp]
+            else:
+                seed = self.c_random()
+
+            prev_seed = gp.getrand()
+            gp.setrand(seed)
+
+            if prev is not None:
+                if prev._gp_saved_seeds is None:
+                    prev._gp_saved_seeds = weakref.WeakKeyDictionary()
+                prev._gp_saved_seeds[gp] = prev_seed
+
+            _gp_seed_randstates[gp] = self
+
+    def set_seed_pari(self):
+        r"""
+        Checks to see if ``self`` was the most recent :class:`randstate` to
+        seed the Pari random number generator.  If not, seeds the
+        generator.
+
+        .. NOTE::
+
+           Since pari 2.4.3, pari's random number generator has
+           changed a lot.  the seed output by getrand() is now a
+           vector of integers.
+
+        EXAMPLES::
+
+            sage: set_random_seed(5551212)
+            sage: current_randstate().set_seed_pari()
+            sage: pari.getrand().type()
+            't_INT'
+        """
+        global _pari_seed_randstate
+        if _pari_seed_randstate is not self:
+            from sage.libs.pari.all import pari
+
+            if self._pari_saved_seed is not None:
+                seed = self._pari_saved_seed
+            else:
+                seed = self.c_random()
+
+            prev_seed = pari.getrand()
+            pari.setrand(seed)
+
+            if _pari_seed_randstate is not None:
+                _pari_seed_randstate._pari_saved_seed = prev_seed
+
+            _pari_seed_randstate = self
+
+    cpdef int c_random(self):
+        r"""
+        Returns a 31-bit random number.  Intended for internal
+        use only; instead of calling ``current_randstate().c_random()``,
+        it is equivalent (but probably faster) to call the
+        :meth:`random <sage.misc.randstate.random>` method of this
+        :class:`randstate` class.
+
+        EXAMPLES::
+
+            sage: set_random_seed(1207)
+            sage: current_randstate().c_random()
+            2008037228
+
+        We verify the equivalence mentioned above. ::
+
+            sage: from sage.misc.randstate import random
+            sage: set_random_seed(1207)
+            sage: random()
+            2008037228
+        """
+        return gmp_urandomb_ui(self.gmp_state, 31)
+
+    cpdef double c_rand_double(self):
+        r"""
+        Returns a random floating-point number between 0 and 1.
+
+        EXAMPLES::
+
+            sage: set_random_seed(2718281828)
+            sage: current_randstate().c_rand_double()
+            0.22437207488974298
+        """
+        cdef double a = gmp_urandomb_ui(self.gmp_state, 25) * (1.0 / 33554432.0) # divide by 2^25
+        cdef double b = gmp_urandomb_ui(self.gmp_state, 28) * (1.0 / 9007199254740992.0) # divide by 2^53
+        return a+b
+
+    def __dealloc__(self):
+        r"""
+        Free up the memory from the ``gmp_randstate_t`` in a
+        :class:`randstate`.
+
+        EXAMPLES::
+
+            sage: from sage.misc.randstate import randstate
+            sage: foo = randstate()
+            sage: foo = None
+        """
+        gmp_randclear(self.gmp_state)
+
+    def __enter__(self):
+        r"""
+        Use a :class:`randstate` object as a ``with`` statement context
+        manager; switches this :class:`randstate` to be the current
+        :class:`randstate`, to be switched back on exit from the ``with``
+        statement.
+
+        For this purpose, we usually use the ``seed`` alias for
+        :class:`randstate`.
+
+        EXAMPLES::
+
+            sage: from sage.misc.randstate import randstate
+            sage: seed is randstate
+            True
+            sage: set_random_seed(-12345)
+            sage: ZZ.random_element(10^30)
+            197130468050826967386035500824
+            sage: ZZ.random_element(10^30)
+            601704412330400807050962541983
+            sage: set_random_seed(-12345)
+            sage: ZZ.random_element(10^30)
+            197130468050826967386035500824
+            sage: with seed(12345):
+            ....:     ZZ.random_element(10^30)
+            197130468050826967386035500824
+            sage: ZZ.random_element(10^30)
+            601704412330400807050962541983
+        """
+        global _current_randstate
+        randstate_stack.append(_current_randstate)
+        _current_randstate = self
+        return self
+
+    def __exit__(self, ty, value, traceback):
+        r"""
+        Use a :class:`randstate` object as a ``with`` statement context
+        manager; restores the previous :class:`randstate` as the current
+        :class:`randstate`.
+
+        For this purpose, we usually use the ``seed`` alias for
+        :class:`randstate`.
+
+        EXAMPLES::
+
+            sage: from sage.misc.randstate import randstate
+            sage: seed is randstate
+            True
+            sage: set_random_seed(-12345)
+            sage: ZZ.random_element(10^30)
+            197130468050826967386035500824
+            sage: ZZ.random_element(10^30)
+            601704412330400807050962541983
+            sage: set_random_seed(-12345)
+            sage: ZZ.random_element(10^30)
+            197130468050826967386035500824
+            sage: with seed(12345):
+            ....:     ZZ.random_element(10^30)
+            197130468050826967386035500824
+            sage: ZZ.random_element(10^30)
+            601704412330400807050962541983
+        """
+        global _current_randstate
+        _current_randstate = randstate_stack.pop()
+        return False
 
 cpdef set_random_seed(seed=None):
     r"""

@@ -64,9 +64,9 @@ commandes sont de types différents :
     sage: type(gp('znprimroot(10007)'))
     <class 'sage.interfaces.gp.GpElement'>
     sage: type(pari('znprimroot(10007)'))
-    <type 'sage.libs.pari.gen.gen'>
+    <type 'cypari2.gen.Gen'>
 
-Alors, laquelle des intrefaces utiliser ? Tout dépend de ce que vous
+Alors, laquelle des interfaces utiliser ? Tout dépend de ce que vous
 cherchez à faire. L'interface GP permet de faire absolument tout ce que
 vous pourriez faire avec la ligne de commande GP/PARI habituelle,
 puisqu'elle fait appel à celle-ci. En particulier, vous pouvez
@@ -80,10 +80,10 @@ PARI est souvent considérablement plus rapide et robuste que l'interface GP.
 (Si l'interface GP manque de mémoire pour évaluer une ligne d'entrée
 donnée, elle double silencieusement la taille de la pile et réessaie
 d'évaluer la ligne. Ainsi votre calcul ne plantera pas même si vous
-n'avez pas évalué convenablement l'espace qui nécessite. C'est une
+n'avez pas évalué convenablement l'espace qu'il nécessite. C'est une
 caractéristique commode que l'interpréteur GP habituel ne semble pas
 fournir. L'interface PARI, quant à elle, déplace immédiatement les
-objets créés en-dehors de la pile de PARI, de sorte que celle-ci ne
+objets créés hors de la pile de PARI, de sorte que celle-ci ne
 grossit pas. Cependant, la taille de chaque objet est limitée à 100 Mo,
 sous peine que la pile ne déborde à la création de l'objet. Par
 ailleurs, cette copie supplémentaire a un léger impact sur les
@@ -102,9 +102,9 @@ Commençons par créer une liste PARI à partir d'une liste Python.
     sage: v
     [1, 2, 3, 4, 5]
     sage: type(v)
-    <type 'sage.libs.pari.gen.gen'>
+    <type 'cypari2.gen.Gen'>
 
-En Sage, les objets PARI sont de type ``py_pari.gen``. Le type PARI de
+En Sage, les objets PARI sont de type ``Gen``. Le type PARI de
 l'objet sous-jacent est donné par la méthode ``type``.
 
 ::
@@ -115,7 +115,7 @@ l'objet sous-jacent est donné par la méthode ``type``.
 Pour créer une courbe elliptique en PARI, on utiliserait
 ``ellinit([1,2,3,4,5])``. La syntaxe Sage est semblable, à ceci près que
 ``ellinit`` devient une méthode qui peut être appelée sur n'importe quel
-objet PARI, par exemle notre ``t_VEC v``.
+objet PARI, par exemle notre ``t_VEC`` `v`.
 
 ::
 
@@ -146,7 +146,7 @@ GAP
 ===
 
 Pour les mathématiques discrètes effectives et principalement la théorie
-des groupes, Sage utilise GAP 4.4.10.
+des groupes, Sage utilise GAP.
 
 Voici un exemple d'utilisation de la fonction GAP ``IdGroup``, qui
 nécessite une base de données optionnelle de groupes de petit ordre, à
@@ -177,15 +177,12 @@ l'interface GAP comme suit :
     sage: n = G.order(); n
     120
 
-(Certaines fonctionnalités de GAP nécessitent l'installation de deux
-paquets facultatifs. Saisissez ``sage -optional`` pour consulter la
-liste des paquets facultatifs, et choisissez celui dont le nom ressemble
-à ``gap\_packages-x.y.z``, puis installez-le par
-``sage -i gap\_packages-x.y.z``. Faites de même avec
-``database\_gap-x.y.z``. D'autres paquets GAP, non couverts par la
-licence GPL, peuvent être téléchargés depuis le site web de GAP
-[GAPkg]_ et installés en les désarchivant dans
-``$SAGE_ROOT/local/lib/gap-4.4.10/pkg``.)
+Pour utiliser certaines fonctionnalités de GAP,
+vous devez installer deux paquets Sage optionnels.
+Cela peut être fait avec la commande::
+
+    sage -i gap_packages database_gap
+
 
 Singular
 ========
@@ -195,20 +192,21 @@ autres, de calculer des pgcd de polynômes de plusieurs variables, des
 factorisations, des bases de Gröbner ou encore des bases d'espaces de
 Riemann-Roch de courbes planes. Considérons la factorisation de
 polynômes de plusieurs variables à l'aide de l'interface à Singular
-fournie par Sage (n'entrez pas les ``...``) :
+fournie par Sage (n'entrez pas les ``....:``) :
 
 ::
 
     sage: R1 = singular.ring(0, '(x,y)', 'dp')
     sage: R1
-    //   characteristic : 0
+    polynomial ring, over a field, global ordering
+    //   coefficients: QQ
     //   number of vars : 2
     //        block   1 : ordering dp
     //                  : names    x y
     //        block   2 : ordering C
-    sage: f = singular('9*y^8 - 9*x^2*y^7 - 18*x^3*y^6 - 18*x^5*y^6 + \
-    ...   9*x^6*y^4 + 18*x^7*y^5 + 36*x^8*y^4 + 9*x^10*y^4 - 18*x^11*y^2 - \
-    ...   9*x^12*y^3 - 18*x^13*y^2 + 9*x^16')
+    sage: f = singular('9*y^8 - 9*x^2*y^7 - 18*x^3*y^6 - 18*x^5*y^6 +'
+    ....:     '9*x^6*y^4 + 18*x^7*y^5 + 36*x^8*y^4 + 9*x^10*y^4 - 18*x^11*y^2 -'
+    ....:     '9*x^12*y^3 - 18*x^13*y^2 + 9*x^16')
 
 Maintenant que nous avons défini :math:`f`, affichons-le puis
 factorisons-le.
@@ -236,9 +234,9 @@ Singular (Sage y fera tout de même appel en coulisses pour le calcul).
 ::
 
     sage: x, y = QQ['x, y'].gens()
-    sage: f = 9*y^8 - 9*x^2*y^7 - 18*x^3*y^6 - 18*x^5*y^6 + 9*x^6*y^4\
-    ...   + 18*x^7*y^5 + 36*x^8*y^4 + 9*x^10*y^4 - 18*x^11*y^2 - 9*x^12*y^3\
-    ...   - 18*x^13*y^2 + 9*x^16
+    sage: f = (9*y^8 - 9*x^2*y^7 - 18*x^3*y^6 - 18*x^5*y^6 + 9*x^6*y^4
+    ....:     + 18*x^7*y^5 + 36*x^8*y^4 + 9*x^10*y^4 - 18*x^11*y^2 - 9*x^12*y^3
+    ....:     - 18*x^13*y^2 + 9*x^16)
     sage: factor(f)
     (9) * (-x^5 + y^2)^2 * (x^6 - 2*x^3*y^2 - x^2*y^3 + y^4)
 
@@ -307,43 +305,42 @@ Voici enfin quelques exemples de tracés de graphiques avec ``openmath``
 depuis Sage. Un grand nombre de ces exemples sont des adaptations de
 ceux du manuel de référence de Maxima.
 
-Tracé en 2D de plusieurs fonctions (n'entrez pas les ``...``) :
+Tracé en 2D de plusieurs fonctions (n'entrez pas les ``....:``) :
 
 ::
 
     sage: maxima.plot2d('[cos(7*x),cos(23*x)^4,sin(13*x)^3]','[x,0,1]', # not tested
-    ....: '[plot_format,openmath]')
+    ....:     '[plot_format,openmath]')
 
 Un graphique 3D interactif, que vous pouvez déplacer à la souris
-(n'entrez pas les ``...``) :
+(n'entrez pas les ``....:``) :
 
 ::
 
     sage: maxima.plot3d ("2^(-u^2 + v^2)", "[u, -3, 3]", "[v, -2, 2]", # not tested
-    ....: '[plot_format, openmath]')
+    ....:     '[plot_format, openmath]')
     sage: maxima.plot3d("atan(-x^2 + y^3/4)", "[x, -4, 4]", "[y, -4, 4]", # not tested
-    ....: "[grid, 50, 50]",'[plot_format, openmath]')
+    ....:     "[grid, 50, 50]",'[plot_format, openmath]')
 
-Le célèbre ruban de Möbius (n'entrez pas les ``...``) :
+Le célèbre ruban de Möbius (n'entrez pas les ``....:``) :
 
 ::
 
     sage: maxima.plot3d("[cos(x)*(3 + y*cos(x/2)), sin(x)*(3 + y*cos(x/2)), y*sin(x/2)]", # not tested
-    ....: "[x, -4, 4]", "[y, -4, 4]",
-    ....: '[plot_format, openmath]')
+    ....:     "[x, -4, 4]", "[y, -4, 4]",
+    ....:     '[plot_format, openmath]')
 
-Et la fameuse bouteille de Klein (n'entrez pas les ``...``):
+Et la fameuse bouteille de Klein (n'entrez pas les ``....:``):
 
 ::
 
-    sage: maxima("expr_1: 5*cos(x)*(cos(x/2)*cos(y) + sin(x/2)*sin(2*y)+ 3.0)\
-    ...   - 10.0")
+    sage: maxima("expr_1: 5*cos(x)*(cos(x/2)*cos(y) + sin(x/2)*sin(2*y)+ 3.0) - 10.0")
     5*cos(x)*(sin(x/2)*sin(2*y)+cos(x/2)*cos(y)+3.0)-10.0
     sage: maxima("expr_2: -5*sin(x)*(cos(x/2)*cos(y) + sin(x/2)*sin(2*y)+ 3.0)")
     -5*sin(x)*(sin(x/2)*sin(2*y)+cos(x/2)*cos(y)+3.0)
     sage: maxima("expr_3: 5*(-sin(x/2)*cos(y) + cos(x/2)*sin(2*y))")
     5*(cos(x/2)*sin(2*y)-sin(x/2)*cos(y))
     sage: maxima.plot3d ("[expr_1, expr_2, expr_3]", "[x, -%pi, %pi]", # not tested
-    ....: "[y, -%pi, %pi]", "['grid, 40, 40]",
-    ....: '[plot_format, openmath]')
+    ....:     "[y, -%pi, %pi]", "['grid, 40, 40]",
+    ....:     '[plot_format, openmath]')
 

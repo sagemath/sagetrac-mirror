@@ -1,5 +1,5 @@
 """
-Searching a sorted list.
+Searching a sorted list
 
 This is like the bisect library module, but also returns whether
 or not the element is in the list, which saves having to do an
@@ -22,6 +22,7 @@ extra comparison.   Also, the function names make more sense.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import bisect
 

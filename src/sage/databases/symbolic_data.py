@@ -71,11 +71,12 @@ class SymbolicData:
     """
     def __init__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sd = SymbolicData(); sd # optional - database_symbolic_data
             SymbolicData with 372 ideals
         """
-        from sage.misc.misc import SAGE_SHARE
+        from sage.env import SAGE_SHARE
         path = os.path.join(SAGE_SHARE, 'symbolic_data')
         self.__intpath = path + "/Data/XMLResources/INTPS/"
         self.__genpath = path + "/Data/XMLResources/GenPS/"

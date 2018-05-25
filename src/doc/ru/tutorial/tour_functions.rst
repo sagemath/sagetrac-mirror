@@ -18,7 +18,7 @@
 
        sage: def f(z): return z^2
        sage: type(f)
-       <type 'function'>
+       <... 'function'>
        sage: f(3)
        9
        sage: plot(f, 0, 2)
@@ -121,10 +121,10 @@
 ::
 
        sage: def h(x):
-       ...       if x<2:
-       ...           return 0
-       ...       else:
-       ...           return x-2
+       ....:     if x<2:
+       ....:         return 0
+       ....:     else:
+       ....:         return x-2
 
 Проблема: ``plot(h(x), 0, 4)`` построит кривую `y=x-2`.
 Причина: В команде ``plot(h(x), 0, 4)`` сначала оценивается ``h(x)``,

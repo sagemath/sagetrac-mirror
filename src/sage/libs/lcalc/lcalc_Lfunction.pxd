@@ -1,9 +1,8 @@
-include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
-include "sage/ext/stdsage.pxi"
+# Lcalc requires GNU extensions, it does not strictly conform to any
+# C++ standard: https://trac.sagemath.org/ticket/23341
+# distutils: extra_compile_args = -std=gnu++98
 
 cdef extern from "lcalc_sage.h":
-
     ctypedef struct doublevec "std::vector<double>":
         int (*size)()
         double ind "operator[]"(int i)

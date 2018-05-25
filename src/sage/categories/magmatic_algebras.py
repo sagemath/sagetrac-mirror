@@ -19,6 +19,9 @@ from sage.categories.magmas import Magmas
 from sage.categories.additive_magmas import AdditiveMagmas
 from sage.categories.modules import Modules
 
+import six
+
+
 class MagmaticAlgebras(Category_over_base_ring):
     """
     The category of algebras over a given base ring.
@@ -81,8 +84,9 @@ class MagmaticAlgebras(Category_over_base_ring):
 
         .. TODO::
 
-            This category should be a :class:`CategoryWithAxiom`, the
-            axiom specifying the compability between the magma and
+            This category should be a
+            :class:`~sage.categories.category_with_axiom.CategoryWithAxiom`,
+            the axiom specifying the compatibility between the magma and
             module structure.
 
         EXAMPLES::
@@ -113,6 +117,34 @@ class MagmaticAlgebras(Category_over_base_ring):
     class WithBasis(CategoryWithAxiom_over_base_ring):
 
         class ParentMethods:
+
+            def algebra_generators(self):
+                r"""
+                Return generators for this algebra.
+
+                This default implementation returns the basis of this algebra.
+
+                OUTPUT: a family
+
+                .. SEEALSO::
+
+                    - :meth:`~sage.categories.modules_with_basis.ModulesWithBasis.ParentMethods.basis`
+                    - :meth:`MagmaticAlgebras.ParentMethods.algebra_generators`
+
+                EXAMPLES::
+
+                    sage: D4 = DescentAlgebra(QQ, 4).B()
+                    sage: D4.algebra_generators()
+                    Lazy family (...)_{i in Compositions of 4}
+
+                    sage: R.<x> = ZZ[]
+                    sage: P = PartitionAlgebra(1, x, R)
+                    sage: P.algebra_generators()
+                    Lazy family (Term map from Partition diagrams of order 1 to
+                     Partition Algebra of rank 1 with parameter x over Univariate Polynomial Ring in x
+                     over Integer Ring(i))_{i in Partition diagrams of order 1} 
+                """
+                return self.basis()
 
             @abstract_method(optional = True)
             def product_on_basis(self, i, j):
@@ -186,5 +218,5 @@ class MagmaticAlgebras(Category_over_base_ring):
 
                 """
                 return self.linear_combination( ( self.product_on_basis( mon_left, mon_right ), coeff_left * coeff_right )
-                                                  for ( mon_left, coeff_left ) in left.monomial_coefficients().iteritems()
-                                                  for ( mon_right, coeff_right ) in right.monomial_coefficients().iteritems() )
+                                                  for ( mon_left, coeff_left ) in six.iteritems(left.monomial_coefficients())
+                                                  for ( mon_right, coeff_right ) in six.iteritems(right.monomial_coefficients()) )

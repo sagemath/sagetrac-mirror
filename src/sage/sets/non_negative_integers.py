@@ -32,11 +32,11 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
         sage: NN.list()
         Traceback (most recent call last):
         ...
-        NotImplementedError: infinite list
+        NotImplementedError: cannot list an infinite set
         sage: NN.element_class
-        <type 'sage.rings.integer.Integer'>
+        <... 'sage.rings.integer.Integer'>
         sage: it = iter(NN)
-        sage: [it.next(), it.next(), it.next(), it.next(), it.next()]
+        sage: [next(it), next(it), next(it), next(it), next(it)]
         [0, 1, 2, 3, 4]
         sage: NN.first()
         0
@@ -45,7 +45,7 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
     plain Sage ``Integers`` with ``Integer Ring`` as parent::
 
         sage: x = NN(15); type(x)
-        <type 'sage.rings.integer.Integer'>
+        <... 'sage.rings.integer.Integer'>
         sage: x.parent()
         Integer Ring
         sage: x+3
@@ -135,7 +135,7 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
             sage: n = NN(42); n                  # indirect doctest
             42
             sage: type(n)
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
             sage: n.parent()
             Integer Ring
             sage: NN(-1)
@@ -166,7 +166,7 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
 
             sage: NN = NonNegativeIntegers()
             sage: g = iter(NN)
-            sage: g.next(), g.next(), g.next(), g.next()
+            sage: next(g), next(g), next(g), next(g)
             (0, 1, 2, 3)
         """
         i = 0

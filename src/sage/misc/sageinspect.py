@@ -33,7 +33,7 @@ Python modules::
     sage: sage_getfile(sage.misc.sageinspect)
     '.../sageinspect.py'
 
-    sage: print sage_getdoc(sage.misc.sageinspect).lstrip()[:40]
+    sage: print(sage_getdoc(sage.misc.sageinspect).lstrip()[:40])
     Inspect Python, Sage, and Cython objects
 
     sage: sage_getsource(sage.misc.sageinspect).lstrip()[5:-1]
@@ -63,16 +63,6 @@ Python classes::
     sage: sage_getsource(BlockFinder)
     'class BlockFinder:...'
 
-Python classes with no docstring, but an __init__ docstring::
-
-    sage: class Foo:
-    ...     def __init__(self):
-    ...         'docstring'
-    ...         pass
-    ...
-    sage: sage_getdoc(Foo)
-    'docstring\n'
-
 Test introspection of functions defined in Python and Cython files:
 
 Cython functions::
@@ -86,7 +76,7 @@ Cython functions::
     sage: sage_getdoc(sage.rings.rational.make_rational).lstrip()
     'Make a rational number ...'
 
-    sage: sage_getsource(sage.rings.rational.make_rational, True)[4:]
+    sage: sage_getsource(sage.rings.rational.make_rational)[4:]
     'make_rational(s):...'
 
 Python functions::
@@ -103,32 +93,56 @@ Python functions::
     sage: sage_getsource(sage.misc.sageinspect.sage_getfile)[4:]
     'sage_getfile(obj):...'
 
-Unfortunately, there is no argspec extractable from builtins::
+Unfortunately, no argspec is extractable from builtins. Hence, we use a
+generic argspec::
 
     sage: sage_getdef(''.find, 'find')
-    'find( [noargspec] )'
+    'find(*args, **kwds)'
 
     sage: sage_getdef(str.find, 'find')
-    'find( [noargspec] )'
+    'find(*args, **kwds)'
 
 By :trac:`9976` and :trac:`14017`, introspection also works for interactively
 defined Cython code, and with rather tricky argument lines::
 
     sage: cython('def foo(unsigned int x=1, a=\')"\', b={not (2+1==3):\'bar\'}, *args, **kwds): return')
-    sage: print sage_getsource(foo)
+    sage: print(sage_getsource(foo))
     def foo(unsigned int x=1, a=')"', b={not (2+1==3):'bar'}, *args, **kwds): return
     sage: sage_getargspec(foo)
     ArgSpec(args=['x', 'a', 'b'], varargs='args', keywords='kwds', defaults=(1, ')"', {False: 'bar'}))
 
 """
+from __future__ import print_function, absolute_import
+from six.moves import range
+from six import iteritems, string_types, class_types, text_type
+from sage.misc.six import u
 
 import ast
 import inspect
 import functools
 import os
 import tokenize
+import types
+import re
 EMBEDDED_MODE = False
 from sage.env import SAGE_SRC
+
+def loadable_module_extension():
+    r"""
+    Return the filename extension of loadable modules, including the dot.
+    It is '.dll' on cygwin, '.so' otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import loadable_module_extension
+        sage: sage.structure.sage_object.__file__.endswith(loadable_module_extension())
+        True
+    """
+    import sys
+    if sys.platform == 'cygwin':
+        return os.path.extsep+'dll'
+    else:
+        return os.path.extsep+'so'
 
 def isclassinstance(obj):
     r"""
@@ -148,7 +162,7 @@ def isclassinstance(obj):
         False
         sage: class mymetaclass(type): pass
         sage: class myclass2:
-        ...       __metaclass__ = mymetaclass
+        ....:     __metaclass__ = mymetaclass
         sage: isclassinstance(myclass2)
         False
     """
@@ -162,7 +176,7 @@ import re
 # Parse strings of form "File: sage/rings/rational.pyx (starting at line 1080)"
 # "\ " protects a space in re.VERBOSE mode.
 __embedded_position_re = re.compile(r'''
-\A                                          # anchor to the beginning of the string
+^                                           # anchor to the beginning of the line
 File:\ (?P<FILENAME>.*?)                    # match File: then filename
 \ \(starting\ at\ line\ (?P<LINENO>\d+)\)   # match line number
 \n?                                         # if there is a newline, eat it
@@ -187,15 +201,23 @@ def _extract_embedded_position(docstring):
        sage: _extract_embedded_position(inspect.getdoc(var))[1][-21:]
        'sage/calculus/var.pyx'
 
+    TESTS:
+
     The following has been fixed in :trac:`13916`::
 
         sage: cython('''cpdef test_funct(x,y): return''')
-        sage: print open(_extract_embedded_position(inspect.getdoc(test_funct))[1]).read()
-        <BLANKLINE>
-        include "interrupt.pxi"  # ctrl-c interrupt block support
-        include "stdsage.pxi"  # ctrl-c interrupt block support
-        <BLANKLINE>
-        include "cdefs.pxi"
+        sage: print(open(_extract_embedded_position(inspect.getdoc(test_funct))[1]).read())
+        cpdef test_funct(x,y): return
+
+    Ensure that the embedded filename of the compiled function is correct.  In
+    particular it should be relative to ``SPYX_TMP`` in order for certain
+    docmentation functions to work properly.  See :trac:`24097`::
+
+        sage: from sage.env import DOT_SAGE
+        sage: from sage.misc.sage_ostools import restore_cwd
+        sage: with restore_cwd(DOT_SAGE):
+        ....:     cython('''cpdef test_funct(x,y): return''')
+        sage: print(open(_extract_embedded_position(inspect.getdoc(test_funct))[1]).read())
         cpdef test_funct(x,y): return
 
     AUTHORS:
@@ -204,20 +226,80 @@ def _extract_embedded_position(docstring):
     - Extensions by Nick Alexander
     - Extension for interactive Cython code by Simon King
     """
-    if docstring is None:
+    try:
+        res = __embedded_position_re.search(docstring)
+    except TypeError:
         return None
-    res = __embedded_position_re.match(docstring)
-    if res is not None:
-        raw_filename = res.group('FILENAME')
-        filename = os.path.join(SAGE_SRC, raw_filename)
-        if not os.path.isfile(filename):
-            from sage.misc.misc import SPYX_TMP
-            filename = os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]), raw_filename)
-        lineno = int(res.group('LINENO'))
-        original = res.group('ORIGINAL')
-        return (original, filename, lineno)
-    return None
 
+    if res is None:
+        return None
+
+    raw_filename = res.group('FILENAME')
+    filename = raw_filename
+
+    if not os.path.isabs(filename):
+        # Try some common path prefixes for Cython modules built by/for Sage
+        # 1) Module in the sage src tree
+        # 2) Module compiled by Sage's inline cython() compiler
+        from sage.misc.misc import SPYX_TMP
+        try_filenames = [
+            os.path.join(SAGE_SRC, raw_filename),
+            os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]),
+                         raw_filename)
+        ]
+        for try_filename in try_filenames:
+            if os.path.exists(try_filename):
+                filename = try_filename
+                break
+        # Otherwise we keep the relative path and just hope it's relative to
+        # the cwd; otherwise there's no way to be sure.
+
+    lineno = int(res.group('LINENO'))
+    original = res.group('ORIGINAL')
+    return (original, filename, lineno)
+
+def _extract_embedded_signature(docstring, name):
+    r"""
+    If docstring starts with the embedded of a method called ``name``, return
+    a tuple (original_docstring, argspec).  If not, return (docstring, None).
+
+    See :trac:`17814`.
+
+    INPUT: ``docstring`` (string)
+
+    AUTHORS:
+
+    - Simon King
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import _extract_embedded_signature
+        sage: from sage.misc.nested_class import MainClass
+        sage: print(_extract_embedded_signature(MainClass.NestedClass.NestedSubClass.dummy.__doc__, 'dummy')[0])
+        File: sage/misc/nested_class.pyx (starting at line 314)
+        ...
+        sage: _extract_embedded_signature(MainClass.NestedClass.NestedSubClass.dummy.__doc__, 'dummy')[1]
+        ArgSpec(args=['self', 'x', 'r'], varargs='args', keywords='kwds', defaults=((1, 2, 3.4),))
+        sage: _extract_embedded_signature(range.__call__.__doc__, '__call__')
+        ('x.__call__(...) <==> x(...)', None)
+
+    """
+    # If there is an embedded signature, it is in the first line
+    L = docstring.split(os.linesep, 1)
+    firstline = L[0]
+    # It is possible that the signature is of the form ClassName.method_name,
+    # and thus we need to do the following:
+    if name not in firstline:
+        return docstring, None
+    signature = firstline.split(name, 1)[-1]
+    if signature.startswith("(") and signature.endswith(")"):
+        docstring = L[1] if len(L)>1 else '' # Remove first line, keep the rest
+        def_string = "def "+name+signature+": pass"
+        try:
+            return docstring, inspect.ArgSpec(*_sage_getargspec_cython(def_string))
+        except SyntaxError:
+            docstring = os.linesep.join(L)
+    return docstring, None
 
 class BlockFinder:
     """
@@ -301,9 +383,9 @@ def _extract_source(lines, lineno):
         raise ValueError("Line numbering starts at 1! (tried to extract line {})".format(lineno))
     lineno -= 1
 
-    if isinstance(lines, str):
+    if isinstance(lines, string_types):
         lines = lines.splitlines(True) # true keeps the '\n'
-    if len(lines) > 0:
+    if len(lines):
         # Fixes an issue with getblock
         lines[-1] += '\n'
 
@@ -356,7 +438,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: [vis(n) for n in ['True', 'False', 'None', 'foo', 'bar']]
             [True, False, None, 'foo', 'bar']
             sage: [type(vis(n)) for n in ['True', 'False', 'None', 'foo', 'bar']]
-            [<type 'bool'>, <type 'bool'>, <type 'NoneType'>, <type 'str'>, <type 'str'>]
+            [<... 'bool'>, <... 'bool'>, <... 'NoneType'>, <... 'str'>, <... 'str'>]
         """
         what = node.id
         if what == 'None':
@@ -598,7 +680,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: import ast, sage.misc.sageinspect as sms
             sage: visitor = sms.SageArgSpecVisitor()
             sage: vis = lambda x: visitor.visit(ast.parse(x).body[0].value)
-            sage: [vis(d) for d in ['(3+(2*4))', '7|8', '5^3', '7/3', '7//3', '3<<4']] #indirect doctest
+            sage: [vis(d) for d in ['(3+(2*4))', '7|8', '5^3', '7/3', '7//3', '3<<4']] #indirect doctest # py2
             [11, 15, 6, 2, 2, 48]
         """
         op = node.op.__class__.__name__
@@ -698,7 +780,7 @@ def _grep_first_pair_of_parentheses(s):
     count. If no matching pair of parentheses can be found, a
     ``SyntaxError`` is raised.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.misc.sageinspect import _grep_first_pair_of_parentheses
         sage: code = 'def foo(a="\'):", b=4):\n    return'
@@ -758,9 +840,8 @@ def _split_syntactical_unit(s):
         sage: from sage.misc.sageinspect import _split_syntactical_unit
         sage: s = "(Hel) lo_1=[)\"!\" ] '''? {world} '''?"
         sage: while s:
-        ...    u, s = _split_syntactical_unit(s)
-        ...    print u
-        ...
+        ....:     u, s = _split_syntactical_unit(s)
+        ....:     print(u)
         (Hel)
         lo_1
         =
@@ -782,12 +863,12 @@ def _split_syntactical_unit(s):
         ...
         SyntaxError: Syntactical group starting with '(' did not end with ')'
 
-    Numbers are not recognised:::
+    Numbers are not recognised::
 
         sage: _split_syntactical_unit('123')
         ('1', '23')
 
-    TEST:
+    TESTS:
 
     The following was fixed in :trac:`16309`::
 
@@ -1160,6 +1241,12 @@ def sage_getfile(obj):
         sage: sage_getfile(Foo)
         '...pyx'
 
+    By :trac:`18249`, we return an empty string for Python builtins. In that
+    way, there is no error when the user types, for example, ``range?``::
+
+        sage: sage_getfile(range)
+        ''
+
     AUTHORS:
 
     - Nick Alexander
@@ -1180,9 +1267,12 @@ def sage_getfile(obj):
         return sage_getfile(obj.__class__) #inspect.getabsfile(obj.__class__)
 
     # No go? fall back to inspect.
-    sourcefile = inspect.getabsfile(obj)
-    if sourcefile.endswith(os.path.extsep+'so'):
-        return sourcefile[:-3]+os.path.extsep+'pyx'
+    try:
+        sourcefile = inspect.getabsfile(obj)
+    except TypeError: # this happens for Python builtins
+        return ''
+    if sourcefile.endswith(loadable_module_extension()):
+        return sourcefile[:-len(loadable_module_extension())]+os.path.extsep+'pyx'
     return sourcefile
 
 def sage_getargspec(obj):
@@ -1219,7 +1309,7 @@ def sage_getargspec(obj):
 
         sage: from sage.misc.sageinspect import sage_getargspec
         sage: def f(x, y, z=1, t=2, *args, **keywords):
-        ...       pass
+        ....:     pass
         sage: sage_getargspec(f)
         ArgSpec(args=['x', 'y', 'z', 't'], varargs='args', keywords='keywords', defaults=(1, 2))
 
@@ -1230,13 +1320,12 @@ def sage_getargspec(obj):
         sage: sage_getargspec(factor)
         ArgSpec(args=['n', 'proof', 'int_', 'algorithm', 'verbose'], varargs=None, keywords='kwds', defaults=(None, False, 'pari', 0))
 
-
     In the case of a class or a class instance, the ``ArgSpec`` of the
     ``__new__``, ``__init__`` or ``__call__`` method is returned::
 
         sage: P.<x,y> = QQ[]
         sage: sage_getargspec(P)
-        ArgSpec(args=['self', 'x'], varargs='args', keywords='kwds', defaults=(0,))
+        ArgSpec(args=['base_ring', 'n', 'names', 'order'], varargs=None, keywords=None, defaults=('degrevlex',))
         sage: sage_getargspec(P.__class__)
         ArgSpec(args=['self', 'x'], varargs='args', keywords='kwds', defaults=(0,))
 
@@ -1260,8 +1349,8 @@ def sage_getargspec(obj):
     If a ``functools.partial`` instance is involved, we see no other meaningful solution
     than to return the argspec of the underlying function::
 
-        sage: def f(a,b,c,d=1): return a+b+c+d
-        ...
+        sage: def f(a,b,c,d=1):
+        ....:     return a+b+c+d
         sage: import functools
         sage: f1 = functools.partial(f, 1,c=2)
         sage: sage_getargspec(f1)
@@ -1282,13 +1371,13 @@ def sage_getargspec(obj):
     Here is a more difficult one::
 
         sage: cython_code = [
-        ... 'cdef class MyClass:',
-        ... '    def _sage_src_(self):',
-        ... '        return "def foo(x, a=\\\')\\\"\\\', b={(2+1):\\\'bar\\\', not 1:3, 3<<4:5}): return\\n"',
-        ... '    def __call__(self, m,n): return "something"']
+        ....: 'cdef class MyClass:',
+        ....: '    def _sage_src_(self):',
+        ....: '        return "def foo(x, a=\\\')\\\"\\\', b={(2+1):\\\'bar\\\', not 1:3, 3<<4:5}): return\\n"',
+        ....: '    def __call__(self, m,n): return "something"']
         sage: cython('\n'.join(cython_code))
         sage: O = MyClass()
-        sage: print sage.misc.sageinspect.sage_getsource(O)
+        sage: print(sage.misc.sageinspect.sage_getsource(O))
         def foo(x, a=')"', b={(2+1):'bar', not 1:3, 3<<4:5}): return
         sage: sage.misc.sageinspect.sage_getargspec(O)
         ArgSpec(args=['x', 'a', 'b'], varargs=None, keywords=None, defaults=(')"', {False: 3, 48: 5, 3: 'bar'}))
@@ -1298,7 +1387,7 @@ def sage_getargspec(obj):
     ::
 
         sage: cython('def foo(x, a=\'\\\')"\', b={not (2+1==3):\'bar\'}): return')
-        sage: print sage.misc.sageinspect.sage_getsource(foo)
+        sage: print(sage.misc.sageinspect.sage_getsource(foo))
         def foo(x, a='\')"', b={not (2+1==3):'bar'}): return
         <BLANKLINE>
         sage: sage.misc.sageinspect.sage_getargspec(foo)
@@ -1331,6 +1420,24 @@ def sage_getargspec(obj):
         sage: sage_getargspec(gap)
         ArgSpec(args=['self', 'x', 'name'], varargs=None, keywords=None, defaults=(None,))
 
+    By :trac:`17814`, the following gives the correct answer (previously, the
+    defaults would have been found ``None``)::
+
+        sage: from sage.misc.nested_class import MainClass
+        sage: sage_getargspec(MainClass.NestedClass.NestedSubClass.dummy)
+        ArgSpec(args=['self', 'x', 'r'], varargs='args', keywords='kwds', defaults=((1, 2, 3.4),))
+
+    In :trac:`18249` was decided to return a generic signature for Python
+    builtin functions, rather than to raise an error (which is what Python's
+    inspect module does)::
+
+        sage: import inspect
+        sage: inspect.getargspec(range)
+        Traceback (most recent call last):
+        ...
+        TypeError: <built-in function range> is not a Python function
+        sage: sage_getargspec(range)
+        ArgSpec(args=[], varargs='args', keywords='kwds', defaults=None)
 
     AUTHORS:
 
@@ -1341,6 +1448,8 @@ def sage_getargspec(obj):
     """
     from sage.misc.lazy_attribute import lazy_attribute
     from sage.misc.abstract_method import AbstractMethod
+    if inspect.isclass(obj):
+        return sage_getargspec(obj.__call__)
     if isinstance(obj, (lazy_attribute, AbstractMethod)):
         source = sage_getsource(obj)
         return inspect.ArgSpec(*_sage_getargspec_cython(source))
@@ -1350,10 +1459,20 @@ def sage_getargspec(obj):
         return inspect.ArgSpec(*obj._sage_argspec_())
     except (AttributeError, TypeError):
         pass
-    if hasattr(obj, 'func_code'):
+    # If we are lucky, the function signature is embedded in the docstring.
+    docstring = _sage_getdoc_unformatted(obj)
+    try:
+        name = obj.__name__
+    except AttributeError:
+        name = type(obj).__name__
+    argspec = _extract_embedded_signature(docstring, name)[1]
+    if argspec is not None:
+        return argspec
+    if hasattr(obj, '__code__'):
+        # Note that this may give a wrong result for the constants!
         try:
-            args, varargs, varkw = inspect.getargs(obj.func_code)
-            return inspect.ArgSpec(args, varargs, varkw, obj.func_defaults)
+            args, varargs, varkw = inspect.getargs(obj.__code__)
+            return inspect.ArgSpec(args, varargs, varkw, obj.__defaults__)
         except (TypeError, AttributeError):
             pass
     if isclassinstance(obj):
@@ -1370,16 +1489,20 @@ def sage_getargspec(obj):
             base_spec = sage_getargspec(obj.func)
             return base_spec
         return sage_getargspec(obj.__class__.__call__)
-    elif inspect.isclass(obj):
-        return sage_getargspec(obj.__call__)
     elif (hasattr(obj, '__objclass__') and hasattr(obj, '__name__') and
           obj.__name__ == 'next'):
         # Handle sage.rings.ring.FiniteFieldIterator.next and similar
         # slot wrappers.  This is mainly to suppress Sphinx warnings.
         return ['self'], None, None, None
     else:
-        # Perhaps it is binary and defined in a Cython file
-        source = sage_getsource(obj, is_binary=True)
+        # We try to get the argspec by reading the source, which may be
+        # expensive, but should only be needed for functions defined outside
+        # of the Sage library (since otherwise the signature should be
+        # embedded in the docstring)
+        try:
+            source = sage_getsource(obj)
+        except TypeError: # happens for Python builtins
+            source = ''
         if source:
             return inspect.ArgSpec(*_sage_getargspec_cython(source))
         else:
@@ -1392,14 +1515,20 @@ def sage_getargspec(obj):
         try:
             args, varargs, varkw = inspect.getargs(func_obj)
         except TypeError: # arg is not a code object
-        # The above "hopefully" was wishful thinking:
-            return inspect.ArgSpec(*_sage_getargspec_cython(sage_getsource(obj)))
-            #return _sage_getargspec_from_ast(sage_getsource(obj))
+            # The above "hopefully" was wishful thinking:
+            try:
+                return inspect.ArgSpec(*_sage_getargspec_cython(sage_getsource(obj)))
+            except TypeError: # This happens for Python builtins
+                # The best we can do is to return a generic argspec
+                args = []
+                varargs = 'args'
+                varkw = 'kwds'
     try:
         defaults = func_obj.__defaults__
     except AttributeError:
-        defaults = tuple([])
+        defaults = None
     return inspect.ArgSpec(args, varargs, varkw, defaults)
+
 
 def sage_getdef(obj, obj_name=''):
     r"""
@@ -1474,26 +1603,49 @@ def sage_getdef(obj, obj_name=''):
 def _sage_getdoc_unformatted(obj):
     r"""
     Return the unformatted docstring associated to ``obj`` as a
-    string.  Feed the results from this into the
-    sage.misc.sagedoc.format for printing to the screen.
-
-    INPUT: ``obj``, a function, module, etc.: something with a docstring.
+    string.
 
     If ``obj`` is a Cython object with an embedded position in its
-    docstring, the embedded position is stripped.
+    docstring, the embedded position is **not** stripped.
+
+    INPUT:
+
+    - ``obj`` -- a function, module, etc.: something with a docstring.
 
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import _sage_getdoc_unformatted
-        sage: _sage_getdoc_unformatted(identity_matrix)[87:126]
-        'Return the `n \\times n` identity matrix'
+        sage: print(_sage_getdoc_unformatted(sage.rings.integer.Integer))
+        Integer(x=None, base=0)
+        File: sage/rings/integer.pyx (starting at line ...)
+        <BLANKLINE>
+            The ``Integer`` class represents arbitrary precision
+            integers. It derives from the ``Element`` class, so
+            integers can be used as ring elements anywhere in Sage.
+        ...
 
     TESTS:
 
-    Test that we suppress useless built-in output (Ticket #3342)
+    Test that we suppress useless built-in output (:trac:`3342`)::
 
         sage: from sage.misc.sageinspect import _sage_getdoc_unformatted
         sage: _sage_getdoc_unformatted(isinstance.__class__)
+        ''
+
+    Construct an object raising an exception when accessing the
+    ``__doc__`` attribute. This should not give an error in
+    ``_sage_getdoc_unformatted``, see :trac:`19671`::
+
+        sage: class NoSageDoc(object):
+        ....:     @property
+        ....:     def __doc__(self):
+        ....:         raise Exception("no doc here")
+        sage: obj = NoSageDoc()
+        sage: obj.__doc__
+        Traceback (most recent call last):
+        ...
+        Exception: no doc here
+        sage: _sage_getdoc_unformatted(obj)
         ''
 
     AUTHORS:
@@ -1501,35 +1653,118 @@ def _sage_getdoc_unformatted(obj):
     - William Stein
     - extensions by Nick Alexander
     """
-    if obj is None: return ''
-    r = None
+    if obj is None:
+        return ''
     try:
-        r = obj._sage_doc_()
-    except (AttributeError, TypeError): # the TypeError occurs if obj is a class
         r = obj.__doc__
-
-    #Check to see if there is an __init__ method, and if there
-    #is, use its docstring.
-    if r is None and hasattr(obj, '__init__'):
-        r = obj.__init__.__doc__
-
-    if r is None:
+    except Exception:
         return ''
 
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.
-    import types
-    if not isinstance(r, types.StringTypes):
+    if isinstance(r, str):
+        return r
+    elif isinstance(r, text_type):
+        # On Python 2, we want str, not unicode
+        return r.encode('utf-8', 'ignore')
+    else:
+        # Not a string of any kind
         return ''
 
-    from sagenb.misc.misc import encoded_str
-    return encoded_str(r)
+
+def sage_getdoc_original(obj):
+    r"""
+    Return the unformatted docstring associated to ``obj`` as a
+    string.
+
+    If ``obj`` is a Cython object with an embedded position or signature in
+    its docstring, the embedded information is stripped. If the stripped
+    docstring is empty, then the stripped docstring of ``obj.__init__`` is
+    returned instead.
+
+    Feed the results from this into the function
+    :func:`sage.misc.sagedoc.format` for printing to the screen.
+
+    INPUT:
+
+    - ``obj`` -- a function, module, etc.: something with a docstring.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import sage_getdoc_original
+
+    Here is a class that has its own docstring::
+
+        sage: print(sage_getdoc_original(sage.rings.integer.Integer))
+        <BLANKLINE>
+            The ``Integer`` class represents arbitrary precision
+            integers. It derives from the ``Element`` class, so
+            integers can be used as ring elements anywhere in Sage.
+        ...
+
+    If the class does not have a docstring, the docstring of the
+    ``__init__`` method is used, but not the ``__init__`` method
+    of the base class (this was fixed in :trac:`24936`)::
+
+        sage: from sage.categories.category import Category
+        sage: class A(Category):
+        ....:     def __init__(self):
+        ....:         '''The __init__ docstring'''
+        sage: sage_getdoc_original(A)
+        'The __init__ docstring'
+        sage: class B(Category):
+        ....:     pass
+        sage: sage_getdoc_original(B)
+        ''
+
+    Old-style classes are supported::
+
+        sage: class OldStyleClass:
+        ....:     def __init__(self):
+        ....:         '''The __init__ docstring'''
+        ....:         pass
+        sage: print(sage_getdoc_original(OldStyleClass))
+        The __init__ docstring
+
+    When there is no ``__init__`` method, we just get an empty string::
+
+        sage: class OldStyleClass:
+        ....:     pass
+        sage: sage_getdoc_original(OldStyleClass)
+        ''
+
+    If an instance of a class does not have its own docstring, the docstring
+    of its class results::
+
+        sage: sage_getdoc_original(sage.plot.colors.aliceblue) == sage_getdoc_original(sage.plot.colors.Color)
+        True
+
+    """
+    # typ is the type corresponding to obj, which is obj itself if
+    # that was a type or old-style class
+    if isinstance(obj, class_types):
+        typ = obj
+    else:
+        typ = type(obj)
+
+    s,argspec = _extract_embedded_signature(_sage_getdoc_unformatted(obj), typ.__name__)
+    if s:
+        pos = _extract_embedded_position(s)
+        if pos is not None:
+            s = pos[0]
+    if not s:
+        # The docstring of obj is empty. To get something, we want to use
+        # the documentation of the __init__ method, but only if it belongs
+        # to (the type of) obj.
+        init = typ.__dict__.get("__init__")
+        if init:
+            return sage_getdoc_original(init)
+    return s
+
 
 def sage_getdoc(obj, obj_name='', embedded_override=False):
     r"""
     Return the docstring associated to ``obj`` as a string.
-
-    INPUT: ``obj``, a function, module, etc.: something with a docstring.
 
     If ``obj`` is a Cython object with an embedded position in its
     docstring, the embedded position is stripped.
@@ -1538,6 +1773,10 @@ def sage_getdoc(obj, obj_name='', embedded_override=False):
     value), then the string is formatted according to the value of
     EMBEDDED_MODE.  If this argument is True, then it is formatted as
     if EMBEDDED_MODE were True.
+
+    INPUT:
+
+    - ``obj`` -- a function, module, etc.: something with a docstring.
 
     EXAMPLES::
 
@@ -1561,18 +1800,10 @@ def sage_getdoc(obj, obj_name='', embedded_override=False):
     - extensions by Nick Alexander
     """
     import sage.misc.sagedoc
-    if obj is None: return ''
-    r = _sage_getdoc_unformatted(obj)
-
-    if r is None:
+    if obj is None:
         return ''
-
-    s = sage.misc.sagedoc.format(str(r), embedded=(embedded_override or EMBEDDED_MODE))
-
-    # If there is a Cython embedded position, it needs to be stripped
-    pos = _extract_embedded_position(s)
-    if pos is not None:
-        s, _, _ = pos
+    r = sage_getdoc_original(obj)
+    s = sage.misc.sagedoc.format(r, embedded=(embedded_override or EMBEDDED_MODE))
 
     # Fix object naming
     if obj_name != '':
@@ -1583,21 +1814,20 @@ def sage_getdoc(obj, obj_name='', embedded_override=False):
 
     return s
 
-def sage_getsource(obj, is_binary=False):
+def sage_getsource(obj):
     r"""
     Return the source code associated to obj as a string, or None.
 
     INPUT:
 
-    - ``obj`` - function, etc.
-    - ``is_binary`` - boolean, ignored
+    - ``obj`` -- function, etc.
 
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import sage_getsource
-        sage: sage_getsource(identity_matrix, True)[19:60]
+        sage: sage_getsource(identity_matrix)[19:60]
         'identity_matrix(ring, n=0, sparse=False):'
-        sage: sage_getsource(identity_matrix, False)[19:60]
+        sage: sage_getsource(identity_matrix)[19:60]
         'identity_matrix(ring, n=0, sparse=False):'
 
     AUTHORS:
@@ -1615,13 +1845,14 @@ def sage_getsource(obj, is_binary=False):
     except (AttributeError, TypeError):
         pass
 
-    t = sage_getsourcelines(obj, is_binary)
+    t = sage_getsourcelines(obj)
     if not t:
         return None
     (source_lines, lineno) = t
     return ''.join(source_lines)
 
-def _sage_getsourcelines_name_with_dot(object):
+
+def _sage_getsourcelines_name_with_dot(obj):
     r"""
     Get the source lines of an object whose name
     contains a dot and whose source lines can not
@@ -1631,7 +1862,7 @@ def _sage_getsourcelines_name_with_dot(object):
 
         sage: C = Rings()
         sage: from sage.misc.sageinspect import sage_getsource
-        sage: print sage_getsource(C.parent_class)  #indirect doctest
+        sage: print(sage_getsource(C.parent_class))  #indirect doctest
         class ParentMethods:
         ...
                 Returns the Lie bracket `[x, y] = x y - y x` of `x` and `y`.
@@ -1668,19 +1899,19 @@ def _sage_getsourcelines_name_with_dot(object):
     - Simon King (2011-09)
     """
     # First, split the name:
-    if '.' in object.__name__:
-        splitted_name = object.__name__.split('.')
-    elif hasattr(object,'__qualname__'):
-        splitted_name = object.__qualname__.split('.')
+    if '.' in obj.__name__:
+        splitted_name = obj.__name__.split('.')
+    elif hasattr(obj, '__qualname__'):
+        splitted_name = obj.__qualname__.split('.')
     else:
-        splitted_name = object.__name__
-    path = object.__module__.split('.')+splitted_name[:-1]
+        splitted_name = obj.__name__
+    path = obj.__module__.split('.')+splitted_name[:-1]
     name = splitted_name[-1]
     try:
         M = __import__(path.pop(0))
     except ImportError:
         try:
-            B = object.__base__
+            B = obj.__base__
             if B is None:
                 raise AttributeError
         except AttributeError:
@@ -1693,7 +1924,7 @@ def _sage_getsourcelines_name_with_dot(object):
             M = getattr(M, path.pop(0))
     except AttributeError:
         try:
-            B = object.__base__
+            B = obj.__base__
             if B is None:
                 raise AttributeError
         except AttributeError:
@@ -1706,10 +1937,10 @@ def _sage_getsourcelines_name_with_dot(object):
     if not lines:
         raise IOError('could not get source code')
 
-    if inspect.ismodule(object):
+    if inspect.ismodule(obj):
         return lines, base_lineno
 
-    if inspect.isclass(object):
+    if inspect.isclass(obj):
         pat = re.compile(r'^(\s*)class\s*' + name + r'\b')
         # make some effort to find the best matching class definition:
         # use the one with the least indentation, which is the one
@@ -1731,22 +1962,22 @@ def _sage_getsourcelines_name_with_dot(object):
         else:
             raise IOError('could not find class definition')
 
-    if inspect.ismethod(object):
-        object = object.__func__
-    if inspect.isfunction(object):
-        object = object.__code__
-    if inspect.istraceback(object):
-        object = object.tb_frame
-    if inspect.isframe(object):
-        object = object.f_code
-    if inspect.iscode(object):
-        if not hasattr(object, 'co_firstlineno'):
+    if inspect.ismethod(obj):
+        obj = obj.__func__
+    if inspect.isfunction(obj):
+        obj = obj.__code__
+    if inspect.istraceback(obj):
+        obj = obj.tb_frame
+    if inspect.isframe(obj):
+        obj = obj.f_code
+    if inspect.iscode(obj):
+        if not hasattr(obj, 'co_firstlineno'):
             raise IOError('could not find function definition')
         pat = re.compile(r'^(\s*def\s)|(.*(?<!\w)lambda(:|\s))|^(\s*@)')
         pmatch = pat.match
         # fperez - fix: sometimes, co_firstlineno can give a number larger than
         # the length of lines, which causes an error.  Safeguard against that.
-        lnum = min(object.co_firstlineno,len(lines))-1
+        lnum = min(obj.co_firstlineno,len(lines))-1
         while lnum > 0:
             if pmatch(lines[lnum]): break
             lnum -= 1
@@ -1755,45 +1986,54 @@ def _sage_getsourcelines_name_with_dot(object):
     raise IOError('could not find code object')
 
 
-def sage_getsourcelines(obj, is_binary=False):
+def sage_getsourcelines(obj):
     r"""
     Return a pair ([source_lines], starting line number) of the source
     code associated to obj, or None.
 
     INPUT:
 
-    - ``obj`` - function, etc.
-    - ``is_binary`` - boolean, ignored
+    - ``obj`` -- function, etc.
 
-    OUTPUT: (source_lines, lineno) or None: ``source_lines`` is a list
-    of strings, and ``lineno`` is an integer.
+    OUTPUT:
 
-    At this time we ignore ``is_binary`` in favour of a 'do our best' strategy.
+    (source_lines, lineno) or None: ``source_lines`` is a list of
+    strings, and ``lineno`` is an integer.
 
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import sage_getsourcelines
-        sage: sage_getsourcelines(matrix, True)[1]
-        732
-        sage: sage_getsourcelines(matrix, False)[0][0][6:]
+        sage: sage_getsourcelines(matrix)[1]
+        28
+        sage: sage_getsourcelines(matrix)[0][0][6:]
         'MatrixFactory(object):\n'
+
+    Some classes customize this using a ``_sage_src_lines_`` method,
+    which gives the source lines of a class instance, but not the class
+    itself. We demonstrate this for :class:`CachedFunction`::
+
+        sage: cachedfib = cached_function(fibonacci)
+        sage: sage_getsourcelines(cachedfib)[0][0]
+        'def fibonacci(n, algorithm="pari"):\n'
+        sage: sage_getsourcelines(type(cachedfib))[0][0]
+         'cdef class CachedFunction(object):\n'
 
     TESTS::
 
         sage: cython('''cpdef test_funct(x,y): return''')
         sage: sage_getsourcelines(test_funct)
-        (['cpdef test_funct(x,y): return\n'], 6)
+        (['cpdef test_funct(x,y): return\n'], 1)
 
     The following tests that an instance of ``functools.partial`` is correctly
     dealt with (see :trac:`9976`)::
 
-        sage: obj = sage.combinat.partition_algebra.SetPartitionsAk
-        sage: sage_getsourcelines(obj)
-        (['def create_set_partition_function(letter, k):\n',
+        sage: from sage.tests.functools_partial_src import test_func
+        sage: sage_getsourcelines(test_func)
+        (['def base(x):\n',
         ...
-        '    raise ValueError("k must be an integer or an integer + 1/2")\n'], 34)
+        '    return x\n'], 7)
 
-    Here are some cases that were covered in :trac`11298`;
+    Here are some cases that were covered in :trac:`11298`;
     note that line numbers may easily change, and therefore we do
     not test them::
 
@@ -1813,7 +2053,7 @@ def sage_getsourcelines(obj, is_binary=False):
           '    cpdef object pyobject(self):\n',
         ...)
         sage: sage_getsourcelines(x)[0][-1]    # last line
-        '        return self / x\n'
+        '        return S\n'
 
     We show some enhancements provided by :trac:`11768`. First, we
     use a dummy parent class that has defined an element class by a
@@ -1826,11 +2066,11 @@ def sage_getsourcelines(obj, is_binary=False):
         sage: E.__bases__
         (<class sage.misc.nested_class_test.TestNestedParent.Element at ...>,
          <class 'sage.categories.sets_cat.Sets.element_class'>)
-        sage: print sage_getsource(E)
+        sage: print(sage_getsource(E))
             class Element:
                 "This is a dummy element class"
                 pass
-        sage: print sage_getsource(P)
+        sage: print(sage_getsource(P))
         class TestNestedParent(UniqueRepresentation, Parent):
             ...
             class Element:
@@ -1845,7 +2085,7 @@ def sage_getsourcelines(obj, is_binary=False):
         sage: sage_getsourcelines(HC)
         (['    class Homsets(HomsetsCategory):\n', ...], ...)
 
-    Testing against a bug that has occured during work on #11768::
+    Testing against a bug that has occured during work on :trac:`11768`::
 
         sage: P.<x,y> = QQ[]
         sage: I = P*[x,y]
@@ -1865,53 +2105,70 @@ def sage_getsourcelines(obj, is_binary=False):
     - Simon King: If a class has no docstring then let the class
       definition be found starting from the ``__init__`` method.
     - Simon King: Get source lines for dynamic classes.
-
     """
-
+    # First try the method _sage_src_lines_(), which is meant to give
+    # the source lines of an object (not of its type!).
     try:
-        return obj._sage_src_lines_()
+        sage_src_lines = obj._sage_src_lines_
     except AttributeError:
         pass
-    except TypeError:
-        # That happes for instances of dynamic classes
-        return sage_getsourcelines(obj.__class__)
+    else:
+        try:
+            return sage_src_lines()
+        except (NotImplementedError, TypeError):
+            # NotImplementedError can be raised by _sage_src_lines_()
+            # to indicate that it didn't find the source lines.
+            #
+            # TypeError can happen when obj is a type and
+            # obj._sage_src_lines_ is an unbound method. In this case,
+            # we don't want to use _sage_src_lines_(), we just want to
+            # get the source of the type itself.
+            pass
 
-    # Check if we deal with instance
+    # Check if we deal with an instance
     if isclassinstance(obj):
         if isinstance(obj,functools.partial):
             return sage_getsourcelines(obj.func)
         else:
-            #obj=obj.__class__
             return sage_getsourcelines(obj.__class__)
 
-    # If we can handle it, we do.  We first try Python's inspect, and
-    # if that fails then we try _sage_getdoc_unformatted. We can not use
-    # the latter right away, since otherwise there is an import problem
-    # at sage startup, believe it or not.
-    d = inspect.getdoc(obj)
+    # First, we deal with nested classes. Their name contains a dot, and we
+    # have a special function for that purpose.
+    if (not hasattr(obj, '__class__')) or (isinstance(obj, type) and type(obj) is not type):
+        # That happens for ParentMethods
+        # of categories
+        if '.' in obj.__name__ or '.' in getattr(obj,'__qualname__',''):
+            return _sage_getsourcelines_name_with_dot(obj)
+
+    # Next, we try _sage_getdoc_unformatted()
+    d = _sage_getdoc_unformatted(obj)
     pos = _extract_embedded_position(d)
     if pos is None:
-        if (not hasattr(obj, '__class__')) or hasattr(obj,'__metaclass__'):
-            # That hapens for ParentMethods
-            # of categories
-            if '.' in obj.__name__ or '.' in getattr(obj,'__qualname__',''):
-                return _sage_getsourcelines_name_with_dot(obj)
-        d = _sage_getdoc_unformatted(obj)
-        pos = _extract_embedded_position(d)
-        if pos is None:
+        try:
+            # BEWARE HERE
+            # inspect gives str (=bytes) in python2
+            # and str (=unicode) in python3
+            return inspect.getsourcelines(obj)
+
+        except (IOError, TypeError) as err:
             try:
-                return inspect.getsourcelines(obj)
-            except (IOError, TypeError):
-                if inspect.isclass(obj):
-                    try:
-                        B = obj.__base__
-                    except AttributeError:
-                        B = None
-                    if B is not None and B is not obj:
-                        return sage_getsourcelines(B)
-                if obj.__class__ != type:
-                    return sage_getsourcelines(obj.__class__)
-                raise
+                objinit = obj.__init__
+            except AttributeError:
+                pass
+            else:
+                d = _sage_getdoc_unformatted(objinit)
+                pos = _extract_embedded_position(d)
+                if pos is None:
+                    if inspect.isclass(obj):
+                        try:
+                            B = obj.__base__
+                        except AttributeError:
+                            B = None
+                        if B is not None and B is not obj:
+                            return sage_getsourcelines(B)
+                    if obj.__class__ != type:
+                        return sage_getsourcelines(obj.__class__)
+                    raise err
 
     (orig, filename, lineno) = pos
     try:
@@ -1933,7 +2190,7 @@ def sage_getsourcelines(obj, is_binary=False):
     if first_line.lstrip().startswith('def ') and "__init__" in first_line and obj.__name__!='__init__':
         ignore = False
         double_quote = None
-        for lnb in xrange(lineno,0,-1):
+        for lnb in range(lineno, 0, -1):
             new_first_line = source_lines[lnb-1]
             nfl_strip = new_first_line.lstrip()
             if nfl_strip.startswith('"""'):
@@ -1995,7 +2252,7 @@ def sage_getvariablename(self, omit_underscore_names=True):
     """
     result = []
     for frame in inspect.stack():
-        for name, obj in frame[0].f_globals.iteritems():
+        for name, obj in iteritems(frame[0].f_globals):
             if obj is self:
                 result.append(name)
     if len(result) == 1:
@@ -2034,16 +2291,16 @@ def __internal_tests():
         ''
 
         sage: sage_getsource(sage)
-        "...all..."
+        '...all...'
 
     A cython function with default arguments (one of which is a string)::
 
         sage: sage_getdef(sage.rings.integer.Integer.factor, obj_name='factor')
         "factor(algorithm='pari', proof=None, limit=None, int_=False, verbose=0)"
 
-    This used to be problematic, but was fixed in #10094::
+    This used to be problematic, but was fixed in :trac:`10094`::
 
-        sage: sage_getsource(sage.rings.integer.Integer.__init__, is_binary=True)
+        sage: sage_getsource(sage.rings.integer.Integer.__init__)
         '    def __init__(self, x=None, base=0):\n...'
         sage: sage_getdef(sage.rings.integer.Integer.__init__, obj_name='__init__')
         '__init__(x=None, base=0)'
@@ -2054,17 +2311,17 @@ def __internal_tests():
         sage: s = __internal_teststring.strip()
         sage: es = lambda ls, l: ''.join(_extract_source(ls, l)).rstrip()
 
-        sage: print es(s, 3)
+        sage: print(es(s, 3))
         def test1(a, b=2):                         # 3
             if a:                                  # 4
                 return 1                           # 5
             return b                               # 6
 
-        sage: print es(s, 8)
+        sage: print(es(s, 8))
         class test2():                             # 8
             pass                                   # 9
 
-        sage: print es(s, 12)
+        sage: print(es(s, 12))
         def test3(b,                               # 12
                   a=2):                            # 13
             pass # EOF                             # 14

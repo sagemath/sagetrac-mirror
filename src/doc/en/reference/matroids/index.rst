@@ -29,6 +29,7 @@ Concrete implementations
    sage/matroids/circuit_closures_matroid
    sage/matroids/linear_matroid
    sage/matroids/rank_matroid
+   sage/matroids/graphic_matroid
 
 Abstract matroid classes
 ------------------------
@@ -49,5 +50,16 @@ Advanced functionality
    sage/matroids/advanced
    sage/matroids/utilities
    sage/matroids/extension
+
+Internals
+---------
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/matroids/lean_matrix
+   sage/matroids/matroids_plot_helpers
+   sage/matroids/set_system
+   sage/matroids/unpickling
 
 .. include:: ../footer.txt

@@ -19,11 +19,14 @@ Functions
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-from sage.structure.sequence import Sequence
-from sage.rings.infinity import PlusInfinity
-
 from sage.sat.solvers import SatSolver
 from sage.sat.converters import ANF2CNFConverter
+
+from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+
+
+import six
+
 
 def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
     """
@@ -67,7 +70,7 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
         A list of dictionaries, each of which contains a variable
         assignment solving ``F``.
 
-    EXAMPLE:
+    EXAMPLES:
 
     We construct a very small-scale AES system of equations::
 
@@ -84,6 +87,8 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
     This time we pass a few options through to the converter and the solver::
 
         sage: s = solve_sat(F, s_verbosity=1, c_max_vars_sparse=4, c_cutting_number=8) # optional - cryptominisat
+        c ...
+        ...
         sage: F.subs(s[0])                                                             # optional - cryptominisat
         Polynomial Sequence with 36 Polynomials in 0 Variables
 
@@ -114,9 +119,11 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
 
     First the normal use case::
 
-        sage: solve_sat(F,n=infinity)                                     # optional - cryptominisat
-        [{d: 0, b: 0, c: 0, a: 0}, {d: 1, b: 1, c: 0, a: 1},
-         {d: 1, b: 0, c: 1, a: 0}, {d: 0, b: 1, c: 1, a: 1}]
+        sage: sorted(solve_sat(F,n=infinity))                             # optional - cryptominisat
+        [{d: 0, c: 0, b: 0, a: 0},
+         {d: 0, c: 1, b: 1, a: 1},
+         {d: 1, c: 0, b: 1, a: 1},
+         {d: 1, c: 1, b: 0, a: 0}]
 
     Now we are only interested in the solutions of the variables a and b::
 
@@ -132,28 +139,28 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
     assert(n>0)
 
     try:
-        m = len(F)
+        len(F)
     except AttributeError:
         F = F.gens()
-        m = len(F)
+        len(F)
 
-    P = iter(F).next().parent()
+    P = next(iter(F)).parent()
     K = P.base_ring()
 
     if target_variables is None:
-      target_variables = Sequence(F).variables()
+        target_variables = PolynomialSequence(F).variables()
     else:
-      target_variables = Sequence(target_variables).variables()
-      assert(set(target_variables).issubset(set(P.gens())))
+        target_variables = PolynomialSequence(target_variables).variables()
+        assert(set(target_variables).issubset(set(P.gens())))
 
     # instantiate the SAT solver
 
     if solver is None:
-        from sage.sat.solvers.cryptominisat import CryptoMiniSat as solver
+        from sage.sat.solvers import CryptoMiniSat as solver
 
     if not isinstance(solver, SatSolver):
         solver_kwds = {}
-        for k,v in kwds.iteritems():
+        for k, v in six.iteritems(kwds):
             if k.startswith("s_"):
                 solver_kwds[k[2:]] = v
 
@@ -166,14 +173,14 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
 
     if not isinstance(converter, ANF2CNFConverter):
         converter_kwds = {}
-        for k,v in kwds.iteritems():
+        for k, v in six.iteritems(kwds):
             if k.startswith("c_"):
                 converter_kwds[k[2:]] = v
 
         converter = converter(solver, P, **converter_kwds)
 
     phi = converter(F)
-    rho = dict( (phi[i],i) for i in range(len(phi)) )
+    rho = dict((phi[i], i) for i in range(len(phi)))
 
     S = []
 
@@ -181,25 +188,25 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
         s = solver()
 
         if s:
-            S.append( dict( (x, K(s[rho[x]])) for x in target_variables ) )
+            S.append(dict((x, K(s[rho[x]])) for x in target_variables))
 
             if n is not None and len(S) == n:
                 break
 
-            exclude_solution = tuple(-rho[x]  if s[rho[x]] else rho[x] for x in target_variables)
+            exclude_solution = tuple(-rho[x] if s[rho[x]] else rho[x] for x in target_variables)
             solver.add_clause(exclude_solution)
 
         else:
             try:
                 learnt = solver.learnt_clauses(unitary_only=True)
                 if learnt:
-                    S.append( dict((phi[abs(i)-1],K(i<0)) for i in learnt) )
+                    S.append(dict((phi[abs(i)-1], K(i<0)) for i in learnt))
                 else:
-                    S.append( s )
+                    S.append(s)
                     break
             except (AttributeError, NotImplementedError):
                 # solver does not support recovering learnt clauses
-                S.append( s )
+                S.append(s)
                 break
 
     if len(S) == 1:
@@ -210,6 +217,7 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
     elif S[-1] is False:
             return S[0:-1]
     return S
+
 
 def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=False, **kwds):
     """
@@ -243,7 +251,7 @@ def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=Fa
 
         A sequence of Boolean polynomials.
 
-    EXAMPLE::
+    EXAMPLES::
 
        sage: from sage.sat.boolean_polynomials import learn as learn_sat # optional - cryptominisat
 
@@ -255,35 +263,14 @@ def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=Fa
        sage: H = learn_sat(F)                           # optional - cryptominisat
        sage: H[-1]                                      # optional - cryptominisat
        k033 + 1
-
-    We construct a slightly larger equation system and recover some
-    equations after 20 restarts::
-
-       sage: set_random_seed(2300)                        # optional - cryptominisat
-       sage: sr = mq.SR(1,4,4,4,gf2=True,polybori=True)   # optional - cryptominisat
-       sage: F,s = sr.polynomial_system()                 # optional - cryptominisat
-       sage: from sage.sat.boolean_polynomials import learn as learn_sat # optional - cryptominisat
-       sage: H = learn_sat(F, s_maxrestarts=20, interreduction=True)     # optional - cryptominisat
-       sage: H[-1]                                        # optional - cryptominisat, output random
-       k001200*s031*x011201 + k001200*x011201
-
-    .. NOTE::
-
-       This function is meant to be called with some parameter such
-       that the SAT-solver is interrupted. For CryptoMiniSat this is
-       max_restarts, so pass 'c_max_restarts' to limit the number of
-       restarts CryptoMiniSat will attempt. If no such parameter is
-       passed, then this function behaves essentially like
-       :func:`solve` except that this function does not support
-       ``n>1``.
     """
     try:
-        m = len(F)
+        len(F)
     except AttributeError:
         F = F.gens()
-        m = len(F)
+        len(F)
 
-    P = iter(F).next().parent()
+    P = next(iter(F)).parent()
     K = P.base_ring()
 
     # instantiate the SAT solver
@@ -292,7 +279,7 @@ def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=Fa
         from sage.sat.solvers.cryptominisat import CryptoMiniSat as solver
 
     solver_kwds = {}
-    for k,v in kwds.iteritems():
+    for k, v in six.iteritems(kwds):
         if k.startswith("s_"):
             solver_kwds[k[2:]] = v
 
@@ -304,15 +291,14 @@ def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=Fa
         from sage.sat.converters.polybori import CNFEncoder as converter
 
     converter_kwds = {}
-    for k,v in kwds.iteritems():
+    for k, v in six.iteritems(kwds):
         if k.startswith("c_"):
             converter_kwds[k[2:]] = v
 
     converter = converter(solver, P, **converter_kwds)
 
-
     phi = converter(F)
-    rho = dict( (phi[i],i) for i in range(len(phi)) )
+    rho = dict((phi[i], i) for i in range(len(phi)))
 
     s = solver()
 
@@ -320,18 +306,23 @@ def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=Fa
         learnt = [x + K(s[rho[x]]) for x in P.gens()]
     else:
         learnt = []
-        for c in solver.learnt_clauses():
+        try:
+            lc = solver.learnt_clauses()
+        except (AttributeError, NotImplementedError):
+        # solver does not support recovering learnt clauses
+            lc = []
+        for c in lc:
             if len(c) <= max_learnt_length:
                 try:
-                    learnt.append( converter.to_polynomial(c) )
+                    learnt.append(converter.to_polynomial(c))
                 except (ValueError, NotImplementedError, AttributeError):
                     # the solver might have learnt clauses that contain CNF
                     # variables which have no correspondence to variables in our
                     # polynomial ring (XOR chaining variables for example)
                     pass
-    learnt = Sequence(learnt)
+
+    learnt = PolynomialSequence(P, learnt)
 
     if interreduction:
         learnt = learnt.ideal().interreduced_basis()
     return learnt
-

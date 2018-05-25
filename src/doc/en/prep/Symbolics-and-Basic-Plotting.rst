@@ -2,6 +2,8 @@
 
 .. linkall
 
+.. _prep-symbolics-and-basic-plotting:
+
 Tutorial for Symbolics and Plotting
 ===================================
 
@@ -384,19 +386,19 @@ Below, you can experiment with several of the plotting options.
     sage: x = var('x')
     sage: @interact
     sage: def plot_example(f=sin(x^2),r=range_slider(-5,5,step_size=1/4,default=(-3,3)),
-    ...                    color=color_selector(widget='colorpicker'),
-    ...                    thickness=(3,(1..10)),
-    ...                    adaptive_recursion=(5,(0..10)), adaptive_tolerance=(0.01,(0.001,1)),
-    ...                    plot_points=(20,(1..100)),
-    ...                    linestyle=['-','--','-.',':'],
-    ...                    gridlines=False, fill=False,
-    ...                    frame=False, axes=True
-    ...                    ):
-    ...       show(plot(f, (x,r[0],r[1]), color=color, thickness=thickness,
-    ...                    adaptive_recursion=adaptive_recursion,
-    ...                    adaptive_tolerance=adaptive_tolerance, plot_points=plot_points,
-    ...                    linestyle=linestyle, fill=fill if fill else None),
-    ...                    gridlines=gridlines, frame=frame, axes=axes)
+    ....:                  color=color_selector(widget='colorpicker'),
+    ....:                  thickness=(3,(1..10)),
+    ....:                  adaptive_recursion=(5,(0..10)), adaptive_tolerance=(0.01,(0.001,1)),
+    ....:                  plot_points=(20,(1..100)),
+    ....:                  linestyle=['-','--','-.',':'],
+    ....:                  gridlines=False, fill=False,
+    ....:                  frame=False, axes=True
+    ....:                  ):
+    ....:     show(plot(f, (x,r[0],r[1]), color=color, thickness=thickness,
+    ....:                  adaptive_recursion=adaptive_recursion,
+    ....:                  adaptive_tolerance=adaptive_tolerance, plot_points=plot_points,
+    ....:                  linestyle=linestyle, fill=fill if fill else None),
+    ....:                  gridlines=gridlines, frame=frame, axes=axes)
 
 .. _3DPlotting:
 
@@ -405,7 +407,7 @@ Basic 3D Plotting
 
 There are several mechanisms for viewing three\-dimensional plots in
 Sage, but we will stick to the default option in the notebook interface,
-which is via Java applets from the program `Jmol
+which is via javascript applets from the program `Jmol/JSmol
 <http://jmol.sourceforge.net/>`_ .
 
 Plotting a 3D plot is similar to plotting a 2D plot, but we need to
@@ -486,6 +488,6 @@ We close this tutorial with a cool plot that we define *implicitly* as a
     Graphics3d Object
 
 The next tutorial will use all that you have learned about Sage basics,
-symbolics, and plotting in a specific mathematical venue \- the calculus
-sequence!
+symbolics, and plotting in a specific mathematical venue \- the
+:ref:`calculus sequence <prep-calculus>`!
 

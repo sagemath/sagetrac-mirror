@@ -4,7 +4,7 @@ A class to keep information about faces of a polyhedron
 This module gives you a tool to work with the faces of a polyhedron
 and their relative position. First, you need to find the faces. To get
 the faces in a particular dimension, use the
-:meth:`~sage.geometry.poylhedron.base.face` method::
+:meth:`~sage.geometry.polyhedron.base.face` method::
 
     sage: P = polytopes.cross_polytope(3)
     sage: P.faces(3)
@@ -14,7 +14,7 @@ the faces in a particular dimension, use the
     sage: P.faces(1)
     (<0,1>, <0,2>, <1,2>, <0,3>, <1,3>, <0,4>, <2,4>, <3,4>, <2,5>, <3,5>, <4,5>, <1,5>)
 
-or :meth:`~sage.geometry.poylhedron.base.face_lattice` to get the
+or :meth:`~sage.geometry.polyhedron.base.face_lattice` to get the
 whole face lattice as a poset::
 
     sage: P.face_lattice()
@@ -52,9 +52,10 @@ polyhedron with the :meth:`PolyhedronFace.as_polyhedron` method::
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
-
+from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.misc.all import cached_method
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
@@ -62,6 +63,7 @@ from sage.matrix.constructor import matrix
 
 
 #########################################################################
+@richcmp_method
 class PolyhedronFace(SageObject):
     r"""
     A face of a polyhedron.
@@ -131,6 +133,19 @@ class PolyhedronFace(SageObject):
         self._ambient_Vrepresentation = tuple( polyhedron.Vrepresentation(i) for i in V_indices )
         self._ambient_Hrepresentation = tuple( polyhedron.Hrepresentation(i) for i in H_indices )
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: P = Polyhedron([[0,0],[0,1],[23,3],[9,12]])
+            sage: list(map(hash, P.faces(1)))  # random
+            [2377119663630407734,
+             2377136578164722109,
+             5966674064902575359,
+             4795242501625591634]
+        """
+        return hash((self._polyhedron, self._ambient_Vrepresentation_indices))
+
     def vertex_generator(self):
         """
         Return a generator for the vertices of the face.
@@ -143,7 +158,7 @@ class PolyhedronFace(SageObject):
             A vertex at (0, 1)
             A vertex at (1, 0)
             sage: type(face.vertex_generator())
-            <type 'generator'>
+            <... 'generator'>
         """
         for V in self.ambient_Vrepresentation():
             if V.is_vertex():
@@ -175,7 +190,7 @@ class PolyhedronFace(SageObject):
 
             sage: pi = Polyhedron(ieqs = [[1,1,0],[1,0,1]])
             sage: face = pi.faces(1)[0]
-            sage: face.ray_generator().next()
+            sage: next(face.ray_generator())
             A ray in the direction (1, 0)
         """
         for V in self.ambient_Vrepresentation():
@@ -208,7 +223,7 @@ class PolyhedronFace(SageObject):
 
             sage: pr = Polyhedron(rays = [[1,0],[-1,0],[0,1]], vertices = [[-1,-1]])
             sage: face = pr.faces(1)[0]
-            sage: face.line_generator().next()
+            sage: next(face.line_generator())
             A line in the direction (1, 0)
         """
         for V in self.ambient_Vrepresentation():
@@ -232,7 +247,7 @@ class PolyhedronFace(SageObject):
         """
         return tuple(self.line_generator())
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare ``self`` and ``other``.
 
@@ -248,20 +263,22 @@ class PolyhedronFace(SageObject):
 
         EXAMPLES::
 
-            sage: square = polytopes.n_cube(2)
+            sage: square = polytopes.hypercube(2)
             sage: f = square.faces(1)
-            sage: matrix(4,4, lambda i,j: cmp(f[i], f[j]))
-            [ 0 -1 -1 -1]
-            [ 1  0 -1 -1]
-            [ 1  1  0 -1]
-            [ 1  1  1  0]
+            sage: matrix(4,4, lambda i,j: ZZ(f[i] <= f[j]))
+            [1 1 1 1]
+            [0 1 1 1]
+            [0 0 1 1]
+            [0 0 0 1]
+            sage: matrix(4,4, lambda i,j: ZZ(f[i] == f[j])) == 1
+            True
         """
         if not isinstance(other, PolyhedronFace):
-            return -1
+            return NotImplemented
         if self._polyhedron is not other._polyhedron:
-            return -1
-        return cmp(self._ambient_Vrepresentation_indices,
-                   other._ambient_Vrepresentation_indices)
+            return NotImplemented
+        return richcmp(self._ambient_Vrepresentation_indices,
+                       other._ambient_Vrepresentation_indices, op)
 
     def ambient_Hrepresentation(self, index=None):
         r"""
@@ -284,9 +301,9 @@ class PolyhedronFace(SageObject):
 
         EXAMPLES::
 
-            sage: square = polytopes.n_cube(2)
+            sage: square = polytopes.hypercube(2)
             sage: for face in square.face_lattice():
-            ...       print face.ambient_Hrepresentation()
+            ....:     print(face.ambient_Hrepresentation())
             (An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0,
              An inequality (-1, 0) x + 1 >= 0, An inequality (0, -1) x + 1 >= 0)
             (An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0)
@@ -325,10 +342,9 @@ class PolyhedronFace(SageObject):
 
         EXAMPLES::
 
-            sage: square = polytopes.n_cube(2)
+            sage: square = polytopes.hypercube(2)
             sage: for fl in square.face_lattice():
-            ...       print fl.ambient_Vrepresentation()
-            ...
+            ....:     print(fl.ambient_Vrepresentation())
             ()
             (A vertex at (-1, -1),)
             (A vertex at (-1, 1),)
@@ -444,7 +460,7 @@ class PolyhedronFace(SageObject):
 
         EXAMPLES::
 
-            sage: square = polytopes.n_cube(2)
+            sage: square = polytopes.hypercube(2)
             sage: a_face = list( square.face_lattice() )[8]
             sage: a_face.__repr__()
             '<1,3>'

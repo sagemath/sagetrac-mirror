@@ -15,6 +15,10 @@ A Sage extension which adds sage-specific features:
 
   - ``%mode`` (like ``%maxima``, etc.)
 
+  - ``%%cython``
+
+  - ``%%fortran``
+
 * preparsing of input
 
 * loading Sage library
@@ -31,7 +35,7 @@ We test that preparsing is off for ``%runfile``, on for ``%time``::
 
     sage: import os, re
     sage: from sage.repl.interpreter import get_test_shell
-    sage: from sage.misc.misc import tmp_dir
+    sage: from sage.misc.all import tmp_dir
     sage: shell = get_test_shell()
     sage: TMP = tmp_dir()
 
@@ -42,7 +46,7 @@ preparsed when calling ``%runfile`` ::
     sage: bool(re.search('/[0-9]+/', TMP))
     True
     sage: tmp = os.path.join(TMP, 'run_cell.py')
-    sage: f = open(tmp, 'w'); f.write('a = 2\n'); f.close()
+    sage: f = open(tmp, 'w'); _ = f.write('a = 2\n'); f.close()
     sage: shell.run_cell('%runfile '+tmp)
     sage: shell.run_cell('a')
     2
@@ -53,13 +57,15 @@ In contrast, input to the ``%time`` magic command is preparsed::
     CPU times: user ...
     Wall time: ...
     2 * 3^3 * 11
+    sage: shell.quit()
 """
+from __future__ import absolute_import
 
-from IPython.core.magic import Magics, magics_class, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic, cell_magic
 
-import sage.misc.preparser as preparser
-
+from sage.repl.load import load_wrap
 from sage.env import SAGE_IMPORTALL, SAGE_STARTUP_FILE
+from sage.misc.lazy_import import LazyImport
 
 @magics_class
 class SageMagics(Magics):
@@ -81,6 +87,7 @@ class SageMagics(Magics):
             PROFILE: interrupts/evictions/bytes = ...
             Using local file ...
             Using local file ...
+            sage: shell.quit()
         """
         import sage.misc.gperftools
         sage.misc.gperftools.crun(s, evaluator=self.shell.ex)
@@ -99,15 +106,16 @@ class SageMagics(Magics):
 
             sage: import os
             sage: from sage.repl.interpreter import get_test_shell
-            sage: from sage.misc.misc import tmp_dir
+            sage: from sage.misc.all import tmp_dir
             sage: shell = get_test_shell()
             sage: tmp = os.path.join(tmp_dir(), 'run_cell.py')
-            sage: f = open(tmp, 'w'); f.write('a = 2\n'); f.close()
+            sage: f = open(tmp, 'w'); _ = f.write('a = 2\n'); f.close()
             sage: shell.run_cell('%runfile '+tmp)
             sage: shell.run_cell('a')
             2
+            sage: shell.quit()
         """
-        return self.shell.ex(preparser.load_wrap(s, attach=False))
+        return self.shell.ex(load_wrap(s, attach=False))
 
     @line_magic
     def attach(self, s):
@@ -125,20 +133,19 @@ class SageMagics(Magics):
             sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: tmp = os.path.normpath(os.path.join(SAGE_TMP, 'run_cell.py'))
-            sage: f = open(tmp, 'w'); f.write('a = 2\n'); f.close()
+            sage: f = open(tmp, 'w'); _ = f.write('a = 2\n'); f.close()
             sage: shell.run_cell('%attach ' + tmp)
             sage: shell.run_cell('a')
             2
             sage: sleep(1)  # filesystem timestamp granularity
-            sage: f = open(tmp, 'w'); f.write('a = 3\n'); f.close()
+            sage: f = open(tmp, 'w'); _ = f.write('a = 3\n'); f.close()
 
         Note that the doctests are never really at the command prompt, so
         we call the input hook manually::
 
-            sage: shell.run_cell('from sage.repl.inputhook import sage_inputhook')
-            sage: shell.run_cell('sage_inputhook()')
+            sage: shell.run_cell('from sage.repl.attach import reload_attached_files_if_modified')
+            sage: shell.run_cell('reload_attached_files_if_modified()')
             ### reloading attached file run_cell.py modified at ... ###
-            0
 
             sage: shell.run_cell('a')
             3
@@ -146,8 +153,9 @@ class SageMagics(Magics):
             sage: shell.run_cell('attached_files()')
             []
             sage: os.remove(tmp)
+            sage: shell.quit()
         """
-        return self.shell.ex(preparser.load_wrap(s, attach=True))
+        return self.shell.ex(load_wrap(s, attach=True))
 
     @line_magic
     def iload(self, args):
@@ -215,7 +223,8 @@ class SageMagics(Magics):
 
         Then when you want return in 'textual mode'::
 
-            sage: shell.run_cell('%display simple')
+            sage: shell.run_cell('%display text plain')
+            sage: shell.run_cell('%display plain')        # shortcut for "text plain"
             sage: shell.run_cell('sum(i^2*x^i, i, 0, 10)')
             100*x^10 + 81*x^9 + 64*x^8 + 49*x^7 + 36*x^6 + 25*x^5 + 16*x^4 + 9*x^3 + 4*x^2 + x
 
@@ -225,14 +234,14 @@ class SageMagics(Magics):
             sage: shell.run_cell('%display ascii_art')
             sage: shell.run_cell('StandardTableaux(4).list()')
             [
-            [                                                                  1  4    1  3
-            [                 1  3  4    1  2  4    1  2  3    1  3    1  2    2       2
-            [   1  2  3  4,   2      ,   3      ,   4      ,   2  4,   3  4,   3   ,   4
+            [                                                                  1  4
+            [                 1  3  4    1  2  4    1  2  3    1  3    1  2    2
+            [   1  2  3  4,   2      ,   3      ,   4      ,   2  4,   3  4,   3   ,
             <BLANKLINE>
-                        1 ]
-                1  2    2 ]
-                3       3 ]
-            ,   4   ,   4 ]
+                               1 ]
+               1  3    1  2    2 ]
+               2       3       3 ]
+               4   ,   4   ,   4 ]
             sage: shell.run_cell('%display ascii_art 50')
             sage: shell.run_cell('StandardTableaux(4).list()')
             [
@@ -248,44 +257,160 @@ class SageMagics(Magics):
         As yet another option, typeset mode. This is used in the emacs
         interface::
 
-            sage: shell.run_cell('%display typeset')
+            sage: shell.run_cell('%display text latex')
             sage: shell.run_cell('1/2')
-            <html><script type="math/tex">...\frac{1}{2}</script></html>
+            \newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{2}
 
         Switch back::
 
-            sage: shell.run_cell('%display simple')
+            sage: shell.run_cell('%display default')
+
+        Switch graphics to default to vector or raster graphics file
+        formats::
+
+            sage: shell.run_cell('%display graphics vector')
 
         TESTS::
 
             sage: shell.run_cell('%display invalid_mode')
-            ---------------------------------------------------------------------------
-            ValueError                                Traceback (most recent call last)
-            ...
-            ValueError: invalid mode set
+            value must be unset (None) or one of ('plain', 'ascii_art', 'unicode_art', 'latex'), got invalid_mode
+            sage: shell.quit()
         """
+        from sage.repl.rich_output import get_display_manager
+        dm = get_display_manager()
         args = args.strip().split()
         if not args:
-            # toggle
-            self._magic_display_status = ('ascii_art' if
-                    self._magic_display_status == 'simple' else 'simple')
-        else:
-            mode = args[0]
-            self._magic_display_status = mode
-
-        if self._magic_display_status == 'ascii_art' and len(args) > 1:
+            print(dm.preferences)
+            return
+        arg0 = args[0]
+        # deprecated values
+        if arg0 == 'simple':
+            dm.preferences.text = 'plain'
+        elif arg0 == 'typeset':
+            dm.preferences.text = 'latex'
+        elif arg0 in ['ascii_art', 'unicode_art'] and len(args) > 1:
             try:
                 max_width = int(args[1])
             except ValueError:
                 max_width = 0
             if max_width <= 0:
                 raise ValueError(
-                        "ascii_art max width must be a positive integer")
-            import sage.misc.ascii_art as ascii_art
-            ascii_art.MAX_WIDTH = max_width
+                        "max width must be a positive integer")
+            import sage.typeset.character_art as character_art
+            character_art.MAX_WIDTH = max_width
+            dm.preferences.text = arg0
+        # Unset all
+        elif arg0 in ['default', 'None']:  # un-stringify "%display None"
+            for option in map(str, dm.preferences.available_options()):
+                delattr(dm.preferences, option)
+        # Normal argument handling
+        elif arg0 in map(str, dm.preferences.available_options()) and len(args) <= 2:
+            if len(args) == 1:
+                # "%display text" => get current value
+                print(getattr(dm.preferences, arg0))
+            else:
+                # "%display text latex" => set new value
+                assert len(args) == 2
+                if args[1] in ['default', 'None']:
+                    delattr(dm.preferences, arg0)
+                else:
+                    try:
+                        setattr(dm.preferences, arg0, args[1])
+                    except ValueError as err:
+                        print(err)  # do not show traceback
+        # If all else fails: assume text
+        else:
+            try:
+                dm.preferences.text = arg0
+            except ValueError as err:
+                print(err)  # do not show traceback
 
-        self.shell.display_formatter.formatters['text/plain'].set_display(
-                self._magic_display_status)
+    @cell_magic
+    def cython(self, line, cell):
+        """
+        Cython cell magic
+
+        This is syntactic sugar on the
+        :func:`~sage.misc.cython.cython_compile` function.
+
+        INPUT:
+
+        - ``line`` -- ignored.
+
+        - ``cell`` -- string. The Cython source code to process.
+
+        OUTPUT:
+
+        None. The Cython code is compiled and loaded.
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('''
+            ....: %%cython
+            ....: def f():
+            ....:     print('test')
+            ....: ''')
+            ....: shell.run_cell('f()')
+        """
+        from sage.misc.cython import cython_compile
+        return cython_compile(cell)
+
+    @cell_magic
+    def fortran(self, line, cell):
+        """
+        Fortran cell magic.
+
+        This is syntactic sugar on the
+        :func:`~sage.misc.inline_fortran.fortran` function.
+
+        INPUT:
+
+        - ``line`` -- ignored.
+
+        - ``cell`` -- string. The Cython source code to process.
+
+        OUTPUT:
+
+        None. The Fortran code is compiled and loaded.
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('''
+            ....: %%fortran
+            ....: C FILE: FIB1.F
+            ....:       SUBROUTINE FIB(A,N)
+            ....: C
+            ....: C     CALCULATE FIRST N FIBONACCI NUMBERS
+            ....: C
+            ....:       INTEGER N
+            ....:       REAL*8 A(N)
+            ....:       DO I=1,N
+            ....:          IF (I.EQ.1) THEN
+            ....:             A(I) = 0.0D0
+            ....:          ELSEIF (I.EQ.2) THEN
+            ....:             A(I) = 1.0D0
+            ....:          ELSE
+            ....:             A(I) = A(I-1) + A(I-2)
+            ....:          ENDIF
+            ....:       ENDDO
+            ....:       END
+            ....: C END FILE FIB1.F
+            ....: ''')
+            sage: fib
+            <fortran object>
+            sage: from numpy import array
+            sage: a = array(range(10), dtype=float)
+            sage: fib(a, 10)
+            sage: a
+            array([  0.,   1.,   1.,   2.,   3.,   5.,   8.,  13.,  21.,  34.])
+        """
+        from sage.misc.inline_fortran import fortran
+        return fortran(cell)
+
 
 class SageCustomizations(object):
 
@@ -298,18 +423,11 @@ class SageCustomizations(object):
         self.auto_magics = SageMagics(shell)
         self.shell.register_magics(self.auto_magics)
 
-        import sage.repl.display.formatter as formatter
-        self.shell.display_formatter.formatters['text/plain'] = (
-                formatter.SageConsoleTextFormatter(config=shell.config))
-
         import sage.misc.edit_module as edit_module
         self.shell.set_hook('editor', edit_module.edit_devel)
 
         self.init_inspector()
         self.init_line_transforms()
-
-        import inputhook
-        inputhook.install()
 
         import sage.all # until sage's import hell is fixed
 
@@ -321,31 +439,12 @@ class SageCustomizations(object):
         if SAGE_IMPORTALL == 'yes':
             self.init_environment()
 
-
     def register_interface_magics(self):
         """
         Register magics for each of the Sage interfaces
         """
-        from sage.misc.superseded import deprecation
-        import sage.interfaces.all
-        interfaces = [(name, obj)
-                      for name, obj in sage.interfaces.all.__dict__.items()
-                      if isinstance(obj, sage.interfaces.interface.Interface)]
-
-        for real_name, obj in interfaces:
-            def tmp(line, name=real_name):
-                self.shell.run_cell('%s.interact()' % name)
-            tmp.__doc__ = "Interact with %s" % real_name
-            self.shell.register_magic_function(tmp, magic_name=real_name)
-
-            obj_name = obj.name()
-            if real_name != obj_name:
-                def tmp_deprecated(line, name=real_name, badname=obj_name):
-                    deprecation(6288, 'Use %%%s instead of %%%s.' % (name,
-                                                                     badname))
-                    self.shell.run_cell('%s.interact()' % name)
-                tmp_deprecated.__doc__ = "Interact with %s" % real_name
-                self.shell.register_magic_function(tmp_deprecated, magic_name=obj_name)
+        from sage.repl.interface_magic import InterfaceMagic
+        InterfaceMagic.register_all(self.shell)
 
     def set_quit_hook(self):
         """
@@ -357,14 +456,28 @@ class SageCustomizations(object):
         import atexit
         atexit.register(quit)
 
+    @staticmethod
+    def all_globals():
+        """
+        Return a Python module containing all globals which should be
+        made available to the user.
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_extension import SageCustomizations
+            sage: SageCustomizations.all_globals()
+            <module 'sage.all_cmdline' ...>
+        """
+        from sage import all_cmdline
+        return all_cmdline
+
     def init_environment(self):
         """
         Set up Sage command-line environment
         """
         # import outside of cell so we don't get a traceback
-        import sage.all_cmdline as sage
-        self.shell.user_ns.update((key, getattr(sage, key))
-                for key in dir(sage) if key[0] != '_')
+        from sage.repl.user_globals import initialize_globals
+        initialize_globals(self.all_globals(), self.shell.user_ns)
         self.run_init()
 
     def run_init(self):
@@ -382,23 +495,40 @@ class SageCustomizations(object):
         # that we could override; however, IPython looks them up in
         # the global :class:`IPython.core.oinspect` module namespace.
         # Thus, we have to monkey-patch.
-        import sage.misc.sagedoc as sagedoc
-        import sage.misc.sageinspect as sageinspect
         import IPython.core.oinspect
-        IPython.core.oinspect.getdoc = sageinspect.sage_getdoc
-        IPython.core.oinspect.getsource = sagedoc.my_getsource
-        IPython.core.oinspect.getargspec = sageinspect.sage_getargspec
+        IPython.core.oinspect.getdoc = LazyImport("sage.misc.sageinspect", "sage_getdoc")
+        IPython.core.oinspect.getsource = LazyImport("sage.misc.sagedoc", "my_getsource")
+        IPython.core.oinspect.find_file = LazyImport("sage.misc.sageinspect", "sage_getfile")
+        IPython.core.oinspect.getargspec = LazyImport("sage.misc.sageinspect", "sage_getargspec")
 
     def init_line_transforms(self):
         """
         Set up transforms (like the preparser).
         """
-        from interpreter import (SagePreparseTransformer,
+        from .interpreter import (SagePreparseTransformer,
                                  SagePromptTransformer)
 
         for s in (self.shell.input_splitter, self.shell.input_transformer_manager):
             s.physical_line_transforms.insert(1, SagePromptTransformer())
             s.python_line_transforms.append(SagePreparseTransformer())
+
+
+class SageJupyterCustomizations(SageCustomizations):
+    @staticmethod
+    def all_globals():
+        """
+        Return a Python module containing all globals which should be
+        made available to the user when running the Jupyter notebook.
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_extension import SageJupyterCustomizations
+            sage: SageJupyterCustomizations.all_globals()
+            <module 'sage.repl.ipython_kernel.all_jupyter' ...>
+        """
+        from .ipython_kernel import all_jupyter
+        return all_jupyter
+
 
 # from http://stackoverflow.com/questions/4103773/efficient-way-of-having-a-function-only-execute-once-in-a-loop
 from functools import wraps
@@ -408,7 +538,7 @@ def run_once(func):
 
     The running can be reset by setting the ``has_run`` attribute to False
 
-    TEST::
+    TESTS::
 
         sage: from sage.repl.ipython_extension import run_once
         sage: @run_once

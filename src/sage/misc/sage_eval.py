@@ -10,8 +10,10 @@ Evaluating a String in Sage
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import absolute_import, division
+import six
 from copy import copy
-import preparser
+import sage.repl.preparse as preparser
 
 def sage_eval(source, locals=None, cmds='', preparse=True):
     r"""
@@ -90,9 +92,11 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
     ::
 
         sage: x = 5
-        sage: eval('4/3 + x', {'x':25})
+        sage: eval('4/3 + x', {'x': 25})  # py2
         26
-        sage: sage_eval('4/3 + x',  locals={'x':25})
+        sage: eval('4//3 + x', {'x': 25})  # py3
+        26
+        sage: sage_eval('4/3 + x',  locals={'x': 25})
         79/3
 
     You can also specify a sequence of commands to be run before the
@@ -177,7 +181,7 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
             locals = copy(source[2])
         source = source[1]
 
-    if not isinstance(source, basestring):
+    if not isinstance(source, six.string_types):
         raise TypeError("source must be a string.")
 
     if locals is None:

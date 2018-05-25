@@ -1,13 +1,18 @@
+from __future__ import absolute_import
+
+
 class bar:
     pass
+
 
 def metaclass(name, bases):
     """
     Creates a new class in this metaclass
 
-    INPUT::
-     - name: a string
-     - bases: a tuple of classes
+    INPUT:
+
+    - name -- a string
+    - bases -- a tuple of classes
 
     EXAMPLES::
 
@@ -19,7 +24,7 @@ def metaclass(name, bases):
         sage: type(c)
         <class 'sage.misc.test_class_pickling.Metaclass'>
         sage: c.__bases__
-        (<type 'object'>, <class sage.misc.test_class_pickling.bar at ...>)
+        (<... 'object'>, <class sage.misc.test_class_pickling.bar at ...>)
 
     """
     print("constructing class")
@@ -33,16 +38,17 @@ class Metaclass(type):
     It requires a slightly patched version of cPickle.
 
     See:
-     - http://docs.python.org/library/copy_reg.html#module-copy_reg
-     - http://groups.google.com/group/comp.lang.python/browse_thread/thread/66c282afc04aa39c/
-     - http://groups.google.com/group/sage-devel/browse_thread/thread/583048dc7d373d6a/
+
+    - https://docs.python.org/3/library/copyreg.html#module-copyreg
+    - http://groups.google.com/group/comp.lang.python/browse_thread/thread/66c282afc04aa39c/
+    - http://groups.google.com/group/sage-devel/browse_thread/thread/583048dc7d373d6a/
 
     EXAMPLES::
 
         sage: from sage.misc.test_class_pickling import metaclass, bar
         sage: c = metaclass("foo", (object, bar,))
         constructing class
-        sage: import cPickle
+        sage: from six.moves import cPickle
         sage: s = cPickle.dumps(c)
         reducing a class
         sage: c2 = cPickle.loads(s)
@@ -53,11 +59,11 @@ class Metaclass(type):
     """
     def __eq__(self, other):
         print("calling __eq__ defined in Metaclass")
-        return (isinstance(self, type(other))) and (self.reduce_args == other.reduce_args)
+        return (type(self) is type(other)) and (self.reduce_args == other.reduce_args)
 
     def __reduce__(self):
         """
-        Implements the pickle protocol for classes in this metaclass
+        Implement the pickle protocol for classes in this metaclass
         (not for the instances of this class!!!)
 
         EXAMPLES::
@@ -67,11 +73,11 @@ class Metaclass(type):
             constructing class
             sage: c.__class__.__reduce__(c)
             reducing a class
-            (<function metaclass at ...>, ('foo3', (<type 'object'>, <class sage.misc.test_class_pickling.bar at ...>)))
+            (<function metaclass at ...>, ('foo3', (<... 'object'>, <class sage.misc.test_class_pickling.bar at ...>)))
         """
         print("reducing a class")
         return (metaclass, self.reduce_args)
 
 
-import copy_reg
-copy_reg.pickle(Metaclass, Metaclass.__reduce__)
+from six.moves import copyreg
+copyreg.pickle(Metaclass, Metaclass.__reduce__)

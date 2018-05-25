@@ -250,7 +250,7 @@ Zeit, die der Aufruf benötigt, ausgegeben nachdem er gelaufen ist.
 Zum Beispiel können wir die Laufzeit einer bestimmten Potenzierung auf
 verschiedene Arten vergleichen. Die unten genannte Laufzeit wird unter
 Umständen weit von der Laufzeit auf Ihrem Computer oder sogar zwischen
-verschiedenen Sage Versionen abweichen. Zuerst natives Python:
+verschiedenen SageMath Versionen abweichen. Zuerst natives Python:
 
 .. skip
 
@@ -758,13 +758,13 @@ oder Betriebssystemen wieder geladen werden. Zum Beispiel können Sie
 eine riesige Matrix auf einem 32 Bit Mac OS X speichern und später auf
 einem 64 Bit Linux System laden, dort die Stufenform herstellen und dann
 wieder zurückladen. Außerdem können Sie in den meisten Fällen auch Objekte
-laden, die mit anderen Sage Versionen gespeichert wurden, solange der Quelltext
+laden, die mit anderen SageMath Versionen gespeichert wurden, solange der Quelltext
 des Objekts nicht zu verschieden ist. Alle Attribute eines Objekts werden zusammen
 mit seiner Klasse (aber nicht dem Quellcode) gespeichert. Sollte diese Klasse
-in einer neueren Sage Version nicht mehr existieren, kann das Objekt in dieser
-neueren Sage Version nicht mehr geladen werden. Aber Sie könnten es in der alten
-Sage Version laden, die Objekt Dictionaries mit ``x.__dict__`` laden und das Objekt
-zusammen mit diesem in der neuen Sage Version laden.
+in einer neueren SageMath Version nicht mehr existieren, kann das Objekt in dieser
+neueren SageMath Version nicht mehr geladen werden. Aber Sie könnten es in der alten
+SageMath Version laden, die Objekt Dictionaries mit ``x.__dict__`` laden und das Objekt
+zusammen mit diesem in der neuen SageMath Version laden.
 
 Als Text speichern
 ------------------
@@ -875,6 +875,20 @@ Variable ``b`` wurde nicht überschrieben.
 Die Notebook Umgebung
 =====================
 
+Folgendes beschreibt das alte Sage Browser Notebook,
+auch "sagenb" genannt.  Für weiteres siehe bitte
+`hier <https://doc.sagemath.org/html/en/reference/notebook/index.html>`_.
+SageMath wird demnächst die `Jupyter notebook
+<http://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_
+als Hauptnotebookoption verwenden.  Der wichtigste
+Unterschied hier liegt darin, dass die einzelnen Worksheet-Dateien
+nicht auf einem Server wohnen, sondern werden wie in üblichen
+Anwendungen gespeichert.
+
+
+Altes SageNB Notebook
+----------------------
+
 Das Sage Browser Notebook wird mit
 
 .. skip
@@ -885,7 +899,7 @@ Das Sage Browser Notebook wird mit
 
 in der Sage Kommandozeile gestartet. Der Befehl startet das Sage
 Notebook und ebenso Ihren Standardbrowser. Die Serverstatus-Dateien
-liegen unter ``$HOME/.sage/sage\_notebook``.
+liegen unter ``$HOME/.sage/sage\_notebook.sagenb``.
 
 Die andere Optionen enthalten z.B.
 
@@ -896,29 +910,42 @@ Die andere Optionen enthalten z.B.
     sage: notebook("Verzeichnis")
 
 was einen neuen Notebook Server mit den Dateien aus dem angegebenen Verzeichnis
-startet (anstelle des Standardverzeichnises ``$HOME/.sage/sage_notebook``).
+``Verzeichnis.sagenb``
+startet (anstelle des Standardverzeichnises ``$HOME/.sage/sage_notebook.sagenb``).
 Das kann hilfreich sein, wenn Sie einige Worksheets für ein Projekt oder
 verschiedene gleichzeitig laufende Notebook Server von einander trennen wollen.
 
 Wenn Sie das Notebook starten, werden zuerst die folgenden Dateien erzeugt
-in ``$HOME/.sage/sage_notebook``:
+in ``$HOME/.sage/sage_notebook.sagenb``:
 
 ::
 
-    nb.sobj       (Die notebook SAGE Objekt Datei)
-    objects/      (Ein Verzeichnis, das SAGE Objekte enthält)
-    Worksheets/   (Ein Verzeichnis das SAGE Worksheets enthält).
+    conf.pickle
+    openid.pickle
+    twistedconf.tac
+    sagenb.pid
+    users.pickle
+    home/admin/ (Das Verzeichnis für den Hauptbenutzer)
+    home/guest/ (Ein Verzeichnis für Gäste)
+    home/pub/ (Ein Verzeichnis für veröffentlichte Worksheets)
 
 Nach dem Anlegen dieser Dateien, startet das notebook als Webserver.
 
 Ein "Notebook" ist eine Sammlung von Benutzerkonten, von dem jedes
 verschiedene Worksheets enthalten kann. Wenn Sie ein neues Worksheet
 erstellen, werden alle zugehörigen Daten unter
-``Worksheets/username/number`` gespeichert. In jedem solchen
-Verzeichnis ist eine Klartextdatei namens ``Worksheet.txt`` - sollte
+``home/benutzer/nummer`` gespeichert. In jedem solchen
+Verzeichnis ist eine Klartextdatei namens ``worksheet.html`` - sollte
 mit Ihren Worksheets oder Sage irgendetwas Unvorhergesehenes
 passieren, enthält diese Datei alles was Sie benötigen um Ihre
-Worksheets wiederherzustellen.
+Worksheets wiederherzustellen.  Das Verzeichnis enthält:
+
+::
+
+    cells/
+    worksheet.html
+    data/
+    worksheet_conf.pickle
 
 Innerhalb von Sage können Sie mit ``notebook?`` mehr Informationen zum Start eines
 Notebook-Servers erhalten.
@@ -950,7 +977,7 @@ Das folgende Diagramm veranschaulicht die Architektur eines Sage Notebooks.
     ----------------------                    .
 
 Um Hilfe zu einem Sage-Befehl ``befehl`` im Notebook-Browser zu bekommen
-geben Sie ``befehl?`` ein und drücken Sie ``<esc>`` (nicht ``<shift-enter>``).
+geben Sie ``befehl?`` ein und drücken Sie ``<tab>`` (nicht ``<shift-enter>``).
 
 Für Informationen zu Tastenbefehlen des Notebook-Browsers klicken Sie auf
 den ``Help`` Link.

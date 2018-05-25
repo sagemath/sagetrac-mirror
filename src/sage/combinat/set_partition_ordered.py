@@ -24,13 +24,14 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import add_metaclass
 
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 import sage.rings.integer
-from sage.sets.set import Set, is_Set
+from sage.sets.set import Set, Set_generic
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.misc.classcall_metaclass import ClasscallMetaclass
-from sage.misc.misc import prod
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.misc.all import prod
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
@@ -41,6 +42,7 @@ import sage.combinat.permutation as permutation
 from functools import reduce
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class OrderedSetPartition(ClonableArray):
     """
     An ordered partition of a set.
@@ -63,9 +65,9 @@ class OrderedSetPartition(ClonableArray):
     known as the `n`-th ordered Bell number; see
     :wikipedia:`Ordered Bell number`). Its exponential generating
     function is
-    
+
     .. MATH::
-    
+
         \sum_n {T_n \over n!} x^n = {1 \over 2-e^x}.
 
     (See sequence A000670 in OEIS.)
@@ -126,8 +128,6 @@ class OrderedSetPartition(ClonableArray):
 
     :wikipedia:`Ordered_partition_of_a_set`
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, parts):
         """
@@ -159,7 +159,7 @@ class OrderedSetPartition(ClonableArray):
             sage: s = OS([[1, 3], [2, 4]])
             sage: TestSuite(s).run()
         """
-        ClonableArray.__init__(self, parent, map(Set, s))
+        ClonableArray.__init__(self, parent, [Set(_) for _ in s])
 
     def check(self):
         """
@@ -189,9 +189,9 @@ class OrderedSetPartition(ClonableArray):
             sage: y.to_composition()
             [2, 1, 2]
         """
-        return Composition(map(len, self))
+        return Composition([len(_) for _ in self])
 
-class OrderedSetPartitions(Parent, UniqueRepresentation):
+class OrderedSetPartitions(UniqueRepresentation, Parent):
     """
     Return the combinatorial class of ordered set partitions of ``s``.
 
@@ -308,7 +308,7 @@ class OrderedSetPartitions(Parent, UniqueRepresentation):
         TESTS::
 
             sage: OS = OrderedSetPartitions([1,2,3,4])
-            sage: all([sp in OS for sp in OS])
+            sage: all(sp in OS for sp in OS)
             True
         """
         #x must be a list
@@ -324,7 +324,7 @@ class OrderedSetPartitions(Parent, UniqueRepresentation):
         #is a set
         u = Set([])
         for s in x:
-            if not isinstance(s, (set, frozenset)) and not is_Set(s):
+            if not isinstance(s, (set, frozenset, Set_generic)):
                 return False
             u = u.union(s)
 
@@ -409,7 +409,7 @@ class OrderedSetPartitions_sn(OrderedSetPartitions):
         TESTS::
 
             sage: OS = OrderedSetPartitions([1,2,3,4], 2)
-            sage: all([sp in OS for sp in OS])
+            sage: all(sp in OS for sp in OS)
             True
             sage: OS.cardinality()
             14
@@ -494,14 +494,14 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
         TESTS::
 
             sage: OS = OrderedSetPartitions([1,2,3,4], [2,1,1])
-            sage: all([ sp in OS for sp in OS])
+            sage: all(sp in OS for sp in OS)
             True
             sage: OS.cardinality()
             12
             sage: len(filter(lambda x: x in OS, OrderedSetPartitions([1,2,3,4])))
             12
         """
-        return OrderedSetPartitions.__contains__(self, x) and map(len, x) == self.c
+        return OrderedSetPartitions.__contains__(self, x) and [len(_) for _ in x] == self.c
 
     def cardinality(self):
         r"""
@@ -596,12 +596,12 @@ class SplitNK(OrderedSetPartitions_scomp):
 
         TESTS::
 
-            sage: loads("x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+.\xc8\xc9,"
-            ....:   "\x89\xcf\xcb\xe6\n\x061\xfc\xbcA\xccBF\xcd\xc6B\xa6\xda"
-            ....:   "Bf\x8dP\xa6\xf8\xbcB\x16\x88\x96\xa2\xcc\xbc\xf4b\xbd\xcc"
-            ....:   "\xbc\x92\xd4\xf4\xd4\"\xae\xdc\xc4\xec\xd4x\x18\xa7\x905"
-            ....:   "\x94\xd1\xb45\xa8\x90\r\xa8>\xbb\x90=\x03\xc85\x02r9J\x93"
-            ....:   "\xf4\x00\xb4\xc6%f")
+            sage: loads(b"x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+.\xc8\xc9,"
+            ....:   b"\x89\xcf\xcb\xe6\n\x061\xfc\xbcA\xccBF\xcd\xc6B\xa6\xda"
+            ....:   b"Bf\x8dP\xa6\xf8\xbcB\x16\x88\x96\xa2\xcc\xbc\xf4b\xbd\xcc"
+            ....:   b"\xbc\x92\xd4\xf4\xd4\"\xae\xdc\xc4\xec\xd4x\x18\xa7\x905"
+            ....:   b"\x94\xd1\xb45\xa8\x90\r\xa8>\xbb\x90=\x03\xc85\x02r9J\x93"
+            ....:   b"\xf4\x00\xb4\xc6%f")
             Ordered set partitions of {0, 1, 2, 3, 4} into parts of size [2, 3]
         """
         self.__class__ = OrderedSetPartitions_scomp

@@ -49,6 +49,25 @@ which is anyway set to raise an error::
     Traceback (most recent call last):
     ...
     RuntimeError: Maxima interface in library mode can only be instantiated once
+
+Changed besselexpand to true in init_code -- automatically simplify bessel functions to trig functions when appropriate when true. Examples:
+
+For some infinite sums, a closed expression can be found. By default, "maxima" is used for that::
+
+    sage: x,n,k = var("x","n","k")
+    sage: sum((-x)^n/(factorial(n)*factorial(n+3/2)),n,0,oo)
+    -1/2*(2*x*cos(2*sqrt(x)) - sqrt(x)*sin(2*sqrt(x)))/(sqrt(pi)*x^2)
+
+Maxima has some flags that affect how the result gets simplified (By default, besselexpand is false in Maxima; however in 5.39 this test does not show any difference, as, apparently, another expansion path is used)::
+
+    sage: maxima_calculus("besselexpand:false")
+    false
+    sage: x,n,k = var("x","n","k")
+    sage: sum((-x)^n/(factorial(n)*factorial(n+3/2)),n,0,oo)
+    -1/2*(2*x*cos(2*sqrt(x)) - sqrt(x)*sin(2*sqrt(x)))/(sqrt(pi)*x^2)
+    sage: maxima_calculus("besselexpand:true")
+    true
+
 """
 
 #*****************************************************************************
@@ -65,18 +84,22 @@ which is anyway set to raise an error::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
+from six import string_types
 
-from sage.symbolic.ring import SR, var
+from sage.symbolic.ring import SR
 
-from sage.libs.ecl import *
+from sage.libs.ecl import EclObject, ecl_eval
 
-from maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
-  MaximaAbstractElement, MaximaAbstractFunctionElement,
-  MaximaAbstractElementFunction)
+from .maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
+    MaximaAbstractElement, MaximaAbstractFunctionElement,
+    MaximaAbstractElementFunction)
+from sage.docs.instancedoc import instancedoc
+
 
 ## We begin here by initializing Maxima in library mode
 ## i.e. loading it into ECL
-ecl_eval("(setf *compile-verbose* NIL)")
 ecl_eval("(setf *load-verbose* NIL)")
 ecl_eval("(require 'maxima)")
 ecl_eval("(in-package :maxima)")
@@ -89,7 +112,7 @@ ecl_eval('(defun principal nil (cond ($noprincipal (diverg)) ((not pcprntd) (mer
 ecl_eval("(remprop 'mfactorial 'grind)") # don't use ! for factorials (#11539)
 ecl_eval("(setf $errormsg nil)")
 
-# the following is a direct adaption of the definition of "retrieve"
+# the following is a direct adaptation of the definition of "retrieve"
 # in the Maxima file macsys.lisp. This routine is normally responsible
 # for displaying a question and returning the answer. We change it to
 # throw an error in which the text of the question is included. We do
@@ -140,9 +163,11 @@ ecl_eval("(setf *standard-output* *dev-null*)")
 ## Default options set in Maxima
 # display2d -- no ascii art output
 # keepfloat -- don't automatically convert floats to rationals
-init_code = ['display2d : false', 'domain : complex', 'keepfloat : true',
+
+init_code = ['besselexpand : true', 'display2d : false', 'domain : complex', 'keepfloat : true',
             'load(to_poly_solve)', 'load(simplify_sum)',
-            'load(abs_integrate)']
+            'load(abs_integrate)', 'load(diag)']
+
 
 # Turn off the prompt labels, since computing them *very
 # dramatically* slows down the maxima interpret after a while.
@@ -208,6 +233,8 @@ cadadr=EclObject("CADADR")
 max_integrate=EclObject("$INTEGRATE")
 max_sum=EclObject("$SUM")
 max_simplify_sum=EclObject("$SIMPLIFY_SUM")
+max_prod=EclObject("$PRODUCT")
+max_simplify_prod=EclObject("$SIMPLIFY_PRODUCT")
 max_ratsimp=EclObject("$RATSIMP")
 max_limit=EclObject("$LIMIT")
 max_tlimit=EclObject("$TLIMIT")
@@ -427,7 +454,7 @@ class MaximaLib(MaximaAbstract):
                 statement = line[:ind_dollar]
                 line = line[ind_dollar+1:]
                 if statement:
-                    _ = maxima_eval("#$%s$"%statement)
+                    maxima_eval("#$%s$" % statement)
         if not reformat:
             return result
         return ''.join([x.strip() for x in result.split()])
@@ -478,7 +505,7 @@ class MaximaLib(MaximaAbstract):
             sage: maxima_lib.get('xxxxx')
             '2'
         """
-        if not isinstance(value, str):
+        if not isinstance(value, string_types):
             raise TypeError
         cmd = '%s : %s$'%(var, value.rstrip(';'))
         self.eval(cmd)
@@ -593,7 +620,7 @@ class MaximaLib(MaximaAbstract):
 
             sage: from sage.interfaces.maxima_lib import maxima_lib
             sage: maxima_lib._function_class()
-            <class 'sage.interfaces.maxima_lib.MaximaLibFunction'>
+            <class 'sage.interfaces.interface.InterfaceFunction'>
         """
         return MaximaLibFunction
 
@@ -625,7 +652,7 @@ class MaximaLib(MaximaAbstract):
 
             sage: from sage.interfaces.maxima_lib import maxima_lib
             sage: maxima_lib._function_element_class()
-            <class 'sage.interfaces.maxima_lib.MaximaLibFunctionElement'>
+            <class 'sage.interfaces.interface.InterfaceFunctionElement'>
         """
         return MaximaLibFunctionElement
 
@@ -697,9 +724,10 @@ class MaximaLib(MaximaAbstract):
             sage: integrate(sgn(x) - sgn(1-x), x)
             abs(x - 1) + abs(x)
 
-        ::
+        This is a known bug in Sage symbolic limits code, see
+        :trac:`17892` and https://sourceforge.net/p/maxima/bugs/3237/ ::
 
-            sage: integrate(1 / (1 + abs(x-5)), x, -5, 6)
+            sage: integrate(1 / (1 + abs(x-5)), x, -5, 6) # not tested -- known bug
             log(11) + log(2)
 
         ::
@@ -730,7 +758,7 @@ class MaximaLib(MaximaAbstract):
 
         ::
 
-            sage: integrate(sqrt(x + sqrt(x)), x).simplify_radical()
+            sage: integrate(sqrt(x + sqrt(x)), x).canonicalize_radical()
             1/12*((8*x - 3)*x^(1/4) + 2*x^(3/4))*sqrt(sqrt(x) + 1) + 1/8*log(sqrt(sqrt(x) + 1) + x^(1/4)) - 1/8*log(sqrt(sqrt(x) + 1) - x^(1/4))
 
         And :trac:`11594`::
@@ -758,7 +786,7 @@ class MaximaLib(MaximaAbstract):
             all
             sage: g = integrate(f, x); g
             2/3*sqrt(x^3 + 1) - 1/3*log(sqrt(x^3 + 1) + 1) + 1/3*log(sqrt(x^3 + 1) - 1)
-            sage: (f - g.diff(x)).simplify_radical()
+            sage: (f - g.diff(x)).canonicalize_radical()
             0
             sage: maxima('radexpand: true')
             true
@@ -795,7 +823,7 @@ class MaximaLib(MaximaAbstract):
         Check that :trac:`16224` is fixed::
 
             sage: k = var('k')
-            sage: sum(x^(2*k)/factorial(2*k), k, 0, oo).simplify_radical()
+            sage: sum(x^(2*k)/factorial(2*k), k, 0, oo).canonicalize_radical()
             cosh(x)
 
         ::
@@ -857,6 +885,7 @@ class MaximaLib(MaximaAbstract):
             Traceback (most recent call last):
             ...
             RuntimeError: ECL says: Error executing code in Maxima: Zero to negative power computed.
+
         """
         try:
             return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_sum],([max_sum],[sr_to_max(SR(a)) for a in args])]]));
@@ -872,7 +901,33 @@ class MaximaLib(MaximaAbstract):
             else:
                 raise
 
-    def sr_limit(self,expr,v,a,dir=None):
+    def sr_prod(self,*args):
+        """
+        Helper function to wrap calculus use of Maxima's product.
+
+        TESTS::
+
+            sage: from sage.calculus.calculus import symbolic_product
+            sage: _ = var('n')
+            sage: symbolic_product(x,x,1,n)
+            factorial(n)
+            sage: symbolic_product(2*x,x,1,n)
+            2^n*factorial(n)
+
+        """
+        try:
+            return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_prod],([max_prod],[sr_to_max(SR(a)) for a in args])]]));
+        except RuntimeError as error:
+            s = str(error)
+            if "divergent" in s:
+                raise ValueError("Product is divergent.")
+            elif "Is" in s: # Maxima asked for a condition
+                self._missing_assumption(s)
+            else:
+                raise
+
+
+    def sr_limit(self, expr, v, a, dir=None):
         """
         Helper function to wrap calculus use of Maxima's limits.
 
@@ -937,12 +992,12 @@ class MaximaLib(MaximaAbstract):
 
         """
         try:
-            L=[sr_to_max(SR(a)) for a in [expr,v,a]]
+            L = [sr_to_max(SR(aa)) for aa in [expr, v, a]]
             if dir == "plus":
                 L.append(max_plus)
             elif dir == "minus":
                 L.append(max_minus)
-            return max_to_sr(maxima_eval(([max_limit],L)))
+            return max_to_sr(maxima_eval(([max_limit], L)))
         except RuntimeError as error:
             s = str(error)
             if "Is" in s: # Maxima asked for a condition
@@ -950,7 +1005,7 @@ class MaximaLib(MaximaAbstract):
             else:
                 raise
 
-    def sr_tlimit(self,expr,v,a,dir=None):
+    def sr_tlimit(self, expr, v, a, dir=None):
         """
         Helper function to wrap calculus use of Maxima's Taylor series limits.
 
@@ -960,20 +1015,20 @@ class MaximaLib(MaximaAbstract):
             sage: limit(f, x = I, taylor=True)
             (-I + 1)^I
         """
-        L=[sr_to_max(SR(a)) for a in [expr,v,a]]
+        L = [sr_to_max(SR(aa)) for aa in [expr, v, a]]
         if dir == "plus":
             L.append(max_plus)
         elif dir == "minus":
             L.append(max_minus)
-        return max_to_sr(maxima_eval(([max_tlimit],L)))
-    
+        return max_to_sr(maxima_eval(([max_tlimit], L)))
+
     def _missing_assumption(self,errstr):
         """
         Helper function for unified handling of failed computation because an
         assumption was missing.
         
         EXAMPLES::
-        
+
             sage: from sage.interfaces.maxima_lib import maxima_lib
             sage: maxima_lib._missing_assumption('Is xyz a thing?')
             Traceback (most recent call last):
@@ -1008,6 +1063,8 @@ def is_MaximaLibElement(x):
     """
     return isinstance(x, MaximaLibElement)
 
+
+@instancedoc
 class MaximaLibElement(MaximaAbstractElement):
     r"""
     Element of Maxima through library interface.
@@ -1064,7 +1121,7 @@ class MaximaLibElement(MaximaAbstractElement):
             sage: from sage.interfaces.maxima_lib import maxima_lib
             sage: sol = maxima_lib(sin(x) == 0).to_poly_solve(x)
             sage: sol.sage()
-            [[x == pi*z54]]
+            [[x == pi*z...]]
         """
         if options.find("use_grobner=true") != -1:
             cmd=EclObject([[max_to_poly_solve], self.ecl(), sr_to_max(vars),
@@ -1105,19 +1162,15 @@ class MaximaLibElement(MaximaAbstractElement):
         # if ever want to dedent, see
         # http://mail.python.org/pipermail/python-list/2006-December/420033.html
         if onscreen:
-            print s
+            print(s)
         else:
             return s
 
 
-class MaximaLibFunctionElement(MaximaAbstractFunctionElement):
-    pass
+MaximaLibFunctionElement = MaximaAbstractFunctionElement
+MaximaLibFunction = MaximaAbstractFunction
 
-
-class MaximaLibFunction(MaximaAbstractFunction):
-    pass
-
-
+@instancedoc
 class MaximaLibElementFunction(MaximaLibElement, MaximaAbstractElementFunction):
     pass
 
@@ -1146,11 +1199,8 @@ def reduce_load_MaximaLib():
 
 import sage.rings.real_double
 import sage.symbolic.expression
-import sage.functions.trig
-import sage.functions.log
-import sage.functions.other
 import sage.symbolic.integration.integral
-from sage.symbolic.operators import FDerivativeOperator
+from sage.symbolic.operators import FDerivativeOperator, add_vararg, mul_vararg
 
 car=EclObject("car")
 cdr=EclObject("cdr")
@@ -1167,14 +1217,14 @@ lisp_length=EclObject("length")
 ## Dictionaries for standard operators
 sage_op_dict = {
     sage.functions.other.abs : "MABS",
-    sage.symbolic.expression.operator.add : "MPLUS",
-    sage.symbolic.expression.operator.div : "MQUOTIENT",
+    add_vararg : "MPLUS",
+    sage.symbolic.expression.operator.truediv : "MQUOTIENT",
     sage.symbolic.expression.operator.eq : "MEQUAL",
     sage.symbolic.expression.operator.ge : "MGEQP",
     sage.symbolic.expression.operator.gt : "MGREATERP",
     sage.symbolic.expression.operator.le : "MLEQP",
     sage.symbolic.expression.operator.lt : "MLESSP",
-    sage.symbolic.expression.operator.mul : "MTIMES",
+    mul_vararg : "MTIMES",
     sage.symbolic.expression.operator.ne : "MNOTEQUAL",
     sage.symbolic.expression.operator.neg : "MMINUS",
     sage.symbolic.expression.operator.pow : "MEXPT",
@@ -1184,8 +1234,8 @@ sage_op_dict = {
     sage.functions.log.log : "%LOG",
     sage.functions.log.lambert_w : "%LAMBERT_W",
     sage.functions.other.factorial : "MFACTORIAL",
-    sage.functions.other.erf : "%ERF",
-    sage.functions.other.gamma_inc : "%GAMMA_INCOMPLETE",
+    sage.functions.error.erf : "%ERF",
+    sage.functions.gamma.gamma_inc : "%GAMMA_INCOMPLETE",
 }
 #we compile the dictionary
 sage_op_dict = dict([(k,EclObject(sage_op_dict[k])) for k in sage_op_dict])
@@ -1193,47 +1243,6 @@ max_op_dict = dict([(sage_op_dict[k],k) for k in sage_op_dict])
 
 
 ## Here we correct the dictionaries for some simple operators
-def add_vararg(*args):
-    r"""
-    Addition of a variable number of arguments.
-
-    INPUT:
-
-    - ``args`` - arguments to add
-
-    OUTPUT: sum of arguments
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.maxima_lib import add_vararg
-        sage: add_vararg(1,2,3,4,5,6,7)
-        28
-    """
-    S=0
-    for a in args:
-        S=S+a
-    return S
-
-def mul_vararg(*args):
-    r"""
-    Multiplication of a variable number of arguments.
-
-    INPUT:
-
-    - ``args`` - arguments to multiply
-
-    OUTPUT: product of arguments
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.maxima_lib import mul_vararg
-        sage: mul_vararg(9,8,7,6,5,4)
-        60480
-    """
-    P=1
-    for a in args:
-        P=P*a
-    return P
 
 def sage_rat(x,y):
     r"""
@@ -1273,6 +1282,7 @@ max_hyper = EclObject("$%F")
 max_array = EclObject("ARRAY")
 mdiff = EclObject("%DERIVATIVE")
 max_lambert_w = sage_op_dict[sage.functions.log.lambert_w]
+max_harmo = EclObject("$GEN_HARMONIC_NUMBER")
 
 def mrat_to_sage(expr):
     r"""
@@ -1324,13 +1334,13 @@ def mqapply_to_sage(expr):
         sage: c.ecl()
         <ECL: ((MQAPPLY SIMP) (($LI SIMP ARRAY) 2) 3)>
         sage: mqapply_to_sage(c.ecl())
-        polylog(2, 3)
+        dilog(3)
     """
     if caaadr(expr) == max_li:
         return sage.functions.log.polylog(max_to_sr(cadadr(expr)),
                                           max_to_sr(caddr(expr)))
     if caaadr(expr) == max_psi:
-        return sage.functions.other.psi(max_to_sr(cadadr(expr)),
+        return sage.functions.gamma.psi(max_to_sr(cadadr(expr)),
                                         max_to_sr(caddr(expr)))
     if caaadr(expr) == max_hyper:
         return sage.functions.hypergeometric.hypergeometric(mlist_to_sage(car(cdr(cdr(expr)))),
@@ -1359,7 +1369,7 @@ def mdiff_to_sage(expr):
         sage: f.ecl()
         <ECL: ((%DERIVATIVE SIMP) (($F SIMP) $X) $X 4)>
         sage: mdiff_to_sage(f.ecl())
-        D[0, 0, 0, 0](f)(x)
+        diff(f(x), x, x, x, x)
     """
     return max_to_sr(expr.cadr()).diff(*[max_to_sr(e) for e in expr.cddr()])
 
@@ -1454,6 +1464,20 @@ def dummy_integrate(expr):
         return sage.symbolic.integration.integral.indefinite_integral(*args,
                                                                   hold=True)
 
+def max_harmonic_to_sage(expr):
+    """
+    EXAMPLES::
+
+        sage: from sage.interfaces.maxima_lib import maxima_lib, max_to_sr
+        sage: c=maxima_lib(harmonic_number(x,2))
+        sage: c.ecl()
+        <ECL: (($GEN_HARMONIC_NUMBER SIMP) 2 |$_SAGE_VAR_x|)>
+        sage: max_to_sr(c.ecl())
+        harmonic_number(x, 2)
+    """
+    return sage.functions.log.harmonic_number(max_to_sr(caddr(expr)),
+                                              max_to_sr(cadr(expr)))
+
 ## The dictionaries
 special_max_to_sage={
     mrat : mrat_to_sage,
@@ -1461,14 +1485,16 @@ special_max_to_sage={
     mdiff : mdiff_to_sage,
     EclObject("%INTEGRATE") : dummy_integrate,
     max_at : max_at_to_sage,
-    mlist : mlist_to_sage
+    mlist : mlist_to_sage,
+    max_harmo : max_harmonic_to_sage
 }
 
 special_sage_to_max={
     sage.functions.log.polylog : lambda N,X : [[mqapply],[[max_li, max_array],N],X],
-    sage.functions.other.psi1 : lambda X : [[mqapply],[[max_psi, max_array],0],X],
-    sage.functions.other.psi2 : lambda N,X : [[mqapply],[[max_psi, max_array],N],X],
+    sage.functions.gamma.psi1 : lambda X : [[mqapply],[[max_psi, max_array],0],X],
+    sage.functions.gamma.psi2 : lambda N,X : [[mqapply],[[max_psi, max_array],N],X],
     sage.functions.log.lambert_w : lambda N,X : [[max_lambert_w], X] if N==EclObject(0) else [[mqapply],[[max_lambert_w, max_array],N],X],
+    sage.functions.log.harmonic_number : lambda N,X : [[max_harmo],X,N],
     sage.functions.hypergeometric.hypergeometric : lambda A, B, X : [[mqapply],[[max_hyper, max_array],lisp_length(A.cdr()),lisp_length(B.cdr())],A,B,X]
 }
 
@@ -1536,7 +1562,7 @@ def sr_to_max(expr):
         <ECL: $X>
         sage: sr_to_max(cos(x))
         <ECL: ((%COS) $X)>
-        sage: f = function('f',x)
+        sage: f = function('f')(x)
         sage: sr_to_max(f.diff())
         <ECL: ((%DERIVATIVE) (($F) $X) $X 1)>
 
@@ -1573,8 +1599,8 @@ def sr_to_max(expr):
                 # temporary variable e.g. `t0` and then evaluate the
                 # derivative f'(t0) symbolically at t0=1. See trac
                 # #12796.
-                temp_args=[var("t%s"%i) for i in range(len(args))]
-                f =sr_to_max(op.function()(*temp_args))
+                temp_args = [SR.var("t%s"%i) for i in range(len(args))]
+                f = sr_to_max(op.function()(*temp_args))
                 params = op.parameter_set()
                 deriv_max = [[mdiff],f]
                 for i in set(params):
@@ -1607,7 +1633,7 @@ def sr_to_max(expr):
             max_op_dict[op_max]=op
         return EclObject(([sage_op_dict[op]],
                      [sr_to_max(o) for o in expr.operands()]))
-    elif expr.is_symbol() or expr.is_constant():
+    elif expr.is_symbol() or expr._is_registered_constant_():
         if not expr in sage_sym_dict:
             sym_max=maxima(expr).ecl()
             sage_sym_dict[expr]=sym_max
@@ -1620,7 +1646,8 @@ def sr_to_max(expr):
             return maxima(expr).ecl()
 
 # This goes from EclObject to SR
-max_to_pynac_table = sage.symbolic.pynac.symbol_table['maxima']
+from sage.libs.pynac.pynac import symbol_table
+max_to_pynac_table = symbol_table['maxima']
 
 
 def max_to_sr(expr):
@@ -1645,7 +1672,7 @@ def max_to_sr(expr):
     TESTS::
 
         sage: from sage.interfaces.maxima_lib import sr_to_max, max_to_sr
-        sage: f = function('f',x).diff()
+        sage: f = function('f')(x).diff()
         sage: bool(max_to_sr(sr_to_max(f)) == f)
         True
     """

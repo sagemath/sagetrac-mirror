@@ -1,6 +1,5 @@
 .. _linear_programming:
 
-
 Linear Programming (Mixed Integer)
 ==================================
 
@@ -15,7 +14,6 @@ constraints.
 
 This is a translation of a chapter from the book
 `Calcul mathematique avec Sage <http://sagebook.gforge.inria.fr>`_.
-
 
 Definition
 ----------
@@ -48,10 +46,10 @@ Maximum Matching problem, and a Flow problem.
 Mixed integer linear programming
 --------------------------------
 
-There is a bad news coming along with this definition of linear
-programming: an LP can be solved in polynomial time. This is indeed a
+There are bad news coming along with this definition of linear
+programming: an LP can be solved in polynomial time. This is indeed
 bad news, because this would mean that unless we define LP of
-exponential size, we can not expect LP to solve NP-complete problems,
+exponential size, we cannot expect LP to solve NP-complete problems,
 which would be a disappointment. On a brighter side, it becomes
 NP-complete to solve a linear program if we are allowed to specify
 constraints of a different kind: requiring that some variables be
@@ -135,7 +133,7 @@ Variables
 ^^^^^^^^^
 
 In the previous example, we obtained variables through ``v['x']``, ``v['y']``
-and ``v['z']``. This being said, larger LP/MILP will require us to associate a
+and ``v['z']``. This being said, larger LP/MILP will require us to associate an
 LP variable to many Sage objects, which can be integers, strings, or even the
 vertices and edges of a graph. For example:
 
@@ -186,7 +184,7 @@ method. Alternatively, call the ``set_integer`` and ``set_binary`` methods.
 **Bounds :** If you want your variables to only take nonnegative values, you can
 say so when calling ``new_variable`` with the argument ``nonnegative=True``. If
 you want to set a different upper/lower bound on a variable, add a constraint or
-use the use the ``set_min``, ``set_max`` methods.
+use the ``set_min``, ``set_max`` methods.
 
 Basic linear programs
 ---------------------
@@ -239,8 +237,8 @@ Using Sage, we will give to our items a random weight::
 
     sage: set_random_seed(685474)
     sage: for o in L:
-    ...       weight[o] = random()
-    ...       usefulness[o] = random()
+    ....:     weight[o] = random()
+    ....:     usefulness[o] = random()
 
 We can now define the MILP itself
 
@@ -321,7 +319,7 @@ the matching, which is a linear constraint. We will be solving:
 
 .. MATH::
     \text{Max: } & \sum_{e \in E(G)} m_e\\
-    \text{Such that: } & \forall v, \sum_{e \in E(G) \atop v \sim e} m_e \leq 1
+    \text{Such that: } & \forall v, \sum_{\substack{e \in E(G) \\ v \sim e}} m_e \leq 1
 
 Let us write the Sage code of this MILP::
 
@@ -340,8 +338,8 @@ Let us write the Sage code of this MILP::
 ::
 
     sage: for v in g:
-    ...       p.add_constraint(sum(matching[e]
-    ...           for e in g.edges_incident(v, labels=False)) <= 1)
+    ....:     p.add_constraint(sum(matching[e]
+    ....:         for e in g.edges_incident(v, labels=False)) <= 1)
 
 .. link
 
@@ -355,7 +353,7 @@ Let us write the Sage code of this MILP::
 ::
 
     sage: matching = p.get_values(matching)
-    sage: [e for e,b in matching.iteritems() if b == 1]  # not tested
+    sage: [e for e, b in matching.items() if b == 1]  # not tested
     [(0, 1), (6, 9), (2, 7), (3, 4), (5, 8)]
 
 
@@ -387,7 +385,7 @@ following LP
 
 .. MATH::
     \text{Max: } & \sum_{sv \in G} f_{sv}\\
-    \text{Such that: } & \forall v \in G, {v \neq s \atop v \neq t}, \sum_{vu \in G} f_{vu} - \sum_{uv \in G} f_{uv} = 0\\
+    \text{Such that: } & \forall v \in G, {\substack{v \neq s \\ v \neq t}}, \sum_{vu \in G} f_{vu} - \sum_{uv \in G} f_{uv} = 0\\
     & \forall uv \in G, f_{uv} \leq 1\\
 
 We will solve the flow problem on an orientation of Chvatal's
@@ -409,17 +407,17 @@ graph, in which all the edges have a capacity of 1::
 ::
 
     sage: for v in g:
-    ...       if v != s and v != t:
-    ...           p.add_constraint(
-    ...               sum(f[(v,u)] for u in g.neighbors_out(v))
-    ...               - sum(f[(u,v)] for u in g.neighbors_in(v)) == 0)
+    ....:     if v != s and v != t:
+    ....:         p.add_constraint(
+    ....:             sum(f[(v,u)] for u in g.neighbors_out(v))
+    ....:             - sum(f[(u,v)] for u in g.neighbors_in(v)) == 0)
 
 .. link
 
 ::
 
     sage: for e in g.edges(labels=False):
-    ...       p.add_constraint(f[e] <= 1)
+    ....:     p.add_constraint(f[e] <= 1)
 
 .. link
 
@@ -431,7 +429,7 @@ graph, in which all the edges have a capacity of 1::
 
 ::
 
-    sage: p.solve()  # rel tol 2e-12
+    sage: p.solve()  # rel tol 2e-11
     2.0
 
 .. image:: media/lp_flot2.png
@@ -448,7 +446,8 @@ following libraries are currently supported:
   `COIN-OR <http://www.coin-or.org/>`_
 
   Provided under the open source license CPL, but incompatible with
-  GPL. CBC can be installed through the command ``install_package("cbc")``.
+  GPL. CBC can be installed using the shell command
+  ``sage -i cbc sagelib``.
 
 * `CPLEX
   <http://www-01.ibm.com/software/integration/optimization/cplex/>`_:
@@ -537,6 +536,6 @@ create symbolic links to these files in the appropriate directories:
 ** be precisely as indicated. If the names differ, Sage will not notice that**
 **the files are present**
 
-Once this is done, Sage is to be asked to notice the changes by calling::
+Once this is done, Sage is to be asked to notice the changes by running::
 
-    sage -b
+    make

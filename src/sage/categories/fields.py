@@ -91,17 +91,31 @@ class Fields(CategoryWithAxiom):
             sage: GR in Fields()
             True
 
-        The following tests against a memory leak fixed in :trac:`13370`::
+        The following tests against a memory leak fixed in :trac:`13370`. In order
+        to prevent non-deterministic deallocation of fields that have been created
+        in other doctests, we introduced a strong reference to all previously created
+        uncollected objects in :trac:`19244`. ::
 
             sage: import gc
             sage: _ = gc.collect()
-            sage: n = len([X for X in gc.get_objects() if isinstance(X, sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic)])
+            sage: permstore = [X for X in gc.get_objects() if isinstance(X, sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic)]
+            sage: n = len(permstore)
             sage: for i in prime_range(100):
-            ...     R = ZZ.quotient(i)
-            ...     t = R in Fields()
+            ....:     R = ZZ.quotient(i)
+            ....:     t = R in Fields()
+
+        First, we show that there are now more quotient rings in cache than before::
+
+            sage: len([X for X in gc.get_objects() if isinstance(X, sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic)]) > n
+            True
+
+        When we delete the last quotient ring created in the loop and then do a garbage
+        collection, all newly created rings vanish::
+
+            sage: del R
             sage: _ = gc.collect()
             sage: len([X for X in gc.get_objects() if isinstance(X, sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic)]) - n
-            1
+            0
 
         """
         try:
@@ -126,7 +140,8 @@ class Fields(CategoryWithAxiom):
             sage: P.<x> = QQ[]
             sage: Q = P.quotient(x^2+2)
             sage: Q.category()
-            Join of Category of commutative algebras over Rational Field and Category of subquotients of monoids and Category of quotients of semigroups
+            Category of commutative no zero divisors quotients
+            of algebras over Rational Field
             sage: F = Fields()
             sage: F._contains_helper(Q)
             False
@@ -198,6 +213,175 @@ class Fields(CategoryWithAxiom):
                 True
             """
             return True
+
+        def _gcd_univariate_polynomial(self, a, b):
+            """
+            Return the gcd of ``a`` and ``b`` as a monic polynomial.
+
+            INPUT:
+
+            - ``a``, ``b`` -- two univariate polynomials defined over ``self``
+
+            .. WARNING::
+
+                If the base ring is inexact, the results may not be
+                entirely stable.
+
+            EXAMPLES::
+
+                sage: R.<x> = QQbar[]
+                sage: QQbar._gcd_univariate_polynomial(2*x, 2*x^2)
+                x
+
+            TESTS::
+
+                sage: for A in (RR, CC, QQbar):
+                ....:     g = A._gcd_univariate_polynomial
+                ....:     R.<x> = A[]
+                ....:     z = R.zero()
+                ....:     assert(g(2*x, 2*x^2) == x and
+                ....:            g(z, 2*x) == x and
+                ....:            g(2*x, z) == x and
+                ....:            g(z, z) == z)
+
+                sage: R.<x> = RR[]
+                sage: (x^3).gcd(x^5+1)
+                1.00000000000000
+                sage: (x^3).gcd(x^5+x^2)
+                x^2
+                sage: f = (x+3)^2 * (x-1)
+                sage: g = (x+3)^5
+                sage: f.gcd(g)
+                x^2 + 6.00000000000000*x + 9.00000000000000
+
+            The following example illustrates the fact that for inexact
+            base rings, the returned gcd is often 1 due to rounding::
+
+                sage: f = (x+RR.pi())^2 * (x-1)
+                sage: g = (x+RR.pi())^5
+                sage: f.gcd(g)
+                1.00000000000000
+
+            Check :trac:`23012`::
+
+                sage: R.<x> = QQ[]
+                sage: Q = R.quotient(x^2-1)   # Not a field
+                sage: P.<x> = Q[]
+                sage: def always_True(*args, **kwds): return True
+                sage: Q.is_field = always_True
+                sage: Q in Fields()
+                True
+                sage: Q._gcd_univariate_polynomial(x, x)
+                x
+            """
+            while b:
+                q, r = a.quo_rem(b)
+                a, b = b, r
+            if a:
+                a = a.monic()
+            return a
+
+        def _xgcd_univariate_polynomial(self, a, b):
+            """
+            Return an extended gcd of ``a`` and ``b``.
+
+            INPUT:
+
+            - ``a``, ``b`` -- two univariate polynomials defined over ``self``
+
+            OUTPUT:
+
+            A tuple ``(d, u, v)`` of polynomials such that ``d`` is the
+            greatest common divisor (monic or zero) of ``a`` and ``b``,
+            and ``u``, ``v`` satisfy ``d = u*a + v*b``.
+
+            .. WARNING::
+
+                If the base ring is inexact, the results may not be
+                entirely stable.
+
+            ALGORITHM:
+
+            This uses the extended Euclidean algorithm; see for example
+            [Cohen1996]_, Algorithm 3.2.2.
+
+            REFERENCES:
+
+            .. [Cohen1996] \H. Cohen, A Course in Computational Algebraic
+               Number Theory.  Graduate Texts in Mathematics 138.
+               Springer-Verlag, 1996.
+
+            EXAMPLES::
+
+                sage: P.<x> = QQ[]
+                sage: F = (x^2 + 2)*x^3; G = (x^2+2)*(x-3)
+                sage: g, u, v = QQ._xgcd_univariate_polynomial(F,G)
+                sage: g, u, v
+                (x^2 + 2, 1/27, -1/27*x^2 - 1/9*x - 1/3)
+                sage: u*F + v*G
+                x^2 + 2
+
+            ::
+
+                sage: g, u, v = QQ._xgcd_univariate_polynomial(x,P(0)); g, u, v
+                (x, 1, 0)
+                sage: g == u*x + v*P(0)
+                True
+                sage: g, u, v = QQ._xgcd_univariate_polynomial(P(0),x); g, u, v
+                (x, 0, 1)
+                sage: g == u*P(0) + v*x
+                True
+
+            TESTS::
+
+                sage: for A in (RR, CC, QQbar):
+                ....:     g = A._xgcd_univariate_polynomial
+                ....:     R.<x> = A[]
+                ....:     z, h = R(0), R(1/2)
+                ....:     assert(g(2*x, 2*x^2) == (x, h, z) and
+                ....:            g(z, 2*x) == (x, z, h) and
+                ....:            g(2*x, z) == (x, h, z) and
+                ....:            g(z, z) == (z, z, z))
+
+                sage: P.<x> = QQ[]
+                sage: F = (x^2 + 2)*x^3; G = (x^2+2)*(x-3)
+                sage: g, u, v = QQ._xgcd_univariate_polynomial(F,G)
+                sage: g, u, v
+                (x^2 + 2, 1/27, -1/27*x^2 - 1/9*x - 1/3)
+                sage: u*F + v*G
+                x^2 + 2
+
+            We check that the behavior of xgcd with zero elements is
+            compatible with gcd (:trac:`17671`)::
+
+                sage: R.<x> = QQbar[]
+                sage: zero = R.zero()
+                sage: zero.xgcd(2*x)
+                (x, 0, 1/2)
+                sage: (2*x).xgcd(zero)
+                (x, 1/2, 0)
+                sage: zero.xgcd(zero)
+                (0, 0, 0)
+            """
+            R = a.parent()
+            zero = R.zero()
+            if not b:
+                if not a:
+                    return (zero, zero, zero)
+                c = ~a.leading_coefficient()
+                return (c*a, R(c), zero)
+            elif not a:
+                c = ~b.leading_coefficient()
+                return (c*b, zero, R(c))
+            (u, d, v1, v3) = (R.one(), a, zero, b)
+            while v3:
+                q, r = d.quo_rem(v3)
+                (u, d, v1, v3) = (v1, v3, u - v1*q, r)
+            v = (d - a*u) // b
+            if d:
+                c = ~d.leading_coefficient()
+                d, u, v = c*d, c*u, c*v
+            return d, u, v
 
         def is_perfect(self):
             r"""
@@ -271,7 +455,7 @@ class Fields(CategoryWithAxiom):
             - ``f`` -- a univariate non-zero polynomial over this field
 
             ALGORITHM: For rings of characteristic zero, we use the algorithm
-            descriped in [Yun]_. Other fields may provide their own
+            described in [Yun1976]_. Other fields may provide their own
             implementation by overriding this method.
 
             EXAMPLES::
@@ -289,13 +473,6 @@ class Fields(CategoryWithAxiom):
                 sage: f = QQbar['x'](1)
                 sage: f.squarefree_decomposition()
                 1
-
-            REFERENCES:
-
-            .. [Yun] Yun, David YY. On square-free decomposition algorithms.
-               In Proceedings of the third ACM symposium on Symbolic and algebraic
-               computation, pp. 26-35. ACM, 1976.
-
             """
             from sage.structure.factorization import Factorization
             if f.degree() == 0:
@@ -328,7 +505,7 @@ class Fields(CategoryWithAxiom):
 
             return Factorization(factors, unit=unit, sort=False)
 
-        def __pow__(self, n):
+        def _pow_int(self, n):
             r"""
             Returns the vector space of dimension `n` over ``self``.
 
@@ -343,7 +520,7 @@ class Fields(CategoryWithAxiom):
     class ElementMethods:
         def euclidean_degree(self):
             r"""
-            Return the degree of this element as an element of a euclidean
+            Return the degree of this element as an element of an Euclidean
             domain.
 
             In a field, this returns 0 for all but the zero element (for
@@ -394,72 +571,74 @@ class Fields(CategoryWithAxiom):
         # Fields are unique factorization domains, so, there is gcd and lcm
         # Of course, in general gcd and lcm in a field are not very interesting.
         # However, they should be implemented!
+        @coerce_binop
         def gcd(self,other):
             """
             Greatest common divisor.
 
-            NOTE:
+            .. NOTE::
 
-            Since we are in a field and the greatest common divisor is
-            only determined up to a unit, it is correct to either return
-            zero or one. Note that fraction fields of unique factorization
-            domains provide a more sophisticated gcd.
+                Since we are in a field and the greatest common divisor is only
+                determined up to a unit, it is correct to either return zero or
+                one. Note that fraction fields of unique factorization domains
+                provide a more sophisticated gcd.
 
             EXAMPLES::
 
-                sage: GF(5)(1).gcd(GF(5)(1))
+                sage: K = GF(5)
+                sage: K(2).gcd(K(1))
                 1
-                sage: GF(5)(1).gcd(GF(5)(0))
-                1
-                sage: GF(5)(0).gcd(GF(5)(0))
+                sage: K(0).gcd(K(0))
                 0
+                sage: all(x.gcd(y) == (0 if x == 0 and y == 0 else 1) for x in K for y in K)
+                True
 
-            For fields of characteristic zero (i.e., containing the
-            integers as a sub-ring), evaluation in the integer ring is
-            attempted. This is for backwards compatibility::
+            For field of characteristic zero, the gcd of integers is considered
+            as if they were elements of the integer ring::
 
-                sage: gcd(6.0,8); gcd(6.0,8).parent()
-                2
-                Integer Ring
+                sage: gcd(15.0,12.0)
+                3.00000000000000
 
-            If this fails, we resort to the default we see above::
+            But for others floating point numbers, the gcd is just `0.0` or `1.0`::
 
-                sage: gcd(6.0*CC.0,8*CC.0); gcd(6.0*CC.0,8*CC.0).parent()
+                sage: gcd(3.2, 2.18)
                 1.00000000000000
-                Complex Field with 53 bits of precision
+
+                sage: gcd(0.0, 0.0)
+                0.000000000000000
 
             AUTHOR:
 
-            - Simon King (2011-02): Trac ticket #10771
-
+            - Simon King (2011-02) -- :trac:`10771`
+            - Vincent Delecroix (2015) -- :trac:`17671`
             """
             P = self.parent()
             try:
-                other = P(other)
-            except (TypeError, ValueError):
-                raise ArithmeticError("The second argument can not be interpreted in the parent of the first argument. Can't compute the gcd")
-            from sage.rings.integer_ring import ZZ
-            if ZZ.is_subring(P):
+                has_zero_char = P.characteristic() == 0
+            except (AttributeError, NotImplementedError):
+                has_zero_char = False
+            if has_zero_char:
+                from sage.rings.integer_ring import ZZ
                 try:
-                    return ZZ(self).gcd(ZZ(other))
+                    return P(ZZ(self).gcd(ZZ(other)))
                 except TypeError:
                     pass
-            # there is no custom gcd, so, we resort to something that always exists
-            # (that's new behaviour)
-            if self==0 and other==0:
+
+            if self == P.zero() and other == P.zero():
                 return P.zero()
             return P.one()
 
-        def lcm(self,other):
+        @coerce_binop
+        def lcm(self, other):
             """
             Least common multiple.
 
-            NOTE:
+            .. NOTE::
 
-            Since we are in a field and the least common multiple is
-            only determined up to a unit, it is correct to either return
-            zero or one. Note that fraction fields of unique factorization
-            domains provide a more sophisticated lcm.
+                Since we are in a field and the least common multiple is only
+                determined up to a unit, it is correct to either return zero or
+                one. Note that fraction fields of unique factorization domains
+                provide a more sophisticated lcm.
 
             EXAMPLES::
 
@@ -468,39 +647,38 @@ class Fields(CategoryWithAxiom):
                 sage: GF(2)(1).lcm(GF(2)(1))
                 1
 
-            If the field contains the integer ring, it is first
-            attempted to compute the gcd there::
+            For field of characteristic zero, the lcm of integers is considered
+            as if they were elements of the integer ring::
 
-                sage: lcm(15.0,12.0); lcm(15.0,12.0).parent()
-                60
-                Integer Ring
+                sage: lcm(15.0,12.0)
+                60.0000000000000
 
-            If this fails, we resort to the default we see above::
+            But for others floating point numbers, it is just `0.0` or `1.0`::
 
-                sage: lcm(6.0*CC.0,8*CC.0); lcm(6.0*CC.0,8*CC.0).parent()
+                sage: lcm(3.2, 2.18)
                 1.00000000000000
-                Complex Field with 53 bits of precision
-                sage: lcm(15.2,12.0)
-                1.00000000000000
+
+                sage: lcm(0.0, 0.0)
+                0.000000000000000
 
             AUTHOR:
 
-            - Simon King (2011-02): Trac ticket #10771
-
+            - Simon King (2011-02) -- :trac:`10771`
+            - Vincent Delecroix (2015) -- :trac:`17671`
             """
             P = self.parent()
             try:
-                other = P(other)
-            except (TypeError, ValueError):
-                raise ArithmeticError("The second argument can not be interpreted in the parent of the first argument. Can't compute the lcm")
-            from sage.rings.integer_ring import ZZ
-            if ZZ.is_subring(P):
+                has_zero_char = P.characteristic() == 0
+            except (AttributeError, NotImplementedError):
+                has_zero_char = False
+            if has_zero_char:
+                from sage.rings.integer_ring import ZZ
                 try:
-                    return ZZ(self).lcm(ZZ(other))
+                    return P(ZZ(self).lcm(ZZ(other)))
                 except TypeError:
                     pass
-            # there is no custom lcm, so, we resort to something that always exists
-            if self==0 or other==0:
+
+            if self.is_zero() or other.is_zero():
                 return P.zero()
             return P.one()
 
@@ -527,18 +705,66 @@ class Fields(CategoryWithAxiom):
 
             EXAMPLES::
 
-                sage: (1/2).xgcd(2)
-                (1, 2, 0)
-                sage: (0/2).xgcd(2)
-                (1, 0, 1/2)
-                sage: (0/2).xgcd(0)
+                sage: K = GF(5)
+                sage: K(2).xgcd(K(1))
+                (1, 3, 0)
+                sage: K(0).xgcd(K(4))
+                (1, 0, 4)
+                sage: K(1).xgcd(K(1))
+                (1, 1, 0)
+                sage: GF(5)(0).xgcd(GF(5)(0))
                 (0, 0, 0)
-            """
-            R = self.parent()
-            if not self.is_zero():
-                return (R.one(), ~self, R.zero())
-            if not other.is_zero():
-                return (R.one(), R.zero(), ~other)
-            # else both are 0
-            return (R.zero(), R.zero(), R.zero())
 
+            The xgcd of non-zero floating point numbers will be a triple of
+            floating points. But if the input are two integral floating points
+            the result is a floating point version of the standard gcd on
+            `\ZZ`::
+
+                sage: xgcd(12.0, 8.0)
+                (4.00000000000000, 1.00000000000000, -1.00000000000000)
+
+                sage: xgcd(3.1, 2.98714)
+                (1.00000000000000, 0.322580645161290, 0.000000000000000)
+
+                sage: xgcd(0.0, 1.1)
+                (1.00000000000000, 0.000000000000000, 0.909090909090909)
+            """
+            P = self.parent()
+            try:
+                has_zero_char = P.characteristic() == 0
+            except (AttributeError, NotImplementedError):
+                has_zero_char = False
+            if has_zero_char:
+                from sage.rings.integer_ring import ZZ
+                try:
+                    return tuple(P(x) for x in ZZ(self).xgcd(ZZ(other)))
+                except TypeError:
+                    pass
+
+            if not self.is_zero():
+                return (P.one(), ~self, P.zero())
+            if not other.is_zero():
+                return (P.one(), P.zero(), ~other)
+            # else both are 0
+            return (P.zero(), P.zero(), P.zero())
+
+        def factor(self):
+            """
+            Return a factorization of ``self``.
+
+            Since ``self`` is either a unit or zero, this function is trivial.
+
+            EXAMPLES::
+
+                sage: x = GF(7)(5)
+                sage: x.factor()
+                5
+                sage: RR(0).factor()
+                Traceback (most recent call last):
+                ...
+                ArithmeticError: factorization of 0.000000000000000 is not defined
+            """
+            if not self:
+                raise ArithmeticError("factorization of {!r} is not defined".format(self))
+            from sage.structure.factorization import Factorization
+            return Factorization([], self)  # No factor; "self" as unit

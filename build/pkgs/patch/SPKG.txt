@@ -17,10 +17,6 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
-== SPKG Maintainers ==
-
-David Kirkby. david.kirkby@onetel.net
-
 == Upstream Contact ==
 
 Main web site: http://savannah.gnu.org/projects/patch/
@@ -36,6 +32,3 @@ None
 
 In the event patches ever need to be made to this package, the method of
 applying the patches should not rely on the 'patch' existing on the system.
-
-Since bzip2 may (actually, does) depend on patch indirectly the patch
-tarball must be in gzip format.

@@ -35,12 +35,15 @@ Fedora
     ``sudo yum install git-core``
 
 Windows
-    Download and install `msysGit
-    <http://code.google.com/p/msysgit/downloads/list>`_
+    Download and install `Git for Windows
+    <https://github.com/git-for-windows/git/releases/latest>`_
 
 OS X
     Use the `git OSX installer
-    <http://code.google.com/p/git-osx-installer/downloads/list>`_
+    <https://sourceforge.net/projects/git-osx-installer/files/>`_.  If you
+    have an older Mac, be sure to get the correct version. (Alternately you
+    may get it from the Command Line Tools or even simply by attempting to
+    use ``git`` and then following instructions.)
 
 Finally, Sage includes git. Obviously there is a chicken-and-egg
 problem to checkout the Sage source code from its git repository, but

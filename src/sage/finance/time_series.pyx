@@ -18,7 +18,7 @@ algebraic structure and are always mutable.
 EXAMPLES::
 
     sage: set_random_seed(1)
-    sage: t = finance.TimeSeries([random()-0.5 for _ in xrange(10)]); t
+    sage: t = finance.TimeSeries([random()-0.5 for _ in range(10)]); t
     [0.3294, 0.0959, -0.0706, -0.4646, 0.4311, 0.2275, -0.3840, -0.3528, -0.4119, -0.2933]
     sage: t.sums()
     [0.3294, 0.4253, 0.3547, -0.1099, 0.3212, 0.5487, 0.1647, -0.1882, -0.6001, -0.8933]
@@ -36,24 +36,26 @@ AUTHOR:
 - William Stein
 """
 
-include "sage/ext/cdefs.pxi"
-include "sage/ext/stdsage.pxi"
-include "sage/ext/random.pxi"
-from cpython.slice cimport PySlice_Check
-from cpython.string cimport *
+#*****************************************************************************
+#       Copyright (C) 2008 William Stein <wstein@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+from __future__ import absolute_import
 
-cdef extern from "math.h":
-    double exp(double)
-    double floor(double)
-    double log(double)
-    double pow(double, double)
-    double sqrt(double)
-
-cdef extern from "string.h":
-    void* memcpy(void* dst, void* src, size_t len)
+from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AsString
+from libc.math cimport exp, floor, log, pow, sqrt
+from libc.string cimport memcpy
+from cysignals.memory cimport sig_malloc, sig_free
+from sage.structure.richcmp cimport rich_to_bool
 
 cimport numpy as cnumpy
 
+from sage.misc.randstate cimport randstate, current_randstate
 from sage.rings.integer import Integer
 from sage.rings.real_double import RDF
 from sage.modules.vector_real_double_dense cimport Vector_real_double_dense
@@ -128,8 +130,8 @@ cdef class TimeSeries:
         if isinstance(values, (int, long, Integer)):
             self._length = values
             values = None
-        elif PY_TYPE_CHECK(values, Vector_real_double_dense) or PY_TYPE_CHECK(values, cnumpy.ndarray):
-            if PY_TYPE_CHECK(values, Vector_real_double_dense):
+        elif isinstance(values, Vector_real_double_dense) or isinstance(values, cnumpy.ndarray):
+            if isinstance(values, Vector_real_double_dense):
                 np  = values._vector_numpy
             else:
                 np = values
@@ -145,7 +147,7 @@ cdef class TimeSeries:
             np = cnumpy.PyArray_GETCONTIGUOUS(np)
             np_data = <double*> cnumpy.PyArray_DATA(np)
             self._length = np.shape[0]
-            self._values = <double*> sage_malloc(sizeof(double) * self._length)
+            self._values = <double*> sig_malloc(sizeof(double) * self._length)
             if self._values == NULL:
                 raise MemoryError
 
@@ -155,7 +157,7 @@ cdef class TimeSeries:
             values = [float(x) for x in values]
             self._length = len(values)
 
-        self._values = <double*> sage_malloc(sizeof(double) * self._length)
+        self._values = <double*> sig_malloc(sizeof(double) * self._length)
         if self._values == NULL:
             raise MemoryError
         if not initialize: return
@@ -186,10 +188,10 @@ cdef class TimeSeries:
             sage: loads(dumps(v, compress=False),compress=False) == v
             True
         """
-        buf = PyString_FromStringAndSize(<char*>self._values, self._length*sizeof(double)/sizeof(char))
+        buf = PyBytes_FromStringAndSize(<char*>self._values, self._length*sizeof(double)/sizeof(char))
         return unpickle_time_series_v1, (buf, self._length)
 
-    def __cmp__(self, _other):
+    def __richcmp__(TimeSeries self, other, int op):
         """
         Compare ``self`` and ``other``.  This has the same semantics
         as list comparison.
@@ -206,22 +208,19 @@ cdef class TimeSeries:
             sage: w == w
             True
         """
-        cdef TimeSeries other
-        cdef Py_ssize_t c, i
+        cdef Py_ssize_t i
         cdef double d
-        if not isinstance(_other, TimeSeries):
-            _other = TimeSeries(_other)
-        other = _other
-        for i from 0 <= i < min(self._length, other._length):
-            d = self._values[i] - other._values[i]
+        if not isinstance(other, TimeSeries):
+            return NotImplemented
+        _other = <TimeSeries>other
+        for i in range(min(self._length, _other._length)):
+            d = self._values[i] - _other._values[i]
             if d:
-                return -1 if d < 0 else 1
-        c = self._length - other._length
-        if c < 0:
-            return -1
-        elif c > 0:
-            return 1
-        return 0
+                return rich_to_bool(op, -1 if d < 0 else 1)
+        c = self._length - _other._length
+        if c:
+            return rich_to_bool(op, -1 if c < 0 else 1)
+        return rich_to_bool(op, 0)
 
     def  __dealloc__(self):
         """
@@ -234,8 +233,7 @@ cdef class TimeSeries:
             sage: v = finance.TimeSeries([1,3,-4,5])
             sage: del v
         """
-        if self._values:
-            sage_free(self._values)
+        sig_free(self._values)
 
     def vector(self):
         """
@@ -381,7 +379,7 @@ cdef class TimeSeries:
         """
         cdef Py_ssize_t start, stop, step, j
         cdef TimeSeries t
-        if PySlice_Check(i):
+        if isinstance(i, slice):
             start = 0 if (i.start is None) else i.start
             stop = self._length if (i.stop is None) else i.stop
             step = 1 if (i.step is None) else i.step
@@ -415,9 +413,9 @@ cdef class TimeSeries:
             if j < 0:
                 j += self._length
                 if j < 0:
-                    raise IndexError, "TimeSeries index out of range"
+                    raise IndexError("TimeSeries index out of range")
             elif j >= self._length:
-                raise IndexError, "TimeSeries index out of range"
+                raise IndexError("TimeSeries index out of range")
             return self._values[j]
 
     def __setitem__(self, Py_ssize_t i, double x):
@@ -450,9 +448,9 @@ cdef class TimeSeries:
         if i < 0:
             i += self._length
             if i < 0:
-                raise IndexError, "TimeSeries index out of range"
+                raise IndexError("TimeSeries index out of range")
         elif i >= self._length:
-            raise IndexError, "TimeSeries index out of range"
+            raise IndexError("TimeSeries index out of range")
         self._values[i] = x
 
     def __copy__(self):
@@ -502,7 +500,7 @@ cdef class TimeSeries:
 
         Note that both summands must be a time series::
 
-            sage: v + xrange(4)
+            sage: v + list(range(4))
             Traceback (most recent call last):
             ...
             TypeError: right operand must be a time series
@@ -512,9 +510,9 @@ cdef class TimeSeries:
             TypeError: left operand must be a time series
         """
         if not isinstance(right, TimeSeries):
-            raise TypeError, "right operand must be a time series"
+            raise TypeError("right operand must be a time series")
         if not isinstance(left, TimeSeries):
-            raise TypeError, "left operand must be a time series"
+            raise TypeError("left operand must be a time series")
         cdef TimeSeries R = right
         cdef TimeSeries L = left
         cdef TimeSeries t = new_time_series(L._length + R._length)
@@ -548,10 +546,14 @@ cdef class TimeSeries:
             [1.0000, 2.0000, -5.0000, 1.0000, 2.0000, -5.0000, 1.0000, 2.0000, -5.0000]
             sage: 3*v
             [1.0000, 2.0000, -5.0000, 1.0000, 2.0000, -5.0000, 1.0000, 2.0000, -5.0000]
-            sage: v*v
+            sage: v*v  # py2
             Traceback (most recent call last):
             ...
             TypeError: 'sage.finance.time_series.TimeSeries' object cannot be interpreted as an index
+            sage: v*v  # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: 'sage.finance.time_series.TimeSeries' object cannot be interpreted as an integer
         """
         cdef Py_ssize_t n, i
         cdef TimeSeries T
@@ -616,8 +618,7 @@ cdef class TimeSeries:
             sage: t[0]=1
             sage: t[1]=2
             sage: for i in range(2,2000):
-            ...     t[i]=t[i-1]-0.5*t[i-2]+z[i]
-            ...
+            ....:     t[i]=t[i-1]-0.5*t[i-2]+z[i]
             sage: c=t[0:-1].autoregressive_fit(2)  #recovers recurrence relation
             sage: c #should be close to [1,-0.5]
             [1.0371, -0.5199]
@@ -703,12 +704,12 @@ cdef class TimeSeries:
         if len(right) == 0:
             return
         cdef TimeSeries T = right
-        cdef double* z = <double*> sage_malloc(sizeof(double)*(self._length + T._length))
+        cdef double* z = <double*> sig_malloc(sizeof(double)*(self._length + T._length))
         if z == NULL:
             raise MemoryError
         memcpy(z, self._values, sizeof(double)*self._length)
         memcpy(z + self._length, T._values, sizeof(double)*T._length)
-        sage_free(self._values)
+        sig_free(self._values)
         self._values = z
         self._length = self._length + T._length
 
@@ -882,7 +883,7 @@ cdef class TimeSeries:
             ValueError: k must be positive
         """
         if k <= 0:
-            raise ValueError, "k must be positive"
+            raise ValueError("k must be positive")
 
         cdef Py_ssize_t i, n
         n = self._length/k
@@ -997,7 +998,7 @@ cdef class TimeSeries:
             sage: v.add_entries([3,4,7,18.5])
             [4.0000, 6.0000, 2.0000, 18.5000]
         """
-        if not PY_TYPE_CHECK(t, TimeSeries):
+        if not isinstance(t, TimeSeries):
             t = TimeSeries(t)
         cdef Py_ssize_t i, n
         cdef TimeSeries T = t, shorter, longer
@@ -1076,7 +1077,7 @@ cdef class TimeSeries:
         if plot_points > 0:
             s = self._length/plot_points
             if plot_points <= 0:
-                raise ValueError, "plot_points must be a positive integer"
+                raise ValueError("plot_points must be a positive integer")
             v = self.scale_time(s).list()[:plot_points]
         else:
             s = 1
@@ -1121,7 +1122,7 @@ cdef class TimeSeries:
         if k == 0 or k == 1:
             return self.__copy__()
         if k <= 0:
-            raise ValueError, "k must be positive"
+            raise ValueError("k must be positive")
         cdef Py_ssize_t i
         cdef TimeSeries t = new_time_series(self._length)
         if self._length == 0:
@@ -1177,7 +1178,7 @@ cdef class TimeSeries:
             [0.0000, 1.0000, 1.0000, 1.0000, 1.0000]
         """
         if alpha < 0 or alpha > 1:
-            raise ValueError, "alpha must be between 0 and 1"
+            raise ValueError("alpha must be between 0 and 1")
         cdef Py_ssize_t i
         cdef TimeSeries t = new_time_series(self._length)
         if self._length == 0:
@@ -1328,7 +1329,7 @@ cdef class TimeSeries:
             3.2
         """
         if k <= 0:
-            raise ValueError, "k must be positive"
+            raise ValueError("k must be positive")
         if k == 1:
             return self.mean()
         cdef double s = 0
@@ -1515,7 +1516,7 @@ cdef class TimeSeries:
 
         A time series.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = finance.TimeSeries([13,8,15,4,4,12,11,7,14,12])
             sage: v.autocorrelation()
@@ -1549,7 +1550,7 @@ cdef class TimeSeries:
 
         A double.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = finance.TimeSeries([1,1,1,2,3]); v
             [1.0000, 1.0000, 1.0000, 2.0000, 3.0000]
@@ -1769,7 +1770,7 @@ cdef class TimeSeries:
             (-4.0, 1)
         """
         if self._length == 0:
-            raise ValueError, "min() arg is an empty sequence"
+            raise ValueError("min() arg is an empty sequence")
         cdef Py_ssize_t i, j
         cdef double s = self._values[0]
         j = 0
@@ -1807,7 +1808,7 @@ cdef class TimeSeries:
             (3.0, 2)
         """
         if self._length == 0:
-            raise ValueError, "max() arg is an empty sequence"
+            raise ValueError("max() arg is an empty sequence")
         cdef Py_ssize_t i, j = 0
         cdef double s = self._values[0]
         for i from 1 <= i < self._length:
@@ -1925,14 +1926,14 @@ cdef class TimeSeries:
             ([1, 4, 3], [(-5.0, 0.0), (0.0, 5.0), (5.0, 10.0)])
         """
         if bins <= 0:
-            raise ValueError, "bins must be positive"
+            raise ValueError("bins must be positive")
 
         cdef double mn = self.min(), mx = self.max()
         cdef double r = mx - mn, step = r/bins
         cdef Py_ssize_t j
 
         if r == 0:
-            raise ValueError, "bins have 0 width"
+            raise ValueError("bins have 0 width")
 
         v = [(mn + j*step, mn + (j+1)*step) for j in range(bins)]
         if self._length == 0:
@@ -1944,7 +1945,7 @@ cdef class TimeSeries:
             return counts, v
 
         cdef Py_ssize_t i
-        cdef Py_ssize_t* cnts = <Py_ssize_t*>sage_malloc(sizeof(Py_ssize_t)*bins)
+        cdef Py_ssize_t* cnts = <Py_ssize_t*>sig_malloc(sizeof(Py_ssize_t)*bins)
         if cnts == NULL:
             raise MemoryError
         for i from 0 <= i < bins:
@@ -1961,7 +1962,7 @@ cdef class TimeSeries:
             counts = [cnts[i]*b for i in range(bins)]
         else:
             counts = [cnts[i] for i in range(bins)]
-        sage_free(cnts)
+        sig_free(cnts)
 
         return counts, v
 
@@ -2089,7 +2090,7 @@ cdef class TimeSeries:
             sage: w = v.numpy(copy=False); w
             array([ 1. , -3. ,  4.5, -2. ])
             sage: type(w)
-            <type 'numpy.ndarray'>
+            <... 'numpy.ndarray'>
             sage: w.shape
             (4,)
 
@@ -2250,7 +2251,7 @@ cdef class TimeSeries:
             0.50069085...
         """
         if left >= right:
-            raise ValueError, "left must be less than right"
+            raise ValueError("left must be less than right")
 
         cdef randstate rstate = current_randstate()
         cdef Py_ssize_t k
@@ -2555,13 +2556,13 @@ cdef new_time_series(Py_ssize_t length):
         [1.0000, -3.0000, 4.5000, -2.0000]
     """
     if length < 0:
-        raise ValueError, "length must be nonnegative"
-    cdef TimeSeries t = PY_NEW(TimeSeries)
+        raise ValueError("length must be nonnegative")
+    cdef TimeSeries t = TimeSeries.__new__(TimeSeries)
     t._length = length
-    t._values = <double*> sage_malloc(sizeof(double)*length)
+    t._values = <double*> sig_malloc(sizeof(double)*length)
     return t
 
-def unpickle_time_series_v1(v, Py_ssize_t n):
+def unpickle_time_series_v1(bytes v, Py_ssize_t n):
     """
     Version 1 unpickle method.
 
@@ -2573,17 +2574,19 @@ def unpickle_time_series_v1(v, Py_ssize_t n):
 
         sage: v = finance.TimeSeries([1,2,3])
         sage: s = v.__reduce__()[1][0]
-        sage: type(s)
+        sage: type(s)  # py2
         <type 'str'>
+        sage: type(s)  # py3
+        <type 'bytes'>
         sage: sage.finance.time_series.unpickle_time_series_v1(s,3)
         [1.0000, 2.0000, 3.0000]
         sage: sage.finance.time_series.unpickle_time_series_v1(s+s,6)
         [1.0000, 2.0000, 3.0000, 1.0000, 2.0000, 3.0000]
-        sage: sage.finance.time_series.unpickle_time_series_v1('',0)
+        sage: sage.finance.time_series.unpickle_time_series_v1(b'',0)
         []
     """
     cdef TimeSeries t = new_time_series(n)
-    memcpy(t._values, PyString_AsString(v), n*sizeof(double))
+    memcpy(t._values, PyBytes_AsString(v), n*sizeof(double))
     return t
 
 
@@ -2691,10 +2694,9 @@ def autoregressive_fit(acvs):
         sage: y_out = finance.multifractal_cascade_random_walk_simulation(3700,0.02,0.01,0.01,1000,100)
         sage: s1 = []; s2 = []
         sage: for v in y_out:
-        ...       s1.append(sum([(v[:-i].autoregressive_forecast(F)-v[-i])^2 for i in range(1,20)]))
-        ...       F2 = v[:-len(F)].autoregressive_fit(len(F))
-        ...       s2.append(sum([(v[:-i].autoregressive_forecast(F2)-v[-i])^2 for i in range(1,20)]))
-        ...
+        ....:     s1.append(sum([(v[:-i].autoregressive_forecast(F)-v[-i])^2 for i in range(1,20)]))
+        ....:     F2 = v[:-len(F)].autoregressive_fit(len(F))
+        ....:     s2.append(sum([(v[:-i].autoregressive_forecast(F2)-v[-i])^2 for i in range(1,20)]))
 
     We find that overall the model beats naive linear forecasting by 35
     percent! ::
@@ -2709,7 +2711,7 @@ def autoregressive_fit(acvs):
     M = len(acvs)-1
 
     if M <= 0:
-        raise ValueError, "M must be positive"
+        raise ValueError("M must be positive")
 
     if not isinstance(acvs, TimeSeries):
         c = TimeSeries(acvs)

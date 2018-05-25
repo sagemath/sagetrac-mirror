@@ -43,11 +43,13 @@ class FreeCommutativeAdditiveSemigroup(UniqueRepresentation, Parent):
         sage: TestSuite(S).run(verbose = True)
         running ._test_additive_associativity() . . . pass
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           pass
@@ -56,6 +58,7 @@ class FreeCommutativeAdditiveSemigroup(UniqueRepresentation, Parent):
         running ._test_elements_eq_transitive() . . . pass
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
@@ -187,7 +190,7 @@ class FreeCommutativeAdditiveSemigroup(UniqueRepresentation, Parent):
 
                 sage: F = CommutativeAdditiveSemigroups().example()
                 sage: type(hash(F.an_element()))
-                <type 'int'>
+                <... 'int'>
             """
             return hash(tuple(self.value.items()))
 

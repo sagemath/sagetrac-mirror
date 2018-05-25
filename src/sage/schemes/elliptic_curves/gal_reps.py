@@ -124,10 +124,12 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ######################################################################
+from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.sage_object import SageObject
-import sage.rings.arith as arith
-import sage.misc.misc as misc
+import sage.arith.all as arith
+import sage.misc.all as misc
 import sage.rings.all as rings
 from sage.rings.all import RealField, GF
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -143,7 +145,7 @@ def _ex_set(p):
     EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.gal_reps import _ex_set
-        sage: for p in prime_range(3,30): print p, _ex_set(p)
+        sage: for p in prime_range(3,30): print("{} {}".format(p, _ex_set(p)))
         3 [0, 1, 2, 1]
         5 [0, 1, 2, 4]
         7 [0, 1, 2, 4]
@@ -240,7 +242,7 @@ class GaloisRepresentation(SageObject):
         # isomorphism between rho and rho' unless E
         # is isomorphic to E'
         # Note that rho can not depend on the Weierstrass model
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             return False
         return self._E.is_isomorphic(other._E)
 
@@ -365,7 +367,7 @@ class GaloisRepresentation(SageObject):
 
         E = self._E
         j = E.j_invariant()
-        from isogeny_small_degree import sporadic_j
+        from .isogeny_small_degree import sporadic_j
         if j in sporadic_j: # includes all CM j-invariants
             R = [sporadic_j[j]]
         else:
@@ -873,7 +875,7 @@ class GaloisRepresentation(SageObject):
         a4_str =        "The image in PGL_2(F_%s) is the exceptional group A_4."%p
         a5_str =        "The image in PGL_2(F_%s) is the exceptional group A_5."%p
 
-        # we first treat p=3 and 5 seperately. p=2 has already been done.
+        # we first treat p=3 and 5 separately. p=2 has already been done.
 
         if p == 3:
             # this implies that the image of rhobar in PGL_2 = S_4
@@ -1017,11 +1019,11 @@ class GaloisRepresentation(SageObject):
                         misc.verbose("the image cannot be exceptional, found u=%s"%u,2)
                         could_be_exc = 0
                     if a_ell != 0 and arith.kronecker(a_ell**2 - 4*ell,p) == 1 and could_be_non_split == 1:
-                        # it can not be in the noramlizer of the non-split Cartan
+                        # it can not be in the normalizer of the non-split Cartan
                         misc.verbose("the image cannot be non-split, found u=%s"%u,2)
                         could_be_non_split = 0
                     if a_ell != 0 and arith.kronecker(a_ell**2 - 4*ell,p) == -1 and could_be_split == 1:
-                        # it can not be in the noramlizer of the split Cartan
+                        # it can not be in the normalizer of the split Cartan
                         misc.verbose("the image cannot be split, found u=%s"%u,2)
                         could_be_split = 0
 
@@ -1084,7 +1086,12 @@ class GaloisRepresentation(SageObject):
             d = K.absolute_degree()
 
             misc.verbose("field of degree %s.  try to compute Galois group"%(d),2)
+            # If the degree is too big, we have no chance at the Galois
+            # group.  K.galois_group calls is_galois which used to rely on
+            # pari's Galois group computations, so degree < 12
             try:
+                if d > 15:
+                    raise Exception()
                 G = K.galois_group()
             except Exception:
                 self.__image_type[p] = "The image is a group of order %s."%d
@@ -1243,7 +1250,6 @@ class GaloisRepresentation(SageObject):
                 d = (self._E.ap(ell)**2 * ell.inverse_mod(p)) % p
                 res[d] += 1
                 co += 1
-        # print res
         Rt = RealField(16)
         res = [Rt(x)/Rt(co) for x in res]
         return res
@@ -1333,7 +1339,7 @@ class GaloisRepresentation(SageObject):
 
     def is_quasi_unipotent(self,p,ell):
         r"""
-        Returns true if the Galois representation to `GL_2(\ZZ_p)` is quasi-unipotent at `\ell\neq p`, i.e. if there is a fintie extension `K/\QQ` such that the inertia group at a place above `\ell` in `\text{Gal}(\bar\QQ/K)` maps into a Borel subgroup.
+        Returns true if the Galois representation to `GL_2(\ZZ_p)` is quasi-unipotent at `\ell\neq p`, i.e. if there is a finite extension `K/\QQ` such that the inertia group at a place above `\ell` in `\text{Gal}(\bar\QQ/K)` maps into a Borel subgroup.
 
         For a Galois representation attached to an elliptic curve `E`, this returns always True.
 

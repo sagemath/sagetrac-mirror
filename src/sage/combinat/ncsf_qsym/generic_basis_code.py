@@ -28,7 +28,8 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.realizations import Category_realization_of_parent
-from sage.categories.modules_with_basis import ModulesWithBasis, ModuleMorphismByLinearity
+from sage.categories.modules_with_basis import ModulesWithBasis
+from sage.modules.with_basis.morphism import ModuleMorphismByLinearity
 from sage.combinat.composition import Compositions, Composition
 from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations
@@ -128,7 +129,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
             r"""
             Return the empty composition.
 
-            OUTPUT
+            OUTPUT:
 
             - The empty composition.
 
@@ -192,6 +193,44 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 R[1, 3] + R[4]
             """
             return self.sum_of_monomials( compo for compo in composition.fatter() )
+
+        def alternating_sum_of_compositions(self, n):
+            r"""
+            Alternating sum over compositions of ``n``.
+
+            Note that this differs from the method
+            :meth:`alternating_sum_of_finer_compositions` because the
+            coefficient of the composition `1^n` is positive.  This
+            method is used in the expansion of the elementary generators
+            into the complete generators and vice versa.
+
+            INPUT:
+
+            - ``n`` -- a positive integer
+
+            OUTPUT:
+
+            - The expansion of the complete generator indexed by ``n``
+              into the elementary basis.
+
+            EXAMPLES::
+
+                sage: L=NonCommutativeSymmetricFunctions(QQ).L()
+                sage: L.alternating_sum_of_compositions(0)
+                L[]
+                sage: L.alternating_sum_of_compositions(1)
+                L[1]
+                sage: L.alternating_sum_of_compositions(2)
+                L[1, 1] - L[2]
+                sage: L.alternating_sum_of_compositions(3)
+                L[1, 1, 1] - L[1, 2] - L[2, 1] + L[3]
+                sage: S=NonCommutativeSymmetricFunctions(QQ).S()
+                sage: S.alternating_sum_of_compositions(3)
+                S[1, 1, 1] - S[1, 2] - S[2, 1] + S[3]
+            """
+            ring = self.base_ring()
+            return (-ring.one())**(n)*self.sum_of_terms(
+                (compo, ring((-1)**(len(compo)))) for compo in Compositions(n) )
 
         def alternating_sum_of_finer_compositions(self, composition, conjugate = False):
             """
@@ -455,7 +494,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
             - The result of skewing the element ``x`` by the Hopf algebra
               element ``y`` (either from the left or from the right, as
               determined by ``side``), written in the basis ``self``.
-              This uses coercion to a concreate realization (either the
+              This uses coercion to a concrete realization (either the
               complete basis of non-commutative symmetric functions or
               the monomial basis of the quasi-symmetric functions).
 
@@ -939,14 +978,15 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 sage: S.zero().degree()
                 Traceback (most recent call last):
                 ...
-                ValueError: The zero element does not have a well-defined degree.
+                ValueError: the zero element does not have a well-defined degree
                 sage: F = QuasiSymmetricFunctions(QQ).F()
                 sage: F.zero().degree()
                 Traceback (most recent call last):
                 ...
-                ValueError: The zero element does not have a well-defined degree.
+                ValueError: the zero element does not have a well-defined degree
             """
             return self.maximal_degree()
+
 
 class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
     """
@@ -973,7 +1013,7 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
 
         EXAMPLES:
 
-        We construct explicitly an algbera morphism::
+        We construct explicitly an algebra morphism::
 
             sage: from sage.combinat.ncsf_qsym.generic_basis_code import AlgebraMorphism
             sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
@@ -1028,11 +1068,8 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
             sage: f(Psi[3, 1, 2])
             -Phi[3, 1, 2]
             sage: f.__class__
-            <class 'sage.combinat.ncsf_qsym.generic_basis_code.AlgebraMorphism'>
-            sage: TestSuite(f).run(skip=['_test_nonzero_equal']) # known issue; see ModuleMorphismByLinearity.__init__
-            Failure in _test_category:
-            ...
-            The following tests failed: _test_category
+            <class 'sage.combinat.ncsf_qsym.generic_basis_code.AlgebraMorphism_with_category'>
+            sage: TestSuite(f).run(skip=['_test_nonzero_equal'])
         """
         assert position == 0
         assert codomain is not None
@@ -1044,6 +1081,46 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
         self._anti = anti
         self._on_generators = on_generators
         ModuleMorphismByLinearity.__init__(self, domain = domain, codomain = codomain, position = position, category = category)
+
+    def __eq__(self, other):
+        """
+        Check equality.
+
+        EXAMPLES::
+
+            sage: Psi = NonCommutativeSymmetricFunctions(QQ).Psi()
+            sage: Phi = NonCommutativeSymmetricFunctions(QQ).Phi()
+            sage: f = Psi.algebra_morphism(Phi.antipode_on_generators, codomain=Phi)
+            sage: g = Psi.algebra_morphism(Phi.antipode_on_generators, codomain=Phi)
+            sage: f == g
+            True
+            sage: f is g
+            False
+        """
+        return (self.__class__ is other.__class__ and self.parent() == other.parent()
+                and self._zero == other._zero
+                and self._on_generators == other._on_generators
+                and self._position == other._position
+                and self._is_module_with_basis_over_same_base_ring
+                    == other._is_module_with_basis_over_same_base_ring)
+
+    def __ne__(self, other):
+        """
+        Check equality.
+
+        EXAMPLES::
+
+            sage: Psi = NonCommutativeSymmetricFunctions(QQ).Psi()
+            sage: Phi = NonCommutativeSymmetricFunctions(QQ).Phi()
+            sage: f = Psi.algebra_morphism(Phi.antipode_on_generators, codomain=Phi)
+            sage: g = Psi.algebra_morphism(Phi.antipode_on_generators, codomain=Phi)
+            sage: f != g
+            False
+            sage: h = Phi.algebra_morphism(Psi.antipode_on_generators, codomain=Psi)
+            sage: f != h
+            True
+        """
+        return not (self == other)
 
     def _on_basis(self, c):
         r"""
@@ -1127,11 +1204,13 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
         @lazy_attribute
         def internal_product(self):
             r"""
-            Internal product as an endomorphism of ``self``.
+            The bilinear product inherited from the isomorphism with
+            the descent algebra.
 
             This is constructed by extending the method
             :meth:`internal_product_on_basis` bilinearly, if available,
-            or using the method :meth:`internal_product_by_coercion`.
+            or using the method
+            :meth:`~GradedModulesWithInternalProduct.Realizations.ParentMethods.internal_product_by_coercion`.
 
             OUTPUT:
 
@@ -1160,9 +1239,6 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
                 sage: R.internal_product(R[2,2], R[1,2])
                 0
 
-            .. TODO::
-
-                Despite the ``__repr__``, this is NOT an endomorphism!
             """
             if self.internal_product_on_basis is not NotImplemented:
                 return self.module_morphism(

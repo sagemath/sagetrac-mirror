@@ -6,6 +6,7 @@ AUTHORS:
 - Jonas Jermann (2013): initial version
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2013-2014 Jonas Jermann <jjermann2@gmail.com>
@@ -16,7 +17,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from graded_ring_element import FormsRingElement
+from .graded_ring_element import FormsRingElement
 
 
 class FormsElement(FormsRingElement):
@@ -74,7 +75,7 @@ class FormsElement(FormsRingElement):
             self._ep      == parent.ep() ):
                 raise ValueError("{} does not correspond to an element of {}.".format(rat, parent))
 
-        from subspace import SubSpaceForms
+        from .subspace import SubSpaceForms
         if isinstance(parent, SubSpaceForms) and (parent._module is not None):
             try:
                 self.coordinate_vector()
@@ -120,13 +121,13 @@ class FormsElement(FormsRingElement):
         Return the coordinate vector of ``self`` with
         respect to ``self.parent().gens()``.
 
-        .. NOTE:
+        .. NOTE::
 
-        This uses the corresponding function of the
-        parent. If the parent has not defined a coordinate
-        vector function or a module for coordinate vectors
-        then an exception is raised by the parent
-        (default implementation).
+            This uses the corresponding function of the
+            parent. If the parent has not defined a coordinate
+            vector function or a module for coordinate vectors
+            then an exception is raised by the parent
+            (default implementation).
 
         EXAMPLES::
 
@@ -229,7 +230,7 @@ class FormsElement(FormsRingElement):
             sage: L.taylor_series(1, 3)
             -0.0304484570583... - 0.0504570844798...*z - 0.0350657360354...*z^2 + O(z^3)
             sage: coeffs = f.q_expansion_vector(min_exp=0, max_exp=20, fix_d=True)
-            sage: sum([coeffs[k]*k^(-10) for k in range(1,len(coeffs))]).n(53)
+            sage: sum([coeffs[k] * ZZ(k)^(-10) for k in range(1,len(coeffs))]).n(53)
             1.00935215408...
             sage: L(10)
             1.00935215649...
@@ -245,7 +246,7 @@ class FormsElement(FormsRingElement):
             sage: L(1).prec()
             200
             sage: coeffs = f.q_expansion_vector(min_exp=0, max_exp=20, fix_d=True)
-            sage: sum([coeffs[k]*k^(-10) for k in range(1,len(coeffs))]).n(53)
+            sage: sum([coeffs[k] * ZZ(k)^(-10) for k in range(1,len(coeffs))]).n(53)
             24.2281438789...
             sage: L(10).n(53)
             24.2281439447...
@@ -281,7 +282,7 @@ class FormsElement(FormsRingElement):
             sage: L.taylor_series(1, 3)
             0.000000000000... + 5.76543616701...*z + 9.92776715593...*z^2 + O(z^3)
             sage: coeffs = f.q_expansion_vector(min_exp=0, max_exp=20, fix_d=True)
-            sage: sum([coeffs[k]*k^(-10) for k in range(1,len(coeffs))]).n(53)
+            sage: sum([coeffs[k] * ZZ(k)^(-10) for k in range(1,len(coeffs))]).n(53)
             -23.9781792831...
             sage: L(10).n(53)
             -23.9781792831...

@@ -20,7 +20,7 @@ which is containment of partitions::
     sage: ord = lambda x,y: y.contains(x)
     sage: Y = Poset((elements,ord), facade=True)
     sage: H = Y.hasse_diagram()
-    sage: view(H)      # optional - dot2tex
+    sage: view(H)  # optional - dot2tex graphviz
 
 .. image:: ../media/young_lattice.png
    :scale: 60
@@ -88,7 +88,7 @@ We can also check this against the hook length formula (Theorem 8.1)::
 
     sage: def hook_length_formula(p):
     ....:     n = p.size()
-    ....:     return factorial(n) / prod(p.hook_length(*c) for c in p.cells())
+    ....:     return factorial(n) // prod(p.hook_length(*c) for c in p.cells())
 
     sage: for la in u.support():
     ....:     assert u[la] == hook_length_formula(la)

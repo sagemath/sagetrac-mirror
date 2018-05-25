@@ -1,21 +1,25 @@
 r"""
-This module contains tools to write the .c files needed for TIDES [TI]_ .
+Interface to TIDES
+
+This module contains tools to write the .c files needed for TIDES [TIDES]_ .
 
 Tides is an integration engine based on the Taylor method. It is implemented
 as a c library. The user must translate its initial value problem (IVP) into a
 pair of .c files that will then be compiled and linked against the TIDES
-library. The reulting binary will produce the desired output. The tools in this
+library. The resulting binary will produce the desired output. The tools in this
 module can be used to automate the generation of these files from the symbolic
 expression of the differential equation.
 
-##########################################################################
-#  Copyright (C) 2014 Miguel Marco <mmarco@unizar.es>, Marcos Rodriguez
-#   <marcos@uunizar.es>
-#
-#  Distributed under the terms of the GNU General Public License (GPL):
-#
-#                  http://www.gnu.org/licenses/
-##########################################################################
+::
+
+    ##########################################################################
+    #  Copyright (C) 2014 Miguel Marco <mmarco@unizar.es>, Marcos Rodriguez
+    #   <marcos@uunizar.es>
+    #
+    #  Distributed under the terms of the GNU General Public License (GPL):
+    #
+    #                  http://www.gnu.org/licenses/
+    ##########################################################################
 
 AUTHORS:
 
@@ -29,12 +33,9 @@ AUTHORS:
 
 REFERENCES:
 
-.. [ALG924] A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM
-Transactions on Mathematical Software*, *39*(1), 1-28.
+- [ABBR2012]_
 
-.. [TI](http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm)
-A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
-TIDES tutorial: Integrating ODEs by using the Taylor Series Method.
+- [TIDES]_
 """
 
 
@@ -60,17 +61,17 @@ def subexpressions_list(f, pars=None):
     - ``f`` -- a symbolic function of several components.
 
     - ``pars`` -- a list of the parameters that appear in the function
-    this should be the symbolic constants that appear in f but are not
-    arguments.
+      this should be the symbolic constants that appear in f but are not
+      arguments.
 
-    OTUPUT:
+    OUTPUT:
 
     - a list of the intermediate subexpressions that appear in the evaluation
-    of f.
+      of f.
 
     - a list with the operations used to construct each of the subexpressions.
-    each element of this list is a tuple, formed by a string describing the
-    operation made, and the operands.
+      each element of this list is a tuple, formed by a string describing the
+      operation made, and the operands.
 
     For the trigonometric functions, some extra expressions will be added.
     These extra expressions will be used later to compute their derivatives.
@@ -158,7 +159,6 @@ def subexpressions_list(f, pars=None):
     varpar = list(parameters) + list(variables)
     F = symbolic_expression([i(*variables) for i in f]).function(*varpar)
     lis = flatten([fast_callable(i,vars=varpar).op_list() for i in F], max_level=1)
-    deflist = []
     stack = []
     const =[]
     stackcomp=[]
@@ -342,7 +342,7 @@ def remove_repeated(l1, l2):
     for i in range(len(l1)-1):
         j=i+1
         while j<len(l1):
-            if l1[j] == l1[i]:
+            if str(l1[j]) == str(l1[i]):
                 l1.pop(j)
                 l2.pop(j)
             else:
@@ -404,7 +404,7 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
     -  ``output`` -- the name of the file that the compiled integrator will write to
 
     This function creates two files, integrator and driver, that can be used
-    later with the min_tides library [TI]_.
+    later with the min_tides library [TIDES]_.
 
 
     TESTS::
@@ -475,18 +475,20 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
 
     remove_repeated(l1, l2)
     remove_constants(l1, l2)
+    l0 = map(str, l1)
     #generate the corresponding c lines
 
     l3=[]
     var = f[0].arguments()
+    lv = map(str, var)
     for i in l2:
         oper = i[0]
         if oper in ["log", "exp", "sin", "cos"]:
             a = i[1]
             if a in var:
-                l3.append((oper, 'XX[{}]'.format(var.index(a))))
+                l3.append((oper, 'XX[{}]'.format(lv.index(str(a)))))
             elif a in l1:
-                l3.append((oper, 'XX[{}]'.format(l1.index(a)+len(var))))
+                l3.append((oper, 'XX[{}]'.format(l0.index(str(a))+len(var))))
 
         else:
             a=i[1]
@@ -494,20 +496,20 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
             consta=False
             constb=False
 
-            if a in var:
-                aa = 'XX[{}]'.format(var.index(a))
-            elif a in l1:
-                aa = 'XX[{}]'.format(l1.index(a)+len(var))
+            if str(a) in lv:
+                aa = 'XX[{}]'.format(lv.index(str(a)))
+            elif str(a) in l0:
+                aa = 'XX[{}]'.format(l0.index(str(a))+len(var))
             else:
                 consta=True
-                aa = RR(a).str(truncate=False)
-            if b in var:
-                bb = 'XX[{}]'.format(var.index(b))
-            elif b in l1:
-                bb = 'XX[{}]'.format(l1.index(b)+len(var))
+                aa = RR(a).str()
+            if str(b) in lv:
+                bb = 'XX[{}]'.format(lv.index(str(b)))
+            elif str(b) in l0:
+                bb = 'XX[{}]'.format(l0.index(str(b))+len(var))
             else:
                 constb = True
-                bb = RR(b).str(truncate=False)
+                bb = RR(b).str()
             if consta:
                 oper += '_c'
                 if not oper=='div':
@@ -515,7 +517,6 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
             elif constb:
                 oper += '_c'
             l3.append((oper, aa, bb))
-
 
 
     n = len(var)
@@ -549,8 +550,8 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
 
         res.append(string)
 
-    l1 = list(var)+l1
-    indices = [l1.index(i(*var))+n for i in f]
+    l0 = lv + l0
+    indices = [l0.index(str(i(*var))) + n for i in f]
     for i in range (1, n):
         res.append("XX[{}][i+1] = XX[{}][i] / (i+1.0);".format(i,indices[i-1]-n))
 
@@ -602,7 +603,6 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
     outfile.write('}\n')
     outfile.write('\n')
 
-
     outfile = open(driver, 'a')
 
     auxstring = """
@@ -626,12 +626,12 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
     """%(n-1)
     outfile.write(auxstring)
     for i in range(len(ics)):
-        outfile.write('\tv[{}] = {} ; \n'.format(i, RR(ics[i]).str(truncate=False)))
-    outfile.write('\ttini = {} ;\n'.format(RR(initial).str(truncate=False)))
-    outfile.write('\ttend = {} ;\n'.format(RR(final).str(truncate=False)))
-    outfile.write('\tdt   = {} ;\n'.format(RR(delta).str(truncate=False)))
-    outfile.write('\ttolrel = {} ;\n'.format(RR(tolrel).str(truncate=False)))
-    outfile.write('\ttolabs = {} ;\n'.format(RR(tolabs).str(truncate=False)))
+        outfile.write('\tv[{}] = {} ; \n'.format(i, RR(ics[i]).str()))
+    outfile.write('\ttini = {} ;\n'.format(RR(initial).str()))
+    outfile.write('\ttend = {} ;\n'.format(RR(final).str()))
+    outfile.write('\tdt   = {} ;\n'.format(RR(delta).str()))
+    outfile.write('\ttolrel = {} ;\n'.format(RR(tolrel).str()))
+    outfile.write('\ttolabs = {} ;\n'.format(RR(tolabs).str()))
     outfile.write('\textern char ofname[500];')
     outfile.write('\tstrcpy(ofname, "'+ output +'");\n')
     outfile.write('\tminc_tides(v,VARS,p,PARS,tini,tend,dt,tolrel,tolabs);\n')
@@ -661,12 +661,12 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
     - ``delta`` -- the step of the output.
 
     - ``parameters`` -- the variables inside the function that should be treated
-    as parameters.
+       as parameters.
 
     - ``parameter_values`` -- the values of the parameters for the particular
-    initial value problem.
+       initial value problem.
 
-    - ``dig`` -- the number of digits of precission that will be used in the integration
+    - ``dig`` -- the number of digits of precision that will be used in the integration
 
     - ``tolrel`` -- the relative tolerance.
 
@@ -675,7 +675,7 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
     -  ``output`` -- the name of the file that the compiled integrator will write to
 
     This function creates two files, integrator and driver, that can be used
-    later with the tides library ([TI]_).
+    later with the tides library ([TIDES]_).
 
 
     TESTS::
@@ -752,9 +752,9 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
         sage: shutil.rmtree(tempdir)
 
     """
-    if parameters == None:
+    if parameters is None:
         parameters = []
-    if parameter_values == None:
+    if parameter_values is None:
         parameter_values = []
     RR = RealField(ceil(dig * 3.3219))
     l1, l2 = subexpressions_list(f, parameters)
@@ -762,41 +762,46 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
     remove_constants(l1, l2)
     l3=[]
     var = f[0].arguments()
+    l0 = map(str, l1)
+    lv = map(str, var)
+    lp = map(str, parameters)
     for i in l2:
         oper = i[0]
         if oper in ["log", "exp", "sin", "cos", "atan", "asin", "acos"]:
             a = i[1]
-            if a in var:
-                l3.append((oper, 'var[{}]'.format(var.index(a))))
-            elif a in parameters:
-                l3.append((oper, 'par[{}]'.format(parameters.index(a))))
+            if str(a) in lv:
+                l3.append((oper, 'var[{}]'.format(lv.index(str(a)))))
+            elif str(a) in lp:
+                l3.append((oper, 'par[{}]'.format(lp.index(str(a)))))
             else:
-                l3.append((oper, 'link[{}]'.format(l1.index(a))))
+                l3.append((oper, 'link[{}]'.format(l0.index(str(a)))))
 
         else:
             a=i[1]
             b=i[2]
+            sa = str(a)
+            sb = str(b)
             consta=False
             constb=False
 
-            if a in var:
-                aa = 'var[{}]'.format(var.index(a))
-            elif a in l1:
-                aa = 'link[{}]'.format(l1.index(a))
-            elif a in parameters:
-                aa = 'par[{}]'.format(parameters.index(a))
+            if sa in lv:
+                aa = 'var[{}]'.format(lv.index(sa))
+            elif sa in l0:
+                aa = 'link[{}]'.format(l0.index(sa))
+            elif sa in lp:
+                aa = 'par[{}]'.format(lp.index(sa))
             else:
                 consta=True
-                aa = RR(a).str(truncate=False)
-            if b in var:
-                bb = 'var[{}]'.format(var.index(b))
-            elif b in l1:
-                bb = 'link[{}]'.format(l1.index(b))
-            elif b in parameters:
-                bb = 'par[{}]'.format(parameters.index(b))
+                aa = RR(a).str()
+            if sb in lv:
+                bb = 'var[{}]'.format(lv.index(sb))
+            elif sb in l0:
+                bb = 'link[{}]'.format(l0.index(sb))
+            elif sb in lp:
+                bb = 'par[{}]'.format(lp.index(sb))
             else:
                 constb=True
-                bb = RR(b).str(truncate=False)
+                bb = RR(b).str()
             if consta:
                 oper += '_c'
                 if not oper=='div':
@@ -810,8 +815,8 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
     code = []
 
 
-    l1 = list(var)+l1
-    indices = [l1.index(i(*var))+n for i in f]
+    l0 = lv + l0
+    indices = [l0.index(str(i(*var)))+n for i in f]
     for i in range (1, n):
         aux = indices[i-1]-n
         if aux < n:
@@ -845,13 +850,13 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
         elif el[0] == 'cos':
             string += 'cos_t(itd, ' + el[1]  + ', link[{}], link[{}], i);'.format(i-1, i)
         elif el[0] == 'atan':
-            indarg = l1.index(1+l2[i][1]**2)-n
+            indarg = l0.index(str(1+l2[i][1]**2))-n
             string += 'atan_t(itd, ' + el[1] + ', link[{}], link[{}], i);'.format(indarg, i)
         elif el[0] == 'asin':
-            indarg = l1.index(sqrt(1-l2[i][1]**2))-n
+            indarg = l0.index(str(sqrt(1-l2[i][1]**2)))-n
             string += 'asin_t(itd, ' + el[1] + ', link[{}], link[{}], i);'.format(indarg, i)
         elif el[0] == 'acos':
-            indarg = l1.index(-sqrt(1-l2[i][1]**2))-n
+            indarg = l0.index(str(-sqrt(1-l2[i][1]**2)))-n
             string += 'acos_t(itd, ' + el[1] + ', link[{}], link[{}], i);'.format(indarg, i)
         code.append(string)
 
@@ -928,24 +933,24 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
     outfile.write('\tfor(i=0; i<npar; i++) mpfr_init2(p[i], TIDES_PREC);\n')
 
     for i in range(npar):
-        outfile.write('\tmpfr_set_str(p[{}], "{}", 10, TIDES_RND);\n'.format(i,RR(parameter_values[i]).str(truncate=False)))
+        outfile.write('\tmpfr_set_str(p[{}], "{}", 10, TIDES_RND);\n'.format(i,RR(parameter_values[i]).str()))
     outfile.write('\tint nvar = {};\n\tmpfr_t v[nvar];\n'.format(VAR))
     outfile.write('\tfor(i=0; i<nvar; i++) mpfr_init2(v[i], TIDES_PREC);\n')
     for i in range(len(ics)):
-        outfile.write('\tmpfr_set_str(v[{}], "{}", 10, TIDES_RND);\n'.format(i,RR(ics[i]).str(truncate=False)))
+        outfile.write('\tmpfr_set_str(v[{}], "{}", 10, TIDES_RND);\n'.format(i,RR(ics[i]).str()))
     outfile.write('\tmpfr_t tolrel, tolabs;\n')
     outfile.write('\tmpfr_init2(tolrel, TIDES_PREC); \n')
     outfile.write('\tmpfr_init2(tolabs, TIDES_PREC); \n')
-    outfile.write('\tmpfr_set_str(tolrel, "{}", 10, TIDES_RND);\n'.format(RR(tolrel).str(truncate=False)))
-    outfile.write('\tmpfr_set_str(tolabs, "{}", 10, TIDES_RND);\n'.format(RR(tolabs).str(truncate=False)))
+    outfile.write('\tmpfr_set_str(tolrel, "{}", 10, TIDES_RND);\n'.format(RR(tolrel).str()))
+    outfile.write('\tmpfr_set_str(tolabs, "{}", 10, TIDES_RND);\n'.format(RR(tolabs).str()))
 
     outfile.write('\tmpfr_t tini, dt; \n')
     outfile.write('\tmpfr_init2(tini, TIDES_PREC); \n')
     outfile.write('\tmpfr_init2(dt, TIDES_PREC); \n')
 
 
-    outfile.write('\tmpfr_set_str(tini, "{}", 10, TIDES_RND);;\n'.format(RR(initial).str(truncate=False)))
-    outfile.write('\tmpfr_set_str(dt, "{}", 10, TIDES_RND);\n'.format(RR(delta).str(truncate=False)))
+    outfile.write('\tmpfr_set_str(tini, "{}", 10, TIDES_RND);;\n'.format(RR(initial).str()))
+    outfile.write('\tmpfr_set_str(dt, "{}", 10, TIDES_RND);\n'.format(RR(delta).str()))
     outfile.write('\tint nipt = {};\n'.format(floor((final-initial)/delta)))
     outfile.write('\tFILE* fd = fopen("' + output + '", "w");\n')
     outfile.write('\tmp_tides_delta(function_iteration, NULL, nvar, npar, nfun, v, p, tini, dt, nipt, tolrel, tolabs, NULL, fd);\n')

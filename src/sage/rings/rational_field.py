@@ -32,12 +32,14 @@ function).
     sage: QQ((3*x)/(4*x))
     3/4
 
-TEST::
+TESTS::
 
     sage: Q = RationalField()
     sage: Q == loads(dumps(Q))
     True
     sage: RationalField() is RationalField()
+    True
+    sage: Q in Fields().Infinite()
     True
 
 AUTHORS:
@@ -49,26 +51,25 @@ AUTHORS:
   Removed duplicates of ``discriminant()`` and ``signature()``.
 
 """
+from __future__ import print_function, absolute_import
 
-import rational
-import integer
-import infinity
+import six
+if six.PY2:
+    _long_type = long
+else:
+    _long_type = int
+
+from .rational import Rational
+from .integer import Integer
+
 ZZ = None
 
 from sage.structure.parent_gens import ParentWithGens
+from sage.structure.sequence import Sequence
 import sage.rings.number_field.number_field_base as number_field_base
+from sage.misc.fast_methods import Singleton
 
-
-_obj = {}
-class _uniq(object):
-    def __new__(cls):
-        if 0 in _obj:
-            return _obj[0]
-        O = number_field_base.NumberField.__new__(cls)
-        _obj[0] = O
-        return O
-
-class RationalField(_uniq, number_field_base.NumberField):
+class RationalField(Singleton, number_field_base.NumberField):
     r"""
     The class ``RationalField`` represents the field `\QQ` of rational numbers.
 
@@ -94,9 +95,11 @@ class RationalField(_uniq, number_field_base.NumberField):
         sage: QQ('sage')
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert sage to a rational
+        TypeError: unable to convert 'sage' to a rational
+        sage: QQ(u'-5/7')
+        -5/7
 
-    Coercion from the reals to the rational is done by default using
+    Conversion from the reals to the rationals is done by default using
     continued fractions.
 
     ::
@@ -134,6 +137,23 @@ class RationalField(_uniq, number_field_base.NumberField):
         sage: QQ(RealField(45)(t))
         1/5
     """
+    def __new__(cls):
+        """
+        This method actually is not needed for using :class:`RationalField`.
+        But it is used to unpickle some very old pickles.
+
+        TESTS::
+
+            sage: RationalField() in Fields() # indirect doctest
+            True
+
+        """
+        try:
+            from sage.rings.rational_field import QQ
+            return QQ
+        except BaseException:
+            from sage.rings.number_field.number_field_base import NumberField
+            return NumberField.__new__(cls)
 
     def __init__(self):
         r"""
@@ -146,7 +166,9 @@ class RationalField(_uniq, number_field_base.NumberField):
             sage: Q.is_field()
             True
             sage: Q.category()
-            Category of quotient fields
+            Join of Category of number fields
+             and Category of quotient fields
+             and Category of metric spaces
             sage: Q.zeta()
             -1
 
@@ -158,8 +180,10 @@ class RationalField(_uniq, number_field_base.NumberField):
             7
             sage: type(Q('49/7'))
             <type 'sage.rings.rational.Rational'>
-            sage: a = Q('19/374'); b = Q('17/371'); print a, b
-            19/374 17/371
+            sage: a = Q('19/374'); a
+            19/374
+            sage: b = Q('17/371'); b
+            17/371
             sage: a + b
             13407/138754
             sage: b + a
@@ -205,22 +229,17 @@ class RationalField(_uniq, number_field_base.NumberField):
             'x'
             sage: QQ.variable_names()
             ('x',)
+            sage: QQ._element_constructor_((2, 3))
+            2/3
         """
         from sage.categories.basic import QuotientFields
-        ParentWithGens.__init__(self, self, category = QuotientFields())
+        from sage.categories.number_fields import NumberFields
+        ParentWithGens.__init__(self, self, category=[QuotientFields().Metric(),
+                                                      NumberFields()])
         self._assign_names(('x',),normalize=False) # ???
-        self._populate_coercion_lists_(element_constructor=rational.Rational, init_no_parent=True)
+        self._populate_coercion_lists_(init_no_parent=True)
 
-    def __hash__(self):
-        """
-        Return hash value for ``self``.
-
-        EXAMPLES::
-
-            sage: hash(QQ)
-            -11115808
-        """
-        return -11115808
+    _element_constructor_ = Rational
 
     def _repr_(self):
         """
@@ -298,7 +317,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             (FractionField, Integer Ring)
         """
         from sage.categories.pushout import FractionField
-        import integer_ring
+        from . import integer_ring
         return FractionField(), integer_ring.ZZ
 
     def completion(self, p, prec, extras = {}):
@@ -312,7 +331,8 @@ class RationalField(_uniq, number_field_base.NumberField):
             sage: QQ.completion(5, 15, {'print_mode': 'bars'})
             5-adic Field with capped relative precision 15
         """
-        if p == infinity.Infinity:
+        from sage.rings.infinity import Infinity
+        if p == Infinity:
             from sage.rings.real_mpfr import create_RealField
             return create_RealField(prec, **extras)
         else:
@@ -335,31 +355,27 @@ class RationalField(_uniq, number_field_base.NumberField):
             0
             sage: f = QQ.coerce_map_from(int); f # indirect doctest
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Rational Field
             sage: f(44)
             44
 
         ::
 
-            sage: QQ.coerce_map_from(long) # indirect doctest
-            Composite map:
-              From: Set of Python objects of type 'long'
+            sage: QQ.coerce_map_from(long) # indirect doctest py2
+            Native morphism:
+              From: Set of Python objects of class 'long'
               To:   Rational Field
-              Defn:   Native morphism:
-                      From: Set of Python objects of type 'long'
-                      To:   Integer Ring
-                    then
-                      Natural morphism:
-                      From: Integer Ring
-                      To:   Rational Field
         """
         global ZZ
+        from . import rational
         if ZZ is None:
-            import integer_ring
+            from . import integer_ring
             ZZ = integer_ring.ZZ
         if S is ZZ:
             return rational.Z_to_Q()
+        elif S is _long_type:
+            return rational.long_to_Q()
         elif S is int:
             return rational.int_to_Q()
         elif ZZ.has_coerce_map_from(S):
@@ -404,39 +420,10 @@ class RationalField(_uniq, number_field_base.NumberField):
             sage: [a.height() for a in lst]
             [1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4]
         """
-
-        #The previous version of this function, implemented by Nils
-        #Bruin, used the sequence defined by $a_0=0$ and
-        #$a_{n+1}=\frac{1}{2\lfloor a_n\rfloor+1-a_n}$ and generated the
-        #sequence $$a_0,a_1,-a_1,a_2,-a_2,\ldots$$.  This is [A002487]
-        #in Sloane's encyclopedia, attributed to [Stern].  It is not
-        #monotone in height, but has other interesting properties
-        #described in [CalkinWilf].
-        #REFERENCES:
-        #  [A002487] Sloane's OLEIS,
-        #    http://oeis.org/classic/A002487
-        #  [CalkinWilf] N. Calkin and H.S. Wilf, Recounting the
-        #    rationals, American Mathematical Monthly 107 (2000),
-        #    360--363
-        #  [Stern] M.A. Stern, Ueber eine zahlentheoretische Funktion,
-        #    Journal fuer die reine und angewandte Mathematik 55
-        #    (1858), 193--220
-        #
-        # [beginning of Nils' code]
-        #from sage.rings.arith import integer_floor as floor
-        #
-        #n=self(0)
-        #yield n
-        #while True:
-        #  n=1/(2*floor(n)+1-n)
-        #  yield n
-        #  yield -n
-        # [end of Nils' code]
-
         yield self(0)
         yield self(1)
         yield self(-1)
-        height = integer.Integer(1)
+        height = Integer(1)
         while True:
             height = height + 1
             for other in range(1, height):
@@ -445,6 +432,24 @@ class RationalField(_uniq, number_field_base.NumberField):
                     yield self(-other/height)
                     yield self(height/other)
                     yield self(-height/other)
+
+    def __truediv__(self, I):
+        """
+        Form the quotient by an integral ideal.
+
+        EXAMPLES::
+
+            sage: QQ / ZZ
+            Q/Z
+        """
+        from sage.rings.ideal import Ideal_generic
+        from sage.groups.additive_abelian.qmodnz import QmodnZ
+        if I is ZZ:
+            return QmodnZ(1)
+        elif isinstance(I, Ideal_generic) and I.base_ring() is ZZ:
+            return QmodnZ(I.gen())
+        else:
+            return super(RationalField, self).__truediv__(I)
 
     def range_by_height(self, start, end=None):
         r"""
@@ -529,10 +534,10 @@ class RationalField(_uniq, number_field_base.NumberField):
         except (TypeError, AttributeError):
             raise TypeError("%s is not valid bound on prime ideals" % B)
 
-        if B<2:
-            raise StopIteration
+        if B < 2:
+            return
 
-        from sage.rings.arith import primes
+        from sage.arith.all import primes
         for p in primes(B+1):
             yield p
 
@@ -545,7 +550,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             sage: QQ.discriminant()
             1
         """
-        return integer.Integer(1)
+        return Integer(1)
 
     def absolute_discriminant(self):
         """
@@ -578,7 +583,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             sage: QQ.class_number()
             1
         """
-        return integer.Integer(1)
+        return Integer(1)
 
     def signature(self):
         r"""
@@ -590,7 +595,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             sage: QQ.signature()
             (1, 0)
         """
-        return (integer.Integer(1), integer.Integer(0))
+        return (Integer(1), Integer(0))
 
     def embeddings(self, K):
         r"""
@@ -599,11 +604,11 @@ class RationalField(_uniq, number_field_base.NumberField):
         EXAMPLES::
 
             sage: QQ.embeddings(QQ)
-            [Ring Coercion endomorphism of Rational Field]
+            [Identity endomorphism of Rational Field]
             sage: QQ.embeddings(CyclotomicField(5))
-            [Ring Coercion morphism:
-              From: Rational Field
-              To:   Cyclotomic Field of order 5 and degree 4]
+            [Coercion map:
+               From: Rational Field
+               To:   Cyclotomic Field of order 5 and degree 4]
 
         `K` must have characteristic 0::
 
@@ -615,6 +620,25 @@ class RationalField(_uniq, number_field_base.NumberField):
         if K.characteristic() != 0:
             raise ValueError("no embeddings of the rational field into K.")
         return [self.hom(K)]
+
+    def automorphisms(self):
+        r"""
+        Return all Galois automorphisms of ``self``.
+
+        OUTPUT:
+
+        - a sequence containing just the identity morphism
+
+        EXAMPLES::
+
+            sage: QQ.automorphisms()
+            [
+            Ring endomorphism of Rational Field
+              Defn: 1 |--> 1
+            ]
+        """
+        return Sequence([self.hom(1, self)], cr=True, immutable=False,
+                        check=False)
 
     def places(self, all_complex=False, prec=None):
         r"""
@@ -651,13 +675,14 @@ class RationalField(_uniq, number_field_base.NumberField):
               Defn: 1 |--> 1.0000000000000000000000000000000000000000000000000000000000]
         """
         import sage.rings.all
+        from sage.rings.infinity import Infinity
         if prec is None:
             R = sage.rings.all.RR
             C = sage.rings.all.CC
         elif prec == 53:
             R = sage.rings.all.RDF
             C = sage.rings.all.CDF
-        elif prec == infinity.Infinity:
+        elif prec == Infinity:
             R = sage.rings.all.AA
             C = sage.rings.all.QQbar
         else:
@@ -683,7 +708,7 @@ class RationalField(_uniq, number_field_base.NumberField):
               To:   Complex Field with 20 bits of precision
               Defn: 1 |--> 1.0000
         """
-        import complex_field
+        from . import complex_field
         CC = complex_field.ComplexField(prec)
         return self.hom([CC(1)])
 
@@ -747,7 +772,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             sage: QQ.degree()
             1
         """
-        return integer.Integer(1)
+        return Integer(1)
 
     def absolute_degree(self):
         r"""
@@ -758,7 +783,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             sage: QQ.absolute_degree()
             1
         """
-        return integer.Integer(1)
+        return Integer(1)
 
     def ngens(self):
         r"""
@@ -769,7 +794,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             sage: QQ.ngens()
             1
         """
-        return integer.Integer(1)
+        return Integer(1)
 
     def is_absolute(self):
         r"""
@@ -780,38 +805,6 @@ class RationalField(_uniq, number_field_base.NumberField):
             sage: QQ.is_absolute()
             True
         """
-        return True
-
-    def is_subring(self, K):
-        r"""
-        Return ``True`` if `\QQ` is a subring of `K`.
-
-        We are only able to determine this in some cases, e.g., when
-        `K` is a field or of positive characteristic.
-
-        EXAMPLES::
-
-            sage: QQ.is_subring(QQ)
-            True
-            sage: QQ.is_subring(QQ['x'])
-            True
-            sage: QQ.is_subring(GF(7))
-            False
-            sage: QQ.is_subring(CyclotomicField(7))
-            True
-            sage: QQ.is_subring(ZZ)
-            False
-            sage: QQ.is_subring(Frac(ZZ))
-            True
-        """
-        if K.is_field():
-            return K.characteristic() == 0
-        if K.characteristic() != 0:
-            return False
-        try:
-            self.embeddings(K)
-        except (TypeError, ValueError):
-            return False
         return True
 
     def is_field(self, proof = True):
@@ -858,7 +851,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             sage: parent(c)
             Integer Ring
         """
-        return integer.Integer(0)
+        return Integer(0)
 
     def maximal_order(self):
         r"""
@@ -872,7 +865,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             sage: QQ.ring_of_integers ()
             Integer Ring
         """
-        from integer_ring import ZZ
+        from .integer_ring import ZZ
         return ZZ
 
     def number_field(self):
@@ -902,7 +895,7 @@ class RationalField(_uniq, number_field_base.NumberField):
         """
         return [ self.gen() ]
 
-    def extension(self, poly, names, check=True, embedding=None):
+    def extension(self, poly, names, **kwds):
         r"""
         Create a field extension of `\QQ`.
 
@@ -923,7 +916,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             -5
         """
         from sage.rings.number_field.all import NumberField
-        return NumberField(poly, names=names, check=check, embedding=embedding)
+        return NumberField(poly, names=names, **kwds)
 
     def algebraic_closure(self):
         r"""
@@ -946,7 +939,8 @@ class RationalField(_uniq, number_field_base.NumberField):
             sage: QQ.order()
             +Infinity
         """
-        return infinity.infinity
+        from sage.rings.infinity import Infinity
+        return Infinity
 
     def _an_element_(self):
         r"""
@@ -957,26 +951,100 @@ class RationalField(_uniq, number_field_base.NumberField):
             sage: QQ.an_element() # indirect doctest
             1/2
         """
-        return rational.Rational((1,2))
+        return Rational((1,2))
+
+    def some_elements(self):
+        r"""
+        Return some elements of `\QQ`.
+
+        See :func:`TestSuite` for a typical use case.
+
+        OUTPUT:
+
+        An iterator over 100 elements of `\QQ`.
+
+        EXAMPLES::
+
+            sage: tuple(QQ.some_elements())
+            (1/2, -1/2, 2, -2,
+             0, 1, -1, 42,
+             2/3, -2/3, 3/2, -3/2,
+             4/5, -4/5, 5/4, -5/4,
+             6/7, -6/7, 7/6, -7/6,
+             8/9, -8/9, 9/8, -9/8,
+             10/11, -10/11, 11/10, -11/10,
+             12/13, -12/13, 13/12, -13/12,
+             14/15, -14/15, 15/14, -15/14,
+             16/17, -16/17, 17/16, -17/16,
+             18/19, -18/19, 19/18, -19/18,
+             20/441, -20/441, 441/20, -441/20,
+             22/529, -22/529, 529/22, -529/22,
+             24/625, -24/625, 625/24, -625/24,
+             ...)
+        """
+        yield self.an_element()
+        yield -self.an_element()
+        yield 1/self.an_element()
+        yield -1/self.an_element()
+        yield self(0)
+        yield self(1)
+        yield self(-1)
+        yield self(42)
+        for n in range(1, 24):
+            a = 2*n
+            b = (2*n + 1)**(n//10 + 1)
+            yield Rational((a, b))
+            yield Rational((-a, b))
+            yield Rational((b, a))
+            yield Rational((-b, a))
 
     def random_element(self, num_bound=None, den_bound=None, *args, **kwds):
         """
         Return an random element of `\QQ`.
 
+        Elements are constructed by randomly choosing integers
+        for the numerator and denominator, not necessarily coprime.
+
+        INPUT:
+
+        -  ``num_bound`` -- a positive integer, specifying a bound
+           on the absolute value of the numerator.
+           If absent, no bound is enforced.
+
+        -  ``den_bound`` -- a positive integer, specifying a bound
+           on the value of the denominator.
+           If absent, the bound for the numerator will be reused.
+
+        Any extra positional or keyword arguments are passed through to
+        :meth:`sage.rings.integer_ring.IntegerRing_class.random_element`.
+
         EXAMPLES::
 
-            sage: QQ.random_element(10,10)
-            1/4
+            sage: QQ.random_element()
+            -4
+            sage: QQ.random_element()
+            0
+            sage: QQ.random_element()
+            -1/2
 
-        Passes extra positional or keyword arguments through::
+        In the following example, the resulting numbers range from
+        -5/1 to 5/1 (both inclusive),
+        while the smallest possible positive value is 1/10::
 
-            sage: QQ.random_element(10,10, distribution='1/n')
+            sage: QQ.random_element(5, 10)
+            -2/7
+
+        Extra positional or keyword arguments are passed through::
+
+            sage: QQ.random_element(distribution='1/n')
+            0
+            sage: QQ.random_element(distribution='1/n')
             -1
 
         """
         global ZZ
         if ZZ is None:
-            import integer_ring
+            from . import integer_ring
             ZZ = integer_ring.ZZ
         if num_bound is None:
             num = ZZ.random_element(*args, **kwds)
@@ -1018,9 +1086,9 @@ class RationalField(_uniq, number_field_base.NumberField):
             ValueError: no n-th root of unity in rational field
         """
         if n == 1:
-            return rational.Rational(1)
+            return Rational(1)
         elif n == 2:
-            return rational.Rational(-1)
+            return Rational(-1)
         else:
             raise ValueError("no n-th root of unity in rational field")
 
@@ -1111,10 +1179,11 @@ class RationalField(_uniq, number_field_base.NumberField):
             [1, 5, -1, -5]
         """
         KSgens, ords = self.selmer_group(S=S, m=m, proof=proof, orders=True)
-        one = self.one_element()
-        from sage.misc.all import prod, cartesian_product_iterator
-        for ev in cartesian_product_iterator([range(o) for o in ords]):
-            yield prod([p**e for p,e in zip(KSgens, ev)], one)
+        one = self.one()
+        from sage.misc.all import prod
+        from itertools import product
+        for ev in product(*[range(o) for o in ords]):
+            yield prod((p**e for p,e in zip(KSgens, ev)), one)
 
 
     #################################
@@ -1155,7 +1224,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
         EXAMPLES::
 
-            sage: macaulay2(QQ)   # optional- macaulay2 # indirect doctest
+            sage: macaulay2(QQ)   # optional - macaulay2 # indirect doctest
             QQ
         """
         return "QQ"
@@ -1175,6 +1244,18 @@ class RationalField(_uniq, number_field_base.NumberField):
         return 'Fraction Integer'
 
     _fricas_init_ = _axiom_init_
+
+    def _polymake_init_(self):
+        r"""
+        Return the polymake representation of `\QQ`.
+
+        EXAMPLES::
+
+            sage: polymake(QQ)    #optional - polymake # indirect doctest
+            Rational
+
+        """
+        return '"Rational"'
 
     def _sage_input_(self, sib, coerced):
         r"""
@@ -1239,6 +1320,26 @@ class RationalField(_uniq, number_field_base.NumberField):
         from sage.structure.factorization import Factorization
         return Factorization(F, f.leading_coefficient())
 
+    def valuation(self, p):
+        r"""
+        Return the discrete valuation with uniformizer ``p``.
+
+        EXAMPLES::
+
+            sage: v = QQ.valuation(3); v
+            3-adic valuation
+            sage: v(1/3)
+            -1
+
+        .. SEEALSO::
+
+            :meth:`NumberField_generic.valuation() <sage.rings.number_field.number_field.NumberField_generic.valuation>`,
+            :meth:`IntegerRing_class.valuation() <sage.rings.integer_ring.IntegerRing_class.valuation>`
+
+        """
+        from sage.rings.padics.padic_valuation import pAdicValuation
+        return pAdicValuation(self, p)
+
 QQ = RationalField()
 Q = QQ
 
@@ -1266,4 +1367,4 @@ def frac(n,d):
         sage: frac(1,2)
         1/2
     """
-    return rational.Rational(n)/rational.Rational(d)
+    return Rational(n) / Rational(d)

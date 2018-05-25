@@ -8,6 +8,7 @@ AUTHORS:
 - Nick Alexander (2008-01-08)
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Nick Alexander <ncalexander@gmail.com>
 #       Copyright (C) 2009/2010 Marco Streng <marco.streng@gmail.com>
@@ -26,7 +27,6 @@ AUTHORS:
 
 from sage.rings.all import (PolynomialRing, ZZ, QQ)
 
-from sage.rings.morphism import is_RingHomomorphism
 from sage.rings.real_mpfr import is_RealField
 
 from sage.structure.sequence import Sequence
@@ -35,11 +35,11 @@ from sage.matrix.constructor import Matrix
 
 from sage.quadratic_forms.qfsolve import qfsolve, qfparam
 
-from con_number_field import ProjectiveConic_number_field
+from .con_number_field import ProjectiveConic_number_field
 
 from sage.structure.element import is_InfinityElement
 
-from sage.rings.arith import (lcm, hilbert_symbol)
+from sage.arith.all import lcm, hilbert_symbol
 
 class ProjectiveConic_rational_field(ProjectiveConic_number_field):
     r"""
@@ -96,8 +96,7 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
         The parameter ``algorithm``
         specifies the algorithm to be used:
 
-         - ``'qfsolve'`` -- Use Denis Simon's GP script ``qfsolve``
-           (see ``sage.quadratic_forms.qfsolve.qfsolve``)
+         - ``'qfsolve'`` -- Use PARI/GP function ``qfsolve``
 
          - ``'rnfisnorm'`` -- Use PARI's function rnfisnorm
            (cannot be combined with ``obstruction = True``)
@@ -191,7 +190,10 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
                                            algorithm = algorithm, \
                                            read_cache = read_cache)
         if point or obstruction:
-            if is_RingHomomorphism(ret[1]):
+            from sage.categories.map import Map
+            from sage.categories.all import Rings
+            if isinstance(ret[1], Map) and ret[1].category_for().is_subcategory(Rings()):
+                # ret[1] is a morphism of Rings
                 ret[1] = -1
         return ret
 
@@ -220,6 +222,9 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
             True
 
         """
+        from sage.categories.map import Map
+        from sage.categories.all import Rings
+
         D, T = self.diagonal_matrix()
         abc = [D[j, j] for j in range(3)]
         if abc[2] == 0:
@@ -228,7 +233,8 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
         b = -abc[1]/abc[2]
         if is_RealField(p) or is_InfinityElement(p):
             p = -1
-        elif is_RingHomomorphism(p):
+        elif isinstance(p, Map) and p.category_for().is_subcategory(Rings()):
+            # p is a morphism of Rings
             if p.domain() is QQ and is_RealField(p.codomain()):
                 p = -1
             else:
@@ -314,8 +320,7 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
 
         ALGORITHM:
 
-        Uses Denis Simon's GP script ``qfparam``.
-        See ``sage.quadratic_forms.qfsolve.qfparam``.
+        Uses the PARI/GP function ``qfparam``.
 
         EXAMPLES ::
 
@@ -325,19 +330,19 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
               From: Projective Space of dimension 1 over Rational Field
               To:   Projective Conic Curve over Rational Field defined by x^2 + y^2 - z^2
               Defn: Defined on coordinates by sending (x : y) to
-                    (2*x*y : -x^2 + y^2 : x^2 + y^2),
+                    (2*x*y : x^2 - y^2 : x^2 + y^2),
              Scheme morphism:
               From: Projective Conic Curve over Rational Field defined by x^2 + y^2 - z^2
               To:   Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y : z) to
-                    (1/2*x : 1/2*y + 1/2*z))
+                    (1/2*x : -1/2*y + 1/2*z))
 
         An example with ``morphism = False`` ::
 
             sage: R.<x,y,z> = QQ[]
             sage: C = Curve(7*x^2 + 2*y*z + z^2)
             sage: (p, i) = C.parametrization(morphism = False); (p, i)
-            ([-2*x*y, 7*x^2 + y^2, -2*y^2], [-1/2*x, -1/2*z])
+            ([-2*x*y, x^2 + 7*y^2, -2*x^2], [-1/2*x, 1/7*y + 1/14*z])
             sage: C.defining_polynomial()(p)
             0
             sage: i[0](p) / i[1](p)

@@ -8,7 +8,7 @@ hidden Markov model.
 
 AUTHOR:
 
-   - William Stein, 2010-03
+- William Stein, 2010-03
 """
 
 #############################################################################
@@ -17,8 +17,9 @@ AUTHOR:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import absolute_import
 
-include "sage/ext/stdsage.pxi"
+from cpython.object cimport PyObject_RichCompare
 
 cdef extern from "math.h":
     double exp(double)
@@ -183,7 +184,7 @@ cdef class GaussianMixtureDistribution(Distribution):
         """
         B = [[c if c>=0 else 0,  mu,  std if std>0 else eps] for c,mu,std in B]
         if len(B) == 0:
-            raise ValueError, "must specify at least one component of the mixture model"
+            raise ValueError("must specify at least one component of the mixture model")
         cdef double s
         if normalize:
             s = sum([a[0] for a in B])
@@ -233,7 +234,8 @@ cdef class GaussianMixtureDistribution(Distribution):
             IndexError: index out of range
         """
         if i < 0: i += self.param._length//3
-        if i < 0 or i >= self.param._length//3: raise IndexError, "index out of range"
+        if i < 0 or i >= self.param._length//3:
+            raise IndexError("index out of range")
         return self.param._values[3*i], self.param._values[3*i+1], self.param._values[3*i+2]
 
     def __reduce__(self):
@@ -249,7 +251,7 @@ cdef class GaussianMixtureDistribution(Distribution):
         return unpickle_gaussian_mixture_distribution_v1, (
             self.c0, self.c1, self.param, self.fixed)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         EXAMPLES::
 
@@ -265,8 +267,9 @@ cdef class GaussianMixtureDistribution(Distribution):
             True
         """
         if not isinstance(other, GaussianMixtureDistribution):
-            raise ValueError
-        return cmp(self.__reduce__()[1], other.__reduce__()[1])
+            return NotImplemented
+        return PyObject_RichCompare(self.__reduce__()[1],
+                                    other.__reduce__()[1], op)
 
     def __len__(self):
         """
@@ -286,7 +289,7 @@ cdef class GaussianMixtureDistribution(Distribution):
 
         INPUT:
 
-            - i - None (default) or integer; if given, only return
+            - i -- None (default) or integer; if given, only return
               whether the i-th component is fixed
 
         EXAMPLES::
@@ -316,7 +319,7 @@ cdef class GaussianMixtureDistribution(Distribution):
 
         INPUT:
 
-            - i - None (default) or integer; if given, only fix the
+            - i -- None (default) or integer; if given, only fix the
               i-th component
 
         EXAMPLES::
@@ -344,7 +347,7 @@ cdef class GaussianMixtureDistribution(Distribution):
 
         INPUT:
 
-            - i - None (default) or integer; if given, only fix the
+            - i -- None (default) or integer; if given, only fix the
               i-th component
 
         EXAMPLES::
@@ -416,7 +419,7 @@ cdef class GaussianMixtureDistribution(Distribution):
         else:
             _n = n
             if _n < 0:
-                raise ValueError, "n must be nonnegative"
+                raise ValueError("n must be nonnegative")
             T = TimeSeries(_n)
             for i in range(_n):
                 T._values[i] = self._sample(rstate)
@@ -445,7 +448,7 @@ cdef class GaussianMixtureDistribution(Distribution):
             accum += self.param._values[3*n]
             if r <= accum:
                 return random_normal(self.param._values[3*n+1], self.param._values[3*n+2], rstate)
-        raise RuntimeError, "invalid probability distribution"
+        raise RuntimeError("invalid probability distribution")
 
     cpdef double prob(self, double x):
         """
@@ -508,7 +511,7 @@ cdef class GaussianMixtureDistribution(Distribution):
         """
         cdef double s, mu
         if m < 0 or m >= self.param._length//3:
-            raise IndexError, "index out of range"
+            raise IndexError("index out of range")
         mu = self.param._values[3*m+1]
         return self.c0._values[m]*exp((x-mu)*(x-mu)*self.c1._values[m])
 
@@ -523,7 +526,7 @@ def unpickle_gaussian_mixture_distribution_v1(TimeSeries c0, TimeSeries c1,
         sage: loads(dumps(P)) == P          # indirect doctest
         True
     """
-    cdef GaussianMixtureDistribution G = PY_NEW(GaussianMixtureDistribution)
+    cdef GaussianMixtureDistribution G = GaussianMixtureDistribution.__new__(GaussianMixtureDistribution)
     G.c0 = c0
     G.c1 = c1
     G.param = param

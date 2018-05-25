@@ -1,10 +1,13 @@
-include "sage/libs/singular/singular-cdefs.pxi"
-
+from sage.libs.singular.decl cimport *
 from sage.rings.ring cimport Ring
 from sage.structure.element cimport RingElement, Element
 from sage.structure.parent cimport Parent
 from sage.libs.singular.function cimport RingWrap
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular
+
+from sage.libs.singular.decl cimport wFunctionalBuch
+
+from sage.libs.singular.decl cimport p_Totaldegree
 
 cdef extern from *:
     ctypedef long Py_hash_t
@@ -16,8 +19,6 @@ cdef class NCPolynomialRing_plural(Ring):
     cdef object __term_order
     cdef public object _has_singular
     cdef public object _magma_gens, _magma_cache
-#    cdef _richcmp_c_impl(left, Parent right, int op)
-    cdef int _cmp_c_impl(left, Parent right) except -2
 
     cdef ring *_ring
 #    cdef NCPolynomial_plural _one_element
@@ -31,6 +32,8 @@ cdef class ExteriorAlgebra_plural(NCPolynomialRing_plural):
 
 cdef class NCPolynomial_plural(RingElement):
     cdef poly *_poly
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
     cpdef _repr_short_(self)
     cdef long _hash_c(self)
     cpdef is_constant(self)

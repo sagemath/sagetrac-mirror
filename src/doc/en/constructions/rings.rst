@@ -56,7 +56,8 @@ Here's an example using the Singular interface:
     sage: R = singular.ring(97, '(a,b,c,d)', 'lp')
     sage: I = singular.ideal(['a+b+c+d', 'ab+ad+bc+cd', 'abc+abd+acd+bcd', 'abcd-1'])
     sage: R
-    //   characteristic : 97
+    polynomial ring, over a field, global ordering
+    //   coefficients: ZZ/97
     //   number of vars : 4
     //        block   1 : ordering lp
     //                  : names    a b c d
@@ -76,8 +77,9 @@ Here is another approach using GAP:
     sage: I = R.IndeterminatesOfPolynomialRing(); I
     [ x_1, x_2, x_3, x_4 ]
     sage: vars = (I.name(), I.name(), I.name(), I.name())
-    sage: _ = gap.eval("x_0 := %s[1];; x_1 := %s[2];; x_2 := %s[3];;\
-    ...   x_3 := %s[4];;"%vars)
+    sage: _ = gap.eval(
+    ....:     "x_0 := %s[1];; x_1 := %s[2];; x_2 := %s[3];;x_3 := %s[4];;"
+    ....:     % vars)
     sage: f = gap.new("x_1*x_2+x_3"); f
     x_2*x_3+x_4
     sage: f.Value(I,[1,1,1,1])

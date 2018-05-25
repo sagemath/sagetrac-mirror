@@ -2,6 +2,8 @@
 
 .. linkall
 
+.. _prep-calculus:
+
 Tutorial for Calculus
 =====================
 
@@ -228,11 +230,11 @@ In this one, dragging a slider will show the tangent line moving.
     sage: f(x)=x^3+1
     sage: @interact
     sage: def _(c=(1/3,(-1,1))):
-    ...       P=plot(f,(x,-1,1))
-    ...       fprime=derivative(f,x)
-    ...       L(x)=fprime(c)*(x-c)+f(c)
-    ...       Q=plot(L,(x,-1,1),color="red", linestyle="--")
-    ...       show(P+Q+point((c,f(c)), pointsize=40, color='red'),ymin=0,ymax=2)
+    ....:     P=plot(f,(x,-1,1))
+    ....:     fprime=derivative(f,x)
+    ....:     L(x)=fprime(c)*(x-c)+f(c)
+    ....:     Q=plot(L,(x,-1,1),color="red", linestyle="--")
+    ....:     show(P+Q+point((c,f(c)), pointsize=40, color='red'),ymin=0,ymax=2)
 
 A very sharp\-eyed reader will also have noticed that the previous cell
 had ``%auto`` at the very top, and that it was not necessary to evaluate
@@ -308,7 +310,7 @@ help it look nicer in the browser?
 ::
 
     sage: integrate(1/(1+x^5),x)
-    1/5*sqrt(5)*(sqrt(5) + 1)*arctan((4*x + sqrt(5) - 1)/sqrt(2*sqrt(5) + 10))/sqrt(2*sqrt(5) + 10) + 1/5*sqrt(5)*(sqrt(5) - 1)*arctan((4*x - sqrt(5) - 1)/sqrt(-2*sqrt(5) + 10))/sqrt(-2*sqrt(5) + 10) - 1/2*(sqrt(5) + 3)*log(2*x^2 - x*(sqrt(5) + 1) + 2)/(5*sqrt(5) + 5) - 1/2*(sqrt(5) - 3)*log(2*x^2 + x*(sqrt(5) - 1) + 2)/(5*sqrt(5) - 5) + 1/5*log(x + 1)
+    1/5*sqrt(5)*(sqrt(5) + 1)*arctan((4*x + sqrt(5) - 1)/sqrt(2*sqrt(5) + 10))/sqrt(2*sqrt(5) + 10) + 1/5*sqrt(5)*(sqrt(5) - 1)*arctan((4*x - sqrt(5) - 1)/sqrt(-2*sqrt(5) + 10))/sqrt(-2*sqrt(5) + 10) - 1/10*(sqrt(5) + 3)*log(2*x^2 - x*(sqrt(5) + 1) + 2)/(sqrt(5) + 1) - 1/10*(sqrt(5) - 3)*log(2*x^2 + x*(sqrt(5) - 1) + 2)/(sqrt(5) - 1) + 1/5*log(x + 1)
 
 Some integrals are a little tricky, of course.  If Sage doesn't know the
 whole antiderivative, it returns as much of it as it (more properly, as
@@ -393,8 +395,8 @@ Fundamental Theorem of Calculus is not entirely helpful.  Recall that
 
 ::
 
-    sage: integral(h,(x,0,pi/8))
-    1/2*log(sin(1/8*pi) + 1) - 1/2*log(-sin(1/8*pi) + 1)
+    sage: integral(h,(x,0,pi/7))
+    1/2*log(sin(1/7*pi) + 1) - 1/2*log(-sin(1/7*pi) + 1)
 
 Here, just a number might be more helpful.  Sage has several ways of
 numerical evaluating integrals.
@@ -411,7 +413,7 @@ was also mentioned in the introductory tutorial.
 ::
 
     sage: N(integral(h,(x,0,pi/8)))
-    0.403199719161512
+    0.403199719161511
 
 The second function, ``numerical_integral``, uses a powerful numerical
 program (the GNU Scientific Library).

@@ -1,7 +1,6 @@
 """
 Submodules of Hecke modules
 """
-
 #*****************************************************************************
 #       Sage: System for Algebra and Geometry Experimentation
 #
@@ -18,15 +17,16 @@ Submodules of Hecke modules
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.misc.misc as misc
 from sage.misc.cachefunc import cached_method
-
+from sage.structure.richcmp import richcmp_method, richcmp_not_equal, richcmp
 import sage.modules.all
 
-import module
-import ambient_module
+from . import module
+
 
 
 def is_HeckeSubmodule(x):
@@ -42,6 +42,8 @@ def is_HeckeSubmodule(x):
     """
     return isinstance(x, HeckeSubmodule)
 
+
+@richcmp_method
 class HeckeSubmodule(module.HeckeModule_free_module):
     """
     Submodule of a Hecke module.
@@ -77,6 +79,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             sage: S == loads(dumps(S))
             True
         """
+        from . import ambient_module
         if not isinstance(ambient, ambient_module.AmbientHeckeModule):
             raise TypeError("ambient must be an ambient Hecke module")
         if not sage.modules.free_module.is_FreeModule(submodule):
@@ -137,7 +140,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         M = self.free_module() + other.free_module()
         return self.ambient().submodule(M, check=False)
 
-    def __call__(self, x, check=True):
+    def _element_constructor_(self, x, check=True):
         """
         Coerce x into the ambient module and checks that x is in this
         submodule.
@@ -155,18 +158,17 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             sage: S([-1/23,0])
             (1,23)
         """
-        z = self.ambient_hecke_module()(x)
-        if check:
-            if not z.element() in self.__submodule:
-                raise TypeError("x does not coerce to an element of this Hecke module")
-        return z
+        z = self.ambient_hecke_module()(x).element()
+        if check and not z in self.__submodule:
+            raise TypeError("x does not coerce to an element of this Hecke module")
+        return self.element_class(self, z)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
-        Compare self to other. Returns 0 if self is the same as
-        other, and -1 otherwise.
+        Compare self to other.
 
         EXAMPLES::
+
             sage: M = ModularSymbols(12,6)
             sage: S = sage.modular.hecke.submodule.HeckeSubmodule(M, M.cuspidal_submodule().free_module())
             sage: T = sage.modular.hecke.submodule.HeckeSubmodule(M, M.new_submodule().free_module())
@@ -174,20 +176,20 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             Rank 14 submodule of a Hecke module of level 12
             sage: T
             Rank 0 submodule of a Hecke module of level 12
-            sage: S.__cmp__(T)
-            1
-            sage: T.__cmp__(S)
-            -1
-            sage: S.__cmp__(S)
-            0
+            sage: S > T
+            True
+            sage: T < S
+            True
+            sage: S == S
+            True
         """
         if not isinstance(other, module.HeckeModule_free_module):
-            return cmp(type(self), type(other))
-        c = cmp(self.ambient(), other.ambient())
-        if c:
-            return c
-        else:
-            return cmp(self.free_module(), other.free_module())
+            return NotImplemented
+        lx = self.ambient()
+        rx = other.ambient()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+        return self.free_module()._echelon_matrix_richcmp(other.free_module(), op)
 
     ################################
     # Semi-Private functions
@@ -240,7 +242,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
 
     def _compute_diamond_matrix(self, d):
         r"""
-        EXAMPLE:
+        EXAMPLES:
 
             sage: f = ModularSymbols(Gamma1(13),2,sign=1).cuspidal_subspace().decomposition()[0]
             sage: a = f.diamond_bracket_operator(2).matrix() # indirect doctest
@@ -372,7 +374,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             if V.rank() + self.rank() <= A.rank():
                 break
             p = arith.next_prime(p)
-            if p > bound:  # to avoid computing hecke bound unless necessary
+            if p > bound:  # to avoid computing Hecke bound unless necessary
                 break
 
         if V.rank() + self.rank() == A.rank():
@@ -504,7 +506,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             sage: S.dual_free_module().dimension() == S.dimension()
             True
 
-        We test that #5080 is fixed::
+        We test that :trac:`5080` is fixed::
 
             sage: EllipticCurve('128a').congruence_number()
             32
@@ -753,20 +755,34 @@ class HeckeSubmodule(module.HeckeModule_free_module):
 
     def linear_combination_of_basis(self, v):
         """
-        Return the linear combination of the basis of self given by the
-        entries of v.
+        Return the linear combination of the basis of ``self`` given
+        by the entries of `v`.
+
+        The result can be of different types, and is printed
+        accordingly, depending on the type of submodule.
 
         EXAMPLES::
 
             sage: M = ModularForms(Gamma0(2),12)
+
             sage: S = sage.modular.hecke.submodule.HeckeSubmodule(M, M.cuspidal_submodule().free_module())
             sage: S.basis()
-            (q + 252*q^3 - 2048*q^4 + 4830*q^5 + O(q^6), q^2 - 24*q^4 + O(q^6))
-            sage: S.linear_combination_of_basis([3,10])
+            ((1, 0, 0, 0), (0, 1, 0, 0))
+            sage: S.linear_combination_of_basis([3, 10])
+            (3, 10, 0, 0)
+
+            sage: S = M.cuspidal_submodule()
+            sage: S.basis()
+            [
+            q + 252*q^3 - 2048*q^4 + 4830*q^5 + O(q^6),
+            q^2 - 24*q^4 + O(q^6)
+            ]
+            sage: S.linear_combination_of_basis([3, 10])
             3*q + 10*q^2 + 756*q^3 - 6384*q^4 + 14490*q^5 + O(q^6)
+
         """
         x = self.free_module().linear_combination_of_basis(v)
-        return self.__ambient(x)
+        return self(x)
 
     def new_submodule(self, p=None):
         """
@@ -873,7 +889,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         r"""
         Return the rank of self as a free module over the base ring.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularSymbols(6, 4).cuspidal_subspace().rank()
             2
@@ -896,6 +912,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             sage: S.submodule(S[0].free_module())
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 18 for Gamma_0(18) of weight 4 with sign 0 over Rational Field
         """
+        from . import ambient_module
         if not sage.modules.free_module.is_FreeModule(M):
             V = self.ambient_module().free_module()
             if isinstance(M, (list,tuple)):

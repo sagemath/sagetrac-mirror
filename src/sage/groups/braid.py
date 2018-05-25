@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Braid groups
 
@@ -46,6 +47,7 @@ AUTHORS:
 
 - Miguel Angel Marco Buzunariz
 - Volker Braun
+- Søren Fuglede Jørgensen
 - Robert Lipshitz
 - Thierry Monteil: add a ``__hash__`` method consistent with the word
   problem to ensure correct Cayley graph computations.
@@ -61,22 +63,26 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-
+import six
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.groups.free_group import FreeGroup, is_FreeGroup
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.matrix.constructor import identity_matrix, matrix
-from sage.combinat.permutation import Permutation
+from sage.combinat.permutation import Permutations
 from sage.categories.action import Action
 from sage.sets.set import Set
 from sage.groups.finitely_presented import FinitelyPresentedGroup, FinitelyPresentedGroupElement
+from sage.groups.artin import FiniteTypeArtinGroup, FiniteTypeArtinGroupElement
+from sage.misc.package import PackageNotFoundError
+from sage.structure.richcmp import richcmp, rich_to_bool
+from sage.misc.superseded import deprecated_function_alias
 
-
-class Braid(FinitelyPresentedGroupElement):
+class Braid(FiniteTypeArtinGroupElement):
     """
-    Class that models elements of the braid group.
+    An element of a braid group.
 
     It is a particular case of element of a finitely presented group.
 
@@ -90,8 +96,7 @@ class Braid(FinitelyPresentedGroupElement):
         sage: B((1, 2, -3, -2))
         s0*s1*s2^-1*s1^-1
     """
-
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare ``self`` and ``other``
 
@@ -102,16 +107,16 @@ class Braid(FinitelyPresentedGroupElement):
             sage: c = B([2, 1, 2])
             sage: b == c #indirect doctest
             True
-            sage: b.__cmp__(c^(-1))
-            -1
-            sage: B([]).__cmp__(B.one())
-            0
+            sage: b < c^(-1)
+            True
+            sage: B([]) == B.one()
+            True
         """
-        if self.Tietze()==other.Tietze():
-            return 0
-        nfself = map(lambda i: i.Tietze(), self.left_normal_form())
-        nfother = map(lambda i: i.Tietze(), other.left_normal_form())
-        return cmp(nfself, nfother)
+        if self.Tietze() == other.Tietze():
+            return rich_to_bool(op, 0)
+        nfself = [i.Tietze() for i in self.left_normal_form()]
+        nfother = [i.Tietze() for i in other.left_normal_form()]
+        return richcmp(nfself, nfother, op)
 
     def __hash__(self):
         r"""
@@ -127,29 +132,6 @@ class Braid(FinitelyPresentedGroupElement):
         """
         return hash(tuple(i.Tietze() for i in self.left_normal_form()))
 
-    def _latex_(self):
-        """
-        Return a LaTeX representation
-
-        OUTPUT:
-
-        String. A valid LaTeX math command sequence.
-
-        TESTS::
-
-            sage: B = BraidGroup(4)
-            sage: b = B([1, 2, 3, -1, 2, -3])
-            sage: b._latex_()
-            '\\sigma_{1}\\sigma_{2}\\sigma_{3}\\sigma_{1}^{-1}\\sigma_{2}\\sigma_{3}^{-1}'
-        """
-        latexrepr = ''
-        for i in self.Tietze():
-            if i>0:
-                latexrepr = latexrepr+"\sigma_{%s}"%i
-            if i<0:
-                latexrepr = latexrepr+"\sigma_{%s}^{-1}"%(-i)
-        return latexrepr
-
     def strands(self):
         """
         Return the number of strands in the braid.
@@ -162,6 +144,31 @@ class Braid(FinitelyPresentedGroupElement):
             4
         """
         return self.parent().strands()
+
+    def components_in_closure(self):
+        """
+        Return the number of components of the trace closure of the braid.
+
+        OUTPUT:
+
+        Positive integer.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(5)
+            sage: b = B([1, -3])  # Three disjoint unknots
+            sage: b.components_in_closure()
+            3
+            sage: b = B([1, 2, 3, 4])  # The unknot
+            sage: b.components_in_closure()
+            1
+            sage: B = BraidGroup(4)
+            sage: K11n42 = B([1, -2, 3, -2, 3, -2, -2, -1, 2, -3, -3, 2, 2])
+            sage: K11n42.components_in_closure()
+            1
+        """
+        cycles = self.permutation().to_cycles(singletons=False)
+        return self.strands() - sum(len(c)-1 for c in cycles)
 
     def burau_matrix(self, var='t', reduced=False):
         """
@@ -242,11 +249,11 @@ class Braid(FinitelyPresentedGroupElement):
                     A[-i, -1-i] = t**(-1)
                 if j == 1:
                     for k in range(n - 1):
-                        A[k,0] = -t
+                        A[k, 0] = -t
                 if j == -1:
-                    A[0,0] = -t**(-1)
+                    A[0, 0] = -t**(-1)
                     for k in range(1, n - 1):
-                        A[k,0] = -1
+                        A[k, 0] = -1
                 M = M * A
         return M
 
@@ -336,11 +343,7 @@ class Braid(FinitelyPresentedGroupElement):
             sage: b.permutation().cycle_string()
             '(1,4,2)'
         """
-        per = Permutation((()))
-        for i in self.Tietze():
-            j = abs(i)
-            per = per*Permutation(((j, j+1)))
-        return per
+        return self.coxeter_group_element()
 
     def plot(self, color='rainbow', orientation='bottom-top', gap=0.05, aspect_ratio=1, axes=False, **kwds):
         """
@@ -525,7 +528,7 @@ class Braid(FinitelyPresentedGroupElement):
 
     def LKB_matrix(self, variables='x,y'):
         """
-        Return the Lawence-Krammer-Bigelow representation matrix.
+        Return the Lawrence-Krammer-Bigelow representation matrix.
 
         The matrix is expressed in the basis $\{e_{i, j} \mid 1\\leq i
         < j \leq n\}$, where the indices are ordered
@@ -540,7 +543,7 @@ class Braid(FinitelyPresentedGroupElement):
 
         OUTPUT:
 
-        The matrix corresponding to the Lawence-Krammer-Bigelow representation of the braid.
+        The matrix corresponding to the Lawrence-Krammer-Bigelow representation of the braid.
 
         EXAMPLES::
 
@@ -558,9 +561,107 @@ class Braid(FinitelyPresentedGroupElement):
 
         REFERENCES:
 
-        .. [Bigelow] Bigelow, Stephen J. The Lawrence-Krammer representation. arXiv:math/0204057v1
+        - [Big2003]_
         """
         return self.parent()._LKB_matrix_(self.Tietze(), variab=variables)
+
+    def TL_matrix(self, drain_size, variab=None, sparse=True):
+        r"""
+        Return the matrix representation of the Temperley--Lieb--Jones
+        representation of the braid in a certain basis.
+
+        The basis is given by non-intersecting pairings of `(n+d)` points,
+        where `n` is the number of strands, `d` is given by ``drain_size``,
+        and the pairings satisfy certain rules. See
+        :meth:`~sage.groups.braid.BraidGroup_class.TL_basis_with_drain()`
+        for details.
+
+        We use the convention that the eigenvalues of the standard generators
+        are `1` and `-A^4`, where `A` is a variable of a Laurent
+        polynomial ring.
+
+        When `d = n - 2` and the variables are picked appropriately, the
+        resulting representation is equivalent to the reduced Burau
+        representation.
+
+        INPUT:
+
+        - ``drain_size`` -- integer between 0 and the number of strands
+          (both inclusive)
+
+        - ``variab`` -- variable (default: ``None``); the variable in the
+          entries of the matrices; if ``None``, then use a default variable
+          in `\ZZ[A,A^{-1}]`
+
+        - ``sparse`` -- boolean (default: ``True``); whether or not the
+          result should be given as a sparse matrix
+
+        OUTPUT:
+
+        The matrix of the TL representation of the braid.
+
+        The parameter ``sparse`` can be set to ``False`` if it is
+        expected that the resulting matrix will not be sparse. We
+        currently make no attempt at guessing this.
+
+        EXAMPLES:
+
+        Let us calculate a few examples for `B_4` with `d = 0`::
+
+            sage: B = BraidGroup(4)
+            sage: b = B([1, 2, -3])
+            sage: b.TL_matrix(0)
+            [1 - A^4   -A^-2]
+            [   -A^6       0]
+            sage: R.<x> = LaurentPolynomialRing(GF(2))
+            sage: b.TL_matrix(0, variab=x)
+            [1 + x^4    x^-2]
+            [    x^6       0]
+            sage: b = B([])
+            sage: b.TL_matrix(0)
+            [1 0]
+            [0 1]
+
+        Test of one of the relations in `B_8`::
+
+            sage: B = BraidGroup(8)
+            sage: d = 0
+            sage: B([4,5,4]).TL_matrix(d) == B([5,4,5]).TL_matrix(d)
+            True
+
+        An element of the kernel of the Burau representation, following
+        [Big1999]_::
+
+            sage: B = BraidGroup(6)
+            sage: psi1 = B([4, -5, -2, 1])
+            sage: psi2 = B([-4, 5, 5, 2, -1, -1])
+            sage: w1 = psi1^(-1) * B([3]) * psi1
+            sage: w2 = psi2^(-1) * B([3]) * psi2
+            sage: (w1 * w2 * w1^(-1) * w2^(-1)).TL_matrix(4)
+            [1 0 0 0 0]
+            [0 1 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+
+        REFERENCES:
+
+        - [Big1999]_
+        - [Jon2005]_
+        """
+        if variab is None:
+            R = LaurentPolynomialRing(IntegerRing(), 'A')
+        else:
+            R = variab.parent()
+        rep = self.parent().TL_representation(drain_size, variab)
+        M = identity_matrix(R, self.parent().dimension_of_TL_space(drain_size),
+                            sparse=sparse)
+        for i in self.Tietze():
+            if i > 0:
+                M = M*rep[i-1][0]
+            if i < 0:
+                M = M*rep[-i-1][1]
+        return M
 
     def tropical_coordinates(self):
         r"""
@@ -585,10 +686,8 @@ class Braid(FinitelyPresentedGroupElement):
 
         REFERENCES:
 
-        .. [Dynnikov07] I. Dynnikov and B. Wiest, On the complexity of braids,
-           J. Europ. Math. Soc. 9 (2007)
-        .. [Dehornoy] P. Dehornoy, Le probleme d'isotopie des tresses, in
-           lecons de mathematiques d'aujourd'hui vol. 4
+        - [DW2007]_
+        - [Deh2011]_
         """
         coord = [0, 1] * self.strands()
         for s in self.Tietze():
@@ -610,39 +709,202 @@ class Braid(FinitelyPresentedGroupElement):
 
         from sage.rings.semirings.tropical_semiring import TropicalSemiring
         T = TropicalSemiring(IntegerRing())
-        return map(T, coord)
+        return [T(_) for _ in coord]
 
-    @cached_method
-    def left_normal_form(self):
+    def markov_trace(self, variab=None, normalized=True):
         """
-        Return the left normal form of the braid.
+        Return the Markov trace of the braid.
+
+        The normalization is so that in the underlying braid group
+        representation, the eigenvalues of the standard generators of
+        the braid group are `1` and `-A^4`.
+
+        INPUT:
+
+        - ``variab`` -- variable (default: ``None``); the variable in the
+          resulting polynomial; if ``None``, then use the variable `A`
+          in `\ZZ[A,A^{-1}]`
+
+        - ``normalized`` - boolean (default: ``True``); if specified to be
+          ``False``, return instead a rescaled Laurent polynomial version of
+          the Markov trace
 
         OUTPUT:
 
-        A tuple of braid generators in the left normal form. The first
-        element is a power of $\Delta$, and the rest are permutation
-        braids.
+        If ``normalized`` is ``False``, return instead the Markov trace
+        of the braid, normalized by a factor of `(A^2+A^{-2})^n`. The
+        result is then a Laurent polynomial in ``variab``. Otherwise it
+        is a quotient of Laurent polynomials in ``variab``.
 
         EXAMPLES::
 
             sage: B = BraidGroup(4)
-            sage: b = B([1, 2, 3, -1, 2, -3])
-            sage: b.left_normal_form()
-            (s0^-1*s1^-1*s2^-1*s0^-1*s1^-1*s0^-1, s0*s1*s2*s1*s0, s0*s2*s1)
-            sage: c = B([1])
-            sage: c.left_normal_form()
-            (1, s0)
-        """
-        lnfp = self._left_normal_form_perm_()
-        a = lnfp[0]
-        l = lnfp[1:]
-        n = self.strands()
-        delta = Permutation([n-i for i in range(n)])
-        P = self.parent()
-        return tuple( [P._permutation_braid(delta).__pow__(a)] +
-                      map(lambda i:P._permutation_braid(i), l) )
+            sage: b = B([1, 2, -3])
+            sage: mt = b.markov_trace(); mt
+            A^4/(A^12 + 3*A^8 + 3*A^4 + 1)
+            sage: mt.factor()
+            A^4 * (A^4 + 1)^-3
 
-    def _left_normal_form_perm_(self):
+        We now give the non-normalized Markov trace::
+
+            sage: mt = b.markov_trace(normalized=False); mt
+            A^-4 + 1
+            sage: mt.parent()
+            Univariate Laurent Polynomial Ring in A over Integer Ring
+        """
+        if variab is None:
+            R = LaurentPolynomialRing(IntegerRing(), 'A')
+            A = R.gens()[0]
+            one = IntegerRing().one()
+            quantum_integer = lambda d: R({i: one for i in range(-2*d, 2*d+1, 4)})
+        else:
+            A = variab
+            quantum_integer = lambda d: (A**(2*(d+1))-A**(-2*(d+1))) // (A**2-A**(-2))
+
+        n = self.strands()
+        trace_sum = sum(quantum_integer(d) * self.TL_matrix(d, variab=variab).trace()
+                        for d in range(n+1) if (n+d) % 2 == 0)
+
+        if normalized:
+            delta = A**2 + A**(-2)
+            trace_sum = trace_sum / delta**n
+        return trace_sum
+
+    @lazy_attribute
+    def _jones_polynomial(self):
+        """
+        Cached version of the Jones polynomial in a generic variable
+        with the Skein normalization.
+
+        The computation of the Jones polynomial uses the representation
+        of the braid group on the Temperley--Lieb algebra. We cache the
+        part of the calculation which does not depend on the choices of
+        variables or normalizations.
+
+        .. SEEALSO::
+
+            :meth:`jones_polynomial`
+
+        TESTS::
+
+            sage: B = BraidGroup(9)
+            sage: b = B([1, 2, 3, 4, 5, 6, 7, 8])
+            sage: b.jones_polynomial()
+            1
+
+            sage: B = BraidGroup(2)
+            sage: b = B([])
+            sage: b._jones_polynomial
+            -A^-2 - A^2
+            sage: b = B([-1, -1, -1])
+            sage: b._jones_polynomial
+            -A^-16 + A^-12 + A^-4
+        """
+        trace = self.markov_trace(normalized=False)
+        A = trace.parent().gens()[0]
+        D = A**2 + A**(-2)
+        exp_sum = self.exponent_sum()
+        num_comp = self.components_in_closure()
+        return (-1)**(num_comp-1) * A**(2*exp_sum) * trace // D
+
+    def jones_polynomial(self, variab=None, skein_normalization=False):
+        """
+        Return the Jones polynomial of the trace closure of the braid.
+
+        The normalization is so that the unknot has Jones polynomial `1`. If
+        ``skein_normalization`` is ``True``, the variable of the result is
+        replaced by a itself to the power of `4`, so that the result
+        agrees with the conventions of [Lic1997]_ (which in particular differs
+        slightly from the conventions used otherwise in this class), had
+        one used the conventional Kauffman bracket variable notation directly.
+
+        If ``variab`` is ``None`` return a polynomial in the variable `A`
+        or `t`, depending on the value ``skein_normalization``. In
+        particular, if ``skein_normalization`` is ``False``, return the
+        result in terms of the variable `t`, also used in [Lic1997]_.
+
+        INPUT:
+
+        - ``variab`` -- variable (default: ``None``); the variable in the
+          resulting polynomial; if unspecified, use either a default variable
+          in `ZZ[A,A^{-1}]` or the variable `t` in the symbolic ring
+
+        - ``skein_normalization`` -- boolean (default: ``False``); determines
+          the variable of the resulting polynomial
+
+        OUTPUT:
+
+        If ``skein_normalization`` if ``False``, this returns an element
+        in the symbolic ring as the Jones polynomial of the closure might
+        have fractional powers when the closure of the braid is not a knot.
+        Otherwise the result is a Laurant polynomial in ``variab``.
+
+        EXAMPLES:
+
+        The unknot::
+
+            sage: B = BraidGroup(9)
+            sage: b = B([1, 2, 3, 4, 5, 6, 7, 8])
+            sage: b.jones_polynomial()
+            1
+
+        Two unlinked unknots::
+
+            sage: B = BraidGroup(2)
+            sage: b = B([])
+            sage: b.jones_polynomial()
+            -sqrt(t) - 1/sqrt(t)
+
+        The Hopf link::
+
+            sage: B = BraidGroup(2)
+            sage: b = B([-1,-1])
+            sage: b.jones_polynomial()
+            -1/sqrt(t) - 1/t^(5/2)
+
+        Different representations of the trefoil and one of its mirror::
+
+            sage: B = BraidGroup(2)
+            sage: b = B([-1, -1, -1])
+            sage: b.jones_polynomial(skein_normalization=True)
+            -A^-16 + A^-12 + A^-4
+            sage: b.jones_polynomial()
+            1/t + 1/t^3 - 1/t^4
+            sage: B = BraidGroup(3)
+            sage: b = B([-1, -2, -1, -2])
+            sage: b.jones_polynomial(skein_normalization=True)
+            -A^-16 + A^-12 + A^-4
+            sage: R.<x> = LaurentPolynomialRing(GF(2))
+            sage: b.jones_polynomial(skein_normalization=True, variab=x)
+            x^-16 + x^-12 + x^-4
+            sage: B = BraidGroup(3)
+            sage: b = B([1, 2, 1, 2])
+            sage: b.jones_polynomial(skein_normalization=True)
+            A^4 + A^12 - A^16
+
+        K11n42 (the mirror of the "Kinoshita-Terasaka" knot) and K11n34 (the
+        mirror of the "Conway" knot)::
+
+            sage: B = BraidGroup(4)
+            sage: b11n42 = B([1, -2, 3, -2, 3, -2, -2, -1, 2, -3, -3, 2, 2])
+            sage: b11n34 = B([1, 1, 2, -3, 2, -3, 1, -2, -2, -3, -3])
+            sage: bool(b11n42.jones_polynomial() == b11n34.jones_polynomial())
+            True
+        """
+        if skein_normalization:
+            if variab is None:
+                return self._jones_polynomial
+            else:
+                return self._jones_polynomial(variab)
+        else:
+            from sage.symbolic.ring import SR
+            from sage.rings.integer_ring import ZZ
+            if variab is None:
+                variab = 't'
+            # We force the result to be in the symbolic ring because of the expand
+            return self._jones_polynomial(SR(variab)**(ZZ(1)/ZZ(4))).expand()
+
+    def _left_normal_form_coxeter(self):
         """
         Return the left normal form of the braid, in permutation form.
 
@@ -654,60 +916,469 @@ class Braid(FinitelyPresentedGroupElement):
         EXAMPLES::
 
             sage: B = BraidGroup(12)
-            sage: B([2, 2, 2, 3, 1, 2, 3, 2, 1, -2])._left_normal_form_perm_()
+            sage: B([2, 2, 2, 3, 1, 2, 3, 2, 1, -2])._left_normal_form_coxeter()
             (-1,
              [12, 11, 10, 9, 8, 7, 6, 5, 2, 4, 3, 1],
              [4, 1, 3, 2, 5, 6, 7, 8, 9, 10, 11, 12],
              [2, 3, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12],
              [3, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12],
              [2, 3, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12])
-            sage: C=BraidGroup(6)
-            sage: C([2, 3, -4, 2, 3, -5, 1, -2, 3, 4, 1, -2])._left_normal_form_perm_()
+            sage: C = BraidGroup(6)
+            sage: C([2, 3, -4, 2, 3, -5, 1, -2, 3, 4, 1, -2])._left_normal_form_coxeter()
             (-2, [3, 5, 4, 2, 6, 1], [1, 6, 3, 5, 2, 4], [5, 6, 2, 4, 1, 3],
              [3, 2, 4, 1, 5, 6], [1, 5, 2, 3, 4, 6])
+
+        .. TODO::
+
+            Remove this method and use the default one from
+            :meth:`sage.groups.artin.FiniteTypeArtinGroupElement.left_normal_form`.
         """
         n = self.parent().strands()
         delta = 0
-        Delta = Permutation([n-i for i in range(n)])
+        Delta = self.parent()._coxeter_group.long_element()
+        sr = self.parent()._coxeter_group.simple_reflections()
         l = self.Tietze()
-        if l==():
+        if l == ():
             return (0,)
         form = []
         for i in l:
-            if i>0:
-                form.append(Permutation((i, i+1)))
+            if i > 0:
+                form.append(sr[i])
             else:
-                delta = delta+1
-                form = map(lambda a: Delta*a*Delta, form)
-                form.append(Delta*Permutation((-i, -i+1)))
+                delta += 1
+                form = [Delta * a * Delta for a in form]
+                form.append(Delta * sr[-i])
         i = j = 0
-        while j<len(form):
-            while i<len(form)-j-1:
-                e = form[i].inverse().descents()
-                s = form[i+1].descents()
+        while j < len(form):
+            while i < len(form) - j - 1:
+                e = form[i].idescents(from_zero=False)
+                s = form[i + 1].descents(from_zero=False)
                 S = set(s).difference(set(e))
-                while S!=set([]):
+                while S:
                     a = list(S)[0]
-                    form[i] = form[i]*Permutation((a+1, a+2))
-                    form[i+1] = Permutation((a+1, a+2))*form[i+1]
-                    e = form[i].inverse().descents()
-                    s = form[i+1].descents()
+                    form[i] = form[i] * sr[a]
+                    form[i + 1] = sr[a] * form[i+1]
+                    e = form[i].idescents(from_zero=False)
+                    s = form[i + 1].descents(from_zero=False)
                     S = set(s).difference(set(e))
-                if form[i+1].length()==0:
+                if form[i+1].length() == 0:
                     form.pop(i+1)
                     i = 0
                 else:
                     i += 1
             j += 1
             i = 0
-        form = [a for a in form if a.length()>0]
-        while form!=[] and form[0]==Delta:
+        form = [a for a in form if a.length()]
+        while form and form[0] == Delta:
             form.pop(0)
-            delta = delta-1
-        return tuple([-delta]+form)
+            delta -= 1
+        return tuple([-delta] + form)
+
+    def right_normal_form(self):
+        """
+        Return the right normal form of the braid.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(4)
+            sage: b = B([1, 2, 1, -2, 3, 1])
+            sage: b.right_normal_form() # optional - libbraiding
+            (s1*s0, s0*s2, 1)
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
+        """
+        try:
+            from sage.libs.braiding import rightnormalform
+        except ImportError:
+            raise PackageNotFoundError("libbraiding")
+        l = rightnormalform(self)
+        B = self.parent()
+        return tuple([B(b) for b in l[:-1]] + [B.delta() ** l[-1][0]])
+
+    def centralizer(self):
+        """
+        Return a list of generators of the centralizer of the braid.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(4)
+            sage: b = B([2, 1, 3, 2])
+            sage: b.centralizer() # optional - libbraiding
+            [s1*s0*s2*s1, s0*s2]
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
+        """
+        try:
+            from sage.libs.braiding import centralizer
+        except ImportError:
+            raise PackageNotFoundError("libbraiding")
+        l = centralizer(self)
+        B = self.parent()
+        return [B._element_from_libbraiding(b) for b in l]
+
+    def super_summit_set(self):
+        """
+        Return a list with the super summit set of the braid
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(3)
+            sage: b = B([1, 2, -1, -2, -2, 1])
+            sage: b.super_summit_set() # optional - libbraiding
+            [s0^-1*s1^-1*s0^-2*s1^2*s0^2,
+            (s0^-1*s1^-1*s0^-1)^2*s1^2*s0^3*s1,
+            (s0^-1*s1^-1*s0^-1)^2*s1*s0^3*s1^2,
+            s0^-1*s1^-1*s0^-2*s1^-1*s0*s1^3*s0]
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
+        """
+        try:
+            from sage.libs.braiding import supersummitset
+        except ImportError:
+            raise PackageNotFoundError("libbraiding")
+        l = supersummitset(self)
+        B = self.parent()
+        return [B._element_from_libbraiding(b) for b in l]
+
+    def gcd(self, other):
+        """
+        Return the greatest common divisor of the two braids.
+
+        INPUT:
+
+        - ``other`` -- the other braid with respect with the gcd is computed
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(3)
+            sage: b = B([1, 2, -1, -2, -2, 1])
+            sage: c = B([1, 2, 1])
+            sage: b.gcd(c) # optional - libbraiding
+            s0^-1*s1^-1*s0^-2*s1^2*s0
+            sage: c.gcd(b) # optional - libbraiding
+            s0^-1*s1^-1*s0^-2*s1^2*s0
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
+        """
+        try:
+            from sage.libs.braiding import greatestcommondivisor
+        except ImportError:
+            raise PackageNotFoundError("libbraiding")
+        B = self.parent()
+        b = greatestcommondivisor(self, other)
+        return B._element_from_libbraiding(b)
+
+    def lcm(self, other):
+        """
+        Return the least common multiple of the two braids.
+
+        INPUT:
+
+        - ``other`` -- the other braid with respect with the lcm is computed
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(3)
+            sage: b = B([1, 2, -1, -2, -2, 1])
+            sage: c = B([1, 2, 1])
+            sage: b.lcm(c) # optional - libbraiding
+            (s0*s1)^2*s0
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package to be installed.
+        """
+        try:
+            from sage.libs.braiding import leastcommonmultiple
+        except ImportError:
+            raise PackageNotFoundError("libbraiding")
+        B = self.parent()
+        b = leastcommonmultiple(self, other)
+        return B._element_from_libbraiding(b)
+
+    def conjugating_braid(self, other):
+        r"""
+        Return a conjugating braid, if it exists.
+
+        INPUT:
+
+        - ``other`` -- the other braid to look for conjugating braid
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(3)
+            sage: a = B([2, 2, -1, -1])
+            sage: b = B([2, 1, 2, 1])
+            sage: c = b * a / b
+            sage: d = a.conjugating_braid(c) # optional - libbraiding
+            sage: d * c / d == a # optional - libbraiding
+            True
+            sage: d # optional - libbraiding
+            s1*s0
+            sage: d * a / d == c # optional - libbraiding
+            False
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
+        """
+        try:
+            from sage.libs.braiding import conjugatingbraid
+        except ImportError:
+            raise PackageNotFoundError("libbraiding")
+        l = conjugatingbraid(self, other)
+        if not l:
+            return None
+        else:
+            return self.parent()._element_from_libbraiding(l)
+
+    def is_conjugated(self, other):
+        """
+        Check if the two braids are conjugated.
+
+        INPUT:
+
+        - ``other`` -- the other breaid to check for conjugacy
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(3)
+            sage: a = B([2, 2, -1, -1])
+            sage: b = B([2, 1, 2, 1])
+            sage: c = b * a / b
+            sage: c.is_conjugated(a) # optional - libbraiding
+            True
+            sage: c.is_conjugated(b) # optional - libbraiding
+            False
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
+        """
+        try:
+            from sage.libs.braiding import conjugatingbraid
+        except ImportError:
+            raise PackageNotFoundError("libbraiding")
+        l = conjugatingbraid(self, other)
+        return bool(l)
+
+    def ultra_summit_set(self):
+        """
+        Return a list with the orbits of the ultra summit set of ``self``
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(3)
+            sage: a = B([2, 2, -1, -1, 2, 2])
+            sage: b = B([2, 1, 2, 1])
+            sage: b.ultra_summit_set() # optional - libbraiding
+            [[s0*s1*s0^2, (s0*s1)^2]]
+            sage: a.ultra_summit_set() # optional - libbraiding
+            [[(s0^-1*s1^-1*s0^-1)^2*s1^3*s0^2*s1^3,
+            (s0^-1*s1^-1*s0^-1)^2*s1^2*s0^2*s1^4,
+            (s0^-1*s1^-1*s0^-1)^2*s1*s0^2*s1^5,
+            s0^-1*s1^-1*s0^-2*s1^5*s0,
+            (s0^-1*s1^-1*s0^-1)^2*s1^5*s0^2*s1,
+            (s0^-1*s1^-1*s0^-1)^2*s1^4*s0^2*s1^2],
+            [s0^-1*s1^-1*s0^-2*s1^-1*s0^2*s1^2*s0^3,
+            s0^-1*s1^-1*s0^-2*s1^-1*s0*s1^2*s0^4,
+            s0^-1*s1^-1*s0^-2*s1*s0^5,
+            (s0^-1*s1^-1*s0^-1)^2*s1*s0^6*s1,
+            s0^-1*s1^-1*s0^-2*s1^-1*s0^4*s1^2*s0,
+            s0^-1*s1^-1*s0^-2*s1^-1*s0^3*s1^2*s0^2]]
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
+        """
+        try:
+            from sage.libs.braiding import ultrasummitset
+        except ImportError:
+            raise PackageNotFoundError("libbraiding")
+        uss = ultrasummitset(self)
+        B = self.parent()
+        return [[B._element_from_libbraiding(i) for i in s] for s in uss]
+
+    def thurston_type(self):
+        """
+        Return the thurston_type of ``self``.
+
+        OUTPUT:
+
+        One of ``'reducible'``, ``'periodic'`` or ``'pseudo-anosov'``.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(3)
+            sage: b = B([1, 2, -1])
+            sage: b.thurston_type() # optional - libbraiding
+            'reducible'
+            sage: a = B([2, 2, -1, -1, 2, 2])
+            sage: a.thurston_type() # optional - libbraiding
+            'pseudo-anosov'
+            sage: c = B([2, 1, 2, 1])
+            sage: c.thurston_type() # optional - libbraiding
+            'periodic'
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
+        """
+        try:
+            from sage.libs.braiding import thurston_type
+        except ImportError:
+            raise PackageNotFoundError("libbraiding")
+        return thurston_type(self)
+
+    def is_reducible(self):
+        """
+        Check weather the braid is reducible.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(3)
+            sage: b = B([1, 2, -1])
+            sage: b.is_reducible() # optional - libbraiding
+            True
+            sage: a = B([2, 2, -1, -1, 2, 2])
+            sage: a.is_reducible() # optional - libbraiding
+            False
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
+        """
+        return self.thurston_type() == 'reducible'
+
+    def is_periodic(self):
+        """
+        Check weather the braid is periodic.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(3)
+            sage: a = B([2, 2, -1, -1, 2, 2])
+            sage: b = B([2, 1, 2, 1])
+            sage: a.is_periodic() # optional - libbraiding
+            False
+            sage: b.is_periodic() # optional - libbraiding
+            True
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
+        """
+        return self.thurston_type() == 'periodic'
+
+    def is_pseudoanosov(self):
+        """
+        Check if the braid is pseudo-anosov.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(3)
+            sage: a = B([2, 2, -1, -1, 2, 2])
+            sage: b = B([2, 1, 2, 1])
+            sage: a.is_pseudoanosov() # optional - libbraiding
+            True
+            sage: b.is_pseudoanosov() # optional - libbraiding
+            False
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
+        """
+        return self.thurston_type() == 'pseudo-anosov'
+
+    def rigidity(self):
+        """
+        Return the rigidity of ``self``.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(3)
+            sage: b = B([2, 1, 2, 1])
+            sage: a = B([2, 2, -1, -1, 2, 2])
+            sage: a.rigidity() # optional - libbraiding
+            6
+            sage: b.rigidity() # optional - libbraiding
+            0
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
+        """
+        try:
+            from sage.libs.braiding import rigidity
+        except ImportError:
+            raise PackageNotFoundError("libbraiding")
+        return Integer(rigidity(self))
+
+    def sliding_circuits(self):
+        """
+        Return the sliding circuits of the braid.
+
+        OUTPUT:
+
+        A list of sliding circuits. Each sliding circuit is itself
+        a list of braids.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(3)
+            sage: a = B([2, 2, -1, -1, 2, 2])
+            sage: a.sliding_circuits() # optional - libbraiding
+            [[(s0^-1*s1^-1*s0^-1)^2*s1^3*s0^2*s1^3],
+             [s0^-1*s1^-1*s0^-2*s1^-1*s0^2*s1^2*s0^3],
+             [s0^-1*s1^-1*s0^-2*s1^-1*s0^3*s1^2*s0^2],
+             [(s0^-1*s1^-1*s0^-1)^2*s1^4*s0^2*s1^2],
+             [(s0^-1*s1^-1*s0^-1)^2*s1^2*s0^2*s1^4],
+             [s0^-1*s1^-1*s0^-2*s1^-1*s0*s1^2*s0^4],
+             [(s0^-1*s1^-1*s0^-1)^2*s1^5*s0^2*s1],
+             [s0^-1*s1^-1*s0^-2*s1^-1*s0^4*s1^2*s0],
+             [(s0^-1*s1^-1*s0^-1)^2*s1*s0^2*s1^5],
+             [s0^-1*s1^-1*s0^-2*s1*s0^5],
+             [(s0^-1*s1^-1*s0^-1)^2*s1*s0^6*s1],
+             [s0^-1*s1^-1*s0^-2*s1^5*s0]]
+            sage: b = B([2, 1, 2, 1])
+            sage: b.sliding_circuits() # optional - libbraiding
+            [[s0*s1*s0^2, (s0*s1)^2]]
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
+        """
+        try:
+            from sage.libs.braiding import sliding_circuits
+        except ImportError:
+            raise PackageNotFoundError("libbraiding")
+        slc = sliding_circuits(self)
+        B = self.parent()
+        return [[B._element_from_libbraiding(i) for i in s] for s in slc]
 
 
-class BraidGroup_class(FinitelyPresentedGroup):
+class BraidGroup_class(FiniteTypeArtinGroup):
     """
     The braid group on `n` strands.
 
@@ -730,8 +1401,8 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
         INPUT:
 
-        - ``names`` -- a tuple of strings. The names of the
-          generators.
+        - ``names`` -- a tuple of strings; the names of the
+          generators
 
         TESTS::
 
@@ -772,7 +1443,9 @@ class BraidGroup_class(FinitelyPresentedGroup):
              e*f*e*f^-1*e^-1*f^-1)
         """
         n = len(names)
-        if n<1: #n is the number of generators, not the number of strands (see ticket 14081)
+        # n is the number of generators, not the number of strands (see
+        # ticket 14081)
+        if n < 1:
             raise ValueError("the number of strands must be an integer bigger than one")
         free_group = FreeGroup(names)
         rels = []
@@ -781,7 +1454,11 @@ class BraidGroup_class(FinitelyPresentedGroup):
             for j in range(i+2, n+1):
                 rels.append(free_group([i, j, -i, -j]))
         FinitelyPresentedGroup.__init__(self, free_group, tuple(rels))
-        self._nstrands_ = n+1
+        self._nstrands = n+1
+        self._coxeter_group = Permutations(self._nstrands)
+
+        # For caching TL_representation()
+        self._TL_representation_dict = {}
 
     def __reduce__(self):
         """
@@ -810,7 +1487,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
             sage: B1 # indirect doctest
             Braid group on 5 strands
         """
-        return "Braid group on %s strands"%self._nstrands_
+        return "Braid group on %s strands" % self._nstrands
 
     def cardinality(self):
         """
@@ -863,7 +1540,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
             sage: B.strands()
             4
         """
-        return self._nstrands_
+        return self._nstrands
 
     def _element_constructor_(self, x):
         """
@@ -897,22 +1574,32 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
         EXAMPLES::
 
-            sage: B=BraidGroup(3)
+            sage: B = BraidGroup(3)
             sage: B.some_elements()
             [s0, s0*s1, (s0*s1)^3]
         """
         elements_list = [self.gen(0)]
-        elements_list.append(self(range(1,self.strands())))
-        elements_list.append(elements_list[-1]**self.strands())
+        elements_list.append(self(range(1, self.strands())))
+        elements_list.append(elements_list[-1] ** self.strands())
         return elements_list
 
-    def _permutation_braid_Tietze(self, p):
+    def _standard_lift_Tietze(self, p):
         """
-        Helper for :meth:`_permutation_braid`.
+        Helper for :meth:`_standard_lift_Tietze`.
 
         INPUT:
 
-        - ``p`` -- a permutation.
+        - ``p`` -- a permutation
+
+        The standard lift of a permutation is the only braid with
+        the following properties:
+
+        - The braid induces the given permutation.
+
+        - The braid is positive (that is, it can be written without
+          using the inverses of the generators).
+
+        - Every two strands cross each other at most once.
 
         OUTPUT:
 
@@ -921,55 +1608,25 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
         EXAMPLES::
 
-            sage: B=BraidGroup(5)
-            sage: P=Permutation([5, 3, 1, 2, 4])
-            sage: B._permutation_braid_Tietze(P)
+            sage: B = BraidGroup(5)
+            sage: P = Permutation([5, 3, 1, 2, 4])
+            sage: B._standard_lift_Tietze(P)
             (1, 2, 1, 3, 2, 4)
         """
-        if p.length() == 0:
+        if not p.length():
             return ()
         pl = p
         l = []
-        while pl.length()>0:
+        while pl.length():
             i = 1
-            while i<max(pl):
-                if pl(i)>pl(i+1):
+            while i < max(pl):
+                if pl(i) > pl(i+1):
                     l.append(i)
-                    pl = Permutation([(i, i+1)])*pl
+                    pl = self._coxeter_group.simple_reflection(i) * pl
                     i = 1
                 else:
-                    i = i+1
+                    i += 1
         return tuple(l)
-
-    @cached_method
-    def _permutation_braid(self, p):
-        """
-        Return the braid that corresponds to the given permutation.
-
-        It is the only braid with the following properties:
-
-        - The braid induces the given permutation.
-
-        - The braid is positive (that is, it can be writen without using the inverses of the generators).
-
-        - Every two strands cross each other at most once.
-
-        INPUT:
-
-        - ``p`` -- a permutation.
-
-        OUTPUT:
-
-        The braid that corresponds to the permutation.
-
-        EXAMPLES::
-
-            sage: B = BraidGroup(5)
-            sage: P = Permutation([5, 3, 1, 2, 4])
-            sage: B._permutation_braid(P)
-            s0*s1*s0*s2*s1*s3
-        """
-        return self(self._permutation_braid_Tietze(p))
 
     @cached_method
     def _LKB_matrix_(self, braid, variab):
@@ -1069,6 +1726,350 @@ class BraidGroup_class(FinitelyPresentedGroup):
                     A[l.index(Set([j, k])), m] = 1
             return A
 
+    def dimension_of_TL_space(self, drain_size):
+        """
+        Return the dimension of a particular Temperley--Lieb representation
+        summand of ``self``.
+
+        Following the notation of :meth:`TL_basis_with_drain`, the summand
+        is the one corresponding to the number of drains being fixed to be
+        ``drain_size``.
+
+        INPUT:
+
+        - ``drain_size`` -- integer between 0 and the number of strands
+          (both inclusive)
+
+        EXAMPLES:
+
+        Calculation of the dimension of the representation of `B_8`
+        corresponding to having `2` drains::
+
+            sage: B = BraidGroup(8)
+            sage: B.dimension_of_TL_space(2)
+            28
+
+        The direct sum of endomorphism spaces of these vector spaces make up
+        the entire Temperley--Lieb algebra::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: B = BraidGroup(6)
+            sage: dimensions = [B.dimension_of_TL_space(d)**2 for d in [0, 2, 4, 6]]
+            sage: total_dim = sum(dimensions)
+            sage: total_dim == len(list(da.temperley_lieb_diagrams(6)))  # long time
+            True
+        """
+        n = self.strands()
+        if drain_size > n:
+            raise ValueError("number of drains must not exceed number of strands")
+        if (n + drain_size) % 2 == 1:
+            raise ValueError("parity of strands and drains must agree")
+
+        m = (n - drain_size) // 2
+        return Integer(n-1).binomial(m) - Integer(n-1).binomial(m - 2)
+
+    def TL_basis_with_drain(self, drain_size):
+        """
+        Return a basis of a summand of the Temperley--Lieb--Jones
+        representation of ``self``.
+
+        The basis elements are given by non-intersecting pairings of `n+d`
+        points in a square with `n` points marked 'on the top' and `d` points
+        'on the bottom' so that every bottom point is paired with a top point.
+        Here, `n` is the number of strands of the braid group, and `d` is
+        specified by ``drain_size``.
+
+        A basis element is specified as a list of integers obtained by
+        considering the pairings as obtained as the 'highest term' of
+        trivalent trees marked by Jones--Wenzl projectors (see e.g. [Wan2010]_).
+        In practice, this is a list of non-negative integers whose first
+        element is ``drain_size``, whose last element is `0`, and satisfying
+        that consecutive integers have difference `1`. Moreover, the length
+        of each basis element is `n + 1`.
+
+        Given these rules, the list of lists is constructed recursively
+        in the natural way.
+
+        INPUT:
+
+        - ``drain_size`` -- integer between 0 and the number of strands
+          (both inclusive)
+
+        OUTPUT:
+
+        A list of basis elements, each of which is a list of integers.
+
+        EXAMPLES:
+
+        We calculate the basis for the appropriate vector space for `B_5` when
+        `d = 3`::
+
+            sage: B = BraidGroup(5)
+            sage: B.TL_basis_with_drain(3)
+            [[3, 4, 3, 2, 1, 0],
+             [3, 2, 3, 2, 1, 0],
+             [3, 2, 1, 2, 1, 0],
+             [3, 2, 1, 0, 1, 0]]
+
+        The number of basis elements hopefully corresponds to the general
+        formula for the dimension of the representation spaces::
+
+            sage: B = BraidGroup(10)
+            sage: d = 2
+            sage: B.dimension_of_TL_space(d) == len(B.TL_basis_with_drain(d))
+            True
+        """
+        def fill_out_forest(forest, treesize):
+            # The basis elements are built recursively using this function,
+            # which takes a collection of partial basis elements, given in
+            # terms of trivalent trees (i.e. a 'forest') and extends each of
+            # the trees by one branch.
+            if not forest:
+                raise ValueError("forest has to start with a tree")
+            if forest[0][0] + treesize % 2 == 0:
+                raise ValueError("parity mismatch in forest creation")
+            # Loop over all trees
+            newforest = list(forest)
+            for tree in forest:
+                if len(tree) < treesize:
+                    newtreeup = list(tree)
+                    newtreedown = list(tree)
+                    newforest.remove(tree)  # Cut down the original tree
+                    # Add two greater trees, admissibly. We need to check two
+                    # things to ensure that the tree will eventually define a
+                    # basis elements: that its 'colour' is not too large, and
+                    # that it is positive.
+                    if tree[-1] < treesize - len(tree) + 1:
+                        newtreeup.append(tree[-1] + 1)
+                        newforest.append(newtreeup)
+                    if tree[-1] > 0:
+                        newtreedown.append(tree[-1] - 1)
+                        newforest.append(newtreedown)
+            # Are we there yet?
+            if len(newforest[0]) == treesize:
+                return newforest
+            else:
+                return fill_out_forest(newforest, treesize)
+
+        n = self.strands()
+        if drain_size > n:
+            raise ValueError("number of drains must not exceed number of strands")
+        if (n + drain_size) % 2 == 1:
+            raise ValueError("parity of strands and drains must agree")
+
+        # We can now start the process: all we know is that our basis elements
+        # have a drain size of d, so we use fill_out_forest to build all basis
+        # elements out of this
+        basis = [[drain_size]]
+        forest = fill_out_forest(basis, n-1)
+        for tree in forest:
+            tree.extend([1, 0])
+        return forest
+
+    @cached_method
+    def _TL_action(self, drain_size):
+        """
+        Return a matrix representing the action of cups and caps on
+        Temperley--Lieb diagrams corresponding to ``self``.
+
+        The action space is the space of non-crossing diagrams of `n+d`
+        points, where `n` is the number of strands, and `d` is specified by
+        ``drain_size``. As in :meth:`TL_basis_with_drain`, we put certain
+        constraints on the diagrams.
+
+        We essentially calculate the action of the TL-algebra generators
+        `e_i` on the algebra itself: the action of `e_i` on one of our basis
+        diagrams is itself a basis diagram, and ``auxmat`` will store the
+        index of this new basis diagram.
+
+        In some cases, the new diagram will connect two bottom points which
+        we explicitly disallow (as such a diagram is not one of our basis
+        elements). In this case, the corresponding ``auxmat`` entry will
+        be `-1`.
+
+        This is used in :meth:`TL_representation` and could be included
+        entirely in that method. They are split for purposes of caching.
+
+        INPUT:
+
+        - ``drain_size`` -- integer between 0 and the number of strands
+          (both inclusive)
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(4)
+            sage: B._TL_action(2)
+            [ 0  0 -1]
+            [ 1  1  1]
+            [-1  2  2]
+            sage: B._TL_action(0)
+            [1 1]
+            [0 0]
+            [1 1]
+            sage: B = BraidGroup(6)
+            sage: B._TL_action(2)
+            [ 1  1  2  3  1  2  3 -1 -1]
+            [ 0  0  5  6  5  5  6  5  6]
+            [ 1  1  1 -1  4  4  8  8  8]
+            [ 5  2  2  2  5  5  5  7  7]
+            [-1 -1  3  3  8  6  6  8  8]
+        """
+        n = self.strands()
+        basis = self.TL_basis_with_drain(drain_size)
+        auxmat = matrix(n-1, len(basis))
+        for i in range(1, n):  # For each of the e_i
+            for v in range(len(basis)):  # For each basis element
+                tree = basis[v]
+                if tree[i-1] < tree[i] and tree[i+1] < tree[i]:
+                    # Here, for instance, we've created an unknot.
+                    auxmat[i-1, v] = v
+                if tree[i-1] > tree[i] and tree[i+1] > tree[i]:
+                    newtree = list(tree)
+                    newtree[i] += 2
+                    auxmat[i-1, v] = basis.index(newtree)
+                if tree[i-1] > tree[i] and tree[i+1] < tree[i]:
+                    newtree = list(tree)
+                    newtree[i-1] -= 2
+                    j = 2
+                    while newtree[i-j] != newtree[i] and i-j >= 0:
+                        newtree[i-j] -= 2
+                        j += 1
+                    if newtree in basis:
+                        auxmat[i-1, v] = basis.index(newtree)
+                    else:
+                        auxmat[i-1, v] = -1
+                if tree[i-1] < tree[i] and tree[i+1] > tree[i]:
+                    newtree = list(tree)
+                    newtree[i+1] -= 2
+                    j = 2
+                    while newtree[i+j] != newtree[i] and i+j <= n:
+                        newtree[i+j] -= 2
+                        j += 1
+                    if newtree in basis:
+                        auxmat[i-1, v] = basis.index(newtree)
+                    else:
+                        auxmat[i-1, v] = -1
+        return auxmat
+
+    def TL_representation(self, drain_size, variab=None):
+        r"""
+        Return representation matrices of the Temperley--Lieb--Jones
+        representation of standard braid group generators and inverses
+        of ``self``.
+
+        The basis is given by non-intersecting pairings of `(n+d)` points,
+        where `n` is the number of strands, and `d` is given by
+        ``drain_size``, and the pairings satisfy certain rules. See
+        :meth:`TL_basis_with_drain()` for details. This basis has
+        the useful property that all resulting entries can be regarded as
+        Laurent polynomials.
+
+        We use the convention that the eigenvalues of the standard generators
+        are `1` and `-A^4`, where `A` is the generator of the Laurent
+        polynomial ring.
+
+        When `d = n - 2` and the variables are picked appropriately, the
+        resulting representation is equivalent to the reduced Burau
+        representation. When `d = n`, the resulting representation is
+        trivial and 1-dimensional.
+
+        INPUT:
+
+        - ``drain_size`` -- integer between 0 and the number of strands
+          (both inclusive)
+        - ``variab`` -- variable (default: ``None``); the variable in the
+          entries of the matrices; if ``None``, then use a default variable
+          in `\ZZ[A,A^{-1}]`
+
+        OUTPUT:
+
+        A list of matrices corresponding to the representations of each
+        of the standard generators and their inverses.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(4)
+            sage: B.TL_representation(0)
+            [(
+              [   1    0]  [    1     0]
+              [ A^2 -A^4], [ A^-2 -A^-4]
+            ),
+             (
+              [-A^4  A^2]  [-A^-4  A^-2]
+              [   0    1], [    0     1]
+            ),
+             (
+              [   1    0]  [    1     0]
+              [ A^2 -A^4], [ A^-2 -A^-4]
+            )]
+            sage: R.<A> = LaurentPolynomialRing(GF(2))
+            sage: B.TL_representation(0, variab=A)
+            [(
+              [  1   0]  [   1    0]
+              [A^2 A^4], [A^-2 A^-4]
+            ),
+             (
+              [A^4 A^2]  [A^-4 A^-2]
+              [  0   1], [   0    1]
+            ),
+             (
+              [  1   0]  [   1    0]
+              [A^2 A^4], [A^-2 A^-4]
+            )]
+            sage: B = BraidGroup(8)
+            sage: B.TL_representation(8)
+            [([1], [1]),
+             ([1], [1]),
+             ([1], [1]),
+             ([1], [1]),
+             ([1], [1]),
+             ([1], [1]),
+             ([1], [1])]
+        """
+        if variab is None:
+            if drain_size in self._TL_representation_dict:
+                return self._TL_representation_dict[drain_size]
+            R = LaurentPolynomialRing(IntegerRing(), 'A')
+            A = R.gens()[0]
+        else:
+            R = variab.parent()
+            A = variab
+
+        n = self.strands()
+        auxmat = self._TL_action(drain_size)
+        dimension = auxmat.ncols()
+        # The action of the sigma_i is given in terms of the actions of the
+        # e_i which is what auxmat describes. Our choice of normalization means
+        # that \sigma_i acts by the identity + A**2 e_i.
+        rep_matrices = []  # The list which will store the actions of sigma_i
+
+        # Store the respective powers
+        Ap2 = A**2
+        Apm2 = A**(-2)
+        Ap4 = -A**4
+        Apm4 = -A**(-4)
+
+        for i in range(n-1):  # For each \sigma_{i+1}
+            rep_mat_new = identity_matrix(R, dimension, sparse=True)
+            rep_mat_new_inv = identity_matrix(R, dimension, sparse=True)
+            for v in range(dimension):
+                new_mat_entry = auxmat[i, v]
+                if new_mat_entry == v:  # Did we create an unknot?
+                    rep_mat_new[v, v] = Ap4
+                    rep_mat_new_inv[v, v] = Apm4
+                elif new_mat_entry >= 0:
+                    rep_mat_new[new_mat_entry, v] = Ap2
+                    rep_mat_new_inv[new_mat_entry, v] = Apm2
+            rep_matrices.append((rep_mat_new, rep_mat_new_inv))
+
+        if variab is None:  # Cache the result in this case
+            for mat_pair in rep_matrices:
+                mat_pair[0].set_immutable()
+                mat_pair[1].set_immutable()
+            self._TL_representation_dict[drain_size] = rep_matrices
+
+        return rep_matrices
+
     def mapping_class_action(self, F):
         """
         Return the action of self in the free group F as mapping class group.
@@ -1101,7 +2102,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
     def _get_action_(self, S, op, self_on_left):
         """
-        Let the coercion system discover actions of the braid group on free groups.
+        Let the coercion system discover actions of the braid group on free groups. ::
 
             sage: B.<b0,b1,b2> = BraidGroup()
             sage: F.<f0,f1,f2,f3> = FreeGroup()
@@ -1120,10 +2121,33 @@ class BraidGroup_class(FinitelyPresentedGroup):
             Unknown result parent.
         """
         import operator
-        if is_FreeGroup(S) and op==operator.mul and not self_on_left:
+        if is_FreeGroup(S) and op == operator.mul and not self_on_left:
             return self.mapping_class_action(S)
         return None
 
+    Delta = deprecated_function_alias(24664, FiniteTypeArtinGroup.delta)
+
+    def _element_from_libbraiding(self, nf):
+        """
+        Return the element of ``self`` corresponding to the output
+        of libbraiding.
+
+        INPUT:
+
+        - ``nf`` -- a list of lists, as returned by libbraiding
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(5)
+            sage: B._element_from_libbraiding([[-2], [2, 1], [1, 2], [2, 1]])
+            (s0^-1*s1^-1*s2^-1*s3^-1*s0^-1*s1^-1*s2^-1*s0^-1*s1^-1*s0^-1)^2*s1*s0^2*s1^2*s0
+            sage: B._element_from_libbraiding([[0]])
+            1
+        """
+        if len(nf) == 1:
+            return self.delta() ** nf[0][0]
+        from sage.misc.misc_c import prod
+        return self.delta() ** nf[0][0] * prod(self(i) for i in nf[1:])
 
 
 def BraidGroup(n=None, names='s'):
@@ -1159,7 +2183,7 @@ def BraidGroup(n=None, names='s'):
         (g0, g1)
 
     Since the word problem for the braid groups is solvable, their Cayley graph
-    can be localy obtained as follows (see :trac:`16059`)::
+    can be locally obtained as follows (see :trac:`16059`)::
 
         sage: def ball(group, radius):
         ....:     ret = set()
@@ -1196,15 +2220,14 @@ def BraidGroup(n=None, names='s'):
             n = None
     # derive n from counting names
     if n is None:
-        if isinstance(names, basestring):
+        if isinstance(names, six.string_types):
             n = len(names.split(','))
         else:
             names = list(names)
             n = len(names)
-    from sage.structure.parent import normalize_names
-    names = tuple(normalize_names(n, names))
+    from sage.structure.category_object import normalize_names
+    names = normalize_names(n, names)
     return BraidGroup_class(names)
-
 
 
 class MappingClassGroupAction(Action):
@@ -1232,7 +2255,7 @@ class MappingClassGroupAction(Action):
     You should left multiplication of the free group element by the
     braid to compute the action. Alternatively, use the
     :meth:`~sage.groups.braid.BraidGroup_class.mapping_class_action`
-    method of the braid group to constuct this action.
+    method of the braid group to construct this action.
 
     EXAMPLES::
 
@@ -1315,3 +2338,4 @@ class MappingClassGroupAction(Action):
                     s += [i]
             t = s
         return self.codomain()(t)
+

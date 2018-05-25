@@ -14,6 +14,7 @@ cdef inline cparent get_cparent(parent):
     return 0
 
 # first we include the definitions
+include "sage/libs/ntl/decl.pxi"
 include "sage/libs/ntl/ntl_GF2X_linkage.pxi"
 
 # and then the interface
@@ -24,11 +25,13 @@ from sage.libs.all import pari
 from sage.libs.m4ri cimport mzd_write_bit, mzd_read_bit
 from sage.matrix.matrix_mod2_dense cimport Matrix_mod2_dense
 
+from sage.misc.cachefunc import cached_method
+
 cdef class Polynomial_GF2X(Polynomial_template):
     """
     Univariate Polynomials over GF(2) via NTL's GF2X.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x> = GF(2)[]
         sage: x^3 + x^2 + 1
@@ -38,7 +41,7 @@ cdef class Polynomial_GF2X(Polynomial_template):
         """
         Create a new univariate polynomials over GF(2).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x> = GF(2)[]
             sage: x^3 + x^2 + 1
@@ -51,8 +54,8 @@ cdef class Polynomial_GF2X(Polynomial_template):
             0
         """
         try:
-            if (PY_TYPE_CHECK(x, int)
-                or PY_TYPE_CHECK(x, Integer)):
+            if (isinstance(x, int)
+                or isinstance(x, Integer)):
                 x = int(x % 2)
             elif (x.parent() is parent.base_ring()
                 or x.parent() == parent.base_ring()):
@@ -61,8 +64,10 @@ cdef class Polynomial_GF2X(Polynomial_template):
             pass
         Polynomial_template.__init__(self, parent, x, check, is_gen, construct)
 
-    def __getitem__(self, i):
+    cdef get_unsafe(self, Py_ssize_t i):
         """
+        Return the `i`-th coefficient of ``self``.
+
         EXAMPLES::
 
             sage: P.<x> = GF(2)[]
@@ -72,33 +77,17 @@ cdef class Polynomial_GF2X(Polynomial_template):
             1
             sage: f[1]
             0
-            sage: f[-5:50] == f
+            sage: f[:50] == f
             True
-            sage: f[1:]
-            x^3 + x^2
+            sage: f[:3]
+            x^2 + 1
         """
-        cdef long c = 0
-        cdef Polynomial_template r
-        if isinstance(i, slice):
-            start, stop = i.start, i.stop
-            if start < 0:
-                start = 0
-            if stop > celement_len(&self.x, (<Polynomial_template>self)._cparent) or stop is None:
-                stop = celement_len(&self.x, (<Polynomial_template>self)._cparent)
-            x = (<Polynomial_template>self)._parent.gen()
-            v = [self[t] for t from start <= t < stop]
+        cdef long c = GF2_conv_to_long(GF2X_coeff(self.x, i))
+        return self._parent._base(c)
 
-            r = <Polynomial_template>PY_NEW(self.__class__)
-            Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
-            return r << start
-        else:
-            if 0 <= i < GF2X_NumBits(self.x):
-                c = GF2_conv_to_long(GF2X_coeff(self.x, i))
-            return self._parent.base_ring()(c)
-
-    def _pari_(self, variable=None):
+    def __pari__(self, variable=None):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x> = GF(2)[]
             sage: f = x^3 + x^2 + 1
@@ -124,7 +113,7 @@ cdef class Polynomial_GF2X(Polynomial_template):
         - ``h`` -- a polynomial
         - ``algorithm`` -- either 'native' or 'ntl' (default: 'native')
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x> = GF(2)[]
             sage: r = 279
@@ -157,7 +146,7 @@ cdef class Polynomial_GF2X(Polynomial_template):
         cdef GF2XModulus_c modulus
         GF2XModulus_build(modulus, (<Polynomial_GF2X>h).x)
 
-        res = <Polynomial_GF2X>PY_NEW(Polynomial_GF2X)
+        res = <Polynomial_GF2X>Polynomial_GF2X.__new__(Polynomial_GF2X)
         res._parent = self._parent
         res._cparent = self._cparent
 
@@ -260,9 +249,10 @@ cdef class Polynomial_GF2X(Polynomial_template):
         verbose("Res %5.3f s"%cputime(t),level=1)
         return res
 
+    @cached_method
     def is_irreducible(self):
-        """
-        Return True precisely if this polynomial is irreducible over GF(2).
+        r"""
+        Return whether this polynomial is irreducible over `\GF{2}`.`
 
         EXAMPLES::
 
@@ -271,11 +261,18 @@ cdef class Polynomial_GF2X(Polynomial_template):
             False
             sage: (x^3 + x + 1).is_irreducible()
             True
+
+        Test that caching works::
+
+            sage: R.<x> = GF(2)[]
+            sage: f = x^2 + 1
+            sage: f.is_irreducible()
+            False
+            sage: f.is_irreducible.cache
+            False
+
         """
-        if 0 == GF2X_IterIrredTest(self.x):
-            return False
-        else:
-            return True
+        return 0 != GF2X_IterIrredTest(self.x)
 
 
 # The three functions below are used in polynomial_ring.py, but are in
@@ -288,7 +285,7 @@ def GF2X_BuildIrred_list(n):
     Return the list of coefficients of the lexicographically smallest
     irreducible polynomial of degree `n` over the field of 2 elements.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.polynomial.polynomial_gf2x import GF2X_BuildIrred_list
         sage: GF2X_BuildIrred_list(2)
@@ -300,7 +297,7 @@ def GF2X_BuildIrred_list(n):
         sage: GF(2)['x'](GF2X_BuildIrred_list(33))
         x^33 + x^6 + x^3 + x + 1
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     cdef GF2X_c f
     GF2 = FiniteField(2)
     GF2X_BuildIrred(f, int(n))
@@ -311,7 +308,7 @@ def GF2X_BuildSparseIrred_list(n):
     Return the list of coefficients of an irreducible polynomial of
     degree `n` of minimal weight over the field of 2 elements.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.polynomial.polynomial_gf2x import GF2X_BuildIrred_list, GF2X_BuildSparseIrred_list
         sage: all([GF2X_BuildSparseIrred_list(n) == GF2X_BuildIrred_list(n)
@@ -320,7 +317,7 @@ def GF2X_BuildSparseIrred_list(n):
         sage: GF(2)['x'](GF2X_BuildSparseIrred_list(33))
         x^33 + x^10 + 1
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     cdef GF2X_c f
     GF2 = FiniteField(2)
     GF2X_BuildSparseIrred(f, int(n))
@@ -331,7 +328,7 @@ def GF2X_BuildRandomIrred_list(n):
     Return the list of coefficients of an irreducible polynomial of
     degree `n` of minimal weight over the field of 2 elements.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.polynomial.polynomial_gf2x import GF2X_BuildRandomIrred_list
         sage: GF2X_BuildRandomIrred_list(2)
@@ -340,7 +337,7 @@ def GF2X_BuildRandomIrred_list(n):
         True
     """
     from sage.misc.randstate import current_randstate
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     cdef GF2X_c tmp, f
     GF2 = FiniteField(2)
     current_randstate().set_seed_ntl(False)

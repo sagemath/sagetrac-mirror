@@ -62,7 +62,7 @@ axioms)::
     ....:     class Finite(CategoryWithAxiom):
     ....:         class ParentMethods:
     ....:             def foo(self):
-    ....:                 print "I am a method on finite C's"
+    ....:                 print("I am a method on finite C's")
 
 ::
 
@@ -146,7 +146,7 @@ elsewhere, typically in a separate file, with just a link from
     sage: class FiniteCs(CategoryWithAxiom):
     ....:     class ParentMethods:
     ....:         def foo(self):
-    ....:             print "I am a method on finite C's"
+    ....:             print("I am a method on finite C's")
     sage: Cs.Finite = FiniteCs
     sage: Cs().Finite()
     Category of finite cs
@@ -238,7 +238,7 @@ failed (try it!). In general, one needs to set the attribute explicitly::
     ....:     _base_category_class_and_axiom = (Cs, 'Finite')
     ....:     class ParentMethods:
     ....:         def foo(self):
-    ....:             print "I am a method on finite C's"
+    ....:             print("I am a method on finite C's")
 
 Having to set explicitly this link back from ``FiniteCs`` to ``Cs``
 introduces redundancy in the code. It would therefore be desirable to
@@ -267,11 +267,11 @@ from the name of the category with axiom (see
 :func:`base_category_class_and_axiom` for the details). This typically
 covers the following examples::
 
-    sage: FiniteGroups()
-    Category of finite groups
-    sage: FiniteGroups() is Groups().Finite()
+    sage: FiniteCoxeterGroups()
+    Category of finite coxeter groups
+    sage: FiniteCoxeterGroups() is CoxeterGroups().Finite()
     True
-    sage: FiniteGroups._base_category_class_and_axiom_origin
+    sage: FiniteCoxeterGroups._base_category_class_and_axiom_origin
     'deduced by base_category_class_and_axiom'
 
     sage: FiniteDimensionalAlgebrasWithBasis(QQ)
@@ -334,7 +334,7 @@ out the largest category where the axiom makes sense. For example
     ....:     class Green(CategoryWithAxiom):
     ....:         class ParentMethods:
     ....:             def foo(self):
-    ....:                 print "I am a method on green C's"
+    ....:                 print("I am a method on green C's")
 
 With the current implementation, the name of the axiom must also be
 added to a global container::
@@ -812,7 +812,7 @@ axiom ``B``.
 
 This follows the same idiom as for deduction rules about functorial
 constructions (see :meth:`.covariant_functorial_construction.CovariantConstructionCategory.extra_super_categories`).
-For example, the fact that a cartesian product of associative magmas
+For example, the fact that a Cartesian product of associative magmas
 (i.e. of semigroups) is an associative magma is implemented in
 :meth:`Semigroups.CartesianProducts.extra_super_categories`::
 
@@ -850,7 +850,7 @@ commutative, i.e. is a finite field. In other words,
 ``DivisionRings().Finite()`` *coincides* with ``Fields().Finite()``::
 
         sage: DivisionRings().Finite()
-        Category of finite fields
+        Category of finite enumerated fields
         sage: DivisionRings().Finite() is Fields().Finite()
         True
 
@@ -926,7 +926,7 @@ to an infinite recursion.
 .. TOPIC:: Design discussion
 
     Supporting similar deduction rules will be an important feature in
-    the future, with quite a few occurences already implemented in
+    the future, with quite a few occurrences already implemented in
     upcoming tickets. For the time being though there is a single
     occurrence of this idiom outside of the tests. So this would be an
     easy thing to refactor after :trac:`10963` if a better idiom is
@@ -1312,7 +1312,7 @@ Other design goals include:
        sage: Rings().Commutative().Finite().NoZeroDivisors()
        Category of finite integral domains
        sage: Rings().Finite().Division()
-       Category of finite fields
+       Category of finite enumerated fields
 
    This will allow for progressively getting rid of all the entries
    like :class:`GradedHopfAlgebrasWithBasis` which are polluting the
@@ -1364,7 +1364,7 @@ Other design goals include:
 Upcoming features
 =================
 
-.. TODO:
+.. TODO::
 
     - Implement compatibility axiom / functorial constructions. For
       example, one would want to have::
@@ -1381,8 +1381,8 @@ Upcoming features
 
 .. _axioms-algorithmic:
 
-Description of the algorithmic
-==============================
+Algorithms
+==========
 
 Computing joins
 ---------------
@@ -1396,7 +1396,7 @@ and any axiom `A` satisfied by `J`.
 
 The join `J` is naturally computed as a closure in the lattice of
 constructible categories: it starts with the `C_i`'s, gathers the set
-`S` of all the axioms satisfied by them, and repeteadly adds each
+`S` of all the axioms satisfied by them, and repeatedly adds each
 axiom `A` to those categories that do not yet satisfy `A` using
 :meth:`Category._with_axiom`. Due to deduction rules or (extra) super
 categories, new categories or new axioms may appear in the
@@ -1423,7 +1423,7 @@ categories of `J`. In particular, it is a finite process.
     ... so we would have an infinite increasing chain of constructible
     categories.
 
-    It's reasonnable to assume that there is a finite number of axioms
+    It's reasonable to assume that there is a finite number of axioms
     defined in the code. There remains to use this assumption to argue
     that any infinite execution of the algorithm would give rise to
     such an infinite sequence.
@@ -1560,9 +1560,6 @@ having read that far!
 Tests
 =====
 
-
-TESTS:
-
 .. NOTE::
 
     Quite a few categories with axioms are constructed early on during
@@ -1571,6 +1568,8 @@ TESTS:
     Sage. The following sequence of tests is designed to test the
     infrastructure from the ground up even in a partially broken
     Sage. Please don't remove the imports!
+
+TESTS:
 
 ::
 
@@ -1639,16 +1638,14 @@ TESTS:
     Category of integral domains
 
     sage: DivisionRings().Finite() # Wedderburn's theorem
-    Category of finite fields
+    Category of finite enumerated fields
 
     sage: FiniteMonoids().Algebras(QQ)
     Join of Category of monoid algebras over Rational Field
         and Category of finite dimensional algebras with basis over Rational Field
         and Category of finite set algebras over Rational Field
     sage: FiniteGroups().Algebras(QQ)
-    Join of Category of finite dimensional hopf algebras with basis over Rational Field
-        and Category of group algebras over Rational Field
-        and Category of finite set algebras over Rational Field
+    Category of finite group algebras over Rational Field
 """
 #*****************************************************************************
 #  Copyright (C) 2011-2014 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -1656,6 +1653,7 @@ TESTS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import importlib
 import re
@@ -1675,13 +1673,19 @@ from sage.categories.category_cy_helper import AxiomContainer, canonicalize_axio
 
 all_axioms = AxiomContainer()
 all_axioms += ("Flying", "Blue",
-              "Facade", "Finite", "Infinite",
-              "FiniteDimensional", "Connected", "WithBasis",
-              "Irreducible",
-              "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors",
-              "AdditiveCommutative", "AdditiveAssociative", "AdditiveInverse", "AdditiveUnital",
-              "Distributive",
-              "Endset"
+               "Compact",
+               "Differentiable", "Smooth", "Analytic", "AlmostComplex",
+               "FinitelyGeneratedAsMagma",
+               "WellGenerated",
+               "Facade", "Finite", "Infinite","Enumerated",
+               "Complete",
+               "FiniteDimensional", "Connected", "WithBasis",
+               "Irreducible",
+               "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors",
+               "AdditiveCommutative", "AdditiveAssociative", "AdditiveInverse", "AdditiveUnital",
+               "Distributive",
+               "Endset",
+               "Pointed"
               )
 
 def uncamelcase(s,separator=" "):
@@ -1690,10 +1694,12 @@ def uncamelcase(s,separator=" "):
 
         sage: sage.categories.category_with_axiom.uncamelcase("FiniteDimensionalAlgebras")
         'finite dimensional algebras'
+        sage: sage.categories.category_with_axiom.uncamelcase("JTrivialMonoids")
+        'j trivial monoids'
         sage: sage.categories.category_with_axiom.uncamelcase("FiniteDimensionalAlgebras", "_")
         'finite_dimensional_algebras'
     """
-    return re.sub("[a-z][A-Z]", lambda match: match.group()[0]+separator+match.group()[1], s).lower()
+    return re.sub("(?!^)[A-Z]", lambda match: separator+match.group()[0], s).lower()
 
 def base_category_class_and_axiom(cls):
     """
@@ -1784,8 +1790,9 @@ def base_category_class_and_axiom(cls):
             except (ImportError,AttributeError):
                 pass
     raise TypeError("""Could not retrieve the base category class and axiom for {}.
-Please specify it explictly using the attribute _base_category_class_and_axiom.
+Please specify it explicitly using the attribute _base_category_class_and_axiom.
 See CategoryWithAxiom for details.""".format(cls))
+
 
 @cached_function
 def axiom_of_nested_class(cls, nested_cls):
@@ -2095,7 +2102,7 @@ class CategoryWithAxiom(Category):
 
         This check that an axiom category of a
         :class:`Category_singleton` is a singleton category, and
-        similarwise for :class`Category_over_base_ring`.
+        similarwise for :class:`Category_over_base_ring`.
 
         EXAMPLES::
 
@@ -2129,17 +2136,9 @@ class CategoryWithAxiom(Category):
         ``self``, as per :meth:`Category.super_categories`.
 
         This implements the property that if ``As`` is a subcategory
-        of ``Bs``, then the intersection of As with ``FiniteSets()``
+        of ``Bs``, then the intersection of ``As`` with ``FiniteSets()``
         is a subcategory of ``As`` and of the intersection of ``Bs``
         with ``FiniteSets()``.
-
-        EXAMPLES::
-
-            sage: FiniteSets().super_categories()
-            [Category of sets]
-
-            sage: FiniteSemigroups().super_categories()
-            [Category of semigroups, Category of finite enumerated sets]
 
         EXAMPLES:
 
@@ -2147,6 +2146,16 @@ class CategoryWithAxiom(Category):
 
             sage: Magmas().Finite().super_categories()
             [Category of magmas, Category of finite sets]
+
+        Variants::
+
+            sage: Sets().Finite().super_categories()
+            [Category of sets]
+
+            sage: Monoids().Finite().super_categories()
+            [Category of monoids, Category of finite semigroups]
+
+        EXAMPLES:
 
         TESTS::
 
@@ -2232,7 +2241,12 @@ class CategoryWithAxiom(Category):
             sage: from sage.categories.homsets import Homsets
             sage: CategoryWithAxiom._repr_object_names_static(Homsets(), ["Endset"])
             'endsets'
+            sage: CategoryWithAxiom._repr_object_names_static(PermutationGroups(), ["FinitelyGeneratedAsMagma"])
+            'finitely generated permutation groups'
+            sage: CategoryWithAxiom._repr_object_names_static(Rings(), ["FinitelyGeneratedAsMagma"])
+            'finitely generated as magma rings'
         """
+        from sage.categories.additive_magmas import AdditiveMagmas
         axioms = canonicalize_axioms(all_axioms,axioms)
         base_category = category._without_axioms(named=True)
         if isinstance(base_category, CategoryWithAxiom): # Smelly runtime type checking
@@ -2251,9 +2265,14 @@ class CategoryWithAxiom(Category):
                 result = result.replace(" over ", " with basis over ", 1)
             elif axiom == "Connected" and "graded " in result:
                 result = result.replace("graded ", "graded connected ", 1)
+            elif axiom == "Connected" and "filtered " in result:
+                result = result.replace("filtered ", "filtered connected ", 1)
             elif axiom == "Endset" and "homsets" in result:
                 # Without the space at the end to handle Homsets().Endset()
                 result = result.replace("homsets", "endsets", 1)
+            elif axiom == "FinitelyGeneratedAsMagma" and \
+                 not base_category.is_subcategory(AdditiveMagmas()):
+                result = "finitely generated " + result
             else:
                 result = uncamelcase(axiom) + " " + result
         return result

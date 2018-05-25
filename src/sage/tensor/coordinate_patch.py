@@ -12,6 +12,8 @@ EXAMPLES::
 
     sage: x, y, z = var('x, y, z')
     sage: S = CoordinatePatch((x, y, z)); S
+    doctest:...: DeprecationWarning: Use Manifold instead.
+    See http://trac.sagemath.org/24444 for details.
     Open subset of R^3 with coordinates x, y, z
 
 ::
@@ -53,6 +55,8 @@ class CoordinatePatch(Parent):
 
             sage: x, y, z = var('x, y, z')
             sage: S = CoordinatePatch((x, y, z)); S
+            doctest:...: DeprecationWarning: Use Manifold instead.
+            See http://trac.sagemath.org/24444 for details.
             Open subset of R^3 with coordinates x, y, z
 
             sage: u, v = var('u, v')
@@ -78,25 +82,26 @@ class CoordinatePatch(Parent):
         An open subset of Euclidian space with a specific set of
         coordinates. See ``CoordinatePatch`` for details.
 
-        INPUT::
+        INPUT:
 
         - ``coordinates`` -- a set of symbolic variables that serve
-        as coordinates on this space.
+          as coordinates on this space.
 
-        - ``metric`` (default: None) -- a metric tensor on this
-        coordinate patch.  Providing anything other than ``None``
-        is currently not defined.
-
+        - ``metric`` (default: ``None``) -- a metric tensor on this
+          coordinate patch.  Providing anything other than ``None``
+          is currently not defined.
 
         EXAMPLES::
 
             sage: x, y, z = var('x, y, z')
             sage: S = CoordinatePatch((x, y, z)); S
+            doctest:...: DeprecationWarning: Use Manifold instead.
+            See http://trac.sagemath.org/24444 for details.
             Open subset of R^3 with coordinates x, y, z
-
         """
-
         from sage.symbolic.ring import is_SymbolicVariable
+        from sage.misc.superseded import deprecation
+        deprecation(24444, 'Use Manifold instead.')
 
         if not all(is_SymbolicVariable(c) for c in coordinates):
             raise TypeError("%s is not a valid vector of coordinates." % \
@@ -108,8 +113,6 @@ class CoordinatePatch(Parent):
         if metric is not None:
             raise NotImplementedError("Metric geometry not supported yet.")
 
-
-
     def __eq__(self, other):
         """
         Return equality if and only if other has the same coordinates
@@ -119,6 +122,8 @@ class CoordinatePatch(Parent):
 
             sage: x, y, z = var('x, y, z')
             sage: S = CoordinatePatch((x, y, z)); S
+            doctest:...: DeprecationWarning: Use Manifold instead.
+            See http://trac.sagemath.org/24444 for details.
             Open subset of R^3 with coordinates x, y, z
             sage: u, v = var('u, v')
             sage: T = CoordinatePatch((u, v)); T
@@ -154,6 +159,8 @@ class CoordinatePatch(Parent):
 
             sage: x, y, z = var('x, y, z')
             sage: S = CoordinatePatch((x, y, z)); S
+            doctest:...: DeprecationWarning: Use Manifold instead.
+            See http://trac.sagemath.org/24444 for details.
             Open subset of R^3 with coordinates x, y, z
             sage: u, v = var('u, v')
             sage: T = CoordinatePatch((u, v)); T
@@ -161,10 +168,7 @@ class CoordinatePatch(Parent):
             sage: S != T
             True
         """
-
-        return not self.__eq__(other)
-
-
+        return not self == other
 
     def coordinates(self):
         """
@@ -172,12 +176,14 @@ class CoordinatePatch(Parent):
 
         OUTPUT:
 
-        - list - a list of coordinates on this space.
+        - list -- a list of coordinates on this space.
 
         EXAMPLES::
 
             sage: x, y, z = var('x, y, z')
             sage: S = CoordinatePatch((x, y, z)); S
+            doctest:...: DeprecationWarning: Use Manifold instead.
+            See http://trac.sagemath.org/24444 for details.
             Open subset of R^3 with coordinates x, y, z
             sage: S.coordinates()
             (x, y, z)
@@ -199,6 +205,8 @@ class CoordinatePatch(Parent):
 
             sage: x, y, z = var('x, y, z')
             sage: S = CoordinatePatch((x, y, z)); S
+            doctest:...: DeprecationWarning: Use Manifold instead.
+            See http://trac.sagemath.org/24444 for details.
             Open subset of R^3 with coordinates x, y, z
             sage: S.coordinate(0)
             x
@@ -221,6 +229,8 @@ class CoordinatePatch(Parent):
 
             sage: a, b, c, d, e = var('a, b, c, d, e')
             sage: U = CoordinatePatch((a, b, c, d, e)); U
+            doctest:...: DeprecationWarning: Use Manifold instead.
+            See http://trac.sagemath.org/24444 for details.
             Open subset of R^5 with coordinates a, b, c, d, e
             sage: U.dim()
             5
@@ -236,6 +246,8 @@ class CoordinatePatch(Parent):
 
             sage: x, y, z = var('x, y, z')
             sage: S = CoordinatePatch((x, y, z)); S
+            doctest:...: DeprecationWarning: Use Manifold instead.
+            See http://trac.sagemath.org/24444 for details.
             Open subset of R^3 with coordinates x, y, z
             sage: S._repr_()
             'Open subset of R^3 with coordinates x, y, z'
@@ -256,6 +268,8 @@ class CoordinatePatch(Parent):
 
             sage: x, y, z = var('x, y, z')
             sage: S = CoordinatePatch((x, y, z)); S
+            doctest:...: DeprecationWarning: Use Manifold instead.
+            See http://trac.sagemath.org/24444 for details.
             Open subset of R^3 with coordinates x, y, z
             sage: latex(S)
             \mathbb{\RR}^3

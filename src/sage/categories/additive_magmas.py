@@ -8,6 +8,8 @@ Additive Magmas
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+import six
+
 from sage.misc.lazy_import import LazyImport
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
@@ -18,7 +20,6 @@ from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.homsets import HomsetsCategory
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.categories.sets_cat import Sets
-from sage.structure.sage_object import have_same_parent
 
 class AdditiveMagmas(Category_singleton):
     """
@@ -200,7 +201,7 @@ class AdditiveMagmas(Category_singleton):
 
             .. TODO:: Add an example.
             """
-            return x._add_(y)
+            return x + y
 
         summation_from_element_class_add = summation
 
@@ -389,50 +390,6 @@ class AdditiveMagmas(Category_singleton):
 
     class ElementMethods:
 
-        # This could eventually be moved to SageObject
-        def __add__(self, right):
-            r"""
-            Return the sum of ``self`` and ``right``.
-
-            This calls the `_add_` method of ``self``, if it is
-            available and the two elements have the same parent.
-
-            Otherwise, the job is delegated to the coercion model.
-
-            Do not override; instead implement an ``_add_`` method in the
-            element class or a ``summation`` method in the parent class.
-
-            EXAMPLES::
-
-                sage: F = CommutativeAdditiveSemigroups().example()
-                sage: (a,b,c,d) = F.additive_semigroup_generators()
-                sage: a + b
-                a + b
-            """
-            if have_same_parent(self, right) and hasattr(self, "_add_"):
-                return self._add_(right)
-            from sage.structure.element import get_coercion_model
-            import operator
-            return get_coercion_model().bin_op(self, right, operator.add)
-
-        def __radd__(self, left):
-            r"""
-            Handles the sum of two elements, when the left hand side
-            needs to be coerced first.
-
-            EXAMPLES::
-
-                sage: F = CommutativeAdditiveSemigroups().example()
-                sage: (a,b,c,d) = F.additive_semigroup_generators()
-                sage: a.__radd__(b)
-                a + b
-            """
-            if have_same_parent(left, self) and hasattr(left, "_add_"):
-                return left._add_(self)
-            from sage.structure.element import get_coercion_model
-            import operator
-            return get_coercion_model().bin_op(left, self, operator.add)
-
         @abstract_method(optional = True)
         def _add_(self, right):
             """
@@ -489,14 +446,14 @@ class AdditiveMagmas(Category_singleton):
                 sage: AdditiveMagmas().Homsets().extra_super_categories()
                 [Category of additive magmas]
                 sage: AdditiveMagmas().Homsets().super_categories()
-                [Category of additive magmas]
+                [Category of additive magmas, Category of homsets]
             """
             return [AdditiveMagmas()]
 
     class CartesianProducts(CartesianProductsCategory):
         def extra_super_categories(self):
             """
-            Implement the fact that a cartesian product of additive magmas is
+            Implement the fact that a Cartesian product of additive magmas is
             an additive magma.
 
             EXAMPLES::
@@ -592,7 +549,7 @@ class AdditiveMagmas(Category_singleton):
         class CartesianProducts(CartesianProductsCategory):
             def extra_super_categories(self):
                 """
-                Implement the fact that a cartesian product of commutative
+                Implement the fact that a Cartesian product of commutative
                 additive magmas is a commutative additive magma.
 
                 EXAMPLES::
@@ -683,7 +640,7 @@ class AdditiveMagmas(Category_singleton):
                 Test that ``self.zero()`` is an element of self and
                 is neutral for the addition.
 
-                INPUT::
+                INPUT:
 
                 - ``options`` -- any keyword arguments accepted
                   by :meth:`_tester`
@@ -708,12 +665,14 @@ class AdditiveMagmas(Category_singleton):
                 tester = self._tester(**options)
                 zero = self.zero()
                 # TODO: also call is_zero once it will work
-                tester.assert_(self.is_parent_of(zero))
+                tester.assertTrue(self.is_parent_of(zero))
                 for x in tester.some_elements():
-                    tester.assert_(x + zero == x)
-                # Check that zero is immutable by asking its hash:
-                tester.assertEqual(type(zero.__hash__()), int)
-                tester.assertEqual(zero.__hash__(), zero.__hash__())
+                    tester.assertTrue(x + zero == x)
+                # Check that zero is immutable if it looks like we can:
+                if hasattr(zero,"is_immutable"):
+                    tester.assertEqual(zero.is_immutable(),True)
+                if hasattr(zero,"is_mutable"):
+                    tester.assertEqual(zero.is_mutable(),False)
                 # Check that bool behave consistently on zero
                 tester.assertFalse(bool(self.zero()))
 
@@ -740,17 +699,36 @@ class AdditiveMagmas(Category_singleton):
                 # TODO: add a test that actually exercise this default implementation
                 return self(0)
 
-            def zero_element(self):
-                """
-                Backward compatibility alias for ``self.zero()``.
+            def is_empty(self):
+                r"""
+                Return whether this set is empty.
 
-                TESTS::
+                Since this set is an additive magma it has a zero element and
+                hence is not empty. This method thus always returns ``False``.
 
-                    sage: S = CommutativeAdditiveMonoids().example()
-                    sage: S.zero_element()
-                    0
+                EXAMPLES::
+
+                    sage: A = AdditiveAbelianGroup([3,3])
+                    sage: A in AdditiveMagmas()
+                    True
+                    sage: A.is_empty()
+                    False
+
+                    sage: B = CommutativeAdditiveMonoids().example()
+                    sage: B.is_empty()
+                    False
+
+                TESTS:
+
+                We check that the method `is_empty` is inherited from this
+                category in both examples above::
+
+                    sage: A.is_empty.__module__
+                    'sage.categories.additive_magmas'
+                    sage: B.is_empty.__module__
+                    'sage.categories.additive_magmas'
                 """
-                return self.zero()
+                return False
 
         class ElementMethods:
             # TODO: merge with the implementation in Element which currently
@@ -773,7 +751,7 @@ class AdditiveMagmas(Category_singleton):
             #     return self == self.parent().zero()
 
             @abstract_method
-            def __nonzero__(self):
+            def __bool__(self):
                 """
                 Return whether ``self`` is not zero.
 
@@ -792,9 +770,13 @@ class AdditiveMagmas(Category_singleton):
                     True
                  """
 
+            if six.PY2:
+                __nonzero__ = __bool__
+                del __bool__
+
             def _test_nonzero_equal(self, **options):
                 r"""
-                Test that ``.__nonzero__()`` behave consistently
+                Test that ``.__bool__()`` behave consistently
                 with `` == 0``.
 
                 TESTS::
@@ -807,13 +789,9 @@ class AdditiveMagmas(Category_singleton):
                 tester.assertEqual(bool(self), self != self.parent().zero())
                 tester.assertEqual(not self, self == self.parent().zero())
 
-            def __sub__(left, right):
-                """
-                Return the difference between ``left`` and ``right``, if it exists.
-
-                This top-level implementation delegates the work to
-                the ``_sub_`` method or to coercion. See the extensive
-                documentation at the top of :ref:`sage.structure.element`.
+            def _sub_(left, right):
+                r"""
+                Default implementation of difference.
 
                 EXAMPLES::
 
@@ -821,12 +799,16 @@ class AdditiveMagmas(Category_singleton):
                     sage: a,b = F.basis()
                     sage: a - b
                     B['a'] - B['b']
+
+                TESTS:
+
+                Check that :trac:`18275` is fixed::
+
+                    sage: C = GF(5).cartesian_product(GF(5))
+                    sage: C.one() - C.one()
+                    (0, 0)
                 """
-                if have_same_parent(left, right) and hasattr(left, "_sub_"):
-                    return left._sub_(right)
-                from sage.structure.element import get_coercion_model
-                import operator
-                return get_coercion_model().bin_op(left, right, operator.sub)
+                return left + (-right)
 
             def __neg__(self):
                 """
@@ -846,10 +828,15 @@ class AdditiveMagmas(Category_singleton):
 
                 TESTS::
 
-                    sage: b.__neg__.__module__
-                    'sage.categories.additive_magmas'
-                    sage: b._neg_.__module__
-                    'sage.combinat.free_module'
+                    sage: F = CombinatorialFreeModule(ZZ, ['a','b'])
+                    sage: a,b = F.gens()
+                    sage: FF = cartesian_product((F,F))
+                    sage: x = cartesian_product([a,2*a-3*b]) ; x
+                    B[(0, 'a')] + 2*B[(1, 'a')] - 3*B[(1, 'b')]
+                    sage: x.parent() is FF
+                    True
+                    sage: -x
+                    -B[(0, 'a')] - 2*B[(1, 'a')] + 3*B[(1, 'b')]
                 """
                 return self._neg_()
 
@@ -864,7 +851,7 @@ class AdditiveMagmas(Category_singleton):
                     sage: AdditiveMagmas().AdditiveUnital().Homsets().extra_super_categories()
                     [Category of additive unital additive magmas]
                     sage: AdditiveMagmas().AdditiveUnital().Homsets().super_categories()
-                    [Category of additive unital additive magmas]
+                    [Category of additive unital additive magmas, Category of homsets]
                 """
                 return [AdditiveMagmas().AdditiveUnital()]
 
@@ -898,7 +885,7 @@ class AdditiveMagmas(Category_singleton):
             class CartesianProducts(CartesianProductsCategory):
                 def extra_super_categories(self):
                     """
-                    Implement the fact that a cartesian product of additive magmas
+                    Implement the fact that a Cartesian product of additive magmas
                     with inverses is an additive magma with inverse.
 
                     EXAMPLES::
@@ -911,10 +898,30 @@ class AdditiveMagmas(Category_singleton):
                     """
                     return [AdditiveMagmas().AdditiveUnital().AdditiveInverse()]
 
+                class ElementMethods:
+                    def _neg_(self):
+                        """
+                        Return the negation of ``self``.
+
+                        EXAMPLES::
+
+                           sage: x = cartesian_product((GF(7)(2),17)) ; x
+                           (2, 17)
+                           sage: -x
+                           (5, -17)
+
+                        TESTS::
+
+                           sage: x.parent() in AdditiveMagmas().AdditiveUnital().AdditiveInverse().CartesianProducts()
+                           True
+                        """
+                        return self.parent()._cartesian_product_of_elements(
+                            [-x for x in self.cartesian_factors()])
+
         class CartesianProducts(CartesianProductsCategory):
             def extra_super_categories(self):
                 """
-                Implement the fact that a cartesian product of unital additive
+                Implement the fact that a Cartesian product of unital additive
                 magmas is a unital additive magma.
 
                 EXAMPLES::
@@ -932,67 +939,13 @@ class AdditiveMagmas(Category_singleton):
                     r"""
                     Returns the zero of this group
 
-                    EXAMPLE::
+                    EXAMPLES::
 
                         sage: GF(8,'x').cartesian_product(GF(5)).zero()
                         (0, 0)
                     """
                     return self._cartesian_product_of_elements(
                         _.zero() for _ in self.cartesian_factors())
-
-            class ElementMethods:
-                def __neg__(self):
-                    r"""
-                    Return the negation of ``self``, if it exists.
-
-                    The inverse is computed by negating each cartesian
-                    factor and attempting to convert the result back
-                    to the original parent.
-
-                    For example, if one of the cartesian factor is an
-                    element ``x`` of `\NN`, the result of ``-x`` is in
-                    `\ZZ`. So we need to convert it back to `\NN`. As
-                    a side effect, this checks that ``x`` indeed has a
-                    negation in `\NN`.
-
-                    If needed an optimized version without this
-                    conversion could be implemented in
-                    :class:`AdditiveMagmas.AdditiveUnital.AdditiveInverse.ElementMethods`.
-
-                    EXAMPLES::
-
-                        sage: G=GF(5); GG = G.cartesian_product(G)
-                        sage: oneone = GG([GF(5)(1),GF(5)(1)])
-                        sage: -oneone
-                        (4, 4)
-
-                        sage: NNSemiring = NonNegativeIntegers(category=Semirings() & InfiniteEnumeratedSets())
-                        sage: C = cartesian_product([ZZ,NNSemiring,RR])
-                        sage: -C([2,0,.4])
-                        (-2, 0, -0.400000000000000)
-
-                        sage: c = C.an_element(); c
-                        (1, 42, 1.00000000000000)
-                        sage: -c
-                        Traceback (most recent call last):
-                        ...
-                        ValueError: Value -42 in not in Non negative integers.
-
-                    .. TODO::
-
-                        Use plain ``NN`` above once it is a semiring.
-                        See :trac:`16406`. There is a further issue
-                        with ``NN`` being lazy imported which breaks
-                        the assertion that the inputs are parents in
-                        ``cartesian_product``::
-
-                            sage: cartesian_product([ZZ, NN, RR])
-                            Traceback (most recent call last):
-                            ...
-                            AssertionError
-                    """
-                    return self.parent()(
-                        -x for x in self.cartesian_factors())
 
         class Algebras(AlgebrasCategory):
 

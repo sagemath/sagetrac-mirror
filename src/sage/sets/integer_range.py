@@ -76,15 +76,15 @@ class IntegerRange(UniqueRepresentation, Parent):
     step)`` is the set whose list of elements is equivalent to the python
     construction ``range(begin, end, step)``::
 
-        sage: list(IntegerRange(4,105,3)) == range(4,105,3)
+        sage: list(IntegerRange(4,105,3)) == list(range(4,105,3))
         True
-        sage: list(IntegerRange(-54,13,12)) == range(-54,13,12)
+        sage: list(IntegerRange(-54,13,12)) == list(range(-54,13,12))
         True
 
     Except for the type of the numbers::
 
-        sage: type(IntegerRange(-54,13,12)[0]), type(range(-54,13,12)[0])
-        (<type 'sage.rings.integer.Integer'>, <type 'int'>)
+        sage: type(IntegerRange(-54,13,12)[0]), type(list(range(-54,13,12))[0])
+        (<... 'sage.rings.integer.Integer'>, <... 'int'>)
 
     When ``begin`` is finite and ``end`` is +Infinity, ``self`` is the infinite
     arithmetic progression starting from the ``begin`` by step ``step``::
@@ -94,7 +94,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         sage: I.category()
         Category of facade infinite enumerated sets
         sage: p = iter(I)
-        sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next())
+        sage: (next(p), next(p), next(p), next(p), next(p), next(p))
         (54, 57, 60, 63, 66, 69)
 
         sage: I = IntegerRange(54,-Infinity,-3); I
@@ -102,7 +102,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         sage: I.category()
         Category of facade infinite enumerated sets
         sage: p = iter(I)
-        sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next())
+        sage: (next(p), next(p), next(p), next(p), next(p), next(p))
         (54, 51, 48, 45, 42, 39)
 
     When ``begin`` and ``end`` are both infinite, you will have to specify the
@@ -120,7 +120,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         sage: -15 in I
         False
         sage: p = iter(I)
-        sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next())
+        sage: (next(p), next(p), next(p), next(p), next(p), next(p), next(p), next(p))
         (-12, 25, -49, 62, -86, 99, -123, 136)
 
     It is also possible to use the argument ``middle_point`` for other cases, finite
@@ -142,7 +142,7 @@ class IntegerRange(UniqueRepresentation, Parent):
     be supposed to be included and the ``end`` bound supposed to be excluded::
 
         sage: I = IntegerRange(-100,100,10,0)
-        sage: J = range(-100,100,10)
+        sage: J = list(range(-100,100,10))
         sage: 100 in I
         False
         sage: 100 in J
@@ -176,29 +176,29 @@ class IntegerRange(UniqueRepresentation, Parent):
         sage: TestSuite(IntegerRange(732,-12,-2743,732)).run()
         sage: # 20 random tests: range and IntegerRange give the same set for finite cases
         sage: for i in range(20):
-        ...       begin = Integer(randint(-300,300))
-        ...       end = Integer(randint(-300,300))
-        ...       step = Integer(randint(-20,20))
-        ...       if step == 0:
-        ...           step = Integer(1)
-        ...       assert list(IntegerRange(begin, end, step)) == range(begin, end, step)
+        ....:     begin = Integer(randint(-300,300))
+        ....:     end = Integer(randint(-300,300))
+        ....:     step = Integer(randint(-20,20))
+        ....:     if step == 0:
+        ....:         step = Integer(1)
+        ....:     assert list(IntegerRange(begin, end, step)) == list(range(begin, end, step))
         sage: # 20 random tests: range and IntegerRange with middle point for finite cases
         sage: for i in range(20):
-        ...       begin = Integer(randint(-300,300))
-        ...       end = Integer(randint(-300,300))
-        ...       step = Integer(randint(-15,15))
-        ...       if step == 0:
-        ...           step = Integer(-3)
-        ...       I = IntegerRange(begin, end, step)
-        ...       if I.cardinality() == 0:
-        ...           assert len(range(begin, end, step)) == 0
-        ...       else:
-        ...           TestSuite(I).run()
-        ...           L1 = list(IntegerRange(begin, end, step, I.an_element()))
-        ...           L2 = range(begin, end, step)
-        ...           L1.sort()
-        ...           L2.sort()
-        ...           assert L1 == L2
+        ....:     begin = Integer(randint(-300,300))
+        ....:     end = Integer(randint(-300,300))
+        ....:     step = Integer(randint(-15,15))
+        ....:     if step == 0:
+        ....:         step = Integer(-3)
+        ....:     I = IntegerRange(begin, end, step)
+        ....:     if I.cardinality() == 0:
+        ....:         assert len(range(begin, end, step)) == 0
+        ....:     else:
+        ....:         TestSuite(I).run()
+        ....:         L1 = list(IntegerRange(begin, end, step, I.an_element()))
+        ....:         L2 = list(range(begin, end, step))
+        ....:         L1.sort()
+        ....:         L2.sort()
+        ....:         assert L1 == L2
 
     Thanks to :trac:`8543` empty integer range are allowed::
 
@@ -219,7 +219,7 @@ class IntegerRange(UniqueRepresentation, Parent):
             sage: IntegerRange(1.0)
             Traceback (most recent call last):
             ...
-            TypeError: end must be Integer or Infinity, not <type 'sage.rings.real_mpfr.RealLiteral'>
+            TypeError: end must be Integer or Infinity, not <... 'sage.rings.real_mpfr.RealLiteral'>
         """
         if isinstance(begin, int): begin = Integer(begin)
         if isinstance(end, int): end = Integer(end)
@@ -360,7 +360,7 @@ class IntegerRangeFinite(IntegerRange):
                 elt = x
             except (ValueError, TypeError):
                 return False
-        if (self._step.__abs__()).divides(Integer(elt)-self._begin):
+        if abs(self._step).divides(Integer(elt)-self._begin):
             return (self._begin <= elt < self._end and self._step > 0) or \
                    (self._begin >= elt > self._end and self._step < 0)
         return False
@@ -429,11 +429,11 @@ class IntegerRangeFinite(IntegerRange):
 
     def __getitem__(self, i):
         r"""
-        Return the i-th elt of this integer range.
+        Return the i-th element of this integer range.
 
         EXAMPLES::
 
-            sage: I=IntegerRange(1,13,5)
+            sage: I = IntegerRange(1,13,5)
             sage: I[0], I[1], I[2]
             (1, 6, 11)
             sage: I[3]
@@ -449,10 +449,10 @@ class IntegerRangeFinite(IntegerRange):
 
             sage: I = IntegerRange(13,1,-1)
             sage: l = I.list()
-            sage: [I[i] for i in xrange(I.cardinality())] == l
+            sage: [I[i] for i in range(I.cardinality())] == l
             True
             sage: l.reverse()
-            sage: [I[i] for i in xrange(-1,-I.cardinality()-1,-1)] == l
+            sage: [I[i] for i in range(-1,-I.cardinality()-1,-1)] == l
             True
         """
         if isinstance(i,slice):
@@ -483,11 +483,11 @@ class IntegerRangeFinite(IntegerRange):
 
             sage: I = IntegerRange(123,12,-4)
             sage: p = iter(I)
-            sage: [p.next() for i in range(8)]
+            sage: [next(p) for i in range(8)]
             [123, 119, 115, 111, 107, 103, 99, 95]
             sage: I = IntegerRange(-57,12,8)
             sage: p = iter(I)
-            sage: [p.next() for i in range(8)]
+            sage: [next(p) for i in range(8)]
             [-57, -49, -41, -33, -25, -17, -9, -1]
         """
         n = self._begin
@@ -577,7 +577,7 @@ class IntegerRangeInfinite(IntegerRange):
                 elt = Integer(elt)
             except (TypeError, ValueError):
                 return False
-        if (self._step.__abs__()).divides(Integer(elt)-self._begin):
+        if abs(self._step).divides(Integer(elt)-self._begin):
             return (self._step > 0 and elt >= self._begin) or \
                    (self._step < 0 and elt <= self._begin)
         return False
@@ -633,12 +633,12 @@ class IntegerRangeInfinite(IntegerRange):
 
             sage: I = IntegerRange(-57,Infinity,8)
             sage: p = iter(I)
-            sage: [p.next() for i in range(8)]
+            sage: [next(p) for i in range(8)]
             [-57, -49, -41, -33, -25, -17, -9, -1]
 
             sage: I = IntegerRange(-112,-Infinity,-13)
             sage: p = iter(I)
-            sage: [p.next() for i in range(8)]
+            sage: [next(p) for i in range(8)]
             [-112, -125, -138, -151, -164, -177, -190, -203]
         """
         n = self._begin
@@ -737,7 +737,7 @@ class IntegerRangeFromMiddle(IntegerRange):
                 elt = Integer(elt)
             except (TypeError, ValueError):
                 return False
-        if (self._step.__abs__()).divides(Integer(elt)-self._middle_point):
+        if abs(self._step).divides(Integer(elt)-self._middle_point):
             return (self._begin <= elt and elt < self._end) or \
                    (self._begin >= elt and elt > self._end)
         return False
@@ -789,11 +789,11 @@ class IntegerRangeFromMiddle(IntegerRange):
             sage: from sage.sets.integer_range import IntegerRangeFromMiddle
             sage: I = IntegerRangeFromMiddle(Infinity,-Infinity,-37,0)
             sage: p = iter(I)
-            sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next())
+            sage: (next(p), next(p), next(p), next(p), next(p), next(p), next(p), next(p))
             (0, -37, 37, -74, 74, -111, 111, -148)
             sage: I = IntegerRangeFromMiddle(-12,214,10,0)
             sage: p = iter(I)
-            sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next())
+            sage: (next(p), next(p), next(p), next(p), next(p), next(p), next(p), next(p))
             (0, 10, -10, 20, 30, 40, 50, 60)
         """
         n = self._middle_point

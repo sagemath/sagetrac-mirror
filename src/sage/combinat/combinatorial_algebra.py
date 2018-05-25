@@ -15,17 +15,15 @@ symmetric functions.
 ::
 
     sage: class PowerSums(CombinatorialAlgebra):
-    ...     def __init__(self, R):
-    ...         self._one = Partition([])
-    ...         self._name = 'Power-sum symmetric functions'
-    ...         CombinatorialAlgebra.__init__(self, R, Partitions())
-    ...         self.print_options(prefix='p')
-    ...
-    ...     def _multiply_basis(self, a, b):
-    ...         l = list(a)+list(b)
-    ...         l.sort(reverse=True)
-    ...         return Partition(l)
-    ...
+    ....:   def __init__(self, R):
+    ....:       self._one = Partition([])
+    ....:       self._name = 'Power-sum symmetric functions'
+    ....:       CombinatorialAlgebra.__init__(self, R, Partitions())
+    ....:       self.print_options(prefix='p')
+    ....:   def _multiply_basis(self, a, b):
+    ....:       l = list(a)+list(b)
+    ....:       l.sort(reverse=True)
+    ....:       return Partition(l)
 
 ::
 
@@ -61,12 +59,14 @@ algebra.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#from sage.algebras.algebra import Algebra
-#from sage.algebras.algebra_element import AlgebraElement
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.misc.misc import repr_lincomb
 from sage.misc.cachefunc import cached_method
 from sage.categories.all import AlgebrasWithBasis
+from sage.structure.element import Element
+
+import six
+
 
 # TODO: migrate this completely to the combinatorial free module + categories framework
 
@@ -81,7 +81,8 @@ class CombinatorialAlgebraElementOld(CombinatorialFreeModule.Element):
 #         be called directly, but only through the parent combinatorial
 #         algebra's __call__ method.
 
-#         TESTS:
+#         TESTS::
+#
 #             sage: s = SFASchur(QQ)
 #             sage: a = s._element_class(s, {Partition([2,1]):QQ(2)}); a
 #             2*s[2, 1]
@@ -133,7 +134,7 @@ class CombinatorialAlgebraElementOld(CombinatorialFreeModule.Element):
 
             sage: s = sage.combinat.combinatorial_algebra.TestAlgebra(QQ)
             sage: a = 2 + s([3,2,1])
-            sage: print a.__repr__()
+            sage: print(a.__repr__())
             2*s[] + s[3, 2, 1]
         """
         v = sorted(self._monomial_coefficients.items())
@@ -218,7 +219,7 @@ class CombinatorialAlgebra(CombinatorialFreeModule):
         R = self.base_ring()
         eclass = self._element_class
         #Coerce elements of the base ring
-        if not hasattr(x, 'parent'):
+        if not isinstance(x, Element):
             x = R(x)
         if x.parent() == R:
             if x == R(0):
@@ -301,8 +302,8 @@ class CombinatorialAlgebra(CombinatorialFreeModule):
 
         #Do the case where the user specifies how to multiply basis elements
         if hasattr(self, '_multiply_basis'):
-            for (left_m, left_c) in left._monomial_coefficients.iteritems():
-                for (right_m, right_c) in right._monomial_coefficients.iteritems():
+            for (left_m, left_c) in six.iteritems(left._monomial_coefficients):
+                for (right_m, right_c) in six.iteritems(right._monomial_coefficients):
                     res = self._multiply_basis(left_m, right_m)
                     coeffprod = left_c * right_c
                     #Handle the case where the user returns a dictionary
@@ -315,7 +316,7 @@ class CombinatorialAlgebra(CombinatorialFreeModule):
                         else:
                             z_elt[res] = z_elt.get(res, ABRzero) + coeffprod
                             continue
-                    for m, c in res.iteritems():
+                    for m, c in six.iteritems(res):
                         z_elt[m] = z_elt.get(m, ABRzero) + coeffprod * c
 
         #We assume that the user handles the multiplication correctly on
@@ -334,7 +335,7 @@ class CombinatorialAlgebra(CombinatorialFreeModule):
         BR = self.base_ring()
         zero = BR(0)
         del_list = []
-        for m, c in z_elt.iteritems():
+        for m, c in six.iteritems(z_elt):
             if c == zero:
                 del_list.append(m)
         for m in del_list:

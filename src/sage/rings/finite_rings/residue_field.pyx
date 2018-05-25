@@ -1,5 +1,5 @@
 """
-Finite residue fields.
+Finite residue fields
 
 We can take the residue field of maximal ideals in the ring of integers
 of number fields. We can also take the residue field of irreducible
@@ -146,14 +146,13 @@ And now over a large prime field::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 
-from sage.rings.field import Field
-from sage.rings.integer import Integer
-from sage.rings.rational import Rational
+from sage.rings.ring cimport Field
+from sage.rings.integer cimport Integer
+from sage.rings.rational cimport Rational
 from sage.categories.homset import Hom
 from sage.rings.all import ZZ, QQ, Integers
-from sage.rings.finite_rings.constructor import zech_log_bound, FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import zech_log_bound, FiniteField as GF
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.finite_rings.finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn
@@ -172,6 +171,8 @@ from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 from sage.structure.factory import UniqueFactory
+from sage.structure.element cimport parent
+from sage.structure.richcmp cimport richcmp, richcmp_not_equal
 
 
 class ResidueFieldFactory(UniqueFactory):
@@ -303,12 +304,12 @@ class ResidueFieldFactory(UniqueFactory):
                 #    p = p.parent().ring_of_integers().ideal(p)
                 # will eventually support other function fields here.
                 else:
-                    raise ValueError, "p must be an ideal or element of a number field or function field."
+                    raise ValueError("p must be an ideal or element of a number field or function field.")
             if not p.is_prime():
-                raise ValueError, "p (%s) must be prime"%p
+                raise ValueError("p (%s) must be prime" % p)
             if is_PolynomialRing(p.ring()):
                 if not p.ring().base_ring().is_finite():
-                    raise ValueError, "residue fields only supported for polynomial rings over finite fields"
+                    raise ValueError("residue fields only supported for polynomial rings over finite fields")
                 if not p.ring().base_ring().is_prime_field():
                     # neither of these will work over non-prime fields quite yet.  We should use relative finite field extensions.
                     raise NotImplementedError
@@ -357,7 +358,7 @@ class ResidueFieldFactory(UniqueFactory):
                 elif impl is None or impl == 'pari':
                     return ResidueFiniteField_pari_ffelt(p, characteristic, names, f, None, None, None)
                 else:
-                    raise ValueError, "unrecognized finite field type"
+                    raise ValueError("unrecognized finite field type")
 
         # Should generalize to allowing residue fields of relative extensions to be extensions of finite fields.
         if is_NumberFieldIdeal(p):
@@ -416,7 +417,7 @@ class ResidueFieldFactory(UniqueFactory):
             elif impl is None or impl == 'pari':
                 return ResidueFiniteField_pari_ffelt(p, characteristic, names, f, to_vs, to_order, PB)
             else:
-                raise ValueError, "unrecognized finite field type"
+                raise ValueError("unrecognized finite field type")
 
 ResidueField = ResidueFieldFactory("ResidueField")
 
@@ -464,9 +465,11 @@ class ResidueField_generic(Field):
             sage: k.<a> = P.residue_field() # indirect doctest
 
             sage: k.category()
-            Category of finite fields
+            Category of finite enumerated fields
             sage: F.category()
-            Join of Category of finite fields and Category of subquotients of monoids and Category of quotients of semigroups
+            Join of Category of finite enumerated fields
+             and Category of subquotients of monoids
+             and Category of quotients of semigroups
 
         TESTS::
 
@@ -542,16 +545,11 @@ class ResidueField_generic(Field):
             4
         """
         K = OK = self.p.ring()
+        R = parent(x)
         if OK.is_field():
             OK = OK.ring_of_integers()
         else:
             K = K.fraction_field()
-        if PY_TYPE_CHECK(x, Element):
-            R = (<Element>x)._parent
-        elif hasattr(x, 'parent'):
-            R = x.parent()
-        else:
-            R = type(x)
         if OK.has_coerce_map_from(R):
             x = OK(x)
         elif K.has_coerce_map_from(R):
@@ -560,7 +558,7 @@ class ResidueField_generic(Field):
             try:
                 x = K(x)
             except (TypeError, ValueError):
-                raise TypeError, "cannot coerce %s"%type(x)
+                raise TypeError("cannot coerce %s" % type(x))
         return self(x)
 
     def _coerce_map_from_(self, R):
@@ -723,7 +721,7 @@ class ResidueField_generic(Field):
             OK = OK.ring_of_integers()
         return self._internal_coerce_map_from(OK).section()
 
-    def __cmp__(self, x):
+    def _richcmp_(self, x, op):
         """
         Compares two residue fields: they are equal iff the primes
         defining them are equal and they have the same variable name.
@@ -748,12 +746,13 @@ class ResidueField_generic(Field):
             sage: ll == l
             False
         """
-        c = cmp(type(self), type(x))
-        if c: return c
-        c = cmp(self.p, x.p)
-        if c: return c
-        c = cmp(self.variable_name(), x.variable_name())
-        return c
+        if not isinstance(x, ResidueField_generic):
+            return NotImplemented
+        lp = self.p
+        rp = x.p
+        if lp != rp:
+            return richcmp_not_equal(lp, rp, op)
+        return richcmp(self.variable_name(), x.variable_name(), op)
 
     def __hash__(self):
         r"""
@@ -822,8 +821,8 @@ cdef class ReductionMap(Map):
             sage: k = P.residue_field()
             sage: k.reduction_map()
             Partially defined reduction map:
-              From: Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
-              To:   Residue field in tbar of Principal ideal (t^7 + t^6 + t^5 + t^4 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+              From: Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
+              To:   Residue field in tbar of Principal ideal (t^7 + t^6 + t^5 + t^4 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
             sage: type(k)
             <class 'sage.rings.finite_rings.residue_field.ResidueFiniteField_givaro_with_category'>
         """
@@ -837,7 +836,7 @@ cdef class ReductionMap(Map):
         self._repr_type_str = "Partially defined reduction"
         Map.__init__(self, Hom(K, F, SetsWithPartialMaps()))
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -856,14 +855,15 @@ cdef class ReductionMap(Map):
             sage: r(2 + a) == cr(2 + a)
             True
         """
-        _slots['_K'] = self._K
-        _slots['_F'] = self._F
-        _slots['_to_vs'] = self._to_vs
-        _slots['_PBinv'] = self._PBinv
-        _slots['_to_order'] = self._to_order
-        _slots['_PB'] = self._PB
-        _slots['_section'] = self._section
-        return Map._extra_slots(self, _slots)
+        slots = Map._extra_slots(self)
+        slots['_K'] = self._K
+        slots['_F'] = self._F
+        slots['_to_vs'] = self._to_vs
+        slots['_PBinv'] = self._PBinv
+        slots['_to_order'] = self._to_order
+        slots['_PB'] = self._PB
+        slots['_section'] = self._section
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -931,7 +931,7 @@ cdef class ReductionMap(Map):
             sage: f(1/h)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: division by zero in finite field.
+            ZeroDivisionError: division by zero in finite field
 
         An example to show that the issue raised in :trac:`1951`
         has been fixed::
@@ -965,7 +965,7 @@ cdef class ReductionMap(Map):
             try:
                 return FiniteField_prime_modn._element_constructor_(self._F, x)
             except ZeroDivisionError:
-                raise ZeroDivisionError, "Cannot reduce rational %s modulo %s: it has negative valuation"%(x,p.gen())
+                raise ZeroDivisionError("Cannot reduce rational %s modulo %s: it has negative valuation" % (x, p.gen()))
         elif is_FractionField(self._K):
             p = p.gen()
             if p.degree() == 1:
@@ -988,7 +988,7 @@ cdef class ReductionMap(Map):
         if vnx > vdx:
             return self(0)
         if vnx < vdx:
-            raise ZeroDivisionError, "Cannot reduce field element %s modulo %s: it has negative valuation"%(x,p)
+            raise ZeroDivisionError("Cannot reduce field element %s modulo %s: it has negative valuation" % (x, p))
 
         a = self._K.uniformizer(p,'negative') ** vnx
         nx /= a
@@ -996,7 +996,7 @@ cdef class ReductionMap(Map):
         # Assertions for debugging!
         # assert nx.valuation(p) == 0 and dx.valuation(p) == 0 and x == nx/dx
         # assert nx.is_integral() and dx.is_integral()
-        # print "nx = ",nx,"; dx = ",dx, ": recursing"
+        # print("nx = ",nx,"; dx = ",dx, ": recursing")
 
         # NB at this point nx and dx are in the ring of integers and
         # both are p-units.  Recursion is now safe, since integral
@@ -1038,8 +1038,8 @@ cdef class ReductionMap(Map):
             sage: f = k.convert_map_from(K)
             sage: f.section()
             Lifting map:
-              From: Residue field in a of Principal ideal (t^5 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
-              To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+              From: Residue field in a of Principal ideal (t^5 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
+              To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
         """
         if self._section is None:
             self._section = LiftingMap(self, self._to_order, self._PB)
@@ -1121,7 +1121,7 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
         self._repr_type_str = "Reduction"
         RingHomomorphism.__init__(self, Hom(K,F))
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1141,14 +1141,15 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
             sage: psi(OK.an_element()) == phi(OK.an_element())
             True
         """
-        _slots['_K'] = self._K
-        _slots['_F'] = self._F
-        _slots['_to_vs'] = self._to_vs
-        _slots['_PBinv'] = self._PBinv
-        _slots['_to_order'] = self._to_order
-        _slots['_PB'] = self._PB
-        _slots['_section'] = self._section
-        return RingHomomorphism._extra_slots(self, _slots)
+        slots = RingHomomorphism._extra_slots(self)
+        slots['_K'] = self._K
+        slots['_F'] = self._F
+        slots['_to_vs'] = self._to_vs
+        slots['_PBinv'] = self._PBinv
+        slots['_to_order'] = self._to_order
+        slots['_PB'] = self._PB
+        slots['_section'] = self._section
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1350,7 +1351,7 @@ cdef class LiftingMap(Section):
             sage: k.<a> = R.residue_field(h)
             sage: K = R.fraction_field()
             sage: L = k.lift_map(); L.codomain()
-            Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
         """
         self._K = reduction._K
         self._F = reduction._F   # finite field
@@ -1358,7 +1359,7 @@ cdef class LiftingMap(Section):
         self._PB = PB
         Section.__init__(self, reduction)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1376,11 +1377,12 @@ cdef class LiftingMap(Section):
             sage: phi(F.0) == psi(F.0)
             True
         """
-        _slots['_K'] = self._K
-        _slots['_F'] = self._F
-        _slots['_to_order'] = self._to_order
-        _slots['_PB'] = self._PB
-        return Section._extra_slots(self, _slots)
+        slots = Section._extra_slots(self)
+        slots['_K'] = self._K
+        slots['_F'] = self._F
+        slots['_to_order'] = self._to_order
+        slots['_PB'] = self._PB
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1744,7 +1746,7 @@ class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
 
     def _element_constructor_(self, x):
         """
-        INPUT::
+        INPUT:
 
             - ``x`` -- Something to cast into ``self``.
 

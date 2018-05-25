@@ -1,3 +1,4 @@
+# cython: binding=True
 r"""
 Rank Decompositions of graphs
 
@@ -75,7 +76,7 @@ from the smaller of the two and its complement.
       it to us, what we need is some information on the hardware you run to know
       where it comes from !
 
-EXAMPLE::
+EXAMPLES::
 
         sage: g = graphs.PetersenGraph()
         sage: g.rank_decomposition()
@@ -116,16 +117,21 @@ Methods
 """
 
 #*****************************************************************************
-#      Copyright (C) 2011 Nathann Cohen <nathann.cohen@gail.com>
+#       Copyright (C) 2011 Nathann Cohen <nathann.cohen@gail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import print_function
 
-include 'sage/ext/stdsage.pxi'
-include 'sage/ext/cdefs.pxi'
-include "sage/ext/interrupt.pxi"
+from cysignals.memory cimport check_allocarray, sig_free
+from cysignals.signals cimport *
+
+from libc.string cimport memset
 
 cdef list id_to_vertices
 cdef dict vertices_to_id
@@ -149,7 +155,7 @@ def rank_decomposition(G, verbose = False):
     numerical value and ``decomposition_tree`` is a ternary tree describing the
     decomposition (cf. the module's documentation).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.rankwidth import rank_decomposition
         sage: g = graphs.PetersenGraph()
@@ -180,8 +186,6 @@ def rank_decomposition(G, verbose = False):
         from sage.graphs.graph import Graph
         return (0, Graph())
 
-    global num_vertices
-
     cdef int i
 
     if sage_graph_to_matrix(G):
@@ -192,7 +196,7 @@ def rank_decomposition(G, verbose = False):
     for 0 <= i < n+1:
 
         if verbose:
-            print "Calculating for subsets of size ", i, "/",(n+1)
+            print("Calculating for subsets of size ", i, "/", n + 1)
 
         # We want to properly deal with exceptions, in particular
         # KeyboardInterrupt. Whatever happens, when this code fails the memory
@@ -211,7 +215,7 @@ def rank_decomposition(G, verbose = False):
 
     #Original way of displaying the decomposition
     #print_rank_dec(0x7ffffffful >> (31 - num_vertices), 0)
-    g = mkgraph()
+    g = mkgraph(n)
 
     # Free the memory
     destroy_rw()
@@ -225,14 +229,12 @@ cdef int sage_graph_to_matrix(G):
     global id_to_vertices
     global vertices_to_id
     global adjacency_matrix
-    global slots
     global cslots
 
     id_to_vertices = []
     vertices_to_id = {}
 
-    global num_vertices
-    num_vertices = G.order()
+    cdef int num_vertices = G.order()
 
     cdef int i,j
 
@@ -240,12 +242,7 @@ cdef int sage_graph_to_matrix(G):
     if init_rw_dec(num_vertices):
         # The original code does not completely frees the memory in case of
         # error
-        if cslots != NULL:
-            sage_free(cslots)
-        if slots != NULL:
-            sage_free(slots)
-        if adjacency_matrix != NULL:
-            sage_free(adjacency_matrix)
+        destroy_rw()
         return 1
 
     memset(adjacency_matrix, 0, sizeof(subset_t) * num_vertices)
@@ -292,21 +289,21 @@ cdef void print_rank_dec(subset_t s, int l):
     """
     global cslots
 
-    print ('\t'*l),
+    print('\t' * l, end="")
 
-    print "cslot: ", <unsigned int> s
+    print("cslot: ", <unsigned int> s)
     if cslots[s] == 0:
         return
     print_rank_dec(cslots[s], l + 1)
     print_rank_dec(s & ~cslots[s], l + 1)
 
-def mkgraph():
+def mkgraph(int num_vertices):
     r"""
-    Returns the graph corresponding the the current rank-decomposition.
+    Return the graph corresponding to the current rank-decomposition.
 
     (This function is for internal use)
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.rankwidth import rank_decomposition
         sage: g = graphs.PetersenGraph()
@@ -314,7 +311,6 @@ def mkgraph():
         (3, Graph on 19 vertices)
     """
     global cslots
-    global num_vertices
     global id_to_vertices
 
     cdef subset_t s
@@ -322,7 +318,7 @@ def mkgraph():
     from sage.graphs.graph import Graph
     g = Graph()
 
-    cdef subset_t * tab = <subset_t *> sage_malloc(sizeof(subset_t) * (2*num_vertices -1))
+    cdef subset_t * tab = <subset_t *>check_allocarray(2*num_vertices - 1, sizeof(subset_t))
     tab[0] = 0x7ffffffful >> (31 - num_vertices)
 
     cdef int beg = 0
@@ -344,7 +340,7 @@ def mkgraph():
         tab[end] = cslots[s]
         end += 1
 
-    sage_free(tab)
+    sig_free(tab)
     return g
 
 cdef bitset_to_vertex_set(subset_t s):

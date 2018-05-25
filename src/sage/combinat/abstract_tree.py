@@ -62,16 +62,18 @@ incoherent with the data structure.
 - Florent Hivert (2010-2011): initial revision
 - Frédéric Chapoton (2011): contributed some methods
 """
+# python3
+from __future__ import division, absolute_import
 
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer
 from sage.misc.misc_c import prod
-from functools import reduce
-
 
 # Unfortunately Cython forbids multiple inheritance. Therefore, we do not
 # inherit from SageObject to be able to inherit from Element or a subclass
 # of it later.
+
+
 class AbstractTree(object):
     """
     Abstract Tree.
@@ -278,7 +280,7 @@ class AbstractTree(object):
             action = lambda x: None
         stack = []
         stack.append(self)
-        while len(stack) > 0:
+        while stack:
             node = stack.pop()
             action(node)
             for i in range(len(node)):
@@ -640,7 +642,7 @@ class AbstractTree(object):
         if action is None:
             action = lambda x: None
         stack = [self]
-        while len(stack) > 0:
+        while stack:
             node = stack[-1]
             if node is not None:
                 # A "None" on the stack means that the node right before
@@ -728,12 +730,207 @@ class AbstractTree(object):
             action = lambda x: None
         queue = []
         queue.append(self)
-        while len(queue) > 0:
+        while queue:
             node = queue.pop()
             action(node)
             for subtree in node:
                 if not subtree.is_empty():
                     queue.insert(0, subtree)
+
+    def paths_at_depth(self, depth, path=[]):
+        r"""
+        Return a generator for all paths at a fixed depth.
+
+        This iterates over all paths for nodes that are at the given depth.
+
+        Here the root is considered to have depth 0.
+
+        INPUT:
+
+        - depth -- an integer
+        - path -- optional given path (as a list) used in the recursion
+
+        .. WARNING::
+
+            The ``path`` option should not be used directly.
+
+        .. SEEALSO::
+
+            :meth:`paths`, :meth:`paths_to_the_right`, :meth:`node_number_at_depth`
+
+        EXAMPLES::
+
+            sage: T = OrderedTree([[[], [[], [[]]]], [], [[[],[]]], [], []])
+            sage: ascii_art(T)
+                 ______o_______
+                /    /   /  / /
+              _o__  o   o  o o
+             /   /      |
+            o   o_      o_
+               / /     / /
+              o o     o o
+                |
+                o
+            sage: list(T.paths_at_depth(0))
+            [()]
+            sage: list(T.paths_at_depth(2))
+            [(0, 0), (0, 1), (2, 0)]
+            sage: list(T.paths_at_depth(4))
+            [(0, 1, 1, 0)]
+            sage: list(T.paths_at_depth(5))
+            []
+
+            sage: T2 = OrderedTree([])
+            sage: list(T2.paths_at_depth(0))
+            [()]
+        """
+        if not depth:
+            yield tuple(path)
+        else:
+            for i in range(len(self)):
+                for p in self[i].paths_at_depth(depth - 1, path + [i]):
+                    yield p
+
+    def node_number_at_depth(self, depth):
+        r"""
+        Return the number of nodes at a given depth.
+
+        This counts all nodes that are at the given depth.
+
+        Here the root is considered to have depth 0.
+
+        INPUT:
+
+        - depth -- an integer
+
+        .. SEEALSO::
+
+            :meth:`node_number`, :meth:`node_number_to_the_right`, :meth:`paths_at_depth`
+
+        EXAMPLES::
+
+            sage: T = OrderedTree([[[], [[]]], [[], [[[]]]], []])
+            sage: ascii_art(T)
+                ___o____
+               /    /  /
+              o_   o_ o
+             / /  / /
+            o o  o o
+              |    |
+              o    o
+                   |
+                   o
+            sage: [T.node_number_at_depth(i) for i in range(6)]
+            [1, 3, 4, 2, 1, 0]
+        """
+        if depth == 0:
+            return Integer(1)
+        return sum(son.node_number_at_depth(depth - 1) for son in self)
+
+    def paths_to_the_right(self, path):
+        r"""
+        Return a generator of paths for all nodes at the same
+        depth and to the right of the node identified by ``path``.
+
+        This iterates over the paths for nodes that are at the same
+        depth as the given one, and strictly to its right.
+
+        INPUT:
+
+        - ``path`` -- any path in the tree
+
+        .. SEEALSO::
+
+            :meth:`paths`, :meth:`paths_at_depth`, :meth:`node_number_to_the_right`
+
+        EXAMPLES::
+
+            sage: T = OrderedTree([[[], [[]]], [[], [[[]]]], []])
+            sage: ascii_art(T)
+                ___o____
+               /    /  /
+              o_   o_ o
+             / /  / /
+            o o  o o
+              |    |
+              o    o
+                   |
+                   o
+            sage: g = T.paths_to_the_right(())
+            sage: list(g)
+            []
+
+            sage: g = T.paths_to_the_right((0,))
+            sage: list(g)
+            [(1,), (2,)]
+
+            sage: g = T.paths_to_the_right((0,1))
+            sage: list(g)
+            [(1, 0), (1, 1)]
+
+            sage: g = T.paths_to_the_right((0,1,0))
+            sage: list(g)
+            [(1, 1, 0)]
+
+            sage: g = T.paths_to_the_right((1,2))
+            sage: list(g)
+            []
+        """
+        depth = len(path)
+        if (not depth) or path[0] >= len(self):
+            return
+        for i in range(path[0] + 1, len(self)):
+            for p in self[i].paths_at_depth(depth - 1, path=[i]):
+                yield p
+        for p in self[path[0]].paths_to_the_right(path[1:]):
+            yield tuple([path[0]] + list(p))
+
+    def node_number_to_the_right(self, path):
+        r"""
+        Return the number of nodes at the same depth and to the right of
+        the node identified by ``path``.
+
+        This counts the nodes that are at the same depth as the given
+        one, and strictly to its right.
+
+        .. SEEALSO::
+
+            :meth:`node_number`, :meth:`node_number_at_depth`, :meth:`paths_to_the_right`
+
+        EXAMPLES::
+
+            sage: T = OrderedTree([[[], [[]]], [[], [[[]]]], []])
+            sage: ascii_art(T)
+                ___o____
+               /    /  /
+              o_   o_ o
+             / /  / /
+            o o  o o
+              |    |
+              o    o
+                   |
+                   o
+            sage: T.node_number_to_the_right(())
+            0
+            sage: T.node_number_to_the_right((0,))
+            2
+            sage: T.node_number_to_the_right((0,1))
+            2
+            sage: T.node_number_to_the_right((0,1,0))
+            1
+
+            sage: T = OrderedTree([])
+            sage: T.node_number_to_the_right(())
+            0
+        """
+        depth = len(path)
+        if depth == 0:
+            return Integer(0)
+        result = sum(son.node_number_at_depth(depth - 1)
+                     for son in self[path[0] + 1:])
+        if path[0] < len(self) and path[0] >= 0:
+            result += self[path[0]].node_number_to_the_right(path[1:])
+        return result
 
     def subtrees(self):
         """
@@ -790,6 +987,10 @@ class AbstractTree(object):
 
         The root element is represented by the empty tuple ``()``.
 
+        .. SEEALSO::
+
+            :meth:`paths_at_depth`, :meth:`paths_to_the_right`
+
         EXAMPLES::
 
             sage: list(OrderedTree([]).paths())
@@ -821,6 +1022,10 @@ class AbstractTree(object):
         """
         The number of nodes of ``self``.
 
+        .. SEEALSO::
+
+            :meth:`node_number_at_depth`, :meth:`node_number_to_the_right`
+
         EXAMPLES::
 
             sage: OrderedTree().node_number()
@@ -846,7 +1051,7 @@ class AbstractTree(object):
             5
         """
         if self.is_empty():
-            return 0
+            return Integer(0)
         else:
             return sum((i.node_number() for i in self), Integer(1))
 
@@ -948,23 +1153,24 @@ class AbstractTree(object):
                        /  /
                       14 15
         """
-        node_to_str = lambda t: str(t.label()) if hasattr(t, "label") else "o"
+        def node_to_str(t):
+            return str(t.label()) if hasattr(t, "label") else "o"
 
         if self.is_empty():
-            from sage.misc.ascii_art import empty_ascii_art
+            from sage.typeset.ascii_art import empty_ascii_art
             return empty_ascii_art
 
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         if len(self) == 0:
-            t_repr = AsciiArt( [node_to_str(self)] )
+            t_repr = AsciiArt([node_to_str(self)])
             t_repr._root = 1
             return t_repr
         if len(self) == 1:
             repr_child = self[0]._ascii_art_()
-            sep = AsciiArt( [" "*(repr_child._root-1)] )
-            t_repr = AsciiArt( [node_to_str(self)] )
+            sep = AsciiArt([" "*(repr_child._root-1)])
+            t_repr = AsciiArt([node_to_str(self)])
             t_repr._root = 1
-            repr_root = (sep + t_repr)*(sep + AsciiArt( ["|"] ))
+            repr_root = (sep + t_repr)*(sep + AsciiArt(["|"]))
             t_repr = repr_root * repr_child
             t_repr._root = repr_child._root
             t_repr._baseline = t_repr._h - 1
@@ -975,20 +1181,145 @@ class AbstractTree(object):
         whitesep = acc._root+1
         lf_sep = " "*(acc._root+1) + "_"*(acc._l-acc._root)
         ls_sep = " "*(acc._root) + "/" + " "*(acc._l-acc._root)
-        while len(l_repr) > 0:
+        while l_repr:
             t_repr = l_repr.pop(0)
             acc += AsciiArt([" "]) + t_repr
-            if len(l_repr) == 0: lf_sep += "_"*(t_repr._root+1)
-            else: lf_sep += "_"*(t_repr._l+1)
+            if len(l_repr) == 0:
+                lf_sep += "_" * (t_repr._root + 1)
+            else:
+                lf_sep += "_" * (t_repr._l + 1)
             ls_sep += " "*(t_repr._root) + "/" + " "*(t_repr._l-t_repr._root)
-        mid = whitesep + int((len(lf_sep)-whitesep)/2)
-        node = node_to_str( self )
+        mid = whitesep + (len(lf_sep) - whitesep) // 2
+        node = node_to_str(self)
         t_repr = AsciiArt([lf_sep[:mid-1] + node + lf_sep[mid+len(node)-1:], ls_sep]) * acc
         t_repr._root = mid
         t_repr._baseline = t_repr._h - 1
         return t_repr
 
-    def canonical_labelling(self,shift=1):
+    def _unicode_art_(self):
+        r"""
+        TESTS::
+
+            sage: t = OrderedTree([])
+            sage: unicode_art(t)
+            o
+            sage: t = OrderedTree([[]])
+            sage: aa = unicode_art(t);aa
+            o
+            │
+            o
+            sage: aa.get_baseline()
+            2
+            sage: tt1 = OrderedTree([[],[[],[],[[[[]]]]],[[[],[],[],[]]]])
+            sage: unicode_art(tt1)
+            ╭───┬─o────╮
+            │   │      │
+            o ╭─o─╮    o
+              │ │ │    │
+              o o o ╭─┬o┬─╮
+                  │ │ │ │ │
+                  o o o o o
+                  │
+                  o
+                  │
+                  o
+            sage: unicode_art(tt1.canonical_labelling())
+            ╭───┬──1─────╮
+            │   │        │
+            2 ╭─3─╮      10
+              │ │ │      │
+              4 5 6 ╭──┬11┬──╮
+                  │ │  │  │  │
+                  7 12 13 14 15
+                  │
+                  8
+                  │
+                  9
+            sage: unicode_art(OrderedTree([[],[[]]]))
+            ╭o╮
+            │ │
+            o o
+              │
+              o
+            sage: t = OrderedTree([[[],[[[],[]]],[[]]],[[[[[],[]]]]],[[],[]]])
+            sage: unicode_art(t)
+               ╭────o┬───╮
+               │     │   │
+            ╭──o──╮  o  ╭o╮
+            │  │  │  │  │ │
+            o  o  o  o  o o
+               │  │  │
+              ╭o╮ o  o
+              │ │    │
+              o o   ╭o╮
+                    │ │
+                    o o
+            sage: unicode_art(t.canonical_labelling())
+               ╭──────1─────╮
+               │      │     │
+            ╭──2──╮   10  ╭16╮
+            │  │  │   │   │  │
+            3  4  8   11  17 18
+               │  │   │
+              ╭5╮ 9   12
+              │ │     │
+              6 7   ╭13╮
+                    │  │
+                    14 15
+        """
+
+        def node_to_str(t):
+            if hasattr(t, "label"):
+                return str(t.label())
+            else:
+                return u"o"
+        # other possible choices for nodes would be u"█ ▓ ░ ╋ ╬"
+
+        if self.is_empty():
+            from sage.typeset.unicode_art import empty_unicode_art
+            return empty_unicode_art
+
+        from sage.typeset.unicode_art import UnicodeArt
+        if not len(self):
+            t_repr = UnicodeArt([node_to_str(self)])
+            t_repr._root = 0
+            return t_repr
+
+        if len(self) == 1:
+            repr_child = self[0]._unicode_art_()
+            sep = UnicodeArt([u" " * repr_child._root])
+            t_repr = UnicodeArt([node_to_str(self)])
+            repr_root = (sep + t_repr) * (sep + UnicodeArt([u"│"]))
+            t_repr = repr_root * repr_child
+            t_repr._root = repr_child._root
+            t_repr._baseline = t_repr._h - 1
+            return t_repr
+
+        # General case
+        l_repr = [subtree._unicode_art_() for subtree in self]
+        acc = l_repr.pop(0)
+        whitesep = acc._root
+        lf_sep = u" " * whitesep + u"╭" + u"─" * (acc._l - acc._root)
+        ls_sep = u" " * whitesep + u"│" + u" " * (acc._l - acc._root)
+        while l_repr:
+            tr = l_repr.pop(0)
+            acc += UnicodeArt([u" "]) + tr
+            if not len(l_repr):
+                lf_sep += u"─" * (tr._root) + u"╮"
+                ls_sep += u" " * (tr._root) + u"│"
+            else:
+                lf_sep += u"─" * (tr._root) + u"┬" + u"─" * (tr._l - tr._root)
+                ls_sep += u" " * (tr._root) + u"│" + u" " * (tr._l - tr._root)
+        mid = whitesep + (len(lf_sep) - whitesep) // 2
+        node = node_to_str(self)
+        lf_sep = (lf_sep[:mid - len(node) // 2] + node +
+                  lf_sep[mid + len(node) - len(node) // 2:])
+        t_repr = UnicodeArt([lf_sep, ls_sep]) * acc
+        t_repr._root = mid
+        t_repr._baseline = t_repr._h - 1
+        return t_repr
+
+    def canonical_labelling(self, shift=1):
         """
         Returns a labelled version of ``self``.
 
@@ -1017,9 +1348,9 @@ class AbstractTree(object):
         liste = []
         deca = 1
         for subtree in self:
-            liste += [subtree.canonical_labelling(shift+deca)]
+            liste += [subtree.canonical_labelling(shift + deca)]
             deca += subtree.node_number()
-        return LTR._element_constructor_(liste,label=shift)
+        return LTR._element_constructor_(liste, label=shift)
 
     def to_hexacode(self):
         r"""
@@ -1091,7 +1422,7 @@ class AbstractTree(object):
         """
         nb = self.node_number()
         if nb <= 1:
-            return 1
+            return Integer(1)
         return nb * prod(s.tree_factorial() for s in self)
 
     def _latex_(self):
@@ -1146,12 +1477,16 @@ class AbstractTree(object):
         space = " "*9
         sepspace = sep + space
         spacesep = space + sep
-        node_to_str = lambda node: " " + node + " " * (len(space) - 1 - len(node))
+
+        def node_to_str(node):
+            return " " + node + " " * (len(space) - 1 - len(node))
         # # TODO:: modify how to create nodes --> new_cmd : \\node[...] in create_node
         num = [0]
 
         def resolve(self):
-            nodes = []; matrix = []; edges = []
+            nodes = []
+            matrix = []
+            edges = []
 
             def create_node(self):
                 r"""
@@ -1163,12 +1498,7 @@ class AbstractTree(object):
                   . the matrix
                   . and the edges
                 """
-                name = reduce(
-                    lambda x, y: x + y,
-                    map(
-                        lambda x: chr(ord(x) + 49),
-                        list(str(num[0]))),
-                    "")
+                name = "".join((chr(ord(x) + 49) for x in str(num[0])))
                 node = cmd + name
                 nodes.append((name,
                     (str(self.label()) if hasattr(self, "label") else ""))
@@ -1181,7 +1511,7 @@ class AbstractTree(object):
                 TESTS::
 
                     sage: t = BinaryTree()
-                    sage: print latex(t)
+                    sage: print(latex(t))
                     { \begin{tikzpicture}[auto]
                     \matrix[column sep=.3cm, row sep=.3cm,ampersand replacement=\&]{
                              \\
@@ -1194,14 +1524,14 @@ class AbstractTree(object):
                 r"""
                 TESTS::
 
-                    sage: t = BinaryTree([]); print latex(t)
+                    sage: t = BinaryTree([]); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$$}
                     ;}\begin{tikzpicture}[auto]
                     \matrix[column sep=.3cm, row sep=.3cm,ampersand replacement=\&]{
                      \nodea  \\
                     };
                     \end{tikzpicture}}
-                    sage: t = OrderedTree([]); print latex(t)
+                    sage: t = OrderedTree([]); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$$}
                     ;}\begin{tikzpicture}[auto]
                     \matrix[column sep=.3cm, row sep=.3cm,ampersand replacement=\&]{
@@ -1213,7 +1543,8 @@ class AbstractTree(object):
                 matrix.append(node_to_str(node))
 
             def concat_matrix(mat, mat2):
-                lmat = len(mat); lmat2 = len(mat2)
+                lmat = len(mat)
+                lmat2 = len(mat2)
                 for i in range(max(lmat, lmat2)):
                     # mat[i] --> n & n & ...
                     # mat2[i] -> n' & n' & ...
@@ -1264,7 +1595,7 @@ class AbstractTree(object):
                 TESTS::
 
                     sage: t = OrderedTree([[[],[]],[[],[]]]).\
-                    ....:     canonical_labelling(); print latex(t)
+                    ....:     canonical_labelling(); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$1$}
                     ;}\newcommand{\nodeb}{\node[draw,circle] (b) {$2$}
                     ;}\newcommand{\nodec}{\node[draw,circle] (c) {$3$}
@@ -1283,7 +1614,7 @@ class AbstractTree(object):
                         (e) edge (f) edge (g)
                         (a) edge (b) edge (e);
                     \end{tikzpicture}}
-                    sage: t = BinaryTree([[],[[],[]]]); print latex(t)
+                    sage: t = BinaryTree([[],[[],[]]]); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$$}
                     ;}\newcommand{\nodeb}{\node[draw,circle] (b) {$$}
                     ;}\newcommand{\nodec}{\node[draw,circle] (c) {$$}
@@ -1328,7 +1659,7 @@ class AbstractTree(object):
                 TESTS::
 
                     sage: t = OrderedTree([[]]).canonical_labelling()
-                    sage: print latex(t)
+                    sage: print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$1$}
                     ;}\newcommand{\nodeb}{\node[draw,circle] (b) {$2$}
                     ;}\begin{tikzpicture}[auto]
@@ -1339,7 +1670,7 @@ class AbstractTree(object):
                     <BLANKLINE>
                     \path[ultra thick, red] (a) edge (b);
                     \end{tikzpicture}}
-                    sage: t = OrderedTree([[[],[]]]).canonical_labelling(); print latex(t)
+                    sage: t = OrderedTree([[[],[]]]).canonical_labelling(); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$1$}
                     ;}\newcommand{\nodeb}{\node[draw,circle] (b) {$2$}
                     ;}\newcommand{\nodec}{\node[draw,circle] (c) {$3$}
@@ -1354,7 +1685,7 @@ class AbstractTree(object):
                     \path[ultra thick, red] (b) edge (c) edge (d)
                         (a) edge (b);
                     \end{tikzpicture}}
-                    sage: t = OrderedTree([[[],[],[]]]).canonical_labelling(); print latex(t)
+                    sage: t = OrderedTree([[[],[],[]]]).canonical_labelling(); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$1$}
                     ;}\newcommand{\nodeb}{\node[draw,circle] (b) {$2$}
                     ;}\newcommand{\nodec}{\node[draw,circle] (c) {$3$}
@@ -1370,7 +1701,7 @@ class AbstractTree(object):
                     \path[ultra thick, red] (b) edge (c) edge (d) edge (e)
                         (a) edge (b);
                     \end{tikzpicture}}
-                    sage: t = OrderedTree([[[],[],[]],[],[]]).canonical_labelling(); print latex(t)
+                    sage: t = OrderedTree([[[],[],[]],[],[]]).canonical_labelling(); print(latex(t))
                     { \newcommand{\nodea}{\node[draw,circle] (a) {$1$}
                     ;}\newcommand{\nodeb}{\node[draw,circle] (b) {$2$}
                     ;}\newcommand{\nodec}{\node[draw,circle] (c) {$3$}
@@ -1397,7 +1728,7 @@ class AbstractTree(object):
                 for i in range(split):
                     tmp(self[i], edge, nodes, edges, matrix)
                 # # prepare the root line
-                if len(matrix) != 0:
+                if len(matrix):
                     nb_of_and = matrix[0].count(sep)
                     sizetmp = len(matrix[0])
                 else:
@@ -1455,8 +1786,8 @@ class AbstractTree(object):
                 ("\n" +
                 path_begin +
                     "\n\t".join(make_edges(edges)) +
-                path_end if len(edges) > 0 else "")
-                if len(matrix) > 0 else "") +
+                path_end if len(edges) else "")
+                if len(matrix) else "") +
             end_env +
             "}")
 
@@ -1681,7 +2012,7 @@ class AbstractLabelledTree(AbstractTree):
     """
     Abstract Labelled Tree.
 
-    Typically a class for labelled trees is contructed by inheriting from
+    Typically a class for labelled trees is constructed by inheriting from
     a class for unlabelled trees and :class:`AbstractLabelledTree`.
 
     .. rubric:: How should this class be extended ?
@@ -1710,7 +2041,7 @@ class AbstractLabelledTree(AbstractTree):
 
     .. SEEALSO:: :class:`AbstractTree`
     """
-    def __init__(self, parent, children, label = None, check = True):
+    def __init__(self, parent, children, label=None, check=True):
         """
         TESTS::
 
@@ -1731,7 +2062,7 @@ class AbstractLabelledTree(AbstractTree):
             sage: LBTS = LabelledOrderedTrees()
             sage: class Foo(LabelledOrderedTree):
             ....:     def bar(self):
-            ....:         print "bar called"
+            ....:         print("bar called")
             sage: foo = Foo(LBTS, [], label=1); foo
             1[]
             sage: foo1 = LBTS([LBTS([], label=21)], label=42); foo1
@@ -1776,7 +2107,7 @@ class AbstractLabelledTree(AbstractTree):
             sage: LabelledOrderedTree([[],LabelledOrderedTree([[]], label=2)], label=3)
             3[None[], 2[None[]]]
         """
-        return "%s%s"%(self._label, self[:])
+        return "%s%s" % (self._label, self[:])
 
     def label(self, path=None):
         """
@@ -1853,7 +2184,7 @@ class AbstractLabelledTree(AbstractTree):
             sage: LBT(None).leaf_labels()
             []
         """
-        return [t.label() for t in self.subtrees() if t.node_number()==1]
+        return [t.label() for t in self.subtrees() if t.node_number() == 1]
 
     def __eq__(self, other):
         """
@@ -1877,8 +2208,8 @@ class AbstractLabelledTree(AbstractTree):
             sage: t1 == t2
             False
         """
-        return ( super(AbstractLabelledTree, self).__eq__(other) and
-                 self._label == other._label )
+        return (super(AbstractLabelledTree, self).__eq__(other) and
+                self._label == other._label)
 
     def _hash_(self):
         """
@@ -1917,7 +2248,7 @@ class AbstractLabelledTree(AbstractTree):
 
     def shape(self):
         """
-        Returns the unlabelled tree associated to ``self``
+        Return the unlabelled tree associated to ``self``.
 
         EXAMPLES::
 
@@ -1926,6 +2257,11 @@ class AbstractLabelledTree(AbstractTree):
 
             sage: LabelledBinaryTree([[],[[],[]]], label = 25).shape()
             [[., .], [[., .], [., .]]]
+
+            sage: LRT = LabelledRootedTree
+            sage: tb = LRT([],label='b')
+            sage: LRT([tb, tb], label='a').shape()
+            [[], []]
 
         TESTS::
 
@@ -1963,9 +2299,9 @@ class AbstractLabelledTree(AbstractTree):
            Digraph on 4 vertices
         """
         from sage.graphs.digraph import DiGraph
-        resu = dict([[self.label(),
-                    [t.label() for t in self if not t.is_empty()]]])
-        resu = DiGraph(resu)
+        resu = {self.label():
+                [t.label() for t in self if not t.is_empty()]}
+        resu = DiGraph(resu, format="dict_of_lists")
         for t in self:
             if not t.is_empty():
                 resu = resu.union(t.as_digraph())
@@ -1989,7 +2325,7 @@ class AbstractLabelledClonableTree(AbstractLabelledTree,
 
         INPUT: ``label`` -- any Sage object
 
-        OUPUT: ``None``, ``self`` is modified in place
+        OUTPUT: ``None``, ``self`` is modified in place
 
         .. NOTE::
 
@@ -2050,7 +2386,7 @@ class AbstractLabelledClonableTree(AbstractLabelledTree,
 
         - ``label`` -- any sage object
 
-        OUPUT: Nothing, ``self`` is modified in place
+        OUTPUT: Nothing, ``self`` is modified in place
 
         .. NOTE::
 

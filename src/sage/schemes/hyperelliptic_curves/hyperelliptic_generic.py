@@ -1,14 +1,14 @@
 """
 Hyperelliptic curves over a general ring
 
-EXAMPLE::
+EXAMPLES::
 
     sage: P.<x> = GF(5)[]
     sage: f = x^5 - 3*x^4 - 2*x^3 + 6*x^2 + 3*x - 1
     sage: C = HyperellipticCurve(f); C
     Hyperelliptic Curve over Finite Field of size 5 defined by y^2 = x^5 + 2*x^4 + 3*x^3 + x^2 + 3*x + 4
 
-EXAMPLE::
+EXAMPLES::
 
     sage: P.<x> = QQ[]
     sage: f = 4*x^5 - 30*x^3 + 45*x - 22
@@ -21,17 +21,27 @@ EXAMPLE::
     sage: D.defining_polynomials()[0].parent()
     Multivariate Polynomial Ring in x0, x1 over Rational Field
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
-#  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
-#  Distributed under the terms of the GNU General Public License (GPL)
+#       Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import PolynomialRing, RR, PowerSeriesRing, LaurentSeriesRing, O
+from sage.rings.polynomial.all import PolynomialRing
+from sage.rings.big_oh import O
+from sage.rings.power_series_ring import PowerSeriesRing
+from sage.rings.laurent_series_ring import LaurentSeriesRing
+from sage.rings.real_mpfr import RR
 from sage.functions.all import log
+from sage.structure.category_object import normalize_names
 
-import sage.schemes.plane_curves.projective_curve as plane_curve
+import sage.schemes.curves.projective_curve as plane_curve
 
 def is_HyperellipticCurve(C):
     """
@@ -44,7 +54,7 @@ def is_HyperellipticCurve(C):
     """
     return isinstance(C,HyperellipticCurve_generic)
 
-class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
+class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
     def __init__(self, PP, f, h=None, names=None, genus=None):
         x, y, z = PP.gens()
         df = f.degree()
@@ -56,15 +66,15 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             deg = max(df,dh+1)
             F0 = sum([ h[i]*x**i*z**(dh-i) for i in range(dh+1) ])
             F = y**2*z**(deg-2) + F0*y*z**(deg-dh-1) - F1*z**(deg-df)
-        plane_curve.ProjectiveCurve_generic.__init__(self,PP,F)
+        plane_curve.ProjectivePlaneCurve.__init__(self,PP,F)
         R = PP.base_ring()
         if names is None:
-            names = ["x","y"]
-        elif isinstance(names,str):
-            names = names.split(",")
+            names = ("x", "y")
+        else:
+            names = normalize_names(2, names)
         self._names = names
-        P1 = PolynomialRing(R,name=names[0])
-        P2 = PolynomialRing(P1,name=names[1])
+        P1 = PolynomialRing(R, name=names[0])
+        P2 = PolynomialRing(P1, name=names[1])
         self._PP = PP
         self._printing_ring = P2
         self._hyperelliptic_polynomials = (f,h)
@@ -82,14 +92,14 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: L.<a> = K.extension(x^30-3)
             sage: HK = H.change_ring(K)
             sage: HL = HK.change_ring(L); HL
-            Hyperelliptic Curve over Eisenstein Extension of 3-adic Field with capped relative precision 5 in a defined by (1 + O(3^5))*x^30 + (O(3^6))*x^29 + (O(3^6))*x^28 + (O(3^6))*x^27 + (O(3^6))*x^26 + (O(3^6))*x^25 + (O(3^6))*x^24 + (O(3^6))*x^23 + (O(3^6))*x^22 + (O(3^6))*x^21 + (O(3^6))*x^20 + (O(3^6))*x^19 + (O(3^6))*x^18 + (O(3^6))*x^17 + (O(3^6))*x^16 + (O(3^6))*x^15 + (O(3^6))*x^14 + (O(3^6))*x^13 + (O(3^6))*x^12 + (O(3^6))*x^11 + (O(3^6))*x^10 + (O(3^6))*x^9 + (O(3^6))*x^8 + (O(3^6))*x^7 + (O(3^6))*x^6 + (O(3^6))*x^5 + (O(3^6))*x^4 + (O(3^6))*x^3 + (O(3^6))*x^2 + (O(3^6))*x + (2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + O(3^6)) defined by (1 + O(a^150))*y^2 = (1 + O(a^150))*x^5 + (2 + 2*a^30 + a^60 + 2*a^90 + 2*a^120 + O(a^150))*x + a^60 + O(a^210)
+            Hyperelliptic Curve over Eisenstein Extension in a defined by x^30 - 3 with capped relative precision 150 over 3-adic Field defined by (1 + O(a^150))*y^2 = (1 + O(a^150))*x^5 + (2 + 2*a^30 + a^60 + 2*a^90 + 2*a^120 + O(a^150))*x + a^60 + O(a^210)
 
             sage: R.<x> = FiniteField(7)[]
             sage: H = HyperellipticCurve(x^8 + x + 5)
             sage: H.base_extend(FiniteField(7^2, 'a'))
             Hyperelliptic Curve over Finite Field in a of size 7^2 defined by y^2 = x^8 + x + 5
         """
-        from constructor import HyperellipticCurve
+        from .constructor import HyperellipticCurve
         f, h = self._hyperelliptic_polynomials
         y = self._printing_ring.variable_name()
         x = self._printing_ring.base_ring().variable_name()
@@ -101,7 +111,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         String representation of hyperelliptic curves.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x> = QQ[]
             sage: f = 4*x^5 - 30*x^3 + 45*x - 22
@@ -116,14 +126,48 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         y = self._printing_ring.gen()
         x = self._printing_ring.base_ring().gen()
         if h == 0:
-            return "Hyperelliptic Curve over %s defined by %s = %s"%(R, y**2, f(x))
+            return "Hyperelliptic Curve over %s defined by %s = %s" % (R, y**2, f(x))
         else:
-            return "Hyperelliptic Curve over %s defined by %s + %s = %s"%(R, y**2, h(x)*y, f(x))
+            return "Hyperelliptic Curve over %s defined by %s + %s = %s" % (R, y**2, h(x)*y, f(x))
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
+        """
+        Test of equality.
+
+        EXAMPLES::
+
+            sage: P.<x> = QQ[]
+            sage: f0 = 4*x^5 - 30*x^3 + 45*x - 22
+            sage: C0 = HyperellipticCurve(f0)
+            sage: f1 = x^5 - x^3 + x - 22
+            sage: C1 = HyperellipticCurve(f1)
+            sage: C0 == C1
+            False
+            sage: C0 == C0
+            True
+        """
         if not isinstance(other, HyperellipticCurve_generic):
-            return -1
-        return cmp(self._hyperelliptic_polynomials, other._hyperelliptic_polynomials)
+            return False
+        return (self._hyperelliptic_polynomials ==
+                other._hyperelliptic_polynomials)
+
+    def __ne__(self, other):
+        """
+        Test of not equality.
+
+        EXAMPLES::
+
+            sage: P.<x> = QQ[]
+            sage: f0 = 4*x^5 - 30*x^3 + 45*x - 22
+            sage: C0 = HyperellipticCurve(f0)
+            sage: f1 = x^5 - x^3 + x - 22
+            sage: C1 = HyperellipticCurve(f1)
+            sage: C0 != C1
+            True
+            sage: C0 != C0
+            False
+        """
+        return not self == other
 
     def hyperelliptic_polynomials(self, K=None, var='x'):
         """
@@ -139,7 +183,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         else:
             f, h = self._hyperelliptic_polynomials
             P = PolynomialRing(K, var)
-            return (P(f),P(h))
+            return (P(f), P(h))
 
     def is_singular(self):
         r"""
@@ -162,8 +206,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: set_verbose(None)
             sage: H.is_singular()
             False
-            sage: from sage.schemes.plane_curves.projective_curve import ProjectiveCurve_generic
-            sage: ProjectiveCurve_generic.is_singular(H)
+            sage: from sage.schemes.curves.projective_curve import ProjectivePlaneCurve
+            sage: ProjectivePlaneCurve.is_singular(H)
             True
         """
         return False
@@ -189,8 +233,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: set_verbose(None)
             sage: H.is_smooth()
             True
-            sage: from sage.schemes.plane_curves.projective_curve import ProjectiveCurve_generic
-            sage: ProjectiveCurve_generic.is_smooth(H)
+            sage: from sage.schemes.curves.projective_curve import ProjectivePlaneCurve
+            sage: ProjectivePlaneCurve.is_smooth(H)
             False
         """
         return True
@@ -224,7 +268,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         return self._genus
 
     def jacobian(self):
-        import jacobian_generic
+        from . import jacobian_generic
         return jacobian_generic.HyperellipticJacobian_generic(self)
 
     def odd_degree_model(self):
@@ -274,6 +318,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             x^4 - 8*x^3 + 150*x^2 - 536*x + 4489
 
         TESTS::
+
             sage: HyperellipticCurve(x^5 + 1, 1).odd_degree_model()
             Traceback (most recent call last):
             ...
@@ -296,7 +341,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         x = f.parent().gen()
         fnew =  f((x*rt + 1)/x).numerator() # move rt to "infinity"
 
-        from constructor import HyperellipticCurve
+        from .constructor import HyperellipticCurve
         return HyperellipticCurve(fnew, 0, names=self._names, PP=self._PP)
 
     def has_odd_degree_model(self):
@@ -306,6 +351,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         Use ``odd_degree_model`` to calculate an odd degree model.
 
         EXAMPLES::
+
             sage: x = QQ['x'].0
             sage: HyperellipticCurve(x^5 + x).has_odd_degree_model()
             True
@@ -366,19 +412,20 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def local_coordinates_at_nonweierstrass(self, P, prec=20, name='t'):
         """
-        For a non-Weierstrass point P = (a,b) on the hyperelliptic
-        curve y^2 = f(x), returns (x(t), y(t)) such that (y(t))^2 = f(x(t)),
-        where t = x - a is the local parameter.
+        For a non-Weierstrass point `P = (a,b)` on the hyperelliptic
+        curve `y^2 = f(x)`, return `(x(t), y(t))` such that `(y(t))^2 = f(x(t))`,
+        where `t = x - a` is the local parameter.
 
         INPUT:
 
-        - P = (a,b) a non-Weierstrass point on self
-        - prec: desired precision of the local coordinates
-        - name: gen of the power series ring (default: 't')
+        - ``P = (a, b)`` -- a non-Weierstrass point on self
+        - ``prec`` --  desired precision of the local coordinates
+        - ``name`` -- gen of the power series ring (default: ``t``)
 
         OUTPUT:
-        (x(t),y(t)) such that y(t)^2 = f(x(t)) and t = x - a
-        is the local parameter at P
+
+        `(x(t),y(t))` such that `y(t)^2 = f(x(t))` and `t = x - a`
+        is the local parameter at `P`
 
         EXAMPLES::
 
@@ -420,26 +467,26 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     def local_coordinates_at_weierstrass(self, P, prec=20, name='t'):
         """
         For a finite Weierstrass point on the hyperelliptic
-        curve y^2 = f(x), returns (x(t), y(t)) such that
-        (y(t))^2 = f(x(t)), where t = y is the local parameter.
+        curve `y^2 = f(x)`, returns `(x(t), y(t))` such that
+        `(y(t))^2 = f(x(t))`, where `t = y` is the local parameter.
 
         INPUT:
-            - P a finite Weierstrass point on self
-            - prec: desired precision of the local coordinates
-            - name: gen of the power series ring (default: 't')
+
+        - ``P`` -- a finite Weierstrass point on self
+        - ``prec`` -- desired precision of the local coordinates
+        - ``name`` -- gen of the power series ring (default: `t`)
 
         OUTPUT:
 
-        (x(t),y(t)) such that y(t)^2 = f(x(t)) and t = y
-        is the local parameter at P
+        `(x(t),y(t))` such that `y(t)^2 = f(x(t))` and `t = y`
+        is the local parameter at `P`
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<x> = QQ['x']
             sage: H = HyperellipticCurve(x^5-23*x^3+18*x^2+40*x)
             sage: A = H(4, 0)
-
             sage: x, y = H.local_coordinates_at_weierstrass(A, prec=7)
-
             sage: x
             4 + 1/360*t^2 - 191/23328000*t^4 + 7579/188956800000*t^6 + O(t^7)
             sage: y
@@ -472,19 +519,22 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def local_coordinates_at_infinity(self, prec = 20, name = 't'):
         """
-        For the genus g hyperelliptic curve y^2 = f(x), returns (x(t), y(t)) such that
-        (y(t))^2 = f(x(t)), where t = x^g/y is the local parameter at infinity
+        For the genus `g` hyperelliptic curve `y^2 = f(x)`, return
+        `(x(t), y(t))` such that `(y(t))^2 = f(x(t))`, where `t = x^g/y` is
+        the local parameter at infinity
 
         INPUT:
-            - prec: desired precision of the local coordinates
-            - name: gen of the power series ring (default: 't')
+
+        - ``prec`` -- desired precision of the local coordinates
+        - ``name`` -- generator of the power series ring (default: ``t``)
 
         OUTPUT:
-        (x(t),y(t)) such that y(t)^2 = f(x(t)) and t = x^g/y
+
+        `(x(t),y(t))` such that `y(t)^2 = f(x(t))` and `t = x^g/y`
         is the local parameter at infinity
 
+        EXAMPLES::
 
-        EXAMPLES:
             sage: R.<x> = QQ['x']
             sage: H = HyperellipticCurve(x^5-5*x^2+1)
             sage: x,y = H.local_coordinates_at_infinity(10)
@@ -492,6 +542,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             t^-2 + 5*t^4 - t^8 - 50*t^10 + O(t^12)
             sage: y
             t^-5 + 10*t - 2*t^5 - 75*t^7 + 50*t^11 + O(t^12)
+
+        ::
 
             sage: R.<x> = QQ['x']
             sage: H = HyperellipticCurve(x^3-x+1)
@@ -501,23 +553,22 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: y
             t^-3 + t - t^3 - t^5 + 3*t^7 - 10*t^11 + O(t^12)
 
-
         AUTHOR:
-            - Jennifer Balakrishnan (2007-12)
+
+        - Jennifer Balakrishnan (2007-12)
         """
         g = self.genus()
         pol = self.hyperelliptic_polynomials()[0]
-        K = LaurentSeriesRing(self.base_ring(), name)
+        K = LaurentSeriesRing(self.base_ring(), name, default_prec=prec+2)
         t = K.gen()
-        K.set_default_prec(prec+2)
-        L = PolynomialRing(self.base_ring(),'x')
+        L = PolynomialRing(K,'x')
         x = L.gen()
         i = 0
         w = (x**g/t)**2-pol
         wprime = w.derivative(x)
         x = t**-2
         for i in range((RR(log(prec+2)/log(2))).ceil()):
-            x = x-w(x)/wprime(x)
+            x = x - w(x)/wprime(x)
         y = x**g/t
         return x+O(t**(prec+2)) , y+O(t**(prec+2))
 
@@ -527,15 +578,18 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         Calls the appropriate local_coordinates function
 
         INPUT:
-            - P a point on self
-            - prec: desired precision of the local coordinates
-            - name: gen of the power series ring (default: 't')
+
+        - ``P`` -- a point on self
+        - ``prec`` -- desired precision of the local coordinates
+        - ``name`` -- generator of the power series ring (default: ``t``)
 
         OUTPUT:
-        (x(t),y(t)) such that y(t)^2 = f(x(t)), where t
-        is the local parameter at P
 
-        EXAMPLES:
+        `(x(t),y(t))` such that `y(t)^2 = f(x(t))`, where `t`
+        is the local parameter at `P`
+
+        EXAMPLES::
+
             sage: R.<x> = QQ['x']
             sage: H = HyperellipticCurve(x^5-23*x^3+18*x^2+40*x)
             sage: H.local_coord(H(1 ,6), prec=5)
@@ -547,8 +601,6 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         AUTHOR:
             - Jennifer Balakrishnan (2007-12)
-
-
         """
         if P[1] == 0:
             return self.local_coordinates_at_weierstrass(P, prec, name)
