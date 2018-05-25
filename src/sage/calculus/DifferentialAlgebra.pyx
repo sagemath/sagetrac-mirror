@@ -15,6 +15,8 @@ AUTHORS:
 
 - Charles Bouillaguet (2012): helped with SAGE integration
 
+- Brent Baccala (2018): updated to Sage 8.2
+
 
 REFERENCES:
 
@@ -62,8 +64,10 @@ EXAMPLES:
         ....:         diff (ES(t),t) == - k(2)*ES(t) + F_1(t),
         ....:         diff (P(t),t)  == k(2)*ES(t),
         ....:         k(1)*E(t)*S(t) - k(-1)*ES(t) == 0]
-        sage: syst
-        [D[0](E)(t) == k(2)*ES(t) - F_1(t), D[0](S)(t) == -F_1(t), D[0](ES)(t) == -k(2)*ES(t) + F_1(t), D[0](P)(t) == k(2)*ES(t), 0 == k(1)*E(t)*S(t) - k(-1)*ES(t)]
+        sage: syst  # not tested
+        [diff(E(t), t) == k(2)*ES(t) - F_1(t), diff(S(t), t) == -F_1(t), diff(ES(t), t) == -k(2)*ES(t) + F_1(t), diff(P(t), t) == k(2)*ES(t), 0 == k(1)*E(t)*S(t) - k(-1)*ES(t)]
+        sage: syst == [diff(E(t), t) == k(2)*ES(t) - F_1(t), diff(S(t), t) == -F_1(t), diff(ES(t), t) == -k(2)*ES(t) + F_1(t), diff(P(t), t) == k(2)*ES(t), 0 == k(1)*E(t)*S(t) - k(-1)*ES(t)]
+        True
 
     Differential elimination permits to simplify this DAE.
     To avoid discussing the possible vanishing of ``params``, one
@@ -82,15 +86,19 @@ EXAMPLES:
         sage: ideal = R.RosenfeldGroebner (syst, basefield = Field)
         sage: ideal
         [regular_differential_chain, regular_differential_chain, regular_differential_chain]
-        sage: [ C.equations (solved = true) for C in ideal ]
-        [[E(t) == k(-1)*ES(t)/(k(1)*S(t)), D[0](S)(t) == -(k(1)*k(2)*S(t)^2*ES(t) + k(-1)*k(2)*S(t)*ES(t))/(k(1)*S(t)^2 + k(-1)*S(t) + k(-1)*ES(t)), D[0](P)(t) == k(2)*ES(t), D[0](ES)(t) == -k(-1)*k(2)*ES(t)^2/(k(1)*S(t)^2 + k(-1)*S(t) + k(-1)*ES(t)), F_1(t) == (k(1)*k(2)*S(t)^2*ES(t) + k(-1)*k(2)*S(t)*ES(t))/(k(1)*S(t)^2 + k(-1)*S(t) + k(-1)*ES(t))], [S(t) == -k(-1)/k(1), ES(t) == 0, E(t) == 0, D[0](P)(t) == 0, F_1(t) == 0], [S(t) == 0, ES(t) == 0, D[0](P)(t) == 0, D[0](E)(t) == 0, F_1(t) == 0]]
+        sage: [ C.equations (solved = true) for C in ideal ] # old docstring; not tested; auto-converted to next test
+        [[E(t) == k(-1)*ES(t)/(k(1)*S(t)), diff(S(t), t) == -(k(1)*k(2)*S(t)^2*ES(t) + k(-1)*k(2)*S(t)*ES(t))/(k(1)*S(t)^2 + k(-1)*S(t) + k(-1)*ES(t)), diff(P(t), t) == k(2)*ES(t), diff(ES(t), t) == -k(-1)*k(2)*ES(t)^2/(k(1)*S(t)^2 + k(-1)*S(t) + k(-1)*ES(t)), F_1(t) == (k(1)*k(2)*S(t)^2*ES(t) + k(-1)*k(2)*S(t)*ES(t))/(k(1)*S(t)^2 + k(-1)*S(t) + k(-1)*ES(t))], [S(t) == -k(-1)/k(1), ES(t) == 0, E(t) == 0, diff(P(t), t) == 0, F_1(t) == 0], [S(t) == 0, ES(t) == 0, diff(P(t), t) == 0, diff(E(t), t) == 0, F_1(t) == 0]]
+        sage: [ C.equations (solved = true) for C in ideal ] == [[E(t) == k(-1)*ES(t)/(k(1)*S(t)), diff(S(t), t) == -(k(1)*k(2)*S(t)^2*ES(t) + k(-1)*k(2)*S(t)*ES(t))/(k(1)*S(t)^2 + k(-1)*S(t) + k(-1)*ES(t)), diff(P(t), t) == k(2)*ES(t), diff(ES(t), t) == -k(-1)*k(2)*ES(t)^2/(k(1)*S(t)^2 + k(-1)*S(t) + k(-1)*ES(t)), F_1(t) == (k(1)*k(2)*S(t)^2*ES(t) + k(-1)*k(2)*S(t)*ES(t))/(k(1)*S(t)^2 + k(-1)*S(t) + k(-1)*ES(t))], [S(t) == -k(-1)/k(1), ES(t) == 0, E(t) == 0, diff(P(t), t) == 0, F_1(t) == 0], [S(t) == 0, ES(t) == 0, diff(P(t), t) == 0, diff(E(t), t) == 0, F_1(t) == 0]]
+        True
 
     The sought equation, below, is not yet the Henri-Michaelis-Menten
     formula. This is expected, since some minor hypotheses have not yet
     been taken into account::
 
-        sage: ideal [0].equations (solved = true, selection = leader == derivative (S(t)))
-        [D[0](S)(t) == -(k(1)*k(2)*S(t)^2*ES(t) + k(-1)*k(2)*S(t)*ES(t))/(k(1)*S(t)^2 + k(-1)*S(t) + k(-1)*ES(t))]
+        sage: ideal [0].equations (solved = true, selection = leader == derivative (S(t))) # old docstring; not tested; auto-converted to next test
+        [diff(S(t), t) == -(k(1)*k(2)*S(t)^2*ES(t) + k(-1)*k(2)*S(t)*ES(t))/(k(1)*S(t)^2 + k(-1)*S(t) + k(-1)*ES(t))]
+        sage: ideal [0].equations (solved = true, selection = leader == derivative (S(t))) == [diff(S(t), t) == -(k(1)*k(2)*S(t)^2*ES(t) + k(-1)*k(2)*S(t)*ES(t))/(k(1)*S(t)^2 + k(-1)*S(t) + k(-1)*ES(t))]
+        True
 
     Let us take them into account. First create two new constants.
     Put them among ``params``, together with initial values::
@@ -122,8 +130,10 @@ EXAMPLES:
     been computed from the stoichimetry matrix of the chemical system::
 
         sage: newsyst = syst + [E(t) + ES(t) == E(0) + ES(0), S(t) + ES(t) + P(t) == S(0) + ES(0) + P(0)]
-        sage: newsyst
-        [D[0](E)(t) == k(2)*ES(t) - F_1(t), D[0](S)(t) == -F_1(t), D[0](ES)(t) == -k(2)*ES(t) + F_1(t), D[0](P)(t) == k(2)*ES(t), 0 == k(1)*E(t)*S(t) - k(-1)*ES(t), E(t) + ES(t) == E(0) + ES(0), S(t) + ES(t) + P(t) == S(0) + ES(0) + P(0)]
+        sage: newsyst # old docstring; not tested; auto-converted to next test
+        [diff(E(t), t) == k(2)*ES(t) - F_1(t), diff(S(t), t) == -F_1(t), diff(ES(t), t) == -k(2)*ES(t) + F_1(t), diff(P(t), t) == k(2)*ES(t), 0 == k(1)*E(t)*S(t) - k(-1)*ES(t), E(t) + ES(t) == E(0) + ES(0), S(t) + ES(t) + P(t) == S(0) + ES(0) + P(0)]
+        sage: newsyst == [diff(E(t), t) == k(2)*ES(t) - F_1(t), diff(S(t), t) == -F_1(t), diff(ES(t), t) == -k(2)*ES(t) + F_1(t), diff(P(t), t) == k(2)*ES(t), 0 == k(1)*E(t)*S(t) - k(-1)*ES(t), E(t) + ES(t) == E(0) + ES(0), S(t) + ES(t) + P(t) == S(0) + ES(0) + P(0)]
+        True
 
     Simplify again. Only one case is left::
 
@@ -135,7 +145,7 @@ EXAMPLES:
     to neglect the term ``K*E(0)``::
 
         sage: ideal[0].equations (solved = true, selection = leader == derivative (S(t)))
-        [D[0](S)(t) == -(K*V_max*S(t) + V_max*S(t)^2)/(K^2 + K*E(0) + 2*K*S(t) + S(t)^2)]
+        [diff(S(t), t) == -(K*V_max*S(t) + V_max*S(t)^2)/(K^2 + K*E(0) + 2*K*S(t) + S(t)^2)]
 
     One can also get it by computing the right hand side of the equation
     which gives the evolution of the product `P`::
@@ -194,11 +204,11 @@ EXAMPLE:
 
         sage: edoA = diff (x1(t),t) == -k(12)*x1(t) + k(21)*x2(t) - (V(e)*x1(t))/(k(e) + x1(t))
         sage: edoA
-        D[0](x1)(t) == -k(12)*x1(t) + k(21)*x2(t) - V(e)*x1(t)/(k(e) + x1(t))
+        diff(x1(t), t) == -k(12)*x1(t) + k(21)*x2(t) - V(e)*x1(t)/(k(e) + x1(t))
 
         sage: edoB = diff (x2(t),t) == k(12)*x1(t) - k(21)*x2(t)
         sage: edoB
-        D[0](x2)(t) == k(12)*x1(t) - k(21)*x2(t)
+        diff(x2(t), t) == k(12)*x1(t) - k(21)*x2(t)
 
     The parameters are moved to the base field of the equations, in
     order to avoid discussing their possible vanishing::
@@ -216,7 +226,7 @@ EXAMPLE:
 
         sage: C = ideal[0]
         sage: C.equations (solved = true)
-        [D[0](x2)(t) == k(12)*x1(t) - k(21)*x2(t), D[0](x1)(t) == -(k(12)*k(e)*x1(t) + k(12)*x1(t)^2 - k(21)*k(e)*x2(t) - k(21)*x1(t)*x2(t) + V(e)*x1(t))/(k(e) + x1(t))]
+        [diff(x2(t), t) == k(12)*x1(t) - k(21)*x2(t), diff(x1(t), t) == -(k(12)*k(e)*x1(t) + k(12)*x1(t)^2 - k(21)*k(e)*x2(t) - k(21)*x1(t)*x2(t) + V(e)*x1(t))/(k(e) + x1(t))]
 
     Let us assume now that compartment 1 is observed while compartment 2
     is not. In other words, let us assume that the output `y = x_1(t)`.
@@ -239,21 +249,27 @@ EXAMPLE:
     Here is the input/output equation. However, it looks quite complicated::
 
         sage: IO_rel = IO_C.equations (selection = leader == derivative(x1(t)))[0]
-        sage: IO_rel
-        k(12)*k(e)^2*D[0](x1)(t) + 2*k(12)*k(e)*x1(t)*D[0](x1)(t) + k(12)*x1(t)^2*D[0](x1)(t) + k(21)*k(e)^2*D[0](x1)(t) + k(21)*k(e)*V(e)*x1(t) + 2*k(21)*k(e)*x1(t)*D[0](x1)(t) + k(21)*V(e)*x1(t)^2 + k(21)*x1(t)^2*D[0](x1)(t) + k(e)^2*D[0, 0](x1)(t) + k(e)*V(e)*D[0](x1)(t) + 2*k(e)*x1(t)*D[0, 0](x1)(t) + x1(t)^2*D[0, 0](x1)(t)
+        sage: IO_rel # old docstring; not tested; auto-converted to next test
+        k(12)*k(e)^2*diff(x1(t), t) + 2*k(12)*k(e)*x1(t)*diff(x1(t), t) + k(12)*x1(t)^2*diff(x1(t), t) + k(21)*k(e)^2*diff(x1(t), t) + k(21)*k(e)*V(e)*x1(t) + 2*k(21)*k(e)*x1(t)*diff(x1(t), t) + k(21)*V(e)*x1(t)^2 + k(21)*x1(t)^2*diff(x1(t), t) + k(e)^2*diff(x1(t), t, t) + k(e)*V(e)*diff(x1(t), t) + 2*k(e)*x1(t)*diff(x1(t), t, t) + x1(t)^2*diff(x1(t), t, t)
+        sage: str(IO_rel) == str(k(12)*k(e)^2*diff(x1(t), t) + 2*k(12)*k(e)*x1(t)*diff(x1(t), t) + k(12)*x1(t)^2*diff(x1(t), t) + k(21)*k(e)^2*diff(x1(t), t) + k(21)*k(e)*V(e)*x1(t) + 2*k(21)*k(e)*x1(t)*diff(x1(t), t) + k(21)*V(e)*x1(t)^2 + k(21)*x1(t)^2*diff(x1(t), t) + k(e)^2*diff(x1(t), t, t) + k(e)*V(e)*diff(x1(t), t) + 2*k(e)*x1(t)*diff(x1(t), t, t) + x1(t)^2*diff(x1(t), t, t))
+        True
 
     One way to simplify it consists in integrating it. For this purpose,
     one divides it by its initial and then one and then one integrates it::
 
         sage: IO_rel = IO_rel / IO_R.initial (IO_rel)
-        sage: IO_rel
-        (k(12)*k(e)^2*D[0](x1)(t) + 2*k(12)*k(e)*x1(t)*D[0](x1)(t) + k(12)*x1(t)^2*D[0](x1)(t) + k(21)*k(e)^2*D[0](x1)(t) + k(21)*k(e)*V(e)*x1(t) + 2*k(21)*k(e)*x1(t)*D[0](x1)(t) + k(21)*V(e)*x1(t)^2 + k(21)*x1(t)^2*D[0](x1)(t) + k(e)^2*D[0, 0](x1)(t) + k(e)*V(e)*D[0](x1)(t) + 2*k(e)*x1(t)*D[0, 0](x1)(t) + x1(t)^2*D[0, 0](x1)(t))/(k(e)^2 + 2*k(e)*x1(t) + x1(t)^2)
+        sage: IO_rel # old docstring; not tested; auto-converted to next test
+        (k(12)*k(e)^2*diff(x1(t), t) + 2*k(12)*k(e)*x1(t)*diff(x1(t), t) + k(12)*x1(t)^2*diff(x1(t), t) + k(21)*k(e)^2*diff(x1(t), t) + k(21)*k(e)*V(e)*x1(t) + 2*k(21)*k(e)*x1(t)*diff(x1(t), t) + k(21)*V(e)*x1(t)^2 + k(21)*x1(t)^2*diff(x1(t), t) + k(e)^2*diff(x1(t), t, t) + k(e)*V(e)*diff(x1(t), t) + 2*k(e)*x1(t)*diff(x1(t), t, t) + x1(t)^2*diff(x1(t), t, t))/(k(e)^2 + 2*k(e)*x1(t) + x1(t)^2)
+        sage: str(IO_rel) == str((k(12)*k(e)^2*diff(x1(t), t) + 2*k(12)*k(e)*x1(t)*diff(x1(t), t) + k(12)*x1(t)^2*diff(x1(t), t) + k(21)*k(e)^2*diff(x1(t), t) + k(21)*k(e)*V(e)*x1(t) + 2*k(21)*k(e)*x1(t)*diff(x1(t), t) + k(21)*V(e)*x1(t)^2 + k(21)*x1(t)^2*diff(x1(t), t) + k(e)^2*diff(x1(t), t, t) + k(e)*V(e)*diff(x1(t), t) + 2*k(e)*x1(t)*diff(x1(t), t, t) + x1(t)^2*diff(x1(t), t, t))/(k(e)^2 + 2*k(e)*x1(t) + x1(t)^2))
+        True
 
     Then, one integrates it. Simpler, isn't it::
 
         sage: L = IO_R.integrate (IO_rel, t)
-        sage: L
+        sage: L # old docstring; not tested; auto-converted to next test
         [k(21)*V(e)*x1(t)/(k(e) + x1(t)), -(k(12)*k(e)^2 - k(12)*x1(t)^2 + k(21)*k(e)^2 - k(21)*x1(t)^2 + k(e)*V(e))/(k(e) + x1(t)), x1(t)]
+        sage: L == [k(21)*V(e)*x1(t)/(k(e) + x1(t)), -(k(12)*k(e)^2 - k(12)*x1(t)^2 + k(21)*k(e)^2 - k(21)*x1(t)^2 + k(e)*V(e))/(k(e) + x1(t)), x1(t)]
+        True
 
     The precise relationship between the input/output equation and the
     list `L` is given by the next formula::
@@ -349,6 +365,31 @@ def translate_str(x):
 
     return re.sub(r'diff\((\w+)\((\w)+((,\s*\w+)*)\),\s*(\w+)((,\s*\w+)*)\)', callable, x)
 
+def inverse_translate_str(x):
+    r"""
+    Translates a string from BMI's format to Sage format
+
+    This function was only used to translate the old docstrings into
+    the new format (it was run on this entire file).
+    """
+
+    def callable(m):
+        func = m.groupdict()['func']
+        diffvars = m.groupdict()['diffvars']
+        funcvars = m.groupdict()['funcvars']
+
+        diffvars = re.split(r',\s*', diffvars)
+        funcvars = re.split(r',\s*', funcvars)
+
+        return "diff(" + func + "(" + ','.join(funcvars) + "), " + ', '.join([funcvars[int(i)] for i in diffvars]) + ")"
+
+    # match something like "D[diffvars](func)(funcvars)"
+
+    # don't match single quotes at beginning or end to avoid
+    # matching translate_str()'s docstrings
+
+    return re.sub(r"(?<!')D\[(?P<diffvars>\d+(,\s*\d+)*)\]\((?P<func>\w+)\)\((?P<funcvars>\w+(,\s*\w+)*)\)(?!')", callable, x)
+
 # DifferentialRing
 cdef class DifferentialRing:
     r"""
@@ -443,7 +484,7 @@ cdef class DifferentialRing:
     The ranking is a pure elimination ranking::
 
         sage: R.sort( R.indets(poly, selection = 'all'), 'descending' )
-        [D[0](z)(x), z(x), D[0](y)(x), y(x), a, b, x]
+        [diff(z(x), x), z(x), diff(y(x), x), y(x), a, b, x]
 
     Mathematically, `S` (defined below) and `R` define the same ring. The ranking of `S` is
     different from that of `R`. Observe that parameters do not lie at the
@@ -453,7 +494,7 @@ cdef class DifferentialRing:
         sage: S
         differential_ring
         sage: S.sort( R.indets(poly, selection = 'all'), 'descending' )
-        [b, a, D[0](y)(x), y(x), D[0](z)(x), z(x), x]
+        [b, a, diff(y(x), x), y(x), diff(z(x), x), z(x), x]
 
     Mathematically, `T` (defined below), `S` and `R` define the same ring. The derivatives of
     z and y are ranked orderly::
@@ -462,7 +503,7 @@ cdef class DifferentialRing:
         sage: T
         differential_ring
         sage: T.sort( R.indets(poly, selection = 'all'), 'descending' )
-        [D[0](z)(x), D[0](y)(x), z(x), y(x), a, b, x]
+        [diff(z(x), x), diff(y(x), x), z(x), y(x), a, b, x]
 
     Last, here is an example of a PDE ring. The ranking is orderly.
     The dependent variable v does not depend on x::
@@ -640,27 +681,31 @@ cdef class DifferentialRing:
 
         The numerical coefficients and the corresponding monomials::
 
-            sage: R.coeffs(eqn)
-            ([1, -1, -1], [x*D[0](u)(x)^2, u(x)*f(x, y)^2, u(x)])
+            sage: R.coeffs(eqn) # old docstring; not tested; auto-converted to next test
+            ([1, -1, -1], [x*diff(u(x), x)^2, u(x)*f(x, y)^2, u(x)])
+            sage: R.coeffs(eqn) == ([1, -1, -1], [x*diff(u(x), x)^2, u(x)*f(x, y)^2, u(x)])
+            True
 
         The coefficients of eqn w.r.t. ``diff(f(x,y),x)``. The variables ``x``
         and ``f(x,y)``, both less than ``diff(f(x,y),x)``, w.r.t. the ranking,
         arise in the coefficients::
 
             sage: R.coeffs( eqn, diff(f(x,y),x) )
-            ([x, -f(x, y)^2 - 1], [D[0](u)(x)^2, u(x)])
+            ([x, -f(x, y)^2 - 1], [diff(u(x), x)^2, u(x)])
 
         The coefficients of ``eqn``, viewed as a differential polynomials
         with coefficients in ``F``::
 
             sage: R.coeffs(eqn, basefield = F)
-            ([x, -f(x, y)^2 - 1], [D[0](u)(x)^2, u(x)])
+            ([x, -f(x, y)^2 - 1], [diff(u(x), x)^2, u(x)])
 
         The coefficients of ``eqn``, viewed as a differential polynomials
         with coefficients in `\QQ(x,y)`::
 
-            sage: R.coeffs (eqn, basefield = BaseFieldExtension ())
-            ([x, -1, -1], [D[0](u)(x)^2, u(x)*f(x, y)^2, u(x)])
+            sage: R.coeffs (eqn, basefield = BaseFieldExtension ()) # old docstring; not tested; auto-converted to next test
+            ([x, -1, -1], [diff(u(x), x)^2, u(x)*f(x, y)^2, u(x)])
+            sage: R.coeffs (eqn, basefield = BaseFieldExtension ()) == ([x, -1, -1], [diff(u(x), x)^2, u(x)*f(x, y)^2, u(x)])
+            True
 
         The :meth:`coeffs` method also applies to rational fractions::
 
@@ -669,20 +714,26 @@ cdef class DifferentialRing:
         The numerical coefficients and the corresponding monomials,
         in the extended sense::
 
-            sage: R.coeffs (eqn)
-            ([1, -1], [x*D[0](u)(x)^2, u(x)/D[0](f)(x, y)])
+            sage: R.coeffs (eqn) # old docstring; not tested; auto-converted to next test
+            ([1, -1], [x*diff(u(x), x)^2, u(x)/diff(f(x,y), x)])
+            sage: R.coeffs (eqn) == ([1, -1], [x*diff(u(x), x)^2, u(x)/diff(f(x,y), x)])
+            True
 
         The coefficients of ``eqn``, viewed as a differential polynomials
         with coefficients in ``F``::
 
-            sage: R.coeffs (eqn, basefield = F)
-            ([x, -1/D[0](f)(x, y)], [D[0](u)(x)^2, u(x)])
+            sage: R.coeffs (eqn, basefield = F) # old docstring; not tested; auto-converted to next test
+            ([x, -1/diff(f(x,y), x)], [diff(u(x), x)^2, u(x)])
+            sage: R.coeffs (eqn, basefield = F) == ([x, -1/diff(f(x,y), x)], [diff(u(x), x)^2, u(x)])
+            True
 
         The coefficients of ``eqn``, viewed as a differential polynomials
         with coefficients in `\QQ(x,y)`::
 
-            sage: R.coeffs (eqn, basefield = BaseFieldExtension ())
-            ([x, -1], [D[0](u)(x)^2, u(x)/D[0](f)(x, y)])
+            sage: R.coeffs (eqn, basefield = BaseFieldExtension ()) # old docstring; not tested; auto-converted to next test
+            ([x, -1], [diff(u(x), x)^2, u(x)/diff(f(x,y), x)])
+            sage: R.coeffs (eqn, basefield = BaseFieldExtension ()) == ([x, -1], [diff(u(x), x)^2, u(x)/diff(f(x,y), x)])
+            True
         """
 #
         cdef result
@@ -783,8 +834,10 @@ cdef class DifferentialRing:
 
         Just check that the elements of ``L`` are polynomials of ``R``::
 
-            sage: R.equations (L)
-            [0, 18, a(y)^2, D[0](a)(y), -z(x, y) + w(x, y)]
+            sage: R.equations (L) # old docstring; not tested; auto-converted to next test
+            [0, 18, a(y)^2, diff(a(y), y), -z(x, y) + w(x, y)]
+            sage: R.equations (L) == [0, 18, a(y)^2, diff(a(y), y), -z(x, y) + w(x, y)]
+            True
 
         The only polynomial with rank 0 is 0::
 
@@ -800,12 +853,12 @@ cdef class DifferentialRing:
         to their leaders::
 
             sage: R.equations (L, solved = True, selection = rank > 1)
-            [a(y)^2 == 0, D[0](a)(y) == 0, w(x, y) == z(x, y)]
+            [a(y)^2 == 0, diff(a(y), y) == 0, w(x, y) == z(x, y)]
 
         The polynomials whose leaders are derivatives of `a(y)`::
 
             sage: R.equations (L, selection = leader == derivative (a(y)))
-            [a(y)^2, D[0](a)(y)]
+            [a(y)^2, diff(a(y), y)]
 
         The polynomials whose leaders are derivatives of `w(x,y)`, solved
         with respect to their leaders::
@@ -892,15 +945,19 @@ cdef class DifferentialRing:
         :meth:`factor_derivative` and :meth:`differentiate`::
 
             sage: derv = diff (u(x,y),x,x,y)
-            sage: derv
-            D[0, 0, 1](u)(x, y)
+            sage: derv # old docstring; not tested; auto-converted to next test
+            diff(u(x,y), x, x, y)
+            sage: str(derv) == str(diff(u(x,y), x, x, y))
+            True
             sage: theta, symb = R.factor_derivative (derv)
             sage: theta
             x^2*y
             sage: symb
             u(x, y)
-            sage: R.differentiate (symb, theta)
-            D[0, 0, 1](u)(x, y)
+            sage: R.differentiate (symb, theta) # old docstring; not tested; auto-converted to next test
+            diff(u(x,y), x, x, y)
+            sage: str(R.differentiate (symb, theta)) == str(diff(u(x,y), x, x, y))
+            True
         """
         cdef result
         cdef bytes strder, mesgerr
@@ -1131,7 +1188,7 @@ cdef class DifferentialRing:
             sage: R = DifferentialRing (derivations = [t], blocks = [u,v])
             sage: L = [t, u(t)**2 - u(t), diff(v(t),t), 1/v(t)]
             sage: R.leading_derivative (L)
-            [t, u(t), D[0](v)(t), v(t)]
+            [t, u(t), diff(v(t), t), v(t)]
             sage: R.leading_derivative (1/u(t)**2)
             u(t)
             sage: R.leading_derivative (u(t)**2)
@@ -1208,12 +1265,12 @@ cdef class DifferentialRing:
         The list of leading ranks of the elements of `L`, in monomial form::
 
             sage: R.leading_rank (L)
-            [t, u(t)^2, D[0](v)(t), 1/v(t)]
+            [t, u(t)^2, diff(v(t), t), 1/v(t)]
 
         The same list, in list form::
 
             sage: R.leading_rank (L, listform = True)
-            [[t, 1], [u(t), 2], [D[0](v)(t), 1], [v(t), -1]]
+            [[t, 1], [u(t), 2], [diff(v(t), t), 1], [v(t), -1]]
 
         The case of a single rational fraction::
 
@@ -1295,7 +1352,7 @@ cdef class DifferentialRing:
             sage: R = DifferentialRing (derivations = [t], blocks = [u,v])
             sage: L = [t, v(t)*u(t)**2 - u(t) + diff (v(t),t) + 1, t*u(t)/diff(v(t),t)]
             sage: R.initial (L)
-            [1, v(t), t/D[0](v)(t)]
+            [1, v(t), t/diff(v(t), t)]
             sage: R.initial (u(t)**2 + 1/v(t))
             1
         """
@@ -1368,7 +1425,7 @@ cdef class DifferentialRing:
         The initials of the elements of ``L``::
 
             sage: R.leading_coefficient (L)
-            [1, v(t), t/D[0](v)(t)]
+            [1, v(t), t/diff(v(t), t)]
 
         The initial of a single rational fraction::
 
@@ -1378,7 +1435,7 @@ cdef class DifferentialRing:
         The leading coefficient of the elements of ``L``, w.r.t. t.::
 
             sage: R.leading_coefficient (L, t)
-            [1, u(t)^2*v(t) - u(t) + D[0](v)(t) + 1, u(t)/D[0](v)(t)]
+            [1, u(t)^2*v(t) - u(t) + diff(v(t), t) + 1, u(t)/diff(v(t), t)]
 
         The leading coefficient of a single rational fraction,
         w.r.t. a derivative.::
@@ -1464,14 +1521,14 @@ cdef class DifferentialRing:
         derivatives::
 
             sage: R.tail (L)
-            [3, -u(t) + D[0](v)(t) + 1, 0]
+            [3, -u(t) + diff(v(t), t) + 1, 0]
 
         The tail of a single rational fraction, w.r.t. its leading
         derivative::
 
             sage: eq = u(t)**2 + diff(v(t),t)/v(t)
             sage: R.tail (eq)
-            D[0](v)(t)/v(t)
+            diff(v(t), t)/v(t)
 
         Check the definition of tails::
 
@@ -1562,7 +1619,7 @@ cdef class DifferentialRing:
         leading derivatives::
 
             sage: R.separant (L)
-            [1, 2*u(t)*v(t) - 1, t/D[0](v)(t)]
+            [1, 2*u(t)*v(t) - 1, t/diff(v(t), t)]
 
         The separant of a single rational fraction, w.r.t. its
         leading derivative::
@@ -1573,7 +1630,7 @@ cdef class DifferentialRing:
         The list of separants of the elements of `L`, w.r.t. `t`::
 
             sage: R.separant (L, t)
-            [1, 0, u(t)/D[0](v)(t)]
+            [1, 0, u(t)/diff(v(t), t)]
 
         The separant of a single rational fraction, w.r.t. a derivative::
 
@@ -1662,7 +1719,7 @@ cdef class DifferentialRing:
             sage: eq = diff (u(t),t)^2 + diff (v(t)^2,t,t) - diff (u(t)*v(t) + t*v(t), t)
             sage: L = R.integrate (eq, t)
             sage: L
-            [D[0](u)(t)^2, -t*v(t) - u(t)*v(t), v(t)^2]
+            [diff(u(t), t)^2, -t*v(t) - u(t)*v(t), v(t)^2]
 
         The two expressions are equal, for their difference is `0`::
 
@@ -1675,7 +1732,7 @@ cdef class DifferentialRing:
             sage: eq = (v(t)^2 + t)/(3*diff(v(t),t))
             sage: L = R.integrate (diff (eq, t), t)
             sage: L
-            [0, 1/3*(v(t)^2 + t)/D[0](v)(t)]
+            [0, 1/3*(v(t)^2 + t)/diff(v(t), t)]
             sage: L[1] - eq
             0
         """
@@ -1747,19 +1804,25 @@ cdef class DifferentialRing:
         Similar behaviour as ``diff``::
 
             sage: R.differentiate (eq, t)
-            2*u(t)*D[0](u)(t)
-            sage: R.differentiate (eq, t, t)
-            2*u(t)*D[0, 0](u)(t) + 2*D[0](u)(t)^2
+            2*u(t)*diff(u(t), t)
+            sage: R.differentiate (eq, t, t) # old docstring; not tested; auto-converted to next test
+            2*u(t)*diff(u(t), t, t) + 2*diff(u(t), t)^2
+            sage: str(R.differentiate (eq, t, t)) == str(2*u(t)*diff(u(t), t, t) + 2*diff(u(t), t)^2)
+            True
 
         Another way to differentiate twice w.r.t. `t`::
 
-            sage: R.differentiate (eq, t^2)
-            2*u(t)*D[0, 0](u)(t) + 2*D[0](u)(t)^2
+            sage: R.differentiate (eq, t^2) # old docstring; not tested; auto-converted to next test
+            2*u(t)*diff(u(t), t, t) + 2*diff(u(t), t)^2
+            sage: str(R.differentiate (eq, t^2)) == str(2*u(t)*diff(u(t), t, t) + 2*diff(u(t), t)^2)
+            True
 
         Differentiate three times w.r.t. `t`::
 
-            sage: R.differentiate (eq, t^2, t)
-            2*u(t)*D[0, 0, 0](u)(t) + 6*D[0](u)(t)*D[0, 0](u)(t)
+            sage: R.differentiate (eq, t^2, t) # old docstring; not tested; auto-converted to next test
+            2*u(t)*diff(u(t), t, t, t) + 6*diff(u(t), t)*diff(u(t), t, t)
+            sage: str(R.differentiate (eq, t^2, t)) == str(2*u(t)*diff(u(t), t, t, t) + 6*diff(u(t), t)*diff(u(t), t, t))
+            True
         """
         cdef result
         cdef bytes streqns, strders, mesgerr
@@ -1833,8 +1896,10 @@ cdef class DifferentialRing:
 
         Here is the reduction set::
 
-            sage: R.equations (redset, solved = true)
-            [D[0](u)(x, y)^2 == 4*u(x, y), D[0, 1](u)(x, y) == (u(x, y) - 1)/D[1](v)(x, y), D[0, 0](v)(x, y) == D[0](u)(x, y)]
+            sage: R.equations (redset, solved = true) # old docstring; not tested; auto-converted to next test
+            [diff(u(x,y), x)^2 == 4*u(x, y), diff(u(x,y), x, y) == (u(x, y) - 1)/diff(v(x,y), y), diff(v(x,y), x, x) == diff(u(x,y), x)]
+            sage: R.equations (redset, solved = true) == [diff(u(x,y), x)^2 == 4*u(x, y), diff(u(x,y), x, y) == (u(x, y) - 1)/diff(v(x,y), y), diff(v(x,y), x, x) == diff(u(x,y), x)]
+            True
             sage: ideal = R.RosenfeldGroebner (redset)
             sage: ideal
             [regular_differential_chain]
@@ -1857,24 +1922,30 @@ cdef class DifferentialRing:
 
             sage: poly = (1/7)*diff (v(x,y),x,y) + diff (u(x,y),x,x)
             sage: h, r = R.differential_prem (poly, redset)
-            sage: h, r
-            (2*D[0](u)(x, y), 2/7*(D[0, 1](v)(x, y) + 14)*D[0](u)(x, y))
+            sage: h, r # old docstring; not tested; auto-converted to next test
+            (2*diff(u(x,y), x), 2/7*(diff(v(x,y), x, y) + 14)*diff(u(x,y), x))
+            sage: (h, r) == (2*diff(u(x,y), x), 2/7*(diff(v(x,y), x, y) + 14)*diff(u(x,y), x))
+            True
             sage: C.normal_form (h * poly - r)
             0
 
         It is not partially reduced either::
 
             sage: h, r = R.differential_prem (poly, redset, mode = 'partial')
-            sage: h, r
-            (2*D[0](u)(x, y), 2/7*(D[0, 1](v)(x, y) + 14)*D[0](u)(x, y))
+            sage: h, r # old docstring; not tested; auto-converted to next test
+            (2*diff(u(x,y), x), 2/7*(diff(v(x,y), x, y) + 14)*diff(u(x,y), x))
+            sage: (h, r) == (2*diff(u(x,y), x), 2/7*(diff(v(x,y), x, y) + 14)*diff(u(x,y), x))
+            True
             sage: C.normal_form (h * poly - r)
             0
 
         However, it is algebraically reduced w.r.t ``redset``::
 
             sage: h, r = R.differential_prem (poly, redset, mode = 'algebraic')
-            sage: h, r
-            (1, D[0, 0](u)(x, y) + 1/7*D[0, 1](v)(x, y))
+            sage: h, r # old docstring; not tested; auto-converted to next test
+            (1, diff(u(x,y), x, x) + 1/7*diff(v(x,y), x, y))
+            sage: (h, r) == (1, diff(u(x,y), x, x) + 1/7*diff(v(x,y), x, y))
+            True
             sage: C.normal_form (h * poly - r)
             0
         """
@@ -1940,8 +2011,10 @@ cdef class DifferentialRing:
         This should be zero::
 
             sage: zero = eq - diff (L[1], t)
-            sage: zero
-            (2*v(t)*D[0](v)(t) + 1)/(3*u(t) + D[0](v)(t)) - (3*D[0](u)(t) + D[0, 0](v)(t))*(v(t)^2 + t)/(3*u(t) + D[0](v)(t))^2 + (3*D[0](u)(t) + D[0, 0](v)(t))*(3*u(t)^2 + u(t)*D[0](v)(t) + v(t)^2 + t)/(3*u(t) + D[0](v)(t))^2 - (6*u(t)*D[0](u)(t) + u(t)*D[0, 0](v)(t) + 2*v(t)*D[0](v)(t) + D[0](u)(t)*D[0](v)(t) + 1)/(3*u(t) + D[0](v)(t)) + D[0](u)(t)
+            sage: zero # old docstring; not tested; auto-converted to next test
+            (2*v(t)*diff(v(t), t) + 1)/(3*u(t) + diff(v(t), t)) - (3*diff(u(t), t) + diff(v(t), t, t))*(v(t)^2 + t)/(3*u(t) + diff(v(t), t))^2 + (3*diff(u(t), t) + diff(v(t), t, t))*(3*u(t)^2 + u(t)*diff(v(t), t) + v(t)^2 + t)/(3*u(t) + diff(v(t), t))^2 - (6*u(t)*diff(u(t), t) + u(t)*diff(v(t), t, t) + 2*v(t)*diff(v(t), t) + diff(u(t), t)*diff(v(t), t) + 1)/(3*u(t) + diff(v(t), t)) + diff(u(t), t)
+            sage: str(zero) == str((2*v(t)*diff(v(t), t) + 1)/(3*u(t) + diff(v(t), t)) - (3*diff(u(t), t) + diff(v(t), t, t))*(v(t)^2 + t)/(3*u(t) + diff(v(t), t))^2 + (3*diff(u(t), t) + diff(v(t), t, t))*(3*u(t)^2 + u(t)*diff(v(t), t) + v(t)^2 + t)/(3*u(t) + diff(v(t), t))^2 - (6*u(t)*diff(u(t), t) + u(t)*diff(v(t), t, t) + 2*v(t)*diff(v(t), t) + diff(u(t), t)*diff(v(t), t) + 1)/(3*u(t) + diff(v(t), t)) + diff(u(t), t))
+            True
             sage: R.normal_form (zero)
             0
         """
@@ -2016,14 +2089,14 @@ cdef class DifferentialRing:
         The list ``L`` is sorted by increasing leading monomial::
 
             sage: R.sort (L)
-            [0, x, D[0, 0](v)(y), D[0, 0](v)(y)^3, a*u(x, y)^2]
+            [0, x, diff(v(y), y, y), diff(v(y), y, y)^3, a*u(x, y)^2]
             sage: R.sort (L, 'ascending')
-            [0, x, D[0, 0](v)(y), D[0, 0](v)(y)^3, a*u(x, y)^2]
+            [0, x, diff(v(y), y, y), diff(v(y), y, y)^3, a*u(x, y)^2]
 
         By decreasing leading monomial::
 
             sage: R.sort (L, 'descending')
-            [a*u(x, y)^2, D[0, 0](v)(y)^3, D[0, 0](v)(y), x, 0]
+            [a*u(x, y)^2, diff(v(y), y, y)^3, diff(v(y), y, y), x, 0]
 
         Another example::
 
@@ -2194,7 +2267,7 @@ cdef class DifferentialRing:
             sage: L
             [regular_differential_chain, regular_differential_chain]
             sage: L[0].equations ()
-            [D[0](y)(x)^2 - 4*y(x)]
+            [diff(y(x), x)^2 - 4*y(x)]
             sage: L[1].equations ()
             [y(x)]
 
@@ -2213,8 +2286,10 @@ cdef class DifferentialRing:
             sage: L = R.RosenfeldGroebner ([eq1, eq2, eq3])
             sage: L
             [regular_differential_chain]
-            sage: L[0].equations (solved=true)
-            [D[1](u)(x, y)^2 == 2*u(x, y), D[0](u)(x, y)^2 == 4*u(x, y), D[1](v)(x, y) == 1/4*(u(x, y)*D[0](u)(x, y)*D[1](u)(x, y) - D[0](u)(x, y)*D[1](u)(x, y))/u(x, y), D[0, 0](v)(x, y) == D[0](u)(x, y)]
+            sage: L[0].equations (solved=true) # old docstring; not tested; auto-converted to next test
+            [diff(u(x,y), y)^2 == 2*u(x, y), diff(u(x,y), x)^2 == 4*u(x, y), diff(v(x,y), y) == 1/4*(u(x, y)*diff(u(x,y), x)*diff(u(x,y), y) - diff(u(x,y), x)*diff(u(x,y), y))/u(x, y), diff(v(x,y), x, x) == diff(u(x,y), x)]
+            sage: L[0].equations (solved=true) == [diff(u(x,y), y)^2 == 2*u(x, y), diff(u(x,y), x)^2 == 4*u(x, y), diff(v(x,y), y) == 1/4*(u(x, y)*diff(u(x,y), x)*diff(u(x,y), y) - diff(u(x,y), x)*diff(u(x,y), y))/u(x, y), diff(v(x,y), x, x) == diff(u(x,y), x)]
+            True
         """
 #
         cdef list result, eqns, ineq
@@ -2286,10 +2361,14 @@ cdef class DifferentialRing:
             sage: y = function ('y')
             sage: R = DifferentialRing (derivations = [a,b], blocks = [y])
             sage: L = [a/b, a+1/diff(y(a,b),a) == 0, b^2+b+1 != 0]
-            sage: L
-            [a/b, a + 1/D[0](y)(a, b) == 0, b^2 + b + 1 != 0]
-            sage: R.__process_equations (L)
-            ([a, a*D[0](y)(a, b) + 1], [b, D[0](y)(a, b), b^2 + b + 1])
+            sage: L # old docstring; not tested; auto-converted to next test
+            [a/b, a + 1/diff(y(a,b), a) == 0, b^2 + b + 1 != 0]
+            sage: L == [a/b, a + 1/diff(y(a,b), a) == 0, b^2 + b + 1 != 0]
+            True
+            sage: R.__process_equations (L) # old docstring; not tested; auto-converted to next test
+            ([a, a*diff(y(a,b), a) + 1], [b, diff(y(a,b), a), b^2 + b + 1])
+            sage: R.__process_equations (L) == ([a, a*diff(y(a,b), a) + 1], [b, diff(y(a,b), a), b^2 + b + 1])
+            True
         """
         cdef bmi_c.ALGEB_listof_string P
         cdef bytes L_as_string, mesgerr
@@ -2447,8 +2526,10 @@ cdef class RegularDifferentialChain:
             sage: eq2 = diff(u(x,y),y) == 0
             sage: eq3 = diff(v(x,y),y) == 0
             sage: C = RegularDifferentialChain ([eq1,eq2,eq3], R)
-            sage: C.equations (solved=true)
-            [D[1](v)(x, y) == 0, D[1](u)(x, y) == 0, D[0](u)(x, y) == v(x, y)]
+            sage: C.equations (solved=true) # old docstring; not tested; auto-converted to next test
+            [diff(v(x,y), y) == 0, diff(u(x,y), y) == 0, diff(u(x,y), x) == v(x, y)]
+            sage: C.equations (solved=true) == [diff(v(x,y), y) == 0, diff(u(x,y), y) == 0, diff(u(x,y), x) == v(x, y)]
+            True
         """
         cdef list eqns, ineq
         cdef bmi_c.ALGEB A
@@ -2575,9 +2656,9 @@ cdef class RegularDifferentialChain:
             sage: R = DifferentialRing (derivations = [x], blocks = [y,[a,b]], parameters = [a,b])
             sage: C = RegularDifferentialChain ([diff(y(x),x)^2-a*y(x)], R)
             sage: C.equations ()
-            [-a*y(x) + D[0](y)(x)^2]
+            [-a*y(x) + diff(y(x), x)^2]
             sage: C.equations (solved = true)
-            [D[0](y)(x)^2 == a*y(x)]
+            [diff(y(x), x)^2 == a*y(x)]
 
         The next example illustrates the use of ``selection``::
 
@@ -2589,26 +2670,34 @@ cdef class RegularDifferentialChain:
             sage: eq2 = diff(u(x,y),y) == 0
             sage: eq3 = diff(v(x,y),y) == 0
             sage: C = RegularDifferentialChain ([eq1,eq2,eq3], R)
-            sage: C.equations (solved=True)
-            [D[1](v)(x, y) == 0, D[1](u)(x, y) == 0, D[0](u)(x, y) == v(x, y)]
+            sage: C.equations (solved=True) # old docstring; not tested; auto-converted to next test
+            [diff(v(x,y), y) == 0, diff(u(x,y), y) == 0, diff(u(x,y), x) == v(x, y)]
+            sage: C.equations (solved=True) == [diff(v(x,y), y) == 0, diff(u(x,y), y) == 0, diff(u(x,y), x) == v(x, y)]
+            True
             sage: leader,rank,order = var ('leader,rank,order')
             sage: derivative,proper = function ('derivative,proper')
 
         The equations of order greater than `0`. Observe that the ranking
         is not necessarily orderly::
 
-            sage: C.equations (selection = order > 0)
-            [D[1](v)(x, y), D[1](u)(x, y), -v(x, y) + D[0](u)(x, y)]
+            sage: C.equations (selection = order > 0) # old docstring; not tested; auto-converted to next test
+            [diff(v(x,y), y), diff(u(x,y), y), -v(x, y) + diff(u(x,y), x)]
+            sage: C.equations (selection = order > 0) == [diff(v(x,y), y), diff(u(x,y), y), -v(x, y) + diff(u(x,y), x)]
+            True
 
         The equation whose leader is ``diff (u(x,y),x)``::
 
-            sage: C.equations (selection = leader == diff (u(x,y),x))
-            [-v(x, y) + D[0](u)(x, y)]
+            sage: C.equations (selection = leader == diff (u(x,y),x)) # old docstring; not tested; auto-converted to next test
+            [-v(x, y) + diff(u(x,y), x)]
+            sage: C.equations (selection = leader == diff (u(x,y),x)) == [-v(x, y) + diff(u(x,y), x)]
+            True
 
         The equations, whose leaders are derivatives of ``diff (u(x,y),x)``::
 
-            sage: C.equations (selection = leader == derivative (diff (u(x,y),x)))
-            [-v(x, y) + D[0](u)(x, y)]
+            sage: C.equations (selection = leader == derivative (diff (u(x,y),x))) # old docstring; not tested; auto-converted to next test
+            [-v(x, y) + diff(u(x,y), x)]
+            sage: C.equations (selection = leader == derivative (diff (u(x,y),x))) == [-v(x, y) + diff(u(x,y), x)]
+            True
         """
         cdef list result
         cdef bytes strsel, mesgerr
@@ -2717,8 +2806,10 @@ cdef class RegularDifferentialChain:
             sage: ideal
             [regular_differential_chain]
             sage: C = ideal [0]
-            sage: C.leading_derivative()
-            [D[1](u)(x, y), D[0](u)(x, y), D[1](v)(x, y), D[0, 0](v)(x, y)]
+            sage: C.leading_derivative() # old docstring; not tested; auto-converted to next test
+            [diff(u(x,y), y), diff(u(x,y), x), diff(v(x,y), y), diff(v(x,y), x, x)]
+            sage: C.leading_derivative() == [diff(u(x,y), y), diff(u(x,y), x), diff(v(x,y), y), diff(v(x,y), x, x)]
+            True
         """
         cdef result
         cdef bytes streqns, mesgerr
@@ -2776,8 +2867,10 @@ cdef class RegularDifferentialChain:
             sage: ideal
             [regular_differential_chain]
             sage: C = ideal [0]
-            sage: C.leading_rank()
-            [D[1](u)(x, y)^2, D[0](u)(x, y)^2, D[1](v)(x, y), D[0, 0](v)(x, y)]
+            sage: C.leading_rank() # old docstring; not tested; auto-converted to next test
+            [diff(u(x,y), y)^2, diff(u(x,y), x)^2, diff(v(x,y), y), diff(v(x,y), x, x)]
+            sage: C.leading_rank() == [diff(u(x,y), y)^2, diff(u(x,y), x)^2, diff(v(x,y), y), diff(v(x,y), x, x)]
+            True
         """
         cdef result
         cdef bytes streqns, mesgerr
@@ -2896,8 +2989,10 @@ cdef class RegularDifferentialChain:
 
         The leading coefficients w.r.t. ``u(x,y)``::
 
-            sage: C.leading_coefficient (u(x,y))
-            [-2, -4, -D[0](u)(x, y)*D[1](u)(x, y) + 4*D[1](v)(x, y), -D[0](u)(x, y) + D[0, 0](v)(x, y)]
+            sage: C.leading_coefficient (u(x,y)) # old docstring; not tested; auto-converted to next test
+            [-2, -4, -diff(u(x,y), x)*diff(u(x,y), y) + 4*diff(v(x,y), y), -diff(u(x,y), x) + diff(v(x,y), x, x)]
+            sage: C.leading_coefficient (u(x,y)) == [-2, -4, -diff(u(x,y), x)*diff(u(x,y), y) + 4*diff(v(x,y), y), -diff(u(x,y), x) + diff(v(x,y), x, x)]
+            True
         """
         cdef result
         cdef bytes streqns, strvar, mesgerr
@@ -2961,13 +3056,17 @@ cdef class RegularDifferentialChain:
         If ``variable`` is omitted, the tails are taken w.r.t. the
         leading derivatives::
 
-            sage: C.tail ()
-            [-2*u(x, y), -4*u(x, y), -u(x, y)*D[0](u)(x, y)*D[1](u)(x, y) + D[0](u)(x, y)*D[1](u)(x, y), -D[0](u)(x, y)]
+            sage: C.tail () # old docstring; not tested; auto-converted to next test
+            [-2*u(x, y), -4*u(x, y), -u(x, y)*diff(u(x,y), x)*diff(u(x,y), y) + diff(u(x,y), x)*diff(u(x,y), y), -diff(u(x,y), x)]
+            sage: C.tail () == [-2*u(x, y), -4*u(x, y), -u(x, y)*diff(u(x,y), x)*diff(u(x,y), y) + diff(u(x,y), x)*diff(u(x,y), y), -diff(u(x,y), x)]
+            True
 
         The tails w.r.t. ``u(x,y)``::
 
-            sage: C.tail (u(x,y))
-            [D[1](u)(x, y)^2, D[0](u)(x, y)^2, D[0](u)(x, y)*D[1](u)(x, y), 0]
+            sage: C.tail (u(x,y)) # old docstring; not tested; auto-converted to next test
+            [diff(u(x,y), y)^2, diff(u(x,y), x)^2, diff(u(x,y), x)*diff(u(x,y), y), 0]
+            sage: C.tail (u(x,y)) == [diff(u(x,y), y)^2, diff(u(x,y), x)^2, diff(u(x,y), x)*diff(u(x,y), y), 0]
+            True
         """
         cdef result
         cdef bytes streqns, strvar, mesgerr
@@ -3031,13 +3130,17 @@ cdef class RegularDifferentialChain:
         If ``variable`` is omitted, the separants are taken w.r.t. the
         leading derivatives::
 
-            sage: C.separant ()
-            [2*D[1](u)(x, y), 2*D[0](u)(x, y), 4*u(x, y), 1]
+            sage: C.separant () # old docstring; not tested; auto-converted to next test
+            [2*diff(u(x,y), y), 2*diff(u(x,y), x), 4*u(x, y), 1]
+            sage: C.separant () == [2*diff(u(x,y), y), 2*diff(u(x,y), x), 4*u(x, y), 1]
+            True
 
         The separants w.r.t. ``u(x,y)``::
 
-            sage: C.separant (u(x,y))
-            [-2, -4, -D[0](u)(x, y)*D[1](u)(x, y) + 4*D[1](v)(x, y), 0]
+            sage: C.separant (u(x,y)) # old docstring; not tested; auto-converted to next test
+            [-2, -4, -diff(u(x,y), x)*diff(u(x,y), y) + 4*diff(v(x,y), y), 0]
+            sage: C.separant (u(x,y)) == [-2, -4, -diff(u(x,y), x)*diff(u(x,y), y) + 4*diff(v(x,y), y), 0]
+            True
         """
         cdef result
         cdef bytes streqns, strvar, mesgerr
@@ -3102,10 +3205,14 @@ cdef class RegularDifferentialChain:
         With no selection, or with ``selection='derivatives'``, return the list of
         the derivatives occuring in the elements of ``C``::
 
-            sage: C.indets ()
-            [u(x, y), D[0](u)(x, y), D[1](v)(x, y), D[0, 0](v)(x, y), D[1](u)(x, y)]
-            sage: C.indets (selection = 'derivatives')
-            [u(x, y), D[0](u)(x, y), D[1](v)(x, y), D[0, 0](v)(x, y), D[1](u)(x, y)]
+            sage: C.indets () # old docstring; not tested; auto-converted to next test
+            [u(x, y), diff(u(x,y), x), diff(v(x,y), y), diff(v(x,y), x, x), diff(u(x,y), y)]
+            sage: C.indets () == [u(x, y), diff(u(x,y), x), diff(v(x,y), y), diff(v(x,y), x, x), diff(u(x,y), y)]
+            True
+            sage: C.indets (selection = 'derivatives') # old docstring; not tested; auto-converted to next test
+            [u(x, y), diff(u(x,y), x), diff(v(x,y), y), diff(v(x,y), x, x), diff(u(x,y), y)]
+            sage: C.indets (selection = 'derivatives') == [u(x, y), diff(u(x,y), x), diff(v(x,y), y), diff(v(x,y), x, x), diff(u(x,y), y)]
+            True
 
         With ``selection='dependent'``, return the list of the differential
         indeterminates, or dependent variables, occuring in the elements of ``C``::
@@ -3122,8 +3229,10 @@ cdef class RegularDifferentialChain:
         With ``selection = 'all'``, return the list of the independent and the dependent
         variables occuring in the elements of ``C``::
 
-            sage: C.indets (selection = 'all')
-            [u(x, y), D[0](u)(x, y), D[1](v)(x, y), D[0, 0](v)(x, y), D[1](u)(x, y)]
+            sage: C.indets (selection = 'all') # old docstring; not tested; auto-converted to next test
+            [u(x, y), diff(u(x,y), x), diff(v(x,y), y), diff(v(x,y), x, x), diff(u(x,y), y)]
+            sage: C.indets (selection = 'all') == [u(x, y), diff(u(x,y), x), diff(v(x,y), y), diff(v(x,y), x, x), diff(u(x,y), y)]
+            True
         """
         cdef list result
         cdef bytes streqns, strfull, mesgerr
@@ -3195,8 +3304,10 @@ cdef class RegularDifferentialChain:
 
         Here are the chain equations::
 
-            sage: C.equations (solved = true)
-            [D[1](u)(x, y)^2 == 2*u(x, y), D[0](u)(x, y)^2 == 4*u(x, y), D[1](v)(x, y) == 1/4*(u(x, y)*D[0](u)(x, y)*D[1](u)(x, y) - D[0](u)(x, y)*D[1](u)(x, y))/u(x, y), D[0, 0](v)(x, y) == D[0](u)(x, y)]
+            sage: C.equations (solved = true) # old docstring; not tested; auto-converted to next test
+            [diff(u(x,y), y)^2 == 2*u(x, y), diff(u(x,y), x)^2 == 4*u(x, y), diff(v(x,y), y) == 1/4*(u(x, y)*diff(u(x,y), x)*diff(u(x,y), y) - diff(u(x,y), x)*diff(u(x,y), y))/u(x, y), diff(v(x,y), x, x) == diff(u(x,y), x)]
+            sage: C.equations (solved = true) == [diff(u(x,y), y)^2 == 2*u(x, y), diff(u(x,y), x)^2 == 4*u(x, y), diff(v(x,y), y) == 1/4*(u(x, y)*diff(u(x,y), x)*diff(u(x,y), y) - diff(u(x,y), x)*diff(u(x,y), y))/u(x, y), diff(v(x,y), x, x) == diff(u(x,y), x)]
+            True
 
         The first polynomial is already fully reduced w.r.t. the chain
         equations::
@@ -3212,24 +3323,30 @@ cdef class RegularDifferentialChain:
 
             sage: poly = (1/7)*diff (v(x,y),x,y) + diff (u(x,y),x,x)
             sage: h, r = C.differential_prem (poly)
-            sage: h, r
-            (16*u(x, y)^2*D[0](u)(x, y)*D[1](u)(x, y), 32/7*(u(x, y) + 7*D[1](u)(x, y))*u(x, y)^2*D[0](u)(x, y))
+            sage: h, r # old docstring; not tested; auto-converted to next test
+            (16*u(x, y)^2*diff(u(x,y), x)*diff(u(x,y), y), 32/7*(u(x, y) + 7*diff(u(x,y), y))*u(x, y)^2*diff(u(x,y), x))
+            sage: (h, r) == (16*u(x, y)^2*diff(u(x,y), x)*diff(u(x,y), y), 32/7*(u(x, y) + 7*diff(u(x,y), y))*u(x, y)^2*diff(u(x,y), x))
+            True
             sage: C.normal_form (h * poly - r)
             0
 
         Let us try a partial reduction, instead of a full one::
 
             sage: h, r = C.differential_prem (poly, mode = 'partial')
-            sage: h, r
-            (16*u(x, y)*D[0](u)(x, y)*D[1](u)(x, y), 4/7*(D[0](u)(x, y)^2*D[1](u)(x, y)^2 + u(x, y)*D[0](u)(x, y)^2 + 2*u(x, y)*D[1](u)(x, y)^2 - 4*D[0](u)(x, y)*D[1](u)(x, y)*D[1](v)(x, y) + 56*u(x, y)*D[1](u)(x, y) - D[0](u)(x, y)^2 - 2*D[1](u)(x, y)^2)*D[0](u)(x, y))
+            sage: h, r # old docstring; not tested; auto-converted to next test
+            (16*u(x, y)*diff(u(x,y), x)*diff(u(x,y), y), 4/7*(diff(u(x,y), x)^2*diff(u(x,y), y)^2 + u(x, y)*diff(u(x,y), x)^2 + 2*u(x, y)*diff(u(x,y), y)^2 - 4*diff(u(x,y), x)*diff(u(x,y), y)*diff(v(x,y), y) + 56*u(x, y)*diff(u(x,y), y) - diff(u(x,y), x)^2 - 2*diff(u(x,y), y)^2)*diff(u(x,y), x))
+            sage: (h, r) == (16*u(x, y)*diff(u(x,y), x)*diff(u(x,y), y), 4/7*(diff(u(x,y), x)^2*diff(u(x,y), y)^2 + u(x, y)*diff(u(x,y), x)^2 + 2*u(x, y)*diff(u(x,y), y)^2 - 4*diff(u(x,y), x)*diff(u(x,y), y)*diff(v(x,y), y) + 56*u(x, y)*diff(u(x,y), y) - diff(u(x,y), x)^2 - 2*diff(u(x,y), y)^2)*diff(u(x,y), x))
+            True
             sage: C.normal_form (h * poly - r)
             0
 
         The polynomial actually is algebraically reduced w.r.t the chain::
 
             sage: h, r = C.differential_prem (poly, mode = 'algebraic')
-            sage: h, r
-            (1, D[0, 0](u)(x, y) + 1/7*D[0, 1](v)(x, y))
+            sage: h, r # old docstring; not tested; auto-converted to next test
+            (1, diff(u(x,y), x, x) + 1/7*diff(v(x,y), x, y))
+            sage: (h, r) == (1, diff(u(x,y), x, x) + 1/7*diff(v(x,y), x, y))
+            True
             sage: C.normal_form (h * poly - r)
             0
         """
@@ -3313,8 +3430,10 @@ cdef class RegularDifferentialChain:
         Its ranking is orederly::
 
             sage: C = ideal [0]
-            sage: C.equations (solved = True)
-            [D[1](u)(x, y)^2 == 2*u(x, y), D[0](u)(x, y)^2 == 4*u(x, y), D[1](v)(x, y) == 1/4*(u(x, y)*D[0](u)(x, y)*D[1](u)(x, y) - D[0](u)(x, y)*D[1](u)(x, y))/u(x, y), D[0, 0](v)(x, y) == D[0](u)(x, y)]
+            sage: C.equations (solved = True) # old docstring; not tested; auto-converted to next test
+            [diff(u(x,y), y)^2 == 2*u(x, y), diff(u(x,y), x)^2 == 4*u(x, y), diff(v(x,y), y) == 1/4*(u(x, y)*diff(u(x,y), x)*diff(u(x,y), y) - diff(u(x,y), x)*diff(u(x,y), y))/u(x, y), diff(v(x,y), x, x) == diff(u(x,y), x)]
+            sage: C.equations (solved = True) == [diff(u(x,y), y)^2 == 2*u(x, y), diff(u(x,y), x)^2 == 4*u(x, y), diff(v(x,y), y) == 1/4*(u(x, y)*diff(u(x,y), x)*diff(u(x,y), y) - diff(u(x,y), x)*diff(u(x,y), y))/u(x, y), diff(v(x,y), x, x) == diff(u(x,y), x)]
+            True
 
         The ring ``Rbar`` is mathematically equivalent to ``R``, but w.r.t.
         an elimination ranking::
@@ -3324,8 +3443,10 @@ cdef class RegularDifferentialChain:
         Perform the change of ranking, claiming that the ideal is prime::
 
             sage: Cbar = C.change_ranking (Rbar, prime=True)
-            sage: Cbar.equations (solved = True)
-            [D[1, 1](v)(x, y)^4 == 2*D[1](v)(x, y)^2 + 2*D[1, 1](v)(x, y)^2 - 1, D[0, 1](v)(x, y) == (D[1, 1](v)(x, y)^3 - D[1, 1](v)(x, y))/D[1](v)(x, y), D[0, 0](v)(x, y) == 2*D[1, 1](v)(x, y), u(x, y) == D[1, 1](v)(x, y)^2]
+            sage: Cbar.equations (solved = True) # old docstring; not tested; auto-converted to next test
+            [diff(v(x,y), y, y)^4 == 2*diff(v(x,y), y)^2 + 2*diff(v(x,y), y, y)^2 - 1, diff(v(x,y), x, y) == (diff(v(x,y), y, y)^3 - diff(v(x,y), y, y))/diff(v(x,y), y), diff(v(x,y), x, x) == 2*diff(v(x,y), y, y), u(x, y) == diff(v(x,y), y, y)^2]
+            sage: Cbar.equations (solved = True) == [diff(v(x,y), y, y)^4 == 2*diff(v(x,y), y)^2 + 2*diff(v(x,y), y, y)^2 - 1, diff(v(x,y), x, y) == (diff(v(x,y), y, y)^3 - diff(v(x,y), y, y))/diff(v(x,y), y), diff(v(x,y), x, x) == 2*diff(v(x,y), y, y), u(x, y) == diff(v(x,y), y, y)^2]
+            True
         """
         cdef bmi_c.ALGEB L
         cdef bytes mesgerr, ranking
@@ -3412,10 +3533,14 @@ cdef class RegularDifferentialChain:
         A few basic examples::
 
             sage: p = diff(u(x,y),y,y) / diff(u(x,y),x)
-            sage: C.normal_form (p)
-            1/4*D[0](u)(x, y)/u(x, y)
-            sage: C.normal_form (1/p)
-            D[0](u)(x, y)
+            sage: C.normal_form (p) # old docstring; not tested; auto-converted to next test
+            1/4*diff(u(x,y), x)/u(x, y)
+            sage: str(C.normal_form (p)) == str(1/4*diff(u(x,y), x)/u(x, y))
+            True
+            sage: C.normal_form (1/p) # old docstring; not tested; auto-converted to next test
+            diff(u(x,y), x)
+            sage: str(C.normal_form (1/p)) == str(diff(u(x,y), x))
+            True
 
         An expected behaviour of normal forms::
 
@@ -3533,7 +3658,7 @@ cdef class RegularDifferentialChain:
             sage: poly = diff(u(t),t)^2 - 4*u(t)
             sage: ideal = R.RosenfeldGroebner ([poly])
             sage: [ C.equations (solved = true) for C in ideal ]
-            [[D[0](u)(t)^2 == 4*u(t)], [u(t) == 0]]
+            [[diff(u(t), t)^2 == 4*u(t)], [u(t) == 0]]
 
         Is the solution ``u(t) = 0`` an essential component::
 
@@ -3543,12 +3668,12 @@ cdef class RegularDifferentialChain:
         Replacing ``z1(t)`` by ``u(t)``, it is easy to see check the result::
 
             sage: C.preparation_equation (poly)
-            D[0](u)(t)^2 - 4*u(t) == D[0](z1)(t)^2 - 4*z1(t)
+            diff(u(t), t)^2 - 4*u(t) == diff(z1(t), t)^2 - 4*z1(t)
 
         Here is the preparation congruence (``q = 1``)::
 
             sage: C.preparation_equation (poly, congruence = true)
-            D[0](u)(t)^2 - 4*u(t) == -4*z1(t)
+            diff(u(t), t)^2 - 4*u(t) == -4*z1(t)
 
         By [Kolchin73, chapter IV, section 15, theorem 6], the
         solution is, indeed, essential. This result can be interpreted
@@ -3558,7 +3683,7 @@ cdef class RegularDifferentialChain:
 
             sage: ideal = R.RosenfeldGroebner ([poly], singsol = 'essential')
             sage: [ C.equations (solved = true) for C in ideal ]
-            [[D[0](u)(t)^2 == 4*u(t)], [u(t) == 0]]
+            [[diff(u(t), t)^2 == 4*u(t)], [u(t) == 0]]
 
         Another famous example. Two similar cases are generated::
 
@@ -3567,7 +3692,7 @@ cdef class RegularDifferentialChain:
             sage: ideal
             [regular_differential_chain, regular_differential_chain]
             sage: [ C.equations (solved = true) for C in ideal ]
-            [[D[0](u)(t)^2 == 4*u(t)^3], [u(t) == 0]]
+            [[diff(u(t), t)^2 == 4*u(t)^3], [u(t) == 0]]
 
         Is the solution `u(t) = 0` an essential component ?::
 
@@ -3577,12 +3702,12 @@ cdef class RegularDifferentialChain:
         Replacing ``z1(t)`` by ``u(t)``, it is easy to see check the result::
 
             sage: C.preparation_equation (poly)
-            -4*u(t)^3 + D[0](u)(t)^2 == -4*z1(t)^3 + D[0](z1)(t)^2
+            -4*u(t)^3 + diff(u(t), t)^2 == -4*z1(t)^3 + diff(z1(t), t)^2
 
         Here is the preparation congruence (`q = 2`)::
 
             sage: C.preparation_equation (poly, congruence = true)
-            -4*u(t)^3 + D[0](u)(t)^2 == D[0](z1)(t)^2
+            -4*u(t)^3 + diff(u(t), t)^2 == diff(z1(t), t)^2
 
         By Ritt's theorem, the solution is particular. This result
         can be interpreted as follows: the solution ``u(t) = 0`` is
@@ -3591,7 +3716,7 @@ cdef class RegularDifferentialChain:
 
             sage: ideal = R.RosenfeldGroebner ([poly], singsol = 'essential')
             sage: [ C.equations (solved = true) for C in ideal ]
-            [[D[0](u)(t)^2 == 4*u(t)^3]]
+            [[diff(u(t), t)^2 == 4*u(t)^3]]
 
         The following example just illustrates the use of base fields.
         The F is a differential field involving two functions `s(t), c(t)`,
@@ -3613,48 +3738,54 @@ cdef class RegularDifferentialChain:
 
             sage: ideal = R.RosenfeldGroebner ([poly], basefield = F)
             sage: [ C.equations (solved = true) for C in ideal ]
-            [[s(t)^2 == -c(t)^2 + 1, D[0](c)(t) == -s(t), D[0](u)(t)^2 == 4*u(t)^3], [s(t)^2 == -c(t)^2 + 1, D[0](c)(t) == -s(t), u(t) == 0]]
+            [[s(t)^2 == -c(t)^2 + 1, diff(c(t), t) == -s(t), diff(u(t), t)^2 == 4*u(t)^3], [s(t)^2 == -c(t)^2 + 1, diff(c(t), t) == -s(t), u(t) == 0]]
 
         Is the solution `u(t) = 0` essential?::
 
             sage: C = ideal[1]
             sage: C.equations (solved = true)
-            [s(t)^2 == -c(t)^2 + 1, D[0](c)(t) == -s(t), u(t) == 0]
+            [s(t)^2 == -c(t)^2 + 1, diff(c(t), t) == -s(t), u(t) == 0]
 
         The preparation congruence of poly (playing with ``zstring``)::
 
             sage: C.preparation_equation (poly, zstring = 'C%d')
-            -4*u(t)^3 + D[0](u)(t)^2 == -4*C3(t)^3 + D[0](C3)(t)^2
+            -4*u(t)^3 + diff(u(t), t)^2 == -4*C3(t)^3 + diff(C3(t), t)^2
 
         The preparation congruence of poly shows that the solution
         is not essential (see the previous example)::
 
             sage: C.preparation_equation (poly, congruence=true)
-            -4*u(t)^3 + D[0](u)(t)^2 == D[0](z3)(t)^2
+            -4*u(t)^3 + diff(u(t), t)^2 == diff(z3(t), t)^2
 
         Let us now consider ``poly2``, which is equal to poly, over ``F``::
 
-            sage: C.preparation_equation (poly2)
-            -4*u(t)^3 + s(t)^2 + c(t)^2 + D[0](u)(t)^2 - 1 == -4*z3(t)^3 + D[0](z3)(t)^2 + z1(t)
+            sage: C.preparation_equation (poly2) # old docstring; not tested; auto-converted to next test
+            -4*u(t)^3 + s(t)^2 + c(t)^2 + diff(u(t), t)^2 - 1 == -4*z3(t)^3 + diff(z3(t), t)^2 + z1(t)
+            sage: str(C.preparation_equation (poly2)) == str(-4*u(t)^3 + s(t)^2 + c(t)^2 + diff(u(t), t)^2 - 1 == -4*z3(t)^3 + diff(z3(t), t)^2 + z1(t))
+            True
 
         The term ``t[i]`` of minimal degree correspond to a reduction
         by a field equation::
 
-            sage: C.preparation_equation (poly2, congruence=true)
-            -4*u(t)^3 + s(t)^2 + c(t)^2 + D[0](u)(t)^2 - 1 == z1(t)
+            sage: C.preparation_equation (poly2, congruence=true) # old docstring; not tested; auto-converted to next test
+            -4*u(t)^3 + s(t)^2 + c(t)^2 + diff(u(t), t)^2 - 1 == z1(t)
+            sage: str(C.preparation_equation (poly2, congruence=true)) == str(-4*u(t)^3 + s(t)^2 + c(t)^2 + diff(u(t), t)^2 - 1 == z1(t))
+            True
 
         Specifying that we should consider ``poly2`` over ``F``, the preparation
         congruence changes and we conclude similarly as for poly::
 
-            sage: C.preparation_equation (poly2, congruence=true, basefield=F)
-            -4*u(t)^3 + s(t)^2 + c(t)^2 + D[0](u)(t)^2 - 1 == D[0](z3)(t)^2
+            sage: C.preparation_equation (poly2, congruence=true, basefield=F) # old docstring; not tested; auto-converted to next test
+            -4*u(t)^3 + s(t)^2 + c(t)^2 + diff(u(t), t)^2 - 1 == diff(z3(t), t)^2
+            sage: str(C.preparation_equation (poly2, congruence=true, basefield=F)) == str(-4*u(t)^3 + s(t)^2 + c(t)^2 + diff(u(t), t)^2 - 1 == diff(z3(t), t)^2)
+            True
 
         We check below that :meth:`~sage.calculus.DifferentialAlgebra.DifferentialRing.RosenfeldGroebner`
         recognizes the solution as not essential::
 
             sage: ideal = R.RosenfeldGroebner ([poly], singsol = 'essential', basefield = F)
             sage: [ C.equations (solved = true) for C in ideal ]
-            [[s(t)^2 == -c(t)^2 + 1, D[0](c)(t) == -s(t), D[0](u)(t)^2 == 4*u(t)^3]]
+            [[s(t)^2 == -c(t)^2 + 1, diff(c(t), t) == -s(t), diff(u(t), t)^2 == 4*u(t)^3]]
         """
         cdef result, nbz, i
         cdef bytes mesgerr, strpoly, strgens, strrels, newval
@@ -3711,7 +3842,7 @@ cdef class RegularDifferentialChain:
             [regular_differential_chain, regular_differential_chain]
             sage: C = ideal [0]
             sage: C.equations ()
-            [D[0](u)(t)^2 - 4*u(t)]
+            [diff(u(t), t)^2 - 4*u(t)]
             sage: C.__number_of_equations ()
             1
         """
@@ -3787,7 +3918,7 @@ cdef class BaseFieldExtension:
 
         sage: L = R.RosenfeldGroebner ([diff(y(x),x)^2-a*y(x)])
         sage: [ C.equations () for C in L ]
-        [[-a*y(x) + D[0](y)(x)^2], [a, D[0](y)(x)], [y(x)]]
+        [[-a*y(x) + diff(y(x), x)^2], [a, diff(y(x), x)], [y(x)]]
 
     In this variant, the :meth:`~sage.calculus.DifferentialAlgebra.DifferentialRing.RosenfeldGroebner`
     algorithm is applied over the base field ``F(x) = K(a,b) = Q(a,b,x)``, obtained by
@@ -3797,7 +3928,7 @@ cdef class BaseFieldExtension:
 
         sage: L = R.RosenfeldGroebner ([diff(y(x),x)^2-a*y(x)], basefield = F)
         sage: [ C.equations () for C in L ]
-        [[-a*y(x) + D[0](y)(x)^2], [y(x)]]
+        [[-a*y(x) + diff(y(x), x)^2], [y(x)]]
 
     The next example illustrates field extensions defined by generators
     and relations. Denote ``f(x,y)`` = `\tan(x+y^2)`. Then ``f(x,y)`` satisfies
@@ -3815,8 +3946,10 @@ cdef class BaseFieldExtension:
         sage: F = BaseFieldExtension (relations = C)
         sage: F.generators ()
         [f(x, y)]
-        sage: F.relations ().equations ()
-        [-2*y*f(x, y)^2 - 2*y + D[1](f)(x, y), -f(x, y)^2 + D[0](f)(x, y) - 1]
+        sage: F.relations ().equations () # old docstring; not tested; auto-converted to next test
+        [-2*y*f(x, y)^2 - 2*y + diff(f(x,y), y), -f(x, y)^2 + diff(f(x,y), x) - 1]
+        sage: F.relations ().equations () == [-2*y*f(x, y)^2 - 2*y + diff(f(x,y), y), -f(x, y)^2 + diff(f(x,y), x) - 1]
+        True
 
     Again, the base field ``F`` permits to avoid some cases in the output of
     the :meth:`~sage.calculus.DifferentialAlgebra.DifferentialRing.RosenfeldGroebner` 
@@ -3824,8 +3957,10 @@ cdef class BaseFieldExtension:
 
         sage: eqn = diff(u(x),x)^2-(f(x,y)^2+1)*u(x) == 0
         sage: L = R.RosenfeldGroebner ([eqns[0], eqns[1], eqn])
-        sage: [ C.equations () for C in L ]
-        [[f(x, y)^2 + 1, D[0](u)(x)], [-2*y*f(x, y)^2 - 2*y + D[1](f)(x, y), -f(x, y)^2 + D[0](f)(x, y) - 1, u(x)]]
+        sage: [ C.equations () for C in L ] # old docstring; not tested; auto-converted to next test
+        [[f(x, y)^2 + 1, diff(u(x), x)], [-2*y*f(x, y)^2 - 2*y + diff(f(x,y), y), -f(x, y)^2 + diff(f(x,y), x) - 1, u(x)]]
+        sage: [ C.equations () for C in L ] == [[f(x, y)^2 + 1, diff(u(x), x)], [-2*y*f(x, y)^2 - 2*y + diff(f(x,y), y), -f(x, y)^2 + diff(f(x,y), x) - 1, u(x)]]
+        True
 
     In the next variant, a single case is computed. 
     The :meth:`~sage.calculus.DifferentialAlgebra.DifferentialRing.RosenfeldGroebner`
@@ -3834,8 +3969,10 @@ cdef class BaseFieldExtension:
     equations is thus `u(x) = 0`::
 
         sage: L = R.RosenfeldGroebner ([eqn], basefield = F)
-        sage: [ C.equations () for C in L ]
-        [[-2*y*f(x, y)^2 - 2*y + D[1](f)(x, y), -f(x, y)^2 + D[0](f)(x, y) - 1, u(x)]]
+        sage: [ C.equations () for C in L ] # old docstring; not tested; auto-converted to next test
+        [[-2*y*f(x, y)^2 - 2*y + diff(f(x,y), y), -f(x, y)^2 + diff(f(x,y), x) - 1, u(x)]]
+        sage: [ C.equations () for C in L ] == [[-2*y*f(x, y)^2 - 2*y + diff(f(x,y), y), -f(x, y)^2 + diff(f(x,y), x) - 1, u(x)]]
+        True
     """
 
     cdef bool rels_are_provided
