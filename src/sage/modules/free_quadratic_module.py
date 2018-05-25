@@ -468,6 +468,53 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
         """
         return self.gram_matrix().determinant()
 
+    def direct_sum(self, M, return_embeddings=False):
+        r"""
+        Return the direct sum of this quadratic module with ``M``.
+
+        INPUT:
+
+        - ``M`` -- a quadratic module over the same base ring
+
+        EXAMPLES::
+
+            sage: A = IntegralLattice(1)
+            sage: A.direct_sum(A)
+            Lattice of degree 2 and rank 2 over Integer Ring
+            Basis matrix:
+            [1 0]
+            [0 1]
+            Inner product matrix:
+            [1 0]
+            [0 1]
+        """
+        from sage.matrix.constructor import matrix
+        R = self.base_ring()
+        if R != M.base_ring():
+            raise ValueError("modules must be defined over the same base ring")
+        #if self.inner_product_ring() != M.inner_product_ring():
+        #    raise ValueError("modules must have the same inner product ring")
+        IM = matrix.block_diagonal([self.inner_product_matrix(),
+                                    M.inner_product_matrix()])
+        ambient = FreeQuadraticModule(R,
+                                      self.degree() + M.degree(), IM)
+        smzero = matrix.zero(self.coordinate_ring(),self.rank(), M.degree())
+        mszero = matrix.zero(self.coordinate_ring(),M.rank(), self.degree())
+        basis = self.basis_matrix().augment(smzero).stack(
+                            mszero.augment(M.basis_matrix()))
+        ipm = ambient.inner_product_matrix()
+        DS = FreeQuadraticModule_submodule_with_basis_pid(ambient=ambient,
+                                   basis=basis,
+                                   inner_product_matrix=ipm,
+                                   already_echelonized=False)
+        n = self.dimension()
+        fs = self.hom(basis[:n])
+        fo = M.hom(basis[n:])
+        if return_embeddings:
+            return DS, fs, fo
+        else:
+            return DS
+
     def discriminant(self):
         """
         Return the discriminant of this free module, defined to be (-1)^r
@@ -1216,6 +1263,19 @@ class FreeQuadraticModule_ambient_field(
             [2 1 0]
             [1 2 0]
             [0 1 2]
+
+        TESTS:
+
+        Check for :trac:`10606`::
+
+            sage: D = matrix.diagonal(ZZ, [1,1])
+            sage: V = VectorSpace(GF(46349), 2, inner_product_matrix=D)
+            sage: deepcopy(V)
+            Ambient quadratic space of dimension 2 over Finite Field
+            of size 46349
+            Inner product matrix:
+            [1 0]
+            [0 1]
         """
         free_module.FreeModule_ambient_field.__init__(
             self, base_field=base_field, dimension=dimension, sparse=sparse)

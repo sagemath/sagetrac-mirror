@@ -90,7 +90,8 @@ class QuadraticForm(SageObject):
        - `R` -- ring for which the quadratic form is defined
        - `n` -- an integer >= 0
        - ``entries`` -- a list of `n(n+1)/2` coefficients of the quadratic form
-         in `R` (given lexographically, or equivalently, by rows of the matrix)
+         in `R` (given lexicographically, or equivalently, by rows of the
+         matrix)
 
     #. ``QuadraticForm(R, n)``, where
 
@@ -293,7 +294,8 @@ class QuadraticForm(SageObject):
     from sage.quadratic_forms.quadratic_form__neighbors import \
             find_primitive_p_divisible_vector__random, \
             find_primitive_p_divisible_vector__next, \
-            find_p_neighbor_from_vec
+            find_p_neighbor_from_vec, \
+            neighbor_method
 
     ## Routines to reduce a given quadratic form
     from sage.quadratic_forms.quadratic_form__reduction_theory import \

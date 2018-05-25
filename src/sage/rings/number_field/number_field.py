@@ -31,6 +31,7 @@ AUTHORS:
 
 - John Jones (2017-07): improve check for is_galois(), add is_abelian(), building on work in patch by Chris Wuthrich
 
+- Anna Haensch (2018-03): added :meth:``quadratic_defect``
 
 .. note::
 
@@ -114,6 +115,9 @@ import sage.rings.real_lazy
 
 from sage.rings.finite_rings.integer_mod import mod
 
+
+from sage.arith.misc import is_square, quadratic_residues
+
 from sage.misc.fast_methods import WithEqualityById
 from sage.misc.functional import is_odd, lift
 
@@ -144,6 +148,7 @@ from . import number_field_morphisms
 from itertools import count
 from builtins import zip
 from sage.misc.superseded import deprecated_function_alias
+
 
 _NumberFields = NumberFields()
 
@@ -2256,21 +2261,93 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         return not self.is_absolute()
 
-    @cached_method
+    def quadratic_defect(self, a, p):
+        r"""
+        Return the valuation of the quadratic defect of `a` at `p`.
+
+        INPUT:
+
+        - ``a`` an element of ``self``
+        - ``p`` a prime ideal
+
+        ALGORITHM:
+
+        This is an implementation of Algorithm 3.1.3 from [Kir2016]_
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2 + 2)
+            sage: p = K.primes_above(2)[0]
+            sage: K.quadratic_defect(5, p)
+            4
+            sage: K.quadratic_defect(0, p)
+            +Infinity
+            sage: K.quadratic_defect(a, p)
+            1
+            sage: K.<a> = CyclotomicField(5)
+            sage: p = K.primes_above(2)[0]
+            sage: K.quadratic_defect(5, p)
+            +Infinity
+        """
+        from sage.rings.all import PolynomialRing
+        if not a in self:
+            raise TypeError(str(a) + " must be an element of " + str(self))
+        if not self == QQ and not p.parent() == self.ideal_monoid():
+            raise TypeError(str(p) + " is not a prime ideal in "
+             + str(self.ideal_monoid()))
+        if not p.is_prime():
+            raise ValueError(str(p) + " must be prime")
+        if a.is_zero():
+            return Infinity
+        v = self(a).valuation(p)
+        if v % 2 == 1:
+            return v
+        # compute uniformizer pi
+        for g in p.gens():
+            if g.valuation(p) == 1:
+                pi = g
+                break
+        a = self(a) / pi**v
+        F = p.residue_field()
+        q = F.reduction_map()
+        # The non-dyadic case
+        if self(2).valuation(p) == 0:
+            if q(a).is_square():
+                return Infinity
+            return v
+        # The dyadic case
+        s = self(F.lift((1/F(a)).sqrt()))
+        a = self(s**2) * a
+        u = self(4).valuation(p)
+        w = (a - 1).valuation(p)
+        R = PolynomialRing(F, 'x')
+        x = R.gen()
+        f = R(x**2 + x)
+        while w < u and w % 2 == 0:
+            s = self(q((a - 1) / pi**w)**(1/2))
+            a = a / (1 + s*(pi**(w/2)))**2
+            w = (a - 1).valuation(p)
+        if w < u and w % 2 ==1:
+            return v + w
+        if w == u and (f + F((a-1) / 4)).is_irreducible():
+            return v + w
+        return Infinity
+
     def absolute_field(self, names):
         """
-        Returns self as an absolute extension over QQ.
+        Return ``self`` as an absolute number field.
+
+        INPUT:
+
+        - ``names`` -- string; name of generator of the absolute field
 
         OUTPUT:
 
+        - ``K`` -- this number field (since it is already absolute)
 
-        -  ``K`` - this number field (since it is already
-           absolute)
-
-
-        Also, ``K.structure()`` returns from_K and to_K,
-        where from_K is an isomorphism from K to self and to_K is an
-        isomorphism from self to K.
+        Also, ``K.structure()`` returns ``from_K`` and ``to_K``, where
+        ``from_K`` is an isomorphism from `K` to ``self`` and ``to_K``
+        is an isomorphism from ``self`` to `K`.
 
         EXAMPLES::
 
@@ -6845,7 +6922,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
           (pseudo-)valuation or a fractional ideal
 
         EXAMPLES:
-    
+
         The valuation can be specified with an integer ``prime`` that is
         completely ramified in ``R``::
 
@@ -6931,7 +7008,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.<a> =  QQ.extension(t^2 - 2); K
             Number Field in a with defining polynomial t^2 - 2
             sage: K.some_elements()
-            [1, a, 2*a, 3*a - 4, 1/2, 1/3*a, 1/6*a, 0, 1/2*a, 2, ..., 12, -12*a + 18] 
+            [1, a, 2*a, 3*a - 4, 1/2, 1/3*a, 1/6*a, 0, 1/2*a, 2, ..., 12, -12*a + 18]
 
             sage: T.<u> = K[]
             sage: M.<b> = K.extension(t^3 - 5); M
@@ -6940,7 +7017,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             [1, b, 1/2*a*b, ..., 2/5*b^2 + 2/5, 1/6*b^2 + 5/6*b + 13/6, 2]
 
         TESTS:
-            
+
         This also works in trivial extensions::
 
             sage: R.<t> = QQ[]
@@ -7436,10 +7513,10 @@ class NumberField_absolute(NumberField_generic):
 
         g, alpha = f.polredbest(flag=1)
         beta = alpha.modreverse()
-        
+
         b = self(QQ['x'](lift(beta)))
         h = QQ['x'](g)
-        
+
         embedding = None
         if self.coerce_embedding() is not None:
             embedding = self.coerce_embedding()(b)
@@ -7454,7 +7531,7 @@ class NumberField_absolute(NumberField_generic):
 
         if both_maps:
             a = K(alpha)
-            to_K = self.hom([a]) 
+            to_K = self.hom([a])
 
             return K, from_K, to_K
 
@@ -9164,6 +9241,174 @@ class NumberField_absolute(NumberField_generic):
             raise ValueError("Non-prime ideal P (=%s) in hilbert_symbol" % P)
         return pari(self).nfhilbert(a, b, P.pari_prime())
 
+    def hilbert_conductor_inverse(self, S, b, check=True):
+        """
+        Return `a` such that the hilbert conductor of `a` and `b` is `S`.
+
+        The function is algorithm 3.4.1 _[Kir2016].
+        We note that class and unit groups are computed using the generalized
+        Riemann hypothesis. If it is false, this may result in an infinite loop.
+        Nevertheless, if the algorithm terminates the output is correct.
+
+        INPUT:
+
+        - ``S`` -- a list of places (or prime ideals) of even cardinality
+        - ``b`` -- a non-zero rational number which is a non-square locally
+          at every place in S.
+        - ``check`` -- bool (default: ``True``) perform additional checks on
+          the input and confirm the output
+
+        OUTPUT:
+
+        - an element `a` that has negative Hilbert symbol `(a,b)_p` for
+          every (finite and infinite) place `p` in `S`.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2 + 20072)
+            sage: S = [K.primes_above(3)[0], K.primes_above(23)[0]]
+            sage: s = K.hilbert_conductor_inverse(S, a + 1)
+            sage: K.hilbert_symbol(s, a + 1, S[0])
+            -1
+            sage: K.hilbert_symbol(s, a + 1, S[1])
+            -1
+            sage: K.<a> = CyclotomicField(11)
+            sage: S = [K.primes_above(2)[0], K.primes_above(11)[0]]
+            sage: K.hilbert_conductor_inverse(S, a + 5)
+            -a^9 + a^2
+            sage: k.<c> = K.maximal_totally_real_subfield()[0]
+            sage: S = [k.primes_above(3)[0], k.primes_above(5)[0]]
+            sage: S += k.real_places()[:2]
+            sage: b = 5 + b + b^9
+            sage: a = k.hilbert_conductor_inverse(S, c)
+            sage: [k.hilbert_symbol(s, a, p) for p in S]
+            [-1, -1, -1, -1]
+            sage: k.hilbert_conductor(a, b).norm()
+            15
+
+        TESTS::
+
+            sage: K.<a> = NumberField(x^2 + 20072)
+            sage: S = [K.primes_above(3)[0], K.primes_above(23)[0]]
+            sage: s = K.hilbert_conductor_inverse(S, a + 1)
+
+        AUTHORS:
+
+        - Simon Brandhorst (01-05-2018)
+        """
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
+        from sage.modules.free_module import VectorSpace
+        from sage.matrix.constructor import matrix
+        from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+
+        # input checks
+        if not type(S) is list:
+            raise TypeError( "first argument must be a list")
+        if not b in self:
+            raise TypeError("second argument must be a an element of this field")
+        b = self(b)
+        if b == 0:
+            raise ValueError("second argument must be nonzero")
+        if len(S) % 2 != 0:
+            raise ValueError("the list should be of even cardinality")
+        if check:
+            for p in S:
+                if p.parent() is self.ideal_monoid():
+                    if not p.is_prime():
+                        raise ValueError("not a prime ideal")
+                    if self.quadratic_defect(b, p) == infinity.Infinity:
+                        raise ValueError("%s is a square in the completion "%b +
+                                         "with respect to %s"%p)
+                else:
+                    if not p in self.real_places():
+                        raise ValueError("entries of the list must be " +
+                                         "prime ideals or real places")
+                    if p(b) > 0:
+                        raise ValueError("%s is a square in the completion " +
+                                         "with respect to %s" %(b,p))
+
+        # L is the list of primes that we need to consider, b must have
+        # nonzero valuation for each prime in L, this is the set S'
+        # in Kirschmer's algorithm
+        L = []
+        for P in self.prime_factors(b) + self.prime_factors(self(2)):
+            if not (P in S or P in L):
+                L.append(P)
+
+        # This adds some infinite places to L
+        for sigma in self.real_places():
+            if sigma(b) < 0 and sigma not in S:
+                L.append(sigma)
+        Cl = self.class_group(proof=False)
+        U = self.unit_group(proof=False).gens()
+        SL = S + L
+        # the finite places in SL
+        P = [p for p in SL if p.parent() is self.ideal_monoid()]
+
+        # v is the vector that we are searching for.
+        # It represents the case when the Hilbert
+        # symbol is negative for all primes in S and positive
+        # at all primes in S'
+        # For technical reasons, a Hilbert symbol of -1 is
+        # respresented as 1 and a Hilbert symbol of 1
+        # is represented as 0
+        V = VectorSpace(GF(2), len(SL))
+        v = V([1]*len(S) + [0]*len(L))
+
+        # The algorithm terminates when the vector v is in the
+        # subspace of V generated by the image of the phi map
+        # on the set of generators
+
+        def phi(x):
+            v = []
+            for p in SL:
+                v.append((1-self.hilbert_symbol(x, b, p))//2)
+            return V(v)
+        M = matrix([phi(g) for g in U])
+
+        # we have to work around the inconvenience that multiplicative
+        # abelian groups in sage do not yet have homomorphisms...
+        Cl_additive = AdditiveAbelianGroup(Cl.gens_orders())
+        n = len(Cl_additive.gens())
+        A = AdditiveAbelianGroup([0]*(len(P)+1))
+        PCl = []
+        for p in P:
+            pr = Cl(p).exponents()
+            pr = Cl_additive.sum([Cl_additive.gens()[i]*pr[i] for i in range(n)])
+            PCl.append(pr)
+
+        # search through all the primes
+        found = False
+        for q in sage.sets.primes.Primes():
+            for Q in self.primes_above(q):
+                if Q in P:
+                    continue
+                pr = Cl(Q).exponents()
+                pr = Cl_additive.sum([Cl_additive.gens()[i]*pr[i] for i in range(n)])
+                # compute the kernel
+                K = A.hom(PCl + [pr]).kernel().gens()
+                K = [A(k) for k in K]
+                # generate it by a list of ideals
+                Pq = P + [Q]
+                K = [prod([Pq[i]**k[i] for i in range(len(Pq))]) for k in K]
+                # the ideals are principal
+                # find a single generator for each
+                K = [k.gens_reduced(proof=False)[0] for k in K]
+                # we can now apply phi
+                W = M.stack(matrix([phi(g) for g in K]))
+                if v in W.row_space():
+                    found = True
+                    break
+            if found:
+                break
+        J = list(U) + K
+        l = W.solve_left(v)
+        a = prod([J[i]**l[i] for i in range(len(J))])
+        # let us double check the result
+        if check:
+            assert phi(a) == v, "oops"
+        return a
+
     def hilbert_conductor(self,a,b):
         """
         This is the product of all (finite) primes where the Hilbert symbol is -1.
@@ -9503,9 +9748,43 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: F.structures
             [None]
         """
-        F,R = NumberField_generic.construction(self)
+        F, R = NumberField_generic.construction(self)
         F.cyclotomic = self.__n
-        return F,R
+        return F, R
+
+    def _pushout_(self, other):
+        r"""
+        TESTS:
+
+        Pushout is implemented for cyclotomic fields::
+
+            sage: K.<a> = CyclotomicField(3)
+            sage: L.<b> = CyclotomicField(4)
+            sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.explain(K,L,operator.add)
+            Coercion on left operand via
+                Generic morphism:
+                  From: Cyclotomic Field of order 3 and degree 2
+                  To:   Cyclotomic Field of order 12 and degree 4
+                  Defn: a -> zeta12^2 - 1
+            Coercion on right operand via
+                Generic morphism:
+                  From: Cyclotomic Field of order 4 and degree 2
+                  To:   Cyclotomic Field of order 12 and degree 4
+                  Defn: b -> zeta12^3
+            Arithmetic performed after coercions.
+            Result lives in Cyclotomic Field of order 12 and degree 4
+            Cyclotomic Field of order 12 and degree 4
+
+        As a consequence, operations work nicely::
+
+            sage: a + b
+            zeta12^3 + zeta12^2 - 1
+            sage: a * b
+            -zeta12
+        """
+        if isinstance(other, NumberField_cyclotomic):
+            return CyclotomicField((self.__n).lcm(other.__n))
 
     def _magma_init_(self, magma):
         """
@@ -11266,3 +11545,5 @@ def is_real_place(v):
         return True
     except TypeError:
         return False
+
+
