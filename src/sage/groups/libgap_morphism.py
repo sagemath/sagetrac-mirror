@@ -302,7 +302,7 @@ class GroupMorphism_libgap(Morphism):
         if not self.codomain().gap().IsSubgroup(S.gap()).sage():
             raise ValueError("%s must be a subgroup of %s"%(S, self))
         preimage = phi.PreImage(S.gap())
-        return self.codomain()._subgroup_constructor(preimage)
+        return self.domain()._subgroup_constructor(preimage)
 
 class GroupHomset_libgap(HomsetWithBase):
     r"""
