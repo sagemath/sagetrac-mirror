@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# cython: binding=True
 r"""
 Connectivity related functions
 
@@ -26,7 +26,6 @@ Here is what it can do:
     :meth:`strongly_connected_components_digraph` | Returns the digraph of the strongly connected components
     :meth:`strongly_connected_components_subgraphs` | Returns the strongly connected components as a list of subgraphs.
     :meth:`strongly_connected_component_containing_vertex` | Returns the strongly connected component containing a given vertex.
-    :meth:`strongly_connected_components` | Returns the list of strongly connected components of the digraph.
     :meth:`strong_articulation_points` | Return the strong articulation points of this digraph.
 
 
@@ -1710,5 +1709,3 @@ def strong_articulation_points(G):
 
     return SAP
 
-# Aliases to functions defined in other modules
-from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components as strongly_connected_components
