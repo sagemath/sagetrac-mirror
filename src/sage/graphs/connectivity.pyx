@@ -639,7 +639,7 @@ def is_cut_edge(G, u, v=None, label=None):
     if g.is_directed():
         # (u,v) is a cut-edge if u is not in the connected
         # component containing v of self-(u,v)
-        sol = not u in g.connected_component_containing_vertex(v)
+        sol = not u in connected_component_containing_vertex(g,v)
     else:
         # (u,v) is a cut-edge if there is no path from u to v in
         # self-(u,v)
@@ -1004,9 +1004,9 @@ def edge_connectivity(G,
                 b = set(H).difference(a)
                 val.append([a,b])
             else:
-                val.append(H.connected_components())
+                val.append(connected_components(H))
         elif vertices:
-            val.append(G.connected_components())
+            val.append(connected_components(G))
 
         return val
 
@@ -1022,15 +1022,15 @@ def edge_connectivity(G,
     if value_only and not use_edge_labels:
 
         if G.is_directed():
-            if not G.is_strongly_connected():
+            if not is_strongly_connected(G):
                 return 0.0
 
         else:
-            if not G.is_connected():
+            if not is_connected(G):
                 return 0.0
 
             h = G.strong_orientation()
-            if not h.is_strongly_connected():
+            if not is_strongly_connected(h):
                 return 1.0
 
 
@@ -1289,14 +1289,14 @@ def vertex_connectivity(G, value_only=True, sets=False, k=None, solver=None, ver
 
     if value_only:
         if G.is_directed():
-            if not G.is_strongly_connected():
+            if not is_strongly_connected(G):
                 return 0 if k is None else False
 
         else:
-            if not G.is_connected():
+            if not is_connected(G):
                 return 0 if k is None else False
 
-            if len(G.blocks_and_cut_vertices()[0]) > 1:
+            if len(blocks_and_cut_vertices(G)[0]) > 1:
                 return 1 if k is None else (k == 1)
 
         if k == 1:
@@ -1693,7 +1693,7 @@ def strong_articulation_points(G):
         r = next(g.vertex_iterator())
         E = g.incoming_edges(r) + g.outgoing_edges(r)
         g.delete_vertex(r)
-        if not g.is_strongly_connected():
+        if not is_strongly_connected(g):
             SAP.append(r)
         g.add_edges(E)
 
@@ -1723,11 +1723,13 @@ def bridges(G, labels=True):
 
     EXAMPLES::
 
+        sage: from sage.graphs.connectivity import bridges
+        sage: from sage.graphs.connectivity import is_connected
         sage: g = 2*graphs.PetersenGraph()
         sage: g.add_edge(1,10)
-        sage: g.is_connected()
+        sage: is_connected(g)
         True
-        sage: g.bridges()
+        sage: bridges(g)
         [(1, 10, None)]
 
     TESTS:
@@ -1736,23 +1738,30 @@ def bridges(G, labels=True):
 
         sage: G = Graph()
         sage: G.add_edge(0, 1)
-        sage: G.bridges()
+        sage: bridges(G)
         [(0, 1, None)]
         sage: G.allow_loops(True)
         sage: G.add_edge(0, 0)
         sage: G.add_edge(1, 1)
-        sage: G.bridges()
+        sage: bridges(G)
         [(0, 1, None)]
+
+    If ``G`` is not a Sage Graph, an error is raised::
+
+        sage: bridges('I am not a graph')
+        Traceback (most recent call last):
+        ...
+        TypeError: the input must be an Undirected Sage graph
     """
     from sage.graphs.graph import Graph
     if not isinstance(G, Graph):
         raise TypeError("the input must be an Undirected Sage graph")
 
     # Small graphs and disconnected graphs have no bridge
-    if G.order() < 2 or not G.is_connected():
+    if G.order() < 2 or not is_connected(G):
         return []
 
-    B,C = G.blocks_and_cut_vertices()
+    B,C = blocks_and_cut_vertices(G)
 
     # A block of size 2 is a bridge, unless the vertices are connected with
     # multiple edges.
