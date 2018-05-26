@@ -5,6 +5,8 @@ Connectivity related functions
 This module implements the connectivity based functions for graphs and digraphs.
 Here is what it can do:
 
+**For both directed and undirected graphs:**
+
 .. csv-table::
     :class: contentstable
     :widths: 30, 70
@@ -16,17 +18,32 @@ Here is what it can do:
     :meth:`connected_components_subgraphs` | Return a list of connected components as graph objects.
     :meth:`connected_component_containing_vertex` | Return a list of the vertices connected to vertex.
     :meth:`connected_components_sizes` | Return the sizes of the connected components as a list.
-    :meth:`blocks_and_cut_vertices` | Compute the blocks and cut vertices of the graph.
     :meth:`blocks_and_cuts_tree` | Compute the blocks-and-cuts tree of the graph.
     :meth:`is_cut_edge` | Return True if the input edge is a cut-edge or a bridge.
     :meth:`is_cut_vertex` | Return True if the input vertex is a cut-vertex.
     :meth:`edge_connectivity` | Return the edge connectivity of the graph.
     :meth:`vertex_connectivity` | Return the vertex connectivity of the graph.
+
+**For DiGraph:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
     :meth:`is_strongly_connected` | Returns whether the current ``DiGraph`` is strongly connected.
     :meth:`strongly_connected_components_digraph` | Returns the digraph of the strongly connected components
     :meth:`strongly_connected_components_subgraphs` | Returns the strongly connected components as a list of subgraphs.
     :meth:`strongly_connected_component_containing_vertex` | Returns the strongly connected component containing a given vertex.
     :meth:`strong_articulation_points` | Return the strong articulation points of this digraph.
+
+**For undirected graphs:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
     :meth:`bridges` | Returns a list of the bridges (or cut edges) of given undirected graph.
 
 Methods
@@ -284,184 +301,6 @@ def connected_components_sizes(G):
     return sorted((len(cc) for cc in connected_components(G)),reverse=True)
 
 
-def blocks_and_cut_vertices(G):
-    """
-    Computes the blocks and cut vertices of the graph.
-
-    In the case of a digraph, this computation is done on the underlying
-    graph.
-
-    A cut vertex is one whose deletion increases the number of connected
-    components. A block is a maximal induced subgraph which itself has no
-    cut vertices. Two distinct blocks cannot overlap in more than a single
-    cut vertex.
-
-    OUTPUT: ``(B, C)``, where ``B`` is a list of blocks - each is a list of
-    vertices and the blocks are the corresponding induced subgraphs - and
-    ``C`` is a list of cut vertices.
-
-    ALGORITHM:
-
-      We implement the algorithm proposed by Tarjan in [Tarjan72]_. The
-      original version is recursive. We emulate the recursion using a stack.
-
-    .. SEEALSO::
-
-        - :meth:`blocks_and_cuts_tree`
-        - :meth:`~Graph.is_biconnected`
-        - :meth:`~Graph.bridges`
-
-    EXAMPLES:
-
-    We construct a trivial example of a graph with one cut vertex::
-
-        sage: from sage.graphs.connectivity import blocks_and_cut_vertices
-        sage: rings = graphs.CycleGraph(10)
-        sage: rings.merge_vertices([0, 5])
-        sage: blocks_and_cut_vertices(rings)
-        ([[0, 1, 2, 3, 4], [0, 6, 7, 8, 9]], [0])
-
-    The Petersen graph is biconnected, hence has no cut vertices::
-
-        sage: blocks_and_cut_vertices(graphs.PetersenGraph())
-        ([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], [])
-
-    Decomposing paths to pairs::
-
-        sage: g = graphs.PathGraph(4) + graphs.PathGraph(5)
-        sage: blocks_and_cut_vertices(g)
-        ([[2, 3], [1, 2], [0, 1], [7, 8], [6, 7], [5, 6], [4, 5]], [1, 2, 5, 6, 7])
-
-    TESTS::
-
-        sage: blocks_and_cut_vertices(Graph(0))
-        ([], [])
-        sage: blocks_and_cut_vertices(Graph(1))
-        ([[0]], [])
-        sage: blocks_and_cut_vertices(Graph(2))
-        ([[0], [1]], [])
-
-    If ``G`` is not a Sage graph, an error is raised::
-
-        sage: blocks_and_cut_vertices('I am not a graph')
-        Traceback (most recent call last):
-        ...
-        TypeError: the input must be a Sage graph
-
-    REFERENCE:
-
-    .. [Tarjan72] \R.E. Tarjan. Depth-First Search and Linear Graph
-      Algorithms. SIAM J. Comput. 1(2): 146-160 (1972).
-    """
-    from sage.graphs.generic_graph import GenericGraph
-    if not isinstance(G, GenericGraph):
-        raise TypeError("the input must be a Sage graph")
-
-    blocks = []
-    cut_vertices = set()
-
-    # We iterate over all vertices to ensure that we visit each connected
-    # component of the graph
-    seen = set()
-    for start in G.vertex_iterator():
-        if start in seen:
-            continue
-
-        # Special case of an isolated vertex
-        if not G.degree(start):
-            blocks.append([start])
-            seen.add(start)
-            continue
-
-        # Each vertex is numbered with an integer from 1...|V(G)|,
-        # corresponding to the order in which it is discovered during the
-        # DFS.
-        number = {}
-        num = 1
-
-        # Associates to each vertex v the smallest number of a vertex that
-        # can be reached from v in the orientation of the graph that the
-        # algorithm creates.
-        low_point = {}
-
-        # Associates to each vertex an iterator over its neighbors
-        neighbors = {}
-
-        stack = [start]
-        edge_stack = []
-        start_already_seen = False
-
-        while stack:
-            v = stack[-1]
-            seen.add(v)
-
-            # The first time we meet v
-            if not v in number:
-                # We number the vertices in the order they are reached
-                # during DFS
-                number[v] = num
-                neighbors[v] = G.neighbor_iterator(v)
-                low_point[v] = num
-                num += 1
-
-            try:
-                # We consider the next of its neighbors
-                w = next(neighbors[v])
-
-                # If we never met w before, we remember the direction of
-                # edge vw, and add w to the stack.
-                if not w in number:
-                    edge_stack.append( (v,w) )
-                    stack.append(w)
-
-                # If w is an ancestor of v in the DFS tree, we remember the
-                # direction of edge vw
-                elif number[w]<number[v]:
-                    edge_stack.append( (v,w) )
-                    low_point[v] = min(low_point[v], number[w])
-
-            # We went through all of v's neighbors
-            except StopIteration:
-                # We trackback, so w takes the value of v and we pop the
-                # stack
-                w = stack.pop()
-
-                # Test termination of the algorithm
-                if not stack:
-                    break
-
-                v = stack[-1]
-
-                # Propagating the information : low_point[v] indicates the
-                # smallest vertex (the vertex x with smallest number[x])
-                # that can be reached from v
-                low_point[v] = min(low_point[v], low_point[w])
-
-                # The situation in which there is no path from w to an
-                # ancestor of v : we have identified a new biconnected
-                # component
-                if low_point[w] >= number[v]:
-                    new_block = set()
-                    nw = number[w]
-                    u1,u2 = edge_stack.pop()
-                    while number[u1] >= nw:
-                        new_block.add(u1)
-                        u1,u2 = edge_stack.pop()
-                    new_block.add(u1)
-                    blocks.append(sorted(list(new_block)))
-
-                    # We update the set of cut vertices.
-                    #
-                    # If v is start, then we add it only if it belongs to
-                    # several blocks.
-                    if (not v is start) or start_already_seen:
-                        cut_vertices.add(v)
-                    else:
-                        start_already_seen = True
-
-    return blocks,sorted(list(cut_vertices))
-
-
 def blocks_and_cuts_tree(G):
     """
     Returns the blocks-and-cuts tree of ``self``.
@@ -483,7 +322,7 @@ def blocks_and_cuts_tree(G):
 
     .. SEEALSO::
 
-        - :meth:`blocks_and_cut_vertices`
+        - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cut_vertices`
         - :meth:`~Graph.is_biconnected`
 
     EXAMPLES::
@@ -538,7 +377,7 @@ def blocks_and_cuts_tree(G):
         raise TypeError("the input must be a Sage graph")
 
     from sage.graphs.graph import Graph
-    B, C = blocks_and_cut_vertices(G)
+    B, C = G.blocks_and_cut_vertices()
     B = map(tuple, B)
     g = Graph()
     for bloc in B:
@@ -1296,7 +1135,7 @@ def vertex_connectivity(G, value_only=True, sets=False, k=None, solver=None, ver
             if not is_connected(G):
                 return 0 if k is None else False
 
-            if len(blocks_and_cut_vertices(G)[0]) > 1:
+            if len(G.blocks_and_cut_vertices()[0]) > 1:
                 return 1 if k is None else (k == 1)
 
         if k == 1:
@@ -1626,7 +1465,7 @@ def strong_articulation_points(G):
 
     .. SEEALSO::
 
-        - :meth:`strongly_connected_components`
+        - :meth:`~sage.graphs.digraph.DiGraph.strongly_connected_components`
         - :meth:`~sage.graphs.base.boost_graph.dominator_tree`
 
     TESTS:
@@ -1761,7 +1600,7 @@ def bridges(G, labels=True):
     if G.order() < 2 or not is_connected(G):
         return []
 
-    B,C = blocks_and_cut_vertices(G)
+    B,C = G.blocks_and_cut_vertices()
 
     # A block of size 2 is a bridge, unless the vertices are connected with
     # multiple edges.
