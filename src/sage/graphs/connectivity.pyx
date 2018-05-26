@@ -27,7 +27,7 @@ Here is what it can do:
     :meth:`strongly_connected_components_subgraphs` | Returns the strongly connected components as a list of subgraphs.
     :meth:`strongly_connected_component_containing_vertex` | Returns the strongly connected component containing a given vertex.
     :meth:`strong_articulation_points` | Return the strong articulation points of this digraph.
-
+    :meth:`bridges` | Returns a list of the bridges (or cut edges) of given undirected graph.
 
 Methods
 -------
@@ -1709,4 +1709,60 @@ def strong_articulation_points(G):
 
     return SAP
 
+def bridges(G, labels=True):
+    r"""
+    Returns a list of the bridges (or cut edges).
 
+    A bridge is an edge whose deletion disconnects the undirected graph.
+    A disconnected graph has no bridge.
+
+    INPUT:
+
+    - ``labels`` -- (default: ``True``) if ``False``, each bridge is a tuple
+      `(u, v)` of vertices
+
+    EXAMPLES::
+
+        sage: g = 2*graphs.PetersenGraph()
+        sage: g.add_edge(1,10)
+        sage: g.is_connected()
+        True
+        sage: g.bridges()
+        [(1, 10, None)]
+
+    TESTS:
+
+    Ticket :trac:`23817` is solved::
+
+        sage: G = Graph()
+        sage: G.add_edge(0, 1)
+        sage: G.bridges()
+        [(0, 1, None)]
+        sage: G.allow_loops(True)
+        sage: G.add_edge(0, 0)
+        sage: G.add_edge(1, 1)
+        sage: G.bridges()
+        [(0, 1, None)]
+    """
+    from sage.graphs.graph import Graph
+    if not isinstance(G, Graph):
+        raise TypeError("the input must be an Undirected Sage graph")
+
+    # Small graphs and disconnected graphs have no bridge
+    if G.order() < 2 or not G.is_connected():
+        return []
+
+    B,C = G.blocks_and_cut_vertices()
+
+    # A block of size 2 is a bridge, unless the vertices are connected with
+    # multiple edges.
+    ME = set(G.multiple_edges(labels=False))
+    my_bridges = []
+    for b in B:
+        if len(b) == 2 and not tuple(b) in ME:
+            if labels:
+                my_bridges.append((b[0], b[1], G.edge_label(b[0], b[1])))
+            else:
+                my_bridges.append(tuple(b))
+
+    return my_bridges
