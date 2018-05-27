@@ -2,7 +2,7 @@
 cd src
 
 CFLAGS="-Werror $CFLAGS"; export CFLAGS
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --with-gmp="$SAGE_LOCAL" --with-mpfr="$SAGE_LOCAL" --with-blad="$SAGE_LOCAL"
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --with-gmp="$SAGE_LOCAL" --with-blad="$SAGE_LOCAL" --enable-sage
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring BMI."
     exit 1
