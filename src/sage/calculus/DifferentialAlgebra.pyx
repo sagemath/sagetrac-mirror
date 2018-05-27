@@ -297,8 +297,6 @@ from sage.calculus.var import function
 
 # __all__ = (DifferentialRing, RegularDifferentialChain, BaseFieldExtension)
 
-include "sage/ext/python.pxi"
-include "sage/ext/python_ref.pxi"
 import sys
 import string
 
