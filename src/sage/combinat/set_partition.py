@@ -401,6 +401,9 @@ class AbstractSetPartition(ClonableArray):
         """
         return sum(len(x) for x in self)
 
+    size = base_set_cardinality
+    cardinality = ClonableArray.__len__
+
     def coarsenings(self):
         """
         Return a list of coarsenings of ``self``.
@@ -436,6 +439,93 @@ class AbstractSetPartition(ClonableArray):
             return ret
         return [self.parent()(union(s)) for s in SP]
 
+    def refinements(self):
+        """
+        Return a list of refinements of ``self``.
+
+        .. SEEALSO::
+
+            :meth:`coarsenings`
+
+        EXAMPLES::
+
+            sage: SetPartition([[1,3],[2,4]]).refinements()
+            [{{1, 3}, {2, 4}},
+             {{1, 3}, {2}, {4}},
+             {{1}, {2, 4}, {3}},
+             {{1}, {2}, {3}, {4}}]
+            sage: SetPartition([[1],[2,4],[3]]).refinements()
+            [{{1}, {2, 4}, {3}}, {{1}, {2}, {3}, {4}}]
+            sage: SetPartition([]).refinements()
+            [{}]
+        """
+        L = [SetPartitions(part) for part in self]
+        return [SetPartition(sum(map(list, x), [])) for x in itertools.product(*L)]
+
+    def strict_coarsenings(self):
+        r"""
+        Return all strict coarsenings of ``self``.
+
+        Strict coarsening is the binary relation on set partitions
+        defined as the transitive-and-reflexive closure of the
+        relation `\prec` defined as follows: For two set partitions
+        `A` and `B`, we have `A \prec B` if there exist parts
+        `A_i, A_j` of `A` such that `\max(A_i) < \min(A_j)` and
+        `B = A \setminus \{A_i, A_j\} \cup \{ A_i \cup A_j \}`.
+
+        EXAMPLES::
+
+            sage: A = SetPartition([[1],[2,3],[4]])
+            sage: A.strict_coarsenings()
+            [{{1}, {2, 3}, {4}}, {{1, 2, 3}, {4}}, {{1, 4}, {2, 3}},
+             {{1}, {2, 3, 4}}, {{1, 2, 3, 4}}]
+            sage: SetPartition([[1],[2,4],[3]]).strict_coarsenings()
+            [{{1}, {2, 4}, {3}}, {{1, 2, 4}, {3}}, {{1, 3}, {2, 4}}]
+            sage: SetPartition([]).strict_coarsenings()
+            [{}]
+        """
+        # This is more or less generic code for computing a
+        # transitive-and-reflexive closure by depth-first search.
+        todo = [self]
+        visited = set([self])
+        ret = [self]
+        while todo:
+            A = todo.pop()
+            for i, part in enumerate(A):
+                for j, other in enumerate(A[i+1:]):
+                    if max(part) < min(other):
+                        next = A[:i]
+                        next.append(part.union(other))
+                        next += A[i+1:i+1+j] + A[i+j+2:]
+                        next = SetPartition(next)
+                        if next not in visited:
+                            todo.append(next)
+                            visited.add(next)
+                            ret.append(next)
+        return ret
+
+    @combinatorial_map(name='shape')
+    def shape(self):
+        r"""
+        Return the integer partition whose parts are the sizes of the sets
+        in ``self``.
+
+        EXAMPLES::
+
+            sage: S = SetPartitions(5)
+            sage: x = S([[1,2], [3,5,4]])
+            sage: x.shape()
+            [3, 2]
+            sage: y = S([[2], [3,1], [5,4]])
+            sage: y.shape()
+            [2, 2, 1]
+        """
+        return Partition(sorted(map(len, self), reverse=True))
+
+    # we define aliases for shape()
+    shape_partition = shape
+    to_partition = shape
+
     def max_block_size(self):
         r"""
         The maximum block size of the diagram.
@@ -453,6 +543,55 @@ class AbstractSetPartition(ClonableArray):
         """
         return max(len(block) for block in self)
 
+    def standardization(self):
+        r"""
+        Return the standardization of ``self``.
+
+        Given a set partition `A = \{A_1, \ldots, A_n\}` of an ordered
+        set `S`, the standardization of `A` is the set partition of
+        `\{1, 2, \ldots, |S|\}` obtained by replacing the elements of
+        the parts of `A` by the integers `1, 2, \ldots, |S|` in such
+        a way that their relative order is preserved (i. e., the
+        smallest element in the whole set partition is replaced by
+        `1`, the next-smallest by `2`, and so on).
+
+        EXAMPLES::
+
+            sage: SetPartition([[4], [1, 3]]).standardization()
+            {{1, 2}, {3}}
+            sage: SetPartition([[4], [6, 3]]).standardization()
+            {{1, 3}, {2}}
+            sage: SetPartition([]).standardization()
+            {}
+            sage: SetPartition([('c','b'),('d','f'),('e','a')]).standardization()
+            {{1, 5}, {2, 3}, {4, 6}}
+        """
+        r = {e: i for i,e in enumerate(sorted(self.base_set()), 1)}
+        return SetPartitions(len(r))([[r[e] for e in b] for b in self])
+
+    def restriction(self, I):
+        """
+        Return the restriction of ``self`` to a subset ``I``
+        (which is given as a set or list or any other iterable).
+
+        EXAMPLES::
+
+            sage: A = SetPartition([[1], [2,3]])
+            sage: A.restriction([1,2])
+            {{1}, {2}}
+            sage: A.restriction([2,3])
+            {{2, 3}}
+            sage: A.restriction([])
+            {}
+            sage: A.restriction([4])
+            {}
+        """
+        ret = []
+        for part in self:
+            newpart = [i for i in part if i in I]
+            if len(newpart) != 0:
+                ret.append(newpart)
+        return SetPartition(ret)
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class SetPartition(AbstractSetPartition):
@@ -784,10 +923,6 @@ class SetPartition(AbstractSetPartition):
         res += "\\end{tikzpicture}"
         return res
 
-    cardinality = ClonableArray.__len__
-
-    size = AbstractSetPartition.base_set_cardinality
-
     def pipe(self, other):
         r"""
         Return the pipe of the set partitions ``self`` and ``other``.
@@ -829,28 +964,6 @@ class SetPartition(AbstractSetPartition):
             raised_newpart = Set([i + n for i in newpart])
             parts.append(raised_newpart)
         return SetPartition(parts)
-
-    @combinatorial_map(name='shape')
-    def shape(self):
-        r"""
-        Return the integer partition whose parts are the sizes of the sets
-        in ``self``.
-
-        EXAMPLES::
-
-            sage: S = SetPartitions(5)
-            sage: x = S([[1,2], [3,5,4]])
-            sage: x.shape()
-            [3, 2]
-            sage: y = S([[2], [3,1], [5,4]])
-            sage: y.shape()
-            [2, 2, 1]
-        """
-        return Partition(sorted(map(len, self), reverse=True))
-
-    # we define aliases for shape()
-    shape_partition = shape
-    to_partition = shape
 
     @combinatorial_map(name='to permutation')
     def to_permutation(self):
@@ -1162,56 +1275,6 @@ class SetPartition(AbstractSetPartition):
             maximum_so_far = max(maximum_so_far, max(S))
         return True
 
-    def standardization(self):
-        """
-        Return the standardization of ``self``.
-
-        Given a set partition `A = \{A_1, \ldots, A_n\}` of an ordered
-        set `S`, the standardization of `A` is the set partition of
-        `\{1, 2, \ldots, |S|\}` obtained by replacing the elements of
-        the parts of `A` by the integers `1, 2, \ldots, |S|` in such
-        a way that their relative order is preserved (i. e., the
-        smallest element in the whole set partition is replaced by
-        `1`, the next-smallest by `2`, and so on).
-
-        EXAMPLES::
-
-            sage: SetPartition([[4], [1, 3]]).standardization()
-            {{1, 2}, {3}}
-            sage: SetPartition([[4], [6, 3]]).standardization()
-            {{1, 3}, {2}}
-            sage: SetPartition([]).standardization()
-            {}
-            sage: SetPartition([('c','b'),('d','f'),('e','a')]).standardization()
-            {{1, 5}, {2, 3}, {4, 6}}
-        """
-        r = {e: i for i,e in enumerate(sorted(self.base_set()), 1)}
-        return SetPartitions(len(r))([[r[e] for e in b] for b in self])
-
-    def restriction(self, I):
-        """
-        Return the restriction of ``self`` to a subset ``I``
-        (which is given as a set or list or any other iterable).
-
-        EXAMPLES::
-
-            sage: A = SetPartition([[1], [2,3]])
-            sage: A.restriction([1,2])
-            {{1}, {2}}
-            sage: A.restriction([2,3])
-            {{2, 3}}
-            sage: A.restriction([])
-            {}
-            sage: A.restriction([4])
-            {}
-        """
-        ret = []
-        for part in self:
-            newpart = [i for i in part if i in I]
-            if len(newpart) != 0:
-                ret.append(newpart)
-        return SetPartition(ret)
-
     def ordered_set_partition_action(self, s):
         r"""
         Return the action of an ordered set partition ``s`` on ``self``.
@@ -1306,71 +1369,6 @@ class SetPartition(AbstractSetPartition):
                     mins[i] = over_max
             ret += temp
         return SetPartition(ret)
-
-    def refinements(self):
-        """
-        Return a list of refinements of ``self``.
-
-        .. SEEALSO::
-
-            :meth:`coarsenings`
-
-        EXAMPLES::
-
-            sage: SetPartition([[1,3],[2,4]]).refinements()
-            [{{1, 3}, {2, 4}},
-             {{1, 3}, {2}, {4}},
-             {{1}, {2, 4}, {3}},
-             {{1}, {2}, {3}, {4}}]
-            sage: SetPartition([[1],[2,4],[3]]).refinements()
-            [{{1}, {2, 4}, {3}}, {{1}, {2}, {3}, {4}}]
-            sage: SetPartition([]).refinements()
-            [{}]
-        """
-        L = [SetPartitions(part) for part in self]
-        return [SetPartition(sum(map(list, x), [])) for x in itertools.product(*L)]
-
-    def strict_coarsenings(self):
-        r"""
-        Return all strict coarsenings of ``self``.
-
-        Strict coarsening is the binary relation on set partitions
-        defined as the transitive-and-reflexive closure of the
-        relation `\prec` defined as follows: For two set partitions
-        `A` and `B`, we have `A \prec B` if there exist parts
-        `A_i, A_j` of `A` such that `\max(A_i) < \min(A_j)` and
-        `B = A \setminus \{A_i, A_j\} \cup \{ A_i \cup A_j \}`.
-
-        EXAMPLES::
-
-            sage: A = SetPartition([[1],[2,3],[4]])
-            sage: A.strict_coarsenings()
-            [{{1}, {2, 3}, {4}}, {{1, 2, 3}, {4}}, {{1, 4}, {2, 3}},
-             {{1}, {2, 3, 4}}, {{1, 2, 3, 4}}]
-            sage: SetPartition([[1],[2,4],[3]]).strict_coarsenings()
-            [{{1}, {2, 4}, {3}}, {{1, 2, 4}, {3}}, {{1, 3}, {2, 4}}]
-            sage: SetPartition([]).strict_coarsenings()
-            [{}]
-        """
-        # This is more or less generic code for computing a
-        # transitive-and-reflexive closure by depth-first search.
-        todo = [self]
-        visited = set([self])
-        ret = [self]
-        while todo:
-            A = todo.pop()
-            for i, part in enumerate(A):
-                for j, other in enumerate(A[i+1:]):
-                    if max(part) < min(other):
-                        next = A[:i]
-                        next.append(part.union(other))
-                        next += A[i+1:i+1+j] + A[i+j+2:]
-                        next = SetPartition(next)
-                        if next not in visited:
-                            todo.append(next)
-                            visited.add(next)
-                            ret.append(next)
-        return ret
 
     def arcs(self):
         r"""
@@ -2335,4 +2333,3 @@ def cyclic_permutations_of_set_partition_iterator(set_part):
         for right in cyclic_permutations_of_set_partition_iterator(set_part[1:]):
             for perm in CyclicPermutations(set_part[0]):
                 yield [perm] + right
-
