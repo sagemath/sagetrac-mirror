@@ -12578,17 +12578,17 @@ cdef class Expression(CommutativeRingElement):
         Fx = f.diff(x)
         Fy = f.diff(yy)
         G = -(Fx/Fy)
-        G = G.subs({yy: y})
+        G = G.subs({yy: y}, flags=1)
         di = {y.diff(x): -self.diff(X)/self.diff(Y)}
         R = G
         S = G.diff(x, n - 1)
         for i in range(n + 1):
-            di[y.diff(x, i + 1).subs({x: x})] = R
-            S = S.subs(di)
+            di[y.diff(x, i + 1).subs({x: x}, flags=1)] = R
+            S = S.subs(di, flags=1)
             R = G.diff(x, i)
             for j in range(n + 1 - i):
-                di[f.diff(x, i, yy, j).subs({x: x, yy: y})] = self.diff(X, i, Y, j)
-                S = S.subs(di)
+                di[f.diff(x, i, yy, j).subs({x: x, yy: y}, flags=1)] = self.diff(X, i, Y, j)
+                S = S.subs(di, flags=1)
         return S
 
 def solve_diophantine(f,  *args, **kwds):
