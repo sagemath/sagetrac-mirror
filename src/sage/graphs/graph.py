@@ -4531,6 +4531,117 @@ class Graph(GenericGraph):
             ret += M.term(sigma.to_composition(), t**asc(sigma))
         return ret
 
+    def cleave(self):
+        r"""
+        Computes a two-vertex separation of a biconnected multigraph and cocycle
+        at the cut.
+
+        This function is primarily included as a helper function for spqr_tree.
+
+        OUTPUT: `(S,C,f)` , where `S` is a list of the graphs that are sides of
+        the two-vertex separation with a virtual edge at the separation, `C` is
+        `cocycles`, a dipole graph on the two-vertex cut with virtual edges for
+        each side of the separation and a real edge if self has an edge between
+        the vertices of the cut, and `f` the pair cut vertices. 
+
+        For more information see [CGPM2001]_.
+
+        EXAMPLES::
+
+          If cut vertices doesn't have edge between them::
+
+            sage: G = Graph({0:[1,2,3],1:[4,5],2:[3],3:[5],4:[5],6:[2,4]})
+            sage: G.cleave()
+            ([Subgraph of (): Multi-graph on 6 vertices,
+              Subgraph of (): Multi-graph on 3 vertices],
+             Multi-graph on 0 vertices,
+             (2, 4))
+
+          If there is an edge between cut vertices::
+
+            sage: G = Graph({0:[1,2,3],1:[4,5],2:[3,4],3:[5],4:[5],6:[2,4]})
+            sage: G.cleave()
+            ([Subgraph of (): Multi-graph on 6 vertices,
+              Subgraph of (): Multi-graph on 3 vertices],
+             Multi-graph on 2 vertices,
+             (2, 4))
+
+          If `G` is a biconnected multigraph::
+
+            sage: G = graphs.CompleteBipartiteGraph(2,3)
+            sage: G.add_edge(2, 3)            
+            sage: G.allow_multiple_edges(True)
+            sage: G.add_edges(G.edges())
+            sage: G.add_edges([[0,1],[0,1],[0,1]])
+            sage: S,C,f = G.cleave()
+            sage: for g in S:
+            ....:     print(g.edges(labels=0))
+            ....:     
+            [(0, 1), (0, 1), (0, 1), (0, 2), (0, 2), (0, 3), (0, 3), (1, 2), (1, 2), (1, 3), (1, 3), (2, 3), (2, 3)]
+            [(0, 1), (0, 1), (0, 1), (0, 4), (0, 4), (1, 4), (1, 4)]
+
+        TESTS::
+
+            sage: graphs.PetersenGraph().cleave()
+            Traceback (most recent call last)
+            ...
+            ValueError: G must be a biconnected graph.
+        """
+        from sage.graphs.graph import Graph
+
+        if not self.is_connected():
+            raise ValueError("G must be a connected graph.")
+
+        cut_size,cut_vertices = self.vertex_connectivity(value_only=False)
+        if cut_size != 2:
+            raise ValueError("G must be a biconnected graph.")
+
+        H = Graph(self.edges(labels=False), multiedges = True)
+        H.delete_vertices(cut_vertices)
+
+        # Deletion of separating pair leaves connected components; we add to
+        # each of those components a virtual edge between the separating pair
+        # and restore edges incident to them
+        virtual_edge = tuple(cut_vertices)
+        Comps = 0
+        cut_sides = []
+        if self.has_edge(virtual_edge):
+          multiedges_bw_cutvertices = 0
+          for e in self.edge_iterator(cut_vertices[0]):
+            if cut_vertices[1] in e:
+              multiedges_bw_cutvertices += 1
+        else:
+          multiedges_bw_cutvertices = 1
+
+        for component in H.connected_components_subgraphs():
+            # Create a set of component vertices
+            componentVertices = set(component.vertices())
+            component.add_edges([e for e in self.edge_iterator(cut_vertices) if e[0] in componentVertices or e[1] in componentVertices])
+            component.allow_multiple_edges(True)
+
+            # Add virtual edge if not present
+            if not component.has_edge(virtual_edge):
+                component.add_edges([virtual_edge]*multiedges_bw_cutvertices)
+
+            cut_sides.append(component)
+            Comps += 1
+
+        # if the original graph has an edge between the separating pair of
+        # vertices, a bond with one edge more than the number of auxiliary
+        # graphs is needed for re-assembly
+        cocycles = Graph(multiedges=True)
+        if self.has_edge(virtual_edge):
+            cocycles.add_edges([virtual_edge]*(Comps+1)*multiedges_bw_cutvertices)
+
+        # if the original graph has no edge between the separating pair of
+        # vertices but deletion of the separating pair leaves more than two
+        # components, a bond with one edge per component is needed for
+        # re-assembly
+        elif Comps > 2:
+            cocycles.add_edges([virtual_edge]*Comps)
+
+        return cut_sides, cocycles, virtual_edge
+
     @doc_index("Leftovers")
     def matching(self, value_only=False, algorithm="Edmonds",
                  use_edge_labels=False, solver=None, verbose=0):
