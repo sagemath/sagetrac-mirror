@@ -33,6 +33,12 @@ from six.moves import range
 from sage.rings.integer import Integer
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
+from sage.matrix.matrix_space import MatrixSpace
+from numpy import pi
+from sage.symbolic.ring import SR
+from sage.misc.latex import latex
+from sage.tensor.modules.format_utilities import is_atomic, \
+                                                         FormattedExpansion
 
 
 class PseudoRiemannianMetric(TensorField):
@@ -1898,6 +1904,36 @@ class PseudoRiemannianMetric(TensorField):
 
 #******************************************************************************
 
+def _diag(self, n, m, k):
+    r"""
+    Return a list of `n` lists of length `m` each such that the first list 
+    contains ``self`` at position `k+1`, the second list contains ``self`` at 
+    position `k+2`, and so on. The other positions of each list contain `0`.
+    
+    INPUT:
+
+    - ``self`` -- an element
+    - ``n`` -- a non-negative integer, the number of sublists
+    - ``m`` -- a non-negative integer, the length of each sublist
+    - ``k`` -- a positive integer, `k+1` is the position of ``self`` in the 
+                first list
+
+    EXAMPLES:
+
+        sage: diag(-2, 2, 4, 1)
+        [[0, -2, 0, 0], [0, 0, -2, 0]]
+
+        """
+    liste1 = []
+    for i in range(n):
+        liste2 = []
+        for j in range(m):
+            liste2.append(0)
+        liste2[k] = self
+        liste1.append(liste2)
+        k += 1
+    return liste1
+
 class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
     r"""
     Pseudo-Riemannian metric with values on a parallelizable manifold.
@@ -2011,8 +2047,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
          - (x + 1)/(x^2*y^2 + x^2 - 1) d/dy*d/dy
 
     """
-    def __init__(self, vector_field_module, name, signature=None,
-                 latex_name=None):
+    def __init__(self, vector_field_module, name, latex_name=None, comp=None):
         r"""
         Construct a metric on a parallelizable manifold.
 
@@ -2038,24 +2073,337 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
                                   name=name, latex_name=latex_name, sym=(0,1))
         # signature:
         ndim = self._ambient_domain.dimension()
-        if signature is None:
-            signature = ndim
+        start_index = self._ambient_domain.start_index()
+        chart = self._ambient_domain.default_chart()
+        if not comp:
+            liste = _diag(1, ndim, ndim, 0)
+        elif isinstance(comp, (int, Integer)):
+            index = comp
+            if index < 0:
+                index = -1*index
+            if index > ndim:
+                raise ValueError("The index must be less than the size of the metric")
+            liste = _diag(-1, index, ndim, 0)
+            liste.extend(_diag(1, ndim-index, ndim, index))
         else:
-            if not isinstance(signature, (int, Integer)):
-                raise TypeError("the metric signature must be an integer")
-            if (signature < - ndim) or (signature > ndim):
-                raise ValueError("metric signature out of range")
-            if (signature+ndim)%2 == 1:
-                if ndim%2 == 0:
-                    raise ValueError("the metric signature must be even")
-                else:
-                    raise ValueError("the metric signature must be odd")
-        self._signature = signature
+            liste = []
+            try:
+                for elt in list(comp):
+                    liste.append(list(elt))
+                    if len(elt) != ndim:
+                        raise ValueError("The metric must be squared")
+                for i in range(ndim):
+                    for j in range(ndim):
+                        if liste[i][j] != liste[j][i]:
+                            raise ValueError("The metric must be squared")
+            except TypeError:
+                try:
+                    for (j, elt) in enumerate(comp):
+                        liste.extend(_diag(elt, 1, ndim, j))
+                except TypeError:
+                    raise TypeError("The second argument must be an integer or an iterable or an iterable of iterables")
+        frame = chart.frame()
+        for i in range(ndim):
+            for j in range(ndim):
+                self.add_comp(frame)[i+start_index, j+start_index] = liste[i][j]
+        self._signature = self.signature()-self.index()
         # the pair (n_+, n_-):
-        self._signature_pm = ((ndim+signature)/2, (ndim-signature)/2)
+        self._signature_pm = (self.signature(), self.index())
         self._indic_signat = 1 - 2*(self._signature_pm[1]%2)  # (-1)^n_-
         # Initialization of derived quantities:
         PseudoRiemannianMetricParal._init_derived(self)
+
+    def _repr_(self):
+        r"""
+        String representation of the object.
+
+        TESTS::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<t,x,y> = M.chart()
+            sage: g = M.metric('g')
+            sage: g._repr_()
+            'Riemannian metric g on the 3-dimensional differentiable manifold M'
+            sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
+            sage: g._repr_()
+            'Lorentzian metric g on the 3-dimensional differentiable manifold M'
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]); g
+            sage: g._repr_()
+            'Pseudo-Riemannian metric g on the 3-dimensional differentiable manifold M'
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]); g
+            sage: g._repr_()
+            'Degenerate metric g on the 3-dimensional differentiable manifold M'
+
+        """
+        n = self._ambient_domain.dimension()
+        if self.singularity() > 0:
+            description = "Degenerate metric "
+        elif self.signature() == n:
+            description = "Riemannian metric "
+        elif self.signature() == 1 or self.index() ==1:
+            description = "Lorentzian metric "
+        else:
+            description = "Pseudo-Riemannian metric "
+        description += self._name + " "
+        return self._final_repr(description)
+
+    def list_of_lines(self, chart=None):
+        r"""
+        Return the list of the lists of lines of the metric in a given chart.
+        
+        INPUT:
+
+            - ``chart`` -- (default: ``None``) a chart on the manifold.
+
+        EXAMPLES:
+
+        Signatures on a 3-dimensional manifold::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<t,x,y> = M.chart()
+            sage: g = M.metric('g')
+            sage: g.list_of_lines()
+            [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+            sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
+            sage: g.list_of_lines()
+            [[0,1,0],[1,0,0],[0,0,1]]
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]); g
+            sage: g.list_of_lines()
+            [[-1,0,0],[0,-1,0],[0,0,-1]]
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]); g
+            sage: g.list_of_lines()
+            [[0,0,0],[0,0,0],[0,0,0]]
+        """
+        if chart == None:
+            chart = self.domain().default_chart()
+        frame = chart.frame()
+        liste = []
+        for i in self._ambient_domain.irange():
+            liste0 = []
+            for j in self._ambient_domain.irange():
+                liste0.append(self[frame, i, j])
+            liste.append(liste0)
+        return liste
+    
+    def matrix(self, chart=None):
+        r"""
+        Return the matrix of the metric in the given chart.
+        
+        INPUT:
+
+            - ``chart`` -- (default: ``None``) a chart on the manifold.
+
+        EXAMPLES:
+
+        Signatures on a 3-dimensional manifold::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<t,x,y> = M.chart()
+            sage: g = M.metric('g')
+            sage: g.list_of_lines()
+            [1, 0, 0]
+            [0, 1, 0]
+            [0, 0, 1]
+            sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
+            sage: g.matrix()
+            [0,1,0]
+            [1,0,0]
+            [0,0,1]
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]); g
+            sage: g.matrix()
+            [-1,0,0]
+            [0,-1,0]
+            [0,0,-1]
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]); g
+            sage: g.matrix()
+            [0,0,0]
+            [0,0,0]
+            [0,0,0]
+        """
+        mat0 = self.list_of_lines(chart)
+        mat1 = []
+        for L in mat0:
+            mat2 = []
+            for elt in L:
+                mat2.append(elt.expr())
+            mat1.append(mat2)
+        mat1 = MatrixSpace(SR, self._ambient_domain.dimension(), self._ambient_domain.dimension())(mat1)
+        return mat1
+    
+    def display_matrix(self, chart=None):
+        r"""
+        Display the matrix of the metric in the given chart.
+        
+        INPUT:
+
+            - ``chart`` -- (default: ``None``) a chart on the manifold.
+
+        EXAMPLES:
+
+        Signatures on a 3-dimensional manifold::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<t,x,y> = M.chart()
+            sage: g = M.metric('g')
+            sage: g.list_of_lines()
+            [1, 0, 0]
+            [0, 1, 0]
+            [0, 0, 1]
+            sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
+            sage: g.matrix()
+            [0,1,0]
+            [1,0,0]
+            [0,0,1]
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]); g
+            sage: g.matrix()
+            [-1,0,0]
+            [0,-1,0]
+            [0,0,-1]
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]); g
+            sage: g.matrix()
+            [0,0,0]
+            [0,0,0]
+            [0,0,0]
+        """
+        mat0 = self.matrix(chart)
+        mat = r'\begin{pmatrix} '
+        for L in mat0:
+            for elt in L:
+                mat += latex(elt) + ' & '
+            mat = mat.rstrip(str(' &'))
+            mat += '\\ '
+        mat += r'\end{pmatrix}'
+        return FormattedExpansion(str(mat0), mat)
+
+    def sign(self):
+        r"""
+        Signature of the metric.
+
+        OUTPUT:
+
+        - signature `[index, sign, sing]` of the metric, being ``sign`` (resp. 
+        ``sign``, ``sing``) the number of positive terms (resp. number of 
+        negative terms, number of null terms) in any diagonal writing of the 
+        metric components
+
+        EXAMPLES:
+
+        Signatures on a 3-dimensional manifold::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<t,x,y> = M.chart()
+            sage: g = M.metric('g')
+            sage: g.sign()
+            [0, 3, 0]
+            sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
+            sage: g.sign()
+            [1, 2, 0]
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]); g
+            sage: g.sign()
+            [3, 0, 0]
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]); g
+            sage: g.sign()
+            [0, 0, 3]
+        """
+        mat = self.matrix().jordan_form()
+        index, sign, sing = 0, 0, 0 
+        for i in range(self.domain().dimension()):
+            if mat[i, i].is_zero():
+                sing += 1
+            elif mat[i, i] < 0:
+                index += 1
+            else:
+                sign += 1
+        return [index, sign, sing]
+    
+    def index(self):
+        r"""
+        The index of the metric.
+
+        OUTPUT:
+
+        - index --- the number of negative terms in any diagonal writing of the 
+        metric components
+
+        EXAMPLES:
+
+        Index on a 3-dimensional manifold::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<t,x,y> = M.chart()
+            sage: g = M.metric('g')
+            sage: g.index()
+            0
+            sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
+            sage: g.index()
+            1
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]); g
+            sage: g.index()
+            3
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]); g
+            sage: g.index()
+            0
+        """
+        return self.sign()[0]
+    
+    def signature(self):
+        r"""
+    
+        OUTPUT:
+
+        - signature --- the number of positive terms in any diagonal writing of the 
+        metric components
+
+        EXAMPLES:
+
+        Index on a 3-dimensional manifold::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<t,x,y> = M.chart()
+            sage: g = M.metric('g')
+            sage: g.index()
+            3
+            sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
+            sage: g.index()
+            2
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]); g
+            sage: g.index()
+            0
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]); g
+            sage: g.index()
+            0
+        """
+        return self.sign()[1]
+    
+    def singularity(self):
+        r"""
+
+        OUTPUT:
+
+        - sing --- the number of null terms in any diagonal writing of the 
+        metric components
+
+        EXAMPLES:
+
+        Index on a 3-dimensional manifold::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<t,x,y> = M.chart()
+            sage: g = M.metric('g')
+            sage: g.singularity()
+            0
+            sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
+            sage: g.singularity()
+            0
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]); g
+            sage: g.singularity()
+            0
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]); g
+            sage: g.singularity()
+            3
+        """
+        return self.sign()[2]
+
 
     def _init_derived(self):
         r"""
