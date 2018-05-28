@@ -1713,6 +1713,110 @@ class Genus_Symbol_p_adic_ring(object):
         else:
             return self._symbol
 
+    def automorphous_numbers(self):
+        r"""
+        Return the locally automorphous square classes at this prime.
+
+        See [CS]§9.6
+
+        EXAMPLES::
+
+
+            sage: from sage.quadratic_forms.genera.genus import p_adic_symbol
+            sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
+            sage: A = matrix.diagonal([1,2,3,4])
+            sage: p = 3
+            sage: G3 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2))
+            sage: G3.automorphous_numbers()
+            [1, 2, 3, 6]
+        """
+        from .normal_form import collect_small_blocks, _min_nonsquare
+        automorphs = []
+        sym = self.symbol_tuple_list()
+        G = self.gram_matrix()
+        p = self.prime()
+        if p != 2:
+            up = ZZ(_min_nonsquare(p))
+            I = G.diagonal()
+            for r in I:
+                # We need to consider all pairs in I
+                # since at most 2 elements are part of a pair
+                # we need need at most 2 of each type
+                if I.count(r) > 2:
+                    I.remove(r)
+            # products of all pairs
+            for r1 in I:
+                for r2 in I:
+                    automorphs.append(r1*r2)
+            # supplement (i)
+            for block in sym:
+                if block[1] > 2:
+                    automorphs.append(up)
+                    break
+            # square classes
+            automorphs1 = set()
+            for s in automorphs:
+                u = 1
+                if s.prime_to_m_part(p).kronecker(p) == -1:
+                    u = up
+                v = (s.valuation(p) % 2)
+                sq = u * p**v
+                automorphs1.add(sq)
+            return list(automorphs1)
+
+        # p =2
+        I = []
+        II = []
+        for block in collect_small_blocks(G):
+            if block.ncols() == 1:
+                u = block[0,0]
+                if I.count(u) < 2:
+                    I.append(block[0,0])
+            else: # rank2
+                q = block[0,1]
+                II += [2*q, 3*2*q, 5*2*q, 7*2*q]
+
+        L = I + II
+        # We need to consider all pairs in L
+        # since at most 2 elements are part of a pair
+        # we need need at most 2 of each type
+        for r in L:
+            if roots_p.count(r) > 2:
+                roots_p.remove(r)
+        n = len(L)
+        for i in range(n):
+            for j in range(i, n):
+                r = L[i]*L[j]
+                automorphs.append(r)
+
+        # supplement (i)
+        for k in range(len(sym)-3):
+            s = sym[k:k+3]
+            if sum([b[1] for b in s if s[0][0]-b[0] < 4]) >= 3:
+                automorphs += [ZZ(1), ZZ(3), ZZ(5), ZZ(7)]
+            break
+
+        # supplement (ii)
+        for r1 in I:
+            for r2 in I:
+                r = r1*r2
+                v = r.valuation(2)
+                u = r.prime_to_m_part(2) % 8
+                if v==0 and u==1:
+                    s = ZZ(2)
+                if v==0 and u==5:
+                    s = ZZ(6)
+                if v in [0, 2, 4]:
+                    s = ZZ(5)
+                if v in [1, 3] and u in [1, 5]:
+                    s = ZZ(3)
+                if v in [1, 3] and u in [3, 7]:
+                    s = ZZ(7)
+                automorphs.append(s)
+
+        # remove duplicates
+        automorphs = list(set(automorphs))
+        return automorphs
 
     def gram_matrix(self, check=True):
         r"""
@@ -1747,7 +1851,7 @@ class Genus_Symbol_p_adic_ring(object):
         if check:
             symG = p_adic_symbol(G, p, symbol[-1][0])
             assert Genus_Symbol_p_adic_ring(p, symG) == self, "oops"
-        return G
+        return G.change_ring(ZZ)
 
     def prime(self):
         r"""
@@ -2299,6 +2403,22 @@ class GenusSymbol_global_ring(object):
         """
         return not self == other
 
+    def local_symbols(p=None):
+        r"""
+        Return the local symbols.
+
+        INPUT:
+
+        - ``p`` - a prime number; if given return only the symbol at `p`.
+
+        EXAMPLES::
+        """
+        if p is None:
+            return self._local_symbols
+        for sym in self._local_symbols:
+            if p == sym.prime():
+                return sym
+
     def is_even(self):
         r"""
         """
@@ -2330,6 +2450,11 @@ class GenusSymbol_global_ring(object):
         """
         return self._signature
 
+    def automorphous_numbers(self):
+        r"""
+        """
+        for sym in self.local_symbols():
+            sym.automorphous_numbers()
 
     def determinant(self):
         """
@@ -2401,6 +2526,22 @@ class GenusSymbol_global_ring(object):
     def rational_representative(self):
         r"""
 
+        """
+        from sage.quadratic_forms.all import QuadraticForm
+        sminus = self.signature_pair_of_matrix()[1]
+        det = self.determinant()
+        m = self.rank()
+        P = []
+        for sym in self._local_symbols:
+            p = sym._prime
+            if QuadraticForm(ZZ,2*sym.gram_matrix()).hasse_invariant(p) == -1:
+                P.append(p)
+        return rational_qf_from_invariants(m, det, P, sminus)
+
+    def representative(self):
+        r"""
+        Return a representative in this genus.
+
         EXAMPLES::
 
             sage: from sage.quadratic_forms.genera.genus import all_genera_by_det
@@ -2422,25 +2563,10 @@ class GenusSymbol_global_ring(object):
             [ 2  2  4  0]
             [ 0  0  0 -6]
         """
-        from sage.quadratic_forms.all import QuadraticForm
-        sminus = self.signature_pair_of_matrix()[1]
-        det = self.determinant()
-        m = self.rank()
-        P = []
-        for sym in self._local_symbols:
-            p = sym._prime
-            if QuadraticForm(ZZ,2*sym.gram_matrix()).hasse_invariant(p) == -1:
-                P.append(p)
-        return rational_qf_from_invariants(m, det, P, sminus)
-
-    def representative(self):
-        r"""
-
-
-        """
         if self._representative is None:
             self._compute_representative()
         return self._representative
+
 
     def _compute_representative(self):
         r"""
@@ -2452,11 +2578,12 @@ class GenusSymbol_global_ring(object):
         even = self.is_even()
         q = self.rational_representative()
         n = q.nrows()
-        L = IntegralLattice(4*q).maximal_overlattice(even=even)#.gram_matrix()
+        L = IntegralLattice(4*q).maximal_overlattice(even=even).gram_matrix()
         for sym in self._local_symbols:
             p = sym._prime
             L = local_modification(L, sym.gram_matrix(), p)
-        self._representative = L.gram_matrix()
+        self._representative = L
+
 
 
 def rational_qf_from_invariants(m, det, P, sminus):
@@ -2539,7 +2666,7 @@ def local_modification(M, Lp, p, check=True):
         sage: from sage.quadratic_forms.genera.genus import local_modification
         sage: L = IntegralLattice("D4").twist(3*4)
         sage: M = L.maximal_overlattice()
-        sage: local_modification(M.gram_matrix(), L.gram_matrix(),2)
+        sage: local_modification(M.gram_matrix(), L.gram_matrix(), 2)
         [16  0 16  8]
         [ 0  8 -4 12]
         [16 -4 24  0]
@@ -2549,11 +2676,14 @@ def local_modification(M, Lp, p, check=True):
     from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
     from sage.rings.finite_rings.finite_field_constructor import GF
     from sage.matrix.special import random_matrix
+    M = matrix(M)
+    Lp = matrix(Lp)
     d = Lp.inverse().denominator()
     n = M.rank()
     level = d.valuation(p)
     d = p**level
 
+    M = IntegralLattice(M)
     Mp = IntegralLattice(Lp).maximal_overlattice(p=p)
     even = Mp.is_even()
     symMp = Genus_Symbol_p_adic_ring(p, p_adic_symbol(Mp.gram_matrix(), p,  2))
@@ -2580,30 +2710,31 @@ def local_modification(M, Lp, p, check=True):
             # compute a random sublattice S with p*M < S < M
             dim = ZZ.random_element(1,n)
             S = random_matrix(GF(p),n,n,algorithm="echelon_form",num_pivots=dim)
-            S = S.lift()#S.basis_matrix().lift()
+            S = S.lift()
             S = S.stack(p*matrix.identity(n)).hermite_form()[:n,:]
             B = M.basis_matrix()
             M = M.sublattice(S*B)
             M = M.maximal_overlattice(even=even,p=p)#.gram_matrix()
     else:
         raise ValueError()
-    #
+    # check that the maximal overlattices match
     if check:
         s1 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(Mp.gram_matrix(), p, 1))
         s2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(M.gram_matrix(), p, 1))
         if not s1 == s2:
             raise ValueError("the forms must be locally equivalent at p=%s" %p)
-
+    # invert the gerstein operations
     _, U = p_adic_normal_form(Mp.gram_matrix(), p, precision=level+3)
     B = (~Mp.basis_matrix()).change_ring(ZZ)*~U.change_ring(ZZ)
 
     _, UM = p_adic_normal_form(M.gram_matrix(), p, precision=level+3)
     B = B * UM.change_ring(ZZ) * M.basis_matrix()
-    #M = IntegralLattice(M)
+
+    # the local modification
     S = M.sublattice(((M.span(B) & M) + d * M).gens())
-    G = S.gram_matrix()
+    S = S.gram_matrix()
     if check:
-        s1 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(G, p, level))
+        s1 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(S, p, level))
         s2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(Lp, p, level))
         assert s1 == s2, "oops"
     return S
@@ -2706,13 +2837,13 @@ def _gram_from_jordan_block(p, block, discr_form=False):
         q = matrix.identity(QQ, rk)
         d = 2**(rk % 2)
         if Integer(d).kronecker(p) != det:
-            u = _min_nonsquare(p)
+            u = ZZ(_min_nonsquare(p))
             q[0,0] = u
         q = q * (2 / p**level)
     if p != 2 and not discr_form:
         q = matrix.identity(QQ, rk)
         if det != 1:
-            u = _min_nonsquare(p)
+            u = ZZ(_min_nonsquare(p))
             q[0,0] = u
         q = q * p**level
     return q

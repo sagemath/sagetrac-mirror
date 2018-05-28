@@ -266,8 +266,14 @@ def _Hensel_qf(Z, G, F, a, b):
         sage: Z = G + matrix(R, 3, [0,3^2,0, 3^2,0,0, 0,0,3])
         sage: F = matrix(R,3, [1,0,0, 0,0,1, 0,1,0])
         sage: Z - F*G*F.T
+        [0 9 0]
+        [9 0 0]
+        [0 0 3]
         sage: Fn = _Hensel_qf(Z, G, F, 1, 4)#
         sage: Z - F*G*F.T
+        [  0   0   0]
+        [  0   0   0]
+        [  0   0 -81]
     """
     i, s1, s2 = _last_block_index(G)
     s = s2 - s1
@@ -281,17 +287,17 @@ def _Hensel_qf(Z, G, F, a, b):
     Zn = Z[i:,i:] - F[i:,:i]*G[:i,:i]*F[i:,:i].T
     Gn = G[i:,i:]
     F[i:,i:] = _Hensel_qf_modular(Zn, Gn, F[i:,i:], a, b)
+    K = (G[i:,i:]*F[i:,i:].T).inverse()
     if i == 0:
         return F
     while a < b:
         # an extra line that recomputes the upper block diagonal
         # if the input really is adapted this should not be necessary
         # but in any case it does not hurt
-        F[:i,i:] = (Z[:i,i:] - F[:i,:i]*G[:i,:i]*F[i:,:i].T) * (G[i:,i:]*F[i:,i:].T).inverse()
-
+        F[:i,i:] = (Z[:i,i:] - F[:i,:i]*G[:i,:i]*F[i:,:i].T) * K
         Zn = Z[:i,:i] - F[:i,i:]*G[i:,i:]*F[:i,i:].T
         F[:i,:i] = _Hensel_qf(Zn, G[:i,:i], F[:i,:i], a, a+s)
-        F[:i,i:] = (Z[:i,i:] - F[:i,:i]*G[:i,:i]*F[i:,:i].T) * (G[i:,i:]*F[i:,i:].T).inverse()
+        F[:i,i:] = (Z[:i,i:] - F[:i,:i]*G[:i,:i]*F[i:,:i].T) * K
         a = a + s
     return F
 
@@ -421,14 +427,14 @@ def _Hensel_qf_modular_even(Z, G, F, a, b):
         sage: _min_val(Er), _min_val(matrix(Er.diagonal()))
         (+Infinity, +Infinity)
     """
-    R = Z.base_ring()
     n = Z.ncols()
-    v = _min_val(G)
-    G = (G/2**v).change_ring(R)
-    Z = (Z/2**v).change_ring(R)
     if a == 0:
         raise ValueError("a must be a non-zero integer")
     if a == 1:
+        R = Z.base_ring()
+        v = _min_val(G)
+        G = (G/2**v).change_ring(R)
+        Z = (Z/2**v).change_ring(R)
         Y = Z - F*G*F.T
         X = _solve_X(Y/2, (Y/4).diagonal(), G.inverse().diagonal())
         X = 2 * X.change_ring(R)
@@ -436,18 +442,14 @@ def _Hensel_qf_modular_even(Z, G, F, a, b):
         a = 2
     while a < b:
         Y = Z - F*G*F.T
-        D = matrix.diagonal(Y.diagonal())
-
-        # L is the the strictly lower triangular part of Y
-        L = copy(Y)
         for i in range(0,n):
-            L[i,i:] = 0
-
-        F = F + (L + D/2)*(G*F.T).inverse()
+            Y[i,i+1:] = 0
+            Y[i,i] = Y[i,i]//2
+        F = F + Y*(G*F.T).inverse()
         a = 2*a - 1
     # confirm computation
-    assert _min_val(Z-F*G*F.T) >= b
-    assert _min_val(matrix((Z-F*G*F.T).diagonal())) >= b + 1
+    # assert _min_val(Z-F*G*F.T) >= b
+    # assert _min_val(matrix((Z-F*G*F.T).diagonal())) >= b + 1
     return F
 
 def _solve_X(Y, b, g, ker=False):

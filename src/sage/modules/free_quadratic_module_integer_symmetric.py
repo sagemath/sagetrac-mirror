@@ -1365,30 +1365,36 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         from sage.quadratic_forms.genera.genus import Genus
         return Genus(self.gram_matrix())
 
-    def genus_group_order(self):
+    def genus_group(self):
         r"""
         Compute the genus group of this lattice.
 
         EXAMPLES::
 
             sage: L = IntegralLattice(matrix.diagonal([1,-2,64])*2)
-            sage: L.genus_group_order()
+            sage: L.genus_group().order()
             2
+            sage: G = Matrix(ZZ,3,3,[])
+            sage: L = IntegralLattice(matrix.diagonal([1,-2,64])*2)
+            sage: L.genus_group().order()
+            2
+
+
         """
         sig = self.signature_pair()
-        if self.rank() < 3 or sig[0]*sig[1] == 0:
+        rk = self.rank()
+        if False:#self.rank() < 3 or sig[0]*sig[1] == 0:
             raise ValueError("lattice must be indefintie of rank > 2")
+        det = self.determinant()
+        q = self.discriminant_group()
         from sage.groups.fqf_orthogonal.spinor import GammaA
         S = (2*self.determinant()).prime_factors()
         G = GammaA(S)
-        rk = self.rank(),
-        det = self.determinant()
-        q = self.discriminant_group()
         sigma_sharp = G.sigma_sharp(rk, det, q)
         sigma = [G(g) for g in q.orthogonal_group().gens()]
         sigma += list(sigma_sharp.gens())
         gammaS = G.gammaS()
-        return G.order()/G.subgroup(gammaS + sigma).order()
+        return G.quotient(G.subgroup(gammaS + sigma))
 
     def image_in_Oq(self):
         r"""

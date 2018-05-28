@@ -41,32 +41,6 @@ class FqfIsometry(AbelianGroupAutomorphism):
     - ``x`` -- a libgap element
     - ``check`` -- bool (default: ``True``)
     """
-    def __init__(self, parent, x, check=True):
-        """
-        The Python constructor.
-
-        TESTS::
-
-            sage: q = matrix.diagonal([1/3,2/3])
-            sage: q = TorsionQuadraticForm(q)
-            sage: G = q.orthogonal_group()
-            sage: f = G.an_element()
-            sage: TestSuite(f).run()
-        """
-        if check:
-            if not x in parent.gap():
-                raise ValueError("%s is not in the group %s" % (x, parent))
-        AbelianGroupAutomorphism.__init__(self, parent, x)
-        if check:
-            # check that the form is preserved
-            # this is expensive
-            g = self.parent().invariant_form().smith_form_gens()
-            for i in range(len(g)):
-                if (g[i]*self).q() != g[i].q():
-                    raise ValueError("not an isometry")
-                for j in range(i+1, len(g)):
-                    if (g[i]*self).b(g[j]*self) != (g[i]*self).b(g[j]*self):
-                        raise ValueError("not an isometry")
 
     def _repr_(self):
         r"""
@@ -145,11 +119,12 @@ class FqfIsometry(AbelianGroupAutomorphism):
             v1 = t.denominator().valuation(p)
             v2 = t.inverse().denominator().valuation(p)
             v = -v1 -v2 # lower bound for precision loss due to diagonalization
-            prec = 20 # initial precision
+            prec0 = 1
+            prec = 25 # initial precision
             while True:
-                R = Zp(p, type='fixed-mod', prec=prec, print_mode='terse',
+                R = Zp(p, type='fixed-mod', prec=prec+3, print_mode='terse',
                        show_prec=False, print_pos=False)
-                g = Hensel_qf(q.change_ring(R), g.change_ring(R), 1, prec)
+                g = Hensel_qf(q.change_ring(R), g.change_ring(R), prec0, prec)
                 g = g.change_ring(ZZ)
                 try:
                     gg = t*g*t.inverse()
@@ -158,6 +133,7 @@ class FqfIsometry(AbelianGroupAutomorphism):
                     break
                 except ArithmeticError:
                     # retry with higher precision
+                    prec0 = prec
                     prec = 2 * prec
         return det_spin
 
@@ -267,7 +243,18 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
                 x = matrix(ZZ, [(g*x).vector() for g in gen])
             except TypeError:
                 pass
-        return AbelianGroupAutomorphismGroup_subgroup._element_constructor_(self, x, check=check)
+        f = AbelianGroupAutomorphismGroup_subgroup._element_constructor_(self, x, check=check)
+        if check:
+            # check that the form is preserved
+            # this is expensive
+            g = self.invariant_form().smith_form_gens()
+            for i in range(len(g)):
+                if (g[i]*f).q() != g[i].q():
+                    raise ValueError("not an isometry")
+                for j in range(i+1, len(g)):
+                    if (g[i]*f).b(g[j]*f) != (g[i]*f).b(g[j]*f):
+                        raise ValueError("not an isometry")
+        return f
 
     def _get_action_(self, S, op, self_on_left):
         r"""
@@ -348,11 +335,16 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
 
     def det_spin_homomorphism(self):
         r"""
+        Return the det spin homomorphism.
+
+        This has only sense if ``self`` is the orthogonal group of a
+        discriminant group of a lattice.
 
         EXAMPLES::
 
-            sage: q = TorsionQuadraticForm(2/3 * matrix.identity(3))
-            sage: Oq = q.orthogonal_group()
+            sage: L = IntegralLattice("A2").twist(5)
+            sage: L = L.direct_sum(L.twist(-1))
+            sage: Oq = L.discriminant_group().orthogonal_group()
             sage: Oq.det_spin_homomorphism().image(Oq).order()
             4
         """
