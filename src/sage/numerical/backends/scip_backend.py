@@ -22,13 +22,11 @@ from __future__ import print_function
 
 from os import sys
 from os.path import splitext
-from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.numerical.mip import MIPSolverException
-from libc.float cimport DBL_MAX
-from libc.limits cimport INT_MAX
 from pyscipopt import Model
 
-cdef class SCIPBackend(GenericBackend):
+
+class SCIPBackend(GenericBackend):
 
     """
     MIP Backend that uses the SCIP solver.
@@ -41,7 +39,7 @@ cdef class SCIPBackend(GenericBackend):
         sage: TestSuite(p.get_backend()).run(skip="_test_pickling")             # optional - pyscipopt
     """
 
-    def __cinit__(self, maximization = True):
+    def __cinit__(self, maximization=True):
         """
         Constructor
 
@@ -57,7 +55,7 @@ cdef class SCIPBackend(GenericBackend):
         self.model.hideOutput()
         self.obj_constant_term = 0.0
 
-    cpdef _get_model(self):
+    def _get_model(self):
         """
         Get the model as a pyscipopt Model.
 
@@ -69,7 +67,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         return self.model
 
-    cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
+    def int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
         """
         Add a variable.
 
@@ -122,17 +120,17 @@ cdef class SCIPBackend(GenericBackend):
         """
         if self.model.getStatus() != 'unknown':
             self.model.freeTransform()
-        cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
-        if  vtype == 0:
+        vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
+        if vtype == 0:
             continuous = True
         elif vtype != 1:
             raise ValueError("Exactly one parameter of 'binary', 'integer' and 'continuous' must be 'True'.")
 
-        if name==None:
+        if name == None:
             vname=''
         else:
             assert(type(name) in [str, unicode])
-            vname=name
+            vname = name
 
         if continuous:
             vtypestr = 'C'
@@ -142,11 +140,10 @@ cdef class SCIPBackend(GenericBackend):
             vtypestr = 'I'
 
 
-        self.model.addVar(name=vname, vtype=vtypestr, ub=upper_bound, lb=lower_bound, obj=obj, pricedVar = False)
+        self.model.addVar(name=vname, vtype=vtypestr, ub=upper_bound, lb=lower_bound, obj=obj, pricedVar=False)
         return self.ncols() - 1
 
-
-    cpdef set_variable_type(self, int variable, int vtype):
+    def set_variable_type(self, variable, vtype):
         """
         Set the type of a variable
 
@@ -174,10 +171,10 @@ cdef class SCIPBackend(GenericBackend):
         """
         if self.model.getStatus() != 'unknown':
             self.model.freeTransform()
-        vtypenames = {1:'I', 0:'B', -1:'C'}
-        self.model.chgVarType(var = self.model.getVars()[variable], vtype = vtypenames[vtype])
+        vtypenames = {1: 'I', 0: 'B', -1: 'C'}
+        self.model.chgVarType(var=self.model.getVars()[variable], vtype=vtypenames[vtype])
 
-    cpdef set_sense(self, int sense):
+    def set_sense(self, sense):
         """
         Set the direction (maximization/minimization).
 
@@ -207,7 +204,7 @@ cdef class SCIPBackend(GenericBackend):
         else:
             raise AssertionError("sense must be either 1 or -1")
 
-    cpdef objective_coefficient(self, int variable, coeff=None):
+    def objective_coefficient(self, variable, coeff=None):
         """
         Set or get the coefficient of a variable in the objective function
 
@@ -232,23 +229,23 @@ cdef class SCIPBackend(GenericBackend):
         """
         if self.model.getStatus() != 'unknown':
             self.model.freeTransform()
-        if coeff==None:
+        if coeff is None:
             return self.model.getVars()[variable].getObj()
         else:
             objexpr = self.model.getObjective()
             var = self.model.getVars()[variable]
             from pyscipopt.scip import quicksum
-            linfun = quicksum([e*c for e,c in objexpr.terms.iteritems() if e!=var]) + var*coeff
-            self.model.setObjective(linfun, sense = self.model.getObjectiveSense())
+            linfun = quicksum([e*c for e, c in objexpr.terms.iteritems() if e != var]) + var*coeff
+            self.model.setObjective(linfun, sense=self.model.getObjectiveSense())
 
-    cpdef problem_name(self, char * name = NULL):
+    def problem_name(self, name=None):
         """
         Return or define the problem's name
 
         INPUT:
 
-        - ``name`` (``char *``) -- the problem's name. When set to
-          ``NULL`` (default), the method returns the problem's name.
+        - ``name`` -- the problem's name. When set to
+          ``None`` (default), the method returns the problem's name.
 
         EXAMPLE::
 
@@ -258,12 +255,12 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.problem_name()                                              # optional - pyscipopt
             u'Nomen est omen'
         """
-        if name is NULL:
+        if name is None:
             return self.model.getProbName()
         else:
             self.model.setProbName(name)
 
-    cpdef set_objective(self, list coeff, d = 0.0):
+    def set_objective(self, coeff, d=0.0):
         """
         Set the objective function.
 
@@ -287,11 +284,11 @@ cdef class SCIPBackend(GenericBackend):
         if self.model.getStatus() != 'unknown':
             self.model.freeTransform()
         from pyscipopt.scip import quicksum
-        linfun = quicksum([c*x for c,x in zip(coeff, self.model.getVars())]) + d
-        self.model.setObjective(linfun, sense = self.model.getObjectiveSense())
+        linfun = quicksum([c*x for c, x in zip(coeff, self.model.getVars())]) + d
+        self.model.setObjective(linfun, sense=self.model.getObjectiveSense())
 
 
-    cpdef set_verbosity(self, int level):
+    def set_verbosity(self, level):
         """
         Set the verbosity level
 
@@ -320,7 +317,7 @@ cdef class SCIPBackend(GenericBackend):
             raise AssertionError('level must be "0" or "1"')
 
 
-    cpdef remove_constraint(self, int i):
+    def remove_constraint(self, i):
         r"""
         Remove a constraint from self.
 
@@ -356,7 +353,7 @@ cdef class SCIPBackend(GenericBackend):
             self.model.freeTransform()
         self.model.delCons(self.model.getConss()[i])
 
-    cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=None):
+    def add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=None):
         """
         Add a linear constraint.
 
@@ -389,11 +386,11 @@ cdef class SCIPBackend(GenericBackend):
             self.model.freeTransform()
         mvars = self.model.getVars()
         from pyscipopt.scip import quicksum
-        linfun = quicksum([v*mvars[c] for c,v in coefficients])
-        #we introduced patch 0001 for pyscipopt, in order to handle the case
-        #when linfun is an empty expression.
-        if name==None:
-            name=''
+        linfun = quicksum([v*mvars[c] for c, v in coefficients])
+        # we introduced patch 0001 for pyscipopt, in order to handle the case
+        # when linfun is an empty expression.
+        if name is None:
+            name = ''
 
         if lower_bound is None:
             lower_bound = -self.model.infinity()
@@ -403,7 +400,7 @@ cdef class SCIPBackend(GenericBackend):
         cons = lower_bound <= (linfun <= upper_bound)
         self.model.addCons(cons, name=name)
 
-    cpdef row(self, int index):
+    def row(self, index):
         r"""
         Return a row
 
@@ -433,11 +430,11 @@ cdef class SCIPBackend(GenericBackend):
         """
         namedvars = [_.name for _ in self.model.getVars()]
         valslinear = self.model.getValsLinear(self.model.getConss()[index])
-        pair = zip(*[[namedvars.index(_),v]
-                            for _,v in  valslinear.iteritems()])
-        return (list(pair[0]), list(pair[1])) if pair !=[] else ([], [])
+        pair = zip(*[[namedvars.index(_), v]
+                       for _, v in valslinear.iteritems()])
+        return (list(pair[0]), list(pair[1])) if pair != [] else ([], [])
 
-    cpdef row_bounds(self, int index):
+    def row_bounds(self, index):
         """
         Return the bounds of a specific constraint.
 
@@ -470,7 +467,7 @@ cdef class SCIPBackend(GenericBackend):
             rhs = None
         return (lhs, rhs)
 
-    cpdef col_bounds(self, int index):
+    def col_bounds(self, index):
         """
         Return the bounds of a specific variable.
 
@@ -506,7 +503,7 @@ cdef class SCIPBackend(GenericBackend):
         return (lb, ub)
 
 
-    cpdef add_col(self, list indices, list coeffs):
+    def add_col(self, indices, coeffs):
         """
         Add a column.
 
@@ -541,14 +538,13 @@ cdef class SCIPBackend(GenericBackend):
             5
         """
         mcons = self.model.getConss()
-        #after update of
         index = self.add_variable(lower_bound=-self.model.infinity())
         var = self.model.getVars()[index]
 
-        for i,coeff in zip(indices, coeffs):
+        for i, coeff in zip(indices, coeffs):
             self.model.addConsCoeff(var=var, cons=mcons[i], coeff=coeff)
 
-    cpdef int solve(self) except -1:
+    def int solve(self) except -1:
         """
         Solve the problem.
 
@@ -618,21 +614,20 @@ cdef class SCIPBackend(GenericBackend):
             1
 
         """
-        if (self.model.getStatus() != 'unknown') or (self.model.getStage()>1):
+        if (self.model.getStatus() != 'unknown') or (self.model.getStage() > 1):
             self.model.freeTransform()
         self.model.optimize()
 
         status = self.model.getStatus()
 
-        if status=='unbounded':
+        if status == 'unbounded':
             raise MIPSolverException("SCIP : Solution is unbounded")
-        elif status=='infeasible':
+        elif status == 'infeasible':
             raise MIPSolverException("SCIP : There is no feasible solution")
-        #elif status=='timelimit':
-        #    raise MIPSolverException("SCIP : Time limit reached")
+
         return 0
 
-    cpdef get_objective_value(self):
+    def get_objective_value(self):
         """
         Returns the value of the objective function.
 
@@ -659,7 +654,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         return self.model.getObjVal()
 
-    cpdef best_known_objective_bound(self):
+    def best_known_objective_bound(self):
         r"""
         Return the value of the currently best known bound.
 
@@ -679,7 +674,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         return self.model.getPrimalbound()
 
-    cpdef get_relative_objective_gap(self):
+    def get_relative_objective_gap(self):
         r"""
         Return the relative objective gap of the best known solution.
 
@@ -706,7 +701,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         return self.model.getGap()
 
-    cpdef get_variable_value(self, int variable):
+    def get_variable_value(self, variable):
         """
         Returns the value of a variable given by the solver.
 
@@ -733,7 +728,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         return self.model.getVal(self.model.getVars()[variable])
 
-    cpdef get_row_prim(self, int i):
+    def get_row_prim(self, i):
         r"""
         Returns the value of the auxiliary variable associated with i-th row.
 
@@ -766,7 +761,7 @@ cdef class SCIPBackend(GenericBackend):
         return self.model.getActivity(self.model.getConss()[i])
 
 
-    cpdef int ncols(self):
+    def int ncols(self):
         """
         Return the number of columns/variables.
 
@@ -783,7 +778,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         return len(self.model.getVars())
 
-    cpdef int nrows(self):
+    def int nrows(self):
         """
         Return the number of rows/constraints.
 
@@ -799,7 +794,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         return len(self.model.getConss())
 
-    cpdef col_name(self, int index):
+    def col_name(self, index):
         """
         Return the ``index``th col name
 
@@ -818,7 +813,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         return self.model.getVars()[index].name
 
-    cpdef row_name(self, int index):
+    def row_name(self, index):
         """
         Return the ``index`` th row name
 
@@ -836,7 +831,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         return self.model.getConss()[index].name
 
-    cpdef bint is_variable_binary(self, int index):
+    def bint is_variable_binary(self, int index):
         """
         Test whether the given variable is of binary type.
 
@@ -859,7 +854,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         return self.model.getVars()[index].vtype() == 'BINARY'
 
-    cpdef bint is_variable_integer(self, int index):
+    def bint is_variable_integer(self, index):
         """
         Test whether the given variable is of integer type.
 
@@ -882,7 +877,7 @@ cdef class SCIPBackend(GenericBackend):
         return self.model.getVars()[index].vtype() == 'INTEGER'
 
 
-    cpdef bint is_variable_continuous(self, int index):
+    def bint is_variable_continuous(self, index):
         """
         Test whether the given variable is of continuous/real type.
 
@@ -908,7 +903,7 @@ cdef class SCIPBackend(GenericBackend):
         return self.model.getVars()[index].vtype() == 'CONTINUOUS'
 
 
-    cpdef bint is_maximization(self):
+    def bint is_maximization(self):
         """
         Test whether the problem is a maximization
 
@@ -924,7 +919,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         return self.model.getObjectiveSense() != 'minimize'
 
-    cpdef variable_upper_bound(self, int index, value = False):
+    def variable_upper_bound(self, index, value = False):
         """
         Return or define the upper bound on a variable
 
@@ -983,10 +978,9 @@ cdef class SCIPBackend(GenericBackend):
         if value is False:
             return var.getUbOriginal()
         else:
-            self.model.chgVarUb(var = var, ub = value)
+            self.model.chgVarUb(var=var, ub=value)
 
-
-    cpdef variable_lower_bound(self, int index, value = False):
+    def variable_lower_bound(self, index, value = False):
         """
         Return or define the lower bound on a variable
 
@@ -1046,9 +1040,9 @@ cdef class SCIPBackend(GenericBackend):
         if value is False:
             return var.getLbOriginal()
         else:
-            self.model.chgVarLb(var = var, lb = value)
+            self.model.chgVarLb(var=var, lb=value)
 
-    cpdef write_cip(self, char * filename):
+    def write_cip(self, filename):
         """
         Write the problem to a .cip file
 
@@ -1069,7 +1063,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         self.model.writeProblem(filename)
 
-    cpdef write_lp(self, char * filename):
+    def write_lp(self, filename):
         """
         Write the problem to a .lp file
 
@@ -1097,7 +1091,7 @@ cdef class SCIPBackend(GenericBackend):
         self.model.writeProblem(filenamestr)
 
 
-    cpdef write_mps(self, char * filename, int modern):
+    def write_mps(self, filename, modern):
         """
         Write the problem to a .mps file
 
@@ -1124,8 +1118,7 @@ cdef class SCIPBackend(GenericBackend):
 
         self.model.writeProblem(filenamestr)
 
-
-    cpdef __copy__(self):
+    def __copy__(self):
         """
         Returns a copy of self.
 
@@ -1139,29 +1132,28 @@ cdef class SCIPBackend(GenericBackend):
             sage: copy(p).solve()                                               # optional - pyscipopt
             6.0
         """
-        cdef SCIPBackend cp = type(self)(maximization = self.is_maximization())
+        cp = type(self)(maximization=self.is_maximization())
         cp.problem_name(self.problem_name())
-        for i,v in enumerate(self.model.getVars()):
+        for i, v in enumerate(self.model.getVars()):
             vtype = v.vtype
             cp.add_variable(self.variable_lower_bound(i),
                             self.variable_upper_bound(i),
-                            binary = vtype == 'BINARY',
-                            continuous = vtype == 'CONTINUOUS',
-                            integer = vtype == 'INTEGER',
-                            obj = self.objective_coefficient(i),
-                            name = self.col_name(i))
+                            binary=vtype == 'BINARY',
+                            continuous=vtype == 'CONTINUOUS',
+                            integer=vtype == 'INTEGER',
+                            obj=self.objective_coefficient(i),
+                            name=self.col_name(i))
         assert(self.ncols() == cp.ncols())
 
         for i in range(self.nrows()):
             cp.add_linear_constraint(zip(*self.row(i)),
                                      self.row_bounds(i)[0],
                                      self.row_bounds(i)[1],
-                                     name = self.row_name(i))
+                                     name=self.row_name(i))
         assert(self.nrows() == cp.nrows())
         return cp
 
-
-    cpdef solver_parameter(self, name, value = None):
+    def solver_parameter(self, name, value=None):
         """
         Return or define a solver parameter
 
