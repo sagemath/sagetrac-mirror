@@ -218,7 +218,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 return
             else:
                 # coerce coefficients into Sage integers
-                x = [Integer(a) for a in x.list()]
+                x = [ZZ(a) for a in x.list()]
                 check = False
 
         elif isinstance(x, dict):
