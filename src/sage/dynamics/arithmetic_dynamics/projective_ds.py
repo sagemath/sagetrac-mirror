@@ -1837,9 +1837,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     f = f.change_ring(K)
                 else:
                     #make variable names match
-                    from sage.rings.number_field.number_field import NumberField
-                    L = NumberField(f.base_ring().defining_polynomial().parent()(K.defining_polynomial()), name='a')
-                    phi2 = K.embeddings(L)[0]
+                    L = K.change_names('a')
+                    phi2 = L.structure()[1]
                     K, phi, psi, b = L.composite_fields(f.base_ring(), both_maps=True)[0]
                     Q = Q.change_ring(phi*phi2)
                     f = f.change_ring(psi)
