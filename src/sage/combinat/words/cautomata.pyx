@@ -1359,7 +1359,7 @@ cdef class FastAutomaton:
 
         return r
 
-    def plot(self, int sx=10, int sy=8, vlabels=None, html=False, verb=False):
+    def plot(self, int sx=10, int sy=8, vlabels=None, html=False, file=None, bool draw=True, verb=False):
         """
         Plot the :class:`FastAutomaton`. Draw using the dot command, if installed on the platform.
         
@@ -1371,6 +1371,8 @@ cdef class FastAutomaton:
         - ``sy`` - int (default: 8) - height of the picture
         - ``vlabels`` - (default: None) - labels of the vertices
         - ``html`` - (default: ``False``) - tell if dot should draw vertices in html mode
+        - ``file`` - (default: ``None``) - the adress of the .dot file of the drawing (only if dot is installed)
+        - ``draw`` - (default: ``True``) - if False, only generate the .dot file (only if dot is installed)
         - ``verb`` - (default: ``False``) - active or not the verbose mode
 
         TESTS::
@@ -1389,14 +1391,17 @@ cdef class FastAutomaton:
             a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sphinx_plot(a)
         """
-        cdef char *file
+        cdef char *cfile
         cdef char** ll # labels of edges
         cdef char** vl # labels of vertices
         cdef int i
         if DotExists():
-            from sage.misc.temporary_file import tmp_filename
-            file_name = tmp_filename()+".dot"
-            file = file_name
+            if file is None:
+                from sage.misc.temporary_file import tmp_filename
+                file_name = tmp_filename()+".dot"
+                cfile = file_name
+            else:
+                cfile = file
             ll = <char **>malloc(sizeof(char*) * self.a.na)
             if vlabels is None:
                 vl = NULL
@@ -1427,7 +1432,7 @@ cdef class FastAutomaton:
             if verb:
                 print("plot...")
             sig_on()
-            plotDot(file, self.a[0], ll, "Automaton", sx, sy, vl, verb, True)
+            plotDot(cfile, self.a[0], ll, "Automaton", sx, sy, vl, verb, draw)
             sig_off()
             if verb:
                 print("free...plot")
