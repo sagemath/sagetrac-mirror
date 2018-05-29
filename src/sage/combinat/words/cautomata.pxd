@@ -30,8 +30,8 @@ cdef extern from "Automaton.h":
         int na  # nombre de lettres
 
 cdef extern from "automataC.h":
-    Automate NewAutomaton (int n, int na)
-    void FreeAutomaton (Automate *a)
+    Automate NewAutomaton(int n, int na)
+    void FreeAutomaton(Automate *a)
 
 ctypedef Automate Automaton
 

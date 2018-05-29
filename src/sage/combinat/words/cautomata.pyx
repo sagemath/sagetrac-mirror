@@ -602,7 +602,7 @@ cdef class NFastAutomaton:
         """
         INPUT:
 
-        -``i`` -- int successor number
+        - ``i`` -- int successor number
 
         OUTPUT:
 
@@ -622,12 +622,12 @@ cdef class NFastAutomaton:
     # give the state at end of the jth edge of the state i
     def succ(self, int i, int j):
         """
-        Give the state at end of the ``j``th edge of the state ``i``
+        Give the state at end of the ``j`` th edge of the state ``i``
 
         INPUT:
 
-        -``i`` int state number
-        -``j`` int edge number
+        - ``i`` int state number
+        - ``j`` int edge number
 
         OUTPUT:
 
@@ -638,7 +638,7 @@ cdef class NFastAutomaton:
             sage: a = FastAutomaton([(0, 1, 'a'),(1, 2, 'c'), (2, 3, 'b')], i=0)
             sage: b = NFastAutomaton(a)
             sage: b.succ(1, 0)
-            2        
+            2
         """
         if i >= self.a.n or i < 0:
             raise ValueError("There is no state %s !"%i)
@@ -1672,6 +1672,7 @@ cdef class FastAutomaton:
             -1
             sage: a.succ(2,1)
             3
+
         """
         if i < 0 or i >= self.a.n or j < 0 or j >= self.a.na:
             return -1
