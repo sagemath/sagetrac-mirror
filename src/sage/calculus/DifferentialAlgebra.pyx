@@ -80,7 +80,9 @@ EXAMPLES:
         differential_field
         sage: R = DifferentialRing (derivations = [t], blocks = [F_1, [E,ES,P,S], params], parameters = params)
         sage: R
-        differential_ring
+        Differential Ring over Rational Field
+            with dependents F_1(t), E(t), ES(t), P(t), S(t),
+                 independent t, and parameters k(-1), k(1), k(2)
 
     The Rosenfeld-Groebner algorihtm considers three cases. The two last ones
     are degenerate cases::
@@ -114,7 +116,10 @@ EXAMPLES:
 
         sage: R = DifferentialRing (blocks = [F_1, [ES,E,P,S], params], parameters = params, derivations = [t])
         sage: R
-        differential_ring
+        Differential Ring over Rational Field
+            with dependents F_1(t), ES(t), E(t), P(t), S(t),
+                 independent t,
+             and parameters k(-1), k(1), k(2), E(0), ES(0), P(0), S(0), K, V_max
 
     There are relations among the parameters: initial values supposed
     to be zero, and equations meant to rename constants::
@@ -206,7 +211,8 @@ EXAMPLE:
 
         sage: R = DifferentialRing (derivations = [t], blocks = [[x1,x2], params], parameters = params)
         sage: R
-        differential_ring
+        Differential Ring over Rational Field with dependents x1(t), x2(t),
+            independent t, and parameters k(e), V(e), k(12), k(21)
 
     Here are the equations which give the dynamics of the system::
 
@@ -246,7 +252,8 @@ EXAMPLE:
 
         sage: IO_R = DifferentialRing (derivations = [t], blocks = [x2,x1,params], parameters = params)
         sage: IO_R
-        differential_ring
+        Differential Ring over Rational Field with dependents x2(t), x1(t),
+            independent t, and parameters k(e), V(e), k(12), k(21)
 
     One just has to perform a change of ranking over `C`::
 
@@ -298,6 +305,7 @@ EXAMPLE:
 # To avoid eval ('1/7') giving 0, use eval (preparse (...))
 from sage.repl.preparse import preparse
 from sage.calculus.var import function
+from sage.all import latex
 
 # __all__ = (DifferentialRing, RegularDifferentialChain, BaseFieldExtension)
 
@@ -477,7 +485,8 @@ cdef class DifferentialRing:
 
         sage: R = DifferentialRing(derivations = [x], blocks = [z,y,a,b], parameters = [a,b])
         sage: R
-        differential_ring
+        Differential Ring over Rational Field with dependents z(x), y(x),
+            independent x, and parameters a, b
 
     Here is a differential polynomial which belongs to `R`::
 
@@ -494,7 +503,8 @@ cdef class DifferentialRing:
 
         sage: S = DifferentialRing( derivations = [x], blocks = [b,a,y,z], parameters = [a,b] )
         sage: S
-        differential_ring
+        Differential Ring over Rational Field with dependents y(x), z(x),
+            independent x, and parameters b, a
         sage: S.sort( R.indets(poly, selection = 'all'), 'descending' )
         [b, a, diff(y(x), x), y(x), diff(z(x), x), z(x), x]
 
@@ -503,7 +513,8 @@ cdef class DifferentialRing:
 
         sage: T = DifferentialRing( derivations = [x], blocks = [[z,y],a,b], parameters = [a,b] )
         sage: T
-        differential_ring
+        Differential Ring over Rational Field with dependents z(x), y(x),
+            independent x, and parameters a, b
         sage: T.sort( R.indets(poly, selection = 'all'), 'descending' )
         [diff(z(x), x), diff(y(x), x), z(x), y(x), a, b, x]
 
@@ -579,7 +590,11 @@ cdef class DifferentialRing:
             sage: y,z = function ('y,z')
             sage: R = DifferentialRing (derivations = [x], blocks = [z,y,a,b], parameters = [a,b])
             sage: R
-            differential_ring
+            Differential Ring over Rational Field with dependents z(x), y(x),
+                independent x, and parameters a, b
+            sage: latex(R)
+            \Bold{Q}[x]\{z\left(x\right),y\left(x\right),a,b\}
+
         """
 #
         cdef bmi_c.ALGEB A
@@ -605,11 +620,51 @@ cdef class DifferentialRing:
 
     def __repr__ (self):
         """ The external representation """
-        return 'differential_ring'
+
+        independents = self.indets(selection = 'independent')
+        dependents = self.indets(selection = 'dependent')
+        params = self.indets(selection = 'parameters')
+
+        for p in params:
+            dependents.remove(p)
+
+        def convert_to_string(name, list):
+            if len(list) == 0:
+                return ''
+            elif len(list) == 1:
+                return name + ' ' + repr(list.pop())
+            else:
+                return name + 's ' + ', '.join([repr(i) for i in list])
+
+        if len(params) > 0 and len(dependents) > 0 and len(independents) > 0:
+            descr = convert_to_string(' with dependent', dependents) \
+                    + convert_to_string(', independent', independents) \
+                    + convert_to_string(', and parameter', params)
+        elif len(dependents) > 0:
+            descr = convert_to_string(' with dependent', dependents) \
+                    + convert_to_string(' and independent', independents) \
+                    + convert_to_string(' and parameter', params)
+        elif len(independents) > 0:
+            descr = convert_to_string(' with independent', independents) \
+                    + convert_to_string(' and parameter', params)
+        else:
+            descr = convert_to_string(' with parameter', params)
+
+        return 'Differential Ring over Rational Field' + descr
 
     def _latex_ (self):
         """ The LaTeX representation """
-        return 'differential\\_ring'
+
+        independents = self.indets(selection = 'independent')
+        dependents = self.indets(selection = 'dependent')
+
+        descr = '\Bold{Q}'
+        if len(independents) > 0:
+            descr = descr + '[' + ','.join([latex(i) for i in independents]) + ']'
+        if len(dependents) > 0:
+            descr = descr + '\{' + ','.join([latex(d) for d in dependents]) + '\}'
+
+        return descr
 
 # coeffs
     def coeffs (
@@ -2557,7 +2612,8 @@ cdef class RegularDifferentialChain:
 
             sage: S = C.differential_ring ()
             sage: S
-            differential_ring
+            Differential Ring over Rational Field
+                with dependents u(x, y), v(x, y) and independents x, y
             sage: S.indets ()
             [u(x, y), v(x, y)]
         """
