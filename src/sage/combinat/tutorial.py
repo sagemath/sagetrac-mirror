@@ -1400,7 +1400,7 @@ Counting them, we recover a well-known sequence::
 Automaton and Rational language 
 --------------------------------
 
-Automata are in a way machines that can realize linear time calculation only requiring a fine memory. for more details see [Ca].
+Automata are in a way machines that can realize linear time calculation only requiring a fine memory. For more details see [Ca].
 
 Automata
 ~~~~~~~~

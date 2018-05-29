@@ -6,7 +6,7 @@ FastAutomaton for determinist automata and NFastAutomaton for non determinist
 
 AUTHORS:
 
-- Paul Mercat (2013)- I2M - initial version
+- Paul Mercat (2013)- I2M AMU Aix-Marseille Universite - initial version
 - Dominique Benielli (2018) Labex Archimede - I2M -
   AMU Aix-Marseille Universite - Integration in -SageMath
 
@@ -251,15 +251,15 @@ cdef Dict getProductDict(dict d, list A1, list A2, dict dv=None, verb=True):
 # def TestProduct(a1, a2, di):
 #     """
 #     Test and print the product of automaton
-# 
+#
 #     INPUT:
-# 
+#
 #     - ``a1`` first automaton term of product
-# 
+#
 #     - ``a2`` second automaton term of product
-# 
+#
 #     - ``di`` alphabet dictionnary
-# 
+#
 #     """
 #     cdef Automaton a, b, c
 #     a = getAutomaton(a1)
@@ -276,7 +276,7 @@ cdef Dict getProductDict(dict d, list A1, list A2, dict dv=None, verb=True):
 #     print("result :")  # "résultat :"
 #     printAutomaton(c)
 
-#def TestDeterminise (a, d, noempty=True, verb=True):
+# def TestDeterminise (a, d, noempty=True, verb=True):
 #    cdef Dict di = getDict(d, a.Alphabet)
 #    cdef Automaton au = getAutomaton(a)
 #    if verb:
@@ -286,7 +286,7 @@ cdef Dict getProductDict(dict d, list A1, list A2, dict dv=None, verb=True):
 #    cdef Automaton r = Determinise(au, di, noempty, verb)
 #    printAutomaton(r)
 
-#def TestDeterminiseEmonde (a, d, noempty=True, verb=True):
+# def TestDeterminiseEmonde (a, d, noempty=True, verb=True):
 #    cdef Dict di = getDict(d, a.Alphabet)
 #    cdef Automaton au = getAutomaton(a)
 #    if verb:
@@ -381,7 +381,7 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
 
 cdef AutomatonGet(Automaton a, A):
     """
-    Tranform a Automaton a with a alphabet A to a DiGraph
+    Transform a Automaton a with a alphabet A to a DiGraph
     """
     from sage.graphs.digraph import DiGraph
     r = DiGraph(multiedges=True, loops=True)
@@ -395,7 +395,7 @@ cdef AutomatonGet(Automaton a, A):
             r.F.append(i)
     r.I = [a.i]
     return r
-    
+
 cdef AutomatonToSageAutomaton(Automaton a, A):
     from sage.combinat.finite_state_machine import Automaton as SageAutomaton
     L = []
@@ -433,7 +433,7 @@ cdef Bool(int x):
 
 cdef class NFastAutomaton:
     """
-    Class :class:`NFastAutomaton`, this class encapsulates a C structure for Automata and 
+    Class :class:`NFastAutomaton`, this class encapsulates a C structure for Automata and
     implement methods to manipulate non-determinist automata.
 
     INPUT:
@@ -507,7 +507,7 @@ cdef class NFastAutomaton:
         free(self.a)
 
     def __repr__(self):
-        return "NFastAutomaton with %d states and an alphabet of %d letters"%(self.a.n, self.a.na)
+        return "NFastAutomaton with %d states and an alphabet of %d letters" % (self.a.n, self.a.na)
 
     def _latex_(self):
         r"""
@@ -1113,6 +1113,9 @@ cdef class FastAutomaton:
         string - latex representation of the automaton.
 
         EXAMPLES::
+
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: latex(a)      # optional -  dot2tex
             \documentclass{article}
             \usepackage[x11names, rgb]{xcolor}
             \usepackage[utf8]{inputenc}
@@ -1369,7 +1372,7 @@ cdef class FastAutomaton:
         - ``vlabels`` - (default: None) - labels of the vertices
         - ``html`` - (default: ``False``) - tell if dot should draw vertices in html mode
         - ``verb`` - (default: ``False``) - active or not the verbose mode
-        
+
         TESTS::
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
