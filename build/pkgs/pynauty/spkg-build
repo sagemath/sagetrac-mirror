@@ -1,0 +1,20 @@
+cd src
+
+nautytar=$(sage-package tarball nauty)
+
+sage-uncompress-spkg -d ./nauty $SAGE_DISTFILES/$nautytar
+
+nautyname=${nautytar/.tar.gz/}
+
+cd nauty
+
+sage-apply-patches nauty
+
+cd ..
+
+$MAKE PYTHON="sage-python23" pynauty
+
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building or configuring PACKAGE_NAME."
+    exit 1
+fi

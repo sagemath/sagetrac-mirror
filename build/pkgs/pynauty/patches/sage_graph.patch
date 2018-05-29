@@ -1,0 +1,344 @@
+diff --git a/src/graph.py b/src/graph.py
+index 4160b72..ca4b0d6 100644
+--- a/src/graph.py
++++ b/src/graph.py
+@@ -23,7 +23,6 @@ __all__ = [
+     'autgrp',
+     'isomorphic',
+     'certificate',
+-    'delete_random_edge',
+ ]
+ 
+ from . import nautywrap
+@@ -36,21 +35,11 @@ class Graph(object):
+     It can represent vertex colored, directed or undirected graphs.
+     '''
+ 
+-    def __init__(self, number_of_vertices, directed=False,
+-                 adjacency_dict={},
++    def __init__(self, graph,
+                  vertex_coloring=[]):
+         '''
+-        *number_of_vertices*
+-            The number of vertices of the graph; the vertices are
+-            labeled from zero.  Mandatory argument.
+-
+-        *directed*
+-            Indicate wether the grap is directed or not.  Optional,
+-            default is False.
+-
+-        *adjacency_dict*
+-            key: a vertex, value: a list of vertices linked to the
+-            key vertex.  Optional, default is an empty dictionary.
++        *graph*
++            Sage Graph object.  Mandatory argument.
+ 
+         *vertex_coloring*
+             A list of disjoint sets of vertices representing a
+@@ -58,57 +47,11 @@ class Graph(object):
+             placed into a single additional part.  Optional, default
+             is no coloring.
+         '''
+-        self.number_of_vertices = number_of_vertices
+-        self.directed = directed
+-        self.set_adjacency_dict(adjacency_dict)
++        self.number_of_vertices = graph.order()
++        self.directed = graph.is_directed()
++        self.graph = graph
+         self.set_vertex_coloring(vertex_coloring)
+ 
+-    def _check_vertices(self, vs):
+-        for v in vs:
+-            if not (0 <= v and v < self.number_of_vertices):
+-                raise ValueError(
+-                'vertex %d conflicts with number_of_vertices=%d' %
+-                                 (v, self.number_of_vertices))
+-
+-    def _get_adjacency_dict(self):
+-        return self._adjacency_dict
+-
+-    adjacency_dict = property(_get_adjacency_dict)
+-
+-    def set_adjacency_dict(self, adjacency_dict):
+-        '''
+-        Set the adjacency relations of the Graph.
+-
+-        *adjacency_dict*
+-            key: a vertex, value: a list of vertices linked to the
+-            key vertex.
+-        '''
+-        for v, vs in adjacency_dict.items():
+-            self._check_vertices([v])
+-            self._check_vertices(vs)
+-        self._adjacency_dict = adjacency_dict.copy()
+-
+-    def connect_vertex(self, v, neighbors):
+-        '''
+-        Connect a vertex to some other vertices.
+-
+-        *v*
+-            A vertex of the Graph. The *tail* of the arcs if the Graph
+-            is directed.
+-        *neighbors*
+-            A vertex or a list of vertices to which *v* should be connected.
+-            The *heads* of the arcs if the Graph is directed.
+-
+-        '''
+-        self._check_vertices([v])
+-        if isinstance(neighbors, list):
+-            self._check_vertices(neighbors)
+-            self._adjacency_dict[v] = neighbors
+-        else:
+-            self._check_vertices([neighbors])
+-            self._adjacency_dict.setdefault(v, [])
+-            self._adjacency_dict[v].append(neighbors)
+-
+     def _get_vertex_coloring(self):
+         return self._vertex_coloring
+ 
+@@ -137,20 +80,23 @@ class Graph(object):
+             if len(self._vertex_coloring) == 1:
+                 self._vertex_coloring = []
+ 
+-    def __repr__(self):
+-        s = ['Graph(number_of_vertices=%d, directed=%s,' %
+-             (self.number_of_vertices, self.directed)]
+-        s.append(' adjacency_dict = {')
+-        for k,v in self._adjacency_dict.items():
+-            v.sort()
+-            s.append('  %d: %s,' % (k,v))
+-        s.append(' },')
++    def _repr_(self):
++        
++        s = ['Graph(sage_graph=%s,' %
++             (self.graph._repr_)]
+         s.append(' vertex_coloring = [')
+         for x in self._vertex_coloring:
+             s.append('  set(%s),' % list(x))
+         s.append(' ],')
+         s.append(')')
+         return '\n'.join(s)
++    
++    def _latex_(self):
++		
++		s = latex(self.graph)
++		s.append("\n");
++		s.append("Vertex coloring: %s" % (dict_function(s.vertex_coloring)))
++		return '\n'.joins(s)
+ 
+ 
+ def autgrp(g):
+@@ -200,33 +146,3 @@ def isomorphic(a, b):
+         return False
+     else:
+         return certificate(a) == certificate(b)
+-
+-
+-def delete_random_edge(g):
+-    '''
+-    Delete a random edge from a graph.
+-
+-    *g*
+-        A Graph object.
+-
+-    return ->
+-        The deleted edge as a tuple or (None, None) if no edge is left.
+-    '''
+-    if g.adjacency_dict:
+-        # pick a random vertex 'x' which is connected
+-        x = random.sample(list(g.adjacency_dict),1)[0]
+-        # remove a random edge connected to 'x'
+-        xs = g.adjacency_dict[x]
+-        y = xs.pop(random.randrange(len(xs)))
+-        if not xs:
+-            g.adjacency_dict.pop(x)
+-        # if g is not directed make sure to remove edge completely
+-        if (not g.directed) and y in g.adjacency_dict:
+-            ys = g.adjacency_dict[y]
+-            if x in ys:
+-                ys.remove(x)
+-    else:
+-        # the graph has no edges
+-        x, y = None, None
+-    return (x, y)
+-
+diff --git a/src/nautywrap.c b/src/nautywrap.c
+index 82e5309..6948c57 100644
+--- a/src/nautywrap.c
++++ b/src/nautywrap.c
+@@ -313,90 +313,114 @@ static PyObject* py_auto_group(NyGraph *g)
+     return py_autgrp;
+ }
+ 
+-
+-NyGraph * _make_nygraph(PyObject *py_graph)
+-// Convert the Python NyGraph object into a Nauty/C NyGraph object
++NyGraph * _make_nygraph(PyObject *args)
++// Convert the Sage Graph object into a Nauty/C NyGraph object
+ // and set Nauty options.
+ {
+     NyGraph *g;
+     int n;
+     set *rowp;
+- 
+-    PyObject *adjdict;
+-    PyObject *key;
+-    PyObject *adjlist;
+-    PyObject *p;
++    PyObject *py_graph;
++    PyObject *py_partition;
+ 
+-    int i;
+-    int adjlist_length;
++    Py_ssize_t i;
++    Py_ssize_t length;
+     int x, y;
+ 
++    // get the graph
++    if ((py_graph = PyObject_GetAttrString(args, "graph")) == NULL) {
++        PyErr_SetString(PyExc_TypeError,
++                "Missing 'graph' attribute");
++        return NULL;
++    }
++    PyObject* py_n;
+     // get the number of vertices
+-    if ((p = PyObject_GetAttrString(py_graph, "number_of_vertices")) == NULL) {
++    if ((py_n = PyObject_GetAttrString(args, "number_of_vertices")) == NULL) {
+         PyErr_SetString(PyExc_TypeError,
+                 "Missing 'number_of_vertices' attribute");
+         return NULL;
+     }
+-#if PY_MAJOR_VERSION >= 3
+-    n = PyLong_AS_LONG(p);
+-#else
+-    n = PyInt_AS_LONG(p);
+-#endif
+-    Py_DECREF(p);
++	
++	#if PY_MAJOR_VERSION >= 3
++    n = PyLong_AS_LONG(py_n);
++	#else
++    n = PyInt_AS_LONG(py_n);
++	#endif
++    Py_DECREF(py_n);
+ 
+     // create an empty Nauty NyGraph object
+     if ((g = create_nygraph(n)) == NULL) {
+         PyErr_SetString(PyExc_MemoryError, "Nauty NyGraph creation failed");
+         return NULL;
+     }
+-
++	
++    PyObject* py_directed;
+     // get directed attribute
+-    if ((p = PyObject_GetAttrString(py_graph, "directed")) == NULL) {
++    if ((py_directed = PyObject_GetAttrString(args, "directed")) == NULL) {
+         PyErr_SetString(PyExc_TypeError, "missing 'directed' attribute");
+         return NULL;
+     }
+-    Py_DECREF(p);
+-    if (PyObject_IsTrue(p)) {
++    
++    if (PyObject_IsTrue(py_directed)) {
+         g->options->digraph = TRUE;
+     } else {
+         g->options->digraph = FALSE;
+     }
+-
+-    // get the adjacency list dictionary object
+-    if ((adjdict = PyObject_GetAttrString(py_graph, "adjacency_dict")) == NULL) {
+-        PyErr_SetString(PyExc_TypeError, "missing 'adjacency_dict' attribute");
+-        return NULL;
+-    }
+-
++    Py_DECREF(py_directed);
++    
+     // iterate over the adjacency list setting
+     // the adjacency matrix in the Nauty NyGraph g
+-    Py_ssize_t pos = 0;
+-    while (PyDict_Next(adjdict, &pos, &key, &adjlist)) {
+-#if PY_MAJOR_VERSION >= 3
+-        x = PyLong_AS_LONG(key);
+-#else
+-        x = PyInt_AS_LONG(key);
+-#endif
+-        adjlist_length =  PyObject_Length(adjlist);
+-        rowp = GRAPHROW(g->matrix, x, g->no_setwords);
+-        for (i=0; i < adjlist_length; i++) {
+-            p = PyList_GET_ITEM(adjlist, i);
+-#if PY_MAJOR_VERSION >= 3
+-            y = PyLong_AS_LONG(p);
+-#else
+-            y = PyInt_AS_LONG(p);
+-#endif
+-            ADDELEMENT(rowp, y);
+-            if (g->options->digraph == FALSE) {
+-                ADDELEMENT((GRAPHROW(g->matrix, y, g->no_setwords)), x);
+-            }
+-        }
+-    }
+-
+-    Py_DECREF(adjdict);
++    
++    // get vertex iterator
++    
++    
++    PyObject *vertex_iterator = PyObject_GetIter(py_graph);
++	PyObject *idx;
++	PyObject *neighbor_function_name;
++	if(g->options->digraph){
++		neighbor_function_name = PyString_FromString("neighbors_out");
++	}else{
++		neighbor_function_name = PyString_FromString("neighbors");
++	}
++	if (vertex_iterator == NULL) {
++		PyErr_SetString(PyExc_TypeError, "missing iterator");
++        return NULL;
++	}
++
++	while ((idx = PyIter_Next(vertex_iterator))) {
++		#if PY_MAJOR_VERSION >= 3
++		x = PyLong_AS_LONG(idx);
++		#else
++		x = PyInt_AS_LONG(idx);
++		#endif
++		PyObject *neighbor_list;
++		if ((neighbor_list = PyObject_CallMethodObjArgs(py_graph, neighbor_function_name, idx)) == NULL) {
++			if(!(g->options->digraph)) PyErr_SetString(PyExc_TypeError, "Missing 'neighbors' method");
++			else PyErr_SetString(PyExc_TypeError, "Missing 'neighbors_out' method");
++			return NULL;
++		}
++        	length =  PyList_Size(neighbor_list);
++        	rowp = GRAPHROW(g->matrix, x, g->no_setwords);
++        	PyObject *el;
++        	for (i=0; i < length; i++) {
++            		el = PyList_GetItem(neighbor_list, i);
++			#if PY_MAJOR_VERSION >= 3
++            		y = PyLong_AS_LONG(el);
++			#else
++            		y = PyInt_AS_LONG(el);
++			#endif
++            		ADDELEMENT(rowp, y);
++            		if (g->options->digraph == FALSE) {
++               			ADDELEMENT((GRAPHROW(g->matrix, y, g->no_setwords)), x);
++            		}
++        	}
++		Py_DECREF(idx);
++	}
++
++	Py_DECREF(vertex_iterator);
+ 
+     // take care of coloring
+-    x = set_partition(py_graph, g->lab, g->ptn);
++    x = set_partition(args, g->lab, g->ptn);
+     if (x < 0) {
+         g->options->defaultptn = TRUE;
+     } else if (x == 0) {
+@@ -408,7 +432,6 @@ NyGraph * _make_nygraph(PyObject *py_graph)
+     return g;
+ }
+ 
+-
+ // Exported (module level) Python functions ----------------------------------
+ 
+ static char make_nygraph_docs[] =
