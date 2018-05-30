@@ -328,6 +328,39 @@ class TorsionQuadraticModule(FGP_Module_class):
         """
         return TorsionQuadraticModule(V, W, check=check)
 
+    @cached_method
+    def _to_smith(self):
+        r"""
+        Return the tranformation matrix from generators to smith generators.
+
+        EXAMPLES::
+        """
+        # transformation matrices between smith and normal_form generators
+        to_smith = matrix(ZZ, [t.vector() for t in self.gens()])
+        return to_smith
+
+    @cached_method
+    def _to_gens(self):
+        r"""
+        Return the transformation matrix from smith generators to generators.
+
+        EXAMPLES::
+
+            sage:
+        """
+        invs = self.invariants()
+        R = IntegerModRing(invs[-1])
+        E = matrix.identity(R, len(invs))
+        # view self as a submodule of (ZZ/nZZ)^(len(invs))
+        B = self._to_smith().change_ring(R)
+        for k in range(B.ncols()):
+            B[:, k] *= invs[-1] // invs[k]
+            E[:, k] *= invs[-1] // invs[k]
+        # unfortunatly solve_left does not work with matrices
+        # to_normal = matrix([B.solve_left(e) for e in E.rows()])
+        to_normal = B.solve_left(E).change_ring(ZZ)
+        return to_normal
+
     def all_submodules(self):
         r"""
         Return a list of all submodules of ``self``.
