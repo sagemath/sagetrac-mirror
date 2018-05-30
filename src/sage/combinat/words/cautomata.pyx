@@ -2680,7 +2680,7 @@ cdef class FastAutomaton:
             A = list(set(self.A).union(set(b.A)))
             if verb:
                 print("Alphabet Changing (%s, %s -> %s)..." %(self.A, b.A, A))
-            a = self._alphabet(A)
+            a = self.bigger_alphabet(A)
             b = b.bigger_alphabet(A)
             # raise ValueError("Error : concatenation of automaton having differents alphabets.")
         else:
@@ -3044,7 +3044,7 @@ cdef class FastAutomaton:
         Determine a partition into strongly connected components.
         A strongly connected component is a minimal subset of the set of states such that
         there is no path going outside of the subset, from a state of the subset to a state of the subset.
-        
+
         INPUT:
 
         - ``no_trivials`` -- (default: ``False``) If True, do not take into account components without any transition from itself to itself (such component contains only one element).
@@ -3817,7 +3817,7 @@ cdef class FastAutomaton:
         """
         return self.a.n
 
-    def bigger_alphabet(self, list nA):
+    def bigger_alphabet(self, nA):
         """
         Gives a copy of the :class:`FastAutomaton`, but with the bigger alphabet ``nA``
 
@@ -3840,9 +3840,8 @@ cdef class FastAutomaton:
         sig_on()
         d = NewDict(self.a.na)
         for i in range(self.a.na):
-            print(self.A[i])
-            print(nA)
-            d.e[i] = nA.index(self.A[i])
+            if self.A[i] in nA:
+                d.e[i] = nA.index(self.A[i])
         r.a[0] = BiggerAlphabet(self.a[0], d, len(nA))
         sig_off()
         r.A = nA
@@ -3908,13 +3907,15 @@ cdef class FastAutomaton:
             sage: a.included(a)
             True
             sage: b = FastAutomaton([(0, 1, 'c')], i=0)
-            sage: b.included(a, i=0))
-            False
-
+            sage: a.included(b)
+            True
+            sage: b = FastAutomaton([(0, 1, 'a')], i=0)
+            sage: b.included(a)
+            True
         """
         cdef FastAutomaton b
         if self.A != a.A:
-            b = self.bigger_alphabet(a.Alphabet)
+            b = self.bigger_alphabet(a.A)
         else:
             b = self
         sig_on()
