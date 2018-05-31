@@ -2156,9 +2156,9 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         TESTS::
 
             sage: M = Manifold(5, 'M')
-            sage: g = M.metric('g', signature=3)
+            sage: g = M.metric('g')
             sage: g1 = g._new_instance(); g1
-            Lorentzian metric unnamed metric on the 5-dimensional
+            Riemannian metric unnamed metric on the 5-dimensional
              differentiable manifold M
             sage: type(g1) == type(g)
             True
