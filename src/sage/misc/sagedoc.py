@@ -20,7 +20,7 @@ see :trac:`12849`::
 
     sage: from sage.env import SAGE_DOC
     sage: docfilename = os.path.join(SAGE_DOC, 'html', 'en', 'reference', 'calculus', 'sage', 'symbolic', 'expression.html')
-    sage: with open(docfilename) as fobj:
+    sage: with open(docfilename) as fobj: # requires a built documentation, optional: doc
     ....:     for line in fobj:
     ....:         if "#sage.symbolic.expression.Expression.numerical_approx" in line:
     ....:             print(line)
@@ -786,13 +786,11 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
 
     The examples are nice, but marking them "random" means we're not
     really testing if the function works, just that it completes. These
-    tests aren't perfect, but are reasonable.
-
-    ::
+    tests aren't perfect, but are reasonable::
 
         sage: len(_search_src_or_doc('src', r'matrix\(', 'incidence_structures', 'self', 'combinat', interact=False).splitlines()) > 1
         True
-        sage: 'abvar/homology' in _search_src_or_doc('doc', 'homology', 'variety', interact=False)  # long time (4s on sage.math, 2012)
+        sage: 'abvar/homology' in _search_src_or_doc('doc', 'homology', 'variety', interact=False)  # long time (4s on sage.math, 2012), requires a built documentation, optional: doc
         True
         sage: 'divisors' in _search_src_or_doc('src', '^ *def prime', interact=False)
         True
@@ -1160,9 +1158,9 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='',
     counting the length of ``search_doc('tree',
     interact=False).splitlines()`` gives the number of matches. ::
 
-        sage: len(search_doc('tree', interact=False).splitlines()) > 4000  # long time
+        sage: len(search_doc('tree', interact=False).splitlines()) > 4000  # long time, requires a built documentation, optional: doc
         True
-        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 2000  # long time
+        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 2000  # long time, requires a built documentation, optional: doc
         True
     """
     return _search_src_or_doc('doc', string, extra1=extra1, extra2=extra2,
@@ -1332,7 +1330,7 @@ class _sage_doc:
 
     EXAMPLES::
 
-        sage: browse_sage_doc._open("reference", testing=True)[0]  # indirect doctest
+        sage: browse_sage_doc._open("reference", testing=True)[0]  # indirect doctest, requires a built documentation, optional: doc
         'http://localhost:8000/doc/live/reference/index.html'
         sage: browse_sage_doc(identity_matrix, 'rst')[-107:-47]
         'Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring'
@@ -1494,9 +1492,9 @@ class _sage_doc:
 
         EXAMPLES::
 
-            sage: browse_sage_doc._open("reference", testing=True)[0]
+            sage: browse_sage_doc._open("reference", testing=True)[0] # requires a built documentation, optional: doc
             'http://localhost:8000/doc/live/reference/index.html'
-            sage: browse_sage_doc._open("tutorial", testing=True)[1]
+            sage: browse_sage_doc._open("tutorial", testing=True)[1] # requires a built documentation, optional: doc
             '.../html/en/tutorial/index.html'
         """
         url = self._base_url + os.path.join(name, "index.html")
