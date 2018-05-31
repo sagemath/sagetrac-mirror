@@ -1902,7 +1902,6 @@ class PseudoRiemannianMetric(TensorField):
                     latex_name=format_unop_latex(r'\star ', pform._latex_name))
         return resu
     
-
 #******************************************************************************
 
 def _diag(self, n, m, k):
@@ -1934,6 +1933,8 @@ def _diag(self, n, m, k):
         liste1.append(liste2)
         k += 1
     return liste1
+
+
 
 class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
     r"""
@@ -2253,51 +2254,6 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             mat1.append(mat2)
         mat1 = MatrixSpace(SR, self._ambient_domain.dimension(), self._ambient_domain.dimension())(mat1)
         return mat1
-    
-    def display_matrix(self, chart=None):
-        r"""
-        Display the matrix of the metric in the given chart.
-        
-        INPUT:
-
-            - ``chart`` -- (default: ``None``) a chart on the manifold.
-
-        EXAMPLES:
-
-        Signatures on a 3-dimensional manifold::
-
-            sage: M = Manifold(3, 'M')
-            sage: X.<t,x,y> = M.chart()
-            sage: g = M.metric('g')
-            sage: g.list_of_lines()
-            [1, 0, 0]
-            [0, 1, 0]
-            [0, 0, 1]
-            sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
-            sage: g.matrix()
-            [0,1,0]
-            [1,0,0]
-            [0,0,1]
-            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]); g
-            sage: g.matrix()
-            [-1,0,0]
-            [0,-1,0]
-            [0,0,-1]
-            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]); g
-            sage: g.matrix()
-            [0,0,0]
-            [0,0,0]
-            [0,0,0]
-        """
-        mat0 = self.matrix(chart)
-        mat = r'\begin{pmatrix} '
-        for L in mat0:
-            for elt in L:
-                mat += latex(elt) + ' & '
-            mat = mat.rstrip(str(' &'))
-            mat += '\\ '
-        mat += r'\end{pmatrix}'
-        return FormattedExpansion(str(mat0), mat)
 
     def sign(self):
         r"""
