@@ -1,4 +1,3 @@
-# distutils: language = c++
 """
 SCIP Backend
 
@@ -23,6 +22,7 @@ from __future__ import print_function
 from os import sys
 from os.path import splitext
 from sage.numerical.mip import MIPSolverException
+from sage.numerical.backends.generic_backend import GenericBackend
 from pyscipopt import Model
 
 
@@ -39,7 +39,7 @@ class SCIPBackend(GenericBackend):
         sage: TestSuite(p.get_backend()).run(skip="_test_pickling")             # optional - pyscipopt
     """
 
-    def __cinit__(self, maximization=True):
+    def __init__(self, maximization=True):
         """
         Constructor
 
@@ -67,7 +67,7 @@ class SCIPBackend(GenericBackend):
         """
         return self.model
 
-    def int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
+    def add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None):
         """
         Add a variable.
 
@@ -544,7 +544,7 @@ class SCIPBackend(GenericBackend):
         for i, coeff in zip(indices, coeffs):
             self.model.addConsCoeff(var=var, cons=mcons[i], coeff=coeff)
 
-    def int solve(self) except -1:
+    def solve(self):
         """
         Solve the problem.
 
@@ -761,7 +761,7 @@ class SCIPBackend(GenericBackend):
         return self.model.getActivity(self.model.getConss()[i])
 
 
-    def int ncols(self):
+    def ncols(self):
         """
         Return the number of columns/variables.
 
@@ -778,7 +778,7 @@ class SCIPBackend(GenericBackend):
         """
         return len(self.model.getVars())
 
-    def int nrows(self):
+    def nrows(self):
         """
         Return the number of rows/constraints.
 
@@ -831,7 +831,7 @@ class SCIPBackend(GenericBackend):
         """
         return self.model.getConss()[index].name
 
-    def bint is_variable_binary(self, int index):
+    def is_variable_binary(self, index):
         """
         Test whether the given variable is of binary type.
 
@@ -854,7 +854,7 @@ class SCIPBackend(GenericBackend):
         """
         return self.model.getVars()[index].vtype() == 'BINARY'
 
-    def bint is_variable_integer(self, index):
+    def is_variable_integer(self, index):
         """
         Test whether the given variable is of integer type.
 
@@ -877,7 +877,7 @@ class SCIPBackend(GenericBackend):
         return self.model.getVars()[index].vtype() == 'INTEGER'
 
 
-    def bint is_variable_continuous(self, index):
+    def is_variable_continuous(self, index):
         """
         Test whether the given variable is of continuous/real type.
 
@@ -903,7 +903,7 @@ class SCIPBackend(GenericBackend):
         return self.model.getVars()[index].vtype() == 'CONTINUOUS'
 
 
-    def bint is_maximization(self):
+    def is_maximization(self):
         """
         Test whether the problem is a maximization
 
