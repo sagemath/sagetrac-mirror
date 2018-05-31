@@ -37,6 +37,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from numpy import pi
 from sage.symbolic.ring import SR
 from sage.misc.latex import latex
+from sage.symbolic.expression import Expression
 from sage.tensor.modules.format_utilities import is_atomic, \
                                                          FormattedExpansion
 
@@ -1900,7 +1901,7 @@ class PseudoRiemannianMetric(TensorField):
         resu.set_name(name=format_unop_txt('*', pform._name),
                     latex_name=format_unop_latex(r'\star ', pform._latex_name))
         return resu
-
+    
 
 #******************************************************************************
 
@@ -2146,6 +2147,29 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             description = "Pseudo-Riemannian metric "
         description += self._name + " "
         return self._final_repr(description)
+    
+    def _new_instance(self):
+        r"""
+        Create an instance of the same class as ``self`` with the same
+        signature.
+
+        TESTS::
+
+            sage: M = Manifold(5, 'M')
+            sage: g = M.metric('g', signature=3)
+            sage: g1 = g._new_instance(); g1
+            Lorentzian metric unnamed metric on the 5-dimensional
+             differentiable manifold M
+            sage: type(g1) == type(g)
+            True
+            sage: g1.parent() is g.parent()
+            True
+            sage: g1.signature() == g.signature()
+            True
+
+        """
+        return type(self)(self._vmodule, 'unnamed metric',
+                          latex_name=r'\mbox{unnamed metric}')
 
     def list_of_lines(self, chart=None):
         r"""
@@ -2403,7 +2427,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             3
         """
         return self.sign()[2]
-
+    
 
     def _init_derived(self):
         r"""
