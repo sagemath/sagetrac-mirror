@@ -1406,7 +1406,7 @@ Counting them, we recover a well-known sequence::
 
 .. _section-automaton:
 
-Automaton and Rationnal language 
+Automaton and Rational language 
 --------------------------------
 
 Automata are in a way machines that can realize linear time calculation only requiring a fine memory. for more details see [Ca].
@@ -1478,7 +1478,6 @@ Automaton of states \{0, 1, 2, 3, 4\}, alphabet \{(0,0), (0,1), (1,0), (1,1)\} f
 Automaton of states  \{0, 1, 2, 3, 4\},  alphabet \{0, 1, *\}, for inital state \{0\} and finals states \{0\}.
 
 .. PLOT::
-    :scale: 80%
 
     a = FastAutomaton([(0,0,'(0,0)'),(0,1,'(1,1)'),(0,3,'(0,1)'),(0,5,'(1,0)'),(3,4,'(0,1)'),(4,2,'(1,0)'),(2,1,'(1,1)'),(1,5,'(1,0)'),(5,6,'(0,1)'),(6,5,'(0,0)'),(6,5,'(1,1)')])
     a.add_edge(1,'(1,1)',1)
@@ -1499,13 +1498,13 @@ Definition: rational language
 
 :math:`A` automaton-recognized language :math:`A = (\Sigma, Q, T, I, F)` the set :math:`L_A` of words :math:`a_1 \dots a_n \in \Sigma^*` such that there  exists a path
 :math:`\mathrm{I}  \ni q_0 \xrightarrow{a_1} q_1 \xrightarrow{a_2} \dots \dots \xrightarrow{a_{n-1}} q_{n-1} \xrightarrow{a_n} q_n \in \mathrm{F}`
-in the :math:`A` automaton from an initial state to an end state. 
+in the :math:`A` automaton from an initial state to an end state.
 
 A word :math:`u \in \Sigma^*` is recognized  by the automaton  :math:`A` if we have :math:`u \in L_A`.
 
 A word  $a_1 \dots a_n$ is therefore recognized by the automaton :math:`A` if there exists a path in the graph, labeled by  $a_1, a_2, \dots, a_n$,tarting from an initial state and ending to an end state.
 
-REMARKS: If the automaton is determinist, the path is one-off
+REMARKS: If the automaton is determinist, the path is one-off.
 
 Examples
 ^^^^^^^^
@@ -1531,7 +1530,7 @@ Above Automaton recognizing set of words like :math:`a(baa)^n`.
 
 .. PLOT::
 
-    a = FastAutomaton([(0,1,'l'),(1,2,'a'),(2,3,'p') ,(3,4,'i'),(4,10,'n'),(0,5,'l'),(5,6,'a'),(6,7,'i'),(7,8,'t'),(8,9,'u'),(9,11,'e') ])
+    a = FastAutomaton([(0,1,'l'),(1,2,'a'),(2,3,'p') ,(3,4,'i'),(4,10,'n'),(0,5,'l'),(5,6,'a'),(6,7,'i'),(7,8,'t'),(8,9,'u'),(9,11,'e')])
     a.set_final_states([10,11])
     a.set_initial_state(0)
     b= NFastAutomaton(a)
@@ -1539,7 +1538,7 @@ Above Automaton recognizing set of words like :math:`a(baa)^n`.
     sphinx_plot(a)
 
 Above Non determinist Automaton recognizing set of words
-\{lapin, laitue\}, obtained with the followed code and the class :class:`sage.combinat.words.NFastAutomaton`::
+\{lapin, laitue\}, obtained with the followed code and the class :class:`~sage.combinat.words.NFastAutomaton`::
 
     sage: a = FastAutomaton([(0,1,'l'),(1,2,'a'),(2,3,'p') ,(3,4,'i'),(4,10,'n'),(0,5,'l'),(5,6,'a'),(6,7,'i'),(7,8,'t'),(8,9,'u'),(9,11,'e') ])
     sage: a.set_final_states([10,11])
