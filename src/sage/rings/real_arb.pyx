@@ -490,7 +490,7 @@ class RealBallField(UniqueRepresentation, Field):
             sage: RBF(x)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x to a RealBall
+            TypeError: unable to simplify to a real interval approximation
 
         Various symbolic constants can be converted without going through real
         intervals. (This is faster and yields tighter error bounds.) ::
@@ -517,12 +517,9 @@ class RealBallField(UniqueRepresentation, Field):
             return mid.operator()(*[self(operand) for operand in mid.operands()])
         except (AttributeError, TypeError):
             pass
-        try:
-            mid = RealIntervalField(self._prec)(mid)
-            return self.element_class(self, mid, rad)
-        except TypeError:
-            pass
-        raise TypeError("unable to convert {!r} to a RealBall".format(mid))
+
+        mid = RealIntervalField(self._prec)(mid)
+        return self.element_class(self, mid, rad)
 
     def _repr_option(self, key):
         """
@@ -1326,6 +1323,15 @@ cdef class RealBall(RingElement):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion...
+
+        Check that :trac:`25456` is fixed::
+
+            sage: RBF(5,0)
+            5.000000000000000
+            sage: RBF(5.,0)
+            5.000000000000000
+            sage: RBF(5.,1)
+            [+/- 6.01]
         """
         cdef fmpz_t tmpz
         cdef fmpq_t tmpq
@@ -1409,15 +1415,18 @@ cdef class RealBall(RingElement):
 
         if rad is not None:
             mag_init(tmpm)
-            if isinstance(rad, RealNumber):
+            if isinstance(rad, float):
+                mag_set_d(tmpm, PyFloat_AS_DOUBLE(rad))
+
+            else:
+                if not isinstance(rad, RealNumber):
+                    rad = RealField(53, False, "RNDA")(rad)
+
                 arf_init(tmpr)
                 arf_set_mpfr(tmpr, (<RealNumber> rad).value)
                 arf_get_mag(tmpm, tmpr)
                 arf_clear(tmpr)
-            elif isinstance(rad, float):
-                mag_set_d(tmpm, PyFloat_AS_DOUBLE(rad))
-            else:
-                raise TypeError("rad should be a RealNumber or a Python float")
+
             mag_add(arb_radref(self.value), arb_radref(self.value), tmpm)
             mag_clear(tmpm)
 
