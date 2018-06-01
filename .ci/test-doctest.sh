@@ -27,7 +27,7 @@ case "$2" in
         export DOCTEST_PARAMETERS="--all"
         ;;
     --long)
-        export DOCTEST_PARAMETERS="--long"
+        export DOCTEST_PARAMETERS="--long --all"
         ;;
     *)
         exit 1
