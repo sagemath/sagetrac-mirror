@@ -3676,14 +3676,17 @@ cdef class Matrix(ModuleElement):
 
         cdef long value
         cdef int err = -1
-        # Special case multiplication with C long
-        integer_check_long_py(right, &value, &err)
-        if not err:
-            return (<Element>left)._mul_long(value)
-        integer_check_long_py(left, &value, &err)
-        if not err:
-            return (<Element>right)._mul_long(value)
-        return coercion_model.bin_op(left, right, mul)
+        try:
+            # Special case multiplication with C long
+            integer_check_long_py(right, &value, &err)
+            if not err:
+                return (<Element>left)._mul_long(value)
+            integer_check_long_py(left, &value, &err)
+            if not err:
+                return (<Element>right)._mul_long(value)
+            return coercion_model.bin_op(left, right, mul)
+        except TypeError:
+            return NotImplemented
 
     def __truediv__(left, right):
         """
