@@ -27,7 +27,6 @@ import random
 import doctest
 from Cython.Utils import is_package_dir
 from sage.cpython.string import bytes_to_str
-from sage.repl.preparse import preparse
 from sage.repl.load import load
 from sage.misc.lazy_attribute import lazy_attribute
 from .parsing import SageDocTestParser
@@ -70,7 +69,8 @@ doctest_line_number = re.compile(r"^\s*doctest:[0-9]")
 
 def get_basename(path):
     """
-    This function returns the basename of the given path, e.g. sage.doctest.sources or doc.ru.tutorial.tour_advanced
+    Return the basename of ``path``, e.g. ``sage.doctest.sources`` or
+    ``doc.ru.tutorial.tour_advanced``.
 
     EXAMPLES::
 
@@ -79,17 +79,26 @@ def get_basename(path):
         sage: import os
         sage: get_basename(os.path.join(SAGE_SRC,'sage','doctest','sources.py'))
         'sage.doctest.sources'
+
+    TESTS:
+
+    Check that :trac:`22445` has been resolved::
+
+        sage: get_basename(os.path.join(SAGE_SRC,'doc','..','sage','doctest','sources.py'))
+        'sage.doctest.sources'
+
     """
     if path is None:
         return None
     if not os.path.exists(path):
         return path
-    path = os.path.abspath(path)
+    path = os.path.realpath(path)
     root = os.path.dirname(path)
+
+    dev = os.path.realpath(SAGE_SRC)
+    sp = os.path.realpath(os.path.join(SAGE_LOCAL, 'lib', 'python', 'site-packages'))
     # If the file is in the sage library, we can use our knowledge of
     # the directory structure
-    dev = SAGE_SRC
-    sp = os.path.join(SAGE_LOCAL, 'lib', 'python', 'site-packages')
     if path.startswith(dev):
         # there will be a branch name
         i = path.find(os.path.sep, len(dev))
@@ -276,7 +285,6 @@ class DocTestSource(object):
         self.linking = False
         doctests = []
         in_docstring = False
-        tab_found = False
         unparsed_doc = False
         doc = []
         start = None
@@ -777,6 +785,10 @@ class FileDocTestSource(DocTestSource):
         """
         expected = []
         rest = isinstance(self, RestSource)
+        # initialize starting_indent to silence pyflakes; note that this
+        # variable is only read once it has been set in the code block that
+        # sets in_block=True below.
+        starting_indent = None
         if rest:
             skipping = False
             in_block = False
