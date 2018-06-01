@@ -1397,7 +1397,7 @@ Counting them, we recover a well-known sequence::
 
 .. _section-automaton:
 
-Automaton and Rational language 
+Automata and Rational language 
 --------------------------------
 
 Automata are in a way machines that can realize linear time calculation only requiring a fine memory. For more details see [Ca].
@@ -1406,16 +1406,16 @@ Automata
 ~~~~~~~~
 
 
-Definition automaton
-^^^^^^^^^^^^^^^^^^^^
+Definition of an automaton
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-It's calling automaton a quintuplet :math:`A := (\Sigma,\mathrm{Q},\mathrm{T},\mathrm{I},\mathrm{F})`, where
+We call automaton a quintuplet :math:`A := (\Sigma,\mathrm{Q},\mathrm{T},\mathrm{I},\mathrm{F})`, where
 
-    - :math:`\Sigma` is a finite set called alphabet
-    - :math:`\mathrm{Q}` is a finite set of states
-    - :math:`\mathrm{T} \subseteq \mathrm{Q} \times \Sigma \times \mathrm{Q}` is the finite set of transitions
-    - :math:`\mathrm{I} \subseteq \mathrm{Q}` is the finite set of initial states
-    - :math:`\mathrm{F} \subseteq \mathrm{Q}` is the finite set of final states
+    - :math:`\Sigma` is a finite set called alphabet,
+    - :math:`\mathrm{Q}` is a finite set of states,
+    - :math:`\mathrm{T} \subseteq \mathrm{Q} \times \Sigma \times \mathrm{Q}` is a finite set of transitions,
+    - :math:`\mathrm{I} \subseteq \mathrm{Q}` is a finite set of initial states,
+    - :math:`\mathrm{F} \subseteq \mathrm{Q}` is a finite set of final states.
 
 The automaton is determinist if 
     - :math:`\sharp \, \mathrm{I} = 1` and 
@@ -1429,12 +1429,12 @@ which set of states :math:`\mathrm{Q}` is infinite.
 
 .. note::
 
-    :math:`p \overset{a}{\rightarrow} q  \quad if \quad \left( p, a, q \right) \in \mathrm{T}` .
+    We often denote :math:`p \overset{a}{\rightarrow} q  \quad` if :math:`\quad \left( p, a, q \right) \in \mathrm{T}`.
 
 .. note::
 
-    For :math:`\Sigma` a alphabet, we note :math:`\Sigma^* := \Sigma^{(\mathbb N)}` the set of finish words. 
-    For :math:`u \in \Sigma^{*}`, we note :math:`u^* := \cup_{n \in \mathbb N} = \{ u^n \}^*`.
+    For an alphabet :math:`\Sigma`, we note :math:`\Sigma^* := \Sigma^{(\mathbb N)}` the set of finish words. 
+    For a word :math:`u \in \Sigma^{*}`, we note :math:`u^* := \cup_{n \in \mathbb N} = \{ u^n \}^*`.
 
 Graphical representation
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1457,7 +1457,7 @@ Determinist Automaton can be created in sage by the use of :class:`sage.combinat
     a.add_edge(0,'(1,0)',1)
     sphinx_plot(a)
 
-Automaton of states \{0, 1, 2, 3, 4\}, alphabet \{(0,0), (0,1), (1,0), (1,1)\} for inital state \{0\} and finals states \{0\}.
+Automaton with states \{0, 1, 2, 3, 4\}, alphabet \{(0,0), (0,1), (1,0), (1,1)\}, set of inital states \{0\}, and set of final states \{0\}.
 
 .. PLOT::
 
@@ -1466,7 +1466,7 @@ Automaton of states \{0, 1, 2, 3, 4\}, alphabet \{(0,0), (0,1), (1,0), (1,1)\} f
     a.set_initial_state(0)
     sphinx_plot(a)
 
-Automaton of states  \{0, 1, 2, 3, 4\},  alphabet \{0, 1, *\}, for inital state \{0\} and finals states \{0\}.
+Automaton with states  \{0, 1, 2, 3, 4\},  alphabet \{0, 1, *\}, set of inital states \{0\} and set of final states \{0\}.
 
 .. PLOT::
 
@@ -1487,15 +1487,18 @@ Language
 Definition: rational language
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:math:`A` automaton-recognized language :math:`A = (\Sigma, Q, T, I, F)` the set :math:`L_A` of words :math:`a_1 \dots a_n \in \Sigma^*` such that there  exists a path
+A language is a set of words over a given alphabet.
+The language recognized by an automaton :math:`A = (\Sigma, Q, T, I, F)` is the set :math:`L_A` of words :math:`a_1 \dots a_n \in \Sigma^*` such that there  exists a path
 :math:`\mathrm{I}  \ni q_0 \xrightarrow{a_1} q_1 \xrightarrow{a_2} \dots \dots \xrightarrow{a_{n-1}} q_{n-1} \xrightarrow{a_n} q_n \in \mathrm{F}`
-in the :math:`A` automaton from an initial state to an end state. 
+in the automaton :math:`A` from an initial state to an end state. 
 
 A word :math:`u \in \Sigma^*` is recognized  by the automaton  :math:`A` if we have :math:`u \in L_A`.
 
-A word  $a_1 \dots a_n$ is therefore recognized by the automaton :math:`A` if there exists a path in the graph, labeled by  $a_1, a_2, \dots, a_n$,tarting from an initial state and ending to an end state.
+A word  $a_1 \dots a_n$ is therefore recognized by the automaton :math:`A` if there exists a path in the graph, labeled by  $a_1, a_2, \dots, a_n$, starting from an initial state and ending to a final state.
 
-REMARKS: If the automaton is determinist, the path is one-off
+.. note::
+	
+	If the automaton is deterministic, the path is determined by the sequence of labels.
 
 Examples
 ^^^^^^^^
@@ -1508,7 +1511,7 @@ some examples of automaton.
     a.set_initial_state(0)
     sphinx_plot(a)
 
-Above Automaton recognizing all the numbers written in binaries that are divisible by 3.
+The above automaton recognize all the numbers written in binaries that are divisible by 3.
 
 .. PLOT::
 
@@ -1517,7 +1520,7 @@ Above Automaton recognizing all the numbers written in binaries that are divisib
     a.set_initial_state(0)
     sphinx_plot(a)
 
-Above Automaton recognizing set of words like :math:`a(baa)^n`.
+The above automaton recognize the set of words of the form :math:`a(baa)^n`.
 
 .. PLOT::
 
@@ -1528,14 +1531,14 @@ Above Automaton recognizing set of words like :math:`a(baa)^n`.
     b.add_edge(0,'l',1)
     sphinx_plot(a)
 
-Above Non determinist Automaton recognizing set of words
-\{lapin, laitue\}, obtained with the followed code and the class :class:`~sage.combinat.words.NFastAutomaton`::
+The above non deterministic automaton recognize the set of words
+\{lapin, laitue\}. Obtained with the followed code and the class :class:`~sage.combinat.words.NFastAutomaton`::
 
     sage: a = FastAutomaton([(0,1,'l'),(1,2,'a'),(2,3,'p') ,(3,4,'i'),(4,10,'n'),(0,5,'l'),(5,6,'a'),(6,7,'i'),(7,8,'t'),(8,9,'u'),(9,11,'e')])
     sage: a.set_final_states([10,11])
     sage: a.set_initial_state(0)
-    sage: b= NFastAutomaton(a)
-    sage: b.add_edge(0,'l',1)
+    sage: b = NFastAutomaton(a)
+    sage: b.add_edge(0,'l',1)  ###don't work ??!
     sage: b.plot().show()
 
 Equivalent automata
@@ -1561,16 +1564,16 @@ Automaton equivalent to the previous one is::
 Minimal automata
 ^^^^^^^^^^^^^^^^
 
-   A minimal automaton of an automaton :math:`A` is a deterministic automaton :math:`A '`, equivalent to :math:`A`,
+   A minimal automaton of an automaton :math:`A` (or the minimal automaton of the corresponding language) is a deterministic automaton :math:`A '`, equivalent to :math:`A`,
    and having a minimal number of vertices for these properties.
 
 .. note::
 
-   The minimum automaton of a  automaton :math:`A` is unique. Moreover, if the automaton :math:`A` is deterministic
+   The minimal automaton is unique. Moreover, if the automaton :math:`A` is deterministic
    and complete, then the minimal automaton is obtained like the quotient of the automaton :math:`A` by an equivalence
    relation consisting of identifying vertices between them.
 
-The followed determinist Automaton of \{ lapin laitue } is minimal::
+The minimal automaton of the language \{lapin, laitue\} is the following::
 
     sage: d = c.minimise()
     sage: c.plot().show()
@@ -1586,7 +1589,7 @@ The followed determinist Automaton of \{ lapin laitue } is minimal::
 Transpose automaton
 ^^^^^^^^^^^^^^^^^^^
 
-The transpose automaton of an automaton :math:`A := (\Sigma,\mathrm{Q},\mathrm{T},\mathrm{I},\mathrm{F})` the automaton
+The transpose (or the mirror) automaton of an automaton :math:`A := (\Sigma,\mathrm{Q},\mathrm{T},\mathrm{I},\mathrm{F})` the automaton
 
 .. MATH::
     A^t := (\Sigma, \mathrm{Q}, \mathrm{T}^t, \mathrm{F}, \mathrm{I})
