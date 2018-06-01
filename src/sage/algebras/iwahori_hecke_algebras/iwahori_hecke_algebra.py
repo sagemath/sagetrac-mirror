@@ -35,6 +35,9 @@ from sage.combinat.root_system.coxeter_group import CoxeterGroup
 from sage.combinat.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
 
+# a shortcut
+import sage.algebras.iwahori_hecke_algebras.iwahori_hecke_algebra_representations as IHReps
+
 def normalized_laurent_polynomial(R, p):
     r"""
     Return a normalized version of the (Laurent polynomial) ``p`` in the
@@ -505,6 +508,26 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         except TypeError:
             self._inverse_base_ring_generators = {}
 
+        # finally attach the representations that are defined for this algebra 
+        self.representations=IHReps.IwahoriHeckeAlgebraRepresentations()
+        if W.is_finite() and self._cartan_type[0] in ['A','B']:
+           self.representations.SpechtModuleWithMurphyBasis=\
+                   lambda mu: IHReps.SpechtModuleWithMurphyBasis(q1=self._q1, q2=self._q2, shape=mu)
+           if self.is_semisimple():
+               self.representations.SeminormalForm=\
+                       lambda mu: IHReps.SeminormalRepresentation(q1=self._q1, q2=self._q2, shape=mu)
+               self.representations.SeminormalForm_Murphy=\
+                       lambda mu: IHReps.SeminormalRepresentation_Murphy(q1=self._q1, q2=self._q2, shape=mu)
+               self.representations.SeminormalForm_Orthogonal=\
+                       lambda mu: IHReps.SeminormalRepresentation_Orthongal(q1=self._q1, q2=self._q2, shape=mu)
+
+        if 'C' in self._shorthands: # attach the left cell representations
+           self.representations.LeftCellRepresentation=\
+                   lambda cell: IHReps.LeftCellRepresentationOfHeckeAlgebra(q1=self._q1, q2=self._q2, cell=cell)
+           self.representations.RightCellRepresentation=\
+                   lambda cell: IHReps.RightCellRepresentationOfHeckeAlgebra(q1=self._q1, q2=self._q2, cell=cell)
+
+
     def _repr_(self):
         r"""
         EXAMPLES::
@@ -631,6 +654,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             -1
         """
         return self._q2
+
+    def is_semisimple(self):
+        return True
 
     class _BasesCategory(Category_realization_of_parent):
         r"""
@@ -2329,7 +2355,7 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
     Kazhdan-Lusztig bases are defined for this algebra.
 
     More generally, if we have a Iwahori-Hecke algebra with two parameters
-    which has quadratic relations of the form:
+    that has quadratic relations of the form:
 
     .. MATH::
 

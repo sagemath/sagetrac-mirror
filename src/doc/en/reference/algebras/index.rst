@@ -72,6 +72,8 @@ Hecke algebras
 
    sage/algebras/hecke_algebras/ariki_koike_algebra
    sage/algebras/iwahori_hecke_algebra
+   sage/algebras/iwahori_hecke_algebras/iwahori_hecke_algebra
+   sage/algebras/iwahori_hecke_algebras/iwahori_hecke_algebra_representations
    sage/algebras/nil_coxeter_algebra
    sage/algebras/yokonuma_hecke_algebra
 
