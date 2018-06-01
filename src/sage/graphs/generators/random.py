@@ -799,33 +799,30 @@ def RandomTreePowerlaw(n, gamma=3, tries=100, seed=None):
 
 def RandomRegular(d, n, seed=None):
     """
-    Returns a random d-regular graph on n vertices, or returns False on
-    failure.
+    Returns a random ``d``-regular graph on ``n`` vertices.
 
-    Since every edge is incident to two vertices, n\*d must be even.
+    Since every edge is incident to two vertices, the product ``n * d``
+    must be even.
 
     INPUT:
 
-    -  ``n`` - number of vertices
-
     -  ``d`` - degree
+
+    -  ``n`` - number of vertices
 
     -  ``seed`` - for the random number generator
 
 
-    EXAMPLES: We show the edge list of a random graph with 8 nodes each
-    of degree 3.
+    EXAMPLES::
 
-    ::
+        sage: G = graphs.RandomRegular(3, 8)
+        sage: G.degree_sequence()
+        [3, 3, 3, 3, 3, 3, 3, 3]
 
-        sage: graphs.RandomRegular(3, 8).edges(labels=False)
-        [(0, 1), (0, 4), (0, 7), (1, 5), (1, 7), (2, 3), (2, 5), (2, 6), (3, 4), (3, 6), (4, 5), (6, 7)]
-
-    ::
-
-        sage: G = graphs.RandomRegular(3, 20)
-        sage: if G:
-        ....:     G.show()  # random output, long time
+        sage: G = graphs.RandomRegular(5, 3)
+        Traceback (most recent call last):
+        ...
+        ValueError: the product d*n must be even
 
     REFERENCES:
 
@@ -837,15 +834,19 @@ def RandomRegular(d, n, seed=None):
     .. [StegerWormald1999] Steger, A. and Wormald, N. Generating random
       regular graphs quickly. Prob. and Comp. 8 (1999), pp 377-396.
     """
+    d = int(d)
+    n = int(n)
+    if (d % 2) and (n % 2):
+        raise ValueError("the product d*n must be even")
+
     if seed is None:
         seed = current_randstate().long_seed()
+
     import networkx
-    try:
-        N = networkx.random_regular_graph(d, n, seed=seed)
-        if N is False: return False
-        return Graph(N, sparse=True)
-    except Exception:
-        return False
+    N = networkx.random_regular_graph(d, n, seed=seed)
+    if N is False:
+        raise RuntimeError("networkx return False when generating a random regular graph")
+    return Graph(N, sparse=True)
 
 def RandomShell(constructor, seed=None):
     """
