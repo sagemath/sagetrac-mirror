@@ -29,7 +29,8 @@ cdef extern from "meataxe.h":
     cdef extern int FfNoc               # Number of columns for row ops
     cdef extern size_t FfCurrentRowSize # The byte size of a single row in memory,
                                         # always a multiple of sizeof(long)
-    cdef extern size_t FfCurrentRowSizeIo # The number of bytes actually used in a row.
+    cdef extern size_t FfCurrentRowSizeIo # The number of bytes actually used in a row
+    cdef extern int MPB                  # Number of marks stored in one byte
     cdef extern char MtxLibDir[1024]    # Where to search/create multiplication tables
 
     # we only wrap MeatAxe for small fields (size < 255)
@@ -50,12 +51,12 @@ cdef extern from "meataxe.h":
     int FfSetNoc(int ncols) except -1
 
     ## Finite Fields
-    # FEL FfAdd(FEL a,FEL b)
-    # FEL FfSub(FEL a, FEL b)
-    # FEL FfNeg(FEL a)
-    # FEL FfMul(FEL a, FEL b)
-    # FEL FfDiv(FEL a, FEL b)
-    # FEL FfInv(FEL a)
+    FEL FfAdd(FEL a,FEL b)
+    FEL FfSub(FEL a, FEL b)
+    FEL FfNeg(FEL a)
+    FEL FfMul(FEL a, FEL b)
+    FEL FfDiv(FEL a, FEL b)
+    FEL FfInv(FEL a)
     # FEL FfEmbed(FEL a, int subfield) except 255
     # FEL FfRestrict(FEL a, int subfield) except 255
     FEL FfFromInt(int l)
@@ -64,8 +65,11 @@ cdef extern from "meataxe.h":
     ## Rows
     void FfMulRow(PTR row, FEL mark)
     void FfAddMulRow(PTR dest, PTR src, FEL f)
+    void FfAddMulRowPartial(PTR dest, PTR src, FEL f, int first, int len)
     PTR FfAddRow(PTR dest, PTR src)
+    PTR FfAddRowPartial(PTR dest, PTR src, int first, int len)
     PTR FfSubRow(PTR dest, PTR src)
+    PTR FfSubRowPartial(PTR dest, PTR src, int first, int len)
     FEL FfExtract(PTR row, int col)
     void FfInsert(PTR row, int col, FEL mark)
     int FfFindPivot(PTR row, FEL *mark)
