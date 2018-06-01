@@ -32,7 +32,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.Hall <sage.algebras.hall_algebra.HallAlgebra>`
 - :class:`algebras.Incidence <sage.combinat.posets.incidence_algebras.IncidenceAlgebra>`
 - :class:`algebras.IwahoriHecke
-  <sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra>`
+  <sage.algebras.hecke_algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra>`
 - :class:`algebras.Moebius <sage.combinat.posets.moebius_algebra.MoebiusAlgebra>`
 - :class:`algebras.Jordan
   <sage.algebras.jordan_algebra.JordanAlgebra>`
@@ -75,7 +75,7 @@ from sage.algebras.weyl_algebra import DifferentialWeylAlgebra as DifferentialWe
 from sage.algebras.lie_algebras.lie_algebra import LieAlgebra as Lie
 
 from sage.misc.lazy_import import lazy_import
-lazy_import('sage.algebras.iwahori_hecke_algebra', 'IwahoriHeckeAlgebra', 'IwahoriHecke')
+lazy_import('sage.algebras.hecke_algebras.iwahori_hecke_algebra', 'IwahoriHeckeAlgebra', 'IwahoriHecke')
 lazy_import('sage.algebras.nil_coxeter_algebra', 'NilCoxeterAlgebra', 'NilCoxeter')
 lazy_import('sage.algebras.free_zinbiel_algebra', 'FreeZinbielAlgebra', 'FreeZinbiel')
 lazy_import('sage.algebras.hall_algebra', 'HallAlgebra', 'Hall')

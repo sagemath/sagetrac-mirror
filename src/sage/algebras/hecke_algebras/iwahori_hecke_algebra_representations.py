@@ -132,7 +132,7 @@ class HeckeAlgebraRepresentation(CombinatorialFreeModule):
         try:
             from sage.combinat.root_system.cartan_type import CartanType
             cartan_type=CartanType(cartan_type)
-            from sage.algebras.iwahori_hecke_algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra
+            from sage.algebras.hecke_algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra
             self._algebra=IwahoriHeckeAlgebra(cartan_type, base_ring(q1), base_ring(q2))
             self._cartan_type=cartan_type
         except TypeError:
@@ -440,7 +440,7 @@ class SeminormalRepresentation_generic(HeckeAlgebraRepresentation):
         # Iwahori-Hecke algebras are currently only implemented in type A (level 1)
         # and in type B (level 2) in the equal parameter case
         level=self._shape.level()
-        from sage.algebras.iwahori_hecke_algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra
+        from sage.algebras.hecke_algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra
         if level==1:
             cartan_type=['A', shape.size()]
         elif level==2 and kwargs['q1']==charge[0] and kwargs['q2']==charge[1]:

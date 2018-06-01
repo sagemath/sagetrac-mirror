@@ -36,7 +36,7 @@ from sage.combinat.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
 
 # a shortcut
-import sage.algebras.iwahori_hecke_algebras.iwahori_hecke_algebra_representations as IHReps
+import sage.algebras.hecke_algebras.iwahori_hecke_algebra_representations as IHReps
 
 def normalized_laurent_polynomial(R, p):
     r"""
@@ -63,7 +63,7 @@ def normalized_laurent_polynomial(R, p):
 
     EXAMPLES::
 
-        sage: from sage.algebras.iwahori_hecke_algebra import normalized_laurent_polynomial
+        sage: from sage.algebras.hecke_algebras.iwahori_hecke_algebra import normalized_laurent_polynomial
         sage: type ( normalized_laurent_polynomial(ZZ, 3/1) )
         <... 'sage.rings.integer.Integer'>
         sage: R.<q>=LaurentPolynomialRing(ZZ)
@@ -92,7 +92,7 @@ def index_cmp(x, y):
 
     EXAMPLES::
 
-        sage: from sage.algebras.iwahori_hecke_algebra import index_cmp
+        sage: from sage.algebras.hecke_algebras.iwahori_hecke_algebra import index_cmp
         sage: W = WeylGroup(['A',2,1])
         sage: x = W.from_reduced_word([0,1])
         sage: y = W.from_reduced_word([0,2,1])
@@ -509,8 +509,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             self._inverse_base_ring_generators = {}
 
         # finally attach the representations that are defined for this algebra 
-        self.representations=IHReps.IwahoriHeckeAlgebraRepresentations()
-        if W.is_finite() and self._cartan_type[0] in ['A','B']:
+        self.representations = IHReps.IwahoriHeckeAlgebraRepresentations()
+        if W.is_finite() and self._coxeter_type.cartan_type().type() in ['A','B']:
            self.representations.SpechtModuleWithMurphyBasis=\
                    lambda mu: IHReps.SpechtModuleWithMurphyBasis(q1=self._q1, q2=self._q2, shape=mu)
            if self.is_semisimple():
@@ -2384,9 +2384,10 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
         r"""
         TESTS::
 
-            sage: H1 = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard("A2")
+            sage: from sage.algebras.hecke_algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra_nonstandard
+            sage: H1 = IwahoriHeckeAlgebra_nonstandard("A2")
             sage: W = CoxeterGroup("A2")
-            sage: H2 = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard(W)
+            sage: H2 = IwahoriHeckeAlgebra_nonstandard(W)
             sage: H1 is H2
             True
         """
@@ -2398,7 +2399,8 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
         r"""
         EXAMPLES::
 
-            sage: H = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard("A2")
+            sage: from sage.algebras.hecke_algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra_nonstandard
+            sage: H = IwahoriHeckeAlgebra_nonstandard("A2")
             sage: TestSuite(H).run()
         """
         self._W = W
@@ -2436,7 +2438,8 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
         r"""
         EXAMPLES::
 
-            sage: sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard("A2")
+            sage: from sage.algebras.hecke_algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra_nonstandard
+            sage: IwahoriHeckeAlgebra_nonstandard("A2")
             A generic Iwahori-Hecke algebra of type A2 in u,-u^-1*v^2 over
              Multivariate Laurent Polynomial Ring in u, v over Integer Ring
         """
@@ -2458,9 +2461,9 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
 
         EXAMPLES::
 
-            sage: R.<q>=LaurentPolynomialRing(ZZ)
-            sage: H=IwahoriHeckeAlgebra("A3",q^2)
-            sage: GH=H._generic_iwahori_hecke_algebra
+            sage: R.<q> = LaurentPolynomialRing(ZZ)
+            sage: H = IwahoriHeckeAlgebra("A3",q^2)
+            sage: GH = H._generic_iwahori_hecke_algebra
             sage: GH._bar_on_coefficients(GH.u_inv)
             u
             sage: GH._bar_on_coefficients(GH.v_inv)
@@ -2478,7 +2481,8 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
 
             EXAMPLES::
 
-                sage: H = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard("B2")
+                sage: from sage.algebras.hecke_algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra_nonstandard
+                sage: H = IwahoriHeckeAlgebra_nonstandard("B2")
                 sage: H._BasesCategory().super_categories()
                 [Category of bases of A generic Iwahori-Hecke algebra of type B2 in u,-u^-1*v^2 over
                   Multivariate Laurent Polynomial Ring in u, v over Integer Ring]
@@ -2507,9 +2511,9 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
 
                 EXAMPLES::
 
-                    sage: R.<a,b>=LaurentPolynomialRing(ZZ,2)
-                    sage: H=IwahoriHeckeAlgebra("A3",a^2,-b^2)
-                    sage: GH=H._generic_iwahori_hecke_algebra
+                    sage: R.<a,b> = LaurentPolynomialRing(ZZ,2)
+                    sage: H = IwahoriHeckeAlgebra("A3",a^2,-b^2)
+                    sage: GH = H._generic_iwahori_hecke_algebra
                     sage: GH.T()(GH.C()[1])
                     (v^-1)*T[1] + (-u*v^-1)
                     sage: ( GH.T()(GH.C()[1]) ).specialize_to(H)
@@ -2542,7 +2546,8 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
 
             EXAMPLES::
 
-                sage: H = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard("A2")
+                sage: from sage.algebras.hecke_algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra_nonstandard
+                sage: H = IwahoriHeckeAlgebra_nonstandard("A2")
                 sage: s1,s2 = H.coxeter_group().simple_reflections()
                 sage: T = H.T()
                 sage: Cp = H.Cp()
@@ -2603,7 +2608,8 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
 
             EXAMPLES::
 
-                sage: H = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard("A2")
+                sage: from sage.algebras.hecke_algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra_nonstandard
+                sage: H = IwahoriHeckeAlgebra_nonstandard("A2")
                 sage: s1,s2 = H.coxeter_group().simple_reflections()
                 sage: T = H.T()
                 sage: C = H.C()
@@ -2636,7 +2642,8 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
 
             EXAMPLES::
 
-                sage: H = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard("A3")
+                sage: from sage.algebras.hecke_algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra_nonstandard
+                sage: H = IwahoriHeckeAlgebra_nonstandard("A3")
                 sage: s1,s2,s3 = H.coxeter_group().simple_reflections()
                 sage: T = H.T()
                 sage: Cp = H.Cp()
@@ -2694,7 +2701,8 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
 
             EXAMPLES::
 
-                sage: H = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard("A3")
+                sage: from sage.algebras.hecke_algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra_nonstandard
+                sage: H = IwahoriHeckeAlgebra_nonstandard("A3")
                 sage: s1,s2,s3 = H.coxeter_group().simple_reflections()
                 sage: T = H.T()
                 sage: C = H.C()
@@ -2726,5 +2734,6 @@ from sage.structure.sage_object import register_unpickle_override
 import six
 
 
-register_unpickle_override('sage.algebras.iwahori_hecke_algebra',
+register_unpickle_override('sage.algebras.hecke_algebras.iwahori_hecke_algebra',
                            'IwahoriHeckeAlgebraT', IwahoriHeckeAlgebra)
+

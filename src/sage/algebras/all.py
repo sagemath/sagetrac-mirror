@@ -31,13 +31,12 @@ from .free_algebra_quotient import FreeAlgebraQuotient
 from .steenrod.all import *
 from .lie_algebras.all import *
 from .quantum_groups.all import *
-from sage.algebras.iwahori_hecke_algebras.all import *
+from sage.algebras.hecke_algebras.all import *
 
 from .finite_dimensional_algebras.all import FiniteDimensionalAlgebra
 
 from .group_algebra import GroupAlgebra
 
-from .iwahori_hecke_algebra import IwahoriHeckeAlgebra
 from .affine_nil_temperley_lieb import AffineNilTemperleyLiebTypeA
 lazy_import('sage.algebras.nil_coxeter_algebra', 'NilCoxeterAlgebra')
 lazy_import('sage.algebras.schur_algebra', ['SchurAlgebra', 'SchurTensorModule'])
