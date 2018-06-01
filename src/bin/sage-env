@@ -175,8 +175,7 @@ export SAGE_ENV_SOURCED=$SAGE_ENV_VERSION
 
 export SAGE_ROOT="$NEW_SAGE_ROOT"
 
-
-# sage-env must know where the Sage's script files are.
+# sage-env must know where Sage's script files are.
 # Note that SAGE_SCRIPTS_DIR is only used here, so it does not need to
 # be exported.
 if [ -z "$SAGE_SCRIPTS_DIR" ]; then
@@ -185,7 +184,7 @@ if [ -z "$SAGE_SCRIPTS_DIR" ]; then
     elif [ -f "$SAGE_ROOT/src/bin/sage-env-config" ]; then
         SAGE_SCRIPTS_DIR="$SAGE_ROOT/src/bin"
     else
-        echo >&2 "Error: You must set either the SAGE_LOCAL or SAGE_SCRIPTS_DIR environment variable to run this"
+        echo >&2 "Error: You must set the SAGE_LOCAL or SAGE_SCRIPTS_DIR environment variable to run this"
         return 1
     fi
 elif [ ! -f "$SAGE_SCRIPTS_DIR/sage-env-config" ]; then
@@ -304,7 +303,7 @@ if [ -z "${SAGE_ORIG_PATH_SET}" ]; then
     SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH
     SAGE_ORIG_PATH_SET=True && export SAGE_ORIG_PATH_SET
 fi
-export PATH="$SAGE_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
+export PATH="$SAGE_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_SCRIPTS_DIR:$SAGE_BIN:$PATH"
 
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.
 # Since the user might do something crazy we do not do any checks, but hope for the best.

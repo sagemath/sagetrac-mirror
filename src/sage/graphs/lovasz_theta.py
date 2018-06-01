@@ -65,6 +65,7 @@ def lovasz_theta(graph):
     from sage.misc.temporary_file import tmp_filename
     import os
     import subprocess
+    from sage.env import SAGE_BIN
 
     from sage.features.csdp import CSDP
     CSDP().require()

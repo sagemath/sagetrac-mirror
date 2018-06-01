@@ -8,6 +8,7 @@ import sys
 
 SAGE_ROOT     = os.path.realpath(os.environ['SAGE_ROOT'])
 SAGE_LOCAL    = os.environ['SAGE_LOCAL']
+SAGE_BIN      = os.environ['SAGE_BIN']
 
 location_file = os.path.join(SAGE_LOCAL, 'lib', 'sage-current-location.txt')
 force_file    = os.path.join(SAGE_LOCAL, 'lib', 'sage-force-relocate.txt')
@@ -56,7 +57,7 @@ def write_config_files():
 # computations is the only feature.
 #####################################################
 SINGULAR %s
-""" % os.path.join(SAGE_LOCAL, 'bin')
+""" % (SAGE_BIN,)
 
     f.write(text)
     f.close()

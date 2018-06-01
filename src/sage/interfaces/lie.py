@@ -290,7 +290,7 @@ from __future__ import absolute_import
 
 from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement, AsciiArtString
 from sage.misc.all import prod
-from sage.env import DOT_SAGE, SAGE_LOCAL
+from sage.env import DOT_SAGE, SAGE_LOCAL, SAGE_BIN
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
 import os
@@ -331,7 +331,7 @@ class LiE(ExtraTabCompletion, Expect):
                         prompt = '> ',
 
                         # This is the command that starts up your program
-                        command = "bash "+ SAGE_LOCAL + "/bin/lie",
+                        command = "bash "+ SAGE_BIN + "/lie",
 
                         server=server,
                         script_subdirectory = script_subdirectory,
