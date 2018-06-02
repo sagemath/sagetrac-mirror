@@ -153,20 +153,17 @@ def Set(X=[]):
         sage: sorted(Set([Sequence([3,1], immutable=True), 5, QQ, Partition([3,1,1])]), key=str)
         [5, Rational Field, [3, 1, 1], [3, 1]]
 
-    Sets with unhashable objects work, but with less functionality::
+    Sets with unhashable objects raise an error::
 
         sage: A = Set([QQ, (3, 1), 5])  # hashable
         sage: sorted(A.list(), key=repr)
         [(3, 1), 5, Rational Field]
         sage: type(A)
         <class 'sage.sets.set.Set_object_enumerated_with_category'>
-        sage: B = Set([QQ, [3, 1], 5])  # unhashable
-        sage: sorted(B.list(), key=repr)
+        sage: Set([QQ, [3, 1], 5])  # unhashable
         Traceback (most recent call last):
         ...
-        AttributeError: 'Set_object_with_category' object has no attribute 'list'
-        sage: type(B)
-        <class 'sage.sets.set.Set_object_with_category'>
+        TypeError: unhashable type: 'list'
 
     TESTS::
 
@@ -197,12 +194,7 @@ def Set(X=[]):
     if isinstance(X, Element):
         raise TypeError("Element has no defined underlying set")
 
-    try:
-        X = frozenset(X)
-    except TypeError:
-        return Set_object(X)
-    else:
-        return Set_object_enumerated(X)
+    return Set_object_enumerated(frozenset(X))
 
 
 @richcmp_method
