@@ -550,7 +550,7 @@ class EuclideanSpace(PseudoRiemannianManifold):
     ``E`` is a real smooth manifold of dimension `4`::
 
         sage: E.category()
-        Category of smooth manifolds over Real Field with 53 bits of precision
+        Category of smooth manifolds over Real Floating-point Field with 53 bits of precision
         sage: dim(E)
         4
 
@@ -1121,7 +1121,7 @@ class EuclideanPlane(EuclideanSpace):
     ``E`` is a real smooth manifold of dimension 2::
 
         sage: E.category()
-        Category of smooth manifolds over Real Field with 53 bits of precision
+        Category of smooth manifolds over Real Floating-point Field with 53 bits of precision
         sage: dim(E)
         2
 
@@ -1649,7 +1649,7 @@ class Euclidean3dimSpace(EuclideanSpace):
     ``E`` is a real smooth manifold of dimension 3::
 
         sage: E.category()
-        Category of smooth manifolds over Real Field with 53 bits of precision
+        Category of smooth manifolds over Real Floating-point Field with 53 bits of precision
         sage: dim(E)
         3
 

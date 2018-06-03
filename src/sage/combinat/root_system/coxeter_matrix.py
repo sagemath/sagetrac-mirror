@@ -150,7 +150,7 @@ class CoxeterMatrix(CoxeterType):
             sage: CoxeterMatrix([[1,-3/2],[-3/2,1]])._matrix.base_ring()
             Rational Field
             sage: CoxeterMatrix([[1,-1.5],[-1.5,1]])._matrix.base_ring()
-            Real Field with 53 bits of precision
+            Real Floating-point Field with 53 bits of precision
         """
         if not data:
             if coxeter_type:

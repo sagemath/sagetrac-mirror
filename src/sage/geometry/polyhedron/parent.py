@@ -81,7 +81,7 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
         sage: Polyhedra(RR, 3)
         Traceback (most recent call last):
         ...
-        ValueError: no appropriate backend for computations with Real Field with 53 bits of precision
+        ValueError: no appropriate backend for computations with Real Floating-point Field with 53 bits of precision
     """
     if backend is None:
         if base_ring is ZZ or base_ring is QQ:

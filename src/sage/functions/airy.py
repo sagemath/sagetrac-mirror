@@ -221,7 +221,7 @@ class FunctionAiryAiSimple(BuiltinFunction):
         TESTS::
 
             sage: parent(airy_ai_simple(3).n(algorithm='scipy'))                                          
-            Real Field with 53 bits of precision
+            Real Floating-point Field with 53 bits of precision
             sage: airy_ai_simple(3).n(algorithm='scipy', prec=200)
             Traceback (most recent call last):
             ...
@@ -319,7 +319,7 @@ class FunctionAiryAiPrime(BuiltinFunction):
         TESTS::
 
             sage: parent(airy_ai_prime(3).n(algorithm='scipy'))                                          
-            Real Field with 53 bits of precision
+            Real Floating-point Field with 53 bits of precision
             sage: airy_ai_prime(3).n(algorithm='scipy', prec=200)
             Traceback (most recent call last):
             ...
@@ -655,7 +655,7 @@ class FunctionAiryBiSimple(BuiltinFunction):
         TESTS::
 
             sage: parent(airy_bi_simple(3).n(algorithm='scipy'))                                          
-            Real Field with 53 bits of precision
+            Real Floating-point Field with 53 bits of precision
             sage: airy_bi_simple(3).n(algorithm='scipy', prec=200)
             Traceback (most recent call last):
             ...
@@ -753,7 +753,7 @@ class FunctionAiryBiPrime(BuiltinFunction):
         TESTS::
 
             sage: parent(airy_bi_prime(3).n(algorithm='scipy'))                                          
-            Real Field with 53 bits of precision
+            Real Floating-point Field with 53 bits of precision
             sage: airy_bi_prime(3).n(algorithm='scipy', prec=200)
             Traceback (most recent call last):
             ...

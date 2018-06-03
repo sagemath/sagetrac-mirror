@@ -672,7 +672,7 @@ class FormsRingElement(six.with_metaclass(
             sage: (E4 + QQ(1) + ring_el).parent()
             MeromorphicModularFormsRing(n=7) over Integer Ring
             sage: (E4^3 + 1.1*Delta).parent()
-            ModularForms(n=7, k=12, ep=1) over Real Field with 53 bits of precision
+            ModularForms(n=7, k=12, ep=1) over Real Floating-point Field with 53 bits of precision
             sage: (E4 + FractionField(PolynomialRing(CC,'d')).gen()).parent()
             ModularFormsRing(n=7) over Complex Field with 53 bits of precision
 
@@ -767,7 +767,7 @@ class FormsRingElement(six.with_metaclass(
             sage: (gen2 - ring_el).parent()
             MeromorphicModularFormsRing(n=7) over Integer Ring
             sage: (gen0 - 1.1).parent()
-            ModularFormsRing(n=7) over Real Field with 53 bits of precision
+            ModularFormsRing(n=7) over Real Floating-point Field with 53 bits of precision
 
             sage: MF = ModularForms(n=infinity)
             sage: MF.E4() - MF.f_i()^2
@@ -838,7 +838,7 @@ class FormsRingElement(six.with_metaclass(
             sage: (1*Delta).parent()
             CuspForms(n=8, k=12, ep=1) over Integer Ring
             sage: (1.1*Delta).parent()
-            ModularForms(n=8, k=12, ep=1) over Real Field with 53 bits of precision
+            ModularForms(n=8, k=12, ep=1) over Real Floating-point Field with 53 bits of precision
             sage: (E2*E4).parent()
             QuasiModularForms(n=8, k=6, ep=-1) over Integer Ring
             sage: E4^2
@@ -846,7 +846,7 @@ class FormsRingElement(six.with_metaclass(
             sage: (E4^2).parent()
             ModularForms(n=8, k=8, ep=1) over Integer Ring
             sage: (1.1*E4).parent()
-            ModularForms(n=8, k=4, ep=1) over Real Field with 53 bits of precision
+            ModularForms(n=8, k=4, ep=1) over Real Floating-point Field with 53 bits of precision
             sage: (J_inv*ring_el).parent()
             MeromorphicModularFormsRing(n=8) over Integer Ring
             sage: (E4*FractionField(PolynomialRing(CC,'d')).gen()).parent()
@@ -872,7 +872,7 @@ class FormsRingElement(six.with_metaclass(
             sage: (gen2 * ring_el).parent()
             MeromorphicModularFormsRing(n=8) over Integer Ring
             sage: (1.1*gen0).parent()
-            ModularForms(n=8, k=12, ep=1) over Real Field with 53 bits of precision
+            ModularForms(n=8, k=12, ep=1) over Real Floating-point Field with 53 bits of precision
 
             sage: MF = ModularForms(n=infinity)
             sage: MF.E4()*MF.f_inf()
@@ -921,7 +921,7 @@ class FormsRingElement(six.with_metaclass(
             sage: (1/Delta).parent()
             MeromorphicModularForms(n=8, k=-12, ep=1) over Integer Ring
             sage: (1.1/Delta).parent()
-            MeromorphicModularForms(n=8, k=-12, ep=1) over Real Field with 53 bits of precision
+            MeromorphicModularForms(n=8, k=-12, ep=1) over Real Floating-point Field with 53 bits of precision
             sage: (Delta/Delta).parent()
             MeromorphicModularForms(n=8, k=0, ep=1) over Integer Ring
             sage: 1/E4
@@ -954,7 +954,7 @@ class FormsRingElement(six.with_metaclass(
             sage: (ring_el / gen2).parent()
             MeromorphicModularFormsRing(n=8) over Integer Ring
             sage: (1.1/gen0).parent()
-            MeromorphicModularForms(n=8, k=-12, ep=1) over Real Field with 53 bits of precision
+            MeromorphicModularForms(n=8, k=-12, ep=1) over Real Floating-point Field with 53 bits of precision
 
             sage: MF = ModularForms(n=infinity)
             sage: MF.f_i()/MF.E4()

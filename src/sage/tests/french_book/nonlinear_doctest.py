@@ -437,7 +437,7 @@ Sage example in ./nonlinear.tex, line 1287::
     Algebraic Field                                    True
     Real Double Field                                  False
     Real Interval Field with 53 bits of precision      False
-    Real Field with 53 bits of precision               False
+    Real Floating-point Field with 53 bits of precision               False
     Algebraic Real Field                               True
     Complex Double Field                               False
     Complex Interval Field with 53 bits of precision   False

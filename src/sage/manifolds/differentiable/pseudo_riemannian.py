@@ -344,7 +344,7 @@ class PseudoRiemannianManifold(DifferentiableManifold):
         sage: M
         4-dimensional pseudo-Riemannian manifold M
         sage: M.category()
-        Category of smooth manifolds over Real Field with 53 bits of precision
+        Category of smooth manifolds over Real Floating-point Field with 53 bits of precision
 
     The metric associated with ``M`` is::
 

@@ -5521,7 +5521,7 @@ cdef class Matrix(Matrix1):
             sage: A.change_ring(RR).eigenspaces_left()
             Traceback (most recent call last):
             ...
-            NotImplementedError: eigenspaces cannot be computed reliably for inexact rings such as Real Field with 53 bits of precision,
+            NotImplementedError: eigenspaces cannot be computed reliably for inexact rings such as Real Floating-point Field with 53 bits of precision,
             consult numerical or symbolic matrix classes for other options
 
             sage: em = A.change_ring(RDF).eigenmatrix_left()
@@ -5789,7 +5789,7 @@ cdef class Matrix(Matrix1):
             sage: B.eigenspaces_right()
             Traceback (most recent call last):
             ...
-            NotImplementedError: eigenspaces cannot be computed reliably for inexact rings such as Real Field with 53 bits of precision,
+            NotImplementedError: eigenspaces cannot be computed reliably for inexact rings such as Real Floating-point Field with 53 bits of precision,
             consult numerical or symbolic matrix classes for other options
 
             sage: em = B.change_ring(RDF).eigenmatrix_right()
@@ -9251,7 +9251,7 @@ cdef class Matrix(Matrix1):
             sage: A.QR()
             Traceback (most recent call last):
             ...
-            NotImplementedError: QR decomposition is implemented over exact rings, try CDF for numerical results, not Real Field with 100 bits of precision
+            NotImplementedError: QR decomposition is implemented over exact rings, try CDF for numerical results, not Real Floating-point Field with 100 bits of precision
 
         Without a fraction field, we cannot hope to run the algorithm. ::
 
@@ -11463,7 +11463,7 @@ cdef class Matrix(Matrix1):
             sage: A.cholesky()
             Traceback (most recent call last):
             ...
-            TypeError: base ring of the matrix must be exact, not Real Field with 100 bits of precision
+            TypeError: base ring of the matrix must be exact, not Real Floating-point Field with 100 bits of precision
 
         The base ring may not have a fraction field.  ::
 
@@ -11842,7 +11842,7 @@ cdef class Matrix(Matrix1):
             sage: P, L, U = A.LU()
             Traceback (most recent call last):
             ...
-            TypeError: base ring of the matrix must be exact, not Real Field with 100 bits of precision
+            TypeError: base ring of the matrix must be exact, not Real Floating-point Field with 100 bits of precision
 
             sage: A = matrix(Integers(6), 3, 2, range(6))
             sage: A.LU()
@@ -12207,7 +12207,7 @@ cdef class Matrix(Matrix1):
             Traceback (most recent call last):
             ...
             TypeError: entries of the matrix must be in an exact ring,
-            not Real Field with 100 bits of precision
+            not Real Floating-point Field with 100 bits of precision
 
         The base ring must have a fraction field.  ::
 
@@ -12754,7 +12754,7 @@ cdef class Matrix(Matrix1):
         This is got using both the row norms and the column norms.
 
         This function only makes sense when the base field can be coerced
-        to the real double field RDF or the MPFR Real Field with 53-bits
+        to the real double field RDF or the MPFR Real Floating-point Field with 53-bits
         precision.
 
         EXAMPLES::
