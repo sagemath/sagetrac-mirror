@@ -1902,20 +1902,58 @@ class PseudoRiemannianMetric(TensorField):
                     latex_name=format_unop_latex(r'\star ', pform._latex_name))
         return resu
     
+    def einstein_tensor(self):
+        r"""
+        This method return the Einstein tensor of the metric
+
+        .. MATH::
+
+            G = Ric - \frac{1}{2}rg
+
+        where `Ric` is the Ricci tensor, `r` is the Ricci scalar and `g` is a
+        metric.
+
+        OUTPUT:
+
+        - Einstein tensor as an instance of the class \
+        :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
+
+        EXAMPLES:
+
+        Einstein tensor on a 4-dimensional space-time::
+
+            sage: M = Manifold(4, 'M')
+            sage: X.<t,r,theta,phi> = M.chart(coordinates=r't r:(0,2) \
+                    theta:(0,pi):\theta phi:(0,2*pi):\phi')
+            sage: g = M.metric('g', comp=[2/r-1, (1-2/r)^-1, r^2, r^2*sin(theta)^2])
+            sage: G = g.einstein_tensor(); G
+            Tensor field of type (0,2) on the 4-dimensional differentiable manifold M
+            sage: G.display()
+            0
+            sage: var('lamb', latex_name=r'\lambda')
+            sage: g = M.metric('g', comp=[2/r+r**2*lamb/3-1, \
+                            (1-2/r-r**2*lamb/3)^-1, r^2, r^2*sin(theta)^2])
+            sage: G = g.einstein_tensor()
+            sage: G.display()
+            1/3*(lamb^2*r^3 - 3*lamb*r + 6*lamb)/r dt*dt - 3*lamb*r/(lamb*r^3 - 3*r
+            + 6) dr*dr + lamb*r^2 dtheta*dtheta + lamb*r^2*sin(theta)^2 dphi*dphi
+        """
+        return self.ricci()-(1/2)*self*self.ricci_scalar()
+    
 #******************************************************************************
 
 def _diag(self, n, m, k):
     r"""
-    Return a list of `n` lists of length `m` each such that the first list 
+    Returns a list of ``n`` lists of length ``m`` each, such that the first list 
     contains ``self`` at position `k+1`, the second list contains ``self`` at 
     position `k+2`, and so on. The other positions of each list contain `0`.
     
     INPUT:
 
-    - ``self`` -- an element
-    - ``n`` -- a non-negative integer, the number of sublists
-    - ``m`` -- a non-negative integer, the length of each sublist
-    - ``k`` -- a positive integer, `k+1` is the position of ``self`` in the 
+        - ``self`` -- an element
+        - ``n`` -- a non-negative integer, the number of sublists
+        - ``m`` -- a non-negative integer, the length of each sublist
+        - ``k`` -- a positive integer, `k+1` is the position of ``self`` in the 
                 first list
 
     EXAMPLES:
@@ -1924,17 +1962,142 @@ def _diag(self, n, m, k):
         [[0, -2, 0, 0], [0, 0, -2, 0]]
 
         """
-    liste1 = []
+    list1 = []
     for i in range(n):
-        liste2 = []
+        list2 = []
         for j in range(m):
-            liste2.append(0)
-        liste2[k] = self
-        liste1.append(liste2)
+            list2.append(0)
+        list2[k] = self
+        list1.append(list2)
         k += 1
-    return liste1
+    return list1
 
+def substitute(self, list1, list2):
+    r"""
+    Returns a modification of the list ``self`` where for any element `elt` of 
+    ``self`` if an expression in `elt` appear at the position `i` of ``list1``, 
+    then this element is replaced by ``list2``[`i`].
 
+    INPUT:
+
+        - ``self`` -- a list 
+        - ``list1`` -- list of the expressions to replace
+        - ``list2`` -- list of the same length as ``list1``
+
+    OUTPUT:
+
+        - a list
+
+    EXAMPLES:
+
+        sage: substitute([2*x], [x], [4])
+        [8]
+        sage: var('y'); substitute([2*x+y], [x], [4])
+        [y + 8]
+        sage: substitute([2*x+y, x+3*y, 1], [y, 2*x], [1, x**2])
+        [x^2 + 1, x + 3, 1]
+        
+    """
+    if len(list1) != len(list2):
+        raise ValueError("the both list must have the same length")
+    if self == [] or list1 == []:
+        return self
+    n = len(list1)
+    try:
+        liste = []
+        for (i, elt) in enumerate(self):
+            liste.append(elt)
+            try:
+                if isinstance(elt.expr(), Expression):
+                    for j in range(n):
+                        elt1 = list1[j]
+                        elt2 = list2[j]
+                        liste[i] = liste[i].expr().subs(elt1==elt2)
+            except AttributeError:
+                if isinstance(elt, Expression):
+                    for j in range(n):
+                        elt1 = list1[j]
+                        elt2 = list2[j]
+                        liste[i] = liste[i].subs(elt1==elt2)
+    except TypeError:
+        liste = self
+        try:
+            if isinstance(liste.expr(), Expression):
+                for i in range(n):
+                    elt1 = list1[i]
+                    elt2 = list2[i]
+                    liste = liste.expr().subs(elt1==elt2)
+        except AttributeError:
+            if isinstance(liste, Expression):
+                for i in range(n):
+                    elt1 = list1[i]
+                    elt2 = list2[i]
+                    liste = liste.subs(elt1==elt2)
+    return liste
+
+def _condition_match(elt, liste=[]):
+    r"""
+    A boolean function which return ``True`` if ``elt`` is zero or ``elt`` is \
+    in ``liste`` and ``False`` otherwise.
+
+    INPUT:
+
+        - ``elt`` -- an expression
+        - ``liste`` -- (default: ``[]``) a list
+
+    OUTPUT:
+
+        - a list
+
+    EXAMPLES:
+
+        sage: condition_match(0, [])
+        True
+        sage: condition_match(x, [x])
+        True
+        sage: condition_match(x, [])
+        False
+        
+        """
+    if liste == []: 
+        try:
+            if elt.is_trivial_zero():
+                return True
+        except AttributeError:
+            if elt.is_zero():
+                return True
+        return False
+    for x in liste:
+        try:
+            if (elt.expr().numerator()-x.expr()).is_zero():
+                return True
+        except AttributeError:
+            try:
+                if (elt.numerator()-x.expr()).is_zero():
+                    return True
+            except AttributeError:
+                if (elt.numerator()-x).is_zero():
+                    return True
+    return False
+
+def _display_system(condition):
+    r"""
+    For displaying a system of equations.
+    
+    """
+    syst = None
+    if condition:
+        if len(condition) == 1:
+            syst = latex(condition[0]) + r' = 0'
+            syst1 = str(condition[0]) + " = 0"
+        else:
+            syst = r'\begin{cases} '
+            syst1 = []
+            for elt in condition:
+                syst += latex(elt) + r' = 0' + r'\\ '
+                syst1.append(str(elt) + " = 0")
+            syst += r'\end{cases}'
+    return FormattedExpansion(str(syst1), syst)
 
 class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
     r"""
@@ -2702,3 +2865,328 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             else:
                 self._ricci_scalar._latex_name = latex_name
         return self._ricci_scalar
+    
+    def _energy_momentum_condition(self, T, chart=None, assume=[]):
+        r"""
+        Gives conditions for ``T`` to be an energy momentum tensor.
+        
+        INPUT:
+            
+        - ``T`` -- an (0,2)-tensor
+        - ``chart`` -- (default: ``None``) a chart on the metric domain; if 
+          ``None``, the default chart of the metric domain is used
+        - ``assume`` -- (default: ``[]``) list of left hand sides `left` of
+          assumptions in the form `left = 0`
+        
+        OUTPUT:
+            
+        - 'not symmetric' -- if ``T`` is not symmetric
+        - ``[]`` -- if ``T`` is an energy momentum tensor
+        - list of expression -- if each element of this list is assumed to be 
+        egual to ``0`` then ``T`` is an energy momentum tensor.
+            
+        EXAMPLES:
+            
+        Energy momentums in Scharwzschild solution of Einstein Equations::
+            
+            sage: M = Manifold(4, 'M'); 
+            sage: var('m'); assume(m>0); var("lamb", latex_name=r'\lambda');
+            (m, None, lamb)
+            sage: X.<t,r,theta,phi> = M.chart(coordinates=r't r:(0,2*m) \
+                    theta:(0,pi):\theta phi:(0,2*pi):\phi');
+            sage: g = M.metric('g', comp=[2*m/r+r**2*lamb/3-1, (1-2*m/r-\
+                r**2*lamb/3)^-1, r^2, r^2*sin(theta)^2]); 
+            sage: T = M.tensor_field(0,2); T[0,1] = 1;
+            sage: g._energy_momentum_condition(T)
+            'not symmetric'
+            sage: T = M.tensor_field(0,2); T[0,0] = lamb;
+            sage: g._energy_momentum_condition(T)
+            [(lamb^2*r^3 - 3*lamb*m)/(lamb*r^4 + 6*m*r - 3*r^2)]
+            sage: g._energy_momentum_condition(T, assume=[lamb])
+            []
+            
+        """
+        if not T.__repr__() == self.domain().tensor_field(0,2).__repr__():
+            raise TypeError("The first argument must be a tensor field of type \
+                            (0,2) on the" + self.domain().__repr__())
+        if chart == None:
+            chart = self.domain().default_chart()
+        frame = chart.frame()
+        for i in self._ambient_domain.irange():
+            for j in self._ambient_domain.irange():
+                if T[frame, i,j] != T[frame, j,i]:
+                    return "not symmetric"
+        K = self.connection()(T.up(self)).trace(pos1=1, pos2=2)
+        condition = []
+        for i in self._ambient_domain.irange():
+            if not K[frame,i].is_trivial_zero():
+                condition.append(K[frame,i])
+        condition = substitute(condition, assume, \
+                                [0 for i in range(len(assume))])
+        condition = [elt for elt in condition if not elt.is_trivial_zero() \
+                     and not _condition_match(elt, assume)]
+        return condition
+    
+    def is_energy_momentum(self, T, chart=None, assume=[]):
+        r"""
+        Returns ``True`` if ``T`` is an energy momentum tensor and ``False`` \
+        otherwise.
+        
+        INPUT:
+            
+        - ``T`` -- an (0,2)-tensor
+        - ``chart`` -- (default: ``None``) a chart on the metric domain; if 
+          ``None``, the default chart of the metric domain is used
+        - ``assume`` -- (default: ``[]``) list of left hand sides `left` of
+          assumptions in the form `left = 0`
+        
+        EXAMPLES:
+            
+        Energy momentums in Scharwzschild solution of Einstein Equations::
+            
+            sage: M = Manifold(4, 'M'); 
+            sage: var('m'); assume(m>0); var("lamb", latex_name=r'\lambda');
+            (m, None, lamb)
+            sage: X.<t,r,theta,phi> = M.chart(coordinates=r't r:(0,2*m) \
+                    theta:(0,pi):\theta phi:(0,2*pi):\phi');
+            sage: g = M.metric('g', comp=[2*m/r+r**2*lamb/3-1, (1-2*m/r-\
+                r**2*lamb/3)^-1, r^2, r^2*sin(theta)^2]); 
+            sage: T = M.tensor_field(0,2); T[0,1] = 1;
+            sage: g.is_energy_momentum(T)
+            False
+            sage: T = M.tensor_field(0,2); T[0,0] = lamb;
+            sage: g.is_energy_momentum(T)
+            False
+            sage: g.is_energy_momentum(T, assume=[lamb])
+            True
+            
+        """
+        condition =self._energy_momentum_condition(T,chart=chart,assume=assume)
+        if condition == []:
+            return True
+        return False
+    
+    def energy_momentum_condition(self, T, chart=None, assume=[]):
+        r"""
+        Returns condition(s) for ``T`` to be an energy momentum tensor.
+        
+        INPUT:
+            
+        - ``T`` -- an (0,2)-tensor
+        - ``chart`` -- (default: ``None``) a chart on the metric domain; if 
+          ``None``, the default chart of the metric domain is used
+        - ``assume`` -- (default: ``[]``) list of left hand sides `left` of
+          assumptions in the form `left = 0`
+        
+        OUTPUT:
+            
+        - "Energy momentum tensor must be symmetric" -- if ``T`` is not 
+          symmetric
+        - "This tensor is an energy momentum!" -- if ``T`` is an energy 
+          momentum tensor
+        - otherwise, list of conditions to be holded for ``T`` to be an 
+          energy momentum tensor.
+            
+        EXAMPLES:
+            
+        Energy momentums in Scharwzschild solution of Einstein Equations::
+            
+            sage: M = Manifold(4, 'M'); 
+            sage: var('m'); assume(m>0); var("lamb", latex_name=r'\lambda');
+            (m, None, lamb)
+            sage: X.<t,r,theta,phi> = M.chart(coordinates=r't r:(0,2*m) \
+                    theta:(0,pi):\theta phi:(0,2*pi):\phi');
+            sage: g = M.metric('g', comp=[2*m/r+r**2*lamb/3-1, (1-2*m/r-\
+                r**2*lamb/3)^-1, r^2, r^2*sin(theta)^2]); 
+            sage: T = M.tensor_field(0,2); T[0,1] = 1;
+            sage: g._energy_momentum_condition(T)
+            "Energy momentum tensor must be symmetric"
+            sage: T = M.tensor_field(0,2); T[0,0] = lamb;
+            sage: g._energy_momentum_condition(T)
+            ['(lamb^2*r^3 - 3*lamb*m)/(lamb*r^4 + 6*m*r - 3*r^2)=0']
+            sage: g._energy_momentum_condition(T, assume=[lamb])
+            "No condition need, this tensor is an energy momentum!"
+        
+        """
+        condition = self._energy_momentum_condition(T, chart=chart, \
+                                                    assume=assume)
+        if condition == "not symmetric":
+            return "Energy momentum tensor must be symmetric"
+        if condition != []:
+            print("To satisfy conservation low, the following must be assumed")
+            return _display_system(condition)
+        return "No condition need, this tensor is an energy momentum!"
+
+    def _einstein_space_time_condition(self, T, chart=None, Lambda=0, \
+                                       assume=[], k=8*pi): 
+        r"""
+        For determining if a space-time is a solution of Einstein equations. By 
+        default, the gravitational constant is `0` but you can change this if 
+        need. You can give a list of equations satisfy by the variables. For 
+        doing this, these equations must be turned into equations with `0` as 
+        right hand side.
+        
+        .. MATH::
+
+            Ric-\frac{1}{2}rg+\Lambda g=kT
+        
+        INPUT:
+            
+        - ``T`` -- the energy momentum, given as a (0,2)-tensor
+        - ``chart`` -- (default: ``None``) a chart on the metric domain; if 
+          ``None``, the default chart of the metric domain is used
+        - ``Lambda`` -- (default: `0`) the gravitational constant
+        - ``assume`` -- (default: ``[]``) list made by the left hand sides 
+          `left` of equations in the form `left = 0` hold by the variables
+        - ``k`` -- (default: `8\pi`) the Einstein constant
+            
+        OUTPUT:
+            
+        - List of equation that variables must satisfy to obtain an 
+          Einstein space-time.
+            
+        EXAMPLES:
+            
+        Scharwzschild solution of Einstein Equations::
+            
+            sage: M = Manifold(4, 'M'); 
+            sage: var('m'); assume(m>0); var("lamb", latex_name=r'\lambda');
+            sage: X.<t,r,theta,phi> = M.chart(coordinates=r't r:(0,2*m) \
+                    theta:(0,pi):\theta phi:(0,2*pi):\phi')
+            sage: g = M.metric('g', comp=[2*m/r+r**2*lamb/3-1, (1-2*m/r-\
+                r**2*lamb/3)^-1, r^2, r^2*sin(theta)^2]); 
+            sage: T = M.tensor_field(0,2); 
+            sage: T[0,0],T[1,1],T[2,2],T[3,3] = lamb,0,0,0;
+            sage: g._einstein_space_time_condition(T)
+            [1/3*(lamb^2*r^3 + 6*lamb*m - 78.39822368615502*lamb*r)/r,\
+            -3*lamb*r/(lamb*r^3 + 6*m - 3*r),lamb*r^2,lamb*r^2*sin(theta)^2]
+            sage: g._einstein_space_time_condition(T, Lambda=1, assume=[lamb])
+            [-1.0*(-2.0*m + 1.0*r)/r, -r/(2*m - r), r^2, r^2*sin(theta)^2]
+            sage: g._einstein_space_time_condition(T, assume=[lamb])
+            []
+        
+        """
+        if chart == None:
+            chart = self.domain().default_chart()
+        frame = chart.frame()
+        G = self.einstein_tensor()
+        S = G - k*T + Lambda*self
+        condition = [S[frame, i, j] for j in self._ambient_domain.irange() \
+                      for i in self._ambient_domain.irange() if not S[frame, \
+                                                    i, j].is_trivial_zero()]
+        condition=substitute(condition, assume,[0 for i in range(len(assume))])
+        condition = [elt for elt in condition if not elt.is_trivial_zero() \
+                     and not _condition_match(elt, assume)]
+        return condition
+    
+    def einstein_space_time_condition(self, T, chart=None, Lambda=0, \
+                                      assume=[], k=8*pi):
+        r"""
+        For determining if a space-time is a solution of Einstein equations. By 
+        default, the gravitational constant is `0` but you can change this if 
+        need. You can give a list of equations satisfy by the variables. For 
+        doing this, these equations must be turned into equations with `0` as 
+        right hand side.
+        
+        .. MATH::
+
+            Ric-\frac{1}{2}rg+\Lambda g=kT
+        
+        INPUT:
+            
+        - ``T`` -- the energy momentum, given as a (0,2)-tensor
+        - ``chart`` -- (default: ``None``) a chart on the metric domain; if 
+          ``None``, the default chart of the metric domain is used
+        - ``Lambda`` -- (default: `0`) the gravitational constant
+        - ``assume`` -- (default: ``[]``) list made by the left hand sides 
+          `left` of equations in the form `left = 0` hold by the variables
+        - ``k`` -- (default: `8\pi`) the Einstein constant
+            
+        OUTPUT:
+            
+        - List of equation that variables must satisfy to obtain an 
+          Einstein space-time.
+            
+        EXAMPLES:
+            
+        Scharwzschild solution of Einstein Equations::
+            
+            sage: M = Manifold(4, 'M'); 
+            sage: var('m'); assume(m>0); var("lamb", latex_name=r'\lambda');
+            sage: X.<t,r,theta,phi> = M.chart(coordinates=r't r:(0,2*m) \
+                    theta:(0,pi):\theta phi:(0,2*pi):\phi')
+            sage: g = M.metric('g', comp=[2*m/r+r**2*lamb/3-1, (1-2*m/r-\
+                r**2*lamb/3)^-1, r^2, r^2*sin(theta)^2]); 
+            sage: T = M.tensor_field(0,2); 
+            sage: T[0,0],T[1,1],T[2,2],T[3,3] = lamb,0,0,0;
+            sage: g.einstein_space_time_condition(T)
+            To satisfy conservation low, the following must be assumed
+            (lamb^2*r^3 - 3*lamb*m)/(lamb*r^4 + 6*m*r - 3*r^2) = 0
+            sage: g.einstein_space_time_condition(T, Lambda=1, assume=[lamb])
+            To satisfy Einstein equations, the following(s) must be assumed
+            ['-1.0*(-2.0*m + 1.0*r)/r = 0', '-r/(2*m - r) = 0', 'r^2 = 0', \
+             'r^2*sin(theta)^2 = 0']
+            sage: g.einstein_space_time_condition(T, assume=[lamb])
+            'No condition need, this is an Einstein space-time!'
+        
+        """
+        
+        if not self.is_energy_momentum(T, chart=chart, assume=assume):
+            return self.energy_momentum_condition(T, chart=chart,assume=assume)
+        condition = self._einstein_space_time_condition(T, chart=chart, \
+                                    Lambda=Lambda, assume=assume, k=k)
+        if condition != []:
+            print("To satisfy Einstein equations, the following(s) must be assumed")
+            return _display_system(condition)
+        return "No condition need, this is an Einstein space-time!"
+    
+    def is_einstein_space_time(self, T, chart=None,Lambda=0,assume=[], k=8*pi):
+        r"""
+        For determining if a space-time is a solution of Einstein equations. By 
+        default, the gravitational constant is `0` but you can change this if 
+        need. You can give a list of equations satisfy by the variables. For 
+        doing this, these equations must be turned into equations with `0` as 
+        right hand side.
+        
+        .. MATH::
+
+            Ric-\frac{1}{2}rg+\Lambda g=kT
+        
+        INPUT:
+            
+        - ``T`` -- the energy momentum, given as a (0,2)-tensor
+        - ``chart`` -- (default: ``None``) a chart on the metric domain; if 
+          ``None``, the default chart of the metric domain is used
+        - ``Lambda`` -- (default: `0`) the gravitational constant
+        - ``assume`` -- (default: ``[]``) list made by the left hand sides 
+          `left` of equations in the form `left = 0` hold by the variables
+        - ``k`` -- (default: `8\pi`) the Einstein constant
+            
+        EXAMPLES:
+            
+        Scharwzschild solution of Einstein Equations::
+            
+            sage: M = Manifold(4, 'M'); 
+            sage: var('m'); assume(m>0); var("lamb", latex_name=r'\lambda');
+            sage: X.<t,r,theta,phi> = M.chart(coordinates=r't r:(0,2*m) \
+                    theta:(0,pi):\theta phi:(0,2*pi):\phi')
+            sage: g = M.metric('g', comp=[2*m/r+r**2*lamb/3-1, (1-2*m/r-\
+                r**2*lamb/3)^-1, r^2, r^2*sin(theta)^2]); 
+            sage: T = M.tensor_field(0,2); 
+            sage: T[0,0],T[1,1],T[2,2],T[3,3] = lamb,0,0,0;
+            sage: g.is_einstein_space_time(T)
+            False
+            sage: g.is_einstein_space_time(T, Lambda=1, assume=[lamb])
+            False
+            sage: g.is_einstein_space_time(T, assume=[lamb])
+            True
+        
+        """
+        
+        if not self.is_energy_momentum(T, chart=chart, assume=assume):
+            return False
+        condition = self._einstein_space_time_condition(T, chart=chart, \
+                                    Lambda=Lambda, assume=assume, k=k)
+        if condition != []:
+            return False
+        return True
