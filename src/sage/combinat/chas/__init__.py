@@ -10,4 +10,5 @@ Combinatorial Hopf algebras
 - :ref:`sage.combinat.fqsym`
 - :ref:`sage.combinat.grossman_larson_algebras`
 - :ref:`sage.combinat.chas.wqsym`
+- :ref:`sage.combinat.chas.symsuperspace`
 """
