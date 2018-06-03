@@ -1274,21 +1274,21 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
             sage: R.<x> = ZZ[]
             sage: R.random_element(10, 5,10)
-            9*x^10 + 8*x^9 + 6*x^8 + 8*x^7 + 8*x^6 + 9*x^5 + 8*x^4 + 8*x^3 + 6*x^2 + 8*x + 8
+            5*x^10 + 5*x^9 + 9*x^8 + 8*x^7 + 6*x^6 + 8*x^5 + 8*x^4 + 9*x^3 + 8*x^2 + 8*x + 8
             sage: R.random_element(6)
-            x^6 - 3*x^5 - x^4 + x^3 - x^2 + x + 1
+            x^6 - 2*x^5 - 2*x^3 + 2*x^2 - 3*x
             sage: R.random_element(6)
-            -2*x^6 - 2*x^5 + 2*x^4 - 3*x^3 + 1
+            -x^6 + x^5 + x^2 - x
             sage: R.random_element(6)
-            -x^6 + x^5 - x^4 + 4*x^3 - x^2 + x
+            -5*x^6 + x^5 + 14*x^4 - x^3 + x^2 - x + 4
 
         If a tuple of two integers is given for the degree argument, a degree
         is first uniformly chosen, then a polynomial of that degree is given::
 
             sage: R.random_element(degree=(0,8))
-            x^8 + 4*x^7 + 2*x^6 - x^4 + 4*x^3 - 5*x^2 + x + 14
+            4*x^4 + 2*x^3 - x + 4
             sage: R.random_element(degree=(0,8))
-            -5*x^7 + x^6 - 3*x^5 + 4*x^4 - x^2 - 2*x + 1
+            x + 1
 
         Note that the zero polynomial has degree ``-1``, so if you want to
         consider it set the minimum degree to ``-1``::
@@ -2273,7 +2273,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
         EXAMPLES::
 
             sage: GF(5^3, 'a')['x'].irreducible_element(2)
-            x^2 + (4*a^2 + a + 4)*x + 2*a^2 + 2
+            x^2 + 3*a^2 + a + 2
             sage: GF(19)['x'].irreducible_element(21, algorithm="first_lexicographic")
             x^21 + x + 5
             sage: GF(5**2, 'a')['x'].irreducible_element(17, algorithm="first_lexicographic")
