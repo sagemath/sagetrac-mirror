@@ -1086,7 +1086,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
     class Schur_sb(CombinatorialFreeModule, BindableClass):
         r"""
-        The Schur basis arising from `q=t=0` specialization of Macdonald.
+        The Schur-star-bar basis.
 
         The Pieri rule for this basis is described in [JL2016]_ .
         The Schur-star-bar basis elements are (up to sign) an application
@@ -1193,7 +1193,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
     class Schur_s(CombinatorialFreeModule, BindableClass):
         r"""
-        The Schur-star basis arising from `q=t=0` specialization of Macdonald.
+        The Schur-star basis.
 
         The basis is calculated by the Pieri rule in order to obtain the
         the expansion in the complete basis.  It is calculated from the
@@ -1400,7 +1400,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
     class Schur(CombinatorialFreeModule, BindableClass):
         r"""
-        The Schur-bar basis as the `q=t=\infty` specialization of Macdonald.
+        The Schur basis as the `q=t=0` specialization of Macdonald.
 
         The basis is calculated from the complete expansion of the Schur-star-bar
         basis and then the same coefficients are used for the elementary
