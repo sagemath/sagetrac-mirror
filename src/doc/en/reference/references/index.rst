@@ -261,6 +261,10 @@ REFERENCES:
                  203–218. Springer, 2010. pre-print available at
                  http://eprint.iacr.org/2010/313.pdf
 
+.. [BFM2015] O. Blondeau-Fournier, P. Mathieu, *Schur Superpolynomials:
+             Combinatorial Definition and Pieri Rule*, SIGMA, 11 (2015), 021,
+             23 pages, :doi:`10.3842/SIGMA.2015.021`
+
 .. [BCGKKKLNPRRTY2012] \J. Borghoff, A. Canteaut, T. Güneysu, E. B. Kavun, M. Knezevic,
                        \L. R. Knudsen, G. Leander, V. Nikov, C. Paar, C. Rechberger,
                        \P. Rombouts, S. S. Thomsen, and T. Yalcin,

@@ -1313,7 +1313,8 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
         It is also (up to sign) the involution omega applied to the
         Schur-star basis.
 
-        The Pieri rule for this basis is described in [JL2016]_ .
+        The Pieri rule for this basis is proven in [JL2016]_ and it was
+        conjectured in [BFM2015]_ .
 
         EXAMPLES::
 
@@ -1412,7 +1413,8 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
         It is also the involution omega (up to sign) applied to the
         Schur-star-bar basis.
 
-        The Pieri rule for this basis is described in [JL2016]_ .
+        The Pieri rule for this basis is proven in [JL2016]_ and conjectured
+        in [BFM2015]_ .
 
         EXAMPLES::
 
@@ -1425,6 +1427,33 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             sage: ss = SymmetricFunctionsinSuperSpace(QQ).Schur_s()
             sage: [s[-2,0,2,1].scalar(ss(la)) for la in SuperPartitions(5,2)]
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+
+        This basis appears in [BFM2015]_ . The following computations
+        are examples 3.3, 3.4, 4.1, 4.2 and 4.3 from that reference. ::
+
+            sage: m(s[-3,0,4,1])
+            4*m[3, 0; 1, 1, 1, 1, 1] + 3*m[3, 0; 2, 1, 1, 1] + 2*m[3, 0; 2, 2, 1]
+             + 2*m[3, 0; 3, 1, 1] + m[3, 0; 3, 2] + m[3, 0; 4, 1]
+             + 3*m[3, 1; 1, 1, 1, 1] + 2*m[3, 1; 2, 1, 1] + m[3, 1; 2, 2]
+             + m[3, 1; 3, 1] + 2*m[3, 2; 1, 1, 1] + m[3, 2; 2, 1]
+            sage: m(s[-1,4])
+            m[1; 1, 1, 1, 1] + m[1; 2, 1, 1] + m[1; 2, 2] + m[1; 3, 1] + m[1; 4]
+             + m[2; 1, 1, 1] + m[2; 2, 1] + m[2; 3] + m[3; 1, 1] + m[3; 2]
+            sage: s[-4,0,3]*s[-3]
+            -s[4, 3, 0; 3] + s[5, 4, 0; 1] + s[5, 4, 1; ] + s[6, 4, 0; ]
+            sage: s[-1,2,1]*s[0,1,1,1]
+            s[1, 0; 2, 1, 1, 1, 1] + s[1, 0; 2, 2, 1, 1] + s[1, 0; 3, 1, 1, 1]
+             + s[1, 0; 3, 2, 1] + s[2, 0; 3, 1, 1] + s[2, 0; 3, 2]
+            sage: s[-2,0,1]*s[3]
+            s[2, 0; 3, 1] + s[2, 0; 4] + s[3, 0; 2, 1] + s[4, 0; 1, 1]
+             + s[4, 0; 2] + s[5, 0; 1]
+            sage: s[-2,0,1]*s[-3]
+            s[3, 2, 0; 1] + s[4, 2, 0; ]
+            sage: s[-2,0,1]*s[1,1]
+            s[2, 0; 1, 1, 1] + s[2, 0; 2, 1] + s[2, 1; 2] + s[3, 0; 1, 1]
+             + s[3, 0; 2]
+            sage: s[-2,0,1]*s[0,1,1]
+            s[2, 1, 0; 2]
         """
         def __init__(self, SFSS):
             r"""
