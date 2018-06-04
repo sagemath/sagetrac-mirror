@@ -1431,6 +1431,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
         This basis appears in [BFM2015]_ . The following computations
         are examples 3.3, 3.4, 4.1, 4.2 and 4.3 from that reference. ::
 
+            sage: m = SymmetricFunctionsinSuperSpace(QQ).m()
             sage: m(s[-3,0,4,1])
             4*m[3, 0; 1, 1, 1, 1, 1] + 3*m[3, 0; 2, 1, 1, 1] + 2*m[3, 0; 2, 2, 1]
              + 2*m[3, 0; 3, 1, 1] + m[3, 0; 3, 2] + m[3, 0; 4, 1]
@@ -1439,7 +1440,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             sage: m(s[-1,4])
             m[1; 1, 1, 1, 1] + m[1; 2, 1, 1] + m[1; 2, 2] + m[1; 3, 1] + m[1; 4]
              + m[2; 1, 1, 1] + m[2; 2, 1] + m[2; 3] + m[3; 1, 1] + m[3; 2]
-            sage: s[-4,0,3]*s[-3]
+            sage: s[-4,0,3]*s[-3] # long time (14s)
             -s[4, 3, 0; 3] + s[5, 4, 0; 1] + s[5, 4, 1; ] + s[6, 4, 0; ]
             sage: s[-1,2,1]*s[0,1,1,1]
             s[1, 0; 2, 1, 1, 1, 1] + s[1, 0; 2, 2, 1, 1] + s[1, 0; 3, 1, 1, 1]
