@@ -31,6 +31,7 @@ from __future__ import print_function, absolute_import, division
 from cysignals.memory cimport check_realloc, check_malloc, sig_free
 from cpython.bytes cimport PyBytes_AsString, PyBytes_FromStringAndSize
 from cysignals.signals cimport sig_on, sig_off, sig_check
+cimport cython
 
 import os
 
@@ -1213,8 +1214,10 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
         TESTS::
 
-            sage: M = random_matrix(GF(9,'x'), 64,51) # optional: meataxe
-            sage: M == M*int(4) == int(4)*M           # optional: meataxe
+            sage: M = random_matrix(GF(9,'x'), 64,51)
+            sage: M == M*int(4) == int(4)*M
+            True
+            sage: M*int(-1)+M == 0
             True
 
         """
@@ -1222,7 +1225,9 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             raise ValueError("The matrix must not be empty")
         cdef Matrix_gfpn_dense left
         FfSetField(self.Data.Field)
-        cdef FEL r = FfFromInt(n%FfChar)
+        cdef FEL r
+        with cython.cdivision(False):
+            r = FfFromInt(n%FfChar)
         left = self.__copy__()
         left._cache = {}
         MatMulScalar(left.Data, r)
