@@ -8,6 +8,11 @@ set -e
 
 cd src
 
-export RHOMES="$SAGE_LOCAL"/lib/R
+if [ -v SAGE_R_LIB ]
+then 
+    export RHOMES="${SAGE_R_LIB}"
+else
+    export RHOMES="${SAGE_LOCAL}"/lib/R
+fi
 
 sdh_pip_install .
