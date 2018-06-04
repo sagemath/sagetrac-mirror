@@ -4,6 +4,14 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
+# Use system R (and cleanup previous install) if the variable SAGE_R_LIB is set.
+if [ -v SAGE_R_LIB ] ; then
+    rm -rf ${SAGE_LOCAL}/lib/R
+    rm -f ${SAGE_LOCAL}/bin/R
+    rm -f ${SAGE_LOCAL}/bin/Rscript
+    exit 0
+fi
+
 # r uses grep output during its build
 unset GREP_OPTIONS
 
