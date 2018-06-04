@@ -15,6 +15,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.networkx_graph` | Create a new NetworkX graph from the Sage graph
     :meth:`~GenericGraph.igraph_graph` | Create a new igraph graph from the Sage graph
     :meth:`~GenericGraph.to_dictionary` | Create a dictionary encoding the graph.
+    :meth:`~GenericGraph.to_singledge` | Return a graph G without multiple edges and a subset V of its vertices s.t. the automorphism group of G restricted to V is the same as the Sage graph's
     :meth:`~GenericGraph.copy` | Return a copy of the graph.
     :meth:`~GenericGraph.export_to_file` | Export the graph to a file.
     :meth:`~GenericGraph.adjacency_matrix` | Return the adjacency matrix of the (di)graph.
@@ -1663,6 +1664,52 @@ class GenericGraph(GenericGraph_pyx):
 
         return d
 
+    def to_singledge(self):
+        if not self.has_multiple_edges():
+            return self, self.vertices()
+            
+        from math import floor, log
+        from sys import version_info
+        from sage.graphs.graph import Graph, DiGraph
+        def getiterator(l):
+            if version_info >= (3):
+                return l.items()
+            else:
+                return l.iteritems()
+
+        def get_bits_list(x):
+            return [b=='1' for b in bin(x)[2:][::-1]]
+        
+        G = self
+        if G.is_directed():
+            newG = DiGraph(loops=True, multiedges=False)
+        else:
+            newG = Graph(loops=True, multiedges=False)
+        edge_list = {}
+        max_multiplicity = 0
+        for u,v in G.edges(labels=False):
+            if (u,v) in edge_list:
+                continue
+            m = len(G.edge_label(u,v))
+            edge_list[(u,v)] = m
+            max_multiplicity = max(m, max_multiplicity)
+        k = max_multiplicity
+        d = int(log(k, 2)) + 1
+        first_level_vertices = {}
+        for v in G:
+            first_level_vertices[v] = (v,0)
+            for l in range(1,d):
+                if(G.is_directed()):
+                    newG.add_edges([((v,l-1),(v,l)),((v,l),(v,l-1))])
+                else:
+                    newG.add_edge((v,l-1),(v,l))
+        for (u,v),label in getiterator(edge_list):
+            for idx, bit in enumerate(get_bits_list(label)):
+                if(bit):
+                    newG.add_edge((u,idx),(v,idx))
+        return newG, first_level_vertices
+
+    
     def adjacency_matrix(self, sparse=None, vertices=None):
         r"""
         Returns the adjacency matrix of the (di)graph.
@@ -20830,7 +20877,7 @@ class GenericGraph(GenericGraph_pyx):
                 raise FeatureNotPresentError("the package 'pynauty' needed to use 'algorithm' == 'nauty' is not installed, install it running the command './sage -i pynauty'")
             from pynauty import autgrp, Graph as PyNautyGraph
             g = PyNautyGraph(self, vertex_coloring=partition)
-            gens,grpsize1,grpsize2,orbits,numorbits = autgrp(g)
+            gens,grpsize1,grpsize2,orbit_list,numorbits = autgrp(g)
             ret = []
             if return_group:
                 from sage.groups.perm_gps.permgroup import PermutationGroup
@@ -20838,7 +20885,7 @@ class GenericGraph(GenericGraph_pyx):
             if order:
                 ret.append(int(grpsize1 * (10.0**grpsize2)))
             if orbits:
-                ret.append(orbits)
+                ret.append(orbit_list)
             return ret
         if (algorithm is not None and
             algorithm != "sage" and algorithm != "nauty"):

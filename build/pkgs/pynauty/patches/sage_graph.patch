@@ -21,7 +21,7 @@ index dc3ec14..05c6e63 100644
          extra_objects = [ nauty_dir + '/' + 'nauty.o',
                            nauty_dir + '/' + 'nautil.o',
 diff --git a/src/graph.py b/src/graph.py
-index 4160b72..264a0cd 100644
+index 4160b72..9d6d93c 100644
 --- a/src/graph.py
 +++ b/src/graph.py
 @@ -23,34 +23,31 @@ __all__ = [
@@ -35,7 +35,7 @@ index 4160b72..264a0cd 100644
 +from copy import copy 
  import random
 +from sys import version_info    
-+from sage.graphs.multiedge import multiedge_to_singledge
++from sage.graphs.graph import GenericGraph
  
 -
 +def getiterator(l):
@@ -131,7 +131,7 @@ index 4160b72..264a0cd 100644
 +        if multiedged and not multiedge:
 +            raise ValueError("Graphs with multiple edges are not yet supported, if not transformed with multiedge=True")
 +        elif multiedged:
-+            self.graph, self._first_level_vertices = multiedge_to_singledge(graph)
++            self.graph, self._first_level_vertices = graph.to_singledge()
          else:
 -            self._check_vertices([neighbors])
 -            self._adjacency_dict.setdefault(v, [])

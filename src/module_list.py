@@ -352,9 +352,6 @@ ext_modules = [
     Extension('sage.graphs.base.static_sparse_backend',
               sources = ['sage/graphs/base/static_sparse_backend.pyx']),
     
-    Extension('sage.graphs.multiedge',
-              sources = ['sage/graphs/multiedge_singledge_conversion.pyx']),
-
     Extension('sage.graphs.weakly_chordal',
               sources = ['sage/graphs/weakly_chordal.pyx']),
 

@@ -20,8 +20,6 @@ lazy_import("sage.graphs.graph_editor", "graph_editor")
 
 from sage.graphs.isgci import graph_classes
 
-from .multiedge import multiedge_to_singledge
-
 """
 TESTS:
 
