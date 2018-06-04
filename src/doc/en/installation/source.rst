@@ -1202,6 +1202,11 @@ Environment variables dealing with specific Sage packages:
   then Sage will attempt to build the graphical backend when it builds the
   matplotlib package.
 
+- :envvar:`SAGE_R_LIB` - if you have an installation of ``R`` on your system and
+  you want Sage to use it instead of building and installing its own version of
+  ``R``, set this variable to be the directory containing your ``R``
+  installation, typically ``/usr/lib/R/`` (e.g. on Debian-based distributions).
+
 - :envvar:`PARI_CONFIGURE` - use this to pass extra parameters to
   PARI's ``Configure`` script, for example to specify graphics
   support (which is disabled by default). See the file
