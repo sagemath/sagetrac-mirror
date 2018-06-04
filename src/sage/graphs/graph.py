@@ -4605,23 +4605,23 @@ class Graph(GenericGraph):
         virtual_edge = tuple(cut_vertices)
         Comps = 0
         cut_sides = []
-        if self.has_edge(virtual_edge):
-          multiedges_bw_cutvertices = 0
-          for e in self.edge_iterator(cut_vertices[0]):
-            if cut_vertices[1] in e:
-              multiedges_bw_cutvertices += 1
+
+        # num_virtual_edge_add: It stores the number of virtual edges need to
+        #                       be added in a component.
+        if self.has_edge(virtual_edge) and self.has_multiple_edges():
+            num_virtual_edge_add = len(self.edge_label(cut_vertices[0],cut_vertices[1]))
         else:
-          multiedges_bw_cutvertices = 1
+            num_virtual_edge_add = 1
 
         for component in H.connected_components_subgraphs():
             # Create a set of component vertices
             componentVertices = set(component.vertices())
-            component.add_edges([e for e in self.edge_iterator(cut_vertices) if e[0] in componentVertices or e[1] in componentVertices])
             component.allow_multiple_edges(True)
+            component.add_edges([e for e in self.edge_iterator(cut_vertices) if e[0] in componentVertices or e[1] in componentVertices])
 
             # Add virtual edge if not present
             if not component.has_edge(virtual_edge):
-                component.add_edges([virtual_edge]*multiedges_bw_cutvertices)
+                component.add_edges([virtual_edge]*num_virtual_edge_add)
 
             cut_sides.append(component)
             Comps += 1
@@ -4631,16 +4631,218 @@ class Graph(GenericGraph):
         # graphs is needed for re-assembly
         cocycles = Graph(multiedges=True)
         if self.has_edge(virtual_edge):
-            cocycles.add_edges([virtual_edge]*(Comps+1)*multiedges_bw_cutvertices)
+            cocycles.add_edges([virtual_edge]*(Comps+1)*num_virtual_edge_add)
 
         # if the original graph has no edge between the separating pair of
         # vertices but deletion of the separating pair leaves more than two
         # components, a bond with one edge per component is needed for
         # re-assembly
-        elif Comps > 2:
+        elif Comps >= 2:
             cocycles.add_edges([virtual_edge]*Comps)
 
         return cut_sides, cocycles, virtual_edge
+
+    def spqr_tree(self):
+        r"""
+        Decomposes a graph into cycles, cocycles, and 3-connected blocks summed over
+        cocycles.
+
+        Splits a two-connected graph at each two-vertex separation, giving a unique
+        decomposition into 3-connected blocks, cycles, and cocycles. The cocycles
+        are dipole graphs with one edge per real edge between the included vertices
+        and one additional (virtual) edge per connected component resulting from
+        deletion of the vertices in the cut.
+
+        OUTPUT: `(R,S,P,SPR,tricomp,SPQR-tree)` where `R` is a list of rigid
+        (three-connected) graphs, `S` a list of series graphs(cycles), `P` a
+        list of parallel classes(cocycle graphs), `SPR` the so-called
+        three-block into which a two-connected graph uniquely decomposes,
+        tricomp a list of all triconnected components which is generated from
+        R & S block and `SQPR-tree` a tree whose vertices are labeled with the
+        vertices of three-blocks in the decomposition and the block's type.
+
+        EXAMPLES::
+
+            sage: G = Graph({0:[1,2],3:[1,2],4:[1,2],5:[1,2],6:[1,2]})
+            sage: G.spqr_tree()[0]
+            []
+            sage: G.spqr_tree()[1]
+            [Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of ()))))): Multi-graph on 3 vertices,
+             Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of ()))))): Multi-graph on 3 vertices,
+             Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of ()))))): Multi-graph on 3 vertices,
+             Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of ()))))): Multi-graph on 3 vertices,
+             Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of ()))))): Multi-graph on 3 vertices]
+            sage: len(G.spqr_tree()[2][0].edges())
+            5
+            sage: G.spqr_tree()[4].vertices()
+            [('P', (1, 2)),
+             ('S', (0, 1, 2)),
+             ('S', (1, 2, 3)),
+             ('S', (1, 2, 4)),
+             ('S', (1, 2, 5)),
+             ('S', (1, 2, 6))]
+            sage: G = Graph({0:[1,2,3],1:[2,3],2:[3]})
+            sage: G.spqr_tree()
+            ([Graph on 4 vertices], [], [], [Graph on 4 vertices], Graph on 1 vertex)
+
+        TESTS::
+
+        sage: G = Graph({0:[1,2,3,4,5,6],1:[2,3],2:[3],4:[5,6],5:[6]})
+        sage: G.spqr_tree()
+        Traceback (most recent call last):
+        ...
+        ValueError: Generation of SPQR trees is only implemented for 2-connected graphs.
+        """
+        from sage.graphs.graph import Graph
+
+        cut_size, cut_vertices = self.vertex_connectivity(value_only = False)
+
+        if cut_size < 2:
+            raise VaueError("Generation of SPQR trees is only implemented for 2-connected graphs.")
+        elif cut_size > 2:
+            return [self],[],[],[self],Graph({('R',tuple(self.vertices())):[]})
+        elif self.is_cycle():
+            return [],[self],[],[self],Graph({('S',tuple(self.vertices())):[]})
+
+        R_blocks = []
+        two_blocks = []
+        cocycles = []
+        cuts = []
+        cycles = []
+        tmp = copy(self)
+
+        # Split_multiple_edge Algorithm, it will make A as simple graph.
+        # If self is a multigraph, simplify while recording virtual edges
+        # that will be needed to 2-sum with cocycles during reconstruction
+        # After this operation, we are only finding S- and R-blocks
+        if tmp.has_multiple_edges():
+            mults = sorted(tmp.multiple_edges(labels=False))
+            for i in range(len(mults) - 1):
+                if mults[i] == mults[i + 1]:
+                    cocycles.append(frozenset(mults[i]))
+                    tmp.delete_edge(mults[i])
+                else:
+                    cuts.append(frozenset(mults[i]))
+            cuts.append(frozenset(mults[-1]))
+
+        # If self simplifies to a cycle or 3-vertex-connected, identify it
+        # Otherwise, seed the list of blocks to be 2-split with self
+        if tmp.is_cycle():
+            # tmp is bi-connected graph.
+            cycles.extend([frozenset(e) for e in tmp.edge_iterator(labels=False)])
+        else:
+            # Possibility that it's 3-connected component.
+            two_blocks.append(tmp)
+
+        # Each minor of self in two_blocks has a 2-vertex cut; we split
+        # at this cut and check each side for S or R or a 2-vertex cut
+        while two_blocks:
+            B = two_blocks.pop()
+            B.allow_multiple_edges(False)
+            # B will be always simple graph.
+            S, C, f = B.cleave()
+            for K in S:
+                if K.is_cycle():
+                    # Add all the edges of K to cycles list.
+                    cycles.extend(frozenset(e) for e in K.edge_iterator(labels=False))
+                elif K.vertex_connectivity() == 2:
+                    two_blocks.append(K)
+                else:
+                    R_blocks.append(K)
+            # add a P block if cleave says we need it; mark virtual edge
+            cocycles.extend([frozenset(e) for e in C.edge_iterator(labels=False)])
+            f = frozenset(f)
+            if not f in cuts:
+                cuts.append(f)
+
+        # Cycles may or may not(if G is a cycle with order > 3) triangulated;
+        # We must undo this for S-blocks Virtual edges to be used in cycle
+        # assembly from triangles will be multiple edges; check to be sure they
+        # are not already in a P-block, for then we cannot 2-sum cycles at this
+        # edge for a S-block Reconstruct S-blocks from smaller polygons,
+        # where cocycles permit.
+
+        cycles_graph = Graph(cycles, multiedges=True)
+        for e in cycles_graph.edges(labels=False):
+            if cycles_graph.subgraph(edges=[e]).has_multiple_edges():
+                f = frozenset(e)
+                if not f in cocycles:
+                    cuts.remove(f)
+                    while cycles_graph.has_edge(e):
+                        cycles_graph.delete_edge(e)
+
+        # Stuff which are getting deleted from cycles_graph store it in tmp.
+        tmp = []
+        polygons = []
+        for B in cycles_graph.connected_components_subgraphs():
+            for block in B.blocks_and_cut_vertices()[0]:
+                tmp.append(cycles_graph.subgraph(vertices=block))
+
+        # tmp will be seeded with the union of cycles; each multiple edge
+        # corresponds to a sequence of 2-sums of polygons; when cycles have
+        # no more multiple edges they are S-blocks and are removed from list
+
+        while tmp:
+            b = tmp.pop()
+            #print('b'," Bi-Connected:",b.is_biconnected()," Is-Cycle:",b.is_cycle()," Multi-Edge:",b.has_multiple_edges())
+            if b.is_cycle():
+                polygons.append(b)
+            elif b.has_multiple_edges():
+                f = b.multiple_edges()[0]
+                SS = b.subgraph(vertices=[v for v in b.vertices() if v not in [f[0],f[1]]])
+                for SK in SS.connected_components():
+                    SKS = b.subgraph(vertices=SK+[f[0],f[1]])
+                    while SKS.has_edge(f):
+                        SKS.delete_edge(f)
+                    SKS.add_edge(f)
+                    #print("SKS",SKS.is_biconnected())
+                    tmp.append(SKS)
+            else:
+                R_blocks.append(b)
+
+        # as with blocks_and_cuts_tree, we name vertices of the edge-sum
+        # tree with a type (P = cocycle, S = cycle or R = three-block) and the
+        # list of self's vertices in this block, noting only cocycles
+        # have multiple edges
+
+        SPR = R_blocks + polygons
+        Treeverts = []
+        Tree = Graph()
+        for T in SPR:
+            if len(T) == 2:
+                # It's a virtual edge component.
+                block_type = 'P'
+            elif T.is_cycle():
+                block_type = 'S'
+            else:
+                block_type = 'R'
+            Treeverts.append((block_type,tuple(T.vertices())))
+        if len(Treeverts) == 1:
+            Tree.add_vertex(Treeverts[0])
+
+        P_blocks = []
+        cocycles_graph = Graph(cocycles, multiedges=True)
+
+        for cut in cuts:
+            u,v = cut
+            if cut in cocycles:
+                # Updating the P-Block
+                P_blocks.append(cocycles_graph.subgraph(vertices=[u, v]))
+                for i in range(len(SPR)):
+                    if SPR[i].has_edge(u, v):
+                        Tree.add_edge(('P',(u, v)),Treeverts[i])
+            else:
+                for i in range(len(SPR)):
+                    if SPR[i].has_edge(u, v):
+                        for j in range(i + 1, len(SPR)):
+                            if SPR[j].has_edge(u, v):
+                                Tree.add_edge(Treeverts[i],Treeverts[j])
+        thcomps = []
+        for component in polygons:
+            if component.order()==3 and component.size()==3:
+                thcomps.append(component)
+        thcomps += R_blocks
+        return R_blocks, polygons, P_blocks, R_blocks + polygons + P_blocks, thcomps, Tree
 
     @doc_index("Leftovers")
     def matching(self, value_only=False, algorithm="Edmonds",
