@@ -255,7 +255,7 @@ class ContinuousMap(Morphism):
         Set of Morphisms from Open subset D of the 2-dimensional topological
          manifold R^2 to 2-dimensional topological manifold R^2 in Join of
          Category of subobjects of sets and Category of manifolds over Real
-         Field with 53 bits of precision
+         Floating-point Field with 53 bits of precision
         sage: Phi.parent() is Hom(D, R2)
         True
         sage: Phi.display()

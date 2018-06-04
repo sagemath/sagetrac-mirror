@@ -258,7 +258,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
         sage: H = Hom(R, M) ; H
         Set of Morphisms from Real number line R to 2-dimensional
          differentiable manifold M in Category of smooth manifolds over Real
-         Field with 53 bits of precision
+         Floating-point Field with 53 bits of precision
         sage: H.category()
         Category of homsets of topological spaces
         sage: latex(H)
@@ -290,7 +290,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
         sage: H = Hom(I, U) ; H
         Set of Morphisms from Real interval (0, 1) to Open subset U of the
          2-dimensional differentiable manifold M in Join of Category of
-         subobjects of sets and Category of smooth manifolds over Real Field
+         subobjects of sets and Category of smooth manifolds over Real Floating-point Field
          with 53 bits of precision
 
     An element of ``H`` is a curve in ``U``::
