@@ -555,7 +555,7 @@ class GroupHomset_libgap(HomsetWithBase):
 
     Element = GroupMorphism_libgap
 
-    def _element_constructor_(self, x, check=True):
+    def _element_constructor_(self, x, check=True, **options):
         r"""
         Handle conversions and coercions.
 
@@ -574,8 +574,8 @@ class GroupHomset_libgap(HomsetWithBase):
         if isinstance(x, (tuple, list)):
             codomain = self.codomain()
             im_gens = tuple([codomain(g) for g in x])
-            return self.element_class(self, im_gens, check=check)
-        return super(GroupHomset_libgap, self)._element_constructor_(x, check=check)
+            return self.element_class(self, im_gens, check=check, **options)
+        return super(GroupHomset_libgap, self)._element_constructor_(x, check=check, **options)
 
     def _an_element_(self):
         r"""
