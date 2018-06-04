@@ -1,8 +1,30 @@
+diff --git a/setup.py b/setup.py
+index dc3ec14..05c6e63 100644
+--- a/setup.py
++++ b/setup.py
+@@ -23,7 +23,7 @@ classifiers     = [
+     'Programming Language :: Python',
+     'Programming Language :: Python :: 2.7',
+     'Programming Language :: Python :: 3.5',
+-    'Programming Language :: C',
++    'Programming Language :: C++',
+     'Topic :: Scientific/Engineering',
+     'Topic :: Scientific/Engineering :: Mathematics',
+     'Topic :: Scientific/Engineering :: Computing Science',
+@@ -45,7 +45,7 @@ if not os.access(nauty_dir, os.R_OK | os.X_OK):
+ 
+ ext_pynauty = Extension(
+         name = MODULE + '.nautywrap',
+-        sources = [ pynauty_dir + '/' + 'nautywrap.c', ],
++        sources = [ pynauty_dir + '/' + 'nautywrap.cpp', ],
+         extra_compile_args = [ '-O4', '-fPIC' ],
+         extra_objects = [ nauty_dir + '/' + 'nauty.o',
+                           nauty_dir + '/' + 'nautil.o',
 diff --git a/src/graph.py b/src/graph.py
-index 4160b72..ca4b0d6 100644
+index 4160b72..264a0cd 100644
 --- a/src/graph.py
 +++ b/src/graph.py
-@@ -23,7 +23,6 @@ __all__ = [
+@@ -23,34 +23,31 @@ __all__ = [
      'autgrp',
      'isomorphic',
      'certificate',
@@ -10,14 +32,30 @@ index 4160b72..ca4b0d6 100644
  ]
  
  from . import nautywrap
-@@ -36,21 +35,11 @@ class Graph(object):
++from copy import copy 
+ import random
++from sys import version_info    
++from sage.graphs.multiedge import multiedge_to_singledge
+ 
+-
++def getiterator(l):
++    if version_info >= (3):
++        return l.items()
++    else:
++        return l.iteritems()
++        
+ class Graph(object):
+     '''
+     Graph instantiates an adjacency dictionary based graph object.
      It can represent vertex colored, directed or undirected graphs.
      '''
- 
+-
 -    def __init__(self, number_of_vertices, directed=False,
 -                 adjacency_dict={},
+-                 vertex_coloring=[]):
++    
 +    def __init__(self, graph,
-                  vertex_coloring=[]):
++                 vertex_coloring=[], normalize_labels=True, multiedge=True):
          '''
 -        *number_of_vertices*
 -            The number of vertices of the graph; the vertices are
@@ -35,18 +73,15 @@ index 4160b72..ca4b0d6 100644
  
          *vertex_coloring*
              A list of disjoint sets of vertices representing a
-@@ -58,57 +47,11 @@ class Graph(object):
+@@ -58,63 +55,39 @@ class Graph(object):
              placed into a single additional part.  Optional, default
              is no coloring.
          '''
 -        self.number_of_vertices = number_of_vertices
 -        self.directed = directed
 -        self.set_adjacency_dict(adjacency_dict)
-+        self.number_of_vertices = graph.order()
-+        self.directed = graph.is_directed()
-+        self.graph = graph
-         self.set_vertex_coloring(vertex_coloring)
- 
+-        self.set_vertex_coloring(vertex_coloring)
+-
 -    def _check_vertices(self, vs):
 -        for v in vs:
 -            if not (0 <= v and v < self.number_of_vertices):
@@ -88,16 +123,79 @@ index 4160b72..ca4b0d6 100644
 -        if isinstance(neighbors, list):
 -            self._check_vertices(neighbors)
 -            self._adjacency_dict[v] = neighbors
--        else:
++        multiedged = graph.has_multiple_edges()
++        self._first_level_vertices = {}
++        if vertex_coloring == None:
++            vertex_coloring = []
++        vertex_coloring = [set(v) for v in vertex_coloring]
++        if multiedged and not multiedge:
++            raise ValueError("Graphs with multiple edges are not yet supported, if not transformed with multiedge=True")
++        elif multiedged:
++            self.graph, self._first_level_vertices = multiedge_to_singledge(graph)
+         else:
 -            self._check_vertices([neighbors])
 -            self._adjacency_dict.setdefault(v, [])
 -            self._adjacency_dict[v].append(neighbors)
--
++            self.graph = copy(graph)
++        self.number_of_vertices = self.graph.order()
++        self.directed = self.graph.is_directed()
++        relabel_map = {}
++        self._normalized = False
++        if normalize_labels:
++            relabel_map = self.relabel()
++        self.set_vertex_coloring(vertex_coloring, relabel_map)
++
++    def relabel(self):
++        if self._normalized:
++            return
++        self._normalized = True
++        m = self.graph.relabel(complete_partial_function=False, return_map=True)
++        self._inverted_relabel_map = {v: k for k, v in m.iteritems()}
++        return m
+ 
      def _get_vertex_coloring(self):
          return self._vertex_coloring
  
-@@ -137,20 +80,23 @@ class Graph(object):
-             if len(self._vertex_coloring) == 1:
+     vertex_coloring = property(_get_vertex_coloring)
+ 
+-    def set_vertex_coloring(self, vertex_coloring):
++    def set_vertex_coloring(self, vertex_coloring, relabel_map={}):
+         '''
+         Define a vertex coloring of the Graph.
+ 
+@@ -124,8 +97,23 @@ class Graph(object):
+             placed into a single additional part.
+         '''
+         self._vertex_coloring = []
+-        if vertex_coloring:
+-            vs = set(range(self.number_of_vertices))
++        
++        if bool(vertex_coloring) or bool(self._first_level_vertices):
++            
++            if bool(self._first_level_vertices):
++                vc = [[self._first_level_vertices[v] for v in k] for k in vertex_coloring]
++            else:
++                vc = vertex_coloring
++            
++            if bool(relabel_map):
++                vc = [[relabel_map[v] for v in k] for k in vc]
++            
++            if bool(self._first_level_vertices):
++                vs = set([relabel_map[v] for k,v in getiterator(self._first_level_vertices)])
++                self._vertex_coloring.append(set([k for k in range(self.number_of_vertices) if not k in vs]))
++            else:
++                vs = set(range(self.number_of_vertices))
++                
+             for p in vertex_coloring:
+                 if p <= vs:
+                     self._vertex_coloring.append(p)
+@@ -134,24 +122,56 @@ class Graph(object):
+                     raise ValueError('Invalid partition: %s' % vertex_coloring)
+             if vs:
+                 self._vertex_coloring.append(vs)
+-            if len(self._vertex_coloring) == 1:
++                
++            if len(self._vertex_coloring) == 1 and not bool(self._first_level_vertices):
                  self._vertex_coloring = []
  
 -    def __repr__(self):
@@ -118,6 +216,7 @@ index 4160b72..ca4b0d6 100644
          s.append(' ],')
          s.append(')')
          return '\n'.join(s)
+-
 +    
 +    def _latex_(self):
 +		
@@ -125,10 +224,64 @@ index 4160b72..ca4b0d6 100644
 +		s.append("\n");
 +		s.append("Vertex coloring: %s" % (dict_function(s.vertex_coloring)))
 +		return '\n'.joins(s)
- 
++    
++    def undo_relabel(self):
++        '''
++        Beware, undoing the label doesn't fix the vertex coloring accordingly, at this stage
++        '''        
++        if not self._normalized:
++            return
++        self.graph.relabel(complete_partial_function=False, perm=self.inverted_relabel_map)
++        del self._inverted_relabel_map
++        self._normalized = False
++
++def _array_to_disjoint_representation(perm):
++    if not isinstance(perm,dict):
++        perm = {k:v for k,v in enumerate(perm)}
++    result = []
++    remaining = set(perm)
++    while remaining:
++        el = remaining.pop()
++        cycle = [el]
++        el = perm[el]
++        while el not in cycle:
++            remaining.remove(el)
++            cycle.append(el)
++            el = perm[el]
++        if len(cycle) == 1:
++            continue
++        result.append(cycle)
++    return result
++            
  
  def autgrp(g):
-@@ -200,33 +146,3 @@ def isomorphic(a, b):
+     '''
+@@ -166,7 +186,23 @@ def autgrp(g):
+     '''
+     if not isinstance(g, Graph):
+         raise TypeError
+-    return nautywrap.graph_autgrp(g)
++    gens, grpsize1, grpsize2, orbits, numorbits = nautywrap.graph_autgrp(g)
++    gens = [_array_to_disjoint_representation(gen) for gen in gens]
++    if g._normalized:
++        gens = [[[g._inverted_relabel_map[v] for v in cycle] for cycle in gen] for gen in gens]
++    if g._first_level_vertices:
++        inverted_first_level_vertices = {v:k for k,v in getiterator(g._first_level_vertices)}
++        gens = [[tuple([inverted_first_level_vertices[v] for v in cycle]) for cycle in gen if cycle[0] in inverted_first_level_vertices] for gen in gens]
++        result = {}
++        for k,v in enumerate(orbits):
++            if g._inverted_relabel_map[k] not in inverted_first_level_vertices:
++                continue
++            if v not in result:
++                result[v] = []
++            result[v].append(inverted_first_level_vertices[g._inverted_relabel_map[k]])
++        orbits = result.values()
++        numorbits = len(orbits)
++    return gens,grpsize1,grpsize2,orbits,numorbits
+ 
+ 
+ def certificate(g):
+@@ -200,33 +236,3 @@ def isomorphic(a, b):
          return False
      else:
          return certificate(a) == certificate(b)
@@ -162,10 +315,133 @@ index 4160b72..ca4b0d6 100644
 -        x, y = None, None
 -    return (x, y)
 -
-diff --git a/src/nautywrap.c b/src/nautywrap.c
-index 82e5309..6948c57 100644
---- a/src/nautywrap.c
-+++ b/src/nautywrap.c
+diff --git a/src/nautywrap.cpp b/src/nautywrap.cpp
+index 82e5309..11e3ec8 100644
+--- a/src/nautywrap.cpp
++++ b/src/nautywrap.cpp
+@@ -15,7 +15,7 @@ GNU General Public License for more details.
+ #include <Python.h>
+ #include <nauty.h>
+ #include <nautywrap.h>
+-
++#include <iostream>
+ 
+ //  static global (yuck) variables  -------------------------------------------
+ 
+@@ -42,9 +42,9 @@ static void store_generator(int count,
+     NyGraph *g = GRAPH_PTR;
+     int i;
+     permutation *p;
+-    permutation **new;
++    permutation **newPermutation;
+ 
+-    if ((p = malloc(n * sizeof(permutation))) == NULL) {
++    if ((p = (permutation*)malloc(n * sizeof(permutation))) == NULL) {
+         fprintf(stderr, "Failed to allocate memory for generator #%d.\n",
+                 g->no_generators);
+         exit(1);
+@@ -59,19 +59,19 @@ static void store_generator(int count,
+     if (g->no_generators >= g->max_no_generators) {
+         // allocate a larger array
+         g->max_no_generators += NUM_GENS_INCR;
+-        new=(permutation **)malloc(g->max_no_generators * sizeof(permutation*));
+-        if (new == NULL) {
++        newPermutation=(permutation **)malloc(g->max_no_generators * sizeof(permutation*));
++        if (newPermutation == NULL) {
+             fprintf(stderr, "Failed to allocate extension for generators.\n");
+             exit(1);
+         }
+         // copy over the old one
+         for (i = 0; i < g->no_generators; i++) {
+-            new[i] = g->generator[i];
++            newPermutation[i] = g->generator[i];
+         }
+         // free the old generator array
+         free(g->generator);
+         // switch to the new one
+-        g->generator = new;
++        g->generator = newPermutation;
+     }
+ }
+ 
+@@ -110,7 +110,7 @@ NyGraph * create_nygraph(int no_vertices)
+ 
+     if (no_vertices < 0) return NULL;
+ 
+-    if ((g = malloc(sizeof(NyGraph))) == NULL) return NULL;
++    if ((g = (NyGraph*)malloc(sizeof(NyGraph))) == NULL) return NULL;
+ 
+     // initialize evrything here so if allocation fails at any stage later
+     // we can clean up
+@@ -127,7 +127,7 @@ NyGraph * create_nygraph(int no_vertices)
+     g->no_setwords = (no_vertices + WORDSIZE - 1) / WORDSIZE;
+     nauty_check(WORDSIZE, g->no_setwords, g->no_vertices, NAUTYVERSIONID);
+ 
+-    if ((g->matrix = malloc((size_t) g->no_setwords * 
++    if ((g->matrix = (setword*)malloc((size_t) g->no_setwords * 
+                     (size_t) (no_vertices * sizeof(setword)))) == NULL) {
+         destroy_nygraph(g);
+         return NULL;
+@@ -138,25 +138,25 @@ NyGraph * create_nygraph(int no_vertices)
+ 
+     g->cmatrix = NULL;
+ 
+-    if ((g->lab = malloc(no_vertices * sizeof(int))) == NULL) {
++    if ((g->lab = (int*)malloc(no_vertices * sizeof(int))) == NULL) {
+         destroy_nygraph(g);
+         return NULL;
+     }
+     for (i = 0, p = g->lab; i < no_vertices; i++) p[i] = 0;
+ 
+-    if ((g->ptn = malloc(no_vertices * sizeof(int))) == NULL) {
++    if ((g->ptn = (int*)malloc(no_vertices * sizeof(int))) == NULL) {
+         destroy_nygraph(g);
+         return NULL;
+     }
+     for (i = 0, p = g->ptn; i < no_vertices; i++) p[i] = 0;
+     
+-    if ((g->orbits = malloc(no_vertices * sizeof(int))) == NULL) {
++    if ((g->orbits = (int*)malloc(no_vertices * sizeof(int))) == NULL) {
+         destroy_nygraph(g);
+         return NULL;
+     }
+     for (i = 0, p = g->orbits; i < no_vertices; i++) p[i] = 0;
+ 
+-    if ((g->options = malloc(sizeof(optionblk))) == NULL) {
++    if ((g->options = (optionblk*)malloc(sizeof(optionblk))) == NULL) {
+         destroy_nygraph(g);
+         return NULL;
+     }
+@@ -166,17 +166,17 @@ NyGraph * create_nygraph(int no_vertices)
+     g->options->getcanon = FALSE;
+     g->options->defaultptn = TRUE;      // default is no coloring
+     g->options->writeautoms = FALSE;
+-    g->options->cartesian = TRUE;
++    g->options->cartesian = FALSE;
+     g->options->linelength = 0;
+     g->options->userautomproc = store_generator;
+ 
+-    if ((g->stats = malloc(sizeof(statsblk))) == NULL) {
++    if ((g->stats = (statsblk*)malloc(sizeof(statsblk))) == NULL) {
+         destroy_nygraph(g);
+         return NULL;
+     }
+ 
+     g->worksize = WORKSPACE_FACTOR * g->no_setwords;
+-    if ((g->workspace = malloc(g->worksize * sizeof(setword))) == NULL) {
++    if ((g->workspace = (setword*)malloc(g->worksize * sizeof(setword))) == NULL) {
+         destroy_nygraph(g);
+         return NULL;
+     }
+@@ -201,7 +201,7 @@ NyGraph * extend_canonical(NyGraph *g)
+ // extend the NyGraph structure with cmatrix to hold
+ // the canonically labeled graph
+ {
+-    if ((g->cmatrix = malloc(g->no_setwords * g->no_vertices * WORDSIZE))
++    if ((g->cmatrix = (setword*)malloc(g->no_setwords * g->no_vertices * WORDSIZE))
+             == NULL) {
+         destroy_nygraph(g);
+         return NULL;
 @@ -313,90 +313,114 @@ static PyObject* py_auto_group(NyGraph *g)
      return py_autgrp;
  }
@@ -334,7 +610,7 @@ index 82e5309..6948c57 100644
      if (x < 0) {
          g->options->defaultptn = TRUE;
      } else if (x == 0) {
-@@ -408,7 +432,6 @@ NyGraph * _make_nygraph(PyObject *py_graph)
+@@ -408,14 +432,13 @@ NyGraph * _make_nygraph(PyObject *py_graph)
      return g;
  }
  
@@ -342,3 +618,103 @@ index 82e5309..6948c57 100644
  // Exported (module level) Python functions ----------------------------------
  
  static char make_nygraph_docs[] =
+ "make_nygraph(g): \n\
+     Convert the Python NyGraph object into a Nauty/C NyGraph object.\n\
+     Return a handle to the Nauty/C NyGraph object as a PyCObject.\n";
+-
++extern "C"{
+ static PyObject*
+ make_nygraph(PyObject *self, PyObject *args)
+ // Convert the Python NyGraph object into a Nauty/C NyGraph object
+@@ -435,12 +458,12 @@ make_nygraph(PyObject *self, PyObject *args)
+     //return PyCObject_FromVoidPtr((void *) g, NULL);
+     return PyCapsule_New((void *) g, NULL, NULL);
+ }
+-
++}
+ 
+ static char delete_nygraph_docs[] =
+ "delete_nygraph(g): \n\
+     Free the allocated memeory for Nauty NyGraph.\n";
+-
++extern "C"{
+ static PyObject*
+ delete_nygraph(PyObject *self, PyObject *args) {
+     PyObject *p;
+@@ -457,12 +480,12 @@ delete_nygraph(PyObject *self, PyObject *args) {
+     return Py_BuildValue("");
+ }
+ 
+-
++}
+ static char graph_autgrp_docs[] =
+ "graph_autgrp(g):\n\
+     Return the (generators, order, orbits, orbit_no)\n\
+     of the automorphism group of NyGraph 'g'.\n";
+-
++extern "C"{
+ static PyObject*
+ graph_autgrp(PyObject *self, PyObject *args)
+ {
+@@ -482,7 +505,7 @@ graph_autgrp(PyObject *self, PyObject *args)
+     g->options->userautomproc = store_generator;
+ 
+     // initialize storage for collecting generators
+-    if ((g->generator = malloc(NUM_GENS_INCR * sizeof(permutation*)))
++    if ((g->generator = (permutation**)malloc(NUM_GENS_INCR * sizeof(permutation*)))
+             == NULL) {
+         PyErr_SetString(PyExc_MemoryError,
+                 "Initial generator list allocation failed.");
+@@ -495,18 +518,17 @@ graph_autgrp(PyObject *self, PyObject *args)
+     nauty(g->matrix, g->lab, g->ptn, NULL, g->orbits,
+             g->options, g->stats,  g->workspace, g->worksize,
+             g->no_setwords, g->no_vertices, NULL);
+-    
+     pyret = py_auto_group(g);
+     destroy_nygraph(g);
+     return pyret;
+ }
+ 
+-
++}
+ static char graph_cert_docs[] =
+ "graph_cert(g): \n\
+     Return the unique certificate of NyGraph 'g'.\n";
+ 
+-static PyObject*
++extern "C"{static PyObject*
+ graph_cert(PyObject *self, PyObject *args)
+ {
+     PyObject *py_graph;
+@@ -545,7 +567,7 @@ graph_cert(PyObject *self, PyObject *args)
+     destroy_nygraph(g);
+     return pyret;
+ }
+-
++}
+ 
+ //  Python module initialization  =============================================
+ 
+@@ -567,19 +589,19 @@ static struct PyModuleDef moduledef = {
+     .m_methods = nautywrap_methods,
+ };
+ 
+-PyObject *
++PyMODINIT_FUNC
+ PyInit_nautywrap(void) {
+     PyObject *m;
+ 
+     m = PyModule_Create(&moduledef);
+     return m;
+ #else
+-void
++extern "C" {void
+ initnautywrap(void) {
+     PyObject *m;
+ 
+     m = Py_InitModule3("nautywrap", nautywrap_methods,
+             "Graph (auto/iso)morphism wrapper for nauty");
+ #endif
+-}
++}}
+ 

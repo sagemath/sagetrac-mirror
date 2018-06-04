@@ -1,0 +1,3 @@
+tar xvzf pynauty-0.6.0.tar.gz
+tar cvzf pynauty-0.6.0.tar.gz pynauty-0.6.0
+mv src/nautywrap.c src/nautywrap.cpp

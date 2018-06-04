@@ -1,0 +1,25 @@
+= pynauty =
+
+== Description ==
+
+Interface to nauty for graph isomorphism checking and automorphism group computation. Based on the upstream package but heavily modified through patches to allow seamsless compatibility with sage.
+
+== License ==
+
+GPLv3+
+
+== Upstream Contact ==
+
+https://web.cs.dal.ca/~peter/software/pynauty/html/intro.html#
+
+== Dependencies ==
+
+Put a bulleted list of dependencies here:
+
+* python
+* nauty
+
+== Special Update/Build Instructions ==
+
+The package needed to be unpacked and repacked for some weird incompatibility.
+For future developments, the language was also changed, from C to C++
