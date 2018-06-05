@@ -1417,7 +1417,7 @@ We call automaton a quintuplet :math:`A := (\Sigma,\mathrm{Q},\mathrm{T},\mathrm
     - :math:`\mathrm{I} \subseteq \mathrm{Q}` is a finite set of initial states,
     - :math:`\mathrm{F} \subseteq \mathrm{Q}` is a finite set of final states.
 
-The automaton is determinist if 
+The automaton is deterministic if 
     - :math:`\sharp \, \mathrm{I} = 1` and 
     - :math:`\left[ \left( p, a, q \right) \in \mathrm{T} \quad and  \quad \left(p, a, r \right) \in \mathrm{T} \right] \Rightarrow q = r`
 
@@ -1497,8 +1497,8 @@ A word :math:`u \in \Sigma^*` is recognized  by the automaton  :math:`A` if we h
 A word  $a_1 \dots a_n$ is therefore recognized by the automaton :math:`A` if there exists a path in the graph, labeled by  $a_1, a_2, \dots, a_n$, starting from an initial state and ending to a final state.
 
 .. note::
-	
-	If the automaton is deterministic, the path is determined by the sequence of labels.
+    
+    If the automaton is deterministic, the path is determined by the sequence of labels.
 
 Examples
 ^^^^^^^^
@@ -1600,7 +1600,7 @@ The transposed (or the mirror) automaton of an automaton :math:`A := (\Sigma,\ma
    The language recognized by the transposed automaton :math:`A^t` is the transpose of the recognized language by the
    initial automaton :math:`A`.
 
-The transposed automaton of \{lapin, laitue\}::
+The transposed of the minimal automaton of the language \{lapin, laitue\} is::
 
     sage: b = a.transpose()
     sage: b.plot().show()
@@ -1616,19 +1616,33 @@ The transposed automaton of \{lapin, laitue\}::
 Emonded automaton
 ^^^^^^^^^^^^^^^^^
 
-the emonded automaton is the automaton restricted to
-vertices through which a path is  passed from an initial state to a final state.
+The emonded automaton is the automaton restricted to
+states that are reachable from an initial state, and from which we can go to a final state.
 An automaton is emonded if it is equal to its emonded.
 
 .. note::
 
-An automaton (possibly infinite) determinist emonded, and with a determinist  transpose is minimal.
-In particular, if it is infinite, the language that it recognizes is not rational::
+    An automaton (possibly infinite) deterministic emonded, and with a deterministic transposed is minimal.
+    In particular, if it is infinite, the language that it recognizes is not rational.
+
+Example of non-emonded automaton::
 
     sage: a = FastAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
     sage: a.set_final_states([0])
     sage: a.set_initial_state(0)
     sage: a.add_edge(0,'(1,0)',1)
+    sage: a.plot().show()
+    
+.. PLOT::
+
+    a = FastAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
+    a.set_final_states([0])
+    a.set_initial_state(0)
+    a.add_edge(0,'(1,0)',1)
+    sphinx_plot(a)
+
+And the corresponding emonded automaton::
+
     sage: b = a.emonde()
     sage: b.plot().show()
 
