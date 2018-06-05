@@ -3,7 +3,6 @@
 #include <time.h>
 #include "Automaton.h"
 #include "automataC.h"
-#include "file.h"
 
 /*
 static PyObject *DAError;
@@ -504,7 +503,7 @@ void printAutomaton (Automaton a)
 	printf("initial State %d.\n", a.i);
 }
 
-void plotDot (const char *file, Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool verb, bool run_dot)
+void plotDot (const char *file, Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool html, bool verb, bool run_dot)
 {
 	char tamp[1024];
 	FILE *f = fopen(file, "w");
@@ -560,7 +559,24 @@ void plotDot (const char *file, Automaton a, const char **labels, const char *gr
 		for (j=0;j<a.na;j++)
 		{
 			if (a.e[i].f[j] != -1)
-				fprintf(f, "	%d -> %d [label=\"%s\"]\n", i, a.e[i].f[j], labels[j]);
+			{
+			    const char *ptr = labels[j];
+			    bool dotted = false;
+			    if (labels[j][0] == '.' && labels[j][1] == '.' && labels[j][2] == '.')
+			    {
+			        ptr += 3;
+			        dotted = true;
+				}
+				if (html)
+    				fprintf(f, "	%d -> %d [label=<%s>", i, a.e[i].f[j], ptr);
+    			else
+    			    fprintf(f, "	%d -> %d [label=\"%s\"", i, a.e[i].f[j], ptr);
+    			if (dotted)
+    			{
+    			    fprintf(f, ", style=\"dotted\"");
+    			}
+    			fprintf(f, "]\n");
+			}
 		}
 	}
 	fprintf(f, "}\n");
