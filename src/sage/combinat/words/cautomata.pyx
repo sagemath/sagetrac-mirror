@@ -3790,9 +3790,9 @@ cdef class FastAutomaton:
             ValueError: The state  5 doesn't exist.
         """
         if i >= self.a.n:
-            raise ValueError("The state %s doesn't exist."% i)
+            raise ValueError("The state %s doesn't exist." % i)
         if j >= self.a.n:
-            raise ValueError("The state  %s doesn't exist."%j)
+            raise ValueError("The state  %s doesn't exist." %j)
         try:
             k = self.A.index(l)
         except:
@@ -3909,7 +3909,7 @@ cdef class FastAutomaton:
             True
             sage: b = FastAutomaton([(0, 1, 'c')], i=0)
             sage: a.included(b)
-            True
+            False
             sage: b = FastAutomaton([(0, 1, 'a')], i=0)
             sage: b.included(a)
             True
