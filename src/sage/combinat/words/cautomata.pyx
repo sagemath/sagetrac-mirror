@@ -3914,13 +3914,16 @@ cdef class FastAutomaton:
             sage: b.included(a)
             True
         """
-        cdef FastAutomaton b
+        cdef FastAutomaton b, a2
         if self.A != a.A:
-            b = self.bigger_alphabet(list(set(a.A+self.A)))
+            A = list(set(a.A+self.A))
+            b = self.bigger_alphabet(A)
+            a2 = a.bigger_alphabet(A)
         else:
             b = self
+            a2 = a
         sig_on()
-        res = Included(b.a[0], a.a[0], emonded, verb)
+        res = Included(b.a[0], a2.a[0], emonded, verb)
         sig_off()
         return Bool(res)
 
