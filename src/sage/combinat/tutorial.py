@@ -1429,7 +1429,8 @@ which set of states :math:`\mathrm{Q}` is infinite.
 
 .. note::
 
-    We often denote :math:`p \overset{a}{\rightarrow} q  \quad` if :math:`\quad \left( p, a, q \right) \in \mathrm{T}`.
+    We often denote :math:`p \overset{a}{\rightarrow} q  \quad` if
+    :math:`\quad \left( p, a, q \right) \in \mathrm{T}`.
 
 .. note::
 
