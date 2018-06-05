@@ -6,9 +6,9 @@ FastAutomaton for determinist automata and NFastAutomaton for non determinist
 
 AUTHORS:
 
-- Paul Mercat (2013) initial version
-- Dominique Benielli (2018)
-  AMU Aix-Marseille Universite - Integration in SageMath
+- Paul Mercat (2013)- I2M AMU Aix-Marseille Universite - initial version
+- Dominique Benielli (2018) Labex Archimede - I2M -
+  AMU Aix-Marseille Universite - Integration in -SageMath
 
 REFERENCES:
 
@@ -183,7 +183,7 @@ cdef InvertDict getDict2(dict d, list A, dict d1=None):
 # dictionnaire numérotant l'alphabet projeté
 cdef imagProductDict(dict d, list A1, list A2, list Av=[]):
     """
-    Dictionary which is numbering the prjeted alphabet
+    Dictionary which is numbering the projeted alphabet
     """
     dv = {}
     i = 0
@@ -251,15 +251,15 @@ cdef Dict getProductDict(dict d, list A1, list A2, dict dv=None, verb=True):
 # def TestProduct(a1, a2, di):
 #     """
 #     Test and print the product of automaton
-# 
+#
 #     INPUT:
-# 
+#
 #     - ``a1`` first automaton term of product
-# 
+#
 #     - ``a2`` second automaton term of product
-# 
+#
 #     - ``di`` alphabet dictionnary
-# 
+#
 #     """
 #     cdef Automaton a, b, c
 #     a = getAutomaton(a1)
@@ -276,7 +276,7 @@ cdef Dict getProductDict(dict d, list A1, list A2, dict dv=None, verb=True):
 #     print("result :")  # "résultat :"
 #     printAutomaton(c)
 
-#def TestDeterminise (a, d, noempty=True, verb=True):
+# def TestDeterminise (a, d, noempty=True, verb=True):
 #    cdef Dict di = getDict(d, a.Alphabet)
 #    cdef Automaton au = getAutomaton(a)
 #    if verb:
@@ -286,7 +286,7 @@ cdef Dict getProductDict(dict d, list A1, list A2, dict dv=None, verb=True):
 #    cdef Automaton r = Determinise(au, di, noempty, verb)
 #    printAutomaton(r)
 
-#def TestDeterminiseEmonde (a, d, noempty=True, verb=True):
+# def TestDeterminiseEmonde (a, d, noempty=True, verb=True):
 #    cdef Dict di = getDict(d, a.Alphabet)
 #    cdef Automaton au = getAutomaton(a)
 #    if verb:
@@ -320,7 +320,6 @@ cdef Dict getProductDict(dict d, list A1, list A2, dict dv=None, verb=True):
 #         print("different !")
 #     return AutomatonGet(r)
 
-#convert a DiGraph into a C Automaton
 cdef Automaton getAutomaton (a, initial=None, F=None, A=None):
     d = {}
     da = {}
@@ -381,7 +380,7 @@ cdef Automaton getAutomaton (a, initial=None, F=None, A=None):
 
 cdef AutomatonGet(Automaton a, A):
     """
-    Tranform a Automaton a with a alphabet A to a DiGraph
+    Transform a Automaton a with a alphabet A to a DiGraph
     """
     from sage.graphs.digraph import DiGraph
     r = DiGraph(multiedges=True, loops=True)
@@ -395,7 +394,7 @@ cdef AutomatonGet(Automaton a, A):
             r.F.append(i)
     r.I = [a.i]
     return r
-    
+
 cdef AutomatonToSageAutomaton(Automaton a, A):
     from sage.combinat.finite_state_machine import Automaton as SageAutomaton
     L = []
@@ -433,7 +432,7 @@ cdef Bool(int x):
 
 cdef class NFastAutomaton:
     """
-    Class :class:`NFastAutomaton`, this class encapsulates a C structure for Automata and 
+    Class :class:`NFastAutomaton`, this class encapsulates a C structure for Automata and
     implement methods to manipulate non-determinist automata.
 
     INPUT:
@@ -494,7 +493,6 @@ cdef class NFastAutomaton:
             sage: NFastAutomaton(a)
             NFastAutomaton with 4 states and an alphabet of 2 letters
         """
-
         if a is None:
             pass
         else:
@@ -506,7 +504,7 @@ cdef class NFastAutomaton:
         free(self.a)
 
     def __repr__(self):
-        return "NFastAutomaton with %d states and an alphabet of %d letters"%(self.a.n, self.a.na)
+        return "NFastAutomaton with %d states and an alphabet of %d letters" % (self.a.n, self.a.na)
 
     def _latex_(self):
         r"""
@@ -601,7 +599,7 @@ cdef class NFastAutomaton:
         """
         INPUT:
 
-        -``i`` -- int successor number
+        - ``i`` -- int successor number
 
         OUTPUT:
 
@@ -621,12 +619,12 @@ cdef class NFastAutomaton:
     # give the state at end of the jth edge of the state i
     def succ(self, int i, int j):
         """
-        Give the state at end of the ``j``th edge of the state ``i``
+        Give the state at end of the ``j`` th edge of the state ``i``
 
         INPUT:
 
-        -``i`` int state number
-        -``j`` int edge number
+        - ``i`` int state number
+        - ``j`` int edge number
 
         OUTPUT:
 
@@ -637,7 +635,7 @@ cdef class NFastAutomaton:
             sage: a = FastAutomaton([(0, 1, 'a'),(1, 2, 'c'), (2, 3, 'b')], i=0)
             sage: b = NFastAutomaton(a)
             sage: b.succ(1, 0)
-            2        
+            2
         """
         if i >= self.a.n or i < 0:
             raise ValueError("There is no state %s !"%i)
@@ -1115,6 +1113,9 @@ cdef class FastAutomaton:
         string - latex representation of the automaton.
 
         EXAMPLES::
+
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: latex(a)      # optional -  dot2tex
             \documentclass{article}
             \usepackage[x11names, rgb]{xcolor}
             \usepackage[utf8]{inputenc}
@@ -1358,7 +1359,7 @@ cdef class FastAutomaton:
 
         return r
 
-    def plot(self, int sx=10, int sy=8, vlabels=None, html=False, verb=False):
+    def plot(self, int sx=10, int sy=8, vlabels=None, html=False, file=None, bool draw=True, verb=False):
         """
         Plot the :class:`FastAutomaton`. Draw using the dot command, if installed on the platform.
         
@@ -1370,8 +1371,10 @@ cdef class FastAutomaton:
         - ``sy`` - int (default: 8) - height of the picture
         - ``vlabels`` - (default: None) - labels of the vertices
         - ``html`` - (default: ``False``) - tell if dot should draw vertices in html mode
+        - ``file`` - (default: ``None``) - the adress of the .dot file of the drawing (only if dot is installed)
+        - ``draw`` - (default: ``True``) - if False, only generate the .dot file (only if dot is installed)
         - ``verb`` - (default: ``False``) - active or not the verbose mode
-        
+
         TESTS::
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
@@ -1388,7 +1391,7 @@ cdef class FastAutomaton:
             a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sphinx_plot(a)
         """
-        cdef char *file
+        cdef char *cfile
         cdef char** ll # labels of edges
         cdef char** vl # labels of vertices
         cdef int i
@@ -1456,7 +1459,7 @@ cdef class FastAutomaton:
         else:
             return AutomatonToSageAutomaton(self.a[0], self.A).plot()
             #raise NotImplementedError("You cannot plot the FastAutomaton without dot. Install the dot command of the GraphViz package.")
-    
+
     @property
     def Alphabet(self):
         """
@@ -3107,7 +3110,7 @@ cdef class FastAutomaton:
         r = FastAutomaton(None)
         r.a[0] = SubAutomaton(self.a[0], list_to_Dict(l), verb)
         r.A = self.A
-        if keep_vlabels:
+        if keep_vlabels and self.S is not None:
             r.S = [self.S[i] for i in l]
         sig_off()
         return r
@@ -3813,9 +3816,10 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.complementaryOP()
+            sage: a.complementary_op()
             sage: a
-
+            FastAutomaton with 5 states and an alphabet of 2 letters
+            
         """
         self.complete()
         cdef i
@@ -3837,7 +3841,7 @@ cdef class FastAutomaton:
             FastAutomaton with 5 states and an alphabet of 2 letters
         """
         a = self.copy()
-        a.complementaryOP()
+        a.complementary_op()
         return a
 
     def included(self, FastAutomaton a, bool verb=False, emonded=False):
@@ -3864,13 +3868,16 @@ cdef class FastAutomaton:
             True
 
         """
-        cdef FastAutomaton b
+        cdef FastAutomaton b, a2
         if self.A != a.A:
-            b = self.bigger_alphabet(a.A)
+            A = list(set(a.A+self.A))
+            b = self.bigger_alphabet(A)
+            a2 = a.bigger_alphabet(A)
         else:
             b = self
+            a2 = a
         sig_on()
-        res = Included(b.a[0], a.a[0], emonded, verb)
+        res = Included(b.a[0], a2.a[0], emonded, verb)
         sig_off()
         return Bool(res)
 

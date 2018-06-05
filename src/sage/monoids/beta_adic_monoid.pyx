@@ -69,7 +69,7 @@ from sage.sets.set import Set
 from monoid import Monoid_class
 from sage.rings.qqbar import QQbar
 from sage.rings.padics.all import *
-from sage.combinat.words.automata import Automaton
+#from sage.combinat.words.automata import Automaton
 #from sage.combinat.words.cautomata import FastAutomaton
 
 #from sage.structure.factory import UniqueFactory
@@ -507,7 +507,7 @@ cdef BetaAdic2 getBetaAdic2(input_a, la=None, ss=None, tss=None, prec=53, add_le
     if verb:
         print("getBetaAdic %s" % input_a)
     from sage.rings.complex_field import ComplexField
-    from sage.combinat.words.automata import Automaton
+    #from sage.combinat.words.automata import Automaton
     CC = ComplexField(prec)
     cdef BetaAdic2 b
     if la is None:
@@ -777,28 +777,28 @@ class BetaAdicMonoid(Monoid_class):
         TestSDL()
         sig_off()
 
-    def default_ss(self, C=None):
-        r"""
-        Returns the full subshift (given by an Automaton) corresponding to the beta-adic monoid.
-
-        EXAMPLES::
-
-            sage: m=BetaAdicMonoid((1+sqrt(5))/2, {0,1})
-            sage: m.default_ss()
-            Finite automaton with 1 states
-        """
-        if C is None:
-            C = self.C
-        ss = Automaton()
-        ss.allow_multiple_edges(True)
-        ss.allow_loops(True)
-        ss.add_vertex(0)
-        for c in C:
-            ss.add_edge(0, 0, c)
-        ss.I = [0]
-        ss.F = [0]
-        ss.A = C
-        return ss
+ #   def default_ss(self, C=None):
+ #       r"""
+ #       Returns the full subshift (given by an Automaton) corresponding to the beta-adic monoid.
+ #
+ #       EXAMPLES::
+#
+#            sage: m=BetaAdicMonoid((1+sqrt(5))/2, {0,1})
+#            sage: m.default_ss()
+#            Finite automaton with 1 states
+#        """
+#        if C is None:
+#            C = self.C
+#        ss = Automaton()
+#        ss.allow_multiple_edges(True)
+#        ss.allow_loops(True)
+#        ss.add_vertex(0)
+#        for c in C:
+#            ss.add_edge(0, 0, c)
+#        ss.I = [0]
+#        ss.F = [0]
+#        ss.A = C
+#        return ss
 
     # liste des automates donnant le coloriage de l'ensemble limite
     def get_la(self, ss=None, tss=None, verb=False):
@@ -867,7 +867,7 @@ class BetaAdicMonoid(Monoid_class):
           The number of iterations used to plot the fractal.
           Default values: between ``5`` and ``16`` depending on the number of generators.
 
-        - ``ss`` - Automaton (default: ``None``)
+        - ``ss`` - FastAutomaton (default: ``None``)
           The subshift to associate to the beta-adic monoid for this drawing.
 
         - ``iss`` - set of initial states of the automaton ss (default: ``None``)
@@ -951,7 +951,7 @@ class BetaAdicMonoid(Monoid_class):
         - ``place`` - place of the number field of beta (default: ``None``)
           The place we should use to evaluate elements of the number field given by points_exact()
 
-        - ``ss`` - Automaton (default: ``None``)
+        - ``ss`` - FastAutomaton (default: ``None``)
           The subshift to associate to the beta-adic monoid for this drawing.
 
         - ``iss`` - set of initial states of the automaton ss (default: ``None``)
