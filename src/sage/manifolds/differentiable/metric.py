@@ -1922,21 +1922,25 @@ class PseudoRiemannianMetric(TensorField):
 
         Einstein tensor on a 4-dimensional space-time::
 
+            sage: forget()
             sage: M = Manifold(4, 'M')
             sage: X.<t,r,theta,phi> = M.chart(coordinates=r't r:(0,2) \
                     theta:(0,pi):\theta phi:(0,2*pi):\phi')
             sage: g = M.metric('g', comp=[2/r-1, (1-2/r)^-1, r^2, r^2*sin(theta)^2])
             sage: G = g.einstein_tensor(); G
-            Tensor field of type (0,2) on the 4-dimensional differentiable manifold M
+            Tensor field of type (0,2) on the 4-dimensional differentiable manifold
+            M
             sage: G.display()
             0
             sage: var('lamb', latex_name=r'\lambda')
+            lamb
             sage: g = M.metric('g', comp=[2/r+r**2*lamb/3-1, \
                             (1-2/r-r**2*lamb/3)^-1, r^2, r^2*sin(theta)^2])
             sage: G = g.einstein_tensor()
             sage: G.display()
             1/3*(lamb^2*r^3 - 3*lamb*r + 6*lamb)/r dt*dt - 3*lamb*r/(lamb*r^3 - 3*r
             + 6) dr*dr + lamb*r^2 dtheta*dtheta + lamb*r^2*sin(theta)^2 dphi*dphi
+            
         """
         return self.ricci()-(1/2)*self*self.ricci_scalar()
     
@@ -1958,7 +1962,8 @@ def _diag(self, n, m, k):
 
     EXAMPLES:
 
-        sage: diag(-2, 2, 4, 1)
+        sage: from sage.manifolds.differentiable.metric import _diag
+        sage: _diag(-2, 2, 4, 1)
         [[0, -2, 0, 0], [0, 0, -2, 0]]
 
         """
@@ -1993,6 +1998,7 @@ def substitute(self, list1, list2):
         sage: substitute([2*x], [x], [4])
         [8]
         sage: var('y'); substitute([2*x+y], [x], [4])
+        y
         [y + 8]
         sage: substitute([2*x+y, x+3*y, 1], [y, 2*x], [1, x**2])
         [x^2 + 1, x + 3, 1]
@@ -2051,11 +2057,12 @@ def _condition_match(elt, liste=[]):
 
     EXAMPLES:
 
-        sage: condition_match(0, [])
+        sage: from sage.manifolds.differentiable.metric import _condition_match
+        sage: _condition_match(0, [])
         True
-        sage: condition_match(x, [x])
+        sage: _condition_match(x, [x])
         True
-        sage: condition_match(x, [])
+        sage: _condition_match(x, [])
         False
         
         """
@@ -2889,8 +2896,9 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             
         Energy momentums in Scharwzschild solution of Einstein Equations::
             
+            sage: forget()
             sage: M = Manifold(4, 'M'); 
-            sage: var('m'); assume(m>0); var("lamb", latex_name=r'\lambda');
+            sage: var('m'), assume(m>0), var("lamb", latex_name=r'\lambda');
             (m, None, lamb)
             sage: X.<t,r,theta,phi> = M.chart(coordinates=r't r:(0,2*m) \
                     theta:(0,pi):\theta phi:(0,2*pi):\phi');
@@ -2944,8 +2952,9 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             
         Energy momentums in Scharwzschild solution of Einstein Equations::
             
+            sage: forget()
             sage: M = Manifold(4, 'M'); 
-            sage: var('m'); assume(m>0); var("lamb", latex_name=r'\lambda');
+            sage: var('m'), assume(m>0), var("lamb", latex_name=r'\lambda');
             (m, None, lamb)
             sage: X.<t,r,theta,phi> = M.chart(coordinates=r't r:(0,2*m) \
                     theta:(0,pi):\theta phi:(0,2*pi):\phi');
@@ -2958,6 +2967,19 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: g.is_energy_momentum(T)
             False
             sage: g.is_energy_momentum(T, assume=[lamb])
+            True
+            sage: M=Manifold(4, 'M'); X.<tau,y,x,z>=M.chart("tau:\\tau y x z");
+            sage: g = M.metric('g', comp=[-1, tau^2, 1, 1]); 
+            sage: t1 = X.function(function('t1')(tau)); \
+            t2 = X.function(function('t2')(tau)); t3 = X.function(function('t3')(tau))
+            sage: T = g.domain().tensor_field(0,2); 
+            sage: T[0,0], T[1,1], T[2,2], T[3,3] = t1, t2, t3, t3;
+            sage: g.is_energy_momentum(T)
+            False
+            sage: g.energy_momentum_condition(T)
+            To satisfy conservation low, the following must be assumed
+            (tau^3*d(t1)/dtau + tau^2*t1(tau) + t2(tau))/tau^3 = 0
+            sage: g.is_energy_momentum(T,assume=[tau^3*t1.diff(tau)+tau^2*t1+t2])
             True
             
         """
@@ -2991,8 +3013,9 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             
         Energy momentums in Scharwzschild solution of Einstein Equations::
             
+            sage: forget()
             sage: M = Manifold(4, 'M'); 
-            sage: var('m'); assume(m>0); var("lamb", latex_name=r'\lambda');
+            sage: var('m'), assume(m>0), var("lamb", latex_name=r'\lambda');
             (m, None, lamb)
             sage: X.<t,r,theta,phi> = M.chart(coordinates=r't r:(0,2*m) \
                     theta:(0,pi):\theta phi:(0,2*pi):\phi');
@@ -3000,12 +3023,12 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
                 r**2*lamb/3)^-1, r^2, r^2*sin(theta)^2]); 
             sage: T = M.tensor_field(0,2); T[0,1] = 1;
             sage: g._energy_momentum_condition(T)
-            "Energy momentum tensor must be symmetric"
+            'not symmetric'
             sage: T = M.tensor_field(0,2); T[0,0] = lamb;
             sage: g._energy_momentum_condition(T)
-            ['(lamb^2*r^3 - 3*lamb*m)/(lamb*r^4 + 6*m*r - 3*r^2)=0']
+            [(lamb^2*r^3 - 3*lamb*m)/(lamb*r^4 + 6*m*r - 3*r^2)]
             sage: g._energy_momentum_condition(T, assume=[lamb])
-            "No condition need, this tensor is an energy momentum!"
+            []
         
         """
         condition = self._energy_momentum_condition(T, chart=chart, \
@@ -3049,8 +3072,10 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             
         Scharwzschild solution of Einstein Equations::
             
+            sage: forget()
             sage: M = Manifold(4, 'M'); 
-            sage: var('m'); assume(m>0); var("lamb", latex_name=r'\lambda');
+            sage: var('m'), assume(m>0), var("lamb", latex_name=r'\lambda');
+            (m, None, lamb)
             sage: X.<t,r,theta,phi> = M.chart(coordinates=r't r:(0,2*m) \
                     theta:(0,pi):\theta phi:(0,2*pi):\phi')
             sage: g = M.metric('g', comp=[2*m/r+r**2*lamb/3-1, (1-2*m/r-\
@@ -3058,8 +3083,10 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: T = M.tensor_field(0,2); 
             sage: T[0,0],T[1,1],T[2,2],T[3,3] = lamb,0,0,0;
             sage: g._einstein_space_time_condition(T)
-            [1/3*(lamb^2*r^3 + 6*lamb*m - 78.39822368615502*lamb*r)/r,\
-            -3*lamb*r/(lamb*r^3 + 6*m - 3*r),lamb*r^2,lamb*r^2*sin(theta)^2]
+            [1/3*(lamb^2*r^3 + 6*lamb*m - 78.39822368615502*lamb*r)/r,
+            -3*lamb*r/(lamb*r^3 + 6*m - 3*r),
+            lamb*r^2,
+            lamb*r^2*sin(theta)^2]
             sage: g._einstein_space_time_condition(T, Lambda=1, assume=[lamb])
             [-1.0*(-2.0*m + 1.0*r)/r, -r/(2*m - r), r^2, r^2*sin(theta)^2]
             sage: g._einstein_space_time_condition(T, assume=[lamb])
@@ -3111,8 +3138,10 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             
         Scharwzschild solution of Einstein Equations::
             
+            sage: forget()
             sage: M = Manifold(4, 'M'); 
-            sage: var('m'); assume(m>0); var("lamb", latex_name=r'\lambda');
+            sage: var('m'), assume(m>0), var("lamb", latex_name=r'\lambda');
+            (m, None, lamb)
             sage: X.<t,r,theta,phi> = M.chart(coordinates=r't r:(0,2*m) \
                     theta:(0,pi):\theta phi:(0,2*pi):\phi')
             sage: g = M.metric('g', comp=[2*m/r+r**2*lamb/3-1, (1-2*m/r-\
@@ -3124,8 +3153,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             (lamb^2*r^3 - 3*lamb*m)/(lamb*r^4 + 6*m*r - 3*r^2) = 0
             sage: g.einstein_space_time_condition(T, Lambda=1, assume=[lamb])
             To satisfy Einstein equations, the following(s) must be assumed
-            ['-1.0*(-2.0*m + 1.0*r)/r = 0', '-r/(2*m - r) = 0', 'r^2 = 0', \
-             'r^2*sin(theta)^2 = 0']
+            ['-1.0*(-2.0*m + 1.0*r)/r = 0', '-r/(2*m - r) = 0', 'r^2 = 0',
+            'r^2*sin(theta)^2 = 0']
             sage: g.einstein_space_time_condition(T, assume=[lamb])
             'No condition need, this is an Einstein space-time!'
         
@@ -3166,8 +3195,10 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             
         Scharwzschild solution of Einstein Equations::
             
+            sage: forget()
             sage: M = Manifold(4, 'M'); 
-            sage: var('m'); assume(m>0); var("lamb", latex_name=r'\lambda');
+            sage: var('m'), assume(m>0), var("lamb", latex_name=r'\lambda');
+            (m, None, lamb)
             sage: X.<t,r,theta,phi> = M.chart(coordinates=r't r:(0,2*m) \
                     theta:(0,pi):\theta phi:(0,2*pi):\phi')
             sage: g = M.metric('g', comp=[2*m/r+r**2*lamb/3-1, (1-2*m/r-\
