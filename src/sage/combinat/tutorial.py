@@ -1529,7 +1529,7 @@ The above automaton recognize the set of words of the form :math:`a(baa)^n`.
     a.set_initial_state(0)
     b= NFastAutomaton(a)
     b.add_edge(0,'l',1)
-    sphinx_plot(a)
+    sphinx_plot(b)
 
 The above non deterministic automaton recognize the set of words
 \{lapin, laitue\}. Obtained with the followed code and the class :class:`~sage.combinat.words.NFastAutomaton`::

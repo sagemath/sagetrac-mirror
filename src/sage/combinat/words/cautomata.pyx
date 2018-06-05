@@ -3110,7 +3110,7 @@ cdef class FastAutomaton:
         r = FastAutomaton(None)
         r.a[0] = SubAutomaton(self.a[0], list_to_Dict(l), verb)
         r.A = self.A
-        if keep_vlabels:
+        if keep_vlabels and self.S is not None:
             r.S = [self.S[i] for i in l]
         sig_off()
         return r
@@ -3816,9 +3816,10 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.complementaryOP()
+            sage: a.complementary_op()
             sage: a
-
+            FastAutomaton with 5 states and an alphabet of 2 letters
+            
         """
         self.complete()
         cdef i
@@ -3840,7 +3841,7 @@ cdef class FastAutomaton:
             FastAutomaton with 5 states and an alphabet of 2 letters
         """
         a = self.copy()
-        a.complementaryOP()
+        a.complementary_op()
         return a
 
     def included(self, FastAutomaton a, bool verb=False, emonded=False):
@@ -3869,7 +3870,7 @@ cdef class FastAutomaton:
         """
         cdef FastAutomaton b
         if self.A != a.A:
-            b = self.bigger_alphabet(a.A)
+            b = self.bigger_alphabet(list(set(a.A+self.A)))
         else:
             b = self
         sig_on()
