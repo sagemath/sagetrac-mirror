@@ -1460,6 +1460,7 @@ Determinist Automaton can be created in sage by the use of :class:`sage.combinat
 Automaton with states \{0, 1, 2, 3, 4\}, alphabet \{(0,0), (0,1), (1,0), (1,1)\}, set of inital states \{0\}, and set of final states \{0\}.
 
 .. PLOT::
+   :width: 50%
 
     a = FastAutomaton([(0,0,'*'),(0,1,'0'),(0,3,'1'),(1,2,'1'),(2,0,'1'),(2,1,'*'),(4,0,'0'),(4,3,'*'),(3,4,'0')])
     a.set_final_states([0])
@@ -1505,6 +1506,7 @@ Examples
 some examples of automaton.
 
 .. PLOT::
+   :width: 50%
 
     a = FastAutomaton([(0, 0,'0'),(0, 1, '1'),(1, 0, '1'), (1, 2, '0'), (2, 1, '0'), (2, 2, '1')])
     a.set_final_states([0])
@@ -1514,6 +1516,7 @@ some examples of automaton.
 The above automaton recognize all the numbers written in binaries that are divisible by 3.
 
 .. PLOT::
+   :width: 50%
 
     a = FastAutomaton([(0,1,'a'),(1,2,'b'),(2,0,'a')])
     a.set_final_states([1])
@@ -1635,7 +1638,8 @@ In particular, if it is infinite, the language that it recognizes is not rationa
 This automaton can be saw below:
 
 .. PLOT::
-
+   :width: 50%
+      
     a = FastAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
     a.set_final_states([0])
     a.set_initial_state(0)
