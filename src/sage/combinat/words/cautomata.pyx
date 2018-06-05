@@ -995,7 +995,7 @@ cdef class NFastAutomaton:
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = NFastAutomaton(a)
-            sage: g = b.plot().show()
+            sage: #g = b.plot()   # random
 
         .. PLOT::
 
@@ -1403,9 +1403,9 @@ cdef class FastAutomaton:
     def plot(self, int sx=10, int sy=8, vlabels=None, html=False, file=None, bool draw=True, verb=False):
         """
         Plot the :class:`FastAutomaton`. Draw using the dot command, if installed on the platform.
-        
+
         It is recommanded to install the dot command of the Graphviz package in your system in order to get a nice picture. Otherwise it will draw using the function plot of :class:`Automaton` of Sage.
-        
+
         INPUT:
 
         - ``sx`` - int (default: 10) - width of the picture
@@ -1425,7 +1425,7 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: a.plot().show()
+            sage: #a.plot()   # random
 
         .. PLOT::
 

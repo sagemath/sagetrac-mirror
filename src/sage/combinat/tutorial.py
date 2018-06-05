@@ -1397,8 +1397,8 @@ Counting them, we recover a well-known sequence::
 
 .. _section-automaton:
 
-Automata and Rational language 
---------------------------------
+Automata and Rational language
+------------------------------
 
 Automata are in a way machines that can realize linear time calculation only requiring a fine memory. For more details see [Ca].
 
@@ -1497,8 +1497,8 @@ A word :math:`u \in \Sigma^*` is recognized  by the automaton  :math:`A` if we h
 A word  $a_1 \dots a_n$ is therefore recognized by the automaton :math:`A` if there exists a path in the graph, labeled by  $a_1, a_2, \dots, a_n$, starting from an initial state and ending to a final state.
 
 .. note::
-	
-	If the automaton is deterministic, the path is determined by the sequence of labels.
+
+    If the automaton is deterministic, the path is determined by the sequence of labels.
 
 Examples
 ^^^^^^^^
@@ -1506,7 +1506,7 @@ some examples of automaton.
 
 .. PLOT::
 
-    a = FastAutomaton([(0,0,'0'),(0,1,'1'),(1,0,'1'),(1,2,'0'),(2,1,'0'),(2,2,'1')])
+    a = FastAutomaton([(0, 0,'0'),(0, 1, '1'),(1, 0, '1'), (1, 2, '0'), (2, 1, '0'), (2, 2, '1')])
     a.set_final_states([0])
     a.set_initial_state(0)
     sphinx_plot(a)
@@ -1529,16 +1529,16 @@ The above automaton recognize the set of words of the form :math:`a(baa)^n`.
     a.set_initial_state(0)
     b= NFastAutomaton(a)
     b.add_edge(0,'l',1)
-    sphinx_plot(a)
+    sphinx_plot(b)
 
 The above non deterministic automaton recognize the set of words
-\{lapin, laitue\}. Obtained with the followed code and the class :class:`~sage.combinat.words.NFastAutomaton`::
+\{lapin, laitue\}. Obtained with the followed code and the class :class:`sage.combinat.words.NFastAutomaton`::
 
     sage: a = FastAutomaton([(0,1,'l'),(1,2,'a'),(2,3,'p') ,(3,4,'i'),(4,10,'n'),(0,5,'l'),(5,6,'a'),(6,7,'i'),(7,8,'t'),(8,9,'u'),(9,11,'e')])
     sage: a.set_final_states([10,11])
     sage: a.set_initial_state(0)
     sage: b = NFastAutomaton(a)
-    sage: b.add_edge(0,'l',1)  ###don't work ??!
+    sage: b.add_edge(0,'l',1)
     sage: b.plot().show()
 
 Equivalent automata
