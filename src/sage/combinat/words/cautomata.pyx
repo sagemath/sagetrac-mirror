@@ -3862,6 +3862,10 @@ cdef class FastAutomaton:
             sage: a.complementary_op()
             sage: a
             FastAutomaton with 5 states and an alphabet of 2 letters
+<<<<<<< HEAD
+=======
+            
+>>>>>>> 74e9cf7ca9eb60b24b38e983d40da17128057f33
         """
         self.complete()
         cdef i
@@ -3915,7 +3919,7 @@ cdef class FastAutomaton:
         """
         cdef FastAutomaton b
         if self.A != a.A:
-            b = self.bigger_alphabet(a.A)
+            b = self.bigger_alphabet(list(set(a.A+self.A)))
         else:
             b = self
         sig_on()
