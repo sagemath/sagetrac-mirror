@@ -1538,7 +1538,7 @@ The above non deterministic automaton recognize the set of words
     sage: a.set_final_states([10,11])
     sage: a.set_initial_state(0)
     sage: b = NFastAutomaton(a)
-    sage: b.add_edge(0,'l',1)  ###don't work ??!
+    sage: b.add_edge(0,'l',1)
     sage: b.plot().show()
 
 Equivalent automata
@@ -1569,8 +1569,8 @@ Minimal automata
 
 .. note::
 
-   The minimal automaton is unique. Moreover, if the automaton :math:`A` is deterministic
-   and complete, then the minimal automaton is obtained like the quotient of the automaton :math:`A` by an equivalence
+   The minimal automaton is unique. Moreover, if the automaton :math:`A` is deterministic,
+   then the minimal automaton is obtained like the quotient of the automaton :math:`A` by an equivalence
    relation consisting of identifying vertices between them.
 
 The minimal automaton of the language \{lapin, laitue\} is the following::
@@ -1589,7 +1589,7 @@ The minimal automaton of the language \{lapin, laitue\} is the following::
 Transpose automaton
 ^^^^^^^^^^^^^^^^^^^
 
-The transpose (or the mirror) automaton of an automaton :math:`A := (\Sigma,\mathrm{Q},\mathrm{T},\mathrm{I},\mathrm{F})` the automaton
+The transposed (or the mirror) automaton of an automaton :math:`A := (\Sigma,\mathrm{Q},\mathrm{T},\mathrm{I},\mathrm{F})` is the automaton
 
 .. MATH::
     A^t := (\Sigma, \mathrm{Q}, \mathrm{T}^t, \mathrm{F}, \mathrm{I})
