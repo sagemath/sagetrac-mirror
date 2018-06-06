@@ -172,7 +172,7 @@ class Tableau(ClonableList):
 
     """
     @staticmethod
-    def __classcall_private__(cls, t):
+    def __classcall_private__(cls, t=None, chain=None):
         r"""
         This ensures that a tableau is only ever constructed as an
         ``element_class`` call of an appropriate parent.
@@ -189,9 +189,13 @@ class Tableau(ClonableList):
             sage: type(t)
             <class 'sage.combinat.tableau.Tableaux_all_with_category.element_class'>
         """
+
         if isinstance(t, cls):
             return t
 
+        if chain is not None:
+            return Tableaux().from_chain(chain)
+        
         # We must verify ``t`` is a list of iterables, and also
         # normalize it to be a list of tuples.
         try:
@@ -329,6 +333,33 @@ class Tableau(ClonableList):
                 raise ValueError("A tableau must be a list of iterables of weakly decreasing length.")
         if lens and lens[-1] == 0:
             raise ValueError("A tableau must not have empty rows.")
+
+    def from_chain(self, chain):
+        """
+        Return the tableau corresponding to the chain of partitions.
+
+        EXAMPLES::
+
+            sage: Tableaux().from_chain([[1,1],[2,1],[3,1],[3,2],[3,3],[3,3,1]])
+            [[None, 1, 2], [None, 3, 4], [5]]
+        """
+        
+        ch = [Partition(_) for _ in chain]
+        if ch[0] != Partition([]):
+            raise ValueError("The chain must start with the empty partition.")
+            
+        shape = ch[-1]
+        T = [[None for _ in range(r)] for r in shape]
+        for i in range(1,len(ch)):
+            la = ch[i]
+            mu = ch[i-1]
+            mu += [0]*(len(la) - len(mu))
+
+            for r in range(len(la)):
+                for c in range(mu[r], la[r]):
+                    T[r][c] = i
+
+        return self.element_class(self, T)
 
     def _repr_(self):
         """
