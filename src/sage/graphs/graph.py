@@ -4590,11 +4590,11 @@ class Graph(GenericGraph):
         from sage.graphs.graph import Graph
 
         if not self.is_connected():
-            raise ValueError("G must be a connected graph.")
+            raise ValueError("G must be a connected graph")
 
         cut_size,cut_vertices = self.vertex_connectivity(value_only=False)
         if cut_size != 2:
-            raise ValueError("G must be a biconnected graph.")
+            raise ValueError("G has no 2-vertex cut")
 
         H = Graph(self.edges(labels=False), multiedges = True)
         H.delete_vertices(cut_vertices)
@@ -4658,32 +4658,36 @@ class Graph(GenericGraph):
         list of parallel classes(cocycle graphs), `SPR` the so-called
         three-block into which a two-connected graph uniquely decomposes,
         tricomp a list of all triconnected components which is generated from
-        R & S block and `SQPR-tree` a tree whose vertices are labeled with the
+        R and S block and `SQPR-tree` a tree whose vertices are labeled with the
         vertices of three-blocks in the decomposition and the block's type.
 
         EXAMPLES::
 
             sage: G = Graph({0:[1,2],3:[1,2],4:[1,2],5:[1,2],6:[1,2]})
-            sage: G.spqr_tree()[0]
+            sage: R,S,P,SPR,tricomp,SPQR-tree = G.spqr_tree()
+            sage: R
             []
-            sage: G.spqr_tree()[1]
-            [Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of ()))))): Multi-graph on 3 vertices,
-             Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of ()))))): Multi-graph on 3 vertices,
-             Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of ()))))): Multi-graph on 3 vertices,
-             Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of ()))))): Multi-graph on 3 vertices,
-             Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of (Subgraph of ()))))): Multi-graph on 3 vertices]
-            sage: len(G.spqr_tree()[2][0].edges())
-            5
-            sage: G.spqr_tree()[4].vertices()
-            [('P', (1, 2)),
-             ('S', (0, 1, 2)),
-             ('S', (1, 2, 3)),
-             ('S', (1, 2, 4)),
-             ('S', (1, 2, 5)),
-             ('S', (1, 2, 6))]
-            sage: G = Graph({0:[1,2,3],1:[2,3],2:[3]})
-            sage: G.spqr_tree()
-            ([Graph on 4 vertices], [], [], [Graph on 4 vertices], Graph on 1 vertex)
+            sage: C3 = graphs.CycleGraph(3)
+            sage: all(h.is_isomorphic(C3) for h in S]
+            True
+
+            sage: G = Graph(2)
+            sage: for i in range(3):
+            ....:     G.add_clique([0, 1, G.add_vertex(), G.add_vertex()])
+            sage: R,S,P,SPR,tricomp,SPQR_tree = G.spqr_tree()
+            sage: CG4 = graphs.CompleteGraph(4)
+            sage: all(h.is_isomorphic(CG4) for h in R)
+            True
+
+            sage: G = graphs.CompleteBipartiteGraph(2,3)
+            sage: G.add_edge(2, 3)
+            sage: G.allow_multiple_edges(True)
+            sage: G.add_edges(G.edges())
+            sage: G.add_edges([[0,1],[0,1],[0,1]])
+            sage: R,S,P,SPR,tricomp,SPQR-tree = G.spqr_tree()
+            sage: tricomp
+            [Subgraph of (): Multi-graph on 3 vertices,
+             Subgraph of (): Multi-graph on 4 vertices]
 
         TESTS::
 
@@ -4698,7 +4702,7 @@ class Graph(GenericGraph):
         cut_size, cut_vertices = self.vertex_connectivity(value_only = False)
 
         if cut_size < 2:
-            raise VaueError("Generation of SPQR trees is only implemented for 2-connected graphs.")
+            raise VaueError("Generation of SPQR trees is only implemented for 2-connected graphs")
         elif cut_size > 2:
             return [self],[],[],[self],Graph({('R',tuple(self.vertices())):[]})
         elif self.is_cycle():
@@ -4709,30 +4713,30 @@ class Graph(GenericGraph):
         cocycles = []
         cuts = []
         cycles = []
-        tmp = copy(self)
+        SG = copy(self)
 
-        # Split_multiple_edge Algorithm, it will make A as simple graph.
+        # Split_multiple_edge Algorithm, it will make SG as simple graph.
         # If self is a multigraph, simplify while recording virtual edges
         # that will be needed to 2-sum with cocycles during reconstruction
-        # After this operation, we are only finding S- and R-blocks
-        if tmp.has_multiple_edges():
-            mults = sorted(tmp.multiple_edges(labels=False))
+        # After this step, next step will be finding S and R, blocks,
+        if SG.has_multiple_edges():
+            mults = sorted(SG.multiple_edges(labels=False))
             for i in range(len(mults) - 1):
                 if mults[i] == mults[i + 1]:
                     cocycles.append(frozenset(mults[i]))
-                    tmp.delete_edge(mults[i])
+                    SG.delete_edge(mults[i])
                 else:
                     cuts.append(frozenset(mults[i]))
             cuts.append(frozenset(mults[-1]))
 
         # If self simplifies to a cycle or 3-vertex-connected, identify it
         # Otherwise, seed the list of blocks to be 2-split with self
-        if tmp.is_cycle():
-            # tmp is bi-connected graph.
-            cycles.extend([frozenset(e) for e in tmp.edge_iterator(labels=False)])
+        if SG.is_cycle():
+            # SG is bi-connected graph.
+            cycles.extend([frozenset(e) for e in SG.edge_iterator(labels=False)])
         else:
             # Possibility that it's 3-connected component.
-            two_blocks.append(tmp)
+            two_blocks.append(SG)
 
         # Each minor of self in two_blocks has a 2-vertex cut; we split
         # at this cut and check each side for S or R or a 2-vertex cut
@@ -4771,11 +4775,11 @@ class Graph(GenericGraph):
                     while cycles_graph.has_edge(e):
                         cycles_graph.delete_edge(e)
 
-        # Stuff which are getting deleted from cycles_graph store it in tmp.
+        # Things which are getting deleted from cycles_graph store it in tmp.
         tmp = []
         polygons = []
-        for B in cycles_graph.connected_components_subgraphs():
-            for block in B.blocks_and_cut_vertices()[0]:
+        for component in cycles_graph.connected_components_subgraphs():
+            for block in component.blocks_and_cut_vertices()[0]:
                 tmp.append(cycles_graph.subgraph(vertices=block))
 
         # tmp will be seeded with the union of cycles; each multiple edge
@@ -4783,22 +4787,22 @@ class Graph(GenericGraph):
         # no more multiple edges they are S-blocks and are removed from list
 
         while tmp:
-            b = tmp.pop()
-            #print('b'," Bi-Connected:",b.is_biconnected()," Is-Cycle:",b.is_cycle()," Multi-Edge:",b.has_multiple_edges())
-            if b.is_cycle():
-                polygons.append(b)
-            elif b.has_multiple_edges():
-                f = b.multiple_edges()[0]
-                SS = b.subgraph(vertices=[v for v in b.vertices() if v not in [f[0],f[1]]])
+            block = tmp.pop()
+            #print('b'," Bi-Connected:",block.is_biconnected()," Is-Cycle:",block.is_cycle()," Multi-Edge:",block.has_multiple_edges())
+            if block.is_cycle():
+                polygons.append(block)
+            elif block.has_multiple_edges():
+                f = block.multiple_edges()[0]
+                SS = block.subgraph(vertices=[v for v in block.vertices() if v not in [f[0],f[1]]])
                 for SK in SS.connected_components():
-                    SKS = b.subgraph(vertices=SK+[f[0],f[1]])
+                    SKS = block.subgraph(vertices=SK+[f[0],f[1]])
                     while SKS.has_edge(f):
                         SKS.delete_edge(f)
                     SKS.add_edge(f)
                     #print("SKS",SKS.is_biconnected())
                     tmp.append(SKS)
             else:
-                R_blocks.append(b)
+                R_blocks.append(block)
 
         # as with blocks_and_cuts_tree, we name vertices of the edge-sum
         # tree with a type (P = cocycle, S = cycle or R = three-block) and the
