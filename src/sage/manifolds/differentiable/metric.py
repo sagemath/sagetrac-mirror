@@ -1005,7 +1005,7 @@ class PseudoRiemannianMetric(TensorField):
              2-dimensional differentiable manifold S^2
             sage: g.riemann()[:]
             [[[[0, 0], [0, 0]], [[0, sin(th)^2], [-sin(th)^2, 0]]],
-             [[[0, -1], [1, 0]], [[0, 0], [0, 0]]]]
+            [[[0, (cos(th)^2 - 1)/sin(th)^2], [1, 0]], [[0, 0], [0, 0]]]]
 
         In dimension 2, the Riemann tensor can be expressed entirely in terms of
         the Ricci scalar `r`:
@@ -1921,7 +1921,8 @@ def _diag(self, n, m, k):
 
     EXAMPLES:
 
-        sage: diag(-2, 2, 4, 1)
+        sage: from sage.manifolds.differentiable.metric import _diag
+        sage: _diag(-2, 2, 4, 1)
         [[0, -2, 0, 0], [0, 0, -2, 0]]
 
         """
@@ -1970,13 +1971,15 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
     - ``vector_field_module`` -- free module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` with values on `\Phi(U)\subset M`
     - ``name`` -- name given to the metric
-    - ``signature`` -- (default: ``None``) signature `S` of the metric as a
-      single integer: `S = n_+ - n_-`, where `n_+` (resp. `n_-`) is the number
-      of positive terms (resp. number of negative terms) in any diagonal
-      writing of the metric components; if ``signature`` is ``None``, `S` is
-      set to the dimension of manifold `M` (Riemannian signature)
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the metric;
       if ``None``, it is formed from ``name``
+    - ``comp`` -- (default: ``None``) either the list of the lignes of the \
+      corresponding matrix of the matrix in the default chart of the domain, \
+      or a non-negative integer `q` less than or egual to the dimension of the \
+      ambiant manifold and representing the index of the metric. In this last \
+      case, the standard pseudo-Euclidean metric of index `q` will be \
+      constructed. If ``None`` is given, the standard Euclidean metric will \
+      be constructed.
 
     EXAMPLES:
 
@@ -2059,8 +2062,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: XM = M.vector_field_module()
             sage: from sage.manifolds.differentiable.metric import \
             ....:                                   PseudoRiemannianMetricParal
-            sage: g = PseudoRiemannianMetricParal(XM, 'g', signature=0); g
-            Lorentzian metric g on the 2-dimensional differentiable manifold M
+            sage: g = PseudoRiemannianMetricParal(XM, 'g'); g
+            Riemannian metric g on the 2-dimensional differentiable manifold M
             sage: g[0,0], g[1,1] = -(1+x^2), 1+y^2
             sage: TestSuite(g).run(skip='_test_category')
 
@@ -2128,20 +2131,21 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
             sage: g._repr_()
             'Lorentzian metric g on the 3-dimensional differentiable manifold M'
-            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]); g
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]);
             sage: g._repr_()
-            'Pseudo-Riemannian metric g on the 3-dimensional differentiable manifold M'
-            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]); g
+            'Pseudo-Riemannian metric g on the 3-dimensional differentiable manifold 
+            M'
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]);
             sage: g._repr_()
             'Degenerate metric g on the 3-dimensional differentiable manifold M'
 
         """
         n = self._ambient_domain.dimension()
-        if self.singularity() > 0:
+        if self.sign()[2] > 0:
             description = "Degenerate metric "
-        elif self.signature() == n:
+        elif self.sign()[1] == n:
             description = "Riemannian metric "
-        elif self.signature() == 1 or self.index() ==1:
+        elif self.sign()[1] == 1 or self.index() ==1:
             description = "Lorentzian metric "
         else:
             description = "Pseudo-Riemannian metric "
@@ -2156,10 +2160,11 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         TESTS::
 
             sage: M = Manifold(5, 'M')
+            sage: X.<t,x,y,z,w> = M.chart();
             sage: g = M.metric('g')
             sage: g1 = g._new_instance(); g1
-            Riemannian metric unnamed metric on the 5-dimensional
-             differentiable manifold M
+            Riemannian metric unnamed metric on the 5-dimensional differentiable
+            manifold M
             sage: type(g1) == type(g)
             True
             sage: g1.parent() is g.parent()
@@ -2177,7 +2182,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         
         INPUT:
 
-            - ``chart`` -- (default: ``None``) a chart on the manifold.
+            - ``chart`` -- (default: ``None``) a chart on the manifold; if \
+            ``None``, the default chart on the domain will be used.
 
         EXAMPLES:
 
@@ -2190,13 +2196,14 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
             sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
             sage: g.list_of_lines()
-            [[0,1,0],[1,0,0],[0,0,1]]
-            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]); g
+            [[0, 1, 0], [1, 0, 0], [0, 0, 1]]
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]])
             sage: g.list_of_lines()
-            [[-1,0,0],[0,-1,0],[0,0,-1]]
-            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]); g
+            [[-1, 0, 0], [0, -1, 0], [0, 0, -1]]
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]])
             sage: g.list_of_lines()
-            [[0,0,0],[0,0,0],[0,0,0]]
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+            
         """
         if chart == None:
             chart = self.domain().default_chart()
@@ -2208,14 +2215,17 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
                 liste0.append(self[frame, i, j])
             liste.append(liste0)
         return liste
-    
+
     def matrix(self, chart=None):
         r"""
-        Return the matrix of the metric in the given chart.
+        Returns the correnponding matrix of the metric in the given chart. The \
+        difference with ``g[:]`` is that the components of the matrix retuned \
+        here are instances of Symbolic Ring and not chart functions. 
         
         INPUT:
 
-            - ``chart`` -- (default: ``None``) a chart on the manifold.
+        - ``chart`` -- (default: ``None``) a chart on the domain. if ``None``, \
+          the default chart on the domain will be used.
 
         EXAMPLES:
 
@@ -2224,25 +2234,26 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: M = Manifold(3, 'M')
             sage: X.<t,x,y> = M.chart()
             sage: g = M.metric('g')
-            sage: g.list_of_lines()
-            [1, 0, 0]
-            [0, 1, 0]
-            [0, 0, 1]
+            sage: g.matrix()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
             sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
             sage: g.matrix()
-            [0,1,0]
-            [1,0,0]
-            [0,0,1]
-            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]); g
+            [0 1 0]
+            [1 0 0]
+            [0 0 1]
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]])
             sage: g.matrix()
-            [-1,0,0]
-            [0,-1,0]
-            [0,0,-1]
-            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]); g
+            [-1  0  0]
+            [ 0 -1  0]
+            [ 0  0 -1]
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]])
             sage: g.matrix()
-            [0,0,0]
-            [0,0,0]
-            [0,0,0]
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            
         """
         mat0 = self.list_of_lines(chart)
         mat1 = []
@@ -2252,63 +2263,18 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
                 mat2.append(elt.expr())
             mat1.append(mat2)
         mat1 = MatrixSpace(SR, self._ambient_domain.dimension(), self._ambient_domain.dimension())(mat1)
-        return mat1
-    
-    def display_matrix(self, chart=None):
-        r"""
-        Display the matrix of the metric in the given chart.
-        
-        INPUT:
-
-            - ``chart`` -- (default: ``None``) a chart on the manifold.
-
-        EXAMPLES:
-
-        Signatures on a 3-dimensional manifold::
-
-            sage: M = Manifold(3, 'M')
-            sage: X.<t,x,y> = M.chart()
-            sage: g = M.metric('g')
-            sage: g.list_of_lines()
-            [1, 0, 0]
-            [0, 1, 0]
-            [0, 0, 1]
-            sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
-            sage: g.matrix()
-            [0,1,0]
-            [1,0,0]
-            [0,0,1]
-            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]); g
-            sage: g.matrix()
-            [-1,0,0]
-            [0,-1,0]
-            [0,0,-1]
-            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]); g
-            sage: g.matrix()
-            [0,0,0]
-            [0,0,0]
-            [0,0,0]
-        """
-        mat0 = self.matrix(chart)
-        mat = r'\begin{pmatrix} '
-        for L in mat0:
-            for elt in L:
-                mat += latex(elt) + ' & '
-            mat = mat.rstrip(str(' &'))
-            mat += '\\ '
-        mat += r'\end{pmatrix}'
-        return FormattedExpansion(str(mat0), mat)
+        return mat1        
 
     def sign(self):
         r"""
-        Signature of the metric.
+        
+        This method works well only when the index of the metric is constant.
 
         OUTPUT:
 
-        - signature `[index, sign, sing]` of the metric, being ``sign`` (resp. 
-        ``sign``, ``sing``) the number of positive terms (resp. number of 
-        negative terms, number of null terms) in any diagonal writing of the 
-        metric components
+        - ``[n_-, n_+, n_0]`` -- being ``n_-`` (resp. ``n_+``, n_0``) the \
+        number  of negative terms (resp. positive terms, null terms) in any \
+        diagonal writing of the metric components
 
         EXAMPLES:
 
@@ -2322,10 +2288,10 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
             sage: g.sign()
             [1, 2, 0]
-            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]); g
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]])
             sage: g.sign()
             [3, 0, 0]
-            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]); g
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]])
             sage: g.sign()
             [0, 0, 3]
         """
@@ -2342,12 +2308,13 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
     
     def index(self):
         r"""
-        The index of the metric.
+        Returns the index of the metric. This method works well only when the \
+        index of the metric is constant.
 
         OUTPUT:
 
-        - index --- the number of negative terms in any diagonal writing of the 
-        metric components
+        - ``index`` -- the number of negative terms in any diagonal writing of \
+        the metric components
 
         EXAMPLES:
 
@@ -2361,22 +2328,25 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
             sage: g.index()
             1
-            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]); g
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]])
             sage: g.index()
             3
-            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]); g
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]])
             sage: g.index()
             0
+            
         """
         return self.sign()[0]
     
     def signature(self):
         r"""
+        
+        This method works well only when the index of the metric is constant.
     
         OUTPUT:
 
-        - signature --- the number of positive terms in any diagonal writing of the 
-        metric components
+        - `n_+-n_-` -- being `n_+` the number of positive terms and `n_-` the \
+        number of negative terms in any diagonal writing of the metric components
 
         EXAMPLES:
 
@@ -2385,26 +2355,29 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: M = Manifold(3, 'M')
             sage: X.<t,x,y> = M.chart()
             sage: g = M.metric('g')
-            sage: g.index()
+            sage: g.signature()
             3
             sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
-            sage: g.index()
-            2
-            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]); g
-            sage: g.index()
+            sage: g.signature()
+            1
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]])
+            sage: g.signature()
+            -3
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]])
+            sage: g.signature()
             0
-            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]); g
-            sage: g.index()
-            0
+            
         """
-        return self.sign()[1]
+        return self.sign()[1]-self.sign()[0]
     
-    def singularity(self):
+    def kernel_dimension(self):
         r"""
+        Returns the dimension of the kernel of the metric. This method works \
+        well only when the dimension of the kernel is constant.
 
         OUTPUT:
 
-        - sing --- the number of null terms in any diagonal writing of the 
+        - the number of null terms in any diagonal writing of the 
         metric components
 
         EXAMPLES:
@@ -2414,17 +2387,18 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: M = Manifold(3, 'M')
             sage: X.<t,x,y> = M.chart()
             sage: g = M.metric('g')
-            sage: g.singularity()
+            sage: g.kernel_dimension()
             0
             sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
-            sage: g.singularity()
+            sage: g.kernel_dimension()
             0
-            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]); g
-            sage: g.singularity()
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]])
+            sage: g.kernel_dimension()
             0
-            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]); g
-            sage: g.singularity()
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]])
+            sage: g.kernel_dimension()
             3
+            
         """
         return self.sign()[2]
     
@@ -2614,8 +2588,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             [ x + 1    x*y]
             [   x*y -x + 1]
             sage: ig = g.inverse() ; ig
-            Tensor field inv_g of type (2,0) on the 2-dimensional
-              differentiable manifold M
+            Tensor field inv_g of type (2,0) on the 2-dimensional differentiable
+            manifold M
             sage: ig[:]
             [ (x - 1)/(x^2*y^2 + x^2 - 1)      x*y/(x^2*y^2 + x^2 - 1)]
             [     x*y/(x^2*y^2 + x^2 - 1) -(x + 1)/(x^2*y^2 + x^2 - 1)]

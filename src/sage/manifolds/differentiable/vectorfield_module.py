@@ -2181,7 +2181,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             sage: XM = M.vector_field_module()
             sage: XM.metric('g')
             Riemannian metric g on the 2-dimensional differentiable manifold M
-            sage: XM.metric('g', signature=0)
+            sage: XM.metric('g', comp=1)
             Lorentzian metric g on the 2-dimensional differentiable manifold M
 
         .. SEEALSO::
