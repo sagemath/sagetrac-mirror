@@ -5303,10 +5303,13 @@ class Tableaux_all(Tableaux):
         Return the tableau corresponding to the chain of partitions.
 
         EXAMPLES::
+            sage: Tableau(chain=[[],[1],[3]])
+            [[1, 2, 2]]
 
             sage: Tableaux().from_chain([[1,1],[2,1],[3,1],[3,2],[3,3],[3,3,1]])
+            Exception raised:
             ...
-            ValueError: The chain must start with the empty partition.
+                ValueError: The chain must start with the empty partition.
 
 
         """
@@ -5317,7 +5320,7 @@ class Tableaux_all(Tableaux):
             
         shape = chain[-1]
         T = [[None for _ in range(r)] for r in shape]
-        for i in range(1,len(ch)):
+        for i in range(1,len(chain)):
             la = chain[i]
             mu = chain[i-1]
             mu += [0]*(len(chain) - len(mu))
