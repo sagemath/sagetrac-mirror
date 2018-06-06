@@ -167,7 +167,7 @@ We construct the metric tensor by::
 
     sage: g = M.metric()
     sage: g
-    Lorentzian metric g on the 4-dimensional Lorentzian manifold M
+    Riemannian metric g on the 4-dimensional Lorentzian manifold M
 
 and initialize it to the Minkowskian value::
 
@@ -431,7 +431,7 @@ class PseudoRiemannianManifold(DifferentiableManifold):
             <class 'sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold_with_category'>
             sage: X.<w,x,y,z> = M.chart()
             sage: M.metric()
-            Pseudo-Riemannian metric g on the 4-dimensional pseudo-Riemannian manifold M
+            Riemannian metric g on the 4-dimensional pseudo-Riemannian manifold M
             sage: TestSuite(M).run()
 
         """
@@ -564,7 +564,7 @@ class PseudoRiemannianManifold(DifferentiableManifold):
         create a Lorentzian metric on ``M``::
 
             sage: h = M.metric('h', signature=1); h
-            Lorentzian metric h on the 3-dimensional Riemannian manifold M
+            Riemannian metric h on the 3-dimensional Riemannian manifold M
 
         """
         if name is None or name == self._metric_name:
