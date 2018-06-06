@@ -14,9 +14,12 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
     cpdef ModuleElement __u
     cdef long __n
 
+    cdef LaurentPolynomial_univariate _new_c(self, ModuleElement, long)
+
 
 cdef class LaurentPolynomial_mpair(LaurentPolynomial):
     cdef ETuple _mon
     cdef MPolynomial _poly
     cdef PolyDict _prod
+
     cdef _new_c(self)
