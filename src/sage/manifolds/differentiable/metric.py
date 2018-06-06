@@ -1946,6 +1946,36 @@ class PseudoRiemannianMetric(TensorField):
     
 #******************************************************************************
 
+def _diag(self, n, m, k):
+    r"""
+    Returns a list of ``n`` lists of length ``m`` each, such that the first list 
+    contains ``self`` at position `k+1`, the second list contains ``self`` at 
+    position `k+2`, and so on. The other positions of each list contain `0`.
+    
+    INPUT:
+
+        - ``self`` -- an element
+        - ``n`` -- a non-negative integer, the number of sublists
+        - ``m`` -- a non-negative integer, the length of each sublist
+        - ``k`` -- a positive integer, `k+1` is the position of ``self`` in the 
+                first list
+
+    EXAMPLES:
+
+        sage: from sage.manifolds.differentiable.metric import _diag
+        sage: _diag(-2, 2, 4, 1)
+        [[0, -2, 0, 0], [0, 0, -2, 0]]
+
+        """
+    list1 = []
+    for i in range(n):
+        list2 = []
+        for j in range(m):
+            list2.append(0)
+        list2[k] = self
+        list1.append(list2)
+        k += 1
+    return list1
 
 def substitute(self, list1, list2):
     r"""
@@ -2113,6 +2143,13 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
     - ``name`` -- name given to the metric
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the metric;
       if ``None``, it is formed from ``name``
+    - ``comp`` -- (default: ``None``) either the list of the lignes of the \
+      corresponding matrix of the matrix in the default chart of the domain, \
+      or a non-negative integer `q` less than or egual to the dimension of the \
+      ambiant manifold and representing the index of the metric. In this last \
+      case, the standard pseudo-Euclidean metric of index `q` will be \
+      constructed. If ``None`` is given, the standard Euclidean metric will \
+      be constructed.
 
     EXAMPLES:
 
@@ -2261,6 +2298,16 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: g = M.metric('g')
             sage: g._repr_()
             'Riemannian metric g on the 3-dimensional differentiable manifold M'
+            sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
+            sage: g._repr_()
+            'Lorentzian metric g on the 3-dimensional differentiable manifold M'
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]);
+            sage: g._repr_()
+            'Pseudo-Riemannian metric g on the 3-dimensional differentiable manifold 
+            M'
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]);
+            sage: g._repr_()
+            'Degenerate metric g on the 3-dimensional differentiable manifold M'
 
         """
         n = self._ambient_domain.dimension()
@@ -2274,6 +2321,257 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             description = "Pseudo-Riemannian metric "
         description += self._name + " "
         return self._final_repr(description)
+    
+    def _new_instance(self):
+        r"""
+        Create an instance of the same class as ``self`` with the same
+        signature.
+
+        TESTS::
+
+            sage: M = Manifold(5, 'M')
+            sage: X.<t,x,y,z,w> = M.chart();
+            sage: g = M.metric('g')
+            sage: g1 = g._new_instance(); g1
+            Riemannian metric unnamed metric on the 5-dimensional differentiable
+            manifold M
+            sage: type(g1) == type(g)
+            True
+            sage: g1.parent() is g.parent()
+            True
+            sage: g1.signature() == g.signature()
+            True
+
+        """
+        return type(self)(self._vmodule, 'unnamed metric',
+                          latex_name=r'\mbox{unnamed metric}')
+
+    def list_of_lines(self, chart=None):
+        r"""
+        Return the list of the lists of lines of the metric in a given chart.
+        
+        INPUT:
+
+            - ``chart`` -- (default: ``None``) a chart on the manifold; if \
+            ``None``, the default chart on the domain will be used.
+
+        EXAMPLES:
+
+        Signatures on a 3-dimensional manifold::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<t,x,y> = M.chart()
+            sage: g = M.metric('g')
+            sage: g.list_of_lines()
+            [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+            sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
+            sage: g.list_of_lines()
+            [[0, 1, 0], [1, 0, 0], [0, 0, 1]]
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]])
+            sage: g.list_of_lines()
+            [[-1, 0, 0], [0, -1, 0], [0, 0, -1]]
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]])
+            sage: g.list_of_lines()
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+            
+        """
+        if chart == None:
+            chart = self.domain().default_chart()
+        frame = chart.frame()
+        liste = []
+        for i in self._ambient_domain.irange():
+            liste0 = []
+            for j in self._ambient_domain.irange():
+                liste0.append(self[frame, i, j])
+            liste.append(liste0)
+        return liste
+
+    def matrix(self, chart=None):
+        r"""
+        Returns the correnponding matrix of the metric in the given chart. The \
+        difference with ``g[:]`` is that the components of the matrix retuned \
+        here are instances of Symbolic Ring and not chart functions. 
+        
+        INPUT:
+
+        - ``chart`` -- (default: ``None``) a chart on the domain. if ``None``, \
+          the default chart on the domain will be used.
+
+        EXAMPLES:
+
+        Signatures on a 3-dimensional manifold::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<t,x,y> = M.chart()
+            sage: g = M.metric('g')
+            sage: g.matrix()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
+            sage: g.matrix()
+            [0 1 0]
+            [1 0 0]
+            [0 0 1]
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]])
+            sage: g.matrix()
+            [-1  0  0]
+            [ 0 -1  0]
+            [ 0  0 -1]
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]])
+            sage: g.matrix()
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            
+        """
+        mat0 = self.list_of_lines(chart)
+        mat1 = []
+        for L in mat0:
+            mat2 = []
+            for elt in L:
+                mat2.append(elt.expr())
+            mat1.append(mat2)
+        mat1 = MatrixSpace(SR, self._ambient_domain.dimension(), self._ambient_domain.dimension())(mat1)
+        return mat1        
+
+    def sign(self):
+        r"""
+        
+        This method works well only when the index of the metric is constant.
+
+        OUTPUT:
+
+        - ``[n_-, n_+, n_0]`` -- being ``n_-`` (resp. ``n_+``, n_0``) the \
+        number  of negative terms (resp. positive terms, null terms) in any \
+        diagonal writing of the metric components
+
+        EXAMPLES:
+
+        Signatures on a 3-dimensional manifold::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<t,x,y> = M.chart()
+            sage: g = M.metric('g')
+            sage: g.sign()
+            [0, 3, 0]
+            sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
+            sage: g.sign()
+            [1, 2, 0]
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]])
+            sage: g.sign()
+            [3, 0, 0]
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]])
+            sage: g.sign()
+            [0, 0, 3]
+        """
+        mat = self.matrix().jordan_form()
+        index, sign, sing = 0, 0, 0 
+        for i in range(self.domain().dimension()):
+            if mat[i, i].is_zero():
+                sing += 1
+            elif mat[i, i] < 0:
+                index += 1
+            else:
+                sign += 1
+        return [index, sign, sing]
+    
+    def index(self):
+        r"""
+        Returns the index of the metric. This method works well only when the \
+        index of the metric is constant.
+
+        OUTPUT:
+
+        - ``index`` -- the number of negative terms in any diagonal writing of \
+        the metric components
+
+        EXAMPLES:
+
+        Index on a 3-dimensional manifold::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<t,x,y> = M.chart()
+            sage: g = M.metric('g')
+            sage: g.index()
+            0
+            sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
+            sage: g.index()
+            1
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]])
+            sage: g.index()
+            3
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]])
+            sage: g.index()
+            0
+            
+        """
+        return self.sign()[0]
+    
+    def signature(self):
+        r"""
+        
+        This method works well only when the index of the metric is constant.
+    
+        OUTPUT:
+
+        - `n_+-n_-` -- being `n_+` the number of positive terms and `n_-` the \
+        number of negative terms in any diagonal writing of the metric components
+
+        EXAMPLES:
+
+        Index on a 3-dimensional manifold::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<t,x,y> = M.chart()
+            sage: g = M.metric('g')
+            sage: g.signature()
+            3
+            sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
+            sage: g.signature()
+            1
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]])
+            sage: g.signature()
+            -3
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]])
+            sage: g.signature()
+            0
+            
+        """
+        return self.sign()[1]-self.sign()[0]
+    
+    def kernel_dimension(self):
+        r"""
+        Returns the dimension of the kernel of the metric. This method works \
+        well only when the dimension of the kernel is constant.
+
+        OUTPUT:
+
+        - the number of null terms in any diagonal writing of the 
+        metric components
+
+        EXAMPLES:
+
+        Index on a 3-dimensional manifold::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<t,x,y> = M.chart()
+            sage: g = M.metric('g')
+            sage: g.kernel_dimension()
+            0
+            sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
+            sage: g.kernel_dimension()
+            0
+            sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]])
+            sage: g.kernel_dimension()
+            0
+            sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]])
+            sage: g.kernel_dimension()
+            3
+            
+        """
+        return self.sign()[2]
+    
 
     def _init_derived(self):
         r"""
