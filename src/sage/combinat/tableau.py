@@ -100,6 +100,7 @@ from sage.misc.all import uniq, prod
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
+from sage.combinat.partition import Partition
 
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.posets.posets import Poset
@@ -333,33 +334,6 @@ class Tableau(ClonableList):
                 raise ValueError("A tableau must be a list of iterables of weakly decreasing length.")
         if lens and lens[-1] == 0:
             raise ValueError("A tableau must not have empty rows.")
-
-    def from_chain(self, chain):
-        """
-        Return the tableau corresponding to the chain of partitions.
-
-        EXAMPLES::
-
-            sage: Tableaux().from_chain([[1,1],[2,1],[3,1],[3,2],[3,3],[3,3,1]])
-            [[None, 1, 2], [None, 3, 4], [5]]
-        """
-        
-        ch = [Partition(_) for _ in chain]
-        if ch[0] != Partition([]):
-            raise ValueError("The chain must start with the empty partition.")
-            
-        shape = ch[-1]
-        T = [[None for _ in range(r)] for r in shape]
-        for i in range(1,len(ch)):
-            la = ch[i]
-            mu = ch[i-1]
-            mu += [0]*(len(la) - len(mu))
-
-            for r in range(len(la)):
-                for c in range(mu[r], la[r]):
-                    T[r][c] = i
-
-        return self.element_class(self, T)
 
     def _repr_(self):
         """
@@ -5324,6 +5298,33 @@ class Tableaux_all(Tableaux):
             [[1, 1], [1]]
         """
         return self.element_class(self, [[1, 1], [1]])
+    
+    def from_chain(self, chain):
+        """
+        Return the tableau corresponding to the chain of partitions.
+
+        EXAMPLES::
+
+            sage: Tableaux().from_chain([[1,1],[2,1],[3,1],[3,2],[3,3],[3,3,1]])
+            [[None, 1, 2], [None, 3, 4], [5]]
+        """
+        
+        #ch = [Partition(_) for _ in chain]
+        if len(ch[0]) != 0:
+            raise ValueError("The chain must start with the empty partition.")
+            
+        shape = ch[-1]
+        T = [[None for _ in range(r)] for r in shape]
+        for i in range(1,len(ch)):
+            la = ch[i]
+            mu = ch[i-1]
+            mu += [0]*(len(la) - len(mu))
+
+            for r in range(len(la)):
+                for c in range(mu[r], la[r]):
+                    T[r][c] = i
+
+        return self.element_class(self, T)
 
 
 class Tableaux_size(Tableaux):
