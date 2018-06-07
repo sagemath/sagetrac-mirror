@@ -89,8 +89,7 @@ class YokonumaHeckeAlgebra(CombinatorialFreeModule):
         sage: (g2 + t1) * (g1 + t2*t3)
         g[2,1] + t2*t3*g[2] + t1*g[1] + t1*t2*t3
         sage: g1 * g1
-        1 - (1/4*q^-1-1/4*q)*g[1] - (1/4*q^-1-1/4*q)*t1*t2^3*g[1]
-         - (1/4*q^-1-1/4*q)*t1^2*t2^2*g[1] - (1/4*q^-1-1/4*q)*t1^3*t2*g[1]
+        1 + (-1/4*q^-1+1/4*q)*g[1] + (-1/4*q^-1+1/4*q)*t1*t2^3*g[1] + (-1/4*q^-1+1/4*q)*t1^2*t2^2*g[1] + (-1/4*q^-1+1/4*q)*t1^3*t2*g[1]
         sage: g2 * g1 * t1
         t3*g[2,1]
 
@@ -357,8 +356,7 @@ class YokonumaHeckeAlgebra(CombinatorialFreeModule):
             sage: Y = algebras.YokonumaHecke(4, 3)
             sage: m = ((1, 0, 2), Permutations(3)([2,1,3]))
             sage: 4 * Y.product_on_basis(m, m)
-            -(q^-1-q)*t2^2*g[1] + 4*t1*t2 - (q^-1-q)*t1*t2*g[1]
-             - (q^-1-q)*t1^2*g[1] - (q^-1-q)*t1^3*t2^3*g[1]
+            (-q^-1+q)*t2^2*g[1] + 4*t1*t2 + (-q^-1+q)*t1*t2*g[1] + (-q^-1+q)*t1^2*g[1] + (-q^-1+q)*t1^3*t2^3*g[1]
 
         Check that we apply the permutation correctly on `t_i`::
 
@@ -410,8 +408,7 @@ class YokonumaHeckeAlgebra(CombinatorialFreeModule):
             sage: Y = algebras.YokonumaHecke(4, 3)
             sage: m = ((1, 0, 2), Permutations(3)([2,1,3]))
             sage: 4 * Y._product_by_basis_gen(m, 1)
-            -(q^-1-q)*t2*t3^2*g[1] + 4*t1*t3^2 - (q^-1-q)*t1*t3^2*g[1]
-             - (q^-1-q)*t1^2*t2^3*t3^2*g[1] - (q^-1-q)*t1^3*t2^2*t3^2*g[1]
+            (-q^-1+q)*t2*t3^2*g[1] + 4*t1*t3^2 + (-q^-1+q)*t1*t3^2*g[1] + (-q^-1+q)*t1^2*t2^3*t3^2*g[1] + (-q^-1+q)*t1^3*t2^2*t3^2*g[1]
         """
         t, w = m
         # We have to flip the side due to Sage's multiplication

@@ -205,7 +205,7 @@ class HallAlgebra(CombinatorialFreeModule):
         sage: hi.parent() is H
         True
         sage: h22 = H[2]*H[2]; h22
-        H[4] - (1-q)*H[3, 1] + (q+q^2)*H[2, 2]
+        H[4] + (-1+q)*H[3, 1] + (q+q^2)*H[2, 2]
         sage: h22.parent() is H
         True
         sage: e = SymmetricFunctions(R).e()
@@ -338,10 +338,9 @@ class HallAlgebra(CombinatorialFreeModule):
             sage: R.<q> = LaurentPolynomialRing(ZZ)
             sage: H = HallAlgebra(R, q)
             sage: H.coproduct_on_basis(Partition([2]))
-            H[] # H[2] - (q^-1-1)*H[1] # H[1] + H[2] # H[]
+            H[] # H[2] + (-q^-1+1)*H[1] # H[1] + H[2] # H[]
             sage: H.coproduct_on_basis(Partition([2,1]))
-            H[] # H[2, 1] - (q^-2-1)*H[1] # H[1, 1] + (q^-1)*H[1] # H[2]
-             - (q^-2-1)*H[1, 1] # H[1] + (q^-1)*H[2] # H[1] + H[2, 1] # H[]
+            H[] # H[2, 1] + (-q^-2+1)*H[1] # H[1, 1] + (q^-1)*H[1] # H[2] + (-q^-2+1)*H[1, 1] # H[1] + (q^-1)*H[2] # H[1] + H[2, 1] # H[]
         """
         S = self.tensor_square()
         if all(x == 1 for x in la):
@@ -372,7 +371,7 @@ class HallAlgebra(CombinatorialFreeModule):
             sage: H.antipode_on_basis(Partition([1,1]))
             (q^-1)*H[2] + (q^-1)*H[1, 1]
             sage: H.antipode_on_basis(Partition([2]))
-            -(q^-1)*H[2] - (q^-1-q)*H[1, 1]
+            -(q^-1)*H[2] + (-q^-1+q)*H[1, 1]
         """
         if all(x == 1 for x in la):
             r = len(la)

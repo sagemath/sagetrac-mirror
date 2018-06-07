@@ -2383,7 +2383,7 @@ class Link(object):
         rest = deepcopy(pd_code[1:])
         [a, b, c, d] = cross
         if a == b and c == d and len(rest) > 0:
-            return (~t + t**(-5)) * Link(rest)._bracket()
+            return (t**-1 + t**(-5)) * Link(rest)._bracket()
         elif a == d and c == b and len(rest) > 0:
             return (t + t**5) * Link(rest)._bracket()
         elif a == b:
@@ -2418,7 +2418,7 @@ class Link(object):
                     cross[cross.index(d)] = c
                 if b in cross:
                     cross[cross.index(b)] = a
-            return t * Link(rest)._bracket() + ~t * Link(rest_2)._bracket()
+            return t * Link(rest)._bracket() + t**-1 * Link(rest_2)._bracket()
 
     def _isolated_components(self):
         r"""

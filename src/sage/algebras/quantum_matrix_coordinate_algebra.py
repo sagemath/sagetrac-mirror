@@ -219,7 +219,7 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
 
             sage: O = algebras.QuantumMatrixCoordinate(2)
             sage: O.quantum_determinant()
-            x[1,1]*x[2,2] - q*x[1,2]*x[2,1]
+            x[1,1]*x[2,2] + (-q)*x[1,2]*x[2,1]
 
         We verify that the quantum determinant is central::
 
@@ -910,8 +910,7 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
 
             sage: O = algebras.QuantumGL(2)
             sage: [[O._antipode_on_generator(i, j) for i in [1,2]] for j in [1,2]]
-            [[c*x[2,2], -q*c*x[2,1]],
-             [-(q^-1)*c*x[1,2], c*x[1,1]]]
+            [[c*x[2,2], (-q)*c*x[2,1]], [-(q^-1)*c*x[1,2], c*x[1,1]]]
         """
         from sage.combinat.permutation import Permutations
         q = self._q
@@ -937,7 +936,7 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
             sage: O.antipode_on_basis(x[1,2])
             -(q^-1)*c*x[1,2]*x[3,3] + c*x[1,3]*x[3,2]
             sage: O.antipode_on_basis(x[2,2])
-            c*x[1,1]*x[3,3] - q*c*x[1,3]*x[3,1]
+            c*x[1,1]*x[3,3] + (-q)*c*x[1,3]*x[3,1]
             sage: O.antipode_on_basis(x['c']) == O.quantum_determinant()
             True
         """

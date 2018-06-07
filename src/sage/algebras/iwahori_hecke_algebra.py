@@ -233,7 +233,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         sage: C(T[1])
         q*C[1] + q^2
         sage: elt = Cp(T[1,2,1]); elt
-        q^3*Cp[1,2,1] - q^2*Cp[2,1] - q^2*Cp[1,2] + q*Cp[1] + q*Cp[2] - 1
+        q^3*Cp[1,2,1] + (-q^2)*Cp[2,1] + (-q^2)*Cp[1,2] + q*Cp[1] + q*Cp[2] - 1
         sage: C(elt)
         q^3*C[1,2,1] + q^4*C[2,1] + q^4*C[1,2] + q^5*C[1] + q^5*C[2] + q^6
 
@@ -280,11 +280,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         v^3*C[1,0,2] + v^4*C[1,0] + v^4*C[0,2] + v^4*C[1,2]
          + v^5*C[0] + v^5*C[2] + v^5*C[1] + v^6
         sage: Cp(T[1,0,2])
-        v^3*Cp[1,0,2] - v^2*Cp[1,0] - v^2*Cp[0,2] - v^2*Cp[1,2]
-         + v*Cp[0] + v*Cp[2] + v*Cp[1] - 1
+        v^3*Cp[1,0,2] + (-v^2)*Cp[1,0] + (-v^2)*Cp[0,2] + (-v^2)*Cp[1,2] + v*Cp[0] + v*Cp[2] + v*Cp[1] - 1
         sage: T(C[1,0,2])
-        (v^-3)*T[1,0,2] - (v^-1)*T[1,0] - (v^-1)*T[0,2] - (v^-1)*T[1,2]
-         + v*T[0] + v*T[2] + v*T[1] - v^3
+        (v^-3)*T[1,0,2] - (v^-1)*T[1,0] - (v^-1)*T[0,2] - (v^-1)*T[1,2] + v*T[0] + v*T[2] + v*T[1] + (-v^3)
         sage: T(Cp[1,0,2])
         (v^-3)*T[1,0,2] + (v^-3)*T[1,0] + (v^-3)*T[0,2] + (v^-3)*T[1,2]
          + (v^-3)*T[0] + (v^-3)*T[2] + (v^-3)*T[1] + (v^-3)
@@ -314,21 +312,21 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         sage: T1 + T2
         T[1] + T[2]
         sage: T1*T1
-        -(1-v^2)*T[1] + v^2
+        (-1+v^2)*T[1] + v^2
         sage: (T1 + T2)*T3 + T1*T1 - (v + v^-1)*T2
-        T[3,1] + T[2,3] - (1-v^2)*T[1] - (v^-1+v)*T[2] + v^2
+        T[3,1] + T[2,3] + (-1+v^2)*T[1] + (-v^-1-v)*T[2] + v^2
         sage: Cp(T1)
         v*Cp[1] - 1
         sage: Cp((v^1 - 1)*T1*T2 - T3)
-        -(v^2-v^3)*Cp[1,2] + (v-v^2)*Cp[1] - v*Cp[3] + (v-v^2)*Cp[2] + v
+        (-v^2+v^3)*Cp[1,2] + (v-v^2)*Cp[1] + (-v)*Cp[3] + (v-v^2)*Cp[2] + v
         sage: C(T1)
         v*C[1] + v^2
         sage: p = C(T2*T3 - v*T1); p
-        v^2*C[2,3] - v^2*C[1] + v^3*C[3] + v^3*C[2] - (v^3-v^4)
+        v^2*C[2,3] + (-v^2)*C[1] + v^3*C[3] + v^3*C[2] + (-v^3+v^4)
         sage: Cp(p)
-        v^2*Cp[2,3] - v^2*Cp[1] - v*Cp[3] - v*Cp[2] + (1+v)
+        v^2*Cp[2,3] + (-v^2)*Cp[1] + (-v)*Cp[3] + (-v)*Cp[2] + (1+v)
         sage: Cp(T2*T3 - v*T1)
-        v^2*Cp[2,3] - v^2*Cp[1] - v*Cp[3] - v*Cp[2] + (1+v)
+        v^2*Cp[2,3] + (-v^2)*Cp[1] + (-v)*Cp[3] + (-v)*Cp[2] + (1+v)
 
     In addition to explicitly creating generators, we have two shortcuts to
     basis elements. The first is by using elements of the underlying Coxeter
@@ -353,11 +351,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         sage: T(Cp[1])
         (v^-1)*T[1] + (v^-1)
         sage: T(C[1])
-        (v^-1)*T[1] - v
+        (v^-1)*T[1] + (-v)
         sage: C(Cp[1])
         C[1] + (v^-1+v)
         sage: Cp(C[1])
-        Cp[1] - (v^-1+v)
+        Cp[1] + (-v^-1-v)
         sage: all(C[x] == C[x].bar() for x in W) # long time
         True
         sage: all(Cp[x] == Cp[x].bar() for x in W) # long time
@@ -957,11 +955,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
                     sage: p = T1*T2 + (1-q+q^-1)*T3 - q^3*T1*T3
                     sage: p.bar()
-                    -(q^-5)*T[3,1] + (q^-2)*T[1,2]
-                     - (q^-5-q^-4-q^-2+q^-1)*T[1]
-                     - (q^-5-q^-4+q^-2-q^-1-1)*T[3]
-                     + (q^-2-q^-1)*T[2]
-                     - (q^-5-2*q^-4+q^-3-1+q)
+                    -(q^-5)*T[3,1] + (q^-2)*T[1,2] + (-q^-5+q^-4+q^-2-q^-1)*T[1] + (-q^-5+q^-4-q^-2+q^-1+1)*T[3] + (q^-2-q^-1)*T[2] + (-q^-5+2*q^-4-q^-3+1-q)
                     sage: p.bar().bar() == p
                     True
 
@@ -1059,7 +1053,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     sage: Cp = H.Cp()
                     sage: p = Cp[1]*Cp[3] + Cp[2]
                     sage: q = p.hash_involution(); q
-                    Cp[3,1] - (v^-1+v)*Cp[1] - (v^-1+v)*Cp[3] - Cp[2] + (v^-2+v^-1+2+v+v^2)
+                    Cp[3,1] + (-v^-1-v)*Cp[1] + (-v^-1-v)*Cp[3] - Cp[2] + (v^-2+v^-1+2+v+v^2)
                     sage: q.hash_involution() == p
                     True
 
@@ -1106,9 +1100,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     sage: H = IwahoriHeckeAlgebra('A3', v**2)
                     sage: T = H.T()
                     sage: T[1].goldman_involution()
-                    -T[1] - (1-v^2)
+                    -T[1] + (-1+v^2)
                     sage: T[2].goldman_involution()
-                    -T[2] - (1-v^2)
+                    -T[2] + (-1+v^2)
                     sage: T[1,2].goldman_involution()
                     T[1,2] + (1-v^2)*T[1] + (1-v^2)*T[2] + (1-2*v^2+v^4)
                     sage: elt=T[1,2]+ v*T[1]
@@ -1124,9 +1118,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     sage: H = IwahoriHeckeAlgebra('A3', q1=v, q2=-v^-1)
                     sage: T = H.T()
                     sage: T[1].goldman_involution()
-                    -T[1] - (v^-1-v)
+                    -T[1] + (-v^-1+v)
                     sage: T[2].goldman_involution()
-                    -T[2] - (v^-1-v)
+                    -T[2] + (-v^-1+v)
                     sage: T[1,2].goldman_involution()
                     T[1,2] + (v^-1-v)*T[1] + (v^-1-v)*T[2] + (v^-2-2+v^2)
                     sage: elt=T[1,2]+ v*T[1]
@@ -1300,7 +1294,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: [H.Cp().product_on_basis(s1,x) for x in [s1,s2]]
                 [(v^-1+v)*Cp[1], Cp[1,2]]
                 sage: [H.C().product_on_basis(s1,x) for x in [s1,s2]]
-                [-(v^-1+v)*C[1], C[1,2]]
+                [(-v^-1-v)*C[1], C[1,2]]
             """
             return self(self.to_T_basis(w1) * self.to_T_basis(w2))
 
@@ -1562,7 +1556,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: Cp(T(s1*s2)+T(s1)+T(s2)+1)
                 v^2*Cp[1,2]
                 sage: Cp(T(s1*s2*s1))
-                v^3*Cp[1,2,1] - v^2*Cp[2,1] - v^2*Cp[1,2] + v*Cp[1] + v*Cp[2] - 1
+                v^3*Cp[1,2,1] + (-v^2)*Cp[2,1] + (-v^2)*Cp[1,2] + v*Cp[1] + v*Cp[2] - 1
             """
             H = self.realization_of()
             generic_T = H._generic_iwahori_hecke_algebra.T()
@@ -1653,23 +1647,12 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: T=H.T()
                 sage: s=H.coxeter_group().simple_reflection(1)
                 sage: T.goldman_involution_on_basis(s)
-                -T[1] - (1-v^2)
+                -T[1] + (-1+v^2)
                 sage: T[s].goldman_involution()
-                -T[1] - (1-v^2)
+                -T[1] + (-1+v^2)
                 sage: h = T[1]*T[2] + (v^3 - v^-1 + 2)*T[3,1,2,3]
                 sage: h.goldman_involution()
-                -(v^-1-2-v^3)*T[1,2,3,2]
-                 - (v^-1-2-v+2*v^2-v^3+v^5)*T[3,1,2]
-                 - (v^-1-2-v+2*v^2-v^3+v^5)*T[1,2,3]
-                 - (v^-1-2-v+2*v^2-v^3+v^5)*T[2,3,2]
-                 - (v^-1-2-2*v+4*v^2-2*v^4+2*v^5-v^7)*T[3,1]
-                 - (v^-1-3-2*v+4*v^2-2*v^4+2*v^5-v^7)*T[1,2]
-                 - (v^-1-2-2*v+4*v^2-2*v^4+2*v^5-v^7)*T[3,2]
-                 - (v^-1-2-2*v+4*v^2-2*v^4+2*v^5-v^7)*T[2,3]
-                - (v^-1-3-2*v+5*v^2+v^3-4*v^4+v^5+2*v^6-2*v^7+v^9)*T[1]
-                 - (v^-1-2-3*v+6*v^2+2*v^3-6*v^4+2*v^5+2*v^6-3*v^7+v^9)*T[3]
-                 - (v^-1-3-3*v+7*v^2+2*v^3-6*v^4+2*v^5+2*v^6-3*v^7+v^9)*T[2]
-                 - (v^-1-3-3*v+8*v^2+3*v^3-9*v^4+6*v^6-3*v^7-2*v^8+3*v^9-v^11)
+                (-v^-1+2+v^3)*T[1,2,3,2] + (-v^-1+2+v-2*v^2+v^3-v^5)*T[3,1,2] + (-v^-1+2+v-2*v^2+v^3-v^5)*T[1,2,3] + (-v^-1+2+v-2*v^2+v^3-v^5)*T[2,3,2] + (-v^-1+2+2*v-4*v^2+2*v^4-2*v^5+v^7)*T[3,1] + (-v^-1+3+2*v-4*v^2+2*v^4-2*v^5+v^7)*T[1,2] + (-v^-1+2+2*v-4*v^2+2*v^4-2*v^5+v^7)*T[3,2] + (-v^-1+2+2*v-4*v^2+2*v^4-2*v^5+v^7)*T[2,3] + (-v^-1+3+2*v-5*v^2-v^3+4*v^4-v^5-2*v^6+2*v^7-v^9)*T[1] + (-v^-1+2+3*v-6*v^2-2*v^3+6*v^4-2*v^5-2*v^6+3*v^7-v^9)*T[3] + (-v^-1+3+3*v-7*v^2-2*v^3+6*v^4-2*v^5-2*v^6+3*v^7-v^9)*T[2] + (-v^-1+3+3*v-8*v^2-3*v^3+9*v^4-6*v^6+3*v^7+2*v^8-3*v^9+v^11)
                 sage: h.goldman_involution().goldman_involution() == h
                 True
             """
@@ -1879,7 +1862,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: T = H.T()
             sage: Cp = H.Cp()
             sage: T(s1)**2
-            -(1-v^2)*T[1] + v^2
+            (-1+v^2)*T[1] + v^2
             sage: T(Cp(s1))
             (v^-1)*T[1] + (v^-1)
             sage: T(Cp(s1)*Cp(s2)*Cp(s1))
@@ -1986,12 +1969,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: T = H.T()
             sage: C = H.C()
             sage: T(s1)**2
-            -(1-v^2)*T[1] + v^2
+            (-1+v^2)*T[1] + v^2
             sage: T(C(s1))
-            (v^-1)*T[1] - v
+            (v^-1)*T[1] + (-v)
             sage: T(C(s1)*C(s2)*C(s1))
-            (v^-3)*T[1,2,1] - (v^-1)*T[2,1] - (v^-1)*T[1,2]
-             + (v^-1+v)*T[1] + v*T[2] - (v+v^3)
+            (v^-3)*T[1,2,1] - (v^-1)*T[2,1] - (v^-1)*T[1,2] + (v^-1+v)*T[1] + v*T[2] + (-v-v^3)
 
         ::
 
@@ -2003,7 +1985,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: C(s1*s2*s1)
             C[1,2,1]
             sage: C(s1)**2
-            -(v^-1+v)*C[1]
+            (-v^-1-v)*C[1]
             sage: C(s1)*C(s2)*C(s1)
             C[1,2,1] + C[1]
 
@@ -2023,9 +2005,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         Check the defining property between `C` and `C^{\prime}`::
 
             sage: T(C[1])
-            (v^-1)*T[1] - v
+            (v^-1)*T[1] + (-v)
             sage: -T(Cp[1]).hash_involution()
-            (v^-1)*T[1] - v
+            (v^-1)*T[1] + (-v)
             sage: T(Cp[1] + Cp[2]).hash_involution()
             -(v^-1)*T[1] - (v^-1)*T[2] + 2*v
             sage: -T(C[1] + C[2])
@@ -2056,9 +2038,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: C=H.C()
                 sage: s=H.coxeter_group().simple_reflection(1)
                 sage: C.hash_involution_on_basis(s)
-                -C[1] - (v^-1+v)
+                -C[1] + (-v^-1-v)
                 sage: C[s].hash_involution()
-                -C[1] - (v^-1+v)
+                -C[1] + (-v^-1-v)
             """
             return (-1)**w.length()*self( self.realization_of().Cp().monomial(w) )
 
@@ -2092,7 +2074,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: T(A[1,2])
             T[1,2] + (1/2-1/2*v^2)*T[1] + (1/2-1/2*v^2)*T[2] + (1/2-v^2+1/2*v^4)
             sage: A[1]*A[2]
-            A[1,2] - (1/4-1/2*v^2+1/4*v^4)
+            A[1,2] + (-1/4+1/2*v^2-1/4*v^4)
 
         TESTS::
 
@@ -2144,7 +2126,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: T(A[1,2])
                 T[1,2] + (1/2-1/2*v^2)*T[1] + (1/2-1/2*v^2)*T[2] + (1/2-v^2+1/2*v^4)
                 sage: A(T[1,2])
-                A[1,2] - (1/2-1/2*v^2)*A[1] - (1/2-1/2*v^2)*A[2]
+                A[1,2] + (-1/2+1/2*v^2)*A[1] + (-1/2+1/2*v^2)*A[2]
             """
             T = self.realization_of().T()
             return (T.monomial(w) + (-1)**w.length()*T.goldman_involution_on_basis(w)) / 2
@@ -2210,19 +2192,15 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: T(A[1,2])
             T[1,2] + (1/2-1/2*v^2)*T[1] + (1/2-1/2*v^2)*T[2] + (1/2-v^2+1/2*v^4)
             sage: A[1]*A[2]
-            A[1,2] - (1/4-1/2*v^2+1/4*v^4)
+            A[1,2] + (-1/4+1/2*v^2-1/4*v^4)
             sage: Cp(A[1]*A[2])
-            v^2*Cp[1,2] - (1/2*v+1/2*v^3)*Cp[1] - (1/2*v+1/2*v^3)*Cp[2]
-             + (1/4+1/2*v^2+1/4*v^4)
+            v^2*Cp[1,2] + (-1/2*v-1/2*v^3)*Cp[1] + (-1/2*v-1/2*v^3)*Cp[2] + (1/4+1/2*v^2+1/4*v^4)
             sage: Cp(A[1])
-            v*Cp[1] - (1/2+1/2*v^2)
+            v*Cp[1] + (-1/2-1/2*v^2)
             sage: Cp(A[1,2])
-            v^2*Cp[1,2] - (1/2*v+1/2*v^3)*Cp[1]
-             - (1/2*v+1/2*v^3)*Cp[2] + (1/2+1/2*v^4)
+            v^2*Cp[1,2] + (-1/2*v-1/2*v^3)*Cp[1] + (-1/2*v-1/2*v^3)*Cp[2] + (1/2+1/2*v^4)
             sage: Cp(A[1,2,1])
-            v^3*Cp[1,2,1] - (1/2*v^2+1/2*v^4)*Cp[2,1]
-             - (1/2*v^2+1/2*v^4)*Cp[1,2] + (1/2*v+1/2*v^5)*Cp[1]
-             + (1/2*v+1/2*v^5)*Cp[2] - (1/2+1/2*v^6)
+            v^3*Cp[1,2,1] + (-1/2*v^2-1/2*v^4)*Cp[2,1] + (-1/2*v^2-1/2*v^4)*Cp[1,2] + (1/2*v+1/2*v^5)*Cp[1] + (1/2*v+1/2*v^5)*Cp[2] + (-1/2-1/2*v^6)
 
         TESTS::
 
@@ -2277,7 +2255,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: T(B[1,2])
                 T[1,2] + (1/2-1/2*v^2)*T[1] + (1/2-1/2*v^2)*T[2]
                 sage: B(T[1,2])
-                B[1,2] - (1/2-1/2*v^2)*B[1] - (1/2-1/2*v^2)*B[2] + (1/2-v^2+1/2*v^4)
+                B[1,2] + (-1/2+1/2*v^2)*B[1] + (-1/2+1/2*v^2)*B[2] + (1/2-v^2+1/2*v^4)
             """
             T = self.realization_of().T()
             Bw = T(self.realization_of().A()[w])

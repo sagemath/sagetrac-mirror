@@ -21,7 +21,7 @@ can be calculated and verified by
 ::
 
     sage: L.<mu, x, y> = LaurentPolynomialRing(ZZ)
-    sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y/mu])
+    sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu^-1])
     1 * (-x + 1)^-1 * (-x*y + 1)^-1
 
 
@@ -117,80 +117,80 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
 
         sage: L.<mu, x, y, z, w> = LaurentPolynomialRing(ZZ)
 
-        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu^-1])
         1 * (-x + 1)^-1 * (-x*y + 1)^-1
 
-        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y/mu, 1 - z/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu^-1, 1 - z*mu^-1])
         1 * (-x + 1)^-1 * (-x*y + 1)^-1 * (-x*z + 1)^-1
-        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z*mu^-1])
         (-x*y*z + 1) * (-x + 1)^-1 * (-y + 1)^-1 * (-x*z + 1)^-1 * (-y*z + 1)^-1
-        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y/mu^2])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu^-2])
         1 * (-x + 1)^-1 * (-x^2*y + 1)^-1
-        sage: MacMahonOmega(mu, 1, [1 - x*mu^2, 1 - y/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu^2, 1 - y*mu^-1])
         (x*y + 1) * (-x + 1)^-1 * (-x*y^2 + 1)^-1
 
-        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu^2])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z*mu^-2])
         (-x^2*y*z - x*y^2*z + x*y*z + 1) *
         (-x + 1)^-1 * (-y + 1)^-1 * (-x^2*z + 1)^-1 * (-y^2*z + 1)^-1
 
-        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y/mu^3])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu^-3])
         1 * (-x + 1)^-1 * (-x^3*y + 1)^-1
-        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y/mu^4])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu^-4])
         1 * (-x + 1)^-1 * (-x^4*y + 1)^-1
-        sage: MacMahonOmega(mu, 1, [1 - x*mu^3, 1 - y/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu^3, 1 - y*mu^-1])
         (x*y^2 + x*y + 1) * (-x + 1)^-1 * (-x*y^3 + 1)^-1
-        sage: MacMahonOmega(mu, 1, [1 - x*mu^4, 1 - y/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu^4, 1 - y*mu^-1])
         (x*y^3 + x*y^2 + x*y + 1) * (-x + 1)^-1 * (-x*y^4 + 1)^-1
 
-        sage: MacMahonOmega(mu, 1, [1 - x*mu^2, 1 - y/mu, 1 - z/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu^2, 1 - y*mu^-1, 1 - z*mu^-1])
         (x*y*z + x*y + x*z + 1) *
         (-x + 1)^-1 * (-x*y^2 + 1)^-1 * (-x*z^2 + 1)^-1
-        sage: MacMahonOmega(mu, 1, [1 - x*mu^2, 1 - y*mu, 1 - z/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu^2, 1 - y*mu, 1 - z*mu^-1])
         (-x*y*z^2 - x*y*z + x*z + 1) *
         (-x + 1)^-1 * (-y + 1)^-1 * (-x*z^2 + 1)^-1 * (-y*z + 1)^-1
 
-        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z*mu, 1 - w/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z*mu, 1 - w*mu^-1])
         (x*y*z*w^2 + x*y*z*w - x*y*w - x*z*w - y*z*w + 1) *
         (-x + 1)^-1 * (-y + 1)^-1 * (-z + 1)^-1 *
         (-x*w + 1)^-1 * (-y*w + 1)^-1 * (-z*w + 1)^-1
-        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu, 1 - w/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z*mu^-1, 1 - w*mu^-1])
         (x^2*y*z*w + x*y^2*z*w - x*y*z*w - x*y*z - x*y*w + 1) *
         (-x + 1)^-1 * (-y + 1)^-1 *
         (-x*z + 1)^-1 * (-x*w + 1)^-1 * (-y*z + 1)^-1 * (-y*w + 1)^-1
 
-        sage: MacMahonOmega(mu, mu^-2, [1 - x*mu, 1 - y/mu])
+        sage: MacMahonOmega(mu, mu^-2, [1 - x*mu, 1 - y*mu^-1])
         x^2 * (-x + 1)^-1 * (-x*y + 1)^-1
-        sage: MacMahonOmega(mu, mu^-1, [1 - x*mu, 1 - y/mu])
+        sage: MacMahonOmega(mu, mu^-1, [1 - x*mu, 1 - y*mu^-1])
         x * (-x + 1)^-1 * (-x*y + 1)^-1
-        sage: MacMahonOmega(mu, mu, [1 - x*mu, 1 - y/mu])
+        sage: MacMahonOmega(mu, mu, [1 - x*mu, 1 - y*mu^-1])
         (-x*y + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
-        sage: MacMahonOmega(mu, mu^2, [1 - x*mu, 1 - y/mu])
+        sage: MacMahonOmega(mu, mu^2, [1 - x*mu, 1 - y*mu^-1])
         (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
 
     We demonstrate the different allowed input variants::
 
         sage: MacMahonOmega(mu,
-        ....:     Factorization([(mu, 2), (1 - x*mu, -1), (1 - y/mu, -1)]))
+        ....:     Factorization([(mu, 2), (1 - x*mu, -1), (1 - y*mu^-1, -1)]))
         (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
 
         sage: MacMahonOmega(mu, mu^2,
-        ....:     Factorization([(1 - x*mu, 1), (1 - y/mu, 1)]))
+        ....:     Factorization([(1 - x*mu, 1), (1 - y*mu^-1, 1)]))
         (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
 
-        sage: MacMahonOmega(mu, mu^2, [1 - x*mu, 1 - y/mu])
+        sage: MacMahonOmega(mu, mu^2, [1 - x*mu, 1 - y*mu^-1])
         (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
 
-        sage: MacMahonOmega(mu, mu^2, (1 - x*mu)*(1 - y/mu))  # not tested because not fully implemented
+        sage: MacMahonOmega(mu, mu^2, (1 - x*mu)*(1 - y*mu^-1))  # not tested because not fully implemented
         (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
 
-        sage: MacMahonOmega(mu, mu^2 / ((1 - x*mu)*(1 - y/mu)))  # not tested because not fully implemented
+        sage: MacMahonOmega(mu, mu^2 / ((1 - x*mu)*(1 - y*mu^-1)))  # not tested because not fully implemented
         (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
 
     TESTS::
 
         sage: MacMahonOmega(mu, 1, [1 - x*mu])
         1 * (-x + 1)^-1
-        sage: MacMahonOmega(mu, 1, [1 - x/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu^-1])
         1
         sage: MacMahonOmega(mu, 0, [1 - x*mu])
         0
@@ -202,16 +202,16 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
         2
         sage: MacMahonOmega(mu, 2*mu, [])
         2
-        sage: MacMahonOmega(mu, 2/mu, [])
+        sage: MacMahonOmega(mu, 2*mu^-1, [])
         0
 
     ::
 
-        sage: MacMahonOmega(mu, Factorization([(1/mu, 1), (1 - x*mu, -1),
-        ....:                                  (1 - y/mu, -2)], unit=2))
+        sage: MacMahonOmega(mu, Factorization([(mu^-1, 1), (1 - x*mu, -1),
+        ....:                                  (1 - y*mu^-1, -2)], unit=2))
         2*x * (-x + 1)^-1 * (-x*y + 1)^-2
         sage: MacMahonOmega(mu, Factorization([(mu, -1), (1 - x*mu, -1),
-        ....:                                  (1 - y/mu, -2)], unit=2))
+        ....:                                  (1 - y*mu^-1, -2)], unit=2))
         2*x * (-x + 1)^-1 * (-x*y + 1)^-2
         sage: MacMahonOmega(mu, Factorization([(mu, -1), (1 - x, -1)]))
         0
@@ -220,7 +220,7 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
 
     ::
 
-        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - z, 1 - y/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - z, 1 - y*mu^-1])
         1 * (-z + 1)^-1 * (-x + 1)^-1 * (-x*y + 1)^-1
 
     ::
@@ -259,8 +259,8 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
     ::
 
         sage: L.<mu, x, y, z, w> = LaurentPolynomialRing(QQ)
-        sage: MacMahonOmega(mu, 1/mu,
-        ....:     Factorization([(1 - x*mu, 1), (1 - y/mu, 2)], unit=2))
+        sage: MacMahonOmega(mu, 1*mu^-1,
+        ....:     Factorization([(1 - x*mu, 1), (1 - y*mu^-1, 2)], unit=L(2)))
         1/2*x * (-x + 1)^-1 * (-x*y + 1)^-2
     """
     from sage.arith.misc import factor
@@ -294,7 +294,7 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
         if not denominator.is_integral():
             raise ValueError('Factorization {} of the denominator '
                              'contains negative exponents.'.format(denominator))
-        numerator *= ZZ(1) / denominator.unit()
+        numerator *= ZZ(1) * denominator.unit().inverse_of_unit()
         factors_denominator = tuple(factor
                                     for factor, exponent in denominator
                                     for _ in range(exponent))
@@ -335,7 +335,7 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
             decoded_factors.append((-coefficient, exponent))
         else:
             raise NotImplementedError('Cannot handle factor {}.'.format(factor))
-    numerator = L(numerator) / prod(to_numerator)
+    numerator = L(numerator) * prod(to_numerator).inverse_of_unit()
 
     result_numerator, result_factors_denominator = \
         _Omega_(numerator.dict(), decoded_factors)
@@ -422,7 +422,7 @@ def _Omega_(A, decoded_factors):
     ::
 
         sage: L.<mu, x, y> = LaurentPolynomialRing(ZZ)
-        sage: MacMahonOmega(mu, mu^-2, [1 - x*mu, 1 - y/mu])
+        sage: MacMahonOmega(mu, mu^-2, [1 - x*mu, 1 - y*mu^-1])
         x^2 * (-x + 1)^-1 * (-x*y + 1)^-1
 
     internally calls
@@ -442,7 +442,7 @@ def _Omega_(A, decoded_factors):
 
     ::
 
-        sage: MacMahonOmega(mu, 1 - x^2, [1 - x*mu, 1 - y/mu])
+        sage: MacMahonOmega(mu, 1 - x^2, [1 - x*mu, 1 - y*mu^-1])
         (x + 1) * (-x*y + 1)^-1
     """
     if not decoded_factors:
