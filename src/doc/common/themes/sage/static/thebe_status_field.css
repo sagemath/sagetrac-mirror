@@ -4,7 +4,17 @@
   padding: 8px;
 }
 
+.thebe-status-field.thebe-status-downloading {
+  /* Binder is building the image */
+  background-color: yellow;
+}
+
 .thebe-status-field.thebe-status-building {
+  /* Binder is building the image */
+  background-color: yellow;
+}
+
+.thebe-status-field.thebe-status-built {
   /* Binder is building the image */
   background-color: yellow;
 }
@@ -13,9 +23,12 @@
   /* Binder launching the server */
   background-color: yellow;
 }
-
+.thebe-status-field.thebe-status-server-ready {
+  /* Binder launching the server */
+  background-color: yellow;
+}
 .thebe-status-field.thebe-status-starting {
-  /* Binder starting the server */
+  /* Binder starting the kernel */
   background-color: yellow;
 }
 

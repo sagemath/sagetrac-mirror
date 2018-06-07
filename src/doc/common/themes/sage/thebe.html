@@ -1,8 +1,22 @@
 <!-- Thebe configuration for live code cells (https://github.com/minrk/thebelab)
-  This sets up a dedicated button in the top right corner. When
-  clicked, each code block containing a sage: prompt is appended a
-  "Run" button to execute the code on a Sage Jupyter kernel
-  provided by mybinder (https://mybinder.org).
+
+  If the page contains a code cell (a `pre` tag with a sage prompt), a
+  dedicated Activate button is added in the top right corner.
+
+  When pressed, the code cells are made active: the user can edit and
+  run them.
+
+  More specifically, when pressed (thebe_activate_button_function):
+
+  - the thebelab JavaScript library is fetched from the web;
+
+  - each code block containing a sage: prompt is made active (thebe_activate_cells)
+    (editable + Run button);
+
+  - if the page is served by a Jupyter server which has a sagemath
+    kernel, a local jupyter kernel is requested(thebe_bootstrap_local);
+
+  - otherwise a kernel is requested from mybinder (https://mybinder.org).
   !-->
 <script type="text/x-thebe-config">
   thebeConfig = {
