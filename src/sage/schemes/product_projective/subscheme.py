@@ -468,7 +468,7 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
         try:
             PP(P)
         except TypeError:
-            raise TypeError("(=%s) must be a point in the ambient space of this subscheme and (=%s)"%(P,X))
+            raise TypeError("(=%s) must be a point in the ambient space of this subscheme and (=%s)" % (P, self))
         # find an affine chart of the ambient space of this subscheme that contains P
         indices = []
         aff_pt = []

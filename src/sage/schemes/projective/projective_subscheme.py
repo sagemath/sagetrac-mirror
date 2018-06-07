@@ -1118,7 +1118,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         #intersect the hyperplanes with X
         J = phi(I) + S.ideal(l)
         #saturate the ideal with respect to the irrelevant ideal
-        J2 = J.saturation(S.ideal([phi(t) for t in R.gens()]))[0]
+        J2 = J.saturation(S.ideal([phi(tt) for tt in R.gens()]))[0]
         #eliminate the original variables to be left with the hyperplane coefficients 'u'
         E = J2.elimination_ideal(newcoords)
         #create the plucker coordinates
@@ -1137,8 +1137,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         br = T.ideal(L)
         #create a mapping into a polynomial ring over the plucker coordinates
         #and the hyperplane coefficients
-        psi = S.hom(coeffs + [0 for i in range(N)],T)
-        E2 = T.ideal([psi(u) for u in E.gens()] +br)
+        psi = S.hom(coeffs + [0 for _ in range(N)], T)
+        E2 = T.ideal([psi(u) for u in E.gens()] + br)
         #eliminate the hyperplane coefficients
         CH = E2.elimination_ideal(coeffs)
         #CH should be a principal ideal, but because of the relations among
