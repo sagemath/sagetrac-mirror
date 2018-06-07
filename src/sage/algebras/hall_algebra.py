@@ -231,11 +231,7 @@ class HallAlgebra(CombinatorialFreeModule):
         """
         self._q = q
         try:
-            q_inverse = q**-1
-            if not q_inverse in base_ring:
-                hopf_structure = False
-            else:
-                hopf_structure = True
+            hopf_structure = q.is_unit()
         except Exception:
             hopf_structure = False
         if hopf_structure:

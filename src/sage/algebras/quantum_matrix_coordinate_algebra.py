@@ -76,7 +76,7 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
         self._q = q
         if bar is None:
             def bar(x):
-                return x.subs(q=~self._q)
+                return x.subs(q=self._q**-1)
         self._bar = bar
         if indices_key is None:
             indices = IndexedFreeAbelianMonoid(gp_indices)

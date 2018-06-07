@@ -292,7 +292,7 @@ class YokonumaHeckeAlgebra(CombinatorialFreeModule):
         """
         if i < 1 or i >= self._n:
             raise ValueError("invalid index")
-        c = ~self.base_ring()(self._d)
+        c = self.base_ring()(self._d)**-1
         zero = [0]*self._n
         one = self._Pn.one()
         d = {}
@@ -421,7 +421,7 @@ class YokonumaHeckeAlgebra(CombinatorialFreeModule):
             return self.monomial((t, wi))
 
         R = self.base_ring()
-        c = (self._q - ~self._q) * ~R(self._d)
+        c = (self._q - self._q**-1) * R(self._d)**-1
         d = {(t, wi): R.one()}
         # We commute g_w and e_i and then multiply by t
         for s in range(self._d):
@@ -453,7 +453,7 @@ class YokonumaHeckeAlgebra(CombinatorialFreeModule):
         """
         if i < 1 or i >= self._n:
             raise ValueError("invalid index")
-        return self.g(i) + (~self._q + self._q) * self.e(i)
+        return self.g(i) + (self._q**-1 + self._q) * self.e(i)
 
     class Element(CombinatorialFreeModule.Element):
         def inverse(self):

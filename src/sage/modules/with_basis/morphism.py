@@ -940,12 +940,12 @@ class TriangularModuleMorphism(ModuleMorphism):
             sage: phi.preimage(2*y[1] + 2*y[2])
             B[1] - B[3]
 
-        The error message in case of failure could be more specific though::
+        When no inverse exists a specific error message is obtained::
 
             sage: phi.preimage(y[1] + y[2])
             Traceback (most recent call last):
               ...
-            TypeError: no conversion of this rational to integer
+            ArithmeticError: inverse does not exist
         """
         F = self.domain()
         G = self.codomain()
@@ -967,10 +967,10 @@ class TriangularModuleMorphism(ModuleMorphism):
                 raise ValueError("The morphism (={}) is not triangular at {}, and therefore a preimage cannot be computed".format(f, s))
 
             if not self._unitriangular:
-                # What's the appropriate way to request an exact
-                # division within the base ring and get an error if
-                # this is not possible?
-                c = c.parent()(c / s[j])
+                # exact division within the base ring
+                if not s[j].divides(c):
+                    raise ArithmeticError("inverse does not exist")
+                c = c // s[j]
 
             remainder -= s._lmul_(c)
             out += F.term(j_preimage, c)
