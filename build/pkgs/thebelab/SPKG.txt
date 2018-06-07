@@ -1,0 +1,36 @@
+= thebelab =
+
+== Description ==
+
+ThebeLab is a small JavaScript library built on top of JupyterLab that
+makes the code cells embedded in a static HTML page editable and
+executable. It's a more sustainable reimplementation of the Thebe
+library Sage was previously using.
+
+This is used by Sage's Sphinx documentation build system to produce
+html documentation that can be turned live (see #20690 and #24593).
+
+== License ==
+
+MIT
+
+== Upstream Contact ==
+
+Home page: https://github.com/minrk/thebelab
+
+== Dependencies ==
+
+The jupyter notebook (for the installation)
+
+== Special Update Instructions ==
+
+Instructions to update the package to a new version:
+
+    THEBELAB_VERSION=0.2.1
+    echo $THEBELAB_VERSION > package-version.txt
+    mkdir src
+    wget https://unpkg.com/thebelab@\^$THEBELAB_VERSION -O src/thebelab.js
+    tar -jcvf thebelab-$THEBELAB_VERSION.tar.bz2 src
+    rm  src/thebelab.js; rmdir src
+    mv thebelab-$THEBELAB_VERSION.tar.bz2 ../../../upstream
+    sage --package fix-checksum
