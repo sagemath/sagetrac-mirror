@@ -12,7 +12,7 @@ html documentation that can be turned live (see #20690 and #24593).
 
 == License ==
 
-MIT
+BSD-3-Clause
 
 == Upstream Contact ==
 
@@ -20,11 +20,11 @@ Home page: https://github.com/minrk/thebelab
 
 == Dependencies ==
 
-The jupyter notebook (for the installation)
+* the jupyter notebook (for the installation)
 
-== Special Update Instructions ==
+== Special Update/Build Instructions ==
 
-Instructions to update the package to a new version:
+To upgrade the sources to a new version:
 
     THEBELAB_VERSION=0.2.1
     echo $THEBELAB_VERSION > package-version.txt
