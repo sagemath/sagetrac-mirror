@@ -910,7 +910,8 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
 
             sage: O = algebras.QuantumGL(2)
             sage: [[O._antipode_on_generator(i, j) for i in [1,2]] for j in [1,2]]
-            [[c*x[2,2], (-q)*c*x[2,1]], [-(q^-1)*c*x[1,2], c*x[1,1]]]
+            [[c*x[2,2], (-q)*c*x[2,1]],
+             [-(q^-1)*c*x[1,2], c*x[1,1]]]
         """
         from sage.combinat.permutation import Permutations
         q = self._q

@@ -340,7 +340,8 @@ class HallAlgebra(CombinatorialFreeModule):
             sage: H.coproduct_on_basis(Partition([2]))
             H[] # H[2] + (-q^-1+1)*H[1] # H[1] + H[2] # H[]
             sage: H.coproduct_on_basis(Partition([2,1]))
-            H[] # H[2, 1] + (-q^-2+1)*H[1] # H[1, 1] + (q^-1)*H[1] # H[2] + (-q^-2+1)*H[1, 1] # H[1] + (q^-1)*H[2] # H[1] + H[2, 1] # H[]
+            H[] # H[2, 1] + (-q^-2+1)*H[1] # H[1, 1] + (q^-1)*H[1] # H[2]
+             + (-q^-2+1)*H[1, 1] # H[1] + (q^-1)*H[2] # H[1] + H[2, 1] # H[]
         """
         S = self.tensor_square()
         if all(x == 1 for x in la):
