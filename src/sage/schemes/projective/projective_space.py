@@ -82,8 +82,7 @@ from __future__ import print_function
 from six.moves import range
 from six import integer_types
 
-from sage.arith.misc import binomial
-from sage.arith.all import gcd
+from sage.arith.all import gcd, binomial
 
 from sage.rings.all import (PolynomialRing,
                             Integer,
