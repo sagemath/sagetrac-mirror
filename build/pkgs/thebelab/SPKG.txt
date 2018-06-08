@@ -8,7 +8,9 @@ executable. It's a more sustainable reimplementation of the Thebe
 library Sage was previously using.
 
 This is used by Sage's Sphinx documentation build system to produce
-html documentation that can be turned live (see #20690 and #24593).
+html documentation that can be turned live. See:
+- https://trac.sagemath.org/ticket/20690
+- https://trac.sagemath.org/ticket/24593
 
 == License ==
 
