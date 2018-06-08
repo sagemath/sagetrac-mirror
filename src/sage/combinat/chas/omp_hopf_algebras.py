@@ -957,7 +957,376 @@ class OMPBases(Category_realization_of_parent):
             return S.sum_of_terms((A.shape_from_cardinality(), coeff/prod(factorial(len(a)) for a in A))
                                   for (A, coeff) in H(self))
 
-##############
+
+
+############################
+class HopfAlgebraOnOrderedMultisetPartitionsDual(UniqueRepresentation, Parent):
+    r"""
+    The Hopf dual to Hopf Algebra on Ordered Multiset Partitions.
+
+    See Example 14 of [LM2018]_ for its dual.
+    """
+    def __init__(self, R):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+        """
+        # change the line below to assert(R in Rings()) once MRO issues from #15536, #15475 are resolved
+        assert(R in Fields() or R in Rings()) # side effect of this statement assures MRO exists for R
+        self._base = R # Won't be needed once CategoryObject won't override base_ring
+        category = GradedHopfAlgebras(R).Commutative().Connected()
+        Parent.__init__(self, category=category.WithRealizations())
+
+        # Bases
+        M = self.M()
+
+    def _repr_(self):
+        r"""
+        EXAMPLES::
+
+            sage: HopfAlgebraOnOrderedMultisetPartitions(ZZ).dual()
+            Dual to Hopf Algebra on Ordered Multiset Partitions over the Integer Ring
+        """
+        return "Dual to Hopf Algebra on Ordered Multiset Partitions over the %s"%self.base_ring()
+
+    def a_realization(self):
+        r"""
+        Return the realization of the `\mathbf{M}` basis of ``self``.
+
+        EXAMPLES::
+
+            sage: HopfAlgebraOnOrderedMultisetPartitions(QQ).dual().a_realization()
+            Dual to Hopf Algebra on Ordered Multiset Partitions over the Rational Field in the m basis
+        """
+        return self.M()
+
+    _shorthands = tuple(['M'])
+
+    def dual(self):
+        r"""
+        Return the dual Hopf algebra to Hopf Algebra on Ordered Multiset Partitions.
+
+        EXAMPLES::
+
+            sage: OMPD = HopfAlgebraOnOrderedMultisetPartitions(QQ).dual()
+            sage: OMPD.dual()
+            Hopf Algebra on Ordered Multiset Partitions over the Rational Field
+        """
+        from .hopf_omp import HopfAlgebraOnStrictMultisetCompositions
+        return HopfAlgebraOnStrictMultisetCompositions(self.base_ring())
+
+    class M(OMPBasis_abstract):
+        r"""
+        The Dual to Hopf Algebra on Ordered Multiset Partitions in the `\mathbf{M}` basis.
+
+        EXAMPLES::
+
+            sage: OMPD = HopfAlgebraOnOrderedMultisetPartitions(QQ).dual()
+            sage: M = OMPD.M()
+
+        """
+        def __init__(self, OMPD):
+            """
+            EXAMPLES::
+
+                sage: M = HopfAlgebraOnOrderedMultisetPartitions(QQ).dual().M()
+                sage: TestSuite(m).run()
+            """
+            def key_func_omp(A):
+                # not sure we need to do anything special here!
+                return A
+            CombinatorialFreeModule.__init__(self, OMPD.base_ring(), StrictMultisetCompositions(),
+                                             prefix='m', bracket=False,
+                                             #sorting_key=key_func_omp,
+                                             category=OMPDualBases(OMPD))
+
+        def dual_basis(self):
+            r"""
+            Return the dual basis to the `\mathbf{M}` basis.
+
+            The dual basis to the `\mathbf{M}` basis is the Homogeneous basis
+            of Hopf Algebra on Ordered Multiset Partitions.
+
+            OUTPUT:
+
+            - the Homogeneous basis of Hopf Algebra on Ordered Multiset Partitions
+
+            EXAMPLES::
+
+                sage: M = HopfAlgebraOnOrderedMultisetPartitions(QQ).dual().M()
+                sage: M.dual_basis()
+                Hopf Algebra on Ordered Multiset Partitions over the Rational Field in the Homogeneous basis
+            """
+            return self.realization_of().dual().H()
+
+        def product_on_basis(self, A, B):
+            r"""
+            The product on `\mathbf{M}` basis elements.
+
+            The product on the `\mathbf{M}` is the dual to the coproduct on the
+            `\mathbf{H}` basis.  On the basis `\mathbf{M}` it is defined as
+
+            .. MATH::
+
+                ???
+
+            where the sum is over all possible ... ???
+            This product is commutative.
+
+            INPUT:
+
+            - ``A``, ``B`` -- ordered multiset partitions
+
+            OUTPUT:
+
+            - an element of the `\mathbf{M}` basis
+
+            EXAMPLES::
+
+                sage: M = HopfAlgebraOnOrderedMultisetPartitions(QQ).dual().M()
+                sage: A = StrictMultisetComposition(from_zero_list=[2,1,3,0,1,2]); A
+                [{1,2,3}, {1,2}]
+                sage: B = StrictMultisetComposition([[3,4]]); B
+                [{3,4}]
+                sage: M.product_on_basis(A, B)
+                M[{1,2,3}, {1,2}, {3,4}] + M[{1,2,3}, {3,4}, {1,2}] + M[{3,4}, {1,2,3}, {1,2}] + M[{1,2,3}, {1,2,3,4}]
+                sage: C = StrictMultisetComposition([[4,5]]); C
+                [{4,5}]
+                sage: M.product_on_basis(A, C)
+                M[{1,2,3}, {1,2}, {4,5}] + M[{1,2,3}, {4,5}, {1,2}] + M[{4,5}, {1,2,3}, {1,2}] + M[{1,2,3}, {1,2,4,5}] + M[{1,2,3,4,5}, {1,2}]
+                sage: M.product_on_basis(A, StrictMultisetComposition([]))
+                M[{1,2,3}, {1,2}]
+            """
+            terms = A.shuffle_product(B, overlap=True)
+            return self.sum_of_terms([(s, 1) for s in terms])
+
+        def coproduct_on_basis(self, A):
+            r"""
+            Return the coproduct of a `\mathbf{M}` basis element.
+
+            The coproduct on the basis element `\mathbf{M}_A` is the sum over
+            tensor product terms `\mathbf{M}_B \otimes \mathbf{M}_C` where
+            `A=B+C`. (Here `+` is concatenation of ordered multiset partitions.
+
+            INPUT:
+
+            - ``A`` -- a ordered multiset partition
+
+            OUTPUT:
+
+            - The coproduct applied to the `\mathbf{M}` basis element indexed by ``A``
+              expressed in the `\mathbf{M}` basis.
+
+            EXAMPLES::
+
+                sage: M = HopfAlgebraOnOrderedMultisetPartitions(QQ).dual().M()
+                sage: M[[2], [2,3]].coproduct()
+                M[] # M[{2}, {2,3}] + M[{2}] # M[{2,3}] + M[{2}, {2,3}] # M[]
+                sage: M.coproduct_on_basis(StrictMultisetComposition([]))
+                M[] # M[]
+            """
+            n = A.size()
+            return self.tensor_square().sum_of_terms([
+                (( StrictMultisetCompositions(A[:i]), StrictMultisetCompositions(A[i:]) ), 1) \
+                for i in range(n+1)], distinct=True)
+
+        def _antipode_on_basis(self, A):
+            r"""
+            Return the antipode applied to the basis element indexed by ``A``.
+
+            INPUT:
+
+            - ``A`` -- an ordered multiset partition
+
+            OUTPUT:
+
+            - an element in the basis ``self``
+            """
+            pass
+
+        def duality_pairing(self, x, y):
+            r"""
+            Compute the pairing between an element of ``self`` and an
+            element of the dual.
+
+            INPUT:
+
+            - ``x`` -- an element of Dual to Hopf Algebra on Ordered Multiset Partitions
+            - ``y`` -- an element of Hopf Algebra on Ordered Multiset Partitions
+
+            OUTPUT:
+
+            - an element of the base ring of ``self``
+
+            EXAMPLES::
+
+                sage: DOMP = HopfAlgebraOnOrderedMultisetPartitionsDual(QQ)
+                sage: M = DOMP.M()
+                sage: h = M.dual_basis()
+                sage: matrix([[M(A).duality_pairing(H(B)) for A in StrictMultisetCompositions(3)] for B in StrictMultisetCompositions(3)])
+                [1 0 0 0 0]
+                [0 1 0 0 0]
+                [0 0 1 0 0]
+                [0 0 0 1 0]
+                [0 0 0 0 1]
+                sage: (M[[1,2],[3]] + 3*M[[1,3],[2]]).duality_pairing(2*H[[1,3],[2]] + H[[1,2,3]] + 2*H[[1,2],[3]])
+                8
+                sage: P = HopfAlgebraOnOrderedMultisetPartitions(QQ).P()
+                sage: matrix([[M(A).duality_pairing(P(B)) for A in StrictMultisetCompositions(3)] for B in StrictMultisetCompositions(3)])
+                [_ _ _ _ _]
+                [_ _ _ _ _]
+                [_ _ _ _ _]
+                [_ _ _ _ _]
+                [_ _ _ _ _]
+                sage: (2*M[[2,3],[3]] + 3*M[[3],[2],[3]] + M[[3],[2,3]]).duality_pairing(P[[2,3],[3]] + 3*P[[3] [2,3]])
+                ???
+            """
+            x = self(x)
+            y = self.dual_basis()(y)
+            return sum(coeff * y[I] for (I, coeff) in x)
+
+        def sum_of_derangements(self, A):
+            """
+            Return the sum over all ordered multiset partitions whose multiset of blocks
+            coincide with those of `A`.
+
+            INPUT:
+
+            - ``A`` -- a ordered multiset partition
+
+            OUTPUT:
+
+            - an element of ``self``
+
+            EXAMPLES::
+
+                sage: M = HopfAlgebraOnOrderedMultisetPartitions(QQ).dual().M()
+                sage: M.sum_of_partitions([[2,1],[1]])
+                M[{1}, {1,2}] + M[{1,2}, {1}]
+            """
+            A = StrictMultisetCompositions(A)
+            P = StrictMultisetCompositions
+            return self.sum_of_terms([(P(omp), 1) for omp in Permutations(list(A))], distinct=True)
+
+        def sum_of_shape_from_cardinality(self, A, deg=None):
+            """
+            Return the sum over all ordered multiset partitions of degree ``deg`` whose underlying composition shape (from cardinality) is ``A``.
+
+            INPUT:
+
+            - ``deg`` -- a nonnegative integer
+            - ``A`` -- a composition
+
+            OUTPUT:
+
+            - an element of ``self``
+
+            EXAMPLES::
+
+                sage: M = HopfAlgebraOnOrderedMultisetPartitions(QQ).dual().M()
+                sage: M.sum_of_shape_from_cardinality(5,[2,1])
+                M[{1,3}, {1}] + M[{1,2}, {2}]
+                sage: M.sum_of_shape_from_cardinality(6,[2,1])
+                M[{2,3}, {1}] + M[{1,3}, {2}] + M[{1,4}, {1}] + M[{1,2}, {3}]
+            """
+            # NOTE: This function is *really* meant to be used with ``deg`` parameter specified.
+            if deg is None:
+                deg = sum([binomial(k,2) for k in A])
+            A = Composition(A)
+            P = StrictMultisetCompositions(deg)
+            return self.sum_of_terms([(omp, 1) for omp in P if P.shape_from_cardinality() == A], distinct=True)
+
+        def sum_of_shape_from_size(self, A):
+            """
+            Return the sum over all ordered multiset partitions of |A| whose underlying composition shape (from size) is ``A``.
+
+            INPUT:
+
+            - ``A`` -- a composition
+
+            OUTPUT:
+
+            - an element of ``self``
+
+            EXAMPLES::
+
+                sage: M = HopfAlgebraOnOrderedMultisetPartitions(QQ).dual().M()
+                sage: M.sum_of_shape_from_cardinality([3,1])
+                M[{1,2}, {1}] + M[{3}, {1}]
+                sage: M.sum_of_shape_from_cardinality([6,2])
+                M[{1,2,3}, {2}] + M[{1,5}, {2}] + M[{2,4}, {2}] + M[{6}, {2}]
+            """
+            A = Composition(A)
+            P = StrictMultisetCompositions(sum(A))
+            return self.sum_of_terms([(omp, 1) for omp in P if P.shape_from_size() == A], distinct=True)
+
+        class Element(CombinatorialFreeModule.Element):
+            r"""
+            An element in the `\mathbf{M}` basis of OMP^*.
+            """
+            def is_symmetric(self):
+                r"""
+                Meant to model the inclusion of SYM inside QSYM, though there is no notion of
+                quasisymmetric polynomials related to Dual to Hopf Algebra on Ordered Multiset Partitions
+                as of yet.
+
+                Determine if a `OMP^*` function, expressed in the
+                `\mathbf{M}` basis, is symmetric.
+
+                A function `f` in the `\mathbf{M}` basis shall be deemed symmetric
+                if for each ordered multiset partition `A` in its support, all derangements of `A`
+                are also in the support of `f` with the same coefficient.
+
+                .. MATH::
+
+                    f = \sum_{\lambda} c_{\lambda} \prod_i m_i(\lambda)!
+                    \sum_{\lambda(A) = \lambda} \mathbf{M}_A
+
+                where the second sum is over all ordered multiset partitions `A` whose
+                shape `\lambda(A)` is equal to `\lambda` and `m_i(\mu)` is
+                the multiplicity of `i` in the partition `\mu`.
+
+                OUTPUT:
+
+                - ``True`` if `sorted(A)=sorted(B)` implies the coefficients of
+                  `\mathbf{M}_A` and `\mathbf{M}_B` are equal, ``False`` otherwise
+
+                EXAMPLES::
+
+                    sage: M = HopfAlgebraOnOrderedMultisetPartitions(QQ).dual().M()
+                    sage: elt = M.sum_of_derangements([[2],[2,3],[1]])
+                    sage: elt.is_symmetric()
+                    True
+                    sage: elt -= 3*M.sum_of_partitions([[1],[1]])
+                    sage: elt.is_symmetric()
+                    True
+                    sage: elt += M([[2],[1],[2,3]])
+                    sage: elt.is_symmetric()
+                    False
+                    sage: elt = M[[1,3],[2]]
+                    sage: elt.is_symmetric()
+                    False
+                    sage: elt = M[[1,3],[2]] + M[[2],[1,3]] + 2* M[[2,3],[2,3]]
+                    sage: elt.is_symmetric()
+                    True
+                """
+                P = StrictMultisetComposition
+                d = {}
+                R = self.base_ring()
+                for A, coeff in self:
+                    la = P(sorted(A))
+                    if la not in d:
+                        d[la] = [coeff, 1]
+                    else:
+                        if d[la][0] != coeff:
+                            return False
+                        d[la][1] += 1
+                # Make sure we've seen each ordered multiset partition in the derangement class
+                return all(d[la][1] == Permutations(la).cardinality() for la in d)
+
+############################
 OMPSym = HopfAlgebraOnOrderedMultisetPartitions(QQ)
 H = OMPSym.H()
 OP = OrderedMultisetPartitions()
@@ -966,3 +1335,12 @@ OMPSymA = HopfAlgebraOnOrderedMultisetPartitions(QQ, alphabet=[2,3,5])
 HA = OMPSymA.H()
 OPA = OrderedMultisetPartitions(alphabet=[2,3,5])
 print HA
+
+DOMPSym = HopfAlgebraOnOrderedMultisetPartitionsDual(QQ)
+M = DOMPSym.M()
+OP = OrderedMultisetPartitions()
+print M
+DOMPSymA = HopfAlgebraOnOrderedMultisetPartitionsDual(QQ, alphabet=[2,3,5])
+MA = DOMPSymA.M()
+OPA = OrderedMultisetPartitions(alphabet=[2,3,5])
+print MA
