@@ -317,12 +317,6 @@ class SFSuperSpaceAlgebraMorphism(AlgebraMorphism):
     indices of the fermionic generators and the positive integers
     are mapped to the bosonic generators.
     """
-    def super_partition_to_generators(self, sp):
-        r"""
-        A list of integers representing the generators from a multiplicative basis.
-        """
-        return [-a for a in sp[0]]+[a for a in sp[1]]
-
     def _on_basis(self, sp):
         r"""
         Computes the image of this morphism on the basis element indexed by
@@ -350,11 +344,11 @@ class SFSuperSpaceAlgebraMorphism(AlgebraMorphism):
             h[3, 1, 0; ]
             sage: f._on_basis([[1],[1]])
             0
+            sage: f = SFSuperSpaceAlgebraMorphism(p, lambda i : h[[abs(i)],[]], codomain=h, anti=True)
+            sage: f._on_basis([[0],[3, 1]])
+            -h[3, 1, 0; ]
         """
-        if self._anti:
-            c = reversed(self.super_partition_to_generators(sp))
-        else:
-            c = self.super_partition_to_generators(sp)
+        c = ([-a for a in sp[0]]+[a for a in sp[1]])[::1-2*int(self._anti)]
         return self.codomain().prod(self._on_generators(i) for i in c)
 
 def valid_fermionic_matchings(sp1, sp2, a_sp3):
