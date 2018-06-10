@@ -324,7 +324,7 @@ index 4160b72..2c87608 100644
 -    return (x, y)
 -
 diff --git a/src/nautywrap.cpp b/src/nautywrap.cpp
-index 82e5309..51bbc89 100644
+index 82e5309..b8371a0 100644
 --- a/src/nautywrap.cpp
 +++ b/src/nautywrap.cpp
 @@ -16,7 +16,6 @@ GNU General Public License for more details.
@@ -568,11 +568,11 @@ index 82e5309..51bbc89 100644
 +    
 +    PyObject *vertex_iterator = PyObject_GetIter(py_graph);
 +	PyObject *idx;
-+	PyObject *neighbor_function_name;
++	char *neighbor_function_name;
 +	if(g->options->digraph){
-+		neighbor_function_name = PyString_FromString("neighbors_out");
++		neighbor_function_name = "neighbors_out";
 +	}else{
-+		neighbor_function_name = PyString_FromString("neighbors");
++		neighbor_function_name = "neighbors";
 +	}
 +	if (vertex_iterator == NULL) {
 +		PyErr_SetString(PyExc_TypeError, "missing iterator");
@@ -586,7 +586,7 @@ index 82e5309..51bbc89 100644
 +		x = PyInt_AS_LONG(idx);
 +		#endif
 +		PyObject *neighbor_list;
-+		if ((neighbor_list = PyObject_CallMethodObjArgs(py_graph, neighbor_function_name, idx)) == NULL) {
++		if ((neighbor_list = PyObject_CallMethod(py_graph, neighbor_function_name, "(i)", x)) == NULL) {
 +			if(!(g->options->digraph)) PyErr_SetString(PyExc_TypeError, "Missing 'neighbors' method");
 +			else PyErr_SetString(PyExc_TypeError, "Missing 'neighbors_out' method");
 +			return NULL;
