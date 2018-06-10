@@ -21,7 +21,7 @@ index dc3ec14..05c6e63 100644
          extra_objects = [ nauty_dir + '/' + 'nauty.o',
                            nauty_dir + '/' + 'nautil.o',
 diff --git a/src/graph.py b/src/graph.py
-index 4160b72..9d6d93c 100644
+index 4160b72..2c87608 100644
 --- a/src/graph.py
 +++ b/src/graph.py
 @@ -23,34 +23,31 @@ __all__ = [
@@ -189,7 +189,7 @@ index 4160b72..9d6d93c 100644
              for p in vertex_coloring:
                  if p <= vs:
                      self._vertex_coloring.append(p)
-@@ -134,24 +122,56 @@ class Graph(object):
+@@ -134,31 +122,63 @@ class Graph(object):
                      raise ValueError('Invalid partition: %s' % vertex_coloring)
              if vs:
                  self._vertex_coloring.append(vs)
@@ -256,6 +256,14 @@ index 4160b72..9d6d93c 100644
  
  def autgrp(g):
      '''
+     Compute the automorphism group of a graph.
+ 
+     *g*
+-        A Graph object.
++        A PyNauty Graph object.
+ 
+     return -> (generators, grpsize1, grpsize2, orbits, numorbits)
+         For the detailed description of the returned components, see
 @@ -166,7 +186,23 @@ def autgrp(g):
      '''
      if not isinstance(g, Graph):
@@ -264,7 +272,7 @@ index 4160b72..9d6d93c 100644
 +    gens, grpsize1, grpsize2, orbits, numorbits = nautywrap.graph_autgrp(g)
 +    gens = [_array_to_disjoint_representation(gen) for gen in gens]
 +    if g._normalized:
-+        gens = [[[g._inverted_relabel_map[v] for v in cycle] for cycle in gen] for gen in gens]
++        gens = [[tuple([g._inverted_relabel_map[v] for v in cycle]) for cycle in gen] for gen in gens]
 +    if g._first_level_vertices:
 +        inverted_first_level_vertices = {v:k for k,v in getiterator(g._first_level_vertices)}
 +        gens = [[tuple([inverted_first_level_vertices[v] for v in cycle]) for cycle in gen if cycle[0] in inverted_first_level_vertices] for gen in gens]
@@ -316,19 +324,18 @@ index 4160b72..9d6d93c 100644
 -    return (x, y)
 -
 diff --git a/src/nautywrap.cpp b/src/nautywrap.cpp
-index 82e5309..11e3ec8 100644
+index 82e5309..51bbc89 100644
 --- a/src/nautywrap.cpp
 +++ b/src/nautywrap.cpp
-@@ -15,7 +15,7 @@ GNU General Public License for more details.
- #include <Python.h>
+@@ -16,7 +16,6 @@ GNU General Public License for more details.
  #include <nauty.h>
  #include <nautywrap.h>
--
-+#include <iostream>
  
+-
  //  static global (yuck) variables  -------------------------------------------
  
-@@ -42,9 +42,9 @@ static void store_generator(int count,
+ // Nauty default options
+@@ -42,9 +41,9 @@ static void store_generator(int count,
      NyGraph *g = GRAPH_PTR;
      int i;
      permutation *p;
@@ -340,7 +347,7 @@ index 82e5309..11e3ec8 100644
          fprintf(stderr, "Failed to allocate memory for generator #%d.\n",
                  g->no_generators);
          exit(1);
-@@ -59,19 +59,19 @@ static void store_generator(int count,
+@@ -59,19 +58,19 @@ static void store_generator(int count,
      if (g->no_generators >= g->max_no_generators) {
          // allocate a larger array
          g->max_no_generators += NUM_GENS_INCR;
@@ -364,7 +371,7 @@ index 82e5309..11e3ec8 100644
      }
  }
  
-@@ -110,7 +110,7 @@ NyGraph * create_nygraph(int no_vertices)
+@@ -110,7 +109,7 @@ NyGraph * create_nygraph(int no_vertices)
  
      if (no_vertices < 0) return NULL;
  
@@ -373,7 +380,7 @@ index 82e5309..11e3ec8 100644
  
      // initialize evrything here so if allocation fails at any stage later
      // we can clean up
-@@ -127,7 +127,7 @@ NyGraph * create_nygraph(int no_vertices)
+@@ -127,7 +126,7 @@ NyGraph * create_nygraph(int no_vertices)
      g->no_setwords = (no_vertices + WORDSIZE - 1) / WORDSIZE;
      nauty_check(WORDSIZE, g->no_setwords, g->no_vertices, NAUTYVERSIONID);
  
@@ -382,7 +389,7 @@ index 82e5309..11e3ec8 100644
                      (size_t) (no_vertices * sizeof(setword)))) == NULL) {
          destroy_nygraph(g);
          return NULL;
-@@ -138,25 +138,25 @@ NyGraph * create_nygraph(int no_vertices)
+@@ -138,25 +137,25 @@ NyGraph * create_nygraph(int no_vertices)
  
      g->cmatrix = NULL;
  
@@ -412,7 +419,7 @@ index 82e5309..11e3ec8 100644
          destroy_nygraph(g);
          return NULL;
      }
-@@ -166,17 +166,17 @@ NyGraph * create_nygraph(int no_vertices)
+@@ -166,17 +165,17 @@ NyGraph * create_nygraph(int no_vertices)
      g->options->getcanon = FALSE;
      g->options->defaultptn = TRUE;      // default is no coloring
      g->options->writeautoms = FALSE;
@@ -433,7 +440,7 @@ index 82e5309..11e3ec8 100644
          destroy_nygraph(g);
          return NULL;
      }
-@@ -201,7 +201,7 @@ NyGraph * extend_canonical(NyGraph *g)
+@@ -201,7 +200,7 @@ NyGraph * extend_canonical(NyGraph *g)
  // extend the NyGraph structure with cmatrix to hold
  // the canonically labeled graph
  {
@@ -442,7 +449,7 @@ index 82e5309..11e3ec8 100644
              == NULL) {
          destroy_nygraph(g);
          return NULL;
-@@ -313,90 +313,114 @@ static PyObject* py_auto_group(NyGraph *g)
+@@ -313,90 +312,114 @@ static PyObject* py_auto_group(NyGraph *g)
      return py_autgrp;
  }
  
@@ -610,7 +617,7 @@ index 82e5309..11e3ec8 100644
      if (x < 0) {
          g->options->defaultptn = TRUE;
      } else if (x == 0) {
-@@ -408,14 +432,13 @@ NyGraph * _make_nygraph(PyObject *py_graph)
+@@ -408,14 +431,13 @@ NyGraph * _make_nygraph(PyObject *py_graph)
      return g;
  }
  
@@ -626,7 +633,7 @@ index 82e5309..11e3ec8 100644
  static PyObject*
  make_nygraph(PyObject *self, PyObject *args)
  // Convert the Python NyGraph object into a Nauty/C NyGraph object
-@@ -435,12 +458,12 @@ make_nygraph(PyObject *self, PyObject *args)
+@@ -435,12 +457,12 @@ make_nygraph(PyObject *self, PyObject *args)
      //return PyCObject_FromVoidPtr((void *) g, NULL);
      return PyCapsule_New((void *) g, NULL, NULL);
  }
@@ -641,7 +648,7 @@ index 82e5309..11e3ec8 100644
  static PyObject*
  delete_nygraph(PyObject *self, PyObject *args) {
      PyObject *p;
-@@ -457,12 +480,12 @@ delete_nygraph(PyObject *self, PyObject *args) {
+@@ -457,12 +479,12 @@ delete_nygraph(PyObject *self, PyObject *args) {
      return Py_BuildValue("");
  }
  
@@ -656,7 +663,7 @@ index 82e5309..11e3ec8 100644
  static PyObject*
  graph_autgrp(PyObject *self, PyObject *args)
  {
-@@ -482,7 +505,7 @@ graph_autgrp(PyObject *self, PyObject *args)
+@@ -482,7 +504,7 @@ graph_autgrp(PyObject *self, PyObject *args)
      g->options->userautomproc = store_generator;
  
      // initialize storage for collecting generators
@@ -665,7 +672,7 @@ index 82e5309..11e3ec8 100644
              == NULL) {
          PyErr_SetString(PyExc_MemoryError,
                  "Initial generator list allocation failed.");
-@@ -495,18 +518,17 @@ graph_autgrp(PyObject *self, PyObject *args)
+@@ -495,18 +517,17 @@ graph_autgrp(PyObject *self, PyObject *args)
      nauty(g->matrix, g->lab, g->ptn, NULL, g->orbits,
              g->options, g->stats,  g->workspace, g->worksize,
              g->no_setwords, g->no_vertices, NULL);
@@ -686,7 +693,7 @@ index 82e5309..11e3ec8 100644
  graph_cert(PyObject *self, PyObject *args)
  {
      PyObject *py_graph;
-@@ -545,7 +567,7 @@ graph_cert(PyObject *self, PyObject *args)
+@@ -545,7 +566,7 @@ graph_cert(PyObject *self, PyObject *args)
      destroy_nygraph(g);
      return pyret;
  }
@@ -695,7 +702,7 @@ index 82e5309..11e3ec8 100644
  
  //  Python module initialization  =============================================
  
-@@ -567,19 +589,19 @@ static struct PyModuleDef moduledef = {
+@@ -567,19 +588,19 @@ static struct PyModuleDef moduledef = {
      .m_methods = nautywrap_methods,
  };
  
