@@ -1049,16 +1049,6 @@ cdef class FractionFieldElement(FieldElement):
             sage: S.<y> = R.fraction_field()[]
             sage: (y+1)(R.one())
             0
-
-        Check that inexact elements are treated correctly::
-
-            sage: K=Qp(2,5)
-            sage: R.<x> = K[]
-            sage: L = R.fraction_field()
-            sage: S.<y> = L[]
-            sage: y(K(1,1)/x)
-            ((1 + O(2)))/((1 + O(2))*x)
-
         """
         if self.numerator().is_one():
             denominator = self.denominator()
