@@ -21,10 +21,14 @@ index dc3ec14..05c6e63 100644
          extra_objects = [ nauty_dir + '/' + 'nauty.o',
                            nauty_dir + '/' + 'nautil.o',
 diff --git a/src/graph.py b/src/graph.py
-index 4160b72..2c87608 100644
+index 4160b72..95ec956 100644
 --- a/src/graph.py
 +++ b/src/graph.py
-@@ -23,34 +23,31 @@ __all__ = [
+@@ -19,38 +19,53 @@ GNU General Public License for more details.
+ '''
+ 
+ __all__ = [
+-    'Graph',
      'autgrp',
      'isomorphic',
      'certificate',
@@ -35,7 +39,7 @@ index 4160b72..2c87608 100644
 +from copy import copy 
  import random
 +from sys import version_info    
-+from sage.graphs.graph import GenericGraph
++from sage.graphs.graph import GenericGraph as SageGraph
  
 -
 +def getiterator(l):
@@ -45,6 +49,26 @@ index 4160b72..2c87608 100644
 +        return l.iteritems()
 +        
  class Graph(object):
++    '''
++    For each multiple edge e whose elements have labels l_0,l_1,...,l_(m-1), 
++    delete the multiple edge and substitute it with a single edge, with label 
++    (l_i, m) where i can be any integer between 0 and m-1
++    '''
++    def _edge_multiplicity_to_label(self, edge_labels=False):
++        from collections import Counter
++        G = self.graph
++        edge_multiplicity_dict = Counter(G.multiple_edges(labels=False))
++       
++        G.remove_multiple_edges()
++        for (u, v), m in getiterator(edge_multiplicity_dict):
++            if edge_labels:
++                new_label = (G.edge_label(u,v), m)
++            else:
++                new_label = m
++            G.set_edge_label(u, v, m)
++        
++    
++    
      '''
      Graph instantiates an adjacency dictionary based graph object.
      It can represent vertex colored, directed or undirected graphs.
@@ -53,9 +77,8 @@ index 4160b72..2c87608 100644
 -    def __init__(self, number_of_vertices, directed=False,
 -                 adjacency_dict={},
 -                 vertex_coloring=[]):
-+    
 +    def __init__(self, graph,
-+                 vertex_coloring=[], normalize_labels=True, multiedge=True):
++                 edge_labels=False):
          '''
 -        *number_of_vertices*
 -            The number of vertices of the graph; the vertices are
@@ -73,7 +96,7 @@ index 4160b72..2c87608 100644
  
          *vertex_coloring*
              A list of disjoint sets of vertices representing a
-@@ -58,63 +55,39 @@ class Graph(object):
+@@ -58,63 +73,33 @@ class Graph(object):
              placed into a single additional part.  Optional, default
              is no coloring.
          '''
@@ -123,27 +146,22 @@ index 4160b72..2c87608 100644
 -        if isinstance(neighbors, list):
 -            self._check_vertices(neighbors)
 -            self._adjacency_dict[v] = neighbors
-+        multiedged = graph.has_multiple_edges()
-+        self._first_level_vertices = {}
-+        if vertex_coloring == None:
-+            vertex_coloring = []
-+        vertex_coloring = [set(v) for v in vertex_coloring]
-+        if multiedged and not multiedge:
-+            raise ValueError("Graphs with multiple edges are not yet supported, if not transformed with multiedge=True")
-+        elif multiedged:
-+            self.graph, self._first_level_vertices = graph.to_singledge()
-         else:
+-        else:
 -            self._check_vertices([neighbors])
 -            self._adjacency_dict.setdefault(v, [])
 -            self._adjacency_dict[v].append(neighbors)
-+            self.graph = copy(graph)
++        G = copy(graph)
++        multiedged = G.has_multiple_edges()
++        self._first_level_vertices = {}
++        self._vertex_coloring = []
++        self.graph = G
++        if multiedged:
++            self._edge_multiplicity_to_label(edge_labels)
++            edge_labels = True
 +        self.number_of_vertices = self.graph.order()
 +        self.directed = self.graph.is_directed()
-+        relabel_map = {}
++        self._relabel_map = {}
 +        self._normalized = False
-+        if normalize_labels:
-+            relabel_map = self.relabel()
-+        self.set_vertex_coloring(vertex_coloring, relabel_map)
 +
 +    def relabel(self):
 +        if self._normalized:
@@ -163,13 +181,15 @@ index 4160b72..2c87608 100644
          '''
          Define a vertex coloring of the Graph.
  
-@@ -124,8 +97,23 @@ class Graph(object):
+@@ -124,8 +109,25 @@ class Graph(object):
              placed into a single additional part.
          '''
          self._vertex_coloring = []
 -        if vertex_coloring:
 -            vs = set(range(self.number_of_vertices))
-+        
++        if vertex_coloring == None:
++            vertex_coloring = []
++        vertex_coloring = [set(v) for v in vertex_coloring]
 +        if bool(vertex_coloring) or bool(self._first_level_vertices):
 +            
 +            if bool(self._first_level_vertices):
@@ -189,7 +209,7 @@ index 4160b72..2c87608 100644
              for p in vertex_coloring:
                  if p <= vs:
                      self._vertex_coloring.append(p)
-@@ -134,31 +122,63 @@ class Graph(object):
+@@ -134,39 +136,100 @@ class Graph(object):
                      raise ValueError('Invalid partition: %s' % vertex_coloring)
              if vs:
                  self._vertex_coloring.append(vs)
@@ -217,6 +237,8 @@ index 4160b72..2c87608 100644
          s.append(')')
          return '\n'.join(s)
 -
+-
+-def autgrp(g):
 +    
 +    def _latex_(self):
 +		
@@ -253,8 +275,8 @@ index 4160b72..2c87608 100644
 +        result.append(cycle)
 +    return result
 +            
- 
- def autgrp(g):
++
++def autgrp(g, partition=[], edge_labels=False):
      '''
      Compute the automorphism group of a graph.
  
@@ -264,11 +286,25 @@ index 4160b72..2c87608 100644
  
      return -> (generators, grpsize1, grpsize2, orbits, numorbits)
          For the detailed description of the returned components, see
-@@ -166,7 +186,23 @@ def autgrp(g):
+         Nauty's documentation.
      '''
-     if not isinstance(g, Graph):
+-    if not isinstance(g, Graph):
++    if not isinstance(g, SageGraph):
          raise TypeError
 -    return nautywrap.graph_autgrp(g)
++        
++    
++
++    g_temp = Graph(g, edge_labels)
++    if(g.has_multiple_edges()):
++        edge_labels = True
++    g = g_temp
++    if edge_labels:
++        g.graph, g._first_level_vertices = g.graph.remove_labels()
++        g.number_of_vertices = g.graph.order()
++    g._relabel_map = g.relabel()
++    g.set_vertex_coloring(partition, g._relabel_map)
++
 +    gens, grpsize1, grpsize2, orbits, numorbits = nautywrap.graph_autgrp(g)
 +    gens = [_array_to_disjoint_representation(gen) for gen in gens]
 +    if g._normalized:
@@ -289,7 +325,43 @@ index 4160b72..2c87608 100644
  
  
  def certificate(g):
-@@ -200,33 +236,3 @@ def isomorphic(a, b):
+@@ -184,7 +247,7 @@ def certificate(g):
+     return nautywrap.graph_cert(g)
+ 
+ 
+-def isomorphic(a, b):
++def isomorphic(a, b, a_partition=[], b_partition=[], edge_labels=False):
+     '''
+     Determine if two graphs are isomorphic.
+ 
+@@ -194,39 +257,30 @@ def isomorphic(a, b):
+     return ->
+         True if *a* and *b* are isomorphic graphs, False otherwise,
+     '''
++    if not isinstance(a, SageGraph):
++        raise TypeError
++    if not isinstance(b, SageGraph):
++        raise TypeError
++    a_temp = Graph(a, edge_labels)
++    b_temp = Graph(b, edge_labels)
++    if a.has_multiple_edges() or b.has_multiple_edges:
++        edge_labels = True
++    a = a_temp
++    b = b_temp
++    if edge_labels:
++        edge_labels_list = a.edge_labels()
++        edge_labels_list.extend(b.edge_labels())
++        a.graph, a.graph._first_level_vertices = a.graph.remove_labels(edge_labels_list)
++        b.graph, b.graph._first_level_vertices = b.graph.remove_labels(edge_labels_list)
++        a.number_of_vertices = a.graph.order()
++        b.number_of_vertices = b.graph.order()
++    a._relabel_map = a.relabel()
++    b._relabel_map = b.relabel()
++    a.set_vertex_coloring(a_partition, a._relabel_map)
++    b.set_vertex_coloring(b_partition, b._relabel_map)
+     if a.number_of_vertices != b.number_of_vertices:
+         return False
+     elif list(map(len, a.vertex_coloring)) != list(map(len, b.vertex_coloring)):
          return False
      else:
          return certificate(a) == certificate(b)

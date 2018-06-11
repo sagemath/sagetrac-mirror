@@ -1664,14 +1664,14 @@ class GenericGraph(GenericGraph_pyx):
 
         return d
 
-    def to_singledge(self):
+    def remove_labels(self, edge_labels=[]):
         r"""
-        Return a graph G based on self, without multiple edges, and a subset of G's vertices.
+        Return a graph G based on self, without edge labels, and a subset of G's vertices.
         
-        If run on a graph without multiple edges, return (self, self.vertices()).
+        If run on a graph without edge labels, return (self, self.vertices()).
         Construct an auxiliary graph G with n*log(k) vertices, where k is the
-        maximum multiplicity of self's edges and n the number of its vertices,
-        that has no multiple edges and with two peculiar characteristics:
+        number of self's different edge labels and n the number of its vertices,
+        that has no edge lables and with two peculiar characteristics:
         - There is a subset V' of its vertices such that G's automorphism group's
         restricted on V' is the same as self's automorphism group
         - Given two (multi)graphs, they are isomorphic if and only if
@@ -1686,10 +1686,6 @@ class GenericGraph(GenericGraph_pyx):
         
         - The subset of G's vertices V', as described above
         
-        WARNING::
-
-            At the moment this method diregards any edge label present in self.
-          
         EXAMPLES::
           
             Calling the function on a graph without multiple edges ::
@@ -1744,9 +1740,18 @@ class GenericGraph(GenericGraph_pyx):
         Algorithm as described in section 14 of Nauty's guide (version 2.6),
         http://pallini.di.uniroma1.it/Guide.html
         """
-        if not self.has_multiple_edges():
+        self_edge_labels = self.edge_labels()
+        if not self_edge_labels and not edge_labels:
             return self, self.vertices()
-            
+        if not edge_labels:
+            edge_labels = self_edge_labels
+        
+        edge_labels_dict = {}
+        counter = 1
+        for el in edge_labels:
+            if(edge_labels_dict.setdefault(el, counter) == counter):
+                counter += 1
+        
         from math import floor, log
         from sys import version_info
         from sage.graphs.graph import Graph, DiGraph
@@ -1764,15 +1769,8 @@ class GenericGraph(GenericGraph_pyx):
             newG = DiGraph(loops=True, multiedges=False)
         else:
             newG = Graph(loops=True, multiedges=False)
-        edge_list = {}
-        max_multiplicity = 0
-        for u,v in G.edges(labels=False):
-            if (u,v) in edge_list:
-                continue
-            m = len(G.edge_label(u,v))
-            edge_list[(u,v)] = m
-            max_multiplicity = max(m, max_multiplicity)
-        k = max_multiplicity
+        
+        k = counter
         d = int(log(k, 2)) + 1
         first_level_vertices = {}
         for v in G:
@@ -1782,8 +1780,8 @@ class GenericGraph(GenericGraph_pyx):
                     newG.add_edges([((v,l-1),(v,l)),((v,l),(v,l-1))])
                 else:
                     newG.add_edge((v,l-1),(v,l))
-        for (u,v),label in getiterator(edge_list):
-            for idx, bit in enumerate(get_bits_list(label)):
+        for u,v,label in G.edges():
+            for idx, bit in enumerate(get_bits_list(edge_labels_dict[label])):
                 if(bit):
                     newG.add_edge((u,idx),(v,idx))
         return newG, first_level_vertices
@@ -20994,8 +20992,8 @@ class GenericGraph(GenericGraph_pyx):
             have_bliss = False
         
         #There's no way to manage arbitrary edge labels with nauty yet
-        if edge_labels and algorithm == 'nauty':
-            raise NotImplementedError("algorithm 'nauty' cannot be used on graphs with arbitrary edge labels")
+        #if edge_labels and algorithm == 'nauty':
+        #    raise NotImplementedError("algorithm 'nauty' cannot be used on graphs with arbitrary edge labels")
         
         if (algorithm == 'bliss'           or   # explicit choice from the user; or
             (algorithm is None             and  # by default
@@ -21025,7 +21023,7 @@ class GenericGraph(GenericGraph_pyx):
         if algorithm == 'nauty':
             if not have_pynauty:
                 raise FeatureNotPresentError("the package 'pynauty' needed to use 'algorithm' == 'nauty' is not installed, install it running the command './sage -i pynauty'")
-            from pynauty import autgrp, Graph as PyNautyGraph
+            from pynauty import autgrp
             from sage.combinat.set_partition import SetPartitions
             
             #Check partition
@@ -21036,9 +21034,8 @@ class GenericGraph(GenericGraph_pyx):
                     del t
                 if self.order() != reduce(lambda x,y: x+y, [len(el) for el in partition]):
                     raise KeyError(-1)
-                
-            g = PyNautyGraph(self, vertex_coloring=partition)
-            gens,grpsize1,grpsize2,orbit_list,numorbits = autgrp(g)
+
+            gens,grpsize1,grpsize2,orbit_list,numorbits = autgrp(self, partition, edge_labels)
             ret = []
             from sage.groups.perm_gps.permgroup import PermutationGroup
             if return_group and not (order or orbits):
@@ -21569,10 +21566,8 @@ class GenericGraph(GenericGraph_pyx):
                 raise NotImplementedError("algorithm 'nauty' cannot be used on graphs with arbitrary edge labels")
             if not have_pynauty:
                 raise FeatureNotPresentError("the package 'pynauty' needed to use 'algorithm' == 'nauty' is not installed, install it running the command './sage -i pynauty'")
-            from pynauty import isomorphic, Graph as PyNautyGraph
-            g = PyNautyGraph(self, vertex_coloring=self_partition)
-            h = PyNautyGraph(other, vertex_coloring=other_partition)
-            return isomorphic(g,h)
+            from pynauty import isomorphic
+            return isomorphic(self, other, self_partition, other_partition, edge_labels)
         
         from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic
 
