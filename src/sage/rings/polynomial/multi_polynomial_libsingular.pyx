@@ -265,6 +265,8 @@ from . import polynomial_element
 permstore=[]
 cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
 
+    Element = MPolynomial_libsingular
+
     def __cinit__(self):
         """
         The Cython constructor.
@@ -520,8 +522,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                 return True
         elif base_ring.has_coerce_map_from(other):
             return True
-
-    Element = MPolynomial_libsingular
 
     def _element_constructor_(self, element, check=True):
         """

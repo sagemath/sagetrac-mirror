@@ -131,6 +131,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         sage: loads(R.dumps()) == R
         True
     """
+    from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict as Element
+
     def __init__(self, base_ring, n, names, order):
         from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         order = TermOrder(order,n)
@@ -139,10 +141,9 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         v = [0] * n
         one = base_ring(1);
         self._gens = []
-        C = self._poly_class()
         for i in range(n):
             v[i] = 1  # int's!
-            self._gens.append(C(self, {tuple(v):one}))
+            self._gens.append(self.Element(self, {tuple(v):one}))
             v[i] = 0
         self._gens = tuple(self._gens)
         self._zero_tuple = tuple(v)
@@ -160,10 +161,6 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
     def _monomial_order_function(self):
         return self.__monomial_order_function
-
-    def _poly_class(self):
-        from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
-        return MPolynomial_polydict
 
     def __eq__(left, right):
         """

@@ -318,56 +318,99 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
         """
         return self.remove_var(x)[str(x)]
 
-    cdef _coerce_c_impl(self, x):
+    cpdef _coerce_map_from_(self, P):
         """
-        Return the canonical coercion of x to this multivariate
-        polynomial ring, if one is defined, or raise a TypeError.
+        Check for a coercion map from ``P`` to ``self``.
 
-        The rings that canonically coerce to this polynomial ring are:
+        There are 3 kinds of coercion maps:
 
-        - this ring itself
-        - polynomial rings in the same variables over any base ring that
-          canonically coerces to the base ring of this ring
-        - polynomial rings in a subset of the variables over any base ring that
-          canonically coerces to the base ring of this ring
-        - any ring that canonically coerces to the base ring of this polynomial
-          ring.
+        - flatting maps, for example ZZ[x][y] -> ZZ[x,y] or
+          ZZ[x][y][z] -> ZZ[x][y,z]
+          (but not ZZ[x][y][z] -> ZZ[x,y][z] or ZZ[x,y][z] -> ZZ[x][y,z])
+
+        - base change maps, for example ZZ[x,y] -> QQ[x,y]
+
+        - variable injection maps, for example QQ[x,y] -> QQ[x,z,y]
+          (provided that the order of the variables remains the same)
 
         TESTS:
 
         This fairly complicated code (from Michel Vandenbergh) ends up
-        implicitly calling ``_coerce_c_impl``::
+        implicitly calling ``_coerce_map_from_``::
 
-            sage: z = polygen(QQ, 'z')
-            sage: W.<s>=NumberField(z^2+1)
+            sage: R.<z> = QQ[]
+            sage: W.<s> = NumberField(z^2 + 1)
             sage: Q.<u,v,w> = W[]
-            sage: W1 = FractionField (Q)
+            sage: W1 = FractionField(Q)
             sage: S.<x,y,z> = W1[]
             sage: u + x
             x + u
             sage: x + 1/u
             x + 1/u
         """
-        try:
-            P = x.parent()
-            # polynomial rings in the same variable over the any base that coerces in:
-            if is_MPolynomialRing(P):
-                if P.variable_names() == self.variable_names():
-                    if self.has_coerce_map_from(P.base_ring()):
-                        return self(x)
-                elif self.base_ring().has_coerce_map_from(P._mpoly_base_ring(self.variable_names())):
-                    return self(x)
+        B = self._base
 
-            elif polynomial_ring.is_PolynomialRing(P):
-                if P.variable_name() in self.variable_names():
-                    if self.has_coerce_map_from(P.base_ring()):
-                        return self(x)
+        # A map B -> self should have been registered in __init__
+        assert P is not B
 
-        except AttributeError:
-            pass
+        cdef int is_poly
+        if is_MPolynomialRing(P):
+            is_poly = 2
+        elif polynomial_ring.is_PolynomialRing(P):
+            is_poly = 1
+        else:
+            is_poly = 0
+
+        if is_poly:
+            T = (<Parent>P)._base
+            SV = tuple(self.variable_names())
+            PV = tuple(P.variable_names())
+            if SV == PV:  # Same variables
+                if B is T:
+                    # Same variables and same base ring
+                    # => different implementation
+                    return False
+                # TODO: return base change map
+                return B.has_coerce_map_from(T)
+            # Different variables:
+            # Flatten P as long as all variables are also variables of
+            # self
+            from .flatten import FlatteningMorphism
+            try:
+                flat = FlatteningMorphism(P, SV)
+            except ValueError:
+                return False
+            F = flat.codomain()
+            # We have a map P -> F and we know that the variables of F
+            # are a subset of the variables of self.
+            return B.has_coerce_map_from(T)
+
+                
+
+        # polynomial rings in the same variable over the any base that coerces in:
+        if is_MPolynomialRing(P):
+            if P.variable_names() == self.variable_names():
+                # Same variables => base change map
+                T = (<Parent>P)._base
+                return B.has_coerce_map_from(T)
+            is_poly = True
+
+        elif polynomial_ring.is_PolynomialRing(P):
+            is_poly = True
+
+        if is_poly:
+            T = (<Parent>P)._base
+            if P.variable_name() in self.variable_names():
+                if B.has_coerce_map_from(T):
+                    return True
+            # Different variables =>
+            else:
+                T = P._mpoly_base_ring(self.variable_names())
+                if B.has_coerce_map_from(T):
+                    return True
 
         # any ring that coerces to the base ring of this polynomial ring.
-        return self._coerce_try(x, [self.base_ring()])
+        return self._coerce_map_via([B], P)
 
     def _extract_polydict(self, x):
         """

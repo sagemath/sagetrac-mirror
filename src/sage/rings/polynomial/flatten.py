@@ -75,7 +75,7 @@ class FlatteningMorphism(Morphism):
         sage: f(p).parent()
         Multivariate Polynomial Ring in x, y, s, t, X over Rational Field
     """
-    def __init__(self, domain):
+    def __init__(self, domain, restrictvars=None):
         """
         The Python constructor
 
@@ -154,19 +154,31 @@ class FlatteningMorphism(Morphism):
             True
         """
         if not is_PolynomialRing(domain) and not is_MPolynomialRing(domain):
-            raise ValueError("domain should be a polynomial ring")
+            raise TypeError("domain should be a polynomial ring")
+
+        if restrictvars is not None:
+            restrictvars = set(restrictvars)
 
         ring = domain
         variables = []
         intermediate_rings = []
 
         while is_PolynomialRing(ring) or is_MPolynomialRing(ring):
+            v = list(ring.variable_names())
+            if restrictvars is not None:
+                # All variables must occur in restrictvars, otherwise
+                # we stop flattening
+                try:
+                    for x in v:
+                        restrictvars.remove(x)
+                except LookupError:
+                    if not intermediate_rings:
+                        raise ValueError("restrictvars must contain all top-level variables {}".format(v))
+                    break
+            variables = v + variables
             intermediate_rings.append(ring)
-            v = ring.variable_names()
-            variables.extend(reversed(v))
             ring = ring.base_ring()
         self._intermediate_rings = intermediate_rings
-        variables.reverse()
         for i, a in enumerate(variables):
             if a in variables[:i]:
                 for index in itertools.count():
