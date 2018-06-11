@@ -1,0 +1,4 @@
+diff --git a/src/nautywrap.c b/src/nautywrap.cpp
+similarity index 100%
+rename from src/nautywrap.c
+rename to src/nautywrap.cpp
