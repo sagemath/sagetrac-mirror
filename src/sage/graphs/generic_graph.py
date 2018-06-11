@@ -20807,12 +20807,12 @@ class GenericGraph(GenericGraph_pyx):
 
         Nauty usage on Graphs::
 
-            sage: graphs_query = GraphQuery(display_cols=['graph6'],num_vertices=4)
-            sage: L = graphs_query.get_graphs_list()
-            sage: graphs_list.show_graphs(L)
-            sage: for g in L:
-            ....:     G = g.automorphism_group(algorithm="nauty")
-            ....:     G.order(), G.gens()
+            sage: graphs_query = GraphQuery(display_cols=['graph6'],num_vertices=4) #optional - pynauty
+            sage: L = graphs_query.get_graphs_list() #optional - pynauty
+            sage: graphs_list.show_graphs(L) #optional - pynauty
+            sage: for g in L: #optional - pynauty
+            ....:     G = g.automorphism_group(algorithm="nauty") #optional - pynauty
+            ....:     G.order(), G.gens() #optional - pynauty
             (24, [(2,3), (1,2), (0,1)])
             (4, [(2,3), (0,1)])
             (2, [(1,2)])
@@ -20824,37 +20824,37 @@ class GenericGraph(GenericGraph_pyx):
             (8, [(2,3), (0,1), (0,2)(1,3)])
             (4, [(2,3), (0,1)])
             (24, [(2,3), (1,2), (0,1)])
-            sage: C = graphs.CubeGraph(4)
-            sage: G = C.automorphism_group(algorithm="nauty")
-            sage: M = G.character_table() # random order of rows, thus abs() below
-            sage: QQ(M.determinant()).abs()
+            sage: C = graphs.CubeGraph(4) #optional - pynauty
+            sage: G = C.automorphism_group(algorithm="nauty") #optional - pynauty
+            sage: M = G.character_table()  #optional - pynauty
+            sage: QQ(M.determinant()).abs() #optional - pynauty
             712483534798848
-            sage: G.order()
+            sage: G.order() #optional - pynauty
             384
 
         ::
 
-            sage: D = graphs.DodecahedralGraph()
-            sage: G = D.automorphism_group(algorithm="nauty")
-            sage: A5 = AlternatingGroup(5)
-            sage: Z2 = CyclicPermutationGroup(2)
-            sage: H = A5.direct_product(Z2)[0] #see documentation for direct_product to explain the [0]
-            sage: G.is_isomorphic(H)
+            sage: D = graphs.DodecahedralGraph() #optional - pynauty
+            sage: G = D.automorphism_group(algorithm="nauty") #optional - pynauty
+            sage: A5 = AlternatingGroup(5) #optional - pynauty
+            sage: Z2 = CyclicPermutationGroup(2) #optional - pynauty
+            sage: H = A5.direct_product(Z2)[0] #optional - pynauty
+            sage: G.is_isomorphic(H) #optional - pynauty
             True
 
         Nauty usage on Multigraphs::
 
-            sage: G = Graph(multiedges=True,sparse=True)
-            sage: G.add_edge(('a', 'b'))
-            sage: G.add_edge(('a', 'b'))
-            sage: G.add_edge(('a', 'b'))
-            sage: G.automorphism_group(algorithm="nauty")
+            sage: G = Graph(multiedges=True,sparse=True) #optional - pynauty
+            sage: G.add_edge(('a', 'b')) #optional - pynauty
+            sage: G.add_edge(('a', 'b')) #optional - pynauty
+            sage: G.add_edge(('a', 'b')) #optional - pynauty
+            sage: G.automorphism_group(algorithm="nauty") #optional - pynauty
             Permutation Group with generators [('a','b')]
 
         Nauty usage on Digraphs::
 
-            sage: D = DiGraph( { 0:[1], 1:[2], 2:[3], 3:[4], 4:[0] } )
-            sage: D.automorphism_group(algorithm="nauty")
+            sage: D = DiGraph( { 0:[1], 1:[2], 2:[3], 3:[4], 4:[0] } ) #optional - pynauty
+            sage: D.automorphism_group(algorithm="nauty") #optional - pynauty
             Permutation Group with generators [(0,1,2,3,4)]
 
         Edge labeled graphs::
@@ -20924,7 +20924,7 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             KeyError: 6
-            sage: g.automorphism_group(partition=[[0,1,2],[3,4,5]],algorithm='nauty')
+            sage: g.automorphism_group(partition=[[0,1,2],[3,4,5]],algorithm='nauty') #optional - pynauty
             Traceback (most recent call last):
             ...
             KeyError: 6
@@ -20933,14 +20933,14 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: digraphs.DeBruijn(3,2).automorphism_group(algorithm='sage')
             Permutation Group with generators [('01','02')('10','20')('11','22')('12','21'), ('00','11')('01','10')('02','12')('20','21')]
-            sage: digraphs.DeBruijn(3,2).automorphism_group(algorithm='nauty')
+            sage: digraphs.DeBruijn(3,2).automorphism_group(algorithm='nauty') #optional - pynauty
             Permutation Group with generators [('01','02')('10','20')('11','22')('12','21'), ('00','11')('01','10')('02','12')('20','21')]
             sage: d = digraphs.DeBruijn(3,2)
             sage: d.allow_multiple_edges(True)
             sage: d.add_edge(d.edges()[0])
             sage: d.automorphism_group(algorithm='sage')
             Permutation Group with generators [('01','02')('10','20')('11','22')('12','21')]
-            sage: d.automorphism_group(algorithm='nauty')
+            sage: d.automorphism_group(algorithm='nauty') #optional - pynauty
             Permutation Group with generators [('01','02')('10','20')('11','22')('12','21')]
 
         The labeling is correct::
@@ -20950,10 +20950,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: for u,v in g.edges(labels = False):
             ....:     if len(ag.orbit((u,v),action="OnPairs")) != 30:
             ....:         print("ARggggggggggggg !!!")
-            sage: ag = g.automorphism_group(algorithm="nauty")
-            sage: for u,v in g.edges(labels = False):
-            ....:     if len(ag.orbit((u,v),action="OnPairs")) != 30:
-            ....:         print("ARggggggggggggg !!!")
+            sage: ag = g.automorphism_group(algorithm="nauty") #optional - pynauty
+            sage: for u,v in g.edges(labels = False): #optional - pynauty
+            ....:     if len(ag.orbit((u,v),action="OnPairs")) != 30: #optional - pynauty
+            ....:         print("ARggggggggggggg !!!") #optional - pynauty
 
         Empty group, correct domain::
 
@@ -20961,9 +20961,9 @@ class GenericGraph(GenericGraph_pyx):
             Permutation Group with generators [()]
             sage: Graph({'a':['a'], 'b':[]}).automorphism_group().domain()
             {'a', 'b'}
-            sage: Graph({'a':['a'], 'b':[]}).automorphism_group(algorithm="nauty")
+            sage: Graph({'a':['a'], 'b':[]}).automorphism_group(algorithm="nauty") #optional - pynauty
             Permutation Group with generators [()]
-            sage: Graph({'a':['a'], 'b':[]}).automorphism_group(algorithm="nauty").domain()
+            sage: Graph({'a':['a'], 'b':[]}).automorphism_group(algorithm="nauty").domain() #optional - pynauty
             {'a', 'b'}
 
         We can check that the subgroups are labelled correctly
@@ -20974,8 +20974,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.subgroups()
             [Subgroup of (Permutation Group with generators [(0,7)(1,4)(2,3)(6,8)]) generated by [()],
             Subgroup of (Permutation Group with generators [(0,7)(1,4)(2,3)(6,8)]) generated by [(0,7)(1,4)(2,3)(6,8)]]
-            sage: G = G1.automorphism_group(algorithm="nauty")
-            sage: G.subgroups()
+            sage: G = G1.automorphism_group(algorithm="nauty") #optional - pynauty
+            sage: G.subgroups() #optional - pynauty
             [Subgroup of (Permutation Group with generators [(0,7)(1,4)(2,3)(6,8)]) generated by [()],
             Subgroup of (Permutation Group with generators [(0,7)(1,4)(2,3)(6,8)]) generated by [(0,7)(1,4)(2,3)(6,8)]]
         """
@@ -21372,40 +21372,40 @@ class GenericGraph(GenericGraph_pyx):
         
         Nauty usage on Graphs::
 
-            sage: from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-            sage: D = graphs.DodecahedralGraph()
-            sage: E = copy(D)
-            sage: gamma = SymmetricGroup(20).random_element()
-            sage: E.relabel(gamma)
-            sage: D.is_isomorphic(E, algorithm='nauty')
+            sage: from sage.groups.perm_gps.permgroup_named import SymmetricGroup #optional - pynauty
+            sage: D = graphs.DodecahedralGraph() #optional - pynauty
+            sage: E = copy(D) #optional - pynauty
+            sage: gamma = SymmetricGroup(20).random_element() #optional - pynauty
+            sage: E.relabel(gamma) #optional - pynauty 
+            sage: D.is_isomorphic(E, algorithm='nauty') #optional - pynauty
             True
 
         ::
 
-            sage: g=graphs.HeawoodGraph()
-            sage: g.is_isomorphic(g, algorithm='nauty')
+            sage: g=graphs.HeawoodGraph() #optional - pynauty
+            sage: g.is_isomorphic(g, algorithm='nauty') #optional - pynauty
             True
 
         Nauty usage on Multigraphs::
 
-            sage: G = Graph(multiedges=True,sparse=True)
-            sage: G.add_edge((0,1,1))
-            sage: G.add_edge((0,1,2))
-            sage: G.add_edge((0,1,3))
-            sage: G.add_edge((0,1,4))
-            sage: H = Graph(multiedges=True,sparse=True)
-            sage: H.add_edge((3,4))
-            sage: H.add_edge((3,4))
-            sage: H.add_edge((3,4))
-            sage: H.add_edge((3,4))
-            sage: G.is_isomorphic(H, algorithm='nauty')
+            sage: G = Graph(multiedges=True,sparse=True)  #optional - pynauty
+            sage: G.add_edge((0,1,1)) #optional - pynauty
+            sage: G.add_edge((0,1,2)) #optional - pynauty
+            sage: G.add_edge((0,1,3)) #optional - pynauty
+            sage: G.add_edge((0,1,4)) #optional - pynauty
+            sage: H = Graph(multiedges=True,sparse=True) #optional - pynauty
+            sage: H.add_edge((3,4)) #optional - pynauty
+            sage: H.add_edge((3,4)) #optional - pynauty
+            sage: H.add_edge((3,4)) #optional - pynauty
+            sage: H.add_edge((3,4)) #optional - pynauty
+            sage: G.is_isomorphic(H, algorithm='nauty') #optional - pynauty
             True
 
         Nauty usage on Digraphs::
 
-            sage: A = DiGraph( { 0 : [1,2] } )
-            sage: B = DiGraph( { 1 : [0,2] } )
-            sage: A.is_isomorphic(B, algorithm='nauty')
+            sage: A = DiGraph( { 0 : [1,2] } ) #optional - pynauty
+            sage: B = DiGraph( { 1 : [0,2] } ) #optional - pynauty
+            sage: A.is_isomorphic(B, algorithm='nauty') #optional - pynauty
             True
             
         TESTS::
@@ -21468,7 +21468,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G2 = Graph(g2)
             sage: G1.is_isomorphic(G2)
             True
-            sage: G1.is_isomorphic(G2, algorithm='nauty')
+            sage: G1.is_isomorphic(G2, algorithm='nauty') #optional - pynauty
             True
 
         Ensure that isomorphic looped graphs with non-range vertex labels report
@@ -21478,7 +21478,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G2 = Graph({2:[0,2]})
             sage: G1.is_isomorphic(G2)
             True
-            sage: G1.is_isomorphic(G2, algorithm='nauty')
+            sage: G1.is_isomorphic(G2, algorithm='nauty') #optional - pynauty
             True
             sage: G = Graph(multiedges = True, loops = True)
             sage: H = Graph(multiedges = True, loops = True)
@@ -21486,7 +21486,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: H.add_edges([(0,1,3),(1,0,2),(1,1,1),(0,0,0)])
             sage: G.is_isomorphic(H, certificate=True)
             (True, {0: 0, 1: 1})
-            sage: G.is_isomorphic(H, algorithm='nauty')
+            sage: G.is_isomorphic(H, algorithm='nauty') #optional - pynauty
             True
             sage: set_random_seed(0)
             sage: D = digraphs.RandomDirectedGNP(6, .2)
@@ -21494,7 +21494,7 @@ class GenericGraph(GenericGraph_pyx):
             (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5})
             sage: D.is_isomorphic(D,edge_labels=True, certificate=True)
             (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5})
-            sage: D.is_isomorphic(D, algorithm='nauty')
+            sage: D.is_isomorphic(D, algorithm='nauty') #optional - pynauty
             True
 
         Ensure that :trac:`11620` is fixed::
@@ -21510,7 +21510,7 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: G1.is_isomorphic(G2,edge_labels=True)
             True
-            sage: G1.is_isomorphic(G2, algorithm='nauty')
+            sage: G1.is_isomorphic(G2, algorithm='nauty') #optional - pynauty
             True
 
         Ensure that :trac:`13114` is fixed ::
@@ -21520,7 +21520,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: gg = Graph([(0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 2, 0), (2, 2, 0), (2, 2, 1)], multiedges=True, loops=True)
             sage: g.is_isomorphic(gg)
             False
-            sage: g.is_isomorphic(gg, algorithm='nauty')
+            sage: g.is_isomorphic(gg, algorithm='nauty') #optional - pynauty
             False
 
         Ensure that :trac:`14777` is fixed ::
@@ -21529,7 +21529,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: h = Graph()
             sage: g.is_isomorphic(h)
             True
-            sage: g.is_isomorphic(h, algorithm='nauty')
+            sage: g.is_isomorphic(h, algorithm='nauty') #optional - pynauty
             True
 
         as well as :trac:`18613`::
@@ -21543,7 +21543,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: B = DiGraph([('x','y','u'), ('x','y','v')], multiedges=True)
             sage: A.is_isomorphic(B, certificate=True)
             (True, {6: 'x', 7: 'y'})
-            sage: A.is_isomorphic(B, algorithm='nauty')
+            sage: A.is_isomorphic(B, algorithm='nauty') #optional - pynauty
             True
             sage: A.is_isomorphic(B, certificate=True, edge_labels=True)
             (False, None)
