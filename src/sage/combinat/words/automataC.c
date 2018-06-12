@@ -4,39 +4,9 @@
 #include "Automaton.h"
 #include "automataC.h"
 
-/*
-static PyObject *DAError;
-
-static PyMethodDef dautomataMethods[] =
-{
-	{"system",  system, METH_VARARGS,
-	 "Execute a shell command."},
-	{NULL, NULL, 0, NULL}		// Sentinel
-};
-
-PyMODINIT_FUNC initdautomata(void)
-{
-	PyObject *m;
-
-	m = Py_InitModule("dautomata", dautomataMethods);
-	if (m == NULL)
-		return;
-
-	DAError = PyErr_NewException("dautomata.error", NULL, NULL);
-	Py_INCREF(DAError);
-	PyModule_AddObject(m, "error", DAError);
-}
-*/
-
 typedef Automate Automaton;
 
-/*
-void printAutomaton (Automaton a)
-{
-	printf("Automate ayant %d lettres, %d états, état initial %d.\n", a.na, a.n, a.i);
-}
-*/
-
+//test if the dot command is installed in the system
 bool DotExists ()
 {
     bool res = true;

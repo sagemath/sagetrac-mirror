@@ -18,7 +18,7 @@ REFERENCES:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2014 Paul Mercat <mercatp@icloud.com>
+#       Copyright (C) 2014 Paul Mercat <paul.mercat@univ-amu.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -109,7 +109,6 @@ cdef extern from "automataC.h":
     bool rec_word(Automaton a, Dict d)
     void Test()
 
-# dictionnaire numérotant l'alphabet projeté
 cdef imagDict(dict d, list A, list A2=[]):
     """
     Dictionary which is numbering projected alphabet
@@ -124,7 +123,6 @@ cdef imagDict(dict d, list A, list A2=[]):
                 i += 1
     return d1
 
-# dictionnaire numérotant le nouvel alphabet
 cdef imagDict2(dict d, list A, list A2=[]):
     """
     Dictionary which is numbering a new alphabet
@@ -180,7 +178,6 @@ cdef InvertDict getDict2(dict d, list A, dict d1=None):
             r.d[i].n = 0
     return r
 
-# dictionnaire numérotant l'alphabet projeté
 cdef imagProductDict(dict d, list A1, list A2, list Av=[]):
     """
     Dictionary which is numbering the projeted alphabet
@@ -222,104 +219,6 @@ cdef Dict getProductDict(dict d, list A1, list A2, dict dv=None, verb=True):
             r.e[d1[a1]+d2[a2]*n1] = dv[d[(a1, a2)]]
     return r
 
-
-# def TestAutomaton(a):
-#     """
-#     Test automaton print vertices and alphabet
-# 
-#     INPUT:
-# 
-#     - ``a`` automaton to test
-# 
-#     EXAMPLES::
-# 
-#         sage: a = DiGraph({0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1]})
-#         sage: fa = FastAutomaton(a)
-#         ['(0,3)', '(2,3)', '(0,2)', '(1,2)', '(0,1)', '(4,5)', '(1,0)', '(4,0)', '(3,4)', '(5,1)']
-#         sage: TestAutomaton(fa)
-# 
-#     """
-#     cdef Automaton r
-#     # d = {}
-#     # da = {}
-#     r = getAutomaton(a)  # , d, da)
-#     printAutomaton(r)
-#     # print d, da, a.vertices(),
-#     print( a.vertices(), list(a.Alphabet))
-
-
-# def TestProduct(a1, a2, di):
-#     """
-#     Test and print the product of automaton
-#
-#     INPUT:
-#
-#     - ``a1`` first automaton term of product
-#
-#     - ``a2`` second automaton term of product
-#
-#     - ``di`` alphabet dictionnary
-#
-#     """
-#     cdef Automaton a, b, c
-#     a = getAutomaton(a1)
-#     b = getAutomaton(a2)
-#     printAutomaton(a)
-#     print(a1.vertices(), a1.Alphabet)
-#     printAutomaton(b)
-#     print(a2.vertices(), a2.Alphabet)
-#     cdef Dict d
-#     d = getProductDict(di, list(a1.Alphabet), list(a2.Alphabet))
-#     print("product dictionnary :")  # "dictionnaire du produit :"
-#     printDict(d)
-#     c = Product(a, b, d, False)
-#     print("result :")  # "résultat :"
-#     printAutomaton(c)
-
-# def TestDeterminise (a, d, noempty=True, verb=True):
-#    cdef Dict di = getDict(d, a.Alphabet)
-#    cdef Automaton au = getAutomaton(a)
-#    if verb:
-#        printDict(di)
-#    if verb:
-#        printAutomaton(au)
-#    cdef Automaton r = Determinise(au, di, noempty, verb)
-#    printAutomaton(r)
-
-# def TestDeterminiseEmonde (a, d, noempty=True, verb=True):
-#    cdef Dict di = getDict(d, a.Alphabet)
-#    cdef Automaton au = getAutomaton(a)
-#    if verb:
-#        printDict(di)
-#    if verb:
-#        printAutomaton(au)
-#    cdef Automaton r = Determinise(au, di, noempty, verb)
-#    print("Avant émondation :"
-#    printAutomaton(r)
-#    cdef Automaton r2 = emonde_inf(r)
-#    print("Après émondation :"
-#    printAutomaton(r2)
-#    if equalsAutomaton(r, r2):
-#        print("equals !"
-#    else:
-#        print("differents !"
-
-
-# def TestEmonde(a, noempty=True, verb=True):
-#     cdef Automaton au = getAutomaton(a)
-#     if verb:
-#         print("bebore mondation :")  # Avant émondation :"
-#         printAutomaton(au)
-#     cdef Automaton r = emonde_inf(au, verb)
-#     if verb:
-#         print("After montation  :")
-#         printAutomaton(r)
-#     if equalsAutomaton(r, au):
-#         print("equal !")
-#     else:
-#         print("different !")
-#     return AutomatonGet(r)
-
 cdef Automaton getAutomaton (a, initial=None, F=None, A=None):
     d = {}
     da = {}
@@ -351,19 +250,16 @@ cdef Automaton getAutomaton (a, initial=None, F=None, A=None):
             FreeAutomaton(&r)
             r = NewAutomaton(0,0)
             sig_off()
-            print("Error : Incorrect set of final states.")
-            return r
+            raise ValueError("Incorrect set of final states.")
         r.e[d[v]].final = 1
 
     if initial is None:
         if not hasattr(a, 'I'):
             I = []
-            # raise ValueError("I must be defined !")
         else:
             I = list(a.I)
         if len(I) > 1:
-            # L'automate doit être déterministe !
-            print("The automata must be determist (I=%s)" % a.I)
+            raise ValueError("The automata must be determist (I=%s)" % a.I)
         if len(I) >= 1:
             r.i = d[I[0]]
         else:
@@ -380,7 +276,7 @@ cdef Automaton getAutomaton (a, initial=None, F=None, A=None):
 
 cdef AutomatonGet(Automaton a, A):
     """
-    Transform a Automaton a with a alphabet A to a DiGraph
+    Transform an Automaton a with an alphabet A to a DiGraph
     """
     from sage.graphs.digraph import DiGraph
     r = DiGraph(multiedges=True, loops=True)
@@ -422,9 +318,6 @@ cdef AutomatonToDiGraph(Automaton a, A):
                 L.append((i, a.e[i].f[j], A[j]))
     return DiGraph(L, loops=True, multiedges=True)
 
-# cdef initFA (Automaton *a):
-#    *a = NewAutomaton(1,1)
-
 cdef Bool(int x):
     if x:
         return True
@@ -452,9 +345,7 @@ cdef class NFastAutomaton:
 
     """
     def __cinit__(self):
-        # print("cinit")
         self.a = <NAutomaton *>malloc(sizeof(NAutomaton))
-        # initialise
         self.a.e = NULL
         self.a.n = 0
         self.a.na = 0
@@ -482,7 +373,7 @@ cdef class NFastAutomaton:
         if type(a) == FastAutomaton:
             a.copyn(self)
         else:
-            raise ValueError("Cannot construct directly a NFastAutomaton for the moment, except from a deterministic one.")    
+            raise NotImplementedError("Cannot construct directly a NFastAutomaton for the moment, except from a deterministic one.")
         return self
 
     def __init__(self, a): # TO DO i=None, final_states=None, A=None
@@ -499,7 +390,6 @@ cdef class NFastAutomaton:
             self = self._initialise_automaton(a)
 
     def __dealloc__(self):
-        # print("free"
         FreeNAutomaton(self.a)
         free(self.a)
 
@@ -561,9 +451,8 @@ cdef class NFastAutomaton:
         try:
             from dot2tex import dot2tex
         except ImportError:
-            print("dot2tex must be installed in order to have the LaTeX representation of the NFastAutomaton.")
-            print("You can install it by doing './sage -i dot2tex' in a shell in the sage directory, or by doing 'install_package(package='dot2tex')' in the notebook.")
-            return None
+            raise ModuleNotFoundError("dot2tex must be installed in order to have the LaTeX representation of the NFastAutomaton.\n\
+                You can install it by doing './sage -i dot2tex' in a shell in the sage directory, or by doing 'install_package(package='dot2tex')' in the notebook.")
         cdef char** ll
         ll = <char **>malloc(sizeof(char*) * self.a.na)
         cdef int i
@@ -1672,12 +1561,12 @@ cdef class FastAutomaton:
 
     def succ(self, int i, int j):
         """
-        return the successor of state.
+        Return the state reached by following the edge j from state i.
 
         INPUT:
 
-        - ``i`` -- int the input state
-        - ``j`` -- int the output state
+        - ``i`` - int - number of the input state
+        - ``j`` - int - number of the edge
 
         OUTPUT:
 
