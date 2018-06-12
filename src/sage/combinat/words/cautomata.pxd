@@ -34,13 +34,14 @@ cdef extern from "automataC.h":
     void FreeAutomaton(Automate *a)
 
 ctypedef Automate Automaton
+ctypedef NAutomate NAutomaton
 
 cdef class FastAutomaton:
     cdef Automate* a
-    cdef list A	#alphabet
-    cdef dict dA #dictionnary giving the index in A
-    cdef list S	#states
-    cdef dict dS #dictionnary giving the index in S
+    cdef list A	 # alphabet
+    cdef dict dA  # dictionnary giving the index in A
+    cdef list S	 # states
+    cdef dict dS  # dictionnary giving the index in S
     # cdef set_a(self, Automate a)
 
 

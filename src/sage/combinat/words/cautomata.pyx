@@ -41,8 +41,7 @@ from cysignals.signals cimport sig_on, sig_off, sig_check
 #ctypedef Automate Automaton
 
 cdef extern from "automataC.h":
-    ctypedef Automate Automaton
-    ctypedef NAutomate NAutomaton
+
     cdef cppclass Dict:
         int* e
         int n
@@ -404,8 +403,7 @@ cdef class NFastAutomaton:
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: b = NFastAutomaton(a)
-            sage: latex(b) #  random
-
+            sage: latex(b)     # optional -  dot2tex
             \documentclass{article}
             \usepackage[x11names, rgb]{xcolor}
             \usepackage[utf8]{inputenc}
@@ -414,17 +412,17 @@ cdef class NFastAutomaton:
             \usepackage{amsmath}
             %
             %
-
+            <BLANKLINE>
             %
-
+            <BLANKLINE>
             %
-
+            <BLANKLINE>
             \begin{document}
             \pagestyle{empty}
             %
             %
             %
-
+            <BLANKLINE>
             \enlargethispage{100cm}
             % Start of code
             % \begin{tikzpicture}[anchor=mid,>=latex',line join=bevel,]
@@ -432,14 +430,56 @@ cdef class NFastAutomaton:
               \pgfsetlinewidth{1bp}
             %%
             \pgfsetcolor{black}
+              % Edge: 0 -> 1
+              \draw [-stealth'] (44.247bp,22.0bp) .. controls (54.848bp,22.0bp) and (67.736bp,22.0bp)  .. (89.697bp,22.0bp);
+              \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+              \pgfsetstrokecolor{strokecol}
+              \draw (67.0bp,33.0bp) node {a};
+              % Edge: 2 -> 3
+              \draw [-stealth'] (44.247bp,80.0bp) .. controls (54.848bp,80.0bp) and (67.736bp,80.0bp)  .. (89.697bp,80.0bp);
+              \draw (67.0bp,91.0bp) node {b};
+              % Node: 1
+            \begin{scope}
+              \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+              \pgfsetstrokecolor{strokecol}
+              \draw [solid] (112.0bp,22.0bp) ellipse (18.0bp and 18.0bp);
+              \draw [solid] (112.0bp,22.0bp) ellipse (22.0bp and 22.0bp);
+              \draw (112.0bp,22.0bp) node {1};
+            \end{scope}
+              % Node: 0
+            \begin{scope}
+              \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+              \pgfsetstrokecolor{strokecol}
+              \draw [solid] (22.0bp,22.0bp) ellipse (18.0bp and 18.0bp);
+              \draw [solid] (22.0bp,22.0bp) ellipse (22.0bp and 22.0bp);
+              \draw (22.0bp,22.0bp) node {0};
+            \end{scope}
+              % Node: 3
+            \begin{scope}
+              \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+              \pgfsetstrokecolor{strokecol}
+              \draw [solid] (112.0bp,80.0bp) ellipse (18.0bp and 18.0bp);
+              \draw [solid] (112.0bp,80.0bp) ellipse (22.0bp and 22.0bp);
+              \draw (112.0bp,80.0bp) node {3};
+            \end{scope}
+              % Node: 2
+            \begin{scope}
+              \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+              \pgfsetstrokecolor{strokecol}
+              \draw [solid] (22.0bp,80.0bp) ellipse (18.0bp and 18.0bp);
+              \draw [solid] (22.0bp,80.0bp) ellipse (22.0bp and 22.0bp);
+              \draw (22.0bp,80.0bp) node {2};
+            \end{scope}
             %
             \end{tikzpicture}
             % End of code
-
+            <BLANKLINE>
             %
             \end{document}
             %
-
+            <BLANKLINE>
+            <BLANKLINE>
+            <BLANKLINE>
         """
         sx = 800
         sy = 600
@@ -844,7 +884,7 @@ cdef class NFastAutomaton:
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = NFastAutomaton(a)
-            sage: g = b.plot().show()
+            sage: #g = b.plot()   # random
 
         .. PLOT::
 
@@ -924,19 +964,19 @@ cdef class FastAutomaton:
     def __init__(self, a, i=None, final_states=None, A=None, keep_S=True):
         r"""
         INPUT:
-    
+
         - ``i`` - (default: None) - initial state
-    
+
         - ``final_states`` - (default: None) - list of final states
-        
+
         - ``A`` - (default: None) - Alphabet
-        
+
         - ``keep_S``- (default: `True`) - Keep labels of states or not
-    
+
         OUTPUT:
-    
+
         Return a instance of :class:`FastAutomaton`.
-        
+
         TESTS::
 
             sage: FastAutomaton([(0,1,'a') ,(2,3,'b')])
@@ -1032,13 +1072,13 @@ cdef class FastAutomaton:
             %%
             \pgfsetcolor{black}
               % Edge: 0 -> 1
-              \draw [-stealth'] (44.302bp,22.0bp) .. controls (54.895bp,22.0bp) and (67.905bp,22.0bp)  .. (89.894bp,22.0bp);
+              \draw [-stealth'] (44.247bp,22.0bp) .. controls (54.848bp,22.0bp) and (67.736bp,22.0bp)  .. (89.697bp,22.0bp);
               \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
               \pgfsetstrokecolor{strokecol}
-              \draw (67.0bp,32.0bp) node {a};
+              \draw (67.0bp,33.0bp) node {a};
               % Edge: 2 -> 3
-              \draw [-stealth'] (44.302bp,80.0bp) .. controls (54.895bp,80.0bp) and (67.905bp,80.0bp)  .. (89.894bp,80.0bp);
-              \draw (67.0bp,90.0bp) node {b};
+              \draw [-stealth'] (44.247bp,80.0bp) .. controls (54.848bp,80.0bp) and (67.736bp,80.0bp)  .. (89.697bp,80.0bp);
+              \draw (67.0bp,91.0bp) node {b};
               % Node: 1
             \begin{scope}
               \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
@@ -1046,7 +1086,7 @@ cdef class FastAutomaton:
               \draw [solid] (112.0bp,22.0bp) ellipse (18.0bp and 18.0bp);
               \draw [solid] (112.0bp,22.0bp) ellipse (22.0bp and 22.0bp);
               \draw (112.0bp,22.0bp) node {1};
-            \end{scope}
+             \end{scope}
               % Node: 0
             \begin{scope}
               \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
@@ -1081,6 +1121,7 @@ cdef class FastAutomaton:
             <BLANKLINE>
             <BLANKLINE>
             <BLANKLINE>
+
         """
         sx = 800
         sy = 600
@@ -1251,9 +1292,9 @@ cdef class FastAutomaton:
     def plot(self, int sx=10, int sy=8, vlabels=None, html=False, file=None, bool draw=True, verb=False):
         """
         Plot the :class:`FastAutomaton`. Draw using the dot command, if installed on the platform.
-        
+
         It is recommanded to install the dot command of the Graphviz package in your system in order to get a nice picture. Otherwise it will draw using the function plot of :class:`Automaton` of Sage.
-        
+
         INPUT:
 
         - ``sx`` - int (default: 10) - width of the picture
@@ -1273,7 +1314,7 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: a.plot().show()
+            sage: #a.plot()   # random
 
         .. PLOT::
 
@@ -2180,10 +2221,10 @@ cdef class FastAutomaton:
         sig_on()
         dC = getProductDict(d, self.A, a.A, dv=dv, verb=verb)
         sig_off()
+        sig_on()
         if verb:
             print("dC=")
             printDict(dC)
-        sig_on()
         ap = Product(self.a[0], a.a[0], dC, verb)
         FreeDict(&dC)
         sig_off()
@@ -2270,11 +2311,11 @@ cdef class FastAutomaton:
             print("dv=%s" % dv)
         sig_on()
         dC = getProductDict(d, self.A, a.A, dv=dv, verb=verb)
-        sig_off()
+
         if verb:
             print("dC=")
             printDict(dC)
-        sig_on()
+
         ap = Product(self.a[0], a.a[0], dC, verb)
         FreeDict(&dC)
         sig_off()
@@ -2556,7 +2597,7 @@ cdef class FastAutomaton:
         """
         Project following the dictionary ``d``.
         Give an automaton where labels are replaced according to ``d``
-        
+
         INPUT:
 
         - ``d`` -- dictionary to determine projection
@@ -2892,7 +2933,7 @@ cdef class FastAutomaton:
         Determine a partition into strongly connected components.
         A strongly connected component is a minimal subset of the set of states such that
         there is no path going outside of the subset, from a state of the subset to a state of the subset.
-        
+
         INPUT:
 
         - ``no_trivials`` -- (default: ``False``) If True, do not take into account components without any transition from itself to itself (such component contains only one element).
@@ -2981,6 +3022,7 @@ cdef class FastAutomaton:
          - ``l``  -- list of states to keep
          - ``verb`` -- boolean (default: ``False``) fix to ``True`` to activate
           the verbose mode
+         - ``keep_vlabels``  -- boolean (default: ``True``)
 
         OUTPUT:
 
@@ -3637,9 +3679,9 @@ cdef class FastAutomaton:
             ValueError: The state  5 doesn't exist.
         """
         if i >= self.a.n:
-            raise ValueError("The state %s doesn't exist."% i)
+            raise ValueError("The state %s doesn't exist." % i)
         if j >= self.a.n:
-            raise ValueError("The state  %s doesn't exist."%j)
+            raise ValueError("The state  %s doesn't exist." %j)
         try:
             k = self.A.index(l)
         except:
@@ -3687,7 +3729,8 @@ cdef class FastAutomaton:
         sig_on()
         d = NewDict(self.a.na)
         for i in range(self.a.na):
-            d.e[i] = nA.index(self.A[i])
+            if self.A[i] in nA:
+                d.e[i] = nA.index(self.A[i])
         r.a[0] = BiggerAlphabet(self.a[0], d, len(nA))
         sig_off()
         r.A = nA
@@ -3708,7 +3751,7 @@ cdef class FastAutomaton:
             sage: a.complementary_op()
             sage: a
             FastAutomaton with 5 states and an alphabet of 2 letters
-            
+
         """
         self.complete()
         cdef i
@@ -3753,9 +3796,12 @@ cdef class FastAutomaton:
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.included(a)
             True
-            sage: a.included(FastAutomaton([(0, 1, 'a')], i=0))
+            sage: b = FastAutomaton([(0, 1, 'c')], i=0)
+            sage: a.included(b)
+            False
+            sage: b = FastAutomaton([(0, 1, 'a')], i=0)
+            sage: b.included(a)
             True
-
         """
         cdef FastAutomaton b, a2
         if self.A != a.A:

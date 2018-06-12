@@ -462,7 +462,7 @@ We continue the calculation of this fraction in `R`::
     sage: fraction = - R(Px) / R(Py); fraction
     (1/2/(x - 1/4))*ybar - 1/4/(x - 1/4)
 
-.. note::
+.. NOTE::
 
     The following variant does not work yet::
 
@@ -1397,8 +1397,8 @@ Counting them, we recover a well-known sequence::
 
 .. _section-automaton:
 
-Automata and Rational language 
---------------------------------
+Automata and Rational language
+------------------------------
 
 Automata are in a way machines that can realize linear time calculation only requiring a fine memory. For more details see [Ca].
 
@@ -1427,11 +1427,12 @@ of transition :math:`\mathrm{Q} \times \Sigma \rightarrow \mathrm{Q}`, and there
 We will sometimes consider infinite automata, that is, automata for
 which set of states :math:`\mathrm{Q}` is infinite.
 
-.. note::
+.. NOTE::
 
-    We often denote :math:`p \overset{a}{\rightarrow} q  \quad` if :math:`\quad \left( p, a, q \right) \in \mathrm{T}`.
+    We often denote :math:`p \overset{a}{\rightarrow} q  \quad` if
+    :math:`\quad \left( p, a, q \right) \in \mathrm{T}`.
 
-.. note::
+.. NOTE::
 
     For an alphabet :math:`\Sigma`, we note :math:`\Sigma^* := \Sigma^{(\mathbb N)}` the set of finish words. 
     For a word :math:`u \in \Sigma^{*}`, we note :math:`u^* := \cup_{n \in \mathbb N} = \{ u^n \}^*`.
@@ -1460,6 +1461,7 @@ Determinist Automaton can be created in sage by the use of :class:`sage.combinat
 Automaton with states \{0, 1, 2, 3, 4\}, alphabet \{(0,0), (0,1), (1,0), (1,1)\}, set of inital states \{0\}, and set of final states \{0\}.
 
 .. PLOT::
+   :width: 50%
 
     a = FastAutomaton([(0,0,'*'),(0,1,'0'),(0,3,'1'),(1,2,'1'),(2,0,'1'),(2,1,'*'),(4,0,'0'),(4,3,'*'),(3,4,'0')])
     a.set_final_states([0])
@@ -1497,7 +1499,7 @@ A word :math:`u \in \Sigma^*` is recognized  by the automaton  :math:`A` if we h
 A word  $a_1 \dots a_n$ is therefore recognized by the automaton :math:`A` if there exists a path in the graph, labeled by  $a_1, a_2, \dots, a_n$, starting from an initial state and ending to a final state.
 
 .. note::
-    
+
     If the automaton is deterministic, the path is determined by the sequence of labels.
 
 Examples
@@ -1505,8 +1507,9 @@ Examples
 some examples of automaton.
 
 .. PLOT::
+   :width: 50%
 
-    a = FastAutomaton([(0,0,'0'),(0,1,'1'),(1,0,'1'),(1,2,'0'),(2,1,'0'),(2,2,'1')])
+    a = FastAutomaton([(0, 0,'0'),(0, 1, '1'),(1, 0, '1'), (1, 2, '0'), (2, 1, '0'), (2, 2, '1')])
     a.set_final_states([0])
     a.set_initial_state(0)
     sphinx_plot(a)
@@ -1514,6 +1517,7 @@ some examples of automaton.
 The above automaton recognize all the numbers written in binaries that are divisible by 3.
 
 .. PLOT::
+   :width: 50%
 
     a = FastAutomaton([(0,1,'a'),(1,2,'b'),(2,0,'a')])
     a.set_final_states([1])
@@ -1532,7 +1536,7 @@ The above automaton recognize the set of words of the form :math:`a(baa)^n`.
     sphinx_plot(b)
 
 The above non deterministic automaton recognize the set of words
-\{lapin, laitue\}. Obtained with the followed code and the class :class:`~sage.combinat.words.NFastAutomaton`::
+\{lapin, laitue\}. Obtained with the followed code and the class :class:`sage.combinat.words.NFastAutomaton`::
 
     sage: a = FastAutomaton([(0,1,'l'),(1,2,'a'),(2,3,'p') ,(3,4,'i'),(4,10,'n'),(0,5,'l'),(5,6,'a'),(6,7,'i'),(7,8,'t'),(8,9,'u'),(9,11,'e')])
     sage: a.set_final_states([10,11])
@@ -1557,7 +1561,7 @@ Automaton equivalent to the previous one is::
     a.set_initial_state(0)
     sphinx_plot(a)
 
-.. note::
+.. NOTE::
 
     Any automaton is equivalent to a deterministic automaton.
 
@@ -1567,7 +1571,7 @@ Minimal automata
    A minimal automaton of an automaton :math:`A` (or the minimal automaton of the corresponding language) is a deterministic automaton :math:`A '`, equivalent to :math:`A`,
    and having a minimal number of vertices for these properties.
 
-.. note::
+.. NOTE::
 
    The minimal automaton is unique. Moreover, if the automaton :math:`A` is deterministic,
    then the minimal automaton is obtained like the quotient of the automaton :math:`A` by an equivalence
@@ -1595,7 +1599,7 @@ The transposed (or the mirror) automaton of an automaton :math:`A := (\Sigma,\ma
     A^t := (\Sigma, \mathrm{Q}, \mathrm{T}^t, \mathrm{F}, \mathrm{I})
     \text{ where } \mathrm{T}^t := \{ (p, a, q) \in \mathrm{Q} \times \Sigma \times \mathrm{Q}  |  (q, a, p) \in \mathrm{T} \}
 
-.. note::
+.. NOTE::
 
    The language recognized by the transposed automaton :math:`A^t` is the transpose of the recognized language by the
    initial automaton :math:`A`.
@@ -1620,7 +1624,7 @@ The emonded automaton is the automaton restricted to
 states that are reachable from an initial state, and from which we can go to a final state.
 An automaton is emonded if it is equal to its emonded.
 
-.. note::
+.. NOTE::
 
     An automaton (possibly infinite) deterministic emonded, and with a deterministic transposed is minimal.
     In particular, if it is infinite, the language that it recognizes is not rational.
@@ -1632,7 +1636,7 @@ Example of non-emonded automaton::
     sage: a.set_initial_state(0)
     sage: a.add_edge(0,'(1,0)',1)
     sage: a.plot().show()
-    
+
 .. PLOT::
 
     a = FastAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
@@ -1649,7 +1653,8 @@ And the corresponding emonded automaton::
 This automaton can be saw below:
 
 .. PLOT::
-
+   :width: 50%
+      
     a = FastAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
     a.set_final_states([0])
     a.set_initial_state(0)
