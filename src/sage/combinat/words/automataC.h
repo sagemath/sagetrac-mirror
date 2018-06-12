@@ -115,13 +115,13 @@ InvertDict invertDict (Dict d);
 void FreeInvertDict (InvertDict id);
 void printInvertDict (InvertDict id);
 void putEtat (Etats *f, int ef); ////////////////////////////////// à améliorer !!!!
-void Determinise_rec (Automaton a, InvertDict id, Automaton* r, ListEtats* l, bool onlyfinals, bool nof, int niter);
-Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb);
+void Determinize_rec (Automaton a, InvertDict id, Automaton* r, ListEtats* l, bool onlyfinals, bool nof, int niter);
+Automaton Determinize (Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb);
 NAutomaton Concat (Automaton a, Automaton b, bool verb);
 NAutomaton CopyN (Automaton a, bool verb);
 NAutomaton Proj (Automaton a, Dict d, bool verb);
 
-Automaton DeterminiseN (NAutomaton a, bool puits, int verb);
+Automaton DeterminizeN (NAutomaton a, bool puits, int verb);
 
 //change l'alphabet en dupliquant des arêtes si nécessaire
 //the result is assumed deterministic !!!!
@@ -137,7 +137,7 @@ Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb);
 Automaton ZeroInv (Automaton *a, int l0);
 
 //retire tous les états à partir desquels il n'y a pas de chemin infini
-Automaton emonde_inf (Automaton a, bool verb);
+Automaton prune_inf (Automaton a, bool verb);
 
 //Compute the transposition, assuming it is deterministic
 Automaton TransposeDet (Automaton a);
@@ -155,10 +155,10 @@ void AccCoAcc (Automaton *a, int *coa);
 void CoAcc (Automaton *a, int *coa);
 
 //retire tous les états non accessible ou non co-accessible
-Automaton emonde (Automaton a, bool verb);
+Automaton prune (Automaton a, bool verb);
 
 //retire tous les états non accessible
-Automaton emondeI (Automaton a, bool verb);
+Automaton pruneI (Automaton a, bool verb);
 
 Automaton SubAutomaton (Automaton a, Dict d, bool verb);
 
@@ -178,23 +178,23 @@ Automaton DeleteVertex (Automaton a, int e);
 //détermine si les langages des automates sont les mêmes
 //le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
 //if minimized is true, the automaton a1 and a2 are assumed to be minimal.
-bool equalsLanguages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool emonded, bool verb);
+bool equalsLanguages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool pruned, bool verb);
 
 //détermine si le langage de l'automate a1 est inclus dans celui de a2
 //le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
-//if emonded is true, the automaton a1 and a2 are assumed to be emonded.
+//if pruned is true, the automaton a1 and a2 are assumed to be pruned.
 
 
 //détermine si les langages des automates ont une intersection non vide
 //le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
-//if emonded is true, the automaton a1 and a2 are assumed to be emonded otherwise it emondes.
-//bool intersectLanguage (Automaton *a1, Automaton *a2, Dict a1toa2, bool emonded, bool verb);
+//if pruned is true, the automaton a1 and a2 are assumed to be pruned otherwise it prunes.
+//bool intersectLanguage (Automaton *a1, Automaton *a2, Dict a1toa2, bool pruned, bool verb);
 
 //détermine si l'intersection est vide ou non
 bool Intersect (Automaton a1, Automaton a2, bool verb);
 
 //détermine si l'on a inclusion des langages
-bool Included (Automaton a1, Automaton a2, bool emonded, bool verb);
+bool Included (Automaton a1, Automaton a2, bool pruned, bool verb);
 
 //détermine si le langage de l'automate est vide
 bool emptyLanguage (Automaton a);

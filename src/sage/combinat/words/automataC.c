@@ -275,7 +275,7 @@ void ReallocAutomaton (Automaton *a, int n, bool init)
 {
 	if (a->n > n)
 	{
-		//libère les états à supprimmer
+		//free states to suppress
 		int i;
 		for (i=n;i<a->n;i++)
 		{
@@ -576,7 +576,7 @@ bool IsCompleteAutomaton (Automaton a)
 //return true iff a state was added
 bool CompleteAutomaton (Automaton *a)
 {
-	int ne = a->n; //nouvel état
+	int ne = a->n; //new state
 	int i,j;
 	bool add_etat = false;
 	for (i=0;i<ne;i++)
@@ -631,24 +631,24 @@ bool equalsAutomaton(Automaton a1, Automaton a2)
 bool equalsLanguages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, int e1, int e2, bool verb)
 {
 	if ((a1.e[e1].final & 1) != (a2.e[e2].final & 1))
-		return false; //un des états est final mais pas l'autre
+		return false; //one of the states is final but not the other one
 	if (a1.e[e1].final & 2 && a2.e[e2].final & 2)
-		return true; //état déjà vu
-	//indique que le sommet a été vu
+		return true; //state already seen
+	//indicate that the state a has been seen
 	a1.e[e1].final |= 2;
 	a2.e[e2].final |= 2;
-	//parcours les fils de e1 dans a1
+	//browse the son of e1 in a1
 	int i;
 	for (i=0;i<a1.na;i++)
 	{
 		if (a1.e[e1].f[i] != -1)
-		{//cette arête dans a1 existe
+		{//this edge exists in a1
 			if (a1toa2.e[i] != -1)
 			{
 				if (a2.e[e2].f[a1toa2.e[i]] == -1)
-				{//cette arête ne correspond pas à une arête dans a2
+				{//this edge doesn't correspond to an edge in a2
 					if (verb)
-						printf("%d -%d-> existe in a1 but %d -%d-> doesn't existe in a2.", e1, i, e2, a1toa2.e[i]);
+						printf("%d -%d-> exists in a1 but %d -%d-> doesn't exists in a2.", e1, i, e2, a1toa2.e[i]);
 					return false;
 				}
 				if (!equalsLanguages_rec(a1, a2, a1toa2, a2toa1, a1.e[e1].f[i], a2.e[e2].f[a1toa2.e[i]], verb))
@@ -658,7 +658,7 @@ bool equalsLanguages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, 
 			}else
 			{
 				if (verb)
-					printf("%d -%d-> existe in a1 but %d -%d-> doesn't existe in a2.", e1, i, e2, a1toa2.e[i]);
+					printf("%d -%d-> exists in a1 but %d -%d-> doesn't exists in a2.", e1, i, e2, a1toa2.e[i]);
 				return false;
 			}
 		}else
@@ -668,7 +668,7 @@ bool equalsLanguages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, 
 				if (a2.e[e2].f[a1toa2.e[i]] != -1)
 				{				
 					if (verb)
-						printf("%d -%d-> doesn't existe in a1 but %d -%d-> existe in a2.", e1, i, e2, a1toa2.e[i]);
+						printf("%d -%d-> doesn't exists in a1 but %d -%d-> exists in a2.", e1, i, e2, a1toa2.e[i]);
 					return false;
 				}
 			}
@@ -677,21 +677,22 @@ bool equalsLanguages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, 
 	return true;
 }
 
-//détermine si les langages des automates sont les mêmes
-//le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
+//determine if the languages of the two automata are the same
+//the dictionnary gives the letters of a2 depending of the ones of a1 (-1 if the letter of a1 doesn't correspond to any letter for a2).
+//This dictionnary is assumed to be invertible.
 //if minimized is true, the automaton a1 and a2 are assumed to be minimal.
-bool equalsLanguages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool emonded, bool verb)
+bool equalsLanguages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool pruned, bool verb)
 {
 	int i;
-	if (!emonded)
+	if (!pruned)
 	{
 		if (verb)
 			printf("Emonde...\n");
-		//émonde les automates
-		Automaton a3 = emonde(*a1, false);
+		//prun the automata
+		Automaton a3 = prune(*a1, false);
 		FreeAutomaton(a1);
 		*a1 = a3;
-		a3 = emonde(*a2, false);
+		a3 = prune(*a2, false);
 		FreeAutomaton(a2);
 		*a2 = a3;
 	}
@@ -713,7 +714,7 @@ bool equalsLanguages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, 
 		printAutomaton(*a1);
 		printAutomaton(*a2);
 	}
-	//inverse le dictionnaire
+	//inverse the dictionnary
 	Dict a2toa1 = NewDict(a2->na);
 	for (i=0;i<a1toa2.n;i++)
 	{
@@ -727,7 +728,7 @@ bool equalsLanguages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, 
 		res = (a1->i == a2->i);
 	else
 		res = equalsLanguages_rec(*a1, *a2, a1toa2, a2toa1, a1->i, a2->i, verb);
-	//remet les états finaux
+	//put back final states
 	for (i=0;i<a1->n;i++)
 	{
 		a1->e[i].final &= 1;
@@ -739,105 +740,22 @@ bool equalsLanguages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, 
 	return res;
 }
 
-/*
-//utilisé par intersectLanguage
-//détermine si les langages des états e1 de a1 et e2 de a2 ont une intersection non vide
-bool intersectLanguage_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, int e1, int e2, bool verb)
-{
-	if (a1.e[e1].final & 2)
-		return true; //état déjà vu
-	//indique que le sommet a été vu
-	a1.e[e1].final |= 2;
-	//parcours les fils de e1 dans a1
-	int i;
-	for (i=0;i<a1.na;i++)
-	{
-		if (a1.e[e1].f[i] != -1)
-		{//cette arête dans a1 existe
-			if (a1toa2.e[i] != -1)
-			{
-				if (a2.e[e2].f[a1toa2.e[i]] == -1)
-				{//cette arête ne correspond pas à une arête dans a2
-					continue;
-				}
-				if (!includedLanguage_rec(a1, a2, a1toa2, a2toa1, a1.e[e1].f[i], a2.e[e2].f[a1toa2.e[i]], verb))
-				{
-					return false;
-				}
-			}else
-			{
-				if (verb)
-					printf("%d -%d-> existe dans a1 mais %d -%d-> n'existe pas dans a2.", e1, i, e2, a1toa2.e[i]);
-				return false;
-			}
-		}
-	}
-	return true;
-}
-
-//détermine si le langage de l'automate a1 est inclus dans celui de a2
-//le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
-//if emonded is true, the automaton a1 and a2 are assumed to be emonded.
-bool includedLanguage (Automaton *a1, Automaton *a2, Dict a1toa2, bool emonded, bool verb)
-{
-	int i;
-	if (!emonded)
-	{
-		if (verb)
-			printf("Emonde...\n");
-		//minimise les automates
-		Automaton a3 = emonde(*a1, false);
-		FreeAutomaton(a1);
-		*a1 = a3;
-		a3 = emonde(*a2, false);
-		FreeAutomaton(a2);
-		*a2 = a3;
-	}
-	if (verb)
-	{
-		printf("Automates : ");
-		printAutomaton(*a1);
-		printAutomaton(*a2);
-	}
-	//inverse le dictionnaire
-	Dict a2toa1 = NewDict(a2->na);
-	for (i=0;i<a1toa2.n;i++)
-	{
-		a2toa1.e[a1toa2.e[i]] = i;
-	}
-	if (verb)
-		printDict(a2toa1);
-	//
-	bool res = includedLanguage_rec(*a1, *a2, a1toa2, a2toa1, a1->i, a2->i, verb);
-	//remet les états finaux
-	for (i=0;i<a1->n;i++)
-	{
-		a1->e[i].final &= 1;
-	}
-	for (i=0;i<a2->n;i++)
-	{
-		a2->e[i].final &= 1;
-	}
-	return res;
-}
-*/
-
-//utilisé par emptyLanguage
-//détermine si le langage de l'état e est vide
+//used by emptyLanguage
+//determine if the language of the state e is empty
 bool emptyLanguage_rec (Automaton a, int e)
 {
 	if (a.e[e].final)
 		return false;
-	//indique que le sommet a été vu
+	//indicate that the state has been seen
 	a.e[e].final |= 2;
-	//parcours les fils
+	//browse the sons
 	int i;
 	for (i=0;i<a.na;i++)
 	{
 		if (a.e[e].f[i] != -1)
 		{
 			if (a.e[a.e[e].f[i]].final & 2)
-				continue; //ce fils a déjà été vu
+				continue; //this son was already seen
 			if (!emptyLanguage_rec(a, a.e[e].f[i]))
 				return false;
 		}
@@ -845,13 +763,13 @@ bool emptyLanguage_rec (Automaton a, int e)
 	return true;
 }
 
-//détermine si le langage de l'automate est vide
+//determine if the language of the automaton is empty
 bool emptyLanguage (Automaton a)
 {
 	if (a.i == -1)
 		return true;
 	bool res = emptyLanguage_rec(a, a.i);
-	//remet les états finaux
+	//put back final states
 	int i;
 	for (i=0;i<a.n;i++)
 	{
@@ -869,16 +787,16 @@ bool findWord_rec (Automaton a, int e, int n, Dict *w, bool verb)
 		*w = NewDict(n);
 		return true;
 	}
-	//indique que le sommet a été vu
+	//indicate that the state a has been seen
 	a.e[e].final |= 2;
-	//parcours les fils
+	//browse sons
 	int i;
 	for (i=0;i<a.na;i++)
 	{
 		if (a.e[e].f[i] != -1)
 		{
 			if (a.e[a.e[e].f[i]].final & 2)
-				continue; //ce fils a déjà été vu
+				continue; //this son was already seen
 			if (findWord_rec(a, a.e[e].f[i], n+1, w, verb))
 			{
 				if (verb)
@@ -893,13 +811,13 @@ bool findWord_rec (Automaton a, int e, int n, Dict *w, bool verb)
 	return false;
 }
 
-//rend un mot dans le langage de a
+//return a word in the language of a
 bool findWord (Automaton a, Dict *w, bool verb)
 {
 	if (a.i == -1)
 		return false;
 	bool res = findWord_rec(a, a.i, 0, w, verb);
-	//remet les états finaux
+	//put back final states
 	int i;
 	for (i=0;i<a.n;i++)
 	{
@@ -908,17 +826,17 @@ bool findWord (Automaton a, Dict *w, bool verb)
 	return res;
 }
 
-//rend un mot le plus court du language
-bool shortestWord (Automaton a, Dict *w, int init, int fin, bool verb)
+//return a shortest word of the language
+bool shortestWord (Automaton a, Dict *w, int init, int end, bool verb)
 {
 	if (a.i == -1)
 		return false;
-	//algorithme de Dijkstra
-	int *d = malloc(sizeof(int)*a.n); //tableau des distances depuis l'état initial
-	int *prec = malloc(sizeof(int)*a.n); //tableau des prédécesseurs
+	//Dijkstra's algorithm
+	int *d = malloc(sizeof(int)*a.n); //table of distances from initial state
+	int *prec = malloc(sizeof(int)*a.n); //table of predecessors
 	int *vu = malloc(sizeof(int)*a.n);
 	int i, j, imin, f;
-	//initialisation
+	//initialization
 	for (i=0;i<a.n;i++)
 	{
 		d[i] = a.n;
@@ -926,10 +844,10 @@ bool shortestWord (Automaton a, Dict *w, int init, int fin, bool verb)
 		vu[i] = 0;
 	}
 	d[init] = 0;
-	//Dijkstra (pas très optimisé)
+	//Dijkstra (not very optimized)
 	for (i=0;i<a.n;i++)
 	{
-		//cherche l'état le plus proche non encore vu (pourrait être optimisé)
+		//find the nearest state not seen yet (could be optimized)
 		imin = 0;
 		while(vu[imin])
 			imin++;
@@ -941,7 +859,7 @@ bool shortestWord (Automaton a, Dict *w, int init, int fin, bool verb)
 			}
 		}
 		vu[imin] = 1;
-		//parcours les voisins
+		//browse sons
 		for (j=0;j<a.na;j++)
 		{
 			f = a.e[imin].f[j];
@@ -956,8 +874,8 @@ bool shortestWord (Automaton a, Dict *w, int init, int fin, bool verb)
 		}
 	}
 	free(vu);
-	//Détermine l'état final le plus proche (ou prend fin si fin != -1)
-	f = fin;
+	//Determine the nearest final state (or end if end != -1)
+	f = end;
 	if (f == -1)
 	{
 		for (i=0;i<a.n;i++)
@@ -979,7 +897,7 @@ bool shortestWord (Automaton a, Dict *w, int init, int fin, bool verb)
 		free(prec);
 		return false;
 	}
-	//trouve le chemin le plus court vers cet état
+	//find the shortest path to this state
 	i = 0;
 	imin = f;
 	while(prec[f] != -1)
@@ -987,13 +905,13 @@ bool shortestWord (Automaton a, Dict *w, int init, int fin, bool verb)
 		i++;
 		f = prec[f];
 	}
-	//alloue le mot
+	//alloc the word
 	*w = NewDict(i);
 	f = imin;
 	while(prec[f] != -1)
 	{
 		i--;
-		//trouve une lettre qui fait passer d'un état à l'autre
+		//find a letter to go from one state to the other
 		for (j=0;j<a.na;j++)
 		{
 			if (a.e[prec[f]].f[j] == f)
@@ -1008,17 +926,17 @@ bool shortestWord (Automaton a, Dict *w, int init, int fin, bool verb)
 	return true;
 }
 
-//rend les mots les plus courts jusqu'à chaque sommet
+//return the shortest words up to each state
 bool shortestWords (Automaton a, Dict *w, int init, bool verb)
 {
 	if (a.i == -1)
 		return false;
-	//algorithme de Dijkstra
-	int *d = malloc(sizeof(int)*a.n); //tableau des distances depuis l'état initial
-	int *prec = malloc(sizeof(int)*a.n); //tableau des prédécesseurs
+	//Dijkstra's algorithm
+	int *d = malloc(sizeof(int)*a.n); //table of distances from the initial state
+	int *prec = malloc(sizeof(int)*a.n); //table of predecessors
 	int *vu = malloc(sizeof(int)*a.n);
 	int i, j, k, imin, f;
-	//initialisation
+	//initialization
 	for (i=0;i<a.n;i++)
 	{
 		d[i] = a.n;
@@ -1028,10 +946,10 @@ bool shortestWords (Automaton a, Dict *w, int init, bool verb)
 	d[init] = 0;
 	if (verb)
 		printf("Dijkstra...\n");
-	//Dijkstra (pas très optimisé)
+	//Dijkstra (not very well optimized)
 	for (i=0;i<a.n;i++)
 	{
-		//cherche l'état le plus proche non encore vu (pourrait être optimisé)
+		//find the nearest state not already seeen (could be optimized)
 		imin = 0;
 		while(vu[imin])
 			imin++;
@@ -1043,7 +961,7 @@ bool shortestWords (Automaton a, Dict *w, int init, bool verb)
 			}
 		}
 		vu[imin] = 1;
-		//parcours les voisins
+		//browse sons
 		for (j=0;j<a.na;j++)
 		{
 			f = a.e[imin].f[j];
@@ -1067,11 +985,11 @@ bool shortestWords (Automaton a, Dict *w, int init, bool verb)
 	}
 	if (verb)
 		printf("Fill the list...\n");
-	//parcours les états
+	//browse the states
 	for (k=0;k<a.n;k++)
 	{
-		//trouve le chemin le plus court vers cet état
-		//trouve la longueur du chemin
+		//find the shortest path to this state
+		//find the length of the path
 		i = 0;
 		f = k;
 		while(prec[f] != -1)
@@ -1081,13 +999,13 @@ bool shortestWords (Automaton a, Dict *w, int init, bool verb)
 		}
 		if (verb)
 			printf("alloc %d (size %d)...\n", k, i);
-		//alloue le mot
+		//alloc the word
 		w[k] = NewDict(i);
 		f = k;
 		while(prec[f] != -1)
 		{
 			i--;
-			//trouve une lettre qui fait passer d'un état à l'autre
+			//find a letter to go from one state to the next one
 			for (j=0;j<a.na;j++)
 			{
 				if (a.e[prec[f]].f[j] == f)
@@ -1105,8 +1023,7 @@ bool shortestWords (Automaton a, Dict *w, int init, bool verb)
 	return true;
 }
 
-//vérifie que le mot w est reconnu par l'automate a
-//non testé !!!
+//check that the word w is recognized by the automaton
 bool rec_word (Automaton a, Dict d)
 {
 	int i;
@@ -1139,7 +1056,6 @@ int geti2 (int c, int n1)
 
 void Product_rec(Automaton r, int i1, int i2, Automaton a1, Automaton a2, Dict d)
 {
-	//printf("Product_rec %d %d...\n", i1, i2);
 	int i,j;
 	int e1, e2;
 	int a;
@@ -1162,7 +1078,6 @@ void Product_rec(Automaton r, int i1, int i2, Automaton a1, Automaton a2, Dict d
 					*next = -1;
 				else
 				{
-					//printf("(%d, %d)=%d -> (%d,%d)=%d\n", i, j, a, e1, e2, contract(e1, e2, a1.n));
 					*next = contract(e1, e2, a1.n);
 					if (!r.e[*next].final)
 						Product_rec(r, e1, e2, a1, a2, d);
@@ -1179,8 +1094,7 @@ Automaton Product(Automaton a1, Automaton a2, Dict d, bool verb)
 		printAutomaton(a1);
 		printAutomaton(a2);
 	}
-	//printf("a1.na=%d, a2.na=%d\n", a1.na, a2.na);
-	//compte le nombre de lettres de l'alphabet final
+	//count the number of letters of the final alphabet
 	int i, na=0;
 	for (i=0;i<d.n;i++)
 	{
@@ -1196,7 +1110,7 @@ Automaton Product(Automaton a1, Automaton a2, Dict d, bool verb)
 	}
 	r.i = contract(a1.i, a2.i, a1.n);
 	Product_rec(r, a1.i, a2.i, a1, a2, d);
-	//met les états finaux
+	//put the final states
 	for (i=0;i<r.n;i++)
 	{
 		r.e[i].final = a1.e[geti1(i, a1.n)].final && a2.e[geti2(i, a1.n)].final;
@@ -1230,7 +1144,7 @@ bool Intersect_rec(int i1, int i2, Automaton a1, Automaton a2, bool *vu, bool ve
 	return false;
 }
 
-//détermine si l'intersection est vide ou non
+//determine if the intersection is empty
 bool Intersect (Automaton a1, Automaton a2, bool verb)
 {
 	if (verb)
@@ -1238,11 +1152,10 @@ bool Intersect (Automaton a1, Automaton a2, bool verb)
 		printAutomaton(a1);
 		printAutomaton(a2);
 	}
-	//printf("a1.na=%d, a2.na=%d\n", a1.na, a2.na);
 	if (a1.i == -1 || a2.i == -1)
 	{
 		if (verb)
-			printf("One of the automata doesn't have a initial state !\n");
+			printf("One of the automata doesn't have an initial state !\n");
 		return false;
 	}
 	bool *vu = (bool *)malloc(sizeof(bool)*a1.n*a2.n);
@@ -1280,19 +1193,18 @@ bool Included_rec(int i1, int i2, Automaton a1, Automaton a2, bool *vu)
 	return true;
 }
 
-//détermine si l'on a inclusion des langages
-bool Included(Automaton a1, Automaton a2, bool emonded, bool verb)
+//determine if the language of a1 is included in the language of a2
+bool Included(Automaton a1, Automaton a2, bool pruned, bool verb)
 {
-	if (!emonded)
+	if (!pruned)
 	{
-		a1 = emonde(a1, verb);
+		a1 = prune(a1, verb);
 	}
 	if (verb)
 	{
 		printAutomaton(a1);
 		printAutomaton(a2);
 	}
-	//printf("a1.na=%d, a2.na=%d\n", a1.na, a2.na);
 	if (a1.i == -1)
 		return true;
 	if (a2.i == -1)
@@ -1308,7 +1220,6 @@ bool Included(Automaton a1, Automaton a2, bool emonded, bool verb)
 
 void AddEtat (Automaton *a, bool final)
 {
-	/**/
 	a->n++;
 	if (a->n == 1)
 		a->e = (Etat *)malloc(sizeof(Etat));
@@ -1325,8 +1236,6 @@ void AddEtat (Automaton *a, bool final)
 		printf("Out of memory !");
 		exit(3);
 	}
-	/**/
-	//ReallocAutomaton(a, a->n+1);
 	int i;
 	for (i=0;i<a->na;i++)
 	{
@@ -1342,7 +1251,7 @@ Etats NewEtats (int n)
 	e.e = (int *)malloc(sizeof(int)*n);
 	if (!e.e)
 	{
-			printf("Out of memory !");
+		printf("Out of memory !");
 		exit(7);
 	}
 return e;
@@ -1408,7 +1317,7 @@ void printListEtats (ListEtats l)
 	}
 }
 
-//ajoute un élément s'il n'est pas déjà dans la liste
+//add an element if not already in the list
 bool AddEl (ListEtats *l, Etats e, int* res)
 {
 	int i;
@@ -1421,7 +1330,7 @@ bool AddEl (ListEtats *l, Etats e, int* res)
 			return false;
 		}
 	}
-	//ajoute l'élément
+	//add the element
 	l->n++;
 	if (l->n == 1)
 		l->e = (Etats*)malloc(sizeof(Etats));
@@ -1438,10 +1347,10 @@ bool AddEl (ListEtats *l, Etats e, int* res)
 	return true;
 }
 
-//ajoute un élément même s'il est déjà dans la liste
+//add an element even if already in the list
 void AddEl2 (ListEtats *l, Etats e)
 {
-	//ajoute l'élément
+	//add the element
 	l->n++;
 	if (l->n == 1)
 		l->e = (Etats*)malloc(sizeof(Etats));
@@ -1500,18 +1409,6 @@ void printEtats2 (Etats2 e)
 			}
 		}
 	}
-	/*
-	printf("]");
-	printf("[ ");
-	for (i=0;i<e.n;i++)
-	{
-		if (hasEtats2(e, i))
-		{
-			printf("%d ", i);
-			fflush(stdout);
-		}
-	}
-	*/
 	printf("]\n");
 }
 
@@ -1618,40 +1515,6 @@ void printListEtats2 (ListEtats2 l)
 	printf("(%d allocated states2 )\n", l.na);
 }
 
-/*
-//ajoute un élément même s'il est déjà dans la liste
-void addEtats2 (ListEtats2 *l, Etats2 e)
-{
-	//ajoute l'élément
-	l->n++;
-	l->e = (Etats2*)realloc(l->e, sizeof(Etats2)*l->n);
-	if (!l->e)
-	{
-		printf("Out of memory !");
-		exit(5);
-	}
-	l->e[l->n-1] = copyEtats2(e);
-}
-
-//ajoute un élément s'il n'est pas déjà dans la liste
-bool AddEtats2 (ListEtats2 *l, Etats2 e, int* res)
-{
-	int i;
-	for (i=0;i<l->n;i++)
-	{
-		if (equals2(l->e[i], e))
-		{
-			if (res)
-				*res = i;
-			return false;
-		}
-	}
-	//ajoute l'élément
-	addEtats2(l, e);
-	return true;
-}
-*/
-
 ///////////////////////////////////////////////////////////////////
 
 Dict* lhash;
@@ -1717,14 +1580,14 @@ int hash2 (Etats2 e)
 	return h;
 }
 
-//ajoute l'élément s'il n'est pas déjà dans la table de hashage
+//add the element if not already in the hash table
 bool addEtats2 (const ListEtats2* l, Etats2 e, int *k)
 {
 	int h = hash2(e);
 	int i, v;
 	for (i=0;i<lhash[h].n;i++)
 	{
-		////////verif
+		////////check
 		if (lhash[h].e[i] >= l->n)
 		{
 			printf("***************\nError : element of the hash table too big !!!\n****************\n");
@@ -1739,21 +1602,17 @@ bool addEtats2 (const ListEtats2* l, Etats2 e, int *k)
 			return false;
 		}
 	}
-	//ajoute l'élément
+	//add the element
 	if (k)
 		*k = l->n;
-	//printf("Add dict...\n");
 	dictAdd(&lhash[h], l->n);
 	return true;
 }
 
-//ajoute l'élément s'il n'est pas déjà dans la table de hashage
+//add the element if not already in the hash table
 bool addH (const ListEtats *l, Etats e, int* nf)
 {
 	int h = hashEtats(e);
-	
-	//printf("hash = %d, n=%d, ", h, lhash[h].n);
-	//printEtats(e);
 	
 	int i, v;
 	for (i=0;i<lhash[h].n;i++)
@@ -1775,10 +1634,9 @@ bool addH (const ListEtats *l, Etats e, int* nf)
 			return false;
 		}
 	}
-	//ajoute l'élément
+	//add the element
 	if (nf)
 		*nf = l->n;
-	//printf("Add dict...\n");
 	dictAdd(&lhash[h], l->n);
 	return true;
 }
@@ -1800,7 +1658,7 @@ InvertDict NewInvertDict(int n)
 
 InvertDict invertDict(Dict d)
 {
-	//compte le nombre de valeurs différentes (supposées consécutives)
+	//count the number of different values (assumed to be consecutive)
 	int i;
 	int nv = 0;
 	for (i=0;i<d.n;i++)
@@ -1808,8 +1666,7 @@ InvertDict invertDict(Dict d)
 		if (d.e[i] >= nv)
 			nv = d.e[i]+1;
 	}
-	//printf("nombre d'éléments : %d\n", nv);
-	//alloue l'inverse
+	//alloc the inverse
 	InvertDict r;
 	r.n = nv;
 	r.d = (Dict *)malloc(sizeof(Dict)*nv);
@@ -1818,16 +1675,15 @@ InvertDict invertDict(Dict d)
 		printf("Out of memory !");
 		exit(10);
 	}
-	//initialise
+	//initialize
 	for (i=0;i<nv;i++)
 	{
 		r.d[i].n = 0;
 		r.d[i].e = NULL;
 	}
-	//remplit le dictionnaire
+	//fill the dictionnary
 	for (i=0;i<d.n;i++)
 	{
-		//printf("Add %d %d\n", d.e[i], i);
 		if (d.e[i] != -1)
 			dictAdd(&r.d[d.e[i]], i);
 	}
@@ -1856,7 +1712,7 @@ void printInvertDict (InvertDict id)
 	}
 }
 
-////////////////////////////////// à améliorer avec une table de hachage !!!!
+////////////////////////////////// to improve, with a hash table !!!!
 void putEtat (Etats *f, int ef)
 {
 	int i;
@@ -1869,13 +1725,13 @@ void putEtat (Etats *f, int ef)
 	f->n++;
 }
 
-//fonction utilisée par Determinise()
-//Etats : liste d'états de a
-void Determinise_rec (Automaton a, InvertDict id, Automaton *r, ListEtats* l, bool onlyfinals, bool nof, int niter)
+//function used by Determinize()
+//Etats : list of states of a
+void Determinize_rec (Automaton a, InvertDict id, Automaton *r, ListEtats* l, bool onlyfinals, bool nof, int niter)
 {
 	int current = l->n-1;
 	Etats c = l->e[current];
-	//Parcours les fils
+	//Browse sons
 	Etats f = NewEtats(a.n);
 	int nf;
 	Etat e;
@@ -1883,26 +1739,20 @@ void Determinise_rec (Automaton a, InvertDict id, Automaton *r, ListEtats* l, bo
 	int ef;
 	bool final;
 	
-	//printf("%d\n", niter);
-	//printf("l = ");
-	//printListEtats(*l);
-	//printf("c = ");
-	//printEtats(c);
-	
-	for (i=0;i<id.n;i++) //parcours les lettres du nouvel alphabet
+	for (i=0;i<id.n;i++) //browse letters of the new alphabet
 	{
-		//remplit f (liste d'états de a correspondant à l'état de r sur lequel on tombe)
+		//fill f (list of states of a corresponding to the state of r where we come)
 		f.n = 0;
 		final = false;
-		for (j=0;j<c.n;j++) //parcours les états de la liste
+		for (j=0;j<c.n;j++) //browse the states of the list
 		{
-			e = a.e[c.e[j]]; //état correspondant
-			for (k=0;k<id.d[i].n;k++) //parcours les lettres originales correspondant à la nouvelle lettre choisie
+			e = a.e[c.e[j]]; //corresponding state
+			for (k=0;k<id.d[i].n;k++) //browse the original letters, corresponding to the new chosen letter
 			{
 				ef = e.f[id.d[i].e[k]];
 				if (ef != -1)
 				{
-					//vérifie que l'état de a n'est pas déjà dans la liste
+					//check that the state of a is not already in the list
 					putEtat(&f, ef);
 					if (a.e[ef].final)
 						final = true;
@@ -1913,47 +1763,36 @@ void Determinise_rec (Automaton a, InvertDict id, Automaton *r, ListEtats* l, bo
 			continue;
 		if (nof && final)
 			continue;
-		//printf("i=%d : f=", i);
-		//printEtats(f);
-		//teste si l'état a déjà été vu et sinon on le note comme vu
+		//test if the state has been seen, and otherwise mark it as seen
 		if (addH(l, f, &nf)) //ajoute l'état à la table de hachage si nouveau
-		{
-			/*
-			printf("add %d ", nf);
-			printEtats(f);
-			printf("from %d ", i);
-			printEtats(c);
-			*/
-			
-			//ajoute l'état à la liste
+		{	
+			//add the state to the list
 			AddEl2(l, f);
-			//ajoute l'état à r
+			//add the state to r
 			if (nof)
 				final = true;
 			AddEtat(r, final);
-			//récurrence
-			Determinise_rec(a, id, r, l, onlyfinals, nof, niter+1);
+			//induction
+			Determinize_rec(a, id, r, l, onlyfinals, nof, niter+1);
 		}
 		if (nf != -1)
 		{
-			//ajoute l'arête
+			//add the edge
 			r->e[current].f[i] = nf;
-			//printf("Add %d --%d--> %d\n", current, i, nf);
-			//printAutomaton(*r);
 		}
 	}
 	FreeEtats(f);
 }
 
-//Déterminise l'automate obtenu par changement de l'alphabet
-Automaton Determinise(Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb)
+//Determinize the automaton obtained by changing the alphabet, using the Power Set Construction.
+Automaton Determinize(Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb)
 {
 	int i;
 	
 	Automaton r;
 	if (a.i == -1)
 	{
-		//calcule la taille de l'alphabet
+		//compute the size of the alphabet
 		int nv = 0;
 		for (i=0;i<d.n;i++)
 		{
@@ -2012,7 +1851,7 @@ Automaton Determinise(Automaton a, Dict d, bool noempty, bool onlyfinals, bool n
 		printDict(d);
 	}
 	
-	//calcule l'inverse du dictionnaire
+	//compute the inverse of the dictionnary
 	InvertDict id = invertDict(d);
 	if (verb && id.n == d.n)
 	{
@@ -2025,19 +1864,19 @@ Automaton Determinise(Automaton a, Dict d, bool noempty, bool onlyfinals, bool n
 		printInvertDict(id);
 	}
 	
-	//alloue la table de hachage
+	//alloc the hash table
 	AllocHash();
-	//met l'ensemble vide dans la table de hachage si cet état n'est pas souhaité dans r
+	//put the empty set in the hash table if we don't want this state in r
 	if (noempty)
 	{
-		Etats e = NewEtats(0); //ensemble vide
+		Etats e = NewEtats(0); //empty set
 		int h = hashEtats(e);
 		if (verb)
 			printf("hash empty : %d\n", h);
 		dictAdd(&lhash[h], -1);
 	}
 	
-	//initialise l'automate résultat avec juste l'état initial
+	//initialize the result automaton with just the initial state
 	if (verb)
 		printf("Init r...\n");
 	r.n = 1;
@@ -2065,36 +1904,33 @@ Automaton Determinise(Automaton a, Dict d, bool noempty, bool onlyfinals, bool n
 	}
 	if (verb)
 		printAutomaton(r);
-		
-	//initialise la liste des états du nouvel automate et la table de hachage
-	//(cette liste sert à numéroter par des nombres consécutifs les états du nouvel automate qui sont des listes d'états de a)
+	
+	//initialize the list of states of the new automaton and the hash table
+	//(this list is used to number with consecutive numbers the states of the new automaton that are list of states of a)
 	if (verb)
 		printf("Init l...\n");
 	ListEtats l;
 	l.n = 0;
 	l.e = NULL;
 	Etats e = NewEtats(1);
-	e.e[0] = a.i; //l'état initial du nouvel automate est la liste des états initiaux (ici de cardinal 1)
-	//printf("add...\n");
+	e.e[0] = a.i; //the initial state of the new automaton is the list of initial states (here with cardinality 1)
 	addH(&l, e, NULL);
-	//printf("Add...\n");
 	AddEl2(&l, e);
 	
-	//initialise la table de hachage
-	bool b = addH(&l, l.e[0], NULL); //ajoute l'état initial à la table de hachage
-	//printf("b = %d\n", b);
+	//initialize the hash table
+	bool b = addH(&l, l.e[0], NULL); //add the initial state to the hash table
 	if (verb)
 		printListEtats(l);
 	
 	if (verb)
-		printf("Recurrence...\n");
+		printf("Induction...\n");
 	
-	Determinise_rec(a, id, &r, &l, onlyfinals, nof, 0);
+	Determinize_rec(a, id, &r, &l, onlyfinals, nof, 0);
 	
 	if (verb)
 		printf("Free...\n");
 	
-	//remet à zéro les éléments de la table de hachage
+	//put back to zero the element of the hash table
 	for (i=0;i<l.n;i++)
 	{
 		FreeDict(&lhash[hashEtats(l.e[i])]);
@@ -2107,133 +1943,21 @@ Automaton Determinise(Automaton a, Dict d, bool noempty, bool onlyfinals, bool n
 	free(l.e);
 	
 	FreeInvertDict(id);
-	//FreeHash();  //ne libère pas la mémoire pour la réutiliser plus rapidement plus tard
-	
-	//printf("1ere transition : ");
-	//fflush(stdout);
-	//printf("%d\n", r.e[0].f[0]);
-	
-	//printAutomaton(r);
+	//FreeHash(); //do not free the memory, in order to use it faster after
 	
 	return r;
 }
 
-/*
-Automaton Union (Automaton a, Automaton b)
-{
-	Dict d;
-	d = NewDict(a.na*b.na);
-	int i, j;
-	for (i=0;i<a.na;i++)
-	{
-		d[contract(i, i, a.na)] = i;
-	}
-	Automaton r = Product(a, b, d);
-	//met les états finaux
-	for (i=0;i<r.n;i++)
-	{
-		r.e[i].final = a.e[geti1(i, a.n)].final || b.e[geti2(i, a.n)].final;
-	}
-}
-*/
-/*
 NAutomaton Concat (Automaton a, Automaton b, bool verb)
 {
 	int i, j, f;
-	// !!! devrait tenir compte des alphabets différents !!!
-	// On suppose pour l'instant que a et b ont mêmes alphabets
+	// !!! should take care of the fact that alphabet could be differents !!!
+	// We assume for the moment that a and b share the same alphabet
 	NAutomaton r = NewNAutomaton(a.n+b.n, a.na);
 	//copie a
 	for (i=0;i<a.n;i++)
 	{
-		//compte le nombre d'arêtes
-		int nv = 0, rnv;
-		for (j=0;j<a.na;j++)
-		{
-			f = a.e[i].f[j];
-			if (f != -1)
-			{
-				nv++;
-				if (a.e[f].final)
-					nv++; //ajoute une arete vers l'autre automate
-			}
-		}
-		rnv = nv;
-		//alloue les nouvelles arêtes
-		r.e[i].a = (Arete *)malloc(sizeof(Arete)*nv);
-		r.e[i].n = nv;
-		//copies les arêtes
-		nv = 0;
-		for (j=0;j<a.na;j++)
-		{
-			f = a.e[i].f[j];
-			if (f != -1)
-			{
-				r.e[i].a[nv].l = j;
-				r.e[i].a[nv].e = f;
-				nv++;
-				if (a.e[f].final)
-				{
-					//ajoute une arete vers l'état initial de l'autre automate
-					r.e[i].a[nv].l = j;
-					r.e[i].a[nv].e = a.n+b.i;
-					nv++;
-				}
-			}
-		}
-		if (rnv != nv)
-		{
-			printf("Erreur : nv n'a pas la bonne valeur !!!\n");
-			exit(1);
-		}
-		r.e[i].final = false; //a.e[i].final;
-		r.e[i].initial = (a.i == i);
-	}
-	//copie b
-	for (i=0;i<b.n;i++)
-	{
-		//compte le nombre d'arêtes
-		int nv = 0;
-		for (j=0;j<b.na;j++)
-		{
-			if (b.e[i].f[j] != -1)
-				nv++;
-		}
-		//alloue les nouvelles arêtes
-		r.e[a.n+i].a = (Arete *)malloc(sizeof(Arete)*nv);
-		r.e[a.n+i].n = nv;
-		//copies les arêtes
-		nv = 0;
-		for (j=0;j<b.na;j++)
-		{
-			if (b.e[i].f[j] != -1)
-			{
-				r.e[a.n+i].a[nv].l = j;
-				r.e[a.n+i].a[nv].e = a.n + b.e[i].f[j];
-				nv++;
-			}
-		}
-		r.e[a.n+i].final = b.e[i].final;
-		r.e[a.n+i].initial = false; //(a.i == i);
-	}
-	if (a.e[a.i].final) //si a reconnait le mot vide
-	{
-		return Union(r, b);
-	}else
-		return r;
-}
-*/
-
-NAutomaton Concat (Automaton a, Automaton b, bool verb)
-{
-	int i, j, f;
-	// !!! devrait tenir compte des alphabets différents !!!
-	// On suppose pour l'instant que a et b ont mêmes alphabets
-	NAutomaton r = NewNAutomaton(a.n+b.n, a.na);
-	//copie a
-	for (i=0;i<a.n;i++)
-	{
-		//compte le nombre d'arêtes
+		//count the edges
 		int nv = 0, rnv;
 		for (j=0;j<a.na;j++)
 		{
@@ -2242,12 +1966,12 @@ NAutomaton Concat (Automaton a, Automaton b, bool verb)
 				nv++;
 		}
 		if (a.e[i].final)
-			nv++; //ajoute une arete vers l'autre automate
+			nv++; //add an edge to the other automaton
 		rnv = nv;
-		//alloue les nouvelles arêtes
+		//alloc new edges
 		r.e[i].a = (Arete *)malloc(sizeof(Arete)*nv);
 		r.e[i].n = nv;
-		//copies les arêtes
+		//copy edges
 		nv = 0;
 		for (j=0;j<a.na;j++)
 		{
@@ -2261,33 +1985,33 @@ NAutomaton Concat (Automaton a, Automaton b, bool verb)
 		}
 		if (a.e[i].final)
 		{
-			//ajoute une epsilon-transition vers l'état initial de l'autre automate
+			//add an espilon-transition to the initial state of the other automaton
 			r.e[i].a[nv].l = -1;
 			r.e[i].a[nv].e = a.n+b.i;
 			nv++;
 		}
 		if (rnv != nv)
 		{
-			printf("Erreur : nv n'a pas la bonne valeur !!!\n");
+			printf("Error : nv has not the right value !!!\n");
 			exit(1);
 		}
-		r.e[i].final = false; //a.e[i].final;
+		r.e[i].final = false;
 		r.e[i].initial = (a.i == i);
 	}
-	//copie b
+	//copy b
 	for (i=0;i<b.n;i++)
 	{
-		//compte le nombre d'arêtes
+		//count the edges
 		int nv = 0;
 		for (j=0;j<b.na;j++)
 		{
 			if (b.e[i].f[j] != -1)
 				nv++;
 		}
-		//alloue les nouvelles arêtes
+		//alloc the new edges
 		r.e[a.n+i].a = (Arete *)malloc(sizeof(Arete)*nv);
 		r.e[a.n+i].n = nv;
-		//copies les arêtes
+		//copy the edges
 		nv = 0;
 		for (j=0;j<b.na;j++)
 		{
@@ -2299,29 +2023,29 @@ NAutomaton Concat (Automaton a, Automaton b, bool verb)
 			}
 		}
 		r.e[a.n+i].final = b.e[i].final;
-		r.e[a.n+i].initial = false; //(a.i == i);
+		r.e[a.n+i].initial = false;
 	}
 	return r;
 }
 
-//convertit un automate déterministe en un automate non déterministe
+//convert a deterministic automaton to a non-deterministic one
 NAutomaton CopyN(Automaton a, bool verb)
 {
 	int i,j;
 	NAutomaton r = NewNAutomaton(a.n, a.na);
 	for (i=0;i<a.n;i++)
 	{
-		//compte le nombre d'arêtes
+		//count the edges
 		int nv = 0;
 		for (j=0;j<a.na;j++)
 		{
 			if (a.e[i].f[j] != -1)
 				nv++;
 		}
-		//alloue les nouvelles arêtes
+		//alloc the new edges
 		r.e[i].a = (Arete *)malloc(sizeof(Arete)*nv);
 		r.e[i].n = nv;
-		//copies les arêtes
+		//copy the edges
 		nv = 0;
 		for (j=0;j<a.na;j++)
 		{
@@ -2338,10 +2062,10 @@ NAutomaton CopyN(Automaton a, bool verb)
 	return r;
 }
 
-//change l'alphabet de l'automate
+//change the alphabet of the automaton
 NAutomaton Proj (Automaton a, Dict d, bool verb)
 {
-	//calcule la taille du nouvel alphabet
+	//compute the size of the new alphabet
 	int nv = 0;
 	int i,j;
 	for (i=0;i<d.n;i++)
@@ -2353,17 +2077,17 @@ NAutomaton Proj (Automaton a, Dict d, bool verb)
 	NAutomaton r = NewNAutomaton(a.n, nv);
 	for (i=0;i<a.n;i++)
 	{
-		//compte le nombre d'arêtes
+		//count the edges
 		nv = 0;
 		for (j=0;j<a.na;j++)
 		{
 			if (a.e[i].f[j] != -1 && d.e[j] != -1)
 				nv++;
 		}
-		//alloue les nouvelles arêtes
+		//alloc new edges
 		r.e[i].a = (Arete *)malloc(sizeof(Arete)*nv);
 		r.e[i].n = nv;
-		//copies les arêtes
+		//copy edges
 		nv = 0;
 		for (j=0;j<a.na;j++)
 		{
@@ -2380,7 +2104,7 @@ NAutomaton Proj (Automaton a, Dict d, bool verb)
 	return r;
 }
 
-//Ajoute à e tous les états atteint par epsilon-transition depuis i
+//Add to e all states reached by an epsilon-transition from state i
 void EpsilonParcours (NAutomaton a, uint i, Etats2 e)
 {
 	if (!hasEtats2(e, i))
@@ -2389,7 +2113,7 @@ void EpsilonParcours (NAutomaton a, uint i, Etats2 e)
 		uint j;
 		for (j=0;j<a.e[i].n;j++)
 		{
-			if (a.e[i].a[j].l == -1) //c'est une epsilon-transition
+			if (a.e[i].a[j].l == -1) //it is an epsilon-transition
 			{
 				EpsilonParcours(a, a.e[i].a[j].e, e);
 			}
@@ -2397,7 +2121,7 @@ void EpsilonParcours (NAutomaton a, uint i, Etats2 e)
 	}
 }
 
-//calcule l'epsilon-cloture de e (resultat dans ec)
+//compute the epsilon-closure of e (result in ec)
 void EpsilonCloture (NAutomaton a, Etats2 e, Etats2 ec)
 {
 	int j;
@@ -2411,8 +2135,8 @@ void EpsilonCloture (NAutomaton a, Etats2 e, Etats2 ec)
 	}
 }
 
-//déterminise un automate non-déterministe
-Automaton DeterminiseN (NAutomaton a, bool puits, int verb)
+//Determinize a non-deterministic automaton
+Automaton DeterminizeN (NAutomaton a, bool puits, int verb)
 {
 	if (verb)
 		printf("allocation...\n");
@@ -2443,7 +2167,7 @@ Automaton DeterminiseN (NAutomaton a, bool puits, int verb)
 	if (verb >= 20)
 		printf("allocates the first state...\n");
 	
-	//initialise le premier état
+	//initialize the first state
 	r.i = 0;
 	l.e[0] = NewEtats2(a.n);
 	initEtats2(l.e[0]);
@@ -2453,14 +2177,14 @@ Automaton DeterminiseN (NAutomaton a, bool puits, int verb)
 			addEtat(&l.e[0], i);
 	}
 	l.n = 0;
-	addEtats2(&l, l.e[0], NULL); //ajout à la table de hashage
+	addEtats2(&l, l.e[0], NULL); //add to the hash table
 	l.n++;
 	
 	if (verb)
 		printf("way...\n");
 	
 	for (i=0;i<l.n;i++)
-	{ //parcours les états du nouvel automate
+	{ //browse states of the new automaton
 		
 		if (verb >= 20)
 		{
@@ -2473,17 +2197,16 @@ Automaton DeterminiseN (NAutomaton a, bool puits, int verb)
 		{
 			initEtats2(e[j]);
 		}
-		//calcule la cloture par epsilon-transition de l.e[i]
+		//compute the closure by epsilon-transition of l.e[i]
 		EpsilonCloture(a, l.e[i], ec);
-		//parcours toutes les arêtes sortantes des états de ec
+		//browse all edges leaving from states of ec
 		for (j=0;j<a.n;j++)
-		{ //parcours les états de a qui sont dans l'état courant
+		{ //browse states of a being in the current state
 			if (hasEtats2(ec, j))
 			{
 				r.e[i].final = r.e[i].final || a.e[j].final;
-				//printf("(%d)", j);
 				for (u=0;u<a.e[j].n;u++)
-				{ //parcours les aretes sortantes de l'état j de a
+				{ //browse edges leaving from state j of a
 					if (a.e[j].a[u].l >= 0)
 						addEtat(&e[a.e[j].a[u].l], a.e[j].a[u].e);
 				}
@@ -2492,7 +2215,7 @@ Automaton DeterminiseN (NAutomaton a, bool puits, int verb)
 		if (verb > 20)
 			printf(" -> reached states :\n");
 		for (j=0;j<a.na;j++)
-		{ //parcours les états atteints
+		{ //browse reached states
 			if (verb > 20)
 			{
 				printf("	");
@@ -2501,18 +2224,18 @@ Automaton DeterminiseN (NAutomaton a, bool puits, int verb)
 			if (puits || !isNullEtats2(e[j]))
 			{
 				EpsilonCloture(a, e[j], ec);
-				//détermine si l'état est nouveau ou pas
+				//determine if the state is new or not
 				if (addEtats2(&l, ec, &k))
 				{
 					ReallocListEtats2(&l, l.n+1, true);
 					l.e[k] = copyEtats2(ec);
-					//ajoute un état à l'automate
+					//add a state to the automaton
 					if (l.n > r.n)
-					{ //alloue de la mémoire si nécessaire
+					{ //alloc the memory if needed
 						ReallocAutomaton(&r, 2*l.n, false);
 					}
 				}
-				//ajoute une arête vers k étiquetée par j dans le nouvel automate
+				//add a edge labeled by j toward k in the new automaton
 				r.e[i].f[j] = k;
 			}else
 			{
@@ -2527,7 +2250,7 @@ Automaton DeterminiseN (NAutomaton a, bool puits, int verb)
 	//libère la mémoire
 	ReallocAutomaton(&r, l.n, false);
 	
-	//remet à zéro les éléments de la table de hachage
+	//put to zero elements of the hash table
 	for (i=0;i<l.n;i++)
 	{
 		FreeDict(&lhash[hash2(l.e[i])]);
@@ -2539,12 +2262,12 @@ Automaton DeterminiseN (NAutomaton a, bool puits, int verb)
 		FreeEtats2(e[i]);
 	}
 	free(e);
-	//FreeHash(); //ne libère pas la mémoire pour la réutiliser plus rapidement plus tard
+	//FreeHash(); //do not free memory in order to use it faster later
 	return r;
 }
 
-//change l'alphabet en dupliquant des arêtes si nécessaire
-//the result is assumed deterministic !!!!
+//change the alphabet by duplicating edges if needed
+//the result is assumed to be deterministic !!!!
 Automaton Duplicate (Automaton a, InvertDict id, int na2, bool verb)
 {
 	if (verb)
@@ -2569,7 +2292,6 @@ Automaton Duplicate (Automaton a, InvertDict id, int na2, bool verb)
 		}
 		for (j=0;j<a.na;j++)
 		{
-			//printf("i=%d, j=%d, n=%d\n", i, j, id.d[j].n);
 			for (k=0;k<id.d[j].n;k++)
 			{
 				r.e[i].f[id.d[j].e[k]] = a.e[i].f[j];
@@ -2612,7 +2334,7 @@ void ZeroComplete(Automaton *a, int l0, bool verb)
 		printf("l0 = %d\n", l0);
 	if (a->i == -1)
 		return;
-	bool *vu = (bool *)malloc(sizeof(bool)*a->n); //liste des sommets vus
+	bool *vu = (bool *)malloc(sizeof(bool)*a->n); //list of seen states
 	if (!vu)
 	{
 		printf("Out of memory !\n");
@@ -2625,13 +2347,10 @@ void ZeroComplete(Automaton *a, int l0, bool verb)
 	free(vu);
 }
 
-//zero-complète dans l'autre sens
 Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb)
 {
 	NAutomaton r = NewNAutomaton(a->n+1, a->na);
-	
-	//printf("init...\n");
-	
+		
 	int i,j,k;
 	for (i=0;i<a->n;i++)
 	{
@@ -2648,10 +2367,10 @@ Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb)
 				r.e[i].n++;
 		}
 		if (a->e[i].final)
-			r.e[i].n++; //arête 0 en plus
-		//alloue
+			r.e[i].n++; //edge 0 added
+		//alloc
 		r.e[i].a = (Arete *)malloc(sizeof(Arete)*r.e[i].n);
-		//remplit
+		//fill
 		k = 0;
 		for (j=0;j<a->na;j++)
 		{
@@ -2664,7 +2383,7 @@ Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb)
 		}
 		if (a->e[i].final)
 		{
-			r.e[i].a[k].e = a->n; //ajoute l'arête vers l'état reconnaissant 0
+			r.e[i].a[k].e = a->n; //add the edge to the state that recognize 0
 			r.e[i].a[k].l = l0;
 		}
 	}
@@ -2675,15 +2394,13 @@ Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb)
 	r.e[a->n].initial = false;
 	r.e[a->n].final = true;
 	
-	return DeterminiseN(r, etat_puits, 0);
+	return DeterminizeN(r, etat_puits, 0);
 }
 
 Automaton ZeroInv(Automaton *a, int l0)
 {
 	NAutomaton r = NewNAutomaton(a->n+1, a->na);
-	
-	//printf("init...\n");
-	
+		
 	int i,j,k;
 	for (i=0;i<a->n;i++)
 	{
@@ -2693,15 +2410,15 @@ Automaton ZeroInv(Automaton *a, int l0)
 			r.e[i].initial = false;
 		r.e[i].final = a->e[i].final;
 		r.e[i].n = 0;
-		//compte les arêtes
+		//count the edges
 		for (j=0;j<a->na;j++)
 		{
 			if (a->e[i].f[j] != -1)
 				r.e[i].n++;
 		}
-		//alloue
+		//alloc
 		r.e[i].a = (Arete *)malloc(sizeof(Arete)*r.e[i].n);
-		//remplit
+		//fill
 		k = 0;
 		for (j=0;j<a->na;j++)
 		{
@@ -2722,65 +2439,37 @@ Automaton ZeroInv(Automaton *a, int l0)
 	r.e[a->n].initial = true;
 	r.e[a->n].final = true;
 	
-	return DeterminiseN(r, false, 0);
+	return DeterminizeN(r, false, 0);
 }
 
-int compteurEtats = 0;
-bool emonde_inf_rec(Automaton a, int etat)
+int countEtats = 0;
+bool prune_inf_rec(Automaton a, int etat)
 {
 	int i, f;
 	bool cycle = false;
-	a.e[etat].final = 1; //note que le sommet est en cours d'étude
+	a.e[etat].final = 1; //mark the state as currently seen
 	for (i=0;i<a.na;i++)
 	{
 		f = a.e[etat].f[i];
 		if (f == -1)
 			continue;
 		if (a.e[f].final == 1)
-			cycle = true; //le sommet fait parti d'un cycle
+			cycle = true; //the state is part of a cycle
 		if (a.e[f].final == 0)
 		{
-			if (emonde_inf_rec(a, f))
-				cycle = true; //le sommet permet d'atteindre un cycle
+			if (prune_inf_rec(a, f))
+				cycle = true; //the state permits to reach a cycle
 		}
 	}
 	if (!cycle)
-		a.e[etat].final = 2; //indique que le sommet ne doit pas être gardé (mais a été vu)
+		a.e[etat].final = 2; //indicate that we won't keep the state (but it has been seen)
 	else
-		compteurEtats++; //compte le nombre de sommets à garder
+		countEtats++; //count the states that we keep
 	return cycle;
 }
 
-/*
-void emonde_inf_rec2 (Automaton a, Automaton r, int *l, int etat)
-{
-	int i, f;
-	int current = compteurEtats;
-	a.e[etat].final = 0; //note que le sommet a été vu
-	l[etat] = current; //correspondance entre les nouveaux et les anciens états
-	compteurEtats++;
-	for (i=0;i<a.na;i++)
-	{
-		r.e[current].f[i] = -1; //valeur par défaut
-		f = a.e[etat].f[i];
-		if (f == -1)
-			continue;
-		if (a.e[f].final == 1) //le sommet n'a encore jamais été vu et doit être gardé
-		{
-			//appel récursif
-			emonde_inf_rec2(a, r, l, f);
-		}
-		if (a.e[f].final != 2) //le sommet doit être gardé, donc l'arête vers ce sommet aussi
-		{
-			//ajoute l'arête
-			r.e[current].f[i] = l[f];
-		}
-	}
-}
-*/
-
-//retire tous les états à partir desquels il n'y a pas de chemin infini
-Automaton emonde_inf(Automaton a, bool verb)
+//remove every state from which there is no infinite path
+Automaton prune_inf(Automaton a, bool verb)
 {
 	int *l = (int *)malloc(sizeof(int)*a.n);
 	if (!l)
@@ -2789,7 +2478,7 @@ Automaton emonde_inf(Automaton a, bool verb)
 		exit(25);
 	}
 	
-	//commence par établir la liste des sommets de a à garder
+	//start by computing the list of states of a to keep
 	int i;
 	int *finaux = (int *)malloc(sizeof(int)*a.n);
 	if (!finaux)
@@ -2800,27 +2489,26 @@ Automaton emonde_inf(Automaton a, bool verb)
 	for (i=0;i<a.n;i++)
 	{
 		finaux[i] = a.e[i].final;
-		a.e[i].final = 0; //états non vus
+		a.e[i].final = 0; //states not seen
 	}
 	if (verb)
-		printf("recurrence...\n");
-	compteurEtats = 0;
+		printf("induction...\n");
+	countEtats = 0;
 	if (a.i != -1)
-		emonde_inf_rec (a, a.i);
-	//printf("compteurEtats = %d\n", compteurEtats);
+		prune_inf_rec (a, a.i);
 	
 	if (verb)
 	{
-		printf("States counter = %d\n", compteurEtats);
+		printf("States counter = %d\n", countEtats);
 		printf("count...\n");
 	}
 	
-	//compte le nombre de sommets à garder
+	//count the states to keep
 	int cpt = 0;
 	for (i=0;i<a.n;i++)
 	{
 		if (a.e[i].final & 1)
-		{ //nouveau sommet à ajouter
+		{ //new state to add
 			l[i] = cpt;
 			cpt++;
 		}else
@@ -2830,7 +2518,7 @@ Automaton emonde_inf(Automaton a, bool verb)
 	if (verb)
 		printf("cpt = %d\n", cpt);
 	
-	//créé le nouvel automate
+	//create the new automaton
 	int j, f;
 	Automaton r = NewAutomaton(cpt, a.na);
 	for (i=0;i<a.n;i++)
@@ -2853,7 +2541,7 @@ Automaton emonde_inf(Automaton a, bool verb)
 	if (verb)
 		printf("final states...\n");
 	
-	//remet les états finaux comme ils étaient
+	//put back final states as before
 	for (i=0;i<a.n;i++)
 	{
 		a.e[i].final = finaux[i];
@@ -2861,22 +2549,12 @@ Automaton emonde_inf(Automaton a, bool verb)
 			r.e[l[i]].final = finaux[i];
 	}
 	
-	//état initial
+	//initial state
 	if (a.i != -1)
 		r.i = l[a.i];
 	else
 		r.i = -1;
 	
-	/*
-	printf("a.n = %d\n", a.n);
-	printf("l = [ ");
-	for (i=0;i<a.n;i++)
-	{
-		printf("%d ", l[i]);
-		fflush(stdout);
-	}
-	printf("]\n");
-	*/
 	free(finaux);
 	free(l);
 	return r;
@@ -2920,9 +2598,7 @@ Automaton TransposeDet(Automaton a)
 NAutomaton Transpose(Automaton a)
 {
 	NAutomaton r = NewNAutomaton(a.n, a.na);
-	
-	//printf("init...\n");
-	
+		
 	int i,j;
 	for (i=0;i<a.n;i++)
 	{
@@ -2934,9 +2610,7 @@ NAutomaton Transpose(Automaton a)
 		r.e[i].a = NULL;
 		r.e[i].n = 0;
 	}
-	
-	//printf("remplit...\n");
-	
+		
 	int f;
 	for (i=0;i<a.n;i++)
 	{
@@ -2945,7 +2619,7 @@ NAutomaton Transpose(Automaton a)
 			f = a.e[i].f[j];
 			if (f != -1)
 			{
-				//ajoute une arête de f vers i étiquetée par j
+				//add an edge from f to i labeled by j
 				r.e[f].n++;
 				if (r.e[f].n == 1)
 					r.e[f].a = (Arete *)malloc(sizeof(Arete));
@@ -2955,10 +2629,7 @@ NAutomaton Transpose(Automaton a)
 				r.e[f].a[r.e[f].n-1].e = i;
 			}
 		}
-	} 
-	
-	//printf("done !\n");
-	
+	}
 	return r;
 }
 
@@ -2969,22 +2640,20 @@ int min (int a, int b)
 	return b;
 }
 
-int compteur2;
+int count2;
 void StronglyConnectedComponents_rec(Automaton a, int etat, int *pile, int *m, int *res)
 {
-	//printf("etat=%d, cpt=%d, cpt2=%d\n", etat, compteurEtats, compteur2);
 	int j,f,c;
-	pile[compteurEtats] = etat;
-	m[etat] = compteurEtats;
-	c = compteurEtats;
-	a.e[etat].final |= 2; //note que l'état a été vu
-	compteurEtats++;
+	pile[countEtats] = etat;
+	m[etat] = countEtats;
+	c = countEtats;
+	a.e[etat].final |= 2; //mark the state as seen
+	countEtats++;
 	for (j=0;j<a.na;j++)
 	{
 		f = a.e[etat].f[j];
 		if (f == -1)
 			continue;
-		//printf("%d --%d--> %d\n", f);
 		if (!(a.e[f].final & 2))
 		{
 			StronglyConnectedComponents_rec(a, f, pile, m, res);
@@ -2994,21 +2663,20 @@ void StronglyConnectedComponents_rec(Automaton a, int etat, int *pile, int *m, i
 			m[etat] = min(m[etat], m[f]);
 		}
 	}
-	//printf("m[%d]=%d, c=%d\n", etat, m[etat], c);
 	if (m[etat] == c)
-	{ //on a une composante fortement connexe
-		//dépile la composante
+	{ //we have a strongly connected component
+	    //pops the component
 		do
 		{
-			compteurEtats--;
-			res[pile[compteurEtats]] = compteur2;
-		}while(pile[compteurEtats] != etat);
-		compteur2++;
+			countEtats--;
+			res[pile[countEtats]] = count2;
+		}while(pile[countEtats] != etat);
+		count2++;
 	}
 }
 
-//Tarjan algorithm
-int StronglyConnectedComponents (Automaton a, int *res) //, bool strict) //if strict is True, consider only composant in which there is a loop
+//Tarjan's algorithm
+int StronglyConnectedComponents (Automaton a, int *res)
 {
 	int *m = (int *)malloc(sizeof(int)*a.n);
 	int *pile = (int *)malloc(sizeof(int)*a.n);
@@ -3017,110 +2685,58 @@ int StronglyConnectedComponents (Automaton a, int *res) //, bool strict) //if st
 	{
 		res[i] = -1;
 	}
-	compteurEtats = 0; //compte les éléments ajoutés à la pile
-	compteur2 = 0; //compte les composantes fortement connexes
+	countEtats = 0; //count the states added to the stack
+	count2 = 0; //count the strongly connected components
 	for (i=0;i<a.n;i++)
 	{
 		if (res[i] == -1)
 			StronglyConnectedComponents_rec(a, i, pile, m, res);
 	}
-	//remet les états finaux
+	//put back final states
 	for (i=0;i<a.n;i++)
 	{
 		a.e[i].final &= 1;
 	}
 	free(pile);
 	free(m);
-	return compteur2;
+	return count2;
 }
 
-/*
-//rend le sous-automate dont les sommets sont les images par l
-//on suppose que les images par l sont des entiers consécutifs partant de 0
-//problème : le résultat n'est pas déterministe
-Automaton Contract (Automaton a, int *l)
+//determine reachable and co-reachable states
+void prune_rec(Automaton a, int *l, InvertDict id, int etat)
 {
-	int i, c = 0;
-	//compte le nombre de nouveaux sommets
-	for (i=0;i<a.n;i++)
-	{
-		if (l[i] >= c)
-			c = l[i]+1;
-	}
-	//créé le nouvel automate
-	Automaton r = NewAutomaton(c, a.na);
-	
-	/////////////////////////////////////////////Not implemented !!!
-	
-	return r;
-}
-*/
-
-//détermine les sommets accessible et co-accessibles
-void emonde_rec(Automaton a, int *l, InvertDict id, int etat)
-{
-	//printf("emonde_rec %d...\n", etat);
+	//printf("prune_rec %d...\n", etat);
 	int i, j, f;
-	a.e[etat].final |= 2; //note que le sommet est en cours d'étude
+	a.e[etat].final |= 2; //mark that this state is currently seen
 	for (i=0;i<a.na;i++)
 	{
 		f = a.e[etat].f[i];
 		if (f == -1)
 			continue;
 		if (!(a.e[f].final & 2))
-		{ //le sommet n'a pas encore été vu
-			emonde_rec(a, l, id, f);
+		{ //the state has not been seen
+			prune_rec(a, l, id, f);
 		}
 		if ((a.e[f].final & 4) && !(a.e[etat].final & 4))
-		{ //on tombe sur un état co-final mais etat n'est pas encore noté co-final
-			//propage l'information à la composante fortement connexe
+		{ //we get to a co-final state that is not yet marked as co-final
+		    //propagate the information to the strongly connected component
 			for (j=0;j<id.d[l[etat]].n;j++)
 			{
 				a.e[id.d[l[etat]].e[j]].final |= 4;
-				//printf("rec : %d co-acc\n", id.d[l[etat]].e[j]);
 			}
 		}
 	}
 }
 
-/*
-//construit le nouvel automate
-void emonde_rec3 (Automaton a, Automaton r, int *l, int etat)
-{
-	int i, f;
-	int current = compteurEtats;
-	a.e[etat].final |= 8; //note que le sommet a été vu
-	r.e[current].final = a.e[etat].final & 1;
-	l[etat] = current; //correspondance entre les nouveaux et les anciens états
-	compteurEtats++;
-	for (i=0;i<a.na;i++)
-	{
-		r.e[current].f[i] = -1; //valeur par défaut
-		f = a.e[etat].f[i];
-		if (f == -1)
-			continue;
-		if (!(a.e[f].final & 2) || !(a.e[f].final & 4))
-			continue; //le sommet ne doit pas être gardé
-		if (!(a.e[f].final & 8))
-		{ //le sommet n'a encore jamais été vu dans ce parcours
-			//appel récursif
-			emonde_rec3(a, r, l, f);
-		}
-		//ajoute l'arête
-		r.e[current].f[i] = l[f];
-	}
-}
-*/
-
-//retire tous les états non accessible ou non co-accessible
+//remove every non-reachable and non-co-reachable states
 //
-// fonction pas très éfficace : à revoir !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// not really efficient : to improve !!!!!!!!!!!!!!!!!
 //
-Automaton emonde(Automaton a, bool verb)
+Automaton prune(Automaton a, bool verb)
 {
 	int i,j,f;
 	
-	//détermine les états accessibles et co-accessibles
+	//determine reachable and co-reachable states
 	int *l = (int *)malloc(sizeof(int)*a.n);
 	if (!l)
 	{
@@ -3150,11 +2766,11 @@ Automaton emonde(Automaton a, bool verb)
 	}
 	if (verb)
 		printInvertDict(id);
-	//propage les états finaux aux composantes fortements connexes
+	//propagate final states to strongly connected components
 	for (i=0;i<a.n;i++)
 	{
 		if (a.e[i].final & 1)
-		{ //l'état i est final et accessible mais non encore noté comme co-accessible
+		{ //the state i is final and co-reachable but not already marked as co-reachable
 			for (j=0;j<id.d[l[i]].n;j++)
 			{
 				a.e[id.d[l[i]].e[j]].final |= 4;
@@ -3167,20 +2783,19 @@ Automaton emonde(Automaton a, bool verb)
 	if (verb)
 		printf("rec...\n");
 	if (a.i != -1)
-		emonde_rec(a, l, id, a.i);
+		prune_rec(a, l, id, a.i);
 	
-	//compte le nombre de sommets à garder
+	//count the states to keep
 	int cpt = 0;
 	for (i=0;i<a.n;i++)
 	{
 		if ((a.e[i].final & 2) && (a.e[i].final & 4))
-		{ //nouveau sommet à ajouter
+		{ //new state to add
 			l[i] = cpt;
 			cpt++;
 		}else
 			l[i] = -1;
 	}
-	//printf("compteurEtats = %d\n", compteurEtats);
 	
 	if (verb)
 	{
@@ -3193,7 +2808,7 @@ Automaton emonde(Automaton a, bool verb)
 		
 		printf("create the new automaton %d %d...\n", cpt, a.na);
 	}
-	//créé le nouvel automate
+	//create the new automaton
 	Automaton r = NewAutomaton(cpt, a.na);
 	for (i=0;i<a.n;i++)
 	{
@@ -3216,7 +2831,7 @@ Automaton emonde(Automaton a, bool verb)
 		}
 	}
 	
-	//remet les états finaux de a
+	//put back the final states of a
 	if (verb)
 	{
 		printf("deleted States : [");
@@ -3243,7 +2858,7 @@ Automaton emonde(Automaton a, bool verb)
 	if (verb)
 		printf(" ]\n");
 	
-	//état initial
+	//initial state
 	if (a.i != -1)
 		r.i = l[a.i];
 	else
@@ -3258,7 +2873,6 @@ bool AccCoAccRec (Automaton *a, int *coa, int e)
 {
 	if (coa[e] == 2)
 	{
-		//printf("e=%d...\n", e);
 		int i, f;
 		bool coacc = a->e[e].final;
 		coa[e] = 0; //indicate that the state has been seen
@@ -3271,22 +2885,21 @@ bool AccCoAccRec (Automaton *a, int *coa, int e)
 		}
 		if (coacc)
 			coa[e] = 1;
-		//printf(" -> coacc=%d\n", coacc);
 		return coacc;
 	}else
 		return (coa[e] == 1);
 }
 
-//détermine les états accessibles et coaccessibles
-// 0 : non co-accessible mais accessible
-// 1 : accessible et co-accessible
-// 2 : non-accessible (et on ne sais rien sur la co-accessibilité)
+//determine the reachable and co-reachable states
+// 0 : non co-reachable but reachable
+// 1 : co-reachable and reachable
+// 2 : non-reachable (but we don't know the co-reachability)
 void AccCoAcc(Automaton *a, int *coa)
 {
 	int i;
 	for (i=0;i<a->n;i++)
 	{
-		coa[i] = 2; //indique les états non encore vus
+		coa[i] = 2; //indicate states not seen yet
 	}
 	if (a->i != -1)
 		AccCoAccRec(a, coa, a->i);
@@ -3296,7 +2909,6 @@ bool CoAccRec (Automaton *a, int *coa, int e)
 {
 	if (coa[e] == 2)
 	{
-		//printf("e=%d...\n", e);
 		int i, f;
 		bool coacc = a->e[e].final;
 		coa[e] = 0; //indicate that the state has been seen
@@ -3309,21 +2921,20 @@ bool CoAccRec (Automaton *a, int *coa, int e)
 		}
 		if (coacc)
 			coa[e] = 1;
-		//printf(" -> coacc=%d\n", coacc);
 		return coacc;
 	}else
 		return (coa[e] == 1);
 }
 
-//détermine les états co-accessibles
-// 0 : non co-accessible
-// 1 : co-accessible
+//determine the co-reachable states
+// 0 : non co-reachable
+// 1 : reachable
 void CoAcc (Automaton *a, int *coa)
 {
 	int i;
 	for (i=0;i<a->n;i++)
 	{
-		coa[i] = 2; //indique les états non encore vus
+		coa[i] = 2; //indicate states non seen yet
 	}
 	if (a->i != -1)
 		CoAccRec(a, coa, a->i);
@@ -3334,31 +2945,31 @@ void CoAcc (Automaton *a, int *coa)
 	}
 }
 
-//détermine les sommets accessibles
-void emondeI_rec(Automaton a, int etat)
+//determine reachable states
+void pruneI_rec(Automaton a, int etat)
 {
 	int i, f;
-	a.e[etat].final |= 2; //note que le sommet est en cours d'étude
+	a.e[etat].final |= 2; //mark that the state is currently seen
 	for (i=0;i<a.na;i++)
 	{
 		f = a.e[etat].f[i];
 		if (f == -1)
 			continue;
 		if (!(a.e[f].final & 2))
-		{ //le sommet n'a pas encore été vu
-			emondeI_rec(a, f);
+		{ //the state has not been seen yet
+			pruneI_rec(a, f);
 		}
 	}
 }
 
-//retire tous les états non accessible
-Automaton emondeI(Automaton a, bool verb)
+//remove every non-reachable states
+Automaton pruneI(Automaton a, bool verb)
 {
 
 	int i,j,f;
-	//détermine les états accessibles
+	//determine reachable states
 	if (a.i != -1)
-		emondeI_rec(a, a.i);
+		pruneI_rec(a, a.i);
 
 	int *l = (int *)malloc(sizeof(int)*a.n);
 	if (!l)
@@ -3367,20 +2978,19 @@ Automaton emondeI(Automaton a, bool verb)
 		exit(15);
 	}
 
-	//compte le nombre de sommets à garder
+	//count the states to keep
 	int cpt = 0;
 	for (i=0;i<a.n;i++)
 	{
 		if (a.e[i].final & 2)
-		{ //nouveau sommet à ajouter
+		{ //new state to add
 			l[i] = cpt;
 			cpt++;
 		}else
 			l[i] = -1;
 	}
-	//printf("compteurEtats = %d\n", compteurEtats);
 	
-	//créé le nouvel automate
+	//create the new automaton
 	Automaton r = NewAutomaton(cpt, a.na);
 
 	for (i=0;i<a.n;i++)
@@ -3400,7 +3010,7 @@ Automaton emondeI(Automaton a, bool verb)
 		}
 	}
 
-	//remet les états finaux de a
+	//put back the final states of a
 	if (verb)
 	{
 		printf("deleted States : [");
@@ -3426,7 +3036,7 @@ Automaton emondeI(Automaton a, bool verb)
 	if (verb)
 		printf(" ]\n");
 
-	//état initial
+	//initial state
 	if (a.i != -1)
 		r.i = l[a.i];
 	else
@@ -3572,17 +3182,17 @@ void PermutOP (Automaton a, int *l, int na, bool verb)
 
 typedef int Couple[2];
 
-int *partition; //état --> indice
-int *partitioni; //indice --> état
-int *class; //classe de chaque état
+int *partition; //state --> indice
+int *partitioni; //indice --> state
+int *class; //classe de chaque state
 Couple *class_indices; //intervalle d'indices de la classe
 int nclass = 0; //nb de classes
-Dict **transitioni; //inverse des transitions de l'automate : état, lettre --> liste d'états
+Dict **transitioni; //inverse des transitions de l'automate : state, lettre --> liste d'states
 int *L; //liste des classes par rapport auxquelles il faut raffiner
 int nL; //nb d'éléments de L
 int *pt_visited_class; //premier indice non rencontré dans la classe
 int *visited_class; //liste des classes visitées dernièrement (utilisé dans split)
-int *etats; //états à parcourir
+int *etats; //states à parcourir
 
 int global_n = 0;
 void print_partition ()
@@ -3619,7 +3229,7 @@ void print_classes ()
 	}
 }
 
-//échange les états i et j
+//échange les states i et j
 void swap (int i, int j)
 {
 	if (i == j)
@@ -3641,13 +3251,13 @@ void split (int C, int a, bool verb)
 	//copie la liste des sommets à parcourir (au cas où celle-ci soit modifiée pendant le parcours)
 	for (i=l;i<h;i++)
 	{ //parcours la classe C
-		etats[i] = partitioni[i]; //état d'indice i
+		etats[i] = partitioni[i]; //state d'indice i
 	}
 	for (i=l;i<h;i++)
 	{ //parcours la classe C
-		e = etats[i]; //état d'indice i
+		e = etats[i]; //state d'indice i
 		for (j=0;j<transitioni[e][a].n;j++)
-		{ //parcours l'image inverse de l'état e par la lettre a
+		{ //parcours l'image inverse de l'state e par la lettre a
 			p = transitioni[e][a].e[j]; //parent
 			cp = class[p]; //classe de p
 			if (!pt_visited_class[cp])
@@ -3667,7 +3277,7 @@ void split (int C, int a, bool verb)
 			{
 				if (verb)
 					printf("vertex %d already seen\n", p);
-				continue; //on a déjà vu l'état p
+				continue; //on a déjà vu l'state p
 			}
 			ep = partitioni[ep]; //élément à permuter avec p
 			swap(ep, p);
@@ -3741,7 +3351,7 @@ Automaton Minimise(Automaton a, bool verb)
 	transitioni = (Dict **)malloc(sizeof(Dict *)*(a.n+1)); //inverse des partitions
 	partition = (int *)malloc(sizeof(int)*(a.n+1));
 	partitioni = (int *)malloc(sizeof(int)*(a.n+1));
-	class = (int *)malloc(sizeof(int)*(a.n+1)); //classe d'un état
+	class = (int *)malloc(sizeof(int)*(a.n+1)); //classe d'un state
 	nclass = 0;
 	class_indices = (Couple *)malloc(sizeof(Couple)*(a.n+1));
 	visited_class = (int *)malloc(sizeof(int)*(a.n+1));
@@ -3781,13 +3391,13 @@ Automaton Minimise(Automaton a, bool verb)
 				dictAdd(&transitioni[f][j], i);
 			}else
 			{
-				dictAdd(&transitioni[a.n][j], i); //état puits
+				dictAdd(&transitioni[a.n][j], i); //state puits
 			}
 		}
 	}
 	for (j=0;j<a.na;j++)
 	{
-		dictAdd(&transitioni[a.n][j], a.n); //transitions de l'état puits
+		dictAdd(&transitioni[a.n][j], a.n); //transitions de l'state puits
 	}
 	
 	/**/
@@ -3808,8 +3418,8 @@ Automaton Minimise(Automaton a, bool verb)
 	}
 	/**/
 	
-	//commence par séparer états finaux et non-finaux
-	f = 0; //compteur du nombre d'états finaux
+	//commence par séparer states finaux et non-finaux
+	f = 0; //count du nombre d'states finaux
 	for (i=0;i<a.n;i++)
 	{
 		if (a.e[i].final)
@@ -3882,9 +3492,9 @@ Automaton Minimise(Automaton a, bool verb)
 	Automate r = NewAutomaton(nclass, a.na);
 	for (i=0;i<nclass;i++)
 	{
-		e = partitioni[class_indices[i][0]]; //un état de la classe
+		e = partitioni[class_indices[i][0]]; //un state de la classe
 		if (e >= a.n)
-		{ //état puits
+		{ //state puits
 			for (j=0;j<a.na;j++)
 				r.e[i].f[j] = -1;
 			r.e[i].final = false;
@@ -3917,10 +3527,10 @@ Automaton Minimise(Automaton a, bool verb)
 	else
 		r.i = -1;
 	
-	//retire l'état puits si pas présent dans l'automate initial
+	//retire l'state puits si pas présent dans l'automate initial
 	i = class[a.n];
 	if (class_indices[i][1] == class_indices[i][0]+1)
-	{ //il faut retirer l'état puits
+	{ //il faut retirer l'state puits
 		if (verb)
 			printf("removes the hole state  %d...\n", i);
 		DeleteVertexOP(&r, i);
