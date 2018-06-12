@@ -25,6 +25,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.realizations import Category_realization_of_parent
 #from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
+from sage.categories.cartesian_product import cartesian_product
 
 from sage.matrix.matrix_space import MatrixSpace
 from sage.sets.set import Set
