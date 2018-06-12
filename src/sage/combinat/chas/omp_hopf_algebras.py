@@ -25,18 +25,16 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.realizations import Category_realization_of_parent
 #from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
-from sage.categories.rings import Rings
-from sage.categories.fields import Fields
 
 from sage.matrix.matrix_space import MatrixSpace
 from sage.sets.set import Set
-from sage.rings.all import ZZ
+from sage.rings.all import Integer, ZZ, QQ
 
 from sage.functions.other import factorial
 
 from sage.combinat.free_module import CombinatorialFreeModule
 #from .bases import OMPBases, MultiplicativeOMPBases, OMPBasis_abstract
-#from sage.combinat.multiset_partition_ordered import OrderedMultisetPartitions, OrderedMultisetPartitions_n, OrderedMultisetPartitions_A
+from sage.combinat.multiset_partition_ordered import OrderedMultisetPartition, OrderedMultisetPartitions, OrderedMultisetPartitions_n, OrderedMultisetPartitions_A
 from sage.sets.set import Set, Set_object
 from sage.combinat.posets.posets import Poset
 from sage.combinat.sf.sf import SymmetricFunctions
@@ -76,9 +74,13 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
             _OMPs._repr_ = lambda : "Ordered Multiset Partitions over alphabet %s"%Set(self._A)
         else:
             _OMPs = OrderedMultisetPartitions()
+        #def key_func_omp(A):
+        #    # not sure we need to do anything special here!
+        #    return A
         CombinatorialFreeModule.__init__(self, alg.base_ring(),
                                          _OMPs,
                                          category=OMPBases(alg, graded),
+                                         #sorting_key=key_func_omp,
                                          bracket="", prefix=self._prefix)
 
     def _coerce_map_from_(self, R):
@@ -334,16 +336,16 @@ class HopfAlgebraOnOrderedMultisetPartitions(UniqueRepresentation, Parent):
         TESTS::
 
             sage: OMP1 = HopfAlgebraOnOrderedMultisetPartitions(QQ, alphabet=[2,3,5])
-            sage: OMP2 = HopfAlgebraOnOrderedMultisetPartitions(QQ, alphabet=frozenset([2,3,5]))
+            sage: OMP2 = HopfAlgebraOnOrderedMultisetPartitions(QQ, alphabet=Set([2,3,5]))
             sage: OMP1 is OMP2
             True
         """
         if alphabet is not None:
             if alphabet in ZZ:
-                alphabet = frozenset(range(1,alphabet+1))
+                alphabet = Set(range(1,alphabet+1))
             else:
-                alphabet = frozenset(alphabet)
-            if alphabet == frozenset() or any(a not in ZZ for a in alphabet):
+                alphabet = Set(alphabet)
+            if alphabet == Set() or any(a not in ZZ for a in alphabet):
                 raise ValueError("keyword alphabet was converted to %s, which must be a nonempty set of positive integers"%(Set(alphabet)))
         else:
             alphabet = None
@@ -362,10 +364,10 @@ class HopfAlgebraOnOrderedMultisetPartitions(UniqueRepresentation, Parent):
             #from warnings import warn
             #warn("alphabet keyword is not yet implemented", RuntimeWarning)
             if alphabet in ZZ:
-                self._A = frozenset(range(1,alphabet+1))
+                self._A = Set(range(1,alphabet+1))
             else:
-                self._A = frozenset(alphabet)
-            if self._A == frozenset() or any(a not in ZZ for a in self._A):
+                self._A = Set(alphabet)
+            if self._A == Set() or any(a not in ZZ for a in self._A):
                 raise ValueError("keyword alphabet was converted to %s, which must be a nonempty set of positive integers"%(Set(self._A)))
         else:
             self._A = None
@@ -477,6 +479,7 @@ class HopfAlgebraOnOrderedMultisetPartitions(UniqueRepresentation, Parent):
                 sage: all(H.product_on_basis(z, one) == H(z) == H.basis()[z] for z in OrderedMultisetPartitions(3))
                 True
             """
+            # TODO: if alphabet is not None, then one should check that B has valid blocks.
             return self.monomial(A + B)
 
         def coproduct_on_basis(self, A):
@@ -547,13 +550,20 @@ class HopfAlgebraOnOrderedMultisetPartitions(UniqueRepresentation, Parent):
                 sage: HH.apply_multilinear_morphism(lambda x,y: x.antipode()*y)
                 0
             """
+            ## TODO: figure out why antipode_on_basis and _antipode_on_basis disagree
+            ## does it have something to do with shorthand confusion?:
+            ## compare
+            ##      sage: H[[2,3,4]]
+            ## to
+            ##      sage: H([[2,3,4]])
             out = []
             P = self.basis().keys()
-            AA = [P(a).finer() for a in A.reversal()]
+            AA = [P([a]).finer() for a in A.reversal()]
+            #print AA
             for refinement in cartesian_product(AA):
                 C = reduce(lambda a,b: a + b, refinement, P([]))
                 ell = sum(map(len, C))
-                out.add((C, (-1)**ell))
+                out.append((C, (-1)**ell))
             return self.sum_of_terms(out)
 
     Homogeneous = H
@@ -909,6 +919,15 @@ class OMPBases(Category_realization_of_parent):
                 return A.size()
 
     class ElementMethods:
+        def _antipode(self):
+            """
+            """
+            P = self.parent()
+            out = P.zero()
+            for (key, coeff) in self:
+                out += coeff * P._antipode_on_basis(key)
+            return out
+
         def to_noncommutative_symmetric_function(self):
             r"""
             The projection of ``self`` to the ring of symmetric functions.
@@ -966,21 +985,56 @@ class HopfAlgebraOnOrderedMultisetPartitionsDual(UniqueRepresentation, Parent):
 
     See Example 14 of [LM2018]_ for its dual.
     """
-    def __init__(self, R):
+    @staticmethod
+    def __classcall_private__(cls, R, alphabet=None, order_grading=True):
+        """
+        Normalize the input to ensure a unique representation.
+
+        TESTS::
+
+            sage: OMPQ1 = HopfAlgebraOnOrderedMultisetPartitionsDual(QQ, alphabet=[2,3,5])
+            sage: OMPQ2 = HopfAlgebraOnOrderedMultisetPartitionsDual(QQ, alphabet=Set([2,3,5]))
+            sage: OMPQ1 is OMPQ2
+            True
+        """
+        if alphabet is not None:
+            if alphabet in ZZ:
+                alphabet = Set(range(1,alphabet+1))
+            else:
+                alphabet = Set(alphabet)
+            if alphabet == Set() or any(a not in ZZ for a in alphabet):
+                raise ValueError("keyword alphabet was converted to %s, which must be a nonempty set of positive integers"%(Set(alphabet)))
+        else:
+            alphabet = None
+        return super(HopfAlgebraOnOrderedMultisetPartitionsDual, cls).__classcall__(cls, R, alphabet, order_grading)
+
+    def __init__(self, R, alphabet=None, order_grading=True):
         """
         Initialize ``self``.
 
-        EXAMPLES::
+        TESTS::
 
+            sage: A = HopfAlgebraOnOrderedMultisetPartitionsDual(QQ)
+            sage: TestSuite(A).run()  # long time
         """
-        # change the line below to assert(R in Rings()) once MRO issues from #15536, #15475 are resolved
-        assert(R in Fields() or R in Rings()) # side effect of this statement assures MRO exists for R
-        self._base = R # Won't be needed once CategoryObject won't override base_ring
+        if alphabet is not None:
+            #from warnings import warn
+            #warn("alphabet keyword is not yet implemented", RuntimeWarning)
+            if alphabet in ZZ:
+                self._A = Set(range(1,alphabet+1))
+            else:
+                self._A = Set(alphabet)
+            if self._A == Set() or any(a not in ZZ for a in self._A):
+                raise ValueError("keyword alphabet was converted to %s, which must be a nonempty set of positive integers"%(Set(self._A)))
+        else:
+            self._A = None
         category = GradedHopfAlgebras(R).Commutative().Connected()
-        Parent.__init__(self, category=category.WithRealizations())
+        Parent.__init__(self, base=R, category=category.WithRealizations())
+        if self._A:
+            self._order_grading = order_grading
+        else:
+            self._order_grading = False
 
-        # Bases
-        M = self.M()
 
     def _repr_(self):
         r"""
@@ -1014,8 +1068,7 @@ class HopfAlgebraOnOrderedMultisetPartitionsDual(UniqueRepresentation, Parent):
             sage: OMPD.dual()
             Hopf Algebra on Ordered Multiset Partitions over the Rational Field
         """
-        from .hopf_omp import HopfAlgebraOnStrictMultisetCompositions
-        return HopfAlgebraOnStrictMultisetCompositions(self.base_ring())
+        return HopfAlgebraOnOrderedMultisetPartitions(self.base_ring())
 
     class M(OMPBasis_abstract):
         r"""
@@ -1027,20 +1080,8 @@ class HopfAlgebraOnOrderedMultisetPartitionsDual(UniqueRepresentation, Parent):
             sage: M = OMPD.M()
 
         """
-        def __init__(self, OMPD):
-            """
-            EXAMPLES::
-
-                sage: M = HopfAlgebraOnOrderedMultisetPartitions(QQ).dual().M()
-                sage: TestSuite(m).run()
-            """
-            def key_func_omp(A):
-                # not sure we need to do anything special here!
-                return A
-            CombinatorialFreeModule.__init__(self, OMPD.base_ring(), StrictMultisetCompositions(),
-                                             prefix='m', bracket=False,
-                                             #sorting_key=key_func_omp,
-                                             category=OMPDualBases(OMPD))
+        _prefix = "M"
+        _basis_name = "Monomial"
 
         def dual_basis(self):
             r"""
@@ -1086,19 +1127,20 @@ class HopfAlgebraOnOrderedMultisetPartitionsDual(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: M = HopfAlgebraOnOrderedMultisetPartitions(QQ).dual().M()
-                sage: A = StrictMultisetComposition(from_zero_list=[2,1,3,0,1,2]); A
+                sage: A = OrderedMultisetPartition(from_zero_list=[2,1,3,0,1,2]); A
                 [{1,2,3}, {1,2}]
-                sage: B = StrictMultisetComposition([[3,4]]); B
+                sage: B = OrderedMultisetPartition([[3,4]]); B
                 [{3,4}]
                 sage: M.product_on_basis(A, B)
                 M[{1,2,3}, {1,2}, {3,4}] + M[{1,2,3}, {3,4}, {1,2}] + M[{3,4}, {1,2,3}, {1,2}] + M[{1,2,3}, {1,2,3,4}]
-                sage: C = StrictMultisetComposition([[4,5]]); C
+                sage: C = OrderedMultisetPartition([[4,5]]); C
                 [{4,5}]
                 sage: M.product_on_basis(A, C)
                 M[{1,2,3}, {1,2}, {4,5}] + M[{1,2,3}, {4,5}, {1,2}] + M[{4,5}, {1,2,3}, {1,2}] + M[{1,2,3}, {1,2,4,5}] + M[{1,2,3,4,5}, {1,2}]
-                sage: M.product_on_basis(A, StrictMultisetComposition([]))
+                sage: M.product_on_basis(A, OrderedMultisetPartition([]))
                 M[{1,2,3}, {1,2}]
             """
+            # TODO: if alphabet is not None, then one should check that B has valid blocks.
             terms = A.shuffle_product(B, overlap=True)
             return self.sum_of_terms([(s, 1) for s in terms])
 
@@ -1124,12 +1166,12 @@ class HopfAlgebraOnOrderedMultisetPartitionsDual(UniqueRepresentation, Parent):
                 sage: M = HopfAlgebraOnOrderedMultisetPartitions(QQ).dual().M()
                 sage: M[[2], [2,3]].coproduct()
                 M[] # M[{2}, {2,3}] + M[{2}] # M[{2,3}] + M[{2}, {2,3}] # M[]
-                sage: M.coproduct_on_basis(StrictMultisetComposition([]))
+                sage: M.coproduct_on_basis(OrderedMultisetPartition([]))
                 M[] # M[]
             """
             n = A.size()
             return self.tensor_square().sum_of_terms([
-                (( StrictMultisetCompositions(A[:i]), StrictMultisetCompositions(A[i:]) ), 1) \
+                (( OrderedMultisetPartitions(A[:i]), OrderedMultisetPartitions(A[i:]) ), 1) \
                 for i in range(n+1)], distinct=True)
 
         def _antipode_on_basis(self, A):
@@ -1165,7 +1207,7 @@ class HopfAlgebraOnOrderedMultisetPartitionsDual(UniqueRepresentation, Parent):
                 sage: DOMP = HopfAlgebraOnOrderedMultisetPartitionsDual(QQ)
                 sage: M = DOMP.M()
                 sage: h = M.dual_basis()
-                sage: matrix([[M(A).duality_pairing(H(B)) for A in StrictMultisetCompositions(3)] for B in StrictMultisetCompositions(3)])
+                sage: matrix([[M(A).duality_pairing(H(B)) for A in OrderedMultisetPartitions(3)] for B in OrderedMultisetPartitions(3)])
                 [1 0 0 0 0]
                 [0 1 0 0 0]
                 [0 0 1 0 0]
@@ -1174,7 +1216,7 @@ class HopfAlgebraOnOrderedMultisetPartitionsDual(UniqueRepresentation, Parent):
                 sage: (M[[1,2],[3]] + 3*M[[1,3],[2]]).duality_pairing(2*H[[1,3],[2]] + H[[1,2,3]] + 2*H[[1,2],[3]])
                 8
                 sage: P = HopfAlgebraOnOrderedMultisetPartitions(QQ).P()
-                sage: matrix([[M(A).duality_pairing(P(B)) for A in StrictMultisetCompositions(3)] for B in StrictMultisetCompositions(3)])
+                sage: matrix([[M(A).duality_pairing(P(B)) for A in OrderedMultisetPartitions(3)] for B in OrderedMultisetPartitions(3)])
                 [_ _ _ _ _]
                 [_ _ _ _ _]
                 [_ _ _ _ _]
@@ -1206,8 +1248,8 @@ class HopfAlgebraOnOrderedMultisetPartitionsDual(UniqueRepresentation, Parent):
                 sage: M.sum_of_partitions([[2,1],[1]])
                 M[{1}, {1,2}] + M[{1,2}, {1}]
             """
-            A = StrictMultisetCompositions(A)
-            P = StrictMultisetCompositions
+            A = OrderedMultisetPartitions(A)
+            P = OrderedMultisetPartitions
             return self.sum_of_terms([(P(omp), 1) for omp in Permutations(list(A))], distinct=True)
 
         def sum_of_shape_from_cardinality(self, A, deg=None):
@@ -1235,7 +1277,7 @@ class HopfAlgebraOnOrderedMultisetPartitionsDual(UniqueRepresentation, Parent):
             if deg is None:
                 deg = sum([binomial(k,2) for k in A])
             A = Composition(A)
-            P = StrictMultisetCompositions(deg)
+            P = OrderedMultisetPartitions(deg)
             return self.sum_of_terms([(omp, 1) for omp in P if P.shape_from_cardinality() == A], distinct=True)
 
         def sum_of_shape_from_size(self, A):
@@ -1259,7 +1301,7 @@ class HopfAlgebraOnOrderedMultisetPartitionsDual(UniqueRepresentation, Parent):
                 M[{1,2,3}, {2}] + M[{1,5}, {2}] + M[{2,4}, {2}] + M[{6}, {2}]
             """
             A = Composition(A)
-            P = StrictMultisetCompositions(sum(A))
+            P = OrderedMultisetPartitions(sum(A))
             return self.sum_of_terms([(omp, 1) for omp in P if P.shape_from_size() == A], distinct=True)
 
         class Element(CombinatorialFreeModule.Element):
@@ -1312,7 +1354,7 @@ class HopfAlgebraOnOrderedMultisetPartitionsDual(UniqueRepresentation, Parent):
                     sage: elt.is_symmetric()
                     True
                 """
-                P = StrictMultisetComposition
+                P = OrderedMultisetPartitions()
                 d = {}
                 R = self.base_ring()
                 for A, coeff in self:
@@ -1329,18 +1371,50 @@ class HopfAlgebraOnOrderedMultisetPartitionsDual(UniqueRepresentation, Parent):
 ############################
 OMPSym = HopfAlgebraOnOrderedMultisetPartitions(QQ)
 H = OMPSym.H()
+hx = H[[2,3],[2,1]]
 OP = OrderedMultisetPartitions()
 print H
-OMPSymA = HopfAlgebraOnOrderedMultisetPartitions(QQ, alphabet=[2,3,5])
-HA = OMPSymA.H()
-OPA = OrderedMultisetPartitions(alphabet=[2,3,5])
-print HA
-
-DOMPSym = HopfAlgebraOnOrderedMultisetPartitionsDual(QQ)
-M = DOMPSym.M()
-OP = OrderedMultisetPartitions()
-print M
-DOMPSymA = HopfAlgebraOnOrderedMultisetPartitionsDual(QQ, alphabet=[2,3,5])
-MA = DOMPSymA.M()
-OPA = OrderedMultisetPartitions(alphabet=[2,3,5])
-print MA
+print "hx =", hx
+print
+print "hx^2 = ", hx * hx
+print "hx.coproduct() = ", hx.coproduct()
+print
+print "hx.antipode()", hx.antipode()
+print "hx._antipode()", hx._antipode()
+print
+# OMPSymA = HopfAlgebraOnOrderedMultisetPartitions(QQ, alphabet=[2,3,5])
+# HA = OMPSymA.H()
+# OPA = OrderedMultisetPartitions(alphabet=[2,3,5])
+# print HA
+# hy = HA[[2,3],[2,5]]
+# print "hy =", hy
+# print "hy^2 = ", hy * hy
+# print "hy.coproduct() = ", hy.coproduct()
+# print
+# print "hy.antipode()", hy.antipode()
+# print "hy._antipode()", hy._antipode()
+# print
+# DOMPSym = HopfAlgebraOnOrderedMultisetPartitionsDual(QQ)
+# M = DOMPSym.M()
+# mx = M[[2,3],[2,1]]
+# OP = OrderedMultisetPartitions()
+# print M
+# print "mx =", mx
+# print "mx^2 = ", mx * mx
+# print "mx.coproduct() = ", mx.coproduct()
+# #print
+# #print "mx.antipode()", mx.antipode()
+# #print "mx._antipode()", mx._antipode()
+# print
+# DOMPSymA = HopfAlgebraOnOrderedMultisetPartitionsDual(QQ, alphabet=[2,3,5])
+# MA = DOMPSymA.M()
+# my = MA[[2,3],[2,5]]
+# OPA = OrderedMultisetPartitions(alphabet=[2,3,5])
+# print MA
+# print "my =", my
+# print "my^2 = ", my * my
+# print "my.coproduct() = ", my.coproduct()
+# #print
+# #print "my.antipode()", my.antipode()
+# #print "my._antipode()", my._antipode()
+# print
