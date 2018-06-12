@@ -1678,13 +1678,19 @@ class GenericGraph(GenericGraph_pyx):
         their auxiliary graphs produced by this method are isomorphic
         
         INPUT:
-
+          - ``edge_labels``, a list of possible edge labels for the graph.
+            If the list is not empty, this method assumes that it contains
+            each and every possible edge label for the graph. If this is not true,
+            a ``KeyError`` will be raised. Using this assures that two different labels,
+            which are not currently both edge labels of self, will not be reduced
+            internally to the same integer label
+            
         OUTPUT:
         
         A tuple of
-        - The auxiliary graph G constructed from self
+          - The auxiliary graph G constructed from self
         
-        - The subset of G's vertices V', as described above
+          - The subset of G's vertices V', as described above
         
         EXAMPLES::
           
@@ -20904,6 +20910,47 @@ class GenericGraph(GenericGraph_pyx):
             sage: C.automorphism_group(orbits=True, return_group=False,algorithm='sage')
             [['000', '001', '010', '011', '100', '101', '110', '111']]
 
+        Nauty usage on edge labeled graphs::
+
+            sage: G = Graph(sparse=True)#optional - pynauty
+            sage: G.add_edges( [(0,1,'a'),(1,2,'b'),(2,3,'c'),(3,4,'b'),(4,0,'a')] )#optional - pynauty
+            sage: G.automorphism_group(edge_labels=True, algorithm="nauty")#optional - pynauty
+            Permutation Group with generators [(1,4)(2,3)]
+
+        ::
+
+            sage: G = Graph({0 : {1 : 7}})#optional - pynauty
+            sage: G.automorphism_group(edge_labels=True, algorithm="nauty")#optional - pynauty
+            Permutation Group with generators [(0,1)]
+
+            sage: foo = Graph(sparse=True)#optional - pynauty
+            sage: bar = Graph(implementation='c_graph',sparse=True)#optional - pynauty
+            sage: foo.add_edges([(0,1,1),(1,2,2), (2,3,3)])#optional - pynauty
+            sage: bar.add_edges([(0,1,1),(1,2,2), (2,3,3)])#optional - pynauty
+            sage: foo.automorphism_group(edge_labels=True, algorithm="nauty")#optional - pynauty
+            Permutation Group with generators [()]
+            sage: foo.automorphism_group(algorithm="nauty")#optional - pynauty
+            Permutation Group with generators [(0,3)(1,2)]
+            sage: bar.automorphism_group(edge_labels=True, algorithm="nauty")#optional - pynauty
+            Permutation Group with generators [()]
+
+        With nauty too, you can also ask for just the order of the group::
+
+            sage: G = graphs.PetersenGraph()#optional - pynauty
+            sage: G.automorphism_group(return_group=False, order=True, algorithm="nauty")#optional - pynauty
+            120
+
+        Or, just the orbits (note that each graph here is vertex transitive) ::
+
+            sage: G = graphs.PetersenGraph() #optional - pynauty
+            sage: G.automorphism_group(return_group=False, orbits=True,algorithm='nauty') #optional - pynauty
+            [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]]
+            sage: G.automorphism_group(partition=[[0],list(range(1,10))], return_group=False, orbits=True, algorithm='nauty') #optional - pynauty
+            [[0], [2, 3, 6, 7, 8, 9], [1, 4, 5]]
+            sage: C = graphs.CubeGraph(3) #optional - pynauty
+            sage: C.automorphism_group(orbits=True, return_group=False,algorithm='nauty') #optional - pynauty
+            [['000', '001', '010', '011', '100', '101', '110', '111']]
+
         One can also use the faster algorithm for computing the automorphism
         group of the graph - bliss::
 
@@ -21285,7 +21332,7 @@ class GenericGraph(GenericGraph_pyx):
            only permutations respecting edge labels.
            
         - ``algorithm`` - default ``sage``, if set to ``nauty`` checks for isomorphism using
-            the optional package 'nauty'. Not compatible with ``certificate`` = ``True``
+            the optional package 'nauty'. ``nauty`` not compatible with ``certificate`` = ``True``
             
         OUTPUT:
 
@@ -21404,7 +21451,23 @@ class GenericGraph(GenericGraph_pyx):
             sage: B = DiGraph( { 1 : [0,2] } ) #optional - pynauty
             sage: A.is_isomorphic(B, algorithm='nauty') #optional - pynauty
             True
-            
+        
+        Nauty usage on edge labeled graphs::
+
+            sage: G = Graph(sparse=True) #optional - pynauty
+            sage: G.add_edges( [(0,1,'a'),(1,2,'b'),(2,3,'c'),(3,4,'b'),(4,0,'a')] ) #optional - pynauty
+            sage: H = G.relabel([1,2,3,4,0], inplace=False) #optional - pynauty
+            sage: G.is_isomorphic(H, edge_labels=True, algorithm="nauty") #optional - pynauty
+            True
+
+        Nauty usage on edge labeled digraphs::
+
+            sage: G = DiGraph() #optional - pynauty
+            sage: G.add_edges( [(0,1,'a'),(1,2,'b'),(2,3,'c'),(3,4,'b'),(4,0,'a')] ) #optional - pynauty
+            sage: H = G.relabel([1,2,3,4,0], inplace=False) #optional - pynauty
+            sage: G.is_isomorphic(H, edge_labels=True, algorithm="nauty") #optional - pynauty
+            True
+        
         TESTS::
 
             sage: g1 = '~?A[~~{ACbCwV_~__OOcCW_fAA{CF{CCAAAC__bCCCwOOV___~____OOOOcCCCW___fAAAA'+\
@@ -21491,7 +21554,7 @@ class GenericGraph(GenericGraph_pyx):
             (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5})
             sage: D.is_isomorphic(D,edge_labels=True, certificate=True)
             (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5})
-            sage: D.is_isomorphic(D, algorithm='nauty') #optional - pynauty
+            sage: D.is_isomorphic(D, edge_labels=True, algorithm='nauty') #optional - pynauty
             True
 
         Ensure that :trac:`11620` is fixed::
@@ -21507,7 +21570,7 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: G1.is_isomorphic(G2,edge_labels=True)
             True
-            sage: G1.is_isomorphic(G2, algorithm='nauty') #optional - pynauty
+            sage: G1.is_isomorphic(G2,edge_labels=True,algorithm='nauty') #optional - pynauty
             True
 
         Ensure that :trac:`13114` is fixed ::
@@ -21544,6 +21607,8 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: A.is_isomorphic(B, certificate=True, edge_labels=True)
             (False, None)
+            sage: A.is_isomorphic(B, algorithm="nauty", edge_labels=True) #optional - pynauty
+            False
 
         """
         
@@ -21562,8 +21627,8 @@ class GenericGraph(GenericGraph_pyx):
             have_pynauty = PythonModule("pynauty").is_present()
             if certificate:
                 raise NotImplementedError("algorithm 'nauty' cannot be used to return a certificate for the isomorphism")
-            if edge_labels:
-                raise NotImplementedError("algorithm 'nauty' cannot be used on graphs with arbitrary edge labels")
+            #if edge_labels:
+            #    raise NotImplementedError("algorithm 'nauty' cannot be used on graphs with arbitrary edge labels")
             if not have_pynauty:
                 raise FeatureNotPresentError("the package 'pynauty' needed to use 'algorithm' == 'nauty' is not installed, install it running the command './sage -i pynauty'")
             from pynauty import isomorphic
