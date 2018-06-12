@@ -1479,7 +1479,7 @@ Automaton with states  \{0, 1, 2, 3, 4\},  alphabet \{0, 1, *\}, set of inital s
     a.set_initial_state(0)
     sphinx_plot(a)
 
-Automaton of states \{0, 1, 2, 3, 4, 5, 6\},  alphabet \{(0,0), (0,1), (1,0), (1,1)\}, for inital state \{0\} and finals states \{0, 1, 2\}.
+Automaton of states \{0, 1, 2, 3, 4, 5, 6\},  alphabet \{(0,0), (0,1), (1,0), (1,1)\}, inital state \{0\} and finals states \{0, 1, 2\}.
 
 Language
 ~~~~~~~~
