@@ -178,7 +178,7 @@ Automaton DeleteVertex (Automaton a, int e);
 //détermine si les langages des automates sont les mêmes
 //le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
 //if minimized is true, the automaton a1 and a2 are assumed to be minimal.
-bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool emonded, bool verb);
+bool equalsLanguages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool emonded, bool verb);
 
 //détermine si le langage de l'automate a1 est inclus dans celui de a2
 //le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
@@ -188,7 +188,7 @@ bool equalsLangages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, 
 //détermine si les langages des automates ont une intersection non vide
 //le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
 //if emonded is true, the automaton a1 and a2 are assumed to be emonded otherwise it emondes.
-//bool intersectLangage (Automaton *a1, Automaton *a2, Dict a1toa2, bool emonded, bool verb);
+//bool intersectLanguage (Automaton *a1, Automaton *a2, Dict a1toa2, bool emonded, bool verb);
 
 //détermine si l'intersection est vide ou non
 bool Intersect (Automaton a1, Automaton a2, bool verb);
@@ -197,7 +197,7 @@ bool Intersect (Automaton a1, Automaton a2, bool verb);
 bool Included (Automaton a1, Automaton a2, bool emonded, bool verb);
 
 //détermine si le langage de l'automate est vide
-bool emptyLangage (Automaton a);
+bool emptyLanguage (Automaton a);
 
 //determine if the automaton is complete (i.e. with his hole state)
 bool IsCompleteAutomaton (Automaton a);

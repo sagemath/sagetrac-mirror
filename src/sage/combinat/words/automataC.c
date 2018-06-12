@@ -59,7 +59,7 @@ void printDict (Dict d)
 	printf("]\n");
 }
 
-//ajoute un élément au dictionnaire (même s'il était déjà présent)
+//Add an element to the dictionnary (even if already in)
 void dictAdd (Dict *d, int e)
 {
 	d->n++;
@@ -305,81 +305,6 @@ void ReallocAutomaton (Automaton *a, int n, bool init)
 	a->n = n;
 }
 
-/*
-void ReallocAutomaton (Automaton *a, int n)
-{	//////////////////fonction BUGUéE !!!!!!!!!!!!!!!!!!!
-	int i;
-	if (a->n > n)
-	{ //libère les états à supprimmer
-		printf("dealloc %d -> %d...\n", a->n, n);
-		for (i=n;a->n;i++)
-		{
-			free(a->e[i].f);
-		}
-		a->e = (Etat*)realloc(a->e, n);
-		if (!a->e)
-		{
-			printf("Out of memory !");
-			exit(29);
-		}
-	}else
-	{ //aloue les nouveaux états
-		printf("realloc %d -> %d...\n", a->n, n);
-		a->e = (Etat*)realloc(a->e, n);
-		if (!a->e)
-		{
-			printf("Out of memory !");
-			exit(27);
-		}
-		for (i=a->n;i<n;i++)
-		{
-			a->e[i].f = malloc(sizeof(int)*a->na);
-		}
-	}
-	if (a->i >= n)
-		a->i = -1;
-	a->n = n;
-	/*
-	int i;
-	if (n > a->n)
-	{
-		if (n > a->nalloc)
-		{
-			a->e = (Etat *)realloc(a->e, sizeof(Etat)*n*2);
-			if (!a->e)
-			{
-				printf("Out of memory !");
-				exit(29);
-			}
-			a->nalloc = 2*n;
-		}
-		
-		for (i=a->n;i<n;i++)
-		{
-			a->e[i].f = (int *)malloc(sizeof(int)*a->na);
-			if (!a->e[i].f)
-			{
-				printf("Out of memory !");
-				exit(27);
-			}
-		}
-	}else
-	{
-		if (n < a->nalloc/2)
-		{
-			for (i=n;i<a->n;i++)
-			{
-				free(a->e[i].f);
-			}
-			a->e = (Etat *)realloc(a->e, sizeof(Etat)*n);
-			a->nalloc = n;
-		}
-	}
-	a->n = n;
-	*//*
-}
-*/
-
 Automaton CopyAutomaton(Automaton a, int nalloc, int naalloc)
 {
 	//a.n, a.na
@@ -397,13 +322,12 @@ Automaton CopyAutomaton(Automaton a, int nalloc, int naalloc)
 	return r;
 }
 
-//donne un automate reconnaissant w(w^(-1)L) où L est le langage de a partant de e
+//give an automaton recognizing w(w^(-1)L) where L is the language of a starting from state e
 Automaton PieceAutomaton (Automaton a, int *w, int n, int e)
 {
-	//printf("n = %d, e=%d\n", n, e);
 	int i, j, f;
 	Automaton r = NewAutomaton(a.n+n, a.na);
-	//met les sommets pour le mot w
+	//put the states for the word w
 	for (i=0;i<n;i++)
 	{
 		for (j=0;j<a.na;j++)
@@ -417,13 +341,13 @@ Automaton PieceAutomaton (Automaton a, int *w, int n, int e)
 	}
 	if (n > 0)
 		r.e[n-1].f[w[n-1]] = e+n;
-	//teste si vide
+	//test if empty
 	if (n > 0 && f == -1)
 	{
 		FreeAutomaton(&r);
 		return NewAutomaton(0, a.na);
 	}
-	//met les sommets de l'automate a
+	//put the states of the automaton a
 	for (i=0;i<a.n;i++)
 	{
 		for (j=0;j<a.na;j++)
@@ -479,7 +403,7 @@ void plotDot (const char *file, Automaton a, const char **labels, const char *gr
 	FILE *f = fopen(file, "w");
 	if (!f)
 	{
-		printf("Impossible to open file %s !\n", file);
+		printf("Unable to open file %s !\n", file);
 		return;
 	}
 	
@@ -569,7 +493,7 @@ void NplotDot (const char *file, NAutomaton a, const char **labels, const char *
 	FILE *f = fopen(file, "w");
 	if (!f)
 	{
-		printf("Impossible to open file a.dot !\n");
+		printf("Unable to open file a.dot !\n");
 		return;
 	}
 	
@@ -652,12 +576,6 @@ bool IsCompleteAutomaton (Automaton a)
 //return true iff a state was added
 bool CompleteAutomaton (Automaton *a)
 {
-/*
-	if (a->n == 0)
-	{
-		AddEtat(a, false); //ajoute un état
-	}
-*/
 	int ne = a->n; //nouvel état
 	int i,j;
 	bool add_etat = false;
@@ -679,7 +597,7 @@ bool CompleteAutomaton (Automaton *a)
 	}
 	if (!add_etat)
 		return false;
-	AddEtat(a, false); //ajoute l'état puits
+	AddEtat(a, false); //add the hole state
 	for (j=0;j<a->na;j++)
 	{
 		a->e[ne].f[j] = ne;
@@ -689,7 +607,7 @@ bool CompleteAutomaton (Automaton *a)
 	return true;
 }
 
-//détermine si les automates sont les mêmes (différents si états permutés)
+//determine if the two automata are the same (different if permuted states)
 bool equalsAutomaton(Automaton a1, Automaton a2)
 {
 	if (a1.n != a2.n || a1.na != a2.na || a1.i != a2.i)
@@ -708,9 +626,9 @@ bool equalsAutomaton(Automaton a1, Automaton a2)
 	return true;
 }
 
-//utilisé par equalsLangages
-//détermine si les langages des états e1 de a1 et e2 de a2 sont les mêmes
-bool equalsLangages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, int e1, int e2, bool verb)
+//used by equalsLanguages
+//determine if the languages of states e1 of a1 and state e2 of a2 are the same
+bool equalsLanguages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, int e1, int e2, bool verb)
 {
 	if ((a1.e[e1].final & 1) != (a2.e[e2].final & 1))
 		return false; //un des états est final mais pas l'autre
@@ -733,7 +651,7 @@ bool equalsLangages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, i
 						printf("%d -%d-> existe in a1 but %d -%d-> doesn't existe in a2.", e1, i, e2, a1toa2.e[i]);
 					return false;
 				}
-				if (!equalsLangages_rec(a1, a2, a1toa2, a2toa1, a1.e[e1].f[i], a2.e[e2].f[a1toa2.e[i]], verb))
+				if (!equalsLanguages_rec(a1, a2, a1toa2, a2toa1, a1.e[e1].f[i], a2.e[e2].f[a1toa2.e[i]], verb))
 				{
 					return false;
 				}
@@ -762,7 +680,7 @@ bool equalsLangages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, i
 //détermine si les langages des automates sont les mêmes
 //le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
 //if minimized is true, the automaton a1 and a2 are assumed to be minimal.
-bool equalsLangages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool emonded, bool verb)
+bool equalsLanguages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool emonded, bool verb)
 {
 	int i;
 	if (!emonded)
@@ -808,7 +726,7 @@ bool equalsLangages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, b
 	if (a1->i == -1 || a2->i == -1)
 		res = (a1->i == a2->i);
 	else
-		res = equalsLangages_rec(*a1, *a2, a1toa2, a2toa1, a1->i, a2->i, verb);
+		res = equalsLanguages_rec(*a1, *a2, a1toa2, a2toa1, a1->i, a2->i, verb);
 	//remet les états finaux
 	for (i=0;i<a1->n;i++)
 	{
@@ -822,9 +740,9 @@ bool equalsLangages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, b
 }
 
 /*
-//utilisé par intersectLangage
+//utilisé par intersectLanguage
 //détermine si les langages des états e1 de a1 et e2 de a2 ont une intersection non vide
-bool intersectLangage_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, int e1, int e2, bool verb)
+bool intersectLanguage_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, int e1, int e2, bool verb)
 {
 	if (a1.e[e1].final & 2)
 		return true; //état déjà vu
@@ -842,7 +760,7 @@ bool intersectLangage_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1,
 				{//cette arête ne correspond pas à une arête dans a2
 					continue;
 				}
-				if (!includedLangage_rec(a1, a2, a1toa2, a2toa1, a1.e[e1].f[i], a2.e[e2].f[a1toa2.e[i]], verb))
+				if (!includedLanguage_rec(a1, a2, a1toa2, a2toa1, a1.e[e1].f[i], a2.e[e2].f[a1toa2.e[i]], verb))
 				{
 					return false;
 				}
@@ -860,7 +778,7 @@ bool intersectLangage_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1,
 //détermine si le langage de l'automate a1 est inclus dans celui de a2
 //le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
 //if emonded is true, the automaton a1 and a2 are assumed to be emonded.
-bool includedLangage (Automaton *a1, Automaton *a2, Dict a1toa2, bool emonded, bool verb)
+bool includedLanguage (Automaton *a1, Automaton *a2, Dict a1toa2, bool emonded, bool verb)
 {
 	int i;
 	if (!emonded)
@@ -890,7 +808,7 @@ bool includedLangage (Automaton *a1, Automaton *a2, Dict a1toa2, bool emonded, b
 	if (verb)
 		printDict(a2toa1);
 	//
-	bool res = includedLangage_rec(*a1, *a2, a1toa2, a2toa1, a1->i, a2->i, verb);
+	bool res = includedLanguage_rec(*a1, *a2, a1toa2, a2toa1, a1->i, a2->i, verb);
 	//remet les états finaux
 	for (i=0;i<a1->n;i++)
 	{
@@ -904,9 +822,9 @@ bool includedLangage (Automaton *a1, Automaton *a2, Dict a1toa2, bool emonded, b
 }
 */
 
-//utilisé par emptyLangage
+//utilisé par emptyLanguage
 //détermine si le langage de l'état e est vide
-bool emptyLangage_rec (Automaton a, int e)
+bool emptyLanguage_rec (Automaton a, int e)
 {
 	if (a.e[e].final)
 		return false;
@@ -920,7 +838,7 @@ bool emptyLangage_rec (Automaton a, int e)
 		{
 			if (a.e[a.e[e].f[i]].final & 2)
 				continue; //ce fils a déjà été vu
-			if (!emptyLangage_rec(a, a.e[e].f[i]))
+			if (!emptyLanguage_rec(a, a.e[e].f[i]))
 				return false;
 		}
 	}
@@ -928,11 +846,11 @@ bool emptyLangage_rec (Automaton a, int e)
 }
 
 //détermine si le langage de l'automate est vide
-bool emptyLangage (Automaton a)
+bool emptyLanguage (Automaton a)
 {
 	if (a.i == -1)
 		return true;
-	bool res = emptyLangage_rec(a, a.i);
+	bool res = emptyLanguage_rec(a, a.i);
 	//remet les états finaux
 	int i;
 	for (i=0;i<a.n;i++)
@@ -1378,7 +1296,7 @@ bool Included(Automaton a1, Automaton a2, bool emonded, bool verb)
 	if (a1.i == -1)
 		return true;
 	if (a2.i == -1)
-		return emptyLangage(a1);
+		return emptyLanguage(a1);
 	bool *vu = (bool *)malloc(sizeof(bool)*a1.n*a2.n);
 	int i;
 	for (i=0;i<a1.n*a2.n;i++)

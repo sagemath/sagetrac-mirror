@@ -93,11 +93,11 @@ cdef extern from "automataC.h":
     Automaton Minimise(Automaton a, bool verb)
     void DeleteVertexOP(Automaton* a, int e)
     Automaton DeleteVertex(Automaton a, int e)
-    bool equalsLangages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool emonded, bool verb)
+    bool equalsLanguages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool emonded, bool verb)
     bool Intersect(Automaton a1, Automaton a2, bool verb)
     bool Included(Automaton a1, Automaton a2, bool emonded, bool verb)
-    # bool intersectLangage (Automaton *a1, Automaton *a2, Dict a1toa2, bool emonded, bool verb)
-    bool emptyLangage(Automaton a)
+    # bool intersectLanguage (Automaton *a1, Automaton *a2, Dict a1toa2, bool emonded, bool verb)
+    bool emptyLanguage(Automaton a)
     void AddEtat(Automaton *a, bool final)
     bool IsCompleteAutomaton(Automaton a)
     bool CompleteAutomaton(Automaton *a)
@@ -3340,7 +3340,7 @@ cdef class FastAutomaton:
 
         """
         sig_on()
-        res = emptyLangage(self.a[0])
+        res = emptyLanguage(self.a[0])
         sig_off()
         return Bool(res)
 
@@ -3384,7 +3384,7 @@ cdef class FastAutomaton:
                     break
         if verb:
             printDict(d)
-        res = equalsLangages(self.a, a2.a, d, minimized, emonded, verb)
+        res = equalsLanguages(self.a, a2.a, d, minimized, emonded, verb)
         sig_off()
         return Bool(res)
 
@@ -3444,7 +3444,7 @@ cdef class FastAutomaton:
 #                    break
 #        if verb:
 #            printDict(d)
-#        res = intersectLangage(self.a, a2.a, d, emonded, verb)
+#        res = intersectLanguage(self.a, a2.a, d, emonded, verb)
 #        sig_off()
 #        return Bool(res)
 
