@@ -1668,7 +1668,7 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Return a graph G based on self, without edge labels, and a subset of G's vertices.
         
-        If run on a graph without edge labels, return (self, self.vertices()).
+        If run on a graph without edge labels, return (self, []]).
         Construct an auxiliary graph G with n*log(k) vertices, where k is the
         number of self's different edge labels and n the number of its vertices,
         that has no edge lables and with two peculiar characteristics:
@@ -1694,14 +1694,14 @@ class GenericGraph(GenericGraph_pyx):
         
         EXAMPLES::
           
-            Calling the function on a graph without multiple edges ::
+            Calling the function on a graph without labels ::
 
-                sage: G, V = graphs.PetersenGraph().to_singledge()
-                sage: G == graphs.PetersenGraph() and V == G.vertices()
+                sage: G, V = graphs.PetersenGraph().remove_labels()
+                sage: G == graphs.PetersenGraph() and V == []
                 True
             
             Calling the function on a ``Graph`` object ::
-                sage: G,V = Graph(':I`ES@oaEOarEStAEN').to_singledge()
+                sage: G,V = Graph([(0, 1, 1), (0, 4, 1), (0, 5, 1), (1, 2, 1), (1, 6, 2), (2, 3, 1), (2, 7,2), (3, 4, 1), (3, 8, 2), (4, 9, 2), (5, 7, 1), (5, 8, 1), (6, 8, 1), (6, 9, 1), (7, 9, 1)]).remove_labels()
                 sage: G.vertices()
                 [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0),
                  (3, 1), (4, 0), (4, 1), (5, 0), (5, 1), (6, 0), (6, 1),
@@ -1724,9 +1724,9 @@ class GenericGraph(GenericGraph_pyx):
                 {0: (0, 0), 1: (1, 0), 2: (2, 0), 3: (3, 0), 4: (4, 0),
                  5: (5, 0), 6: (6, 0), 7: (7, 0), 8: (8, 0), 9: (9, 0)}
 
-            Calling the function on a ``DiGraph`` object ::
+            Calling the function on a ``DiGraph`` object with a list of labels ::
 
-                sage: G,V = DiGraph([(1,1),(1,1),(1,1),(1,2),(2,3),(2,3),(2,3),(3,1),(3,1),(3,4),(3,4),(4,1),(4,1),(4,3)],multiedges=True, loops=True).to_singledge()
+                sage: G,V = DiGraph([(1,2,1),(3,1,2),(1,1,3),(2,3,3),(3,4,2),(4,1,2),(4,3,1)], loops=True).remove_labels(edge_labels=[1,2,3])
                 sage: G.vertices()
                 [(1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1), (4, 0), (4, 1)]
                 sage: G.edges()
@@ -1747,8 +1747,8 @@ class GenericGraph(GenericGraph_pyx):
         http://pallini.di.uniroma1.it/Guide.html
         """
         self_edge_labels = self.edge_labels()
-        if not self_edge_labels and not edge_labels:
-            return self, self.vertices()
+        if not [el for el in self_edge_labels if el != None]:
+            return self, []
         if not edge_labels:
             edge_labels = self_edge_labels
         
@@ -1776,7 +1776,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             newG = Graph(loops=True, multiedges=False)
         
-        k = counter
+        k = counter-1
         d = int(log(k, 2)) + 1
         first_level_vertices = {}
         for v in G:
@@ -20946,7 +20946,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.automorphism_group(return_group=False, orbits=True,algorithm='nauty') #optional - pynauty
             [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]]
             sage: G.automorphism_group(partition=[[0],list(range(1,10))], return_group=False, orbits=True, algorithm='nauty') #optional - pynauty
-            [[0], [2, 3, 6, 7, 8, 9], [1, 4, 5]]
+            [[0], [1, 4, 5], [2, 3, 6, 7, 8, 9]]
             sage: C = graphs.CubeGraph(3) #optional - pynauty
             sage: C.automorphism_group(orbits=True, return_group=False,algorithm='nauty') #optional - pynauty
             [['000', '001', '010', '011', '100', '101', '110', '111']]
@@ -21093,6 +21093,8 @@ class GenericGraph(GenericGraph_pyx):
                 ret.append(int(grpsize1 * (10.0**grpsize2)))
             if orbits:
                 ret.append(orbit_list)
+            if len(ret) == 0: return None
+            if len(ret) == 1: return ret[0]
             return ret
         if (algorithm is not None and
             algorithm != "sage" and algorithm != "nauty"):

@@ -21,10 +21,10 @@ index dc3ec14..05c6e63 100644
          extra_objects = [ nauty_dir + '/' + 'nauty.o',
                            nauty_dir + '/' + 'nautil.o',
 diff --git a/src/graph.py b/src/graph.py
-index 4160b72..9e4c744 100644
+index 4160b72..d241902 100644
 --- a/src/graph.py
 +++ b/src/graph.py
-@@ -19,102 +19,84 @@ GNU General Public License for more details.
+@@ -19,102 +19,88 @@ GNU General Public License for more details.
  '''
  
  __all__ = [
@@ -60,12 +60,16 @@ index 4160b72..9e4c744 100644
 +        edge_multiplicity_dict = Counter(G.multiple_edges(labels=False))
 +       
 +        G.remove_multiple_edges()
-+        for (u, v), m in getiterator(edge_multiplicity_dict):
-+            if edge_labels:
-+                new_label = (G.edge_label(u,v), m)
++        for u, v, m in G.edges():
++            if (u,v) not in edge_multiplicity_dict:
++                l = 1
 +            else:
-+                new_label = m
-+            G.set_edge_label(u, v, m)
++                l = edge_multiplicity_dict[(u,v)]
++            if edge_labels:
++                new_label = (m, l)
++            else:
++                new_label = l
++            G.set_edge_label(u, v, new_label)
 +        
 +    
 +    
@@ -183,7 +187,7 @@ index 4160b72..9e4c744 100644
          '''
          Define a vertex coloring of the Graph.
  
-@@ -124,8 +106,25 @@ class Graph(object):
+@@ -124,49 +110,131 @@ class Graph(object):
              placed into a single additional part.
          '''
          self._vertex_coloring = []
@@ -195,23 +199,25 @@ index 4160b72..9e4c744 100644
 +        if bool(vertex_coloring) or bool(self._first_level_vertices):
 +            
 +            if bool(self._first_level_vertices):
-+                vc = [[self._first_level_vertices[v] for v in k] for k in vertex_coloring]
++                vc = [[int(self._first_level_vertices[v]) for v in k] for k in vertex_coloring]
 +            else:
 +                vc = vertex_coloring
 +            
 +            if bool(relabel_map):
-+                vc = [[relabel_map[v] for v in k] for k in vc]
++                vc = [[int(relabel_map[v]) for v in k] for k in vc]
 +            
 +            if bool(self._first_level_vertices):
-+                vs = set([relabel_map[v] for k,v in getiterator(self._first_level_vertices)])
-+                self._vertex_coloring.append(set([k for k in range(self.number_of_vertices) if not k in vs]))
++                vs = set([int(relabel_map[v]) for k,v in getiterator(self._first_level_vertices)])
++                self._vertex_coloring.append(set([int(k) for k in range(self.number_of_vertices) if not k in vs]))
 +            else:
 +                vs = set(range(self.number_of_vertices))
 +                
              for p in vertex_coloring:
                  if p <= vs:
-                     self._vertex_coloring.append(p)
-@@ -134,39 +133,100 @@ class Graph(object):
+-                    self._vertex_coloring.append(p)
++                    self._vertex_coloring.append([int(v) for v in p])
+                     vs -= p
+                 else:
                      raise ValueError('Invalid partition: %s' % vertex_coloring)
              if vs:
                  self._vertex_coloring.append(vs)
@@ -314,20 +320,24 @@ index 4160b72..9e4c744 100644
 +    if g._first_level_vertices:
 +        inverted_first_level_vertices = {v:k for k,v in getiterator(g._first_level_vertices)}
 +        gens = [[tuple([inverted_first_level_vertices[v] for v in cycle]) for cycle in gen if cycle[0] in inverted_first_level_vertices] for gen in gens]
-+        result = {}
-+        for k,v in enumerate(orbits):
++    
++    result = {}
++    for k,v in enumerate(orbits):
++        if g._first_level_vertices:
 +            if g._inverted_relabel_map[k] not in inverted_first_level_vertices:
 +                continue
-+            if v not in result:
-+                result[v] = []
-+            result[v].append(inverted_first_level_vertices[g._inverted_relabel_map[k]])
-+        orbits = result.values()
-+        numorbits = len(orbits)
++        if(g._normalized):
++            k = g._inverted_relabel_map[k]
++            if g._first_level_vertices:
++                k = inverted_first_level_vertices[k]
++        result.setdefault(v, []).append(k)
++    orbits = result.values()
++    numorbits = len(orbits)
 +    return gens,grpsize1,grpsize2,orbits,numorbits
  
  
  def certificate(g):
-@@ -184,7 +244,7 @@ def certificate(g):
+@@ -184,7 +252,7 @@ def certificate(g):
      return nautywrap.graph_cert(g)
  
  
@@ -336,7 +346,7 @@ index 4160b72..9e4c744 100644
      '''
      Determine if two graphs are isomorphic.
  
-@@ -194,39 +254,30 @@ def isomorphic(a, b):
+@@ -194,39 +262,30 @@ def isomorphic(a, b):
      return ->
          True if *a* and *b* are isomorphic graphs, False otherwise,
      '''
@@ -346,15 +356,15 @@ index 4160b72..9e4c744 100644
 +        raise TypeError
 +    a_temp = Graph(a, edge_labels)
 +    b_temp = Graph(b, edge_labels)
-+    if a.has_multiple_edges() or b.has_multiple_edges:
++    if a.has_multiple_edges() or b.has_multiple_edges():
 +        edge_labels = True
 +    a = a_temp
 +    b = b_temp
 +    if edge_labels:
 +        edge_labels_list = a.graph.edge_labels()
 +        edge_labels_list.extend(b.graph.edge_labels())
-+        a.graph, a.graph._first_level_vertices = a.graph.remove_labels(edge_labels_list)
-+        b.graph, b.graph._first_level_vertices = b.graph.remove_labels(edge_labels_list)
++        a.graph, a._first_level_vertices = a.graph.remove_labels(edge_labels_list)
++        b.graph, b._first_level_vertices = b.graph.remove_labels(edge_labels_list)
 +        a.number_of_vertices = a.graph.order()
 +        b.number_of_vertices = b.graph.order()
 +    a._relabel_map = a.relabel()
@@ -398,14 +408,16 @@ index 4160b72..9e4c744 100644
 -    return (x, y)
 -
 diff --git a/src/nautywrap.cpp b/src/nautywrap.cpp
-index 82e5309..b8371a0 100644
+index 82e5309..4e563b3 100644
 --- a/src/nautywrap.cpp
 +++ b/src/nautywrap.cpp
-@@ -16,7 +16,6 @@ GNU General Public License for more details.
+@@ -15,8 +15,7 @@ GNU General Public License for more details.
+ #include <Python.h>
  #include <nauty.h>
  #include <nautywrap.h>
- 
 -
+-
++#include <iostream>
  //  static global (yuck) variables  -------------------------------------------
  
  // Nauty default options
@@ -523,7 +535,19 @@ index 82e5309..b8371a0 100644
              == NULL) {
          destroy_nygraph(g);
          return NULL;
-@@ -313,90 +312,114 @@ static PyObject* py_auto_group(NyGraph *g)
+@@ -252,10 +251,9 @@ static int set_partition(PyObject *py_graph, int *lab, int *ptn)
+         if (n > 0) {
+             ptn[n-1] = 0;
+         }
+-
+         Py_DECREF(iterator);
+     }
+-
++    
+     Py_DECREF(partition);
+ 
+     return 1;           // coloring
+@@ -313,90 +311,114 @@ static PyObject* py_auto_group(NyGraph *g)
      return py_autgrp;
  }
  
@@ -691,7 +715,7 @@ index 82e5309..b8371a0 100644
      if (x < 0) {
          g->options->defaultptn = TRUE;
      } else if (x == 0) {
-@@ -408,14 +431,13 @@ NyGraph * _make_nygraph(PyObject *py_graph)
+@@ -408,14 +430,13 @@ NyGraph * _make_nygraph(PyObject *py_graph)
      return g;
  }
  
@@ -707,7 +731,7 @@ index 82e5309..b8371a0 100644
  static PyObject*
  make_nygraph(PyObject *self, PyObject *args)
  // Convert the Python NyGraph object into a Nauty/C NyGraph object
-@@ -435,12 +457,12 @@ make_nygraph(PyObject *self, PyObject *args)
+@@ -435,12 +456,12 @@ make_nygraph(PyObject *self, PyObject *args)
      //return PyCObject_FromVoidPtr((void *) g, NULL);
      return PyCapsule_New((void *) g, NULL, NULL);
  }
@@ -722,7 +746,7 @@ index 82e5309..b8371a0 100644
  static PyObject*
  delete_nygraph(PyObject *self, PyObject *args) {
      PyObject *p;
-@@ -457,12 +479,12 @@ delete_nygraph(PyObject *self, PyObject *args) {
+@@ -457,12 +478,12 @@ delete_nygraph(PyObject *self, PyObject *args) {
      return Py_BuildValue("");
  }
  
@@ -737,7 +761,7 @@ index 82e5309..b8371a0 100644
  static PyObject*
  graph_autgrp(PyObject *self, PyObject *args)
  {
-@@ -482,7 +504,7 @@ graph_autgrp(PyObject *self, PyObject *args)
+@@ -482,7 +503,7 @@ graph_autgrp(PyObject *self, PyObject *args)
      g->options->userautomproc = store_generator;
  
      // initialize storage for collecting generators
@@ -746,7 +770,7 @@ index 82e5309..b8371a0 100644
              == NULL) {
          PyErr_SetString(PyExc_MemoryError,
                  "Initial generator list allocation failed.");
-@@ -495,18 +517,17 @@ graph_autgrp(PyObject *self, PyObject *args)
+@@ -495,18 +516,17 @@ graph_autgrp(PyObject *self, PyObject *args)
      nauty(g->matrix, g->lab, g->ptn, NULL, g->orbits,
              g->options, g->stats,  g->workspace, g->worksize,
              g->no_setwords, g->no_vertices, NULL);
@@ -767,7 +791,7 @@ index 82e5309..b8371a0 100644
  graph_cert(PyObject *self, PyObject *args)
  {
      PyObject *py_graph;
-@@ -545,7 +566,7 @@ graph_cert(PyObject *self, PyObject *args)
+@@ -545,7 +565,7 @@ graph_cert(PyObject *self, PyObject *args)
      destroy_nygraph(g);
      return pyret;
  }
@@ -776,7 +800,7 @@ index 82e5309..b8371a0 100644
  
  //  Python module initialization  =============================================
  
-@@ -567,19 +588,19 @@ static struct PyModuleDef moduledef = {
+@@ -567,19 +587,19 @@ static struct PyModuleDef moduledef = {
      .m_methods = nautywrap_methods,
  };
  
