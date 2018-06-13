@@ -295,7 +295,9 @@ class QuadraticForm(SageObject):
             find_primitive_p_divisible_vector__random, \
             find_primitive_p_divisible_vector__next, \
             find_p_neighbor_from_vec, \
-            neighbor_method
+            neighbor_method,\
+            neighbor_method_old,\
+            orbits_mod_p
 
     ## Routines to reduce a given quadratic form
     from sage.quadratic_forms.quadratic_form__reduction_theory import \
@@ -374,7 +376,7 @@ class QuadraticForm(SageObject):
 
     ## Routines for solving equations of the form Q(x) = c.
     from sage.quadratic_forms.qfsolve import solve
-        
+
 
     def __init__(self, R, n=None, entries=None, unsafe_initialization=False, number_of_automorphisms=None, determinant=None):
         """

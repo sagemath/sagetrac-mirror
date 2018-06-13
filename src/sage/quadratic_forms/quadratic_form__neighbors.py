@@ -255,7 +255,7 @@ def find_p_neighbor_from_vec(self, p, v):
 
 #def find_classes_in_genus(self):
 
-def neighbor_method(self, p=None, verbose=False):
+def neighbor_method(self, p, verbose=False):
     r"""
     Return all classes in the `p`-neighbor graph of ``self``.
 
@@ -275,7 +275,7 @@ def neighbor_method(self, p=None, verbose=False):
         sage: Q = QuadraticForm(ZZ,3,[1,0,0,2,1,3])
         sage: Q.det()
         46
-        sage: Q.apply_p_neighbor_method(3)
+        sage: Q.neighbor_method(3)
         [Quadratic form in 3 variables over Integer Ring with coefficients:
         [ 1 0 0 ]
         [ * 2 1 ]
@@ -287,6 +287,73 @@ def neighbor_method(self, p=None, verbose=False):
         [ * 1 1 ]
         [ * * 8 ]]
     """
+    def _normalize_vec(v):
+        r"""
+        """
+        # the find_p_neighbor_from_vec method
+        # has undocumented stupid assumptions for example that the last coordinate is 1
+        for k in range(v.degree()):
+            if v[-1-k] != 0:
+                return (v/v[-1-k]).lift()
+
+    isom_classes = [self.lll()]
+    waiting_list = [isom_classes[0]]
+    c_mass = isom_classes[0].number_of_automorphisms()**(-1)
+    c_mass_0 = isom_classes[0].conway_mass()
+    while len(waiting_list) > 0 and c_mass < c_mass_0:
+        # find all p-neighbors of Q
+        Q = waiting_list.pop()
+        vecs = [_normalize_vec(v) for v in Q.orbits_mod_p(p) if v!=0 and Q(v.lift()).valuation(p) > 0]
+        for v in vecs:
+            Q_neighbor = Q.find_p_neighbor_from_vec(p, v).lll()
+            for S in isom_classes:
+                if Q_neighbor.is_globally_equivalent_to(S):
+                    break
+            else:
+                isom_classes.append(Q_neighbor)
+                waiting_list.append(Q_neighbor)
+                c_mass += Q_neighbor.number_of_automorphisms()**(-1)
+                if verbose:
+                    print(Q_neighbor,c_mass_0 - c_mass)
+    # sanity check
+    if c_mass != c_mass_0:
+        print("some classes are missing")
+    return isom_classes
+
+
+def neighbor_method_old(self, p, verbose=False):
+    r"""
+    Return all classes in the `p`-neighbor graph of ``self``.
+
+    Starting from the given quadratic form, this function successively
+    finds p-neighbors untill no new quadratic form (class) is obtained.
+
+    INPUT:
+
+    - ``p`` -- a prime number
+
+    OUTPUT:
+
+    - a list of quadratic forms
+
+    EXAMPLES::
+
+        sage: Q = QuadraticForm(ZZ,3,[1,0,0,2,1,3])
+        sage: Q.det()
+        46
+        sage: Q.neighbor_method(3)
+        [Quadratic form in 3 variables over Integer Ring with coefficients:
+        [ 1 0 0 ]
+        [ * 2 1 ]
+        [ * * 3 ], Quadratic form in 3 variables over Integer Ring with coefficients:
+        [ 1 0 -1 ]
+        [ * 1 0 ]
+        [ * * 6 ], Quadratic form in 3 variables over Integer Ring with coefficients:
+        [ 1 -1 -1 ]
+        [ * 1 1 ]
+        [ * * 8 ]]
+    """
+
     isom_classes = [self.lll()]
     waiting_list = [isom_classes[0]]
     c_mass = isom_classes[0].number_of_automorphisms()**(-1)
@@ -308,6 +375,37 @@ def neighbor_method(self, p=None, verbose=False):
                     print(Q_neighbor,c_mass_0 - c_mass)
             v = Q.find_primitive_p_divisible_vector__next(p, v)
     # sanity check
-    assert c_mass == c_mass_0, "some classes are missed!"
+    assert c_mass == c_mass_0, "some classes are missing!"
     return isom_classes
 
+def orbits_mod_p(self, p):
+    r"""
+    Let `(L, q)` be a lattice. This returns representatives of the
+    orbits of `L/pL` under the orthogonal group of `q`.
+
+    INPUT:
+
+    - ``q`` -- a quadratic form over `\ZZ
+
+    - ``p`` -- a prime number
+
+    OUTPUT:
+
+    - a list of vectors
+    """
+    from sage.libs.gap.libgap import libgap
+    from sage.rings.all import GF
+    G = self.automorphism_group()
+    orbs = libgap.function_factory("""function(G, p)
+    local one, gens, reps, V;
+    one:= One(GF(p));
+    gens:=List(GeneratorsOfGroup(G), g -> g*one);
+    G:= Group(gens);
+    n:= Size(gens[1]);
+    V:= GF(p)^n;
+    orb:= OrbitsDomain(G, V, OnLines);
+    reps:= List(orb, g->g[1]);
+    return reps;
+    end;""")
+    M = GF(p)**self.dim()
+    return [M(m.sage()) for m in orbs(G.gap(), p)]
