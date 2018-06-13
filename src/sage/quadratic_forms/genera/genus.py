@@ -1574,9 +1574,9 @@ class Genus_Symbol_p_adic_ring(object):
         # We need to consider all pairs in L
         # since at most 2 elements are part of a pair
         # we need need at most 2 of each type
-        for r in L:
-            if roots_p.count(r) > 2:
-                roots_p.remove(r)
+        for r in L:     # remove triplicates
+            if L.count(r) > 2:
+                L.remove(r)
         n = len(L)
         for i in range(n):
             for j in range(i, n):
@@ -1608,9 +1608,15 @@ class Genus_Symbol_p_adic_ring(object):
                     s = ZZ(7)
                 automorphs.append(s)
 
-        # remove duplicates
-        automorphs = list(set(automorphs))
-        return automorphs
+        # square classes
+        automorphs1 = set()
+        for s in automorphs:
+            v, u = s.val_unit(2)
+            v = v % 2
+            u = u % 8
+            sq = u * 2**v
+            automorphs1.add(sq)
+        return list(automorphs1)
 
     def gram_matrix(self, check=True):
         r"""
@@ -2247,8 +2253,10 @@ class GenusSymbol_global_ring(object):
     def automorphous_numbers(self):
         r"""
         """
+        aut_numbers = []
         for sym in self.local_symbols():
-            sym.automorphous_numbers()
+            aut_numbers.append((sym.prime(),sym.automorphous_numbers()))
+        return aut_numbers
 
     def determinant(self):
         """
