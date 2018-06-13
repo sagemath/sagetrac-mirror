@@ -198,7 +198,6 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
                     - self.sum_of_terms([(y+x, -c) for (y,c) in _a])
         return [u, o, s + a, oa_ao]
 
-
 class HopfAlgebraOnOrderedMultisetPartitions(UniqueRepresentation, Parent):
     r"""
     Hopf Algebra on Ordered Multiset Partitions (OMP).
@@ -423,8 +422,7 @@ class HopfAlgebraOnOrderedMultisetPartitions(UniqueRepresentation, Parent):
             sage: HopfAlgebraOnOrderedMultisetPartitions(QQ).dual()
             Dual to Hopf Algebra on Ordered Multiset Partitions over the Rational Field
         """
-        pass
-        #return HopfAlgebraOnOrderedMultisetPartitionsDual(self.base_ring(), self._A, self._order_grading)
+        return HopfAlgebraOnOrderedMultisetPartitionsDual(self.base_ring(), self._A, self._order_grading)
 
     class H(OMPBasis_abstract):
         r"""
@@ -450,6 +448,13 @@ class HopfAlgebraOnOrderedMultisetPartitions(UniqueRepresentation, Parent):
         """
         _prefix = "H"
         _basis_name = "Homogeneous"
+
+        def dual_basis(self):
+            """
+            Return the dual basis, Monomial basis of Dual to
+            Hopf Algebra on Ordered Multiset Partitions.
+            """
+            return self.realization_of().dual().M()
 
         def product_on_basis(self, A, B):
             r"""
@@ -511,9 +516,9 @@ class HopfAlgebraOnOrderedMultisetPartitions(UniqueRepresentation, Parent):
                 sage: H[{2,3}, {2}].coproduct()
                 H[] # H[{2,3}, {2}] + H[{2}] # H[{3}, {2}] + H[{3}] # H[{2}, {2}] + H[{2,3}] # H[{2}] + H[{2}] # H[{2,3}] + H[{2}, {2}] # H[{3}] + H[{3}, {2}] # H[{2}] + H[{2,3}, {2}] # H[]
             """
-            return self.tensor_square().sum_of_monomials( A.split(2) )
+            return self.tensor_square()._from_dict( A.split(2) )
 
-        def _antipode_on_basis(self, A):
+        def antipode_on_basis(self, A):
             r"""
             Return the antipode applied to a Homogeneous basis element.
 
@@ -533,39 +538,82 @@ class HopfAlgebraOnOrderedMultisetPartitions(UniqueRepresentation, Parent):
 
             - ``A`` -- an ordered multiset partition
 
-            .. TODO::
-
-                - Check that this method is faster than the default
-                  implementation coming from the fact that ``self`` is
-                  an instance of a connected Hopf algebra.
-                - Check that it is correct!
-
             EXAMPLES::
 
                 sage: H = HopfAlgebraOnOrderedMultisetPartitions(QQ).Homogeneous()
                 sage: H[{2,3}].antipode()
-                -H[{2,3}] + H[{2}, {3}] + H[{3}, {2}]
-                sage: H[{2,3}, {2}].antipode()
-                H[{2}, {2,3}] - H[{2}, {2}, {3}] - H[{2}, {3}, {2}]
-                sage: HH = H[[1,3],[5],[1,4]].coproduct()
+                H[{2}, {3}] + H[{3}, {2}] - H[{2,3}]
+                sage: H[{2},{3}].antipode()
+                H[{3},{2}]
+                sage: H[{2,3,4}].antipode()
+                H[{2,4}, {3}] + H[{3}, {2,4}] - H[{2}, {4}, {3}] - H[{2}, {3}, {4}]
+                 - H[{3}, {2}, {4}] - H[{4}, {3}, {2}] + H[{3,4}, {2}]
+                 + H[{2}, {3,4}] - H[{4}, {2}, {3}] + H[{4}, {2,3}]
+                 - H[{3}, {4}, {2}] + H[{2,3}, {4}] - H[{2,3,4}]
+                sage: HH = H[[1,2,3,5],[1,3]].coproduct()
                 sage: HH.apply_multilinear_morphism(lambda x,y: x.antipode()*y)
                 0
             """
-            ## TODO: figure out why antipode_on_basis and _antipode_on_basis disagree
-            ## does it have something to do with shorthand confusion?:
-            ## compare
-            ##      sage: H[[2,3,4]]
-            ## to
-            ##      sage: H([[2,3,4]])
             out = []
             P = self.basis().keys()
             AA = [P([a]).finer() for a in A.reversal()]
-            #print AA
             for refinement in cartesian_product(AA):
                 C = reduce(lambda a,b: a + b, refinement, P([]))
-                ell = sum(map(len, C))
+                ell = len(C)
                 out.append((C, (-1)**ell))
             return self.sum_of_terms(out)
+
+        class Element(CombinatorialFreeModule.Element):
+            r"""
+            An element in the `\mathbf{M}` basis of OMP^*.
+            """
+            def to_symmetric_function(self):
+                r"""
+                The projection of ``self`` to the ring of symmetric functions.
+                """
+                return self.to_noncommutative_symmetric_function().to_symmetric_function()
+
+            def to_noncommutative_symmetric_function(self):
+                r"""
+                The projection of ``self`` to the ring `NSym` of
+                noncommutative symmetric functions.
+
+                .. TODO::
+
+                    Fix what follows (docstring and code).
+
+                There is a canonical projection `\pi : OMPSym \to NSym`
+                that sends ...
+                This `\pi` is a Hopf algebra homomorphism.
+
+                OUTPUT:
+
+                - an element of the Hopf algebra of noncommutative symmetric functions
+                  in the Complete basis
+
+                EXAMPLES::
+
+                    sage: H = HopfAlgebraOnOrderedMultisetPartitions(QQ).H()
+                    sage: (H[[1,3],[1]] - 2*H[[1],[1,3]]).to_noncommutative_symmetric_function()
+                    ???
+                    sage: X, Y = H[[1,3]], H[[1]]
+                    sage: X.to_noncommutative_symmetric_function() * Y.to_noncommutative_symmetric_function() == (X*Y).to_noncommutative_symmetric_function()
+                    True
+
+                    sage: X = H[[1,3], [1], [1,4]]; CX = X.to_noncommutative_symmetric_function()
+                    sage: C2 = tensor([CX.parent(), CX.parent()]); c2 = C2.zero()
+                    sage: XX = X.coproduct()
+                    sage: for ((A,B), c) in XX:
+                    ....:     c2 += c * H(A).to_noncommutative_symmetric_function().tensor(H(B).to_noncommutative_symmetric_function()
+                    sage: c2 == CX.coproduct()
+                    True
+                """
+                # TODO: fix the map, which is just a placeholder for the true definition.
+                from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
+                S = NonCommutativeSymmetricFunctions(self.parent().base_ring()).Complete()
+                H = self.parent().realization_of().H()
+                return S.sum_of_terms((A.shape_from_cardinality(), coeff/prod(factorial(len(a)) for a in A))
+                                      for (A, coeff) in H(self))
 
     Homogeneous = H
 
@@ -615,7 +663,7 @@ class HopfAlgebraOnOrderedMultisetPartitions(UniqueRepresentation, Parent):
             OMPBasis_abstract.__init__(self, alg, True)
 
             # Register coercions
-            H = self._realization_of().H()
+            H = self.realization_of().H()
             phi = self.module_morphism(self._P_to_H_on_basis, codomain=H, unitriangular="upper")
             # TODO: check the above unitriangular claim
             phi.register_as_coercion()
@@ -651,17 +699,20 @@ class HopfAlgebraOnOrderedMultisetPartitions(UniqueRepresentation, Parent):
                 sage: P._P_to_H_on_basis(B)
                 ???
             """
-            P = self.basis().keys()
-            def lt(A, B):
-                if A == B:
+            OMP = self.basis().keys()
+            def lt(x, y):
+                if x == y:
                     return False
-                return P(A).is_finer(P(B))
+                return OMP(x).is_finer(OMP(y))
 
             H = self.realization_of().H()
             P_refine = Poset((A.finer(), lt))
+            print P_refine
             c = abs(prod((-1)**(i-1) * factorial(i-1) for i in A.shape_from_size()))
             R = self.base_ring()
-            return H._from_dict({B: R(P_refine.moebius_function(B, A) / ZZ(c))
+            print {B: R(P_refine.moebius_function(B, A) / ZZ(c))
+                                 for B in P_refine}
+            return H._from_dict({OMP(B): R(P_refine.moebius_function(B, A) / ZZ(c))
                                  for B in P_refine}) #, remove_zeros=False)
 
         def primitive(self, A, i=None):
@@ -920,64 +971,45 @@ class OMPBases(Category_realization_of_parent):
                 return A.size()
 
     class ElementMethods:
-        def _antipode(self):
-            """
-            """
-            P = self.parent()
-            out = P.zero()
-            for (key, coeff) in self:
-                out += coeff * P._antipode_on_basis(key)
-            return out
-
-        def to_noncommutative_symmetric_function(self):
+        def duality_pairing(self, x):
             r"""
-            The projection of ``self`` to the ring of symmetric functions.
-            """
-            return self.to_noncommutative_symmetric_function().to_symmetric_function()
+            Compute the pairing between element ``self`` and an
+            element of the dual.
 
-        def to_noncommutative_symmetric_function(self):
-            r"""
-            The projection of ``self`` to the ring `NSym` of
-            noncommutative symmetric functions.
+            INPUT:
 
-            .. TODO::
-
-                Fix what follows (docstring and code).
-
-            There is a canonical projection `\pi : OMPSym \to NSym`
-            that sends ...
-            This `\pi` is a Hopf algebra homomorphism.
+            - ``x`` -- an element of ``self.parent().dual_basis()``.
 
             OUTPUT:
 
-            - an element of the Hopf algebra of noncommutative symmetric functions
-              in the Complete basis
+            - an element of the base ring of ``self.parent()``
 
             EXAMPLES::
 
-                sage: H = HopfAlgebraOnOrderedMultisetPartitions(QQ).H()
-                sage: (H[[1,3],[1]] - 2*H[[1],[1,3]]).to_noncommutative_symmetric_function()
+                sage: DOMP = HopfAlgebraOnOrderedMultisetPartitionsDual(QQ)
+                sage: M = DOMP.M()
+                sage: h = M.dual_basis()
+                sage: matrix([[M(A).duality_pairing(H(B)) for A in OrderedMultisetPartitions(3)] for B in OrderedMultisetPartitions(3)])
+                [1 0 0 0 0]
+                [0 1 0 0 0]
+                [0 0 1 0 0]
+                [0 0 0 1 0]
+                [0 0 0 0 1]
+                sage: (M[[1,2],[3]] + 3*M[[1,3],[2]]).duality_pairing(2*H[[1,3],[2]] + H[[1,2,3]] + 2*H[[1,2],[3]])
+                8
+                sage: P = HopfAlgebraOnOrderedMultisetPartitions(QQ).P()
+                sage: matrix([[M(A).duality_pairing(P(B)) for A in OrderedMultisetPartitions(3)] for B in OrderedMultisetPartitions(3)])
+                [_ _ _ _ _]
+                [_ _ _ _ _]
+                [_ _ _ _ _]
+                [_ _ _ _ _]
+                [_ _ _ _ _]
+                sage: (2*M[[2,3],[3]] + 3*M[[3],[2],[3]] + M[[3],[2,3]]).duality_pairing(P[[2,3],[3]] + 3*P[[3] [2,3]])
                 ???
-                sage: X, Y = H[[1,3]], H[[1]]
-                sage: X.to_noncommutative_symmetric_function() * Y.to_noncommutative_symmetric_function() == (X*Y).to_noncommutative_symmetric_function()
-                True
-
-                sage: X = H[[1,3], [1], [1,4]]; CX = X.to_noncommutative_symmetric_function()
-                sage: C2 = tensor([CX.parent(), CX.parent()]); c2 = C2.zero()
-                sage: XX = X.coproduct()
-                sage: for ((A,B), c) in XX:
-                ....:     c2 += c * H(A).to_noncommutative_symmetric_function().tensor(H(B).to_noncommutative_symmetric_function()
-                sage: c2 == CX.coproduct()
-                True
             """
-            # TODO: fix the map, which is just a placeholder for the true definition.
-            from sage.combinat.ncsf_qsym.nsym import NonCommutativeSymmetricFunctions
-            S = NonCommutativeSymmetricFunctions(self.parent().base_ring()).Complete()
-            H = self.parent().realization_of().H()
-            return S.sum_of_terms((A.shape_from_cardinality(), coeff/prod(factorial(len(a)) for a in A))
-                                  for (A, coeff) in H(self))
-
-
+            P = self.parent()
+            x = P.dual_basis()(x)
+            return sum(coeff * x[A] for (A, coeff) in self)
 
 ############################
 class HopfAlgebraOnOrderedMultisetPartitionsDual(UniqueRepresentation, Parent):
@@ -1085,21 +1117,9 @@ class HopfAlgebraOnOrderedMultisetPartitionsDual(UniqueRepresentation, Parent):
         _basis_name = "Monomial"
 
         def dual_basis(self):
-            r"""
-            Return the dual basis to the `\mathbf{M}` basis.
-
-            The dual basis to the `\mathbf{M}` basis is the Homogeneous basis
-            of Hopf Algebra on Ordered Multiset Partitions.
-
-            OUTPUT:
-
-            - the Homogeneous basis of Hopf Algebra on Ordered Multiset Partitions
-
-            EXAMPLES::
-
-                sage: M = HopfAlgebraOnOrderedMultisetPartitions(QQ).dual().M()
-                sage: M.dual_basis()
-                Hopf Algebra on Ordered Multiset Partitions over the Rational Field in the Homogeneous basis
+            """
+            Return the dual basis, Homogeneous basis of
+            Hopf Algebra on Ordered Multiset Partitions.
             """
             return self.realization_of().dual().H()
 
@@ -1170,14 +1190,16 @@ class HopfAlgebraOnOrderedMultisetPartitionsDual(UniqueRepresentation, Parent):
                 sage: M.coproduct_on_basis(OrderedMultisetPartition([]))
                 M[] # M[]
             """
-            n = A.size()
-            return self.tensor_square().sum_of_terms([
-                (( OrderedMultisetPartitions(A[:i]), OrderedMultisetPartitions(A[i:]) ), 1) \
-                for i in range(n+1)], distinct=True)
+            return self.tensor_square().sum_of_monomials(A.deconcatenate(2), distinct=True)
 
         def _antipode_on_basis(self, A):
             r"""
             Return the antipode applied to the basis element indexed by ``A``.
+
+            .. TODO::
+
+                Develop a formula for the antipode that is faster than
+                the default implementation.
 
             INPUT:
 
@@ -1188,47 +1210,6 @@ class HopfAlgebraOnOrderedMultisetPartitionsDual(UniqueRepresentation, Parent):
             - an element in the basis ``self``
             """
             pass
-
-        def duality_pairing(self, x, y):
-            r"""
-            Compute the pairing between an element of ``self`` and an
-            element of the dual.
-
-            INPUT:
-
-            - ``x`` -- an element of Dual to Hopf Algebra on Ordered Multiset Partitions
-            - ``y`` -- an element of Hopf Algebra on Ordered Multiset Partitions
-
-            OUTPUT:
-
-            - an element of the base ring of ``self``
-
-            EXAMPLES::
-
-                sage: DOMP = HopfAlgebraOnOrderedMultisetPartitionsDual(QQ)
-                sage: M = DOMP.M()
-                sage: h = M.dual_basis()
-                sage: matrix([[M(A).duality_pairing(H(B)) for A in OrderedMultisetPartitions(3)] for B in OrderedMultisetPartitions(3)])
-                [1 0 0 0 0]
-                [0 1 0 0 0]
-                [0 0 1 0 0]
-                [0 0 0 1 0]
-                [0 0 0 0 1]
-                sage: (M[[1,2],[3]] + 3*M[[1,3],[2]]).duality_pairing(2*H[[1,3],[2]] + H[[1,2,3]] + 2*H[[1,2],[3]])
-                8
-                sage: P = HopfAlgebraOnOrderedMultisetPartitions(QQ).P()
-                sage: matrix([[M(A).duality_pairing(P(B)) for A in OrderedMultisetPartitions(3)] for B in OrderedMultisetPartitions(3)])
-                [_ _ _ _ _]
-                [_ _ _ _ _]
-                [_ _ _ _ _]
-                [_ _ _ _ _]
-                [_ _ _ _ _]
-                sage: (2*M[[2,3],[3]] + 3*M[[3],[2],[3]] + M[[3],[2,3]]).duality_pairing(P[[2,3],[3]] + 3*P[[3] [2,3]])
-                ???
-            """
-            x = self(x)
-            y = self.dual_basis()(y)
-            return sum(coeff * y[I] for (I, coeff) in x)
 
         def sum_of_derangements(self, A):
             """
@@ -1369,6 +1350,8 @@ class HopfAlgebraOnOrderedMultisetPartitionsDual(UniqueRepresentation, Parent):
                 # Make sure we've seen each ordered multiset partition in the derangement class
                 return all(d[la][1] == Permutations(la).cardinality() for la in d)
 
+    Monomial = M
+
 ############################
 OMPSym = HopfAlgebraOnOrderedMultisetPartitions(QQ)
 H = OMPSym.H()
@@ -1381,7 +1364,6 @@ print "hx^2 = ", hx * hx
 print "hx.coproduct() = ", hx.coproduct()
 print
 print "hx.antipode()", hx.antipode()
-print "hx._antipode()", hx._antipode()
 print
 # OMPSymA = HopfAlgebraOnOrderedMultisetPartitions(QQ, alphabet=[2,3,5])
 # HA = OMPSymA.H()
