@@ -432,6 +432,7 @@ from sage.graphs.independent_sets import IndependentSets
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.rest_index_of_methods import doc_index, gen_thematic_rest_table_index
 
+import time
 class Graph(GenericGraph):
     r"""
     Undirected graph.
@@ -4664,11 +4665,11 @@ class Graph(GenericGraph):
         EXAMPLES::
 
             sage: G = Graph({0:[1,2],3:[1,2],4:[1,2],5:[1,2],6:[1,2]})
-            sage: R,S,P,SPR,tricomp,SPQR-tree = G.spqr_tree()
+            sage: R,S,P,SPR,tricomp,SPQR_tree = G.spqr_tree()
             sage: R
             []
             sage: C3 = graphs.CycleGraph(3)
-            sage: all(h.is_isomorphic(C3) for h in S]
+            sage: all(h.is_isomorphic(C3) for h in S)
             True
 
             sage: G = Graph(2)
@@ -4684,7 +4685,7 @@ class Graph(GenericGraph):
             sage: G.allow_multiple_edges(True)
             sage: G.add_edges(G.edges())
             sage: G.add_edges([[0,1],[0,1],[0,1]])
-            sage: R,S,P,SPR,tricomp,SPQR-tree = G.spqr_tree()
+            sage: R,S,P,SPR,tricomp,SPQR_tree = G.spqr_tree()
             sage: tricomp
             [Subgraph of (): Multi-graph on 3 vertices,
              Subgraph of (): Multi-graph on 4 vertices]
@@ -4698,16 +4699,24 @@ class Graph(GenericGraph):
         ValueError: Generation of SPQR trees is only implemented for 2-connected graphs.
         """
         from sage.graphs.graph import Graph
+        print("Nodes:", self.order())
+        print("Edges:", self.size())
+        final_start = time.time()
 
+        start = time.time()
         cut_size, cut_vertices = self.vertex_connectivity(value_only = False)
+        print("cut_size = ", cut_size, "cut_vertices = ", cut_vertices)
+        end = time.time()
+        print("Time Taken for Vertex Connectivity:", end-start)
 
         if cut_size < 2:
             raise VaueError("Generation of SPQR trees is only implemented for 2-connected graphs")
         elif cut_size > 2:
-            return [self],[],[],[self],Graph({('R',tuple(self.vertices())):[]})
+            return [self],[],[],[self],[self],Graph({('R',tuple(self.vertices())):[]})
         elif self.is_cycle():
-            return [],[self],[],[self],Graph({('S',tuple(self.vertices())):[]})
+            return [],[self],[],[self],[self],Graph({('S',tuple(self.vertices())):[]})
 
+        start = time.time()
         R_blocks = []
         two_blocks = []
         cocycles = []
@@ -4728,15 +4737,22 @@ class Graph(GenericGraph):
                 else:
                     cuts.append(frozenset(mults[i]))
             cuts.append(frozenset(mults[-1]))
+        end = time.time()
+        print("Time Taken for Split_multiple_edge algorithm:", end-start)
 
         # If self simplifies to a cycle or 3-vertex-connected, identify it
         # Otherwise, seed the list of blocks to be 2-split with self
+
+        start = time.time()
         if SG.is_cycle():
             # SG is bi-connected graph.
             cycles.extend([frozenset(e) for e in SG.edge_iterator(labels=False)])
         else:
             # Possibility that it's 3-connected component.
             two_blocks.append(SG)
+
+        # After above step, there is no use of SG.
+        del SG
 
         # Each minor of self in two_blocks has a 2-vertex cut; we split
         # at this cut and check each side for S or R or a 2-vertex cut
@@ -4758,6 +4774,11 @@ class Graph(GenericGraph):
             f = frozenset(f)
             if not f in cuts:
                 cuts.append(f)
+        end = time.time()
+
+        # After above step, there is no use of two_blocks.
+        del two_blocks
+        print("Time Taken for cleave and appending cuts ", end-start)
 
         # Cycles may or may not(if G is a cycle with order > 3) triangulated;
         # We must undo this for S-blocks Virtual edges to be used in cycle
@@ -4766,6 +4787,7 @@ class Graph(GenericGraph):
         # edge for a S-block Reconstruct S-blocks from smaller polygons,
         # where cocycles permit.
 
+        start = time.time()
         cycles_graph = Graph(cycles, multiedges=True)
         for e in cycles_graph.edges(labels=False):
             if cycles_graph.subgraph(edges=[e]).has_multiple_edges():
@@ -4781,6 +4803,9 @@ class Graph(GenericGraph):
         for component in cycles_graph.connected_components_subgraphs():
             for block in component.blocks_and_cut_vertices()[0]:
                 tmp.append(cycles_graph.subgraph(vertices=block))
+
+        # After above step, there is no use of cycles_graph.
+        del cycles_graph
 
         # tmp will be seeded with the union of cycles; each multiple edge
         # corresponds to a sequence of 2-sums of polygons; when cycles have
@@ -4803,12 +4828,17 @@ class Graph(GenericGraph):
                     tmp.append(SKS)
             else:
                 R_blocks.append(block)
+        end = time.time()
+
+        del tmp
+        print("Time Taken for appending blocks,",end-start)
 
         # as with blocks_and_cuts_tree, we name vertices of the edge-sum
         # tree with a type (P = cocycle, S = cycle or R = three-block) and the
         # list of self's vertices in this block, noting only cocycles
         # have multiple edges
 
+        start = time.time()
         SPR = R_blocks + polygons
         Treeverts = []
         Tree = Graph()
@@ -4841,11 +4871,17 @@ class Graph(GenericGraph):
                         for j in range(i + 1, len(SPR)):
                             if SPR[j].has_edge(u, v):
                                 Tree.add_edge(Treeverts[i],Treeverts[j])
+        end = time.time()
+        print("Time Taken for Construction of Tree", end-start)
+
         thcomps = []
         for component in polygons:
             if component.order()==3 and component.size()==3:
                 thcomps.append(component)
         thcomps += R_blocks
+        final_end = time.time()
+        print("Total time:", final_end - final_start)
+        #print(process.get_memory_info()[0])
         return R_blocks, polygons, P_blocks, R_blocks + polygons + P_blocks, thcomps, Tree
 
     @doc_index("Leftovers")
