@@ -168,6 +168,7 @@ from .other import real, imag
 from sage.symbolic.constants import pi
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
+from sage.symbolic.ring import SR
 from sage.calculus.calculus import maxima
 from sage.structure.element import parent
 from sage.libs.mpmath import utils as mpmath_utils
@@ -237,7 +238,7 @@ class SphericalHarmonic(BuiltinFunction):
         if n in ZZ and m in ZZ and n > -1:
             if abs(m) > n:
                 return ZZ(0)
-            if m == 0 and theta.is_zero():
+            if SR(m).is_trivial_zero() and SR(theta).is_trivial_zero():
                 return sqrt((2*n+1)/4/pi)
             from sage.arith.misc import factorial
             from sage.functions.trig import cos
@@ -429,11 +430,11 @@ class EllipticE(BuiltinFunction):
             sage: elliptic_e(arccoth(1), x^2*e)
             elliptic_e(+Infinity, x^2*e)
         """
-        if z == 0:
+        if SR(z).is_trivial_zero():
             return Integer(0)
-        elif z == pi / 2:
+        elif SR(z - pi / 2).is_trivial_zero():
             return elliptic_ec(m)
-        elif m == 0:
+        elif SR(m).is_trivial_zero():
             return z
 
     def _evalf_(self, z, m, parent=None, algorithm=None):
@@ -533,9 +534,9 @@ class EllipticEC(BuiltinFunction):
             sage: elliptic_ec(x)
             elliptic_ec(x)
         """
-        if x == 0:
+        if SR(x).is_trivial_zero():
             return pi / Integer(2)
-        elif x == 1:
+        elif SR(x-1).is_trivial_zero():
             return Integer(1)
 
     def _evalf_(self, x, parent=None, algorithm=None):
@@ -744,11 +745,11 @@ class EllipticF(BuiltinFunction):
             sage: elliptic_f(pi/2,x)
             elliptic_kc(x)
         """
-        if m == 0:
+        if SR(m).is_trivial_zero():
             return z
-        elif z == 0:
+        elif SR(z).is_trivial_zero():
             return Integer(0)
-        elif z == pi / 2:
+        elif SR(z - pi / 2).is_trivial_zero():
             return elliptic_kc(m)
 
     def _evalf_(self, z, m, parent=None, algorithm=None):
@@ -858,7 +859,7 @@ class EllipticKC(BuiltinFunction):
             sage: t.n() # abs tol 1e-13
             0.887715488619280 - 1.73016140914856e-15*I
         """
-        if z == 0:
+        if SR(z).is_trivial_zero():
             return pi / 2
         else:
             return None
@@ -947,7 +948,7 @@ class EllipticPi(BuiltinFunction):
             sage: elliptic_pi(0,x,pi)
             elliptic_f(x, pi)
         """
-        if n == 0:
+        if SR(n).is_trivial_zero():
             return elliptic_f(z, m)
 
     def _evalf_(self, n, z, m, parent=None, algorithm=None):
