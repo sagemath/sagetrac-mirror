@@ -1005,7 +1005,7 @@ class PseudoRiemannianMetric(TensorField):
              2-dimensional differentiable manifold S^2
             sage: g.riemann()[:]
             [[[[0, 0], [0, 0]], [[0, sin(th)^2], [-sin(th)^2, 0]]],
-            [[[0, (cos(th)^2 - 1)/sin(th)^2], [1, 0]], [[0, 0], [0, 0]]]]
+             [[[0, (cos(th)^2 - 1)/sin(th)^2], [1, 0]], [[0, 0], [0, 0]]]]
 
         In dimension 2, the Riemann tensor can be expressed entirely in terms of
         the Ricci scalar `r`:
@@ -1974,7 +1974,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the metric;
       if ``None``, it is formed from ``name``
     - ``comp`` -- (default: ``None``) either the list of the lignes of the \
-      corresponding matrix of the matrix in the default chart of the domain, \
+      corresponding matrix of the metric in the default chart of the domain, \
       or a non-negative integer `q` less than or egual to the dimension of the \
       ambiant manifold and representing the index of the metric. In this last \
       case, the standard pseudo-Euclidean metric of index `q` will be \
@@ -2075,7 +2075,6 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         """
         TensorFieldParal.__init__(self, vector_field_module, (0,2),
                                   name=name, latex_name=latex_name, sym=(0,1))
-        # signature:
         ndim = self._ambient_domain.dimension()
         start_index = self._ambient_domain.start_index()
         chart = self._ambient_domain.default_chart()
@@ -2086,7 +2085,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             if index < 0:
                 index = -1*index
             if index > ndim:
-                raise ValueError("The index must be less than the size of the metric")
+                raise ValueError("The index must be less than the size of the \
+                                 metric")
             liste = _diag(-1, index, ndim, 0)
             liste.extend(_diag(1, ndim-index, ndim, index))
         else:
@@ -2105,12 +2105,13 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
                     for (j, elt) in enumerate(comp):
                         liste.extend(_diag(elt, 1, ndim, j))
                 except TypeError:
-                    raise TypeError("The second argument must be an integer or an iterable or an iterable of iterables")
+                    raise TypeError("The second argument must be an integer \
+                                    or an iterable or an iterable of iterables")
         frame = chart.frame()
         for i in range(ndim):
             for j in range(ndim):
                 self.add_comp(frame)[i+start_index, j+start_index] = liste[i][j]
-        self._signature = self.signature()-self.index()
+        self._signature = self.signature()
         # the pair (n_+, n_-):
         self._signature_pm = (self.signature(), self.index())
         self._indic_signat = 1 - 2*(self._signature_pm[1]%2)  # (-1)^n_-
@@ -2154,8 +2155,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
     
     def _new_instance(self):
         r"""
-        Create an instance of the same class as ``self`` with the same
-        signature.
+        Create an instance of the same class as ``self`` with the same.
 
         TESTS::
 
@@ -2178,7 +2178,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
     def list_of_lines(self, chart=None):
         r"""
-        Return the list of the lists of lines of the metric in a given chart.
+        Return the list of lines of the metric in a given chart, each line \
+        being given as a list.
         
         INPUT:
 
@@ -2218,7 +2219,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
     def matrix(self, chart=None):
         r"""
-        Returns the correnponding matrix of the metric in the given chart. The \
+        Return the correnponding matrix of the metric in the given chart. The \
         difference with ``g[:]`` is that the components of the matrix retuned \
         here are instances of Symbolic Ring and not chart functions. 
         
@@ -2308,7 +2309,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
     
     def index(self):
         r"""
-        Returns the index of the metric. This method works well only when the \
+        Return the index of the metric. This method works well only when the \
         index of the metric is constant.
 
         OUTPUT:
@@ -2372,7 +2373,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
     
     def kernel_dimension(self):
         r"""
-        Returns the dimension of the kernel of the metric. This method works \
+        Return the dimension of the kernel of the metric. This method works \
         well only when the dimension of the kernel is constant.
 
         OUTPUT:
