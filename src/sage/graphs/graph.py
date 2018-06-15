@@ -4699,15 +4699,7 @@ class Graph(GenericGraph):
         ValueError: Generation of SPQR trees is only implemented for 2-connected graphs.
         """
         from sage.graphs.graph import Graph
-        print("Nodes:", self.order())
-        print("Edges:", self.size())
-        final_start = time.time()
-
-        start = time.time()
         cut_size, cut_vertices = self.vertex_connectivity(value_only = False)
-        print("cut_size = ", cut_size, "cut_vertices = ", cut_vertices)
-        end = time.time()
-        print("Time Taken for Vertex Connectivity:", end-start)
 
         if cut_size < 2:
             raise VaueError("Generation of SPQR trees is only implemented for 2-connected graphs")
@@ -4716,7 +4708,6 @@ class Graph(GenericGraph):
         elif self.is_cycle():
             return [],[self],[],[self],[self],Graph({('S',tuple(self.vertices())):[]})
 
-        start = time.time()
         R_blocks = []
         two_blocks = []
         cocycles = []
@@ -4737,13 +4728,10 @@ class Graph(GenericGraph):
                 else:
                     cuts.append(frozenset(mults[i]))
             cuts.append(frozenset(mults[-1]))
-        end = time.time()
-        print("Time Taken for Split_multiple_edge algorithm:", end-start)
 
         # If self simplifies to a cycle or 3-vertex-connected, identify it
         # Otherwise, seed the list of blocks to be 2-split with self
 
-        start = time.time()
         if SG.is_cycle():
             # SG is bi-connected graph.
             cycles.extend([frozenset(e) for e in SG.edge_iterator(labels=False)])
@@ -4774,11 +4762,9 @@ class Graph(GenericGraph):
             f = frozenset(f)
             if not f in cuts:
                 cuts.append(f)
-        end = time.time()
 
         # After above step, there is no use of two_blocks.
         del two_blocks
-        print("Time Taken for cleave and appending cuts ", end-start)
 
         # Cycles may or may not(if G is a cycle with order > 3) triangulated;
         # We must undo this for S-blocks Virtual edges to be used in cycle
@@ -4787,7 +4773,6 @@ class Graph(GenericGraph):
         # edge for a S-block Reconstruct S-blocks from smaller polygons,
         # where cocycles permit.
 
-        start = time.time()
         cycles_graph = Graph(cycles, multiedges=True)
         for e in cycles_graph.edges(labels=False):
             if cycles_graph.subgraph(edges=[e]).has_multiple_edges():
@@ -4828,17 +4813,14 @@ class Graph(GenericGraph):
                     tmp.append(SKS)
             else:
                 R_blocks.append(block)
-        end = time.time()
 
         del tmp
-        print("Time Taken for appending blocks,",end-start)
 
         # as with blocks_and_cuts_tree, we name vertices of the edge-sum
         # tree with a type (P = cocycle, S = cycle or R = three-block) and the
         # list of self's vertices in this block, noting only cocycles
         # have multiple edges
 
-        start = time.time()
         SPR = R_blocks + polygons
         Treeverts = []
         Tree = Graph()
@@ -4871,16 +4853,12 @@ class Graph(GenericGraph):
                         for j in range(i + 1, len(SPR)):
                             if SPR[j].has_edge(u, v):
                                 Tree.add_edge(Treeverts[i],Treeverts[j])
-        end = time.time()
-        print("Time Taken for Construction of Tree", end-start)
 
         thcomps = []
         for component in polygons:
             if component.order()==3 and component.size()==3:
                 thcomps.append(component)
         thcomps += R_blocks
-        final_end = time.time()
-        print("Total time:", final_end - final_start)
         #print(process.get_memory_info()[0])
         return R_blocks, polygons, P_blocks, R_blocks + polygons + P_blocks, thcomps, Tree
 
