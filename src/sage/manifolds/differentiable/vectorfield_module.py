@@ -1034,7 +1034,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
                 # (since new components are initialized to zero)
         return elt
 
-    def metric(self, name, signature=None, latex_name=None):
+    def metric(self, name, signature=None, latex_name=None, comp=None):
         r"""
         Construct a pseudo-Riemannian metric (nondegenerate symmetric bilinear
         form) on the current vector field module.
@@ -2148,7 +2148,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
     #### End of methods to be redefined by derived classes of FiniteRankFreeModule ####
 
-    def metric(self, name, signature=None, latex_name=None):
+    def metric(self, name, signature=None, latex_name=None, comp=None):
         r"""
         Construct a pseudo-Riemannian metric (nondegenerate symmetric bilinear
         form) on the current vector field module.
@@ -2181,7 +2181,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             sage: XM = M.vector_field_module()
             sage: XM.metric('g')
             Riemannian metric g on the 2-dimensional differentiable manifold M
-            sage: XM.metric('g', signature=0)
+            sage: XM.metric('g', comp=1)
             Lorentzian metric g on the 2-dimensional differentiable manifold M
 
         .. SEEALSO::
@@ -2192,5 +2192,5 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         """
         from sage.manifolds.differentiable.metric import \
                                                     PseudoRiemannianMetricParal
-        return PseudoRiemannianMetricParal(self, name, signature=signature,
-                                           latex_name=latex_name)
+        return PseudoRiemannianMetricParal(self, name,
+                                           latex_name=latex_name, comp=comp)

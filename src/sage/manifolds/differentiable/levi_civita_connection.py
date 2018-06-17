@@ -723,7 +723,7 @@ class LeviCivitaConnection(AffineConnection):
             g = (2*m/r - 1) dt*dt - 1/(2*m/r - 1) dr*dr + r^2 dth*dth
              + r^2*sin(th)^2 dph*dph
             sage: nab = g.connection() ; nab
-            Levi-Civita connection nabla_g associated with the Lorentzian
+            Levi-Civita connection nabla_g associated with the Riemannian
              metric g on the 4-dimensional differentiable manifold M
             sage: ric = nab.ricci() ; ric
             Field of symmetric bilinear forms Ric(g) on the 4-dimensional
