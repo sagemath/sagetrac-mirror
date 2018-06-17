@@ -1857,29 +1857,40 @@ def bridges(G, labels=True):
 # Methods for finding 3-vertex-connected components and building SPQR-tree
 # ==============================================================================
 
-def cleave(G):
+def cleave(G, cut_vertices=None, virtual_edges=True):
     r"""
-    Split the graph along a two-vertex cut, if any.
+    Return the connected subgraphs separated by the input vertex cut.
 
-    Given a biconnected (multi)graph, this method first searches for a
-    two-vertex cut. If the graph has one, then it splits the graph along that
-    cut and returns the subgraphs separated by this cut (including the vertices
-    of the cut).
-
-    This function is primarily included as a helper function for
-    :meth:`~spqr_tree`.
+    Given a connected (multi)graph `G` and a vertex cut `X`, this method
+    computes the list of subgraphs of `G` induced by each connected component
+    `c` of `G\setminus X` plus `X`, i.e., `G[c\cup X]`.
 
     INPUT:
 
     - ``G`` -- a Graph.
 
-    OUTPUT: `(S,C,f)` , where `S` is a list of the graphs that are sides of the
-    two-vertex separation with a virtual edge at the separation, `C` is
-    `cocycles`, a dipole graph on the two-vertex cut with virtual edges for each
-    side of the separation and a real edge if self has an edge between the
-    vertices of the cut, and `f` the pair cut vertices.
+    - ``cut_vertices`` -- (default: ``None``) a set of vertices representing a
+      vertex cut of ``G``. If not vertex cut is given, the method will compute
+      one via a call to :meth:`~sage.graphs.connectivity.vertex_connectivity`.
 
-    For more information see [CGPM2001]_.
+    - ``virtual_edges`` -- boolean (default: ``True``); whether to add virtual
+      edges to the sides of the cut or not. A virtual edge is an edge between a
+      pair of vertices of the cut that are not connected by an edge in ``G``.
+
+    OUTPUT: A triple `(S, C, f)`, where
+
+    - `S` is a list of the graphs that are sides of the vertex cut.
+
+    - `C` is the graph of the cocycles. For each pair of vertices of the cut, it
+      has one copy of each edge connecting them in ``G`` per sides of the cut
+      plus one extra copy. Furthermore, when ``virtual_edges == True``, if a
+      pair of vertices of the cut is not connected by an edge in ``G``, then it
+      has one virtual edge between them per sides of the cut.
+
+    - `f` is the complement of the subgraph of ``G`` induced but the vertex
+      cut. Hence, its vertex set is the vertex cut, and its edge set is the set
+      of virtual edges (i.e., edges between pairs of vertices of the cut that
+      are not connected by an edge in ``G``).
 
     EXAMPLES:
 
@@ -1888,24 +1899,24 @@ def cleave(G):
         sage: G = Graph(2)
         sage: for _ in range(3):
         ....:     G.add_clique([0, 1, G.add_vertex(), G.add_vertex()])
-        sage: S,C,f = G.cleave()
+        sage: S,C,f = G.cleave(cut_vertices=[0, 1])
         sage: [g.order() for g in S]
         [4, 4, 4]
         sage: C.order(), C.size()
         (2, 4)
-        sage: f
-        (0, 1)
+        sage: f.vertices()
+        [0, 1]
 
     If cut vertices doesn't have edge between them::
 
         sage: G.delete_edge(0, 1)
-        sage: S,C,f = G.cleave()
+        sage: S,C,f = G.cleave(cut_vertices=[0, 1])
         sage: [g.order() for g in S]
         [4, 4, 4]
         sage: C.order(), C.size()
         (2, 3)
-        sage: f
-        (0, 1)
+        sage: f.vertices(), f.edges()
+        ([0, 1], [(0, 1, None)])
 
     If `G` is a biconnected multigraph::
 
@@ -1913,8 +1924,8 @@ def cleave(G):
         sage: G.add_edge(2, 3)
         sage: G.allow_multiple_edges(True)
         sage: G.add_edges(G.edges())
-        sage: G.add_edges([[0,1],[0,1],[0,1]])
-        sage: S,C,f = G.cleave()
+        sage: G.add_edges([(0, 1), (0, 1), (0, 1)])
+        sage: S,C,f = G.cleave(cut_vertices=[0, 1])
         sage: for g in S:
         ....:     print(g.edges(labels=0))
         [(0, 1), (0, 1), (0, 1), (0, 2), (0, 2), (0, 3), (0, 3), (1, 2), (1, 2), (1, 3), (1, 3), (2, 3), (2, 3)]
@@ -1922,68 +1933,82 @@ def cleave(G):
 
     TESTS::
 
-        sage: graphs.PathGraph(3).cleave()
+        sage: Graph(2).cleave()
         Traceback (most recent call last):
         ...
-        ValueError: G must be a biconnected graph
-        sage: graphs.PetersenGraph().cleave()
+        ValueError: this method is designed for connected graphs only
+        sage: graphs.PathGraph(3).cleave(cut_vertices=[5])
         Traceback (most recent call last):
         ...
-        ValueError: G has no 2-vertex cut
+        ValueError: vertex 5 is not a vertex of the input graph
+        sage: Graph().cleave()
+        Traceback (most recent call last):
+        ...
+        ValueError: the input graph has no vertex cut
+        sage: graphs.CompleteGraph(5).cleave()
+        Traceback (most recent call last):
+        ...
+        ValueError: the input graph has no vertex cut
+        sage: graphs.CompleteGraph(5).cleave(cut_vertices=[3, 4])
+        Traceback (most recent call last):
+        ...
+        ValueError: the set cut_vertices is not a vertex cut of the graph
     """
-    from sage.graphs.graph import Graph
+    if not G.is_connected():
+        raise ValueError("this method is designed for connected graphs only")
 
-    if not G.is_biconnected():
-        raise ValueError("G must be a biconnected graph")
-
-    cut_size,cut_vertices = G.vertex_connectivity(value_only=False)
-    if cut_size != 2:
-        raise ValueError("G has no 2-vertex cut")
-
-    H = Graph(G.edges(labels=False), multiedges = True)
-    H.delete_vertices(cut_vertices)
-
-    # Deletion of separating pair leaves connected components; we add to each of
-    # those components a virtual edge between the separating pair and restore
-    # edges incident to them
-    virtual_edge = tuple(cut_vertices)
-    Comps = 0
-    cut_sides = []
-
-    # num_virtual_edge_add: It stores the number of virtual edges need to
-    #                       be added in a component.
-    if G.has_edge(virtual_edge) and G.has_multiple_edges():
-        num_virtual_edge_add = len(G.edge_label(cut_vertices[0], cut_vertices[1]))
+    # If a vertex cut is given, we check that it is valid. Otherwise, we compute
+    # a small vertex cut
+    if cut_vertices:
+        for u in cut_vertices:
+            if not u in G:
+                raise ValueError("vertex {} is not a vertex of the input graph".format(u))
+        cut_vertices = list(cut_vertices)
     else:
-        num_virtual_edge_add = 1
+        cut_size,cut_vertices = G.vertex_connectivity(value_only=False)
+        if not cut_vertices:
+            # Typical example is a clique
+            raise ValueError("the input graph has no vertex cut")
 
-    for component in H.connected_components_subgraphs():
-        # Create a set of component vertices
-        componentVertices = set(component.vertices())
-        component.allow_multiple_edges(True)
-        component.add_edges([e for e in G.edge_iterator(cut_vertices) if e[0] in componentVertices or e[1] in componentVertices])
+    H = G.copy()
+    H.delete_vertices(cut_vertices)
+    CC = H.connected_components()
+    if len(CC) == 1:
+        raise ValueError("the set cut_vertices is not a vertex cut of the graph")
 
-        # Add virtual edge if not present
-        if not component.has_edge(virtual_edge):
-            component.add_edges([virtual_edge]*num_virtual_edge_add)
+    # We identify the virtual edges, i.e., pairs of vertices of the vertex cut
+    # that are not connected by an edge in G
+    from sage.graphs.graph import Graph
+    K = G.subgraph(cut_vertices)
+    if virtual_edges:
+        if K.allows_multiple_edges():
+            virtual_cut_graph = K.to_simple().complement()
+        else:
+            virtual_cut_graph = K.complement()
+    else:
+        virtual_cut_graph = Graph()
 
-        cut_sides.append(component)
-        Comps += 1
+    # We now build the graphs in each side of the cut, including the vertices
+    # from the vertex cut
+    cut_sides = []
+    for comp in CC:
+        h = G.subgraph(comp + cut_vertices)
+        if virtual_edges:
+            h.add_edges(virtual_cut_graph.edges())
+        cut_sides.append(h)
 
-    # if the original graph has an edge between the separating pair of vertices,
-    # a bond with one edge more than the number of auxiliary graphs is needed
-    # for re-assembly
+    # We build the cocycles for re-assembly. For each edge between a pair of
+    # vertices of the cut in the original graph G, a bond with one edge more
+    # than the number of cut sides is needed. For pairs of vertices of the cut
+    # that are not connected by an edge in G, a bond with one edge per cut side
+    # is needed.
     cocycles = Graph(multiedges=True)
-    if G.has_edge(virtual_edge):
-        cocycles.add_edges([virtual_edge]*(Comps+1)*num_virtual_edge_add)
+    if K.size():
+        cocycles.add_edges(K.edges() * (len(cut_sides) + 1))
+    if virtual_edges and virtual_cut_graph:
+        cocycles.add_edges(virtual_cut_graph.edges() * len(cut_sides))
 
-    # if the original graph has no edge between the separating pair of vertices
-    # but deletion of the separating pair leaves more than two components, a
-    # bond with one edge per component is needed for re-assembly
-    elif Comps >= 2:
-        cocycles.add_edges([virtual_edge]*Comps)
-
-    return cut_sides, cocycles, virtual_edge
+    return cut_sides, cocycles, virtual_cut_graph
 
 def spqr_tree(G):
     r"""
@@ -2041,7 +2066,7 @@ def spqr_tree(G):
     ValueError: generation of SPQR trees is only implemented for 2-connected graphs
     """
     from sage.graphs.graph import Graph
-    cut_size, cut_vertices = G.vertex_connectivity(value_only = False)
+    cut_size, cut_vertices = G.vertex_connectivity(value_only=False)
 
     if cut_size < 2:
         raise ValueError("generation of SPQR trees is only implemented for 2-connected graphs")
@@ -2059,7 +2084,7 @@ def spqr_tree(G):
 
     # Split_multiple_edge Algorithm, it will make SG as simple graph.  If G is a
     # multigraph, simplify while recording virtual edges that will be needed to
-    # 2-sum with cocycles during reconstruction After this step, next step will
+    # 2-sum with cocycles during reconstruction. After this step, next step will
     # be finding S and R, blocks,
     if SG.has_multiple_edges():
         mults = sorted(SG.multiple_edges(labels=False))
@@ -2071,42 +2096,37 @@ def spqr_tree(G):
                 cuts.append(frozenset(mults[i]))
         cuts.append(frozenset(mults[-1]))
 
-    # If G simplifies to a cycle or 3-vertex-connected, identify it
-    # Otherwise, seed the list of blocks to be 2-split with G
-
+    # If G simplifies to a cycle.  Otherwise, seed the list of blocks to be
+    # 2-split with G
     if SG.is_cycle():
-        # SG is bi-connected graph.
         cycles.extend([frozenset(e) for e in SG.edge_iterator(labels=False)])
     else:
-        # Possibility that it's 3-connected component.
-        two_blocks.append(SG)
+        SG.allow_multiple_edges(False)
+        two_blocks.append((SG, cut_vertices))
 
-    # After above step, there is no use of SG.
-    del SG
 
     # Each minor of G in two_blocks has a 2-vertex cut; we split at this cut and
     # check each side for S or R or a 2-vertex cut
     while two_blocks:
-        B = two_blocks.pop()
-        B.allow_multiple_edges(False)
+        B,B_cut = two_blocks.pop()
         # B will be always simple graph.
-        S, C, f = B.cleave()
+        S, C, f = B.cleave(cut_vertices=B_cut)
         for K in S:
             if K.is_cycle():
                 # Add all the edges of K to cycles list.
                 cycles.extend(frozenset(e) for e in K.edge_iterator(labels=False))
-            elif K.vertex_connectivity() == 2:
-                two_blocks.append(K)
             else:
-                R_blocks.append(K)
+                K_cut_size,K_cut_vertices = K.vertex_connectivity(value_only=False)
+                if K_cut_size == 2:
+                    two_blocks.append((K, K_cut_vertices))
+                else:
+                    R_blocks.append(K)
         # add a P block if cleave says we need it; mark virtual edge
         cocycles.extend([frozenset(e) for e in C.edge_iterator(labels=False)])
-        f = frozenset(f)
-        if not f in cuts:
-            cuts.append(f)
-
-    # After above step, there is no use of two_blocks.
-    del two_blocks
+        for e in f.edge_iterator(labels=False):
+            fe = frozenset(e)
+            if not fe in cuts:
+                cuts.append(fe)
 
     # Cycles may or may not(if G is a cycle with order > 3) triangulated; We
     # must undo this for S-blocks Virtual edges to be used in cycle assembly
@@ -2155,7 +2175,6 @@ def spqr_tree(G):
         else:
             R_blocks.append(block)
 
-    del tmp
 
     # as with blocks_and_cuts_tree, we name vertices of the edge-sum tree with a
     # type (P = cocycle, S = cycle or R = three-block) and the list of G's
