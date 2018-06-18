@@ -3151,7 +3151,7 @@ class DifferentiableManifold(TopologicalManifold):
                                                                AffineConnection
         return AffineConnection(self, name, latex_name)
 
-    def metric(self, name, signature=None, latex_name=None, dest_map=None, \
+    def metric(self, name, signature=None, latex_name=None, dest_map=None,
                comp=None):
         r"""
         Define a pseudo-Riemannian metric on the manifold.
@@ -3177,6 +3177,8 @@ class DifferentiableManifold(TopologicalManifold):
           representing the destination map `\Phi:\ U \rightarrow M`, where `U`
           is the current manifold; if ``None``, the identity map is assumed
           (case of a metric tensor field *on* `U`)
+        - ``comp`` -- (default: ``None``) components of the metric in the
+          manifold's default frame
 
         OUTPUT:
 
@@ -3200,8 +3202,8 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         vmodule = self.vector_field_module(dest_map)
-        return vmodule.metric(name, signature=signature, latex_name=latex_name,\
-                               comp=comp)
+        return vmodule.metric(name, signature=signature, latex_name=latex_name,
+                              comp=comp)
 
     def riemannian_metric(self, name, latex_name=None, dest_map=None):
         r"""
@@ -3346,8 +3348,8 @@ class DifferentiableManifold(TopologicalManifold):
             index = 1
         else:
             signat = 2 - dim
-            index = dim -1
-        return vmodule.metric(name, signature=signat, latex_name=latex_name, \
+            index = dim - 1
+        return vmodule.metric(name, signature=signat, latex_name=latex_name,
                               comp=index)
 
     def lorentz_metric(self, name, signature='positive', latex_name=None,

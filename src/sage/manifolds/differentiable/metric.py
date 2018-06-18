@@ -10,6 +10,8 @@ AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
 - Pablo Angulo (2016): Schouten, Cotton and Cotton-York tensors
+- Hans Fotsing Tetsing (2018): computation of metric signature and definition
+  of the components when declaring the metric
 
 REFERENCES:
 
@@ -22,6 +24,7 @@ REFERENCES:
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2016 Pablo Angulo <pang@cancamusa.net>
+#       Copyright (C) 2018 Hans Fotsing Tetsing <hans.fotsing@aims-cameroon.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -34,13 +37,7 @@ from sage.rings.integer import Integer
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
 from sage.matrix.matrix_space import MatrixSpace
-from numpy import pi
 from sage.symbolic.ring import SR
-from sage.misc.latex import latex
-from sage.symbolic.expression import Expression
-from sage.tensor.modules.format_utilities import is_atomic, \
-                                                         FormattedExpansion
-
 
 class PseudoRiemannianMetric(TensorField):
     r"""
@@ -1005,7 +1002,7 @@ class PseudoRiemannianMetric(TensorField):
              2-dimensional differentiable manifold S^2
             sage: g.riemann()[:]
             [[[[0, 0], [0, 0]], [[0, sin(th)^2], [-sin(th)^2, 0]]],
-             [[[0, (cos(th)^2 - 1)/sin(th)^2], [1, 0]], [[0, 0], [0, 0]]]]
+             [[[0, -1], [1, 0]], [[0, 0], [0, 0]]]]
 
         In dimension 2, the Riemann tensor can be expressed entirely in terms of
         the Ricci scalar `r`:
@@ -1901,31 +1898,31 @@ class PseudoRiemannianMetric(TensorField):
         resu.set_name(name=format_unop_txt('*', pform._name),
                     latex_name=format_unop_latex(r'\star ', pform._latex_name))
         return resu
-    
+
 
 #******************************************************************************
 
 def _diag(self, n, m, k):
     r"""
-    Return a list of `n` lists of length `m` each such that the first list 
-    contains ``self`` at position `k+1`, the second list contains ``self`` at 
+    Return a list of `n` lists of length `m` each such that the first list
+    contains ``self`` at position `k+1`, the second list contains ``self`` at
     position `k+2`, and so on. The other positions of each list contain `0`.
-    
+
     INPUT:
 
     - ``self`` -- an element
     - ``n`` -- a non-negative integer, the number of sublists
     - ``m`` -- a non-negative integer, the length of each sublist
-    - ``k`` -- a positive integer, `k+1` is the position of ``self`` in the 
-                first list
+    - ``k`` -- a positive integer, `k+1` is the position of ``self`` in the
+      first list
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.manifolds.differentiable.metric import _diag
         sage: _diag(-2, 2, 4, 1)
         [[0, -2, 0, 0], [0, 0, -2, 0]]
 
-        """
+    """
     liste1 = []
     for i in range(n):
         liste2 = []
@@ -1973,12 +1970,12 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
     - ``name`` -- name given to the metric
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the metric;
       if ``None``, it is formed from ``name``
-    - ``comp`` -- (default: ``None``) either the list of the lignes of the \
-      corresponding matrix of the metric in the default chart of the domain, \
-      or a non-negative integer `q` less than or egual to the dimension of the \
-      ambiant manifold and representing the index of the metric. In this last \
-      case, the standard pseudo-Euclidean metric of index `q` will be \
-      constructed. If ``None`` is given, the standard Euclidean metric will \
+    - ``comp`` -- (default: ``None``) either the list of the lines of the
+      corresponding matrix of the metric in the default chart of the domain,
+      or a non-negative integer `q` less than or egual to the dimension of the
+      ambiant manifold and representing the index of the metric. In this last
+      case, the standard pseudo-Euclidean metric of index `q` will be
+      constructed. If ``None`` is given, the standard Euclidean metric will
       be constructed.
 
     EXAMPLES:
@@ -2085,8 +2082,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             if index < 0:
                 index = -1*index
             if index > ndim:
-                raise ValueError("The index must be less than the size of the \
-                                 metric")
+                raise ValueError("the index must be less than the size of "
+                                 + "the metric")
             liste = _diag(-1, index, ndim, 0)
             liste.extend(_diag(1, ndim-index, ndim, index))
         else:
@@ -2095,18 +2092,19 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
                 for elt in list(comp):
                     liste.append(list(elt))
                     if len(elt) != ndim:
-                        raise ValueError("The metric must be squared")
+                        raise ValueError("the metric must be squared")
                 for i in range(ndim):
                     for j in range(ndim):
                         if liste[i][j] != liste[j][i]:
-                            raise ValueError("The metric must be squared")
+                            raise ValueError("the metric must be squared")
             except TypeError:
                 try:
                     for (j, elt) in enumerate(comp):
                         liste.extend(_diag(elt, 1, ndim, j))
                 except TypeError:
-                    raise TypeError("The second argument must be an integer \
-                                    or an iterable or an iterable of iterables")
+                    raise TypeError("the second argument must be an integer "
+                                    + "or an iterable or an iterable of "
+                                    + "iterables")
         frame = chart.frame()
         for i in range(ndim):
             for j in range(ndim):
@@ -2134,7 +2132,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             'Lorentzian metric g on the 3-dimensional differentiable manifold M'
             sage: g = M.metric('g', comp=[[-1,0,0],[0,-1,0],[0,0,-1]]);
             sage: g._repr_()
-            'Pseudo-Riemannian metric g on the 3-dimensional differentiable manifold 
+            'Pseudo-Riemannian metric g on the 3-dimensional differentiable manifold
             M'
             sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]]);
             sage: g._repr_()
@@ -2152,7 +2150,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             description = "Pseudo-Riemannian metric "
         description += self._name + " "
         return self._final_repr(description)
-    
+
     def _new_instance(self):
         r"""
         Create an instance of the same class as ``self`` with the same.
@@ -2178,13 +2176,13 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
     def list_of_lines(self, chart=None):
         r"""
-        Return the list of lines of the metric in a given chart, each line \
+        Return the list of lines of the metric in a given chart, each line
         being given as a list.
-        
+
         INPUT:
 
-            - ``chart`` -- (default: ``None``) a chart on the manifold; if \
-            ``None``, the default chart on the domain will be used.
+        - ``chart`` -- (default: ``None``) a chart on the manifold; if
+          ``None``, the default chart on the domain will be used.
 
         EXAMPLES:
 
@@ -2204,7 +2202,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]])
             sage: g.list_of_lines()
             [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-            
+
         """
         if chart == None:
             chart = self.domain().default_chart()
@@ -2219,14 +2217,14 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
     def matrix(self, chart=None):
         r"""
-        Return the correnponding matrix of the metric in the given chart. The \
-        difference with ``g[:]`` is that the components of the matrix retuned \
-        here are instances of Symbolic Ring and not chart functions. 
-        
+        Return the correnponding matrix of the metric in the given chart. The
+        difference with ``g[:]`` is that the components of the matrix retuned
+        here are instances of Symbolic Ring and not chart functions.
+
         INPUT:
 
-        - ``chart`` -- (default: ``None``) a chart on the domain. if ``None``, \
-          the default chart on the domain will be used.
+        - ``chart`` -- (default: ``None``) a chart on the domain; if ``None``,
+          the default chart on the domain will be used
 
         EXAMPLES:
 
@@ -2254,7 +2252,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             [0 0 0]
             [0 0 0]
             [0 0 0]
-            
+
         """
         mat0 = self.list_of_lines(chart)
         mat1 = []
@@ -2263,19 +2261,20 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             for elt in L:
                 mat2.append(elt.expr())
             mat1.append(mat2)
-        mat1 = MatrixSpace(SR, self._ambient_domain.dimension(), self._ambient_domain.dimension())(mat1)
-        return mat1        
+        mat1 = MatrixSpace(SR, self._ambient_domain.dimension(),
+                           self._ambient_domain.dimension())(mat1)
+        return mat1
 
     def sign(self):
         r"""
-        
+
         This method works well only when the index of the metric is constant.
 
         OUTPUT:
 
-        - ``[n_-, n_+, n_0]`` -- being ``n_-`` (resp. ``n_+``, n_0``) the \
-        number  of negative terms (resp. positive terms, null terms) in any \
-        diagonal writing of the metric components
+        - ``[n_-, n_+, n_0]`` -- being ``n_-`` (resp. ``n_+``, n_0``) the
+          number  of negative terms (resp. positive terms, null terms) in any
+          diagonal writing of the metric components
 
         EXAMPLES:
 
@@ -2297,7 +2296,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             [0, 0, 3]
         """
         mat = self.matrix().jordan_form()
-        index, sign, sing = 0, 0, 0 
+        index, sign, sing = 0, 0, 0
         for i in range(self.domain().dimension()):
             if mat[i, i].is_zero():
                 sing += 1
@@ -2306,16 +2305,18 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             else:
                 sign += 1
         return [index, sign, sing]
-    
+
     def index(self):
         r"""
-        Return the index of the metric. This method works well only when the \
-        index of the metric is constant.
+        Return the index of the metric, i.e. the number of negative terms in
+        any diagonal writing of the metric components.
+
+        This method works well only when the index of the metric is constant.
 
         OUTPUT:
 
-        - ``index`` -- the number of negative terms in any diagonal writing of \
-        the metric components
+        - ``index`` -- the number of negative terms in any diagonal writing of
+          the metric components
 
         EXAMPLES:
 
@@ -2335,23 +2336,24 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]])
             sage: g.index()
             0
-            
+
         """
         return self.sign()[0]
-    
+
     def signature(self):
         r"""
-        
+
         This method works well only when the index of the metric is constant.
-    
+
         OUTPUT:
 
-        - `n_+-n_-` -- being `n_+` the number of positive terms and `n_-` the \
-        number of negative terms in any diagonal writing of the metric components
+        - `n_+-n_-` -- being `n_+` the number of positive terms and `n_-` the
+          number of negative terms in any diagonal writing of the metric
+          components
 
         EXAMPLES:
 
-        Index on a 3-dimensional manifold::
+        Signature on a 3-dimensional manifold::
 
             sage: M = Manifold(3, 'M')
             sage: X.<t,x,y> = M.chart()
@@ -2367,19 +2369,21 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]])
             sage: g.signature()
             0
-            
+
         """
         return self.sign()[1]-self.sign()[0]
-    
+
     def kernel_dimension(self):
         r"""
-        Return the dimension of the kernel of the metric. This method works \
-        well only when the dimension of the kernel is constant.
+        Return the dimension of the kernel of the metric.
+
+        This method works well only when the dimension of the kernel is
+        constant.
 
         OUTPUT:
 
-        - the number of null terms in any diagonal writing of the 
-        metric components
+        - the number of null terms in any diagonal writing of the metric
+          components
 
         EXAMPLES:
 
@@ -2399,10 +2403,9 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: g = M.metric('g', comp=[[0,0,0],[0,0,0],[0,0,0]])
             sage: g.kernel_dimension()
             3
-            
+
         """
         return self.sign()[2]
-    
 
     def _init_derived(self):
         r"""
