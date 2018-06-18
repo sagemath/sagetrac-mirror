@@ -362,7 +362,14 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             sage: M2 = TransversalMatroid(sets)
             sage: M == M2
             True
+
+        TESTS::
+            sage: M = TransversalMatroid([range(5)] * 4, set_labels='abcd', matching={0:'a', 1:'c'})
+            sage: N = TransversalMatroid([range(5)] * 4, set_labels='abcd')
+            sage: M == N
+            False
         """
+
         if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, TransversalMatroid) or not isinstance(right, TransversalMatroid):
@@ -374,6 +381,10 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
         if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
+
+        # If either matroid is not valid, deem them different
+        if not (left.is_valid() and right.is_valid()):
+            return not res
         if (left.groundset() == right.groundset() and
             Counter([frozenset(s) for s in left.sets()]) == Counter([frozenset(s) for s in right.sets()])):
             return res
