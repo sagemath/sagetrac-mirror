@@ -238,7 +238,7 @@ This involution is an algebra morphism with
     s^\ast_\Lambda = (-1)^{\binom{m}{2}} \omega {\bar s}_{\Lambda'} \qquad
     and \qquad {\bar s}^\ast_\Lambda = (-1)^{\binom{m}{2}} \omega s_{\Lambda'}
 
-where `\Lambda` is a super partition with femionic sector `m`.
+where `\Lambda` is a super partition with fermionic sector `m`.
 
 ::
 
@@ -697,7 +697,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
         class ElementMethods:
             def is_homogeneous_bi_degree(self):
                 r"""
-                Test if super partitions an element all have the same bi-degree.
+                Test if the support has elements of the same bi-degree.
 
                 EXAMPLES::
 
@@ -898,7 +898,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
                 The generators are ordered so that the non-positive integers
                 are mapped to a fermionic generator and the positive
-                integers are mapped to the symmetric generator.
+                integers are mapped to the bosonic generator.
 
                 EXAMPLES::
 
@@ -1050,8 +1050,10 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
             r"""
             Product of two monomial basis elements.
 
-            The product of monomial basis elements is calculated for a
-            fixed fermionic partition.
+            The terms in the product of monomial basis elements are calculated
+            by fixing a possible fermionic partition and determining the
+            possible ways that two possible monomials in super space have a
+            product with the fermionic partition.
 
             INPUT:
 
@@ -1544,7 +1546,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             The generators are ordered so that the non-positive integers
             are mapped to a fermionic generator and the positive
-            integers are mapped to the symmetric generator.
+            integers are mapped to the bosonic generator.
 
             EXAMPLES::
 
@@ -1619,7 +1621,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             The generators are ordered so that the non-positive integers
             are mapped to a fermionic generator and the positive
-            integers are mapped to the symmetric generator.
+            integers are mapped to the bosonic generator.
 
             EXAMPLES::
 
@@ -1703,7 +1705,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             The generators are ordered so that the non-positive integers
             are mapped to a fermionic generator and the positive
-            integers are mapped to the symmetric generator.
+            integers are mapped to the bosonic generator.
 
             EXAMPLES::
 
@@ -1776,7 +1778,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             The generators are ordered so that the non-positive integers
             are mapped to a fermionic generator and the positive
-            integers are mapped to the symmetric generator.
+            integers are mapped to the bosonic generator.
 
             EXAMPLES::
 
@@ -1890,7 +1892,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             The generators are ordered so that the non-positive integers
             are mapped to a fermionic generator and the positive
-            integers are mapped to the symmetric generator.
+            integers are mapped to the bosonic generator.
 
             This is equation (3.61) and equation (3.62) of [DLM2006]_.
 
@@ -1916,7 +1918,7 @@ class SymmetricFunctionsinSuperSpace(UniqueRepresentation, Parent):
 
             The generators are ordered so that the non-positive integers
             are mapped to a fermionic generator and the positive
-            integers are mapped to the symmetric generator.
+            integers are mapped to the bosonic generator.
 
             This is equation (3.61) and equation (3.62) of [DLM2006]_.
 
