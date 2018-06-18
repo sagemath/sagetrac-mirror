@@ -34,7 +34,7 @@ called super partitions.
     :class:`~sage.combinat.superpartition.SuperPartition`,
     :class:`~sage.combinat.sf.sf.SymmetricFunctions`
 
-``SummetricFunctionsinSuperSpace`` is isomorphic to the graded ring with
+``SymmetricFunctionsinSuperSpace`` is isomorphic to the graded ring with
 generators `p_{(0;)}, p_{(;1)}, p_{(1;)}, p_{(;2)}, p_{(2;)}, \ldots`
 satisfying the relations
 
@@ -59,7 +59,7 @@ by the super partition `(; n)` and `(n; )`.  Define the generators
     h_{(; n)} = \sum_{1 \leq i_1\leq i_2\leq\cdots\leq i_n} x_{i_1} x_{i_2} \cdots x_{i_n}
 
 where `p_n, e_n` and `h_n` are the symmetric function elements in the `X_N`
-variables.  In addition there are fermonionic generators which include variables
+variables.  In addition there are fermionic generators which include variables
 from `\Theta_N`.  These are given
 
 .. MATH::
