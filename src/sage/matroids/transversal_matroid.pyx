@@ -171,6 +171,17 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             sage: M.rank([0,1,2])
             3
 
+            ::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: sets = [[0, 1, 2, 3], [1, 2], [1, 3, 4]]
+            sage: set_labels = [5, 6, 7]
+            sage: m = {0:5, 1:6, 3:7}
+            sage: M = TransversalMatroid(sets, set_labels=set_labels, matching=m)
+            sage: len(M.bases())
+            9
+
+
         """
         contents = set([e for subset in sets for e in subset])
         if groundset is None:
