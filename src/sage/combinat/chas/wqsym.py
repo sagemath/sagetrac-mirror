@@ -48,6 +48,8 @@ from sage.combinat.free_module import CombinatorialFreeModule
 #from sage.combinat.set_partition_ordered import OrderedSetPartition
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.shuffle import ShuffleProduct_overlapping, ShuffleProduct
+from sage.rings.integer import Integer
+from sage.combinat.words.finite_word import FiniteWord_class
 
 class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
     """
@@ -1901,16 +1903,43 @@ class WQSymBases(Category_realization_of_parent):
                 M[{1, 3}, {2}]
                 sage: M[OrderedSetPartition([[2],[1,4],[3,5]])]
                 M[{2}, {1, 4}, {3, 5}]
+
+            TESTS:
+
+            We allow user to enter basis index as a packed word::
+
+                sage: w = Word([1,1,2,1])
+                sage: c = OrderedSetPartition([1,1,2,1]); c
+                [{1, 2, 4}, {3}]
+                sage: M(c), M(c) == M[c] == M[w]
+                (M[{1, 2, 4}, {3}], True)
+                sage: M[1,2,3]
+                M[{1}, {2}, {3}]
+                sage: M[[1,2,3]]
+                M[{1, 2, 3}]
+                sage: M[c] == M[[1,2,4],[3]] == M[[[1,2,4],[3]]] == M[(1,2,4),(3,)]
+                True
+                sage: M[()] == M[[]] == M.one()
+                True
+
+            .. TODO::
+
+                Make the following tests also return ``True``::
+
+                sage: M[set()] == M[Set()] == M[frozenset()] == M.one()
+                False
             """
-            #try:
-            #    indx = OrderedSetPartition(p)
-            #except TypeError:
-            #    indx = OrderedSetPartition([p])
-            #return self.monomial(self._indices(indx))
-            try:
+            if p in self._indices:
                 return self.monomial(self._indices(p))
+            if isinstance(p, (tuple, FiniteWord_class)) and \
+                len(p) > 0 and isinstance(p[0], (int, Integer)):
+                return self.monomial(self._indices(p))
+
+            try:
+                indx = self._indices([p])
             except TypeError:
-                return self.monomial(self._indices([p]))
+                indx = self._indices(p)
+            return self.monomial(indx)
 
         def is_field(self, proof=True):
             """

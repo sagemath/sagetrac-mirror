@@ -923,12 +923,10 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
             sage: OS([[1,3],[2,4]])
             [{1, 3}, {2, 4}]
         """
-        # is there a "not" missing in the next line?
         if isinstance(s, OrderedSetPartition):
             raise ValueError("cannot convert %s into an element of %s"%(s, self))
         if s in Words() or (len(s) > 0 and (s[0] in ZZ or isinstance(s[0], str))):
             return self.from_finite_word(Words()(s))
-
         return self.element_class(self, list(s))
 
     Element = OrderedSetPartition
@@ -1290,6 +1288,8 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
             if gset == frozenset(range(1,len(gset)+1)):
                 return self.element_class(self, list(s))
             raise ValueError("cannot convert %s into an element of %s"%(s, self))
+        if s in Words() or (len(s) > 0 and (s[0] in ZZ or isinstance(s[0], str))):
+            return self.from_finite_word(Words()(s))
         return self.element_class(self, list(s))
 
     def __contains__(self, x):
