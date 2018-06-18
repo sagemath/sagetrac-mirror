@@ -79,8 +79,8 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
       elements
     - ``set_labels`` -- (optional) a list of labels in 1-1 correspondence with
       the iterables in ``sets``
-    - ``matching`` -- (optional) a dictionary specifying a matching between
-      elements and set labels
+    - ``matching`` -- (optional) a dictionary specifying a maxial matching
+      between elements and set labels
 
     OUTPUT:
 
@@ -153,6 +153,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             running ._test_pickling() . . . pass
 
         ::
+
             sage: sets = [['s1', 's2'], ['s1', 's3']]
             sage: M = TransversalMatroid(sets); M
             Transversal matroid of rank 2 on 3 elements, with 2 sets.
@@ -160,6 +161,16 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             [['s1', 's2'], ['s1', 's3']]
             sage: M.set_labels()
             ['s0', 's4']
+
+        Testing the matching parameter::
+
+            sage: from sage.matroids.transversal_matroid import TransversalMatroid
+            sage: M = TransversalMatroid([range(5)] * 4, set_labels='abcd')
+            sage: M.full_rank()
+            4
+            sage: M.rank([0,1,2])
+            3
+
         """
         contents = set([e for subset in sets for e in subset])
         if groundset is None:
@@ -227,7 +238,12 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
         # matching_temp uses actual ground set labels
         # self._matching will use the translated ones
-        self._matching = {self._idx[e]: matching_temp[e] for e in matching_temp.keys()}
+        if matching:
+            self._matching = {self._idx[e]: self._set_labels[self._set_labels_input.index(
+                matching_temp[e])] for e in matching_temp.keys()}
+        else:
+            self._matching = {self._idx[e]: matching_temp[e] for e in matching_temp.keys()}
+
 
         # Build a DiGraph for doing basis exchange
         self._D = nx.DiGraph()
@@ -864,3 +880,54 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
 
         for collection in powerset:
             yield self.transversal_extension(element=element, sets=collection)
+
+    cpdef is_valid(self):
+        """
+        Test whether the matching in memory is a valid maximal matching.
+
+        The data for a transversal matroid is a set system, which is always valid,
+        but it is possible for a user to provide invalid input with the ``matching``
+        parameter. This checks that the matching provided is indeed a matching, fits in
+        the set system, and is maximal.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.transversal_matroid import *
+            sage: sets = [[0, 1, 2, 3], [1, 2], [1, 3, 4]]
+            sage: set_labels = [5, 6, 7]
+            sage: M = TransversalMatroid(sets, set_labels=set_labels)
+            sage: M.is_valid()
+            True
+            sage: m = {0:5, 1:5, 3:7} # not a matching
+            sage: TransversalMatroid(sets, set_labels=set_labels, matching=m).is_valid()
+            False
+            sage: m = {2:6, 3:7} # not maximal
+            sage: TransversalMatroid(sets, set_labels=set_labels, matching=m).is_valid()
+            False
+            sage: m = {0:6, 1:5, 3:7} # not in the set system
+            sage: TransversalMatroid(sets, set_labels=set_labels, matching=m).is_valid()
+            False
+        """
+        # Check that self._matching is a matching, that is, every entry appears at most once.
+        # Because of how python dictionaries work, each element appears once, but a set
+        # can appear more than once.
+        if len(self._matching.values()) != len(set(self._matching.values())):
+            return False
+
+        # Check that every element in the matching is actually in the set that the matching
+        # specifies.
+        # Note that self._matching uses the internal set and element labels
+        for e in self._matching.keys():
+            if e not in self._sets_input[self._set_labels.index(self._matching[e])]:
+                return False
+
+        # Check that the matching is maximal.
+        B = self.graph()
+        if len(B.matching()) != len(self._matching):
+            return False
+
+        return True
