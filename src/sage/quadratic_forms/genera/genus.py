@@ -1511,7 +1511,7 @@ class Genus_Symbol_p_adic_ring(object):
         r"""
         Return the locally automorphous square classes at this prime.
 
-        See [CS]§9.6
+        See [CS]_ 9.6
 
         EXAMPLES::
 
@@ -2288,6 +2288,7 @@ class GenusSymbol_global_ring(object):
 
     def rank(self):
         r"""
+        The rank of a representative of this genus.
         """
         return self._local_symbols[0].rank()
 
