@@ -375,6 +375,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             True
 
         TESTS::
+
             sage: M = TransversalMatroid([range(5)] * 4, set_labels='abcd', matching={0:'a', 1:'c'})
             sage: N = TransversalMatroid([range(5)] * 4, set_labels='abcd')
             sage: M == N
