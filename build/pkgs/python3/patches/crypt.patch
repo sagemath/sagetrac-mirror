@@ -1,3 +1,7 @@
+Patch that allows python to call crypt_r() instead of crypt() if such a function exists on the current system.
+See https://github.com/python/cpython/pull/4691 and https://trac.sagemath.org/ticket/25391 for details.
+This gives all the advantages listed in the pull request above, plus fixing an issue with the crypt() implementatin of fedora 28, since
+crypt() will not be called anymore.
 diff -r 4b6e6a77e501 Modules/_cryptmodule.c
 --- a/Modules/_cryptmodule.c	Sat Oct 22 03:21:55 2016 +0000
 +++ b/Modules/_cryptmodule.c	Sat Oct 22 09:40:16 2016 +0200

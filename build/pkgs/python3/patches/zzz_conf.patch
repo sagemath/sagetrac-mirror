@@ -1,3 +1,7 @@
+Configuration files patch that recognizes if crypt_r() implementation exists on the system,
+and defines the constant HAVE_CRYPT_R in case it does. This in conjunction with crypt.patch allows
+python to use crypt_r() instead of crypt(), when available.
+Check https://github.com/python/cpython/pull/4691 and https://trac.sagemath.org/ticket/25391 for details.
 diff --git a/aclocal.m4 b/aclocal.m4
 index 9a9cc55..df7895b 100644
 --- a/aclocal.m4
