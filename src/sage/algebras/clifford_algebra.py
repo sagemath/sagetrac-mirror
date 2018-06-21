@@ -1478,9 +1478,6 @@ class ExteriorAlgebra(CliffordAlgebra):
         """
         cat = HopfAlgebrasWithBasis(R).Super().FiniteDimensional()
         CliffordAlgebra.__init__(self, QuadraticForm(R, len(names)), names, category=cat)
-        # TestSuite will fail if the HopfAlgebra classes will ever have tests for
-        # the coproduct being an algebra morphism -- since this is really a
-        # Hopf superalgebra, not a Hopf algebra.
 
     def _repr_(self):
         r"""
