@@ -74,7 +74,7 @@ class FunctionFieldFactory(UniqueFactory):
         sage: K is N
         False
     """
-    def create_key(self, F, names):
+    def create_key(self, F, names, implementation=None):
         """
         Given the arguments and keywords, create a key that uniquely
         determines this object.
@@ -85,9 +85,9 @@ class FunctionFieldFactory(UniqueFactory):
         """
         if not isinstance(names, tuple):
             names=(names,)
-        return (F, names)
+        return (F, names, implementation)
 
-    def create_object(self, version, key,**extra_args):
+    def create_object(self, version, key):
         """
         Create the object from the key and extra arguments. This is only
         called if the object was not found in the cache.
@@ -99,7 +99,10 @@ class FunctionFieldFactory(UniqueFactory):
             sage: K is L
             True
         """
-        if key[0].is_finite():
+        if key[2] == 'kash':
+            from .function_field_kash import RationalFunctionField_kash
+            return RationalFunctionField_kash(key[0],names=key[1])
+        elif key[0].is_finite():
             from .function_field import RationalFunctionField_global
             return RationalFunctionField_global(key[0],names=key[1])
         else:
@@ -136,7 +139,7 @@ class FunctionFieldExtensionFactory(UniqueFactory):
         sage: L is M
         True
     """
-    def create_key(self,polynomial,names):
+    def create_key(self, polynomial, names, implementation=None):
         """
         Given the arguments and keywords, create a key that uniquely
         determines this object.
@@ -166,9 +169,9 @@ class FunctionFieldExtensionFactory(UniqueFactory):
             names=polynomial.variable_name()
         if not isinstance(names,tuple):
             names=(names,)
-        return (polynomial,names,polynomial.base_ring())
+        return (polynomial,names,polynomial.base_ring(),implementation)
 
-    def create_object(self,version,key,**extra_args):
+    def create_object(self,version,key):
         """
         Create the object from the key and extra arguments. This is only
         called if the object was not found in the cache.
@@ -184,9 +187,16 @@ class FunctionFieldExtensionFactory(UniqueFactory):
             True
         """
         from . import function_field
+
         f = key[0]
         names = key[1]
         base_field = f.base_ring()
+        implementation = key[3]
+
+        if implementation == 'kash':
+            from .function_field_kash import FunctionField_polymod_kash
+            return FunctionField_polymod_kash(f, names)
+
         if function_field.is_RationalFunctionField(base_field):
             k = base_field.constant_field()
             if k.is_finite(): # then we are in positive characteristic

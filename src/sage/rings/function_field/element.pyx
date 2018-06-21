@@ -435,7 +435,8 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             sage: y._repr_()
             'y'
         """
-        return self._x._repr(name=self.parent().variable_name())
+        return self._x._repr()
+        #return self._x._repr(name=self.parent().variable_name())
 
     def __nonzero__(self):
         """
