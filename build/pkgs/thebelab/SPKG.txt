@@ -26,13 +26,4 @@ Home page: https://github.com/minrk/thebelab
 
 == Special Update/Build Instructions ==
 
-To upgrade the sources to a new version:
-
-    THEBELAB_VERSION=0.2.1
-    echo $THEBELAB_VERSION > package-version.txt
-    mkdir src
-    wget https://unpkg.com/thebelab@\^$THEBELAB_VERSION -O src/thebelab.js
-    tar -jcvf thebelab-$THEBELAB_VERSION.tar.bz2 src
-    rm  src/thebelab.js; rmdir src
-    mv thebelab-$THEBELAB_VERSION.tar.bz2 ../../../upstream
-    sage --package fix-checksum
+Download: ​https://registry.npmjs.org/thebelab/-/thebelab-0.2.1.tgz
