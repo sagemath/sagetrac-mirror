@@ -18,19 +18,46 @@ class SuperModulesWithBasis(SuperModulesCategory):
     `R`-super module equipped with an `R`-module basis whose elements are
     homogeneous.
 
+    These modules should also include a sign when tensoring: the
+    "twist map" `M \otimes N \to N \otimes M` is defined by
+
+    .. MATH::
+
+        m \otimes n \mapsto (-1)^{\deg m \deg n} n \otimes m
+
+    for homogeneous `m` and `n`.
+
+    .. TODO::
+
+        Implement the signed tensor product. This has been done for
+        the product structure in the tensor product of super algebras,
+        and also for testing the antipode in super Hopf algebras.
+
     EXAMPLES::
 
-        sage: C = GradedModulesWithBasis(ZZ); C
-        Category of graded modules with basis over Integer Ring
+        sage: from sage.categories.super_modules_with_basis import SuperModulesWithBasis
+        sage: C = SuperModulesWithBasis(ZZ); C
+        Category of super modules with basis over Integer Ring
         sage: sorted(C.super_categories(), key=str)
-        [Category of filtered modules with basis over Integer Ring,
-         Category of graded modules over Integer Ring]
-        sage: C is ModulesWithBasis(ZZ).Graded()
+        [Category of modules with basis over Integer Ring,
+         Category of super modules over Integer Ring]
+        sage: C is ModulesWithBasis(ZZ).Super()
         True
 
     TESTS::
 
         sage: TestSuite(C).run()
+
+        sage: A = SteenrodAlgebra(5)
+        sage: Q0 = A.Q(0)
+        sage: Q0.degree()
+        1
+        sage: Q0^2 == 0
+        True
+        sage: y = Q0.coproduct(); y
+        1 # Q_0 + Q_0 # 1
+        sage: y^2 == 0  # This requires the sign in the twist map.
+        True
     """
     class ParentMethods:
         def _even_odd_on_basis(self, m):

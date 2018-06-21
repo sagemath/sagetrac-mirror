@@ -11,6 +11,7 @@ Super algebras with basis
 from sage.categories.super_modules import SuperModulesCategory
 from sage.categories.algebras import Algebras
 from sage.categories.modules import Modules
+from sage.categories.tensor import TensorProductsCategory, tensor
 
 class SuperAlgebrasWithBasis(SuperModulesCategory):
     """
@@ -59,3 +60,38 @@ class SuperAlgebrasWithBasis(SuperModulesCategory):
             from sage.algebras.associated_graded import AssociatedGradedAlgebra
             return AssociatedGradedAlgebra(self)
 
+    class TensorProducts(TensorProductsCategory):
+        """
+        The category of algebras with basis constructed by tensor product of super algebras with basis
+        """
+
+        class ParentMethods:
+            """
+            implements operations on tensor products of algebras with basis
+            """
+
+            def product_on_basis(self, t0, t1):
+                """
+                The product of the algebra on the basis, as per
+                ``AlgebrasWithBasis.ParentMethods.product_on_basis``.
+
+                EXAMPLES:
+
+                Test the sign in the super tensor product -- see :trac:`25603`::
+
+                    sage: A = SteenrodAlgebra(3)
+                    sage: x = A.Q(0)
+                    sage: y = x.coproduct()
+                    sage: y^2
+                    0
+
+                TODO: optimize this implementation!
+                """
+                basic = tensor((module.monomial(x0)*module.monomial(x1)
+                                for (module, x0, x1) in zip(self._sets, t0, t1)))
+                n = len(self._sets)
+                parity1 = [self._sets[0].degree_on_basis(x0) for x0 in t0]
+                parity2 = [self._sets[1].degree_on_basis(x1) for x1 in t1]
+                parity = sum(parity1[i] * parity2[j]
+                           for j in range(n) for i in range(j+1,n))
+                return (-1)**parity * basic

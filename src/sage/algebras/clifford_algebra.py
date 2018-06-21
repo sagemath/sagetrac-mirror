@@ -1983,6 +1983,36 @@ class ExteriorAlgebra(CliffordAlgebra):
                           codomain=self.base_ring(),
                           name="Bilinear Form")
 
+    def some_elements(self):
+        """
+        Some elements in this exterior algebra.
+
+        This returns a list of nonzero homogeneous elements.
+
+        EXAMPLES::
+
+            sage: ExteriorAlgebra(QQ, ['x', 'y', 'z']).some_elements()
+            [1, 2*x, 3*y]
+            sage: ExteriorAlgebra(GF(2), ['x', 'y', 'z']).some_elements()
+            [1, y]
+            sage: ExteriorAlgebra(QQ, ['x']).some_elements()
+            [1, 2*x]
+        """
+        some = []
+        I = self.basis().keys()
+        R = self.base_ring()
+        g = iter(self.basis().keys())
+        try:
+            g = iter(self.basis().keys())
+            for c in range(1,4):
+                elt = self.term(next(g), R(c))
+                if elt:
+                    some.append(elt)
+        except Exception:
+            pass
+        return some
+
+
     class Element(CliffordAlgebraElement):
         """
         An element of an exterior algebra.
