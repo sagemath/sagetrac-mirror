@@ -12,6 +12,10 @@ html documentation that can be turned live. See:
 - https://trac.sagemath.org/ticket/20690
 - https://trac.sagemath.org/ticket/24593
 
+Note: the part of the jupyterlab code base that thebelab uses is
+automatically bundled in the thebelab tarball distributed by npm. So
+this package does not depend on jupyterlab being installed separately.
+
 == License ==
 
 BSD-3-Clause
