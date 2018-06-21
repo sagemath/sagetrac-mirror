@@ -71,14 +71,14 @@ class SageKernelSpec(object):
         """
         return 'sagemath'
 
-    def symlink(self, src, dst):
-        """
-        Symlink ``src`` to ``dst``
+    def symlink(self, src, link_name):
+        r"""
+        Create a symlink named ``link_name`` which points to ``src``.
 
         This is not an atomic operation.
 
-        Already-existing symlinks will be deleted, already existing
-        non-empty directories will be kept.
+        If ``link_name`` already exists and is a directory it will be kept. If it is
+        not a directory it will be deleted.
 
         EXAMPLES::
 
@@ -89,12 +89,37 @@ class SageKernelSpec(object):
             sage: os.listdir(path)
             ['b']
         """
+        if os.path.islink(link_name) and os.path.exists(src) and os.path.samefile(src, link_name):
+            # Do not delete and recreate link_name as we might not have the
+            # permission to do so.
+            return
+
         try:
-            os.remove(dst)
+            os.remove(link_name)
         except OSError as err:
             if err.errno == errno.EEXIST:
+                # EEXIST should not be possible here. We leave it in here
+                # because the old implementation of this function had it. It's
+                # unclear what this is good for (EEXIST happens during an rmdir
+                # when the directory is not empty, but that's not relevant for
+                # os.remove().)
                 return
-        os.symlink(src, dst)
+            elif err.errno == errno.EISDIR:
+                # link_name is a directory
+                return
+            elif err.errno == errno.EACCES:
+                # Permission denied, let the caller know.
+                raise
+            elif err.errno == errno.ENOENT:
+                # link_name does not exist, no need to delete it.
+                pass
+            else:
+                # Something that we did not expect happened.
+                # Let's hope for the best, and let symlink fail with an error
+                # that is easier to debug.
+                pass
+
+        os.symlink(src, link_name)
 
     def use_local_mathjax(self):
         """
@@ -282,6 +307,7 @@ def have_prerequisites(debug=True):
     """
     try:
         from notebook.notebookapp import NotebookApp
+        NotebookApp # silence pyflakes warning about unused import
         return True
     except ImportError:
         if debug:
