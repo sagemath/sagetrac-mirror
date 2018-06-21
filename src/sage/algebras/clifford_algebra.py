@@ -1475,6 +1475,7 @@ class ExteriorAlgebra(CliffordAlgebra):
             Category of finite dimensional super hopf algebras with basis
              over Rational Field
             sage: TestSuite(E).run()
+            sage: TestSuite(ExteriorAlgebra(GF(3), ['a', 'b'])).run()
         """
         cat = HopfAlgebrasWithBasis(R).Super().FiniteDimensional()
         CliffordAlgebra.__init__(self, QuadraticForm(R, len(names)), names, category=cat)
@@ -1989,14 +1990,15 @@ class ExteriorAlgebra(CliffordAlgebra):
         EXAMPLES::
 
             sage: ExteriorAlgebra(QQ, ['x', 'y', 'z']).some_elements()
-            [1, 2*x, 3*y]
-            sage: ExteriorAlgebra(GF(2), ['x', 'y', 'z']).some_elements()
-            [1, y]
+            [x^y^z, 1, 2*x, 3*y]
+            sage: ExteriorAlgebra(GF(3), ['x', 'y']).some_elements()
+            [x^y, 1, 2*x]
             sage: ExteriorAlgebra(QQ, ['x']).some_elements()
-            [1, 2*x]
+            [x, 1, 2*x]
         """
-        some = []
         I = self.basis().keys()
+        # Start with the wedge of all of the generators.
+        some = [self.term(I.last())]
         R = self.base_ring()
         g = iter(self.basis().keys())
         try:
