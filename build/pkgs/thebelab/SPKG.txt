@@ -5,7 +5,7 @@
 ThebeLab is a small JavaScript library built on top of JupyterLab that
 makes the code cells embedded in a static HTML page editable and
 executable. It's a more sustainable reimplementation of the Thebe
-library Sage was previously using.
+library that Sage was previously using.
 
 This is used by Sage's Sphinx documentation build system to produce
 html documentation that can be turned live. See:
