@@ -63,7 +63,7 @@ class TachyonRT(SageObject):
        rendering command in the background.
 
     -  ``extra_opts`` - passed directly to tachyon command
-       line. Use tachyon_rt.usage() to see some of the possibilities.
+       line. Use `!tachyon` to see some of the possibilities.
 
 
     OUTPUT:
@@ -163,23 +163,6 @@ class TachyonRT(SageObject):
             raise RuntimeError(out)
         if outfile != os.devnull and os.stat(outfile).st_size == 0:
             raise RuntimeError('tachyon did not abort but output file is empty')
-
-    def usage(self, use_pager=True):
-        """
-        Returns the basic description of using the Tachyon raytracer (simply what is returned by running tachyon with no input).  The output is paged unless use_pager=False.
-
-        TESTS::
-
-            sage: from sage.interfaces.tachyon import TachyonRT
-            sage: t = TachyonRT()
-            sage: t.usage(use_pager=False)
-            Tachyon Parallel/Multiprocessor Ray Tracer   Version...
-        """
-        r = os.popen('tachyon').read()
-        if use_pager:
-            pager()(r)
-        else:
-            print(r)
 
     def help(self, use_pager=True):
         """
