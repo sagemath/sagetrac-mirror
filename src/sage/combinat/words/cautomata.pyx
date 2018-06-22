@@ -35,9 +35,8 @@ from __future__ import print_function
 from libc.stdlib cimport malloc, free
 
 cimport sage.combinat.words.cautomata
-
 from cysignals.signals cimport sig_on, sig_off, sig_check
-
+from cpython cimport bool as c_bool 
 #ctypedef Automate Automaton
 
 cdef extern from "automataC.h":
@@ -347,8 +346,8 @@ cdef Automaton getAutomaton (a, initial=None, F=None, A=None):
     for v in F:
         if not d.has_key(v):
             sig_on()
-            FreeAutomaton(&r)
-            r = NewAutomaton(0,0)
+            FreeAutomaton(& r)
+            r = NewAutomaton(0, 0)
             sig_off()
             print("Error : Incorrect set of final states.")
             return r
@@ -424,10 +423,10 @@ cdef AutomatonToDiGraph(Automaton a, A):
 # cdef initFA (Automaton *a):
 #    *a = NewAutomaton(1,1)
 
-cdef Bool(int x):
-    if x:
-        return True
-    return False
+# cdef Bool(int x):
+#     if x:
+#         return True
+#     return False
 
 cdef class NFastAutomaton:
     """
@@ -731,7 +730,7 @@ cdef class NFastAutomaton:
         """
         if i >= self.a.n or i < 0:
             raise ValueError("There is no state %s !" % i)
-        return Bool(self.a.e[i].final)
+        return c_bool(self.a.e[i].final)
 
     def is_initial(self, int i):
         """
@@ -754,7 +753,7 @@ cdef class NFastAutomaton:
         """
         if i >= self.a.n or i < 0:
             raise ValueError("There is no state %s !" % i)
-        return Bool(self.a.e[i].initial)
+        return c_bool(self.a.e[i].initial)
 
     @property
     def initial_states(self):
@@ -1360,7 +1359,7 @@ cdef class FastAutomaton:
     #give a Sage Automon from the FastAutomaton
     def get_DiGraph(self):
         return AutomatonToDiGraph(self.a[0], self.A)
-    
+
     # give a FastAutomaton recognizing the full language over A.
     def full(self, list A):
         """
@@ -1400,7 +1399,8 @@ cdef class FastAutomaton:
 
         return r
 
-    def plot(self, int sx=10, int sy=8, vlabels=None, html=False, file=None, bool draw=True, verb=False):
+    def plot(self, int sx=10, int sy=8, vlabels=None,
+             html=False, file=None, bool draw=True, verb=False):
         """
         Plot the :class:`FastAutomaton`. Draw using the dot command, if installed on the platform.
 
@@ -1425,7 +1425,8 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: #a.plot()   # random
+            sage: a.plot()  # random
+            <PIL.PngImagePlugin.PngImageFile image mode=RGBA size=189x147 at 0x7F6711E442D0>
 
         .. PLOT::
 
@@ -1682,7 +1683,7 @@ cdef class FastAutomaton:
             False
         """
         if e >= 0 and e < self.a.n:
-            return Bool(self.a.e[e].final)
+            return c_bool(self.a.e[e].final)
         else:
             return False
 
@@ -2067,7 +2068,7 @@ cdef class FastAutomaton:
         return r
 
 #    def equals (self, FastAutomaton b):
-#        return Bool(equalsAutomaton(self.a[0], b.a[0]))
+#        return c_bool(equalsAutomaton(self.a[0], b.a[0]))
 
     # assume that the dictionnary d is injective !!!
     def product(self, FastAutomaton b, dict d=None, verb=False):
@@ -2203,7 +2204,7 @@ cdef class FastAutomaton:
         sig_on()
         res = IsCompleteAutomaton(self.a[0])
         sig_off()
-        return Bool(res)
+        return c_bool(res)
 
     # give a complete automaton (i.e. with his hole state)
     def complete(self):
@@ -2223,7 +2224,7 @@ cdef class FastAutomaton:
         sig_on()
         res = CompleteAutomaton(self.a)
         sig_off()
-        return Bool(res)
+        return c_bool(res)
 
     # give the smallest language stable by prefix containing the language of self
     # i.e. every states begin finals
@@ -3453,7 +3454,7 @@ cdef class FastAutomaton:
         sig_on()
         res = emptyLangage(self.a[0])
         sig_off()
-        return Bool(res)
+        return c_bool(res)
 
     def equals_langages(self, FastAutomaton a2, minimized=False, emonded=False, verb=False):
         """
@@ -3497,7 +3498,7 @@ cdef class FastAutomaton:
             printDict(d)
         res = equalsLangages(self.a, a2.a, d, minimized, emonded, verb)
         sig_off()
-        return Bool(res)
+        return c_bool(res)
 
 #    def empty_product (self, FastAutomaton a2, d=None, verb=False):
 #        if d is None:
@@ -3515,7 +3516,7 @@ cdef class FastAutomaton:
 #            printDict(dC)
 #        res = EmptyProduct(self.a[0], a2.a[0], dC, verb)
 #        sig_off()
-#        return Bool(res)
+#        return c_bool(res)
 
     def intersect(self, FastAutomaton a2, bool verb=False):
         """
@@ -3541,7 +3542,7 @@ cdef class FastAutomaton:
         sig_on()
         res = Intersect(self.a[0], a2.a[0], verb)
         sig_off()
-        return Bool(res)
+        return c_bool(res)
 
 #    def intersect (self, FastAutomaton a2, emonded=False, verb=False):
 #        sig_on()
@@ -3557,7 +3558,7 @@ cdef class FastAutomaton:
 #            printDict(d)
 #        res = intersectLangage(self.a, a2.a, d, emonded, verb)
 #        sig_off()
-#        return Bool(res)
+#        return c_bool(res)
 
     def find_word(self, bool verb=False):
         """
@@ -3734,7 +3735,7 @@ cdef class FastAutomaton:
             e = self.a.e[e].f[d[a]]
             if e == -1:
                 return False
-        return Bool(self.a.e[e].final)
+        return c_bool(self.a.e[e].final)
 
     def add_state(self, bool final):
         """
@@ -3925,7 +3926,7 @@ cdef class FastAutomaton:
         sig_on()
         res = Included(b.a[0], a2.a[0], emonded, verb)
         sig_off()
-        return Bool(res)
+        return c_bool(res)
 
 #        d = {}
 #        for l in self.A:
