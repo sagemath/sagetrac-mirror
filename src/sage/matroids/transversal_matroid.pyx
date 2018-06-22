@@ -64,7 +64,6 @@ from sage.graphs.bipartite_graph import BipartiteGraph
 from cpython.object cimport Py_EQ, Py_NE
 from copy import copy, deepcopy
 from collections import Counter
-from six import iteritems
 
 import networkx as nx
 
@@ -433,7 +432,7 @@ cdef class TransversalMatroid(BasisExchangeMatroid):
             sage: hash(M1) == hash(M3)
             False
         """
-        return hash((frozenset(self._E), frozenset(iteritems(self._sets))))
+        return hash((frozenset(self._E), frozenset(self._sets.iteritems())))
 
     cdef __translate_matching(self):
         """
