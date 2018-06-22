@@ -36,6 +36,7 @@ from sage.structure.factorization import Factorization
 
 from sage.rings.rational_field import QQ
 from sage.rings.fraction_field import FractionField
+from sage.rings.finite_rings.finite_field_base import FiniteField
 
 from .function_field import RationalFunctionField, CAT
 from .function_field import FunctionFieldElement_rational
@@ -117,9 +118,14 @@ class RationalFunctionField_kash(RationalFunctionField):
 
         RationalFunctionField.__init__(self, constant_field, names, element_class, category)
 
-        assert constant_field is QQ
-
-        self.kash_constant_field = kash.RationalField()
+        if constant_field is QQ:
+            self.kash_constant_field = kash.RationalField()
+        elif isinstance(constant_field, FiniteField):
+            assert constant_field.order().is_prime()
+            self.kash_constant_field = kash.GaloisField(constant_field.order())
+        #elif isinstance(constant_field, NumberField):
+        else:
+            raise ValueError("The constant field must be either QQ or a finite field.")
 
         # we seem to need this to avoid getting variable names like '$.1' Kash's output
         self.kash_constant_field.PolynomialAlgebra().AssignNames_(['"x"'])
@@ -308,12 +314,22 @@ class FunctionField_polymod_kash(FunctionField_polymod):
 
         # Same kind of goofiness as above.  When building an element
         # of an algebraic extension, Kash requires the list to be the
-        # same length as the degree of the extension.
+        # same length as the degree of the extension.  Also, Kash's
+        # Element function doesn't accept constant polynomials - they
+        # have to actually be constants.
 
         x = self.base_ring().kash.gen(1)
         coeffs = list(self(polynomial).element())
         coeffs += [self.base_ring().zero()] * (self.degree() - len(coeffs))
-        return self.kash.Element(map(lambda c: c.element()(x), coeffs))
+        def coeff_to_kash(c):
+            c = c.element()
+            # c will be an element of a fraction field
+            if c.denominator() == 1 and c.numerator().is_constant():
+                return c.numerator().constant_coefficient()
+            else:
+                return c(x)
+        coeffs = map(coeff_to_kash, coeffs)
+        return self.kash.Element(coeffs)
 
     @cached_method
     def place_set(self):
@@ -358,6 +374,13 @@ class FunctionField_polymod_kash(FunctionField_polymod):
             sage: O = F.maximal_order()
             sage: O.basis()
             (1, 1/x^4*y, 1/x^9*y^2, 1/x^13*y^3)
+
+            sage: K.<x> = FunctionField(GF(2), implementation='kash');
+            sage: R.<t> = PolynomialRing(K);
+            sage: F.<y> = K.extension(t^4 + x^12*t^2 + x^18*t + x^21 + x^18);
+            sage: O = F.maximal_order()
+            sage: O.basis()
+            (1, 1/x^4*y, 1/x^11*y^2 + 1/x^2, 1/x^15*y^3 + 1/x^6*y)
 
         The basis of the maximal order *always* starts with 1. This is assumed
         in some algorithms.
@@ -409,32 +432,44 @@ class FunctionFieldMaximalOrder_kash(FunctionFieldMaximalOrder):
 
     def _element_constructor_(self, f, check=True):
         """
-        Make ``f`` an element of the order.
+        Construct an element of this order from ``f``.
 
         INPUT:
 
-        - ``f`` -- the element
-
-        - ``check`` -- check if the element is in the order
+        - ``f`` -- element convertible to the function field
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ, implementation='kash')
-            sage: K.maximal_order()._element_constructor_(x)
-            x
+            sage: K.<x> = FunctionField(GF(2), implementation='kash'); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2-x*Y+x^2+1)
+            sage: O = L.maximal_order()
+            sage: y in O
+            True
+            sage: 1/y in O
+            False
+            sage: x in O
+            True
+            sage: 1/x in O
+            False
+            sage: L.<y>=K.extension(Y^2+Y+x+1/x)
+            sage: O = L.maximal_order()
+            sage: 1 in O
+            True
+            sage: y in O
+            False
+            sage: x*y in O
+            True
+            sage: x^2*y in O
+            True
         """
         field = self.function_field()
 
-        if f.parent() is field:
-            f = f.element()
-        f = self._field._ring(f)
+        #if f.parent() is field:
+        #    f = f.element()
+        #f = self._field._ring(f)
         if check:
-            V, fr, to = field.vector_space()
-            f_vector = to(field(f))
-            if not hasattr(self, '_module'):
-                self._module = V.span_of_basis([to(b) for b in self.basis()])
-            if not f_vector in self._module:
-                raise TypeError("%r is not an element of %r"%(f_vector,self))
+            if not kash._contains(self._field.to_kash(f).name(), self.kash.name()):
+                raise TypeError("%r is not an element of %r"%(f,self))
         # return f and not field._element_class(self, f) because
         # 1. that's what FunctionFieldMaximalOrder_global does
         # 2. that's what makes "d in O" work (it tests if O(d) == d)
@@ -502,6 +537,18 @@ class FunctionFieldMaximalOrder_kash(FunctionFieldMaximalOrder):
             Ideal (x^2 - 4, (x^2 - 4)*y) of Order in Function field in y defined by y^2 - x^3 - 1
             sage: I2 == S.ideal(I)
             True
+
+            sage: K.<x> = FunctionField(GF(7), implementation='kash'); R.<y> = K[]
+            sage: O = K.maximal_order()
+            sage: I = O.ideal(x^2-4)
+            sage: L.<y> = K.extension(y^2 - x^3 - 1)
+            sage: S = L.equation_order()
+            sage: S.ideal(1/y)
+            Ideal (1, (6/(x^3 + 1))*y) of Order in Function field in y defined by y^2 + 6*x^3 + 6
+            sage: I2 = S.ideal(x^2-4); I2
+            Ideal (x^2 + 3, (x^2 + 3)*y) of Order in Function field in y defined by y^2 + 6*x^3 + 6
+            sage: I2 == S.ideal(I)
+            True
         """
 
         return FunctionFieldIdeal_kash(self, gens)
@@ -530,6 +577,34 @@ class FunctionFieldMaximalOrderInfinite_kash(FunctionFieldMaximalOrderInfinite):
         FunctionFieldMaximalOrderInfinite.__init__(self, field, category)
         self.kash = field.kash.MaximalOrderInfinite()
 
+    def _element_constructor_(self, f):
+        """
+        Make ``f`` an element of this order.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2), implementation='kash'); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: Oinf = L.maximal_order_infinite()
+            sage: Oinf.basis()
+            (1, 1/x*y)
+            sage: 1 in Oinf
+            True
+            sage: 1/x*y in Oinf
+            True
+            sage: x*y in Oinf
+            False
+            sage: 1/x in Oinf
+            True
+        """
+        if not f.parent() is self.function_field():
+            f = self.function_field()(f)
+
+        if not kash._contains(self._field.to_kash(f).name(), self.kash.name()):
+            raise TypeError("%r is not an element of %r"%(f,self))
+
+        return f
+
     def basis(self):
         """
         Return a basis of this order as a module over the maximal order
@@ -544,6 +619,18 @@ class FunctionFieldMaximalOrderInfinite_kash(FunctionFieldMaximalOrderInfinite):
             (1, 1/x^2*y, 1/x^4*y^2)
 
             sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: Oinf = L.maximal_order_infinite()
+            sage: Oinf.basis()
+            (1, 1/x*y)
+
+            sage: K.<x> = FunctionField(GF(2), implementation='kash'); _.<t> = K[]
+            sage: L.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: Oinf = L.maximal_order_infinite()
+            sage: Oinf.basis()
+            (1, 1/x^2*y, 1/x^4*y^2)
+
+            sage: K.<x> = FunctionField(GF(2), implementation='kash'); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
             sage: Oinf = L.maximal_order_infinite()
             sage: Oinf.basis()
