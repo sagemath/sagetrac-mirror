@@ -24,6 +24,22 @@ EXAMPLES::
     sage: (4*D).basis_function_space()
     [1, 1/x^4*y + 1/x^4]
 
+
+    sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = PolynomialRing(K)
+    sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
+    sage: O = F.maximal_order()
+    sage: I = O.ideal(y)
+    sage: I.divisor()
+    2*Place (x, (1/(x^3 + x^2 + x))*y^2)
+     + 2*Place (x^2 + x + 1, (1/(x^3 + x^2 + x))*y^2)
+
+    sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
+    sage: L.<y> = K.extension(Y^2+Y+x+1/x)
+    sage: O = L.maximal_order()
+    sage: I = O.ideal(y)
+    sage: I.divisor()
+    -1*Place (x, x*y)
+     + Place (x^2 + 1, x*y)
 """
 
 from sage.misc.cachefunc import cached_method
@@ -978,34 +994,6 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
         for f,m in self.kash.Factorization():
             factors.append( (FunctionFieldIdeal_kash(self._ring, f), m) )
         return factors
-
-    def divisor(self):
-        """
-        Return divisor corresponding to the ideal.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<t> = PolynomialRing(K)
-            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
-            sage: O = F.maximal_order()
-            sage: I = O.ideal(y)
-            sage: I.divisor()
-            2*Place (x, (1/(x^3 + x^2 + x))*y^2)
-             + 2*Place (x^2 + x + 1, (1/(x^3 + x^2 + x))*y^2)
-
-            sage: K.<x> = FunctionField(QQ, implementation='kash'); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2+Y+x+1/x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(y)
-            sage: I.divisor()
-            -1*Place (x, x*y)
-             + Place (x^2 + 1, x*y)
-        """
-        #if self._gen == 0:
-        #    raise ValueError("not defined for zero element")
-
-        data = {prime.place(): multiplicity for prime, multiplicity in self._factor()}
-        return FunctionFieldDivisor(self.ring().fraction_field(), data)
 
     def gens(self):
         """
