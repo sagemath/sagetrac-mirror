@@ -62,12 +62,14 @@ class SuperAlgebrasWithBasis(SuperModulesCategory):
 
     class TensorProducts(TensorProductsCategory):
         """
-        The category of algebras with basis constructed by tensor product of super algebras with basis
+        The category of super algebras with basis constructed by tensor
+        product of super algebras with basis
         """
 
         class ParentMethods:
             """
-            implements operations on tensor products of algebras with basis
+            implements operations on tensor products of super algebras
+            with basis
             """
 
             def product_on_basis(self, t0, t1):
@@ -90,8 +92,10 @@ class SuperAlgebrasWithBasis(SuperModulesCategory):
                 basic = tensor((module.monomial(x0)*module.monomial(x1)
                                 for (module, x0, x1) in zip(self._sets, t0, t1)))
                 n = len(self._sets)
-                parity1 = [self._sets[0].degree_on_basis(x0) for x0 in t0]
-                parity2 = [self._sets[1].degree_on_basis(x1) for x1 in t1]
-                parity = sum(parity1[i] * parity2[j]
+                parity0 = [self._sets[idx].degree_on_basis(x0)
+                           for (idx, x0) in enumerate(t0)]
+                parity1 = [self._sets[idx].degree_on_basis(x1)
+                           for (idx, x1) in enumerate(t1)]
+                parity = sum(parity0[i] * parity1[j]
                            for j in range(n) for i in range(j+1,n))
                 return (-1)**parity * basic
