@@ -74,13 +74,18 @@ class SuperHopfAlgebrasWithBasis(SuperModulesCategory):
             SI = lambda x: self.sum(c * S(self.monomial(t1)) * self.monomial(t2)
                                 for ((t1, t2), c) in x.coproduct())
 
-            sign = lambda x, y: (-1)**(x.degree() * y.degree())
-
             for x in tester.some_elements():
-
-                # antipode is an anti-homomorphism
+                x_even = x.even_component()
+                x_odd = x.odd_component()
                 for y in tester.some_elements():
-                    tester.assertTrue(S(x) * S(y) == sign(x, y) * S(y * x))
+                    y_even = y.even_component()
+                    y_odd = y.odd_component()
+
+                    # The antipode is a graded anti-homomorphism.
+                    tester.assertTrue(S(x_even) * S(y_even) == S(y_even * x_even))
+                    tester.assertTrue(S(x_even) * S(y_odd) == S(y_odd * x_even))
+                    tester.assertTrue(S(x_odd) * S(y_even) == S(y_even * x_odd))
+                    tester.assertTrue(S(x_odd) * S(y_odd) == -S(y_odd * x_odd))
 
                 # mu * (S # I) * delta == counit * unit
                 tester.assertTrue(SI(x) == self.counit(x) * self.one())
