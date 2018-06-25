@@ -64,7 +64,7 @@ usage() {
     echo "                         are 'master' (the current development version, this"
     echo "                         is the default) or a version number like '5.13'."
     echo "  -v, -version        -- display Sage version information"
-    echo "  -w, -which          -- display Python major version used (2 or 3)"
+    echo "  --python-version    -- display Python version used"
     exit 0
 }
 
@@ -480,7 +480,7 @@ if [ "$1" = '-min' -o "$1" = '--min' ]; then
     export SAGE_IMPORTALL=no
 fi
 
-if [ "$1" = '-w' -o "$1" = '-which' ]; then
+if [ "$1" = '-python-version ' -o "$1" = '--python-version' ]; then
     echo "${SAGE_PYTHON_VERSION}"
     exit 0
 fi
