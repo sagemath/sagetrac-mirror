@@ -13,6 +13,7 @@ sage_version() {
     if [ "$1" = "-v" ]; then
         echo "${SAGE_VERSION_BANNER}"
     else
+
         echo "${SAGE_VERSION}"
     fi
 }
@@ -63,6 +64,7 @@ usage() {
     echo "                         are 'master' (the current development version, this"
     echo "                         is the default) or a version number like '5.13'."
     echo "  -v, -version        -- display Sage version information"
+    echo "  -w, -which          -- display Python major version used (2 or 3)"
     exit 0
 }
 
@@ -476,6 +478,11 @@ interactive_sage() {
 if [ "$1" = '-min' -o "$1" = '--min' ]; then
     shift
     export SAGE_IMPORTALL=no
+fi
+
+if [ "$1" = '-w' -o "$1" = '-which' ]; then
+    echo "${SAGE_PYTHON_VERSION}"
+    exit 0
 fi
 
 if [ "$1" = '-q' ]; then
