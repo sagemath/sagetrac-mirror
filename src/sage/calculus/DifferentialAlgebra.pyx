@@ -528,44 +528,44 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            ``derivations`` -- a list of variables
-            ``blocks``      -- a list of blocks, each block being either
-                               a dependent variable or, a list of
-                               dependent variables
-            ``parameters``  -- a list of dependent variables, with
-                               special dependencies
-            ``notation``   -- (default: 'undefined') a string
+        - ``derivations`` -- a list of variables
+        - ``blocks``      -- a list of blocks, each block being either
+                             a dependent variable or, a list of
+                             dependent variables
+        - ``parameters``  -- a list of dependent variables, with
+                             special dependencies
+        - ``notation``   -- (default: 'undefined') a string
 
         OUTPUT:
 
-            Create a new differential ring with derivations (independent
-            variables) ``derivations``, differential indeterminates (dependent
-            variables) ``blocks``, parameters ``parameters`` and default
-            notation ``notation``.
+        Create a new differential ring with derivations (independent
+        variables) ``derivations``, differential indeterminates (dependent
+        variables) ``blocks``, parameters ``parameters`` and default
+        notation ``notation``.
 
-            The ranking is mostly defined by the order of the blocks
-            in ``blocks``. The leftmost blocks are ranked higher than
-            the rightmost ones. Dependent variables which belong to a
-            same block are ranked orderly.
+        The ranking is mostly defined by the order of the blocks
+        in ``blocks``. The leftmost blocks are ranked higher than
+        the rightmost ones. Dependent variables which belong to a
+        same block are ranked orderly.
 
-            Parameters are dependent variables which do not need to
-            depend on all independent variables, or have special dependencies.
-            This definition generalizes parameters, in the usual sense:
-            dependent variables which do not depend on any independent
-            variables. Parameters do not need to lie at the bottom of
-            the ranking.
+        Parameters are dependent variables which do not need to
+        depend on all independent variables, or have special dependencies.
+        This definition generalizes parameters, in the usual sense:
+        dependent variables which do not depend on any independent
+        variables. Parameters do not need to lie at the bottom of
+        the ranking.
 
-            See the help page of :class:`~sage.calculus.DifferentialAlgebra.DifferentialRing`
-            for more details.
+        See the help page of :class:`~sage.calculus.DifferentialAlgebra.DifferentialRing`
+        for more details.
 
         NOTES:
 
-            It would be more consistent to define parameters as function.
-            They need sometimes to be defined as var because of limitations
-            of function.
+        It would be more consistent to define parameters as function.
+        They need sometimes to be defined as var because of limitations
+        of function.
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -680,42 +680,42 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            ``equation``  -- a rational fraction
-            ``variable``  -- (default: None) a derivative
-            ``basefield`` -- (default: None) a base field
-            ``notation``  -- (default: 'undefined') a string
+        - ``equation``  -- a rational fraction
+        - ``variable``  -- (default: None) a derivative
+        - ``basefield`` -- (default: None) a base field
+        - ``notation``  -- (default: 'undefined') a string
 
         OUTPUT:
 
-            A sequence of two lists: the list ``C`` of the coefficients and
-            the list ``M`` of the monomials. Both lists have the same length
-            and the following relation holds:
+        A sequence of two lists: the list ``C`` of the coefficients and
+        the list ``M`` of the monomials. Both lists have the same length
+        and the following relation holds:
 
-            ``equation`` == add (C[i]*M[i] for i in range (len (C)))``
+        ``equation`` == add (C[i]*M[i] for i in range (len (C)))``
 
-            The monomials ``M[i]`` are possibly rational fractions.
+        The monomials ``M[i]`` are possibly rational fractions.
 
-            If ``variable`` and ``basefield`` are both ``None``, then
-            the coefficients ``C[i]`` are numerical.
+        If ``variable`` and ``basefield`` are both ``None``, then
+        the coefficients ``C[i]`` are numerical.
 
-            If ``variable`` is not ``None``, then ``basefield`` must be ``None``,
-            the ``C[i]`` only depend on variables strictly less than
-            ``variable``, and the ``M[i]``'s only depend on variables greater
-            than or equal to ``variable``, w.r.t. the ranking.
+        If ``variable`` is not ``None``, then ``basefield`` must be ``None``,
+        the ``C[i]`` only depend on variables strictly less than
+        ``variable``, and the ``M[i]``'s only depend on variables greater
+        than or equal to ``variable``, w.r.t. the ranking.
 
-            If ``basefield`` is not ``None``, then ``variable`` must be ``None``,
-            the ``C[i]`` only depend on variables which belong to the field,
-            and the ``M[i]`` only depend on variables which do not belong
-            to the field.
+        If ``basefield`` is not ``None``, then ``variable`` must be ``None``,
+        the ``C[i]`` only depend on variables which belong to the field,
+        and the ``M[i]`` only depend on variables which do not belong
+        to the field.
 
-            Restriction: the denominator of ``equation`` must depend on
-            variables which are all, either strictly less than, or greater
-            than ``variable``.
+        Restriction: the denominator of ``equation`` must depend on
+        variables which are all, either strictly less than, or greater
+        than ``variable``.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -832,44 +832,44 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            ``equations`` -- a polynomial or a list of polynomials
-            ``solved``    -- (default: False) a boolean
-            ``selection`` -- (default: None) a relational expression
-            ``notation``  -- (default: 'undefined') a string
+        - ``equations`` -- a polynomial or a list of polynomials
+        - ``solved``    -- (default: False) a boolean
+        - ``selection`` -- (default: None) a relational expression
+        - ``notation``  -- (default: 'undefined') a string
 
         OUTPUT:
 
-            The same list, but processed according to the other parameters.
+        The same list, but processed according to the other parameters.
 
-            If ``solved`` is ``True``, the differential polynomials are
-            displayed as equations, solved with respect to their
-            leading rank.
+        If ``solved`` is ``True``, the differential polynomials are
+        displayed as equations, solved with respect to their
+        leading rank.
 
-            The optional parameter ``selection`` is a relational
-            expression combining one of the keywords 'order', 'leader',
-            'rank' on the one side, with a value on the other side,
-            using one of the relational operators. Only the equations
-            which satisfy the condition are selected.
+        The optional parameter ``selection`` is a relational
+        expression combining one of the keywords 'order', 'leader',
+        'rank' on the one side, with a value on the other side,
+        using one of the relational operators. Only the equations
+        which satisfy the condition are selected.
 
-            - If the keyword is ``order``, then the value must be a
-              nonnegative integer.
+        - If the keyword is ``order``, then the value must be a
+          nonnegative integer.
 
-            - If the keyword is ``rank``, then the value must be a
-              rank, including the special ranks 0 and 1.
+        - If the keyword is ``rank``, then the value must be a
+          rank, including the special ranks 0 and 1.
 
-            - If the keyword is ``leader``, and the relational
-              operator is ``>=``, ``>``, ``<=`` or ``<``, then the value
-              must be a derivative.
+        - If the keyword is ``leader``, and the relational
+          operator is ``>=``, ``>``, ``<=`` or ``<``, then the value
+          must be a derivative.
 
-            - If the keyword is ``leader``, and the relational
-              operator is ``==`` or ``!=``, then the value may also have
-              the form: ``modifier`` (derivative), where ``modifier`` is
-              one of the keywords ``derivative`` or ``proper``.
+        - If the keyword is ``leader``, and the relational
+          operator is ``==`` or ``!=``, then the value may also have
+          the form: ``modifier`` (derivative), where ``modifier`` is
+          one of the keywords ``derivative`` or ``proper``.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -954,20 +954,20 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            ``derivative`` -- a derivative
-            ``notation``   -- (default: 'undefined') a string
+        - ``derivative`` -- a derivative
+        - ``notation``   -- (default: 'undefined') a string
 
         OUTPUT:
 
-            A pair (``theta``, ``symb``) such that ``derivative`` is
-            the derivative of ``symb`` w.r.t. ``theta``. The derivation
-            operator ``theta`` is expressed as a monomial on the
-            independent variables.
+        A pair (``theta``, ``symb``) such that ``derivative`` is
+        the derivative of ``symb`` w.r.t. ``theta``. The derivation
+        operator ``theta`` is expressed as a monomial on the
+        independent variables.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -1030,21 +1030,21 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            ``equations``  -- (default: None) a rational fraction
-                              or a list of rational fractions
-            ``selection``  -- (default: 'derivatives') a string
-            ``derivation`` -- (default: None) a variable
-            ``notation``   -- (default: 'undefined') a string
+        - ``equations``  -- (default: None) a rational fraction
+                             or a list of rational fractions
+        - ``selection``  -- (default: 'derivatives') a string
+        - ``derivation`` -- (default: None) a variable
+        - ``notation``   -- (default: 'undefined') a string
 
         OUTPUT:
 
-            A list of variable and function, selected according to
-            ``selection``. See the examples below.
+        A list of variable and function, selected according to
+        ``selection``. See the examples below.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -1139,16 +1139,16 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            ``ratfrac``    -- a rational fraction or a list of rational
-                              fractions
-            ``derivation`` -- (default: None) an independent variable
+        - ``ratfrac``    -- a rational fraction or a list of rational
+                            fractions
+        - ``derivation`` -- (default: None) an independent variable
 
         OUTPUT:
 
-            ``True``, if the rational fraction is a constant w.r.t.
-            ``derivation``, else ``False``. If ``derivation`` is omitted,
-            true if the rational fraction is a constant w.r.t.
-            all the derivations of the ring.
+        ``True``, if the rational fraction is a constant w.r.t.
+        ``derivation``, else ``False``. If ``derivation`` is omitted,
+        true if the rational fraction is a constant w.r.t.
+        all the derivations of the ring.
 
         EXAMPLES::
 
@@ -1201,28 +1201,28 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            ``equations`` -- a rational fraction or a list of
-                             rational fractions
-            ``notation``  -- (default: 'undefined') a string
+        - ``equations`` -- a rational fraction or a list of
+                           rational fractions
+        - ``notation``  -- (default: 'undefined') a string
 
         OUTPUT:
 
-            The list of the leading derivatives of the equations.
+        The list of the leading derivatives of the equations.
 
-            The leading derivative of a rational fraction F is
-            defined as the highest derivative u such that the
-            partial derivative of F w.r.t. u is nonzero.
+        The leading derivative of a rational fraction F is
+        defined as the highest derivative u such that the
+        partial derivative of F w.r.t. u is nonzero.
 
-            This definition is extended to rational fractions
-            which only depend on independent variables.
+        This definition is extended to rational fractions
+        which only depend on independent variables.
 
-            The leading derivative of constant rational fractions
-            is not defined.
+        The leading derivative of constant rational fractions
+        is not defined.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -1271,32 +1271,32 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            ``equations`` -- a rational fraction or a list of
-                             rational fractions
-            ``listform``  -- (default: False) a bool
-            ``notation``  -- (default: 'undefined') a string
+        - ``equations`` -- a rational fraction or a list of
+                           rational fractions
+        - ``listform``  -- (default: False) a bool
+        - ``notation``  -- (default: 'undefined') a string
 
         OUTPUT:
 
-            The list of the leading ranks of the equations.
+        The list of the leading ranks of the equations.
 
-            If the optional parameter ``listform`` is ``True``, then
-            the ranks are returned as lists rather than monomials.
-            This is feature is relevant when the rank is a derivative
-            raised at the 0-th power.
+        If the optional parameter ``listform`` is ``True``, then
+        the ranks are returned as lists rather than monomials.
+        This is feature is relevant when the rank is a derivative
+        raised at the 0-th power.
 
-            The leading rank of a rational fraction `F = P/Q` is defined
-            as the leading derivative `u` of `F`, raised at the power
-            `deg (P, u) - deg (Q, u)`.
+        The leading rank of a rational fraction `F = P/Q` is defined
+        as the leading derivative `u` of `F`, raised at the power
+        `deg (P, u) - deg (Q, u)`.
 
-            Nonzero constant rational fractions have leading rank 1.
+        Nonzero constant rational fractions have leading rank 1.
 
-            The zero rational fraction has leading rank 0.
+        The zero rational fraction has leading rank 0.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -1364,29 +1364,29 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            ``equations`` -- a rational fraction or a list of
-                             rational fractions
-            ``notation``  -- (default: 'undefined') a string
+        - ``equations`` -- a rational fraction or a list of
+                           rational fractions
+        - ``notation``  -- (default: 'undefined') a string
 
         OUTPUT:
 
-            The list of the initials of the equations, i.e. the
-            leading coefficients of the equations w.r.t. their
-            leading derivatives.
+        The list of the initials of the equations, i.e. the
+        leading coefficients of the equations w.r.t. their
+        leading derivatives.
 
-            The initial of a rational fraction `F = P/Q`, with
-            leading derivative `u`, is itself a rational fraction:
-            the leading coefficient of `P` w.r.t. `u`, divided by
-            the leading coefficient of `Q` w.r.t. `u`, recalling
-            that the leading coefficient w.r.t. `u`, of a polynomial
-            `R` which does not depend on `u`, is defined as `R` itself.
+        The initial of a rational fraction `F = P/Q`, with
+        leading derivative `u`, is itself a rational fraction:
+        the leading coefficient of `P` w.r.t. `u`, divided by
+        the leading coefficient of `Q` w.r.t. `u`, recalling
+        that the leading coefficient w.r.t. `u`, of a polynomial
+        `R` which does not depend on `u`, is defined as `R` itself.
 
         NOTES:
 
-            The above definition is not yet fully implemented.
+        The above definition is not yet fully implemented.
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -1433,30 +1433,30 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            ``equations`` -- a rational fraction or a list of
-                             rational fractions
-            ``variable``  -- (default: None) a variable
-            ``notation``  -- (default: 'undefined') a string
+        - ``equations`` -- a rational fraction or a list of
+                           rational fractions
+        - ``variable``  -- (default: None) a variable
+        - ``notation``  -- (default: 'undefined') a string
 
         OUTPUT:
 
-            The list of the leading coefficients of the equations,
-            w.r.t. ``variable``. If ``variable`` is ``None``, the
-            list of the initials of the equations is returned.
+        The list of the leading coefficients of the equations,
+        w.r.t. ``variable``. If ``variable`` is ``None``, the
+        list of the initials of the equations is returned.
 
-            The leading coefficient of a rational fraction `F = P/Q`,
-            w.r.t. some derivative `u`, is a rational fraction:
-            it is the leading coefficient of `P` w.r.t. `u`, divided
-            by the leading coefficient of `Q` w.r.t. `u`,  recalling
-            that the leading coefficient w.r.t. `u`, of a polynomial
-            `R` which does not depend on `u`, is defined as `R` itself.
+        The leading coefficient of a rational fraction `F = P/Q`,
+        w.r.t. some derivative `u`, is a rational fraction:
+        it is the leading coefficient of `P` w.r.t. `u`, divided
+        by the leading coefficient of `Q` w.r.t. `u`,  recalling
+        that the leading coefficient w.r.t. `u`, of a polynomial
+        `R` which does not depend on `u`, is defined as `R` itself.
 
         NOTES:
 
-            The above definition is not yet fully implemented.
+        The above definition is not yet fully implemented.
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -1524,34 +1524,34 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            ``equations`` -- a rational fraction or a list of
-                             rational fractions
-            ``variable``  -- (default: None) a variable
-            ``notation``  -- (default: 'undefined') a string
+        - ``equations`` -- a rational fraction or a list of
+                           rational fractions
+        - ``variable``  -- (default: None) a variable
+        - ``notation``  -- (default: 'undefined') a string
 
         OUTPUT:
 
-            The list of tails of the equations, w.r.t. ``variable``.
-            If ``variable`` is omitted, the list of tails w.r.t. the
-            leading derivatives of the equations is returned.
+        The list of tails of the equations, w.r.t. ``variable``.
+        If ``variable`` is omitted, the list of tails w.r.t. the
+        leading derivatives of the equations is returned.
 
-            The tail of a rational fraction ``F`` is defined as
-            the rational fraction ``F - i(F) * rg(F)`` where ``i(F)``
-            and ``rg(F)`` denote the initial and the leading rank of ``F``.
+        The tail of a rational fraction ``F`` is defined as
+        the rational fraction ``F - i(F) * rg(F)`` where ``i(F)``
+        and ``rg(F)`` denote the initial and the leading rank of ``F``.
 
-            More generally, the tail, w.r.t. some derivative `u`, of
-            a rational fraction `F = P/Q` is defined as the rational
-            fraction ``F - lc(F,u) * rg(F,u)``, where ``lc(F,u)`` is defined
-            as the leading coefficient of ``F`` w.r.t. u and ``rg(F,u)`` is
-            the monomial obtained by raising `u` at the degree
-            `deg (P,u) - deg (Q,u)`
+        More generally, the tail, w.r.t. some derivative `u`, of
+        a rational fraction `F = P/Q` is defined as the rational
+        fraction ``F - lc(F,u) * rg(F,u)``, where ``lc(F,u)`` is defined
+        as the leading coefficient of ``F`` w.r.t. u and ``rg(F,u)`` is
+        the monomial obtained by raising `u` at the degree
+        `deg (P,u) - deg (Q,u)`
 
         NOTES:
 
-            The above definition is not yet fully implemented.
+        The above definition is not yet fully implemented.
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -1632,24 +1632,24 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            ``equations`` -- a rational fraction or a list of
-                             rational fractions
-            ``variable``  -- (default: None) a variable
-            ``notation``  -- (default: 'undefined') a string
+        - ``equations`` -- a rational fraction or a list of
+                           rational fractions
+        - ``variable``  -- (default: None) a variable
+        - ``notation``  -- (default: 'undefined') a string
 
         OUTPUT:
 
-            The list of separants of the equations, w.r.t. ``variable``.
-            If ``variable`` is omitted, the list of separants of the
-            equations, w.r.t. their leading derivatives, is returned.
+        The list of separants of the equations, w.r.t. ``variable``.
+        If ``variable`` is omitted, the list of separants of the
+        equations, w.r.t. their leading derivatives, is returned.
 
-            The separant of a rational fraction `F` w.r.t. some derivative
-            `u`, is defined as the partial derivative of `F` w.r.t. u.
+        The separant of a rational fraction `F` w.r.t. some derivative
+        `u`, is defined as the partial derivative of `F` w.r.t. u.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -1719,37 +1719,37 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            ``equations`` -- a rational fraction or a list of
-                             rational fractions
-            ``variable``  -- a variable
-            ``iterated``  -- (default: True) a bool
-            ``notation``  -- (default: 'undefined') a string
+        - ``equations`` -- a rational fraction or a list of
+                           rational fractions
+        - ``variable``  -- a variable
+        - ``iterated``  -- (default: True) a bool
+        - ``notation``  -- (default: 'undefined') a string
 
         OUTPUT:
 
-            A list of rational fractions, representing a decomposition
-            of the equation or, a list of lists of rational fractions
-            if ``equations`` is a list.
+        A list of rational fractions, representing a decomposition
+        of the equation or, a list of lists of rational fractions
+        if ``equations`` is a list.
 
-            The parameter ``variable`` must be an independent variable.
+        The parameter ``variable`` must be an independent variable.
 
-            Assume ``equations`` is a single rational fraction.
-            Denote ``R`` the differential ring, ``F`` the rational
-            fraction, ``t`` the independent variable and ``L`` the
-            returned list. Then
+        Assume ``equations`` is a single rational fraction.
+        Denote ``R`` the differential ring, ``F`` the rational
+        fraction, ``t`` the independent variable and ``L`` the
+        returned list. Then
 
-            ``F == add( R.differentiate( L[i], t^i ) for i in range(len (L)) )``
+        ``F == add( R.differentiate( L[i], t^i ) for i in range(len (L)) )``
 
-            Moreover, if ``F`` is the derivative of some other
-            rational fraction, w.r.t. ``t``, then ``L[0]`` is zero.
+        Moreover, if ``F`` is the derivative of some other
+        rational fraction, w.r.t. ``t``, then ``L[0]`` is zero.
 
-            The returned list is ranking dependent. Orderly rankings
-            usually give more interesting results.
+        The returned list is ranking dependent. Orderly rankings
+        usually give more interesting results.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -1813,22 +1813,22 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            ``equations`` -- a rational fraction or a list of
-                             rational fractions
-            ``args``      -- a possibly empty sequence of monomials
-                             involving independent variables only
-            ``notation``  -- (default: 'undefined') a string
+        - ``equations`` -- a rational fraction or a list of
+                           rational fractions
+        - ``args``      -- a possibly empty sequence of monomials
+                           involving independent variables only
+        - ``notation``  -- (default: 'undefined') a string
 
         OUTPUT:
 
-            The list of derivatives of the equations, w.r.t. the
-            product of the monomials given in ``args``. The monomials
-            must depend on independent variables only.
+        The list of derivatives of the equations, w.r.t. the
+        product of the monomials given in ``args``. The monomials
+        must depend on independent variables only.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -1897,29 +1897,29 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            ``polynomial`` -- a polynomial
-            ``redset``     -- a list of polynomials with integer coefficients
-            ``mode``       -- (default: 'full') a string
-            ``notation``   -- (default: 'undefined') a string
+        - ``polynomial`` -- a polynomial
+        - ``redset``     -- a list of polynomials with integer coefficients
+        - ``mode``       -- (default: 'full') a string
+        - ``notation``   -- (default: 'undefined') a string
 
         OUTPUT:
 
-            A pair `(h, r)` such that `h*p = r` modulo the differential
-            ideal generated by ``redset`` (denoting `p` for ``polynomial``).
+        A pair `(h, r)` such that `h*p = r` modulo the differential
+        ideal generated by ``redset`` (denoting `p` for ``polynomial``).
 
-            The optional argument ``mode = 'full'``, ``'partial'`` or ``'algebraic'``.
-            If ``'full'``, the remainder `r` is fully reduced w.r.t. ``redset``
-            If ``'partial'``, the remainder `r` is partially reduced w.r.t.
-            ``redset``. If ``'algebraic'``, the remainder is algebraically
-            reduced w.r.t. ``redset``.
+        The optional argument ``mode = 'full'``, ``'partial'`` or ``'algebraic'``.
+        If ``'full'``, the remainder `r` is fully reduced w.r.t. ``redset``
+        If ``'partial'``, the remainder `r` is partially reduced w.r.t.
+        ``redset``. If ``'algebraic'``, the remainder is algebraically
+        reduced w.r.t. ``redset``.
 
-            In all cases, `h` is a product of powers of the initials and
-            separants involved in the reduction process.
+        In all cases, `h` is a product of powers of the initials and
+        separants involved in the reduction process.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -2013,24 +2013,24 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            ``equations`` -- a rational fraction or a list of
-                             rational fractions
-            ``notation``  -- (default: 'undefined') a string
+        - ``equations`` -- a rational fraction or a list of
+                           rational fractions
+        - ``notation``  -- (default: 'undefined') a string
 
         OUTPUT:
 
-            The list of normal forms of the equations.
+        The list of normal forms of the equations.
 
         NOTES:
 
-            Mathematically, this function does not do anything.
-            Were there more than one notation, it could perform
-            changes of notations. At least, it is useful to
-            recognize rational fractions of differential polynomials
-            equal to 0.
+        Mathematically, this function does not do anything.
+        Were there more than one notation, it could perform
+        changes of notations. At least, it is useful to
+        recognize rational fractions of differential polynomials
+        equal to 0.
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -2086,31 +2086,31 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            ``polynomials`` -- a list of polynomials
-            ``mode``        -- (default: 'increasing') a string
-            ``notation``    -- (default: 'undefined') a string
+        - ``polynomials`` -- a list of polynomials
+        - ``mode``        -- (default: 'increasing') a string
+        - ``notation``    -- (default: 'undefined') a string
 
         OUTPUT:
 
-            The list polynomials, sorted by increasing leading monomial,
-            if ``mode`` is ``'increasing'``, by decreasing leading monomial,
-            if ``mode`` is ``'decreasing'``.
+        The list polynomials, sorted by increasing leading monomial,
+        if ``mode`` is ``'increasing'``, by decreasing leading monomial,
+        if ``mode`` is ``'decreasing'``.
 
-            The leading monomial of a nonzero numeric polynomial is 1.
-            The leading monomial of a nonzero, non numeric polynomial,
-            is the product of the leading rank of the polynomial, by the
-            leading monomial of its initial. Leading monomials are
-            compared lexicographically, w.r.t. the ranking.
-            This ordering is extended to 0, which is considered lower
-            than any other polynomial.
+        The leading monomial of a nonzero numeric polynomial is 1.
+        The leading monomial of a nonzero, non numeric polynomial,
+        is the product of the leading rank of the polynomial, by the
+        leading monomial of its initial. Leading monomials are
+        compared lexicographically, w.r.t. the ranking.
+        This ordering is extended to 0, which is considered lower
+        than any other polynomial.
 
         NOTES:
 
-            In the future, this function will be extended to rational
-            fractions.
+        In the future, this function will be extended to rational
+        fractions.
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -2173,119 +2173,119 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            ``equations``  -- a list of differential polynomials, differential
-                              polynomial equations or inequations
-            ``basefield``  -- (default: None) a BaseFieldExtension
-            ``attributes`` -- (default: ['differential', 'autoreduced',
-                              'primitive', 'squarefree', 'normalized',
-                              'coherent']) a list of strings
-            ``singsol``    -- (default: 'all') a string
-            ``dimlb``      -- (default: 'safecase') a string
-            ``notation``   -- (default: 'undefined') a string
-            ``timeout``    -- (default: 0) a nonnegative integer
-            ``memout``     -- (default: 0) a nonnegative integer
+        - ``equations``  -- a list of differential polynomials, differential
+                            polynomial equations or inequations
+        - ``basefield``  -- (default: None) a BaseFieldExtension
+        - ``attributes`` -- (default: ['differential', 'autoreduced',
+                            'primitive', 'squarefree', 'normalized',
+                            'coherent']) a list of strings
+        - ``singsol``    -- (default: 'all') a string
+        - ``dimlb``      -- (default: 'safecase') a string
+        - ``notation``   -- (default: 'undefined') a string
+        - ``timeout``    -- (default: 0) a nonnegative integer
+        - ``memout``     -- (default: 0) a nonnegative integer
 
         OUTPUT:
 
-            A representation of the radical of the differential ideal generated
-            by ``equations`` (assuming, for simplicity, that ``equations``
-            only involves differential polynomials), as an intersection of
-            radical differential ideals, presented by regular differential
-            chains, with respect to the ranking of the 
-            :class:`~sage.calculus.DifferentialAlgebra.DifferentialRing`.
+        A representation of the radical of the differential ideal generated
+        by ``equations`` (assuming, for simplicity, that ``equations``
+        only involves differential polynomials), as an intersection of
+        radical differential ideals, presented by regular differential
+        chains, with respect to the ranking of the 
+        :class:`~sage.calculus.DifferentialAlgebra.DifferentialRing`.
 
-            The list ``equations`` may involve differential polynomials,
-            differential rational fractions, and, even relational expressions
-            between differential rational fractions, built using the ``==`` and
-            ``!=`` operators. In the presence of inequations (denominators of
-            rational fractions, or relational expression built using ``!=``),
-            the defined ideal is the radical of the differential ideal
-            generated by the equations of ``equations``, saturated by
-            the multiplicative family generated by the inequations of
-            ``equations``.
+        The list ``equations`` may involve differential polynomials,
+        differential rational fractions, and, even relational expressions
+        between differential rational fractions, built using the ``==`` and
+        ``!=`` operators. In the presence of inequations (denominators of
+        rational fractions, or relational expression built using ``!=``),
+        the defined ideal is the radical of the differential ideal
+        generated by the equations of ``equations``, saturated by
+        the multiplicative family generated by the inequations of
+        ``equations``.
 
-            If ``basefield`` is not specified, then any case implying a
-            relations between independent variables is discarded. If
-            ``basefield`` is specified, then, moreover, any case implying
-            the vanishing of some nonzero element of ``basefield`` is
-            discarded also.
+        If ``basefield`` is not specified, then any case implying a
+        relations between independent variables is discarded. If
+        ``basefield`` is specified, then, moreover, any case implying
+        the vanishing of some nonzero element of ``basefield`` is
+        discarded also.
 
-            The returned list may be empty, meaning the ideal is the unit one
-            and that ``equations`` has no solution.
+        The returned list may be empty, meaning the ideal is the unit one
+        and that ``equations`` has no solution.
 
-            If ``equations`` is empty then the output involves a single
-            regular differential chain, which describes the zero ideal.
+        If ``equations`` is empty then the output involves a single
+        regular differential chain, which describes the zero ideal.
 
-            The optional parameter ``attributes`` permit to specify the
-            attributes of the regular differential chains to be computed.
+        The optional parameter ``attributes`` permit to specify the
+        attributes of the regular differential chains to be computed.
 
-            The optional parameter ``singsol`` = 'all', 'essential', 'none'.
-            It controls the splittings performed by RosenfeldGroebner.
+        The optional parameter ``singsol`` = 'all', 'essential', 'none'.
+        It controls the splittings performed by RosenfeldGroebner.
 
-            - 'all' is the default value.
+        - 'all' is the default value.
 
-            - 'essential' ensures that the returned decomposition is
-              irredundant. It only applies in the case of a single
-              equation, without any parameter.
+        - 'essential' ensures that the returned decomposition is
+          irredundant. It only applies in the case of a single
+          equation, without any parameter.
 
-            - 'none' makes RosenfeldGroebner return at most one regular
-              differential chain. This chain is the first one that would have
-              been computed without this option. In many cases, this
-              first chain could be considered as the general component,
-              though this notion is not always mathematically well-defined.
+        - 'none' makes RosenfeldGroebner return at most one regular
+          differential chain. This chain is the first one that would have
+          been computed without this option. In many cases, this
+          first chain could be considered as the general component,
+          though this notion is not always mathematically well-defined.
 
-            The optional parameter ``dimlb`` = 'nocase', 'safecase', 'odecase',
-            'pdecase' controls the splittings performed by RosenfeldGroebner
-            by discarding any chain whose dimension (differential dimension
-            in the differential case) is lower than the number of input
-            equations.
+        The optional parameter ``dimlb`` = 'nocase', 'safecase', 'odecase',
+        'pdecase' controls the splittings performed by RosenfeldGroebner
+        by discarding any chain whose dimension (differential dimension
+        in the differential case) is lower than the number of input
+        equations.
 
-            - 'nocase' disables this option.
+        - 'nocase' disables this option.
 
-            - 'safecase' is the default value. The option is only activated
-              in the non-differential case and in the case of a single input
-              equation. These two cases are theoretically proven.
+        - 'safecase' is the default value. The option is only activated
+          in the non-differential case and in the case of a single input
+          equation. These two cases are theoretically proven.
 
-            - 'odecase' applies also the option to general ODE systems. The
-              option implements a conjecture in this case (see Ritt's book,
-              Questions for investigation, 10).
+        - 'odecase' applies also the option to general ODE systems. The
+          option implements a conjecture in this case (see Ritt's book,
+          Questions for investigation, 10).
 
-            - 'pdecase' applies also the option to general PDE systems. The
-              option implements a conjecture in this case. It is still
-              experimental.
+        - 'pdecase' applies also the option to general PDE systems. The
+          option implements a conjecture in this case. It is still
+          experimental.
 
-            If not defined using ``notation``, the default notation of the
-            returned regular differential chains is the one of the
-            DifferentialRing.
+        If not defined using ``notation``, the default notation of the
+        returned regular differential chains is the one of the
+        DifferentialRing.
 
-            ``timeout`` and ``memout`` permit to limit in seconds and
-            megabytes, the resources allowed for the computation.
+        ``timeout`` and ``memout`` permit to limit in seconds and
+        megabytes, the resources allowed for the computation.
 
         NOTES:
 
-            The first version of the RosenfeldGroebner algorithm
-            appeared in 1994. It benefited from many improvements,
-            coming from many different people. The current version
-            is close to the one described in [Boulier06]. It does
-            not rely on any Gröbner basis computation.
+        The first version of the RosenfeldGroebner algorithm
+        appeared in 1994. It benefited from many improvements,
+        coming from many different people. The current version
+        is close to the one described in [Boulier06]. It does
+        not rely on any Gröbner basis computation.
 
-            The RosenfeldGroebner method contains also an implementation
-            of the Low Power Theorem, which is a major result of Ritt
-            and Kolchin. See also [Hubert99]. The implemented version
-            applies over differential base fields defined by generators
-            and relations.
+        The RosenfeldGroebner method contains also an implementation
+        of the Low Power Theorem, which is a major result of Ritt
+        and Kolchin. See also [Hubert99]. The implemented version
+        applies over differential base fields defined by generators
+        and relations.
 
         REFERENCES:
 
-            [Boulier06] François Boulier. Réécriture algébrique
-            dans les systèmes d'équations différentielles polynomiales
-            en vue d'application dans les Sciences du Vivant. Mémoire
-            d'Habilitation à Diriger les Recherches. Université Lille I.
-            2006. http://tel.archives-ouvertes.fr/tel-00137153
+        [Boulier06] François Boulier. Réécriture algébrique
+        dans les systèmes d'équations différentielles polynomiales
+        en vue d'application dans les Sciences du Vivant. Mémoire
+        d'Habilitation à Diriger les Recherches. Université Lille I.
+        2006. http://tel.archives-ouvertes.fr/tel-00137153
 
-            [Hubert99] Évelyne Hubert. Essential Components of an
-            Algebraic Differential Equation. Journal of Symbolic
-            Computation 28(4-5), pp. 657-680. 1999.
+        [Hubert99] Évelyne Hubert. Essential Components of an
+        Algebraic Differential Equation. Journal of Symbolic
+        Computation 28(4-5), pp. 657-680. 1999.
 
         EXAMPLES:
 
@@ -2379,21 +2379,21 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            ``L`` -- a list
+        - ``L`` -- a list
 
         OUTPUT:
 
-            A pair of two lists: a first list of polynomials that should
-            be considered as equations and a second one that should be
-            considered as inequations.
+        A pair of two lists: a first list of polynomials that should
+        be considered as equations and a second one that should be
+        considered as inequations.
 
-            The elements of ``L`` can be rational differential fractions. Their
-            denominators are then considered as inequations. The elements of
-            ``L`` may also be relational expressions, built using ``==`` and ``!=``.
+        The elements of ``L`` can be rational differential fractions. Their
+        denominators are then considered as inequations. The elements of
+        ``L`` may also be relational expressions, built using ``==`` and ``!=``.
 
         NOTES:
 
-            This function is used by :meth:`RosenfeldGroebner`, mostly.
+        This function is used by :meth:`RosenfeldGroebner`, mostly.
 
         EXAMPLES::
 
@@ -2432,16 +2432,16 @@ cdef class DifferentialRing:
 
         INPUT:
 
-            Nothing
+        Nothing
 
         OUTPUT:
 
-            A string describing the ranking of the differential ring.
+        A string describing the ranking of the differential ring.
 
         NOTES:
 
-            This function is used by the change_ranking method of
-            the RegularDifferentialChain class.
+        This function is used by the change_ranking method of
+        the RegularDifferentialChain class.
 
         EXAMPLES::
 
@@ -2521,35 +2521,35 @@ cdef class RegularDifferentialChain:
 
         INPUT:
 
-            ``equations``  -- a list of differential polynomial or
-                              differential polynomial equations
-            ``DRing``      -- a DifferentialRing
-            ``attributes`` -- (default: ['differential', 'autoreduced',
-                              'primitive', 'squarefree', 'normalized',
-                              'coherent']) a list of strings
-            ``pretend``    -- (default: True) a boolself.dring, selection,
-            ``notation``   -- (default: 'undefined') a string
-            ``timeout``    -- (default: 0) a nonnegative integer
-            ``memout``     -- (default: 0) a nonnegative integer
+        - ``equations``  -- a list of differential polynomial or
+                            differential polynomial equations
+        - ``DRing``      -- a DifferentialRing
+        - ``attributes`` -- (default: ['differential', 'autoreduced',
+                            'primitive', 'squarefree', 'normalized',
+                            'coherent']) a list of strings
+        - ``pretend``    -- (default: True) a boolself.dring, selection,
+        - ``notation``   -- (default: 'undefined') a string
+        - ``timeout``    -- (default: 0) a nonnegative integer
+        - ``memout``     -- (default: 0) a nonnegative integer
 
         OUTPUT:
 
-            Create a regular differential chain of the differential
-            polynomial ring ``DRing``, from ``equations``. The attributes
-            of the chain depend on ``attributes``. By default, almost no test
-            is performed, to check that the equations do constitute a chain,
-            unless ``pretend`` is set to False.
+        Create a regular differential chain of the differential
+        polynomial ring ``DRing``, from ``equations``. The attributes
+        of the chain depend on ``attributes``. By default, almost no test
+        is performed, to check that the equations do constitute a chain,
+        unless ``pretend`` is set to False.
 
-            If not defined using ``notation``, the default notation is the
-            one of ``DRing``.
+        If not defined using ``notation``, the default notation is the
+        one of ``DRing``.
 
-            ``timeout`` and ``memout`` permit to limit in seconds and
-            megabytes, the resources allowed for the computation.
+        ``timeout`` and ``memout`` permit to limit in seconds and
+        megabytes, the resources allowed for the computation.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES:
 
@@ -2619,11 +2619,11 @@ cdef class RegularDifferentialChain:
 
         INPUT:
 
-            Nothing
+        Nothing
 
         OUTPUT:
 
-            A :class:`~sage.calculus.DifferentialAlgebra.DifferentialRing`
+        A :class:`~sage.calculus.DifferentialAlgebra.DifferentialRing`
 
         EXAMPLES::
 
@@ -2657,47 +2657,47 @@ cdef class RegularDifferentialChain:
 
         INPUT:
 
-            ``solved``    -- (default: False) a boolean
-            ``selection`` -- (default: None) a relational expression
-            ``notation``  -- (default: 'undefined') a string
+        - ``solved``    -- (default: False) a boolean
+        - ``selection`` -- (default: None) a relational expression
+        - ``notation``  -- (default: 'undefined') a string
 
         OUTPUT:
 
-            A list of the differential polynomials which constitute the
-            chain, sorted by increasing rank.
+        A list of the differential polynomials which constitute the
+        chain, sorted by increasing rank.
 
-            If ``solved`` is ``True``, the differential polynomials are
-            displayed as equations, solved with respect to their
-            leading rank.
+        If ``solved`` is ``True``, the differential polynomials are
+        displayed as equations, solved with respect to their
+        leading rank.
 
-            The optional parameter ``selection`` is a relational
-            expression combining one of the keywords ``'order'``, ``'leader'``,
-            ``'rank'`` on the one side, with a value on the other side,
-            using one of the relational operators. Only the equations
-            which satisfy the condition are selected.
+        The optional parameter ``selection`` is a relational
+        expression combining one of the keywords ``'order'``, ``'leader'``,
+        ``'rank'`` on the one side, with a value on the other side,
+        using one of the relational operators. Only the equations
+        which satisfy the condition are selected.
 
-            - If the keyword is ``'order'``, then the value must be a
-              nonnegative integer.
+        - If the keyword is ``'order'``, then the value must be a
+          nonnegative integer.
 
-            - If the keyword is ``'rank'``, then the value must be a
-              rank, including the special ranks 0 and 1.
+        - If the keyword is ``'rank'``, then the value must be a
+          rank, including the special ranks 0 and 1.
 
-            - If the keyword is ``'leader'``, and the relational
-              operator is ``>=``, ``>``, ``<=`` or ``<``, then the value
-              must be a derivative.
+        - If the keyword is ``'leader'``, and the relational
+          operator is ``>=``, ``>``, ``<=`` or ``<``, then the value
+          must be a derivative.
 
-            - If the keyword is ``'leader'``, and the relational
-              operator is ``==`` or ``!=``, then the value may also have
-              the form: 'modifier' (derivative), where 'modifier' is
-              one of the keywords ``'derivative'`` or ``'proper'``.
+        - If the keyword is ``'leader'``, and the relational
+          operator is ``==`` or ``!=``, then the value may also have
+          the form: 'modifier' (derivative), where 'modifier' is
+          one of the keywords ``'derivative'`` or ``'proper'``.
 
-            If not defined using ``notation``, the notation is the
-            chain default notation.
+        If not defined using ``notation``, the notation is the
+        chain default notation.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -2771,12 +2771,12 @@ cdef class RegularDifferentialChain:
 
         INPUT:
 
-            Nothing
+        Nothing
 
         OUTPUT:
 
-            A list of strings, providing the attributes of
-            a regular differential chain
+        A list of strings, providing the attributes of
+        a regular differential chain
 
         EXAMPLES::
 
@@ -2824,17 +2824,17 @@ cdef class RegularDifferentialChain:
 
         INPUT:
 
-            ``notation``  -- (default: 'undefined') a string
+        - ``notation``  -- (default: 'undefined') a string
 
         OUTPUT:
 
-            The list of the leading derivatives of the elements
-            of the chain. See the documentation of :class:`~sage.calculus.DifferentialAlgebra.DifferentialRing`.
+        The list of the leading derivatives of the elements
+        of the chain. See the documentation of :class:`~sage.calculus.DifferentialAlgebra.DifferentialRing`.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -2882,22 +2882,22 @@ cdef class RegularDifferentialChain:
 
         INPUT:
 
-            ``listform``  -- (default: False) a bool
-            ``notation``  -- (default: 'undefined') a string
+        - ``listform``  -- (default: False) a bool
+        - ``notation``  -- (default: 'undefined') a string
 
         OUTPUT:
 
-            The list of the leading ranks of the elements
-            of the chain. See the documentation of
-            :class:`~sage.calculus.DifferentialAlgebra.DifferentialRing`.
+        The list of the leading ranks of the elements
+        of the chain. See the documentation of
+        :class:`~sage.calculus.DifferentialAlgebra.DifferentialRing`.
 
-            If the optional parameter ``listform`` is ``True``, then
-            the ranks are returned as lists rather than monomials.
+        If the optional parameter ``listform`` is ``True``, then
+        the ranks are returned as lists rather than monomials.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -2944,17 +2944,17 @@ cdef class RegularDifferentialChain:
 
         INPUT:
 
-            ``notation``  -- (default: 'undefined') a string
+        - ``notation``  -- (default: 'undefined') a string
 
         OUTPUT:
 
-            The list of initials of the regular differential chain.
-            See the documentation of :class:`~sage.calculus.DifferentialAlgebra.DifferentialRing`.
+        The list of initials of the regular differential chain.
+        See the documentation of :class:`~sage.calculus.DifferentialAlgebra.DifferentialRing`.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -3003,21 +3003,21 @@ cdef class RegularDifferentialChain:
 
         INPUT:
 
-            ``variable``  -- (default: None) a variable
-            ``notation``  -- (default: 'undefined') a string
+        - ``variable``  -- (default: None) a variable
+        - ``notation``  -- (default: 'undefined') a string
 
         OUTPUT:
 
-            The list of leading coefficients w.r.t. ``variable``
-            of the regular differential chain. If ``variable``
-            is omitted, the leading coefficients are taken w.r.t.
-            the leading derivatives. See the documentation of
-            :class:`~sage.calculus.DifferentialAlgebra.DifferentialRing`.
+        The list of leading coefficients w.r.t. ``variable``
+        of the regular differential chain. If ``variable``
+        is omitted, the leading coefficients are taken w.r.t.
+        the leading derivatives. See the documentation of
+        :class:`~sage.calculus.DifferentialAlgebra.DifferentialRing`.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -3080,20 +3080,20 @@ cdef class RegularDifferentialChain:
 
         INPUT:
 
-            ``variable``  -- (default: None) a variable
-            ``notation``  -- (default: 'undefined') a string
+        - ``variable``  -- (default: None) a variable
+        - ``notation``  -- (default: 'undefined') a string
 
         OUTPUT:
 
-            The list of the tails, w.r.t. ``variable``, of the
-            regular differential chain. If ``variable`` is omitted,
-            the tails are taken w.r.t. the leading derivatives.
-            See the documentation of :class:`~sage.calculus.DifferentialAlgebra.DifferentialRing`.
+        The list of the tails, w.r.t. ``variable``, of the
+        regular differential chain. If ``variable`` is omitted,
+        the tails are taken w.r.t. the leading derivatives.
+        See the documentation of :class:`~sage.calculus.DifferentialAlgebra.DifferentialRing`.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -3157,20 +3157,20 @@ cdef class RegularDifferentialChain:
 
         INPUT:
 
-            ``variable``  -- (default: ``None``) a variable
-            ``notation``  -- (default: 'undefined') a string
+        - ``variable``  -- (default: ``None``) a variable
+        - ``notation``  -- (default: 'undefined') a string
 
         OUTPUT:
 
-            The list of the separants, w.r.t. ``variable``, of
-            the regular differential chain. If ``variable`` is
-            omitted, the separants are taken w.r.t. the leading
-            derivatives. See the documentation of :class:`~sage.calculus.DifferentialAlgebra.DifferentialRing`.
+        The list of the separants, w.r.t. ``variable``, of
+        the regular differential chain. If ``variable`` is
+        omitted, the separants are taken w.r.t. the leading
+        derivatives. See the documentation of :class:`~sage.calculus.DifferentialAlgebra.DifferentialRing`.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -3232,21 +3232,21 @@ cdef class RegularDifferentialChain:
 
         INPUT:
 
-            ``selection``  -- (default: 'derivatives') a string
-            ``notation``   -- (default: 'undefined') a string
+        - ``selection``  -- (default: 'derivatives') a string
+        - ``notation``   -- (default: 'undefined') a string
 
         OUTPUT:
 
-            A list of variable and function, selected according to
-            ``selection``. See the examples below.
+        A list of variable and function, selected according to
+        ``selection``. See the examples below.
 
         NOTES:
 
-            So far, the keyword 'constants' is not allowed to build
-            selections.
+        So far, the keyword 'constants' is not allowed to build
+        selections.
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -3335,29 +3335,29 @@ cdef class RegularDifferentialChain:
 
         INPUT:
 
-            ``polynomial`` -- a polynomial
-            ``mode``       -- (default: 'full') a string
-            ``notation``   -- (default: 'undefined') a string
+        - ``polynomial`` -- a polynomial
+        - ``mode``       -- (default: 'full') a string
+        - ``notation``   -- (default: 'undefined') a string
 
         OUTPUT:
 
-            A pair `(h, r)` such that `h*p = r` modulo the differential
-            ideal generated by the equations of the regular differential
-            chain (denoting `p` for ``polynomial``).
+        A pair `(h, r)` such that `h*p = r` modulo the differential
+        ideal generated by the equations of the regular differential
+        chain (denoting `p` for ``polynomial``).
 
-            The optional argument ``mode = 'full'``, ``'partial'`` or ``'algebraic'``.
-            If ``'full'``, the remainder ``r`` is fully reduced w.r.t. the
-            chain equations. If ``'partial'``, the remainder ``r`` is partially
-            reduced w.r.t. the chain equations. If ``'algebraic'``, the
-            remainder is algebraically reduced w.r.t. the chain equations.
+        The optional argument ``mode = 'full'``, ``'partial'`` or ``'algebraic'``.
+        If ``'full'``, the remainder ``r`` is fully reduced w.r.t. the
+        chain equations. If ``'partial'``, the remainder ``r`` is partially
+        reduced w.r.t. the chain equations. If ``'algebraic'``, the
+        remainder is algebraically reduced w.r.t. the chain equations.
 
-            In all cases, ``h`` is a product of powers of the initials and
-            separants involved in the reduction process.
+        In all cases, ``h`` is a product of powers of the initials and
+        separants involved in the reduction process.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -3450,41 +3450,41 @@ cdef class RegularDifferentialChain:
 
         INPUT:
 
-            ``R``          -- (default: None) a differential ring
-            ``prime``      -- (default: False) a bool
-            ``notation``   -- (default: 'undefined') a string
-            ``timeout``    -- (default: 0) a nonnegative integer
-            ``memout``     -- (default: 0) a nonnegative integer
+        - ``R``          -- (default: None) a differential ring
+        - ``prime``      -- (default: False) a bool
+        - ``notation``   -- (default: 'undefined') a string
+        - ``timeout``    -- (default: 0) a nonnegative integer
+        - ``memout``     -- (default: 0) a nonnegative integer
 
         OUTPUT:
 
-            A regular differential chain defining the same ideal
-            as ``self``, w.r.t. the ranking of ``R``.
+        A regular differential chain defining the same ideal
+        as ``self``, w.r.t. the ranking of ``R``.
 
-            The differential ring ``R`` must define the same
-            mathematical differential ring as the underlying
-            ring of ``self`` (only the ranking should be different).
+        The differential ring ``R`` must define the same
+        mathematical differential ring as the underlying
+        ring of ``self`` (only the ranking should be different).
 
-            The optional parameter ``prime`` permit to force the
-            application of the algorithm over ``self``, even if
-            ``self`` does not define a prime ideal.
+        The optional parameter ``prime`` permit to force the
+        application of the algorithm over ``self``, even if
+        ``self`` does not define a prime ideal.
 
-            ``timeout`` and ``memout`` permit to limit in seconds and
-            megabytes, the resources allowed for the computation.
+        ``timeout`` and ``memout`` permit to limit in seconds and
+        megabytes, the resources allowed for the computation.
 
         NOTES:
 
-            The implemented algorithm is the PARDI algorithm. See
-            references below.
+        The implemented algorithm is the PARDI algorithm. See
+        references below.
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         REFERENCES:
 
-            [BLM10] François Boulier, François Lemaire and Marc Moreno
-            Maza. Computing differential characteristic sets by change
-            of ordering. Journal of Symbolic Comp. 45(1), pp. 124-149. 2010
+        [BLM10] François Boulier, François Lemaire and Marc Moreno
+        Maza. Computing differential characteristic sets by change
+        of ordering. Journal of Symbolic Comp. 45(1), pp. 124-149. 2010
 
         EXAMPLES::
 
@@ -3557,45 +3557,45 @@ cdef class RegularDifferentialChain:
 
         INPUT:
 
-            ``equations`` -- a rational fraction or a list of rational
-                             fractions
-            ``casesplit`` -- (default: False) a bool
-            ``notation``  -- (default: 'undefined') a string
+        - ``equations`` -- a rational fraction or a list of rational
+                           fractions
+        - ``casesplit`` -- (default: False) a bool
+        - ``notation``  -- (default: 'undefined') a string
 
         OUTPUT:
 
-            The normal form of the equation w.r.t. the regular
-            differential chain. If ``equations`` is a list, a
-            list of normal form is returned.
+        The normal form of the equation w.r.t. the regular
+        differential chain. If ``equations`` is a list, a
+        list of normal form is returned.
 
-            Given a regular differential chain, not all rational
-            fractions have normal forms: the denominator should not
-            be zero, or even a zerod-ivisor, modulo the ideal defined
-            by the regular differential chain.
+        Given a regular differential chain, not all rational
+        fractions have normal forms: the denominator should not
+        be zero, or even a zerod-ivisor, modulo the ideal defined
+        by the regular differential chain.
 
-            The optional argument ``casesplit`` permit to handle
-            the case of rational fractions which do not have normal
-            forms, by splitting cases.
+        The optional argument ``casesplit`` permit to handle
+        the case of rational fractions which do not have normal
+        forms, by splitting cases.
 
         NOTES:
 
-            The argument ``casesplit = True`` is not yet implemented.
+        The argument ``casesplit = True`` is not yet implemented.
 
-            The current implementation of normal forms may fail, even
-            if the normal form does exist (very rare but possible situation).
-            A complete algorithm is available but not yet implemented.
-            See references below.
+        The current implementation of normal forms may fail, even
+        if the normal form does exist (very rare but possible situation).
+        A complete algorithm is available but not yet implemented.
+        See references below.
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         REFERENCES:
 
-            [BLS11] François Boulier, François Lemaire and Alexandre
-            Sedoglavic. On the Regularity Property of Differential
-            Polynomials Modulo Regular Differential Chains. In proc.
-            of CASC 2011. LNCS 6885, pp. 61-72. 2011.
-            http://hal.archives-ouvertes.fr/hal-00599440
+        [BLS11] François Boulier, François Lemaire and Alexandre
+        Sedoglavic. On the Regularity Property of Differential
+        Polynomials Modulo Regular Differential Chains. In proc.
+        of CASC 2011. LNCS 6885, pp. 61-72. 2011.
+        http://hal.archives-ouvertes.fr/hal-00599440
 
         EXAMPLES::
 
@@ -3665,68 +3665,68 @@ cdef class RegularDifferentialChain:
 
         INPUT:
 
-            ``polynomial`` -- a polynomial
-            ``basefield``  -- (default: None) a BaseFieldExtension
-            ``congruence`` -- (default: False) a bool
-            ``zstring``    -- (default: 'z%d') a string
-            ``notation``   -- (default: 'undefined') a string
+        - ``polynomial`` -- a polynomial
+        - ``basefield``  -- (default: None) a BaseFieldExtension
+        - ``congruence`` -- (default: False) a bool
+        - ``zstring``    -- (default: 'z%d') a string
+        - ``notation``   -- (default: 'undefined') a string
 
         OUTPUT:
 
-            Return a preparation equation [Kolchin73, chapter IV, section 13]
-            of ``polynomial`` w.r.t. the regular differential chain.
+        Return a preparation equation [Kolchin73, chapter IV, section 13]
+        of ``polynomial`` w.r.t. the regular differential chain.
 
-            Preparation equations are an important tool of the Low Power
-            Theorem [Ritt50, chapter III, Kolchin73, chapter IV, section 15].
-            The Low Power Theorem is applied by the
-            :meth:`~sage.calculus.DifferentialAlgebra.DifferentialRing.RosenfeldGroebner`
-            method, when there is a single equation to process and
-            the optional parameter ``singsol = True``.
+        Preparation equations are an important tool of the Low Power
+        Theorem [Ritt50, chapter III, Kolchin73, chapter IV, section 15].
+        The Low Power Theorem is applied by the
+        :meth:`~sage.calculus.DifferentialAlgebra.DifferentialRing.RosenfeldGroebner`
+        method, when there is a single equation to process and
+        the optional parameter ``singsol = True``.
 
-            Let `I` the differential ideal defined by the chain, denote
-            ``A[1], ..., A[r]`` the differential polynomials which constitute
-            the chain. Introduce `r` new dependent variables ``z[i]``. Each
-            variable ``z[i]`` representing the differential polynomial ``A[i]``.
+        Let `I` the differential ideal defined by the chain, denote
+        ``A[1], ..., A[r]`` the differential polynomials which constitute
+        the chain. Introduce `r` new dependent variables ``z[i]``. Each
+        variable ``z[i]`` representing the differential polynomial ``A[i]``.
 
-            The returned preparation equation is an expression having the
-            form ``h*f = c[1]*t[1] + c[2]*t[2] + ... + c[n]*t[n]``, where ``f``
-            stands for ``polynomial``. The differential polynomial ``h`` is
-            a power product of initials and separants of the ``A[i]``. The
-            coefficients ``c[i]`` are reduced w.r.t. the chain and regular
-            with respect to `I`. The monomials ``t[i]`` are power products of
-            the ``z[k]`` variables and their derivatives. They satisfy some
-            further properties, described in [Kolchin73, chapter IV,
-            section 13]. If each ``z[k]`` is replaced by the corresponding
-            polynomial ``A[k]``, then the preparation equation becomes an
-            equality.
+        The returned preparation equation is an expression having the
+        form ``h*f = c[1]*t[1] + c[2]*t[2] + ... + c[n]*t[n]``, where ``f``
+        stands for ``polynomial``. The differential polynomial ``h`` is
+        a power product of initials and separants of the ``A[i]``. The
+        coefficients ``c[i]`` are reduced w.r.t. the chain and regular
+        with respect to `I`. The monomials ``t[i]`` are power products of
+        the ``z[k]`` variables and their derivatives. They satisfy some
+        further properties, described in [Kolchin73, chapter IV,
+        section 13]. If each ``z[k]`` is replaced by the corresponding
+        polynomial ``A[k]``, then the preparation equation becomes an
+        equality.
 
-            The optional parameter ``congruence``. In the right hand-side
-            of the preparation equation, denote ``q`` the minimum total
-            degree (the low power, actually) of the monomials ``t[i]``.
-            If ``congruence`` is true, then all the terms ``c[i]*t[i]``
-            such that the total degree of ``t[i]`` is strictly greater
-            than ``q`` are removed. The remaining sum is call a preparation
-            congruence of ``f``.
+        The optional parameter ``congruence``. In the right hand-side
+        of the preparation equation, denote ``q`` the minimum total
+        degree (the low power, actually) of the monomials ``t[i]``.
+        If ``congruence`` is true, then all the terms ``c[i]*t[i]``
+        such that the total degree of ``t[i]`` is strictly greater
+        than ``q`` are removed. The remaining sum is call a preparation
+        congruence of ``f``.
 
-            The optional parameter ``basefield`` is useful in conjunction
-            with ``congruence = true``. Reductions by the ``A[i]`` which
-            belong to the base field are not taken into account for
-            computing the preparation congruence of ``f``. The terms ``t[k]``
-            which depend on such ``z[i]`` and their derivatives are not
-            considered for computing the degree ``q`` and do not appear
-            in the preparation congruence.
+        The optional parameter ``basefield`` is useful in conjunction
+        with ``congruence = true``. Reductions by the ``A[i]`` which
+        belong to the base field are not taken into account for
+        computing the preparation congruence of ``f``. The terms ``t[k]``
+        which depend on such ``z[i]`` and their derivatives are not
+        considered for computing the degree ``q`` and do not appear
+        in the preparation congruence.
 
-            The optional parameter ``zstring`` permits to denote the
-            polynomial ``A[i]`` by symbols different from ``z[i]``. This
-            may be useful since the method creates one function (in
-            the SAGE sense) for each ``z[i]``. The ``zstring`` should
-            correspond to a valid function identifier and involve
-            the substring ``'%d'``.
+        The optional parameter ``zstring`` permits to denote the
+        polynomial ``A[i]`` by symbols different from ``z[i]``. This
+        may be useful since the method creates one function (in
+        the SAGE sense) for each ``z[i]``. The ``zstring`` should
+        correspond to a valid function identifier and involve
+        the substring ``'%d'``.
 
         NOTES:
 
-            So far, there is a single notation available, because of
-            limitations of function.
+        So far, there is a single notation available, because of
+        limitations of function.
 
         EXAMPLES::
 
@@ -3902,11 +3902,11 @@ cdef class RegularDifferentialChain:
 
         INPUT:
 
-            Nothing
+        Nothing
 
         OUTPUT:
 
-            The number of equations of a regular differential chain
+        The number of equations of a regular differential chain
 
         EXAMPLES::
 
@@ -4068,35 +4068,35 @@ cdef class BaseFieldExtension:
 
         INPUT:
 
-            ``generators`` -- (default: []) a list of dependent variables
-            ``relations``  -- (optional) a regular differential chain
-            ``ring``       -- (optional) a differential ring
+        - ``generators`` -- (default: []) a list of dependent variables
+        - ``relations``  -- (optional) a regular differential chain
+        - ``ring``       -- (optional) a differential ring
 
         OUTPUT:
 
-            An extension F of the base field K of a differential
-            ring, defined by ``generators`` and ``relations``.
-            If ``ring`` is not specified, F actually is the
-            description of a base field extension, which will be
-            performed by a future call to the
-            :meth:`~sage.calculus.DifferentialAlgebra.DifferentialRing.RosenfeldGroebner`
-            algorithm.
+        An extension F of the base field K of a differential
+        ring, defined by ``generators`` and ``relations``.
+        If ``ring`` is not specified, F actually is the
+        description of a base field extension, which will be
+        performed by a future call to the
+        :meth:`~sage.calculus.DifferentialAlgebra.DifferentialRing.RosenfeldGroebner`
+        algorithm.
 
-            If ``relations`` is not specified, then F is the
-            differential field, obtained by extending the field of
-            the rational numbers, by the elements of ``generators``.
+        If ``relations`` is not specified, then F is the
+        differential field, obtained by extending the field of
+        the rational numbers, by the elements of ``generators``.
 
-            If ``relations`` is specified, then F is the differential
-            field of fractions of Q{X}/I where X denotes the variables
-            (dependent and independent) present in ``generators``,
-            ``relations``, and I denotes the differential ideal (which
-            needs to be prime) defined by ``relations``.
+        If ``relations`` is specified, then F is the differential
+        field of fractions of Q{X}/I where X denotes the variables
+        (dependent and independent) present in ``generators``,
+        ``relations``, and I denotes the differential ideal (which
+        needs to be prime) defined by ``relations``.
 
         NOTES:
 
-            The variables present in ``generators`` and ``relations``
-            should belong to the lowest blocks of the ranking of the
-            differential ring, whose base field is extended.
+        The variables present in ``generators`` and ``relations``
+        should belong to the lowest blocks of the ranking of the
+        differential ring, whose base field is extended.
 
         EXAMPLES:
 
@@ -4183,11 +4183,11 @@ cdef class BaseFieldExtension:
 
         INPUT:
 
-            Nothing
+        Nothing
 
         OUTPUT:
 
-            The list of generators
+        The list of generators
 
         EXAMPLES::
 
@@ -4208,13 +4208,13 @@ cdef class BaseFieldExtension:
 
         INPUT:
 
-            Nothing
+        Nothing
 
         OUTPUT:
 
-            A regular differential chain. If no relations were provided
-            at the field construction, the regular differential chain
-            is the zero chain.
+        A regular differential chain. If no relations were provided
+        at the field construction, the regular differential chain
+        is the zero chain.
 
         EXAMPLES::
 
@@ -4237,11 +4237,11 @@ cdef class BaseFieldExtension:
 
         INPUT:
 
-            Nothing
+        Nothing
 
         OUTPUT:
 
-            A string
+        A string
 
         EXAMPLES::
 
