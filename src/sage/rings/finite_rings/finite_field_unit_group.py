@@ -104,7 +104,7 @@ class FiniteFieldUnitGroup(AbelianGroup_class):
         self.__gens = Sequence([z], immutable=True, universe=self, check=False)
 
         # Construct the abtract group:
-        AbelianGroup_class.__init__(self, 1, [n], 'u')
+        AbelianGroup_class.__init__(self, (n,), 'u')
 
     def __call__(self, u):
         """
