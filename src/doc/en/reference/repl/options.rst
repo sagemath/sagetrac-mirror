@@ -39,13 +39,14 @@ Command-line options for Sage
   <sage.misc.sagedoc.search_doc>` to accomplish the same thing.
 - ``--min [...]`` -- do not populate global namespace (must be first
   option)
-- ``-gthread``, ``-qthread``, ``-q4thread``, ``-wthread``,
-  ``-pylab`` -- pass the option through to IPython
 - ``--nodotsage`` -- run Sage without using the user's
   :file:`.sage` directory: create and use a temporary :file:`.sage`
   directory instead.  Warning: notebooks are stored in the
   :file:`.sage` directory, so any notebooks created while running with
   ``--nodotsage`` will be temporary also.
+
+Any additional options not specific to Sage are passed through to Sage's
+IPython (e.g. ``--pylab``).
 
 .. rubric:: Running the notebook
 
