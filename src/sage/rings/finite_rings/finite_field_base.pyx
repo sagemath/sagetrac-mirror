@@ -717,6 +717,41 @@ cdef class FiniteField(Field):
                 return a
         raise AssertionError("no element found")
 
+    def unit_group(self, n=None):
+        """
+        Return the multiplicative group of units of this finite field,
+        if n is None, and otherwise the group of n-th roots of unity.
+
+        EXAMPLES::
+
+            sage: GF(5).unit_group()
+            Unit group with structure C4 of Finite Field of size 5
+            sage: GF(17).unit_group(4)
+            Group (with structure C4) of 4th roots of unity in Finite Field of size 17
+
+        If n does not divide q - 1, where q is the order of the field,
+        then the group of gcd(q - 1, n)-th roots is returned::
+
+            sage: GF(17).unit_group(24)
+            Group (with structure C8) of 8th roots of unity in Finite Field of size 17
+
+        The function works with all the various types of finite field::
+
+            sage: [(F.unit_group(), type(F)) for F in [GF(q, 'g') for q in [16, 17, 2^16, 23^4]]]
+            [(Unit group with structure C15 of Finite Field in g of size 2^4,
+              <type 'sage.rings.finite_field_givaro.FiniteField_givaro'>),
+             (Unit group with structure C16 of Finite Field of size 17,
+              <class 'sage.rings.finite_field_prime_modn.FiniteField_prime_modn'>),
+             (Unit group with structure C65535 of Finite Field in g of size 2^16,
+              <type 'sage.rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e'>),
+             (Unit group with structure C279840 of Finite Field in g of size 23^4,
+              <class 'sage.rings.finite_field_ext_pari.FiniteField_ext_pari'>)]
+        """
+        if n is not None:
+            n = (self.order() - 1).gcd(n)
+        from sage.rings.finite_rings.finite_field_unit_group import FiniteFieldUnitGroup
+        return FiniteFieldUnitGroup(self, n)
+
     def ngens(self):
         """
         The number of generators of the finite field.  Always 1.
