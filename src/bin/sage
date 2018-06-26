@@ -63,6 +63,7 @@ usage() {
     echo "                         are 'master' (the current development version, this"
     echo "                         is the default) or a version number like '5.13'."
     echo "  -v, -version        -- display Sage version information"
+    echo "  [...]               -- any other unrecongized arguments are passed through to Sage's IPython"
     exit 0
 }
 
@@ -81,8 +82,6 @@ usage_advanced() {
     echo "  -preparse <file.sage> -- preparse file.sage and produce corresponding file.sage.py"
     echo "  -q                  -- quiet; start with no banner"
     echo "  -root               -- print the Sage root directory"
-    echo "  -gthread, -qthread, -q4thread, -wthread, -pylab"
-    echo "                      -- pass the option through to ipython"
     echo "  -v, -version        -- display Sage version information"
     echo "  -dumpversion        -- print Sage version"
     echo "  -git-branch         -- print the current git branch"
@@ -1064,17 +1063,22 @@ if [ "$1" = '-startuptime' -o "$1" = '--startuptime' ]; then
     exec sage-startuptime.py "$@"
 fi
 
-if [ "$1" = '-gthread' -o "$1" = '-qthread' -o "$1" = '-q4thread' -o "$1" = '-wthread' -o "$1" = '-pylab' ]; then
-    # Intentionally no "shift" here
+case "$1" in
+-*|"")
+    # If either no arguments are given, or the first argument is
+    # an option argument, pass through to sage-ipython
     interactive_sage "$@"
-fi
-
-if [ $# -ge 1 ]; then
-    T=`echo "$1" | sed -e "s/.*\.//"`
-    if [ "$T" = "spkg" ]; then
-        install "$@"
+    ;;
+*)
+    # Otherwise, if the first argument is an existing file pass
+    # through to sage-run
+    if [ -e "$1" ]; then
+        sage_setup
+        unset TERM  # See Trac #12263
+        sage-run "$@"
+    else
+        echo >&2 "File or directory $1 does not exist."
+        exit 1
     fi
-    sage_setup
-    unset TERM  # See Trac #12263
-    exec sage-run "$@"
-fi
+    ;;
+esac
