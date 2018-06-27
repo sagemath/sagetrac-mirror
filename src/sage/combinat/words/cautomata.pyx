@@ -84,8 +84,8 @@ cdef extern from "automataC.h":
     void FreeInvertDict(InvertDict id)
     void printInvertDict(InvertDict id)
     Automaton Duplicate(Automaton a, InvertDict id, int na2, bool verb)
-    Automaton TransposeDet(Automaton a)
-    NAutomaton Transpose(Automaton a)
+    Automaton MirrorDet(Automaton a)
+    NAutomaton Mirror(Automaton a)
     int StronglyConnectedComponents(Automaton a, int *res)
     Automaton SubAutomaton(Automaton a, Dict d, bool verb)
     Automaton Permut(Automaton a, int *l, int na, bool verb)
@@ -2623,9 +2623,9 @@ cdef class FastAutomaton:
         INPUT:
 
         - ``d`` -- dictionary to determine projection
-        - ``det``  --  (default: ``true``) determinize the result or not
+        - ``det``  --  (default: ``true``) - determinize the result or not
         - ``simplify`` -- (default: ``True``) - if True and if det=True, prune and minimize
-        - ``verb`` -- boolean (default: ``False``) activate or desactivate the verbose mode
+        - ``verb`` -- boolean (default: ``False``) - activate or desactivate the verbose mode
 
         OUTPUT:
 
@@ -2671,10 +2671,10 @@ cdef class FastAutomaton:
 
         INPUT:
 
-        - ``i`` -- int index of the label projection
-        - ``det``  --  (default: ``true``) determinize or not the result
+        - ``i`` -- int - coordinate of projection
+        - ``det``  --  (default: ``true``) - determinize or not the result
         - ``simplify`` -- (default: ``True``) - if True and if det=True, prune and minimize
-        - ``verb`` -- boolean (default: ``False``) to activate or desactivate the verbose mode
+        - ``verb`` -- boolean (default: ``False``) - to activate or desactivate the verbose mode
 
         OUTPUT:
 
@@ -2909,33 +2909,34 @@ cdef class FastAutomaton:
         sig_off()
         self.A = A
 
-    # Compute the transposition, assuming it is deterministic
-    def transpose_det(self):
+    # Compute the mirror, assuming it is deterministic
+    def mirror_det(self):
         """
-        Transposes :class:`FastAutomaton`, assuming the result to be deterministic
+        Return a :class:`FastAutomaton`, whose language is the mirror of the language of self.
+        Assume the result to be deterministic !!!
 
         OUTPUT:
 
-        Return the transposed :class:`FastAutomaton`
+        Return a :class:`FastAutomaton`
 
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.transpose_det()
+            sage: a.mirror_det()
             FastAutomaton with 4 states and an alphabet of 2 letters
 
         """
         r = FastAutomaton(None)
         sig_on()
-        r.a[0] = TransposeDet(self.a[0])
+        r.a[0] = MirrorDet(self.a[0])
         r.A = self.A
         sig_off()
         return r
 
-    def transpose(self):
+    def mirror(self):
         """
-        Transpose :class:`FastAutomaton` and return a ``NFastAutomaton``
-
+        Return a :class:`NFastAutomaton`, whose language is the mirror of the language of self.
+        
         OUTPUT:
 
         Return a :class:`NFastAutomaton`
@@ -2943,12 +2944,12 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.transpose()
+            sage: a.mirror()
             NFastAutomaton with 4 states and an alphabet of 2 letters
         """
         r = NFastAutomaton(None)
         sig_on()
-        r.a[0] = Transpose(self.a[0])
+        r.a[0] = Mirror(self.a[0])
         r.A = self.A
         sig_off()
         return r

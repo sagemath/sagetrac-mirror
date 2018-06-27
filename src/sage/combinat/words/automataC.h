@@ -140,11 +140,11 @@ Automaton ZeroInv (Automaton *a, int l0);
 //retire tous les états à partir desquels il n'y a pas de chemin infini
 Automaton prune_inf (Automaton a, bool verb);
 
-//Compute the transposition, assuming it is deterministic
-Automaton TransposeDet (Automaton a);
+//Compute the mirror, assuming it is deterministic
+Automaton MirrorDet (Automaton a);
 
-//Compute the transposition
-NAutomaton Transpose (Automaton a);
+//Compute the mirror
+NAutomaton Mirror (Automaton a);
 
 //Tarjan algorithm
 int StronglyConnectedComponents (Automaton a, int *res);

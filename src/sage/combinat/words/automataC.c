@@ -2569,8 +2569,8 @@ Automaton prune_inf(Automaton a, bool verb)
 	return r;
 }
 
-//Compute the transposition, assuming it is deterministic
-Automaton TransposeDet(Automaton a)
+//Compute the mirror, assuming it is deterministic
+Automaton MirrorDet(Automaton a)
 {
 	Automaton r = NewAutomaton(a.n, a.na);
 	int i,j;
@@ -2603,8 +2603,8 @@ Automaton TransposeDet(Automaton a)
 	return r;
 }
 
-//Compute the transposition
-NAutomaton Transpose(Automaton a)
+//Compute the mirror
+NAutomaton Mirror(Automaton a)
 {
 	NAutomaton r = NewNAutomaton(a.n, a.na);
 		
