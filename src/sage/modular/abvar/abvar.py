@@ -40,7 +40,7 @@ from sage.structure.parent_base import ParentWithBase
 from .morphism                   import HeckeOperator, Morphism, DegeneracyMap
 from .torsion_subgroup           import RationalTorsionSubgroup, QQbarTorsionSubgroup
 from .finite_subgroup            import (FiniteSubgroup_lattice, FiniteSubgroup, TorsionPoint)
-from .cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgroup, RationalCuspSubgroup
+from .cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgroup, RationalCuspSubgroup, RationalCuspidalSubgroupLigozat
 from sage.rings.all import ZZ, QQ, QQbar, Integer
 from sage.arith.all import LCM, divisors, prime_range, next_prime
 from sage.rings.ring import is_Ring
@@ -757,7 +757,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         if self.groups() != other.groups():
             # The issue here is that the stuff below probably won't make any sense at all if we don't know
-            # that the two newform abelian varieties $A_f$ are identical.
+            # that the two newform abelian varieties A_f are identical.
             raise NotImplementedError("_simple_isogeny only implemented when both abelian variety have the same ambient product Jacobian")
 
 
@@ -1311,12 +1311,11 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         for i in range(length):
             N = groups[i].level()
             if (M_ls[i]%N) and (N%M_ls[i]):
-                raise ValueError("one level must divide the other in %s-th component"%i)
+                raise ValueError("one level must divide the other in %s-th component" % i)
             if (( max(M_ls[i],N) // min(M_ls[i],N) ) % t_ls[i]):
                 raise ValueError("each t must divide the quotient of the levels")
 
         ls = [ self.groups()[i].modular_abelian_variety().degeneracy_map(M_ls[i], t_ls[i]).matrix() for i in range(length) ]
-
 
         new_codomain = prod([ self.groups()[i]._new_group_from_level(M_ls[i]).modular_abelian_variety()
                               for i in range(length) ])
@@ -1566,7 +1565,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         if not self.is_ambient():
             raise ValueError("self is not ambient")
         if n >= len(self.groups()):
-            raise IndexError("index (=%s) too large (max = %s)"%(n, len(self.groups())))
+            raise IndexError("index (=%s) too large (max = %s)" % (n, len(self.groups())))
 
         G = self.groups()[n]
         A = G.modular_abelian_variety()
@@ -1689,8 +1688,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         try:
             return self.__ambient_morphism
         except AttributeError:
-            matrix,_ = self.lattice().basis_matrix()._clear_denom()
-            phi = Morphism(self.Hom(self.ambient_variety()), matrix)
+            matrix1, _ = self.lattice().basis_matrix()._clear_denom()
+            phi = Morphism(self.Hom(self.ambient_variety()), matrix1)
             self.__ambient_morphism = phi
             return phi
 
@@ -2805,6 +2804,19 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             self._cuspidal_subgroup = T
             return T
 
+    def rational_cuspidal_subgroup_ligozat(self):
+        """
+        This function returns cuspidal subgroup using Ligozat's method.
+
+        Currently this is only implemented for `J_0(N)`.
+
+        EXAMPLES::
+
+            sage: J0(15).rational_cuspidal_subgroup_ligozat()
+            Finite subgroup with invariants (2, 4) over QQ of Abelian variety J0(15) of dimension 1
+        """
+        return RationalCuspidalSubgroupLigozat(self)
+
     def _ambient_cuspidal_subgroup(self, rational_only=False, rational_subgroup=False):
         """
         EXAMPLES::
@@ -2836,9 +2848,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
     def shimura_subgroup(self):
         r"""
         Return the Shimura subgroup of this modular abelian variety. This is
-        the kernel of $J_0(N) \rightarrow J_1(N)$ under the natural map.
+        the kernel of `J_0(N) \rightarrow J_1(N)` under the natural map.
         Here we compute the Shimura subgroup as the kernel of
-        $J_0(N) \rightarrow J_0(Np)$ where the map is the difference between the
+        `J_0(N) \rightarrow J_0(Np)` where the map is the difference between the
         two degeneracy maps.
 
         EXAMPLES::
@@ -3225,7 +3237,6 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             else:
                 raise ValueError("self must be simple")
 
-
     def is_simple(self, none_if_not_known=False):
         """
         Return whether or not this modular abelian variety is simple, i.e.,
@@ -3384,24 +3395,24 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                 # The hard case -- now we have to pull back the
                 # factorization
 
-                # Suppose $B$ is an abelian variety and there is a
-                # finite degree map $B\to J$, where $J$ is an ambient
+                # Suppose B is an abelian variety and there is a
+                # finite degree map B\to J, where J is an ambient
                 # Jacobian.  Suppose further that we find abelian
-                # subvarieties $E$ and $F$ of $J$ such that $E + F =
-                # J$, $E$ and $F$ have finite intersection, the
-                # composition $B \to J \to J/E$ is an isogeny, and we
-                # know an explicit decomposition of $F$.  Then we can
-                # compute a decomposition of $B$ as follows.  Let
-                # $L_E$ and $L_F$ be the lattices corresponding to $E$
-                # and $F$ inside of $L_J$.  Compute a matrix $\Phi$
-                # representing the composition $L_B \to L_J \to L_F
-                # \otimes \QQ$, where the map $L_J$ to $L_F\otimes
-                # \QQ$ is projection onto the second factor in the
-                # decomposition of $L_J$ as $L_E + L_F$ (up to finite
-                # index).  Finally, for each factor $A_i$ of $F$ with
-                # lattice $L_{A_i}$, compute the saturation $S_i$ of
-                # $\Phi^{-1}(L_{A_i})$.  Then the $S_i$ define a
-                # decomposition of $B$.
+                # subvarieties E and F of J such that E + F =
+                # J, E and F have finite intersection, the
+                # composition B \to J \to J/E is an isogeny, and we
+                # know an explicit decomposition of F.  Then we can
+                # compute a decomposition of B as follows.  Let
+                # L_E and L_F be the lattices corresponding to E
+                # and F inside of L_J.  Compute a matrix \Phi
+                # representing the composition L_B \to L_J \to L_F
+                # \otimes \QQ, where the map L_J to L_F\otimes
+                # \QQ is projection onto the second factor in the
+                # decomposition of L_J as L_E + L_F (up to finite
+                # index).  Finally, for each factor A_i of F with
+                # lattice L_{A_i}, compute the saturation S_i of
+                # \Phi^{-1}(L_{A_i}).  Then the S_i define a
+                # decomposition of B.
                 E = sum(Z_E, self.zero_subvariety())
                 L_B = self.lattice()
                 L_E = E.lattice()
@@ -3503,14 +3514,14 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         """
         # Decompose an arbitrary abelian variety
         amb = self.ambient_variety()
-        S   = self.vector_space()
+        S = self.vector_space()
         X = amb.decomposition(simple=simple, bound=bound)
         IN = []
         OUT = []
         V = 0
         last_dimension = 0
-        for j in range(len(X)):
-            V += X[j].vector_space()
+        for j, W in enumerate(X):
+            V += W.vector_space()
             d = S.intersection(V).dimension()
             if d > last_dimension:
                 IN.append(j)
@@ -3951,7 +3962,7 @@ class ModularAbelianVariety(ModularAbelianVariety_abstract):
             if lattice.base_ring() != ZZ:
                 raise TypeError("lattice must be over ZZ")
             if lattice.degree() != 2*n:
-                raise ValueError("lattice must have degree 2*n (=%s)"%(2*n))
+                raise ValueError("lattice must have degree 2*n (=%s)" % (2*n))
             if not lattice.saturation().is_submodule(lattice):  # potentially expensive
                 raise ValueError("lattice must be full")
         self.__lattice = lattice
@@ -4174,7 +4185,7 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
         """
         M = self._modular_symbols().modular_symbols_of_sign(sign)
         if (sign != 0 and M.dimension() != self.dimension()) or (sign == 0 and M.dimension() != 2*self.dimension()):
-            raise RuntimeError("unable to determine sign (=%s) space of modular symbols"%sign)
+            raise RuntimeError("unable to determine sign (=%s) space of modular symbols" % sign)
         return M
 
     def _compute_hecke_polynomial(self, n, var='x'):
@@ -4763,7 +4774,7 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
         if div == mul:
             cp = div
         else:
-            raise NotImplementedError("the Tamagawa number at %s is a power of 2, but the exact power can't be determined using known algorithms.  Consider using the tamagawa_number_bounds function instead."%p)
+            raise NotImplementedError("the Tamagawa number at %s is a power of 2, but the exact power can't be determined using known algorithms.  Consider using the tamagawa_number_bounds function instead." % p)
         self.__tamagawa_number[p] = cp
         return cp
 
@@ -4871,7 +4882,8 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
         p = Integer(p)
         if not is_Gamma0(self.group()):
             raise NotImplementedError("Brandt module only defined on Gamma0")
-        if not p.is_prime(): raise ValueError("p must be a prime integer")
+        if not p.is_prime():
+            raise ValueError("p must be a prime integer")
         if self.level().valuation(p) != 1:
             raise ValueError("p must exactly divide the level")
         M = self.level() / p
@@ -4898,7 +4910,7 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
                 D = [A for A in D if A.hecke_polynomial(q) == f]
                 q = next_prime(q)
             if len(D) != 1:
-                raise RuntimeError("unable to locate Brandt module (got %s candidates instead of 1)"%(len(D)))
+                raise RuntimeError("unable to locate Brandt module (got %s candidates instead of 1)" % (len(D)))
             V = D[0]
         self.__brandt_module[p] = V
         return V
@@ -4934,7 +4946,7 @@ def sqrt_poly(f):
     if not f.is_monic():
         raise ValueError("f must be monic")
     try:
-        return prod([g**Integer(e/Integer(2)) for g,e in f.factor()])
+        return prod([g**Integer(e/Integer(2)) for g, e in f.factor()])
     except TypeError:
         raise ValueError("f must be a perfect square")
 
