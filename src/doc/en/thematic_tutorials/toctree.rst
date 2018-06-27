@@ -4,8 +4,9 @@ Thematic tutorial document tree
 
 .. toctree::
    :maxdepth: 2
-
+  
    algebraic_combinatorics
+   language_automaton
    tutorial-notebook-and-help-long
    sandpile
    group_theory

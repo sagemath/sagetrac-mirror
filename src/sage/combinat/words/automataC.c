@@ -557,7 +557,7 @@ void NplotDot (const char *file, NAutomaton a, const char **labels, const char *
 	//system(tamp);
 }
 
-//determine if the automaton is complete (i.e. with his hole state)
+//determine if the automaton is complete (i.e. with his sink state)
 bool IsCompleteAutomaton (Automaton a)
 {
 	int i,j;
@@ -572,7 +572,7 @@ bool IsCompleteAutomaton (Automaton a)
 	return true;
 }
 
-//complete the automaton (i.e. add a hole state if necessary)
+//complete the automaton (i.e. add a sink state if necessary)
 //return true iff a state was added
 bool CompleteAutomaton (Automaton *a)
 {
@@ -597,7 +597,7 @@ bool CompleteAutomaton (Automaton *a)
 	}
 	if (!add_etat)
 		return false;
-	AddEtat(a, false); //add the hole state
+	AddEtat(a, false); //add the sink state
 	for (j=0;j<a->na;j++)
 	{
 		a->e[ne].f[j] = ne;
@@ -3107,14 +3107,8 @@ Automaton SubAutomaton(Automaton a, Dict d, bool verb)
 	return r;
 }
 
-/////////////////////////
-// 
-//  Tout le code qui suit est à tester !!!!!!!!!!!!!!!!!!!
-//
-/////////////////////////
-
-//permute les labels des arêtes
-//l donne les anciens indices à partir des nouveaux
+//permut labels of edges
+//l gives old indices from new ones
 Automaton Permut (Automaton a, int *l, int na, bool verb)
 {
 	if (verb)
@@ -3144,8 +3138,8 @@ Automaton Permut (Automaton a, int *l, int na, bool verb)
 	return r;
 }
 
-//permute les labels des arêtes SUR PLACE
-//l donne les anciens indices à partir des nouveaux
+//permut labels of edges ON PLACE
+//l gives old indices from new ones
 void PermutOP (Automaton a, int *l, int na, bool verb)
 {
 	if (verb)
@@ -3162,13 +3156,13 @@ void PermutOP (Automaton a, int *l, int na, bool verb)
 	int i,j;
 	for (i=0;i<a.n;i++)
 	{
-		//sauvegarde les arêtes
+		//save the edges
 		for (j=0;j<a.na;j++)
 		{
 			lf[j] = a.e[i].f[j];
 			a.e[i].f[j] = -1;
 		}
-		//met les nouvelles
+		//put the new ones
 		for (j=0;j<na;j++)
 		{		
 			if (l[j] != -1)
@@ -3182,17 +3176,17 @@ void PermutOP (Automaton a, int *l, int na, bool verb)
 
 typedef int Couple[2];
 
-int *partition; //state --> indice
-int *partitioni; //indice --> state
-int *class; //classe de chaque state
-Couple *class_indices; //intervalle d'indices de la classe
-int nclass = 0; //nb de classes
-Dict **transitioni; //inverse des transitions de l'automate : state, lettre --> liste d'states
-int *L; //liste des classes par rapport auxquelles il faut raffiner
-int nL; //nb d'éléments de L
-int *pt_visited_class; //premier indice non rencontré dans la classe
-int *visited_class; //liste des classes visitées dernièrement (utilisé dans split)
-int *etats; //states à parcourir
+int *partition; //state --> index
+int *partitioni; //index --> state
+int *class; //class of each state
+Couple *class_indices; //interval of indices of the class
+int nclass = 0; //nb of classes
+Dict **transitioni; //inverse of transitions of the automaton: state, letter --> list of states
+int *L; //list of class for which a refinement is needed
+int nL; //nb of elements of L
+int *pt_visited_class; //first non already seen index in the class
+int *visited_class; //list of classes just seen (used in split)
+int *states; //states to browse
 
 int global_n = 0;
 void print_partition ()
@@ -3214,7 +3208,7 @@ void print_partition ()
 
 void print_classes ()
 {
-	//affiche la liste des classes
+	//display the list of classes
 	int l,h,i,j;
 	for (i=0;i<nclass;i++)
 	{
@@ -3229,7 +3223,7 @@ void print_classes ()
 	}
 }
 
-//échange les states i et j
+//swap states i and j
 void swap (int i, int j)
 {
 	if (i == j)
@@ -3243,25 +3237,25 @@ void swap (int i, int j)
 
 void split (int C, int a, bool verb)
 {
-	//compute the préimage of C
+	//compute the preimage of C
 	int i,j,l,h, e, p, lp, ep, cp;
-	int nrc = 0; //nombre de classes rencontrées
+	int nrc = 0; //number of classes encountered
 	l = class_indices[C][0];
 	h = class_indices[C][1];
-	//copie la liste des sommets à parcourir (au cas où celle-ci soit modifiée pendant le parcours)
+	//copy the list of vertices to browse (in case of it would be modified during the browsing)
 	for (i=l;i<h;i++)
-	{ //parcours la classe C
-		etats[i] = partitioni[i]; //state d'indice i
+	{ //browse class C
+		states[i] = partitioni[i]; //state of index i
 	}
 	for (i=l;i<h;i++)
-	{ //parcours la classe C
-		e = etats[i]; //state d'indice i
+	{ //browse class C
+		e = states[i]; //state of index i
 		for (j=0;j<transitioni[e][a].n;j++)
-		{ //parcours l'image inverse de l'state e par la lettre a
+		{ //browse inverse image of state e by letter a
 			p = transitioni[e][a].e[j]; //parent
-			cp = class[p]; //classe de p
+			cp = class[p]; //class of p
 			if (!pt_visited_class[cp])
-			{ //la classe de p n'a pas encore été vue dans cet appel de split
+			{ //the class p has not been seen yet in this call of spilt
 				if (verb)
 					printf("new visited class : %d (%d parent of %d)\n", cp, p, e);
 				visited_class[nrc] = cp;
@@ -3272,24 +3266,21 @@ void split (int C, int a, bool verb)
 				if (verb)
 					printf("re-visited class : %d (%d parent of %d)\n", cp, p, e);
 			}
-			ep = pt_visited_class[cp]; //indice de l'élément à permuter avec p
+			ep = pt_visited_class[cp]; //index of the element to permut with p
 			if (ep > partition[p])
 			{
 				if (verb)
 					printf("vertex %d already seen\n", p);
-				continue; //on a déjà vu l'state p
+				continue; //we already saw the state p
 			}
-			ep = partitioni[ep]; //élément à permuter avec p
+			ep = partitioni[ep]; //element to permut with p
 			swap(ep, p);
 			pt_visited_class[cp]++;
-			//if (verb)
-			//	print_partition();
 		}
 	}
 	
 	if (verb)
 	{
-		//print_partition();
 		print_classes();
 		printf("%d class encountered\n", nrc);
 	}
@@ -3300,10 +3291,10 @@ void split (int C, int a, bool verb)
 		cp = visited_class[i];
 		
 		/////only for verification : to be avoided
-		if (pt_visited_class[cp] > class_indices[cp][1])
-		{
-			printf("***********\nError !!!\n***********\n");
-		}
+		//if (pt_visited_class[cp] > class_indices[cp][1])
+		//{
+		//	printf("***********\nError !!!\n***********\n");
+		//}
 		////
 		
 		l = class_indices[cp][0];
@@ -3314,53 +3305,53 @@ void split (int C, int a, bool verb)
 			printf("class %d : l = %d %d %d = h\n", cp, l, j, h);
 		
 		if (j < h)
-		{ //on doit ajouter une nouvelle classe
-			//choisi la plus petite classe
+		{ //we have to add a new class
+			//choose the smallest class
 			if (h - j > j - l)
-			{ //on choisi la partie gauche
-				class_indices[cp][0] = j; //l'ancienne classe devient la partie droite
+			{ //we choose the left part
+				class_indices[cp][0] = j; //the old class becomes the right part
 				class_indices[nclass][0] = l;
 				class_indices[nclass][1] = j;
 			}else
-			{ //on choisit la partie droite
-				class_indices[cp][1] = j; //l'ancienne classe devient la partie gauche
+			{ //we choose the right part
+				class_indices[cp][1] = j; //the old class becomes the left part
 				class_indices[nclass][0] = j;
 				class_indices[nclass][1] = h;
 			}
-			//met à jour les classes des sommets
+			//update classes of vertices
 			for (j=class_indices[nclass][0];j<class_indices[nclass][1];j++)
 			{
 				class[partitioni[j]] = nclass;
 			}
-			L[nL] = nclass; //ajoute la nouvelle classe à L
+			L[nL] = nclass; //add the new class to L
 			nL++;
 			nclass++;
 		}
 		
-		pt_visited_class[cp] = 0; //remet à 0
+		pt_visited_class[cp] = 0; //put back to 0
 	}
 }
 
-//minimisation par l'algo d'Hopcroft
-//voir "Around Hopcroft’s Algorithm" de Manuel BACLET and Claire PAGETTI
+//minimization by Hopcroft's Algorithm
+//see "Around Hopcroft’s Algorithm", Manuel BACLET and Claire PAGETTI
 Automaton Minimise(Automaton a, bool verb)
 {
 	if (verb)
 		global_n = a.n;
 	//allocations
-	transitioni = (Dict **)malloc(sizeof(Dict *)*(a.n+1)); //inverse des partitions
+	transitioni = (Dict **)malloc(sizeof(Dict *)*(a.n+1)); //inverse of partitions
 	partition = (int *)malloc(sizeof(int)*(a.n+1));
 	partitioni = (int *)malloc(sizeof(int)*(a.n+1));
-	class = (int *)malloc(sizeof(int)*(a.n+1)); //classe d'un state
+	class = (int *)malloc(sizeof(int)*(a.n+1)); //class of a state
 	nclass = 0;
 	class_indices = (Couple *)malloc(sizeof(Couple)*(a.n+1));
 	visited_class = (int *)malloc(sizeof(int)*(a.n+1));
 	pt_visited_class = (int *)malloc(sizeof(int)*(a.n+1));
-	etats = (int *)malloc(sizeof(int)*(a.n+1));
-	L = (int *)malloc(sizeof(int)*(a.n+1));	 //liste des classes à partir desquelles raffiner
+	states = (int *)malloc(sizeof(int)*(a.n+1));
+	L = (int *)malloc(sizeof(int)*(a.n+1));	 //list of classes for which a refinement is needed
 	nL = 0;
 	int i,j,f;
-	//initialise
+	//initialize
 	for (i=0;i<a.n+1;i++)
 	{
 		partition[i] = i;
@@ -3368,10 +3359,7 @@ Automaton Minimise(Automaton a, bool verb)
 		pt_visited_class[i] = 0;
 	}
 	
-	//if (verb)
-	//	print_partition();
-	
-	//initialise l'inverse des transitions
+	//initialize inverses of transitions
 	for (i=0;i<a.n+1;i++)
 	{
 		transitioni[i] = (Dict *)malloc(sizeof(Dict)*a.na);
@@ -3391,16 +3379,15 @@ Automaton Minimise(Automaton a, bool verb)
 				dictAdd(&transitioni[f][j], i);
 			}else
 			{
-				dictAdd(&transitioni[a.n][j], i); //state puits
+				dictAdd(&transitioni[a.n][j], i); //sink state
 			}
 		}
 	}
 	for (j=0;j<a.na;j++)
 	{
-		dictAdd(&transitioni[a.n][j], a.n); //transitions de l'state puits
+		dictAdd(&transitioni[a.n][j], a.n); //transitions of sink state
 	}
 	
-	/**/
 	if (verb)
 	{
 		for (i=0;i<a.n+1;i++)
@@ -3416,26 +3403,16 @@ Automaton Minimise(Automaton a, bool verb)
 			}
 		}
 	}
-	/**/
 	
-	//commence par séparer states finaux et non-finaux
-	f = 0; //count du nombre d'states finaux
+	//start by separating final and non-final states
+	f = 0; //count the final states
 	for (i=0;i<a.n;i++)
 	{
 		if (a.e[i].final)
 		{
 			class[i] = 0;
-			//printf("swap %d %d\n", partitioni[f], i);
 			swap(partitioni[f], i);
 			f++;
-			/*
-			if (verb)
-			{
-				printf("%d final\n", i);
-				print_partition();
-			}
-			
-			*/
 		}else
 			class[i] = 1;
 	}
@@ -3458,7 +3435,7 @@ Automaton Minimise(Automaton a, bool verb)
 		print_classes();
 	}
 	
-	//choisi la classe la plus petite
+	//choose the smallest class
 	if (f <= (a.n+1)/2)
 		L[0] = 0;
 	else
@@ -3469,10 +3446,10 @@ Automaton Minimise(Automaton a, bool verb)
 	int C; //current class
 	while (nL)
 	{
-		//retire la première classe de la liste L
+		//remove the first class from the list L
 		nL--;
 		C = L[nL];
-		//partionne selon cette classe
+		//partion according to this class
 		for (j=0;j<a.na;j++)
 		{
 			if (verb)
@@ -3487,14 +3464,14 @@ Automaton Minimise(Automaton a, bool verb)
 		print_classes();
 	}
 	
-	//créé le nouvel automate
+	//create the new automaton
 	int e;
 	Automate r = NewAutomaton(nclass, a.na);
 	for (i=0;i<nclass;i++)
 	{
-		e = partitioni[class_indices[i][0]]; //un state de la classe
+		e = partitioni[class_indices[i][0]]; //a state of the class
 		if (e >= a.n)
-		{ //state puits
+		{ //sink state
 			for (j=0;j<a.na;j++)
 				r.e[i].f[j] = -1;
 			r.e[i].final = false;
@@ -3527,16 +3504,16 @@ Automaton Minimise(Automaton a, bool verb)
 	else
 		r.i = -1;
 	
-	//retire l'state puits si pas présent dans l'automate initial
+	//remove the sink state if not present in the initial automaton
 	i = class[a.n];
 	if (class_indices[i][1] == class_indices[i][0]+1)
-	{ //il faut retirer l'state puits
+	{ //we have to remove the sink state
 		if (verb)
-			printf("removes the hole state  %d...\n", i);
+			printf("removes the sink state  %d...\n", i);
 		DeleteVertexOP(&r, i);
 	}
 	
-	//libère la mémoire
+	//free the memory
 	free(transitioni);
 	free(partition);
 	free(partitioni);
@@ -3544,31 +3521,15 @@ Automaton Minimise(Automaton a, bool verb)
 	free(class_indices);
 	free(visited_class);
 	free(pt_visited_class);
-	free(etats);
+	free(states);
 	free(L);
 	
 	return r;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
-
-/*
-int sign (int a)
-{
-	if (a > 0)
-		return 1;
-	if (a < 0)
-		return -1;
-	return 0;
-}
-
-int delta (int a)
-{
-	if (a)
-		return 1;
-	return 0;
-}
-*/
+// End of the implementation of the Hopcroft's algorithm
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 void DeleteVertexOP(Automaton *a, int e)
 {
@@ -3644,7 +3605,3 @@ Automaton BiggerAlphabet (Automaton a, Dict d, int nna)
 	return r;
 }
 
-void Test ()
-{
-	printf("sizeof(Automaton)=%ld\n", sizeof(Automaton));
-}
