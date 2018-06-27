@@ -37,13 +37,14 @@ from sage.combinat.set_partition import SetPartitions, AbstractSetPartition
 from sage.combinat.perfect_matching import PerfectMatchings
 from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra_n
 from sage.combinat.permutation import Permutations
+from sage.combinat.subset import Subsets
 from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.flatten import flatten
 from sage.misc.misc_c import prod
 from sage.rings.all import ZZ, QQ
-from sage.functions.other import ceil
+from sage.functions.other import ceil, factorial, binomial
 
 import itertools
 
@@ -130,6 +131,130 @@ def brauer_diagrams(k):
         S = PerfectMatchings(list(range(1, k)) + list(range(-k+1,0)))
         for p in S:
             yield list(p) + [[k, -k]]
+
+def permutation_diagrams(k):
+    r"""
+    Return a generator of all permutation diagrams of order ``k``.
+
+    A permutation diagram of order `k` is a partition diagram of
+    order `k` with block size 2 and every block contains a positive
+    and a negative element.
+
+    INPUT:
+
+    - ``k`` -- the order of the permutation diagrams
+
+    EXAMPLES::
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: [SetPartition(p) for p in da.permutation_diagrams(2)]
+        [{{-2, 2}, {-1, 1}}, {{-2, 1}, {-1, 2}}]
+        sage: [SetPartition(p) for p in da.permutation_diagrams(5/2)]
+        [{{-3, 3}, {-2, 2}, {-1, 1}}, {{-3, 3}, {-2, 1}, {-1, 2}}]
+
+    """
+    if k in ZZ:
+        k = ZZ(k)
+        S = Permutations(k)
+        for p in S:
+            yield [[-i-1, p[i]] for i in range(k)]
+    elif k + ZZ(1) / ZZ(2) in ZZ: # Else k in 1/2 ZZ
+        k = ZZ(k + ZZ(1) / ZZ(2))
+        S = Permutations(k-1)
+        for p in S:
+            yield [[-i-1, p[i]] for i in range(k-1)] + [[k, -k]]
+
+def rook_diagrams(k):
+    r"""
+    Return a generator of all rook diagrams of order ``k``.
+
+    A rook diagram of order `k` is a partition diagram of order `k`
+    such that every block contains at most one positive and at most
+    one negative element.
+
+    INPUT:
+
+    - ``k`` -- the order of the rook diagrams
+
+    EXAMPLES::
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: [SetPartition(p) for p in da.rook_diagrams(2)]
+        [{{-2}, {-1}, {1}, {2}},
+         {{-2, 1}, {-1}, {2}},
+         {{-2}, {-1, 1}, {2}},
+         {{-2, 2}, {-1}, {1}},
+         {{-2}, {-1, 2}, {1}},
+         {{-2, 2}, {-1, 1}},
+         {{-2, 1}, {-1, 2}}]
+        sage: [SetPartition(p) for p in da.rook_diagrams(5/2)]
+        [{{-3, 3}, {-2}, {-1}, {1}, {2}},
+         {{-3, 3}, {-2, 1}, {-1}, {2}},
+         {{-3, 3}, {-2}, {-1, 1}, {2}},
+         {{-3, 3}, {-2, 2}, {-1}, {1}},
+         {{-3, 3}, {-2}, {-1, 2}, {1}},
+         {{-3, 3}, {-2, 2}, {-1, 1}},
+         {{-3, 3}, {-2, 1}, {-1, 2}}]
+
+    """
+    if k in ZZ:
+        k = ZZ(k)
+        extra = []
+    elif k + ZZ(1) / ZZ(2) in ZZ: # Else k in 1/2 ZZ
+        k = ZZ(k + ZZ(1) / ZZ(2))
+        extra = [[k,-k]]
+        k -= 1
+
+    positives = set(range(1, k+1))
+    negatives = set([-i for i in positives])
+
+    # construct a matching of n elements in the positive row with
+    # n elements in the negative row
+    for n in range(k+1):
+        for top in Subsets(positives, n):
+            t = list(top)
+            rest_t = [[i] for i in positives.difference(top)]
+            for bottom in Subsets(negatives, n):
+                b = list(bottom)
+                rest_b = [[i] for i in negatives.difference(bottom)]
+                for pi in Permutations(n):
+                    l = ([[t[i], b[pi[i] - 1]] for i in range(n)] + rest_t + rest_b + extra)
+                    yield l
+
+def planar_rook_diagrams(k):
+    r"""
+    Return a generator of all planar rook diagrams of order ``k``.
+
+    A planar rook diagram of order `k` is a partition diagram of
+    order `k` such that every block contains at most one positive and
+    at most one negative element, and which is planar.
+
+    INPUT:
+
+    - ``k`` -- the order of the planar rook diagrams
+
+    EXAMPLES::
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: [SetPartition(p) for p in da.planar_rook_diagrams(2)]
+        [{{-2}, {-1}, {1}, {2}},
+         {{-2, 1}, {-1}, {2}},
+         {{-2}, {-1, 1}, {2}},
+         {{-2, 2}, {-1}, {1}},
+         {{-2}, {-1, 2}, {1}},
+         {{-2, 2}, {-1, 1}}]
+        sage: [SetPartition(p) for p in da.planar_rook_diagrams(5/2)]
+        [{{-3, 3}, {-2}, {-1}, {1}, {2}},
+         {{-3, 3}, {-2, 1}, {-1}, {2}},
+         {{-3, 3}, {-2}, {-1, 1}, {2}},
+         {{-3, 3}, {-2, 2}, {-1}, {1}},
+         {{-3, 3}, {-2}, {-1, 2}, {1}},
+         {{-3, 3}, {-2, 2}, {-1, 1}}]
+
+    """
+    for i in rook_diagrams(k):
+        if is_planar(i):
+            yield i
 
 def temperley_lieb_diagrams(k):
     r"""
@@ -1042,6 +1167,223 @@ class BrauerDiagram(AbstractPartitionDiagram):
         D2 = sorted(sorted(abs(y) for y in x) for x in D2)
         return D1 == D2 and pi == list(range(1,len(pi)+1))
 
+class PermutationDiagram(AbstractPartitionDiagram):
+    r"""
+    A permutation diagram.
+
+    A permutation diagram for an integer `k` is a partition of the
+    set `\{1, \ldots, k, -1, \ldots, -k\}` with block size 2, such
+    that every block contains a positive and a negative element.
+
+    EXAMPLES::
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: pd = da.PermutationDiagrams(2)
+        sage: pd1 = pd([[1,-2],[2,-1]])
+        sage: pd2 = pd([[1,2],[-1,-2]])
+        Traceback (most recent call last):
+        ...
+        ValueError: all blocks of {{-2, -1}, {1, 2}} must contain a positive and a negative element
+
+    TESTS::
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: pd = da.PermutationDiagrams(2)( ((-2,1),(-1,2)) )
+        sage: TestSuite(pd).run()
+
+    """
+    @staticmethod
+    def __classcall_private__(cls, diag):
+        """
+        Normalize input to initialize diagram.
+
+        The order of the diagram element is the maximum value found in
+        the list of lists.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram_algebras import PermutationDiagram
+            sage: pd = PermutationDiagram([[1,-1]]); pd
+            {{-1, 1}}
+            sage: pd.parent()
+            Permutation diagrams of order 1
+        """
+        order = max(v for p in diag for v in p)
+        BD = PermutationDiagrams(order)
+        return BD(diag)
+
+    def check(self):
+        r"""
+        Check the validity of the input for ``self``.
+
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.PermutationDiagrams(2)
+            sage: pd1 = pd([[1,-2],[2,-1]])  # indirect doctest
+            sage: pd2 = pd([[1,2,-1,-2]])    # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: all blocks of {{-2, -1, 1, 2}} must be of size 2
+            sage: pd2 = pd([[1,2],[-1,-2]])    # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: all blocks of {{-2, -1}, {1, 2}} must contain a positive and a negative element
+        """
+        super(PermutationDiagram, self).check()
+        if any(len(block) != 2 for block in self):
+            raise ValueError("all blocks of %s must be of size 2"%(self))
+        if not all(min(i) < 0 < max(i) for i in self):
+            raise ValueError("all blocks of %s must contain a positive and a negative element"%(self))
+
+class RookDiagram(AbstractPartitionDiagram):
+    r"""
+    A rook diagram.
+
+    A rook diagram for an integer `k` is a partition of the set `\{1,
+    \ldots, k, -1, \ldots, -k\}` with block of size at most 2, such
+    that every block contains at most one positive and at most one
+    negative element.
+
+    Thus, these diagrams are partial permutations of `\{1, \ldots,
+    k\}`.
+
+    EXAMPLES::
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: rd = da.RookDiagrams(2)
+        sage: rd1 = rd([[1,-2],[2,-1]])
+        sage: rd2 = rd([[1,2],[-1,-2]])
+        Traceback (most recent call last):
+        ...
+        ValueError: all blocks of {{-2, -1}, {1, 2}} must contain at most one positive and at most one negative element
+
+    TESTS::
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: rd = da.RookDiagrams(2)( ((-2,1),(-1,2)) )
+        sage: TestSuite(rd).run()
+
+    """
+    @staticmethod
+    def __classcall_private__(cls, diag):
+        """
+        Normalize input to initialize diagram.
+
+        The order of the diagram element is the maximum value found in
+        the list of lists.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram_algebras import RookDiagram
+            sage: rd = RookDiagram([[1,-1]]); rd
+            {{-1, 1}}
+            sage: rd.parent()
+            Rook diagrams of order 1
+        """
+        order = max(v for p in diag for v in p)
+        BD = RookDiagrams(order)
+        return BD(diag)
+
+    def check(self):
+        r"""
+        Check the validity of the input for ``self``.
+
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.RookDiagrams(2)
+            sage: rd = pd([[1,-2],[2,-1]])  # indirect doctest
+            sage: rd = pd([[1,2],[-1,-2]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: all blocks of {{-2, -1}, {1, 2}} must contain at most one positive and at most one negative element
+            sage: rd = pd([[1,2,-1,-2]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: all blocks of {{-2, -1, 1, 2}} must contain at most one positive and at most one negative element
+        """
+        super(RookDiagram, self).check()
+        if not all(len(b) < 2 or (len(b) == 2 and min(b) < 0 < max(b)) for b in self):
+            raise ValueError("all blocks of %s must contain at most one positive and at most one negative element"%(self))
+
+class PlanarRookDiagram(AbstractPartitionDiagram):
+    r"""
+    A planar rook diagram.
+
+    A planar rook diagram for an integer `k` is a partition of the
+    set `\{1, \ldots, k, -1, \ldots, -k\}` with block of size at most
+    2, such that every block contains at most one positive and at
+    most one negative element, and which is planar.
+
+    Thus, these diagrams are planar partial permutations of `\{1,
+    \ldots, k\}`.
+
+    EXAMPLES::
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: prd = da.PlanarRookDiagrams(2)
+        sage: d = prd([[1,-1],[2,-2]])
+        sage: d = prd([[1,2],[-1,-2]])
+        Traceback (most recent call last):
+        ...
+        ValueError: all blocks of {{-2, -1}, {1, 2}} must contain at most one positive and at most one negative element
+
+    TESTS::
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: d = da.PlanarRookDiagrams(3)([[1,-2],[2],[3,-2],[-1],[-3]])
+        sage: TestSuite(d).run()
+
+    """
+    @staticmethod
+    def __classcall_private__(cls, diag):
+        """
+        Normalize input to initialize diagram.
+
+        The order of the diagram element is the maximum value found in
+        the list of lists.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram_algebras import RookDiagram
+            sage: rd = RookDiagram([[1,-1]]); rd
+            {{-1, 1}}
+            sage: rd.parent()
+            Rook diagrams of order 1
+        """
+        order = max(v for p in diag for v in p)
+        BD = RookDiagrams(order)
+        return BD(diag)
+
+    def check(self):
+        r"""
+        Check the validity of the input for ``self``.
+
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: prd = da.PlanarRookDiagrams(2)
+            sage: d = prd([[1,-1],[2,-2]])  # indirect doctest
+            sage: d = prd([[1,2],[-1,-2]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: all blocks of {{-2, -1}, {1, 2}} must contain at most one positive and at most one negative element
+            sage: d = prd([[1,2,-1,-2]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: all blocks of {{-2, -1, 1, 2}} must contain at most one positive and at most one negative element
+            sage: d = prd([[1,-2],[2,-1]]) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: the diagram {{-2, 1}, {-1, 2}} must be planar
+        """
+        super(PlanarRookDiagram, self).check()
+        if not all(len(b) < 2 or (len(b) == 2 and min(b) < 0 < max(b)) for b in self):
+            raise ValueError("all blocks of %s must contain at most one positive and at most one negative element"%(self))
+        if not self.is_planar():
+            raise ValueError("the diagram %s must be planar"%(self))
+
 class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
     r"""
     This is an abstract base class for partition diagrams.
@@ -1539,6 +1881,206 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         Perm = [[dom[i], -rng[val-1]] for i,val in enumerate(pi)]
         SP = SP0 + Perm
         return self(SP) # could pass 'SetPartition' ?
+
+class PermutationDiagrams(AbstractPartitionDiagrams):
+    r"""
+    All permutation diagrams of integer or integer `+1/2` order.
+
+    EXAMPLES::
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: pd = da.PermutationDiagrams(3); pd
+        Permutation diagrams of order 3
+        sage: pd.list()
+        [{{-3, 3}, {-2, 2}, {-1, 1}},
+         {{-3, 2}, {-2, 3}, {-1, 1}},
+         {{-3, 3}, {-2, 1}, {-1, 2}},
+         {{-3, 1}, {-2, 3}, {-1, 2}},
+         {{-3, 2}, {-2, 1}, {-1, 3}},
+         {{-3, 1}, {-2, 2}, {-1, 3}}]
+
+        sage: pd = da.PermutationDiagrams(5/2); pd
+        Permutation diagrams of order 5/2
+        sage: pd.list()
+        [{{-3, 3}, {-2, 2}, {-1, 1}}, {{-3, 3}, {-2, 1}, {-1, 2}}]
+
+    TESTS::
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: pd = da.PermutationDiagrams(3)
+        sage: pd.an_element() in pd
+        True
+        sage: pd.cardinality() == len(pd.list())
+        True
+
+        sage: pd = da.PermutationDiagrams(7/2)
+        sage: pd.an_element() in pd
+        True
+        sage: pd.cardinality() == len(pd.list())
+        True
+    """
+    Element = PermutationDiagram
+    _name = "Permutation"
+    _diagram_func = permutation_diagrams
+
+    def cardinality(self):
+        r"""
+        Return the cardinality of ``self``.
+
+        The number of permutation diagrams of integer order `k` is
+        `k!`.
+
+        EXAMPLES::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.PermutationDiagrams(3)
+            sage: pd.cardinality()
+            6
+
+        """
+        if self.order in ZZ:
+            k = ZZ(self.order)
+        else:
+            k = ZZ(self.order-ZZ(1)/ZZ(2))
+        return factorial(k)
+
+class RookDiagrams(AbstractPartitionDiagrams):
+    r"""
+    All rook diagrams of integer or integer `+1/2` order.
+
+    EXAMPLES::
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: rd = da.RookDiagrams(2); rd
+        Rook diagrams of order 2
+        sage: rd.list()
+        [{{-2}, {-1}, {1}, {2}},
+         {{-2, 1}, {-1}, {2}},
+         {{-2}, {-1, 1}, {2}},
+         {{-2, 2}, {-1}, {1}},
+         {{-2}, {-1, 2}, {1}},
+         {{-2, 2}, {-1, 1}},
+         {{-2, 1}, {-1, 2}}]
+
+        sage: rd = da.RookDiagrams(5/2); rd
+        Rook diagrams of order 5/2
+        sage: rd.list()
+        [{{-3, 3}, {-2}, {-1}, {1}, {2}},
+         {{-3, 3}, {-2, 1}, {-1}, {2}},
+         {{-3, 3}, {-2}, {-1, 1}, {2}},
+         {{-3, 3}, {-2, 2}, {-1}, {1}},
+         {{-3, 3}, {-2}, {-1, 2}, {1}},
+         {{-3, 3}, {-2, 2}, {-1, 1}},
+         {{-3, 3}, {-2, 1}, {-1, 2}}]
+
+    TESTS::
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: rd = da.RookDiagrams(3)
+        sage: rd.an_element() in rd
+        True
+        sage: rd.cardinality() == len(rd.list())
+        True
+
+        sage: rd = da.RookDiagrams(7/2)
+        sage: rd.an_element() in rd
+        True
+        sage: rd.cardinality() == len(rd.list())
+        True
+    """
+    Element = RookDiagram
+    _name = "Rook"
+    _diagram_func = rook_diagrams
+
+    def cardinality(self):
+        r"""
+        Return the cardinality of ``self``.
+
+        The number of rook diagrams of integer order `k` is
+        `\sum_l \binom{k}{l}^2 l!`.
+
+        EXAMPLES::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.RookDiagrams(2)
+            sage: pd.cardinality()
+            7
+
+        """
+        if self.order in ZZ:
+            k = ZZ(self.order)
+        else:
+            k = ZZ(self.order - ZZ(1)/ZZ(2))
+        return sum( [ binomial(k, l)**2*factorial(l) for l in range(k + 1) ] )
+
+class PlanarRookDiagrams(AbstractPartitionDiagrams):
+    r"""
+    All planar rook diagrams of integer or integer `+1/2` order.
+
+    EXAMPLES::
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: prd = da.PlanarRookDiagrams(2); prd
+        Planar rook diagrams of order 2
+        sage: prd.list()
+        [{{-2}, {-1}, {1}, {2}},
+         {{-2, 1}, {-1}, {2}},
+         {{-2}, {-1, 1}, {2}},
+         {{-2, 2}, {-1}, {1}},
+         {{-2}, {-1, 2}, {1}},
+         {{-2, 2}, {-1, 1}}]
+
+        sage: prd = da.PlanarRookDiagrams(5/2); prd
+        Planar rook diagrams of order 5/2
+        sage: prd.list()
+        [{{-3, 3}, {-2}, {-1}, {1}, {2}},
+         {{-3, 3}, {-2, 1}, {-1}, {2}},
+         {{-3, 3}, {-2}, {-1, 1}, {2}},
+         {{-3, 3}, {-2, 2}, {-1}, {1}},
+         {{-3, 3}, {-2}, {-1, 2}, {1}},
+         {{-3, 3}, {-2, 2}, {-1, 1}}]
+
+    TESTS::
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: prd = da.PlanarRookDiagrams(3)
+        sage: prd.an_element() in prd
+        True
+        sage: prd.cardinality() == len(prd.list())
+        True
+
+        sage: prd = da.PermutationDiagrams(7/2)
+        sage: prd.an_element() in prd
+        True
+        sage: prd.cardinality() == len(prd.list())
+        True
+    """
+    Element = PlanarRookDiagram
+    _name = "Planar rook"
+    _diagram_func = planar_rook_diagrams
+
+    def cardinality(self):
+        r"""
+        Return the cardinality of ``self``.
+
+        The number of planar rook diagrams of integer order `k` is `2^k (2k-1)!!/k!`.
+
+        EXAMPLES::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: prd = da.PlanarRookDiagrams(4)
+            sage: prd.cardinality()
+            70
+
+            sage: prd = da.PlanarRookDiagrams(7/2)
+            sage: prd.cardinality()
+            20
+        """
+        if self.order in ZZ:
+            k = ZZ(self.order)
+        else:
+            k = ZZ(self.order-ZZ(1)/ZZ(2))
+        return 2**k*(2*k-1).multifactorial(2)/factorial(k)
 
 class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
     r"""

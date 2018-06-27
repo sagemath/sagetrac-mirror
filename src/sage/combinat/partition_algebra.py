@@ -18,15 +18,15 @@ Partition/Diagram Algebras
 from __future__ import absolute_import
 from six.moves import range
 
-from .combinat import catalan_number
-from .combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
+from sage.combinat.combinat import catalan_number
+from sage.combinat.combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
 from sage.combinat.set_partition import SetPartition, SetPartitions, SetPartitions_set
 from sage.sets.set import Set, Set_generic
 from sage.graphs.graph import Graph
 from sage.arith.all import factorial, binomial
-from .permutation import Permutations
+from sage.combinat.permutation import Permutations
 from sage.rings.all import ZZ, QQ
-from .subset import Subsets
+from sage.combinat.subset import Subsets
 from sage.functions.all import ceil
 
 
@@ -86,7 +86,7 @@ class SetPartitionsXkElement(SetPartition):
             {{-3, -2, -1, 1, 2, 3}}
             sage: x.check()
             sage: y = A2p5.next(x); y
-            {{-3, -1, 1, 2, 3}, {-2}}
+            {{-3, -2, 1, 2, 3}, {-1}}
             sage: y.check()
         """
         #Check to make sure each element of x is a set
@@ -99,12 +99,17 @@ class SetPartitionsXkElement(SetPartition):
 
 def SetPartitionsAk(k):
     r"""
+    ``SetPartitionsAk`` is deprecated; use :class:`PartitionDiagrams`
+    instead.
+
     Return the combinatorial class of set partitions of type `A_k`.
 
     EXAMPLES::
 
         sage: A3 = SetPartitionsAk(3); A3
-        Set partitions of {1, ..., 3, -1, ..., -3}
+        doctest:...: DeprecationWarning: SetPartitionsAk is deprecated; use PartitionDiagrams instead
+        See http://trac.sagemath.org/25637 for details.
+        Partition diagrams of order 3
 
         sage: A3.first() #random
         {{1, 2, 3, -1, -3, -2}}
@@ -127,11 +132,12 @@ def SetPartitionsAk(k):
         {{-1}, {-2}, {2}, {3, -3}, {1}}
         sage: A2p5.random_element() #random
         {{-1}, {-2}, {3, -3}, {1, 2}}
+
     """
-    is_int, k = _int_or_half_int(k)
-    if not is_int:
-        return SetPartitionsAkhalf_k(k)
-    return SetPartitionsAk_k(k)
+    from sage.misc.superseded import deprecation
+    deprecation(25637, "SetPartitionsAk is deprecated; use PartitionDiagrams instead")
+    from sage.combinat.diagram_algebras import PartitionDiagrams
+    return PartitionDiagrams(k)
 
 class SetPartitionsAk_k(SetPartitions_set):
     def __init__(self, k):
@@ -139,7 +145,10 @@ class SetPartitionsAk_k(SetPartitions_set):
         TESTS::
 
             sage: A3 = SetPartitionsAk(3); A3
-            Set partitions of {1, ..., 3, -1, ..., -3}
+            doctest:...: DeprecationWarning: SetPartitionsAk is deprecated; use PartitionDiagrams instead
+            See http://trac.sagemath.org/25637 for details.
+            Partition diagrams of order 3
+
             sage: A3 == loads(dumps(A3))
             True
         """
@@ -238,6 +247,9 @@ class SetPartitionsAkhalf_k(SetPartitions_set):
 
 def SetPartitionsSk(k):
     r"""
+    ``SetPartitionsSk`` is deprecated; use
+    :class:`PermutationDiagrams` instead.
+
     Return the combinatorial class of set partitions of type `S_k`.
 
     There is a bijection between these set partitions and the
@@ -282,11 +294,12 @@ def SetPartitionsSk(k):
         {{1, -3}, {2, -2}, {4, -4}, {3, -1}}
         sage: S3p5.random_element() #random
         {{1, -3}, {2, -2}, {4, -4}, {3, -1}}
+
     """
-    is_int, k = _int_or_half_int(k)
-    if not is_int:
-        return SetPartitionsSkhalf_k(k)
-    return SetPartitionsSk_k(k)
+    from sage.misc.superseded import deprecation
+    deprecation(25637, "SetPartitionsSk is deprecated; use PermutationDiagrams instead")
+    from sage.combinat.diagram_algebras import PermutationDiagrams
+    return PermutationDiagrams(k)
 
 class SetPartitionsSk_k(SetPartitionsAk_k):
     def _repr_(self):
@@ -434,6 +447,9 @@ class SetPartitionsSkhalf_k(SetPartitionsAkhalf_k):
 
 def SetPartitionsIk(k):
     r"""
+    ``SetPartitionsIk`` is deprecated; use :class:`IdealDiagrams`
+    instead.
+
     Return the combinatorial class of set partitions of type `I_k`.
 
     These are set partitions with a propagating number of less than `k`.
@@ -466,10 +482,10 @@ def SetPartitionsIk(k):
         sage: I2p5.random_element() #random
         {{-1}, {-2}, {1, 3, -3}, {2}}
     """
-    is_int, k = _int_or_half_int(k)
-    if not is_int:
-        return SetPartitionsIkhalf_k(k)
-    return SetPartitionsIk_k(k)
+    from sage.misc.superseded import deprecation
+    deprecation(25637, "SetPartitionsIk is deprecated; use IdealDiagrams instead")
+    from sage.combinat.diagram_algebras import IdealDiagrams
+    return IdealDiagrams(k)
 
 class SetPartitionsIk_k(SetPartitionsAk_k):
     def _repr_(self):
@@ -594,6 +610,9 @@ class SetPartitionsIkhalf_k(SetPartitionsAkhalf_k):
 
 def SetPartitionsBk(k):
     r"""
+    ``SetPartitionsBk`` is deprecated; use :class:`BrauerDiagrams`
+    instead.
+
     Return the combinatorial class of set partitions of type `B_k`.
 
     These are the set partitions where every block has size 2.
@@ -626,10 +645,10 @@ def SetPartitionsBk(k):
         sage: B2p5.cardinality()
         3
     """
-    is_int, k = _int_or_half_int(k)
-    if not is_int:
-        return SetPartitionsBkhalf_k(k)
-    return SetPartitionsBk_k(k)
+    from sage.misc.superseded import deprecation
+    deprecation(25637, "SetPartitionsBk is deprecated; use BrauerDiagrams instead")
+    from sage.combinat.diagram_algebras import BrauerDiagrams
+    return BrauerDiagrams(k)
 
 class SetPartitionsBk_k(SetPartitionsAk_k):
     def _repr_(self):
@@ -803,6 +822,9 @@ class SetPartitionsBkhalf_k(SetPartitionsAkhalf_k):
 
 def SetPartitionsPk(k):
     r"""
+    ``SetPartitionsPk`` is deprecated; use :class:`PlanarDiagrams`
+    instead.
+
     Return the combinatorial class of set partitions of type `P_k`.
 
     These are the planar set partitions.
@@ -834,10 +856,10 @@ def SetPartitionsPk(k):
         {{1, 2, 3, -3}, {-1, -2}}
 
     """
-    is_int, k = _int_or_half_int(k)
-    if not is_int:
-        return SetPartitionsPkhalf_k(k)
-    return SetPartitionsPk_k(k)
+    from sage.misc.superseded import deprecation
+    deprecation(25637, "SetPartitionsPk is deprecated; use PlanarDiagrams instead")
+    from sage.combinat.diagram_algebras import PlanarDiagrams
+    return PlanarDiagrams(k)
 
 class SetPartitionsPk_k(SetPartitionsAk_k):
     def _repr_(self):
@@ -970,6 +992,9 @@ class SetPartitionsPkhalf_k(SetPartitionsAkhalf_k):
 
 def SetPartitionsTk(k):
     r"""
+    ``SetPartitionsTk`` is deprecated; use :class:`TemperleyLiebDiagrams`
+    instead.
+
     Return the combinatorial class of set partitions of type `T_k`.
 
     These are planar set partitions where every block is of size 2.
@@ -998,10 +1023,10 @@ def SetPartitionsTk(k):
         sage: T2p5.last() #random
         {{1, 2}, {3, -3}, {-1, -2}}
     """
-    is_int, k = _int_or_half_int(k)
-    if not is_int:
-        return SetPartitionsTkhalf_k(k)
-    return SetPartitionsTk_k(k)
+    from sage.misc.superseded import deprecation
+    deprecation(25637, "SetPartitionsTk is deprecated; use TemperleyLiebDiagrams instead")
+    from sage.combinat.diagram_algebras import TemperleyLiebDiagrams
+    return TemperleyLiebDiagrams(k)
 
 class SetPartitionsTk_k(SetPartitionsBk_k):
     def _repr_(self):
@@ -1122,10 +1147,11 @@ class SetPartitionsTkhalf_k(SetPartitionsBkhalf_k):
             if is_planar(sp):
                 yield self.element_class(self, sp)
 
-
-
 def SetPartitionsRk(k):
     r"""
+    ``SetPartitionsRk`` is deprecated; use :class:`RookDiagrams`
+    instead.
+
     Return the combinatorial class of set partitions of type `R_k`.
 
     EXAMPLES::
@@ -1134,10 +1160,10 @@ def SetPartitionsRk(k):
         Set partitions of {1, ..., 3, -1, ..., -3} with at most 1 positive
          and negative entry in each block
     """
-    is_int, k = _int_or_half_int(k)
-    if not is_int:
-        return SetPartitionsRkhalf_k(k)
-    return SetPartitionsRk_k(k)
+    from sage.misc.superseded import deprecation
+    deprecation(25637, "SetPartitionsRk is deprecated; use RookDiagrams instead")
+    from sage.combinat.diagram_algebras import RookDiagrams
+    return RookDiagrams(k)
 
 class SetPartitionsRk_k(SetPartitionsAk_k):
     def __init__(self, k):
@@ -1319,6 +1345,9 @@ class SetPartitionsRkhalf_k(SetPartitionsAkhalf_k):
 
 def SetPartitionsPRk(k):
     r"""
+    ``SetPartitionsPRk`` is deprecated; use :class:`PlanarRookDiagrams`
+    instead.
+
     Return the combinatorial class of set partitions of type `PR_k`.
 
     EXAMPLES::
@@ -1327,10 +1356,10 @@ def SetPartitionsPRk(k):
         Set partitions of {1, ..., 3, -1, ..., -3} with at most 1 positive
          and negative entry in each block and that are planar
     """
-    is_int, k = _int_or_half_int(k)
-    if not is_int:
-        return SetPartitionsPRkhalf_k(k)
-    return SetPartitionsPRk_k(k)
+    from sage.misc.superseded import deprecation
+    deprecation(25637, "SetPartitionsPRk is deprecated; use PlanarRookDiagrams instead")
+    from sage.combinat.diagram_algebras import PlanarRookDiagrams
+    return PlanarRookDiagrams(k)
 
 class SetPartitionsPRk_k(SetPartitionsRk_k):
     def __init__(self, k):
@@ -1933,4 +1962,3 @@ def set_partition_composition(sp1, sp2):
 
 
     return ( Set(res), total_removed )
-
