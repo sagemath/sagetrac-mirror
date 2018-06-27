@@ -1077,7 +1077,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         """
         from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
         return PseudoRiemannianMetric(self, name, signature=signature,
-                                      latex_name=latex_name)
+                                      latex_name=latex_name, comp=comp)
 
 
 #******************************************************************************
@@ -2192,5 +2192,5 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         """
         from sage.manifolds.differentiable.metric import \
                                                     PseudoRiemannianMetricParal
-        return PseudoRiemannianMetricParal(self, name,
+        return PseudoRiemannianMetricParal(self, name, signature=signature,
                                            latex_name=latex_name, comp=comp)

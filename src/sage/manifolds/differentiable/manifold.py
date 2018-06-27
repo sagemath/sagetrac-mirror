@@ -3214,7 +3214,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         See
         :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
-        for a complete documentation.
+u99        for a complete documentation.
 
         INPUT:
 
@@ -3345,12 +3345,9 @@ class DifferentiableManifold(TopologicalManifold):
         dim = vmodule.ambient_domain().dimension()
         if signature=='positive':
             signat = dim - 2
-            index = 1
         else:
             signat = 2 - dim
-            index = dim - 1
-        return vmodule.metric(name, signature=signat, latex_name=latex_name,
-                              comp=index)
+        return vmodule.metric(name, signature=signat, latex_name=latex_name)
 
     def lorentz_metric(self, name, signature='positive', latex_name=None,
                        dest_map=None):
@@ -3373,3 +3370,4 @@ class DifferentiableManifold(TopologicalManifold):
         deprecation(19209, 'Use lorentzian_metric() instead.')
         return self.lorentzian_metric(name, signature=signature,
                                       latex_name=latex_name, dest_map=dest_map)
+        

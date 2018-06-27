@@ -83,6 +83,15 @@ class PseudoRiemannianMetric(TensorField):
       set to the dimension of manifold `M` (Riemannian signature)
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the metric;
       if ``None``, it is formed from ``name``
+    - ``comp`` -- (default: ``None``) a dictionary: keys are parallelizable 
+      open subsets and values determine the components of the metric in the 
+      default chart of the corresponding domain; each value is either an 
+      integer, let say `q` (in this case the standard pseudo-Euclidean 
+      metric of index `q` is contructed on the corresponding domain) or a list 
+      of coordinate functions (the diagonal metric with those coordinate 
+      funtions in the diagonal is constructed on the corresponding domain) or 
+      a list of list, each sublist being one ligne of the metric in the default 
+      chart of the corresponding domain
 
     EXAMPLES:
 
@@ -101,7 +110,7 @@ class PseudoRiemannianMetric(TensorField):
         sage: eU = c_xy.frame() ; eV = c_uv.frame()
         sage: c_xyW = c_xy.restrict(W) ; c_uvW = c_uv.restrict(W)
         sage: eUW = c_xyW.frame() ; eVW = c_uvW.frame()
-        sage: g = M.metric('g') ; g
+        sage: g = M.metric('g'); g
         Riemannian metric g on the 2-dimensional differentiable manifold S^2
 
     The metric is considered as a tensor field of type (0,2) on `S^2`::
@@ -161,6 +170,19 @@ class PseudoRiemannianMetric(TensorField):
         sage: type(g.restrict(U))
         <class 'sage.manifolds.differentiable.metric.PseudoRiemannianMetricParal'>
 
+    One can do the same by typing directly::
+        
+        sage: g = M.metric('g', comp={U: [4/(1+x^2+y^2)^2, 4/(1+x^2+y^2)^2], V: [4/(1+u^2+v^2)^2, 4/(1+u^2+v^2)^2]}); g
+        Riemannian metric g on the 2-dimensional differentiable manifold S^2
+        
+    More than previously one has `g|_U=` ``g.U`` and `g|_V=` ``g.V``::
+        
+        sage:g.V
+        Riemannian metric g|V on the Open subset V of the 2-dimensional
+        differentiable manifold S^2
+        sage: g.V.disp()
+        g|V = 4/(u^2 + v^2 + 1)^2 du*du + 4/(u^2 + v^2 + 1)^2 dv*dv
+        
     As a field of bilinear forms, the metric acts on pairs of tensor fields,
     yielding a scalar field::
 
@@ -324,7 +346,7 @@ class PseudoRiemannianMetric(TensorField):
                        '_schouten', '_cotton', '_cotton_york')
 
     def __init__(self, vector_field_module, name, signature=None,
-                 latex_name=None):
+                 latex_name=None, comp=None):
         r"""
         Construct a metric.
 
@@ -374,9 +396,37 @@ class PseudoRiemannianMetric(TensorField):
                 else:
                     raise ValueError("the metric signature must be odd")
         self._signature = signature
+        self._declared_signature = signature
         # the pair (n_+, n_-):
         self._signature_pm = ((ndim+signature)/2, (ndim-signature)/2)
         self._indic_signat = 1 - 2*(self._signature_pm[1]%2)  # (-1)^n_-
+        if comp is not None:
+            if not isinstance(comp, dict):
+                raise TypeError("comp must be a dictionary")
+            for dom in comp:
+                XM = dom.vector_field_module()
+                g = PseudoRiemannianMetricParal(XM,name+"|"+dom._name, 
+                                                latex_name=self._latex_name+r'|_'+dom._latex_name,
+                                                comp=comp[dom],signature=signature)
+                self.__setattr__(dom._name, g)
+                self[dom.default_frame(), :] = g[:]           
+            sign = {}
+            for (i, dom1) in enumerate(comp):
+                name1 = dom1._name
+                sign[name1] = self.__dict__[name1].sign()
+                for (j,dom2) in enumerate(comp):
+                    if i<j:
+                        W = dom1.intersection(dom2)
+                        chart = dom1.default_chart().restrict(W)
+                        name2 = dom2._name
+                        try:
+                            if self.__dict__[name1].restrict(W).matrix(chart) \
+                            != self.__dict__[name2].restrict(W).matrix(chart):
+                                raise ValueError("the metric on {} and {} restricted on their intersection does not \
+                                                 coincide".format(name1, name2))
+                        except ValueError:
+                            continue
+            self._signature = sign
         # Initialization of derived quantities:
         PseudoRiemannianMetric._init_derived(self)
 
@@ -385,30 +435,106 @@ class PseudoRiemannianMetric(TensorField):
         String representation of the object.
 
         TESTS::
+            
+        Without setting components, we define a Riemannian metric on the 
+        `2-`sphere `S^2`::
 
-            sage: M = Manifold(5, 'M')
+            sage: M = Manifold(2, 'S^2', start_index=1)
             sage: g = M.metric('g')
             sage: g._repr_()
-            'Riemannian metric g on the 5-dimensional differentiable manifold M'
-            sage: g = M.metric('g', signature=3)
+            'Riemannian metric g on the 2-dimensional differentiable manifold S^2'
+            
+        We use stereographic coordinates for defining the null metric on `S^2`::
+            
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart() # stereographic coord
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),\ 
+            intersection_name='W', restrictions1= x^2+y^2!=0, restrictions2= u^2+v^2!=0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: g = M.metric('g', comp={U: [0,0], V: [0,0]});
             sage: g._repr_()
-            'Lorentzian metric g on the 5-dimensional differentiable manifold M'
-            sage: g = M.metric('g', signature=1)
-            sage: g._repr_()
-            'Pseudo-Riemannian metric g on the 5-dimensional differentiable manifold M'
+            'Degenerate metric g on the 2-dimensional differentiable manifold S^2'
+            
+        We une an atlas with `6` charts on `S^2` for defining a Lorentzian 
+        metric::
+            
+            sage: M = Manifold(2, 'S^2', start_index=1)
+            sage: xp = M.open_subset('xp') ; xm = M.open_subset('xm'); \
+            yp = M.open_subset('yp') ; ym = M.open_subset('ym'); \
+            zp = M.open_subset('zp') ; zm = M.open_subset('zm') 
+            sage: M1 = xp.union(yp); M2 = xm.union(zm); M3 = zp.union(ym); \
+            M4 = M2.union(M3)
+            sage: M.declare_union(M1, M4)
+            sage: c_xp.<y,z> = xp.chart('y:(0,1) z:(0,1)'); c_xm.<y,z> = \
+            xm.chart('y:(0,1) z:(0,1)'); c_yp.<x,z> = yp.chart('x:(0,1) \
+            z:(0,1)'); c_ym.<x,z> = ym.chart('x:(0,1) z:(0,1)'); c_zp.<x,y> = \
+            zp.chart('x:(0,1) y:(0,1)'); c_zm.<x,y> = zm.chart('x:(0,1) y:(0,1)')
+            sage: xp_to_yp = c_xp.transition_map(c_yp, (sqrt(1-y^2-z^2), z), \
+            intersection_name='xpyp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); yp_to_xp = c_yp.transition_map(c_xp, (sqrt(1-x^2-z^2), \
+            z), intersection_name='xpyp', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1)
+            sage: xp_to_ym = c_xp.transition_map(c_ym, (sqrt(1-y^2-z^2), z), \
+            intersection_name='xpym', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); ym_to_xp = c_ym.transition_map(c_xp, (-sqrt(1-x^2-z^2), z), \ 
+            intersection_name='xpym', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1);
+            sage: xp_to_zp = c_xp.transition_map(c_zp, (sqrt(1-y^2-z^2), y), \
+            intersection_name='xpzp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zp_to_xp = c_zp.transition_map(c_xp, (y, sqrt(1-x^2-y^2)), \ 
+            intersection_name='xpzp', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: xp_to_zm = c_xp.transition_map(c_zm, (sqrt(1-y^2-z^2), y), \
+            intersection_name='xpzm', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_xp = c_zm.transition_map(c_xp, (y, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='xpzm', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_yp = c_xm.transition_map(c_yp, (sqrt(1-y^2-z^2), z), \
+            intersection_name='xmyp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); yp_to_xm = c_yp.transition_map(c_xm, (-sqrt(1-x^2-z^2), z), \ 
+            intersection_name='xmyp', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_ym = c_xm.transition_map(c_ym, (-sqrt(1-y^2-z^2), z), \
+            intersection_name='xmym', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); ym_to_xm = c_ym.transition_map(c_xm, (-sqrt(1-x^2-z^2), z), \
+            intersection_name='xmym', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_zp = c_xm.transition_map(c_zp, (sqrt(1-y^2-z^2), y), \
+            intersection_name='xmzp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zp_to_xm = c_zp.transition_map(c_xm, (y, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='xmzp', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_zm = c_xm.transition_map(c_zm, (-sqrt(1-y^2-z^2), y), \
+            intersection_name='xmzm', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_xm = c_zm.transition_map(c_xm, (y, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='xmzm', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: yp_to_zp = c_yp.transition_map(c_zp, (x, sqrt(1-x^2-z^2)), \
+            intersection_name='ypzp', restrictions1= x^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zp_to_yp = c_zp.transition_map(c_yp, (x, sqrt(1-x^2-y^2)), \ 
+            intersection_name='ypzp', restrictions1= x^2+y^2>1, restrictions2= x^2+z^2>1);
+            sage: yp_to_zm = c_yp.transition_map(c_zm, (x, sqrt(1-x^2-z^2)), \
+            intersection_name='ypzm', restrictions1= x^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_yp = c_zm.transition_map(c_yp, (x, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='ypzm', restrictions1= x^2+y^2>1, restrictions2= x^2+z^2>1);
+            sage: ym_to_zm = c_ym.transition_map(c_zm, (x, -sqrt(1-x^2-z^2)), \
+            intersection_name='ymzm', restrictions1= x^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_ym = c_zm.transition_map(c_ym, (x, -sqrt(1-x^2-y^2)), \
+            intersection_name='ymzm', restrictions1= x^2+y^2>1, restrictions2= x^2+z^2>1);
+            sage: g = M.metric('g', comp={xp: [-y^2, z^2], xm: [-y^2, z^2], \
+            yp: [[-x^2, -x*z], [-x*z, 0]], ym: [[-x^2, -x*z], [-x*z, 0]], zp: \
+                [[x^2, x*y], [x*y, 0]], zm: [[x^2, x*y], [x*y, 0]]})
+            sage: g.__repr__()
+            'Lorentzian metric g on the 2-dimensional differentiable manifold S^2'
 
         """
-        n = self._ambient_domain.dimension()
-        s = self._signature
-        if s == n:
+        if isinstance(self.sign(), dict):
+            return self._final_repr("Metric " + self._name + " ")
+        ndim = self._ambient_domain.dimension()
+        if self.sign()[2] > 0:
+            description = "Degenerate metric "
+        elif self.sign()[1] == ndim:
             description = "Riemannian metric "
-        elif s == n-2 or s == 2-n:
+        elif self.sign()[1] == 1 or self.index() ==1:
             description = "Lorentzian metric "
         else:
             description = "Pseudo-Riemannian metric "
         description += self._name + " "
         return self._final_repr(description)
-
+    
     def _new_instance(self):
         r"""
         Create an instance of the same class as ``self`` with the same
@@ -497,32 +623,386 @@ class PseudoRiemannianMetric(TensorField):
         self._inverse._restrictions.clear()
         self._inverse._del_derived()
 
-    def signature(self):
+    def sign(self):
         r"""
-        Signature of the metric.
+
+        This method works well only when the signature of the metric is 
+        constant on each domain of the default atlas.
 
         OUTPUT:
 
-        - signature `S` of the metric, defined as the integer
-          `S = n_+ - n_-`, where `n_+` (resp. `n_-`) is the number of
-          positive terms (resp. number of negative terms) in any diagonal
-          writing of the metric components
+        - ``[n_-, n_+, n_0]`` -- being ``n_-`` (resp. ``n_+``, n_0``) the
+          number  of negative terms (resp. positive terms, null terms) in any
+          diagonal writing of the metric components, when these tree quantities
+          do not depends on the domain, or
+        - a dictionary, keys being the domains of the default atlas, and values
+          the triplet ``[n_-, n_+, n_0]`` on the corresponding domain.
 
         EXAMPLES:
-
-        Signatures on a 2-dimensional manifold::
-
-            sage: M = Manifold(2, 'M')
-            sage: g = M.metric('g') # if not specified, the signature is Riemannian
-            sage: g.signature()
-            2
-            sage: h = M.metric('h', signature=0)
-            sage: h.signature()
-            0
-
+            
+        We une an atlas with `6` charts on `S^2` for defining a Lorentzian 
+        metric::
+            
+            sage: M = Manifold(2, 'S^2', start_index=1)
+            sage: xp = M.open_subset('xp') ; xm = M.open_subset('xm'); \
+            yp = M.open_subset('yp') ; ym = M.open_subset('ym'); \
+            zp = M.open_subset('zp') ; zm = M.open_subset('zm') 
+            sage: M1 = xp.union(yp); M2 = xm.union(zm); M3 = zp.union(ym); \
+            M4 = M2.union(M3)
+            sage: M.declare_union(M1, M4)
+            sage: c_xp.<y,z> = xp.chart('y:(0,1) z:(0,1)'); c_xm.<y,z> = \
+            xm.chart('y:(0,1) z:(0,1)'); c_yp.<x,z> = yp.chart('x:(0,1) \
+            z:(0,1)'); c_ym.<x,z> = ym.chart('x:(0,1) z:(0,1)'); c_zp.<x,y> = \
+            zp.chart('x:(0,1) y:(0,1)'); c_zm.<x,y> = zm.chart('x:(0,1) y:(0,1)')
+            sage: xp_to_yp = c_xp.transition_map(c_yp, (sqrt(1-y^2-z^2), z), \
+            intersection_name='xpyp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); yp_to_xp = c_yp.transition_map(c_xp, (sqrt(1-x^2-z^2), \
+            z), intersection_name='xpyp', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1)
+            sage: xp_to_ym = c_xp.transition_map(c_ym, (sqrt(1-y^2-z^2), z), \
+            intersection_name='xpym', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); ym_to_xp = c_ym.transition_map(c_xp, (-sqrt(1-x^2-z^2), z), \ 
+            intersection_name='xpym', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1);
+            sage: xp_to_zp = c_xp.transition_map(c_zp, (sqrt(1-y^2-z^2), y), \
+            intersection_name='xpzp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zp_to_xp = c_zp.transition_map(c_xp, (y, sqrt(1-x^2-y^2)), \ 
+            intersection_name='xpzp', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: xp_to_zm = c_xp.transition_map(c_zm, (sqrt(1-y^2-z^2), y), \
+            intersection_name='xpzm', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_xp = c_zm.transition_map(c_xp, (y, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='xpzm', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_yp = c_xm.transition_map(c_yp, (sqrt(1-y^2-z^2), z), \
+            intersection_name='xmyp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); yp_to_xm = c_yp.transition_map(c_xm, (-sqrt(1-x^2-z^2), z), \ 
+            intersection_name='xmyp', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_ym = c_xm.transition_map(c_ym, (-sqrt(1-y^2-z^2), z), \
+            intersection_name='xmym', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); ym_to_xm = c_ym.transition_map(c_xm, (-sqrt(1-x^2-z^2), z), \
+            intersection_name='xmym', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_zp = c_xm.transition_map(c_zp, (sqrt(1-y^2-z^2), y), \
+            intersection_name='xmzp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zp_to_xm = c_zp.transition_map(c_xm, (y, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='xmzp', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_zm = c_xm.transition_map(c_zm, (-sqrt(1-y^2-z^2), y), \
+            intersection_name='xmzm', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_xm = c_zm.transition_map(c_xm, (y, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='xmzm', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: yp_to_zp = c_yp.transition_map(c_zp, (x, sqrt(1-x^2-z^2)), \
+            intersection_name='ypzp', restrictions1= x^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zp_to_yp = c_zp.transition_map(c_yp, (x, sqrt(1-x^2-y^2)), \ 
+            intersection_name='ypzp', restrictions1= x^2+y^2>1, restrictions2= x^2+z^2>1);
+            sage: yp_to_zm = c_yp.transition_map(c_zm, (x, sqrt(1-x^2-z^2)), \
+            intersection_name='ypzm', restrictions1= x^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_yp = c_zm.transition_map(c_yp, (x, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='ypzm', restrictions1= x^2+y^2>1, restrictions2= x^2+z^2>1);
+            sage: ym_to_zm = c_ym.transition_map(c_zm, (x, -sqrt(1-x^2-z^2)), \
+            intersection_name='ymzm', restrictions1= x^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_ym = c_zm.transition_map(c_ym, (x, -sqrt(1-x^2-y^2)), \
+            intersection_name='ymzm', restrictions1= x^2+y^2>1, restrictions2= x^2+z^2>1);
+            sage: g = M.metric('g', comp={xp: [-y^2, z^2], xm: [-y^2, z^2], \
+            yp: [[-x^2, -x*z], [-x*z, 0]], ym: [[-x^2, -x*z], [-x*z, 0]], zp: \
+                [[x^2, x*y], [x*y, 0]], zm: [[x^2, x*y], [x*y, 0]]})
+            sage: g.sign()
+            [1, 1, 0]
+            
+        A dictionary as output when the signature depends on the domain::
+            
+            sage: g1 = M.metric('g1', comp={xp: [-y^2, y^2], yp: [[-x^2, -x*z], [-x*z, -x^2-2*z^2+1]]})
+            sage: g1.sign()
+            {'xp': [1, 1, 0], 'yp': [0, 2, 0]}
         """
-        return self._signature
+        try:
+            for (i, dom1) in enumerate(self._signature):
+                for (j, dom2) in enumerate(self._signature):
+                    if j>i:
+                        if self._signature[dom1]!=self._signature[dom2]:
+                            return self._signature
+            return self._signature[dom1]
+        except TypeError:
+            ndim = self._ambient_domain.dimension()
+            index = int((ndim-self._declared_signature)/2)
+            return [index, ndim-index, 0]
 
+    def index(self):
+        r"""
+
+        This method works well only when the index of the metric is 
+        constant on each domain of the default atlas.
+
+        OUTPUT:
+
+        - ``n_-`` -- the number  of negative terms in any diagonal writing of 
+          the metric components, when this quantity do not depends on the 
+          domain, or
+        - a dictionary, keys being the domains of the default atlas, and values
+          the index ``n_-`` on the corresponding domain.
+
+        EXAMPLES:
+            
+        We une an atlas with `6` charts on `S^2` for defining a Lorentzian 
+        metric::
+            
+            sage: M = Manifold(2, 'S^2', start_index=1)
+            sage: xp = M.open_subset('xp') ; xm = M.open_subset('xm'); \
+            yp = M.open_subset('yp') ; ym = M.open_subset('ym'); \
+            zp = M.open_subset('zp') ; zm = M.open_subset('zm') 
+            sage: M1 = xp.union(yp); M2 = xm.union(zm); M3 = zp.union(ym); \
+            M4 = M2.union(M3)
+            sage: M.declare_union(M1, M4)
+            sage: c_xp.<y,z> = xp.chart('y:(0,1) z:(0,1)'); c_xm.<y,z> = \
+            xm.chart('y:(0,1) z:(0,1)'); c_yp.<x,z> = yp.chart('x:(0,1) \
+            z:(0,1)'); c_ym.<x,z> = ym.chart('x:(0,1) z:(0,1)'); c_zp.<x,y> = \
+            zp.chart('x:(0,1) y:(0,1)'); c_zm.<x,y> = zm.chart('x:(0,1) y:(0,1)')
+            sage: xp_to_yp = c_xp.transition_map(c_yp, (sqrt(1-y^2-z^2), z), \
+            intersection_name='xpyp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); yp_to_xp = c_yp.transition_map(c_xp, (sqrt(1-x^2-z^2), \
+            z), intersection_name='xpyp', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1)
+            sage: xp_to_ym = c_xp.transition_map(c_ym, (sqrt(1-y^2-z^2), z), \
+            intersection_name='xpym', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); ym_to_xp = c_ym.transition_map(c_xp, (-sqrt(1-x^2-z^2), z), \ 
+            intersection_name='xpym', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1);
+            sage: xp_to_zp = c_xp.transition_map(c_zp, (sqrt(1-y^2-z^2), y), \
+            intersection_name='xpzp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zp_to_xp = c_zp.transition_map(c_xp, (y, sqrt(1-x^2-y^2)), \ 
+            intersection_name='xpzp', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: xp_to_zm = c_xp.transition_map(c_zm, (sqrt(1-y^2-z^2), y), \
+            intersection_name='xpzm', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_xp = c_zm.transition_map(c_xp, (y, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='xpzm', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_yp = c_xm.transition_map(c_yp, (sqrt(1-y^2-z^2), z), \
+            intersection_name='xmyp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); yp_to_xm = c_yp.transition_map(c_xm, (-sqrt(1-x^2-z^2), z), \ 
+            intersection_name='xmyp', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_ym = c_xm.transition_map(c_ym, (-sqrt(1-y^2-z^2), z), \
+            intersection_name='xmym', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); ym_to_xm = c_ym.transition_map(c_xm, (-sqrt(1-x^2-z^2), z), \
+            intersection_name='xmym', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_zp = c_xm.transition_map(c_zp, (sqrt(1-y^2-z^2), y), \
+            intersection_name='xmzp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zp_to_xm = c_zp.transition_map(c_xm, (y, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='xmzp', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_zm = c_xm.transition_map(c_zm, (-sqrt(1-y^2-z^2), y), \
+            intersection_name='xmzm', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_xm = c_zm.transition_map(c_xm, (y, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='xmzm', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: yp_to_zp = c_yp.transition_map(c_zp, (x, sqrt(1-x^2-z^2)), \
+            intersection_name='ypzp', restrictions1= x^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zp_to_yp = c_zp.transition_map(c_yp, (x, sqrt(1-x^2-y^2)), \ 
+            intersection_name='ypzp', restrictions1= x^2+y^2>1, restrictions2= x^2+z^2>1);
+            sage: yp_to_zm = c_yp.transition_map(c_zm, (x, sqrt(1-x^2-z^2)), \
+            intersection_name='ypzm', restrictions1= x^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_yp = c_zm.transition_map(c_yp, (x, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='ypzm', restrictions1= x^2+y^2>1, restrictions2= x^2+z^2>1);
+            sage: ym_to_zm = c_ym.transition_map(c_zm, (x, -sqrt(1-x^2-z^2)), \
+            intersection_name='ymzm', restrictions1= x^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_ym = c_zm.transition_map(c_ym, (x, -sqrt(1-x^2-y^2)), \
+            intersection_name='ymzm', restrictions1= x^2+y^2>1, restrictions2= x^2+z^2>1);
+            sage: g = M.metric('g', comp={xp: [-y^2, z^2], xm: [-y^2, z^2], \
+            yp: [[-x^2, -x*z], [-x*z, 0]], ym: [[-x^2, -x*z], [-x*z, 0]], zp: \
+                [[x^2, x*y], [x*y, 0]], zm: [[x^2, x*y], [x*y, 0]]})
+            sage: g.index()
+            1
+            
+        A dictionary as output when the index depends on the domain::
+            
+            sage: g1 = M.metric('g1', comp={xp: [-y^2, y^2], yp: [[-x^2, -x*z], [-x*z, -x^2-2*z^2+1]]})
+            sage: g1.index()
+            {'xp': 1, 'yp': 0}
+        """
+        if isinstance(self.sign(), dict):
+            index = {}
+            for dom in self.sign():
+                index[dom] = self.sign()[dom][0]
+            return index
+        return self.sign()[0]
+
+    def signature(self):
+        r"""
+
+        This method works well only when the signature of the metric is 
+        constant on each domain of the default atlas.
+
+        OUTPUT:
+
+        - `n_+ - n_-` -- being ``n_-`` (resp. ``n_+``) the
+          number  of negative terms (resp. positive terms) in any
+          diagonal writing of the metric components, when these quantity
+          do not depends on the domain, or
+        - a dictionary, keys being the domains of the default atlas, and values
+          the signature `n_+ - n_-` on the corresponding domain.
+
+        EXAMPLES:
+            
+        We une an atlas with `6` charts on `S^2` for defining a Lorentzian 
+        metric::
+            
+            sage: M = Manifold(2, 'S^2', start_index=1)
+            sage: xp = M.open_subset('xp') ; xm = M.open_subset('xm'); \
+            yp = M.open_subset('yp') ; ym = M.open_subset('ym'); \
+            zp = M.open_subset('zp') ; zm = M.open_subset('zm') 
+            sage: M1 = xp.union(yp); M2 = xm.union(zm); M3 = zp.union(ym); \
+            M4 = M2.union(M3)
+            sage: M.declare_union(M1, M4)
+            sage: c_xp.<y,z> = xp.chart('y:(0,1) z:(0,1)'); c_xm.<y,z> = \
+            xm.chart('y:(0,1) z:(0,1)'); c_yp.<x,z> = yp.chart('x:(0,1) \
+            z:(0,1)'); c_ym.<x,z> = ym.chart('x:(0,1) z:(0,1)'); c_zp.<x,y> = \
+            zp.chart('x:(0,1) y:(0,1)'); c_zm.<x,y> = zm.chart('x:(0,1) y:(0,1)')
+            sage: xp_to_yp = c_xp.transition_map(c_yp, (sqrt(1-y^2-z^2), z), \
+            intersection_name='xpyp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); yp_to_xp = c_yp.transition_map(c_xp, (sqrt(1-x^2-z^2), \
+            z), intersection_name='xpyp', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1)
+            sage: xp_to_ym = c_xp.transition_map(c_ym, (sqrt(1-y^2-z^2), z), \
+            intersection_name='xpym', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); ym_to_xp = c_ym.transition_map(c_xp, (-sqrt(1-x^2-z^2), z), \ 
+            intersection_name='xpym', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1);
+            sage: xp_to_zp = c_xp.transition_map(c_zp, (sqrt(1-y^2-z^2), y), \
+            intersection_name='xpzp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zp_to_xp = c_zp.transition_map(c_xp, (y, sqrt(1-x^2-y^2)), \ 
+            intersection_name='xpzp', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: xp_to_zm = c_xp.transition_map(c_zm, (sqrt(1-y^2-z^2), y), \
+            intersection_name='xpzm', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_xp = c_zm.transition_map(c_xp, (y, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='xpzm', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_yp = c_xm.transition_map(c_yp, (sqrt(1-y^2-z^2), z), \
+            intersection_name='xmyp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); yp_to_xm = c_yp.transition_map(c_xm, (-sqrt(1-x^2-z^2), z), \ 
+            intersection_name='xmyp', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_ym = c_xm.transition_map(c_ym, (-sqrt(1-y^2-z^2), z), \
+            intersection_name='xmym', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); ym_to_xm = c_ym.transition_map(c_xm, (-sqrt(1-x^2-z^2), z), \
+            intersection_name='xmym', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_zp = c_xm.transition_map(c_zp, (sqrt(1-y^2-z^2), y), \
+            intersection_name='xmzp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zp_to_xm = c_zp.transition_map(c_xm, (y, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='xmzp', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_zm = c_xm.transition_map(c_zm, (-sqrt(1-y^2-z^2), y), \
+            intersection_name='xmzm', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_xm = c_zm.transition_map(c_xm, (y, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='xmzm', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: yp_to_zp = c_yp.transition_map(c_zp, (x, sqrt(1-x^2-z^2)), \
+            intersection_name='ypzp', restrictions1= x^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zp_to_yp = c_zp.transition_map(c_yp, (x, sqrt(1-x^2-y^2)), \ 
+            intersection_name='ypzp', restrictions1= x^2+y^2>1, restrictions2= x^2+z^2>1);
+            sage: yp_to_zm = c_yp.transition_map(c_zm, (x, sqrt(1-x^2-z^2)), \
+            intersection_name='ypzm', restrictions1= x^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_yp = c_zm.transition_map(c_yp, (x, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='ypzm', restrictions1= x^2+y^2>1, restrictions2= x^2+z^2>1);
+            sage: ym_to_zm = c_ym.transition_map(c_zm, (x, -sqrt(1-x^2-z^2)), \
+            intersection_name='ymzm', restrictions1= x^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_ym = c_zm.transition_map(c_ym, (x, -sqrt(1-x^2-y^2)), \
+            intersection_name='ymzm', restrictions1= x^2+y^2>1, restrictions2= x^2+z^2>1);
+            sage: g = M.metric('g', comp={xp: [-y^2, z^2], xm: [-y^2, z^2], \
+            yp: [[-x^2, -x*z], [-x*z, 0]], ym: [[-x^2, -x*z], [-x*z, 0]], zp: \
+                [[x^2, x*y], [x*y, 0]], zm: [[x^2, x*y], [x*y, 0]]})
+            sage: g.signature()
+            0
+            
+        A dictionary as output when the signature is not the same on all the 
+        domains::
+            
+            sage: g1 = M.metric('g1', comp={xp: [-y^2, y^2], yp: [[-x^2, -x*z], [-x*z, -x^2-2*z^2+1]]})
+            sage: g1.signature()
+            {'xp': 0, 'yp': 2}
+        """
+        if isinstance(self.sign(), dict):
+            index = {}
+            for dom in self.sign():
+                index[dom] = self.sign()[dom][1]-self.sign()[dom][0]
+            return index
+        return self.sign()[1]-self.sign()[0]
+
+    def kernel_dimension(self):
+        r"""
+
+        This method works well only when the dimension of the kernel of the 
+        metric is constant on each domain of the default atlas.
+
+        OUTPUT:
+
+        - `n_0` -- the number  of null terms in any diagonal writing of the 
+        metric components, when these quantity do not depends on the domain, or
+        - a dictionary, keys being the domains of the default atlas, and values
+          the signature `n_0` on the corresponding domain.
+
+        EXAMPLES:
+            
+        We une an atlas with `6` charts on `S^2` for defining a Lorentzian 
+        metric::
+            
+            sage: M = Manifold(2, 'S^2', start_index=1)
+            sage: xp = M.open_subset('xp') ; xm = M.open_subset('xm'); \
+            yp = M.open_subset('yp') ; ym = M.open_subset('ym'); \
+            zp = M.open_subset('zp') ; zm = M.open_subset('zm') 
+            sage: M1 = xp.union(yp); M2 = xm.union(zm); M3 = zp.union(ym); \
+            M4 = M2.union(M3)
+            sage: M.declare_union(M1, M4)
+            sage: c_xp.<y,z> = xp.chart('y:(0,1) z:(0,1)'); c_xm.<y,z> = \
+            xm.chart('y:(0,1) z:(0,1)'); c_yp.<x,z> = yp.chart('x:(0,1) \
+            z:(0,1)'); c_ym.<x,z> = ym.chart('x:(0,1) z:(0,1)'); c_zp.<x,y> = \
+            zp.chart('x:(0,1) y:(0,1)'); c_zm.<x,y> = zm.chart('x:(0,1) y:(0,1)')
+            sage: xp_to_yp = c_xp.transition_map(c_yp, (sqrt(1-y^2-z^2), z), \
+            intersection_name='xpyp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); yp_to_xp = c_yp.transition_map(c_xp, (sqrt(1-x^2-z^2), \
+            z), intersection_name='xpyp', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1)
+            sage: xp_to_ym = c_xp.transition_map(c_ym, (sqrt(1-y^2-z^2), z), \
+            intersection_name='xpym', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); ym_to_xp = c_ym.transition_map(c_xp, (-sqrt(1-x^2-z^2), z), \ 
+            intersection_name='xpym', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1);
+            sage: xp_to_zp = c_xp.transition_map(c_zp, (sqrt(1-y^2-z^2), y), \
+            intersection_name='xpzp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zp_to_xp = c_zp.transition_map(c_xp, (y, sqrt(1-x^2-y^2)), \ 
+            intersection_name='xpzp', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: xp_to_zm = c_xp.transition_map(c_zm, (sqrt(1-y^2-z^2), y), \
+            intersection_name='xpzm', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_xp = c_zm.transition_map(c_xp, (y, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='xpzm', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_yp = c_xm.transition_map(c_yp, (sqrt(1-y^2-z^2), z), \
+            intersection_name='xmyp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); yp_to_xm = c_yp.transition_map(c_xm, (-sqrt(1-x^2-z^2), z), \ 
+            intersection_name='xmyp', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_ym = c_xm.transition_map(c_ym, (-sqrt(1-y^2-z^2), z), \
+            intersection_name='xmym', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+z^2>1); ym_to_xm = c_ym.transition_map(c_xm, (-sqrt(1-x^2-z^2), z), \
+            intersection_name='xmym', restrictions1= x^2+z^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_zp = c_xm.transition_map(c_zp, (sqrt(1-y^2-z^2), y), \
+            intersection_name='xmzp', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zp_to_xm = c_zp.transition_map(c_xm, (y, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='xmzp', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: xm_to_zm = c_xm.transition_map(c_zm, (-sqrt(1-y^2-z^2), y), \
+            intersection_name='xmzm', restrictions1= y^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_xm = c_zm.transition_map(c_xm, (y, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='xmzm', restrictions1= x^2+y^2>1, restrictions2= y^2+z^2>1);
+            sage: yp_to_zp = c_yp.transition_map(c_zp, (x, sqrt(1-x^2-z^2)), \
+            intersection_name='ypzp', restrictions1= x^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zp_to_yp = c_zp.transition_map(c_yp, (x, sqrt(1-x^2-y^2)), \ 
+            intersection_name='ypzp', restrictions1= x^2+y^2>1, restrictions2= x^2+z^2>1);
+            sage: yp_to_zm = c_yp.transition_map(c_zm, (x, sqrt(1-x^2-z^2)), \
+            intersection_name='ypzm', restrictions1= x^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_yp = c_zm.transition_map(c_yp, (x, -sqrt(1-x^2-y^2)), \ 
+            intersection_name='ypzm', restrictions1= x^2+y^2>1, restrictions2= x^2+z^2>1);
+            sage: ym_to_zm = c_ym.transition_map(c_zm, (x, -sqrt(1-x^2-z^2)), \
+            intersection_name='ymzm', restrictions1= x^2+z^2>1, restrictions2= \
+            x^2+y^2>1); zm_to_ym = c_zm.transition_map(c_ym, (x, -sqrt(1-x^2-y^2)), \
+            intersection_name='ymzm', restrictions1= x^2+y^2>1, restrictions2= x^2+z^2>1);
+            sage: g = M.metric('g', comp={xp: [-y^2, z^2], xm: [-y^2, z^2], \
+            yp: [[-x^2, -x*z], [-x*z, 0]], ym: [[-x^2, -x*z], [-x*z, 0]], zp: \
+                [[x^2, x*y], [x*y, 0]], zm: [[x^2, x*y], [x*y, 0]]})
+            sage: g.kernel_dimension()
+            0
+            
+        A dictionary as output when the signature is not the same on all the 
+        domains::
+            
+            sage: g1 = M.metric('g1', comp={xp: [-y^2, y^2], yp: [[-x^2, -x*z], [-x*z, -x^2-2*z^2+1]]})
+            sage: g1.kernel_dimension()
+            {'xp': 0, 'yp': 0}
+        """
+        if isinstance(self.sign(), dict):
+            index = {}
+            for dom in self.sign():
+                index[dom] = self.sign()[dom][2]
+            return index
+        return self.sign()[2]
+    
     def restrict(self, subdomain, dest_map=None):
         r"""
         Return the restriction of the metric to some subdomain.
@@ -569,10 +1049,14 @@ class PseudoRiemannianMetric(TensorField):
             # resu is of type self.__class__, but the signature is not handled
             # by TensorField.restrict; we have to set it here:
             resu._signature = self._signature
+            resu._declared_signature = self._declared_signature
             resu._signature_pm = self._signature_pm
             resu._indic_signat = self._indic_signat
             # Restrictions of derived quantities:
-            resu._inverse = self.inverse().restrict(subdomain)
+            try:
+                resu._inverse = self.inverse().restrict(subdomain)
+            except ZeroDivisionError:
+                pass
             for attr in self._derived_objects:
                 derived = self.__getattribute__(attr)
                 if derived is not None:
@@ -2048,7 +2532,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
          - (x + 1)/(x^2*y^2 + x^2 - 1) d/dy*d/dy
 
     """
-    def __init__(self, vector_field_module, name, latex_name=None, comp=None):
+    def __init__(self, vector_field_module, name, latex_name=None, comp=None, 
+                 signature=None):
         r"""
         Construct a metric on a parallelizable manifold.
 
@@ -2073,42 +2558,56 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         TensorFieldParal.__init__(self, vector_field_module, (0,2),
                                   name=name, latex_name=latex_name, sym=(0,1))
         ndim = self._ambient_domain.dimension()
-        start_index = self._ambient_domain.start_index()
-        chart = self._ambient_domain.default_chart()
-        if not comp:
-            liste = _diag(1, ndim, ndim, 0)
-        elif isinstance(comp, (int, Integer)):
-            index = comp
-            if index < 0:
-                index = -1*index
-            if index > ndim:
-                raise ValueError("the index must be less than the size of "
-                                 + "the metric")
-            liste = _diag(-1, index, ndim, 0)
-            liste.extend(_diag(1, ndim-index, ndim, index))
+        if signature is not None:
+            if not isinstance(signature, (int, Integer)):
+                raise TypeError("the metric signature must be an integer")
+            if (signature < - ndim) or (signature > ndim):
+                raise ValueError("metric signature out of range")
+            if (signature+ndim)%2 == 1:
+                if ndim%2 == 0:
+                    raise ValueError("the metric signature must be even")
+                else:
+                    raise ValueError("the metric signature must be odd")
+        if comp is None:
+            self._declared_signature = signature
         else:
-            liste = []
-            try:
-                for elt in list(comp):
-                    liste.append(list(elt))
-                    if len(elt) != ndim:
-                        raise ValueError("the metric must be squared")
-                for i in range(ndim):
-                    for j in range(ndim):
-                        if liste[i][j] != liste[j][i]:
-                            raise ValueError("the metric must be squared")
-            except TypeError:
+            if not comp:
+                liste = _diag(1, ndim, ndim, 0)
+            elif isinstance(comp, (int, Integer)):
+                index = comp
+                if index < 0:
+                    index = -1*index
+                if index > ndim:
+                    raise ValueError("the index must be less than the size of "
+                                     + "the metric")
+                liste = _diag(-1, index, ndim, 0)
+                liste.extend(_diag(1, ndim-index, ndim, index))
+            else:
+                liste = []
                 try:
-                    for (j, elt) in enumerate(comp):
-                        liste.extend(_diag(elt, 1, ndim, j))
+                    for elt in list(comp):
+                        liste.append(list(elt))
+                        if len(elt) != ndim:
+                            raise ValueError("the metric must be squared")
+                    for i in range(ndim):
+                        for j in range(ndim):
+                            if liste[i][j] != liste[j][i]:
+                                raise ValueError("the metric must be squared")
                 except TypeError:
-                    raise TypeError("the second argument must be an integer "
-                                    + "or an iterable or an iterable of "
-                                    + "iterables")
-        frame = chart.frame()
-        for i in range(ndim):
-            for j in range(ndim):
-                self.add_comp(frame)[i+start_index, j+start_index] = liste[i][j]
+                    try:
+                        for (j, elt) in enumerate(comp):
+                            liste.extend(_diag(elt, 1, ndim, j))
+                    except TypeError:
+                        raise TypeError("the second argument must be an integer"
+                                        + " or an iterable or an iterable of "
+                                        + "iterables")
+            sindex = self._ambient_domain.start_index()
+            chart = self._ambient_domain.default_chart()
+            frame = chart.frame()
+            for i in range(ndim):
+                for j in range(ndim):
+                    self.add_comp(frame)[i+sindex, j+sindex] = liste[i][j]
+            self._declared_signature = signature
         self._signature = self.signature()
         # the pair (n_+, n_-):
         self._signature_pm = (self.signature(), self.index())
@@ -2174,7 +2673,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         return type(self)(self._vmodule, 'unnamed metric',
                           latex_name=r'\mbox{unnamed metric}')
 
-    def list_of_lines(self, chart=None):
+    def list_of_lines(self, chart=None, frame=None):
         r"""
         Return the list of lines of the metric in a given chart, each line
         being given as a list.
@@ -2182,7 +2681,9 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         INPUT:
 
         - ``chart`` -- (default: ``None``) a chart on the manifold; if
-          ``None``, the default chart on the domain will be used.
+          ``None``, the default chart on the domain will be used
+        - ``frame`` -- (default: ``None``) a frame on the manifold; if
+          ``None``, the default frame on the provided chart is used.
 
         EXAMPLES:
 
@@ -2190,7 +2691,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
             sage: M = Manifold(3, 'M')
             sage: X.<t,x,y> = M.chart()
-            sage: g = M.metric('g')
+            sage: g = M.metric('g', comp=[1,1,1])
             sage: g.list_of_lines()
             [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
             sage: g = M.metric('g', comp=[[0,1,0],[1,0,0],[0,0,1]])
@@ -2204,18 +2705,22 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
         """
-        if chart == None:
+        if chart is None:
             chart = self.domain().default_chart()
-        frame = chart.frame()
+        if frame is None:
+            frame = chart.frame()
         liste = []
-        for i in self._ambient_domain.irange():
-            liste0 = []
-            for j in self._ambient_domain.irange():
-                liste0.append(self[frame, i, j])
-            liste.append(liste0)
+        try:
+            for i in self._ambient_domain.irange():
+                liste0 = []
+                for j in self._ambient_domain.irange():
+                    liste0.append(self.comp(frame)[i, j])
+                liste.append(liste0)
+        except ValueError:
+            raise ValueError("This metric does not have components yet")
         return liste
 
-    def matrix(self, chart=None):
+    def matrix(self, chart=None, frame=None):
         r"""
         Return the correnponding matrix of the metric in the given chart. The
         difference with ``g[:]`` is that the components of the matrix retuned
@@ -2223,8 +2728,10 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
         INPUT:
 
-        - ``chart`` -- (default: ``None``) a chart on the domain; if ``None``,
-          the default chart on the domain will be used
+        - ``chart`` -- (default: ``None``) a chart on the manifold; if
+          ``None``, the default chart on the domain will be used
+        - ``frame`` -- (default: ``None``) a frame on the manifold; if
+          ``None``, the default frame on the provided chart is used.
 
         EXAMPLES:
 
@@ -2232,7 +2739,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
             sage: M = Manifold(3, 'M')
             sage: X.<t,x,y> = M.chart()
-            sage: g = M.metric('g')
+            sage: g = M.metric('g', comp=[1,1,1])
             sage: g.matrix()
             [1 0 0]
             [0 1 0]
@@ -2254,7 +2761,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             [0 0 0]
 
         """
-        mat0 = self.list_of_lines(chart)
+        mat0 = self.list_of_lines(chart, frame)
         mat1 = []
         for L in mat0:
             mat2 = []
@@ -2295,16 +2802,24 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: g.sign()
             [0, 0, 3]
         """
-        mat = self.matrix().jordan_form()
-        index, sign, sing = 0, 0, 0
-        for i in range(self.domain().dimension()):
-            if mat[i, i].is_zero():
-                sing += 1
-            elif mat[i, i] < 0:
-                index += 1
-            else:
-                sign += 1
-        return [index, sign, sing]
+        ndim = self._ambient_domain.dimension()
+        try:
+            mat = self.matrix()
+            mat = mat.jordan_form()
+            index, sign, sing = 0, 0, 0
+            for i in range(ndim):
+                if mat[i, i].is_zero():
+                    sing += 1
+                elif mat[i, i] < 0:
+                    index += 1
+                else:
+                    sign += 1
+            return [index, sign, sing]
+        except ValueError:
+            if self._declared_signature is None:
+                return [0, ndim, 0]
+            index = int((ndim-self._declared_signature)/2)
+            return [index, ndim-index, 0]
 
     def index(self):
         r"""
@@ -2513,7 +3028,10 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             resu._signature_pm = self._signature_pm
             resu._indic_signat = self._indic_signat
             # Restrictions of derived quantities:
-            resu._inverse = self.inverse().restrict(subdomain)
+            try:
+                resu._inverse = self.inverse().restrict(subdomain)
+            except (ZeroDivisionError, AttributeError):
+                pass
             if self._connection is not None:
                 resu._connection = self._connection.restrict(subdomain)
             if self._ricci_scalar is not None:
@@ -2643,8 +3161,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
                                   [[self.comp(frame)[i, j, chart].expr(method='SR')
                                   for j in range(si, nsi)] for i in range(si, nsi)])
                         gmat_inv = gmat.inverse()
-                    except (KeyError, ValueError):
-                        continue
+                    except (KeyError, ValueError, ZeroDivisionError):
+                        return None
                     for i in range(si, nsi):
                         for j in range(i, nsi):
                             val = chart.simplify(gmat_inv[i-si,j-si], method='SR')
