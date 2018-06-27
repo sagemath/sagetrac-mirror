@@ -1764,7 +1764,7 @@ void Determinize_rec (Automaton a, InvertDict id, Automaton *r, ListEtats* l, bo
 		if (nof && final)
 			continue;
 		//test if the state has been seen, and otherwise mark it as seen
-		if (addH(l, f, &nf)) //ajoute l'état à la table de hachage si nouveau
+		if (addH(l, f, &nf)) //add the state to the hash table if new
 		{	
 			//add the state to the list
 			AddEl2(l, f);
@@ -2029,36 +2029,42 @@ NAutomaton Concat (Automaton a, Automaton b, bool verb)
 }
 
 //convert a deterministic automaton to a non-deterministic one
-NAutomaton CopyN(Automaton a, bool verb)
+void CopyDN(Automaton *a, NAutomaton *r, bool verb)
 {
-	int i,j;
-	NAutomaton r = NewNAutomaton(a.n, a.na);
-	for (i=0;i<a.n;i++)
+    int i,j;
+    for (i=0;i<a->n;i++)
 	{
 		//count the edges
 		int nv = 0;
-		for (j=0;j<a.na;j++)
+		for (j=0;j<a->na;j++)
 		{
-			if (a.e[i].f[j] != -1)
+			if (a->e[i].f[j] != -1)
 				nv++;
 		}
 		//alloc the new edges
-		r.e[i].a = (Arete *)malloc(sizeof(Arete)*nv);
-		r.e[i].n = nv;
+		r->e[i].a = (Arete *)malloc(sizeof(Arete)*nv);
+		r->e[i].n = nv;
 		//copy the edges
 		nv = 0;
-		for (j=0;j<a.na;j++)
+		for (j=0;j<a->na;j++)
 		{
-			if (a.e[i].f[j] != -1)
+			if (a->e[i].f[j] != -1)
 			{
-				r.e[i].a[nv].l = j;
-				r.e[i].a[nv].e = a.e[i].f[j];
+				r->e[i].a[nv].l = j;
+				r->e[i].a[nv].e = a->e[i].f[j];
 				nv++;
 			}
 		}
-		r.e[i].final = a.e[i].final;
-		r.e[i].initial = (a.i == i);
+		r->e[i].final = a->e[i].final;
+		r->e[i].initial = (a->i == i);
 	}
+}
+
+//convert a deterministic automaton to a non-deterministic one
+NAutomaton CopyN(Automaton a, bool verb)
+{
+	NAutomaton r = NewNAutomaton(a.n, a.na);
+	CopyDN(&a, &r, verb);
 	return r;
 }
 
@@ -2301,14 +2307,6 @@ Automaton Duplicate (Automaton a, InvertDict id, int na2, bool verb)
 	return r;
 }
 
-/*
-//stabilization of the language by prefix (i.e. 
-void PrefixStabilize (Automaton *a)
-{
-		
-}
-*/
-
 void ZeroComplete_rec(Automaton *a, int etat, bool *vu, int l0, bool verb)
 {
 	if (verb)
@@ -2360,7 +2358,7 @@ Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb)
 			r.e[i].initial = false;
 		r.e[i].final = a->e[i].final;
 		r.e[i].n = 0;
-		//compte les arêtes
+		//count edges
 		for (j=0;j<a->na;j++)
 		{
 			if (a->e[i].f[j] != -1)
@@ -2397,10 +2395,20 @@ Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb)
 	return DeterminizeN(r, etat_puits, 0);
 }
 
-Automaton ZeroInv(Automaton *a, int l0)
+Automaton EmptyAutomaton (int na)
 {
+    Automaton a = NewAutomaton(1, na);
+    return a;
+}
+
+//Compute an automaton recognizing the language (l0*)L, where L is the language of a
+Automaton ZeroInv (Automaton *a, int l0)
+{
+    if (a->i == -1)
+        return EmptyAutomaton(a->na);
 	NAutomaton r = NewNAutomaton(a->n+1, a->na);
-		
+	CopyDN(a, &r, false);
+	/*
 	int i,j,k;
 	for (i=0;i<a->n;i++)
 	{
@@ -2430,6 +2438,7 @@ Automaton ZeroInv(Automaton *a, int l0)
 			}
 		}
 	}
+	*/
 	r.e[a->n].n = 2;
 	r.e[a->n].a = (Arete *)malloc(sizeof(Arete)*2);
 	r.e[a->n].a[0].e = a->n;

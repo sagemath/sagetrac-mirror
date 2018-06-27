@@ -1764,17 +1764,20 @@ cdef class FastAutomaton:
 
         return r.prune().minimize()
 
-    def zero_inv(self, z=0):
+    def zero_inv(self, z=0, simplify=True):
         """
-        Inverse automaton
+        Compute an automaton recognizing the language (A[z]*)L, where L is the language of self.
 
         INPUT:
 
-        - ``z`` --  (default: 0) index of alphabet letter to begin
+        - ``z`` - (default: 0) - index of the letter
+        - ``simplify`` - (default: True) - if true, prune and minimize the result
 
         OUTPUT:
 
-        Return the inversed :class:`FastAutomaton`.
+        Return a :class:`FastAutomaton` whose language is the set of words of
+        the language of a with some zeroes on the beggining
+        (we call zero the letter of index z).
 
         EXAMPLES::
 
@@ -1791,7 +1794,10 @@ cdef class FastAutomaton:
         sig_off()
         r.a[0] = a
         r.A = self.A
-        return r.prune().minimize()
+        if simplify:
+            return r.prune().minimize()
+        else:
+            return r
 
     # change the final states of the automaton
     # new final states are the one in a strongly connected component containing a final state, others states are not final
@@ -2043,8 +2049,7 @@ cdef class FastAutomaton:
         - ``a`` -- :class:`FastAutomaton` to intersect
         - ``verb`` -- boolean (default: ``False``) fix
           to ``True`` for activation the verbose mode
-        - ``simplify`` --  (default: ``True``) if simplification
-          is required
+        - ``simplify`` - (default: ``True``) - if True, prune and minimize the result
 
         OUTPUT:
 
@@ -2237,27 +2242,28 @@ cdef class FastAutomaton:
 
         r.a[0] = ap
         r.A = Av
-        # if verb:
-        #    print r
-        # r = r.prune()
-        # r = r.minimize()
         if simplify:
             return r.prune().minimize()
         else:
             return r
 
-    # split the automaton with respect to a  FastAutomaton
-    def split (self, FastAutomaton a, verb=False):
+    # split the automaton with respect to a FastAutomaton
+    def split (self, FastAutomaton a, simplify=True, verb=False):
         """
         Split the automaton with respect to ``a`` a :class:`FastAutomaton`
 
         INPUT:
 
         - ``a`` -- :class:`FastAutomaton` in respect to split
+        - ``simplify`` - (default: True) - if True, prune and minimize the result
+        - ``verb`` - (default: False) - if True, display informations for debugging
 
         OUTPUT:
 
-        Return tuple of two splited automaton
+        Return tuple of two splited automaton, recognizing respectively
+        the language intersection of L and La, and the language
+        intersection of L and complementary of La,
+        where L is the language of self and La is the language of a.
 
         EXAMPLES::
 
@@ -2340,19 +2346,22 @@ cdef class FastAutomaton:
         r.A = Av
         r2.a[0] = ap2
         r2.A = Av
-        return [r.prune().minimize(), r2.prune().minimize()]
+        if simplify:
+            return [r.prune().minimize(), r2.prune().minimize()]
+        else:
+            return [r, r2]
 
-    # modify the automaton to recognize the langage shifted by a (letter given by its index)
-    def shift1OP (self, int a, verb=False):
+    # modify the automaton to recognize the langage shifted by l (letter given by its index)
+    def shift1OP (self, int l, verb=False):
         """
-        Shift the automaton to recognize the language shifted
-        by ``a`` (letter given by its index)
+        Shift the automaton ON PLACE to recognize the language shifted
+        by ``l`` (letter given by its index).
+        The new language is the language of words u such that lu was recognized by self.
 
         INPUT:
 
-        - ``a`` -- int  index of letter to shift
-        - ``verb`` -- boolean (default: ``False``) fix
-          to ``True`` for activation the verbose mode
+        - ``l`` -- int  index of letter to shift
+        - ``verb`` - boolean (default: ``False``) - if True, display informations for debugging
 
         EXAMPLES::
 
@@ -2364,20 +2373,21 @@ cdef class FastAutomaton:
             1
         """
         if self.a.i != -1:
-            self.a.i = self.a.e[self.a.i].f[a]
+            self.a.i = self.a.e[self.a.i].f[l]
 
-    # modify the automaton to recognize the langage shifted by a (letter given by its index)
-    def shiftOP(self, a, int np, verb=False):
+    # modify the automaton to recognize the langage shifted by l^np (where l is a letter given by its index)
+    def shiftOP(self, l, int np, verb=False):
         """
-        Shift the automaton to recognize the language shifted ``np``
-        by a (letter given by its index)
+        Shift the automaton ON PLACE to recognize the language shifted ``np`` times
+        by l (letter given by its index).
+        The new language is the language of words u such that (l^np)u was recognized by self.
 
         INPUT:
 
-        - ``a`` -- int  index of letter to shift
+        - ``l`` -- int  index of letter to shift
         - ``np`` -- int  number of shift
         - ``verb`` -- boolean (default: ``False``) fix
-          to ``True`` for activation the verbose mode
+          to ``True`` to activate the verbose mode
 
         EXAMPLES::
 
@@ -2388,24 +2398,26 @@ cdef class FastAutomaton:
             sage: a.initial_state
             -1
         """
+        cdef int i
         for i in range(np):
             if self.a.i != -1:
-                self.a.i = self.a.e[self.a.i].f[a]
+                self.a.i = self.a.e[self.a.i].f[l]
 
-    def unshift1(self, a, final=False):
+    def unshift1(self, int l, final=False):
         """
         Unshift the automaton to recognize the language shifted
-        by ``a`` (letter given by its index)
+        by ``l`` (letter given by its index).
+        The new language is the languages of words lu, where u is recognized by self.
 
         INPUT:
 
-        - ``a`` -- int  index of letter to shift
+        - ``l`` -- int  index of letter to shift
         - ``verb`` -- boolean (default: ``False``) fix
-          to ``True`` for activation the verbose mode
+          to ``True`` to activate the verbose mode
 
         OUTPUT:
 
-        Return a unshifted :class:`FastAutomaton`
+        Return a :class:`FastAutomaton`
 
         EXAMPLES::
 
@@ -2424,7 +2436,7 @@ cdef class FastAutomaton:
         cdef int ne = self.a.n
         for i in range(aut.na):
             aut.e[ne].f[i] = -1
-        aut.e[ne].f[a] = self.a.i
+        aut.e[ne].f[l] = self.a.i
         aut.e[ne].final = final
         aut.i = ne
         r.a[0] = aut
@@ -2432,12 +2444,15 @@ cdef class FastAutomaton:
         return r
 
     # this function could be written in a more efficient way
-    def unshiftl(self, l):
+    def unshiftl(self, list l):
         """
-
+        Return a new automaton whose language is the set of words wu,
+        where u is recognized by self, and w is the word
+        corresponding to the list of indices of letters l.  
+        
         INPUT:
 
-        - ``l`` -- list  of index of letter to shift
+        - ``l`` -- list of indices of letters
 
         OUTPUT:
 
@@ -2459,19 +2474,21 @@ cdef class FastAutomaton:
         l.reverse()
         return a
 
-    def unshift(self, int a, int np, final=None):
+    def unshift(self, int l, int np, final=None):
         """
-        Unshift :class:`FastAutomaton`
+        Return a new automaton whose language is the set of words wu,
+        where u is recognized by self, and w is the word
+        corresponding to np times the letter of index l.
 
         INPUT:
 
-        - ``a`` -- int  
+        - ``l`` -- int  
         - ``np``  --  int  
         - ``final`` -- (default: ``None``) if final or not
 
         OUTPUT:
 
-        Return a unshifted :class:`FastAutomaton`
+        Return a :class:`FastAutomaton`
 
         EXAMPLES::
 
@@ -2498,9 +2515,9 @@ cdef class FastAutomaton:
             for i in range(aut.na):
                 aut.e[ne+j].f[i] = -1
             if j > 0:
-                aut.e[ne+j].f[a] = ne+j-1
+                aut.e[ne+j].f[l] = ne+j-1
             else:
-                aut.e[ne+j].f[a] = self.a.i
+                aut.e[ne+j].f[l] = self.a.i
             aut.e[ne+j].final = final
         aut.i = ne+np-1
         r.a[0] = aut
@@ -2537,22 +2554,22 @@ cdef class FastAutomaton:
         r.A = self.A
         return r
 
-    def concat(self, FastAutomaton b, det=True, verb=False):
+    def concat(self, FastAutomaton b, det=True, simplify=True, verb=False):
         """
         Concatenates :class:`FastAutomaton`, ``b``
 
         INPUT:
 
         - ``b`` -- :class:`FastAutomaton`  to concatenate
-        - ``det``  -- (default: ``true``) determinist flag
-          for return automaton
+        - ``det``  -- (default: ``True``) - if True, determinize
+        - ``simplify`` -- (default: ``True``) - if True and if det=True, prune and minimize
         - ``verb`` -- boolean (default: ``False``) fix
           to ``True`` for activation the verbose mode
 
         OUTPUT:
 
-        Return a concatenated :class:`NFastAutomaton` (``det``=``False``)
-        or  :class:`FastAutomaton` (``det``=``True``)
+        Return a :class:`NFastAutomaton` (if ``det``=``False``)
+        or  :class:`FastAutomaton` (if ``det``=``True``)
 
         EXAMPLES::
 
@@ -2586,14 +2603,19 @@ cdef class FastAutomaton:
         r.A = A
 
         if det:
-            # "Determinize et simplifie...")
             if verb:
-                print("Determinist and simplified...")
-            return r.determinize().prune().minimize()
+                print("Determinize...")
+            r2 = r.determinize()
+            if simplify:
+                if verb:
+                    print("Prune and minimize...")
+                return r2.prune().minimize()
+            else:
+                return r2
         else:
             return r
 
-    def proj(self, dict d, det=True, verb=False):
+    def proj(self, dict d, det=True, simplify=True, verb=False):
         """
         Project following the dictionary ``d``.
         Give an automaton where labels are replaced according to ``d``
@@ -2602,6 +2624,7 @@ cdef class FastAutomaton:
 
         - ``d`` -- dictionary to determine projection
         - ``det``  --  (default: ``true``) determinize the result or not
+        - ``simplify`` -- (default: ``True``) - if True and if det=True, prune and minimize
         - ``verb`` -- boolean (default: ``False``) activate or desactivate the verbose mode
 
         OUTPUT:
@@ -2633,11 +2656,15 @@ cdef class FastAutomaton:
         r.a[0] = a
         r.A = A2
         if det:
-            return r.determinize().prune().minimize()
+            r2 = r.determinize()
+            if simplify:
+                return r2.prune().minimize()
+            else:
+                return r2
         else:
             return r
 
-    def proji (self, int i, det=True, verb=False):
+    def proji (self, int i, det=True, simplify=True, verb=False):
         """
         Assuming that the alphabet of the automaton are tuples, project on the ith coordinate.
         Give a new automaton where labels are replaced by the projection on the ith coordinate.
@@ -2646,6 +2673,7 @@ cdef class FastAutomaton:
 
         - ``i`` -- int index of the label projection
         - ``det``  --  (default: ``true``) determinize or not the result
+        - ``simplify`` -- (default: ``True``) - if True and if det=True, prune and minimize
         - ``verb`` -- boolean (default: ``False``) to activate or desactivate the verbose mode
 
         OUTPUT:
@@ -2666,7 +2694,7 @@ cdef class FastAutomaton:
                 d[l] = l[i]
             else:
                 raise ValueError("index i %d must be smaller then label size  %d" % (i, len(l)))
-        return self.proj(d, det=det, verb=verb)
+        return self.proj(d, det=det, simplify=simplify, verb=verb)
 
     def determinize_proj(self, d, noempty=True,
                          onlyfinals=False, nof=False, verb=False):
@@ -2676,7 +2704,8 @@ cdef class FastAutomaton:
         INPUT:
 
         - ``d`` -- dictionary to determine projection
-        - ``noempty``  -- (default: ``True``) If ``True`` won't put the empty set state, if ``False`` put it and gives a complete automaton.
+        - ``noempty``  -- (default: ``True``) If ``True`` won't put the empty set state,
+            if ``False`` put it and gives a complete automaton.
         - ``onlyfinals``  -- (default: ``False``) 
         - ``nof``  -- (default: ``False``)
         - ``verb`` -- boolean (default: ``False``) activate or desactivate the verbose mode
@@ -2712,7 +2741,7 @@ cdef class FastAutomaton:
             r.A = A2
             return r
 
-    # change les lettres selon d, en dupliquant les arêtes si nécessaire
+    # change lettes according to d, duplicating edges if necessary
     # the result is assumed deterministic !!!
     def duplicate(self, d, verb=False):
         """
@@ -2757,12 +2786,10 @@ cdef class FastAutomaton:
         r.A = A2
         return r
 
-    # change les lettres
-    # le dictionnaire est supposé bijectif de A dans le nouvel alphabet
-    # opération sur place !
     def relabel(self, d):
         """
-        Change letters of the :class:`FastAutomaton`, the dictionary is assumed to be one-to-one.
+        Change letters of the :class:`FastAutomaton` ON PLACE,
+        the dictionary is assumed to be one-to-one.
 
         INPUT:
 
@@ -2778,8 +2805,6 @@ cdef class FastAutomaton:
         """
         self.A = [d[c] for c in self.A]
 
-    # permute les lettres
-    # A = liste des lettres dans le nouvel ordre (il peut y en avoir moins)
     def permut(self, list A, verb=False):
         """
         Permutes (and eventually remove) letters and return permuted new :class:`FastAutomaton`
@@ -2838,7 +2863,7 @@ cdef class FastAutomaton:
     # A = liste des lettres dans le nouvel ordre (il peut y en avoir moins)
     def permut_op(self, list A, verb=False):
         """
-        Permute letters on the :class:`FastAutomaton`
+        Permutes (and eventually remove) letters ON PLACE.
 
         INPUT:
 
@@ -2936,11 +2961,12 @@ cdef class FastAutomaton:
 
         INPUT:
 
-        - ``no_trivials`` -- (default: ``False``) If True, do not take into account components without any transition from itself to itself (such component contains only one element).
+        - ``no_trivials`` -- (default: ``False``) If True, do not take into account components
+            without any transition from itself to itself (such component contains only one element).
 
         OUTPUT:
 
-        Return list of strongly connected components
+        Return the list of strongly connected components, given as a list of list of states.
 
         EXAMPLES::
 
@@ -3285,21 +3311,6 @@ cdef class FastAutomaton:
                     from sage.rings.qqbar import AlgebraicRealField
                     r = max([ro[0] for ro in f[0].roots(ring=AlgebraicRealField())] + [r])
         return r
-
-    def test(self):
-        """
-        Test size of automaton structure
-
-        EXAMPLES::
-
-            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.test()
-            sizeof(Automaton)=24
-
-        """
-        sig_on()
-        Test()
-        sig_off()
 
     def copy(self):
         """

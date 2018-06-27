@@ -16,14 +16,14 @@ typedef struct Dict Dict;
 bool DotExists ();
 
 int hashAutomaton (Automaton a);
-bool findWord (Automaton a, Dict *w, bool verb); //rend un mot dans le langage de a
-bool rec_word (Automaton a, Dict d); //vérifie que le mot w est reconnu par l'automate a
-bool shortestWord (Automaton a, Dict *w, int i, int f, bool verb); //rend un mot le plus court du language de a
-bool shortestWords (Automaton a, Dict *w, int i, bool verb); //rend les mots les plus courts jusqu'à chaque sommet
+bool findWord (Automaton a, Dict *w, bool verb); //return a word of the language of a
+bool rec_word (Automaton a, Dict d); //check that the word w is recognized by the automaton a
+bool shortestWord (Automaton a, Dict *w, int i, int f, bool verb); //return a shortest word of the language of a
+bool shortestWords (Automaton a, Dict *w, int i, bool verb); //return shortest words toward each state
 Dict NewDict (int n);
 void FreeDict (Dict *d);
 void printDict (Dict d);
-void dictAdd (Dict *d, int e); //ajoute un élément au dictionnaire (même s'il était déjà présent)
+void dictAdd (Dict *d, int e); //add the element to the disctionnary (even if already present)
 Automaton NewAutomaton (int n, int na);
 void ReallocNAutomaton (NAutomaton *a, int n);
 void FreeAutomaton (Automaton *a);
@@ -32,11 +32,11 @@ void FreeNAutomaton (NAutomaton *a);
 void AddEdgeN (NAutomaton *a, int e, int f, int l);
 void AddPathN (NAutomaton *a, int e, int f, int *l, int len, bool verb);
 Automaton CopyAutomaton (Automaton a, int nalloc, int naalloc);
-Automaton PieceAutomaton (Automaton a, int *w, int n, int e); //donne un automate reconnaissant w(w^(-1)L) où L est le langage de a partant de e
+Automaton PieceAutomaton (Automaton a, int *w, int n, int e); //gives an automaton recognizing w(w^(-1)L) where L is the language of a starting from e
 void init (Automaton *a);
 void printAutomaton (Automaton a);
 void plotDot (const char *file, Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool html, bool verb, bool run_dot);
-bool equalsAutomaton (Automaton a1, Automaton a2); //détermine si les automates sont les mêmes (différents si états permutés)
+bool equalsAutomaton (Automaton a1, Automaton a2); //determine if automata are the same (differents if permuted states)
 int contract (int i1, int i2, int n1);
 int geti1 (int c, int n1);
 int geti2 (int c, int n1);
@@ -65,8 +65,8 @@ struct ListEtats
 typedef struct ListEtats ListEtats;
 
 void printListEtats (ListEtats l);
-bool AddEl (ListEtats *l, Etats e, int* res); //ajoute un élément s'il n'est pas déjà dans la liste
-void AddEl2 (ListEtats *l, Etats e); //ajoute un élément même s'il est déjà dans la liste
+bool AddEl (ListEtats *l, Etats e, int* res); //add an element if not already in the list
+void AddEl2 (ListEtats *l, Etats e); //add an element even if already in the list
 
 ////////////////
 struct Etats2
@@ -89,8 +89,8 @@ void addEtat (Etats2 *e, uint64 i);
 struct ListEtats2
 {
 	Etats2 *e;
-	int n; //nombre d'états
-	int na; //mémoire allouée
+	int n; //number of states
+	int na; //memory allocated
 };
 typedef struct ListEtats2 ListEtats2;
 
@@ -98,11 +98,8 @@ ListEtats2 NewListEtats2(int n, int na);
 void ReallocListEtats2(ListEtats2* l, int n, bool marge);
 void FreeListEtats2 (ListEtats2* l);
 void printListEtats2 (ListEtats2 l);
-//bool AddEtats2 (ListEtats2 *l, Etats2 e, int* res); //ajoute un élément s'il n'est pas déjà dans la liste
-//void addEtats2 (ListEtats2 *l, Etats2 e); //ajoute un élément même s'il est déjà dans la liste
-////////////////
 
-//inverse d'un dictionnaire
+//inverse of a dictionnary
 struct InvertDict
 {
 	Dict *d;
@@ -114,7 +111,7 @@ InvertDict NewInvertDict (int n);
 InvertDict invertDict (Dict d);
 void FreeInvertDict (InvertDict id);
 void printInvertDict (InvertDict id);
-void putEtat (Etats *f, int ef); ////////////////////////////////// à améliorer !!!!
+void putEtat (Etats *f, int ef); /////////////to improve !!!!
 void Determinize_rec (Automaton a, InvertDict id, Automaton* r, ListEtats* l, bool onlyfinals, bool nof, int niter);
 Automaton Determinize (Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb);
 NAutomaton Concat (Automaton a, Automaton b, bool verb);
@@ -123,17 +120,21 @@ NAutomaton Proj (Automaton a, Dict d, bool verb);
 
 Automaton DeterminizeN (NAutomaton a, bool puits, int verb);
 
-//change l'alphabet en dupliquant des arêtes si nécessaire
+//change the alphabet, duplicating edges if necessary
 //the result is assumed deterministic !!!!
 Automaton Duplicate (Automaton a, InvertDict id, int na2, bool verb);
 
-//ajoute tous les mots qui se complètent en un mot du langage en ajoutant des 0 à la fin
-//ainsi que les mots auxquels on peut retirer des zéros à la fin 
+//add all the words that are in the language if we remove some ending zeroes
+//zero is the letter of the alphabet of index l0
+//i.e. the result has the language L(l0*)^(-1), if L is the language of a
 void ZeroComplete (Automaton *a, int l0, bool verb);
 
-//zero-complète dans l'autre sens
+//add all the words that can be completed to a word of the language by adding some ending zeroes
+//zero is the letter of index l0
+//i.e. the result has the language L(l0*), if L is tha language of a
 Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb);
 
+//Compute an automaton recognizing the language (l0*)L, where L is the language of a
 Automaton ZeroInv (Automaton *a, int l0);
 
 //retire tous les états à partir desquels il n'y a pas de chemin infini
