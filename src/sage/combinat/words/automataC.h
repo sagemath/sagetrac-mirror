@@ -29,7 +29,7 @@ void ReallocNAutomaton (NAutomaton *a, int n);
 void FreeAutomaton (Automaton *a);
 void FreeAutomates (Automate* a, int n);
 void FreeNAutomaton (NAutomaton *a);
-void AddEdgeN (NAutomaton *a, int e, int f, int l);
+void AddTransitionN (NAutomaton *a, int e, int f, int l);
 void AddPathN (NAutomaton *a, int e, int f, int *l, int len, bool verb);
 Automaton CopyAutomaton (Automaton a, int nalloc, int naalloc);
 Automaton PieceAutomaton (Automaton a, int *w, int n, int e); //gives an automaton recognizing w(w^(-1)L) where L is the language of a starting from e
@@ -41,63 +41,63 @@ int contract (int i1, int i2, int n1);
 int geti1 (int c, int n1);
 int geti2 (int c, int n1);
 Automaton Product (Automaton a1, Automaton a2, Dict d, bool verb);
-void AddEtat (Automaton *a, bool final);
+void AddState (Automaton *a, bool final);
 
-struct Etats
+struct States
 {
 	int *e;
 	int n;	
 };
-typedef struct Etats Etats;
+typedef struct States States;
 
-Etats NewEtats (int n);
-void FreeEtats (Etats e);
-void initEtats (Etats e);
-void printEtats (Etats e);
-bool equals (Etats e1, Etats e2);
-Etats copyEtats (Etats e);
+States NewStates (int n);
+void FreeStates (States e);
+void initStates (States e);
+void printStates (States e);
+bool equals (States e1, States e2);
+States copyStates (States e);
 
-struct ListEtats
+struct ListStates
 {
-	Etats *e;
+	States *e;
 	int n;
 };
-typedef struct ListEtats ListEtats;
+typedef struct ListStates ListStates;
 
-void printListEtats (ListEtats l);
-bool AddEl (ListEtats *l, Etats e, int* res); //add an element if not already in the list
-void AddEl2 (ListEtats *l, Etats e); //add an element even if already in the list
+void printListStates (ListStates l);
+bool AddEl (ListStates *l, States e, int* res); //add an element if not already in the list
+void AddEl2 (ListStates *l, States e); //add an element even if already in the list
 
 ////////////////
-struct Etats2
+struct States2
 {
 	uint n;
 	uint64 *e;
 };
-typedef struct Etats2 Etats2;
+typedef struct States2 States2;
 
-Etats2 NewEtats2 (int n);
-void FreeEtats2 (Etats2 e);
-void initEtats2 (Etats2 e);
-void printEtats2 (Etats2 e);
-bool isNullEtats2 (Etats2 e);
-bool equalsEtats2 (Etats2 e1, Etats2 e2);
-bool hasEtats2 (Etats2 e, uint64 i);
-Etats2 copyEtats2 (Etats2 e);
-void addEtat (Etats2 *e, uint64 i);
+States2 NewStates2 (int n);
+void FreeStates2 (States2 e);
+void initStates2 (States2 e);
+void printStates2 (States2 e);
+bool isNullStates2 (States2 e);
+bool equalsStates2 (States2 e1, States2 e2);
+bool hasStates2 (States2 e, uint64 i);
+States2 copyStates2 (States2 e);
+void addState (States2 *e, uint64 i);
 
-struct ListEtats2
+struct ListStates2
 {
-	Etats2 *e;
+	States2 *e;
 	int n; //number of states
 	int na; //memory allocated
 };
-typedef struct ListEtats2 ListEtats2;
+typedef struct ListStates2 ListStates2;
 
-ListEtats2 NewListEtats2(int n, int na);
-void ReallocListEtats2(ListEtats2* l, int n, bool marge);
-void FreeListEtats2 (ListEtats2* l);
-void printListEtats2 (ListEtats2 l);
+ListStates2 NewListStates2(int n, int na);
+void ReallocListStates2(ListStates2* l, int n, bool marge);
+void FreeListStates2 (ListStates2* l);
+void printListStates2 (ListStates2 l);
 
 //inverse of a dictionnary
 struct InvertDict
@@ -111,8 +111,8 @@ InvertDict NewInvertDict (int n);
 InvertDict invertDict (Dict d);
 void FreeInvertDict (InvertDict id);
 void printInvertDict (InvertDict id);
-void putEtat (Etats *f, int ef); /////////////to improve !!!!
-void Determinize_rec (Automaton a, InvertDict id, Automaton* r, ListEtats* l, bool onlyfinals, bool nof, int niter);
+void putState (States *f, int ef); /////////////to improve !!!!
+void Determinize_rec (Automaton a, InvertDict id, Automaton* r, ListStates* l, bool onlyfinals, bool nof, int niter);
 Automaton Determinize (Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb);
 NAutomaton Concat (Automaton a, Automaton b, bool verb);
 NAutomaton CopyN (Automaton a, bool verb);
@@ -132,7 +132,7 @@ void ZeroComplete (Automaton *a, int l0, bool verb);
 //add all the words that can be completed to a word of the language by adding some ending zeroes
 //zero is the letter of index l0
 //i.e. the result has the language L(l0*), if L is tha language of a
-Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb);
+Automaton ZeroComplete2 (Automaton *a, int l0, bool State_puits, bool verb);
 
 //Compute an automaton recognizing the language (l0*)L, where L is the language of a
 Automaton ZeroInv (Automaton *a, int l0);

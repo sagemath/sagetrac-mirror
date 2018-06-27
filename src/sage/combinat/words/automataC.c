@@ -91,7 +91,7 @@ Automaton NewAutomaton (int n, int na)
 		a.e = NULL;
 		return a;
 	}
-	a.e = (Etat *)malloc(sizeof(Etat)*n);
+	a.e = (State *)malloc(sizeof(State)*n);
 
 #if DISP_MEMORY
 	printf("new aut %ld\n", a.e);
@@ -176,7 +176,7 @@ NAutomaton NewNAutomaton(int n, int na)
 		a.e = NULL;
 		return a;
 	}
-	a.e = (NEtat *)malloc(sizeof(NEtat)*n);
+	a.e = (NState *)malloc(sizeof(NState)*n);
 	if (!a.e)
 	{
 		printf("Out of memory !");
@@ -194,9 +194,9 @@ NAutomaton NewNAutomaton(int n, int na)
 void ReallocNAutomaton (NAutomaton *a, int n)
 {
 	if (a->n)
-		a->e = (NEtat*)realloc(a->e, sizeof(NEtat)*n);
+		a->e = (NState*)realloc(a->e, sizeof(NState)*n);
 	else
-		a->e = (NEtat*)malloc(sizeof(NEtat)*n);
+		a->e = (NState*)malloc(sizeof(NState)*n);
 	if (a->n < n)
 	{
 		int i;
@@ -228,13 +228,13 @@ void FreeNAutomaton (NAutomaton *a)
 }
 
 //add an edge on the NFastAutomaton
-void AddEdgeN (NAutomaton *a, int e, int f, int l)
+void AddTransitionN (NAutomaton *a, int e, int f, int l)
 {
 	a->e[e].n++;
 	if (a->e[e].n > 1)
-		a->e[e].a = (Arete *)realloc(a->e[e].a, sizeof(Arete)*a->e[e].n);
+		a->e[e].a = (Transition *)realloc(a->e[e].a, sizeof(Transition)*a->e[e].n);
 	else
-		a->e[e].a = (Arete *)malloc(sizeof(Arete));
+		a->e[e].a = (Transition *)malloc(sizeof(Transition));
 	a->e[e].a[a->e[e].n - 1].e = f;
 	a->e[e].a[a->e[e].n - 1].l = l;
 }
@@ -252,21 +252,21 @@ void AddPathN (NAutomaton *a, int e, int f, int *l, int len, bool verb)
 		int i;
 		if (verb)
 			printf("add edge %d --%d--> %d\n", e, l[0], n+i);
-		AddEdgeN(a, 0, n, l[0]);
+		AddTransitionN(a, 0, n, l[0]);
 		for (i=1;i<len-1;i++)
 		{
 			if (verb)
 				printf("add edge %d --%d--> %d\n", n+i-1, l[i], n+i);
-			AddEdgeN(a, n+i-1, n+i, l[i]);
+			AddTransitionN(a, n+i-1, n+i, l[i]);
 		}
 		if (verb)
 			printf("add edge %d --%d--> %d\n", n+len-2, l[len-1], f);
-		AddEdgeN(a, n+len-2, f, l[len-1]);
+		AddTransitionN(a, n+len-2, f, l[len-1]);
 	}else
 	{
 		if (len == 1)
 		{
-			AddEdgeN(a, e, f, l[0]);
+			AddTransitionN(a, e, f, l[0]);
 		}
 	}
 }
@@ -283,9 +283,9 @@ void ReallocAutomaton (Automaton *a, int n, bool init)
 		}
 	}
 	if (a->n)
-		a->e = (Etat*)realloc(a->e, sizeof(Etat)*n);
+		a->e = (State*)realloc(a->e, sizeof(State)*n);
 	else
-		a->e = (Etat*)malloc(sizeof(Etat)*n);
+		a->e = (State*)malloc(sizeof(State)*n);
 	if (a->n < n)
 	{
 		int i;
@@ -578,7 +578,7 @@ bool CompleteAutomaton (Automaton *a)
 {
 	int ne = a->n; //new state
 	int i,j;
-	bool add_etat = false;
+	bool add_State = false;
 	for (i=0;i<ne;i++)
 	{
 		for (j=0;j<a->na;j++)
@@ -586,18 +586,18 @@ bool CompleteAutomaton (Automaton *a)
 			if (a->e[i].f[j] == -1)
 			{
 				a->e[i].f[j] = ne;
-				add_etat = true;
+				add_State = true;
 			}
 		}
 	}
 	if (a->i == -1)
 	{
 		a->i = ne;
-		add_etat = true;
+		add_State = true;
 	}
-	if (!add_etat)
+	if (!add_State)
 		return false;
-	AddEtat(a, false); //add the sink state
+	AddState(a, false); //add the sink state
 	for (j=0;j<a->na;j++)
 	{
 		a->e[ne].f[j] = ne;
@@ -637,7 +637,7 @@ bool equalsLanguages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, 
 	//indicate that the state a has been seen
 	a1.e[e1].final |= 2;
 	a2.e[e2].final |= 2;
-	//browse the son of e1 in a1
+	//browse the sons of e1 in a1
 	int i;
 	for (i=0;i<a1.na;i++)
 	{
@@ -727,7 +727,9 @@ bool equalsLanguages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, 
 	if (a1->i == -1 || a2->i == -1)
 		res = (a1->i == a2->i);
 	else
+	{
 		res = equalsLanguages_rec(*a1, *a2, a1toa2, a2toa1, a1->i, a2->i, verb);
+	}
 	//put back final states
 	for (i=0;i<a1->n;i++)
 	{
@@ -1059,7 +1061,7 @@ void Product_rec(Automaton r, int i1, int i2, Automaton a1, Automaton a2, Dict d
 	int i,j;
 	int e1, e2;
 	int a;
-	Etat *current = &r.e[contract(i1, i2, a1.n)];
+	State *current = &r.e[contract(i1, i2, a1.n)];
 	int *next;
 	current->final = true; //indicate that the state has been visited
 	for (i=0;i<a1.na;i++)
@@ -1218,13 +1220,13 @@ bool Included(Automaton a1, Automaton a2, bool pruned, bool verb)
 	return res;
 }
 
-void AddEtat (Automaton *a, bool final)
+void AddState (Automaton *a, bool final)
 {
 	a->n++;
 	if (a->n == 1)
-		a->e = (Etat *)malloc(sizeof(Etat));
+		a->e = (State *)malloc(sizeof(State));
 	else
-		a->e = (Etat *)realloc(a->e, sizeof(Etat)*a->n);
+		a->e = (State *)realloc(a->e, sizeof(State)*a->n);
 	if (!a->e)
 	{
 		printf("Out of memory !");
@@ -1244,9 +1246,9 @@ void AddEtat (Automaton *a, bool final)
 	a->e[a->n-1].final = final;
 }
 
-Etats NewEtats (int n)
+States NewStates (int n)
 {
-	Etats e;
+	States e;
 	e.n = n;
 	e.e = (int *)malloc(sizeof(int)*n);
 	if (!e.e)
@@ -1257,12 +1259,12 @@ Etats NewEtats (int n)
 return e;
 }
 
-void FreeEtats (Etats e)
+void FreeStates (States e)
 {
 	free(e.e);
 }
 
-void initEtats (Etats e)
+void initStates (States e)
 {
 	int i;
 	for (i=0;i<e.n;i++)
@@ -1271,7 +1273,7 @@ void initEtats (Etats e)
 	}
 }
 
-void printEtats (Etats e)
+void printStates (States e)
 {
 	int i;
 	printf("[ ");
@@ -1283,7 +1285,7 @@ void printEtats (Etats e)
 	printf("]\n");
 }
 
-bool equals (Etats e1, Etats e2)
+bool equals (States e1, States e2)
 {
 	if (e1.n != e2.n)
 		return false;
@@ -1296,9 +1298,9 @@ bool equals (Etats e1, Etats e2)
 	return true;
 }
 
-Etats copyEtats(Etats e)
+States copyStates(States e)
 {
-	Etats r = NewEtats(e.n);
+	States r = NewStates(e.n);
 	int i;
 	for (i=0;i<e.n;i++)
 	{
@@ -1307,18 +1309,18 @@ Etats copyEtats(Etats e)
 	return r;
 }
 
-void printListEtats (ListEtats l)
+void printListStates (ListStates l)
 {
 	int i;
 	for (i=0;i<l.n;i++)
 	{
 		printf("%d : ", i);
-		printEtats(l.e[i]);
+		printStates(l.e[i]);
 	}
 }
 
 //add an element if not already in the list
-bool AddEl (ListEtats *l, Etats e, int* res)
+bool AddEl (ListStates *l, States e, int* res)
 {
 	int i;
 	for (i=0;i<l->n;i++)
@@ -1333,41 +1335,41 @@ bool AddEl (ListEtats *l, Etats e, int* res)
 	//add the element
 	l->n++;
 	if (l->n == 1)
-		l->e = (Etats*)malloc(sizeof(Etats));
+		l->e = (States*)malloc(sizeof(States));
 	else
-		l->e = (Etats*)realloc(l->e, sizeof(Etats)*l->n);
+		l->e = (States*)realloc(l->e, sizeof(States)*l->n);
 	if (!l->e)
 	{
 		printf("Out of memory !");
 		exit(4);
 	}
-	l->e[l->n-1] = copyEtats(e);
+	l->e[l->n-1] = copyStates(e);
 	if (res)
 		*res = l->n-1;
 	return true;
 }
 
 //add an element even if already in the list
-void AddEl2 (ListEtats *l, Etats e)
+void AddEl2 (ListStates *l, States e)
 {
 	//add the element
 	l->n++;
 	if (l->n == 1)
-		l->e = (Etats*)malloc(sizeof(Etats));
+		l->e = (States*)malloc(sizeof(States));
 	else
-		l->e = (Etats*)realloc(l->e, sizeof(Etats)*l->n);
+		l->e = (States*)realloc(l->e, sizeof(States)*l->n);
 	if (!l->e)
 	{
 		printf("Out of memory !");
 		exit(5);
 	}
-	l->e[l->n-1] = copyEtats(e);
+	l->e[l->n-1] = copyStates(e);
 }
 
 ///////////////////////////////////////////////////////////////////
-Etats2 NewEtats2 (int n)
+States2 NewStates2 (int n)
 {
-	Etats2 e;
+	States2 e;
 	e.n = n;
 	e.e = (uint64 *)malloc(sizeof(uint64)*((n+63)/64));
 	if (!e.e)
@@ -1378,12 +1380,12 @@ Etats2 NewEtats2 (int n)
 return e;
 }
 
-void FreeEtats2 (Etats2 e)
+void FreeStates2 (States2 e)
 {
 	free(e.e);
 }
 
-void initEtats2 (Etats2 e)
+void initStates2 (States2 e)
 {
 	int i;
 	int n = (e.n+63)/64;
@@ -1393,7 +1395,7 @@ void initEtats2 (Etats2 e)
 	}
 }
 
-void printEtats2 (Etats2 e)
+void printStates2 (States2 e)
 {
 	int i, j;
 	int n = (e.n+63)/64;
@@ -1412,7 +1414,7 @@ void printEtats2 (Etats2 e)
 	printf("]\n");
 }
 
-bool isNullEtats2 (Etats2 e)
+bool isNullStates2 (States2 e)
 {
 	int i;
 	int n = (e.n+63)/64;
@@ -1424,7 +1426,7 @@ bool isNullEtats2 (Etats2 e)
 	return true;
 }
 
-bool equalsEtats2 (Etats2 e1, Etats2 e2)
+bool equalsStates2 (States2 e1, States2 e2)
 {
 	if (e1.n != e2.n)
 		return false;
@@ -1438,14 +1440,14 @@ bool equalsEtats2 (Etats2 e1, Etats2 e2)
 	return true;
 }
 
-bool hasEtats2(Etats2 e, uint64 i)
+bool hasStates2(States2 e, uint64 i)
 {
 	return (e.e[i/64] & ((uint64)1<<(i%64))) != 0;
 }
 
-Etats2 copyEtats2(Etats2 e)
+States2 copyStates2(States2 e)
 {
-	Etats2 r = NewEtats2(e.n);
+	States2 r = NewStates2(e.n);
 	int i;
 	int n = (e.n+63)/64;
 	for (i=0;i<n;i++)
@@ -1455,62 +1457,62 @@ Etats2 copyEtats2(Etats2 e)
 	return r;
 }
 
-void addEtat (Etats2 *e, uint64 i)
+void addState (States2 *e, uint64 i)
 {
 	e->e[i/64] |= ((uint64)1<<(i%64));
 }
 
-ListEtats2 NewListEtats2 (int n, int na)
+ListStates2 NewListStates2 (int n, int na)
 {
-	ListEtats2 r;
+	ListStates2 r;
 	r.n = n;
 	r.na = na;
-	r.e = (Etats2*)malloc(sizeof(Etats2)*na);
+	r.e = (States2*)malloc(sizeof(States2)*na);
 	return r;	
 }
 
-void ReallocListEtats2(ListEtats2 *l, int n, bool marge)
+void ReallocListStates2(ListStates2 *l, int n, bool marge)
 {
 	if (!marge)
 	{
 		if (l->na)
-			l->e = (Etats2*)realloc(l->e, sizeof(Etats2)*n);
+			l->e = (States2*)realloc(l->e, sizeof(States2)*n);
 		else
-			l->e = (Etats2*)malloc(sizeof(Etats2)*n);
+			l->e = (States2*)malloc(sizeof(States2)*n);
 		l->na = n;
 	}else
 	{
 		if (n > l->na)
 		{
 			if (l->na)
-				l->e = (Etats2*)realloc(l->e, sizeof(Etats2)*n*2);
+				l->e = (States2*)realloc(l->e, sizeof(States2)*n*2);
 			else
-				l->e = (Etats2*)malloc(sizeof(Etats2)*n*2);
+				l->e = (States2*)malloc(sizeof(States2)*n*2);
 			l->na = n*2;
 		}
 	}
 	l->n = n;
 }
 
-void FreeListEtats2 (ListEtats2* l)
+void FreeListStates2 (ListStates2* l)
 {
 	int i;
 	for (i=0;i<l->n;i++)
 	{
-		FreeEtats2(l->e[i]);
+		FreeStates2(l->e[i]);
 	}
 	free(l->e);
 	l->n = 0;
 	l->na = 0;
 }
 
-void printListEtats2 (ListEtats2 l)
+void printListStates2 (ListStates2 l)
 {
 	int i;
 	for (i=0;i<l.n;i++)
 	{
 		printf("%d : ", i);
-		printEtats2(l.e[i]);
+		printStates2(l.e[i]);
 	}
 	printf("(%d allocated states2 )\n", l.na);
 }
@@ -1553,7 +1555,7 @@ void FreeHash ()
 	filled = false;
 }
 
-int hashEtats (Etats e)
+int hashStates (States e)
 {
 	int i;
 	int h = 1;
@@ -1566,7 +1568,7 @@ int hashEtats (Etats e)
 	return h;
 }
 
-int hash2 (Etats2 e)
+int hash2 (States2 e)
 {
 	int i;
 	uint64 h = 1;
@@ -1581,7 +1583,7 @@ int hash2 (Etats2 e)
 }
 
 //add the element if not already in the hash table
-bool addEtats2 (const ListEtats2* l, Etats2 e, int *k)
+bool addStates2 (const ListStates2* l, States2 e, int *k)
 {
 	int h = hash2(e);
 	int i, v;
@@ -1596,7 +1598,7 @@ bool addEtats2 (const ListEtats2* l, Etats2 e, int *k)
 		v = lhash[h].e[i];
 		if (k)
 			*k = v;
-		if (equalsEtats2(l->e[v], e))
+		if (equalsStates2(l->e[v], e))
 		{
 			//printf("equals !\n");
 			return false;
@@ -1610,9 +1612,9 @@ bool addEtats2 (const ListEtats2* l, Etats2 e, int *k)
 }
 
 //add the element if not already in the hash table
-bool addH (const ListEtats *l, Etats e, int* nf)
+bool addH (const ListStates *l, States e, int* nf)
 {
-	int h = hashEtats(e);
+	int h = hashStates(e);
 	
 	int i, v;
 	for (i=0;i<lhash[h].n;i++)
@@ -1712,8 +1714,8 @@ void printInvertDict (InvertDict id)
 	}
 }
 
-////////////////////////////////// to improve, with a hash table !!!!
-void putEtat (Etats *f, int ef)
+////////////////////////////////// to improve with a hash table !!!!
+void putState (States *f, int ef)
 {
 	int i;
 	for (i=0;i<f->n;i++)
@@ -1726,15 +1728,15 @@ void putEtat (Etats *f, int ef)
 }
 
 //function used by Determinize()
-//Etats : list of states of a
-void Determinize_rec (Automaton a, InvertDict id, Automaton *r, ListEtats* l, bool onlyfinals, bool nof, int niter)
+//States : list of states of a
+void Determinize_rec (Automaton a, InvertDict id, Automaton *r, ListStates* l, bool onlyfinals, bool nof, int niter)
 {
 	int current = l->n-1;
-	Etats c = l->e[current];
+	States c = l->e[current];
 	//Browse sons
-	Etats f = NewEtats(a.n);
+	States f = NewStates(a.n);
 	int nf;
-	Etat e;
+	State e;
 	int i,j,k;
 	int ef;
 	bool final;
@@ -1753,7 +1755,7 @@ void Determinize_rec (Automaton a, InvertDict id, Automaton *r, ListEtats* l, bo
 				if (ef != -1)
 				{
 					//check that the state of a is not already in the list
-					putEtat(&f, ef);
+					putState(&f, ef);
 					if (a.e[ef].final)
 						final = true;
 				}
@@ -1771,7 +1773,7 @@ void Determinize_rec (Automaton a, InvertDict id, Automaton *r, ListEtats* l, bo
 			//add the state to r
 			if (nof)
 				final = true;
-			AddEtat(r, final);
+			AddState(r, final);
 			//induction
 			Determinize_rec(a, id, r, l, onlyfinals, nof, niter+1);
 		}
@@ -1781,7 +1783,7 @@ void Determinize_rec (Automaton a, InvertDict id, Automaton *r, ListEtats* l, bo
 			r->e[current].f[i] = nf;
 		}
 	}
-	FreeEtats(f);
+	FreeStates(f);
 }
 
 //Determinize the automaton obtained by changing the alphabet, using the Power Set Construction.
@@ -1869,8 +1871,8 @@ Automaton Determinize(Automaton a, Dict d, bool noempty, bool onlyfinals, bool n
 	//put the empty set in the hash table if we don't want this state in r
 	if (noempty)
 	{
-		Etats e = NewEtats(0); //empty set
-		int h = hashEtats(e);
+		States e = NewStates(0); //empty set
+		int h = hashStates(e);
 		if (verb)
 			printf("hash empty : %d\n", h);
 		dictAdd(&lhash[h], -1);
@@ -1882,7 +1884,7 @@ Automaton Determinize(Automaton a, Dict d, bool noempty, bool onlyfinals, bool n
 	r.n = 1;
 	r.na = id.n;
 	r.i = 0;
-	r.e = (Etat *)malloc(sizeof(Etat));
+	r.e = (State *)malloc(sizeof(State));
 	if (!r.e)
 	{
 		printf("Out of memory !");
@@ -1909,10 +1911,10 @@ Automaton Determinize(Automaton a, Dict d, bool noempty, bool onlyfinals, bool n
 	//(this list is used to number with consecutive numbers the states of the new automaton that are list of states of a)
 	if (verb)
 		printf("Init l...\n");
-	ListEtats l;
+	ListStates l;
 	l.n = 0;
 	l.e = NULL;
-	Etats e = NewEtats(1);
+	States e = NewStates(1);
 	e.e[0] = a.i; //the initial state of the new automaton is the list of initial states (here with cardinality 1)
 	addH(&l, e, NULL);
 	AddEl2(&l, e);
@@ -1920,7 +1922,7 @@ Automaton Determinize(Automaton a, Dict d, bool noempty, bool onlyfinals, bool n
 	//initialize the hash table
 	bool b = addH(&l, l.e[0], NULL); //add the initial state to the hash table
 	if (verb)
-		printListEtats(l);
+		printListStates(l);
 	
 	if (verb)
 		printf("Induction...\n");
@@ -1933,12 +1935,12 @@ Automaton Determinize(Automaton a, Dict d, bool noempty, bool onlyfinals, bool n
 	//put back to zero the element of the hash table
 	for (i=0;i<l.n;i++)
 	{
-		FreeDict(&lhash[hashEtats(l.e[i])]);
+		FreeDict(&lhash[hashStates(l.e[i])]);
 	}
 	
 	for (i=0;i<l.n;i++)
 	{
-		FreeEtats(l.e[i]);
+		FreeStates(l.e[i]);
 	}
 	free(l.e);
 	
@@ -1969,7 +1971,7 @@ NAutomaton Concat (Automaton a, Automaton b, bool verb)
 			nv++; //add an edge to the other automaton
 		rnv = nv;
 		//alloc new edges
-		r.e[i].a = (Arete *)malloc(sizeof(Arete)*nv);
+		r.e[i].a = (Transition *)malloc(sizeof(Transition)*nv);
 		r.e[i].n = nv;
 		//copy edges
 		nv = 0;
@@ -2009,7 +2011,7 @@ NAutomaton Concat (Automaton a, Automaton b, bool verb)
 				nv++;
 		}
 		//alloc the new edges
-		r.e[a.n+i].a = (Arete *)malloc(sizeof(Arete)*nv);
+		r.e[a.n+i].a = (Transition *)malloc(sizeof(Transition)*nv);
 		r.e[a.n+i].n = nv;
 		//copy the edges
 		nv = 0;
@@ -2042,7 +2044,7 @@ void CopyDN(Automaton *a, NAutomaton *r, bool verb)
 				nv++;
 		}
 		//alloc the new edges
-		r->e[i].a = (Arete *)malloc(sizeof(Arete)*nv);
+		r->e[i].a = (Transition *)malloc(sizeof(Transition)*nv);
 		r->e[i].n = nv;
 		//copy the edges
 		nv = 0;
@@ -2091,7 +2093,7 @@ NAutomaton Proj (Automaton a, Dict d, bool verb)
 				nv++;
 		}
 		//alloc new edges
-		r.e[i].a = (Arete *)malloc(sizeof(Arete)*nv);
+		r.e[i].a = (Transition *)malloc(sizeof(Transition)*nv);
 		r.e[i].n = nv;
 		//copy edges
 		nv = 0;
@@ -2111,11 +2113,11 @@ NAutomaton Proj (Automaton a, Dict d, bool verb)
 }
 
 //Add to e all states reached by an epsilon-transition from state i
-void EpsilonParcours (NAutomaton a, uint i, Etats2 e)
+void EpsilonParcours (NAutomaton a, uint i, States2 e)
 {
-	if (!hasEtats2(e, i))
+	if (!hasStates2(e, i))
 	{
-		addEtat(&e, i);
+		addState(&e, i);
 		uint j;
 		for (j=0;j<a.e[i].n;j++)
 		{
@@ -2128,13 +2130,13 @@ void EpsilonParcours (NAutomaton a, uint i, Etats2 e)
 }
 
 //compute the epsilon-closure of e (result in ec)
-void EpsilonCloture (NAutomaton a, Etats2 e, Etats2 ec)
+void EpsilonCloture (NAutomaton a, States2 e, States2 ec)
 {
 	int j;
-	initEtats2(ec);
+	initStates2(ec);
 	for (j=0;j<a.n;j++)
 	{
-		if (hasEtats2(e, j))
+		if (hasStates2(e, j))
 		{
 			EpsilonParcours(a, j, ec);
 		}
@@ -2161,29 +2163,29 @@ Automaton DeterminizeN (NAutomaton a, bool puits, int verb)
 		printf("allocates states...\n");
 	
 	int i,j,k,u;
-	ListEtats2 l = NewListEtats2(1, 1024);
-	Etats2* e = (Etats2*)malloc(sizeof(Etats2)*a.na);
+	ListStates2 l = NewListStates2(1, 1024);
+	States2* e = (States2*)malloc(sizeof(States2)*a.na);
 	for (i=0;i<a.na;i++)
 	{
-		e[i] = NewEtats2(a.n);
+		e[i] = NewStates2(a.n);
 	}
 	
-	Etats2 ec = NewEtats2(a.n);
+	States2 ec = NewStates2(a.n);
 	
 	if (verb >= 20)
 		printf("allocates the first state...\n");
 	
 	//initialize the first state
 	r.i = 0;
-	l.e[0] = NewEtats2(a.n);
-	initEtats2(l.e[0]);
+	l.e[0] = NewStates2(a.n);
+	initStates2(l.e[0]);
 	for (i=0;i<a.n;i++)
 	{
 		if (a.e[i].initial)
-			addEtat(&l.e[0], i);
+			addState(&l.e[0], i);
 	}
 	l.n = 0;
-	addEtats2(&l, l.e[0], NULL); //add to the hash table
+	addStates2(&l, l.e[0], NULL); //add to the hash table
 	l.n++;
 	
 	if (verb)
@@ -2195,26 +2197,26 @@ Automaton DeterminizeN (NAutomaton a, bool puits, int verb)
 		if (verb >= 20)
 		{
 			printf("state %d : ", i);
-			printEtats2(l.e[i]);
+			printStates2(l.e[i]);
 		}
 		
 		r.e[i].final = false;
 		for (j=0;j<a.na;j++)
 		{
-			initEtats2(e[j]);
+			initStates2(e[j]);
 		}
 		//compute the closure by epsilon-transition of l.e[i]
 		EpsilonCloture(a, l.e[i], ec);
 		//browse all edges leaving from states of ec
 		for (j=0;j<a.n;j++)
 		{ //browse states of a being in the current state
-			if (hasEtats2(ec, j))
+			if (hasStates2(ec, j))
 			{
 				r.e[i].final = r.e[i].final || a.e[j].final;
 				for (u=0;u<a.e[j].n;u++)
 				{ //browse edges leaving from state j of a
 					if (a.e[j].a[u].l >= 0)
-						addEtat(&e[a.e[j].a[u].l], a.e[j].a[u].e);
+						addState(&e[a.e[j].a[u].l], a.e[j].a[u].e);
 				}
 			}
 		}
@@ -2225,16 +2227,16 @@ Automaton DeterminizeN (NAutomaton a, bool puits, int verb)
 			if (verb > 20)
 			{
 				printf("	");
-				printEtats2(e[j]);
+				printStates2(e[j]);
 			}
-			if (puits || !isNullEtats2(e[j]))
+			if (puits || !isNullStates2(e[j]))
 			{
 				EpsilonCloture(a, e[j], ec);
 				//determine if the state is new or not
-				if (addEtats2(&l, ec, &k))
+				if (addStates2(&l, ec, &k))
 				{
-					ReallocListEtats2(&l, l.n+1, true);
-					l.e[k] = copyEtats2(ec);
+					ReallocListStates2(&l, l.n+1, true);
+					l.e[k] = copyStates2(ec);
 					//add a state to the automaton
 					if (l.n > r.n)
 					{ //alloc the memory if needed
@@ -2262,10 +2264,10 @@ Automaton DeterminizeN (NAutomaton a, bool puits, int verb)
 		FreeDict(&lhash[hash2(l.e[i])]);
 	}
 	
-	FreeListEtats2(&l);
+	FreeListStates2(&l);
 	for (i=0;i<a.na;i++)
 	{
-		FreeEtats2(e[i]);
+		FreeStates2(e[i]);
 	}
 	free(e);
 	//FreeHash(); //do not free memory in order to use it faster later
@@ -2307,21 +2309,21 @@ Automaton Duplicate (Automaton a, InvertDict id, int na2, bool verb)
 	return r;
 }
 
-void ZeroComplete_rec(Automaton *a, int etat, bool *vu, int l0, bool verb)
+void ZeroComplete_rec(Automaton *a, int State, bool *vu, int l0, bool verb)
 {
 	if (verb)
-		printf("state %d ..\n", etat);
-	vu[etat] = true;
+		printf("state %d ..\n", State);
+	vu[State] = true;
 	int i, e;
 	for (i=0;i<a->na;i++)
 	{
-		e = a->e[etat].f[i];
+		e = a->e[State].f[i];
 		if (e != -1 && e < a->n)
 		{
 			if (!vu[e])
 				ZeroComplete_rec(a, e, vu, l0, verb);
 			if (i == l0 && a->e[e].final)
-				a->e[etat].final = true;
+				a->e[State].final = true;
 		}
 	}
 }
@@ -2345,7 +2347,7 @@ void ZeroComplete(Automaton *a, int l0, bool verb)
 	free(vu);
 }
 
-Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb)
+Automaton ZeroComplete2 (Automaton *a, int l0, bool State_puits, bool verb)
 {
 	NAutomaton r = NewNAutomaton(a->n+1, a->na);
 		
@@ -2367,7 +2369,7 @@ Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb)
 		if (a->e[i].final)
 			r.e[i].n++; //edge 0 added
 		//alloc
-		r.e[i].a = (Arete *)malloc(sizeof(Arete)*r.e[i].n);
+		r.e[i].a = (Transition *)malloc(sizeof(Transition)*r.e[i].n);
 		//fill
 		k = 0;
 		for (j=0;j<a->na;j++)
@@ -2386,13 +2388,13 @@ Automaton ZeroComplete2 (Automaton *a, int l0, bool etat_puits, bool verb)
 		}
 	}
 	r.e[a->n].n = 1;
-	r.e[a->n].a = (Arete *)malloc(sizeof(Arete));
+	r.e[a->n].a = (Transition *)malloc(sizeof(Transition));
 	r.e[a->n].a[0].e = a->n;
 	r.e[a->n].a[0].l = l0;
 	r.e[a->n].initial = false;
 	r.e[a->n].final = true;
 	
-	return DeterminizeN(r, etat_puits, 0);
+	return DeterminizeN(r, State_puits, 0);
 }
 
 Automaton EmptyAutomaton (int na)
@@ -2425,7 +2427,7 @@ Automaton ZeroInv (Automaton *a, int l0)
 				r.e[i].n++;
 		}
 		//alloc
-		r.e[i].a = (Arete *)malloc(sizeof(Arete)*r.e[i].n);
+		r.e[i].a = (Transition *)malloc(sizeof(Transition)*r.e[i].n);
 		//fill
 		k = 0;
 		for (j=0;j<a->na;j++)
@@ -2440,7 +2442,7 @@ Automaton ZeroInv (Automaton *a, int l0)
 	}
 	*/
 	r.e[a->n].n = 2;
-	r.e[a->n].a = (Arete *)malloc(sizeof(Arete)*2);
+	r.e[a->n].a = (Transition *)malloc(sizeof(Transition)*2);
 	r.e[a->n].a[0].e = a->n;
 	r.e[a->n].a[0].l = l0;
 	r.e[a->n].a[1].e = a->i;
@@ -2451,15 +2453,15 @@ Automaton ZeroInv (Automaton *a, int l0)
 	return DeterminizeN(r, false, 0);
 }
 
-int countEtats = 0;
-bool prune_inf_rec(Automaton a, int etat)
+int countStates = 0;
+bool prune_inf_rec(Automaton a, int State)
 {
 	int i, f;
 	bool cycle = false;
-	a.e[etat].final = 1; //mark the state as currently seen
+	a.e[State].final = 1; //mark the state as currently seen
 	for (i=0;i<a.na;i++)
 	{
-		f = a.e[etat].f[i];
+		f = a.e[State].f[i];
 		if (f == -1)
 			continue;
 		if (a.e[f].final == 1)
@@ -2471,9 +2473,9 @@ bool prune_inf_rec(Automaton a, int etat)
 		}
 	}
 	if (!cycle)
-		a.e[etat].final = 2; //indicate that we won't keep the state (but it has been seen)
+		a.e[State].final = 2; //indicate that we won't keep the state (but it has been seen)
 	else
-		countEtats++; //count the states that we keep
+		countStates++; //count the states that we keep
 	return cycle;
 }
 
@@ -2502,13 +2504,13 @@ Automaton prune_inf(Automaton a, bool verb)
 	}
 	if (verb)
 		printf("induction...\n");
-	countEtats = 0;
+	countStates = 0;
 	if (a.i != -1)
 		prune_inf_rec (a, a.i);
 	
 	if (verb)
 	{
-		printf("States counter = %d\n", countEtats);
+		printf("States counter = %d\n", countStates);
 		printf("count...\n");
 	}
 	
@@ -2631,9 +2633,9 @@ NAutomaton Mirror(Automaton a)
 				//add an edge from f to i labeled by j
 				r.e[f].n++;
 				if (r.e[f].n == 1)
-					r.e[f].a = (Arete *)malloc(sizeof(Arete));
+					r.e[f].a = (Transition *)malloc(sizeof(Transition));
 				else
-					r.e[f].a = (Arete *)realloc(r.e[f].a, sizeof(Arete)*r.e[f].n);
+					r.e[f].a = (Transition *)realloc(r.e[f].a, sizeof(Transition)*r.e[f].n);
 				r.e[f].a[r.e[f].n-1].l = j;
 				r.e[f].a[r.e[f].n-1].e = i;
 			}
@@ -2650,36 +2652,36 @@ int min (int a, int b)
 }
 
 int count2;
-void StronglyConnectedComponents_rec(Automaton a, int etat, int *pile, int *m, int *res)
+void StronglyConnectedComponents_rec(Automaton a, int state, int *pile, int *m, int *res)
 {
 	int j,f,c;
-	pile[countEtats] = etat;
-	m[etat] = countEtats;
-	c = countEtats;
-	a.e[etat].final |= 2; //mark the state as seen
-	countEtats++;
+	pile[countStates] = state;
+	m[state] = countStates;
+	c = countStates;
+	a.e[state].final |= 2; //mark the state as seen
+	countStates++;
 	for (j=0;j<a.na;j++)
 	{
-		f = a.e[etat].f[j];
+		f = a.e[state].f[j];
 		if (f == -1)
 			continue;
 		if (!(a.e[f].final & 2))
 		{
 			StronglyConnectedComponents_rec(a, f, pile, m, res);
-			m[etat] = min(m[etat], m[f]);
+			m[state] = min(m[state], m[f]);
 		}else if (res[f] == -1)
 		{
-			m[etat] = min(m[etat], m[f]);
+			m[state] = min(m[state], m[f]);
 		}
 	}
-	if (m[etat] == c)
+	if (m[state] == c)
 	{ //we have a strongly connected component
 	    //pops the component
 		do
 		{
-			countEtats--;
-			res[pile[countEtats]] = count2;
-		}while(pile[countEtats] != etat);
+			countStates--;
+			res[pile[countStates]] = count2;
+		}while(pile[countStates] != state);
 		count2++;
 	}
 }
@@ -2694,7 +2696,7 @@ int StronglyConnectedComponents (Automaton a, int *res)
 	{
 		res[i] = -1;
 	}
-	countEtats = 0; //count the states added to the stack
+	countStates = 0; //count the states added to the stack
 	count2 = 0; //count the strongly connected components
 	for (i=0;i<a.n;i++)
 	{
@@ -2712,26 +2714,26 @@ int StronglyConnectedComponents (Automaton a, int *res)
 }
 
 //determine reachable and co-reachable states
-void prune_rec(Automaton a, int *l, InvertDict id, int etat)
+void prune_rec(Automaton a, int *l, InvertDict id, int State)
 {
-	//printf("prune_rec %d...\n", etat);
+	//printf("prune_rec %d...\n", State);
 	int i, j, f;
-	a.e[etat].final |= 2; //mark that this state is currently seen
+	a.e[State].final |= 2; //mark that this state is currently seen
 	for (i=0;i<a.na;i++)
 	{
-		f = a.e[etat].f[i];
+		f = a.e[State].f[i];
 		if (f == -1)
 			continue;
 		if (!(a.e[f].final & 2))
 		{ //the state has not been seen
 			prune_rec(a, l, id, f);
 		}
-		if ((a.e[f].final & 4) && !(a.e[etat].final & 4))
+		if ((a.e[f].final & 4) && !(a.e[State].final & 4))
 		{ //we get to a co-final state that is not yet marked as co-final
 		    //propagate the information to the strongly connected component
-			for (j=0;j<id.d[l[etat]].n;j++)
+			for (j=0;j<id.d[l[State]].n;j++)
 			{
-				a.e[id.d[l[etat]].e[j]].final |= 4;
+				a.e[id.d[l[State]].e[j]].final |= 4;
 			}
 		}
 	}
@@ -2955,13 +2957,13 @@ void CoAcc (Automaton *a, int *coa)
 }
 
 //determine reachable states
-void pruneI_rec(Automaton a, int etat)
+void pruneI_rec(Automaton a, int State)
 {
 	int i, f;
-	a.e[etat].final |= 2; //mark that the state is currently seen
+	a.e[State].final |= 2; //mark that the state is currently seen
 	for (i=0;i<a.na;i++)
 	{
-		f = a.e[etat].f[i];
+		f = a.e[State].f[i];
 		if (f == -1)
 			continue;
 		if (!(a.e[f].final & 2))

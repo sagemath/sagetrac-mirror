@@ -65,11 +65,11 @@ cdef extern from "automataC.h":
     Automaton DeterminizeN(NAutomaton a, bool puits, int verb)
     NAutomaton Concat(Automaton a, Automaton b, bool verb)
     NAutomaton CopyN(Automaton a, bool verb)
-    void AddEdgeN(NAutomaton *a, int e, int f, int l)
+    void AddTransitionN(NAutomaton *a, int e, int f, int l)
     void AddPathN(NAutomaton *a, int e, int f, int *l, int len, bool verb)
     NAutomaton Proj(Automaton a, Dict d, bool verb)
     void ZeroComplete(Automaton *a, int l0, bool verb)
-    Automaton ZeroComplete2(Automaton *a, int l0, bool etat_puits, bool verb)
+    Automaton ZeroComplete2(Automaton *a, int l0, bool State_puits, bool verb)
     Automaton ZeroInv(Automaton *a, int l0)
     Automaton prune_inf(Automaton a, bool verb)
     Automaton prune(Automaton a, bool verb)
@@ -98,7 +98,7 @@ cdef extern from "automataC.h":
     bool Included(Automaton a1, Automaton a2, bool pruned, bool verb)
     # bool intersectLanguage (Automaton *a1, Automaton *a2, Dict a1toa2, bool pruned, bool verb)
     bool emptyLanguage(Automaton a)
-    void AddEtat(Automaton *a, bool final)
+    void AddState(Automaton *a, bool final)
     bool IsCompleteAutomaton(Automaton a)
     bool CompleteAutomaton(Automaton *a)
     Automaton BiggerAlphabet(Automaton a, Dict d, int nna) #copy the automaton with a new bigger alphabet
@@ -430,12 +430,12 @@ cdef class NFastAutomaton:
               \pgfsetlinewidth{1bp}
             %%
             \pgfsetcolor{black}
-              % Edge: 0 -> 1
+              % Transition: 0 -> 1
               \draw [-stealth'] (44.247bp,22.0bp) .. controls (54.848bp,22.0bp) and (67.736bp,22.0bp)  .. (89.697bp,22.0bp);
               \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
               \pgfsetstrokecolor{strokecol}
               \draw (67.0bp,33.0bp) node {a};
-              % Edge: 2 -> 3
+              % Transition: 2 -> 3
               \draw [-stealth'] (44.247bp,80.0bp) .. controls (54.848bp,80.0bp) and (67.736bp,80.0bp)  .. (89.697bp,80.0bp);
               \draw (67.0bp,91.0bp) node {b};
               % Node: 1
@@ -532,7 +532,7 @@ cdef class NFastAutomaton:
 
         OUTPUT:
 
-        return the numbers of succussor of state ``i``
+        return the numbers of successor of state ``i``
 
         EXAMPLES::
 
@@ -601,7 +601,7 @@ cdef class NFastAutomaton:
 
     def is_final(self, int i):
         """
-        Return ``True``/``False`` if ``i`` state  is/or not  final
+        Return ``True`` if the state``i`` is  final, ``False`` otherwise.
 
         INPUT:
 
@@ -609,7 +609,7 @@ cdef class NFastAutomaton:
 
         OUTPUT:
 
-        Return ``True``/``False`` if ``i`` state  is/or not  final
+        Return ``True`` if the state``i`` is  final, ``False`` otherwise.
 
         EXAMPLES::
 
@@ -624,7 +624,7 @@ cdef class NFastAutomaton:
 
     def is_initial(self, int i):
         """
-        Return `True``/``False`` if ``i`` state  is/or not  initial
+        Return `True`` if state ``i`` is initial, ``False`` otherwise.
 
         INPUT:
 
@@ -632,7 +632,7 @@ cdef class NFastAutomaton:
 
         OUTPUT:
 
-        Return ``True``/``False`` if ``i`` state  is/or not  initial
+        Return `True`` if state ``i`` is initial, ``False`` otherwise.
 
         EXAMPLES::
 
@@ -677,7 +677,7 @@ cdef class NFastAutomaton:
 
         OUTPUT:
 
-        Return the list of final states
+        Return the list of indices of final states
 
         EXAMPLES::
 
@@ -693,6 +693,11 @@ cdef class NFastAutomaton:
             sage: b = NFastAutomaton(a)
             sage: b.final_states()
             [0, 3]
+            sage: a = FastAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
+                (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
+                (10,30,'z')], i=10)
+            sage: a.final_states()
+            [0, 1, 2]
         """
         l = []
         for i in range(self.a.n):
@@ -715,7 +720,11 @@ cdef class NFastAutomaton:
             sage: b = NFastAutomaton(a)
             sage: b.Alphabet
             ['a', 'b']
-
+            sage: a = FastAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
+                (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
+                (10,30,'z')], i=10)
+            sage: a.Alphabet
+            ['y', 'x', 'z']
         """
         return self.A
 
@@ -785,7 +794,7 @@ cdef class NFastAutomaton:
             raise ValueError("The letter %s doesn't exist." % l)
 
         sig_on()
-        AddEdgeN(self.a, i, f, k)
+        AddTransitionN(self.a, i, f, k)
         sig_off()
 
     def add_state(self, bool final):
@@ -1009,7 +1018,7 @@ cdef class FastAutomaton:
         TESTS::
 
         """
-        # print("free (%s etats) "%self.a.n)
+        # print("free (%s States) "%self.a.n)
         sig_on()
         FreeAutomaton(self.a)
         # print("free self.a")
@@ -1071,12 +1080,12 @@ cdef class FastAutomaton:
               \pgfsetlinewidth{1bp}
             %%
             \pgfsetcolor{black}
-              % Edge: 0 -> 1
+              % Transition: 0 -> 1
               \draw [-stealth'] (44.247bp,22.0bp) .. controls (54.848bp,22.0bp) and (67.736bp,22.0bp)  .. (89.697bp,22.0bp);
               \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
               \pgfsetstrokecolor{strokecol}
               \draw (67.0bp,33.0bp) node {a};
-              % Edge: 2 -> 3
+              % Transition: 2 -> 3
               \draw [-stealth'] (44.247bp,80.0bp) .. controls (54.848bp,80.0bp) and (67.736bp,80.0bp)  .. (89.697bp,80.0bp);
               \draw (67.0bp,91.0bp) node {b};
               % Node: 1
@@ -1235,12 +1244,6 @@ cdef class FastAutomaton:
             return (r == 1)
         else:
             return (r == 0)
-
-#     def Automaton(self):
-#         return AutomatonGet(self.a[0], self.A)
-
-#    cdef set_a(self, Automaton a):
-#        self.a[0] = a
 
     #give a Sage Automon from the FastAutomaton
     def get_automaton(self):
@@ -1733,13 +1736,13 @@ cdef class FastAutomaton:
         ZeroComplete(self.a, list(self.A).index(self.A[0]), verb)
         sig_off()
 
-    def zero_complete2(self, etat_puits=False, verb=False):
+    def zero_complete2(self, State_puits=False, verb=False):
         """
         zero-complete automaton in the other way
 
         INPUT:
 
-        - ``etat_puits`` --  (default: ``False``)
+        - ``State_puits`` --  (default: ``False``)
         - ``verb`` -- (default: ``False``) fix
           to ``True`` for activation the verbose mode
 
@@ -1757,7 +1760,7 @@ cdef class FastAutomaton:
         cdef Automaton a
         r = FastAutomaton(None)
         sig_on()
-        a = ZeroComplete2(self.a, list(self.A).index(self.A[0]), etat_puits, verb)
+        a = ZeroComplete2(self.a, list(self.A).index(self.A[0]), State_puits, verb)
         sig_off()
         r.a[0] = a
         r.A = self.A
@@ -1766,7 +1769,8 @@ cdef class FastAutomaton:
 
     def zero_inv(self, z=0, simplify=True):
         """
-        Compute an automaton recognizing the language (A[z]*)L, where L is the language of self.
+        Compute an automaton recognizing the language (l*)L, where L is
+        the language of self and l is the letter of index z.
 
         INPUT:
 
@@ -1848,7 +1852,8 @@ cdef class FastAutomaton:
     def prune_inf(self, verb=False):
         """
         Compute the emondation of the automaton
-        remove all states from which there no infinite way
+        remove all states from which there no infinite way.
+        Warning: this is not an operation on regular languages!
 
         INPUT:
 
@@ -1860,10 +1865,28 @@ cdef class FastAutomaton:
         Return the pruned :class:`FastAutomaton`.
 
         EXAMPLES::
-
+            
+            sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
+            sage: a.prune_inf()
+            FastAutomaton with 0 states and an alphabet of 2 letters
+            
+            sage: a = FastAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
+                (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
+                (10,30,'z')], i=10)
+            sage: a.prune_inf()
+            FastAutomaton with 3 states and an alphabet of 3 letters
+            
+            sage: a = FastAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
+                (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
+                (10,30,'z')], i=10, final_states=[])
+            sage: a.prune_inf()
+            FastAutomaton with 3 states and an alphabet of 3 letters
+            
+        TESTS::
+        
             sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
             sage: a.prune_inf(True)
-            recurrence...
+            induction...
             States counter = 0
             count...
             cpt = 0
@@ -3087,8 +3110,19 @@ cdef class FastAutomaton:
         OUTPUT:
 
         Return a minimized :class:`FastAutomaton` automaton
-
+        
         EXAMPLES::
+            
+            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a.minimize()
+            FastAutomaton with 3 states and an alphabet of 2 letters
+            sage: a = FastAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
+                    (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
+                    (10,30,'z')], i=10)
+            sage: a.minimize()
+            FastAutomaton with 1 states and an alphabet of 3 letters
+        
+        TESTS::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.minimize(True)
@@ -3105,15 +3139,15 @@ cdef class FastAutomaton:
             partition = [ 0 1 2 3 4 ]
             partitioni = [ 0 1 2 3 4 ]
             Initial partition :
-            class 0 : 0 1 2 3
-            class 1 : 4
+            class 0 : 0 1 2 3 
+            class 1 : 4 
             split 1 0...
             new visited class : 0 (1 parent of 4)
             re-visited class : 0 (2 parent of 4)
             re-visited class : 0 (3 parent of 4)
             new visited class : 1 (4 parent of 4)
-            class 0 : 1 2 3 0
-            class 1 : 4
+            class 0 : 1 2 3 0 
+            class 1 : 4 
             2 class encountered
             class 0 : l = 0 3 4 = h
             class 1 : l = 4 5 5 = h
@@ -3122,44 +3156,44 @@ cdef class FastAutomaton:
             new visited class : 0 (1 parent of 4)
             re-visited class : 0 (3 parent of 4)
             new visited class : 1 (4 parent of 4)
-            class 0 : 1 3 2
-            class 1 : 4
-            class 2 : 0
+            class 0 : 1 3 2 
+            class 1 : 4 
+            class 2 : 0 
             3 class encountered
             class 2 : l = 3 4 4 = h
             class 0 : l = 0 2 3 = h
             class 1 : l = 4 5 5 = h
             split 3 0...
-            class 0 : 1 3
-            class 1 : 4
-            class 2 : 0
-            class 3 : 2
+            class 0 : 1 3 
+            class 1 : 4 
+            class 2 : 0 
+            class 3 : 2 
             0 class encountered
             split 3 1...
-            class 0 : 1 3
-            class 1 : 4
-            class 2 : 0
-            class 3 : 2
+            class 0 : 1 3 
+            class 1 : 4 
+            class 2 : 0 
+            class 3 : 2 
             0 class encountered
             split 2 0...
-            class 0 : 1 3
-            class 1 : 4
-            class 2 : 0
-            class 3 : 2
+            class 0 : 1 3 
+            class 1 : 4 
+            class 2 : 0 
+            class 3 : 2 
             0 class encountered
             split 2 1...
-            class 0 : 1 3
-            class 1 : 4
-            class 2 : 0
-            class 3 : 2
+            class 0 : 1 3 
+            class 1 : 4 
+            class 2 : 0 
+            class 3 : 2 
             0 class encountered
             Final partition :
-            class 0 : 1 3
-            class 1 : 4
-            class 2 : 0
-            class 3 : 2
+            class 0 : 1 3 
+            class 1 : 4 
+            class 2 : 0 
+            class 3 : 2 
             a.i = 0 class 2
-            removes the hole state  1...
+            removes the sink state  1...
             FastAutomaton with 3 states and an alphabet of 2 letters
         """
         sig_on()
@@ -3656,9 +3690,16 @@ cdef class FastAutomaton:
             4
             sage: a.add_state(False)
             5
+            sage: a = FastAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
+                (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
+                (10,30,'z')], i=10)
+            sage: a.add_state(True)
+            3
+            sage: a
+            FastAutomaton with 4 states and an alphabet of 3 letters
         """
         sig_on()
-        AddEtat(self.a, final)
+        AddState(self.a, final)
         sig_off()
         return self.a.n-1
 

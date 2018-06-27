@@ -3,21 +3,21 @@ typedef int bool;
 #define true 1
 #define false 0
 
-struct Etat
+struct State
 {
-	int *f; //liste des na fils
+	int *f; //list of na sons
 	bool final;
 };
-typedef struct Etat Etat;
+typedef struct State State;
 
 struct Automate
 {
-	Etat *e; //états
-	int n; //nombre d'états
-	int na; //nombre de lettres
-	int i; //état initial
+	State *e; //states
+	int n; //number of states
+	int na; //number of letters
+	int i; //initial state
 	//
-//	int nalloc; //usage interne, mémoire allouée
+//	int nalloc; //internal usage, allocated memory
 };
 typedef struct Automate Automate;
 typedef struct Automate Automaton;
@@ -26,29 +26,29 @@ typedef struct Automate Automaton;
 //void FreeAutomaton (Automaton *a);
 
 ///////////////////////////////////////////////////////
-//Automates non déterministe
+//Non Deterministaic Automata
 ///////////////////////////////////////////////////////
 
-struct Arete
+struct Transition
 {
 	int l; //label (-1 : epsilon-transition)
-	int e; //état d'arrivée
+	int e; //arrival state
 };
-typedef struct Arete Arete;
+typedef struct Transition Transition;
 
-struct NEtat
+struct NState
 {
-	Arete *a;
+	Transition *a;
 	int n;
 	bool final;
 	bool initial;
 };
-typedef struct NEtat NEtat;
+typedef struct NState NState;
 
 struct NAutomate
 {
-	NEtat *e; //états
-	int n; //nombre d'états
-	int na; //nombre de lettres
+	NState *e; //states
+	int n; //number of states
+	int na; //number of letters
 };
 typedef struct NAutomate NAutomate;
