@@ -394,7 +394,7 @@ void printAutomaton (Automaton a)
 			}
 		}
 	}
-	printf("initial State %d.\n", a.i);
+	printf("initial state %d.\n", a.i);
 }
 
 void plotDot (const char *file, Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool html, bool verb, bool run_dot)
@@ -578,7 +578,7 @@ bool CompleteAutomaton (Automaton *a)
 {
 	int ne = a->n; //new state
 	int i,j;
-	bool add_State = false;
+	bool add_state = false;
 	for (i=0;i<ne;i++)
 	{
 		for (j=0;j<a->na;j++)
@@ -586,18 +586,18 @@ bool CompleteAutomaton (Automaton *a)
 			if (a->e[i].f[j] == -1)
 			{
 				a->e[i].f[j] = ne;
-				add_State = true;
+				add_state = true;
 			}
 		}
 	}
 	if (a->i == -1)
 	{
 		a->i = ne;
-		add_State = true;
+		add_state = true;
 	}
-	if (!add_State)
+	if (!add_state)
 		return false;
-	AddState(a, false); //add the sink state
+	Addstate(a, false); //add the sink state
 	for (j=0;j<a->na;j++)
 	{
 		a->e[ne].f[j] = ne;
@@ -2309,21 +2309,21 @@ Automaton Duplicate (Automaton a, InvertDict id, int na2, bool verb)
 	return r;
 }
 
-void ZeroComplete_rec(Automaton *a, int State, bool *vu, int l0, bool verb)
+void ZeroComplete_rec(Automaton *a, int state, bool *vu, int l0, bool verb)
 {
 	if (verb)
-		printf("state %d ..\n", State);
-	vu[State] = true;
+		printf("state %d ..\n", state);
+	vu[state] = true;
 	int i, e;
 	for (i=0;i<a->na;i++)
 	{
-		e = a->e[State].f[i];
+		e = a->e[state].f[i];
 		if (e != -1 && e < a->n)
 		{
 			if (!vu[e])
 				ZeroComplete_rec(a, e, vu, l0, verb);
 			if (i == l0 && a->e[e].final)
-				a->e[State].final = true;
+				a->e[state].final = true;
 		}
 	}
 }
@@ -2347,7 +2347,7 @@ void ZeroComplete(Automaton *a, int l0, bool verb)
 	free(vu);
 }
 
-Automaton ZeroComplete2 (Automaton *a, int l0, bool State_puits, bool verb)
+Automaton ZeroComplete2 (Automaton *a, int l0, bool state_puits, bool verb)
 {
 	NAutomaton r = NewNAutomaton(a->n+1, a->na);
 		
@@ -2394,7 +2394,7 @@ Automaton ZeroComplete2 (Automaton *a, int l0, bool State_puits, bool verb)
 	r.e[a->n].initial = false;
 	r.e[a->n].final = true;
 	
-	return DeterminizeN(r, State_puits, 0);
+	return DeterminizeN(r, state_puits, 0);
 }
 
 Automaton EmptyAutomaton (int na)
@@ -2454,14 +2454,14 @@ Automaton ZeroInv (Automaton *a, int l0)
 }
 
 int countStates = 0;
-bool prune_inf_rec(Automaton a, int State)
+bool prune_inf_rec(Automaton a, int state)
 {
 	int i, f;
 	bool cycle = false;
-	a.e[State].final = 1; //mark the state as currently seen
+	a.e[state].final = 1; //mark the state as currently seen
 	for (i=0;i<a.na;i++)
 	{
-		f = a.e[State].f[i];
+		f = a.e[state].f[i];
 		if (f == -1)
 			continue;
 		if (a.e[f].final == 1)
@@ -2473,7 +2473,7 @@ bool prune_inf_rec(Automaton a, int State)
 		}
 	}
 	if (!cycle)
-		a.e[State].final = 2; //indicate that we won't keep the state (but it has been seen)
+		a.e[state].final = 2; //indicate that we won't keep the state (but it has been seen)
 	else
 		countStates++; //count the states that we keep
 	return cycle;
@@ -2714,26 +2714,26 @@ int StronglyConnectedComponents (Automaton a, int *res)
 }
 
 //determine reachable and co-reachable states
-void prune_rec(Automaton a, int *l, InvertDict id, int State)
+void prune_rec(Automaton a, int *l, InvertDict id, int state)
 {
-	//printf("prune_rec %d...\n", State);
+	//printf("prune_rec %d...\n", state);
 	int i, j, f;
-	a.e[State].final |= 2; //mark that this state is currently seen
+	a.e[state].final |= 2; //mark that this state is currently seen
 	for (i=0;i<a.na;i++)
 	{
-		f = a.e[State].f[i];
+		f = a.e[state].f[i];
 		if (f == -1)
 			continue;
 		if (!(a.e[f].final & 2))
 		{ //the state has not been seen
 			prune_rec(a, l, id, f);
 		}
-		if ((a.e[f].final & 4) && !(a.e[State].final & 4))
+		if ((a.e[f].final & 4) && !(a.e[state].final & 4))
 		{ //we get to a co-final state that is not yet marked as co-final
 		    //propagate the information to the strongly connected component
-			for (j=0;j<id.d[l[State]].n;j++)
+			for (j=0;j<id.d[l[state]].n;j++)
 			{
-				a.e[id.d[l[State]].e[j]].final |= 4;
+				a.e[id.d[l[state]].e[j]].final |= 4;
 			}
 		}
 	}
@@ -2845,7 +2845,7 @@ Automaton prune(Automaton a, bool verb)
 	//put back the final states of a
 	if (verb)
 	{
-		printf("deleted States : [");
+		printf("deleted states : [");
 		fflush(stdout);
 	}
 	for (i=0;i<a.n;i++)
@@ -2957,13 +2957,13 @@ void CoAcc (Automaton *a, int *coa)
 }
 
 //determine reachable states
-void pruneI_rec(Automaton a, int State)
+void pruneI_rec(Automaton a, int state)
 {
 	int i, f;
-	a.e[State].final |= 2; //mark that the state is currently seen
+	a.e[state].final |= 2; //mark that the state is currently seen
 	for (i=0;i<a.na;i++)
 	{
-		f = a.e[State].f[i];
+		f = a.e[state].f[i];
 		if (f == -1)
 			continue;
 		if (!(a.e[f].final & 2))
@@ -3024,7 +3024,7 @@ Automaton pruneI(Automaton a, bool verb)
 	//put back the final states of a
 	if (verb)
 	{
-		printf("deleted States : [");
+		printf("deleted states : [");
     	fflush(stdout);
 	}
 	for (i=0;i<a.n;i++)
