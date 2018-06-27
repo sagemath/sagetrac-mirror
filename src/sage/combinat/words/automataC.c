@@ -597,7 +597,7 @@ bool CompleteAutomaton (Automaton *a)
 	}
 	if (!add_state)
 		return false;
-	Addstate(a, false); //add the sink state
+	AddState(a, false); //add the sink state
 	for (j=0;j<a->na;j++)
 	{
 		a->e[ne].f[j] = ne;

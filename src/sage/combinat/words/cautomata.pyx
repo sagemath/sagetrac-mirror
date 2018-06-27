@@ -1921,7 +1921,7 @@ cdef class FastAutomaton:
 
             sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b'), (0, 3, 'b')], i=0)
             sage: a.prune_i(True)
-            deleted States : [ ]
+            deleted states : [ ]
             FastAutomaton with 3 states and an alphabet of 2 letters
             sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b'), (0, 3, 'b')])
             sage: a.prune_i(True)
@@ -1972,7 +1972,7 @@ cdef class FastAutomaton:
             create the new automaton 2 2...
             pass 2
             pass 3
-            deleted States : [ 2( non-acc ) 3( non-acc ) ]
+            deleted states : [ 2( non-acc ) 3( non-acc ) ]
             FastAutomaton with 2 states and an alphabet of 2 letters
         """
         cdef Automaton a
@@ -2023,11 +2023,11 @@ cdef class FastAutomaton:
             Automaton with 4 states, 2 letters.
             0 --0--> 1
             2 --1--> 3
-            initial State 0.
+            initial state 0.
             Automaton with 3 states, 2 letters.
             0 --1--> 1
             2 --0--> 1
-            initial State 1.
+            initial state 1.
             FastAutomaton with 12 states and an alphabet of 4 letters
         """
         if d is None:
@@ -2211,7 +2211,7 @@ cdef class FastAutomaton:
             3 --1--> 4
             4 --0--> 4
             4 --1--> 4
-            initial State 0.
+            initial state 0.
             Automaton with 4 states, 2 letters.
             0 --0--> 3
             0 --1--> 1
@@ -2221,7 +2221,7 @@ cdef class FastAutomaton:
             2 --1--> 3
             3 --0--> 3
             3 --1--> 3
-            initial State 1.
+            initial state 1.
             FastAutomaton with 2 states and an alphabet of 1 letters
         """
         # complete the automata
@@ -2303,7 +2303,7 @@ cdef class FastAutomaton:
             Automaton with 4 states, 2 letters.
             0 --0--> 1
             2 --1--> 3
-            initial State 0.
+            initial state 0.
             Automaton with 4 states, 2 letters.
             0 --0--> 3
             0 --1--> 1
@@ -2313,7 +2313,7 @@ cdef class FastAutomaton:
             2 --1--> 3
             3 --0--> 3
             3 --1--> 3
-            initial State 1.
+            initial state 1.
             [FastAutomaton with 1 states and an alphabet of 1 letters,
              FastAutomaton with 2 states and an alphabet of 1 letters]
         """
