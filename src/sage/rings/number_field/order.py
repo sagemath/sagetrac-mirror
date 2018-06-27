@@ -1004,6 +1004,47 @@ class Order(IntegralDomain):
             3
         """
         return self.number_field().absolute_degree()
+        
+    def quotient(self, ideal, names=None):
+        r"""
+        Returns the quotient of this ring by a given ideal.
+        
+        This method can return several types of rings.
+        In the case that the ideal is zero it will return this ring.
+        In the case that the ideal is a maximal ideal it will return
+        the residue field modulo that prime ideal, like :func:`residue_field`
+        In the case that the ideal is neither of these it will return
+        a quotient ring of the type `OrderQuotientRing`
+        
+        ..SEE ALSO::
+        
+        ``sage.rings.number_field.order_quotients.OrderQuotientRing``
+            
+        INPUT::
+        
+        - ``ideal`` - An ideal of this ring or anything that would
+        produce an ideal when provided as the first argument to
+        the method :func:`ideal`.
+        
+        EXAMPLES::
+        
+            sage: K.<a> = NumberField(x^3 - 2*x^2 + 3*x - 4)
+            sage: R = K.maximal_order()
+            sage: R.quotient(0)
+            Maximal Order in Number Field in a with defining polynomial x^3 - 2*x^2 + 3*x - 4
+            sage: R.quotient(K.prime_above(3))
+            Residue field in abar of Fractional ideal (3)
+            sage: R.quotient(K.prime_above(2) * K.prime_above(3))
+            Quotient of Maximal Order in Number Field in a with defining polynomial x^3 - 2*x^2 + 3*x - 4 by the ideal (3*a - 3)
+        """
+        ideal = self.ideal(ideal)
+        if ideal.is_zero():
+            return self
+        elif ideal.is_prime():
+            return self.residue_field(ideal, names=names)
+        else:
+            from .order_quotients import OrderQuotientRing
+            return OrderQuotientRing(self, ideal, names=names)
 
     def valuation(self, p):
         r"""
