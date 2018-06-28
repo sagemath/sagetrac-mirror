@@ -1274,6 +1274,7 @@ cdef class ntl_ZZ_pEX(object):
         """
         cdef int i, j
         cdef ntl_ZZ_pX element
+        cdef ntl_ZZ_pE coeff
         cdef list lifted = []
         N = R.base_ring()
         cdef int r = self.degree()
@@ -1281,7 +1282,8 @@ cdef class ntl_ZZ_pEX(object):
         z = N(0)
         a = N.gen(0)
         for i in range(r+1):
-            element = self[i].get_as_ZZ_pX_doctest()
+            coeff = self[i]
+            element = coeff.get_as_ZZ_pX()
             lifted_element = z
             for j in range(s):
                 lifted_element += element[j].lift_centered()._integer_()*a**j
@@ -1344,6 +1346,7 @@ cdef class ntl_ZZ_pEX(object):
         """
         cdef int i, j
         cdef ntl_ZZ_pX element
+        cdef ntl_ZZ_pE coeff
         cdef Integer m = self.c.pc.p._integer_()
         cdef list lifted = []
         N = R.base_ring()
@@ -1352,7 +1355,8 @@ cdef class ntl_ZZ_pEX(object):
         z = N(0)
         a = N.gen(0)
         for i in range(r+1):
-            element = self[i].get_as_ZZ_pX_doctest()
+            coeff = self[i]
+            element = coeff.get_as_ZZ_pX()
             lifted_element = z
             for j in range(s):
                 lifted_element += element[j]._integer_().rational_reconstruction(m)*a**j
