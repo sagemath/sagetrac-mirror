@@ -1078,12 +1078,17 @@ class Graph(GenericGraph):
             callable(data[1])):
             format = 'rule'
 
-        if (format is None           and
-            isinstance(data,list)    and
-            len(data) == 2           and
-            isinstance(data[0],list) and # a list of two lists, the second of
-            isinstance(data[1],list) and # which contains iterables (the edges)
-            (not data[1] or callable(getattr(data[1][0],"__iter__",None)))):
+        # The "vertices and edges" format accepts a list/tuple of two
+        # iterables, the first is for vertices and the second is for edges.
+        import collections as col
+        if (format is None                      and
+            isinstance(data, (list, tuple))     and
+            len(data) == 2                      and
+            isinstance(data[0], col.Iterable)   and
+            isinstance(data[1], col.Iterable)   and
+            (not data[1] or (
+                isinstance(data[1], (list, tuple))
+                and isinstance(data[1][0], col.Iterable)))):
             format = "vertices_and_edges"
 
         if format is None and isinstance(data, dict):
