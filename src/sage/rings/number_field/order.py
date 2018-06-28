@@ -1016,11 +1016,11 @@ class Order(IntegralDomain):
         In the case that the ideal is neither of these it will return
         a quotient ring of the type `OrderQuotientRing`
         
-        ..SEE ALSO::
+        .. SEEALSO:
         
-        ``sage.rings.number_field.order_quotients.OrderQuotientRing``
+            :mod:`sage.rings.number_field.order_quotients.OrderQuotientRing`
             
-        INPUT::
+        INPUT:
         
         - ``ideal`` - An ideal of this ring or anything that would
         produce an ideal when provided as the first argument to
