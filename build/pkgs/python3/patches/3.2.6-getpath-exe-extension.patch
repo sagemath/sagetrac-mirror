@@ -1,10 +1,12 @@
 Fixes a known issue with sys.executable ambiguity on Cygwin.  This is a
 simpler version of the patch found at http://bugs.python.org/issue28441
---- a/Modules/getpath.c
-+++ b/Modules/getpath.c
-@@ -551,6 +551,28 @@ calculate_path(void)
-             if (isxfile(progpath))
+
+diff -ru a/Modules/getpath.c b/Modules/getpath.c
+--- a/Modules/getpath.c	2018-06-27 05:07:35.000000000 +0200
++++ b/Modules/getpath.c	2018-06-28 09:31:51.330006570 +0200
+@@ -592,6 +592,28 @@
                  break;
+             }
  
 +#ifdef __CYGWIN__
 +            /*
@@ -29,5 +31,5 @@ simpler version of the patch found at http://bugs.python.org/issue28441
 +#endif /* __CYGWIN__ */
 +
              if (!delim) {
-                 progpath[0] = L'\0';
+                 program_full_path[0] = L'\0';
                  break;
