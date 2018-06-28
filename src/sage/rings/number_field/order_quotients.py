@@ -427,5 +427,19 @@ class OrderQuotientRing(QuotientRing_generic, UniqueRepresentation):
         return not self.defining_ideal().is_zero()
         
     def __iter__(self):
+        r"""
+        Return an iterator through the elements of the quotient ring.
+
+        EXAMPLES::
+
+            sage: K = NumberField(x^2 - 15,"a")
+            sage: I = K.prime_above(2) * K.prime_above(5)
+            sage: S = K.maximal_order().quotient(I)
+            sage: for a in S.__iter__():
+            ....:     print(a)
+            -2
+            ...
+            a + 2
+        """
         for a in self.defining_ideal().residues():
             yield self(a)
