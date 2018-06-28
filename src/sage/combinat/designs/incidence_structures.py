@@ -1081,13 +1081,9 @@ class IncidenceStructure(object):
 
         REFERENCES:
 
-            .. [Fag83] Fagin, Ronald. "Degrees of acyclicity for hypergraphs
-               and relational database schemes." Journal of the ACM (JACM) 30.3
-               (1983): 514-550.
+            [Fag83]_
 
-            .. [FT14] Füredi, Zoltán, and Tao Jiang. "Hypergraph Turán numbers
-               of linear cycles." Journal of Combinatorial Theory, Series A
-               123.1 (2014): 252-270.
+            [FT14]_
 
         """
         if not self.is_uniform():
