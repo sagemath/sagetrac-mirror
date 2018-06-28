@@ -75,7 +75,6 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.rings.number_field.order import Order
