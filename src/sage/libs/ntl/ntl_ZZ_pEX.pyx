@@ -1271,6 +1271,21 @@ cdef class ntl_ZZ_pEX(object):
             sage: N = NumberField(x^2+7,'a')
             sage: f.lift_to_polynomial(N['x'])
             -a*x^4 + (a - 1)*x^2 + (a + 1)*x + a + 1
+
+        TESTS::
+
+            sage: from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
+            sage: from sage.libs.ntl.ntl_ZZ_pEContext import ntl_ZZ_pEContext
+            sage: from sage.libs.ntl.ntl_ZZ_pEX import ntl_ZZ_pEX
+            sage: c = ntl_ZZ_pEContext(ntl_ZZ_pX([1, 0, 1, 0, 2], 13))
+            sage: f = ntl_ZZ_pEX([[randint(0,13) for j in range(5)] for i in range(10)],c)
+            sage: R = NumberField(x^4+14*x^2-11,'a')['x']
+            sage: g = f.lift_to_polynomial(R)
+            sage: f - ntl_ZZ_pEX(map(list,list(g)),c)
+            []
+            sage: h = ntl_ZZ_pEX([[]],c)
+            sage: h.lift_to_polynomial(R)
+            0
         """
         cdef int i, j
         cdef ntl_ZZ_pX element
@@ -1343,6 +1358,22 @@ cdef class ntl_ZZ_pEX(object):
             Traceback (most recent call last):
             ...
             ArithmeticError: rational reconstruction of 3 (mod 13) does not exist
+
+        TESTS::
+
+            sage: from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
+            sage: from sage.libs.ntl.ntl_ZZ_pEContext import ntl_ZZ_pEContext
+            sage: from sage.libs.ntl.ntl_ZZ_pEX import ntl_ZZ_pEX
+            sage: c = ntl_ZZ_pEContext(ntl_ZZ_pX([1, 0, 1, 0, 2], 13))
+            sage: f = ntl_ZZ_pEX([[randint(0,13) for j in range(5)] for i in range(10)],c)
+            sage: R = NumberField(x^4+14*x^2-11,'a')['x']
+            sage: g = f.lift_to_polynomial_rational_reconstruction(R)
+            sage: f - ntl_ZZ_pEX(map(list,list(g)),c)
+            []
+            sage: h = ntl_ZZ_pEX([[]],c)
+            sage: h.lift_to_polynomial_rational_reconstruction(R)
+            0
+
         """
         cdef int i, j
         cdef ntl_ZZ_pX element

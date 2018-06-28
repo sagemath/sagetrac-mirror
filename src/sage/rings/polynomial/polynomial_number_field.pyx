@@ -222,20 +222,9 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
 
         - pari: Uses pari internal gcd routines.
 
-        - modular (default): a combination of Langemyr-McCallum [LM89] and
-          Encarnacion [E95]. Use Langemyr-McCallum algorithm but, from time to
-          time, try a rational reconstruction of the gcd. Inspired from [HH09].
-
-        REFERENCES:
-
-        - [LM89] Langemyr, McCallum. The computation of polynomial greatest
-          common divisors over an  algebraic number field. J. Symbolic Comput.
-          8(5) (1989), 429--448.
-        - [E95] Encarnacion. Computing gcds of polynomials over algebraic
-          number fields. J. Symbolic Comput. ation, 20(3) (1995), 299-313.
-        - [HH09] Hemmer, Hulse. Generic implementation of a modular gcd over
-          Algebraic Extension Fields. EuroCG'09 : 25th European Workshop on
-          Computational Geometry.
+        - modular (default): a combination of Langemyr-McCallum [LM1989]_ and
+          Encarnacion [En1995]_. Use Langemyr-McCallum algorithm but, from time to
+          time, try a rational reconstruction of the gcd. Inspired from [HH2009]_.
 
         """
         if self.is_zero():
@@ -312,7 +301,7 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
                         gcd_pEX = h1c.gcd(h2c) * Dc
                     except (RuntimeError, ArithmeticError):
                         # RuntimeError if there is no gcd.
-                        # ArithmeticError is the prime divides Dc.
+                        # ArithmeticError if the prime divides Dc.
                         gcd_pEX = ntl_ZZ_pEX([1], c).left_shift(h1d+3)
                     # if ss[0] < gcd_pEX.degree() discard this case.
                     if gcd_pEX.degree() == 0:

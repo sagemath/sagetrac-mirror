@@ -976,6 +976,9 @@ REFERENCES:
             Version
             1.3". 2013. http://www.wolfgang-ehrhardt.de/specialfunctions.pdf.
 
+.. [En1995] \M. Encarnacion: *Computing gcds of polynomials over algebraic
+          number fields*. J. Symbolic Comput. 20(3) (1995), pp. 299-313.
+
 .. [EM2001] Pavel Etingof and Xiaoguang Ma.
             *Lecture notes on Cherednik algebras*.
             http://www-math.mit.edu/~etingof/73509.pdf :arXiv:`1001.0432`.
@@ -1310,6 +1313,10 @@ REFERENCES:
 
 .. [Hat2002] Allen Hatcher, "Algebraic Topology", Cambridge University
              Press (2002).
+
+.. [HH2009]  Hemmer, Hulse. *Generic implementation of a modular gcd over
+             Algebraic Extension Fields*. EuroCG'09 : 25th European Workshop on
+             Computational Geometry.
 
 .. [He2002] \H. Heys *A Tutorial on Linear and Differential
             Cryptanalysis* ; 2002' available at
@@ -1749,6 +1756,10 @@ REFERENCES:
 
 .. [Lan2002] \S. Lang : *Algebra*, 3rd ed., Springer (New York) (2002);
              :doi:`10.1007/978-1-4613-0041-0`
+
+.. [LM1989] \L. Langemyr and \S. McCallum: *The computation of polynomial greatest
+            common divisors over an  algebraic number field*. J. Symbolic Comput.
+            8(5) (1989), pp. 429-448.
 
 .. [Lan2008] \E. Lanneau "Connected components of the strata of the
              moduli spaces of quadratic differentials", Annales
