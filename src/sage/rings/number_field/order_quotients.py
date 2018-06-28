@@ -29,7 +29,7 @@ EXAMPLES::
         sage: K.<a> = NumberField(x^4 + x^3 + x^2 + x + 1)
         sage: R = K.ring_of_integers()
         sage: S = R.quotient(4)
-        sage: print [b for b in S if b^2 == 0]
+        sage: [b for b in S if b^2 == 0]
         [0, 2*a^3, 2*a^2, 2*a^3 + 2*a^2, 2*a, 2*a^3 + 2*a, 2*a^2 + 2*a, 2*a^3 + 2*a^2 + 2*a, 2, 2*a^3 + 2, 2*a^2 + 2, 2*a^3 + 2*a^2 + 2, 2*a + 2, 2*a^3 + 2*a + 2, 2*a^2 + 2*a + 2, 2*a^3 + 2*a^2 + 2*a + 2]
         
     It is also possible to request some elementary properties::
