@@ -62,8 +62,8 @@ import operator
 import fractions
 
 from sage.misc.mathml import mathml
-from sage.cpython.string cimport char_to_str
 from sage.arith.long cimport pyobject_to_long, integer_check_long_py
+from sage.cpython.string cimport char_to_str, str_to_bytes
 
 import sage.misc.misc as misc
 from sage.structure.sage_object cimport SageObject
@@ -556,7 +556,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             ...
             TypeError: Unable to coerce PARI x to an Integer
         """
-        mpq_set_str(self.value, s, 32)
+        mpq_set_str(self.value, str_to_bytes(s), 32)
 
     cdef __set_value(self, x, unsigned int base):
         cdef int n
@@ -592,7 +592,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                     p = base**exp
                     pstr = '1'+'0'*exp
                     s = xstr.replace('.','') +'/'+pstr
-                    n = mpq_set_str( self.value, s, base)
+                    n = mpq_set_str(self.value, str_to_bytes(s), base)
                     if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
                         raise TypeError("unable to convert {!r} to a rational".format(x))
                     mpq_canonicalize(self.value)
@@ -601,9 +601,13 @@ cdef class Rational(sage.structure.element.FieldElement):
                     if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
                         raise TypeError("unable to convert {!r} to a rational".format(x))
                     mpq_canonicalize(self.value)
-
-        elif isinstance(x, basestring):
+        elif isinstance(x, bytes):
             n = mpq_set_str(self.value, x, base)
+            if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
+                raise TypeError("unable to convert {!r} to a rational".format(x))
+            mpq_canonicalize(self.value)
+        elif isinstance(x, unicode):
+            n = mpq_set_str(self.value, str_to_bytes(x), base)
             if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
                 raise TypeError("unable to convert {!r} to a rational".format(x))
             mpq_canonicalize(self.value)
@@ -952,6 +956,19 @@ cdef class Rational(sage.structure.element.FieldElement):
                 return "-\\frac{%s}{%s}"%(-self.numer(), self.denom())
             else:
                return "\\frac{%s}{%s}"%(self.numer(), self.denom())
+
+    def _symbolic_(self, sring):
+        """
+        Return this rational as symbolic expression.
+
+        EXAMPLES::
+
+            sage: ex = SR(QQ(7)/3); ex
+            7/3
+            sage: parent(ex)
+            Symbolic Ring
+        """
+        return sring._force_pyobject(self, force=True)
 
     def _sympy_(self):
         """
@@ -1702,7 +1719,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return self.numer().squarefree_part() * self.denom().squarefree_part()
 
-    def is_padic_square(self, p):
+    def is_padic_square(self, p, check=True):
         """
         Determines whether this rational number is a square in `\QQ_p` (or in
         `R` when ``p = infinity``).
@@ -1710,6 +1727,8 @@ cdef class Rational(sage.structure.element.FieldElement):
         INPUT:
 
         -  ``p`` - a prime number, or ``infinity``
+
+        - ``check`` -- (default: ``True``); check if `p` is prime
 
         EXAMPLES::
 
@@ -1737,7 +1756,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         ## Check that p is prime
         from .integer_ring import ZZ
         p = ZZ(p)
-        if not p.is_prime():
+        if check and not p.is_prime():
             raise ValueError('p must be "infinity" or a positive prime number.')
 
         ## Deal with finite primes
@@ -1973,7 +1992,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         When a rational number `n/d` with `(n,d)=1` is
         expanded, the period begins after `s` terms and has length
         `t`, where `s` and `t` are the smallest numbers satisfying
-        `10^s=10^{s+t} \mod d`. In general if `d=2^a3^bm` where `m`
+        `10^s=10^{s+t} \mod d`. In general if `d=2^a 5^b m` where `m`
         is coprime to 10, then `s=\max(a,b)` and `t` is the order of
         10 modulo `d`.
 
@@ -3574,8 +3593,18 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return mpz_cmp_si(mpq_denref(self.value), 1) == 0
 
+    def is_rational(self):
+        r"""
+        Return ``True`` since this is a rational number.
 
-    #Function alias for checking if the number is a integer.Added to solve ticket 15500    
+        EXAMPLES::
+
+            sage: (3/4).is_rational()
+            True
+        """
+        return True
+
+    #Function alias for checking if the number is a integer.Added to solve ticket 15500
     is_integer = is_integral
 
 

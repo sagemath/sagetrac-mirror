@@ -44,11 +44,13 @@ polynomial rings::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from inductive_valuation import NonFinalInductiveValuation
+from __future__ import absolute_import
+
+from .inductive_valuation import NonFinalInductiveValuation
 
 from sage.misc.cachefunc import cached_method
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.factory import UniqueFactory
+
 
 class GaussValuationFactory(UniqueFactory):
     r"""
@@ -671,7 +673,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         """
         if isinstance(other, GaussValuation_generic):
             return self._base_valuation >= other._base_valuation
-        from augmented_valuation import AugmentedValuation_base
+        from .augmented_valuation import AugmentedValuation_base
         if isinstance(other, AugmentedValuation_base):
             return False
         if other.is_trivial():
@@ -715,7 +717,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             6
 
         For performance reasons, only the constant coefficient is considered.
-        (In common appplications, the constant coefficient shows the most
+        (In common applications, the constant coefficient shows the most
         critical coefficient growth)::
 
             sage: v._relative_size(1024*x + 1)
@@ -796,7 +798,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             1
 
         """
-        from sage.rings.all import infinity, QQ
+        from sage.rings.all import infinity
         coefficients = f.coefficients(sparse=True)
         coefficients.reverse()
         ret = infinity

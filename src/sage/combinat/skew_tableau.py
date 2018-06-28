@@ -50,7 +50,7 @@ from sage.combinat.words.words import Words
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class SkewTableau(ClonableList):
-    """
+    r"""
     A skew tableau.
 
     Note that Sage by default uses the English convention for partitions and
@@ -77,7 +77,6 @@ class SkewTableau(ClonableList):
 
         sage: SkewTableau(chain=[[2], [2, 1], [3, 1], [4, 3, 2, 1]])
         [[None, None, 2, 3], [1, 3, 3], [3, 3], [3]]
-
     """
     @staticmethod
     def __classcall_private__(cls, st=None, expr=None, chain=None):
@@ -122,7 +121,7 @@ class SkewTableau(ClonableList):
             TypeError: 'tuple' object does not support item assignment
         """
         try:
-            st = map(tuple, st)
+            st = [tuple(t) for t in st]
         except TypeError:
             raise TypeError("each element of the skew tableau must be an iterable")
 
@@ -503,7 +502,7 @@ class SkewTableau(ClonableList):
         return Permutation(word)
 
     def weight(self):
-        """
+        r"""
         Return the weight (aka evaluation) of the tableau ``self``.
         Trailing zeroes are omitted when returning the weight.
 
@@ -736,7 +735,7 @@ class SkewTableau(ClonableList):
         return SkewPartition([self.restriction_outer_shape(n), self.inner_shape()])
 
     def to_chain(self, max_entry=None):
-        """
+        r"""
         Return the chain of partitions corresponding to the (semi)standard
         skew tableau ``self``.
 
@@ -2526,7 +2525,7 @@ class SkewTableau_class(SkewTableau):
 
         TESTS::
 
-            sage: loads('x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+H,*\xc9,\xc9\xcc\xcf\xe3\n\x80\xb1\xe2\x93s\x12\x8b\x8b\xb9\n\x195\x1b\x0b\x99j\x0b\x995BY\xe33\x12\x8b3\nY\xfc\x80\xac\x9c\xcc\xe2\x92B\xd6\xd8B6\r\x88IE\x99y\xe9\xc5z\x99y%\xa9\xe9\xa9E\\\xb9\x89\xd9\xa9\xf10N!{(\xa3qkP!G\x06\x90a\x04dp\x82\x18\x86@\x06Wji\x92\x1e\x00x0.\xb5')
+            sage: loads(b'x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+H,*\xc9,\xc9\xcc\xcf\xe3\n\x80\xb1\xe2\x93s\x12\x8b\x8b\xb9\n\x195\x1b\x0b\x99j\x0b\x995BY\xe33\x12\x8b3\nY\xfc\x80\xac\x9c\xcc\xe2\x92B\xd6\xd8B6\r\x88IE\x99y\xe9\xc5z\x99y%\xa9\xe9\xa9E\\\xb9\x89\xd9\xa9\xf10N!{(\xa3qkP!G\x06\x90a\x04dp\x82\x18\x86@\x06Wji\x92\x1e\x00x0.\xb5')
             [3, 2, 1]
             sage: loads(dumps( SkewTableau([[1,1], [3,2,1]]) ))  # indirect doctest
             [[1, 1], [3, 2, 1]]
@@ -2535,7 +2534,7 @@ class SkewTableau_class(SkewTableau):
         self.__init__(SkewTableaux(), state['_list'])
 
 # October 2012: fixing outdated pickles which use the classes being deprecated
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.skew_tableau', 'StandardSkewTableaux_n',  StandardSkewTableaux_size)
 register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTableaux_n',  SemistandardSkewTableaux_size)
 register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTableaux_nmu',  SemistandardSkewTableaux_size_weight)
