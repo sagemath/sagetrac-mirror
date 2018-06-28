@@ -302,6 +302,38 @@ class Composition(CombinatorialElement):
         """
         return self.conjugate().reversed()
 
+    @combinatorial_map(order=2, name='complementnaive')
+    def complement_naive(self):
+        r"""
+        Return the complement of the composition ``self``.
+
+        The complement of a composition `I` is defined as follows:
+
+        If `I` is the empty composition, then the complement is the empty
+        composition as well. Otherwise, let `S` be the descent set of `I`
+        (that is, the subset
+        `\{ i_1, i_1 + i_2, \ldots, i_1 + i_2 + \cdots + i_{k-1} \}`
+        of `\{ 1, 2, \ldots, |I|-1 \}`, where `I` is written as
+        `(i_1, i_2, \ldots, i_k)`). Then, the complement of `I` is
+        defined as the composition of size `|I|` whose descent set is
+        `\{ 1, 2, \ldots, |I|-1 \} \setminus S`.
+
+        The complement of a composition `I` also is the reverse
+        composition (:meth:`reversed`) of the conjugate
+        (:meth:`conjugate`) of `I`.
+
+        EXAMPLES::
+
+            sage: Composition([1, 1, 3, 1, 2, 1, 3]).conjugate()
+            [1, 1, 3, 3, 1, 3]
+            sage: Composition([1, 1, 3, 1, 2, 1, 3]).complement()
+            [3, 1, 3, 3, 1, 1]
+        """
+        n = self.size()
+        subset = self.to_subset()
+
+        return self.parent().from_subset(set(range(1, n)).difference(subset), n)
+
     def __add__(self, other):
         """
         Return the concatenation of two compositions.
