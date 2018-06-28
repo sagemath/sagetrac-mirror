@@ -1511,10 +1511,16 @@ class Genus_Symbol_p_adic_ring(object):
         r"""
         Return the locally automorphous square classes at this prime.
 
-        See [CS]_ 9.6
+        A p-adic square class `r` (`p`-adically) is called automorphous if it is
+        the spinor norm of a proper `p`-adic integral automorphism of this form.
+        See [CS]_ 9.6 for details.
+
+        OUTPUT:
+
+        - a list of integers representing the square classes of the automorphous
+          numbers
 
         EXAMPLES::
-
 
             sage: from sage.quadratic_forms.genera.genus import p_adic_symbol
             sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
@@ -1558,7 +1564,7 @@ class Genus_Symbol_p_adic_ring(object):
                 automorphs1.add(sq)
             return list(automorphs1)
 
-        # p =2
+        # p = 2
         I = []
         II = []
         for block in collect_small_blocks(G):
@@ -1598,14 +1604,16 @@ class Genus_Symbol_p_adic_ring(object):
                 u = r.prime_to_m_part(2) % 8
                 if v==0 and u==1:
                     s = ZZ(2)
-                if v==0 and u==5:
+                elif v==0 and u==5:
                     s = ZZ(6)
-                if v in [0, 2, 4]:
+                elif v in [0, 2, 4]:
                     s = ZZ(5)
-                if v in [1, 3] and u in [1, 5]:
+                elif v in [1, 3] and u in [1, 5]:
                     s = ZZ(3)
-                if v in [1, 3] and u in [3, 7]:
+                elif v in [1, 3] and u in [3, 7]:
                     s = ZZ(7)
+                else:
+                    continue
                 automorphs.append(s)
 
         # square classes
@@ -2258,6 +2266,23 @@ class GenusSymbol_global_ring(object):
             aut_numbers.append((sym.prime(),sym.automorphous_numbers()))
         return aut_numbers
 
+    def spinor_kernel(self):
+        r"""
+        """
+        syms = self.local_symbols()
+        primes = tuple([sym.prime() for sym in syms])
+        grp = AdelicSquareClasses(primes)
+        kernel_gens = []
+        # -1 adic contribution
+        sig = self.signature_pair_of_matrix()
+        if sig[0]*sig[1] > 1:
+            kernel_gens.append(grp.delta(-1, p=-1))
+        for sym in syms:
+            for A in sym.automorphous_numbers():
+                kernel_gens.append(grp.delta(A, p=sym.prime()))
+        return grp, grp.subgroup(kernel_gens)
+
+
     def determinant(self):
         """
         Returns the determinant of this genus, where the determinant
@@ -2611,8 +2636,8 @@ def _gram_from_jordan_block(p, block, discr_form=False):
     rk = block[1]
     det = block[2]
     if p == 2:
-        o = block[3]
-        t = block[4]
+        o = ZZ(block[3])
+        t = ZZ(block[4])
         U = matrix(QQ,2,[0,1,1,0])
         V = matrix(QQ,2,[2,1,1,2])
         W = matrix(QQ,1,[1])
@@ -2673,3 +2698,106 @@ def _gram_from_jordan_block(p, block, discr_form=False):
             q[0,0] = u
         q = q * p**level
     return q
+
+
+from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+from sage.quadratic_forms.genera.normal_form import _min_nonsquare
+class AdelicSquareClasses(AbelianGroupGap):
+    r"""
+
+    INPUT:
+
+    - a tuple of primes
+
+    EXAMPLES::
+
+
+    """
+    def __init__(self, primes):
+        r"""
+        """
+        if primes[0] != 2:
+            raise ValueError("first prime must be 2")
+        self._primes = primes
+        orders = len(self._primes)*[2] + [2]
+        # unit, val, unit, val, unit, val
+        order = tuple(orders)
+        AbelianGroupGap.__init__(self, orders)
+
+    def to_square_class(self, x, p):
+        r"""
+        Return `(1,...,1,x,1,...,1)` with the square class of `x` at position `p`.
+
+        INPUT:
+
+        - ``p`` -- a prime
+
+        - ``x```-- a non zero rational number
+
+        EXAMPLES::
+
+            sage: AS = AdelicSquareClasses((2,3,7))
+            sage: AS.to_square_class(5,7)
+            f6
+            sage: AS.to_square_class(5,2)
+            f2
+            sage: AS.to_square_class(-5,2)
+            f1
+            sage: AS.to_square_class(7,2)
+            f1*f2
+        """
+        x = QQ(x)
+        if x == 0:
+            raise ValueError("x must be non zero")
+        if not p in self._primes:
+            raise ValueError("not a coordinate prime")
+        v, u = x.val_unit(p)
+        if v != 0:
+            raise ValueError("x(=%s) must be a p-adic unit" %x)
+        y = self.one()
+        if p == 2:
+            u = u % 8
+            if u == 3:
+                y *= self.gens()[0]
+            if u == 5:
+                y *= self.gens()[1]
+            if u == 7:
+                y *= self.gens()[0] * self.gens()[1]
+            return y
+        i = 1 + self._primes.index(p)
+        if not u.is_padic_square(p):
+            y *= self.gens()[i]
+        return y
+
+    def delta(self, r, p=None):
+        r"""
+        Diagonal embedding of rational square classes.
+
+        INPUT:
+
+        - ``r`` -- a non zero rational number
+
+        - ``p`` -- a prime
+
+        EXAMPLES::
+
+            sage: AS = AdelicSquareClasses((2,3,7))
+            sage: AS.delta(2,p=3)
+            f4
+            sage: AS.delta(2)
+            f3*f4
+        """
+        r = QQ(r)
+        if p is None:
+            return self.prod([self.to_square_class(r, p) for p in self._primes])
+        if p == -1:
+            r = r.sign()
+            return self.prod([self.to_square_class(r, p) for p in self._primes])
+        v, u = r.val_unit(p)
+        pv = p**v
+        y = self.prod([self.to_square_class(pv,q) for q in self._primes if q!=p])
+        y *= self.to_square_class(u, p)
+        return y
+
+
+

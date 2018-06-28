@@ -1383,11 +1383,11 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         sig = self.signature_pair()
         rk = self.rank()
         if False:#self.rank() < 3 or sig[0]*sig[1] == 0:
-            raise ValueError("lattice must be indefintie of rank > 2")
+            raise ValueError("lattice must be indefinite of rank > 2")
         det = self.determinant()
         q = self.discriminant_group()
         from sage.groups.fqf_orthogonal.spinor import GammaA
-        S = (2*self.determinant()).prime_factors()
+        S = ZZ(2*self.determinant()).prime_factors()
         G = GammaA(S)
         sigma_sharp = G.sigma_sharp(rk, det, q)
         sigma = [G(g) for g in q.orthogonal_group().gens()]

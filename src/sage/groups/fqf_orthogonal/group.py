@@ -398,25 +398,8 @@ def _compute_gens(T):
                 indices.append(k)
         blocks.append([p, tuple(indices)])
 
-    # transformation matrices between smith and normal_form generators
-    to_smith = matrix([t.vector() for t in T.gens()])
-    R = IntegerModRing(invs[-1])
-    E = matrix.identity(R, len(invs))
-    # view T as a submodule of (ZZ/nZZ)^(len(invs))
-    B = to_smith.change_ring(R)
-    for k in range(B.ncols()):
-        B[:, k] *= invs[-1] // invs[k]
-        E[:, k] *= invs[-1] // invs[k]
-    # unfortunatly solve_left does not work with matrices
-    to_normal = matrix([B.solve_left(e) for e in E.rows()])
-    #to_normal = B.solve_left(E)
-    to_normal = to_normal.change_ring(ZZ)
-
-    # check that we did not mess up
-    tmp = to_normal * to_smith
-    E = matrix.identity(R, len(invs))
-    for k in range(E.ncols()):
-        assert 0 == (tmp[:, k]-E[:, k]).change_ring(ZZ).mod(invs[k])
+    to_smith = self.to_smith()
+    to_normal = self.to_gens()
 
     # compute generators of the orthogonal groups
     gens = []
