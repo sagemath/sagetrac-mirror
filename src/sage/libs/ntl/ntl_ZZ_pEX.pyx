@@ -1364,9 +1364,9 @@ cdef class ntl_ZZ_pEX(object):
             sage: from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
             sage: from sage.libs.ntl.ntl_ZZ_pEContext import ntl_ZZ_pEContext
             sage: from sage.libs.ntl.ntl_ZZ_pEX import ntl_ZZ_pEX
-            sage: c = ntl_ZZ_pEContext(ntl_ZZ_pX([1, 0, 1, 0, 2], 13))
-            sage: f = ntl_ZZ_pEX([[randint(0,13) for j in range(5)] for i in range(10)],c)
-            sage: R = NumberField(x^4+14*x^2-11,'a')['x']
+            sage: c = ntl_ZZ_pEContext(ntl_ZZ_pX([1, 0, 1, 0, 2], 1009))
+            sage: f = ntl_ZZ_pEX([[randint(0,20) for j in range(5)] for i in range(10)],c)
+            sage: R = NumberField(x^4+1010*x^2+2,'a')['x']
             sage: g = f.lift_to_polynomial_rational_reconstruction(R)
             sage: f - ntl_ZZ_pEX(map(list,list(g)),c)
             []
