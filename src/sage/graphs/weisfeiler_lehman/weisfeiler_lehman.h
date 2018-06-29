@@ -8,6 +8,6 @@ namespace wl{
                 long long idx, color;
                 std::vector<int> adj_list;
         };
-        int prova2(std::vector<GraphNode> v);
+        bool k_WL(const std::vector<GraphNode>& v, int k);
 }
 #endif

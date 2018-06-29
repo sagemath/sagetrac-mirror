@@ -2,6 +2,7 @@
 from __future__ import print_function
 from libcpp.vector cimport vector
 from libc.stdlib cimport malloc, free
+from libcpp cimport bool
 from sys import version_info
 
 def getiterator(el):
@@ -37,5 +38,5 @@ cdef vector[GraphNode] sageGraphToLists(G, partition = [], relabel_map={}):
 def prova(G, partition=[]):
     relabel_map = {}
     cdef vector[GraphNode] res = sageGraphToLists(G, partition, relabel_map)
-    print("%d" % prova2(res))
+    return k_WL(res, 5)
     
