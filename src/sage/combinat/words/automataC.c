@@ -2144,7 +2144,7 @@ void EpsilonCloture (NAutomaton a, States2 e, States2 ec)
 }
 
 //Determinize a non-deterministic automaton
-Automaton DeterminizeN (NAutomaton a, bool puits, int verb)
+Automaton DeterminizeN (NAutomaton a, bool sink_state, int verb)
 {
 	if (verb)
 		printf("allocation...\n");
@@ -2229,7 +2229,7 @@ Automaton DeterminizeN (NAutomaton a, bool puits, int verb)
 				printf("	");
 				printStates2(e[j]);
 			}
-			if (puits || !isNullStates2(e[j]))
+			if (sink_state || !isNullStates2(e[j]))
 			{
 				EpsilonCloture(a, e[j], ec);
 				//determine if the state is new or not
@@ -2347,7 +2347,7 @@ void ZeroComplete(Automaton *a, int l0, bool verb)
 	free(vu);
 }
 
-Automaton ZeroComplete2 (Automaton *a, int l0, bool state_puits, bool verb)
+Automaton ZeroComplete2 (Automaton *a, int l0, bool sink_state, bool verb)
 {
 	NAutomaton r = NewNAutomaton(a->n+1, a->na);
 		
@@ -2394,7 +2394,7 @@ Automaton ZeroComplete2 (Automaton *a, int l0, bool state_puits, bool verb)
 	r.e[a->n].initial = false;
 	r.e[a->n].final = true;
 	
-	return DeterminizeN(r, state_puits, 0);
+	return DeterminizeN(r, sink_state, 0);
 }
 
 Automaton EmptyAutomaton (int na)

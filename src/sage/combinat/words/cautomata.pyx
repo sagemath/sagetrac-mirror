@@ -69,7 +69,7 @@ cdef extern from "automataC.h":
     void AddPathN(NAutomaton *a, int e, int f, int *l, int len, bool verb)
     NAutomaton Proj(Automaton a, Dict d, bool verb)
     void ZeroComplete(Automaton *a, int l0, bool verb)
-    Automaton ZeroComplete2(Automaton *a, int l0, bool State_puits, bool verb)
+    Automaton ZeroComplete2(Automaton *a, int l0, bool sink_state, bool verb)
     Automaton ZeroInv(Automaton *a, int l0)
     Automaton prune_inf(Automaton a, bool verb)
     Automaton prune(Automaton a, bool verb)
@@ -830,8 +830,7 @@ cdef class NFastAutomaton:
         - ``e`` -- int the input state
         - ``f`` -- int the final state 
         - ``li`` -- list of states
-        - ``verb`` -- boolean (default: ``False``) fix
-          to ``True`` for activation the verbose mode
+        - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
 
 
         EXAMPLES::
@@ -855,8 +854,7 @@ cdef class NFastAutomaton:
         INPUT:
 
         - ``puits``  -- (default: ``False``)
-        - ``verb`` -- boolean (default: ``False``) fix
-          to ``True`` for activation the verbose mode
+        - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
 
         OUTPUT:
 
@@ -886,8 +884,7 @@ cdef class NFastAutomaton:
 
         - ``sx`` -- int (default: 10)
         - ``sy`` -- int (default: 8)
-        - ``verb`` -- boolean (default: ``False``) fix
-          to ``True`` for activation the verbose mode
+        - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
 
         EXAMPLES::
 
@@ -1710,57 +1707,63 @@ cdef class FastAutomaton:
             raise ValueError("set_succ(%s, %s) : index out of bounds !" % (i, j))
         self.a.e[i].f[j] = k
 
-    def zero_completeOP(self, verb=False):
+    def zero_completeOP(self, z=0, verb=False):
         """
-        zero-complete automaton
+        Compute an automaton recognizing the language L(l*)^(-1), where L is
+        the language of self and l is the letter of index z.
+        This language L(l*)^(-1) is the set of words u such that there exists
+        an integer n such that ul^n is in the language of self.
 
         INPUT:
 
-        - ``verb`` -- (default: ``False``) fix
-          to ``True`` for activation the verbose mode
+        - ``z`` -- (default: ``0``) - index of the letter zero
+        - ``verb`` -- (default: ``False``) if True, print debugging informations
 
         OUTPUT:
 
-        Return the zero-complete :class:`FastAutomaton`.
+        Return a :class:`FastAutomaton`.
 
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
-            sage: a.zero_completeOP(True)
-            l0 = 0
-            state 0 ..
-            state 1 ..
-            state 2 ..
+            sage: a.zero_completeOP()
+            sage: a
+            FastAutomaton with 3 states and an alphabet of 2 letters
+            
         """
         sig_on()
-        ZeroComplete(self.a, list(self.A).index(self.A[0]), verb)
+        ZeroComplete(self.a, z, verb)
         sig_off()
 
-    def zero_complete2(self, State_puits=False, verb=False):
+    def zero_complete2(self, z=0, sink_state=False, verb=False):
         """
-        zero-complete automaton in the other way
+        Compute an automaton recognizing the language L(l*), where L is
+        the language of self and l is the letter of index z.
 
         INPUT:
 
-        - ``State_puits`` --  (default: ``False``)
-        - ``verb`` -- (default: ``False``) fix
-          to ``True`` for activation the verbose mode
+        - ``z`` -- (default: ``0``) - index of the letter zero
+        - ``sink_state`` --  (default: ``False``) - give a result with or without sink state
+        - ``verb`` -- (default: ``False``) if True, print debugging informations
 
         OUTPUT:
 
-        Return the zero-complete :class:`FastAutomaton`.
+        Return a :class:`FastAutomaton`.
 
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
-            sage: a.zero_complete2(True)
+            sage: a.zero_complete2(z=0)
+            FastAutomaton with 2 states and an alphabet of 2 letters
+            sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
+            sage: a.zero_complete2(z=0, sink_state=True)
             FastAutomaton with 2 states and an alphabet of 2 letters
 
         """
         cdef Automaton a
         r = FastAutomaton(None)
         sig_on()
-        a = ZeroComplete2(self.a, list(self.A).index(self.A[0]), State_puits, verb)
+        a = ZeroComplete2(self.a, z, sink_state, verb)
         sig_off()
         r.a[0] = a
         r.A = self.A
@@ -1774,7 +1777,7 @@ cdef class FastAutomaton:
 
         INPUT:
 
-        - ``z`` - (default: 0) - index of the letter
+        - ``z`` - (default: 0) - index of the letter zero
         - ``simplify`` - (default: True) - if true, prune and minimize the result
 
         OUTPUT:
@@ -1794,7 +1797,7 @@ cdef class FastAutomaton:
         cdef Automaton a
         r = FastAutomaton(None)
         sig_on()
-        a = ZeroInv(self.a, list(self.A).index(self.A[z]))
+        a = ZeroInv(self.a, z) #list(self.A).index(self.A[z]))
         sig_off()
         r.a[0] = a
         r.A = self.A
@@ -1805,7 +1808,7 @@ cdef class FastAutomaton:
 
     # change the final states of the automaton
     # new final states are the one in a strongly connected component containing a final state, others states are not final
-    # this function can be accelerated
+    # this function could be accelerated
     def prune_inf2OP(self, verb=False):
         """
         Compute the emondation of the automaton
@@ -1813,12 +1816,11 @@ cdef class FastAutomaton:
         new final states are the one in a strongly
         connected component containing a final state,
         others states are not final
-        this function can be accelerated
+        Warning: this is not a function on regular languages!
 
         INPUT:
 
-        - ``verb`` -- boolean (default: ``False``) fix
-          to ``True`` for activation the verbose mode
+        - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
 
         OUTPUT:
 
@@ -1857,8 +1859,7 @@ cdef class FastAutomaton:
 
         INPUT:
 
-        - ``verb`` -- boolean (default: ``False``) fix
-          to ``True`` for activation the verbose mode
+        - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
 
         OUTPUT:
 
@@ -1910,8 +1911,7 @@ cdef class FastAutomaton:
 
         INPUT:
 
-        - ``verb`` -- boolean (default: ``False``) fix
-          to ``True`` for activation the verbose mode
+        - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
 
         OUTPUT:
 
@@ -1947,8 +1947,7 @@ cdef class FastAutomaton:
 
         INPUT:
 
-        - ``verb`` -- boolean (default: ``False``) fix
-          to ``True`` for activation the verbose mode
+        - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
 
         OUTPUT:
 
@@ -1991,15 +1990,18 @@ cdef class FastAutomaton:
     def product(self, FastAutomaton b, dict d=None, verb=False):
         """
         Give the product of the :class:`FastAutomaton` and ``a`` an other
-        ``FastAutomaton``.
+        ``FastAutomaton``. Assume the dictionnary ``d`` to be injective.
 
         INPUT:
 
         - ``a`` -- :class:`FastAutomaton` to multiply
-        - ``d`` -- dict (default: ``None``) dictionary to translate
-          language of automaton
-        - ``verb`` -- boolean (default: ``False``) fix
-          to ``True`` for activation the verbose mode
+        - ``d`` -- dict (default: ``None``) - dictionary that associates
+            a letter of the new alphabet to couples of letters
+            of the alphabet of self and a respectively.
+            If a couple of letters is not a key of this dictionnary,
+            then corresponding edges of the product are avoided.
+        - ``verb`` -- boolean (default: ``False``) - if True,
+            print debugging informations
 
         OUTPUT:
 
@@ -2064,15 +2066,15 @@ cdef class FastAutomaton:
 
     def intersection(self, FastAutomaton a, verb=False, simplify=True):
         """
-        Give the intersection of the :class:`FastAutomaton` and ``a`` an other
-        :class:`FastAutomaton`.
+        Give a automaton recognizing the intersection of the languages of ``self`` and ``a``.
 
         INPUT:
 
         - ``a`` -- :class:`FastAutomaton` to intersect
-        - ``verb`` -- boolean (default: ``False``) fix
-          to ``True`` for activation the verbose mode
-        - ``simplify`` - (default: ``True``) - if True, prune and minimize the result
+        - ``verb`` -- boolean (default: ``False``) if True,
+            print debugging informations
+        - ``simplify`` - (default: ``True``) - if True,
+            prune and minimize the result
 
         OUTPUT:
 
@@ -2099,14 +2101,16 @@ cdef class FastAutomaton:
         else:
             return p
 
-    # determine if the automaton is complete (i.e. with his hole state)
+    # determine if the automaton is complete (i.e. with his sink state)
     def is_complete(self):
         """
-        Determine if the automaton is complete (i.e. with his hole state)
+        Determine if the automaton is complete
+        (i.e. every state has leaving transitions
+        labeled by every letter of the alphabet)
 
         OUTPUT:
 
-        Return ``True`` if the automaton is complete (i.e. ``False`` if not)
+        Return ``True`` if the automaton is complete, ``False`` otherwise.
 
         EXAMPLES::
 
@@ -2122,36 +2126,48 @@ cdef class FastAutomaton:
         sig_off()
         return Bool(res)
 
-    # give a complete automaton (i.e. with his hole state)
-    def complete(self):
+    # give a complete automaton (i.e. with his sink state)
+    def complete(self, label_sink = 's'):
         """
-        Give the complete automaton (i.e. with his hole state)
-
+        Complete the automaton ON PLACE, by adding a sink state if necessary.
+        
+        INPUT:
+        
+        - ``label_sink`` -- (default: ``None``) - label of the sink state if added
+            and if self has labels of states
+        
         OUTPUT:
 
-        Return ``True`` if the automaton is complete (i.e. ``False`` if not)
+        Return ``True`` if the automaton was not complete (a sink state has been added),
+        return ``False``otherwise.
 
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.complete()
             True
+            sage: a
+            FastAutomaton with 5 states and an alphabet of 2 letters
+            
         """
         sig_on()
         res = CompleteAutomaton(self.a)
         sig_off()
-        return Bool(res)
+        res = Bool(res)
+        if res:
+            if self.S is not None:
+                #add a label for the sink state
+                self.S.append(label_sink)
+        return res
 
-    # give the smallest language stable by prefix containing the language of self
-    # i.e. every states begin finals
     def prefix_closure(self):
         """
-        give the smallest language stable by prefix containing the language of self
-        i.e. every states begin finals
+        give an automaton recognizing the smallest language stable by prefix containing the language of self
+        i.e. every states begin final
 
         OUTPUT:
 
-        Return the smallest language :class:`FastAutomaton`
+        Return a :class:`FastAutomaton`
 
         EXAMPLES::
 
@@ -2181,8 +2197,7 @@ cdef class FastAutomaton:
         - ``a`` -- :class:`FastAutomaton` to union
         - ``simplify`` --  (default: ``True``) if simplification
           is required
-        - ``verb`` -- boolean (default: ``False``) fix
-          to ``True`` for activation the verbose mode
+        - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
 
         OUTPUT:
 
@@ -2409,8 +2424,7 @@ cdef class FastAutomaton:
 
         - ``l`` -- int  index of letter to shift
         - ``np`` -- int  number of shift
-        - ``verb`` -- boolean (default: ``False``) fix
-          to ``True`` to activate the verbose mode
+        - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
 
         EXAMPLES::
 
@@ -2435,8 +2449,7 @@ cdef class FastAutomaton:
         INPUT:
 
         - ``l`` -- int  index of letter to shift
-        - ``verb`` -- boolean (default: ``False``) fix
-          to ``True`` to activate the verbose mode
+        - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
 
         OUTPUT:
 
@@ -2554,8 +2567,7 @@ cdef class FastAutomaton:
 
         INPUT:
 
-        - ``verb`` -- boolean (default: ``False``) fix
-          to ``True`` for activation the verbose mode
+        - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
         - ``r`` -- :class:`NFastAutomaton` to replace
 
         OUTPUT:
@@ -2586,8 +2598,7 @@ cdef class FastAutomaton:
         - ``b`` -- :class:`FastAutomaton`  to concatenate
         - ``det``  -- (default: ``True``) - if True, determinize
         - ``simplify`` -- (default: ``True``) - if True and if det=True, prune and minimize
-        - ``verb`` -- boolean (default: ``False``) fix
-          to ``True`` for activation the verbose mode
+        - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
 
         OUTPUT:
 
