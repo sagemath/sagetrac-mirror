@@ -1013,6 +1013,18 @@ class Graph(GenericGraph):
             ...
             ValueError: Each column of a non-oriented incidence matrix must sum
             to 2, but column 0 does not
+
+        Graph constructor should understand edge iterators (:trac:`22299`)::
+
+            sage: G = Graph([range(5), [(x,(x+1)%5) for x in range(5)]])
+            sage: G.is_isomorphic(graphs.CycleGraph(5))
+            True
+            sage: G = Graph([range(5), ((x,(x+1)%5) for x in range(5))])
+            sage: G.is_isomorphic(graphs.CycleGraph(5))
+            True
+            sage: G = Graph((range(5), ((x,(x+1)%5) for x in range(5))))
+            sage: G.is_isomorphic(graphs.CycleGraph(5))
+            True
         """
         GenericGraph.__init__(self)
 
@@ -1080,15 +1092,22 @@ class Graph(GenericGraph):
 
         # The "vertices and edges" format accepts a list/tuple of two
         # iterables, the first is for vertices and the second is for edges.
-        import collections as col
-        if (format is None                      and
-            isinstance(data, (list, tuple))     and
-            len(data) == 2                      and
-            isinstance(data[0], col.Iterable)   and
-            isinstance(data[1], col.Iterable)   and
-            (not data[1] or (
-                isinstance(data[1], (list, tuple))
-                and isinstance(data[1][0], col.Iterable)))):
+        from collections import Iterable, Iterator
+        if (
+            # Auto-detection
+            format is None and
+            # data might be a pair (vertices, edges)
+            isinstance(data, (list, tuple)) and len(data) == 2 and
+            # the pair is of iterables
+            isinstance(data[0], Iterable) and isinstance(data[1], Iterable) and
+            # the "edges" item of the pair is either empty ...
+            ((not data[1])
+                # ... or it is a list/tuple of edges ...
+                or (
+                isinstance(data[1], (list, tuple)) and
+                isinstance(data[1][0], Iterable))
+                # ... or it is a generator, in which case we assume it is ok
+                or isinstance(data[1], Iterator))):
             format = "vertices_and_edges"
 
         if format is None and isinstance(data, dict):
