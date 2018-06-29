@@ -381,6 +381,7 @@ def _compute_gens(T):
         [  3   1], [2 0], [1 0]
         ]
     """
+    assert T==T.normal_form()
     # corner case
     invs = T.invariants()
     if len(invs) == 0:
@@ -398,8 +399,8 @@ def _compute_gens(T):
                 indices.append(k)
         blocks.append([p, tuple(indices)])
 
-    to_smith = self.to_smith()
-    to_normal = self.to_gens()
+    to_smith = T.to_smith()
+    to_normal = T.to_gens()
 
     # compute generators of the orthogonal groups
     gens = []
