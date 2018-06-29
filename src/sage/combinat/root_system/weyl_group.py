@@ -1013,7 +1013,7 @@ class WeylGroup_permutation(UniqueRepresentation, PermutationGroup_generic):
     """
     A Weyl group given as a permutation group.
     """
-    _default_side = "left"
+    _default_side = "right"
 
     @staticmethod
     def __classcall__(cls, cartan_type, prefix=None):

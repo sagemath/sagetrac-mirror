@@ -224,7 +224,7 @@ class WeylGroups(Category_singleton):
                 for alpha in NPR:
                     elt, is_quantum, scalar = NPR_data[alpha]
                     wr = x * elt
-                    wrc = wr.coset_representative(index_set)
+                    wrc = wr.coset_representative(index_set, side="right")
                     # coset_representative returns wr if nothing gets changed
                     if wrc is wr and length(wrc) == w_length_plus_one:
                         if wrc not in visited:

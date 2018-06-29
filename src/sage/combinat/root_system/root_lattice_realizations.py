@@ -3651,35 +3651,44 @@ class RootLatticeRealizations(Category_over_base_ring):
                 [3, 5]
             """
             if index_set is None:
-                index_set=self.parent().index_set()
-            return [ i for i in index_set if self.has_descent(i, positive) ]
+                index_set = self.parent().index_set()
+            return [ i for i in index_set if self.has_descent(i, positive=positive) ]
 
-        def to_dominant_chamber(self, index_set = None, positive = True, reduced_word = False):
+        def to_dominant_chamber(self, index_set=None, positive=True, reduced_word=False):
             r"""
-            Returns the unique dominant element in the Weyl group orbit of the vector ``self``.
+            Return the unique dominant element in the Weyl group orbit
+            of the vector ``self``.
 
             If ``positive`` is False, returns the antidominant orbit element.
 
             With the ``index_set`` optional parameter, this is done with
             respect to the corresponding parabolic subgroup.
 
-            If ``reduced_word`` is True, returns the 2-tuple (``weight``, ``direction``)
-            where ``weight`` is the (anti)dominant orbit element and ``direction`` is a reduced word
-            for the Weyl group element sending ``weight`` to ``self``.
+            If ``reduced_word`` is True, returns the 2-tuple
+            (``weight``, ``direction``) where ``weight`` is the
+            (anti)dominant orbit element and ``direction`` is a reduced
+            word for the Weyl group element sending ``weight`` to ``self``.
 
-            .. warning::
+            .. WARNING::
 
                 In infinite type, an orbit may not contain a dominant element.
                 In this case the function may go into an infinite loop.
 
-                For affine root systems, errors are generated if
-                the orbit does not contain the requested kind of representative.
+                For affine root systems, errors are generated if the
+                orbit does not contain the requested kind of representative.
                 If the input vector is of positive (resp. negative)
-                level, then there is a dominant (resp. antidominant) element in its orbit
-                but not an antidominant (resp. dominant) one. If the vector is of level zero,
-                then there are neither dominant nor antidominant orbit representatives, except
-                for multiples of the null root, which are themselves both dominant and antidominant
-                orbit representatives.
+                level, then there is a dominant (resp. antidominant) element
+                in its orbit but not an antidominant (resp. dominant) one.
+                If the vector is of level zero, then there are neither
+                dominant nor antidominant orbit representatives, except
+                for multiples of the null root, which are themselves
+                both dominant and antidominant orbit representatives.
+
+            .. WARNING::
+
+                The reduced word is expressed in terms of multiplication
+                on the right. If the default multiplication order is on the
+                left, you need to reverse the order of the reduced word.
 
             EXAMPLES::
 
@@ -3711,7 +3720,6 @@ class RootLatticeRealizations(Category_over_base_ring):
                 ...
                 ValueError: alpha[1] is not in the orbit of the negative of the fundamental chamber
             """
-
             if index_set is None:
                 # default index set is the entire Dynkin node set
                 index_set = self.parent().index_set()
@@ -3748,7 +3756,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                         direction.append(i)
                     self = self.simple_reflection(i)
 
-        def reduced_word(self, index_set = None, positive = True):
+        def reduced_word(self, index_set=None, positive=True):
             r"""
             Returns a reduced word for the inverse of the shortest Weyl group element that sends the vector ``self`` into the dominant chamber.
 
@@ -3767,12 +3775,12 @@ class RootLatticeRealizations(Category_over_base_ring):
                 [2]
 
             """
-            return self.to_dominant_chamber(index_set=index_set,positive=positive,reduced_word = True)[1]
+            return self.to_dominant_chamber(index_set=index_set, positive=positive,
+                                            reduced_word=True)[1]
 
-
-        def is_dominant(self, index_set = None, positive = True):
+        def is_dominant(self, index_set=None, positive=True):
             r"""
-            Returns whether self is dominant.
+            Return whether ``self`` is dominant.
 
             This is done with respect to the subrootsystem indicated by the subset of Dynkin nodes
             index_set. If index_set is None then the entire Dynkin node set is used.
@@ -4163,7 +4171,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: mu = wl.from_vector(vector([1,0,-2]))
                 sage: mu
                 Lambda[1] - 2*Lambda[3]
-                sage: mudom, rw = mu.to_dominant_chamber(positive=False, reduced_word = True)
+                sage: mudom, rw = mu.to_dominant_chamber(positive=False, reduced_word=True)
                 sage: mudom, rw
                 (-Lambda[2] - Lambda[3], [1, 2])
 

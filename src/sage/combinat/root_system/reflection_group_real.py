@@ -249,7 +249,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
         :func:`ReflectionGroup`
     """
-    _default_side = "left"
+    _default_side = "right"
 
     def __init__(self, W_types, index_set=None, hyperplane_index_set=None, reflection_index_set=None):
         r"""

@@ -949,7 +949,8 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
         @cached_in_parent_method
         def weyl_group_representation(self):
             r"""
-            Transforms the weights in the LS path ``self`` to elements in the Weyl group.
+            Transforms the weights in the LS path ``self`` to elements
+            in the Weyl group.
 
             Each LS path can be written as the piecewise linear map:
 
@@ -974,7 +975,8 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
             cartan = self.parent().weight.parent().cartan_type().classical()
             I = cartan.index_set()
             W = WeylGroup(cartan, prefix='s', implementation="permutation")
-            return [W.from_reduced_word(x.to_dominant_chamber(index_set=I, reduced_word=True)[1]) for x in self.value]
+            return [W.from_reduced_word(x.to_dominant_chamber(index_set=I, reduced_word=True)[1])
+                    for x in self.value]
 
         @cached_in_parent_method
         def energy_function(self):
