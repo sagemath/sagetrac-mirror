@@ -11,7 +11,6 @@ from sage.libs.polybori.decl cimport *
 cdef class BooleanPolynomialRing(MPolynomialRing_base):
     cdef PBRing _pbring
     cdef Py_ssize_t* pbind
-    cdef public _monom_monoid
     cdef public object __interface
     cdef object _repr
 

@@ -442,8 +442,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         (<BooleanPolynomial>self._one_element)._pbpoly = \
                                  PBBoolePolynomial(1, self._pbring)
 
-        self._monom_monoid = BooleanMonomialMonoid(self)
-
         self.__interface = {}
 
     def __dealloc__(self):
@@ -668,7 +666,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         """
         if self._base.has_coerce_map_from(S):
             return True
-        if isinstance(S,(MPolynomialRing_base,PolynomialRing_general,BooleanMonomialMonoid)):
+        if isinstance(S,(MPolynomialRing_base,PolynomialRing_general)):
             try:
                 get_var_mapping(self,S)
             except NameError:
@@ -754,9 +752,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         ::
 
             sage: R.<y,x> = BooleanPolynomialRing(2)
-            sage: M = R._monom_monoid
             sage: P = BooleanPolynomialRing(3,'x,y,z')
-            sage: t = P(M(x*y))
+            sage: t = P(R(x*y))
             sage: t
             x*y
             sage: t.parent()
@@ -841,7 +838,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
                         raise TypeError("cannot coerce polynomial %s to %s: %s" % (other, self, msg))
                     p = self._zero_element
                     for monom in other:
-                        new_monom = self._monom_monoid._one_element
+                        new_monom = self.one()
                         for i in monom.iterindex():
                             new_monom *= var_mapping[i]
                         p += new_monom
@@ -859,7 +856,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
                     coefs = other.coefficients()
                     for i in range(len(coefs)):
                         if self._base(coefs[i]).is_one():
-                            m = self._monom_monoid._one_element
+                            m = self.one()
                             for j in range(len(exponents[i])):
                                 if exponents[i][j] > 0:
                                     m *= var_mapping[j]
@@ -956,7 +953,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
                 raise TypeError("cannot convert polynomial %s to %s: %s" % (other, self, msg))
             p = self._zero_element
             for monom in other:
-                new_monom = self._monom_monoid._one_element
+                new_monom = self.one()
                 for i in monom.iterindex():
                     new_monom *= var_mapping[i]
                 p += new_monom
@@ -982,7 +979,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
 
             for i in range(len(coefs)):
                 if self._base(coefs[i]).is_one():
-                    m = self._monom_monoid._one_element
+                    m = self.one()
                     for j in range(len(exponents[i])):
                         if exponents[i][j] > 0:
                             m *= var_mapping[j]
@@ -1309,10 +1306,9 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
             i+=1
         mind = t-monom_counts[i-1]
         var_inds = from_rank(mind,len(vars_set),i)
-        M = self._monom_monoid
-        m = M._one_element
+        m = self.one()
         for j in var_inds:
-            m*=M.gen(vars_set[j])
+            m *= self.gen(vars_set[j])
         return self(m)
 
     def _random_monomial_dfirst(self, degree, vars_set):
@@ -1344,10 +1340,9 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         sample = current_randstate().python_random().sample
         d = ZZ.random_element(0,degree+1)
         vars = sample(vars_set, d)
-        M = self._monom_monoid
-        m = M._one_element
+        m = self.one()
         for j in vars:
-            m*=M.gen(j)
+            m *= self.gen(j)
         return self(m)
 
     def cover_ring(self):
@@ -1837,369 +1832,6 @@ def get_var_mapping(ring, other):
     return var_mapping
 
 
-class BooleanMonomialMonoid(UniqueRepresentation, Monoid_class):
-    """
-    Construct a boolean monomial monoid given a boolean polynomial
-    ring.
-
-    This object provides a parent for boolean monomials.
-
-    INPUT:
-
-    - ``polring`` - the polynomial ring our monomials lie in
-
-
-    EXAMPLES::
-
-        sage: from brial import BooleanMonomialMonoid
-        sage: P.<x,y> = BooleanPolynomialRing(2)
-        sage: M = BooleanMonomialMonoid(P)
-        sage: M
-        MonomialMonoid of Boolean PolynomialRing in x, y
-
-        sage: M.gens()
-        (x, y)
-        sage: type(M.gen(0))
-        <type 'sage.rings.polynomial.pbori.BooleanMonomial'>
-
-    Since :trac:`9138`, boolean monomial monoids are
-    unique parents and are fit into the category framework::
-
-        sage: loads(dumps(M)) is M
-        True
-        sage: TestSuite(M).run()
-
-    """
-    def __init__(self, BooleanPolynomialRing polring):
-        """
-        Create a new boolean polynomial ring.
-
-        TESTS::
-
-            sage: from brial import BooleanMonomialMonoid
-            sage: B.<a,b,c> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(B)
-            sage: M
-            MonomialMonoid of Boolean PolynomialRing in a, b, c
-
-
-        .. NOTE::
-
-          See class documentation for parameters.
-        """
-        cdef BooleanMonomial m
-        self._ring = polring
-        from sage.categories.monoids import Monoids
-        Parent.__init__(self, GF(2), names=polring._names, category=Monoids().Commutative())
-
-        m = new_BM(self, polring)
-        m._pbmonom = PBMonom(polring._pbring)
-        self._one_element = m
-
-    def _repr_(self):
-        """
-        EXAMPLES::
-
-            sage: from brial import BooleanMonomialMonoid
-            sage: P.<x,y> = BooleanPolynomialRing(2)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: M # indirect doctest
-            MonomialMonoid of Boolean PolynomialRing in x, y
-        """
-        return "MonomialMonoid of %s" % (str(self._ring))
-
-    def __hash__(self):
-        """
-        Return a hash for this monoid.
-
-        EXAMPLES::
-
-            sage: from brial import BooleanMonomialMonoid
-            sage: P.<x,y> = BooleanPolynomialRing(2)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: {M:1} # indirect doctest
-            {MonomialMonoid of Boolean PolynomialRing in x, y: 1}
-        """
-        return hash(str(self))
-
-    def ngens(self):
-        """
-        Return the number of variables in this monoid.
-
-        EXAMPLES::
-
-            sage: from brial import BooleanMonomialMonoid
-            sage: P = BooleanPolynomialRing(100, 'x')
-            sage: M = BooleanMonomialMonoid(P)
-            sage: M.ngens()
-            100
-        """
-        return self._ring.ngens()
-
-    def gen(self, Py_ssize_t i=0):
-        """
-        Return the i-th generator of self.
-
-        INPUT:
-
-        -  ``i`` - an integer
-
-        EXAMPLES::
-
-            sage: from brial import BooleanMonomialMonoid
-            sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: M.gen(0)
-            x
-            sage: M.gen(2)
-            z
-
-            sage: P = BooleanPolynomialRing(1000, 'x')
-            sage: M = BooleanMonomialMonoid(P)
-            sage: M.gen(50)
-            x50
-        """
-        if i < 0 or i >= self.ngens():
-            raise ValueError("Generator not defined.")
-
-        cdef PBVar newvar
-        newvar = PBBooleVariable(i, (<BooleanPolynomialRing>self._ring)._pbring)
-
-        return new_BM_from_PBVar(self, (<BooleanPolynomialRing>self._ring), newvar)
-
-    def gens(self):
-        """
-        Return the tuple of generators of this monoid.
-
-        EXAMPLES::
-
-            sage: from brial import BooleanMonomialMonoid
-            sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: M.gens()
-            (x, y, z)
-        """
-        return tuple(self.gen(i) for i in xrange(self.ngens()))
-
-    def _get_action_(self, S, op, bint self_on_left):
-        """
-        Monomials support multiplication by 0 and 1 in GF(2).
-
-        EXAMPLES::
-
-            sage: from brial import BooleanMonomialMonoid
-            sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: M.get_action(ZZ) # indirect doctest
-            Right action by Integer Ring on MonomialMonoid of Boolean PolynomialRing in x, y, z
-            sage: M.get_action(GF(2))
-            Right action by Finite Field of size 2 on MonomialMonoid of Boolean PolynomialRing in x, y, z
-            sage: M.get_action(QQ) is None
-            True
-        """
-        if GF(2).has_coerce_map_from(S) and op is operator.mul:
-            return BooleanMulAction(S, self, not self_on_left, op=op)
-
-    def _coerce_impl(self, other):
-        """
-        Canonical conversion of elements from other objects to this
-        monoid.
-
-        EXAMPLES::
-
-            sage: from brial import BooleanMonomialMonoid
-            sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: x_monom = M(x); x_monom
-            x
-            sage: M(x_monom) # indirect doctest
-            x
-
-        Convert elements from :class:`BooleanMonomialMonoid` where the
-        generators of self include the generators of the other monoid::
-
-            sage: from brial import BooleanMonomialMonoid
-            sage: R.<z,y> = BooleanPolynomialRing(2)
-            sage: N = BooleanMonomialMonoid(R)
-            sage: m = M(N(y*z)); m
-            y*z
-            sage: m.parent() is M
-            True
-
-        TESTS::
-
-            sage: from brial import BooleanMonomialMonoid
-            sage: R.<t,y> = BooleanPolynomialRing(2)
-            sage: N = BooleanMonomialMonoid(R)
-            sage: m = M(N(y)); m
-            Traceback (most recent call last):
-            ...
-            TypeError: list indices must be integers, not sage.rings.polynomial.pbori.BooleanMonomial
-
-            sage: from brial import BooleanMonomialMonoid
-            sage: R.<t,x,y,z> = BooleanPolynomialRing(4)
-            sage: N = BooleanMonomialMonoid(R)
-            sage: m = M(N(x*y*z)); m
-            Traceback (most recent call last):
-            ...
-            TypeError: list indices must be integers, not sage.rings.polynomial.pbori.BooleanMonomial
-        """
-        if isinstance(other, BooleanMonomial) and \
-            ((<BooleanMonomial>other)._parent.ngens() <= \
-            (<BooleanPolynomialRing>self._ring)._pbring.nVariables()):
-                try:
-                    var_mapping = get_var_mapping(self, other.parent())
-                except NameError as msg:
-                    raise ValueError("cannot coerce monomial %s to %s: %s" % (other, self, msg))
-                m = self._one_element
-                for i in other.iterindex():
-                    m *= var_mapping[i]
-                return m
-        raise TypeError("coercion from %s to %s not implemented" %
-                        (type(other), str(self)))
-
-    def _element_constructor_(self, other=None):
-        """
-        Convert elements of other objects to elements of this monoid.
-
-        INPUT:
-
-        - ``other`` - element to convert, if ``None`` a
-           :class:`BooleanMonomial` representing 1 is returned only
-          :class:`BooleanPolynomial`s with the same parent ring as ``self``
-          which have a single monomial is converted
-
-        EXAMPLES::
-
-            sage: from brial import BooleanMonomialMonoid
-            sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: x_monom = M(x); x_monom
-            x
-
-            sage: M(x*y)
-            x*y
-
-            sage: M(x+y)
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot convert to BooleanMonomialMonoid
-
-        Convert elements of self::
-
-            sage: M(x_monom)
-            x
-
-        Convert from other :class:`BooleanPolynomialRing`s::
-
-            sage: R.<z,x> = BooleanPolynomialRing(2)
-            sage: t = M(z); t
-            z
-            sage: t.parent() is M
-            True
-
-        Convert :class:`BooleanMonomial`s over other
-        :class:`BooleanPolynomialRing`s::
-
-            sage: N = BooleanMonomialMonoid(R)
-            sage: t = M(N(x*z)); t
-            x*z
-            sage: t.parent() is M
-            True
-
-        Convert :class:`BooleSet`s::
-
-            sage: t = M.an_element(); t
-            x
-            sage: M(t.set()) == t
-            True
-
-        Convert a tuple of integers::
-
-            sage: M((0,2,0))
-            x*z
-
-        """
-        cdef BooleanMonomial m
-        cdef PBMonom t
-
-        # this is needed for the PolyBoRi python code
-        if other is None:
-            return self._one_element
-
-        #  We must not call this explicitly in an element constructor.
-        #  It used to be ok, when there was a custom __call__
-        #        try:
-        #            return self._coerce_(other)
-        #        except ValueError:
-        #            pass
-        #        except TypeError:
-        #            pass
-
-        try:
-            return self._coerce_impl(other)
-        except (ValueError, TypeError):
-            pass
-
-        if isinstance(other, BooleanPolynomial) and \
-            (<BooleanPolynomial>other)._pbpoly.isSingleton():
-                if (<BooleanPolynomial>other)._parent is self._ring:
-                    return new_BM_from_PBMonom(self,
-                            (<BooleanPolynomialRing>self._ring),
-                            (<BooleanPolynomial>other)._pbpoly.lead())
-                elif ((<BooleanPolynomial>other)._pbpoly.nUsedVariables() <= \
-                    (<BooleanPolynomialRing>self._ring)._pbring.nVariables()):
-                        try:
-                            var_mapping = get_var_mapping(self, other)
-                        except NameError as msg:
-                            raise ValueError("cannot convert polynomial %s to %s: %s" % (other, self, msg))
-                        t = (<BooleanPolynomial>other)._pbpoly.lead()
-
-                        m = self._one_element
-                        for i in new_BMI_from_BooleanMonomial(other.lm()):
-                            m*= var_mapping[i]
-                        return m
-                else:
-                    raise ValueError("cannot convert polynomial %s to %s" % (other, self))
-
-        elif isinstance(other, BooleanMonomial) and \
-            ((<BooleanMonomial>other)._pbmonom.deg() <=
-             <Py_ssize_t>(<BooleanPolynomialRing>self._ring)._pbring.nVariables()):
-                try:
-                    var_mapping = get_var_mapping(self, other)
-                except NameError as msg:
-                    raise ValueError("cannot convert monomial %s to %s: %s" % (other, self, msg))
-                m = self._one_element
-                for i in other:
-                    m *= var_mapping[i]
-                return m
-        elif isinstance(other, BooleSet):
-            return self(self._ring(other))
-        elif isinstance(other, Element) and \
-                self.base_ring().has_coerce_map_from(other.parent()) and \
-                        self.base_ring()(other).is_one():
-                            return self._one_element
-        elif isinstance(other, (int, long)) and other % 2:
-            return self._one_element
-
-        elif isinstance(other, (list, set)):
-            result = self._one_element
-            for elt in other:
-                result = result * elt
-            return result
-        elif isinstance(other, tuple):
-            # S.K.: Tuples of integers have not been converted
-            # into monomials before. I think that would be very
-            # natural (namely the integers providing the index
-            # of generators). It is also useful for pickling.
-            result = self._one_element
-            gens = self.gens()
-            for ind in other:
-                result *= gens[ind]
-            return result
-
-        raise TypeError("cannot convert to BooleanMonomialMonoid")
-
 cdef class BooleanMonomial(MonoidElement):
     """
     Construct a boolean monomial.
@@ -2210,25 +1842,19 @@ cdef class BooleanMonomial(MonoidElement):
 
     EXAMPLES::
 
-        sage: from brial import BooleanMonomialMonoid, BooleanMonomial
+        sage: from brial import BooleanMonomial
         sage: P.<x,y,z> = BooleanPolynomialRing(3)
-        sage: M = BooleanMonomialMonoid(P)
-        sage: BooleanMonomial(M)
+        sage: BooleanMonomial(P)
         1
 
-    .. NOTE::
-
-       Use the :meth:`BooleanMonomialMonoid__call__` method and not
-       this constructor to construct these objects.
     """
     def __init__(self, parent):
         """
         EXAMPLES::
 
-            sage: from brial import BooleanMonomialMonoid, BooleanMonomial
+            sage: from brial import BooleanMonomial
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: BooleanMonomial(M)
+            sage: BooleanMonomial(P)
             1
 
 
@@ -2245,10 +1871,8 @@ cdef class BooleanMonomial(MonoidElement):
 
         TESTS::
 
-            sage: from brial import BooleanMonomialMonoid
             sage: R.<z,x> = BooleanPolynomialRing(2)
-            sage: M = BooleanMonomialMonoid(R)
-            sage: t = M.0*M.1
+            sage: t = R.0*R.1
             sage: loads(dumps(t)) == t   # indirect doctest
             True
         """
@@ -2261,22 +1885,20 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES::
 
-            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: M(x) < M(y)
+            sage: P(x) < P(y)
             False
 
-            sage: M(x) > M(y)
+            sage: P(x) > P(y)
             True
 
-            sage: M(x) == M(x)
+            sage: P(x) == P(x)
             True
 
-            sage: M(x) <= M(x)
+            sage: P(x) <= P(x)
             True
 
-            sage: M(x) >= M(x)
+            sage: P(x) >= P(x)
             True
         """
         cdef int res
@@ -2290,12 +1912,7 @@ cdef class BooleanMonomial(MonoidElement):
         EXAMPLES::
 
             sage: P.<x,y> = BooleanPolynomialRing(2)
-            sage: M = sage.rings.polynomial.pbori.BooleanMonomialMonoid(P)
-            sage: M(x*y) # indirect doctest
-            x*y
-
-            sage: R.<t,u> = BooleanPolynomialRing(2)
-            sage: M(x*y)
+            sage: P(x*y) # indirect doctest
             x*y
         """
         return ccrepr(self._pbmonom)
@@ -2437,13 +2054,11 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES::
 
-            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: M(x*y).deg()
+            sage: P(x*y).deg()
             2
 
-            sage: M(x*x*y*z).deg()
+            sage: P(x*x*y*z).deg()
             3
 
         .. NOTE::
@@ -2465,14 +2080,12 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES::
 
-            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: M(x*y).degree()
+            sage: P(x*y).degree()
             2
-            sage: M(x*y).degree(x)
+            sage: P(x*y).degree(x)
             1
-            sage: M(x*y).degree(z)
+            sage: P(x*y).degree(z)
             0
         """
         if not x:
@@ -2570,10 +2183,8 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES::
 
-            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: len(M(x*y))
+            sage: len(P(x*y))
             1
         """
         return 1
@@ -2584,10 +2195,8 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES::
 
-            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: list(M(x*z)) # indirect doctest
+            sage: list(P(x*z)) # indirect doctest
             [x, z]
         """
         return new_BMVI_from_BooleanMonomial(self)
@@ -2598,10 +2207,8 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES::
 
-            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: M(x*z).variables() # indirect doctest
+            sage: P(x*z).variables() # indirect doctest
             (x, z)
         """
         return tuple(self)
@@ -2612,10 +2219,8 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES::
 
-            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: list(M(x*z).iterindex())
+            sage: list(P(x*z).iterindex())
             [0, 2]
         """
         return new_BMI_from_BooleanMonomial(self)
@@ -2626,10 +2231,8 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES::
 
-            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: x = M(x); xy = M(x*y); z=M(z)
+            sage: x = P(x); xy = P(x*y); z = P(z)
             sage: x*x # indirect doctest
             x
 
@@ -2652,10 +2255,8 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES::
 
-            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: x = M(x); xy = M(x*y)
+            sage: x = P(x); xy = P(x*y)
             sage: x + xy
             x*y + x
 
@@ -2696,10 +2297,8 @@ cdef class BooleanMonomial(MonoidElement):
 
         EXAMPLES::
 
-            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: x = M(x); xy = M(x*y)
+            sage: x = P(x); xy = P(x*y)
             sage: xy//x
             y
             sage: x//xy
@@ -4100,7 +3699,7 @@ cdef class BooleanPolynomial(MPolynomial):
                 except TypeError:
                     fixed[var.lm().index()] = val
         if kwds:
-            gdict = P._monom_monoid.gens_dict()
+            gdict = P.gens_dict()
 
         for var,val in kwds.iteritems():
             var = gdict[var]
@@ -4805,7 +4404,7 @@ cdef class MonomialConstruct:
         if isinstance(x, BooleanMonomial):
             return x
         elif isinstance(x, BooleanPolynomialRing):
-            return (<BooleanPolynomialRing>x)._monom_monoid._one_element
+            return (<BooleanPolynomialRing>x).one()
         elif isinstance(x, BooleanPolynomial) and x.is_singleton():
             return (<BooleanPolynomial>x).lm()
         else:
@@ -5980,7 +5579,7 @@ cdef inline BooleSetIterator new_BSI_from_PBSetIter(BooleSet s):
     cdef BooleSetIterator m
     m = <BooleSetIterator>BooleSetIterator.__new__(BooleSetIterator)
     m._ring = s._ring
-    m._parent = m._ring._monom_monoid
+    m._parent = m._ring
     m.obj = s
     m._iter = new PBSetIter(s._pbset.begin())
     m._end = new PBSetIter(s._pbset.end())
@@ -7063,10 +6662,8 @@ class BooleanMulAction(Action):
     def _call_(self, left, right):
         """
         EXAMPLES:
-            sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: M = BooleanMonomialMonoid(P)
-            sage: x = M(x); xy = M(x*y); z=M(z)
+            sage: x = P(x); xy = P(x*y); z = P(z)
             sage: x*1  # indirect doctest
             x
             sage: 1*x
@@ -7678,12 +7275,10 @@ cdef BooleanPolynomialRing BooleanPolynomialRing_from_PBRing(PBRing _ring):
     self._one_element  = new_BP(self)
     (<BooleanPolynomial>self._one_element)._pbpoly = PBBoolePolynomial(1, self._pbring)
 
-    self._monom_monoid = BooleanMonomialMonoid(self)
     self.__interface = {}
 
     self._names = tuple(char_to_str(_ring.getVariableName(i))
                         for i in range(n))
-    self._monom_monoid._names = self._names
 
     return self
 
