@@ -394,6 +394,44 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
           To:   Number Field in b with defining polynomial x^6 - x^2 + 1/10
           Defn: a -> b^2
 
+    If the argument of embedding is an exact root of the polynomial, one has to be sure that an embedding exists::
+
+        sage: r1 = 3 + 7 + 2*7^2 + 6*7^3 + 7^4 + 2*7^5 + 7^6 + 2*7^7 + 4*7^8 +\
+        ....:      6*7^9 + 6*7^10 + 2*7^11 + 7^12 + 7^13 + 2*7^15 + 7^16 + 7^17 +\
+        ....:      4*7^18 + 6*7^19 + O(7^20)
+        sage: r1.parent()
+        7-adic Ring with capped relative precision 20
+        sage: r2 = Qp(7)(r1)
+        sage: r2.parent()
+        7-adic Field with capped relative precision 20
+        sage: NumberField(x^2-2, 'a', embedding=r1)
+        Traceback (most recent call last):
+        ...
+        ValueError: there is no embedding into 7-adic Ring with capped relative precision 20
+        sage: N.<a> = NumberField(x^2-2, embedding=r2)
+        sage: a - r2
+        O(7^20)
+        sage: u = QQ['x'](1)
+        sage: N = NumberField(x-1, 'a', embedding=u)
+        sage: N.coerce_embedding()
+        Generic morphism:
+        From: Number Field in a with defining polynomial x - 1
+        To:   Univariate Polynomial Ring in x over Rational Field
+        Defn: a -> 1
+
+    This can lead to unexpected results::
+
+        sage: NumberField(x-1, 'a', embedding=1)
+        Traceback (most recent call last):
+        ...
+        ValueError: there is no embedding into Integer Ring
+        sage: N = NumberField(x-1, 'a', embedding=2)
+        sage: N.coerce_embedding()
+        Generic morphism:
+          From: Number Field in a with defining polynomial x - 1
+          To:   Real Lazy Field
+          Defn: a -> 1
+
     The ``QuadraticField`` and ``CyclotomicField`` constructors
     create an embedding by default unless otherwise specified::
 
@@ -541,6 +579,16 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
                        [0 0 1 0]
                        [0 0 0 1]
                        [2 0 0 0]
+
+    Check a corner case of (:trac:`14367`)::
+
+        sage: R.<x> = QQ[]
+        sage: I = Ideal(1,x)
+        sage: S = R.quotient(I)
+        sage: NumberField(x^2-2, 'a', embedding=S(1))
+        Traceback (most recent call last):
+        ...
+        ValueError: there is no embedding into Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus 1
     """
     if names is not None:
         name = names
@@ -636,7 +684,10 @@ class NumberFieldFactory(UniqueFactory):
             embedding = embedding[0]
         if embedding is not None:
             x = number_field_morphisms.root_from_approx(polynomial, embedding)
-            embedding = (x.parent(), x)
+            P = x.parent()
+            if not P.has_coerce_map_from(QQ) or P(0)==P(1):
+                raise ValueError("there is no embedding into %s"%P)
+            embedding = (P, x)
 
         # normalize latex_name
         if isinstance(latex_name, (list, tuple)):
