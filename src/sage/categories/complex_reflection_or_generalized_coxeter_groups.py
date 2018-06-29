@@ -140,6 +140,8 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
             return self._with_axiom('Irreducible')
 
     class ParentMethods:
+        _default_side = "right"
+
         @abstract_method
         def index_set(self):
             r"""
@@ -925,14 +927,14 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
             s = self.parent().simple_reflections()
             return self * s[i]
 
-        def apply_simple_reflection(self, i, side='right'):
+        def apply_simple_reflection(self, i, side=None):
             """
             Return ``self`` multiplied by the simple reflection ``s[i]``.
 
             INPUT:
 
             - ``i`` -- an element of the index set
-            - ``side`` -- (default: ``"right"``) ``"left"`` or ``"right"``
+            - ``side`` -- ``"left"`` or ``"right"`` (optional)
 
             This default implementation simply calls
             :meth:`apply_simple_reflection_left` or
@@ -943,21 +945,22 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: W = CoxeterGroups().example()
                 sage: w = W.an_element(); w
                 (1, 2, 3, 0)
-                sage: w.apply_simple_reflection(0, side = "left")
+                sage: w.apply_simple_reflection(0, side="left")
                 (0, 2, 3, 1)
-                sage: w.apply_simple_reflection(1, side = "left")
+                sage: w.apply_simple_reflection(1, side="left")
                 (2, 1, 3, 0)
-                sage: w.apply_simple_reflection(2, side = "left")
+                sage: w.apply_simple_reflection(2, side="left")
                 (1, 3, 2, 0)
 
-                sage: w.apply_simple_reflection(0, side = "right")
+                sage: w.apply_simple_reflection(0, side="right")
                 (2, 1, 3, 0)
-                sage: w.apply_simple_reflection(1, side = "right")
+                sage: w.apply_simple_reflection(1, side="right")
                 (1, 3, 2, 0)
-                sage: w.apply_simple_reflection(2, side = "right")
+                sage: w.apply_simple_reflection(2, side="right")
                 (1, 2, 0, 3)
 
-            By default, ``side`` is ``"right"``::
+            The ``side`` is the preferred side of the Coxeter group
+            implementation, in this case it is on the right::
 
                 sage: w.apply_simple_reflection(0)
                 (2, 1, 3, 0)
@@ -988,12 +991,14 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: w.apply_simple_reflection_right.__module__
                 'sage.categories.complex_reflection_or_generalized_coxeter_groups'
             """
+            if side is None:
+                side = self.parent()._default_side
             if side == 'right':
                 return self.apply_simple_reflection_right(i)
             else:
                 return self.apply_simple_reflection_left(i)
 
-        def apply_simple_reflections(self, word, side='right', type='simple'):
+        def apply_simple_reflections(self, word, side=None, type='simple'):
             r"""
             Return the result of the (left/right) multiplication of
             ``self`` by ``word``.
@@ -1001,8 +1006,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
             INPUT:
 
             - ``word`` -- a sequence of indices of simple reflections
-            - ``side`` -- (default: ``'right'``) indicates multiplying
-              from left or right
+            - ``side`` -- indicates multiplying from left or right (optional)
 
             This is a specialized implementation of
             :meth:`apply_reflections` for the simple reflections. The
@@ -1030,7 +1034,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 self = self.apply_simple_reflection(i, side)
             return self
 
-        def apply_reflections(self, word, side='right', word_type='all'):
+        def apply_reflections(self, word, side=None, word_type='all'):
             r"""
             Return the result of the (left/right) multiplication of
             ``self`` by ``word``.
@@ -1038,8 +1042,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
             INPUT:
 
             - ``word`` -- a sequence of indices of reflections
-            - ``side`` -- (default: ``'right'``) indicates multiplying
-              from left or right
+            - ``side`` -- indicates multiplying from left or right (optional)
             - ``word_type`` -- (optional, default: ``'all'``):
               either ``'simple'``, ``'distinguished'``, or ``'all'``
 
@@ -1100,6 +1103,8 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 reflections = self.parent().distinguished_reflections()
             else:
                 reflections = self.parent().reflections()
+            if side is None:
+                side = self.parent()._default_side
             if side == 'left':
                 for i in word:
                     self = reflections[i] * self

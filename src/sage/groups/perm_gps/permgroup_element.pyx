@@ -1363,13 +1363,13 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             from sage.combinat.partition import _Partitions
             return _Partitions(cycle_type)
 
-    def has_descent(self, i, side = "right", positive = False):
+    def has_descent(self, i, side=None, positive=False):
         """
         INPUT:
 
-         - ``i``: an element of the index set
-         - ``side``: "left" or "right" (default: "right")
-         - ``positive``: a boolean (default: False)
+        - ``i`` -- an element of the index set
+        - ``side`` -- ``"left"`` or ``"right"`` (optional)
+        - ``positive`` -- boolean (default: ``False``)
 
         Returns whether ``self`` has a left (resp. right) descent at
         position ``i``. If ``positive`` is True, then test for a non
@@ -1389,13 +1389,13 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             False
             sage: s = S.simple_reflections()
             sage: x = s[1]*s[2]
-            sage: x.has_descent(1, side = "right")
+            sage: x.has_descent(1, side="right")
             False
-            sage: x.has_descent(2, side = "right")
+            sage: x.has_descent(2, side="right")
             True
-            sage: x.has_descent(1, side = "left")
+            sage: x.has_descent(1, side="left")
             True
-            sage: x.has_descent(2, side = "left")
+            sage: x.has_descent(2, side="left")
             False
             sage: S._test_has_descent()
 
@@ -1411,6 +1411,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         to_gap = self._parent._domain_to_gap
         from_gap = self._parent._domain_from_gap
+        if side is None:
+            side = self._parent._default_side
         if side == "right":
             self = ~self
 

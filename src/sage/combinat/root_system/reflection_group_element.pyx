@@ -719,7 +719,7 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
         # we also check == because 0-based indexing
         return self.perm[W._index_set_inverse[i]] >= W.number_of_reflections()
 
-    cpdef bint has_descent(self, i, side="left", positive=False):
+    cpdef bint has_descent(self, i, side=None, positive=False):
         r"""
         Return whether ``i`` is a descent (or ascent) of ``self``.
 
@@ -729,8 +729,8 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
         INPUT:
 
         - ``i`` -- an index of a simple reflection
-        - ``side`` (default: ``'right'``) -- ``'left'`` or ``'right'``
-        - ``positive`` (default: ``False``) -- a boolean
+        - ``side`` -- ``'left'`` or ``'right'`` (optional)
+        - ``positive`` -- a boolean (default: ``False``)
 
         EXAMPLES::
 
@@ -740,7 +740,27 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
             True
             sage: (s[1]*s[2]).has_descent(2)                        # optional - gap3
             False
+
+        TESTS:
+
+        Check that :trac:`23299` is fixed::
+
+            sage: W = CoxeterGroup('A3', implementation='permutation')
+            sage: w = W.from_reduced_word([1,2,3,1])
+            sage: desc = w.first_descent()
+            sage: ww = w.apply_simple_reflection(desc)
+            sage: ww.reduced_word()
+            [3, 2, 1]
+            sage: [x.reduced_word() for x in ww.bruhat_lower_covers()]
+            [[3, 2], [1, 3], [2, 1]]
+            sage: [x.has_descent(desc) for x in ww.bruhat_lower_covers()]
+            [False, True, False]
+            sage: len(W.bruhat_interval(W.one(), w))
+            12
         """
+        if side is None:
+            side = self._parent._default_side
+
         if not isinstance(positive, bool):
             raise TypeError("%s is not a boolean"%(bool))
 

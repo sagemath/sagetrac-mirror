@@ -840,7 +840,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
     # Descents
     ##########################################################################
 
-    def has_descent(self, i, positive=False, side = "right"):
+    def has_descent(self, i, side=None, positive=False):
         """
         Test if ``self`` has a descent at position ``i``.
 
@@ -863,7 +863,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
             [False, True, False]
             sage: [s[3].has_descent(i) for i in W.domain().index_set()]
             [False, False, True]
-            sage: [s[3].has_descent(i, True) for i in W.domain().index_set()]
+            sage: [s[3].has_descent(i, positive=True) for i in W.domain().index_set()]
             [True, True, False]
             sage: W = WeylGroup(['A',3,1])
             sage: s = W.simple_reflections()
@@ -874,12 +874,12 @@ class WeylGroupElement(MatrixGroupElement_gap):
             sage: w = s[0] * s[1]
             sage: [w.has_descent(i) for i in W.domain().index_set()]
             [False, True, False, False]
-            sage: [w.has_descent(i, side = "left") for i in W.domain().index_set()]
+            sage: [w.has_descent(i, side="left") for i in W.domain().index_set()]
             [True, False, False, False]
             sage: w = s[0] * s[2]
             sage: [w.has_descent(i) for i in W.domain().index_set()]
             [True, False, True, False]
-            sage: [w.has_descent(i, side = "left") for i in W.domain().index_set()]
+            sage: [w.has_descent(i, side="left") for i in W.domain().index_set()]
             [True, False, True, False]
 
             sage: W = WeylGroup(['A',3])
@@ -893,6 +893,12 @@ class WeylGroupElement(MatrixGroupElement_gap):
 #            return s > 0
 #        else:
 #            return s < 0
+        if side in [True, False]:
+            from sage.misc.superseded import deprecation
+            deprecation(23299, "the order of positive and side arguments has changed")
+            side, positive = positive, side
+        if side is None:
+            side = self.parent()._default_side
         L = self.domain()
         # Choose the method depending on the side and the availability of rho and is_positive_root
         if not hasattr(L.element_class, "is_positive_root"):
@@ -931,7 +937,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
             sage: [(s[3]*s[2]).has_left_descent(i) for i in W.domain().index_set()]
             [False, False, True]
         """
-        return self.has_descent(i, side = "left")
+        return self.has_descent(i, side="left")
 
     def has_right_descent(self, i):
         """
@@ -954,7 +960,17 @@ class WeylGroupElement(MatrixGroupElement_gap):
         """
         return self.has_descent(i, side="right")
 
-    def apply_simple_reflection(self, i, side = "right"):
+    def apply_simple_reflection(self, i, side=None):
+        r"""
+        Return ``self`` multiplied by the simple reflection ``s[i]``.
+
+        INPUT:
+
+        - ``i`` -- an element of the index set
+        - ``side`` -- ``"left"`` or ``"right"`` (optional)
+        """
+        if side is None:
+            side = self.parent()._default_side
         s = self.parent().simple_reflections()
         if side == "right":
             return self * s[i]
@@ -997,6 +1013,8 @@ class WeylGroup_permutation(UniqueRepresentation, PermutationGroup_generic):
     """
     A Weyl group given as a permutation group.
     """
+    _default_side = "left"
+
     @staticmethod
     def __classcall__(cls, cartan_type, prefix=None):
         """

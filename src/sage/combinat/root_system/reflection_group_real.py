@@ -249,6 +249,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
         :func:`ReflectionGroup`
     """
+    _default_side = "left"
+
     def __init__(self, W_types, index_set=None, hyperplane_index_set=None, reflection_index_set=None):
         r"""
         Initialize ``self``.
