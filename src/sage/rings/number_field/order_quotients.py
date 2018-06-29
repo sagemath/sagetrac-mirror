@@ -2,53 +2,53 @@ r"""
 Quotient rings for orders inside number fields.
 
 Implements functionality for quotients of orders inside number fields,
-that do not hold for general quotients. The classes in this modulo build
-upon the classes in sage.rings.quotient_Ring and sage.rings.quotient_ring_element.
+that do not hold for general quotients. The classes in this module build
+upon the classes in :mod:`sage.rings.quotient_Ring` and :mod:`sage.rings.quotient_ring_element`.
 
 AUTHORS:
 
 - Joey van Langen (2017-06-19): initial version
 
 EXAMPLES::
+
+    sage: K.<a> = NumberField(x^2 - x + 3)
+    sage: R = K.ring_of_integers()
+    sage: S = R.quotient(12); S
+    Quotient of Maximal Order in Number Field in a with defining polynomial x^2 - x + 3 by the ideal (12)
     
-        sage: K.<a> = NumberField(x^2 - x + 3)
-        sage: R = K.ring_of_integers()
-        sage: S = R.quotient(12); S
-        Quotient of Maximal Order in Number Field in a with defining polynomial x^2 - x + 3 by the ideal (12)
-        
-    Another example with a non-principal ideal::
+Another example with a non-principal ideal::
+
+    sage: K.<a> = NumberField(x^2 - x + 6)
+    sage: R = K.ring_of_integers()
+    sage: I = K.prime_above(3) * K.prime_above(7)
+    sage: S = R.quotient(I); S
+    Quotient of Maximal Order in Number Field in a with defining polynomial x^2 - x + 6 by the ideal (21, 7*a)
     
-        sage: K.<a> = NumberField(x^2 - x + 6)
-        sage: R = K.ring_of_integers()
-        sage: I = K.prime_above(3) * K.prime_above(7)
-        sage: S = R.quotient(I); S
-        Quotient of Maximal Order in Number Field in a with defining polynomial x^2 - x + 6 by the ideal (21, 7*a)
-        
-    One can use this quotient for iteration::
+One can use this quotient for iteration::
+
+    sage: K.<a> = NumberField(x^4 + x^3 + x^2 + x + 1)
+    sage: R = K.ring_of_integers()
+    sage: S = R.quotient(4)
+    sage: [b for b in S if b^2 == 0]
+    [0, 2*a^3, 2*a^2, 2*a^3 + 2*a^2, 2*a, 2*a^3 + 2*a, 2*a^2 + 2*a, 2*a^3 + 2*a^2 + 2*a, 2, 2*a^3 + 2, 2*a^2 + 2, 2*a^3 + 2*a^2 + 2, 2*a + 2, 2*a^3 + 2*a + 2, 2*a^2 + 2*a + 2, 2*a^3 + 2*a^2 + 2*a + 2]
     
-        sage: K.<a> = NumberField(x^4 + x^3 + x^2 + x + 1)
-        sage: R = K.ring_of_integers()
-        sage: S = R.quotient(4)
-        sage: [b for b in S if b^2 == 0]
-        [0, 2*a^3, 2*a^2, 2*a^3 + 2*a^2, 2*a, 2*a^3 + 2*a, 2*a^2 + 2*a, 2*a^3 + 2*a^2 + 2*a, 2, 2*a^3 + 2, 2*a^2 + 2, 2*a^3 + 2*a^2 + 2, 2*a + 2, 2*a^3 + 2*a + 2, 2*a^2 + 2*a + 2, 2*a^3 + 2*a^2 + 2*a + 2]
-        
-    It is also possible to request some elementary properties::
-    
-        sage: K.<a> = NumberField(x^3 - x^2 + 5*x + 1)
-        sage: R = K.ring_of_integers()
-        sage: I = K.factor(24)[0][0]^4 * K.factor(24)[2][0]
-        sage: S = R.quotient(I)
-        sage: S.cardinality()
-        48
-        sage: S.characteristic()
-        12
-        sage: S.is_finite()
-        True
-        sage: S.cover()
-        Ring morphism:
-          From: Maximal Order in Number Field in a with defining polynomial x^3 - x^2 + 5*x + 1
-          To:   Quotient of Maximal Order in Number Field in a with defining polynomial x^3 - x^2 + 5*x + 1 by the ideal (-2*a + 2)
-          Defn: Natural quotient map
+It is also possible to request some elementary properties::
+
+    sage: K.<a> = NumberField(x^3 - x^2 + 5*x + 1)
+    sage: R = K.ring_of_integers()
+    sage: I = K.factor(24)[0][0]^4 * K.factor(24)[2][0]
+    sage: S = R.quotient(I)
+    sage: S.cardinality()
+    48
+    sage: S.characteristic()
+    12
+    sage: S.is_finite()
+    True
+    sage: S.cover()
+    Ring morphism:
+      From: Maximal Order in Number Field in a with defining polynomial x^3 - x^2 + 5*x + 1
+      To:   Quotient of Maximal Order in Number Field in a with defining polynomial x^3 - x^2 + 5*x + 1 by the ideal (-2*a + 2)
+      Defn: Natural quotient map
 
     There is also a naturally defined lifting map, taking elements
     to their representative::
@@ -101,13 +101,13 @@ class OrderQuotientElement(QuotientRingElement):
       internal representation of the element is ``rep`` reduced modulo
       the ideal `I`
     
-    NOTE:
+    .. NOTE::
     
-    This is simply an extension of the original QuotientRingElement class
-    found in sage.rings.quotient_ring_element. This implementation changes
-    the method :func:`lift` such that the method :func:`lifting_map` works
-    for the parent, which must be an order.
-    
+        This is simply an extension of the original QuotientRingElement class
+        found in :mod:`sage.rings.quotient_ring_element`. This implementation changes
+        the method :func:`lift` such that the method :func:`lifting_map` works
+        for the parent, which must be an order.
+
     EXAMPLES::
     
         sage: K.<a> = NumberField(x^2 - 15)
@@ -140,11 +140,11 @@ class OrderQuotientElement(QuotientRingElement):
         
         - ``x`` - A representative of this element in the ambient ring
           of the quotient ring.
-          
+
         - ``reduce`` - boolean (default: True), if ``True`` this element
           will be represented by an element of the ambient ring reduced
           modulo the defining ideal of the quotient ring.
-          
+
         EXAMPLES:
         
             sage: K.<a> = QuadraticField(-13)
@@ -216,22 +216,23 @@ class OrderQuotientRing(QuotientRing_generic, UniqueRepresentation):
         
         INPUT:
 
-        -  ``order`` -- An order, i.e. an instance of
-           sage.rings.number_field.Order
+        - ``order`` -- An order, i.e. an instance of
+          :class:`sage.rings.number_field.Order`
 
-        -  ``ideal`` -- An ideal of the order in the first argument.
+        - ``ideal`` -- An ideal of the order in the first argument.
 
         - ``names`` -- (default None) a list of generator names.
         
         - ``category`` -- (default None) a specific category this
           object must belong to.
         
-        NOTE:
+        .. NOTE::
+
             Most of the structure is left to the QuotientRing_generic
             structure.
             
-        SEE_ALSO:
-            sage.rings.quotient_ring.QuotientRing_generic
+        .. SEEALSO::
+            :class:`sage.rings.quotient_ring.QuotientRing_generic`
             
         EXAMPLES::
             
@@ -252,17 +253,17 @@ class OrderQuotientRing(QuotientRing_generic, UniqueRepresentation):
                                       ideal,
                                       names=names,
                                       category=category)
-    
+
     def cardinality(self):
         r"""
         Return the cardinality of the underlying set.
         
         In this case that would be the norm of the underlying
-        ideal or "+Infinity" if it is the zero ideal.
+        ideal or ``+Infinity`` if it is the zero ideal.
         
         OUTPUT:
             
-        Either a positive integer of "+Infinity".
+        Either a positive integer of ``+Infinity``.
         
         EXAMPLES::
         
@@ -294,7 +295,7 @@ class OrderQuotientRing(QuotientRing_generic, UniqueRepresentation):
         Return the characteristic of the quotient ring.
         
         This is a generator for the kernel of the
-        natural map of ZZ into this ring.
+        natural map of `\ZZ` into this ring.
         
         OUTPUT:
         
@@ -331,11 +332,11 @@ class OrderQuotientRing(QuotientRing_generic, UniqueRepresentation):
         
         An integer.
         
-        NOTE:
+        .. NOTE::
         
-        As an order has krull dimension '1' so the krull dimension of
-        a quotient is always '0' except if we mod out by the zero
-        ideal, in which case it again is '1'.
+            As an order has krull dimension '1' so the krull dimension of
+            a quotient is always '0' except if we mod out by the zero
+            ideal, in which case it again is '1'.
         
         EXAMPLES::
             
@@ -368,7 +369,7 @@ class OrderQuotientRing(QuotientRing_generic, UniqueRepresentation):
         
         OUTPUT:
         
-        An integer or `+Infinity`.
+        An integer or ``+Infinity``.
         
         .. SEEALSO::
 

@@ -1014,18 +1014,18 @@ class Order(IntegralDomain):
         In the case that the ideal is a maximal ideal it will return
         the residue field modulo that prime ideal, like :func:`residue_field`
         In the case that the ideal is neither of these it will return
-        a quotient ring of the type `OrderQuotientRing`
+        a quotient ring of the type :class:`~sage.rings.number_field.order_quotients.OrderQuotientRing`
         
         .. SEEALSO::
-        
-            :mod:`sage.rings.number_field.order_quotients.OrderQuotientRing`
-            
+
+            :class:`sage.rings.number_field.order_quotients.OrderQuotientRing`.
+
         INPUT:
         
         - ``ideal`` - An ideal of this ring or anything that would
-        produce an ideal when provided as the first argument to
-        the method :func:`ideal`.
-        
+          produce an ideal when provided as the first argument to
+          the method :func:`ideal`.
+
         EXAMPLES::
         
             sage: K.<a> = NumberField(x^3 - 2*x^2 + 3*x - 4)
