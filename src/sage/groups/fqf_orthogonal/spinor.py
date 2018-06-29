@@ -264,7 +264,9 @@ class GammaA(AbelianGroupGap):
         INPUT:
 
         - ``rkL`` -- an non-negative integer
+
         - ``detL`` -- an integer
+
         - ``q`` --a torsion quadratic form
 
         EXAMPLES::
