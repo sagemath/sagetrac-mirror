@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 r"""
 Incidence structures (i.e. hypergraphs, i.e. set systems)
 
@@ -1063,10 +1061,11 @@ class IncidenceStructure(object):
         r"""
         Test whether the (uniform) hypergraph contains a Berge cycle.
 
-        A `k`-uniform Berge cycle (named after Claude Berge) of length is a
-        cyclic list of distinct `k`-sets `F_1,\ldots,F_\ell`, `\ell>1`, and
-        distinct vertices `C = \{v_1,\ldots,v_\ell\}` such that for each `1\le
-        i\le \ell`, `F_i` contains `v_i` and `v_{i+1}` (where `v_{l+1} = v_1`).
+        A `k`-uniform Berge cycle (named after Claude Berge) of length `\ell`
+        is a cyclic list of distinct `k`-sets `F_1,\ldots,F_\ell`, `\ell>1`,
+        and distinct vertices `C = \{v_1,\ldots,v_\ell\}` such that for each
+        `1\le i\le \ell`, `F_i` contains `v_i` and `v_{i+1}` (where `v_{l+1} =
+        v_1`).
 
         A uniform hypergraph is Berge-cyclic if its incidence graph is cyclic.
         It is called "Berge-acyclic" otherwise.
