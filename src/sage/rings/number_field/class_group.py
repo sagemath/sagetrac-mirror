@@ -1270,14 +1270,14 @@ class RayClassGroup(AbelianGroup_class):
             sage: R.ray_class_field(S, names='b')
             Number Field in b with defining polynomial x^2 + (a - 1)*x + 2*a - 4 over its base field
 
-        An example where bnrstark fails, but rnfkummer saves the day::
+        An example where :pari:`bnrstark` fails, but :pari:`rnfkummer` saves the day::
 
             sage: F.<a> = NumberField(x^8 - 12*x^6 + 36*x^4 - 36*x^2 + 9)
             sage: m = F.ideal(2).modulus()
             sage: R = F.ray_class_group(m)
             sage: set_verbose(1)
             sage: K = R.ray_class_field(names='b'); K
-            verbose 1 (1238: class_group.py, ray_class_field) bnrstark failed; trying rnfkummer.
+            verbose 1 (...: class_group.py, ray_class_field) bnrstark failed; trying rnfkummer.
             Number Field in b with defining polynomial x^2 + (1/3*a^6 - 10/3*a^4 + 5*a^2)*x + 1/3*a^6 - 1/3*a^5 - 11/3*a^4 + 3*a^3 + 8*a^2 - 4*a - 5 over its base field
             sage: set_verbose(0)
         """
