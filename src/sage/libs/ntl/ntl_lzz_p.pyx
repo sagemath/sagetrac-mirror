@@ -72,9 +72,33 @@ cdef class ntl_zz_p(object):
             sage: g = ntl.zz_p(int(-5),7)
             sage: g
             2
+
+        Despite the use of p, the modulus need not be a prime::
+
+            sage: f = ntl.zz_p(5,8)
+            sage: f+f
+            2
+
+        TESTS::
+
+            sage: g = ntl.zz_p(5,0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid modulus 0
+            sage: h = ntl.zz_p(0,0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid modulus 0
+            sage: f = ntl.zz_p(5,-8)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid modulus -8
         """
         if modulus is None:
             raise ValueError("You must specify a modulus.")
+
+        if modulus<=0:
+            raise ValueError("Invalid modulus %s"%modulus)
 
         if isinstance(modulus, Integer):
             p_sage = modulus
@@ -127,7 +151,7 @@ cdef class ntl_zz_p(object):
         ## way to short-circuit __init__ (or just call##
         ## _new in your own code).                    ##
         ################################################
-        if modulus is None:
+        if modulus is None or modulus <=0:
             return
         if isinstance(modulus, ntl_zz_pContext_class):
             self.c = <ntl_zz_pContext_class>modulus
@@ -149,7 +173,8 @@ cdef class ntl_zz_p(object):
         """
         Quick and dirty zz_p object creation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = ntl.zz_p(23,75)
             sage: y = x*x ## indirect doctest
         """
@@ -163,7 +188,8 @@ cdef class ntl_zz_p(object):
         """
         For pickling.
 
-        TESTS:
+        TESTS::
+
             sage: f = ntl.zz_p(16,244)
             sage: loads(dumps(f)) == f
             True
@@ -183,7 +209,8 @@ cdef class ntl_zz_p(object):
 
     def __add__(ntl_zz_p self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.zz_p(5,23) + ntl.zz_p(6,23)
             11
         """
@@ -199,7 +226,8 @@ cdef class ntl_zz_p(object):
 
     def __sub__(ntl_zz_p self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.zz_p(5,23) - ntl.zz_p(6,23)
             22
         """
@@ -215,7 +243,8 @@ cdef class ntl_zz_p(object):
 
     def __mul__(ntl_zz_p self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.zz_p(5,23) * ntl.zz_p(6,23)
             7
         """
@@ -231,9 +260,20 @@ cdef class ntl_zz_p(object):
 
     def __truediv__(ntl_zz_p self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.zz_p(5,23) / ntl.zz_p(2,23)
             14
+            sage: ntl.zz_p(5,75) / ntl.zz_p(7,75)
+            65
+            sage: ntl.zz_p(6,23) / ntl.zz_p(0,23)
+            Traceback (most recent call last):
+            ...
+            NTLError: InvMod: inverse undefined
+            sage: ntl.zz_p(3,16) / ntl.zz_p(2,16)
+            Traceback (most recent call last):
+            ...
+            NTLError: InvMod: inverse undefined
         """
         cdef ntl_zz_p q
         if not isinstance(other, ntl_zz_p):
@@ -248,6 +288,22 @@ cdef class ntl_zz_p(object):
         return q
 
     def __div__(self, other):
+        """
+        EXAMPLES::
+
+            sage: f = ntl.zz_p(5,23)
+            sage: f.__div__(f)
+            1
+
+        TESTS::
+
+            sage: f = ntl.zz_p(5,23)
+            sage: g = ntl.zz_p(0,23)
+            sage: f.__div__(g)
+            Traceback (most recent call last):
+            ...
+            NTLError: InvMod: inverse undefined
+        """
         return self / other
 
     def __pow__(ntl_zz_p self, long n, ignored):
@@ -359,7 +415,7 @@ cdef class ntl_zz_p(object):
 
         EXAMPLES:
             sage: f = ntl.zz_p(15,23)
-            sage: f*f
+            sage: f.square()
             18
         """
         cdef ntl_zz_p y
@@ -417,7 +473,7 @@ def make_zz_p(val, context):
 
     TESTS:
         sage: f = ntl.zz_p(1, 12)
-        sage: loads(dumps(f)) == f
+        sage: loads(dumps(f)) == f #indirect doctest
         True
     """
     return ntl_zz_p(val, context)

@@ -222,10 +222,33 @@ cdef class ntl_GF2X(object):
         return q
 
     def __div__(self, other):
+        """
+        See `self.__truediv__`
+
+        TESTS::
+
+            sage: a = ntl.GF2X(4)
+            sage: a.__div__(ntl.GF2X(2))
+            [0 1]
+            sage: a.__div__(ntl.GF2X(0))
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: self (=[0 0 1]) is not divisible by b (=[])
+        """
         return self / other
 
     def DivRem(ntl_GF2X self, b):
         """
+        Division with remainder.
+
+        INPUT:
+
+            `b` -- a ntl_GF2X object
+
+        OUTPUT:
+
+            a tuple (q,r) such that `q*b + r ==self`
+
         EXAMPLES::
 
             sage: a = ntl.GF2X(4)
@@ -233,14 +256,24 @@ cdef class ntl_GF2X(object):
             ([0 1], [])
             sage: a.DivRem( ntl.GF2X(3) )
             ([1 1], [1])
+            sage: a = ntl.GF2X(7)
+            sage: b = ntl.GF2X(3)
+            sage: q,r = a.DivRem(b)
+            sage: q*b+r==a
+            True
+            sage: a.DivRem(0)
+            Traceback (most recent call last):
+            ...
+            NTLError: GF2X: division by zero
         """
         cdef ntl_GF2X q = ntl_GF2X.__new__(ntl_GF2X)
         cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
 
         if not isinstance(b, ntl_GF2X):
             b = ntl_GF2X(b)
-
+        sig_on()
         GF2X_DivRem(q.x, r.x, self.x, (<ntl_GF2X>b).x)
+        sig_off()
         return q,r
 
     def __floordiv__(ntl_GF2X self, b):
@@ -248,17 +281,26 @@ cdef class ntl_GF2X(object):
         EXAMPLES::
 
             sage: a = ntl.GF2X(4)
-            sage: a // ntl.GF2X(2)
+            sage: a // ntl.GF2X(2) #indirect doctest
             [0 1]
             sage: a // ntl.GF2X(3)
             [1 1]
+
+        TESTS::
+
+            sage: a // ntl.GF2X(0)
+            Traceback (most recent call last):
+            ...
+            NTLError: GF2X: division by zero
         """
         cdef ntl_GF2X q = ntl_GF2X.__new__(ntl_GF2X)
 
         if not isinstance(b, ntl_GF2X):
             b = ntl_GF2X(b)
 
+        sig_on()
         GF2X_div(q.x, self.x, (<ntl_GF2X>b).x)
+        sig_off()
         return q
 
     def __mod__(ntl_GF2X self, b):
@@ -270,13 +312,21 @@ cdef class ntl_GF2X(object):
             []
             sage: a % ntl.GF2X(3)
             [1]
+
+        TESTS::
+
+            sage: a % ntl.GF2X(0)
+            Traceback (most recent call last):
+            ...
+            NTLError: GF2X: division by zero
         """
         cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
 
         if not isinstance(b, ntl_GF2X):
             b = ntl_GF2X(b)
-
+        sig_on()
         GF2X_rem(r.x, self.x, (<ntl_GF2X>b).x)
+        sig_off()
         return r
 
     def __sub__(ntl_GF2X self, other):
@@ -330,6 +380,14 @@ cdef class ntl_GF2X(object):
             sage: f = ntl.GF2X([1,0,1,1]) ; g = ntl.GF2X([0,1,0])
             sage: f**3 ## indirect doctest
             [1 0 1 1 1 0 0 1 1 1]
+
+        TESTS::
+
+            sage: f**0
+            [1]
+            sage: g = ntl.GF2X([])
+            sage: g**0
+            [1]
         """
         cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
         GF2X_power(r.x, self.x, e)
@@ -367,6 +425,7 @@ cdef class ntl_GF2X(object):
         $X^i$).
 
         INPUT:
+
             i -- offset/power of X
 
         EXAMPLES::
@@ -386,6 +445,7 @@ cdef class ntl_GF2X(object):
         $X^i$).
 
         INPUT:
+
             i -- offset/power of X
 
         EXAMPLES::
@@ -404,6 +464,7 @@ cdef class ntl_GF2X(object):
         Return GCD of self and other.
 
         INPUT:
+
             other -- ntl.GF2X
 
         EXAMPLES::
@@ -428,6 +489,7 @@ cdef class ntl_GF2X(object):
             r = s  * self + t  * other.
 
         INPUT:
+
             other -- ntl.GF2X
 
         EXAMPLES::
@@ -457,6 +519,10 @@ cdef class ntl_GF2X(object):
 
             sage: ntl.GF2X([1,0,1,1]).deg()
             3
+            sage: ntl.GF2X([1]).deg()
+            0
+            sage: ntl.GF2X([]).deg()
+            -1
         """
         return GF2X_deg(self.x)
 
@@ -474,6 +540,7 @@ cdef class ntl_GF2X(object):
              [1, 1, 1, 1, 1, 1, 1, 1]
 
         OUTPUT:
+
              a list of digits representing the coefficients in this element's
              polynomial representation
         """
@@ -487,14 +554,15 @@ cdef class ntl_GF2X(object):
         faster and preserves the HexOutput state as opposed to
         the above code.
 
+        OUTPUT:
+
+            string representing this element in binary digits
+
         EXAMPLES::
 
              sage: e=ntl.GF2X([1,1,0,1,1,1,0,0,1])
              sage: e.bin()
              '[1 1 0 1 1 1 0 0 1]'
-
-        OUTPUT:
-            string representing this element in binary digits
         """
         cdef long _hex = GF2XHexOutput_c[0]
         GF2XHexOutput_c[0] = 0
@@ -513,7 +581,7 @@ cdef class ntl_GF2X(object):
 
         OUTPUT:
 
-        string representing this element in hexadecimal
+            string representing this element in hexadecimal
 
         EXAMPLES::
 
@@ -550,10 +618,12 @@ cdef class ntl_GF2X(object):
         an appropriate ring is generated.
 
         INPUT:
+
             self  -- GF2X element
             R     -- PolynomialRing over GF(2)
 
         OUTPUT:
+
             polynomial in R
 
         EXAMPLES::
@@ -576,6 +646,7 @@ cdef class ntl_GF2X(object):
         Return the coefficient of the monomial $X^i$ in self.
 
         INPUT:
+
             i -- degree of X
 
         EXAMPLES::
@@ -592,11 +663,18 @@ cdef class ntl_GF2X(object):
 
     def __getitem__(self, int i):
         """
+        EXAMPLES::
+
             sage: e = ntl.GF2X([0,1,0,1])
             sage: e[0] # indirect doctest
             0
             sage: e[1]
             1
+
+        Note that for negative indices this does not behave like a python list::
+
+            sage: e[-1]
+            0
         """
         cdef ntl_GF2 c = ntl_GF2.__new__(ntl_GF2)
         c.x = GF2X_coeff(self.x, i)
@@ -639,7 +717,16 @@ cdef class ntl_GF2X(object):
 
     def SetCoeff(self, int i, a):
         """
-        Return the constant term of self.
+        Change one of the coefficients
+        
+        INPUT:
+
+            i - A possition, it should be `0\leq i\leq self.deg()`
+            a - The new coefficient of the monomial `x^i`
+
+        OUTPUT:
+
+            None, the chage is don in place, now self has `a` as coefficient `x^i`
 
         EXAMPLES::
 
@@ -648,10 +735,28 @@ cdef class ntl_GF2X(object):
             sage: e.SetCoeff(1,1)
             sage: e
             [1 1 1]
+
+        The degree changes accordint to the new situation::
+
+            sage: e.SetCoeff(5,1)
+            sage: e
+            [1 1 1 0 0 1]
+            sage: e.SetCoeff(5,0)
+            sage: e.SetCoeff(2,0)
+            sage: e
+            [1 1]
+
+        A negative index is not allowed::
+
+            sage: e.SetCoeff(-1,0)
+            Traceback (most recent call last):
+            ...
+            NTLError: SetCoeff: negative index
         """
         cdef ntl_GF2 _a = ntl_GF2(a)
-
+        sig_on()
         GF2X_SetCoeff(self.x, i, _a.x)
+        sig_off()
 
     def __setitem__(self, int i, a):
         """
@@ -660,16 +765,35 @@ cdef class ntl_GF2X(object):
             sage: e[1] = 1 # indirect doctest
             sage: e
             [1 1 1]
+            sage: e[5] = 1
+            sage: e
+            [1 1 1 0 0 1]
+            sage: e[5] = 0
+            sage: e[6] = 0
+            sage: e
+            [1 1 1]
+            sage: e[-1] = 0
+            Traceback (most recent call last):
+            ...
+            NTLError: SetCoeff: negative index
         """
         cdef ntl_GF2 _a = ntl_GF2(a)
+        sig_on()
         GF2X_SetCoeff(self.x, i, _a.x)
+        sig_off()
 
     def diff(self):
         """
         Differentiate self.
+
+        EXAMPLES::
+
             sage: e = ntl.GF2X([1,0,1,1,0])
             sage: e.diff()
             [0 0 1]
+            sage: a = ntl.GF2X([1,1,1,1,1,1])
+            sage: a.diff()
+            [1 0 1 0 1]
         """
         cdef ntl_GF2X d = ntl_GF2X.__new__(ntl_GF2X)
         d.x = GF2X_diff(self.x)
@@ -688,6 +812,13 @@ cdef class ntl_GF2X(object):
             sage: e = ntl.GF2X([1,0,1,1,0])
             sage: e.reverse()
             [1 1 0 1]
+
+        TESTS::
+
+            sage: ntl.GF2X([]).reverse()
+            []
+            sage: ntl.GF2X([1]).reverse()
+            [1]
         """
         cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
         if hi < -1:
@@ -704,6 +835,8 @@ cdef class ntl_GF2X(object):
             sage: e = ntl.GF2X([1,0,1,1,0])
             sage: e.weight()
             3
+            sage: ntl.GF2X([]).weight()
+            0
         """
         return int(GF2X_weight(self.x))
 
@@ -717,11 +850,16 @@ cdef class ntl_GF2X(object):
             sage: e = ntl.GF2X([1])
             sage: int(e)
             1
+            sage: int(ntl.GF2X([]))
+            0
         """
-        if GF2X_deg(self.x) != 0:
+        if GF2X_deg(self.x) > 0:
             raise ValueError("cannot convert non-constant polynomial to integer")
         else:
-            return GF2_conv_to_long(GF2X_coeff(self.x,0))
+            sig_on() 
+            a = GF2_conv_to_long(GF2X_coeff(self.x,0))
+            sig_off()
+            return a
 
     def NumBits(self):
         """
@@ -732,6 +870,10 @@ cdef class ntl_GF2X(object):
             sage: e = ntl.GF2X([1,0,1,1,0])
             sage: e.NumBits()
             4
+            sage: ntl.GF2X([1]).NumBits()
+            1
+            sage: ntl.GF2X([]).NumBits()
+            0
         """
         return int(GF2X_NumBits(self.x))
 
@@ -740,6 +882,9 @@ cdef class ntl_GF2X(object):
             sage: e = ntl.GF2X([1,0,1,1,0])
             sage: len(e)
             4
+            sage: e = ntl.GF2X([])
+            sage: len(e)
+            0
         """
         return int(GF2X_NumBits(self.x))
 
@@ -752,5 +897,9 @@ cdef class ntl_GF2X(object):
             sage: e = ntl.GF2X([1,0,1,1,0,0,0,0,1,1,1,0,0,1,1,0,1,1])
             sage: e.NumBytes()
             3
+            sage: ntl.GF2X([]).NumBytes()
+            0
+            sage: ntl.GF2X([1]).NumBytes()
+            1
         """
         return int(GF2X_NumBytes(self.x))

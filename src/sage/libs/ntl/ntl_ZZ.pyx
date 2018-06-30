@@ -164,6 +164,14 @@ cdef class ntl_ZZ(object):
         Return the hash of this integer.
 
         Agrees with the hash of the corresponding sage integer.
+
+        EXAMPLES::
+
+            sage: a = ntl.ZZ(49)
+            sage: a.__hash__()
+            49
+            sage: -a.__hash__()
+            -49
         """
         cdef Integer v = Integer.__new__(Integer)
         ZZ_to_mpz(v.value, &self.x)
@@ -464,7 +472,7 @@ def randomBnd(q):
 
     EXAMPLES::
 
-        sage: [ntl.ZZ_random(99999) for i in range(5)]
+        sage: [ntl.ZZ_random(99999) for i in range(5)] #indirect doctest
         [30675, 84282, 80559, 6939, 44798]
 
     AUTHOR:
@@ -491,7 +499,7 @@ def randomBits(long n):
 
     EXAMPLES::
 
-        sage: [ntl.ZZ_random_bits(20) for i in range(3)]
+        sage: [ntl.ZZ_random_bits(20) for i in range(3)] #indirect doctest
         [948179, 477498, 1020180]
 
     AUTHOR:

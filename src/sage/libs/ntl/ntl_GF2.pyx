@@ -108,6 +108,10 @@ cdef class ntl_GF2(object):
 
     def __mul__(self, other):
         """
+        Multiplication method.
+
+        EXAMPLES::
+
             sage: o = ntl.GF2(1)
             sage: z = ntl.GF2(0)
             sage: o*o
@@ -129,11 +133,19 @@ cdef class ntl_GF2(object):
 
     def __truediv__(self, other):
         """
+        True division of bits
+
+        EXAMPLES::
+
             sage: o = ntl.GF2(1)
             sage: z = ntl.GF2(0)
             sage: o/o
             1
             sage: o/z
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError
+            sage: z/z
             Traceback (most recent call last):
             ...
             ZeroDivisionError
@@ -150,10 +162,28 @@ cdef class ntl_GF2(object):
         return r
 
     def __div__(self, other):
+        """
+        Division, see `self.__truediv__`
+
+        EXAMPLES::
+
+            sage: o = ntl.GF2(1)
+            sage: z = ntl.GF2(0)
+            sage: o/o
+            1
+            sage: o/z
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError
+        """
         return self / other
 
     def __sub__(self, other):
         """
+        Substraction method.
+
+        EXAMPLES::
+
             sage: o = ntl.GF2(1)
             sage: z = ntl.GF2(0)
             sage: o-o
@@ -175,6 +205,10 @@ cdef class ntl_GF2(object):
 
     def __add__(self, other):
         """
+        Addition method
+
+        EXAMPLES::
+
             sage: o = ntl.GF2(1)
             sage: z = ntl.GF2(0)
             sage: o+o
@@ -196,6 +230,10 @@ cdef class ntl_GF2(object):
 
     def __neg__(ntl_GF2 self):
         """
+        Additive inverse.
+
+        EXAMPLES::
+
             sage: o = ntl.GF2(1)
             sage: z = ntl.GF2(0)
             sage: -z
@@ -209,11 +247,19 @@ cdef class ntl_GF2(object):
 
     def __pow__(ntl_GF2 self, long e, ignored):
         """
+        Power by an integer
+
+        EXAMPLES::
+
             sage: o = ntl.GF2(1)
             sage: z = ntl.GF2(0)
             sage: z^2
             0
             sage: o^2
+            1
+            sage: z^0
+            1
+            sage: o^0
             1
         """
         cdef ntl_GF2 r = ntl_GF2()
