@@ -5,6 +5,8 @@ from __future__ import print_function, division
 from six.moves import range
 from six import integer_types
 
+from cysignals.memory cimport sig_malloc, sig_free
+
 from sage.combinat.integer_vector import IntegerVectors
 from sage.crypto.boolean_function import BooleanFunction
 from sage.matrix.constructor import Matrix
@@ -444,18 +446,21 @@ class SBox(SageObject):
             [0 2 2 0 0 2 2 0]
             [0 0 0 0 2 2 2 2]
         """
-        m = self.m
-        n = self.n
+        nrows = 1<<self.m
+        ncols = 1<<self.n
 
-        nrows = 1<<m
-        ncols = 1<<n
-
-        A = Matrix(ZZ, nrows, ncols)
+        cdef long *temp
+        temp = <long *>sig_malloc(sizeof(long)*nrows*ncols)
 
         for i in range(nrows):
             si = self(i)
             for di in range(nrows):
-                A[ di , si^self(i^di)] += 1
+                temp[di*nrows + si ^ self(i ^ di)] += 1
+
+        A = Matrix(ZZ, nrows, ncols, [temp[i] for i in range(nrows*ncols)])
+
+        sig_free(temp)
+
         A.set_immutable()
 
         return A
