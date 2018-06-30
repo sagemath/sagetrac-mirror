@@ -1,0 +1,22 @@
+= gap_nq =
+
+== Description ==
+
+GAP package nq
+http://www.gap-system.org/Packages/packages.html
+
+== Upstream Contact ==
+
+ * Max Horn, max.horn@math.uni-giessen.de
+
+== Dependencies ==
+
+ * GAP (a standard spkg), gap_packages (optional spkg)
+
+== TODO ==
+
+
+== Notes ==
+
+This package provides access to the ANU nilpotent quotient program for computing nilpotent factor groups of finitely presented groups.
+

@@ -1,0 +1,50 @@
+# WARNING -- if you add a package here, also add it to
+# the gap_reset_workspace() command in
+#    <SAGE_ROOT>/src/sage/interfaces/gap.py
+#
+
+if [ -z "$SAGE_LOCAL" ]; then
+    echo >&2 "SAGE_LOCAL undefined ... exiting"
+    echo >&2 "Maybe run 'sage --sh'?"
+    exit 1
+fi
+
+GAP_DIR="$SAGE_LOCAL/gap/latest"
+PKG_DIR="$GAP_DIR/pkg"
+
+# Some GAP packages have weird permissions which can prevent us from
+# overwriting them
+chmod -R u+rwX "$PKG_DIR" || mkdir -p "$PKG_DIR"
+
+cp SPKG.txt "$PKG_DIR"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error copying SPKG.txt"
+    exit 1
+fi
+
+
+
+    echo "Copying package nq"
+    cp -r src "$PKG_DIR/nq-2.5.3"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error copying package nq."
+        exit 1
+    fi
+
+
+cd "$PKG_DIR/nq-2.5.3"
+./configure --with-gaproot="$GAP_DIR"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error configuring ng package."
+    exit 1
+fi
+$MAKE 
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building nq package."
+    exit 1
+fi
+
+# Some GAP packages have weird permissions
+chmod -R u+rwX "$PKG_DIR"
+
+
