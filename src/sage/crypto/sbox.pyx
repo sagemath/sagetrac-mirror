@@ -1084,17 +1084,20 @@ class SBox(SageObject):
         """
         m = self.m
         n = self.n
-        ret = BooleanFunction(m)
 
-        if isinstance(b, integer_types + (Integer,)):
-            b = vector(GF(2), self.to_bits(b, n))
-        elif len(b) == n:
-            b = vector(GF(2), b)
-        else:
-            raise TypeError("cannot compute component function using parameter %s"%(b,))
+        try:
+            b = list(b)
+            if len(b) > n:
+                raise ValueError("Input (%s) is too long and would be truncated." % (b,))
+            b = self.from_bits(b)
+        except TypeError:
+            try:
+                b = ZZ(b)
+            except TypeError:
+                raise TypeError("Cannot handle input argument %s" % (b,))
 
-        for x in range(1<<m):
-            ret[x] = bool(b.dot_product(vector(GF(2), self.to_bits(self(x), n))))
+        ret = BooleanFunction([ZZ(b & self(x)).popcount() for x in range(1 << m)])
+
         return ret
 
     def nonlinearity(self):
