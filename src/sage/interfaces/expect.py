@@ -487,6 +487,8 @@ If this all works, you can then make calls like:
                 del pexpect_env[i]
             except KeyError:
                 pass
+        # Some programs (such as giac) return localized output
+        pexpect_env['LANG'] = 'C'
 
         # Run child from self.__path
         currentdir = os.getcwd()
