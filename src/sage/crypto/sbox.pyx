@@ -591,25 +591,27 @@ class SBox(SageObject):
             True
             True
         """
-        m = self.input_size()
-        n = self.output_size()
-
-        nrows = 1<<m
-        ncols = 1<<n
+        nrows = 1<<self.input_size()
+        ncols = 1<<self.output_size()
 
         scale_factor = 1
         if (scale is None) or (scale == "absolute_bias"):
             scale_factor = 2
         elif scale == "bias":
-            scale_factor = 1<<(m+1)
+            scale_factor = 1<<(self.input_size()+1)
         elif scale == "correlation":
-            scale_factor = 1<<m
+            scale_factor = 1<<self.input_size()
         elif scale == "fourier_coefficient":
             pass
         else:
             raise ValueError("no such scaling for the LAM: %s" % scale)
 
-        L = [self.component_function(i).walsh_hadamard_transform() for i in range(ncols)]
+        # compute the component functions of self, without trying to convert
+        # the input arguments all the time, because we know which input format
+        # we are using here
+        L = [BooleanFunction([ZZ(i & self(x)).popcount()
+                              for x in range(nrows)]).walsh_hadamard_transform()
+             for i in range(ncols)]
 
         A = Matrix(ZZ, ncols, nrows, L)
         A = A.transpose()/scale_factor
