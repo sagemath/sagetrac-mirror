@@ -26,7 +26,7 @@ EXAMPLES::
     sage: assert check((c+b)*(a+c), (w0+w1)*(w0+w2))
     sage: assert check((c+b)*(a+c), (w0+w1)*(w1+w2))
     
-    sage: assert check((a+b)^(a+c), (w0+w1)^(w0+w2)) # known bug
+    sage: assert check((a+b)^(a+c), (w0+w1)^(w0+w2))
     sage: assert check((a+b)^(a+c), (w0+w1)^(w1+w2))
     sage: assert check((c+b)^(a+c), (w0+w1)^(w0+w2))
     sage: assert check((c+b)^(a+c), (w0+w1)^(w1+w2))
