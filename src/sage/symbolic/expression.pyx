@@ -5024,6 +5024,10 @@ cdef class Expression(CommutativeRingElement):
         """
         Substitute the given subexpressions in this expression.
 
+        GiNaC supports several options that can be set with the
+        integer ``flags`` keyword (default: `0`). The value `1`
+        sets patternless subtitution.
+
         EXAMPLES::
 
             sage: var('x,y,z,a,b,c,d,f,g')
@@ -5261,6 +5265,15 @@ cdef class Expression(CommutativeRingElement):
             x^2 + 1/x
             sage: (sqrt(x) + 1/sqrt(x)).subs({x: 1/x})
             sqrt(x) + 1/sqrt(x)
+
+        Replacing a wildcard needs patternless substitution::
+
+            sage: w1 = SR.wild(1)
+            sage: sin(w1).subs(w1==x)
+            x
+            sage: w1 = SR.wild(1)
+            sage: sin(w1).subs(w1==x, flags=1)
+            sin(x)
         """
         cdef dict sdict = {}
         cdef GEx res
@@ -5275,11 +5288,13 @@ cdef class Expression(CommutativeRingElement):
         for a in args:
             _dict_update_check_duplicate(sdict, _subs_make_dict(a))
 
+        cdef int flags = 0
         if kwds:
             # Ensure that the keys are symbolic variables.
             varkwds = {self._parent.var(k): v for k,v in kwds.iteritems()}
             # Check for duplicate
             _dict_update_check_duplicate(sdict, varkwds)
+            flags = kwds.get('flags', 0)
 
         cdef GExMap smap
         for k, v in sdict.iteritems():
@@ -5287,7 +5302,7 @@ cdef class Expression(CommutativeRingElement):
                                   (<Expression>self.coerce_in(v))._gobj))
         sig_on()
         try:
-            res = self._gobj.subs_map(smap, 0)
+            res = self._gobj.subs_map(smap, flags)
         finally:
             sig_off()
         return new_Expression_from_GEx(self._parent, res)
