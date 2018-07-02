@@ -2176,6 +2176,9 @@ REFERENCES:
 
 **P**
 
+.. [Pa97] Christof Paar, *Optimized Arithmetic for Reed-Solomon Encoders*,
+          https://dx.doi.org/10.1109/ISIT.1997.613165
+
 .. [Pak2002] Igor Pak,
              *Hook length formula and geometric combinatorics*,
              Seminaire Lotharingien de Combinatoire, 46 (2001),
