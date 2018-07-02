@@ -9,8 +9,6 @@ from six import integer_types
 
 from sage.combinat.permutation import Permutation
 from sage.matrix.constructor import matrix
-from sage.matrix.special import block_matrix, block_diagonal_matrix, companion_matrix, \
-    diagonal_matrix, identity_matrix, zero_matrix
 from sage.misc.cachefunc import cached_method
 from sage.modules.free_module_element import vector
 from sage.rings.finite_rings.finite_field_constructor import GF
@@ -26,6 +24,7 @@ def _branch_number(mtr):
     Computes the branch number of the given matrix
     """
     from sage.coding.linear_code import LinearCode
+    from sage.matrix.special import identity_matrix
 
     F = mtr.base_ring()
     n = mtr.nrows()
@@ -38,6 +37,8 @@ def _ff_elem_to_binary(elem):
     """
     Converts a finite field element to the binary matrix carrying out the according multiplication
     """
+    from sage.matrix.special import companion_matrix, identity_matrix, zero_matrix
+
     F = elem.parent()
     R = companion_matrix(F.modulus(), format='right')
     bits = ZZ(elem.integer_representation()).digits(base=2, padto=F.degree())
@@ -54,11 +55,30 @@ def _ff_matrix_to_binary(mtr):
     """
     Converts a matrix over a finite field to the binary matrix carrying out the according multiplication
     """
+    from sage.matrix.special import block_matrix
+
     result = []
     for row in mtr:
         for elem in row:
             result.append(_ff_elem_to_binary(elem))
     return block_matrix(mtr.nrows(), mtr.ncols(), result)
+
+
+def _column_linear_layer(Ls):
+    """
+    Return the linear layer that applies a given linear layer ``L`` to ``ncols`` in parallel.
+
+    The most common application for this is, to build the matrix that applies the
+    AES MixColumns linear layer to each column of a state, while the state is represented
+    as a vector.
+    """
+    from sage.matrix.special import block_matrix, diagonal_matrix
+
+    F = Ls[0].base_ring()
+    nblocks = len(Ls)
+    n, m = Ls[0].dimensions()
+    blockmtrs = [diagonal_matrix(F, nblocks, [Ls[i][k][l] for i in range(nblocks)]) for k in range(n) for l in range(m)]
+    return LinearLayer(block_matrix(F, n, m, blockmtrs))
 
 
 class LinearLayer(SageObject):
@@ -74,8 +94,12 @@ class LinearLayer(SageObject):
 
     We start with the simple identity linear layer::
 
-        sage: from.sage.crypto.linearlayer import LinearLayer
+        sage: from sage.crypto.linearlayer import LinearLayer
         sage: id = LinearLayer(identity_matrix(GF(2), 2)); id
+        doctest:warning
+        ...
+        FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+        See https://trac.sagemath.org/25735 for details.
         LinearLayer of dimension 2 x 2 represented as
         [1 0]
         [0 1]
@@ -85,7 +109,11 @@ class LinearLayer(SageObject):
 
     A list of linear layers used in the literature is also available::
 
-        sage: from.sage.crypto.linearlayers import linearlayers
+        sage: from sage.crypto.linearlayers import linearlayers
+        doctest:warning
+        ...
+        FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+        See https://trac.sagemath.org/25735 for details.
         sage: linearlayers['PRESENT']
         LinearLayer of dimension 64 x 64 represented as
         [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
@@ -97,7 +125,7 @@ class LinearLayer(SageObject):
         [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0]
         [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
-        sage: PRESENT.is_permutation()
+        sage: linearlayers['PRESENT'].is_permutation()
         True
 
     AUTHORS:
@@ -225,7 +253,7 @@ class LinearLayer(SageObject):
             sage: L([0, 1/2, 1])
             Traceback (most recent call last):
             ...
-            TypeError: Cannot apply LinearLayer to provided element, conversion to vector failed.
+            TypeError: Cannot apply LinearLayer to provided element [0, 1/2, 1], conversion to vector failed.
 
             sage: L("failure")
             Traceback (most recent call last):
@@ -244,8 +272,8 @@ class LinearLayer(SageObject):
 
             try:
                 x = vector(self.matrix().base_ring(), x)
-            except TypeError, ZeroDivisionError:
-                raise TypeError("Cannot apply LinearLayer to provided element, conversion to vector failed.")
+            except (TypeError, ZeroDivisionError):
+                raise TypeError("Cannot apply LinearLayer to provided element %r, conversion to vector failed." % (x,))
 
             return tuple(self.matrix() * x)
 
@@ -255,8 +283,8 @@ class LinearLayer(SageObject):
 
             try:
                 x = vector(self.matrix().base_ring(), x)
-            except TypeError, ZeroDivisionError:
-                raise TypeError("Cannot apply LinearLayer to provided element, conversion to vector failed.")
+            except (TypeError, ZeroDivisionError):
+                raise TypeError("Cannot apply LinearLayer to provided element %r, conversion to vector failed." % (x,))
 
             return list(self.matrix() * x)
 
@@ -365,7 +393,7 @@ class AESLikeLinearLayer(LinearLayer):
 
     EXAMPLES::
 
-        sage: from.sage.crypto.linearlayers import linearlayers
+        sage: from sage.crypto.linearlayers import linearlayers
         sage: linearlayers['AES']
         AES like LinearLayer of dimension 128 x 128 represented by ShiftRows
         [1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12]
@@ -407,7 +435,7 @@ class AESLikeLinearLayer(LinearLayer):
             raise TypeError("No ShiftRows and MixColumns matrices as arguments provided.")
 
         # TODO: check if ShiftRows is permutation object
-        self._L = _ff_matrix_to_binary(column_linear_layer(MC).matrix() * SR)
+        self._L = _ff_matrix_to_binary(_column_linear_layer(MC).matrix() * SR)
         self.m = self._L.nrows()
         self.n = self._L.ncols()
         #additionaly set Mixcolumn and ShiftRows

@@ -12,6 +12,10 @@ This module provides the following linear layers:
 EXAMPLES::
 
     sage: from sage.crypto.linearlayers import PRESENT
+    doctest:warning
+    ...
+    FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+    See https://trac.sagemath.org/25735 for details.
     sage: PRESENT
     LinearLayer of dimension 64 x 64 represented as
     [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
@@ -37,12 +41,15 @@ from sage.crypto.linearlayer import AESLikeLinearLayer
 from sage.combinat.permutation import Permutation
 from sage.matrix.constructor import matrix
 from sage.rings.finite_rings.finite_field_constructor import GF
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 Left_ShiftRows = Permutation([1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12])
 Right_ShiftRows = Permutation([1, 14, 11, 8, 5, 2, 15, 12, 9, 6, 3, 16, 13, 10, 7, 4])
 
+_AES_irreducible_polynomial = PolynomialRing(GF(2), name="alpha")("alpha^8 + alpha^4 + alpha^3 + alpha + 1")
+_AES_field = GF(2**8, name="x", modulus=_AES_irreducible_polynomial)
 AES_ShiftRows = Left_ShiftRows
-AES_MixColumns = [matrix(AES_field, map(lambda x: map(AES_field.fetch_int, x), [[2, 3, 1, 1] ,[1, 2, 3, 1] ,[1, 1, 2, 3] ,[3, 1, 1, 2] ]))]*4
+AES_MixColumns = [matrix(_AES_field, 4, 4, map(_AES_field.fetch_int, [2, 3, 1, 1, 1, 2, 3, 1, 1, 1, 2, 3, 3, 1, 1, 2]))]*4
 AES = AESLikeLinearLayer(AES_ShiftRows, AES_MixColumns)
 
 #Midori_ShuffelCells = matrix(GF(2**4), Permutation([1, 6, 16, 11, 14, 9, 3, 8, 12, 15, 5, 2, 7, 4, 10, 13]).to_matrix())
@@ -51,8 +58,8 @@ Midori_MixColumns = [matrix(GF(2**4), [[0, 1, 1, 1] ,[1, 0, 1, 1] ,[1, 1, 0, 1] 
 Midori = AESLikeLinearLayer(Midori_ShuffelCells, Midori_MixColumns)
 
 SKINNY_ShiftRows = Right_ShiftRows
-SKINNY_4_MixColumns = [matrix(SKINNY_4_field, [[1, 0, 1, 1] ,[1, 0, 0, 0] ,[0, 1, 1, 0] ,[1, 0, 1, 0]])]*4
-SKINNY_8_MixColumns = [matrix(SKINNY_8_field, [[1, 0, 1, 1] ,[1, 0, 0, 0] ,[0, 1, 1, 0] ,[1, 0, 1, 0]])]*4
+SKINNY_4_MixColumns = [matrix(GF(2**4), [[1, 0, 1, 1] ,[1, 0, 0, 0] ,[0, 1, 1, 0] ,[1, 0, 1, 0]])]*4
+SKINNY_8_MixColumns = [matrix(GF(2**8), [[1, 0, 1, 1] ,[1, 0, 0, 0] ,[0, 1, 1, 0] ,[1, 0, 1, 0]])]*4
 SKINNY_4 = AESLikeLinearLayer(SKINNY_ShiftRows, SKINNY_4_MixColumns)
 SKINNY_8 = AESLikeLinearLayer(SKINNY_ShiftRows, SKINNY_8_MixColumns)
 
