@@ -164,7 +164,19 @@ class LinearLayer(SageObject):
         self.n = L.ncols()
 
     def _latex_(self):
-        raise NotImplementedError
+        r"""
+        Returns a `LaTeX` version of the operation table as a string,
+        using a `LaTeX` ``array`` environment.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.linearlayer import LinearLayer
+            sage: id = LinearLayer(identity_matrix(GF(2), 2))
+            sage: id._latex_()
+            'x \\ {\\mapsto}\\ \\left(\\begin{array}{rr}\n1 & 0 \\\\\n0 & 1\n\\end{array}\\right) \\ {\\cdot}\\ x'
+        """
+
+        return "x \\ {\\mapsto}\\ " + self.matrix()._latex_() + " \\ {\\cdot}\\ x"
 
     def _repr_(self):
         """
