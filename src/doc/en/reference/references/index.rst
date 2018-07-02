@@ -1197,6 +1197,10 @@ REFERENCES:
               *Cellular algebras*. Invent. Math. 123 (1996), 1–34.
               :mathscinet:`MR1376244`
 
+.. [GLVS2015] \V. Grosso, G. Leurent, F.-X. Standaert, K. Varici,
+              *LS-Designs Bitslice Encryption for Efficient Masked Software
+              Implementations*; in FSE, (2014).
+
 .. [GLSVJGK2014] \V. Grosso, G. Leurent, F.-X. Standaert, K. Varici,
                  \F. D. A. Journault, L. Gaspar, and S. Kerckhof,
                  *SCREAM & iSCREAM Side-Channel Resistant Authenticated Encryption

@@ -1,8 +1,14 @@
 r"""
-LinearLayer Representation
+Linear layer Representation
 
-LinearLayers play an important role in block cipher designs, especially in
+Linear layers play an important role in block cipher designs, especially in
 substitution-permutation-networks (SPNs).
+
+Available classes are the generic ``LinearLayer`` and ``AESLikeLinearLayer``.
+
+AUTHORS:
+
+- Friedrich Wiemer (2018-07-02): initial version
 """
 
 from six import integer_types
@@ -88,7 +94,7 @@ class LinearLayer(SageObject):
     locally diffused bits over the whole state of the block cipher. As linear layers
     are, well, linear, and operate on bits, nibbles, or bytes, we can represent it as
     a matrix over `\GF(2)^n`, `\GF(2^4)^n`, or `\GF(2^8)^n`. Application of the linear
-    layer to x then just corresponds to left multiplication of this matrix: `A*x`.
+    layer to x then just corresponds to left multiplication of this matrix: `A \cdot x`.
 
     EXAMPLES:
 
@@ -127,10 +133,6 @@ class LinearLayer(SageObject):
         [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
         sage: linearlayers['PRESENT'].is_permutation()
         True
-
-    AUTHORS:
-
-    - Friedrich Wiemer (2018-07-02): initial version
     """
 
     @experimental(25735)
@@ -341,6 +343,7 @@ class LinearLayer(SageObject):
 
         - ``algorithm`` - string choosing which algorithm to use to compute
             the xor count. Available algorithms
+
             - 'naive' - non-optimized implementation (default)
         """
         avail_algs = ["naive"]
@@ -402,10 +405,6 @@ class AESLikeLinearLayer(LinearLayer):
         [    1     x x + 1     1]
         [    1     1     x x + 1]
         [x + 1     1     1     x]
-
-    AUTHORS:
-
-    - Friedrich Wiemer (2018-07-02): initial version
     """
 
     @experimental(25735)
