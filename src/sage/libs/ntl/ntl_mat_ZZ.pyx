@@ -1491,7 +1491,7 @@ cdef class ntl_mat_ZZ(object):
         Performs the same reduction as self.G_LLL_FP using the same
         calling conventions but with extended exponent double
         precision.
-        
+
         EXAMPLES::
 
             sage: M=ntl.mat_ZZ(3,3,[1,2,3,4,5,6,7,8,9])

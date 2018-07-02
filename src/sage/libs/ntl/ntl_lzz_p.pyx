@@ -73,7 +73,7 @@ cdef class ntl_zz_p(object):
             sage: g
             2
 
-        Despite the use of p, the modulus need not be a prime::
+        Despite the use of the name p, the modulus need not be a prime::
 
             sage: f = ntl.zz_p(5,8)
             sage: f+f
@@ -289,20 +289,14 @@ cdef class ntl_zz_p(object):
 
     def __div__(self, other):
         """
+        See `self.__truediv__`
+
         EXAMPLES::
 
             sage: f = ntl.zz_p(5,23)
-            sage: f.__div__(f)
-            1
-
-        TESTS::
-
-            sage: f = ntl.zz_p(5,23)
-            sage: g = ntl.zz_p(0,23)
+            sage: g = ntl.zz_p(9,23)
             sage: f.__div__(g)
-            Traceback (most recent call last):
-            ...
-            NTLError: InvMod: inverse undefined
+            21
         """
         return self / other
 
@@ -353,7 +347,8 @@ cdef class ntl_zz_p(object):
         """
         Return the negative of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.zz_p(5,234)
             sage: -f ## indirect doctest
             229
@@ -399,7 +394,8 @@ cdef class ntl_zz_p(object):
         """
         Return self as an int.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.zz_p(3,next_prime(100)).__int__()
             3
             sage: int(ntl.zz_p(3,next_prime(100)))
@@ -413,7 +409,8 @@ cdef class ntl_zz_p(object):
         """
         Return f*f.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.zz_p(15,23)
             sage: f.square()
             18
@@ -428,7 +425,8 @@ cdef class ntl_zz_p(object):
         """
         Return True exactly if this element is 0.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.zz_p(0,20)
             sage: f.is_zero()
             True
@@ -443,7 +441,8 @@ cdef class ntl_zz_p(object):
         """
         Return True exactly if this element is 1.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.zz_p(1,11)
             sage: f.is_one()
             True
@@ -458,7 +457,8 @@ cdef class ntl_zz_p(object):
         """
         Reset this element to 0.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = ntl.zz_p(5,102) ; x
             5
             sage: x.clear() ; x
@@ -471,7 +471,8 @@ def make_zz_p(val, context):
     """
     For unpickling.
 
-    TESTS:
+    TESTS::
+
         sage: f = ntl.zz_p(1, 12)
         sage: loads(dumps(f)) == f #indirect doctest
         True

@@ -51,6 +51,7 @@ def GF2XHexOutput(have_hex=None):
     returned.
 
     INPUT:
+
         have_hex if True hex representation will be used
 
     EXAMPLES::
@@ -97,9 +98,11 @@ cdef class ntl_GF2X(object):
         extension fields over GF(2) (uses modulus).
 
         INPUT:
+
             x -- value to be assigned to this element. See examples.
 
         OUTPUT:
+
             a new ntl.GF2X element
 
         EXAMPLES::
@@ -385,12 +388,22 @@ cdef class ntl_GF2X(object):
 
             sage: f**0
             [1]
+            sage: f**(-1)
+            Traceback (most recent call last):
+            ...
+            NTLError: power: negative exponent
             sage: g = ntl.GF2X([])
             sage: g**0
             [1]
+            sage: g**(-1)
+            Traceback (most recent call last):
+            ...
+            NTLError: power: negative exponent
         """
         cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
+        sig_on()
         GF2X_power(r.x, self.x, e)
+        sig_off()
         return r
 
     def __richcmp__(ntl_GF2X self, other, int op):
@@ -608,6 +621,13 @@ cdef class ntl_GF2X(object):
         return self.hex()
 
     def __hash__(self):
+        """
+        EXAMPLES::
+
+            sage: e=ntl.GF2X([0,1,1,0,1])
+            sage: hash(e)
+            -3495018545969936097
+        """
         return hash(self.hex())
 
     def _sage_(ntl_GF2X self, R=None):
@@ -718,7 +738,7 @@ cdef class ntl_GF2X(object):
     def SetCoeff(self, int i, a):
         """
         Change one of the coefficients
-        
+
         INPUT:
 
             i - A possition, it should be `0\leq i\leq self.deg()`
@@ -741,10 +761,14 @@ cdef class ntl_GF2X(object):
             sage: e.SetCoeff(5,1)
             sage: e
             [1 1 1 0 0 1]
+            sage: e.deg()
+            5
             sage: e.SetCoeff(5,0)
             sage: e.SetCoeff(2,0)
             sage: e
             [1 1]
+            sage: e.deg()
+            1
 
         A negative index is not allowed::
 
@@ -760,6 +784,8 @@ cdef class ntl_GF2X(object):
 
     def __setitem__(self, int i, a):
         """
+        EXAMPLES::
+
             sage: e = ntl.GF2X([1,0,1]); e
             [1 0 1]
             sage: e[1] = 1 # indirect doctest
@@ -805,6 +831,7 @@ cdef class ntl_GF2X(object):
         hi defaults to deg(a)
 
         INPUT:
+
             hi -- bit position until which reverse is requested
 
         EXAMPLES::
@@ -842,6 +869,8 @@ cdef class ntl_GF2X(object):
 
     def __int__(self):
         """
+        EXAMPLES::
+
             sage: e = ntl.GF2X([1,0,1,1,0])
             sage: int(e)
             Traceback (most recent call last):
@@ -879,6 +908,8 @@ cdef class ntl_GF2X(object):
 
     def __len__(self):
         """
+        EXAMPLES::
+
             sage: e = ntl.GF2X([1,0,1,1,0])
             sage: len(e)
             4

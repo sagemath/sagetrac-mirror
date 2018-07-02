@@ -407,6 +407,9 @@ cdef class ntl_ZZ_pX(object):
             Traceback (most recent call last):
             ...
             ArithmeticError: self (=[0 1 2 3 4 5 6 7 8 9]) is not divisible by other (=[16 0 1])
+
+        TESTS::
+
             sage: f/(g-g)
             Traceback (most recent call last):
             ...
@@ -428,23 +431,11 @@ cdef class ntl_ZZ_pX(object):
         """
         EXAMPLES::
 
-            sage: c = ntl.ZZ_pContext(17)
-            sage: f = ntl.ZZ_pX([1,2,3], c) * ntl.ZZ_pX([4,5], c)**2
-            sage: g = ntl.ZZ_pX([4,5], c)
+            sage: c = ntl.ZZ_pContext(101)
+            sage: f = ntl.ZZ_pX([4,9,20], c) * ntl.ZZ_pX([71,33], c)
+            sage: g = ntl.ZZ_pX([71,33], c)
             sage: f.__div__(g)
-            [4 13 5 15]
-            sage: ntl.ZZ_pX([1,2,3],c) * ntl.ZZ_pX([4,5],c)
-            [4 13 5 15]
-
-            sage: f = ntl.ZZ_pX(range(10), c); g = ntl.ZZ_pX([-1,0,1], c)
-            sage: f.__div__(g)
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: self (=[0 1 2 3 4 5 6 7 8 9]) is not divisible by other (=[16 0 1])
-            sage: f.__div__(g-g)
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: self (=[0 1 2 3 4 5 6 7 8 9]) is not divisible by other (=[])
+            [4 9 20]
         """
         return self / other
 
@@ -721,7 +712,7 @@ cdef class ntl_ZZ_pX(object):
     def _left_pshift(self, ntl_ZZ n):
         """
         Multiplies all coefficients by n and the context by n.
-        
+
         EXAMPLES::
 
             sage: c = ntl.ZZ_pContext(20)
@@ -744,7 +735,7 @@ cdef class ntl_ZZ_pX(object):
     def _right_pshift(self, ntl_ZZ n):
         """
         Divides all coefficients by n and the context by n.
-        
+
         Only really makes mathematical sense when n divides self.c.p
 
         EXAMPLES::
@@ -1261,7 +1252,7 @@ cdef class ntl_ZZ_pX(object):
     def invmod_newton(self, ntl_ZZ_pX modulus):
         """
         Returns the inverse of self modulo the modulus using Newton lifting.
-        
+
         Only works if modulo a power of a prime, and if modulus is either
         unramified or Eisenstein.
 
@@ -1296,7 +1287,7 @@ cdef class ntl_ZZ_pX(object):
             sage: g = ntl.ZZ_pX([0,1],6)
             sage: g.invmod_newton(f)
             Traceback (most recent call last):
-            ...           
+            ...
             ValueError: must be modulo a prime power
         """
         cdef Integer pn = Integer(self.c.p)

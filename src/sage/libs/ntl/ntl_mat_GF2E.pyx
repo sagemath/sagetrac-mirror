@@ -509,6 +509,7 @@ cdef class ntl_mat_GF2E(object):
         - ``k`` - optional GF(2**deg)
 
         OUTPUT:
+
             Matrix over k
 
         EXAMPLES::
@@ -540,6 +541,7 @@ cdef class ntl_mat_GF2E(object):
         Returns the transposed matrix of self.
 
         OUTPUT:
+
             transposed Matrix
 
         EXAMPLES::
@@ -570,6 +572,14 @@ cdef class ntl_mat_GF2E(object):
             sage: o = n*m
             sage: o.IsIdent()
             True
+
+        TESTS::
+
+            sage: z = m-m
+            sage: ~z
+            Traceback (most recent call last):
+            ...
+            NTLError: inv: non-invertible matrix
         """
         cdef ntl_mat_GF2E r = self._new()
         sig_on()
@@ -577,7 +587,7 @@ cdef class ntl_mat_GF2E(object):
         sig_off()
         return r
 
-    def IsIdent(self, n = -1):
+    def IsIdent(self, n = None):
         """
         test if A is the n x n identity matrix
 
@@ -589,8 +599,15 @@ cdef class ntl_mat_GF2E(object):
             sage: o = n*m
             sage: o.IsIdent()
             True
+            sage: o.IsIdent(3)
+            False
+
+        TESTS::
+
+            sage: o.IsIdent(-2)
+            False
         """
-        if n < 0:
+        if n is None:
             n = self.NumRows()
         return bool(mat_GF2E_IsIdent(self.x, n))
 
@@ -606,6 +623,11 @@ cdef class ntl_mat_GF2E(object):
             False
             sage: m.IsDiag(3, ntl.GF2E([0,1],ctx))
             True
+
+        TESTS::
+
+            sage: m.IsDiag(-1, ntl.GF2E([0,1],ctx))
+            False
         """
         return bool(mat_GF2E_IsDiag(self.x, n, d.x))
 

@@ -46,6 +46,7 @@ cdef class ntl_mat_GF2(object):
         Constructs a matrix over ntl.GF2.
 
         INPUT:
+
             nrows -- number of rows
             ncols -- number of columns
             v     -- either a list or a matrix over GF(2^x)
@@ -125,6 +126,8 @@ cdef class ntl_mat_GF2(object):
 
     def __reduce__(self):
         """
+        EXAMPLES::
+
             sage: A = random_matrix(GF(2),4,4)
             sage: B = ntl.mat_GF2(A)
             sage: loads(dumps(B)) == B # indirect doctest
@@ -435,9 +438,11 @@ cdef class ntl_mat_GF2(object):
         the rank of the first ncols columns).
 
         INPUT:
+
            ncols -- number of columns to process (default: all)
 
         EXAMPLES::
+
             sage: A = random_matrix(GF(2), 10, 10)
             sage: Abar = ntl.mat_GF2(A)
             sage: A.echelon_form()
@@ -479,6 +484,7 @@ cdef class ntl_mat_GF2(object):
         Returns a list of the entries in this matrix
 
         EXAMPLES::
+
             sage: A = random_matrix(GF(2), 4, 4)
             sage: Abar = ntl.mat_GF2(A)
             sage: A.list()
@@ -496,6 +502,7 @@ cdef class ntl_mat_GF2(object):
         Return \code{True} if this matrix contains only zeroes, and \code{False} otherwise.
 
         EXAMPLES::
+
             sage: A = random_matrix(GF(2), 10, 10)
             sage: Abar = ntl.mat_GF2(A)
             sage: Abar.IsZero()
@@ -557,6 +564,7 @@ cdef class ntl_mat_GF2(object):
         Returns the transposed matrix of this matrix.
 
         EXAMPLES::
+
             sage: A = random_matrix(GF(2), 10, 10)
             sage: Abar = ntl.mat_GF2(A); Abar
             [[0 1 0 1 1 0 0 0 1 1]
@@ -595,6 +603,7 @@ cdef class ntl_mat_GF2(object):
         Return $X = A^{-1}$; an error is raised if A is singular.
 
         EXAMPLES::
+
             sage: l = [0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, \
                        0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, \
                        1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, \
@@ -615,6 +624,7 @@ cdef class ntl_mat_GF2(object):
         test if this matrix is the n x n identity matrix.
 
         EXAMPLES::
+
             sage: A = ntl.mat_GF2(4,4)
             sage: A[0,0] = 1
             sage: A[1,1] = 1
@@ -634,6 +644,7 @@ cdef class ntl_mat_GF2(object):
         test if X is an  n x n diagonal matrix with d on diagonal.
 
         EXAMPLES::
+
             sage: A = ntl.mat_GF2(4,4)
             sage: A[0,0] = 1
             sage: A[1,1] = 1
@@ -653,6 +664,7 @@ cdef class ntl_mat_GF2(object):
         is in row echelon form.
 
         EXAMPLES::
+
             sage: A = random_matrix(GF(2),10,10)
             sage: Abar = ntl.mat_GF2(A)
             sage: A.image()

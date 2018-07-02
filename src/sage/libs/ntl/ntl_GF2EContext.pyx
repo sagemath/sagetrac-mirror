@@ -24,7 +24,8 @@ GF2EContextDict = {}
 cdef class ntl_GF2EContext_class(object):
     def __init__(self, ntl_GF2X v):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             # You can construct contexts manually.
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1]))
             sage: n1 = ntl.GF2E([1,1],ctx)
@@ -87,12 +88,12 @@ cdef class ntl_GF2EContext_class(object):
 
     def restore(self):
         """
-        Restore this context.
+        Restore this context. User should not need call this function.
 
         EXAMPLES::
 
             sage: c1 = ntl.GF2E([0,1],GF(2^4,'a')) ; c2 = ntl.GF2E([1,0,1],GF(2^4,'a'))
-            sage: c1+c2
+            sage: c1+c2 
             [1 1 1]
             sage: d1 = ntl.GF2E([0,1],GF(2^5,'a')) ; d2 = ntl.GF2E([0,0,1],GF(2^5,'a'))
             sage: d1*d2 ## indirect doctest

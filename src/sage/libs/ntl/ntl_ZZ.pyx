@@ -102,7 +102,8 @@ cdef class ntl_ZZ(object):
         """
         Return the string representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.ZZ(5).__repr__()
             '5'
         """
@@ -110,6 +111,8 @@ cdef class ntl_ZZ(object):
 
     def __reduce__(self):
         """
+        EXAMPLES::
+
         sage: from sage.libs.ntl.ntl_ZZ import ntl_ZZ
         sage: a = ntl_ZZ(-7)
         sage: loads(dumps(a))
@@ -179,6 +182,8 @@ cdef class ntl_ZZ(object):
 
     def __mul__(self, other):
         """
+        EXAMPLES::
+
             sage: n=ntl.ZZ(2983)*ntl.ZZ(2)
             sage: n
             5966
@@ -195,6 +200,8 @@ cdef class ntl_ZZ(object):
 
     def __sub__(self, other):
         """
+        EXAMPLES::
+
             sage: n=ntl.ZZ(2983)-ntl.ZZ(2)
             sage: n
             2981
@@ -211,6 +218,8 @@ cdef class ntl_ZZ(object):
 
     def __add__(self, other):
         """
+        EXAMPLES::
+
             sage: n=ntl.ZZ(2983)+ntl.ZZ(2)
             sage: n
             2985
@@ -227,6 +236,8 @@ cdef class ntl_ZZ(object):
 
     def __neg__(ntl_ZZ self):
         """
+        EXAMPLES::
+
             sage: x = ntl.ZZ(38)
             sage: -x
             -38
@@ -239,6 +250,8 @@ cdef class ntl_ZZ(object):
 
     def __pow__(ntl_ZZ self, long e, ignored):
         """
+        EXAMPLES::
+
             sage: ntl.ZZ(23)^50
             122008981252869411022491112993141891091036959856659100591281395343249
         """
@@ -252,7 +265,8 @@ cdef class ntl_ZZ(object):
         """
         Return self as an int.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.ZZ(22).__int__()
             22
             sage: type(ntl.ZZ(22).__int__())
@@ -282,12 +296,14 @@ cdef class ntl_ZZ(object):
         r"""
         This method exists solely for automated testing of get_as_int().
 
-        sage: x = ntl.ZZ(42)
-        sage: i = x.get_as_int_doctest()
-        sage: i
-         42
-        sage: type(i)
-         <... 'int'>
+        EXAMPLES::
+
+            sage: x = ntl.ZZ(42)
+            sage: i = x.get_as_int_doctest()
+            sage: i
+             42
+            sage: type(i)
+             <... 'int'>
         """
         return self.get_as_int()
 
@@ -295,9 +311,11 @@ cdef class ntl_ZZ(object):
         r"""
         Gets the value as a sage int.
 
-        sage: n=ntl.ZZ(2983)
-        sage: type(n._integer_())
-        <type 'sage.rings.integer.Integer'>
+        EXAMPLES::
+
+            sage: n=ntl.ZZ(2983)
+            sage: type(n._integer_())
+            <type 'sage.rings.integer.Integer'>
 
         AUTHOR: Joel B. Mohler
         """
@@ -318,7 +336,8 @@ cdef class ntl_ZZ(object):
         r"""
         Sets the value from a sage int.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: n=ntl.ZZ(2983)
             sage: n
             2983
@@ -336,10 +355,12 @@ cdef class ntl_ZZ(object):
         r"""
         This method exists solely for automated testing of set_from_int().
 
-        sage: x = ntl.ZZ()
-        sage: x.set_from_int_doctest(42)
-        sage: x
-         42
+        EXAMPLES::
+
+            sage: x = ntl.ZZ()
+            sage: x.set_from_int_doctest(42)
+            sage: x
+             42
         """
         self.set_from_int(int(value))
 
@@ -402,7 +423,8 @@ def unpickle_class_value(cls, x):
     """
     Here for unpickling.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.libs.ntl.ntl_ZZ.unpickle_class_value(ntl.ZZ, 3)
         3
         sage: type(sage.libs.ntl.ntl_ZZ.unpickle_class_value(ntl.ZZ, 3))
@@ -414,7 +436,8 @@ def unpickle_class_args(cls, x):
     """
     Here for unpickling.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.libs.ntl.ntl_ZZ.unpickle_class_args(ntl.ZZ, [3])
         3
         sage: type(sage.libs.ntl.ntl_ZZ.unpickle_class_args(ntl.ZZ, [3]))

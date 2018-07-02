@@ -363,21 +363,10 @@ cdef class ntl_zz_pX(object):
         """
         EXAMPLES::
 
-            sage: f = ntl.zz_pX([1,0,1],3)
-            sage: g = ntl.zz_pX([2,1],3)
+            sage: f = ntl.zz_pX([2,1,2,1],3)
+            sage: g = ntl.zz_pX([1,0,1],3)
             sage: f.__div__(g)
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: self (=[1, 0, 1]) is not divisible by other (=[2, 1])
-
-        TESTS::
-
-            sage: f = ntl.zz_pX([1,0,1],3)
-            sage: g = ntl.zz_pX([0],3)
-            sage: f.__div__(g)
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: self (=[1, 0, 1]) is not divisible by other (=[])
+            [2, 1]
         """
         return self / other
 

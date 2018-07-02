@@ -393,7 +393,7 @@ cdef class ntl_ZZ_pE(object):
         This method exists solely for automated testing of set_from_ZZ_pX().
 
         TESTS::
-        
+
             sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1],11))
             sage: x = ntl.ZZ_pE(modulus=c)
             sage: x.set_from_ZZ_pX_doctest(ntl.ZZ_pX([5,2,1],11))

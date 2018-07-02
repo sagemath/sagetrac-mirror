@@ -153,7 +153,7 @@ ZZ_pContext_factory = ntl_ZZ_pContext_factory()
 def ntl_ZZ_pContext( v ):
     """
     Create a new ZZ_pContext.
-    
+
     EXAMPLES::
 
         sage: c = ntl.ZZ_pContext(178) #indirect doctest

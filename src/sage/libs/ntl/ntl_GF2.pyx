@@ -108,8 +108,6 @@ cdef class ntl_GF2(object):
 
     def __mul__(self, other):
         """
-        Multiplication method.
-
         EXAMPLES::
 
             sage: o = ntl.GF2(1)
@@ -133,8 +131,6 @@ cdef class ntl_GF2(object):
 
     def __truediv__(self, other):
         """
-        True division of bits
-
         EXAMPLES::
 
             sage: o = ntl.GF2(1)
@@ -163,15 +159,15 @@ cdef class ntl_GF2(object):
 
     def __div__(self, other):
         """
-        Division, see `self.__truediv__`
+        See `self.__truediv__`
 
         EXAMPLES::
 
             sage: o = ntl.GF2(1)
             sage: z = ntl.GF2(0)
-            sage: o/o
-            1
-            sage: o/z
+            sage: z.__div__(o)
+            0
+            sage: z.__div__(z)
             Traceback (most recent call last):
             ...
             ZeroDivisionError
@@ -180,8 +176,6 @@ cdef class ntl_GF2(object):
 
     def __sub__(self, other):
         """
-        Substraction method.
-
         EXAMPLES::
 
             sage: o = ntl.GF2(1)
@@ -205,8 +199,6 @@ cdef class ntl_GF2(object):
 
     def __add__(self, other):
         """
-        Addition method
-
         EXAMPLES::
 
             sage: o = ntl.GF2(1)
@@ -230,8 +222,6 @@ cdef class ntl_GF2(object):
 
     def __neg__(ntl_GF2 self):
         """
-        Additive inverse.
-
         EXAMPLES::
 
             sage: o = ntl.GF2(1)
@@ -247,8 +237,6 @@ cdef class ntl_GF2(object):
 
     def __pow__(ntl_GF2 self, long e, ignored):
         """
-        Power by an integer
-
         EXAMPLES::
 
             sage: o = ntl.GF2(1)
@@ -261,9 +249,17 @@ cdef class ntl_GF2(object):
             1
             sage: o^0
             1
+            sage: o^(-1)
+            1
+            sage: z^(-1)
+            Traceback (most recent call last):
+            ...
+            NTLError: GF2: division by zero
         """
         cdef ntl_GF2 r = ntl_GF2()
+        sig_on()
         GF2_power(r.x, self.x, e)
+        sig_off()
         return r
 
     def __int__(self):
@@ -285,7 +281,8 @@ def unpickle_class_value(cls, x):
     """
     Here for unpickling.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.libs.ntl.ntl_GF2.unpickle_class_value(ntl.GF2,1)
         1
         sage: type(sage.libs.ntl.ntl_GF2.unpickle_class_value(ntl.GF2,1))
@@ -297,7 +294,8 @@ def unpickle_class_args(cls, x):
     """
     Here for unpickling.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.libs.ntl.ntl_GF2.unpickle_class_args(ntl.GF2,[1])
         1
         sage: type(sage.libs.ntl.ntl_GF2.unpickle_class_args(ntl.GF2,[1]))

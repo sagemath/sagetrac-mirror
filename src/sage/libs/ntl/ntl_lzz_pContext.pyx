@@ -101,7 +101,7 @@ def ntl_zz_pContext( v ):
 
     EXAMPLES::
 
-        sage: f = ntl.zz_pContext(26)
+        sage: f = ntl.zz_pContext(26) #indirect doctest
         sage: f = ntl.zz_pContext(10^100)
         Traceback (most recent call last):
         ...
