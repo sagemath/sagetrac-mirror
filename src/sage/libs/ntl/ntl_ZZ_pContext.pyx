@@ -25,7 +25,8 @@ from sage.rings.integer cimport Integer
 cdef class ntl_ZZ_pContext_class(object):
     def __init__(self, ntl_ZZ v):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             # You can construct contexts manually.
             sage: c = ntl.ZZ_pContext(11)
             sage: n1 = ntl.ZZ_p(12,c)
@@ -52,7 +53,8 @@ cdef class ntl_ZZ_pContext_class(object):
 
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: c = ntl.ZZ_pContext(13)
             sage: loads(dumps(c)) is c
             True
@@ -63,14 +65,25 @@ cdef class ntl_ZZ_pContext_class(object):
         """
         Returns a print representation of self.
 
-        EXAMPLES:
-        sage: c = ntl.ZZ_pContext(7)
-        sage: c
-        NTL modulus 7
+        EXAMPLES::
+
+            sage: c = ntl.ZZ_pContext(7)
+            sage: c
+            NTL modulus 7
         """
         return "NTL modulus %s"%(self.p)
 
     def __hash__(self):
+        """
+        EXAMPLES::
+
+            sage: c = ntl.ZZ_pContext(3)
+            sage: c.__hash__()
+            3
+            sage: d = ntl.ZZ_pContext(16)
+            sage: d.__hash__()
+            16
+        """
         return hash(self.p)
 
     def modulus(self):
@@ -78,7 +91,8 @@ cdef class ntl_ZZ_pContext_class(object):
         Return the current modulus associated to this
         context.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: c = ntl.ZZ_pContext(7)
             sage: c.modulus()
             7
@@ -94,7 +108,8 @@ cdef class ntl_ZZ_pContext_class(object):
 
     def restore(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: c1 = ntl.ZZ_p(5,92) ; c2 = ntl.ZZ_p(7,92)
             sage: c1+c2
             12
@@ -109,6 +124,11 @@ cdef class ntl_ZZ_pContext_class(object):
 
 cdef class ntl_ZZ_pContext_factory(object):
     def __init__(self):
+        """
+        TESTS::
+
+            sage: a = sage.libs.ntl.ntl_ZZ_pContext.ntl_ZZ_pContext_factory()
+        """
         self.context_dict = {}
 
     cdef ntl_ZZ_pContext_class make_c(self, ntl_ZZ v):
@@ -116,7 +136,8 @@ cdef class ntl_ZZ_pContext_factory(object):
         Creates a new ZZ_pContext.
 
         INPUT:
-        v -- an ntl_ZZ
+
+            v -- an ntl_ZZ
         """
         cdef ntl_ZZ_pContext_class context
         if v in self.context_dict:
@@ -132,8 +153,10 @@ ZZ_pContext_factory = ntl_ZZ_pContext_factory()
 def ntl_ZZ_pContext( v ):
     """
     Create a new ZZ_pContext.
-    EXAMPLES:
-        sage: c = ntl.ZZ_pContext(178)
+    
+    EXAMPLES::
+
+        sage: c = ntl.ZZ_pContext(178) #indirect doctest
         sage: n1 = ntl.ZZ_p(212,c)
         sage: n1
         34

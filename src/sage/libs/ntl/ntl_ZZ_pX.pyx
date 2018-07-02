@@ -198,11 +198,18 @@ cdef class ntl_ZZ_pX(object):
 
     def __setitem__(self, long i, a):
         r"""
+
+        TEST::
+
         sage: c = ntl.ZZ_pContext(23)
         sage: x = ntl.ZZ_pX([2, 3, 4], c)
         sage: x[1] = 5
         sage: x
         [2 5 4]
+        sage: x[-1] = 5
+        Traceback (most recent call last):
+        ...
+        IndexError: index (i=-1) must be >= 0
         """
         if i < 0:
             raise IndexError("index (i=%s) must be >= 0" % i)
@@ -231,8 +238,13 @@ cdef class ntl_ZZ_pX(object):
             sage: x._setitem_from_int_doctest(5, 42)
             sage: x
             [2 3 4 0 0 2]
+            sage: x._setitem_from_int_doctest(-1,1)
+            Traceback (most recent call last):
+            ...
+            IndexError: index (i=-1) must be >= 0
         """
-        self.c.restore_c()
+        if i < 0:
+            raise IndexError("index (i=%s) must be >= 0" % i)
         self.setitem_from_int(i, value)
 
     def __getitem__(self, long i):
@@ -245,6 +257,10 @@ cdef class ntl_ZZ_pX(object):
             sage: x = ntl.ZZ_pX([2, 3, 4], c)
             sage: x[1]
             3
+            sage: x[-1]
+            0
+            sage: x[10]
+            0
         """
         cdef ntl_ZZ_p r
         r = ntl_ZZ_p.__new__(ntl_ZZ_p)
@@ -288,6 +304,8 @@ cdef class ntl_ZZ_pX(object):
             sage: type(i)
             <... 'int'>
             sage: x._getitem_as_int_doctest(15)
+            0
+            sage: x._getitem_as_int_doctest(-1)
             0
         """
         # self.c.restore_c() # restored in getitem_as_int()
@@ -389,6 +407,10 @@ cdef class ntl_ZZ_pX(object):
             Traceback (most recent call last):
             ...
             ArithmeticError: self (=[0 1 2 3 4 5 6 7 8 9]) is not divisible by other (=[16 0 1])
+            sage: f/(g-g)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: self (=[0 1 2 3 4 5 6 7 8 9]) is not divisible by other (=[])
         """
         if self.c is not other.c:
             raise ValueError("You can not perform arithmetic with elements of different moduli.")
@@ -403,6 +425,27 @@ cdef class ntl_ZZ_pX(object):
         return r
 
     def __div__(self, other):
+        """
+        EXAMPLES::
+
+            sage: c = ntl.ZZ_pContext(17)
+            sage: f = ntl.ZZ_pX([1,2,3], c) * ntl.ZZ_pX([4,5], c)**2
+            sage: g = ntl.ZZ_pX([4,5], c)
+            sage: f.__div__(g)
+            [4 13 5 15]
+            sage: ntl.ZZ_pX([1,2,3],c) * ntl.ZZ_pX([4,5],c)
+            [4 13 5 15]
+
+            sage: f = ntl.ZZ_pX(range(10), c); g = ntl.ZZ_pX([-1,0,1], c)
+            sage: f.__div__(g)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: self (=[0 1 2 3 4 5 6 7 8 9]) is not divisible by other (=[16 0 1])
+            sage: f.__div__(g-g)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: self (=[0 1 2 3 4 5 6 7 8 9]) is not divisible by other (=[])
+        """
         return self / other
 
     def __mod__(ntl_ZZ_pX self, ntl_ZZ_pX other):
@@ -473,7 +516,7 @@ cdef class ntl_ZZ_pX(object):
 
             sage: c = ntl.ZZ_pContext(17)
             sage: f = ntl.ZZ_pX([-1,0,1], c)
-            sage: f*f
+            sage: f.square()
             [1 0 15 0 1]
         """
         #self.c.restore_c() # restored in _new()
@@ -493,6 +536,17 @@ cdef class ntl_ZZ_pX(object):
             sage: g = ntl.ZZ_pX([-1,0,1],c)
             sage: g**10
             [1 0 10 0 5 0 0 0 10 0 8 0 10 0 0 0 5 0 10 0 1]
+            sage: g**0
+            [1]
+            sage: zero = g-g
+            sage: zero**1
+            []
+            sage: zero**0
+            [1]
+            sage: g**-1
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         if n < 0:
             raise NotImplementedError
@@ -625,9 +679,12 @@ cdef class ntl_ZZ_pX(object):
             sage: f.left_shift(5)
             [0 0 0 0 0 2 0 0 1]
 
-        A negative left shift is a right shift.
+        A negative left shift is a right shift::
+
             sage: f.left_shift(-2)
             [0 1]
+            sage: f.left_shift(-5)
+            []
         """
         #self.c.restore_c() # restored in _new()
         cdef ntl_ZZ_pX r = self._new()
@@ -664,6 +721,16 @@ cdef class ntl_ZZ_pX(object):
     def _left_pshift(self, ntl_ZZ n):
         """
         Multiplies all coefficients by n and the context by n.
+        
+        EXAMPLES::
+
+            sage: c = ntl.ZZ_pContext(20)
+            sage: f = ntl.ZZ_pX([1,2,3,4,5,6,7,8],c); f
+            [1 2 3 4 5 6 7 8]
+            sage: g = f._left_pshift(ntl.ZZ(5)); g
+            [5 10 15 20 25 30 35 40]
+            sage: g.get_modulus_context()
+            NTL modulus 100
         """
         cdef ntl_ZZ new_c_p = ntl_ZZ.__new__(ntl_ZZ)
         ZZ_mul(new_c_p.x, (<ntl_ZZ>self.c.p).x, n.x)
@@ -676,7 +743,23 @@ cdef class ntl_ZZ_pX(object):
 
     def _right_pshift(self, ntl_ZZ n):
         """
-        Divides all coefficients by n and the context by n.  Only really makes sense when n divides self.c.p
+        Divides all coefficients by n and the context by n.
+        
+        Only really makes mathematical sense when n divides self.c.p
+
+        EXAMPLES::
+
+            sage: c = ntl.ZZ_pContext(20)
+            sage: f = ntl.ZZ_pX([1,2,3,4,5,6,7,8],c); f
+            [1 2 3 4 5 6 7 8]
+            sage: g = f._right_pshift(ntl.ZZ(5)); g
+            [0 0 0 0 1 1 1 1]
+            sage: g.get_modulus_context()
+            NTL modulus 4
+            sage: h = f._right_pshift(ntl.ZZ(3)); h
+            [0 0 1 1 1 2 2 2]
+            sage: h.get_modulus_context()
+            NTL modulus 6
         """
         cdef ntl_ZZ new_c_p = ntl_ZZ.__new__(ntl_ZZ)
         ZZ_div(new_c_p.x, (<ntl_ZZ>self.c.p).x, n.x)
@@ -701,6 +784,13 @@ cdef class ntl_ZZ_pX(object):
             [6 12 1]
             sage: g.gcd(f)
             [6 12 1]
+            sage: zero = f-f
+            sage: f.gcd(zero)
+            [12 3 0 0 1]
+            sage: zero.gcd(f)
+            [12 3 0 0 1]
+            sage: zero.gcd(zero)
+            []
         """
         #self.c.restore_c() # restored in _new()
         cdef ntl_ZZ_pX r = self._new()
@@ -907,7 +997,7 @@ cdef class ntl_ZZ_pX(object):
 
         NOTE: The roots are returned in a random order.
 
-        EXAMPLES:
+        EXAMPLES::
 
         These computations use pseudo-random numbers, so we set the
         seed for reproducible testing. ::
@@ -1121,6 +1211,46 @@ cdef class ntl_ZZ_pX(object):
     def invmod(self, ntl_ZZ_pX modulus):
         """
         Returns the inverse of self modulo the modulus using NTL's InvMod.
+
+        INPUT:
+
+            modulus - a nonzero `ntl_ZZ_pX` object of degree less than that of `self`.
+
+        OUTPUT:
+
+            b - An element such that `self*b==1 mod modulus`.
+
+        EXAMPLES::
+
+            sage: c = ntl.ZZ_pContext(23)
+            sage: f = ntl.ZZ_pX([1,2,3,4,5,6,7],c)
+            sage: g = ntl.ZZ_pX([2,5,1],c)
+            sage: h = g.invmod(f); h
+            [3 8 7 20 1 9]
+            sage: (g*h)%f
+            [1]
+
+        The modulus must be of degree strictly greater than the polynomial::
+
+            sage: f.invmod(g)
+            Traceback (most recent call last):
+            ...
+            NTLError: InvMod: bad args
+
+        If the inverse does not exists raise an Error::
+
+            sage: g = ntl.ZZ_pX([19, 1], c)
+            sage: g.invmod(f)
+            Traceback (most recent call last):
+            ...
+            NTLError: ZZ_pX InvMod: can't compute multiplicative inverse
+
+        The context need not be a prime number::
+
+            sage: f = ntl.ZZ_pX([1,0,1],6)
+            sage: g = ntl.ZZ_pX([0,1],6)
+            sage: g.invmod(f)
+            [0 5]
         """
         cdef ntl_ZZ_pX r = self._new()
         sig_on()
@@ -1131,11 +1261,48 @@ cdef class ntl_ZZ_pX(object):
     def invmod_newton(self, ntl_ZZ_pX modulus):
         """
         Returns the inverse of self modulo the modulus using Newton lifting.
+        
         Only works if modulo a power of a prime, and if modulus is either
         unramified or Eisenstein.
+
+        INPUT:
+
+            modulus - a monic `ntl_ZZ_pX` object of degree less than that of `self`.
+
+        OUTPUT:
+
+            b - An element such that `self*b==1 mod modulus`.
+
+        EXAMPLES::
+
+            sage: c = ntl.ZZ_pContext(23)
+            sage: f = ntl.ZZ_pX([1,4,0,5,1],c)
+            sage: g = ntl.ZZ_pX([2,5,1],c)
+            sage: h = g.invmod_newton(f); h
+            [13 14 2 16]
+            sage: (g*h)%f
+            [1]
+
+        The modulus must be of degree strictly greater than the polynomial::
+
+            sage: f.invmod_newton(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: The degree of [2 5 1] must be smaller that the polynomial
+
+        The context must be a prime power::
+
+            sage: f = ntl.ZZ_pX([1,0,1],6)
+            sage: g = ntl.ZZ_pX([0,1],6)
+            sage: g.invmod_newton(f)
+            Traceback (most recent call last):
+            ...           
+            ValueError: must be modulo a prime power
         """
         cdef Integer pn = Integer(self.c.p)
         cdef ntl_ZZ_pX ans = self._new()
+        if modulus.degree()<= self.degree():
+            raise ValueError("The degree of %s must be smaller that the polynomial"%modulus)
         F = pn.factor()
         if len(F) > 1:
             raise ValueError("must be modulo a prime power")
@@ -1155,7 +1322,9 @@ cdef class ntl_ZZ_pX(object):
             if eisenstein:
                 if p.divides(Integer(self[0])):
                     raise ZeroDivisionError("cannot invert element")
+                sig_on()
                 ZZ_pX_InvMod_newton_ram(ans.x, self.x, mod, self.c.x)
+                sig_off()
             else:
                 raise ValueError("not eisenstein or unramified")
         else:
@@ -1168,7 +1337,9 @@ cdef class ntl_ZZ_pX(object):
                 ZZ_pX_min_val_coeff(minval, mini, self.x, pZZ.x)
                 if minval > 0:
                     raise ZeroDivisionError("cannot invert element")
+                sig_on()
                 ZZ_pX_InvMod_newton_unram(ans.x, self.x, mod, self.c.x, ctx.x)
+                sig_off()
             else:
                 raise ValueError("not eisenstein or unramified")
         return ans
@@ -1309,6 +1480,11 @@ cdef class ntl_ZZ_pX(object):
             sage: f = ntl.ZZ_pX([1,2,0,3],c)
             sage: f.discriminant()
             1
+            sage: zero = f-f
+            sage: zero.discriminant()
+            Traceback (most recent call last):
+            ...
+            NTLError: ZZ_p: division by non-invertible element
         """
         self.c.restore_c()
         cdef long m
@@ -1416,9 +1592,30 @@ cdef class ntl_ZZ_pX_Modulus(object):
         self.poly = poly
 
     def __repr__(self):
+        """
+        Return the degree of self
+
+        EXAMPLES::
+
+            sage: from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX_Modulus
+            sage: f = ntl_ZZ_pX_Modulus(ntl.ZZ_pX([1,2,3],(5)))
+            sage: f
+            NTL ZZ_pXModulus [1 2 3] (mod 5)
+        """
+
         return "NTL ZZ_pXModulus %s (mod %s)"%(self.poly, self.poly.c.p)
 
     def degree(self):
+        """
+        Return the degree of self
+
+        EXAMPLES::
+
+            sage: from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX_Modulus
+            sage: f = ntl_ZZ_pX_Modulus(ntl.ZZ_pX([1,2,3],(5)))
+            sage: f.degree()
+            2
+        """
         cdef Integer ans = Integer.__new__(Integer)
         mpz_set_ui(ans.value, ZZ_pX_Modulus_deg(self.x))
         return ans

@@ -368,7 +368,7 @@ cdef class ntl_zz_pX(object):
             sage: f.__div__(g)
             Traceback (most recent call last):
             ...
-            ArithmeticError: self (=[1, 0, 1]) is not divisible by other (=[2,1])
+            ArithmeticError: self (=[1, 0, 1]) is not divisible by other (=[2, 1])
 
         TESTS::
 

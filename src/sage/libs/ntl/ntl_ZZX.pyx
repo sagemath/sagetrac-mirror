@@ -407,7 +407,7 @@ cdef class ntl_ZZX(object):
 
         EXAMPLES:
             sage: f = ntl.ZZX([-1,0,1])
-            sage: f*f
+            sage: f.square()
             [1 0 -2 0 1]
         """
         sig_on()

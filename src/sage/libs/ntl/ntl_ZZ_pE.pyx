@@ -70,7 +70,8 @@ cdef class ntl_ZZ_pE(object):
         r"""
         Initializes an ntl ZZ_pE.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1],11))
             sage: c.ZZ_pE([13,4,1])
             [1 3]
@@ -161,16 +162,42 @@ cdef class ntl_ZZ_pE(object):
 
     def __reduce__(self):
         """
-        sage: a = ntl.ZZ_pE([4],ntl.ZZ_pX([1,1,1],ntl.ZZ(7)))
-        sage: loads(dumps(a)) == a
-        True
+        EXAMPLES::
+
+            sage: a = ntl.ZZ_pE([4],ntl.ZZ_pX([1,1,1],ntl.ZZ(7)))
+            sage: loads(dumps(a)) == a
+            True
         """
         return make_ZZ_pE, (self.get_as_ZZ_pX(), self.get_modulus_context())
 
     def get_modulus_context(self):
+        """
+        Return the modulus context.
+
+        OUTPUT:
+
+            c - a ntl.ZZ_pContext object
+
+        EXAMPLES::
+
+            sage: a = ntl.ZZ_pEContext(ntl.ZZ_pX([1,2,3],5))
+            sage: b = ntl.ZZ_pE([1,3],a)
+            sage: b.get_modulus_context() is a
+            True
+        """
         return self.c
 
     def __repr__(self):
+        """
+        TESTS::
+
+            sage: a = ntl.ZZ_pEContext(ntl.ZZ_pX([1,0,1,0,1],4))
+            sage: b = ntl.ZZ_pE([1,1,3,4],a)
+            sage: b
+            [1 1 3]
+            sage: b.__repr__()
+            '[1 1 3]'
+        """
         self.c.restore_c()
         return ccrepr(self.x)
 
@@ -203,7 +230,8 @@ cdef class ntl_ZZ_pE(object):
 
     def __invert__(ntl_ZZ_pE self):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([2,7,1],11))
             sage: ~ntl.ZZ_pE([1,1],modulus=c)
             [7 3]
@@ -216,6 +244,17 @@ cdef class ntl_ZZ_pE(object):
         return r
 
     def __mul__(ntl_ZZ_pE self, other):
+        """
+        EXAMPLES::
+
+            sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([1,0,1],2))
+            sage: a = ntl.ZZ_pE([1,1],c)
+            sage: a*a
+            []
+            sage: b = ntl.ZZ_pE([0,1],c)
+            sage: a*b
+            [1 1]
+        """
         cdef ntl_ZZ_pE y
         cdef ntl_ZZ_pE r = self._new()
         if not isinstance(other, ntl_ZZ_pE):
@@ -228,6 +267,17 @@ cdef class ntl_ZZ_pE(object):
         return r
 
     def __sub__(ntl_ZZ_pE self, other):
+        """
+        EXAMPLES::
+
+            sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([1,3,4,1],23))
+            sage: a = ntl.ZZ_pE([2,3,1],c)
+            sage: b = ntl.ZZ_pE([14,25,1],c)
+            sage: a-b
+            [11 1]
+            sage: a-a
+            []
+        """
         if not isinstance(other, ntl_ZZ_pE):
             other = ntl_ZZ_pE(other,self.c)
         elif self.c is not (<ntl_ZZ_pE>other).c:
@@ -238,6 +288,17 @@ cdef class ntl_ZZ_pE(object):
         return r
 
     def __add__(ntl_ZZ_pE self, other):
+        """
+        EXAMPLES::
+
+            sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([1,3,4,1],23))
+            sage: a = ntl.ZZ_pE([2,3,1],c)
+            sage: b = ntl.ZZ_pE([14,25,1],c)
+            sage: a+b
+            [16 5 2]
+            sage: a+a
+            [4 6 2]
+        """
         cdef ntl_ZZ_pE y
         cdef ntl_ZZ_pE r = self._new()
         if not isinstance(other, ntl_ZZ_pE):
@@ -252,6 +313,16 @@ cdef class ntl_ZZ_pE(object):
         return r
 
     def __neg__(ntl_ZZ_pE self):
+        """
+        EXAMPLES::
+
+            sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([1,3,4,1],23))
+            sage: a = ntl.ZZ_pE([2,3,1],c)
+            sage: b = -a; b
+            [21 20 22]
+            sage: a+b
+            []
+        """
         cdef ntl_ZZ_pE r = self._new()
         sig_on()
         self.c.restore_c()
@@ -260,6 +331,20 @@ cdef class ntl_ZZ_pE(object):
         return r
 
     def __pow__(ntl_ZZ_pE self, long e, ignored):
+        """
+        EXAMPLES::
+
+            sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([1,3,4,1],23))
+            sage: a = ntl.ZZ_pE([2,3,1],c)
+            sage: a**5
+            [1 6 11]
+            sage: a**0
+            [1]
+            sage: b=a*0;b
+            []
+            sage: b**0
+            [1]
+        """
         cdef ntl_ZZ_pE r = self._new()
         sig_on()
         self.c.restore_c()
@@ -284,13 +369,15 @@ cdef class ntl_ZZ_pE(object):
         r"""
         This method exists solely for automated testing of get_as_ZZ_pX().
 
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1],11))
-        sage: x = ntl.ZZ_pE([42,1],modulus=c)
-        sage: i = x.get_as_ZZ_pX_doctest()
-        sage: i
-        [9 1]
-        sage: type(i)
-        <type 'sage.libs.ntl.ntl_ZZ_pX.ntl_ZZ_pX'>
+        TESTS::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1],11))
+            sage: x = ntl.ZZ_pE([42,1],modulus=c)
+            sage: i = x.get_as_ZZ_pX_doctest()
+            sage: i
+            [9 1]
+            sage: type(i)
+            <type 'sage.libs.ntl.ntl_ZZ_pX.ntl_ZZ_pX'>
         """
         return self.get_as_ZZ_pX()
 
@@ -305,11 +392,13 @@ cdef class ntl_ZZ_pE(object):
         r"""
         This method exists solely for automated testing of set_from_ZZ_pX().
 
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1],11))
-        sage: x = ntl.ZZ_pE(modulus=c)
-        sage: x.set_from_ZZ_pX_doctest(ntl.ZZ_pX([5,2,1],11))
-        sage: x
-        [4 1]
+        TESTS::
+        
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1],11))
+            sage: x = ntl.ZZ_pE(modulus=c)
+            sage: x.set_from_ZZ_pX_doctest(ntl.ZZ_pX([5,2,1],11))
+            sage: x
+            [4 1]
         """
         self.set_from_ZZ_pX(value)
 
@@ -323,10 +412,12 @@ cdef class ntl_ZZ_pE(object):
         r"""
         Returns the modulus as an NTL ZZ_pX.
 
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1],11))
-        sage: n=ntl.ZZ_pE([2983,233],c)
-        sage: n.modulus()
-        [1 1 1]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1],11))
+            sage: n=ntl.ZZ_pE([2983,233],c)
+            sage: n.modulus()
+            [1 1 1]
         """
         self.c.restore_c()
         cdef ntl_ZZ_pX r = ntl_ZZ_pX(v = None, modulus=self.c.pc)
@@ -337,11 +428,12 @@ def make_ZZ_pE(x, c):
     """
     Here for unpickling.
 
-    EXAMPLES:
-    sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([-5,0,1],25))
-    sage: sage.libs.ntl.ntl_ZZ_pE.make_ZZ_pE([4,3], c)
-    [4 3]
-    sage: type(sage.libs.ntl.ntl_ZZ_pE.make_ZZ_pE([4,3], c))
-    <type 'sage.libs.ntl.ntl_ZZ_pE.ntl_ZZ_pE'>
+    EXAMPLES::
+
+        sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([-5,0,1],25))
+        sage: sage.libs.ntl.ntl_ZZ_pE.make_ZZ_pE([4,3], c)
+        [4 3]
+        sage: type(sage.libs.ntl.ntl_ZZ_pE.make_ZZ_pE([4,3], c))
+        <type 'sage.libs.ntl.ntl_ZZ_pE.ntl_ZZ_pE'>
     """
     return ntl_ZZ_pE(x, c)
