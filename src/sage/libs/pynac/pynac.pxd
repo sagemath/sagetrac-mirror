@@ -71,9 +71,17 @@ cdef extern from "pynac_wrap.h":
         void set_texname(char* t)
 
     cdef cppclass GExPair "std::pair<ex, ex>":
-        pass
+        GEx first
+        GEx second
 
-    cdef cppclass GExMap "exmap":
+    cdef cppclass GExMapIter "GiNaC::exmap::const_iterator":
+        void inc "operator++" ()
+        GExPair obj "operator*" ()
+        bint operator!=(GExMapIter i)
+
+    cdef cppclass GExMap "GiNaC::exmap":
+        GExMapIter begin()
+        GExMapIter end()
         void insert(GExPair e)
 
     cdef cppclass GExListIter "GiNaC::lst::const_iterator":
@@ -114,6 +122,7 @@ cdef extern from "pynac_wrap.h":
         bint is_zero()                except +
         bint is_polynomial(GEx vars)  except +
         bint match(GEx pattern, GExList s) except +
+        vector[GExMap] all_matches(GEx pattern) except +
         bint find(GEx pattern, GExList s) except +
         GSymbolSet free_symbols()     except +
         bint has(GEx pattern)         except +

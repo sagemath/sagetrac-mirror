@@ -4816,9 +4816,12 @@ cdef class Expression(CommutativeRingElement):
     ############################################################################
     # Pattern Matching
     ############################################################################
-    def match(self, pattern):
+    def match(self, pattern, all=None):
         """
         Check if self matches the given pattern.
+
+        Return the complete list of solutions if the keyword ``all``
+        is set to ``True``.
 
         INPUT:
 
@@ -4904,24 +4907,51 @@ cdef class Expression(CommutativeRingElement):
         cdef Expression p = self.coerce_in(pattern)
         cdef GExList mlst
         cdef bint res
+        cdef dict rdict = {}
+        cdef GExListIter itr
+        cdef GExListIter lstend
+        if all is None or not all:
+            sig_on()
+            try:
+                res = self._gobj.match(p._gobj, mlst)
+            finally:
+                sig_off()
+            if not res:
+                return None
+
+            itr = mlst.begin()
+            lstend = mlst.end()
+            while itr != lstend:
+                key = new_Expression_from_GEx(self._parent, itr.obj().lhs())
+                val = new_Expression_from_GEx(self._parent, itr.obj().rhs())
+                rdict[key] = val
+                itr.inc()
+            return rdict
+
+        cdef vector[GExMap] vec
+        cdef size_t i
+        cdef GExMap exmap
+        cdef GExPair pair
+        cdef GExMapIter mitr
         sig_on()
         try:
-            res = self._gobj.match(p._gobj, mlst)
+            vec = self._gobj.all_matches(p._gobj)
         finally:
             sig_off()
-        if not res:
+        if vec.empty():
             return None
-
-        cdef dict rdict = {}
-        cdef GExListIter itr = mlst.begin()
-        cdef GExListIter lstend = mlst.end()
-        while itr != lstend:
-            key = new_Expression_from_GEx(self._parent, itr.obj().lhs())
-            val = new_Expression_from_GEx(self._parent, itr.obj().rhs())
-            rdict[key] = val
-            itr.inc()
-        return rdict
-
+        l = []
+        for exmap in vec:
+            m = {}
+            mitr = exmap.begin()
+            while mitr != exmap.end():
+                pair = mitr.obj()
+                key = new_Expression_from_GEx(self._parent, pair.first)
+                val = new_Expression_from_GEx(self._parent, pair.second)
+                m[key] = val
+                mitr.inc()
+            l.append(m)
+        return l
 
     def find(self, pattern):
         """
