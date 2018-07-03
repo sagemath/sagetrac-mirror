@@ -1,0 +1,66 @@
+See https://trac.sagemath.org/ticket/25759
+
+diff --git a/cythonize.dat b/cythonize.dat
+deleted file mode 100644
+index 3d5d4d8..0000000
+--- a/cythonize.dat
++++ /dev/null
+@@ -1,43 +0,0 @@
+-scipy/_lib/_ccallback_c.pyx dccd988117dda57d4615c0bbdbed7d99ad37c0f7 d3c94285dfdb921528c2738092d0082924f75a31
+-scipy/cluster/_hierarchy.pyx 28345a24d622b0bafea17369adeeb465c2cccf80 5a99b89a80299b1a7665018e8367b0822ac2bca2
+-scipy/cluster/_hierarchy_distance_update.pxi 8ce2c7edf0628054a275228699671672e8365631 None
+-scipy/cluster/_structures.pxi bd06cd84954faaa76351fd9acb6c4a567388056c None
+-scipy/cluster/_vq.pyx 8351c8eae77809bb1e03604646a4dbbc062b0477 4476f5339d7ff4b76ae640ae41d8181824574be1
+-scipy/interpolate/_bspl.pyx 02b8563712b817e0647e9d6183f514cb03a56071 a5db8493e76f3c65c98fdc98bdfcd72782e2c2ba
+-scipy/interpolate/_ppoly.pyx ca1cc58e401fa2289eabd913a24d059ffdaa83ad 57f4ee6b30690c43759d742c4997181b16faf670
+-scipy/interpolate/interpnd.pyx 33683fc071b0f5b9985e903312b76b6f32ee9d3d 4ee88b0c89bbbd42b335f92a629b9c95d19d7d3d
+-scipy/io/matlab/mio5_utils.pyx 96bf220cfbb243bbcc45c1fce58eba2c7c9321a7 78776741709cd898ddb81236d853af8fb804fa0b
+-scipy/io/matlab/mio_utils.pyx 8bb3f6cf7b794b73fd849a67810d494a7426be14 ea7e69c1e52bb85e0e4164295ccecfd4b614f4bc
+-scipy/io/matlab/streams.pyx e6e97473b0345010275b691b5c6fcaa7a8b518e2 b51ccd45254b3222264f0c56ae4b72c88df59164
+-scipy/linalg/_decomp_update.pyx.in 85afcc28647011a46f85de454d184da6d5bc4f55 ccef844e7525c8f014f5d09bbb51e52464c80f54
+-scipy/linalg/_solve_toeplitz.pyx 4c24aaafa2ec26c41ea7e0d28a8ca79146269946 ccfa2a42ab5d657ae2ca2597ed8cbc868f9f89aa
+-scipy/linalg/cython_blas.pyx 531d46c20e8cee770e67d9fcaf9955b71b08202a 6258a527d3cec3797f87cd010695802bcc628554
+-scipy/linalg/cython_lapack.pyx b45cc707604eb50a8c69997805e8818e3203830d d3a3a676779316b9d86e68b495eb30348a875de7
+-scipy/ndimage/src/_cytest.pyx c2b6c9ed52aa94e373f97c26a3847e0958290473 63625be7c367e3b88d3d50e7a600370597641e67
+-scipy/ndimage/src/_ni_label.pyx 196c6104adaff0ddb713548dfcfc7903c55cab44 25d4097300ecfa24306a5f0833b5d811a981b1b3
+-scipy/optimize/_group_columns.pyx 318fa728dc33dcbe29e579b4f55c6c7d0f5c2b9f d5a193d5a9041186b76511c27271875fcbb2574d
+-scipy/optimize/_lsq/givens_elimination.pyx db35cfa4db51fd4bdd03d5a12c8055d55d5ff557 a51ee185c85d3966b1903e642946f9dd25b07eed
+-scipy/signal/_max_len_seq_inner.pyx 9e3e4c8ac82d6f98c4449e855b0c928c7b53d7dd 74c7818444241ae6eafd44bf0a710b36f969d301
+-scipy/signal/_spectral.pyx 7fd0775cd3c822ebd63e838062fca58d6ee98888 22f649245f451cd369ab973c0c024f4b42a78434
+-scipy/signal/_upfirdn_apply.pyx dc170b51eaf80eabc0b8bad193cd629d30267595 0fc1750c1536f0ad2e164ad4a8ba479b9275055e
+-scipy/sparse/_csparsetools.pyx.in 04f630fb5b6b4248d17a209fefe3756814dfcfae 2b61bfc744d6360884768ee315ebf226ddfb4c25
+-scipy/sparse/csgraph/_min_spanning_tree.pyx c000035ec91c3a56c0d5d943364c5c11e7eb6d43 f4c76085a300511fbaf8c741e240fd2e2ac471e0
+-scipy/sparse/csgraph/_reordering.pyx b6303efca41daa2212448cd1e1d3bb42a9e48b79 0fecd9232ee02e6bd61d574dfa7add95dd7dc35b
+-scipy/sparse/csgraph/_shortest_path.pyx 52b3ca33908ea6be86805a580de395b4e9123050 ec027592efdaecee46fcba89259378db2a93f8ac
+-scipy/sparse/csgraph/_tools.pyx 0bc8795fa6ad589a59eb27a881c77bb0112db3a0 74ed292c5721b40546cb81c7de7a0fc45d63c8d9
+-scipy/sparse/csgraph/_traversal.pyx facc3806ca178575af3426d602f3cadb42c1de32 bd9c8ad843f78e116a4e8186b3c6788558127df2
+-scipy/sparse/csgraph/parameters.pxi 6a203e1bf47bd9cbcac3e97fec91c24f68e8176e None
+-scipy/spatial/_hausdorff.pyx b78ea1ae2efb2dc0ba76d2d3a6c63f96b17a58e8 6375a254626c2560c1cf24455c8305aa81576481
+-scipy/spatial/_voronoi.pyx 7ff606555830cdedb674989c7fe83436d021b89e 93c42a8c17fe60a001f7fb0bfe70b473c4dc7dc3
+-scipy/spatial/ckdtree.pyx f4b41e30354b933afdc3cf4cbc380b12bfa4fdc9 c3e8b9b4c986d6307102c448cbb64da6e2bc7477
+-scipy/spatial/qhull.pyx 21802f39153107d42c1d3bd8777518606fe329f2 d4804af641d41efb29fb5d52c25dc021d35f1d0c
+-scipy/special/_comb.pyx 94ebcd83d8bac7d1bc1ec5aaaf35e22b9c7fe196 faad0bee4fa160400d228f97d3dd3d5dd6f6d8e9
+-scipy/special/_cython_special.pxi def9b06429a36210a6c4a5862f7e3ac6d9612281 None
+-scipy/special/_ellip_harm_2.pyx ab77fa1fc95842b7e31732bdcd76a9440e433be9 a2902ff645afae05040ad840720f8f9c5b1e919e
+-scipy/special/_test_round.pyx 00be65f082541732cd8bf5150915d6f54683fba7 676ad858033a2027e969d7af590973c175936ce6
+-scipy/special/_ufuncs.pyx b4d45a0486985a9d9e71284311c9855ac8535e72 08334269fcb8cdd5a5cd86e15d45131a5b8752da
+-scipy/special/_ufuncs_cxx.pyx 94322212d9898b01b484c86f834c663ab3f6f30e dafe4691219a9cc7492361568698260540627211
+-scipy/special/_ufuncs_extra_code.pxi 09514ff03ddf278312cba3383d199da27ba42051 None
+-scipy/special/_ufuncs_extra_code_common.pxi fdb3265ea5d66ec27777e194ab943357c2d709e1 None
+-scipy/special/cython_special.pyx bb895c87afb54792a69662cd9b44eef68f53a699 089f6aca8fee6065ff950d32bcb4e7667f7fd235
+-scipy/stats/_stats.pyx 64bb0c87f261f85355c8afcc929f9aefc54b4e6e 6ffc44668697fc52cd0456a4d005bdf53dc71d5d
+diff --git a/setup.py b/setup.py
+index 5eab64d..34d115f 100755
+--- a/setup.py
++++ b/setup.py
+@@ -395,9 +395,7 @@ def setup_package():
+     if run_build:
+         from numpy.distutils.core import setup
+         cwd = os.path.abspath(os.path.dirname(__file__))
+-        if not os.path.exists(os.path.join(cwd, 'PKG-INFO')):
+-            # Generate Cython sources, unless building from source release
+-            generate_cython()
++        generate_cython()
+
+         metadata['configuration'] = configuration
+     else:
