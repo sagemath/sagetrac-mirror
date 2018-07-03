@@ -5291,9 +5291,11 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 return gccc, m * mc * mc2, psi
         return gccc
 
-    def periodic_proportion_homomorphism(self,  p=3, n=1, orderByPrime=True):
+    def periodic_proportion_table(self,  p=3, n=1, orderByPrime=True):
         r"""
-            Given a homormorphism, a prime `p`, and a degree `n`. Returns a table of the ratio of periodic
+            Return a table of ratios of periodic point to size of finite field.
+
+            Given a homormorphism over the rational field, a prime `p`, and a degree `n`. Returns a table of the ratio of periodic
             points to the number of points in a field of size `p^n`, as it cycles through the range of `n` or through the primes up to `p`.
             One can organize table by ascending primes or by ascending degree. Skips the prime 2. Only works over finite fields.
 
@@ -5319,7 +5321,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 Latte's map made from doubling map.
                 sage: P1.<x,y> = ProjectiveSpace(QQ,1)
                 sage: f = DynamicalSystem_projective([x^4 + 2*x^2*y^2 + y^4, 4*x^3*y - 4*x*y^3])
-                sage: f.periodic_proportion_homomorphism(5,3, False)
+                sage: f.periodic_proportion_table(5,3, False)
                 [['p', 'n', 'perRatio'], [5, 1, 1/6], [5, 2, 3/26], [5, 3, 25/126]]
 
             ::
@@ -5327,35 +5329,30 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 Latte's map made from 4 maps.
                 sage: P1.<x,y> = ProjectiveSpace(QQ,1)
                 sage: f = DynamicalSystem_projective([x^16 - 5760*x^14*y^2 - 7520768*x^13*y^3 - 28357888*x^12*y^4 + 201957376*x^11*y^5+ 558698594304*x^10*y^6 + 1933211500544*x^9*y^7 + 267435745583104*x^8*y^8 + 23482256784359424*x^7*y^9 + 108724677517508608*x^6*y^10+ 10147976547926016000*x^5*y^11 + 588087534525977985024*x^4*y^12 + 1235694266395924627456*x^3*y^13 + 58939111027259551514624*x^2*y^14+ 2055952444895761826578432*x*y^15 + 319975744823966941839360*y^16 , 16*x^15*y + 80*x^14*y^2+ 25472*x^13*y^3 + 9136448*x^12*y^4+ 44581888*x^11*y^5 + 7751152640*x^10*y^6 + 1308363603968*x^9*y^7 + 3736594800640*x^8*y^8 + 150749744136192*x^7*y^9 + 2821400016125952*x^6*y^10- 18689442790768640*x^5*y^11 - 3003935896682364928*x^4*y^12 - 149814340560822992896*x^3*y^13 - 9914527585931362304*x^2*y^14+ 10621852909502803738624*x*y^15 + 510646648639077987909632*y^16])
-                sage: f.periodic_proportion_homomorphism(11,3)
+                sage: f.periodic_proportion_table(11,3)
                 [['p', 'n', 'perRatio'], [3, 3, 1/4], [5, 3, 1/6], [7, 3, 1/2], [11, 3, 1/4]]
 
             ::
 
                 sage: P1.<x,y> = ProjectiveSpace(QQ,1)
                 sage: f = DynamicalSystem_projective([x^4 - 2*x*y^3 , 4*x^3*y + y^4])
-                sage: f.periodic_proportion_homomorphism(3)
+                sage: f.periodic_proportion_table(3)
                 [['p', 'n', 'perRatio'], [3, 1, 3/4]]
 
-            ::
+            TESTS:
 
-                sage: P1.<x,y> = ProjectiveSpace(QQ,1)
+                sage: P1.<x,y> = ProjectiveSpace(ZZ,1)
                 sage: f = DynamicalSystem_projective([y, 2*x + y])
-                sage: f.periodic_proportion_homomorphism(3)
-                [['p', 'n', 'perRatio'], [3, 1, 1]]
-
-            ::
-
-                sage: P1.<x,y> = ProjectiveSpace(QQ,1)
-                sage: f = DynamicalSystem_projective([y, 2*x + y])
-                sage: f.periodic_proportion_homomorphism(n=4)
-                [['p', 'n', 'perRatio'], [3, 4, 1]]
+                sage: f.periodic_proportion_table(n=4)
+                Traceback (most recent call last):
+                ...
+                AttributeError: 'DynamicalSystem_projective' object has no attribute 'periodic_proportion_table'
 
             ::
 
                 sage: P1.<x,y> = ProjectiveSpace(QQ,1)
                 sage: f = DynamicalSystem_projective([y, 2*x + y])
-                sage: f.periodic_proportion_homomorphism(p=4)
+                sage: f.periodic_proportion_table(p=4)
                 Traceback (most recent call last):
                 ...
                 ValueError:  p must be a prime.
@@ -5364,32 +5361,32 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
                 sage: P1.<x,y> = ProjectiveSpace(QQ,1)
                 sage: f = DynamicalSystem_projective([y, 2*x + y])
-                sage: f.periodic_proportion_homomorphism(n=-.76)
+                sage: f.periodic_proportion_table(n=-.76)
                 Traceback (most recent call last):
                 ...
                 ValueError:  n must be a positive integer.
         """
         from sage.rings.finite_rings.finite_field_constructor import GF
         from sage.rings.fast_arith import prime_range
-        if is_prime(p)== False:
+        if is_prime(p) == False:
             raise ValueError (" p must be a prime.")
         if n<=0 or not n in ZZ:
             raise ValueError (" n must be a positive integer. ")
         if not orderByPrime:
-            NT=[]
+            NT =[]
             NT.append(['p', 'n', 'perRatio'])
             for i in range(n):
                 fp = self.change_ring(GF(p**(i+1)))
                 try:
-                    g=fp.cyclegraph()
+                    g = fp.cyclegraph()
                     per = sum([len(t)-1 for t in g.all_simple_cycles()])# number of periodic points
-                    perRatio =per/((p**(i+1))+1)# periodic points / number of points in field
+                    perRatio = per/((p**(i+1)) +1)# periodic points / number of points in field
                     NT. append([p, i+1, perRatio])
                 except ValueError:
                     raise ValueError ("[0, 0] does not define a valid point since all entries are 0 and skip at  p=",p,"and n=", i+1,"")
             return NT
         if orderByPrime:
-            PT=[]
+            PT = []
             PT.append(['p', 'n', 'perRatio'])
             for i in prime_range(p+1):
                 if i != 2:
@@ -5397,7 +5394,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     try:
                         g=fp.cyclegraph()
                         per = sum([len(t)-1 for t in g.all_simple_cycles()])# number of periodic points
-                        perRatio =per/((i**n)+1)# periodic points / number of points in field
+                        perRatio = per/((i**n) +1)# periodic points / number of points in field
                         PT. append([i, n, perRatio])
                     except ValueError:
                         raise ValueError ("[0, 0] does not define a valid point since all entries are 0 and skip at  p=",p,"and n=", i+1,"")
