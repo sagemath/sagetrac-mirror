@@ -42,6 +42,7 @@
     :license: BSD, see LICENSE for details.
 """
 
+import os
 import traceback
 
 from docutils import nodes
@@ -61,6 +62,11 @@ if False:
     from sphinx.environment import BuildEnvironment  # NOQA
 
 logger = logging.getLogger(__name__)
+
+
+from .pyxcode import CYTHON_EXTS
+from .pyxcode import sage_get_full_modname as get_full_modname
+from .pyxcode import SageModuleAnalyzer as ModuleAnalyzer
 
 
 def _get_full_modname(app, modname, attribute):
@@ -107,9 +113,9 @@ def doctree_read(app, doctree):
             return
         elif entry is None or entry[0] != code:
             analyzer.find_tags()
-            entry = code, analyzer.tags, {}, refname
+            entry = code, analyzer.srcname, analyzer.tags, {}, refname
             env._viewcode_modules[modname] = entry  # type: ignore
-        _, tags, used, _ = entry
+        _, _, tags, used, _ = entry
         if fullname in tags:
             used[fullname] = docname
             return True
@@ -185,11 +191,15 @@ def collect_pages(app):
             app.verbosity, lambda x: x[0]):
         if not entry:
             continue
-        code, tags, used, refname = entry
+        code, filename, tags, used, refname = entry
         # construct a page name for the highlighted source
         pagename = '_modules/' + modname.replace('.', '/')
+
         # highlight the source using the builder's highlighter
-        if env.config.highlight_language in ('python3', 'default', 'none'):
+        if filename and os.path.splitext(filename)[1] in CYTHON_EXTS:
+            # Actually use the cython lexer for Cython source files
+            lexer = 'cython'
+        elif env.config.highlight_language in ('python3', 'default', 'none'):
             lexer = env.config.highlight_language
         else:
             lexer = 'python'
