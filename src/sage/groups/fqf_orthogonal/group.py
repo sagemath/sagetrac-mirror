@@ -80,6 +80,15 @@ class FqfIsometry(AbelianGroupAutomorphism):
         else:
             return AbelianGroupAutomorphism.__call__(self, x)
 
+    def _gap_init(self):
+        r"""
+        """
+        s = self.gap().__repr__()
+        s = s.replace("->", ",")
+        s = "GroupHomomorphismByImages(A, A, " + s + ")"
+        return s
+
+
     def det_spin(self):
         r"""
         Return the spinor norm of an adelic lift of ``self``.
@@ -199,6 +208,24 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
         """
         return self._invariant_form
 
+    def _gap_init(self):
+        r"""
+        """
+        invs = self.domain().gap().AbelianInvariants().__repr__()
+        s = "A:=AbelianGroup(" + invs + ");\n"
+        pcgs = self.domain().gap().Pcgs()
+        s += "f:=Pcgs(A);"
+        for n in range(1,len(pcgs)+1):
+            s += "f%s:=f[%s];"%(n,n)
+        s += "\n"
+        s += "aut:= AutomorphismGroup(A);\n"
+        s += "G:=Subgroup(aut, ["
+        for g in self.gens():
+            s += g._gap_init() + ",\n"
+        s = s[:-1]
+        s += "]);"
+        return s
+
     def _element_constructor_(self, x, check=True):
         r"""
         Construct an element from ``x`` and handle conversions.
@@ -255,6 +282,7 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
                     if (g[i]*f).b(g[j]*f) != (g[i]*f).b(g[j]*f):
                         raise ValueError("not an isometry")
         return f
+
 
     def _get_action_(self, S, op, self_on_left):
         r"""
