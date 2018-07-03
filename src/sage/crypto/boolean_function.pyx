@@ -30,7 +30,9 @@ AUTHOR:
 """
 from __future__ import absolute_import
 
+from cysignals.memory cimport check_allocarray, sig_free
 from libc.string cimport memcpy
+from libc.stdint cimport int64_t, uint64_t
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.richcmp cimport rich_to_bool
@@ -44,19 +46,30 @@ from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 include "sage/data_structures/bitset.pxi"
 
+cdef extern from "limits.h":
+    enum: CHAR_BIT
+
 # for details about the implementation of hamming_weight_int,
 # walsh_hadamard transform, reed_muller transform, and a lot
 # more, see 'Matters computational' available on www.jjj.de.
 
-cdef inline unsigned int hamming_weight_int(unsigned int x):
-    # valid for 32bits
-    x -=  (x>>1) & 0x55555555UL                        # 0-2 in 2 bits
-    x  = ((x>>2) & 0x33333333UL) + (x & 0x33333333UL)  # 0-4 in 4 bits
-    x  = ((x>>4) + x) & 0x0f0f0f0fUL                   # 0-8 in 8 bits
-    x *= 0x01010101UL
-    return x>>24
+# constants for 64 bits
+cdef enum:
+    m1  = 0x5555555555555555UL #binary: 0101...
+    m2  = 0x3333333333333333UL #binary: 00110011..
+    m4  = 0x0f0f0f0f0f0f0f0fUL #binary:  4 zeros,  4 ones ...
+    h01 = 0x0101010101010101UL #the sum of 256 to the power of 0,1,2,3...
+    s = 56
 
-cdef walsh_hadamard(long *f, int ldn):
+cdef inline uint64_t hamming_weight(uint64_t x):
+    # valid for 64 bits
+    x -=  (x>>1) & m1              # 0-2 in 2 bits
+    x  = ((x>>2) & m2) + (x & m2)  # 0-4 in 4 bits
+    x  = ((x>>4) + x) & m4         # 0-8 in 8 bits
+    x *= h01
+    return x >> s
+
+cdef walsh_hadamard(int64_t *f, uint64_t ldn):
     r"""
     The Walsh Hadamard transform is an orthogonal transform equivalent
     to a multidimensional discrete Fourier transform of size 2x2x...x2.
@@ -71,14 +84,15 @@ cdef walsh_hadamard(long *f, int ldn):
         sage: B.walsh_hadamard_transform() # indirect doctest
         (0, 0, 0, -4)
     """
-    cdef long n, ldm, m, mh, t1, t2, r
-    n = 1 << ldn
-    for 1 <= ldm <= ldn:
-        m  = (1<<ldm)
+    cdef uint64_t n, ldm, m, mh, r, t1, t2
+    cdef int64_t u, v
+    n = 1UL << ldn
+    for ldm in range(1, ldn+1):
+        m  = 1UL << ldm
         mh = m//2
-        for 0 <= r <n by m:
+        for r in range(0, n, m):
             t1 = r
-            t2 = r+mh
+            t2 = r + mh
             for 0 <= j < mh:
                 u = f[t1]
                 v = f[t2]
@@ -87,7 +101,7 @@ cdef walsh_hadamard(long *f, int ldn):
                 t1 += 1
                 t2 += 1
 
-cdef long yellow_code(unsigned long a):
+cdef uint64_t yellow_code(uint64_t a):
     """
     The yellow-code is just a Reed Muller transform applied to a
     word.
@@ -101,16 +115,16 @@ cdef long yellow_code(unsigned long a):
         sage: B.truth_table() # indirect doctest
         (False, False, False, True, False, False, False, True)
     """
-    cdef unsigned long s = (8*sizeof(unsigned long))>>1
-    cdef unsigned long m = (~0UL) >> s
-    cdef unsigned long r = a
-    while(s):
+    cdef uint64_t s = (8*sizeof(uint64_t))>>1
+    cdef uint64_t m = (~0UL) >> s
+    cdef uint64_t r = a
+    while s:
         r ^= ( (r&m) << s )
         s >>= 1
         m ^= (m<<s)
     return r
 
-cdef reed_muller(mp_limb_t* f, int ldn):
+cdef reed_muller(mp_limb_t* f, uint64_t ldn):
     r"""
     The Reed Muller transform (also known as binary Möbius transform)
     is an orthogonal transform. For a function `f` defined by
@@ -133,19 +147,19 @@ cdef reed_muller(mp_limb_t* f, int ldn):
         sage: B.truth_table() # indirect doctest
         (False, False, False, True, False, False, False, True)
     """
-    cdef long n, ldm, m, mh, t1, t2, r
-    n = 1 << ldn
+    cdef uint64_t n, r, ldm, m, mh, t1, t2
+    n = 1UL << ldn
     # intra word transform
-    for 0 <= r < n:
+    for r in range(n):
         f[r] = yellow_code(f[r])
     # inter word transform
-    for 1 <= ldm <= ldn:
-        m  = (1<<ldm)
+    for ldm in range(1, ldn+1):
+        m  = 1UL << ldm
         mh = m//2
-        for 0 <= r <n by m:
+        for r in range(0, n, m):
             t1 = r
             t2 = r+mh
-            for 0 <= j < mh:
+            for j in range(mh):
                 f[t2] ^= f[t1]
                 t1 += 1
                 t2 += 1
@@ -335,7 +349,7 @@ cdef class BooleanFunction(SageObject):
                 bitset_zero(self._truth_table)
                 if isinstance(K,FiniteField_givaro): #the ordering is not the same in this case
                     for u in K:
-                        bitset_set_to(self._truth_table, ZZ(u._vector_().list(),2) , (x(u)).trace())
+                        bitset_set_to(self._truth_table, u.integer_representation(), x(u).trace())
                 else:
                     for i,u in enumerate(K):
                         bitset_set_to(self._truth_table, i , (x(u)).trace())
@@ -698,14 +712,21 @@ cdef class BooleanFunction(SageObject):
             sage: B.walsh_hadamard_transform()
             (0, -4, 0, 4, 0, 4, 0, 4)
         """
-        cdef long *temp
+        cdef uint64_t nvars = self._nvariables
+        cdef uint64_t slong = sizeof(int64_t)*CHAR_BIT-1
+
+        if nvars >= slong:
+            raise NotImplementedError("Currently Walsh-hadamard transform can only be computed for up to %d variables." % (slong,))
+
+        cdef uint64_t i, n
+        cdef int64_t* temp
 
         if self._walsh_hadamard_transform is None:
             n =  self._truth_table.size
-            temp = <long *>sig_malloc(sizeof(long)*n)
+            temp = <int64_t *>check_allocarray(n, sizeof(int64_t))
 
-            for 0<= i < n:
-                temp[i] = 1 - (bitset_in(self._truth_table,i)<<1)
+            for i in range(n):
+                temp[i] = 1 - (bitset_in(self._truth_table, i)<<1)
 
             walsh_hadamard(temp, self._nvariables)
             self._walsh_hadamard_transform = tuple(temp[i] for i in xrange(n))
@@ -772,7 +793,7 @@ cdef class BooleanFunction(SageObject):
         """
         cdef list T = [ self(2**i-1) for i in xrange(self._nvariables+1) ]
         for i in xrange(2**self._nvariables):
-            if T[ hamming_weight_int(i) ] != bitset_in(self._truth_table, i):
+            if T[ hamming_weight(i) ] != bitset_in(self._truth_table, i):
                 return False
         return True
 
@@ -828,13 +849,14 @@ cdef class BooleanFunction(SageObject):
             sage: B.correlation_immunity()
             2
         """
-        cdef int c
+        cdef long i
+        cdef int64_t c
         if self._correlation_immunity is None:
             c = self._nvariables
             W = self.walsh_hadamard_transform()
-            for 0 < i < len(W):
+            for i in range(len(W)):
                 if (W[i] != 0):
-                    c = min( c , hamming_weight_int(i) )
+                    c = min( c , hamming_weight(i) )
             self._correlation_immunity = ZZ(c-1)
         return self._correlation_immunity
 
@@ -872,18 +894,19 @@ cdef class BooleanFunction(SageObject):
             sage: B.autocorrelation()
             (8, 8, 0, 0, 0, 0, 0, 0)
         """
-        cdef long *temp
+        cdef int64_t *temp
+        cdef long i
 
         if self._autocorrelation is None:
             n =  self._truth_table.size
-            temp = <long *>sig_malloc(sizeof(long)*n)
+            temp = <int64_t *>check_allocarray(n, sizeof(long))
             W = self.walsh_hadamard_transform()
 
-            for 0<= i < n:
-                temp[i] = W[i]*W[i]
+            for i in range(n):
+                temp[i] = W[i] * W[i]
 
             walsh_hadamard(temp, self._nvariables)
-            self._autocorrelation = tuple(temp[i]>>self._nvariables for i in xrange(n))
+            self._autocorrelation = tuple(temp[i]>>self._nvariables for i in range(n))
             sig_free(temp)
 
         return self._autocorrelation
