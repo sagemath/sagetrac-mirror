@@ -716,7 +716,7 @@ cdef class BooleanFunction(SageObject):
         cdef uint64_t slong = sizeof(int64_t)*CHAR_BIT-1
 
         if nvars >= slong:
-            raise NotImplementedError("Currently Walsh-hadamard transform can only be computed for up to %d variables." % (slong,))
+            raise NotImplementedError("Currently Walsh-hadamard transform can only be computed for up to %d variables" % (slong,))
 
         cdef uint64_t i, n
         cdef int64_t* temp
