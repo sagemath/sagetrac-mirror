@@ -619,7 +619,7 @@ cdef class ntl_mat_GF2(object):
         sig_off()
         return r
 
-    def IsIdent(self, n = -1):
+    def IsIdent(self, n = None):
         """
         test if this matrix is the n x n identity matrix.
 
@@ -634,8 +634,10 @@ cdef class ntl_mat_GF2(object):
             sage: A[3,3] = 1
             sage: A.IsIdent()
             True
+            sage: A.IsIdent(-2)
+            False
         """
-        if n < 0:
+        if n is None:
             n = self.NumRows()
         return bool(mat_GF2_IsIdent(self.x, n))
 
