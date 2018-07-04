@@ -7992,14 +7992,6 @@ class NumberField_absolute(NumberField_generic):
             sage: K.order(a) is K.order(a,check_is_integral=True) is K.order(a,check_is_integral=False)
             True
 
-        Even if the order lives in a different field, caching works (currently,
-        however, ``allow_subfield`` is incorrect :trac:`16046`)::
-
-            sage: K.<a> = NumberField(x**4+3)
-            sage: o = K.order([a**2], allow_subfield=True)
-            sage: o is K.order([a**2], allow_subfield=True)
-            True
-
         Different generators for the same order::
 
             sage: K.order(a) is K.order(a,a^2) is K.order(a^2,a)

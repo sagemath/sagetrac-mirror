@@ -51,6 +51,7 @@ from sage.rings.ring import IntegralDomain
 from sage.structure.sequence import Sequence
 from sage.rings.integer_ring import ZZ
 from sage.structure.element import is_Element
+from sage.structure.factory import UniqueFactory
 
 from .number_field_element import OrderElement_absolute, OrderElement_relative
 
@@ -221,7 +222,7 @@ class Order(IntegralDomain):
         This function is called implicitly below::
 
             sage: R = EquationOrder(x^2 + 2, 'a'); R
-            Order in Number Field in a with defining polynomial x^2 + 2
+            Maximal Order in Number Field in a with defining polynomial x^2 + 2
             sage: (3,15)*R
             Fractional ideal (3)
 
@@ -1104,42 +1105,6 @@ class Order(IntegralDomain):
                 elements.append(self(a))
         return elements
 
-##     def absolute_polynomial(self):
-##         """
-##         Returns the absolute polynomial of this order, which is just the absolute polynomial of the number field.
-
-##         EXAMPLES::
-
-##         sage: K.<a, b> = NumberField([x^2 + 1, x^3 + x + 1]); OK = K.maximal_order()
-##         Traceback (most recent call last):
-##         ...
-##         NotImplementedError
-
-##         #sage: OK.absolute_polynomial()
-##         #x^6 + 5*x^4 - 2*x^3 + 4*x^2 + 4*x + 1
-##         """
-##         return self.number_field().absolute_polynomial()
-
-##     def polynomial(self):
-##         """
-##         Returns the polynomial defining the number field that contains self.
-##         """
-##         return self.number_field().polynomial()
-
-##     def polynomial_ntl(self):
-##         """
-##         Return defining polynomial of the parent number field as a
-##         pair, an ntl polynomial and a denominator.
-
-##         This is used mainly to implement some internal arithmetic.
-
-##         EXAMPLES::
-
-##             sage: NumberField(x^2 + 1,'a').maximal_order().polynomial_ntl()
-##             ([1 0 1], 1)
-##         """
-##         return self.number_field().polynomial_ntl()
-
 class AbsoluteOrder(Order):
 
     def __init__(self, K, module_rep, is_maximal=None, check=True):
@@ -1226,24 +1191,6 @@ class AbsoluteOrder(Order):
         if not embedding(x) in self._module_rep:
             raise TypeError("Not an element of the order.")
         return self._element_type(self, x)
-
-    def __reduce__(self):
-        r"""
-        Used in pickling.
-
-        We test that :trac:`6462` is fixed. This used to fail because
-        pickling the order also pickled the cached results of the
-        ``basis`` call, which were elements of the order.
-
-        ::
-
-            sage: L.<a> = QuadraticField(-1)
-            sage: OL = L.maximal_order()
-            sage: _ = OL.basis()
-            sage: loads(dumps(OL)) == OL
-            True
-        """
-        return (AbsoluteOrder, (self.number_field(), self.free_module(), self._is_maximal, False))
 
     def __add__(left, right):
         """
@@ -1371,7 +1318,7 @@ class AbsoluteOrder(Order):
         K = self.number_field().change_names(names)
         _, to_K = K.structure()
         B = [to_K(a) for a in self.basis()]
-        return K.order(B, check_is_integral=False, check_rank=False, allow_subfield=True)
+        return K.order(B, check_is_integral=False, check_rank=False)
 
     def index_in(self, other):
         """
@@ -1668,20 +1615,6 @@ class RelativeOrder(Order):
         else:
             return self._absolute_order.change_names(names)
 
-    def __reduce__(self):
-        r"""
-        Used for pickling.
-
-        EXAMPLES::
-
-            sage: L.<a, b> = NumberField([x^2 + 1, x^2 - 5])
-            sage: O = L.maximal_order()
-            sage: _ = O.basis()
-            sage: O == loads(dumps(O))
-            True
-        """
-        return (RelativeOrder, (self.number_field(), self.absolute_order(), self._is_maximal, False))
-
     def basis(self):
         r"""
         Return a basis for this order as `\ZZ`-module.
@@ -1929,11 +1862,8 @@ def absolute_order_from_ring_generators(gens, check_is_integral=True,
                allow_subfield = allow_subfield)
 
 
-def absolute_order_from_module_generators(gens,
-              check_integral=True, check_rank=True,
-              check_is_ring=True, is_maximal=None,
-              allow_subfield = False):
-    """
+class AbsoluteOrderFactory(UniqueFactory):
+    r"""
     INPUT:
 
     - ``gens`` -- list of elements of an absolute number field that generates an
@@ -2015,68 +1945,80 @@ def absolute_order_from_module_generators(gens,
         sage: R.basis()
         [1/2, i]
 
-    An order that lives in a subfield::
-
-        sage: F.<alpha> = NumberField(x**4+3)
-        sage: F.order([alpha**2], allow_subfield=True)
-        Order in Number Field in alpha with defining polynomial x^4 + 3
     """
-    if len(gens) == 0:
-        raise ValueError("gens must span an order over ZZ")
-    gens = Sequence(gens)
-    if check_integral and not each_is_integral(gens):
-        raise ValueError("each generator must be integral")
+    def create_key_and_extra_args(self, gens, check_integral=True, check_rank=True, check_is_ring=True, is_maximal=None, allow_subfield=False):
+        r"""
+        Return a key that uniquely identifies the order specified by the parameters.
 
-    K = gens.universe()
-    if is_NumberFieldOrder(K):
-        K = K.number_field()
-    V, from_V, to_V = K.vector_space()
-    mod_gens = [to_V(x) for x in gens]
-    ambient = ZZ**V.dimension()
-    W = ambient.span(mod_gens)
+        TESTS:
 
-    if allow_subfield:
-        if W.rank() < K.degree():
-            # We have to make the order in a smaller field.
-            # We do this by choosing a random element of W,
-            # moving it back to K, and checking that it defines
-            # a field of degree equal to the degree of W.
-            # Then we move everything into that field, where
-            # W does define an order.
-            while True:
-                z = V.random_element()
-                alpha = from_V(z)
-                if alpha.minpoly().degree() == W.rank():
-                    break
-            # Now alpha generates a subfield there W is an order
-            # (with the right rank).
-            # We move each element of W to this subfield.
-            c = alpha.coordinates_in_terms_of_powers()
+        Check that :trac:`24934` has been fixed::
 
-    elif check_rank:
-        if W.rank() != K.degree():
-            raise ValueError("the rank of the span of gens is wrong")
+            sage: K.<i> = QuadraticField(-1)
+            sage: loads(dumps(K.maximal_order())) is K.maximal_order() # indirect doctest
+            True
 
-    if check_is_ring:
-        # Is there a faster way?
-        alg = [to_V(x) for x in monomials(gens, [f.absolute_minpoly().degree() for f in gens])]
-        if ambient.span(alg) != W:
-            raise ValueError("the module span of the gens is not closed under multiplication.")
+        """
+        if allow_subfield:
+            raise NotImplementedError("the allow_subfield parameter is not supported yet")
+        if len(gens) == 0:
+            raise ValueError("gens must span an order over ZZ")
+        gens = Sequence(gens)
 
-    return AbsoluteOrder(K, W, check=False, is_maximal=is_maximal)  # we have already checked everything
+        K = gens.universe()
+        if is_NumberFieldOrder(K):
+            K = K.number_field()
+        gens = frozenset([K(g) for g in gens])
+        return (K, gens), {"check_integral": check_integral,
+                           "check_rank": check_rank,
+                           "check_is_ring": check_is_ring,
+                           "is_maximal": is_maximal}
 
+    def create_object(self, version, key, check_integral, check_rank, check_is_ring, is_maximal):
+        r"""
+        Return the order defined by ``key``.
 
+        TESTS::
 
+        Check that caching does not break maximal orders:
 
+            sage: K.<i> = QuadraticField(-1)
+            sage: O = K.order(i); O # indirect doctest
+            Order in Number Field in i with defining polynomial x^2 + 1
+            sage: K.maximal_order()
+            Gaussian Integers in Number Field in i with defining polynomial x^2 + 1
 
-def relative_order_from_ring_generators(gens,
-                                        check_is_integral=True,
-                                        check_rank=True,
-                                        is_maximal = None,
-                                        allow_subfield=False):
-    """
+        """
+        K, gens = key
+
+        if check_integral and not each_is_integral(gens):
+            raise ValueError("each generator must be integral")
+
+        K = iter(gens).next().parent()
+        V, from_V, to_V = K.vector_space()
+        mod_gens = [to_V(x) for x in gens]
+
+        ambient = ZZ**V.dimension()
+        W = ambient.span(mod_gens)
+
+        if check_rank:
+            if W.rank() != K.degree():
+                raise ValueError("the rank of the span of gens is wrong")
+
+        if check_is_ring:
+            # Is there a faster way?
+            alg = [to_V(x) for x in monomials(gens, [f.absolute_minpoly().degree() for f in gens])]
+            if ambient.span(alg) != W:
+                raise ValueError("the module span of the gens is not closed under multiplication.")
+
+        return AbsoluteOrder(K, W, check=False, is_maximal=is_maximal)  # we have already checked everything
+
+absolute_order_from_module_generators = AbsoluteOrderFactory("sage.rings.number_field.order.absolute_order_from_module_generators")
+
+class RelativeOrderFactory(UniqueFactory):
+    r"""
     INPUT:
-
+    
     - ``gens`` -- list of integral elements of an absolute order.
     - ``check_is_integral`` -- bool (default: True), whether to check that each
       generator is integral.
@@ -2084,44 +2026,85 @@ def relative_order_from_ring_generators(gens,
       generated by gens is of full rank.
     - ``is_maximal`` -- bool (or None); set if maximality of the generated order is
       known
-
+    
     EXAMPLES:
-
+    
     We have to explicitly import this function, since it isn't meant
     for regular usage::
-
+    
         sage: from sage.rings.number_field.order import relative_order_from_ring_generators
         sage: K.<i, a> = NumberField([x^2 + 1, x^2 - 17])
         sage: R = K.base_field().maximal_order()
         sage: S = relative_order_from_ring_generators([i,a]); S
         Relative Order in Number Field in i with defining polynomial x^2 + 1 over its base field
-
+    
     Basis for the relative order, which is obtained by computing the algebra generated
     by i and a::
-
+    
         sage: S.basis()
         [1, 7*i - 2*a, -a*i + 8, 25*i - 7*a]
     """
-    if check_is_integral and not each_is_integral(gens):
-        raise ValueError("each generator must be integral")
-    gens = Sequence(gens)
+    def create_key_and_extra_args(self, gens, check_is_integral=True, check_rank=True, is_maximal = None, allow_subfield=False):
+        r"""
+        Return a key that uniquely identifies the order specified by the parameters.
 
-    # The top number field that contains the order.
-    K = gens.universe()
+        TESTS:
 
-    # The absolute version of that field.
-    Kabs = K.absolute_field('z')
-    from_Kabs, to_Kabs = Kabs.structure()
+        Check that :trac:`24934` has been fixed::
 
-    module_gens = [to_Kabs(a) for a in gens]
-    n = [a.absolute_minpoly().degree() for a in gens]
-    absolute_order_module_gens = monomials(module_gens, n)
+            sage: K.<i, a> = NumberField([x^2 + 1, x^2 - 17])
+            sage: S = relative_order_from_ring_generators([i,a]) # indirect doctest
+            sage: loads(dumps(S)) is S
+            True
 
-    abs_order =  absolute_order_from_module_generators(absolute_order_module_gens,
-                                                       check_integral=False, check_is_ring=False,
-                                                       check_rank=check_rank)
+        """
+        if allow_subfield:
+            raise NotImplementedError("the allow_subfield parameter is not supported yet")
 
-    return RelativeOrder(K, abs_order, check=False, is_maximal=is_maximal)
+        gens = Sequence(gens)
+
+        K = gens.universe()
+        if is_NumberFieldOrder(K):
+            K = K.number_field()
+        gens = frozenset([K(g) for g in gens])
+
+        return (K, gens), {"check_is_integral": check_is_integral,
+                           "check_rank": check_rank,
+                           "is_maximal": is_maximal}
+
+    def create_object(self, version, key, check_is_integral, check_rank, is_maximal):
+        r"""
+        Return the order defined by ``key``.
+
+        TESTS::
+
+            sage: K.<i, a> = NumberField([x^2 + 1, x^2 - 19])
+            sage: S = relative_order_from_ring_generators([i,i + a]); S # indirect doctest
+
+        """
+        K, gens = key
+
+        if check_is_integral and not each_is_integral(gens):
+            raise ValueError("each generator must be integral")
+
+        # The top number field that contains the order.
+        K = iter(gens).next().parent()
+    
+        # The absolute version of that field.
+        Kabs = K.absolute_field('z')
+        from_Kabs, to_Kabs = Kabs.structure()
+    
+        module_gens = [to_Kabs(a) for a in gens]
+        n = [a.absolute_minpoly().degree() for a in gens]
+        absolute_order_module_gens = monomials(module_gens, n)
+    
+        abs_order =  absolute_order_from_module_generators(absolute_order_module_gens,
+                                                           check_integral=False, check_is_ring=False,
+                                                           check_rank=check_rank)
+    
+        return RelativeOrder(K, abs_order, check=False, is_maximal=is_maximal)
+
+relative_order_from_ring_generators = RelativeOrderFactory("sage.rings.number_field.order.relative_order_from_ring_generators")
 
 
 def GaussianIntegers(names="I"):
