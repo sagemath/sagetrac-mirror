@@ -1,5 +1,10 @@
 See https://trac.sagemath.org/ticket/25759
 
+- Remove cythonize.dat file to force cythonizing.
+This file the hashcodes used to define if the *.pyx files has been modified.
+- Modify setup.py to launch cythonize even for sources
+releases.
+
 diff --git a/cythonize.dat b/cythonize.dat
 deleted file mode 100644
 index 3d5d4d8..0000000
