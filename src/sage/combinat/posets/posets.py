@@ -73,6 +73,7 @@ List of Poset methods
     :meth:`~FinitePoset.is_ranked` | Return ``True`` if the poset has a rank function.
     :meth:`~FinitePoset.is_rank_symmetric` | Return ``True`` if the poset is rank symmetric.
     :meth:`~FinitePoset.is_series_parallel` | Return ``True`` if the poset can be built by ordinal sums and disjoint unions.
+    :meth:`~FinitePoset.is_prime` | Return ``True`` if the poset can be written as a lexicographic sum of other posets.
     :meth:`~FinitePoset.is_greedy` | Return ``True`` if all greedy linear extensions have equal number of jumps.
     :meth:`~FinitePoset.is_jump_critical` | Return ``True`` if removal of any element reduces the jump number.
     :meth:`~FinitePoset.is_eulerian` | Return ``True`` if the poset is Eulerian.
@@ -2893,6 +2894,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: big_N.is_series_parallel()
             False
 
+        .. SEEALSO::
+
+            - Mutually exclusive properties: :meth:`is_prime`
+
         TESTS::
 
             sage: Poset().is_series_parallel()
@@ -2907,6 +2912,90 @@ class FinitePoset(UniqueRepresentation, Parent):
         if len(parts) == 1:
             return False
         return all(part.is_series_parallel() for part in parts)
+
+    def is_prime(self, certificate=False):
+        """
+        Return ``True`` if the poset is prime, and ``False`` otherwise.
+
+        A subset `A` of poset `P` is *autonomous* if every element of `P` not
+        in `A` is either less than or greater than or incomparable to all
+        elements of `A`. The empty set, single-element subsets and `P` as whole
+        are *trivial* autonomous subsets. A poset is *prime* (or
+        "indecomposable") if it has not any non-trivial autonomous subset.
+
+        Informally said a prime poset has no "block" of elements having
+        same relations to elements outside the block. A poset that is
+        decomposable (i.e. not prime) can be written as a lexicographic sum
+        of other posets in untrivial way.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, A)`` where ``A`` is an autonomous subset. If
+          ``certificate=False`` return ``True`` or ``False``.
+
+        EXAMPLES::
+
+            sage: N = Poset({1: [3, 4], 2: [4]})
+            sage: N.is_prime()
+            True
+
+            sage: N5 = posets.PentagonPoset()
+            sage: N5.is_prime()
+            False
+            sage: N5.is_prime(certificate=True)
+            (False, [2, 3])
+
+        .. SEEALSO::
+
+            - Mutually exclusive properties: :meth:`is_series_parallel`
+
+        TESTS::
+
+            sage: [posets.ChainPoset(i).is_prime() for i in range(5)]
+            [True, True, True, False, False]
+            sage: [posets.AntichainPoset(i).is_prime() for i in range(2, 5)]
+            [True, False, False]
+
+            sage: Poset().is_prime(certificate=True)
+            (True, None)
+            sage: N.is_prime(certificate=True)
+            (True, None)
+
+            sage: N2 = N.ordinal_product(N)
+            sage: N2.subposet(N2.is_prime(certificate=True)[1]).is_isomorphic(N)
+            True
+        """
+        # We define two-element posets to be prime, hence this test.
+        # Otherwise is_prime() from graphs would give wrong answer.
+        if self.cardinality() < 3:
+            return (True, None) if certificate else True
+
+        H = self._hasse_diagram
+        if not certificate:
+            return H.transitive_closure().to_undirected().is_prime()
+
+        # Chain and antichain are special cases.
+        if H.size() == 0 or self.is_chain():
+            return (False, [self[0], self[1]])
+
+        decomp = H.transitive_closure().to_undirected().modular_decomposition()
+        if len(decomp[1]) == self.cardinality():
+            return (True, None)
+
+        # We give a "nice and little" certificate, i.e. a prime (sub)poset.
+        def get_certificate(D):
+            for comp in D[1]:
+                if isinstance(comp, tuple):
+                    return get_certificate(comp)
+            return D[1]
+        cert = sorted(get_certificate(decomp))
+        return (False, [self._vertex_to_element(v) for v in cert])
 
     def is_EL_labelling(self, f, return_raising_chains=False):
         r"""
