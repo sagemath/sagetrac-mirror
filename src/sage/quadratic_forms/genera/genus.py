@@ -1482,6 +1482,23 @@ class Genus_Symbol_p_adic_ring(object):
             Genus symbol at 3:     1^-1 3^-1 9^-1
             sage: sym[1].automorphous_numbers()
             [1, 3]
+
+        The first supplementation rule is used here::
+
+            sage: A = matrix.diagonal([2,2,4])
+            sage: G = Genus(A)
+            sage: sym = G.local_symbols()
+            sage: sym[0]
+            sage: sym[0].automorphous_numbers()
+
+        but not there::
+
+            sage: A = matrix.diagonal([2,2,32])
+            sage: G = Genus(A)
+            sage: sym = G.local_symbols()
+            sage: sym[0]
+            sage: sym[0].automorphous_numbers()
+
         """
         from .normal_form import collect_small_blocks, _min_nonsquare
         automorphs = []
@@ -1543,9 +1560,9 @@ class Genus_Symbol_p_adic_ring(object):
                 automorphs.append(r)
 
         # supplement (i)
-        for k in range(len(sym)-3):
+        for k in range(len(sym)):
             s = sym[k:k+3]
-            if sum([b[1] for b in s if s[0][0]-b[0] < 4]) >= 3:
+            if sum([b[1] for b in s if b[0] - s[0][0] < 4]) >= 3:
                 automorphs += [ZZ(1), ZZ(3), ZZ(5), ZZ(7)]
             break
 
@@ -2244,8 +2261,7 @@ class GenusSymbol_global_ring(object):
     def spinor_kernel(self):
         r"""
         """
-        from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
-        from sage.quadratic_forms.genera.normal_form import _min_nonsquare
+        from sage.quadratic_forms.genera.spinor_genus import AdelicSquareClasses
         syms = self.local_symbols()
         primes = tuple([sym.prime() for sym in syms])
         grp = AdelicSquareClasses(primes)

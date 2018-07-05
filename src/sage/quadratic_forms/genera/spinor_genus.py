@@ -22,6 +22,9 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+from sage.quadratic_forms.genera.normal_form import _min_nonsquare
+from sage.rings.all import ZZ,QQ
 
 class AdelicSquareClasses(AbelianGroupGap):
     r"""
@@ -57,6 +60,7 @@ class AdelicSquareClasses(AbelianGroupGap):
 
         EXAMPLES::
 
+            sage: from sage.quadratic_forms.genera.spinor_genus import AdelicSquareClasses
             sage: AS = AdelicSquareClasses((2,3,7))
             sage: AS.to_square_class(5,7)
             f6
@@ -102,6 +106,7 @@ class AdelicSquareClasses(AbelianGroupGap):
 
         EXAMPLES::
 
+            sage: from sage.quadratic_forms.genera.spinor_genus import AdelicSquareClasses
             sage: AS = AdelicSquareClasses((2,3,7))
             sage: AS.delta(2,p=3)
             f4
