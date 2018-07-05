@@ -19,7 +19,7 @@ bool DotExists ()
     return res;
 }
 
-Dict NewDict (int n)
+Dict NewDict(int n)
 {
 	Dict r;
 	r.n = n;
@@ -366,7 +366,7 @@ Automaton PieceAutomaton (Automaton a, int *w, int n, int e)
 	return r;
 }
 
-void init (Automaton *a)
+void init(Automaton *a)
 {
 	int i,j;
 	a->i = -1;
@@ -380,7 +380,7 @@ void init (Automaton *a)
 	}
 }
 
-void printAutomaton (Automaton a)
+void printAutomaton(Automaton a)
 {
 	printf("Automaton with %d states, %d letters.\n", a.n, a.na);
 	int i, j;
@@ -1028,7 +1028,7 @@ bool shortestWords (Automaton a, Dict *w, int init, bool verb)
 }
 
 //check that the word w is recognized by the automaton
-bool rec_word (Automaton a, Dict d)
+bool rec_word(Automaton a, Dict d)
 {
 	int i;
 	int e = a.i;
