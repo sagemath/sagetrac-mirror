@@ -17,8 +17,9 @@ namespace wl{
                 public:
                         AdjMatrix(int size):num_of_vertices(size){
                                 int numberOfBits = size * size;
-                                int numOfWords = std::ceil(numberOfBits / (8*sizeof(int)));
-                                array = new int[numOfWords];
+                                int numOfWords = std::ceil((double)numberOfBits / (double)(8*sizeof(unsigned int)));
+                                array = new unsigned int[numOfWords]();
+                                
                         }
                         ~AdjMatrix(){
                                 delete[] array;
@@ -53,7 +54,7 @@ namespace wl{
                         }
                 private:
                         int num_of_vertices;
-                        int* array;
+                        unsigned int* array;
                         inline unsigned int getEdgeBit(int v, int u) const{
                                 int v_row_offset = v * num_of_vertices;
                                 return v_row_offset + u;
@@ -73,7 +74,7 @@ namespace wl{
                                       for( int j = 0; j < this->size; j++){
                                                 int iV = this->vertex_subset[i];
                                                 int jV = this->vertex_subset[j];
-                                                int atpIdx = getIdx(iV,jV);
+                                                int atpIdx = getIdx(i,j);
                                                 if(iV == jV) atp_matrix[atpIdx] = 2;
                                                 else atp_matrix[atpIdx] = adjMatrix.isEdge(iV, jV)?1:0;
                                       }
@@ -98,59 +99,52 @@ namespace wl{
         };
         class Coloring{
                 public:
-                        Coloring(int pc): previous_color(pc), set_hash(0){};
+                        class Wrapper{
+                                private:
+                                        Coloring& c;
+                                public:
+                                        ColoringWrapper(Coloring& c):c(c){}
+                                        void clearSetVector(){
+                                                c.clearSetVector();
+                                        }
+                                        const vector<int>& getSetVector() const{
+                                                return c.getSetVector();
+                                        }
+                        };
+                        Coloring(){
+                                previous_color = -1;
+                        }
+                        Coloring(int pc): previous_color(pc){};
                         void update_previous_color(int newColor){
-                                set_coloring.clear();
-                                set_hash = 0;
+                                clearSetVector();
                                 previous_color = newColor;
                         }
-                        void add_multiset_color(int color){
+                        void add_multiset_color(int color, int size = -1){
+                                if(size > 0) set_coloring.reserve(size);
                                 set_coloring.push_back(color);
-                                hash_combine<int>(set_hash, color, true);
-                        }
-                        bool operator==(const Coloring& b) const{
-                                if(previous_color != b.previous_color) return false;
-                                if(set_hash != b.set_hash) return false;
-                                return set_coloring == b.set_coloring;
                         }
                         const vector<int>& getSetVector() const{
                                 return set_coloring;
                         }
+                        void sortSetVector(){
+                                sort(set_coloring.begin(), set_coloring.end());
+                        }
+                        void clearSetVector(){
+                                set_coloring = vector<int>();
+                        }
+                        int getColor() const{
+                                return previous_color;
+                        }
                 private:
                         int previous_color;
-                        size_t set_hash;
                         vector<int> set_coloring;
         };
-        template<typename T>
-        unordered_map<int, unordered_set<int>> createEquivalenceClasses(const vector<T>& whole_set){
-                unordered_map<int, unordered_set<int>> result;
-                unordered_set<int> remaining;
-                int size = whole_set.size();
-                for(int i = 0; i < size; i++){
-                        remaining.insert(i);
-                }
-                while(!remaining.empty()){
-                        int representative = *(remaining.begin());
-                        remaining.erase(representative);
-                        const T& repr_element = whole_set.at(representative);
-                        result[representative];
-                        for(const auto& idx: remaining){
-                                const T& set_el = whole_set.at(idx);
-                                if(set_el == repr_element) result[representative].insert(idx);
-                        }
-                        for(const auto& idx: result[representative]){
-                                remaining.erase(idx);
-                        }
-                }
-                return result;
-        }
-
+        
         void innerGenerateTupleMap(int i, int k, int n, vector<int>& currentTuple, TupleMap& tupleMap, InverseTupleMap& inverseTupleMap){
                 if(i == k){
                         auto t = Tuple<int>(currentTuple);
-                        size_t idx = tupleMap.size();
-                        auto tuple_iterator = tupleMap.emplace(t, idx).first;
-                        inverseTupleMap[idx] = tuple_iterator;
+                        size_t idx = tupleMap.size();   
+                        inverseTupleMap[idx] = tupleMap.emplace(std::move(t), idx).first;
                         return;
                 }
                 for(int j = 0; j < n; j++){
@@ -165,43 +159,6 @@ namespace wl{
                 vector<int> tempTuple;
                 tempTuple.resize(k);
                 innerGenerateTupleMap(0, k, n, tempTuple, tupleMap, inverseTupleMap);
-        }
-        
-        class prova{
-                vector<char> v;
-                public:
-                const vector<char>& getSetVector() const{
-                        return v;
-                }
-                prova(int s){
-                        v.resize(s);
-                        for(auto& el: v){
-                                el = rand()% 2;
-                        }
-                }
-                prova(){
-                        v.resize(10000);
-                        for(auto& el: v){
-                                el = rand()% 100;
-                        }
-                }
-                bool operator<(const prova& b) const{
-                        for(size_t i = 0; i < v.size(); i++){
-                                if(v[i] == b.v[i]) continue;
-                                return v[i] < b.v[i];
-                        }
-                        return false;
-                }
-                bool operator==(const prova& b) const{
-                        return v == b.v;
-                }
-        };
-        std::ostream &operator<<(std::ostream &stream, const prova& t) {
-                        for(const auto& el:t.getSetVector()){
-                                stream << el << ", ";
-                        }
-                        stream << std::endl;
-                        return stream;
         }
         
         template<typename T>
@@ -257,10 +214,12 @@ namespace wl{
                 }
         }
         template<class T>
-        vector<int> orderSortedSets(const vector<T>& sortedSets, int setSize){
+        pair<vector<int>, vector<bool>> orderSortedSets(const vector<T>& sortedSets, int setSize){ //First returned value is the remap vector (that is v[i]= j means the j-th element should become the i-th) while the second is a vector containing numbers > 0 at each index where a new bucket begins
                 using BucketTuple = std::tuple<int,int,int>;
                 vector<int> orderMap(sortedSets.size());
+                vector<bool> buckets(sortedSets.size());
                 iota<int>(orderMap.begin(), orderMap.end(), 0);
+                buckets[0] = 1;
                 queue<BucketTuple> bucketsToSort;
                 bucketsToSort.push({0, sortedSets.size(), 0});
                 while(!bucketsToSort.empty()){
@@ -277,16 +236,124 @@ namespace wl{
                                 if(bucketSize == 0) continue;
                                 int e = b+bucketSize;
                                 std::swap_ranges(orderMap.begin()+tupleB+b, orderMap.begin()+tupleB+e, bucket.begin());
+                                buckets[tupleB+b] = true;
                                 //std::cout << "------- SottoBucket: (" << tupleB+b << ", " << tupleB+e << ", " << sortingIndex+1 << ")" << std::endl;
                                 if(e - b > 1 && sortingIndex + 1 != setSize) bucketsToSort.push({tupleB+b, tupleB+e, sortingIndex+1});
                                 b = e;
                         }
                 }
-                return orderMap;
+                return {orderMap, buckets};
+        }
+        int updateColoring(const vector<int>& remap, const vector<bool>& buckets, vector<Coloring>& colorings){
+                int k = -1, s = remap.size();
+                int cnt = 0;
+                for(int i = 0; i < s; i++){
+                        if(buckets[i]){
+                                ++cnt; 
+                                ++k;
+                        }
+                        colorings[remap[i]].update_previous_color(k);
+                }
+                return cnt;
+        }
+        //Returns the number of new colors
+        int updateColoring(const vector<int>& remap, const vector<int>& buckets, vector<Coloring>& colorings, queue<int>& colorQueue, int lastColor = -1){
+                int k = lastColor, s = remap.size();
+                int size = 0;
+                int maxSize = -1, maxColor = -1;
+                vector<int> colors;
+                for(int i = 0; i < s; i++){
+                        if(buckets[i] > 0){
+                                if(colors.size() > 0){
+                                        colors.push_back(k);
+                                        if(size > maxSize){
+                                                maxSize = size;
+                                                maxColor = k;
+                                        }
+                                }
+                                size = 0; 
+                                ++k;
+                        }
+                        colorings[remap[i]].update_previous_color(k);
+                        ++size;
+                }
+                for(const auto& color: colors){
+                        if(color != maxColor){
+                                colorQueue.push(color);
+                        }
+                }
+                return colors.size();
         }
         
-        bool k_WL(const std::vector<GraphNode>& v, int k){
-                AdjMatrix adj_matrix(v.size());
+        
+        Coloring& prepareElementColoring(const InverseTupleMap& itm, vector<Coloring>& tuple_coloring, int i){
+                auto& color = tuple_coloring[i];
+                const auto& tuple = itm[i]->first;
+                vector<vector<int>> tmpMultiset;
+                tmpMultiset.reserve(n);
+                for(int v = 0; v < n; v++){
+                        tmpMultiset.push_back(vector<int>(k));
+                        for(int t = 0; t < k; t++){
+                                auto tmpTuple = tuple.modify(t, v);
+                                int tmpTupleIndex = tm[tmpTuple];
+                                tmpMultiset.back()[t] = tuple_coloring[tmpTupleIndex].getColor();
+                        }
+                }
+                sort(tmpMultiset.begin(), tmpMultiset.end());
+                if(k == 1) color.add_multiset_color(firstColoring[i].getColor(), setSize);
+                for(const auto& innerVector:tmpMultiset){
+                        for(const auto& el: innerVector){
+                                color.add_multiset_color(el, setSize);
+                        }
+                }
+                return color;
+        }
+        
+        void disposeElementColoring(Coloring:Wrapper& el){
+                el.clearSetVector();
+        }
+        
+        template<class T>
+        bool orderSetOfSetsBuckets(vector<int>& remap, vector<bool>& buckets, vector<Coloring>& tuple_coloring, std::function<T&(int)> prepareElement, std::function<void(T:Wrapper&)> disposeElement){
+                bool finished = true;
+                int s = buckets.size();
+                int setSize = n*k;
+                vector<T::Wrapper> tmp;
+                int last_i = 0;
+                int i = 0;
+                while(i < s){
+                        do{
+                                T& el = prepareElement(remap[i]);
+                                tmp.push_back(T:Wrapper(el));
+                                ++i;
+                        }while(i < s && !buckets[i]);
+                        auto new_res = orderSortedSets(tmp, setSize);
+                        auto& new_remap = new_res.first;
+                        auto& new_buckets = new_res.second;
+                        int bucketCounter = 0;
+                        auto new_remap_size = new_remap.size();
+                        for(size_t j = 0; j < new_remap_size; j++){
+                                new_remap[j] = remap[last_i + new_remap[j]];
+                        }
+                        for(auto& el: tmp) disposeElement(el);
+                        for(int j = last_i; j < i; j++){
+                                remap[j] = new_remap[j-last_i];
+                                if(new_buckets[j-last_i]){
+                                        bucketCounter++;
+                                        buckets[j] = true;
+                                }
+                                if(bucketCounter > 1) finished = false;
+                        }
+                        last_i = i;
+                        tmp.clear();
+                }
+                updateColoring(remap, buckets, tuple_coloring);
+                return finished;
+        }
+        
+        TupleMap k_WL(const std::vector<GraphNode>& v, int k){
+                int n = v.size();
+                AdjMatrix adj_matrix(n);
                 for(const auto& el: v){
                         int vIdx = el.idx;
                         for(const auto& adj: el.adj_list){
@@ -295,41 +362,39 @@ namespace wl{
                 }
                 TupleMap tm;
                 InverseTupleMap itm;
-                generateTupleMap(v.size(), k, tm, itm);
+                generateTupleMap(n, k, tm, itm);
+                auto numberOfTuples = itm.size();
                 vector<AtomicType> atp;
-                atp.reserve(itm.size());
+                atp.reserve(numberOfTuples);
                 for(const auto& el: itm){
                         atp.push_back(AtomicType(el->first, adj_matrix));
                 }
-                vector<int> atp_remap = orderSortedSets(atp, k*k);
+                auto res = orderSortedSets(atp, k*k);
+                auto& atp_remap = res.first;
+                auto& atp_buckets = res.second;
                 
                 //Now the idea is going through the atps in remapping order,
                 //and initialize the color of each tuple based on the index of the bucket the tuple is in
+                vector<Coloring> tuple_coloring(atp_remap.size());
+        
+                updateColoring(atp_remap, atp_buckets, tuple_coloring);
                 
+                vector<Coloring> firstColoring;
+                if(k == 1) firstColoring = tuple_coloring;
                 //After this, the main part of the algorithm, comprised of computing the coloring of adjacents, ordering the
                 //tuples by old_coloring^multiset and then update their old coloring.
                 //One should stop when the orbits are the same before and after a round. This last part is gonna be tricky for sure
-                
-                
-                /*for(const auto& el: itm){
-                        std::cout << el->second << " = " << el->first << std::endl;
-                }*/
-                vector<prova> v2(100);
-                vector<prova> v3 = v2;
-                /*for(const auto& el: v2){
-                        std::cout << el << std::endl;
-                }*/
-                sort(v2.begin(), v2.end());
-                vector<int> remap = orderSortedSets(v3, 10000);
-                for(size_t i = 0; i < v2.size(); i++){
-                        if(v2[i].getSetVector() != v3[remap[i]].getSetVector()) return false;
-                        /*        std::cout << "Il numero " << i << " non è uguale" << std::endl;
-                                std::cout << " --------- " << v2[i] << std::endl;
-                                std::cout << " ***************************************************************************************";
-                                std::cout << " --------- " << v3[remap[i]] << std::endl;
-                        }else std::cout << "Il numero " << i << " è uguale" << std::endl;*/
+
+                bool finished = false;
+                while(!finished){
+                        auto& remap = res.first;
+                        auto& buckets = res.second;
+                        finished = orderSetOfSetsBuckets<Coloring>(remap, buckets, tuple_coloring, std::function([&itm, &tuple_coloring](int i)->Coloring&{return prepareElementColoring(itm, tuple_coloring, i);}), std::function(disposeElementColoring(el)));
                 }
-                return true;
+                for(auto& el: tm){
+                        el.second = tuple_coloring[el.second].getColor();
+                }
+                return tm;
         }
 
 }

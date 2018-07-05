@@ -2,6 +2,9 @@
 from __future__ import print_function
 from libcpp.vector cimport vector
 from libc.stdlib cimport malloc, free
+from libcpp.unordered_map cimport unordered_map
+from libcpp.string cimport string
+from libcpp.utility cimport pair
 from libcpp cimport bool
 from sys import version_info
 
@@ -35,8 +38,18 @@ cdef vector[GraphNode] sageGraphToLists(G, partition = [], relabel_map={}):
             nodeArray[u].adj_list.push_back(<int>v)
     return nodeArray
 
-def prova(G, partition=[]):
+def prova(G, k, partition=[]):
     relabel_map = {}
     cdef vector[GraphNode] res = sageGraphToLists(G, partition, relabel_map)
-    return k_WL(res, 5)
+    cdef unordered_map[Tuple[int], int] coloring = k_WL(res, k)
+    print("Finished")
+    resultDict = {}
     
+    #Normally, one would check for equality of the results. If using initial partitions though, one should check for an automorphism between the colors.
+    #That is, c1(tuple) = g(c2(tuple)) with g bijective, since it could happen that the initial coloring produces a different initial order that doesn't cause any issue with k-WL,
+    #but produces a different permutation of the final coloring
+    for p in coloring:
+        l = [el for el in p.first]
+        c = p.second
+        resultDict[tuple(l)] = c
+    return resultDict
