@@ -1172,6 +1172,9 @@ ext_modules = [
     Extension('sage.rings.power_series_ring_element',
               sources = ['sage/rings/power_series_ring_element.pyx']),
 
+    Extension('sage.rings.polynomial.puiseux_polynomial',
+              sources = ['sage/rings/polynomial/puiseux_polynomial.pyx']),
+
     Extension('sage.rings.rational',
               sources = ['sage/rings/rational.pyx'],
               libraries=['ntl']),
