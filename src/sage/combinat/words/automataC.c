@@ -400,6 +400,8 @@ void printAutomaton (Automaton a)
 void plotDot (const char *file, Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool html, bool verb, bool run_dot)
 {
 	char tamp[1024];
+	if (verb)
+	    printf("Open file %s...", file);
 	FILE *f = fopen(file, "w");
 	if (!f)
 	{

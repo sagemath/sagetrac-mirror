@@ -728,14 +728,41 @@ cdef class NFastAutomaton:
         """
         return self.A
 
-    def set_initial_state(self, int i, bool initial=True):
+    def set_final_state(self, int i, bool final=True):
         """
-        Set the initial state.
+        Set the state as a final/non-final state.
 
         INPUT:
 
-        - ``i` -- int the initial state of the automaton
-        - ``initial`` -- (default: ``True``) in the case is initial
+        - ``i`` -- int - the index of the state
+        - ``final`` -- (default: ``True``) - if True set this state as final set, otherwise set this state as non-final.
+
+        EXAMPLES::
+
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: b = NFastAutomaton(a)
+            sage: b.set_final_state(2)
+            sage: b.final_states
+            [2]
+            sage: b.set_final_state(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: final state must be a current state : 6 not in [-1, 3]
+
+        """
+        if i < 0 or i >= self.a.n:
+            raise ValueError("final state must be a current state : " +
+                             "%d not in [-1, %d]" % (i, self.a.n - 1))
+        self.a.e[i].final = final
+    
+    def set_initial_state(self, int i, bool initial=True):
+        """
+        Set the state as an initial/non initial state.
+
+        INPUT:
+
+        - ``i`` -- int - the index of the state
+        - ``initial`` -- (default: ``True``) - if True set this state as initial set, otherwise set this state as non-initial.
 
         EXAMPLES::
 
@@ -874,6 +901,7 @@ cdef class NFastAutomaton:
         sig_off()
         r.a[0] = a
         r.A = self.A
+        r.S = None
         return r
 
     def plot(self, int sx=10, int sy=8, verb=False):
@@ -902,24 +930,38 @@ cdef class NFastAutomaton:
         cdef char** ll
         cdef int i
         cdef char *file
-        if DotExists ():
+        if verb:
+            print("Test if dot exists...")
+        sig_on()
+        de = DotExists ()
+        sig_off()
+        if de:
+            if verb:
+                print(" -> yes !")
+                print("alloc ll (size=%s)..."%self.a.na)
+            sig_on()
             ll = <char **>malloc(sizeof(char*) * self.a.na)
+            sig_off()
             strA = []
             for i in range(self.a.na):
                 strA.append(str(self.A[i]))
                 ll[i] = strA[i]
-            from sage.misc.temporary_file import tmp_filename
-            file_name = tmp_filename()
-            file = file_name
+            if file is None:
+                from sage.misc.temporary_file import tmp_filename
+                file_name = tmp_filename()
+                file = file_name
             if verb:
-                print("file=%s" % file_name)
+                print("file=%s" % file)
+            return
             sig_on()
             NplotDot(file, self.a[0], ll, "Automaton", sx, sy, True)
             free(ll)
             sig_off()
             from PIL import Image
-            return Image.open(file_name+'.png')
+            return Image.open(file+'.png')
         else:
+            if verb:
+                print(" -> no.")
             raise NotImplementedError("You cannot plot the NFastAutomaton without dot. Install the dot command of the GraphViz package.")
 
 # cdef set_FastAutomaton (FastAutomaton a, Automaton a2):
@@ -1206,7 +1248,6 @@ cdef class FastAutomaton:
         sig_on()
         h += hashAutomaton(self.a[0])
         sig_off()
-        # print "hash=%s"%h
         return h
     
     def _richcmp_(self, FastAutomaton other, int op):
@@ -1286,7 +1327,7 @@ cdef class FastAutomaton:
         a.i = 0
         r.a[0] = a
         r.A = A
-
+        r.S = None
         return r
 
     def plot(self, int sx=10, int sy=8, vlabels=None, html=False, file=None, bool draw=True, verb=False):
@@ -1325,16 +1366,25 @@ cdef class FastAutomaton:
         cdef char** ll # labels of edges
         cdef char** vl # labels of vertices
         cdef int i
-        if DotExists():
-            from sage.misc.temporary_file import tmp_filename
-            file_name = tmp_filename()+".dot"
-            file = file_name
+        sig_on()
+        de = DotExists()
+        sig_off()
+        if de:
+            if file is None:
+                from sage.misc.temporary_file import tmp_filename
+                file = tmp_filename()+".dot"
+            if verb:
+                print("alloc %s..."%self.a.na)
+            sig_on()
             ll = <char **>malloc(sizeof(char*) * self.a.na)
+            sig_off()
             if vlabels is None:
                 if self.S is not None:
                     if verb:
                         print("alloc %s..." % self.a.n)
+                    sig_on()
                     vl = <char **>malloc(sizeof(char*) * self.a.n)
+                    sig_off()
                     strV = []
                     if html:
                         from sage.misc.html import html as htm
@@ -1349,11 +1399,15 @@ cdef class FastAutomaton:
                         if verb:
                             print("i=%s : %s" % (i, vl[i]))
                 else:
+                    if verb:
+                        print("vl = NULL")
                     vl = NULL
             else:
                 if verb:
                     print("alloc %s..." % self.a.n)
+                sig_on()
                 vl = <char **>malloc(sizeof(char*) * self.a.n)
+                sig_off()
                 strV = []
                 if verb:
                     print("len %s %s" % (self.a.n, len(vlabels)))
@@ -1371,7 +1425,7 @@ cdef class FastAutomaton:
             for i in range(self.a.na):
                 strA.append(str(self.A[i]))
                 ll[i] = strA[i]
-            if verb:
+            if verb and vl != NULL:
                 for i in range(self.a.n):
                     print("i=%s : %s" % (i, vl[i]))
             if verb:
@@ -1381,11 +1435,15 @@ cdef class FastAutomaton:
             sig_off()
             if verb:
                 print("free...plot")
+            sig_on()
             free(ll)
-            if vlabels is not None:
+            sig_off()
+            if vlabels is not None and self.S is not None:
+                sig_on()
                 free(vl)
+                sig_off()
             from PIL import Image
-            return Image.open(file_name+'.png')
+            return Image.open(file+'.png')
         else:
             return AutomatonToSageAutomaton(self.a[0], self.A).plot()
             #raise NotImplementedError("You cannot plot the FastAutomaton without dot. Install the dot command of the GraphViz package.")
@@ -1625,18 +1683,17 @@ cdef class FastAutomaton:
             return -1
         return self.a.e[i].f[j]
 
-    # donne les fils de l'état i
     def succs(self, int i):
         """
-        return lines of state ``i``.
+        return indices of letters of leaving transitions from state ``i``.
 
         INPUT:
 
-        - ``i`` -- int the input state
+        - ``i`` -- int - the input state
 
         OUTPUT:
 
-        return lines of state ``i``
+        return a list of int
 
         EXAMPLES::
 
@@ -1654,7 +1711,6 @@ cdef class FastAutomaton:
             return []
         return [j for j in range(self.a.na) if self.a.e[i].f[j] != -1]
 
-    # suit le chemin étiqueté par l et rend l'état atteint
     def path(self, list l, i=None):
         """
         Follows the path labeled by ``l`` and return the reached state
@@ -1666,7 +1722,7 @@ cdef class FastAutomaton:
 
         OUTPUT:
 
-        return the state reached after the following way
+        return the state reached after following the way
 
         EXAMPLES::
 
@@ -1767,7 +1823,7 @@ cdef class FastAutomaton:
         sig_off()
         r.a[0] = a
         r.A = self.A
-
+        r.S = None
         return r.prune().minimize()
 
     def zero_inv(self, z=0, simplify=True):
@@ -1801,6 +1857,7 @@ cdef class FastAutomaton:
         sig_off()
         r.a[0] = a
         r.A = self.A
+        r.S = None
         if simplify:
             return r.prune().minimize()
         else:
@@ -1902,6 +1959,7 @@ cdef class FastAutomaton:
         sig_off()
         r.a[0] = a
         r.A = self.A
+        r.S = None
         return r
 
     def prune_i(self, verb=False):
@@ -1938,6 +1996,7 @@ cdef class FastAutomaton:
         sig_off()
         r.a[0] = a
         r.A = self.A
+        r.S = None
         return r
 
     def prune(self, verb=False):
@@ -1981,6 +2040,7 @@ cdef class FastAutomaton:
         sig_off()
         r.a[0] = a
         r.A = self.A
+        r.S = None
         return r
 
 #    def equals (self, FastAutomaton b):
