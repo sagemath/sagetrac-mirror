@@ -6,6 +6,15 @@ substitution-permutation-networks (SPNs).
 
 Available classes are the generic ``LinearLayer`` and ``AESLikeLinearLayer``.
 
+Apart from that, there are also linear layers available which are used in the
+literature, either in  the dictionary linearlayers, or as a seperate object.
+This module provides the following linear layers:
+
+    - AES ([DR2002]_)
+    - Midori ([BBISHAR2015]_)
+    - SKINNY ([BJKLMPSSS2016]_)
+    - PRESENT (and SmallScalePRESENT) ([BKLPPRSV2007]_)
+
 AUTHORS:
 
 - Friedrich Wiemer (2018-07-02): initial version
@@ -14,12 +23,13 @@ AUTHORS:
 from six import integer_types
 
 from sage.combinat.permutation import Permutation
-from sage.matrix.constructor import matrix
+from sage.matrix.constructor import Matrix
 from sage.misc.cachefunc import cached_method
 from sage.modules.free_module_element import vector
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.structure.sage_object import SageObject
 
 from sage.misc.superseded import experimental
@@ -35,7 +45,7 @@ def _branch_number(mtr):
     F = mtr.base_ring()
     n = mtr.nrows()
     I = identity_matrix(F, n)
-    generator_matrix = matrix(F, [list(a) + list(b) for a, b in zip(I, mtr)])
+    generator_matrix = Matrix(F, [list(a) + list(b) for a, b in zip(I, mtr)])
     return LinearCode(generator_matrix).minimum_distance()
 
 
@@ -101,11 +111,11 @@ class LinearLayer(SageObject):
     We start with the simple identity linear layer::
 
         sage: from sage.crypto.linearlayer import LinearLayer
-        sage: id = LinearLayer(identity_matrix(GF(2), 2)); id
         doctest:warning
         ...
         FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
         See https://trac.sagemath.org/25735 for details.
+        sage: id = LinearLayer(identity_matrix(GF(2), 2)); id
         LinearLayer of dimension 2 x 2 represented as
         [1 0]
         [0 1]
@@ -115,11 +125,7 @@ class LinearLayer(SageObject):
 
     A list of linear layers used in the literature is also available::
 
-        sage: from sage.crypto.linearlayers import linearlayers
-        doctest:warning
-        ...
-        FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
-        See https://trac.sagemath.org/25735 for details.
+        sage: from sage.crypto.linearlayer import linearlayers
         sage: linearlayers['PRESENT']
         LinearLayer of dimension 64 x 64 represented as
         [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
@@ -226,7 +232,7 @@ class LinearLayer(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.linearlayer import LinearLayer
-            sage: L = LinearLayer(matrix(GF(2), [[0,1,0],[1,0,1]]))
+            sage: L = LinearLayer(Matrix(GF(2), [[0,1,0],[1,0,1]]))
             sage: L != L
             False
         """
@@ -246,7 +252,7 @@ class LinearLayer(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.linearlayer import LinearLayer
-            sage: L = LinearLayer(matrix(GF(2), [[0,1,0],[1,0,1]]))
+            sage: L = LinearLayer(Matrix(GF(2), [[0,1,0],[1,0,1]]))
             sage: L(3)
             3
 
@@ -319,11 +325,11 @@ class LinearLayer(SageObject):
             sage: L1.is_permutation()
             True
 
-            sage: L2 = LinearLayer(matrix([[0,1,1,0], [1,0,0,0], [0,1,0,0], [0,0,0,1]]))
+            sage: L2 = LinearLayer(Matrix([[0,1,1,0], [1,0,0,0], [0,1,0,0], [0,0,0,1]]))
             sage: L2.is_permutation()
             False
 
-            sage: L3 = LinearLayer(matrix([[0,1,0], [1,0,1]]))
+            sage: L3 = LinearLayer(Matrix([[0,1,0], [1,0,1]]))
             sage: L3.is_permutation()
             False
         """
@@ -374,7 +380,7 @@ class LinearLayer(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.linearlayers import PRESENT
+            sage: from sage.crypto.linearlayer import PRESENT
             sage: PRESENT.differential_branch_number()
             2
         """
@@ -389,7 +395,7 @@ class LinearLayer(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.linearlayers import PRESENT
+            sage: from sage.crypto.linearlayer import PRESENT
             sage: PRESENT.linear_branch_number()
             2
         """
@@ -408,7 +414,7 @@ class AESLikeLinearLayer(LinearLayer):
 
     EXAMPLES::
 
-        sage: from sage.crypto.linearlayers import linearlayers
+        sage: from sage.crypto.linearlayer import linearlayers
         sage: linearlayers['AES']
         AES like LinearLayer of dimension 128 x 128 represented by ShiftRows
         [1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12]
@@ -460,7 +466,7 @@ class AESLikeLinearLayer(LinearLayer):
         """
         EXAMPLES::
 
-            sage: from sage.crypto.linearlayers import Midori
+            sage: from sage.crypto.linearlayer import Midori
             sage: Midori  # indirect doctest
             AES like LinearLayer of dimension 64 x 64 represented by ShiftRows
             [1, 11, 6, 16, 15, 5, 12, 2, 10, 4, 13, 7, 8, 14, 3, 9]
@@ -482,7 +488,7 @@ class AESLikeLinearLayer(LinearLayer):
 
         EXAMPLES::
 
-            sage: from sage.crypto.linearlayers import Midori
+            sage: from sage.crypto.linearlayer import Midori
             sage: Midori.differential_branch_number()
             4
         """
@@ -496,7 +502,7 @@ class AESLikeLinearLayer(LinearLayer):
 
         EXAMPLES::
 
-            sage: from sage.crypto.linearlayers import Midori
+            sage: from sage.crypto.linearlayer import Midori
             sage: Midori.linear_branch_number()
             4
         """
@@ -505,3 +511,83 @@ class AESLikeLinearLayer(LinearLayer):
         M = self._mc
         M = M.transpose()
         return _branch_number(M)
+
+
+Left_ShiftRows = Permutation([1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12])
+Right_ShiftRows = Permutation([1, 14, 11, 8, 5, 2, 15, 12, 9, 6, 3, 16, 13, 10, 7, 4])
+
+_AES_irreducible_polynomial = PolynomialRing(GF(2), name="alpha")("alpha^8 + alpha^4 + alpha^3 + alpha + 1")
+_AES_field = GF(2**8, name="x", modulus=_AES_irreducible_polynomial)
+AES_ShiftRows = Left_ShiftRows
+AES_MixColumns = [Matrix(_AES_field, 4, 4, map(_AES_field.fetch_int, [2, 3, 1, 1, 1, 2, 3, 1, 1, 1, 2, 3, 3, 1, 1, 2]))]*4
+AES = AESLikeLinearLayer(AES_ShiftRows, AES_MixColumns)
+
+#Midori_ShuffelCells = Matrix(GF(2**4), Permutation([1, 6, 16, 11, 14, 9, 3, 8, 12, 15, 5, 2, 7, 4, 10, 13]).to_matrix())
+Midori_ShuffelCells = Permutation([1, 11, 6, 16, 15, 5, 12, 2, 10, 4, 13, 7, 8, 14, 3, 9])
+Midori_MixColumns = [Matrix(GF(2**4), [[0, 1, 1, 1] ,[1, 0, 1, 1] ,[1, 1, 0, 1] ,[1, 1, 1, 0]])]*4
+Midori = AESLikeLinearLayer(Midori_ShuffelCells, Midori_MixColumns)
+
+SKINNY_ShiftRows = Right_ShiftRows
+SKINNY_4_MixColumns = [Matrix(GF(2**4), [[1, 0, 1, 1] ,[1, 0, 0, 0] ,[0, 1, 1, 0] ,[1, 0, 1, 0]])]*4
+SKINNY_8_MixColumns = [Matrix(GF(2**8), [[1, 0, 1, 1] ,[1, 0, 0, 0] ,[0, 1, 1, 0] ,[1, 0, 1, 0]])]*4
+SKINNY_4 = AESLikeLinearLayer(SKINNY_ShiftRows, SKINNY_4_MixColumns)
+SKINNY_8 = AESLikeLinearLayer(SKINNY_ShiftRows, SKINNY_8_MixColumns)
+
+def smallscale_present_linearlayer(nsboxes=16):
+    """
+    The matrix representing SmallPRESENT with nsboxes many S-boxes.
+
+    Original PRESENT corresponds to nsboxes=16.
+
+    INPUT:
+
+    - ``nsboxes`` - integer, number of sboxes the linear layer operates on
+      (default: 16).
+
+    TESTS:
+
+        sage: from sage.crypto.linearlayer import smallscale_present_linearlayer
+        sage: smallscale_present_linearlayer(4)
+        LinearLayer of dimension 16 x 16 represented as
+        [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0]
+        [0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0]
+        [0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0]
+        [0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+
+    """
+    from sage.modules.free_module import VectorSpace
+    from sage.modules.free_module_element import vector
+
+    def present_llayer(n, x):
+        dim = 4*n
+        y = [0]*dim
+        for i in range(dim-1):
+            y[i] = x[(n * i) % (dim - 1)]
+        y[dim-1] = x[dim-1]
+        return vector(GF(2), y)
+
+    return LinearLayer(Matrix(GF(2), [present_llayer(nsboxes, ei)
+                                      for ei in VectorSpace(GF(2), 4*nsboxes).basis()
+                                     ]))
+
+PRESENT = smallscale_present_linearlayer(nsboxes=16)
+
+# Dictionary of all available linear layers
+linearlayers = {}
+import sys
+for k in dir(sys.modules[__name__]):
+    v = getattr(sys.modules[__name__], k)
+    if isinstance(v, (LinearLayer, AESLikeLinearLayer)):
+        linearlayers[k] = v

@@ -23,7 +23,6 @@ Cryptography
    sage/crypto/util
    sage/crypto/boolean_function
    sage/crypto/linearlayer
-   sage/crypto/linearlayers
    sage/crypto/sbox
    sage/crypto/sboxes
 
