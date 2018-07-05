@@ -25,24 +25,23 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 from __future__ import print_function
 from libc.stdlib cimport malloc, free
-from sage.all import true
 
-cimport sage.combinat.words.cautomata
+cimport sage.combinat.words.automatonC_wrapper
 from cysignals.signals cimport sig_on, sig_off, sig_check
-from cpython cimport bool as c_bool 
+from cpython cimport bool as c_bool
+from .cautomata import  FastAutomaton, NFastAutomaton
+from .cautomata cimport getAutomaton, list_to_Dict
 
 cdef extern from "automataC.h":
-
     cdef cppclass Dict:
         int* e
         int n
     cdef cppclass InvertDict:
         Dict* d
         int n
-
     bool DotExists()
     #    Automaton NewAutomaton (int n, int na)
     #    void FreeAutomaton (Automaton *a)
@@ -103,52 +102,117 @@ cdef extern from "automataC.h":
 
 
 def _dotExists_wrapper():
-        """
-        Test the Doexist c Function.
+    """
+    Test the Doexist c Function.
+
+    OUTPUT:
+
+    Return ``True`` or `False `` if file exist
+
+    TESTS::
+
+        sage: _dotExists_wrapper()
+        sage: True
 
 
-
-        EXAMPLES::
-
-            sage: _dotExists_wrapper()
-            sage: True
-
-
-        """
+    """
     sig_on()
     if DotExists():
         sig_off()
         return True
     sig_off()
     return False
-    
-def _copyAutomaton_wrapper(fa):
-        """
-        Test the copyAutomaton c Function.
 
 
-        INPUT:
+# def _copyAutomaton_wrapper(fa):
+#     """
+#     Test the copyAutomaton c Function.
+# 
+# 
+#     INPUT:
+# 
+#     - ``fa`` -- FastAutomaton
+# 
+# 
+#     OUTPUT:
+# 
+#     Return a copy of c automaton
+# 
+# 
+#     TESTS::
+# 
+#         sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+#         sage: _copyAutomaton_wrapper(a)
+# 
+#     """
+#     cdef Automaton aut
+#     cdef Automaton * pa = fa.a
+#     sig_on()
+#     aut = CopyAutomaton(pa[0], fa.a.n+1, fa.a.na)
+#     sig_off()
+#     return aut
 
-        - ``fa`` -- FastAutomaton 
-        - ``nalloc`` -- int  number of allocation
-          to ``True`` for activation the verbose mode
 
-        OUTPUT:
+# def _NewDict(n):
+#     """
+#     Test the _NewDict c Function.
+# 
+# 
+#     INPUT:
+# 
+#     - ``n`` -- number of eleme,ts of the new dict
+# 
+# 
+#     OUTPUT:
+# 
+#     Return a new dict of c automaton
+# 
+#     TESTS::
+# 
+#         sage: r = _NewDict(3)
+#         sage: r
+# 
+#     """
+#     cdef Dict r
+#     sig_on()
+#     r = NewDict(n)
+#     sig_off()
+#     return r
 
-        Return a copy of c automaton
 
-        EXAMPLES::
-
-            sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: _copyAutomaton_wrapper(a)
-            
+def _RecWord(fa, li):
+    """
+    Test the _NewDict c Function.
 
 
+    INPUT:
 
-        """
-        cdef Automaton aut
-        sig_on()
-        aut = CopyAutomaton(fa.a[0], fa.a.n+1, fa.a.na)
-        sig_off()
-        reurun aut
+    - ``a`` -- automaton
+
+    - `d` -- dictionary
+
+    OUTPUT:
+
+    Return ``True`` or `False `` if 
+
+
+    TESTS::
+
+        sage: a = [(0, 1, 'a'), (2, 3, 'b')] 
+        sage: fa = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+
+        sage: fa = DiGraph(a, multiedges=True, loops=True)
+        sage: b = _RecWord(fa, d)
+        sage: b
+
+    """
+    cdef bool res
+    cdef Automaton a
+    cdef Dict d
+    a = getAutomaton(fa)
+    d = list_to_Dict(li)
+    sig_on()
+    res = rec_word(a, d)
+    sig_off()
+    return c_bool(res)
     
