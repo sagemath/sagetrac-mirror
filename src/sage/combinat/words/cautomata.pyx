@@ -350,6 +350,9 @@ cdef class NFastAutomaton:
     """
     def __cinit__(self):
         self.a = <NAutomaton *>malloc(sizeof(NAutomaton))
+        if self.a is NULL:
+            raise MemoryError("Failed to allocate memory for "
+                              "C initialization of NFastAutomaton.")
         self.a.e = NULL
         self.a.n = 0
         self.a.na = 0
@@ -395,7 +398,9 @@ cdef class NFastAutomaton:
 
     def __dealloc__(self):
         FreeNAutomaton(self.a)
+        sig_on()
         free(self.a)
+        sig_off()
 
     def __repr__(self):
         return "NFastAutomaton with %d states and an alphabet of %d letters" % (self.a.n, self.a.na)
@@ -500,6 +505,9 @@ cdef class NFastAutomaton:
                 You can install it by doing './sage -i dot2tex' in a shell in the sage directory, or by doing 'install_package(package='dot2tex')' in the notebook.")
         cdef char** ll
         ll = <char **> malloc(sizeof(char*) * self.a.na)
+        if ll is NULL:
+            raise MemoryError("Failed to allocate memory for ll in "
+                              "_latex_")
         cdef int i
         strA = []
         for i in range(self.a.na):
@@ -603,7 +611,7 @@ cdef class NFastAutomaton:
         if j >= self.a.e[i].n or j < 0:
             raise ValueError("The state %s has no edge number %s !" % (i, j))
         return self.a.e[i].a[j].l
-
+        
     def is_final(self, int i):
         """
         Return ``True`` if the state``i`` is  final, ``False`` otherwise.
@@ -783,8 +791,7 @@ cdef class NFastAutomaton:
 
         """
         if i < 0 or i >= self.a.n:
-            raise ValueError("initial state must be a current state : " +
-                             "%d not in [-1, %d]" % (i, self.a.n - 1))
+            raise ValueError("i=%s is not the index of a state (i.e. between 0 and %s)."%(i, self.a.n - 1))
         self.a.e[i].initial = initial
 
     def add_edge(self, i, l, f):
@@ -872,7 +879,10 @@ cdef class NFastAutomaton:
             sage: b.add_path(1, 2, [1])
 
         """
-        cdef int *l = <int *>malloc(sizeof(int)*len(li));
+        cdef int *l = <int *>malloc(sizeof(int)*len(li))
+        if l is NULL:
+            raise MemoryError("Failed to allocate memory for l in "
+                              "add_path")
         for i in range(len(li)):
             l[i] = li[i]
         sig_on()
@@ -909,7 +919,7 @@ cdef class NFastAutomaton:
         r.S = None
         return r
 
-    def plot(self, int sx=10, int sy=8, verb=False):
+    def plot(self, file=None, int sx=10, int sy=8, verb=False):
         """
         plot a representation of the :class:`NFastAutomaton`.
 
@@ -934,7 +944,7 @@ cdef class NFastAutomaton:
         """
         cdef char** ll
         cdef int i
-        cdef char *file
+        cdef char *cfile
         if verb:
             print("Test if dot exists...")
         sig_on()
@@ -944,24 +954,26 @@ cdef class NFastAutomaton:
             if verb:
                 print(" -> yes !")
                 print("alloc ll (size=%s)..."%self.a.na)
-            sig_on()
             ll = <char **>malloc(sizeof(char*) * self.a.na)
-            sig_off()
+            if ll is NULL:
+                raise MemoryError("Failed to allocate memory for ll in "
+                                  "plot")
             strA = []
             for i in range(self.a.na):
                 strA.append(str(self.A[i]))
                 ll[i] = strA[i]
             if file is None:
                 from sage.misc.temporary_file import tmp_filename
-                file_name = tmp_filename()
-                file = file_name
+                file = tmp_filename()
+            cfile = file
             if verb:
                 print("file=%s" % file)
-            return
             sig_on()
-            NplotDot(file, self.a[0], ll, "Automaton", sx, sy, True)
+            NplotDot(cfile, self.a[0], ll, "Automaton", sx, sy, True)
             free(ll)
             sig_off()
+            if verb:
+                print("Ouvre l'image produite...")
             from PIL import Image
             return Image.open(file+'.png')
         else:
@@ -1004,6 +1016,9 @@ cdef class FastAutomaton:
         """
         # print("cinit")
         self.a = <Automaton *>malloc(sizeof(Automaton))
+        if self.a is NULL:
+            raise MemoryError("Failed to allocate memory for "
+                              "C initialization of FastAutomaton.")
         # initialise
         self.a.e = NULL
         self.a.n = 0
@@ -1198,12 +1213,18 @@ cdef class FastAutomaton:
         cdef char** vl # labels of vertices
         cdef int i
         ll = <char **>malloc(sizeof(char*) * self.a.na)
+        if ll is NULL:
+            raise MemoryError("Failed to allocate memory for ll in "
+                              "_latex_")
         if vlabels is None:
             vl = NULL
         else:
             if verb:
                 print("alloc %s..."%self.a.n)
             vl = <char **>malloc(sizeof(char*) * self.a.n)
+            if vl is NULL:
+                raise MemoryError("Failed to allocate memory for vl in "
+                                  "_latex_")
             strV = []
             if verb:
                 print("len %s %s" % (self.a.n, len(vlabels)))
@@ -1386,6 +1407,9 @@ cdef class FastAutomaton:
                 print("alloc %s..."%self.a.na)
             sig_on()
             ll = <char **>malloc(sizeof(char*) * self.a.na)
+            if ll is NULL:
+                raise MemoryError("Failed to allocate memory for ll in "
+                                  "plot")
             sig_off()
             if vlabels is None:
                 if self.S is not None:
@@ -1393,6 +1417,9 @@ cdef class FastAutomaton:
                         print("alloc %s..." % self.a.n)
                     sig_on()
                     vl = <char **>malloc(sizeof(char*) * self.a.n)
+                    if vl is NULL:
+                        raise MemoryError("Failed to allocate memory for vl in "
+                                          "plot")
                     sig_off()
                     strV = []
                     if html:
@@ -1414,9 +1441,10 @@ cdef class FastAutomaton:
             else:
                 if verb:
                     print("alloc %s..." % self.a.n)
-                sig_on()
                 vl = <char **>malloc(sizeof(char*) * self.a.n)
-                sig_off()
+                if vl is NULL:
+                    raise MemoryError("Failed to allocate memory for vl in "
+                                      "plot")
                 strV = []
                 if verb:
                     print("len %s %s" % (self.a.n, len(vlabels)))
@@ -2938,6 +2966,9 @@ cdef class FastAutomaton:
         cdef Automaton a
         r = FastAutomaton(None)
         cdef int *l = <int*>malloc(sizeof(int) * len(A))
+        if l is NULL:
+            raise MemoryError("Failed to allocate memory for l in "
+                              "permut")
         cdef int i
         for i in range(self.a.na):
             l[i] = -1
@@ -2991,6 +3022,9 @@ cdef class FastAutomaton:
         if verb:
             print("A=%s" % A)
         cdef int *l = <int*>malloc(sizeof(int) * len(A))
+        if l is NULL:
+            raise MemoryError("Failed to allocate memory for l in "
+                              "permut_op")
         cdef int i
         for i in range(self.a.na):
             l[i] = -1
@@ -3079,6 +3113,9 @@ cdef class FastAutomaton:
             [[1], [0], [3], [2]]
         """
         cdef int* l = <int*>malloc(sizeof(int) * self.a.n)
+        if l is NULL:
+            raise MemoryError("Failed to allocate memory for l in "
+                              "strongly_connected_component.")
         sig_on()
         cdef int ncc = StronglyConnectedComponents(self.a[0], l)
         sig_off()
@@ -3119,6 +3156,9 @@ cdef class FastAutomaton:
         """
         sig_on()
         cdef int* l = <int*>malloc(sizeof(int) * self.a.n)
+        if l is NULL:
+            raise MemoryError("Failed to allocate memory for l in "
+                              "acc_and_coacc")
         AccCoAcc(self.a, l)
         sig_off()
         return [i for i in range(self.a.n) if l[i] == 1]
@@ -3139,6 +3179,9 @@ cdef class FastAutomaton:
         """
         sig_on()
         cdef int* l = <int*>malloc(sizeof(int) * self.a.n)
+        if l is NULL:
+            raise MemoryError("Failed to allocate memory for l in "
+                              "coaccessible_states.")
         CoAcc(self.a, l)
         sig_off()
         return [i for i in range(self.a.n) if l[i] == 1]
@@ -3665,6 +3708,9 @@ cdef class FastAutomaton:
 
         """
         cdef Dict* w = <Dict*>malloc(sizeof(Dict) * self.a.n)
+        if w is NULL:
+            raise MemoryError("Failed to allocate memory for w in "
+                              "shortest_words")
         if i is None:
             i = self.a.i
         sig_on()
