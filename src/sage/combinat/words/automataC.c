@@ -4,7 +4,7 @@
 #include "Automaton.h"
 #include "automataC.h"
 
-typedef Automate Automaton;
+typedef Automaton Automaton;
 
 //test if the dot command is installed in the system
 bool DotExists ()
@@ -139,7 +139,7 @@ void FreeAutomaton(Automaton *a)
 	a->n = 0;
 }
 
-void FreeAutomates (Automate* a, int n)
+void FreeAutomatons (Automaton* a, int n)
 {
 	int j;
 	for (j=0;j<n;j++)
@@ -187,6 +187,8 @@ NAutomaton NewNAutomaton(int n, int na)
 	{
 		a.e[i].a = NULL;
 		a.e[i].n = 0;
+		a.e[i].final = false;
+		a.e[i].initial = false;
 	}
 	return a;
 }
@@ -250,8 +252,6 @@ void AddPathN (NAutomaton *a, int e, int f, int *l, int len, bool verb)
 			printf("realloc to size %d\n", a->n+len-1);
 		ReallocNAutomaton(a, a->n+len-1);
 		int i;
-		if (verb)
-			printf("add edge %d --%d--> %d\n", e, l[0], n+i);
 		AddTransitionN(a, 0, n, l[0]);
 		for (i=1;i<len-1;i++)
 		{
@@ -303,6 +303,25 @@ void ReallocAutomaton (Automaton *a, int n, bool init)
 		}
 	}
 	a->n = n;
+}
+
+NAutomaton CopyNAutomaton(NAutomaton a, int nalloc, int naalloc)
+{
+    NAutomaton r = NewNAutomaton(nalloc, naalloc);
+	int i,j;
+	for (i=0;i<a.n;i++)
+	{
+		r.e[i].final = a.e[i].final;
+		r.e[i].initial = a.e[i].initial;
+		r.e[i].a = (Transition*)malloc(sizeof(Transition)*a.e[i].n);
+		r.e[i].n = a.e[i].n;
+		for (j=0;j<a.e[i].n;j++)
+		{
+			r.e[i].a[j].l = a.e[i].a[j].l;
+			r.e[i].a[j].e = a.e[i].a[j].e;
+		}
+	}
+	return r;
 }
 
 Automaton CopyAutomaton(Automaton a, int nalloc, int naalloc)
@@ -366,7 +385,7 @@ Automaton PieceAutomaton (Automaton a, int *w, int n, int e)
 	return r;
 }
 
-void init(Automaton *a)
+void initAutomaton (Automaton *a)
 {
 	int i,j;
 	a->i = -1;
@@ -377,6 +396,18 @@ void init(Automaton *a)
 		{
 			a->e[i].f[j] = -1;
 		}
+	}
+}
+
+void initNAutomaton (NAutomaton *a)
+{
+	int i;
+	for (i=0;i<a->n;i++)
+	{
+		a->e[i].initial = false;
+		a->e[i].final = false;
+		a->e[i].a = NULL;
+		a->e[i].n = 0;
 	}
 }
 
@@ -1106,7 +1137,7 @@ Automaton Product(Automaton a1, Automaton a2, Dict d, bool verb)
 			na = d.e[i]+1;
 	}
 	Automaton r = NewAutomaton(a1.n*a2.n, na);
-	init(&r);
+	initAutomaton(&r);
 	if (a1.i == -1 || a2.i == -1)
 	{
 		r.i = -1;
@@ -2409,7 +2440,9 @@ Automaton EmptyAutomaton (int na)
 Automaton ZeroInv (Automaton *a, int l0)
 {
     if (a->i == -1)
+    {
         return EmptyAutomaton(a->na);
+	}
 	NAutomaton r = NewNAutomaton(a->n+1, a->na);
 	CopyDN(a, &r, false);
 	/*
@@ -3479,7 +3512,7 @@ Automaton Minimise(Automaton a, bool verb)
 	
 	//create the new automaton
 	int e;
-	Automate r = NewAutomaton(nclass, a.na);
+	Automaton r = NewAutomaton(nclass, a.na);
 	for (i=0;i<nclass;i++)
 	{
 		e = partitioni[class_indices[i][0]]; //a state of the class
@@ -3604,7 +3637,7 @@ Automaton BiggerAlphabet (Automaton a, Dict d, int nna)
 		return NewAutomaton(0,0);
 	}
 	Automaton r = NewAutomaton(a.n, nna);
-	init(&r);
+	initAutomaton(&r);
 	int i,j;
 	for (i=0;i<a.n;i++)
 	{

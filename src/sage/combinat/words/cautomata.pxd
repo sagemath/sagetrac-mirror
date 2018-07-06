@@ -4,30 +4,30 @@
 
 cdef extern from "Automaton.h":
     ctypedef char bool
-    cdef cppclass Etat:
+    cdef cppclass State:
         int* f
         bool final
 
-    cdef cppclass Automate:
-        Etat* e # états
-        int n   # nombre d'états
-        int na  # nombre de lettres
-        int i # état initial
+    cdef cppclass Automaton:
+        State* e # states
+        int n   # number of states
+        int na  # number of letters
+        int i # initial state
 
-    cdef cppclass Arete:
+    cdef cppclass Transition:
         int l # label
-        int e # état d'arrivée
+        int e # arrival state
 
-    cdef cppclass NEtat:
-        Arete* a
+    cdef cppclass NState:
+        Transition* a
         int n
         bool final
         bool initial
 
-    cdef cppclass NAutomate:
-        NEtat* e # états
-        int n   # nombre d'états
-        int na  # nombre de lettres
+    cdef cppclass NAutomaton:
+        NState* e # states
+        int n   # number of states
+        int na  # number of letters
 
 
 
@@ -35,24 +35,24 @@ cdef extern from "automataC.h":
     cdef cppclass Dict:
         int *e
         int n
-    Automate NewAutomaton(int n, int na)
-    void FreeAutomaton(Automate *a)
-
-ctypedef Automate Automaton
-ctypedef NAutomate NAutomaton
+    Automaton NewAutomaton(int n, int na)
+    void FreeAutomaton(Automaton *a)
+    NAutomaton NewNAutomaton(int n, int na)
+    void FreeNAutomaton(NAutomaton *a)
 
 cdef class FastAutomaton:
-    cdef Automate* a
+    cdef Automaton* a
     cdef list A	 # alphabet
     cdef dict dA  # dictionnary giving the index in A
     cdef list S	 # states
     cdef dict dS  # dictionnary giving the index in S
-    # cdef set_a(self, Automate a)
+    # cdef set_a(self, Automaton a)
 
 
 cdef class NFastAutomaton:
-    cdef NAutomate* a
+    cdef NAutomaton* a
     cdef list A
+    cdef list S	 # states
 
-cdef Automaton getAutomaton (a, initial=?, F=?, A=?)
-cdef Dict list_to_Dict(list l)
+#cdef Automaton getAutomaton (a, initial=?, F=?, A=?)
+#cdef Dict list_to_Dict(list l)

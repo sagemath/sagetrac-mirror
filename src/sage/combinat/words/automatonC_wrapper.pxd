@@ -5,7 +5,7 @@ cdef extern from "Automaton.h":
         int* f
         bool final
 
-    cdef cppclass Automate:
+    cdef cppclass Automaton:
         Etat* e # états
         int n   # nombre d'états
         int na  # nombre de lettres
@@ -21,14 +21,29 @@ cdef extern from "Automaton.h":
         bool final
         bool initial
 
-    cdef cppclass NAutomate:
+    cdef cppclass NAutomaton:
         NEtat* e # états
         int n   # nombre d'états
         int na  # nombre de lettres
 
 cdef extern from "automataC.h":
-    Automate NewAutomaton(int n, int na)
-    void FreeAutomaton(Automate *a)
+    cdef cppclass Dict:
+        int *e
+        int n
+    Automaton NewAutomaton(int n, int na)
+    void FreeAutomaton(Automaton *a)
+    NAutomaton NewNAutomaton(int n, int na)
+    void FreeNAutomaton(NAutomaton *a)
 
-ctypedef Automate Automaton
-ctypedef NAutomate NAutomaton
+cdef class FastAutomaton:
+    cdef Automaton* a
+    cdef list A	 # alphabet
+    cdef dict dA  # dictionnary giving the index in A
+    cdef list S	 # states
+    cdef dict dS  # dictionnary giving the index in S
+    # cdef set_a(self, Automaton a)
+
+
+cdef class NFastAutomaton:
+    cdef NAutomaton* a
+    cdef list A

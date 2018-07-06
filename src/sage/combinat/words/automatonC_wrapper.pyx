@@ -32,8 +32,8 @@ from libc.stdlib cimport malloc, free
 cimport sage.combinat.words.automatonC_wrapper
 from cysignals.signals cimport sig_on, sig_off, sig_check
 from cpython cimport bool as c_bool
-from .cautomata import  FastAutomaton, NFastAutomaton
-from .cautomata cimport getAutomaton, list_to_Dict
+#from sage.combinat.words.cautomata import FastAutomaton, NFastAutomaton
+#from sage.combinat.words.cautomata cimport getAutomaton, list_to_Dict
 
 cdef extern from "automataC.h":
     cdef cppclass Dict:
@@ -209,10 +209,10 @@ def _RecWord(fa, li):
     cdef bool res
     cdef Automaton a
     cdef Dict d
-    a = getAutomaton(fa)
-    d = list_to_Dict(li)
-    sig_on()
-    res = rec_word(a, d)
-    sig_off()
-    return c_bool(res)
+    #a = getAutomaton(fa)
+    #d = list_to_Dict(li)
+    #sig_on()
+    #res = rec_word(a, d)
+    #sig_off()
+    #return c_bool(res)
     

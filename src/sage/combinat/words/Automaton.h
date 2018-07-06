@@ -10,7 +10,7 @@ struct State
 };
 typedef struct State State;
 
-struct Automate
+struct Automaton
 {
 	State *e; //states
 	int n; //number of states
@@ -19,8 +19,8 @@ struct Automate
 	//
 //	int nalloc; //internal usage, allocated memory
 };
-typedef struct Automate Automate;
-typedef struct Automate Automaton;
+typedef struct Automaton Automaton;
+typedef struct Automaton Automaton;
 
 //Automaton NewAutomaton (int n, int na);
 //void FreeAutomaton (Automaton *a);
@@ -45,10 +45,10 @@ struct NState
 };
 typedef struct NState NState;
 
-struct NAutomate
+struct NAutomaton
 {
 	NState *e; //states
 	int n; //number of states
 	int na; //number of letters
 };
-typedef struct NAutomate NAutomate;
+typedef struct NAutomaton NAutomaton;

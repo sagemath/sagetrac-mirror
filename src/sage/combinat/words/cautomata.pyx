@@ -37,8 +37,14 @@ from libc.stdlib cimport malloc, free
 cimport sage.combinat.words.cautomata
 from cysignals.signals cimport sig_on, sig_off, sig_check
 from cpython cimport bool as c_bool 
-#ctypedef Automate Automaton
+#ctypedef Automaton Automaton
 
+cdef extern from "Automaton.h":
+    
+    cdef cppclass Transition:
+        int l #label (-1 : epsilon-transition)
+        int e #arrival state
+    
 cdef extern from "automataC.h":
 
     cdef cppclass Dict:
@@ -52,10 +58,11 @@ cdef extern from "automataC.h":
     #    Automaton NewAutomaton (int n, int na)
     #    void FreeAutomaton (Automaton *a)
     int hashAutomaton(Automaton a)
-    void FreeNAutomaton(NAutomaton *a)
     Automaton CopyAutomaton(Automaton a, int nalloc, int naalloc)
+    NAutomaton CopyNAutomaton(NAutomaton a, int nalloc, int naalloc)
     Automaton PieceAutomaton(Automaton a, int *w, int n, int e)
-    void init(Automaton *a)
+    void initAutomaton (Automaton *a)
+    void initNAutomaton (NAutomaton *a)
     void printAutomaton(Automaton a)
     void plotDot(const char *file, Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool html, bool verb, bool run_dot)
     void NplotDot (const char *file, NAutomaton a, const char **labels, const char *graph_name, double sx, double sy, bool run_dot)
@@ -236,7 +243,7 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
 
     sig_on()
     r = NewAutomaton(n, na)
-    init(&r)
+    initAutomaton(&r)
     sig_off()
     for i in range(na):
         da[A[i]] = i
@@ -258,7 +265,7 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
         else:
             I = list(a.I)
         if len(I) > 1:
-            raise ValueError("The automata must be determist (I=%s)" % a.I)
+            raise ValueError("The automata must be determistic (I=%s)" %I)
         if len(I) >= 1:
             r.i = d[I[0]]
         else:
@@ -267,10 +274,105 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
         r.i = d[initial]
 
     for e, f, l in a.edges():
+        if r.e[d[e]].f[da[l]] != -1:
+            print("Warning: the automaton was not deterministic !\nThe result lost some informations.")
         r.e[d[e]].f[da[l]] = d[f]
     a.dA = da
     a.S = V
     a.dS = d
+    return r
+
+cdef NAutomaton getNAutomaton(a, I=None, F=None, A=None, verb=False):
+    d = {}
+    da = {}
+    dt = {}
+    if F is None:
+        if not hasattr(a, 'F'):
+            F = a.vertices()
+        else:
+            F = a.F
+    if I is None:
+        if not hasattr(a, 'I'):
+            I = a.vertices()
+        else:
+            I = a.I
+    cdef NAutomaton r
+
+    if A is None:
+        A = list(a.Alphabet)
+    
+    V = list(a.vertices())
+    cdef int n = len(V)
+    cdef int na = len(A)
+    
+    if verb:
+        print("vertices=%s"%V)
+
+    if verb:
+        print("Alloc(%s, %s) and init..."%(n, na))
+    sig_on()
+    r = NewNAutomaton(n, na)
+    #initNAutomaton(&r)
+    sig_off()
+    if verb:
+        print("init...")
+    for i in range(n):
+        d[V[i]] = i
+        dt[V[i]] = []
+    for i in range(na):
+        da[A[i]] = i
+    if verb:
+        print("final states...")
+    for v in F:
+        if not d.has_key(v):
+            sig_on()
+            FreeNAutomaton(&r)
+            sig_off()
+            raise ValueError("Incorrect set of final states.")
+        if verb:
+            print("d[%s]=%s"%(v, d[v]))
+        r.e[d[v]].final = 1
+    if verb:
+        print("initial states...")
+    for v in I:
+        if not d.has_key(v):
+            sig_on()
+            FreeNAutomaton(&r)
+            sig_off()
+            raise ValueError("Incorrect set of final states.")
+        if verb:
+            print("d[%s]=%s"%(v, d[v]))
+        r.e[d[v]].initial = 1
+    
+    if verb:
+        print(dt)
+        print("browse transitions...")
+
+    for e, f, l in a.edges():
+        if dt.has_key(e):
+            dt[e].append((f,l))
+        else:
+            raise MemoryError("This transition %s -%s-> %s starts from a state not in the set of states."%(e, l, f))
+    if verb:
+        print(dt)
+        print("Alloc...")
+    for e in V:
+        r.e[d[e]].n = len(dt[e])
+        if verb:
+            print("alloc r.e[%s].a (%s elements, %so total)"%(d[e], r.e[d[e]].n, sizeof(Transition)*r.e[d[e]].n))
+        if r.e[d[e]].n > 0:
+            r.e[d[e]].a = <Transition *>malloc(sizeof(Transition)*r.e[d[e]].n)
+            if r.e[d[e]].a is NULL:
+                raise MemoryError("Could not allocate the transition (size %s)"%(sizeof(Transition)*len(dt[e])))
+            for i,(f,l) in enumerate(dt[e]):
+                if verb:
+                    print("r.e[%s].a[%s] = %s,%s"%(d[e], i, l, f))
+                r.e[d[e]].a[i].l = da[l]
+                r.e[d[e]].a[i].e = d[f]
+        else:
+            r.e[d[e]].a = NULL
+            r.e[d[e]].n = 0
+    a.S = V
     return r
 
 cdef AutomatonGet(Automaton a, A):
@@ -357,44 +459,93 @@ cdef class NFastAutomaton:
         self.a.n = 0
         self.a.na = 0
         self.A = []
+        self.S = None
 
-    def _initialise_automaton(self, a):
-        """
-        Transform a determinist  :class:`FastAutomaton` to a non determinist
-        :class:`NFastAutomaton`
+#    def _initialise_automaton(self, a):
+#        """
+#        Transform a determinist  :class:`FastAutomaton` to a non determinist
+#        :class:`NFastAutomaton`
+#
+#        INPUT:
+#
+#        - ``a`` -- automaton must be a :class:`FastAutomaton`
+#
+#        OUTPUT:
+#
+#        Return a instance of :class:`NFastAutomaton` initialized with ``a``
+#
+#        EXAMPLES::
+#                sage: NFastAutomaton([(0,1,'a') ,(2,3,'b')])
+#                NFastAutomaton with 4 states and an alphabet of 2 letters
+#        """
+#        if type(a) == FastAutomaton:
+#            self = a.copyn(self)
+#        else:
+#            raise NotImplementedError("Cannot construct directly a NFastAutomaton for the moment, except from a deterministic one.")
+#        return self
 
-        INPUT:
-
-        - ``a`` -- automaton must be a :class:`FastAutomaton`
-
-        OUTPUT:
-
-        Return a instance of :class:`NFastAutomaton` initialized with ``a``
-
-        EXAMPLES::
-                sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-                sage: b = NFastAutomaton(a)
-                sage: b
-                NFastAutomaton with 4 states and an alphabet of 2 letters
-        """
-        if type(a) == FastAutomaton:
-            a.copyn(self)
-        else:
-            raise NotImplementedError("Cannot construct directly a NFastAutomaton for the moment, except from a deterministic one.")
-        return self
-
-    def __init__(self, a): # TO DO i=None, final_states=None, A=None
+    def __init__ (self, a, I=None, F=None, A=None, keep_S=True, verb=False):
         """
         TESTS::
-
+            
+            sage: NFastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=1)
+            NFastAutomaton with 4 states and an alphabet of 2 letters
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=1)
             sage: NFastAutomaton(a)
             NFastAutomaton with 4 states and an alphabet of 2 letters
+            
         """
         if a is None:
-            pass
+            if verb:
+                print("a is None")
+            return
+        from sage.graphs.digraph import DiGraph
+        from sage.combinat.finite_state_machine import Automaton as SageAutomaton
+        if isinstance(a, SageAutomaton):
+            if verb:
+                print("Sage automaton...")
+            L = []
+            for t in a.transitions():
+                if len(t.word_in) != 1 or len(t.word_out) != 0:
+                    print("Warning: informations lost during the conversion.")
+                L.append((t.from_state, t.to_state, t.word_in[0]))
+            if I is None:
+                I = a.initial_states()
+            if F is None:
+                F = a.final_states()
+            a = L
+        if isinstance(a, list):
+            if verb:
+                print("List...")
+            a = DiGraph(a, multiedges=True, loops=True)
+        if isinstance(a, DiGraph):
+            if verb:
+                print("DiGraph...")
+            if A is None:
+                A = list(set(a.edge_labels()))
+            self.A = A
+            if verb:
+                print("getNAutomaton(%s, I=%s, F=%s, A=%s)"%(a, I, F, self.A))
+            self.a[0] = getNAutomaton(a, I=I, F=F, A=self.A, verb=verb)
+            if keep_S:
+                self.S = a.S
+        elif isinstance(a, NFastAutomaton):
+            if verb:
+                print("NFastAutomaton")
+            #self.a[0] = CopyNAutomaton(a.a[0], a.n, a.na)
+            #self.A = a.A
+            #self.S = a.S
+            a.copy(self)
+        elif isinstance(a, FastAutomaton):
+            if verb:
+                print("FastAutomaton")
+            a.copyn(self)
         else:
-            self = self._initialise_automaton(a)
+            raise ValueError("Cannot convert the input to NFastAutomaton.")
+#        if a is None:
+#            pass
+#        else:
+#            self = self._initialise_automaton(a)
 
     def __dealloc__(self):
         FreeNAutomaton(self.a)
@@ -518,7 +669,29 @@ cdef class NFastAutomaton:
         sig_off()
         dotfile = open(file_name)
         return LatexExpr(dot2tex(dotfile.read()))
+    
+    def copy(self, NFastAutomaton r):
+        """
+        Do a copy of the :class:`NFastAutomaton`.
 
+        OUTPUT:
+
+        Return a copy of the :class:`NFastAutomaton`
+
+        EXAMPLES::
+
+            sage: a = NFastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a.copy()
+            NFastAutomaton with 4 states and an alphabet of 2 letters
+
+        """
+        r = NFastAutomaton(None)
+        sig_on()
+        r.a[0] = CopyNAutomaton(self.a[0], self.a.n, self.a.na)
+        sig_off()
+        r.A = self.A
+        return r
+    
     @property
     def n_states(self):
         """
@@ -1051,11 +1224,30 @@ cdef class FastAutomaton:
 
             sage: FastAutomaton([(0,1,'a') ,(2,3,'b')])
             FastAutomaton with 4 states and an alphabet of 2 letters
+            sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: FastAutomaton(a)
+            FastAutomaton with 4 states and an alphabet of 2 letters
         """
         # print("init")
         if a is None:
             return
         from sage.graphs.digraph import DiGraph
+        from sage.combinat.finite_state_machine import Automaton as SageAutomaton
+        if isinstance(a, SageAutomaton):
+            L = []
+            for t in a.transitions():
+                if len(t.word_in) != 1 or len(t.word_out) != 0:
+                    print("Warning: informations lost during the conversion.")
+                L.append((t.from_state, t.to_state, t.word_in[0]))
+            if i is None:
+                I = a.initial_states()
+                if len(I) == 1:
+                    i = I[0]
+                else:
+                    print("Warning: the automaton has several initial states.")
+            if final_states is None:
+                final_states = a.final_states()
+            a = L
         if isinstance(a, list):
             a = DiGraph(a, multiedges=True, loops=True)
         if isinstance(a, DiGraph):
@@ -1068,7 +1260,7 @@ cdef class FastAutomaton:
                 self.S = a.S
                 self.dS = a.dS
         elif isinstance(a, FastAutomaton):
-            self = a
+            self = a.copy(self)
         else:
             raise ValueError("Cannot convert the input to FastAutomaton.")
 
@@ -1311,11 +1503,11 @@ cdef class FastAutomaton:
         else:
             return (r == 0)
 
-    #give a Sage Automon from the FastAutomaton
+    #give a Sage Automaton from the FastAutomaton
     def get_automaton(self):
         return AutomatonToSageAutomaton(self.a[0], self.A)
 
-    #give a Sage Automon from the FastAutomaton
+    #give a DiGraph from the FastAutomaton
     def get_DiGraph(self):
         return AutomatonToDiGraph(self.a[0], self.A)
 
@@ -2674,16 +2866,18 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: b = NFastAutomaton(a)
-            sage: a.copyn(b)
+            sage: b = a.copyn(a)
+            sage: b
             NFastAutomaton with 4 states and an alphabet of 2 letters
         """
         cdef NAutomaton a
+        r = NFastAutomaton(None)
         sig_on()
         a = CopyN(self.a[0], verb)
         sig_off()
         r.a[0] = a
         r.A = self.A
+        r.S = self.S
         return r
 
     def concat(self, FastAutomaton b, det=True, simplify=True, verb=False):
@@ -3470,7 +3664,7 @@ cdef class FastAutomaton:
                     r = max([ro[0] for ro in f[0].roots(ring=AlgebraicRealField())] + [r])
         return r
 
-    def copy(self):
+    def copy(self, FastAutomaton r):
         """
         Do a copy of the :class:`FastAutomaton`.
 

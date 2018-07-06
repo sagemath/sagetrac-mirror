@@ -3,8 +3,6 @@
 typedef uint64_t uint64;
 typedef unsigned int uint;
 
-typedef Automate Automaton;
-typedef NAutomate NAutomaton;
 
 struct Dict
 {
@@ -25,17 +23,21 @@ void FreeDict (Dict *d);
 void printDict (Dict d);
 void dictAdd (Dict *d, int e); //add the element to the disctionnary (even if already present)
 Automaton NewAutomaton (int n, int na);
+NAutomaton NewNAutomaton(int n, int na);
 void ReallocNAutomaton (NAutomaton *a, int n);
 void FreeAutomaton (Automaton *a);
-void FreeAutomates (Automate* a, int n);
+void FreeAutomatons (Automaton* a, int n);
 void FreeNAutomaton (NAutomaton *a);
 void AddTransitionN (NAutomaton *a, int e, int f, int l);
 void AddPathN (NAutomaton *a, int e, int f, int *l, int len, bool verb);
 Automaton CopyAutomaton (Automaton a, int nalloc, int naalloc);
+NAutomaton CopyNAutomaton(NAutomaton a, int nalloc, int naalloc);
 Automaton PieceAutomaton (Automaton a, int *w, int n, int e); //gives an automaton recognizing w(w^(-1)L) where L is the language of a starting from e
-void init (Automaton *a);
+void initAutomaton (Automaton *a);
+void initNAutomaton (NAutomaton *a);
 void printAutomaton (Automaton a);
 void plotDot (const char *file, Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool html, bool verb, bool run_dot);
+void NplotDot (const char *file, NAutomaton a, const char **labels, const char *graph_name, double sx, double sy, bool run_dot);
 bool equalsAutomaton (Automaton a1, Automaton a2); //determine if automata are the same (differents if permuted states)
 int contract (int i1, int i2, int n1);
 int geti1 (int c, int n1);
