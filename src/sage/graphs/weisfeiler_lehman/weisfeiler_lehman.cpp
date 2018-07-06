@@ -9,108 +9,120 @@
 #include <algorithm>
 #include <tuple>
 #include <cstring>
+#include <functional>
 namespace wl{
         using TupleMap = std::unordered_map<Tuple<int>, int>;
         using InverseTupleMap = std::vector<std::unordered_map<Tuple<int>, int>::const_iterator>;
-        using uchar = unsigned char;
+        
+        template<typename T>
         class AdjMatrix{
                 public:
-                        AdjMatrix(int size):num_of_vertices(size){
-                                int numberOfBits = size * size;
-                                int numOfWords = std::ceil((double)numberOfBits / (double)(8*sizeof(unsigned int)));
-                                array = new unsigned int[numOfWords]();
-                                
+                        //The type T default constructor should set an element of type T to default_label, and the latter should never be used as label for an existing edge
+                        AdjMatrix(int size, T default_label, vector<T>& vertex_labels):num_of_vertices(size){
+                                array = new T[size*size]();
+                                this->vertex_labels = std::move(vertex_labels);
+                        }
+                        AdjMatrix(int size, T default_label):num_of_vertices(size){
+                                array = new T[size*size]();
                         }
                         ~AdjMatrix(){
                                 delete[] array;
                         }
-                        void addEdge(int v, int u, bool bothDirections=false){
-                                unsigned int bit = getEdgeBit(v,u);
-                                int word, wordOffset;
-                                wordOffset = bit % wordBits;
-                                word = bit / wordBits;
-                                unsigned int mask = (1<<wordOffset);
-                                array[word] |= mask;
-                                if(bothDirections) addEdge(u,v);
+                        AdjMatrix(AdjMatrix<T>&& b){
+                                this->num_of_vertices = b.num_of_vertices;
+                                this->default_label = b.default_label;
+                                this->array = b.array;
+                                b.array = nullptr;
+                                this->vertex_labels = std::move(b.vertex_labels);
+                        }
+                        AdjMatrix<T>& operator=(AdjMatrix<T>&& b){
+                                this->num_of_vertices = b.num_of_vertices;
+                                this->default_label = b.default_label;
+                                this->array = b.array;
+                                b.array = nullptr;
+                                this->vertex_labels = std::move(b.vertex_labels);
+                                return *this;
+                        }
+                        void addEdge(int v, int u, T label, bool bothDirections=false){
+                                array[v*num_of_vertices+u] = label;
+                                if(bothDirections) addEdge(u,v,label);
                         }
                         void delEdge(int v, int u, bool bothDirections=false){
-                                unsigned int bit = getEdgeBit(v,u);
-                                int word, wordOffset;
-                                wordOffset = bit % wordBits;
-                                word = bit / wordBits;
-                                unsigned int mask = -1;
-                                mask ^= (1<<wordOffset);
-                                array[word] &= mask;
-                                if(bothDirections) delEdge(u,v);
+                                addEdge(v,u,default_label, bothDirections);
                         }
-                        bool isEdge(int v, int u) const{
-                                unsigned int bit = getEdgeBit(v,u);
-                                int word, wordOffset;
-                                wordOffset = bit % wordBits;
-                                word = bit / wordBits;
-                                unsigned int mask = (1<<wordOffset);
-                                unsigned int res = array[word] & mask;
-                                return res != 0;
+                        const T& getEdge(int v, int u) const{
+                                return array[v*num_of_vertices+u];
+                        }
+                        const T& operator()(int v, int u) const{
+                                return getEdge(v,u);
+                        }
+                        bool hasVertexLabels() const{
+                                return vertex_labels.size()!=0;
+                        }
+                        const T& getVertexLabel(int i) const{
+                                if(!hasVertexLabels() || i >= num_of_vertices) throw out_of_range("No vertex labels");
+                                return vertex_labels[i];
                         }
                 private:
                         int num_of_vertices;
-                        unsigned int* array;
-                        inline unsigned int getEdgeBit(int v, int u) const{
-                                int v_row_offset = v * num_of_vertices;
-                                return v_row_offset + u;
-                        }
-                        const int wordBits = (8*sizeof(int));
+                        T default_label;
+                        T* array;
+                        vector<T> vertex_labels;
         };
         class AtomicType{
                 public:
+                        class VectorView{
+                                public:
+                                        
+                                        VectorView(const AdjMatrix<int>& adjMatrix, const vector<int>& v): vertex_subset(v), adjMatrix(adjMatrix){}
+                                        int operator[](size_t i) const{
+                                                auto s = vertex_subset.size();
+                                                auto row = i/s;
+                                                auto col = i%s;
+                                                auto iV = this->vertex_subset[row];
+                                                auto jV = this->vertex_subset[col];
+                                                if(iV == jV){
+                                                        if(adjMatrix.hasVertexLabels()) return -adjMatrix.getVertexLabel(iV);
+                                                        return -1;
+                                                }
+                                                return adjMatrix(iV,jV);
+                                        }
+                                private:
+                                        const vector<int>& vertex_subset;
+                                        const AdjMatrix<int>& adjMatrix;
+                        };
                         template<typename Container>
-                        AtomicType(const Container& vertex_subset, const AdjMatrix& adjMatrix, int originalColor = 0){
+                        AtomicType(const Container& vertex_subset, const AdjMatrix<int>& adjMatrix) : adj_matrix(adjMatrix){
                               this->vertex_subset.reserve(vertex_subset.size());
-                              std::copy(vertex_subset.begin(), vertex_subset.end(), this->vertex_subset.begin());
+                              this->vertex_subset = vertex_subset;
                               this->size = vertex_subset.size();
-                              this->original_color = originalColor;
-                              atp_matrix.resize(this->size*this->size);
-                              for(int i = 0; i < this->size; i++){
-                                      for( int j = 0; j < this->size; j++){
-                                                int iV = this->vertex_subset[i];
-                                                int jV = this->vertex_subset[j];
-                                                int atpIdx = getIdx(i,j);
-                                                if(iV == jV) atp_matrix[atpIdx] = 2;
-                                                else atp_matrix[atpIdx] = adjMatrix.isEdge(iV, jV)?1:0;
-                                      }
-                              }
                         }
-                        bool operator==(const AtomicType& b) const{
-                                if(size != b.size) return false;
-                                if(original_color != b.original_color) return false;
-                                return atp_matrix == b.atp_matrix;
-                        }
-                        const vector<uchar>& getSetVector() const{
-                                return atp_matrix;
+                        
+                        const VectorView getSetVector() const{
+                                return VectorView(adj_matrix, vertex_subset);
                         }
                 private:
-                        inline int getIdx(int row, int column){
-                                return row*size + column;
-                        }
+                        
                         int size;
-                        int original_color;
                         vector<int> vertex_subset;
-                        vector<uchar> atp_matrix;
+                        const AdjMatrix<int>& adj_matrix;
+        };
+        template<class T>
+        class Wrapper{
+                private:
+                        T& c;
+                public:
+                        Wrapper(T& c):c(c){}
+                        void clearSetVector(){
+                                c.clearSetVector();
+                        }
+                        const vector<int>& getSetVector() const{
+                                return c.getSetVector();
+                        }
         };
         class Coloring{
                 public:
-                        class Wrapper{
-                                private:
-                                        Coloring& c;
-                                public:
-                                        ColoringWrapper(Coloring& c):c(c){}
-                                        void clearSetVector(){
-                                                c.clearSetVector();
-                                        }
-                                        const vector<int>& getSetVector() const{
-                                                return c.getSetVector();
-                                        }
-                        };
+                        
                         Coloring(){
                                 previous_color = -1;
                         }
@@ -179,7 +191,7 @@ namespace wl{
                 T lastValue = 0;
                 for(auto& el: valuesToBucket){
                         if(res.size() == 0 || lastValue != el.first){
-                                res.push_back(std::vector<int>{});
+                                res.push_back(std::vector<int>());
                         }
                         res.back().push_back(el.second);
                         lastValue = el.first;
@@ -286,7 +298,7 @@ namespace wl{
         }
         
         
-        Coloring& prepareElementColoring(const InverseTupleMap& itm, vector<Coloring>& tuple_coloring, int i){
+        Coloring& prepareElementColoring(const vector<Coloring>& firstColoring, TupleMap& tm, const InverseTupleMap& itm, vector<Coloring>& tuple_coloring, int i, int n, int k){
                 auto& color = tuple_coloring[i];
                 const auto& tuple = itm[i]->first;
                 vector<vector<int>> tmpMultiset;
@@ -300,31 +312,30 @@ namespace wl{
                         }
                 }
                 sort(tmpMultiset.begin(), tmpMultiset.end());
-                if(k == 1) color.add_multiset_color(firstColoring[i].getColor(), setSize);
+                if(k == 1) color.add_multiset_color(firstColoring[i].getColor(), n*k);
                 for(const auto& innerVector:tmpMultiset){
                         for(const auto& el: innerVector){
-                                color.add_multiset_color(el, setSize);
+                                color.add_multiset_color(el, n*k);
                         }
                 }
                 return color;
         }
         
-        void disposeElementColoring(Coloring:Wrapper& el){
+        void disposeElementColoring(Wrapper<Coloring>& el){
                 el.clearSetVector();
         }
         
         template<class T>
-        bool orderSetOfSetsBuckets(vector<int>& remap, vector<bool>& buckets, vector<Coloring>& tuple_coloring, std::function<T&(int)> prepareElement, std::function<void(T:Wrapper&)> disposeElement){
+        bool orderSetOfSetsBuckets(vector<int>& remap, vector<bool>& buckets, vector<Coloring>& tuple_coloring, std::function<void(Wrapper<T>&)> disposeElement, std::function<T&(int)> prepareElement, int setSize){
                 bool finished = true;
                 int s = buckets.size();
-                int setSize = n*k;
-                vector<T::Wrapper> tmp;
+                vector<Wrapper<T>> tmp;
                 int last_i = 0;
                 int i = 0;
                 while(i < s){
                         do{
                                 T& el = prepareElement(remap[i]);
-                                tmp.push_back(T:Wrapper(el));
+                                tmp.push_back(Wrapper<T>(el));
                                 ++i;
                         }while(i < s && !buckets[i]);
                         auto new_res = orderSortedSets(tmp, setSize);
@@ -350,19 +361,29 @@ namespace wl{
                 updateColoring(remap, buckets, tuple_coloring);
                 return finished;
         }
-        
-        TupleMap k_WL(const std::vector<GraphNode>& v, int k){
+        //Edge labels should start from 1
+        TupleMap k_WL(const std::vector<GraphNode>& v, int k, bool hasVertexLabels){
                 int n = v.size();
-                AdjMatrix adj_matrix(n);
+                
+                AdjMatrix<int> adj_matrix(n, 0);
+                if(hasVertexLabels){
+                        vector<int> vertex_labels;
+                        vertex_labels.reserve(n);
+                        for(const auto& el: v){
+                                 vertex_labels.push_back(el.color);
+                        }
+                        adj_matrix = std::move(AdjMatrix<int>(n,0,vertex_labels));
+                }
                 for(const auto& el: v){
                         int vIdx = el.idx;
                         for(const auto& adj: el.adj_list){
-                                adj_matrix.addEdge(vIdx, adj);
+                                adj_matrix.addEdge(vIdx, adj.first, adj.second);
                         }
                 }
                 TupleMap tm;
                 InverseTupleMap itm;
                 generateTupleMap(n, k, tm, itm);
+                
                 auto numberOfTuples = itm.size();
                 vector<AtomicType> atp;
                 atp.reserve(numberOfTuples);
@@ -389,7 +410,7 @@ namespace wl{
                 while(!finished){
                         auto& remap = res.first;
                         auto& buckets = res.second;
-                        finished = orderSetOfSetsBuckets<Coloring>(remap, buckets, tuple_coloring, std::function([&itm, &tuple_coloring](int i)->Coloring&{return prepareElementColoring(itm, tuple_coloring, i);}), std::function(disposeElementColoring(el)));
+                        finished = orderSetOfSetsBuckets<Coloring>(remap, buckets, tuple_coloring, std::function<void(Wrapper<Coloring>&)>(disposeElementColoring), std::function<Coloring&(int)>([&firstColoring, &tm, &itm, &tuple_coloring, n, k](int i)->Coloring&{return prepareElementColoring(firstColoring, tm, itm, tuple_coloring, i, n, k);}), n*k);
                 }
                 for(auto& el: tm){
                         el.second = tuple_coloring[el.second].getColor();

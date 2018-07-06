@@ -45,6 +45,13 @@ public:
                 this->hash = b.hash;
                 return *this;
         }
+        operator std::vector<int>() const{
+                std::vector<int> res(numOfElements);
+                for(int i = 0; i < numOfElements; i++){
+                        res[i] = content[i];
+                }
+                return res;
+        }
 	explicit Tuple(long unsigned int size);
 
 	explicit Tuple(long int size);
