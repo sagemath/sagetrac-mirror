@@ -165,6 +165,9 @@ class LinearLayer(SageObject):
         else:
             raise TypeError("No matrix L as argument provided.")
 
+        if not (L.base_ring() is GF(2) or L.base_ring().base_ring() is GF(2)):
+            raise NotImplementedError("Only linear layers over GF(2) or GF(2**n) are supported")
+
         self._L = L
         self.m = L.nrows()
         self.n = L.ncols()
