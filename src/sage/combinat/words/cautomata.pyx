@@ -33,6 +33,7 @@ REFERENCES:
 #*****************************************************************************
 from __future__ import print_function
 from libc.stdlib cimport malloc, free
+from sage.graphs.digraph import DiGraph
 
 cimport sage.combinat.words.cautomata
 from cysignals.signals cimport sig_on, sig_off, sig_check
@@ -222,15 +223,18 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
     da = {}
     if F is None:
         if not hasattr(a, 'F'):
-            F = a.vertices()
+            try:
+                F = a.vertices()
+            except AttributeError:
+                    raise AttributeError("No vertices() method")
         else:
             F = a.F
     cdef Automaton r
 
     if A is None:
-        A = list(a.Alphabet)
-    
+        A = list(set(a.edge_labels()))
     V = list(a.vertices())
+
     cdef int n = len(V)
     cdef int na = len(A)
 
@@ -978,7 +982,7 @@ cdef class FastAutomaton:
     def __init__(self, a, i=None, final_states=None, A=None, keep_S=True):
         r"""
         INPUT:
-        
+
         -``a`` - a list or ``FastAutomaton`` 
 
         - ``i`` - (default: None) - initial state
@@ -1218,7 +1222,7 @@ cdef class FastAutomaton:
         sig_off()
         # print "hash=%s"%h
         return h
-    
+
     def _richcmp_(self, FastAutomaton other, int op):
         r"""
         Compare function, Overwrite built-in function

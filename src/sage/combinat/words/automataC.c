@@ -211,7 +211,7 @@ void ReallocNAutomaton (NAutomaton *a, int n)
 	a->n = n;
 }
 
-void FreeNAutomaton (NAutomaton *a)
+void FreeNAutomaton(NAutomaton *a)
 {
 	if (a->n == 0)
 		return;
@@ -323,7 +323,7 @@ Automaton CopyAutomaton(Automaton a, int nalloc, int naalloc)
 }
 
 //give an automaton recognizing w(w^(-1)L) where L is the language of a starting from state e
-Automaton PieceAutomaton (Automaton a, int *w, int n, int e)
+Automaton PieceAutomaton(Automaton a, int *w, int n, int e)
 {
 	int i, j, f;
 	Automaton r = NewAutomaton(a.n+n, a.na);
@@ -766,7 +766,7 @@ bool emptyLanguage_rec (Automaton a, int e)
 }
 
 //determine if the language of the automaton is empty
-bool emptyLanguage (Automaton a)
+bool emptyLanguage(Automaton a)
 {
 	if (a.i == -1)
 		return true;
@@ -1030,6 +1030,10 @@ bool rec_word(Automaton a, Dict d)
 {
 	int i;
 	int e = a.i;
+    if (e == -1)
+	{
+		return false;
+	}
 	for (i=0;i<d.n;i++)
 	{
 		e = a.e[e].f[d.e[i]];
@@ -1692,7 +1696,7 @@ InvertDict invertDict(Dict d)
 	return r;
 }
 
-void FreeInvertDict (InvertDict id)
+void FreeInvertDict(InvertDict id)
 {
 	if (id.n == 0)
 		return;

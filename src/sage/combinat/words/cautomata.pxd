@@ -35,6 +35,10 @@ cdef extern from "automataC.h":
     cdef cppclass Dict:
         int *e
         int n
+
+    cdef cppclass NewInvertDict:
+        Dict *d
+        int n
     Automate NewAutomaton(int n, int na)
     void FreeAutomaton(Automate *a)
 
