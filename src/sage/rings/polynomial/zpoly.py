@@ -5,15 +5,15 @@ This class implements endomorphisms that are
 induced from functions from the integers to themselves.
 """
 from functools import partial
-from sage.rings.polynomial.infinite_polynomial_element import InfinitePolynomial_sparse
-from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialRing_sparse
+from sage.rings.polynomial.infinite_polynomial_element import InfinitePolynomial_dense
+from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialRing_dense
 from sage.rings.integer import Integer
 from sage.misc.cachefunc import cached_method
 from sage.rings.fraction_field import FractionField_generic
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.categories.quotient_fields import QuotientFields
 
-class PolynomialRingIntegerGenerators(InfinitePolynomialRing_sparse):
+class PolynomialRingIntegerGenerators(InfinitePolynomialRing_dense):
     r"""
     Returns the polynomial algebra with generators indexed by the integers.
 
