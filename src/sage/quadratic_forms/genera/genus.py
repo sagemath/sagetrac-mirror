@@ -1446,9 +1446,9 @@ class Genus_Symbol_p_adic_ring(object):
         r"""
         Return generators of the automorphous square classes at this prime.
 
-        A p-adic square class `r` (`p`-adically) is called automorphous if it is
+        A `p`-adic square class `r` is called automorphous if it is
         the spinor norm of a proper `p`-adic integral automorphism of this form.
-        See [CS]_ 9.6 for details.
+        These classes form a group. See [CS]_ chapter 15 §9.6 for details.
 
         OUTPUT:
 
@@ -1497,6 +1497,13 @@ class Genus_Symbol_p_adic_ring(object):
             sage: sym[0]
             sage: sym[0].automorphous_numbers()
 
+        Here the second supplementation rule is used::
+
+            sage: A = matrix.diagonal([2,2,64])
+            sage: G = Genus(A)
+            sage: sym = G.local_symbols()
+            sage: sym[0]
+            sage: sym[0].automorphous_numbers()
         """
         from .normal_form import collect_small_blocks, _min_nonsquare
         automorphs = []
@@ -1574,18 +1581,17 @@ class Genus_Symbol_p_adic_ring(object):
                 u = u % 8
                 assert v >= 0
                 if v==0 and u==1:
-                    s = ZZ(2)
-                elif v==0 and u==5:
-                    s = ZZ(6)
-                elif v in [0, 2, 4]:
-                    s = ZZ(5)
-                elif v in [1, 3] and u in [1, 5]:
-                    s = ZZ(3)
-                elif v in [1, 3] and u in [3, 7]:
-                    s = ZZ(7)
+                    automorphs.append(ZZ(2))
+                if v==0 and u==5:
+                    automorphs.append(ZZ(6))
+                if v in [0, 2, 4]:
+                    automorphs.append(ZZ(5))
+                if v in [1, 3] and u in [1, 5]:
+                    automorphs.append(ZZ(3))
+                if v in [1, 3] and u in [3, 7]:
+                    automorphs.append(ZZ(7))
                 else:
                     continue
-                automorphs.append(s)
 
         # normalize the square classes and remove duplicates
         automorphs1 = set()
