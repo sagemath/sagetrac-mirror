@@ -262,7 +262,10 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             return False
         if self.parent() != right.parent():
             return False
-        return all([self[i] == right[i] for i in range(len(self._polys))])
+        for i in range(len(self._polys)):
+            if self[i] != right[i]:
+                return False
+        return True
 
     def __ne__(self, right):
         """
@@ -291,9 +294,10 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             return True
         if self.parent() != right.parent():
             return True
-        if all([self[i] == right[i] for i in range(len(self._polys))]):
-            return False
-        return True
+        for i in range(len(self._polys)):
+            if self[i] != right[i]:
+                return True
+        return False
 
     @lazy_attribute
     def _fastpolys(self):
