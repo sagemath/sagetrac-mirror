@@ -10,13 +10,28 @@ import sys
 
 import six
 
+from sphinx import highlighting
 from sphinx.errors import PycodeError
 from sphinx.pycode import ModuleAnalyzer, Parser
+
+from pygments.lexers import CythonLexer
+from pygments.token import Operator
 
 from sage.misc.sageinspect import sage_getfile, sage_getsource
 
 
 CYTHON_EXTS = ('.pyx', '.pxd', '.pxi')
+
+
+class _CythonLexer(CythonLexer):
+    """Patched CythonLexer to support the matmul @ operator."""
+
+    tokens = {'root': CythonLexer.tokens['root'][:]}
+    tokens['root'].insert(tokens['root'].index('keywords'),
+                          ('@', Operator))
+
+# patch Sphinx to use our patched Cython lexer
+highlighting.lexers['cython'] = _CythonLexer(stripnl=False)
 
 
 def sage_get_full_modname(modname, attribute):
