@@ -96,10 +96,10 @@ def _column_linear_layer(Ls):
     nblocks = len(Ls)
     n, m = Ls[0].dimensions()
     blockmtrs = [diagonal_matrix(F, nblocks, [Ls[i][k][l] for i in range(nblocks)]) for k in range(n) for l in range(m)]
-    return LinearLayer(block_matrix(F, n, m, blockmtrs))
+    return LinearLayer_constructor(block_matrix(F, n, m, blockmtrs))
 
 
-class LinearLayerGeneric:
+class LinearLayer:
     r"""
     Many modern block cipher constructions in symmetric cryptography use linear layers
     as one of their basic building blocks. A linear layer is typically used to spread
@@ -112,12 +112,12 @@ class LinearLayerGeneric:
 
     We start with the simple identity linear layer::
 
-        sage: from sage.crypto.linearlayer import LinearLayer
+        sage: from sage.crypto.linearlayer import LinearLayer_constructor
         doctest:warning
         ...
         FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
         See https://trac.sagemath.org/25735 for details.
-        sage: id = LinearLayer(identity_matrix(GF(2), 2)); id
+        sage: id = LinearLayer_constructor(identity_matrix(GF(2), 2)); id
         LinearLayer of dimension 2 x 2 represented as
         [1 0]
         [0 1]
@@ -142,8 +142,8 @@ class LinearLayerGeneric:
 
         EXAMPLES::
 
-            sage: from sage.crypto.linearlayer import LinearLayer
-            sage: id = LinearLayer(identity_matrix(GF(2), 2))
+            sage: from sage.crypto.linearlayer import LinearLayer_constructor
+            sage: id = LinearLayer_constructor(identity_matrix(GF(2), 2))
             sage: id._latex_()
             'x \\ {\\mapsto} \\left(\\begin{array}{rr}\n1 & 0 \\\\\n0 & 1\n\\end{array}\\right) {\\cdot} \\ x'
         """
@@ -154,8 +154,8 @@ class LinearLayerGeneric:
         """
         EXAMPLES::
 
-            sage: from sage.crypto.linearlayer import LinearLayer
-            sage: ll = LinearLayer(matrix(GF(2), [[0,1,0],[1,0,1]]))
+            sage: from sage.crypto.linearlayer import LinearLayer_constructor
+            sage: ll = LinearLayer_constructor(matrix(GF(2), [[0,1,0],[1,0,1]]))
             sage: print(ll)
             LinearLayer of dimension 2 x 3 represented as
             [0 1 0]
@@ -175,8 +175,8 @@ class LinearLayerGeneric:
         """
         EXAMPLES::
 
-            sage: from sage.crypto.linearlayer import LinearLayer
-            sage: LinearLayer(matrix(GF(2), [[0,1,0],[1,0,1]]))  # indirect doctest
+            sage: from sage.crypto.linearlayer import LinearLayer_constructor
+            sage: LinearLayer_constructor(matrix(GF(2), [[0,1,0],[1,0,1]]))  # indirect doctest
             LinearLayer of dimension 2 x 3 represented as
             [0 1 0]
             [1 0 1]
@@ -216,8 +216,8 @@ class LinearLayerGeneric:
 
         EXAMPLES::
 
-            sage: from sage.crypto.linearlayer import LinearLayer
-            sage: L = LinearLayer(Matrix(GF(2), [[0,1,0],[1,0,1]]))
+            sage: from sage.crypto.linearlayer import LinearLayer_constructor
+            sage: L = LinearLayer_constructor(Matrix(GF(2), [[0,1,0],[1,0,1]]))
             sage: L(3)
             3
 
@@ -285,16 +285,16 @@ class LinearLayerGeneric:
 
         EXAMPLES::
 
-            sage: from sage.crypto.linearlayer import LinearLayer
-            sage: L1 = LinearLayer(identity_matrix(GF(2), 4, 4))
+            sage: from sage.crypto.linearlayer import LinearLayer_constructor
+            sage: L1 = LinearLayer_constructor(identity_matrix(GF(2), 4, 4))
             sage: L1.is_permutation()
             True
 
-            sage: L2 = LinearLayer(Matrix(GF(2), [[0,1,1,0], [1,0,0,0], [0,1,0,0], [0,0,0,1]]))
+            sage: L2 = LinearLayer_constructor(Matrix(GF(2), [[0,1,1,0], [1,0,0,0], [0,1,0,0], [0,0,0,1]]))
             sage: L2.is_permutation()
             False
 
-            sage: L3 = LinearLayer(Matrix(GF(2), [[0,1,0], [1,0,1]]))
+            sage: L3 = LinearLayer_constructor(Matrix(GF(2), [[0,1,0], [1,0,1]]))
             sage: L3.is_permutation()
             False
         """
@@ -369,7 +369,7 @@ class LinearLayerGeneric:
         return _branch_number(self.matrix().transpose())
 
 
-class AESLikeLinearLayer(LinearLayerGeneric, Matrix_gf2e_dense):
+class AESLikeLinearLayer(LinearLayer, Matrix_gf2e_dense):
     r"""
     An AES like linear layer consists of ShiftRows and MixColumns matrices,
     corresponding to the linear layer structure used in the AES.
@@ -447,15 +447,15 @@ class AESLikeLinearLayer(LinearLayerGeneric, Matrix_gf2e_dense):
 
 def LinearLayerFactory(K):
     if K.characteristic() == 2 and K.degree() == 1:
-        return type("LinearLayerGF2", (LinearLayerGeneric, Matrix_mod2_dense), {})
+        return type("LinearLayerGF2", (LinearLayer, Matrix_mod2_dense), {})
     if K.characteristic() == 2 and K.degree() >= 1:
-        return type("LinearLayerGF2E", (LinearLayerGeneric, Matrix_gf2e_dense), {})
+        return type("LinearLayerGF2E", (LinearLayer, Matrix_gf2e_dense), {})
     else:
         raise NotImplementedError
 
 
 @experimental(25735)
-def LinearLayer(*args,  **kwargs):
+def LinearLayer_constructor(*args,  **kwargs):
     """
     Construct a linear layer for a given matrix `L` of dimension m x n.
 
@@ -476,7 +476,7 @@ def LinearLayer(*args,  **kwargs):
 
 
 @experimental(25735)
-def AESLinearLayer(sr, mc, apply_columns=True):
+def AESLikeLinearLayer_constructor(sr, mc, apply_columns=True):
     """
     Construct an AES linear layer for a given matrix `L` of dimension m x n.
 
@@ -524,17 +524,17 @@ _AES_irreducible_polynomial = PolynomialRing(GF(2), name="alpha")("alpha^8 + alp
 _AES_field = GF(2**8, name="x", modulus=_AES_irreducible_polynomial)
 AES_ShiftRows = Left_ShiftRows
 AES_MixColumns = Matrix(_AES_field, 4, 4, map(_AES_field.fetch_int, [2, 3, 1, 1, 1, 2, 3, 1, 1, 1, 2, 3, 3, 1, 1, 2]))
-AES = AESLinearLayer(AES_ShiftRows, AES_MixColumns)
+AES = AESLikeLinearLayer_constructor(AES_ShiftRows, AES_MixColumns)
 
 Midori_ShuffelCells = Permutation([1, 11, 6, 16, 15, 5, 12, 2, 10, 4, 13, 7, 8, 14, 3, 9])
 Midori_MixColumns = Matrix(GF(2**4), [[0, 1, 1, 1] ,[1, 0, 1, 1] ,[1, 1, 0, 1] ,[1, 1, 1, 0]])
-Midori = AESLinearLayer(Midori_ShuffelCells, Midori_MixColumns)
+Midori = AESLikeLinearLayer_constructor(Midori_ShuffelCells, Midori_MixColumns)
 
 SKINNY_ShiftRows = Right_ShiftRows
 SKINNY_4_MixColumns = Matrix(GF(2**4), [[1, 0, 1, 1] ,[1, 0, 0, 0] ,[0, 1, 1, 0] ,[1, 0, 1, 0]])
 SKINNY_8_MixColumns = Matrix(GF(2**8), [[1, 0, 1, 1] ,[1, 0, 0, 0] ,[0, 1, 1, 0] ,[1, 0, 1, 0]])
-SKINNY_4 = AESLinearLayer(SKINNY_ShiftRows, SKINNY_4_MixColumns)
-SKINNY_8 = AESLinearLayer(SKINNY_ShiftRows, SKINNY_8_MixColumns)
+SKINNY_4 = AESLikeLinearLayer_constructor(SKINNY_ShiftRows, SKINNY_4_MixColumns)
+SKINNY_8 = AESLikeLinearLayer_constructor(SKINNY_ShiftRows, SKINNY_8_MixColumns)
 
 
 def smallscale_present_linearlayer(nsboxes=16):
@@ -584,7 +584,7 @@ def smallscale_present_linearlayer(nsboxes=16):
 
     m = Matrix(GF(2), [present_llayer(nsboxes, ei)
                        for ei in VectorSpace(GF(2), 4*nsboxes).basis()])
-    return LinearLayer(m)
+    return LinearLayer_constructor(m)
 
 PRESENT = smallscale_present_linearlayer(nsboxes=16)
 
@@ -594,5 +594,5 @@ linearlayers = {}
 import sys
 for k in dir(sys.modules[__name__]):
     v = getattr(sys.modules[__name__], k)
-    if isinstance(v, (LinearLayerGeneric)):#, AESLikeLinearLayer)):
+    if isinstance(v, (LinearLayer, AESLikeLinearLayer)):
         linearlayers[k] = v
