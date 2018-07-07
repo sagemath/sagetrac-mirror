@@ -118,7 +118,7 @@ def doctree_read(app, doctree):
         _, _, tags, used, _ = entry
         if fullname in tags:
             used[fullname] = docname
-            return True
+            return entry
 
     for objnode in doctree.traverse(addnodes.desc):
         if objnode.get('domain') != 'py':
@@ -135,13 +135,20 @@ def doctree_read(app, doctree):
             if not modname:
                 continue
             fullname = signode.get('fullname')
-            if not has_tag(modname, fullname, env.docname, refname):
+            entry = has_tag(modname, fullname, env.docname, refname)
+            if not entry:
                 continue
             if fullname in names:
                 # only one link per name, please
                 continue
             names.add(fullname)
-            pagename = '_modules/' + modname.replace('.', '/')
+
+            filename, tags = entry[1:3]
+            filename_parts = filename.split(os.sep)
+            n_parts = modname.count('.') + 1
+            rel_filename = '/'.join(filename_parts[-n_parts:])
+
+            pagename = '_modules/' + os.path.splitext(rel_filename)[0]
             onlynode = addnodes.only(expr='html')
             onlynode += addnodes.pending_xref(
                 '', reftype='viewcode', refdomain='std', refexplicit=False,
@@ -150,6 +157,29 @@ def doctree_read(app, doctree):
             onlynode[0] += nodes.inline('', _('[source]'),
                                         classes=['viewcode-link'])
             signode += onlynode
+            for link in env.config.viewcode_extra_links:
+                urlfmt, textfmt, titlefmt, linkcls = link
+                signode += make_extra_link_node(urlfmt, textfmt, titlefmt,
+                        rel_filename, linkcls, name=fullname, module=modname,
+                        start=tags[fullname][1], end=tags[fullname][2])
+
+
+def make_extra_link_node(urlfmt, textfmt, titlefmt, filename, linkcls=None,
+        **tmpl_vars):
+    tmpl_vars['filename'] = filename
+    url = urlfmt.format(**tmpl_vars)
+    text = textfmt.format(**tmpl_vars)
+    title = titlefmt.format(**tmpl_vars)
+    classes = ['viewcode-link']
+    if linkcls:
+        classes.append(linkcls)
+
+    node = addnodes.only(expr='html')
+    node += nodes.reference(reftitle=title, refuri=url)
+    node[0] += nodes.inline(
+            '', '', nodes.Text('[{}]'.format(text)),
+            nodes.raw('', '&nbsp;', format='html'), classes=classes)
+    return node
 
 
 def env_merge_info(app, env, docnames, other):
@@ -277,6 +307,7 @@ def setup(app):
     # type: (Sphinx) -> Dict[unicode, Any]
     app.add_config_value('viewcode_import', True, False)
     app.add_config_value('viewcode_enable_epub', False, False)
+    app.add_config_value('viewcode_extra_links', [], 'html')
     app.connect('doctree-read', doctree_read)
     app.connect('env-merge-info', env_merge_info)
     app.connect('html-collect-pages', collect_pages)

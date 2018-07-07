@@ -764,6 +764,18 @@ def skip_TESTS_block(app, what, name, obj, options, docstringlines):
 from sage.misc.sageinspect import sage_getargspec
 autodoc_builtin_argspec = sage_getargspec
 
+
+# Configure the "edit on gitlab" link
+# Note: This link won't always necessarily be exactly correct depending on what
+# version of the docs the user was linked from (this would work better if we
+# had release branches...)
+viewcode_extra_links = [
+    ('https://gitlab.com/sagemath/sage/blob/develop/src/{filename}#L{start}-{end}',
+     'edit on gitlab',
+     'Click the edit button on the next page', 'edit-on-gitlab')
+]
+
+
 def setup(app):
     app.connect('autodoc-process-docstring', process_docstring_cython)
     app.connect('autodoc-process-docstring', process_directives)
