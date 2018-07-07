@@ -125,20 +125,12 @@ class LinearLayerGeneric:
         sage: id.is_permutation()
         True
 
-    A list of linear layers used in the literature is also available::
+    A list (dictionary) of linear layers used in the literature is also available::
 
         sage: from sage.crypto.linearlayer import linearlayers
         sage: linearlayers['PRESENT']
         LinearLayer of dimension 64 x 64 represented as
-        [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-        [0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-        [0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-        [0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-        ...
-        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0]
-        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0]
-        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0]
-        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
+        64 x 64 dense matrix over Finite Field of size 2 (use the '.str()' method to see the entries)
         sage: linearlayers['PRESENT'].is_permutation()
         True
     """
@@ -168,8 +160,16 @@ class LinearLayerGeneric:
             LinearLayer of dimension 2 x 3 represented as
             [0 1 0]
             [1 0 1]
+
+            sage: from sage.crypto.linearlayer import linearlayers
+            sage: print(linearlayers['PRESENT'])
+            LinearLayer of dimension 64 x 64 represented as
+            [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            ...
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
         """
-        return "LinearLayer of dimension %d x %d represented as\n%s" % (self.dimensions() + (self.matrix(),))
+        return "LinearLayer of dimension %d x %d represented as\n%s" \
+                % (self.dimensions() + (self.matrix().str(),))
 
     def __repr__(self):
         """
@@ -180,8 +180,14 @@ class LinearLayerGeneric:
             LinearLayer of dimension 2 x 3 represented as
             [0 1 0]
             [1 0 1]
+
+            sage: from sage.crypto.linearlayer import linearlayers
+            sage: linearlayers['PRESENT']
+            LinearLayer of dimension 64 x 64 represented as
+            64 x 64 dense matrix over Finite Field of size 2 (use the '.str()' method to see the entries)
         """
-        return "LinearLayer of dimension %d x %d represented as\n%s" % (self.dimensions() + (self.matrix(),))
+        return "LinearLayer of dimension %d x %d represented as\n%s" \
+                % (self.dimensions() + (self.matrix().__repr__(),))
 
     def matrix(self):
         """
