@@ -158,7 +158,7 @@ class LinearLayerGeneric:
 
         return "x \\ {\\mapsto} " + self.matrix()._latex_() + " {\\cdot} \\ x"
 
-    def _str_(self):
+    def __str__(self):
         """
         EXAMPLES::
 
@@ -169,9 +169,9 @@ class LinearLayerGeneric:
             [0 1 0]
             [1 0 1]
         """
-        return "LinearLayer of dimension %d x %d represented as\n%s" % (self.dimensions() + (self.matrix().str(),))
+        return "LinearLayer of dimension %d x %d represented as\n%s" % (self.dimensions() + (self.matrix(),))
 
-    def _repr_(self):
+    def __repr__(self):
         """
         EXAMPLES::
 
@@ -224,7 +224,7 @@ class LinearLayerGeneric:
             sage: L(vector(GF(2), [0, 1, 1]))
             (1, 1)
 
-            sage: L([0]*(L.nrows()+1))
+            sage: L([0]*(L.ncols()+1))
             Traceback (most recent call last):
             ...
             TypeError: Cannot apply LinearLayer to provided element, dimension mismatch.
@@ -242,11 +242,11 @@ class LinearLayerGeneric:
         from sage.modules.free_module_element import FreeModuleElement
 
         if isinstance(x, integer_types + (Integer,)):
-            x = vector(GF(2), ZZ(x).digits(base=2, padto=self.n))
+            x = vector(GF(2), ZZ(x).digits(base=2, padto=self.ncols()))
             return ZZ(list(self.binary_matrix() * x), 2)
 
         elif isinstance(x, tuple):
-            if len(x) != self.n:
+            if len(x) != self.ncols():
                 raise TypeError("Cannot apply LinearLayer to provided element, dimension mismatch.")
 
             try:
@@ -254,21 +254,21 @@ class LinearLayerGeneric:
             except (TypeError, ZeroDivisionError):
                 raise TypeError("Cannot apply LinearLayer to provided element %r, conversion to vector failed." % (x,))
 
-            return tuple(self.matrix() * x)
+            return tuple(self * x)
 
         elif isinstance(x, list):
-            if len(x) != self.n:
+            if len(x) != self.ncols():
                 raise TypeError("Cannot apply LinearLayer to provided element, dimension mismatch.")
 
             try:
-                x = vector(self.matrix().base_ring(), x)
+                x = vector(self.base_ring(), x)
             except (TypeError, ZeroDivisionError):
                 raise TypeError("Cannot apply LinearLayer to provided element %r, conversion to vector failed." % (x,))
 
-            return list(self.matrix() * x)
+            return list(self * x)
 
         elif isinstance(x, FreeModuleElement):
-            return self.matrix() * x
+            return self * x
 
         else:
             raise TypeError("Unsupported type for input x: %s." % type(x))
@@ -386,7 +386,7 @@ class AESLikeLinearLayer(LinearLayerGeneric, Matrix_gf2e_dense):
     def _latex_(self):
         raise NotImplementedError
 
-    def _repr_(self):
+    def __repr__(self):
         """
         EXAMPLES::
 
@@ -402,8 +402,10 @@ class AESLikeLinearLayer(LinearLayerGeneric, Matrix_gf2e_dense):
         """
         # convert ShiftRows permutation matrix to a permutation object
         perm_sr = Permutation(map(lambda x: 1+list(x).index(1), self._sr.columns()))
+        n, m = self.dimensions()
+        degree = self.base_ring().degree()
         return "AES like LinearLayer of dimension %d x %d represented by ShiftRows\n%s\nand MixColumns\n%s" \
-               % (self.dimensions() + (perm_sr, self._mc))
+               % (n*degree, m*degree, perm_sr, self._mc)
 
     @cached_method
     def differential_branch_number(self):
