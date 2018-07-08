@@ -73,7 +73,7 @@ List of Poset methods
     :meth:`~FinitePoset.is_ranked` | Return ``True`` if the poset has a rank function.
     :meth:`~FinitePoset.is_rank_symmetric` | Return ``True`` if the poset is rank symmetric.
     :meth:`~FinitePoset.is_series_parallel` | Return ``True`` if the poset can be built by ordinal sums and disjoint unions.
-    :meth:`~FinitePoset.is_prime` | Return ``True`` if the poset can be written as a lexicographic sum of other posets.
+    :meth:`~FinitePoset.is_prime` | Return ``True`` if the poset can not be written as a lexicographic sum of other posets.
     :meth:`~FinitePoset.is_greedy` | Return ``True`` if all greedy linear extensions have equal number of jumps.
     :meth:`~FinitePoset.is_jump_critical` | Return ``True`` if removal of any element reduces the jump number.
     :meth:`~FinitePoset.is_eulerian` | Return ``True`` if the poset is Eulerian.
@@ -2926,7 +2926,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         Informally said a prime poset has no "block" of elements having
         same relations to elements outside the block. A poset that is
         decomposable (i.e. not prime) can be written as a lexicographic sum
-        of other posets in untrivial way.
+        of other posets in non trivial way.
 
         INPUT:
 
