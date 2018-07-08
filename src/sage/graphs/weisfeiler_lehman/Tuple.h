@@ -1,6 +1,7 @@
 #ifndef EXAM_TUPLE_H
 #define EXAM_TUPLE_H
 #include <string>
+#include <cstring>
 #include <stdexcept>
 #include <sstream>
 #include <iostream>

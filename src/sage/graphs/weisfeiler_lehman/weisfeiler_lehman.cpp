@@ -364,48 +364,56 @@ namespace wl{
         //Edge labels should start from 1
         TupleMap k_WL(const std::vector<GraphNode>& v, int k, bool hasVertexLabels){
                 int n = v.size();
-                
-                AdjMatrix<int> adj_matrix(n, 0);
-                if(hasVertexLabels){
-                        vector<int> vertex_labels;
-                        vertex_labels.reserve(n);
-                        for(const auto& el: v){
-                                 vertex_labels.push_back(el.color);
-                        }
-                        adj_matrix = std::move(AdjMatrix<int>(n,0,vertex_labels));
-                }
-                for(const auto& el: v){
-                        int vIdx = el.idx;
-                        for(const auto& adj: el.adj_list){
-                                adj_matrix.addEdge(vIdx, adj.first, adj.second);
-                        }
-                }
                 TupleMap tm;
                 InverseTupleMap itm;
-                generateTupleMap(n, k, tm, itm);
-                
-                auto numberOfTuples = itm.size();
-                vector<AtomicType> atp;
-                atp.reserve(numberOfTuples);
-                for(const auto& el: itm){
-                        atp.push_back(AtomicType(el->first, adj_matrix));
-                }
-                auto res = orderSortedSets(atp, k*k);
-                auto& atp_remap = res.first;
-                auto& atp_buckets = res.second;
-                
-                //Now the idea is going through the atps in remapping order,
-                //and initialize the color of each tuple based on the index of the bucket the tuple is in
-                vector<Coloring> tuple_coloring(atp_remap.size());
-        
-                updateColoring(atp_remap, atp_buckets, tuple_coloring);
-                
+                vector<Coloring> tuple_coloring((int)pow(n,k));
                 vector<Coloring> firstColoring;
-                if(k == 1) firstColoring = tuple_coloring;
+                pair<vector<int>,vector<bool>> res;
+                
+                {       //The block is used to send adj_matrix and atps out of scope when not needed anymore, so as to free some memory
+                        AdjMatrix<int> adj_matrix(n, 0);
+                        if(hasVertexLabels){
+                                vector<int> vertex_labels;
+                                vertex_labels.reserve(n);
+                                for(const auto& el: v){
+                                         vertex_labels.push_back(el.color);
+                                }
+                                adj_matrix = std::move(AdjMatrix<int>(n,0,vertex_labels));
+                        }
+                        for(const auto& el: v){
+                                int vIdx = el.idx;
+                                for(const auto& adj: el.adj_list){
+                                        adj_matrix.addEdge(vIdx, adj.first, adj.second);
+                                }
+                        }
+                
+                        generateTupleMap(n, k, tm, itm);
+                
+                        auto numberOfTuples = itm.size();
+                        vector<AtomicType> atp;
+                        atp.reserve(numberOfTuples);
+                        for(const auto& el: itm){
+                                atp.push_back(AtomicType(el->first, adj_matrix));
+                        }
+                        res = orderSortedSets(atp, k*k);
+                        auto& atp_remap = res.first;
+                        auto& atp_buckets = res.second;
+                        
+                        //Now the idea is going through the atps in remapping order,
+                        //and initialize the color of each tuple based on the index of the bucket the tuple is in
+                        
+        
+                        updateColoring(atp_remap, atp_buckets, tuple_coloring);
+                
+                
+                        if(k == 1) firstColoring = tuple_coloring;
+                }
+                
+                
                 //After this, the main part of the algorithm, comprised of computing the coloring of adjacents, ordering the
                 //tuples by old_coloring^multiset and then update their old coloring.
                 //One should stop when the orbits are the same before and after a round. This last part is gonna be tricky for sure
-
+                
                 bool finished = false;
                 while(!finished){
                         auto& remap = res.first;
