@@ -96,7 +96,7 @@ def _column_linear_layer(Ls):
     nblocks = len(Ls)
     n, m = Ls[0].dimensions()
     blockmtrs = [diagonal_matrix(F, nblocks, [Ls[i][k][l] for i in range(nblocks)]) for k in range(n) for l in range(m)]
-    return LinearLayer_constructor(block_matrix(F, n, m, blockmtrs))
+    return LinearLayer.constructor(block_matrix(F, n, m, blockmtrs))
 
 
 class LinearLayer:
@@ -112,12 +112,12 @@ class LinearLayer:
 
     We start with the simple identity linear layer::
 
-        sage: from sage.crypto.linearlayer import LinearLayer_constructor
+        sage: from sage.crypto.linearlayer import LinearLayer
         doctest:warning
         ...
         FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
         See https://trac.sagemath.org/25735 for details.
-        sage: id = LinearLayer_constructor(identity_matrix(GF(2), 2)); id
+        sage: id = LinearLayer.constructor(identity_matrix(GF(2), 2)); id
         LinearLayer of dimension 2 x 2 represented as
         [1 0]
         [0 1]
@@ -134,6 +134,34 @@ class LinearLayer:
         sage: linearlayers['PRESENT'].is_permutation()
         True
     """
+    @staticmethod
+    @experimental(25735)
+    def constructor(*args,  **kwargs):
+        """
+        Construct a linear layer for a given matrix `L` of dimension m x n.
+
+        INPUT:
+
+        - ``L`` - a matrix representing the linear layer part.
+        """
+        def LinearLayerFactory(K):
+            if K.characteristic() == 2 and K.degree() == 1:
+                return type("LinearLayerGF2", (LinearLayer, Matrix_mod2_dense), {})
+            if K.characteristic() == 2 and K.degree() >= 1:
+                return type("LinearLayerGF2E", (LinearLayer, Matrix_gf2e_dense), {})
+            else:
+                raise NotImplementedError
+
+        if "L" in kwargs:
+            L = kwargs["L"]
+        elif len(args) == 1:
+            L = args[0]
+        else:
+            raise TypeError("No matrix L as argument provided.")
+
+        parent = L.parent()
+        base_ring = L.base_ring()
+        return LinearLayerFactory(base_ring)(parent, L)
 
     def _latex_(self):
         r"""
@@ -142,8 +170,8 @@ class LinearLayer:
 
         EXAMPLES::
 
-            sage: from sage.crypto.linearlayer import LinearLayer_constructor
-            sage: id = LinearLayer_constructor(identity_matrix(GF(2), 2))
+            sage: from sage.crypto.linearlayer import LinearLayer
+            sage: id = LinearLayer.constructor(identity_matrix(GF(2), 2))
             sage: id._latex_()
             'x \\ {\\mapsto} \\left(\\begin{array}{rr}\n1 & 0 \\\\\n0 & 1\n\\end{array}\\right) {\\cdot} \\ x'
         """
@@ -154,8 +182,8 @@ class LinearLayer:
         """
         EXAMPLES::
 
-            sage: from sage.crypto.linearlayer import LinearLayer_constructor
-            sage: ll = LinearLayer_constructor(matrix(GF(2), [[0,1,0],[1,0,1]]))
+            sage: from sage.crypto.linearlayer import LinearLayer
+            sage: ll = LinearLayer.constructor(matrix(GF(2), [[0,1,0],[1,0,1]]))
             sage: print(ll)
             LinearLayer of dimension 2 x 3 represented as
             [0 1 0]
@@ -175,8 +203,8 @@ class LinearLayer:
         """
         EXAMPLES::
 
-            sage: from sage.crypto.linearlayer import LinearLayer_constructor
-            sage: LinearLayer_constructor(matrix(GF(2), [[0,1,0],[1,0,1]]))  # indirect doctest
+            sage: from sage.crypto.linearlayer import LinearLayer
+            sage: LinearLayer.constructor(matrix(GF(2), [[0,1,0],[1,0,1]]))  # indirect doctest
             LinearLayer of dimension 2 x 3 represented as
             [0 1 0]
             [1 0 1]
@@ -216,8 +244,8 @@ class LinearLayer:
 
         EXAMPLES::
 
-            sage: from sage.crypto.linearlayer import LinearLayer_constructor
-            sage: L = LinearLayer_constructor(Matrix(GF(2), [[0,1,0],[1,0,1]]))
+            sage: from sage.crypto.linearlayer import LinearLayer
+            sage: L = LinearLayer.constructor(Matrix(GF(2), [[0,1,0],[1,0,1]]))
             sage: L(3)
             3
 
@@ -285,16 +313,16 @@ class LinearLayer:
 
         EXAMPLES::
 
-            sage: from sage.crypto.linearlayer import LinearLayer_constructor
-            sage: L1 = LinearLayer_constructor(identity_matrix(GF(2), 4, 4))
+            sage: from sage.crypto.linearlayer import LinearLayer
+            sage: L1 = LinearLayer.constructor(identity_matrix(GF(2), 4, 4))
             sage: L1.is_permutation()
             True
 
-            sage: L2 = LinearLayer_constructor(Matrix(GF(2), [[0,1,1,0], [1,0,0,0], [0,1,0,0], [0,0,0,1]]))
+            sage: L2 = LinearLayer.constructor(Matrix(GF(2), [[0,1,1,0], [1,0,0,0], [0,1,0,0], [0,0,0,1]]))
             sage: L2.is_permutation()
             False
 
-            sage: L3 = LinearLayer_constructor(Matrix(GF(2), [[0,1,0], [1,0,1]]))
+            sage: L3 = LinearLayer.constructor(Matrix(GF(2), [[0,1,0], [1,0,1]]))
             sage: L3.is_permutation()
             False
         """
@@ -389,6 +417,48 @@ class AESLikeLinearLayer(LinearLayer, Matrix_gf2e_dense):
         [    1     1     x x + 1]
         [x + 1     1     1     x]
     """
+    @staticmethod
+    @experimental(25735)
+    def constructor(sr, mc, apply_columns=True):
+        """
+        Construct an AES linear layer for a given matrix `L` of dimension m x n.
+
+        INPUT:
+
+        - ``ShiftRows`` - a permutation or matrix representing the shift rows part
+        - ``MixColumns`` - a matrix representing the mix columns part
+        - ``apply_columns`` - Bool; wether to apply MixColumns column-wise (default)
+            or row-wise
+
+        EXAMPLES::
+
+            sage: from sage.crypto.linearlayer import linearlayers
+            sage: linearlayers['AES']
+            AES like LinearLayer of dimension 128 x 128 represented by ShiftRows
+            [1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12]
+            and MixColumns
+            [    x x + 1     1     1]
+            [    1     x x + 1     1]
+            [    1     1     x x + 1]
+            [x + 1     1     1     x]
+        """
+        K = mc.base_ring()
+        if not (K.characteristic() == 2 and K.degree() >= 2):
+            raise NotImplementedError
+
+        if isinstance(sr, Permutation):
+            sr = Matrix(K, sr.to_matrix())
+
+        m = Matrix(K, _column_linear_layer([mc]*mc.ncols()))*sr
+        if not apply_columns:
+            raise NotImplementedError
+
+        ll = AESLikeLinearLayer(m.parent(), m)
+        ll._sr = sr
+        ll._mc = mc
+
+        return ll
+
     def _latex_(self):
         raise NotImplementedError
 
@@ -445,78 +515,6 @@ class AESLikeLinearLayer(LinearLayer, Matrix_gf2e_dense):
         return _branch_number(M)
 
 
-def LinearLayerFactory(K):
-    if K.characteristic() == 2 and K.degree() == 1:
-        return type("LinearLayerGF2", (LinearLayer, Matrix_mod2_dense), {})
-    if K.characteristic() == 2 and K.degree() >= 1:
-        return type("LinearLayerGF2E", (LinearLayer, Matrix_gf2e_dense), {})
-    else:
-        raise NotImplementedError
-
-
-@experimental(25735)
-def LinearLayer_constructor(*args,  **kwargs):
-    """
-    Construct a linear layer for a given matrix `L` of dimension m x n.
-
-    INPUT:
-
-    - ``L`` - a matrix representing the linear layer part.
-    """
-    if "L" in kwargs:
-        L = kwargs["L"]
-    elif len(args) == 1:
-        L = args[0]
-    else:
-        raise TypeError("No matrix L as argument provided.")
-
-    parent = L.parent()
-    base_ring = L.base_ring()
-    return LinearLayerFactory(base_ring)(parent, L)
-
-
-@experimental(25735)
-def AESLikeLinearLayer_constructor(sr, mc, apply_columns=True):
-    """
-    Construct an AES linear layer for a given matrix `L` of dimension m x n.
-
-    INPUT:
-
-    - ``ShiftRows`` - a permutation or matrix representing the shift rows part
-    - ``MixColumns`` - a matrix representing the mix columns part
-    - ``apply_columns`` - Bool; wether to apply MixColumns column-wise (default)
-        or row-wise
-
-    EXAMPLES::
-
-        sage: from sage.crypto.linearlayer import linearlayers
-        sage: linearlayers['AES']
-        AES like LinearLayer of dimension 128 x 128 represented by ShiftRows
-        [1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12]
-        and MixColumns
-        [    x x + 1     1     1]
-        [    1     x x + 1     1]
-        [    1     1     x x + 1]
-        [x + 1     1     1     x]
-    """
-    K = mc.base_ring()
-    if not (K.characteristic() == 2 and K.degree() >= 2):
-        raise NotImplementedError
-
-    if isinstance(sr, Permutation):
-        sr = Matrix(K, sr.to_matrix())
-
-    m = Matrix(K, _column_linear_layer([mc]*mc.ncols()))*sr
-    if not apply_columns:
-        raise NotImplementedError
-
-    ll = AESLikeLinearLayer(m.parent(), m)
-    ll._sr = sr
-    ll._mc = mc
-
-    return ll
-
-
 Left_ShiftRows = Permutation([1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12])
 Right_ShiftRows = Permutation([1, 14, 11, 8, 5, 2, 15, 12, 9, 6, 3, 16, 13, 10, 7, 4])
 
@@ -524,17 +522,17 @@ _AES_irreducible_polynomial = PolynomialRing(GF(2), name="alpha")("alpha^8 + alp
 _AES_field = GF(2**8, name="x", modulus=_AES_irreducible_polynomial)
 AES_ShiftRows = Left_ShiftRows
 AES_MixColumns = Matrix(_AES_field, 4, 4, map(_AES_field.fetch_int, [2, 3, 1, 1, 1, 2, 3, 1, 1, 1, 2, 3, 3, 1, 1, 2]))
-AES = AESLikeLinearLayer_constructor(AES_ShiftRows, AES_MixColumns)
+AES = AESLikeLinearLayer.constructor(AES_ShiftRows, AES_MixColumns)
 
 Midori_ShuffelCells = Permutation([1, 11, 6, 16, 15, 5, 12, 2, 10, 4, 13, 7, 8, 14, 3, 9])
 Midori_MixColumns = Matrix(GF(2**4), [[0, 1, 1, 1] ,[1, 0, 1, 1] ,[1, 1, 0, 1] ,[1, 1, 1, 0]])
-Midori = AESLikeLinearLayer_constructor(Midori_ShuffelCells, Midori_MixColumns)
+Midori = AESLikeLinearLayer.constructor(Midori_ShuffelCells, Midori_MixColumns)
 
 SKINNY_ShiftRows = Right_ShiftRows
 SKINNY_4_MixColumns = Matrix(GF(2**4), [[1, 0, 1, 1] ,[1, 0, 0, 0] ,[0, 1, 1, 0] ,[1, 0, 1, 0]])
 SKINNY_8_MixColumns = Matrix(GF(2**8), [[1, 0, 1, 1] ,[1, 0, 0, 0] ,[0, 1, 1, 0] ,[1, 0, 1, 0]])
-SKINNY_4 = AESLikeLinearLayer_constructor(SKINNY_ShiftRows, SKINNY_4_MixColumns)
-SKINNY_8 = AESLikeLinearLayer_constructor(SKINNY_ShiftRows, SKINNY_8_MixColumns)
+SKINNY_4 = AESLikeLinearLayer.constructor(SKINNY_ShiftRows, SKINNY_4_MixColumns)
+SKINNY_8 = AESLikeLinearLayer.constructor(SKINNY_ShiftRows, SKINNY_8_MixColumns)
 
 
 def smallscale_present_linearlayer(nsboxes=16):
@@ -584,7 +582,7 @@ def smallscale_present_linearlayer(nsboxes=16):
 
     m = Matrix(GF(2), [present_llayer(nsboxes, ei)
                        for ei in VectorSpace(GF(2), 4*nsboxes).basis()])
-    return LinearLayer_constructor(m)
+    return LinearLayer.constructor(m)
 
 PRESENT = smallscale_present_linearlayer(nsboxes=16)
 
