@@ -1252,63 +1252,6 @@ class TorsionQuadraticModule(FGP_Module_class):
         """
         return QmodnZ(self._modulus_qf)
 
-    def direct_sum(self, other):
-        r"""
-        """
-        V, fVs, fVo = self.V().direct_sum(other.V(),return_embeddings=True)
-        W = self.W().direct_sum(other.W())
-        n = len(self.V().gens())
-        T = TorsionQuadraticModule(V, W, modulus=self._modulus)
-        fs = self.hom([T(fVs(g.lift())) for g in self.gens()])
-        fo = other.hom([T(fVo(g.lift())) for g in other.gens()])
-        return T, fs, fo
-
-    def orthogonal_types(self, S):
-        r"""
-
-        INPUT:
-
-            - ``S`` -- a submodule
-
-        OUTPUT:
-
-            - a list of submodules
-        """
-        from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
-        from sage.libs.gap.libgap import libgap
-        Oq = self.orthogonal_group()
-        A = Oq.domain()
-        aut = Oq.ambient()
-        gensS = [A(self(s)).gap() for s in S.gens()]
-        Sgap = A.gap().Subgroup(gensS)
-        # the action morphism (it is a right action)
-        # take the image of g or of g inverse?
-        print(aut.cardinality())
-        print(Oq.cardinality())
-        mu = libgap.function_factory("mu:=function(x,g) return(Image(g,x)); end;")
-        stab = libgap.Stabilizer(aut.gap(), Sgap, mu)
-        print(stab.Size())
-        gen = [g.gap() for g in Oq.gens()] + list(stab.GeneratorsOfGroup())
-        gen = aut.gap().Subgroup(gen).SmallGeneratingSet()
-        stabOq = aut.gap().Subgroup(gen)
-        return aut.gap().RightCosets(stabOq)
-
-    def _subgroup_to_gap(self, S):
-        r"""
-        """
-        A = Oq.domain()
-        gensS = [A(self(s)).gap() for s in S.gens()]
-        Sgap = A.gap().Subgroup(gensS)
-        return Sgap
-
-    def stab(self, G, S):
-        r"""
-        """
-        Oq = self.orthogonal_group()
-        mu = libgap.function_factory("mu:=function(x,g) return(Image(g,x)); end;")
-        stab = libgap.Stabilizer(G.gap(), Sgap, mu)
-        return stab
-
     def to_smith(self):
         r"""
         Return the transformation matrix from the user to smith form generators.
@@ -1418,53 +1361,128 @@ class TorsionQuadraticModule(FGP_Module_class):
         #     assert 0 == (tmp[:, k]-E[:, k]) % invs[k]
         return to_gens
 
-
-    def orthogonal_group_degenerate(self):
+    def direct_sum(self, other):
         r"""
         """
-        return
+        V, fVs, fVo = self.V().direct_sum(other.V(),return_embeddings=True)
+        W = self.W().direct_sum(other.W())
+        n = len(self.V().gens())
+        T = TorsionQuadraticModule(V, W, modulus=self._modulus)
+        fs = self.hom([T(fVs(g.lift())) for g in self.gens()])
+        fo = other.hom([T(fVo(g.lift())) for g in other.gens()])
+        return T, fs, fo
 
-    def all_primitive_modulo(self, H1, H2, G):
+    def _subgroup_to_gap(self, S):
         r"""
-        Return all totally isotropic subgroups S of H1+H2 such that
-        H1 & S = 1 and H2 & S = 1 modulo the subgroup
+        """
+        A = self.orthogonal_group().domain()
+        gensS = [A(self(s)).gap() for s in S.gens()]
+        Sgap = A.gap().Subgroup(gensS)
+        return Sgap
+
+    def _subgroup_from_gap(self, S):
+        r"""
+        """
+        A = self.orthogonal_group().domain()
+        S = self.submodule([self.linear_combination_of_smith_form_gens(
+                            A(g).exponents())
+                            for g in S.GeneratorsOfGroup()])
+        return S
+
+    def stab(self, G, S):
+        r"""
+        """
+        Oq = self.orthogonal_group()
+        mu = libgap.function_factory("mu:=function(x,g) return(Image(g,x)); end;")
+        stab = libgap.Stabilizer(G.gap(), Sgap, mu)
+        return stab
+
+    def subgroup_representatives(self, H, G, algorithm="hulpke"):
+        r"""
+        Return representatives of the subgroups of `H` modulo the action of `G`.
+
+        INPUT:
+
+        - ``H`` -- a subgroup of `self`
+
+        - ``G`` -- a group of automorphisms
+
+          * ``"hulpke"`` -- following an algorithm of A. Hulpke
+
+          * ``"brute force""`` -- enumerates all subgroups first and takes orbits.
+
+        OUTPUT:
+
+        - a list of subgroups
+
+        EXAMPLES::
+
+            sage: T = TorsionQuadraticForm(matrix.diagonal([2/3,2/9,4/9]))
+            sage: G = T.orthogonal_group()
+            sage: subs1 = T.subgroup_representatives(T, G, algorithm="hulpke")
+            sage: subs2 = T.subgroup_representatives(T, G, algorithm="brute force")
+            sage: len(subs1) == len(subs2)
+            True
+        """
+        A = G.domain()
+        Hgap = A.subgroup([A(h) for h in H.gens()]).gap()
+        from sage.libs.gap.libgap import libgap
+        if algorithm=="brute force":
+            mu = libgap.function_factory("mu:=function(x,g) return(Image(g,x)); end;")
+            all_subgroups = Hgap.AllSubgroups()
+            subgroup_reps = G.gap().OrbitsDomain(all_subgroups, mu)
+            # take a representative in each orbit
+            subgroup_reps = [S[0] for S in subgroup_reps]
+        elif algorithm == "hulpke":
+            from sage.env import SAGE_EXTCODE
+            gapcode = SAGE_EXTCODE + '/gap/subgroup_orbits/subgroup_orbits.g'
+            libgap.Read(gapcode)
+            subgroup_reps = libgap.function_factory("SubgroupRepresentatives")
+            subgroup_reps = [dict(S)["repr"] for S in subgroup_reps(Hgap, G)]
+        else:
+            raise ValueError("not a valid algorithm")
+        # convert back to sage
+        subgroup_reps = map(self._subgroup_from_gap, subgroup_reps)
+        return subgroup_reps
+
+    def all_primitive_modulo(self, H1, H2, G, algorithm='hulpke'):
+        r"""
+        Return all totally isotropic subgroups `S` of `H1 + H2` such that
+        ``H1 & S == 1`` and ``H2 & S = 1`` modulo the subgroup
         G of the orthogonal group of self
-
-        Algorithm:
-
-        - brute force
 
         Input:
 
         - ``H1``, ``H2`` -- subgroups of self
-        - ``G`` - a subgroup of the automorphism group of self.
+
+        - ``G`` - a subgroup of the automorphism group of self
+
+        - ``algorithm`` -- a string which is either
+
+          * ``"hulpke"`` -- following an algorithm of A. Hulpke
+
+          * ``"brute force""`` -- enumerates all subgroups first and takes orbits.
+
+        EXAMPLES::
+
+            sage: q1 = TorsionQuadraticForm(matrix.diagonal([2/3,2/27]))
+            sage: q2 = TorsionQuadraticForm(matrix.diagonal([2/3,2/9]))
+            sage: q, fs , fo = q1.direct_sum(q2)
+            sage: q.all_primitive_modulo(3*fs.image(),fo.image())
         """
-        Oq = self.orthogonal_group()
-        A = Oq.domain()
-        aut = Oq.ambient()
-        H = self.submodule(H1.gens()+H2.gens())
-        extensions = []
-        if len(H.invariants()) > 5:
-            print("this might take a while")
-        for S in H.all_submodules():
-            # only isotropic ones
+        A = G.domain()
+        H = self.submodule(H1.gens() + H2.gens())
+        if len(H.invariants()) > 6:
+            print("this might take a while. Invariants: %s" %self.invariants)
+        subgroup_reps = self.subgroup_representatives(H, G, algorithm=algorithm)
+
+        # filter for primitive and isotropic
+        primitive_extensions = []
+        for S in subgroup_reps:
             if S.gram_matrix_quadratic() == 0:
-                # only primitive ones
                 if S.V() & H1.V() == self.W() and S.V() & H2.V() == self.W():
-                    extensions.append(S)
-        extensionsg = []
-        for S in extensions:
-            Sg = A.gap().Subgroup([A(self(g)).gap() for g in S.gens()])
-            extensionsg.append(Sg)
-        from sage.libs.gap.libgap import libgap
-        extensionsg = libgap(extensionsg)
-        mu = libgap.function_factory("mu:=function(x,g) return(Image(g,x)); end;")
-        representatives = []
-        for orbit in G.gap().OrbitsDomain(extensionsg, mu):
-            Sg = orbit[0]
-            S = self.submodule([self.linear_combination_of_smith_form_gens(A(g).exponents()) for g in Sg.GeneratorsOfGroup()])
-            representatives.append(S)
-        return representatives
+                    primitive_extensions.append(S)
+        return primitive_extensions
 
 def _brown_indecomposable(q, p):
     r"""
