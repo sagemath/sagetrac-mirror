@@ -39,6 +39,7 @@ import signal
 from sage.structure.sage_object import SageObject
 from sage.doctest.util import count_noun
 from sage.doctest.sources import DictAsObject
+from .external import available_software
 
 def signal_name(sig):
     """
@@ -111,6 +112,39 @@ class DocTestReporter(SageObject):
         self.sources_completed = 0
         self.stats = {}
         self.error_status = 0
+
+    def have_optional_tag(self, tag):
+        r"""
+        Return whether doctests marked with this tag are run.
+
+        INPUT:
+
+        - ``tag`` -- string
+
+        EXAMPLES::
+
+            sage: from sage.doctest.reporting import DocTestReporter
+            sage: from sage.doctest.control import DocTestController, DocTestDefaults
+            sage: from sage.env import SAGE_SRC
+            sage: import os
+            sage: filename = os.path.join(SAGE_SRC,'sage','doctest','reporting.py')
+            sage: DC = DocTestController(DocTestDefaults(),[filename])
+            sage: DTR = DocTestReporter(DC)
+
+        ::
+
+            sage: DTR.have_optional_tag('sage')
+            True
+            sage: DTR.have_optional_tag('nice_unavailable_package')
+            False
+
+        """
+        if tag in self.controller.options.optional:
+            return True
+        if 'external' in self.controller.options.optional:
+            if tag in available_software.seen():
+                return True
+        return False
 
     def report_head(self, source):
         """
@@ -437,35 +471,52 @@ class DocTestReporter(SageObject):
                     postscript['cputime'] += cpu
                     postscript['walltime'] += wall
 
-                    if self.controller.options.show_skipped:
-                        try:
-                            optionals = result_dict.optionals
-                        except AttributeError:
-                            optionals = dict()
-                        if self.controller.options.optional is not True: # if True we test all optional tags
-                            untested = 0  # Report not tested/implemented tests at the end
-                            seen_other = False
-                            for tag in sorted(optionals.keys()):
-                                nskipped = optionals[tag]
-                                if tag == "long time":
-                                    if not self.controller.options.long:
-                                        seen_other = True
-                                        log("    %s not run"%(count_noun(nskipped, "long test")))
-                                elif tag in ("not tested", "not implemented"):
-                                    untested += nskipped
+                    try:
+                        optionals = result_dict.optionals
+                    except AttributeError:
+                        optionals = dict()
+                    for tag in sorted(optionals.keys()):
+                        nskipped = optionals[tag]
+                        if tag == "long time":
+                            if not self.controller.options.long:
+                                if self.controller.options.show_skipped:
+                                    log("    %s not run"%(count_noun(nskipped, "long test")))
+                        elif tag == "not tested":
+                            if self.controller.options.show_skipped:
+                                log("    %s not run"%(count_noun(nskipped, "not tested test")))
+                        elif tag == "not implemented":
+                            if self.controller.options.show_skipped:
+                                log("    %s for not implemented functionality not run"%(count_noun(nskipped, "test")))
+                        else:
+                            if not self.have_optional_tag(tag):
+                                if tag == "bug":
+                                    if self.controller.options.show_skipped:
+                                        log("    %s not run due to known bugs"%(count_noun(nskipped, "test")))
+                                elif tag == "":
+                                    if self.controller.options.show_skipped:
+                                        log("    %s not run"%(count_noun(nskipped, "unlabeled test")))
                                 else:
-                                    if tag not in self.controller.options.optional:
-                                        seen_other = True
-                                        if tag == "bug":
-                                            log("    %s not run due to known bugs"%(count_noun(nskipped, "test")))
-                                        elif tag == "":
-                                            log("    %s not run"%(count_noun(nskipped, "unlabeled test")))
-                                        else:
-                                            log("    %s not run"%(count_noun(nskipped, tag + " test")))
-                            if untested:
-                                log("    %s skipped"%(count_noun(untested, "%stest"%("other " if seen_other else ""))))
-                    if not (self.controller.options.only_errors and not f):
-                        log("    [%s, %s%.2f s]" % (count_noun(ntests, "test"), "%s, "%(count_noun(f, "failure")) if f else "", wall))
+                                    if self.controller.options.show_skipped:
+                                        log("    %s not run"%(count_noun(nskipped, tag + " test")))
+
+                    nskipped = result_dict.walltime_skips
+                    if self.controller.options.show_skipped:
+                        log("    %s not run because we ran out of time"%(count_noun(nskipped, "test")))
+
+                    if nskipped != 0:
+                        # It would be nice to report "a/b tests run" instead of
+                        # the percentage that is printed here.  However, it is
+                        # not clear how to pull out the actual part of "ntests"
+                        # that has been run for a variety of reasons, such as
+                        # the sig_on_count() tests, the possibility to run
+                        # tests multiple times, and some other unclear mangling
+                        # of these numbers that was not clear to the author.
+                        ntests_run = result_dict.tests
+                        total = "%d%% of tests run"%(round(100*ntests_run/float(ntests_run + nskipped)))
+                    else:
+                        total = count_noun(ntests, "test")
+                    log("    [%s, %s%.2f s]" % (total, "%s, "%(count_noun(f, "failure")) if f else "", wall))
+
             self.sources_completed += 1
 
         except Exception:
