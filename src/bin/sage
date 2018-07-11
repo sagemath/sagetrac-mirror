@@ -434,7 +434,16 @@ sage_setup() {
     # Check that we're not in a source tarball which hasn't been built yet (#13561).
     if [ ! -x "$SAGE_LOCAL/bin/sage" ]; then
         echo >&2 '************************************************************************'
-        echo >&2 'It seems that you are attempting to run Sage from an unpacked source'
+        echo >&2 'Sage has trouble starting.'
+        echo >&2 'If you downloaded a binary tarball, this is probably because of'
+        echo >&2 'custom directories prepended to your PATH by Anaconda or some other'
+        echo >&2 'Python framework. Check your PATH by running the terminal command'
+        echo >&2 '    echo $PATH'
+        echo >&2 'If it has stuff before /usr/local/bin, remove them from your PATH'
+        echo >&2 'at least the first time you run Sage, for instance by running this'
+        echo >&2 'terminal command before running Sage:'
+        echo >&2 '    export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
+        echo >&2 'Another possibility is you are running Sage from an unpacked source'
         echo >&2 'tarball, but you have not compiled it yet (or maybe the build has not'
         echo >&2 'finished). You should run `make` in the Sage root directory first.'
         echo >&2 'If you did not intend to build Sage from source, you should download'
