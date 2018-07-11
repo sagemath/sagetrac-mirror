@@ -6,12 +6,13 @@ Testing for databases at runtime
 import os
 
 from . import StaticFile
+from sage.env import CREMONA_LARGE_DATA_DIR
 
 
 class DatabaseCremona(StaticFile):
     r"""
-    A :class:`Feature` which describes the presence of John Cremona's database
-    of elliptic curves.
+    A :class:`Feature` which describes the presence of John Cremona's full
+    database of elliptic curves.
 
     EXAMPLES::
 
@@ -27,8 +28,8 @@ class DatabaseCremona(StaticFile):
             sage: isinstance(DatabaseCremona(), DatabaseCremona)
             True
         """
-        filename = name.replace(' ', '_') + ".db"
         StaticFile.__init__(self, "Cremona's database of elliptic curves",
-            filename=os.path.join("cremona", filename),
+            filename='cremona.db',
+            search_path=[ CREMONA_LARGE_DATA_DIR ],
             spkg=spkg,
             url="https://github.com/JohnCremona/ecdata")
