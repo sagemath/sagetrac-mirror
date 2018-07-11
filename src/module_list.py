@@ -1,6 +1,7 @@
 import os
 from distutils.extension import Extension
 from sage.env import SAGE_LOCAL
+from sage.features.bliss import BlissLibrary
 
 SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 
@@ -398,7 +399,7 @@ ext_modules = [
               ["sage/graphs/bliss.pyx"],
               language = "c++",
               libraries = ['bliss'],
-              package = 'bliss'),
+              condition = BlissLibrary().is_present()),
 
     Extension('sage.graphs.planarity',
               sources = ['sage/graphs/planarity.pyx'],
