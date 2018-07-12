@@ -1005,9 +1005,9 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         """
         return (gcd((self/M).invariants()) == 0)
 
-    def maximal_overlattice(self, p=None, even=False):
+    def maximal_overlattice(self, p=None):
         r"""
-        Return a maximal integral overlattice of this lattice.
+        Return a maximal even integral overlattice of this lattice.
 
         EXAMPLES::
 
@@ -1017,8 +1017,6 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         """
         from sage.rings.all import GF
         L = self
-        if even and not self.is_even():
-            raise ValueError("odd lattices do not have an even overlattice")
         if p is None:
             P = ZZ(self.determinant()).prime_factors()
         else:
@@ -1029,14 +1027,10 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             if D.cardinality() > 512:
                 D = D.normal_form(partial=True)
             iso = []
-            if not even and len(D.gens())>=2: #try to go odd
-                t = D.gens()[0] + D.gens()[1]
-                if t.b(t)==0:
-                    iso.append(t)
             i = 0
             while i < len(D.gens()):
                 t = D.gens()[i]
-                if (t.q() == 0 or (t.b(t)==0 and not even)) and all([t.b(g)==0 for g in iso]):
+                if t.q() == 0 and all([t.b(g)==0 for g in iso]):
                     iso.append(t)
                 i += 1
             iso = [g.lift() for g in iso]
@@ -1044,9 +1038,9 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             D = L.discriminant_group(2)
             while D.cardinality().valuation(2) > 1:
                 for t in D:
-                    if t != 0 and t.b(t)==0 and (t.q()==0 or not even):
+                    if t != 0 and t.q()==0:
                         break
-                if t.b(t)!=0 or (t.q()!=0 and even):
+                if t.q()!=0:
                     break
                 L = L.overlattice([t.lift()])
                 D = L.discriminant_group(2)
@@ -1059,12 +1053,13 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             while Lold != L:
                 Lold = L
                 L = L.overlattice((p*L.dual_lattice() & (1/p)*L).gens())
-            d = L.discriminant_group(p).gram_matrix_bilinear().det().numerator()
             # now the p-discriminant_group is a vector space
             # odd case
-            while p != 2:
-                v = L.determinant().valuation(p)
-                if v<=1 or (v == 2 and ZZ(-1).kronecker(p) != d.kronecker(p)):
+            while True:
+                d = L.discriminant_group(p).gram_matrix_bilinear().det()
+                v = -d.valuation(p)
+                u = d.numerator()
+                if v<=1 or (v == 2 and ZZ(-1).kronecker(p) != u.kronecker(p)):
                     break
                 D = L.discriminant_group(p).normal_form()
                 gen = D.gens()
