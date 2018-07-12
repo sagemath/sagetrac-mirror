@@ -3360,6 +3360,88 @@ class SimplicialComplex(Parent, GenericCellComplex):
             products.append(prod)
         return R.quotient(products)
 
+    def algebraic_shift(self, form='exterior', iterations=5):
+        r"""
+        Returns the algebraically shifted complex of this simplicial complex.
+
+        Given a total order on the vertices of ``self``, define the partial
+        order on `k`-faces as `f\leq g` if and only if `f_1\leq g_1, \dots, f_k\leq
+        g_k`. A `k`-family is called `\emph{shifted}` if it is a lower ideal of
+        this partially ordered set.
+
+        INPUT:
+
+        - ``form`` -- string (default: ``'exterior'``); the type of shifting to
+          do. Can be either ``'exterior'`` or ``'symmetric'``.
+
+        - iterations -- integer (default: `5`); the number of iterations to be
+          used to certify the output.
+
+        OUTPUT:
+
+        A shifted simplicial complex.
+
+        EXAMPLES:
+
+        .. WARNING::
+
+            This method uses a Monte Carlo style algorithm and is not
+            guaranteed to give the correct output. The higher the parameter 
+            `iterations` is, the higher the probability of the output to be
+            correct.
+
+        .. SEEALSO::
+
+            :meth:`sage.homology.examples.ShiftedComplex`
+        """
+
+    def _ksets_shift(self, k, ring=ZZ, density=None):
+        """
+        Returns a shifted `k`-set family obtained from the `k`-faces of the
+        simplicial complex.
+
+        INPUT:
+
+        - ``k`` - integer; the size of the faces of ``self`` to shift.
+
+        - ``ring`` - A sage ring (default: ``ZZ``); the base ring to use for
+          the random matrix.
+
+        OUTPUT:
+
+        A shifted `k`-set family.
+
+        EXAMPLES:
+
+        .. SEEALSO::
+
+            :meth:`algebraic_shift`
+        """
+        from sage.matrix.special import random_matrix
+
+        kset_family = sorted(self.faces()[k-1])
+        size = len(kset_family)
+        vertices = self.vertices()
+        n_vertices = len(vertices)
+        kset_as_indices = [tuple(vertices.index(i) for i in kset) for kset in kset_family]
+
+        M = random_matrix(ring=ring,nrows=n_vertices,density=density)
+
+        found_rank = 0
+        compound_matrix = matrix(size,0)
+        iter_cols = combinations(range(n_vertices),k)
+        shifted_ksets = Set()
+        while found_rank < size:
+            index_cols = iter_cols.next()
+            new_column = matrix(size,1,[M.matrix_from_rows_and_columns(row_indices,index_cols).det()
+                                        for row_indices in kset_as_indices])
+            compound_matrix = compound_matrix.augment(new_column)
+            new_rank = compound_matrix.rank()
+            if new_rank > found_rank:
+                shifted_ksets += Set([tuple(vertices[i] for i in index_cols)])
+            found_rank = new_rank
+        return shifted_ksets
+
     def alexander_dual(self, is_mutable=True):
         """
         The Alexander dual of this simplicial complex: according to
