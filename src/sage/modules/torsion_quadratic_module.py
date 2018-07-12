@@ -1368,8 +1368,8 @@ class TorsionQuadraticModule(FGP_Module_class):
         W = self.W().direct_sum(other.W())
         n = len(self.V().gens())
         T = TorsionQuadraticModule(V, W, modulus=self._modulus)
-        fs = self.hom([T(fVs(g.lift())) for g in self.gens()])
-        fo = other.hom([T(fVo(g.lift())) for g in other.gens()])
+        fs = self.hom([fVs(g.lift()) for g in self.gens()], T)
+        fo = other.hom([fVo(g.lift()) for g in other.gens()], T)
         return T, fs, fo
 
     def _subgroup_to_gap(self, S):
@@ -1473,7 +1473,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         A = G.domain()
         H = self.submodule(H1.gens() + H2.gens())
         if len(H.invariants()) > 6:
-            print("this might take a while. Invariants: %s" %self.invariants)
+            print("this might take a while. Invariants: %s" %(H.invariants(),))
         subgroup_reps = self.subgroup_representatives(H, G, algorithm=algorithm)
 
         # filter for primitive and isotropic
