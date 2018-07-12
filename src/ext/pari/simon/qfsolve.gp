@@ -1,5 +1,5 @@
 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-\\       Copyright (C) 2014 Denis Simon
+\\       Copyright (C) 2015 Denis Simon
 \\
 \\ Distributed under the terms of the GNU General Public License (GPL)
 \\
@@ -15,12 +15,12 @@
 
 /*
   Author:
-  Denis SIMON -> simon@math.unicaen.fr
+  Denis SIMON -> denis.simon@unicaen.fr
   address of the file:
-  www.math.unicaen.fr/~simon/qfsolve.gp
+  www.math.unicaen.fr/~simond/qfsolve.gp
 
   *********************************************
-  *          VERSION 09/01/2014               *
+  *          VERSION 14/01/2015               *
   *********************************************
 
   \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -28,7 +28,8 @@
   \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
   This package provides functions to solve quadratic equations over Q.
-  language: GP
+  language: GP (version 2.7.2)
+
   It can be run under GP by the command
   gp > \r qfsolve.gp
 
@@ -57,7 +58,7 @@
 
   Example:
   gp > qfparam(G,[-3,-5,1]~)
-  %2 = 
+  %2 =
   [ 3 -10 -3]
 
   [-5  -6  5]
@@ -65,7 +66,7 @@
   [ 1   0  1]
   Indeed, the solutions can be parametrized as
   [3*x^2 - 10*y*x - 3*y^2, -5*x^2 - 6*y*x + 5*y^2, x^2 + y^2]~
-  
+
   - qflllgram_indef(G,c): Solve or reduce the quadratic form G with
   integral coefficients. G might be definite or indefinite.
   This is an lll-type algorithm with a constant 1/4<c<=1.
@@ -74,7 +75,7 @@
   - quadclass2(d,factd): Compute the 2-Sylow of the (narrow) class group
   of discriminant d. d must be a fondamental discriminant.
   factD is an optional parameter. If present, it must be equal to
-  the factorization of abs(2*d). In this case, the 
+  the factorization of abs(2*d). In this case, the
   algorithm runs in polynomial time.
 
   \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -82,7 +83,8 @@
   \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
   Programme de resolution des equations quadratiques
-  langage: GP
+  langage: GP (version 2.7.2)
+
   pour l'utiliser, lancer gp, puis taper
   \r qfsolve.gp
 
@@ -109,7 +111,7 @@
 
   Exemple:
   gp > qfparam(G,[-3,-5,1]~)
-  %2 = 
+  %2 =
   [ 3 -10 -3]
 
   [-5  -6  5]
@@ -132,9 +134,9 @@
 
 \\
 \\ Usual global variables
-\\ 
+\\
 
-global(DEBUGLEVEL_qfsolve):small;
+global(DEBUGLEVEL_qfsolve);
 
   DEBUGLEVEL_qfsolve = 0;
 
@@ -147,7 +149,7 @@ global(DEBUGLEVEL_qfsolve):small;
 \\          SCRIPT                             \\
 \\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-{default_qfsolve(DEBUGLEVEL_qfsolve_val:small = 0) =
+{default_qfsolve(DEBUGLEVEL_qfsolve_val = 0) =
 
   DEBUGLEVEL_qfsolve = DEBUGLEVEL_qfsolve_val;
   print("  DEBUGLEVEL_qfsolve = ",DEBUGLEVEL_qfsolve);
@@ -157,29 +159,8 @@ global(DEBUGLEVEL_qfsolve):small;
 \\          TYPE CONVERSIONS                   \\
 \\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-\\ THIS FUNCTION WILL BE REPLACED BY matconcat(matdiagonal(v))
-\\ IN VERSION >= 2.6.0
 \\ build the matrix whose diagonal blocks are listed in the vector v.
-{matdiagonalblock(v) =
-my(M);
-my(lv,lt=0);
-
-  if( type(v) != "t_VEC" && type(v) != "t_COL",
-    error("wrong type in matdiagonalblock()"));
-
-  lv = length(v);
-  for( i = 1, lv, lt += length(v[i]));
-  M = matrix(lt,lt);
-  lt = 0;
-  for( i = 1, lv,
-    my( lvi = length(v[i]));
-    for( j = 1, lvi,
-      for( k = 1, lvi,
-        M[lt+j,lt+k] = v[i][j,k]));
-    lt += lvi
-  );
-return(M);
-}
+{matdiagonalblock(v) = matconcat(matdiagonal(v));}
 
 \\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 \\          LINEAR ALGEBRA                     \\
@@ -273,7 +254,7 @@ if( DEBUGLEVEL_qfsolve >= 4, print("    starting qflocalinvariants ",G));
       vG[j] = Mat(vG[j])));
 
 \\ compute the factorization of -2*abs(det(G))
-  if( !length(fa), 
+  if( !length(fa),
     fa = (factor(-abs(2*matdet(vG[1])))[,1]));
 
 \\ in dimension 2, each invariant is a single Hilbert symbol.
@@ -475,7 +456,7 @@ if( DEBUGLEVEL_qfsolve >= 4, print("    p = ",p,"^",vp));
 \\ Rem: we must have dimKer <= vp
 if( DEBUGLEVEL_qfsolve >= 4, print("    dimKer = ",dimKer));
 \\ trivial case: dimKer = n
-    if( dimKer == n, 
+    if( dimKer == n,
 if( DEBUGLEVEL_qfsolve >= 4, print("     case 0: dimKer = n"));
       G /= p;
       factdetG[i,2] -= n;
@@ -493,7 +474,7 @@ if( DEBUGLEVEL_qfsolve >= 4, print("    case 1: dimker < vp"));
         G[,1] /= p; G[1,] = G[1,]/p;
         U[,1] /= p;
         factdetG[i,2] -= 2
-      , 
+      ,
         Ker2 = kermodp(matrix(dimKer,dimKer,j,k,G[j,k]/p),p);
         dimKer2 = Ker2[1]; Ker2 = Ker2[2];
         for( j = 1, dimKer2, Ker2[,j] /= p);
@@ -507,12 +488,12 @@ if( DEBUGLEVEL_qfsolve >= 4, print("    end of case 1"));
       next
     );
 
-\\ Now, we have vp = dimKer 
+\\ Now, we have vp = dimKer
 \\ 2nd case: the dimension of the kernel is >=2
 \\ and contains an element of norm 0 mod p^2
 
 \\ search for an element of norm p^2... in the kernel
-    if( dimKer > 2 || 
+    if( dimKer > 2 ||
        (dimKer == 2 && issquare( di = Mod((G[1,2]^2-G[1,1]*G[2,2])/p^2,p))),
       if( dimKer > 2,
 if( DEBUGLEVEL_qfsolve >= 4, print("    case 2.1"));
@@ -520,7 +501,7 @@ if( DEBUGLEVEL_qfsolve >= 4, print("    case 2.1"));
         sol = qfsolvemodp(matrix(3,3,j,k,G[j,k]/p),p)
       ,
 if( DEBUGLEVEL_qfsolve >= 4, print("    case 2.2"));
-        if( G[1,1]%p^2 == 0, 
+        if( G[1,1]%p^2 == 0,
           sol = [1,0]~
         , sol = [-G[1,2]/p+sqrt(di),Mod(G[1,1]/p,p)]~
         )
@@ -538,7 +519,7 @@ if( DEBUGLEVEL_qfsolve >= 4, print("    end of case 2"));
       next
     );
 
-\\ Now, we have vp = dimKer <= 2 
+\\ Now, we have vp = dimKer <= 2
 \\   and the kernel contains no vector with norm p^2...
 
 \\ In some cases, exchanging the kernel and the image
@@ -548,7 +529,7 @@ if( DEBUGLEVEL_qfsolve >= 4, print("    end of case 2"));
     if( ( vp == 1 && issquare(Mod(-(-1)^m*matdet(G)/G[1,1],p)))
      || ( vp == 2 && n%2 == 1 && n >= 5)
      || ( vp == 2 && n%2 == 0 && !issquare(Mod((-1)^m*matdet(G)/p^2,p)))
-    , 
+    ,
 if( DEBUGLEVEL_qfsolve >= 4, print("    case 3"));
       Ker = matid(n);
       for( j = dimKer+1, n, Ker[j,j] = p);
@@ -561,7 +542,7 @@ if( DEBUGLEVEL_qfsolve >= 4, print("    end of case 3"));
 
 \\ Minimization was not possible se far.
 \\ If n == 3 or 4, this proves the local non-solubility at p.
-    if( n == 3 || n == 4, 
+    if( n == 3 || n == 4,
 if( DEBUGLEVEL_qfsolve >= 1, print(" no local solution at ",p));
       return(p));
 
@@ -690,7 +671,7 @@ if( DEBUGLEVEL_qfsolve >= 3, print("   invgen = ",lift(invgen)));
 
   clgp2 = vector(m,i,2);
   im = lift(matinverseimage(invgen,matimage(invgen)));
-  while( (length(im) < rang) 
+  while( (length(im) < rang)
   || (type(Winvariants) == "t_COL" && length(matinverseimage(concat(invgen,U2),Winvariants) == 0)),
     Ker = lift(matker(invgen));
     Kerim = concat(Ker,im);
@@ -801,7 +782,7 @@ my(H,sol,GG);
 return([G,H]);
 }
 
-\\ p a prime number. 
+\\ p a prime number.
 \\ finds a solution mod p for the quadatic form G
 \\ such that det(G) !=0 mod p and dim G = n>=3;
 {qfsolvemodp(G,p) =
@@ -853,10 +834,13 @@ addhelp(default_qfsolve,
 addhelp(qflllgram_indef,
   "qflllgram_indef(G,{c}): Solve or reduce the quadratic form G with integral coefficients. G might be definite or indefinite. This is an lll-type algorithm with a constant 1/4<c<=1.
   c is optional and the default is c=1.
-  The output is either a vectorv which is a solution of v~*G*v=0, or a 2-component vector [H,U], where U is a unimodular matrix such that H = U~*G*U is LLL-reduced.
+  The ouput is either a vectorv which is a solution of v~*G*v=0, or a 2-component vector [H,U], where U is a unimodular matrix such that H = U~*G*U is LLL-reduced.
   Example:
   gp > G=[1637490518557, -9118398255553, -17114399686722; -9118398255553, -40039266946520, 44178901566187; -17114399686722, 44178901566187, 150094052078168];
   gp > qflllgram_indef(G)
   %1 = [-24749181067550, 1904107022307, -3382470700136]~
 ");
-}
+
+qflllgram_indef
+
+
