@@ -8760,6 +8760,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if hasattr(B, '_is_irreducible_univariate_polynomial'):
             return B._is_irreducible_univariate_polynomial(self)
 
+        return self._is_irreducible_generic()
+
+
+    def _is_irreducible_generic(self):
         F = self.factor()
         if len(F) > 1 or F[0][1] > 1:
             return False

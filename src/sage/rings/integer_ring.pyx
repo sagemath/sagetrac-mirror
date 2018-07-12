@@ -1502,6 +1502,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         from sage.rings.padics.padic_valuation import pAdicValuation
         return pAdicValuation(self, p)
 
+    def _is_irreducible_univariate_polynomial(self, f):
+        return f._is_irreducible_generic()
+
 ZZ = IntegerRing_class()
 Z = ZZ
 

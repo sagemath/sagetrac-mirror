@@ -121,10 +121,7 @@ class IntegralDomains(CategoryWithAxiom):
             try:
                 fraction_field = self.fraction_field()
             except Exception:
-                # some integral domains do not implement fraction_field() yet
-                if self in Fields():
-                    raise
-                return
+                raise
 
             for x in tester.some_elements():
                 # check that we can coerce into the fraction field
@@ -132,6 +129,11 @@ class IntegralDomains(CategoryWithAxiom):
                 # and convert back from it
                 z = self(x)
                 tester.assertEqual(x, z)
+
+        def _is_irreducible_univariate_polynomial(self, f):
+            if f.content_ideal().is_trivial() and f.change_ring(self.fraction_field()).is_irreducible():
+                return True
+            return f._is_irreducible_generic()
 
     class ElementMethods:
         pass
