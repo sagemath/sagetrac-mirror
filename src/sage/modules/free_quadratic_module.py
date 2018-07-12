@@ -498,19 +498,17 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
                                     M.inner_product_matrix()])
         ambient = FreeQuadraticModule(R,
                                       self.degree() + M.degree(), IM)
-        smzero = matrix.zero(self.coordinate_ring(),self.rank(), M.degree())
-        mszero = matrix.zero(self.coordinate_ring(),M.rank(), self.degree())
-        basis = self.basis_matrix().augment(smzero).stack(
-                            mszero.augment(M.basis_matrix()))
+        basis = matrix.block_diagonal(self.basis_matrix(),M.basis_matrix())
         ipm = ambient.inner_product_matrix()
         DS = FreeQuadraticModule_submodule_with_basis_pid(ambient=ambient,
                                    basis=basis,
                                    inner_product_matrix=ipm,
                                    already_echelonized=False)
-        n = self.dimension()
-        fs = self.hom(basis[:n])
-        fo = M.hom(basis[n:])
+        basis = DS.basis()
         if return_embeddings:
+            n = self.dimension()
+            fs = self.hom(basis[:n],DS)
+            fo = M.hom(basis[n:],DS)
             return DS, fs, fo
         else:
             return DS
