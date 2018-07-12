@@ -41,7 +41,8 @@ def all_genera_by_det(sig_vec, determinant, max_level=None, even=True):
     EXAMPLES::
 
         sage: from sage.quadratic_forms.genera.genus import all_genera_by_det
-        sage: all_genera_by_det((4,0), 125, even=True)
+        sage: G = all_genera_by_det((4,0), 125, even=True)
+        sage: G     # random
         [Genus of
         None
         Genus symbol at 2:    1^-4
@@ -55,6 +56,8 @@ def all_genera_by_det(sig_vec, determinant, max_level=None, even=True):
         None
         Genus symbol at 2:    1^-4
         Genus symbol at 5:     1^3 125^1]
+        sage: len(G)
+        4
     """
     from sage.misc.mrange import mrange_iter
     from sage.matrix.constructor import matrix
@@ -99,7 +102,6 @@ def all_genera_by_det(sig_vec, determinant, max_level=None, even=True):
         # discard the empty genera
         if is_GlobalGenus(G):
             genera.append(G)
-    genera.sort()
     return(genera)
 
 def _all_p_adic_genera(p, rank, det_val, max_level, even):
@@ -2403,7 +2405,8 @@ class GenusSymbol_global_ring(object):
         P = []
         for sym in self._local_symbols:
             p = sym._prime
-            if QuadraticForm(ZZ,2*sym.gram_matrix()).hasse_invariant(p) == -1:
+            # it is important to use the definition of cassels here!
+            if QuadraticForm(QQ,2*sym.gram_matrix()).hasse_invariant(p) == -1:
                 P.append(p)
         return rational_qf_from_invariants(m, det, P, sminus)
 
@@ -2437,10 +2440,23 @@ class GenusSymbol_global_ring(object):
         even = self.is_even()
         q = self.rational_representative()
         n = q.nrows()
-        L = IntegralLattice(4*q).maximal_overlattice(even=even).gram_matrix()
-        for sym in self._local_symbols:
-            p = sym._prime
+        # the associated quadratic form xGx.T/2 should be integral
+        L = IntegralLattice(4*q).maximal_overlattice().gram_matrix()
+        p = 2
+        sym2 = self.local_symbols()[0]
+        if not self.is_even():
+            # the quadratic form of xGx.T/2 must be integral
+            # for things to work
+            # solve this by multiplying the basis by 2
+            L = local_modification(L, 4*sym2.gram_matrix(), p)
+            L = (L/4).change_ring(ZZ)
+        else:
+            L = local_modification(L, sym2.gram_matrix(), p)
+        for sym in self._local_symbols[1:]:
+            p = sym.prime()
             L = local_modification(L, sym.gram_matrix(), p)
+        # confirm the computation
+        assert Genus(L) == self
         self._representative = L
 
 
@@ -2455,7 +2471,7 @@ def rational_qf_from_invariants(m, det, P, sminus):
 
     - ``det`` -- rational; the determinant
 
-    - ``P`` -- a list of primes
+    - ``P`` -- a list of primes where cassels hasse invariant is negative
 
     - ``sminus`` -- integer; negative part of the signature
 
@@ -2472,13 +2488,13 @@ def rational_qf_from_invariants(m, det, P, sminus):
     d = ZZ(det).squarefree_part()
     sminus = ZZ(sminus)
     if d.sign() != (-1)**sminus:
-        raise ValueError("")
-    if m == 1 and len(P) == 0:
-        raise ValueError
+        raise ValueError("Invariants do not define a rational quadratic form")
+    if m == 1 and len(P) != 0:
+        raise ValueError("Invariants do not define a rational quadratic form")
     if m == 2:
         for p in P:
-            if QQ.quadratic_defect(-d, p) == Infinity:
-                raise ValueError("")
+            if QQ(-d).is_padic_square(p):
+                raise ValueError("Invariants do not define a rational quadratic form")
     if sminus % 4 in (2, 3) and len(P) % 2 == 0:
         raise ValueError("")
     D = []
@@ -2519,7 +2535,7 @@ def local_modification(M, Lp, p, check=True):
 
     INPUT:
 
-    - ``M`` -- the gram matrix of a `p`-maximal lattice
+    - ``M`` -- the gram matrix of a `ZZp`-maximal lattice
 
     - ``Lp`` -- gram matrix of a lattice with Lp `\QQ_p` rationally equivalent
       to `M`
@@ -2545,65 +2561,28 @@ def local_modification(M, Lp, p, check=True):
         sage: L = IntegralLattice("D4").twist(3*4)
         sage: M = L.maximal_overlattice()
         sage: local_modification(M.gram_matrix(), L.gram_matrix(), 2)
-        [ 16   8   0   8]
-        [  8  24 -12 -12]
-        [  0 -12  24   0]
-        [  8 -12   0  24]
+        [16  8  8 16]
+        [ 8  8  4 12]
+        [ 8  4 24  0]
+        [16 12  0 24]
     """
     from sage.quadratic_forms.genera.normal_form import p_adic_normal_form
     from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
     from sage.rings.finite_rings.finite_field_constructor import GF
     from sage.matrix.special import random_matrix
     M = matrix(M)
-    Lp = matrix(Lp)
+    Lp = matrix(Lp) # target lattice
     d = Lp.inverse().denominator()
     n = M.rank()
     level = d.valuation(p)
     d = p**level
 
     M = IntegralLattice(M)
-    Mp = IntegralLattice(Lp).maximal_overlattice(p=p)
-    even = Mp.is_even()
-    symMp = Genus_Symbol_p_adic_ring(p, p_adic_symbol(Mp.gram_matrix(), p,  2))
-    V = MatrixSpace(GF(p),n,n)
-    #for S in V.subspaces(n-2):
-    #    symM = Genus_Symbol_p_adic_ring(p, p_adic_symbol(M.gram_matrix(), p,  2))
-    #    print(symM,even)
-    #    if symMp == symM:
-    #        print("heureka")
-    #        break
-    #    else:
-    #        S = S.basis_matrix().lift()
-    #        S = S.stack(p*matrix.identity(n)).hermite_form()[:n,:]
-    #        B = M.basis_matrix()
-    #        M = M.sublattice(S*B)
-    #        M = M.maximal_overlattice(even=even,p=p)#.gram_matrix()
-    #else:
-    #    raise ValueError()
-    while True:
-        symM = Genus_Symbol_p_adic_ring(p, p_adic_symbol(M.gram_matrix(), p,  2))
-        if symMp == symM:
-            break
-        else:
-            # compute a random sublattice S with p*M < S < M
-            dim = ZZ.random_element(1,n)
-            S = random_matrix(GF(p),n,n,algorithm="echelon_form",num_pivots=dim)
-            S = S.lift()
-            S = S.stack(p*matrix.identity(n)).hermite_form()[:n,:]
-            B = M.basis_matrix()
-            M = M.sublattice(S*B)
-            M = M.maximal_overlattice(even=even,p=p)#.gram_matrix()
-    else:
-        raise ValueError()
-    # check that the maximal overlattices match
-    if check:
-        s1 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(Mp.gram_matrix(), p, 1))
-        s2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(M.gram_matrix(), p, 1))
-        if not s1 == s2:
-            raise ValueError("the forms must be locally equivalent at p=%s" %p)
+    Lp_max = IntegralLattice(Lp).maximal_overlattice(p=p)
+
     # invert the gerstein operations
-    _, U = p_adic_normal_form(Mp.gram_matrix(), p, precision=level+3)
-    B = (~Mp.basis_matrix()).change_ring(ZZ)*~U.change_ring(ZZ)
+    _, U = p_adic_normal_form(Lp_max.gram_matrix(), p, precision=level+3)
+    B = (~Lp_max.basis_matrix()).change_ring(ZZ)*~U.change_ring(ZZ)
 
     _, UM = p_adic_normal_form(M.gram_matrix(), p, precision=level+3)
     B = B * UM.change_ring(ZZ) * M.basis_matrix()
@@ -2611,6 +2590,7 @@ def local_modification(M, Lp, p, check=True):
     # the local modification
     S = M.sublattice(((M.span(B) & M) + d * M).gens())
     S = S.gram_matrix()
+    # confirm result
     if check:
         s1 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(S, p, level))
         s2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(Lp, p, level))
