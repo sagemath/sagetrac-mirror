@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Euclidean domains
 
@@ -10,11 +11,14 @@ AUTHORS:
 
 """
 #*****************************************************************************
-#  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
-#                2013 Julian Rueth <julian.rueth@fsfe.org>
+#  Copyright (C)      2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
+#                2013-2018 Julian Rüth <julian.rueth@fsfe.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
 #******************************************************************************
 
 from sage.categories.category_singleton import Category_singleton
@@ -131,6 +135,22 @@ class EuclideanDomains(Category_singleton):
             return Sequence(res, universe=self, check=False)
 
         def _is_irreducible_univariate_polynomial(self, f):
+            r"""
+            Return whether the univariate polynomial ``f`` is irreducible over
+            this domain.
+
+            EXAMPLES::
+
+                sage: S.<t> = QQ[]
+                sage: R.<x> = S[]
+                sage: f = t*x
+                sage: f.is_irreducible() # indirect doctest
+                False
+                sage: f = t*x + (t+1)
+                sage: f.is_irreducible() # indirect doctest
+                True
+
+            """
             if self is not self.fraction_field():
                 return f.content_ideal().is_trivial() and f.change_ring(self.fraction_field()).is_irreducible()
             return f._is_irreducible_generic()

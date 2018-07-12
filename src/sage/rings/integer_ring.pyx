@@ -1503,6 +1503,26 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         return pAdicValuation(self, p)
 
     def _is_irreducible_univariate_polynomial(self, f):
+        r"""
+        Return whether the univariate polynomial ``f`` is irreducible.
+
+        .. NOTE::
+
+            We can not rely on the generic implementation for euclidean domains
+            as the implementation over the rationals would call this method
+            recursively and thus lead to an infinite recursion.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: f = 2*x
+            sage: f.is_irreducible() # indirect doctest
+            False
+            sage: f = 2*x + 3
+            sage: f.is_irreducible() # indirect doctest
+            True
+
+        """
         return f._is_irreducible_generic()
 
 ZZ = IntegerRing_class()
