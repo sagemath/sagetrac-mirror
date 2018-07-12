@@ -3395,17 +3395,20 @@ class SimplicialComplex(Parent, GenericCellComplex):
             :meth:`sage.homology.examples.ShiftedComplex`
         """
 
-    def _ksets_shift(self, k, ring=ZZ, density=None):
+    def _ksets_shift(self, k, iterations=5, **random_mat_options):
         """
         Returns a shifted `k`-set family obtained from the `k`-faces of the
         simplicial complex.
 
         INPUT:
 
-        - ``k`` - integer; the size of the faces of ``self`` to shift.
+        - ``k`` - positive integer; the size of the faces of ``self`` to shift.
 
-        - ``ring`` - A sage ring (default: ``ZZ``); the base ring to use for
-          the random matrix.
+        - ``iterations`` - positive integer; the required number of iterations
+          giving the same result before giving the output.
+
+        - ``random_mat_options`` - a dictionary; the options to create the
+          random matrix used. If set to ``None``, the algorithm uses XXX???
 
         OUTPUT:
 
@@ -3425,22 +3428,48 @@ class SimplicialComplex(Parent, GenericCellComplex):
         n_vertices = len(vertices)
         kset_as_indices = [tuple(vertices.index(i) for i in kset) for kset in kset_family]
 
-        M = random_matrix(ring=ring,nrows=n_vertices,density=density)
+        try:
+            ring = random_mat_options.pop("ring")
+        except KeyError:
+            ring = ZZ
 
-        found_rank = 0
-        compound_matrix = matrix(size,0)
-        iter_cols = combinations(range(n_vertices),k)
-        shifted_ksets = Set()
-        while found_rank < size:
-            index_cols = iter_cols.next()
-            new_column = matrix(size,1,[M.matrix_from_rows_and_columns(row_indices,index_cols).det()
-                                        for row_indices in kset_as_indices])
-            compound_matrix = compound_matrix.augment(new_column)
-            new_rank = compound_matrix.rank()
-            if new_rank > found_rank:
-                shifted_ksets += Set([tuple(vertices[i] for i in index_cols)])
-            found_rank = new_rank
-        return shifted_ksets
+        found_candidate = False
+        counter = 0
+        candidate = None
+
+        while not found_candidate:
+            M = random_matrix(ring=ring,nrows=n_vertices,**random_mat_options)
+            # print(counter)
+    
+            found_rank = 0
+            compound_matrix = matrix(size,0)
+            iter_cols = combinations(range(n_vertices),k)
+            shifted_ksets = Set()
+            while found_rank < size:
+                index_cols = iter_cols.next()
+                new_column = matrix(size,1,[M.matrix_from_rows_and_columns(row_indices,index_cols).det()
+                                            for row_indices in kset_as_indices])
+                compound_matrix = compound_matrix.augment(new_column)
+                new_rank = compound_matrix.rank()
+                if new_rank > found_rank:
+                    shifted_ksets += Set([tuple(vertices[i] for i in index_cols)])
+                found_rank = new_rank
+            if candidate is not None:
+                if candidate == shifted_ksets: # found the same candidate
+                    counter += 1
+                else:  # Found a different candidate, must start over
+                    counter = 1
+                    # print(candidate)
+                    # print(shifted_ksets)
+                    # print("=========")
+                    candidate = shifted_ksets
+            else:
+                candidate = shifted_ksets
+                counter += 1
+            if counter == iterations:
+                found_candidate = True
+
+        return candidate
 
     def alexander_dual(self, is_mutable=True):
         """
