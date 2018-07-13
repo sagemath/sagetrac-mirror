@@ -125,7 +125,7 @@ class IntegralDomains(CategoryWithAxiom):
 
             for x in tester.some_elements():
                 # check that we can coerce into the fraction field
-                y = fraction_field.coerce(x)
+                fraction_field.coerce(x)
                 # and convert back from it
                 z = self(x)
                 tester.assertEqual(x, z)

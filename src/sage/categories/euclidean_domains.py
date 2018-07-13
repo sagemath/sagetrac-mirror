@@ -24,7 +24,6 @@ AUTHORS:
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.misc.abstract_method import abstract_method
-from sage.misc.cachefunc import cached_method
 from sage.structure.element import coerce_binop
 from sage.structure.sequence import Sequence
 
