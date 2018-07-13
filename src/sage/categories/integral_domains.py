@@ -145,7 +145,7 @@ class IntegralDomains(CategoryWithAxiom):
                 sage: f.is_irreducible() # indirect doctest
                 Traceback (most recent call last):
                 ...
-                NotImplementedError:
+                NotImplementedError
 
             """
             if f.content_ideal().is_trivial() and f.change_ring(self.fraction_field()).is_irreducible():
