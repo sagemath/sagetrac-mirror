@@ -1413,13 +1413,14 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             gens = [Oq(g) for g in self.orthogonal_group().gens()]
             return Oq.subgroup(gens)
         if self.rank() > 2:
-            f = Oq.det_spin_homomorphism()
+            f = Oq.det_spin_homomorphism(self.rank(),self.determinant())
             codom = f.codomain()
             Gamma = codom._cover
             gammaS = Gamma.gammaS()
             sub = codom.subgroup([codom(g) for g in gammaS])
             return f.preimage(sub)
-        raise NotImplementedError
+        return Oq
+        # raise NotImplementedError
 
     def tensor_product(self, other, discard_basis=False):
         r"""

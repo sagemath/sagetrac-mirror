@@ -122,30 +122,6 @@ class GammaA(AbelianGroupGap):
 
     Element = AdelicSquareClass
 
-    def _element_constructor_(self, x, check=True):
-        r"""
-
-        EXAMPLES::
-
-            sage: from sage.groups.fqf_orthogonal.spinor import GammaA
-            sage: q = matrix.diagonal(QQ, [2/3, 2/3, 4/3])
-            sage: q = TorsionQuadraticForm(q)
-            sage: Oq = q.orthogonal_group()
-            sage: g = Oq.gen(0)
-            sage: gammaA = GammaA([2,3])
-            sage: gammaA(g)
-            f7
-        """
-        try:
-            detspin = x.det_spin()
-            detspin = [self.embed(det=g[1][0], spin=g[1][1], p=g[0])
-                       for g in detspin]
-            detspin = self.prod(detspin)
-            return detspin
-        except AttributeError:
-            pass
-        return super(AbelianGroupGap, self)._element_constructor_(x, check=check)
-
     def _repr_(self):
         r"""
         Return the string representation of ``self``.
@@ -324,8 +300,8 @@ def sigma_sharp(rkL, detL, q, p):
             return [(1,up), (1, p), (-1,1)]
     from sage.quadratic_forms.genera.normal_form import collect_small_blocks
     blocks = collect_small_blocks(q)
-    u = [0, 0, 0]
-    v = [0, 0, 0]
+    u = [0, 0, 0, 0]
+    v = [0, 0, 0, 0]
     w = [[],[],[],[]]
     for b in blocks[:3]:
         k = b.denominator().valuation(2)

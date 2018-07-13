@@ -506,7 +506,7 @@ class GroupMorphism_libgap(Morphism):
             raise TypeError("%s must be a libGAP group of %s"%(S, self))
         if not self.codomain().gap().IsSubgroup(S.gap()).sage():
             raise ValueError("%s must be a subgroup of %s"%(S, self))
-        preimage = phi.PreImage(S.gap())
+        preimage = phi.PreImage(S.gap().Intersection(self.image(self.domain()).gap()))
         return self.domain()._subgroup_constructor(preimage)
 
 class GroupHomset_libgap(HomsetWithBase):
