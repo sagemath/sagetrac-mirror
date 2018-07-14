@@ -32,9 +32,10 @@ from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.structure.sage_object import SageObject
 
 from sage.misc.superseded import experimental
+
+import sys
 
 
 def _branch_number(mtr):
@@ -63,7 +64,7 @@ def _ff_elem_to_binary(elem):
     result = zero_matrix(GF(2), F.degree())
     T = identity_matrix(GF(2), F.degree())
     for i in bits:
-        if i==1:
+        if i == 1:
             result += T
         T = T*R
     return result
@@ -95,7 +96,10 @@ def _column_linear_layer(Ls):
     F = Ls[0].base_ring()
     nblocks = len(Ls)
     n, m = Ls[0].dimensions()
-    blockmtrs = [diagonal_matrix(F, nblocks, [Ls[i][k][l] for i in range(nblocks)]) for k in range(n) for l in range(m)]
+    blockmtrs = [diagonal_matrix(F, nblocks, [Ls[i][k][l]
+                                              for i in range(nblocks)])
+                 for k in range(n)
+                 for l in range(m)]
     return LinearLayer.new(block_matrix(F, n, m, blockmtrs))
 
 
@@ -197,7 +201,7 @@ class LinearLayer:
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
         """
         return "LinearLayer of dimension %d x %d represented as\n%s" \
-                % (self.dimensions() + (self.matrix().str(),))
+               % (self.dimensions() + (self.matrix().str(),))
 
     def __repr__(self):
         """
@@ -215,7 +219,7 @@ class LinearLayer:
             64 x 64 dense matrix over Finite Field of size 2 (use the '.str()' method to see the entries)
         """
         return "LinearLayer of dimension %d x %d represented as\n%s" \
-                % (self.dimensions() + (self.matrix().__repr__(),))
+               % (self.dimensions() + (self.matrix().__repr__(),))
 
     def matrix(self):
         """
@@ -358,7 +362,7 @@ class LinearLayer:
             - 'naive' - non-optimized implementation (default)
         """
         avail_algs = ["naive"]
-        if not algorithm in avail_algs:
+        if algorithm not in avail_algs:
             raise TypeError("algorithm must be one of %s" % avail_algs)
 
         if algorithm is "naive":
@@ -508,8 +512,6 @@ class AESLikeLinearLayer(LinearLayer, Matrix_gf2e_dense):
             sage: Midori.linear_branch_number()
             4
         """
-        #if self.is_permutation():
-        #    return 2
         M = self._mc
         M = M.transpose()
         return _branch_number(M)
@@ -525,12 +527,12 @@ AES_MixColumns = Matrix(_AES_field, 4, 4, map(_AES_field.fetch_int, [2, 3, 1, 1,
 AES = AESLikeLinearLayer.new(AES_ShiftRows, AES_MixColumns)
 
 Midori_ShuffelCells = Permutation([1, 11, 6, 16, 15, 5, 12, 2, 10, 4, 13, 7, 8, 14, 3, 9])
-Midori_MixColumns = Matrix(GF(2**4), [[0, 1, 1, 1] ,[1, 0, 1, 1] ,[1, 1, 0, 1] ,[1, 1, 1, 0]])
+Midori_MixColumns = Matrix(GF(2**4), [[0, 1, 1, 1], [1, 0, 1, 1], [1, 1, 0, 1], [1, 1, 1, 0]])
 Midori = AESLikeLinearLayer.new(Midori_ShuffelCells, Midori_MixColumns)
 
 SKINNY_ShiftRows = Right_ShiftRows
-SKINNY_4_MixColumns = Matrix(GF(2**4), [[1, 0, 1, 1] ,[1, 0, 0, 0] ,[0, 1, 1, 0] ,[1, 0, 1, 0]])
-SKINNY_8_MixColumns = Matrix(GF(2**8), [[1, 0, 1, 1] ,[1, 0, 0, 0] ,[0, 1, 1, 0] ,[1, 0, 1, 0]])
+SKINNY_4_MixColumns = Matrix(GF(2**4), [[1, 0, 1, 1], [1, 0, 0, 0], [0, 1, 1, 0], [1, 0, 1, 0]])
+SKINNY_8_MixColumns = Matrix(GF(2**8), [[1, 0, 1, 1], [1, 0, 0, 0], [0, 1, 1, 0], [1, 0, 1, 0]])
 SKINNY_4 = AESLikeLinearLayer.new(SKINNY_ShiftRows, SKINNY_4_MixColumns)
 SKINNY_8 = AESLikeLinearLayer.new(SKINNY_ShiftRows, SKINNY_8_MixColumns)
 
@@ -589,7 +591,6 @@ PRESENT = smallscale_present_linearlayer(nsboxes=16)
 
 # Dictionary of all available linear layers
 linearlayers = {}
-import sys
 for k in dir(sys.modules[__name__]):
     v = getattr(sys.modules[__name__], k)
     if isinstance(v, (LinearLayer, AESLikeLinearLayer)):
