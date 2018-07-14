@@ -339,25 +339,28 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
             # Shimada 5.2 Step 2 page 25
             # The discriminant group has full length and a term 1/2 or 3/2
             # to determine the lattice one needs to know the determinant
-            if p == 2 and len(Tp.invariants())== rank and q.det().numerator().mod(8) != det.prime_to_m_part(2):
-                if QQ(1)/QQ(2) in q.diagonal():
-                     i = q.diagonal().index(1/2)
-                elif QQ(3)/QQ(2) in q.diagonal():
-                     i = q.diagonal().index(3/2)
-                     q[i,i] = 1/2
+            val, unit = (q.det()*det).val_unit(ZZ(2))
+            assert val==0
+            if p == 2 and len(Tp.invariants())== rank and unit % 8 != 1:
+                n = q.ncols()
+                for i in range(1,n-1):
+                    if q[i,i+1]==0 and q[i-1,i]==0 and q[i,i].denominator()==2:
+                        q[i,i] *= 5
+                        break
                 else:
-                    raise AssertionError("there is a bug in spinor computations")
-                q[i,i] *= 5
+                    if q[0,0].denominator()==2 and (n==1 or q[0,1]==0):
+                        q[0,0] *= 5
+                    elif q[-1,-1].denominator()==2 and q[-1,-2]==0:
+                        q[-1,-1] *= 5
+                    else:
+                        raise AssertionError('bug in det_spin_homomorphism')
+            M = q.inverse()
             # diagonalize
-            qf = QuadraticForm(QQ, q)
+            qf = QuadraticForm(QQ, M)
             diag, t = qf.rational_diagonal_form(return_matrix=True)
             diag = diag.Hessian_matrix()
-            # rescale by a square to make the gram matrix integral
-            # this does not change the spinor norm
-            v = diag.denominator().valuation(p)
-            q *= p**(v + (v%2))
-
             t = t.T
+            q0 = q*q.denominator()
             v1 = t.denominator().valuation(p)
             v2 = t.inverse().denominator().valuation(p)
             v = -v1 -v2 # lower bound for precision loss due to diagonalization
@@ -372,10 +375,10 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
                 while True:
                     R = Zp(p, type='fixed-mod', prec=prec+3, print_mode='terse',
                         show_prec=False, print_pos=False)
-                    g = Hensel_qf(q.change_ring(R), g.change_ring(R), prec0, prec)
+                    g = Hensel_qf(q0.change_ring(R), g.change_ring(R), prec0, prec)
                     g = g.change_ring(ZZ)
                     try:
-                        gg = t*g*t.inverse()
+                        gg = t*M*g*M.inverse()*t.inverse()
                         det_p, spin_p = det_spin_p(diag, gg, p, prec + v)
                         det_spin[f].append((p, (det_p, spin_p)))
                         break
@@ -596,8 +599,8 @@ def det_spin_p(G, T, p, nu):
     gamma = min(gammaL)
     l = G.ncols()
     E = G.parent()(1)
-    spinor_norm = QQ(1)
-    determinant = QQ(1)
+    reflection_vectors = []
+
     k = 0
     while k < l:
         g = T.row(k)
@@ -609,20 +612,19 @@ def det_spin_p(G, T, p, nu):
         if (rho <= gammaL[k] + delta) or (kappa < 1 + 2*delta):
             raise ArithmeticError("Recompute with higher precision") #or a ValueError ?
         bm = g - E.row(k)
-        qm = bm * G * bm / 2
+        qm = bm * G * bm
         if qm.valuation(p) <= gammaL[k] + 2*delta:
             tau1 = reflection(G, bm)
+            reflection_vectors.append(bm)
             tau2 = E
-            determinant *= QQ(-1)
-            spinor_norm *= qm
         else:
             bp = g + E.row(k)
-            qp = bp * G * bp / 2
+            qp = bp * G * bp
             assert qp.valuation(p) <= gammaL[k] + 2*delta
             tau1 = reflection(G, bp)
             tau2 = reflection(G, E.row(k))
-            # the determinant is unchanged as there are 2 reflections
-            spinor_norm *= qp * G[k,k]
+            reflection_vectors.append(bp)
+            reflection_vectors.append(E.row(k))
         lambdaT = mv(T)
         alpha = mv(tau1)
         beta = mv(tau2)
@@ -632,6 +634,8 @@ def det_spin_p(G, T, p, nu):
         k += 1
     err = mv(T-E)
     assert err >= nu
+    spinor_norm = QQ.prod([v*G*v/2 for v in reflection_vectors])
+    determinant = QQ(-1)**(len(reflection_vectors))
     v, u = spinor_norm.val_unit(p)
     if p == 2:
         u = u % 8
