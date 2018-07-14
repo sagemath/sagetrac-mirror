@@ -675,14 +675,29 @@ class BinaryQF(SageObject):
             c = Q._c
             cabs = c.abs()
             # rho(f) as defined in [BUVO2007]_ p. 112 equation (6.12)
-            if cabs >= d:
-                s = c.sign() * ((cabs + b) / (2 * cabs)).floor()
+            if cabs != 0:
+                if cabs >= d:
+                    s = c.sign() * ((cabs + b) / (2 * cabs)).floor()
+                elif cabs != 0:
+                    s = c.sign() * ((d + b) / (2 * cabs)).floor()
+                if transformation:
+                    T = Matrix(ZZ, 2, 2, [0, -1, 1, s])
+                    U = U * T
+                Q = BinaryQF(c, -b + 2*s*c, c*s*s - b*s + a)
             else:
-                s = c.sign() * ((d + b) / (2 * cabs)).floor()
-            if transformation:
-                T = Matrix(ZZ, 2, 2, [0, -1, 1, s])
-                U = U * T
-            Q = BinaryQF(c, -b + 2*s*c, c*s*s - b*s + a)
+                if b < 0:
+                    Q = BinaryQF(a, -b, c)
+                    if transformation:
+                        T = Matrix(ZZ, 2, 2, [1, 0, 0, -1])
+                        U = U * T
+                else:
+                    q, r = a.quo_rem(b)
+                    if 2*r > b:
+                        q, r = a.quo_rem(-b)
+                    if transformation:
+                        T = Matrix(ZZ, 2, 2, [1, 0, q, 1])
+                        U = U * T
+                    Q = BinaryQF(r, b, c)
         if transformation:
             return Q, U
         return Q
