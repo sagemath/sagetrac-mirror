@@ -26,7 +26,7 @@ ElemAbelSubgrpOrbsStabs:=function(G, aut, gens_aut, gens_act)
   # repr  -- a subgroup of G
   # stab  -- a subgroup of aut
 
-  local subs,i,k, n, p, gens_mats, MatrixRepresentation, V, orbits, Gmat,
+  local subs,i,k, n, p, gens_mats, MatrixRepresentation, V, orbits, 
   subgrp, stab, subgroups, pcgs, orb;
 
   pcgs:= Pcgs(G); # a basis
@@ -38,7 +38,6 @@ ElemAbelSubgrpOrbsStabs:=function(G, aut, gens_aut, gens_act)
 
   gens_mats:= List(gens_act, f->MatrixRepresentation(f, pcgs));
 
-  Gmat:= Group(gens_mats);
   n:= Size(pcgs);
   V:= GF(p)^n;
   subgroups:= [rec(repr:=Subgroup(G,[]), stab:=aut)];
