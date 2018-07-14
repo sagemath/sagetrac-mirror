@@ -46,7 +46,7 @@ fi
 
 echo "Building GAP..."
 # Building config only works with 1 thread
-$MAKE -j1 config && $MAKE
+$MAKE -j1 config && $MAKE # && $MAKE libgap && $MAKE install-libgap install-headers
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error building GAP."
     exit 1
