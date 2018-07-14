@@ -1302,28 +1302,68 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         sig = self.signature_pair()
         if gens is None:
             gens = []
+            gens_gram = []
+            # Compute transformation matrix to the ambient module.
+            L = self.overlattice(self.ambient_module().gens())
+            Orthogonal = L.orthogonal_complement(self)
+            B = self.basis_matrix().stack(Orthogonal.basis_matrix())
+            identity = matrix.identity(Orthogonal.rank())
             if sig[1]==0 or sig[0]==0: #definite
                 from sage.quadratic_forms.quadratic_form import QuadraticForm
                 is_finite = True
-                # Compute transformation matrix to the ambient module.
-                L = self.overlattice(self.ambient_module().gens())
-                Orthogonal = L.orthogonal_complement(self)
-                B = self.basis_matrix().stack(Orthogonal.basis_matrix())
                 if sig[0] == 0: #negative definite
                     q = QuadraticForm(ZZ, -2*self.gram_matrix())
                 else:    # positve definite
                     q = QuadraticForm(ZZ, 2*self.gram_matrix())
-                identity = matrix.identity(Orthogonal.rank())
-                for g in q.automorphism_group().gens():
-                    g = g.matrix().T
-                    # We continue g as identity on the orthogonal complement.
-                    g = matrix.block_diagonal([g, identity])
-                    g = B.inverse()*g*B
-                    gens.append(g)
+                gens_gram = [g.matrix().T for g in q.automorphism_group().gens()]
+            elif self.rank() == 2: # indefinite rank 2:
+                def binary_qf_aut(a, b, c):
+                    g = gcd([a,b,c])
+                    a /= g; b/=g ; c/=g
+                    d = b**2 - 4 * a * c
+                    if d.is_square():
+                        SO = -matrix.identity(2)
+                    else:
+                        from sage.rings.number_field.number_field import QuadraticField
+                        e = QuadraticField(d).unit_group().gens()[-1].value()
+                        k = 1
+                        r = 1
+                        if e.norm()==-1:
+                            e = e**2
+                        while True:
+                            r *= e
+                            if r.denominator().divides(2):
+                                print(k)
+                                break
+                            if k > 200:
+                                raise NotImplementedError("unable to compute binary automorphisms")
+                            k += 1
+                        u = 2 * r[0]
+                        v = 2 * r[1]
+                        SO = matrix(2,[(u-b*v)/2, -c*v,a*v,(u+b*v)/2]).T  #
+                    from sage.quadratic_forms.binary_qf import BinaryQF
+                    q = BinaryQF(a,b,c)
+                    qred, t = q.reduced_form(transformation=True)
+                    if qred[1] == 0:
+                        f = matrix(ZZ,2,[1,0,0,-1])
+                    elif qred[0] == qred[1]:
+                        f = matrix(ZZ,2,[1,1,0,-1])
+                    else:
+                        return [SO]
+                    f = (t * f * ~t).T
+                    return [SO, f]
+                G = self.gram_matrix()
+                gens_gram = binary_qf_aut(2*G[0,0],G[0,1],2*G[1,1])
             else: #indefinite
                 raise NotImplementedError(
                     "currently, we can only compute generators "
                     "for orthogonal groups over definite lattices.")
+            for g in gens_gram:
+                # We continue g as identity on the orthogonal complement.
+                g = matrix.block_diagonal([g, identity])
+                g = B.inverse()*g*B
+                gens.append(g)
+
         deg = self.degree()
         base = self.ambient_vector_space().base_ring()
         inv_bil = self.inner_product_matrix()
@@ -1408,7 +1448,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         """
         Oq = self.discriminant_group().orthogonal_group()
         sig = self.signature_pair()
-        if sig[0]*sig[1] == 0:
+        if sig[0]*sig[1]==0 or self.rank()==2:
             # the definite case
             gens = [Oq(g) for g in self.orthogonal_group().gens()]
             return Oq.subgroup(gens)
@@ -1419,8 +1459,6 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             gammaS = Gamma.gammaS()
             sub = codom.subgroup([codom(g) for g in gammaS])
             return f.preimage(sub)
-        return Oq
-        # raise NotImplementedError
 
     def tensor_product(self, other, discard_basis=False):
         r"""
