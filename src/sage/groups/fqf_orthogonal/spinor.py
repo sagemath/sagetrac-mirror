@@ -351,6 +351,8 @@ def sigma_sharp(rkL, detL, q, p):
     assert len(w[1]) == 0
     if u[2] + v[2] > 0:
         return gamma22
-    if w[2] == 2:
+    if len(w[2]) == 2:
         return gamma22
-    return []
+    if len(w[1])<= 2:
+        return []
+    assert False
