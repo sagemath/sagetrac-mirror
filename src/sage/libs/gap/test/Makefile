@@ -12,7 +12,7 @@ all: main
 	$(VALGRIND) ./main
 
 main: main.o Makefile
-	gcc -L$(SAGE_LOCAL)/lib -o main main.o -lgap -lcsage -lntl -lstdc++ -lpari -lpython2.7 -lm -lgmp
+	gcc -L$(SAGE_LOCAL)/lib -o main main.o -lgap -lntl -lstdc++ -lpari -lpython2.7 -lm -lgmp #-lcsage 
 
 main.o: main.c
 	echo $(GAPDIR)
