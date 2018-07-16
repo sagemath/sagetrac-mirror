@@ -3395,7 +3395,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
             :meth:`sage.homology.examples.ShiftedComplex`
         """
 
-    def _ksets_shift(self, k, iterations=5, **random_mat_options):
+        return
+
+    def _ksets_shift(self, k, iterations=5, certify=False, **random_mat_options):
         """
         Returns a shifted `k`-set family obtained from the `k`-faces of the
         simplicial complex.
@@ -3406,6 +3408,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         - ``iterations`` - positive integer; the required number of iterations
           giving the same result before giving the output.
+
+        - ``certify`` - boolean (default: ``True``): whether to check if the
+          output is a shifted complex.
 
         - ``random_mat_options`` - a dictionary; the options to create the
           random matrix used. If set to ``None``, the algorithm uses XXX???
@@ -3434,12 +3439,13 @@ class SimplicialComplex(Parent, GenericCellComplex):
             ring = ZZ
 
         found_candidate = False
-        counter = 0
+        candidates = {}
         candidate = None
+        sorted_candidate = None
+        counter = 0
 
         while not found_candidate:
             M = random_matrix(ring=ring,nrows=n_vertices,**random_mat_options)
-            # print(counter)
     
             found_rank = 0
             compound_matrix = matrix(size,0)
@@ -3455,21 +3461,30 @@ class SimplicialComplex(Parent, GenericCellComplex):
                     shifted_ksets += Set([tuple(vertices[i] for i in index_cols)])
                 found_rank = new_rank
             if candidate is not None:
-                if candidate == shifted_ksets: # found the same candidate
-                    counter += 1
-                else:  # Found a different candidate, must start over
-                    counter = 1
-                    # print(candidate)
-                    # print(shifted_ksets)
-                    # print("=========")
+                sorted_ksets = sorted(shifted_ksets)
+                if sorted_ksets < sorted_candidate:  # Found a new candidate
+                    candidates[candidate] = 1
                     candidate = shifted_ksets
+                    sorted_candidate = sorted_ksets
+                    counter = 1
+                elif candidate == shifted_ksets: # found the same candidate
+                    counter += 1
+                    candidates[candidate] = counter
+                else:   # is a bad candidate
+                    if candidate in candidates.keys():
+                        candidates[candidate] += 1
+                    else:
+                        candidates[candidate] = 1
             else:
                 candidate = shifted_ksets
-                counter += 1
+                sorted_candidate = sorted(shifted_ksets)
+                counter = 1
+                candidates[candidate] = 1
+                
             if counter == iterations:
                 found_candidate = True
 
-        return candidate
+        return candidate, sorted(candidates.values(),reverse=True)
 
     def alexander_dual(self, is_mutable=True):
         """
