@@ -339,7 +339,7 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
             # Shimada 5.2 Step 2 page 25
             # The discriminant group has full length and a term 1/2 or 3/2
             # to determine the lattice one needs to know the determinant
-            val, unit = (q.det()*det).val_unit(ZZ(2))
+            val, unit = (q.det()*det).val_unit(ZZ(p))
             assert val==0
             if p == 2 and len(Tp.invariants())== rank and unit % 8 != 1:
                 n = q.ncols()
