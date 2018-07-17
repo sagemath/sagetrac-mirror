@@ -1317,49 +1317,17 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
                     q = QuadraticForm(ZZ, 2*self.gram_matrix())
                 gens_gram = [g.matrix().T for g in q.automorphism_group().gens()]
             elif self.rank() == 2: # indefinite rank 2:
-                def binary_qf_aut(a, b, c):
-                    g = gcd([a,b,c])
-                    a /= g; b/=g ; c/=g
-                    d = b**2 - 4 * a * c
-                    if d.is_square():
-                        SO = -matrix.identity(2)
-                    else:
-                        from sage.rings.number_field.number_field import QuadraticField
-                        e = QuadraticField(d).unit_group().gens()[-1].value()
-                        k = 1
-                        r = 1
-                        if e.norm()==-1:
-                            e = e**2
-                        while True:
-                            r *= e
-                            if r.denominator().divides(2):
-                                print(k)
-                                break
-                            if k > 200:
-                                raise NotImplementedError("unable to compute binary automorphisms")
-                            k += 1
-                        u = 2 * r[0]
-                        v = 2 * r[1]
-                        SO = matrix(2,[(u-b*v)/2, -c*v,a*v,(u+b*v)/2]).T  #
-                    from sage.quadratic_forms.binary_qf import BinaryQF
-                    q = BinaryQF(a,b,c)
-                    qred, t = q.reduced_form(transformation=True)
-                    if qred[1] == 0:
-                        f = matrix(ZZ,2,[1,0,0,-1])
-                    elif qred[0] == qred[1]:
-                        f = matrix(ZZ,2,[1,1,0,-1])
-                    else:
-                        return [SO]
-                    f = (t * f * ~t).T
-                    return [SO, f]
+                from sage.quadratic_forms.binary_qf import BinaryQF
                 G = self.gram_matrix()
-                gens_gram = binary_qf_aut(2*G[0,0],G[0,1],2*G[1,1])
-            else: #indefinite
+                q = BinaryQF(G[0,0], 2*G[0,1], G[1,1])
+                gens_gram = [g.matrix().T for g in q.automorphism_group().gens()]
+            else: #indefinite of rank at least 3
                 raise NotImplementedError(
                     "currently, we can only compute generators "
                     "for orthogonal groups over definite lattices.")
+
+            # We continue g as identity on the orthogonal complement.
             for g in gens_gram:
-                # We continue g as identity on the orthogonal complement.
                 g = matrix.block_diagonal([g, identity])
                 g = B.inverse()*g*B
                 gens.append(g)
