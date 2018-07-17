@@ -793,15 +793,8 @@ class TorsionQuadraticModule(FGP_Module_class):
         ker2 = other.orthogonal_submodule_to(other.gens())
         if ker1.invariant() != ker2.invariants():
             return False
-        for p in self.order().prime_divisors():
-            N = self.primary_part(p)
-            M = other.primary_part(p)
-            qN = N.gram_matrix_quadratic()
-            qM = M.gram_matrix_quadratic()
-            invs = N.invariants()
-        # do it in gap?
-        # do it in cython?
-        # use the orthogonal group?
+        return NotImplementedError()
+
 
     def orthogonal_submodule_to(self, S):
         r"""
@@ -1403,7 +1396,7 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         INPUT:
 
-        - ``H`` -- a subgroup of `self`
+        - ``H`` -- a submodule of `self`
 
         - ``G`` -- a group of automorphisms
 
@@ -1413,7 +1406,7 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         OUTPUT:
 
-        - a list of subgroups
+        - a list of submodules
 
         EXAMPLES::
 
@@ -1445,7 +1438,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         subgroup_reps = map(self._subgroup_from_gap, subgroup_reps)
         return subgroup_reps
 
-    def all_primitive_modulo(self, H1, H2, G, algorithm='hulpke'):
+    def all_primitive_modulo(self, H1, H2, G, algorithm='hulpke', combined=True):
         r"""
         Return all totally isotropic subgroups `S` of `H1 + H2` such that
         ``H1 & S == 1`` and ``H2 & S = 1`` modulo the subgroup
@@ -1470,18 +1463,29 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: q, fs , fo = q1.direct_sum(q2)
             sage: q.all_primitive_modulo(3*fs.image(),fo.image())
         """
-        A = G.domain()
-        H = self.submodule(H1.gens() + H2.gens())
-        if len(H.invariants()) > 6:
-            print("this might take a while. Invariants: %s" %(H.invariants(),))
-        subgroup_reps = self.subgroup_representatives(H, G, algorithm=algorithm)
+        if combined:
+            A = G.domain()
+            H = self.submodule(H1.gens() + H2.gens())
+            if len(H.invariants()) > 6:
+                print("this might take a while. Invariants: %s" %(H.invariants(),))
+            subgroup_reps = self.subgroup_representatives(H, G, algorithm=algorithm)
 
-        # filter for primitive and isotropic
-        primitive_extensions = []
-        for S in subgroup_reps:
-            if S.gram_matrix_quadratic() == 0:
-                if S.V() & H1.V() == self.W() and S.V() & H2.V() == self.W():
-                    primitive_extensions.append(S)
+            # filter for primitive and isotropic
+            primitive_extensions = []
+            for S in subgroup_reps:
+                if S.gram_matrix_quadratic() == 0:
+                    if S.V() & H1.V() == self.W() and S.V() & H2.V() == self.W():
+                        primitive_extensions.append(S)
+        else:
+            subs1 = self.subgroup_representatives(H, G, algorithm=algorithm)
+            subs2 = self.subgroup_representatives(H, G, algorithm=algorithm)
+            for S1 in subs1:
+                for S2 in subs2:
+                    if S1.is_isomorphic_to(S2.twist(-1)):
+                        S1n = S1.normal_form()
+                        S2n = S2.twist(-1).normal_form()
+                        N2 = S2n.to_normal()
+
         return primitive_extensions
 
 def _brown_indecomposable(q, p):
