@@ -695,7 +695,7 @@ class BinaryQF(SageObject):
                     if 2*r > b:
                         q, r = a.quo_rem(-b)
                     if transformation:
-                        T = Matrix(ZZ, 2, 2, [1, 0, q, 1])
+                        T = Matrix(ZZ, 2, 2, [1, 0, -q, 1])
                         U = U * T
                     Q = BinaryQF(r, b, c)
         if transformation:
@@ -1131,6 +1131,122 @@ class BinaryQF(SageObject):
         c1 = self(w)
         b1 = self(v + w) - a1 - c1
         return BinaryQF([a1, b1, c1])
+
+    def automorphism_group(self):
+        r"""
+        Return the automorphism group of this form.
+
+        This is the group of matrices that satisfy
+        `u  q  u = q`
+        where `q` is the gram matrix of this quadratic form.
+
+        EXAMPLES::
+
+            sage: q = BinaryQF(1,7,-6)
+            sage: q.automorphism_group()
+            x^2 + x*y - 18*y^2
+            Matrix group over Rational Field with 2 generators (
+            [ 1  7]  [ 412249 3204000]
+            [ 0 -1], [ 534000 4150249]
+            )
+            sage: q = BinaryQF(1,0,1)
+            sage: q.automorphism_group()
+            Matrix group over Rational Field with 3 generators (
+            [-1  0]  [0 1]  [ 1  0]
+            [ 0 -1], [1 0], [ 0 -1]
+            )
+            sage: q = BinaryQF(1,0,-1)
+            sage: q.automorphism_group()
+            Matrix group over Integer Ring with 1 generators (
+            [-1  0]
+            [ 0 -1]
+            )
+            sage: q = BinaryQF(2,0,-1)
+            sage: q.automorphism_group()
+            Matrix group over Rational Field with 3 generators (
+            [-1  0]  [ 3 -2]  [ 3 -2]
+            [ 0 -1], [ 4 -3], [-4  3]
+            )
+        """
+        # cheap but hey...
+        from sage.quadratic_forms.quadratic_form import QuadraticForm
+        if self.is_positive_definite():
+            q = QuadraticForm(ZZ, 2, [self._a, self._b, self._c])
+            return q.automorphism_group()
+        if self.is_negative_definite():
+            q = QuadraticForm(ZZ, 2, [self._a, -self._b, -self._c])
+            return q.automorphism_group()
+        if self.is_indefinite():
+            gens = [-Matrix.identity(2)]
+            # go primitive
+            if not self.is_primitive():
+                g = self.content()
+                a = self._a //g
+                b = self._b //g
+                c = self._c //g
+                q = BinaryQF(a, b , c)
+            else:
+                q = self
+            q, t = q.reduced_form(transformation=True)
+            a = q._a
+            b = q._b
+            c = q._c
+            if not self.discriminant().is_square():
+                if a < 0:
+                    q = BinaryQF(c, b, a)
+                    t = t * Matrix(ZZ, 2, [0, 1, 1, 0])
+                    a, c = c , a
+                d = q.discriminant().sqrt(prec=53)
+                qn = q
+                T = Matrix.identity(2)
+                flag = True
+                while True:
+                    a = qn._a
+                    b = qn._b
+                    c = qn._c
+                    if flag and b % a == 0:
+                        # ambiguous forms have an extra automorphism
+                        flag = False
+                        n = b//(2*a)
+                        tr = t * T * Matrix(ZZ,2,[1, -n, 0, 1])
+                        e = 0
+                        if b %(2*a) != 0:
+                            e = 1
+                        gens.append(tr * Matrix(ZZ,2,[1,e,0,-1]) * ~tr )
+                    s = ((b + d.floor())/(2*c.abs())).floor()
+                    qn = BinaryQF(c.abs(), -b+2*s*c.abs(), -(a+b*s+c*s*s))
+                    T = Matrix(ZZ, 2, [T[0,1], s*T[0,1]+T[0,0], T[1,1], s*T[1,1] + T[1,0]])
+                    if qn == q:
+                        break
+                if T.det() == -1:
+                    T = T**2
+                gens.append(t * T * ~t)
+            elif a == c == 0:
+                gens.append(t * matrix(ZZ,2,[0,1,1,0]) * ~t )
+            assert all([self*f == self for f in gens])
+            from sage.groups.matrix_gps.finitely_generated import MatrixGroup
+            return MatrixGroup(gens)
+        raise NotImplementedError("Automorphism groups of degenerate forms " +
+                                   "are not implemented")
+
+    def is_ambiguous(self):
+        r"""
+        Return if this form has an automorphism of determinant `-1`.
+
+        See _[BUVO2007] def 2.8.1
+
+        EXAMPLES::
+
+            sage: q = BinaryQF(1,9,-6)
+            sage: q.is_ambiguous()
+            True
+        """
+        if self.is_indefinite():
+            q1 = self.reduced_form()
+            q2 = BinaryQF(self._c, -self._b, self._a).reduced_form()
+            return q2 in q1.cycle()
+        raise NotImplementedError
+
 
     def small_prime_value(self, Bmax=1000):
         r"""
