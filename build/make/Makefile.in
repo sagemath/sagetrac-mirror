@@ -153,7 +153,7 @@ pkg_deps = \
 # <pkgname>: $(INST)/<pkgname>-<pkgvers>
 #
 # <pkgname>-clean:
-#     sage-spkg-uninstall <pkgname> '$(SAGE_LOCAL)'
+#     rm -rf $(INST)/<pkgname>-<pkgvers>
 #
 # For example, for python2 this will expand to:
 #
@@ -163,7 +163,7 @@ pkg_deps = \
 # python2: $(INST)/python2-2.7.14
 #
 # python2-clean:
-#     sage-spkg-uninstall python2 '$(SAGE_LOCAL)'
+#     rm -rf $(INST)/python2-2.7.14
 #
 # Note: In these rules the $(INST)/<pkgname>-<pkgvers> target is used
 # explicitly, rather than expanding the $(inst_<pkgname>) variable, since
@@ -189,9 +189,7 @@ $$(INST)/$(1)-$(2): $(3)
 $(1): $$(INST)/$(1)-$(2)
 
 $(1)-clean:
-	sage-spkg-uninstall $(if $(filter $(1),$(TOOLCHAIN_DEPS)),--keep-files) \
-		$(1) '$(SAGE_LOCAL)'
-
+	rm -rf $$(INST)/$(1)-$(2)
 endef
 
 $(foreach pkgname, $(NORMAL_PACKAGES),\
