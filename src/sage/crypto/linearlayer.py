@@ -11,6 +11,7 @@ literature, either in  the dictionary linearlayers, or as a seperate object.
 This module provides the following linear layers:
 
     - AES ([DR2002]_)
+    - GIFT ([BPPSST2017]_)
     - Midori ([BBISHAR2015]_)
     - SKINNY ([BJKLMPSSS2016]_)
     - PRESENT (and SmallScalePRESENT) ([BKLPPRSV2007]_)
@@ -587,6 +588,25 @@ def smallscale_present_linearlayer(nsboxes=16):
     return LinearLayer.new(m)
 
 PRESENT = smallscale_present_linearlayer(nsboxes=16)
+
+
+GIFT64 = LinearLayer.new(Matrix(GF(2), Permutation([
+    1, 18, 35, 52, 49, 2, 19, 36, 33, 50, 3, 20, 17, 34, 51, 4,
+    5, 22, 39, 56, 53, 6, 23, 40, 37, 54, 7, 24, 21, 38, 55, 8,
+    9, 26, 43, 60, 57, 10, 27, 44, 41, 58, 11, 28, 25, 42, 59, 12,
+    13, 30, 47, 64, 61, 14, 31, 48, 45, 62, 15, 32, 29, 46, 63, 16
+    ]).to_matrix()))
+
+GIFT128 = LinearLayer.new(Matrix(GF(2), Permutation([
+    1, 34, 67, 100, 97, 2, 35, 68, 65, 98, 3, 36, 33, 66, 99, 4,
+    5, 38, 71, 104, 101, 6, 39, 72, 69, 102, 7, 40, 37, 70, 103, 8,
+    9, 42, 75, 108, 105, 10, 43, 76, 73, 106, 11, 44, 41, 74, 107, 12,
+    13, 46, 79, 112, 109, 14, 47, 80, 77, 110, 15, 48, 45, 78, 111, 16,
+    17, 50, 83, 116, 113, 18, 51, 84, 81, 114, 19, 52, 49, 82, 115, 20,
+    21, 54, 87, 120, 117, 22, 55, 88, 85, 118, 23, 56, 53, 86, 119, 24,
+    25, 58, 91, 124, 121, 26, 59, 92, 89, 122, 27, 60, 57, 90, 123, 28,
+    29, 62, 95, 128, 125, 30, 63, 96, 93, 126, 31, 64, 61, 94, 127, 32
+    ]).to_matrix()))
 
 
 # Dictionary of all available linear layers
