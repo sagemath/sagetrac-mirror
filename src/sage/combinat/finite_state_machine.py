@@ -1998,7 +1998,7 @@ class FSMState(sage.structure.sage_object.SageObject):
 
 
     __nonzero__ = __bool__
-
+        
 
     def _epsilon_successors_(self, fsm=None):
         """
@@ -11269,7 +11269,29 @@ class Automaton(FiniteStateMachine):
         """
         return format_function(transition.word_in)
 
+    def get_automatonc (self):
+        """
+        Convert the Automaton into an AutomatonC.
 
+        OUTPUT:
+        
+        :class:`AutomatonC`
+        
+        EXAMPLES::
+
+            sage: a = Automaton([('A', 'B', 1)])
+            sage: a.get_automatonc()
+            AutomatonC with 2 states and an alphabet of 1 letters.
+        
+        TESTS::
+
+            sage: a = Automaton()
+            sage: a.get_automatonc()
+        
+        """
+        from sage.combinat.words.cautomata import FastAutomaton
+        return FastAutomaton(self)
+    
     def intersection(self, other, only_accessible_components=True):
         """
         Returns a new automaton which accepts an input if it is
