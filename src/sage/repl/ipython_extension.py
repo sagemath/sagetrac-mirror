@@ -19,6 +19,8 @@ A Sage extension which adds sage-specific features:
 
   - ``%%fortran``
 
+  - ``%%nopreparse``
+
 * preparsing of input
 
 * loading Sage library
@@ -411,6 +413,35 @@ class SageMagics(Magics):
         from sage.misc.inline_fortran import fortran
         return fortran(cell)
 
+    @cell_magic
+    def nopreparse(self, line, cell):
+        """
+        This cell magic disables Sage preparsing in an IPython cell.
+
+        INPUT:
+
+        - ``line`` -- ignored.
+
+        - ``cell`` -- string. The cell to run without Sage preparsing.
+
+        OUTPUT:
+
+        None. The cell is run in Sage without preparsing.
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('''
+            ....: %%nopreparse
+            ....: type(4)
+            ....: ''')
+            <type 'int'>
+         """
+        import sage.repl.interpreter
+        sage.repl.interpreter._do_preparse = False
+        self.shell.run_cell(cell)
+        sage.repl.interpreter._do_preparse = True        
 
 class SageCustomizations(object):
 
