@@ -15,7 +15,9 @@ sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
 extensions = ['inventory_builder', 'multidocs',
               'sage_autodoc',  'sphinx.ext.graphviz',
               'sphinx.ext.inheritance_diagram', 'sphinx.ext.todo',
-              'sphinx.ext.extlinks', 'matplotlib.sphinxext.plot_directive']
+              'sphinx.ext.extlinks', 'matplotlib.sphinxext.plot_directive',
+              'sphinxcontrib.jupyter',
+]
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
@@ -796,3 +798,65 @@ def setup(app):
         app.connect('builder-inited', set_intersphinx_mappings)
         app.connect('builder-inited', sphinx.ext.intersphinx.load_mappings)
         app.connect('builder-inited', nitpick_patch_config)
+
+# -- Options for Jupyter output ------------------------------------------
+
+# Conversion Mode Settings
+# If "all", convert codes and texts into jupyter notebook
+# If "code", convert code-blocks only
+jupyter_conversion_mode = "all"
+
+jupyter_write_metadata = False
+
+# Location for _static folder
+jupyter_static_file_path = ["_static"]
+
+# Configure Jupyter Kernels
+jupyter_kernels = {
+    "sagemath": {
+        "kernelspec": {
+            "display_name": "SageMath",
+            "language": "SageMath",
+            "name": "sagemath"
+            },
+        "file_extension": ".sage",
+    },
+    "python3": {
+        "kernelspec": {
+            "display_name": "Python",
+            "language": "python3",
+            "name": "python3"
+            },
+        "file_extension": ".py",
+    },
+    "python": {
+        "kernelspec": {
+            "display_name": "Python",
+            "language": "python",
+            "name": "python"
+            },
+        "file_extension": ".py",
+    },
+    "julia": {
+        "kernelspec": {
+            "display_name": "Julia 0.6.0",
+            "language": "julia",
+            "name": "julia-0.6"
+            },
+        "file_extension": ".jl"
+    }
+}
+
+jupyter_headers = {}
+
+# Prepend a Welcome Message to Each Notebook
+jupyter_header_block = "welcome.rst"
+
+jupyter_python_autosave = True
+
+# Not yet used by sphinxcontrib-jupyter
+jupyter_default_lang = "sagemath"
+
+rst_prolog=r"""
+`\def\NN{\mathbb{N}}`
+"""
