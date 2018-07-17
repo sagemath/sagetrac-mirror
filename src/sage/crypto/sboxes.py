@@ -20,7 +20,7 @@ This module provides the following SBoxes:
     - DBlock ([WZY2015]_)
     - E2 ([KMAUTOM2000]_)
     - Enocoro ([WFYTP2008]_)
-    - Fantomas ([GLSV2015]_)
+    - Fantomas ([GLVS2015]_)
     - FLY ([KG2016]_)
     - Fox ([VJ2004]_)
     - Iceberg ([SPRQL2004]_)
