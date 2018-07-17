@@ -30,4 +30,4 @@ Home page: https://github.com/minrk/thebelab
 
 == Special Update/Build Instructions ==
 
-Download: ​https://registry.npmjs.org/thebelab/-/thebelab-0.2.1.tgz
+Run spkg-src
