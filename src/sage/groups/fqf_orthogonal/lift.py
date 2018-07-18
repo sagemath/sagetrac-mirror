@@ -107,7 +107,8 @@ def Hensel_qf(G, F, a, b):
     # this is not enough ... mhhh
     if _min_val(F*G*F.T-G) < a:
         raise ValueError("F must satisfy Z == F * G * F.T  modulo p^a.")
-
+    if F.ncols() == 0:
+        return F
     # the real worker
     F = copy(F) # leave input unchanged
     F = _Hensel_qf(G, G, F, a, b) #works inplace

@@ -333,6 +333,10 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
 
         for p in S:
             Tp = T.primary_part(p).normal_form()
+            if Tp.cardinality() == 1:
+                for f in self.gens():
+                    det_spin[f].append((p, (1, 1)))
+                continue
             u = matrix([b.vector() for b in Tp.gens()])
             Op = Tp.orthogonal_group()
             q = Tp.gram_matrix_quadratic()
@@ -389,7 +393,7 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
         imgs = [Gamma.prod([Gamma.embed(det=ds[1][0], spin=ds[1][1], p=ds[0])
                             for ds in det_spin[f]])
                 for f in self.gens()]
-        return self.hom([codom(g) for g in imgs])
+        return self.hom([codom(g) for g in imgs],codom)
 
 def _compute_gens(T):
     r"""

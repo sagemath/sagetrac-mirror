@@ -1392,11 +1392,14 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         from sage.groups.fqf_orthogonal.spinor import GammaA
         S = ZZ(2*self.determinant()).prime_factors()
         G = GammaA(S)
-        sigma_sharp = G.sigma_sharp(rk, det, q)
-        sigma = [G(g) for g in q.orthogonal_group().gens()]
-        sigma += list(sigma_sharp.gens())
-        gammaS = G.gammaS()
-        return G.quotient(G.subgroup(gammaS + sigma))
+        if self.rank() > 2:
+            f = q.orthogonal_group().det_spin_homomorphism(self.rank(),self.determinant())
+            codom = f.codomain()
+            Gamma = codom._cover
+            gammaS = Gamma.gammaS()
+            gens = list(f.image(f.domain()).gens()) + [codom(g) for g in gammaS]
+            sub = codom.subgroup(gens)
+            return codom.order() / sub.order()
 
     def image_in_Oq(self):
         r"""
