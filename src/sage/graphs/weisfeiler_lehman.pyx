@@ -279,15 +279,13 @@ def certificate(g):
 #    else:
 #        return certificate(a) == certificate(b)
     
-cdef vector[GraphNode] sageGraphToLists(G, partition = [], relabel_map={}, has_edge_labels=False):
+cdef vector[GraphNode] sageGraphToLists(G, partition = [], has_edge_labels=False):
     partition_dict = {v:i for i,x in enumerate(partition,1) for v in x}
     
     cdef vector[GraphNode] nodeArray;
     nodeArray.resize(G.order())
     
-    for v in G:
-        if v in relabel_map:
-            v = int(relabel_map[v])
+    for v in G: #Graph is relabeled already
         nodeArray[v].idx = v
         nodeArray[v].color = partition_dict.get(v, 0)
         nodeArray[v].adj_list.reserve(len(G[v]))
@@ -304,8 +302,6 @@ cdef vector[GraphNode] sageGraphToLists(G, partition = [], relabel_map={}, has_e
             edge_labels_dict[el] = counter
     
     for v,u,l in G.edges(labels=True):
-        v = int(relabel_map[v])
-        u = int(relabel_map[u])
         nodeArray[v].adj_list.push_back([<int>u, <int>edge_labels_dict[l]])
         if not directed:
             nodeArray[u].adj_list.push_back([<int>v, <int>edge_labels_dict[l]])
@@ -319,15 +315,13 @@ def prova(G, k, partition=[], edge_labels=False):
     if(G.has_multiple_edges()):
         edge_labels = True
     g = g_temp
-    #Use the part below if using edge labels is not possible
-    #if edge_labels:
-    #    g.graph, g._first_level_vertices = g.graph.remove_labels()
-    #    g.number_of_vertices = g.graph.order()
+    
     g._relabel_map = g.relabel()
+    print(g._relabel_map)
     g.set_vertex_coloring(partition, g._relabel_map)
     
     #I should add support for labels, and convert vertex labels and edge labels to integers. Call the functions you developed
-    cdef vector[GraphNode] res = sageGraphToLists(g.graph, g.vertex_coloring, g._relabel_map, edge_labels)
+    cdef vector[GraphNode] res = sageGraphToLists(g.graph, g.vertex_coloring, edge_labels)
     print(g.graph.vertices())
     print(g.graph.edges())
     print(g.vertex_coloring)
