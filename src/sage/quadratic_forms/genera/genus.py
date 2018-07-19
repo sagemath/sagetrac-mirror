@@ -1280,7 +1280,7 @@ class Genus_Symbol_p_adic_ring(object):
         """
         if check:
            pass
-        self._prime = prime
+        self._prime = ZZ(prime)
         self._symbol = symbol
         self._canonical_symbol = None
 

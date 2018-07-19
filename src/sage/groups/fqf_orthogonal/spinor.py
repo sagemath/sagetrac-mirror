@@ -288,16 +288,16 @@ def sigma_sharp(rkL, detL, q, p):
     up = _min_nonsquare(p)
     if p != 2:
         if rkL == lq:
-            return []
+            return [(1, 1)]
         elif rkL == lq + 1:
             return [(-1, 2*delta)]
         else:
-            return [(-1, 1), (1, up), (1, p)]
+            return [(-1, 1), (1, up)]
+
+    # p=2 case
     if rkL > lq + 1:
         if p == 2:
-            return [(1,3), (1,7), (1,2), (-1,1)]
-        else:
-            return [(1,up), (1, p), (-1,1)]
+            return [(-1,1), (1,3), (1,7)]
     from sage.quadratic_forms.genera.normal_form import collect_small_blocks
     blocks = collect_small_blocks(q)
     u = [0, 0, 0, 0]
