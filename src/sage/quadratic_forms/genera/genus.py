@@ -291,13 +291,16 @@ def _blocks(b, even_only=False):
                 blocks.append(b1)
     return blocks
 
-def Genus(A):
+def Genus(A, max_elem_divisors=None):
     r"""
     Given a nonsingular symmetric matrix `A`, return the genus of `A`.
 
     INPUT:
 
-    - ``A`` -- a symmetric matrix with coefficients in `\ZZ`
+    - ``A`` -- a symmetric matrix with integer coefficients
+
+    - ``max_elem_divisors`` -- the input precision for the valuation of a
+      maximal p-elementary divisor. (OPTIONAL)
 
     OUTPUT:
 
@@ -314,8 +317,18 @@ def Genus(A):
         [1 2]
         Genus symbol at 2:    [1^2]_2
     """
-    return GenusSymbol_global_ring(A)
-
+    D = A.determinant()
+    D = 2*D
+    prms = [p[0] for p in D.factor()]
+    signature_pair = signature_pair_of_matrix(A)
+    local_symbols = []
+    for p in prms:
+        if max_elem_divisors is None:
+            val = D.valuation(p)
+        symbol = p_adic_symbol(A, p, val = val)
+        G = Genus_Symbol_p_adic_ring(p, symbol)
+        local_symbols.append(G)
+    return GenusSymbol_global_ring(signature_pair, local_symbols, representative=A)
 
 def LocalGenusSymbol(A, p):
     """
@@ -368,7 +381,6 @@ def is_GlobalGenus(G):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
         sage: from sage.quadratic_forms.genera.genus import Genus, is_GlobalGenus
 
         sage: A = Matrix(ZZ, 2, 2, [1,1,1,2])
@@ -2052,12 +2064,31 @@ class GenusSymbol_global_ring(object):
 
     INPUT:
 
-    - ``A`` -- a symmetric matrix with integer coefficients
-    - ``max_elem_divisors`` -- the input precision for the valuation of a
-      maximal p-elementary divisor. (OPTIONAL)
+    - ``signature_pair`` -- a tuple of two non-negative integers
+
+    - ``local_symbols`` -- a list of :class:`Genus_Symbol_p_adic_ring`` instances
+
+    - ``representative`` -- (default: ``None``) integer symmetric matrix
+      the gram matrix of a representative of this genus
+
+    - ``check`` -- (default: ``True``) a boolean; checks the input
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring, LocalGenusSymbol
+        sage: A = matrix.diagonal(ZZ, [2,4,6,8])
+        sage: local_symbols = [LocalGenusSymbol(A, p) for p in (2*A.det()).prime_divisors()]
+        sage: G = GenusSymbol_global_ring((4,0),local_symbols, representative=A);G
+        Genus of
+        [2 0 0 0]
+        [0 4 0 0]
+        [0 0 6 0]
+        [0 0 0 8]
+        Genus symbol at 2:    [2^-2 4^1 8^1]_6
+        Genus symbol at 3:     1^3 3^-1
     """
 
-    def __init__(self, A, max_elem_divisors=None):
+    def __init__(self, signature_pair, local_symbols, representative=None, check=True):
         """
         Initialize a global genus symbol from a non-degenerate
         integral gram matrix (and possibly information about its
@@ -2066,33 +2097,26 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
+            sage: from sage.quadratic_forms.genera.genus import Genus
 
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
-            sage: G = GenusSymbol_global_ring(A);G
-            Genus of
-            [2 0 0 0]
-            [0 4 0 0]
-            [0 0 6 0]
-            [0 0 0 8]
-            Genus symbol at 2:    [2^-2 4^1 8^1]_6
-            Genus symbol at 3:     1^3 3^-1
+            sage: G = Genus(A)
             sage: G == loads(dumps(G))
             True
-
         """
-        D = A.determinant()
-        D = 2*D
-        prms = [ p[0] for p in D.factor() ]
-        self._representative = A
-        self._signature = signature_pair_of_matrix(A)
-        self._local_symbols = []
-        for p in prms:
-            if max_elem_divisors is None:
-                val = D.valuation(p)
-            symbol = p_adic_symbol(A, p, val = val)
-            G = Genus_Symbol_p_adic_ring(p, symbol)
-            self._local_symbols.append(G)
+        if check:
+            if not all([type(sym)==Genus_Symbol_p_adic_ring for sym in local_symbols]):
+                raise TypeError("local symbols must be a list of local genus symbols")
+            n = signature_pair[0] + signature_pair[1]
+            if not all([sym.dimension()==n for sym in local_symbols]):
+                raise TypeError("all local symbols must be of the same dimension")
+            if representative is not None:
+                representative.is_symmetric()
+
+        self._representative = representative
+        self._signature = signature_pair
+        self._local_symbols = local_symbols
+
 
 
     def __repr__(self):
@@ -2105,9 +2129,9 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
+            sage: from sage.quadratic_forms.genera.genus import Genus
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
-            sage: GS = GenusSymbol_global_ring(A)
+            sage: GS = Genus(A)
             sage: GS
             Genus of
             [2 0 0 0]
@@ -2118,7 +2142,7 @@ class GenusSymbol_global_ring(object):
             Genus symbol at 3:     1^3 3^-1
 
             sage: A2 = Matrix(ZZ,2,2,[2,-1,-1,2])
-            sage: GenusSymbol_global_ring(A2)
+            sage: Genus(A2)
             Genus of
             [ 2 -1]
             [-1  2]
@@ -2163,12 +2187,12 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
+            sage: from sage.quadratic_forms.genera.genus import Genus
 
             sage: A1 = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
-            sage: GS1 = GenusSymbol_global_ring(A1)
+            sage: GS1 = Genus(A1)
             sage: A2 = DiagonalQuadraticForm(ZZ, [1,2,3,5]).Hessian_matrix()
-            sage: GS2 = GenusSymbol_global_ring(A2)
+            sage: GS2 = Genus(A2)
 
             sage: GS1 == GS2
             False
@@ -2219,12 +2243,12 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
+            sage: from sage.quadratic_forms.genera.genus import Genus
 
             sage: A1 = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
-            sage: GS1 = GenusSymbol_global_ring(A1)
+            sage: GS1 = Genus(A1)
             sage: A2 = DiagonalQuadraticForm(ZZ, [1,2,3,5]).Hessian_matrix()
-            sage: GS2 = GenusSymbol_global_ring(A2)
+            sage: GS2 = Genus(A2)
 
             sage: GS1 != GS2
             True
@@ -2266,10 +2290,10 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
+            sage: from sage.quadratic_forms.genera.genus import Genus
 
             sage: A = DiagonalQuadraticForm(ZZ, [1,-2,3,4,8,-11]).Hessian_matrix()
-            sage: GS = GenusSymbol_global_ring(A)
+            sage: GS = Genus(A)
             sage: GS.signature_pair_of_matrix()
             (4, 2)
 
@@ -2315,9 +2339,9 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
+            sage: from sage.quadratic_forms.genera.genus import Genus
             sage: A = DiagonalQuadraticForm(ZZ, [1,-2,3,4]).Hessian_matrix()
-            sage: GS = GenusSymbol_global_ring(A)
+            sage: GS = Genus(A)
             sage: GS.determinant()
             -384
 
@@ -2342,9 +2366,9 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
+            sage: from sage.quadratic_forms.genera.genus import Genus
             sage: A = matrix.diagonal(ZZ, [2,-4,6,8])
-            sage: GS = GenusSymbol_global_ring(A)
+            sage: GS = Genus(A)
             sage: GS.discriminant_form()
             Finite quadratic module over Integer Ring with invariants (2, 2, 4, 24)
             Gram matrix of the quadratic form with values in Q/2Z:
@@ -2353,7 +2377,7 @@ class GenusSymbol_global_ring(object):
             [   0    0  7/4    0]
             [   0    0    0 7/24]
             sage: A = matrix.diagonal(ZZ, [1,-4,6,8])
-            sage: GS = GenusSymbol_global_ring(A)
+            sage: GS = Genus(A)
             sage: GS.discriminant_form()
             Finite quadratic module over Integer Ring with invariants (2, 4, 24)
             Gram matrix of the quadratic form with values in Q/Z:
