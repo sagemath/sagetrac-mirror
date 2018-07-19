@@ -110,7 +110,7 @@ class Graph(object):
                 vc = vertex_coloring
             
             if relabel_map:
-                vc = [[int(relabel_map[v]) for v in k] for k in vc]
+                vc = [set(int(relabel_map[v]) for v in k) for k in vc]
             
             if self._first_level_vertices:
                 vs = set([int(relabel_map[v]) for k,v in getiterator(self._first_level_vertices)])
@@ -118,7 +118,7 @@ class Graph(object):
             else:
                 vs = set(range(self.number_of_vertices))
                 
-            for p in vertex_coloring:
+            for p in vc:
                 if p <= vs:
                     self._vertex_coloring.append([int(v) for v in p])
                     vs -= p

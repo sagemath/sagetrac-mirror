@@ -173,7 +173,7 @@ size_t Tuple<T>::getHash() const {
 }
 template<typename T>
 Tuple<T>::~Tuple(){
-        delete[] content;
+		if(numOfElements >= 0) delete[] content;
 }
 /*
  * Method to manually re-compute the hash, which will be saved for later use

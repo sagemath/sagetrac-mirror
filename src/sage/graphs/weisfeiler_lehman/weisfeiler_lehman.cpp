@@ -18,15 +18,19 @@ namespace wl{
         class AdjMatrix{
                 public:
                         //The type T default constructor should set an element of type T to default_label, and the latter should never be used as label for an existing edge
-                        AdjMatrix(int size, T default_label, vector<T>& vertex_labels):num_of_vertices(size){
+                        AdjMatrix(int size, T default_label, vector<T>& vertex_labels):num_of_vertices(size),default_label(default_label){
                                 array = new T[size*size]();
                                 this->vertex_labels = std::move(vertex_labels);
                         }
-                        AdjMatrix(int size, T default_label):num_of_vertices(size){
+                        AdjMatrix(int size, T default_label):num_of_vertices(size), default_label(default_label){
                                 array = new T[size*size]();
                         }
                         ~AdjMatrix(){
-                                delete[] array;
+                                if(num_of_vertices > -1) delete[] array;
+                        }
+                        AdjMatrix(){
+                                num_of_vertices = -1;
+								default_label = T();
                         }
                         AdjMatrix(AdjMatrix<T>&& b){
                                 this->num_of_vertices = b.num_of_vertices;
