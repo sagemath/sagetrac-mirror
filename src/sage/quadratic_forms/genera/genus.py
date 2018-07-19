@@ -18,10 +18,10 @@ from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.rational_field import RationalField, QQ
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
+from copy import copy, deepcopy
 from sage.misc.misc import verbose
-import copy
 
-def all_genera_by_det(sig_vec, determinant, max_level=None, even=True):
+def all_genera_by_det(sig_pair, determinant, max_level=None, even=True):
     r"""
     Return a list of all global genera with the given conditions.
 
@@ -29,9 +29,12 @@ def all_genera_by_det(sig_vec, determinant, max_level=None, even=True):
 
     INPUT:
 
-    - ``sig_vec`` -- a pair of non-negative integers giving the signature
+    - ``sig_pair`` -- a pair of non-negative integers giving the signature
+
     - ``determinant`` -- an integer the sign is ignored
+
     - ``max_level`` -- (default: ``True``) an integer the maximum level of a jordan block
+
     - ``even`` -- bool (default: ``True``)
 
     OUTPUT:
@@ -49,23 +52,20 @@ def all_genera_by_det(sig_vec, determinant, max_level=None, even=True):
         Genus symbol at 5:     1^1 5^3, Genus of
         None
         Genus symbol at 2:    1^-4
-        Genus symbol at 5:     1^2 5^1 25^1, Genus of
-        None
-        Genus symbol at 2:    1^-4
         Genus symbol at 5:     1^-2 5^1 25^-1, Genus of
         None
         Genus symbol at 2:    1^-4
+        Genus symbol at 5:     1^2 5^1 25^1, Genus of
+        None
+        Genus symbol at 2:    1^-4
         Genus symbol at 5:     1^3 125^1]
-        sage: len(G)
-        4
     """
     from sage.misc.mrange import mrange_iter
-    from sage.matrix.constructor import matrix
     # input checks
     ZZ = IntegerRing()
     determinant = ZZ(determinant)
-    sig_vec = (ZZ(sig_vec[0]), ZZ(sig_vec[1]))
-    if not all([s >= 0 for s in sig_vec]):
+    sig_pair = (ZZ(sig_pair[0]), ZZ(sig_pair[1]))
+    if not all([s >= 0 for s in sig_pair]):
         raise ValueError("the signature vector must be a pair of non negative integers.")
     if max_level == None:
         max_level = determinant
@@ -74,7 +74,7 @@ def all_genera_by_det(sig_vec, determinant, max_level=None, even=True):
     if type(even) != bool:
         raise ValueError("not a boolean")
 
-    rank = sig_vec[0] + sig_vec[1]
+    rank = sig_pair[0] + sig_pair[1]
     genera = []
     local_symbols = []
     # every global genus has a 2-adic symbol
@@ -95,13 +95,12 @@ def all_genera_by_det(sig_vec, determinant, max_level=None, even=True):
     # clever way to directly match the symbols for different primes.
     for g in mrange_iter(local_symbols):
         # create a Genus from a list of local symbols
-        G = GenusSymbol_global_ring(matrix.identity(1))
-        G._signature = sig_vec
-        G._representative = None
-        G._local_symbols = copy.deepcopy(g)
+        G = GenusSymbol_global_ring(sig_pair, g)
         # discard the empty genera
         if is_GlobalGenus(G):
             genera.append(G)
+    # for testing
+    genera.sort(key=lambda x: [s.symbol_tuple_list() for s in x.local_symbols()])
     return(genera)
 
 def _all_p_adic_genera(p, rank, det_val, max_level, even):
@@ -114,9 +113,13 @@ def _all_p_adic_genera(p, rank, det_val, max_level, even):
     INPUT:
 
     - ``p`` -- a prime number
+
     - ``rank`` -- the rank of this genus
+
     - ``det_val`` -- valuation of the determinant at p
+
     - ``max_level`` -- an integer the maximal level of a jordan block
+
     - ``even`` -- ``bool``; is igored if `p` is not `2`
 
     EXAMPLES::
@@ -150,7 +153,6 @@ def _all_p_adic_genera(p, rank, det_val, max_level, even):
     """
     from sage.misc.mrange import cantor_product
     from sage.combinat.integer_lists.invlex import IntegerListsLex
-    from copy import deepcopy
     levels_rks = [] # contains possibilities for levels and ranks
     for rkseq in IntegerListsLex(rank, length=max_level+1):   # rank sequences
         # sum(rkseq) = rank
@@ -180,6 +182,8 @@ def _all_p_adic_genera(p, rank, det_val, max_level, even):
     # further restrictions apply and are defered to _blocks
     # (brute force sieving is too slow)
     # TODO: If this is too slow, enumerate only the canonical symbols.
+    # as a drawback one has to reconstruct the symbol from the canonical symbol
+    # this is more work for the programmer
     if p == 2:
         for g in levels_rks:
             n = len(g)
@@ -210,20 +214,21 @@ def _blocks(b, even_only=False):
 
     - ``b`` -- a list of `5` non-negative integers the first two are kept
       and all possibilities for the remaining `3` are enumerated
+
     - ``even_only`` -- bool (default: ``True``) if set, the blocks are even
 
     EXAMPLES::
 
         sage: from sage.quadratic_forms.genera.genus import _blocks
-        sage: _blocks([15,2,0,0,0])
+        sage: _blocks([15, 2, 0, 0, 0])
         [[15, 2, 3, 0, 0],
-        [15, 2, 7, 0, 0],
-        [15, 2, 1, 1, 2],
-        [15, 2, 5, 1, 6],
-        [15, 2, 1, 1, 6],
-        [15, 2, 5, 1, 2],
-        [15, 2, 7, 1, 0],
-        [15, 2, 3, 1, 4]]
+         [15, 2, 7, 0, 0],
+         [15, 2, 1, 1, 2],
+         [15, 2, 5, 1, 6],
+         [15, 2, 1, 1, 6],
+         [15, 2, 5, 1, 2],
+         [15, 2, 7, 1, 0],
+         [15, 2, 3, 1, 4]]
     """
     from copy import copy
     blocks = []
@@ -291,7 +296,7 @@ def _blocks(b, even_only=False):
                 blocks.append(b1)
     return blocks
 
-def Genus(A, max_elem_divisors=None):
+def Genus(A, factored_determinant=None):
     r"""
     Given a nonsingular symmetric matrix `A`, return the genus of `A`.
 
@@ -299,8 +304,8 @@ def Genus(A, max_elem_divisors=None):
 
     - ``A`` -- a symmetric matrix with integer coefficients
 
-    - ``max_elem_divisors`` -- the input precision for the valuation of a
-      maximal p-elementary divisor. (OPTIONAL)
+    - ``factored_determinant`` -- (default: ``None``) a factorization object
+                                  the factored determinant of ``A``
 
     OUTPUT:
 
@@ -316,15 +321,26 @@ def Genus(A, max_elem_divisors=None):
         [1 1]
         [1 2]
         Genus symbol at 2:    [1^2]_2
+
+        sage: A = Matrix(ZZ, 2, 2, [2,1,1,2])
+        sage: Genus(A, A.det().factor())
+        Genus of
+        [2 1]
+        [1 2]
+        Genus symbol at 2:    1^-2
+        Genus symbol at 3:     1^-1 3^-1
     """
-    D = A.determinant()
-    D = 2*D
-    prms = [p[0] for p in D.factor()]
+    if factored_determinant is None:
+        D = A.determinant()
+        D = 2*D
+        D = D.factor()
+    else:
+        D = factored_determinant * 2
     signature_pair = signature_pair_of_matrix(A)
     local_symbols = []
-    for p in prms:
-        if max_elem_divisors is None:
-            val = D.valuation(p)
+    for f in D:
+        p = f[0]
+        val = f[1]
         symbol = p_adic_symbol(A, p, val = val)
         G = Genus_Symbol_p_adic_ring(p, symbol)
         local_symbols.append(G)
@@ -1818,7 +1834,7 @@ class Genus_Symbol_p_adic_ring(object):
             <... 'list'>
 
         """
-        return copy.deepcopy(self._symbol)
+        return deepcopy(self._symbol)
 
     def number_of_blocks(self):
         """
