@@ -732,7 +732,7 @@ def canonical_2_adic_reduction(genus_symbol_quintuple_list):
         Add an example where sign walking occurs!
     """
     # Protect the input from unwanted modification
-    genus_symbol_quintuple_list = copy.deepcopy(genus_symbol_quintuple_list)
+    genus_symbol_quintuple_list = deepcopy(genus_symbol_quintuple_list)
     canonical_symbol = genus_symbol_quintuple_list
     # Canonical determinants:
     for i in range(len(genus_symbol_quintuple_list)):
@@ -2429,10 +2429,10 @@ class GenusSymbol_global_ring(object):
 
         """
         if p is None:
-            return copy.deepcopy(self._local_symbols)
+            return deepcopy(self._local_symbols)
         for sym in self._local_symbols:
             if p == sym.prime():
-                return copy.deepcopy(sym)
+                return deepcopy(sym)
 
     def rational_representative(self):
         r"""
