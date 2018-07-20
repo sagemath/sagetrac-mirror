@@ -4800,6 +4800,8 @@ cdef class MPolynomial_libsingular(MPolynomial):
         if _ring.cf.type != n_unknown:
             if _ring.cf.type == n_Znm or _ring.cf.type == n_Zn or _ring.cf.type == n_Z2m :
                 raise TypeError("LCM over non-integral domains not available.")
+            if _ring.cf.type == n_Z:
+                return self.change_ring(RationalField()).lcm(g.change_ring(RationalField()))
 
         if self._parent is not g._parent:
             _g = self._parent._coerce_c(g)
