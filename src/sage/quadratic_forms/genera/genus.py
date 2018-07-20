@@ -2531,11 +2531,11 @@ class GenusSymbol_global_ring(object):
             else:
                 algorithm = "sage"
         if algorithm == "magma":
-            if n <= 2:
-                raise NotImplementedError()
             from sage.interfaces.magma import Magma
             magma = Magma()
             if prod(self.signature_pair_of_matrix()) != 0:
+                if n <= 2:
+                    raise NotImplementedError()
                 K = magma.RationalsAsNumberField()
                 gram = magma.Matrix(K, n, self.representative().list())
                 L = gram.NumberFieldLatticeWithGram()
@@ -2561,11 +2561,13 @@ class GenusSymbol_global_ring(object):
             if n == 2:
                 d = - 4 * self.determinant()
                 from sage.quadratic_forms.binary_qf import BinaryQF_reduced_representatives
-                for q in BinaryQF_reduced_representatives(d):
+                for q in BinaryQF_reduced_representatives(d, proper=False):
                     if q[1] % 2 == 0:  # we want integrality of the gram matrix
                         m = matrix(ZZ, 2, [q[0], q[1]//2, q[1]//2, q[2]])
                         if Genus(m) == self:
                             representatives.append(m)
+                # recompute using magma
+                assert len(representatives)==len(self.representatives(algorithm="magma"))
         else:
             raise ValueError("unknown algorithm")
         return representatives

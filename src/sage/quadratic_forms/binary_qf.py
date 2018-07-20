@@ -1227,15 +1227,15 @@ class BinaryQF(SageObject):
             return selfred in proper_cycle
 
         # Else we're dealing with definite forms.
-        if not proper:
-            raise NotImplementedError("improper equivalence of "
-                "definite forms is not supported")
         if self.is_posdef() and not other.is_posdef():
             return False
         if self.is_negdef() and not other.is_negdef():
             return False
         Q1 = self.reduced_form()
         Q2 = other.reduced_form()
+        if not proper:
+            Q1e = BinaryQF(self._c, self._b, self._a).reduced_form()
+            return Q1 == Q2 or Q1e == Q2
         return Q1 == Q2
 
     @cached_method
@@ -1447,7 +1447,7 @@ class BinaryQF(SageObject):
         return None
 
 
-def BinaryQF_reduced_representatives(D, primitive_only=False):
+def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
     r"""
     Return representatives for the classes of binary quadratic forms
     of discriminant `D`.
@@ -1462,7 +1462,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=False):
     OUTPUT:
 
     (list) A lexicographically-ordered list of inequivalent reduced
-    representatives for the equivalence classes of binary quadratic
+    representatives for the  proper equivalence classes of binary quadratic
     forms of discriminant `D`.  If ``primitive_only`` is ``True`` then
     imprimitive forms (which only exist when `D` is not fundamental) are
     omitted; otherwise they are included.
@@ -1591,8 +1591,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=False):
             # -b/2 < a <= b/2
             for a in xsrange((-b/2).floor() + 1, (b/2).floor()+1):
                 Q = BinaryQF(a,b,c)
-                if not any(Q.is_equivalent(q) for q in form_list):
-                    form_list.append(Q)
+                form_list.append(Q)
         # We follow the description of Buchmann/Vollmer 6.7.1
         # He ennumerates all reduced forms.
         # We only want representatives
@@ -1611,12 +1610,14 @@ def BinaryQF_reduced_representatives(D, primitive_only=False):
                     if c in ZZ:
                         if (not primitive_only) or gcd([a,b,c])==1:
                             Q = BinaryQF(a, b, c)
-                            if not any(Q.is_equivalent(q) for q in form_list):
+                            Q1 = BinaryQF(-a, b, -c)
+                            form_list.append(Q)
+                            form_list.append(Q1)
+                            if a.abs() != c.abs():
+                                Q = BinaryQF(c, b, a)
+                                Q1 = BinaryQF(-c, b, -a)
                                 form_list.append(Q)
-                            if c != -a and not any(Q.is_equivalent(q) for q in form_list):
-                                Q1 = BinaryQF(-a, b, -c)
                                 form_list.append(Q1)
-
     else:   # Definite
         # Only iterate over positive a and over b of the same
         # parity as D such that 4a^2 + D <= b^2 <= a^2
@@ -1633,6 +1634,13 @@ def BinaryQF_reduced_representatives(D, primitive_only=False):
                         if b>0 and a>b and c>a:
                             form_list.append(BinaryQF([a,-b,c]))
                         form_list.append(BinaryQF([a,b,c]))
+    if not proper or D > 0:
+        # filter for equivalence classes
+        form_list_new = []
+        for q in form_list:
+            if not any(q.is_equivalent(q1,proper=proper) for q1 in form_list_new):
+                form_list_new.append(q)
+        form_list = form_list_new
 
     form_list.sort()
     return form_list
