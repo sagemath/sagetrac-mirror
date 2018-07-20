@@ -438,7 +438,7 @@ class SageMagics(Magics):
             ....: ''')
             <type 'int'>
          """
-        import sage.repl.interpreter 
+        import sage.repl.interpreter
         sage.repl.interpreter._do_preparse = False
         self.shell.run_cell(cell)
         sage.repl.interpreter._do_preparse = True        
