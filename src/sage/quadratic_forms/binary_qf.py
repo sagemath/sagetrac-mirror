@@ -946,16 +946,15 @@ class BinaryQF(SageObject):
         Q = BinaryQF(-c, -b + 2*s*c, -(a - b*s + c*s*s))
         return Q
 
-    # Buchmann/Vollmer cycle algorithm
     def _Rho(self):
         """
-        Apply Rho to this form, returning a new form `Q`.
+        Apply the Rho operator to this form, returning a new form `Q`.
 
         EXAMPLES::
 
             sage: f = BinaryQF(1, 8, -3)
-            sage: f._RhoTau()
-            3*x^2 + 4*x*y - 5*y^2
+            sage: f._Rho()
+            -3*x^2 + 4*x*y + 5*y^2
         """
         d = self.discriminant().sqrt(prec=53)
         a = self._a
@@ -967,24 +966,24 @@ class BinaryQF(SageObject):
             s = sign * ((cabs+b) / (2*cabs)).floor()
         else:
             s = sign * ((d+b) / (2*cabs)).floor()
-        Q = BinaryQF(c, -b + 2*s*c, (a - b*s + c*s*s))
+        Q = BinaryQF(c, -b + 2*s*c, a - b*s + c*s*s)
         return Q
 
-    # Buchmann/Vollmer cycle algorithm
     def _Tau(self):
         """
-        Apply the Tau operators to this form, returning a new form `Q`.
+        Apply the Tau operator to this form, returning a new form `Q`.
 
         EXAMPLES::
 
             sage: f = BinaryQF(1, 8, -3)
             sage: f._Tau()
-            -1*x^2 + 8*x*y + 3*y^2
+            -x^2 + 8*x*y + 3*y^2
         """
         a = self._a
         b = self._b
         c = self._c
-        return BinaryQF(-a, b, -c)
+        Q = BinaryQF(-a, b, -c)
+        return Q
 
     def cycle(self, proper=False):
         """
@@ -1159,6 +1158,33 @@ class BinaryQF(SageObject):
             True
             sage: a.is_equivalent(BinaryQF((3,4,5)))
             False
+
+        Some indefinite examples::
+
+            sage: Q1 = BinaryQF(3,  4, -2)
+            sage: Q2 = BinaryQF(-2, 4, 3)
+            sage: Q1.is_equivalent(Q2)
+            False
+            sage: Q1.is_equivalent(Q2,proper=False)
+            True
+
+        TESTS:
+
+        We check that :trac:`25888` is fixed::
+
+            sage: Q1 = BinaryQF(3,  4, -2)
+            sage: Q2 = BinaryQF(-2, 4, 3)
+            sage: Q1.is_equivalent(Q2, proper=False)
+            True
+            sage: Q2.is_equivalent(Q1, proper=True)
+            False
+
+        A test for rational forms::
+
+            sage: Q1 = BinaryQF(0, 4, 2)
+            sage: Q2 = BinaryQF(2, 4, 0)
+            sage: Q1.is_equivalent(Q2, proper=False)
+            True
         """
         if type(other) != type(self):
             raise TypeError("%s is not a BinaryQF" % other)
@@ -1183,7 +1209,7 @@ class BinaryQF(SageObject):
                     return (a-ao) % (2*b) == 0
                 else:
                     g = gcd(a,b)
-                    return (a*ao - g**2) % (2*b*g)
+                    return (a*ao - g**2) % (2*b*g) == 0
 
             proper_cycle = otherred.cycle(proper=True)
 
@@ -1341,27 +1367,6 @@ class BinaryQF(SageObject):
         c1 = self(w)
         b1 = self(v + w) - a1 - c1
         return BinaryQF([a1, b1, c1])
-
-
-
-    def is_ambiguous(self):
-        r"""
-        Return if this form has an automorphism of determinant `-1`.
-
-        See _[BUVO2007] def 2.8.1
-
-        EXAMPLES::
-
-            sage: q = BinaryQF(1,9,-6)
-            sage: q.is_ambiguous()
-            True
-        """
-        if self.is_indefinite():
-            q1 = self.reduced_form()
-            q2 = BinaryQF(self._c, -self._b, self._a).reduced_form()
-            return q2 in q1.cycle()
-        raise NotImplementedError
-
 
     def small_prime_value(self, Bmax=1000):
         r"""
