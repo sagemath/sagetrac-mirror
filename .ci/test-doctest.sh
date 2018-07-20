@@ -23,11 +23,10 @@ case "$2" in
         export DOCTEST_PARAMETERS="--new"
         ;;
     --short)
-        # TODO: Upgrade this with https://trac.sagemath.org/ticket/25270
-        export DOCTEST_PARAMETERS="--all"
+        export DOCTEST_PARAMETERS="--short"
         ;;
     --long)
-        export DOCTEST_PARAMETERS="--long"
+        export DOCTEST_PARAMETERS="--long --all"
         ;;
     *)
         exit 1
@@ -36,6 +35,6 @@ esac
 
 # Run tests once, and then try the failing files twice to work around flaky doctests.
 docker run --entrypoint sh -e DOCTEST_PARAMETERS "$1" -c 'sage -tp $DOCTEST_PARAMETERS ||
-                                                               sage -tp --failed $DOCTEST_PARAMETERS ||
-                                                               sage -tp --failed $DOCTEST_PARAMETERS'
+                                                          sage -tp --failed $DOCTEST_PARAMETERS ||
+                                                          sage -tp --failed $DOCTEST_PARAMETERS'
 

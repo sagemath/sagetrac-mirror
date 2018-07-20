@@ -61,7 +61,7 @@ RUN ln -s /usr/bin/sage /usr/bin/sagemath
 # We need gcc/g++ and libstdc++-5-dev to allow compilation of cython at run-time from the notebook.
 # We also install sudo for the sage user, see below.
 RUN apt-get -qq update \
-    && apt-get -qq install -y --no-install-recommends gfortran gcc g++ libstdc++-5-dev sudo \
+    && apt-get -qq install -y --no-install-recommends gfortran gcc g++ libstdc++-5-dev sudo openssl \
     && apt-get -qq clean \
     && rm -r /var/lib/apt/lists/*
 # Sage refuses to build as root, so we add a "sage" user that can sudo without a password.
@@ -82,7 +82,7 @@ WORKDIR $HOME
 FROM run-time-dependencies as build-time-dependencies
 # Install the build time dependencies & git & rdfind
 RUN sudo apt-get -qq update \
-    && sudo apt-get -qq install -y wget build-essential automake m4 dpkg-dev sudo python libssl-dev git rdfind \
+    && sudo apt-get -qq install -y wget build-essential automake m4 dpkg-dev python libssl-dev git rdfind \
     && sudo apt-get -qq clean \
     && sudo rm -r /var/lib/apt/lists/*
 
@@ -198,12 +198,13 @@ RUN make micro_release
 # interface if no parameters are passed in.                                    #
 ################################################################################
 FROM run-time-dependencies as sagemath
+ARG HOME=/home/sage
 ARG SAGE_ROOT=/home/sage/sage
 COPY --chown=sage:sage --from=make-release $SAGE_ROOT/ $SAGE_ROOT/
 # Put scripts to start gap, gp, maxima, ... in /usr/bin
-WORKDIR $SAGE_ROOT
-RUN sudo sage --nodotsage -c "install_scripts('/usr/bin')"
+RUN sudo $SAGE_ROOT/sage --nodotsage -c "install_scripts('/usr/bin')"
 COPY ./docker/entrypoint.sh /usr/local/bin/sage-entrypoint
+WORKDIR $HOME
 ENTRYPOINT ["/usr/local/bin/sage-entrypoint"]
 EXPOSE 8888
 CMD ["sage"]
@@ -244,6 +245,12 @@ RUN if [ x"$ARTIFACT_BASE" != x"source-clean" ]; then \
 ################################################################################
 FROM $ARTIFACT_BASE as sagemath-dev
 ARG SAGE_ROOT=/home/sage/sage
+# If docker is backed by aufs, then the following command adds the size of
+# ARTIFACT_BASE to the image size. As of mid 2018 this is notably the case with
+# the docker instances provided by setup_remote_docker on CircleCI. As a
+# result, the sagemath-dev images that are "build-from-latest" are twice as big
+# as the ones that are build on GitLab:
+# https://github.com/moby/moby/issues/6119#issuecomment-268870519
 COPY --chown=sage:sage --from=sagemath-dev-patch $SAGE_ROOT $SAGE_ROOT
 ARG ARTIFACT_BASE=source-clean
 # Apply the patch from sagemath-dev-patch if we created one.

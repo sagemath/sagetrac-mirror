@@ -149,7 +149,7 @@ class SageSphinxLogger(object):
                 self._useless_chatter += ignore
 
     def _filter_out(self, line):
-        if self._error and self._is_stdout:
+        if self._error is not None and self._is_stdout:
             # swallow non-errors after an error occurred
             return True
         line = re.sub(self.ansi_color, '', line)
@@ -176,7 +176,7 @@ class SageSphinxLogger(object):
             OSError: Segmentation fault!
 
         """
-        if self._error:
+        if self._error is not None:
             return  # we already have found an error
         for error in self._error_patterns:
             if error.search(line) is not None:
@@ -250,7 +250,7 @@ class SageSphinxLogger(object):
             OSError: This is a SEVERE error
 
         """
-        if self._error:
+        if self._error is not None:
             raise OSError(self._error)
 
     _line_buffer = ''
@@ -315,7 +315,7 @@ def runsphinx():
         # fork() somewhere before this call.)
         # We don't use subprocess here, as we don't want to re-initialize Sage
         # for every docbuild as this takes a while.
-        sphinx.cmdline.main(sys.argv)
+        sphinx.cmdline.main(sys.argv[1:])
         sys.stderr.raise_errors()
         sys.stdout.raise_errors()
     finally:
