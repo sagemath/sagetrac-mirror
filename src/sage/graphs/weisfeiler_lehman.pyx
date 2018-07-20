@@ -158,127 +158,7 @@ class Graph(object):
         del self._inverted_relabel_map
         self._normalized = False
 
-def _array_to_disjoint_representation(perm):
-    if not isinstance(perm,dict):
-        perm = {k:v for k,v in enumerate(perm)}
-    result = []
-    remaining = set(perm)
-    while remaining:
-        el = remaining.pop()
-        cycle = [el]
-        el = perm[el]
-        while el not in cycle:
-            remaining.remove(el)
-            cycle.append(el)
-            el = perm[el]
-        if len(cycle) == 1:
-            continue
-        result.append(cycle)
-    return result
-            
 
-#def autgrp(g, partition=[], edge_labels=False):
-#    '''
-#    Compute the automorphism group of a graph.
-
-#    *g*
-#        A PyNauty Graph object.
-
-#    return -> (generators, grpsize1, grpsize2, orbits, numorbits)
-#        For the detailed description of the returned components, see
-#        Nauty's documentation.
-#    '''
-#    if not isinstance(g, SageGraph):
-#        raise TypeError
-        
-    
-
-#    g_temp = Graph(g, edge_labels)
-#    if(g.has_multiple_edges()):
-#        edge_labels = True
-#    g = g_temp
-#    if edge_labels:
-#        g.graph, g._first_level_vertices = g.graph.remove_labels()
-#        g.number_of_vertices = g.graph.order()
-#    g._relabel_map = g.relabel()
-#    g.set_vertex_coloring(partition, g._relabel_map)
-
-#    #gens, grpsize1, grpsize2, orbits, numorbits = nautywrap.graph_autgrp(g)
-#    gens = [_array_to_disjoint_representation(gen) for gen in gens]
-#    if g._normalized:
-#        gens = [[tuple([g._inverted_relabel_map[v] for v in cycle]) for cycle in gen] for gen in gens]
-#    if g._first_level_vertices:
-#        inverted_first_level_vertihttps://vittorioromeo.info/index/blog/passing_functions_to_functions.htmlces = {v:k for k,v in getiterator(g._first_level_vertices)}
-#        gens = [[tuple([inverted_first_level_vertices[v] for v in cycle]) for cycle in gen if cycle[0] in inverted_first_level_vertices] for gen in gens]
-    
-#    result = {}
-#    for k,v in enumerate(orbits):
-#        if g._first_level_vertices:
-#            if g._inverted_relabel_map[k] not in inverted_first_level_vertices:
-#                continue
-#        if(g._normalized):
-#            k = g._inverted_relabel_map[k]
-#            if g._first_level_vertices:
-#                k = inverted_first_level_vertices[k]
-#        result.setdefault(v, []).append(k)
-#    orbits = result.values()
-#    numorbits = len(orbits)
-#    return gens,grpsize1,grpsize2,orbits,numorbits
-
-
-def certificate(g):
-    '''
-    Compute a certificate based on the canonical labeling of vertices.
-
-    *g*
-        A Graph object.
-
-    return ->
-        The certificate as a byte string.
-    '''
-    if not isinstance(g, Graph):
-        raise TypeError
-    #return nautywrap.graph_cert(g)
-
-
-#def isomorphic(a, b, a_partition=[], b_partition=[], edge_labels=False):
-#    '''
-#    Determine if two graphs are isomorphic.
-
-#    *a,b*
-#        Two Graph objects.
-
-#    return ->
-#        True if *a* and *b* are isomorphic graphs, False otherwise,
-#    '''
-#    if not isinstance(a, SageGraph):
-#        raise TypeError
-#    if not isinstance(b, SageGraph):
-#        raise TypeError
-#    a_temp = Graph(a, edge_labels)
-#    b_temp = Graph(b, edge_labels)
-#    if a.has_multiple_edges() or b.has_multiple_edges():
-#        edge_labels = True
-#    a = a_temp
-#    b = b_temp
-#    if edge_labels:
-#        edge_labels_list = a.graph.edge_labels()
-#        edge_labels_list.extend(b.graph.edge_labels())
-#        a.graph, a._first_level_vertices = a.graph.remove_labels(edge_labels_list)
-#        b.graph, b._first_level_vertices = b.graph.remove_labels(edge_labels_list)
-#        a.number_of_vertices = a.graph.order()
-#        b.number_of_vertices = b.graph.order()
-#    a._relabel_map = a.relabel()
-#    b._relabel_map = b.relabel()
-#    a.set_vertex_coloring(a_partition, a._relabel_map)
-#    b.set_vertex_coloring(b_partition, b._relabel_map)
-#    if a.number_of_vertices != b.number_of_vertices:
-#        return False
-#    elif list(map(len, a.vertex_coloring)) != list(map(len, b.vertex_coloring)):
-#        return False
-#    else:
-#        return certificate(a) == certificate(b)
-    
 cdef vector[GraphNode] sageGraphToLists(G, partition = [], has_edge_labels=False):
     partition_dict = {v:i for i,x in enumerate(partition,1) for v in x}
     
@@ -327,7 +207,7 @@ def prova(G, k, partition=[], edge_labels=False):
     print(g.vertex_coloring)
     print(res)
     print(g._relabel_map)
-    cdef unordered_map[Tuple[int], int] coloring = k_WL(res, k, g.vertex_coloring)
+    cdef unordered_map[int, vector[pair[int,int]]] coloring = k_WL(res, k, g.vertex_coloring)
     
     resultDict = {}
     
@@ -335,7 +215,7 @@ def prova(G, k, partition=[], edge_labels=False):
     #That is, c1(tuple) = g(c2(tuple)) with g bijective, since it could happen that the initial coloring produces a different initial order that doesn't cause any issue with k-WL,
     #but produces a different permutation of the final coloring
     for p in coloring:
-        l = [el for el in p.first]
-        c = p.second
-        resultDict[tuple(l)] = c
+        l = [tuple(el) for el in p.second]
+        c = p.first
+        resultDict[c] = l
     return resultDict

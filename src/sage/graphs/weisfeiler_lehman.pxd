@@ -19,4 +19,4 @@ cdef extern from "weisfeiler_lehman/Tuple.h":
         int* begin()
         int* end()
 cdef extern from "weisfeiler_lehman/weisfeiler_lehman.h" namespace "wl":
-    cdef unordered_map[Tuple[int], int] k_WL(const vector[GraphNode]& v, int k, bool hasVertexLabels)
+    cdef unordered_map[int, vector[pair[int,int]]] k_WL(const vector[GraphNode]& v, int k, bool hasVertexLabels)

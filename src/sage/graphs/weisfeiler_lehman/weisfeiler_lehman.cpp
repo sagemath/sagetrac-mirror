@@ -9,7 +9,8 @@
 #include <algorithm>
 #include <tuple>
 #include <cstring>
-#include <functional>
+#include <exception> 
+
 namespace wl{
         using TupleMap = std::unordered_map<Tuple<int>, int>;
         using InverseTupleMap = std::vector<std::unordered_map<Tuple<int>, int>::const_iterator>;
@@ -17,11 +18,66 @@ namespace wl{
         template<typename T>
         class AdjMatrix{
                 public:
-                        //The type T default constructor should set an element of type T to default_label, and the latter should never be used as label for an existing edge
-                        AdjMatrix(int size, T default_label, vector<T>& vertex_labels):num_of_vertices(size),default_label(default_label){
-                                array = new T[size*size]();
-                                this->vertex_labels = std::move(vertex_labels);
+                        vector<int> getCanonicalOrdering(vector<int> vertices) const{
+                            vector<int> current_best = vertices;
+                            getCanonicalOrdering(vertices, current_best, 0);
+                            return current_best;
                         }
+                        class VectorView{
+                                public:
+                                        VectorView(const AdjMatrix<int>& adjMatrix, vector<int>&& v): adjMatrix(adjMatrix){
+                                            vertex_subset = std::move(v);
+                                            rehash();
+                                        }
+                                        VectorView(const AdjMatrix<int>& adjMatrix, const vector<int>& v): adjMatrix(adjMatrix){
+                                            vertex_subset = v;
+                                            rehash();
+                                        }
+                                        int operator[](size_t i) const{
+                                                auto s = vertex_subset.size();
+                                                auto row = i/s;
+												auto col = i%s;
+												return (*this)(row, col);
+                                        }
+                                        int operator()(int row, int col, bool trueIndex=false) const{
+                                            return adjMatrix.getValue(row, col, this->vertex_subset, trueIndex);
+                                        }
+                                        size_t getHash() const{
+                                            return hash_value;
+                                        }
+                                        void rehash(){
+                                            size_t hash_value = 0;
+                                            int n = vertex_subset.size()*vertex_subset.size();
+                                            for(int i = 0; i < n; i++){
+                                                hash_combine<int>(hash_value, (*this)[i]);
+                                            }
+                                        }
+                                        bool operator==(const VectorView& b) const{
+                                            if(vertex_subset.size() != b.vertex_subset.size()) return false;
+                                            if(b.hash_value != hash_value) return false;
+                                            int n = vertex_subset.size()*vertex_subset.size();
+                                            for(int i = 0; i < n;i++){
+                                                if((*this)[i] != b[i]) return false;
+                                            }
+                                            return true;
+                                        }
+                                        bool operator<(const VectorView& b) const{
+                                            if(vertex_subset.size() != b.vertex_subset.size()) throw std::invalid_argument("Different vertex subset size");
+                                            auto n = vertex_subset.size()*vertex_subset.size();
+                                            for(int i = 0; i < n;i++){
+                                                int aV = (*this)[i];
+                                                int bV = b[i];
+                                                if(aV < bV) return true;
+                                                if(bV < aV) return false;
+                                            }
+                                            return false;
+                                        }
+                                private:
+                                        size_t hash_value = 0;
+                                        vector<int> vertex_subset;
+                                        const AdjMatrix<int>& adjMatrix;
+                        };
+                        //The type T default constructor should set an element of type T to default_label, and the latter should never be used as label for an existing edge
                         AdjMatrix(int size, T default_label):num_of_vertices(size), default_label(default_label){
                                 array = new T[size*size]();
                         }
@@ -37,14 +93,12 @@ namespace wl{
                                 this->default_label = b.default_label;
                                 this->array = b.array;
                                 b.array = nullptr;
-                                this->vertex_labels = std::move(b.vertex_labels);
                         }
                         AdjMatrix<T>& operator=(AdjMatrix<T>&& b){
                                 this->num_of_vertices = b.num_of_vertices;
                                 this->default_label = b.default_label;
                                 this->array = b.array;
                                 b.array = nullptr;
-                                this->vertex_labels = std::move(b.vertex_labels);
                                 return *this;
                         }
                         void addEdge(int v, int u, T label, bool bothDirections=false){
@@ -55,46 +109,72 @@ namespace wl{
                                 addEdge(v,u,default_label, bothDirections);
                         }
                         const T& getEdge(int v, int u) const{
-                                return array[v*num_of_vertices+u];
+                            return array[v*num_of_vertices+u];
                         }
                         const T& operator()(int v, int u) const{
                                 return getEdge(v,u);
                         }
-                        bool hasVertexLabels() const{
-                                return vertex_labels.size()!=0;
+                        int size() const{
+                            return num_of_vertices;
+                        }
+                        template<typename U>
+                        static void swap(AdjMatrix<U>& a, AdjMatrix<U>& b){
+                            int t = a.num_of_vertices;
+                            a.num_of_vertices = b.num_of_vertices;
+                            b.num_of_vertices = t;
+                            U t2 = a.default_label;
+                            a.default_label = b.default_label;
+                            b.default_label = t2;
+                            U* tempArr = a.array;
+                            a.array = b.array;
+                            b.array = tempArr;
                         }
                         const T& getVertexLabel(int i) const{
-                                if(!hasVertexLabels() || i >= num_of_vertices) throw out_of_range("No vertex labels");
-                                return vertex_labels[i];
+							return (*this)(i,i);
                         }
                 private:
                         int num_of_vertices;
                         T default_label;
                         T* array;
-                        vector<T> vertex_labels;
+                        int compareSubgraphs(vector<int>& a, vector<int>& b) const{
+                            if(a.size() != b.size()) return false;
+                            auto s = a.size();
+                            for(size_t i = 0; i < s; i++){
+                                for(size_t j = 0; j < s; j++){
+                                    int aV = getValue(i, j, a);
+                                    int bV = getValue(i, j, b);
+                                    if(aV < bV) return -1;
+                                    if(bV < aV) return 1;
+                                }
+                            }
+                            return 0;
+                        }
+                        void getCanonicalOrdering(vector<int>& permutation, vector<int>& current_best, int offset) const{
+                            auto s = permutation.size();
+                            int c = compareSubgraphs(permutation, current_best);
+                            if(c == 1) return;
+                            if(c == -1) std::copy(permutation.begin(), permutation.end(), current_best.begin());
+                            for(size_t i = offset; i < s; i++){
+                                std::swap(permutation[i], permutation[offset]);
+                                getCanonicalOrdering(permutation, current_best, offset+1);
+                                std::swap(permutation[i], permutation[offset]);
+                            }
+                        }
+                        int getValue(int row, int col, const vector<int>& vertices, bool trueIndex=false) const{
+                            int iV = row; 
+                            int jV = col;
+                            if(!trueIndex){
+                                iV = vertices[row];
+                                jV = vertices[col];
+                            }
+                            return (*this)(iV,jV);
+                        }
+							
         };
-        class AtomicType{
+        
+        /*class AtomicType{
                 public:
-                        class VectorView{
-                                public:
-                                        
-                                        VectorView(const AdjMatrix<int>& adjMatrix, const vector<int>& v): vertex_subset(v), adjMatrix(adjMatrix){}
-                                        int operator[](size_t i) const{
-                                                auto s = vertex_subset.size();
-                                                auto row = i/s;
-                                                auto col = i%s;
-                                                auto iV = this->vertex_subset[row];
-                                                auto jV = this->vertex_subset[col];
-                                                if(iV == jV){
-                                                        if(adjMatrix.hasVertexLabels()) return -adjMatrix.getVertexLabel(iV);
-                                                        return -1;
-                                                }
-                                                return adjMatrix(iV,jV);
-                                        }
-                                private:
-                                        const vector<int>& vertex_subset;
-                                        const AdjMatrix<int>& adjMatrix;
-                        };
+                        
                         template<typename Container>
                         AtomicType(const Container& vertex_subset, const AdjMatrix<int>& adjMatrix) : adj_matrix(adjMatrix){
                               this->vertex_subset.reserve(vertex_subset.size());
@@ -110,7 +190,7 @@ namespace wl{
                         int size;
                         vector<int> vertex_subset;
                         const AdjMatrix<int>& adj_matrix;
-        };
+        };*/
         template<class T>
         class Wrapper{
                 private:
@@ -155,7 +235,11 @@ namespace wl{
                         int previous_color;
                         vector<int> set_coloring;
         };
-        
+        struct VectorView_Hash{
+            size_t operator() (const AdjMatrix<int>::VectorView& vv) const {
+                return vv.getHash();
+            }
+        };
         void innerGenerateTupleMap(int i, int k, int n, vector<int>& currentTuple, TupleMap& tupleMap, InverseTupleMap& inverseTupleMap){
                 if(i == k){
                         auto t = Tuple<int>(currentTuple);
@@ -329,7 +413,7 @@ namespace wl{
                 el.clearSetVector();
         }
         
-        template<class T>
+        /*template<class T>
         bool orderSetOfSetsBuckets(vector<int>& remap, vector<bool>& buckets, vector<Coloring>& tuple_coloring, std::function<void(Wrapper<T>&)> disposeElement, std::function<T&(int)> prepareElement, int setSize){
                 bool finished = true;
                 int s = buckets.size();
@@ -364,70 +448,121 @@ namespace wl{
                 }
                 updateColoring(remap, buckets, tuple_coloring);
                 return finished;
-        }
+        }*/
         //Edge labels should start from 1
-        TupleMap k_WL(const std::vector<GraphNode>& v, int k, bool hasVertexLabels){
-                int n = v.size();
-                TupleMap tm;
-                InverseTupleMap itm;
-                vector<Coloring> tuple_coloring((int)pow(n,k));
-                vector<Coloring> firstColoring;
-                pair<vector<int>,vector<bool>> res;
-                
-                {       //The block is used to send adj_matrix and atps out of scope when not needed anymore, so as to free some memory
-                        AdjMatrix<int> adj_matrix(n, 0);
-                        if(hasVertexLabels){
-                                vector<int> vertex_labels;
-                                vertex_labels.reserve(n);
-                                for(const auto& el: v){
-                                         vertex_labels.push_back(el.color);
-                                }
-                                adj_matrix = std::move(AdjMatrix<int>(n,0,vertex_labels));
-                        }
-                        for(const auto& el: v){
-                                int vIdx = el.idx;
-                                for(const auto& adj: el.adj_list){
-                                        adj_matrix.addEdge(vIdx, adj.first, adj.second);
-                                }
-                        }
-                
-                        generateTupleMap(n, k, tm, itm);
-                
-                        auto numberOfTuples = itm.size();
-                        vector<AtomicType> atp;
-                        atp.reserve(numberOfTuples);
-                        for(const auto& el: itm){
-                                atp.push_back(AtomicType(el->first, adj_matrix));
-                        }
-                        res = orderSortedSets(atp, k*k);
-                        auto& atp_remap = res.first;
-                        auto& atp_buckets = res.second;
-                        
-                        //Now the idea is going through the atps in remapping order,
-                        //and initialize the color of each tuple based on the index of the bucket the tuple is in
-                        
+        AdjMatrix<int> populateAdjMatrix(const std::vector<GraphNode>& v, int n, bool hasVertexLabels){
+            AdjMatrix<int> adj_matrix(n, 0);
+            for(const auto& el: v){
+                    int vIdx = el.idx;
+                    for(const auto& adj: el.adj_list){
+                            adj_matrix.addEdge(vIdx, adj.first, adj.second);
+                    }
+            }
+            if(hasVertexLabels){
+                    for(const auto& el: v){
+                             adj_matrix.addEdge(el.idx, el.idx, el.color);
+                    }
+            }
+            return adj_matrix;
+        }
         
-                        updateColoring(atp_remap, atp_buckets, tuple_coloring);
-                
-                
-                        if(k == 1) firstColoring = tuple_coloring;
+        
+        using ColorClass = std::unordered_set<std::pair<int,int>, Pair_Hash>;
+        using FingerprintMap = std::unordered_map<AdjMatrix<int>::VectorView, int, VectorView_Hash>;
+        int initColorClasses(queue<ColorClass>& cc, const AdjMatrix<int>& am){
+            int n = am.size();
+            unordered_map<int, ColorClass> temp;
+            for(int i = 0; i < n; i++){
+                for(int j = 0; j < n; j++){
+                    temp[am(i,j)].insert({i,j});
                 }
-                
-                
-                //After this, the main part of the algorithm, comprised of computing the coloring of adjacents, ordering the
-                //tuples by old_coloring^multiset and then update their old coloring.
-                //One should stop when the orbits are the same before and after a round. This last part is gonna be tricky for sure
-                
-                bool finished = false;
-                while(!finished){
-                        auto& remap = res.first;
-                        auto& buckets = res.second;
-                        finished = orderSetOfSetsBuckets<Coloring>(remap, buckets, tuple_coloring, std::function<void(Wrapper<Coloring>&)>(disposeElementColoring), std::function<Coloring&(int)>([&firstColoring, &tm, &itm, &tuple_coloring, n, k](int i)->Coloring&{return prepareElementColoring(firstColoring, tm, itm, tuple_coloring, i, n, k);}), n*k);
+            }
+            int c = temp.size();
+            for(auto& color_class: temp){
+                cc.push(std::move(color_class.second));
+            }
+            return c;
+        }
+            
+        void createFingerprint(FingerprintMap& fingerprint, const AdjMatrix<int>& am, int i, int j, int maxVertex, int offset, int limit, bool init, vector<int>& currentTuple, bool usedI=false, bool usedJ=false){
+            if(!init && offset > limit-2 && !usedI && !usedJ) return;
+            if(!init && ((maxVertex > i && !usedI) || (maxVertex > j && !usedJ))) return;
+            if(offset == limit){ //If a subgraph is completed
+                if(!init && (!usedI || !usedJ)) return;
+                AdjMatrix<int>::VectorView subgraphView(am, std::move(am.getCanonicalOrdering(currentTuple)));
+                auto& v = fingerprint[subgraphView];
+                if(usedI && usedJ) ++v;
+                else v = 0;
+            }else{            
+                int n = am.size();
+                for(int k = maxVertex; k < n; k++){
+                    currentTuple[offset] = k;
+                    createFingerprint(fingerprint, am, i, j, k, offset+1, limit, init, currentTuple, k == i?true:usedI, k == j?true:usedJ);
                 }
-                for(auto& el: tm){
-                        el.second = tuple_coloring[el.second].getColor();
-                }
-                return tm;
+            }
+        }
+        int clearFingerprint(FingerprintMap& fingerprint){
+            for(auto& v: fingerprint){
+                v.second = 0;
+            }
+            return fingerprint.size();
+        }
+        unordered_map<int, vector<pair<int,int>>> k_WL(const std::vector<GraphNode>& v, int k, bool hasVertexLabels){
+            int n = v.size();
+            /*TupleMap tm;
+            InverseTupleMap itm;
+            vector<Coloring> tuple_coloring((int)pow(n,k));
+            vector<Coloring> firstColoring;
+            pair<vector<int>,vector<bool>> res;
+            */
+            AdjMatrix<int> adjMatrix = populateAdjMatrix(v, n, hasVertexLabels);
+            AdjMatrix<int> new_adjMatrix = AdjMatrix<int>(n, 0);
+            queue<ColorClass> color_classes;
+            initColorClasses(color_classes, adjMatrix);
+            queue<ColorClass> new_color_classes;
+            bool finished = false;
+            while(!finished){
+                    finished = true;
+                    FingerprintMap fingerprint;
+                    vector<int> tempVector(k+1);
+                    unordered_map<Tuple<int>, ColorClass> fingerprintsDB;
+                    while(!color_classes.empty()){
+                        auto cc = color_classes.front();
+                        color_classes.pop();
+                        fingerprintsDB.clear();
+                        for(const auto& edge: cc){
+                            int s = clearFingerprint(fingerprint);
+                            createFingerprint(fingerprint, adjMatrix, edge.first, edge.second, 0, 0, k+1, s == 0, tempVector);
+                            s = fingerprint.size();
+                            Tuple<int> t(s);
+                            int c = 0;
+                            for(const auto& el: fingerprint){
+                                t[c++] = el.second;
+                            }
+                            t.rehash();
+                            fingerprintsDB[t].insert(edge);
+                        }
+                        int c = 0;
+                        for(auto& color_class: fingerprintsDB){
+                            for(const auto& edge: color_class.second){
+                                new_adjMatrix.addEdge(edge.first, edge.second, c);
+                            }
+                            c++;
+                            new_color_classes.push(std::move(color_class.second));
+                        }
+                        if(c > 1) finished = false;
+                    }    
+                    AdjMatrix<int>::swap(adjMatrix, new_adjMatrix);
+                    std::swap(color_classes, new_color_classes);                        
+            }
+            unordered_map<int, vector<pair<int,int>>> result;
+            int c = 0;
+            while(!color_classes.empty()){
+                auto v = std::move(color_classes.front());
+                color_classes.pop();
+                result[c++] = vector<pair<int,int>>(v.begin(), v.end());
+            }
+            return result;
         }
 
 }
