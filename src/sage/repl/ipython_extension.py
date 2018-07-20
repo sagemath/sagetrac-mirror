@@ -19,7 +19,7 @@ A Sage extension which adds sage-specific features:
 
   - ``%%fortran``
 
-  - ``%%nopreparse``
+  - ``%%no_preparse``
 
 * preparsing of input
 
@@ -414,7 +414,7 @@ class SageMagics(Magics):
         return fortran(cell)
 
     @cell_magic
-    def nopreparse(self, line, cell):
+    def no_preparse(self, line, cell):
         """
         This cell magic disables Sage preparsing in an IPython cell.
 
@@ -433,15 +433,16 @@ class SageMagics(Magics):
             sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: shell.run_cell('''
-            ....: %%nopreparse
+            ....: %%no_preparse
             ....: type(4)
             ....: ''')
             <type 'int'>
          """
-        import sage.repl.interpreter
+        import sage.repl.interpreter 
         sage.repl.interpreter._do_preparse = False
         self.shell.run_cell(cell)
         sage.repl.interpreter._do_preparse = True        
+
 
 class SageCustomizations(object):
 
