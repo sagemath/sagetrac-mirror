@@ -831,7 +831,7 @@ class BinaryQF(SageObject):
                         q, r = a.quo_rem(-b)
                         q = -q
                     if transformation:
-                        T = Matrix(ZZ, 2, 2, [1, 0,-q, 1])
+                        T = Matrix(ZZ, 2, 2, [1, 0, -q, 1])
                         U = U * T
                     Q = BinaryQF(r, b, c)
         if transformation:
@@ -946,6 +946,46 @@ class BinaryQF(SageObject):
         Q = BinaryQF(-c, -b + 2*s*c, -(a - b*s + c*s*s))
         return Q
 
+    # Buchmann/Vollmer cycle algorithm
+    def _Rho(self):
+        """
+        Apply Rho to this form, returning a new form `Q`.
+
+        EXAMPLES::
+
+            sage: f = BinaryQF(1, 8, -3)
+            sage: f._RhoTau()
+            3*x^2 + 4*x*y - 5*y^2
+        """
+        d = self.discriminant().sqrt(prec=53)
+        a = self._a
+        b = self._b
+        c = self._c
+        cabs = c.abs()
+        sign = c.sign()
+        if cabs >= d:
+            s = sign * ((cabs+b) / (2*cabs)).floor()
+        else:
+            s = sign * ((d+b) / (2*cabs)).floor()
+        Q = BinaryQF(c, -b + 2*s*c, (a - b*s + c*s*s))
+        return Q
+
+    # Buchmann/Vollmer cycle algorithm
+    def _Tau(self):
+        """
+        Apply the Tau operators to this form, returning a new form `Q`.
+
+        EXAMPLES::
+
+            sage: f = BinaryQF(1, 8, -3)
+            sage: f._Tau()
+            -1*x^2 + 8*x*y + 3*y^2
+        """
+        a = self._a
+        b = self._b
+        c = self._c
+        return BinaryQF(-a, b, -c)
+
     def cycle(self, proper=False):
         """
         Return the cycle of reduced forms to which ``self`` belongs.
@@ -960,7 +1000,7 @@ class BinaryQF(SageObject):
           proper cycle (not implemented)
 
         This is used to test for equivalence between indefinite forms.
-        The cycle of a form `f` consists of all equivalent forms `g`
+        The cycle of a form `f` consists of all reduced, equivalent forms `g`
         such that the `a`-coefficients of `f` and `g` have the same
         sign.  The proper cycle consists of all equivalent forms, and
         is either the same as, or twice the size of, the cycle.  In
@@ -997,20 +1037,25 @@ class BinaryQF(SageObject):
         """
         if not (self.is_indef() and self.is_reduced()):
             raise ValueError("%s must be indefinite and reduced" % self)
-        if proper:
-            raise NotImplementedError('computation of the proper cycle '
-                                      ' is not implemented')
         if self.discriminant().is_square():
             # Buchmann/Vollmer assume the discriminant to be non-square
             raise NotImplementedError('computation of cycles is only '
                     'implemented for non-square discrimiants')
-        C = [self]
-        Q1 = self._RhoTau()
-        while not self == Q1:
-            C.append(Q1)
-            Q1 = Q1._RhoTau()
-        self._cycle_list = C
-        return C
+        if proper:
+            # Prop 6.10.5 in Buchmann Vollmer
+            C = self.cycle(proper=False)
+            if len(C) % 2 == 1:
+                return C
+            else:
+                return C[:1] + [q._Tau() for q in C[1:]]
+        if not hasattr(self, '_cycle_list'):
+            C = [self]
+            Q1 = self._RhoTau()
+            while not self == Q1:
+                C.append(Q1)
+                Q1 = Q1._RhoTau()
+            self._cycle_list = C
+        return self._cycle_list
 
     def is_positive_definite(self):
         """
@@ -1120,15 +1165,41 @@ class BinaryQF(SageObject):
         if self.discriminant() != other.discriminant():
             return False
         if self.is_indef():
-            if proper:
-                raise NotImplementedError("proper equivalence of "
-                    "definite forms is not supported")
-            # First, reduce self and get a positive lead coefficient
-            RedSelf = self.reduced_form()
-            if RedSelf._a < 0:
-                RedSelf = BinaryQF(-RedSelf._a, RedSelf._b, -RedSelf._c)
-            _ = other.cycle()                 # This caches the list
-            return RedSelf in other._cycle_list
+            # First, reduce self and other
+            selfred = self.reduced_form()
+            otherred = other.reduced_form()
+            if self.discriminant().is_square():
+                # make sure we terminate in a form
+                # with c = 0
+                while selfred[2] != 0:
+                    selfred = selfred._Rho()
+                while otherred[2] != 0:
+                    otherred = otherred._Rho()
+                b = selfred._b
+                a = selfred._a
+                ao = otherred._a
+                # Conway Sloane p. 359
+                if proper:
+                    return (a-ao) % (2*b) == 0
+                else:
+                    g = gcd(a,b)
+                    return (a*ao - g**2) % (2*b*g)
+
+            proper_cycle = otherred.cycle(proper=True)
+
+            is_prop = selfred in proper_cycle
+            if proper or is_prop:
+                return is_prop
+            # note that our definition of improper equivalence
+            # differs from that of Buchmann and Vollmer
+            # their action is det f * q(f(x,y))
+            # ours is q(f(x,y))
+
+            # an improper equivalence in our convention
+            selfred = BinaryQF(self._c, self._b, self._a)
+
+            return selfred in proper_cycle
+
         # Else we're dealing with definite forms.
         if not proper:
             raise NotImplementedError("improper equivalence of "
@@ -1509,32 +1580,39 @@ def BinaryQF_reduced_representatives(D, primitive_only=False):
     if D4 == 2 or D4 == 3:
         raise ValueError("%s is not a discriminant" % D)
     if D > 0:           # Indefinite
-        # We follow the description of Buchmann/Vollmer 6.7.1
         if D.is_square():
-            # Buchmann/Vollmer 6.7.1. require D a non-square.
-            raise ValueError("%s is a square" % D)
-        sqrt_d = D.sqrt(prec=53)
-        for b in xsrange(1, sqrt_d.floor()+1):
-            if (D - b) % 2 != 0:
-                continue
-            A = (D - b**2) / 4
-            Low_a = ((sqrt_d - b) / 2).ceil()
-            High_a = (A.sqrt(prec=53)).floor()
-            for a in xsrange(Low_a, High_a + 1):
-                if a == 0:
+            b = D.sqrt()
+            c = ZZ(0)
+            # -b/2 < a <= b/2
+            for a in xsrange((-b/2).floor() + 1, (b/2).floor()+1):
+                Q = BinaryQF(a,b,c)
+                if not any(Q.is_equivalent(q) for q in form_list):
+                    form_list.append(Q)
+        # We follow the description of Buchmann/Vollmer 6.7.1
+        # He ennumerates all reduced forms.
+        # We only want representatives
+        else:
+            sqrt_d = D.sqrt(prec=53)
+            for b in xsrange(1, sqrt_d.floor()+1):
+                if (D - b) % 2 != 0:
                     continue
-                c = -A/a
-                if c in ZZ:
-                    if (not primitive_only) or gcd([a,b,c])==1:
-                        Q = BinaryQF(a, b, c)
-                        Q1 = BinaryQF(-a, b, -c)
-                        Q2 = BinaryQF(c, b, a)
-                        Q3 = BinaryQF(-c, b, -a)
-                        form_list.append(Q)
-                        form_list.append(Q1)
-                        form_list.append(Q2)
-                        form_list.append(Q3)
-    else:               # Definite
+                A = (D - b**2) / 4
+                Low_a = ((sqrt_d - b) / 2).ceil()
+                High_a = (A.sqrt(prec=53)).floor()
+                for a in xsrange(Low_a, High_a + 1):
+                    if a == 0:
+                        continue
+                    c = -A/a
+                    if c in ZZ:
+                        if (not primitive_only) or gcd([a,b,c])==1:
+                            Q = BinaryQF(a, b, c)
+                            if not any(Q.is_equivalent(q) for q in form_list):
+                                form_list.append(Q)
+                            if c != -a and not any(Q.is_equivalent(q) for q in form_list):
+                                Q1 = BinaryQF(-a, b, -c)
+                                form_list.append(Q1)
+
+    else:   # Definite
         # Only iterate over positive a and over b of the same
         # parity as D such that 4a^2 + D <= b^2 <= a^2
         for a in xsrange(1,1+((-D)//3).isqrt()):

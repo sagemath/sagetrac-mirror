@@ -1420,7 +1420,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         Oq = self.discriminant_group().orthogonal_group()
         sig = self.signature_pair()
         if sig[0]*sig[1]==0 or self.rank()==2:
-            # the definite case
+            # we can compute generators of the orthogonal group
             gens = [Oq(g) for g in self.orthogonal_group().gens()]
             return Oq.subgroup(gens)
         if self.rank() > 2:

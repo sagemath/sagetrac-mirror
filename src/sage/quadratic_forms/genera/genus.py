@@ -2519,6 +2519,58 @@ class GenusSymbol_global_ring(object):
         assert Genus(L) == self
         self._representative = L
 
+    def representatives(self, algorithm="default"):
+        r"""
+        Return a list of representatives for the classes in this genus
+        """
+        n = self.dimension()
+        representatives = []
+        if algorithm == "default":
+            if n > 2:
+                algorithm = "magma"
+            else:
+                algorithm = "sage"
+        if algorithm == "magma":
+            if n <= 2:
+                raise NotImplementedError()
+            from sage.interfaces.magma import Magma
+            magma = Magma()
+            if prod(self.signature_pair_of_matrix()) != 0:
+                K = magma.RationalsAsNumberField()
+                gram = magma.Matrix(K, n, self.representative().list())
+                L = gram.NumberFieldLatticeWithGram()
+                representatives = L.GenusRepresentatives()
+                representatives = [r.GramMatrix().ChangeRing(magma.Rationals()).sage() for r in representatives]
+                return representatives
+            else:
+                e = 1
+                if self.signature_pair_of_matrix()[1] != 0:
+                    e = -1
+                K = magma.Rationals()
+                gram = magma.Matrix(K, n, (e*self.representative()).list())
+                L = gram.LatticeWithGram()
+                representatives = L.GenusRepresentatives()
+                representatives = [e*r.GramMatrix().sage() for r in representatives]
+                return representatives
+
+        elif algorithm == "sage":
+            if n > 2:
+                raise NotImplementedError()
+            if n == 1:
+                return self.representative()
+            if n == 2:
+                d = - 4 * self.determinant()
+                from sage.quadratic_forms.binary_qf import BinaryQF_reduced_representatives
+                for q in BinaryQF_reduced_representatives(d):
+                    if q[1] % 2 == 0:  # we want integrality of the gram matrix
+                        m = matrix(ZZ, 2, [q[0], q[1]//2, q[1]//2, q[2]])
+                        if Genus(m) == self:
+                            representatives.append(m)
+        else:
+            raise ValueError("unknown algorithm")
+        return representatives
+
+
 
 
 def rational_qf_from_invariants(m, det, P, sminus):
