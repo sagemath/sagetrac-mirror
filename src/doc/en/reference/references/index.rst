@@ -1217,6 +1217,10 @@ REFERENCES:
 .. [GMN2008] Jordi Guardia, Jesus Montes, Enric Nart. *Newton polygons of higher
              order in algebraic number theory* (2008). :arxiv:`0807.2620`
 
+.. [GNP2012] J. Guardia, E. Nart, S. Pauli. Single-factor lifting and
+             factorization of polynomials over local fields.  J. Symb. Comput.
+             47(11): 1318-1346 (2012)
+
 .. [GNL2011] \Z. Gong, S. Nikova, and Y. W. Law,
              *KLEIN: A new family of lightweight block ciphers*; in
              RFIDSec, (2011), p. 1-18.

@@ -17,7 +17,11 @@ AUTHOR:
 
 - Simon King (2011-10): Choice of categories for polynomial rings.
 
-EXAMPLES::
+- Julian Rueth (2013-09-12): simplified classes for `p`-adic base rings
+
+EXAMPLES:
+
+Creating a polynomial ring injects the variable into the interpreter namespace::
 
     sage: z = QQ['z'].0
     sage: (z^3 + z - 1)^3
@@ -130,6 +134,7 @@ Check that :trac:`5562` has been fixed::
 
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#                     2013 Julian Rueth <julian.rueth@fsfe.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

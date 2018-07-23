@@ -14,6 +14,7 @@ AUTHORS:
 
 #*****************************************************************************
 #       Copyright (C) 2007 David Roe <roed.math@gmail.com>
+#       Copyright (C) 2013 Julian Rueth <julian.rueth@fsfe.org>
 #       Copyright (C) 2013 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -25,13 +26,50 @@ from __future__ import print_function
 from six.moves import range
 from builtins import zip
 
+from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_domain
 from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.infinity import infinity
 
-class Polynomial_padic(Polynomial):
+class Polynomial_padic(Polynomial_generic_domain):
+    r"""
+    A polynomial over a `p`-adic ring.
+
+    INPUT:
+
+    - ``parent`` -- a polynomial ring over a `p`-adic ring
+
+    - ``is_gen`` -- whether this is the generator of the polynomial ring
+      (default: ``False``)
+
+    .. NOTE::
+
+        In contrast to :class:`polynomial_padic_generic.Polynomial_padic_generic`
+        (which inherits from this class), this class is meant as a base class
+        for implementations which provide their own handling of the polynomial
+        data.
+
+    EXAMPLES::
+
+        sage: R.<x> = Zp(3)[] # indirect doctest
+        sage: from sage.rings.polynomial.padics.polynomial_padic import Polynomial_padic
+        sage: isinstance(x, Polynomial_padic)
+        True
+
+    """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
-        Polynomial.__init__(self, parent, is_gen, construct)
+        r"""
+        Initialization.
+
+        TESTS::
+
+            sage: from sage.rings.polynomial.padics.polynomial_padic import Polynomial_padic
+            sage: R.<x> = Zp(3)[]
+            sage: type(Polynomial_padic(R))
+            <class 'sage.rings.polynomial.padics.polynomial_padic.Polynomial_padic'>
+
+        """
+        Polynomial_generic_domain.__init__(self, parent, is_gen=is_gen)
 
     def _repr(self, name=None):
         r"""
@@ -75,6 +113,38 @@ class Polynomial_padic(Polynomial):
                     var = ""
                 s += (x + var)
         return s or "0"
+
+    def quo_rem(self, right):
+        """
+        Returns the quotient and remainder of division by right
+
+        EXAMPLES:
+            sage: Kx.<x> = PolynomialRing(Zp(7))
+            sage: (x^3+7*x+1).quo_rem(x-7)
+            ((1 + O(7^20))*x^2 + (7 + O(7^21))*x + (7 + 7^2 + O(7^21)), (O(7^20))*x^3 + (O(7^21))*x^2 + (O(7^21))*x + (1 + 7^2 + 7^3 + O(7^20)))
+        """
+        return self._quo_rem_naive(right)
+
+    def _quo_rem_naive(self, right):
+        """
+        Naive quotient with remainder operating on padic polynomials as their coefficient lists
+        """
+        if right == 0:
+            raise ZeroDivisionError, "cannot divide by a polynomial indistinguishable from 0"
+        P = self.parent()
+        F = list(self); G = list(right);
+        fdeg = self.degree()
+        gdeg = right.degree()
+        Q = [0 for i in range(fdeg-gdeg+1)]
+        j=1
+        while fdeg >= gdeg:
+            a = F[-j]
+            if a!=0:
+                for i in range(fdeg-gdeg,fdeg+1):
+                    F[i] -= a * G[i-(fdeg-gdeg)]
+                Q[fdeg-gdeg] += a
+            j+=1; fdeg-=1;
+        return (P(Q), P(F))
 
     def content(self):
         r"""

@@ -14,6 +14,7 @@ rings but rather quotients of them (see module
 
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#                     2013 Julian Rueth <julian.rueth@fsfe.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,7 +27,7 @@ from __future__ import absolute_import, print_function
 
 from sage.structure.category_object import normalize_names
 import sage.rings.ring as ring
-import sage.rings.padics.padic_base_leaves as padic_base_leaves
+import sage.rings.padics.padic_generic
 
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
@@ -675,6 +676,41 @@ def _save_in_cache(key, R):
 
 
 def _single_variate(base_ring, name, sparse=None, implementation=None, order=None):
+    r"""
+    Return a univariate polynomial ring over ``base_ring`` in ``name``.
+
+    INPUT:
+
+    - ``base_ring`` -- a ring
+
+    - ``name`` -- a string
+
+    - ``sparse`` -- a boolean, whether the implementation should be optimized
+      for sparse polynomials
+
+    - ``implementation`` -- a string or ``None``, for some values of ``base_ring``,
+      multiple implementations are available for the polynomial elements. This
+      parameter can be used to select a specific one.
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.polynomial_ring_constructor import _single_variate
+
+        sage: _single_variate(ZZ, name='x', sparse=False, implementation=None)
+        Univariate Polynomial Ring in x over Integer Ring
+        sage: _single_variate(ZZ, name='x', sparse=True, implementation=None)
+        Sparse Univariate Polynomial Ring in x over Integer Ring
+
+        sage: _single_variate(ZpFM(3), name='x', sparse=False, implementation=None)
+        Univariate Polynomial Ring in x over 3-adic Ring of fixed modulus 3^20
+        sage: _single_variate(ZpCA(3), name='x', sparse=False, implementation=None)
+        Univariate Polynomial Ring in x over 3-adic Ring with capped absolute precision 20
+        sage: _single_variate(ZpCR(3), name='x', sparse=False, implementation=None)
+        Univariate Polynomial Ring in x over 3-adic Ring with capped relative precision 20
+        sage: _single_variate(QpCR(3), name='x', sparse=False, implementation=None)
+        Univariate Polynomial Ring in x over 3-adic Field with capped relative precision 20
+
+    """
     # The "order" argument is unused, but we allow it (and ignore it)
     # for consistency with the multi-variate case.
     sparse = bool(sparse)
@@ -686,7 +722,6 @@ def _single_variate(base_ring, name, sparse=None, implementation=None, order=Non
         return R
 
     from . import polynomial_ring
-
     # Find the right constructor and **kwds for our polynomial ring
     constructor = None
     kwds = {}
