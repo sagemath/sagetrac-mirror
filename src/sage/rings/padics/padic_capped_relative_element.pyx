@@ -322,6 +322,11 @@ cdef class pAdicCappedRelativeElement(CRElement):
             sage: a.residue(field=True).parent()
             Finite Field of size 7
 
+        We check that it's quick to reduce when the valuation is large::
+
+            sage: (Zp(5,10^5)(3) << (9*10^4)).residue()
+            0
+
         .. SEEALSO::
 
             :meth:`_mod_`
