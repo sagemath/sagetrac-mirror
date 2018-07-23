@@ -332,7 +332,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
             :meth:`_mod_`
 
         """
-        cdef Integer selfvalue, modulus
+        cdef Integer selfvalue, modulus, selfunit
         cdef long aprec
         if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
@@ -346,20 +346,25 @@ cdef class pAdicCappedRelativeElement(CRElement):
             field = (absprec == 1)
         elif field and absprec != 1:
             raise ValueError("field keyword may only be set at precision 1")
-        modulus = PY_NEW(Integer)
-        aprec = mpz_get_ui((<Integer>absprec).value)
-        mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))
-        selfvalue = PY_NEW(Integer)
-        if self.relprec == 0:
-            mpz_set_ui(selfvalue.value, 0)
+        if field: # then absprec == 1
+            from sage.rings.finite_rings.finite_field_constructor import GF
+            if self.ordp > 1:
+                return GF(self.parent().prime())(0)
+            else:
+                selfunit = PY_NEW(Integer)
+                mpz_set(selfunit.value, self.unit)
+                return GF(self.parent().prime())(selfunit)
         else:
-            # Need to do this better.
-            mpz_mul(selfvalue.value, self.prime_pow.pow_mpz_t_tmp(self.ordp), self.unit)
-        if field:
-            from sage.rings.finite_rings.all import GF
-            return GF(self.parent().prime())(selfvalue)
-        else:
-            return Mod(selfvalue, modulus)
+            modulus = PY_NEW(Integer)
+            aprec = mpz_get_ui((<Integer>absprec).value)
+            mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))
+
+            if self.ordp >= absprec:
+                return Mod(0, modulus)
+            else:
+                selfunit = PY_NEW(Integer)
+                mpz_mod(selfunit.value, self.unit, self.prime_pow.pow_mpz_t_tmp(aprec - self.ordp))
+                return Mod(self.prime_pow.pow_Integer(self.ordp) * selfunit, modulus)
 
     def _log_binary_splitting(self, aprec, mina=0):
         r"""
