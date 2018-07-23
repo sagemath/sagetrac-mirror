@@ -1,0 +1,21 @@
+#!/bin/sh
+#
+# recreates the tarball in Sage's upstream directory
+
+PACKAGENAME=thebelab
+UPLOADVERSION=0.2.1
+
+echo "### Download web-packed package $PACKAGENAME from npm and build a tarball"
+mkdir src
+wget https://unpkg.com/$PACKAGENAME@\^$UPLOADVERSION -O src/$PACKAGENAME.js
+tar -zcvf $PACKAGENAME-$UPLOADVERSION.tgz src
+rm  src/$PACKAGENAME.js; rmdir src
+
+echo "### Move the produced tarball to its place"
+mv $PACKAGENAME-$UPLOADVERSION.tgz ../../../upstream
+
+echo "### Updating package-version.txt          ###"
+echo $UPLOADVERSION > 'package-version.txt'
+
+echo "### Fixing the checksum                   ###"
+../../../sage --package fix-checksum "$PACKAGENAME"
