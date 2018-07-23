@@ -3,22 +3,16 @@ from sage.misc.lazy_import import lazy_import
 
 from .category import Category
 
-from .category_types import(
-                        Elements,
-                        ChainComplexes,
-)
+from .category_types import Elements, ChainComplexes
 
 from sage.categories.simplicial_complexes import SimplicialComplexes
 
-from .tensor     import tensor
+from .tensor import tensor
 from .cartesian_product import cartesian_product
 
-from .functor  import (ForgetfulFunctor,
-                      IdentityFunctor)
+from .functor import ForgetfulFunctor, IdentityFunctor
 
-from .homset   import (Hom, hom,
-                      End, end,
-                      Homset, HomsetWithBase)
+from .homset import Hom, hom, End, end, Homset, HomsetWithBase
 
 from .morphism import Morphism
 
@@ -63,6 +57,7 @@ from .right_modules import RightModules
 from .bimodules import Bimodules
 
 from .modules import Modules
+
 RingModules = Modules
 from .vector_spaces import VectorSpaces
 
@@ -81,6 +76,7 @@ from .matrix_algebras import MatrixAlgebras
 
 # ideals
 from .ring_ideals import RingIdeals
+
 Ideals = RingIdeals
 from .commutative_ring_ideals import CommutativeRingIdeals
 from .algebra_modules import AlgebraModules
@@ -93,37 +89,45 @@ from .schemes import Schemes
 
 # * with basis
 from .modules_with_basis import ModulesWithBasis
+
 FreeModules = ModulesWithBasis
-from .hecke_modules            import HeckeModules
-from .algebras_with_basis      import AlgebrasWithBasis
-from .coalgebras_with_basis    import CoalgebrasWithBasis
-from .bialgebras_with_basis    import BialgebrasWithBasis
+from .hecke_modules import HeckeModules
+from .algebras_with_basis import AlgebrasWithBasis
+from .coalgebras_with_basis import CoalgebrasWithBasis
+from .bialgebras_with_basis import BialgebrasWithBasis
 from .hopf_algebras_with_basis import HopfAlgebrasWithBasis
 
 # finite dimensional * with basis
-from .finite_dimensional_modules_with_basis       import FiniteDimensionalModulesWithBasis
-from .finite_dimensional_algebras_with_basis      import FiniteDimensionalAlgebrasWithBasis
-from .finite_dimensional_coalgebras_with_basis    import FiniteDimensionalCoalgebrasWithBasis
-from .finite_dimensional_bialgebras_with_basis    import FiniteDimensionalBialgebrasWithBasis
-from .finite_dimensional_hopf_algebras_with_basis import FiniteDimensionalHopfAlgebrasWithBasis
+from .finite_dimensional_modules_with_basis import FiniteDimensionalModulesWithBasis
+from .finite_dimensional_algebras_with_basis import FiniteDimensionalAlgebrasWithBasis
+from .finite_dimensional_coalgebras_with_basis import (
+    FiniteDimensionalCoalgebrasWithBasis
+)
+from .finite_dimensional_bialgebras_with_basis import (
+    FiniteDimensionalBialgebrasWithBasis
+)
+from .finite_dimensional_hopf_algebras_with_basis import (
+    FiniteDimensionalHopfAlgebrasWithBasis
+)
 
 # graded *
-from .graded_modules       import GradedModules
-from .graded_algebras      import GradedAlgebras
-from .graded_coalgebras    import GradedCoalgebras
-from .graded_bialgebras    import GradedBialgebras
+from .graded_modules import GradedModules
+from .graded_algebras import GradedAlgebras
+from .graded_coalgebras import GradedCoalgebras
+from .graded_bialgebras import GradedBialgebras
 from .graded_hopf_algebras import GradedHopfAlgebras
 
 # graded * with basis
-from .graded_modules_with_basis       import GradedModulesWithBasis
-from .graded_algebras_with_basis      import GradedAlgebrasWithBasis
-from .graded_coalgebras_with_basis    import GradedCoalgebrasWithBasis
-from .graded_bialgebras_with_basis    import GradedBialgebrasWithBasis
+from .graded_modules_with_basis import GradedModulesWithBasis
+from .graded_algebras_with_basis import GradedAlgebrasWithBasis
+from .graded_coalgebras_with_basis import GradedCoalgebrasWithBasis
+from .graded_bialgebras_with_basis import GradedBialgebrasWithBasis
 from .graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 
 # Coxeter groups
 from .coxeter_groups import CoxeterGroups
-lazy_import('sage.categories.finite_coxeter_groups', 'FiniteCoxeterGroups')
+
+lazy_import("sage.categories.finite_coxeter_groups", "FiniteCoxeterGroups")
 from .weyl_groups import WeylGroups
 from .finite_weyl_groups import FiniteWeylGroups
 from .affine_weyl_groups import AffineWeylGroups
@@ -136,4 +140,7 @@ from .finite_crystals import FiniteCrystals
 from .classical_crystals import ClassicalCrystals
 
 # polyhedra
-lazy_import('sage.categories.polyhedra', 'PolyhedralSets')
+lazy_import("sage.categories.polyhedra", "PolyhedralSets")
+
+# Lie algebra representations
+lazy_import("sage.categories.lie_algebra_representations", "LieAlgebraRepresentations")

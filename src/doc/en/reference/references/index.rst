@@ -2049,6 +2049,11 @@ REFERENCES:
              *Yangians and classical Lie algebras*. (1994)
              :arxiv:`hep-th/9409025`
 
+.. [Mol2002] Alexander Ivanovich Molev.
+             *Gelfand-Tsetlin bases for classical Lie algebras*.
+             in "Handbook of Algebra", Vol. 4, (M. Hazewinkel, Ed.), Elsevier, 2006, pp. 109-170.
+             :arxiv:`math/0211289`
+
 .. [Mol2007] Alexander Ivanovich Molev.
              *Yangians and Classical Lie Algebras*.
              Mathematical Surveys and Monographs.

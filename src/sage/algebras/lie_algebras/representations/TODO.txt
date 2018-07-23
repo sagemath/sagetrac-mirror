@@ -1,0 +1,33 @@
+# SAGE/DESIGN QUESTIONS
+
+* does the naming make sense?
+
+* sage.categories.lie_algebra_representations.LieAlgebraRepresentations should have a Lie algebra parameter (instead of just the base field)
+  - then action() takes an element of that Lie algebra
+  - and we can implement _get_action_ once and for all in the category framework
+  - and we will also be able to move _test_commutators() into the category class
+
+* sage.categories.lie_algebra_representations.LieAlgebraRepresentations:
+  - is there a better way to implement TensorProducts.morphism()?
+
+* how can we inherit gl_n-specific functionality in a functorial way?
+  [e.g. have e(k), f(k), h(k) be implemented for tensor products and direct sums]
+
+* self.tensor_constructor(Vs)(...) vs tensor(...)?
+
+
+# TODO
+
+* sage.algebras.lie_algebras.representations.type_A_gelfand_tsetlin.LieAlgebraRepresentation:
+  - clean up examples (no more "mu0, mu1, mu2" nonsense; perhaps use one nontrivial representation throughout?)
+
+* sage.categories.lie_algebra_representations.LieAlgebraRepresentations:
+  - implement direct sums ("Cartesian products")
+  - implement "external" tensor products
+
+* sage.algebras.lie_algebras.representations.lie_algebra_representation():
+  - add support for reducible Cartan types and their irreps
+
+* add module-level documentation
+
+* validate use in moment_polytopes package
