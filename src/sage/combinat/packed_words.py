@@ -306,7 +306,7 @@ class PackedWord(ClonableIntArray):
                for j in range(i+1,n)
                if pw[i]>pw[j])
 
-    def multi_right_permutohedron_succ(self): #right_weak_order_succ
+    def right_weak_order_succ(self):
         r"""
         Return the list of successor for right weak order with the definition :
 
@@ -333,7 +333,7 @@ class PackedWord(ClonableIntArray):
                 succ.append(self[:i]+[self[i+1],self[i]]+self[i+2:])
         return [PackedWord(p) for p in succ]
 
-    def multi_right_permutohedron_pred(self): #right_weak_order_pred
+    def right_weak_order_pred(self):
         r"""
         Return the list of predecessor for right weak order with the definition :
 
@@ -360,7 +360,7 @@ class PackedWord(ClonableIntArray):
                 pred.append(self[:i]+[self[i+1],self[i]]+self[i+2:])
         return [PackedWord(p) for p in pred]
 
-    def multi_right_permutohedron_smaller(self): #right_weak_order_smaller
+    def right_weak_order_smaller(self):
         """
         Return the list of smaller or equal packed words for the right weak order.
         (..see :func:`sage.combinat.packed_words.multi_right_permutohedron_pred`) 
@@ -380,7 +380,7 @@ class PackedWord(ClonableIntArray):
         """
         return transitive_ideal(lambda x: x.multi_right_permutohedron_pred(), self)
 
-    def multi_right_permutohedron_greater(self): #right_weak_order_greater
+    def right_weak_order_greater(self):
         """
         Return the list of greater or equal packed words for the right weak order.
         (..see :func:`sage.combinat.packed_words.multi_right_permutohedron_succ`) 
@@ -476,7 +476,7 @@ class PackedWord(ClonableIntArray):
                for j in range(i+1,n+1)
                    if p.index(i)>n-pw[::-1].index(j)-1)
 
-    def multi_left_permutohedron_succ(self): #leaft_weak_order_succ
+    def leaft_weak_order_succ(self):
         r"""
         Return the list of successor for left weak order with the definition :
 
@@ -513,7 +513,7 @@ class PackedWord(ClonableIntArray):
                     succ.append(l)
         return [PackedWord(p) for p in succ]
 
-    def multi_left_permutohedron_pred(self): #leaft_weak_order_pred
+    def leaft_weak_order_pred(self):
         r"""
         Return the list of successor for left weak order with the definition :
 
@@ -548,7 +548,7 @@ class PackedWord(ClonableIntArray):
                     pred.append(l)
         return [PackedWord(p) for p in pred]
 
-    def multi_left_permutohedron_smaller(self): #leaft_weak_order_smaller
+    def leaft_weak_order_smaller(self):
         """
         Return the list of smaller or equal packed words for the left weak order.
         (..see :func:`sage.combinat.packed_words.multi_left_permutohedron_pred`) 
@@ -568,7 +568,7 @@ class PackedWord(ClonableIntArray):
         """
         return transitive_ideal(lambda x: x.multi_left_permutohedron_pred(), self)
 
-    def multi_left_permutohedron_greater(self): #leaft_weak_order_greater
+    def leaft_weak_order_greater(self):
         """
         Return the list of greater or equal packed words for the left weak order.
         (..see :func:`sage.combinat.packed_words.multi_right_permutohedron_succ`) 
