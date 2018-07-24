@@ -1,8 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Packed Words
+Packed Words is a ways to order a set while keeping the ties.
+We consider the alphabet of number. A word 'w' is a Packed Word if and only if
+for each number k different from 1, if k is a letter of w 
+then k-1 is a letter of w too.
 
-.. TODO:: Implement with Florent Hivert's factories
+Here are the Packed Words of size 0 to 3:
+\epsilon
+1
+11, 12, 21
+111, 112, 121, 211, 122, 212, 221, 123, 132, 213, 231, 312, 321
+
 
 AUTHORS:
 
