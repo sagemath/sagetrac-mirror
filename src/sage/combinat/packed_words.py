@@ -100,7 +100,6 @@ def ordered_partition_sets_to_packed_word(li):
             dic[p] = i
         i += 1
     return PackedWord(dic.values())
-# TODO For Python 3 compatibility please make sure that PackedWord can accept an arbitrary iterable its argument. I believe this might already be the case for ClonableArray and subclasses thereof, but I'm not positive. Otherwise, this would have be something like list(dic.values()) unfortunately. 
 
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
