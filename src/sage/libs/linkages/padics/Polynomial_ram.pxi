@@ -116,11 +116,12 @@ cdef inline long cvaluation(celement a, long prec, PowComputer_ prime_pow) excep
     higher.
 
     """
-    cdef long ret = prec
+    C = a.__coeffs
+    if not C:
+        return prec
+    cdef long ret = maxordp
 
-    for i,c in enumerate(a.__coeffs):
-        if i >= prec:
-            break
+    for i,c in enumerate(C):
         ret = min(ret, c.valuation()*prime_pow.e + i)
 
     return ret
@@ -238,8 +239,8 @@ cdef inline int cdivunit(celement out, celement a, celement b, long prec, PowCom
     - ``prime_pow`` -- the ``PowComputer`` for the ring
 
     """
-    cinvert(out, b, prec, prime_pow)
-    cmul(out, out, a, prec, prime_pow)
+    binv = prime_pow.invert(b, prec)
+    cmul(out, a, binv, prec, prime_pow)
 
 cdef inline int cpow(celement out, celement a, mpz_t n, long prec, PowComputer_ prime_pow) except -1:
     r"""
@@ -286,9 +287,9 @@ cdef inline cexpansion_next(celement value, expansion_mode mode, long curpower, 
     # extensions, convert to the absolute field).
     R = value.base_ring()
     p = R.prime()
-    if R.degree() == 1:
+    if R.absolute_degree() == 1:
         raise NotImplementedError("Absolute extensions using Sage polynomials not completely supported")
-    if R.base_ring().degree() != 1:
+    if R.base_ring().absolute_degree() != 1:
         raise TypeError("cexpansion only allowed on towers of height 2")
     ans = []
     p2 = (p-1)//2
@@ -319,19 +320,18 @@ cdef inline cexpansion_getitem(celement value, long m, PowComputer_ prime_pow):
     """
     R = value.base_ring()
     p = R.prime()
-    if m == 0:
-        tmp = value
-    else:
-        tmp = value.parent()(0)
     while m >= 0:
-        const_term = tmp[0]
-        if const_term._is_exact_zero():
+        const_term = value[0]
+        if const_term.is_zero():
             term = []
         else:
             flint_rep = const_term._flint_rep_abs()[0]
             term = [c % p for c in flint_rep.list()]
-            if m: tmp.__coeffs[0] -= R(term)
-        if m: cshift(tmp, tmp, -1, 1, prime_pow, False)
+            while term and not term[-1]:
+                del term[-1]
+            if m:
+                value.__coeffs[0] -= R(term)
+        if m: cshift(value, value, -1, 1, prime_pow, False)
         m -= 1
     return term
     # The following would be nice, but shifting doesn't behave the right way currently....

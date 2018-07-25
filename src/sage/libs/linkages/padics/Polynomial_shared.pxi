@@ -391,13 +391,30 @@ cdef int cconv(celement out, x, long prec, long valshift, PowComputer_ prime_pow
     - ``prime_pow`` -- a ``PowComputer`` for the ring
 
     """
-    cdef celement xx = prime_pow.poly_ring(x)
+    cdef celement xx, shift
+    if valshift < 0:
+        if not isinstance(x, list):
+            raise NotImplementedError
+        # Since our polynomials are stored with ring coefficients, we need to shift the entries of x
+        baseshift = -valshift // prime_pow.e
+        shifted_x = [c << baseshift for c in x]
+        R = prime_pow.poly_ring
+        xx = R(shifted_x)
+        shift = R([R.base_ring().uniformizer_pow(baseshift)])
+        cshift(shift, shift, valshift, prec, prime_pow, False)
+    else:
+        xx = prime_pow.poly_ring(x)
     if xx is x:
         out.__coeffs = xx.__coeffs[:]
     else:
         out.__coeffs = xx.__coeffs
-    creduce(out, out, prec, prime_pow)
-    cshift(out, out, -valshift, prec, prime_pow, True)
+    if valshift > 0:
+        cshift(out, out, -valshift, prec, prime_pow, True)
+    elif valshift == 0:
+        creduce(out, out, prec, prime_pow)
+    elif valshift < 0:
+        cdivunit(out, out, shift, prec, prime_pow)
+        creduce(out, out, prec, prime_pow)
 
 cdef inline long cconv_mpz_t(celement out, mpz_t x, long prec, bint absolute, PowComputer_ prime_pow) except -2:
     r"""
@@ -436,6 +453,7 @@ cdef inline long cconv_mpz_t(celement out, mpz_t x, long prec, bint absolute, Po
         out.__coeffs = [prime_pow.base_ring(n)]
         if not absolute:
             valuation = cremove(out, out, prec, prime_pow)
+        creduce(out, out, prec, prime_pow)
     else:
         out.__coeffs = []
 
@@ -508,10 +526,9 @@ cdef inline long cconv_mpq_t(celement out, mpq_t x, long prec, bint absolute, Po
     mpq_set(r.value, x)
     out.__coeffs = [prime_pow.base_ring(r)]
 
-    if absolute:
-        creduce(out, out, prec, prime_pow)
-    else:
+    if not absolute:
         return cremove(out, out, prec, prime_pow)
+    creduce(out, out, prec, prime_pow)
 
 cdef inline int cconv_mpq_t_out(mpq_t out, celement x, long valshift, long prec, PowComputer_ prime_pow) except -1:
     r"""

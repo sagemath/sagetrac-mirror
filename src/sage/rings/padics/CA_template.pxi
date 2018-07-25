@@ -483,7 +483,7 @@ cdef class CAElement(pAdicTemplateElement):
             ans.absprec = self.prime_pow.ram_prec_cap
         else:
             ans.absprec = min(self.absprec + shift, self.prime_pow.ram_prec_cap)
-            cshift(ans.value, self.value, shift, ans.absprec, ans.prime_pow, False)
+            cshift(ans.value, self.value, shift, ans.absprec, ans.prime_pow, self.prime_pow.e > 1)
         return ans
 
     cdef pAdicTemplateElement _rshift_c(self, long shift):
@@ -515,7 +515,7 @@ cdef class CAElement(pAdicTemplateElement):
             ans.absprec = 0
         else:
             ans.absprec = self.absprec - shift
-            cshift(ans.value, self.value, -shift, ans.absprec, ans.prime_pow, False)
+            cshift(ans.value, self.value, -shift, ans.absprec, ans.prime_pow, self.prime_pow.e > 1)
         return ans
 
     def add_bigoh(self, absprec):
@@ -844,7 +844,7 @@ cdef class CAElement(pAdicTemplateElement):
         R = self.base_ring()
         S = R[var]
         prec = self.precision_absolute()
-        e = self.parent().e()
+        e = self.parent().relative_e()
         L = ccoefficients(self.value, 0, self.absprec, self.prime_pow)
         if e == 1:
             L = [R(c, prec) for c in L]
@@ -1149,7 +1149,7 @@ cdef class pAdicConvert_CA_ZZ(RingMap):
             sage: f.category()
             Category of homsets of sets
         """
-        if R.degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
+        if R.absolute_degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
             RingMap.__init__(self, Hom(R, ZZ, SetsWithPartialMaps()))
         else:
             RingMap.__init__(self, Hom(R, ZZ, Sets()))
@@ -1309,8 +1309,8 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism):
         sage: K = R.fraction_field()
         sage: f = K.coerce_map_from(R); f
         Ring morphism:
-          From: Unramified Extension in a defined by x^3 + 2*x + 1 with capped absolute precision 20 over 3-adic Ring
-          To:   Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 20 over 3-adic Field
+          From: 3-adic Unramified Extension Ring in a defined by x^3 + 2*x + 1
+          To:   3-adic Unramified Extension Field in a defined by x^3 + 2*x + 1
 
     TESTS::
 
@@ -1346,8 +1346,10 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism):
         """
         cdef CAElement x = _x
         cdef CRElement ans = self._zero._new_c()
-        ans.ordp = cremove(ans.unit, x.value, x.absprec, x.prime_pow)
-        ans.relprec = x.absprec - ans.ordp
+        ans.ordp = 0
+        ans.relprec = x.absprec
+        ccopy(ans.unit, x.value, x.prime_pow)
+        ans._normalize()
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -1433,8 +1435,8 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism):
             sage: g = copy(f)   # indirect doctest
             sage: g
             Ring morphism:
-              From: Unramified Extension in a defined by x^3 + 2*x + 1 with capped absolute precision 20 over 3-adic Ring
-              To:   Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 20 over 3-adic Field
+              From: 3-adic Unramified Extension Ring in a defined by x^3 + 2*x + 1
+              To:   3-adic Unramified Extension Field in a defined by x^3 + 2*x + 1
             sage: g == f
             True
             sage: g is f
@@ -1462,8 +1464,8 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism):
             sage: g = copy(f)   # indirect doctest
             sage: g
             Ring morphism:
-              From: Unramified Extension in a defined by x^2 + 2*x + 2 with capped absolute precision 20 over 3-adic Ring
-              To:   Unramified Extension in a defined by x^2 + 2*x + 2 with capped relative precision 20 over 3-adic Field
+              From: 3-adic Unramified Extension Ring in a defined by x^2 + 2*x + 2
+              To:   3-adic Unramified Extension Field in a defined by x^2 + 2*x + 2
             sage: g == f
             True
             sage: g is f
@@ -1519,8 +1521,8 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
         sage: K = R.fraction_field()
         sage: f = R.convert_map_from(K); f
         Generic morphism:
-          From: Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 20 over 3-adic Field
-          To:   Unramified Extension in a defined by x^3 + 2*x + 1 with capped absolute precision 20 over 3-adic Ring
+          From: 3-adic Unramified Extension Field in a defined by x^3 + 2*x + 1
+          To:   3-adic Unramified Extension Ring in a defined by x^3 + 2*x + 1
     """
     def __init__(self, K, R):
         """
@@ -1551,7 +1553,7 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
         cdef CRElement x = _x
         if x.ordp < 0: raise ValueError("negative valuation")
         cdef CAElement ans = self._zero._new_c()
-        cdef bint reduce = False
+        cdef bint reduce = (x.prime_pow.e > 1)
         ans.absprec = x.relprec + x.ordp
         if ans.absprec > ans.prime_pow.ram_prec_cap:
             ans.absprec = ans.prime_pow.ram_prec_cap
@@ -1625,8 +1627,8 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
             sage: g = copy(f)   # indirect doctest
             sage: g
             Generic morphism:
-              From: Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 20 over 3-adic Field
-              To:   Unramified Extension in a defined by x^3 + 2*x + 1 with capped absolute precision 20 over 3-adic Ring
+              From: 3-adic Unramified Extension Field in a defined by x^3 + 2*x + 1
+              To:   3-adic Unramified Extension Ring in a defined by x^3 + 2*x + 1
             sage: g == f
             True
             sage: g is f
@@ -1653,8 +1655,8 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
             sage: g = copy(f)   # indirect doctest
             sage: g
             Generic morphism:
-              From: Unramified Extension in a defined by x^2 + 2*x + 2 with capped relative precision 20 over 3-adic Field
-              To:   Unramified Extension in a defined by x^2 + 2*x + 2 with capped absolute precision 20 over 3-adic Ring
+              From: 3-adic Unramified Extension Field in a defined by x^2 + 2*x + 2
+              To:   3-adic Unramified Extension Ring in a defined by x^2 + 2*x + 2
             sage: g == f
             True
             sage: g is f
