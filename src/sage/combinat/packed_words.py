@@ -3,7 +3,7 @@
 Packed Words is a ways to order a set while keeping the ties.
 We consider the alphabet of number. A word 'w' is a Packed Word if and only if
 for each number k different from 1, if k is a letter of w 
-then k-1 is a letter of w too.
+then k - 1 is a letter of w too.
 
 Here are the Packed Words of size 0 to 3:
 \epsilon
@@ -47,26 +47,31 @@ from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.tools import transitive_ideal
 from sage.misc.misc import uniq
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from collections import defaultdict
+from sage.combinat.composition import Composition
+from sage.combinat.words.word import Word
+from sage.combinat.words.words import Words
 
 
 def to_pack(li):
     """
     The analogue map of the *standardization* (..see
     :func:`sage.combinat.permutation.to_standard`) for *packed words*.
-    EXEMPLES::
+
+    EXAMPLES::
 
         sage: from sage.combinat.packed_words import to_pack
         sage: to_pack([])
         []
-        sage: to_pack([3,1])
+        sage: to_pack([3, 1])
         [2, 1]
         sage: to_pack([1, 0, 0])
         [2, 1, 1]
-        sage: to_pack([3,1,55])
+        sage: to_pack([3, 1, 55])
         [2, 1, 3]
-        sage: to_pack([11,4,1,55])
+        sage: to_pack([11, 4, 1, 55])
         [3, 2, 1, 4]
-        sage: to_pack([11,4,1,11,4])
+        sage: to_pack([11, 4, 1, 11, 4])
         [3, 2, 1, 3, 2]
     """
     l = uniq(li)
@@ -85,16 +90,17 @@ def ordered_partition_sets_to_packed_word(li):
         ....:     OrderedSetPartitions(5)[34]
         ....: )
         [2, 3, 5, 1, 4]
-        sage: ordered_partition_sets_to_packed_word([Set([2,3]), Set([1,4])])
+        sage: ordered_partition_sets_to_packed_word([Set([2, 3]), Set([1, 4])])
         [2, 1, 1, 2]
     """
     dic = {}
     i = 1
-    for set in li:
-        for p in set:
+    for set_ in li:
+        for p in set_:
             dic[p] = i
         i += 1
     return PackedWord(dic.values())
+# TODO For Python 3 compatibility please make sure that PackedWord can accept an arbitrary iterable its argument. I believe this might already be the case for ClonableArray and subclasses thereof, but I'm not positive. Otherwise, this would have be something like list(dic.values()) unfortunately. 
 
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
@@ -119,12 +125,12 @@ class PackedWord(ClonableIntArray):
             sage: from sage.combinat.packed_words import PackedWords_all
             sage: issubclass(PackedWords_all().element_class, PackedWord)
             True
-            sage: w0 = PackedWord([4,2,3,1,2])
+            sage: w0 = PackedWord([4, 2, 3, 1, 2])
             sage: w0.parent()
             Packed words
             sage: type(w0)
             <class 'sage.combinat.packed_words.PackedWords_all_with_category.element_class'>
-            sage: w1 = PackedWords()([4,2,3,1,2])
+            sage: w1 = PackedWords()([4, 2, 3, 1, 2])
             sage: w1.parent() is w0.parent()
             True
             sage: type(w1) is type(w0)
@@ -166,17 +172,17 @@ class PackedWord(ClonableIntArray):
 
         TESTS::
 
-            sage: PackedWord([3,3,2,1])
+            sage: PackedWord([3, 3, 2, 1])
             [3, 3, 2, 1]
 
-            #sage: PackedWord([2,2,1,0,4])
-            #Traceback (most recent call last)
-            #...
-            #AssertionError: This is not a packed word
+            sage: PackedWord([2, 2, 1, 0, 4])
+            Traceback (most recent call last):
+            ...
+            AssertionError: This is not a packed word [2, 2, 1, 0, 4]
         """
         s = uniq(self)
         assert(len(s) == 0 or (max(s) == len(s) and min(s) == 1)
-            ), "This is not a packed word %s" % str(self)
+            ), "This is not a packed word %s" % self
 
     def to_ordered_partition_sets(self):
         """
@@ -192,14 +198,13 @@ class PackedWord(ClonableIntArray):
             True
             sage: opspw(pw.to_ordered_partition_sets()) == pw
             True
-            sage: PackedWord([1,2,3,1,1,3]).to_ordered_partition_sets()
+            sage: PackedWord([1, 2, 3, 1, 1, 3]).to_ordered_partition_sets()
             [{1, 4, 5}, {2}, {3, 6}]
         """
-        import collections
-        d = collections.defaultdict(list)
+        d = defaultdict(list)
         for i in range(len(self)):
             d[self[i]].append(i + 1)
-        return [Set(d[k]) for k in sorted(d.keys())]
+        return [Set(d[k]) for k in sorted(d)]
 
     def to_composition(self):
         """
@@ -210,21 +215,19 @@ class PackedWord(ClonableIntArray):
         TESTS::
             sage: PackedWord([]).to_composition()
             []
-            sage: PackedWord([1,1,1]).to_composition()
+            sage: PackedWord([1, 1, 1]).to_composition()
             [3]
-            sage: PackedWord([1,2,1]).to_composition()
+            sage: PackedWord([1, 2, 1]).to_composition()
             [2, 1]
-            sage: PackedWord([1,2,3,1,1,3]).to_composition()
+            sage: PackedWord([1, 2, 3, 1, 1, 3]).to_composition()
             [3, 1, 2]
         """
-        from sage.combinat.composition import Composition
+        
         if len(self) == 0:
             return Composition([])
-        from sage.combinat.words.word import Word
-        from sage.combinat.words.words import Words
-        W=Words(range(1, max(self) +1))
-        return Composition([Word(self).evaluation_dict()[i+1] \
-                            for i in xrange(max(self))])
+        W = Words(range(1, max(self) + 1))
+        return Composition([Word(self).evaluation_dict()[i + 1] \
+                            for i in range(max(self))])
 
     def is_empty(self):
         """
@@ -236,7 +239,7 @@ class PackedWord(ClonableIntArray):
             True
             sage: PackedWord([]).is_empty()
             True
-            sage: PackedWord([2,1,2]).is_empty()
+            sage: PackedWord([2, 1, 2]).is_empty()
             False
         """
         return not self
@@ -246,9 +249,9 @@ class PackedWord(ClonableIntArray):
         """
         TESTS::
 
-            sage: latex(PackedWord([1,2,3,1,1,3]))
+            sage: latex(PackedWord([1, 2, 3, 1, 1, 3]))
             123113
-            sage: latex(PackedWord(range(1,11)))
+            sage: latex(PackedWord(range(1, 11)))
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         """
         if max(self) >= 10:
@@ -264,7 +267,7 @@ class PackedWord(ClonableIntArray):
 
             sage: PackedWord().size()
             0
-            sage: PackedWord([2,1,1]).size()
+            sage: PackedWord([2, 1, 1]).size()
             3
         """
         return len(self)
@@ -275,103 +278,107 @@ class PackedWord(ClonableIntArray):
     def inversions_right(pw):
         """ 
         Return the set of right weak order inversions with the definition :
-        inversions_right(pw) := {(i,j) in [1..n]² : i < j and pw[i] > pw[j]}
+        inversions_right(pw) := {(i, j) in [1..n]² : i < j and pw[i] > pw[j]}
 
         EXAMPLES::
+
             sage: PackedWord([]).inversions_right()
             set()
-            sage: PackedWord([1,2,3]).inversions_right()
+            sage: PackedWord([1, 2, 3]).inversions_right()
             set()
-            sage: PackedWord([1,2,1]).inversions_right()
+            sage: PackedWord([1, 2, 1]).inversions_right()
             {(2, 3)}
-            sage: PackedWord([3,2,1]).inversions_right()
+            sage: PackedWord([3, 2, 1]).inversions_right()
             {(1, 2), (1, 3), (2, 3)}
-            sage: PackedWord([2,3,4,1,2,4,3]).inversions_right()
+            sage: PackedWord([2, 3, 4, 1, 2, 4, 3]).inversions_right()
             {(1, 4), (2, 4), (2, 5), (3, 4), (3, 5), (3, 7), (6, 7)}
         """
         PackedWord.check(pw)
         n = len(pw)
-        return set((i+1,j+1)
-               for i in range(n-1)
-               for j in range(i+1,n)
-               if pw[i]>pw[j])
+        return set((i + 1, j + 1)
+               for i in range(n - 1)
+               for j in range(i + 1, n)
+               if pw[i] > pw[j])
 
     def coinversions_right(pw):
         """ 
         Return the set of right weak order coinversions with the definition :
-        coinversions_right(pw) := {(pw[i],pw[j]) in [1..m]² : i < j and pw[i] > pw[j]}
+        coinversions_right(pw) := {(pw[i], pw[j]) in [1..m]² : i < j and pw[i] > pw[j]}
 
         EXAMPLES::
+
             sage: PackedWord([]).coinversions_right()
             set()
-            sage: PackedWord([1,2,3]).coinversions_right()
+            sage: PackedWord([1, 2, 3]).coinversions_right()
             set()
-            sage: PackedWord([1,2,1]).coinversions_right()
+            sage: PackedWord([1, 2, 1]).coinversions_right()
             {(2, 1)}
-            sage: PackedWord([3,2,1]).coinversions_right()
+            sage: PackedWord([3, 2, 1]).coinversions_right()
             {(2, 1), (3, 1), (3, 2)}
-            sage: PackedWord([2,3,4,1,2,4,3]).coinversions_right()
+            sage: PackedWord([2, 3, 4, 1, 2, 4, 3]).coinversions_right()
             {(2, 1), (3, 1), (3, 2), (4, 1), (4, 2), (4, 3)}
         """
         PackedWord.check(pw)
         n = len(pw)
-        return set((pw[i],pw[j])
-               for i in range(n-1)
-               for j in range(i+1,n)
-               if pw[i]>pw[j])
+        return set((pw[i], pw[j])
+               for i in range(n - 1)
+               for j in range(i + 1, n)
+               if pw[i] > pw[j])
 
     def right_weak_order_succ(self):
         r"""
         Return the list of successor for right weak order with the definition :
 
-        v is a right successor of u if there exist i < n-1 such that 
-        v is equal to u where the u[i] and u[i+1] are inversed 
+        v is a right successor of u if there exist i < n - 1 such that 
+        v is equal to u where the u[i] and u[i + 1] are inversed 
         and len(inversions_right(v)) = len(inversions_right(u)) + 1
 
         EXAMPLES::
+
             sage: PackedWord([]).right_weak_order_succ()
             []
-            sage: PackedWord([1,1,1]).right_weak_order_succ()
+            sage: PackedWord([1, 1, 1]).right_weak_order_succ()
             []
-            sage: PackedWord([1,2,1]).right_weak_order_succ()
+            sage: PackedWord([1, 2, 1]).right_weak_order_succ()
             [[2, 1, 1]]
-            sage: PackedWord([3,1,2]).right_weak_order_succ()
+            sage: PackedWord([3, 1, 2]).right_weak_order_succ()
             [[3, 2, 1]]
-            sage: PackedWord([3,1,2,1,1,2,4]).right_weak_order_succ()
+            sage: PackedWord([3, 1, 2, 1, 1, 2, 4]).right_weak_order_succ()
             [[3, 2, 1, 1, 1, 2, 4], [3, 1, 2, 1, 2, 1, 4], [3, 1, 2, 1, 1, 4, 2]]
         """
         succ = []
-        n=len(self)
-        for i in range(n-1):
-            if self[i]<self[i+1]:
-                succ.append(self[:i]+[self[i+1],self[i]]+self[i+2:])
+        n = len(self)
+        for i in range(n - 1):
+            if self[i]<self[i + 1]:
+                succ.append(self[:i] + [self[i + 1], self[i]] + self[i + 2:])
         return [PackedWord(p) for p in succ]
 
     def right_weak_order_pred(self):
         r"""
         Return the list of predecessor for right weak order with the definition :
 
-        u is a predecessor of v if there exist i < n-1 such that 
-        v is equal to u where the u[i] and u[i+1] are inversed 
+        u is a predecessor of v if there exist i < n - 1 such that 
+        v is equal to u where the u[i] and u[i + 1] are inversed 
         and len(inversions_right(v)) = len(inversions_right(u)) + 1
 
         EXAMPLES::
+
             sage: PackedWord([]).right_weak_order_pred()
             []
-            sage: PackedWord([1,1,1]).right_weak_order_pred()
+            sage: PackedWord([1, 1, 1]).right_weak_order_pred()
             []
-            sage: PackedWord([1,2,1]).right_weak_order_pred()
+            sage: PackedWord([1, 2, 1]).right_weak_order_pred()
             [[1, 1, 2]]
-            sage: PackedWord([3,1,2]).right_weak_order_pred()
+            sage: PackedWord([3, 1, 2]).right_weak_order_pred()
             [[1, 3, 2]]
-            sage: PackedWord([3,1,2,1,1,2,4]).right_weak_order_pred()
+            sage: PackedWord([3, 1, 2, 1, 1, 2, 4]).right_weak_order_pred()
             [[1, 3, 2, 1, 1, 2, 4], [3, 1, 1, 2, 1, 2, 4]]
         """
         pred = []
-        n=len(self)
-        for i in range(n-1):
-            if self[i]>self[i+1]:
-                pred.append(self[:i]+[self[i+1],self[i]]+self[i+2:])
+        n = len(self)
+        for i in range(n - 1):
+            if self[i] > self[i + 1]:
+                pred.append(self[:i] + [self[i + 1], self[i]] + self[i + 2:])
         return [PackedWord(p) for p in pred]
 
     def right_weak_order_smaller(self):
@@ -381,15 +388,16 @@ class PackedWord(ClonableIntArray):
         for more informations.
 
         EXAMPLES::
+
             sage: PackedWord([]).right_weak_order_smaller()
             [[]]
-            sage: PackedWord([1,1,1]).right_weak_order_smaller()
+            sage: PackedWord([1, 1, 1]).right_weak_order_smaller()
             [[1, 1, 1]]
-            sage: PackedWord([1,2,1]).right_weak_order_smaller()
+            sage: PackedWord([1, 2, 1]).right_weak_order_smaller()
             [[1, 1, 2], [1, 2, 1]]
-            sage: PackedWord([3,1,2]).right_weak_order_smaller()
+            sage: PackedWord([3, 1, 2]).right_weak_order_smaller()
             [[1, 2, 3], [1, 3, 2], [3, 1, 2]]
-            sage: PackedWord([3,1,2,2,4]).right_weak_order_smaller()
+            sage: PackedWord([3, 1, 2, 2, 4]).right_weak_order_smaller()
             [[1, 2, 2, 3, 4], [1, 2, 3, 2, 4], [1, 3, 2, 2, 4], [3, 1, 2, 2, 4]]
         """
         return transitive_ideal(lambda x: x.right_weak_order_pred(), self)
@@ -404,13 +412,13 @@ class PackedWord(ClonableIntArray):
         
             sage: PackedWord([]).right_weak_order_greater()
             [[]]
-            sage: PackedWord([1,1,1]).right_weak_order_greater()
+            sage: PackedWord([1, 1, 1]).right_weak_order_greater()
             [[1, 1, 1]]
-            sage: PackedWord([1,2,1]).right_weak_order_greater()
+            sage: PackedWord([1, 2, 1]).right_weak_order_greater()
             [[1, 2, 1], [2, 1, 1]]
-            sage: PackedWord([3,2,1]).right_weak_order_greater()
+            sage: PackedWord([3, 2, 1]).right_weak_order_greater()
             [[3, 2, 1]]
-            sage: PackedWord([3,1,2,2,4]).right_weak_order_greater()
+            sage: PackedWord([3, 1, 2, 2, 4]).right_weak_order_greater()
             [[3, 1, 2, 2, 4],
              [3, 1, 2, 4, 2],
              [3, 1, 4, 2, 2],
@@ -434,94 +442,97 @@ class PackedWord(ClonableIntArray):
     def inversions_left(pw):
         """
         Return the set of left weak order inversions with the definition :
-        inversions_left(pw) := {(pw[i],pw[j]) in [1..m]² : pw[i] < pw[j] 
+        inversions_left(pw) := {(pw[i], pw[j]) in [1..m]² : pw[i] < pw[j] 
             and the first occurence of 'pw[i]' in pw is after
                 the last occurence of 'pw[j]' in pw}
 
         EXAMPLES::
+
             sage: PackedWord([]).inversions_left()
             set()
-            sage: PackedWord([1,2,3]).inversions_left()
+            sage: PackedWord([1, 2, 3]).inversions_left()
             set()
-            sage: PackedWord([1,2,1]).inversions_left()
+            sage: PackedWord([1, 2, 1]).inversions_left()
             set()
-            sage: PackedWord([3,1,2]).inversions_left()
+            sage: PackedWord([3, 1, 2]).inversions_left()
             {(1, 3), (2, 3)}
-            sage: PackedWord([3,1,4,1,2]).inversions_left()
+            sage: PackedWord([3, 1, 4, 1, 2]).inversions_left()
             {(1, 3), (2, 3), (2, 4)}
 
         """
-        if len(pw)==0:
+        if len(pw) == 0:
             return set()
         PackedWord.check(pw)
         n = len(pw)
         m = max(pw)
-        return set((i,j)
-               for i in range(1,m)
-               for j in range(i+1,m+1)
-               if pw.index(i)>n-pw[::-1].index(j)-1)
+        return set((i, j)
+               for i in range(1, m)
+               for j in range(i + 1, m + 1)
+               if pw.index(i)>n - pw[::-1].index(j) - 1)
 
     def coinversions_left(pw):
         """
         Return the set of left weak order inversions with the definition :
-        inversions_left(pw) := {(i,j) in [1..n]² : pw[i] < pw[j] 
+        inversions_left(pw) := {(i, j) in [1..n]² : pw[i] < pw[j] 
             and the first occurence of 'pw[i]' in pw is after
                 the last occurence of 'pw[j]' in pw}
 
         EXAMPLES::
+
             sage: PackedWord([]).inversions_right()
             set()
-            sage: PackedWord([1,2,3]).coinversions_right()
+            sage: PackedWord([1, 2, 3]).coinversions_right()
             set()
-            sage: PackedWord([1,2,1]).coinversions_right()
+            sage: PackedWord([1, 2, 1]).coinversions_right()
             {(2, 1)}
-            sage: PackedWord([3,1,2]).coinversions_right()
+            sage: PackedWord([3, 1, 2]).coinversions_right()
             {(3, 1), (3, 2)}
-            sage: PackedWord([3,1,4,1,2]).coinversions_right()
+            sage: PackedWord([3, 1, 4, 1, 2]).coinversions_right()
             {(3, 1), (3, 2), (4, 1), (4, 2)}
 
         """
-        if len(pw)==0:
+        if len(pw) == 0:
             return set()
         PackedWord.check(pw)
         m = max(pw)
-        return set((pw.index(i),n-pw[::-1].index(j)-1)
-               for i in range(1,n)
-               for j in range(i+1,n+1)
-                   if p.index(i)>n-pw[::-1].index(j)-1)
+        return set((pw.index(i), n - pw[::-1].index(j) - 1)
+               for i in range(1, n)
+               for j in range(i + 1,n + 1)
+                   if p.index(i) > n - pw[::-1].index(j) - 1)
 
     def left_weak_order_succ(self):
         r"""
         Return the list of successor for left weak order with the definition :
 
-        v is a left successor of u if there exist i < n-1 such that 
-        v is equal to u where the i and i+1 are inversed 
+        v is a left successor of u if there exist i < n - 1 such that 
+        v is equal to u where the i and i + 1 are inversed 
         and len(inversions_left(v)) = len(inversions_left(u)) + 1
 
         EXAMPLES::
+
             sage: PackedWord([]).left_weak_order_succ()
             []
-            sage: PackedWord([1,1,1]).left_weak_order_succ()
+            sage: PackedWord([1, 1, 1]).left_weak_order_succ()
             []
-            sage: PackedWord([1,2,1]).left_weak_order_succ()
+            sage: PackedWord([1, 2, 1]).left_weak_order_succ()
             []
-            sage: PackedWord([3,1,2]).left_weak_order_succ()
+            sage: PackedWord([3, 1, 2]).left_weak_order_succ()
             [[3, 2, 1]]
-            sage: PackedWord([1,2,4,3,3,2]).left_weak_order_succ()
+            sage: PackedWord([1, 2, 4, 3, 3, 2]).left_weak_order_succ()
             [[2, 1, 4, 3, 3, 1]]
-            sage: PackedWord([1,2,4,3,3]).left_weak_order_succ()
+            sage: PackedWord([1, 2, 4, 3, 3]).left_weak_order_succ()
             [[2, 1, 4, 3, 3], [1, 3, 4, 2, 2]]
         """
         succ = []
-        if len(self)>0:
-            m=max(self)
-            for i in range(1,m):
-                if len(self)-1-self[::-1].index(i)<self.index(i+1):
-                    l=[]
+        if len(self) > 0:
+            m = max(self)
+            for i in range(1, m):
+                if len(self) - 1 - self[::-1].index(i) < self.index(i + 1):
+                    l = []
                     for x in self:
-                        if x==i:
-                            l.append(i+1)
-                        elif x==i+1:
+                        if x == i:
+                            l.append(i + 1)
+                        elif x == i + 1:
                             l.append(i)
                         else: l.append(x)
                     succ.append(l)
@@ -531,32 +542,33 @@ class PackedWord(ClonableIntArray):
         r"""
         Return the list of successor for left weak order with the definition :
 
-        u is a left predecessor of v if there exist i < n-1 such that 
-        v is equal to u where the i and i+1 are inversed 
+        u is a left predecessor of v if there exist i < n - 1 such that 
+        v is equal to u where the i and i + 1 are inversed 
         and len(inversions_left(v)) = len(inversions_left(u)) + 1
 
         EXAMPLES::
+
             sage: PackedWord([]).left_weak_order_pred()
             []
-            sage: PackedWord([1,1,1]).left_weak_order_pred()
+            sage: PackedWord([1, 1, 1]).left_weak_order_pred()
             []
-            sage: PackedWord([1,2,1]).left_weak_order_pred()
+            sage: PackedWord([1, 2, 1]).left_weak_order_pred()
             []
-            sage: PackedWord([3,1,2]).left_weak_order_pred()
+            sage: PackedWord([3, 1, 2]).left_weak_order_pred()
             [[2, 1, 3]]
-            sage: PackedWord([3,1,2,4,4]).left_weak_order_pred()
+            sage: PackedWord([3, 1, 2, 4, 4]).left_weak_order_pred()
             [[2, 1, 3, 4, 4]]
         """
         pred = []
-        if len(self)>0:
-            m=max(self)
-            for i in range(1,m):
-                if self.index(i)>len(self)-1-self[::-1].index(i+1):
-                    l=[]
+        if len(self) > 0:
+            m = max(self)
+            for i in range(1, m):
+                if self.index(i) > len(self) - 1 - self[::-1].index(i + 1):
+                    l = []
                     for x in self:
-                        if x==i:
-                            l.append(i+1)
-                        elif x==i+1:
+                        if x == i:
+                            l.append(i + 1)
+                        elif x == i + 1:
                             l.append(i)
                         else: l.append(x)
                     pred.append(l)
@@ -569,15 +581,16 @@ class PackedWord(ClonableIntArray):
         for more informations.
 
         EXAMPLES::
+
             sage: PackedWord([]).left_weak_order_smaller()
             [[]]
-            sage: PackedWord([1,1,1]).left_weak_order_smaller()
+            sage: PackedWord([1, 1, 1]).left_weak_order_smaller()
             [[1, 1, 1]]
-            sage: PackedWord([1,2,1]).left_weak_order_smaller()
+            sage: PackedWord([1, 2, 1]).left_weak_order_smaller()
             [[1, 2, 1]]
-            sage: PackedWord([3,1,2]).left_weak_order_smaller()
+            sage: PackedWord([3, 1, 2]).left_weak_order_smaller()
             [[1, 2, 3], [2, 1, 3], [3, 1, 2]]
-            sage: PackedWord([3,1,2,4,1,2]).left_weak_order_smaller()
+            sage: PackedWord([3, 1, 2, 4, 1, 2]).left_weak_order_smaller()
             [[1, 2, 3, 4, 2, 3], [2, 1, 3, 4, 1, 3], [3, 1, 2, 4, 1, 2]]
         """
         return transitive_ideal(lambda x: x.left_weak_order_pred(), self)
@@ -592,13 +605,13 @@ class PackedWord(ClonableIntArray):
         
             sage: PackedWord([]).left_weak_order_greater()
             [[]]
-            sage: PackedWord([1,1,1]).left_weak_order_greater()
+            sage: PackedWord([1, 1, 1]).left_weak_order_greater()
             [[1, 1, 1]]
-            sage: PackedWord([1,2,1]).left_weak_order_greater()
+            sage: PackedWord([1, 2, 1]).left_weak_order_greater()
             [[1, 2, 1]]
-            sage: PackedWord([3,1,2]).left_weak_order_greater()
+            sage: PackedWord([3, 1, 2]).left_weak_order_greater()
             [[3, 1, 2], [3, 2, 1]]
-            sage: PackedWord([3,1,2,4,1,2]).left_weak_order_greater()
+            sage: PackedWord([3, 1, 2, 4, 1, 2]).left_weak_order_greater()
             [[3, 1, 2, 4, 1, 2], [4, 1, 2, 3, 1, 2]]
         """
         return transitive_ideal(lambda x: x.left_weak_order_succ(), self)
@@ -669,9 +682,9 @@ class PackedWords_all(DisjointUnionEnumeratedSets, PackedWords):
             sage: P.cardinality()
             +Infinity
             sage: it = iter(P)
-            sage: (it.next(), it.next(), it.next(), it.next(), it.next())
+            sage: (next(it), next(it), next(it), next(it), next(it))
             ([], [1], [1, 2], [2, 1], [1, 1])
-            sage: it.next().parent()
+            sage: next(it).parent()
             Packed words
             sage: P([])
             []
@@ -679,10 +692,10 @@ class PackedWords_all(DisjointUnionEnumeratedSets, PackedWords):
             True
             sage: TestSuite(P).run()
         """
-        Parent.__init__(self, category=InfiniteEnumeratedSets())
+        Parent.__init__(self, category = InfiniteEnumeratedSets())
         DisjointUnionEnumeratedSets.__init__(
             self, Family(NonNegativeIntegers(), PackedWords_size),
-            facade=True, keepkey=False)
+            facade = True, keepkey = False)
 
     def _repr_(self):
         """
@@ -702,7 +715,7 @@ class PackedWords_all(DisjointUnionEnumeratedSets, PackedWords):
             False
             sage: PackedWord([]) in P
             True
-            sage: [1,1,4,2,3] in P
+            sage: [1, 1, 4, 2, 3] in P
             True
 
         """
@@ -714,7 +727,7 @@ class PackedWords_all(DisjointUnionEnumeratedSets, PackedWords):
         except:
             return False
 
-    def __call__(self, x=None, *args, **keywords):
+    def __call__(self, x = None, *args, **keywords):
         """
         Ensure that ``None`` instead of ``0`` is passed by default.
 
@@ -735,12 +748,23 @@ class PackedWords_all(DisjointUnionEnumeratedSets, PackedWords):
             []
             sage: P([])
             []
-            sage: P([1,1,1])
+            sage: P([1, 1, 1])
             [1, 1, 1]
         """
         return self.element_class(self, *args, **keywords)
 
     def combinatorial_class_of_size(self, size):
+        """
+        EXAMPLES::
+        
+            sage: P = PackedWords()
+            sage: P.combinatorial_class_of_size(6) is PackedWords(6)
+            True
+            sage: P.combinatorial_class_of_size(-1)
+            Traceback (most recent call last):
+            ...
+            AssertionError: size (-1) must be a positive integer
+        """
         assert(size >= 0), "size (%d) must be a positive integer" % size
         return PackedWords(size)
 
@@ -751,9 +775,9 @@ class PackedWords_all(DisjointUnionEnumeratedSets, PackedWords):
         TESTS::
 
             sage: PW = PackedWords()
-            sage: PW.permutation_to_packed_words(Permutation([3,1,2,4]))
+            sage: PW.permutation_to_packed_words(Permutation([3, 1, 2, 4]))
             [[2, 1, 1, 2], [2, 1, 1, 3], [3, 1, 2, 3], [3, 1, 2, 4]]
-            sage: PW.permutation_to_packed_words(Permutation([1,2,3]))
+            sage: PW.permutation_to_packed_words(Permutation([1, 2, 3]))
             [[1, 1, 1], [1, 1, 2], [1, 2, 2], [1, 2, 3]]
         """
         return PackedWords_size(len(sigma)).permutation_to_packed_words(sigma)
@@ -795,9 +819,9 @@ class PackedWords_size(PackedWords):
             False
             sage: PackedWord([]) in P
             False
-            sage: PackedWord([1,2,1,3,1,4]) in P
+            sage: PackedWord([1, 2, 1, 3, 1, 4]) in P
             False
-            sage: PackedWord([1,2,1,3]) in P
+            sage: PackedWord([1, 2, 1, 3]) in P
             True
         """
         return isinstance(x, self.element_class) and x.size() == self._size
@@ -886,14 +910,14 @@ class PackedWords_size(PackedWords):
             sage: P([])
             []
 
-            # sage: P([1])
-            # Traceback (most recent call last)
-            # ...
-            # ValueError: Wrong size of word
+            sage: P([1])
+            Traceback (most recent call last):
+            ...
+            ValueError: Wrong size of word
         """
         res = self.element_class(self._parent_for, *args, **keywords)
         if res.size() != self._size:
-            raise ValueError, "Wrong size of word"
+            raise ValueError("Wrong size of word")
         return res
 
     def permutation_to_packed_words(self, sigma):
@@ -903,9 +927,9 @@ class PackedWords_size(PackedWords):
         TESTS::
 
             sage: PW = PackedWords()
-            sage: PW.permutation_to_packed_words(Permutation([3,1,2,4]))
+            sage: PW.permutation_to_packed_words(Permutation([3, 1, 2, 4]))
             [[2, 1, 1, 2], [2, 1, 1, 3], [3, 1, 2, 3], [3, 1, 2, 4]]
-            sage: PW.permutation_to_packed_words(Permutation([1,2,3]))
+            sage: PW.permutation_to_packed_words(Permutation([1, 2, 3]))
             [[1, 1, 1], [1, 1, 2], [1, 2, 2], [1, 2, 3]]
         """
         if self._size <= 1:
