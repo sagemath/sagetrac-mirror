@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Packed Words is a ways to order a set while keeping the ties.
-We consider the alphabet of number. A word 'w' is a Packed Word if and only if
-for each number k different from 1, if k is a letter of w 
-then k - 1 is a letter of w too.
+Packed words are a way to represent ordered set partitions.
+A word `w` with letters in `\{1,...,n\}` is a packed word if 
+for each number `k > 1` appearing in `w`, the number `k - 1` appears in `w` too.
+
+Thus, `w` can be obtained from an ordered set partition by setting 
+`w_i=j` if `i` belongs to the `j`-th block.
 
 Here are the Packed Words of size 0 to 3:
 \epsilon
@@ -42,7 +44,6 @@ from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
 from sage.structure.list_clone import ClonableIntArray
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.sets.family import Family
-from sage.sets.set import Set
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.tools import transitive_ideal
 from sage.misc.misc import uniq
@@ -90,7 +91,7 @@ def ordered_partition_sets_to_packed_word(li):
         ....:     OrderedSetPartitions(5)[34]
         ....: )
         [2, 3, 5, 1, 4]
-        sage: ordered_partition_sets_to_packed_word([Set([2, 3]), Set([1, 4])])
+        sage: ordered_partition_sets_to_packed_word([set([2, 3]), set([1, 4])])
         [2, 1, 1, 2]
     """
     dic = {}
@@ -203,7 +204,7 @@ class PackedWord(ClonableIntArray):
         d = defaultdict(list)
         for i in range(len(self)):
             d[self[i]].append(i + 1)
-        return [Set(d[k]) for k in sorted(d)]
+        return [set(d[k]) for k in sorted(d)]
 
     def to_composition(self):
         """
