@@ -84,6 +84,14 @@ ext_table['re', pAdicFieldCappedRelative] = RelativeRamifiedExtensionFieldCapped
 ext_table['re', pAdicRingFloatingPoint] = RelativeRamifiedExtensionRingFloatingPoint
 ext_table['re', pAdicFieldFloatingPoint] = RelativeRamifiedExtensionFieldFloatingPoint
 
+ext_table['ru', pAdicRingFixedMod] = RelativeExtensionRingFixedMod
+ext_table['ru', pAdicRingCappedAbsolute] = RelativeExtensionRingCappedAbsolute
+ext_table['ru', pAdicRingCappedRelative] = RelativeExtensionRingCappedRelative
+ext_table['ru', pAdicFieldCappedRelative] = RelativeExtensionFieldCappedRelative
+ext_table['ru', pAdicRingFloatingPoint] = RelativeExtensionRingFloatingPoint
+ext_table['ru', pAdicFieldFloatingPoint] = RelativeExtensionFieldFloatingPoint
+
+
 def _default_show_prec(type, print_mode):
     r"""
     Returns the default show_prec value for a given type and printing mode.
