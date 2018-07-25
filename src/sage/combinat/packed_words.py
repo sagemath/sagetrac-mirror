@@ -204,12 +204,16 @@ class PackedWord(ClonableIntArray):
     def to_composition(self):
         """
         See http://trac.sagemath.org/17058 for details.
-        return Composition(Word(self).abelian_vector(range(1, max(self) + 1)))
 
         Compute a *composition* associated to the parikh vector of *self*.
 
         TESTS::
-
+            sage: PackedWord([]).to_composition()
+            []
+            sage: PackedWord([1,1,1]).to_composition()
+            [3]
+            sage: PackedWord([1,2,1]).to_composition()
+            [2, 1]
             sage: PackedWord([1,2,3,1,1,3]).to_composition()
             [3, 1, 2]
         """
@@ -217,8 +221,10 @@ class PackedWord(ClonableIntArray):
         if len(self) == 0:
             return Composition([])
         from sage.combinat.words.word import Word
+        from sage.combinat.words.words import Words
         W=Words(range(1, max(self) +1))
-        return Composition(Word(self).abelian_vector())
+        return Composition([Word(self).evaluation_dict()[i+1] \
+                            for i in xrange(max(self))])
 
     def is_empty(self):
         """
@@ -323,15 +329,15 @@ class PackedWord(ClonableIntArray):
         and len(inversions_right(v)) = len(inversions_right(u)) + 1
 
         EXAMPLES::
-            sage: PackedWord([]).multi_right_permutohedron_succ()
+            sage: PackedWord([]).right_weak_order_succ()
             []
-            sage: PackedWord([1,1,1]).multi_right_permutohedron_succ()
+            sage: PackedWord([1,1,1]).right_weak_order_succ()
             []
-            sage: PackedWord([1,2,1]).multi_right_permutohedron_succ()
+            sage: PackedWord([1,2,1]).right_weak_order_succ()
             [[2, 1, 1]]
-            sage: PackedWord([3,1,2]).multi_right_permutohedron_succ()
+            sage: PackedWord([3,1,2]).right_weak_order_succ()
             [[3, 2, 1]]
-            sage: PackedWord([3,1,2,1,1,2,4]).multi_right_permutohedron_succ()
+            sage: PackedWord([3,1,2,1,1,2,4]).right_weak_order_succ()
             [[3, 2, 1, 1, 1, 2, 4], [3, 1, 2, 1, 2, 1, 4], [3, 1, 2, 1, 1, 4, 2]]
         """
         succ = []
@@ -350,15 +356,15 @@ class PackedWord(ClonableIntArray):
         and len(inversions_right(v)) = len(inversions_right(u)) + 1
 
         EXAMPLES::
-            sage: PackedWord([]).multi_right_permutohedron_pred()
+            sage: PackedWord([]).right_weak_order_pred()
             []
-            sage: PackedWord([1,1,1]).multi_right_permutohedron_pred()
+            sage: PackedWord([1,1,1]).right_weak_order_pred()
             []
-            sage: PackedWord([1,2,1]).multi_right_permutohedron_pred()
+            sage: PackedWord([1,2,1]).right_weak_order_pred()
             [[1, 1, 2]]
-            sage: PackedWord([3,1,2]).multi_right_permutohedron_pred()
+            sage: PackedWord([3,1,2]).right_weak_order_pred()
             [[1, 3, 2]]
-            sage: PackedWord([3,1,2,1,1,2,4]).multi_right_permutohedron_pred()
+            sage: PackedWord([3,1,2,1,1,2,4]).right_weak_order_pred()
             [[1, 3, 2, 1, 1, 2, 4], [3, 1, 1, 2, 1, 2, 4]]
         """
         pred = []
@@ -371,40 +377,40 @@ class PackedWord(ClonableIntArray):
     def right_weak_order_smaller(self):
         """
         Return the list of smaller or equal packed words for the right weak order.
-        (..see :func:`sage.combinat.packed_words.multi_right_permutohedron_pred`) 
+        (..see :func:`sage.combinat.packed_words.right_weak_order_pred`) 
         for more informations.
 
         EXAMPLES::
-            sage: PackedWord([]).multi_right_permutohedron_smaller()
+            sage: PackedWord([]).right_weak_order_smaller()
             [[]]
-            sage: PackedWord([1,1,1]).multi_right_permutohedron_smaller()
+            sage: PackedWord([1,1,1]).right_weak_order_smaller()
             [[1, 1, 1]]
-            sage: PackedWord([1,2,1]).multi_right_permutohedron_smaller()
+            sage: PackedWord([1,2,1]).right_weak_order_smaller()
             [[1, 1, 2], [1, 2, 1]]
-            sage: PackedWord([3,1,2]).multi_right_permutohedron_smaller()
+            sage: PackedWord([3,1,2]).right_weak_order_smaller()
             [[1, 2, 3], [1, 3, 2], [3, 1, 2]]
-            sage: PackedWord([3,1,2,2,4]).multi_right_permutohedron_smaller()
+            sage: PackedWord([3,1,2,2,4]).right_weak_order_smaller()
             [[1, 2, 2, 3, 4], [1, 2, 3, 2, 4], [1, 3, 2, 2, 4], [3, 1, 2, 2, 4]]
         """
-        return transitive_ideal(lambda x: x.multi_right_permutohedron_pred(), self)
+        return transitive_ideal(lambda x: x.right_weak_order_pred(), self)
 
     def right_weak_order_greater(self):
         """
         Return the list of greater or equal packed words for the right weak order.
-        (..see :func:`sage.combinat.packed_words.multi_right_permutohedron_succ`) 
+        (..see :func:`sage.combinat.packed_words.right_weak_order_succ`) 
         for more informations.
 
         EXAMPLES::
         
-            sage: PackedWord([]).multi_right_permutohedron_greater()
+            sage: PackedWord([]).right_weak_order_greater()
             [[]]
-            sage: PackedWord([1,1,1]).multi_right_permutohedron_greater()
+            sage: PackedWord([1,1,1]).right_weak_order_greater()
             [[1, 1, 1]]
-            sage: PackedWord([1,2,1]).multi_right_permutohedron_greater()
+            sage: PackedWord([1,2,1]).right_weak_order_greater()
             [[1, 2, 1], [2, 1, 1]]
-            sage: PackedWord([3,2,1]).multi_right_permutohedron_greater()
+            sage: PackedWord([3,2,1]).right_weak_order_greater()
             [[3, 2, 1]]
-            sage: PackedWord([3,1,2,2,4]).multi_right_permutohedron_greater()
+            sage: PackedWord([3,1,2,2,4]).right_weak_order_greater()
             [[3, 1, 2, 2, 4],
              [3, 1, 2, 4, 2],
              [3, 1, 4, 2, 2],
@@ -421,7 +427,7 @@ class PackedWord(ClonableIntArray):
              [4, 3, 2, 1, 2],
              [4, 3, 2, 2, 1]]
         """
-        return transitive_ideal(lambda x: x.multi_right_permutohedron_succ(), self)
+        return transitive_ideal(lambda x: x.right_weak_order_succ(), self)
 
 # #################     Left Weak Order     ###################################
 
@@ -484,7 +490,7 @@ class PackedWord(ClonableIntArray):
                for j in range(i+1,n+1)
                    if p.index(i)>n-pw[::-1].index(j)-1)
 
-    def leaft_weak_order_succ(self):
+    def left_weak_order_succ(self):
         r"""
         Return the list of successor for left weak order with the definition :
 
@@ -493,17 +499,17 @@ class PackedWord(ClonableIntArray):
         and len(inversions_left(v)) = len(inversions_left(u)) + 1
 
         EXAMPLES::
-            sage: PackedWord([]).multi_left_permutohedron_succ()
+            sage: PackedWord([]).left_weak_order_succ()
             []
-            sage: PackedWord([1,1,1]).multi_left_permutohedron_succ()
+            sage: PackedWord([1,1,1]).left_weak_order_succ()
             []
-            sage: PackedWord([1,2,1]).multi_left_permutohedron_succ()
+            sage: PackedWord([1,2,1]).left_weak_order_succ()
             []
-            sage: PackedWord([3,1,2]).multi_left_permutohedron_succ()
+            sage: PackedWord([3,1,2]).left_weak_order_succ()
             [[3, 2, 1]]
-            sage: PackedWord([1,2,4,3,3,2]).multi_left_permutohedron_succ()
+            sage: PackedWord([1,2,4,3,3,2]).left_weak_order_succ()
             [[2, 1, 4, 3, 3, 1]]
-            sage: PackedWord([1,2,4,3,3]).multi_left_permutohedron_succ()
+            sage: PackedWord([1,2,4,3,3]).left_weak_order_succ()
             [[2, 1, 4, 3, 3], [1, 3, 4, 2, 2]]
         """
         succ = []
@@ -521,7 +527,7 @@ class PackedWord(ClonableIntArray):
                     succ.append(l)
         return [PackedWord(p) for p in succ]
 
-    def leaft_weak_order_pred(self):
+    def left_weak_order_pred(self):
         r"""
         Return the list of successor for left weak order with the definition :
 
@@ -530,15 +536,15 @@ class PackedWord(ClonableIntArray):
         and len(inversions_left(v)) = len(inversions_left(u)) + 1
 
         EXAMPLES::
-            sage: PackedWord([]).multi_right_permutohedron_pred()
+            sage: PackedWord([]).left_weak_order_pred()
             []
-            sage: PackedWord([1,1,1]).multi_left_permutohedron_pred()
+            sage: PackedWord([1,1,1]).left_weak_order_pred()
             []
-            sage: PackedWord([1,2,1]).multi_left_permutohedron_pred()
+            sage: PackedWord([1,2,1]).left_weak_order_pred()
             []
-            sage: PackedWord([3,1,2]).multi_left_permutohedron_pred()
+            sage: PackedWord([3,1,2]).left_weak_order_pred()
             [[2, 1, 3]]
-            sage: PackedWord([3,1,2,4,4]).multi_left_permutohedron_pred()
+            sage: PackedWord([3,1,2,4,4]).left_weak_order_pred()
             [[2, 1, 3, 4, 4]]
         """
         pred = []
@@ -556,46 +562,46 @@ class PackedWord(ClonableIntArray):
                     pred.append(l)
         return [PackedWord(p) for p in pred]
 
-    def leaft_weak_order_smaller(self):
+    def left_weak_order_smaller(self):
         """
         Return the list of smaller or equal packed words for the left weak order.
-        (..see :func:`sage.combinat.packed_words.multi_left_permutohedron_pred`) 
+        (..see :func:`sage.combinat.packed_words.left_weak_order_pred`) 
         for more informations.
 
         EXAMPLES::
-            sage: PackedWord([]).multi_left_permutohedron_smaller()
+            sage: PackedWord([]).left_weak_order_smaller()
             [[]]
-            sage: PackedWord([1,1,1]).multi_left_permutohedron_smaller()
+            sage: PackedWord([1,1,1]).left_weak_order_smaller()
             [[1, 1, 1]]
-            sage: PackedWord([1,2,1]).multi_left_permutohedron_smaller()
+            sage: PackedWord([1,2,1]).left_weak_order_smaller()
             [[1, 2, 1]]
-            sage: PackedWord([3,1,2]).multi_left_permutohedron_smaller()
+            sage: PackedWord([3,1,2]).left_weak_order_smaller()
             [[1, 2, 3], [2, 1, 3], [3, 1, 2]]
-            sage: PackedWord([3,1,2,4,1,2]).multi_left_permutohedron_smaller()
+            sage: PackedWord([3,1,2,4,1,2]).left_weak_order_smaller()
             [[1, 2, 3, 4, 2, 3], [2, 1, 3, 4, 1, 3], [3, 1, 2, 4, 1, 2]]
         """
-        return transitive_ideal(lambda x: x.multi_left_permutohedron_pred(), self)
+        return transitive_ideal(lambda x: x.left_weak_order_pred(), self)
 
-    def leaft_weak_order_greater(self):
+    def left_weak_order_greater(self):
         """
         Return the list of greater or equal packed words for the left weak order.
-        (..see :func:`sage.combinat.packed_words.multi_right_permutohedron_succ`) 
+        (..see :func:`sage.combinat.packed_words.left_weak_order_succ`) 
         for more informations.
 
         EXAMPLES::
         
-            sage: PackedWord([]).multi_left_permutohedron_greater()
+            sage: PackedWord([]).left_weak_order_greater()
             [[]]
-            sage: PackedWord([1,1,1]).multi_left_permutohedron_greater()
+            sage: PackedWord([1,1,1]).left_weak_order_greater()
             [[1, 1, 1]]
-            sage: PackedWord([1,2,1]).multi_left_permutohedron_greater()
+            sage: PackedWord([1,2,1]).left_weak_order_greater()
             [[1, 2, 1]]
-            sage: PackedWord([3,1,2]).multi_left_permutohedron_greater()
+            sage: PackedWord([3,1,2]).left_weak_order_greater()
             [[3, 1, 2], [3, 2, 1]]
-            sage: PackedWord([3,1,2,4,1,2]).multi_left_permutohedron_greater()
+            sage: PackedWord([3,1,2,4,1,2]).left_weak_order_greater()
             [[3, 1, 2, 4, 1, 2], [4, 1, 2, 3, 1, 2]]
         """
-        return transitive_ideal(lambda x: x.multi_left_permutohedron_succ(), self)
+        return transitive_ideal(lambda x: x.left_weak_order_succ(), self)
 
 #==============================================================================
 # Abstract class to serve as a Factory no instance are created
