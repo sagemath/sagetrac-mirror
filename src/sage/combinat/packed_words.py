@@ -813,7 +813,7 @@ class PackedWords_size(PackedWords):
 
     def cardinality(self):
         """
-        Stirling number ???
+        Cardinality of Packed Words of size n
 
         TESTS::
 
