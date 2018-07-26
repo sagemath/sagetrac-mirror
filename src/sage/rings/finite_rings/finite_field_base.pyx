@@ -22,7 +22,7 @@ AUTHORS:
 #       Copyright (C) 2012 Travis Scrimshaw <tscrim@ucdavis.edu>
 #       Copyright (C) 2012 Xavier Caruso <xavier.caruso@normalesup.org>
 #       Copyright (C) 2013 Peter Bruin <P.Bruin@warwick.ac.uk>
-#       Copyright (C) 2014 Julian Rueth <julian.rueth@fsfe.org>
+#       Copyright (C) 2014-2018 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -37,6 +37,7 @@ from sage.misc.persist import register_unpickle_override
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import randrange
 from sage.rings.integer cimport Integer
+from sage.arith.all import lcm
 
 
 # Copied from sage.misc.fast_methods, used in __hash__() below.
@@ -1769,6 +1770,29 @@ cdef class FiniteField(Field):
         B = matrix(self.base_ring(), self.degree(), entries).inverse()
         return [sum(x * y for x, y in zip(col, basis))
                 for col in B.columns()]
+
+    def _splitting_field_univariate_polynomial(self, f, names=None, map=False, **kwargs):
+        r"""
+        Return the splitting field of ``f``.
+
+        This is a helper method for
+        :meth:`sage.rings.polynomial.polynomial_element.Polynomial.splitting_field`.
+
+        EXAMPLES::
+
+            sage: P.<x> = PolynomialRing(GF(11^5, 'a'))
+            sage: t = x^2 + 1
+            sage: t.splitting_field(names='b') # indirect doctest
+            Finite Field in b of size 11^10
+            sage: t.splitting_field(names='b', map=True) # indirect doctest
+            (Finite Field in b of size 11^10, Ring morphism:
+             From: Finite Field in a of size 11^5
+             To:   Finite Field in b of size 11^10
+             Defn: a |--> 5*b^9 + 7*b^8 + 10*b^7 + 10*b^6 + b^5 + b^4 + 8*b^3 + 7*b^2 + 9*b + 5)
+
+        """
+        degree = lcm([F.degree() for F, _ in f.factor()])
+        return self.extension(degree, names=names, map=map, **kwargs)
 
 
 def unpickle_FiniteField_ext(_type, order, variable_name, modulus, kwargs):

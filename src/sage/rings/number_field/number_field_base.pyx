@@ -1,12 +1,25 @@
-"""
+# -*- coding: utf-8 -*-
+r"""
 Base class for all number fields
-
 
 TESTS::
 
     sage: k = NumberField(x^2 + 1, 'i'); k == loads(dumps(k))
     True
 """
+#*****************************************************************************
+#       Copyright (C) 2007-2009 William Stein <wstein@gmail.com>
+#                          2007 Robert Bradshaw <robertwb@math.washington.edu>
+#                          2010 David Loeffler <d.loeffler.01@cantab.net>
+#                          2015 Štěpán Starosta <stepan.starosta@gmail.com>
+#                     2015-2016 Vincent Delecroix <20100.delecroix@gmail.com>
+#                          2018 Julian Rüth <julian.rueth@fsfe.org>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 def is_NumberField(x):
     """
@@ -393,4 +406,28 @@ cdef class NumberField(Field):
             return self._gen_approx[i]
         else:
             raise ValueError("No embedding set. You need to specify a a real embedding.")
+
+    def _splitting_field_univariate_polynomial(self, f, names=None, map=False, **kwargs):
+        r"""
+        Return the absolute splitting field of ``f``.
+
+        This is a helper method for
+        :meth:`sage.rings.polynomial.polynomial_element.Polynomial.splitting_field`.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x + 2)
+            sage: S.<t> = K[]
+            sage: L.<b> = (t^2 - a).splitting_field() # indirect doctest
+            sage: L
+            Number Field in b with defining polynomial t^2 - 4*t + 6
+
+        """
+        if names is None:
+            names = 'z'
+
+        from sage.rings.number_field.splitting_field import splitting_field
+        return splitting_field(f.monic(), names, map, **kwargs)
+
 

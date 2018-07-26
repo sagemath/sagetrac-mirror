@@ -1,4 +1,4 @@
-# coding: utf-8
+# -*- coding: utf-8 -*-
 """
 Univariate Polynomial Base Class
 
@@ -14,7 +14,7 @@ AUTHORS:
 
 -  Simon King: Use a faster way of conversion from the base ring.
 
--  Julian Rueth (2012-05-25,2014-05-09): Fixed is_squarefree() for imperfect
+-  Julian Rüth (2012-05-25,2014-05-09): Fixed is_squarefree() for imperfect
    fields, fixed division without remainder over QQbar; added ``_cache_key``
    for polynomials with unhashable coefficients
 
@@ -102,8 +102,6 @@ from sage.rings.integer cimport Integer, smallInteger
 from sage.libs.gmp.mpz cimport *
 from sage.rings.fraction_field import is_FractionField
 from sage.rings.padics.generic_nodes import is_pAdicRing, is_pAdicField
-
-from sage.structure.category_object cimport normalize_names
 
 from sage.misc.derivative import multi_derivative
 
@@ -4401,31 +4399,35 @@ cdef class Polynomial(CommutativeAlgebraElement):
             pari.set_real_precision(n)  # restore precision
         return Factorization(F, unit)
 
-    def splitting_field(self, names=None, map=False, **kwds):
-        """
-        Compute the absolute splitting field of a given polynomial.
+    def splitting_field(self, names=None, map=False, **kwargs):
+        r"""
+        Return the splitting field of this polynomial.
 
         INPUT:
 
-        - ``names`` -- (default: ``None``)  a variable name for the splitting field.
+        - ``names`` -- variable names for the splitting field; default names
+          are used if not specified.
 
-        - ``map`` -- (default: ``False``) also return an embedding of
-          ``self`` into the resulting field.
+        - ``map`` -- (default: ``False``) whether to return an embedding of the
+          coefficient ring into the resulting field.
 
-        - ``kwds`` -- additional keywords depending on the type.
-          Currently, only number fields are implemented. See
-          :func:`sage.rings.number_field.splitting_field.splitting_field`
-          for the documentation of these keywords.
+        - any additional arguments are passed on the to the underlying
+          implementation.
 
         OUTPUT:
 
-        If ``map`` is ``False``, the splitting field as an absolute field.
-        If ``map`` is ``True``, a tuple ``(K, phi)`` where ``phi`` is an
-        embedding of the base field of ``self`` in ``K``.
+        If ``map`` is ``False``, the splitting field.  If ``map`` is ``True``,
+        a tuple ``(K, phi)`` where ``phi`` is an embedding of the base ring of
+        this polynomial in ``K``.
+
+        .. NOTE::
+
+            Please refer to the base ring's method
+            ``_splitting_field_univariate_polynomial`` for more details.
 
         EXAMPLES::
 
-            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.<x> = ZZ[]
             sage: K.<a> = (x^3 + 2).splitting_field(); K
             Number Field in a with defining polynomial x^6 + 3*x^5 + 6*x^4 + 11*x^3 + 12*x^2 - 3*x + 1
             sage: K.<a> = (x^3 - 3*x + 1).splitting_field(); K
@@ -4433,9 +4435,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Relative situation::
 
-            sage: R.<x> = PolynomialRing(QQ)
+            sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^3 + 2)
-            sage: S.<t> = PolynomialRing(K)
+            sage: S.<t> = K[]
             sage: L.<b> = (t^2 - a).splitting_field()
             sage: L
             Number Field in b with defining polynomial t^6 + 2
@@ -4452,12 +4454,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         An example over a finite field::
 
-            sage: P.<x> = PolynomialRing(GF(7))
+            sage: P.<x> = GF(7)[]
             sage: t = x^2 + 1
             sage: t.splitting_field('b')
             Finite Field in b of size 7^2
 
-            sage: P.<x> = PolynomialRing(GF(7^3, 'a'))
+            sage: P.<x> = GF(7^3, 'a')[]
             sage: t = x^2 + 1
             sage: t.splitting_field('b', map=True)
             (Finite Field in b of size 7^6,
@@ -4484,7 +4486,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         .. SEEALSO::
 
-            :func:`sage.rings.number_field.splitting_field.splitting_field` for more examples over number fields
+            :func:`sage.rings.number_field.splitting_field.splitting_field` for
+            more examples over number fields
 
         TESTS::
 
@@ -4495,9 +4498,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: polygen(RR).splitting_field('x')
             Traceback (most recent call last):
             ...
-            NotImplementedError: splitting_field() is only implemented over number fields and finite fields
+            NotImplementedError: computation of splitting field not implemented over this coefficient ring
 
-            sage: P.<x> = PolynomialRing(GF(11^5, 'a'))
+            sage: P.<x> = GF(11^5, 'a')[]
             sage: t = x^2 + 1
             sage: t.splitting_field('b')
             Finite Field in b of size 11^10
@@ -4508,7 +4511,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: t.splitting_field('b')
             Finite Field in b of size 11^130
 
-            sage: P.<x> = PolynomialRing(GF(19^6, 'a'))
+            sage: P.<x> = GF(19^6, 'a')[]
             sage: t = -x^6 + x^2 + 1
             sage: t.splitting_field('b')
             Finite Field in b of size 19^6
@@ -4519,7 +4522,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: t.splitting_field('b')
             Finite Field in b of size 19^156
 
-            sage: P.<x> = PolynomialRing(GF(83^6, 'a'))
+            sage: P.<x> = GF(83^6, 'a')[]
             sage: t = 2*x^14 - 5 + 6*x
             sage: t.splitting_field('b')
             Finite Field in b of size 83^84
@@ -4530,7 +4533,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: t.splitting_field('b')
             Finite Field in b of size 83^12
 
-            sage: P.<x> = PolynomialRing(GF(401^13, 'a'))
+            sage: P.<x> = GF(401^13, 'a')[]
             sage: t = 2*x^14 - 5 + 6*x
             sage: t.splitting_field('b')
             Finite Field in b of size 401^104
@@ -4541,35 +4544,43 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: t.splitting_field('b')
             Finite Field in b of size 401^52
 
-            sage: R.<x> = QQ[]
-            sage: f = x^2 - 2
-            sage: f.splitting_field()
-            Traceback (most recent call last):
-            ...
-            TypeError: You must specify the name of the generator.
+        Check that returned map is correct if the polynomial was over a
+        non-field::
+
+            sage: R.<x> = ZZ[]
+            sage: (x^2 - 2).splitting_field(map=True)
+            (Number Field in z with defining polynomial x^2 - 2, Composite map:
+             From: Integer Ring
+             To:   Number Field in z with defining polynomial x^2 - 2
+             Defn:   Natural morphism:
+                     From: Integer Ring
+                     To:   Rational Field
+                   then
+                     Ring morphism:
+                     From: Rational Field
+                     To:   Number Field in z with defining polynomial x^2 - 2
+                     Defn: 1 |--> 1)
 
         """
-        if names is None:
-            raise TypeError("You must specify the name of the generator.")
-        name = normalize_names(1, names)[0]
+        f = self
+        R = f.base_ring()
+        pre_map = None
 
-        from sage.rings.number_field.number_field_base import is_NumberField
-        from sage.rings.finite_rings.finite_field_base import is_FiniteField
+        from sage.categories.fields import Fields
+        if R not in Fields():
+            K = R.fraction_field()
+            pre_map = R.hom(K)
+            f = f.change_ring(K)
+            ret = f.splitting_field(names=names, map=map, **kwargs)
+            if map:
+                K, phi = ret
+                if pre_map is not None:
+                    return K, phi*pre_map
+            return ret
+        if hasattr(R, '_splitting_field_univariate_polynomial'):
+            return R._splitting_field_univariate_polynomial(f, names=names, map=map, **kwargs)
 
-        f = self.monic()            # Given polynomial, made monic
-        F = f.parent().base_ring()  # Base field
-        if not F.is_field():
-            F = F.fraction_field()
-            f = self.change_ring(F)
-
-        if is_NumberField(F):
-            from sage.rings.number_field.splitting_field import splitting_field
-            return splitting_field(f, name, map, **kwds)
-        elif is_FiniteField(F):
-            degree = lcm([f.degree() for f, _ in self.factor()])
-            return F.extension(degree, name, map=map, **kwds)
-
-        raise NotImplementedError("splitting_field() is only implemented over number fields and finite fields")
+        raise NotImplementedError("computation of splitting field not implemented over this coefficient ring")
 
     def pseudo_quo_rem(self,other):
         """
