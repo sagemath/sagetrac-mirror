@@ -203,7 +203,7 @@ class ClusterQuiver(SageObject):
         ...
         ValueError: the input data was not recognized
     """
-    def __init__(self, data, frozen=None, user_labels=None):
+    def __init__(self, data, frozen=None, user_labels=None, from_surface=False):
         """
         TESTS::
 
@@ -212,6 +212,12 @@ class ClusterQuiver(SageObject):
         """
         from sage.combinat.cluster_algebra_quiver.cluster_seed import ClusterSeed
         from sage.structure.element import is_Matrix
+        from sage.combinat.cluster_algebra_quiver.cluster_triangulation import ClusterTriangulation
+
+        if type(data) in [ClusterSeed, ClusterQuiver]:
+            self._from_surface = from_surface if from_surface else data._from_surface
+        else:
+            self._from_surface = from_surface
 
         if isinstance(user_labels, list):
             user_labels = [tuple(x) if isinstance(x, list) else x for x in user_labels]
@@ -305,6 +311,10 @@ class ClusterQuiver(SageObject):
 
                 self.relabel(self._nlist)
 
+        # if data is a list of triangles (forming a triangulation), the appropriate digraph is constructed.
+        elif isinstance(data, ClusterTriangulation):
+            self.__init__( data.quiver(), from_surface=True)
+
         # constructs a quiver from a cluster seed
         elif isinstance(data, ClusterSeed):
             self.__init__( data.quiver() )
@@ -359,6 +369,8 @@ class ClusterQuiver(SageObject):
                 self._description = 'Quiver on %d vertex' %(n+m)
             else:
                 self._description = 'Quiver on %d vertices' %(n+m)
+            if from_surface:
+                self._description += ' from a triangulation'
 
         # constructs a quiver from a digraph
         elif isinstance(data, DiGraph):
