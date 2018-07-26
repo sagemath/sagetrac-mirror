@@ -37,7 +37,7 @@ class RelativeExtensionGeneric(pAdicExtensionGeneric):
     def _construct_maximal_unramified_subextension(self):
         K0 = self._given_ground_ring.ground_ring()
         relative_degree = self._approx_modulus.degree()
-        self.K1 = K0.change(q = K0.residue_characteristic()**(relative_degree * K0.degree()), names='a1')
+        self.K1 = K0.change(q = K0.residue_characteristic()**(relative_degree * K0.degree()), names=K0.variable_names()[0] + '1')
 
         # find a way to map a generator of K0 into K1
         self._K0_gen = self._find_root([self.K1(coefficient) for coefficient in K0.defining_polynomial().list()], self.K1)
@@ -106,8 +106,12 @@ class RelativeExtensionGeneric(pAdicExtensionGeneric):
 
     def _express_via_given_gen(self, element):
         element_in_K0_basis = [self._write_in_K0_basis_relative(entry) for entry in element.polynomial().list()]
+        relative_degree = self._approx_modulus.degree()
+        for j in range(0, len(element_in_K0_basis)):
+            short_length = len(element_in_K0_basis[j])
+            element_in_K0_basis[j] += [0] * (relative_degree - short_length)
 
-        return [self._given_ground_ring([element_in_K0_basis[j][i] for j in range(0, len(element_in_K0_basis))]) for i in range(0,  len(element_in_K0_basis[0]) )]
+        return [self._given_ground_ring([element_in_K0_basis[j][i] for j in range(0, len(element_in_K0_basis))]) for i in range(0, relative_degree)]
 
     def _injection_from_K0_to_K1(self, element):
         return element.polynomial()(self._K0_gen)
