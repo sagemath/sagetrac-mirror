@@ -1393,7 +1393,7 @@ cdef class CRElement(pAdicTemplateElement):
         """
         return self.ordp
 
-    cpdef val_unit(self, p=None):
+    cpdef val_unit(self):
         """
         Returns a pair ``(self.valuation(), self.unit_part())``.
 
@@ -1420,8 +1420,6 @@ cdef class CRElement(pAdicTemplateElement):
             (10, O(5^0))
         """
         # Since we keep this element normalized there's not much to do here.
-        if p is not None and p != self.parent().prime():
-            raise ValueError('Ring (%s) residue field of the wrong characteristic.'%self.parent())
         if exactzero((<CRElement>self).ordp):
             raise ValueError("unit part of 0 not defined")
         cdef Integer val = Integer.__new__(Integer)

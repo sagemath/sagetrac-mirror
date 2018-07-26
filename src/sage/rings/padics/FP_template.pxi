@@ -1093,7 +1093,7 @@ cdef class FPElement(pAdicTemplateElement):
         """
         return self.ordp
 
-    cpdef val_unit(self, p=None):
+    cpdef val_unit(self):
         """
         Returns a 2-tuple, the first element set to the valuation of
         this element, and the second to the unit part.
@@ -1111,8 +1111,6 @@ cdef class FPElement(pAdicTemplateElement):
             ...
             ValueError: unit part of 0 and infinity not defined
         """
-        if p is not None and p != self.parent().prime():
-            raise ValueError('Ring (%s) residue field of the wrong characteristic.'%self.parent())
         if huge_val(self.ordp):
             raise ValueError("unit part of 0 and infinity not defined")
         cdef Integer valuation = PY_NEW(Integer)
