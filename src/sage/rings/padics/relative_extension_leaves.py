@@ -401,6 +401,40 @@ class RelativeRamifiedExtensionFieldFloatingPoint(EisensteinExtensionGeneric, pA
         # We also want to convert down to the ring of integers: this is used in teichmuller expansion
         self.register_coercion(pAdicRelativeBaseringInjection(approx_modulus.base_ring().integer_ring(), self))
         self.register_coercion(pAdicCoercion_QQ_FP(self))
+    
+class pAdicUnramifiedOverGeneralBaseringInjection(Morphism): 
+    def __init__(self, R, S):
+        if not R.is_field() or S.is_field():
+            Morphism.__init__(self, Hom(R, S))
+        else:
+            from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+            Morphism.__init__(self, Hom(R, S, SetsWithPartialMaps()))
+
+    def _call_(self, element):
+        return self.codomain()([self.codomain()._injection_from_K0_to_K1(coefficient) for coefficient in element.polynomial().list()])
+
+    def _call_with_args(self, x, args=(), kwds={}):
+        return self.codomain()(self._call_(x), *args, **kwds)
+
+    def section(self):
+        return pAdicUnramifiedOverGeneralBaseringSection(self.codomain(), self.domain())
+
+class pAdicUnramifiedOverGeneralBaseringSection(Morphism):
+    def __init__(self, S, R):
+        from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+        Morphism.__init__(self, Hom(S, R, SetsWithPartialMaps()))
+
+    def _call_(self, element):
+        element_in_K1_basis = element.polynomial()
+        try:
+            element_in_K0_basis = [self.domain()._section_from_K1_to_K0(coefficient) for coefficient in element_in_K1_basis]
+        except:
+            raise ValueError("Element not contained in base ring.")
+        
+        return self.domain()._given_ground_ring(element_in_K0_basis)
+
+    def _call_with_args(self, x, args=(), kwds={}):
+        return self.domain()(self._call_(x), *args, **kwds)
 
 class RelativeExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModRingGeneric):
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
@@ -463,37 +497,3 @@ class RelativeExtensionFieldCappedRelative(RelativeExtensionGeneric, pAdicCapped
         self._construct_given_gen(self._unramified_extension_defining_poly.list())
         self._construct_user_representation_of_K1_gen()
         self.register_coercion(pAdicUnramifiedOverGeneralBaseringInjection(self._given_ground_ring, self))
-    
-class pAdicUnramifiedOverGeneralBaseringInjection(Morphism): 
-    def __init__(self, R, S):
-        if not R.is_field() or S.is_field():
-            Morphism.__init__(self, Hom(R, S))
-        else:
-            from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
-            Morphism.__init__(self, Hom(R, S, SetsWithPartialMaps()))
-
-    def _call_(self, element):
-        return self.codomain()([self.codomain()._injection_from_K0_to_K1(coefficient) for coefficient in element.polynomial().list()])
-
-    def _call_with_args(self, x, args=(), kwds={}):
-        return self.codomain()(self._call_(x), *args, **kwds)
-
-    def section(self):
-        return pAdicUnramifiedOverGeneralBaseringSection(self.codomain(), self.domain())
-
-class pAdicUnramifiedOverGeneralBaseringSection(Morphism):
-    def __init__(self, S, R):
-        from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
-        Morphism.__init__(self, Hom(S, R, SetsWithPartialMaps()))
-
-    def _call_(self, element):
-        element_in_K1_basis = element.polynomial()
-        try:
-            element_in_K0_basis = [self.domain()._section_from_K1_to_K0(coefficient) for coefficient in element_in_K1_basis]
-        except:
-            raise ValueError("Element not contained in base ring.")
-        
-        return self.domain()._given_ground_ring(element_in_K0_basis)
-
-    def _call_with_args(self, x, args=(), kwds={}):
-        return self.domain()(self._call_(x), *args, **kwds)

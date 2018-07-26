@@ -1,9 +1,24 @@
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from .eisenstein_extension_generic import EisensteinExtensionGeneric
+from .padic_extension_generic import pAdicExtensionGeneric
 
-class RelativeExtensionGeneric(EisensteinExtensionGeneric): 
+class RelativeExtensionGeneric(pAdicExtensionGeneric): 
     def __init__(self, poly, prec, print_mode, names, element_class):
-        EisensteinExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
+        pAdicExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
+
+    def absolute_e(self):
+        return self._given_ground_ring.absolute_e()
+
+    def absolute_f(self):
+        return self.K1.absolute_f()
+ 
+    def maximal_unramified_subring(self):
+        return self.K1
+
+    def defining_polynomial(self, exact=False):
+        return self._approx_modulus
+    
+    def gens(self):
+        return [self._given_gen]
         
     def _construct_unramified_extension_defining_poly(self):
         coefficients_in_unramified_base = []
@@ -103,19 +118,7 @@ class RelativeExtensionGeneric(EisensteinExtensionGeneric):
                 raise ValueError("Element not contained in base field.")
 
         return element_in_K0_basis[0]
-         
-#     # if one day, we want to allow unramified extensions by polynomials whose coefficients are not necessarily in K0
-#     def _construct_given_gen_v2(self):
-#         self._given_gen = self._find_root([_injection_from_given_basering(coefficient) for coefficient in self._approx_modulus], self)
-# 
-    def _construct_given_gen(self, unramified_extension_defining_poly_coef_list):
-        # elements of unramified_extension_defining_poly_coef_list are in K0, need to send them to K1
-        coef_list = [self._injection_from_K0_to_K1(coef) for coef in unramified_extension_defining_poly_coef_list]
-        # find root in K1
-        root_in_K1 = self._find_root(coef_list, self.K1)
-        # lift from K1 to L
-        self._given_gen = self([root_in_K1])
-    
+
     def _find_root(self, coeff_list, F):
         prec = F.precision_cap()
         coeff_residue_list = [ coefficient.residue() for coefficient in coeff_list ]
@@ -129,24 +132,22 @@ class RelativeExtensionGeneric(EisensteinExtensionGeneric):
             root = root - poly_to_solve(root) / poly_to_solve_derivative(root)
 
         return root
-
-    # def base_ring(self):
-    #    return self._given_ground_ring
-
-    def absolute_e(self):
-        return self._given_ground_ring.absolute_e()
-
-    def absolute_f(self):
-        return self.K1.absolute_f()
- 
-    def maximal_unramified_subring(self):
-        return self.K1
-
-    def defining_polynomial(self, exact=False):
-        return self._approx_modulus
-    
-    def gens(self):
-        return [self._given_gen]
+         
+    def _construct_given_gen(self, unramified_extension_defining_poly_coef_list):
+        # elements of unramified_extension_defining_poly_coef_list are in K0, need to send them to K1
+        coef_list = [self._injection_from_K0_to_K1(coef) for coef in unramified_extension_defining_poly_coef_list]
+        # find root in K1
+        root_in_K1 = self._find_root(coef_list, self.K1)
+        # lift from K1 to L
+        self._given_gen = self([root_in_K1])
 
     def _extension_type(self):
         return 'Unramified'
+
+#     # if one day, we want to allow unramified extensions by polynomials whose coefficients are not necessarily in K0
+#     def _construct_given_gen_v2(self):
+#         self._given_gen = self._find_root([_injection_from_given_basering(coefficient) for coefficient in self._approx_modulus], self)
+# 
+#     # Does not work for now, too confusing to override the base_ring of EisensteinExtensionGeneric.
+#     def base_ring(self):
+#        return self._given_ground_ring
