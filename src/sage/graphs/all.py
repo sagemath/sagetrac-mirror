@@ -19,6 +19,7 @@ from .graph_database import graph_db_info
 lazy_import("sage.graphs.graph_editor", "graph_editor")
 
 from sage.graphs.isgci import graph_classes
+from .time_series_network import TimeSeriesNetwork
 
 """
 TESTS:
