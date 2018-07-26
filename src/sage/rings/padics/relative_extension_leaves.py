@@ -438,22 +438,68 @@ class pAdicUnramifiedOverGeneralBaseringSection(Morphism):
 class RelativeExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModRingGeneric):
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
         pass
+        KFP = approx_modulus.base_ring().change(prec = unram_prec+1)
 
 class RelativeExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pAdicCappedAbsoluteRingGeneric):
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
         pass
+        KFP = approx_modulus.base_ring().change(show_prec=False, type='floating-point')
 
 class RelativeExtensionRingCappedRelative(EisensteinExtensionGeneric, pAdicCappedRelativeRingGeneric):
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
         pass
+        KFP = approx_modulus.base_ring().change(show_prec=False, type='floating-point')
 
 class RelativeExtensionRingFloatingPoint(EisensteinExtensionGeneric, pAdicFloatingPointRingGeneric):
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
-        pass
+        self._approx_modulus = approx_modulus
+        self._given_ground_ring = approx_modulus.base_ring()         
+        K0 = self._given_ground_ring.ground_ring()
+        K = self._given_ground_ring
+        self._construct_unramified_extension_defining_poly()
+        self._construct_maximal_unramified_subextension()
+        self._construct_eisenstein_extension_defining_poly()
+        
+        unram_prec = prec
+        KFP = self.K1#.change(show_prec=False, type='floating-point')
+        unif = K._exact_modulus.base_ring()(K0.uniformizer())
+        shift_seed = PolynomialRing(self.K1, name='t1')([self._injection_from_K0_to_K1(coefficient) for coefficient in (-K._exact_modulus[:K._exact_modulus.degree()] / unif).change_ring(K0)])
+        self._eisenstein_extension_defining_poly.change_ring(KFP)
+        shift_seed.change_ring(KFP)
+        self.prime_pow = PowComputer_relative_maker(self.K1.prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, self._eisenstein_extension_defining_poly.change_ring(KFP), shift_seed.change_ring(KFP), 'capped-rel')
+        self._implementation = 'Relative'
+
+        RelativeExtensionGeneric.__init__(self, self._eisenstein_extension_defining_poly, prec, print_mode, (names[0],names[1],self.K1.variable_names()[0],names[3]), RelativeRamifiedFloatingPointElement)
+        from .relative_ramified_FP import pAdicCoercion_ZZ_FP, pAdicConvert_QQ_FP
+        self.register_coercion(pAdicCoercion_ZZ_FP(self))
+        self.register_coercion(pAdicConvert_QQ_FP(self))
+        self.register_coercion(pAdicUnramifiedOverGeneralBaseringInjection(self._given_ground_ring, self))
 
 class RelativeExtensionFieldFloatingPoint(EisensteinExtensionGeneric, pAdicFloatingPointFieldGeneric):
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
-        pass
+        self._approx_modulus = approx_modulus
+        self._given_ground_ring = approx_modulus.base_ring()         
+        K0 = self._given_ground_ring.ground_ring()
+        K = self._given_ground_ring
+        self._construct_unramified_extension_defining_poly()
+        self._construct_maximal_unramified_subextension()
+        self._construct_eisenstein_extension_defining_poly()
+        
+        unram_prec = prec
+        KFP = self.K1#.change(show_prec=False, type='floating-point')
+        unif = K._exact_modulus.base_ring()(K0.uniformizer())
+        shift_seed = PolynomialRing(self.K1, name='t1')([self._injection_from_K0_to_K1(coefficient) for coefficient in (-K._exact_modulus[:K._exact_modulus.degree()] / unif).change_ring(K0)])
+        self._eisenstein_extension_defining_poly.change_ring(KFP)
+        shift_seed.change_ring(KFP)
+        self.prime_pow = PowComputer_relative_maker(self.K1.prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, True, self._eisenstein_extension_defining_poly.change_ring(KFP), shift_seed.change_ring(KFP), 'capped-rel')
+        self._implementation = 'Relative'
+
+        RelativeExtensionGeneric.__init__(self, self._eisenstein_extension_defining_poly, prec, print_mode, (names[0],names[1],self.K1.variable_names()[0],names[3]), RelativeRamifiedFloatingPointElement)
+        from .relative_ramified_FP import pAdicCoercion_ZZ_FP, pAdicCoercion_QQ_FP
+        self.register_coercion(pAdicCoercion_ZZ_FP(self))
+        self.register_coercion(pAdicCoercion_QQ_FP(self))
+        self.register_coercion(pAdicUnramifiedOverGeneralBaseringInjection(self._given_ground_ring, self))
+        self.register_coercion(pAdicUnramifiedOverGeneralBaseringInjection(self._given_ground_ring.integer_ring(), self))
 
 class RelativeExtensionFieldCappedRelative(RelativeExtensionGeneric, pAdicCappedRelativeFieldGeneric):
     """
@@ -484,6 +530,7 @@ class RelativeExtensionFieldCappedRelative(RelativeExtensionGeneric, pAdicCapped
         self._construct_unramified_extension_defining_poly()
         self._construct_maximal_unramified_subextension()
         self._construct_eisenstein_extension_defining_poly()
+
         unram_prec = prec
         KFP = self.K1.change(show_prec=False, type='floating-point')
         unif = K._exact_modulus.base_ring()(K0.uniformizer())
@@ -492,7 +539,10 @@ class RelativeExtensionFieldCappedRelative(RelativeExtensionGeneric, pAdicCapped
         shift_seed.change_ring(KFP)
         self.prime_pow = PowComputer_relative_maker(self.K1.prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, True, self._eisenstein_extension_defining_poly.change_ring(KFP), shift_seed.change_ring(KFP), 'capped-rel')
         self._implementation = 'Relative'
+
         RelativeExtensionGeneric.__init__(self, self._eisenstein_extension_defining_poly, prec, print_mode, (names[0],names[1],self.K1.variable_names()[0],names[3]), RelativeRamifiedCappedRelativeElement)
-        self._construct_given_gen(self._unramified_extension_defining_poly.list())
-        self._construct_user_representation_of_K1_gen()
+        from .relative_ramified_CR import pAdicCoercion_ZZ_CR, pAdicCoercion_QQ_CR
+        self.register_coercion(pAdicCoercion_ZZ_CR(self))
+        self.register_coercion(pAdicCoercion_QQ_CR(self))
         self.register_coercion(pAdicUnramifiedOverGeneralBaseringInjection(self._given_ground_ring, self))
+        self.register_coercion(pAdicUnramifiedOverGeneralBaseringInjection(self._given_ground_ring.integer_ring(), self))

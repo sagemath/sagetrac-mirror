@@ -4,6 +4,8 @@ from .padic_extension_generic import pAdicExtensionGeneric
 class RelativeExtensionGeneric(pAdicExtensionGeneric): 
     def __init__(self, poly, prec, print_mode, names, element_class):
         pAdicExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
+        self._construct_given_gen(self._unramified_extension_defining_poly.list())
+        self._construct_user_representation_of_K1_gen()
 
     def absolute_e(self):
         return self._given_ground_ring.absolute_e()
