@@ -45,6 +45,7 @@ from sage.structure.list_clone import ClonableIntArray
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.sets.family import Family
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
+from sage.combinat.set_partition_ordered import OrderedSetPartition
 from sage.combinat.tools import transitive_ideal
 from sage.misc.misc import uniq
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -52,55 +53,8 @@ from collections import defaultdict
 from sage.combinat.composition import Composition
 from sage.combinat.words.word import Word
 from sage.combinat.words.words import Words
+from sage.combinat.combinatorial_map import combinatorial_map
 
-
-def to_pack(li):
-    r"""
-    The analogue map of the *standardization* (..see
-    :func:`sage.combinat.permutation.to_standard`) for *packed words*.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.packed_words import to_pack
-        sage: to_pack([])
-        []
-        sage: to_pack([3, 1])
-        [2, 1]
-        sage: to_pack([1, 0, 0])
-        [2, 1, 1]
-        sage: to_pack([3, 1, 55])
-        [2, 1, 3]
-        sage: to_pack([11, 4, 1, 55])
-        [3, 2, 1, 4]
-        sage: to_pack([11, 4, 1, 11, 4])
-        [3, 2, 1, 3, 2]
-    """
-    l = uniq(li)
-    return PackedWord([l.index(i) + 1 for i in li])
-
-
-def ordered_partition_sets_to_packed_word(li):
-    r"""
-    This map build the associated *ordered partition sets* of a *packed word*.
-
-    TESTS::
-
-        sage: from sage.combinat.packed_words import \
-        ....:     ordered_partition_sets_to_packed_word
-        sage: ordered_partition_sets_to_packed_word(
-        ....:     OrderedSetPartitions(5)[34]
-        ....: )
-        [2, 3, 5, 1, 4]
-        sage: ordered_partition_sets_to_packed_word([set([2, 3]), set([1, 4])])
-        [2, 1, 1, 2]
-    """
-    dic = {}
-    i = 1
-    for set_ in li:
-        for p in set_:
-            dic[p] = i
-        i += 1
-    return PackedWord(dic.values())
 
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
@@ -184,21 +138,17 @@ class PackedWord(ClonableIntArray):
         assert(len(s) == 0 or (max(s) == len(s) and min(s) == 1)
             ), "This is not a packed word %s" % self
 
-    def to_ordered_partition_sets(self):
+    @combinatorial_map(name='to ordered set partition')
+    def to_ordered_set_partition(self):
         r"""
-        This method build an *ordered partition sets* associated to *self*.
+        This method build an *ordered set partition* associated to *self*.
 
         TESTS::
 
-            sage: from sage.combinat.packed_words import \
-            ....:     ordered_partition_sets_to_packed_word
-            sage: opspw = ordered_partition_sets_to_packed_word
             sage: pw = PackedWords(6).random_element()
             sage: pw in PackedWords(6)
             True
-            sage: opspw(pw.to_ordered_partition_sets()) == pw
-            True
-            sage: PackedWord([1, 2, 3, 1, 1, 3]).to_ordered_partition_sets()
+            sage: PackedWord([1, 2, 3, 1, 1, 3]).to_ordered_set_partition()
             [{1, 4, 5}, {2}, {3, 6}]
         """
         d = defaultdict(list)
@@ -667,6 +617,32 @@ class PackedWords(UniqueRepresentation, Parent):
                 "n must be a non negative integer"
             return PackedWords_size(Integer(n))
 
+        
+    @staticmethod
+    def to_pack(li):
+        r"""
+        The analogue map of the *standardization* (..see
+        :func:`sage.combinat.permutation.to_standard`) for *packed words*.
+
+        EXAMPLES::
+
+            sage: PackedWords.to_pack([])
+            []
+            sage: PackedWords.to_pack([3, 1])
+            [2, 1]
+            sage: PackedWords.to_pack([1, 0, 0])
+            [2, 1, 1]
+            sage: PackedWords.to_pack([3, 1, 55])
+            [2, 1, 3]
+            sage: PackedWords.to_pack([11, 4, 1, 55])
+            [3, 2, 1, 4]
+            sage: PackedWords.to_pack([11, 4, 1, 11, 4])
+            [3, 2, 1, 3, 2]
+        """
+        
+        l = uniq(list(li))
+        return PackedWord([l.index(i) + 1 for i in li])
+
 
 #==============================================================================
 # Enumerated set of all packed words
@@ -874,7 +850,7 @@ class PackedWords_size(PackedWords):
         else:
             osp = OrderedSetPartitions(self._size)
             for part in osp:
-                yield ordered_partition_sets_to_packed_word(part)
+                yield PackedWord(OrderedSetPartition.to_packed_word(part))
 
     @lazy_attribute
     def _parent_for(self):
