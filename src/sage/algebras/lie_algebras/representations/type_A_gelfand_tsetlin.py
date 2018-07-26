@@ -1,6 +1,7 @@
 r"""
-Irreducible representations of the Lie algebra $\mathfrak{gl}_n$ implemented
-using Gelfand-Tsetlin bases
+Irreducible representations of the Lie algebra gl_n
+
+Irreducible representations of the Lie algebra gl_n implemented using Gelfand-Tsetlin bases.
 
 AUTHORS:
 
