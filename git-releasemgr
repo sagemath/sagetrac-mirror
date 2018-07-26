@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+
+# Easiest way to use this is to create a symlink
+# /dir/in/search/path/git-releasemgr -> git-releasemgr
+
+
+import os
+import sys
+
+try:
+    import git_trac
+    from git_trac.releasemgr import cmdline
+except ImportError:
+    sys.path.append('')
+    from git_trac.releasemgr import cmdline
+
+if __name__ == '__main__':
+    try:
+        cmdline.launch()
+    except ValueError as error:
+        print(u'Error: {0}'.format(error))
+    except SystemExit as msg:
+        if msg.code != 0:
+            print(u'{0}\nExiting.'.format(msg))
+

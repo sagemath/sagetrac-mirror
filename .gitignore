@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 *.pyc
 /.BUILDSTART
 /dist
@@ -81,3 +82,17 @@ $RECYCLE.BIN/
 ###########
 .ipynb_checkpoints
 Untitled*.ipynb
+=======
+*~
+*.pyc
+.\#*
+\#*\#
+build
+dist
+MANIFEST
+.tox
+*.aux
+*.log
+*.out
+*.synctex.gz
+>>>>>>> 01cb18f9432a41ff32ca5922bff8fbed3156d284
