@@ -431,6 +431,18 @@ class RelativeExtensionFieldFloatingPoint(EisensteinExtensionGeneric, pAdicFloat
 # K/K0 and L/K1 are Eisenstein, with same defining polynomial
 # 
 class RelativeExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCappedRelativeFieldGeneric):
+    """
+    Three-step extension field with capped relative precision.
+
+    EXAMPLES::
+
+        sage: A.<a> = QqFP(2^10)
+        sage: R.<x> = A[]
+        sage: W.<w> = A.extension(x^4 + 2*a*x^2 - 16*x - 6*a); W
+        2-adic Eisenstein Extension Field in w defined by x^4 + 2*a*x^2 - 16*x - 6*a over its base field
+        sage: w^4 + 2*a*w^2 - 16*w - 6*a == 0
+        True
+    """
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
         self._approx_modulus = approx_modulus
         self._given_ground_ring = approx_modulus.base_ring() # this is K, should be an EisensteinExtension
@@ -462,7 +474,7 @@ class RelativeExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCapp
 
         self.prime_pow = PowComputer_relative_maker(self.K1.prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, True, eisenstein_extension_defining_poly.change_ring(KFP), shift_seed.change_ring(KFP), 'capped-rel')
 
-        self._implementation = 'Polynomial'
+        self._implementation = 'Relative'
         EisensteinExtensionGeneric.__init__(self, eisenstein_extension_defining_poly, prec, print_mode, (names[0],names[1],self.K1.variable_names()[0],names[3]), RelativeRamifiedCappedRelativeElement)
 
         # self._construct_given_gen_v2()
@@ -476,7 +488,9 @@ class RelativeExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCapp
 
         # construct K1 (the maximal unramified extension)
         from sage.rings.padics.factory import Qq
-        self.K1 = Qq(K0.residue_characteristic()**(relative_degree * K0.degree()), prec = K0.precision_cap(), type = 'capped-rel', names='a1')
+        # self.K1 = Qq(K0.residue_characteristic()**(relative_degree * K0.degree()), prec = K0.precision_cap(), type = 'capped-rel', names='a1', print_mode='terse')
+
+        self.K1 = K0.change(q = K0.residue_characteristic()**(relative_degree * K0.degree()), names='a1')
 
         # find a way to map a generator of K0 into K1
         self._K0_gen = self._find_root([self.K1(coefficient) for coefficient in K0.defining_polynomial().list()], self.K1)
@@ -493,7 +507,7 @@ class RelativeExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCapp
     def _construct_user_representation_of_K1_gen(self):
         K0 = self._given_ground_ring.ground_ring()
 
-        given_K1_gen = self.K1(self._given_gen.expansion()[0])
+        given_K1_gen = self._given_gen.polynomial()[0] # self.K1(self._given_gen.expansion()[0])
         relative_degree = self._approx_modulus.degree()
 
         K0_degree = self._given_ground_ring.ground_ring().degree()
@@ -523,12 +537,15 @@ class RelativeExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCapp
         
         self._powers_of_K1_gen_in_given_basis = []
         for i in range(0, self.K1.degree()):
-            target_basis_matrix_inverse_column = target_basis_matrix_inverse.column(i)
-            self._powers_of_K1_gen_in_given_basis.append(R0([K0(list(target_basis_matrix_inverse_column[j*K0_degree:(j+1)*K0_degree])) for j in range(0, relative_degree)]))
+            target_basis_matrix_inverse_row = target_basis_matrix_inverse.row(i)
+
+            self._powers_of_K1_gen_in_given_basis.append(R0([K0(list(target_basis_matrix_inverse_row[j*K0_degree:(j+1)*K0_degree])) for j in range(0, relative_degree)]))
 
     def _write_in_K0_basis_relative(self, element): # element is in K1
+        if (element.parent() != self.K1):
+            raise ValueError("Only elements of K1 can be expressed in the K0-basis.")
         element_in_Qp_basis = element.polynomial().list()
-        return sum( element_in_Qp_basis[i] * self._powers_of_K1_gen_in_given_basis[i] for i in range(0, self.K1.degree())).list()
+        return sum( element_in_Qp_basis[i] * self._powers_of_K1_gen_in_given_basis[i] for i in range(0, len(element_in_Qp_basis))).list()
 
     def _write_in_K0_basis(self, element): # element is in K1
         if (element.parent() != self.K1):
@@ -536,9 +553,9 @@ class RelativeExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCapp
         K0 = self._given_ground_ring.ground_ring() 
         relative_degree = self._approx_modulus.degree()
 
-        element_in_Qp_basis = element.polynomial()
+        element_in_Qp_basis = element.polynomial().list()
 
-        return [ sum( element_in_Qp_basis[i] * self._powers_of_K1_gen[i][j] for i in range(0, self.K1.degree())) for j in range(0, relative_degree) ]
+        return [ sum( element_in_Qp_basis[i] * self._powers_of_K1_gen[i][j] for i in range(0, len(element_in_Qp_basis))) for j in range(0, relative_degree) ]
 
     def _express_via_given_gen(self, element):
         element_in_K1_basis = element.polynomial().list()

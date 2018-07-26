@@ -1078,6 +1078,39 @@ cdef class pAdicPrinter_class(SageObject):
                     poly, k = elt._flint_rep_abs()
                     L = [repr(a) for a in poly.coefficients(sparse=False)]
                     ZZ_pEX = 1
+                elif elt.parent()._implementation == 'Relative':
+                    D = elt.parent()._given_ground_ring._printer.dict()
+                    D['show_prec'] = False
+                    with pAdicPrinter(elt.parent()._given_ground_ring, D):
+                        L = [repr(a) for a in elt.parent()._express_via_given_gen(elt)]
+                    L, ellipsis = self._truncate_list(L, self.max_terse_terms, '0')
+                    s = ''
+                    for i, a in enumerate(L):
+                        if a == '0':
+                            continue
+                        if (i > 0) and ('+' in a or '-' in a[1:]):
+                            a = '(' + a + ')'
+                        if a[0] == '-':
+                            if s:
+                                s += ' - '
+                            else:
+                                s = '-'
+                            if a[1:] == '1':
+                                s += self._var(self.var_name, i, do_latex)
+                            else:
+                                s += a[1:] + self._dot_var(self.var_name, i, do_latex)
+                        else:
+                            if s:
+                                s += ' + '
+                            if a == '1':
+                                s += self._var(self.var_name, i, do_latex)
+                            else:
+                                s += a + self._dot_var(self.var_name, i, do_latex)
+                    if ellipsis:
+                        s += self._plus_ellipsis(do_latex)
+                    if paren and ' ' in s:
+                        s = '(' + s + ')'
+                    return s
                 elif elt.parent()._implementation == 'Polynomial':
                     poly = elt._poly_rep()
                     if do_latex:
