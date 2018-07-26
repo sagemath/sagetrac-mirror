@@ -4,6 +4,7 @@
 #include <vector>
 #include <unordered_set>
 #include <unordered_map>
+#include <map>
 #include "Tuple.h"
 namespace wl{
         struct GraphNode{
@@ -11,7 +12,7 @@ namespace wl{
                 std::vector<pair<int,int>> adj_list;
         };
         
-        struct Pair_Hash {
+        struct IntPair_Hash {
             size_t operator() (const pair<int,int>& p) const {
                 size_t h = 0;
                 hash_combine(h, p.first);
@@ -19,6 +20,7 @@ namespace wl{
                 return h;
             }
         };
-        unordered_map<int, vector<pair<int,int>>> k_WL(const std::vector<GraphNode>& v, int k, bool hasVertexLabels = false);
+        
+        map<int, vector<pair<int,int>>> k_WL(const std::vector<GraphNode>& v, int k, bool hasVertexLabels = false);
 }
 #endif
