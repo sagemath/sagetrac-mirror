@@ -45,6 +45,7 @@ from sage.structure.list_clone import ClonableIntArray
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.sets.family import Family
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
+from sage.combinat.set_partition_ordered import OrderedSetPartition
 from sage.combinat.tools import transitive_ideal
 from sage.misc.misc import uniq
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -52,6 +53,7 @@ from collections import defaultdict
 from sage.combinat.composition import Composition
 from sage.combinat.words.word import Word
 from sage.combinat.words.words import Words
+from sage.combinat.combinatorial_map import combinatorial_map
 
 
 
@@ -146,9 +148,7 @@ class PackedWord(ClonableIntArray):
             sage: pw = PackedWords(6).random_element()
             sage: pw in PackedWords(6)
             True
-            sage: opspw(pw.to_ordered_partition_sets()) == pw
-            True
-            sage: PackedWord([1, 2, 3, 1, 1, 3]).to_ordered_partition_sets()
+            sage: PackedWord([1, 2, 3, 1, 1, 3]).to_ordered_set_partition()
             [{1, 4, 5}, {2}, {3, 6}]
         """
         d = defaultdict(list)
@@ -626,18 +626,17 @@ class PackedWords(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from sage.combinat.packed_words import to_pack
-            sage: to_pack([])
+            sage: PackedWords.to_pack([])
             []
-            sage: to_pack([3, 1])
+            sage: PackedWords.to_pack([3, 1])
             [2, 1]
-            sage: to_pack([1, 0, 0])
+            sage: PackedWords.to_pack([1, 0, 0])
             [2, 1, 1]
-            sage: to_pack([3, 1, 55])
+            sage: PackedWords.to_pack([3, 1, 55])
             [2, 1, 3]
-            sage: to_pack([11, 4, 1, 55])
+            sage: PackedWords.to_pack([11, 4, 1, 55])
             [3, 2, 1, 4]
-            sage: to_pack([11, 4, 1, 11, 4])
+            sage: PackedWords.to_pack([11, 4, 1, 11, 4])
             [3, 2, 1, 3, 2]
         """
         
