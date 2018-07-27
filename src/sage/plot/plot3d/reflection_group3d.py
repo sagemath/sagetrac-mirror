@@ -12,28 +12,31 @@ at most 2, which are realized first in real 4d and then parallel projected into
 3d for visualization and printing.
 
 To get a 3d printable file, use the Sage method .obj() and save output to a
-file. This defines the model as visualized (colors not included in this output).
+file. This defines the model as visualized (colors not included in this output)
+and can be read by a 3D printer.
 
-The point of entry for working with ReflectionGroup3d is
+Currently the input must be a ReflectionGroup.
+
+The point of entry for working with cayley_graph_3d is
 :func:`sage.combinat.root_system.reflection_group_real.ReflectionGroup`,
 and similar objects. 
 
 This class requires gap3.
 
-EXAMPLES::
+EXAMPLES:
     Basic plot of a reflection group::
 
         sage: w = ReflectionGroup(['A',3])                         # optional - gap3
-        sage: ReflectionGroup3d(w)                                 # optional - gap3
+        sage: cayley_graph_3d(w)                                   # optional - gap3
         Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
-        sage: g = ReflectionGroup3d(w)                             # optional - gap3
-        sage: g.plot3d()                                           # optional - gap3 
+        sage: g = cayley_graph_3d(w)                               # optional - gap3
+        sage: g.plot3d()                                           # optional - gap3
         Graphics3d Object
 
     G(3,1,2) (add tests of what is in this group)::
     
         sage: g312 = ReflectionGroup((3,1,2))                      # optional - gap3
-        sage: g_plot = ReflectionGroup3d(g312, point=(21,11,31))   # optional - gap3
+        sage: g_plot = cayley_graph_3d(g312, point=(21,11,31))     # optional - gap3
         doctest:warning
         ...
         UserWarning: point was shortened to match group rank
@@ -43,37 +46,28 @@ EXAMPLES::
     This can handle finite complex reflection groups of rank 2 G(6,2,2)::
     
         sage: g622 = ReflectionGroup((6,2,2))                      # optional - gap3
-        sage: g_plot = ReflectionGroup3d(g622, point=(21,11,31))   # optional - gap3
-        doctest:warning
-        ...
-        UserWarning: point was shortened to match group rank
+        sage: g_plot = cayley_graph_3d(g622, point=(21,11,31))     # optional - gap3
         sage: g_plot.plot3d()                                      # optional - gap3
         Graphics3d Object
 
     The rank two exceptional group G4::
     
         sage: g4 = ReflectionGroup((4))                            # optional - gap3
-        sage: g_plot = ReflectionGroup3d(g4, point=(21,11,31))     # optional - gap3
-        doctest:warning
-        ...
-        UserWarning: point was shortened to match group rank
+        sage: g_plot = cayley_graph_3d(g4, point=(21,11,31))       # optional - gap3
         sage: g_plot.plot3d()                                      # optional - gap3
         Graphics3d Object
 
     A1 x A1::
     
         sage: A1A1 = ReflectionGroup(['A',1], ['A',1])
-        sage: g_plot = ReflectionGroup3d(A1A1, point=(21,11,31))
-        doctest:warning
-        ...
-        UserWarning: point was shortened to match group rank
+        sage: g_plot = cayley_graph_3d(A1A1, point=(21,11,31))
         sage: g_plot.plot3d()
         Graphics3d Object
 
     A1 x A2::
     
         sage: A1A2 = ReflectionGroup(['A',1], ['A',2])
-        sage: g_plot = ReflectionGroup3d(A1A2, point=(21,11,31))
+        sage: g_plot = cayley_graph_3d(A1A2, point=(21,11,31))
         sage: g_plot.plot3d()
         Graphics3d Object
 
@@ -86,15 +80,12 @@ AUTHORS:
 
 
 TODO:
-    - Is there a better choice than SageObject for this class to inherit from?
-    - Can we require gap3 for using the class?
-    - Is the plot3d module an appropriate spot for this class?
-    - Is the warnings module appropriate the way we've used it?
-    - Can we optimize tests?
     - We don't know why object doesn't appear (JMOL viewer doesn't open)
       when some projection planes are used (e.g. [0,0,0,1]).
       How to debug/notify?
-    - implement addition of ReflectionGroup3d objects
+    - implement use for Coxeter groups (which do not have subgroup/coset
+      methods used elsewhere)
+    - implement addition of cayley_graph_3d objects
     - implement the presentation of any rank 2 complex representation or
       rank 3 real representation of a group
 
@@ -112,42 +103,42 @@ from time import time
 from sage.combinat.root_system.reflection_group_real import ReflectionGroup
 from sage.plot.plot3d.base import Graphics3dGroup
 from sage.plot.plot3d.shapes2 import line3d, sphere
+from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
 import warnings
-warnings.simplefilter("always")
-# from sage.combinat.root_system.reflection_group_complex import ComplexReflectionGroup, IrreducibleComplexReflectionGroup
-# from sage.combinat.root_system.reflection_group_real import RealReflectionGroup, IrreducibleRealReflectionGroup
 
-class ReflectionGroup3d(SageObject):
+class cayley_graph_3d(SageObject):
     def __init__(self, group, point=(21,11,31), proj_plane=[1,2,3,4]):
         """
         EXAMPLES::
             This class allows a user to plot a reflection group::
-            
+
                 sage: w = ReflectionGroup(['A',3])
-                sage: g = ReflectionGroup3d(w)
+                sage: g = cayley_graph_3d(w)
                 sage: g.plot3d()
                 Graphics3d Object
 
             The group, input point, and project plane can be changed::
-            
+
                 sage: w = ReflectionGroup(['A',3], point=(15,8, 18))       # optional - gap3
-                sage: g = ReflectionGroup3d(w)
+                sage: g = cayley_graph_3d(w)
 
             Visualization parameters can be changed after the model is created::
-            
+
                 sage: w = ReflectionGroup(['A',3])                         # optional - gap3
-                sage: g = ReflectionGroup3d(w)
+                sage: g = cayley_graph_3d(w)
                 sage: g.edge_color('purple')
                 sage: g.plot3d()
                 Graphics3d Object
         """
         if group.rank() > 3:
             raise ValueError("rank of group too large")
-        
+
+        self.init_group = group
+
         self.rank = group.rank()
-        
+
         self.reflections = group.reflections()
-        
+
         self._real_dimension(group)
 
         if str(group.parent()) == "<class 'sage.groups.matrix_gps.coxeter_group.CoxeterMatrixGroup_with_category'>":
@@ -216,19 +207,16 @@ class ReflectionGroup3d(SageObject):
         EXAMPLES:
 
         Get real dimension of the visualized group::
-        
+
             sage: W = ReflectionGroup(["C",3])          # optional - gap3
-            sage: A = ReflectionGroup3d(W)
+            sage: A = cayley_graph_3d(W)
             sage: A.real_dimension
             3
 
         The real dimension of a complex group is twice its rank::
-        
+
             sage: W = ReflectionGroup((3,1,2))          # optional - gap3
-            sage: A = ReflectionGroup3d(W)              # optional - gap3
-            doctest:warning
-            ...
-            UserWarning: point was shortened to match group rank
+            sage: A = cayley_graph_3d(W)                # optional - gap3
             sage: A.real_dimension                      # optional - gap3
             4
         """
@@ -259,19 +247,19 @@ class ReflectionGroup3d(SageObject):
         EXAMPLES:
 
         A rank 3 group requires a rank 3 point::
-        
+
             sage: W = ReflectionGroup(["C",3])
             sage: my_point = (1,2)
-            sage: ReflectionGroup3d(W, my_point)
+            sage: cayley_graph_3d(W, my_point)
             Traceback (most recent call last):
             ...
             TypeError: check dimension of point (does not match group rank)
 
         Any rank 3 point will work::
-        
+
             sage: W = ReflectionGroup(["C",3])
             sage: my_point_1 = (1,2,3)
-            sage: ReflectionGroup3d(W, my_point_1) 
+            sage: cayley_graph_3d(W, my_point_1) 
             Rigid graphical representation of Irreducible real reflection group of rank 3 and type C3
         """
         if self.rank == len(point):
@@ -300,15 +288,15 @@ class ReflectionGroup3d(SageObject):
         EXAMPLES:
 
         A zero vector cannot be used as the projection plane::
-        
-            sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3]), proj_plane=(0,0,0,0))
+
+            sage: w = cayley_graph_3d(ReflectionGroup(["A", 3]), proj_plane=(0,0,0,0))
             Traceback (most recent call last):
             ...
             ValueError: non-zero normal vector in R^4 is required to determine a plane
 
         A vector in `\RR^3` cannot be used as the projection plane::
-        
-            sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3]), proj_plane=(2,1,1))
+
+            sage: w = cayley_graph_3d(ReflectionGroup(["A", 3]), proj_plane=(2,1,1))
             Traceback (most recent call last):
             ...
             ValueError: non-zero normal vector in R^4 is required to determine a plane
@@ -343,9 +331,9 @@ class ReflectionGroup3d(SageObject):
         EXAMPLES:
 
         A rank 2 real reflection group still returns points in `\RR^3`::
-        
+
             sage: W = ReflectionGroup(["A",2])
-            sage: G = ReflectionGroup3d(W, (3,2))
+            sage: G = cayley_graph_3d(W, (3,2))
             sage: G.vertex_properties.keys()
             ['color', 'label', 'visible', 'shape', 'radius', 'position']
             sage: G.vertices["position"].values()
@@ -391,9 +379,9 @@ class ReflectionGroup3d(SageObject):
         EXAMPLES:
 
         Edges are recorded as cosets::
-        
+
             sage: W = ReflectionGroup(["A",2])
-            sage: G = ReflectionGroup3d(W, (3,2))
+            sage: G = cayley_graph_3d(W, (3,2))
             sage: G.edge_properties.keys()
             ['boundary_thickness', 'color', 'boundaries', 'visible',
             'edge_thickness', 'fill_size', 'fill']
@@ -409,20 +397,20 @@ class ReflectionGroup3d(SageObject):
              ((), (1,4)(2,3)(5,6))]
 
         .. TODO::
-        
+
             The properties for the edges should be able to be changed by user
             inputs in constructing the models, as well.
         """
         cosets = []
 
-        reflections = self.group.reflections().list()
+        reflections = self.reflections.list()
         subgroups = []
         self.reflection_edges = {}
         while reflections: # is nonempty
             refl = reflections[0]
             subgroup = self.group.subgroup([refl])
             subgroups.append(subgroup)
-            coset = self.group.cosets(subgroup, side='right')
+            coset = self.init_group.cosets(subgroup, side='right')
             self.reflection_edges[refl] = [tuple(e) for e in coset]
 
             cosets += coset
@@ -437,7 +425,7 @@ class ReflectionGroup3d(SageObject):
                 rainbow_colors = rainbow(len(subgroups))
                 for i, subgp in enumerate(subgroups):
                     color = rainbow_colors[i]
-                    for e in self.group.cosets(subgp):
+                    for e in self.init_group.cosets(subgp):
                         self.edges[key][tuple(e)] = color
             else:
                 # Use defaults from edge_properties
@@ -453,18 +441,18 @@ class ReflectionGroup3d(SageObject):
         EXAMPLES:
 
         Check that every edge is either on the inside or outside::
-        
+
             sage: W = ReflectionGroup(["A",3])
-            sage: G = ReflectionGroup3d(W)
+            sage: G = cayley_graph_3d(W)
             sage: set(G.outside_edges()).intersection(set(G.inside_edges()))
             set()
             sage: len(G.outside_edges())+len(G.inside_edges()) == len(G.edges["color"])
             True
 
         Check that the 1-faces are also outside edges::
-        
+
             sage: W = ReflectionGroup(["A",3])
-            sage: G = ReflectionGroup3d(W)
+            sage: G = cayley_graph_3d(W)
             sage: set(G.one_faces()).issubset(G.outside_edges())
             True
 
@@ -485,18 +473,18 @@ class ReflectionGroup3d(SageObject):
         self._one_faces = []
         outside_list = []
         inside_list = []
-        for k in self.group.reflections():
+        for k in self.reflections:
             S = self.group.subgroup([k])
-            for j in range(len(self.group.cosets(S))):
+            for j in range(len(self.init_group.cosets(S))):
                 vertex_set = []
-                for grp_elm in self.group.cosets(S)[j]:
+                for grp_elm in self.init_group.cosets(S)[j]:
                     coordinates = tuple(self.vertices["position"][grp_elm])
                     vertex_set.append(coordinates)
 
-                self.outside_edge_dictionary[tuple(self.group.cosets(S)[j])] = "internal edge"
+                self.outside_edge_dictionary[tuple(self.init_group.cosets(S)[j])] = "internal edge"
                 if set(vertex_set) in faces1_by_vertices:
-                    self.outside_edge_dictionary[tuple(self.group.cosets(S)[j])] = "1-face"
-                    self._one_faces.append(tuple(self.group.cosets(S)[j]))
+                    self.outside_edge_dictionary[tuple(self.init_group.cosets(S)[j])] = "1-face"
+                    self._one_faces.append(tuple(self.init_group.cosets(S)[j]))
                 else:
                     for two_face in faces2_by_vertices:
                         if set(vertex_set).issubset(two_face):
@@ -511,7 +499,7 @@ class ReflectionGroup3d(SageObject):
         If called without arguements, returns a list of such edges.
 
         INPUT:
-        
+
         - ``color`` -- a color
 
         - ``thickness``  -- a non-negative real number
@@ -519,17 +507,17 @@ class ReflectionGroup3d(SageObject):
         EXAMPLES:
 
         Make only the edges that are 1-faces of the convex hull thicker::
-        
+
             sage: W = ReflectionGroup(["B",3])
-            sage: G = ReflectionGroup3d(W)
+            sage: G = cayley_graph_3d(W)
             sage: G.one_faces(thickness=.5)
             sage: G.plot3d()
             Graphics3d Object
 
         Make only the edges that are 1-faces of the convex hull black::
-        
+
             sage: W = ReflectionGroup(["B",3])
-            sage: G = ReflectionGroup3d(W)
+            sage: G = cayley_graph_3d(W)
             sage: G.one_faces(color="black")
             sage: G.plot3d()
             Graphics3d Object
@@ -557,9 +545,9 @@ class ReflectionGroup3d(SageObject):
         EXAMPLES:
 
         Change visualization parameters of outside edges::
-        
+
             sage: W = ReflectionGroup(["A",3])
-            sage: G = ReflectionGroup3d(W)
+            sage: G = cayley_graph_3d(W)
             sage: G.outside_edges(color = "black", thickness =.5)
             sage: G.edges["color"][G.outside_edges()[0]] == "black"
             True
@@ -593,17 +581,17 @@ class ReflectionGroup3d(SageObject):
         EXAMPLES:
 
         Making all interior edges the same color::
-        
+
             sage: W = ReflectionGroup(["A",3])
-            sage: G = ReflectionGroup3d(W)
+            sage: G = cayley_graph_3d(W)
             sage: G.inside_edges(color="red")
             sage: G.edges["color"][G.inside_edges()[0]] == "red"
             True
 
         Cannot make all interior edges go away::
-        
+
             sage: W = ReflectionGroup(["B",3])
-            sage: G = ReflectionGroup3d(W)
+            sage: G = cayley_graph_3d(W)
             sage: G.inside_edges(thickness=0)
             Traceback (most recent call last):
             ...
@@ -629,9 +617,9 @@ class ReflectionGroup3d(SageObject):
         EXAMPLES:
 
         List all edges of the model::
-        
+
             sage: w = ReflectionGroup(["A", 3])
-            sage: g = ReflectionGroup3d(w)
+            sage: g = cayley_graph_3d(w)
             sage: g.list_edges()
             [((1,8,11)(2,5,7)(3,12,4)(6,10,9), (1,11)(3,10)(4,9)(5,7)(6,12)),
              ((), (1,4)(2,8)(3,5)(7,10)(9,11)),
@@ -642,9 +630,9 @@ class ReflectionGroup3d(SageObject):
              ((2,5)(3,9)(4,6)(8,11)(10,12), (1,11,8)(2,7,5)(3,4,12)(6,9,10))]
 
         List the edges corresponding to one reflection in the model::
-        
+
             sage: w = ReflectionGroup(["A", 3])
-            sage: g = ReflectionGroup3d(w)
+            sage: g = cayley_graph_3d(w)
             sage: g.list_edges(g.group.reflections().values()[0])
             [((), (1,7)(2,4)(5,6)(8,10)(11,12)),
              ((2,5)(3,9)(4,6)(8,11)(10,12), (1,7)(2,6)(3,9)(4,5)(8,12)(10,11)),
@@ -673,11 +661,11 @@ class ReflectionGroup3d(SageObject):
         Returns the dictionary mapping edges to their set thicknesses.
 
         EXAMPLES:
-        
+
         ::
-        
+
             sage: w = ReflectionGroup(['A', 3])
-            sage: g = ReflectionGroup3d(w)
+            sage: g = cayley_graph_3d(w)
             sage: g.edge_thicknesses()
             {((), (2,5)(3,9)(4,6)(8,11)(10,12)): 1,
              ((), (1,4)(2,8)(3,5)(7,10)(9,11)): 1,
@@ -708,9 +696,9 @@ class ReflectionGroup3d(SageObject):
         EXAMPLES:
 
         Make all edges a given thickness::
-        
+
             sage: w = ReflectionGroup(["A", 3])
-            sage: g = ReflectionGroup3d(w)
+            sage: g = cayley_graph_3d(w)
             sage: g.edge_thickness()
             1
             sage: g.edge_thickness(0.05)
@@ -718,7 +706,7 @@ class ReflectionGroup3d(SageObject):
             0.05
 
         Make only some edges thicker::
-        
+
             sage: outside = g.outside_edges()
             sage: g.edge_thickness(1.5, edges = outside)
             sage: g.edges["edge_thickness"]
@@ -767,51 +755,46 @@ class ReflectionGroup3d(SageObject):
 
         EXAMPLES:
 
-            Make all vertices invisible::
-            
-                sage: U = ReflectionGroup((4))
-                sage: J = ReflectionGroup3d(U,  point=(20,9,7))
-                doctest:warning
-                ...
-                UserWarning: point was shortened to match group rank
-                sage: V = J.vertices["color"].keys()
-                sage: J.visibility(False, vertices = V)
-                sage: J.plot3d()
-                Graphics3d Object
+        Make all vertices invisible::
 
-            Make all edges invisible::
-            
-                sage: J.visibility(True, vertices = V)
-                sage: E = J.edges["color"].keys()
-                sage: J.visibility(False, edges = E)
-                sage: J.plot3d()
-                Graphics3d Object
+            sage: U = ReflectionGroup((4))
+            sage: J = cayley_graph_3d(U,  point=(20,9,7))
+            sage: V = J.vertices["color"].keys()
+            sage: J.visibility(False, vertices = V)
+            sage: J.plot3d()
+            Graphics3d Object
 
-            Make all edges of a single reflection invisible::
-            
-                sage: B3 = ReflectionGroup(["B",3])
-                sage: B = ReflectionGroup3d(B3)
-                sage: r1 = B.reflections[1]
-                sage: B.visibility(False, reflections = [r1])
-                sage: B.plot3d()
-                Graphics3d Object
+        Make all edges invisible::
 
-            Make subset of edges invisible::
-            
-                sage: A3 = ReflectionGroup(["A",3])
-                sage: A = ReflectionGroup3d(A3)
-                sage: A.visibility(False, edges = A.inside_edges())
-                sage: A.plot3d()
-                Graphics3d Object
+            sage: J.visibility(True, vertices = V)
+            sage: E = J.edges["color"].keys()
+            sage: J.visibility(False, edges = E)
+            sage: J.plot3d()
+            Graphics3d Object
 
-            Make subset of vertices invisible::
-            
-                sage: odd = [a for a in A.group if a.sign() == -1]
-                sage: A.visibility(False, vertices = odd)
-                sage: A.plot3d()
-                Graphics3d Object
+        Make all edges of a single reflection invisible::
 
+            sage: B3 = ReflectionGroup(["B",3])
+            sage: B = cayley_graph_3d(B3)
+            sage: r1 = B.reflections[1]
+            sage: B.visibility(False, reflections = [r1])
+            sage: B.plot3d()
+            Graphics3d Object
 
+        Make subset of edges invisible::
+
+            sage: A3 = ReflectionGroup(["A",3])
+            sage: A = cayley_graph_3d(A3)
+            sage: A.visibility(False, edges = A.inside_edges())
+            sage: A.plot3d()
+            Graphics3d Object
+
+        Make subset of vertices invisible::
+
+            sage: odd = [a for a in A.group if a.sign() == -1]
+            sage: A.visibility(False, vertices = odd)
+            sage: A.plot3d()
+            Graphics3d Object
         """
         if visible == None:
             return self.edge_properties["visible"], \
@@ -834,28 +817,22 @@ class ReflectionGroup3d(SageObject):
         """
         Returns the dictionary mapping edges to their set colors.
 
-        SEEALSO:
+        ..SEEALSO:
             :func:`~cayley_model.edge_color`
 
         EXAMPLES:
 
         Returns the default color dictionary::
-        
+
             sage: W = ReflectionGroup((2,1,2))
-            sage: G = ReflectionGroup3d(W)
-            doctest:warning
-            ...
-            UserWarning: point was shortened to match group rank
+            sage: G = cayley_graph_3d(W)
             sage: set(G.edge_colors().values()) == set(rainbow(len(G.reflections)))
             True
 
         Make all edges red::
         
             sage: W = ReflectionGroup((2,1,2))
-            sage: G = ReflectionGroup3d(W)
-            doctest:warning
-            ...
-            UserWarning: point was shortened to match group rank
+            sage: G = cayley_graph_3d(W)
             sage: G.edge_color("red")
             sage: G.edge_colors().values() == ['red'] * 16
             True
@@ -876,25 +853,25 @@ class ReflectionGroup3d(SageObject):
         EXAMPLES:
 
         Changing colors of some reflections::
-        
+
             sage: W = ReflectionGroup(['A',3])
-            sage: G = ReflectionGroup3d(W) 
+            sage: G = cayley_graph_3d(W) 
             sage: G.edge_color("red", reflections=G.group.reflections().list()[:2])
             sage: G.edge_color("purple", reflections=G.group.reflections().list()[3:5])
             sage: G.edge_colors() # random
 
 
         Changing colors of all edges::
-        
+
             sage: W = ReflectionGroup(['A',3])
-            sage: G = ReflectionGroup3d(W) 
+            sage: G = cayley_graph_3d(W) 
             sage: G.edge_color("red")
             sage: G.edge_colors() # random
 
         Changing colors of a select few edges::
-        
+
             sage: W = ReflectionGroup(['A',3])
-            sage: G = ReflectionGroup3d(W) 
+            sage: G = cayley_graph_3d(W) 
             sage: G.edge_color("purple", edges=G.edges["visible"].keys()[3:5])
             sage: G.edge_colors() # random
 
@@ -920,9 +897,9 @@ class ReflectionGroup3d(SageObject):
 
         EXAMPLES:
         Return default colors::
-        
+
             sage: W = ReflectionGroup(['A',3])
-            sage: G = ReflectionGroup3d(W) 
+            sage: G = cayley_graph_3d(W) 
             sage: G.vertex_colors()
             {(): 'gray',
              (2,5)(3,9)(4,6)(8,11)(10,12): 'gray',
@@ -950,9 +927,9 @@ class ReflectionGroup3d(SageObject):
              (1,12,5)(2,4,9)(3,8,10)(6,11,7): 'gray'}
 
         Return colors after some have been set individually::
-        
+
             sage: W = ReflectionGroup(['A',3])
-            sage: G = ReflectionGroup3d(W)
+            sage: G = cayley_graph_3d(W)
             sage: G.vertex_color("red", vertices=G.group.list()[:2])
             sage: G.vertex_color("purple", vertices=G.group.list()[3:5])
             sage: G.vertex_colors()
@@ -1000,20 +977,20 @@ class ReflectionGroup3d(SageObject):
         EXAMPLES:
 
         Change all the vertex colors to red::
-        
+
             sage: W = ReflectionGroup(['A',3])
-            sage: G = ReflectionGroup3d(W)
+            sage: G = cayley_graph_3d(W)
             sage: G.vertex_color("red")
 
         Change some to red::
-        
+
             sage: W = ReflectionGroup(['A',3])
-            sage: G = ReflectionGroup3d(W)
+            sage: G = cayley_graph_3d(W)
             sage: G.vertex_color("red", vertices=G.group.list()[:2])
 
         Get current model vertex color::
             sage: W = ReflectionGroup(['A',3])
-            sage: G = ReflectionGroup3d(W)
+            sage: G = cayley_graph_3d(W)
             sage: G.vertex_color("purple")
             sage: G.vertex_color()
             'purple'
@@ -1041,12 +1018,9 @@ class ReflectionGroup3d(SageObject):
 
         EXAMPLES:
         Return default radii::
-        
+
             sage: W = ReflectionGroup(['A',2])
-            sage: G = ReflectionGroup3d(W)
-            doctest:warning
-            ...
-            UserWarning: point was shortened to match group rank
+            sage: G = cayley_graph_3d(W)
             sage: G.vertex_radii()
             {(): 1.5,
              (1,2,6)(3,4,5): 1.5,
@@ -1056,12 +1030,9 @@ class ReflectionGroup3d(SageObject):
              (1,6,2)(3,5,4): 1.5}
 
         Return colors after some have been set individually::
-        
+
             sage: W = ReflectionGroup(['A',2])
-            sage: G = ReflectionGroup3d(W)
-            doctest:warning
-            ...
-            UserWarning: point was shortened to match group rank
+            sage: G = cayley_graph_3d(W)
             sage: G.vertex_radius(.50, vertices=G.group.list()[:2])
             sage: G.vertex_radius(2.00, vertices=G.group.list()[3:5])
             sage: G.vertex_radii()
@@ -1090,17 +1061,17 @@ class ReflectionGroup3d(SageObject):
         EXAMPLES:
 
         Change all the vertex radii to 1.5::
-        
+
             sage: W = ReflectionGroup(['A',3])
-            sage: G = ReflectionGroup3d(W)
+            sage: G = cayley_graph_3d(W)
             sage: G.vertex_radius(1.50)
             sage: G.vertex_radius()
             1.5
 
         Change some to radius 3::
-        
+
             sage: W = ReflectionGroup(['A',3])
-            sage: G = ReflectionGroup3d(W)
+            sage: G = cayley_graph_3d(W)
             sage: G.vertex_radius(3.00, vertices=G.group.list()[:7])
             sage: G.vertex_radii()
             {(): 3.0,
@@ -1136,9 +1107,9 @@ class ReflectionGroup3d(SageObject):
         EXAMPLES:
 
         Plotting the Reflection3d object opens a JMOL viewer by default::
-        
+
             sage: W = ReflectionGroup(['A',3])
-            sage: G = ReflectionGroup3d(W) 
+            sage: G = cayley_graph_3d(W) 
             sage: G.plot3d() 
             Graphics3d Object
 
@@ -1189,8 +1160,8 @@ class ReflectionGroup3d(SageObject):
         EXAMPLES:
 
         ::
-        
-            sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3]))
+
+            sage: w = cayley_graph_3d(ReflectionGroup(["A", 3]))
             sage: edge = w._create_edge(w.edges["visible"].keys()[0])
             sage: print(edge.jmol_repr(edge.default_render_params()))
             [[['\ndraw line_1 width 1.0 {-11.0 42.0 -63.0}
@@ -1238,8 +1209,8 @@ class ReflectionGroup3d(SageObject):
         EXAMPLES:
 
         A polyhedron edge can be bordered by lines::
-        
-            sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3]))
+
+            sage: w = cayley_graph_3d(ReflectionGroup(["A", 3]))
             sage: poly = Polyhedron(vertices = [[1, 2, 3], [0,1,0], [1,0,1]])
             sage: edge_boundaries = w._create_edge_boundaries(poly, w.edges["visible"].keys()[0])
             sage: edge_boundaries.all
@@ -1273,8 +1244,8 @@ class ReflectionGroup3d(SageObject):
         EXAMPLES:
 
         Example of a polygon edge::
-        
-            sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3]))
+
+            sage: w = cayley_graph_3d(ReflectionGroup(["A", 3]))
             sage: p = Polyhedron(vertices = [[1, 2, 3], [0,1,0], [1,0,1]])
             sage: poly_3d = w._thicken_polygon(p, w.edges["visible"].keys()[0])
             sage: poly_3d.all
