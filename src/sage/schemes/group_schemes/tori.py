@@ -1,21 +1,15 @@
 r"""
+*******************
+Classes of Lattices
+*******************
 
-
-
-#############################################################
-#
-#       CLASSES OF LATTICES
-#
-#############################################################
-
-
-Lattices are seen as the standard lattice in ZZ^n with a group action
+Lattices of tori are equipping the standard lattice in `\ZZ^n` with a group action.
 
 We allow trivial group actions.
 
 
-All lattices inherit from the class Lattice_generic, and there are currently three 
-two types of lattices : ambient lattices (Lattice_ambient) and sublattices of ambient 
+All lattices inherit from the class Lattice_generic, and there are currently
+two types of lattices : ambient lattices (Lattice_ambient) and sublattices of ambient
 lattices (SubLattice)
 
 One can define a lattice in 3 different ways :
@@ -835,7 +829,7 @@ number of a Torus. See his paper 'On the Tamagawa Number of Algebraic Tori'.
 
 
 
-"""   
+"""
 
 
 from __future__ import print_function, absolute_import
