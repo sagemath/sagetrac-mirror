@@ -311,8 +311,9 @@ class RelativeExtensionGeneric(pAdicExtensionGeneric):
 
     def _write_in_K0_basis(self, element):
         """
-        Construct the representation of an element of K1 as a K0-linear combination of
-        powers of a generator of K1/K0 (this generator is a root of the user-given polynomial.)
+        Construct the representation of an element of K1 as a K0-linear
+        combination of powers of a generator of K1/K0 (this generator is a root
+        of the user-given polynomial.)
 
         EXAMPLES::
 
@@ -331,6 +332,8 @@ class RelativeExtensionGeneric(pAdicExtensionGeneric):
         if (element.parent() != self.K1):
             raise ValueError("Only elements of K1 can be expressed in the K0-basis.")
         element_in_Qp_basis = element.polynomial().list()
+        if (len(element_in_Qp_basis) == 0):
+            return [self._given_ground_ring.ground_ring()(0)]
         return sum( element_in_Qp_basis[i] * self._powers_of_K1_gen_in_given_basis[i] for i in range(0, len(element_in_Qp_basis))).list()
 
     def _injection_from_K0_to_K1(self, element):
