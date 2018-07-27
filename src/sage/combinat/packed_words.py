@@ -157,7 +157,6 @@ class PackedWord(ClonableIntArray):
         return OrderedSetPartition(d.values())
 
     def to_composition(self):
-        # TODO to_composition() should mention what a parikh vector is.
         r"""
         Return the compostion of *self*, 
         which means the sequence of number of each number in *self*
