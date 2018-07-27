@@ -274,7 +274,7 @@ class ClusterTriangulation(ClusterSeed):
             self._use_g_vec = False
             self._use_c_vec = False
             self._use_d_vec = False
-            self._use_fpolys = False
+            self._use_fpolys = True
             self._bot_is_c = False
             
             #sets up ability to track mutations
