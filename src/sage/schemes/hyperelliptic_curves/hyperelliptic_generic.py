@@ -535,7 +535,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         t2  = t**2
         c = b + t2/pol_prime(b)
         c = c.add_bigoh(prec)
-        for _ in range(1 + log(prec, 2)):
+        for _ in range(int(1 + log(prec, 2))):
             c -= (pol(c) - t2)/pol_prime(c)
         return (c, t.add_bigoh(prec))
 
