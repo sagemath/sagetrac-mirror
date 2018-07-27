@@ -159,10 +159,9 @@ class PackedWord(ClonableIntArray):
     def to_composition(self):
         # TODO to_composition() should mention what a parikh vector is.
         r"""
-        See http://trac.sagemath.org/17058 for details.
-
-        Compute a *composition* associated to the parikh vector of *self*.
-
+        Return the compostion of *self*, 
+        which means the sequence of number of each number in *self*
+        
         TESTS::
             sage: PackedWord([]).to_composition()
             []
@@ -176,13 +175,12 @@ class PackedWord(ClonableIntArray):
         
         if len(self) == 0:
             return Composition([])
-        W = Words(range(1, max(self) + 1))
         return Composition([Word(self).evaluation_dict()[i + 1] \
                             for i in range(max(self))])
 
     def is_empty(self):
         r"""
-        Returns whether ``self`` is the empty word.
+        Return whether ``self`` is the empty word.
 
         EXAMPLES::
 
