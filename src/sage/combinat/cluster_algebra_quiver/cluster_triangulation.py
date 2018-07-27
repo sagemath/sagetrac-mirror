@@ -706,8 +706,8 @@ class ClusterTriangulation(ClusterSeed):
             [(1, 7, 4), (1, 5, 2), (2, 3, 0), (0, 3, 6)]
             sage: T.cluster()
             [(x2 + 1)/x0, x1, x2, x3]
-            sage: ClusterSeed(T).cluster()
-            [(x2 + 1)/x0, x1, x2, x3]
+            sage: ClusterSeed(T).cluster() # Cluster is reset to initial cluster
+            [x0, x1, x2, x3]
             sage: T.quiver() == S.quiver()
             True
 
