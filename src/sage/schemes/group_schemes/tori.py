@@ -374,6 +374,51 @@ We can make them directly ambient lattices
     ]
 
 
+Now we decide not to transform it into an ambient lattice, but to create the sublattice of
+zero sum vectors.
+::
+
+
+    sage: L=Lattice_ambient(SymmetricGroup(3),5)
+    sage: L.zero_sum_sublattice()
+    Free module of degree 5 and rank 4 over Integer Ring
+    Echelon basis matrix:
+    [ 1  0  0  0 -1]
+    [ 0  1  0  0 -1]
+    [ 0  0  1  0 -1]
+    [ 0  0  0  1 -1]
+    sage: L.zero_sum_sublattice().zero_sum_sublattice()
+    Free module of degree 5 and rank 4 over Integer Ring
+    Echelon basis matrix:
+    [ 1  0  0  0 -1]
+    [ 0  1  0  0 -1]
+    [ 0  0  1  0 -1]
+    [ 0  0  0  1 -1]
+
+Here we see that the zero sum sublattice of the zero sum sublattice is itself, 
+which is not the case when we return an ambient ambient lattice isomorphic to 
+the zero sum one.
+::
+
+    sage: L=Lattice_ambient(SymmetricGroup(3),5)
+    sage: SL=SubLattice(L,[L.basis()[2]+3*L.basis()[4],5*L.basis()[0]+L.basis()[1],L.basis()[1]+6*L.basi
+    ....: s()[3]])
+    sage: SL
+    Free module of degree 5 and rank 4 over Integer Ring
+    Echelon basis matrix:
+    [ 1  0  0  0 -1]
+    [ 0  1  0  0 -1]
+    [ 0  0  1  0 -1]
+    [ 0  0  0  1 -1]
+    sage: SL.zero_sum_sublattice()
+    Free module of degree 5 and rank 2 over Integer Ring
+    Echelon basis matrix:
+    [  5   3  -5  12 -15]
+    [  0   4  -7  24 -21]
+
+
+
+
 - lattice.norm_one_restriction(self,group,build=True) : combines the induction and zero sum methods to return the character lattice corresponding to a norm 1 
   restriction of scalars of a Torus.
 
@@ -687,18 +732,104 @@ torus of norm 1 elements.
 
 
 
+    sage: T1.norm_one_restriction(PermutationGroup([(1,2),(3,4),(5,6),(7,8)]))
+    Algebraic Torus of rank 15 defined by the following lattice :
+    Ambient free module of rank 15 over the principal ideal domain Integer Ring
+    and an action by the galois group of the form :
+    Permutation Group with generators [(7,8), (5,6), (3,4), (1,2)]
+    sage: _.character_lattice()._action_matrices[0]
+    [ 0  1  0  0  0  0  0  0  0  0  0  0  0  0  0]
+    [ 1  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+    [ 0  0  0  1  0  0  0  0  0  0  0  0  0  0  0]
+    [ 0  0  1  0  0  0  0  0  0  0  0  0  0  0  0]
+    [ 0  0  0  0  0  1  0  0  0  0  0  0  0  0  0]
+    [ 0  0  0  0  1  0  0  0  0  0  0  0  0  0  0]
+    [ 0  0  0  0  0  0  0  1  0  0  0  0  0  0  0]
+    [ 0  0  0  0  0  0  1  0  0  0  0  0  0  0  0]
+    [ 0  0  0  0  0  0  0  0  0  1  0  0  0  0  0]
+    [ 0  0  0  0  0  0  0  0  1  0  0  0  0  0  0]
+    [ 0  0  0  0  0  0  0  0  0  0  0  1  0  0  0]
+    [ 0  0  0  0  0  0  0  0  0  0  1  0  0  0  0]
+    [ 0  0  0  0  0  0  0  0  0  0  0  0  0  1  0]
+    [ 0  0  0  0  0  0  0  0  0  0  0  0  1  0  0]
+    [-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1]
+    sage: T2.norm_one_restriction(SymmetricGroup(4))
+    Algebraic Torus of rank 3 defined by the following lattice :
+    Ambient free module of rank 3 over the principal ideal domain Integer Ring
+    and an action by the galois group of the form :
+    Symmetric group of order 4! as a permutation group
+    sage: _.character_lattice()._action_matrices
+    [
+    [-1 -1 -1]  [ 1  0  0]
+    [ 1  0  0]  [ 0  1  0]
+    [ 0  1  0], [-1 -1 -1]
+    ]
+    sage: T3.norm_one_restriction(SymmetricGroup(4))
+    Algebraic Torus of rank 11 defined by the following lattice :
+    Ambient free module of rank 11 over the principal ideal domain Integer Ring
+    and an action by the galois group of the form :
+    Symmetric group of order 4! as a permutation group
+    sage: _.character_lattice()._action_matrices
+    [
+    [ 0  0  0  0  0  0  0  0  0  1  0]  [ 0  1  0  0  0  0  0  0  0  0  0]
+    [ 0  0  0  0  0  0  0  0  0  0  1]  [ 1  0  0  0  0  0  0  0  0  0  0]
+    [-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1]  [ 0  0  1  0  0  0  0  0  0  0  0]
+    [ 0  1  0  0  0  0  0  0  0  0  0]  [ 0  0  0  0  1  0  0  0  0  0  0]
+    [ 0  0  1  0  0  0  0  0  0  0  0]  [ 0  0  0  1  0  0  0  0  0  0  0]
+    [ 1  0  0  0  0  0  0  0  0  0  0]  [ 0  0  0  0  0  1  0  0  0  0  0]
+    [ 0  0  0  0  1  0  0  0  0  0  0]  [ 0  0  0  0  0  0  0  0  0  1  0]
+    [ 0  0  0  0  0  1  0  0  0  0  0]  [ 0  0  0  0  0  0  0  0  0  0  1]
+    [ 0  0  0  1  0  0  0  0  0  0  0]  [-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1]
+    [ 0  0  0  0  0  0  0  1  0  0  0]  [ 0  0  0  0  0  0  1  0  0  0  0]
+    [ 0  0  0  0  0  0  0  0  1  0  0], [ 0  0  0  0  0  0  0  1  0  0  0]
+    ]
 
-        #gives the torus representing the Restriction of scalars. 
-        #Right now, for a torus defined over K, splitting over L, 
-        #to compute the restriction of scalars to k inside K, 
-        #the user has to enter the galois group of the extension L/k
-        #In the future, when we will have a better notion for Galois group
-        #perhaps we can deal with fields directly.
+We now compute the cohomologies of all those tori.
+For the two latter examples, we check that we get different cohomologies with the
+same group, and the norm one restriction of the split torus has nontrivial cohomology
+::
 
+    sage: ROS=T1.norm_one_restriction(PermutationGroup([(1,2),(3,4),(5,6),(7,8)]))
+    sage: for i in range(-4,6) : print("H^"+str(i)+" : ") , ROS.Tate_Cohomology(i)
+    H^-4 :  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    H^-3 :  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    H^-2 :  [2, 2, 2, 2, 2, 2]
+    H^-1 :  [2, 2, 2, 2]
+    H^0 :  []
+    H^1 :  [16]
+    H^2 :  []
+    H^3 :  [16]
+    H^4 :  [2, 2, 2, 2, 2, 2]
+    H^5 :  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 
-    def restriction_of_scalars(self,group):
-        return AlgebraicTorus(self._lattice.induced_lattice(group))
-    def norm_one_restriction(self,group):
+This torus ROS is the example of Ono where he applies his formula for the Tamagawa
+number of a Torus. See his paper 'On the Tamagawa Number of Algebraic Tori'.
+
+    sage: ROS2 = T3.norm_one_restriction(SymmetricGroup(4))
+    sage: for i in range(-5,5) : print("H^"+str(i)+" : ") , ROS2.Tate_Cohomology(i)
+    H^-5 :  [2, 2, 2]
+    H^-4 :  [2, 2]
+    H^-3 :  [2, 12]
+    H^-2 :  [2, 2]
+    H^-1 :  [2]
+    H^0 :  [2]
+    H^1 :  [12]
+    H^2 :  []
+    H^3 :  [12]
+    H^4 :  [2]
+
+    sage: ROS = T3.norm_one_restriction(SymmetricGroup(4))
+    sage: for i in range(-5,5) : print("H^"+str(i)+" : ") , ROS2.Tate_Cohomology(i)
+    H^-5 :  [2, 2, 2]
+    H^-4 :  [2, 2]
+    H^-3 :  [2, 12]
+    H^-2 :  [2, 2]
+    H^-1 :  [2]
+    H^0 :  [2]
+    H^1 :  [12]
+    H^2 :  []
+    H^3 :  [12]
+    H^4 :  [2]
 
 
 
@@ -742,6 +873,19 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.groups.perm_gps.permgroup import load_hap
 from sage.matrix.special import block_matrix
+
+
+
+
+def extended_xgcd(lst,result=[1]):
+    if len(lst)==0 :
+        raise ValueError("Missing numbers to take the gcd")
+    elif len(lst)==1 :
+        return (lst[0],result)
+    else:
+        a,b,c=xgcd(lst[0],lst[1])
+        r=[b*i for i in result]
+        return extended_xgcd([a]+[lst[i] for i in range(2,len(lst))],r+[c])
 
 
 
@@ -1105,18 +1249,26 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
 
 
 
-        """
-        TO FINISH
-    def zero_sum_sublattice(self):
+    def zero_sum_sublattice(self,ambient=False):
         oldBasis=self.basis()
         newBasis=[]
         diagonal=0
         for i in self._parent_lattice.basis():
             diagonal+=i
-        for i in self.basis():
-            newBasis.append()
-        return 1
-        """
+        totals=[i.inner_product(diagonal) for i in oldBasis]
+        gcd,coefs=extended_xgcd(totals)
+        if gcd==0 : 
+            return self
+        dist_elt=0
+        for i in range(len(oldBasis)):
+            dist_elt+=coefs[i]*oldBasis[i]
+        for i in range(len(oldBasis)):
+            newBasis.append(oldBasis[i]-(totals[i]/gcd)*dist_elt)
+        while 0 in newBasis :
+            newBasis.remove(0)
+        result=SubLattice(self._parent_lattice,newBasis)
+        return result if not ambient else result.ambientify()
+
 
 
 
