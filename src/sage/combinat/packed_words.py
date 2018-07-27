@@ -154,7 +154,7 @@ class PackedWord(ClonableIntArray):
         d = defaultdict(list)
         for i in range(len(self)):
             d[self[i]].append(i + 1)
-        return [set(d[k]) for k in sorted(d)]
+        return OrderedSetPartition(d.values())
 
     def to_composition(self):
         # TODO to_composition() should mention what a parikh vector is.

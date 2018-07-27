@@ -23,6 +23,7 @@ AUTHOR:
 
 from sage.combinat.combinat import CombinatorialClass
 from sage.combinat.integer_vector import IntegerVectors
+from sage.sets.set import Set
 
 
 class QuasiShuffleProduct(CombinatorialClass):
@@ -77,9 +78,9 @@ class QuasiShuffleProduct(CombinatorialClass):
 class Shifted_QuasiShuffleProduct(QuasiShuffleProduct):
 
     def __init__(self, p1, p2):
-        from sage.sets.set import Set
         self.__p2 = p2
-        maxi = max(reduce(lambda x, y: x + y, p1, Set([0])))
+        maxi = sum(len(x) for x in p1)
+                   # max(reduce(lambda x, y: x.add(y), p1,frozenset([0])))
         p2s = [Set([i + maxi for i in s]) for s in p2]
         QuasiShuffleProduct.__init__(self, p1, p2s)
 

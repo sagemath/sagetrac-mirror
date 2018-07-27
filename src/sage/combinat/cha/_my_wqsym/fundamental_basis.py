@@ -64,8 +64,7 @@ class Fundamental(WordQuasiSymmetricFunctions.Bases.Base):
             Keys = self.basis().keys()
             return self.sum_of_monomials(map(
                 lambda w: Keys(w),
-                Word(sigma).shuffle(Word(
-                    [l + max(list(sigma) + [0]) for l in mu]))
+                Word(sigma).shifted_shuffle(Word(mu),max(list(sigma) + [0]))
             ))
 
         def coproduct_on_basis(self, sigma):

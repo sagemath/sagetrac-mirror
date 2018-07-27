@@ -18,6 +18,7 @@ The fundamental dual basis of WQSym Hopf algebra.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.combinat.cha.wqsym import WordQuasiSymmetricFunctions
+from sage.combinat.set_partition_ordered import OrderedSetPartition
 
 
 class FundamentalDual(WordQuasiSymmetricFunctions.Bases.Base):
@@ -140,13 +141,10 @@ class FundamentalDual(WordQuasiSymmetricFunctions.Bases.Base):
                 M[1, 1, 1] + M[1, 1, 2] + M[2, 2, 1]
             '''
             from quasi_shuffle_product import Shifted_QuasiShuffleProduct
-            from sage.combinat.packed_words import \
-                ordered_partition_sets_to_packed_word
-            return self.sum_of_monomials(
-                ordered_partition_sets_to_packed_word(osp)
+            return self.sum_of_monomials(OrderedSetPartition(osp).to_packed_word()
                 for osp in Shifted_QuasiShuffleProduct(
-                        pw1.to_ordered_partition_sets(),
-                        pw2.to_ordered_partition_sets()))
+                        pw1.to_ordered_set_partition(),
+                        pw2.to_ordered_set_partition()))
 
         def coproduct_on_basis(self, e):
             '''
