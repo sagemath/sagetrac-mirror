@@ -122,7 +122,7 @@ class PackedWord(ClonableIntArray):
 
     def check(self):
         r"""
-        Checks that ``self`` is a packed word
+        Check that ``self`` is a packed word
 
         TESTS::
 
@@ -141,7 +141,7 @@ class PackedWord(ClonableIntArray):
     @combinatorial_map(name='to ordered set partition')
     def to_ordered_set_partition(self):
         r"""
-        This method build an *ordered set partition* associated to *self*.
+        Build an *ordered set partition* associated to *self*.
 
         TESTS::
 
@@ -157,6 +157,7 @@ class PackedWord(ClonableIntArray):
         return [set(d[k]) for k in sorted(d)]
 
     def to_composition(self):
+        # TODO to_composition() should mention what a parikh vector is.
         r"""
         See http://trac.sagemath.org/17058 for details.
 
@@ -228,7 +229,7 @@ class PackedWord(ClonableIntArray):
     def inversions_right(pw):
         r""" 
         Return the set of right weak order inversions with the definition :
-        inversions_right(pw) := {(i, j) in [1..n]² : i < j and pw[i] > pw[j]}
+        inversions_right(pw) := {(i, j) in [1..n]^2 : i < j and pw[i] > pw[j]}
 
         EXAMPLES::
 
@@ -253,7 +254,7 @@ class PackedWord(ClonableIntArray):
     def coinversions_right(pw):
         r""" 
         Return the set of right weak order coinversions with the definition :
-        coinversions_right(pw) := {(pw[i], pw[j]) in [1..m]² : i < j and pw[i] > pw[j]}
+        coinversions_right(pw) := {(pw[i], pw[j]) in [1..m]^2 : i < j and pw[i] > pw[j]}
 
         EXAMPLES::
 
@@ -335,7 +336,7 @@ class PackedWord(ClonableIntArray):
         r"""
         Return the list of smaller or equal packed words for the right weak order.
         (..see :func:`sage.combinat.packed_words.right_weak_order_pred`) 
-        for more informations.
+        for more information.
 
         EXAMPLES::
 
@@ -356,7 +357,7 @@ class PackedWord(ClonableIntArray):
         r"""
         Return the list of greater or equal packed words for the right weak order.
         (..see :func:`sage.combinat.packed_words.right_weak_order_succ`) 
-        for more informations.
+        for more information.
 
         EXAMPLES::
         
@@ -392,7 +393,7 @@ class PackedWord(ClonableIntArray):
     def inversions_left(pw):
         r"""
         Return the set of left weak order inversions with the definition :
-        inversions_left(pw) := {(pw[i], pw[j]) in [1..m]² : pw[i] < pw[j] 
+        inversions_left(pw) := {(pw[i], pw[j]) in [1..m]^2 : pw[i] < pw[j] 
             and the first occurence of 'pw[i]' in pw is after
                 the last occurence of 'pw[j]' in pw}
 
@@ -423,7 +424,7 @@ class PackedWord(ClonableIntArray):
     def coinversions_left(pw):
         r"""
         Return the set of left weak order inversions with the definition :
-        inversions_left(pw) := {(i, j) in [1..n]² : pw[i] < pw[j] 
+        inversions_left(pw) := {(i, j) in [1..n]^2 : pw[i] < pw[j] 
             and the first occurence of 'pw[i]' in pw is after
                 the last occurence of 'pw[j]' in pw}
 
@@ -528,7 +529,7 @@ class PackedWord(ClonableIntArray):
         r"""
         Return the list of smaller or equal packed words for the left weak order.
         (..see :func:`sage.combinat.packed_words.left_weak_order_pred`) 
-        for more informations.
+        for more information.
 
         EXAMPLES::
 
@@ -549,7 +550,7 @@ class PackedWord(ClonableIntArray):
         r"""
         Return the list of greater or equal packed words for the left weak order.
         (..see :func:`sage.combinat.packed_words.left_weak_order_succ`) 
-        for more informations.
+        for more information.
 
         EXAMPLES::
         
