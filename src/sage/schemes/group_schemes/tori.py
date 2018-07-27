@@ -117,14 +117,19 @@ The algorithm checks if the sublattice is stable under the group action.
 
 ########LIST OF ATTRIBUTES OF A LATTICE########
 
-    - Lattice._group : returns the group acting on the lattice
-    - Lattice._generators : returns the generators of that group
-    - Lattice._rank : returns the rank of the lattice
-    - Lattice._action_matrices : returns the matrices through which the group acts
-    - Lattice._action._morphism : returns the map (as a group homomorphism in GAP) from
+    - lattice._group : returns the group acting on the lattice
+    - lattice._generators : returns the generators of that group
+    - lattice._rank : returns the rank of the lattice
+    - lattice._action_matrices : returns the matrices through which the group acts
+    - lattice._action._morphism : returns the map (as a group homomorphism in GAP) from
       the group to GL(rank,ZZ)
-    - Lattice._GAPMap : returns the SAGE Map element representing Lattice.action_morphism
-    - Lattice._action : returns the SAGE action of the group on the lattice
+    - lattice._GAPMap : returns the SAGE Map element representing Lattice.action_morphism
+    - lattice._action : returns the SAGE action of the group on the lattice
+
+
+
+    -lattice._parent_lattice : returns the parent lattice, this attribute only exists for 
+     the SubLattice class
 
 ########LIST OF METHODS OF A LATTICE#######
 Let us create a few lattices to test the methods.
@@ -833,6 +838,25 @@ number of a Torus. See his paper 'On the Tamagawa Number of Algebraic Tori'.
 
 
 
+
+
+
+
+###########################################################################
+#       Copyright (C) 2018 Thomas Rüd <tompa.rud@gmail.com>
+
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+###########################################################################
 
 
 """   
