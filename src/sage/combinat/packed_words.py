@@ -60,7 +60,7 @@ from sage.combinat.combinatorial_map import combinatorial_map
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class PackedWord(ClonableIntArray):
     r"""
-    The class of packed words
+    The class of packed words.
 
     TESTS::
 
@@ -72,7 +72,7 @@ class PackedWord(ClonableIntArray):
     def __classcall_private__(cls, *args, **opts):
         r"""
         Ensure that packed words created by the enumerated sets and directly
-        are the same and that they are instances of :class:`PackedWord`
+        are the same and that they are instances of :class:`PackedWord`.
 
         TESTS::
 
@@ -95,7 +95,7 @@ class PackedWord(ClonableIntArray):
     @lazy_class_attribute
     def _auto_parent(cls):
         r"""
-        The automatic parent of the element of this class
+        The automatic parent of the element of this class.
 
         When calling the constructor of an element of this class, one needs a
         parent. This class attribute specifies which parent is used.
@@ -122,7 +122,7 @@ class PackedWord(ClonableIntArray):
 
     def check(self):
         r"""
-        Check that ``self`` is a packed word
+        Check that ``self`` is a packed word.
 
         TESTS::
 
@@ -144,17 +144,17 @@ class PackedWord(ClonableIntArray):
         Build an *ordered set partition* associated to *self*.
 
         TESTS::
-
-            sage: pw = PackedWords(6).random_element()
-            sage: pw in PackedWords(6)
-            True
+            sage: PackedWord().to_ordered_set_partition()
+            []
+            sage: PackedWord([1]).to_ordered_set_partition()
+            [{1}]
             sage: PackedWord([1, 2, 3, 1, 1, 3]).to_ordered_set_partition()
             [{1, 4, 5}, {2}, {3, 6}]
         """
         d = defaultdict(list)
         for i in range(len(self)):
             d[self[i]].append(i + 1)
-        return [set(d[k]) for k in sorted(d)]
+        return OrderedSetPartition(d.values())
 
     def to_composition(self):
         # TODO to_composition() should mention what a parikh vector is.
@@ -229,7 +229,7 @@ class PackedWord(ClonableIntArray):
     def inversions_right(pw):
         r""" 
         Return the set of right weak order inversions with the definition :
-        inversions_right(pw) := {(i, j) in [1..n]^2 : i < j and pw[i] > pw[j]}
+        inversions_right(pw) := {(i, j) in [1..n]^2 : i < j and pw[i] > pw[j]}.
 
         EXAMPLES::
 
@@ -254,7 +254,7 @@ class PackedWord(ClonableIntArray):
     def coinversions_right(pw):
         r""" 
         Return the set of right weak order coinversions with the definition :
-        coinversions_right(pw) := {(pw[i], pw[j]) in [1..m]^2 : i < j and pw[i] > pw[j]}
+        coinversions_right(pw) := {(pw[i], pw[j]) in [1..m]^2 : i < j and pw[i] > pw[j]}.
 
         EXAMPLES::
 
@@ -282,7 +282,7 @@ class PackedWord(ClonableIntArray):
 
         v is a right successor of u if there exist i < n - 1 such that 
         v is equal to u where the u[i] and u[i + 1] are inversed 
-        and len(inversions_right(v)) = len(inversions_right(u)) + 1
+        and len(inversions_right(v)) = len(inversions_right(u)) + 1.
 
         EXAMPLES::
 
@@ -310,7 +310,7 @@ class PackedWord(ClonableIntArray):
 
         u is a predecessor of v if there exist i < n - 1 such that 
         v is equal to u where the u[i] and u[i + 1] are inversed 
-        and len(inversions_right(v)) = len(inversions_right(u)) + 1
+        and len(inversions_right(v)) = len(inversions_right(u)) + 1.
 
         EXAMPLES::
 
@@ -395,7 +395,7 @@ class PackedWord(ClonableIntArray):
         Return the set of left weak order inversions with the definition :
         inversions_left(pw) := {(pw[i], pw[j]) in [1..m]^2 : pw[i] < pw[j] 
             and the first occurence of 'pw[i]' in pw is after
-                the last occurence of 'pw[j]' in pw}
+                the last occurence of 'pw[j]' in pw}.
 
         EXAMPLES::
 
@@ -426,7 +426,7 @@ class PackedWord(ClonableIntArray):
         Return the set of left weak order inversions with the definition :
         inversions_left(pw) := {(i, j) in [1..n]^2 : pw[i] < pw[j] 
             and the first occurence of 'pw[i]' in pw is after
-                the last occurence of 'pw[j]' in pw}
+                the last occurence of 'pw[j]' in pw}.
 
         EXAMPLES::
 
@@ -457,7 +457,7 @@ class PackedWord(ClonableIntArray):
 
         v is a left successor of u if there exist i < n - 1 such that 
         v is equal to u where the i and i + 1 are inversed 
-        and len(inversions_left(v)) = len(inversions_left(u)) + 1
+        and len(inversions_left(v)) = len(inversions_left(u)) + 1.
 
         EXAMPLES::
 
@@ -495,7 +495,7 @@ class PackedWord(ClonableIntArray):
 
         u is a left predecessor of v if there exist i < n - 1 such that 
         v is equal to u where the i and i + 1 are inversed 
-        and len(inversions_left(v)) = len(inversions_left(u)) + 1
+        and len(inversions_left(v)) = len(inversions_left(u)) + 1.
 
         EXAMPLES::
 
@@ -814,7 +814,7 @@ class PackedWords_size(PackedWords):
 
     def cardinality(self):
         r"""
-        Cardinality of Packed Words of size n
+        Cardinality of Packed Words of size n.
 
         TESTS::
 
@@ -856,7 +856,7 @@ class PackedWords_size(PackedWords):
     @lazy_attribute
     def _parent_for(self):
         r"""
-        The parent of the element generated by ``self`
+        The parent of the element generated by ``self`.
 
         TESTS::
 
