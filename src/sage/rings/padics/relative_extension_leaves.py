@@ -536,6 +536,20 @@ class RelativeExtensionRingFloatingPoint(RelativeExtensionGeneric, pAdicFloating
         self.register_coercion(pAdicUnramifiedOverGeneralBaseringInjection(self._given_ground_ring, self))
 
 class RelativeExtensionFieldFloatingPoint(RelativeExtensionGeneric, pAdicFloatingPointFieldGeneric):
+    """
+    Three-step extension field of the form unramified/eisenstein/ramified with floating point precision. 
+
+    EXAMPLES::
+
+        sage: K0.<a> = QqFP(25, print_pos=False,print_mode='terse')
+        sage: R0.<t> = PolynomialRing(K0)
+        sage: K.<b> = K0.extension(t^2 - 5)
+        sage: R.<s> = PolynomialRing(K)
+        sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2); L
+        5-adic Unramified Extension Field in c defined by (1 + O(b^40))*s^3 + (2 + O(b^40))*s^2 + (4 + O(b^40))*s + 2 + O(b^40) over its base field 
+        sage: c^3 + 2*c^2+ 4*c + 2 == 0
+        True
+    """
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
         self._approx_modulus = approx_modulus
         self._given_ground_ring = approx_modulus.base_ring()         
@@ -563,13 +577,7 @@ class RelativeExtensionFieldFloatingPoint(RelativeExtensionGeneric, pAdicFloatin
 
 class RelativeExtensionFieldCappedRelative(RelativeExtensionGeneric, pAdicCappedRelativeFieldGeneric):
     """
-    Three-step extension field of the form unramified/eisenstein/ramified with capped relative precision. The tower structure is named as follows.
-      L
-    K1  K
-      K0
-      Qp
-    K1/K0/Qp is all unramified
-    K/K0 and L/K1 are Eisenstein, with same defining polynomial
+    Three-step extension field of the form unramified/eisenstein/ramified with capped relative precision. 
 
     EXAMPLES::
 
@@ -583,6 +591,9 @@ class RelativeExtensionFieldCappedRelative(RelativeExtensionGeneric, pAdicCapped
         True
     """
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
+        """
+        Initialization.
+        """
         self._approx_modulus = approx_modulus
         self._given_ground_ring = approx_modulus.base_ring()         
         K0 = self._given_ground_ring.ground_ring()
