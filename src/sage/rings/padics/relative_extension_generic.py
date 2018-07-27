@@ -1,5 +1,5 @@
 """
-Eisenstein Extension Generic
+Relative Extension Generic
 
 This file implements the shared functionality for three-step extensions of the
 form unramified/ramified/unramified.
@@ -443,6 +443,12 @@ class RelativeExtensionGeneric(pAdicExtensionGeneric):
 
         return root
          
-#     # Does not work for now, too confusing to override the base_ring of EisensteinExtensionGeneric.
-#     def base_ring(self):
-#        return self._given_ground_ring
+#       # Does not work for now, too confusing to override the base_ring of
+#       # EisensteinExtensionGeneric.
+#       def base_ring(self):
+#          return self._given_ground_ring
+#   
+#       # Not sure if this is needed. Maybe we need this for some coercion issue?
+#       def _pushout_(self, F):
+#           if (self._given_ground_ring is F):
+#               return self

@@ -102,7 +102,6 @@ class pAdicExtensionGeneric(pAdicGeneric):
                     from sage.rings.padics.relative_ramified_FM import pAdicCoercion_FM_frac_field as coerce_map
             return coerce_map(R, self)
 
-
     def _extension_type(self):
         """
         Return the type (``Unramified``, ``Eisenstein``) of this 
