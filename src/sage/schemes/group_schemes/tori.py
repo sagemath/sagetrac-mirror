@@ -734,7 +734,7 @@ EXAMPLES ::
 
 - torus.norm_one_restriction(group): like the restriction of scalars map except we take the 
 torus of norm 1 elements.
-
+::
 
 
     sage: T1.norm_one_restriction(PermutationGroup([(1,2),(3,4),(5,6),(7,8)]))
@@ -809,10 +809,23 @@ same group, and the norm one restriction of the split torus has nontrivial cohom
 
 This torus ROS is the example of Ono where he applies his formula for the Tamagawa
 number of a Torus. See his paper 'On the Tamagawa Number of Algebraic Tori'.
+::
 
-    sage: ROS2 = T3.norm_one_restriction(SymmetricGroup(4))
-    sage: for i in range(-5,5) : print("H^"+str(i)+" : ") , ROS2.Tate_Cohomology(i)
-    H^-5 :  [2, 2, 2]
+    sage: ROS2=T2.norm_one_restriction(SymmetricGroup(4))
+    sage: for i in range(-4,6) : print("H^"+str(i)+" : ") , T2.Tate_Cohomology(i)
+    H^-4 :  [2]
+    H^-3 :  []
+    H^-2 :  [6]
+    H^-1 :  []
+    H^0 :  [2]
+    H^1 :  []
+    H^2 :  [6]
+    H^3 :  []
+    H^4 :  [2]
+    H^5 :  []
+
+    sage: ROS3=T3.norm_one_restriction(SymmetricGroup(4))
+    sage: for i in range(-4,6) : print("H^"+str(i)+" : ") , ROS3.Tate_Cohomology(i)
     H^-4 :  [2, 2]
     H^-3 :  [2, 12]
     H^-2 :  [2, 2]
@@ -822,19 +835,8 @@ number of a Torus. See his paper 'On the Tamagawa Number of Algebraic Tori'.
     H^2 :  []
     H^3 :  [12]
     H^4 :  [2]
+    H^5 :  [12]
 
-    sage: ROS = T3.norm_one_restriction(SymmetricGroup(4))
-    sage: for i in range(-5,5) : print("H^"+str(i)+" : ") , ROS2.Tate_Cohomology(i)
-    H^-5 :  [2, 2, 2]
-    H^-4 :  [2, 2]
-    H^-3 :  [2, 12]
-    H^-2 :  [2, 2]
-    H^-1 :  [2]
-    H^0 :  [2]
-    H^1 :  [12]
-    H^2 :  []
-    H^3 :  [12]
-    H^4 :  [2]
 
 
 
