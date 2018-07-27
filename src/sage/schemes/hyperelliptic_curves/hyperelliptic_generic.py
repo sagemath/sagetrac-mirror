@@ -130,6 +130,28 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         else:
             return "Hyperelliptic Curve over %s defined by %s + %s = %s" % (R, y**2, h(x)*y, f(x))
 
+    def __hash__(self):
+        """
+        TESTS::
+
+            sage: P.<x> = QQ[]
+            sage: f0 = 4*x^5 - 30*x^3 + 45*x - 22
+            sage: C0 = HyperellipticCurve(f0)
+            sage: f1 = x^5 - x^3 + x - 22
+            sage: C1 = HyperellipticCurve(f1)
+            sage: Q.<y> = GF(5)[]
+            sage: f2 = y^5 - y^3 + y - 22
+            sage: C2 = HyperellipticCurve(f2)
+            sage: hash(C0) == hash(C0)
+            True
+            sage: hash(C0) == hash(C1)
+            False
+            sage: hash(C1) == hash(C2)
+            False
+        """
+        return hash((self.__class__, self._PP,
+                     self._hyperelliptic_polynomials))
+
     def __eq__(self, other):
         """
         Test of equality.
