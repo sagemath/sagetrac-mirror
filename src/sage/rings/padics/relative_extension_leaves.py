@@ -437,13 +437,9 @@ class pAdicUnramifiedOverGeneralBaseringSection(Morphism):
 
 class RelativeExtensionRingFixedMod(RelativeExtensionGeneric, pAdicFixedModRingGeneric):
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
-        self._approx_modulus = approx_modulus
-        self._given_ground_ring = approx_modulus.base_ring()         
+        self._pre_init(exact_modulus, approx_modulus)
         K0 = self._given_ground_ring.ground_ring()
         K = self._given_ground_ring
-        self._construct_unramified_extension_defining_poly()
-        self._construct_maximal_unramified_subextension()
-        self._construct_eisenstein_extension_defining_poly()
         
         unram_prec = prec
         KFP = self.K1.change(prec = unram_prec+1)
@@ -462,13 +458,9 @@ class RelativeExtensionRingFixedMod(RelativeExtensionGeneric, pAdicFixedModRingG
 
 class RelativeExtensionRingCappedAbsolute(RelativeExtensionGeneric, pAdicCappedAbsoluteRingGeneric):
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
-        self._approx_modulus = approx_modulus
-        self._given_ground_ring = approx_modulus.base_ring()         
+        self._pre_init(exact_modulus, approx_modulus)
         K0 = self._given_ground_ring.ground_ring()
         K = self._given_ground_ring
-        self._construct_unramified_extension_defining_poly()
-        self._construct_maximal_unramified_subextension()
-        self._construct_eisenstein_extension_defining_poly()
         
         unram_prec = prec
         KFP = self.K1.change(show_prec=False, type='floating-point')
@@ -487,13 +479,9 @@ class RelativeExtensionRingCappedAbsolute(RelativeExtensionGeneric, pAdicCappedA
 
 class RelativeExtensionRingCappedRelative(RelativeExtensionGeneric, pAdicCappedRelativeRingGeneric):
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
-        self._approx_modulus = approx_modulus
-        self._given_ground_ring = approx_modulus.base_ring()         
+        self._pre_init(exact_modulus, approx_modulus)
         K0 = self._given_ground_ring.ground_ring()
         K = self._given_ground_ring
-        self._construct_unramified_extension_defining_poly()
-        self._construct_maximal_unramified_subextension()
-        self._construct_eisenstein_extension_defining_poly()
         
         unram_prec = prec
         KFP = self.K1.change(show_prec=False, type='floating-point')
@@ -512,13 +500,9 @@ class RelativeExtensionRingCappedRelative(RelativeExtensionGeneric, pAdicCappedR
 
 class RelativeExtensionRingFloatingPoint(RelativeExtensionGeneric, pAdicFloatingPointRingGeneric):
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
-        self._approx_modulus = approx_modulus
-        self._given_ground_ring = approx_modulus.base_ring()         
+        self._pre_init(exact_modulus, approx_modulus)
         K0 = self._given_ground_ring.ground_ring()
         K = self._given_ground_ring
-        self._construct_unramified_extension_defining_poly()
-        self._construct_maximal_unramified_subextension()
-        self._construct_eisenstein_extension_defining_poly()
         
         unram_prec = prec
         KFP = self.K1#.change(show_prec=False, type='floating-point')
@@ -551,13 +535,9 @@ class RelativeExtensionFieldFloatingPoint(RelativeExtensionGeneric, pAdicFloatin
         True
     """
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
-        self._approx_modulus = approx_modulus
-        self._given_ground_ring = approx_modulus.base_ring()         
+        self._pre_init(exact_modulus, approx_modulus)
         K0 = self._given_ground_ring.ground_ring()
         K = self._given_ground_ring
-        self._construct_unramified_extension_defining_poly()
-        self._construct_maximal_unramified_subextension()
-        self._construct_eisenstein_extension_defining_poly()
         
         unram_prec = prec
         KFP = self.K1#.change(show_prec=False, type='floating-point')
@@ -594,13 +574,9 @@ class RelativeExtensionFieldCappedRelative(RelativeExtensionGeneric, pAdicCapped
         """
         Initialization.
         """
-        self._approx_modulus = approx_modulus
-        self._given_ground_ring = approx_modulus.base_ring()         
+        self._pre_init(exact_modulus, approx_modulus)
         K0 = self._given_ground_ring.ground_ring()
         K = self._given_ground_ring
-        self._construct_unramified_extension_defining_poly()
-        self._construct_maximal_unramified_subextension()
-        self._construct_eisenstein_extension_defining_poly()
 
         unram_prec = prec
         KFP = self.K1.change(show_prec=False, type='floating-point')

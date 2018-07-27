@@ -1,5 +1,15 @@
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+"""
+Eisenstein Extension Generic
+
+This file implements the shared functionality for three-step extensions of the
+form unramified/ramified/unramified.
+
+AUTHORS:
+
+- Vishal Arul
+"""
 from .padic_extension_generic import pAdicExtensionGeneric
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 class RelativeExtensionGeneric(pAdicExtensionGeneric): 
     def __init__(self, poly, prec, print_mode, names, element_class):
@@ -28,6 +38,32 @@ class RelativeExtensionGeneric(pAdicExtensionGeneric):
         self._construct_given_gen(self._unramified_extension_defining_poly.list())
         self._cache_powers_of_K1_gen_in_given_basis()
 
+    def _pre_init(self, exact_modulus, approx_modulus):
+        """
+        Computes the data for the extension tower. Needs to be called before
+        __init__. Should be called exactly once. For internal use.
+
+        EXAMPLES::
+
+            sage: K0.<a> = Qq(25, print_pos=False,print_mode='terse')
+            sage: R0.<t> = PolynomialRing(K0)
+            sage: K.<b> = K0.extension(t^2 - 5)
+            sage: R.<s> = PolynomialRing(K)
+            sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2)
+            sage: L._unramified_extension_defining_poly # indirect doctest
+            (1 + O(5^20))*t0^3 + (2 + O(5^20))*t0^2 + (4 + O(5^20))*t0 + 2 + O(5^20)
+            sage: L.maximal_unramified_subextension()
+            5-adic Unramified Extension Field in a1 defined by x^6 + x^4 + 4*x^3 + x^2 + 2
+            sage: L._eisenstein_extension_defining_poly # indirect doctest
+            (1 + O(5^20))*t1^2 - 5 + O(5^21)
+        """
+        self._exact_modulus = exact_modulus # unnecessary?
+        self._approx_modulus = approx_modulus
+        self._given_ground_ring = approx_modulus.base_ring()         
+        self._construct_unramified_extension_defining_poly()
+        self._construct_maximal_unramified_subextension()
+        self._construct_eisenstein_extension_defining_poly()
+        
     def absolute_e(self):
         """
         Return the absolute ramification index of this ring or field.
@@ -297,7 +333,7 @@ class RelativeExtensionGeneric(pAdicExtensionGeneric):
             sage: R.<s> = PolynomialRing(K)
             sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2)
             sage: x = a^2*c + a^7*b^6*c^5 - c^12 + 7
-            sage: S(L._express_via_given_gen(x))(c) == x # indirect doctest
+            sage: S(L._express_via_given_gen(x))(c) == x
             True
         """
         element_in_K0_basis = [self._write_in_K0_basis(entry) for entry in element.polynomial().list()]
@@ -326,7 +362,7 @@ class RelativeExtensionGeneric(pAdicExtensionGeneric):
             sage: x = a1^7 + L._injection_from_K0_to_K1(a^3-2)*a1^2 + 1
             sage: R1 = PolynomialRing(L.K1,names='t1')
             sage: given_K1_gen = L._given_gen.polynomial()(0)
-            sage: R1([L._injection_from_K0_to_K1(coeff) for coeff in L._write_in_K0_basis(x) ])(given_K1_gen) == x # indirect doctest
+            sage: R1([L._injection_from_K0_to_K1(coeff) for coeff in L._write_in_K0_basis(x) ])(given_K1_gen) == x
             True
         """
         if (element.parent() != self.K1):
@@ -349,7 +385,7 @@ class RelativeExtensionGeneric(pAdicExtensionGeneric):
             sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2)
             sage: a+2/a
             -4 + O(5^20)
-            sage: L._injection_from_K0_to_K1(a+2/a) # indirect doctest
+            sage: L._injection_from_K0_to_K1(a+2/a)
             -4 + O(5^20)
         """
         return element.polynomial()(self._K0_gen)
@@ -365,7 +401,7 @@ class RelativeExtensionGeneric(pAdicExtensionGeneric):
             sage: K.<b> = K0.extension(t^2 - 5)
             sage: R.<s> = PolynomialRing(K)
             sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2)
-            sage: L._section_from_K1_to_K0(L._injection_from_K0_to_K1(a+2/a)) == a+2/a # indirect doctest
+            sage: L._section_from_K1_to_K0(L._injection_from_K0_to_K1(a+2/a)) == a+2/a
             True
         """
         element_in_K0_basis = self._write_in_K0_basis(element)        
@@ -381,7 +417,7 @@ class RelativeExtensionGeneric(pAdicExtensionGeneric):
         Given a polynomial over K1 whose coefficients are in coeff_list,
         attempts to find a simple root of this polynomial in K1 (assuming that
         it has a simple root in K1) by finding a root in the residue field and
-        then taking a Hensel lift of that.
+        then taking a Hensel lift of that. For internal use.
 
         EXAMPLES::
 
