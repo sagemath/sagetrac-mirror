@@ -446,7 +446,7 @@ class RelativeExtensionRingFixedMod(RelativeExtensionGeneric, pAdicFixedModRingG
         self._construct_eisenstein_extension_defining_poly()
         
         unram_prec = prec
-        KFP = approx_modulus.base_ring().change(prec = unram_prec+1)
+        KFP = self.K1.change(prec = unram_prec+1)
         unif = K._exact_modulus.base_ring()(K0.uniformizer())
         shift_seed = PolynomialRing(self.K1, name='t1')([self._injection_from_K0_to_K1(coefficient) for coefficient in (-K._exact_modulus[:K._exact_modulus.degree()] / unif).change_ring(K0)])
         self._eisenstein_extension_defining_poly.change_ring(KFP)
@@ -454,7 +454,7 @@ class RelativeExtensionRingFixedMod(RelativeExtensionGeneric, pAdicFixedModRingG
         self.prime_pow = PowComputer_relative_maker(self.K1.prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, self._eisenstein_extension_defining_poly.change_ring(KFP), shift_seed.change_ring(KFP), 'fixed-mod')
         self._implementation = 'Relative'
 
-        RelativeExtensionGeneric.__init__(self, self._eisenstein_extension_defining_poly, prec, print_mode, (names[0],names[1],self.K1.variable_names()[0],names[3]), RelativeRamifiedFloatingPointElement)
+        RelativeExtensionGeneric.__init__(self, self._eisenstein_extension_defining_poly, prec, print_mode, (names[0],names[1],self.K1.variable_names()[0],names[3]), RelativeRamifiedFixedModElement)
         from .relative_ramified_FM import pAdicCoercion_ZZ_FM, pAdicConvert_QQ_FM
         self.register_coercion(pAdicCoercion_ZZ_FM(self))
         self.register_conversion(pAdicConvert_QQ_FM(self))
@@ -471,7 +471,7 @@ class RelativeExtensionRingCappedAbsolute(RelativeExtensionGeneric, pAdicCappedA
         self._construct_eisenstein_extension_defining_poly()
         
         unram_prec = prec
-        KFP = approx_modulus.base_ring().change(show_prec=False, type='floating-point')
+        KFP = self.K1.change(show_prec=False, type='floating-point')
         unif = K._exact_modulus.base_ring()(K0.uniformizer())
         shift_seed = PolynomialRing(self.K1, name='t1')([self._injection_from_K0_to_K1(coefficient) for coefficient in (-K._exact_modulus[:K._exact_modulus.degree()] / unif).change_ring(K0)])
         self._eisenstein_extension_defining_poly.change_ring(KFP)
@@ -479,7 +479,7 @@ class RelativeExtensionRingCappedAbsolute(RelativeExtensionGeneric, pAdicCappedA
         self.prime_pow = PowComputer_relative_maker(self.K1.prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, self._eisenstein_extension_defining_poly.change_ring(KFP), shift_seed.change_ring(KFP), 'capped-abs')
         self._implementation = 'Relative'
 
-        RelativeExtensionGeneric.__init__(self, self._eisenstein_extension_defining_poly, prec, print_mode, (names[0],names[1],self.K1.variable_names()[0],names[3]), RelativeRamifiedFloatingPointElement)
+        RelativeExtensionGeneric.__init__(self, self._eisenstein_extension_defining_poly, prec, print_mode, (names[0],names[1],self.K1.variable_names()[0],names[3]), RelativeRamifiedCappedAbsoluteElement)
         from .relative_ramified_CA import pAdicCoercion_ZZ_CA, pAdicConvert_QQ_CA
         self.register_coercion(pAdicCoercion_ZZ_CA(self))
         self.register_conversion(pAdicConvert_QQ_CA(self))
@@ -496,7 +496,7 @@ class RelativeExtensionRingCappedRelative(RelativeExtensionGeneric, pAdicCappedR
         self._construct_eisenstein_extension_defining_poly()
         
         unram_prec = prec
-        KFP = approx_modulus.base_ring().change(show_prec=False, type='floating-point')
+        KFP = self.K1.change(show_prec=False, type='floating-point')
         unif = K._exact_modulus.base_ring()(K0.uniformizer())
         shift_seed = PolynomialRing(self.K1, name='t1')([self._injection_from_K0_to_K1(coefficient) for coefficient in (-K._exact_modulus[:K._exact_modulus.degree()] / unif).change_ring(K0)])
         self._eisenstein_extension_defining_poly.change_ring(KFP)
@@ -504,7 +504,7 @@ class RelativeExtensionRingCappedRelative(RelativeExtensionGeneric, pAdicCappedR
         self.prime_pow = PowComputer_relative_maker(self.K1.prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, self._eisenstein_extension_defining_poly.change_ring(KFP), shift_seed.change_ring(KFP), 'capped-rel')
         self._implementation = 'Relative'
 
-        RelativeExtensionGeneric.__init__(self, self._eisenstein_extension_defining_poly, prec, print_mode, (names[0],names[1],self.K1.variable_names()[0],names[3]), RelativeRamifiedFloatingPointElement)
+        RelativeExtensionGeneric.__init__(self, self._eisenstein_extension_defining_poly, prec, print_mode, (names[0],names[1],self.K1.variable_names()[0],names[3]), RelativeRamifiedCappedRelativeElement)
         from .relative_ramified_CR import pAdicCoercion_ZZ_CR, pAdicConvert_QQ_CR
         self.register_coercion(pAdicCoercion_ZZ_CR(self))
         self.register_conversion(pAdicConvert_QQ_CR(self))
