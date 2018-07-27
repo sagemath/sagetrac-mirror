@@ -402,7 +402,41 @@ class RelativeRamifiedExtensionFieldFloatingPoint(EisensteinExtensionGeneric, pA
         self.register_coercion(pAdicCoercion_QQ_FP(self))
     
 class pAdicUnramifiedOverGeneralBaseringInjection(Morphism): 
+    """
+    The injection of the user-given base into the three-step extension.
+
+    INPUT:
+
+    - ``R`` -- an extension (eisenstein over unramified) of a `p`-adic ring or field
+    - ``S`` -- an unramified extension of ``R``.
+
+    EXAMPLES::
+
+        sage: K0.<a> = Qq(25, print_pos=False,print_mode='val-unit')
+        sage: R0.<t> = PolynomialRing(K0)
+        sage: K.<b> = K0.extension(t^2 - 25*a*t - 5)
+        sage: R.<s> = PolynomialRing(K)
+        sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2)
+        sage: f = L.coerce_map_from(K); f
+        Generic morphism:
+          From: 5-adic Eisenstein Extension Field in b defined by t^2 - 25*a*t - 5 over its base field
+          To:   5-adic Unramified Extension Field in c defined by s^3 + 2*s^2 + 4*s + 2 over its base field
+    """
     def __init__(self, R, S):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: K0.<a> = Qq(25, print_pos=False,print_mode='val-unit')
+            sage: R0.<t> = PolynomialRing(K0)
+            sage: K.<b> = K0.extension(t^2 - 25*a*t - 5)
+            sage: R.<s> = PolynomialRing(K)
+            sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2)
+            sage: f = L.coerce_map_from(K)
+            sage: type(f)
+            <class 'sage.rings.padics.relative_extension_leaves.pAdicRelativeBaseringInjection'>
+        """
         if not R.is_field() or S.is_field():
             Morphism.__init__(self, Hom(R, S))
         else:
@@ -410,20 +444,117 @@ class pAdicUnramifiedOverGeneralBaseringInjection(Morphism):
             Morphism.__init__(self, Hom(R, S, SetsWithPartialMaps()))
 
     def _call_(self, element):
+        """
+        Evaluation.
+
+        EXAMPLES::
+
+            sage: K0.<a> = Qq(25, print_pos=False,print_mode='val-unit')
+            sage: R0.<t> = PolynomialRing(K0)
+            sage: K.<b> = K0.extension(t^2 - 25*a*t - 5)
+            sage: R.<s> = PolynomialRing(K)
+            sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2)
+            sage: f = L.coerce_map_from(K)
+            sage: f(b - 5) # indirect doctest
+            b * (1 + 25*a + 9765624*b) + O(b^41)
+        """
         return self.codomain()([self.codomain()._injection_from_K0_to_K1(coefficient) for coefficient in element.polynomial().list()])
 
     def _call_with_args(self, x, args=(), kwds={}):
+        """
+        This function is used when some precision cap is passed in
+        (relative or absolute or both).
+
+        EXAMPLES::
+
+            sage: K0.<a> = Qq(25, print_pos=False,print_mode='val-unit')
+            sage: R0.<t> = PolynomialRing(K0)
+            sage: K.<b> = K0.extension(t^2 - 25*a*t - 5)
+            sage: R.<s> = PolynomialRing(K)
+            sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2)
+            sage: f = L.coerce_map_from(K)
+            sage: f(5*b + 25, 7)
+            b^3 * (1 + (1 + 20*a)*b) + O(b^7)
+            sage: f(5*b + 25, 7, 4) # indirect doctest
+            b^3 * (1 + (1 + 20*a)*b) + O(b^7)
+        """
         return self.codomain()(self._call_(x), *args, **kwds)
 
     def section(self):
+        """
+        Map back to the base ring.
+
+        EXAMPLES::
+
+            sage: K0.<a> = Qq(25, print_pos=False,print_mode='val-unit')
+            sage: R0.<t> = PolynomialRing(K0)
+            sage: K.<b> = K0.extension(t^2 - 25*a*t - 5)
+            sage: R.<s> = PolynomialRing(K)
+            sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2)
+            sage: f = L.coerce_map_from(K)
+            sage: g = f.section()
+            sage: g(b + c^2 + 2*c + 2/c)
+            -4 + b + O(b^40)
+        """
         return pAdicUnramifiedOverGeneralBaseringSection(self.codomain(), self.domain())
 
 class pAdicUnramifiedOverGeneralBaseringSection(Morphism):
+    """
+    The map from the three-step extension to the user-defined base.
+
+    INPUT:
+
+    - ``R`` -- an extension (eisenstein over unramified) of a `p`-adic ring or field
+    - ``S`` -- an unramified extension of ``R``.
+
+    EXAMPLES::
+
+        sage: K0.<a> = Qq(25, print_pos=False,print_mode='val-unit')
+        sage: R0.<t> = PolynomialRing(K0)
+        sage: K.<b> = K0.extension(t^2 - 25*a*t - 5)
+        sage: R.<s> = PolynomialRing(K)
+        sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2)
+        sage: f = K.convert_map_from(L); f
+        Generic morphism:
+          From: 5-adic Unramified Extension Field in c defined by s^3 + 2*s^2 + 4*s + 2 over its base field
+          To:   5-adic Eisenstein Extension Field in b defined by t^2 - 25*a*t - 5 over its base field
+    """
     def __init__(self, S, R):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: K0.<a> = Qq(25, print_pos=False,print_mode='val-unit')
+            sage: R0.<t> = PolynomialRing(K0)
+            sage: K.<b> = K0.extension(t^2 - 25*a*t - 5)
+            sage: R.<s> = PolynomialRing(K)
+            sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2)
+            sage: f = K.convert_map_from(L); type(f)
+            <class 'sage.rings.padics.relative_extension_leaves.pAdicUnramifiedOverGeneralBaseringSection'>
+        """
         from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
         Morphism.__init__(self, Hom(S, R, SetsWithPartialMaps()))
 
     def _call_(self, element):
+        """
+        Evaluation
+
+        EXAMPLES::
+
+            sage: K0.<a> = Qq(25, print_pos=False,print_mode='val-unit')
+            sage: R0.<t> = PolynomialRing(K0)
+            sage: K.<b> = K0.extension(t^2 - 25*a*t - 5)
+            sage: R.<s> = PolynomialRing(K)
+            sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2)
+            sage: f = K.convert_map_from(L)
+            sage: f(b + c^2 + 2*c + 2/c) # indirect doctest
+            -4 + b + O(b^40)
+            sage: f(c)
+            Traceback (most recent call last):
+            ...
+            ValueError: Element not contained in base ring.
+        """
         element_in_K1_basis = element.polynomial()
         try:
             element_in_K0_basis = [self.domain()._section_from_K1_to_K0(coefficient) for coefficient in element_in_K1_basis]
@@ -433,10 +564,39 @@ class pAdicUnramifiedOverGeneralBaseringSection(Morphism):
         return self.domain()._given_ground_ring(element_in_K0_basis)
 
     def _call_with_args(self, x, args=(), kwds={}):
+        """
+        Used when specifying absolute or relative precision.
+
+        EXAMPLES::
+
+            sage: K0.<a> = Qq(25, print_pos=False,print_mode='val-unit')
+            sage: R0.<t> = PolynomialRing(K0)
+            sage: K.<b> = K0.extension(t^2 - 25*a*t - 5)
+            sage: R.<s> = PolynomialRing(K)
+            sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2)
+            sage: f = K.convert_map_from(L)
+            sage: f(b + c^2 + 2*c + 2/c,5) # indirect doctest
+            121 + b + O(b^5)
+        """
         return self.domain()(self._call_(x), *args, **kwds)
 
 class RelativeExtensionRingFixedMod(RelativeExtensionGeneric, pAdicFixedModRingGeneric):
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
+        """
+        Three-step extension ring of the form unramified/eisenstein/ramified with
+        fixed-mod precision. 
+
+        EXAMPLES::
+
+            sage: K0.<a> = ZqFM(25, print_pos=False,print_mode='terse')
+            sage: R0.<t> = PolynomialRing(K0)
+            sage: K.<b> = K0.extension(t^2 - 5)
+            sage: R.<s> = PolynomialRing(K)
+            sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2); L
+            5-adic Unramified Extension Ring in c defined by s^3 + 2*s^2 + 4*s + 2 over its base ring
+            sage: c^3 + 2*c^2+ 4*c + 2 == 0
+            True
+        """
         self._pre_init(exact_modulus, approx_modulus)
         K0 = self._given_ground_ring.ground_ring()
         K = self._given_ground_ring
@@ -457,6 +617,21 @@ class RelativeExtensionRingFixedMod(RelativeExtensionGeneric, pAdicFixedModRingG
         self.register_coercion(pAdicUnramifiedOverGeneralBaseringInjection(self._given_ground_ring, self))
 
 class RelativeExtensionRingCappedAbsolute(RelativeExtensionGeneric, pAdicCappedAbsoluteRingGeneric):
+    """
+    Three-step extension ring of the form unramified/eisenstein/ramified with
+    capped absolute precision. 
+
+    EXAMPLES::
+
+        sage: K0.<a> = ZqCA(25, print_pos=False,print_mode='terse')
+        sage: R0.<t> = PolynomialRing(K0)
+        sage: K.<b> = K0.extension(t^2 - 5)
+        sage: R.<s> = PolynomialRing(K)
+        sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2); L
+        5-adic Unramified Extension Ring in c defined by s^3 + 2*s^2 + 4*s + 2 over its base ring
+        sage: c^3 + 2*c^2+ 4*c + 2 == 0
+        True
+    """
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
         self._pre_init(exact_modulus, approx_modulus)
         K0 = self._given_ground_ring.ground_ring()
@@ -478,6 +653,21 @@ class RelativeExtensionRingCappedAbsolute(RelativeExtensionGeneric, pAdicCappedA
         self.register_coercion(pAdicUnramifiedOverGeneralBaseringInjection(self._given_ground_ring, self))
 
 class RelativeExtensionRingCappedRelative(RelativeExtensionGeneric, pAdicCappedRelativeRingGeneric):
+    """
+    Three-step extension ring of the form unramified/eisenstein/ramified with
+    capped relative precision. 
+
+    EXAMPLES::
+
+        sage: K0.<a> = ZqCR(25, print_pos=False,print_mode='terse')
+        sage: R0.<t> = PolynomialRing(K0)
+        sage: K.<b> = K0.extension(t^2 - 5)
+        sage: R.<s> = PolynomialRing(K)
+        sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2); L
+        5-adic Unramified Extension Ring in c defined by s^3 + 2*s^2 + 4*s + 2 over its base ring
+        sage: c^3 + 2*c^2+ 4*c + 2 == 0
+        True
+    """
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
         self._pre_init(exact_modulus, approx_modulus)
         K0 = self._given_ground_ring.ground_ring()
@@ -499,6 +689,21 @@ class RelativeExtensionRingCappedRelative(RelativeExtensionGeneric, pAdicCappedR
         self.register_coercion(pAdicUnramifiedOverGeneralBaseringInjection(self._given_ground_ring, self))
 
 class RelativeExtensionRingFloatingPoint(RelativeExtensionGeneric, pAdicFloatingPointRingGeneric):
+    """
+    Three-step extension ring of the form unramified/eisenstein/ramified with
+    floating point precision. 
+
+    EXAMPLES::
+
+        sage: K0.<a> = ZqFP(25, print_pos=False,print_mode='terse')
+        sage: R0.<t> = PolynomialRing(K0)
+        sage: K.<b> = K0.extension(t^2 - 5)
+        sage: R.<s> = PolynomialRing(K)
+        sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2); L
+        5-adic Unramified Extension Ring in c defined by s^3 + 2*s^2 + 4*s + 2 over its base ring
+        sage: c^3 + 2*c^2+ 4*c + 2 == 0
+        True
+    """
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
         self._pre_init(exact_modulus, approx_modulus)
         K0 = self._given_ground_ring.ground_ring()
@@ -521,7 +726,8 @@ class RelativeExtensionRingFloatingPoint(RelativeExtensionGeneric, pAdicFloating
 
 class RelativeExtensionFieldFloatingPoint(RelativeExtensionGeneric, pAdicFloatingPointFieldGeneric):
     """
-    Three-step extension field of the form unramified/eisenstein/ramified with floating point precision. 
+    Three-step extension field of the form unramified/eisenstein/ramified with
+    floating point precision. 
 
     EXAMPLES::
 
@@ -530,7 +736,7 @@ class RelativeExtensionFieldFloatingPoint(RelativeExtensionGeneric, pAdicFloatin
         sage: K.<b> = K0.extension(t^2 - 5)
         sage: R.<s> = PolynomialRing(K)
         sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2); L
-        5-adic Unramified Extension Field in c defined by (1 + O(b^40))*s^3 + (2 + O(b^40))*s^2 + (4 + O(b^40))*s + 2 + O(b^40) over its base field 
+        5-adic Unramified Extension Field in c defined by s^3 + 2*s^2 + 4*s + 2 over its base field
         sage: c^3 + 2*c^2+ 4*c + 2 == 0
         True
     """
@@ -557,7 +763,8 @@ class RelativeExtensionFieldFloatingPoint(RelativeExtensionGeneric, pAdicFloatin
 
 class RelativeExtensionFieldCappedRelative(RelativeExtensionGeneric, pAdicCappedRelativeFieldGeneric):
     """
-    Three-step extension field of the form unramified/eisenstein/ramified with capped relative precision. 
+    Three-step extension field of the form unramified/eisenstein/ramified with
+    capped relative precision. 
 
     EXAMPLES::
 
@@ -566,7 +773,7 @@ class RelativeExtensionFieldCappedRelative(RelativeExtensionGeneric, pAdicCapped
         sage: K.<b> = K0.extension(t^2 - 5)
         sage: R.<s> = PolynomialRing(K)
         sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2); L
-        5-adic Unramified Extension Field in c defined by (1 + O(b^40))*s^3 + (2 + O(b^40))*s^2 + (4 + O(b^40))*s + 2 + O(b^40) over its base field 
+        5-adic Unramified Extension Field in c defined by s^3 + 2*s^2 + 4*s + 2 over its base field
         sage: c^3 + 2*c^2+ 4*c + 2 == 0
         True
     """

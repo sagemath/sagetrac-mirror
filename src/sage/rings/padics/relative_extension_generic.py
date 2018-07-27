@@ -30,7 +30,7 @@ class RelativeExtensionGeneric(pAdicExtensionGeneric):
             sage: K.<b> = K0.extension(t^2 - 5)
             sage: R.<s> = PolynomialRing(K)
             sage: L.<c> = K.extension(s^3 + 2*s^2 + 4*s + 2); L
-            5-adic Unramified Extension Field in c defined by (1 + O(b^40))*s^3 + (2 + O(b^40))*s^2 + (4 + O(b^40))*s + 2 + O(b^40) over its base field 
+            5-adic Unramified Extension Field in c defined by s^3 + 2*s^2 + 4*s + 2 over its base field
             sage: c^3 + 2*c^2+ 4*c + 2 == 0
             True
         """
@@ -135,6 +135,8 @@ class RelativeExtensionGeneric(pAdicExtensionGeneric):
             sage: L.defining_polynomial()
             (1 + O(b^40))*s^3 + (2 + O(b^40))*s^2 + (4 + O(b^40))*s + 2 + O(b^40)
         """
+        if exact:
+            return self._exact_modulus
         return self._approx_modulus
     
     def gens(self, n=0):
@@ -406,6 +408,9 @@ class RelativeExtensionGeneric(pAdicExtensionGeneric):
         """
         element_in_K0_basis = self._write_in_K0_basis(element)        
 
+        if (len(element_in_K0_basis) == 0):
+            return self._given_ground_ring.base_ring()(0)
+
         for j in range(1, len(element_in_K0_basis)):
             if element_in_K0_basis[j] != 0:
                 raise ValueError("Element not contained in base field.")
@@ -441,7 +446,7 @@ class RelativeExtensionGeneric(pAdicExtensionGeneric):
         for i in range(0, prec):
             root = root - poly_to_solve(root) / poly_to_solve_derivative(root)
 
-        return root
+        return self.K1(root)
          
 #       # Does not work for now, too confusing to override the base_ring of
 #       # EisensteinExtensionGeneric.
