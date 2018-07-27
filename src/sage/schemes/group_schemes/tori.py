@@ -248,14 +248,14 @@ EXAMPLES::
 
 
 
-- lattice.TateCohomology(n) : returns the isomorphism type of the n-th Tate Cohomology group.
+- lattice.Tate_Cohomology(n) : returns the isomorphism type of the n-th Tate Cohomology group.
 
 EXAMPLES:
 
 For L1 
 ::
 
-    sage: for i in range(-5,5) : L1.TateCohomology(i)
+    sage: for i in range(-5,5) : L1.Tate_Cohomology(i)
     []
     [2]
     []
@@ -270,7 +270,7 @@ For L1
 For L2
 ::
 
-    sage: for i in range(-5,5) : L2.TateCohomology(i)
+    sage: for i in range(-5,5) : L2.Tate_Cohomology(i)
     []
     [6, 6, 6, 6]
     []
@@ -285,7 +285,7 @@ For L2
 For L3
 ::    
 
-    sage: for i in range(-5,5) : L3.TateCohomology(i)
+    sage: for i in range(-5,5) : L3.Tate_Cohomology(i)
     [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
     [2, 2, 2, 2, 2, 2, 2, 2]
     [2, 2, 2, 2, 2, 2]
@@ -340,12 +340,12 @@ SAGE doesn't handle cosets for matrix groups.
 
 EXAMPLES::
 
-    sage: L1.zero_sublattice()
+    sage: L1.zero_sum_sublattice()
     Free module of degree 3 and rank 2 over Integer Ring
     Echelon basis matrix:
     [ 1  0 -1]
     [ 0  1 -1]
-    sage: L2.zero_sublattice()
+    sage: L2.zero_sum_sublattice()
     Free module of degree 4 and rank 3 over Integer Ring
     Echelon basis matrix:
     [ 1  0  0 -1]
@@ -357,14 +357,14 @@ We can make them directly ambient lattices
 ::
 
 
-    sage: L1.zero_sublattice(True)
+    sage: L1.zero_sum_sublattice(True)
     Ambient free module of rank 2 over the principal ideal domain Integer Ring
     sage: _._action_matrices
     [
     [ 0  1]  [1 0]
     [-1 -1], [0 1]
     ]
-    sage: L2.zero_sublattice(True)
+    sage: L2.zero_sum_sublattice(True)
     Ambient free module of rank 3 over the principal ideal domain Integer Ring
     sage: _._action_matrices
     [
@@ -414,6 +414,296 @@ We can check the actions on each norm one restriction
 #   CLASS FOR TORI
 #
 ##################################################
+
+
+Tori are now only implemented as character lattices with an action of 
+the Galois group (at least as large as the galois group of a splitting field).
+For now this Galois group will just be an abstract group, 
+either a permutation group or a finite matrix group in GL(n,ZZ).
+
+
+
+ To define a torus we use AlgebraicTorus(character_lattice)
+
+We set up now a few examples of Tori we will use the methods on
+EXAMPLES ::
+
+    sage: L=Lattice_ambient(PermutationGroup([()]),1)
+    sage: AlgebraicTorus(L)
+    Algebraic Torus of rank 1 defined by the following lattice :
+    Ambient free module of rank 1 over the principal ideal domain Integer Ring
+    and an action by the galois group of the form :
+    Permutation Group with generators [()]
+    sage: T1=_
+    
+T1 is the split torus Gm, with action of the trivial Galois group.
+::
+
+
+    sage: LL=Lattice_ambient(SymmetricGroup(3),1)
+    sage: AlgebraicTorus(LL)
+    Algebraic Torus of rank 1 defined by the following lattice :
+    Ambient free module of rank 1 over the principal ideal domain Integer Ring
+    and an action by the galois group of the form :
+    Symmetric group of order 3! as a permutation group
+    sage: T2=_
+
+T2 is still Gm, with trivial action of a galois group isomorphic to S3. Note that 
+this Galois group is not necessarily the one of a minimal splitting extension.
+::
+
+    sage: act1=matrix(3,[0,1,0,0,0,1,1,0,0])
+    sage: act2=matrix(3,[0,1,0,1,0,0,0,0,1])
+    sage: LLL=Lattice_ambient(SymmetricGroup(3),[act1,act2])
+    sage: AlgebraicTorus(LLL)
+    Algebraic Torus of rank 3 defined by the following lattice :
+    Ambient free module of rank 3 over the principal ideal domain Integer Ring
+    and an action by the galois group of the form :
+    Symmetric group of order 3! as a permutation group
+    sage: T3=_
+
+
+T3 is a non-split anisotropic torus with galois group of splitting field isomorphic to S3
+::
+
+    sage: SL=SubLattice(L,[2*L.basis()[0]])
+    sage: AlgebraicTorus(SL)
+    Algebraic Torus of rank 1 defined by the following lattice :
+    Free module of degree 1 and rank 1 over Integer Ring
+    Echelon basis matrix:
+    [2]
+    and an action by the galois group of the form :
+    Permutation Group with generators [()]
+
+This torus is obtained from the sublattice of the first lattice L. The torus obtained is isomorphic.
+
+
+
+
+
+########LIST OF ATTRIBUTES OF AN ALGEBRAIC TORUS########
+
+
+- torus._lattice : This is the only attribute of a torus right now, it 
+returns its defining character lattice
+
+
+########LIST OF METHODS OF AN ALGEBRAIC TORUS########
+
+
+- torus.rank() : returns the rank of the torus
+
+EXAMPLES::
+
+    sage: T1.rank()
+    1
+    sage: T2.rank()
+    1
+    sage: T3.rank()
+    3
+
+
+- torus.galois_group(): returns the Galois group (as abstract group) of the 
+splitting field used to define the torus
+
+EXAMPLES::
+
+    sage: T1.galois_group()
+    Permutation Group with generators [()]
+    sage: T2.galois_group()
+    Symmetric group of order 3! as a permutation group
+    sage: T3.galois_group()
+    Symmetric group of order 3! as a permutation group
+
+- torus.character_lattice(): returns the character lattice of the torus
+
+    sage: T1.character_lattice()
+    Ambient free module of rank 1 over the principal ideal domain Integer Ring
+    sage: T2.character_lattice()
+    Ambient free module of rank 1 over the principal ideal domain Integer Ring
+    sage: T3.character_lattice()
+    Ambient free module of rank 3 over the principal ideal domain Integer Ring
+
+
+- torus.cocharacter_lattice():
+
+EXAMPLES ::
+
+    sage: T3.character_lattice()._action_matrices
+    [
+    [0 1 0]  [0 1 0]
+    [0 0 1]  [1 0 0]
+    [1 0 0], [0 0 1]
+    ]
+    sage: T3.cocharacter_lattice()._action_matrices
+    [
+    [0 1 0]  [0 1 0]
+    [0 0 1]  [1 0 0]
+    [1 0 0], [0 0 1]
+    ]
+
+The matrices are all orthogonal so we get the same lattice. The action will be 
+different in the next example.
+::
+
+
+
+    sage: Lattice_ambient(PermutationGroup([(1,2,3,4,5,6)]),[matrix(2,[0,1,-1,-1])])
+    Ambient free module of rank 2 over the principal ideal domain Integer Ring
+    sage: T=AlgebraicTorus(_)
+    sage: T.character_lattice()._action_matrices
+    [
+    [ 0  1]
+    [-1 -1]
+    ]
+    sage: T.cocharacter_lattice()._action_matrices
+    [
+    [-1  1]
+    [-1  0]
+    ]
+
+- torus.Tate_Cohomology(n): Uses Tate-Nakayama lemma to return the isomorphism
+type of the nth Tate Cohomology group of the Torus
+
+EXAMPLES::
+
+    sage: for i in range(-5,5) : print("H^"+str(i)+" : ") , T1.Tate_Cohomology(i)
+    H^-5 :  []
+    H^-4 :  []
+    H^-3 :  []
+    H^-2 :  []
+    H^-1 :  []
+    H^0 :  []
+    H^1 :  []
+    H^2 :  []
+    H^3 :  []
+    H^4 :  []
+
+
+
+
+The Galois group is trivial and has obviously trivial cohomology
+::
+
+    sage: for i in range(-5,5) : print("H^"+str(i)+" : ") , T2.Tate_Cohomology(i)
+    H^-5 :  []
+    H^-4 :  [2]
+    H^-3 :  []
+    H^-2 :  [6]
+    H^-1 :  []
+    H^0 :  [2]
+    H^1 :  []
+    H^2 :  [6]
+    H^3 :  []
+    H^4 :  [2]
+
+We can recognize from class field theory that H^2, which is the Brauer group of
+our extension is isomorphic to the cyclic group Cn where n is the order of the 
+Galois group. Here the group is S3, which has order 6 so we get C6.
+
+Another way to see it is seeing this H^2 as H^0 of its character lattice. Since the group
+acts trivially, the fixed elements are the whole lattice, and the trace map is multiplication
+by the order of the group, which is 6, so we get C6^(rank of T1)
+
+
+Also, H^0 can be seen as the abelianization of the Galois group, which here has order
+2 (it is the group of signatures)
+::
+
+    sage: for i in range(-5,5) : print("H^"+str(i)+" : ") , T3.Tate_Cohomology(i)
+    H^-5 :  []
+    H^-4 :  [2]
+    H^-3 :  []
+    H^-2 :  [2]
+    H^-1 :  []
+    H^0 :  [2]
+    H^1 :  []
+    H^2 :  [2]
+    H^3 :  []
+    H^4 :  [2]
+   
+In this example, we can see the 2-periodicity of the cohomology groups, consequence
+of the group being cyclic.
+
+- torus.restriction_of_scalars(group): returns the torus obtained by restriction of scalars.
+The use has to input the (larger) galois group for this extension. More concretely, 
+if the torus is defined over K, splits over L, and is defined by the action of Gal(L/K)
+on its character lattice, then if one want the restriction of scalars to a smaller field k,
+one has to enter Gal(L/k) as argument of this method. 
+
+EXAMPLES ::
+
+    sage: T1.restriction_of_scalars(PermutationGroup([(1,2),(3,4),(5,6),(7,8)]))
+    Algebraic Torus of rank 16 defined by the following lattice :
+    Ambient free module of rank 16 over the principal ideal domain Integer Ring
+    and an action by the galois group of the form :
+    Permutation Group with generators [(7,8), (5,6), (3,4), (1,2)]
+
+
+    sage: T2.restriction_of_scalars(SymmetricGroup(4))
+    Algebraic Torus of rank 4 defined by the following lattice :
+    Ambient free module of rank 4 over the principal ideal domain Integer Ring
+    and an action by the galois group of the form :
+    Symmetric group of order 4! as a permutation group
+    sage: _.character_lattice()._action_matrices
+    [
+    [0|0|0|1]  [1|0|0|0]
+    [-+-+-+-]  [-+-+-+-]
+    [1|0|0|0]  [0|1|0|0]
+    [-+-+-+-]  [-+-+-+-]
+    [0|1|0|0]  [0|0|0|1]
+    [-+-+-+-]  [-+-+-+-]
+    [0|0|1|0], [0|0|1|0]
+    ]
+    sage: T3.restriction_of_scalars(SymmetricGroup(4))
+    Algebraic Torus of rank 12 defined by the following lattice :
+    Ambient free module of rank 12 over the principal ideal domain Integer Ring
+    and an action by the galois group of the form :
+    Symmetric group of order 4! as a permutation group
+    sage: _.character_lattice()._action_matrices
+    [
+    [0 0 0|0 0 0|0 0 0|1 0 0]  [0 1 0|0 0 0|0 0 0|0 0 0]
+    [0 0 0|0 0 0|0 0 0|0 1 0]  [1 0 0|0 0 0|0 0 0|0 0 0]
+    [0 0 0|0 0 0|0 0 0|0 0 1]  [0 0 1|0 0 0|0 0 0|0 0 0]
+    [-----+-----+-----+-----]  [-----+-----+-----+-----]
+    [0 1 0|0 0 0|0 0 0|0 0 0]  [0 0 0|0 1 0|0 0 0|0 0 0]
+    [0 0 1|0 0 0|0 0 0|0 0 0]  [0 0 0|1 0 0|0 0 0|0 0 0]
+    [1 0 0|0 0 0|0 0 0|0 0 0]  [0 0 0|0 0 1|0 0 0|0 0 0]
+    [-----+-----+-----+-----]  [-----+-----+-----+-----]
+    [0 0 0|0 1 0|0 0 0|0 0 0]  [0 0 0|0 0 0|0 0 0|1 0 0]
+    [0 0 0|0 0 1|0 0 0|0 0 0]  [0 0 0|0 0 0|0 0 0|0 1 0]
+    [0 0 0|1 0 0|0 0 0|0 0 0]  [0 0 0|0 0 0|0 0 0|0 0 1]
+    [-----+-----+-----+-----]  [-----+-----+-----+-----]
+    [0 0 0|0 0 0|0 1 0|0 0 0]  [0 0 0|0 0 0|1 0 0|0 0 0]
+    [0 0 0|0 0 0|0 0 1|0 0 0]  [0 0 0|0 0 0|0 1 0|0 0 0]
+    [0 0 0|0 0 0|1 0 0|0 0 0], [0 0 0|0 0 0|0 0 1|0 0 0]
+    ]
+
+
+
+
+- torus.norm_one_restriction(group): like the restriction of scalars map except we take the 
+torus of norm 1 elements.
+
+
+
+
+        #gives the torus representing the Restriction of scalars. 
+        #Right now, for a torus defined over K, splitting over L, 
+        #to compute the restriction of scalars to k inside K, 
+        #the user has to enter the galois group of the extension L/k
+        #In the future, when we will have a better notion for Galois group
+        #perhaps we can deal with fields directly.
+
+
+    def restriction_of_scalars(self,group):
+        return AlgebraicTorus(self._lattice.induced_lattice(group))
+    def norm_one_restriction(self,group):
+
+
+
+
+
 """   
 
 
@@ -584,16 +874,16 @@ class Lattice_generic(FreeModule_generic):
         return Lattice_ambient(self._group,newacts)
     
 
-    def TateCohomology(self,n):
-        return self.TCohomology(n)
+    def Tate_Cohomology(self,n):
+        return self.Tate_Cohomology(n)
 
     def induced_lattice(self,group,build=True):
-        return self.induction(group,build)
+        return self.induced_lattice(group,build)
 
     def zero_sum_sublattice(self,ambient=False):
-        return self.zero_sublattice()
-    def norm_one_restriction_of_scalars(self,group):
-        return self.norm_one_restriction_of_scalars(self,group)
+        return self.zero_sum_sublattice(ambient)
+    def norm_one_restriction_of_scalars(self,group,ambient=False):
+        return self.norm_one_restriction_of_scalars(self,group,ambient)
 
 
 
@@ -626,7 +916,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
 
 
 
-    def TCohomology(self,n):
+    def Tate_Cohomology(self,n):
         
         MG=self.GAPMatrixGroup()
 
@@ -675,7 +965,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
 
 
 
-    #.self._induction(containing_group,build) computes the lattice obtained by induction from 
+    #.self._induced_lattice(containing_group,build) computes the lattice obtained by induction from 
     #the group defining the lattice to a bigger group "containing_group" 
 
 
@@ -686,7 +976,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
 
 
 
-    def induction(self,group,build=True):
+    def induced_lattice(self,group,build=True):
         LCos=group.cosets(self._group,'left')
         LCosReps=[i[0] for i in LCos]
         LCosnum=len(LCos)
@@ -746,7 +1036,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
         else:
             return gens_induced_act
     #now we build the character lattice for the norm 1 restrictions of scalars        
-    def zero_sublattice(self,ambient=False):
+    def zero_sum_sublattice(self,ambient=False):
         if ambient:
             A=self
             acts=self._action_matrices
@@ -775,8 +1065,8 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
         A *l + B * (-sum_i l_i), which is the transformation A-B*(1,...,1)
         """
 
-    def norm_one_restriction_of_scalars(self,group):
-        return self.zero_sum_sublattice(self.induction(group))
+    def norm_one_restriction_of_scalars(self,group,ambient=True):
+        return self.induced_lattice(group).zero_sum_sublattice(ambient)
 
 
  
@@ -803,15 +1093,16 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
             act_builder.append(matrix(mat_builder))
         return Lattice_ambient(self._group,act_builder)
 
-    def TCohomology(self,n):
-        return self.ambientify().TCohomology(n)
+    def Tate_Cohomology(self,n):
+        return self.ambientify().Tate_Cohomology(n)
 
-    def induction(self,group):
-        return self.ambientify().induction(group)
+    def induced_lattice(self,group):
+        return self.ambientify().induced_lattice(group)
 
     def norm_one_restriction_of_scalars(self,group):
-        return self.ambientify().induction(group)
+        return self.ambientify().induced_lattice(group)
     
+
 
 
         """
@@ -852,17 +1143,23 @@ class AlgebraicTorus(GroupScheme):
             self._lattice = lattice
     def _repr_(self):
         return "Algebraic Torus of rank %s defined by the following lattice :\n"%(self.rank())+self._lattice._repr_()+"\nand an action by the galois group of the form :\n"+self._lattice._group._repr_() 
-    def Tate_Cohomology(self,n):
-        #This gives the isomorphism type of the nth cohomology group using Tate-Nakayama duality 
-        return self._lattice.TateCohomology(2-n)
-    def galois_group(self):
-        return self._lattice._group
-    def character_lattice(self):
-        return self._lattice
+
     def rank(self):
         return self._lattice._rank
+
+    def galois_group(self):
+        return self._lattice._group
+
+    def character_lattice(self):
+        return self._lattice
+
     def cocharacter_lattice(self):
         return self._lattice.colattice()
+
+
+    def Tate_Cohomology(self,n):
+        #This gives the isomorphism type of the nth cohomology group using Tate-Nakayama duality 
+        return self._lattice.Tate_Cohomology(2-n)
 
         #gives the torus representing the Restriction of scalars. 
         #Right now, for a torus defined over K, splitting over L, 
@@ -875,4 +1172,4 @@ class AlgebraicTorus(GroupScheme):
     def restriction_of_scalars(self,group):
         return AlgebraicTorus(self._lattice.induced_lattice(group))
     def norm_one_restriction(self,group):
-        return AlgebraicTorus(self._lattice.norm_one_restriction(group))
+        return AlgebraicTorus(self._lattice.norm_one_restriction_of_scalars(group,True))
