@@ -16,25 +16,34 @@ namespace wl{
         template<typename T>
         class AdjMatrix{
                 public:
-                        vector<int> getCanonicalOrdering(vector<int> vertices, int n) const{
-                            vector<int> current_best = vertices;
+                        int* getCanonicalOrdering(int* vertices, int s, int n) const{
+                            int* permutation = new int[s];
+                            memcpy(permutation, vertices, s*sizeof(int));
+                            int* current_best = new int[s];
+                            memcpy(current_best, vertices, s*sizeof(int));
                             char* m = new char[n*n]();
-                            getCanonicalOrdering(vertices, current_best, 0, vertices.size(), n, m);
+                            getCanonicalOrdering(vertices, current_best, 0, s, n, m);
                             delete[] m;
+                            delete[] permutation;
                             return current_best;
                         }
                         class VectorView{
                                 public:
-                                        VectorView(const AdjMatrix<int>& adjMatrix, vector<int>&& v): adjMatrix(adjMatrix){
-                                            vertex_subset = std::move(v);
+                                        VectorView(const AdjMatrix<int>& adjMatrix, int* v, int s): adjMatrix(adjMatrix){
+                                            vertex_subset = v;
+                                            this->s = s;
                                             rehash();
                                         }
-                                        VectorView(const AdjMatrix<int>& adjMatrix, const vector<int>& v): adjMatrix(adjMatrix){
-                                            vertex_subset = v;
+                                        ~VectorView(){
+                                            delete[] vertex_subset;
+                                        }
+                                        VectorView(const VectorView& b): adjMatrix(b.adjMatrix){
+                                            vertex_subset = new int[b.s];
+                                            memcpy(vertex_subset, b.vertex_subset, sizeof(int)*b.s);
+                                            s = b.s;
                                             rehash();
                                         }
                                         int operator[](size_t i) const{
-                                                auto s = vertex_subset.size();
                                                 auto row = i/s;
 												auto col = i%s;
 												return (*this)(row, col);
@@ -47,23 +56,23 @@ namespace wl{
                                         }
                                         void rehash(){
                                             hash_value = 0;
-                                            int n = vertex_subset.size()*vertex_subset.size();
+                                            int n = s*s;
                                             for(int i = 0; i < n; i++){
                                                 hash_combine<int>(hash_value, (*this)[i]);
                                             }
                                         }
                                         bool operator==(const VectorView& b) const{
-                                            if(vertex_subset.size() != b.vertex_subset.size()) return false;
+                                            if(s != b.s) return false;
                                             if(b.hash_value != hash_value) return false;
-                                            int n = vertex_subset.size()*vertex_subset.size();
+                                            int n = s*s;
                                             for(int i = 0; i < n;i++){
                                                 if((*this)[i] != b[i]) return false;
                                             }
                                             return true;
                                         }
                                         bool operator<(const VectorView& b) const{
-                                            if(vertex_subset.size() != b.vertex_subset.size()) throw std::invalid_argument("Different vertex subset size");
-                                            auto n = vertex_subset.size()*vertex_subset.size();
+                                            if(s != b.s) throw std::invalid_argument("Different vertex subset size");
+                                            auto n = s*s;
                                             for(int i = 0; i < n;i++){
                                                 int aV = (*this)[i];
                                                 int bV = b[i];
@@ -73,7 +82,6 @@ namespace wl{
                                             return false;
                                         }
                                         void printVectorView() const{
-                                            int s = vertex_subset.size();
                                             for(int i = 0; i < s; i++){
                                                 for(int j = 0; j < s; j++){
                                                     cout << (*this)(i,j) << " ";
@@ -83,7 +91,8 @@ namespace wl{
                                         }
                                 private:
                                         size_t hash_value = 0;
-                                        vector<int> vertex_subset;
+                                        int* vertex_subset;
+                                        int s;
                                         const AdjMatrix<int>& adjMatrix;
                         };
                         //The type T default constructor should set an element of type T to default_label, and the latter should never be used as label for an existing edge
@@ -142,8 +151,8 @@ namespace wl{
                         int num_of_vertices;
                         T default_label;
                         T* array;
-                        int compareSubgraphs(vector<int>& a, vector<int>& b, size_t s) const{
-                            if(a == b) return 0;
+                        int compareSubgraphs(int* a, int* b, size_t s) const{
+                            if(memcmp(a, b, s*sizeof(int)) == 0) return 0;
                             for(size_t i = 0; i < s; i++){
                                 for(size_t j = 0; j < s; j++){
                                     int aV = getValue(i, j, a);
@@ -154,10 +163,9 @@ namespace wl{
                             }
                             return 0;
                         }
-                        bool areVerticesIsomorphic(int a, int b, const vector<int>& v) const{
+                        bool areVerticesIsomorphic(int a, int b, int* v, int s) const{
                             if(v[a] == v[b]) return true;
                             if(getValue(a,a,v) != getValue(b,b,v) || getValue(a,b,v) != getValue(b,a,v)) return false;
-                            int s = v.size();
                             for(int i = 0; i < s; i++){
                                 if(i == b || i == a) continue;
                                 int aV = getValue(a, i, v);
@@ -169,28 +177,28 @@ namespace wl{
                             }
                             return true;
                         }
-                        void getCanonicalOrdering(vector<int>& permutation, vector<int>& current_best, size_t offset, size_t s, size_t n, char* isomorphicVertices) const{
+                        void getCanonicalOrdering(int* permutation, int* current_best, size_t offset, size_t s, size_t n, char* isomorphicVertices) const{
                             int c = compareSubgraphs(permutation, current_best, s);
                             //if(c == 1) return;
-                            if(c == -1) std::copy(permutation.begin(), permutation.end(), current_best.begin());
+                            if(c == -1) memcpy(current_best, permutation, s*sizeof(int));
                             for(size_t i = offset; i < s; i++){
                                 if(i != offset){
                                     int idx = permutation[i]*n+permutation[offset];
                                     char v = isomorphicVertices[idx];
                                     if(v == 0){
-                                        bool r = areVerticesIsomorphic(i, offset, permutation);
+                                        bool r = areVerticesIsomorphic(i, offset, permutation, s);
                                         isomorphicVertices[idx] = r?1:2;
                                         if (r) continue;
                                     }else{
                                         if (v == 1) continue;
                                     }
                                 }
-                                std::swap(permutation[i], permutation[offset]);
+                                std::iter_swap(permutation+i, permutation + offset);
                                 getCanonicalOrdering(permutation, current_best, offset+1, s, n, isomorphicVertices);
-                                std::swap(permutation[i], permutation[offset]);
+                                std::iter_swap(permutation + i, permutation + offset);
                             }
                         }
-                        int getValue(int row, int col, const vector<int>& vertices, bool trueIndex=false) const{
+                        int getValue(int row, int col, int* vertices, bool trueIndex=false) const{
                             int iV = row; 
                             int jV = col;
                             if(!trueIndex){
@@ -242,13 +250,13 @@ namespace wl{
             return c;
         }
             
-        void createFingerprint(FingerprintMap& fingerprint, const AdjMatrix<int>& am, int i, int j, int maxVertex, int offset, int limit, bool init, vector<int>& currentTuple, bool usedI=false, bool usedJ=false){
+        void createFingerprint(FingerprintMap& fingerprint, const AdjMatrix<int>& am, int i, int j, int maxVertex, int offset, int limit, bool init, int* currentTuple, bool usedI=false, bool usedJ=false){
             if(!init && offset > limit-2 && !usedI && !usedJ) return;
             if(!init && ((maxVertex > i && !usedI) || (maxVertex > j && !usedJ))) return;
             int n = am.size();
             if(offset == limit){ //If a subgraph is completed
                 if(!init && (!usedI || !usedJ)) return;
-                AdjMatrix<int>::VectorView subgraphView(am, std::move(am.getCanonicalOrdering(currentTuple, n)));
+                AdjMatrix<int>::VectorView subgraphView(am, am.getCanonicalOrdering(currentTuple, limit, n), limit);
                 auto& v = fingerprint[subgraphView];
                 if(usedI && usedJ) ++v;
                 else v = 0;
@@ -267,12 +275,6 @@ namespace wl{
         }
         map<int, vector<pair<int,int>>> k_WL(const std::vector<GraphNode>& v, int k, bool hasVertexLabels){
             int n = v.size();
-            /*TupleMap tm;
-            InverseTupleMap itm;
-            vector<Coloring> tuple_coloring((int)pow(n,k));
-            vector<Coloring> firstColoring;
-            pair<vector<int>,vector<bool>> res;
-            */
             AdjMatrix<int> adjMatrix = populateAdjMatrix(v, n, hasVertexLabels);
             AdjMatrix<int> new_adjMatrix = AdjMatrix<int>(n, 0);
             queue<ColorClass> color_classes;
@@ -282,7 +284,7 @@ namespace wl{
             while(!finished){
                     finished = true;
                     FingerprintMap fingerprint;
-                    vector<int> tempVector(k+1);
+                    int* tempVector = new int[k+1];
                     unordered_map<Tuple<int>, ColorClass> fingerprintsDB;
                     while(!color_classes.empty()){
                         auto cc = color_classes.front();
@@ -311,7 +313,8 @@ namespace wl{
                             new_color_classes.push(std::move(color_class.second));
                         }
                         if(c > 1) finished = false;
-                    }    
+                    }
+                    delete[] tempVector;    
                     AdjMatrix<int>::swap(adjMatrix, new_adjMatrix);
                     std::swap(color_classes, new_color_classes);                        
             }
