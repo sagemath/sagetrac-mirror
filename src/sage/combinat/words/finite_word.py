@@ -7196,6 +7196,280 @@ class FiniteWord_class(Word_class):
         else:
             return False
 
+    def sweep(self):
+        r"""
+        Returns the modular sweep map of [1]_ if the alphabet of ``self`` is an ``IntegerModRing``, or the sweep map of [2]_ if the alphabet of ``self`` is an ``IntegerRing``.
+
+        Given a word `w` on an ``IntegerModRing`` alphabet with modulus `m`, the modular sweep map computes the level of each letter of `w` by taking successive partial sums modulo `m`, and then sorts the letters according to level (preserving the order of letters with the same level).  When the alphabet is an ``IntegerRing``, the sweep map computes the level of each letter of `w` by taking successive partial sums, and then sorts the letters according to level (preserving the order of letters with the same level).  Note that the implementation here follows the procedure described in Theorem 6.3 of [1]_ to emulate this process by choosing a large modulus and applying the modular sweep map.  Of special interest is when the word `w` is restricted to using two letters, which can be interpreted as sweeping a lattice path, as in [2]_.  Rational `(a,b)`-Dyck paths fit into this framework as words with nonnegative levels on the two-letter alphabet `(a,-b)`.
+
+        INPUT:
+
+        - ``self`` -- word defined on an ``IntegerModRing`` or ``IntegerRing`` alphabet.
+
+        OUTPUT:
+
+        word -- the modular sweep map or sweep map applied to ``self``.
+
+        EXAMPLES::
+
+        We begin by illustrating the modular sweep map following Example 3.1 of [1]_ ::
+
+            sage: Word([3,1,1,3,2,1,4],IntegerModRing(5)).sweep()
+            word: 1331421
+
+        We continue with the modular sweep map following Example 3.2 of [1]_ ::
+
+            sage: Word([2,3,1,4,3,4,1],IntegerModRing(5)).sweep()
+            word: 1342143
+
+        We conclude with the modular sweep map following Figure 3 of [2]_ and Examples 6.1 and 6.2 of [1]_ ::
+
+            sage: Word([3,-2,3,-2,-2,-2,3,-2,-2,-2,-2,3,3,-2,-2,3,3,3],IntegerModRing(12)).sweep()
+            word: 3,-2,3,-2,-2,-2,3,-2,-2,-2,3,3,3,-2,3,3,-2,-2
+
+        We begin by illustrating the sweep map following Figure 1 of [2]_ ::
+
+            sage: Word([-3,5,-3,-3,5,5,-3,-3],IntegerRing()).sweep()
+            word: -3,-3,-3,5,-3,5,5,-3
+
+        We continue with the sweep map following the rightmost example in Figure 3 of [2]_ ::
+
+            sage: Word([3,-2,3,-2,-2,-2,3,-2,-2,-2,-2,3,3,-2,-2,3,3,3],IntegerRing()).sweep()
+            word: 3,-2,3,-2,-2,-2,3,-2,-2,-2,3,3,3,-2,3,3,-2,-2
+
+        We conclude with the sweep map following Figure 6 of [2]_ ::
+
+            sage: Word([1,1,1,-1,1,1,-1,-1,-1,-1,1,-1,1,1,-1,1,1,-1,-1,1,1,-1,-1,-1,1,1,-1,-1],IntegerRing()).sweep()
+            word: 1,1,1,-1,1,1,1,-1,1,-1,1,1,-1,-1,1,-1,1,-1,-1,-1,1,1,-1,1,-1,-1,-1,-1
+
+        When the modulus is large enough, the modular sweep map stabilizes to agree with the sweep map ::
+
+            sage: w1 = Word([3,-2,3,-2,-2,-2,3,-2,-2,-2,-2,3,3,-2,-2,3,3,3],IntegerModRing(12))
+            sage: w2 = Word([3,-2,3,-2,-2,-2,3,-2,-2,-2,-2,3,3,-2,-2,3,3,3],IntegerRing())
+            sage: w1.sweep() == w2.sweep()
+            True
+
+        When the modulus is small, the modular sweep map may not agree with the sweep map ::
+
+            sage: w1 = Word([3,-2,3,-2,-2,-2,3,-2,-2,-2,-2,3,3,-2,-2,3,3,3],IntegerModRing(5))
+            sage: w2 = Word([3,-2,3,-2,-2,-2,3,-2,-2,-2,-2,3,3,-2,-2,3,3,3],IntegerRing())
+            sage: w1.sweep() == w2.sweep()
+            False
+
+        TESTS::
+
+            sage: Word([3,1,1,3,2,1,4],IntegerModRing(5)).sweep()
+            word: 1331421
+            sage: Word([2,3,1,4,3,4,1],IntegerModRing(5)).sweep()
+            word: 1342143
+            sage: Word([3,-2,3,-2,-2,-2,3,-2,-2,-2,-2,3,3,-2,-2,3,3,3],IntegerModRing(12)).sweep()
+            word: 3,-2,3,-2,-2,-2,3,-2,-2,-2,3,3,3,-2,3,3,-2,-2
+            sage: Word([-3,5,-3,-3,5,5,-3,-3],IntegerRing()).sweep()
+            word: -3,-3,-3,5,-3,5,5,-3
+            sage: Word([3,-2,3,-2,-2,-2,3,-2,-2,-2,-2,3,3,-2,-2,3,3,3],IntegerRing()).sweep()
+            word: 3,-2,3,-2,-2,-2,3,-2,-2,-2,3,3,3,-2,3,3,-2,-2
+            sage: Word([1,1,1,-1,1,1,-1,-1,-1,-1,1,-1,1,1,-1,1,1,-1,-1,1,1,-1,-1,-1,1,1,-1,-1],IntegerRing()).sweep()
+            word: 1,1,1,-1,1,1,1,-1,1,-1,1,1,-1,-1,1,-1,1,-1,-1,-1,1,1,-1,1,-1,-1,-1,-1
+
+        REFERENCES:
+
+        .. [1]  H. Thomas and N. Williams. "Sweeping up zeta." Selecta Mathematica 24.3 (2018): 2003-2034.
+        .. [2]  D. Armstrong, N. Loehr, and G. Warrington. "Sweep maps: A continuous family of sorting algorithms." Advances in Mathematics 284 (2015): 159-185.
+
+        """
+        try:
+            alph = self.parent().alphabet()
+        except AttributeError:
+            raise ValueError("Alphabet of input word not initialized.")
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
+        from sage.rings.integer_ring import IntegerRing_class
+        if isinstance(alph,IntegerModRing_generic):
+            levels = list(self)
+            l_i = alph(0)
+            for i,w_i in enumerate(self):
+                l_i = alph(l_i + w_i)
+                levels[i] = l_i
+            b = dict([])
+            for l_i in sorted(set(levels)):
+                for j,w_j in reversed(list(enumerate(self))):
+                    if levels[j] == l_i:
+                        if l_i in b:
+                            b[l_i] = b[l_i] + [self[j]]
+                        else:
+                            b[l_i] = [self[j]]
+            out=[]
+            for i in reversed(list(alph)):
+                if i in b:
+                    out += b[i]
+            return self.parent()(out)
+        elif isinstance(alph,IntegerRing_class):
+            m = sum(map(abs,self))+1
+            from sage.combinat.words.word import Word
+            from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+            return self.parent()(Word(list(self),IntegerModRing(m)).sweep())
+        else:
+            raise ValueError("Alphabet of input word must be an 'IntegerModRing' or 'IntegerRing'.")
+
+    def inverse_sweep(self):
+        r"""
+        Returns the inverse modular sweep map of [1]_ if the alphabet of ``self`` is an ``IntegerModRing``, or the inverse sweep map of [1]_ if the alphabet of ``self`` is an ``IntegerRing``.
+        
+        The inverse modular sweep map is the inverse of the modular sweep map (in particular, this proves that the modular sweep map is a bijection).  To invert the sweep map, the implementation here follows the procedure described in Theorem 6.3 of [1]_ by choosing a large modulus and applying the inverse modular sweep map.  See references [1]_ and [2]_.
+
+        INPUT:
+
+        - ``self`` -- word defined over ``IntegerModRing`` or ``IntegerRing`` alphabet.
+
+        OUTPUT:
+
+        word -- the inverse modular sweep map or inverse sweep map applied to ``self``.
+
+        EXAMPLES::
+
+        We begin by illustrating the inverse modular sweep map following Examples 3.1 and 3.3 of [1]_ ::
+
+            sage: w = Word([3,1,1,3,2,1,4],IntegerModRing(5))
+            sage: u = w.sweep()
+            sage: u.inverse_sweep() == w
+            True
+
+        We continue with the inverse modular sweep map following Examples 3.2 and 3.3 of [1]_ ::
+
+            sage: w = Word([2,3,1,4,3,4,1],IntegerModRing(5))
+            sage: u = w.sweep()
+            sage: u.inverse_sweep() == w
+            True
+
+        We conclude with the inverse modular sweep map following Figure 3 of [2]_ and Examples 6.1 and 6.2 of [1]_, illustrating Theorem 6.3 of [1]_ ::
+
+            sage: w = Word([3,-2,3,-2,-2,-2,3,-2,-2,-2,-2,3,3,-2,-2,3,3,3],IntegerModRing(12))
+            sage: u = w.sweep()
+            sage: u.inverse_sweep() == w
+            True
+
+        We begin by illustrating the inverse sweep map following Figure 1 of [2]_ ::
+
+            sage: w = Word([-3,5,-3,-3,5,5,-3,-3],IntegerRing())
+            sage: u = w.sweep()
+            sage: u.inverse_sweep() == w
+            True
+
+        We continue with the inverse sweep map following the rightmost example in Figure 3 of [2]_ ::
+
+            sage: w = Word([3,-2,3,-2,-2,-2,3,-2,-2,-2,-2,3,3,-2,-2,3,3,3],IntegerRing())
+            sage: u = w.sweep()
+            sage: u.inverse_sweep() == w
+            True
+
+        We conclude with the inverse sweep map following Figure 6 of [2]_ ::
+
+            sage: w = Word([1,1,1,-1,1,1,-1,-1,-1,-1,1,-1,1,1,-1,1,1,-1,-1,1,1,-1,-1,-1,1,1,-1,-1],IntegerRing())
+            sage: u = w.sweep()
+            sage: u.inverse_sweep() == w
+            True
+
+       When the modulus is large enough, the inverse modular sweep map stabilizes to agree with the inverse sweep map ::
+
+            sage: w1 = Word([3,-2,3,-2,-2,-2,3,-2,-2,-2,-2,3,3,-2,-2,3,3,3],IntegerModRing(15))
+            sage: w2 = Word([3,-2,3,-2,-2,-2,3,-2,-2,-2,-2,3,3,-2,-2,3,3,3],IntegerRing())
+            sage: w1.inverse_sweep() == w2.inverse_sweep()
+            True
+
+        When the modulus is small, the inverse modular sweep map may not agree with the inverse sweep map ::
+
+            sage: w1 = Word([3,-2,3,-2,-2,-2,3,-2,-2,-2,-2,3,3,-2,-2,3,3,3],IntegerModRing(5))
+            sage: w2 = Word([3,-2,3,-2,-2,-2,3,-2,-2,-2,-2,3,3,-2,-2,3,3,3],IntegerRing())
+            sage: w1.inverse_sweep() == w2.inverse_sweep()
+            False
+
+        TESTS::
+            sage: w=Word([3,1,1,3,2,1,4],IntegerModRing(5));w.sweep().inverse_sweep()==w
+            True
+            sage: w=Word([3,1,1,3,2,1,4],IntegerModRing(5));w.inverse_sweep().sweep()==w
+            True
+            sage: w=Word([2,3,1,4,3,4,1],IntegerModRing(5));w.sweep().inverse_sweep()==w
+            True
+            sage: w=Word([2,3,1,4,3,4,1],IntegerModRing(5));w.inverse_sweep().sweep()==w
+            True
+            sage: w=Word([3,-2,3,-2,-2,-2,3,-2,-2,-2,-2,3,3,-2,-2,3,3,3],IntegerModRing(12));w.sweep().inverse_sweep()==w
+            True
+            sage: w=Word([3,-2,3,-2,-2,-2,3,-2,-2,-2,-2,3,3,-2,-2,3,3,3],IntegerModRing(12));w.inverse_sweep().sweep()==w
+            True
+            sage: w=Word([-3,5,-3,-3,5,5,-3,-3],IntegerRing());w.sweep().inverse_sweep()==w
+            True
+            sage: w=Word([-3,5,-3,-3,5,5,-3,-3],IntegerRing());w.inverse_sweep().sweep()==w
+            True       
+            sage: w=Word([3,-2,3,-2,-2,-2,3,-2,-2,-2,-2,3,3,-2,-2,3,3,3],IntegerRing());w.sweep().inverse_sweep()==w
+            True
+            sage: w=Word([3,-2,3,-2,-2,-2,3,-2,-2,-2,-2,3,3,-2,-2,3,3,3],IntegerRing());w.inverse_sweep().sweep()==w
+            True
+            sage: w=Word([1,1,1,-1,1,1,-1,-1,-1,-1,1,-1,1,1,-1,1,1,-1,-1,1,1,-1,-1,-1,1,1,-1,-1],IntegerRing());w.sweep().inverse_sweep()==w
+            True
+            sage: w=Word([1,1,1,-1,1,1,-1,-1,-1,-1,1,-1,1,1,-1,1,1,-1,-1,1,1,-1,-1,-1,1,1,-1,-1],IntegerRing());w.inverse_sweep().sweep()==w
+            True
+
+        REFERENCES:
+
+        .. [1]  H. Thomas and N. Williams. "Sweeping up zeta." Selecta Mathematica 24.3 (2018): 2003-2034.
+        .. [2]  D. Armstrong, N. Loehr, and G. Warrington. "Sweep maps: A continuous family of sorting algorithms." Advances in Mathematics 284 (2015): 159-185.
+
+        """
+        try:
+            alph = self.parent().alphabet()
+        except AttributeError:
+            raise ValueError("Alphabet of input word not initialized.")
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
+        from sage.rings.integer_ring import IntegerRing_class
+        if isinstance(alph,IntegerModRing_generic):
+            m=alph.characteristic()
+            sum_w = sum([int(alph(i)) for i in list(self)])
+            mod_sum_w = int(alph(sum_w))
+            from sage.functions.other import floor
+            desired_lengths_w = floor(sum_w/m)
+            def equitably_distributed_leq(pw,c):
+                ww = [[int(alph(pwij)) for pwij in pwi] for pwi in pw]
+                tot = 0
+                for i in range(c+1):
+                    tot += len([j for j in ww[i] if j+i-1>=c])
+                for i in range(c+1,m):
+                    tot += len([j for j in ww[i] if j+i-1-m>=c])
+                if (c+1<=m-mod_sum_w-1 or c+1==m) and tot>=desired_lengths_w:
+                    return True
+                elif (c+1>m-mod_sum_w-1 and c+1<m) and tot>=desired_lengths_w+1:
+                    return True
+                else:
+                    return False
+            pw = (m-1)*[[]] + [list(self)]
+            b = m-1
+            while b >= 0:
+                if not equitably_distributed_leq(pw,b):
+                    tmp = pw[b+1][0]
+                    del pw[b+1][0]
+                    pw[b] = pw[b] + [tmp]
+                    b = m-1
+                else:
+                    b -= 1
+            pw_flat = reduce(lambda x, y: x+y, pw)
+            out = []
+            i = 0
+            cur = m - mod_sum_w - 1
+            while i<len(pw_flat):
+                if len(pw[cur])>0:
+                    tmp = pw[cur][0]
+                    del pw[cur][0]
+                    out = [tmp]+out
+                    cur = (cur+tmp)%m
+                    i += 1
+                else:
+                    raise ValueError("Failure. You have done something wrong, since you have apparently found a counterexample to Theorem 4.16 of Reference [1].",pw)
+            return self.parent()(out)
+        elif isinstance(alph,IntegerRing_class):
+            m = sum(map(abs,self))+1
+            from sage.combinat.words.word import Word
+            from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+            return self.parent()(Word(list(self),IntegerModRing(m)).inverse_sweep())
+        else:
+            raise ValueError("Alphabet of input word must be an 'IntegerModRing' or 'IntegerRing'.")
 
 #######################################################################
 
