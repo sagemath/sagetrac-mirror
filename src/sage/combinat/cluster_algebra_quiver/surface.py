@@ -446,12 +446,12 @@ def produce_dict_label_to_variable(T, cluster_xs, boundary_edges, boundary_edges
         sage: from sage.combinat.cluster_algebra_quiver.surface import produce_dict_label_to_variable
         sage: Triangles = [(1, 4, 7), (1, 2, 5), (6, 3, 0), (2, 0, 3), (0, 6, 3), [7, 1, 4]]
         sage: T = ClusterTriangulation(Triangles)
-        sage: produce_dict_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars)
+        sage: produce_dict_label_to_variable(T._triangles, T.cluster(), T._boundary_edges, T._boundary_edges_vars)
         {0: x0, 1: x1, 2: x2, 3: x3, 4: x4, 5: x5, 6: x6, 7: x7}
 
         sage: twice_punctured_bigon = [(1,1,2),(3,4,3),(2,4,0),(0,6,7)]
         sage: T = ClusterTriangulation(twice_punctured_bigon)
-        sage: produce_dict_label_to_variable(T._triangles, T._cluster, T._boundary_edges, T._boundary_edges_vars)
+        sage: produce_dict_label_to_variable(T._triangles, T.cluster(), T._boundary_edges, T._boundary_edges_vars)
         {0: x0, 1: x1, 2: x1*x2, 3: x3, 4: x3*x4, 6: x5, 7: x6}
 
         sage: twice_punctured_bigon = [('e','d','a'), ('a','r','b'), ('r','d','g'), ('g','n','b')]
@@ -1017,7 +1017,7 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
         sage: CT = ClusterTriangulation([(0,2,1),(0,4,3),(1,6,5)])
         sage: S = ClusterSeed(CT)
         sage: S1=S.mutate(0,inplace=False)
-        sage: S1._cluster
+        sage: S1.cluster()
         [(x1*x3 + x2*x4)/x0, x1, x2, x3, x4, x5, x6]
         sage: S1.cluster_variable(0) ==\
         ....: LaurentExpansionFromSurface(CT,[CT.cluster_variable(0)],None,None,\
@@ -1026,7 +1026,7 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
 
         sage: SP = S.principal_extension()
         sage: SP.mutate(0)
-        sage: SP._cluster
+        sage: SP.cluster()
         [(x2*x4*y0 + x1*x3)/x0, x1, x2, x3, x4, x5, x6, y0, y1, y2, y3, y4, y5, y6]
 
         sage: CTP = CT.principal_extension()
@@ -1171,13 +1171,13 @@ def replace_x_with_y(CT, G_x):
             #print 'diagonal_x tuple: ', diagonal_x
             label_of_radius_x = CT._get_map_variable_to_label(diagonal_x[0])
             position_of_radius_x = CT.get_edge_position(label_of_radius_x)
-            radius_y = CT._cluster[CT._n+position_of_radius_x]
+            radius_y = CT.cluster()[CT._n+position_of_radius_x]
 
             triangle_rrl = _get_triangle(CT.triangles(), label_of_radius_x, None)[0]
             r,r,label_of_ell_x = is_selffolded(triangle_rrl)
             position_of_ell_x = CT.get_edge_position(label_of_ell_x)
 
-            r_notched_y = CT._cluster[CT._n+position_of_ell_x]
+            r_notched_y = CT.cluster()[CT._n+position_of_ell_x]
             diagonal_y = radius_y/r_notched_y
             diagonal_y_bottom = (diagonal_y, diagonal_x[1])
             if diagonal_x[1] == 'clockwise':
@@ -1195,13 +1195,13 @@ def replace_x_with_y(CT, G_x):
             #label_of_x_r = CT._get_map_variable_to_label(x_r)
             position_of_x_rnotched = CT.get_edge_position(label_of_x_ell)
             #position_of_x_r = CT.get_edge_position(label_of_x_r)
-            y_rnotched = CT._cluster[CT._n+position_of_x_rnotched]
-            #y_r = CT._cluster[CT._n+position_of_x_r]
+            y_rnotched = CT.cluster()[CT._n+position_of_x_rnotched]
+            #y_r = CT.cluster()[CT._n+position_of_x_r]
             diagonal_y_bottom = diagonal_y_top = y_rnotched
         else:
             label_of_diagonal_x = CT._get_map_variable_to_label(diagonal_x)
             position_of_diagonal_x = CT.get_edge_position(label_of_diagonal_x)
-            diagonal_y_bottom = diagonal_y_top = CT._cluster[CT._n+position_of_diagonal_x]
+            diagonal_y_bottom = diagonal_y_top = CT.cluster()[CT._n+position_of_diagonal_x]
 
         G_y_triangle_bottom = (G_x[tile_pos][0][0],(triangle_bottom[0], diagonal_y_bottom, triangle_bottom[2]))
         G_y_triangle_top = (G_x[tile_pos][1][0],(triangle_top[0], diagonal_y_top, triangle_top[2]), tile_dir)

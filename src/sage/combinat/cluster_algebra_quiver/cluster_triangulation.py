@@ -289,7 +289,7 @@ class ClusterTriangulation(ClusterSeed):
             self._F = None
             self._y = None
             self._yhat = None
-            self._mut_path = None
+            #self._mut_path = None
             
             #The initial B-matrix is set to be the B-matrix corresponding to the input triangulation
             self._b_initial = copy(self._M)
@@ -808,7 +808,7 @@ class ClusterTriangulation(ClusterSeed):
             ct._M.mutate(pos)
             S = S.mutate(pos, inplace=False)
 
-        ct._cluster = S._cluster
+        ct._cluster = S.cluster()
         ct._map_label_to_variable = produce_dict_label_to_variable (ct._triangles, ct._cluster[0:ct._n], ct._boundary_edges, ct._boundary_edges_vars)
         ct._map_variable_to_label = produce_dict_variable_to_label (ct._map_label_to_variable)
         ct._triangulation = _get_user_label_triangulation(ct._triangles)
@@ -848,7 +848,7 @@ class ClusterTriangulation(ClusterSeed):
         """
         return self._boundary_edges
 
-    #def cluster(self):
+    def cluster(self):
         """
         Return the cluster seed list (i.e. [x_0, x_1, ..., x_{n-1}])
         corresponding to ``self``.
@@ -860,7 +860,7 @@ class ClusterTriangulation(ClusterSeed):
             sage: T.cluster()
             [x0, x1, x2, x3]
         """
-        #return self._cluster
+        return self._cluster
 
     def boundary_edges_vars(self):
         """
@@ -1578,7 +1578,7 @@ class ClusterTriangulation(ClusterSeed):
           ``crossed_arcs`` is a list of labels
           
         - ``return_labels`` -- (default: ``False``) allows the Laurent expansion
-        	to be returned in terms of labels rather than variables
+          to be returned in terms of labels rather than variables
 
         .. SEEALSO::
 
@@ -1744,12 +1744,12 @@ class ClusterTriangulation(ClusterSeed):
         	
         	#expansion = LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size=fig_size)
         	#print expansion
-			# reverses the label -> variable dictionary so we can use it for substitution
-			#labelDict = {v:k for k,v in T._map_label_to_variable.items()}
-			#expansion = str(expansion)
-			#for key in labelDict.keys():
-			#	expansion = expansion.replace(str(key),labelDict.get(key))
-			#return expansion
+		        # reverses the label -> variable dictionary so we can use it for substitution
+		        #labelDict = {v:k for k,v in T._map_label_to_variable.items()}
+		        #expansion = str(expansion)
+		        #for key in labelDict.keys():
+                        #    expansion = expansion.replace(str(key),labelDict.get(key))
+                        #return expansion
 
     def loop_laurent_expansion(self, crossed_arcs, first_triangle=None,
                                final_triangle=None, verbose=False,
