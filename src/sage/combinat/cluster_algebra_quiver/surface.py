@@ -323,7 +323,7 @@ def _surface_edge_list_to_matrix(arrows, arcs_and_boundary_edges, boundary_edges
     which ignores duplicates::
 
         sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _edge_list_to_matrix
-        sage: _edge_list_to_matrix([(0,1,(1,-1)),(1,2,(1,-1)),(2,0,(1,-1)),(2,0,(1,-1))],3,0)
+        sage: _edge_list_to_matrix([(0,1,(1,-1)),(1,2,(1,-1)),(2,0,(1,-1)),(2,0,(1,-1))],[0,1,2],[])
         [ 0  1 -1]
         [-1  0  1]
         [ 1 -1  0]
@@ -334,7 +334,7 @@ def _surface_edge_list_to_matrix(arrows, arcs_and_boundary_edges, boundary_edges
         [ 1  0 -1]
         [-2  1  0]
 
-        sage: _edge_list_to_matrix([(0,1,(1,-1)),(1,0,(1,-1))],2,0)
+        sage: _edge_list_to_matrix([(0,1,(1,-1)),(1,0,(1,-1))],[0,1],[])
         [ 0 -1]
         [ 1  0]
 
@@ -1027,7 +1027,7 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
         sage: SP = S.principal_extension()
         sage: SP.mutate(0)
         sage: SP.cluster()
-        [(x2*x4*y0 + x1*x3)/x0, x1, x2, x3, x4, x5, x6, y0, y1, y2, y3, y4, y5, y6]
+        [(x2*x4*y0 + x1*x3)/x0, x1, x2, x3, x4, x5, x6]
 
         sage: CTP = CT.principal_extension()
         sage: LaurentExpansionFromSurface(CTP,[CTP.cluster_variable(0)],None,None,True,None,None,None,None)
@@ -1059,8 +1059,7 @@ def LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle=None,
                          'of cluster variable/s')
     is_principal = CT._is_principal
     T = list(CT.weighted_triangulation())
-    G_x = _snake_graph(T,crossed_arcs,first_triangle, final_triangle,
-                     is_arc, is_loop, 1, boundary_edges)
+    G_x = _snake_graph(T,crossed_arcs,first_triangle, final_triangle, is_arc, is_loop, 1, boundary_edges)
 
     if is_principal:
         # Replace all x_i with the correct height monomial (see [MSW_Positivity]_ Thm 4.10)
