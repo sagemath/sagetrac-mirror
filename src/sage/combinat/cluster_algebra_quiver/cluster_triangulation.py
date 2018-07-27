@@ -327,7 +327,7 @@ class ClusterTriangulation(ClusterSeed):
             self._use_g_vec = False
             self._use_c_vec = False
             self._use_d_vec = False
-            self._use_fpolys = False
+            self._use_fpolys = True
             self._bot_is_c = False
             
             #sets up ability to track mutations
@@ -1878,7 +1878,7 @@ class ClusterTriangulation(ClusterSeed):
             sage: TP.cluster()
             [(x3*y0 + x1)/x0, x1, x2, x3]
             sage: TP._cluster
-            [(x3*y0 + x1)/x0, x1, x2, x3, y0, y1, y2, y3]
+            [(x3*y0 + x1)/x0, x1, x2, x3]
             sage: SP = ClusterSeed(TP); SP
             A seed for a cluster algebra associated with an ideal triangulation of rank 4 with 4 boundary edges with principal coefficients of type ['A', [2, 2], 1] with principal coefficients
 
