@@ -286,40 +286,6 @@ For L3::
     [2, 2, 2]
     [2, 2, 2, 2]
 
-- :meth:`Lattice_generic.induced_lattice` -- returns the ambient lattice obtained by
-    inducing the representation of the group to a bigger group. If build is set to False, then it just returns the matrices to define the action on the induced lattice but doesn't build the lattice.
-
-
-EXAMPLES::
-
-    sage: L1.induced_lattice(SymmetricGroup(5))
-    Ambient free module of rank 60 over the principal ideal domain Integer Ring
-    sage: L2.induced_lattice(SymmetricGroup(4),False)
-    [
-    [0 0 0 0|0 0 0 0|0 0 0 0|1 0 0 0]  [1 0 0 0|0 0 0 0|0 0 0 0|0 0 0 0]
-    [0 0 0 0|0 0 0 0|0 0 0 0|0 1 0 0]  [0 1 0 0|0 0 0 0|0 0 0 0|0 0 0 0]
-    [0 0 0 0|0 0 0 0|0 0 0 0|0 0 1 0]  [0 0 1 0|0 0 0 0|0 0 0 0|0 0 0 0]
-    [0 0 0 0|0 0 0 0|0 0 0 0|0 0 0 1]  [0 0 0 1|0 0 0 0|0 0 0 0|0 0 0 0]
-    [-------+-------+-------+-------]  [-------+-------+-------+-------]
-    [1 0 0 0|0 0 0 0|0 0 0 0|0 0 0 0]  [0 0 0 0|1 0 0 0|0 0 0 0|0 0 0 0]
-    [0 1 0 0|0 0 0 0|0 0 0 0|0 0 0 0]  [0 0 0 0|0 1 0 0|0 0 0 0|0 0 0 0]
-    [0 0 1 0|0 0 0 0|0 0 0 0|0 0 0 0]  [0 0 0 0|0 0 1 0|0 0 0 0|0 0 0 0]
-    [0 0 0 1|0 0 0 0|0 0 0 0|0 0 0 0]  [0 0 0 0|0 0 0 1|0 0 0 0|0 0 0 0]
-    [-------+-------+-------+-------]  [-------+-------+-------+-------]
-    [0 0 0 0|1 0 0 0|0 0 0 0|0 0 0 0]  [0 0 0 0|0 0 0 0|0 0 0 0|1 0 0 0]
-    [0 0 0 0|0 1 0 0|0 0 0 0|0 0 0 0]  [0 0 0 0|0 0 0 0|0 0 0 0|0 1 0 0]
-    [0 0 0 0|0 0 1 0|0 0 0 0|0 0 0 0]  [0 0 0 0|0 0 0 0|0 0 0 0|0 0 1 0]
-    [0 0 0 0|0 0 0 1|0 0 0 0|0 0 0 0]  [0 0 0 0|0 0 0 0|0 0 0 0|0 0 0 1]
-    [-------+-------+-------+-------]  [-------+-------+-------+-------]
-    [0 0 0 0|0 0 0 0|1 0 0 0|0 0 0 0]  [0 0 0 0|0 0 0 0|1 0 0 0|0 0 0 0]
-    [0 0 0 0|0 0 0 0|0 1 0 0|0 0 0 0]  [0 0 0 0|0 0 0 0|0 1 0 0|0 0 0 0]
-    [0 0 0 0|0 0 0 0|0 0 1 0|0 0 0 0]  [0 0 0 0|0 0 0 0|0 0 1 0|0 0 0 0]
-    [0 0 0 0|0 0 0 0|0 0 0 1|0 0 0 0], [0 0 0 0|0 0 0 0|0 0 0 1|0 0 0 0]
-    ]
-
-
-This is not yet implemented when a lattice is declared with a matrix group since
-SAGE doesn't handle cosets for matrix groups.
 
 
 - lattice.zero_sum_sublattice(ambient=False): returns the sublattice of elements whose coordinates sum up to zero.
@@ -1021,7 +987,56 @@ class Lattice_generic(FreeModule_generic):
         return self.Tate_Cohomology(n)
 
     def induced_lattice(self,group,build=True):
-        return self.induced_lattice(group,build)
+        """
+        The ambient lattice obtained by inducing the representation of
+        the group to a bigger group.
+
+        INPUT:
+
+        - ``group`` -- a group containing the group for this lattice.
+
+        - ``build`` -- boolean (default True).  If False, just returns the matrices
+           that define the action on the induced lattice but doesn't build the lattice.
+
+        NOTE::
+
+            This is not yet implemented when a lattice is declared with a matrix group since
+            Sage doesn't handle cosets for matrix groups.
+
+        EXAMPLES::
+
+            sage: G = PermutationGroup([(1,2), (3,4,5)])
+            sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
+            sage: act2 = matrix(3, [1,0,0,0,1,0,0,0,1])
+            sage: L1 = Lattice_ambient(G, [act1, act2])
+            sage: L1.induced_lattice(SymmetricGroup(5))
+            Ambient free module of rank 60 over the principal ideal domain Integer Ring
+
+            sage: L2 = Lattice_ambient(SymmetricGroup(3), 4)
+            sage: L2.induced_lattice(SymmetricGroup(4), False)
+            [
+            [0 0 0 0|0 0 0 0|0 0 0 0|1 0 0 0]  [1 0 0 0|0 0 0 0|0 0 0 0|0 0 0 0]
+            [0 0 0 0|0 0 0 0|0 0 0 0|0 1 0 0]  [0 1 0 0|0 0 0 0|0 0 0 0|0 0 0 0]
+            [0 0 0 0|0 0 0 0|0 0 0 0|0 0 1 0]  [0 0 1 0|0 0 0 0|0 0 0 0|0 0 0 0]
+            [0 0 0 0|0 0 0 0|0 0 0 0|0 0 0 1]  [0 0 0 1|0 0 0 0|0 0 0 0|0 0 0 0]
+            [-------+-------+-------+-------]  [-------+-------+-------+-------]
+            [1 0 0 0|0 0 0 0|0 0 0 0|0 0 0 0]  [0 0 0 0|1 0 0 0|0 0 0 0|0 0 0 0]
+            [0 1 0 0|0 0 0 0|0 0 0 0|0 0 0 0]  [0 0 0 0|0 1 0 0|0 0 0 0|0 0 0 0]
+            [0 0 1 0|0 0 0 0|0 0 0 0|0 0 0 0]  [0 0 0 0|0 0 1 0|0 0 0 0|0 0 0 0]
+            [0 0 0 1|0 0 0 0|0 0 0 0|0 0 0 0]  [0 0 0 0|0 0 0 1|0 0 0 0|0 0 0 0]
+            [-------+-------+-------+-------]  [-------+-------+-------+-------]
+            [0 0 0 0|1 0 0 0|0 0 0 0|0 0 0 0]  [0 0 0 0|0 0 0 0|0 0 0 0|1 0 0 0]
+            [0 0 0 0|0 1 0 0|0 0 0 0|0 0 0 0]  [0 0 0 0|0 0 0 0|0 0 0 0|0 1 0 0]
+            [0 0 0 0|0 0 1 0|0 0 0 0|0 0 0 0]  [0 0 0 0|0 0 0 0|0 0 0 0|0 0 1 0]
+            [0 0 0 0|0 0 0 1|0 0 0 0|0 0 0 0]  [0 0 0 0|0 0 0 0|0 0 0 0|0 0 0 1]
+            [-------+-------+-------+-------]  [-------+-------+-------+-------]
+            [0 0 0 0|0 0 0 0|1 0 0 0|0 0 0 0]  [0 0 0 0|0 0 0 0|1 0 0 0|0 0 0 0]
+            [0 0 0 0|0 0 0 0|0 1 0 0|0 0 0 0]  [0 0 0 0|0 0 0 0|0 1 0 0|0 0 0 0]
+            [0 0 0 0|0 0 0 0|0 0 1 0|0 0 0 0]  [0 0 0 0|0 0 0 0|0 0 1 0|0 0 0 0]
+            [0 0 0 0|0 0 0 0|0 0 0 1|0 0 0 0], [0 0 0 0|0 0 0 0|0 0 0 1|0 0 0 0]
+            ]
+        """
+        return self.induced_lattice(group, build)
 
     def zero_sum_sublattice(self,ambient=False):
         return self.zero_sum_sublattice(ambient)
