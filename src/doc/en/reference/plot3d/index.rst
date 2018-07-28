@@ -33,6 +33,14 @@ Basic Shapes and Primitives
    sage/plot/plot3d/parametric_surface
    sage/plot/plot3d/implicit_surface
 
+Groups
+------
+
+.. toctree::
+    :maxdepth: 2
+
+    sage/plot/plot3d/reflection_group3d
+
 Infrastructure
 --------------
 

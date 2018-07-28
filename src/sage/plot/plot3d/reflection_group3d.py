@@ -1,9 +1,9 @@
-"""
+r"""
 Model building class for rigid 3d Cayley graphs of reflection groups.
 
 This class takes a reflection group and creates a rigid 3d model of the
 Cayley graph. Vertex placement is determined by the group action on
-$\mathbb{R}^3$ and by default all reflections are included as generators.
+`\mathbb{R}^3` and by default all reflections are included as generators.
 Higher order reflections are represented as filled in polygons since the
 ultimate purpose of this package is to create files that can be sent to a 3d
 printer and made "throwable," i.e. physically printed. The class can handle
@@ -24,52 +24,53 @@ and similar objects.
 This class requires gap3.
 
 EXAMPLES:
-    Basic plot of a reflection group::
 
-        sage: w = ReflectionGroup(['A',3])                         # optional - gap3
-        sage: cayley_graph_3d(w)                                   # optional - gap3
-        Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
-        sage: g = cayley_graph_3d(w)                               # optional - gap3
-        sage: g.plot3d()                                           # optional - gap3
-        Graphics3d Object
+Basic plot of a reflection group::
 
-    G(3,1,2) (add tests of what is in this group)::
-    
-        sage: g312 = ReflectionGroup((3,1,2))                      # optional - gap3
-        sage: g_plot = cayley_graph_3d(g312, point=(21,11,31))     # optional - gap3
-        doctest:warning
-        ...
-        UserWarning: point was shortened to match group rank
-        sage: g_plot.plot3d()                                      # optional - gap3
-        Graphics3d Object
+    sage: w = ReflectionGroup(['A',3])                         # optional - gap3
+    sage: cayley_graph_3d(w)                                   # optional - gap3
+    Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
+    sage: g = cayley_graph_3d(w)                               # optional - gap3
+    sage: g.plot3d()                                           # optional - gap3
+    Graphics3d Object
 
-    This can handle finite complex reflection groups of rank 2 G(6,2,2)::
-    
-        sage: g622 = ReflectionGroup((6,2,2))                      # optional - gap3
-        sage: g_plot = cayley_graph_3d(g622, point=(21,11,31))     # optional - gap3
-        sage: g_plot.plot3d()                                      # optional - gap3
-        Graphics3d Object
+G(3,1,2) (add tests of what is in this group)::
 
-    The rank two exceptional group G4::
-    
-        sage: g4 = ReflectionGroup((4))                            # optional - gap3
-        sage: g_plot = cayley_graph_3d(g4, point=(21,11,31))       # optional - gap3
-        sage: g_plot.plot3d()                                      # optional - gap3
-        Graphics3d Object
+    sage: g312 = ReflectionGroup((3,1,2))                      # optional - gap3
+    sage: g_plot = cayley_graph_3d(g312, point=(21,11,31))     # optional - gap3
+    doctest:warning
+    ...
+    UserWarning: point was shortened to match group rank
+    sage: g_plot.plot3d()                                      # optional - gap3
+    Graphics3d Object
 
-    A1 x A1::
-    
-        sage: A1A1 = ReflectionGroup(['A',1], ['A',1])
-        sage: g_plot = cayley_graph_3d(A1A1, point=(21,11,31))
-        sage: g_plot.plot3d()
-        Graphics3d Object
+This can handle finite complex reflection groups of rank 2 G(6,2,2)::
 
-    A1 x A2::
-    
-        sage: A1A2 = ReflectionGroup(['A',1], ['A',2])
-        sage: g_plot = cayley_graph_3d(A1A2, point=(21,11,31))
-        sage: g_plot.plot3d()
-        Graphics3d Object
+    sage: g622 = ReflectionGroup((6,2,2))                      # optional - gap3
+    sage: g_plot = cayley_graph_3d(g622, point=(21,11,31))     # optional - gap3
+    sage: g_plot.plot3d()                                      # optional - gap3
+    Graphics3d Object
+
+The rank two exceptional group G4::
+
+    sage: g4 = ReflectionGroup((4))                            # optional - gap3
+    sage: g_plot = cayley_graph_3d(g4, point=(21,11,31))       # optional - gap3
+    sage: g_plot.plot3d()                                      # optional - gap3
+    Graphics3d Object
+
+`A_1 \times A_1`::
+
+    sage: A1A1 = ReflectionGroup(['A',1], ['A',1])
+    sage: g_plot = cayley_graph_3d(A1A1, point=(21,11,31))
+    sage: g_plot.plot3d()
+    Graphics3d Object
+
+`A_1 \times A_2`::
+
+    sage: A1A2 = ReflectionGroup(['A',1], ['A',2])
+    sage: g_plot = cayley_graph_3d(A1A2, point=(21,11,31))
+    sage: g_plot.plot3d()
+    Graphics3d Object
 
 AUTHORS:
 
@@ -79,7 +80,8 @@ AUTHORS:
 - Kaisa Taipale (2018-03-15): initial version
 
 
-TODO:
+.. TODO::
+
     - We don't know why object doesn't appear (JMOL viewer doesn't open)
       when some projection planes are used (e.g. [0,0,0,1]).
       How to debug/notify?
@@ -88,6 +90,7 @@ TODO:
     - implement addition of cayley_graph_3d objects
     - implement the presentation of any rank 2 complex representation or
       rank 3 real representation of a group
+    - implement rank 4 real reflection groups
 
 """
 
@@ -107,28 +110,129 @@ from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGro
 import warnings
 
 class cayley_graph_3d(SageObject):
+    r"""
+    EXAMPLES:
+
+    This class allows a user to plot a reflection group::
+
+        sage: w = ReflectionGroup(['A',3])
+        sage: g = cayley_graph_3d(w)
+        sage: g.plot3d()
+        Graphics3d Object
+
+    The group, input point, and project plane can be changed::
+
+        sage: w = ReflectionGroup(['A',3], point=(15,8, 18))       # optional - gap3
+        sage: g = cayley_graph_3d(w)
+
+    Visualization parameters can be changed after the model is created::
+
+        sage: w = ReflectionGroup(['A',3])                         # optional - gap3
+        sage: g = cayley_graph_3d(w)
+        sage: g.edge_color('purple')
+        Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
+        sage: g.plot3d()
+        Graphics3d Object
+
+
+    Get real dimension of the visualized group::
+
+        sage: W = ReflectionGroup(["C",3])          # optional - gap3
+        sage: A = cayley_graph_3d(W)
+        sage: A.real_dimension
+        3
+
+    The real dimension of a complex group is twice its rank::
+
+        sage: W = ReflectionGroup((3,1,2))          # optional - gap3
+        sage: A = cayley_graph_3d(W)                # optional - gap3
+        sage: A.real_dimension                      # optional - gap3
+        4
+
+
+    A rank 3 group requires a rank 3 point::
+
+        sage: W = ReflectionGroup(["C",3])
+        sage: my_point = (1,2)
+        sage: cayley_graph_3d(W, my_point)
+        Traceback (most recent call last):
+        ...
+        TypeError: check dimension of point (does not match group rank)
+
+    Any rank 3 point will work::
+
+        sage: W = ReflectionGroup(["C",3])
+        sage: my_point_1 = (1,2,3)
+        sage: cayley_graph_3d(W, my_point_1) 
+        Rigid graphical representation of Irreducible real reflection group of rank 3 and type C3
+
+    A zero vector cannot be used as the projection plane::
+
+        sage: w = cayley_graph_3d(ReflectionGroup(["A", 3]), proj_plane=(0,0,0,0))
+        Traceback (most recent call last):
+        ...
+        ValueError: non-zero normal vector in R^4 is required to determine a plane
+
+    A vector in `\RR^3` cannot be used as the projection plane::
+
+        sage: w = cayley_graph_3d(ReflectionGroup(["A", 3]), proj_plane=(2,1,1))
+        Traceback (most recent call last):
+        ...
+        ValueError: non-zero normal vector in R^4 is required to determine a plane
+
+    A rank 2 real reflection group still returns points in `\RR^3`::
+
+        sage: W = ReflectionGroup(["A",2])
+        sage: G = cayley_graph_3d(W, (3,2))
+        sage: G.vertex_properties.keys()
+        ['color', 'label', 'visible', 'shape', 'radius', 'position']
+        sage: G.vertices["position"].values()
+        [(-5, 3, 0), (5, -2, 0), (-3, 5, 0), (3, 2, 0), (2, -5, 0), (-2, -3, 0)]
+
+    Edges are recorded as cosets::
+
+        sage: W = ReflectionGroup(["A",2])
+        sage: G = cayley_graph_3d(W, (3,2))
+        sage: G.edge_properties.keys()
+        ['boundary_thickness', 'color', 'boundaries', 'visible',
+        'edge_thickness', 'fill_size', 'fill']
+        sage: G.edges["visible"].keys()
+        [((1,2,6)(3,4,5), (1,5)(2,4)(3,6)),
+         ((), (1,5)(2,4)(3,6)),
+         ((), (1,3)(2,5)(4,6)),
+         ((1,3)(2,5)(4,6), (1,6,2)(3,5,4)),
+         ((1,2,6)(3,4,5), (1,3)(2,5)(4,6)),
+         ((1,5)(2,4)(3,6), (1,6,2)(3,5,4)),
+         ((1,2,6)(3,4,5), (1,4)(2,3)(5,6)),
+         ((1,4)(2,3)(5,6), (1,6,2)(3,5,4)),
+         ((), (1,4)(2,3)(5,6))]
+
+    .. TODO::
+
+        The properties for the edges should be able to be changed by user
+        inputs in constructing the models, as well.
+
+    Check that every edge is either on the inside or outside::
+
+        sage: W = ReflectionGroup(["A",3])
+        sage: G = cayley_graph_3d(W)
+        sage: set(G.outside_edges()).intersection(set(G.inside_edges()))
+        set()
+        sage: len(G.outside_edges())+len(G.inside_edges()) == len(G.edges["color"])
+        True
+
+    Check that the 1-faces are also outside edges::
+
+        sage: W = ReflectionGroup(["A",3])
+        sage: G = cayley_graph_3d(W)
+        sage: set(G.one_faces()).issubset(G.outside_edges())
+        True
+        
+        
+        """
     def __init__(self, group, point=(21,11,31), proj_plane=[1,2,3,4]):
         """
-        EXAMPLES::
-            This class allows a user to plot a reflection group::
-
-                sage: w = ReflectionGroup(['A',3])
-                sage: g = cayley_graph_3d(w)
-                sage: g.plot3d()
-                Graphics3d Object
-
-            The group, input point, and project plane can be changed::
-
-                sage: w = ReflectionGroup(['A',3], point=(15,8, 18))       # optional - gap3
-                sage: g = cayley_graph_3d(w)
-
-            Visualization parameters can be changed after the model is created::
-
-                sage: w = ReflectionGroup(['A',3])                         # optional - gap3
-                sage: g = cayley_graph_3d(w)
-                sage: g.edge_color('purple')
-                sage: g.plot3d()
-                Graphics3d Object
+        Initialize ``self``
         """
         if group.rank() > 3:
             raise ValueError("rank of group too large")
@@ -182,10 +286,16 @@ class cayley_graph_3d(SageObject):
 
 
     def __repr__(self):
+        """
+        Return representation of ``self``.
+        """
         return "Rigid graphical representation of %s"%(str(self.group))
 
 
     def __eq__(self, other):
+        """
+        Define equality in the class.
+        """
         if self.is_isomorphic(other):
             return True
         else:
@@ -194,31 +304,7 @@ class cayley_graph_3d(SageObject):
 
     def _real_dimension(self, group):
         """
-        Determines the real dimension of the groups
-
-        INPUT:
-
-        - ``group`` -- a group
-
-        OUTPUT:
-
-        Integer
-
-        EXAMPLES:
-
-        Get real dimension of the visualized group::
-
-            sage: W = ReflectionGroup(["C",3])          # optional - gap3
-            sage: A = cayley_graph_3d(W)
-            sage: A.real_dimension
-            3
-
-        The real dimension of a complex group is twice its rank::
-
-            sage: W = ReflectionGroup((3,1,2))          # optional - gap3
-            sage: A = cayley_graph_3d(W)                # optional - gap3
-            sage: A.real_dimension                      # optional - gap3
-            4
+        Set dimension of abmient space.
         """
         if str(group.parent()) ==  "<class 'sage.groups.matrix_gps.coxeter_group.CoxeterMatrixGroup_with_category'>":
             self.real_dimension = group.rank()
@@ -230,37 +316,7 @@ class cayley_graph_3d(SageObject):
 
     def _verify_point(self, group, point):
         """
-        Perform error checking on point input
-        If rank two reflection group, need 2d point
-        else need 3d point
-
-        INPUT:
-
-        - ``group`` -- a group
-
-        - ``point`` -- a tuple of integers
-
-        OUTPUT:
-
-        Boolean True if the group's rank is equal to the length of the tuple
-
-        EXAMPLES:
-
-        A rank 3 group requires a rank 3 point::
-
-            sage: W = ReflectionGroup(["C",3])
-            sage: my_point = (1,2)
-            sage: cayley_graph_3d(W, my_point)
-            Traceback (most recent call last):
-            ...
-            TypeError: check dimension of point (does not match group rank)
-
-        Any rank 3 point will work::
-
-            sage: W = ReflectionGroup(["C",3])
-            sage: my_point_1 = (1,2,3)
-            sage: cayley_graph_3d(W, my_point_1) 
-            Rigid graphical representation of Irreducible real reflection group of rank 3 and type C3
+        Coerce point into ambient space.
         """
         if self.rank == len(point):
             return point
@@ -272,35 +328,8 @@ class cayley_graph_3d(SageObject):
 
 
     def _verify_proj_plane(self, plane):
-        r"""
-        Perform error checking on vector input
-        Return boolean of whether vector is the normal to a hyperplane
-        in 4d
-
-        INPUT:
-
-        - ``plane`` -- a tuple of integers
-
-        OUTPUT:
-
-        Boolean True if a usable 4-tuple is entered
-
-        EXAMPLES:
-
-        A zero vector cannot be used as the projection plane::
-
-            sage: w = cayley_graph_3d(ReflectionGroup(["A", 3]), proj_plane=(0,0,0,0))
-            Traceback (most recent call last):
-            ...
-            ValueError: non-zero normal vector in R^4 is required to determine a plane
-
-        A vector in `\RR^3` cannot be used as the projection plane::
-
-            sage: w = cayley_graph_3d(ReflectionGroup(["A", 3]), proj_plane=(2,1,1))
-            Traceback (most recent call last):
-            ...
-            ValueError: non-zero normal vector in R^4 is required to determine a plane
-
+        """
+        Check usability of plane variable.
         """
         if len(plane) == 4:
             if [plane[k] in RR for k in range(4)] == [True, True, True, True]:
@@ -311,13 +340,12 @@ class cayley_graph_3d(SageObject):
 
     def _construct_vertices_dict(self):
         r"""
-        Create a dictionary whose keys are properties, and whose values
-        track the properties that individual vertices have.
+        Return a dictionary of properties of vertices.
 
-        In particular, values are themselves dictionaries, whose keys
-        are group elements and whose values are the values of the
-        corresponding properties.
-
+        Creates a dictionary whose keys are properties, and whose values
+        track the properties that individual vertices have.  In particular, 
+        values are themselves dictionaries, whose keys are group elements 
+        and whose values are the values of the corresponding properties.
 
         OUTPUT:
 
@@ -326,19 +354,6 @@ class cayley_graph_3d(SageObject):
         are dictionaries. The value-dictionary associated to a
         particular property consists of a group element and the value of
         the property at its corresponding vertex.
-
-
-        EXAMPLES:
-
-        A rank 2 real reflection group still returns points in `\RR^3`::
-
-            sage: W = ReflectionGroup(["A",2])
-            sage: G = cayley_graph_3d(W, (3,2))
-            sage: G.vertex_properties.keys()
-            ['color', 'label', 'visible', 'shape', 'radius', 'position']
-            sage: G.vertices["position"].values()
-            [(-5, 3, 0), (5, -2, 0), (-3, 5, 0), (3, 2, 0), (2, -5, 0), (-2, -3, 0)]
-
         """
         def pad_position(v, point):
             pos = v.matrix()*point
@@ -368,38 +383,13 @@ class cayley_graph_3d(SageObject):
 
 
     def _construct_edges_dict(self):
-        """
-        Constructs the dictionary of edge properties.
+        r"""
+        Construct the dictionary of edge properties.
 
         The dictionary maps properties edges can have, to dictionaries of
         the value of that property for each edge in the model. These are
         created based on the object defaults, and can be changed with
         set methods.
-
-        EXAMPLES:
-
-        Edges are recorded as cosets::
-
-            sage: W = ReflectionGroup(["A",2])
-            sage: G = cayley_graph_3d(W, (3,2))
-            sage: G.edge_properties.keys()
-            ['boundary_thickness', 'color', 'boundaries', 'visible',
-            'edge_thickness', 'fill_size', 'fill']
-            sage: G.edges["visible"].keys()
-            [((1,2,6)(3,4,5), (1,5)(2,4)(3,6)),
-             ((), (1,5)(2,4)(3,6)),
-             ((), (1,3)(2,5)(4,6)),
-             ((1,3)(2,5)(4,6), (1,6,2)(3,5,4)),
-             ((1,2,6)(3,4,5), (1,3)(2,5)(4,6)),
-             ((1,5)(2,4)(3,6), (1,6,2)(3,5,4)),
-             ((1,2,6)(3,4,5), (1,4)(2,3)(5,6)),
-             ((1,4)(2,3)(5,6), (1,6,2)(3,5,4)),
-             ((), (1,4)(2,3)(5,6))]
-
-        .. TODO::
-
-            The properties for the edges should be able to be changed by user
-            inputs in constructing the models, as well.
         """
         cosets = []
 
@@ -433,29 +423,12 @@ class cayley_graph_3d(SageObject):
 
 
     def _outside_edges(self):
-        """
-        Creates a dictionary which categorizes edges as begin 1-faces of the
+        r"""
+        Create a dictionary which categorizes edges.
+
+        Creates a dictionary which sorts edges as being 1-faces of the
         polytope, contained in 2-faces of the polytope, or internal to the
         structure.
-
-        EXAMPLES:
-
-        Check that every edge is either on the inside or outside::
-
-            sage: W = ReflectionGroup(["A",3])
-            sage: G = cayley_graph_3d(W)
-            sage: set(G.outside_edges()).intersection(set(G.inside_edges()))
-            set()
-            sage: len(G.outside_edges())+len(G.inside_edges()) == len(G.edges["color"])
-            True
-
-        Check that the 1-faces are also outside edges::
-
-            sage: W = ReflectionGroup(["A",3])
-            sage: G = cayley_graph_3d(W)
-            sage: set(G.one_faces()).issubset(G.outside_edges())
-            True
-
         """
         convex_bounding_polyhedron = Polyhedron(vertices = self.vertices["position"].values())
         faces1_by_vertices = []
@@ -492,17 +465,18 @@ class cayley_graph_3d(SageObject):
                             outside_list.append(tuple(self.group.cosets(S)[j]))
 
 
-    def one_faces(self, **kwds):
-        """
-        Allows user to change properties of edges that are a one-face of the convex hull.
+    def one_faces(self, color=None, edge_thickness=None):
+        r"""
+        Change properties of edges that are a one-faces.
 
         If called without arguements, returns a list of such edges.
 
         INPUT:
 
-        - ``color`` -- a color
+        - ``color`` -- (default: ``None``) a color name (a string)
 
-        - ``thickness``  -- a non-negative real number
+        - ``edge_thickness``  -- (default: ``None``) a non-negative real number
+          for the edge thickness
 
         EXAMPLES:
 
@@ -510,7 +484,8 @@ class cayley_graph_3d(SageObject):
 
             sage: W = ReflectionGroup(["B",3])
             sage: G = cayley_graph_3d(W)
-            sage: G.one_faces(thickness=.5)
+            sage: G.one_faces(edge_thickness=.5)
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type B3
             sage: G.plot3d()
             Graphics3d Object
 
@@ -519,28 +494,30 @@ class cayley_graph_3d(SageObject):
             sage: W = ReflectionGroup(["B",3])
             sage: G = cayley_graph_3d(W)
             sage: G.one_faces(color="black")
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type B3
             sage: G.plot3d()
             Graphics3d Object
         """
-        if len(kwds) == 0:
+        if color is None and edge_thickness is None:
             return self._one_faces
-        if "color" in kwds:
-            self.edge_color(color=kwds["color"],edges=self._one_faces)
-        if "thickness" in kwds:
-            self.edge_thickness(edge_thickness=kwds["thickness"], edges=self._one_faces)
+        if color is not None:
+            self.edge_color(color=color,edges=self._one_faces)
+        if edge_thickness is not None:
+            self.edge_thickness(edge_thickness=edge_thickness, edges=self._one_faces)
+        return self
 
 
-    def outside_edges(self, **kwds):
-        """
-        Allows user to change properties of edges that are on the exterior of the convex hull.
+    def outside_edges(self, color=None, edge_thickness=None):
+        r"""
+        Change properties of edges that are on the exterior of the convex hull.
 
         If called without arguments, returns a list of such edges.
 
         INPUT:
 
-        - ``color`` -- a color
+        - ``color`` -- (default: ``None``) a color name (a string)
 
-        - ``thickness`` -- a non-negative reall number
+        - ``edge_thickness`` -- (default: ``None``) a non-negative real number
 
         EXAMPLES:
 
@@ -548,7 +525,8 @@ class cayley_graph_3d(SageObject):
 
             sage: W = ReflectionGroup(["A",3])
             sage: G = cayley_graph_3d(W)
-            sage: G.outside_edges(color = "black", thickness =.5)
+            sage: G.outside_edges(color = "black", edge_thickness =.5)
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
             sage: G.edges["color"][G.outside_edges()[0]] == "black"
             True
             sage: G.edges["color"][G.inside_edges()[0]] == "black"
@@ -558,25 +536,26 @@ class cayley_graph_3d(SageObject):
         """
         exterior_edges = [i for i,j in self.outside_edge_dictionary.items() if j == "external edge"]
         outside_edges = union(self._one_faces, exterior_edges)
-        if len(kwds) == 0:
+        if color is None and edge_thickness is None:
             return outside_edges
-        if "color" in kwds:
-            self.edge_color(color=kwds["color"],edges=outside_edges)
-        if "thickness" in kwds:
-            self.edge_thickness(edge_thickness=kwds["thickness"], edges=outside_edges)
+        if color is not None:
+            self.edge_color(color=color,edges=outside_edges)
+        if edge_thickness is not None:
+            self.edge_thickness(edge_thickness=edge_thickness, edges=outside_edges)
+        return self
 
-
-    def inside_edges(self, **kwds):
-        """
-        Allows user to change properties of edges that are on the interior of the convex hull.
+    def inside_edges(self, color=None, edge_thickness=None):
+        r"""
+        Returns ``self``
 
         If called without arguements, returns a list of such edges
 
         INPUT:
 
-        - ``color`` -- a color
+        - ``color`` -- (default: ``None``) a color name as a string
 
-        - ``thickness`` -- a non-negative reall number
+        - ``edge_thickness`` -- (default: ``None``) a non-negative real number 
+          for edge thickness
 
         EXAMPLES:
 
@@ -585,6 +564,7 @@ class cayley_graph_3d(SageObject):
             sage: W = ReflectionGroup(["A",3])
             sage: G = cayley_graph_3d(W)
             sage: G.inside_edges(color="red")
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
             sage: G.edges["color"][G.inside_edges()[0]] == "red"
             True
 
@@ -592,27 +572,34 @@ class cayley_graph_3d(SageObject):
 
             sage: W = ReflectionGroup(["B",3])
             sage: G = cayley_graph_3d(W)
-            sage: G.inside_edges(thickness=0)
+            sage: G.inside_edges(edge_thickness=0)
             Traceback (most recent call last):
             ...
             RuntimeError: Use visibility method to make edges disappear
             sage: G.plot3d()
             Graphics3d Object
 
+        .. TODO::
+
+            - Change get/set madness
+
         """
         inside_edges = [i for i,j in self.outside_edge_dictionary.items() if j == "internal edge"]
-        if len(kwds) == 0:
+        if color is None and edge_thickness is None:
             return inside_edges
-        if "color" in kwds:
-            self.edge_color(color=kwds["color"],edges=inside_edges)
-        if "thickness" in kwds:
-            self.edge_thickness(edge_thickness=kwds["thickness"], edges=inside_edges)
+        if color is not None:
+            self.edge_color(color=color,edges=inside_edges)
+        if edge_thickness is not None:
+            self.edge_thickness(edge_thickness=edge_thickness, edges=inside_edges)
+        return self
 
 
     def list_edges(self, r=None):
-        """
-        Lists the edges of the current model. Lists edges corresponding to a
-        single reflection, if specified.
+        r"""
+        List the edges of the current model.
+
+        Lists edges corresponding to a single reflection, if a reflections is 
+        specified.
 
         EXAMPLES:
 
@@ -657,12 +644,10 @@ class cayley_graph_3d(SageObject):
 
 
     def edge_thicknesses(self):
-        """
-        Returns the dictionary mapping edges to their set thicknesses.
+        r"""
+        Return dictionary mapping edges to their set thicknesses.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: w = ReflectionGroup(['A', 3])
             sage: g = cayley_graph_3d(w)
@@ -675,14 +660,15 @@ class cayley_graph_3d(SageObject):
              ((1,11,8)(2,7,5)(3,4,12)(6,9,10), (1,12,3,2)(4,11,10,5)(6,9,8,7)): 1,
              ((1,12,3,2)(4,11,10,5)(6,9,8,7), (1,12,5)(2,4,9)(3,8,10)(6,11,7)): 1}
 
-        SEEALSO:
+        .. SEEALSO::
+
             :func:`~cayley_model.edge_thickness`
         """
         return self.edges["edge_thickness"]
 
 
-    def edge_thickness(self, edge_thickness=None, **kwds):
-        """
+    def edge_thickness(self, edge_thickness=None, reflections=None, edges=None):
+        r"""
         Change the thickness of all edges.
 
         If called with no input, returns current edge thickness.
@@ -691,7 +677,10 @@ class cayley_graph_3d(SageObject):
 
         INPUT:
 
-        - ``positive real number`` -- the desired thickness
+        - ``edge_thickness`` -- (default: ``None``) a positive real number for the
+          desired thickness
+        - ``reflections`` -- (default: ``None``) a list of reflections
+        - ``edges`` -- (default: ``None``) a list of edges
 
         EXAMPLES:
 
@@ -702,6 +691,7 @@ class cayley_graph_3d(SageObject):
             sage: g.edge_thickness()
             1
             sage: g.edge_thickness(0.05)
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
             sage: g.edge_thickness()
             0.05
 
@@ -709,6 +699,7 @@ class cayley_graph_3d(SageObject):
 
             sage: outside = g.outside_edges()
             sage: g.edge_thickness(1.5, edges = outside)
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
             sage: g.edges["edge_thickness"]
             {((), (2,5)(3,9)(4,6)(8,11)(10,12)): 1.5,
              ((), (1,4)(2,8)(3,5)(7,10)(9,11)): 1.5,
@@ -728,30 +719,32 @@ class cayley_graph_3d(SageObject):
         edge_thickness = round(edge_thickness, 2)
         if edge_thickness == 0:
             raise RuntimeError('Use visibility method to make edges disappear')
-        if "reflections" in kwds:
-            for r in kwds["reflections"]:
+        if reflections is not None:
+            for r in reflections:
                 for e in self.list_edges(r):
                     self.edges["edge_thickness"][e] = edge_thickness
-        if "edges" in kwds:
-            for e in kwds["edges"]:
+        if edges is not None:
+            for e in edges:
                 self.edges["edge_thickness"][e] = edge_thickness
 
-        if len(kwds) == 0:
+        if reflections is None and edges is None:
             self.edge_properties["edge_thickness"] = edge_thickness
             for e in self.edges["edge_thickness"].keys():
                 self.edges["edge_thickness"][tuple(e)] = edge_thickness
+        return self
 
 
-    def visibility(self, visible, **kwds):
-        """
-        Sets visibility of edges, reflections, vertices, or groups of
-        vertices on or off.
+    def visibility(self, visible=None, reflections=None, edges=None, vertices=None):
+        r"""
+        Set visibility of components.
 
         INPUT:
-            A boolean for whether the visibility of the selected object should
-            be turned on (True) or off (False).
 
-            An object or list of objects in the model.
+        - ``visible`` -- (default: ``None``) can be True, False, or None
+        - ``reflections`` -- (default: ``None``) a list of reflections
+        - ``edges`` -- (default: ``None``) a list of edges
+        - ``vertices`` -- (default: ``None``) a list of vertices
+
 
         EXAMPLES:
 
@@ -760,15 +753,18 @@ class cayley_graph_3d(SageObject):
             sage: U = ReflectionGroup((4))
             sage: J = cayley_graph_3d(U,  point=(20,9,7))
             sage: V = J.vertices["color"].keys()
-            sage: J.visibility(False, vertices = V)
+            sage: J.visibility(visible = False, vertices = V)
+            Rigid graphical representation of Irreducible complex reflection group of rank 2 and type ST4
             sage: J.plot3d()
             Graphics3d Object
 
         Make all edges invisible::
 
-            sage: J.visibility(True, vertices = V)
+            sage: J.visibility(visible = True, vertices = V)
+            Rigid graphical representation of Irreducible complex reflection group of rank 2 and type ST4
             sage: E = J.edges["color"].keys()
-            sage: J.visibility(False, edges = E)
+            sage: J.visibility(visible = False, edges = E)
+            Rigid graphical representation of Irreducible complex reflection group of rank 2 and type ST4
             sage: J.plot3d()
             Graphics3d Object
 
@@ -777,7 +773,8 @@ class cayley_graph_3d(SageObject):
             sage: B3 = ReflectionGroup(["B",3])
             sage: B = cayley_graph_3d(B3)
             sage: r1 = B.reflections[1]
-            sage: B.visibility(False, reflections = [r1])
+            sage: B.visibility(visible = False, reflections = [r1])
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type B3
             sage: B.plot3d()
             Graphics3d Object
 
@@ -785,39 +782,41 @@ class cayley_graph_3d(SageObject):
 
             sage: A3 = ReflectionGroup(["A",3])
             sage: A = cayley_graph_3d(A3)
-            sage: A.visibility(False, edges = A.inside_edges())
+            sage: A.visibility(visible = False, edges = A.inside_edges())
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
             sage: A.plot3d()
             Graphics3d Object
 
         Make subset of vertices invisible::
 
             sage: odd = [a for a in A.group if a.sign() == -1]
-            sage: A.visibility(False, vertices = odd)
+            sage: A.visibility(visible = False, vertices = odd)
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
             sage: A.plot3d()
             Graphics3d Object
         """
         if visible == None:
-            return self.edge_properties["visible"], \
-                    self.vertex_properties["visible"]
+            return self.edge_properties["visible"], self.vertex_properties["visible"]
 
-        if "reflections" in kwds:
-            for r in kwds["reflections"]:
+        if reflections is not None:
+            for r in reflections:
                 for e in self.list_edges(r):
                     self.edges["visible"][e] = visible
-        if "edges" in kwds:
-            for e in kwds["edges"]:
+        if edges is not None:
+            for e in edges:
                 self.edges["visible"][e] = visible
 
-        if "vertices" in kwds:
-            for v in kwds["vertices"]:
+        if vertices is not None:
+            for v in vertices:
                 self.vertices["visible"][v] = visible
-
+        return self
 
     def edge_colors(self):
-        """
-        Returns the dictionary mapping edges to their set colors.
+        r"""
+        Return the dictionary mapping edges to their set colors.
 
-        ..SEEALSO:
+        .. SEEALSO::
+        
             :func:`~cayley_model.edge_color`
 
         EXAMPLES:
@@ -834,21 +833,24 @@ class cayley_graph_3d(SageObject):
             sage: W = ReflectionGroup((2,1,2))
             sage: G = cayley_graph_3d(W)
             sage: G.edge_color("red")
+            Rigid graphical representation of Irreducible real reflection group of rank 2 and type B2
             sage: G.edge_colors().values() == ['red'] * 16
             True
         """
         return self.edges["color"]
 
 
-    def edge_color(self, color=None, **kwds):
-        """
+    def edge_color(self, color=None, reflections=None, edges=None):
+        r"""
         Change the color of all edges.
 
         If called with no input, returns current color.
 
         INPUT:
 
-        - ``color`` -- the desired color of all edges
+        - ``color`` -- (default: ``None``) a color name (a string)
+        - ``reflections`` -- (default: ``None``) a list of reflections
+        - ``edges`` -- (default: ``None``) a list of edges
 
         EXAMPLES:
 
@@ -857,7 +859,9 @@ class cayley_graph_3d(SageObject):
             sage: W = ReflectionGroup(['A',3])
             sage: G = cayley_graph_3d(W) 
             sage: G.edge_color("red", reflections=G.group.reflections().list()[:2])
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
             sage: G.edge_color("purple", reflections=G.group.reflections().list()[3:5])
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
             sage: G.edge_colors() # random
 
 
@@ -866,6 +870,7 @@ class cayley_graph_3d(SageObject):
             sage: W = ReflectionGroup(['A',3])
             sage: G = cayley_graph_3d(W) 
             sage: G.edge_color("red")
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
             sage: G.edge_colors() # random
 
         Changing colors of a select few edges::
@@ -873,29 +878,31 @@ class cayley_graph_3d(SageObject):
             sage: W = ReflectionGroup(['A',3])
             sage: G = cayley_graph_3d(W) 
             sage: G.edge_color("purple", edges=G.edges["visible"].keys()[3:5])
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
             sage: G.edge_colors() # random
 
         """
         if color == None:
             return self.edge_properties["color"]
-        if "reflections" in kwds:
-            for r in kwds["reflections"]:
+        if reflections is not None:
+            for r in reflections:
                 for e in self.list_edges(r):
                     self.edges["color"][e] = color
-        if "edges" in kwds:
-            for e in kwds["edges"]:
+        if edges is not None:
+            for e in edges:
                 self.edges["color"][e] = color
-        if len(kwds) == 0:
+        if edges is None and reflections is None:
             self.edge_properties["color"] = color
             for e in self.edges["color"].keys():
                 self.edges["color"][tuple(e)] = color
-
+        return self
 
     def vertex_colors(self):
-        """
+        r"""
         Return the dictionary mapping vertices to their set colors.
 
         EXAMPLES:
+
         Return default colors::
 
             sage: W = ReflectionGroup(['A',3])
@@ -931,7 +938,9 @@ class cayley_graph_3d(SageObject):
             sage: W = ReflectionGroup(['A',3])
             sage: G = cayley_graph_3d(W)
             sage: G.vertex_color("red", vertices=G.group.list()[:2])
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
             sage: G.vertex_color("purple", vertices=G.group.list()[3:5])
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
             sage: G.vertex_colors()
             {(): 'red',
              (2,5)(3,9)(4,6)(8,11)(10,12): 'red',
@@ -962,17 +971,16 @@ class cayley_graph_3d(SageObject):
         return self.vertices["color"]
 
 
-    def vertex_color(self, color=None, **kwds):
-        """
+    def vertex_color(self, color=None, vertices=None):
+        r"""
         Set the vertex color for all vertices.
 
         If called with no input, return the current model vertex color setting.
 
         INPUT:
 
-        - ``color`` - an RGB color 3-tuple, where each tuple entry
-            is a float between 0 and 1.
-        - ``vertices`` - a list of vertices to change to the color.
+        - ``color`` - (default: ``None``) a color name (a string)
+        - ``vertices`` - (default: ``None``) a list of vertices
 
         EXAMPLES:
 
@@ -981,17 +989,20 @@ class cayley_graph_3d(SageObject):
             sage: W = ReflectionGroup(['A',3])
             sage: G = cayley_graph_3d(W)
             sage: G.vertex_color("red")
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
 
         Change some to red::
 
             sage: W = ReflectionGroup(['A',3])
             sage: G = cayley_graph_3d(W)
             sage: G.vertex_color("red", vertices=G.group.list()[:2])
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
 
         Get current model vertex color::
             sage: W = ReflectionGroup(['A',3])
             sage: G = cayley_graph_3d(W)
             sage: G.vertex_color("purple")
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
             sage: G.vertex_color()
             'purple'
 
@@ -1004,19 +1015,21 @@ class cayley_graph_3d(SageObject):
                 self.vertices["color"] = {v:color for v in self.group.list()}
                 return self.vertex_properties["color"]
 
-        if "vertices" in kwds:
-            for v in kwds["vertices"]:
+        if vertices is not None:
+            for v in vertices:
                 self.vertices["color"][v] = color
-        if len(kwds) == 0:
+        if vertices is None:
             self.vertex_properties["color"] = color
             for v in self.group.list():
                 self.vertices["color"][v] = color
+        return self
 
     def vertex_radii(self):
-        """
-        Return the dictionary mapping vertices to their set colors.
+        r"""
+        Return the dictionary mapping vertices to their colors.
 
         EXAMPLES:
+
         Return default radii::
 
             sage: W = ReflectionGroup(['A',2])
@@ -1047,16 +1060,16 @@ class cayley_graph_3d(SageObject):
         return self.vertices["radius"]
 
 
-    def vertex_radius(self, radius=None, **kwds):
-        """
+    def vertex_radius(self, radius=None, vertices=None):
+        r"""
         Set the vertex radius for all vertices.
 
         If called with no input, return the current model vertex radius setting.
 
         INPUT:
 
-        - ``radius`` - a positive number
-        - ``vertices`` - a list of vertices to change the radius of.
+        - ``radius`` -- (default: ``None``) a positive number
+        - ``vertices`` -- (default: ``None``) a list of vertices
 
         EXAMPLES:
 
@@ -1087,20 +1100,20 @@ class cayley_graph_3d(SageObject):
 
         if radius is None:
             return self.vertex_properties["radius"]
-        if "vertices" in kwds:
-            for v in kwds["vertices"]:
+        if vertices is not None:
+            for v in vertices:
                 self.vertices["radius"][v] = round(radius,2)
-        if len(kwds) == 0:
+        if vertices is None:
             self.vertex_properties["radius"] = round(radius,2)
             for v in self.group.list():
                 self.vertices["radius"][v] = round(radius,2)
 
 
     def plot3d(self):
-        """
-        Create a graphics3dGroup object that represents the reflection
-        group, according to chosen visualization parameters.
+        r"""
+        Create a graphics3dGroup object.
 
+        Call this to see your model.
         This method does not take inputs; changes to parameters should
         be made using the setter methods.
 
@@ -1109,20 +1122,23 @@ class cayley_graph_3d(SageObject):
         Plotting the Reflection3d object opens a JMOL viewer by default::
 
             sage: W = ReflectionGroup(['A',3])
-            sage: G = cayley_graph_3d(W) 
+            sage: G = cayley_graph_3d(W)
             sage: G.plot3d() 
             Graphics3d Object
 
 
-        SEEALSO:
+        .. SEEALSO::
+
             :func:`~sage.graphs.generic_graphs.GenericGraph.plot3d`
 
 
-        TODO:
+        .. TODO::
+
             Permit 4d real and 2d complex reflection group visualization
             using
-                - Schlegel projection
-                - Stereographic projection
+
+            - Schlegel projection
+            - Stereographic projection
 
         """
         x = Graphics3dGroup([])
@@ -1147,7 +1163,7 @@ class cayley_graph_3d(SageObject):
 
     def _create_edge(self, coset):
         r"""
-        Returns graphics edge object based on order of edge.
+        Return graphics edge object based on order of edge.
 
         INPUT:
 
@@ -1157,19 +1173,9 @@ class cayley_graph_3d(SageObject):
 
         The edge of the reflection group as a graphics object.
 
-        EXAMPLES:
+        .. TODO::
 
-        ::
-
-            sage: w = cayley_graph_3d(ReflectionGroup(["A", 3]))
-            sage: edge = w._create_edge(w.edges["visible"].keys()[0])
-            sage: print(edge.jmol_repr(edge.default_render_params()))
-            [[['\ndraw line_1 width 1.0 {-11.0 42.0 -63.0}
-            {-42.0 11.0 -32.0}\ncolor $line_1  [0,255,255]\n']]]
-
-        TODO:
-
-        -Include more parameters such as edge fill and opacity
+            - Include more parameters such as edge fill and opacity
         """
         edge_points = [self.vertices["position"][cos_elt] for cos_elt in coset]
         if len(edge_points) == 2:
@@ -1206,17 +1212,8 @@ class cayley_graph_3d(SageObject):
 
         The edges, or boundaries, of the polyhedron as a graphics object.
 
-        EXAMPLES:
-
-        A polyhedron edge can be bordered by lines::
-
-            sage: w = cayley_graph_3d(ReflectionGroup(["A", 3]))
-            sage: poly = Polyhedron(vertices = [[1, 2, 3], [0,1,0], [1,0,1]])
-            sage: edge_boundaries = w._create_edge_boundaries(poly, w.edges["visible"].keys()[0])
-            sage: edge_boundaries.all
-            [Graphics3d Object]
-
-        TODO:
+        .. TODO::
+        
             - provide more visualization options for object.
         """
         _object = Graphics3dGroup([])
@@ -1230,7 +1227,7 @@ class cayley_graph_3d(SageObject):
 
 
     def _thicken_polygon(self, polytope_in_2d, coset):
-        """
+        r"""
         Return graphics object representing polyhedron in 3d with thickness.
 
         INPUT:
@@ -1241,26 +1238,9 @@ class cayley_graph_3d(SageObject):
 
         A graphics3dGroup object of the same polyhedron in 3d.
 
-        EXAMPLES:
+        .. TODO::
 
-        Example of a polygon edge::
-
-            sage: w = cayley_graph_3d(ReflectionGroup(["A", 3]))
-            sage: p = Polyhedron(vertices = [[1, 2, 3], [0,1,0], [1,0,1]])
-            sage: poly_3d = w._thicken_polygon(p, w.edges["visible"].keys()[0])
-            sage: poly_3d.all
-            [Graphics3d Object,
-             Graphics3d Object,
-             Graphics3d Object,
-             Graphics3d Object,
-             Graphics3d Object,
-             Graphics3d Object,
-             Graphics3d Object,
-             Graphics3d Object]
-
-        TODO:
-
-        - examples that better test what the graphics object contains
+            - examples that better test what the graphics object contains
         """
         thickness = self.edges["boundary_thickness"][coset]
         fill = self.edges["fill_size"][coset]
