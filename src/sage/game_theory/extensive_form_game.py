@@ -1387,9 +1387,9 @@ class ExtensiveFormGame():
 
         We can then see the dictionary::
 
-            sage: sage_game = ExtensiveFormGame(g)
-            sage: sage_game._gambit_to_sage_organize_nodes_for_looping(g)
-            sage: expected_dict = {0: [g.root],
+            sage: sage_game = ExtensiveFormGame(g) # optional - gambit
+            sage: sage_game._gambit_to_sage_organize_nodes_for_looping(g) # optional - gambit
+            sage: expected_dict = {0: [g.root], # optional - gambit
             ....:                  1: [g.root.children[int(0)],
             ....:                      g.root.children[int(1)]],
             ....:                  2: [g.root.children[int(0)].children[int(0)],
@@ -1397,7 +1397,7 @@ class ExtensiveFormGame():
             ....:                      g.root.children[int(0)].children[int(2)],
             ....:                      g.root.children[int(1)].children[int(0)],
             ....:                      g.root.children[int(1)].children[int(1)]]}
-            sage: sage_game._gambit_to_sage_node_indexed_dict == expected_dict
+            sage: sage_game._gambit_to_sage_node_indexed_dict == expected_dict # optional - gambit
             True
         """
         index = 1
@@ -4036,7 +4036,7 @@ class EFG_Leaf():
             sage: player_2 = EFG_Player('Player 2')
             sage: leaf_dict = EFG_Leaf({player_1: 0, player_2: 1})
             sage: for key in leaf_dict:
-            ....:     print "The player: {}, has payoff {}".format(key, leaf_dict[key])
+            ....:     print("The player: {}, has payoff {}".format(key, leaf_dict[key]))
             The player: EFG Player "Player 2", has payoff 1
             The player: EFG Player "Player 1", has payoff 0
         """
