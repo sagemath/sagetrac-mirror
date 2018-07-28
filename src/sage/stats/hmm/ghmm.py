@@ -5,8 +5,8 @@ Generalized Hidden Markov Models (GHMMs) are generalizations of ordinary Hidden 
 of the output-from-transition type.
 """
 
-from sage.matrix.matrix import Matrix, is_Matrix
-from sage.matrix.constructor import matrix
+from sage.structure.element import is_Matrix
+from sage.matrix.constructor import matrix, Matrix
 from sage.matrix.special import diagonal_matrix, identity_matrix, block_matrix
 from sage.modules.free_module_element import vector
 from sage.misc.misc_c import prod
