@@ -172,7 +172,7 @@ def best_linear_code_in_codetables_dot_de(n, k, F, verbose=False):
 
     param = ("?q=%s&n=%s&k=%s"%(q,n,k)).replace('L','')
 
-    url = "http://iaks-www.ira.uka.de/home/grassl/codetables/BKLC/BKLC.php"+param
+    url = "http://codetables.de/BKLC/BKLC.php"+param
     if verbose:
         print("Looking up the bounds at %s" % url)
     f = urlopen(url)
