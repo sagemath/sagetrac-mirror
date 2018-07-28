@@ -95,7 +95,7 @@ class Huffman(PrefixCoding):
         sage: from sage.coding.source_coding.huffman import Huffman
         sage: h1 = Huffman("Encode me!")
         sage: for symbol, code in h1.encoding_table().iteritems():
-        ....:     print "'" + symbol + "' : " + code
+        ....:     print("'" + symbol + "' : " + code)
         ....:     
         '!' : 1101
         ' ' : 1100
@@ -134,7 +134,7 @@ class Huffman(PrefixCoding):
         sage: d = {'a': 0.5, 'b': 0.25, 'c': 0.2, 'd': 0.05}
         sage: h2 = Huffman(d)
         sage: for symbol, code in h2.encoding_table().iteritems():
-        ....:     print "'" + symbol + "' : " + code
+        ....:     print("'" + symbol + "' : " + code)
         ....:     
         'a' : 1
         'c' : 001
@@ -146,7 +146,7 @@ class Huffman(PrefixCoding):
         sage: d2 = {'a': 2.5, 'b': 1.25, 'c': 1, 'd': 0.25}
         sage: h3 = Huffman(d2)
         sage: for symbol, code in h3.encoding_table().iteritems():
-        ....:     print "'" + symbol + "' : " + code
+        ....:     print("'" + symbol + "' : " + code)
         ....:     
         'a' : 1
         'c' : 001
@@ -185,7 +185,7 @@ class Huffman(PrefixCoding):
         sage: str2 = "Split me into symbols consisting of 3 characters"
         sage: h6 = Huffman(str2, char_per_symbol=3)
         sage: for symbol, code in h6.encoding_table().iteritems():
-        ....:     print "'" + symbol + "' : " + code
+        ....:     print("'" + symbol + "' : " + code)
         ....:     
         'nsi' : 1010
         'me ' : 1000
@@ -426,7 +426,7 @@ class Huffman(PrefixCoding):
             sage: h = Huffman(str)
             sage: t = sorted(h.encoding_table().items())
             sage: for symbol, code in t:
-            ....:     print symbol, code
+            ....:     print(symbol, code)
             ....:     
               100
             ! 10100

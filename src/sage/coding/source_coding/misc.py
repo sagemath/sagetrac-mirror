@@ -18,6 +18,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 def frequency_table(string, char_per_symbol=1):
     r"""
@@ -43,7 +44,7 @@ def frequency_table(string, char_per_symbol=1):
         sage: str = "Stop counting my characters!"
         sage: t = sorted(frequency_table(str).items())
         sage: for symbol, code in t:
-        ....:     print symbol, code
+        ....:     print(symbol, code)
         ....:     
           3
         ! 1
@@ -74,7 +75,7 @@ def frequency_table(string, char_per_symbol=1):
     
         sage: t2 = sorted(frequency_table(str, char_per_symbol=2).items())
         sage: for symbol, code in t2:
-        ....:     print symbol, code
+        ....:     print(symbol, code)
         ....:     
          c 2
         St 1
@@ -227,5 +228,5 @@ class SimpleTable():
         """
         col_width = [max(len(e) for e in col) for col in zip(*self._cols)]
         for line in self._cols:
-            print "| " + " | ".join("{:{}}".format(e, col_width[i])
-                                    for i, e in enumerate(line)) + " |"
+            print("| " + " | ".join("{:{}}".format(e, col_width[i])
+                                    for i, e in enumerate(line)) + " |")

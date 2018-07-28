@@ -19,6 +19,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from operator import itemgetter
 
@@ -83,7 +84,7 @@ class ShannonFano(PrefixCoding):
         sage: from sage.coding.source_coding.shannon_fano import ShannonFano
         sage: sf1 = ShannonFano("Encode me!")
         sage: for symbol, code in sf1.encoding_table().iteritems():
-        ....:     print "'" + symbol + "' : " + code
+        ....:     print("'" + symbol + "' : " + code)
         ....:     
         '!' : 010
         ' ' : 0110
@@ -122,7 +123,7 @@ class ShannonFano(PrefixCoding):
         sage: d = {'a': 0.5, 'b': 0.25, 'c': 0.2, 'd': 0.05}
         sage: sf2 = ShannonFano(d)
         sage: for symbol, code in sf2.encoding_table().iteritems():
-        ....:     print "'" + symbol + "' : " + code
+        ....:     print("'" + symbol + "' : " + code)
         ....:     
         'a' : 0
         'c' : 110
@@ -134,7 +135,7 @@ class ShannonFano(PrefixCoding):
         sage: d2 = {'a': 2.5, 'b': 1.25, 'c': 1, 'd': 0.25}
         sage: sf3 = ShannonFano(d2)
         sage: for symbol, code in sf3.encoding_table().iteritems():
-        ....:     print "'" + symbol + "' : " + code
+        ....:     print("'" + symbol + "' : " + code)
         ....:     
         'a' : 0
         'c' : 110
@@ -164,7 +165,7 @@ class ShannonFano(PrefixCoding):
         sage: str = "Split me into symbols consisting of 3 characters"
         sage: sf5 = ShannonFano(str, char_per_symbol=3)
         sage: for symbol, code in sf5.encoding_table().iteritems():
-        ....:     print "'" + symbol + "' : " + code
+        ....:     print("'" + symbol + "' : " + code)
         ....:     
         'nsi' : 0000
         'me ' : 0011
@@ -390,7 +391,7 @@ class ShannonFano(PrefixCoding):
             sage: sf = ShannonFano(str)
             sage: t = sorted(sf.encoding_table().items())
             sage: for symbol, code in t:
-            ....:     print symbol, code
+            ....:     print(symbol, code)
             ....:     
               000
             ! 11011

@@ -19,6 +19,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from math import ceil, log
 from operator import itemgetter
@@ -84,7 +85,7 @@ class Shannon(PrefixCoding):
         sage: from sage.coding.source_coding.shannon import Shannon
         sage: s1 = Shannon("Encode me!")
         sage: for symbol, code in s1.encoding_table().iteritems():
-        ....:     print "'" + symbol + "' : " + code
+        ....:     print("'" + symbol + "' : " + code)
         ....:     
         '!' : 0011
         ' ' : 0100
@@ -123,7 +124,7 @@ class Shannon(PrefixCoding):
         sage: d = {'a': 0.5, 'b': 0.25, 'c': 0.2, 'd': 0.05}
         sage: s2 = Shannon(d)
         sage: for symbol, code in s2.encoding_table().iteritems():
-        ....:     print "'" + symbol + "' : " + code
+        ....:     print("'" + symbol + "' : " + code)
         ....:     
         'a' : 0
         'c' : 110
@@ -135,7 +136,7 @@ class Shannon(PrefixCoding):
         sage: d2 = {'a': 2.5, 'b': 1.25, 'c': 1, 'd': 0.25}
         sage: s3 = Shannon(d2)
         sage: for symbol, code in s3.encoding_table().iteritems():
-        ....:     print "'" + symbol + "' : " + code
+        ....:     print("'" + symbol + "' : " + code)
         ....:     
         'a' : 0
         'c' : 110
@@ -162,7 +163,7 @@ class Shannon(PrefixCoding):
         sage: str = "Split me into symbols consisting of 3 characters"
         sage: s5 = Shannon(str, char_per_symbol=3)
         sage: for symbol, code in s5.encoding_table().iteritems():
-        ....:     print "'" + symbol + "' : " + code
+        ....:     print("'" + symbol + "' : " + code)
         ....:     
         'nsi' : 0000
         'me ' : 0011
@@ -365,7 +366,7 @@ class Shannon(PrefixCoding):
             sage: s = Shannon(str)
             sage: t = sorted(s.encoding_table().items())
             sage: for symbol, code in t:
-            ....:     print symbol, code
+            ....:     print(symbol, code)
             ....:     
               000
             ! 11010

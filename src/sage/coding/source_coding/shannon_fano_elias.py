@@ -19,6 +19,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from math import ceil, log
 
@@ -86,7 +87,7 @@ class ShannonFanoElias(PrefixCoding):
         sage: from sage.coding.source_coding.shannon_fano_elias import ShannonFanoElias
         sage: sfe1 = ShannonFanoElias("Encode me!")
         sage: for symbol, code in sfe1.encoding_table().iteritems():
-        ....:     print "'" + symbol + "' : " + code
+        ....:     print("'" + symbol + "' : " + code)
         ....:     
         '!' : 0000
         ' ' : 0010
@@ -125,7 +126,7 @@ class ShannonFanoElias(PrefixCoding):
         sage: d = {'a': 0.5, 'b': 0.25, 'c': 0.2, 'd': 0.05}
         sage: sfe2 = ShannonFanoElias(d)
         sage: for symbol, code in sfe2.encoding_table().iteritems():
-        ....:     print "'" + symbol + "' : " + code
+        ....:     print("'" + symbol + "' : " + code)
         ....:     
         'a' : 0
         'c' : 100
@@ -137,7 +138,7 @@ class ShannonFanoElias(PrefixCoding):
         sage: d2 = {'a': 2.5, 'b': 1.25, 'c': 1, 'd': 0.25}
         sage: sfe3 = ShannonFanoElias(d2)
         sage: for symbol, code in sfe3.encoding_table().iteritems():
-        ....:     print "'" + symbol + "' : " + code
+        ....:     print("'" + symbol + "' : " + code)
         ....:     
         'a' : 0
         'c' : 100
@@ -164,7 +165,7 @@ class ShannonFanoElias(PrefixCoding):
         sage: str = "Split me into symbols consisting of 3 characters"
         sage: sfe5 = ShannonFanoElias(str, char_per_symbol=3)
         sage: for symbol, code in sfe5.encoding_table().iteritems():
-        ....:     print "'" + symbol + "' : " + code
+        ....:     print("'" + symbol + "' : " + code)
         ....:     
         'nsi' : 0000
         'me ' : 0011
@@ -361,7 +362,7 @@ class ShannonFanoElias(PrefixCoding):
             sage: sfe = ShannonFanoElias(str)
             sage: t = sorted(sfe.encoding_table().items())
             sage: for symbol, code in t:
-            ....:     print symbol, code
+            ....:     print(symbol, code)
             ....:     
               000
             ! 11011
