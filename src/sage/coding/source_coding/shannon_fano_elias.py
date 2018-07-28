@@ -19,14 +19,14 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from math import ceil, log
 
 from six import iteritems
 
-from prefix_coding import PrefixCoding
-from misc import SimpleTable, first_binary_dec_places
+from .prefix_coding import PrefixCoding
+from .misc import SimpleTable, first_binary_dec_places
 
 class ShannonFanoElias(PrefixCoding):
     r"""

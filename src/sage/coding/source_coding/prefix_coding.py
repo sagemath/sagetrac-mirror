@@ -18,6 +18,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from abc import ABCMeta, abstractmethod
 from itertools import product
@@ -26,7 +27,7 @@ from six import string_types, iteritems
 
 from sage.structure.sage_object import SageObject
 from sage.graphs.digraph import DiGraph
-from misc import frequency_table
+from .misc import frequency_table
 
 # Key for code length of the longest code in a decoding table.
 MAX_KEY_LEN = "key_len"

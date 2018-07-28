@@ -27,12 +27,12 @@ AUTHORS:
 #
 # http://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from heapq import heapify, heappush, heappop
 
-from prefix_coding import PrefixCoding
-from misc import SimpleTable
+from .prefix_coding import PrefixCoding
+from .misc import SimpleTable
 
 class Huffman(PrefixCoding):
     r"""
