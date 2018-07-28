@@ -10,3 +10,7 @@ from sage.misc.lazy_import import lazy_import
 lazy_import("sage.stats.hmm.hmm", ["DiscreteHiddenMarkovModel"])
 lazy_import("sage.stats.hmm.chmm", ["GaussianHiddenMarkovModel","GaussianMixtureHiddenMarkovModel"])
 lazy_import("sage.stats.hmm.distributions", ["GaussianMixtureDistribution"])
+lazy_import("sage.stats.hmm.ghmm", ["GeneralizedHiddenMarkovModel"])
+
+# This does not use numpy
+# from sage.stats.hmm.ghmm import GeneralizedHiddenMarkovModel

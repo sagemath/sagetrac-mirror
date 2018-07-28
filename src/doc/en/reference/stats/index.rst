@@ -8,6 +8,7 @@ Statistics
    sage/stats/intlist
    sage/stats/hmm/hmm
    sage/stats/hmm/chmm
+   sage/stats/hmm/ghmm
    sage/stats/hmm/distributions
    sage/stats/hmm/util
 
