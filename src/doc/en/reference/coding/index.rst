@@ -96,6 +96,11 @@ Source coding
    :maxdepth: 1
 
    sage/coding/source_coding/huffman
+   sage/coding/source_coding/prefix_coding
+   sage/coding/source_coding/misc
+   sage/coding/source_coding/shannon
+   sage/coding/source_coding/shannon_fano
+   sage/coding/source_coding/shannon_fano_elias
 
 Other modules
 -------------

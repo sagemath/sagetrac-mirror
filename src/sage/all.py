@@ -124,6 +124,7 @@ from sage.plot.all       import *
 from sage.plot.plot3d.all     import *
 
 from sage.coding.all     import *
+from sage.coding.source_coding.all     import *
 from sage.combinat.all   import *
 
 from sage.lfunctions.all import *

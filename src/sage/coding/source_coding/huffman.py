@@ -1,24 +1,23 @@
 r"""
-Huffman Encoding
+Huffman Coding
 
-This module implements functionalities relating to Huffman encoding and
-decoding.
+This module implements functionalities relating to Huffman encoding
+and decoding.
 
-AUTHOR:
+AUTHORS:
 
 - Nathann Cohen (2010-05): initial version.
 
-
-Classes and functions
-=====================
+- Jan Wabbersen (2015-04-27): adapted to new super class and generalized
+  to q-nary huffman.
 """
 
-###########################################################################
-# Copyright (c) 2010 Nathann Cohen <nathann.cohen@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2015 Jan Wabbersen <jan.wabbersen@googlemail.com>
 #
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
+# the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
@@ -30,192 +29,199 @@ Classes and functions
 ###########################################################################
 from __future__ import print_function
 
-import six
-from sage.structure.sage_object import SageObject
+from heapq import heapify, heappush, heappop
 
-###########################################################################
-#
-# Helper functions
-#
-###########################################################################
+from prefix_coding import PrefixCoding
+from misc import SimpleTable
 
-def frequency_table(string):
+class Huffman(PrefixCoding):
     r"""
-    Return the frequency table corresponding to the given string.
-
+    This class implements basic functionalities of Huffman coding.
+    
+    It can build a q-nary Huffman code from a given string, or from the
+    information of a dictionary associating to each key (the elements
+    of the alphabet) a weight (most of the time, a probability value
+    or a number of occurrences).
+    
     INPUT:
 
-    - ``string`` -- a string of symbols over some alphabet.
+        - ``source`` -- can be either
 
-    OUTPUT:
-
-    - A table of frequency of each unique symbol in ``string``. If ``string``
-      is an empty string, return an empty table.
-
-    EXAMPLES:
-
-    The frequency table of a non-empty string::
-
-        sage: from sage.coding.source_coding.huffman import frequency_table
-        sage: str = "Stop counting my characters!"
-        sage: T = sorted(frequency_table(str).items())
-        sage: for symbol, code in T:
-        ....:     print("{} {}".format(symbol, code))
-          3
-        ! 1
-        S 1
-        a 2
-        c 3
-        e 1
-        g 1
-        h 1
-        i 1
-        m 1
-        n 2
-        o 2
-        p 1
-        r 2
-        s 1
-        t 3
-        u 1
-        y 1
-
-    The frequency of an empty string::
-
-        sage: frequency_table("")
-        {}
-    """
-    d = {}
-    for s in string:
-        d[s] = d.get(s, 0) + 1
-    return d
-
-class Huffman(SageObject):
-    r"""
-    This class implements the basic functionalities of Huffman codes.
-
-    It can build a Huffman code from a given string, or from the information
-    of a dictionary associating to each key (the elements of the alphabet) a
-    weight (most of the time, a probability value or a number of occurrences).
-
-    INPUT:
-
-    - ``source`` -- can be either
-
-        - A string from which the Huffman encoding should be created.
-
-        - A dictionary that associates to each symbol of an alphabet a numeric
-          value. If we consider the frequency of each alphabetic symbol, then
-          ``source`` is considered as the frequency table of the alphabet with
-          each numeric (non-negative integer) value being the number of
-          occurrences of a symbol. The numeric values can also represent weights
-          of the symbols. In that case, the numeric values are not necessarily
-          integers, but can be real numbers.
-
-    In order to construct a Huffman code for an alphabet, we use exactly one of
-    the following methods:
+            - A string from which the Huffman encoding should be
+              created.
+    
+            - A dictionary that associates to each symbol of an
+              alphabet a numeric value. If we consider the frequency
+              of each alphabetic symbol, then ``source`` is considered
+              as the frequency table of the alphabet with each numeric
+              (non-negative integer) value being the number of
+              occurrences of a symbol. The numeric values can also
+              represent weights of the symbols. In that case, the
+              numeric values are not necessarily integers, but can be
+              real numbers.
+          
+        - ``verbose`` -- (default: False) if True, print intermediate
+          data of building the code.
+          
+        - ``q`` -- (default: 2) the number of symbols in the code
+          alphabet. Supported is 2 <= q <= 10.
+          
+        - ``char_per_symbol`` -- (default: 1) the number of characters
+          that define one symbol.
+          
+        - ``decoding_table_key_len`` -- (default: 8) the length of each
+          key in the resulting decoding table. Longer keys may result in
+          faster decoding. Decoding tables with shorter keys consume
+          less memory, but decoding may be slower.
+    
+    In order to construct a Huffman encoding for an alphabet, we
+    use exactly one of the following methods:
 
     #. Let ``source`` be a string of symbols over an alphabet and feed
-       ``source`` to the constructor of this class. Based on the input string, a
-       frequency table is constructed that contains the frequency of each unique
-       symbol in ``source``. The alphabet in question is then all the unique
-       symbols in ``source``. A significant implication of this is that any
-       subsequent string that we want to encode must contain only symbols that
-       can be found in ``source``.
+       ``source`` to the constructor of this class. Based on the input
+       string and ``char_per_code``, a frequency table is constructed 
+       that contains the frequency of each unique symbol (defined by
+       ``char_per_symbol``) in ``source``. The alphabet in question is
+       then all the unique symbols in ``source``. A significant
+       implication of this is that any subsequent string that we want to
+       encode must contain only symbols that can be found in ``source``.
 
-    #. Let ``source`` be the frequency table of an alphabet. We can feed this
-       table to the constructor of this class. The table ``source`` can be a
-       table of frequencies or a table of weights.
-
-    Examples::
-
-        sage: from sage.coding.source_coding.huffman import Huffman, frequency_table
-        sage: h1 = Huffman("There once was a french fry")
-        sage: for letter, code in h1.encoding_table().items():
-        ....:     print("'{}' : {}".format(letter, code))
-        'a' : 0111
-        ' ' : 00
-        'c' : 1010
-        'e' : 100
-        'f' : 1011
-        'h' : 1100
-        'o' : 11100
-        'n' : 1101
-        's' : 11101
-        'r' : 010
-        'T' : 11110
-        'w' : 11111
-        'y' : 0110
-
-    We can obtain the same result by "training" the Huffman code with the
-    following table of frequency::
-
-        sage: ft = frequency_table("There once was a french fry"); ft
-        {' ': 5,
-         'T': 1,
-         'a': 2,
-         'c': 2,
-         'e': 4,
-         'f': 2,
-         'h': 2,
-         'n': 2,
-         'o': 1,
-         'r': 3,
-         's': 1,
-         'w': 1,
-         'y': 1}
-        sage: h2 = Huffman(ft)
-
-    Once ``h1`` has been trained, and hence possesses an encoding table,
-    it is possible to obtain the Huffman encoding of any string
-    (possibly the same) using this code::
-
-        sage: encoded = h1.encode("There once was a french fry"); encoded
-        '11110110010001010000111001101101010000111110111111010001110010110101001101101011000010110100110'
-
-    We can decode the above encoded string in the following way::
-
-        sage: h1.decode(encoded)
-        'There once was a french fry'
-
-    Obviously, if we try to decode a string using a Huffman instance which
-    has been trained on a different sample (and hence has a different encoding
-    table), we are likely to get some random-looking string::
-
-        sage: h3 = Huffman("There once were two french fries")
-        sage: h3.decode(encoded)
-        ' wehnefetrhft ne ewrowrirTc'
-
-    This does not look like our original string.
-
-    Instead of using frequency, we can assign weights to each alphabetic
-    symbol::
-
+    #. Let ``source`` be the frequency table of an alphabet. We can
+       feed this table to the constructor of this class. The table
+       ``source`` can be a table of frequencies or a table of weights.
+       
+    EXAMPLES::
+    
         sage: from sage.coding.source_coding.huffman import Huffman
-        sage: T = {"a":45, "b":13, "c":12, "d":16, "e":9, "f":5}
-        sage: H = Huffman(T)
-        sage: L = ["deaf", "bead", "fab", "bee"]
-        sage: E = []
-        sage: for e in L:
-        ....:     E.append(H.encode(e))
-        ....:     print(E[-1])
-        111110101100
-        10111010111
-        11000101
-        10111011101
-        sage: D = []
-        sage: for e in E:
-        ....:     D.append(H.decode(e))
-        ....:     print(D[-1])
-        deaf
-        bead
-        fab
-        bee
-        sage: D == L
-        True
-    """
+        sage: h1 = Huffman("Encode me!")
+        sage: for symbol, code in h1.encoding_table().iteritems():
+        ....:     print "'" + symbol + "' : " + code
+        ....:     
+        '!' : 1101
+        ' ' : 1100
+        'c' : 1111
+        'e' : 10
+        'd' : 000
+        'm' : 001
+        'o' : 011
+        'n' : 010
+        'E' : 1110
 
-    def __init__(self, source):
+    Now, we have a Huffman code for encoding strings consisting of
+    symbols that are in the encoding table::
+    
+        sage: encoded = h1.encode("Encode me!"); encoded
+        '11100101111011000101100001101101'
+        
+    And we can decode the encoded string in the following way::
+    
+        sage: h1.decode(encoded)
+        'Encode me!'
+
+    If we try to encode a string with ``h1`` that consists of symbols
+    which are not part of the encoding table, we of course get an
+    error::
+    
+        sage: h1.encode("This string contains other symbols!")
+        Traceback (most recent call last):
+        ...
+        KeyError: 'T'
+
+    If we want to encode multiple strings over an alphabet, it might be
+    a good idea to generate a Huffman code for this alphabet and a
+    given probability distribution for the symbols::
+    
+        sage: d = {'a': 0.5, 'b': 0.25, 'c': 0.2, 'd': 0.05}
+        sage: h2 = Huffman(d)
+        sage: for symbol, code in h2.encoding_table().iteritems():
+        ....:     print "'" + symbol + "' : " + code
+        ....:     
+        'a' : 1
+        'c' : 001
+        'b' : 01
+        'd' : 000
+
+    We can also use frequencies or in general weights for the symbols::
+    
+        sage: d2 = {'a': 2.5, 'b': 1.25, 'c': 1, 'd': 0.25}
+        sage: h3 = Huffman(d2)
+        sage: for symbol, code in h3.encoding_table().iteritems():
+        ....:     print "'" + symbol + "' : " + code
+        ....:     
+        'a' : 1
+        'c' : 001
+        'b' : 01
+        'd' : 000
+    
+    If you are interested in Huffman coding, you can output intermediate
+    data of the generation of the Huffman tree::
+    
+        sage: h4 = Huffman("huffman", verbose=True)
+        | merge | tree 0      | tree 1      |
+        | 1     | a           | h           |
+        | 2     | m           | n           |
+        | 3     | u           | [a, h]      |
+        | 4     | [m, n]      | f           |
+        | 5     | [u, [a, h]] | [[m, n], f] |
+        
+    If we want to encode with a larger code alphabet, we can use the
+    parameter ``q``::
+        
+        sage: str = "Sometimes a larger code alphabet is needed."
+        sage: h5 = Huffman(str, q=3)
+        sage: h5.encode(str)
+        '001122121222021021212220121112112011200011222002101012202222111120101012110022220221102201211002222022202000'
+        sage: h6 = Huffman(str, q=10)
+        sage: h6.encode(str)
+        '9110849808376799629482793158769997956928479837968858590'
+        
+    With ``char_per_symbol`` we are able to define symbols consisting
+    of multiple characters. If we choose a dictionary for ``source``,
+    we can just use keys/symbols consisting of multiple characters. But
+    we have to make sure they all have the same length. If we choose a
+    string for ``source``, we have to specify how many characters build
+    one symbol::
+    
+        sage: str2 = "Split me into symbols consisting of 3 characters"
+        sage: h6 = Huffman(str2, char_per_symbol=3)
+        sage: for symbol, code in h6.encoding_table().iteritems():
+        ....:     print "'" + symbol + "' : " + code
+        ....:     
+        'nsi' : 1010
+        'me ' : 1000
+        'int' : 0110
+        '3 c' : 0001
+        'it ' : 0111
+        'ols' : 1101
+        'of ' : 1100
+        'ng ' : 1001
+        ' co' : 0000
+        'ers' : 0100
+        'sti' : 1110
+        'act' : 0011
+        'ymb' : 1111
+        'Spl' : 0010
+        'o s' : 1011
+        'har' : 0101
+        
+    Obviously, we have to make sure that the length of the string is a
+    multiple of ``char_per_symbol`` or else we get an error::
+    
+        sage: h7 = Huffman("four", char_per_symbol=3)
+        Traceback (most recent call last):
+        ...
+        ValueError: The passed string does not match with the passed value for char_per_symbol.
+
+    When decoding long strings with a code consisting of long codewords,
+    you can try to adapt the parameter ``decoding_table_key_len`` for
+    a faster decoding. Or if you want to save memory when dealing with
+    long codewords, you can set it to a smaller value::
+        
+        sage: h8 = Huffman("Let's call it a day!", decoding_table_key_len=3)
+    """
+    
+    def __init__(self, source, verbose=False, q=2, char_per_symbol=1,
+                 decoding_table_key_len=8):
         r"""
         Constructor for Huffman.
 
@@ -224,8 +230,8 @@ class Huffman(SageObject):
         EXAMPLES::
 
             sage: from sage.coding.source_coding.huffman import Huffman
-            sage: str = "Sage is my most favorite general purpose computer algebra system"
-            sage: h = Huffman(str)
+            sage: str = "Give me an example!"
+            sage: h = Huffman(str, q=3, decoding_table_key_len=6)
 
         TESTS:
 
@@ -236,182 +242,174 @@ class Huffman(SageObject):
             ...
             ValueError: Input must be either a string or a dictionary.
         """
-
-        # alphabetic symbol to Huffman encoding translation table
-        self._character_to_code = []
-        # Huffman binary tree
-        self._tree = None
-        # index of each alphabetic symbol
-        self._index = None
-
-        if isinstance(source, six.string_types):
-            self._build_code(frequency_table(source))
-        elif isinstance(source, dict):
-            self._build_code(source)
-        else:
-            raise ValueError("Input must be either a string or a dictionary.")
-
-    def _build_code_from_tree(self, tree, d, prefix):
+        PrefixCoding.__init__(self, source, verbose, q, char_per_symbol,
+                              decoding_table_key_len)
+        
+    def _build_code_from_tree(self, tree, q, prefix):
         r"""
-        Builds the Huffman code corresponding to a given tree and prefix.
+        Build the Huffman code corresponding to a given tree, prefix
+        and code alphabet size.
 
         INPUT:
 
-        - ``tree`` -- integer, or list of size `2`
+        - ``tree`` -- list of list with maximum q strings
 
-        - ``d`` -- the dictionary to fill
+        - ``q`` -- the code alphabet size
 
-        - ``prefix`` (string) -- binary string which is the prefix
+        - ``prefix`` (string) -- string which is the prefix
           of any element of the tree
 
         EXAMPLES::
 
             sage: from sage.coding.source_coding.huffman import Huffman
-            sage: str = "Sage is my most favorite general purpose computer algebra system"
-            sage: h = Huffman(str)
-            sage: d = {}
-            sage: h._build_code_from_tree(h._tree, d, prefix="")
+            sage: h = Huffman("Some string.")
+            sage: tree = [['a', 'b'], 'c', 'd']  
+            sage: h._build_code_from_tree(tree, 3, "")
         """
         # This is really a recursive construction of a Huffman code. By
         # feeding this class a sufficiently large alphabet, it is possible to
-        # exceed the maximum recursion depth and hence result in a RuntimeError.
+        # exceed the maximum recursion depth and hence result in a
+        # RuntimeError.
         try:
-            self._build_code_from_tree(tree[0],
-                                       d,
-                                       prefix="".join([prefix, "0"]))
-            self._build_code_from_tree(tree[1],
-                                       d,
-                                       prefix="".join([prefix, "1"]))
-        except TypeError:
-            d[tree] = prefix
+            if isinstance(tree, list):
+                for i in range(q):
+                    self._build_code_from_tree(tree[i], q, prefix + str(i))
+            else:
+                self._character_to_code[tree] = prefix
+        # For q > 2, there can be a branch with fewer than q leaves.
+        except IndexError:
+            return
 
-    def _build_code(self, dic):
+    def _build_code(self, dic, verbose=False, q=2):
         r"""
-        Constructs a Huffman code corresponding to an alphabet with the given
-        weight table.
+        Constructs a Huffman code corresponding to an alphabet with the
+        given weight table.
 
         INPUT:
 
-        - ``dic`` -- a dictionary that associates to each symbol of an alphabet
-          a numeric value. If we consider the frequency of each alphabetic
-          symbol, then ``dic`` is considered as the frequency table of the
-          alphabet with each numeric (non-negative integer) value being the
-          number of occurrences of a symbol. The numeric values can also
-          represent weights of the symbols. In that case, the numeric values
-          are not necessarily integers, but can be real numbers. In general,
+        - ``dic`` -- a dictionary that associates to each symbol of an
+          alphabet a numeric value. If we consider the frequency of
+          each alphabetic symbol, then ``dic`` is considered as the
+          frequency table of the alphabet with each numeric
+          (non-negative integer) value being the number of occurrences
+          of a symbol. The numeric values can also represent weights of
+          the symbols. In that case, the numeric values are not
+          necessarily integers, but can be real numbers. In general,
           we refer to ``dic`` as a weight table.
+          
+        - ``verbose`` -- (default: False) if True, print intermediate
+          data of building the code.
+          
+        - ``q`` -- (default: 2) the number of symbols in the code
+          alphabet. Supported is 2 <= q <= 10.
 
         EXAMPLES::
 
-            sage: from sage.coding.source_coding.huffman import Huffman, frequency_table
-            sage: str = "Sage is my most favorite general purpose computer algebra system"
-            sage: h = Huffman(str)
-            sage: d = {}
-            sage: h._build_code(frequency_table(str))
+            sage: from sage.coding.source_coding.huffman import Huffman
+            sage: d = {'c': 4, 'o': 3, 'd': 2, 'e':1}
+            sage: h = Huffman(d)
+            sage: h._build_code(d)
         """
-        from heapq import heappush, heappop
-        heap = []
-        # Each alphabetic symbol is now represented by an element with
-        # weight w and index i.
-        for i, (s, w) in enumerate(dic.items()):
-            heappush(heap, (w, i))
-        for i in range(1, len(dic)):
-            weight_a, node_a = heappop(heap)
-            weight_b, node_b = heappop(heap)
-            heappush(heap, (weight_a + weight_b, [node_a, node_b]))
-        # dictionary of symbol to Huffman encoding
-        d = {}
-        self._tree = heap[0][1]
-        # Build the binary tree of a Huffman code, where the root of the tree
-        # is associated with the empty string.
-        self._build_code_from_tree(self._tree, d, prefix="")
-        self._index = dict((i, s) for i, (s, w) in enumerate(dic.items()))
-        self._character_to_code = dict(
-            (s, d[i]) for i, (s, w) in enumerate(dic.items()))
-
+        if verbose:
+            headings = ["merge"] + ["tree " + str(i) for i in range(q)]
+            table = SimpleTable(headings)
+            merge = 0
+            
+        # Switch s and w for heapify.
+        heap = [(w, s) for s, w in dic.items()]
+        heapify(heap)
+        # Number of trees to merge.
+        trees = q if q == 2 else len(dic) % (q-1)
+        if q != 2 and trees <= 1:
+            trees = q - 1 + trees
+        # Construct a Huffman tree.
+        while len(heap) > 1:
+            weight = 0
+            tree_list = []
+            for _ in range(trees):
+                w, t = heappop(heap)
+                weight += w
+                tree_list.append(t)
+            heappush(heap, (weight, tree_list))
+            if verbose:
+                merge += 1
+                row = [str(merge)] + \
+                      [str(t).replace("'", "") for t in tree_list] + \
+                      ["" for _ in range(trees, q)]
+                table.add_row(row)   
+            trees = q
+        tree = heap[0][1]
+        self._build_code_from_tree(tree, q, prefix="")
+        if verbose:
+            table.print_me()
+        
     def encode(self, string):
         r"""
         Encode the given string based on the current encoding table.
-
+        
         INPUT:
 
         - ``string`` -- a string of symbols over an alphabet.
-
+          
         OUTPUT:
 
         - A Huffman encoding of ``string``.
-
+        
         EXAMPLES:
-
-        This is how a string is encoded and then decoded::
-
+        
+        This example illustrates how to encode a string::
+        
             sage: from sage.coding.source_coding.huffman import Huffman
-            sage: str = "Sage is my most favorite general purpose computer algebra system"
-            sage: h = Huffman(str)
-            sage: encoded = h.encode(str); encoded
-            '00000110100010101011000011101010011100101010011011011100111101110010110100001011011111000001110101010001010110011010111111011001110100101000111110010011011100101011100000110001100101000101110101111101110110011000101011000111111101101111010010111001110100011'
-            sage: h.decode(encoded)
-            'Sage is my most favorite general purpose computer algebra system'
+            sage: str = "Encode me!"
+            sage: h = Huffman(str) 
+            sage: h.encode(str)
+            '11100101111011000101100001101101'
         """
-        if self._character_to_code:
-            return "".join((self._character_to_code[x] for x in string))
-
+        return PrefixCoding.encode(self, string)
+    
     def decode(self, string):
         r"""
-        Decode the given string using the current encoding table.
-
+        Decode the given string based on the current decoding table.
+        
         INPUT:
 
-        - ``string`` -- a string of Huffman encodings.
-
+        - ``string`` -- a string of encoded symbols.
+          
         OUTPUT:
 
         - The Huffman decoding of ``string``.
-
+        
         EXAMPLES:
-
-        This is how a string is encoded and then decoded::
-
+        
+        This example illustrates how to encode and then decode a
+        string::
+        
             sage: from sage.coding.source_coding.huffman import Huffman
-            sage: str = "Sage is my most favorite general purpose computer algebra system"
+            sage: str = "Encode me!"
             sage: h = Huffman(str)
             sage: encoded = h.encode(str); encoded
-            '00000110100010101011000011101010011100101010011011011100111101110010110100001011011111000001110101010001010110011010111111011001110100101000111110010011011100101011100000110001100101000101110101111101110110011000101011000111111101101111010010111001110100011'
+            '11100101111011000101100001101101'
             sage: h.decode(encoded)
-            'Sage is my most favorite general purpose computer algebra system'
-
+            'Encode me!'
+        
         TESTS:
-
-        Of course, the string one tries to decode has to be a binary one. If
-        not, an exception is raised::
-
-            sage: h.decode('I clearly am not a binary string')
-            Traceback (most recent call last):
-            ...
-            ValueError: Input must be a binary string.
+            
+        It is an error to try to decode an encoding from another
+        instance. This may raise an exception or result in
+        a wrong decoding::
+        
+            sage: str2 = "I'm another string."
+            sage: h2 = Huffman(str2)
+            sage: encoded_h2 = h2.encode(str2); encoded_h2
+            '11100110100010010111010110011101000011110100010110010110000010111111111011'
+            sage: h.decode(encoded_h2)
+            'Eonmmoee EedcnmomodmocE '
         """
-        # This traverses the whole Huffman binary tree in order to work out
-        # the symbol represented by a stream of binaries. This method of
-        # decoding is really slow. A faster method is needed.
-        # TODO: faster decoding implementation
-        chars = []
-        tree = self._tree
-        index = self._index
-        for i in string:
-            if i == "0":
-                tree = tree[0]
-            elif i == "1":
-                tree = tree[1]
-            else:
-                raise ValueError("Input must be a binary string.")
-            if not isinstance(tree, list):
-                chars.append(index[tree])
-                tree = self._tree
-        return "".join(chars)
-
+        return PrefixCoding.decode(self, string)
+    
     def encoding_table(self):
         r"""
-        Returns the current encoding table.
+        Return the current encoding table.
 
         INPUT:
 
@@ -419,42 +417,41 @@ class Huffman(SageObject):
 
         OUTPUT:
 
-        - A dictionary associating an alphabetic symbol to a Huffman encoding.
+        - A dictionary associating an alphabetic symbol to an encoding.
 
         EXAMPLES::
-
+        
             sage: from sage.coding.source_coding.huffman import Huffman
-            sage: str = "Sage is my most favorite general purpose computer algebra system"
+            sage: str = "Show my encoding table!"
             sage: h = Huffman(str)
-            sage: T = sorted(h.encoding_table().items())
-            sage: for symbol, code in T:
-            ....:     print("{} {}".format(symbol, code))
-              101
-            S 00000
-            a 1101
-            b 110001
-            c 110000
-            e 010
-            f 110010
-            g 0001
-            i 10000
-            l 10011
-            m 0011
-            n 110011
-            o 0110
-            p 0010
-            r 1111
-            s 1110
-            t 0111
-            u 10001
-            v 00001
-            y 10010
+            sage: t = sorted(h.encoding_table().items())
+            sage: for symbol, code in t:
+            ....:     print symbol, code
+            ....:     
+              100
+            ! 10100
+            S 10101
+            a 10110
+            b 10111
+            c 11000
+            d 11001
+            e 001
+            g 11010
+            h 11011
+            i 11100
+            l 11101
+            m 11110
+            n 010
+            o 011
+            t 11111
+            w 0000
+            y 0001
         """
-        return self._character_to_code.copy()
-
+        return PrefixCoding.encoding_table(self)
+    
     def tree(self):
         r"""
-        Returns the Huffman tree corresponding to the current encoding.
+        Return the Huffman tree corresponding to the current encoding.
 
         INPUT:
 
@@ -462,59 +459,15 @@ class Huffman(SageObject):
 
         OUTPUT:
 
-        - The binary tree representing a Huffman code.
+        - The tree representing a Huffman code.
 
         EXAMPLES::
-
+        
             sage: from sage.coding.source_coding.huffman import Huffman
-            sage: str = "Sage is my most favorite general purpose computer algebra system"
-            sage: h = Huffman(str)
-            sage: T = h.tree(); T
-            Digraph on 39 vertices
-            sage: T.show(figsize=[20,20])
-            <BLANKLINE>
+            sage: str = "Binary tree"
+            sage: h = Huffman(str, q=3)
+            sage: t = h.tree(); t
+            Digraph on 13 vertices
+            sage: t.show(layout='tree', vertex_size=1800, figsize=[8,8])
         """
-        from sage.graphs.digraph import DiGraph
-        g = DiGraph()
-        g.add_edges(self._generate_edges(self._tree))
-        return g
-
-    def _generate_edges(self, tree, parent="", bit=""):
-        """
-        Generate the edges of the given Huffman tree.
-
-        INPUT:
-
-        - ``tree`` -- a Huffman binary tree.
-
-        - ``parent`` -- (default: empty string) a parent vertex with exactly
-          two children.
-
-        - ``bit`` -- (default: empty string) the bit signifying either the
-          left or right branch. The bit "0" denotes the left branch and "1"
-          denotes the right branch.
-
-        OUTPUT:
-
-        - An edge list of the Huffman binary tree.
-
-        EXAMPLES::
-
-            sage: from sage.coding.source_coding.huffman import Huffman
-            sage: H = Huffman("Sage")
-            sage: T = H.tree()
-            sage: T.edges(labels=None)
-            [('0', 'S: 01'), ('0', 'a: 00'), ('1', 'e: 10'), ('1', 'g: 11'), ('root', '0'), ('root', '1')]
-        """
-        if parent == "":
-            u = "root"
-        else:
-            u = parent
-        s = "".join([parent, bit])
-        try:
-            left = self._generate_edges(tree[0], parent=s, bit="0")
-            right = self._generate_edges(tree[1], parent=s, bit="1")
-            L = [(u, s)] if s != "" else []
-            return left + right + L
-        except TypeError:
-            return [(u, "".join([self.decode(s), ": ", s]))]
+        return PrefixCoding.tree(self)
