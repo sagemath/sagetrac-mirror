@@ -270,7 +270,7 @@ class ClusterTriangulation(ClusterSeed):
                 self._mutation_type += ' from a surface'
             self._is_principal = is_principal
 
-			#sets appropriate booleans to 'False'            
+            #sets appropriate booleans to 'False'            
             self._use_g_vec = False
             self._use_c_vec = False
             self._use_d_vec = False
@@ -323,7 +323,7 @@ class ClusterTriangulation(ClusterSeed):
             self._mutation_type = data._mutation_type
             self._is_principal = copy(data._is_principal)
             
-			#sets appropriate booleans to 'False'            
+            #sets appropriate booleans to 'False'            
             self._use_g_vec = False
             self._use_c_vec = False
             self._use_d_vec = False
@@ -349,119 +349,119 @@ class ClusterTriangulation(ClusterSeed):
             #Constructs the appropriate coefficient ring
             self._U = PolynomialRing(QQ,['y%s' % i for i in range(self._n)])
         elif isinstance(data,ClusterSeed):
-        	#copy data that we want to retain in the ClusterTriangulation
-        	#(some of this is not necessary, so we might want to just ignore it)
-        	self._n = data._n
-        	self._nlist = data._nlist
-        	self._m = data._m
-        	self._mlist = data._mlist
-        	self._M = data._M
-        	self._R = data._R
-        	self._cluster = copy(data._cluster)
-        	self._mutation_type = data._mutation_type
-        	self._is_principal = data._is_principal
-        	self._use_g_vec = data._use_g_vec
-        	self._use_c_vec = data._use_c_vec
-        	self._use_d_vec = data._use_d_vec
-        	self._use_fpolys = data._use_fpolys
-        	self._bot_is_c = data._bot_is_c
-        	self._mut_path = data._mut_path
-        	self._track_mut = data._track_mut
-        	self._user_labels = data._user_labels
-        	self._user_labels_prefix = data._user_labels_prefix
-        	self._init_vars = data._init_vars
-        	self._init_exch = data._init_exch
-        	self._F = data._F
-        	self._y = data._y
-        	self._yhat = data._yhat
-        	
-        	if data._mutation_type.letter() == 'A':
-        		#By default, I'll have all the boundary edge variables be b1, b2, etc
-        		#And the default user labels for boundaries will just be 1?
-        		# Maybe there's another choice that makes more sense
-        		self._boundary_edges = ['b%i' % i for i in range(self._n+3)]
-        		self._boundary_edges_vars = [1]*(self._n+3)
-        		#print("It's type A!")
-        		
-        		#Constructing a list of triangles that we want in our triangulation
-        		#Note that the triangulation comes from the initial cluster, so we use the initial B matrix
-        		B = data._b_initial
-        		triangles = []
-        		avail_boundary_edges = self._boundary_edges
-        		
-        		#print(avail_boundary_edges)
-        		
-        		#The first triangle will always have sides (0,b_0,b_1)
-        		triangles += [(avail_boundary_edges[0], avail_boundary_edges[1], 0)]
-        		avail_boundary_edges = avail_boundary_edges[2:]
-        		
-        		#print(avail_boundary_edges)
-        		#print(triangles)
-        		#print(avail_boundary_edges)
-        		
-        		#creates intermediate triangles based on quiver orientation
-        		for i in range(self._n)[:-1]:
-        			if B[i,i+1] > 0:
-        				#print("+")
-        				triangles += [(i+1,i,avail_boundary_edges[0])]
-        				avail_boundary_edges = avail_boundary_edges[1:]
-        				#print(triangles)
-        				#print(avail_boundary_edges)
-        			if B[i,i+1] < 0:
-        				#print("-")
-        				triangles += [(i,i+1,avail_boundary_edges[-1])]
-        				avail_boundary_edges = avail_boundary_edges[:-1]
-        				#print(triangles)
-        				#print(avail_boundary_edges)
-        			
-        		#Adds final triangle with side n and remaining boundary sides	        		
-        		triangles += [(self._n-1,avail_boundary_edges[0],avail_boundary_edges[1])]
-        		
-        		print triangles
-        		#print(avail_boundary_edges)
-        		
-        	if data._mutation_type.letter() == 'D':
-        		#Same default choices, same comment about there probably being a better choice
-        		self._boundary_edges = ['b%i' % i for i in range(self._n)]
-        		self._boundary_edges_vars = [1]*(self._n)
-        		#print("It's type D!")
-        		
-        		B = data._b_initial
-        		triangles = []
-        		avail_boundary_edges = self._boundary_edges
-        		
-        		#The first triangle always has sides (0,b_0,b_1)
-        		triangles += [(avail_boundary_edges[0],avail_boundary_edges[1],0)]
-        		avail_boundary_edges = avail_boundary_edges[2:]
-        		
-        		#creates intermediate vertices (prior to last two)
-        		
-        		for i in range(self._n)[:-3]:
-        			if B[i,i+1] > 0:
-        				triangles += [(i+1,i,avail_boundary_edges[0])]
-        				avail_boundary_edges = avail_boundary_edges[1:]
-        			if B[i,i+1] < 0:
-        					triangles += [(i,i+1,avail_boundary_edges[-1])]
-        					avail_boundary_edges = avail_boundary_edges[:-1]
-        					
-        		
-        		#creates the final two triangles (possibly self-folded)
-        		#there are four cases, based on the four possible orientations for this part of D_n
-        		if B[self._n -2, self._n - 3] > 0 and B[self._n -1, self._n -3] > 0:
-        			triangles += [(self._n - 2, self._n - 3, avail_boundary_edges[0]),(self._n - 2, self._n -1, self._n -1)]
-        		elif B[self._n - 2, self._n -3] > 0 and B[self._n -1, self._n -3] < 0:
-        			triangles += [(self._n -1, self._n -2, self._n -3), (self._n - 1, self._n -2, avail_boundary_edges[0])]
-        		elif B[self._n -2, self._n -3] < 0 and B[self._n - 1, self._n - 3] > 0:
-        			triangles += [(self._n - 3, self._n - 1, self._n - 2),(self._n - 1, avail_boundary_edges[0], self._n - 2)]
-        		else:
-        			triangles += [(self._n - 3, self._n - 2, avail_boundary_edges[0]),(self._n - 2, self._n - 2, self._n -1)]
-        					
-        		print triangles
-        		#print avail_boundary_edges
-        	
-        	
-        	#print("Input was a ClusterSeed that's NOT a ClusterTriangulation")
-        	
+            #copy data that we want to retain in the ClusterTriangulation
+            #(some of this is not necessary, so we might want to just ignore it)
+            self._n = data._n
+            self._nlist = data._nlist
+            self._m = data._m
+            self._mlist = data._mlist
+            self._M = data._M
+            self._R = data._R
+            self._cluster = copy(data._cluster)
+            self._mutation_type = data._mutation_type
+            self._is_principal = data._is_principal
+            self._use_g_vec = data._use_g_vec
+            self._use_c_vec = data._use_c_vec
+            self._use_d_vec = data._use_d_vec
+            self._use_fpolys = data._use_fpolys
+            self._bot_is_c = data._bot_is_c
+            self._mut_path = data._mut_path
+            self._track_mut = data._track_mut
+            self._user_labels = data._user_labels
+            self._user_labels_prefix = data._user_labels_prefix
+            self._init_vars = data._init_vars
+            self._init_exch = data._init_exch
+            self._F = data._F
+            self._y = data._y
+            self._yhat = data._yhat
+            
+            if data._mutation_type.letter() == 'A':
+                #By default, I'll have all the boundary edge variables be b1, b2, etc
+                #And the default user labels for boundaries will just be 1?
+                # Maybe there's another choice that makes more sense
+                self._boundary_edges = ['b%i' % i for i in range(self._n+3)]
+                self._boundary_edges_vars = [1]*(self._n+3)
+                #print("It's type A!")
+                
+                #Constructing a list of triangles that we want in our triangulation
+                #Note that the triangulation comes from the initial cluster, so we use the initial B matrix
+                B = data._b_initial
+                triangles = []
+                avail_boundary_edges = self._boundary_edges
+                
+                #print(avail_boundary_edges)
+                
+                #The first triangle will always have sides (0,b_0,b_1)
+                triangles += [(avail_boundary_edges[0], avail_boundary_edges[1], 0)]
+                avail_boundary_edges = avail_boundary_edges[2:]
+                
+                #print(avail_boundary_edges)
+                #print(triangles)
+                #print(avail_boundary_edges)
+                
+                #creates intermediate triangles based on quiver orientation
+                for i in range(self._n)[:-1]:
+                    if B[i,i+1] > 0:
+                        #print("+")
+                        triangles += [(i+1,i,avail_boundary_edges[0])]
+                        avail_boundary_edges = avail_boundary_edges[1:]
+                        #print(triangles)
+                        #print(avail_boundary_edges)
+                    if B[i,i+1] < 0:
+                        #print("-")
+                        triangles += [(i,i+1,avail_boundary_edges[-1])]
+                        avail_boundary_edges = avail_boundary_edges[:-1]
+                        #print(triangles)
+                        #print(avail_boundary_edges)
+                    
+                #Adds final triangle with side n and remaining boundary sides                    
+                triangles += [(self._n-1,avail_boundary_edges[0],avail_boundary_edges[1])]
+                
+                print triangles
+                #print(avail_boundary_edges)
+                
+            if data._mutation_type.letter() == 'D':
+                #Same default choices, same comment about there probably being a better choice
+                self._boundary_edges = ['b%i' % i for i in range(self._n)]
+                self._boundary_edges_vars = [1]*(self._n)
+                #print("It's type D!")
+                
+                B = data._b_initial
+                triangles = []
+                avail_boundary_edges = self._boundary_edges
+                
+                #The first triangle always has sides (0,b_0,b_1)
+                triangles += [(avail_boundary_edges[0],avail_boundary_edges[1],0)]
+                avail_boundary_edges = avail_boundary_edges[2:]
+                
+                #creates intermediate vertices (prior to last two)
+                
+                for i in range(self._n)[:-3]:
+                    if B[i,i+1] > 0:
+                        triangles += [(i+1,i,avail_boundary_edges[0])]
+                        avail_boundary_edges = avail_boundary_edges[1:]
+                    if B[i,i+1] < 0:
+                            triangles += [(i,i+1,avail_boundary_edges[-1])]
+                            avail_boundary_edges = avail_boundary_edges[:-1]
+                            
+                
+                #creates the final two triangles (possibly self-folded)
+                #there are four cases, based on the four possible orientations for this part of D_n
+                if B[self._n -2, self._n - 3] > 0 and B[self._n -1, self._n -3] > 0:
+                    triangles += [(self._n - 2, self._n - 3, avail_boundary_edges[0]),(self._n - 2, self._n -1, self._n -1)]
+                elif B[self._n - 2, self._n -3] > 0 and B[self._n -1, self._n -3] < 0:
+                    triangles += [(self._n -1, self._n -2, self._n -3), (self._n - 1, self._n -2, avail_boundary_edges[0])]
+                elif B[self._n -2, self._n -3] < 0 and B[self._n - 1, self._n - 3] > 0:
+                    triangles += [(self._n - 3, self._n - 1, self._n - 2),(self._n - 1, avail_boundary_edges[0], self._n - 2)]
+                else:
+                    triangles += [(self._n - 3, self._n - 2, avail_boundary_edges[0]),(self._n - 2, self._n - 2, self._n -1)]
+                            
+                print triangles
+                #print avail_boundary_edges
+            
+            
+            #print("Input was a ClusterSeed that's NOT a ClusterTriangulation")
+            
         else:
             raise ValueError('Input must be a list of three-tuples or a ClusterTriangulation class. You entered data: ', data)
 
@@ -1732,22 +1732,22 @@ class ClusterTriangulation(ClusterSeed):
             final_triangle = _get_weighted_edges(final_triangle,
                                                  CT._map_label_to_variable)
         if not return_labels: 
-        	return LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size=fig_size)
+            return LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size=fig_size)
         else:
-        	expansion = LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size = fig_size)
-        	# reverses the label and variable dictionary so we can use it for substitution
-        	labelDict = {v:k for k,v in self._map_label_to_variable.items()}
-        	expansion = str(expansion)
-        	for key in labelDict.keys():
-        		expansion = expansion.replace(str(key),labelDict.get(key))
-        	return expansion
-        	
-        	#expansion = LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size=fig_size)
-        	#print expansion
-		        # reverses the label -> variable dictionary so we can use it for substitution
-		        #labelDict = {v:k for k,v in T._map_label_to_variable.items()}
-		        #expansion = str(expansion)
-		        #for key in labelDict.keys():
+            expansion = LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size = fig_size)
+            # reverses the label and variable dictionary so we can use it for substitution
+            labelDict = {v:k for k,v in self._map_label_to_variable.items()}
+            expansion = str(expansion)
+            for key in labelDict.keys():
+                expansion = expansion.replace(str(key),labelDict.get(key))
+            return expansion
+            
+            #expansion = LaurentExpansionFromSurface(CT, crossed_arcs, first_triangle, final_triangle, True, False, verbose, CT._boundary_edges_vars, fig_size=fig_size)
+            #print expansion
+                # reverses the label -> variable dictionary so we can use it for substitution
+                #labelDict = {v:k for k,v in T._map_label_to_variable.items()}
+                #expansion = str(expansion)
+                #for key in labelDict.keys():
                         #    expansion = expansion.replace(str(key),labelDict.get(key))
                         #return expansion
 
