@@ -777,7 +777,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
             sage: x = polygen(GF(121, 'a'))
             sage: C = HyperellipticCurve(x^5 + x - 1, x^2 + 2)
-            sage: len(C.points())
+            sage: len(C.points())  # known bug #25790
             122
 
         Conics are allowed (the issue reported at :trac:`11800`
