@@ -2411,7 +2411,7 @@ class AlgebraicTorus(GroupScheme):
 
 
     def Tate_Cohomology(self,n):
-        """
+        r"""
         Gives the isomorphism type of the nth cohomology group using Tate-Nakayama duality.
 
         INPUT:
@@ -2473,8 +2473,8 @@ class AlgebraicTorus(GroupScheme):
         by the order of the group, which is 6, so we get C6^(rank of T1)
 
 
-        Also, H^0 can be seen as the abelianization of the Galois group, which here has order
-        2 (it is the group of signatures)
+        Also, ``H^0`` can be seen as the abelianization of the Galois group (indeed, by Tate-Nakayama it is 
+        ``H^2(\ZZ)``), which here has order 2 (it is the group of signatures)
         ::
 
             sage: for i in range(-5,6) : 
