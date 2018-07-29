@@ -159,8 +159,10 @@ namespace wl{
                                     int bV = getValue(i, j, b);
                                     if(aV < bV) return -1;
                                     if(bV < aV){
-                                        if(i < determinationPoint && j < determinationPoint) return 2;
-                                        else return 1;
+                                        if(i <= determinationPoint && j <= determinationPoint){
+                                            if(i == determinationPoint || j == determinationPoint) return 3;
+                                            else return 2;
+                                        } else return 1;
                                     }
                                 }
                             }
@@ -180,7 +182,7 @@ namespace wl{
                             }
                             return true;
                         }
-                        void getCanonicalOrdering(int* permutation, int* current_best, size_t offset, size_t s, size_t n, char* isomorphicVertices) const{
+                        /*void getCanonicalOrdering(int* permutation, int* current_best, size_t offset, size_t s, size_t n, char* isomorphicVertices) const{
                             int c = compareSubgraphs(permutation, current_best, s, offset);
                             if(c == 2) return;
                             if(c == -1) memcpy(current_best, permutation, s*sizeof(int));
@@ -199,6 +201,29 @@ namespace wl{
                                 std::iter_swap(permutation+i, permutation + offset);
                                 getCanonicalOrdering(permutation, current_best, offset+1, s, n, isomorphicVertices);
                                 std::iter_swap(permutation + i, permutation + offset);
+                            }
+                        }*/
+                        void getCanonicalOrdering(int* permutation, int* current_best, size_t offset, size_t s, size_t n, char* isomorphicVertices) const{
+                            for(size_t i = (offset == s-2)?offset+1:offset; i < s; i++){
+                                if(i != offset){
+                                    int idx = permutation[i]*n+permutation[offset];
+                                    char v = isomorphicVertices[idx];
+                                    if(v == 0){
+                                        bool r = areVerticesIsomorphic(i, offset, permutation, s);
+                                        isomorphicVertices[idx] = r?1:2;
+                                        if (r) continue;
+                                    }else{
+                                        if (v == 1) continue;
+                                    }
+                                }
+                                std::iter_swap(permutation+i, permutation + offset);
+                                int c = 0;
+                                if(i != offset) c = compareSubgraphs(permutation, current_best, s, offset);
+                                if(c == -1) memcpy(current_best, permutation, s*sizeof(int));
+                                if(c != 2 && c != 3) getCanonicalOrdering(permutation, current_best, offset+1, s, n, isomorphicVertices);
+                                std::iter_swap(permutation + i, permutation + offset);
+                                if(c == 2) return;
+                                if(c == 3) continue;                                
                             }
                         }
                         int getValue(int row, int col, int* vertices, bool trueIndex=false) const{
