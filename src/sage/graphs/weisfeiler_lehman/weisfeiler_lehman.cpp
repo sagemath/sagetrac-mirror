@@ -151,14 +151,17 @@ namespace wl{
                         int num_of_vertices;
                         T default_label;
                         T* array;
-                        int compareSubgraphs(int* a, int* b, size_t s) const{
+                        int compareSubgraphs(int* a, int* b, size_t s, size_t determinationPoint) const{
                             if(memcmp(a, b, s*sizeof(int)) == 0) return 0;
                             for(size_t i = 0; i < s; i++){
                                 for(size_t j = 0; j < s; j++){
                                     int aV = getValue(i, j, a);
                                     int bV = getValue(i, j, b);
                                     if(aV < bV) return -1;
-                                    if(bV < aV) return 1;
+                                    if(bV < aV){
+                                        if(i < determinationPoint && j < determinationPoint) return 2;
+                                        else return 1;
+                                    }
                                 }
                             }
                             return 0;
@@ -178,10 +181,10 @@ namespace wl{
                             return true;
                         }
                         void getCanonicalOrdering(int* permutation, int* current_best, size_t offset, size_t s, size_t n, char* isomorphicVertices) const{
-                            int c = compareSubgraphs(permutation, current_best, s);
-                            //if(c == 1) return;
+                            int c = compareSubgraphs(permutation, current_best, s, offset);
+                            if(c == 2) return;
                             if(c == -1) memcpy(current_best, permutation, s*sizeof(int));
-                            for(size_t i = offset; i < s; i++){
+                            for(size_t i = (offset == s-2)?offset+1:offset; i < s; i++){
                                 if(i != offset){
                                     int idx = permutation[i]*n+permutation[offset];
                                     char v = isomorphicVertices[idx];
