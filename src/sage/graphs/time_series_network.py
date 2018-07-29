@@ -8,6 +8,37 @@ motivating context is time series, any real-valued vectors will work.
 
 {INDEX_OF_METHODS}
 
+## Design notes
+
+### Inputs
+** `x` A 2-D array containing multiple variables and observations. Each row 
+    of `x` contains a variable, and each column a single observation of those 
+    variables
+** `labels` A list of descriptive labels for the variables; must be of the same
+    length as the number of rows in `x`. These labels will be shown on the 
+    vertices of the graph
+** `alpha=0.1` The significance level the algorithm should use to determine
+    which vertices should be connected by edges. Only pairs of vertices whose
+    observations are correlated at a significance level of `alpha` will be
+    connected
+
+### Constraints
+There are currently no constraints on the size of `x` or the values it contains.
+
+### Implementation
+The class's `__init__` method computes a correlation matrix from `x` using
+the `numpy.corrcoef` method. It then generates the graph using the specified
+labels and `alpha` parameter.
+
+The `plot` method updates the graph (to incorporate any changes in `alpha`) 
+and then generates a plot using the Sage `Graph` plot method. If there are 
+more than two vertices, the plot is generated using a circular layout; however
+with two vertices edges are not displayed in circular layout, so no layout 
+is specified.
+
+The correlation matrix obtained from `x` is stored as a property called `cm`. 
+It is a 2-D numpy array.
+
 AUTHORS:
 
 -  Robert J. Kingan (2018-07-26): initial version
