@@ -96,7 +96,7 @@ namespace wl{
                                         const AdjMatrix<int>& adjMatrix;
                         };
                         //The type T default constructor should set an element of type T to default_label, and the latter should never be used as label for an existing edge
-                        AdjMatrix(int size, T default_label):num_of_vertices(size), default_label(default_label){
+                        AdjMatrix(int size):num_of_vertices(size){
                                 array = new T[size*size]();
                         }
                         ~AdjMatrix(){
@@ -104,17 +104,14 @@ namespace wl{
                         }
                         AdjMatrix(){
                                 num_of_vertices = -1;
-								default_label = T();
                         }
                         AdjMatrix(AdjMatrix<T>&& b){
                                 this->num_of_vertices = b.num_of_vertices;
-                                this->default_label = b.default_label;
                                 this->array = b.array;
                                 b.array = nullptr;
                         }
                         AdjMatrix<T>& operator=(AdjMatrix<T>&& b){
                                 this->num_of_vertices = b.num_of_vertices;
-                                this->default_label = b.default_label;
                                 this->array = b.array;
                                 b.array = nullptr;
                                 return *this;
@@ -122,9 +119,6 @@ namespace wl{
                         void addEdge(int v, int u, T label, bool bothDirections=false){
                                 array[v*num_of_vertices+u] = label;
                                 if(bothDirections) addEdge(u,v,label);
-                        }
-                        void delEdge(int v, int u, bool bothDirections=false){
-                                addEdge(v,u,default_label, bothDirections);
                         }
                         const T& getEdge(int v, int u) const{
                             return array[v*num_of_vertices+u];
@@ -140,16 +134,12 @@ namespace wl{
                             int t = a.num_of_vertices;
                             a.num_of_vertices = b.num_of_vertices;
                             b.num_of_vertices = t;
-                            U t2 = a.default_label;
-                            a.default_label = b.default_label;
-                            b.default_label = t2;
                             U* tempArr = a.array;
                             a.array = b.array;
                             b.array = tempArr;
                         }
                 private:
                         int num_of_vertices;
-                        T default_label;
                         T* array;
                         int compareSubgraphs(int* a, int* b, size_t s, size_t determinationPoint) const{
                             if(memcmp(a, b, s*sizeof(int)) == 0) return 0;
@@ -182,7 +172,8 @@ namespace wl{
                             }
                             return true;
                         }
-                        /*void getCanonicalOrdering(int* permutation, int* current_best, size_t offset, size_t s, size_t n, char* isomorphicVertices) const{
+                        /* OLD IMPLEMENTATION, SHOULD BE A LOT WORSE BUT IT'S NOT, NEED TO CHECK WHY
+                           void getCanonicalOrdering(int* permutation, int* current_best, size_t offset, size_t s, size_t n, char* isomorphicVertices) const{
                             int c = compareSubgraphs(permutation, current_best, s, offset);
                             if(c == 2) return;
                             if(c == -1) memcpy(current_best, permutation, s*sizeof(int));
@@ -203,6 +194,7 @@ namespace wl{
                                 std::iter_swap(permutation + i, permutation + offset);
                             }
                         }*/
+                        
                         void getCanonicalOrdering(int* permutation, int* current_best, size_t offset, size_t s, size_t n, char* isomorphicVertices) const{
                             for(size_t i = (offset == s-2)?offset+1:offset; i < s; i++){
                                 if(i != offset){
@@ -247,7 +239,7 @@ namespace wl{
        
         //Edge labels should start from 1
         AdjMatrix<int> populateAdjMatrix(const std::vector<GraphNode>& v, int n, bool hasVertexLabels){
-            AdjMatrix<int> adj_matrix(n, 0);
+            AdjMatrix<int> adj_matrix(n);
             for(const auto& el: v){
                     int vIdx = el.idx;
                     for(const auto& adj: el.adj_list){
@@ -304,7 +296,7 @@ namespace wl{
         map<int, vector<pair<int,int>>> k_WL(const std::vector<GraphNode>& v, int k, bool hasVertexLabels){
             int n = v.size();
             AdjMatrix<int> adjMatrix = populateAdjMatrix(v, n, hasVertexLabels);
-            AdjMatrix<int> new_adjMatrix = AdjMatrix<int>(n, 0);
+            AdjMatrix<int> new_adjMatrix = AdjMatrix<int>(n);
             queue<ColorClass> color_classes;
             initColorClasses(color_classes, adjMatrix);
             queue<ColorClass> new_color_classes;

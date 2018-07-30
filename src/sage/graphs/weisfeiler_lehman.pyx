@@ -187,10 +187,9 @@ cdef vector[GraphNode] sageGraphToLists(G, partition = [], has_edge_labels=False
             nodeArray[u].adj_list.push_back([<int>v, <int>edge_labels_dict[l]])
     return nodeArray
 
-def prova(G, k, partition=[], edge_labels=False):
+def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result_cardinality=1):
     if not isinstance(G, SageGraph):
         raise TypeError
-
     g_temp = Graph(G, edge_labels)
     if(G.has_multiple_edges()):
         edge_labels = True
@@ -202,11 +201,11 @@ def prova(G, k, partition=[], edge_labels=False):
     
     #I should add support for labels, and convert vertex labels and edge labels to integers. Call the functions you developed
     cdef vector[GraphNode] res = sageGraphToLists(g.graph, g.vertex_coloring, edge_labels)
-    print(g.graph.vertices())
-    print(g.graph.edges())
-    print(g.vertex_coloring)
-    print(res)
-    print(g._relabel_map)
+#    print(g.graph.vertices())
+#    print(g.graph.edges())
+#    print(g.vertex_coloring)
+#    print(res)
+#    print(g._relabel_map)
     cdef unordered_map[int, vector[pair[int,int]]] coloring = k_WL(res, k, g.vertex_coloring)
     
     resultDict = {}
@@ -215,7 +214,12 @@ def prova(G, k, partition=[], edge_labels=False):
     #That is, c1(tuple) = g(c2(tuple)) with g bijective, since it could happen that the initial coloring produces a different initial order that doesn't cause any issue with k-WL,
     #but produces a different permutation of the final coloring
     for p in coloring:
-        l = [tuple(el) for el in p.second]
+        if p == 1:
+            l = [el[0] for el in p.second if el[0] == el[1]]
+        elif p == 2:
+            l = [tuple(el) for el in p.second]
+        else:
+            raise ValueError("Cardinality above 2 not yet implemented")
         c = p.first
         resultDict[c] = l
     return resultDict
