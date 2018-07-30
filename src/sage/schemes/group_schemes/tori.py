@@ -12,7 +12,7 @@ All lattices inherit from :class:`Lattice_generic`, and there are currently
 two types of lattices: ambient lattices (:class:`Lattice_ambient`) and sublattices of ambient
 lattices (:class:`SubLattice`).
 
-One can define a lattice in 4 different ways:
+One can define a lattice in 5 different ways:
 
 - Giving a group and matrix actions for each generator.
 
@@ -20,7 +20,10 @@ One can define a lattice in 4 different ways:
 
 - Giving a list of matrices or finite matrix group.
 
+- Giving a list corresponding to the isomorphism type of a finite abelian group.
+
 - Giving an ambient lattice and a list of vectors spanning an invariant submodule.
+
 
 Lattice_ambient(group, actions)
 ===============================
@@ -62,7 +65,7 @@ trivial action of the group::
     ]
 
 Lattice_ambient(List_of_matrices) or Lattice_ambient(Matrix_Group)
-=================================
+==================================================================
 
 If you provide a list of matrices, Sage will construct the lattice with rank
 equal to the the size of the matrices, and the group will be understood to be
@@ -97,6 +100,20 @@ This subgroup should be finite::
     Ambient free module of rank 3 over the principal ideal domain Integer Ring
 
 
+
+Lattice(list_of_integers,action)
+================================
+
+Providing a list of integers corresponding to a finite abelian group, and action
+matrices (or integer for the trivial action) ::
+
+    sage: L = Lattice_ambient([2,2,2,2]); L
+    Ambient free module of rank 1 over the principal ideal domain Integer Ring
+    sage: L._group
+    Permutation Group with generators [(7,8), (5,6), (3,4), (1,2)]
+
+
+
 SubLattice(lattice, generators)
 ===============================
 
@@ -117,6 +134,7 @@ The algorithm checks if the sublattice is stable under the group action::
     Traceback (most recent call last):
     ...
     ValueError: The basis is not stable under the action of the group
+
 
 Attributes of a lattice
 =======================
@@ -139,6 +157,7 @@ Attributes of a lattice
 
 - ``lattice._parent_lattice`` -- the parent lattice; this attribute only exists for
     the SubLattice class
+
 
 Methods of a lattice
 ====================
@@ -225,7 +244,7 @@ either a permutation group or a finite matrix group in ``GL(n,ZZ)``.
 
 EXAMPLES ::
 
-    sage: L=Lattice_ambient(PermutationGroup([()]),1)
+    sage: L = Lattice_ambient(PermutationGroup([()]),1)
     sage: AlgebraicTorus(L)
     Algebraic Torus of rank 1 defined by the following lattice :
     Ambient free module of rank 1 over the principal ideal domain Integer Ring
@@ -235,7 +254,7 @@ EXAMPLES ::
 This is the split torus ``\mathbb{G_m}``, with action of the trivial Galois group. ::
 
 
-    sage: LL=Lattice_ambient(SymmetricGroup(3),1)
+    sage: LL = Lattice_ambient(SymmetricGroup(3),1)
     sage: AlgebraicTorus(LL)
     Algebraic Torus of rank 1 defined by the following lattice :
     Ambient free module of rank 1 over the principal ideal domain Integer Ring
@@ -246,9 +265,9 @@ This is the split torus ``\mathbb{G_m}``, with action of the trivial Galois grou
 This is still ``\mathbb{G}_m``, with trivial action of a galois group isomorphic to S3. Note that 
 this Galois group is not necessarily the one of a minimal splitting extension. ::
 
-    sage: act1=matrix(3,[0,1,0,0,0,1,1,0,0])
-    sage: act2=matrix(3,[0,1,0,1,0,0,0,0,1])
-    sage: LLL=Lattice_ambient(SymmetricGroup(3),[act1,act2])
+    sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
+    sage: act2 = matrix(3, [0,1,0,1,0,0,0,0,1])
+    sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1,act2])
     sage: AlgebraicTorus(LLL)
     Algebraic Torus of rank 3 defined by the following lattice :
     Ambient free module of rank 3 over the principal ideal domain Integer Ring
@@ -259,7 +278,7 @@ this Galois group is not necessarily the one of a minimal splitting extension. :
 
 This is a non-split anisotropic torus with galois group of splitting field isomorphic to ``S_3``. ::
 
-    sage: SL=SubLattice(L,[2*L.basis()[0]])
+    sage: SL = SubLattice(L, [2*L.basis()[0]])
     sage: AlgebraicTorus(SL)
     Algebraic Torus of rank 1 defined by the following lattice :
     Free module of degree 1 and rank 1 over Integer Ring
@@ -433,11 +452,11 @@ def coset_matrix_group(g,subgroup,left_or_right="Left") :
 
     EXAMPLES ::
 
-        sage: m1=matrix(3,[0,0,1,-1,-1,-1,1,0,0])
-        sage: m2=matrix(3,[-1,0,0,0,-1,0,0,0,-1])
-        sage: m3=matrix(3,[0,1,0,1,0,0,-1,-1,-1])
-        sage: G=MatrixGroup([m1,m2,m3])
-        sage: H=MatrixGroup([m1])
+        sage: m1 = matrix(3, [0,0,1,-1,-1,-1,1,0,0])
+        sage: m2 = matrix(3, [-1,0,0,0,-1,0,0,0,-1])
+        sage: m3 = matrix(3, [0,1,0,1,0,0,-1,-1,-1])
+        sage: G = MatrixGroup([m1,m2,m3])
+        sage: H = MatrixGroup([m1])
         sage: coset_matrix_group(G.gens()[0],H)
         [
         [ 0  0  1]  [1 0 0]
@@ -472,11 +491,11 @@ def list_cosets_matrix_group(group,subgroup,left_or_right="Left"):
 
     EXAMPLES ::
 
-        sage: m1=matrix(3,[0,0,1,-1,-1,-1,1,0,0])
-        sage: m2=matrix(3,[-1,0,0,0,-1,0,0,0,-1])
-        sage: m3=matrix(3,[0,1,0,1,0,0,-1,-1,-1])
-        sage: G=MatrixGroup([m1,m2,m3])
-        sage: H=MatrixGroup([m1])
+        sage: m1 = matrix(3, [0,0,1,-1,-1,-1,1,0,0])
+        sage: m2 = matrix(3, [-1,0,0,0,-1,0,0,0,-1])
+        sage: m3 = matrix(3, [0,1,0,1,0,0,-1,-1,-1])
+        sage: G = MatrixGroup([m1,m2,m3])
+        sage: H = MatrixGroup([m1])
         sage: list_cosets_matrix_group(G,H)
         [[
         [1 0 0]  [ 0  0  1]
@@ -501,7 +520,7 @@ def list_cosets_matrix_group(group,subgroup,left_or_right="Left"):
 
     ::
 
-        sage: H2=MatrixGroup([m1,m2])
+        sage: H2 = MatrixGroup([m1,m2])
         sage: list_cosets_matrix_group(G,H2)
         [[
         [1 0 0]  [-1  0  0]  [ 0  0  1]  [ 0  0 -1]
@@ -554,7 +573,7 @@ def is_GroupScheme(X):
     EXAMPLES ::
 
         sage: X1=GroupScheme()
-        sage: X2=Scheme()
+        sage: X2 = Scheme()
         sage: is_GroupScheme(X1)
         True
         sage: is_GroupScheme(X2)
@@ -562,10 +581,10 @@ def is_GroupScheme(X):
 
     ::
 
-        sage: L=Lattice_ambient(PermutationGroup([()]),1)
+        sage: L = Lattice_ambient(PermutationGroup([()]),1)
         sage: is_GroupScheme(L)
         False
-        sage: T=AlgebraicTorus(L)
+        sage: T = AlgebraicTorus(L)
         sage: is_GroupScheme(T)
         True
 
@@ -650,7 +669,7 @@ class GAPMap_toGLn(Map):
         self._codomain=GL(rank,ZZ)
     def _call_(self,element):
         if element is tuple:
-            Elt=Permutation(element)
+            Elt = Permutation(element)
         else:
             Elt=element
         return matrix((gap.Image(self._morphism,Elt)).sage())
@@ -675,14 +694,16 @@ class Lattice_generic(FreeModule_generic):
 
 
 
-    def __init__(self, galois, action=1, check=True):
+    def __init__(self, galois, action=1, check = True):
         """
         Constructs  a generic lattice.
 
         INPUT:
 
         - ``galois`` -- the permutation group acting on the lattice (often the galois group of 
-        an algebraic group hence the name). It can also be a matrix group.
+        an algebraic group hence the name). It can be a list of matrices or matrix group, 
+        or even a list of integers corresponding to the isomorphism type of a finite abelian
+        group.
 
         - ``action`` -- action of the group on the lattice. Can be an integer for the 
         trivial action on the standard lattice of dimension that number, or a set of 
@@ -697,11 +718,11 @@ class Lattice_generic(FreeModule_generic):
             sage: Lattice_ambient(SymmetricGroup(3),5)
             Ambient free module of rank 5 over the principal ideal domain Integer Ring
             sage: L=_
-            sage: a,b,c,d,e=L.basis()
+            sage: a,b,c,d,e = L.basis()
                 
         ::
 
-            sage: SubLattice(L,[a,b,c+d+e])
+            sage: SubLattice(L, [a,b,c+d+e])
             Free module of degree 5 and rank 3 over Integer Ring
             Echelon basis matrix:
             [1 0 0 0 0]
@@ -710,32 +731,40 @@ class Lattice_generic(FreeModule_generic):
 
         ::
 
-            sage: act1=matrix(3,[0,1,0,0,0,1,1,0,0])
-            sage: act2=matrix.identity(3)
-            sage: G=PermutationGroup([(1,2),(3,4,5)])
-            sage: Lattice_ambient(G,[act1,act2])
+            sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
+            sage: act2 = matrix.identity(3)
+            sage: G = PermutationGroup([(1,2),(3,4,5)])
+            sage: Lattice_ambient(G, [act1,act2])
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
 
         ::
 
-            sage: m1=matrix(3,[0,0,1,-1,-1,-1,1,0,0])
-            sage: m2=matrix(3,[-1,0,0,0,-1,0,0,0,-1])
-            sage: m3=matrix(3,[0,1,0,1,0,0,-1,-1,-1])
+            sage: m1 = matrix(3, [0,0,1,-1,-1,-1,1,0,0])
+            sage: m2 = matrix(3, [-1,0,0,0,-1,0,0,0,-1])
+            sage: m3 = matrix(3, [0,1,0,1,0,0,-1,-1,-1])
             sage: Lattice_ambient([m1,m2,m3])
             Ambient free module of rank 3 over the principal ideal domain Integer Ring        
         
         ::
 
-            sage: H=MatrixGroup([m1,m2,m3])
+            sage: H = MatrixGroup([m1,m2,m3])
             sage: Lattice_ambient(H)
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
 
         """
-    
-        if type(galois)==list and type(galois[0]) is Matrix_integer_dense:
-            gp=MatrixGroup(galois)
+
+        if type(galois)==list and type(galois[0]) is Integer :
+            counter=1
+            perms=[]
+            for i in galois : 
+                perms.append([j for j in range(counter,counter+i)])
+                counter+=i
+                group = PermutationGroup([tuple(k) for k in perms])
+                self.__init__(group,action,check)
+        elif type(galois)==list and type(galois[0]) is Matrix_integer_dense:
+            gp = MatrixGroup(galois)
             self.__init__(gp)
-            #self._group=MatrixGroup(galois)
+            #self._group = MatrixGroup(galois)
             #self._generators=galois
             #self._rank = galois[0].nrows()
             #self._action_matrices=galois
@@ -748,7 +777,7 @@ class Lattice_generic(FreeModule_generic):
             iso = gap.IsomorphismPermGroup(gapgroup)
             permg=gap.Image(iso)
             genperm=gap.GeneratorsOfGroup(permg)
-            goodgp=PermutationGroup(genperm)
+            goodgp = PermutationGroup(genperm)
             mats=gap.PreImage(iso,goodgp.gens())
             act=[matrix(i) for i in mats.sage()]
             self.__init__(goodgp,act)
@@ -787,7 +816,7 @@ class Lattice_generic(FreeModule_generic):
                 raise ValueError('The action is not well defined') 
 
         self._GAPMap=GAPMap_toGLn(self._group,self._rank,self._action_morphism)
-        MZ=MatrixSpace(ZZ,self._rank)
+        MZ = MatrixSpace(ZZ,self._rank)
         A=MZ.get_action(self)
         self._action=PrecomposedAction(A,self._GAPMap,None)
     def _act(self,g,e):
@@ -802,16 +831,16 @@ class Lattice_generic(FreeModule_generic):
 
         EXAMPLES ::
             
-            sage: G=PermutationGroup([(1,2),(3,4,5)])
-            sage: act1=matrix(3,[0,1,0,0,0,1,1,0,0])
-            sage: act2=matrix.identity(3)
-            sage: L1=Lattice_ambient(G,[act1,act2])
+            sage: G = PermutationGroup([(1,2),(3,4,5)])
+            sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
+            sage: act2 = matrix.identity(3)
+            sage: L1 = Lattice_ambient(G, [act1,act2])
             sage: L1._act(L1.group()[1], L1.basis()[0])
             (0, 0, 1)
 
         ::
 
-            sage: L2=Lattice_ambient(PermutationGroup([(2,3),(1,6,3),(7,6,4,5)]),1)
+            sage: L2 = Lattice_ambient(PermutationGroup([(2,3),(1,6,3),(7,6,4,5)]),1)
             sage: L2._act(L2.group()[1], L2.basis()[0])
             (1, 0, 0, 0)
         """
@@ -830,19 +859,19 @@ class Lattice_generic(FreeModule_generic):
 
         EXAMPLES ::
 
-            sage: L1=Lattice_ambient(SymmetricGroup(3),5)
+            sage: L1 = Lattice_ambient(SymmetricGroup(3), 5)
             sage: L1.group()
             Symmetric group of order 3! as a permutation group
 
         ::
 
-            sage: L2=Lattice_ambient(PermutationGroup([(2,3),(1,6,3),(7,6,4,5)]),1)
+            sage: L2 = Lattice_ambient(PermutationGroup([(2,3), (1,6,3), (7,6,4,5)]), 1)
             sage: L2.group()
             Permutation Group with generators [(4,5,7,6), (2,3), (1,6,3)]
 
         ::
 
-            sage: L3=Lattice_ambient([-matrix.identity(3)])
+            sage: L3 = Lattice_ambient([-matrix.identity(3)])
             sage: L3.group()
             Matrix group over Integer Ring with 1 generators (
             [-1  0  0]
@@ -865,9 +894,9 @@ class Lattice_generic(FreeModule_generic):
 
         EXAMPLES ::
 
-            sage: G=SymmetricGroup(4)
-            sage: H=DihedralGroup(4)
-            sage: L=Lattice_ambient(G,5)
+            sage: G = SymmetricGroup(4)
+            sage: H = DihedralGroup(4)
+            sage: L = Lattice_ambient(G,5)
             sage: L.subgroup_lattice(H)
             Ambient free module of rank 5 over the principal ideal domain Integer Ring
             sage: _._group
@@ -890,10 +919,10 @@ class Lattice_generic(FreeModule_generic):
 
             EXAMPLES ::
                 
-                sage: G=PermutationGroup([(1,2),(3,4,5)])
-                sage: act1=matrix(3,[0,1,0,0,0,1,1,0,0])
-                sage: act2=matrix.identity(3)
-                sage: L1=Lattice_ambient(G,[act1,act2])
+                sage: G = PermutationGroup([(1,2), (3,4,5)])
+                sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
+                sage: act2 = matrix.identity(3)
+                sage: L1 = Lattice_ambient(G, [act1,act2])
                 
             ::
 
@@ -932,27 +961,27 @@ class Lattice_generic(FreeModule_generic):
         
 
         EXAMPLES ::
-            sage: G=PermutationGroup([(1,2),(3,4,5)])
-            sage: act1=matrix(3,[0,1,0,0,0,1,1,0,0])
-            sage: act2=matrix.identity(3)
-            sage: L1=Lattice_ambient(G,[act1,act2])
+            sage: G = PermutationGroup([(1,2),(3,4,5)])
+            sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
+            sage: act2 = matrix.identity(3)
+            sage: L1 = Lattice_ambient(G, [act1,act2])
             sage: L1.GAPMatrixGroup()
             Group([ [ [ 0, 1, 0 ], [ 0, 0, 1 ], [ 1, 0, 0 ] ],
               [ [ 1, 0, 0 ], [ 0, 1, 0 ], [ 0, 0, 1 ] ] ])
 
         ::
 
-            sage: L2=Lattice_ambient(PermutationGroup([(2,3),(1,6,3),(7,6,4,5)]),1)
+            sage: L2 = Lattice_ambient(PermutationGroup([(2,3), (1,6,3), (7,6,4,5)]), 1)
             sage: L2.GAPMatrixGroup()
             Group([ [ [ 1, 0, 0, 0 ], [ 0, 1, 0, 0 ], [ 0, 0, 1, 0 ], [ 0, 0, 0, 1 ] ],
               [ [ 1, 0, 0, 0 ], [ 0, 1, 0, 0 ], [ 0, 0, 1, 0 ], [ 0, 0, 0, 1 ] ] ])
         
         ::
 
-            sage: m1=matrix(3,[0,0,1,-1,-1,-1,1,0,0])
-            sage: m2=matrix(3,[-1,0,0,0,-1,0,0,0,-1])
-            sage: m3=matrix(3,[0,1,0,1,0,0,-1,-1,-1])
-            sage: L3=Lattice_ambient([m1,m2,m3])
+            sage: m1 = matrix(3, [0,0,1,-1,-1,-1,1,0,0])
+            sage: m2 = matrix(3, [-1,0,0,0,-1,0,0,0,-1])
+            sage: m3 = matrix(3, [0,1,0,1,0,0,-1,-1,-1])
+            sage: L3 = Lattice_ambient([m1,m2,m3])
             sage: L3.GAPMatrixGroup()
             Group([ [ [ 0, 0, 1 ], [ -1, -1, -1 ], [ 1, 0, 0 ] ],
               [ [ -1, 0, 0 ], [ 0, -1, 0 ], [ 0, 0, -1 ] ],
@@ -997,10 +1026,10 @@ class Lattice_generic(FreeModule_generic):
 
         EXAMPLES ::
 
-            sage: G=PermutationGroup([(1,2),(3,4,5)])
-            sage: act1=matrix(3,[0,1,0,0,0,1,1,0,0])
-            sage: act2=matrix.identity(3)
-            sage: L1=Lattice_ambient(G,[act1,act2])
+            sage: G = PermutationGroup([(1,2), (3,4,5)])
+            sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
+            sage: act2 = matrix.identity(3)
+            sage: L1 = Lattice_ambient(G, [act1,act2])
             sage: for i in range(-5,6) : 
             ....:     print("H^"+str(i)+" : ") , L1.Tate_Cohomology(i)
             H^-5 :  []
@@ -1018,7 +1047,7 @@ class Lattice_generic(FreeModule_generic):
         ::
 
 
-            sage: L2=Lattice_ambient(SymmetricGroup(3),4)
+            sage: L2 = Lattice_ambient(SymmetricGroup(3),4)
             sage: for i in range(-5,6) : 
             ....:     print("H^"+str(i)+" : ") , L2.Tate_Cohomology(i)
             H^-5 :  []
@@ -1036,10 +1065,10 @@ class Lattice_generic(FreeModule_generic):
 
         ::
 
-            sage: m1=matrix(3,[0,0,1,-1,-1,-1,1,0,0])
-            sage: m2=matrix(3,[-1,0,0,0,-1,0,0,0,-1])
-            sage: m3=matrix(3,[0,1,0,1,0,0,-1,-1,-1])
-            sage: L3=Lattice_ambient([m1,m2,m3])
+            sage: m1 = matrix(3, [0,0,1,-1,-1,-1,1,0,0])
+            sage: m2 = matrix(3, [-1,0,0,0,-1,0,0,0,-1])
+            sage: m3 = matrix(3, [0,1,0,1,0,0,-1,-1,-1])
+            sage: L3 = Lattice_ambient([m1,m2,m3])
             sage: for i in range(-5,6) : 
             ....:     print("H^"+str(i)+" : ") , L3.Tate_Cohomology(i)  
             H^-5 :  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
@@ -1056,7 +1085,7 @@ class Lattice_generic(FreeModule_generic):
         """
         return self.Tate_Cohomology(n)
 
-    def induced_lattice(self,group,build=True):
+    def induced_lattice(self,group,build = True):
         """
         The ambient lattice obtained by inducing the representation of
         the group to a bigger group.
@@ -1174,7 +1203,7 @@ class Lattice_generic(FreeModule_generic):
         zero sum vectors. ::
 
 
-            sage: L=Lattice_ambient(SymmetricGroup(3),5)
+            sage: L = Lattice_ambient(SymmetricGroup(3),5)
             sage: L.zero_sum_sublattice()
             Free module of degree 5 and rank 4 over Integer Ring
             Echelon basis matrix:
@@ -1195,8 +1224,8 @@ class Lattice_generic(FreeModule_generic):
         Here we see that the zero sum sublattice of the zero sum sublattice is itself, 
         which is not the case when we return an ambient ambient lattice. ::
 
-            sage: L=Lattice_ambient(SymmetricGroup(3),5)
-            sage: SL=SubLattice(L,[L.basis()[2]+3*L.basis()[4],5*L.basis()[0]+L.basis()[1],L.basis()[1]+6*L.basi
+            sage: L = Lattice_ambient(SymmetricGroup(3),5)
+            sage: SL = SubLattice(L, [L.basis()[2]+3*L.basis()[4],5*L.basis()[0]+L.basis()[1],L.basis()[1]+6*L.basi
             ....: s()[3]])
             sage: SL
             Free module of degree 5 and rank 4 over Integer Ring
@@ -1215,9 +1244,9 @@ class Lattice_generic(FreeModule_generic):
         Here is an example of lattice whose zero sum submodule over ``\ZZ``
         is not stable under the group action ::
 
-            sage: G=SymmetricGroup(2)
-            sage: m=matrix(2,[-1,0,0,1])
-            sage: L=Lattice_ambient(G,[m])
+            sage: G = SymmetricGroup(2)
+            sage: m = matrix(2, [-1,0,0,1])
+            sage: L = Lattice_ambient(G, [m])
             sage: L.zero_sum_sublattice()
             ...
             ValueError: The basis is not stable under the action of the group
@@ -1229,7 +1258,7 @@ class Lattice_generic(FreeModule_generic):
         return self.zero_sum_sublattice(ambient)
     
 
-    def norm_one_restriction_of_scalars(self,group,ambient=True):
+    def norm_one_restriction_of_scalars(self,group,ambient = True):
         """
         Combines the induction and zero sum methods to return the character 
         lattice corresponding to a norm 1 restriction of scalars of a Torus.
@@ -1298,14 +1327,15 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
     Class for ambient lattices.
     """
 
-    def __init__(self, galois, action=1, check=True):
+    def __init__(self, galois, action=1, check = True):
         r"""
         Constructs an ambient lattice.
 
         INPUT:
 
         - ``galois`` -- the group acting on the lattice, either permutation
-            group or finite sugroup of ``GL(n,\ZZ)`` for some n.
+            group or finite sugroup of ``GL(n,\ZZ)`` for some n. It can be a list
+            of integers for a finite abelian group of that type.
         
         - ``action`` -- the list of matrices by which the generators of the group
             act, or an integer for the trivial action on the ambient free 
@@ -1317,22 +1347,22 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
 
         EXAMPLES ::
  
-            sage: Lattice_ambient(G,[act1,act2])
+            sage: Lattice_ambient(G, [act1,act2])
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
             
         ::
 
-            sage: act1=matrix(3,[0,1,0,0,0,1,1,0,0])
-            sage: act2=matrix.identity(3)
-            sage: G=PermutationGroup([(1,2),(3,4,5)])
-            sage: Lattice_ambient(G,[act1,act2])
+            sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
+            sage: act2 = matrix.identity(3)
+            sage: G = PermutationGroup([(1,2),(3,4,5)])
+            sage: Lattice_ambient(G, [act1,act2])
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
         
         ::
 
-            sage: m1=matrix(3,[0,0,1,-1,-1,-1,1,0,0])
-            sage: m2=matrix(3,[-1,0,0,0,-1,0,0,0,-1])
-            sage: m3=matrix(3,[0,1,0,1,0,0,-1,-1,-1])
+            sage: m1 = matrix(3, [0,0,1,-1,-1,-1,1,0,0])
+            sage: m2 = matrix(3, [-1,0,0,0,-1,0,0,0,-1])
+            sage: m3 = matrix(3, [0,1,0,1,0,0,-1,-1,-1])
             sage: Lattice_ambient([m1,m2,m3])
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
 
@@ -1356,16 +1386,16 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
 
 
 
-            sage: G=SymmetricGroup(3)
-            sage: H=CyclicPermutationGroup(3)
-            sage: m1=matrix(3,[0,1,0,0,0,1,1,0,0])
-            sage: m2=matrix(3,[0,1,0,1,0,0,0,0,1])
-            sage: L=Lattice_ambient(G,[m1,m2])
-            sage: L1=Lattice_ambient(G,[m1,m2])
+            sage: G = SymmetricGroup(3)
+            sage: H = CyclicPermutationGroup(3)
+            sage: m1 = matrix(3, [0,1,0,0,0,1,1,0,0])
+            sage: m2 = matrix(3, [0,1,0,1,0,0,0,0,1])
+            sage: L = Lattice_ambient(G, [m1,m2])
+            sage: L1 = Lattice_ambient(G, [m1,m2])
 
         ::
 
-            sage: L2=L1.subgroup_lattice(H);L2
+            sage: L2 = L1.subgroup_lattice(H); L2
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
             sage: L2._group
             Cyclic group of order 3 as a permutation group
@@ -1380,7 +1410,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
         Now we induce the lattice back to ``S_3`` and check we get different cohomologies ::
 
 
-            sage: L3=L2.induced_lattice(G)
+            sage: L3 = L2.induced_lattice(G)
             sage: L3._action_matrices
             [
             [0 1 0|0 0 0]  [0 0 0|0 0 1]
@@ -1439,7 +1469,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
 
         EXAMPLES ::
 
-            sage: L=Lattice_ambient(PermutationGroup([()]),1)
+            sage: L = Lattice_ambient(PermutationGroup([()]), 1)
             sage: L.isomorphic_ambient_lattice()
             Ambient free module of rank 1 over the principal ideal domain Integer Ring
             sage: _ is L
@@ -1472,9 +1502,9 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
         EXAMPLES ::
 
 
-            sage: G=CyclicPermutationGroup(58)
-            sage: mat=matrix(2,[0,1,1,0])
-            sage: L=Lattice_ambient(G,[mat])
+            sage: G = CyclicPermutationGroup(58)
+            sage: mat = matrix(2, [0,1,1,0])
+            sage: L = Lattice_ambient(G, [mat])
             sage: for i in range(-5,6) : 
             ....:     print("H^"+str(i)+" : ") , L.Tate_Cohomology(i)
             H^-5 :  []
@@ -1499,23 +1529,23 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
             G=gap.Group(self._action_matrices)
         #This is a slight adaptation of the code from Hoshi and Yamasaki done on GAP
         if n==0 :
-            M=matrix.zero(self._rank)
+            M = matrix.zero(self._rank)
             if type(self._group[0]) is PermutationGroupElement or type(self._group[0]) is SymmetricGroupElement  :
                 Lst=[libgap(i) for i in self._group]
             else:
                 Lst=[i.gap() for i in self._group]
             for i in Lst:
-                M+=matrix(gap.Image(self._action_morphism,i).sage())
-            #M=matrix((libgap.Sum(MG)).sage())
+                M += matrix(gap.Image(self._action_morphism,i).sage())
+            #M = matrix((libgap.Sum(MG)).sage())
             S=M.smith_form(False,True)
-            R=S.rank()
+            R = S.rank()
             RR=[S[i][i] for i in range(R)]
             return [i for i in RR if i>1]
         elif n==-1 :
             m=gap([])
             for i in gap.GeneratorsOfGroup(MG) : 
                 m=gap.Concatenation(m,i-gap.Identity(MG))
-            ms=matrix(m.sage())
+            ms = matrix(m.sage())
             s=ms.smith_form(False,True)
             r=s.rank()
             rr=gap([s[i][i] for i in range(r)])
@@ -1540,7 +1570,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
 
 
 
-    def induced_lattice(self,group,build=True):
+    def induced_lattice(self,group,build = True):
         """
         Given a bigger group than the original acting on the lattice, 
         contructs the induced module on that larger group.
@@ -1565,9 +1595,9 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
         EXAMPLES ::
 
         
-            sage: G=CyclicPermutationGroup(3)
-            sage: mat=matrix(3,[0,1,0,0,0,1,1,0,0])
-            sage: L=Lattice_ambient(G,[mat])
+            sage: G = CyclicPermutationGroup(3)
+            sage: mat = matrix(3, [0,1,0,0,0,1,1,0,0])
+            sage: L = Lattice_ambient(G, [mat])
             sage: L.induced_lattice(SymmetricGroup(3))
             Ambient free module of rank 6 over the principal ideal domain Integer Ring
             sage: L.induced_lattice(SymmetricGroup(3),False)
@@ -1583,12 +1613,12 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
 
         ::
 
-            sage: m1=matrix(3,[0,0,1,-1,-1,-1,1,0,0])
-            sage: m2=matrix(3,[-1,0,0,0,-1,0,0,0,-1])
-            sage: m3=matrix(3,[0,1,0,1,0,0,-1,-1,-1])
-            sage: G=MatrixGroup([m1,m2,m3])
-            sage: H=MatrixGroup([m1,m2])
-            sage: L=Lattice_ambient(H)
+            sage: m1 = matrix(3, [0,0,1,-1,-1,-1,1,0,0])
+            sage: m2 = matrix(3, [-1,0,0,0,-1,0,0,0,-1])
+            sage: m3 = matrix(3, [0,1,0,1,0,0,-1,-1,-1])
+            sage: G = MatrixGroup([m1,m2,m3])
+            sage: H = MatrixGroup([m1,m2])
+            sage: L = Lattice_ambient(H)
             sage: L.induced_lattice(G)
             Ambient free module of rank 6 over the principal ideal domain Integer Ring
             sage: _._action_matrices
@@ -1687,7 +1717,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
 
         EXAMPLES ::
 
-            sage: L=Lattice_ambient(DihedralGroup(4),4)
+            sage: L = Lattice_ambient(DihedralGroup(4),4)
             sage: L.zero_sum_sublattice()
             Free module of degree 4 and rank 3 over Integer Ring
             Echelon basis matrix:
@@ -1703,7 +1733,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
         if ambient:
             A=self
             acts=self._action_matrices
-            newacts=[A[[i for i in range(A.ncols()-1)],[i for i in range(A.ncols()-1)]]-A[[i for i in range(A.ncols()-1)],[A.ncols()-1]]*matrix(1,[1 for i in range(A.ncols()-1)]) for A in acts]
+            newacts=[A[[i for i in range(A.ncols()-1)], [i for i in range(A.ncols()-1)]]-A[[i for i in range(A.ncols()-1)], [A.ncols()-1]]*matrix(1, [1 for i in range(A.ncols()-1)]) for A in acts]
             return Lattice_ambient(self._group,newacts)
         else :
             oldBasis=self.basis()
@@ -1728,7 +1758,7 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
         A *l + B * (-sum_i l_i), which is the transformation A-B*(1,...,1)
         """
 
-    def norm_one_restriction_of_scalars(self,group,ambient=True):
+    def norm_one_restriction_of_scalars(self,group,ambient = True):
         """
         Compute the lattice corresponding to norm one restriction of scalars
         of a torus.
@@ -1749,8 +1779,8 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
 
         EXAMPLES ::
 
-            sage: L=Lattice_ambient(DihedralGroup(4),4)
-            sage: ROS=L.norm_one_restriction_of_scalars(SymmetricGroup(4));ROS
+            sage: L = Lattice_ambient(DihedralGroup(4),4)
+            sage: ROS = L.norm_one_restriction_of_scalars(SymmetricGroup(4));ROS
             Ambient free module of rank 11 over the principal ideal domain Integer Ring
             sage: ROS._action_matrices
             [
@@ -1806,7 +1836,7 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
 
 
 
-    def __init__(self, lattice,basis,check=True):
+    def __init__(self, lattice,basis,check = True):
         """
         Construct an element of the class SubLattice.
 
@@ -1841,7 +1871,7 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
         EXAMPLES ::
 
 
-        sage: L=Lattice_ambient(DihedralGroup(4),4).zero_sum_sublattice()
+        sage: L = Lattice_ambient(DihedralGroup(4),4).zero_sum_sublattice()
         sage: L.parent_lattice()
         Ambient free module of rank 4 over the principal ideal domain Integer Ring
 
@@ -1864,19 +1894,19 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
         EXAMPLES ::
 
 
-            sage: G=SymmetricGroup(3)
-            sage: H=CyclicPermutationGroup(2)
-            sage: m1=matrix(3,[0,1,0,0,0,1,1,0,0])
-            sage: m2=matrix(3,[0,1,0,1,0,0,0,0,1])
-            sage: L=Lattice_ambient(G,[m1,m2])
-            sage: a,b,c=L.basis()
-            sage: SL=SubLattice(L,[a,b])
+            sage: G = SymmetricGroup(3)
+            sage: H = CyclicPermutationGroup(2)
+            sage: m1 = matrix(3, [0,1,0,0,0,1,1,0,0])
+            sage: m2 = matrix(3, [0,1,0,1,0,0,0,0,1])
+            sage: L = Lattice_ambient(G, [m1,m2])
+            sage: a,b,c = L.basis()
+            sage: SL = SubLattice(L, [a,b])
 
         ::
 
 
-            sage: SL=SubLattice(L,[a+b+c])
-            sage: SL2=SL.subgroup_lattice(H);SL2
+            sage: SL = SubLattice(L, [a+b+c])
+            sage: SL2 = SL.subgroup_lattice(H);SL2
             Free module of degree 3 and rank 1 over Integer Ring
             Echelon basis matrix:
             [1 1 1]
@@ -1893,7 +1923,7 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
 
 
 
-            sage: SL3=SL2.induced_lattice(G)
+            sage: SL3 = SL2.induced_lattice(G)
             sage: SL3._action_matrices
             [
             [0|0|1]  [1|0|0]
@@ -1914,10 +1944,10 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
 
         EXAMPLES :: 
 
-            sage: L=Lattice_ambient(DihedralGroup(4),4)
-            sage: SL1=L.zero_sum_sublattice()
-            sage: L=Lattice_ambient(DihedralGroup(4),4)
-            sage: SL1=L.zero_sum_sublattice();SL1
+            sage: L = Lattice_ambient(DihedralGroup(4), 4)
+            sage: SL1 = L.zero_sum_sublattice()
+            sage: L = Lattice_ambient(DihedralGroup(4), 4)
+            sage: SL1 = L.zero_sum_sublattice();SL1
             Free module of degree 4 and rank 3 over Integer Ring
             Echelon basis matrix:
             [ 1  0  0 -1]
@@ -1946,8 +1976,8 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
 
         EXAMPLES ::
 
-            sage: L=Lattice_ambient(DihedralGroup(4),4)
-            sage: SL=L.zero_sum_sublattice()
+            sage: L = Lattice_ambient(DihedralGroup(4), 4)
+            sage: SL = L.zero_sum_sublattice()
             sage: for i in range(-5,6) : 
             ....:     print("H^"+str(i)+" : ") , SL1.Tate_Cohomology(i)
             ....:     
@@ -1965,10 +1995,10 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
 
         ::
 
-            sage: G=DihedralGroup(4)
-            sage: m1=matrix(2,[0,1,1,0])
-            sage: m2=-matrix.identity(2)
-            sage: L=Lattice_ambient(G,[m1,m2])
+            sage: G = DihedralGroup(4)
+            sage: m1 = matrix(2, [0,1,1,0])
+            sage: m2= -matrix.identity(2)
+            sage: L = Lattice_ambient(G, [m1,m2])
             sage: for i in range(-5,6) : 
             ....:     print("H^"+str(i)+" : ") , L.Tate_Cohomology(i)
             H^-5 :  [2, 2, 2]
@@ -1982,9 +2012,9 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
             H^3 :  [2, 2]
             H^4 :  [2, 2]
             H^5 :  [2, 2, 2]
-            sage: SL1=L.zero_sum_sublattice()
-            sage: a,b=L.basis()
-            sage: SL2=SubLattice(L,[a+b])
+            sage: SL1 = L.zero_sum_sublattice()
+            sage: a,b = L.basis()
+            sage: SL2 = SubLattice(L, [a+b])
             sage: for i in range(-5,6) : 
             ....:     print("H^"+str(i)+" : ") , SL1.Tate_Cohomology(i)
             H^-5 :  [2, 2, 2]
@@ -2028,13 +2058,13 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
         EXAMPLE ::
 
 
-            sage: G=DihedralGroup(4)
-            sage: m1=matrix(2,[0,1,1,0])
-            sage: m2=-matrix.identity(2)
-            sage: L=Lattice_ambient(G,[m1,m2])
-            sage: SL1=L.zero_sum_sublattice()
-            sage: a,b=L.basis()
-            sage: SL2=SubLattice(L,[a+b])
+            sage: G = DihedralGroup(4)
+            sage: m1 = matrix(2, [0,1,1,0])
+            sage: m2 = -matrix.identity(2)
+            sage: L = Lattice_ambient(G, [m1,m2])
+            sage: SL1 = L.zero_sum_sublattice()
+            sage: a,b = L.basis()
+            sage: SL2 = SubLattice(L, [a+b])
 
         ::
 
@@ -2061,7 +2091,7 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
         """
         return self.isomorphic_ambient_lattice().induced_lattice(group)
 
-    def norm_one_restriction_of_scalars(self,group,ambient=True):
+    def norm_one_restriction_of_scalars(self,group,ambient = True):
         """
         Compute the ambient lattice.
 
@@ -2079,9 +2109,9 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
 
         EXAMPLES ::
 
-            sage: G=DihedralGroup(4)
-            sage: L=Lattice_ambient(G,3)
-            sage: SL=L.zero_sum_sublattice()
+            sage: G = DihedralGroup(4)
+            sage: L = Lattice_ambient(G, 3)
+            sage: SL = L.zero_sum_sublattice()
             sage: SL.norm_one_restriction_of_scalars(SymmetricGroup(4))
             Ambient free module of rank 5 over the principal ideal domain Integer Ring
             sage: _._action_matrices
@@ -2138,10 +2168,10 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
         
 
 
-            sage: G1=SymmetricGroup(3)
-            sage: L1=Lattice_ambient(G,5)
-            sage: a,b,c,d,e=L1.basis()
-            sage: SL1=SubLattice(L1,[a+2*b+d,d-5*e,3*c]); SL1
+            sage: G1 = SymmetricGroup(3)
+            sage: L1 = Lattice_ambient(G,5)
+            sage: a,b,c,d,e = L1.basis()
+            sage: SL1 = SubLattice(L1, [a+2*b+d,d-5*e,3*c]); SL1
             Free module of degree 5 and rank 3 over Integer Ring
             Echelon basis matrix:
             [ 1  2  0  0  5]
@@ -2160,11 +2190,11 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
         Next is another example of sublattice where the zero sum submodule
         is not stable under the group action ::
 
-            sage: G2=CyclicPermutationGroup(2)
-            sage: m=matrix([[0,1,0,0,0],[1,0,0,0,0],[0,0,1,0,0],[0,0,0,-1,0],[0,0,0,0,-1]])
-            sage: L2=Lattice_ambient(G,[m])
-            sage: a,b,c,d,e=L2.basis()
-            sage: SL2=SubLattice(L2,[a,b,d]); SL2
+            sage: G2 = CyclicPermutationGroup(2)
+            sage: m = matrix([[0,1,0,0,0], [1,0,0,0,0], [0,0,1,0,0], [0,0,0,-1,0], [0,0,0,0,-1]])
+            sage: L2 = Lattice_ambient(G, [m])
+            sage: a,b,c,d,e = L2.basis()
+            sage: SL2 = SubLattice(L2, [a,b,d]); SL2
             Free module of degree 5 and rank 3 over Integer Ring
             Echelon basis matrix:
             [1 0 0 0 0]
@@ -2191,7 +2221,7 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
             newBasis.append(oldBasis[i]-(totals[i]/gcd)*dist_elt)
         while 0 in newBasis :
             newBasis.remove(0)
-        result=SubLattice(self._parent_lattice,newBasis)
+        result = SubLattice(self._parent_lattice,newBasis)
         return result if not ambient else result.isomorphic_ambient_lattice()
 
 
@@ -2221,7 +2251,7 @@ class AlgebraicTorus(GroupScheme):
 
         EXAMPLES ::
 
-            sage: L=Lattice_ambient(DihedralGroup(4),4)
+            sage: L = Lattice_ambient(DihedralGroup(4),4)
             sage: AlgebraicTorus(L)
             Algebraic Torus of rank 4 defined by the following lattice :
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
@@ -2255,7 +2285,7 @@ class AlgebraicTorus(GroupScheme):
 
         ::
 
-            sage: L=Lattice_ambient(CyclicPermutationGroup(3),2).norm_one_restriction_of_scalars(SymmetricGroup(3
+            sage: L = Lattice_ambient(CyclicPermutationGroup(3),2).norm_one_restriction_of_scalars(SymmetricGroup(3
             ....: ),False)
             sage: AlgebraicTorus(L)
             Algebraic Torus of rank 4 defined by the following lattice :
@@ -2277,14 +2307,14 @@ class AlgebraicTorus(GroupScheme):
         EXAMPLES ::
 
         
-            sage: L=Lattice_ambient(PermutationGroup([()]),1)
-            sage: T1=AlgebraicTorus(L)
-            sage: LL=Lattice_ambient(SymmetricGroup(3),1)
-            sage: T2=AlgebraicTorus(LL)
-            sage: act1=matrix(3,[0,1,0,0,0,1,1,0,0])
-            sage: act2=matrix(3,[0,1,0,1,0,0,0,0,1])
-            sage: LLL=Lattice_ambient(SymmetricGroup(3),[act1,act2])
-            sage: T3=AlgebraicTorus(LLL)
+            sage: L = Lattice_ambient(PermutationGroup([()]),1)
+            sage: T1 = AlgebraicTorus(L)
+            sage: LL = Lattice_ambient(SymmetricGroup(3),1)
+            sage: T2 = AlgebraicTorus(LL)
+            sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
+            sage: act2 = matrix(3, [0,1,0,1,0,0,0,0,1])
+            sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1,act2])
+            sage: T3 = AlgebraicTorus(LLL)
 
         ::
 
@@ -2309,14 +2339,14 @@ class AlgebraicTorus(GroupScheme):
 
         EXAMPLES ::
 
-            sage: L=Lattice_ambient(PermutationGroup([()]),1)
-            sage: T1=AlgebraicTorus(L)
-            sage: LL=Lattice_ambient(SymmetricGroup(3),1)
-            sage: T2=AlgebraicTorus(LL)
-            sage: act1=matrix(3,[0,1,0,0,0,1,1,0,0])
-            sage: act2=matrix(3,[0,1,0,1,0,0,0,0,1])
-            sage: LLL=Lattice_ambient(SymmetricGroup(3),[act1,act2])
-            sage: T3=AlgebraicTorus(LLL)
+            sage: L = Lattice_ambient(PermutationGroup([()]),1)
+            sage: T1 = AlgebraicTorus(L)
+            sage: LL = Lattice_ambient(SymmetricGroup(3),1)
+            sage: T2 = AlgebraicTorus(LL)
+            sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
+            sage: act2 = matrix(3, [0,1,0,1,0,0,0,0,1])
+            sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1,act2])
+            sage: T3 = AlgebraicTorus(LLL)
 
         ::
             
@@ -2336,14 +2366,14 @@ class AlgebraicTorus(GroupScheme):
 
         EXAMPLES ::
 
-            sage: L=Lattice_ambient(PermutationGroup([()]),1)
-            sage: T1=AlgebraicTorus(L)
-            sage: LL=Lattice_ambient(SymmetricGroup(3),1)
-            sage: T2=AlgebraicTorus(LL)
-            sage: act1=matrix(3,[0,1,0,0,0,1,1,0,0])
-            sage: act2=matrix(3,[0,1,0,1,0,0,0,0,1])
-            sage: LLL=Lattice_ambient(SymmetricGroup(3),[act1,act2])
-            sage: T3=AlgebraicTorus(LLL)
+            sage: L = Lattice_ambient(PermutationGroup([()]),1)
+            sage: T1 = AlgebraicTorus(L)
+            sage: LL = Lattice_ambient(SymmetricGroup(3),1)
+            sage: T2 = AlgebraicTorus(LL)
+            sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
+            sage: act2 = matrix(3, [0,1,0,1,0,0,0,0,1])
+            sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1,act2])
+            sage: T3 = AlgebraicTorus(LLL)
 
         ::
             
@@ -2363,14 +2393,14 @@ class AlgebraicTorus(GroupScheme):
 
         EXAMPLES ::
 
-            sage: L=Lattice_ambient(PermutationGroup([()]),1)
-            sage: T1=AlgebraicTorus(L)
-            sage: LL=Lattice_ambient(SymmetricGroup(3),1)
-            sage: T2=AlgebraicTorus(LL)
-            sage: act1=matrix(3,[0,1,0,0,0,1,1,0,0])
-            sage: act2=matrix(3,[0,1,0,1,0,0,0,0,1])
-            sage: LLL=Lattice_ambient(SymmetricGroup(3),[act1,act2])
-            sage: T3=AlgebraicTorus(LLL)
+            sage: L = Lattice_ambient(PermutationGroup([()]),1)
+            sage: T1 = AlgebraicTorus(L)
+            sage: LL = Lattice_ambient(SymmetricGroup(3),1)
+            sage: T2 = AlgebraicTorus(LL)
+            sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
+            sage: act2 = matrix(3, [0,1,0,1,0,0,0,0,1])
+            sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1,act2])
+            sage: T3 = AlgebraicTorus(LLL)
 
         ::
             
@@ -2393,9 +2423,9 @@ class AlgebraicTorus(GroupScheme):
 
 
 
-            sage: Lattice_ambient(PermutationGroup([(1,2,3,4,5,6)]),[matrix(2,[0,1,-1,-1])])
+            sage: Lattice_ambient(PermutationGroup([(1,2,3,4,5,6)]), [matrix(2, [0,1,-1,-1])])
             Ambient free module of rank 2 over the principal ideal domain Integer Ring
-            sage: T=AlgebraicTorus(_)
+            sage: T = AlgebraicTorus(_)
             sage: T.character_lattice()._action_matrices
             [
             [ 0  1]
@@ -2411,7 +2441,7 @@ class AlgebraicTorus(GroupScheme):
 
 
     def Tate_Cohomology(self,n):
-        r"""
+        """
         Gives the isomorphism type of the nth cohomology group using Tate-Nakayama duality.
 
         INPUT:
@@ -2419,16 +2449,21 @@ class AlgebraicTorus(GroupScheme):
         - ``n`` -- the integer corresponding to the cohomology group we wish to compute. 
         
 
+        NOTE ::
+
+            This currently only works for tori over local p-adic fields. For global fields, 
+            Tate-Nakayama gives the cohomology of the class group, not the torus itself.                      
+
         EXAMPLES ::
 
-            sage: L=Lattice_ambient(PermutationGroup([()]),1)
-            sage: T1=AlgebraicTorus(L)
-            sage: LL=Lattice_ambient(SymmetricGroup(3),1)
-            sage: T2=AlgebraicTorus(LL)
-            sage: act1=matrix(3,[0,1,0,0,0,1,1,0,0])
-            sage: act2=matrix(3,[0,1,0,1,0,0,0,0,1])
-            sage: LLL=Lattice_ambient(SymmetricGroup(3),[act1,act2])
-            sage: T3=AlgebraicTorus(LLL)
+            sage: L = Lattice_ambient(PermutationGroup([()]),1)
+            sage: T1 = AlgebraicTorus(L)
+            sage: LL = Lattice_ambient(SymmetricGroup(3),1)
+            sage: T2 = AlgebraicTorus(LL)
+            sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
+            sage: act2 = matrix(3, [0,1,0,1,0,0,0,0,1])
+            sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1,act2])
+            sage: T3 = AlgebraicTorus(LLL)
 
         ::
 
@@ -2473,8 +2508,8 @@ class AlgebraicTorus(GroupScheme):
         by the order of the group, which is 6, so we get C6^(rank of T1)
 
 
-        Also, ``H^0`` can be seen as the abelianization of the Galois group (indeed, by Tate-Nakayama it is 
-        ``H^2(\ZZ)``), which here has order 2 (it is the group of signatures)
+        Also, H^0 can be seen as the abelianization of the Galois group, which here has order
+        2 (it is the group of signatures)
         ::
 
             sage: for i in range(-5,6) : 
@@ -2524,14 +2559,14 @@ class AlgebraicTorus(GroupScheme):
 
         EXAMPLES ::
 
-            sage: L=Lattice_ambient(PermutationGroup([()]),1)
-            sage: T1=AlgebraicTorus(L)
-            sage: LL=Lattice_ambient(SymmetricGroup(3),1)
-            sage: T2=AlgebraicTorus(LL)
-            sage: act1=matrix(3,[0,1,0,0,0,1,1,0,0])
-            sage: act2=matrix(3,[0,1,0,1,0,0,0,0,1])
-            sage: LLL=Lattice_ambient(SymmetricGroup(3),[act1,act2])
-            sage: T3=AlgebraicTorus(LLL)
+            sage: L = Lattice_ambient(PermutationGroup([()]),1)
+            sage: T1 = AlgebraicTorus(L)
+            sage: LL = Lattice_ambient(SymmetricGroup(3),1)
+            sage: T2 = AlgebraicTorus(LL)
+            sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
+            sage: act2 = matrix(3, [0,1,0,1,0,0,0,0,1])
+            sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1,act2])
+            sage: T3 = AlgebraicTorus(LLL)
 
         ::
 
@@ -2603,14 +2638,14 @@ class AlgebraicTorus(GroupScheme):
 
         EXAMPLES ::
 
-            sage: L=Lattice_ambient(PermutationGroup([()]),1)
-            sage: T1=AlgebraicTorus(L)
-            sage: LL=Lattice_ambient(SymmetricGroup(3),1)
-            sage: T2=AlgebraicTorus(LL)
-            sage: act1=matrix(3,[0,1,0,0,0,1,1,0,0])
-            sage: act2=matrix(3,[0,1,0,1,0,0,0,0,1])
-            sage: LLL=Lattice_ambient(SymmetricGroup(3),[act1,act2])
-            sage: T3=AlgebraicTorus(LLL)
+            sage: L = Lattice_ambient(PermutationGroup([()]),1)
+            sage: T1 = AlgebraicTorus(L)
+            sage: LL = Lattice_ambient(SymmetricGroup(3),1)
+            sage: T2 = AlgebraicTorus(LL)
+            sage: act1 = matrix(3, [0,1,0,0,0,1,1,0,0])
+            sage: act2 = matrix(3, [0,1,0,1,0,0,0,0,1])
+            sage: LLL = Lattice_ambient(SymmetricGroup(3), [act1,act2])
+            sage: T3 = AlgebraicTorus(LLL)
 
         ::
 
@@ -2670,7 +2705,7 @@ class AlgebraicTorus(GroupScheme):
         For the two latter examples, we check that we get different cohomologies with the
         same group, and the norm one restriction of the split torus has nontrivial cohomology. ::
 
-            sage: ROS=T1.norm_one_restriction(PermutationGroup([(1,2),(3,4),(5,6),(7,8)]))
+            sage: ROS = T1.norm_one_restriction(PermutationGroup([(1,2),(3,4),(5,6),(7,8)]))
             sage: for i in range(-4,6) :
             ....:     print("H^"+str(i)+" : ") , ROS.Tate_Cohomology(i)
             H^-4 :  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
@@ -2688,7 +2723,7 @@ class AlgebraicTorus(GroupScheme):
         number of a Torus. See his paper 'On the Tamagawa Number of Algebraic Tori'.
         ::
 
-            sage: ROS2=T2.norm_one_restriction(SymmetricGroup(4))
+            sage: ROS2 = T2.norm_one_restriction(SymmetricGroup(4))
             sage: for i in range(-4,6) : 
             ....:     print("H^"+str(i)+" : ") , T2.Tate_Cohomology(i)
             H^-4 :  [2]
@@ -2702,7 +2737,7 @@ class AlgebraicTorus(GroupScheme):
             H^4 :  [2]
             H^5 :  []
 
-            sage: ROS3=T3.norm_one_restriction(SymmetricGroup(4))
+            sage: ROS3 = T3.norm_one_restriction(SymmetricGroup(4))
             sage: for i in range(-4,6) : 
             ....:     print("H^"+str(i)+" : ") , ROS3.Tate_Cohomology(i)
             H^-4 :  [2, 2]
