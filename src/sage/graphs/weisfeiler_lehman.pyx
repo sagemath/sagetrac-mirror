@@ -207,7 +207,7 @@ def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result_cardinality=1
 #    print(res)
 #    print(g._relabel_map)
     cdef unordered_map[int, vector[pair[int,int]]] coloring = k_WL(res, k, g.vertex_coloring)
-    
+    inverted_relabel_map = {v:k for k,v in g._relabel_map.iteritems()}
     resultDict = {}
     
     #Normally, one would check for equality of the results. If using initial partitions though, one should check for an automorphism between the colors.
@@ -215,8 +215,9 @@ def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result_cardinality=1
     #but produces a different permutation of the final coloring
     for p in coloring:
         if result_cardinality == 1:
-            l = [el.first for el in p.second if el.first == el.second]
+            l = [inverted_relabel_map[el.first] for el in p.second if el.first == el.second]
         elif result_cardinality == 2:
+            edge = (inverted_relabel_map[el.first],inverted_relabel_map[el.second])
             l = [tuple(el) for el in p.second]
         else:
             raise ValueError("Cardinality above 2 not yet implemented")
