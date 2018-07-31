@@ -182,7 +182,7 @@ Methods of a lattice
 
 - :meth:`Lattice_generic.induced_lattice` -- the induction of the lattice to a bigger group
 
-- :meth:`Lattice_generic.zer_sum_sublattice` -- the sublattice of zero sum vectors,
+- :meth:`Lattice_generic.zero_sum_sublattice` -- the sublattice of zero sum vectors,
     can also give an ambient lattice isomorphic to this zero sum sublattice. 
 
 
@@ -315,6 +315,8 @@ Methods of a Torus
 - :meth:`AlgebraicTorus.character_lattice` -- the character lattice of the torus
 
 - :meth:`AlgebraicTorus.cocharacter_lattice` -- the cocharacter lattice of the torus
+
+- :meth:`AlgebraicTorus.is_rational` -- tests if a point is rational
 
 - :meth:`AlgebraicTorus.Tate_Cohomology` -- the isomorphism
     type of Tate Cohomology groups of the Torus
@@ -2358,6 +2360,63 @@ class AlgebraicTorus(GroupScheme):
             Symmetric group of order 3! as a permutation group
         """
         return self._lattice._group
+
+
+    def is_rational(self,ruple,subgp=None):
+        """
+        Detects if a point is rational over the base field. 
+
+        INPUT:
+
+        - ``ruple`` -- a point of the torus given as an r-tuple of points over the 
+        splitting field, where r is the rank of the torus. 
+
+        - ``subgp`` -- optional, subgroup of the galois group corresponding to an
+        intermediate extension. If specified, the algorithm will test the rationality 
+        over the intermediate extension.
+
+
+        EXAMPLES::
+
+            sage: K.<w> = QuadraticField(5); G = K.galois_group()
+            sage: Lat = Lattice_ambient(PermutationGroup([()]),1)
+            sage: Lati = Lat.induced_lattice(G)
+            
+        ::
+
+            sage: T=AlgebraicTorus(Lati, QQ, K)
+            sage: T.is_rational([w,w])
+            'The given point is not rational'
+            sage: T.is_rational([1,1])
+            'The given point is rational'
+            sage: T.is_rational([1,w])
+            'The given point is not rational'
+
+
+
+
+
+        """
+        if subgp==None: 
+            elt = matrix(self.rank(), ruple)
+            res=elt
+            galgen=self.galois_group().gens()
+            for g in range(len(galgen)) : 
+                res=self.cocharacter_lattice()._action_matrices[g] * matrix(self.rank(), [galgen[g](x) for x in ruple])
+                if not res==elt :
+                    return "The given point is not rational"
+            return "The given point is rational"
+
+        else:
+            elt = matrix(self.rank(), ruple)
+            res=elt
+            hgen=subgp.gens()
+            colat= self.cocharacter_lattice().subgroup_lattice(subgp)
+            for g in range(len(hgen)) : 
+                res=colat._action_matrices[g] * matrix(self.rank(), [hgen[g](x) for x in ruple])
+                if not res==elt :
+                    return "The given point is not rational over this intermediate extension"
+            return "The given point is rational over this intermediate extension"            
 
     def character_lattice(self):
         """
