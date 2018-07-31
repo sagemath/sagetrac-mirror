@@ -119,15 +119,18 @@ namespace wl{
                                 this->num_of_vertices = b.num_of_vertices;
                                 this->array = b.array;
                                 b.array = nullptr;
+                                this->minValue = b.minValue;
                         }
                         AdjMatrix<T>& operator=(AdjMatrix<T>&& b){
                                 this->num_of_vertices = b.num_of_vertices;
                                 this->array = b.array;
                                 b.array = nullptr;
+                                this->minValue = b.minValue;
                                 return *this;
                         }
                         void addEdge(int v, int u, T label, bool bothDirections=false){
                                 array[v*num_of_vertices+u] = label;
+                                if(label < minValue) minValue = label;
                                 if(bothDirections) addEdge(u,v,label);
                         }
                         const T& getEdge(int v, int u) const{
@@ -147,10 +150,14 @@ namespace wl{
                             U* tempArr = a.array;
                             a.array = b.array;
                             b.array = tempArr;
+                            U tempMin = a.minValue;
+                            a.minValue = b.minValue;
+                            b.minValue = tempMin;
                         }
                 private:
                         int num_of_vertices;
                         T* array;
+                        T minValue = T();
                         int compareSubgraphs(int* a, int* b, size_t s, size_t determinationPoint, int iS, int jS) const{
                             if(memcmp(a, b, s*sizeof(int)) == 0) return 0;
                             for(size_t i = 0; i < s; i++){
@@ -235,7 +242,7 @@ namespace wl{
                                 iV = vertices[row];
                                 jV = vertices[col];
                             }
-                            if(iV == special_row && jV == special_col) return -20;
+                            if(iV == special_row && jV == special_col) return minValue-1;
                             return (*this)(iV,jV);
                         }
 							
