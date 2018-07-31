@@ -293,7 +293,7 @@ namespace wl{
             }
             return fingerprint.size();
         }
-        map<int, vector<pair<int,int>>> k_WL(const std::vector<GraphNode>& v, int k, bool hasVertexLabels){
+        unordered_map<int, vector<pair<int,int>>> k_WL(const std::vector<GraphNode>& v, int k, bool hasVertexLabels){
             int n = v.size();
             AdjMatrix<int> adjMatrix = populateAdjMatrix(v, n, hasVertexLabels);
             AdjMatrix<int> new_adjMatrix = AdjMatrix<int>(n);
@@ -338,7 +338,7 @@ namespace wl{
                     AdjMatrix<int>::swap(adjMatrix, new_adjMatrix);
                     std::swap(color_classes, new_color_classes);                        
             }
-            map<int, vector<pair<int,int>>> result;
+            unordered_map<int, vector<pair<int,int>>> result;
             int c = 0;
             while(!color_classes.empty()){
                 auto v = std::move(color_classes.front());

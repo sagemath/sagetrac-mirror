@@ -214,9 +214,9 @@ def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result_cardinality=1
     #That is, c1(tuple) = g(c2(tuple)) with g bijective, since it could happen that the initial coloring produces a different initial order that doesn't cause any issue with k-WL,
     #but produces a different permutation of the final coloring
     for p in coloring:
-        if p == 1:
-            l = [el[0] for el in p.second if el[0] == el[1]]
-        elif p == 2:
+        if result_cardinality == 1:
+            l = [el.first for el in p.second if el.first == el.second]
+        elif result_cardinality == 2:
             l = [tuple(el) for el in p.second]
         else:
             raise ValueError("Cardinality above 2 not yet implemented")
