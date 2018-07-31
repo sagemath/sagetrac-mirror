@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from .plot3d            import plot3d, cylindrical_plot3d, spherical_plot3d, Spherical, SphericalElevation, Cylindrical
 from .parametric_plot3d import parametric_plot3d
 from .plot_field3d      import plot_vector_field3d
+from .reflection_group3d import cayley_graph_3d
 
 # We lazy_import the following modules since they import numpy which slows down sage startup
 from sage.misc.lazy_import import lazy_import
