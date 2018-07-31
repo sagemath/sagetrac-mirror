@@ -46,6 +46,7 @@ import itertools
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 
+from sage.structure.misc import SafeSortable
 from sage.structure.parent import Parent
 
 from sage.categories.sets_cat import Sets
@@ -154,7 +155,7 @@ class AbstractLanguage(Parent):
 
         if (alphabet.cardinality() == Infinity or
             (alphabet.cardinality() < 36 and
-             all(alphabet.unrank(i) > alphabet.unrank(j)
+             all(SafeSortable.lt(alphabet.unrank(j), alphabet.unrank(i))
                  for i in range(min(36, alphabet.cardinality()))
                  for j in range(i)))):
             self.sortkey_letters = self._sortkey_trivial

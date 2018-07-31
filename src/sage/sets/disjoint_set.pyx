@@ -59,6 +59,7 @@ Disjoint set of hashables objects::
 #*****************************************************************************
 
 from sage.rings.integer import Integer
+from sage.structure.misc cimport SafeSortable
 from sage.structure.sage_object cimport SageObject
 from cpython.object cimport PyObject_RichCompare
 from sage.groups.perm_gps.partn_ref.data_structures cimport *
@@ -170,9 +171,9 @@ cdef class DisjointSet_class(SageObject):
         """
         res = []
         for l in (<dict?>self.root_to_elements_dict()).itervalues():
-            l.sort()
+            l.sort(key=SafeSortable)
             res.append('{%s}' % ', '.join(repr(u) for u in l))
-        res.sort()
+        res.sort(key=SafeSortable)
         return '{%s}' % ', '.join(res)
 
     def __iter__(self):
@@ -190,7 +191,7 @@ cdef class DisjointSet_class(SageObject):
             sage: sorted(d)
             [['a'], ['b'], ['c']]
         """
-        return iter((<dict?>self.root_to_elements_dict()).itervalues())
+        return iter((<dict?>self.root_to_elements_dict()).values())
 
     def __richcmp__(self, other, int op):
         r"""
