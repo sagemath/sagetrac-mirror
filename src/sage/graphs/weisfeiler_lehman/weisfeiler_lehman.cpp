@@ -45,7 +45,14 @@ namespace wl{
                                             memcpy(vertex_subset, b.vertex_subset, sizeof(int)*b.s);
                                             s = b.s;
                                             special_edge = b.special_edge;
-                                            rehash();
+                                            hash_value = b.hash_value;
+                                        }
+                                        VectorView(VectorView&& b): adjMatrix(b.adjMatrix){
+                                            vertex_subset = b.vertex_subset;
+                                            b.vertex_subset = nullptr;
+                                            s = b.s;
+                                            special_edge = std::move(b.special_edge);
+                                            hash_value = b.hash_value;
                                         }
                                         int operator[](size_t i) const{
                                                 auto row = i/s;
@@ -297,7 +304,7 @@ namespace wl{
                 for(const auto& i: used_vertices){
                     for(const auto& j: used_vertices){
                         AdjMatrix<int>::VectorView subgraphView(am, am.getCanonicalOrdering(currentTuple, limit, n, i,j), limit, {i,j});
-                        auto& f = fingerprints[subgraphView];
+                        auto& f = fingerprints[std::move(subgraphView)];
                         if(f == 0) f = fingerprints.size();
                     }
                 }
@@ -317,7 +324,13 @@ namespace wl{
             if(offset == limit){ //If a subgraph is completed
                 if(!usedI || !usedJ) return;
                 AdjMatrix<int>::VectorView subgraphView(am, am.getCanonicalOrdering(currentTuple, limit, n, i,j), limit, {i,j});
-                fingerprint[fingerprints[subgraphView]]++;
+                auto& f = fingerprints[std::move(subgraphView)];
+                if(f == 0){
+                    f = fingerprints.size();
+                    fingerprint[f] = 1;
+                }else{
+                    fingerprint[f]++;
+                }
                 if(i > 8000) subgraphView.printVectorView();
             }else{            
                 for(int k = maxVertex; k < n; k++){
@@ -367,7 +380,7 @@ namespace wl{
                     FingerprintMap fingerprint_map;
                     int* tempVector = new int[k+1];
                     unordered_map<vector<int>, ColorClass, IntVector_Hash> fingerprintsDB;
-                    initFingerprint(fingerprint_map, adjMatrix, 0, 0, k+1, tempVector, used_vertices);
+                    //initFingerprint(fingerprint_map, adjMatrix, 0, 0, k+1, tempVector, used_vertices);
                     int c = 0;
                     while(!color_classes.empty()){
                         auto cc = color_classes.front();
@@ -412,12 +425,12 @@ namespace wl{
                 color_classes.pop();
                 result[c++] = vector<pair<int,int>>(v.begin(), v.end());
             }
-            //for(const auto& el: result){
-                //cout << el.first << ":" << endl;
-                //for(const auto& el2: el.second){
-                    //cout << "    (" << el2.first << ", " << el2.second << ")" << endl;
-                //}
-            //}
+            for(const auto& el: result){
+                cout << el.first << ":" << endl;
+                for(const auto& el2: el.second){
+                    cout << "    (" << el2.first << ", " << el2.second << ")" << endl;
+                }
+            }
             cout << t_e << endl;
             return result;
         }
