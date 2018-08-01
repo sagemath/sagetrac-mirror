@@ -169,6 +169,9 @@ Methods of a lattice
 - :meth:`Lattice_generic.subgroup_lattice` -- restricts the action of  
     the group to a subgroup.
 
+- :meth:`Lattice_generic.rational_characters` -- the sublattice of 
+    elements fixed by the group.
+
 - :meth:`Lattice_generic.isomorphic_ambient_lattice` -- gives an isomorphic 
     ambient lattice, returns the same lattice if it is already ambient.
 
@@ -909,6 +912,38 @@ class Lattice_generic(FreeModule_generic):
         return subgroup_lattice(self,subgp)
 
 
+    def rational_characters(self):
+        """
+        Computes the rational charactesr over the base field, in other words the sublattice of elements fixed by the group.
+        
+        EXAMPLES::
+
+            sage: G = PermutationGroup([(1,2),(3,4),(5,6),(7,8)])
+            sage: L = Lattice_ambient(PermutationGroup([()]), 1)
+            sage: IL = L.induced_lattice(G)
+            sage: ROS = L.norm_one_restriction_of_scalars(G)
+            
+        ::
+
+            sage: IL.rational_characters()
+            Free module of degree 16 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+            sage: ROS.rational_characters()
+            Free module of degree 15 and rank 0 over Integer Ring
+            Echelon basis matrix:
+            []
+            sage: L.rational_characters()
+            Free module of degree 1 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [1]
+        """
+
+        kers=[kernel(m-matrix.identity(self._rank)) for m in self._action_matrices]
+        res=self
+        for i in kers: 
+            res=res.intersection(i)
+        return res
 
     def isomorphic_ambient_lattice(self):
         """
