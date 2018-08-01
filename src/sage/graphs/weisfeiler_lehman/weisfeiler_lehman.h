@@ -20,7 +20,16 @@ namespace wl{
                 return h;
             }
         };
-        
+
         unordered_map<int, vector<pair<int,int>>> k_WL(const std::vector<GraphNode>& v, int k, bool hasVertexLabels = false);
+        struct IntVector_Hash {
+            size_t operator() (const vector<int>& p) const {
+                size_t h = 0;
+                for(const auto& el: p){
+                    hash_combine(h, el);
+                }
+                return h;
+            }
+        };
 }
 #endif

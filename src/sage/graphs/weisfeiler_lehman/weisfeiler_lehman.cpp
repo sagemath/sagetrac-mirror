@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <tuple>
 #include <cstring>
-#include <exception> 
+#include <exception>
 #include <cassert>
 namespace wl{
         template<typename T>
@@ -321,6 +321,7 @@ namespace wl{
                     createFingerprint(fingerprint, am, i, j, k, offset+1, limit, currentTuple, k == i?true:usedI, (k == j && (i!=j || usedI))?true:usedJ);
                 }
             }
+            
         }
         int clearFingerprint(FingerprintMap& fingerprint){
             for(auto& v: fingerprint){
@@ -339,6 +340,7 @@ namespace wl{
                 cout << endl << endl;
             }
         }
+        
         unordered_map<int, vector<pair<int,int>>> k_WL(const std::vector<GraphNode>& v, int k, bool hasVertexLabels){
             //for(const auto& el: v){
                 //cout << "IDX: " << el.idx << " || COLOR: " << el.color << endl;
@@ -361,14 +363,14 @@ namespace wl{
                     FingerprintMap fingerprint;
                     int* tempVector = new int[k+1];
                     unordered_map<Tuple<int>, ColorClass> fingerprintsDB;
-                    
+                    initFingerprint(fingerprint, adjMatrix, 0, 0, k+1, tempVector, used_vertices);
                     int c = 0;
                     while(!color_classes.empty()){
                         auto cc = color_classes.front();
                         color_classes.pop();
                         fingerprintsDB.clear();
-                        initFingerprint(fingerprint, adjMatrix, 0, 0, k+1, tempVector, used_vertices);
                         //printFingerprint(fingerprint);
+                        
                         for(const auto& edge: cc){
                             int s = clearFingerprint(fingerprint);
                             createFingerprint(fingerprint, adjMatrix, edge.first, edge.second, 0, 0, k+1, tempVector);
@@ -390,7 +392,9 @@ namespace wl{
                             new_color_classes.push(std::move(color_class.second));
                         }
                         if(c-oldc > 1) finished = false;
+                        
                     }
+                    
                     delete[] tempVector;    
                     AdjMatrix<int>::swap(adjMatrix, new_adjMatrix);
                     std::swap(color_classes, new_color_classes);                        
