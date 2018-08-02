@@ -1589,16 +1589,21 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
             return [i for i in rr if i>1]
         else:
             load_hap()
+            if self._rank==1: 
+                gl=gap.Group([ [ [ -1 ] ] ])
+            else:
+                gl=gap.GL(self._rank,ZZ)
+            mor=gap.GroupHomomorphismByImages(G,gl,gap(self._group.gens()),gap([m.transpose().inverse() for m in self._action_matrices]))
             if n>0:
                 #This computes the standard resolution of G in HAP
                 R = gap.ResolutionFiniteGroup(G,n+1)
                 #Then applies the map to the action to the resolution
-                TR = gap.HomToIntegralModule(R,self._action_morphism)
+                TR = gap.HomToIntegralModule(R,mor)
                 #Might have a problem because gap does only right actions ?
                 return (gap.Cohomology(TR,n)).sage()
             else:
                 R = gap.ResolutionFiniteGroup(G,-n)
-                TR = gap.TensorWithIntegralModule(R,self._action_morphism)
+                TR = gap.TensorWithIntegralModule(R,mor)
                 return (gap.Homology(TR,-n-1)).sage()
 
 
