@@ -317,12 +317,9 @@ namespace wl{
                 }
             }
         }
-        void createFingerprint(FingerprintMap& fingerprints, Fingerprint& fingerprint, const AdjMatrix<int>& am, int i, int j, int maxVertex, int offset, int limit, int* currentTuple, bool usedI=false, bool usedJ=false){
-            if(offset > limit-2 && !usedI && !usedJ) return;
-            if((maxVertex > i && !usedI) || (maxVertex > j && !usedJ)) return;
+        void innerCreateFingerprint(FingerprintMap& fingerprints, Fingerprint& fingerprint, const AdjMatrix<int>& am, int i, int j, int maxVertex, int offset, int limit, int* currentTuple){
             int n = am.size();
             if(offset == limit){ //If a subgraph is completed
-                if(!usedI || !usedJ) return;
                 AdjMatrix<int>::VectorView subgraphView(am, am.getCanonicalOrdering(currentTuple, limit, n, i,j), limit, {i,j});
                 auto& f = fingerprints[std::move(subgraphView)];
                 if(f == 0){
@@ -335,10 +332,14 @@ namespace wl{
             }else{            
                 for(int k = maxVertex; k < n; k++){
                     currentTuple[offset] = k;
-                    createFingerprint(fingerprints, fingerprint, am, i, j, k, offset+1, limit, currentTuple, k == i?true:usedI, (k == j && (i!=j || usedI))?true:usedJ);
+                    innerCreateFingerprint(fingerprints, fingerprint, am, i, j, k, offset+1, limit, currentTuple);
                 }
             }
-            
+        }
+        void createFingerprint(FingerprintMap& fingerprints, Fingerprint& fingerprint, const AdjMatrix<int>& am, int i, int j, int* currentTuple, int limit){
+            currentTuple[0] = i;
+            currentTuple[1] = j;
+            innerCreateFingerprint(fingerprints, fingerprint, am, i, j, 0, 2, limit, currentTuple);
         }
         int clearFingerprint(FingerprintMap& fingerprint){
             for(auto& v: fingerprint){
@@ -392,7 +393,7 @@ namespace wl{
                             std::chrono::steady_clock::time_point end= std::chrono::steady_clock::now();
                             t_e += std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count();
                             */
-                            createFingerprint(fingerprint_map, fingerprint, adjMatrix, edge.first, edge.second, 0, 0, k+1, tempVector);
+                            createFingerprint(fingerprint_map, fingerprint, adjMatrix, edge.first, edge.second, tempVector, k+1);
                             vector<int> t(2*fingerprint.size());
                             int idx = 0;
                             for(const auto& el: fingerprint){
