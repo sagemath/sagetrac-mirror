@@ -19,14 +19,9 @@ namespace wl{
         class AdjMatrix{
                 public:
                         int* getCanonicalOrdering(int* vertices, int s, int n ,int iS, int jS) const{
-                            int* permutation = new int[s];
-                            memcpy(permutation, vertices, s*sizeof(int));
                             int* current_best = new int[s];
                             memcpy(current_best, vertices, s*sizeof(int));
-                            char* m = new char[n*n]();
-                            getCanonicalOrdering(vertices, current_best, 0, s, n, m, iS, jS);
-                            delete[] m;
-                            delete[] permutation;
+                            getCanonicalOrdering(vertices, current_best, 0, s, n, iS, jS);
                             return current_best;
                         }
                         class VectorView{
@@ -185,8 +180,11 @@ namespace wl{
                             return 0;
                         }
                         bool areVerticesIsomorphic(int a, int b, int* v, int s, int iS, int jS) const{
+                            
                             if(v[a] == v[b]) return true;
-                            if(getValue(a,a,v,iS,jS) != getValue(b,b,v,iS,jS) || getValue(a,b,v,iS,jS) != getValue(b,a,v,iS,jS)) return false;
+                            return getValue(a,a,v,iS,jS) == getValue(b,b,v,iS,jS);
+                            
+                            if(getValue(a,b,v,iS,jS) != getValue(b,a,v,iS,jS)) return false;
                             for(int i = 0; i < s; i++){
                                 if(i == b || i == a) continue;
                                 int aV = getValue(a, i, v,iS,jS);
@@ -221,25 +219,17 @@ namespace wl{
                             }
                         }*/
                         
-                        void getCanonicalOrdering(int* permutation, int* current_best, size_t offset, size_t s, size_t n, char* isomorphicVertices, int iS, int jS) const{
+                        void getCanonicalOrdering(int* permutation, int* current_best, size_t offset, size_t s, size_t n, int iS, int jS) const{
                             for(size_t i = (offset == s-2)?offset+1:offset; i < s; i++){
                                 if(i != offset){
-                                    int idx = permutation[i]*n+permutation[offset];
-                                    char v = isomorphicVertices[idx];
-                                    if(v == 0){
-                                        bool r = areVerticesIsomorphic(i, offset, permutation, s, iS, jS);
-                                        isomorphicVertices[idx] = r?1:2;
-                                        if (r) continue;
-                                    }else{
-                                        if (v == 1) continue;
-                                    }
+                                    if(getValue(i, i, permutation, iS, jS) == getValue(offset, offset, permutation, iS, jS)) continue;
                                 }
-                                std::iter_swap(permutation+i, permutation + offset);
+                                std::swap(permutation[i], permutation[offset]);
                                 int c = 0;
                                 if(i != offset) c = compareSubgraphs(permutation, current_best, s, offset, iS, jS);
                                 if(c == -1) memcpy(current_best, permutation, s*sizeof(int));
-                                if(c != 2 && c != 3) getCanonicalOrdering(permutation, current_best, offset+1, s, n, isomorphicVertices, iS, jS);
-                                std::iter_swap(permutation + i, permutation + offset);
+                                if(c != 2 && c != 3) getCanonicalOrdering(permutation, current_best, offset+1, s, n, iS, jS);
+                                std::swap(permutation[i], permutation[offset]);
                                 if(c == 2) return;
                                 if(c == 3) continue;                                
                             }
