@@ -14,7 +14,6 @@
 #include <exception>
 #include <cassert>
 namespace wl{
-        static unsigned long long t_e;
         template<typename T>
         class AdjMatrix{
                 public:
@@ -300,7 +299,7 @@ namespace wl{
                 AdjMatrix<int>::VectorView subgraphView(am, am.getCanonicalOrdering(currentTuple, limit, n, i,j, m), limit, {i,j});
                 for(int k1 = 0; k1 < limit; k1++){
                     for(int k2 = 0; k2 < limit; k2++){
-                        m[k1*am.size()+k2] = 0;
+                        m[currentTuple[k1]*am.size()+currentTuple[k2]] = 0;
                     }
                 }
                 auto& f = fingerprints[std::move(subgraphView)];
@@ -339,16 +338,16 @@ namespace wl{
                 el.first.printVectorView();
                 cout << endl << endl;
             }
-        }    
+        }
         unordered_map<int, vector<pair<int,int>>> k_WL(const std::vector<GraphNode>& v, int k, bool hasVertexLabels){
-            //for(const auto& el: v){
-                //cout << "IDX: " << el.idx << " || COLOR: " << el.color << endl;
-                //cout << "-----[";
-                //for(const auto& el2: el.adj_list){
-                    //cout << "(" << el2.first << "," << el2.second << "), ";
-                //}
-                //cout << "]" << endl;
-            //}
+            /*for(const auto& el: v){
+                cout << "IDX: " << el.idx << " || COLOR: " << el.color << endl;
+                cout << "-----[";
+                for(const auto& el2: el.adj_list){
+                    cout << "(" << el2.first << "," << el2.second << "), ";
+                }
+                cout << "]" << endl;
+            }*/
             int n = v.size();
             AdjMatrix<int> adjMatrix = populateAdjMatrix(v, n, hasVertexLabels);
             AdjMatrix<int> new_adjMatrix = AdjMatrix<int>(n);
@@ -406,7 +405,7 @@ namespace wl{
             delete[] tempVector;  
             delete[] automorphism_map;
             unordered_map<int, vector<pair<int,int>>> result;
-           int c = 0;
+            int c = 0;
             while(!color_classes.empty()){
                 auto v = std::move(color_classes.front());
                 color_classes.pop();
@@ -418,9 +417,9 @@ namespace wl{
                 for(const auto& el2: el.second){
                     cout << "    (" << el2.first << ", " << el2.second << ")" << endl;
                 }
-            }*/
-            //cout << result.size() << " color classes" << endl;
-            //cout << t_e << endl;
+            }
+            cout << result.size() << " color classes" << endl;
+            */
             return result;
         }
 
