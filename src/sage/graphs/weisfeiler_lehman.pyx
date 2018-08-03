@@ -25,7 +25,7 @@ def getiterator(l):
     else:
         return l.iteritems()
         
-class Graph(object):
+class _Graph(object):
     '''
     For each multiple edge e whose elements have labels l_0,l_1,...,l_(m-1), 
     delete the multiple edge and substitute it with a single edge, with label 
@@ -159,7 +159,7 @@ class Graph(object):
         self._normalized = False
 
 
-cdef vector[GraphNode] sageGraphToLists(G, partition = [], has_edge_labels=False):
+cdef vector[GraphNode] _sageGraphToLists(G, partition = [], has_edge_labels=False):
     partition_dict = {v:i for i,x in enumerate(partition,1) for v in x}
     
     cdef vector[GraphNode] nodeArray;
@@ -190,35 +190,22 @@ cdef vector[GraphNode] sageGraphToLists(G, partition = [], has_edge_labels=False
 def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result_cardinality=1):
     if not isinstance(G, SageGraph):
         raise TypeError
-    g_temp = Graph(G, edge_labels)
+    g_temp = _Graph(G, edge_labels)
     if(G.has_multiple_edges()):
         edge_labels = True
     g = g_temp
-    
     g._relabel_map = g.relabel()
-    print(g._relabel_map)
     g.set_vertex_coloring(partition, g._relabel_map)
-    
-    #I should add support for labels, and convert vertex labels and edge labels to integers. Call the functions you developed
-    cdef vector[GraphNode] res = sageGraphToLists(g.graph, g.vertex_coloring, edge_labels)
-#    print(g.graph.vertices())
-#    print(g.graph.edges())
-#    print(g.vertex_coloring)
-#    print(res)
-#    print(g._relabel_map)
+    cdef vector[GraphNode] res = _sageGraphToLists(g.graph, g.vertex_coloring, edge_labels)
     cdef unordered_map[int, vector[pair[int,int]]] coloring = k_WL(res, k, g.vertex_coloring)
     inverted_relabel_map = {v:k for k,v in g._relabel_map.iteritems()}
     resultDict = {}
-    
-    #Normally, one would check for equality of the results. If using initial partitions though, one should check for an automorphism between the colors.
-    #That is, c1(tuple) = g(c2(tuple)) with g bijective, since it could happen that the initial coloring produces a different initial order that doesn't cause any issue with k-WL,
-    #but produces a different permutation of the final coloring
+
     for p in coloring:
         if result_cardinality == 1:
             l = [inverted_relabel_map[el.first] for el in p.second if el.first == el.second]
         elif result_cardinality == 2:
-            edge = (inverted_relabel_map[el.first],inverted_relabel_map[el.second])
-            l = [tuple(el) for el in p.second]
+            l = [(inverted_relabel_map[el.first],inverted_relabel_map[el.second]) for el in p.second]
         else:
             raise ValueError("Cardinality above 2 not yet implemented")
         c = p.first
