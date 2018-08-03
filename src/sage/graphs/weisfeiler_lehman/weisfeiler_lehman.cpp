@@ -18,10 +18,10 @@ namespace wl{
         template<typename T>
         class AdjMatrix{
                 public:
-                        int* getCanonicalOrdering(int* vertices, int s, int n ,int iS, int jS) const{
+                        int* getCanonicalOrdering(int* vertices, int s, int n ,int iS, int jS, char* m) const{
                             int* current_best = new int[s];
                             memcpy(current_best, vertices, s*sizeof(int));
-                            getCanonicalOrdering(vertices, current_best, 0, s, n, iS, jS);
+                            getCanonicalOrdering(vertices, current_best, 0, s, n, m, iS, jS);
                             return current_best;
                         }
                         class VectorView{
@@ -180,11 +180,8 @@ namespace wl{
                             return 0;
                         }
                         bool areVerticesIsomorphic(int a, int b, int* v, int s, int iS, int jS) const{
-                            
                             if(v[a] == v[b]) return true;
-                            return getValue(a,a,v,iS,jS) == getValue(b,b,v,iS,jS);
-                            
-                            if(getValue(a,b,v,iS,jS) != getValue(b,a,v,iS,jS)) return false;
+                            if(getValue(a,a,v,iS,jS) != getValue(b,b,v,iS,jS) || getValue(a,b,v,iS,jS) != getValue(b,a,v,iS,jS)) return false;
                             for(int i = 0; i < s; i++){
                                 if(i == b || i == a) continue;
                                 int aV = getValue(a, i, v,iS,jS);
@@ -219,17 +216,25 @@ namespace wl{
                             }
                         }*/
                         
-                        void getCanonicalOrdering(int* permutation, int* current_best, size_t offset, size_t s, size_t n, int iS, int jS) const{
+                        void getCanonicalOrdering(int* permutation, int* current_best, size_t offset, size_t s, size_t n, char* isomorphicVertices, int iS, int jS) const{
                             for(size_t i = (offset == s-2)?offset+1:offset; i < s; i++){
                                 if(i != offset){
-                                    if(getValue(i, i, permutation, iS, jS) == getValue(offset, offset, permutation, iS, jS)) continue;
+                                    int idx = permutation[i]*n+permutation[offset];
+                                    char v = isomorphicVertices[idx];
+                                    if(v == 0){
+                                        bool r = areVerticesIsomorphic(i, offset, permutation, s, iS, jS);
+                                        isomorphicVertices[idx] = r?1:2;
+                                        if (r) continue;
+                                    }else{
+                                        if (v == 1) continue;
+                                    }
                                 }
-                                std::swap(permutation[i], permutation[offset]);
+                                std::iter_swap(permutation+i, permutation + offset);
                                 int c = 0;
                                 if(i != offset) c = compareSubgraphs(permutation, current_best, s, offset, iS, jS);
                                 if(c == -1) memcpy(current_best, permutation, s*sizeof(int));
-                                if(c != 2 && c != 3) getCanonicalOrdering(permutation, current_best, offset+1, s, n, iS, jS);
-                                std::swap(permutation[i], permutation[offset]);
+                                if(c != 2 && c != 3) getCanonicalOrdering(permutation, current_best, offset+1, s, n, isomorphicVertices, iS, jS);
+                                std::iter_swap(permutation + i, permutation + offset);
                                 if(c == 2) return;
                                 if(c == 3) continue;                                
                             }
@@ -288,29 +293,16 @@ namespace wl{
             }
             return c;
         }
-        void initFingerprint(FingerprintMap& fingerprints, const AdjMatrix<int>& am, int maxVertex, int offset, int limit, int* currentTuple, unordered_set<int>& used_vertices){
+        
+        void innerCreateFingerprint(FingerprintMap& fingerprints, Fingerprint& fingerprint, const AdjMatrix<int>& am, int i, int j, int maxVertex, int offset, int limit, int* currentTuple, char* m){
             int n = am.size();
             if(offset == limit){ //If a subgraph is completed
-                for(const auto& i: used_vertices){
-                    for(const auto& j: used_vertices){
-                        AdjMatrix<int>::VectorView subgraphView(am, am.getCanonicalOrdering(currentTuple, limit, n, i,j), limit, {i,j});
-                        auto& f = fingerprints[std::move(subgraphView)];
-                        if(f == 0) f = fingerprints.size();
+                AdjMatrix<int>::VectorView subgraphView(am, am.getCanonicalOrdering(currentTuple, limit, n, i,j, m), limit, {i,j});
+                for(int k1 = 0; k1 < limit; k1++){
+                    for(int k2 = 0; k2 < limit; k2++){
+                        m[k1*am.size()+k2] = 0;
                     }
                 }
-            }else{            
-                for(int k = maxVertex; k < n; k++){
-                    currentTuple[offset] = k;
-                    bool inserted = used_vertices.insert(k).second;
-                    initFingerprint(fingerprints, am, k, offset+1, limit, currentTuple, used_vertices);
-                    if(inserted) used_vertices.erase(k);
-                }
-            }
-        }
-        void innerCreateFingerprint(FingerprintMap& fingerprints, Fingerprint& fingerprint, const AdjMatrix<int>& am, int i, int j, int maxVertex, int offset, int limit, int* currentTuple){
-            int n = am.size();
-            if(offset == limit){ //If a subgraph is completed
-                AdjMatrix<int>::VectorView subgraphView(am, am.getCanonicalOrdering(currentTuple, limit, n, i,j), limit, {i,j});
                 auto& f = fingerprints[std::move(subgraphView)];
                 if(f == 0){
                     f = fingerprints.size();
@@ -322,14 +314,14 @@ namespace wl{
             }else{            
                 for(int k = maxVertex; k < n; k++){
                     currentTuple[offset] = k;
-                    innerCreateFingerprint(fingerprints, fingerprint, am, i, j, k, offset+1, limit, currentTuple);
+                    innerCreateFingerprint(fingerprints, fingerprint, am, i, j, k, offset+1, limit, currentTuple, m);
                 }
             }
         }
-        void createFingerprint(FingerprintMap& fingerprints, Fingerprint& fingerprint, const AdjMatrix<int>& am, int i, int j, int* currentTuple, int limit){
+        void createFingerprint(FingerprintMap& fingerprints, Fingerprint& fingerprint, const AdjMatrix<int>& am, int i, int j, int* currentTuple, int limit, char* m){
             currentTuple[0] = i;
             currentTuple[1] = j;
-            innerCreateFingerprint(fingerprints, fingerprint, am, i, j, 0, 2, limit, currentTuple);
+            innerCreateFingerprint(fingerprints, fingerprint, am, i, j, 0, 2, limit, currentTuple, m);
         }
         int clearFingerprint(FingerprintMap& fingerprint){
             for(auto& v: fingerprint){
@@ -365,11 +357,13 @@ namespace wl{
             queue<ColorClass> new_color_classes;
             unordered_set<int> used_vertices;
             map<int,int> fingerprint;
+            char* automorphism_map = new char[n*n]();
+            int* tempVector = new int[k+1];
             bool finished = false;
             while(!finished){
                     finished = true;
                     FingerprintMap fingerprint_map;
-                    int* tempVector = new int[k+1];
+                    
                     unordered_map<vector<int>, ColorClass, IntVector_Hash> fingerprintsDB;
                     //initFingerprint(fingerprint_map, adjMatrix, 0, 0, k+1, tempVector, used_vertices);
                     int c = 0;
@@ -383,7 +377,7 @@ namespace wl{
                             std::chrono::steady_clock::time_point end= std::chrono::steady_clock::now();
                             t_e += std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count();
                             */
-                            createFingerprint(fingerprint_map, fingerprint, adjMatrix, edge.first, edge.second, tempVector, k+1);
+                            createFingerprint(fingerprint_map, fingerprint, adjMatrix, edge.first, edge.second, tempVector, k+1, automorphism_map);
                             vector<int> t(2*fingerprint.size());
                             int idx = 0;
                             for(const auto& el: fingerprint){
@@ -405,24 +399,28 @@ namespace wl{
                         
                     }
                     
-                    delete[] tempVector;    
+                      
                     AdjMatrix<int>::swap(adjMatrix, new_adjMatrix);
                     std::swap(color_classes, new_color_classes);                        
             }
+            delete[] tempVector;  
+            delete[] automorphism_map;
             unordered_map<int, vector<pair<int,int>>> result;
-            int c = 0;
+           int c = 0;
             while(!color_classes.empty()){
                 auto v = std::move(color_classes.front());
                 color_classes.pop();
                 result[c++] = vector<pair<int,int>>(v.begin(), v.end());
             }
-            for(const auto& el: result){
+
+            /*for(const auto& el: result){
                 cout << el.first << ":" << endl;
                 for(const auto& el2: el.second){
                     cout << "    (" << el2.first << ", " << el2.second << ")" << endl;
                 }
-            }
-            cout << t_e << endl;
+            }*/
+            //cout << result.size() << " color classes" << endl;
+            //cout << t_e << endl;
             return result;
         }
 
