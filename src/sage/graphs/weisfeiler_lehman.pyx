@@ -188,6 +188,50 @@ cdef vector[GraphNode] _sageGraphToLists(G, partition = [], has_edge_labels=Fals
     return nodeArray
 
 def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result_cardinality=1):
+    """
+        Return the coloring found by applying the k-th order of the Weisfeiler Lehman algorithm.
+
+        The Weisfeiler Lehman method is a way of generating a partition of the nodes (or edges) of a graph G
+        such that the orbits of the automorphism group on G's vertices (respectively edges) refine said partition.
+        This method was first described in https://www.iti.zcu.cz/wl2018/pdf/wl_paper_translation.pdf (Translated from russian)
+        and is also better and succintly described in https://lii.rwth-aachen.de/images/Mitarbeiter/pub/grohe/cr.pdf.
+        The idea can be summarised as doing multiple rounds of vertex (resp. edge) coloring, where each round's color
+        is determined by the colors of the (hyper)edges in the previous round, until the coloring is stable,
+        that is the color classes stay the same between two subsequent rounds of coloring.
+        Higher values of k (or higher orders of the WL method) base the choice of color for each round
+        on interactions between a higher number of vertices, and thus correctly return the orbits of strictly more
+        graphs than lower values of k.
+        
+        This method can be used as a negative oracle for isomorphism between two graphs G and H by running it
+        on their disjoint union: if the two components have different coloring, the graphs are surely not isomorphic; nothing
+        can be said if their coloring is the same instead, since WL doesn't give any guarantee of returning the correct orbits
+        instead of just a set of sets of vertices that is by them refined.
+        
+        A particular case is that of planar graphs, which are always distinguished by k-WL for k >= 3, as proved in https://arxiv.org/abs/1708.07354
+
+        INPUT:
+
+        -  ``G`` - Graph to be colored
+
+        -  ``k`` - Order of the Weisfeiler Lehman algorithm to be used
+
+        -  ``partition`` - A list of lists representing the partition of the vertices induced by the initial coloring of the vertices of ``G``
+
+        -  ``edge_labels`` - If True, take into account the labeling of the edges of `G``
+        
+        -  ``result_cardinality`` - Integer that defines if the coloring must be made on vertices (1) or edges (2) of the graph. Higher values are possible, but currently not supported
+
+        OUTPUT:
+        
+        A map indexed by the colors given to the vertices (resp. edges), and with values the sets of vertices (resp. edges) belonging to each color
+        
+        .. WARNING::
+            
+            The current version of the method, while supporting multiple edges and labels on both vertices and edges, does NOT support self-loops.
+            If the graph to be colored contains loops, either remove the loops and color the corresponding vertices differently, or create a support
+            graph G' where each vertex with a self loop is transformed into two vertices that are connected to the same vertices as the original one, 
+            and that have an edge (or two opposing edges if it's a DiGraph) between them
+    """
     if not isinstance(G, SageGraph):
         raise TypeError
     g_temp = _Graph(G, edge_labels)
