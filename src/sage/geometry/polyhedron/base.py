@@ -2720,7 +2720,7 @@ class Polyhedron_base(Element):
 
     @coerce_binop
     def minkowski_sum(self, other):
-        """
+        r"""
         Return the Minkowski sum.
 
         Minkowski addition of two subsets of a vector space is defined
@@ -2785,7 +2785,7 @@ class Polyhedron_base(Element):
 
     @coerce_binop
     def minkowski_difference(self, other):
-        """
+        r"""
         Return the Minkowski difference.
 
         Minkowski subtraction can equivalently be defined via
@@ -2940,7 +2940,7 @@ class Polyhedron_base(Element):
         return self + (-other)
 
     def is_minkowski_summand(self, Y):
-        """
+        r"""
         Test whether ``Y`` is a Minkowski summand.
 
         See :meth:`minkowski_sum`.
@@ -3414,7 +3414,7 @@ class Polyhedron_base(Element):
 
     @coerce_binop
     def intersection(self, other):
-        """
+        r"""
         Return the intersection of one polyhedron with another.
 
         INPUT:
@@ -4147,7 +4147,7 @@ class Polyhedron_base(Element):
     graph = vertex_graph
 
     def vertex_digraph(self, f, increasing=True):
-        """
+        r"""
         Return the directed graph of the polyhedron according to a linear form.
 
         The underlying undirected graph is the graph of vertices and edges.
