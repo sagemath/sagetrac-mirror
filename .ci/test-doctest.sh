@@ -23,7 +23,7 @@ case "$2" in
         export DOCTEST_PARAMETERS="--new"
         ;;
     --short)
-        export DOCTEST_PARAMETERS="--short"
+        export DOCTEST_PARAMETERS="--short --all"
         ;;
     --long)
         export DOCTEST_PARAMETERS="--long --all"
