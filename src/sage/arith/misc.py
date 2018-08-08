@@ -1286,16 +1286,19 @@ def random_prime(n, proof=None, lbound=2):
 
 def divisors(n):
     """
-    Returns a list of all positive integer divisors of the nonzero
-    integer n.
+    Return the list of all divisors (up to units) of this element
+    of a unique factorization domain, sorted in increasing order.
+
+    For an integer, this is the list of all positive integer divisors
+    of this integer, sorted in increasing order.
 
     INPUT:
 
-
     -  ``n`` - the element
 
+    EXAMPLES:
 
-    EXAMPLES::
+    Divisors of integers::
 
         sage: divisors(-3)
         [1, 3]
@@ -1314,7 +1317,8 @@ def divisors(n):
         ...
         ValueError: n must be nonzero
         sage: divisors(2^3 * 3^2 * 17)
-        [1, 2, 3, 4, 6, 8, 9, 12, 17, 18, 24, 34, 36, 51, 68, 72, 102, 136, 153, 204, 306, 408, 612, 1224]
+        [1, 2, 3, 4, 6, 8, 9, 12, 17, 18, 24, 34, 36, 51, 68, 72,
+        102, 136, 153, 204, 306, 408, 612, 1224]
 
     This function works whenever one has unique factorization::
 
@@ -1322,9 +1326,11 @@ def divisors(n):
         sage: divisors(K.ideal(7))
         [Fractional ideal (1), Fractional ideal (a), Fractional ideal (7)]
         sage: divisors(K.ideal(3))
-        [Fractional ideal (1), Fractional ideal (3), Fractional ideal (-a + 2), Fractional ideal (-a - 2)]
+        [Fractional ideal (1), Fractional ideal (3),
+        Fractional ideal (-a + 2), Fractional ideal (-a - 2)]
         sage: divisors(K.ideal(35))
-        [Fractional ideal (1), Fractional ideal (5), Fractional ideal (a), Fractional ideal (7), Fractional ideal (5*a), Fractional ideal (35)]
+        [Fractional ideal (1), Fractional ideal (5), Fractional ideal (a),
+        Fractional ideal (7), Fractional ideal (5*a), Fractional ideal (35)]
 
     TESTS::
 
@@ -2350,7 +2356,8 @@ def radical(n, *args, **kwds):
 
 def prime_divisors(n):
     """
-    The prime divisors of ``n``.
+    The list of prime divisors of this element of a unique
+    factorization domain, sorted in increasing order.
 
     INPUT:
 
@@ -2361,7 +2368,9 @@ def prime_divisors(n):
     A list of prime factors of ``n``. For integers, this list is sorted
     in increasing order.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    Prime divisors of positive integers::
 
         sage: prime_divisors(1)
         []
@@ -2386,7 +2395,7 @@ def prime_divisors(n):
         return n.prime_divisors()
     except AttributeError:
         pass
-    return [p for p,_ in factor(n)]
+    return [p for p, _ in factor(n)]
 
 prime_factors = prime_divisors
 
@@ -5026,7 +5035,8 @@ def fundamental_discriminant(D):
 
 def squarefree_divisors(x):
     """
-    Iterator over the squarefree divisors (up to units) of the element x.
+    Iterator over the squarefree divisors (up to units)
+    of this ring element, sorted in increasing order.
 
     Depends on the output of the prime_divisors function.
 
