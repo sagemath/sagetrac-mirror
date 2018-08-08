@@ -187,6 +187,63 @@ cdef vector[GraphNode] _sageGraphToLists(G, partition = [], has_edge_labels=Fals
             nodeArray[u].adj_list.push_back([<int>v, <int>edge_labels_dict[l]])
     return nodeArray
 
+def _check_orbit_correctness(orbits, G, cardinality=2):
+    if(cardinality != 1 and cardinality != 2):
+        raise ValueError("Cardinality must be either 1 or 2")
+    n = G.order()
+    checker = sorted(map(sorted,orbits))
+    set_checker = map(set, checker)
+    #Check the orbits are well formatted
+    union_checker = set.union(*set_checker)
+    if len(union_checker) != sum(map(len,orbits)):
+        raise ValueError("The orbits are not disjoint")
+    if cardinality == 2 and len(union_checker) != n*n:
+        if len(union_checker) == (n*(n+1))/2:
+            raise ValueError("The orbits don't contain both directions of every edge")
+        else:
+            raise ValueError("The orbits are not complete")
+    elif cardinality == 1 and len(union_checker) != n:
+        raise ValueError("The orbits are not complete")
+    #Check if they are correct
+    if cardinality == 2:
+        import sage.graphs.line_graph
+        from collections import Counter
+        notG = G.complement()
+        lineG = sage.graphs.line_graph.line_graph(G.to_directed(), labels=False)
+        line_notG = sage.graphs.line_graph.line_graph(notG.to_directed(), labels=False)
+        oG = G.automorphism_group(orbits=True, return_group=False)
+        O = []
+        for o in oG:
+            O.append([])
+            for el in o:
+                O[-1].append((el,el))
+        o_lineG = lineG.automorphism_group(orbits=True, return_group=False)
+        o_line_notG = line_notG.automorphism_group(orbits=True, return_group=False)
+        O = O + o_lineG + o_line_notG
+        O.sort()
+    elif cardinality == 1:
+        O = G.automorphism_group(orbits=True, return_group=False)
+        O.sort()
+    if O == checker: return "Correct"
+    #Check if they only need to be refined
+    O = map(set,O)
+    elements_left = set(range(len(O)))
+    subsets = []
+    for s in set_checker:
+        subsets.append([])
+        temp = set()
+        for el in elements_left:
+            if O[el].issubset(s):
+                temp.add(el)
+                subsets[-1].append(el)
+        elements_left = elements_left.difference(temp)
+        if len(elements_left) == 0:
+            break
+    if len(elements_left) == 0:
+        return "Refinable"
+    else:
+        return "Wrong"
+
 def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result_cardinality=1):
     """
         Return the coloring found by applying the k-th order of the Weisfeiler Lehman algorithm.
@@ -244,7 +301,7 @@ def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result_cardinality=1
     cdef unordered_map[int, vector[pair[int,int]]] coloring = k_WL(res, k, g.vertex_coloring)
     inverted_relabel_map = {v:k for k,v in g._relabel_map.iteritems()}
     resultDict = {}
-
+    c = 0
     for p in coloring:
         if result_cardinality == 1:
             l = [inverted_relabel_map[el.first] for el in p.second if el.first == el.second]
@@ -252,6 +309,8 @@ def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result_cardinality=1
             l = [(inverted_relabel_map[el.first],inverted_relabel_map[el.second]) for el in p.second]
         else:
             raise ValueError("Cardinality above 2 not yet implemented")
-        c = p.first
+        if not l:
+            continue
         resultDict[c] = l
+        c += 1
     return resultDict
