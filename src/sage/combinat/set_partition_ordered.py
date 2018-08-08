@@ -313,6 +313,7 @@ class OrderedSetPartition(ClonableArray):
         """
         return Composition([len(_) for _ in self])
 
+
     @staticmethod
     def sum(osps):
         """
@@ -805,6 +806,12 @@ class OrderedSetPartition(ClonableArray):
             sage: x = S([['a', 'c', 'e'], ['b', 'd']])
             sage: x.to_packed_word()
             word: 12121
+
+        Note that this method returns an occurence of the class ``Word`` 
+        and not ``PackedWord``, you can obtain a PackedWord this way::
+            sage: x = S([['a', 'c', 'e'], ['b', 'd']])
+            sage: PackedWord(x.to_packed_word())
+            [1, 2, 1, 2, 1]
         """
         X = sorted(self._base_set)
         out = {}
