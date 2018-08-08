@@ -4,8 +4,7 @@
 # Read gap-version, which was written by spkg-src
 VERSION=`cat src/gap-version`
 GAP_DIR="gap-$VERSION"
-SAGE_GAP="$SAGE_LOCAL/gap"
-INSTALL_DIR="$SAGE_GAP/$GAP_DIR"
+INSTALL_DIR="$SAGE_LOCAL/gap/$GAP_DIR"
 
 echo "spkg-install is using"
 echo "VERSION = $VERSION"
@@ -32,8 +31,6 @@ sdh_configure --with-gmp="$SAGE_LOCAL"
 sdh_make -j1 config
 sdh_make
 
-[ -f bin/gap.sh ] || sdh_die "Error building GAP ('gap.sh' not found)."
-
 # Wipe the installation directory.
 # This fixes https://trac.sagemath.org/ticket/22272
 echo "Removing previous installation of GAP..."
@@ -50,6 +47,10 @@ echo "Creating symlink to new GAP installation..."
 ln -s "$GAP_DIR" "$SAGE_DESTDIR_LOCAL/gap/latest"
 
 echo "Copying GAP startup script..."
+# bin/gap.sh is a symlink to one of either gap-default64.sh or
+# gap-default32.sh (only one of which will exit); since sdh_install does
+# not dereference symlinks we make sure to install the real file.  This
+# wildcard should just pick up whichever one exists.
 sdh_install -T bin/gap-default*.sh "$SAGE_LOCAL/bin/gap"
 
 if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]]; then
