@@ -1194,6 +1194,12 @@ REFERENCES:
 .. [GK2013] Roland Grinis and Alexander Kasprzyk, Normal forms of
             convex lattice polytopes, :arxiv:`1301.6641`
 
+.. [GKMS2017] Kristian Kersting, Martin Mladenov, and Pascal Schweitzer, 2017. 
+              Preliminary Draft of a Chapter that is to appear in:
+              Guy Van den Broeck, Kristian Kersting, Sriraam Natarajan, David Poole, 
+              An Introduction to Lifted Probabilistic Inference, Cambridge University Press.
+              https://www.lii.rwth-aachen.de/images/Mitarbeiter/pub/grohe/cr.pdf
+
 .. [GKZ1994] Gelfand, I. M.; Kapranov, M. M.; and
              Zelevinsky, A. V. "Discriminants, Resultants and
              Multidimensional Determinants" Birkhauser 1994
@@ -1660,7 +1666,12 @@ REFERENCES:
             23, Issue 3 (November 2002), 281-290.  Available at
             http://portal.acm.org/citation.cfm?id=763203 and free of
             charge at :arxiv:`math/0106043`
-
+            
+.. [KPS2017] \S. Kiefer, I. Ponomarenko and P. Schweitzer, 
+             "The Weisfeiler-Leman dimension of planar graphs is at most 3,"
+             2017 32nd Annual ACM/IEEE Symposium on Logic in Computer Science (LICS), Reykjavik, 2017, pp. 1-12.d
+             :doi:10.1109/LICS.2017.8005107
+             
 .. [Kra1999] \C. Krattenthaler,
            *Another Involution Principle-Free Bijective Proof of Stanley's Hook Content Formula*,
            Journal of Combinatorial Theory, Series A, **88** (1999), 66-92,
@@ -1912,6 +1923,10 @@ REFERENCES:
 .. [LTV1999] Bernard Leclerc, Jean-Yves Thibon, and Eric Vasserot.
              *Zelevinsky's involution at roots of unity*.
              J. Reine Angew. Math. 513:33-51 (1999).
+
+.. [LW1968] \A.A. Lehman, B. Weisfeiler, A reduction of a graph to a canonical form and an algebra arising during this reduction,
+            Nauchno-Technicheskaya Informatsiya, Ser. 2, no. 9 (1968), 12-16
+            (In russian, a translation can be found at https://www.iti.zcu.cz/wl2018/pdf/wl_paper_translation.pdf)
 
 .. [LW2012] David Loeffler and Jared Weinstein, *On the computation of
             local components of a newform*, Mathematics of Computation
