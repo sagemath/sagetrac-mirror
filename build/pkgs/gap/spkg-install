@@ -31,13 +31,6 @@ sdh_configure --with-gmp="$SAGE_LOCAL"
 sdh_make -j1 config
 sdh_make
 
-# Wipe the installation directory.
-# This fixes https://trac.sagemath.org/ticket/22272
-echo "Removing previous installation of GAP..."
-rm -rf "$INSTALL_DIR"
-rm -f "$SAGE_LOCAL/gap/latest"
-rm -f "$SAGE_LOCAL/bin/gap"
-
 echo "Installing (copying) files..."
 # gap has no notion of installing itself (similar to sage), copy everything
 # See http://trac.sagemath.org/13211 for rationale of the filesystem layout

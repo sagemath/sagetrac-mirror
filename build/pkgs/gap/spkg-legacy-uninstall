@@ -1,0 +1,6 @@
+# Wipe the installation directory.
+# This fixes https://trac.sagemath.org/ticket/22272
+echo "Removing previous installation of GAP..."
+rm -rf "$SAGE_LOCAL/gap/gap-"*
+rm -f "$SAGE_LOCAL/gap/latest"
+rm -f "$SAGE_LOCAL/bin/gap"
