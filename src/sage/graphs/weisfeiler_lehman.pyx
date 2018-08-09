@@ -453,14 +453,14 @@ def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result='edge_classes
     -  ``edge_labels`` - If True, take into account the labeling of the edges of `G``
     
     -  ``result`` - Value that allows to format the output differently. Currently accepted values are 'vertex_classes' and 'edge_classes', which return
-                    the color classes on, respectively, vertices and edges as a list of lists, and 'graph', which instead returns a complete graph ``C``
+                    the color classes on, respectively, vertices and edges as a list of lists, and 'graph', which instead returns a coloured looped weighted complete graph ``C``
                     with the same vertex set as ``G``, where each edge is coloured according to its computed color class.
                     The color classes on vertices are represented by colouring the self loops on each vertex of ``C``
 
     OUTPUT:
     
     A list of lists of vertices (resp. edges) representing how the vertices (resp. edges) have been divided in color classes, 
-    or a coloured complete graph, depending on the value of the ``result`` parameter
+    or a coloured looped weighted complete digraph, depending on the value of the ``result`` parameter
     
     .. WARNING::
         
@@ -470,7 +470,27 @@ def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result='edge_classes
         and that have an edge (or two opposing edges if it's a DiGraph) between them
 
     EXAMPLES:
-
+    
+    The method can't distinguish the CycleGraph with 7 vertices and the disjoint union of two CycleGraphs with 3 and 4 vertices for ``k`` = 1, but can for ``k`` = 2.  ::
+    
+        sage: import sage.graphs.weisfeiler_lehman
+        sage: G = graphs.CycleGraph(7)
+        sage: H = graphs.CycleGraph(4)
+        sage: H = H.disjoint_union(graphs.CycleGraph(3))
+        sage: H.relabel()
+        sage: res1 = sage.graphs.weisfeiler_lehman.WeisfeilerLehman(G, 1, result='vertex_classes')
+        sage: res2 = sage.graphs.weisfeiler_lehman.WeisfeilerLehman(H, 1, result='vertex_classes')
+        sage: res1 == res2
+        True
+        sage: res1 = sage.graphs.weisfeiler_lehman.WeisfeilerLehman(G, 2, result='vertex_classes')
+        sage: res2 = sage.graphs.weisfeiler_lehman.WeisfeilerLehman(H, 2, result='vertex_classes')
+        sage: res1 == res2
+        False
+        sage: len(res1)
+        1
+        sage: len(res2)
+        2
+    
     The orbits on vertices for the Shrikhande are immediately found for ``k`` = 1 and stay stable for increasing values of ``k``.  ::
         
         sage: import sage.graphs.weisfeiler_lehman
@@ -550,6 +570,7 @@ def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result='edge_classes
     if result == 'graph':
         formatted_result = G.union(G.complement())
         formatted_result.allow_loops(True)
+        formatted_result.weighted(True)
         for v in formatted_result:
             formatted_result.add_edge(v,v)
         formatted_result = formatted_result.to_directed()
