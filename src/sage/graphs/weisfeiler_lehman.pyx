@@ -1,4 +1,12 @@
 # distutils: language = c++
+"""
+Weisfeiler Lehman Algorithm
+
+This method implements the Weisfeiler Lehman algorithm itself and a correctness checker for its results.
+Furthermore it offers the internal method used to compute the orbitals for the correctness checker.
+"""
+
+
 from __future__ import print_function
 from libcpp.vector cimport vector
 from libc.stdlib cimport malloc, free
@@ -12,42 +20,38 @@ import random
 from sys import version_info    
 from sage.graphs.graph import GenericGraph as SageGraph
 from sage.misc.latex import latex, dict_function
-'''
-    graph.py
 
-Module graph contains the definition of the Graph class
-and utilities dealing with graph objects.
-'''
-
-def getiterator(l):
+def _getiterator(l):
     if version_info >= (3):
         return l.items()
     else:
         return l.iteritems()
-        
+
+def _edge_multiplicity_to_label(G, edge_labels=False):
+    from collections import Counter
+    edge_multiplicity_dict = Counter(G.multiple_edges(labels=False))
+   
+    G.remove_multiple_edges()
+    G.allow_multiple_edges(False)
+    for u, v, m in G.edges():
+        if (u,v) not in edge_multiplicity_dict:
+            l = 1
+        else:
+            l = edge_multiplicity_dict[(u,v)]
+        if edge_labels:
+            new_label = (m, l)
+        else:
+            new_label = l
+        G.set_edge_label(u, v, new_label)
+
+
 class _Graph(object):
     '''
     For each multiple edge e whose elements have labels l_0,l_1,...,l_(m-1), 
     delete the multiple edge and substitute it with a single edge, with label 
     (l_i, m) where i can be any integer between 0 and m-1
     '''
-    def _edge_multiplicity_to_label(self, edge_labels=False):
-        from collections import Counter
-        G = self.graph
-        edge_multiplicity_dict = Counter(G.multiple_edges(labels=False))
-       
-        G.remove_multiple_edges()
-        for u, v, m in G.edges():
-            if (u,v) not in edge_multiplicity_dict:
-                l = 1
-            else:
-                l = edge_multiplicity_dict[(u,v)]
-            if edge_labels:
-                new_label = (m, l)
-            else:
-                new_label = l
-            G.set_edge_label(u, v, new_label)
-        
+            
     
     
     '''
@@ -69,7 +73,7 @@ class _Graph(object):
         self._vertex_coloring = []
         self.graph = G
         if multiedged:
-            self._edge_multiplicity_to_label(edge_labels)
+            _edge_multiplicity_to_label(self.graph, edge_labels)
             edge_labels = True
         self.number_of_vertices = self.graph.order()
         self.directed = self.graph.is_directed()
@@ -81,7 +85,7 @@ class _Graph(object):
             return
         self._normalized = True
         m = self.graph.relabel(complete_partial_function=False, return_map=True)
-        self._inverted_relabel_map = {v: k for k, v in getiterator(m)}
+        self._inverted_relabel_map = {v: k for k, v in _getiterator(m)}
         return m
 
     def _get_vertex_coloring(self):
@@ -113,7 +117,7 @@ class _Graph(object):
                 vc = [set(int(relabel_map[v]) for v in k) for k in vc]
             
             if self._first_level_vertices:
-                vs = set([int(relabel_map[v]) for k,v in getiterator(self._first_level_vertices)])
+                vs = set([int(relabel_map[v]) for k,v in _getiterator(self._first_level_vertices)])
                 self._vertex_coloring.append(set([int(k) for k in range(self.number_of_vertices) if not k in vs]))
             else:
                 vs = set(range(self.number_of_vertices))
@@ -187,42 +191,214 @@ cdef vector[GraphNode] _sageGraphToLists(G, partition = [], has_edge_labels=Fals
             nodeArray[u].adj_list.push_back([<int>v, <int>edge_labels_dict[l]])
     return nodeArray
 
-def _check_orbit_correctness(orbits, G, cardinality=2):
+def _sameOrbital(a, b, p_to_o, v_to_so):
+    u,v = a
+    x,y = b
+    for perm, orbit_dict in p_to_o.items():
+        if u == orbit_dict[x]:
+            g = perm
+            break
+    else:
+        return False
+    p = g(y)
+    return v_to_so[v][u] == v_to_so[p][u]
+
+def compute_orbitals(G, partition, edge_labels):
+    """
+    Compute the orbitals of the graph G, as a list of lists
+
+    INPUT:
+
+    -  ``G`` - Graph of which to compute the orbitals
+
+    - ``partition`` - Default is the unit partition, otherwise computes the orbitals of the subgroup of the full automorphism group respecting the partition.
+    
+    - ``edge_labels`` - Default False, otherwise computes the orbitals of the subgroup of the full automorphism groups whose permutations respect edge labels
+
+    OUTPUT:
+    
+    A list of lists representing the partition induced by the orbitals on `V^2`, where `V` is the vertex set of ``G``
+    """
+    import itertools
+    aut = G.automorphism_group(edge_labels=edge_labels, partition=partition)
+    orbits = aut.orbits()
+    perms_to_orbits = {}
+    vertex_to_stabilizer_orbit = {}
+    for perm in aut:
+        d = perms_to_orbits.setdefault(perm, {})
+        for v in G:
+            d[v] = perm(v)
+    orbitals = {}
+    for v,u in itertools.product(G,G):
+        for rep in orbitals:
+            if _sameOrbital(rep, (v,u), perms_to_orbits, vertex_to_stabilizer_orbit):
+                orbitals[rep].append((v,u))
+                break
+        else:
+            orbitals[(v,u)] = [(v,u)]
+            _addStabilizer(aut, v, vertex_to_stabilizer_orbit)
+    return orbitals.values()
+
+def _addStabilizer(aut, v, vertex_to_stabilizer_orbit):
+    stabO = aut.stabilizer(v).orbits()
+    for i, o in enumerate(stabO):
+        for u in o:
+            stabilizer_orbit = vertex_to_stabilizer_orbit.setdefault(u, {})
+            stabilizer_orbit[v] = i
+    
+def check_orbit_correctness(color_classes, g, partition = None, edge_labels=False, cardinality=2):
+    """
+    Check the results of the ``WeisfeilerLehman`` method output against the color_classes of the graph ``g``
+
+    The algorithm computes either the orbits the graph ``g``, if the ``color_classes`` are on vertices,
+    or its orbitals otherwise (through the ``compute_orbitals`` method), and compares them against the ``color_classes`` returned by the
+    ``WeisfeilerLehman`` method.
+
+    INPUT:
+
+    -  ``color_classes`` - List of lists representing a partition of either the vertices or the edges of g, output by the ``WeisfeilerLehman`` method
+
+    -  ``g`` - Graph on which the ``WeisfeilerLehman`` method was run
+
+    - ``partition`` - Default is the unit partition, otherwise checks ``color_classes`` against the orbits (or orbitals) of the subgroup of the full automorphism group respecting the partition.
+    
+    - ``edge_labels`` - Default False, otherwise checks ``color_classes`` only against the orbits (or orbitals) of automorphism subgroups whose permutations respect edge labels
+
+    -  ``cardinality`` - 1 if ``color_classes`` is a partition on vertices, 2 if it's on edges, default is 2
+
+    OUTPUT:
+    
+    It outputs one of three strings:
+    
+    - "Correct" - if ``color_classes`` represents the orbits of  ``g``
+    - "Refinable" - if ``color_classes`` represents a (partial) union of the orbits of  ``g``, and thus a higher value of k passed to the ``WeisfeilerLehman`` method might output the correct result
+    - "Wrong" - otherwise
+    """
     if(cardinality != 1 and cardinality != 2):
         raise ValueError("Cardinality must be either 1 or 2")
+    G = g
+    if not partition:
+        partition = [G.vertices()]
     n = G.order()
-    checker = sorted(map(sorted,orbits))
+    checker = sorted(map(sorted,color_classes))
     set_checker = map(set, checker)
-    #Check the orbits are well formatted
+    #Check the color_classes are well formatted
     union_checker = set.union(*set_checker)
-    if len(union_checker) != sum(map(len,orbits)):
-        raise ValueError("The orbits are not disjoint")
+    if len(union_checker) != sum(map(len,color_classes)):
+        raise ValueError("The color_classes are not disjoint")
     if cardinality == 2 and len(union_checker) != n*n:
         if len(union_checker) == (n*(n+1))/2:
-            raise ValueError("The orbits don't contain both directions of every edge")
+            raise ValueError("The color_classes don't contain both directions of every edge")
         else:
-            raise ValueError("The orbits are not complete")
+            raise ValueError("The color_classes are not complete")
     elif cardinality == 1 and len(union_checker) != n:
-        raise ValueError("The orbits are not complete")
+        raise ValueError("The color_classes are not complete")
+    #Check if they are correct
+    if cardinality == 2:
+        O = compute_orbitals(G, partition, edge_labels)
+        O.sort()
+    elif cardinality == 1:
+        O = G.automorphism_group(partition=partition, edge_labels=edge_labels, orbits=True, return_group=False)
+        O = map(sorted, O)
+        O.sort()
+    if O == checker: return "Correct"
+    #Check if they only need to be refined
+    O = map(set,O)
+    elements_left = set(range(len(O)))
+    subsets = []
+    for s in set_checker:
+        subsets.append([])
+        temp = set()
+        for el in elements_left:
+            if O[el].issubset(s):
+                temp.add(el)
+                subsets[-1].append(el)
+        elements_left = elements_left.difference(temp)
+        if len(elements_left) == 0:
+            break
+    if len(elements_left) == 0:
+        return "Refinable"
+    else:
+        return "Wrong"
+
+
+
+def _check_orbit_correctness2(color_classes, g, cardinality=2):
+    """
+    Check the results of the ``WeisfeilerLehman`` method output against the color_classes of the graph ``g``
+
+    The algorithm computes the orbits of either the graph ``g``, if the ``color_classes`` are on vertices,
+    or of a suitable line graph otherwise, and compares them against the ``color_classes`` returned by the
+    ``WeisfeilerLehman`` method.
+    
+    .. WARNING::
+    
+        This implementation, while at times faster than ``check_orbit_correctness`` method's one, consumes a lot more memory
+    
+    INPUT:
+
+    -  ``color_classes`` - List of lists representing a partition of either the vertices or the edges of g, output by the ``WeisfeilerLehman`` method
+
+    -  ``g`` - Graph on which the ``WeisfeilerLehman`` method was run
+
+    -  ``cardinality`` - 1 if ``color_classes`` is a partition on vertices, 2 if it's on edges
+
+    OUTPUT:
+    
+    It outputs one of three strings:
+    
+    - "Correct" - if ``color_classes`` represents the orbits of  ``g``
+    - "Refinable" - if ``color_classes`` represents a (partial) union of the orbits of  ``g``, and thus a higher value of k passed to the ``WeisfeilerLehman`` method might output the correct result
+    - "Wrong" - otherwise
+    """
+    if(cardinality != 1 and cardinality != 2):
+        raise ValueError("Cardinality must be either 1 or 2")
+    h = g.copy()
+    if h.has_multiple_edges():
+        _edge_multiplicity_to_label(h, True)
+    G = h.copy()
+    n = G.order()
+    checker = sorted(map(sorted,color_classes))
+    set_checker = map(set, checker)
+    #Check the color_classes are well formatted
+    union_checker = set.union(*set_checker)
+    if len(union_checker) != sum(map(len,color_classes)):
+        raise ValueError("The color_classes are not disjoint")
+    if cardinality == 2 and len(union_checker) != n*n:
+        if len(union_checker) == (n*(n+1))/2:
+            raise ValueError("The color_classes don't contain both directions of every edge")
+        else:
+            raise ValueError("The color_classes are not complete")
+    elif cardinality == 1 and len(union_checker) != n:
+        raise ValueError("The color_classes are not complete")
     #Check if they are correct
     if cardinality == 2:
         import sage.graphs.line_graph
         from collections import Counter
         notG = G.complement()
-        lineG = sage.graphs.line_graph.line_graph(G.to_directed(), labels=False)
-        line_notG = sage.graphs.line_graph.line_graph(notG.to_directed(), labels=False)
-        oG = G.automorphism_group(orbits=True, return_group=False)
+        newlabel = 0
+        labels = G.edge_labels()
+        while newlabel in labels:
+            newlabel += 1
+        for (v,u) in notG.edges(labels=False):
+            G.add_edge(v,u,newlabel)
+        lineG = G.to_directed().line_graph()
+        oG = h.automorphism_group(edge_labels=True, orbits=True, return_group=False)
+        oG = map(sorted, oG)
         O = []
         for o in oG:
             O.append([])
             for el in o:
                 O[-1].append((el,el))
-        o_lineG = lineG.automorphism_group(orbits=True, return_group=False)
-        o_line_notG = line_notG.automorphism_group(orbits=True, return_group=False)
-        O = O + o_lineG + o_line_notG
+        part_dict = {}
+        for v in lineG:
+            part_dict.setdefault(v[2], []).append(v)
+        o_lineG = lineG.automorphism_group(partition=part_dict.values(), orbits=True, return_group=False)
+        o_lineG = map(lambda l: [(v[0],v[1]) for v in l], o_lineG)
+        O = O + map(sorted, o_lineG)
         O.sort()
     elif cardinality == 1:
-        O = G.automorphism_group(orbits=True, return_group=False)
+        O = g.automorphism_group(orbits=True, return_group=False)
         O.sort()
     if O == checker: return "Correct"
     #Check if they only need to be refined
@@ -292,6 +468,7 @@ def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result='edge_classes
         If the graph to be colored contains loops, either remove the loops and color the corresponding vertices differently, or create a support
         graph G' where each vertex with a self loop is transformed into two vertices that are connected to the same vertices as the original one, 
         and that have an edge (or two opposing edges if it's a DiGraph) between them
+
     EXAMPLES:
 
     The orbits on vertices for the Shrikhande are immediately found for ``k`` = 1 and stay stable for increasing values of ``k``.  ::
@@ -299,16 +476,16 @@ def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result='edge_classes
         sage: import sage.graphs.weisfeiler_lehman
         sage: g = graphs.ShrikhandeGraph()
         sage: res = sage.graphs.weisfeiler_lehman.WeisfeilerLehman(g, 1, result='vertex_classes')
-        sage: sage.graphs.weisfeiler_lehman._check_orbit_correctness(res, g, cardinality=1)
+        sage: sage.graphs.weisfeiler_lehman.check_orbit_correctness(res, g, cardinality=1)
         'Correct'
         sage: res = sage.graphs.weisfeiler_lehman.WeisfeilerLehman(g, 2, result='vertex_classes')
-        sage: sage.graphs.weisfeiler_lehman._check_orbit_correctness(res, g, cardinality=1)
+        sage: sage.graphs.weisfeiler_lehman.check_orbit_correctness(res, g, cardinality=1)
         'Correct'
         sage: res = sage.graphs.weisfeiler_lehman.WeisfeilerLehman(g, 3, result='vertex_classes')
-        sage: sage.graphs.weisfeiler_lehman._check_orbit_correctness(res, g, cardinality=1)
+        sage: sage.graphs.weisfeiler_lehman.check_orbit_correctness(res, g, cardinality=1)
         'Correct'
         sage: res = sage.graphs.weisfeiler_lehman.WeisfeilerLehman(g, 4, result='vertex_classes')
-        sage: sage.graphs.weisfeiler_lehman._check_orbit_correctness(res, g, cardinality=1)
+        sage: sage.graphs.weisfeiler_lehman.check_orbit_correctness(res, g, cardinality=1)
         'Correct'
 
     The color classes on edges for the Shrikhande aren't equal to the orbits until ``k`` = 3, but stay stable for increasing values of ``k``.  ::
@@ -316,17 +493,45 @@ def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result='edge_classes
         sage: import sage.graphs.weisfeiler_lehman
         sage: g = graphs.ShrikhandeGraph()
         sage: res = sage.graphs.weisfeiler_lehman.WeisfeilerLehman(g, 1)
-        sage: sage.graphs.weisfeiler_lehman._check_orbit_correctness(res, g)
+        sage: sage.graphs.weisfeiler_lehman.check_orbit_correctness(res, g)
         'Refinable'
         sage: res = sage.graphs.weisfeiler_lehman.WeisfeilerLehman(g, 2)
-        sage: sage.graphs.weisfeiler_lehman._check_orbit_correctness(res, g)
+        sage: sage.graphs.weisfeiler_lehman.check_orbit_correctness(res, g)
         'Refinable'
         sage: res = sage.graphs.weisfeiler_lehman.WeisfeilerLehman(g, 3)
-        sage: sage.graphs.weisfeiler_lehman._check_orbit_correctness(res, g)
+        sage: sage.graphs.weisfeiler_lehman.check_orbit_correctness(res, g)
         'Correct'
         sage: res = sage.graphs.weisfeiler_lehman.WeisfeilerLehman(g, 4)
-        sage: sage.graphs.weisfeiler_lehman._check_orbit_correctness(res, g)
+        sage: sage.graphs.weisfeiler_lehman.check_orbit_correctness(res, g)
         'Correct'
+        
+    Check that the counter-example in :trac:`10482` is correctly recognised. ::
+        
+        sage: import sage.graphs.weisfeiler_lehman
+        sage: G = Graph(':~?@?_??C????_W???@?__S?????OGCCA@?_WKF???OGGCA@_oWOH??_OOKECA@OgU?@?__WKGCA`OoY?????GCA@@?_OKEBA@?_OIDA`_oWMFBo?GGCB@`?_OIDA`_oWKFB`p?a???_OGGCB@_o_OGDA`OgWKEB`ow_OHCaW?CCA@_o_OGDA`OoWKFB`ow_OHCa`S????_OGGCA@_oWKGCA`OgWKFB`p?_QHDA`OkUJ`?_OKEBA@?gSKEB`ow_QIDA`WkUJEBGGCAB@_o_SIDB@ow[MGCAPGgSJDap_oYL`_oWOIDB@ow[MGCa`OkUJDb@_oYLEb`oy????OGCCA@?oWKGDB@p?_QHDA`Wm?@@?o_SKFCA@GcSIDap_oYLFB`w{_OGCG???@?_OOGCB@_o_SKFCA@GcSIDaq@?_PGcQK?AA@`?gWMGCAPGgSJDb@_sYMFBpx?aPHO???A@?__OGEB@`?gWMGCAPGgSJDcA@?aPGcaPKf??__WOIEBa@?cQIDApWoWLEb`o{]OGCQHGcQHcqXOh????GCAA@?_WKECA`_w_OHCa`OkUOGCAHCaQHCqXOgTIdW?CCBA@Oo[OGCaPOgUJEB@gs[MFbq@CaQHcq`OiTJDg??A@@?_WKGCA`OoWMFCAPOkWLFBq@?_OGcQHCcQHCqXKgSIDAhSiUJDax[nCA@OgWKFBa@GgUKEB@gsYMFB`w{]OGCAHCcQHCqXOgSIdQhWkUJDqx[oW_??GCCA@_o_OIDB@_w[OHDAp_s[NGCAHCaQHCqXKgSIDQhSiUJDax[mWKERHeGCA`OoWMFCAPOkWKEBPgs[MFBpw{aRIDA`SiTJDap[mVJeB@cqYLO??CAA@?oWOGDA`_o[MGCa`WoYMFcAHCaQHCqXKeSIdQhWkVJdr@_qXLEbPkvCA@OgWKFBa@GgUKEB@gsYMFB`w{]PGcaPGeRIdQpWkVJdr@cqYLEbXkx???OGGCB@`?_SIEB@ow_QIDb@gw]OGcQHGcRHcq`SiTJDax[mVKEBHcqYLErXkw[MfRhuGCA`OoWMFCAPOkWKEBPgs[MFBpw{aRIdQpWkVJdqx_qXKebPkuZMFRhs{]NFg??A@@?_WKGDB@p?cSJGCA@CaQHCaXKgSIDQhWkUJdr@gw]_?OOKOGCaPOgUJEBPo{_OGcaPKgSIdap[oWKebPkw[Mfbp|?_OGG?CCBA@?gSKEB`p_s[NGCQHGeRIDQhWmVKERHguZMFRhw}^OGCA@A`OgW_SKFCAPOkWKEbPow]NGcqh[oWKeRHgsZLer`oy\\Mfbp{}^OGCADAaPO??CAA@?oWOIEBa@GgUOGCAHCcQHCqXOgSIdQpWkVJeBPo{_OGCIDAaPGcQLEb_?OOKOGCaPOgUJEBPo{_OGcaPKgSIdap[oWKebPkw[Mfbp|?_OgSQHCbPgsaQ?@@?o_OIDB@_w[WLFBq@CaQHcq`SiUJdr@cqYLer`sy]NfsADA`PGcYLGdQhW_SKFCAPOkWKEbPow]NGcqh[oWKeRHgsZLer`oy\\Mfbp{}^OgSQLEdQhg??A@@?_WKGDB@p?cSJGCA@CaQHCaXKgSIDQhWkUJdr@gw]OGCADA`OgcQHEbPhCaTIdRHcy\\N??__W_OHCa`OkUKEb`x?_PHCaXOgTJDax_oXLEbXow\\NFby@A`PGcQLEcQHSiTKeRHcy\\P??__WOGDA`_o[MKEb`x?aPHCqXOiTJDqx_qXLErXoy\\NFry@?`OgSQHEbPhCaPIdQhSqXKfRhtA`QhSp?gWMGCa`WoWLEb`o{]PHdQx_oXKeRPguZLfB`sy\\NFbx{}`PGcYLGcQHSiTKeRhtIhT???OGGCB@`?gWMGCa`X?_OGcQPGcRHdA`OiTJDap[mWLFBq@?_OgSIHCaPgsYLGcQhSiXKfRhtA`QhTIdQlUj_?OOKOGCaPOgUJEBPo{_OGcaPKgSIdap[oWKebPkw[Mfbp|?`OgcQHEbPhCaTIeRHcy\\MgSiTQhSjTitYpX??__WOGDA`_o[MKEb`x?aPHCqXOiTJDqx_qXLErXoy\\NFry@A`OgcQLEbQHSiTKeRhsy\\OgSiTIhSjTitapYlUjW_SKFCAPOkWKEbPow]NGcqh[oWKeRHgsZLer`oy\\Mfbp{}^OgcYLEdQhcy\\MhTIdYlUkUJDitYlVJdqy????OGCCA@?oWKGCA`OoWMFCAPOk_OGcaPKgSIdap[oYMFcA@?`PGcaPGdRHdA`OhTIdapWlVJg???@?_OOGCB@_o_OIDB@_w[OHDAq@?aQHCq`OiUJDr@gw]OGCADCaQHCaTKeSIDAdSiUJDat[mWKEC?AA@`?_SIEB@ow_QIDb@_sYMFBpx?aPHCqXOiTJDqxcu\\NgCADAaPhCaTIeRiDAdQiTjDatYmVkEB@_pWkUK?AA@`?_SIEB@ow_QIDb@_sYMFBpx?aPHCqXOiTJDqxcu\\NgCADAaPhCaTIeRiDAdQiTjDatYmVkEJHd???OGGCB@`?gWMGCAPGgSJDb@gw]OHDAp_oXLEbXow\\NFby@AaPGsYPIeRHsy`QiTItYpYmVJtz@_oWKUJDcqXKeZLf???OGGCB@`?gWMGCAPGgSJDb@gw]OHDAp_oXLEbXow\\NFby@AaPGsYPIeRHsy`QiTItYpYmVJtz@_pWkeRHerXlEcOIEBa@?cQIDApWoWKEbPgw[MFbpxCeTJeBHcsZLfBhs{^NgSIHEbPhSiXMfRiTIhUjTjTix]nVkEB@apWkeRLesYLUjUGDB@p?_QHDA`WkWKEBPgs[MFBpw{aRIdr@cqYLer`sy]NfsIDCbPgsiTKfRhtIdSjTitit[nVjuRLgsYlUrY????OGCCA@?oWKGCA`OoWMFCAPOk_OGcaPKgSIdap[oYMFcA@?`PGcaPGdRHdA`OhTIdapWlVJeB@_pWkeRHerYLEbPitYlerXmvZo???A@?__OGEB@`?_SIEB@ow_QIDcA@CcQHdA`SkUJeBPo{_OGCIHCcQHCiXKgSIDIhSkUJDix[oWKEJDcqXKuZPgsYlUjXkuZLuz\\ow_?OOKGCA`OoWMFCAPOkWKEbPow]NGCQHGeRIDQhWmVKerh|?_OgSQLGcQhSq\\OgSiTQlWkUjTq|_oWkUJHcrXkubPgtYlUjXkuZluz`ox[mW?CCBA@?gSKEB`p?cSJEB@gs[MFbq@CaQHcq`SiUJdrHky^OGCIDCbQHCiTKfSIDIdSjUJDit[nWKURHerYLEbTitZLer\\mvZmFBdqy\\O??CAA@?oWOIEBa@?cQIDApWoYMFcAPOkWKERPgu[MFRpw}_OgcQLEcQhcq\\MgSidQlUkUjdq|]oWkURHcrXkuZPgtYlUrXmv[MVJhsy\\mv[??@?__OKECA`_w_OHCa`OkUKEb`x?cSJEB@csYLfB`s{]NgCIHCbPhCiXKfRiDIhSjTjDix[nVkEJDcqXKuZLgsYlUrXkvZlvBdqy\\MfZluz]NG_SKFCA@GcSIDap_oWLEbPow[NFbqHKiVKERHguZMFRhw}^OgSQLEbQhSq\\MfSiTQlUjUjTq|]nWkUJHcrXlEjTiuZLuzdqx\\MfZlu{]nVjuGDB@p?_QHDA`WkWKEBPgs[MFBpw{aRIdr@cqYLer`sy]NfsIDCbPgsiTKfRhtIdSjTitit[nVjuRLgtYlerXmvZmVJdsy\\mvZlw|]nVjx{}', loops=False)
+        sage: res = sage.graphs.weisfeiler_lehman.WeisfeilerLehman(G, 1, result='vertex_classes')
+        sage: sage.graphs.weisfeiler_lehman.check_orbit_correctness(res, G, cardinality=1)
+        'Refinable'
+        sage: res = sage.graphs.weisfeiler_lehman.WeisfeilerLehman(G, 2, result='vertex_classes')
+        sage: sage.graphs.weisfeiler_lehman.check_orbit_correctness(res, G, cardinality=1)
+        'Correct'
+        sage: res = sage.graphs.weisfeiler_lehman.WeisfeilerLehman(G, 3, result='vertex_classes') # long time
+        sage: sage.graphs.weisfeiler_lehman.check_orbit_correctness(res, G, cardinality=1) # long time
+        'Correct'
+        sage: res = sage.graphs.weisfeiler_lehman.WeisfeilerLehman(G, 1)
+        sage: len(res) == 6
+        True
+        sage: sage.graphs.weisfeiler_lehman.check_orbit_correctness(res, G) # long time
+        'Refinable'
+        sage: res = sage.graphs.weisfeiler_lehman.WeisfeilerLehman(G, 2)
+        sage: len(res) == 272
+        True
+        sage: sage.graphs.weisfeiler_lehman.check_orbit_correctness(res, G) # long time
+        'Correct'
+        sage: res = sage.graphs.weisfeiler_lehman.WeisfeilerLehman(G, 3) # long time
+        sage: sage.graphs.weisfeiler_lehman.check_orbit_correctness(res, G) # long time
+        'Correct'
+
     """
     if not isinstance(G, SageGraph):
         raise TypeError
@@ -336,7 +541,7 @@ def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result='edge_classes
     if(G.has_multiple_edges()):
         edge_labels = True
     g = g_temp
-    print(g.graph.edges())
+    #print(g.graph.edges())
     g._relabel_map = g.relabel()
     g.set_vertex_coloring(partition, g._relabel_map)
     cdef vector[GraphNode] res = _sageGraphToLists(g.graph, g.vertex_coloring, edge_labels)

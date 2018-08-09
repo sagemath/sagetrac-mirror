@@ -66,6 +66,7 @@ Libraries of algorithms
    sage/graphs/cliquer
    sage/graphs/centrality
    sage/graphs/asteroidal_triples
+   sage/graphs/weisfeiler_lehman
    sage/graphs/independent_sets
    sage/graphs/comparability
    sage/graphs/line_graph
