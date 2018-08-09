@@ -1306,6 +1306,31 @@ class DirichletCharacter(MultiplicativeGroupElement):
         return self(-1) == R(1)
 
     @cached_method
+    def is_totally_even(self):
+        r"""
+        Return `True`` if and only if every character in self.decomposition() is even.
+
+        EXAMPLES::
+
+           sage: G = DirichletGroup(35)
+           sage: e = G.0*G.1
+           sage: e.is_even()
+           True
+           sage: e.is_totally_even()
+           False
+           sage: f = e^2
+           sage: f.is_even()
+           True
+           sage: f.is_totally_even()
+           True
+
+        """
+        if self.is_even():
+            return all(chi.is_even() for chi in self.decomposition())
+        else:
+            return False
+
+    @cached_method
     def is_odd(self):
         r"""
         Return ``True`` if and only if
