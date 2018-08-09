@@ -3433,11 +3433,11 @@ class SimplicialComplex(Parent, GenericCellComplex):
         - ``iterations`` -- integer (default: `5`); the number of iterations to be
           used to certify the output.
 
-        - ``certificate`` - boolean: whether to return the
-          number of occurences of the different candidates.
+        - ``certificate`` - boolean: whether to return the number of occurences
+          of the different candidates.
 
-        - ``check_shift`` - boolean: whether to check if
-          the output is a shifted complex.
+        - ``check_shift`` - boolean: whether to check if the output is a
+          shifted complex.
 
         - ``random_mat_options`` - a dictionary; the options to create the
           random matrix used. If set to ``None``, the algorithm uses the
@@ -3447,7 +3447,42 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         A shifted simplicial complex.
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: G = graphs.CompleteBipartiteGraph(3,3)
+            sage: K33 = SimplicialComplex([e[:2] for e in G.edges()])
+            sage: shifted_K33 = K33.algebraic_shift()
+            sage: sorted(shifted_K33.facets())
+            [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (1, 2), (1, 3), (1, 4), (2, 3)]
+
+            sage: octahedron = SimplicialComplex([[0,1,2],[0,1,5],[0,2,4],[0,4,5],[1,2,3],[1,3,5],[2,3,4],[3,4,5]])
+            sage: shifted_octahedron = octahedron.algebraic_shift()
+            sage: shifted_octahedron.f_vector()
+            [1, 6, 12, 8]
+            sage: shifted_octahedron.homology()
+            {0: 0, 1: 0, 2: Z}
+            sage: print(sorted(shifted_octahedron.facets()))
+            [(0, 1, 2), (0, 1, 3), (0, 1, 4), (0, 1, 5), (0, 2, 3), (0, 2, 4), (0, 2, 5), (1, 2, 3)]
+
+            sage: K4 = graphs.CompleteGraph(4)
+            sage: complement_K44 = SimplicialComplex([e[:2] for e in K4.disjoint_union(K4).edges()])
+            sage: shifted_complement_K44 = complement_K44.algebraic_shift()
+            sage: shifted_complement_K44.f_vector()
+            [1, 8, 12]
+            sage: shifted_complement_K44.homology()
+            {0: Z, 1: Z^6}
+            sage: print(sorted(shifted_complement_K44.facets())[-4:])
+            [((0, 1), (1, 1)), ((0, 2), (0, 3)), ((0, 2), (1, 0)), ((1, 3),)]
+
+            sage: cp = polytopes.cyclic_polytope(4,10)
+            sage: sc_cp = SimplicialComplex([tuple([cp.vertices().index(v) for v in f.vertices()]) for f in cp.faces(3)])
+            sage: shifted_sc_cp = sc_cp.algebraic_shift()
+            sage: shifted_sc_cp.f_vector()
+            [1, 10, 45, 70, 35]
+            sage: shifted_sc_cp.homology()
+            {0: 0, 1: 0, 2: 0, 3: Z}
+            sage: sorted(shifted_sc_cp.facets())[-5:]
+            [(0, 2, 3, 6), (0, 2, 3, 7), (0, 2, 3, 8), (0, 2, 3, 9), (1, 2, 3, 4)]
 
         .. WARNING::
 
@@ -3461,7 +3496,14 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         .. REFERENCES:
 
-            see this paper and this page and so on...
+        - [HH2011]_
+        - [Kal2001]_
+
+        TODO:
+
+        - implement symmetric shift
+        - put more example with certificate and different random matrices and
+          check shift
         """
         if form == "exterior":
             outputs = [ self._ksets_exterior_shift(size, iterations, certificate,
@@ -3553,7 +3595,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         candidates = {}
         candidate = None
         sorted_candidate = None
-        counter = 0
+        value_candidate = 0
 
         while not found_candidate:
             M = random_matrix(ring=ring, nrows=n_vertices, **random_mat_options)
@@ -3579,18 +3621,18 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 if shifted:
                     sorted_ksets = sorted(shifted_ksets)
                     if sorted_ksets < sorted_candidate:  # Found a new candidate
-                        candidates[candidate] = 1
                         candidate = shifted_ksets
                         sorted_candidate = sorted_ksets
-                        counter = 1
-                    elif candidate == shifted_ksets:  # found the same candidate
-                        counter += 1
-                        candidates[candidate] = counter
+                        candidates[candidate] = 1
+                        value_candidate = 1
+                    elif sorted_ksets == sorted_candidate:  # found the same candidate
+                        candidates[candidate] += 1
+                        value_candidate = candidates[candidate]
                     else:  # is a bad candidate
-                        if candidate in candidates.keys():
-                            candidates[candidate] += 1
+                        if shifted_ksets in candidates.keys():
+                            candidates[shifted_ksets] += 1
                         else:
-                            candidates[candidate] = 1
+                            candidates[shifted_ksets] = 1
             else:
                 shifted = True
                 if check_shift:
@@ -3598,10 +3640,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 if shifted:
                     candidate = shifted_ksets
                     sorted_candidate = sorted(shifted_ksets)
-                    counter = 1
                     candidates[candidate] = 1
+                    value_candidate = 1
 
-            if counter == iterations:
+            if value_candidate == iterations:
                 found_candidate = True
 
         if certificate:

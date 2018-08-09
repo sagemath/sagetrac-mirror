@@ -1323,6 +1323,8 @@ REFERENCES:
 .. [Hat2002] Allen Hatcher, "Algebraic Topology", Cambridge University
              Press (2002).
 
+.. [HH2011] Jürgen Herzog, Takayuki Hibi, *Monomial Ideals*.  Springer GTM 260, 2011.
+
 .. [He2002] \H. Heys *A Tutorial on Linear and Differential
             Cryptanalysis* ; 2002' available at
             http://www.engr.mun.ca/~howard/PAPERS/ldc_tutorial.pdf
@@ -1512,6 +1514,9 @@ REFERENCES:
 
 .. [Ka1990] Victor G. Kac. *Infinite-dimensional Lie Algebras*. Third
             edition. Cambridge University Press, Cambridge, 1990.
+
+.. [Kal2001] Gil Kalai. *Algebraic Shifting*. Computational Commutative
+             Algebra and Combinatorics. (2001). 121--163.
 
 .. [Kal1992] \B. Kaliski,
              *The MD2 message-digest algorithm*; in
