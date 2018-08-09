@@ -53,7 +53,7 @@ from sage.misc.prandom import randint
 
 import sage.schemes.elliptic_curves.constructor as elliptic
 from .sql_db import SQLDatabase, verify_column
-from sage.env import SAGE_SHARE, CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR
+from sage.env import SAGE_SHARE
 from sage.features.databases import DatabaseCremona
 from sage.misc.all import walltime
 
@@ -100,7 +100,7 @@ for t in _cremonaSkeleton:
     for c in _miniCremonaSkeleton[t]:
         _miniCremonaSkeleton[t][c] = verify_column(_miniCremonaSkeleton[t][c])
 
-def build(name, data_tgz, largest_conductor=0, mini=False, decompress=True):
+def build(name, data_tgz, target_dir=os.path.join(SAGE_SHARE, 'cremona'), largest_conductor=0, mini=False, decompress=True):
     """
     Build the CremonaDatabase with given name from scratch
     using the data_tgz tarball.
@@ -117,7 +117,7 @@ def build(name, data_tgz, largest_conductor=0, mini=False, decompress=True):
 
         sage: d = sage.databases.cremona.build('cremona','ecdata.tgz')   # not tested
     """
-    db_path = os.path.join(SAGE_SHARE,'cremona',name.replace(' ','_')+'.db')
+    db_path = os.path.join(target_dir ,name.replace(' ','_')+'.db')
     if os.path.exists(db_path):
         raise RuntimeError('Please (re)move %s before building '%db_path \
                 + 'database')
@@ -619,7 +619,7 @@ class MiniCremonaDatabase(SQLDatabase):
         """
         self.name = name
         name = name.replace(' ','_')
-        db_path = os.path.join(CREMONA_MINI_DATA_DIR, name+'.db')
+        db_path = DatabaseCremona(name=name).absolute_path()
         if build:
             if name is None:
                 raise RuntimeError('The database must have a name.')
@@ -1430,7 +1430,8 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
         """
         self.name = name
         name = name.replace(' ','_')
-        db_path = os.path.join(CREMONA_LARGE_DATA_DIR, name+'.db')
+        # DatabaseCremona(name = name).require
+        db_path = DatabaseCremona(name = name).absolute_path()
         if build:
             if name is None:
                 raise RuntimeError('The database must have a name.')
@@ -1668,14 +1669,19 @@ def CremonaDatabase(name=None,mini=None,set_global=None):
         sage: c = CremonaDatabase('should not exist',mini=True)
         Traceback (most recent call last):
         ...
-        ValueError: Desired database (='should not exist') does not exist
+        FeatureNotPresentError: Cremona's database of elliptic curves is not available.
+        'should_not_exist.db' not found in any of [...]
+        To install Cremona's database of elliptic curves you can try to run 'sage -i database_cremona_ellcurve'.
+        Further installation instructions might be available at https://github.com/JohnCremona/ecdata.
+        You can influence the search path by setting the environment variable `CREMONA_DATA_DIR`.
         sage: c = CremonaDatabase('should not exist',mini=False)
         Traceback (most recent call last):
         ...
-        ValueError: Desired database (='should not exist') does not exist
-        sage: from sage.env import SAGE_SHARE
-        sage: os.path.isfile(os.path.join(SAGE_SHARE,'cremona','should_not_exist.db'))
-        False
+        FeatureNotPresentError: Cremona's database of elliptic curves is not available.
+        'should_not_exist.db' not found in any of [...]
+        To install Cremona's database of elliptic curves you can try to run 'sage -i database_cremona_ellcurve'.
+        Further installation instructions might be available at https://github.com/JohnCremona/ecdata.
+        You can influence the search path by setting the environment variable `CREMONA_DATA_DIR`.
     """
     global _db
     if set_global is None:

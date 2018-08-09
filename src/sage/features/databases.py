@@ -6,8 +6,7 @@ Testing for databases at runtime
 import os
 
 from . import StaticFile
-from sage.env import CREMONA_LARGE_DATA_DIR
-
+from sage.env import SAGE_SHARE
 
 class DatabaseCremona(StaticFile):
     r"""
@@ -29,7 +28,8 @@ class DatabaseCremona(StaticFile):
             True
         """
         StaticFile.__init__(self, "Cremona's database of elliptic curves",
-            filename='cremona.db',
-            search_path=[ CREMONA_LARGE_DATA_DIR ],
+            filename='{}.db'.format(name.replace(' ', '_')),
+            search_path=[ os.path.join(SAGE_SHARE, 'cremona') ],
+            search_path_override='CREMONA_DATA_DIR',
             spkg=spkg,
             url="https://github.com/JohnCremona/ecdata")
