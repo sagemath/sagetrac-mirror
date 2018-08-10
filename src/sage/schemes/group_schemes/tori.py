@@ -172,6 +172,12 @@ Methods of a lattice
 - :meth:`Lattice_generic.rational_characters` -- the sublattice of 
     elements fixed by the group.
 
+- :meth:`Lattice_generic.quotient_ambient_sublattice` -- the quotient lattice
+    of an ambient lattice by some sublattice
+
+- :meth:`Lattice_generic.quotient_lattice` -- the quotient lattice
+    of a lattice by some sublattice
+
 - :meth:`Lattice_generic.isomorphic_ambient_lattice` -- gives an isomorphic 
     ambient lattice, returns the same lattice if it is already ambient.
 
@@ -911,6 +917,9 @@ class Lattice_generic(FreeModule_generic):
         """
         return subgroup_lattice(self,subgp)
 
+    def parent_lattice(self):
+        return self.parent_lattice()
+
 
     def rational_characters(self):
         """
@@ -1351,12 +1360,185 @@ class Lattice_generic(FreeModule_generic):
 
         return self.norm_one_restriction_of_scalars(self,group,ambient)
 
+    def quotient_ambient_sublattice(self,sublattice,check=True):
+        """
+        Computes the quotient of an ambient lattice by a saturated proper sublattice.
+
+        INPUT:
+
+        - ``sublattice`` -- sublattice by which we want to quotient
+
+        - ``check`` -- boolean, true if one wants to check that the 
+            sublattice is saturated and proper
+
+        EXAMPLES::
+
+            sage: L = Lattice_ambient(PermutationGroup([()]), 2)
+            sage: LL = Lattice_ambient(SymmetricGroup(3), 5)
+            sage: IL = L.induced_lattice(G)
+            sage: ROS = IL.zero_sum_sublattice()
+            sage: SL = SubLattice(LL,[LL.basis()[0],LL.basis()[1]+LL.basis()[2],LL.basis()[4]])
+            
+            ::
+
+            sage: LL.quotient_ambient_sublattice(SL)
+            Ambient free module of rank 2 over the principal ideal domain Integer Ring
+            sage: _._action_matrices
+            [
+            [1 0]
+            [0 1]
+            ]
+
+            ::
+
+            sage: IL.quotient_ambient_sublattice(ROS)
+            Ambient free module of rank 1 over the principal ideal domain Integer Ring
+            sage: _._action_matrices
+            [[1]]
+
+        """
+
+        M=matrix(sublattice.basis()).transpose()
+
+        SM=M.smith_form()
+        #M is a matrix taking vectors in the basis of the sublattice and giving their vector in the ambient lattice.
+
+
+        if check and ((not SM[0][M.ncols()-1,M.ncols()-1]==1) or sublattice.rank()==self.rank()):
+            raise ValueError("The sublattice is not saturated or not proper"    ) 
+        
+
+        P=SM[1]
+
+        # P is a matrix such that there is a matrix with PMQ diagonal with 1's on the diagonal
+
+        Pi=P.inverse()
+        # if r is the rank of the sublattice,
+        # The columns of Pi are vectors of  a basis of the ambient lattice where the first r are a basis of the sublattice, and the rest 
+        # are a basis of the complement (it is the complement as a Z-module, but need not be stable under the action of the group)
+
+        index = range(sublattice.rank(),self.rank())
+        v=Pi[range(self.rank()),index]
+
+ 
+        A = [(P*i*v)[index] for i in self._action_matrices]
+        # This computes the action on the vectors of the complement of the sublattice
+        return Lattice_ambient(self.group(),A)
+
+ 
+
+    def quotient_lattice(self,sublattice,check=True):
+
+
+        """
+        Returns an ambient lattice isomorphic to the quotient of two lattices.
+        Slightly slower than quotient_ambient_lattice for ambient lattices
 
 
 
+        INPUT:
+
+            - ``sublattice`` -- sublattice by which we want to quotient
+
+            - ``check`` -- boolean, true if one wants to check that the 
+                sublattice is saturated and proper
+
+
+        EXAMPLES::
+
+            sage: m=matrix([[0,0,0,0,0,1],[0,0,0,0,1,0],[0,0,0,1,0,0],[0,0,1,0,0,0],[0,1,0,0,
+            ....: ....: 0,0],[1,0,0,0,0,0]])
+            sage: L=Lattice_ambient([2],[m]);L._action_matrices
+            [
+            [0 0 0 0 0 1]
+            [0 0 0 0 1 0]
+            [0 0 0 1 0 0]
+            [0 0 1 0 0 0]
+            [0 1 0 0 0 0]
+            [1 0 0 0 0 0]
+            ]
+            sage: B=L.basis()
+            sage: SL=SubLattice(L,[B[1],B[2],B[3],B[4]])
+            sage: SSL=SubLattice(SL,[B[2],B[3]])
+            sage: SSSL1=SubLattice(SSL,[B[2]+B[3]])
+            sage: SSSL2=SubLattice(SSL,[B[2]-B[3]])
+
+        ::
+
+            sage: Q1 = L.quotient_lattice(SL); Q1; Q1._action_matrices
+            Ambient free module of rank 2 over the principal ideal domain Integer Ring
+            [
+            [0 1]
+            [1 0]
+            ]
+            sage: Q2 = L.quotient_lattice(SSSL1); Q2; Q2._action_matrices
+            Ambient free module of rank 5 over the principal ideal domain Integer Ring
+            [
+            [ 0  0  0  1  0]
+            [ 0  0  0  0 -1]
+            [ 0  0 -1  0  0]
+            [ 1  0  0  0  0]
+            [ 0 -1  0  0  0]
+            ]
+            sage: Q3=  SL.quotient_lattice(SSL); Q3; Q3._action_matrices
+            Ambient free module of rank 2 over the principal ideal domain Integer Ring
+            [
+            [0 1]
+            [1 0]
+            ]
+            sage: Q4 = SL.quotient_lattice(SSSL1); Q4; Q4._action_matrices
+            Ambient free module of rank 3 over the principal ideal domain Integer Ring
+            [
+            [ 0  0 -1]
+            [ 0 -1  0]
+            [-1  0  0]
+            ]
+            sage: Q5 = SL.quotient_lattice(SSSL2); Q5; Q5._action_matrices
+            Ambient free module of rank 3 over the principal ideal domain Integer Ring
+            [
+            [ 0  0 -1]
+            [ 0  1  0]
+            [-1  0  0]
+            ]
+            sage: Q6 = SSL.quotient_lattice(SSSL1); Q6; Q6._action_matrices
+            Ambient free module of rank 1 over the principal ideal domain Integer Ring
+            [[-1]]
+            sage: Q7 = SSL.quotient_lattice(SSSL2); Q7; Q7._action_matrices
+            Ambient free module of rank 1 over the principal ideal domain Integer Ring
+            [[1]]
+            
+
+        """
+        oldBasis=self.basis()
+        act_builder=[]
+        for g in self._group.gens():
+            mat_builder=[]
+            for i in oldBasis:
+                mat_builder.append(self.coordinate_vector(self._act(g,i)))
+            act_builder.append(matrix(mat_builder))
 
 
 
+        M=matrix([self.coordinate_vector(i) for i in sublattice.basis()]).transpose()
+
+        SM=M.smith_form()
+
+        if check and ((not SM[0][M.ncols()-1,M.ncols()-1]==1) or sublattice.rank()==self.rank()):
+            raise ValueError("The sublattice is not saturated or not proper"    ) 
+        
+      
+        P=SM[1]
+
+        Pi=P.inverse()
+
+        index = range(sublattice.rank(),self.rank())
+
+        v=Pi[range(self.rank()),index]
+
+        A = [(P*i*v)[index] for i in act_builder]
+
+        # This computes the action on the vectors of the complement of the sublattice
+        return Lattice_ambient(self.group(),A)
 
 
 class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
@@ -1517,7 +1699,8 @@ class Lattice_ambient(FreeModule_ambient_pid,Lattice_generic):
 
 
 
-
+    def parent_lattice(self):
+        return self
 
 
 
@@ -1896,9 +2079,13 @@ class SubLattice(Lattice_generic,FreeModule_submodule_pid):
 
 
         """
+
+
         Lattice_generic.__init__(self,lattice._group,lattice._action_matrices)
-        FreeModule_submodule_pid.__init__(self,lattice,basis)
-        self._parent_lattice=lattice
+        FreeModule_submodule_pid.__init__(self,lattice.parent_lattice(),basis)
+        
+
+        self._parent_lattice=lattice.parent_lattice()
         if check:
             for i in lattice._group.gens():
                 for j in basis:
