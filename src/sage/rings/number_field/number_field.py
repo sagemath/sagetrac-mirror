@@ -33,14 +33,14 @@ AUTHORS:
 
 - Anna Haensch (2018-03): added :meth:``quadratic_defect``
 
-.. note::
+.. NOTE::
 
-   Unlike in PARI/GP, class group computations *in Sage* do *not* by default
-   assume the Generalized Riemann Hypothesis. To do class groups computations
-   not provably correctly you must often pass the flag ``proof=False`` to
-   functions or call the function ``proof.number_field(False)``. It can easily
-   take 1000's of times longer to do computations with ``proof=True`` (the
-   default).
+    Unlike in PARI/GP, class group computations *in Sage* do *not* by default
+    assume the Generalized Riemann Hypothesis. To do class groups computations
+    not provably correctly you must often pass the flag ``proof=False`` to
+    functions or call the function ``proof.number_field(False)``. It can easily
+    take 1000's of times longer to do computations with ``proof=True`` (the
+    default).
 
 This example follows one in the Magma reference manual::
 
@@ -80,10 +80,10 @@ We do some arithmetic in a tower of relative number fields::
 
 .. warning::
 
-   Doing arithmetic in towers of relative fields that depends on
-   canonical coercions is currently VERY SLOW. It is much better to
-   explicitly coerce all elements into a common field, then do
-   arithmetic with them there (which is quite fast).
+    Doing arithmetic in towers of relative fields that depends on
+    canonical coercions is currently VERY SLOW. It is much better to
+    explicitly coerce all elements into a common field, then do
+    arithmetic with them there (which is quite fast).
 """
 #*****************************************************************************
 #       Copyright (C) 2004, 2005, 2006, 2007 William Stein <wstein@gmail.com>
@@ -814,6 +814,7 @@ def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_name
     # create the relative number field defined by f over the tower defined by polynomials[1:]
     f = polynomials[0]
     name = names[0]
+
     w = NumberFieldTower(polynomials[1:], names=names[1:], check=check, embeddings=embeddings[1:], latex_names=latex_names[1:], assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structures=structures[1:])
     var = f.variable_name() if is_Polynomial(f) else 'x'
 
@@ -3576,12 +3577,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         .. warning::
 
-           It is possible that there are no primes of `K` of
-           absolute degree one of small prime norm, and it possible
-           that this algorithm will not find any primes of small norm.
+            It is possible that there are no primes of `K` of
+            absolute degree one of small prime norm, and it possible
+            that this algorithm will not find any primes of small norm.
 
-           See module :mod:`sage.rings.number_field.small_primes_of_degree_one`
-           for details.
+            See module :mod:`sage.rings.number_field.small_primes_of_degree_one`
+            for details.
 
         INPUT:
 
@@ -3619,12 +3620,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         .. warning::
 
-           It is possible that there are no primes of `K` of
-           absolute degree one of small prime norm, and it possible
-           that this algorithm will not find any primes of small norm.
+            It is possible that there are no primes of `K` of
+            absolute degree one of small prime norm, and it possible
+            that this algorithm will not find any primes of small norm.
 
-           See module :mod:`sage.rings.number_field.small_primes_of_degree_one`
-           for details.
+            See module :mod:`sage.rings.number_field.small_primes_of_degree_one`
+            for details.
 
         INPUT:
 
@@ -3964,9 +3965,9 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         .. warning::
 
-           Even with ``proof=True``, I wouldn't trust this to mean
-           that everything computed involving this number field is
-           actually correct.
+            Even with ``proof=True``, I wouldn't trust this to mean
+            that everything computed involving this number field is
+            actually correct.
 
         EXAMPLES::
 
@@ -4248,7 +4249,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         A list of generators of the unit group.
 
-       .. note::
+        .. note::
 
             For more functionality see the S_unit_group() function.
 
@@ -5846,9 +5847,9 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         .. note::
 
-           This is currently only implemented in the case that self is
-           totally real, since it requires exact computation of
-           :meth:`.reduced_gram_matrix`.
+            This is currently only implemented in the case that self is
+            totally real, since it requires exact computation of
+            :meth:`.reduced_gram_matrix`.
 
         EXAMPLES::
 
@@ -6183,7 +6184,6 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             ...
             ValueError: Fractional ideal (5) is not a prime ideal
         """
-        from sage.rings.number_field.number_field_ideal import is_NumberFieldIdeal
         if is_NumberFieldIdeal(prime) and prime.number_field() is not self:
             raise ValueError("%s is not an ideal of %s"%(prime,self))
         # This allows principal ideals to be specified using a generator:
@@ -6254,8 +6254,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         .. note::
 
-           When P is principal (e.g. always when self has class number
-           one) the result may or may not be a generator of P!
+            When P is principal (e.g. always when self has class number
+            one) the result may or may not be a generator of P!
 
         EXAMPLES::
 
@@ -6489,7 +6489,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         .. note::
 
-           The group is cached.
+            The group is cached.
 
         EXAMPLES::
 
@@ -6613,13 +6613,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         .. note::
 
-           To obtain the maximal order of a root of unity in this field,
-           use self.number_of_roots_of_unity().
+            To obtain the maximal order of a root of unity in this field,
+            use self.number_of_roots_of_unity().
 
         .. note::
 
-           We do not create the full unit group since that can be
-           expensive, but we do use it if it is already known.
+            We do not create the full unit group since that can be
+            expensive, but we do use it if it is already known.
 
         EXAMPLES::
 
@@ -6704,8 +6704,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         .. note::
 
-           We do not create the full unit group since that can be
-           expensive, but we do use it if it is already known.
+            We do not create the full unit group since that can be
+            expensive, but we do use it if it is already known.
 
         EXAMPLES::
 
@@ -6749,8 +6749,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         .. note::
 
-           We do not create the full unit group since that can be
-           expensive, but we do use it if it is already known.
+            We do not create the full unit group since that can be
+            expensive, but we do use it if it is already known.
 
         EXAMPLES::
 
@@ -8089,7 +8089,7 @@ class NumberField_absolute(NumberField_generic):
 
         .. warning::
 
-           This is an internal function; see :meth:`galois_closure`.
+            This is an internal function; see :meth:`galois_closure`.
 
         EXAMPLES:
 
@@ -9584,8 +9584,8 @@ class NumberField_cyclotomic(NumberField_absolute):
 
         .. note::
 
-           The Magma generator name is also initialized to be the same
-           as for the Sage field.
+            The Magma generator name is also initialized to be the same
+            as for the Sage field.
 
         EXAMPLES::
 
@@ -10526,7 +10526,6 @@ class NumberField_cyclotomic(NumberField_absolute):
             self._integral_basis_dict[tuple()] = pari(B)
             return B
 
-
     def zeta_order(self):
         """
         Return the order of the maximal root of unity contained in this
@@ -10706,6 +10705,62 @@ class NumberField_cyclotomic(NumberField_absolute):
         if n%2:
             v += [-x for x in v]
         return v
+
+    def norm_symbol_prime(self, a, P):
+        r"""
+        Return the cyclotomic norm symbol at a given prime `P`
+
+        INPUT:
+
+        - a -- an element
+        - P -- a prime ideal
+
+        EXAMPLES::
+
+            sage: K.<zeta> = CyclotomicField(7)
+            sage: P = K.fractional_ideal([23]).factor()[0][0]; P
+            Fractional ideal (-2*zeta^5 - 2*zeta^3 - 2*zeta^2 + 3*zeta)
+            sage: K.norm_symbol_prime(zeta^3, P)
+            zeta^3
+        """
+        n = self.zeta_order()
+        zeta = self.zeta(n)
+        exponent = ZZ((P.norm() - QQ.one()) / n)
+        FF = self.residue_field(P)
+        b = FF(a) ** exponent
+        zeta_mod = FF(zeta)
+        # Find power m of zeta_mod that is equal to b,
+        # then return zeta^m
+        m = 0
+        w = FF.one()
+        while w != b and m < n:
+            w *= zeta_mod
+            m += 1
+        if m == n:
+            raise AssertionError("bug in norm_symbol_prime")
+        return zeta ** m
+
+    def norm_symbol(self, a, b):
+        r"""
+        Return the cyclotomic norm symbol
+
+        INPUT:
+
+        - a, b -- elements
+
+        EXAMPLES::
+
+            sage: K.<zeta> = CyclotomicField(7)
+            sage: K.norm_symbol(zeta^3, 13*zeta)
+            zeta^3
+            sage: K.norm_symbol(zeta^7, K(11))
+            1
+            sage: K.norm_symbol((1+zeta)^2, 23*zeta)
+            zeta^2
+        """
+        F = self.fractional_ideal([b]).factor()
+        return prod([self.norm_symbol_prime(a, P) ** e for P, e in F],
+                    self.one())
 
 
 class NumberField_quadratic(NumberField_absolute):
@@ -10964,8 +11019,8 @@ class NumberField_quadratic(NumberField_absolute):
 
         .. note::
 
-           Computed using PARI via Schertz's method. This
-           implementation is quite fast.
+            Computed using PARI via Schertz's method. This
+            implementation is quite fast.
 
         EXAMPLES::
 
@@ -10997,10 +11052,10 @@ class NumberField_quadratic(NumberField_absolute):
 
         .. note::
 
-           For the polynomial that defines this field as a relative
-           extension, see the ``hilbert_class_field_defining_polynomial``
-           command, which is vastly faster than this command, since it doesn't
-           construct a relative extension.
+            For the polynomial that defines this field as a relative
+            extension, see the ``hilbert_class_field_defining_polynomial``
+            command, which is vastly faster than this command, since it doesn't
+            construct a relative extension.
 
         EXAMPLES::
 
