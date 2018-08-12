@@ -26,3 +26,5 @@ from .numerical import NumericalEigenforms as numerical_eigenforms
 from .element import delta_lseries
 
 from .find_generators import ModularFormsRing # span_of_series, modform_generators
+
+from . import hijikata
