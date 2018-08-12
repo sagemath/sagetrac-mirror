@@ -305,14 +305,11 @@ def check_orbit_correctness(color_classes, g, partition = None, edge_labels=Fals
     #Check if they only need to be refined
     O = map(set,O)
     elements_left = set(range(len(O)))
-    subsets = []
     for s in set_checker:
-        subsets.append([])
         temp = set()
         for el in elements_left:
             if O[el].issubset(s):
                 temp.add(el)
-                subsets[-1].append(el)
         elements_left = elements_left.difference(temp)
         if len(elements_left) == 0:
             break
