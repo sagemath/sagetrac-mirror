@@ -47,6 +47,7 @@ from sage.functions.other import ceil
 
 import itertools
 
+
 def partition_diagrams(k):
     r"""
     Return a generator of all partition diagrams of order ``k``.
@@ -1387,7 +1388,10 @@ class PartitionDiagrams(AbstractPartitionDiagrams):
             sage: pd.cardinality()
             877
         """
-        return bell_number(ZZ(2*self.order))
+        if self.order in ZZ:
+            return bell_number(2 * self.order)
+        return bell_number(2 * self.order - 1)
+
 
 class BrauerDiagrams(AbstractPartitionDiagrams):
     r"""
@@ -1474,10 +1478,9 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
             15
         """
         if self.order in ZZ:
-            k = ZZ(self.order)
+            return (2 * self.order - 1).multifactorial(2)
         else:
-            k = ZZ(self.order-ZZ(1)/ZZ(2))
-        return (2*k-1).multifactorial(2)
+            return (2 * self.order - 2).multifactorial(2)
 
     def symmetric_diagrams(self, l=None, perm=None):
         r"""
@@ -1641,10 +1644,35 @@ class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
             5
         """
         if self.order in ZZ:
-            k = ZZ(self.order)
+            return catalan_number(self.order)
         else:
-            k = ZZ(self.order-ZZ(1)/ZZ(2))
-        return catalan_number(k)
+            return catalan_number(self.order - ZZ.one() / 2)
+
+    def __contains__(self, obj):
+        r"""
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: td = da.TemperleyLiebDiagrams(2)
+            sage: td.an_element() in td
+            True
+            sage: td([[1,2],[-1,-2]]) in td
+            True
+            sage: [[1,2],[-1,-2]] in td
+            True
+            sage: [[1,-2],[-1,2]] in td
+            False
+        """
+        if not hasattr(obj, '_base_diagram'):
+            try:
+                obj = self._element_constructor_(obj)
+            except (ValueError, TypeError):
+                return False
+        if obj not in BrauerDiagrams(self.order):
+            return False
+        if not obj.is_planar():
+            return False
+        return True
 
 class PlanarDiagrams(AbstractPartitionDiagrams):
     r"""

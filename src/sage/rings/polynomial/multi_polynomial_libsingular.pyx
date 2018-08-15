@@ -2497,7 +2497,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
                 return self.nth_root(den) ** num
 
         if exp < 0:
-            return 1/(self**(-exp))
+            return self._parent._one_element / (self**(-exp))
         elif exp == 0:
             return self._parent._one_element
 
@@ -4077,7 +4077,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
 
         return f
 
-    def factor(self, proof=True):
+    def factor(self, proof=None):
         """
         Return the factorization of this polynomial.
 
