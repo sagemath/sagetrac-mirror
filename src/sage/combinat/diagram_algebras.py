@@ -122,10 +122,9 @@ def brauer_diagrams(k):
          {{-3, 3}, {-2, 1}, {-1, 2}}]
     """
     if k in ZZ:
-        k = ZZ(k)
-        S = PerfectMatchings(list(range(1,k+1)) + list(range(-k,0)))
-        for p in S:
-            yield list(p)
+        S = SetPartitions(list(range(1,k+1)) + list(range(-k,0)), [2]*k)
+        for i in S._iterator_part(S.parts):
+            yield list(i)
     elif k + ZZ(1) / ZZ(2) in ZZ: # Else k in 1/2 ZZ
         k = ZZ(k + ZZ(1) / ZZ(2))
         S = PerfectMatchings(list(range(1, k)) + list(range(-k+1,0)))
@@ -1344,9 +1343,9 @@ class PartitionDiagrams(AbstractPartitionDiagrams):
         Partition diagrams of order 3/2
         sage: pd.list()
         [{{-2, -1, 1, 2}},
-         {{-2, 1, 2}, {-1}},
          {{-2, 2}, {-1, 1}},
          {{-2, -1, 2}, {1}},
+         {{-2, 1, 2}, {-1}},
          {{-2, 2}, {-1}, {1}}]
 
     TESTS::
@@ -1384,10 +1383,7 @@ class PartitionDiagrams(AbstractPartitionDiagrams):
             sage: pd.cardinality()
             877
         """
-        if self.order in ZZ:
-            return bell_number(2 * self.order)
-        return bell_number(2 * self.order - 1)
-
+        return bell_number(ZZ(2 * self.order))
 
 class BrauerDiagrams(AbstractPartitionDiagrams):
     r"""
@@ -1401,14 +1397,14 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         sage: bd = da.BrauerDiagrams(2); bd
         Brauer diagrams of order 2
         sage: bd.list()
-        [{{-2, -1}, {1, 2}}, {{-2, 2}, {-1, 1}}, {{-2, 1}, {-1, 2}}]
+        [{{-2, 1}, {-1, 2}}, {{-2, 2}, {-1, 1}}, {{-2, -1}, {1, 2}}]
 
         sage: bd = da.BrauerDiagrams(5/2); bd
         Brauer diagrams of order 5/2
         sage: bd.list()
-        [{{-3, 3}, {-2, -1}, {1, 2}},
+        [{{-3, 3}, {-2, 1}, {-1, 2}},
          {{-3, 3}, {-2, 2}, {-1, 1}},
-         {{-3, 3}, {-2, 1}, {-1, 2}}]
+         {{-3, 3}, {-2, -1}, {1, 2}}]
 
     TESTS::
 
@@ -1474,9 +1470,9 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
             15
         """
         if self.order in ZZ:
-            return (2 * self.order - 1).multifactorial(2)
+            return (2 * ZZ(self.order) -1 ).multifactorial(2)
         else:
-            return (2 * self.order - 2).multifactorial(2)
+            return (2 * ZZ(self.order - 1/2) - 1).multifactorial(2)
 
     def symmetric_diagrams(self, l=None, perm=None):
         r"""
@@ -1502,12 +1498,13 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
             sage: bd.symmetric_diagrams(l=1, perm=[2,1])
             Traceback (most recent call last):
             ...
-            NotImplementedError: symmetric_diagrams is only implemented for Brauer diagrams of integer order, not for order 3/2
+            NotImplementedError: only implemented for integer order, not for order 3/2
         """
         # perm = permutation on free nodes
         # l = number of arcs
         if self.order not in ZZ:
-            raise NotImplementedError("symmetric_diagrams is only implemented for Brauer diagrams of integer order, not for order %s" %(self.order))
+            raise NotImplementedError("only implemented for integer order,"
+                                      " not for order %s" % (self.order))
         n = ZZ(self.order)
         if l is None:
             l = 0
@@ -1559,10 +1556,11 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
             sage: bd.from_involution_permutation_triple([[[1,2]],[[3,4]],[2,1]])
             Traceback (most recent call last):
             ...
-            NotImplementedError: from_involution_permutation_triple is only implemented for Brauer diagrams of integer order, not for order 5/2
+            NotImplementedError: only implemented for integer order, not for order 5/2
         """
         if self.order not in ZZ:
-            raise NotImplementedError("from_involution_permutation_triple is only implemented for Brauer diagrams of integer order, not for order %s" %(self.order))
+            raise NotImplementedError("only implemented for integer order,"
+                                      " not for order %s" % (self.order))
         try:
             (D1,D2,pi) = tuple(D1_D2_pi)
         except ValueError:
@@ -1595,16 +1593,16 @@ class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
         sage: td = da.TemperleyLiebDiagrams(3); td
         Temperley Lieb diagrams of order 3
         sage: td.list()
-        [{{-3, 3}, {-2, -1}, {1, 2}},
-         {{-3, -2}, {-1, 3}, {1, 2}},
-         {{-3, 1}, {-2, -1}, {2, 3}},
+        [{{-3, 1}, {-2, -1}, {2, 3}},
+         {{-3, 3}, {-2, 2}, {-1, 1}},
+         {{-3, 3}, {-2, -1}, {1, 2}},
          {{-3, -2}, {-1, 1}, {2, 3}},
-         {{-3, 3}, {-2, 2}, {-1, 1}}]
+         {{-3, -2}, {-1, 3}, {1, 2}}]
 
         sage: td = da.TemperleyLiebDiagrams(5/2); td
         Temperley Lieb diagrams of order 5/2
         sage: td.list()
-        [{{-3, 3}, {-2, -1}, {1, 2}}, {{-3, 3}, {-2, 2}, {-1, 1}}]
+        [{{-3, 3}, {-2, 2}, {-1, 1}}, {{-3, 3}, {-2, -1}, {1, 2}}]
 
     TESTS::
 
@@ -1640,9 +1638,9 @@ class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
             5
         """
         if self.order in ZZ:
-            return catalan_number(self.order)
+            return catalan_number(ZZ(self.order))
         else:
-            return catalan_number(self.order - ZZ.one() / 2)
+            return catalan_number(ZZ(self.order - 1/2))
 
     def __contains__(self, obj):
         r"""
@@ -1664,11 +1662,7 @@ class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
                 obj = self._element_constructor_(obj)
             except (ValueError, TypeError):
                 return False
-        if obj not in BrauerDiagrams(self.order):
-            return False
-        if not obj.is_planar():
-            return False
-        return True
+        return obj in BrauerDiagrams(self.order) and obj.is_planar()
 
 class PlanarDiagrams(AbstractPartitionDiagrams):
     r"""
@@ -1686,9 +1680,9 @@ class PlanarDiagrams(AbstractPartitionDiagrams):
         Planar diagrams of order 3/2
         sage: pld.list()
         [{{-2, -1, 1, 2}},
-         {{-2, 1, 2}, {-1}},
          {{-2, 2}, {-1, 1}},
          {{-2, -1, 2}, {1}},
+         {{-2, 1, 2}, {-1}},
          {{-2, 2}, {-1}, {1}}]
 
     TESTS::
@@ -1724,6 +1718,28 @@ class PlanarDiagrams(AbstractPartitionDiagrams):
             132
         """
         return catalan_number(2*self.order)
+
+    def __contains__(self, obj):
+        r"""
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pld = da.PlanarDiagrams(2)
+            sage: pld.an_element() in pld
+            True
+            sage: pld([[1,2],[-1,-2]]) in pld
+            True
+            sage: [[1,2],[-1,-2]] in pld
+            True
+            sage: [[1,-2],[-1,2]] in pld
+            False
+        """
+        if not hasattr(obj, '_base_diagram'):
+            try:
+                obj = self._element_constructor_(obj)
+            except (ValueError, TypeError):
+                return False
+        return super(PlanarDiagrams, self).__contains__(obj)
 
 class IdealDiagrams(AbstractPartitionDiagrams):
     r"""
