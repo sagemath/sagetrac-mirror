@@ -4514,7 +4514,6 @@ class RowStandardTableau(Tableau):
             raise ValueError("the entries in a row standard tableau must increase"
                              " along rows and contain the numbers 1,2,...,n")
 
-
 class StandardTableau(SemistandardTableau):
     """
     A class to model a standard tableau.
@@ -4886,6 +4885,215 @@ class StandardTableau(SemistandardTableau):
             n = self.size() - 1
         return StandardTableau(Tableau(self[:]).promotion(n))
 
+class SymplecticTableau(Tableau):
+    """
+    A class to model a symplectic tableau.
+
+    INPUT:
+
+    - ``t`` -- a tableau, a list of iterables, or an empty list
+
+    - ``tableau_type`` -- a string (default: `KashiwaraNakashima`); the only 
+      allowable  strings are `KashiwaraNakashima`, `KN`, `kn`, `DeConciniProcesi`,
+      `DeconciniProcesi`, `DP`, `dp`, `King`, `king`, `Sundaram`, `sundaram`.
+
+    OUTPUT:
+
+    - A SymplecticTableau object constructed from ``t`` of type ``tableau_type``.
+
+    A symplectic tableau is a tableau whose entries are nonzero integers which
+    satisfy one of the following collection of conditions:
+    - King 
+    - Sundaram
+    - Kashiwara-Nakashima
+    - DeConcini-Procesi
+
+    When using code that will generate a lot of tableaux, it is slightly more
+    efficient to construct a SymplecticTableau from the appropriate
+    :class:`Parent` object::
+
+        
+    .. SEEALSO::
+
+        - :class:`Tableaux`
+        - :class:`Tableau`
+        - :class:`SymplecticTableaux`
+        - :class:`SemistandardTableaux`
+
+    """
+    @staticmethod
+    def __classcall_private__(self, t, tableau_type="KashiwaraNakashima"):
+        r"""
+        This ensures that a SymplecticTableau is only ever constructed as an
+        element_class call of an appropriate parent.
+
+        """
+        if isinstance(t, SymplecticTableau):
+            return t
+
+        return SymplecticTableaux_all().element_class(SymplecticTableaux_all(), t)
+
+
+    def __init__(self, parent, t, tableau_type="KashiwaraNakashima"):
+        r"""
+        Initialize a SymplecticTableau.
+
+        The only difference between this and initializing a tableau 
+        is we also initialize attribute tab_type.
+            
+        """
+        super(SymplecticTableau, self).__init__(parent, t)
+        if tableau_type in ['KashiwaraNakashima', 'KN', 'kn']:
+            self.tab_type = 'KashiwaraNakashima'
+        elif tableau_type in ['DeConciniProcesi', 'DeconciniProcesi', 'DP', 'dp']:
+            self.tab_type = 'DeConciniProcesi'
+        elif tableau_type in ['King', 'king']:
+            self.tab_type = 'King'
+        elif tableau_type in ['Sundaram', 'sundaram']:
+            self.tab_type = 'Sundaram'
+        else:
+            raise NotImplementedError
+
+    def check(self):
+        r"""
+        Check that ``self`` is a valid symplectic tableau of type ``self.tab_type``
+            
+        """
+        super(SymplecticTableau, self).check()
+        # We have checked that t is a tableau, so it remains to check that
+        # the entries of t are semistandard according to the order given by
+        # ``self.tab_type`` and t satisfies the appropriate symplectic condition.
+        t = Tableau(self)
+        tc = t.conjugate()
+
+        if self.tab_type == 'KashiwaraNakashima':
+            # check each col is in C_k
+            for col in tc:
+                for (i, a) in enumerate(col):
+                    if a > 0 and -a in col and (i+1) + (len(col)-col.index(-a)) > a:
+                        raise ValueError("columns (as KN tableau) not in Ck")
+
+            # auxilliary function to check pair of columns satisfies (C3)
+            def _is_C3(col1, col2):
+                for (a, i) in enumerate(col1):
+                    if i > 0 and -i in col2:
+                        for b in range(a, col2.index(-i)+1):
+                            j, k = col1[b], col2[b]
+                            if j > 0 and -j in col1:
+                                d1, d2 = b - a, col2.index(-i) - col1.index(-j)
+                                if d1 + d2 >= j - i:
+                                    return False
+                            if k > 0 and -k in col2:
+                                d1, d2 = b - a, col2.index(-i) - col2.index(-k)
+                                if d1 + d2 >= k - i:
+                                    return False
+                return True
+            
+            #check each pair of columns satisfies condition (C3)
+            if not all(_is_C3(tc[r], tc[r+1]) for r in range(len(tc) - 1)):
+                raise ValueError("tableau does not satisfy C3 as KN tableau")
+
+            # remains to check self is semistandard according to KN ordering
+            n = max(max(map(abs, row)) for row in self)
+            convert = lambda k : k + (2*n+1) * int(k < 0)
+            if not Tableau([map(convert, row) for row in self]).is_semistandard(): 
+               raise ValueError("tableau not semistandard in KN ordering")
+
+        elif self.tab_type == 'DeConciniProcesi':
+            # check each column is admissable
+            for col in tc:
+                n = max(max(col), -min(col))
+                for i in range(1,n+1):
+                    if sum([col.count(j) + col.count(-j) for j in range(1,i+1)]) > i:
+                        raise ValueError("columns not admissable as DP tableau")
+            
+            # auxilliary function to compute split_form            
+            def _split_form(col):
+                A = [i for i in col if i < 0]
+                D = [i for i in col if i > 0]
+                I = [i for i in D if -i in A]
+                if I == []:
+                    return (col, col)
+                J = []
+                for i in range(max(I), 0, -1):
+                    if (-i not in A) and (i not in D) and len(J) < len(I):
+                        J += [i]
+                B = [i for i in A if -i not in D] + [-i for i in J]
+                C = J + [i for i in D if -i not in A]
+                return [sorted(A + C), sorted(B + D)]
+
+            t_split = Tableau([_split_form(col) for col in tc]).conjugate()
+
+            # remains to check self is semistandard and split form is semistandard 
+            if not t.is_semistandard():
+                raise ValueError("tableau not semistandard in DP ordering")
+            if not t_split.is_semistandard():
+                raise ValueError("split form not semistandard in DP ordering")
+
+        elif self.tab_type == 'King':
+            convert = lambda k : 2*k if k > 0 else -2*k-1
+            # check semistandard
+            if not Tableau([map(convert, row) for row in self]).is_semistandard():
+                raise ValueError("tableau not semistandard in King ordering")
+            if not all( abs(t.entry(cell)) > cell[0] for cell in t.cells() ):
+                raise ValueError("tableau has unbarred entry too high as King tableau")
+
+        elif self.tab_type == 'Sundaram':
+            convert = lambda k : 2*k-1 if k > 0 else -2*k
+            if not Tableau([map(convert, row) for row in self]).is_semistandard():
+                raise ValueError("tableau not semistandard in Sundaram ordering")
+            if not all( abs(t.entry(cell)) > cell[0] for cell in t.cells() ):
+                raise ValueError("tableau has barred entry too high as Sundaram tableau")
+
+        else:
+            raise ValueError("tableau type not implemented")
+
+    def tableau_type(self):
+        r"""
+        Return the tableau type of the symplectic tableau ``self``. 
+
+        This will be one of the four strings ``KashiwaraNakahshima``, 
+        ``DeConciniProcesi``, ``King``, or ``Sundaram``.
+
+        """
+        return self.tab_type
+
+    def weight(self, sign=-1):
+        r"""
+        Return the weight of the symplectic tableau ``self``. Trailing zeroes are
+        omitted when returning the weight.
+
+        By default, this returns the symplectic weight. Set ``sign`` to
+        0 to return the weight and to -1 to return total weight.
+        
+        The weight of a tableau symplectic `T` is the sequence `(a_1, a_2, a_3, \ldots )`,
+        where `a_k` is the number of entries of `T` equal to `k`.
+
+        The symplectic weight of a symplectic tableau `T` is the sequence 
+        `(a_1, a_2, a_3, \ldots )`, where `a_k` is the number of entries of `T` 
+        equal to `k` minus the number of entries of `T` equal to `-k`.
+
+        The total weight of a symplectic tableau `T` is the sequence 
+        `(a_1, a_2, a_3, \ldots )`, where `a_k` is the number of entries of `T` 
+        equal to `k` or `-k`.
+
+        All sequences contain only finitely many nonzero entries.
+
+        .. WARNING::
+
+            Unlike the ``weight`` method on tableau (which are a superclass of 
+            this), this method subtracts negative entries from the weight.
+
+            
+        """
+        if len(self) == 0:
+            return []
+        m = max(max(map(abs,row)) for row in self)
+        res = [0] * m
+        for row in self:
+            for i in row:
+                res[abs(i) - 1] += (i > 0) + sign*(i < 0)
+        return res
 
 def from_chain(chain):
     """
@@ -4949,6 +5157,11 @@ def from_shape_and_word(shape, w, convention="French"):
     if convention == "French":
         res.reverse()
     return Tableau(res)
+
+
+##########################
+# Tableaux #
+##########################
 
 class Tableaux(UniqueRepresentation, Parent):
     """
@@ -5292,7 +5505,6 @@ class Tableaux_all(Tableaux):
         """
         return self.element_class(self, [[1, 1], [1]])
 
-
 class Tableaux_size(Tableaux):
     """
     Tableaux of a fixed size `n`.
@@ -5365,6 +5577,7 @@ class Tableaux_size(Tableaux):
 ##########################
 # Semi-standard tableaux #
 ##########################
+
 class SemistandardTableaux(Tableaux):
     """
     A factory class for the various classes of semistandard tableaux.
@@ -5861,7 +6074,6 @@ class SemistandardTableaux_all(SemistandardTableaux, DisjointUnionEnumeratedSets
         """
         raise NotImplementedError
 
-
 class SemistandardTableaux_size_inf(SemistandardTableaux):
     """
     Semistandard tableaux of fixed size `n` with no maximum entry.
@@ -5964,7 +6176,6 @@ class SemistandardTableaux_size_inf(SemistandardTableaux):
         """
         raise NotImplementedError
 
-
 class SemistandardTableaux_shape_inf(SemistandardTableaux):
     """
     Semistandard tableaux of fixed shape `p` and no maximum entry.
@@ -6053,7 +6264,6 @@ class SemistandardTableaux_shape_inf(SemistandardTableaux):
                 for sst in SemistandardTableaux_shape_weight(self.shape, Composition([n])):
                     yield self.element_class(self, sst)
             i += 1
-
 
 class SemistandardTableaux_size(SemistandardTableaux):
     """
@@ -6582,7 +6792,6 @@ class SemistandardTableaux_shape_weight(SemistandardTableaux_shape):
         """
         return symmetrica.kostka_tab(self.shape, self.weight)
 
-
 class SemistandardTableaux_size_weight(SemistandardTableaux):
     r"""
     Semistandard tableaux of fixed size `n` and weight `\mu`.
@@ -6862,7 +7071,6 @@ class RowStandardTableaux_all(RowStandardTableaux, DisjointUnionEnumeratedSets):
             'Row standard tableaux'
         """
         return "Row standard tableaux"
-
 
 class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets):
     """
@@ -7254,7 +7462,6 @@ class StandardTableaux_all(StandardTableaux, DisjointUnionEnumeratedSets):
         """
         return "Standard tableaux"
 
-
 class StandardTableaux_size(StandardTableaux, DisjointUnionEnumeratedSets):
     """
     Standard tableaux of fixed size `n`.
@@ -7457,7 +7664,6 @@ class StandardTableaux_size(StandardTableaux, DisjointUnionEnumeratedSets):
         permutation_cycle_rep = [(fixed_point,) for fixed_point in fixed_point_positions] + \
                                 list(PerfectMatchings(set(range(1, self.size + 1)) - set(fixed_point_positions)).random_element())
         return from_cycles(self.size, permutation_cycle_rep).robinson_schensted()[0]
-
 
 class StandardTableaux_shape(StandardTableaux):
     """
