@@ -1755,27 +1755,15 @@ class GenericGraph(GenericGraph_pyx):
         edge_labels_dict = {}
         counter = 1
         for el in edge_labels:
-            if(edge_labels_dict.setdefault(el, counter) == counter):
+            if not el in edge_labels_dict:
+                edge_labels_dict[el] = bin(counter)[2:][::-1]
                 counter += 1
-        
-        from math import floor, log
-        from sys import version_info
         from sage.graphs.graph import Graph, DiGraph
-        def getiterator(l):
-            if version_info >= (3):
-                return l.items()
-            else:
-                return l.iteritems()
-
-        def get_bits_list(x):
-            return [b=='1' for b in bin(x)[2:][::-1]]
-        
         G = self
         if G.is_directed():
             newG = DiGraph(loops=True, multiedges=False)
         else:
             newG = Graph(loops=True, multiedges=False)
-        
         k = counter-1
         d = int(log(k, 2)) + 1
         first_level_vertices = {}
@@ -1787,8 +1775,8 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     newG.add_edge((v,l-1),(v,l))
         for u,v,label in G.edges():
-            for idx, bit in enumerate(get_bits_list(edge_labels_dict[label])):
-                if(bit):
+            for idx, bit in enumerate(edge_labels_dict[label]):
+                if bit == '1':
                     newG.add_edge((u,idx),(v,idx))
         return newG, first_level_vertices
 
