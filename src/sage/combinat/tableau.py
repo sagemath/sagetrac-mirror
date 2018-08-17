@@ -5158,6 +5158,8 @@ def from_shape_and_word(shape, w, convention="French"):
         res.reverse()
     return Tableau(res)
 
+def foo():
+    return
 
 ##########################
 # Tableaux #
