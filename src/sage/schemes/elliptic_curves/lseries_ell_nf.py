@@ -212,7 +212,7 @@ def anlist_over_nf(E, bound):
     .. TODO:: Cache this method: it is computed when initializing the
     class dokchitser, if cached would have .num_coeffs() of a_i stored.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: K.<i> = NumberField(x^2+1)
         sage: E = EllipticCurve(K,[0,-1,1,0,0])
