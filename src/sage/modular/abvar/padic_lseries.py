@@ -36,7 +36,7 @@ from sage.rings.infinity import infinity
 from sage.rings.all import PowerSeriesRing
 
 from sage.rings.integer import Integer
-from sage.rings.arith import valuation, kronecker_symbol, gcd, prime_divisors
+from sage.arith.misc import valuation, kronecker_symbol, gcd, prime_divisors
 from sage.structure.sage_object import SageObject
 from sage.misc.all import verbose, get_verbose
 from sage.modular.modsym.modsym import ModularSymbols
@@ -59,8 +59,7 @@ class pAdicLseries(SageObject):
         -  ``J`` -- modular abelian variety
         -  ``p`` -- a prime of good reduction
         -  ``normalize`` -- ``'L_ratio'`` (default), ``'period'`` or ``'none'``;
-           this is describes the way the modular symbols
-           are normalized
+           this describes the way the modular symbols are normalized
         """
         self._J = J
         self._level = J.level()
@@ -158,7 +157,7 @@ class pAdicLseries(SageObject):
 
     def prime(self):
         r"""
-        Returns the prime `p` as in 'p-adic L-function'.
+        Return the prime `p` as in 'p-adic L-function'.
 
         EXAMPLES::
 
@@ -174,6 +173,10 @@ class pAdicLseries(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.abvar.padic_lseries import pAdicLseries
+            sage: J = J0(23)[0]
+            sage: pAdicLseries(J, 5)
+            5-adic L-series of Simple abelian variety J0(23) of dimension 2
         """
         s = "%s-adic L-series of %s" % (self._p, self._J)
         if not self._normalize == 'L_ratio':
@@ -186,11 +189,11 @@ class pAdicLseries(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.abvar.padic_lseries import pAdicLseries
             sage: J = J0(23)[0]
             sage: for p in prime_range(5,30):
-            ....:     L = J.padic_lseries(p)
+            ....:     L = pAdicLseries(J, p)
             ....:     p, L.ap()
-            ....:
             (5, 2*alpha)
             (7, 2*alpha + 2)
             (11, -2*alpha - 4)
@@ -387,7 +390,7 @@ class pAdicLseries(SageObject):
         r = E.rank()
         n = 1
         while True:
-            f = self.series(n)
+            f = self.power_series(n)
             v = f.valuation()
             if v < r:
                 raise RuntimeError("while computing p-adic order of vanishing, got a contradiction: the curve is %s, the curve has rank %s, but the p-adic L-series vanishes to order <= %s" % (E, r, v))
@@ -514,12 +517,13 @@ class pAdicLseriesOrdinary(pAdicLseries):
 
         EXAMPLES:
 
+            sage: from sage.modular.abvar.padic_lseries import pAdicLseries
             sage: J = J0(188)[0]
             sage: p = 7
-            sage: L = J.padic_lseries(p)
+            sage: L = pAdicLseriesOrdinary(J, p)
             sage: L.is_ordinary()
             True
-            sage: f = L.series(2)
+            sage: f = L.power_series(2)
             sage: f[0]
             O(7^20)
             sage: f[1].norm()
@@ -594,22 +598,21 @@ class pAdicLseriesOrdinary(pAdicLseries):
         # Now create series but with each coefficient truncated
         # so it is proven correct:
 #        K = Qp(p, padic_prec, print_mode='series')
-#        R = PowerSeriesRing(K,'T',res_series_prec)
-#        L = R(L,res_series_prec)
+#        R = PowerSeriesRing(K, 'T', res_series_prec)
+#        L = R(L, res_series_prec)
 #        aj = L.list()
-#        if len(aj) > 0:
-#            aj = [aj[0].add_bigoh(padic_prec-2)] + [aj[j].add_bigoh(bounds[j]) for j in range(1,len(aj))]
-#        L = R(aj,res_series_prec )
+#        if len(aj):
+#            aj = [aj[0].add_bigoh(padic_prec-2)] + [aj[j].add_bigoh(bounds[j]) for j in range(1, len(aj))]
+#        L = R(aj, res_series_prec )
 
-#        L /= self._quotient_of_periods_to_twist(D)*self._E.real_components()
+#        L /= self._quotient_of_periods_to_twist(D) * self._E.real_components()
 
 #        self._set_series_in_cache(n, res_series_prec, D, L)
 
         return L
 
     power_series = series
-
-
+    
 #    def _c_bound(self):
 #        try:
 #            return self.__c_bound

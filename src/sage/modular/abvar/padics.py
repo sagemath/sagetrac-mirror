@@ -107,7 +107,7 @@ def padic_lseries(self, p, normalize='L_ratio'):
     We can use eclib to compute the `L`-series::
 
         sage: e = EllipticCurve('11a')
-        sage: L = e.padic_lseries(3,use_eclib=True)
+        sage: L = e.padic_lseries(3,implementation='eclib')
         sage: L.series(5,prec=10)
         1 + 2*3^3 + 3^6 + O(3^7) + (2 + 2*3 + 3^2 + O(3^4))*T + (2 + 3 + 3^2 + 2*3^3 + O(3^4))*T^2 + (2*3 + 3^2 + O(3^3))*T^3 + (3 + 2*3^3 + O(3^4))*T^4 + (1 + 2*3 + 2*3^2 + O(3^4))*T^5 + (2 + 2*3^2 + O(3^3))*T^6 + (1 + 3 + 2*3^2 + 3^3 + O(3^4))*T^7 + (1 + 2*3 + 3^2 + 2*3^3 + O(3^4))*T^8 + (1 + 3 + O(3^2))*T^9 + O(T^10)
 
@@ -120,10 +120,10 @@ def padic_lseries(self, p, normalize='L_ratio'):
     except KeyError:
         pass
 
-#    if self.ap(p) % p != 0:
+    # if self.ap(p) % p != 0:
     Lp = plseries.pAdicLseriesOrdinary(self, p, normalize=normalize)
-#    else:
-#        Lp = plseries.pAdicLseriesSupersingular(self, p,
-#                              normalize = normalize, use_eclib=use_eclib)
+    # else:
+    #     Lp = plseries.pAdicLseriesSupersingular(self, p,
+    #                              normalize=normalize, use_eclib=use_eclib)
     self._padic_lseries[key] = Lp
     return Lp
