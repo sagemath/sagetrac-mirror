@@ -75,6 +75,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from sage.modules.module import Module
 from sage.modular.dirichlet import DirichletCharacter
+from sage.modular.dirichlet import DirichletGroup
 from sage.modular.arithgroup.all import Gamma0
 from sage.modular.arithgroup.arithgroup_element import ArithmeticSubgroupElement
 from sage.rings.integer import Integer
@@ -88,7 +89,6 @@ from .modsym import (PSModularSymbolElement, PSModularSymbolElement_symk,
                     PSModularSymbolElement_dist, PSModSymAction)
 from .manin_map import ManinMap
 from .sigma0 import Sigma0, Sigma0Element
-
 
 class PollackStevensModularSymbols_factory(UniqueFactory):
     r"""
@@ -712,20 +712,16 @@ class PollackStevensModularSymbolspace(Module):
 
             sage: D = OverconvergentDistributions(2, 11)
             sage: M = PollackStevensModularSymbols(Gamma0(11), coefficients=D)
-            sage: M.random_element(10)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            sage: M.random_element(10) #indirect doctest
+            Modular symbol of level 11 with values in Space of 11-adic distributions with k=2 action and precision cap 20
+        
         """
-        # This function still has bugs and is not used in the rest of
-        # the package. It is left to be implemented in the future.
-        raise NotImplementedError
-
+        
         if M is None and not self.coefficient_module().is_symk():
             M = self.coefficient_module().precision_cap()
 
         k = self.coefficient_module()._k
-        # p = self.prime()
+        p = self.prime()
         manin = self.source()
 
 #        ## There must be a problem here with that +1 -- should be
@@ -774,33 +770,67 @@ class PollackStevensModularSymbolspace(Module):
         ## we take the constant to be minus the total measure of t divided by (chi(a) k a^{k-1} c)
 
         if k != 0:
-            j = 1
-            g = manin.gens()[j]
-            while (g in manin.reps_with_two_torsion()) or (g in manin.reps_with_three_torsion()) and (j < len(manin.gens())):
-                j = j + 1
-                g = manin.gens()[j]
-            if j == len(manin.gens()):
-                raise ValueError("everything is 2 or 3 torsion!  NOT YET IMPLEMENTED IN THIS CASE")
-
-            gam = manin.gammas[g]
-            a = gam.matrix()[0, 0]
-            c = gam.matrix()[1, 0]
-
-            if self.coefficient_module()._character is not None:
-                chara = self.coefficient_module()._character(a)
+            if (manin.reps_with_two_torsion()!= []) or (manin.reps_with_three_torsion()!= []):
+                if (manin.reps_with_two_torsion()!=[]):
+                    g=manin.reps_with_two_torsion()[-1]
+                else:
+                    g=manin.reps_with_three_torsion()[-1]
+                #in this case, all reps other than \infty,0 are associated to torsion elements.
+                #in order for nu_\infty to have total measure 0, we can simply rescale D[g]
+                #raise ValueError("Not implemented for this case")
+                s = t + D[g]
+                while (D[g].moment(0).valuation() != 0):
+                    #if the 0-th moment of D[g] is not a unit, reassign D[g] until it is
+                    D[g] = self.coefficient_module().random_element(M)
+                    if g in manin.reps_with_two_torsion():
+                        gamg = manin.two_torsion_matrix(g)
+                        D[g] = D[g] - D[g] * gamg
+                    else:
+                        gamg = manin.three_torsion_matrix(g)
+                        D[g] = 2 * D[g] - D[g] * gamg - D[g] * gamg ** 2      
+                rescale = s.moment(0)/(D[g].moment(0))
+                D[g] = self.base_ring()(rescale)*D[g]
+                t = s - D[g]
             else:
-                chara = 1
-            err = -t.moment(0) / (chara * k * a ** (k - 1) * c)
-            v = [0] * M
-            v[1] = 1
-            mu_1 = self.base_ring()(err) * self.coefficient_module()(v)
-            D[g] += mu_1
-            t = t + mu_1 * gam - mu_1
+                if self.coefficient_module()._character is not None:
+                    chi = self.coefficient_module()._character   
+                else:
+                    chi = DirichletGroup(1,QQ)[0]    
+                #in this case, we have to modify some D[g]...
+                #try to pick g so that gammas[g] has \chi(a)a^k-1 not divisble by p. then we can adjust by mu_0
+                #gam_0=manin.gammas.values()[1]
+                #a_0=gam_0.matrix()[0,0]
+                no_scalar = True
+                for gam in manin.gammas.values():
+                    a = gam.matrix()[0, 0]
+                    if (chi(a) * a **k -1).valuation(p) == 0:
+                        for e in manin.gens():
+                            if manin.gammas[e] == gam:
+                                g=e
+                        v = [0] * M
+                        v[0] = 1
+                        mu_0 = self.base_ring()(-t.moment(0)/(chi(a)* a **k -1)) * self.coefficient_module()(v)
+                        D[g] = D[g] + mu_0
+                        t = t + mu_0 *gam -mu_0
+                        no_scalar = False
+                        break
+                if no_scalar:
+                    g=manin.gens()[-1]
+                    gam = manin.gammas[g]
+                    a = gam.matrix()[0,0]
+                    c = gam.matrix()[1,0]
+                    scale = chi(a) * k * a **(k-1) * c #this will be divisble by p!    
+                    v = [0] * M
+                    v[1] = 1
+                    mu_1 = self.base_ring()(-t.moment(0)) * self.coefficient_module()(v) #this caused problems... precision issues
+                    for e in manin.gens()[1:]: #rescales all randomly assigned values by (scale)
+                        D[e] = self.base_ring()(scale)*D[e]
+                    D[g] = D[g]+mu_1 #adds mu_1 to our distinguished value
+                    t = self.base_ring()(scale)*t + mu_1 * gam - mu_1
 
-        Id = manin.gens()[0]
+        
         if not self.coefficient_module().is_symk():
-            mu = t.solve_difference_equation()
-            D[Id] = -mu
+            D[manin.gens()[0]] = -t.solve_difference_equation()
         else:
             if self.coefficient_module()._k == 0:
                 D[Id] = self.coefficient_module().random_element()
