@@ -949,7 +949,12 @@ You can build this with 'sage -docbuild {} html'.""".format(s))
                                 match_list = [s for s in match_list
                                                 if re.search(extra, s[1], re.MULTILINE | flags)]
                         for num, line in match_list:
-                            results += ':'.join([filename[strip:].lstrip("/"), str(num+1), line])
+                            # Remove lines which match "Permalink ...": those
+                            # lines do not contain helpful matches, and they
+                            # also typically contain a non-ascii character,
+                            # which breaks the pager in the Jupyter notebook.
+                            if line.find('title="Permalink to this definition"') == -1:
+                                results += ':'.join([filename[strip:].lstrip("/"), str(num+1), line])
 
     if not interact:
         return results
