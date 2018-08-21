@@ -178,9 +178,8 @@ push-dockerhub-dev:
 test-doctest:
   stage: test
   script:
-    - apk update
-    - apk add git
-    - . .ci/pull-gitlab.sh sagemath
+    # For --new to work, we need the .git directory which is only contained in the -dev image
+    - . .ci/pull-gitlab.sh sagemath-dev
     - sh .ci/test-doctest.sh "$DOCKER_IMAGE" --new
     - sh .ci/test-doctest.sh "$DOCKER_IMAGE" --short
 
