@@ -138,6 +138,10 @@ class FiniteFields(CategoryWithAxiom):
 
             minpoly = generator.minpoly()
             base_map, standard_base_to_base, base_to_standard_base = self.base_ring().absolute_field()
+            # Note that this is probably the place where this implementation is
+            # really specific to finite fields: There is a consistent choice of
+            # embeddings of the fields that come out of GF(p^n) and this makes
+            # the .hom(ret) work.
             base_embedding = base_to_standard_base.hom(ret)
             image_of_generator = minpoly.map_coefficients(base_embedding).any_root()
             to_ret = self.hom([image_of_generator], base_morphism=base_embedding)            
