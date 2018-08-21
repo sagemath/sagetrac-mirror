@@ -16,11 +16,14 @@
 
 set -ex
 
+# Some doctest flavours require additional setup in the docker image before
+# they are ready to run.
+export DOCTEST_SETUP=":"
+
 case "$2" in
     --new)
-        # Try to go back to the latest commit by the release manager
-        git reset `git log --author release@sagemath.org -1 --format=%H` || true
-        export DOCTEST_PARAMETERS="--new"
+        export DOCTEST_SETUP="git reset `git log --author release@sagemath.org -1 --format=%H`"
+        export DOCTEST_PARAMETERS="--long --new"
         ;;
     --short)
         export DOCTEST_PARAMETERS="--short --all"
@@ -34,7 +37,8 @@ case "$2" in
 esac
 
 # Run tests once, and then try the failing files twice to work around flaky doctests.
-docker run --entrypoint sh -e DOCTEST_PARAMETERS "$1" -c 'sage -tp $DOCTEST_PARAMETERS ||
+docker run --entrypoint sh -e DOCTEST_PARAMETERS "$1" -c 'sh -c "$DOCTEST_SETUP"
+                                                          sage -tp $DOCTEST_PARAMETERS ||
                                                           sage -tp --failed $DOCTEST_PARAMETERS ||
                                                           sage -tp --failed $DOCTEST_PARAMETERS'
 

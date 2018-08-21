@@ -78,7 +78,7 @@ jobs:
     environment:
       # For the --new tests to work we need the .git directory which is only in the -dev image
       IMAGE_FLAVOUR: sagemath-dev
-      DOCTEST_FLAVOUR: --new --long
+      DOCTEST_FLAVOUR: --new
   doctest-short:
     <<: *doctest
     environment:
