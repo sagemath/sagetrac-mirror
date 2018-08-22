@@ -27,6 +27,7 @@ AUTHORS:
 
 - Christian Wuthrich (2010-01): moved Galois reps and modular
   parametrization in a separate file
+  
 
 - Simon Spicer (2013-03): Added code for modular degrees and congruence
   numbers of higher level
@@ -5596,15 +5597,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def height(self, precision=None):
         """
-        Return the real height of this elliptic curve. This is used in
-        integral_points()
+        Return the real height of this elliptic curve.
+
+        This is used in :meth:`_integral_points_old`.
 
         INPUT:
 
-
         -  ``precision`` - desired real precision of the result
            (default real precision if None)
-
 
         EXAMPLES::
 
@@ -5744,11 +5744,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         return S
 
     prove_BSD = BSD.prove_BSD
-
-    def integral_points(self, mw_base='auto', both_signs=False, verbose=False):
+    
+    def _integral_points_old(self, mw_base='auto', both_signs=False, verbose=False):
         """
         Compute all integral points (up to sign) on this elliptic curve.
 
+        This has been replaced by a newer and more correct, but slower and more general implementation
+        in ell_int_points.py.
+        
         INPUT:
 
 
@@ -5781,12 +5784,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = EllipticCurve([0,0,1,-7,6])
             sage: P1=E.point((2,0)); P2=E.point((-1,3)); P3=E.point((4,6))
-            sage: a=E.integral_points([P1,P2,P3]); a
+            sage: a=E._integral_points_old([P1,P2,P3]); a  
             [(-3 : 0 : 1), (-2 : 3 : 1), (-1 : 3 : 1), (0 : 2 : 1), (1 : 0 : 1), (2 : 0 : 1), (3 : 3 : 1), (4 : 6 : 1), (8 : 21 : 1), (11 : 35 : 1), (14 : 51 : 1), (21 : 95 : 1), (37 : 224 : 1), (52 : 374 : 1), (93 : 896 : 1), (342 : 6324 : 1), (406 : 8180 : 1), (816 : 23309 : 1)]
 
         ::
 
-            sage: a = E.integral_points([P1,P2,P3], verbose=True)
+            sage: a = E._integral_points_old([P1,P2,P3], verbose=True) 
             Using mw_basis  [(2 : 0 : 1), (3 : -4 : 1), (8 : -22 : 1)]
             e1,e2,e3:  -3.0124303725933... 1.0658205476962... 1.94660982489710
             Minimal and maximal eigenvalues of height pairing matrix: 0.637920814585005,2.31982967525725
@@ -5799,19 +5802,17 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [2, 3, 4, 8, 11, 14, 21, 37, 52, 93, 342, 406, 816]
             Total number of integral points: 18
 
-        It is not necessary to specify mw_base; if it is not provided,
+        It is not necessary to specify mw_base. If it is not provided,
         then the Mordell-Weil basis must be computed, which may take
-        much longer.
-
-        ::
+        much longer. ::
 
             sage: E = EllipticCurve([0,0,1,-7,6])
-            sage: a=E.integral_points(both_signs=True); a
+            sage: a = E._integral_points_old(both_signs=True); a
             [(-3 : -1 : 1), (-3 : 0 : 1), (-2 : -4 : 1), (-2 : 3 : 1), (-1 : -4 : 1), (-1 : 3 : 1), (0 : -3 : 1), (0 : 2 : 1), (1 : -1 : 1), (1 : 0 : 1), (2 : -1 : 1), (2 : 0 : 1), (3 : -4 : 1), (3 : 3 : 1), (4 : -7 : 1), (4 : 6 : 1), (8 : -22 : 1), (8 : 21 : 1), (11 : -36 : 1), (11 : 35 : 1), (14 : -52 : 1), (14 : 51 : 1), (21 : -96 : 1), (21 : 95 : 1), (37 : -225 : 1), (37 : 224 : 1), (52 : -375 : 1), (52 : 374 : 1), (93 : -897 : 1), (93 : 896 : 1), (342 : -6325 : 1), (342 : 6324 : 1), (406 : -8181 : 1), (406 : 8180 : 1), (816 : -23310 : 1), (816 : 23309 : 1)]
 
         An example with negative discriminant::
 
-            sage: EllipticCurve('900d1').integral_points()
+            sage: EllipticCurve('900d1')._integral_points_old() 
             [(-11 : 27 : 1), (-4 : 34 : 1), (4 : 18 : 1), (16 : 54 : 1)]
 
         Another example with rank 5 and no torsion points::
@@ -5820,24 +5821,24 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: P1=E.point((540,1188)); P2=E.point((576,1836))
             sage: P3=E.point((468,3132)); P4=E.point((612,3132))
             sage: P5=E.point((432,4428))
-            sage: a=E.integral_points([P1,P2,P3,P4,P5]); len(a)  # long time (18s on sage.math, 2011)
-            54
+            sage: a=E._integral_points_old([P1,P2,P3,P4,P5]); len(a)  # long time (18s on sage.math, 2011)
+             54
 
         TESTS:
 
         The bug reported on :trac:`4525` is now fixed::
 
-            sage: EllipticCurve('91b1').integral_points()
+            sage: EllipticCurve('91b1')._integral_points_old()
             [(-1 : 3 : 1), (1 : 0 : 1), (3 : 4 : 1)]
 
         ::
 
-            sage: [len(e.integral_points(both_signs=False)) for e in cremona_curves([11..100])]  # long time (15s on sage.math, 2011)
+            sage: [len(e._integral_points_old(both_signs=False)) for e in cremona_curves([11..100])]  # long time (15s on sage.math, 2011)
             [2, 0, 2, 3, 2, 1, 3, 0, 2, 4, 2, 4, 3, 0, 0, 1, 2, 1, 2, 0, 2, 1, 0, 1, 3, 3, 1, 1, 4, 2, 3, 2, 0, 0, 5, 3, 2, 2, 1, 1, 1, 0, 1, 3, 0, 1, 0, 1, 1, 3, 6, 1, 2, 2, 2, 0, 0, 2, 3, 1, 2, 2, 1, 1, 0, 3, 2, 1, 0, 1, 0, 1, 3, 3, 1, 1, 5, 1, 0, 1, 1, 0, 1, 2, 0, 2, 0, 1, 1, 3, 1, 2, 2, 4, 4, 2, 1, 0, 0, 5, 1, 0, 1, 2, 0, 2, 2, 0, 0, 0, 1, 0, 3, 1, 5, 1, 2, 4, 1, 0, 1, 0, 1, 0, 1, 0, 2, 2, 0, 0, 1, 0, 1, 1, 4, 1, 0, 1, 1, 0, 4, 2, 0, 1, 1, 2, 3, 1, 1, 1, 1, 6, 2, 1, 1, 0, 2, 0, 6, 2, 0, 4, 2, 2, 0, 0, 1, 2, 0, 2, 1, 0, 3, 1, 2, 1, 4, 6, 3, 2, 1, 0, 2, 2, 0, 0, 5, 4, 1, 0, 0, 1, 0, 2, 2, 0, 0, 2, 3, 1, 3, 1, 1, 0, 1, 0, 0, 1, 2, 2, 0, 2, 0, 0, 1, 2, 0, 0, 4, 1, 0, 1, 1, 0, 1, 2, 0, 1, 4, 3, 1, 2, 2, 1, 1, 1, 1, 6, 3, 3, 3, 3, 1, 1, 1, 1, 1, 0, 7, 3, 0, 1, 3, 2, 1, 0, 3, 2, 1, 0, 2, 2, 6, 0, 0, 6, 2, 2, 3, 3, 5, 5, 1, 0, 6, 1, 0, 3, 1, 1, 2, 3, 1, 2, 1, 1, 0, 1, 0, 1, 0, 5, 5, 2, 2, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1]
 
         The bug reported at :trac:`4897` is now fixed::
 
-            sage: [P[0] for P in EllipticCurve([0,0,0,-468,2592]).integral_points()]
+            sage: [P[0] for P in EllipticCurve([0,0,0,-468,2592])._integral_points_old()]
             [-24, -18, -14, -6, -3, 4, 6, 18, 21, 24, 36, 46, 102, 168, 186, 381, 1476, 2034, 67246]
 
 
@@ -6552,7 +6553,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         Qx = rings.PolynomialRing(RationalField(),'x')
         pol = Qx([-54*c6,-27*c4,0,1])
         if disc > 0: # two real component -> 3 roots in RR
-            # it is possible that only one root is found with default precision! (see integral_points())
+            # it is possible that only one root is found with default precision! (see _integral_points_old())
             RR = R
             prec = RR.precision()
             ei = pol.roots(RR,multiplicities=False)
@@ -6600,7 +6601,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if verbose:
             print('k1,k2,k3,k4', k1, k2, k3, k4)
             sys.stdout.flush()
-        #H_q -> [PZGH]:N_0 (due to consistency to integral_points())
+        #H_q -> [PZGH]:N_0 (due to consistency to _integral_points_old())
         H_q = R(((k1/2+k2)/lamda).sqrt())
 
         #computation of logs
@@ -6678,8 +6679,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             m_gram = m_LLL.gram_schmidt()[0]
             b1_norm = R(m_LLL.row(0).norm())
 
-            #compute constant c1_LLL (cf. integral_points())
+            #compute constant c1_LLL (cf. _integral_points_old())
             c1_LLL = -R.one()
+
             for i in range(n):
                 tmp = R(b1_norm/(m_gram.row(i).norm()))
                 if tmp > c1_LLL:
