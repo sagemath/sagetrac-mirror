@@ -174,16 +174,19 @@ push-dockerhub-dev:
     - . .ci/pull-gitlab.sh sagemath-dev
     - sh .ci/push-dockerhub.sh sagemath-dev
 
-# Run fast doctests
-test-doctest:
+test-doctest-new:
   stage: test
   script:
     # For --new to work, we need the .git directory which is only contained in the -dev image
     - . .ci/pull-gitlab.sh sagemath-dev
     - sh .ci/test-doctest.sh "$DOCKER_IMAGE" --new
+
+test-doctest-short:
+  stage: test
+  script:
+    - . .ci/pull-gitlab.sh sagemath
     - sh .ci/test-doctest.sh "$DOCKER_IMAGE" --short
 
-# Run doctests --long
 test-doctest-long:
   stage: test-long
   script:
