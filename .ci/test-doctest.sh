@@ -20,9 +20,9 @@ set -ex
 # our commands into the container through a FIFO. (Note that we want the
 # entrypoints to run and not override the entrypoint to be sh as we might need
 # the setup steps performed by the entrypoint.)
-mkfifo /tmp/stdin
+mkfifo stdin
 # Pipe everything that comes into the FIFO into our image (without closing the FIFO)
-(while true; do cat /tmp/stdin; done) | docker run -i "$1" bash &
+(while true; do cat stdin; done) | docker run -i "$1" bash &
 # When this script exits the background job won't die, so the docker container
 # is going to keep running. Make sure the entitre process tree goes away.
 trap "exit" INT TERM
@@ -30,7 +30,7 @@ trap "kill 0" EXIT
 
 case "$2" in
     --new)
-        echo 'git reset `git log --author release@sagemath.org -1 --format=%H`' > /tmp/stdin
+        echo 'git reset `git log --author release@sagemath.org -1 --format=%H`' > stdin
         export DOCTEST_PARAMETERS="--long --new"
         ;;
     --short)
@@ -45,7 +45,7 @@ case "$2" in
 esac
 
 # Run tests once, and then try the failing files twice to work around flaky doctests.
-echo <<EOF > /tmp/stdin
+echo <<EOF > stdin
 sage -tp $DOCTEST_PARAMETERS ||
 sage -tp --failed $DOCTEST_PARAMETERS ||
 sage -tp --failed $DOCTEST_PARAMETERS
