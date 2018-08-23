@@ -20,8 +20,19 @@ SETUP=":"
 
 case "$2" in
     --new)
-        SETUP='sudo apt update && \
-               sudo apt install -y git && \
+        # We need an image that contains a .git directory as this is not
+        # contained in the sagemath image (and also not in sagemath-dev.)
+        # Note that we can not mount our own .git as the docker daemon might
+        # not run on the current host.
+        docker create --name sagemath-git-build "$1"
+        docker cp `pwd`/.git sagemath-git-build:/home/sage/sage/.git
+        docker commit sagemath-git-build sagemath-git
+        # Replace $1 so that the following code uses that image instead of the
+        # original "$1"
+        shift
+        set -- sagemath-git "$@"
+
+        SETUP='sudo apt-get update && sudo apt-get install -y git && \
                cd /home/sage/sage && \
                git reset --hard && \
                git reset `git describe --abbrev=0 --tags`'
@@ -38,7 +49,7 @@ case "$2" in
         ;;
 esac
 
-docker run -v "`pwd`/.git:/home/sage/sage/.git" "$1" "($SETUP) && \
-                                                      (sage -tp $DOCTEST_PARAMETERS || \
-                                                       sage -tp --failed $DOCTEST_PARAMETERS || \
-                                                       sage -tp --failed $DOCTEST_PARAMETERS)"
+docker run "$1" "($SETUP) && \
+                 (sage -tp $DOCTEST_PARAMETERS || \
+                  sage -tp --failed $DOCTEST_PARAMETERS || \
+                  sage -tp --failed $DOCTEST_PARAMETERS)"
