@@ -50,7 +50,7 @@ case "$2" in
         ;;
 esac
 
-docker run "$1" "($SETUP) && \
+docker run "$1" "$SETUP && \
                  (sage -tp $DOCTEST_PARAMETERS || \
                   sage -tp --failed $DOCTEST_PARAMETERS || \
                   sage -tp --failed $DOCTEST_PARAMETERS)"
