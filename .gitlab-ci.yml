@@ -146,6 +146,24 @@ check-jupyter:
     - . .ci/pull-gitlab.sh sagemath
     - sh .ci/check-jupyter.sh "$DOCKER_IMAGE" docker
 
+test-doctest-new:
+  stage: test
+  script:
+    - . .ci/pull-gitlab.sh sagemath
+    - sh .ci/test-doctest.sh "$DOCKER_IMAGE" --new
+
+test-doctest-short:
+  stage: test
+  script:
+    - . .ci/pull-gitlab.sh sagemath
+    - sh .ci/test-doctest.sh "$DOCKER_IMAGE" --short
+
+test-doctest-long:
+  stage: test-long
+  script:
+    - . .ci/pull-gitlab.sh sagemath
+    - sh .ci/test-doctest.sh "$DOCKER_IMAGE" --long
+
 # Pushes the built images to Docker Hub if the Settings -> CI/CD -> Secret
 # variables DOCKER_USER and SECRET_DOCKER_PASS have been set up.
 push-dockerhub:
@@ -194,20 +212,3 @@ binder:
   environment:
     name: "binder/${CI_COMMIT_REF_SLUG}"
     url: "https://github.com/${SAGE_BINDER_ENV_GITHUB}/tree/${CI_COMMIT_REF_SLUG}"
-
-# Run fast doctests
-test-doctest:
-  stage: test
-  script:
-    - apk update
-    - apk add git
-    - . .ci/pull-gitlab.sh sagemath
-    - sh .ci/test-doctest.sh "$DOCKER_IMAGE" --new
-    - sh .ci/test-doctest.sh "$DOCKER_IMAGE" --short
-
-# Run doctests --long
-test-doctest-long:
-  stage: test-long
-  script:
-    - . .ci/pull-gitlab.sh sagemath
-    - sh .ci/test-doctest.sh "$DOCKER_IMAGE" --long

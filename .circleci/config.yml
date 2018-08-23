@@ -85,12 +85,12 @@ jobs:
   doctest-new:
     <<: *doctest
     environment:
-      DOCTEST_FLAVOUR: --new --long
+      # For the --new tests to work we need the .git directory which is only in the -dev image
+      DOCTEST_FLAVOUR: --new
   doctest-short:
     <<: *doctest
-  # TODO: Enable this once we have https://trac.sagemath.org/ticket/25270
-  #   environment:
-  #     DOCTEST_FLAVOUR: --short
+    environment:
+      DOCTEST_FLAVOUR: --short
   doctest-long:
     <<: *doctest
     environment:

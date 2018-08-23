@@ -16,25 +16,41 @@
 
 set -ex
 
+SETUP=":"
+
 case "$2" in
     --new)
-        # Try to go back to the latest commit by the release manager
-        git reset `git log --author release@sagemath.org -1 --format=%H` || true
-        export DOCTEST_PARAMETERS="--new"
+        # We need an image that contains a .git directory as this is not
+        # contained in the sagemath image (and also not in sagemath-dev.)
+        # Note that we can not mount our own .git as the docker daemon might
+        # not run on the current host.
+        docker create --name sagemath-git-build "$1"
+        docker cp `pwd`/.git sagemath-git-build:/home/sage/sage/.git
+        docker commit sagemath-git-build sagemath-git
+        # Replace $1 so that the following code uses that image instead of the
+        # original "$1"
+        shift
+        set -- sagemath-git "$@"
+
+        SETUP='sudo apt-get update && sudo apt-get install -y git && \
+               cd /home/sage/sage && \
+               sudo chown -R sage:sage .git && \
+               git reset --hard && \
+               git reset `git describe --abbrev=0 --tags`'
+        DOCTEST_PARAMETERS="--long --new"
         ;;
     --short)
-        export DOCTEST_PARAMETERS="--short --all"
+        DOCTEST_PARAMETERS="--short --all"
         ;;
     --long)
-        export DOCTEST_PARAMETERS="--long --all"
+        DOCTEST_PARAMETERS="--long --all"
         ;;
     *)
         exit 1
         ;;
 esac
 
-# Run tests once, and then try the failing files twice to work around flaky doctests.
-docker run --entrypoint sh -e DOCTEST_PARAMETERS "$1" -c 'sage -tp $DOCTEST_PARAMETERS ||
-                                                          sage -tp --failed $DOCTEST_PARAMETERS ||
-                                                          sage -tp --failed $DOCTEST_PARAMETERS'
-
+docker run "$1" "$SETUP && \
+                 (sage -tp $DOCTEST_PARAMETERS || \
+                  sage -tp --failed $DOCTEST_PARAMETERS || \
+                  sage -tp --failed $DOCTEST_PARAMETERS)"
