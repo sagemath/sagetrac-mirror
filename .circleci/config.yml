@@ -71,23 +71,20 @@ jobs:
           name: doctest
           command: |
             . .circleci/before-script.sh
-            . .ci/pull-dockerhub.sh "$IMAGE_FLAVOUR"
+            . .ci/pull-dockerhub.sh sagemath
             .ci/test-doctest.sh "$DOCKER_IMAGE" $DOCTEST_FLAVOUR
   doctest-new:
     <<: *doctest
     environment:
       # For the --new tests to work we need the .git directory which is only in the -dev image
-      IMAGE_FLAVOUR: sagemath-dev
       DOCTEST_FLAVOUR: --new
   doctest-short:
     <<: *doctest
     environment:
-      IMAGE_FLAVOUR: sagemath
       DOCTEST_FLAVOUR: --short
   doctest-long:
     <<: *doctest
     environment:
-      IMAGE_FLAVOUR: sagemath
       DOCTEST_FLAVOUR: --long
 
 workflows:

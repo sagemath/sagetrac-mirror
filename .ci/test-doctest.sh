@@ -20,7 +20,10 @@ SETUP=":"
 
 case "$2" in
     --new)
-        SETUP='git reset `git log --author release@sagemath.org -1 --format=%H`'
+        SETUP='sudo apt update && \
+               sudo apt install -y git && \
+               cd /home/sage/sage && \
+               git reset `git log --author release@sagemath.org -1 --format=%H`'
         DOCTEST_PARAMETERS="--long --new"
         ;;
     --short)
@@ -34,7 +37,7 @@ case "$2" in
         ;;
 esac
 
-docker run "$1" "$SETUP; \
-sage -tp $DOCTEST_PARAMETERS || \
-sage -tp --failed $DOCTEST_PARAMETERS || \
-sage -tp --failed $DOCTEST_PARAMETERS"
+docker run -v "`pwd`/.git:/home/sage/sage/.git" "$1" "($SETUP) && \
+                                                      (sage -tp $DOCTEST_PARAMETERS || \
+                                                       sage -tp --failed $DOCTEST_PARAMETERS || \
+                                                       sage -tp --failed $DOCTEST_PARAMETERS)"
