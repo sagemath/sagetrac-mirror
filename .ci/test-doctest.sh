@@ -23,7 +23,7 @@ case "$2" in
         SETUP='sudo apt update && \
                sudo apt install -y git && \
                cd /home/sage/sage && \
-               git reset `git log --author release@sagemath.org -1 --format=%H`'
+               git reset `git describe --abbrev=0 --tags`'
         DOCTEST_PARAMETERS="--long --new"
         ;;
     --short)
