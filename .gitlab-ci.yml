@@ -164,6 +164,25 @@ test-doctest-long:
     - . .ci/pull-gitlab.sh sagemath
     - sh .ci/test-doctest.sh "$DOCKER_IMAGE" --long
 
+# Setup the necessary bits to experiment with the code on mybinder.org
+binder:
+  stage: review
+  only:
+    - branches
+    - tags
+  script:
+    - apk update
+    - apk add gettext git openssh
+    - mkdir -p ~/.ssh && cp .ci/known_hosts.github ~/.ssh/known_hosts
+    - export BRANCH=${CI_COMMIT_REF_SLUG}
+    - export CI_URL="${CI_PROJECT_URL}/commits/${CI_COMMIT_REF_NAME}"
+    - export CI_BADGE="${CI_PROJECT_URL}/badges/${CI_COMMIT_REF_NAME}/pipeline.svg"
+    - . .ci/pull-gitlab.sh sagemath
+    - sh .ci/build-binder.sh
+  environment:
+    name: "binder/${CI_COMMIT_REF_SLUG}"
+    url: "https://github.com/${SAGE_BINDER_ENV_GITHUB}/tree/${CI_COMMIT_REF_SLUG}"
+
 # Pushes the built images to Docker Hub if the Settings -> CI/CD -> Secret
 # variables DOCKER_USER and SECRET_DOCKER_PASS have been set up.
 push-dockerhub:
@@ -192,23 +211,3 @@ push-dockerhub-dev:
   script:
     - . .ci/pull-gitlab.sh sagemath-dev
     - sh .ci/push-dockerhub.sh sagemath-dev
-
-# Create a configuration for binder to allow experimenting with the image that
-# we have just built.
-binder:
-  stage: review
-  only:
-    - branches
-    - tags
-  script:
-    - apk update
-    - apk add gettext git openssh
-    - mkdir -p ~/.ssh && cp .ci/known_hosts.github ~/.ssh/known_hosts
-    - export BRANCH=${CI_COMMIT_REF_SLUG}
-    - export CI_URL="${CI_PROJECT_URL}/commits/${CI_COMMIT_REF_NAME}"
-    - export CI_BADGE="${CI_PROJECT_URL}/badges/${CI_COMMIT_REF_NAME}/pipeline.svg"
-    - . .ci/pull-gitlab.sh sagemath
-    - sh .ci/build-binder.sh
-  environment:
-    name: "binder/${CI_COMMIT_REF_SLUG}"
-    url: "https://github.com/${SAGE_BINDER_ENV_GITHUB}/tree/${CI_COMMIT_REF_SLUG}"
