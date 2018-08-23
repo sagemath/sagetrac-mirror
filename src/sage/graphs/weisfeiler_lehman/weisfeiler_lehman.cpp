@@ -359,9 +359,13 @@ namespace wl{
          */
         void createFingerprint(FingerprintMap& fingerprints, Fingerprint& fingerprint, const AdjMatrix<int>& am, int i, int j, int* currentTuple, int limit, char* m){
             //Since the vertex set will need to include "i" and "j", we can just put them as the first two members and then fill the rest of the spots, since the best ordering will be then found by "getCanonicalOrdering"
+            int cnt = 1;
             currentTuple[0] = i;
-            currentTuple[1] = j;
-            innerCreateFingerprint(fingerprints, fingerprint, am, i, j, 0, 2, limit, currentTuple, m);
+            if(limit > 2){
+                currentTuple[1] = j;
+                cnt++;
+            }
+            innerCreateFingerprint(fingerprints, fingerprint, am, i, j, 0, cnt, limit, currentTuple, m);
         }
         
         unordered_map<int, vector<pair<int,int>>> k_WL(const std::vector<GraphNode>& v, int k, bool hasVertexLabels){
