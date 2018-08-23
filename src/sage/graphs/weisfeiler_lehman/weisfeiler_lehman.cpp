@@ -302,21 +302,42 @@ namespace wl{
         }
         
         
-        Coloring& prepareElementColoring(const vector<Coloring>& firstColoring, TupleMap& tm, const InverseTupleMap& itm, vector<Coloring>& tuple_coloring, int i, int n, int k){
+        Coloring& prepareElementColoring(const AdjMatrix<int>& adjMatrix, TupleMap& tm, const InverseTupleMap& itm, vector<Coloring>& tuple_coloring, int i, int n, int k){
+                bool hvl = adjMatrix.hasVertexLabels();
                 auto& color = tuple_coloring[i];
                 const auto& tuple = itm[i]->first;
                 vector<vector<int>> tmpMultiset;
                 tmpMultiset.reserve(n);
                 for(int v = 0; v < n; v++){
-                        tmpMultiset.push_back(vector<int>(k));
+                        tmpMultiset.push_back(vector<int>(k==1?5:k));
+                        int offset = 0;
+                        if(k == 1){
+                            offset = 4;
+                            const auto& u = tuple[0];
+                            auto& vec = tmpMultiset.back();
+                            int uLabel = hvl?adjMatrix.getVertexLabel(u):-1;
+                            int vLabel = hvl?adjMatrix.getVertexLabel(v):-1;
+                            vec[0] = uLabel;
+                            vec[1] = (v==u)?uLabel:adjMatrix.getEdge(u,v);
+                            vec[2] = (v==u)?uLabel:adjMatrix.getEdge(v,u);
+                            vec[3] = vLabel;
+                        }
                         for(int t = 0; t < k; t++){
                                 auto tmpTuple = tuple.modify(t, v);
                                 int tmpTupleIndex = tm[tmpTuple];
-                                tmpMultiset.back()[t] = tuple_coloring[tmpTupleIndex].getColor();
+                                tmpMultiset.back()[offset+t] = tuple_coloring[tmpTupleIndex].getColor();
                         }
                 }
                 sort(tmpMultiset.begin(), tmpMultiset.end());
-                if(k == 1) color.add_multiset_color(firstColoring[i].getColor(), n*k);
+                cout << tuple[0] << "   <";
+                for(const auto& el: tmpMultiset){
+                    cout << "(";
+                    for(const auto& el2: el){
+                        cout << el2 << ",";
+                    }
+                    cout << ");";
+                }
+                cout << ">" << endl;
                 for(const auto& innerVector:tmpMultiset){
                         for(const auto& el: innerVector){
                                 color.add_multiset_color(el, n*k);
@@ -371,11 +392,9 @@ namespace wl{
                 TupleMap tm;
                 InverseTupleMap itm;
                 vector<Coloring> tuple_coloring((int)pow(n,k));
-                vector<Coloring> firstColoring;
                 pair<vector<int>,vector<bool>> res;
-                
-                {       //The block is used to send adj_matrix and atps out of scope when not needed anymore, so as to free some memory
-                        AdjMatrix<int> adj_matrix(n, 0);
+                AdjMatrix<int> adj_matrix(n, 0);
+                {       //The block is used to send atps out of scope when not needed anymore, so as to free some memory
                         if(hasVertexLabels){
                                 vector<int> vertex_labels;
                                 vertex_labels.reserve(n);
@@ -408,9 +427,6 @@ namespace wl{
                         
         
                         updateColoring(atp_remap, atp_buckets, tuple_coloring);
-                
-                
-                        if(k == 1) firstColoring = tuple_coloring;
                 }
                 
                 
@@ -422,7 +438,7 @@ namespace wl{
                 while(!finished){
                         auto& remap = res.first;
                         auto& buckets = res.second;
-                        finished = orderSetOfSetsBuckets<Coloring>(remap, buckets, tuple_coloring, std::function<void(Wrapper<Coloring>&)>(disposeElementColoring), std::function<Coloring&(int)>([&firstColoring, &tm, &itm, &tuple_coloring, n, k](int i)->Coloring&{return prepareElementColoring(firstColoring, tm, itm, tuple_coloring, i, n, k);}), n*k);
+                        finished = orderSetOfSetsBuckets<Coloring>(remap, buckets, tuple_coloring, std::function<void(Wrapper<Coloring>&)>(disposeElementColoring), std::function<Coloring&(int)>([&adj_matrix, &tm, &itm, &tuple_coloring, n, k](int i)->Coloring&{return prepareElementColoring(adj_matrix, tm, itm, tuple_coloring, i, n, k);}), k==1?n*5:n*k);
                 }
                 for(auto& el: tm){
                         el.second = tuple_coloring[el.second].getColor();
