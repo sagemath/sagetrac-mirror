@@ -34,6 +34,7 @@ case "$2" in
 
         SETUP='sudo apt-get update && sudo apt-get install -y git && \
                cd /home/sage/sage && \
+               sudo chown -R sage:sage .git && \
                git reset --hard && \
                git reset `git describe --abbrev=0 --tags`'
         DOCTEST_PARAMETERS="--long --new"
