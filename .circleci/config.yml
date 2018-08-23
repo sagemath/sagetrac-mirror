@@ -54,15 +54,12 @@ jobs:
             # Push docker images to dockerhub if a dockerhub user has been configured
             .ci/push-dockerhub.sh sagemath-dev
             .ci/push-dockerhub.sh sagemath
-<<<<<<< HEAD
 
             # Create configuration for binder
             export BRANCH=${CIRCLE_BRANCH}
             export CI_URL="https://circleci.com/gh/${SAGE_GITHUB}/tree/${CIRCLE_BRANCH}"
             export CI_BADGE="https://circleci.com/gh/${SAGE_GITHUB}/tree/${CIRCLE_BRANCH}.svg?style=svg"
             .ci/build-binder.sh
-||||||| merged common ancestors
-=======
   build-from-latest-check-release:
     <<: *build-check-release
   build-from-clean-check-release:
@@ -142,4 +139,3 @@ workflows:
       - doctest-long:
           requires:
           - doctest-long-approval
->>>>>>> 24854
