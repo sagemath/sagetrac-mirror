@@ -713,7 +713,7 @@ class AsymptoticExpansionGenerators(SageObject):
             sage: ae = asymptotic_expansions.SingularityAnalysis('n',
             ....:     alpha=0, beta=2, precision=14)
             sage: n = ae.parent().gen()
-            sage: ae.subs(n=n-2)
+            sage: ae.subs(n=n-2) # long time, 7s in 2018
             2*n^(-1)*log(n) + 2*euler_gamma*n^(-1) - n^(-2) - 1/6*n^(-3) + O(n^(-5))
 
         ::

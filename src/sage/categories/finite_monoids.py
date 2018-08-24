@@ -150,7 +150,7 @@ class FiniteMonoids(CategoryWithAxiom):
                  4: Vector space of dimension 1 over Finite Field of size 3}
 
                 sage: BC5 = groups.permutation.Cyclic(5).nerve()
-                sage: BC5.homology(range(5), base_ring=GF(5))
+                sage: BC5.homology(range(5), base_ring=GF(5)) # long time, 24s in 2018
                 {0: Vector space of dimension 0 over Finite Field of size 5,
                 1: Vector space of dimension 1 over Finite Field of size 5,
                 2: Vector space of dimension 1 over Finite Field of size 5,

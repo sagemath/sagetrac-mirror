@@ -738,10 +738,10 @@ def integral(x, *args, **kwds):
         integrate(f(x), x, 0, 1)
         sage: integrate(integrate(integrate(f(x,y,z), x, algorithm='sympy'), y, algorithm='sympy'), z, algorithm='sympy')
         integrate(integrate(integrate(f(x, y, z), x), y), z)
-        sage: integrate(sin(x)*tan(x)/(1-cos(x)), x, algorithm='sympy')
+        sage: integrate(sin(x)*tan(x)/(1-cos(x)), x, algorithm='sympy') # long time, 12s in 2018
         -integrate(sin(x)*tan(x)/(cos(x) - 1), x)
         sage: _ = var('a,b,x')
-        sage: integrate(sin(x)*tan(x)/(1-cos(x)), x, a, b, algorithm='sympy')
+        sage: integrate(sin(x)*tan(x)/(1-cos(x)), x, a, b, algorithm='sympy') # long time, 11s in 2018
         -integrate(sin(x)*tan(x)/(cos(x) - 1), x, a, b)
         sage: import sympy
         sage: x, y, z = sympy.symbols('x y z')

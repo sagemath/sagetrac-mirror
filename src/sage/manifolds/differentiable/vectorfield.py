@@ -479,7 +479,7 @@ class VectorField(MultivectorField):
             sage: v = M.vector_field(name='v')
             sage: v[:] = -y, x ; v.display()
             v = -y d/dx + x d/dy
-            sage: v.plot()
+            sage: v.plot() # long time, 6s in 2018
             Graphics object consisting of 80 graphics primitives
 
         .. PLOT::
@@ -492,7 +492,7 @@ class VectorField(MultivectorField):
 
         Plot with various options::
 
-            sage: v.plot(scale=0.5, color='green', linestyle='--', width=1,
+            sage: v.plot(scale=0.5, color='green', linestyle='--', width=1, # long time, 5s in 2018
             ....:        arrowsize=6)
             Graphics object consisting of 80 graphics primitives
 
@@ -520,7 +520,7 @@ class VectorField(MultivectorField):
         Plot using parallel computation::
 
             sage: Parallelism().set(nproc=2)
-            sage: v.plot(scale=0.5,  number_values=10, linestyle='--', width=1,
+            sage: v.plot(scale=0.5,  number_values=10, linestyle='--', width=1, # long time, 4s in 2018
             ....:        arrowsize=6)
             Graphics object consisting of 100 graphics primitives
 
@@ -654,9 +654,9 @@ class VectorField(MultivectorField):
             sage: v = XS.frame()[1] ; v  # the coordinate vector d/dphi
             Vector field d/dph on the Open subset U of the 2-dimensional
              differentiable manifold S^2
-            sage: graph_v = v.plot(chart=X3, mapping=F, label_axes=False)
+            sage: graph_v = v.plot(chart=X3, mapping=F, label_axes=False) # long time, 5s in 2018
             sage: graph_S2 = XS.plot(chart=X3, mapping=F, number_values=9)
-            sage: graph_v + graph_S2
+            sage: graph_v + graph_S2 # long time
             Graphics3d Object
 
         .. PLOT::

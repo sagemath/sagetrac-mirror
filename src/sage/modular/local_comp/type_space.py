@@ -39,7 +39,7 @@ def example_type_space(example_no = 0):
     EXAMPLES::
 
         sage: from sage.modular.local_comp.type_space import example_type_space
-        sage: example_type_space()  # takes a while but caches stuff (21s on sage.math, 2012)
+        sage: example_type_space()  # takes a while but caches stuff (8s in 2018)
         6-dimensional type space at prime 7 of form q + ... + O(q^6)
 
     The above test takes a long time, but it precomputes and caches
@@ -369,10 +369,10 @@ class TypeSpace(SageObject):
         Test that :trac:`13158` is fixed::
 
             sage: f = Newforms(256,names='a')[0]
-            sage: T = TypeSpace(f,2)
-            sage: g = T.minimal_twist(); g
+            sage: T = TypeSpace(f,2) # long time, 14s in 2018
+            sage: g = T.minimal_twist(); g # long time
             q - a*q^3 + O(q^6)
-            sage: g.level()
+            sage: g.level() # long time
             64
         """
         if self.is_minimal():

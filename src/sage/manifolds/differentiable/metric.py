@@ -201,27 +201,27 @@ class PseudoRiemannianMetric(TensorField):
 
     The volume form (Levi-Civita tensor) associated with `g`::
 
-        sage: eps = g.volume_form() ; eps
+        sage: eps = g.volume_form() ; eps # long time, 4s in 2018
         2-form eps_g on the 2-dimensional differentiable manifold S^2
-        sage: eps.display(eU)
+        sage: eps.display(eU) # long time
         eps_g = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx/\dy
-        sage: eps.display(eV)
+        sage: eps.display(eV) # long time
         eps_g = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du/\dv
 
     The unique non-trivial component of the volume form is nothing but the
     square root of the determinant of g in the corresponding frame::
 
-        sage: eps[[eU,1,2]] == g.sqrt_abs_det(eU)
+        sage: eps[[eU,1,2]] == g.sqrt_abs_det(eU) # long time
         True
-        sage: eps[[eV,1,2]] == g.sqrt_abs_det(eV)
+        sage: eps[[eV,1,2]] == g.sqrt_abs_det(eV) # long time
         True
 
     The Levi-Civita connection associated with the metric `g`::
 
-        sage: nabla = g.connection() ; nabla
+        sage: nabla = g.connection() ; nabla # long time, 5s in 2018
         Levi-Civita connection nabla_g associated with the Riemannian metric g
          on the 2-dimensional differentiable manifold S^2
-        sage: latex(nabla)
+        sage: latex(nabla) # long time
         \nabla_{g}
 
     The Christoffel symbols `\Gamma^i_{\ \, jk}` associated with some
@@ -244,34 +244,34 @@ class PseudoRiemannianMetric(TensorField):
     The Christoffel symbols are nothing but the connection coefficients w.r.t.
     the coordinate frame::
 
-        sage: g.christoffel_symbols(c_xy) is nabla.coef(c_xy.frame())
+        sage: g.christoffel_symbols(c_xy) is nabla.coef(c_xy.frame()) # long time
         True
-        sage: g.christoffel_symbols(c_uv) is nabla.coef(c_uv.frame())
+        sage: g.christoffel_symbols(c_uv) is nabla.coef(c_uv.frame()) # long time
         True
 
     Test that `\nabla` is the connection compatible with `g`::
 
-        sage: t = nabla(g) ; t
+        sage: t = nabla(g) ; t # long time, 10s in 2018
         Tensor field nabla_g(g) of type (0,3) on the 2-dimensional
          differentiable manifold S^2
-        sage: t.display(eU)
+        sage: t.display(eU) # long time
         nabla_g(g) = 0
-        sage: t.display(eV)
+        sage: t.display(eV) # long time
         nabla_g(g) = 0
-        sage: t == 0
+        sage: t == 0 # long time
         True
 
     The Riemann curvature tensor of `g`::
 
-        sage: riem = g.riemann() ; riem
+        sage: riem = g.riemann() ; riem # long time, 9s in 2018
         Tensor field Riem(g) of type (1,3) on the 2-dimensional differentiable
          manifold S^2
-        sage: riem.display(eU)
+        sage: riem.display(eU) # long time
         Riem(g) = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dx*dy*dx*dy
          - 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dx*dy*dy*dx
          - 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dy*dx*dx*dy
          + 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dy*dx*dy*dx
-        sage: riem.display(eV)
+        sage: riem.display(eV) # long time
         Riem(g) = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/du*dv*du*dv
          - 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/du*dv*dv*du
          - 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/dv*du*du*dv
@@ -312,7 +312,7 @@ class PseudoRiemannianMetric(TensorField):
     `-r g_{j[k} \delta^i_{\ \, l]}`::
 
         sage: delta = M.tangent_identity_field()
-        sage: riem == - r*(g*delta).antisymmetrize(2,3)
+        sage: riem == - r*(g*delta).antisymmetrize(2,3) # long time, 6s in 2018
         True
 
     """
@@ -669,21 +669,21 @@ class PseudoRiemannianMetric(TensorField):
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
             sage: g = M.metric('g')
             sage: g[eU,1,1], g[eU,2,2] = 4/(1+x^2+y^2)^2, 4/(1+x^2+y^2)^2
-            sage: g.add_comp_by_continuation(eV, W, c_uv)
-            sage: ginv = g.inverse(); ginv
+            sage: g.add_comp_by_continuation(eV, W, c_uv) # long time, 3s in 2018
+            sage: ginv = g.inverse(); ginv # long time
             Tensor field inv_g of type (2,0) on the 2-dimensional differentiable manifold S^2
-            sage: ginv.display(eU)
+            sage: ginv.display(eU) # long time
             inv_g = (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dx*d/dx
              + (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dy*d/dy
-            sage: ginv.display(eV)
+            sage: ginv.display(eV) # long time
             inv_g = (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/du*d/du
              + (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/dv*d/dv
 
         Let us check that ``ginv`` is indeed the inverse of ``g``::
 
-            sage: s = g.contract(ginv); s  # contraction of last index of g with first index of ginv
+            sage: s = g.contract(ginv); s  # contraction of last index of g with first index of ginv, long time
             Tensor field of type (1,1) on the 2-dimensional differentiable manifold S^2
-            sage: s == M.tangent_identity_field()
+            sage: s == M.tangent_identity_field() # long time
             True
 
         """
@@ -729,7 +729,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: c_spher.<r,th,ph> = U.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi')
             sage: g = U.metric('g')
             sage: g[1,1], g[2,2], g[3,3] = 1, r^2 , (r*sin(th))^2  # the Euclidean metric
-            sage: g.connection()
+            sage: g.connection() # long time, 3s in 2018
             Levi-Civita connection nabla_g associated with the Riemannian
              metric g on the Open subset U of the 3-dimensional differentiable
              manifold R^3
@@ -800,24 +800,24 @@ class PseudoRiemannianMetric(TensorField):
             sage: g[1,1], g[2,2], g[3,3] = 1, r^2, r^2*sin(th)^2
             sage: g.display()  # the standard flat metric expressed in spherical coordinates
             g = dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
-            sage: Gam = g.christoffel_symbols() ; Gam
+            sage: Gam = g.christoffel_symbols() ; Gam # long time, 3s in 2018
             3-indices components w.r.t. Coordinate frame (U, (d/dr,d/dth,d/dph)),
              with symmetry on the index positions (1, 2)
-            sage: type(Gam)
+            sage: type(Gam) # long time
             <class 'sage.tensor.modules.comp.CompWithSym'>
-            sage: Gam[:]
+            sage: Gam[:] # long time
             [[[0, 0, 0], [0, -r, 0], [0, 0, -r*sin(th)^2]],
             [[0, 1/r, 0], [1/r, 0, 0], [0, 0, -cos(th)*sin(th)]],
             [[0, 0, 1/r], [0, 0, cos(th)/sin(th)], [1/r, cos(th)/sin(th), 0]]]
-            sage: Gam[1,2,2]
+            sage: Gam[1,2,2] # long time
             -r
-            sage: Gam[2,1,2]
+            sage: Gam[2,1,2] # long time
             1/r
-            sage: Gam[3,1,3]
+            sage: Gam[3,1,3] # long time
             1/r
-            sage: Gam[3,2,3]
+            sage: Gam[3,2,3] # long time
             cos(th)/sin(th)
-            sage: Gam[2,3,3]
+            sage: Gam[2,3,3] # long time
             -cos(th)*sin(th)
 
         Note that a better display of the Christoffel symbols is provided by
@@ -1020,7 +1020,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: M.set_calculus_method('sympy')
             sage: g = U.metric('g')
             sage: g[1,1], g[2,2] = a**2, a**2*sin(th)**2
-            sage: g.riemann()[:]
+            sage: g.riemann()[:] # long time, 3s in 2018
             [[[[0, 0], [0, 0]],
               [[0, sin(2*th)/(2*tan(th)) - cos(2*th)],
                [-sin(2*th)/(2*tan(th)) + cos(2*th), 0]]],
@@ -1175,10 +1175,10 @@ class PseudoRiemannianMetric(TensorField):
             sage: g.display()  # standard metric on H^3:
             g = b^2 drh*drh + b^2*sinh(rh)^2 dth*dth
              + b^2*sin(th)^2*sinh(rh)^2 dph*dph
-            sage: C = g.weyl() ; C
+            sage: C = g.weyl() ; C # long time, 6s in 2018
             Tensor field C(g) of type (1,3) on the Open subset U of the
              3-dimensional differentiable manifold H^3
-            sage: C == 0
+            sage: C == 0 # long time
             True
 
         """
@@ -1243,10 +1243,10 @@ class PseudoRiemannianMetric(TensorField):
             sage: g[1,1], g[2,2], g[2,3], g[3,3] = 1, 1+x^2, -x, 1
             sage: g.display()
             g = dx*dx + (x^2 + 1) dy*dy - x dy*dz - x dz*dy + dz*dz
-            sage: g.schouten()
+            sage: g.schouten() # long time, 4s in 2018
             Field of symmetric bilinear forms Schouten(g) on the 3-dimensional
              differentiable manifold Nil
-            sage: g.schouten().display()
+            sage: g.schouten().display() # long time
             Schouten(g) = -3/8 dx*dx + (5/8*x^2 - 3/8) dy*dy - 5/8*x dy*dz
              - 5/8*x dz*dy + 5/8 dz*dz
 
@@ -1793,16 +1793,16 @@ class PseudoRiemannianMetric(TensorField):
             sage: var('f0')
             f0
             sage: f = M.scalar_field(f0, name='f')
-            sage: sf = g.hodge_star(f) ; sf
+            sage: sf = g.hodge_star(f) ; sf # long time, 2s in 2018
             4-form *f on the 4-dimensional differentiable manifold M
-            sage: sf.display()
+            sage: sf.display() # long time
             *f = f0 dt/\dx/\dy/\dz
-            sage: ssf = g.hodge_star(sf) ; ssf
+            sage: ssf = g.hodge_star(sf) ; ssf # long time
             Scalar field **f on the 4-dimensional differentiable manifold M
-            sage: ssf.display()
+            sage: ssf.display() # long time
             **f: M --> R
                (t, x, y, z) |--> -f0
-            sage: ssf == -f  # must hold for a Lorentzian metric
+            sage: ssf == -f  # must hold for a Lorentzian metric, long time
             True
 
         Hodge dual of a 1-form in Minkowksi spacetime::

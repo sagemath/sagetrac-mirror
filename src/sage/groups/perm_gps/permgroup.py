@@ -748,7 +748,7 @@ class PermutationGroup_generic(FiniteGroup):
 
             sage: L = list(DihedralGroup(4).subgroups())
             sage: out = sys.stdout.write
-            sage: for G1 in L:
+            sage: for G1 in L: # long time, 12s in 2018
             ....:    for G2 in L:
             ....:        out("x" if G1.has_coerce_map_from(G2) else " ")
             ....:    out("\n")

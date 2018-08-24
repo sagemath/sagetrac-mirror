@@ -1345,7 +1345,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve('79a1')
             sage: f = E.modular_symbol_numerical(-1)
             sage: g = E.modular_symbol(-1, implementation="sage")
-            sage: f(1/3), g(1/3)  # abs tol 1e-13
+            sage: f(1/3), g(1/3)  # abs tol 1e-13, long time, 3s in 2018
             (1.00000000000001, 1)
             sage: f(oo), g(oo)
             (0.000000000000000, 0)
@@ -1868,7 +1868,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: r, s, G = E.simon_two_descent(); r,s
             (7, 7)
             sage: E = EllipticCurve([0, 0, 1, -23737, 960366])
-            sage: r, s, G = E.simon_two_descent(); r,s
+            sage: r, s, G = E.simon_two_descent(); r,s # long time, 3s in 2018
             (8, 8)
 
         Example from :trac:`10832`::
@@ -5843,7 +5843,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         See :trac:`22063`::
 
-            sage: for n in [67,71,74,91]:
+            sage: for n in [67,71,74,91]: # long time, 6s in 2018
             ....:     assert 4*n^6+4*n^2 in [P[0] for P in EllipticCurve([0,0,0,2,n^2]).integral_points()]
 
 
@@ -6865,7 +6865,7 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N, x_bound):
         ....:       E = EllipticCurve([0,0,0,a,b])
         ....:       xs = [P[0] for P in E.integral_points()]
         ....:       return x in xs
-        sage: all(t(a,b,x) for a,b,x in [ (-2,5, 1318), (4,-1, 4321),
+        sage: all(t(a,b,x) for a,b,x in [ (-2,5, 1318), (4,-1, 4321), # long time, 8s in 2018
         ....: (0,17, 5234), (11,4, 16833), (-13,37, 60721), (-12,-10, 80327),
         ....: (-7,22, 484961), (-9,28, 764396), (-13,4, 1056517), (-19,-51,
         ....: 2955980), (-24,124, 4435710), (-30,133, 5143326), (-37,60,

@@ -2735,7 +2735,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
             sage: G = HeckeTriangleGroup(8)
             sage: z = i
-            sage: for A in [G.S(), G.T(), G.U(), G.U()^(G.n()//2), G.U()^(-3)]:
+            sage: for A in [G.S(), G.T(), G.U(), G.U()^(G.n()//2), G.U()^(-3)]: # long time, 6s in 2018
             ....:     print("A={}: ".format(A.string_repr("conj")))
             ....:     num_linking_number(A, z, G.n())
             ....:     A.linking_number()

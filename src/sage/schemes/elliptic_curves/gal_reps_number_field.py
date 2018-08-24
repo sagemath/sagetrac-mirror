@@ -299,15 +299,15 @@ class GaloisRepresentation(SageObject):
             sage: K = NumberField(x**2 - 29, 'a'); a = K.gen()
             sage: E = EllipticCurve([1, 0, ((5 + a)/2)**2, 0, 0])
             sage: rho = E.galois_representation()
-            sage: rho.isogeny_bound() # See Section 5.10 of [Serre72].
+            sage: rho.isogeny_bound() # See Section 5.10 of [Serre72]. # long time, 5s in 2018
             [3, 5]
             sage: K = NumberField(x**2 + 1, 'a')
             sage: EllipticCurve_from_j(K(1728)).galois_representation().isogeny_bound() # CM over K
             [0]
-            sage: EllipticCurve_from_j(K(0)).galois_representation().isogeny_bound() # CM NOT over K
+            sage: EllipticCurve_from_j(K(0)).galois_representation().isogeny_bound() # CM NOT over K, long time, 5s in 2018
             [2, 3]
             sage: E = EllipticCurve_from_j(K(2268945/128)) # c.f. [Sutherland12]
-            sage: E.galois_representation().isogeny_bound() # No 7-isogeny, but...
+            sage: E.galois_representation().isogeny_bound() # No 7-isogeny, but...; long time, 4s in 2018
             [7]
 
         For curves with rational CM, there are infinitely many primes
@@ -376,7 +376,7 @@ class GaloisRepresentation(SageObject):
             sage: K = NumberField(x**2 - 29, 'a'); a = K.gen()
             sage: E = EllipticCurve([1, 0, ((5 + a)/2)**2, 0, 0])
             sage: rho = E.galois_representation()
-            sage: rho.isogeny_bound() # See Section 5.10 of [Serre72].
+            sage: rho.isogeny_bound() # See Section 5.10 of [Serre72]; long time, 4s in 2018
             [3, 5]
             sage: rho.reducible_primes()
             [3, 5]
@@ -388,7 +388,7 @@ class GaloisRepresentation(SageObject):
             [2, 3]
             sage: E = EllipticCurve_from_j(K(2268945/128)) # c.f. [Sutherland12]
             sage: rho = E.galois_representation()
-            sage: rho.isogeny_bound() # ... but there is no 7-isogeny ...
+            sage: rho.isogeny_bound() # ... but there is no 7-isogeny ...; long time, 3s in 2018
             [7]
             sage: rho.reducible_primes()
             []
@@ -505,7 +505,7 @@ def Frobenius_filter(E, L, patience=100):
     EXAMPLES::
 
         sage: E = EllipticCurve('11a1') # has a 5-isogeny
-        sage: sage.schemes.elliptic_curves.gal_reps_number_field.Frobenius_filter(E,primes(40))
+        sage: sage.schemes.elliptic_curves.gal_reps_number_field.Frobenius_filter(E,primes(40)) # long time, 7s in 2018
         [5]
 
     Example to show that the output may contain primes where the
@@ -1488,11 +1488,11 @@ def reducible_primes_Billerey(E, num_l=None, max_l=None, verbose=False):
         sage: from sage.schemes.elliptic_curves.gal_reps_number_field import reducible_primes_Billerey
         sage: K = NumberField(x**2 - 29, 'a'); a = K.gen()
         sage: E = EllipticCurve([1, 0, ((5 + a)/2)**2, 0, 0])
-        sage: reducible_primes_Billerey(E)
+        sage: reducible_primes_Billerey(E) # long time, 14s in 2018
         [3, 5]
         sage: K = NumberField(x**2 + 1, 'a')
         sage: E = EllipticCurve_from_j(K(1728)) # CM over K
-        sage: reducible_primes_Billerey(E)
+        sage: reducible_primes_Billerey(E) # long time, 5s in 2018
         [0]
         sage: E = EllipticCurve_from_j(K(0)) # CM but NOT over K
         sage: reducible_primes_Billerey(E)
@@ -1501,7 +1501,7 @@ def reducible_primes_Billerey(E, num_l=None, max_l=None, verbose=False):
     An example where a prime is not reducible but passes the test::
 
         sage: E = EllipticCurve_from_j(K(2268945/128)).global_minimal_model() # c.f. [Sutherland12]
-        sage: reducible_primes_Billerey(E)
+        sage: reducible_primes_Billerey(E) # long time, 4s in 2018
         [7]
 
     """

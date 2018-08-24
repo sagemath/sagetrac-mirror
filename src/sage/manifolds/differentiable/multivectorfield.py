@@ -597,14 +597,14 @@ class MultivectorField(TensorField):
             sage: b = M.vector_field(name='b')
             sage: b[e_xy,:] = x*y, x-y
             sage: b.add_comp_by_continuation(e_uv, W, c_uv)
-            sage: s = a.bracket(b); s
+            sage: s = a.bracket(b); s # long time, 4s in 2018
             Vector field [a,b] on the 2-dimensional differentiable manifold S^2
-            sage: s.display(e_xy)
+            sage: s.display(e_xy) # long time
             [a,b] = (x^2 + y^2 - x + y) d/dx + (-(x - 1)*y - x) d/dy
 
         For two vector fields, the bracket coincides with the Lie derivative::
 
-            sage: s == b.lie_derivative(a)
+            sage: s == b.lie_derivative(a) # long time, 3s in 2018
             True
 
         Schouten-Nijenhuis bracket of a 2-vector field and a 1-vector field::
@@ -620,7 +620,7 @@ class MultivectorField(TensorField):
 
         Since `a` is a vector field, we have in this case::
 
-            sage: s == - c.lie_derivative(a)
+            sage: s == - c.lie_derivative(a) # long time, 2s in 2018
             True
 
         .. SEEALSO::
@@ -844,7 +844,7 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
 
     The Lie derivative of a 2-vector field is a 2-vector field::
 
-        sage: ab.lie_der(a)
+        sage: ab.lie_der(a) # long time, 3s in 2018
         2-vector field on the 3-dimensional differentiable manifold R3
 
     """
@@ -1141,7 +1141,7 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
              + (-4*x*y*z + 2*(3*t + 4)*y + 4*z^2 - 6*t) dx
              + (2*((t - 1)*x - x^2 - 2*t)*y - 2*y^2 - 2*(t - x)*z + 2*t
              + 2*x) dy + (-6*t^2 + 6*t*x + 2*(2*t + 2*x + y)*z) dz
-            sage: s == d.contract(0, 1, c, 0, 1)
+            sage: s == d.contract(0, 1, c, 0, 1) # long time, 3s in 2018
             True
 
         """
@@ -1359,24 +1359,24 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
 
         Let us check the graded Leibniz rule for `p=1` and `q=1`::
 
-            sage: a.bracket(b.wedge(c)) == a.bracket(b).wedge(c) + b.wedge(a.bracket(c))
+            sage: a.bracket(b.wedge(c)) == a.bracket(b).wedge(c) + b.wedge(a.bracket(c)) # long time, 3s in 2018
             True
 
         as well as for `p=2` and `q=1`::
 
-            sage: c.bracket(a.wedge(b)) == c.bracket(a).wedge(b) - a.wedge(c.bracket(b))
+            sage: c.bracket(a.wedge(b)) == c.bracket(a).wedge(b) - a.wedge(c.bracket(b)) # long time, 4s in 2018
             True
 
         Finally let us check the graded Jacobi identity for `p=1`, `q=1` and
         `r=2`::
 
-            sage: a.bracket(b.bracket(c)) + b.bracket(c.bracket(a)) \
+            sage: a.bracket(b.bracket(c)) + b.bracket(c.bracket(a)) \ # long time, 6s in 2018
             ....: + c.bracket(a.bracket(b)) == 0
             True
 
         as well as for `p=1`, `q=2` and `r=2`::
 
-            sage: a.bracket(c.bracket(d)) + c.bracket(d.bracket(a)) \
+            sage: a.bracket(c.bracket(d)) + c.bracket(d.bracket(a)) \ # long time, 4s in 2018
             ....: - d.bracket(a.bracket(c)) == 0
             True
 

@@ -449,18 +449,18 @@ class LeviCivitaConnection(AffineConnection):
             sage: ch_basis = M.automorphism_field()
             sage: ch_basis[1,1], ch_basis[2,2], ch_basis[3,3] = 1, 1/r, 1/(r*sin(th))
             sage: e = c_spher.frame().new_frame(ch_basis, 'e')
-            sage: gam_e = nab.coef(e) ; gam_e
+            sage: gam_e = nab.coef(e) ; gam_e # long time, 12s in 2018
             3-indices components w.r.t. Vector frame (R^3, (e_1,e_2,e_3))
-            sage: gam_e[:]
+            sage: gam_e[:] # long time
             [[[0, 0, 0], [0, -1/r, 0], [0, 0, -1/r]],
             [[0, 1/r, 0], [0, 0, 0], [0, 0, -cos(th)/(r*sin(th))]],
             [[0, 0, 1/r], [0, 0, cos(th)/(r*sin(th))], [0, 0, 0]]]
             sage: # The only non-zero connection coefficients:
-            sage: gam_e[1,2,2], gam_e[2,1,2]
+            sage: gam_e[1,2,2], gam_e[2,1,2] # long time
             (-1/r, 1/r)
-            sage: gam_e[1,3,3], gam_e[3,1,3]
+            sage: gam_e[1,3,3], gam_e[3,1,3] # long time
             (-1/r, 1/r)
-            sage: gam_e[2,3,3], gam_e[3,2,3]
+            sage: gam_e[2,3,3], gam_e[3,2,3] # long time
             (-cos(th)/(r*sin(th)), cos(th)/(r*sin(th)))
 
         """
@@ -722,13 +722,13 @@ class LeviCivitaConnection(AffineConnection):
             sage: g.display()
             g = (2*m/r - 1) dt*dt - 1/(2*m/r - 1) dr*dr + r^2 dth*dth
              + r^2*sin(th)^2 dph*dph
-            sage: nab = g.connection() ; nab
+            sage: nab = g.connection() ; nab # long time, 10s in 2018
             Levi-Civita connection nabla_g associated with the Lorentzian
              metric g on the 4-dimensional differentiable manifold M
-            sage: ric = nab.ricci() ; ric
+            sage: ric = nab.ricci() ; ric # long time, 9s in 2018
             Field of symmetric bilinear forms Ric(g) on the 4-dimensional
              differentiable manifold M
-            sage: ric == 0
+            sage: ric == 0 # long time
             True
 
         """

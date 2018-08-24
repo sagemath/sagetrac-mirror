@@ -503,7 +503,7 @@ class FactorizationToTableaux(CrystalMorphism):
             sage: w = W.from_reduced_word([2,1,3,2,4,3,2,1])
             sage: B = crystals.AffineFactorization(w, 4)
             sage: phi = B._tableaux_isomorphism
-            sage: all(phi(b).e(i) == phi(b.e(i)) and phi(b).f(i) == phi(b.f(i))
+            sage: all(phi(b).e(i) == phi(b.e(i)) and phi(b).f(i) == phi(b.f(i)) # long time, 19s in 2018
             ....:     for b in B for i in B.index_set())
             True
             sage: set(phi(b) for b in B) == set(phi.codomain())

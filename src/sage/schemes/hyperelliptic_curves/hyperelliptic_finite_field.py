@@ -1322,7 +1322,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             40
             sage: H.cardinality(2)
             1408
-            sage: H.cardinality(3)
+            sage: H.cardinality(3) # long time, 16s in 2018
             50116
             
         The following example shows that :trac:`20391` has been resolved::

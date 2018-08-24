@@ -121,10 +121,10 @@ the standard differential operators of vector calculus::
 The Laplacian of `f`  (with respect to the metric `g`) is obtained either
 as ``f.laplacian()`` or, thanks to the above import, as ``laplacian(f)``::
 
-    sage: Df = laplacian(f)
-    sage: Df
+    sage: Df = laplacian(f) # long time, 8s in 2018
+    sage: Df # long time
     Scalar field Delta(f) on the 2-dimensional Riemannian manifold S^2
-    sage: Df.display()
+    sage: Df.display() # long time
     Delta(f): S^2 --> R
     on U: (x, y) |--> (x^2 + y^2 - 1)/(x^2 + y^2 + 1)
     on V: (u, v) |--> -(u^2 + v^2 - 1)/(u^2 + v^2 + 1)
@@ -132,7 +132,7 @@ as ``f.laplacian()`` or, thanks to the above import, as ``laplacian(f)``::
 Let us check the standard formula
 `\Delta f = \mathrm{div}( \mathrm{grad}\,  f )`::
 
-    sage: Df == div(gradf)
+    sage: Df == div(gradf) # long time
     True
 
 Since each open subset of `S^2` inherits the structure of a Riemannian
@@ -183,7 +183,7 @@ and initialize it to the Minkowskian value::
 We may check that the metric is flat, i.e. has a vanishing Riemann curvature
 tensor::
 
-    sage: g.riemann().display()
+    sage: g.riemann().display() # long time, 11s in 2018
     Riem(g) = 0
 
 A vector field on `M`::

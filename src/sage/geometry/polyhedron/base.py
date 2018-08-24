@@ -5716,8 +5716,8 @@ class Polyhedron_base(Element):
 
         A case where rounding in the right direction goes a long way::
 
-            sage: P = 1/10*polytopes.hypercube(14)
-            sage: P.integral_points()
+            sage: P = 1/10*polytopes.hypercube(14) # long time, 20s in 2018
+            sage: P.integral_points() # long time
             ((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),)
 
         Finally, the 3-d reflexive polytope number 4078::

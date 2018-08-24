@@ -607,11 +607,11 @@ class DiffForm(TensorField):
             a = -y dx + x dy
             sage: a.display(eV)
             a = -v/(u^4 + 2*u^2*v^2 + v^4) du + u/(u^4 + 2*u^2*v^2 + v^4) dv
-            sage: sa = a.hodge_dual(g); sa
+            sage: sa = a.hodge_dual(g); sa # long time, 5s in 2018
             1-form *a on the 2-dimensional differentiable manifold S^2
-            sage: sa.display(eU)
+            sage: sa.display(eU) # long time
             *a = -x dx - y dy
-            sage: sa.display(eV)
+            sage: sa.display(eV) # long time
             *a = -u/(u^4 + 2*u^2*v^2 + v^4) du - v/(u^4 + 2*u^2*v^2 + v^4) dv
 
         Instead of calling the method :meth:`hodge_dual` on the differential
@@ -625,9 +625,9 @@ class DiffForm(TensorField):
         For a 1-form and a Riemannian metric in dimension 2, the Hodge dual
         applied twice is minus the identity::
 
-            sage: ssa = sa.hodge_dual(g); ssa
+            sage: ssa = sa.hodge_dual(g); ssa # long time
             1-form **a on the 2-dimensional differentiable manifold S^2
-            sage: ssa == -a
+            sage: ssa == -a # long time
             True
 
         The Hodge dual of the metric volume 2-form is the constant scalar

@@ -684,7 +684,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: S.<x> = R[]
             sage: f = (x^32 + 16)*(x^32 + 16 + 2^16*x^2) + 2^34
             sage: v = R.valuation()
-            sage: len(v.mac_lane_approximants(f, assume_squarefree=True)) # is_squarefree() is not properly implemented yet
+            sage: len(v.mac_lane_approximants(f, assume_squarefree=True)) # is_squarefree() is not properly implemented yet # long time, 46s in 2018
             2
 
         A case that triggered an assertion at some point::

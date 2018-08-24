@@ -782,7 +782,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: N.set_embedding(phi)
             sage: g = M.metric()
             sage: g[0,0], g[1,1] = 1, 1
-            sage: N.ambient_first_fundamental_form()[:]
+            sage: N.ambient_first_fundamental_form()[:] # long time, 5s in 2018
             [ x^2/(x^2 + 4) -2*x/(x^2 + 4)]
             [-2*x/(x^2 + 4)    4/(x^2 + 4)]
 
@@ -885,7 +885,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: T = N.adapted_chart()
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
-            sage: N.shift().display()  # long time
+            sage: N.shift().display()
             beta = 0
 
         """

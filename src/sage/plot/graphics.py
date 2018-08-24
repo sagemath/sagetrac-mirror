@@ -1575,8 +1575,8 @@ class Graphics(WithEqualityById, SageObject):
         height each having a maximum value of 327 inches at default dpi::
 
             sage: p = ellipse((0,0),4,1)
-            sage: p.show(figsize=[327,10],dpi=100)
-            sage: p.show(figsize=[328,10],dpi=80)
+            sage: p.show(figsize=[327,10],dpi=100) # long time, 8s in 2018
+            sage: p.show(figsize=[328,10],dpi=80) # long time, 5s in 2018
 
         You can turn off the drawing of the axes::
 

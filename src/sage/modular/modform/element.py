@@ -239,7 +239,7 @@ class ModularForm_abstract(ModuleElement):
 
             sage: f = Newforms(Gamma1(30), 2, names='a')[1]
             sage: g = ModularForms(23, 2).0
-            sage: f != g
+            sage: f != g # long time, 4s in 2018
             True
             sage: f != f
             False
@@ -970,7 +970,7 @@ class ModularForm_abstract(ModuleElement):
 
             sage: F = Newforms(1,12)[0]
             sage: chi = DirichletGroup(7).0
-            sage: abs(F.symsquare_lseries(chi).check_functional_equation()) < 1e-5
+            sage: abs(F.symsquare_lseries(chi).check_functional_equation()) < 1e-5 # long time 13s in 2018
             True
 
         AUTHORS:
@@ -1826,13 +1826,13 @@ class Newform(ModularForm_abstract):
         TESTS::
 
             sage: K.<a> = QuadraticField(1129)
-            sage: f = Newforms(Gamma0(20), 8, base_ring=K)[2]; f
+            sage: f = Newforms(Gamma0(20), 8, base_ring=K)[2]; f # long time, 4s in 2018
             q + (2*a - 10)*q^3 + 125*q^5 + O(q^6)
-            sage: f.atkin_lehner_action(2)
+            sage: f.atkin_lehner_action(2) # long time
             (-1, q + (2*a - 10)*q^3 + 125*q^5 + O(q^6))
 
-            sage: f = Newforms(Gamma1(11), 2)[0]
-            sage: f.atkin_lehner_action(2)
+            sage: f = Newforms(Gamma1(11), 2)[0] # long time
+            sage: f.atkin_lehner_action(2) # long time
             Traceback (most recent call last):
             ...
             ValueError: d (= 2) does not divide the level (= 11)
@@ -2124,7 +2124,7 @@ class Newform(ModularForm_abstract):
 
             sage: f = Newforms(11)[0]
             sage: chi = DirichletGroup(5).0
-            sage: f.twist(chi).twist(~chi, level=11) == f
+            sage: f.twist(chi).twist(~chi, level=11) == f # long time, 3s in 2018
             True
 
         AUTHORS:
@@ -2433,7 +2433,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             sage: f = M.gen(0); f
             1 + 60*q^3 - 120*q^4 + 240*q^5 + O(q^6)
             sage: chi = DirichletGroup(2)[0]
-            sage: f.twist(chi)
+            sage: f.twist(chi) # long time, 3s in 2018
             60*q^3 + 240*q^5 + O(q^6)
 
         The base field of the twisted form is extended if necessary::

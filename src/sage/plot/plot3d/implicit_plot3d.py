@@ -153,7 +153,7 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         sage: cm = colormaps.gist_rainbow
         sage: G = implicit_plot3d(x^2 + y^2 + z^2, (x,-2,2), (y,-2,2), (z,-2, 2),
         ....:                     contour=4, color=(t,cm), plot_points=100)
-        sage: G.show(viewer='tachyon')
+        sage: G.show(viewer='tachyon') # long time, 9s in 2018
 
     .. PLOT::
 

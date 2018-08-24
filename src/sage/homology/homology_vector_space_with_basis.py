@@ -697,11 +697,11 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
                 h^{3,0}
 
                 sage: RP4 = simplicial_complexes.RealProjectiveSpace(4)
-                sage: H = RP4.cohomology_ring(GF(2))
-                sage: x = H.basis()[1,0]
-                sage: y = H.basis()[2,0]
-                sage: z = H.basis()[3,0]
-                sage: x.Sq(1) == y
+                sage: H = RP4.cohomology_ring(GF(2)) # long time, 15s in 2018
+                sage: x = H.basis()[1,0] # long time
+                sage: y = H.basis()[2,0] # long time
+                sage: z = H.basis()[3,0] # long time
+                sage: x.Sq(1) == y # long time
                 True
                 sage: z.Sq(1)  # long time
                 h^{4,0}

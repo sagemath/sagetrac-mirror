@@ -645,7 +645,7 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
             sage: R._test_metric(elements=[R.random_element() for i in range(3^3)])
 
             sage: R = Qp(next_prime(10^60))
-            sage: TestSuite(R).run(skip='_test_log')
+            sage: TestSuite(R).run(skip='_test_log') # long time, 25s in 2018
             sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^3)], max_runs = 2^5, skip='_test_log') # long time
             sage: R._test_log(max_runs=2, elements=[R.random_element() for i in range(4)])
         """
@@ -770,7 +770,7 @@ class pAdicFieldFloatingPoint(pAdicFieldBaseGeneric, pAdicFloatingPointFieldGene
             sage: R._test_metric(elements = [R.random_element() for i in range(2^3)]) # long time
 
             sage: R = QpFP(next_prime(10^60))
-            sage: TestSuite(R).run(skip='_test_log')
+            sage: TestSuite(R).run(skip='_test_log') # long time, 23s in 2018
             sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^3)], max_runs = 2^5, skip='_test_log') # long time
             sage: R._test_log(max_runs=2, elements=[R.random_element() for i in range(4)])
         """

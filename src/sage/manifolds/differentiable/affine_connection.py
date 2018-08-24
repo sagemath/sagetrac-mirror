@@ -271,12 +271,12 @@ class AffineConnection(SageObject):
         a = -y d/dx + x d/dy
         sage: a.display(eV)
         a = v d/du - u d/dv
-        sage: da = nab(a) ; da
+        sage: da = nab(a) ; da # long time, 3s in 2018
         Tensor field nabla(a) of type (1,1) on the 2-dimensional differentiable
          manifold M
-        sage: da.display(eU)
+        sage: da.display(eU) # long time
         nabla(a) = -x*y d/dx*dx - d/dx*dy + d/dy*dx - x*y^2 d/dy*dy
-        sage: da.display(eV)
+        sage: da.display(eV) # long time
         nabla(a) = (-1/16*u^3 + 1/16*u^2*v + 1/16*(u + 2)*v^2 - 1/16*v^3 - 1/8*u^2) d/du*du
          + (1/16*u^3 - 1/16*u^2*v - 1/16*(u - 2)*v^2 + 1/16*v^3 - 1/8*u^2 + 1) d/du*dv
          + (1/16*u^3 - 1/16*u^2*v - 1/16*(u - 2)*v^2 + 1/16*v^3 - 1/8*u^2 - 1) d/dv*du
@@ -284,13 +284,13 @@ class AffineConnection(SageObject):
 
     A few tests::
 
-        sage: nab(a.restrict(V)) == da.restrict(V)
+        sage: nab(a.restrict(V)) == da.restrict(V) # long time, 3s in 2018
         True
-        sage: nab.restrict(V)(a) == da.restrict(V)
+        sage: nab.restrict(V)(a) == da.restrict(V) # long time, 3s in 2018
         True
-        sage: nab.restrict(V)(a.restrict(U)) == da.restrict(W)
+        sage: nab.restrict(V)(a.restrict(U)) == da.restrict(W) # long time, 3s in 2018
         True
-        sage: nab.restrict(U)(a.restrict(V)) == da.restrict(W)
+        sage: nab.restrict(U)(a.restrict(V)) == da.restrict(W) # long time, 3s in 2018
         True
 
     Same examples with SymPy as the engine for symbolic calculus::
@@ -324,12 +324,12 @@ class AffineConnection(SageObject):
         a = -y d/dx + x d/dy
         sage: a.display(eV)
         a = v d/du - u d/dv
-        sage: da = nab(a) ; da
+        sage: da = nab(a) ; da # long time, 5s in 2018
         Tensor field nabla(a) of type (1,1) on the 2-dimensional differentiable
          manifold M
-        sage: da.display(eU)
+        sage: da.display(eU) # long time
         nabla(a) = -x*y d/dx*dx - d/dx*dy + d/dy*dx - x*y**2 d/dy*dy
-        sage: da.display(eV)
+        sage: da.display(eV) # long time
         nabla(a) = (-u**3/16 + u**2*v/16 - u**2/8 + u*v**2/16 - v**3/16 + v**2/8) d/du*du
          + (u**3/16 - u**2*v/16 - u**2/8 - u*v**2/16 + v**3/16 + v**2/8 + 1) d/du*dv
          + (u**3/16 - u**2*v/16 - u**2/8 - u*v**2/16 + v**3/16 + v**2/8 - 1) d/dv*du
@@ -487,7 +487,7 @@ class AffineConnection(SageObject):
             sage: e = X.frame().new_frame(a, 'e')
             sage: nab2.set_coef(e)[1,0,1] = 1+x
             sage: nab2.set_coef(e)[1,0,0] = x*y
-            sage: (nab2 == nab) and (nab == nab2)
+            sage: (nab2 == nab) and (nab == nab2) # long time, 3s in 2018
             True
             sage: f = M.vector_frame('f')
             sage: nab2.set_coef(f)[1,0,1] = x-y
@@ -1151,7 +1151,7 @@ class AffineConnection(SageObject):
             sage: g[1,1], g[2,2], g[3,3] = 1, r^2 , (r*sin(th))^2
             sage: g.display()
             g = dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
-            sage: g.connection().display(only_nonredundant=True)
+            sage: g.connection().display(only_nonredundant=True) # long time, 4s in 2018
             Gam^r_th,th = -r
             Gam^r_ph,ph = -r*sin(th)^2
             Gam^th_r,th = 1/r
@@ -1756,22 +1756,22 @@ class AffineConnection(SageObject):
             sage: eUW = c_xyW.frame() ; eVW = c_uvW.frame()
             sage: nab = M.affine_connection('nabla', r'\nabla')
             sage: nab[0,0,0], nab[0,1,0], nab[1,0,1] = x, x-y, x*y
-            sage: for i in M.irange():
+            sage: for i in M.irange(): # long time, 5s in 2018
             ....:     for j in M.irange():
             ....:         for k in M.irange():
             ....:             nab.add_coef(eV)[i,j,k] = nab.coef(eVW)[i,j,k,c_uvW].expr()
             ....:
-            sage: r = nab.riemann() ; r
+            sage: r = nab.riemann() ; r # long time, 6s in 2018
             Tensor field of type (1,3) on the 2-dimensional differentiable
              manifold M
-            sage: r.parent()
+            sage: r.parent() # long time
             Module T^(1,3)(M) of type-(1,3) tensors fields on the 2-dimensional
              differentiable manifold M
-            sage: r.display(eU)
+            sage: r.display(eU) # long time
             (x^2*y - x*y^2) d/dx*dx*dx*dy + (-x^2*y + x*y^2) d/dx*dx*dy*dx + d/dx*dy*dx*dy
              - d/dx*dy*dy*dx - (x^2 - 1)*y d/dy*dx*dx*dy + (x^2 - 1)*y d/dy*dx*dy*dx
              + (-x^2*y + x*y^2) d/dy*dy*dx*dy + (x^2*y - x*y^2) d/dy*dy*dy*dx
-            sage: r.display(eV)
+            sage: r.display(eV) # long time
             (1/32*u^3 - 1/32*u*v^2 - 1/32*v^3 + 1/32*(u^2 + 4)*v - 1/8*u - 1/4) d/du*du*du*dv
              + (-1/32*u^3 + 1/32*u*v^2 + 1/32*v^3 - 1/32*(u^2 + 4)*v + 1/8*u + 1/4) d/du*du*dv*du
              + (1/32*u^3 - 1/32*u*v^2 + 3/32*v^3 - 1/32*(3*u^2 - 4)*v - 1/8*u + 1/4) d/du*dv*du*dv
@@ -1784,21 +1784,21 @@ class AffineConnection(SageObject):
         The same computation parallelized on 2 cores::
 
             sage: Parallelism().set(nproc=2)
-            sage: r_backup = r
+            sage: r_backup = r # long time
             sage: nab = M.affine_connection('nabla', r'\nabla')
             sage: nab[0,0,0], nab[0,1,0], nab[1,0,1] = x, x-y, x*y
-            sage: for i in M.irange():
+            sage: for i in M.irange(): # long time, 4s in 2018
             ....:     for j in M.irange():
             ....:         for k in M.irange():
             ....:             nab.add_coef(eV)[i,j,k] = nab.coef(eVW)[i,j,k,c_uvW].expr()
             ....:
-            sage: r = nab.riemann() ; r
+            sage: r = nab.riemann() ; r # long time, 4s in 2018
             Tensor field of type (1,3) on the 2-dimensional differentiable
              manifold M
-            sage: r.parent()
+            sage: r.parent() # long time
             Module T^(1,3)(M) of type-(1,3) tensors fields on the 2-dimensional
              differentiable manifold M
-            sage: r == r_backup
+            sage: r == r_backup # long time
             True
             sage: Parallelism().set(nproc=1)  # switch off parallelization
 
@@ -1987,7 +1987,7 @@ class AffineConnection(SageObject):
             sage: e = M.default_frame().new_frame(ch_basis, 'e')
             sage: e[1][:], e[2][:], e[3][:]
             ([y, 0, 0], [0, z, 0], [0, 0, x])
-            sage: nab.connection_form(1,1,e)
+            sage: nab.connection_form(1,1,e) # long time, 8s in 2018
             1-form nabla connection 1-form (1,1) on the 3-dimensional
              differentiable manifold M
             sage: nab.connection_form(1,1,e).comp(e)[:]
@@ -2024,13 +2024,13 @@ class AffineConnection(SageObject):
             sage: v = M.vector_field()
             sage: v[:] = (x*y, z^2-3*x, z+2*y)
             sage: b = M.default_frame()
-            sage: for j in M.irange():  # check on M's default frame
+            sage: for j in M.irange():  # check on M's default frame, long time, 3s in 2018
             ....:     nab(b[j]).contract(v) == \
             ....:      sum( nab.connection_form(i,j)(v)*b[i] for i in M.irange())
             True
             True
             True
-            sage: for j in M.irange():  # check on frame e
+            sage: for j in M.irange():  # check on frame e, long time, 3s in 2018
             ....:     nab(e[j]).contract(v) == \
             ....:      sum( nab.connection_form(i,j,e)(v)*e[i] for i in M.irange())
             True

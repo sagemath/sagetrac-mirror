@@ -1155,7 +1155,7 @@ def benchmark_hnf(nrange, bits=4):
     EXAMPLES::
 
         sage: import sage.matrix.matrix_integer_dense_hnf as hnf
-        sage: hnf.benchmark_hnf([50,100],32)
+        sage: hnf.benchmark_hnf([50,100],32) # long time, 69s in 2018
         ('sage', 50, 32, ...),
         ('sage', 100, 32, ...),
     """

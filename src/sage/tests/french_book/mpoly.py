@@ -138,7 +138,7 @@ Sage example in ./mpoly.tex, line 387::
 
   sage: w = QQbar.zeta(17); w  # racine primitive de 1
   0.9324722294043558? + 0.3612416661871530?*I
-  sage: Set(pt[zz] for pt in V) == Set(w^i for i in range(17))
+  sage: Set(pt[zz] for pt in V) == Set(w^i for i in range(17)) # long time, 20s in 2018
   True
 
 Sage example in ./mpoly.tex, line 401::

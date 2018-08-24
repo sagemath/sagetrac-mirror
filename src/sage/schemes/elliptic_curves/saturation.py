@@ -121,7 +121,7 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
 
     An example where the points are not 11-saturated::
 
-        sage: res = p_saturation([P+5*Q,P-6*Q,R],11); res
+        sage: res = p_saturation([P+5*Q,P-6*Q,R],11); res # long time, 10s in 2018
         (False,
         0,
         (-5783311/14600041*i + 1396143/14600041 : 37679338314/55786756661*i + 3813624227/55786756661 : 1))
@@ -129,7 +129,7 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
     That means that the 0'th point may be replaced by the displayed
     point to achieve an index gain of 11::
 
-        sage: p_saturation([res[2],P-6*Q,R],11)
+        sage: p_saturation([res[2],P-6*Q,R],11) # long time
         (True, {})
     """
     # This code does a lot of residue field construction and elliptic curve

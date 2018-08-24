@@ -1275,7 +1275,7 @@ class GammaH_class(CongruenceSubgroup):
 
         TESTS::
 
-            sage: for n in [2..20]:
+            sage: for n in [2..20]: # long time, 7s in 2018
             ....:     for g in Gamma0(n).gamma_h_subgroups():
             ....:         G = g.image_mod_n()
             ....:         assert G.order() == Gamma(n).index() / g.index()

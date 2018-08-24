@@ -887,7 +887,7 @@ class Function_cos_integral(BuiltinFunction):
     Compare ``cos_integral(3.0)`` to the definition of the value using
     numerical integration::
 
-        sage: N(euler_gamma + log(3.0) + integrate((cos(x)-1)/x, x, 0, 3.0) - cos_integral(3.0)) < 1e-14
+        sage: N(euler_gamma + log(3.0) + integrate((cos(x)-1)/x, x, 0, 3.0) - cos_integral(3.0)) < 1e-14 # long time, 10s in 2018
         True
 
     Arbitrary precision and complex arguments are handled::

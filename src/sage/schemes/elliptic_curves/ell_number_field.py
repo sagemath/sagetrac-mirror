@@ -2456,7 +2456,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: K.<a> = NumberField(x^2 + 23, 'a')
             sage: E = EllipticCurve(K,[0,0,0,101,0])
-            sage: E.gens()
+            sage: E.gens() # long time, 4s in 2018
             [(23831509/8669448*a - 2867471/8669448 : 76507317707/18049790736*a - 424166479633/18049790736 : 1),
              (-2031032029/969232392*a + 58813561/969232392 : -15575984630401/21336681877488*a + 451041199309/21336681877488 : 1),
              (-186948623/4656964 : 549438861195/10049728312*a : 1)]
@@ -2466,9 +2466,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: K.<y> = NumberField(x^4 + x^2 - 7)
             sage: E = EllipticCurve(K, [1, 0, 5*y^2 + 16, 0, 0])
-            sage: E.gens(lim1=1, lim3=1)
+            sage: E.gens(lim1=1, lim3=1) # long time, 2s in 2018
             []
-            sage: E.rank(), E.gens(lim3=12)  # long time (about 4s)
+            sage: E.rank(), E.gens(lim3=12)  # long time, 6s in 2018
             (1,
              [(369/25*y^3 + 539/25*y^2 + 1178/25*y + 1718/25 : -29038/125*y^3 - 43003/125*y^2 - 92706/125*y - 137286/125 : 1)])
 
@@ -2476,7 +2476,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: K.<t> = NumberField(x^2-17)
             sage: E = EllipticCurve(K,[-4,0])
-            sage: E.gens()
+            sage: E.gens() # long time, 4s in 2018
             [(-1/2*t + 1/2 : -1/2*t + 1/2 : 1), (-t + 3 : -2*t + 10 : 1)]
             sage: E.rank()
             2
@@ -2691,18 +2691,18 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve([1+i, -i, i, 1, 0])
-            sage: C = E.isogeny_class(); C
+            sage: C = E.isogeny_class(); C # long time, 10s in 2018
             Isogeny class of Elliptic Curve defined by y^2 + (i+1)*x*y + i*y = x^3 + (-i)*x^2 + x over Number Field in i with defining polynomial x^2 + 1
-            sage: len(C)
+            sage: len(C) # long time
             6
-            sage: C.matrix()
+            sage: C.matrix() # long time
             [ 1  3  9 18  6  2]
             [ 3  1  3  6  2  6]
             [ 9  3  1  2  6 18]
             [18  6  2  1  3  9]
             [ 6  2  6  3  1  3]
             [ 2  6 18  9  3  1]
-            sage: [E1.ainvs() for E1 in C]
+            sage: [E1.ainvs() for E1 in C] # long time
             [(i + 1, i - 1, i, -i - 1, -i + 1),
             (i + 1, i - 1, i, 14*i + 4, 7*i + 14),
             (i + 1, i - 1, i, 59*i + 99, 372*i - 410),
@@ -2722,16 +2722,16 @@ class EllipticCurve_number_field(EllipticCurve_field):
             True
             sage: E.cm_discriminant()
             -20
-            sage: C = E.isogeny_class()
-            sage: len(C)
+            sage: C = E.isogeny_class() # long time, 3s in 2018
+            sage: len(C) # long time
             2
-            sage: C.matrix()
+            sage: C.matrix() # long time
             [1 2]
             [2 1]
-            sage: [E.ainvs() for E in C]
+            sage: [E.ainvs() for E in C] # long time
             [(0, 0, 0, 83490*c^2 - 147015, -64739840*c^2 - 84465260),
             (0, 0, 0, -161535*c^2 + 70785, -62264180*c^3 + 6229080*c)]
-            sage: C.isogenies()[0][1]
+            sage: C.isogenies()[0][1] # long time
             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (83490*c^2-147015)*x + (-64739840*c^2-84465260) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1 to Elliptic Curve defined by y^2 = x^3 + (-161535*c^2+70785)*x + (-62264180*c^3+6229080*c) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1
 
         An example with CM by `\sqrt{-23}` (class number `3`)::
@@ -2741,11 +2741,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: js = hilbert_class_polynomial(-23).roots(L,multiplicities=False); len(js)
             3
             sage: E = EllipticCurve(j=js[0])
-            sage: E.has_rational_cm()
+            sage: E.has_rational_cm() # long time, 3s in 2018
             True
-            sage: len(E.isogenies_prime_degree())  # long time
+            sage: len(E.isogenies_prime_degree())  # long time, 5s in 2018
             3
-            sage: C = E.isogeny_class(); len(C)  # long time
+            sage: C = E.isogeny_class(); len(C)  # long time, 12s in 2018
             6
 
         The reason for the isogeny class having size six while the
@@ -2848,7 +2848,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: j1 = pol26.roots(K)[0][0]
             sage: E = EllipticCurve(j=j1)
-            sage: E.has_cm()
+            sage: E.has_cm() # long time, 3s in 2018
             True
             sage: E.has_rational_cm()
             False
@@ -2872,9 +2872,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
         number)::
 
             sage: EL = E.change_ring(L)
-            sage: CL = EL.isogeny_class(minimal_models=False); len(CL)
+            sage: CL = EL.isogeny_class(minimal_models=False); len(CL) # long time, 8s in 2018
             6
-            sage: Set([EE.j_invariant() for EE in CL.curves]) == Set(pol26.roots(L,multiplicities=False))
+            sage: Set([EE.j_invariant() for EE in CL.curves]) == Set(pol26.roots(L,multiplicities=False)) # long time
             True
 
         In each position in the matrix of degrees, we see primes (or
@@ -2884,7 +2884,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         forms of discriminant `-104`, from which we have selected a
         small prime::
 
-            sage: CL.matrix() # long time # random (see :trac:`19229`)
+            sage: CL.matrix() # long time # random (see :trac:`19229`), long time
             [1 2 3 3 5 5]
             [2 1 5 5 3 3]
             [3 5 1 3 2 5]
@@ -2894,7 +2894,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         To see the array of binary quadratic forms::
 
-            sage: CL.qf_matrix()  # long time # random (see :trac:`19229`)
+            sage: CL.qf_matrix()  # long time # random (see :trac:`19229`), long time
             [[[1], [2, 0, 13], [3, -2, 9], [3, -2, 9], [5, -4, 6], [5, -4, 6]],
              [[2, 0, 13], [1], [5, -4, 6], [5, -4, 6], [3, -2, 9], [3, -2, 9]],
              [[3, -2, 9], [5, -4, 6], [1], [3, -2, 9], [2, 0, 13], [5, -4, 6]],
@@ -2939,7 +2939,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: K.<a> = NumberField(x^2-x+1)
             sage: E = EllipticCurve([a+1,1,1,0,0])
-            sage: C = E.isogeny_class(); len(C)
+            sage: C = E.isogeny_class(); len(C) # long time, 9s in 2018
             4
         """
         try:
@@ -3134,7 +3134,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E2 = EllipticCurve([1+i,0,1,0,0])
             sage: E2.conductor()
             Fractional ideal (-4*i - 7)
-            sage: E1.is_isogenous(E2) # slower (~500ms)
+            sage: E1.is_isogenous(E2) # long time, 6s in 2018
             True
             sage: E1.is_isogenous(E2, proof=False) # faster  (~170ms)
             True
@@ -3147,7 +3147,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             True
             sage: E3.is_isogenous(E2)
             True
-            sage: E1.isogeny_degree(E2)
+            sage: E1.isogeny_degree(E2) # long time, 18s in 2018
             9
 
         TESTS:
@@ -3270,8 +3270,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve([1+i, -i, i, 1, 0])
-            sage: C = E.isogeny_class()
-            sage: [E.isogeny_degree(F) for F in C]
+            sage: C = E.isogeny_class() # long time, 8s in 2018
+            sage: [E.isogeny_degree(F) for F in C] # long time
             [2, 6, 18, 9, 3, 1]
         """
         # First deal with some easy cases:
@@ -3331,9 +3331,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K = NumberField(x**2 - 29, 'a'); a = K.gen()
             sage: E = EllipticCurve([1, 0, ((5 + a)/2)**2, 0, 0])
             sage: rho = E.galois_representation()
-            sage: rho.reducible_primes()
+            sage: rho.reducible_primes() # long time, 4s in 2018
             [3, 5]
-            sage: E.reducible_primes()
+            sage: E.reducible_primes() # long time, 4s in 2018
             [3, 5]
             sage: K = NumberField(x**2 + 1, 'a')
             sage: E = EllipticCurve_from_j(K(1728)) # CM over K
@@ -3344,17 +3344,17 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [2]
             sage: E = EllipticCurve_from_j(K(0)) # CM but NOT over K
             sage: rho = E.galois_representation()
-            sage: rho.reducible_primes()
+            sage: rho.reducible_primes() # long time, 3s in 2018
             [2, 3]
-            sage: E.reducible_primes()
+            sage: E.reducible_primes() # long time, 3s in 2018
             [2, 3]
             sage: E = EllipticCurve_from_j(K(2268945/128)).global_minimal_model() # c.f. [Sutherland12]
             sage: rho = E.galois_representation()
-            sage: rho.isogeny_bound() # ... but there is no 7-isogeny ...
+            sage: rho.isogeny_bound() # ... but there is no 7-isogeny ..., long time, 3s in 2018
             [7]
             sage: rho.reducible_primes()
             []
-            sage: E.reducible_primes()
+            sage: E.reducible_primes() # long time, 5s in 2018
             []
 
         """

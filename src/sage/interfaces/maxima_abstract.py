@@ -307,7 +307,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         EXAMPLES::
 
             # The output is kind of random
-            sage: sorted(maxima._commands(verbose=False))
+            sage: sorted(maxima._commands(verbose=False)) # long time, 50s in 2018
             [...
              'display',
              ...

@@ -29,28 +29,28 @@ We compute the Riemann matrix of a genus 3 curve::
     sage: R.<x,y>=QQ[]
     sage: f=x^4-x^3*y+2*x^3+2*x^2*y+2*x^2-2*x*y^2+4*x*y-y^3+3*y^2+2*y+1
     sage: S=RiemannSurface(f,prec=100)
-    sage: M=S.riemann_matrix()
+    sage: M=S.riemann_matrix() # long time, 12s in 2018
 
 We test the usual properties, i.e., that the period matrix is symmetric and that
 the imaginary part is positive definite::
 
-    sage: all(abs(a) < 1e-20 for a in (M-M.T).list())
+    sage: all(abs(a) < 1e-20 for a in (M-M.T).list()) # long time
     True
-    sage: iM=Matrix(RDF,3,3,[a.imag_part() for a in M.list()])
-    sage: iM.is_positive_definite()
+    sage: iM=Matrix(RDF,3,3,[a.imag_part() for a in M.list()]) # long time
+    sage: iM.is_positive_definite() # long time
     True
 
 We compute the endomorphism ring and check it has `\ZZ`-rank 6::
 
-    sage: A=S.endomorphism_basis(80,8)
-    sage: len(A) == 6
+    sage: A=S.endomorphism_basis(80,8) # long time, 12s in 2018
+    sage: len(A) == 6 # long time
     True
 
 In fact it is an order in a number field::
 
-    sage: T.<t>=QQ[]
-    sage: K.<a>=NumberField(t^6 - t^5 + 2*t^4 + 8*t^3 - t^2 - 5*t + 7)
-    sage: all(len(a.minpoly().roots(K)) == a.minpoly().degree() for a in A)
+    sage: T.<t>=QQ[] # long time
+    sage: K.<a>=NumberField(t^6 - t^5 + 2*t^4 + 8*t^3 - t^2 - 5*t + 7) # long time
+    sage: all(len(a.minpoly().roots(K)) == a.minpoly().degree() for a in A) # long time
     True
 """
 

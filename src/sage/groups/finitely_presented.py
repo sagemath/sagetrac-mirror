@@ -1188,7 +1188,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: a = Q([1]); b = Q([-2])
             sage: alpha = (Q.gens(), [a,b])
             sage: S2 = C2.semidirect_product(Q, ([C2.0],[alpha]))
-            sage: S1.is_isomorphic(S2)
+            sage: S1.is_isomorphic(S2) # long time, 8s in 2018
             True
 
         Dihedral groups can be constructed as semidirect products

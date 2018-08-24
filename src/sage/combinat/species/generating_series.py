@@ -1232,7 +1232,7 @@ class CycleIndexSeries(LazyPowerSeries):
             sage: G = species.SimpleGraphSpecies().cycle_index_series() - 1
             sage: from sage.combinat.species.generating_series import LogarithmCycleIndexSeries
             sage: CG = LogarithmCycleIndexSeries().compose(G)
-            sage: CG.isotype_generating_series().coefficients(8)
+            sage: CG.isotype_generating_series().coefficients(8) # long time, 12s in 2018
             [0, 1, 1, 2, 6, 21, 112, 853]
         """
 

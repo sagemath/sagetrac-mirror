@@ -5522,8 +5522,8 @@ class HeegnerQuatAlg(SageObject):
             sage: V = H.modp_dual_elliptic_curve_factor(EllipticCurve('389a'), q, 2)
             sage: [b.dot_product(k.element().change_ring(GF(q))) for b in V.basis()]  # long time
             [0, 0]
-            sage: k = H.rational_kolyvagin_divisor(D, 59)
-            sage: [b.dot_product(k.element().change_ring(GF(q))) for b in V.basis()]
+            sage: k = H.rational_kolyvagin_divisor(D, 59) # long time, 4s in 2018
+            sage: [b.dot_product(k.element().change_ring(GF(q))) for b in V.basis()] # long time
             [2, 0]
         """
         if not self.satisfies_heegner_hypothesis(D, c):
@@ -6651,7 +6651,7 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
 
     However when we search higher, we find the points we need::
 
-        sage: E.heegner_index(-8, descent_second_limit=16, check_rank=False)
+        sage: E.heegner_index(-8, descent_second_limit=16, check_rank=False) # long time
         2.00000?
 
 

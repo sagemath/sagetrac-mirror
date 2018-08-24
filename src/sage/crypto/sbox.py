@@ -770,12 +770,12 @@ class SBox(SageObject):
         Check that :trac:`22453` is fixed::
 
             sage: from sage.crypto.sboxes import AES
-            sage: aes_polys = AES.polynomials()
-            sage: p = aes_polys[0].parent("x3*y0 + x5*y0 + x7*y0 + x6*y1 + x2*y2"
+            sage: aes_polys = AES.polynomials() # long time, 28s in 2018
+            sage: p = aes_polys[0].parent("x3*y0 + x5*y0 + x7*y0 + x6*y1 + x2*y2" # long time
             ....:                         " + x3*y2 + x4*y2 + x2*y3 + x3*y3 +"
             ....:                         " x5*y4 + x6*y4 + x3*y5 + x4*y5 + x4*y7"
             ....:                         " + x2 + x3 + y2 + y3 + y4 + 1")
-            sage: p in aes_polys
+            sage: p in aes_polys # long time
             True
 
         """

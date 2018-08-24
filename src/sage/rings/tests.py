@@ -369,7 +369,7 @@ def test_karatsuba_multiplication(base_ring, maxdeg1, maxdeg2,
 
         sage: for C in [QQ, ZZ[I], ZZ[I, sqrt(2)], GF(49, 'a'), MatrixSpace(GF(17), 3)]:
         ....:     sage.rings.tests.test_karatsuba_multiplication(C, 10, 10) # long time
-        sage: sage.rings.tests.test_karatsuba_multiplication(ZZ, 10000, 10000, ref_mul=lambda f,g: f*g, base_ring_random_elt_args=[100000])
+        sage: sage.rings.tests.test_karatsuba_multiplication(ZZ, 10000, 10000, ref_mul=lambda f,g: f*g, base_ring_random_elt_args=[100000]) # long time, 33s in 2018
 
     """
     from sage.all import randint, PolynomialRing

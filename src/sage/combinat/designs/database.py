@@ -1655,8 +1655,8 @@ def OA_10_469():
 
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_10_469
-        sage: OA = OA_10_469()
-        sage: is_orthogonal_array(OA,10,469,2)
+        sage: OA = OA_10_469() # long time, 15s
+        sage: is_orthogonal_array(OA,10,469,2) # long time
         True
 
     The design is available from the general constructor::
@@ -2715,7 +2715,7 @@ EXAMPLES::
     sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
     sage: from sage.combinat.designs.orthogonal_arrays import QDM_from_Vmt
     sage: from sage.combinat.designs.database import Vmt_vectors
-    sage: for (m,t),(vec,source) in sorted(Vmt_vectors.items()):
+    sage: for (m,t),(vec,source) in sorted(Vmt_vectors.items()): # long time, 6s in 2018
     ....:     G,M = QDM_from_Vmt(m,t,vec)
     ....:     if m*t < 600:
     ....:         assert  is_quasi_difference_matrix(M,G,m+2,1,1,t,verbose=1),(m,t)

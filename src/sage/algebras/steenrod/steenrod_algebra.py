@@ -555,11 +555,11 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: A3 = SteenrodAlgebra(3)
             sage: A3.category()
             Category of graded hopf algebras with basis over Finite Field of size 3
-            sage: TestSuite(A3).run()
+            sage: TestSuite(A3).run() # long time, 10s in 2018
             sage: TestSuite(SteenrodAlgebra(basis='adem', p=3)).run()
             sage: TestSuite(SteenrodAlgebra(basis='pst_llex', p=7)).run() # long time
             sage: TestSuite(SteenrodAlgebra(basis='comm_deg', p=5)).run() # long time
-            sage: TestSuite(SteenrodAlgebra(p=2,generic=True)).run()
+            sage: TestSuite(SteenrodAlgebra(p=2,generic=True)).run() # long time, 9s in 2018
 
         Two Steenrod algebras are equal iff their associated primes,
         bases, and profile functions (if present) are equal.  Because

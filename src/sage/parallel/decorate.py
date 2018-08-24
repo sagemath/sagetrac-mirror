@@ -561,7 +561,7 @@ def fork(f=None, timeout=0, verbose=False):
         sage: cython('def f(): print(<char*>0)')
         sage: @fork
         ....: def g(): f()
-        sage: print("this works"); g()
+        sage: print("this works"); g() # long time, 43s in 2018
         this works...
         <BLANKLINE>
         ------------------------------------------------------------------------

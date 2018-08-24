@@ -832,9 +832,9 @@ class EllipticCurveIsogeny(Morphism):
         sage: E = EllipticCurve(j=j)
         sage: L.<b> = K.extension(x^2+26)
         sage: EL = E.change_ring(L)
-        sage: iso2 = EL.isogenies_prime_degree(2); len(iso2)
+        sage: iso2 = EL.isogenies_prime_degree(2); len(iso2) # long time, 10s in 2018
         1
-        sage: iso3 = EL.isogenies_prime_degree(3); len(iso3)
+        sage: iso3 = EL.isogenies_prime_degree(3); len(iso3) # long time, 15s in 2018
         2
 
     Examples over function fields used not to work (see :trac:`11327`)::

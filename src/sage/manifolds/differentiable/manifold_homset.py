@@ -1737,10 +1737,10 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             sage: [a,b] = var('a b')
             sage: J = R.open_interval(a, b)
             sage: H = IntegratedGeodesicSet(J, M)
-            sage: c = H._an_element_() ; c
+            sage: c = H._an_element_() ; c # long time, 10s in 2018
             Integrated geodesic in the 4-dimensional differentiable
              manifold M
-            sage: sys = c.system(verbose=True)
+            sage: sys = c.system(verbose=True) # long time
             Geodesic in the 4-dimensional differentiable manifold M
              equipped with Riemannian metric g on the 4-dimensional
              differentiable manifold M, and integrated over the Real
@@ -1764,11 +1764,11 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             d(Dy)/dt = 0
             d(Dz)/dt = 0
             <BLANKLINE>
-            sage: sol = c.solve(parameters_values={a:1,b:6})
-            sage: interp = c.interpolate()
-            sage: p = c(3) ; p
+            sage: sol = c.solve(parameters_values={a:1,b:6}) # long time
+            sage: interp = c.interpolate() # long time
+            sage: p = c(3) ; p # long time
             Point on the 4-dimensional differentiable manifold M
-            sage: p.coordinates()     # abs tol 1e-12
+            sage: p.coordinates()     # abs tol 1e-12, long time
             (0.2307056927167852, 0.0, 0.0, 0.0)
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedGeodesicSet(I, I)

@@ -1295,9 +1295,9 @@ class DiffScalarField(ScalarField):
             sage: g = M.metric()
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1, 1, 1, 1
             sage: f = M.scalar_field(t + x^2 + t^2*y^3 - x*z^4, name='f')
-            sage: s = f.dalembertian(); s
+            sage: s = f.dalembertian(); s # long time, 11s in 2018
             Scalar field Box(f) on the 4-dimensional Lorentzian manifold M
-            sage: s.display()
+            sage: s.display() # long time
             Box(f): M --> R
                (t, x, y, z) |--> 6*t^2*y - 2*y^3 - 12*x*z^2 + 2
 
@@ -1306,7 +1306,7 @@ class DiffScalarField(ScalarField):
         method :meth:`dalembertian`::
 
             sage: from sage.manifolds.operators import dalembertian
-            sage: dalembertian(f) == s
+            sage: dalembertian(f) == s # long time
             True
 
         """

@@ -4331,10 +4331,10 @@ class LinearCodeSyndromeDecoder(Decoder):
     And now, we build a third syndrome decoder, whose ``maximum_error_weight``
     is bigger than both the covering radius and half the minimum distance::
 
-        sage: D = C.decoder("Syndrome", maximum_error_weight = 5)
-        sage: D.decoder_type()
+        sage: D = C.decoder("Syndrome", maximum_error_weight = 5) # long time, 33s in 2018
+        sage: D.decoder_type() # long time
         {'complete', 'hard-decision', 'might-error'}
-        sage: D.decoding_radius()
+        sage: D.decoding_radius() # long time
         4
 
     In that case, the decoder might still return an unexpected codeword, but

@@ -1201,7 +1201,7 @@ def isogenies_13_0(E, minimal_models=True):
         sage: K.<a> = NumberField(f)
         sage: E = EllipticCurve(j=K(0)); E.ainvs()
         (0, 0, 0, 0, 1)
-        sage: [phi.codomain().ainvs() for phi in isogenies_13_0(E)]
+        sage: [phi.codomain().ainvs() for phi in isogenies_13_0(E)] # long time, 9s in 2018
         [(0,
           0,
           20360599/165164973653422080*a^11 - 3643073/41291243413355520*a^10 - 101/8789110986240*a^9 + 5557619461/573489491852160*a^8 - 82824971/11947697746920*a^7 - 19487/21127670640*a^6 - 475752603733/29409717530880*a^5 + 87205112531/7352429382720*a^4 + 8349/521670880*a^3 + 5858744881/12764634345*a^2 - 1858703809/2836585410*a + 58759402/48906645,
@@ -1318,7 +1318,7 @@ def isogenies_13_1728(E, minimal_models=True):
         sage: f = x^12 + 1092*x^10 - 432432*x^8 + 6641024*x^6 - 282896640*x^4 - 149879808*x^2 - 349360128
         sage: K.<a> = NumberField(f)
         sage: E = EllipticCurve(K, [1,0])
-        sage: [phi.codomain().ainvs() for phi in isogenies_13_1728(E)]
+        sage: [phi.codomain().ainvs() for phi in isogenies_13_1728(E)] # long time, 6s in 2018
         [(0,
         0,
         0,
@@ -2218,7 +2218,7 @@ def isogenies_prime_degree(E, l, minimal_models=True):
         sage: E = EllipticCurve(GF(101), [-3440, 77658])
         sage: E.isogenies_prime_degree(71) # fast
         []
-        sage: E.isogenies_prime_degree(73) # slower (2s)
+        sage: E.isogenies_prime_degree(73) # long time, 4s in 2018
         []
     """
     if not l.is_prime():

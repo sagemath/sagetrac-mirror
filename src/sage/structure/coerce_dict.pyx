@@ -410,7 +410,7 @@ cdef class MonoDict:
         ....:     return len([c for c in gc.get_objects() if isinstance(c,T)])
         sage: _ = gc.collect()
         sage: N = count_type(MonoDict)
-        sage: for i in range(100):
+        sage: for i in range(100): # long time, 38s in 2018
         ....:     V = [MonoDict({"id":j+100*i}) for j in range(100)]
         ....:     n= len(V)
         ....:     for i in range(n): V[i][V[(i+1)%n]]=(i+1)%n

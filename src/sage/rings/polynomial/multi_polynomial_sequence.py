@@ -921,7 +921,7 @@ class PolynomialSequence_generic(Sequence_generic):
             sage: sr = mq.SR(2,4,4,8,gf2=True,polybori=True)
             sage: F,s = sr.polynomial_system()
             sage: Fz = Sequence(F.part(2))
-            sage: Fz.connected_components()
+            sage: Fz.connected_components() # long time, 35s in 2018
             [Polynomial Sequence with 128 Polynomials in 128 Variables,
              Polynomial Sequence with 128 Polynomials in 128 Variables,
              Polynomial Sequence with 128 Polynomials in 128 Variables,

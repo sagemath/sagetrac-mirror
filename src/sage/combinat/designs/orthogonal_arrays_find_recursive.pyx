@@ -85,14 +85,14 @@ def find_recursive_construction(k, n):
         sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_recursive_construction
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: count = 0
-        sage: for n in range(10,150):
+        sage: for n in range(10,150): # long time, 10s in 2018
         ....:     k = designs.orthogonal_arrays.largest_available_k(n)
         ....:     if find_recursive_construction(k,n):
         ....:         count = count + 1
         ....:         f,args = find_recursive_construction(k,n)
         ....:         OA = f(*args)
         ....:         assert is_orthogonal_array(OA,k,n,2,verbose=True)
-        sage: count
+        sage: count # long time
         56
     """
     assert k > 3

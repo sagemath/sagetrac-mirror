@@ -1788,8 +1788,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
             sage: m = identity_matrix(GF(2), 2000, sparse=True)
             sage: MS = MatrixSpace(GF(2), 2000, sparse=False)
-            sage: md = MS(m) # used to be slow
-            sage: md.parent() is MS
+            sage: md = MS(m) # long time, 5s in 2018
+            sage: md.parent() is MS # long time
             True
         """
         return self(x, **kwds)

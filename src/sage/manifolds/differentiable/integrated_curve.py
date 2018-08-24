@@ -3136,7 +3136,7 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
     corresponding to the three initial conditions previously set::
 
         sage: graph3D_embedded_geods = Graphics()
-        sage: for key in dict_params:
+        sage: for key in dict_params: # long time, 4s in 2018
         ....:     sol = c.solve(solution_key='sol-'+key,
         ....:                        parameters_values=dict_params[key])
         ....:     interp = c.interpolate(solution_key='sol-'+key,

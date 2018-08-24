@@ -94,7 +94,7 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
 
             sage: M = ModularForms(Gamma1(29), base_ring=GF(29))
             sage: S = M.cuspidal_subspace()
-            sage: 0 in [f.valuation() for f in S.basis()]
+            sage: 0 in [f.valuation() for f in S.basis()] # long time, 31s in 2018
             False
             sage: len(S.basis()) == dimension_cusp_forms(Gamma1(29), 2)
             True

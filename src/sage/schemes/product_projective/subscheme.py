@@ -229,7 +229,7 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
         ::
 
             sage: PP = ProductProjectiveSpaces([2,1,3], CC, 't')
-            sage: PP.subscheme([]).dimension()
+            sage: PP.subscheme([]).dimension() # long time, 13s in 2018
             6
 
         ::

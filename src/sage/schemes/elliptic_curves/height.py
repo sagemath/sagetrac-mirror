@@ -1900,7 +1900,7 @@ class EllipticCurveCanonicalHeight:
             sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve([0,1-i,i,-i,0])
             sage: H = E.height_function()
-            sage: H.min_gr(0.01,5)
+            sage: H.min_gr(0.01,5) # long time, 25s in 2018
             0.020153685521979152
 
         In this example the point `P=(0,0)` has height 0.023 so our

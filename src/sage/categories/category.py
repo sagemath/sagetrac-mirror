@@ -2642,7 +2642,7 @@ def category_graph(categories = None):
         sage: G.plot()
         Graphics object consisting of 20 graphics primitives
 
-        sage: sage.categories.category.category_graph().plot()
+        sage: sage.categories.category.category_graph().plot() # long time, 7s in 2018
         Graphics object consisting of ... graphics primitives
     """
     from sage import graphs

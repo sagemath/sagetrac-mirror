@@ -542,7 +542,7 @@ def BinaryDihedralPresentation(n):
 
     TESTS::
 
-        sage: for n in range(3, 9):
+        sage: for n in range(3, 9): # long time, 13s in 2018
         ....:     P = groups.presentation.BinaryDihedral(n)
         ....:     M = groups.matrix.BinaryDihedral(n)
         ....:     assert P.is_isomorphic(M)

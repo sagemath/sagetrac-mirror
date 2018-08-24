@@ -20841,8 +20841,8 @@ class GenericGraph(GenericGraph_pyx):
             (24, [(2,3), (1,2), (0,1)])
             sage: C = graphs.CubeGraph(4)
             sage: G = C.automorphism_group()
-            sage: M = G.character_table() # random order of rows, thus abs() below
-            sage: QQ(M.determinant()).abs()
+            sage: M = G.character_table() # random order of rows, thus abs() below, long time, 9s in 2018
+            sage: QQ(M.determinant()).abs() # long time
             712483534798848
             sage: G.order()
             384

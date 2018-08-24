@@ -1763,8 +1763,8 @@ class TernaryQF(SageObject):
         EXAMPLES::
 
             sage: Q = TernaryQF([1, 1, 7, 0, 0, 0])
-            sage: auts = Q.automorphisms()
-            sage: auts
+            sage: auts = Q.automorphisms() # long time, 25s in 2018
+            sage: auts # long time
             [
             [-1  0  0]  [-1  0  0]  [ 0 -1  0]  [ 0 -1  0]  [ 0  1  0]  [ 0  1  0]
             [ 0 -1  0]  [ 0  1  0]  [-1  0  0]  [ 1  0  0]  [-1  0  0]  [ 1  0  0]
@@ -1773,7 +1773,7 @@ class TernaryQF(SageObject):
             [ 0 -1  0]  [0 1 0]
             [ 0  0 -1], [0 0 1]
             ]
-            sage: all(Q == Q(A) for A in auts)
+            sage: all(Q == Q(A) for A in auts) # long time
             True
             sage: Q = TernaryQF([3, 4, 5, 3, 3, 2])
             sage: Q.automorphisms(slow = False)

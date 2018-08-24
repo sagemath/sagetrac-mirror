@@ -2168,7 +2168,7 @@ class SemistandardSkewTableaux_all(SemistandardSkewTableaux):
         EXAMPLES::
 
             sage: S = SemistandardSkewTableaux()
-            sage: TestSuite(S).run()
+            sage: TestSuite(S).run() # long time, 14s in 2018
 
             sage: S = SemistandardSkewTableaux(3)
             sage: TestSuite(S).run()

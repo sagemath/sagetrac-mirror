@@ -117,7 +117,7 @@ EXAMPLES:
 We can print the S-Boxes with differential uniformity 2 with the following code::
 
     sage: from sage.crypto.sboxes import sboxes
-    sage: for name, s in sboxes.items():
+    sage: for name, s in sboxes.items(): # long time, 15s in 2018
     ....:     if s.differential_uniformity() == 2:
     ....:         print(name)
     Fides_6

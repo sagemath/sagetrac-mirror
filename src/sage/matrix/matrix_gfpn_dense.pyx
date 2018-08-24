@@ -1362,12 +1362,12 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         TESTS::
 
             sage: MS = MatrixSpace(GF(9,'x'),500)
-            sage: while 1:
+            sage: while 1: # long time, 7s in 2018
             ....:     M = MS.random_element()
             ....:     if M.rank() == 500:
             ....:         break
-            sage: Minv = ~M    # indirect doctest
-            sage: Minv*M == M*Minv == 1
+            sage: Minv = ~M    # indirect doctest, long time, 25s in 2018
+            sage: Minv*M == M*Minv == 1 # long time, 41s in 2018
             True
 
         We use the occasion to demonstrate that errors in MeatAxe are
