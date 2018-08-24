@@ -542,7 +542,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         0
 
         sage: (out, err, ret) = test_executable(["sage", "--gdb"], 'quit\n')  # optional - gdb, long time, 33s in 2018
-        sage: out.find('(gdb) ') >= 0  # optional - gdb
+        sage: out.find('(gdb) ') >= 0  # optional - gdb, long time
         True
         sage: ret  # optional - gdb
         0
