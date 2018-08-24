@@ -307,35 +307,45 @@ cdef vector[GraphNode] sageGraphToLists(G, partition = [], has_edge_labels=False
             nodeArray[u].adj_list.push_back([<int>v, <int>edge_labels_dict[l]])
     return nodeArray
 
-def prova(G, k, partition=[], edge_labels=False):
+def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result='edge_classes'):
     if not isinstance(G, SageGraph):
         raise TypeError
-
+    if result == 'edge_classes' and k == 1:
+        raise ValueError("Cannot return edge_classes for k = 1")
     g_temp = Graph(G, edge_labels)
     if(G.has_multiple_edges()):
         edge_labels = True
     g = g_temp
     
     g._relabel_map = g.relabel()
-    print(g._relabel_map)
+    #print(g._relabel_map)
     g.set_vertex_coloring(partition, g._relabel_map)
     
-    #I should add support for labels, and convert vertex labels and edge labels to integers. Call the functions you developed
     cdef vector[GraphNode] res = sageGraphToLists(g.graph, g.vertex_coloring, edge_labels)
-    print(g.graph.vertices())
-    print(g.graph.edges())
-    print(g.vertex_coloring)
-    print(res)
-    print(g._relabel_map)
+    #print(g.graph.vertices())
+    #print(g.graph.edges())
+    #print(g.vertex_coloring)
+    #print(res)
+    #print(g._relabel_map)
     cdef unordered_map[Tuple[int], int] coloring = k_WL(res, k, g.vertex_coloring)
     
     resultDict = {}
     
-    #Normally, one would check for equality of the results. If using initial partitions though, one should check for an automorphism between the colors.
-    #That is, c1(tuple) = g(c2(tuple)) with g bijective, since it could happen that the initial coloring produces a different initial order that doesn't cause any issue with k-WL,
-    #but produces a different permutation of the final coloring
     for p in coloring:
         l = [el for el in p.first]
-        c = p.second
-        resultDict[tuple(l)] = c
-    return resultDict
+        if result == 'vertex_classes':
+            firstEl = l[0]
+            for i in range(1,k):
+                if l[i] != firstEl:
+                    break
+            else:
+                resultDict.setdefault(p.second, []).append(firstEl)
+        elif result == 'edge_classes':
+            firstEl = l[0]
+            secondEl = l[1]
+            for i in range(2,k):
+                if l[i] != secondEl:
+                    break
+            else:
+                resultDict.setdefault(p.second, []).append((firstEl, secondEl))
+    return resultDict.values()

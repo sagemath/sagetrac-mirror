@@ -329,7 +329,7 @@ namespace wl{
                         }
                 }
                 sort(tmpMultiset.begin(), tmpMultiset.end());
-                cout << tuple[0] << "   <";
+                /*cout << tuple[0] << "   <";
                 for(const auto& el: tmpMultiset){
                     cout << "(";
                     for(const auto& el2: el){
@@ -337,7 +337,7 @@ namespace wl{
                     }
                     cout << ");";
                 }
-                cout << ">" << endl;
+                cout << ">" << endl;*/
                 for(const auto& innerVector:tmpMultiset){
                         for(const auto& el: innerVector){
                                 color.add_multiset_color(el, n*k);
