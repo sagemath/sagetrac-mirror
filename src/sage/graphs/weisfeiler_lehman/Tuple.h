@@ -126,11 +126,12 @@ public:
 
 	const Tuple<T>::iterator end() const;
      
-        __attribute__ ((noinline)) std::string to_string() const{
-                if (this->size() < 1) return "";
+        __attribute__ ((noinline)) std::string to_string(int j) const{
+                
+                if (j < 1) return "";
                 std::stringstream ss;
                 ss << "(" << this->content[0];
-                for (int i = 1; i < this->size(); i++) {
+                for (int i = 1; i < j; i++) {
                         ss << "," << this->content[i];
                 }
                 ss << ")";
@@ -173,7 +174,7 @@ size_t Tuple<T>::getHash() const {
 }
 template<typename T>
 Tuple<T>::~Tuple(){
-		if(numOfElements >= 0) delete[] content;
+        delete[] content;
 }
 /*
  * Method to manually re-compute the hash, which will be saved for later use
