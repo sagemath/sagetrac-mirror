@@ -42,12 +42,12 @@ int main(int argc, char** argv){
             if(!temp.empty()) res2[el.first] = temp;
         }
     }
-    for(const auto& el: res2){
+    /*for(const auto& el: res2){
         cout << el.first << ": " << endl;
         for(const auto& el2: el.second){
             cout << "       (" << el2.first << ", " << el2.second << ")" << endl;
         }
-    }
+    }*/
     cout << res2.size() << " classi di colore" << endl;
 	return 0;
 }

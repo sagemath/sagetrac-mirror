@@ -296,6 +296,7 @@ def check_orbit_correctness(color_classes, g, partition = None, edge_labels=Fals
     #Check if they are correct
     if cardinality == 2:
         O = compute_orbitals(G, partition, edge_labels)
+        O = map(sorted, O)
         O.sort()
     elif cardinality == 1:
         O = G.automorphism_group(partition=partition, edge_labels=edge_labels, orbits=True, return_group=False)
