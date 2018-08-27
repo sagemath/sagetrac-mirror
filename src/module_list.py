@@ -319,7 +319,8 @@ ext_modules = [
               sources = ['sage/graphs/graph_decompositions/fast_digraph.pyx']),
     
     Extension('sage.graphs.weisfeiler_lehman',
-              sources = ['sage/graphs/weisfeiler_lehman.pyx']),
+              sources = ['sage/graphs/weisfeiler_lehman.pyx'],
+              extra_compile_args = ['-std=c++14']),
 
     Extension('sage.graphs.graph_decompositions.vertex_separation',
               sources = ['sage/graphs/graph_decompositions/vertex_separation.pyx']),

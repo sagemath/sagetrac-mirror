@@ -30,7 +30,7 @@ int main(int argc, char** argv){
 		}
 		v.push_back(g);
 	}
-	auto res = wl::k_WL(v, k, true);
+	auto res = wl::k_WL(v, k, false);
     auto res2 = res;
     if(card == 1){
         res2.clear();

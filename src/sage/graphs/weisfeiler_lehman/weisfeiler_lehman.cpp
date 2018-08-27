@@ -13,6 +13,9 @@
 #include <chrono>
 #include <exception>
 #include <cassert>
+#include <thread>
+#include <mutex>
+#include <shared_mutex>
 namespace wl{
         template<typename T>
         class AdjMatrix{
@@ -322,8 +325,18 @@ namespace wl{
             }
             return c;
         }
-        
-        void innerCreateFingerprint(FingerprintMap& fingerprints, Fingerprint& fingerprint, const AdjMatrix<int>& am, int i, int j, int maxVertex, int offset, int limit, int* currentTuple, char* m){
+        int addToFingerprintmap(FingerprintMap& fingerprints, std::shared_timed_mutex& m, AdjMatrix<int>::VectorView&& subgraphView){
+            std::unique_lock<std::shared_timed_mutex> l(m);
+            auto& f = fingerprints[std::move(subgraphView)];
+            if(f == 0){ //If this isomorphism class was never encountered before, the value of f will be 0, so we can give it a unique identifier (the number of current classes found will be enough)
+                f = fingerprints.size();
+            }
+            int copy = f;
+            l.unlock();
+            return copy;
+        }
+            
+        void innerCreateFingerprint(std::shared_timed_mutex& mtx, FingerprintMap& fingerprints, Fingerprint& fingerprint, const AdjMatrix<int>& am, int i, int j, int maxVertex, int offset, int limit, int* currentTuple, char* m){
             int n = am.size();
             if(offset == limit){ //If we have completely determined a vertex set
                 //Create the corresponding view, based on the order given by "getCanonicalOrdering"
@@ -334,19 +347,24 @@ namespace wl{
                         m[currentTuple[k1]*am.size()+currentTuple[k2]] = 0;
                     }
                 }
-                auto& f = fingerprints[std::move(subgraphView)];
-                if(f == 0){ //If this isomorphism class was never encountered before, the value of f will be 0, so we can give it a unique identifier (the number of current classes found will be enough)
-                    f = fingerprints.size();
-                    fingerprint[f] = 1; //And put the counter of that identifier in the fingerprint 1
+                int f;
+                std::shared_lock<std::shared_timed_mutex> l(mtx);
+                const auto& f2 = fingerprints;
+                auto t = f2.find(subgraphView);
+                if(t == fingerprints.end()){
+                    l.unlock();
+                    f = addToFingerprintmap(fingerprints, mtx, std::move(subgraphView));
                 }else{
-                    fingerprint[f]++; //Otherwise just increase the counter
+                    f = t->second;
+                    l.unlock();
                 }
+                fingerprint[f]++; //Increase the counter in the fingerprint
             }else{
                 //With this we try all possible vertices. Since we are only interested in seeing any vertex set only once, without repetitions, and since the final ordering will be decided by getCanonicalOrdering, we can choose an arbitrary initial ordering
                 //and stick with it to avoid repeating vertex sets. In our case, each vertex in the vertex set cannot be smaller than the previous ones.
                 for(int k = maxVertex; k < n; k++){
                     currentTuple[offset] = k;
-                    innerCreateFingerprint(fingerprints, fingerprint, am, i, j, k, offset+1, limit, currentTuple, m);
+                    innerCreateFingerprint(mtx, fingerprints, fingerprint, am, i, j, k, offset+1, limit, currentTuple, m);
                 }
             }
         }
@@ -357,7 +375,7 @@ namespace wl{
          * the canonical ordering how its vertex set computed, and then a counter for its isomorphism class incremented. All of this is done while individualising "e" as described in the comments to the VectorView class.
          * This will tell us how many times each possible isomorphism class (whose member have the above mentioned properties) "contains" our edge, and will allow us to distinguish them.
          */
-        void createFingerprint(FingerprintMap& fingerprints, Fingerprint& fingerprint, const AdjMatrix<int>& am, int i, int j, int* currentTuple, int limit, char* m){
+        void createFingerprint(std::shared_timed_mutex& mtx, FingerprintMap& fingerprints, Fingerprint& fingerprint, const AdjMatrix<int>& am, int i, int j, int* currentTuple, int limit, char* m){
             //Since the vertex set will need to include "i" and "j", we can just put them as the first two members and then fill the rest of the spots, since the best ordering will be then found by "getCanonicalOrdering"
             int cnt = 1;
             currentTuple[0] = i;
@@ -365,9 +383,35 @@ namespace wl{
                 currentTuple[1] = j;
                 cnt++;
             }
-            innerCreateFingerprint(fingerprints, fingerprint, am, i, j, 0, cnt, limit, currentTuple, m);
+            innerCreateFingerprint(mtx, fingerprints, fingerprint, am, i, j, 0, cnt, limit, currentTuple, m);
         }
-        
+        void addToFingerprintDB(std::mutex& m, unordered_map<vector<int>, ColorClass, IntVector_Hash>& fingerprintsDB, vector<int>&& t, const pair<int,int>& edge){
+            std::lock_guard<std::mutex> lock(m);
+            fingerprintsDB[std::move(t)].insert(edge);
+        }
+        void threadFunction(std::mutex& fDBM, std::shared_timed_mutex& fmM, char* m, int* tv, int k, const AdjMatrix<int>& adjMatrix, unordered_map<vector<int>, ColorClass, IntVector_Hash>& fingerprintsDB, FingerprintMap& fingerprint_map, ColorClass::const_iterator b, ColorClass::const_iterator e){
+            char* automorphism_map = m;
+            map<int,int> fingerprint;
+            int* tempVector = tv;
+            for(auto it=b; it!=e; it++){//For each pair of vertices (or edge) in the color class
+                const auto& edge = *it;
+                createFingerprint(fmM, fingerprint_map, fingerprint, adjMatrix, edge.first, edge.second, tempVector, k+1, automorphism_map); //Create a fingerprint as described in the comments to the method
+                
+                //Notice how we don't need to generate all of the possible isomorphism classes beforehand, since if two vertices will be in the same color class, the first one analyzed will add all the needed
+                //isomorphism classes to "fingerprint_map", and the second one will use them. If the second one uses classes that the first one did not add, then they clearly won't be able to be in the same color class.
+                
+                //Save the fingerprint into an appropriately sized sorted vector
+                vector<int> t(2*fingerprint.size());
+                int idx = 0;
+                for(const auto& el: fingerprint){
+                        t[idx++] = el.first;
+                        t[idx++] = el.second;
+                }
+                //Add the edge to the correct equivalency class (which will later indicate its color class too)
+                addToFingerprintDB(fDBM, fingerprintsDB, std::move(t), edge);
+                fingerprint.clear();
+            }
+        }
         unordered_map<int, vector<pair<int,int>>> k_WL(const std::vector<GraphNode>& v, int k, bool hasVertexLabels){
             int n = v.size();
             //Create two copies of the adjacency matrix and of the color classes' queue, since during
@@ -376,17 +420,19 @@ namespace wl{
             AdjMatrix<int> adjMatrix = populateAdjMatrix(v, n, hasVertexLabels);
             AdjMatrix<int> new_adjMatrix = AdjMatrix<int>(n);
             queue<ColorClass> color_classes;
-            queue<ColorClass> new_color_classes;
-            
-            unordered_set<int> used_vertices;
-            map<int,int> fingerprint;
-            char* automorphism_map = new char[n*n]();
+            queue<ColorClass> new_color_classes;            
             bool finished = false;
-            
+            std::mutex fDBM;
+            shared_timed_mutex fmM;
             initColorClasses(color_classes, adjMatrix);
             volatile int counter = 0;
-            
-            int* tempVector = new int[k+1];
+            int threadN = 14;
+            char** maps = new char*[threadN];
+            int** tempvectors = new int*[threadN];
+            for(int i = 0; i < threadN; i++){
+                maps[i] = new char[n*n]();
+                tempvectors[i] = new int[k+1]();
+            }
             while(!finished){ //While at least one color class has been refined during the last round
                
                 counter++;
@@ -398,22 +444,16 @@ namespace wl{
                     auto cc = color_classes.front();
                     color_classes.pop();
                     fingerprintsDB.clear(); //Clear the DB, since there can't be any bleeding between color classes
-                    for(const auto& edge: cc){//For each pair of vertices (or edge) in the color class
-                        createFingerprint(fingerprint_map, fingerprint, adjMatrix, edge.first, edge.second, tempVector, k+1, automorphism_map); //Create a fingerprint as described in the comments to the method
-                        
-                        //Notice how we don't need to generate all of the possible isomorphism classes beforehand, since if two vertices will be in the same color class, the first one analyzed will add all the needed
-                        //isomorphism classes to "fingerprint_map", and the second one will use them. If the second one uses classes that the first one did not add, then they clearly won't be able to be in the same color class.
-                        
-                        //Save the fingerprint into an appropriately sized sorted vector
-                        vector<int> t(2*fingerprint.size());
-                        int idx = 0;
-                        for(const auto& el: fingerprint){
-                                t[idx++] = el.first;
-                                t[idx++] = el.second;
-                        }
-                        //Add the edge to the correct equivalency class (which will later indicate its color class too)
-                        fingerprintsDB[std::move(t)].insert(edge);
-                        fingerprint.clear();
+                    int ccSize = cc.size();
+                    int threadEdgesSize = ccSize/threadN;
+                    vector<thread> threadVector;
+                    for(int i = 0; i < threadN - 1; i++){
+                        threadVector.push_back(thread(threadFunction, std::ref(fDBM), std::ref(fmM), maps[i], tempvectors[i], k, std::cref(adjMatrix), std::ref(fingerprintsDB), std::ref(fingerprint_map), std::next(cc.begin(),threadEdgesSize*i), std::next(cc.begin(),threadEdgesSize*(i+1))));
+                    }
+                    threadVector.push_back(thread(threadFunction, std::ref(fDBM), std::ref(fmM), maps[threadN-1], tempvectors[threadN-1], k, std::cref(adjMatrix), std::ref(fingerprintsDB), std::ref(fingerprint_map), std::next(cc.begin(),threadEdgesSize*(threadN-1)), cc.end()));
+                    for(auto& el: threadVector){
+                            el.join();
+                       
                     }
                     int oldc = c;
                     for(auto& color_class: fingerprintsDB){
@@ -429,8 +469,12 @@ namespace wl{
                 AdjMatrix<int>::swap(adjMatrix, new_adjMatrix);
                 std::swap(color_classes, new_color_classes);    
             }
-            delete[] tempVector;  
-            delete[] automorphism_map;
+            for(int i = 0; i < threadN; i++){
+                delete[] maps[i];
+                delete[] tempvectors[i];
+            }
+            delete[] maps;
+            delete[] tempvectors;
             unordered_map<int, vector<pair<int,int>>> result;
             int c = 0;
             //Put the result in a format apt for returning
