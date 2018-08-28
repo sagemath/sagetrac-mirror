@@ -26,7 +26,7 @@ ElemAbelSubgrpOrbsStabs:=function(G, aut, gens_aut, gens_act)
   # repr  -- a subgroup of G
   # stab  -- a subgroup of aut
 
-  local subs,i,k, n, p, gens_mats, MatrixRepresentation, V, orbits, 
+  local subs,i,k, n, p, gens_mats, MatrixRepresentation, V, orbits,
   subgrp, stab, subgroups, pcgs, orb;
 
   pcgs:= Pcgs(G); # a basis
@@ -158,5 +158,6 @@ SubgroupRepresentatives:=function(G, aut)
   #
   local gens_aut;
   gens_aut:=GeneratorsOfGroup(aut);
-  return SubgroupReps1(gens_aut[1]^0, aut, gens_aut, gens_aut);
+  epi:= GroupHomomorphismByImages(G, G, GeneratorsOfGroup(G), GeneratorsOfGroup(G));
+  return SubgroupReps1(epi, aut, gens_aut, gens_aut);
 end;

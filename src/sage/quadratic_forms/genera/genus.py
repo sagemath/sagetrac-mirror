@@ -21,7 +21,7 @@ from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from copy import copy, deepcopy
 from sage.misc.misc import verbose
 
-def all_genera_by_det(sig_pair, determinant, max_level=None, even=True):
+def all_genera_by_det(sig_pair, determinant, max_scale=None, even=True):
     r"""
     Return a list of all global genera with the given conditions.
 
@@ -33,7 +33,7 @@ def all_genera_by_det(sig_pair, determinant, max_level=None, even=True):
 
     - ``determinant`` -- an integer the sign is ignored
 
-    - ``max_level`` -- (default: ``True``) an integer the maximum level of a jordan block
+    - ``max_scale`` -- (default: ``True``) an integer the maximum scale of a jordan block
 
     - ``even`` -- bool (default: ``True``)
 
@@ -67,10 +67,10 @@ def all_genera_by_det(sig_pair, determinant, max_level=None, even=True):
     sig_pair = (ZZ(sig_pair[0]), ZZ(sig_pair[1]))
     if not all([s >= 0 for s in sig_pair]):
         raise ValueError("the signature vector must be a pair of non negative integers.")
-    if max_level == None:
-        max_level = determinant
+    if max_scale == None:
+        max_scale = determinant
     else:
-        max_level = ZZ(max_level)
+        max_scale = ZZ(max_scale)
     if type(even) != bool:
         raise ValueError("not a boolean")
 
@@ -84,8 +84,8 @@ def all_genera_by_det(sig_pair, determinant, max_level=None, even=True):
     for pn in determinant.factor():
         p = pn[0]
         det_val = pn[1]
-        mlevel_p = max_level.valuation(p)
-        local_symbol_p = _all_p_adic_genera(p, rank, det_val, mlevel_p, even)
+        mscale_p = max_scale.valuation(p)
+        local_symbol_p = _all_p_adic_genera(p, rank, det_val, mscale_p, even)
         local_symbols.append(local_symbol_p)
     # take the cartesian product of the collection of all possible
     # local genus symbols one for each prime
@@ -103,7 +103,7 @@ def all_genera_by_det(sig_pair, determinant, max_level=None, even=True):
     genera.sort(key=lambda x: [s.symbol_tuple_list() for s in x.local_symbols()])
     return(genera)
 
-def _all_p_adic_genera(p, rank, det_val, max_level, even):
+def _all_p_adic_genera(p, rank, det_val, max_scale, even):
     r"""
     Return all `p`-adic genera with the given conditions.
 
@@ -118,7 +118,7 @@ def _all_p_adic_genera(p, rank, det_val, max_level, even):
 
     - ``det_val`` -- valuation of the determinant at p
 
-    - ``max_level`` -- an integer the maximal level of a jordan block
+    - ``max_scale`` -- an integer the maximal scale of a jordan block
 
     - ``even`` -- ``bool``; is igored if `p` is not `2`
 
@@ -139,7 +139,7 @@ def _all_p_adic_genera(p, rank, det_val, max_level, even):
          Genus symbol at 2:    [1^-2 2^1]_5,
          Genus symbol at 2:    [1^2 2^1]_1]
 
-    Setting a maximum level::
+    Setting a maximum scale::
 
         sage: _all_p_adic_genera(5, 2, 2, 1, True)
         [Genus symbol at 5:     5^-2, Genus symbol at 5:     5^2]
@@ -153,24 +153,24 @@ def _all_p_adic_genera(p, rank, det_val, max_level, even):
     """
     from sage.misc.mrange import cantor_product
     from sage.combinat.integer_lists.invlex import IntegerListsLex
-    levels_rks = [] # contains possibilities for levels and ranks
-    for rkseq in IntegerListsLex(rank, length=max_level+1):   # rank sequences
+    scales_rks = [] # contains possibilities for scales and ranks
+    for rkseq in IntegerListsLex(rank, length=max_scale+1):   # rank sequences
         # sum(rkseq) = rank
-        # len(rkseq) = max_level + 1
+        # len(rkseq) = max_scale + 1
         # now assure that we get the right determinant
         d = 0
         pgensymbol = []
-        for i in range(max_level + 1):
+        for i in range(max_scale + 1):
             d += i * rkseq[i]
             # blocks of rank 0 are omitted
             if rkseq[i] != 0:
                 pgensymbol.append([i, rkseq[i], 0])
         if d == det_val:
-            levels_rks.append(pgensymbol)
+            scales_rks.append(pgensymbol)
     # add possible determinant square classes
     symbols = []
     if p != 2:
-        for g in levels_rks:
+        for g in scales_rks:
             n = len(g)
             for v in cantor_product([-1, 1], repeat=n):
                 g1 = deepcopy(g)
@@ -185,7 +185,7 @@ def _all_p_adic_genera(p, rank, det_val, max_level, even):
     # as a drawback one has to reconstruct the symbol from the canonical symbol
     # this is more work for the programmer
     if p == 2:
-        for g in levels_rks:
+        for g in scales_rks:
             n = len(g)
             poss_blocks = []
             for b in g:
@@ -205,7 +205,7 @@ def _all_p_adic_genera(p, rank, det_val, max_level, even):
 
 def _blocks(b, even_only=False):
     r"""
-    Return all viable `2`-adic jordan blocks with rank and level given by ``b``
+    Return all viable `2`-adic jordan blocks with rank and scale given by ``b``
 
     This is a helper function for :meth:`_all_p_adic_genera`.
     It is based on the existence conditions for a modular `2`-adic genus symbol.
@@ -233,7 +233,7 @@ def _blocks(b, even_only=False):
     from copy import copy
     blocks = []
     rk = b[1]
-    # recall: 2-genus_symbol is [level, rank, det, even/odd, oddity]
+    # recall: 2-genus_symbol is [scale, rank, det, even/odd, oddity]
     if rk == 1 and not even_only:
         for det in [1, 3, 5, 7]:
             b1 = copy(b)
@@ -2526,13 +2526,15 @@ class GenusSymbol_global_ring(object):
         n = self.dimension()
         representatives = []
         if algorithm == "default":
-            if n > 2:
-                algorithm = "magma"
-            else:
+            if n == 2 and ZZ.prod(self.signature_pair_of_matrix())!=0:
+                # binary indefinite
                 algorithm = "sage"
+            else:
+                algorithm = "magma"
         if algorithm == "magma":
             from sage.interfaces.magma import Magma
             magma = Magma()
+            magma.set_server_and_command(command="magma")
             if prod(self.signature_pair_of_matrix()) != 0:
                 if n <= 2:
                     raise NotImplementedError()
@@ -2567,7 +2569,8 @@ class GenusSymbol_global_ring(object):
                         if Genus(m) == self:
                             representatives.append(m)
                 # recompute using magma
-                assert len(representatives)==len(self.representatives(algorithm="magma"))
+                if ZZ.prod(self.signature_pair_of_matrix()) == 0:
+                    assert len(representatives)==len(self.representatives(algorithm="magma"))
         else:
             raise ValueError("unknown algorithm")
         return representatives
@@ -2688,17 +2691,17 @@ def local_modification(M, Lp, p, check=True):
     Lp = matrix(Lp) # target lattice
     d = Lp.inverse().denominator()
     n = M.rank()
-    level = d.valuation(p)
-    d = p**level
+    scale = d.valuation(p)
+    d = p**scale
 
     M = IntegralLattice(M)
     Lp_max = IntegralLattice(Lp).maximal_overlattice(p=p)
 
     # invert the gerstein operations
-    _, U = p_adic_normal_form(Lp_max.gram_matrix(), p, precision=level+3)
+    _, U = p_adic_normal_form(Lp_max.gram_matrix(), p, precision=scale+3)
     B = (~Lp_max.basis_matrix()).change_ring(ZZ)*~U.change_ring(ZZ)
 
-    _, UM = p_adic_normal_form(M.gram_matrix(), p, precision=level+3)
+    _, UM = p_adic_normal_form(M.gram_matrix(), p, precision=scale+3)
     B = B * UM.change_ring(ZZ) * M.basis_matrix()
 
     # the local modification
@@ -2706,8 +2709,8 @@ def local_modification(M, Lp, p, check=True):
     S = S.gram_matrix()
     # confirm result
     if check:
-        s1 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(S, p, level))
-        s2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(Lp, p, level))
+        s1 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(S, p, scale))
+        s2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(Lp, p, scale))
         assert s1 == s2, "oops"
     return S
 
@@ -2757,7 +2760,7 @@ def _gram_from_jordan_block(p, block, discr_form=False):
         [  0   0   0 1/2]
     """
     from sage.quadratic_forms.genera.normal_form import _min_nonsquare
-    level = block[0]
+    scale = block[0]
     rk = block[1]
     det = block[2]
     if p == 2:
@@ -2806,20 +2809,20 @@ def _gram_from_jordan_block(p, block, discr_form=False):
                     qL = qL[-2:]
         q = matrix.block_diagonal(qL)
         if discr_form:
-            q = q / 2**level
+            q = q / 2**scale
         else:
-            q = q * 2**level
+            q = q * 2**scale
     if p != 2 and discr_form:
         q = matrix.identity(QQ, rk)
         d = 2**(rk % 2)
         if Integer(d).kronecker(p) != det:
             u = ZZ(_min_nonsquare(p))
             q[0,0] = u
-        q = q * (2 / p**level)
+        q = q * (2 / p**scale)
     if p != 2 and not discr_form:
         q = matrix.identity(QQ, rk)
         if det != 1:
             u = ZZ(_min_nonsquare(p))
             q[0,0] = u
-        q = q * p**level
+        q = q * p**scale
     return q

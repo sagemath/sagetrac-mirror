@@ -680,6 +680,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         else:
             raise AssertionError("oops")
 
+    @cached_method
     def is_degenerate(self):
         r"""
         Return if the underlying bilinear form is degenerate.
@@ -771,6 +772,8 @@ class TorsionQuadraticModule(FGP_Module_class):
         r"""
         Return if the underlying quadratic forms are isomorphic.
         """
+        if self._modulus_qf() != 2:
+            raise NotImplementedError()
         if self.value_module_qf() != other.value_module():
             return False
         if self.invariants() != other.invariants():
@@ -779,18 +782,24 @@ class TorsionQuadraticModule(FGP_Module_class):
             return False
         qf1 = self.normal_form().gram_matrix_quadratic()
         qf2 = other.normal_form().gram_matrix_quadratic()
-        if qf1 != qf2:
+        if (qf1 - qf2).denominator() != 1: # the bilinear forms agree
             return False
         if not self.is_degenerate():
+            if ZZ(2).divides(self.invariants()[-1]):
+                return qf1 == qf2 # check the diagonal agrees too
             return True
-        if len(set(self.invariants())) == 1:
+        if len(set(self.invariants())) == 1 and not ZZ(2).divides(self.invariants()[-1]):
             return True
         # now the normal form is not unique anymore.
         ker1 = self.orthogonal_submodule_to(self.gens())
         ker2 = other.orthogonal_submodule_to(other.gens())
         if ker1.invariant() != ker2.invariants():
             return False
-        return NotImplementedError()
+        if 2 != self.invariants()[-1]:
+            raise NotImplementedError()
+        d1 = set(ker1.gram_matrix_quadratic().diagonal())
+        d2 = set(ker2.gram_matrix_quadratic().diagonal())
+        return d1 == d2
 
 
     def orthogonal_submodule_to(self, S):
@@ -1415,7 +1424,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             True
         """
         A = G.domain()
-        Hgap = A.subgroup([A(h) for h in H.gens()]).gap()
+        Hgap = A.subgroup([A(self(h)) for h in H.gens()]).gap()
         from sage.libs.gap.libgap import libgap
         if algorithm=="brute force":
             mu = libgap.function_factory("mu:=function(x,g) return(Image(g,x)); end;")
@@ -1460,6 +1469,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: q, fs , fo = q1.direct_sum(q2)
             sage: q.all_primitive_modulo(3*fs.image(),fo.image())
         """
+        primitive_extensions = []
         if combined:
             A = G.domain()
             H = self.submodule(H1.gens() + H2.gens())
@@ -1468,21 +1478,32 @@ class TorsionQuadraticModule(FGP_Module_class):
             subgroup_reps = self.subgroup_representatives(H, G, algorithm=algorithm)
 
             # filter for primitive and isotropic
-            primitive_extensions = []
             for S in subgroup_reps:
                 if S.gram_matrix_quadratic() == 0:
                     if S.V() & H1.V() == self.W() and S.V() & H2.V() == self.W():
                         primitive_extensions.append(S)
         else:
-            subs1 = self.subgroup_representatives(H, G, algorithm=algorithm)
-            subs2 = self.subgroup_representatives(H, G, algorithm=algorithm)
+            if H1.cardinality()==1 or H2.cardinality() == 1:
+                return []
+            p1 = H1.invariants()[-1]
+            p2 = H2.invariants()[-1]
+            if p1 != p2:
+                raise ValueError("invariants do not match")
+            if not p1.is_prime():
+                raise ValueError("not a prime number")
+            subs1 = self.subgroup_representatives(H1, G, algorithm=algorithm)
+            subs2 = self.subgroup_representatives(H2, G, algorithm=algorithm)
+            subs1 = [_normalize(s) for s in subs1]
+            subs2 = [_normalize(s.twist(-1)) for s in subs1]
             for S1 in subs1:
                 for S2 in subs2:
-                    if S1.is_isomorphic_to(S2.twist(-1)):
-                        S1n = S1.normal_form()
-                        S2n = S2.twist(-1).normal_form()
-                        N2 = S2n.to_normal()
-
+                    s1 = S1.gram_matrix_quadratic()
+                    s2 = S2.gram_matrix_quadratic()
+                    if s1 == s2:
+                        n = len(S1.gens())
+                        gen = [self(S1.gens()[i])+self(S2.gens()[i]) for i in range(n)]
+                        S = self.submodule(gen)
+                        primitive_extensions.append(S)
         return primitive_extensions
 
 def _brown_indecomposable(q, p):
@@ -1542,3 +1563,25 @@ def _brown_indecomposable(q, p):
         else:
             return mod(-3 + e, 8)
     return mod(0, 8)
+
+def _normalize(D):
+    if D.cardinality() == 1:
+        return D
+    p = D.invariants()[-1]
+    D = D.normal_form()
+    if p != 2 or not D.is_degenerate():
+        return D
+    gens = list(D.gens())
+    kerb = D.orthogonal_submodule_to(D)
+    for i in range(len(gens)):
+        if gens[i] in kerb and gens[i].q()==1:
+            break
+    else:
+        return D
+    # move to first position
+    gens[0], gens[i] = gens[i], gens[0]
+    # translate all others to the kernel of q
+    for i in range(1,len(gens)):
+        if gens[i] in kerb and gens[i].q() == 1:
+            gens[i] += gens[0]
+    return D.submodule_with_gens(gens)
