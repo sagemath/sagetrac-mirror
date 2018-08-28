@@ -42,6 +42,12 @@ import sys
 def _branch_number(mtr):
     """
     Computes the branch number of the given matrix
+
+    EXAMPLES::
+
+        sage: from sage.crypto.linearlayer import PRESENT
+        sage: PRESENT.differential_branch_number() # indirect doctest
+        4
     """
     from sage.coding.linear_code import LinearCode
     from sage.matrix.special import identity_matrix
@@ -56,6 +62,16 @@ def _branch_number(mtr):
 def _ff_elem_to_binary(elem):
     """
     Converts a finite field element to the binary matrix carrying out the according multiplication
+
+    EXAMPLES::
+
+        sage: from sage.crypto.linearlayer import LinearLayer
+        sage: L = LinearLayer.new(Matrix(GF(2^4), [[1]])
+        sage: L.binary_matrix() # indirect doctest
+        [1 0 0 0]
+        [0 1 0 0]
+        [0 0 1 0]
+        [0 0 0 1]
     """
     from sage.matrix.special import companion_matrix, identity_matrix, zero_matrix
 
@@ -74,6 +90,16 @@ def _ff_elem_to_binary(elem):
 def _ff_matrix_to_binary(mtr):
     """
     Converts a matrix over a finite field to the binary matrix carrying out the according multiplication
+
+    EXAMPLES::
+
+        sage: from sage.crypto.linearlayer import LinearLayer
+        sage: L = LinearLayer.new(Matrix(GF(2^4), [[1]])
+        sage: L.binary_matrix() # indirect doctest
+        [1 0 0 0]
+        [0 1 0 0]
+        [0 0 1 0]
+        [0 0 0 1]
     """
     from sage.matrix.special import block_matrix
 
@@ -91,6 +117,18 @@ def _column_linear_layer(Ls):
     The most common application for this is, to build the matrix that applies the
     AES MixColumns linear layer to each column of a state, while the state is represented
     as a vector.
+
+    EXAMPLES::
+
+        sage: from sage.crypto.linearlayer import Midori
+        sage: Midori  # indirect doctest
+        AES like LinearLayer of dimension 64 x 64 represented by ShiftRows
+        [1, 11, 6, 16, 15, 5, 12, 2, 10, 4, 13, 7, 8, 14, 3, 9]
+        and MixColumns
+        [0 1 1 1]
+        [1 0 1 1]
+        [1 1 0 1]
+        [1 1 1 0]
     """
     from sage.matrix.special import block_matrix, diagonal_matrix
 
@@ -148,6 +186,14 @@ class LinearLayer:
         INPUT:
 
         - ``L`` - a matrix representing the linear layer part.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.linearlayer import LinearLayer
+            sage: LinearLayer.new(identity_matrix(GF(2), 2))
+            LinearLayer of dimension 2 x 2 represented as
+            [1 0]
+            [0 1]
         """
         def LinearLayerFactory(K):
             if K.characteristic() == 2 and K.degree() == 1:
@@ -225,12 +271,33 @@ class LinearLayer:
     def matrix(self):
         """
         Returns the matrix representing this linear layer
+
+        EXAMPLES::
+
+            sage: from sage.crypto.linearlayer import LinearLayer
+            sage: L = LinearLayer.new(Matrix(GF(2^4), [[1]])
+            sage: L.matrix()
+            [1]
+            sage: type(L.matrix()) != type(L)
+            True
+            sage: type(L.matrix())
+            <type 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
         """
         return self.parent(self._matrix_())
 
     def binary_matrix(self):
         """
         Returns the matrix representing this linear layer in it's binary representation
+
+        EXAMPLES::
+
+            sage: from sage.crypto.linearlayer import LinearLayer
+            sage: L = LinearLayer.new(Matrix(GF(2^4), [[1]])
+            sage: L.binary_matrix()
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
         """
         if self.base_ring() is GF(2):
             return self._matrix_()
@@ -266,17 +333,17 @@ class LinearLayer:
             sage: L([0]*(L.ncols()+1))
             Traceback (most recent call last):
             ...
-            TypeError: Cannot apply LinearLayer to provided element, dimension mismatch.
+            TypeError: Cannot apply LinearLayer to provided element, dimension mismatch
 
             sage: L([0, 1/2, 1])
             Traceback (most recent call last):
             ...
-            TypeError: Cannot apply LinearLayer to provided element [0, 1/2, 1], conversion to vector failed.
+            TypeError: Cannot apply LinearLayer to provided element [0, 1/2, 1], conversion to vector failed
 
             sage: L("failure")
             Traceback (most recent call last):
             ...
-            TypeError: Unsupported type for input x: <type 'str'>.
+            TypeError: Unsupported type for input x: <type 'str'>
         """
         from sage.modules.free_module_element import FreeModuleElement
 
@@ -286,23 +353,23 @@ class LinearLayer:
 
         elif isinstance(x, tuple):
             if len(x) != self.ncols():
-                raise TypeError("Cannot apply LinearLayer to provided element, dimension mismatch.")
+                raise TypeError("Cannot apply LinearLayer to provided element, dimension mismatch")
 
             try:
                 x = vector(self.matrix().base_ring(), x)
             except (TypeError, ZeroDivisionError):
-                raise TypeError("Cannot apply LinearLayer to provided element %r, conversion to vector failed." % (x,))
+                raise TypeError("Cannot apply LinearLayer to provided element %r, conversion to vector failed" % (x,))
 
             return tuple(self * x)
 
         elif isinstance(x, list):
             if len(x) != self.ncols():
-                raise TypeError("Cannot apply LinearLayer to provided element, dimension mismatch.")
+                raise TypeError("Cannot apply LinearLayer to provided element, dimension mismatch")
 
             try:
                 x = vector(self.base_ring(), x)
             except (TypeError, ZeroDivisionError):
-                raise TypeError("Cannot apply LinearLayer to provided element %r, conversion to vector failed." % (x,))
+                raise TypeError("Cannot apply LinearLayer to provided element %r, conversion to vector failed" % (x,))
 
             return list(self * x)
 
@@ -310,7 +377,7 @@ class LinearLayer:
             return self * x
 
         else:
-            raise TypeError("Unsupported type for input x: %s." % type(x))
+            raise TypeError("Unsupported type for input x: %s" % type(x))
 
     def is_permutation(self):
         r"""
@@ -361,6 +428,16 @@ class LinearLayer:
             the xor count. Available algorithms
 
             - 'naive' - non-optimized implementation (default)
+
+        EXAMPLES::
+
+            sage: from sage.crypto.linearlayer import PRESENT
+            sage: PRESENT.naive_xor_count()
+            0
+
+            sage: from sage.crypto.linearlayer import AES
+            sage: AES.naive_xor_count()
+            152
         """
         avail_algs = ["naive"]
         if algorithm not in avail_algs:
@@ -464,9 +541,6 @@ class AESLikeLinearLayer(LinearLayer, Matrix_gf2e_dense):
 
         return ll
 
-    def _latex_(self):
-        raise NotImplementedError
-
     def __repr__(self):
         """
         EXAMPLES::
@@ -549,7 +623,7 @@ def smallscale_present_linearlayer(nsboxes=16):
     - ``nsboxes`` - integer, number of sboxes the linear layer operates on
       (default: 16).
 
-    TESTS:
+    TESTS::
 
         sage: from sage.crypto.linearlayer import smallscale_present_linearlayer
         sage: smallscale_present_linearlayer(4)
