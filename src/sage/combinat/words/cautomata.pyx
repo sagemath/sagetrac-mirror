@@ -17,7 +17,7 @@ REFERENCES:
 
 """
 
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2014 Paul Mercat <paul.mercat@univ-amu.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -30,7 +30,7 @@ REFERENCES:
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 from __future__ import print_function
 from libc.stdlib cimport malloc, free
 from sage.graphs.digraph import DiGraph
@@ -38,7 +38,7 @@ from sage.graphs.digraph import DiGraph
 cimport sage.combinat.words.cautomata
 from cysignals.signals cimport sig_on, sig_off, sig_check
 from cpython cimport bool as c_bool 
-#ctypedef Automate Automaton
+# ctypedef Automate Automaton
 
 cdef extern from "automataC.h":
 
@@ -49,7 +49,7 @@ cdef extern from "automataC.h":
         Dict* d
         int n
 
-    bool DotExists ()
+    bool DotExists()
     #    Automaton NewAutomaton (int n, int na)
     #    void FreeAutomaton (Automaton *a)
     int hashAutomaton(Automaton a)
@@ -59,7 +59,7 @@ cdef extern from "automataC.h":
     void init(Automaton *a)
     void printAutomaton(Automaton a)
     void plotDot(const char *file, Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool html, bool verb, bool run_dot)
-    void NplotDot (const char *file, NAutomaton a, const char **labels, const char *graph_name, double sx, double sy, bool run_dot)
+    void NplotDot(const char *file, NAutomaton a, const char **labels, const char *graph_name, double sx, double sy, bool run_dot)
     Automaton Product(Automaton a1, Automaton a2, Dict d, bool verb)
     Automaton Determinize(Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb)
     Automaton DeterminizeN(NAutomaton a, bool puits, int verb)
@@ -185,8 +185,8 @@ cdef imagProductDict(dict d, list A1, list A2, list Av=[]):
     i = 0
     for a1 in A1:
         for a2 in A2:
-            if d.has_key((a1,a2)):
-                if not dv.has_key(d[(a1,a2)]):
+            if d.has_key((a1, a2)):
+                if not dv.has_key(d[(a1, a2)]):
                     dv[d[(a1, a2)]] = i
                     Av.append(d[(a1, a2)])
                     i += 1
@@ -250,7 +250,7 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
     for v in F:
         if not d.has_key(v):
             sig_on()
-            FreeAutomaton(& r)
+            FreeAutomaton(&r)
             r = NewAutomaton(0, 0)
             sig_off()
             raise ValueError("Incorrect set of final states.")
@@ -384,7 +384,7 @@ cdef class NFastAutomaton:
             raise NotImplementedError("Cannot construct directly a NFastAutomaton for the moment, except from a deterministic one.")
         return self
 
-    def __init__(self, a): # TO DO i=None, final_states=None, A=None
+    def __init__(self, a):  # TO DO i=None, final_states=None, A=None
         """
         TESTS::
 
@@ -798,7 +798,7 @@ cdef class NFastAutomaton:
             raise ValueError("The state  %s doesn't exist." % f)
         try:
             k = self.A.index(l)
-        except:
+        except Exception:
             # La lettre %s n'existe pas.
             raise ValueError("The letter %s doesn't exist." % l)
 
@@ -837,7 +837,7 @@ cdef class NFastAutomaton:
         INPUT:
 
         - ``e`` -- int the input state
-        - ``f`` -- int the final state 
+        - ``f`` -- int the final state
         - ``li`` -- list of states
         - ``verb`` -- boolean (default: ``False``) fix
           to ``True`` for activation the verbose mode
@@ -1243,8 +1243,8 @@ cdef class FastAutomaton:
             False
         """
         from sage.structure.richcmp import (op_EQ, op_NE)
-        #(rich_to_bool,
-        #op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE)
+        # (rich_to_bool,
+        # op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE)
         cdef int r
         if op != op_EQ and op != op_NE:
             raise NotImplementedError("Comparaison <, >, <= or >= not implemented for FastAutomata.")
@@ -1256,11 +1256,11 @@ cdef class FastAutomaton:
         else:
             return (r == 0)
 
-    #give a Sage Automon from the FastAutomaton
+    # give a Sage Automon from the FastAutomaton
     def get_automaton(self):
         return AutomatonToSageAutomaton(self.a[0], self.A)
 
-    #give a Sage Automon from the FastAutomaton
+    # give a Sage Automon from the FastAutomaton
     def get_DiGraph(self):
         return AutomatonToDiGraph(self.a[0], self.A)
 
@@ -1404,7 +1404,7 @@ cdef class FastAutomaton:
             return Image.open(file_name+'.png')
         else:
             return AutomatonToSageAutomaton(self.a[0], self.A).plot()
-            #raise NotImplementedError("You cannot plot the FastAutomaton without dot. Install the dot command of the GraphViz package.")
+            # raise NotImplementedError("You cannot plot the FastAutomaton without dot. Install the dot command of the GraphViz package.")
 
     @property
     def Alphabet(self):
@@ -1567,7 +1567,7 @@ cdef class FastAutomaton:
         """
         Indicate if the state is final
 
-         INPUT:
+        INPUT:
 
         - ``e`` -- int input state to examine as final
 
@@ -1878,25 +1878,25 @@ cdef class FastAutomaton:
         Return the pruned :class:`FastAutomaton`.
 
         EXAMPLES::
-            
+
             sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
             sage: a.prune_inf()
             FastAutomaton with 0 states and an alphabet of 2 letters
-            
+
             sage: a = FastAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
                 (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
                 (10,30,'z')], i=10)
             sage: a.prune_inf()
             FastAutomaton with 3 states and an alphabet of 3 letters
-            
+
             sage: a = FastAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
                 (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
                 (10,30,'z')], i=10, final_states=[])
             sage: a.prune_inf()
             FastAutomaton with 3 states and an alphabet of 3 letters
-            
+
         TESTS::
-        
+
             sage: a = FastAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
             sage: a.prune_inf(True)
             induction...
@@ -2155,12 +2155,13 @@ cdef class FastAutomaton:
         sig_off()
         return c_bool(res)
 
-    # give the smallest language stable by prefix containing the language of self
+    # give the smallest language stable by prefix containing the 
+    # language of self
     # i.e. every states begin finals
     def prefix_closure(self):
         """
-        give the smallest language stable by prefix containing the language of self
-        i.e. every states begin finals
+        give the smallest language stable by prefix containing the language
+        of ``self``, i.e. every states begin finals
 
         OUTPUT:
 
@@ -2284,7 +2285,7 @@ cdef class FastAutomaton:
             return r
 
     # split the automaton with respect to a FastAutomaton
-    def split (self, FastAutomaton a, simplify=True, verb=False):
+    def split(self, FastAutomaton a, simplify=True, verb=False):
         """
         Split the automaton with respect to ``a`` a :class:`FastAutomaton`
 
@@ -2388,7 +2389,7 @@ cdef class FastAutomaton:
             return [r, r2]
 
     # modify the automaton to recognize the langage shifted by l (letter given by its index)
-    def shift1OP (self, int l, verb=False):
+    def shift1OP(self, int l, verb=False):
         """
         Shift the automaton ON PLACE to recognize the language shifted
         by ``l`` (letter given by its index).
@@ -2411,7 +2412,8 @@ cdef class FastAutomaton:
         if self.a.i != -1:
             self.a.i = self.a.e[self.a.i].f[l]
 
-    # modify the automaton to recognize the langage shifted by l^np (where l is a letter given by its index)
+    # modify the automaton to recognize the langage shifted by l^np
+    # (where l is a letter given by its index)
     def shiftOP(self, l, int np, verb=False):
         """
         Shift the automaton ON PLACE to recognize the language shifted ``np`` times
@@ -2443,7 +2445,8 @@ cdef class FastAutomaton:
         """
         Unshift the automaton to recognize the language shifted
         by ``l`` (letter given by its index).
-        The new language is the languages of words lu, where u is recognized by self.
+        The new language is the languages of words lu, where u
+        is recognized by self.
 
         INPUT:
 
@@ -2485,7 +2488,7 @@ cdef class FastAutomaton:
         Return a new automaton whose language is the set of words wu,
         where u is recognized by self, and w is the word
         corresponding to the list of indices of letters l.  
-        
+
         INPUT:
 
         - ``l`` -- list of indices of letters
@@ -2621,10 +2624,11 @@ cdef class FastAutomaton:
         if self.A != b.A:
             A = list(set(self.A).union(set(b.A)))
             if verb:
-                print("Alphabet Changing (%s, %s -> %s)..." %(self.A, b.A, A))
+                print("Alphabet Changing (%s, %s -> %s)..." % (self.A, b.A, A))
             a = self.bigger_alphabet(A)
             b = b.bigger_alphabet(A)
-            # raise ValueError("Error : concatenation of automaton having differents alphabets.")
+            # raise ValueError("Error : concatenation of automaton having 
+            # differents alphabets.")
         else:
             a = self
             A = self.A
@@ -2660,8 +2664,10 @@ cdef class FastAutomaton:
 
         - ``d`` -- dictionary to determine projection
         - ``det``  --  (default: ``true``) - determinize the result or not
-        - ``simplify`` -- (default: ``True``) - if True and if det=True, prune and minimize
-        - ``verb`` -- boolean (default: ``False``) - activate or desactivate the verbose mode
+        - ``simplify`` -- (default: ``True``) - if True and if
+          det=True, prune and minimize
+        - ``verb`` -- boolean (default: ``False``) - activate or
+          desactivate the verbose mode
 
         OUTPUT:
 
@@ -2700,17 +2706,21 @@ cdef class FastAutomaton:
         else:
             return r
 
-    def proji (self, int i, det=True, simplify=True, verb=False):
+    def proji(self, int i, det=True, simplify=True, verb=False):
         """
-        Assuming that the alphabet of the automaton are tuples, project on the ith coordinate.
-        Give a new automaton where labels are replaced by the projection on the ith coordinate.
+        Assuming that the alphabet of the automaton are tuples, project on
+        the ith coordinate.
+        Give a new automaton where labels are replaced by the projection on
+        the ith coordinate.
 
         INPUT:
 
         - ``i`` -- int - coordinate of projection
         - ``det``  --  (default: ``true``) - determinize or not the result
-        - ``simplify`` -- (default: ``True``) - if True and if det=True, prune and minimize
-        - ``verb`` -- boolean (default: ``False``) - to activate or desactivate the verbose mode
+        - ``simplify`` -- (default: ``True``) - if True and if det=True, prune
+          and minimize
+        - ``verb`` -- boolean (default: ``False``) - to activate or
+          desactivate the verbose mode
 
         OUTPUT:
 
@@ -2740,11 +2750,12 @@ cdef class FastAutomaton:
         INPUT:
 
         - ``d`` -- dictionary to determine projection
-        - ``noempty``  -- (default: ``True``) If ``True`` won't put the empty set state,
-            if ``False`` put it and gives a complete automaton.
-        - ``onlyfinals``  -- (default: ``False``) 
+        - ``noempty``  -- (default: ``True``) If ``True`` won't put the empty
+          set state, if ``False`` put it and gives a complete automaton.
+        - ``onlyfinals``  -- (default: ``False``)
         - ``nof``  -- (default: ``False``)
-        - ``verb`` -- boolean (default: ``False``) activate or desactivate the verbose mode
+        - ``verb`` -- boolean (default: ``False``) activate or
+          desactivate the verbose mode
 
         OUTPUT:
 
@@ -2843,12 +2854,15 @@ cdef class FastAutomaton:
 
     def permut(self, list A, verb=False):
         """
-        Permutes (and eventually remove) letters and return permuted new :class:`FastAutomaton`
+        Permutes (and eventually remove) letters and return permuted
+        new :class:`FastAutomaton`
 
         INPUT:
 
-         - ``A``  -- list of letters in the new order (number can be less to the Alphabet)
-         - ``verb`` -- boolean (default: ``False``) fix to ``True`` to activate the verbose mode
+        - ``A``  -- list of letters in the new order
+          (number can be less to the Alphabet)
+        - ``verb`` -- boolean (default: ``False``) fix to ``True`` to
+          activate the verbose mode
 
         OUTPUT:
 
@@ -2903,9 +2917,10 @@ cdef class FastAutomaton:
 
         INPUT:
 
-         - ``A``  -- list of letters in the new order (number can be less to the Alphabet)
-         - ``verb`` -- boolean (default: ``False``) fix to ``True`` for activation
-           the verbose mode
+        - ``A``  -- list of letters in the new order (number can be less to
+          the Alphabet)
+        - ``verb`` -- boolean (default: ``False``) fix to ``True`` for
+          activation the verbose mode
 
         EXAMPLES::
 
@@ -2948,7 +2963,8 @@ cdef class FastAutomaton:
     # Compute the mirror, assuming it is deterministic
     def mirror_det(self):
         """
-        Return a :class:`FastAutomaton`, whose language is the mirror of the language of self.
+        Return a :class:`FastAutomaton`, whose language is the mirror of the
+        language of self.
         Assume the result to be deterministic !!!
 
         OUTPUT:
@@ -2971,8 +2987,9 @@ cdef class FastAutomaton:
 
     def mirror(self):
         """
-        Return a :class:`NFastAutomaton`, whose language is the mirror of the language of self.
-        
+        Return a :class:`NFastAutomaton`, whose language is the mirror of the
+        language of self.
+
         OUTPUT:
 
         Return a :class:`NFastAutomaton`
@@ -2993,17 +3010,21 @@ cdef class FastAutomaton:
     def strongly_connected_components(self, no_trivials=False):
         r"""
         Determine a partition into strongly connected components.
-        A strongly connected component is a minimal subset of the set of states such that
-        there is no path going outside of the subset, from a state of the subset to a state of the subset.
+        A strongly connected component is a minimal subset of the set
+        of states such that
+        there is no path going outside of the subset, from a state of
+        the subset to a state of the subset.
 
         INPUT:
 
-        - ``no_trivials`` -- (default: ``False``) If True, do not take into account components
-            without any transition from itself to itself (such component contains only one element).
+        - ``no_trivials`` -- (default: ``False``) If True, do not take into
+          account components without any transition from itself to itself
+          (such component contains only one element).
 
         OUTPUT:
 
-        Return the list of strongly connected components, given as a list of list of states.
+        Return the list of strongly connected components, given as a list of
+        list of states.
 
         EXAMPLES::
 
@@ -3062,7 +3083,7 @@ cdef class FastAutomaton:
 
         OUTPUT:
 
-        Return list of  co-accessible states of the :class:`FastAutomaton`
+        Return list of co-accessible states of the :class:`FastAutomaton`
 
         EXAMPLES::
 
@@ -3082,10 +3103,10 @@ cdef class FastAutomaton:
 
         INPUT:
 
-         - ``l``  -- list of states to keep
-         - ``verb`` -- boolean (default: ``False``) fix to ``True`` to activate
+        - ``l``  -- list of states to keep
+        - ``verb`` -- boolean (default: ``False``) fix to ``True`` to activate
           the verbose mode
-         - ``keep_vlabels``  -- boolean (default: ``True``)
+        - ``keep_vlabels``  -- boolean (default: ``True``)
 
         OUTPUT:
 
@@ -3109,7 +3130,7 @@ cdef class FastAutomaton:
         sig_off()
         return r
 
-    def minimize (self, verb=False):
+    def minimize(self, verb=False):
         """
         Compute the minimal automaton
         by Hopcroft's algorithm
@@ -3117,7 +3138,8 @@ cdef class FastAutomaton:
 
         INPUT:
 
-         - ``verb`` -- boolean (default: ``False``) set to ``True`` to activate the verbose mode
+         - ``verb`` -- boolean (default: ``False``) set to ``True`` to
+           activate the verbose mode
 
 
         OUTPUT:
@@ -3152,15 +3174,15 @@ cdef class FastAutomaton:
             partition = [ 0 1 2 3 4 ]
             partitioni = [ 0 1 2 3 4 ]
             Initial partition :
-            class 0 : 0 1 2 3 
-            class 1 : 4 
+            class 0 : 0 1 2 3
+            class 1 : 4
             split 1 0...
             new visited class : 0 (1 parent of 4)
             re-visited class : 0 (2 parent of 4)
             re-visited class : 0 (3 parent of 4)
             new visited class : 1 (4 parent of 4)
-            class 0 : 1 2 3 0 
-            class 1 : 4 
+            class 0 : 1 2 3 0
+            class 1 : 4
             2 class encountered
             class 0 : l = 0 3 4 = h
             class 1 : l = 4 5 5 = h
@@ -3169,42 +3191,42 @@ cdef class FastAutomaton:
             new visited class : 0 (1 parent of 4)
             re-visited class : 0 (3 parent of 4)
             new visited class : 1 (4 parent of 4)
-            class 0 : 1 3 2 
-            class 1 : 4 
-            class 2 : 0 
+            class 0 : 1 3 2
+            class 1 : 4
+            class 2 : 0
             3 class encountered
             class 2 : l = 3 4 4 = h
             class 0 : l = 0 2 3 = h
             class 1 : l = 4 5 5 = h
             split 3 0...
-            class 0 : 1 3 
-            class 1 : 4 
-            class 2 : 0 
-            class 3 : 2 
+            class 0 : 1 3
+            class 1 : 4
+            class 2 : 0
+            class 3 : 2
             0 class encountered
             split 3 1...
-            class 0 : 1 3 
-            class 1 : 4 
-            class 2 : 0 
-            class 3 : 2 
+            class 0 : 1 3
+            class 1 : 4
+            class 2 : 0
+            class 3 : 2
             0 class encountered
             split 2 0...
-            class 0 : 1 3 
-            class 1 : 4 
-            class 2 : 0 
-            class 3 : 2 
+            class 0 : 1 3
+            class 1 : 4
+            class 2 : 0
+            class 3 : 2
             0 class encountered
             split 2 1...
-            class 0 : 1 3 
-            class 1 : 4 
-            class 2 : 0 
-            class 3 : 2 
+            class 0 : 1 3
+            class 1 : 4
+            class 2 : 0
+            class 3 : 2
             0 class encountered
             Final partition :
-            class 0 : 1 3 
-            class 1 : 4 
-            class 2 : 0 
-            class 3 : 2 
+            class 0 : 1 3
+            class 1 : 4
+            class 2 : 0
+            class 3 : 2
             a.i = 0 class 2
             removes the sink state  1...
             FastAutomaton with 3 states and an alphabet of 2 letters
@@ -3249,7 +3271,7 @@ cdef class FastAutomaton:
             for j in range(self.a.na):
                 f = self.a.e[i].f[j]
                 if f != -1:
-                    if d.has_key((i,f)):
+                    if d.has_key((i, f)):
                         d[(i, f)] += 1
                     else:
                         d[(i, f)] = 1
@@ -3259,7 +3281,8 @@ cdef class FastAutomaton:
 
     def delete_vertex(self, int i):
         """
-        Gives a copy of the :class:`FastAutomaton` but without the vertex ``i``.
+        Gives a copy of the :class:`FastAutomaton` but
+        without the vertex ``i``.
 
         INPUT:
 
@@ -3309,7 +3332,9 @@ cdef class FastAutomaton:
 
         INPUT:
 
-        - ``only_non_trivial``  - (default: ``False``) - if True, don't take into account strongly connected components of cardinality one.
+        - ``only_non_trivial``  - (default: ``False``) - if True,
+          don't take into account strongly connected components of
+          cardinality one.
         - ``verb`` - boolean (default: ``False``) - fix to ``True`` to activate
           the verbose mode
 
@@ -3341,7 +3366,7 @@ cdef class FastAutomaton:
         l = a.strongly_connected_components()
         if verb:
             print("%s component strongly connex." % len(l))
-        r = 0 # valeur propre maximale trouvée
+        r = 0  # valeur propre maximale trouvée
         for c in l:
             if not only_non_trivial or len(c) > 1:
                 if verb:
@@ -3403,9 +3428,11 @@ cdef class FastAutomaton:
         sig_off()
         return c_bool(res)
 
-    def equals_langages(self, FastAutomaton a2, minimized=False, pruned=False, verb=False):
+    def equals_langages(self, FastAutomaton a2, minimized=False,
+                        pruned=False, verb=False):
         """
-        Test if the languages of :class:`FastAutomaton` ``self`` and ``a2`` are equal or not.
+        Test if the languages of :class:`FastAutomaton` ``self`` and ``a2`` are
+        equal or not.
 
         INPUT:
 
@@ -3439,7 +3466,7 @@ cdef class FastAutomaton:
                 if self.A[i] == a2.A[j]:
                     d.e[i] = j
                     if verb:
-                        print("%d -> %d"%(i, j))
+                        print("%d -> %d" % (i, j))
                     break
         if verb:
             printDict(d)
@@ -3467,7 +3494,8 @@ cdef class FastAutomaton:
 
     def intersect(self, FastAutomaton a2, bool verb=False):
         """
-        Determine if the languages of the :class:`FastAutomaton` ``self`` and ``a2`` have a non-empty intersection.
+        Determine if the languages of the :class:`FastAutomaton` ``self``
+        and ``a2`` have a non-empty intersection.
 
         INPUT:
 
@@ -3477,7 +3505,8 @@ cdef class FastAutomaton:
 
         OUTPUT:
 
-        Return ``True`` if the intersection of the languages is non-empty, return ``False`` otherwise.
+        Return ``True`` if the intersection of the languages is non-empty,
+        return ``False`` otherwise.
 
         EXAMPLES::
 
@@ -3747,10 +3776,10 @@ cdef class FastAutomaton:
         if i >= self.a.n:
             raise ValueError("The state %s doesn't exist." % i)
         if j >= self.a.n:
-            raise ValueError("The state  %s doesn't exist." %j)
+            raise ValueError("The state  %s doesn't exist." % j)
         try:
             k = self.A.index(l)
-        except:
+        except Exception:
             # La lettre %s n'existe pas.
             raise ValueError("The letter %s doesn't exist." % l)
         self.a.e[i].f[k] = j
@@ -3774,11 +3803,13 @@ cdef class FastAutomaton:
 
     def bigger_alphabet(self, nA):
         """
-        Gives a copy of the :class:`FastAutomaton`, but with the bigger alphabet ``nA``
+        Gives a copy of the :class:`FastAutomaton`, but with the
+        bigger alphabet ``nA``
 
         INPUT:
 
-        - ``nA`` --  Alphabet of the new automaton. We assume that it contains the current alphabet of the automaton.
+        - ``nA`` --  Alphabet of the new automaton. We assume that it
+          contains the current alphabet of the automaton.
 
         OUTPUT:
 
@@ -3850,12 +3881,13 @@ cdef class FastAutomaton:
 
         - ``a`` --  a :class:`FastAutomaton`
         - ``verb`` -- (default: False) verbose parameter
-        - ``pruned`` -- (default: False) set to True if the automaton is already pruned, in order to avoid unuseful computation.
+        - ``pruned`` -- (default: False) set to True if the automaton is
+          already pruned, in order to avoid unuseful computation.
 
         OUTPUT:
 
-        return  ``True`` if the language of ``self`` is included in the language of ``a``
-        return    ``False`` otherwise
+        return  ``True`` if the language of ``self`` is included in the 
+        language of ``a`` or return  ``False`` otherwise
 
         EXAMPLES::
 
@@ -3950,7 +3982,8 @@ cdef class FastAutomaton:
 
         OUTPUT:
 
-        return ``True`` if the language of the automaton is empty, ``False`` otherwise
+        return ``True`` if the language of the automaton is empty,
+        ``False`` otherwise
 
         EXAMPLES::
 
@@ -3963,7 +3996,10 @@ cdef class FastAutomaton:
 
     def random_word(self, nmin=-1, nmax=100):
         r"""
-        Return a random word recognized by the automaton, by following a random path in the automaton from the initial state. If we don't fall into the set of final states before reaching the maximal length ``nmax``, then return ``word not found !``.
+        Return a random word recognized by the automaton, by following a
+        random path in the automaton from the initial state. If we don't fall
+        into the set of final states before reaching the maximal length ``nmax``,
+        then return ``word not found !``.
 
         INPUT:
 
@@ -3972,7 +4008,7 @@ cdef class FastAutomaton:
 
         OUTPUT:
 
-        Return a random word of length between ``nmin``and ``nmax`` if found.
+        Return a random word of length between ``nmin`` and ``nmax`` if found.
         Otherwise return ``word not found !``.
 
         EXAMPLES::
