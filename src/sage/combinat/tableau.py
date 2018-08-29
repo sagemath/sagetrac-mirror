@@ -8030,9 +8030,129 @@ class StandardTableaux_shape(StandardTableaux):
 ##########################
 
 class SymplecticTableaux(Tableaux):
+    """
+    A factory class for the various classes of symplectic tableaux.
+
+    INPUT:
+
+    Keyword arguments:
+
+    - ``size`` -- The size of the tableaux
+    - ``shape`` -- The shape of the tableaux
+    - ``eval`` -- The symplectic weight (also called content or evaluation) of
+      the tableaux
+    - ``max_entry`` -- A maximum (absolute value) entry for the tableaux.  This 
+      can be a positive integer or infinity (``oo``). If ``size`` or ``shape`` 
+      are specified, ``max_entry`` defaults to be ``size`` or the size of
+      ``shape``.
+    - ``tableau_type`` -- The type of symplectic tableau. See the documentation
+      for :class:`SymplecticTableau` for the allowable strings. This defaults to 
+      KashiwaraNakashima.
+
+    Positional arguments:
+
+    - The first argument is interpreted as either ``size`` or ``shape``
+      according to whether it is an integer or a partition
+    - The second keyword argument will always be interpreted as ``eval``
+
+    OUTPUT:
+
+    - The appropriate class, after checking basic consistency tests.
+
+
+    Classes of symplectic tableaux can be iterated over if and only if there
+    is some restriction.
+
+    EXAMPLES::
+
+        sage: ST = SymplecticTableaux([2,1]); ST
+        KashiwaraNakashima Symplectic tableaux of shape [2, 1] and maximum entry 3
+        sage: ST = SymplecticTableaux([3,2], max_entry=3, tableau_type="Sundaram"); ST
+        Sundaram Symplectic tableaux of shape [3, 2] and maximum entry 3 
+        sage: ST = SymplecticTableaux(4, max_entry=2, tableau_type="king"); ST
+        King Symplectic tableaux of size 4 and maximum entry 2
+        sage: ST = SymplecticTableaux(max_entry=5, tableau_type="DeConciniProcesi"); ST
+        DeConciniProcesi Symplectic tableaux with maximum entry 5
+        sage: ST = SymplecticTableaux(5, mu=[2,0,-1]); ST
+        KashiwaraNakashima Symplectic tableaux of size 5 and weight (2, 0, -1)
+        sage: ST[17]
+        [[1, 1, -3], [5, -5]]
+
+
+    .. SEEALSO::
+
+        - :class:`Tableaux`
+        - :class:`Tableau`
+        - :class:`SymplecticTableau`
+        - :class:`SemistandardTableau`
+        - :class:`SemistandardTableaux`
+    """
     @staticmethod
     def __classcall_private__(cls, *args, **kwargs):
+        r"""
+        This is a factory class which returns the appropriate parent based on
+        arguments.  See the documentation for :class:`SymplecticTableaux`
+        for more information.
 
+        TESTS::
+            sage: SymplecticTableaux()
+            KashiwaraNakashima Symplectic tableaux
+            sage: SymplecticTableaux(4)
+            KashiwaraNakashima Symplectic tableaux of size 4 and maximum entry 4
+            sage: SymplecticTableaux(tableau_type="King")
+            King Symplectic tableaux
+            sage: SymplecticTableaux([2,2], tableau_type="DeConciniProcesi")
+            DeConciniProcesi Symplectic tableaux of shape [2, 2] and maximum entry 4
+            sage: SymplecticTableaux([2,1], max_entry=5, tableau_type="Sundaram")
+            Sundaram Symplectic tableaux of shape [2, 1] and maximum entry 5
+            sage: SymplecticTableaux([2,1], mu=[1,1,1])
+            KashiwaraNakashima Symplectic tableaux of shape [2, 1] and symplectic weight (1, 1, 1)
+            sage: SymplecticTableaux(4, [2,0,-2], tableau_type="Sundaram")
+            Sundaram Symplectic tableaux of size 4 and weight (2, 0, -2)
+            sage: SymplecticTableaux(3, [2,1], max_entry=2, tableau_type="KN")
+            KashiwaraNakashima Symplectic tableaux of size 3 and weight (2, 1)
+            sage: SymplecticTableaux(3, max_entry=4)
+            KashiwaraNakashima Symplectic tableaux of size 3 and maximum entry 4
+            sage: SymplecticTableaux(3, [2,1], tableau_type="DP")
+            DeConciniProcesi Symplectic tableaux of size 3 and weight (2, 1)
+            sage: SymplecticTableaux(3, [1,-1, 1], shape=[2,1])
+            KashiwaraNakashima Symplectic tableaux of shape [2, 1] and symplectic weight (1, -1, 1)
+            sage: SymplecticTableaux([])
+            KashiwaraNakashima Symplectic tableaux of shape [] and maximum entry 0
+            sage: SymplecticTableaux(3, shape=[2,1])
+            KashiwaraNakashima Symplectic tableaux of shape [2, 1] and maximum entry 3
+            sage: SymplecticTableaux(5, mu=[-2,0,0,-1,0])
+            KashiwaraNakashima Symplectic tableaux of size 5 and weight (-2, 0, 0, -1, 0)
+            sage: SymplecticTableaux(3, shape=[2])
+            Traceback (most recent call last):
+            ...
+            ValueError: size and shape are different sizes
+
+            sage: SymplecticTableaux(2,[2], max_entry=4)
+            Traceback (most recent call last):
+            ...
+            ValueError: the maximum entry must match the weight
+
+            sage: SymplecticTableaux(eval=[2], max_entry=oo)
+            Traceback (most recent call last):
+            ...
+            ValueError: the maximum entry must match the weight
+
+            sage: SymplecticTableaux([[1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: shape must be a partition
+            
+            sage: SymplecticTableaux([4,1], max_entry=3, tableau_type="asdf")
+            Traceback (most recent call last):
+            ...
+            ValueError: tableau type not implemented
+
+            sage: SymplecticTableaux(mu=[[1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: mu must be a list of integers            
+        """
         from sage.combinat.partition import Partition, _Partitions
         # Process the keyword arguments -- allow for original syntax where
         #   n == size,  p== shape and mu == eval
@@ -8094,11 +8214,11 @@ class SymplecticTableaux(Tableaux):
 
         if mu is not None:
             try:
-                if (not map(abs, mu) in Compositions()) and (not map(abs, mu) in _Partitions):
-                    raise ValueError( "mu must be an integer composition" )
+                if (not list(map(abs, mu)) in Compositions()) and (not list(map(abs, mu)) in _Partitions):
+                    raise ValueError( "mu must be an integer composition")
             except:
                 raise ValueError( "mu must be a list of integers")
-            #mu = Composition(mu) # change to SignedComposition(mu)
+            mu = tuple(mu) # change to SignedComposition(mu)
 
         is_inf = max_entry is PlusInfinity()
 
@@ -8109,8 +8229,8 @@ class SymplecticTableaux(Tableaux):
                 raise ValueError( "max_entry must be positive" )
 
         if (mu is not None) and (max_entry is not None):
-            if max_entry <= max([i for i in xrange(len(mu)) if mu[i] != 0]):
-                raise ValueError( "the maximum entry cannot be less than last nonzero element of weight" )
+            if max_entry != len(mu):
+                raise ValueError( "the maximum entry must match the weight" )
 
         if (size is not None) and (shape is not None):
             if sum(shape) != size:
@@ -8125,16 +8245,19 @@ class SymplecticTableaux(Tableaux):
 
         # Dispatch appropriately
         if (shape is not None) and (mu is not None):
-            return SymplecticTableaux_shape_weight(shape, mu, tableau_type)
+            return SymplecticTableaux_shape_weight(shape, mu, tableau_type=tableau_type)
 
         if (shape is not None):
             if is_inf:
                 return SymplecticTableaux_shape_inf(shape, tableau_type)
             return SymplecticTableaux_shape(shape, max_entry, tableau_type)
 
+        if (mu is not None) and (size is not None):
+            return SymplecticTableaux_size_weight(size, mu, tableau_type)
+        
         if (mu is not None):
-            return SymplecticTableaux_size_weight(sum(mu), mu)
-
+            return SymplecticTableaux_size_weight(sum(map(abs, mu)), mu, tableau_type)
+        
         if (size is not None):
             if is_inf:
                 return SymplecticTableaux_size_inf(size, tableau_type)
@@ -8166,6 +8289,10 @@ class SymplecticTableaux(Tableaux):
 
 
     def __getitem__(self, r):
+        r"""
+        The default implementation of ``__getitem__`` for enumerated sets
+        does not allow slices so we override it.
+        """
         if isinstance(r,(int,Integer)):
             return self.unrank(r)
         elif isinstance(r,slice):
@@ -8286,6 +8413,17 @@ class SymplecticTableaux_all(SymplecticTableaux, DisjointUnionEnumeratedSets):
     All symplectic tableaux.
     """
     def __init__(self, max_entry=None, tableau_type="KashiwaraNakashima"):
+        r"""
+        Initializes the class of all symplectic tableaux.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SymplecticTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+        """
         self.tab_type = tableau_type
         if max_entry is not PlusInfinity():
             self.max_entry = max_entry
@@ -8298,23 +8436,61 @@ class SymplecticTableaux_all(SymplecticTableaux, DisjointUnionEnumeratedSets):
             self.max_entry = None
 
     def _repr_(self):
+        """
+        TESTS::
+
+
+        """
         if self.max_entry is not None:
             return "%s Symplectic tableaux with maximum entry %s" % (self.tab_type, str(self.max_entry))
         return "%s Symplectic tableaux" % self.tab_type
 
     
     def list(self):
+        """
+        TESTS::
+
+            sage: SymplecticTableaux().list()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
+class SymplecticTableaux_size_inf(SymplecticTableaux):
+    pass
+
+class SymplecticTableaux_shape_inf(SymplecticTableaux):
+    pass
+
 class SymplecticTableaux_size(SymplecticTableaux):
+    """
+    Symplectic tableaux of fixed size `n`.
+    """
     def __init__(self, n, max_entry=None, tableau_type="KashiwaraNakashima"):
+        r"""
+        Initializes the class of semistandard tableaux of size ``n``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SymplecticTableaux`
+            to ensure the options are properly parsed.
+
+        TESTS::
+
+
+        """
         if max_entry is None:
             max_entry = n
-        super(SymplecticTableaux_size, self).__init__(max_entry=max_entry, tableau_type=tableau_type,
-                  category = FiniteEnumeratedSets())
+        super(SymplecticTableaux_size, self).__init__(max_entry=max_entry, 
+              tableau_type=tableau_type, category = FiniteEnumeratedSets())
         self.size = n
 
     def _repr_(self):
+        """
+        TESTS::
+
+        """
         return "%s Symplectic tableaux of size %s and maximum entry %s"%(self.tab_type, str(self.size), str(self.max_entry))
 
     def __contains__(self, x):
@@ -8325,74 +8501,177 @@ class SymplecticTableaux_size(SymplecticTableaux):
             and sum(map(len,x)) == self.size
             and max(max(map(abs, row)) for row in x) <= self.max_entry)
 
-   # def __iter__(self):
-   #     from sage.combinat.partition import Partitions
-   #     for part in Partitions(self.size):
-   #         for sympt in SymplecticTableaux_shape(part, self.max_entry, tableau_type):
-   #             yield self.element_class(self, sympt)
+    def __iter__(self):
+        from sage.combinat.partition import Partitions
+        for part in Partitions(self.size):
+            for sympt in SymplecticTableaux_shape(part, self.max_entry, self.tableau_type):
+                yield self.element_class(self, sympt)
 
 class SymplecticTableaux_shape(SymplecticTableaux):
-    pass
-    # def __init__(self, p, max_entry=None, tableau_type="KashiwaraNakashima"):
-    #     if max_entry == None:
-    #         max_entry = sum(p)
-    #     super(SymplecticTableaux_shape, self).__init__(max_entry = max_entry, tableau_type = tableau_type, category=FiniteEnumeratedSets())
-    #     self.shape = p
+    """
+    Symplectic tableaux of fixed shape `p` with a given max entry and tableau_type
 
-    # def __iter__(self):
-    #     for total in range(sum(self.shape)+1):
-    #         for c in Partitions(total): # weights can sum to number less than size
-    #             c = tuple(list(c) + [0]*(self.max_entry-len(c)))
-    #             for sympt in SymplecticTableaux_shape_weight(self.shape, c, max_entry=self.max_entry, tableau_type=self.tab_type):
-    #                 yield self.element_class(self, sympt)
+    A symplectic tableau with max entry `i` is required to have the absolute 
+    value of all its entries less or equal to `i`. It is not required to actually
+    contain an entry `i` or `-i`.
 
-    # def __contains__(self, x):
-    #     return SymplecticTableaux.__contains__(self, x) and [len(_) for _ in x] == self.shape
+    INPUT:
 
-    # def _repr_(self):
-    #     return "%s Symplectic tableaux of shape %s and maximum entry %s" %(self.tab_type, str(self.shape), str(self.max_entry))
+    - ``p`` -- a partition
+    - ``max_entry`` -- the max entry; defaults to the size of ``p``
+    - ``tableau_type`` -- A string that is the type of Symplectic Tableaux;
+      defaults to KashiwaraNakashima.
+    """
+    def __init__(self, p, max_entry=None, tableau_type="KashiwaraNakashima"):
+        r"""
+        Initializes the class of symplectic tableaux of shape ``p``, with a
+        given ``max_entry`` and ``tableau_type``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SymplecticTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+        """
+        if max_entry == None:
+            max_entry = sum(p)
+        super(SymplecticTableaux_shape, self).__init__(max_entry = max_entry, 
+              tableau_type = tableau_type, category=FiniteEnumeratedSets())
+        self.shape = p
+
+    def __iter__(self):
+        """
+        An iterator for the symplectic tableaux of the specified shape
+        with the specified max entry and specified tableau type.
+        """
+        n = sum(self.shape)
+        for total in range(n, -n-1, -2): # weights can sum to number less than size
+            for iv in IntegerVectors(total + n*self.max_entry, self.max_entry, 
+                                     max_part=2*n):
+                c = tuple([i-n for i in iv])
+                for sympt in SymplecticTableaux_shape_weight(self.shape, c, max_entry=self.max_entry, tableau_type=self.tab_type):
+                    yield self.element_class(self, sympt)
+
+    def __contains__(self, x):
+        return SymplecticTableaux.__contains__(self, x) and [len(_) for _ in x] == self.shape
+
+    def _repr_(self):
+        return "%s Symplectic tableaux of shape %s and maximum entry %s" %(self.tab_type, str(self.shape), str(self.max_entry))
 
 class SymplecticTableaux_shape_weight(SymplecticTableaux_shape):
-    pass
-    # def __init__(self, p, mu, max_entry=None, tableau_type="KashiwaraNakashima"):
-    #     super(SymplecticTableaux_shape_weight, self).__init__(p, max_entry = max_entry, tableau_type = tableau_type)
-    #     self.weight = mu
+    r"""
+    Symplectic tableaux of fixed shape `p` and weight `\mu` and type `tableau_type`.
+    """
+    def __init__(self, p, mu, max_entry=None, tableau_type="KashiwaraNakashima"):
+        r"""
+        Initializes the class of all symplectic tableaux of shape ``p`` and
+        weight ``mu`` and type ``tableau_type``.
 
-    # def _repr_(self):
-    #     return "%s Symplectic tableaux of shape %s and weight %s"%(self.tab_type, self.shape, self.weight)
+        .. WARNING::
 
-    # def __contains__(self, x):
-    #     if x not in SymplecticTableaux_shape(self.shape, self.max_entry):
-    #         return False
-    #     n = sum(self.shape)
+            Input is not checked; please use :class:`SymplecticTableaux` to
+            ensure the options are properly parsed.
 
-    #     if n == 0 and len(x) == 0:
-    #         return True
+        TESTS::
 
-    #     content = {}
-    #     for row in x:
-    #         for i in row:
-    #             content[abs(i)] = content.get(abs(i), 0) + sign(i)
-    #     content_list = [0]*int(max(content))
+        """
+        super(SymplecticTableaux_shape_weight, self).__init__(p, max_entry = max_entry, tableau_type = tableau_type)
+        self.weight = mu
 
-    #     for key in content:
-    #         content_list[key-1] = content[key]
+    def _repr_(self):
+        return "%s Symplectic tableaux of shape %s and symplectic weight %s"%(self.tab_type, self.shape, self.weight)
 
-    #     if content_list != self.weight:
-    #         return False
+    def __contains__(self, x):
+        if x not in SymplecticTableaux_shape(self.shape, self.max_entry, self.tab_type):
+            return False
+        n = sum(self.shape)
 
-    #     return True
+        if n == 0 and len(x) == 0:
+            return True
+
+        content = {}
+        for row in x:
+            for i in row:
+                content[abs(i)] = content.get(abs(i), 0) + sign(i)
+        content_list = [0]*int(max(content))
+
+        for key in content:
+            content_list[key-1] = content[key]
+
+        if content_list != self.weight:
+            return False
+
+        return True
 
 
-    # def __iter__(self):
-    #     #from sage.combinat.crystals.crystals import *
-    #     C = crystals.Tableaux(['C', self.max_entry], shape=self.shape)
-    #     WL = C.weight_lattice_realization()
-    #     for t in [t.to_tableau() for t in C if t.weight() in WL(list(self.weight)).orbit()]:
-    #         yield self.element_class(self, t)
+    def __iter__(self):
+        if self.tab_type == 'KashiwaraNakashima':
+            from sage.combinat.crystals.tensor_product import CrystalOfTableaux
+            C = CrystalOfTableaux(['C', self.max_entry], shape=self.shape)
+            WL = C.weight_lattice_realization()
+            for s in [t.to_tableau() for t in C if t.weight() == WL(list(self.weight))]:
+                yield self.element_class(self, s)
+        elif self.tab_type == 'DeConciniProcesi':
+            raise NotImplementedError("cannot yet iterate through DeConciniProcesi tableaux")
+        elif self.tab_type == 'King':
+            raise NotImplementedError("cannot yet iterate through King tableaux")
+        elif self.tab_type == 'Sundaram':
+            raise NotImplementedError("cannot yet iterate through Sundaram tableaux")
     
-    # def list(self):
-    #     return KashiwaraNakashimaTableaux(self.shape, self.weight, self.max_entry)
+    def list(self):
+        pass
+
+class SymplecticTableaux_size_weight(SymplecticTableaux):
+    r"""
+    Symplectic tableaux of fixed size `n` and weight `\mu` and type ``tableau_type``.
+    """
+    def __init__(self, n, mu, tableau_type="KashiwaraNakashima"):
+        r"""
+        Initializes the class of symplectic tableaux of size ``n`` and
+        weight ``mu`` and type ``tableau_type``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SymplecticTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+
+        """
+        super(SymplecticTableaux_size_weight, self).__init__(max_entry=len(mu),
+              tableau_type = tableau_type, category=FiniteEnumeratedSets())
+        self.size = n
+        self.weight = mu
+
+    def _repr_(self):
+        """
+        TESTS::
+
+
+        """
+        return "%s Symplectic tableaux of size %s and weight %s"%(self.tab_type, self.size, self.weight)
+
+    def __iter__(self):
+        """
+        EXAMPLES::
+
+        """
+        from sage.combinat.partition import Partitions
+        for p in Partitions(self.size):
+            for sst in SymplecticTableaux_shape_weight(p, self.weight, tableau_type=self.tab_type):
+                yield self.element_class(self, sst)
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+        """
+        from sage.combinat.partition import Partition
+        return x in SymplecticTableaux_shape_weight(Partition(
+            [len(_) for _ in x]), self.weight, tableau_type=self.tab_type)
 
 
 ##########################
