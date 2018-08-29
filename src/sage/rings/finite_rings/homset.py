@@ -87,7 +87,7 @@ class FiniteFieldHomset(RingHomset_generic):
             sage: H == loads(dumps(H))
             True
         """
-        if isinstance(im_gens, FiniteFieldHomomorphism_generic):
+        if isinstance(im_gens, Map):
             return self._coerce_impl(im_gens)
         try:
             if self.domain().degree() == 1:
@@ -118,13 +118,13 @@ class FiniteFieldHomset(RingHomset_generic):
               To:   Finite Field in b of size 5^4
               Defn: a |--> 4*b^3 + 4*b^2 + 4*b + 3
         """
-        if not isinstance(x, FiniteFieldHomomorphism_generic):
-            raise TypeError
         if x.parent() is self:
             return x
+        if not isinstance(x, FiniteFieldHomomorphism_generic):
+            raise TypeError # TODO: Should be NotImplementedError
         if x.parent() == self:
             return FiniteFieldHomomorphism_generic(self, x.im_gens())
-        raise TypeError
+        raise TypeError # TODO: Should be NotImplementedError
 
     def _repr_(self):
         """
