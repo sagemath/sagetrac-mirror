@@ -39,6 +39,7 @@ from sage.rings.homset import RingHomset_generic
 from sage.rings.finite_rings.hom_finite_field import FiniteFieldHomomorphism_generic
 from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
+from sage.categories.map import Map
 
 class FiniteFieldHomset(RingHomset_generic):
     """

@@ -137,20 +137,25 @@ class FiniteFields(CategoryWithAxiom):
             generator = generators[0]
 
             minpoly = generator.minpoly()
-            base_map, standard_base_to_base, base_to_standard_base = self.base_ring().absolute_field()
+            standard_base, standard_base_to_base, base_to_standard_base = self.base_ring().absolute_field()
             # Note that this is probably the place where this implementation is
             # really specific to finite fields: There is a consistent choice of
             # embeddings of the fields that come out of GF(p^n) and this makes
             # the .hom(ret) work.
-            base_embedding = base_to_standard_base.hom(ret)
+            base_embedding = standard_base.hom(ret) * base_to_standard_base
             image_of_generator = minpoly.map_coefficients(base_embedding).any_root()
-            to_ret = self.hom([image_of_generator], base_morphism=base_embedding)            
+            # We construct the morphism to our absolute field:
+            # to_ret = self.hom([image_of_generator], base_morphism=base_embedding)
+            # However, this doesn't work yet, see #26105 for a detailed discussion.
+            R = self.polynomial_ring()
+            S = R.change_ring(ret)
+            to_ret = S.hom([image_of_generator]) * R.hom(base_embedding, codomain=S) * self.hom([R.gen()], check=False)
 
             # Construct the inverse of to_ret by solving the corrspoding system
             # of linear equations; we could also factor the minpoly and pick
             # the right root but linear algebra is probably faster than that.
             A = matrix([(image_of_generator**i)._vector_() for i in range(ret.degree())])
-            x = A.solve_right([i == 1 for i in range(ret.degree())])
+            x = A.solve_right(A.row_space()([i == 1 for i in range(ret.degree())]))
             from_ret = ret.hom([sum([c*generator**i for i,c in enumerate(x)])])
             return ret, to_ret, from_ret
 
