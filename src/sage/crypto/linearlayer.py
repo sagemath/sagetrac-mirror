@@ -235,13 +235,13 @@ class LinearLayer:
 
             sage: from sage.crypto.linearlayer import LinearLayer
             sage: ll = LinearLayer.new(matrix(GF(2), [[0,1,0],[1,0,1]]))
-            sage: print(ll)
+            sage: print("%s" % (ll,))
             LinearLayer of dimension 2 x 3 represented as
             [0 1 0]
             [1 0 1]
 
             sage: from sage.crypto.linearlayer import linearlayers
-            sage: print(linearlayers['PRESENT'])
+            sage: print("%s" % (linearlayers['PRESENT'],))
             LinearLayer of dimension 64 x 64 represented as
             [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
             ...
@@ -261,7 +261,7 @@ class LinearLayer:
             [1 0 1]
 
             sage: from sage.crypto.linearlayer import linearlayers
-            sage: linearlayers['PRESENT']
+            sage: linearlayers['PRESENT']  # indirect doctest
             LinearLayer of dimension 64 x 64 represented as
             64 x 64 dense matrix over Finite Field of size 2 (use the '.str()' method to see the entries)
         """
