@@ -11,10 +11,22 @@ literature, either in  the dictionary linearlayers, or as a seperate object.
 This module provides the following linear layers:
 
     - AES ([DR2002]_)
-    - GIFT ([BPPSST2017]_)
+    - GIFT64, GIFT128 ([BPPSST2017]_)
     - Midori ([BBISHAR2015]_)
-    - SKINNY ([BJKLMPSSS2016]_)
+    - SKINNY_4, SKINNY_8 ([BJKLMPSSS2016]_)
     - PRESENT (and SmallScalePRESENT) ([BKLPPRSV2007]_)
+
+EXAMPLES::
+
+    sage: from sage.crypto.linearlayer import LinearLayer
+    doctest:warning
+    ...
+    FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+    See https://trac.sagemath.org/25735 for details.
+    sage: id = LinearLayer.new(identity_matrix(GF(2), 2)); id
+    LinearLayer of dimension 2 x 2 represented as
+    [1 0]
+    [0 1]
 
 AUTHORS:
 
@@ -47,7 +59,7 @@ def _branch_number(mtr):
 
         sage: from sage.crypto.linearlayer import PRESENT
         sage: PRESENT.differential_branch_number() # indirect doctest
-        4
+        2
     """
     from sage.coding.linear_code import LinearCode
     from sage.matrix.special import identity_matrix
@@ -66,7 +78,7 @@ def _ff_elem_to_binary(elem):
     EXAMPLES::
 
         sage: from sage.crypto.linearlayer import LinearLayer
-        sage: L = LinearLayer.new(Matrix(GF(2^4), [[1]])
+        sage: L = LinearLayer.new(Matrix(GF(2^4), [[1]]))
         sage: L.binary_matrix() # indirect doctest
         [1 0 0 0]
         [0 1 0 0]
@@ -94,7 +106,7 @@ def _ff_matrix_to_binary(mtr):
     EXAMPLES::
 
         sage: from sage.crypto.linearlayer import LinearLayer
-        sage: L = LinearLayer.new(Matrix(GF(2^4), [[1]])
+        sage: L = LinearLayer.new(Matrix(GF(2^4), [[1]]))
         sage: L.binary_matrix() # indirect doctest
         [1 0 0 0]
         [0 1 0 0]
@@ -156,10 +168,6 @@ class LinearLayer:
     We start with the simple identity linear layer::
 
         sage: from sage.crypto.linearlayer import LinearLayer
-        doctest:warning
-        ...
-        FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
-        See https://trac.sagemath.org/25735 for details.
         sage: id = LinearLayer.new(identity_matrix(GF(2), 2)); id
         LinearLayer of dimension 2 x 2 represented as
         [1 0]
@@ -275,7 +283,7 @@ class LinearLayer:
         EXAMPLES::
 
             sage: from sage.crypto.linearlayer import LinearLayer
-            sage: L = LinearLayer.new(Matrix(GF(2^4), [[1]])
+            sage: L = LinearLayer.new(Matrix(GF(2^4), [[1]]))
             sage: L.matrix()
             [1]
             sage: type(L.matrix()) != type(L)
@@ -292,7 +300,7 @@ class LinearLayer:
         EXAMPLES::
 
             sage: from sage.crypto.linearlayer import LinearLayer
-            sage: L = LinearLayer.new(Matrix(GF(2^4), [[1]])
+            sage: L = LinearLayer.new(Matrix(GF(2^4), [[1]]))
             sage: L.binary_matrix()
             [1 0 0 0]
             [0 1 0 0]
@@ -436,7 +444,7 @@ class LinearLayer:
             0
 
             sage: from sage.crypto.linearlayer import AES
-            sage: AES.naive_xor_count()
+            sage: AES.naive_xor_count() / 4  # four parallel applications of MC
             152
         """
         avail_algs = ["naive"]
@@ -623,7 +631,7 @@ def smallscale_present_linearlayer(nsboxes=16):
     - ``nsboxes`` - integer, number of sboxes the linear layer operates on
       (default: 16).
 
-    TESTS::
+    EXAMPLES::
 
         sage: from sage.crypto.linearlayer import smallscale_present_linearlayer
         sage: smallscale_present_linearlayer(4)
