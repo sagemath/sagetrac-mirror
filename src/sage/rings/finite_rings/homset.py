@@ -120,6 +120,8 @@ class FiniteFieldHomset(RingHomset_generic):
         """
         if x.parent() is self:
             return x
+        if x.domain() == self.domain() and x.codomain() == self.codomain():
+            return x # TODO: This is not sane but just a temporary hack to make absolute_field() work.
         if not isinstance(x, FiniteFieldHomomorphism_generic):
             raise TypeError # TODO: Should be NotImplementedError
         if x.parent() == self:

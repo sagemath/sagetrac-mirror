@@ -221,9 +221,10 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
         codomain = parent.codomain()
         if not is_FiniteField(domain):
             raise TypeError("The domain is not a finite field")
-        if not is_FiniteField(codomain):
+        from sage.all import FiniteFields
+        if not codomain in FiniteFields(): # TODO: Only leave this in if the following code does not need anything specific to the FinetField class; for example degree() is probably not safe to use as it is defined differently for a quotient ring.
             raise TypeError("The codomain is not a finite field")
-        if domain.characteristic() != codomain.characteristic() or codomain.degree() % domain.degree() != 0:
+        if domain.characteristic() != codomain.characteristic() or codomain.cardinality().log(codomain.characteristic()) % domain.cardinality().log(domain.characteristic()) != 0:
             raise ValueError("No embedding of %s into %s" % (domain, codomain))
         if im_gens is None:
             im_gens = domain.modulus().any_root(codomain)

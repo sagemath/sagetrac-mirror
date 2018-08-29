@@ -137,7 +137,7 @@ class FiniteFields(CategoryWithAxiom):
             generator = generators[0]
 
             minpoly = generator.minpoly()
-            standard_base, standard_base_to_base, base_to_standard_base = self.base_ring().absolute_field()
+            standard_base, base_to_standard_base, standard_base_to_base = self.base_ring().absolute_field()
             # Note that this is probably the place where this implementation is
             # really specific to finite fields: There is a consistent choice of
             # embeddings of the fields that come out of GF(p^n) and this makes
@@ -152,11 +152,12 @@ class FiniteFields(CategoryWithAxiom):
             to_ret = S.hom([image_of_generator]) * R.hom(base_embedding, codomain=S) * self.hom([R.gen()], check=False)
 
             # Construct the inverse of to_ret by solving the corrspoding system
-            # of linear equations; we could also factor the minpoly and pick
-            # the right root but linear algebra is probably faster than that.
+            # of linear equations on the power basis; we could also factor the
+            # minpoly and pick the right root but linear algebra is probably
+            # faster than that.
             A = matrix([(image_of_generator**i)._vector_() for i in range(ret.degree())])
-            x = A.solve_right(A.row_space()([i == 1 for i in range(ret.degree())]))
-            from_ret = ret.hom([sum([c*generator**i for i,c in enumerate(x)])])
+            x = A.solve_left(A.row_space()([i == 1 for i in range(ret.degree())]))
+            from_ret = ret.hom([sum([c*(generator**i) for i,c in enumerate(x)])])
             return ret, to_ret, from_ret
 
     class ElementMethods:

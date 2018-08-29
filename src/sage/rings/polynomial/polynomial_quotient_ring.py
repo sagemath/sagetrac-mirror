@@ -400,6 +400,8 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         self.__ring = ring
         self.__polynomial = polynomial
         category = CommutativeAlgebras(ring.base_ring()).Quotients().or_subcategory(category)
+        if self.is_finite():
+            category = category.Finite()
         CommutativeRing.__init__(self, ring, names=name, category=category)
 
     def _element_constructor_(self, x):
