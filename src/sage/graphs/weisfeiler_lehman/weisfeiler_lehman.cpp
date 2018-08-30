@@ -412,7 +412,7 @@ namespace wl{
                 fingerprint.clear();
             }
         }
-        unordered_map<int, vector<pair<int,int>>> k_WL(const std::vector<GraphNode>& v, int k, bool hasVertexLabels){
+        unordered_map<int, vector<pair<int,int>>> k_WL(const std::vector<GraphNode>& v, int k, bool hasVertexLabels, int threadN){
             int n = v.size();
             //Create two copies of the adjacency matrix and of the color classes' queue, since during
             //the refining rounds one will be used as a reference, one will be written on, and then they will be swapped
@@ -426,7 +426,6 @@ namespace wl{
             shared_timed_mutex fmM;
             initColorClasses(color_classes, adjMatrix);
             volatile int counter = 0;
-            int threadN = 14;
             char** maps = new char*[threadN];
             int** tempvectors = new int*[threadN];
             for(int i = 0; i < threadN; i++){

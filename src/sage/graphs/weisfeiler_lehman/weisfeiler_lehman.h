@@ -21,7 +21,7 @@ namespace wl{
             }
         };
 
-        unordered_map<int, vector<pair<int,int>>> k_WL(const std::vector<GraphNode>& v, int k, bool hasVertexLabels = false);
+        unordered_map<int, vector<pair<int,int>>> k_WL(const std::vector<GraphNode>& v, int k, bool hasVertexLabels = false, int threadN = 1);
         struct IntVector_Hash {
             size_t operator() (const vector<int>& p) const {
                 size_t h = 0;

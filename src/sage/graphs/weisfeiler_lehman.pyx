@@ -418,7 +418,7 @@ def _check_orbit_correctness2(color_classes, g, cardinality=2):
     else:
         return "Wrong"
 
-def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result='edge_classes'):
+def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result='edge_classes', thread_num=1):
     """
     Return the coloring found by applying the k-th order of the Weisfeiler Lehman algorithm.
 
@@ -454,6 +454,8 @@ def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result='edge_classes
                     the color classes on, respectively, vertices and edges as a list of lists, and 'graph', which instead returns a coloured looped weighted complete graph ``C``
                     with the same vertex set as ``G``, where each edge is coloured according to its computed color class.
                     The color classes on vertices are represented by colouring the self loops on each vertex of ``C``
+                    
+    -  ``thread_num`` - Number of threads to be used for computation, default 1
 
     OUTPUT:
     
@@ -563,7 +565,7 @@ def WeisfeilerLehman(G, k, partition=[], edge_labels=False, result='edge_classes
     g._relabel_map = g.relabel()
     g.set_vertex_coloring(partition, g._relabel_map)
     cdef vector[GraphNode] res = _sageGraphToLists(g.graph, g.vertex_coloring, edge_labels)
-    cdef unordered_map[int, vector[pair[int,int]]] coloring = k_WL(res, k, g.vertex_coloring)
+    cdef unordered_map[int, vector[pair[int,int]]] coloring = k_WL(res, k, g.vertex_coloring, thread_num)
     inverted_relabel_map = {v:k for k,v in g._relabel_map.iteritems()}
     if result == 'graph':
         formatted_result = G.union(G.complement())
