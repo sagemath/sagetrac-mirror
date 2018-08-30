@@ -43,13 +43,21 @@ cdef extern from "automataC.h":
         Dict* d
         int n
     bool DotExists()
+    void printAutomaton(Automaton a)
+    Automaton CopyAutomaton(Automaton a, int nalloc, int naalloc)
+    Dict NewDict(int n)
+    InvertDict NewInvertDict(int n)
+    bool rec_word(Automaton a, Dict d)
+    bool emptyLanguage(Automaton a)
+    bool IsCompleteAutomaton(Automaton a)
+    bool equalsAutomaton(Automaton a1, Automaton a2)
+    bool CompleteAutomaton(Automaton *a)
+
     #    Automaton NewAutomaton (int n, int na)
     #    void FreeAutomaton (Automaton *a)
     void FreeNAutomaton(NAutomaton *a)
-    Automaton CopyAutomaton(Automaton a, int nalloc, int naalloc)
     Automaton PieceAutomaton(Automaton a, int *w, int n, int e)
     void init(Automaton *a)
-    void printAutomaton(Automaton a)
     void plotDot(const char *file, Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool html, bool verb, bool run_dot)
     void NplotDot(const char *file, NAutomaton a, const char **labels, const char *graph_name, double sx, double sy, bool run_dot)
     Automaton Product(Automaton a1, Automaton a2, Dict d, bool verb)
@@ -68,11 +76,11 @@ cdef extern from "automataC.h":
     Automaton emondeI(Automaton a, bool verb)
     void AccCoAcc(Automaton *a, int *coa)
     void CoAcc(Automaton *a, int *coa)
-    bool equalsAutomaton(Automaton a1, Automaton a2)
-    Dict NewDict(int n)
+
+
     void FreeDict(Dict *d)
     void printDict(Dict d)
-    InvertDict NewInvertDict(int n)
+
     void FreeInvertDict(InvertDict id)
     void printInvertDict(InvertDict id)
     Automaton Duplicate(Automaton a, InvertDict id, int na2, bool verb)
@@ -88,17 +96,17 @@ cdef extern from "automataC.h":
     bool equalsLangages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool emonded, bool verb)
     bool Intersect(Automaton a1, Automaton a2, bool verb)
     bool Included(Automaton a1, Automaton a2, bool emonded, bool verb)
-    bool emptyLanguage(Automaton a)
+
     void AddEtat(Automaton *a, bool final)
-    bool IsCompleteAutomaton(Automaton a)
-    bool CompleteAutomaton(Automaton *a)
+
+
     Automaton BiggerAlphabet(Automaton a, Dict d, int nna) #copy the automaton with a new bigger alphabet
     bool findWord(Automaton a, Dict *w, bool verb)
     bool shortestWord(Automaton a, Dict *w, int i, int f, bool verb)
     bool shortestWords(Automaton a, Dict *w, int i, bool verb)
-    bool rec_word(Automaton a, Dict d)
     void Test()
     # bool intersectLangage (Automaton *a1, Automaton *a2, Dict a1toa2, bool emonded, bool verb)
+
 
 def _printAutomaton_wrapper(a):
     """
@@ -233,6 +241,7 @@ def _NewDict(n):
     sig_off()
     return d
 
+
 def _NewInvertDict(n):
     """
     Test the _NewInvertDict c Function.
@@ -291,7 +300,7 @@ def _NewInvertDict(n):
 #         sage: r = _InvertDict([0, 1, 2, 3])
 #         sage: r
 #         {0: {}, 1: {}, 2: {}}
-# 
+#
 #     """
 #     cdef InvertDict r
 #     cdef Dict d
@@ -310,7 +319,7 @@ def _NewInvertDict(n):
 #     sig_off()
 #     return dr
 
-def _RecWord(fa, li):
+def _recWord_wrapper(fa, li):
     """
     Test the _NewDict c Function.
 
@@ -328,11 +337,11 @@ def _RecWord(fa, li):
 
     TESTS::
 
-        sage: from  sage.combinat.words.automatonC_wrapper import _RecWord
+        sage: from  sage.combinat.words.automatonC_wrapper import _recWord_wrapper
         sage: a = [(0, 1, 'a'), (2, 3, 'b')]
         sage: fa = DiGraph(a, multiedges=True, loops=True)
         sage: li = [0, 1, 2]
-        sage: b = _RecWord(fa, li)
+        sage: b = _recWord_wrapper(fa, li)
         sage: b
         False
 
@@ -349,9 +358,10 @@ def _RecWord(fa, li):
     sig_off()
     return c_bool(res)
 
+
 def _emptyLanguage_wrapper(a):
     """
-    Test the _IsCompleteAutomaton c Function.
+    Test the _emptyLanguage_wrapper c Function.
 
 
     INPUT:
@@ -419,7 +429,7 @@ def _IsCompleteAutomaton_wrapper(a):
 
 def _CompleteAutomaton_wrapper(a):
     """
-    Test the _IsCompleteAutomaton c Function.
+    Test the _CompleteAutomaton c Function.
 
 
     INPUT:
@@ -449,6 +459,7 @@ def _CompleteAutomaton_wrapper(a):
     res = CompleteAutomaton(&r)
     sig_off()
     return c_bool(res)
+
 
 def _equalsAutomaton_wrapper(a1, a2):
     """
