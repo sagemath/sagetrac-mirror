@@ -598,7 +598,7 @@ class FractionField_generic(ring.Field):
         if isinstance(x, six.string_types):
             from sage.misc.sage_eval import sage_eval
             try:
-                x = sage_eval(x, self.gens_dict_recursive())
+                x = sage_eval(x, locals=self.gens_dict_recursive(), globals={})
             except NameError:
                 raise TypeError("unable to evaluate {!r} in {}".format(x, self))
         if isinstance(y, six.string_types):
