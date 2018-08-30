@@ -15,7 +15,7 @@ import six
 from copy import copy
 import sage.repl.preparse as preparser
 
-def sage_eval(source, locals=None, cmds='', preparse=True):
+def sage_eval(source, locals=None, cmds='', preparse=True, globals=None):
     r"""
     Obtain a Sage object from the input string by evaluating it using
     Sage. This means calling eval after preparsing and with globals
@@ -28,7 +28,7 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
     -  ``source`` - a string or object with a _sage_
        method
 
-    -  ``locals`` - evaluate in namespace of sage.all plus
+    -  ``locals`` - evaluate in namespace of ``globals`` plus
        the locals dictionary
 
     -  ``cmds`` - string; sequence of commands to be run
@@ -37,6 +37,8 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
     -  ``preparse`` - (default: True) if True, preparse the
        string expression.
 
+    -  ``globals`` - dictionary or ``None`` (default)
+       If globals is ``None``, then ``sage.all`` is used.
 
     EXAMPLES: This example illustrates that preparsing is applied.
 
@@ -188,6 +190,9 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
         locals = {}
 
     import sage.all
+    if globals is None:
+        globals = sage.all.__dict__
+
     if len(cmds):
         cmd_seq = cmds + '\n_sage_eval_returnval_ = ' + source
         if preparse:
@@ -197,10 +202,10 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
             source = preparser.preparse(source)
 
     if len(cmds):
-        exec(cmd_seq, sage.all.__dict__, locals)
+        exec(cmd_seq, globals, locals)
         return locals['_sage_eval_returnval_']
     else:
-        return eval(source, sage.all.__dict__, locals)
+        return eval(source, globals, locals)
 
 
 
