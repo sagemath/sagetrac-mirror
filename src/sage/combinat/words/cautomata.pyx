@@ -1199,7 +1199,7 @@ cdef class DetAutomaton:
         sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')], final_states=[0,3])
         sage: a
         DetAutomaton with 4 states and an alphabet of 2 letters
-        sage: dag.Random(n=40, A=[None, -1, 1,2,3,'x','y','z'], verb=True) #random
+        sage: dag.Random(n=40, A=[None, -1, 1,2,3,'x','y','z']) #random
     """
 
 #    cdef Automaton* a
