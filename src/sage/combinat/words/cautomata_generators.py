@@ -25,12 +25,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
 from __future__ import print_function
-from libc.stdlib cimport malloc, free
-from sage.graphs.digraph import DiGraph
 
-cimport sage.combinat.words.cautomata
-from cysignals.signals cimport sig_on, sig_off, sig_check
-from cpython cimport bool as c_bool 
 from sage.combinat.words.cautomata import DetAutomaton
 from sage.misc.prandom import randint, random
 
@@ -64,6 +59,7 @@ class DetAutomatonGenerators(object):
                 F.append(i)
         if verb:
             print("final states %s" % F)
-        return DetAutomaton(L, i=randint(0, n-1), final_states=F)
-
- 
+        return DetAutomaton(L, S=range(n), i=randint(0,n-1), final_states=F)
+        
+ # Easy access to the automaton generators from the command line:
+automata = DetAutomatonGenerators()

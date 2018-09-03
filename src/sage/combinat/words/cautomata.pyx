@@ -40,6 +40,9 @@ from cysignals.signals cimport sig_on, sig_off, sig_check
 from cpython cimport bool as c_bool 
 #ctypedef Automate Automaton
 
+from sage.combinat.words.cautomata_generators import DetAutomatonGenerators
+dag = DetAutomatonGenerators()
+
 cdef extern from "Automaton.h":
 
     cdef cppclass Transition:
@@ -1214,6 +1217,7 @@ cdef class DetAutomaton:
         sage: b = DetAutomaton(c)
         sage: b
         DetAutomaton with 5 states and an alphabet of 4 letters
+        sage: dag.Random(n=40, A=[None, -1, 1,2,3,'x','y','z'])  # random
 
     """
 
@@ -1239,7 +1243,7 @@ cdef class DetAutomaton:
         self.dA = None
         self.dS = None
 
-    def __init__(self, a, i=None, final_states=None, A=None, keep_S=True, verb=False):
+    def __init__(self, a, i=None, final_states=None, A=None, S=None, keep_S=True, verb=False):
         r"""
         INPUT:
 
@@ -1289,7 +1293,10 @@ cdef class DetAutomaton:
         if isinstance(a, list):
             if verb:
                 print("list...")
-            a = DiGraph(a, multiedges=True, loops=True)
+            if S is None:
+                a = DiGraph(a, multiedges=True, loops=True)
+            else:
+                a = DiGraph([S,a], format='vertices_and_edges', multiedges=True, loops=True)
         if isinstance(a, DiGraph):
             if verb:
                 print("DiGraph...")
