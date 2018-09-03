@@ -716,9 +716,9 @@ cdef class NFastAutomaton:
         return l
 
     @property
-    def Alphabet(self):
+    def alphabet(self):
         """
-        To get the :class:`NFastAutomaton` attribut Alphabet
+        To get the :class:`NFastAutomaton` attribut alphabet
 
         OUTPUT:
 
@@ -728,12 +728,12 @@ cdef class NFastAutomaton:
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: b = NFastAutomaton(a)
-            sage: b.Alphabet
+            sage: b.alphabet
             ['a', 'b']
             sage: a = FastAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
                 (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
                 (10,30,'z')], i=10)
-            sage: a.Alphabet
+            sage: a.alphabet
             ['y', 'x', 'z']
         """
         return self.A
@@ -990,7 +990,7 @@ cdef class FastAutomaton:
 
         - ``final_states`` - (default: None) - list of final states
 
-        - ``A`` - (default: None) - Alphabet
+        - ``A`` - (default: None) - alphabet
 
         - ``keep_S``- (default: `True`) - Keep labels of states or not
 
@@ -1427,9 +1427,9 @@ cdef class FastAutomaton:
             # raise NotImplementedError("You cannot plot the FastAutomaton without dot. Install the dot command of the GraphViz package.")
 
     @property
-    def Alphabet(self):
+    def alphabet(self):
         """
-        To get the :class:`FastAutomaton` attribut Alphabet
+        To get the :class:`FastAutomaton` attribut alphabet
 
         OUTPUT:
 
@@ -1438,7 +1438,7 @@ cdef class FastAutomaton:
         EXAMPLES::
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: a.Alphabet
+            sage: a.alphabet
             ['a', 'b']
         """
         return self.A
@@ -1455,11 +1455,11 @@ cdef class FastAutomaton:
 
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.setAlphabet(['a', 'b', 'c'])
-            sage: a.Alphabet
+            sage: a.alphabet
             ['a', 'b', 'c']
             sage: a = FastAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.setAlphabet(['a','e'])
-            sage: a.Alphabet
+            sage: a.alphabet
             ['a', 'e']
         """
         self.A = A
@@ -1984,7 +1984,7 @@ cdef class FastAutomaton:
         """
         if self.initial_state == -1:
             empty = FastAutomaton([])
-            empty.setAlphabet(self.Alphabet)
+            empty.setAlphabet(self.alphabet)
             return empty
         cdef Automaton a
         r = FastAutomaton(None)
@@ -2980,7 +2980,7 @@ cdef class FastAutomaton:
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: d = { 'a' : 'a', 'b': 'c', 'c':'c', 'd':'b'}
             sage: b = a.duplicate(d)
-            sage: b.Alphabet
+            sage: b.alphabet
             ['a', 'c']
         """
         cdef Automaton a
@@ -3017,7 +3017,7 @@ cdef class FastAutomaton:
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: d = { 'a' : 'a', 'b': 'c', 'c':'b', 'd':'b'}
             sage: a.relabel(d)
-            sage: a.Alphabet
+            sage: a.alphabet
             ['a', 'c']
         """
         self.A = [d[c] for c in self.A]
@@ -3030,7 +3030,7 @@ cdef class FastAutomaton:
         INPUT:
 
         - ``A``  -- list of letters in the new order
-          (number can be less to the Alphabet)
+          (number can be less to the alphabet)
         - ``verb`` -- boolean (default: ``False``) fix to ``True`` to
           activate the verbose mode
 
@@ -3046,7 +3046,7 @@ cdef class FastAutomaton:
             A=['b', 'c', 'a']
             l=[ 1 -1 0 ]
             l = [ 1 -1 0 ]
-            sage: b.Alphabet
+            sage: b.alphabet
             ['b', 'c', 'a']
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')])
             sage: b = a.permut(l, verb=True)
@@ -3093,21 +3093,21 @@ cdef class FastAutomaton:
         INPUT:
 
         - ``A``  -- list of letters in the new order (number can be less to
-          the Alphabet)
+          the alphabet)
         - ``verb`` -- boolean (default: ``False``) fix to ``True`` for
           activation the verbose mode
 
         EXAMPLES::
 
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.Alphabet
+            sage: a.alphabet
             ['a', 'b']
             sage: l = [ 'b', 'c', 'a']
             sage: a.permut_op(l, verb=True)
             A=['b', 'c', 'a']
             l=[ 1 -1 0 ]
             l = [ 1 -1 0 ]
-            sage: a.Alphabet
+            sage: a.alphabet
             ['b', 'c', 'a']
             sage: a = FastAutomaton([(0, 1, 'a'), (2, 3, 'b')])
             sage: a.permut_op(l, verb=True)
@@ -4071,7 +4071,7 @@ cdef class FastAutomaton:
 
         INPUT:
 
-        - ``nA`` --  Alphabet of the new automaton. We assume that it
+        - ``nA`` --  alphabet of the new automaton. We assume that it
           contains the current alphabet of the automaton.
 
         OUTPUT:
