@@ -10,5 +10,5 @@ from .word import Word
 from .word_options import WordOptions
 from .word_generators import words
 from .words import Words, FiniteWords, InfiniteWords
-from .cautomata import FastAutomaton
+from .cautomata import DetAutomaton
 from .cautomata import NFastAutomaton

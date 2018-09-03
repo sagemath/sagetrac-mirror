@@ -32,8 +32,11 @@ from libc.stdlib cimport malloc, free
 cimport sage.combinat.words.automatonC_wrapper
 from cysignals.signals cimport sig_on, sig_off, sig_check
 from cpython cimport bool as c_bool
-#from sage.combinat.words.cautomata import FastAutomaton, NFastAutomaton
+#from sage.combinat.words.cautomata import FastAutomaton #, NFastAutomaton
 #from sage.combinat.words.cautomata cimport getAutomaton, list_to_Dict
+from .cautomata import  DetAutomaton
+#from .cautomata import  NFastAutomaton
+#from .cautomata cimport getAutomaton, list_to_Dict
 
 cdef extern from "automataC.h":
     cdef cppclass Dict:
