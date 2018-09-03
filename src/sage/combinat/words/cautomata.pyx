@@ -455,6 +455,17 @@ cdef class NFastAutomaton:
         sage: b = NFastAutomaton(a)
         sage: b
         NFastAutomaton with 4 states and an alphabet of 2 letters
+        sage: c = Automaton({0:{1:'x',2:'z',3:'a'}, 2:{5:'o'}},initial_states=[0])
+        sage: b = NFastAutomaton(c)
+        sage: b
+        NFastAutomaton with 5 states and an alphabet of 4 letters
+        sage: d = DiGraph({0: [1,2,3], 1: [0,2]})
+        sage: b = NFastAutomaton(d)
+        sage: b
+        NFastAutomaton with 4 states and an alphabet of 1 letters
+        sage: g =  NFastAutomaton([(0,1,'a') ,(2,3,'b')])
+        sage: g
+        NFastAutomaton with 4 states and an alphabet of 2 letters
 
     """
     def __cinit__(self):
@@ -502,7 +513,7 @@ cdef class NFastAutomaton:
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=1)
             sage: NFastAutomaton(a)
             NFastAutomaton with 4 states and an alphabet of 2 letters
-            
+
         """
         cdef DetAutomaton da
         cdef NFastAutomaton na
@@ -536,7 +547,7 @@ cdef class NFastAutomaton:
                 A = list(set(a.edge_labels()))
             self.A = A
             if verb:
-                print("getNAutomaton(%s, I=%s, F=%s, A=%s)"%(a, I, F, self.A))
+                print("getNAutomaton(%s, I=%s, F=%s, A=%s)" % (a, I, F, self.A))
             self.a[0] = getNAutomaton(a, I=I, F=F, A=self.A, verb=verb)
             if keep_S:
                 self.S = a.S
@@ -552,7 +563,7 @@ cdef class NFastAutomaton:
             if verb:
                 print("DetAutomaton")
             da = a
-            #self = a.copyn()
+            # self = a.copyn()
             self.a[0] = CopyN(da.a[0], verb = verb)
             self.A = da.A
         else:
