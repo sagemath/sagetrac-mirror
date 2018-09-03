@@ -34,26 +34,28 @@ from cpython cimport bool as c_bool
 from sage.combinat.words.cautomata import DetAutomaton
 from sage.misc.prandom import randint, random
 
+
 class DetAutomatonGenerators(object):
-    def Random (self, n=None, A=None, density_edges = None, density_finals = None, verb=False):
+    def Random(self, n=None, A=None, density_edges=None, 
+               density_finals=None, verb=False):
         if density_edges is None:
             density_edges = random()
         if density_finals is None:
             density_finals = random()
         if n is None:
-            n = randint(2,1000)
+            n = randint(2, 1000)
         if A is None:
             if random() < .5:
-                A = list('abcdefghijklmnopqrstuvwxyz')[:randint(0,25)]
+                A = list('abcdefghijklmnopqrstuvwxyz')[:randint(0, 25)]
             else:
-                A = range(1, randint(1,1000))
+                A = range(1, randint(1, 1000))
         if verb:
             print("Random automaton with %s states, density of leaving edges %s, density of final states %s and alphabet %s"%(n, density_edges, density_finals, A))
         L = []
         for i in range(n):
             for j in range(len(A)):
                 if random() < density_edges:
-                    L.append((i,randint(0,n-1),A[j]))
+                    L.append((i, randint(0, n-1), A[j]))
         if verb:
             print(L)
         F = []
@@ -61,7 +63,7 @@ class DetAutomatonGenerators(object):
             if random() < density_finals:
                 F.append(i)
         if verb:
-            print("final states %s"%F)
-        return DetAutomaton(L, i=randint(0,n-1), final_states=F)
-        
+            print("final states %s" % F)
+        return DetAutomaton(L, i=randint(0, n-1), final_states=F)
+
  

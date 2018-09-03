@@ -41,11 +41,11 @@ from cpython cimport bool as c_bool
 #ctypedef Automate Automaton
 
 cdef extern from "Automaton.h":
-    
+
     cdef cppclass Transition:
-        int l #label (-1 : epsilon-transition)
-        int e #arrival state
-    
+        int l  # label (-1 : epsilon-transition)
+        int e  # arrival state
+
 cdef extern from "automataC.h":
 
     cdef cppclass Dict:
@@ -307,11 +307,11 @@ cdef NAutomaton getNAutomaton(a, I=None, F=None, A=None, verb=False):
 
     if A is None:
         A = list(a.Alphabet)
-    
+
     V = list(a.vertices())
     cdef int n = len(V)
     cdef int na = len(A)
-    
+
     if verb:
         print("vertices=%s"%V)
 
@@ -319,7 +319,7 @@ cdef NAutomaton getNAutomaton(a, I=None, F=None, A=None, verb=False):
         print("Alloc(%s, %s) and init..."%(n, na))
     sig_on()
     r = NewNAutomaton(n, na)
-    #initNAutomaton(&r)
+    # initNAutomaton(&r)
     sig_off()
     if verb:
         print("init...")
@@ -350,7 +350,7 @@ cdef NAutomaton getNAutomaton(a, I=None, F=None, A=None, verb=False):
         if verb:
             print("d[%s]=%s"%(v, d[v]))
         r.e[d[v]].initial = 1
-    
+
     if verb:
         print(dt)
         print("browse transitions...")
@@ -1196,6 +1196,14 @@ cdef class DetAutomaton:
         sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')], final_states=[0,3])
         sage: a
         DetAutomaton with 4 states and an alphabet of 2 letters
+        sage: b = DetAutomaton(a)
+        sage: b
+        DetAutomaton with 4 states and an alphabet of 2 letters
+        sage: c = Automaton({0:{1:'x',2:'z',3:'a'}, 2:{5:'o'}},initial_states=[0])
+        sage: b = DetAutomaton(c)
+        sage: b
+        DetAutomaton with 5 states and an alphabet of 4 letters
+
     """
 
 #    cdef Automaton* a
@@ -2062,7 +2070,7 @@ cdef class DetAutomaton:
             sage: a.zero_completeOP()
             sage: a
             DetAutomaton with 3 states and an alphabet of 2 letters
-            
+
         """
         sig_on()
         ZeroComplete(self.a, z, verb)
