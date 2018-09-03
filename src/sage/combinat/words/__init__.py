@@ -23,7 +23,7 @@ Main classes and functions meant to be used by the user:
     :func:`~sage.combinat.words.alphabet.Alphabet`,
     :class:`~sage.combinat.words.morphism.WordMorphism`,
     :class:`~sage.combinat.words.paths.WordPaths`.
-    :class:`~sage.combinat.words.cautomata.FastAutomaton`.
+    :class:`~sage.combinat.words.cautomata.DetAutomaton`.
     :class:`~sage.combinat.words.cautomata.NFastAutomaton`.
 
 A list of common words can be accessed through ``words.<tab>`` and are listed in

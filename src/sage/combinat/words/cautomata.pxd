@@ -45,7 +45,7 @@ cdef extern from "automataC.h":
 ctypedef Automate Automaton
 ctypedef NAutomate NAutomaton
 
-cdef class FastAutomaton:
+cdef class DetAutomaton:
     cdef Automate* a
     cdef list A	 # alphabet
     cdef dict dA  # dictionnary giving the index in A
