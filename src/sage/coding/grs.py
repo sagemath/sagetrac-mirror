@@ -197,14 +197,14 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
                 self._evaluation_points = common_points[:len(evaluation_points)]
                 self._column_multipliers = common_points[len(evaluation_points):]
             except (TypeError, ValueError) as e:
-                raise ValueError("Failed converting all evaluation points and column multipliers to the same field (%s)" % e.message)
+                raise ValueError("Failed converting all evaluation points and column multipliers to the same field (%s)" % e)
         else:
             try:
                 self._evaluation_points = vector(evaluation_points)
                 F = self._evaluation_points.base_ring()
                 self._column_multipliers = vector(F, [F.one()] * len(self._evaluation_points))
             except (TypeError, ValueError) as e:
-                raise ValueError("Failed converting all evaluation points to the same field (%s)" % e.message)
+                raise ValueError("Failed converting all evaluation points to the same field (%s)" % e)
 
         if not F.is_finite() or not F.is_field():
             raise ValueError("Evaluation points must be in a finite field (and %s is not one)" % F)
