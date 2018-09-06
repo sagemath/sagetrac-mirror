@@ -49,6 +49,15 @@ fi
 ###############################################################################
 
 echo "Now configuring zn_poly..."
+if [ "$UNAME" = "CYGWIN" ]; then
+    dllname="cygzn_poly.dll"
+    importlib="libzn_poly.dll.a"
+    # On Cygwin we need to ensure that the linker outputs the libzn_poly import
+    # library (technically gcc on Cygwin can use direct DLL linking, but that
+    # would require adding $SAGE_LOCAL/bin to the library search path for the
+    # linker, which is a bit akward; see trac #26050)
+    LDFLAGS="$LDFLAGS -Wl,--out-implib=$importlib"
+fi
 # Note: The '--cppflags' and '--cxxflags' options are added by our patch to
 #       'makemakefile.py', and aren't available with vanilla upstream.
 #       Moreover, the generated Makefile now takes CC, CXX and CPP from the
@@ -99,7 +108,8 @@ case "$UNAME" in
     ;;
 "CYGWIN")
     sdh_make libzn_poly.so
-    sdh_install -T "$soname" "$SAGE_LOCAL/bin/cygzn_poly.dll"
+    sdh_install -T "$soname" "$SAGE_LOCAL/bin/$dllname"
+    sdh_install -T "$importlib" "$SAGE_LOCAL/lib/$importlib"
     ;;
 *)
     # Linux, SunOS/Solaris, etc.:
