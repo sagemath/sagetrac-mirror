@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Common words
 
@@ -65,7 +65,7 @@ from sage.rings.infinity import Infinity
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.word import FiniteWord_list
 from sage.combinat.words.finite_word import FiniteWord_class, Factorization
-from sage.combinat.words.words import Words, FiniteWords, InfiniteWords
+from sage.combinat.words.words import FiniteWords, InfiniteWords
 from sage.combinat.words.morphism import WordMorphism
 from sage.arith.all import gcd
 from sage.misc.decorators import rename_keyword
@@ -725,7 +725,7 @@ class WordGenerator(object):
         satisfying `s_{\alpha,0} = ac_\alpha` and `s'_{\alpha,0} = bc_\alpha`,
         where `s_{\alpha,0}` and `s'_{\alpha,0}` are respectively the lower
         and upper mechanical words with slope `\alpha` and intercept `0`.
-        Equivalently, for irrationnal `\alpha`,
+        Equivalently, for irrational `\alpha`,
         `c_\alpha = s_{\alpha,\alpha} = s'_{\alpha,\alpha}`.
 
         Let `\alpha = [0, d_1 + 1, d_2, d_3, \ldots]` be the continued
@@ -779,9 +779,9 @@ class WordGenerator(object):
         From an iterator of the continued fraction expansion of a real::
 
             sage: def cf():
-            ...     yield 0
-            ...     yield 2
-            ...     while True: yield 1
+            ....:   yield 0
+            ....:   yield 2
+            ....:   while True: yield 1
             sage: F = words.CharacteristicSturmianWord(cf()); F
             word: 0100101001001010010100100101001001010010...
             sage: Fib = words.FibonacciWord(); Fib
@@ -973,6 +973,9 @@ class WordGenerator(object):
         words `K_{a,b}` and `K_{b,a}` are the unique two words over `A`
         that are fixed by `\Delta`.
 
+        Also note that the Kolakoski word is also known as the
+        Oldenburger word.
+
         INPUT:
 
         -  ``alphabet`` - (default: (1,2)) an iterable of two positive
@@ -1011,10 +1014,10 @@ class WordGenerator(object):
         TESTS::
 
             sage: for i in range(1,10):
-            ...       for j in range(1,10):
-            ...           if i != j:
-            ...               w = words.KolakoskiWord(alphabet=(i,j))
-            ...               assert w[:50] == w.delta()[:50]
+            ....:     for j in range(1,10):
+            ....:         if i != j:
+            ....:             w = words.KolakoskiWord(alphabet=(i,j))
+            ....:             assert w[:50] == w.delta()[:50]
 
         ::
 
@@ -1265,7 +1268,7 @@ class WordGenerator(object):
            morphisms, Theoret. Comput. Sci. 276 (2002) 281--313.
 
         .. [GJ07] \A. Glen, J. Justin, Episturmian words: a survey, Preprint,
-           2007, arXiv:0801.1655.
+           2007, :arxiv:`0801.1655`.
         """
         if not isinstance(directive_word, Word_class):
            raise TypeError("directive_word is not a word, so it cannot be used to build an episturmian word")
@@ -1359,8 +1362,8 @@ class WordGenerator(object):
         return W(w)
 
     def RandomWord(self, n, m=2, alphabet=None):
-        """
-        Returns a random word of length `n` over the given `m`-letter
+        r"""
+        Return a random word of length `n` over the given `m`-letter
         alphabet.
 
         INPUT:
@@ -1776,7 +1779,7 @@ class WordGenerator(object):
 
             sage: from sage.misc.prandom import randint
             sage: def it():
-            ...     while True: yield randint(0,1)
+            ....:   while True: yield randint(0,1)
             sage: words.s_adic(it(), repeat('a'), [tm,fib])
             word: abbaabababbaababbaabbaababbaabababbaabba...
             sage: words.s_adic(it(), repeat('a'), [tm,fib])
@@ -1834,7 +1837,7 @@ class WordGenerator(object):
             sage: s = words.s_adic(w, repeat(3), x); s
             word: 3232232232322322322323223223232232232232...
             sage: prefixe = s[:10000]
-            sage: map(prefixe.number_of_factors, range(15))
+            sage: list(map(prefixe.number_of_factors, range(15)))
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
             sage: [_[i+1] - _[i] for i in range(len(_)-1)]
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
@@ -1918,11 +1921,11 @@ class WordGenerator(object):
 
     def PalindromicDefectWord(self, k=1, alphabet='ab'):
         r"""
-        Returns the finite word `w = a b^k a b^{k-1} a a b^{k-1} a b^{k} a`.
+        Return the finite word `w = a b^k a b^{k-1} a a b^{k-1} a b^{k} a`.
 
-        As described by Brlek, Hamel, Nivat and Reuteunaer in [BHNR04]_, this
+        As described by Brlek, Hamel, Nivat and Reutenauer in [BHNR04]_, this
         finite word `w` is such that the infinite periodic word `w^{\omega}`
-        have palindromic defect ``k``.
+        has palindromic defect ``k``.
 
         INPUT:
 
@@ -1977,5 +1980,69 @@ class WordGenerator(object):
             a, b = (a,), (b,)
         w = a + b*k + a + b*kk + a + a + b*kk + a + b*k + a
         return FiniteWords(alphabet)(w)
+
+    def BaumSweetWord(self):
+        r"""
+        Returns the Baum-Sweet Word.
+
+        The Baum-Sweet Sequence is an infinite word over the alphabet `\{0,1\}`
+        defined by the following string substitution rules:
+
+        `00 \rightarrow 0000`
+
+        `01 \rightarrow 1001`
+
+        `10 \rightarrow 0100`
+
+        `11 \rightarrow 1101`
+
+        The substitution rule above can be considered as a morphism on the
+        submonoid of `\{0,1\}` generated by `\{00,01,10,11\}` (which is a free
+        monoid on these generators).
+
+        It is also defined as the concatenation of the terms from the Baum-Sweet
+        Sequence:
+
+        .. MATH::
+
+            b_n = \begin{cases}
+            0,      & \text{if } n = 0 \\
+            1,      & \text{if } m \text{ is even} \\
+            b_{\frac{m-1}{2}}, & \text{if } m \text{ is odd}
+            \end{cases}
+
+        where `n=m4^k` and `m` is not divisible by 4 if `m \neq 0`.
+
+        The individual terms of the Baum-Sweet Sequence are also given by:
+
+        .. MATH::
+
+            b_n = \begin{cases}
+            1,      & \text{if the binary representation of} n \text{ contains no block of consecutive 0's of odd length}\\
+            0,      & \text{otherwise}\\
+            \end{cases}\\
+
+        for `n > 0` with `b_0 = 1`.
+
+        For more information see:
+        :wikipedia:`Baum-Sweet_sequence`.
+
+        EXAMPLES:
+
+        Baum-Sweet Word::
+
+            sage: w = words.BaumSweetWord(); w
+            word: 1101100101001001100100000100100101001001...
+
+        Block Definition::
+
+            sage: w = words.BaumSweetWord()
+            sage: f = lambda n: '1' if all(len(x)%2==0 for x in bin(n)[2:].split('1')) else '0'
+            sage: all(f(i) == w[i] for i in range(1,100))
+            True
+        """
+        outer = WordMorphism('a->00,b->01,c->10,d->11')
+        inner = WordMorphism('a->aa,b->cb,c->ba,d->db')
+        return outer(inner.fixed_point('d'))
 
 words = WordGenerator()

@@ -220,12 +220,12 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
             sage: a[3][2]
             4
         """
+        if isinstance(i, tuple):
+            i, j = i
+            return self._list[i - 1][j]
         if i < 1:
             raise ValueError("indexing starts at 1")
-        if isinstance(i, tuple):
-            i,j = i
-            return self._list[i-1][j]
-        return self._list[i-1]
+        return self._list[i - 1]
 
     def shape(self):
         """
@@ -624,7 +624,7 @@ class NonattackingFillings_shape(CombinatorialClass):
 
     def flip(self):
         """
-        Returns the nonattacking fillings of the the flipped shape.
+        Return the nonattacking fillings of the flipped shape.
 
         EXAMPLES::
 

@@ -19,7 +19,7 @@ with
 
 is defined by
 
-.. math::
+.. MATH::
 
     (\phi, \pi, \alpha)(\psi, \sigma, \beta) =
     (\phi \cdot \psi^{\pi, \alpha}, \pi\sigma, \alpha \circ \beta)
@@ -81,7 +81,7 @@ class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
     
     is defined by
     
-    .. math::
+    .. MATH::
 
         (\phi, \pi, \alpha)(\psi, \sigma, \beta) =
         (\phi \cdot \psi^{\pi, \alpha}, \pi\sigma, \alpha \circ \beta)
@@ -151,7 +151,7 @@ class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
 
         - ``v`` (optional) -- a vector of length ``self.degree()``
 
-        - ``perm`` (optional) -- a permutaton of degree ``self.degree()``
+        - ``perm`` (optional) -- a permutation of degree ``self.degree()``
 
         - ``autom`` (optional) -- an automorphism of the ring
 
@@ -392,7 +392,7 @@ class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
         ring_latex = self.base_ring()._latex_()
         return ('\\left(' + ring_latex + '^' + str(self.degree()) + '\\wr' +
                 SymmetricGroup(self.degree())._latex_() +
-                ' \\right) \\rtimes \operatorname{Aut}(' + ring_latex + ')')
+                ' \\right) \\rtimes \\operatorname{Aut}(' + ring_latex + ')')
 
 
 class SemimonomialActionVec(Action):

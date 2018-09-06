@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Baxter permutations
 """
@@ -187,9 +188,9 @@ class BaxterPermutations_size(BaxterPermutations):
 
         REFERENCES:
 
-        .. [BBF08] \N. Bonichon, M. Bousquet-Melou, E. Fusy.
-           Baxter permutations and plane bipolar orientations.
-           Seminaire Lotharingien de combinatoire 61A, article B61Ah, 2008.
+        .. [BBF08] \N. Bonichon, M. Bousquet-Mélou, E. Fusy.
+           *Baxter permutations and plane bipolar orientations*.
+           Séminaire Lotharingien de combinatoire 61A, article B61Ah, 2008.
         """
         if self._n == 0:
             yield Permutations(0)([])
@@ -305,6 +306,11 @@ class BaxterPermutations_all(DisjointUnionEnumeratedSets, BaxterPermutations):
             False
             sage: Permutation([4, 3, 6, 9, 7, 5, 1, 2, 8]) in BaxterPermutations()
             True
+
+        TESTS::
+
+            sage: 42 in BaxterPermutations()
+            False
         """
         if not x in Permutations():
             return False
@@ -323,7 +329,7 @@ class BaxterPermutations_all(DisjointUnionEnumeratedSets, BaxterPermutations):
 
         The pair of twin binary trees `(T_L, T_R)` where `T_L`
         (resp. `T_R`) is obtained by inserting the letters of ``p`` from
-        left to right (resp. right to left) following the the binary search
+        left to right (resp. right to left) following the binary search
         tree insertion algorithm. This is called the *Baxter P-symbol*
         in [Gir12]_ Definition 4.1.
 

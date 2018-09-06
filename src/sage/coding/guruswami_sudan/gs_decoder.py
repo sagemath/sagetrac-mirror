@@ -1,17 +1,15 @@
 r"""
-Guruswami-Sudan decoder for Generalized Reed-Solomon codes
+Guruswami-Sudan decoder for (Generalized) Reed-Solomon codes
 
 REFERENCES:
 
-.. [GS99] Venkatesan Guruswami and Madhu Sudan, Improved Decoding of
-       Reed-Solomon Codes and Algebraic-Geometric Codes, 1999
+- [GS1999]_
 
-.. [N13] Johan S. R. Nielsen, List Decoding of Algebraic Codes, Ph.D.
-       Thesis, Technical University of Denmark, 2013
+- [Nie2013]_
 
 AUTHORS:
 
-- Johan S. R. Nielsen, original implementation (see [Nielsen]_ for details)
+- Johan S. R. Nielsen, original implementation (see [Nie]_ for details)
 - David Lucas, ported the original implementation in Sage
 """
 
@@ -103,6 +101,25 @@ def roth_ruckenstein_root_finder(p, maxd=None, precision=None):
         p = p.polynomial(gens[1])
     return p.roots(multiplicities=False, degree_bound=maxd, algorithm="Roth-Ruckenstein")
 
+def alekhnovich_root_finder(p, maxd=None, precision=None):
+    """
+    Wrapper for Alekhnovich's algorithm to compute the roots of a polynomial
+    with coefficients in ``F[x]``.
+
+    TESTS::
+
+        sage: from sage.coding.guruswami_sudan.gs_decoder import alekhnovich_root_finder
+        sage: R.<x> = GF(13)[]
+        sage: S.<y> = R[]
+        sage: p = (y - x^2 - x - 1) * (y + x + 1)
+        sage: alekhnovich_root_finder(p, maxd = 2)
+        [12*x + 12, x^2 + x + 1]
+    """
+    gens = p.parent().gens()
+    if len(gens) == 2:
+        p = p.polynomial(gens[1])
+    return p.roots(multiplicities=False, degree_bound=maxd, algorithm="Alekhnovich")
+
 class GRSGuruswamiSudanDecoder(Decoder):
     r"""
     The Guruswami-Sudan list-decoding algorithm for decoding Generalized
@@ -111,7 +128,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
     The Guruswami-Sudan algorithm is a polynomial time algorithm to decode
     beyond half the minimum distance of the code. It can decode up to the
     Johnson radius which is `n - \sqrt(n(n-d))`, where `n, d` is the length,
-    respectively minimum distance of the RS code. See [GS99]_ for more details.
+    respectively minimum distance of the RS code. See [GS1999]_ for more details.
     It is a list-decoder meaning that it returns a list of all closest codewords
     or their corresponding message polynomials. Note that the output of the
     ``decode_to_code`` and ``decode_to_message`` methods are therefore lists.
@@ -155,6 +172,8 @@ class GRSGuruswamiSudanDecoder(Decoder):
     - ``root_finder`` -- (default: ``None``) the rootfinding algorithm that will
       be used. The following possibilities are currently available:
 
+        * ``"Alekhnovich"`` -- uses Alekhnovich's algorithm.
+
         * ``"RothRuckenstein"`` -- uses Roth-Ruckenstein algorithm.
 
         * ``None`` -- one of the above will be chosen based on the size of the
@@ -184,13 +203,13 @@ class GRSGuruswamiSudanDecoder(Decoder):
         sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
         sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, tau = 97)
         sage: D
-        Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251 decoding 97 errors with parameters (1, 2)
+        Guruswami-Sudan decoder for [250, 70, 181] Reed-Solomon Code over GF(251) decoding 97 errors with parameters (1, 2)
 
     One can specify multiplicity and list size instead of ``tau``::
 
         sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, parameters = (1,2))
         sage: D
-        Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251 decoding 97 errors with parameters (1, 2)
+        Guruswami-Sudan decoder for [250, 70, 181] Reed-Solomon Code over GF(251) decoding 97 errors with parameters (1, 2)
 
     One can pass a method as ``root_finder`` (works also for ``interpolation_alg``)::
 
@@ -198,7 +217,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
         sage: rf = roth_ruckenstein_root_finder
         sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, parameters = (1,2), root_finder = rf)
         sage: D
-        Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251 decoding 97 errors with parameters (1, 2)
+        Guruswami-Sudan decoder for [250, 70, 181] Reed-Solomon Code over GF(251) decoding 97 errors with parameters (1, 2)
 
     If one wants to use the native Sage algorithms for the root finding step,
     one can directly pass the string given in the ``Input`` block of this class.
@@ -207,13 +226,13 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
         sage: D = codes.decoders.GRSGuruswamiSudanDecoder(C, parameters = (1,2), root_finder="RothRuckenstein")
         sage: D
-        Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251 decoding 97 errors with parameters (1, 2)
+        Guruswami-Sudan decoder for [250, 70, 181] Reed-Solomon Code over GF(251) decoding 97 errors with parameters (1, 2)
 
     Actually, we can construct the decoder from ``C`` directly::
 
         sage: D = C.decoder("GuruswamiSudan", tau = 97)
         sage: D
-        Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251 decoding 97 errors with parameters (1, 2)
+        Guruswami-Sudan decoder for [250, 70, 181] Reed-Solomon Code over GF(251) decoding 97 errors with parameters (1, 2)
     """
 
     ####################### static methods ###############################
@@ -273,7 +292,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
         # We start with l=1 and check if a satisfiable s can be chosen. We keep
         # increasing l by 1 until this is the case. The governing equation is
         #   s*(s+1)/2 * n < (l+1)*s*(n-tau) - l*(l+1)/2*(k-1)
-        # See [GS99]_
+        # See [GS1999]_
         def try_l(l):
             (mins,maxs) = solve_degree2_to_integer_range(n, n-2*(l+1)*(n-tau), (k-1)*l*(l+1))
             if maxs > 0 and maxs >= mins:
@@ -342,10 +361,10 @@ class GRSGuruswamiSudanDecoder(Decoder):
             if s<=0 or l<=0:
                 return -1
             return gilt(n - n/2*(s+1)/(l+1) - (k-1)/2*l/s)
-        if l ==None and s==None:
+        if l is None and s is None:
             tau = gilt(johnson_radius(n, n - k + 1))
             return (tau, GRSGuruswamiSudanDecoder.parameters_given_tau(tau, n_k = (n, k)))
-        if l!=None and s!=None:
+        if l is not None and s is not None:
             return (get_tau(s,l), (s,l))
 
         # Either s or l is set, but not both. First a shared local function
@@ -354,7 +373,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             the integers around `real_max` which gives the (local) integral
             maximum, and the value of at that point."""
             if real_max in ZZ:
-                int_max = Integer(real_max)
+                int_max = ZZ(real_max)
                 return (int_max, f(int_max))
             else:
                 x_f = floor(real_max)
@@ -362,7 +381,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
                 f_f, f_c = f(x_f), f(x_c)
                 return (x_f, f_f) if f_f >= f_c else (x_c, f_c)
 
-        if s!= None:
+        if s is not None:
             # maximising tau under condition
             # n*(s+1 choose 2) < (ell+1)*s*(n-tau) - (ell+1 choose 2)*(k-1)
             # knowing n and s, we can just minimise
@@ -371,10 +390,10 @@ class GRSGuruswamiSudanDecoder(Decoder):
             lmax = sqrt(n*s*(s+1.)/(k-1.)) - 1.
             #the best integral value will be
             (l,tau) = find_integral_max(lmax, lambda l: get_tau(s,l))
-            #Note that we have not proven that this ell is minimial in integral
+            #Note that we have not proven that this ell is minimal in integral
             #sense! It just seems that this most often happens
             return (tau,(s,l))
-        if l!= None:
+        if l is not None:
             # Acquired similarly to when restricting s
             smax = sqrt((k-1.)/n*l*(l+1.))
             (s,tau) = find_integral_max(smax, lambda s: get_tau(s,l))
@@ -390,7 +409,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
         for the provided ``tau``, but arise from easily-evaluated closed
         expressions and are very good approximations of the best ones.
 
-        See [N13]_ pages 53-54, proposition 3.11 for details.
+        See [Nie2013]_ pages 53-54, proposition 3.11 for details.
 
         INPUT:
 
@@ -406,7 +425,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             - ``s`` is the multiplicity parameter, and
             - ``l`` is the list size parameter.
 
-        ..NOTE::
+        .. NOTE::
 
             One has to provide either ``C`` or ``(n, k)``. If neither or both
             are given, an exception will be raised.
@@ -458,11 +477,11 @@ class GRSGuruswamiSudanDecoder(Decoder):
         Returns whether input parameters satisfy the governing equation of
         Guruswami-Sudan.
 
-        See [N13]_ page 49, definition 3.3 and proposition 3.4 for details.
+        See [Nie2013]_ page 49, definition 3.3 and proposition 3.4 for details.
 
         INPUT:
 
-        - ``tau`` -- an integer, number of errrors one expects Guruswami-Sudan algorithm
+        - ``tau`` -- an integer, number of errors one expects Guruswami-Sudan algorithm
           to correct
         - ``s`` -- an integer, multiplicity parameter of Guruswami-Sudan algorithm
         - ``l`` -- an integer, list size parameter
@@ -470,7 +489,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
         - ``n_k`` -- (default: ``None``) a tuple of integers, respectively the
           length and the dimension of the :class:`GeneralizedReedSolomonCode`
 
-        ..NOTE::
+        .. NOTE::
 
             One has to provide either ``C`` or ``(n, k)``. If none or both are
             given, an exception will be raised.
@@ -581,7 +600,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             raise ValueError("Specify either tau or parameters")
         if hasattr(interpolation_alg, '__call__'):
             self._interpolation_alg = interpolation_alg
-        elif interpolation_alg == None or interpolation_alg == "LeeOSullivan":
+        elif interpolation_alg is None or interpolation_alg == "LeeOSullivan":
             self._interpolation_alg = gs_interpolation_lee_osullivan
         elif interpolation_alg == "LinearAlgebra":
             self._interpolation_alg = gs_interpolation_linalg
@@ -589,8 +608,10 @@ class GRSGuruswamiSudanDecoder(Decoder):
             raise ValueError("Please provide a method or one of the allowed strings for interpolation_alg")
         if hasattr(root_finder, '__call__'):
             self._root_finder = root_finder
-        elif root_finder == None or root_finder == "RothRuckenstein":
+        elif root_finder == "RothRuckenstein":
             self._root_finder = roth_ruckenstein_root_finder
+        elif root_finder is None or root_finder == "Alekhnovich":
+            self._root_finder = alekhnovich_root_finder
         else:
             raise ValueError("Please provide a method or one of the allowed strings for root_finder")
         super(GRSGuruswamiSudanDecoder, self).__init__(code, code.ambient_space(), "EvaluationPolynomial")
@@ -604,7 +625,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
             sage: D = C.decoder("GuruswamiSudan", tau = 97)
             sage: D
-            Guruswami-Sudan decoder for [250, 70, 181] Generalized Reed-Solomon Code over Finite Field of size 251 decoding 97 errors with parameters (1, 2)
+            Guruswami-Sudan decoder for [250, 70, 181] Reed-Solomon Code over GF(251) decoding 97 errors with parameters (1, 2)
         """
         return "Guruswami-Sudan decoder for %s decoding %s errors with parameters %s" % (self.code(), self.decoding_radius(), (self.multiplicity(), self.list_size()))
 
@@ -617,7 +638,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
             sage: D = C.decoder("GuruswamiSudan", tau = 97)
             sage: latex(D)
-            \textnormal{Guruswami-Sudan decoder for } [250, 70, 181] \textnormal{ Generalized Reed-Solomon Code over } \Bold{F}_{251}\textnormal{ decoding }97\textnormal{ errors with parameters }(1, 2)
+            \textnormal{Guruswami-Sudan decoder for } [250, 70, 181] \textnormal{ Reed-Solomon Code over } \Bold{F}_{251}\textnormal{ decoding }97\textnormal{ errors with parameters }(1, 2)
         """
         return "\\textnormal{Guruswami-Sudan decoder for } %s\\textnormal{ decoding }%s\\textnormal{ errors with parameters }%s" % (self.code()._latex_(), self.decoding_radius(), (self.multiplicity(), self.list_size()))
 
@@ -670,11 +691,10 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: from sage.coding.guruswami_sudan.gs_decoder import roth_ruckenstein_root_finder
             sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
             sage: D = C.decoder("GuruswamiSudan", tau = 97)
             sage: D.rootfinding_algorithm()
-            <function roth_ruckenstein_root_finder at 0x...>
+            <function alekhnovich_root_finder at 0x...>
         """
         return self._root_finder
 
@@ -845,7 +865,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
         return self._tau
 
 
-####################### registration ###############################
+####################### types ###############################
 
 GeneralizedReedSolomonCode._registered_decoders["GuruswamiSudan"] = GRSGuruswamiSudanDecoder
 GRSGuruswamiSudanDecoder._decoder_type = {"list-decoder", "always-succeed", "hard-decision"}

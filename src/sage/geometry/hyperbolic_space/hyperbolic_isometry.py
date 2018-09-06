@@ -163,7 +163,7 @@ class HyperbolicIsometry(Morphism):
             \end{array}\right)
         """
         if self.domain().is_isometry_group_projective():
-            return "\pm " + latex(self._matrix)
+            return r"\pm " + latex(self._matrix)
         else:
             return latex(self._matrix)
 
@@ -215,7 +215,8 @@ class HyperbolicIsometry(Morphism):
         """
         if self.domain().is_isometry_group_projective():
             # Special care must be taken for projective groups
-            m = matrix(self._matrix.nrows(), map(abs, self._matrix.list()))
+            m = matrix(self._matrix.nrows(),
+                       [abs(x) for x in  self._matrix.list()])
             m.set_immutable()
         else:
             m = self._matrix
@@ -358,16 +359,16 @@ class HyperbolicIsometry(Morphism):
         EXAMPLES::
 
             sage: HyperbolicPlane().UHP().get_isometry(identity_matrix(2)).model()
-            Hyperbolic plane in the Upper Half Plane Model model
+            Hyperbolic plane in the Upper Half Plane Model
 
             sage: HyperbolicPlane().PD().get_isometry(identity_matrix(2)).model()
-            Hyperbolic plane in the Poincare Disk Model model
+            Hyperbolic plane in the Poincare Disk Model
 
             sage: HyperbolicPlane().KM().get_isometry(identity_matrix(3)).model()
-            Hyperbolic plane in the Klein Disk Model model
+            Hyperbolic plane in the Klein Disk Model
 
             sage: HyperbolicPlane().HM().get_isometry(identity_matrix(3)).model()
-            Hyperbolic plane in the Hyperboloid Model model
+            Hyperbolic plane in the Hyperboloid Model
         """
         return self.domain()
 
@@ -746,8 +747,8 @@ class HyperbolicIsometryUHP(HyperbolicIsometry):
         """
         d = sqrt(self._matrix.det()**2)
         tau = sqrt((self._matrix / sqrt(d)).trace()**2)
-        if self.classification() in ['hyperbolic', 'oriention-reversing hyperbolic']:
-            return 2 * arccosh(tau/2)
+        if self.classification() in ['hyperbolic', 'orientation-reversing hyperbolic']:
+            return 2 * arccosh(tau / 2)
         raise TypeError("translation length is only defined for hyperbolic transformations")
 
     def fixed_point_set(self): #UHP

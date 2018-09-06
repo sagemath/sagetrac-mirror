@@ -48,7 +48,6 @@ Verify that the Airy functions are solutions to the differential equation::
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.symbolic.ring import SR
-from sage.functions.other import gamma
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_double import RDF
 from sage.rings.rational import Rational as R
@@ -68,7 +67,7 @@ class FunctionAiryAiGeneral(BuiltinFunction):
           `\operatorname{Ai}^{(n)}(z)`, and for `\alpha = -n = -1,-2,-3,\ldots`
           this gives the `n`-fold iterated integral.
 
-        .. math ::
+        .. MATH::
 
             f_0(z) = \operatorname{Ai}(z)
 
@@ -161,11 +160,13 @@ class FunctionAiryAiSimple(BuiltinFunction):
             sage: airy_ai_simple(x)._sympy_()
             airyai(x)
         """
-        BuiltinFunction.__init__(self, "airy_ai",
-                                 latex_name=r'\operatorname{Ai}',
+        BuiltinFunction.__init__(self, 'airy_ai',
+                                 latex_name=r"\operatorname{Ai}",
                                  conversions=dict(mathematica='AiryAi',
                                                   maxima='airy_ai',
-                                                  sympy='airyai'))
+                                                  sympy='airyai',
+                                                  fricas='airyAi',
+                                                  giac='Airy_Ai'))
 
     def _derivative_(self, x, diff_param=None):
         """
@@ -191,6 +192,7 @@ class FunctionAiryAiSimple(BuiltinFunction):
             sage: airy_ai_simple(1.0 * I)
             0.331493305432141 - 0.317449858968444*I
         """
+        from .gamma import gamma
         if x == 0:
             r = ZZ(2) / 3
             return 1 / (3 ** (r) * gamma(r))
@@ -266,11 +268,12 @@ class FunctionAiryAiPrime(BuiltinFunction):
             sage: airy_ai_prime(x)._sympy_()
             airyaiprime(x)
         """
-        BuiltinFunction.__init__(self, "airy_ai_prime",
+        BuiltinFunction.__init__(self, 'airy_ai_prime',
                                  latex_name=r"\operatorname{Ai}'",
                                  conversions=dict(mathematica='AiryAiPrime',
                                                   maxima='airy_dai',
-                                                  sympy='airyaiprime'))
+                                                  sympy='airyaiprime',
+                                                  fricas='airyAiPrime'))
 
     def _derivative_(self, x, diff_param=None):
         """
@@ -290,6 +293,7 @@ class FunctionAiryAiPrime(BuiltinFunction):
             sage: airy_ai_prime(0.0)
             -0.258819403792807
         """
+        from .gamma import gamma
         if x == 0:
             r = ZZ(1) / 3
             return -1 / (3 ** (r) * gamma(r))
@@ -360,7 +364,7 @@ def airy_ai(alpha, x=None, hold_derivative=True, **kwds):
     solutions to the Airy differential equation `f''(x) - x f(x) = 0`. It is
     defined by the initial conditions:
 
-    .. math::
+    .. MATH::
 
         \operatorname{Ai}(0)=\frac{1}{2^{2/3} \Gamma\left(\frac{2}{3}\right)},
 
@@ -368,7 +372,7 @@ def airy_ai(alpha, x=None, hold_derivative=True, **kwds):
 
     Another way to define the Airy Ai function is:
 
-    .. math::
+    .. MATH::
 
         \operatorname{Ai}(x)=\frac{1}{\pi}\int_0^\infty
         \cos\left(\frac{1}{3}t^3+xt\right) dt.
@@ -381,7 +385,7 @@ def airy_ai(alpha, x=None, hold_derivative=True, **kwds):
       `\operatorname{Ai}^{(n)}(z)`, and for `\alpha = -n = -1,-2,-3,\ldots`
       this gives the `n`-fold iterated integral.
 
-    .. math::
+    .. MATH::
 
         f_0(z) = \operatorname{Ai}(z)
 
@@ -497,7 +501,7 @@ class FunctionAiryBiGeneral(BuiltinFunction):
           `\operatorname{Bi}^{(n)}(z)`, and for `\alpha = -n = -1,-2,-3,\ldots`
           this gives the `n`-fold iterated integral.
 
-        .. math::
+        .. MATH::
 
             f_0(z) = \operatorname{Bi}(z)
 
@@ -588,11 +592,13 @@ class FunctionAiryBiSimple(BuiltinFunction):
             sage: f._sympy_()
             airybi(x)
         """
-        BuiltinFunction.__init__(self, "airy_bi",
-                                 latex_name=r'\operatorname{Bi}',
+        BuiltinFunction.__init__(self, 'airy_bi',
+                                 latex_name=r"\operatorname{Bi}",
                                  conversions=dict(mathematica='AiryBi',
                                                   maxima='airy_bi',
-                                                  sympy='airybi'))
+                                                  sympy='airybi',
+                                                  fricas='airyBi',
+                                                  giac='Airy_Bi'))
 
     def _derivative_(self, x, diff_param=None):
         """
@@ -620,6 +626,7 @@ class FunctionAiryBiSimple(BuiltinFunction):
             sage: airy_bi_simple(1.0 * I)
             0.648858208330395 + 0.344958634768048*I
         """
+        from .gamma import gamma
         if x == 0:
             one_sixth = ZZ(1) / 6
             return 1 / (3 ** (one_sixth) * gamma(4 * one_sixth))
@@ -695,11 +702,12 @@ class FunctionAiryBiPrime(BuiltinFunction):
             sage: airy_bi_prime(x)._sympy_()
             airybiprime(x)
         """
-        BuiltinFunction.__init__(self, "airy_bi_prime",
+        BuiltinFunction.__init__(self, 'airy_bi_prime',
                                  latex_name=r"\operatorname{Bi}'",
                                  conversions=dict(mathematica='AiryBiPrime',
                                                   maxima='airy_dbi',
-                                                  sympy='airybiprime'))
+                                                  sympy='airybiprime',
+                                                  fricas='airyBiPrime'))
 
     def _derivative_(self, x, diff_param=None):
         """
@@ -719,6 +727,7 @@ class FunctionAiryBiPrime(BuiltinFunction):
             sage: airy_bi_prime(0.0)
             0.448288357353826
         """
+        from .gamma import gamma
         if x == 0:
             one_sixth = ZZ(1) / 6
             return 3 ** (one_sixth) / gamma(2 * one_sixth)
@@ -789,7 +798,7 @@ def airy_bi(alpha, x=None, hold_derivative=True, **kwds):
     solutions to the Airy differential equation `f''(x) - x f(x) = 0`. It is
     defined by the initial conditions:
 
-    .. math::
+    .. MATH::
 
         \operatorname{Bi}(0)=\frac{1}{3^{1/6} \Gamma\left(\frac{2}{3}\right)},
 
@@ -797,7 +806,7 @@ def airy_bi(alpha, x=None, hold_derivative=True, **kwds):
 
     Another way to define the Airy Bi function is:
 
-    .. math::
+    .. MATH::
 
         \operatorname{Bi}(x)=\frac{1}{\pi}\int_0^\infty
         \left[ \exp\left( xt -\frac{t^3}{3} \right)
@@ -811,7 +820,7 @@ def airy_bi(alpha, x=None, hold_derivative=True, **kwds):
       `\operatorname{Bi}^{(n)}(z)`, and for `\alpha = -n = -1,-2,-3,\ldots`
       this gives the `n`-fold iterated integral.
 
-    .. math ::
+    .. MATH::
 
         f_0(z) = \operatorname{Bi}(z)
 

@@ -24,9 +24,9 @@ Development supported by NSF award No. 0702939.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.misc.decorators import options
 from sage.plot.all import list_plot, Graphics
@@ -37,11 +37,11 @@ from sage.rings.all import CDF
 
 from sage.arith.srange import srange
 
-from sage.gsl.interpolation import spline
+from sage.calculus.interpolation import spline
 
 from sage.plot.complex_plot import ComplexPlot
 
-from sage.gsl.integration import numerical_integral
+from sage.calculus.integration import numerical_integral
 
 
 import numpy as np
@@ -87,7 +87,7 @@ cdef class Riemann_Map:
     inaccurate. Error computations for the ellipse can be found in the
     documentation for :meth:`analytic_boundary` and :meth:`analytic_interior`.
 
-    [BSV]_ provides an overview of the Riemann map and discusses the research
+    [BSV2010]_ provides an overview of the Riemann map and discusses the research
     that lead to the creation of this module.
 
     INPUT:
@@ -192,17 +192,9 @@ cdef class Riemann_Map:
     ALGORITHM:
 
     This class computes the Riemann Map via the Szego kernel using an
-    adaptation of the method described by [KT]_.
+    adaptation of the method described by [KT1986]_.
 
-    REFERENCES:
 
-    .. [KT] \N. Kerzman and M. R. Trummer. "Numerical Conformal Mapping via
-      the Szego kernel". Journal of Computational and Applied Mathematics,
-      14(1-2): 111--123, 1986.
-
-    .. [BSV] \M. Bolt, S. Snoeyink, E. Van Andel. "Visual representation of
-      the Riemann map and Ahlfors map via the Kerzman-Stein equation".
-      Involve 3-4 (2010), 405-420.
     """
     cdef int N, B, ncorners
     cdef f
@@ -309,7 +301,7 @@ cdef class Riemann_Map:
     cdef _generate_theta_array(self):
         """
         Generates the essential data for the Riemann map, primarily the
-        Szego kernel and boundary correspondence.  See [KT]_ for the algorithm.
+        Szego kernel and boundary correspondence.  See [KT1986]_ for the algorithm.
 
         TESTS::
 
@@ -332,7 +324,7 @@ cdef class Riemann_Map:
         adp = abs(dp)
         sadp = np.sqrt(adp)
         h = 1 / (TWOPI * I) * ((dp / adp) / (self.a - cp))
-        hconj = np.array(map(np.complex.conjugate, h), dtype=COMPLEX)
+        hconj = h.conjugate()
         g = -sadp * hconj
         normalized_dp=dp/adp
         C = I / N * sadp # equivalent to -TWOPI / N * 1 / (TWOPI * I) * sadp
@@ -440,7 +432,7 @@ cdef class Riemann_Map:
             sage: hfprime(t) = 0.5*-I*e^(-I*t)
             sage: m = Riemann_Map([f, hf], [fprime, hfprime], 0.5 + 0.5*I)
 
-        Getting the szego for a specifc boundary::
+        Getting the szego for a specific boundary::
 
             sage: sz0 = m.get_szego(boundary=0)
             sage: sz1 = m.get_szego(boundary=1)
@@ -513,7 +505,7 @@ cdef class Riemann_Map:
             sage: hfprime(t) = 0.5*-I*e^(-I*t)
             sage: m = Riemann_Map([f, hf], [hf, hfprime], 0.5 + 0.5*I)
 
-        Getting the boundary correspondence for a specifc boundary::
+        Getting the boundary correspondence for a specific boundary::
 
             sage: tp0 = m.get_theta_points(boundary=0)
             sage: tp1 = m.get_theta_points(boundary=1)
@@ -587,7 +579,7 @@ cdef class Riemann_Map:
         the interior of the mapped region, ``riemann_map`` will return
         the point on the unit disk that ``pt`` maps to. Note that this
         method only works for interior points; accuracy breaks down very close
-        to the boundary. To get boundary corrospondance, use
+        to the boundary. To get boundary correspondance, use
         :meth:`get_theta_points`.
 
         INPUT:

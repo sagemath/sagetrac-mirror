@@ -193,7 +193,7 @@ class MaxSymbolic(MinMax_base):
             sage: max_symbolic(x, 5)._sympy_()
             Max(5, x)
         """
-        BuiltinFunction.__init__(self, 'max', nargs=0, latex_name="\max",
+        BuiltinFunction.__init__(self, 'max', nargs=0, latex_name=r"\max",
                                  conversions=dict(sympy='Max'))
 
     def _eval_(self, *args):
@@ -206,7 +206,7 @@ class MaxSymbolic(MinMax_base):
             5
             sage: max_symbolic(5,3)
             5
-            sage: u = max_symbolic(*(range(10)+[x])); u
+            sage: u = max_symbolic(*(list(range(10))+[x])); u
             max(x, 9)
             sage: u.subs(x=-1)
             9
@@ -282,7 +282,7 @@ class MinSymbolic(MinMax_base):
             sage: min_symbolic(x, 5)._sympy_()
             Min(5, x)
         """
-        BuiltinFunction.__init__(self, 'min', nargs=0, latex_name="\min",
+        BuiltinFunction.__init__(self, 'min', nargs=0, latex_name=r"\min",
                                  conversions=dict(sympy='Min'))
 
     def _eval_(self, *args):
@@ -295,7 +295,7 @@ class MinSymbolic(MinMax_base):
             3
             sage: min_symbolic(5,3)
             3
-            sage: u = min_symbolic(*(range(10)+[x])); u
+            sage: u = min_symbolic(*(list(range(10))+[x])); u
             min(x, 0)
             sage: u.subs(x=-1)
             -1

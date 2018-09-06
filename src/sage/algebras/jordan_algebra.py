@@ -18,11 +18,10 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import AlgebraElement
 from sage.categories.magmatic_algebras import MagmaticAlgebras
 from sage.misc.cachefunc import cached_method
-#from sage.misc.lazy_attribute import lazy_attribute
-from sage.rings.all import QQ
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.modules.free_module import FreeModule
 from sage.sets.family import Family
+
 
 class JordanAlgebra(Parent, UniqueRepresentation):
     r"""
@@ -34,8 +33,10 @@ class JordanAlgebra(Parent, UniqueRepresentation):
     - `xy = yx`, and
     - `(xy)(xx) = x(y(xx))` (the Jordan identity).
 
+    See [Ja1971]_, [Ch2012]_, and [McC1978]_, for example.
+
     These axioms imply that a Jordan algebra is power-associative and the
-    following generalization of Jordan's identity holds [Albert47]_:
+    following generalization of Jordan's identity holds [Al1947]_:
     `(x^m y) x^n = x^m (y x^n)` for all `m, n \in \ZZ_{>0}`.
 
     Let `A` be an associative algebra over a ring `R` in which `2` is
@@ -101,7 +102,7 @@ class JordanAlgebra(Parent, UniqueRepresentation):
         sage: (x*y)*(x*x) == x*(y*(x*x))
         True
 
-    Next we constuct a Jordan algebra from a symmetric bilinear form::
+    Next we construct a Jordan algebra from a symmetric bilinear form::
 
         sage: m = matrix([[-2,3],[3,4]])
         sage: J.<a,b,c> = JordanAlgebra(m); J
@@ -144,18 +145,13 @@ class JordanAlgebra(Parent, UniqueRepresentation):
 
     - :wikipedia:`Jordan_algebra`
 
-    .. [Jacobson71] \N. Jacobson. *Exceptional Lie Algebras*.
-       Marcel Dekker, Inc. New York. 1971. IBSN No. 0-8247-1326-5.
+    - [Ja1971]_
 
-    .. [Chu2012] Cho-Ho Chu. *Jordan Structures in Geometry and Analysis*.
-       Cambridge University Press, New York. 2012. IBSN 978-1-107-01617-0.
+    - [Ch2012]_
 
-    .. [McCrimmon78] \K. McCrimmon. *Jordan algebras and their applications*.
-       Bull. Amer. Math. Soc. **84** 1978.
+    - [McC1978]_
 
-    .. [Albert47] \A. A. Albert, *A Structure Theory for Jordan Algebras*.
-       Annals of Mathematics, Second Series, Vol. 48, No. 3
-       (Jul., 1947), pp. 546--567.
+    - [Al1947]_
     """
     @staticmethod
     def __classcall_private__(self, arg0, arg1=None, names=None):
@@ -326,7 +322,7 @@ class SpecialJordanAlgebra(JordanAlgebra):
             sage: J.gens()
             Traceback (most recent call last):
             ...
-            NotImplementedError: unknown cardinality
+            NotImplementedError: infinite set
         """
         return tuple(self.algebra_generators())
 

@@ -150,11 +150,11 @@ def ascii_to_bin(A):
         sage: ascii_to_bin(["A", "b", "c", 1, 2, 3])
         Traceback (most recent call last):
         ...
-        TypeError: sequence item 3: expected string, sage.rings.integer.Integer found
+        TypeError: sequence item 3: expected str..., sage.rings.integer.Integer found
         sage: ascii_to_bin(["Abc", 1, 2, 3])
         Traceback (most recent call last):
         ...
-        TypeError: sequence item 1: expected string, sage.rings.integer.Integer found
+        TypeError: sequence item 1: expected str..., sage.rings.integer.Integer found
     """
     bin = BinaryStrings()
     return bin.encoding("".join(list(A)))
@@ -339,7 +339,7 @@ def carmichael_lambda(n):
         ....:     for k in range(1, n):
         ....:         L = znpower(n, k)
         ....:         ones = [1] * len(L)
-        ....:         T = [L[i] == ones[i] for i in xrange(len(L))]
+        ....:         T = [L[i] == ones[i] for i in range(len(L))]
         ....:         if all(T):
         ....:             return k
         sage: c == my_carmichael(n)
@@ -381,8 +381,7 @@ def carmichael_lambda(n):
 
     REFERENCES:
 
-    .. [Carmichael2010] Carmichael function,
-      http://en.wikipedia.org/wiki/Carmichael_function
+    - :wikipedia:`Carmichael_function`
     """
     n = Integer(n)
     # sanity check
@@ -408,8 +407,9 @@ def carmichael_lambda(n):
     # finish the job
     return lcm(t)
 
+
 def has_blum_prime(lbound, ubound):
-    """
+    r"""
     Determine whether or not there is a Blum prime within the specified closed
     interval.
 

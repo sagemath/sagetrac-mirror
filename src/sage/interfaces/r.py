@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Interfaces to R
 
@@ -222,7 +223,7 @@ After execution of this code, the %R and %%R magics are available :
    possible via the -i and -o options. Do "%R?" in a standalone cell
    to get the documentation.
 
-- %%R alows the execution in R of the whole text of a cell, with
+- %%R allows the execution in R of the whole text of a cell, with
     similar options (do "%%R?" in a standalone cell for
     documentation).
 
@@ -263,18 +264,18 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ##########################################################################
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import range
+import six
 
 from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 from sage.env import DOT_SAGE
 import re
-import six
 import sage.rings.integer
 from sage.structure.element import parent
 from sage.misc.cachefunc import cached_method
 from sage.interfaces.tab_completion import ExtraTabCompletion
-
+from sage.docs.instancedoc import instancedoc
 
 COMMANDS_CACHE = '%s/r_commandlist.sobj'%DOT_SAGE
 PROMPT = '__SAGE__R__PROMPT__> '
@@ -331,7 +332,8 @@ class R(ExtraTabCompletion, Expect):
                   prompt = '> ', #default, later comes the change
 
                   # This is the command that starts up your program
-                  command = "R --vanilla --quiet",
+                  # See #25806 for the --no-readline switch which fixes hangs for some
+                  command = "R --no-readline --vanilla --quiet",
 
                   server=server,
                   server_tmpdir=server_tmpdir,
@@ -361,7 +363,8 @@ class R(ExtraTabCompletion, Expect):
 
     def set_seed(self, seed=None):
         """
-        Sets the seed for R interpeter.
+        Set the seed for R interpreter.
+
         The seed should be an integer.
 
         EXAMPLES::
@@ -493,14 +496,14 @@ class R(ExtraTabCompletion, Expect):
         os.system("time echo '%s' | R --vanilla"%cmd)
         print("Please restart Sage in order to use '%s'." % package_name)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Return string representation of this R interface.
 
         EXAMPLES::
 
-            sage: r.__repr__()
-            'R Interpreter'
+            sage: r                 # indirect doctest
+            R Interpreter
         """
         return 'R Interpreter'
 
@@ -567,7 +570,7 @@ class R(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
-            sage: f.write('a <- 2+2\n')
+            sage: _ = f.write('a <- 2+2\n')
             sage: f.close()
             sage: r.read(filename)
             sage: r.get('a')
@@ -595,7 +598,7 @@ class R(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: print(r._source("c"))
-            function (..., recursive = FALSE)  .Primitive("c")
+            function (...)  .Primitive("c")
         """
         if s[-2:] == "()":
             s = s[-2:]
@@ -614,7 +617,7 @@ class R(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: print(r.source("c"))
-            function (..., recursive = FALSE)  .Primitive("c")
+            function (...)  .Primitive("c")
         """
         return self._source(s)
 
@@ -634,9 +637,9 @@ class R(ExtraTabCompletion, Expect):
             sage: rstr.startswith('R version')
             True
         """
-        major_re = re.compile('^major\s*(\d.*?)$', re.M)
-        minor_re = re.compile('^minor\s*(\d.*?)$', re.M)
-        version_string_re = re.compile('^version.string\s*(R.*?)$', re.M)
+        major_re = re.compile(r'^major\s*(\d.*?)$', re.M)
+        minor_re = re.compile(r'^minor\s*(\d.*?)$', re.M)
+        version_string_re = re.compile(r'^version.string\s*(R.*?)$', re.M)
 
         s = self.eval('version')
 
@@ -667,7 +670,11 @@ class R(ExtraTabCompletion, Expect):
             ...
             ImportError: ...
         """
-        ret = self.eval('require("%s")'%library_name)
+        ret = self.eval('require("%s")' % library_name)
+        try:
+            ret = ret.decode('utf-8')
+        except UnicodeDecodeError:
+            ret = ret.decode('latin-1')
         # try hard to parse the message string in a locale-independent way
         if ' library(' in ret:       # locale-independent key-word
             raise ImportError("%s"%ret)
@@ -707,7 +714,7 @@ class R(ExtraTabCompletion, Expect):
         #The following was more structural, but breaks on my machine.  (stein)
         #p = p._sage_()
         #s = p['_Dim'][0]
-        #l = [[p['DATA'][i],p['DATA'][s+1+i]] for i in xrange(0,s)]
+        #l = [[p['DATA'][i],p['DATA'][s+1+i]] for i in range(0,s)]
         #return l
 
     def _object_class(self):
@@ -787,7 +794,7 @@ class R(ExtraTabCompletion, Expect):
 
             .. note::
 
-            This is similar to typing r.command?.
+                This is similar to typing r.command?.
         """
         s = self.eval('help("%s")'%command).strip()     # ?cmd is only an unsafe shortcut
         import sage.plot.plot
@@ -1249,12 +1256,14 @@ class R(ExtraTabCompletion, Expect):
 
 
 # patterns for _sage_()
-rel_re_param = re.compile('\s([\w\.]+)\s=')
-rel_re_xrange = re.compile('([\d]+):([\d]+)')
-rel_re_integer = re.compile('([^\d])([\d]+)L')
-rel_re_terms = re.compile('terms\s*=\s*(.*?),')
-rel_re_call = re.compile('call\s*=\s*(.*?)\),')
+rel_re_param = re.compile(r'\s([\w\.]+)\s=')
+rel_re_range = re.compile(r'([\d]+):([\d]+)')
+rel_re_integer = re.compile(r'([^\d])([\d]+)L')
+rel_re_terms = re.compile(r'terms\s*=\s*(.*?),')
+rel_re_call = re.compile(r'call\s*=\s*(.*?)\),')
 
+
+@instancedoc
 class RElement(ExtraTabCompletion, ExpectElement):
 
     def _tab_completion(self):
@@ -1386,14 +1395,14 @@ class RElement(ExtraTabCompletion, ExpectElement):
             return P.new('%s[%s]'%(self._name, n))
         else:
             L = []
-            for i in xrange(len(n)):
+            for i in range(len(n)):
                 if parent(n[i]) is P:
                     L.append(n[i].name())
                 else:
                     L.append(str(n[i]))
             return P.new('%s[%s]'%(self._name, ','.join(L)))
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Implements bool(self).
 
@@ -1415,6 +1424,8 @@ class RElement(ExtraTabCompletion, ExpectElement):
             True
         """
         return "FALSE" in repr(self==0)
+
+    __nonzero__ = __bool__
 
     def _comparison(self, other, symbol):
         """
@@ -1552,43 +1563,6 @@ class RElement(ExtraTabCompletion, ExpectElement):
         """
         return self._comparison(other, "!=")
 
-    def __cmp__(self, other):
-        r"""
-        Return 0, 1, or -1 depending on how self and other compare.
-
-        This is *not* called by the comparison operators, which
-        do term-by-term comparison and return R elements.
-
-        INPUT:
-
-        - self, other -- R elements
-
-        OUTPUT: 0, 1, or -1
-
-        EXAMPLES::
-
-            sage: one = r(1)
-            sage: two = r(2)
-            sage: cmp(one,one)
-            0
-            sage: cmp(one,two)
-            -1
-            sage: cmp(two,one)
-            1
-        """
-        P = self.parent()
-        if P.eval("%s %s %s"%(self.name(), P._equality_symbol(),
-                                 other.name())) == P._true_symbol():
-            return 0
-        elif P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
-            return -1
-        elif P.eval("%s %s %s"%(self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
-            return 1
-        else:
-            return -1  # everything is supposed to be comparable in Python, so we define
-                       # the comparison thus when no comparable in interfaced system.
-
-
     def dot_product(self, other):
         """
         Implements the notation self . other.
@@ -1620,7 +1594,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
         return P('%s %%*%% %s'%(self.name(), Q.name()))
 
     def _subs_dots(self, x):
-        """
+        r"""
         Replace dots by underscores; used internally to implement
         conversation from R expression to Sage objects.
 
@@ -1634,15 +1608,15 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
             sage: import re
             sage: a = r([1,2,3])
-            sage: rel_re_param = re.compile('\s([\w\.]+)\s=')
+            sage: rel_re_param = re.compile(r'\s([\w\.]+)\s=')
             sage: rel_re_param.sub(a._subs_dots, ' test.test =')
              ' test_test ='
         """
         return x.group().replace('.','_')
 
-    def _subs_xrange(self, x):
-        """
-        Change endpoints of xranges.  This is used internally in the
+    def _subs_range(self, x):
+        r"""
+        Change endpoints of ranges.  This is used internally in the
         code for converting R expressions to Sage objects.
 
         INPUT:
@@ -1655,16 +1629,16 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
             sage: import re
             sage: a = r([1,2,3])
-            sage: rel_re_xrange = re.compile('([\d]+):([\d]+)')
-            sage: rel_re_xrange.sub(a._subs_xrange, ' 1:10')
-            ' xrange(1,11)'
+            sage: rel_re_range = re.compile(r'([\d]+):([\d]+)')
+            sage: rel_re_range.sub(a._subs_range, ' 1:10')
+            ' range(1,11)'
         """
         g = x.groups()
         g1 = int(g[1]) + 1
-        return 'xrange(%s,%s)'%(g[0],g1)
+        return 'range(%s,%s)' % (g[0],  g1)
 
     def _subs_integer(self, x):
-        """
+        r"""
         Replaces strings like 'dL' with 'Integer(d)' where d is some
         integer.  This is used internally in the code for converting R
         expressions to Sage objects.
@@ -1673,7 +1647,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
             sage: import re
             sage: a = r([1,2,3])
-            sage: rel_re_integer = re.compile('([^\d])([\d]+)L')
+            sage: rel_re_integer = re.compile(r'([^\d])([\d]+)L')
             sage: rel_re_integer.sub(a._subs_integer, ' 1L 2L')
             ' Integer(1) Integer(2)'
             sage: rel_re_integer.sub(a._subs_integer, '1L 2L')
@@ -1703,7 +1677,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
         """
         from re import compile as re_compile
         from re import split   as re_split
-        splt = re_compile('(c\(|\(|\))') # c( or ( or )
+        splt = re_compile(r'(c\(|\(|\))') # c( or ( or )
         lvl = 0
         ret = []
         for token in re_split(splt, exp):
@@ -1726,7 +1700,6 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
         return ''.join(ret)
 
-
     def _r_list(self, *args, **kwds):
         """
         This is used internally in the code for converting R
@@ -1735,13 +1708,13 @@ class RElement(ExtraTabCompletion, ExpectElement):
         EXAMPLES::
 
             sage: a = r([1,2,3])
-            sage: list(sorted(a._r_list(1,2,3,k=5).items()))
+            sage: sorted(a._r_list(1,2,3,k=5).items())
             [('#0', 1), ('#1', 2), ('#2', 3), ('k', 5)]
         """
         ret = dict(kwds)
         i = 0
         for k in args:
-            ret['#%s'%i] = k
+            ret['#%s' % i] = k
             i += 1
         return ret
 
@@ -1754,7 +1727,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
             sage: a = r([1,2,3])
             sage: d = a._r_structure('data', a=1, b=2)
-            sage: list(sorted(d.items()))
+            sage: sorted(d.items())
             [('DATA', 'data'), ('a', 1), ('b', 2)]
             sage: a._r_structure([1,2,3,4], _Dim=(2,2))
             [1 3]
@@ -1796,7 +1769,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
             sage: rs = r.summary(r.c(1,4,3,4,3,2,5,1))
             sage: d = rs._sage_()
-            sage: list(sorted(d.items()))
+            sage: sorted(d.items())
             [('DATA', [1, 1.75, 3, 2.875, 4, 5]),
              ('_Names', ['Min.', '1st Qu.', 'Median', 'Mean', '3rd Qu.', 'Max.']),
              ('_r_class', ['summaryDefault', 'table'])]
@@ -1849,15 +1822,15 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
         # Change 'structure' to '_r_structure'
         # TODO: check that we are outside of quotes ""
-        exp = re.sub(' structure\(', ' _r_structure(', exp)
-        exp = re.sub('^structure\(', '_r_structure(', exp) #special case
+        exp = re.sub(r' structure\(', ' _r_structure(', exp)
+        exp = re.sub(r'^structure\(', '_r_structure(', exp)  # special case
 
         # Change 'list' to '_r_list'
-        exp = re.sub(' list\(', ' _r_list(', exp)
-        exp = re.sub('\(list\(', '(_r_list(', exp)
+        exp = re.sub(r' list\(', ' _r_list(', exp)
+        exp = re.sub(r'\(list\(', '(_r_list(', exp)
 
-        # Change 'a:b' to 'xrange(a,b+1)'
-        exp = rel_re_xrange.sub(self._subs_xrange, exp)
+        # Change 'a:b' to 'range(a,b+1)'
+        exp = rel_re_range.sub(self._subs_range, exp)
 
         # Change 'dL' to 'Integer(d)'
         exp = rel_re_integer.sub(self._subs_integer, exp)
@@ -1880,7 +1853,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
         # c is an ordered list
         # list is a dictionary (where _Names give the entries names.
         #    map entries in names to (value, name) in each entry?
-        # structure is .. see above .. strucuture(DATA,**kw)
+        # structure is .. see above .. structure(DATA,**kw)
         # TODO: thinking of just replacing c( with ( to get a long tuple?
 
 
@@ -1919,7 +1892,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
         return LatexExpr(P.eval('latex(%s, file="");'%self.name()))
 
 
-
+@instancedoc
 class RFunctionElement(FunctionElement):
     def __reduce__(self):
         """
@@ -1935,7 +1908,7 @@ class RFunctionElement(FunctionElement):
         """
         raise NotImplementedError("pickling of R element methods is not yet supported")
 
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Returns the help for self as a string.
 
@@ -1943,7 +1916,7 @@ class RFunctionElement(FunctionElement):
 
             sage: a = r([1,2,3])
             sage: length = a.length
-            sage: print(length._sage_doc_())
+            sage: print(length.__doc__)
             length                 package:base                 R Documentation
             ...
             <BLANKLINE>
@@ -1977,6 +1950,7 @@ class RFunctionElement(FunctionElement):
         return self._obj.parent().function_call(self._name, args=[self._obj] + list(args), kwds=kwds)
 
 
+@instancedoc
 class RFunction(ExpectFunction):
     def __init__(self, parent, name, r_name=None):
         """
@@ -2002,7 +1976,7 @@ class RFunction(ExpectFunction):
         else:
             self._name = parent._sage_to_r_name(name)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         EXAMPLES::
 
@@ -2011,18 +1985,28 @@ class RFunction(ExpectFunction):
             sage: r.mean == r.lr
             False
         """
-        if not isinstance(other, RFunction):
-            return cmp(type(self), type(other))
-        return cmp(self._name, other._name)
+        return (isinstance(other, RFunction) and
+            self._name == other._name)
 
-    def _sage_doc_(self):
+    def __ne__(self, other):
+        """
+        EXAMPLES::
+
+            sage: r.mean != loads(dumps(r.mean))
+            False
+            sage: r.mean != r.lr
+            True
+        """
+        return not (self == other)
+
+    def _instancedoc_(self):
         """
         Returns the help for self.
 
         EXAMPLES::
 
             sage: length = r.length
-            sage: print(length._sage_doc_())
+            sage: print(length.__doc__)
             length                 package:base                 R Documentation
             ...
             <BLANKLINE>

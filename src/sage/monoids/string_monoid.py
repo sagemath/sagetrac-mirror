@@ -66,6 +66,7 @@ def BinaryStrings():
     _cache[2] = weakref.ref(S)
     return S
 
+
 def OctalStrings():
     r"""
     Returns the free octal string monoid on generators `\{ 0, 1, \dots, 7 \}`.
@@ -94,6 +95,7 @@ def OctalStrings():
     S = OctalStringMonoid()
     _cache[8] = weakref.ref(S)
     return S
+
 
 def HexadecimalStrings():
     r"""
@@ -124,6 +126,7 @@ def HexadecimalStrings():
     S = HexadecimalStringMonoid()
     _cache[16] = weakref.ref(S)
     return S
+
 
 def Radix64Strings():
     r"""
@@ -160,6 +163,7 @@ def Radix64Strings():
     _cache[64] = weakref.ref(S)
     return S
 
+
 def AlphabeticStrings():
     r"""
     Returns the string monoid on generators A-Z:
@@ -189,6 +193,7 @@ def AlphabeticStrings():
     return S
 
 #*****************************************************************************
+
 
 class StringMonoid_class(FreeMonoid_class):
     r"""
@@ -282,6 +287,7 @@ class StringMonoid_class(FreeMonoid_class):
 # Specific global string monoids
 #*****************************************************************************
 
+
 class BinaryStringMonoid(StringMonoid_class):
     r"""
     The free binary string monoid on generators `\{ 0, 1 \}`.
@@ -300,11 +306,6 @@ class BinaryStringMonoid(StringMonoid_class):
             01111101
         """
         StringMonoid_class.__init__(self, 2, ['0', '1'])
-
-    def __cmp__(self, other):
-        if not isinstance(other, BinaryStringMonoid):
-            return -1
-        return 0
 
     def __repr__(self):
         return "Free binary string monoid"
@@ -395,6 +396,7 @@ class BinaryStringMonoid(StringMonoid_class):
     #     """
     #     return 2
 
+
 class OctalStringMonoid(StringMonoid_class):
     r"""
     The free octal string monoid on generators `\{ 0, 1, \dots, 7 \}`.
@@ -415,11 +417,6 @@ class OctalStringMonoid(StringMonoid_class):
             01234567
         """
         StringMonoid_class.__init__(self, 8, [ str(i) for i in range(8) ])
-
-    def __cmp__(self, other):
-        if not isinstance(other, OctalStringMonoid):
-            return -1
-        return 0
 
     def __repr__(self):
         return "Free octal string monoid"
@@ -453,6 +450,7 @@ class OctalStringMonoid(StringMonoid_class):
         else:
             raise TypeError("Argument x (= %s) is of the wrong type." % x)
 
+
 class HexadecimalStringMonoid(StringMonoid_class):
     r"""
     The free hexadecimal string monoid on generators
@@ -476,11 +474,6 @@ class HexadecimalStringMonoid(StringMonoid_class):
         """
         alph = '0123456789abcdef'
         StringMonoid_class.__init__(self, 16, [ alph[i] for i in range(16) ])
-
-    def __cmp__(self, other):
-        if not isinstance(other, HexadecimalStringMonoid):
-            return -1
-        return 0
 
     def __repr__(self):
         return "Free hexadecimal string monoid"
@@ -559,6 +552,7 @@ class HexadecimalStringMonoid(StringMonoid_class):
             hex_string.extend(hex_chars)
         return self(hex_string)
 
+
 class Radix64StringMonoid(StringMonoid_class):
     r"""
     The free radix 64 string monoid on 64 generators.
@@ -580,11 +574,6 @@ class Radix64StringMonoid(StringMonoid_class):
         """
         alph = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
         StringMonoid_class.__init__(self, 64, [ alph[i] for i in range(64) ])
-
-    def __cmp__(self, other):
-        if not isinstance(other, Radix64StringMonoid):
-            return -1
-        return 0
 
     def __repr__(self):
         return "Free radix 64 string monoid"
@@ -620,6 +609,7 @@ class Radix64StringMonoid(StringMonoid_class):
             return StringMonoidElement(self, x, check)
         else:
             raise TypeError("Argument x (= %s) is of the wrong type." % x)
+
 
 class AlphabeticStringMonoid(StringMonoid_class):
     """
@@ -689,11 +679,6 @@ class AlphabeticStringMonoid(StringMonoid_class):
         alph = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
         StringMonoid_class.__init__(self, 26, [ alph[i] for i in range(26) ])
 
-    def __cmp__(self, other):
-        if not isinstance(other, AlphabeticStringMonoid):
-            return -1
-        return 0
-
     def __repr__(self):
         return "Free alphabetic string monoid on A-Z"
 
@@ -741,8 +726,8 @@ class AlphabeticStringMonoid(StringMonoid_class):
         referred to as the characteristic frequency probability distribution.
         Various studies report slightly different values for the
         characteristic frequency probability of an English letter. For
-        instance, [Lew00]_ reports that "E" has a characteristic
-        frequency probability of 0.12702, while [BekPip82]_ reports this
+        instance, [Lew2000]_ reports that "E" has a characteristic
+        frequency probability of 0.12702, while [BP1982]_ reports this
         value as 0.127. The concepts of characteristic frequency probability
         and characteristic frequency probability distribution can also be
         applied to non-empty alphabets other than the English alphabet.
@@ -765,12 +750,12 @@ class AlphabeticStringMonoid(StringMonoid_class):
           following tables are supported:
 
           - ``"beker_piper"`` -- the table of characteristic frequency
-            probability distribution by Beker and Piper [BekPip82]_. This is
+            probability distribution by Beker and Piper [BP1982]_. This is
             the default table to use.
 
           - ``"lewand"`` -- the table of characteristic frequency
             probability distribution by Lewand as described on page 36
-            of [Lew00]_.
+            of [Lew2000]_.
 
         OUTPUT:
 
@@ -781,7 +766,7 @@ class AlphabeticStringMonoid(StringMonoid_class):
         EXAMPLES:
 
         The characteristic frequency probability distribution table of
-        Beker and Piper [BekPip82]_::
+        Beker and Piper [BP1982]_::
 
             sage: A = AlphabeticStrings()
             sage: table = A.characteristic_frequency(table_name="beker_piper")
@@ -815,7 +800,7 @@ class AlphabeticStringMonoid(StringMonoid_class):
             ('Z', 0.00100000000000000)]
 
         The characteristic frequency probability distribution table
-        of Lewand [Lew00]_::
+        of Lewand [Lew2000]_::
 
             sage: table = A.characteristic_frequency(table_name="lewand")
             sage: sorted(table.items())
@@ -901,14 +886,6 @@ class AlphabeticStringMonoid(StringMonoid_class):
             Traceback (most recent call last):
             ...
             ValueError: Table name must be either 'beker_piper' or 'lewand'.
-
-        REFERENCES:
-
-        .. [BekPip82] \H. Beker and F. Piper. *Cipher Systems: The
-          Protection of Communications*. John Wiley and Sons, 1982.
-
-        .. [Lew00] Robert Edward Lewand. *Cryptological Mathematics*.
-          The Mathematical Association of America, 2000.
         """
         supported_tables = ["beker_piper", "lewand"]
         if table_name not in supported_tables:

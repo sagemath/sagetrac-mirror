@@ -654,11 +654,10 @@ class ParametrizedSurface3D(SageObject):
         """
         coefficients = {}
         for index in product((1, 2), repeat=2):
-            sorted_index = list(sorted(index))
+            sorted_index = sorted(index)
             coefficients[index] = \
                 self._compute_first_fundamental_form_coefficient(index)
         return coefficients
-
 
     def first_fundamental_form(self, vector1, vector2):
         r"""
@@ -842,7 +841,7 @@ class ParametrizedSurface3D(SageObject):
             [                1/2 -1/2*sqrt(3)/cos(v)]
             [ 1/2*sqrt(3)*cos(v)                 1/2]
 
-        We verify that three succesive rotations over $\pi/3$ yield minus the identity::
+        We verify that three successive rotations over $\pi/3$ yield minus the identity::
 
             sage: rotation^3
             [-1  0]
@@ -1433,9 +1432,20 @@ class ParametrizedSurface3D(SageObject):
            sage: torus = ParametrizedSurface3D([(R+r*cos(v))*cos(u),(R+r*cos(v))*sin(u),r*sin(v)],[u,v],'torus')
            sage: torus.principal_directions()
            [(-cos(v)/(r*cos(v) + R), [(1, 0)], 1), (-1/r, [(0, 1)], 1)]
+           
+        ::
+        
+            sage: u, v = var('u, v', domain='real')
+            sage: V = vector([u*cos(u+v), u*sin(u+v), u+v])
+            sage: helicoid = ParametrizedSurface3D(V, (u, v))
+            sage: helicoid.principal_directions()
+            [(-1/(u^2 + 1), [(1, -(u^2 - sqrt(u^2 + 1) + 1)/(u^2 + 1))], 1),
+            (1/(u^2 + 1), [(1, -(u^2 + sqrt(u^2 + 1) + 1)/(u^2 + 1))], 1)]
+
+
 
         """
-        return self.shape_operator().eigenvectors_left()
+        return self.shape_operator().eigenvectors_right()
 
 
     @cached_method
@@ -1507,7 +1517,7 @@ class ParametrizedSurface3D(SageObject):
 
         """
         from sage.ext.fast_eval import fast_float
-        from sage.gsl.ode import ode_solver
+        from sage.calculus.ode import ode_solver
 
         u1 = self.variables[1]
         u2 = self.variables[2]
@@ -1542,7 +1552,7 @@ class ParametrizedSurface3D(SageObject):
         ALGORITHM:
 
         The geodesic equations are integrated forward in time using
-        the ode solvers from ``sage.gsl.ode``.  See the member
+        the ode solvers from ``sage.calculus.ode``.  See the member
         function ``_create_geodesic_ode_system`` for more details.
 
         INPUT:
@@ -1621,7 +1631,7 @@ class ParametrizedSurface3D(SageObject):
         """
 
         from sage.ext.fast_eval import fast_float
-        from sage.gsl.ode import ode_solver
+        from sage.calculus.ode import ode_solver
 
         u1 = self.variables[1]
         u2 = self.variables[2]
@@ -1660,7 +1670,7 @@ class ParametrizedSurface3D(SageObject):
         ALGORITHM:
 
         The parallel transport equations are integrated forward in time using
-        the ode solvers from ``sage.gsl.ode``. See :meth:`_create_pt_ode_system`
+        the ode solvers from ``sage.calculus.ode``. See :meth:`_create_pt_ode_system`
         for more details.
 
         INPUT:

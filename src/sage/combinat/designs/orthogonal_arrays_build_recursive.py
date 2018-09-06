@@ -120,7 +120,7 @@ def construction_3_4(k,n,m,r,s,explain_construction=False):
     - ``k,n,m,r,s`` (integers) -- we assume that `s<n` and `1\leq r,s`
 
       The following designs must be available: `OA(k,n)`, `OA(k,m)`,
-      `OA(k,m+1)`, `OA(k,m+2)`, `OA(k,s)`. Additionnally, it requires either a
+      `OA(k,m+1)`, `OA(k,m+2)`, `OA(k,s)`. Additionally, it requires either a
       `OA(k,m+r)` or a `OA(k,m+r+1)`.
 
     - ``explain_construction`` (boolean) -- return a string describing
@@ -694,7 +694,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
     assert G_set[0] == G.zero() and G_set[1] == G.one(), "problem with the ordering of {}".format(G)
     G_to_int = {v:i for i,v in enumerate(G_set)}
 
-    # Builds an OA(n+1,n) whose last n-1 colums are
+    # Builds an OA(n+1,n) whose last n-1 columns are
     #
     # \forall x \in G and x!=0, C_x(i,j) = i+x*j
     #
@@ -771,7 +771,7 @@ def thwart_lemma_4_1(k,n,m,explain_construction=False):
 
         - :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_thwart_lemma_4_1`
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: print(designs.orthogonal_arrays.explain_construction(10,408))
         Lemma 4.1 with n=13,m=28 from:
@@ -947,7 +947,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
 
         - :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_three_factor_product`
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import three_factor_product
@@ -972,13 +972,13 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
         Three-factor product with n=8.9.9 from:
            Peter J. Dukes, Alan C.H. Ling,
            A three-factor product construction for mutually orthogonal latin squares,
-           http://arxiv.org/abs/1401.1466
+           https://arxiv.org/abs/1401.1466
 
     REFERENCE:
 
     .. [DukesLing14] A three-factor product construction for mutually orthogonal latin squares,
       Peter J. Dukes, Alan C.H. Ling,
-      http://arxiv.org/abs/1401.1466
+      :arxiv:`1401.1466`
 
     .. [Rees00] Truncated Transversal Designs: A New Lower Bound on the Number of Idempotent MOLS of Side,
       Rolf S. Rees,
@@ -994,7 +994,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
         return ("Three-factor product with n={}.{}.{} from:\n"+
                 "   Peter J. Dukes, Alan C.H. Ling,\n"+
                 "   A three-factor product construction for mutually orthogonal latin squares,\n"+
-                "   http://arxiv.org/abs/1401.1466").format(n1,n2,n3)
+                "   https://arxiv.org/abs/1401.1466").format(n1, n2, n3)
 
     def assert_c_partition(classs,k,n,c):
         r"""

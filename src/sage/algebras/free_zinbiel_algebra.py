@@ -6,12 +6,15 @@ AUTHORS:
 - Travis Scrimshaw (2015-09): initial version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2015 Travis Scrimshaw <tscrimsh at umn.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.magmatic_algebras import MagmaticAlgebras
@@ -20,6 +23,7 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.words import Words
 from sage.combinat.words.alphabet import Alphabet
 from sage.sets.family import Family
+
 
 class FreeZinbielAlgebra(CombinatorialFreeModule):
     r"""
@@ -32,8 +36,9 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
 
         a \circ (b \circ c) = a \circ (b \circ c) + a \circ (c \circ b).
 
-    Zinbiel algebras were first introduced by Loday as the Koszul
-    dual to Leibniz algebras (hence the name coined by Lemaire).
+    Zinbiel algebras were first introduced by Loday (see [Lod1995]_ and
+    [LV2012]_) as the Koszul dual to Leibniz algebras (hence the name
+    coined by Lemaire).
 
     Zinbiel algebras are divided power algebras, in that for
 
@@ -90,8 +95,8 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
     .. WARNING::
 
         Currently the basis is indexed by all words over the variables,
-        incuding the empty word. This is a slight abuse as it is suppose
-        to be the indexed by all non-empty words.
+        including the empty word. This is a slight abuse as it is supposed
+        to be indexed by all non-empty words.
 
     EXAMPLES:
 
@@ -132,13 +137,9 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
 
     - :wikipedia:`Zinbiel_algebra`
 
-    .. [Loday95] Jean-Louis Loday.
-       *Cup-product for Leibniz cohomology and dual Leibniz algebras*.
-       Math. Scand., pp. 189--196 (1995).
-       http://www.math.uiuc.edu/K-theory/0015/cup_product.pdf
-    .. [LV12] Jean-Louis Loday and Bruno Vallette. *Algebraic Operads*.
-       Springer-Verlag Berlin Heidelberg (2012).
-       :doi:`10.1007/978-3-642-30362-3`.
+    - [Lod1995]_
+
+    - [LV2012]_
     """
     @staticmethod
     def __classcall_private__(cls, R, n=None, names=None):
@@ -153,8 +154,13 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             sage: Z4.<x,y,z> = algebras.FreeZinbiel(QQ, 'x,y,z')
             sage: Z1 is Z2 and Z1 is Z3 and Z1 is Z4
             True
+
+            sage: algebras.FreeZinbiel(QQ, ['x', 'y'])
+            Free Zinbiel algebra on generators (Z[x], Z[y]) over Rational Field
+            sage: algebras.FreeZinbiel(QQ, ('x', 'y'))
+            Free Zinbiel algebra on generators (Z[x], Z[y]) over Rational Field
         """
-        if isinstance(n, (list,tuple)):
+        if isinstance(n, (list, tuple)):
             names = n
             n = len(names)
         elif isinstance(n, str):
@@ -174,6 +180,13 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
 
             sage: Z.<x,y,z> = algebras.FreeZinbiel(QQ)
             sage: TestSuite(Z).run()
+
+        TESTS::
+
+            sage: Z.<x,y,z> = algebras.FreeZinbiel(5)
+            Traceback (most recent call last):
+            ...
+            TypeError: argument R must be a ring
         """
         if R not in Rings:
             raise TypeError("argument R must be a ring")
@@ -202,9 +215,9 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: Z.<x,y,z> = algebras.FreeZinbiel(QQ)
+            sage: Z.<x,y> = algebras.FreeZinbiel(QQ)
             sage: Z
-            Free Zinbiel algebra on generators (Z[x], Z[y], Z[z]) over Rational Field
+            Free Zinbiel algebra on generators (Z[x], Z[y]) over Rational Field
         """
         return "Free Zinbiel algebra on generators {} over {}".format(
             self.gens(), self.base_ring())
@@ -221,7 +234,7 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             [Z[x], Z[y], Z[z]]
         """
         A = self.variable_names()
-        return Family( A, lambda g: self.monomial(self._indices(g)) )
+        return Family(A, lambda g: self.monomial(self._indices(g)))
 
     @cached_method
     def gens(self):
@@ -240,14 +253,23 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
         """
         Return the product of the basis elements indexed by ``x`` and ``y``.
 
+        INPUT:
+
+        - ``x``, ``y`` -- two words
+
         EXAMPLES::
 
             sage: Z.<x,y,z> = algebras.FreeZinbiel(QQ)
             sage: (x*y)*z  # indirect doctest
             Z[xyz] + Z[xzy]
+
+        TESTS::
+
+            sage: Z.<x,y> = algebras.FreeZinbiel(QQ)
+            sage: Z.product_on_basis(Word(), Word('y'))
+            Z[y]
         """
         if not x:
             return self.monomial(y)
         x0 = self._indices(x[0])
         return self.sum_of_monomials(x0 + sh for sh in x[1:].shuffle(y))
-

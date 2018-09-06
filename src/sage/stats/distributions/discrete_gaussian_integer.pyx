@@ -11,7 +11,7 @@ AUTHORS:
 
 - Martin Albrecht (2014-06-28): initial version
 
-EXAMPLE:
+EXAMPLES:
 
 We construct a sampler for the distribution `D_{3,c}` with width `σ=3` and center `c=0`::
 
@@ -29,7 +29,8 @@ precisely we have to normalise by dividing by the overall probability over all
 integers. We use the fact that hitting anything more than 6 standard deviations
 away is very unlikely and compute::
 
-    sage: norm_factor = sum([exp(-x^2/(2*sigma^2)) for x in range(-6*sigma,sigma*6+1)])
+    sage: bound = (6*sigma).floor()
+    sage: norm_factor = sum([exp(-x^2/(2*sigma^2)) for x in range(-bound,bound+1)])
     sage: norm_factor
     7.519...
 
@@ -73,10 +74,7 @@ We construct a sampler with `c\%1 != 0`::
 
 REFERENCES:
 
-.. [DDLL13] Léo Ducas, Alain Durmus, Tancrède Lepoint and Vadim
-   Lyubashevsky. *Lattice Signatures and Bimodal Gaussians*; in Advances in
-   Cryptology – CRYPTO 2013; Lecture Notes in Computer Science Volume 8042,
-   2013, pp 40-56 http://www.di.ens.fr/~lyubash/papers/bimodal.pdf
+- [DDLL2013]_
 
 """
 #******************************************************************************
@@ -110,18 +108,19 @@ REFERENCES:
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of the FreeBSD Project.
 #*****************************************************************************/
+
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.rings.real_mpfr cimport RealNumber, RealField
 from sage.libs.mpfr cimport mpfr_set, MPFR_RNDN
 from sage.rings.integer cimport Integer
 from sage.misc.randstate cimport randstate, current_randstate
 
-from dgs cimport dgs_disc_gauss_mp_init, dgs_disc_gauss_mp_clear, dgs_disc_gauss_mp_flush_cache
-from dgs cimport dgs_disc_gauss_dp_init, dgs_disc_gauss_dp_clear, dgs_disc_gauss_dp_flush_cache
-from dgs cimport DGS_DISC_GAUSS_UNIFORM_TABLE, DGS_DISC_GAUSS_UNIFORM_ONLINE, DGS_DISC_GAUSS_UNIFORM_LOGTABLE, DGS_DISC_GAUSS_SIGMA2_LOGTABLE
+from .dgs cimport dgs_disc_gauss_mp_init, dgs_disc_gauss_mp_clear, dgs_disc_gauss_mp_flush_cache
+from .dgs cimport dgs_disc_gauss_dp_init, dgs_disc_gauss_dp_clear, dgs_disc_gauss_dp_flush_cache
+from .dgs cimport DGS_DISC_GAUSS_UNIFORM_TABLE, DGS_DISC_GAUSS_UNIFORM_ONLINE, DGS_DISC_GAUSS_UNIFORM_LOGTABLE, DGS_DISC_GAUSS_SIGMA2_LOGTABLE
 
 cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
     r"""
@@ -169,20 +168,20 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
         - ``"uniform+logtable"`` - samples are drawn from a uniform distribution and
           accepted with probability proportional to `\exp(-(x-c)²/(2σ²))` where
           `\exp(-(x-c)²/(2σ²))` is computed using logarithmically many calls to
-          Bernoulli distributions. See [DDLL13]_ for details.  Only
+          Bernoulli distributions. See [DDLL2013]_ for details.  Only
           integer-valued `c` are supported.
 
         - ``"uniform+online"`` - samples are drawn from a uniform distribution and
           accepted with probability proportional to `\exp(-(x-c)²/(2σ²))` where
           `\exp(-(x-c)²/(2σ²))` is computed in each invocation. Typically this
-          is very slow.  See [DDLL13]_ for details.  Any real-valued `c` is
+          is very slow.  See [DDLL2013]_ for details.  Any real-valued `c` is
           accepted.
 
         - ``"sigma2+logtable"`` - samples are drawn from an easily samplable
           distribution with `σ = k·σ_2` with `σ_2 = \sqrt{1/(2\log 2)}` and accepted
           with probability proportional to `\exp(-(x-c)²/(2σ²))` where
           `\exp(-(x-c)²/(2σ²))` is computed using  logarithmically many calls to Bernoulli
-          distributions (but no calls to `\exp`). See [DDLL13]_ for details. Note that this
+          distributions (but no calls to `\exp`). See [DDLL2013]_ for details. Note that this
           sampler adjusts `σ` to match `k·σ_2` for some integer `k`.
           Only integer-valued `c` are supported.
 
@@ -366,7 +365,7 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
         r"""
         Flush the internal cache of random bits.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
 

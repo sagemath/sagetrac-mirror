@@ -96,6 +96,7 @@ from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 from sage.groups.perm_gps.permgroup_element import SymmetricGroupElement
 from sage.structure.unique_representation import CachedRepresentation
 from sage.structure.parent import Parent
+from sage.structure.richcmp import richcmp
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
@@ -146,7 +147,7 @@ class PermutationGroup_unique(CachedRepresentation, PermutationGroup_generic):
 
             The hash currently is broken for this comparison.
         """
-        return self.__cmp__(other) == 0
+        return super(CachedRepresentation, self).__eq__(other)
 
 
 class PermutationGroup_symalt(PermutationGroup_unique):
@@ -188,7 +189,7 @@ class PermutationGroup_symalt(PermutationGroup_unique):
             ValueError: domain (=-1) must be an integer >= 0 or a list
         """
         if domain not in FiniteEnumeratedSets():
-            if not isinstance(domain, (tuple, list)):
+            if not isinstance(domain, (tuple, list, range)):
                 try:
                     domain = Integer(domain)
                 except TypeError:
@@ -240,7 +241,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         sage: G.domain()
         {1, 2, 3, 4}
         sage: G.category()
-        Join of Category of finite permutation groups
+        Join of Category of finite enumerated permutation groups
          and Category of finite weyl groups
 
     TESTS::
@@ -277,7 +278,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         gens = [tuple(self._domain)]
         if len(self._domain) > 2:
             gens.append(tuple(self._domain[:2]))
-        self._gens = [self._element_class()(g, self, check=False)
+        self._gens = [self.element_class(g, self, check=False)
                       for g in gens]
 
     def _gap_init_(self, gap=None):
@@ -312,7 +313,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         """
         return tuple(self.domain()[:-1])
 
-    def __cmp__(self, x):
+    def __richcmp__(self, x, op):
         """
         Fast comparison for SymmetricGroups.
 
@@ -324,8 +325,8 @@ class SymmetricGroup(PermutationGroup_symalt):
             True
         """
         if isinstance(x, SymmetricGroup):
-            return cmp((self._deg, self._domain), (x._deg, x._domain))
-        return PermutationGroup_generic.__cmp__(self, x)
+            return richcmp((self._deg, self._domain), (x._deg, x._domain), op)
+        return super(SymmetricGroup, self).__richcmp__(x, op)
 
     def _repr_(self):
         """
@@ -462,7 +463,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         return q_factorial(self.degree(), parameter)
 
     def conjugacy_classes_representatives(self):
-        """
+        r"""
         Return a complete list of representatives of conjugacy classes in
         a permutation group `G`.
 
@@ -567,7 +568,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         return SymmetricGroupConjugacyClass(self, g)
 
     def algebra(self, base_ring, category=None):
-        """
+        r"""
         Return the symmetric group algebra associated to ``self``.
 
         INPUT:
@@ -590,28 +591,31 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: A = S3.algebra(QQ); A
             Symmetric group algebra of order 3 over Rational Field
             sage: a = S3.an_element(); a
-            (1,2,3)
+            (2,3)
             sage: A(a)
-            (1,2,3)
+            (2,3)
 
         We illustrate the choice of the category::
 
             sage: A.category()
             Join of Category of coxeter group algebras over Rational Field
                 and Category of finite group algebras over Rational Field
+                and Category of finite dimensional cellular algebras with basis
+                     over Rational Field
             sage: A = S3.algebra(QQ, category=Semigroups())
             sage: A.category()
-            Category of finite dimensional semigroup algebras over Rational Field
+            Category of finite dimensional unital cellular semigroup algebras
+             over Rational Field
 
         In the following case, a usual group algebra is returned:
 
             sage: S = SymmetricGroup([2,3,5])
             sage: S.algebra(QQ)
-            Group algebra of Symmetric group of order 3! as a permutation group over Rational Field
+            Algebra of Symmetric group of order 3! as a permutation group over Rational Field
             sage: a = S.an_element(); a
-            (2,3,5)
+            (3,5)
             sage: S.algebra(QQ)(a)
-            B[(2,3,5)]
+            (3,5)
         """
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
         domain = self.domain()
@@ -620,16 +624,8 @@ class SymmetricGroup(PermutationGroup_symalt):
         else:
             return super(SymmetricGroup, self).algebra(base_ring)
 
-    def _element_class(self):
-        r"""
-        Return the class to be used for creating elements of this group.
+    Element = SymmetricGroupElement
 
-        EXAMPLE::
-
-            sage: SymmetricGroup(17)._element_class()
-            <type 'sage.groups.perm_gps.permgroup_element.SymmetricGroupElement'>
-        """
-        return SymmetricGroupElement
 
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):
@@ -652,7 +648,7 @@ class AlternatingGroup(PermutationGroup_symalt):
             sage: G
             Alternating group of order 6!/2 as a permutation group
             sage: G.category()
-            Category of finite permutation groups
+            Category of finite enumerated permutation groups
             sage: TestSuite(G).run() # long time
 
             sage: G = AlternatingGroup([1,2,4,5])
@@ -661,7 +657,7 @@ class AlternatingGroup(PermutationGroup_symalt):
             sage: G.domain()
             {1, 2, 4, 5}
             sage: G.category()
-            Category of finite permutation groups
+            Category of finite enumerated permutation groups
             sage: TestSuite(G).run()
 
         TESTS::
@@ -716,7 +712,7 @@ class CyclicPermutationGroup(PermutationGroup_unique):
             sage: G
             Cyclic group of order 8 as a permutation group
             sage: G.category()
-            Category of finite permutation groups
+            Category of finite enumerated permutation groups
             sage: TestSuite(G).run()
             sage: C = CyclicPermutationGroup(10)
             sage: C.is_abelian()
@@ -811,8 +807,8 @@ class DiCyclicGroup(PermutationGroup_unique):
     the symmetries of a square.  For `n=3` this is the nonabelian
     group of order 12 that is not the dihedral group `D_6`
     nor the alternating group `A_4`.  This group of order 12 is
-    also the semi-direct product of of `C_2` by `C_4`,
-    `C_3\rtimes C_4`.  [CONRAD2009]_
+    also the semi-direct product of `C_2` by `C_4`,
+    `C_3\rtimes C_4`.  [Con]_
 
 
     When the order of the group is a
@@ -894,12 +890,6 @@ class DiCyclicGroup(PermutationGroup_unique):
 
         sage: groups.permutation.DiCyclic(6)
         Diyclic group of order 24 as a permutation group
-
-    REFERENCES:
-
-    .. [CONRAD2009] `Groups of order 12
-       <http://www.math.uconn.edu/~kconrad/blurbs/grouptheory/group12.pdf>`_.
-       Keith Conrad, accessed 21 October 2009.
 
     AUTHOR:
 
@@ -1001,13 +991,13 @@ class KleinFourGroup(PermutationGroup_unique):
 
             sage: G = KleinFourGroup(); G
             The Klein 4 group of order 4, as a permutation group
-            sage: list(G)
+            sage: sorted(G)
             [(), (3,4), (1,2), (1,2)(3,4)]
 
         TESTS::
 
             sage: G.category()
-            Category of finite permutation groups
+            Category of finite enumerated permutation groups
             sage: TestSuite(G).run()
 
             sage: groups.permutation.KleinFour()
@@ -1192,13 +1182,13 @@ class GeneralDihedralGroup(PermutationGroup_generic):
 
     EXAMPLES:
 
-    As is noted in [1], `Dih(C_3 \times C_3)` has the presentation
+    As is noted in [TW1980]_, `Dih(C_3 \times C_3)` has the presentation
 
     .. MATH::
 
         \langle a, b, c\mid a^{3}, b^{3}, c^{2}, ab = ba, ac = ca^{-1}, bc = cb^{-1} \rangle
 
-    Note also the fact, verified by [1]_, that the dihedralization of
+    Note also the fact, verified by [TW1980]_, that the dihedralization of
     `C_3 \times C_3` is the only nonabelian group of order 18
     with no element of order 6. ::
 
@@ -1301,10 +1291,6 @@ class GeneralDihedralGroup(PermutationGroup_generic):
         ...
         ValueError: all direct factors must be greater than 1
 
-    REFERENCES:
-
-    .. [1] \A.D. Thomas and G.V. Wood, Group Tables (Exeter: Shiva Publishing, 1980)
-
     AUTHOR:
 
     - Kevin Halasz (2012-7-12)
@@ -1383,7 +1369,7 @@ class GeneralDihedralGroup(PermutationGroup_generic):
 
 class DihedralGroup(PermutationGroup_unique):
     def __init__(self, n):
-        """
+        r"""
         The Dihedral group of order `2n` for any integer `n\geq 1`.
 
         INPUT:
@@ -1410,9 +1396,8 @@ class DihedralGroup(PermutationGroup_unique):
 
             sage: DihedralGroup(5).gens()
             [(1,2,3,4,5), (1,5)(2,4)]
-            sage: list(DihedralGroup(5))
-            [(), (1,5)(2,4), (1,2,3,4,5), (1,4)(2,3), (1,3,5,2,4), (2,5)(3,4),
-            (1,3)(4,5), (1,5,4,3,2), (1,4,2,5,3), (1,2)(3,5)]
+            sage: sorted(DihedralGroup(5))
+            [(), (2,5)(3,4), (1,2)(3,5), (1,2,3,4,5), (1,3)(4,5), (1,3,5,2,4), (1,4)(2,3), (1,4,2,5,3), (1,5,4,3,2), (1,5)(2,4)]
 
             sage: G = DihedralGroup(6)
             sage: G.order()
@@ -1434,7 +1419,7 @@ class DihedralGroup(PermutationGroup_unique):
 
             sage: TestSuite(G).run()
             sage: G.category()
-            Category of finite permutation groups
+            Category of finite enumerated permutation groups
             sage: TestSuite(G).run()
 
             sage: groups.permutation.Dihedral(6)
@@ -1499,8 +1484,8 @@ class SplitMetacyclicGroup(PermutationGroup_unique):
 
         This family is notable because, for odd `p`, these are the
         only `p`-groups with a cyclic subgroup of index `p`, a
-        result proven in [GORENSTEIN]_. It is also shown in
-        [GORENSTEIN]_ that this is one of four families containing
+        result proven in [Gor1980]_. It is also shown in
+        [Gor1980]_ that this is one of four families containing
         nonabelian 2-groups with a cyclic subgroup of index 2
         (with the others being the dicyclic groups, the dihedral
         groups, and the semidihedral groups).
@@ -1515,7 +1500,7 @@ class SplitMetacyclicGroup(PermutationGroup_unique):
         relation shows that none of these elements are powers of
         any other. Thus, there are `p` cyclic maximal subgroups in
         each split metacyclic group. It is also proven in
-        [GORENSTEIN]_ that this family has commutator subgroup
+        [Gor1980]_ that this family has commutator subgroup
         of order `p`, and the Frattini subgroup is equal to the
         center, with this group being cyclic of order `p^{m-2}`.
         These characteristics are necessary to identify these
@@ -1570,10 +1555,6 @@ class SplitMetacyclicGroup(PermutationGroup_unique):
             Traceback (most recent call last):
             ...
             ValueError: if prime is odd, the exponent must be greater than 2, not 2
-
-        REFERENCES:
-
-        .. [GORENSTEIN] Daniel Gorenstein, Finite Groups (New York: Chelsea Publishing, 1980)
 
         AUTHOR:
 
@@ -1651,7 +1632,7 @@ class SemidihedralGroup(PermutationGroup_unique):
 
         EXAMPLES:
 
-        In [GORENSTEIN]_ it is shown that the semidihedral groups
+        In [Gor1980]_ it is shown that the semidihedral groups
         have center of order 2. It is also shown that they have a
         Frattini subgroup equal to their commutator, which is a
         cyclic subgroup of order `2^{m-2}`. ::
@@ -1727,9 +1708,9 @@ class SemidihedralGroup(PermutationGroup_unique):
         EXAMPLES::
 
             sage: G = SemidihedralGroup(6); G
-            The semidiheral group of order 64
+            The semidihedral group of order 64
         """
-        return 'The semidiheral group of order %s'%(2**self.m)
+        return 'The semidihedral group of order %s' % (2**self.m)
 
 class MathieuGroup(PermutationGroup_unique):
     def __init__(self, n):
@@ -1757,7 +1738,7 @@ class MathieuGroup(PermutationGroup_unique):
         TESTS::
 
             sage: G.category()
-            Category of finite permutation groups
+            Category of finite enumerated permutation groups
             sage: TestSuite(G).run(skip=["_test_enumerated_set_contains", "_test_enumerated_set_iter_list"])
 
             sage: groups.permutation.Mathieu(9)
@@ -1814,7 +1795,7 @@ class TransitiveGroup(PermutationGroup_unique):
             [(1,2,3,4,5), (1,4)(2,3)]
 
             sage: G.category()                         # optional - database_gap
-            Category of finite permutation groups
+            Category of finite enumerated permutation groups
 
         .. warning:: this follows GAP's naming convention of indexing
           the transitive groups starting from ``1``::
@@ -1925,7 +1906,7 @@ class TransitiveGroupsAll(DisjointUnionEnumeratedSets):
         sage: L = TransitiveGroups(); L
         Transitive Groups
         sage: L.category()
-        Category of infinite enumerated sets
+        Category of facade infinite enumerated sets
         sage: L.cardinality()
         +Infinity
 
@@ -1933,9 +1914,11 @@ class TransitiveGroupsAll(DisjointUnionEnumeratedSets):
         sage: (next(p), next(p), next(p), next(p), next(p), next(p), next(p), next(p)) # optional - database_gap
         (Transitive group number 1 of degree 0, Transitive group number 1 of degree 1, Transitive group number 1 of degree 2, Transitive group number 1 of degree 3, Transitive group number 2 of degree 3, Transitive group number 1 of degree 4, Transitive group number 2 of degree 4, Transitive group number 3 of degree 4)
 
-    TESTS::
+    TESTS:
 
-        sage: TestSuite(TransitiveGroups()).run() # optional - database_gap # long time
+    The following test is broken, see :trac:`22576`::
+
+        sage: TestSuite(TransitiveGroups()).run() # known bug # optional - database_gap # long time
     """
     def __init__(self):
         """
@@ -1943,7 +1926,7 @@ class TransitiveGroupsAll(DisjointUnionEnumeratedSets):
 
             sage: S = TransitiveGroups() # optional - database_gap
             sage: S.category() # optional - database_gap
-            Category of infinite enumerated sets
+            Category of facade infinite enumerated sets
         """
         DisjointUnionEnumeratedSets.__init__(self, Family(NonNegativeIntegers(), lambda i: TransitiveGroups(i)) )
 
@@ -2147,7 +2130,7 @@ class PrimitiveGroup(PermutationGroup_unique):
         sage: G.gens()                              # optional - database_gap
         [(2,4)(3,5), (1,2,3,5,4)]
         sage: G.category()                          # optional - database_gap
-        Category of finite permutation groups
+        Category of finite enumerated permutation groups
 
     .. warning::
 
@@ -2256,7 +2239,7 @@ def PrimitiveGroups(d=None):
     isomorphisms using GAP. If ``d`` is not specified, it returns the
     set of all primitive groups up to isomorphisms stored in GAP.
 
-    .. attention::
+    .. WARNING::
 
         PrimitiveGroups requires the optional GAP database package.
         Please install it by running ``sage -i database_gap``.
@@ -2306,7 +2289,7 @@ class PrimitiveGroupsAll(DisjointUnionEnumeratedSets):
         sage: L = PrimitiveGroups(); L
         Primitive Groups
         sage: L.category()
-        Category of infinite enumerated sets
+        Category of facade infinite enumerated sets
         sage: L.cardinality()
         +Infinity
 
@@ -2315,9 +2298,11 @@ class PrimitiveGroupsAll(DisjointUnionEnumeratedSets):
         ....:  next(p), next(p), next(p), next(p))
         (Trivial group, Trivial group, S(2), A(3), S(3), A(4), S(4), C(5))
 
-    TESTS::
+    TESTS:
 
-        sage: TestSuite(PrimitiveGroups()).run() # optional - database_gap # long time
+    The following test is broken, see :trac:`22576`::
+
+        sage: TestSuite(PrimitiveGroups()).run() # known bug # optional - database_gap # long time
     """
     def __init__(self):
         """
@@ -2325,7 +2310,7 @@ class PrimitiveGroupsAll(DisjointUnionEnumeratedSets):
 
             sage: S = PrimitiveGroups() # optional - database_gap
             sage: S.category() # optional - database_gap
-            Category of infinite enumerated sets
+            Category of facade infinite enumerated sets
         """
         DisjointUnionEnumeratedSets.__init__(self, Family(NonNegativeIntegers(), lambda i: PrimitiveGroups(i)) )
 
@@ -2596,7 +2581,7 @@ class PGL(PermutationGroup_plg):
             Finite Field in b of size 3^2
 
             sage: G.category()
-            Category of finite permutation groups
+            Category of finite enumerated permutation groups
             sage: TestSuite(G).run() # long time
 
         TESTS::
@@ -2663,7 +2648,7 @@ class PSL(PermutationGroup_plg):
             Finite Field in a of size 2^3
 
             sage: G.category()
-            Category of finite permutation groups
+            Category of finite enumerated permutation groups
             sage: TestSuite(G).run() # long time
 
         TESTS::
@@ -2708,10 +2693,10 @@ class PSL(PermutationGroup_plg):
         return "The projective special linear group of degree %s over %s"%(self._n, self.base_ring())
 
     def ramification_module_decomposition_hurwitz_curve(self):
-        """
+        r"""
         Helps compute the decomposition of the ramification module
         for the Hurwitz curves X (over CC say) with automorphism group
-        G = PSL(2,q), q a "Hurwitz prime" (ie, p is $\pm 1 \pmod 7$).
+        G = PSL(2,q), q a "Hurwitz prime" (ie, p is `\pm 1 \pmod 7`).
         Using this computation and Borne's formula helps determine the
         G-module structure of the RR spaces of equivariant
         divisors can be determined explicitly.
@@ -3024,7 +3009,7 @@ class SuzukiGroup(PermutationGroup_unique):
 
         REFERENCES:
 
-        -  http://en.wikipedia.org/wiki/Group_of_Lie_type\#Suzuki-Ree_groups
+        -  :wikipedia:`Group_of_Lie_type\#Suzuki-Ree_groups`
         """
         q = Integer(q)
         t = valuation(q, 2)
