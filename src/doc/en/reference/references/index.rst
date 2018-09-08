@@ -231,6 +231,10 @@ REFERENCES:
              Pseudo-Random Number Generator. *SIAM Journal on
              Computing*, 15(2):364--383, 1986.
 
+.. [BH2005] \E. Babson and P. Hersh. *Discrete Morse functions from
+            lexicographic orders*. Trans. Amer. Math. Soc., **357** (2005),
+            no. 2, pp. 509--534.
+
 .. [BIANCO] \L. Bianco, P. Dell‘Olmo, S. Giordani
             An Optimal Algorithm to Find the Jump Number of Partially Ordered Sets
             Computational Optimization and Applications,
@@ -2726,6 +2730,9 @@ REFERENCES:
 .. [SV2000] \J. Stern and S. Vaudenay,
             *CS-Cipher*; in
             First Open NESSIE Workshop, (2000).
+
+.. [SV2006] \B. E. Sagan and V. Vatter. *The Möbius function of a composition
+            poset*. J. Algebraic Comb., **24** (2006), no. 2, pp. 117--136.
 
 .. [SW2002] William Stein and Mark Watkins, *A database of elliptic
             curves---first report*. In *Algorithmic number theory

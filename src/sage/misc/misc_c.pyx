@@ -725,3 +725,35 @@ cdef class sized_iter:
         self.index += 1
         self.check()
         return x
+
+cpdef Py_ssize_t list_diff(list A, list B):
+    """
+    Return the index of first difference between lists.
+
+    INPUT:
+
+    - ``A``, ``B`` -- lists
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc_c import list_diff
+        sage: list_diff([1,2,3,4], [1,2])
+        2
+        sage: list_diff([1,2,3], [1,2,3])
+        3
+        sage: list_diff([1,2], [1,2,3,4])
+        2
+        sage: list_diff([1,2,4], [1,2,3,5])
+        2
+        sage: list_diff([1,2,3,5], [1,2,4])
+        2
+        sage: list_diff([2,1,3,5], [1,3,5])
+        0
+    """
+    cdef Py_ssize_t i
+    cdef Py_ssize_t m = min(len(A),len(B))
+    for i in range(m):
+        if A[i] != B[i]:
+            return i
+    return m
+

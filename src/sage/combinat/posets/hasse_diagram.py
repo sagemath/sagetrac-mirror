@@ -3076,5 +3076,83 @@ class HasseDiagram(DiGraph):
 
         return True
 
+    def a_PL_ordering(self):
+        r"""
+        Return a PL-ordering of the maximal chains of ``self``.
+
+        EXAMPLES::
+
+            sage: P = Poset({1:[3,4], 2:[4,5], 3:[6,7], 4:[7,8], 5:[8,9]})
+            sage: H = P._hasse_diagram
+            sage: H.a_PL_ordering()
+            [[0, 1, 2],
+             [0, 1, 8],
+             [0, 6, 7],
+             [0, 6, 8],
+             [3, 4, 5],
+             [3, 4, 7],
+             [3, 6, 7],
+             [3, 6, 8]]
+            sage: P = Poset({1:[3,4], 2:[4,5,6], 4:[8,9], 6:[9,10], 7:[8], 9:[11]})
+            sage: P._hasse_diagram.a_PL_ordering()
+            [[0, 8],
+             [1, 2],
+             [1, 3, 4],
+             [1, 3, 9, 10],
+             [1, 7, 8],
+             [1, 7, 9, 10],
+             [5, 6],
+             [5, 7, 8],
+             [5, 7, 9, 10]]
+        """
+        chains = []
+        for i in self.minimal_elements():
+            upper_ideal = self.principal_order_filter(i)
+            if len(upper_ideal) == 1:
+                chains.append([i])
+            else:
+                upper_ideal.remove(i)
+                relations = [(x, y) for x in upper_ideal for y in self.neighbor_out_iterator(x)]
+                # We abuse HasseDiagram slightly breaking the assumption that
+                #   the vertices of H are {0, ..., len(H)-1}, but we do not
+                #   need this assumption here and it means we do not have to
+                #   deal with relabeling the results.
+                H = HasseDiagram([upper_ideal, relations], format='vertices_and_edges')
+                chains.extend([[i] + j for j in H.a_PL_ordering()])
+        return chains
+
+    def discrete_morse_theory(self, L=None):
+        """
+        Compute the discrete Morse theory of ``self``.
+
+        .. WARNING::
+
+            We assume ``L`` is a PL ordering.
+
+        INPUT:
+
+        - ``L`` -- (optional) a list of lists of the maximal chains
+          of ``self``; if not given, then uses :meth:`a_PL_ordering`
+
+        .. SEEALSO::
+
+            :meth:`sage.combinat.posets.posets.FinitePosets.discrete_morse_theory`
+
+        EXAMPLES::
+
+            sage: TODO!!
+        """
+        if L is None:
+            L = self.a_PL_ordering()
+        else:
+            # Make sure L is a list of lists
+            L = [list(chain) for chain in L]
+
+        from sage.combinat.posets.discrete_morse_theory import critical_chains
+        crit, J, M = critical_chains(L)
+        shell = not any(j[0] < j[1] - 1 for msi in M for j in msi)
+        mob = -sum((-1)**len(J[i]) for i in crit)
+        return (shell, ZZ(mob), crit, J, M)
+
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))

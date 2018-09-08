@@ -2983,6 +2983,46 @@ class FinitePoset(UniqueRepresentation, Parent):
         else:
             return True
 
+    def a_PL_ordering(self):
+        """
+        Return a PL-ordering of the maximal chains of ``self``.
+
+        EXAMPLES::
+
+            sage: P = Poset({1:[3,4], 2:[4,5], 3:[6,7], 4:[7,8], 5:[8,9]})
+            sage: P.a_PL_ordering()
+            [[2, 5, 9],
+             [2, 5, 8],
+             [2, 4, 7],
+             [2, 4, 8],
+             [1, 3, 6],
+             [1, 3, 7],
+             [1, 4, 7],
+             [1, 4, 8]]
+
+            sage: P = Posets.BooleanLattice(4).without_bounds()
+            sage: P.a_PL_ordering()
+            [[8, 9, 11], [8, 9, 13], [8, 12, 13], [8, 12, 14], [8, 10, 11],
+             [8, 10, 14], [4, 12, 13], [4, 12, 14], [4, 6, 7], [4, 6, 14],
+             [4, 5, 7], [4, 5, 13], [2, 6, 7], [2, 6, 14], [2, 10, 11],
+             [2, 10, 14], [2, 3, 7], [2, 3, 11], [1, 9, 11], [1, 9, 13],
+             [1, 3, 7], [1, 3, 11], [1, 5, 7], [1, 5, 13]]
+
+            sage: P = Poset({1:[3,4], 2:[4,5,6], 4:[8,9], 6:[9,10], 7:[8], 9:[11]})
+            sage: P.a_PL_ordering()
+            [[7, 8],
+             [2, 5],
+             [2, 6, 10],
+             [2, 6, 9, 11],
+             [2, 4, 8],
+             [2, 4, 9, 11],
+             [1, 3],
+             [1, 4, 8],
+             [1, 4, 9, 11]]
+        """
+        return [[self._vertex_to_element(x) for x in chain] for chain in
+                self._hasse_diagram.a_PL_ordering()]
+
     def dimension(self, certificate=False):
         r"""
         Return the dimension of the Poset.
@@ -3588,23 +3628,38 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return Integer(self._hasse_diagram.order())
 
-    def moebius_function(self,x,y):
+    def moebius_function(self, x, y, algorithm='definition'):
         r"""
-        Returns the value of the Möbius function of the poset on the
-        elements x and y.
+        Return the value of the Möbius function of the poset on the
+        elements ``x`` and ``y``.
+
+        INPUT:
+
+        - ``x``, ``y`` -- elements
+        - ``algorithm`` -- (default: ``'matrix'``) can be one
+          of the following:
+
+          * ``'definition'`` - use the (recursive) definition of
+             the Möbius function
+          * ``'dmt'`` - use the discrete Morse theory of the poset
+
+        SPEED ANALYSIS: (This may be out of date with my changes!!!)
+
+        In general P.with_bounds().moebius_function('bottom','top') is
+        faster. The only cases where DMT_mobius_function() runs quicker
+        is when the number of maximal chains in P is very small.
 
         EXAMPLES::
 
             sage: P = Poset([[1,2,3],[4],[4],[4],[]])
-            sage: P.moebius_function(P(0),P(4))
+            sage: P.moebius_function(P(0), P(4))
             2
-            sage: sum([P.moebius_function(P(0),v) for v in P])
+            sage: sum([P.moebius_function(P(0), v) for v in P])
             0
-            sage: sum([abs(P.moebius_function(P(0),v)) \
-            ....:      for v in P])
+            sage: sum([abs(P.moebius_function(P(0), v)) for v in P])
             6
-            sage: for u,v in P.cover_relations_iterator():
-            ....:     if P.moebius_function(u,v) != -1:
+            sage: for u, v in P.cover_relations_iterator():
+            ....:     if P.moebius_function(u, v) != -1:
             ....:         print("Bug in moebius_function!")
 
         ::
@@ -3620,12 +3675,34 @@ class FinitePoset(UniqueRepresentation, Parent):
             1
             sage: sum([Q.moebius_function(Q(0),v) for v in Q])
             0
+
+        Using the discrete Morse theory algorithm::
+
+            sage: P = posets.UpDownPoset(6)
+            sage: P.moebius_function(P.top(), P.bottom(), algorithm="dmt")
+            0
+            sage: P = posets.BooleanLattice(5)
+            sage: P.moebius_function(P.top(), P.bottom(), algorithm="dmt")
+            0
+            sage: P = Posets.AntichainPoset(6)
+            sage: P.moebius_function(P.top(), P.bottom(), algorithm="dmt")
+            5
         """
-        i,j = map(self._element_to_vertex,(x,y))
-        return self._hasse_diagram.moebius_function(i,j)
+        if algorithm == "dmt":
+            if x == self.top() and y == self.bottom():
+                return self._hasse_diagram.discrete_morse_theory()[1]
+            P = self.subposet(self.interval(x, y))
+            return P._hasse_diagram.discrete_morse_theory()[1]
+
+        if algorithm != "definition":
+            raise ValueError("invalid algorithm {}".format(algorithm))
+
+        i, j = map(self._element_to_vertex, (x, y))
+        return self._hasse_diagram.moebius_function(i, j)
+
     mobius_function = deprecated_function_alias(19855, moebius_function)
 
-    def moebius_function_matrix(self, ring = ZZ, sparse = False):
+    def moebius_function_matrix(self, ring=ZZ, sparse=False):
         r"""
         Returns a matrix whose ``(i,j)`` entry is the value of the Möbius
         function evaluated at ``self.linear_extension()[i]`` and
@@ -3665,6 +3742,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         if not sparse:
             M = M.dense_matrix()
         return M
+
     mobius_function_matrix = deprecated_function_alias(19855, moebius_function_matrix)
 
     def lequal_matrix(self, ring = ZZ, sparse = False):
@@ -7952,6 +8030,183 @@ class FinitePoset(UniqueRepresentation, Parent):
         # or not, either remove this note or remove .hasse_diagram() below.
         return (set(self).issubset(set(other)) and
                 other.subposet(self).hasse_diagram() == self.hasse_diagram())
+
+    def discrete_morse_theory(self, L=None):
+        r"""
+        Compute the discrete Morse theory of ``self``.
+
+        A discription of the discrete Morse theory, adapting this::
+
+
+            INPUT:  List L of the maximal chains of a poset. If pure=true, then poset is
+                    assumed to be pure, that is, all chains in L are of the same length.
+                    If the poset is known to be pure then the code is faster.
+                    A boolean display to which if true causes results to be printed.
+            OUTPUT: Print whether the poset is a shelling and what the Mobius function
+                    is. Returns a tuple of four elements: 1) Boolean: True if is a
+                    shelling order 2) Integer: The Mobius function, 3) List of Integers:
+                    the indices of the critical chains and 4) List of Lists: The J
+                    intervals of the chains.
+
+                    The function does the following:
+
+                    1) Checks that L is a PL-ordering.
+                       If L is not a PL-ordering an error is returned, with the index
+                       of the first chain to violate the PL condition given.
+
+                    2) Computes the minimal skipped intervals M(C) of each chain C in L.
+
+                    3) The J intervals J(C) are computed from M(C) for each chain C.
+
+                    4) Computes the critical chains, that is, the chains C that are
+                       covered by J(C).
+
+                    5) Checks whether the ordering is a shelling order, that is,
+                       whether there is an minimal skipped interval of size greater
+                       than 1.
+
+                    6) The Mobius function is computed by taking the sum (-1)^{|J(C)|}
+                       for all critical chains C.
+
+                    7) Returns a tuple with the following elements:
+                       1 - Boolean: True if ordering is a shelling,
+                       2 - Int: Value of the Mobius function,
+                       3 - List: The indices of the critical chains,
+                       4 - List: J intervals for all of L,
+                       5 - List: Minimal skipped intervals for all of L.
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(4).without_bounds()
+            sage: P.a_PL_ordering()
+            [[8, 9, 11], [8, 9, 13], [8, 12, 13], [8, 12, 14], [8, 10, 11],
+             [8, 10, 14], [4, 12, 13], [4, 12, 14], [4, 6, 7], [4, 6, 14],
+             [4, 5, 7], [4, 5, 13], [2, 6, 7], [2, 6, 14], [2, 10, 11],
+             [2, 10, 14], [2, 3, 7], [2, 3, 11], [1, 9, 11], [1, 9, 13],
+             [1, 3, 7], [1, 3, 11], [1, 5, 7], [1, 5, 13]]
+            sage: P.discrete_morse_theory()
+            (False,
+             1,
+             [14, 15, 20, 21, 23],
+             [[], [[12, 2]], [[4, 12]], [[12, 2]], [[4, 12]],
+              [[4, 12], [12, 2]], [[8, 4]], [[8, 4], [12, 2]],
+              [[4, 2]], [[4, 12], [12, 2]], [[4, 12]], [[4, 12], [12, 2]],
+              [[8, 4]], [[8, 4], [12, 2]], [[8, 4], [4, 2]],
+              [[8, 4], [4, 12], [12, 2]], [[4, 12]], [[4, 12], [12, 2]],
+              [[8, 4]], [[8, 4], [12, 2]], [[8, 4], [4, 2]],
+              [[8, 4], [4, 12], [12, 2]], [[8, 4], [4, 12]],
+              [[8, 4], [4, 12], [12, 2]]],
+             [[], [[12, 2]], [[4, 12]], [[12, 2]], [[4, 12]],
+              [[4, 12], [12, 2]], [[8, 4]], [[8, 4], [12, 2]], [[4, 2]],
+              [[4, 12], [12, 2]], [[4, 12]], [[4, 12], [12, 2]], [[8, 4]],
+              [[8, 4], [12, 2]], [[8, 4], [4, 2]], [[8, 4], [4, 12], [12, 2]],
+              [[4, 12]], [[4, 12], [12, 2]], [[8, 4]], [[8, 4], [12, 2]],
+              [[8, 4], [4, 2]], [[8, 4], [4, 12], [12, 2]],
+              [[8, 4], [4, 12]], [[8, 4], [4, 12], [12, 2]]])
+
+        We give an PL ordering, which yields a different discrete
+        Morse theory::
+
+            sage: L = [[8, 12, 13], [8, 12, 14], [8, 10, 14], [8, 10, 11],
+            ....:      [8, 9, 11], [8, 9, 13], [4, 12, 13], [4, 12, 14],
+            ....:      [4, 5, 13], [4, 5, 7], [4, 6, 7], [4, 6, 14],
+            ....:      [2, 10, 11], [2, 10, 14], [2, 6, 14], [2, 6, 7],
+            ....:      [2, 3, 7], [2, 3, 11], [1, 3, 11], [1, 3, 7],
+            ....:      [1, 5, 7], [1, 5, 13], [1, 9, 11], [1, 9, 13]]
+            sage: P.discrete_morse_theory(L) 
+            (True,
+             1,
+             [23],
+             [[], [[12, 2]], [[4, 12]], [[12, 2]], [[4, 12]],
+              [[4, 12], [12, 2]], [[8, 4]], [[8, 4], [12, 2]], [[4, 12]],
+              [[12, 2]], [[4, 12]], [[4, 12], [12, 2]], [[8, 4]],
+              [[8, 4], [12, 2]], [[8, 4], [4, 12]], [[8, 4], [12, 2]],
+              [[4, 12]], [[4, 12], [12, 2]], [[8, 4]], [[8, 4], [12, 2]],
+              [[8, 4], [4, 12]], [[8, 4], [12, 2]], [[8, 4], [4, 12]],
+              [[8, 4], [4, 12], [12, 2]]],
+             [[], [[12, 2]], [[4, 12]], [[12, 2]], [[4, 12]],
+              [[4, 12], [12, 2]], [[8, 4]], [[8, 4], [12, 2]], [[4, 12]],
+              [[12, 2]], [[4, 12]], [[4, 12], [12, 2]], [[8, 4]],
+              [[8, 4], [12, 2]], [[8, 4], [4, 12]], [[8, 4], [12, 2]],
+              [[4, 12]], [[4, 12], [12, 2]], [[8, 4]], [[8, 4], [12, 2]],
+              [[8, 4], [4, 12]], [[8, 4], [12, 2]], [[8, 4], [4, 12]],
+              [[8, 4], [4, 12], [12, 2]]])
+
+        We give some other examples (TO BE FIXED)::
+
+            sage: L = [[6, 7, 2, 3],[6, 7, 2, 4], [6, 1, 8, 9, 3], [6, 1, 8, 9, 4],
+            ....:      [5, 1, 8, 9, 3], [5, 1, 8, 9, 4]]
+            sage: I = discrete_Morse_theory(L)
+            Not a shelling
+            Mobius function = 0
+            sage: I
+            (False,
+             0,
+             [],
+             [[], [[3, 4]], [[1, 4]], [[1, 4], [4, 5]], [[0, 1]], [[0, 1], [4, 5]]],
+             [[], [[3, 4]], [[1, 4]], [[4, 5], [1, 4]], [[0, 1]], [[0, 1], [4, 5]]])
+
+            sage: L1=[[8, 12, 13], [8, 12, 14], [8, 10, 14], [8, 10, 11],
+                      [8, 9, 11], [8, 9, 13], [4, 12, 13], [4, 12, 14], [4, 5, 13],
+                      [4, 5, 7], [4, 6, 7], [4, 6, 14], [2, 6, 7], [2, 6, 14],
+                      [2, 3, 7], [2, 3, 11], [2, 10, 11], [2, 10, 14], [1, 3, 11],
+                      [1, 3, 7], [1, 5, 7], [1, 5, 13], [1, 9, 11], [1, 9, 13]]
+            sage: I=discrete_Morse_theory(L1)
+            Not a shelling
+            Mobius function = 1
+            sage: I[0]
+            False
+            sage: I[1]
+            1
+            sage: I[2]
+            [15, 17, 23]
+
+            # An example where the J intervals differ from the minimal skipped
+            # intervals is given below. Note that in this case there are no critical
+            # chains even though L[4] is covered by its minimal skipped interval, as
+            # we only class a chain as critical if it is covered by its J intervals.
+            sage: L = [[10, 6, 7],[10, 2, 7],[5, 6, 7],[5, 4, 3],[5, 4, 2, 7],
+            ....:      [1, 9, 8, 4, 3],[1, 9, 8, 4, 2, 7]]
+            sage: I=discrete_Morse_theory(L)
+            Not a shelling
+            Mobius function = 0
+            sage: I
+            (False,
+             0,
+             [],
+             [[],
+              [[1, 2]],
+              [[0, 1]],
+              [[1, 3]],
+              [[0, 2], [2, 3]],
+              [[0, 3]],
+              [[0, 3], [4, 6]]],
+             [[],
+              [[1, 2]],
+              [[0, 1]],
+              [[1, 3]],
+              [[0, 2], [1, 3], [2, 4]],
+              [[0, 3]],
+              [[4, 6], [0, 3]]])
+
+        REFFERENCES:
+
+        - [BH2005]_
+        - [SV2006]_
+        """
+        from sage.combinat.posets.discrete_morse_theory import is_PL_ordering
+        if L is not None:
+            L = [[self._element_to_vertex(elt) for elt in chain] for chain in L]
+            is_PL, err = is_PL_ordering(L)
+            if not is_PL:
+                raise ValueError("L must be a PL ordering; error with chain {}".format(err))
+        print(L)
+        shell, mob, crit, J, M = self._hasse_diagram.discrete_morse_theory(L)
+        print(J)
+        print(M)
+        J = [[[self._vertex_to_element(v) for v in I] for I in val] for val in J]
+        M = [[[self._vertex_to_element(v) for v in I] for I in val] for val in M]
+        return (shell, mob, crit, J, M)
 
 FinitePoset._dual_class = FinitePoset
 
