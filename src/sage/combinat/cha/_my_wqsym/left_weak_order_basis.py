@@ -6,7 +6,7 @@ La base des G du papier de Vargas
 
 
 from sage.combinat.cha.wqsym import WordQuasiSymmetricFunctions
-
+from sage.combinat.packed_words import PackedWords
 
 class LeftWeakOrder(WordQuasiSymmetricFunctions.Bases.Base):
     '''
@@ -70,10 +70,9 @@ class LeftWeakOrder(WordQuasiSymmetricFunctions.Bases.Base):
         L[] # L[2, 1, 2, 1, 3] + L[1, 1] # L[1, 1, 2] + L[2, 1, 2, 1] # L[1] + L[2, 1, 2, 1, 3] # L[]
         
         '''
-        from sage.combinat.packed_words import to_pack
         return self.tensor_square().sum_of_monomials(
-            (to_pack([x for x in sigma if x<=i]),
-             to_pack([x for x in sigma if x>i]))
+            (Packedwords.to_pack([x for x in sigma if x<=i]),
+             Packedwords.to_pack([x for x in sigma if x>i]))
             for i in range(max(list(sigma)+[0]) + 1)
         )
 

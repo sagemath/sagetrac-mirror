@@ -80,22 +80,23 @@ class Fundamental(WordQuasiSymmetricFunctions.Bases.Base):
                 S[] # S[2, 1, 2, 1, 3] + S[1] # S[1, 2, 1, 3] + S[2, 1] # S[2, 1, 3] + S[2, 1, 2] # S[1, 2] + S[2, 1, 2, 1] # S[1] + S[2, 1, 2, 1, 3] # S[]
 
             '''
-            from sage.combinat.packed_words import to_pack
+            from sage.combinat.packed_words import PackedWords
             return self.tensor_square().sum_of_monomials(
-                (to_pack(sigma[:i]), to_pack(sigma[i:]))
+                (PackedWords.to_pack(sigma[:i]), 
+                PackedWords.to_pack(sigma[i:]))
                     for i in range(len(sigma) + 1)
             )
 
         def internal_product_on_basis(self,sigma,mu):
                 '''
                 '''
-                from sage.combinat.packed_words import to_pack
+                from sage.combinat.packed_words import PackedWords
 
                 if len(sigma)!=len(mu):
                         raise IndexError
                 n=len(mu)
                 print sigma, mu
-                return self.monomial(to_pack(
+                return self.monomial(PackedWords.to_pack(
                         [str(sigma[i])+str(mu[i]) for i in range(n)]))
                         
                 

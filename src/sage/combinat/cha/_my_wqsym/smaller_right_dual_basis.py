@@ -41,9 +41,10 @@ faire des tests et voir si c'est la bonne formule!!
     def coproduct_on_basis(self, sigma):
         '''
         '''
-        from sage.combinat.packed_words import to_pack
+        from sage.combinat.packed_words import PackedWords
         return self.tensor_square().sum_of_monomials(
-            (to_pack(sigma[i:]), to_pack(sigma[:i]))
+            (PackedWords.to_pack(sigma[i:]), 
+            PackedWords.to_pack(sigma[:i]))
             for i in range(len(sigma) + 1)
             if i==0 or i==len(sigma) or
             min(sigma[:i])>max(sigma[i:])

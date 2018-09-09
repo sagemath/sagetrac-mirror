@@ -93,7 +93,7 @@ class FundamentalDual(WordQuasiSymmetricFunctions.Bases.Base):
 
         def _func_L_to_M(self,sigma):
                 from sage.combinat.subset import Subsets
-                from sage.combinat.packed_words import to_pack
+                from sage.combinat.packed_words import PackedWords
                 from sage.combinat.packed_words import PackedWord
                 from sage.functions.other import factorial
                 from sage.rings.all import ZZ
@@ -111,7 +111,7 @@ class FundamentalDual(WordQuasiSymmetricFunctions.Bases.Base):
                                 while x-k in e:
                                         k+=1
                                 r1+=[x-k+1]
-                        res+=[(ZZ(1)/prod(factorial(k) for k in r0),to_pack(r1))]
+                        res+=[(ZZ(1)/prod(factorial(k) for k in r0),PackedWords.to_pack(r1))]
                 return sum(c*self.monomial(PackedWord(pw)) for (c,pw) in res)
         
         def L_to_M(self):
@@ -162,7 +162,7 @@ class FundamentalDual(WordQuasiSymmetricFunctions.Bases.Base):
                 r''' Restriction of intervalle [min, i] and [i+1, max]
 
                 '''
-                from sage.combinat.packed_words import to_pack
+                from sage.combinat.packed_words import PackedWords
                 left = []
                 right = []
                 for l in w:
@@ -170,7 +170,7 @@ class FundamentalDual(WordQuasiSymmetricFunctions.Bases.Base):
                         right.append(l)
                     else:
                         left.append(l)
-                return (self.basis().keys()(left), to_pack(right))
+                return (self.basis().keys()(left), PackedWords.to_pack(right))
 
             return self.tensor_square().sum_of_monomials(
                 restriction(e, i)

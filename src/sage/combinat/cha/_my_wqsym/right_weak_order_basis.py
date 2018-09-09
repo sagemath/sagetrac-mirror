@@ -6,7 +6,7 @@ La base des F du papier de Vargas
 
 
 from sage.combinat.cha.wqsym import WordQuasiSymmetricFunctions
-
+from sage.combinat.packed_words import PackedWords
 
 class RightWeakOrder(WordQuasiSymmetricFunctions.Bases.Base):
         '''
@@ -59,9 +59,8 @@ class RightWeakOrder(WordQuasiSymmetricFunctions.Bases.Base):
                 R[] # R[2, 1, 2, 1, 3] + R[2, 1, 2, 1] # R[1] + R[2, 1, 2, 1, 3] # R[]
 
             '''
-            from sage.combinat.packed_words import to_pack
             return self.tensor_square().sum_of_monomials(
-                (to_pack(sigma[:i]), to_pack(sigma[i:]))
+                (Packedwords.to_pack(sigma[:i]), Packedwords.to_pack(sigma[i:]))
                     for i in range(len(sigma) + 1)
                     if [sigma[:i].count(x)
                         for x in sigma[i:]].count(0)==len(sigma[i:])
@@ -82,9 +81,9 @@ class RightWeakOrder(WordQuasiSymmetricFunctions.Bases.Base):
 
         def packedwords_of_alphabet(self,n,al):
                 from sage.combinat.set_partition_ordered import OrderedSetPartitions
-                from sage.combinat.packed_words import ordered_partition_sets_to_packed_word 
+                from sage.combinat.packed_words import OrderedSetPartition
                 
-                l=[ordered_partition_sets_to_packed_word(e)
+                l=[OrderedSetPartition.to_packed_word(e)
                    for e in OrderedSetPartitions(range(n),len(al))]
                 return [[al[i-1] for i in ll] for ll in l]
     
@@ -111,7 +110,7 @@ class RightWeakOrder(WordQuasiSymmetricFunctions.Bases.Base):
     
         def _func_S_to_R(self,sigma):
                 from sage.combinat.subset import Subsets
-                from sage.combinat.packed_words import to_pack
+                from sage.combinat.packed_words import PackedWords
                 from sage.combinat.packed_words import PackedWord
                 from sage.functions.other import factorial
                 from sage.rings.all import ZZ
@@ -124,7 +123,7 @@ class RightWeakOrder(WordQuasiSymmetricFunctions.Bases.Base):
                 for ll in self.sub_composition(l): # l=[3,2] truc(l) = [[0,0],[0,1],[1,0],[1,1],[2,0],[2,1]]
                         r0=ZZ(1)/prod(factorial(k+1) for k in ll)
                         r1=self.untass_pw(sigma,ll)
-                        res+=[(r0,to_pack(rr1)) for rr1 in r1]
+                        res+=[(r0,PackedWords.to_pack(rr1)) for rr1 in r1]
                 return sum(c*self.monomial(PackedWord(pw)) for (c,pw) in res)
 
         def S_to_R(self):
