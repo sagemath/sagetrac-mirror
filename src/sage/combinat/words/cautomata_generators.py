@@ -62,4 +62,4 @@ class DetAutomatonGenerators(object):
         return DetAutomaton(L, S=range(n), i=randint(0,n-1), final_states=F)
         
  # Easy access to the automaton generators from the command line:
-automata = DetAutomatonGenerators()
+dag = DetAutomatonGenerators()
