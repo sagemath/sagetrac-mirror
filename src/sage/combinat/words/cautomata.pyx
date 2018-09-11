@@ -34,13 +34,13 @@ REFERENCES:
 from __future__ import print_function
 from libc.stdlib cimport malloc, free
 from sage.graphs.digraph import DiGraph
-
-cimport sage.combinat.words.cautomata
 from cysignals.signals cimport sig_on, sig_off, sig_check
-from cpython cimport bool as c_bool 
-#ctypedef Automate Automaton
-
+from cpython cimport bool as c_bool
 from sage.combinat.words.cautomata_generators import DetAutomatonGenerators
+cimport sage.combinat.words.cautomata
+
+# ctypedef Automate Automaton
+
 dag = DetAutomatonGenerators()
 
 cdef extern from "Automaton.h":
@@ -189,7 +189,7 @@ cdef InvertDict getDict2(dict d, list A, dict d1=None):
 
 cdef imagProductDict(dict d, list A1, list A2, list Av=[]):
     """
-    Dictionary which is numbering the projeted alphabet
+    Dictionary which is numbering the projected alphabet
     """
     dv = {}
     i = 0
@@ -360,7 +360,7 @@ cdef NAutomaton getNAutomaton(a, I=None, F=None, A=None, verb=False):
 
     for e, f, l in a.edges():
         if dt.has_key(e):
-            dt[e].append((f,l))
+            dt[e].append((f, l))
         else:
             raise MemoryError("This transition %s -%s-> %s starts from a state not in the set of states."%(e, l, f))
     if verb:
@@ -374,7 +374,7 @@ cdef NAutomaton getNAutomaton(a, I=None, F=None, A=None, verb=False):
             r.e[d[e]].a = <Transition *>malloc(sizeof(Transition)*r.e[d[e]].n)
             if r.e[d[e]].a is NULL:
                 raise MemoryError("Could not allocate the transition (size %s)"%(sizeof(Transition)*len(dt[e])))
-            for i,(f,l) in enumerate(dt[e]):
+            for i, (f, l) in enumerate(dt[e]):
                 if verb:
                     print("r.e[%s].a[%s] = %s,%s"%(d[e], i, l, f))
                 r.e[d[e]].a[i].l = da[l]
@@ -441,8 +441,8 @@ cdef AutomatonToDiGraph(Automaton a, A):
 
 cdef class NFastAutomaton:
     """
-    Class :class:`NFastAutomaton`, this class encapsulates a C structure for Automata and
-    implement methods to manipulate non-determinist automata.
+    Class :class:`NFastAutomaton`, this class encapsulates a C structure
+    for Automata and implement methods to manipulate non-determinist automata.
 
     INPUT:
 
@@ -507,7 +507,7 @@ cdef class NFastAutomaton:
 #            raise NotImplementedError("Cannot construct directly a NFastAutomaton for the moment, except from a deterministic one.")
 #        return self
 
-    def __init__ (self, a, I=None, F=None, A=None, keep_S=True, verb=False):
+    def __init__(self, a, I=None, F=None, A=None, keep_S=True, verb=False):
         """
         TESTS::
 
@@ -561,13 +561,13 @@ cdef class NFastAutomaton:
             self.a[0] = CopyNAutomaton(na.a[0], na.a.n, na.a.na)
             self.A = na.A
             self.S = na.S
-            #self = a.copy()
+            # self = a.copy()
         elif isinstance(a, DetAutomaton):
             if verb:
                 print("DetAutomaton")
             da = a
             # self = a.copyn()
-            self.a[0] = CopyN(da.a[0], verb = verb)
+            self.a[0] = CopyN(da.a[0], verb=verb)
             self.A = da.A
         else:
             raise ValueError("Cannot convert the input to NFastAutomaton.")
@@ -698,7 +698,7 @@ cdef class NFastAutomaton:
         sig_off()
         dotfile = open(file_name)
         return LatexExpr(dot2tex(dotfile.read()))
-    
+
     def copy(self):
         """
         Do a copy of the :class:`NFastAutomaton`.
@@ -720,7 +720,7 @@ cdef class NFastAutomaton:
         sig_off()
         r.A = self.A
         return r
-    
+
     @property
     def n_states(self):
         """
@@ -813,7 +813,7 @@ cdef class NFastAutomaton:
         if j >= self.a.e[i].n or j < 0:
             raise ValueError("The state %s has no edge number %s !" % (i, j))
         return self.a.e[i].a[j].l
-        
+
     def is_final(self, int i):
         """
         Return ``True`` if the state``i`` is  final, ``False`` otherwise.
@@ -970,7 +970,7 @@ cdef class NFastAutomaton:
             raise ValueError("%s is not an index of a state (must be between "%i +
                              "0 and %s)" % (self.a.n - 1))
         self.a.e[i].final = final
-    
+
     def set_initial_state(self, int i, bool initial=True):
         """
         Set the state as an initial/non initial state.
@@ -2163,7 +2163,7 @@ cdef class DetAutomaton:
         cdef Automaton a
         r = DetAutomaton(None)
         sig_on()
-        a = ZeroInv(self.a, z) #list(self.A).index(self.A[z]))
+        a = ZeroInv(self.a, z) # list(self.A).index(self.A[z]))
         sig_off()
         r.a[0] = a
         r.A = self.A
@@ -2174,7 +2174,8 @@ cdef class DetAutomaton:
             return r
 
     # change the final states of the automaton
-    # new final states are the one in a strongly connected component containing a final state, others states are not final
+    # new final states are the one in a strongly connected component
+    # containing a final state, others states are not final
     # this function could be accelerated
     def prune_inf2OP(self, verb=False):
         """
@@ -2187,7 +2188,8 @@ cdef class DetAutomaton:
 
         INPUT:
 
-        - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
+        - ``verb`` -- boolean (default: ``False``) if True, print
+          debugging informations
 
         OUTPUT:
 
@@ -2230,7 +2232,8 @@ cdef class DetAutomaton:
 
         INPUT:
 
-        - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
+        - ``verb`` -- boolean (default: ``False``) if True, print
+          debugging informations
 
         OUTPUT:
 
@@ -2552,18 +2555,19 @@ cdef class DetAutomaton:
         return c_bool(res)
 
     # give a complete automaton (i.e. with his sink state)
-    def complete(self, label_sink = 's'):
+    def complete(self, label_sink='s'):
         """
         Complete the automaton ON PLACE, by adding a sink state if necessary.
-        
+
         INPUT:
-        
-        - ``label_sink`` -- (default: ``None``) - label of the sink state if added
-            and if self has labels of states
-        
+
+        - ``label_sink`` -- (default: ``None``) - label of the sink state
+          if added and if self has labels of states
+
         OUTPUT:
 
-        Return ``True`` if the automaton was not complete (a sink state has been added),
+        Return ``True`` if the automaton was not complete
+        (a sink state has been added),
         return ``False``otherwise.
 
         EXAMPLES::
@@ -2580,13 +2584,14 @@ cdef class DetAutomaton:
         res = c_bool(res)
         if res:
             if self.S is not None:
-                #add a label for the sink state
+                # add a label for the sink state
                 self.S.append(label_sink)
         return res
 
     def prefix_closure(self):
         """
-        give an automaton recognizing the smallest language stable by prefix containing the language of self
+        give an automaton recognizing the smallest language stable
+        by prefix containing the language of self
         i.e. every states begin final
 
         OUTPUT:
@@ -2624,7 +2629,8 @@ cdef class DetAutomaton:
         - ``a`` -- :class:`DetAutomaton` to union
         - ``simplify`` --  (default: ``True``) if simplification
           is required
-        - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
+        - ``verb`` -- boolean (default: ``False``) if True,
+          print debugging informations
 
         OUTPUT:
 
@@ -2753,8 +2759,10 @@ cdef class DetAutomaton:
         INPUT:
 
         - ``a`` -- :class:`DetAutomaton` in respect to split
-        - ``simplify`` - (default: True) - if True, prune and minimize the result
-        - ``verb`` - (default: False) - if True, display informations for debugging
+        - ``simplify`` - (default: True) - if True, prune and
+          minimize the result
+        - ``verb`` - (default: False) - if True, display
+          informations for debugging
 
         OUTPUT:
 
@@ -2875,17 +2883,20 @@ cdef class DetAutomaton:
         else:
             return [r, r2]
 
-    # modify the automaton to recognize the langage shifted by l (letter given by its index)
+    # modify the automaton to recognize the langage shifted by l
+    # (letter given by its index)
     def shift1OP(self, int l, verb=False):
         """
         Shift the automaton ON PLACE to recognize the language shifted
         by ``l`` (letter given by its index).
-        The new language is the language of words u such that lu was recognized by self.
+        The new language is the language of words u such that
+        lu was recognized by self.
 
         INPUT:
 
         - ``l`` -- int  index of letter to shift
-        - ``verb`` - boolean (default: ``False``) - if True, display informations for debugging
+        - ``verb`` - boolean (default: ``False``) - if True, display
+          informations for debugging
 
         EXAMPLES::
 
@@ -2904,15 +2915,17 @@ cdef class DetAutomaton:
     # (where l is a letter given by its index)
     def shiftOP(self, l, int np, verb=False):
         """
-        Shift the automaton ON PLACE to recognize the language shifted ``np`` times
-        by l (letter given by its index).
-        The new language is the language of words u such that (l^np)u was recognized by self.
+        Shift the automaton ON PLACE to recognize the language shifted ``np``
+        times by l (letter given by its index).
+        The new language is the language of words u such that (l^np)u 
+        was recognized by self.
 
         INPUT:
 
         - ``l`` -- int  index of letter to shift
         - ``np`` -- int  number of shift
-        - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
+        - ``verb`` -- boolean (default: ``False``) if True, print
+          debugging informations
 
         EXAMPLES::
 
@@ -2938,7 +2951,8 @@ cdef class DetAutomaton:
         INPUT:
 
         - ``l`` -- int  index of letter to shift
-        - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
+        - ``verb`` -- boolean (default: ``False``) if True, print
+          debugging informations
 
         OUTPUT:
 
@@ -3007,8 +3021,8 @@ cdef class DetAutomaton:
 
         INPUT:
 
-        - ``l`` -- int  
-        - ``np``  --  int  
+        - ``l`` -- int
+        - ``np``  --  int
         - ``final`` -- (default: ``None``) if final or not
 
         OUTPUT:
@@ -3052,19 +3066,21 @@ cdef class DetAutomaton:
         r.A = self.A
         return r
 
-    def copyn(self, verb=False): #NFastAutomaton r, verb=False):
+    def copyn(self, verb=False):  # NFastAutomaton r, verb=False):
         """
         Convert  a determinist automaton :class:`DetAutomaton` to
         a non determinist automaton :class:`NFastAutomaton`
 
         INPUT:
 
-        - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
+        - ``verb`` -- boolean (default: ``False``) if True,
+          print debugging informations
         - ``r`` -- :class:`NFastAutomaton` to replace
 
         OUTPUT:
 
-        Return the :class:`NFastAutomaton` copy like of the :class:`DetAutomaton`
+        Return the :class:`NFastAutomaton` copy like of
+        the :class:`DetAutomaton`
 
         EXAMPLES::
 
@@ -3090,8 +3106,10 @@ cdef class DetAutomaton:
 
         - ``b`` -- :class:`DetAutomaton`  to concatenate
         - ``det``  -- (default: ``True``) - if True, determinize
-        - ``simplify`` -- (default: ``True``) - if True and if det=True, prune and minimize
-        - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
+        - ``simplify`` -- (default: ``True``) - if True and if det=True,
+          prune and minimize
+        - ``verb`` -- boolean (default: ``False``) if True, print
+          debugging informations
 
         OUTPUT:
 
@@ -3301,8 +3319,8 @@ cdef class DetAutomaton:
         INPUT:
 
         - ``d``  -- dictionary for relabel
-        - ``verb`` -- boolean (default: ``False``) fix to ``True`` for activation
-          the verbose mode
+        - ``verb`` -- boolean (default: ``False``) fix to ``True``
+          for activation the verbose mode
 
         OUTPUT:
 
@@ -4141,7 +4159,7 @@ cdef class DetAutomaton:
             []
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
             sage: a.find_word()
-            
+
         """
         sig_on()
         cdef Dict w
@@ -4381,7 +4399,7 @@ cdef class DetAutomaton:
             ValueError: The state 5 doesn't exist.
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
             sage: a.add_edge(2,'a',1)
-            
+
         """
         if i < 0 or i >= self.a.n:
             raise ValueError("The state %s doesn't exist." % i)
@@ -4516,7 +4534,7 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        return  ``True`` if the language of ``self`` is included in the 
+        return  ``True`` if the language of ``self`` is included in the
         language of ``a`` or return  ``False`` otherwise
 
         EXAMPLES::
@@ -4634,8 +4652,8 @@ cdef class DetAutomaton:
         r"""
         Return a random word recognized by the automaton, by following a
         random path in the automaton from the initial state. If we don't fall
-        into the set of final states before reaching the maximal length ``nmax``,
-        then return ``word not found !``.
+        into the set of final states before reaching the maximal length
+        ``nmax``, then return ``word not found !``.
 
         INPUT:
 
