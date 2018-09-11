@@ -420,6 +420,15 @@ class NakajimaMonomial(Element):
         P = self.parent().weight_lattice_realization()
         return P(self.weight_in_root_lattice())
 
+    def _N(self,i):
+        r"""
+        """
+        M = self.parent().cartan_type().cartan_matrix()
+        if M[i,i] < 0:
+            return 1 + M[i,i]
+        else:
+            return 0
+
     def epsilon(self, i):
         r"""
         Return the value of `\varepsilon_i` on ``self``.
@@ -472,13 +481,13 @@ class NakajimaMonomial(Element):
 
         d = copy(self._Y)
         K = max(x[1] for x in d if x[0] == i)
-        for a in range(K):
+        for a in range(self._N(i),K):
             if (i,a) in d:
                 continue
             else:
                 d[(i,a)] = 0
         S = sorted((x for x in six.iteritems(d) if x[0][0] == i), key=lambda x: x[0][1])
-        return max(sum(S[k][1] for k in range(s)) for s in range(1,len(S)+1))
+        return max(sum(S[k][1] for k in range(self._N(i),s)) for s in range(self._N(i),len(S)+1))
 
     def _ke(self, i):
         r"""
@@ -496,26 +505,31 @@ class NakajimaMonomial(Element):
             [+Infinity, 0, +Infinity]
         """
         h = self.parent().weight_lattice_realization().simple_coroots()
+        M = self.parent().cartan_type().cartan_matrix()
         phi = self.phi(i)
         if phi == self._classical_weight().scalar(h[i]): # self.epsilon(i) == 0
             return Infinity
 
-        d = copy(self._Y)
-        K = max(x[1] for x in d if x[0] == i)
-        for a in range(K):
-            if (i,a) in d:
-                continue
-            else:
-                d[(i,a)] = 0
-        total = ZZ.zero()
-        L = []
-        S = sorted((x for x in six.iteritems(d) if x[0][0] == i), key=lambda x: x[0][1])
-        for var,exp in S:
-            total += exp
-            if total == phi:
-                L.append(var[1])
+        if M[i,i] == 2:
+            d = copy(self._Y)
+            K = max(x[1] for x in d if x[0] == i)
+            for a in range(self._N(i),K):
+                if (i,a) in d:
+                    continue
+                else:
+                    d[(i,a)] = 0
+            total = ZZ.zero()
+            L = []
+            S = sorted((x for x in six.iteritems(d) if x[0][0] == i), key=lambda x: x[0][1])
+            for var,exp in S:
+                total += exp
+                if total == phi:
+                    L.append(var[1])
 
-        return max(L) if L else ZZ.zero()
+            return max(L) if L else ZZ.zero()
+
+        else:
+            return self._kf(i)
 
     def _kf(self, i):
         r"""
@@ -537,7 +551,7 @@ class NakajimaMonomial(Element):
 
         d = copy(self._Y)
         K = max(key[1] for key in d if key[0] == i)
-        for a in range(K):
+        for a in range(self._N(i),K):
             if (i,a) in d:
                 continue
             else:
@@ -648,9 +662,14 @@ class NakajimaMonomial(Element):
             raise ValueError("i must be an element of the index set")
         newdict = copy(self._Y)
         kf = self._kf(i)
-        Aik = {(i, kf): -1, (i, kf+1): -1}
         ct = self.parent().cartan_type()
         cm = ct.cartan_matrix()
+        Aik = {}
+        if cm[i,i] == 2:
+            Aik = {(i, kf): -1, (i, kf+1): -1}
+        if cm[i,i] < 0:
+            for k in range(kf+cm[i,i]+1,kf+1):
+                Aik[(i,k)] = -1
         shift = 0
         if ct.is_finite():
             shift = 1

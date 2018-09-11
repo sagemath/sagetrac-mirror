@@ -332,6 +332,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         #   of the __cinit__ of the matrix. We should get rid of this workaround
         mat._CM_init(cartan_type, index_set, cartan_type_check)
         mat._subdivisions = subdivisions
+        mat._borcherds = borcherds
         return mat
 
     def matrix_space(self, nrows=None, ncols=None, sparse=None):
