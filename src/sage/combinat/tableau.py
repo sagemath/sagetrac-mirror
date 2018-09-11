@@ -4903,10 +4903,10 @@ class SymplecticTableau(Tableau):
 
     A symplectic tableau is a tableau whose entries are nonzero integers which
     satisfy one of the following collection of conditions: (FINISH THIS)
-    - King:
-    - Sundaram:
     - Kashiwara-Nakashima:
     - DeConcini-Procesi:
+    - King:
+    - Sundaram:
 
     EXAMPLES::
 
@@ -4997,12 +4997,79 @@ class SymplecticTableau(Tableau):
             raise NotImplementedError("tableau type not implemented")
         super(SymplecticTableau, self).__init__(parent, t)
 
+    def _to_coadmissible(self, col, co=False):
+        """
+        auxilliary function to convert between KashiwaraNakashima and 
+        DeConciniProcesi tableaux.
+
+        In Lecouvey, this converts between KN-admissible tableaux and 
+        KN-coadmissible. If co set to False (default), maps admissible to 
+        coadmissible. If co set to True, maps coadmissible to admissible.
+
+        In Sheats, this computes the split form (if co set to False) and the 
+        cosplit form (if co set to True).
+
+        .. NOTE::
+
+            An admissible Kashiwara-Nakashima tableau is also an admissible 
+            DeConcini-Procesi tableau, but with the entries reordered
+            to the correct ordering. However, to convert between Kashiwara-Nakashima
+            and DeConcini-Procesi tableaux, one does not just reorder.
+
+        .. WARNING::
+
+            The notion of (co)admissible columns is only defined for
+            Kashiwara-Nakashima and DeConcini-Procesi tableaux.
+
+        """
+        B = [i for i in col if i < 0]
+        C = [i for i in col if i > 0]
+        I = [i for i in C if -i in B]
+        if I == []:
+            return [list(col), list(col)]
+        J = []
+        if co:
+            j = 1
+        else:
+            j = max(I)-1
+        while len(J) < len(I):
+            if (-j not in B) and (j not in C):
+                J += [j]
+            if co:
+                j += 1
+            else:
+                j -= 1
+        A = [i for i in B if -i not in C] + [-i for i in J]
+        D = J + [i for i in C if -i not in B]
+        
+        if self.tab_type == "KashiwaraNakashima":
+            if co:
+                return [sorted(C) + sorted(A), sorted(D) + sorted(B)]
+            else:
+                return [sorted(D) + sorted(B), sorted(C) + sorted(A)]
+        elif self.tab_type == "DeConciniProcesi":
+            if co:
+               return [sorted(A+C), sorted(B+D)]
+            else:
+                return [sorted(B+D), sorted(A+C)]
+        else:
+            raise NotImplementedError("admissible columns only defined for KN and DP")
+    
+    def split_form(self, co=False):
+        """
+        Return split form if co is set to False, otherwise return cosplit form.
+        """
+        tc = Tableau(self).conjugate()
+        return Tableau(sum([self._to_coadmissible(col, co=co) for col in tc], [])).conjugate()
+
     def check(self):
         r"""
         Check that ``self`` is a valid symplectic tableau of type ``self.tab_type``
         
         TESTS::
 
+            sage: t = SymplecticTableau([[1,2,3,-1],[4,4,-3],[-4,-2,-1],[-3]])
+            sage: t.check()
 
         """
         super(SymplecticTableau, self).check()
@@ -5013,68 +5080,33 @@ class SymplecticTableau(Tableau):
         tc = t.conjugate()
 
         if self.tab_type == 'KashiwaraNakashima':
-            # check each col is in C_k
+            # check each col is admissible
             for col in tc:
                 for (i, a) in enumerate(col):
                     if a > 0 and -a in col and (i+1) + (len(col)-col.index(-a)) > a:
-                        raise ValueError("columns (as KN tableau) not in Ck")
-
-            # auxilliary function to check pair of columns satisfies (C3)
-            def _is_C3(col1, col2):
-                for (a, i) in enumerate(col1):
-                    if i > 0 and -i in col2:
-                        for b in range(a, col2.index(-i)+1):
-                            j, k = col1[b], col2[b]
-                            if j > 0 and -j in col1:
-                                d1, d2 = b - a, col2.index(-i) - col1.index(-j)
-                                if d1 + d2 >= j - i:
-                                    return False
-                            if k > 0 and -k in col2:
-                                d1, d2 = b - a, col2.index(-i) - col2.index(-k)
-                                if d1 + d2 >= k - i:
-                                    return False
-                return True
+                        raise ValueError("columns not admissible as KN tableau")
             
-            #check each pair of columns satisfies condition (C3)
-            if not all(_is_C3(tc[r], tc[r+1]) for r in range(len(tc) - 1)):
-                raise ValueError("tableau does not satisfy C3 as KN tableau")
-
-            # remains to check self is semistandard according to KN ordering
+            # remains to check self and split form are semistandard in KN ordering
             if self:
                 n = max(max(map(abs, row)) for row in self)
                 convert = lambda k : k + (2*n+1) * int(k < 0)
                 if not Tableau([map(convert, row) for row in self]).is_semistandard(): 
                    raise ValueError("tableau not semistandard in KN ordering")
+                if not Tableau([map(convert, row) for row in self.split_form()]).is_semistandard():
+                    raise ValueError("split form not semistandard in KN ordering")
 
         elif self.tab_type == 'DeConciniProcesi':
-            # check each column is admissable
+            # check each column is admissible
             for col in tc:
                 n = max(max(col), -min(col))
                 for i in range(1,n+1):
                     if sum([col.count(j) + col.count(-j) for j in range(1,i+1)]) > i:
-                        raise ValueError("columns not admissable as DP tableau")
+                        raise ValueError("columns not admissible as DP tableau")
             
-            # auxilliary function to compute split_form            
-            def _split_form(col):
-                A = [i for i in col if i < 0]
-                D = [i for i in col if i > 0]
-                I = [i for i in D if -i in A]
-                if I == []:
-                    return [list(col), list(col)]
-                J = []
-                for i in range(max(I), 0, -1):
-                    if (-i not in A) and (i not in D) and len(J) < len(I):
-                        J += [i]
-                B = [i for i in A if -i not in D] + [-i for i in J]
-                C = J + [i for i in D if -i not in A]
-                return [sorted(A + C), sorted(B + D)]
-
-            t_split = Tableau(sum([_split_form(col) for col in tc], [])).conjugate()
-
             # remains to check self is semistandard and split form is semistandard 
             if not t.is_semistandard():
                 raise ValueError("tableau not semistandard in DP ordering")
-            if not t_split.is_semistandard():
+            if not self.split_form().is_semistandard():
                 raise ValueError("split form not semistandard in DP ordering")
 
         elif self.tab_type == 'King':
@@ -5119,25 +5151,28 @@ class SymplecticTableau(Tableau):
         
         INPUT:
         
-        - ``sign`` -- either -1, 0, or 1
+        - ``sign`` -- either -1, 0, or 1 (default is -1).
 
-        The weight of a tableau symplectic `T` is the sequence `(a_1, a_2, a_3, \ldots )`,
-        where `a_k` is the number of entries of `T` equal to `k`.
+        The symplectic weight (``sign`` = -1) of a symplectic tableau `T` is the 
+        sequence `(a_1, a_2, a_3, \ldots )`, where `a_k` is the number of entries 
+        of `T`  equal to `k` minus the number of entries of `T` equal to `-k`.
 
-        The symplectic weight of a symplectic tableau `T` is the sequence 
-        `(a_1, a_2, a_3, \ldots )`, where `a_k` is the number of entries of `T` 
-        equal to `k` minus the number of entries of `T` equal to `-k`.
+        The weight (``sign`` =  0) of a symplectic tableau `T` is the sequence 
+        `(a_1, a_2, a_3, \ldots )`, where `a_k` is the number of entries of 
+        `T` equal to `k`.
 
-        The total weight of a symplectic tableau `T` is the sequence 
-        `(a_1, a_2, a_3, \ldots )`, where `a_k` is the number of entries of `T` 
-        equal to `k` or `-k`.
+        The total weight (``sign`` = 1) of a symplectic tableau `T` is the 
+        sequence `(a_1, a_2, a_3, \ldots )`, where `a_k` is the number of entries 
+        of `T` equal to `k` or `-k`.
 
         All sequences contain only finitely many nonzero entries.
 
         .. WARNING::
 
             Unlike the ``weight`` method on tableau (which are a superclass of 
-            this), this method subtracts negative entries from the weight.
+            this), this method subtracts negative entries from the weight by
+            default. To get the usual weight method on tableau, set ``sign``
+            equal to 0
 
         TESTS::
 
@@ -5150,6 +5185,157 @@ class SymplecticTableau(Tableau):
         for row in self:
             for i in row:
                 res[abs(i) - 1] += (i > 0) + sign*(i < 0)
+        return res
+
+    def to_kashiwara_nakashima(self):
+        if self.tab_type == "KashiwaraNakashima":
+            return self
+        elif self.tab_type == "DeConciniProcesi":
+            tc = Tableau(self).conjugate()
+            res = []
+            for col in tc:
+                left, right = self._to_coadmissible(col)
+                single_form = [i for i in right if i < 0] + [i for i in left if i > 0]
+                n = max(map(abs, col))
+                to_kn = lambda k: -(n - k + 1) if k > 0 else n + k + 1
+                res += [map(to_kn, single_form)]
+            return SymplecticTableau(Tableau(res).conjugate(), tableau_type="KashiwaraNakashima")
+        elif self.tab_type == "King":
+            raise NotImplementedError("Sheats bijection not yet implemented")
+        elif self.tab_type == "Sundaram":
+            raise NotImplementedError("Sheats bijection not yet implemented")
+
+    def to_deconcini_procesi(self):
+        if self.tab_type == "KashiwaraNakashima":
+            tc = Tableau(self).conjugate()
+            res = []
+            for col in tc:
+                left, right = self._to_coadmissible(col)
+                single_form = [i for i in left if i > 0] + [i for i in right if i < 0]
+                n = max(map(abs, col))
+                to_dp = lambda k: -(n - k + 1) if k > 0 else n + k + 1
+                res += [map(to_dp, single_form)]
+            return SymplecticTableau(Tableau(res).conjugate(), tableau_type="DeConciniProcesi")
+        elif self.tab_type == "DeConciniProcesi":
+            return self
+        elif self.tab_type == "King":
+            raise NotImplementedError("Sheats bijection not yet implemented")
+        elif self.tab_type == "Sundaram":
+            raise NotImplementedError("Sheats bijection not yet implemented")
+
+    def to_king(self):
+        if self.tab_type == "KashiwaraNakashima":
+            raise NotImplementedError("Sheats bijection not yet implemented")
+        elif self.tab_type == "DeConciniProcesi":
+            raise NotImplementedError("Sheats bijection not yet implemented")
+        elif self.tab_type == "King":
+            return self
+        elif self.tab_type == "Sundaram":
+            return SymplecticTableau([[-x for x in row] for row in self], "King")
+
+    def to_sundaram(self):
+        if self.tab_type == "KashiwaraNakashima":
+            raise NotImplementedError("Sheats bijection not yet implemented")
+        elif self.tab_type == "DeConciniProcesi":
+            raise NotImplementedError("Sheats bijection not yet implemented")
+        elif self.tab_type == "King":
+            return SymplecticTableau([[-x for x in row] for row in self], "Sundaram")
+        elif self.tab_type == "Sundaram":
+            return self
+
+    def berele_bump(self, x):
+        """
+        Insert ``x`` into ``self`` using Berele's row-bumping (or
+        row-insertion) algorithm.
+
+        INPUT:
+
+        - ``x`` -- a number to insert
+
+        OUTPUT:
+        
+        - A Sundaram symplectic tableau
+
+        .. WARNING::
+
+            This is currently only implemented for Sundaram tableaux.
+        """
+        if self.tab_type != "Sundaram":
+            raise NotImplementedError("berele insert currently only implemented for Sundaram symplectic tableaux")
+        to_insert = x
+        new_t = self.to_list()
+        to_classical = lambda k : 2*k-1 if k > 0 else -2*k
+        to_symplectic = lambda k : Integer((k+1)/2) if k%2 == 1 else Integer(-k/2)
+        for j in range(len(new_t)):
+            row = new_t[j]
+            i = 0
+            #try to insert to_insert into row
+            while i < len(row):
+                if to_classical(to_insert) < to_classical(row[i]):
+                    #bump if not bumping j bar into (j+1)th row
+                    if row[i] != -(j+1):
+                        a = to_insert
+                        to_insert = row[i]
+                        row[i] = a
+                        break
+                    #delete o/w and jdt inwards
+                    else:
+                        pt = Tableau([map(to_classical, row) for row in new_t])._slide_down((j,i), PlusInfinity())
+                        pt = [ [y for y in row if y is not PlusInfinity()] for row in pt]
+                        return SymplecticTableau([map(to_symplectic, row) for row in pt], 
+                                                 tableau_type="Sundaram")
+                i += 1
+
+            #if we haven't already inserted to_insert
+            #append it to the end of row
+            if i == len(row):
+                row.append(to_insert)
+                return SymplecticTableau(new_t, tableau_type="Sundaram")
+        #if we got here, we are at the end of the tableau
+        #add to_insert as the last row
+        new_t.append([to_insert])
+        return SymplecticTableau(new_t, tableau_type="Sundaram")
+
+    def reverse_berele_bump(self, loc):
+        r"""
+        Reverse row bump the entry of ``self`` at the specified
+        location ``loc`` (given as a row index or a
+        corner ``(r, c)`` of the tableau).
+
+        This is the reverse of Berele's row-insertion algorithm.
+        See Section 1.1, page 8, of Fulton's [Ful1997]_.
+
+        INPUT:
+
+        - ``loc`` -- Can be either of the following:
+
+          - The coordinates ``(r, c)`` of the square to reverse-bump
+            (which must be a corner of the tableau);
+          - The row index ``r`` of this square.
+
+          Note that both ``r`` and ``c`` are `0`-based, i.e., the
+          topmost row and the leftmost column are the `0`-th row
+          and the `0`-th column.
+
+        OUTPUT:
+
+        An ordered pair consisting of:
+
+        1. The resulting (smaller) tableau;
+        2. The entry bumped out at the end of the process.
+        """
+        pass
+
+    def berele_insert(self, w):
+        """
+        Insert the word ``w`` into the tableau ``self`` letter by letter
+        using Berele insertion. By default, the word ``w`` is being
+        processed from left to right, and the insertion used is row
+        insertion.
+        """
+        res = self
+        for i in w:
+            res = res.berele_bump(i)
         return res
 
 def from_chain(chain):
@@ -8076,7 +8262,7 @@ class SymplecticTableaux(Tableaux):
         sage: ST = SymplecticTableaux(5, mu=[2,0,-1]); ST
         KashiwaraNakashima Symplectic tableaux of size 5 and weight (2, 0, -1)
         sage: ST[17]
-        [[1, 1, -3], [5, -5]]
+        [[1, 1], [2, -2], [-3]]
 
 
     .. SEEALSO::
@@ -8360,7 +8546,7 @@ class SymplecticTableaux(Tableaux):
                 return Tableau([map(convert, row) for row in t]).is_semistandard()
 
             elif self.tab_type == 'DeConciniProcesi':
-                # check each column is admissable
+                # check each column is admissible
                 for col in tc:
                     n = max(max(col), -min(col))
                     for i in range(1,n+1):
@@ -8385,7 +8571,6 @@ class SymplecticTableaux(Tableaux):
                 t_split = Tableau(sum([_split_form(col) for col in tc], [])).conjugate()
 
                 # remains to check self is semistandard and split form is semistandard 
-                
                 return t.is_semistandard() and t_split.is_semistandard()
 
             elif self.tab_type == 'King':
@@ -8424,7 +8609,14 @@ class SymplecticTableaux_all(SymplecticTableaux, DisjointUnionEnumeratedSets):
         TESTS::
 
         """
-        self.tab_type = tableau_type
+        if tableau_type in ['KashiwaraNakashima', 'KN', 'kn']:
+            self.tab_type = 'KashiwaraNakashima'
+        elif tableau_type in ['DeConciniProcesi', 'DeconciniProcesi', 'DP', 'dp']:
+            self.tab_type = 'DeConciniProcesi'
+        elif tableau_type in ['King', 'king']:
+            self.tab_type = 'King'
+        elif tableau_type in ['Sundaram', 'sundaram']:
+            self.tab_type = 'Sundaram'
         if max_entry is not PlusInfinity():
             self.max_entry = max_entry
             Sympt_n = lambda n: SymplecticTableaux_size(n, max_entry, tableau_type)
@@ -8550,8 +8742,8 @@ class SymplecticTableaux_shape(SymplecticTableaux):
         for total in range(n, -n-1, -2): # weights can sum to number less than size
             for iv in IntegerVectors(total + n*self.max_entry, self.max_entry, 
                                      max_part=2*n):
-                c = tuple([i-n for i in iv])
-                for sympt in SymplecticTableaux_shape_weight(self.shape, c, max_entry=self.max_entry, tableau_type=self.tab_type):
+                wt = tuple([i-n for i in iv])
+                for sympt in SymplecticTableaux_shape_weight(self.shape, wt, self.tab_type):
                     yield self.element_class(self, sympt)
 
     def __contains__(self, x):
@@ -8564,7 +8756,7 @@ class SymplecticTableaux_shape_weight(SymplecticTableaux_shape):
     r"""
     Symplectic tableaux of fixed shape `p` and weight `\mu` and type `tableau_type`.
     """
-    def __init__(self, p, mu, max_entry=None, tableau_type="KashiwaraNakashima"):
+    def __init__(self, p, mu, tableau_type="KashiwaraNakashima"):
         r"""
         Initializes the class of all symplectic tableaux of shape ``p`` and
         weight ``mu`` and type ``tableau_type``.
@@ -8577,7 +8769,7 @@ class SymplecticTableaux_shape_weight(SymplecticTableaux_shape):
         TESTS::
 
         """
-        super(SymplecticTableaux_shape_weight, self).__init__(p, max_entry = max_entry, tableau_type = tableau_type)
+        super(SymplecticTableaux_shape_weight, self).__init__(p, max_entry=len(mu), tableau_type=tableau_type)
         self.weight = mu
 
     def _repr_(self):
@@ -8618,10 +8810,33 @@ class SymplecticTableaux_shape_weight(SymplecticTableaux_shape):
         elif self.tab_type == 'King':
             raise NotImplementedError("cannot yet iterate through King tableaux")
         elif self.tab_type == 'Sundaram':
-            raise NotImplementedError("cannot yet iterate through Sundaram tableaux")
-    
+            # wt_zero_pairs will be the number of {i, -i} pairs for all i
+            wt_zero_pairs = sum(self.shape) - sum(self.weight)
+            if wt_zero_pairs % 2 != 0:
+                return
+            elif wt_zero_pairs == 0:
+                for st in SemistandardTableaux(self.shape, Composition(self.weight)).list():
+                    yield self.element_class(self, st, "Sundaram")
+            else:
+                wt_zero_pairs = wt_zero_pairs / 2
+                to_symplectic = lambda k : Integer((k+1)/2) if k%2 == 1 else Integer(-k/2)
+                for iv in IntegerVectors(wt_zero_pairs, self.max_entry):
+                    # iv[i] denotes the number of {i, -i} pairs in the tableau
+                    # pos_wt is the weight when we convert all the entries to the
+                    # classical ordering
+                    pos_wt = [0]*(2*self.max_entry)
+                    for i in range(self.max_entry):
+                        pos_wt[2*i] = self.weight[i] + iv[i]
+                        pos_wt[2*i+1] = iv[i]
+                    # keep the semistandard tableaux that are symplectic when 
+                    # converted to Sundaram orering
+                    for st in SemistandardTableaux(self.shape, Composition(pos_wt)):
+                        if all(abs(to_symplectic(st.entry(cell))) > cell[0] for cell in st.cells()):
+                            yield self.element_class(self, [map(to_symplectic, row) for row in st], "Sundaram")
+        return
+
     def list(self):
-        pass
+        return [y for y in self]
 
 class SymplecticTableaux_size_weight(SymplecticTableaux):
     r"""
@@ -8661,7 +8876,7 @@ class SymplecticTableaux_size_weight(SymplecticTableaux):
         """
         from sage.combinat.partition import Partitions
         for p in Partitions(self.size):
-            for sst in SymplecticTableaux_shape_weight(p, self.weight, tableau_type=self.tab_type):
+            for sst in SymplecticTableaux_shape_weight(p, self.weight, self.tab_type):
                 yield self.element_class(self, sst)
 
     def __contains__(self, x):
