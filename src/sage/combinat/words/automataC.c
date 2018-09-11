@@ -3708,7 +3708,6 @@ int StronglyConnectedComponents (Automaton a, int *res)
 	return count2;
 }
 
-/*
 //Tarjan's algorithm
 //same as StronglyConnectedComponents, but without induction
 int StronglyConnectedComponents2 (Automaton a, int *res)
@@ -3716,8 +3715,12 @@ int StronglyConnectedComponents2 (Automaton a, int *res)
 	int *m = (int *)malloc(sizeof(int)*a.n);
 	int *pile = (int *)malloc(sizeof(int)*a.n);
 	int i, j,f,c, state;
+	int count2;
 	int sp = log(a.n)+2;
     int *se = (int*)malloc(sizeof(int)*sp);
+    int *sj = (int*)malloc(sizeof(int)*sp);
+    int *sc = (int*)malloc(sizeof(int)*sp);
+    int cp = 0;
 	for (i=0;i<a.n;i++)
 	{
 		res[i] = -1;
@@ -3730,48 +3733,63 @@ int StronglyConnectedComponents2 (Automaton a, int *res)
 		{
 		    int cp = 0;
 		    //StronglyConnectedComponents_ind(a, i, pile, m, res);
-		    se[cp] = i;
-		    while (cp >= 0)
-		    {
-		        state = se[cp];
-		        cp--;
-                pile[countStates] = state;
-                m[state] = countStates;
-                c = countStates;
-                a.e[state].final |= 2; //mark the state as seen
-                countStates++;
-                for (j=0;j<a.na;j++)
+		    state = i;
+start:		    
+            pile[countStates] = state;
+            m[state] = countStates;
+            c = countStates;
+            a.e[state].final |= 2; //mark the state as seen
+            countStates++;
+            //for (j=0;j<a.na;j++)
+            while(true)
+            {
+                if (j >= a.na)
+                    break;
+                f = a.e[state].f[j];
+                if (f == -1)
+                    continue;
+                if (!(a.e[f].final & 2))
                 {
-                    f = a.e[state].f[j];
-                    if (f == -1)
-                        continue;
-                    if (!(a.e[f].final & 2))
+                    //StronglyConnectedComponents_ind(a, f, pile, m, res);
+                    //put current data in the stack
+                    se[cp] = f;
+                    sc[cp] = c;
+                    sj[cp] = j;
+                    cp++;
+                    if (cp >= sp)
                     {
-                        //StronglyConnectedComponents_ind(a, f, pile, m, res);
-                        cp++;
-                        if (cp >= sp)
-                        {
-                            //double the stack
-                            sp = sp*2;
-                            se = (int*)realloc(se, sizeof(int)*sp);
-                        }
-                        se[cp] = f;
-                        //m[state] = min(m[state], m[f]);
-                    }else if (res[f] == -1)
-                    {
-                        m[state] = min(m[state], m[f]);
+                        //double the stack
+                        sp = sp*2;
+                        se = (int*)realloc(se, sizeof(int)*sp);
                     }
+                    state = f;
+                    goto start;
+                    //m[state] = min(m[state], m[f]);
+                }else if (res[f] == -1)
+                {
+                    m[state] = min(m[state], m[f]);
                 }
-                if (m[state] == c)
-                { //we have a strongly connected component
-                    //pops the component
-                    do
-                    {
-                        countStates--;
-                        res[pile[countStates]] = count2;
-                    }while(pile[countStates] != state);
-                    count2++;
-                }
+middle:
+                j++;
+            }
+            if (m[state] == c)
+            { //we have a strongly connected component
+                //pops the component
+                do
+                {
+                    countStates--;
+                    res[pile[countStates]] = count2;
+                }while(pile[countStates] != state);
+                count2++;
+            }
+            if (cp > 0)
+            {
+                //pop
+                cp--;
+                j = sj[cp];
+                c = sc[cp];
+                state = se[cp];
+                goto middle;
             }
             free(se);
 		}
@@ -3785,7 +3803,6 @@ int StronglyConnectedComponents2 (Automaton a, int *res)
 	free(m);
 	return count2;
 }
-*/
 
 //determine reachable and co-reachable states
 void prune_ind(Automaton a, int *l, InvertDict id, int state)
