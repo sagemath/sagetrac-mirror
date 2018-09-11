@@ -604,8 +604,8 @@ class Partition(CombinatorialElement):
             sage: Partitions.options.display="exp_high"; mu
             7^3, 3^2, 2, 1^7
 
-            sage: Partitions.options.convention="French";
-            sage: mu=Partition([7,7,7,3,3,2,1,1,1,1,1,1,1]); mu # indirect doctest
+            sage: Partitions.options.convention="French"
+            sage: mu = Partition([7,7,7,3,3,2,1,1,1,1,1,1,1]); mu # indirect doctest
             7^3, 3^2, 2, 1^7
             sage: Partitions.options.display="diagram"; mu
             *
@@ -1109,8 +1109,8 @@ class Partition(CombinatorialElement):
 
     def __next__(self):
         """
-        Return the partition that lexicographically follows ``self``. If
-        ``self`` is the last partition, then return ``False``.
+        Return the partition that lexicographically follows ``self``, of the
+        same size. If ``self`` is the last partition, then return ``False``.
 
         EXAMPLES::
 
@@ -2404,7 +2404,7 @@ class Partition(CombinatorialElement):
         return PermutationGroup( gens )
 
     def young_subgroup_generators(self):
-        """
+        r"""
         Return an indexing set for the generators of the corresponding Young
         subgroup. Here the generators correspond to the simple adjacent
         transpositions `s_i = (i \; i+1)`.
@@ -3282,7 +3282,7 @@ class Partition(CombinatorialElement):
         return c - r + multicharge[0]
 
     def residue(self, r, c, l):
-        """
+        r"""
         Return the ``l``-residue of the cell at row ``r`` and column ``c``.
 
         The `\ell`-residue of a cell is `c - r` modulo `\ell`.
@@ -8499,7 +8499,7 @@ _Partitions = Partitions()
 cached_number_of_partitions = cached_function( flint_number_of_partitions )
 
 # October 2012: fixing outdated pickles which use classes being deprecated
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 from sage.combinat.partition_tuple import PartitionTuples_level_size
 register_unpickle_override('sage.combinat.partition', 'PartitionTuples_nk', PartitionTuples_level_size)
 register_unpickle_override('sage.combinat.partition', 'Partition_class', Partition)

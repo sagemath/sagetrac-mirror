@@ -183,7 +183,6 @@ from .gap_workspace import gap_workspace_file, prepare_workspace_dir
 from sage.cpython.string import bytes_to_str
 from sage.env import SAGE_LOCAL, SAGE_EXTCODE
 from sage.misc.misc import is_in_string
-from sage.misc.superseded import deprecation
 from sage.misc.cachefunc import cached_method
 from sage.docs.instancedoc import instancedoc
 from sage.interfaces.tab_completion import ExtraTabCompletion
@@ -198,7 +197,8 @@ import string
 
 WORKSPACE = gap_workspace_file()
 
-GAP_BINARY = os.path.join(SAGE_LOCAL, 'bin', 'gap')
+from sage.env import GAP_ROOT_DIR
+GAP_BINARY = os.path.join(GAP_ROOT_DIR, 'bin', 'gap.sh')
 
 first_try = True
 
@@ -375,7 +375,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: gap._eval_line('while(1=1) do i:=1;; od;', wait_for_prompt=False);
+            sage: gap._eval_line('while(1=1) do i:=1;; od;', wait_for_prompt=False)
             ''
             sage: rc = gap.interrupt(timeout=1)
             sage: [ gap(i) for i in range(10) ]   # check that it is still working
@@ -1555,7 +1555,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     g.eval('SetUserPreference("HistoryMaxLines", 30)')
     for pkg in ['GAPDoc', 'ctbllib', 'sonata', 'guava', 'factint', \
                 'gapdoc', 'grape', 'design', \
-                'toric', 'laguna', 'braid']:
+                'toric', 'laguna', 'braid', 'polycyclic', 'nq']:
         # NOTE: Do *not* autoload hap - it screws up PolynomialRing(Rationals,2)
         try:
             g.load_package(pkg, verbose=verbose)
@@ -1840,10 +1840,14 @@ def gap_console():
 
     TESTS::
 
-        sage: import subprocess
+        sage: import subprocess as sp
         sage: from sage.interfaces.gap import gap_command
         sage: cmd = 'echo "quit;" | ' + gap_command(use_workspace_cache=False)[0]
-        sage: gap_startup = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        sage: gap_startup = sp.check_output(cmd, shell=True,  # py2
+        ....:                               stderr=sp.STDOUT)
+        sage: gap_startup = sp.check_output(cmd, shell=True,  # py3
+        ....:                               stderr=sp.STDOUT,
+        ....:                               encoding='latin1')
         sage: 'www.gap-system.org' in gap_startup
         True
         sage: 'Error' not in gap_startup
