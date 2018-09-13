@@ -4766,16 +4766,21 @@ class FreeModule_ambient(FreeModule_generic):
         """
         if self is other:
             return rich_to_bool(op, 0)
+
         if not isinstance(other, FreeModule_generic):
             return NotImplemented
+
         from sage.modules.quotient_module import FreeModule_ambient_field_quotient
         if isinstance(other, FreeModule_ambient):
-            if isinstance(other, FreeModule_ambient_field_quotient) or isinstance(self, FreeModule_ambient_field_quotient):
+            if (isinstance(other, FreeModule_ambient_field_quotient) or
+                    isinstance(self, FreeModule_ambient_field_quotient)):
                 return richcmp(self,other,op)
+
             lx = self.rank()
             rx = other.rank()
             if lx != rx:
                 return richcmp_not_equal(lx, rx, op)
+
             lx = self.base_ring()
             rx = other.base_ring()
             if lx == rx:
@@ -4788,19 +4793,19 @@ class FreeModule_ambient(FreeModule_generic):
                     lx = self.inner_product_matrix()
                     rx = other.inner_product_matrix()
                     return richcmp(lx,rx,op)
+
             try:
-                if self.base_ring().is_subring(other.base_ring()):
+                if lx.is_subring(rx):
                     return rich_to_bool(op, -1)
-                elif other.base_ring().is_subring(self.base_ring()):
+                elif rx.is_subring(lx):
                     return rich_to_bool(op, 1)
             except NotImplementedError:
                 pass
             return richcmp_not_equal(lx, rx, op)
-
         else:
             # now other is not ambient or is a quotient;
             # it knows how to do the comparison.
-            return other._echelon_matrix_richcmp( self, revop(op))
+            return other._echelon_matrix_richcmp(self, revop(op))
 
     def _repr_(self):
         """
