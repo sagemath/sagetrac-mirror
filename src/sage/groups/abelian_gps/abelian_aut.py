@@ -407,8 +407,6 @@ class AbelianGroupAutomorphismGroup_gap(UniqueRepresentation,
         """
         if not isinstance(G, AbelianGroupAutomorphismGroup_gap):
             raise ValueError("input must be an instance of AbelianGroup_gap")
-        if not self.ambient() is G.ambient():
-            return False
         return G.gap().IsSubsemigroup(self).sage()
 
 class AbelianGroupAutomorphismGroup(AbelianGroupAutomorphismGroup_gap):
