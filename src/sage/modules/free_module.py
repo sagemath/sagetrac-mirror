@@ -7309,12 +7309,12 @@ class EchelonMatrixKey(object):
 
             sage: R.<x> = QQ[]
             sage: V = span(R,[[x,1+x],[x^2,2+x]])
-            sage: W = RR^2
+            sage: W = R^2
             sage: from sage.modules.free_module import EchelonMatrixKey
             sage: V = EchelonMatrixKey(V)
             sage: W = EchelonMatrixKey(W)
             sage: V < W
-            True
+            False
         """
         self.obj = obj
 
