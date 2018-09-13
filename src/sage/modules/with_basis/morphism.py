@@ -1316,16 +1316,6 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
             True
             sage: TestSuite(phi).run(skip=["_test_pickling"])
 
-        Pickling fails (:trac:`17957`) because ``phi._on_basis`` is
-        currently a ``dict.__getitem__`` which is not yet picklable::
-
-            sage: phi._on_basis
-            <built-in method __getitem__ of dict object at ...>
-            sage: dumps(phi._on_basis)
-            Traceback (most recent call last):
-            ...
-            TypeError: expected string or Unicode object, NoneType found
-
         The matrix is stored in the morphism, as if it was for an
         action on the right::
 
@@ -1360,12 +1350,32 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
             raise ValueError("The dimension of the matrix (%s) does not match with the dimension of the codomain (%s)"
                              %(matrix.ncols(), codomain.dimension()))
         self._matrix = matrix
-        d = { xt: codomain.from_vector(matrix.row(rank_domain(xt)))
-              for xt in domain.basis().keys() }
+        self._on_basis_map = {
+            xt: codomain.from_vector(matrix.row(rank_domain(xt)))
+            for xt in domain.basis().keys()
+        }
 
-        ModuleMorphismByLinearity.__init__(self, on_basis=d.__getitem__,
-                                           domain=domain, codomain=codomain,
+        ModuleMorphismByLinearity.__init__(self, domain=domain,
+                                           codomain=codomain,
                                            category=category)
+    def _on_basis(self, i):
+        """
+        Return the image by ``self`` of the basis element indexed by ``i``.
+
+        This uses the table ``self._on_basis_map`` which is pre-computed by the
+        constructor.
+
+        TESTS::
+
+            sage: from sage.modules.with_basis.morphism import ModuleMorphismFromMatrix
+            sage: X = CombinatorialFreeModule(ZZ, [1,2]); X.rename("X"); x = X.basis()
+            sage: Y = CombinatorialFreeModule(ZZ, [3,4]); Y.rename("Y"); y = Y.basis()
+            sage: m = matrix([[1, 2], [3, 5]])
+            sage: phi = ModuleMorphismFromMatrix(matrix=m, domain=X, codomain=Y, side="right")
+            sage: phi._on_basis(1)
+            B[3] + 2*B[4]
+        """
+        return self._on_basis_map.get(i)
 
     def _richcmp_(self, other, op):
         r"""
