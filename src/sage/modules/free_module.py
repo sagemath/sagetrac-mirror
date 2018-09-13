@@ -163,6 +163,7 @@ AUTHORS:
 ###########################################################################
 from __future__ import print_function, absolute_import
 from six import integer_types
+from itertools import islice
 
 from . import free_module_element
 import sage.matrix.matrix_space
@@ -956,13 +957,12 @@ done from the right side.""")
             sage: tuple(F.some_elements())
             ((1, 0), (some_variable, some_variable))
         """
-        from itertools import islice
         yield self.an_element()
         yield self.base().an_element() * sum(self.gens())
         some_elements_base = iter(self.base().some_elements())
         n = self.degree()
         while True:
-            L = list(islice(some_elements_base, n))
+            L = list(islice(some_elements_base, int(n)))
             if len(L) != n:
                 return
             try:
