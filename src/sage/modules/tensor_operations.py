@@ -349,7 +349,7 @@ class TensorOperation(VectorCollection):
         v = []
         # Note: convert to list, as cartesian_product of vectors is unrelated
         from sage.categories.cartesian_product import cartesian_product
-        for r in cartesian_product(map(list, rays)):
+        for r in cartesian_product(rays):
             v.append(prod(r))   # build up the tensor product
         v = tuple(v)
         # Use index of pre-existing tensor product vector if there is one
