@@ -621,7 +621,8 @@ class TriangularModuleMorphism(ModuleMorphism):
         [-1/3*B[1] + B[2] - 1/12*B[3], 1/4*B[3], 1/3*B[1] - 1/6*B[3]]
     """
     def __init__(self, triangular="upper", unitriangular=False,
-                 key=None, inverse=None, inverse_on_support=identity, invertible=None):
+                 key=None, inverse=None, inverse_on_support=identity,
+                 invertible=None):
         """
         TESTS::
 
@@ -639,24 +640,7 @@ class TriangularModuleMorphism(ModuleMorphism):
 
             sage: phi = X.module_morphism(lt, triangular="lower", codomain=X,
             ....:                         inverse_on_support="compute")
-            sage: TestSuite(phi).run(skip=["_test_pickling"])
-
-        Pickling fails (:trac:`17957`) because the attribute
-        ``phi._inverse_on_support`` is a ``dict.get`` method which is
-        not yet picklable::
-
-            sage: phi = X.module_morphism(lt, triangular="lower", codomain=X,
-            ....:                         inverse_on_support="compute")
-            sage: dumps(phi)
-            Traceback (most recent call last):
-            ...
-            TypeError: expected string or Unicode object, NoneType found
-            sage: phi._inverse_on_support
-            <built-in method get of dict object at ...>
-            sage: dumps(phi._inverse_on_support)
-            Traceback (most recent call last):
-            ...
-            TypeError: expected string or Unicode object, NoneType found
+            sage: TestSuite(phi).run()
         """
         if key is not None:
             self._key_kwds = dict(key=key)
@@ -677,18 +661,39 @@ class TriangularModuleMorphism(ModuleMorphism):
         self._inverse = inverse
 
         if inverse_on_support == "compute":
-            inverse_on_support = {
+            self._inverse_on_support_map = {
                 self._dominant_item(on_basis(i))[0] : i
                 for i in self.domain().basis().keys()
-            }.get
+            }
+        else:
+            self._inverse_on_support_map = inverse_on_support
 
-        self._inverse_on_support = inverse_on_support
-
-
-        if invertible is None and (domain.basis().keys() == codomain.basis().keys()) and \
-           (self._inverse_on_support==identity or domain in Modules.FiniteDimensional):
+        if (invertible is None and
+                (domain.basis().keys() == codomain.basis().keys()) and
+                (self._inverse_on_support_map == identity or
+                    domain in Modules.FiniteDimensional)):
             invertible = True
         self._invertible=invertible
+
+    def _inverse_on_support(self, j):
+        """
+        Implements the ``inverse_on_support`` function which may be stored
+        internally as either a `dict` (in the case of
+        ``inverse_on_support='computed'``) or some other callable.
+
+        In the case of ``inverse_on_support='computed'``, the values of `r(j)`
+        are precomputed by the constructor as described in
+        :class:`TriangularModuleMorphism` and stored as a table in
+        ``self._inverse_on_support_map``.  See the class docstring also for an
+        examples of how this is used.
+
+        This needs to be a method on the class as opposed to, say, an inline
+        function so that the class can be easily pickled (:trac:`17957`).
+        """
+        if isinstance(self._inverse_on_support_map, dict):
+            return self._inverse_on_support_map.get(j)
+
+        return self._inverse_on_support_map(j)
 
     def _richcmp_(self, other, op):
         r"""
@@ -717,7 +722,7 @@ class TriangularModuleMorphism(ModuleMorphism):
             return (self.__class__ is other.__class__
                     and self._triangular == other._triangular
                     and self._unitriangular == other._unitriangular
-                    and self._inverse_on_support == other._inverse_on_support
+                    and self._inverse_on_support_map == other._inverse_on_support_map
                     and self._invertible == other._invertible
                     and self._dominant_item == other._dominant_item)
         if op == op_NE:
@@ -839,7 +844,7 @@ class TriangularModuleMorphism(ModuleMorphism):
         """
         if self._inverse is not None:
             return self._inverse
-        if self._inverse_on_support == identity:
+        if self._inverse_on_support_map == identity:
             retract_dom = None
         else:
             on_basis = self.on_basis()
