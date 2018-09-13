@@ -34,9 +34,11 @@ from .dual_matroid import DualMatroid
 from .circuit_closures_matroid cimport CircuitClosuresMatroid
 from .basis_matroid cimport BasisMatroid
 from .linear_matroid cimport LinearMatroid, RegularMatroid, BinaryMatroid, TernaryMatroid, QuaternaryMatroid
-from .lean_matrix cimport GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix
+from .lean_matrix cimport GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix, RationalMatrix
 from .graphic_matroid import GraphicMatroid
 
+from sage.rings.rational cimport Rational
+from sage.libs.gmp.mpq cimport mpq_set
 
 #############################################################################
 # BasisMatroid
@@ -311,6 +313,29 @@ def unpickle_integer_matrix(version, data):
         A._entries[i] = data[2][i]
     return A
 
+def unpickle_rational_matrix(version, data):
+    """
+    Reconstruct a :class:`sage.matroids.lean_matrix.RationalMatrix` object
+    (internal Sage data structure).
+
+    .. WARNING::
+
+        Users should not call this method directly.
+
+    EXAMPLES::
+
+        sage: from sage.matroids.lean_matrix import RationalMatrix
+        sage: A = RationalMatrix(2, 5)
+        sage: A == loads(dumps(A))  # indirect doctest
+        True
+    """
+    if version != 0:
+        raise TypeError("object was created with newer version of Sage; please upgrade")
+    cdef RationalMatrix A = RationalMatrix(data[0], data[1])
+    cdef long i
+    for i in range(A._nrows * A._ncols):
+        mpq_set(A._entries[i], (<Rational?> data[2][i]).value)
+    return A
 
 #############################################################################
 # LinearMatroid and subclasses
