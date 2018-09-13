@@ -971,7 +971,7 @@ def is_borcherds_cartan_matrix(M):
         True
         sage: N = Matrix([[2,-1],[-1,0]])
         sage: is_borcherds_cartan_matrix(N)
-        False
+        True
         sage: O = Matrix([[2,-1],[-1,-2]])
         sage: is_borcherds_cartan_matrix(O)
         True
@@ -985,8 +985,6 @@ def is_borcherds_cartan_matrix(M):
         return False
     n = M.ncols()
     for i in range(n):
-        if M[i,i] == 0:
-            return False
         if M[i,i] % 2 == 1:
             return False
         for j in range(i+1, n):

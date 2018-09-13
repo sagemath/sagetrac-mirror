@@ -422,6 +422,28 @@ class NakajimaMonomial(Element):
 
     def _N(self,i):
         r"""
+        Helper function for crystal operators.
+
+        Let `(a_{ij})` be the Borcherds-Cartan matrix associated the parent of
+        ``self``.  This function returns `1 + a_{ii}` if `a_{ii} < 0`, and returns
+        `0` otherwise.
+
+        EXAMPLES::
+
+            sage: A = CartanMatrix([[0,-1],[-1,0]],borcherds=True)
+            sage: M = crystals.infinity.NakajimaMonomials(A)
+            sage: m = M({})
+            sage: m._N(0)
+            0
+            sage: m._N(1)
+            0
+            sage: A = CartanMatrix([[-10,-1],[-1,-6]],borcherds=True)
+            sage: M = crystals.infinity.NakajimaMonomials(A)
+            sage: m = M({})
+            sage: m._N(0)
+            -9
+            sage: m._N(1)
+            -5
         """
         M = self.parent().cartan_type().cartan_matrix()
         if M[i,i] < 0:
