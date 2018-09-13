@@ -446,6 +446,8 @@ class NakajimaMonomial(Element):
             -5
         """
         M = self.parent().cartan_type().cartan_matrix()
+        if M.is_finite() and not M._borcherds:
+            i = i - 1
         if M[i,i] < 0:
             return 1 + M[i,i]
         else:
@@ -509,7 +511,7 @@ class NakajimaMonomial(Element):
             else:
                 d[(i,a)] = 0
         S = sorted((x for x in six.iteritems(d) if x[0][0] == i), key=lambda x: x[0][1])
-        return max(sum(S[k][1] for k in range(self._N(i),s)) for s in range(self._N(i),len(S)+1))
+        return max(sum(S[k][1] for k in range(s)) for s in range(1,len(S)+1))
 
     def _ke(self, i):
         r"""
@@ -531,6 +533,9 @@ class NakajimaMonomial(Element):
         phi = self.phi(i)
         if phi == self._classical_weight().scalar(h[i]): # self.epsilon(i) == 0
             return Infinity
+
+        if M.is_finite() and not M._borcherds:
+            i = i - 1
 
         if M[i,i] == 2:
             d = copy(self._Y)
@@ -687,14 +692,16 @@ class NakajimaMonomial(Element):
         ct = self.parent().cartan_type()
         cm = ct.cartan_matrix()
         Aik = {}
-        if cm[i,i] == 2:
-            Aik = {(i, kf): -1, (i, kf+1): -1}
-        if cm[i,i] < 0:
-            for k in range(kf+cm[i,i]+1,kf+1):
-                Aik[(i,k)] = -1
         shift = 0
-        if ct.is_finite():
+        if ct.is_finite() and not cm._borcherds:
             shift = 1
+
+        if cm[i-shift,i-shift] == 2:
+            Aik = {(i, kf): -1, (i, kf+1): -1}
+        if cm[i-shift,i-shift] < 0:
+            for k in range(kf+cm[i-shift,i-shift]+1,kf+1):
+                Aik[(i,k)] = -1
+
         for j_index,j in enumerate(self.parent().index_set()):
             if i == j:
                 continue
