@@ -2895,10 +2895,10 @@ cdef class IntegerMatrix(LeanMatrix):
         Change number of rows to ``k``. Preserves data.
         """
         cdef long l = self._ncols * (self._nrows - k)
-        if l < 0:
+        if l > 0:
             sig_realloc(self._entries, self._ncols * k * sizeof(int))
             memset(self._entries + self._nrows * self._ncols, 0, l * self._ncols * sizeof(int))
-        elif l > 0:
+        elif l < 0:
             sig_realloc(self._entries, self._ncols * k * sizeof(int))
         self._nrows = k
         return 0
