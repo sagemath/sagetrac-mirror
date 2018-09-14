@@ -43,3 +43,4 @@ from .projective.all import *
 
 from .product_projective.all import *
 
+from .chow.all import *
