@@ -303,7 +303,7 @@ def sigma_sharp(rkL, detL, q, p):
     u = [0, 0, 0, 0]
     v = [0, 0, 0, 0]
     w = [[],[],[],[]]
-    for b in blocks[:3]:
+    for b in blocks:
         k = b.denominator().valuation(2)
         r = b.ncols()
         if k <= 3:
