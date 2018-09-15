@@ -246,6 +246,10 @@ def quit_sage(verbose=True):
     import sage.algebras.quatalg.quaternion_algebra_element
     sage.algebras.quatalg.quaternion_algebra_element._clear_globals()
 
+    # Free globally allocated ETuples
+    import sage.rings.polynomial.polydict
+    sage.rings.polynomial.polydict.free_ETuple_pool()
+
     from sage.libs.all import symmetrica
     symmetrica.end()
 

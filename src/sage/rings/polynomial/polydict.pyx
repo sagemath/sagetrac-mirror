@@ -42,7 +42,8 @@ from libc.string cimport memcpy
 from cpython.dict cimport *
 cimport cython
 from cpython.object cimport (Py_EQ, Py_NE, Py_LT, Py_LE, Py_GT, Py_GE)
-from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.memory cimport check_allocarray, sig_malloc, sig_realloc, sig_free
+from sage.ext.stdsage cimport PY_NEW
 from sage.structure.richcmp cimport rich_to_bool
 
 import copy
@@ -444,7 +445,7 @@ cdef class PolyDict:
         """
         nz = []
         cdef int i
-        for i from 0<=i<len(degrees):
+        for i in range(len(degrees)):
             if degrees[i] is not None:
                 nz.append(i)
         ans = {}
@@ -1079,8 +1080,7 @@ cdef class ETuple:
         Quickly creates a new initialized ETuple with the
         same length as self.
         """
-        cdef type t = type(self)
-        cdef ETuple x = <ETuple>t.__new__(t)
+        cdef ETuple x = <ETuple>PY_NEW(ETuple)
         x._length = self._length
         return x
 
@@ -1115,27 +1115,36 @@ cdef class ETuple:
         if isinstance(data, ETuple):
             self._length = (<ETuple>data)._length
             self._nonzero = (<ETuple>data)._nonzero
-            self._data = <int*>sig_malloc(sizeof(int)*self._nonzero*2)
+            if self._data != <int*>0:
+                self._data = <int*>sig_realloc(self._data, sizeof(int)*self._nonzero*2)
+            else:
+                self._data = <int*>sig_malloc(sizeof(int)*self._nonzero*2)
             memcpy(self._data, (<ETuple>data)._data, sizeof(int)*self._nonzero*2)
         elif isinstance(data, dict) and isinstance(length, int):
             self._length = length
             self._nonzero = len(data)
-            self._data = <int*>sig_malloc(sizeof(int)*self._nonzero*2)
+            if self._data != <int*>0:
+                self._data = <int*>sig_realloc(self._data, sizeof(int)*self._nonzero*2)
+            else:
+                self._data = <int*>sig_malloc(sizeof(int)*self._nonzero*2)
             nz_elts = sorted(data.items())
             ind = 0
             for index, exp in nz_elts:
                 self._data[2*ind] = index
                 self._data[2*ind+1] = exp
                 ind += 1
-        elif isinstance(data, (list, tuple)):
+        elif isinstance(data, list) or isinstance(data, tuple):
             self._length = len(data)
             self._nonzero = 0
             for v in data:
                 if v != 0:
                     self._nonzero += 1
             ind = 0
-            self._data = <int*>sig_malloc(sizeof(int)*self._nonzero*2)
-            for i from 0 <= i < self._length:
+            if self._data != <int*>0:
+                self._data = <int*>sig_realloc(self._data, sizeof(int)*self._nonzero*2)
+            else:
+                self._data = <int*>sig_malloc(sizeof(int)*self._nonzero*2)
+            for i in range(self._length):
                 v = data[i]
                 if v != 0:
                     self._data[ind] = i
@@ -1166,14 +1175,14 @@ cdef class ETuple:
             (1, 1, 0, 0, 2, 0)
         """
         cdef size_t index = 0
-        cdef ETuple result = <ETuple>ETuple.__new__(ETuple)
+        cdef ETuple result = <ETuple>PY_NEW(ETuple)
         result._length = self._length+other._length
         result._nonzero = self._nonzero+other._nonzero
         result._data = <int*>sig_malloc(sizeof(int)*result._nonzero*2)
-        for index from 0 <= index < self._nonzero:
+        for index in range(self._nonzero):
             result._data[2*index] = self._data[2*index]
             result._data[2*index+1] = self._data[2*index+1]
-        for index from 0 <= index < other._nonzero:
+        for index in range(other._nonzero):
             result._data[2*(index+self._nonzero)] = other._data[2*index]+self._length  # offset the second tuple (append to end!)
             result._data[2*(index+self._nonzero)+1] = other._data[2*index+1]
         return result
@@ -1189,7 +1198,7 @@ cdef class ETuple:
             (1, 2, 3, 1, 2, 3)
         """
         cdef int _factor = factor
-        cdef ETuple result = <ETuple>ETuple.__new__(ETuple)
+        cdef ETuple result = <ETuple>PY_NEW(ETuple)
         if factor <= 0:
             result._length = 0
             result._nonzero = 0
@@ -1199,8 +1208,8 @@ cdef class ETuple:
         result._length = self._length * factor
         result._nonzero = self._nonzero * factor
         result._data = <int*>sig_malloc(sizeof(int)*result._nonzero*2)
-        for index from 0 <= index < self._nonzero:
-            for f from 0 <= f < factor:
+        for index in range(self._nonzero):
+            for f in range(factor):
                 result._data[2*(f*self._nonzero+index)] = self._data[2*index]+f*self._length
                 result._data[2*(f*self._nonzero+index)+1] = self._data[2*index+1]
         return result
@@ -1238,7 +1247,7 @@ cdef class ETuple:
 
             # this is not particularly fast, but I doubt many people care
             # if you do, feel free to tweak!
-            d = [self[ind] for ind from start <= ind < stop]
+            d = [self[ind] for ind in range(start, stop)]
             return ETuple(d)
         else:
             for ind in range(0, 2*self._nonzero, 2):
@@ -1268,7 +1277,7 @@ cdef class ETuple:
         """
         cdef int i
         cdef int result = 0
-        for i from 0 <= i < self._nonzero:
+        for i in range(self._nonzero):
             result += (1000003 * result) ^ self._data[2*i]
             result += (1000003 * result) ^ self._data[2*i+1]
         result = (1000003 * result) ^ self._length
@@ -1305,7 +1314,7 @@ cdef class ETuple:
             return self._length > self._nonzero
 
         cdef size_t ind = 0
-        for ind from 0 <= ind < self._nonzero:
+        for ind in range(self._nonzero):
             if elem == self._data[2*ind+1]:
                 return True
         return False
@@ -1340,7 +1349,7 @@ cdef class ETuple:
         if op == Py_EQ:  # ==
             if self._nonzero != other._nonzero:
                 return False
-            for ind from 0 <= ind < self._nonzero:
+            for ind in range(self._nonzero):
                 if self._data[2*ind] != other._data[2*ind]:
                     return False
                 if self._data[2*ind+1] != other._data[2*ind+1]:
@@ -1395,7 +1404,7 @@ cdef class ETuple:
         cdef size_t ind
         # this is not particularly fast, but I doubt many people care
         # if you do, feel free to tweak!
-        d = dict([(self._data[2*ind], self._data[2*ind+1]) for ind from 0<=ind<self._nonzero])
+        d = dict([(self._data[2*ind], self._data[2*ind+1]) for ind in range(self._nonzero)])
         return ETupleIter(d, self._length)
 
     def __str__(ETuple self):
@@ -1404,7 +1413,7 @@ cdef class ETuple:
     def __repr__(ETuple self):
         res = [0,]*self._length
         cdef size_t ind = 0
-        for ind from 0 <= ind < self._nonzero:
+        for ind in range(self._nonzero):
             res[self._data[2*ind]] = self._data[2*ind+1]
         return str(tuple(res))
 
@@ -1626,7 +1635,7 @@ cdef class ETuple:
         result._nonzero = self._nonzero
         result._data = <int*>sig_malloc(sizeof(int)*alloc_len*2)
 
-        for index from 0 <= index < self._nonzero:
+        for index in range(self._nonzero):
             if self._data[2*index] == pos:
                 new_value = self._data[2*index+1] + other
                 if new_value != 0:
@@ -1644,7 +1653,7 @@ cdef class ETuple:
 
         rindex = 0
         if need_to_add:
-            for index from 0 <= index < self._nonzero:
+            for index in range(self._nonzero):
                 if self._data[2*index] > pos:
                     result._data[2*rindex] = pos
                     result._data[2*rindex+1] = other
@@ -1718,7 +1727,7 @@ cdef class ETuple:
         else:
             result._nonzero = self._nonzero
             result._data = <int*>sig_malloc(sizeof(int)*result._nonzero*2)
-            for ind from 0 <= ind < self._nonzero:
+            for ind in range(self._nonzero):
                 result._data[2*ind] = self._data[2*ind]
                 result._data[2*ind+1] = self._data[2*ind+1]*factor
         return result
@@ -2040,7 +2049,7 @@ cdef class ETuple:
             [0, 2]
         """
         cdef size_t ind
-        return [self._data[2*ind] for ind from 0 <= ind < self._nonzero]
+        return [self._data[2*ind] for ind in range(self._nonzero)]
 
     cpdef common_nonzero_positions(ETuple self, ETuple other, bint sort=False):
         """
@@ -2085,7 +2094,7 @@ cdef class ETuple:
             [-1, 1]
         """
         cdef size_t ind
-        return [self._data[2*ind+1] for ind from 0 <= ind < self._nonzero]
+        return [self._data[2*ind+1] for ind in range(self._nonzero)]
 
     cpdef ETuple reversed(ETuple self):
         """
@@ -2102,7 +2111,7 @@ cdef class ETuple:
         cdef ETuple result = <ETuple>self._new()
         result._nonzero = self._nonzero
         result._data = <int*>sig_malloc(sizeof(int)*result._nonzero*2)
-        for ind from 0 <= ind < self._nonzero:
+        for ind in range(self._nonzero):
             result._data[2*(result._nonzero-ind-1)] = self._length - self._data[2*ind] - 1
             result._data[2*(result._nonzero-ind-1)+1] = self._data[2*ind+1]
         return result
@@ -2120,7 +2129,7 @@ cdef class ETuple:
             [(0, 1), (2, 2), (4, 3)]
         """
         cdef size_t ind
-        for ind from 0 <= ind < self._nonzero:
+        for ind in range(self._nonzero):
             yield (self._data[2*ind], self._data[2*ind+1])
 
     def combine_to_positives(ETuple self, ETuple other):
@@ -2148,3 +2157,159 @@ def make_PolyDict(data):
 
 def make_ETuple(data, length):
     return ETuple(data, length)
+
+############### ETuple CREATION CODE #####################
+
+from cysignals.memory cimport check_allocarray, check_malloc, sig_free
+from libc.string cimport memcpy
+from sage.ext.stdsage cimport PY_NEW
+from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
+from cpython.object cimport *
+
+cdef extern from *:
+    int unlikely(int) nogil  # Defined by Cython
+
+# This variable holds the size of any ETuple object in bytes.
+cdef int sizeof_ETuple
+
+# We use a global ETuple element to steal all the references
+# from.  DO NOT INITIALIZE IT AGAIN and DO NOT REFERENCE IT!
+cdef ETuple global_dummy_ETuple
+global_dummy_ETuple = ETuple()    # in particular, global_dummy_ETuple._data = <int*>0
+
+
+# A global pool for performance when ETuples are rapidly created and destroyed.
+# It operates on the following principles:
+#
+# - The pool starts out empty.
+# - When an new ETuple is needed, one from the pool is returned
+#   if available, otherwise a new ETuple object is created
+# - When an ETuple is collected, it will add it to the pool
+#   if there is room, otherwise it will be deallocated.
+cdef int ETuple_pool_size = 1000
+
+cdef PyObject** ETuple_pool
+cdef int ETuple_pool_count = 0
+
+#~ # used for profiling the pool
+#~ cdef int total_alloc = 0
+#~ cdef int use_pool = 0
+
+#~ def show_pool_usage():
+#~     print("total_alloc",total_alloc,"use_pool",use_pool)
+
+cdef PyObject* fast_tp_new(type t, args, kwds) except NULL:
+    global ETuple_pool, ETuple_pool_count, total_alloc, use_pool
+
+    cdef PyObject* new
+
+#~     # for profiling pool usage
+#~     total_alloc += 1
+
+    # If there is a ready ETuple in the pool, we will
+    # decrement the counter and return that.
+
+    if ETuple_pool_count:
+
+#~         # for profiling pool usage
+#~         use_pool += 1
+
+        ETuple_pool_count -= 1
+        new = <PyObject *> ETuple_pool[ETuple_pool_count]
+
+    # Otherwise, we have to create one.
+    else:
+
+        # allocate enough room for the ETuple, sizeof_ETuple is
+        # sizeof(ETuple). The use of PyObject_Malloc directly
+        # assumes that ETuples are not garbage collected, i.e.
+        # they do not possess references to other Python
+        # objects (as indicated by the Py_TPFLAGS_HAVE_GC flag).
+        # See below for a more detailed description.
+        new = <PyObject*>PyObject_Malloc( sizeof_ETuple )
+        if unlikely(new == NULL):
+            raise MemoryError
+
+        memcpy(new, (<void*>global_dummy_ETuple), sizeof_ETuple )
+
+    # This line is only needed if Python is compiled in debugging mode
+    # './configure --with-pydebug' or SAGE_DEBUG=yes. If that is the
+    # case a Python object has a bunch of debugging fields which are
+    # initialized with this macro.
+
+    if_Py_TRACE_REFS_then_PyObject_INIT(
+            new, Py_TYPE(global_dummy_ETuple))
+
+    # The global_dummy_ETuple may have a reference count larger than
+    # one, but it is expected that newly created objects have a
+    # reference count of one. This is potentially unneeded if
+    # everybody plays nice, because the gobal_dummy_ETuple has only
+    # one reference in that case.
+
+    # Objects from the pool have reference count zero, so this
+    # needs to be set in this case.
+
+    new.ob_refcnt = 1
+
+    return new
+
+cdef void fast_tp_dealloc(PyObject* o):
+
+    # If there is room in the pool for a used ETuple object,
+    # then put it in rather than deallocating it.
+
+    global ETuple_pool, ETuple_pool_count
+
+    if ETuple_pool_count < ETuple_pool_size:
+        # Add it to the pool.
+        ETuple_pool[ETuple_pool_count] = o
+        ETuple_pool_count += 1
+        return
+
+    # We need to do, what ETuple.__dealloc__ would doo: Free the data!
+    sig_free((<ETuple>o)._data)
+
+    # Free the object. This assumes that Py_TPFLAGS_HAVE_GC is not
+    # set. If it was set another free function would need to be
+    # called.
+    PyObject_Free(o)
+
+from sage.misc.allocator cimport hook_tp_functions
+cdef hook_fast_tp_functions():
+    """
+    Initialize the fast ETuple creation functions.
+    """
+    global global_dummy_ETuple, sizeof_ETuple, ETuple_pool
+
+    ETuple_pool = <PyObject**>check_allocarray(ETuple_pool_size, sizeof(PyObject*))
+
+    cdef PyObject* o
+    o = <PyObject *>global_dummy_ETuple
+
+    # store how much memory needs to be allocated for an ETuple.
+    sizeof_ETuple = o.ob_type.tp_basicsize
+
+    # Finally replace the functions called when an ETuple needs
+    # to be constructed/destructed.
+    hook_tp_functions(global_dummy_ETuple, <newfunc>(&fast_tp_new), <destructor>(&fast_tp_dealloc), False)
+
+def free_ETuple_pool():
+    cdef int i
+    cdef PyObject *o
+
+    global ETuple_pool_count, ETuple_pool_size
+
+    for i in range(ETuple_pool_count):
+        o = ETuple_pool[i]
+        sig_free((<ETuple>o)._data)
+        # Free the object. This assumes that Py_TPFLAGS_HAVE_GC is not
+        # set. If it was set another free function would need to be
+        # called.
+        PyObject_Free(o)
+
+    ETuple_pool_size = 0
+    ETuple_pool_count = 0
+    sig_free(ETuple_pool)
+
+# Replace default allocation and deletion with faster custom ones
+hook_fast_tp_functions()
