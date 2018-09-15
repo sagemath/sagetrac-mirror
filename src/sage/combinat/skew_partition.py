@@ -130,7 +130,11 @@ REFERENCES:
 AUTHORS:
 
 - Mike Hansen: Initial version
+
 - Travis Scrimshaw (2013-02-11): Factored out ``CombinatorialClass``
+
+- Matthew Lancellotti (2018-09-15): Added a bunch of "k" methods to
+  SkewPartition.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -696,7 +700,7 @@ class SkewPartition(CombinatorialElement):
         l_out = len(lam)
         l_in = len(mu)
         mu += [0]*(l_out-l_in)
-        
+
         if l_out == 0:
             return True
         else:
@@ -710,7 +714,7 @@ class SkewPartition(CombinatorialElement):
                 else:
                     u += 1
 
-            # Find the least v strictly greater than u for which 
+            # Find the least v strictly greater than u for which
             # lam[v] != mu[v-1]+1
             v = u + 1
             v_test = True
