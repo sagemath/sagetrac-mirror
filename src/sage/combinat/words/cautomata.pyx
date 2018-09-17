@@ -837,7 +837,10 @@ cdef class NFastAutomaton:
         """
         if i >= self.a.n or i < 0:
             raise ValueError("There is no state %s !" % i)
-        return c_bool(self.a.e[i].final)
+        sig_on()
+        ans = c_bool(self.a.e[i].final)
+        sig_off()
+        return ans
 
     def is_initial(self, int i):
         """
@@ -860,7 +863,10 @@ cdef class NFastAutomaton:
         """
         if i >= self.a.n or i < 0:
             raise ValueError("There is no state %s !" % i)
-        return c_bool(self.a.e[i].initial)
+        sig_on()
+        answ = c_bool(self.a.e[i].initial)
+        sig_off()
+        return answ
 
     @property
     def initial_states(self):
@@ -1934,7 +1940,10 @@ cdef class DetAutomaton:
             False
         """
         if e >= 0 and e < self.a.n:
-            return c_bool(self.a.e[e].final)
+            sig_on()
+            ans = c_bool(self.a.e[e].final)
+            sig_off()
+            return ans
         else:
             return False
 
@@ -2553,8 +2562,9 @@ cdef class DetAutomaton:
         """
         sig_on()
         res = IsCompleteAutomaton(self.a[0])
+        answ = c_bool(res)
         sig_off()
-        return c_bool(res)
+        return answ
 
     # give a complete automaton (i.e. with his sink state)
     def complete(self, label_sink='s'):
@@ -2582,8 +2592,8 @@ cdef class DetAutomaton:
         """
         sig_on()
         res = CompleteAutomaton(self.a)
-        sig_off()
         res = c_bool(res)
+        sig_off()
         if res:
             if self.S is not None:
                 # add a label for the sink state
@@ -4027,8 +4037,9 @@ cdef class DetAutomaton:
         """
         sig_on()
         res = emptyLanguage(self.a[0])
+        answ = c_bool(res)
         sig_off()
-        return c_bool(res)
+        return answ
 
     def equals_langages(self, DetAutomaton a2, minimized=False,
                         pruned=False, verb=False):
@@ -4065,6 +4076,7 @@ cdef class DetAutomaton:
         """
         sig_on()
         cdef Dict d = NewDict(self.a.na)
+        sig_off()
         cdef int i, j
         for i in range(self.a.na):
             for j in range(a2.a.na):
@@ -4073,11 +4085,14 @@ cdef class DetAutomaton:
                     if verb:
                         print("%d -> %d" % (i, j))
                     break
+                sig_check()
+        sig_on()
         if verb:
             printDict(d)
         res = equalsLanguages(self.a, a2.a, d, minimized, pruned, verb)
+        answ = c_bool(res)
         sig_off()
-        return c_bool(res)
+        return answ
 
 #    def empty_product (self, DetAutomaton a2, d=None, verb=False):
 #        if d is None:
@@ -4125,8 +4140,9 @@ cdef class DetAutomaton:
         """
         sig_on()
         res = Intersect(self.a[0], a2.a[0], verb)
+        answ = c_bool(res)
         sig_off()
-        return c_bool(res)
+        return answ
 
 #    def intersect (self, DetAutomaton a2, pruned=False, verb=False):
 #        sig_on()
@@ -4338,7 +4354,8 @@ cdef class DetAutomaton:
             e = self.a.e[e].f[d[a]]
             if e == -1:
                 return False
-        return c_bool(self.a.e[e].final)
+        answ = c_bool(self.a.e[e].final)
+        return answ
 
     def add_state(self, bool final):
         """
@@ -4570,8 +4587,9 @@ cdef class DetAutomaton:
             a2 = a
         sig_on()
         res = Included(b.a[0], a2.a[0], pruned, verb)
+        answ = c_bool(res)
         sig_off()
-        return c_bool(res)
+        return answ
 
 #        d = {}
 #        for l in self.A:
@@ -4662,23 +4680,23 @@ cdef class DetAutomaton:
         random path in the automaton from the initial state. If we don't fall
         into the set of final states before reaching the maximal length
         ``nmax``, then return ``word not found !``.
-
+ 
         INPUT:
-
+ 
         - ``nmin`` -- (default: -1) minimal length of the word
         - ``nmax`` -- (default: 100) maximal length of the word
-
+ 
         OUTPUT:
-
+ 
         Return a random word of length between ``nmin`` and ``nmax`` if found.
         Otherwise return ``word not found !``.
-
+ 
         EXAMPLES::
-
+ 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b'), (0, 3, 'c')], i=0)
             sage: a.random_word()  # random
             ['a']
-
+ 
         """
         cdef int i = self.a.i
         w = []
