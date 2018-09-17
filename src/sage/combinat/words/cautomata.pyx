@@ -558,7 +558,9 @@ cdef class NFastAutomaton:
             if verb:
                 print("NFastAutomaton")
             na = a
+            sig_on()
             self.a[0] = CopyNAutomaton(na.a[0], na.a.n, na.a.na)
+            sig_off()
             self.A = na.A
             self.S = na.S
             # self = a.copy()
@@ -1494,13 +1496,13 @@ cdef class DetAutomaton:
         if verb:
             print("plot...")
         sig_on()
-        plotDot(file, self.a[0], ll, "Automaton", sx, sy, vl, html, verb, False)
-        sig_off()
+        plotDot(file, self.a[0], ll, "Automaton", sx, sy, vl, html, verb, False)     
         if verb:
             print("free...plot")
         free(ll)
         if vlabels is not None:
             free(vl)
+        sig_off()
         dotfile = open(file_name)
         return LatexExpr(dot2tex(dotfile.read()))
 
@@ -3431,8 +3433,8 @@ cdef class DetAutomaton:
             print(str)
         sig_on()
         a = Permut(self.a[0], l, len(A), verb)
-        sig_off()
         free(l)
+        sig_off()
         r.a[0] = a
         r.A = A
 
@@ -3603,7 +3605,9 @@ cdef class DetAutomaton:
                     if trivial:
                         # on retire cette composante qui est triviale
                         l2.pop(i)
+        sig_on()
         free(l)
+        sig_off()
         return l2.values()
 
     def acc_and_coacc(self):
@@ -4238,7 +4242,9 @@ cdef class DetAutomaton:
             sage: a.shortest_words()
 
         """
+        sig_on()
         cdef Dict* w = <Dict*>malloc(sizeof(Dict) * self.a.n)
+        sig_off()
         if w is NULL:
             raise MemoryError("Failed to allocate memory for w in "
                               "shortest_words")
@@ -4258,7 +4264,9 @@ cdef class DetAutomaton:
             sig_on()
             FreeDict(&w[j])
             sig_off()
+        sig_on()
         free(w)
+        sig_off()
         return rt
 
     # determine if the word is recognized by the automaton or not
