@@ -150,8 +150,10 @@ using the recursive expansion of the
 Using the libGAP C library from Cython
 ======================================
 
+.. TODO:: Update the following text
+
 The lower-case ``libgap_foobar`` functions are ones that we added to
-make the libGAP C shared library. The ``libGAP_foobar`` methods are
+make the libGAP C shared library. The ``foobar`` methods are
 the original GAP methods simply prefixed with the string
 ``libGAP_``. The latter were originally not designed to be in a
 library, so some care needs to be taken to call them.
@@ -166,12 +168,12 @@ the following pattern::
 
     cdef f()
       libgap_mark_stack_bottom()
-      libGAP_function()
+      function()
 
     cdef g()
       libgap_mark_stack_bottom();
       f()                #  f() changed the stack bottom marker
-      libGAP_function()  #  boom
+      function()  #  boom
 
 The solution is to re-order ``g()`` to first call ``f()``. In order to
 catch this error, it is recommended that you wrap calls into libGAP in
@@ -180,13 +182,13 @@ catch this error, it is recommended that you wrap calls into libGAP in
 
     cdef f()
       libgap_enter()
-      libGAP_function()
+      function()
       libgap_exit()
 
     cdef g()
       f()
       libgap_enter()
-      libGAP_function()
+      function()
       libgap_exit()
 
 If you accidentally call ``libgap_enter()`` twice then an error
@@ -260,13 +262,13 @@ from sage.misc.superseded import deprecated_function_alias
 ### Debugging ##############################################################
 ############################################################################
 
-cdef void report(libGAP_Obj bag):
-    print(libGAP_TNAM_OBJ(bag), <int>libGAP_TNUM_BAG(bag), <int>libGAP_SIZE_BAG(bag))
+cdef void report(Obj bag):
+    print(TNAM_OBJ(bag), <int>TNUM_BAG(bag), <int>SIZE_BAG(bag))
 
 
 cdef void print_gasman_objects():
     libgap_enter()
-    libGAP_CallbackForAllBags(report)
+    CallbackForAllBags(report)
     libgap_exit()
 
 
@@ -787,7 +789,7 @@ class Gap(Parent):
             sage: libgap.collect()
         """
         libgap_enter()
-        rc = libGAP_CollectBags(0, 1)
+        rc = CollectBags(0, 1)
         libgap_exit()
         if rc != 1:
             raise RuntimeError('Garbage collection failed.')
