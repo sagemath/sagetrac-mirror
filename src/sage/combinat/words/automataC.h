@@ -43,6 +43,7 @@ int contract (int i1, int i2, int n1);
 int geti1 (int c, int n1);
 int geti2 (int c, int n1);
 Automaton Product (Automaton a1, Automaton a2, Dict d, bool verb);
+Automaton Product2 (Automaton a1, Automaton a2, Dict d, bool verb); //same without induction
 void AddState (Automaton *a, bool final);
 
 struct States
@@ -114,8 +115,9 @@ InvertDict invertDict (Dict d);
 void FreeInvertDict (InvertDict id);
 void printInvertDict (InvertDict id);
 void putState (States *f, int ef); /////////////to improve !!!!
-void Determinize_rec (Automaton a, InvertDict id, Automaton* r, ListStates* l, bool onlyfinals, bool nof, int niter);
+void Determinize_ind (Automaton a, InvertDict id, Automaton* r, ListStates* l, bool onlyfinals, bool nof, int niter);
 Automaton Determinize (Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb);
+Automaton Determinize2 (Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb); //same without induction
 NAutomaton Concat (Automaton a, Automaton b, bool verb);
 NAutomaton CopyN (Automaton a, bool verb);
 NAutomaton Proj (Automaton a, Dict d, bool verb);
@@ -130,6 +132,7 @@ Automaton Duplicate (Automaton a, InvertDict id, int na2, bool verb);
 //zero is the letter of the alphabet of index l0
 //i.e. the result has the language L(l0*)^(-1), if L is the language of a
 void ZeroComplete (Automaton *a, int l0, bool verb);
+void ZeroComplete_ (Automaton *a, int l0, bool verb); //same without induction
 
 //add all the words that can be completed to a word of the language by adding some ending zeroes
 //zero is the letter of index l0
@@ -150,6 +153,7 @@ NAutomaton Mirror (Automaton a);
 
 //Tarjan algorithm
 int StronglyConnectedComponents (Automaton a, int *res);
+int StronglyConnectedComponents2 (Automaton a, int *res); //same without induction
 
 //determine accessible and co-accessible states
 void AccCoAcc (Automaton *a, int *coa);
@@ -182,6 +186,7 @@ Automaton DeleteVertex (Automaton a, int e);
 //le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
 //if minimized is true, the automaton a1 and a2 are assumed to be minimal.
 bool equalsLanguages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool pruned, bool verb);
+bool equalsLanguages2 (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool pruned, bool verb); //same without induction
 
 //détermine si le langage de l'automate a1 est inclus dans celui de a2
 //le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.
@@ -195,12 +200,15 @@ bool equalsLanguages (Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized,
 
 //détermine si l'intersection est vide ou non
 bool Intersect (Automaton a1, Automaton a2, bool verb);
+bool Intersect2 (Automaton a1, Automaton a2, bool verb); //same without induction
 
 //détermine si l'on a inclusion des langages
 bool Included (Automaton a1, Automaton a2, bool pruned, bool verb);
+bool Included2 (Automaton a1, Automaton a2, bool pruned, bool verb); //same without induction
 
 //détermine si le langage de l'automate est vide
 bool emptyLanguage (Automaton a);
+bool emptyLanguage2 (Automaton a); //same without induction
 
 //determine if the automaton is complete (i.e. with his hole state)
 bool IsCompleteAutomaton (Automaton a);

@@ -1,10 +1,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+//#include <math.h>
 #include "Automaton.h"
 #include "automataC.h"
 
 typedef Automaton Automaton;
+
+static unsigned int log (unsigned int val)
+{
+    if (val == 0) return 0;
+    if (val == 1) return 0;
+    unsigned int ret = 0;
+    while (val > 1) {
+        val >>= 1;
+        ret++;
+    }
+    return ret;
+}
+
+int min (int a, int b)
+{
+    if (a < b)
+        return a;
+    return b;
+}
 
 //test if the dot command is installed in the system
 bool DotExists ()
@@ -661,7 +681,7 @@ bool equalsAutomaton(Automaton a1, Automaton a2)
 
 //used by equalsLanguages
 //determine if the languages of states e1 of a1 and state e2 of a2 are the same
-bool equalsLanguages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, int e1, int e2, bool verb)
+bool equalsLanguages_ind (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, int e1, int e2, bool verb)
 {
 	if ((a1.e[e1].final & 1) != (a2.e[e2].final & 1))
 		return false; //one of the states is final but not the other one
@@ -684,7 +704,7 @@ bool equalsLanguages_rec (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, 
 						printf("%d -%d-> exists in a1 but %d -%d-> doesn't exists in a2.", e1, i, e2, a1toa2.e[i]);
 					return false;
 				}
-				if (!equalsLanguages_rec(a1, a2, a1toa2, a2toa1, a1.e[e1].f[i], a2.e[e2].f[a1toa2.e[i]], verb))
+				if (!equalsLanguages_ind(a1, a2, a1toa2, a2toa1, a1.e[e1].f[i], a2.e[e2].f[a1toa2.e[i]], verb))
 				{
 					return false;
 				}
@@ -761,7 +781,168 @@ bool equalsLanguages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, 
 		res = (a1->i == a2->i);
 	else
 	{
-		res = equalsLanguages_rec(*a1, *a2, a1toa2, a2toa1, a1->i, a2->i, verb);
+		res = equalsLanguages_ind(*a1, *a2, a1toa2, a2toa1, a1->i, a2->i, verb);
+	}
+	//put back final states
+	for (i=0;i<a1->n;i++)
+	{
+		a1->e[i].final &= 1;
+	}
+	for (i=0;i<a2->n;i++)
+	{
+		a2->e[i].final &= 1;
+	}
+	return res;
+}
+
+//same as equalsLanguages but without induction
+//determine if the languages of the two automata are the same
+//the dictionnary gives the letters of a2 depending of the ones of a1 (-1 if the letter of a1 doesn't correspond to any letter for a2).
+//This dictionnary is assumed to be invertible.
+//if minimized is true, the automaton a1 and a2 are assumed to be minimal.
+bool equalsLanguages2(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool pruned, bool verb)
+{
+	int i;
+	if (!pruned)
+	{
+		if (verb)
+			printf("Emonde...\n");
+		//prun the automata
+		Automaton a3 = prune(*a1, false);
+		FreeAutomaton(a1);
+		*a1 = a3;
+		a3 = prune(*a2, false);
+		FreeAutomaton(a2);
+		*a2 = a3;
+	}
+	if (!minimized)
+	{
+		if (verb)
+			printf("Minimise...\n");
+		//minimise les automates
+		Automaton a3 = Minimise(*a1, false);
+		FreeAutomaton(a1);
+		*a1 = a3;
+		a3 = Minimise(*a2, false);
+		FreeAutomaton(a2);
+		*a2 = a3;
+	}
+	if (verb)
+	{
+		printf("Automata : ");
+		printAutomaton(*a1);
+		printAutomaton(*a2);
+	}
+	//inverse the dictionnary
+	Dict a2toa1 = NewDict(a2->na);
+	for (i=0;i<a1toa2.n;i++)
+	{
+		a2toa1.e[a1toa2.e[i]] = i;
+	}
+	if (verb)
+		printDict(a2toa1);
+	//
+	bool res = true;
+	if (a1->i == -1 || a2->i == -1)
+		res = (a1->i == a2->i);
+	else if (a1->n != a2->n)
+	    res = false;
+	else
+	{
+		//browse the automata
+		//alloc the stack
+		int sp = log(a1->n) + 1; //size of allocated stack
+		int cp = 0; //current position in the stack
+		int *se1 = (int *)malloc(sizeof(int)*sp); //stack of current states of a1
+		int *se2 = (int *)malloc(sizeof(int)*sp); //stack of current states of a2
+		//res = equalsLanguages_ind(*a1, *a2, a1toa2, a2toa1, a1->i, a2->i, verb);
+		se1[cp] = a1->i;
+		se2[cp] = a2->i;
+		int e1, e2;
+		while(cp >= 0)
+		{
+		    e1 = se1[cp];
+		    e2 = se2[cp];
+		    cp--;
+            if ((a1->e[e1].final & 1) != (a2->e[e2].final & 1))
+            {    //return false; //one of the states is final but not the other one
+                res = false;
+                cp = -1;
+                break;
+            }
+            if (a1->e[e1].final & 2 && a2->e[e2].final & 2)
+            {
+                //return true; //state already seen
+                continue;
+            }
+            //indicate that the state a has been seen
+            a1->e[e1].final |= 2;
+            a2->e[e2].final |= 2;
+            //browse the sons of e1 in a1
+            int i;
+            for (i=0;i<a1->na;i++)
+            {
+                if (a1->e[e1].f[i] != -1)
+                {//this edge exists in a1
+                    if (a1toa2.e[i] != -1)
+                    {
+                        if (a2->e[e2].f[a1toa2.e[i]] == -1)
+                        {//this edge doesn't correspond to an edge in a2
+                            if (verb)
+                                printf("%d -%d-> exists in a1 but %d -%d-> doesn't exists in a2.", e1, i, e2, a1toa2.e[i]);
+                            //return false;
+                            res = false;
+                            cp = -1;
+                            break;
+                        }
+                        //if (!equalsLanguages_ind(a1, a2, a1toa2, a2toa1, a1.e[e1].f[i], a2.e[e2].f[a1toa2.e[i]], verb))
+                        //{
+                        //    return false;
+                        //}
+                        //add an element to the stack
+                        cp++;
+                        if (cp >= sp)
+                        {
+                            sp = min(sp*2, a1->n); //double the size of the stack
+                            if (cp >= sp)
+                            {
+                                printf("Error : more elements than the size of the automaton in the stack !\n");
+                                exit(1);
+                            }
+                            se1 = (int *)realloc(se1, sizeof(int)*sp);
+                            se2 = (int *)realloc(se2, sizeof(int)*sp);
+                        }
+                        se1[cp] = a1->e[e1].f[i];
+                        se2[cp] = a2->e[e2].f[a1toa2.e[i]];
+                    }else
+                    {
+                        if (verb)
+                            printf("%d -%d-> exists in a1 but %d -%d-> doesn't exists in a2.", e1, i, e2, a1toa2.e[i]);
+                        //return false;
+                        cp = -1;
+                        res = false;
+                        break;
+                    }
+                }else
+                {
+                    if (a1toa2.e[i] != -1)
+                    {
+                        if (a2->e[e2].f[a1toa2.e[i]] != -1)
+                        {				
+                            if (verb)
+                                printf("%d -%d-> doesn't exists in a1 but %d -%d-> exists in a2.", e1, i, e2, a1toa2.e[i]);
+                            //return false;
+                            cp = -1;
+                            res = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        //free the stack
+        free(se1);
+        free(se2);
 	}
 	//put back final states
 	for (i=0;i<a1->n;i++)
@@ -777,7 +958,7 @@ bool equalsLanguages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, 
 
 //used by emptyLanguage
 //determine if the language of the state e is empty
-bool emptyLanguage_rec (Automaton a, int e)
+bool emptyLanguage_ind (Automaton a, int e)
 {
 	if (a.e[e].final)
 		return false;
@@ -791,7 +972,7 @@ bool emptyLanguage_rec (Automaton a, int e)
 		{
 			if (a.e[a.e[e].f[i]].final & 2)
 				continue; //this son was already seen
-			if (!emptyLanguage_rec(a, a.e[e].f[i]))
+			if (!emptyLanguage_ind(a, a.e[e].f[i]))
 				return false;
 		}
 	}
@@ -803,7 +984,7 @@ bool emptyLanguage(Automaton a)
 {
 	if (a.i == -1)
 		return true;
-	bool res = emptyLanguage_rec(a, a.i);
+	bool res = emptyLanguage_ind(a, a.i);
 	//put back final states
 	int i;
 	for (i=0;i<a.n;i++)
@@ -813,7 +994,61 @@ bool emptyLanguage(Automaton a)
 	return res;
 }
 
-bool findWord_rec (Automaton a, int e, int n, Dict *w, bool verb)
+//same as emptyLanguage but without induction
+//determine if the language of the automaton is empty
+bool emptyLanguage2(Automaton a)
+{
+	if (a.i == -1)
+		return true;
+	
+	//bool res = emptyLanguage_ind(a, a.i);
+	int cp = 0; //current element in the stack
+	int *se = (int *)malloc(sizeof(int)*a.n); //alloc the stack
+	se[cp] = a.i;
+	
+	int e;
+	int res = true;
+    while (cp >= 0)
+    {
+        e = se[cp];
+        cp--;
+        if (a.e[e].final)
+        {
+            res = false;
+            break;
+            //return false;
+        }
+        //indicate that the state has been seen
+        a.e[e].final |= 2;
+        //browse the sons
+        int i;
+        for (i=0;i<a.na;i++)
+        {
+            if (a.e[e].f[i] != -1)
+            {
+                if (a.e[a.e[e].f[i]].final & 2)
+                    continue; //this son was already seen
+                //if (!emptyLanguage_ind(a, a.e[e].f[i]))
+                //    return false;
+                //add an element to the stack
+                cp++;
+                se[e] = a.e[e].f[i];
+            }
+        }
+	}
+	//free the stack
+	free(se);
+	
+	//put back final states
+	int i;
+	for (i=0;i<a.n;i++)
+	{
+		a.e[i].final &= 1;
+	}
+	return res;
+}
+
+bool findWord_ind (Automaton a, int e, int n, Dict *w, bool verb)
 {
 	if (a.e[e].final)
 	{
@@ -832,7 +1067,7 @@ bool findWord_rec (Automaton a, int e, int n, Dict *w, bool verb)
 		{
 			if (a.e[a.e[e].f[i]].final & 2)
 				continue; //this son was already seen
-			if (findWord_rec(a, a.e[e].f[i], n+1, w, verb))
+			if (findWord_ind(a, a.e[e].f[i], n+1, w, verb))
 			{
 				if (verb)
 				{
@@ -851,7 +1086,7 @@ bool findWord (Automaton a, Dict *w, bool verb)
 {
 	if (a.i == -1)
 		return false;
-	bool res = findWord_rec(a, a.i, 0, w, verb);
+	bool res = findWord_ind(a, a.i, 0, w, verb);
 	//put back final states
 	int i;
 	for (i=0;i<a.n;i++)
@@ -860,6 +1095,85 @@ bool findWord (Automaton a, Dict *w, bool verb)
 	}
 	return res;
 }
+
+/*
+//return a word in the language of a
+//same as findWord, but without induction
+bool findWord2 (Automaton a, Dict *w, bool verb)
+{
+	if (a.i == -1)
+		return false;
+	
+	int sp = log(a.n)+2; //size of stack
+	int cp = 0; //current index
+	int *se = (int*)malloc(sizeof(int)*sp);
+	int *sn = (int*)malloc(sizeof(int)*sp);
+	bool res = false;
+	//bool res = findWord_ind(a, a.i, 0, w, verb);
+	while (cp >= 0)
+	{
+	    //pop
+	    e = se[cp];
+	    n = sn[cp];
+	    cp--;
+	    if (a.e[e].final)
+        {
+            if (verb)
+                printf("Allocated one word of size %d.\n", n);
+            *w = NewDict(n);
+            //return true;
+            res = true;
+            break;
+        }
+        //indicate that the state a has been seen
+        a.e[e].final |= 2;
+        //browse sons
+        int i;
+        for (i=0;i<a.na;i++)
+        {
+            if (a.e[e].f[i] != -1)
+            {
+                if (a.e[a.e[e].f[i]].final & 2)
+                    continue; //this son was already seen
+                
+                /////
+                if (findWord_ind(a, a.e[e].f[i], n+1, w, verb))
+                {
+                    if (verb)
+                    {
+                        printf("w[%d] = %d\n", n, i);
+                    }
+                    w->e[n] = i;
+                    //return true;
+                    res = true;
+                    cp = -1;
+                    break;
+                }
+                //////
+
+                cp++;
+                if (cp >= sp)
+                {
+                    sp = sp*2;
+                    se = (int*)realloc(se, sizeof(int)*sp);
+                    sn = (int*)realloc(sn, sizeof(int)*sn);
+                }
+                se[cp] = a.e[e].f[i];
+                sn[cp] = n+1;
+            }
+        }
+        //return false;
+	}
+	
+	//put back final states
+	int i;
+	for (i=0;i<a.n;i++)
+	{
+		a.e[i].final &= 1;
+	}
+	return res;
+}
+*/
 
 //return a shortest word of the language
 bool shortestWord (Automaton a, Dict *w, int init, int end, bool verb)
@@ -1093,7 +1407,7 @@ int geti2 (int c, int n1)
 	return c/n1;
 }
 
-void Product_rec(Automaton r, int i1, int i2, Automaton a1, Automaton a2, Dict d)
+void Product_ind(Automaton r, int i1, int i2, Automaton a1, Automaton a2, Dict d)
 {
 	int i,j;
 	int e1, e2;
@@ -1119,7 +1433,7 @@ void Product_rec(Automaton r, int i1, int i2, Automaton a1, Automaton a2, Dict d
 				{
 					*next = contract(e1, e2, a1.n);
 					if (!r.e[*next].final)
-						Product_rec(r, e1, e2, a1, a2, d);
+						Product_ind(r, e1, e2, a1, a2, d);
 				}
 			}
 		}
@@ -1148,7 +1462,7 @@ Automaton Product(Automaton a1, Automaton a2, Dict d, bool verb)
 		return r;
 	}
 	r.i = contract(a1.i, a2.i, a1.n);
-	Product_rec(r, a1.i, a2.i, a1, a2, d);
+	Product_ind(r, a1.i, a2.i, a1, a2, d);
 	//put the final states
 	for (i=0;i<r.n;i++)
 	{
@@ -1157,10 +1471,101 @@ Automaton Product(Automaton a1, Automaton a2, Dict d, bool verb)
 	return r;
 }
 
-bool Intersect_rec(int i1, int i2, Automaton a1, Automaton a2, bool *vu, bool verb)
+//same as Product, but without induction
+Automaton Product2(Automaton a1, Automaton a2, Dict d, bool verb)
 {
 	if (verb)
-		printf("Intersect_rec %d %d...\n", i1, i2);
+	{
+		printAutomaton(a1);
+		printAutomaton(a2);
+	}
+	//count the number of letters of the final alphabet
+	int i, na=0;
+	for (i=0;i<d.n;i++)
+	{
+		if (d.e[i] >= na)
+			na = d.e[i]+1;
+	}
+	Automaton r = NewAutomaton(a1.n*a2.n, na);
+	initAutomaton(&r);
+	if (a1.i == -1 || a2.i == -1)
+	{
+		r.i = -1;
+		return r;
+	}
+	r.i = contract(a1.i, a2.i, a1.n);
+	
+	//Product_ind(r, a1.i, a2.i, a1, a2, d);
+	int cp = 0; //current element of the stack
+	int sp = log(a1.n)+2; //allocated size of the stack
+	int *se1 = (int *)malloc(sizeof(int)*sp); //alloc the stack
+	int *se2 = (int *)malloc(sizeof(int)*sp);
+	se1[cp] = a1.i;
+	se2[cp] = a2.i;
+	int i1, i2;
+	while (cp >= 0)
+	{
+	    i1 = se1[cp];
+	    i2 = se2[cp];
+	    cp--;
+        int j;
+        int e1, e2;
+        int a;
+        State *current = &r.e[contract(i1, i2, a1.n)];
+        int *next;
+        current->final = true; //indicate that the state has been visited
+        for (i=0;i<a1.na;i++)
+        {
+            e1 = a1.e[i1].f[i];
+            if (e1 < 0)
+                continue;
+            for (j=0;j<a2.na;j++)
+            {
+                e2 = a2.e[i2].f[j];
+                a = d.e[contract(i,j,a1.na)];
+                next = &current->f[a];
+                if (a != -1)
+                {
+                    if (e2 < 0)
+                        *next = -1;
+                    else
+                    {
+                        *next = contract(e1, e2, a1.n);
+                        if (!r.e[*next].final)
+                        {
+                            //Product_ind(r, e1, e2, a1, a2, d);
+                            cp++;
+                            if (cp >= sp)
+                            {
+                                //double the size of the stack
+                                sp = sp*2;
+                                se1 = (int *)realloc(se1, sizeof(int)*sp);
+                                se2 = (int *)realloc(se2, sizeof(int)*sp);
+                            }
+                            se1[cp] = e1;
+                            se2[cp] = e2;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    //free the stack
+    free(se1);
+    free(se2);
+    
+	//put the final states
+	for (i=0;i<r.n;i++)
+	{
+		r.e[i].final = a1.e[geti1(i, a1.n)].final && a2.e[geti2(i, a1.n)].final;
+	}
+	return r;
+}
+
+bool Intersect_ind(int i1, int i2, Automaton a1, Automaton a2, bool *vu, bool verb)
+{
+	if (verb)
+		printf("Intersect_ind %d %d...\n", i1, i2);
 	int i,j;
 	int e1, e2;
 	if (a1.e[i1].final && a2.e[i2].final)
@@ -1177,7 +1582,7 @@ bool Intersect_rec(int i1, int i2, Automaton a1, Automaton a2, bool *vu, bool ve
 		e2 = a2.e[i2].f[i];
 		if (e2 < 0)
 			continue;
-		if (Intersect_rec(e1, e2, a1, a2, vu, verb))
+		if (Intersect_ind(e1, e2, a1, a2, vu, verb))
 			return true;
 	}
 	return false;
@@ -1201,12 +1606,89 @@ bool Intersect (Automaton a1, Automaton a2, bool verb)
 	int i;
 	for (i=0;i<a1.n*a2.n;i++)
 		vu[i] = false;
-	bool res = Intersect_rec(a1.i, a2.i, a1, a2, vu, verb);
+	bool res = Intersect_ind(a1.i, a2.i, a1, a2, vu, verb);
 	free(vu);
 	return res;
 }
 
-bool Included_rec(int i1, int i2, Automaton a1, Automaton a2, bool *vu)
+//determine if the intersection is empty
+//same as Intersect, but without induction
+bool Intersect2 (Automaton a1, Automaton a2, bool verb)
+{
+	if (verb)
+	{
+		printAutomaton(a1);
+		printAutomaton(a2);
+	}
+	if (a1.i == -1 || a2.i == -1)
+	{
+		if (verb)
+			printf("One of the automata doesn't have an initial state !\n");
+		return false;
+	}
+	bool *vu = (bool *)malloc(sizeof(bool)*a1.n*a2.n);
+	int i;
+	for (i=0;i<a1.n*a2.n;i++)
+		vu[i] = false;
+	bool res = false;
+	int sp = log(a1.n)+2; //allocated size of stack
+	int cp = 0; //current index in the stack
+	int *se1 = (int *)malloc(sizeof(int)*sp); //alloc the stack
+	int *se2 = (int *)malloc(sizeof(int)*sp);
+	//res = Intersect_ind(a1.i, a2.i, a1, a2, vu, verb);
+	se1[cp] = a1.i;
+	se2[cp] = a2.i;
+	int i1, i2;
+	while(cp >= 0)
+	{
+	    i1 = se1[cp];
+	    i2 = se2[cp];
+	    cp--;
+        if (verb)
+            printf("Intersect_ind %d %d...\n", i1, i2);
+        int i,j;
+        int e1, e2;
+        if (a1.e[i1].final && a2.e[i2].final)
+        {
+            res = true;
+            break;
+            //return true;
+        }
+        int a = contract(i1, i2, a1.n);
+        if (vu[a])
+            return false;
+        vu[a] = true; //indicate that the state has been visited
+        for (i=0;i<a1.na;i++)
+        {
+            e1 = a1.e[i1].f[i];
+            if (e1 < 0)
+                continue;
+            e2 = a2.e[i2].f[i];
+            if (e2 < 0)
+                continue;
+            //if (Intersect_ind(e1, e2, a1, a2, vu, verb))
+            //    return true;
+            cp++;
+            if (cp >= sp)
+            {
+                sp = sp*2;
+                se1 = (int *)realloc(se1, sizeof(int)*sp);
+                se2 = (int *)realloc(se2, sizeof(int)*sp);
+            }
+            se1[cp] = e1;
+            se2[cp] = e2;
+        }
+        return false;
+    }
+    //free the stack
+    free(se1);
+    free(se2);
+    
+	free(vu);
+	return res;
+}
+
+bool Included_ind(int i1, int i2, Automaton a1, Automaton a2, bool *vu)
 {
 	int i,j;
 	int e1, e2;
@@ -1226,7 +1708,7 @@ bool Included_rec(int i1, int i2, Automaton a1, Automaton a2, bool *vu)
 		e2 = a2.e[i2].f[i];
 		if (e2 < 0)
 			return false;
-		if (!Included_rec(e1, e2, a1, a2, vu))
+		if (!Included_ind(e1, e2, a1, a2, vu))
 			return false;
 	}
 	return true;
@@ -1252,7 +1734,90 @@ bool Included(Automaton a1, Automaton a2, bool pruned, bool verb)
 	int i;
 	for (i=0;i<a1.n*a2.n;i++)
 		vu[i] = false;
-	bool res = Included_rec(a1.i, a2.i, a1, a2, vu);
+	bool res = Included_ind(a1.i, a2.i, a1, a2, vu);
+	free(vu);
+	return res;
+}
+
+//determine if the language of a1 is included in the language of a2
+//same as Included, but without induction
+bool Included2(Automaton a1, Automaton a2, bool pruned, bool verb)
+{
+	if (!pruned)
+	{
+		a1 = prune(a1, verb);
+	}
+	if (verb)
+	{
+		printAutomaton(a1);
+		printAutomaton(a2);
+	}
+	if (a1.i == -1)
+		return true;
+	if (a2.i == -1)
+		return emptyLanguage(a1);
+	bool *vu = (bool *)malloc(sizeof(bool)*a1.n*a2.n);
+	int i,j;
+	for (i=0;i<a1.n*a2.n;i++)
+		vu[i] = false;
+	int cp = 0; //current index in the stack
+	int sp = log(a1.n)+2; //allocated size of the stack
+	int *se1 = (int *)malloc(sizeof(int)*sp); //alloc the stack
+	int *se2 = (int *)malloc(sizeof(int)*sp);
+	//bool res = Included_ind(a1.i, a2.i, a1, a2, vu);
+	se1[cp] = a1.i;
+	se2[cp] = a2.i;
+	int e1, e2;
+	int i1, i2;
+	bool res = true;
+	while (cp >= 0)
+	{
+	    //pop
+	    i1 = se1[cp];
+	    i2 = se2[cp];
+	    cp--;
+        if (a1.e[i1].final && !a2.e[i2].final)
+        {
+            //return false;
+            res = false;
+            break;
+        }
+        int a = contract(i1, i2, a1.n);
+        if (vu[a])
+        {
+            //return true;
+            continue;
+        }
+        vu[a] = true; //indicate that the state has been visited
+        for (i=0;i<a1.na;i++)
+        {
+            e1 = a1.e[i1].f[i];
+            if (e1 < 0)
+                continue;
+            if (i >= a2.na)
+                return false;
+            e2 = a2.e[i2].f[i];
+            if (e2 < 0)
+                return false;
+            //if (!Included_ind(e1, e2, a1, a2, vu))
+            //    return false;
+            cp++;
+            if (cp >= sp)
+            {
+                //double the stack
+                sp = sp*2;
+                se1 = (int*)realloc(se1, sizeof(int)*sp);
+                se2 = (int*)realloc(se2, sizeof(int)*sp);
+            }
+            se1[cp] = e1;
+            se2[cp] = e2;
+        }
+        return true;
+    }
+    //free the stack
+    free(se1);
+    free(se2);
+    
 	free(vu);
 	return res;
 }
@@ -1766,7 +2331,7 @@ void putState (States *f, int ef)
 
 //function used by Determinize()
 //States : list of states of a
-void Determinize_rec (Automaton a, InvertDict id, Automaton *r, ListStates* l, bool onlyfinals, bool nof, int niter)
+void Determinize_ind (Automaton a, InvertDict id, Automaton *r, ListStates* l, bool onlyfinals, bool nof, int niter)
 {
 	int current = l->n-1;
 	States c = l->e[current];
@@ -1812,7 +2377,7 @@ void Determinize_rec (Automaton a, InvertDict id, Automaton *r, ListStates* l, b
 				final = true;
 			AddState(r, final);
 			//induction
-			Determinize_rec(a, id, r, l, onlyfinals, nof, niter+1);
+			Determinize_ind(a, id, r, l, onlyfinals, nof, niter+1);
 		}
 		if (nf != -1)
 		{
@@ -1964,8 +2529,209 @@ Automaton Determinize(Automaton a, Dict d, bool noempty, bool onlyfinals, bool n
 	if (verb)
 		printf("Induction...\n");
 	
-	Determinize_rec(a, id, &r, &l, onlyfinals, nof, 0);
+	Determinize_ind(a, id, &r, &l, onlyfinals, nof, 0);
 	
+	if (verb)
+		printf("Free...\n");
+	
+	//put back to zero the element of the hash table
+	for (i=0;i<l.n;i++)
+	{
+		FreeDict(&lhash[hashStates(l.e[i])]);
+	}
+	
+	for (i=0;i<l.n;i++)
+	{
+		FreeStates(l.e[i]);
+	}
+	free(l.e);
+	
+	FreeInvertDict(id);
+	//FreeHash(); //do not free the memory, in order to use it faster after
+	
+	return r;
+}
+
+//Determinize the automaton obtained by changing the alphabet, using the Power Set Construction.
+//same as Determinize, but without induction
+Automaton Determinize2(Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb)
+{
+	int i;
+	
+	Automaton r;
+	if (a.i == -1)
+	{
+		//compute the size of the alphabet
+		int nv = 0;
+		for (i=0;i<d.n;i++)
+		{
+			if (d.e[i] >= nv)
+				nv = d.e[i]+1;
+		}
+		//
+		if (verb)
+			printf("No initial state !\n");
+		if (nof)
+		{
+			r = NewAutomaton(1, nv);
+			r.i = 0;
+			r.e[0].final = true;
+			for (i=0;i<nv;i++)
+			{
+				r.e[0].f[i] = 0;
+			}
+		}else
+			r = NewAutomaton(0, nv);
+		return r;
+	}
+	
+	if (verb)
+	{
+		if (onlyfinals)
+			printf("onlyfinals\n");
+		if (nof)
+			printf("nof\n");
+		if (noempty)
+			printf("noempty\n");
+		printf("Dictionary : ");
+		printDict(d);
+	}
+	
+	//compute the inverse of the dictionnary
+	InvertDict id = invertDict(d);
+	if (verb && id.n == d.n)
+	{
+		printf("The dictionary is inversible : trivial determination !\n");
+	}
+	
+	if (verb)
+	{
+		printf("Inverse Dictionary :\n");
+		printInvertDict(id);
+	}
+	
+	//alloc the hash table
+	AllocHash();
+	//put the empty set in the hash table if we don't want this state in r
+	if (noempty)
+	{
+		States e = NewStates(0); //empty set
+		int h = hashStates(e);
+		if (verb)
+			printf("hash empty : %d\n", h);
+		dictAdd(&lhash[h], -1);
+	}
+	
+	//initialize the result automaton with just the initial state
+	if (verb)
+		printf("Init r...\n");
+	r.n = 1;
+	r.na = id.n;
+	r.i = 0;
+	r.e = (State *)malloc(sizeof(State));
+	if (!r.e)
+	{
+		printf("Out of memory !");
+		exit(11);
+	}
+	if (nof)
+		r.e[0].final = true;
+	else
+		r.e[0].final = a.e[a.i].final;
+	r.e[0].f = (int *)malloc(sizeof(int)*r.na);
+	if (!r.e[0].f)
+	{
+		printf("Out of memory !");
+		exit(12);
+	}
+	for (i=0;i<r.na;i++)
+	{
+		r.e[0].f[i] = -1;
+	}
+	if (verb)
+		printAutomaton(r);
+	
+	//initialize the list of states of the new automaton and the hash table
+	//(this list is used to number with consecutive numbers the states of the new automaton that are list of states of a)
+	if (verb)
+		printf("Init l...\n");
+	ListStates l;
+	l.n = 0;
+	l.e = NULL;
+	States e = NewStates(1);
+	e.e[0] = a.i; //the initial state of the new automaton is the list of initial states (here with cardinality 1)
+	addH(&l, e, NULL);
+	AddEl2(&l, e);
+	
+	//initialize the hash table
+	bool b = addH(&l, l.e[0], NULL); //add the initial state to the hash table
+	if (verb)
+		printListStates(l);
+	
+	if (verb)
+		printf("Induction...\n");
+	
+	int cp = 0; //current index in the stack
+	//Determinize_ind(a, id, &r, &l, onlyfinals, nof, 0);
+	while (cp >= 0)
+	{
+	    cp--;
+        int current = l.n-1;
+        States c = l.e[current];
+        //Browse sons
+        States f = NewStates(a.n);
+        int nf;
+        State e;
+        int i,j,k;
+        int ef;
+        bool final;
+    
+        for (i=0;i<id.n;i++) //browse letters of the new alphabet
+        {
+            //fill f (list of states of a corresponding to the state of r where we come)
+            f.n = 0;
+            final = false;
+            for (j=0;j<c.n;j++) //browse the states of the list
+            {
+                e = a.e[c.e[j]]; //corresponding state
+                for (k=0;k<id.d[i].n;k++) //browse the original letters, corresponding to the new chosen letter
+                {
+                    ef = e.f[id.d[i].e[k]];
+                    if (ef != -1)
+                    {
+                        //check that the state of a is not already in the list
+                        putState(&f, ef);
+                        if (a.e[ef].final)
+                            final = true;
+                    }
+                }
+            }
+            if (onlyfinals && !final)
+                continue;
+            if (nof && final)
+                continue;
+            //test if the state has been seen, and otherwise mark it as seen
+            if (addH(&l, f, &nf)) //add the state to the hash table if new
+            {	
+                //add the state to the list
+                AddEl2(&l, f);
+                //add the state to r
+                if (nof)
+                    final = true;
+                AddState(&r, final);
+                //induction
+                //Determinize_ind(a, id, r, l, onlyfinals, nof, niter+1);
+                cp++;
+            }
+            if (nf != -1)
+            {
+                //add the edge
+                r.e[current].f[i] = nf;
+            }
+        }
+        FreeStates(f);
+    }
+    
 	if (verb)
 		printf("Free...\n");
 	
@@ -2346,7 +3112,7 @@ Automaton Duplicate (Automaton a, InvertDict id, int na2, bool verb)
 	return r;
 }
 
-void ZeroComplete_rec(Automaton *a, int state, bool *vu, int l0, bool verb)
+void ZeroComplete_ind(Automaton *a, int state, bool *vu, int l0, bool verb)
 {
 	if (verb)
 		printf("state %d ..\n", state);
@@ -2358,7 +3124,7 @@ void ZeroComplete_rec(Automaton *a, int state, bool *vu, int l0, bool verb)
 		if (e != -1 && e < a->n)
 		{
 			if (!vu[e])
-				ZeroComplete_rec(a, e, vu, l0, verb);
+				ZeroComplete_ind(a, e, vu, l0, verb);
 			if (i == l0 && a->e[e].final)
 				a->e[state].final = true;
 		}
@@ -2380,7 +3146,64 @@ void ZeroComplete(Automaton *a, int l0, bool verb)
 	int i;
 	for (i=0;i<a->n;i++)
 		vu[i] = false;
-	ZeroComplete_rec(a, a->i, vu, l0, verb);
+	ZeroComplete_ind(a, a->i, vu, l0, verb);
+	free(vu);
+}
+
+//same as ZeroComplete, but without induction
+void ZeroComplete_(Automaton *a, int l0, bool verb)
+{
+	if (verb)
+		printf("l0 = %d\n", l0);
+	if (a->i == -1)
+		return;
+	bool *vu = (bool *)malloc(sizeof(bool)*a->n); //list of seen states
+	if (!vu)
+	{
+		printf("Out of memory !\n");
+		exit(25);
+	}
+	int i;
+	for (i=0;i<a->n;i++)
+		vu[i] = false;
+	int sp = log(a->n)+2; //size of stack
+	int cp = 0; //current index
+	int *se = (int*)malloc(sizeof(int)*sp); //stack
+	//ZeroComplete_ind(a, a->i, vu, l0, verb);
+	se[cp] = a->i;
+	int state;
+	while (cp >= 0)
+	{
+	    //pop
+	    state = se[cp];
+	    cp--;
+	    if (verb)
+		printf("state %d ..\n", state);
+        vu[state] = true;
+        int i, e;
+        for (i=0;i<a->na;i++)
+        {
+            e = a->e[state].f[i];
+            if (e != -1 && e < a->n)
+            {
+                if (!vu[e])
+                {
+                    //ZeroComplete_ind(a, e, vu, l0, verb);
+                    cp++;
+                    if (cp >= sp)
+                    {
+                        //double the stack
+                        sp = sp*2;
+                        se = (int*)realloc(se, sizeof(int)*sp);
+                    }
+                    se[cp] = e;
+                }
+                if (i == l0 && a->e[e].final)
+                    a->e[state].final = true;
+            }
+        }
+	}
+	free(se); //free the stack
 	free(vu);
 }
 
@@ -2493,7 +3316,7 @@ Automaton ZeroInv (Automaton *a, int l0)
 }
 
 int countStates = 0;
-bool prune_inf_rec(Automaton a, int state)
+bool prune_inf_ind(Automaton a, int state)
 {
 	int i, f;
 	bool cycle = false;
@@ -2507,7 +3330,7 @@ bool prune_inf_rec(Automaton a, int state)
 			cycle = true; //the state is part of a cycle
 		if (a.e[f].final == 0)
 		{
-			if (prune_inf_rec(a, f))
+			if (prune_inf_ind(a, f))
 				cycle = true; //the state permits to reach a cycle
 		}
 	}
@@ -2545,7 +3368,7 @@ Automaton prune_inf(Automaton a, bool verb)
 		printf("induction...\n");
 	countStates = 0;
 	if (a.i != -1)
-		prune_inf_rec (a, a.i);
+		prune_inf_ind (a, a.i);
 	
 	if (verb)
 	{
@@ -2609,6 +3432,146 @@ Automaton prune_inf(Automaton a, bool verb)
 	free(l);
 	return r;
 }
+
+//remove every state from which there is no infinite path
+//same as prune_inf, but without induction
+/*
+Automaton prune_inf2(Automaton a, bool verb)
+{
+	int *l = (int *)malloc(sizeof(int)*a.n);
+	if (!l)
+	{
+		printf("Out of memory !\n");
+		exit(25);
+	}
+	
+	//start by computing the list of states of a to keep
+	int i;
+	int *finaux = (int *)malloc(sizeof(int)*a.n);
+	if (!finaux)
+	{
+		printf("Out of memory !\n");
+		exit(13);
+	}
+	for (i=0;i<a.n;i++)
+	{
+		finaux[i] = a.e[i].final;
+		a.e[i].final = 0; //states not seen
+	}
+	if (verb)
+		printf("induction...\n");
+	countStates = 0;
+	if (a.i != -1)
+	{
+	    int sp = log(a.n)+2; //size of stack
+	    int cp = 0; //current index
+	    int *se = (int*)malloc(sizeof(int)*sp);
+		//prune_inf_ind (a, a.i);
+		se[cp] = a.i;
+		bool cycle;
+		while (cp >= 0)
+		{
+		    //pop
+		    state = se[cp];
+		    cp--;
+		    int i, f;
+            cycle = false;
+            a.e[state].final = 1; //mark the state as currently seen
+            for (i=0;i<a.na;i++)
+            {
+                f = a.e[state].f[i];
+                if (f == -1)
+                    continue;
+                if (a.e[f].final == 1)
+                    cycle = true; //the state is part of a cycle
+                if (a.e[f].final == 0)
+                {
+                    //if (prune_inf_ind(a, f))
+                    //    cycle = true; //the state permits to reach a cycle
+                    cp++;
+                    if (cp >= sp)
+                    {
+                        //double the stack
+                        sp = sp*2;
+                        se = (int*)realloc(sizeof(int)*sp);
+                    }
+                    se[cp] = f;
+                    /////////////////////////////////////////////////////////////////////////////////
+                    //////////////////////// TO FINISH !!!!!!!!!!!!!!!
+                    /////////////////////////////////////////////////////////////////////////
+                }
+            }
+            if (!cycle)
+                a.e[state].final = 2; //indicate that we won't keep the state (but it has been seen)
+            else
+                countStates++; //count the states that we keep
+            return cycle;
+		}
+	}
+	
+	if (verb)
+	{
+		printf("States counter = %d\n", countStates);
+		printf("count...\n");
+	}
+	
+	//count the states to keep
+	int cpt = 0;
+	for (i=0;i<a.n;i++)
+	{
+		if (a.e[i].final & 1)
+		{ //new state to add
+			l[i] = cpt;
+			cpt++;
+		}else
+			l[i] = -1;
+	}
+	
+	if (verb)
+		printf("cpt = %d\n", cpt);
+	
+	//create the new automaton
+	int j, f;
+	Automaton r = NewAutomaton(cpt, a.na);
+	for (i=0;i<a.n;i++)
+	{
+		if (l[i] == -1)
+			continue;
+		for (j=0;j<a.na;j++)
+		{
+			f = a.e[i].f[j];
+			r.e[l[i]].f[j] = -1;
+			if (f == -1)
+				continue;
+			if (l[f] != -1)
+			{
+				r.e[l[i]].f[j] = l[f];
+			}
+		}
+	}
+	
+	if (verb)
+		printf("final states...\n");
+	
+	//put back final states as before
+	for (i=0;i<a.n;i++)
+	{
+		a.e[i].final = finaux[i];
+		if (l[i] != -1)
+			r.e[l[i]].final = finaux[i];
+	}
+	
+	//initial state
+	if (a.i != -1)
+		r.i = l[a.i];
+	else
+		r.i = -1;
+	
+	free(finaux);
+	free(l);
+	return r;
+}
+*/
 
 //Compute the mirror, assuming it is deterministic
 Automaton MirrorDet(Automaton a)
@@ -2683,15 +3646,8 @@ NAutomaton Mirror(Automaton a)
 	return r;
 }
 
-int min (int a, int b)
-{
-	if (a < b)
-		return a;
-	return b;
-}
-
 int count2;
-void StronglyConnectedComponents_rec(Automaton a, int state, int *pile, int *m, int *res)
+void StronglyConnectedComponents_ind(Automaton a, int state, int *pile, int *m, int *res)
 {
 	int j,f,c;
 	pile[countStates] = state;
@@ -2706,7 +3662,7 @@ void StronglyConnectedComponents_rec(Automaton a, int state, int *pile, int *m, 
 			continue;
 		if (!(a.e[f].final & 2))
 		{
-			StronglyConnectedComponents_rec(a, f, pile, m, res);
+			StronglyConnectedComponents_ind(a, f, pile, m, res);
 			m[state] = min(m[state], m[f]);
 		}else if (res[f] == -1)
 		{
@@ -2740,7 +3696,103 @@ int StronglyConnectedComponents (Automaton a, int *res)
 	for (i=0;i<a.n;i++)
 	{
 		if (res[i] == -1)
-			StronglyConnectedComponents_rec(a, i, pile, m, res);
+			StronglyConnectedComponents_ind(a, i, pile, m, res);
+	}
+	//put back final states
+	for (i=0;i<a.n;i++)
+	{
+		a.e[i].final &= 1;
+	}
+	free(pile);
+	free(m);
+	return count2;
+}
+
+//Tarjan's algorithm
+//same as StronglyConnectedComponents, but without induction
+int StronglyConnectedComponents2 (Automaton a, int *res)
+{
+	int *m = (int *)malloc(sizeof(int)*a.n);
+	int *pile = (int *)malloc(sizeof(int)*a.n);
+	int i, j,f,c, state;
+	int count2;
+	int sp = log(a.n)+2;
+    int *se = (int*)malloc(sizeof(int)*sp);
+    int *sj = (int*)malloc(sizeof(int)*sp);
+    int *sc = (int*)malloc(sizeof(int)*sp);
+    int cp = 0;
+	for (i=0;i<a.n;i++)
+	{
+		res[i] = -1;
+	}
+	countStates = 0; //count the states added to the stack
+	count2 = 0; //count the strongly connected components
+	for (i=0;i<a.n;i++)
+	{
+		if (res[i] == -1)
+		{
+		    int cp = 0;
+		    //StronglyConnectedComponents_ind(a, i, pile, m, res);
+		    state = i;
+start:		    
+            pile[countStates] = state;
+            m[state] = countStates;
+            c = countStates;
+            a.e[state].final |= 2; //mark the state as seen
+            countStates++;
+            //for (j=0;j<a.na;j++)
+            while(true)
+            {
+                if (j >= a.na)
+                    break;
+                f = a.e[state].f[j];
+                if (f == -1)
+                    continue;
+                if (!(a.e[f].final & 2))
+                {
+                    //StronglyConnectedComponents_ind(a, f, pile, m, res);
+                    //put current data in the stack
+                    se[cp] = f;
+                    sc[cp] = c;
+                    sj[cp] = j;
+                    cp++;
+                    if (cp >= sp)
+                    {
+                        //double the stack
+                        sp = sp*2;
+                        se = (int*)realloc(se, sizeof(int)*sp);
+                    }
+                    state = f;
+                    goto start;
+                    //m[state] = min(m[state], m[f]);
+                }else if (res[f] == -1)
+                {
+                    m[state] = min(m[state], m[f]);
+                }
+middle:
+                j++;
+            }
+            if (m[state] == c)
+            { //we have a strongly connected component
+                //pops the component
+                do
+                {
+                    countStates--;
+                    res[pile[countStates]] = count2;
+                }while(pile[countStates] != state);
+                count2++;
+            }
+            if (cp > 0)
+            {
+                //pop
+                cp--;
+                j = sj[cp];
+                c = sc[cp];
+                state = se[cp];
+                goto middle;
+            }
+            free(se);
+		}
 	}
 	//put back final states
 	for (i=0;i<a.n;i++)
@@ -2753,9 +3805,9 @@ int StronglyConnectedComponents (Automaton a, int *res)
 }
 
 //determine reachable and co-reachable states
-void prune_rec(Automaton a, int *l, InvertDict id, int state)
+void prune_ind(Automaton a, int *l, InvertDict id, int state)
 {
-	//printf("prune_rec %d...\n", state);
+	//printf("prune_ind %d...\n", state);
 	int i, j, f;
 	a.e[state].final |= 2; //mark that this state is currently seen
 	for (i=0;i<a.na;i++)
@@ -2765,7 +3817,7 @@ void prune_rec(Automaton a, int *l, InvertDict id, int state)
 			continue;
 		if (!(a.e[f].final & 2))
 		{ //the state has not been seen
-			prune_rec(a, l, id, f);
+			prune_ind(a, l, id, f);
 		}
 		if ((a.e[f].final & 4) && !(a.e[state].final & 4))
 		{ //we get to a co-final state that is not yet marked as co-final
@@ -2833,7 +3885,7 @@ Automaton prune(Automaton a, bool verb)
 	if (verb)
 		printf("rec...\n");
 	if (a.i != -1)
-		prune_rec(a, l, id, a.i);
+		prune_ind(a, l, id, a.i);
 	
 	//count the states to keep
 	int cpt = 0;
@@ -2996,7 +4048,7 @@ void CoAcc (Automaton *a, int *coa)
 }
 
 //determine reachable states
-void pruneI_rec(Automaton a, int state)
+void pruneI_ind(Automaton a, int state)
 {
 	int i, f;
 	a.e[state].final |= 2; //mark that the state is currently seen
@@ -3007,7 +4059,7 @@ void pruneI_rec(Automaton a, int state)
 			continue;
 		if (!(a.e[f].final & 2))
 		{ //the state has not been seen yet
-			pruneI_rec(a, f);
+			pruneI_ind(a, f);
 		}
 	}
 }
@@ -3019,7 +4071,7 @@ Automaton pruneI(Automaton a, bool verb)
 	int i,j,f;
 	//determine reachable states
 	if (a.i != -1)
-		pruneI_rec(a, a.i);
+		pruneI_ind(a, a.i);
 
 	int *l = (int *)malloc(sizeof(int)*a.n);
 	if (!l)
