@@ -579,8 +579,8 @@ cdef class NFastAutomaton:
 #            self = self._initialise_automaton(a)
 
     def __dealloc__(self):
-        FreeNAutomaton(self.a)
         sig_on()
+        FreeNAutomaton(self.a)
         free(self.a)
         sig_off()
 
@@ -4676,7 +4676,7 @@ cdef class DetAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b'), (0, 3, 'c')], i=0)
-            sage: a.random_word() # random
+            sage: a.random_word()  # random
             ['a']
 
         """
