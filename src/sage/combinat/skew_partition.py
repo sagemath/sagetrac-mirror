@@ -742,10 +742,11 @@ class SkewPartition(CombinatorialElement):
         """
         return SkewPartition([x.conjugate() for x in self])
 
-    def is_symmetric(sp):
-        r""" A SkewPartition is *symmetric* if its inner and outer shapes are symmetric.
+    def is_symmetric(self):
+        r"""
+        This SkewPartition is *symmetric* if its inner and outer shapes are symmetric.
 
-        Return ``True`` if and only if the :class:`SkewPartition` ``sp`` is equal to its own conjugate.
+        Return ``True`` if and only if the :class:`SkewPartition` ``self`` is equal to its own conjugate.
 
         EXAMPLES::
 
@@ -764,11 +765,13 @@ class SkewPartition(CombinatorialElement):
 
             :meth:`Partition.is_symmetric`
         """
-        return sp == sp.conjugate()
+        return self == self.conjugate()
 
-    def is_linked(sp):
+    def is_linked(self):
         r"""
-        A skew-shape ``sp`` is a *skew-linked diagram* if both the row-shape and column-shape of `sp` are partitions.
+        Return whether this skew-shape is a skew-linked diagram.
+
+        This skew-shape ``self`` is a *skew-linked diagram* if and only if both the row-shape and column-shape of ``self`` are partitions.
 
         EXAMPLES:
 
@@ -791,10 +794,11 @@ class SkewPartition(CombinatorialElement):
 
             :meth:`row_lengths`, :meth:`column_lengths`
         """
-        return is_weakly_decreasing(sp.row_lengths()) and is_weakly_decreasing(sp.column_lengths())
+        return is_weakly_decreasing(self.row_lengths()) and is_weakly_decreasing(self.column_lengths())
 
-    def right(sp, row_index):
-        r""" Given a SkewPartition and a 0-based row index, return the 0-based column index of the *rightmost* cell in the corresponding row.  (Section 2.1 of [LLMS2013]_)
+    def right(self, row_index):
+        r"""
+        Given a 0-based row index, return the 0-based column index of the *rightmost* cell in the corresponding row.  (Section 2.1 of [LLMS2013]_)
 
         EXAMPLES::
 
@@ -843,15 +847,16 @@ class SkewPartition(CombinatorialElement):
             :meth:`left`, :meth:`top`, :meth:`bottom`
         """
         # first check to make sure the cell exists
-        if sp.row_lengths()[row_index] == 0:
+        if self.row_lengths()[row_index] == 0:
             return None
-        outer_row_lengths = sp.outer().to_list()
+        outer_row_lengths = self.outer().to_list()
         outer_row_length = outer_row_lengths[row_index]
         col_index = outer_row_length - 1
         return col_index
 
-    def left(sp, row_index):
-        r""" Given a SkewPartition and a 0-based row index, return the 0-based column index of the *leftmost* cell in the corresponding row.  (Section 2.1 of [LLMS2013]_)
+    def left(self, row_index):
+        r"""
+        Given a 0-based row index, return the 0-based column index of the *leftmost* cell in the corresponding row.  (Section 2.1 of [LLMS2013]_)
 
         EXAMPLES::
 
@@ -896,10 +901,10 @@ class SkewPartition(CombinatorialElement):
             :meth:`right`, :meth:`top`, :meth:`bottom`
         """
         # first check to make sure the cell exists
-        if sp.row_lengths()[row_index] == 0:
+        if self.row_lengths()[row_index] == 0:
             return None
-        outer_row_lengths = sp.outer().to_list()
-        inner_row_lengths = sp.inner().to_list()
+        outer_row_lengths = self.outer().to_list()
+        inner_row_lengths = self.inner().to_list()
         if (row_index in range(len(outer_row_lengths))) and (row_index not in range(len(inner_row_lengths))):
             inner_row_length = 0
         else:
@@ -907,8 +912,9 @@ class SkewPartition(CombinatorialElement):
         col_index = inner_row_length
         return col_index
 
-    def top(sp, col_index):
-        r""" Given a SkewPartition and a 0-based column index, return the 0-based row index of the *topmost* cell in the corresponding column.  (Section 2.1 of [LLMS2013]_)
+    def top(self, col_index):
+        r"""
+        Given a 0-based column index, return the 0-based row index of the *topmost* cell in the corresponding column.  (Section 2.1 of [LLMS2013]_)
 
         EXAMPLES::
 
@@ -959,10 +965,11 @@ class SkewPartition(CombinatorialElement):
 
             :meth:`right`, :meth:`left`, :meth:`bottom`
         """
-        return sp.conjugate().right(col_index)
+        return self.conjugate().right(col_index)
 
-    def bottom(sp, col_index):
-        r""" Given a SkewPartition and a 0-based column index, return the 0-based row index of the *bottommost* cell in the corresponding column.  (Section 2.1 of [LLMS2013]_)
+    def bottom(self, col_index):
+        r"""
+        Given a 0-based column index, return the 0-based row index of the *bottommost* cell in the corresponding column.  (Section 2.1 of [LLMS2013]_)
 
         EXAMPLES::
 
@@ -1014,7 +1021,7 @@ class SkewPartition(CombinatorialElement):
 
             :meth:`right`, :meth:`left`, :meth:`top`
         """
-        return sp.conjugate().left(col_index)
+        return self.conjugate().left(col_index)
 
     def outer_corners(self):
         """
@@ -1359,8 +1366,9 @@ class SkewPartition(CombinatorialElement):
                         G.add_edge(string, newstring)
         return G
 
-    def k_boundary_to_partition(sp, k=None, check=True):
-        r""" Given a ``k``-boundary ``sp`` (`k`-boundaries are a specific type of skew-shape), output the original partition whose `k`-boundary is ``sp``.
+    def k_boundary_to_partition(self, k=None, check=True):
+        r"""
+        Given a ``k``-boundary ``self`` (`k`-boundaries are a specific type of skew-shape), output the original partition whose `k`-boundary is ``self``.
 
         (For the definition of `k`-boundary, see Section 2.2 of [LLMS2013]_)
 
@@ -1390,13 +1398,14 @@ class SkewPartition(CombinatorialElement):
             :meth:`is_k_boundary`, :meth:`outer`
         """
         if check:
-            assert sp.is_k_boundary(k)
-        return sp.outer()
+            assert self.is_k_boundary(k)
+        return self.outer()
 
-    def is_k_boundary(sp, k=None):
-        r""" Given a skew-shape ``sp`` and natural number ``k``, return ``True`` if and only if ``sp`` is a `k`-boundary.  (Section 2.2 of [LLMS2013]_)
+    def is_k_boundary(self, k=None):
+        r"""
+        Given a skew-shape ``self`` and natural number ``k``, return ``True`` if and only if ``self`` is a `k`-boundary.  (Section 2.2 of [LLMS2013]_)
 
-        Given a skew-shape ``sp`` *only*, return ``True`` if and only if there exists some `k` such that ``sp`` is a `k`-boundary.
+        If `k` is not specified or ``None``, return ``True`` if and only if there exists some `k` such that ``self`` is a `k`-boundary.
 
         TODO: test
 
@@ -1415,6 +1424,7 @@ class SkewPartition(CombinatorialElement):
 
             :meth:`Partition.k_boundary`
         """
+        sp = self
         if k is None:
             max_hook_length = sp.outer().hook_length(0, 0)
             return any(sp.is_k_boundary(k_star) for k_star in range(0, max_hook_length+1))
@@ -2283,7 +2293,8 @@ class SkewPartitions_rowlengths(SkewPartitions):
                 yield self.element_class(self, sp)
 
 def row_shape_to_linked_skew_partitions(rs):
-    r""" Given a partition ``rs``, find all linked SkewPartitions whose row-shape is ``rs``.
+    r"""
+    Given a partition ``rs``, find all linked SkewPartitions whose row-shape is ``rs``.
 
     EXAMPLES:
 
@@ -2385,11 +2396,12 @@ def row_shape_to_linked_skew_partitions(rs):
                     incomplete_thing, p[-1])
             return almost_complete_things
     # START row_shape_to_linked_skew_partitions
-    rs_zero = list(Partition(rs)) + [0]
+    rs_zero = list(_Partitions(rs)) + [0]
     return ptn_to_linked_things(rs_zero)
 
 def size_to_linked_skew_partitions(size):
-    r""" Given a natural number ``size``, return all linked SkewPartitions of size ``size``.
+    r"""
+    Given a natural number ``size``, return all linked SkewPartitions of size ``size``.
 
     EXAMPLES::
 
