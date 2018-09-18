@@ -645,7 +645,7 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
             sage: M2._inner_product_is_dot_product()
             True
         """
-        return self.inner_product_matrix() == 1
+        return False
 
     def _inner_product_is_diagonal(self):
         """
