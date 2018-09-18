@@ -2652,7 +2652,8 @@ class GenusSymbol_global_ring(object):
         if algorithm == "magma":
             from sage.interfaces.magma import Magma
             magma = Magma()
-            magma.set_server_and_command(command="/LOCAL/magma/magma")
+            magma.set_server_and_command(command="magma")
+            #magma.set_server_and_command(command="/LOCAL/magma/magma")
             if prod(self.signature_pair_of_matrix()) != 0:
                 if n <= 2:
                     raise NotImplementedError()

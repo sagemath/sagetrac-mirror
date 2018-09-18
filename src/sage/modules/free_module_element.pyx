@@ -3222,12 +3222,12 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         M = self.parent()
         if M.is_ambient() or M.uses_ambient_inner_product():
             A = M.ambient_module().inner_product_matrix()
-            return A.linear_combination_of_rows(self).dot_product(right)
+            return self*A*right
         else:
             A = M.inner_product_matrix()
             v = M.coordinate_vector(self)
             w = M.coordinate_vector(right)
-            return A.linear_combination_of_rows(v).dot_product(w)
+            return v*A*w
 
     def outer_product(self, right):
         r"""

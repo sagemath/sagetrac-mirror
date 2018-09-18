@@ -227,6 +227,10 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
     def _preserves_form(self, f):
         r"""
         Return if f preserves the form.
+
+        INPUT:
+
+        Something that acts on the domain.
         """
         g = self.invariant_form().smith_form_gens()
         for i in range(len(g)):
@@ -582,7 +586,6 @@ class ActionOnFqf(Action):
             v = (a.vector()*g.matrix())
             P = a.parent()
             return P.linear_combination_of_smith_form_gens(v)
-
 
 def det_spin_p(G, T, p, nu):
     r"""
