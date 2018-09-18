@@ -2912,7 +2912,8 @@ cdef class GapElement_Record(GapElement):
             sage: rec.record_name_to_index('no_such_name') # random output
             3776L
         """
-        name = str_to_bytes(name)
+        # name = str_to_bytes(name)
+        cdef char* c_name = py_name
 
         try:
             libgap_enter()
