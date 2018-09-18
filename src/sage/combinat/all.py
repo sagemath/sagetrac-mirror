@@ -35,9 +35,9 @@ from .schubert_polynomial import SchubertPolynomialRing
 from .symmetric_group_algebra import SymmetricGroupAlgebra, HeckeAlgebraSymmetricGroupT
 from .symmetric_group_representations import SymmetricGroupRepresentation, SymmetricGroupRepresentations
 from .yang_baxter_graph import YangBaxterGraph
-#from hall_littlewood import HallLittlewood_qp, HallLittlewood_q, HallLittlewood_p
+# from hall_littlewood import HallLittlewood_qp, HallLittlewood_q, HallLittlewood_p
 
-#Permutations
+# Permutations
 from .permutation import Permutation, Permutations, Arrangements, CyclicPermutations, CyclicPermutationsOfPartition
 from .affine_permutation import AffinePermutationGroup
 lazy_import('sage.combinat.colored_permutations', ['ColoredPermutations',
@@ -45,23 +45,23 @@ lazy_import('sage.combinat.colored_permutations', ['ColoredPermutations',
 from .derangements import Derangements
 lazy_import('sage.combinat.baxter_permutations', ['BaxterPermutations'])
 
-#RSK
+# RSK
 from .rsk import RSK, RSK_inverse, robinson_schensted_knuth, robinson_schensted_knuth_inverse
 
-#HillmanGrassl
+# HillmanGrassl
 lazy_import("sage.combinat.hillman_grassl", ["WeakReversePlanePartition", "WeakReversePlanePartitions"])
 
-#PerfectMatchings
+# PerfectMatchings
 from .perfect_matching import PerfectMatching, PerfectMatchings
 
 # Integer lists
 from .integer_lists import IntegerListsLex
 
-#Compositions
+# Compositions
 from .composition import Composition, Compositions
 from .composition_signed import SignedCompositions
 
-#Partitions
+# Partitions
 from .partition import Partition, Partitions, PartitionsInBox,\
      OrderedPartitions, PartitionsGreatestLE, PartitionsGreatestEQ,\
      PartitionsGreatestLE, PartitionsGreatestEQ, number_of_partitions
@@ -70,26 +70,29 @@ lazy_import('sage.combinat.partition_tuple', ['PartitionTuple', 'PartitionTuples
 lazy_import('sage.combinat.partition_kleshchev', ['KleshchevPartitions'])
 lazy_import('sage.combinat.skew_partition', ['SkewPartition', 'SkewPartitions'])
 
-#Partition algebra
+# kShapes
+from .k_shape import kShape
+
+# Partition algebra
 from .partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk, SetPartitionsIk, SetPartitionsBk, SetPartitionsSk, SetPartitionsRk, SetPartitionsRk, SetPartitionsPRk
 
-#Diagram algebra
+# Diagram algebra
 from .diagram_algebras import PartitionAlgebra, BrauerAlgebra, TemperleyLiebAlgebra, PlanarAlgebra, PropagatingIdeal
 
-#Descent algebra
+# Descent algebra
 from .descent_algebra import DescentAlgebra
 
-#Vector Partitions
+# Vector Partitions
 from .vector_partition import VectorPartition, VectorPartitions
 
-#Similarity class types
+# Similarity class types
 from .similarity_class_type import PrimarySimilarityClassType, PrimarySimilarityClassTypes, SimilarityClassType, SimilarityClassTypes
 
-#Cores
+# Cores
 from .core import Core, Cores
 
-#Tableaux
-lazy_import('sage.combinat.tableau',["Tableau", "SemistandardTableau", "StandardTableau", "RowStandardTableau", 
+# Tableaux
+lazy_import('sage.combinat.tableau',["Tableau", "SemistandardTableau", "StandardTableau", "RowStandardTableau",
                                      "Tableaux","SemistandardTableaux","StandardTableaux","RowStandardTableaux"])
 from .skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux, SemistandardSkewTableaux
 from .ribbon_shaped_tableau import RibbonShapedTableau, RibbonShapedTableaux, StandardRibbonShapedTableaux
@@ -104,20 +107,20 @@ lazy_import('sage.combinat.lr_tableau', ['LittlewoodRichardsonTableau',
 lazy_import('sage.combinat.shifted_primed_tableau', ['ShiftedPrimedTableaux',
                                                      'ShiftedPrimedTableau'])
 
-#Words
+# Words
 from .words.all import *
 
 from .subword import Subwords
 
 from .graph_path import GraphPaths
 
-#Tuples
+# Tuples
 from .tuple import Tuples, UnorderedTuples
 
-#Alternating sign matrices
+# Alternating sign matrices
 from .alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices, MonotoneTriangles, ContreTableaux, TruncatedStaircases
 
-#Plane Partitions
+# Plane Partitions
 from .plane_partition import PlanePartition, PlanePartitions
 
 # Parking Functions
@@ -140,7 +143,7 @@ from .cartesian_product import CartesianProduct
 from .set_partition import SetPartition, SetPartitions
 from .set_partition_ordered import OrderedSetPartition, OrderedSetPartitions
 from .subset import Subsets
-#from subsets_pairwise import PairwiseCompatibleSubsets
+# from subsets_pairwise import PairwiseCompatibleSubsets
 from .necklace import Necklaces
 from .lyndon_word import LyndonWord, LyndonWords, StandardBracketedLyndonWords
 from .dyck_word import DyckWords, DyckWord
@@ -159,7 +162,7 @@ from .posets.all import *
 # Cluster Algebras and Quivers
 from .cluster_algebra_quiver.all import *
 
-#import lrcalc
+# import lrcalc
 
 from . import ranker
 
