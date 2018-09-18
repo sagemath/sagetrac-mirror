@@ -1,4 +1,7 @@
 
+
+
+
 OnSubgroups:=function(x,g)
 # indeed this is a right action.
 # INPUT:
@@ -9,8 +12,7 @@ OnSubgroups:=function(x,g)
 return Image(g,x);
 end;
 
-
-ElemAbelSubgrpOrbsStabs:=function(G, aut, gens_aut, gens_act)
+ElemAbelSubgrpOrbsStabs:=function(G, aut, gens_aut, gens_act, min_order, max_order)
   # Return Orbits and Stabilizers of the subgroups of G modulo aut.
   # INPUT:
   # G -- an elementary abelian group
@@ -26,11 +28,16 @@ ElemAbelSubgrpOrbsStabs:=function(G, aut, gens_aut, gens_act)
   # repr  -- a subgroup of G
   # stab  -- a subgroup of aut
 
-  local subs,i,k, n, p, gens_mats, MatrixRepresentation, V, orbits,
+  local act,subs,i,k, n,min, max, p, gens_mats, MatrixRepresentation, V, orbits,
   subgrp, stab, subgroups, pcgs, orb;
 
   pcgs:= Pcgs(G); # a basis
   p:= Order(pcgs[1]); # a prime number
+  if p=2 then
+    act:=OnSubspacesByCanonicalBasisGF2;
+  else
+    act:=OnSubspacesByCanonicalBasis;
+  fi;
   # we compute with respect to a given pcgs
   MatrixRepresentation:= function(f, pcgs)
     return List(pcgs, i -> ExponentsOfPcElement(pcgs, Image(f,i)))*One(GF(p));
@@ -40,14 +47,28 @@ ElemAbelSubgrpOrbsStabs:=function(G, aut, gens_aut, gens_act)
 
   n:= Size(pcgs);
   V:= GF(p)^n;
-  subgroups:= [rec(repr:=Subgroup(G,[]), stab:=aut)];
-  for k in [1..n] do
-    subs:= List(Subspaces(V, k), i->Basis(i)); # is this the fastest way?
-    orbits:= ExternalOrbitsStabilisers(aut, subs, gens_aut, gens_mats, OnSubspacesByCanonicalBasis);
+  min:= Valuation(min_order, p);
+  max:= Valuation(max_order, p);
+  max:= Minimum(max,n);
+  # treat the trivial subgroup
+  if min = 0 then
+    subgroups:= [rec(repr:=Subgroup(G,[]), stab:=aut)];
+    min:=1;
+  else
+    subgroups:= [];
+  fi;
+
+  for k in [min..max] do
+    subs:= List(Subspaces(V, k), i->Basis(i));
+    # somehow this is slow
+    # orbits:= ExternalOrbitsStabilisers(aut, subs, gens_aut, gens_mats, OnSubspacesByCanonicalBasis);
+    orbits:= OrbitsDomain(aut, subs, gens_aut, gens_mats, act);
+
     # transform orbit reps back to subgroups of G
     for orb in orbits do
-      subgrp:= Subgroup(G, List(Representative(orb),i -> PcElementByExponents(pcgs,i)));
-      stab:= StabilizerOfExternalSet(orb);
+      orb:=orb[1];
+      stab:= Stabilizer(aut, orb, gens_aut, gens_mats, act);
+      subgrp:= Subgroup(G, List(orb,i -> PcElementByExponents(pcgs,i)));
       Add(subgroups, rec(repr:=subgrp, stab:=stab) );
    od;
   od;
@@ -55,7 +76,7 @@ ElemAbelSubgrpOrbsStabs:=function(G, aut, gens_aut, gens_act)
 end;
 
 
-SubgroupReps1:=function(epi, aut, gens_aut, gens_act)
+SubgroupReps1:=function(epi, aut, gens_aut, gens_act, max_order)
   # INPUT:
   # epi: G0 --> G1 an epimorphism of abelian groups
   # aut < Aut(G0) a subgroup
@@ -88,7 +109,7 @@ SubgroupReps1:=function(epi, aut, gens_aut, gens_act)
     fi;
   od;
   # now N is minimal
-  Blist:= ElemAbelSubgrpOrbsStabs(N, aut, gens_aut, gens_act);
+  Blist:= ElemAbelSubgrpOrbsStabs(N, aut, gens_aut, gens_act, 1, max_order);
   subgrps_rep:= Blist;
 
   if Size(N) = Size(G1) then
@@ -100,7 +121,7 @@ SubgroupReps1:=function(epi, aut, gens_aut, gens_act)
   GmodN:=Image(epi_mod);
   aut_on_GmodN:= List(gens_act, i->InducedAutomorphism(epi_mod, i));
   epi_new:= CompositionMapping(epi_mod,epi);
-  Alist:= SubgroupReps1(epi_new, aut, gens_aut, aut_on_GmodN);
+  Alist:= SubgroupReps1(epi_new, aut, gens_aut, aut_on_GmodN, max_order);
   for A in Alist do
     A.repr:= PreImage(epi_mod, A.repr);
   od;
@@ -114,10 +135,11 @@ SubgroupReps1:=function(epi, aut, gens_aut, gens_act)
     A:= A.repr;
     # could this be handled quicker by Blist and fusion? How?
     act:= List(GeneratorsOfGroup(stabA), i->InducedAutomorphism(epi,i));
-    Blist_A:= ElemAbelSubgrpOrbsStabs(N, stabA, GeneratorsOfGroup(stabA), act );
+    Blist_A:= ElemAbelSubgrpOrbsStabs(N, stabA, GeneratorsOfGroup(stabA), act, 1, max_order);
     # we want only proper subgroups -> remove N
-    Assert(0, Size(Blist_A[Size(Blist_A)].repr)=Size(N)); # asser the last entry is N
-    Remove(Blist_A, Size(Blist_A));
+    if Size(Blist_A[Size(Blist_A)].repr)=Size(N) then # asser the last entry is N
+        Remove(Blist_A, Size(Blist_A));
+    fi;
     for B in Blist_A do
       C_AB:= B.stab;
       B:= B.repr;
@@ -141,7 +163,7 @@ SubgroupReps1:=function(epi, aut, gens_aut, gens_act)
   return subgrps_rep;
 end;
 
-SubgroupRepresentatives:=function(G, aut)
+SubgroupRepresentatives:=function(G, aut, max_order)
   # Compute representatives and stabilizers of all subgroups
   # {B < G} / aut
   # up to the action of aut
@@ -156,8 +178,31 @@ SubgroupRepresentatives:=function(G, aut)
   # repr  -- a subgroup of G
   # stab  -- a subgroup of aut
   #
-  local gens_aut;
+  local gens_aut, epi;
   gens_aut:=GeneratorsOfGroup(aut);
   epi:= GroupHomomorphismByImages(G, G, GeneratorsOfGroup(G), GeneratorsOfGroup(G));
-  return SubgroupReps1(epi, aut, gens_aut, gens_aut);
+  return SubgroupReps1(epi, aut, gens_aut, gens_aut, max_order);
 end;
+
+
+
+SubgroupRepresentatives_elementary:=function(G, aut, order)
+  # Compute representatives and stabilizers of all subgroups
+  # {B < G} / aut
+  # up to the action of aut
+  # sorted by their order
+  #
+  # INPUT:
+  # - G -- an elementary abelian group
+  # - aut -- a subgroup of AutomorphismGroup(G)
+  #
+  # OUTPUT:
+  # A list consisting of records with entries
+  # repr  -- a subgroup of G
+  # stab  -- a subgroup of aut
+  #
+  local gens_aut, epi;
+  gens_aut:=GeneratorsOfGroup(aut);
+  return ElemAbelSubgrpOrbsStabs(G, aut, gens_aut, gens_aut, order, order);
+end;
+
