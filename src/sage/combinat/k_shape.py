@@ -14,12 +14,13 @@ from sage.sets.non_negative_integers import NonNegativeIntegers
 
 from sage.combinat.partition import Partition, Partitions, k_rectangle_dimension_list
 
-def is_k_shape(ptn, k):
-    r""" A partition is a `k`-*shape* if its `k`-boundary has row-shape and col-shape that are partitions themselves. (Definition 2.1 of .next_within_bounds_)
+def is_k_shape(self, k):
+    r"""
+    A partition is a `k`-*shape* if its `k`-boundary has row-shape and col-shape that are partitions themselves. (Definition 2.1 of .next_within_bounds_)
 
-    Given a :class:`Partition` ``ptn`` and a natural number ``k``, returns ``True`` if and only if ``ptn`` is a `k`-shape.
+    Given a :class:`Partition` ``self`` and a natural number ``k``, returns ``True`` if and only if ``self`` is a `k`-shape.
 
-    Given a :class:`Partition` ``ptn`` *only*, returns ``True`` if and only if there exists some `k \in [1, n-1]` such that ``ptn`` is a `k`-shape.
+    Given a :class:`Partition` ``self`` *only*, returns ``True`` if and only if there exists some `k \in [1, n-1]` such that ``self`` is a `k`-shape.
 
     EXAMPLES::
 
@@ -29,7 +30,7 @@ def is_k_shape(ptn, k):
         sage: is_k_shape(Partition([3, 1]), 2)
         True
     """
-    ptn = Partition(ptn)
+    ptn = _Partitions(self)
     if k is None:
         # see if it's a k-shape for any k in [1, n-1].
         # (note that every partition is a 0-shape and an n-shape)
@@ -49,12 +50,13 @@ class kShape(Partition):
         assert k in NonNegativeIntegers()
         self.k = k
         assert is_k_shape(p, self.k)
-        p = Partition(p)
+        p = _Partitions(p)
         # Partition.__init__(self, Partitions, p)
         super(Partition, self)
 
     def h_bounds(self, width):
-        r""" Recall the `H_i` as defined in Definition 3.3 of .next_within_bounds_.
+        r"""
+        Recall the `H_i` as defined in Definition 3.3 of [HM2011]_.
 
         Given a natural number ``k`` (used for the `k`-shape or `k`-boundary) and a width ``width``, returns `(y_\text{min}, y_\text{max})`, the two vertical coordinates which define the horizontal strip.
 
@@ -98,7 +100,8 @@ class kShape(Partition):
         return (y_min, y_max)
 
     def v_bounds(self, height):
-        r""" This is `V_i`, the vertical analog of :meth:`h_bounds`.
+        r"""
+        This is `V_i`, the vertical analog of :meth:`h_bounds`.
 
         EXAMPLES:
 
@@ -136,17 +139,18 @@ class kShape(Partition):
         return self.h_bounds(self.conjugate(), height)
 
     def is_k_reducible_by_rectangle(self, height, width):
-        r""" Checks if the ``k``-shape is `k`-reducible for a `k`-rectangle of specific dimensions `h` x `w`.
+        r"""
+        Checks if this `k`-shape is `k`-reducible for a `k`-rectangle of dimensions ``height`` x ``width``.
 
         See Proposition 3.8 in Combinatorics of k-shapes and Genocchi numbers.
 
         INPUTS:
 
-        - ``p`` -- a Partition (and a `k`-shape)
+        - ``self`` -- a kShape
 
-        - ``k`` -- the `k` of the `k`-shape
+        - ``height`` -- the height of the rectangle.
 
-        - ``hw`` -- an ordered pair ``hw`` = `(h, w)`, where `h` is the height of the rectangle and `w` is the width.
+        - ``width`` -- the width of the rectangle.
 
         EXAMPLES:
 
@@ -207,13 +211,14 @@ class kShape(Partition):
             return max_y - min_y >= w
 
     def is_reducible(self):
-        r""" A ``k``-shape ``ptn`` is called *reducible* if there exists a `k`- or `k-1`-rectangle corresponding to both the `k`-row-shape and `k`-column-shape of `ptn`.
+        r"""
+        Return ``True`` if and only if ``self`` is reducible.
 
-        For a more rigorous definition, see Definition 3.7 of .next_within_bounds_.
+        A `k`-shape ``self`` is called *reducible* if there exists a `k`- or `k-1`-rectangle corresponding to both the `k`-row-shape and `k`-column-shape of `self`.
+
+        For a more rigorous definition, see Definition 3.7 of [HM2011]_.
 
         Note that this is different than the definition of a reducible partition!
-
-        Given a `k`-shape ``ptn`` and a natural number ``k``, returns ``True`` if and only if ``ptn`` is reducible.
 
         (Also, a `k`-shape is reducible if and only if it is not irreducible.)
 
@@ -264,11 +269,12 @@ class kShape(Partition):
         return False
 
     def is_irreducible(self):
-        r""" A ``k``-shape ``ptn`` is called *irreducible* if there does *not* exist a `k`- or `k-1`-rectangle corresponding to both the `k`-row-shape and `k`-column-shape of `ptn`.
+        r"""
+        Return ``True`` if and only if ``self`` is irreducible.
 
-        For a more rigorous definition, see Definition 3.7 of .next_within_bounds_.
+        A `k`-shape ``self`` is called *irreducible* if there does *not* exist a `k`- or `k-1`-rectangle corresponding to both the `k`-row-shape and `k`-column-shape of ``self``.
 
-        Given a `k`-shape ``ptn`` and a natural number ``k``, returns ``True`` if and only if ``ptn`` is irreducible.
+        For a more rigorous definition, see Definition 3.7 of [HM2011]_.
 
         (Also, a `k`-shape is irreducible if and only if it is not reducible.)
 
@@ -292,7 +298,8 @@ class kShape(Partition):
 
 ############# GETTER FUNCS ############
 def k_to_irreducible_k_shapes(k):
-    r""" Given a natural number ``k``, return a list of all irreducible `k`-shapes.
+    r"""
+    Given a natural number ``k``, return a list of all irreducible ``k``-shapes.
 
     Note that the algorithm runs very slowly after `k=4` :(.
 
