@@ -23,14 +23,13 @@ from cysignals.signals cimport sig_on, sig_off
 
 from .gap_includes cimport *
 from .util cimport *
-from sage.cpython.string cimport char_to_str, str_to_bytes
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object cimport SageObject
 from sage.structure.parent import Parent
 from sage.rings.all import ZZ, QQ, RDF
 
 decode_type_number = {
-    T_INT: 'T_INT (integer)',
+    0: 'T_INT (integer)',
     T_INTPOS: 'T_INTPOS (positive integer)',
     T_INTNEG: 'T_INTNEG (negative integer)',
     T_RAT: 'T_RAT (rational number)',
@@ -198,7 +197,7 @@ cdef GapElement make_any_gap_element(parent, Obj obj):
     if obj is NULL:
         return make_GapElement(parent, obj)
     cdef int num = TNUM_OBJ(obj)
-    if num == T_INT or num == T_INTPOS or num == T_INTNEG:
+    if IS_INT(obj):
         return make_GapElement_Integer(parent, obj)
     elif num == T_MACFLOAT:
         return make_GapElement_Float(parent, obj)
@@ -1079,7 +1078,7 @@ cdef class GapElement(RingElement):
         libgap = self.parent()
         cdef GapElement r_sage = libgap.IsBool(self)
         cdef Obj r_gap = r_sage.value
-        return r_gap == libGAP_True
+        return r_gap == GAP_True
 
     def is_string(self):
         r"""
@@ -1302,13 +1301,13 @@ cdef class GapElement_Integer(GapElement):
 
             sage: int(libgap(3))
             3
-            sage: type(_) is int
-            True
+            sage: type(_)
+            <... 'int'>
 
             sage: int(libgap(2)**128)
             340282366920938463463374607431768211456L
-            sage: type(_) is long
-            True
+            sage: type(_)
+            <type 'long'>
         """
         return self.sage(ring=int)
 
@@ -2007,9 +2006,9 @@ cdef class GapElement_Boolean(GapElement):
             ...
             ValueError: the GAP boolean value "fail" cannot be represented in Sage
         """
-        if self.value == libGAP_True:
+        if self.value == GAP_True:
             return True
-        if self.value == libGAP_False:
+        if self.value == GAP_False:
             return False
         raise ValueError('the GAP boolean value "fail" cannot be represented in Sage')
 
@@ -2037,7 +2036,7 @@ cdef class GapElement_Boolean(GapElement):
             false <type 'sage.libs.gap.element.GapElement_Boolean'>
             fail <type 'sage.libs.gap.element.GapElement_Boolean'>
         """
-        return self.value == libGAP_True
+        return self.value == GAP_True
 
 
 ############################################################################
@@ -2420,7 +2419,7 @@ cdef class GapElement_MethodProxy(GapElement_Function):
             sage: lst
             [ 1,, 3, 4, 5 ]
         """
-        if args:
+        if len(args) > 0:
             return GapElement_Function.__call__(self, * ([self.first_argument] + list(args)))
         else:
             return GapElement_Function.__call__(self, self.first_argument)
@@ -2629,8 +2628,6 @@ cdef class GapElement_List(GapElement):
 
         if j < 0:
             raise IndexError('index out of range.')
-        return make_any_gap_element(self.parent(),
-                                    ELM_LIST(self.value, i+1))
 
         cdef GapElement celt
         if isinstance(elt, GapElement):
@@ -2898,7 +2895,7 @@ cdef class GapElement_Record(GapElement):
 
         INPUT:
 
-        - ``name`` -- a python string.
+        - ``py_name`` -- a python string.
 
         OUTPUT:
 
@@ -2914,8 +2911,7 @@ cdef class GapElement_Record(GapElement):
             sage: rec.record_name_to_index('no_such_name') # random output
             3776L
         """
-        name = str_to_bytes(name)
-
+        cdef char* c_name = py_name
         try:
             libgap_enter()
             return RNamName(c_name)
