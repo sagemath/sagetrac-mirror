@@ -473,6 +473,10 @@ REFERENCES:
 
 .. [Bo2009] Bosch, S., Algebra, Springer 2009
 
+.. [Bonin2017] Joseph E. Bonin, *Lattices Related to Extensions of
+               Presentations of Transversal Matroids*.
+               Electronic Journal of Combinatorics (2017), #P1.49.
+
 .. [Bou1989] \N. Bourbaki. *Lie Groups and Lie Algebras*. Chapters 1-3.
              Springer. 1989.
 
