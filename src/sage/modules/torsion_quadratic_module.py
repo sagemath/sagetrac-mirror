@@ -352,6 +352,8 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage:
         """
         invs = self.invariants()
+        if len(invs) == 0:
+            return matrix([])
         R = IntegerModRing(invs[-1])
         E = matrix.identity(R, len(invs))
         # view self as a submodule of (ZZ/nZZ)^(len(invs))
@@ -692,7 +694,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: D.is_degenerate()
             True
         """
-        return 0 != self.orthogonal_submodule_to(self.gens())
+        return 1 != self.orthogonal_submodule_to(self.gens()).cardinality()
 
     def is_genus(self, signature_pair, even=True):
         r"""
@@ -1061,8 +1063,37 @@ class TorsionQuadraticModule(FGP_Module_class):
         from sage.groups.fqf_orthogonal.group import FqfOrthogonalGroup
         from sage.groups.fqf_orthogonal.group import _compute_gens
         from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+        from sage.groups.matrix_gps.linear import GL
+        from sage.matrix.matrix_space import MatrixSpace
+        from sage.rings.all import GF
+        from copy import copy
+        if not self.is_degenerate():
+            gens = _compute_gens(self.normal_form()) #are we assuming normal form??
+        elif self.invariants()[-1].is_prime():
+            p = self.invariants()[-1]
+            n = len(self.invariants())
+            T = _normalize(self)
+            q = T.gram_matrix_quadratic()
+            k = len([i for i in range(n) if q[:,i]==0])
+            r = n - k
+            Idk = matrix.identity(k)
+            Idr = matrix.identity(r)
+            TR = T.submodule_with_gens(T.gens()[k:])
+            gensTR = [TR._to_smith()*g*TR._to_gens() for g in _compute_gens(TR)]
+            if k > 0:
+                gens = [matrix.block_diagonal([Idk,g]) for g in gensTR]
+                gens += [matrix.block_diagonal([g.matrix(),Idr]) for g in GL(k,p).gens()]
+            else:
+                gens = gensTR
+            if k>0 and r>0:
+                h = matrix.identity(n)
+                for g in MatrixSpace(GF(p),r,k).basis():
+                    h[k:,:k] = g
+                    gens.append(copy(h))
+            gens = [T._to_gens() * g * T._to_smith() for g in gens]
+        else:
+            raise NotImplementedError()
         ambient = AbelianGroupGap(self.invariants()).aut()
-        gens = _compute_gens(self.normal_form()) #are we assuming normal form??
         gens = [ambient(g) for g in gens]
         gens = tuple(g for g in gens if g != ambient.one())
         return FqfOrthogonalGroup(ambient, gens, self)
@@ -1398,7 +1429,8 @@ class TorsionQuadraticModule(FGP_Module_class):
         stab = libgap.Stabilizer(G.gap(), Sgap, mu)
         return stab
 
-    def subgroup_representatives(self, H, G, algorithm="hulpke"):
+    def subgroup_representatives(self, H, G, algorithm="hulpke", return_stabilizers=False,
+                                 order=None, max_order=None):
         r"""
         Return representatives of the subgroups of `H` modulo the action of `G`.
 
@@ -1425,28 +1457,40 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: len(subs1) == len(subs2)
             True
         """
+        if max_order is None:
+            max_order = self.cardinality()
         A = G.domain()
         Hgap = A.subgroup([A(self(h)) for h in H.gens()]).gap()
         from sage.libs.gap.libgap import libgap
         if algorithm=="brute force":
             mu = libgap.function_factory("mu:=function(x,g) return(Image(g,x)); end;")
             all_subgroups = Hgap.AllSubgroups()
-            subgroup_reps = G.gap().OrbitsDomain(all_subgroups, mu)
+            subgroup_reps = G.gap().ExternalOrbitsStabilizers(all_subgroups, mu)
             # take a representative in each orbit
-            subgroup_reps = [S[0] for S in subgroup_reps]
+            subgroup_reps = [dict([['repr', S.Representative()],['stab', S.Stabilizer()]]) for S in subgroup_reps]
         elif algorithm == "hulpke":
             from sage.env import SAGE_EXTCODE
             gapcode = SAGE_EXTCODE + '/gap/subgroup_orbits/subgroup_orbits.g'
             libgap.Read(gapcode)
             subgroup_reps = libgap.function_factory("SubgroupRepresentatives")
-            subgroup_reps = [dict(S)["repr"] for S in subgroup_reps(Hgap, G)]
+            subgroup_reps = [dict(S) for S in subgroup_reps(Hgap, G, max_order)]
+        elif algorithm =="elementary abelian":
+            from sage.env import SAGE_EXTCODE
+            gapcode = SAGE_EXTCODE + '/gap/subgroup_orbits/subgroup_orbits.g'
+            libgap.Read(gapcode)
+            subgroup_reps = libgap.function_factory("SubgroupRepresentatives_elementary")
+            subgroup_reps = [dict(S) for S in subgroup_reps(Hgap, G, order)]
         else:
             raise ValueError("not a valid algorithm")
         # convert back to sage
-        subgroup_reps = map(self._subgroup_from_gap, subgroup_reps)
+        if return_stabilizers:
+            subgroup_reps = [[self._subgroup_from_gap(S['repr']),G.subgroup(S['stab'].GeneratorsOfGroup())] for S in subgroup_reps]
+        else:
+            subgroup_reps = [self._subgroup_from_gap(S['repr']) for S in subgroup_reps]
+        #subgroup_reps = map(self._subgroup_from_gap, subgroup_reps)
         return subgroup_reps
 
-    def all_primitive_modulo(self, H1, H2, G, algorithm='hulpke', combined=True):
+    def all_primitive_modulo(self, H1, H2, G, algorithm='hulpke'):
         r"""
         Return all totally isotropic subgroups `S` of `H1 + H2` such that
         ``H1 & S == 1`` and ``H2 & S = 1`` modulo the subgroup
@@ -1472,43 +1516,189 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: q.all_primitive_modulo(3*fs.image(),fo.image())
         """
         primitive_extensions = []
-        if combined:
-            A = G.domain()
-            H = self.submodule(H1.gens() + H2.gens())
-            if len(H.invariants()) > 6:
-                print("this might take a while. Invariants: %s" %(H.invariants(),))
-            subgroup_reps = self.subgroup_representatives(H, G, algorithm=algorithm)
-
-            # filter for primitive and isotropic
-            for S in subgroup_reps:
-                if S.gram_matrix_quadratic() == 0:
-                    if S.V() & H1.V() == self.W() and S.V() & H2.V() == self.W():
-                        primitive_extensions.append(S)
-        else:
-            if H1.cardinality()==1 or H2.cardinality() == 1:
-                return [self.submodule([])]
-            p1 = H1.invariants()[-1]
-            p2 = H2.invariants()[-1]
-            if p1 != p2:
-                raise ValueError("invariants do not match")
-            if not p1.is_prime():
-                raise ValueError("not a prime number")
-            subs1 = self.subgroup_representatives(H1, G, algorithm=algorithm)
-            subs2 = self.subgroup_representatives(H2, G, algorithm=algorithm)
-            subs1 = [_normalize(s) for s in subs1]
-            subs2 = [_normalize(s.twist(-1)) for s in subs2]
-            for S1 in subs1:
-                n = len(S1.gens())
-                for S2 in subs2:
-                    q1 = S1.gram_matrix_quadratic()
-                    q2 = S2.gram_matrix_quadratic()
-                    if q1 == q2:
-                        gen = [self(S1.gens()[i])+self(S2.gens()[i]) for i in range(n)]
-                        S = self.submodule(gen)
-                        assert S.gram_matrix_bilinear() == 0
-                        assert S.gram_matrix_quadratic() == 0
-                        primitive_extensions.append(S)
+        A = G.domain()
+        H = self.submodule(H1.gens() + H2.gens())
+        if len(H.invariants()) > 6:
+            print("this might take a while. Invariants: %s" %(H.invariants(),))
+        subgroup_reps = self.subgroup_representatives(H, G, algorithm=algorithm)
+        # filter for primitive and isotropic
+        for S in subgroup_reps:
+            if S.gram_matrix_quadratic() == 0:
+                if S.V() & H1.V() == self.W() and S.V() & H2.V() == self.W():
+                    primitive_extensions.append(S)
         return primitive_extensions
+
+    def all_primitive_prime(self, other, H1, H2, G1, G2):
+        r"""
+        Return all totally isotropic subgroups `S` of `H1 + H2` such that
+        ``H1 & S == 1`` and ``H2 & S = 1`` modulo the subgroup
+        G of the orthogonal group of self
+
+        Input:
+
+        - ``H1``, ``H2`` -- subgroups of self
+
+        - ``G`` - a subgroup of the automorphism group of self
+
+        - ``algorithm`` -- a string which is either
+
+          * ``"hulpke"`` -- following an algorithm of A. Hulpke
+
+          * ``"brute force""`` -- enumerates all subgroups first and takes orbits.
+
+        EXAMPLES::
+
+            sage: q1 = TorsionQuadraticForm(matrix.diagonal([2/3,2/27]))
+            sage: q2 = TorsionQuadraticForm(matrix.diagonal([2/3,2/9]))
+            sage: q, fs , fo = q1.direct_sum(q2)
+            sage: q.all_primitive_modulo(3*fs.image(),fo.image())
+        """
+        D, i1, i2 = self.direct_sum(other)
+        primitive_extensions = []
+        if H1.cardinality()==1 or H2.cardinality() == 1:
+            return [self.submodule([])]
+        p1 = H1.invariants()[-1]
+        p2 = H2.invariants()[-1]
+        if p1 != p2:
+            raise ValueError("invariants do not match")
+        if not p1.is_prime():
+            raise ValueError("not a prime number")
+        m = min(H1.cardinality(),H2.cardinality())
+        subs1 = self.subgroup_representatives(H1, G1, return_stabilizers=True, max_order=m)
+        subs2 = other.subgroup_representatives(H2, G2, return_stabilizers=True, max_order=m)
+        #subs1 = [[_normalize(s[0]),s[1]] for s in subs1]
+        subs2 = [[_normalize(s[0]),s[1]] for s in subs2]
+
+        subs1 = [[s[0], s[0].orthogonal_group().subgroup(s[1].gens())] for s in subs1]
+        subs2 = [[s[0], s[0].orthogonal_group().subgroup(s[1].gens())] for s in subs2]
+
+        for S1 in subs1:
+            S1n = _normalize(S1[0].twist(-1))
+            if S1[0].cardinality()==1:
+                primitive_extensions.append(D.submodule([]))
+                continue
+            n = len(S1[0].gens())
+            for S2 in subs2:
+                q1 = S1n.gram_matrix_quadratic()
+                q2 = S2[0].gram_matrix_quadratic()
+                if q1 != q2:
+                    continue
+                # there is a glue map
+
+                A1 = S1[0].orthogonal_group().domain()
+                A2 = S2[0].orthogonal_group().domain()
+                gens1 = [A1(g).gap() for g in S1n.gens()]
+                gens2 = [A2(g).gap() for g in S2[0].gens()]
+
+                phi = A1.gap().GroupHomomorphismByImages(A2.gap(), gens1, gens2)
+                O2 = S2[0].orthogonal_group()
+
+                stab1phi= [phi.InducedAutomorphism(g) for g in S1[1].gap().GeneratorsOfGroup()]
+                stab1phi = O2.gap().Subgroup(stab1phi)
+                reps = O2.gap().DoubleCosetRepsAndSizes(S2[1],stab1phi)
+
+                for g in reps:
+                    g = g[0]
+                    g = O2(g)
+                    gens = [i1(S1n.gen(k)) + i2(S2[0].gen(k)*g) for k in range(n)]
+                    primitive_extensions.append(D.submodule(gens))
+        return primitive_extensions
+
+
+    def all_primitive_prime_equiv(self, other, H1, H2, G1, G2, h1, h2, g):
+        r"""
+        Return all totally isotropic subgroups `S` of `H1 + H2` such that
+        ``H1 & S == 1`` and ``H2 & S = 1`` modulo the subgroup
+        G of the orthogonal group of self
+
+        Input:
+
+        - ``H1``, ``H2`` -- subgroups of ``self``, ``other``
+        - ``G1``, ``G2`` -- subgroups of ``self``, ``other``
+        - ``h1``, ``h2`` -- elements in the center of ``G1``, ``G2``
+        - ``g`` -- non negative integer; the glue order `p^g`
+
+        EXAMPLES::
+
+            sage: q1 = TorsionQuadraticForm(matrix.diagonal([2/3,2/27]))
+            sage: q2 = TorsionQuadraticForm(matrix.diagonal([2/3,2/9]))
+            sage: q, fs , fo = q1.direct_sum(q2)
+            sage: q.all_primitive_modulo(3*fs.image(),fo.image())
+        """
+        g = ZZ(g)
+        if not g >= 0:
+            raise ValueError()
+        D, i1, i2 = self.direct_sum(other)
+        primitive_extensions = []
+        if g == 0:
+            return [D.submodule([])]
+        if H1.cardinality()==1 or H2.cardinality()==1:
+            print("warning")
+            return []
+        p1 = H1.invariants()[-1]
+        p2 = H2.invariants()[-1]
+        if p1 != p2:
+            raise ValueError("invariants do not match")
+        if not p1.is_prime():
+            raise ValueError("not a prime number")
+        p = p1
+
+        glue_order = p**g
+
+        subs1 = self.subgroup_representatives(H1, G1, algorithm="elementary abelian",
+                                              return_stabilizers=True, order=glue_order)
+        subs2 = other.subgroup_representatives(H2, G2, algorithm="elementary abelian",
+                                               return_stabilizers=True, order=glue_order)
+        #subs1 = [[_normalize(s[0]),s[1]] for s in subs1]
+        subs2 = [[_normalize(s[0]),s[1]] for s in subs2]
+
+        subs1 = [[s[0], s[0].orthogonal_group().subgroup(s[1].gens())] for s in subs1]
+        subs2 = [[s[0], s[0].orthogonal_group().subgroup(s[1].gens())] for s in subs2]
+
+        for S1 in subs1:
+            S1n = _normalize(S1[0].twist(-1))
+            n = len(S1[0].gens())
+            for S2 in subs2:
+                q1 = S1n.gram_matrix_quadratic()
+                q2 = S2[0].gram_matrix_quadratic()
+                if q1 != q2:
+                    continue
+                # there is a glue map
+
+                A1 = S1[0].orthogonal_group().domain()
+                A2 = S2[0].orthogonal_group().domain()
+                gens1 = [A1(g).gap() for g in S1n.gens()]
+                gens2 = [A2(g).gap() for g in S2[0].gens()]
+
+                phi = A1.gap().GroupHomomorphismByImages(A2.gap(), gens1, gens2)
+                O2 = S2[0].orthogonal_group()
+
+                h1_on_S2 = phi.InducedAutomorphism(h1.gap())
+                h2_on_S2 = O2(h2).gap()
+                if not O2.gap().IsConjugate(h1_on_S2, h2_on_S2):
+                    # this glue map cannot be modified to be equivariant
+                    pass
+                else:
+                    # make it equivariant
+                    g = O2.gap().RepresentativeAction(h2_on_S2, h1_on_S2)
+                    phi = phi*g
+                assert h2_on_S2==phi.InducedAutomorphism(h1.gap())
+
+                center = O2.gap().Centraliser(h2_on_S2)
+
+                stab1phi= [phi.InducedAutomorphism(g) for g in S1[1].gap().GeneratorsOfGroup()]
+                stab1phi = center.Subgroup(stab1phi)
+                reps = center.DoubleCosetRepsAndSizes(S2[1],stab1phi)
+
+                for g in reps:
+                    g = g[0]
+                    g = O2(g)
+                    gens = [i1(S1n.gen(k)) + i2(S2[0].gen(k)*g) for k in range(n)]
+                    primitive_extensions.append(D.submodule(gens))
+        return primitive_extensions
+
+
+
 
 def _brown_indecomposable(q, p):
     r"""
@@ -1580,21 +1770,27 @@ def _normalize(D):
     """
     if D.cardinality() == 1:
         return D
-    p = D.invariants()[-1]
     D = D.normal_form()
-    if p != 2 or not D.is_degenerate():
+    if not D.is_degenerate():
         return D
+    p = D.invariants()[-1]
+    if not p.is_prime():
+        raise ValueError("")
     gens = list(D.gens())
     kerb = D.orthogonal_submodule_to(D)
-    for i in range(len(gens)):
-        if gens[i] in kerb and gens[i].q()==1:
+    n = len(gens)
+
+    kergens = [gens[i] for i in range(n) if gens[i] in kerb]
+    nondeg = [gens[i] for i in range(n) if not gens[i] in kerb]
+    k = len(kergens)
+
+    for i in range(k):
+        if kergens[i].q()==1:
+            for j in range(i+1, k):
+                if kergens[j].q() == 1:
+                    kergens[j] += kergens[i]
+            kergens = kergens[:i] + kergens[i+1:] + [kergens[i]]
             break
-    else:
-        return D
-    # move to first position
-    gens[0], gens[i] = gens[i], gens[0]
+    gens = kergens + nondeg
     # translate all others to the kernel of q
-    for i in range(1,len(gens)):
-        if gens[i] in kerb and gens[i].q() == 1:
-            gens[i] += gens[0]
     return D.submodule_with_gens(gens)

@@ -1937,6 +1937,51 @@ class Genus_Symbol_p_adic_ring(object):
 
     rank = dimension
 
+    def direct_sum(self, other):
+        r"""
+        Return the local genus of the direct sum of two representatives.
+
+        EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.genus import p_adic_symbol
+            sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
+            sage: A = matrix.diagonal([1,2,3,4])
+            sage: p = 2
+            sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G2
+            Genus symbol at 2:    [1^-2 2^1 4^1]_6
+            sage: G2.direct_sum(G2)
+            Genus symbol at 2:    [1^4 2^2, 4^2]_4
+        """
+        if self.prime() != other.prime():
+            raise ValueError("the local genus symbols must be over the same prime")
+        sym1 = self.symbol_tuple_list()
+        sym2 = other.symbol_tuple_list()
+        m = max(sym1[-1][0],sym2[-1][0])
+        sym1 = dict([[s[0],s] for s in sym1])
+        sym2 = dict([[s[0],s] for s in sym2])
+
+        symbol = []
+        for k in range(m+1):
+            if self.prime()==2:
+                b = [k, 0, 1, 0, 0]
+            else:
+                b = [k, 0, 1]
+            for sym in [sym1, sym2]:
+                try:
+                    s = sym[k]
+                    b[1] += s[1]
+                    b[2] *= s[2]
+                    if self.prime()==2:
+                        b[2] = b[2] % 8
+                        if s[3] == 1:
+                            b[3] = s[3]
+                        b[4] = (b[4] + s[4]) % 8
+                except KeyError:
+                    pass
+            if b[1] != 0:
+                symbol.append(b)
+        return Genus_Symbol_p_adic_ring(self.prime(), symbol, check=True)
+
     def excess(self):
         """
         Returns the p-excess of the quadratic form whose Hessian
@@ -2011,7 +2056,21 @@ class Genus_Symbol_p_adic_ring(object):
                    k += 1
            return Integer(sum([ s[1]*(p**s[0]-1) for s in self._symbol ]) + 4*k).mod(8)
 
+    def scale(self):
+        r"""
+        Return the scale of this local genus.
 
+        OUTPUT:
+
+        an integer
+        """
+        return self.prime()**self._symbol[0][0]
+
+    def level(self):
+        r"""
+        Return the maximal scale of a jordan component.
+        """
+        return self.prime()**self._symbol[-1][0]
 
     def trains(self):
         """
@@ -2166,10 +2225,14 @@ class GenusSymbol_global_ring(object):
             Genus symbol at 3:     1^-1 3^-1
 
         """
-        local_symbols = ""
+        local_symbols = "Signature: %s"%(self._signature,)
         for s in self._local_symbols:
             local_symbols += "\n" + s.__repr__()
-        return "Genus of\n%s\n%s" % (self._representative,local_symbols[1:])
+        if self._representative is not None:
+            return "Genus of\n%s\n%s" % (self._representative,local_symbols)
+        else:
+            return "Genus \n%s" %local_symbols
+
 
     def _latex_(self):
         """
@@ -2316,6 +2379,8 @@ class GenusSymbol_global_ring(object):
         """
         return self._signature
 
+    signature_pair = signature_pair_of_matrix
+
     def automorphous_numbers(self):
         r"""
         """
@@ -2410,6 +2475,37 @@ class GenusSymbol_global_ring(object):
         q = matrix.block_diagonal(qL)
         return TorsionQuadraticForm(q)
 
+
+    def direct_sum(self, other):
+        r"""
+        Return the genus of the direct sum of ``self`` and ``other``.
+
+        The direct sum is defined as the direct sum of representatives.
+
+        EXAMPLES::
+
+            sage: G = IntegralLattice("A4").twist(3).genus()
+            sage: G.direct_sum(G)
+            Genus of
+            None
+            Genus symbol at 2:    1^8
+            Genus symbol at 3:     3^8
+            Genus symbol at 5:     1^6 5^2
+
+        """
+        p1, n1 = self.signature_pair()
+        p2, n2 = other.signature_pair()
+        signature_pair = (p1 + p2, n1 + n2)
+
+        primes = [s.prime() for s in self.local_symbols()]
+        primes += [s.prime() for s in other.local_symbols() if not s.prime() in primes]
+
+        local_symbols = []
+        for p in primes:
+            sym_p = self.local_symbols(p=p).direct_sum(other.local_symbols(p=p))
+            local_symbols.append(sym_p)
+        return GenusSymbol_global_ring(signature_pair, local_symbols)
+
     def local_symbols(self, p=None):
         r"""
         Return the local symbols.
@@ -2430,9 +2526,13 @@ class GenusSymbol_global_ring(object):
         """
         if p is None:
             return deepcopy(self._local_symbols)
+        p = ZZ(p)
         for sym in self._local_symbols:
             if p == sym.prime():
                 return deepcopy(sym)
+        assert p!=2
+        sym_p = [[0, self.rank(), self.det().kronecker(p)]]
+        return Genus_Symbol_p_adic_ring(p, sym_p)
 
     def rational_representative(self):
         r"""
@@ -2469,6 +2569,24 @@ class GenusSymbol_global_ring(object):
             self._compute_representative()
         return self._representative
 
+    def level(self):
+        r"""
+        """
+        return prod(sym.level() for sym in self.local_symbols())
+
+    def scale(self):
+        r"""
+        Return the scale of this genus.
+
+        OUTPUT:
+
+        an integer
+
+        EXAMPLES::
+
+            sage: Genus(matrix.
+        """
+        return prod([s.scale() for s in self.local_symbols()])
 
     def _compute_representative(self, LLL=True):
         r"""
@@ -2534,7 +2652,7 @@ class GenusSymbol_global_ring(object):
         if algorithm == "magma":
             from sage.interfaces.magma import Magma
             magma = Magma()
-            magma.set_server_and_command(command="magma")
+            magma.set_server_and_command(command="/LOCAL/magma/magma")
             if prod(self.signature_pair_of_matrix()) != 0:
                 if n <= 2:
                     raise NotImplementedError()

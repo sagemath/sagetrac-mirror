@@ -130,7 +130,7 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
     """
     Element = FqfIsometry
 
-    def __init__(self, ambient, gens, fqf):
+    def __init__(self, ambient, gens, fqf, check=True):
         r"""
         """
         # We act on the smith form generators
@@ -144,6 +144,10 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
         gens = [ambient(g) for g in gens]
         self._invariant_form = fqf
         AbelianGroupAutomorphismGroup_subgroup.__init__(self, ambient, gens)
+        if check:
+            for g in self.gens():
+                if not self._preserves_form(g):
+                    raise ValueError("%s does not preserve the quadratic form"%g)
 
     def invariant_form(self):
         r"""
@@ -216,15 +220,22 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
         if check:
             # check that the form is preserved
             # this is expensive
-            g = self.invariant_form().smith_form_gens()
-            for i in range(len(g)):
-                if (g[i]*f).q() != g[i].q():
-                    raise ValueError("not an isometry")
-                for j in range(i+1, len(g)):
-                    if (g[i]*f).b(g[j]*f) != (g[i]*f).b(g[j]*f):
-                        raise ValueError("not an isometry")
+            if not self._preserves_form(f):
+                raise ValueError("not an isometry")
         return f
 
+    def _preserves_form(self, f):
+        r"""
+        Return if f preserves the form.
+        """
+        g = self.invariant_form().smith_form_gens()
+        for i in range(len(g)):
+            if (g[i]*f).q() != g[i].q():
+                return False
+            for j in range(i+1, len(g)):
+                if (g[i]*f).b(g[j]*f) != (g[i]*f).b(g[j]*f):
+                    return False
+        return True
 
     def _get_action_(self, S, op, self_on_left):
         r"""
