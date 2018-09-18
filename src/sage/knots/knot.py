@@ -18,12 +18,11 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.knots.link import Link
-from sage.rings.integer import Integer
 from sage.rings.finite_rings.integer_mod import Mod
 
 
 class Knot(Link):
-    """
+    r"""
     A knot.
 
     A knot is defined as embedding of the circle `\mathbb{S}^1` in the
@@ -251,7 +250,7 @@ class Knot(Link):
             sage: K = trefoil.connected_sum(trefoil); K
             Knot represented by 6 crossings
             sage: K.braid()
-            s0^3*s1*s0^3*s1^-1 
+            s0^3*s1^-1*s0^3*s1
 
         .. PLOT::
             :width: 300 px
@@ -267,7 +266,7 @@ class Knot(Link):
             sage: K = trefoil.connected_sum(rev_trefoil); K
             Knot represented by 6 crossings
             sage: K.braid()
-            s0^3*s1*s0^-3*s1^-1
+            s0^3*s1^-1*s0^-3*s1
 
         .. PLOT::
             :width: 300 px

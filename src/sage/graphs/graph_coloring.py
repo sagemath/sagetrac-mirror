@@ -347,8 +347,9 @@ from sage.numerical.mip import MIPSolverException
 def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None, verbose = 0):
     r"""
     Computes the chromatic number of the given graph or tests its
-    `k`-colorability. See :wikipedia:`Graph_coloring` for
-    further details on graph coloring.
+    `k`-colorability.
+
+    See the :wikipedia:`Graph_coloring` for further details on graph coloring.
 
     INPUT:
 
@@ -564,7 +565,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
                 p.solve(objective_only=True, log=verbose)
                 return True
             else:
-                chi = p.solve(log=verbose)
+                p.solve(log=verbose)
         except MIPSolverException:
             return False
 
@@ -1408,9 +1409,10 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
                 add((u,v),i)
 
     if hex_colors:
-        return dict(zip(rainbow(len(classes)),classes))
+        return dict(zip(rainbow(len(classes)), classes))
     else:
         return answer
+
 
 def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = None, verbose = 0):
     r"""
