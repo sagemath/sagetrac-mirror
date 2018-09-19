@@ -168,11 +168,13 @@ def load_attach_path(path=None, replace=False):
         sage: t_dir = tmp_dir()
         sage: fullpath = os.path.join(t_dir, 'test.py')
         sage: _ = open(fullpath, 'w').write("print(37 * 3)")
+        sage: load_path = os.path.join(SAGE_TMP,'')
+        sage: load_attach_path(load_path, replace=True)
         sage: attach('test.py')
         Traceback (most recent call last):
         ...
         IOError: did not find file 'test.py' to load or attach
-        sage: load_attach_path(t_dir)
+        sage: load_attach_path(t_dir, replace=True)
         sage: attach('test.py')
         111
         sage: attached_files() == [fullpath]
@@ -180,6 +182,8 @@ def load_attach_path(path=None, replace=False):
         sage: sage.repl.attach.reset(); reset_load_attach_path()
         sage: load_attach_path() == ['.']
         True
+        sage: load_path = os.path.join(SAGE_TMP,'')
+        sage: load_attach_path(load_path, replace=True)
         sage: load('test.py')
         Traceback (most recent call last):
         ...
@@ -432,7 +436,7 @@ def detach(filename):
         sage: t_dir = tmp_dir()
         sage: fullpath = os.path.join(t_dir, 'test.py')
         sage: _ = open(fullpath, 'w').write("print(37 * 3)")
-        sage: load_attach_path(t_dir)
+        sage: load_attach_path(t_dir, replace=True)
         sage: attach('test.py')
         111
         sage: attached_files() == [os.path.normpath(fullpath)]
