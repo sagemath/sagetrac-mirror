@@ -174,7 +174,7 @@ def load_attach_path(path=None, replace=False):
         Traceback (most recent call last):
         ...
         IOError: did not find file 'test.py' to load or attach
-        sage: load_attach_path(t_dir, replace=True)
+        sage: load_attach_path(t_dir)
         sage: attach('test.py')
         111
         sage: attached_files() == [fullpath]
