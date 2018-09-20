@@ -66,3 +66,13 @@ except ImportError:
     pass  # Python 2
 else:
     del ExtensionFileLoader.get_source
+
+
+# Monkey-patch six.add_metaclass with version that better supports nested
+# classes; this is only relevant on Python 3 since Python 2 classes don't
+# have a __qualname__
+import six
+if not six.PY2:
+    from sage.misc.six import add_metaclass
+    if six.add_metaclass is not add_metaclass:
+        six.add_metaclass = add_metaclass

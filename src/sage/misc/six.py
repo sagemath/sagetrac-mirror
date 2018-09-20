@@ -67,6 +67,37 @@ Check a fix for :trac:`16074`::
 from __future__ import absolute_import
 
 from six import *
+from six import add_metaclass as _orig_add_metaclass
+
+
+def add_metaclass(metaclass):
+    """
+    Wrapper around the original ``six.add_metaclass`` which on Python 3
+    supports copying the original class's ``__qualname__`` as well.
+
+    This is needed to preserver the ``__qualname__`` of nested classes when
+    applying a metaclass to them.
+
+    EXAMPLES::
+
+        sage: from sage.misc.six import add_metaclass
+        sage: class MyMeta(type): pass
+        sage: class A(object):
+        ....:     @add_metaclass(MyMeta)
+        ....:     class B(object): pass
+        sage: A.B
+        <class '__main__.A.B'>
+    """
+
+    orig_wrapper = _orig_add_metaclass(metaclass)
+
+    def wrapper(cls):
+        new_cls = orig_wrapper(cls)
+        if hasattr(cls, '__qualname__'):
+            new_cls.__qualname__ = cls.__qualname__
+        return new_cls
+
+    return wrapper
 
 
 def u(x):
