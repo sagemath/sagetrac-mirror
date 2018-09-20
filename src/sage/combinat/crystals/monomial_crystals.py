@@ -534,10 +534,11 @@ class NakajimaMonomial(Element):
         if phi == self._classical_weight().scalar(h[i]): # self.epsilon(i) == 0
             return Infinity
 
+        shift = 0
         if M.is_finite() and not M._borcherds:
-            i = i - 1
+            shift = 1
 
-        if M[i,i] == 2:
+        if M[i-shift,i-shift] == 2:
             d = copy(self._Y)
             K = max(x[1] for x in d if x[0] == i)
             for a in range(self._N(i),K):
@@ -590,6 +591,37 @@ class NakajimaMonomial(Element):
             sum += exp
             if sum == phi:
                 return var[1]
+
+    def _S(self,i):
+        r"""
+        Helper function for calculation of ``self.e(i)`` in the case where `i` is an
+        imaginary index.
+
+        Specifically, let `A = (a_{ii})` be the Borcherds-Cartan matrix associate to
+        ``self`` and let `i` be an imaginary index of Borcherds type.  Let
+        `k_f` be ``self._kf(i)``.  If `a_{ii} < 0` and `k_f > 0`, then
+
+        .. MATH::
+
+            S_i(k_f) = Y_{i,k_f}^2 Y_{i,k_f-1} \cdots Y_{i,k_f+a_{ii}+1}
+            \prod_{\substack{j\neq i\\ j \in I^{\mathrm{im}}}}
+            Y_{j,k_f+c_{ji}}^{-a_{ji}}.
+
+        If `a_{ii} < 0` and `k_f = 0`, then
+
+        .. MATH::
+
+            S_i(k_f) = Y_{i,k_f} Y_{i,k_f-1} \cdots Y_{i,k_f+a_{ii}+1}
+            \prod_{\substack{j\neq i\\ j \in I^{\mathrm{im}}}}
+            Y_{j,k_f+c_{ji}}^{-a_{ji}}.
+
+        If `a_{ii} = 0`, then
+
+        .. MATH::
+
+            S_i(k_f) = \prod_{\substack{j\neq i\\ j \in I^{\mathrm{im}}}}
+            Y_{j,k_f+c_{ji}}^{-a_{ji}}.
+        """
 
     def e(self, i):
         r"""
