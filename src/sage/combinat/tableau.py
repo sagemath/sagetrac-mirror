@@ -17,6 +17,8 @@ AUTHORS:
 
 - Andrew Mathas (2016-08-11): Row standard tableaux added
 
+- Jeremy Meza (2018) : Symplectic Tableau added
+
 This file consists of the following major classes:
 
 Element classes:
@@ -5029,7 +5031,7 @@ class SymplecticTableau(Tableau):
             return [list(col), list(col)]
         J = []
         if co:
-            j = 1
+            j = min(I)+1
         else:
             j = max(I)-1
         while len(J) < len(I):
@@ -5186,6 +5188,259 @@ class SymplecticTableau(Tableau):
             for i in row:
                 res[abs(i) - 1] += (i > 0) + sign*(i < 0)
         return res
+
+    def _split_form_skew(self, sk, co=False):
+        """
+        Return split form if co is set to False, otherwise return cosplit form.
+        
+        Differs from split_form in that t can have None entries.
+        Used as auxiliary function in Sheats bijection.
+        """
+        from sage.combinat.skew_tableau import SkewTableau
+        tc = SkewTableau(sk).conjugate()
+        split_t = []
+        for col in tc:
+            col_no_Nones = [i for i in col if i is not None]
+            Nones = [i for i in col if i is None]
+            [left, right] = self._to_coadmissible(col_no_Nones, co=co)
+            split_t += [Nones + left, Nones + right]
+        return SkewTableau(split_t).conjugate()
+
+    @classmethod
+    def single_form(cls, t_split, co=False):
+        """
+        Return single column form from split form. If co=True, return cosingle
+        column form.
+
+        OUTPUT:
+
+        - SkewTableau element
+
+        Split form for DeConciniProcesi tableau has every column doubled to a
+        left and right column. The left column is [A, C] with all entries of A
+        negative and all entries of C positive. The right column is [B, D] with
+        all entries of B negative and all entries of D positive.
+
+        The single column form is the single column [A, D]. The cosingle column
+        form is the single column [B, C]
+        """
+        from sage.combinat.skew_tableau import SkewTableau
+        conj = Tableau(t_split).conjugate()
+        for cell in conj.cells_containing(None):
+            conj = conj.add_entry(cell, 0)
+        if co:
+            t = [ [i for i in right if i <= 0] + [i for i in left if i > 0] for left, right in zip(conj[::2], conj[1::2]) ]
+        else:
+            t = [ [i for i in left if i <= 0] + [i for i in right if i > 0] for left, right in zip(conj[::2], conj[1::2]) ]
+        skt = SkewTableau(t)
+        for cell in skt.cells_containing(0):
+            t[cell[0]][cell[1]] = None
+        return SkewTableau(t).conjugate()
+
+    def _slide(self, dp, corner=None, return_vacated=False):
+        '''
+        auxiliary function for Sheats. Performs single slide on initial corner.
+
+        INPUT:
+
+        - ``self``: Skew DeConcini-Procesi Symplectic Tableau
+        - ``corner``: inner corner of t
+        - ``return_vacated``: boolean. If True, also return vacated corner.
+
+        '''
+        t = self._split_form_skew(dp)
+        corner = (corner[0], 2*corner[1]+1)
+        new_st = t.to_list()
+        inner_corners = t.inner_shape().corners()
+        outer_corners = t.outer_shape().corners()
+        if corner is not None:
+            if tuple(corner) not in inner_corners:
+                raise ValueError("corner must be an inner corner")
+        else:
+            if not inner_corners:
+                return t
+            else:
+                corner = inner_corners[0]
+
+        spotr, spotc = corner # corner will always refer to right empty box in split form of corner.
+        while (spotr, spotc) not in outer_corners:
+            nothing_right = (spotc == len(new_st[spotr]) - 1)
+            nothing_below = (spotr == len(new_st) - 1) or (len(new_st[spotr+1]) <= spotc)
+            if not nothing_right:
+                right = new_st[spotr][spotc+1]
+            if not nothing_below:
+                below = new_st[spotr+1][spotc]
+            # check to see if there is nothing to the right or
+            # if there is something below and it is less than right
+            if nothing_right or (not nothing_below and below <= right):
+                #Swap the holes with the cells below
+                new_st[spotr][spotc] = below
+                new_st[spotr][spotc-1] = new_st[spotr+1][spotc-1]
+                new_st[spotr+1][spotc] = None
+                new_st[spotr+1][spotc-1] = None
+                spotr += 1
+                continue
+
+            # check to see if there is nothing below
+            # if we got here, then there is something right
+            if nothing_below or below > right:
+                #Swap the hole with the cell to the right
+
+                # entry to right is barred
+                if right < 0:
+                    # get new columns to get split, cosplit forms
+                    new_col = [right]
+                    new_col_right = []
+                    for row in new_st:
+                        (left, middle) = (row[spotc-1], row[spotc])
+                        try:
+                            (r_left, r_right) = (row[spotc+1], row[spotc+2])
+                        except:
+                            (r_left, r_right) = (None, None)
+                        #
+                        if left is not None and left > 0:
+                            new_col += [left]
+                        if middle is not None and middle < 0:
+                            new_col += [middle]
+                        if r_left is not None and r_left < 0 and r_left != right:
+                            new_col_right += [r_left]
+                        if r_right is not None and r_right > 0:
+                            new_col_right += [r_right]
+
+                    # get split form
+                    new_split_col = self._to_coadmissible(sorted(new_col), co=True)
+                    new_split_col_right = self._to_coadmissible(new_col_right)
+
+                    # replace cols
+                    for r in range(len(new_st)):
+                        new_st[r][spotc-1] = new_split_col[0][r]
+                        new_st[r][spotc] = new_split_col[1][r]
+                        if spotc+1 < len(new_st[r]) and r < len(new_split_col_right[0]):
+                            new_st[r][spotc+1] = new_split_col_right[0][r]
+                        if spotc+2 < len(new_st[r]) and r < len(new_split_col_right[1]):
+                            new_st[r][spotc+2] = new_split_col_right[1][r]
+
+                    # move puncture to right
+                    new_st[spotr][spotc+1] = None
+                    new_st[spotr][spotc+2] = None
+                    spotc += 2
+                    continue
+
+                # entry to right is unbarred
+                else:
+                    # get new columns to get split, cosplit forms
+                    new_col = [right]
+                    new_col_right = []
+                    for row in new_st:
+                        (left, middle) = (row[spotc-1], row[spotc])
+                        try:
+                            (r_left, r_right) = (row[spotc+1], row[spotc+2])
+                        except:
+                            (r_left, r_right) = (None, None)
+                        #
+                        if left is not None and left < 0:
+                            new_col += [left]
+                        if middle is not None and middle > 0:
+                            new_col += [middle]
+                        if r_left is not None and r_left > 0 and r_left != right:
+                            new_col_right += [r_left]
+                        if r_right is not None and r_right < 0:
+                            new_col_right += [r_right]
+
+                    # get split form
+                    new_split_col = self._to_coadmissible(sorted(new_col))
+                    new_split_col_right = self._to_coadmissible(new_col_right, co=True)
+
+                    # replace cols
+                    for r in range(len(new_st)):
+                        new_st[r][spotc-1] = new_split_col[0][r]
+                        new_st[r][spotc] = new_split_col[1][r]
+                        if spotc+1 < len(new_st[r]) and r < len(new_split_col_right[0]):
+                            new_st[r][spotc+1] = new_split_col_right[0][r]
+                        if spotc+2 < len(new_st[r]) and r < len(new_split_col_right[1]):
+                            new_st[r][spotc+2] = new_split_col_right[1][r]
+
+                    # move puncture to right
+                    new_st[spotr][spotc+1] = None
+                    new_st[spotr][spotc+2] = None
+                    spotc += 2
+                    continue
+
+
+        #Clean up to remove the "None" at an outside corner
+        #Remove the last row if there is nothing left in it
+        new_st[spotr].pop()
+        new_st[spotr].pop()
+        if not new_st[spotr]:
+            new_st.pop()
+
+        from sage.combinat.skew_tableau import SkewTableau
+        if return_vacated:
+            return (SymplecticTableau.single_form(SkewTableau(new_st)), (spotr, (spotc-1)/2))
+        return SymplecticTableau.single_form(SkewTableau(new_st))
+
+    def Sheats(self):
+        '''
+        Return King Symplectictableau from DeConciniProcesi SymplecticTableau
+        using Sheats bijection.
+
+        EXAMPLES::
+
+            sage: t = SymplecticTableau([[-3,-2],[-2,-1],[2,3]], "DP")
+            sage: t.Sheats()
+            [[-1, -2], [-3, -3], [3, 3]]
+            sage: t = SymplecticTableau([[-5,-2],[-4,-1],[4]], "DP")
+            sage: t.Sheats()
+            [[-1, -4], [-2, -5], [4]]
+
+        '''
+        from sage.combinat.skew_tableau import SkewTableau
+        t = Tableau(self.to_list())
+        n = max(max(map(abs, row)) for row in t)
+        KING = Tableau([[None]*i for i in t.shape()])
+        while n > 1:
+            if t.cells_containing(n) == [] and t.cells_containing(-n) == []:
+                n -= 1
+                continue
+            # form "DeConcini-Procesi" and "King" parts
+            King = Tableau(t.anti_restrict(n-1)) # stored as Tableau
+            DP = t.anti_restrict(-n).restrict(n-1) # stored as SkewTableau
+
+            k = DP.inner_shape()[0] # number of -n's in DP
+            while k > 0:
+                # apply sjdt, set vacated outer corner to -n
+                (DP, outer) = self._slide(DP, (0, k-1), return_vacated=True)
+                King = King.add_entry(outer, -n)
+
+                # check if n and -n in kth col of D
+                DP_conj = DP.conjugate()
+                DP_list = DP.to_list()
+                if n in DP_conj[k-1] and -n in DP_conj[k-1]:
+                    # move n to King
+                    cell = (DP_conj[k-1].index(n), k-1)
+                    King = King.add_entry(cell, n)
+                    # remove n from DP
+                    DP_list[cell[0]].pop()
+                    if not DP_list[cell[0]]:
+                        DP_list.pop()
+                    # set -n in DP to None
+                    DP_list[0][k-1] = None
+                    DP = SkewTableau(DP_list)
+                else:
+                    k -= 1
+
+            # add King part to running construction of KING tableau
+            for cell in KING.cells_containing(None):
+                KING = KING.add_entry(cell, King[cell[0]][cell[1]])
+
+            t = Tableau(DP)
+            n -= 1
+
+        # add in last -1's from DP to KING
+        for cell in KING.cells_containing(None):
+            KING = KING.add_entry(cell, DP[cell[0]][cell[1]])
+
+        return KING
 
     def to_kashiwara_nakashima(self):
         if self.tab_type == "KashiwaraNakashima":
@@ -8264,6 +8519,9 @@ class SymplecticTableaux(Tableaux):
         sage: ST[17]
         [[1, 1], [2, -2], [-3]]
 
+    .. WARNING::
+
+        ``max_entry`` set to infinity is not yet implemented.
 
     .. SEEALSO::
 
