@@ -1735,7 +1735,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 2
-            sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2));
+            sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2))
             sage: G2.gram_matrix()
             [2 0|0|0]
             [0 6|0|0]
@@ -2652,7 +2652,8 @@ class GenusSymbol_global_ring(object):
         if algorithm == "magma":
             from sage.interfaces.magma import Magma
             magma = Magma()
-            magma.set_server_and_command(command="/LOCAL/magma/magma")
+            magma.set_server_and_command(command="magma")
+            #magma.set_server_and_command(command="/LOCAL/magma/magma")
             if prod(self.signature_pair_of_matrix()) != 0:
                 if n <= 2:
                     raise NotImplementedError()

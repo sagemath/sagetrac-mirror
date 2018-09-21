@@ -85,6 +85,7 @@ from sage.libs.gap.libgap import libgap
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.all import ZZ
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.cachefunc import cached_method
 
 class AbelianGroupAutomorphism(ElementLibGAP):
     """
@@ -169,6 +170,7 @@ class AbelianGroupAutomorphism(ElementLibGAP):
         a = a.gap()
         return dom(g(a))
 
+    @cached_method
     def matrix(self):
         r"""
         Return the matrix defining ``self``.
