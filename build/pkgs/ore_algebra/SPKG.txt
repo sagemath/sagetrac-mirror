@@ -15,6 +15,10 @@ Distributed under the terms of the GNU General Public License (GPL)
 
 http://www.gnu.org/licenses/
 
+== Upstream Contact ==
+
+ * Website: https://github.com/mkauers/ore_algebra
+
 == Dependencies ==
 
 None.
