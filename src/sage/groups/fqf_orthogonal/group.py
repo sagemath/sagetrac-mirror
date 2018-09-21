@@ -127,6 +127,16 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
         [  0   0 1/4]
         sage: T.orthogonal_group().order()
         8
+
+    Action on an invariant subquotient::
+
+        sage: T = TorsionQuadraticForm(matrix.diagonal([2/3]*3+ [2/9]+ [2/27]))
+        sage: S1 = 3 * T
+        sage: S2 = 9 * T
+        sage: Q = S1/S2
+        sage: G = T.orthogonal_group()
+        sage: Q.0*G.4
+        (2, 0)
     """
     Element = FqfIsometry
 
@@ -266,7 +276,15 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
                 if S.is_submodule(T):
                     # check if the submodule is invariant
                     if all([T(s)*g in S for s in S.gens() for g in self.gens()]):
-                        return ActionOnFqf(self, S, on_submodule=True)
+                        return ActionOnFqf(self, S, on_subquotient=True)
+                elif S.V().is_submodule(T.V()) and T.W().is_submodule(S.W()):   # is a subquotient
+                    Q1 = S.V()/T.W()
+                    Q2 = S.W()/T.W()
+                    if (
+                        all([T(q)*g in Q1 for q in Q1.gens() for g in self.gens()]) and
+                        all([T(q)*g in Q2 for q in Q2.gens() for g in self.gens()])
+                    ):
+                        return ActionOnFqf(self, S, on_subquotient=True)
             except AttributeError:
                 pass
             try:
@@ -487,7 +505,7 @@ class ActionOnFqf(Action):
 
     - ``orthogonal_grp`` --  an instance of :class:`GroupOfIsometries`
     - ``fqf`` -- a torsion quadratic module
-    - ``on_submodule`` -- bool (default: ``False``)
+    - ``on_subquotient`` -- bool (default: ``False``)
     - ``is_left`` -- bool (default: ``False``)
 
     EXAMPLES::
@@ -503,7 +521,7 @@ class ActionOnFqf(Action):
         sage: x*g
         (2, 0)
     """
-    def __init__(self, orthogonal_grp, fqf, on_submodule=False, is_left=False):
+    def __init__(self, orthogonal_grp, fqf, on_subquotient=False, is_left=False):
         r"""
         Initialize the action
 
@@ -519,7 +537,7 @@ class ActionOnFqf(Action):
             ValueError: the action is from the right
         """
         import operator
-        self._on_submodule = on_submodule
+        self._on_subquotient = on_subquotient
         if is_left:
             raise ValueError("the action is from the right")
         Action.__init__(self, orthogonal_grp, fqf, is_left, operator.mul)
@@ -574,7 +592,7 @@ class ActionOnFqf(Action):
             # v = (a.vector()*g.matrix().inverse())
             # P = a.parent()
             # return P.linear_combination_of_smith_form_gens(v)
-        elif self._on_submodule:
+        elif self._on_subquotient:
             S = a.parent()
             T = g.parent().invariant_form()
             return S(T(a)*g)

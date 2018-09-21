@@ -76,6 +76,78 @@ ElemAbelSubgrpOrbsStabs:=function(G, aut, gens_aut, gens_act, min_order, max_ord
 end;
 
 
+
+ElemAbelSubgrpOrbsStabs_equiv:=function(G, aut, gens_aut, gens_act, min_order, max_order, g)
+  # Return Orbits and Stabilizers of the subgroups of G modulo aut.
+  # INPUT:
+  # G -- an elementary abelian group
+  # aut -- a group
+  # gens_aut -- a list of generators
+  # gens_act -- a list of elements of Aut(G) defining the action
+  #             of aut on G.
+  # gens_aut and gens_act must have the same length and
+  # define a group homomorphism
+  # no input checks
+  # OUTPUT:
+  # A list consisting of records with entries
+  # repr  -- a subgroup of G
+  # stab  -- a subgroup of aut
+
+  local act,subs,i,k, n,min, max, p, gens_mats, MatrixRepresentation, V, orbits,
+  subgrp, stab, subgroups, pcgs, orb;
+
+  Assert(0, g in Center(aut));
+
+  pcgs:= Pcgs(G); # a basis
+  p:= Order(pcgs[1]); # a prime number
+  if p=2 then
+    act:=OnSubspacesByCanonicalBasisGF2;
+  else
+    act:=OnSubspacesByCanonicalBasis;
+  fi;
+  # we compute with respect to a given pcgs
+  MatrixRepresentation:= function(f, pcgs)
+    return List(pcgs, i -> ExponentsOfPcElement(pcgs, Image(f,i)))*One(GF(p));
+  end;
+
+  gens_mats:= List(gens_act, f->MatrixRepresentation(f, pcgs));
+  g:= MatrixRepresentation(g, pcgs);
+
+  n:= Size(pcgs);
+  V:= GF(p)^n;
+  min:= Valuation(min_order, p);
+  max:= Valuation(max_order, p);
+  max:= Minimum(max,n);
+  # treat the trivial subgroup
+  if min = 0 then
+    subgroups:= [rec(repr:=Subgroup(G,[]), stab:=aut)];
+    min:=1;
+  else
+    subgroups:= [];
+  fi;
+
+  for k in [min..max] do
+    subs:= List(Subspaces(V, k), i->Basis(i));
+    subs:= Filtered(subs, i-> act(i,g)=i);
+    # somehow this is slow
+    # orbits:= ExternalOrbitsStabilisers(aut, subs, gens_aut, gens_mats, OnSubspacesByCanonicalBasis);
+    orbits:= OrbitsDomain(aut, subs, gens_aut, gens_mats, act);
+
+    # transform orbit reps back to subgroups of G
+    for orb in orbits do
+      orb:=orb[1];
+      stab:= Stabilizer(aut, orb, gens_aut, gens_mats, act);
+      subgrp:= Subgroup(G, List(orb,i -> PcElementByExponents(pcgs,i)));
+      Add(subgroups, rec(repr:=subgrp, stab:=stab) );
+   od;
+  od;
+  return subgroups;
+end;
+
+
+
+
+
 SubgroupReps1:=function(epi, aut, gens_aut, gens_act, max_order)
   # INPUT:
   # epi: G0 --> G1 an epimorphism of abelian groups
@@ -205,4 +277,26 @@ SubgroupRepresentatives_elementary:=function(G, aut, order)
   gens_aut:=GeneratorsOfGroup(aut);
   return ElemAbelSubgrpOrbsStabs(G, aut, gens_aut, gens_aut, order, order);
 end;
+
+
+SubgroupRepresentatives_elementary_equiv:=function(G, aut, order, g)
+  # Compute representatives and stabilizers of all subgroups
+  # {B < G} / aut
+  # up to the action of aut
+  # sorted by their order
+  #
+  # INPUT:
+  # - G -- an elementary abelian group
+  # - aut -- a subgroup of AutomorphismGroup(G)
+  #
+  # OUTPUT:
+  # A list consisting of records with entries
+  # repr  -- a subgroup of G
+  # stab  -- a subgroup of aut
+  #
+  local gens_aut, epi;
+  gens_aut:=GeneratorsOfGroup(aut);
+  return ElemAbelSubgrpOrbsStabs_equiv(G, aut, gens_aut, gens_aut, order, order, g);
+end;
+
 

@@ -1300,6 +1300,8 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         from sage.categories.groups import Groups
         from sage.groups.matrix_gps.isometries import GroupOfIsometries
         sig = self.signature_pair()
+        if self.degree() == 0:
+            raise NotImplementedError("the degree must be at least 1")
         if gens is None:
             gens = []
             gens_gram = []
@@ -1308,7 +1310,9 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             Orthogonal = L.orthogonal_complement(self)
             B = self.basis_matrix().stack(Orthogonal.basis_matrix())
             identity = matrix.identity(Orthogonal.rank())
-            if sig[1]==0 or sig[0]==0: #definite
+            if self.rank() == 0:
+                pass
+            elif sig[1]==0 or sig[0]==0: #definite
                 from sage.quadratic_forms.quadratic_form import QuadraticForm
                 is_finite = True
                 if sig[0] == 0: #negative definite

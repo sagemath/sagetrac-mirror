@@ -1240,7 +1240,9 @@ class TorsionQuadraticModule(FGP_Module_class):
         ambient = FreeQuadraticModule(self.base_ring(), n, inner_product_matrix)
         V = ambient.span(self.V().basis())
         W = ambient.span(self.W().basis())
-        return TorsionQuadraticModule(V, W)
+        modulus = s * self._modulus
+        modulus_qf = s * self._modulus_qf
+        return TorsionQuadraticModule(V, W, modulus=modulus, modulus_qf=modulus_qf)
 
     def value_module(self):
         r"""
@@ -1430,7 +1432,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         return stab
 
     def subgroup_representatives(self, H, G, algorithm="hulpke", return_stabilizers=False,
-                                 order=None, max_order=None):
+                                 order=None, max_order=None, g=None):
         r"""
         Return representatives of the subgroups of `H` modulo the action of `G`.
 
@@ -1478,8 +1480,8 @@ class TorsionQuadraticModule(FGP_Module_class):
             from sage.env import SAGE_EXTCODE
             gapcode = SAGE_EXTCODE + '/gap/subgroup_orbits/subgroup_orbits.g'
             libgap.Read(gapcode)
-            subgroup_reps = libgap.function_factory("SubgroupRepresentatives_elementary")
-            subgroup_reps = [dict(S) for S in subgroup_reps(Hgap, G, order)]
+            subgroup_reps = libgap.function_factory("SubgroupRepresentatives_elementary_equiv")
+            subgroup_reps = [dict(S) for S in subgroup_reps(Hgap, G, order, g)]
         else:
             raise ValueError("not a valid algorithm")
         # convert back to sage
@@ -1625,15 +1627,31 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: q, fs , fo = q1.direct_sum(q2)
             sage: q.all_primitive_modulo(3*fs.image(),fo.image())
         """
+        h1 = G1.subgroup([h1]).gen(0)
+        h2 = G2.subgroup([h2]).gen(0)
+        if not h1 in G1:#.center():
+            raise ValueError()
+        if not h2 in G2:#.center():
+            raise ValueError()
         g = ZZ(g)
         if not g >= 0:
             raise ValueError()
         D, i1, i2 = self.direct_sum(other)
+        OD = D.orthogonal_group()
+        embedG1, embedG2 = direct_sum_embed(D, i1, i2, OD, G1, G2)
+
+        from sage.libs.gap.libgap import libgap
+        from sage.env import SAGE_EXTCODE
+        gapcode = SAGE_EXTCODE + '/gap/subgroup_orbits/subgroup_orbits.g'
+        libgap.Read(gapcode)
+        OnSubgroups = libgap.function_factory("OnSubgroups")
+
         primitive_extensions = []
         if g == 0:
-            return [D.submodule([])]
+            gens = embedG1.Image(G1.gap()).GeneratorsOfGroup()
+            gens = gens.Concatenation(embedG2.Image(G2.gap()).GeneratorsOfGroup())
+            return [[D.submodule([]),OD.subgroup(gens)]]
         if H1.cardinality()==1 or H2.cardinality()==1:
-            print("warning")
             return []
         p1 = H1.invariants()[-1]
         p2 = H2.invariants()[-1]
@@ -1645,56 +1663,76 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         glue_order = p**g
 
+        # these may not be invariant subspaces!!! ---> crap
         subs1 = self.subgroup_representatives(H1, G1, algorithm="elementary abelian",
-                                              return_stabilizers=True, order=glue_order)
+                                              return_stabilizers=True, order=glue_order, g=h1.gap())
         subs2 = other.subgroup_representatives(H2, G2, algorithm="elementary abelian",
-                                               return_stabilizers=True, order=glue_order)
-        #subs1 = [[_normalize(s[0]),s[1]] for s in subs1]
-        subs2 = [[_normalize(s[0]),s[1]] for s in subs2]
+                                               return_stabilizers=True, order=glue_order, g=h2.gap())
+        subs1 = [[_normalize(s[0].twist(-1)),s[0],s[1]] for s in subs1]
+        subs2 = [[_normalize(s[0]),s[0],s[1]] for s in subs2]
 
-        subs1 = [[s[0], s[0].orthogonal_group().subgroup(s[1].gens())] for s in subs1]
-        subs2 = [[s[0], s[0].orthogonal_group().subgroup(s[1].gens())] for s in subs2]
+
+        #subs1 = [[s[0], s[0].orthogonal_group().subgroup(s[1].gens())] for s in subs1]
+        #subs2 = [[s[0], s[0].orthogonal_group().subgroup(s[1].gens())] for s in subs2]
+
+
 
         for S1 in subs1:
-            S1n = _normalize(S1[0].twist(-1))
-            n = len(S1[0].gens())
+            S1n, S1, stab1 = S1
+            n = len(S1.gens())
             for S2 in subs2:
+                S2n, S2, stab2 = S2
                 q1 = S1n.gram_matrix_quadratic()
-                q2 = S2[0].gram_matrix_quadratic()
+                q2 = S2n.gram_matrix_quadratic()
                 if q1 != q2:
                     continue
                 # there is a glue map
 
-                A1 = S1[0].orthogonal_group().domain()
-                A2 = S2[0].orthogonal_group().domain()
+                O1 = S1.orthogonal_group()
+                O2 = S2.orthogonal_group()
+
+                A1 = O1.domain()
+                A2 = O2.domain()
                 gens1 = [A1(g).gap() for g in S1n.gens()]
-                gens2 = [A2(g).gap() for g in S2[0].gens()]
+                gens2 = [A2(g).gap() for g in S2n.gens()]
 
                 phi = A1.gap().GroupHomomorphismByImages(A2.gap(), gens1, gens2)
-                O2 = S2[0].orthogonal_group()
 
-                h1_on_S2 = phi.InducedAutomorphism(h1.gap())
+                h1_on_S2 = phi.InducedAutomorphism(O1(h1).gap())
                 h2_on_S2 = O2(h2).gap()
                 if not O2.gap().IsConjugate(h1_on_S2, h2_on_S2):
                     # this glue map cannot be modified to be equivariant
-                    pass
+                    continue
                 else:
                     # make it equivariant
                     g = O2.gap().RepresentativeAction(h2_on_S2, h1_on_S2)
                     phi = phi*g
-                assert h2_on_S2==phi.InducedAutomorphism(h1.gap())
+                assert h2_on_S2==phi.InducedAutomorphism(O1(h1).gap())
 
                 center = O2.gap().Centraliser(h2_on_S2)
 
-                stab1phi= [phi.InducedAutomorphism(g) for g in S1[1].gap().GeneratorsOfGroup()]
+                stab1phi= [phi.InducedAutomorphism(O1(g).gap()) for g in stab1.gens()]
                 stab1phi = center.Subgroup(stab1phi)
-                reps = center.DoubleCosetRepsAndSizes(S2[1],stab1phi)
+                stab2c = O2.subgroup(stab2.gens())
+                reps = center.DoubleCosetRepsAndSizes(stab2c,stab1phi)
 
+                if reps.Size() > 1:
+                    print("warning, more than one glue")
                 for g in reps:
                     g = g[0]
+                    phig = phi*g
                     g = O2(g)
-                    gens = [i1(S1n.gen(k)) + i2(S2[0].gen(k)*g) for k in range(n)]
-                    primitive_extensions.append(D.submodule(gens))
+                    gens = [i1(S1n.gen(k)) + i2(S2n.gen(k)*g) for k in range(n)]
+                    ext = D.submodule(gens)
+                    # we also need the centralizer of h1 x h2 in S1 x S2
+                    ###############################
+                    phig_graph = OD.domain().subgroup([OD.domain()(a) for a in gens]).gap()
+                    S1_times_S2 =  [embedG1.Image(s.gap()) for s in stab1.gens()]
+                    S1_times_S2 += [embedG2.Image(s.gap()) for s in stab2.gens()]
+                    S1_times_S2 = OD.gap().Subgroup(S1_times_S2)
+                    stab = S1_times_S2.Stabilizer(phig_graph, OnSubgroups).GeneratorsOfGroup()
+                    ##############################
+                    primitive_extensions.append([ext, OD.subgroup(stab)])
         return primitive_extensions
 
 
@@ -1794,3 +1832,41 @@ def _normalize(D):
     gens = kergens + nondeg
     # translate all others to the kernel of q
     return D.submodule_with_gens(gens)
+
+
+def direct_sum_embed(D, i1, i2, OD, G1, G2):
+    r"""
+
+    EXAMPLES::
+
+    sage: from sage.modules.torsion_quadratic_module import direct_sum_embed
+    sage: T = TorsionQuadraticForm(matrix.diagonal([2/3]*3))
+    sage: T1 = TorsionQuadraticForm(matrix.diagonal([2/3]*3))
+    sage: T2 = TorsionQuadraticForm(matrix.diagonal([2/3]*2))
+    sage: D, i1, i2 = T1.direct_sum(T2)
+    sage: OD = D.orthogonal_group()
+    sage: G1 = T1.orthogonal_group()
+    sage: G2 = T2.orthogonal_group()
+    sage: phi1, phi2 = direct_sum_embed(D,i1,i2,OD,G1,G2)
+    """
+    Dgap = OD.domain()
+    direct_sum_gens = [(Dgap(D(g))).gap() for g in i1.image().gens() + i2.image().gens()]
+
+    n1 = len(i1.image().gens())
+    n2 = len(i2.image().gens())
+    gensG1_imgs = []
+    for f in G1.gens():
+        imgs = [Dgap(i1(a*f)).gap() for a in i1.domain().gens()]
+        imgs += direct_sum_gens[n1:]
+        f = Dgap.gap().GroupHomomorphismByImages(Dgap.gap(), direct_sum_gens, imgs)
+        gensG1_imgs.append(f)
+    embed1 = G1.gap().GroupHomomorphismByImages(OD.gap(),[g.gap() for g in G1.gens()], gensG1_imgs)
+
+    gensG2_imgs = []
+    for f in G2.gens():
+        imgs = [Dgap(i2(a*f)).gap() for a in i2.domain().gens()]
+        imgs = direct_sum_gens[:n1] + imgs
+        f = Dgap.gap().GroupHomomorphismByImages(Dgap.gap(), direct_sum_gens, imgs)
+        gensG2_imgs.append(f)
+    embed2 = G2.gap().GroupHomomorphismByImages(OD.gap(),[g.gap() for g in G2.gens()], gensG2_imgs)
+    return embed1, embed2
