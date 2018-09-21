@@ -17,8 +17,6 @@ AUTHORS:
 
 - Andrew Mathas (2016-08-11): Row standard tableaux added
 
-- Jeremy Meza (2018) : Symplectic Tableau added
-
 This file consists of the following major classes:
 
 Element classes:
@@ -4972,9 +4970,10 @@ class SymplecticTableau(Tableau):
         """
         if isinstance(t, SymplecticTableau):
             return t
-
-        return SymplecticTableaux_all().element_class(SymplecticTableaux_all(), t, tableau_type)
-
+        elif t in SymplecticTableaux(tableau_type=tableau_type):
+            return SymplecticTableaux_all().element_class(SymplecticTableaux_all(), t, tableau_type)
+        else:
+            raise ValueError("{0} is not a symplectic tableau of type {1}".format(t, tableau_type))
 
     def __init__(self, parent, t, tableau_type="KashiwaraNakashima"):
         r"""
@@ -5379,7 +5378,7 @@ class SymplecticTableau(Tableau):
             return (SymplecticTableau.single_form(SkewTableau(new_st)), (spotr, (spotc-1)/2))
         return SymplecticTableau.single_form(SkewTableau(new_st))
 
-    def Sheats(self):
+    def sheats(self):
         '''
         Return King Symplectictableau from DeConciniProcesi SymplecticTableau
         using Sheats bijection.
@@ -5406,7 +5405,10 @@ class SymplecticTableau(Tableau):
             King = Tableau(t.anti_restrict(n-1)) # stored as Tableau
             DP = t.anti_restrict(-n).restrict(n-1) # stored as SkewTableau
 
-            k = DP.inner_shape()[0] # number of -n's in DP
+            if DP.inner_shape() == []:
+                k = 0
+            else:
+                k = DP.inner_shape()[0] # number of -n's in DP
             while k > 0:
                 # apply sjdt, set vacated outer corner to -n
                 (DP, outer) = self._slide(DP, (0, k-1), return_vacated=True)
@@ -5415,7 +5417,7 @@ class SymplecticTableau(Tableau):
                 # check if n and -n in kth col of D
                 DP_conj = DP.conjugate()
                 DP_list = DP.to_list()
-                if n in DP_conj[k-1] and -n in DP_conj[k-1]:
+                if k-1 < len(DP_conj) and n in DP_conj[k-1] and -n in DP_conj[k-1]:
                     # move n to King
                     cell = (DP_conj[k-1].index(n), k-1)
                     King = King.add_entry(cell, n)
@@ -5438,7 +5440,7 @@ class SymplecticTableau(Tableau):
 
         # add in last -1's from DP to KING
         for cell in KING.cells_containing(None):
-            KING = KING.add_entry(cell, DP[cell[0]][cell[1]])
+            KING = KING.add_entry(cell, t[cell[0]][cell[1]])
 
         return KING
 
@@ -5446,14 +5448,14 @@ class SymplecticTableau(Tableau):
         if self.tab_type == "KashiwaraNakashima":
             return self
         elif self.tab_type == "DeConciniProcesi":
-            tc = Tableau(self).conjugate()
+            tc = Tableau(self.to_list()).conjugate()
             res = []
+            n = max(max(map(abs, col)) for col in tc)
             for col in tc:
                 left, right = self._to_coadmissible(col)
-                single_form = [i for i in right if i < 0] + [i for i in left if i > 0]
-                n = max(map(abs, col))
+                single = [i for i in right if i < 0] + [i for i in left if i > 0]
                 to_kn = lambda k: -(n - k + 1) if k > 0 else n + k + 1
-                res += [map(to_kn, single_form)]
+                res += [list(map(to_kn, single))]
             return SymplecticTableau(Tableau(res).conjugate(), tableau_type="KashiwaraNakashima")
         elif self.tab_type == "King":
             raise NotImplementedError("Sheats bijection not yet implemented")
@@ -5462,14 +5464,14 @@ class SymplecticTableau(Tableau):
 
     def to_deconcini_procesi(self):
         if self.tab_type == "KashiwaraNakashima":
-            tc = Tableau(self).conjugate()
+            tc = Tableau(self.to_list()).conjugate()
             res = []
+            n = max(max(map(abs, col)) for col in tc)
             for col in tc:
                 left, right = self._to_coadmissible(col)
-                single_form = [i for i in left if i > 0] + [i for i in right if i < 0]
-                n = max(map(abs, col))
+                single = [i for i in left if i > 0] + [i for i in right if i < 0]
                 to_dp = lambda k: -(n - k + 1) if k > 0 else n + k + 1
-                res += [map(to_dp, single_form)]
+                res += [list(map(to_dp, single))]
             return SymplecticTableau(Tableau(res).conjugate(), tableau_type="DeConciniProcesi")
         elif self.tab_type == "DeConciniProcesi":
             return self
