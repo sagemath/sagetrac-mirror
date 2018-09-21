@@ -622,6 +622,67 @@ class NakajimaMonomial(Element):
             S_i(k_f) = \prod_{\substack{j\neq i\\ j \in I^{\mathrm{im}}}}
             Y_{j,k_f+c_{ji}}^{-a_{ji}}.
         """
+        kf = self._kf(i)
+        ct = self.parent().cartan_type()
+        cm = ct.cartan_matrix()
+        c = self.parent()._c
+
+        shift = 0
+        if ct.is_finite() and not cm._borcherds:
+            shift = 1
+
+        if cm[i,i] == 2:
+            return self.__class__(self.parent(), {}, {})
+
+        else:
+            imag = [j for j in self.parent().index_set() if cm[j,j] < 0]
+            if i in imag:
+                imag.remove(i)
+            newdict = {}
+            for j in imag:
+                newdict[(j,kf+c[j,i])] = -cm[j,i]
+
+            if cm[i,i] < 0:
+                for s in range(-cm[i,i]):
+                    newdict[(i,kf-s)] = 1
+                if kf > 0:
+                    newdict[(i,kf)] += 1
+
+            return self.__class__(self.parent(), newdict, {})
+
+    def _is_of_Verma_type(self):
+        r"""
+        Boolean to test whether or not ``self`` is of Verma type.
+
+        Following [JKKS2008]_, a monomial of the form
+
+        .. MATH::
+
+            \mathbf{1} \cdot \prod_{\substack{i \in I \\ k \ge N_i}}
+            Y_{i,k}^{y_i(k)}
+
+        is of Verma type if
+
+            - `y_i(k) \in \ZZ` if `i` is real and `y_i(k) \in \ZZ_{\ge0}` if `i` is
+              imaginary;
+            - for each `i \in I`, `y_i(k) = 0` for all but finitely many `k`;
+            - for each `i` with `a_{ii} < 0`, if `y_i(k) > 0` for some
+              `k = a_{ii} + 1,\dots,-1`, then `y_i(k+1) > 0'.
+        """
+        d = self._Y
+        ct = self.parent().cartan_type()
+        cm = ct.cartan_matrix()
+        if not cm._borcherds:
+            return True
+        else:
+            for key,value in six.iteritems(d):
+                if cm[key[0],key[0]] <= 0 and value < 0:
+                    return False
+            for i in ct.index_set():
+                for k in range(cm[i,i],0):
+                    if d[(i,k)] > 0 and d[(i,k+1)] <= 0:
+                        return False
+            return True
 
     def e(self, i):
         r"""
@@ -670,20 +731,31 @@ class NakajimaMonomial(Element):
         if self.epsilon(i) == 0:
             return None
 
-        newdict = copy(self._Y)
-        ke = self._ke(i)
-        Aik = {(i, ke): 1, (i, ke+1): 1}
         ct = self.parent().cartan_type()
         cm = ct.cartan_matrix()
+        newdict = copy(self._Y)
+        ke = self._ke(i)
+        Aik = {}
         shift = 0
-        if self.parent().cartan_type().is_finite():
+        if ct.is_finite() and not cm._borcherds:
             shift = 1
+
+        #if cm[i,i] <= 0 and not (self._S(i)^{-1}*self)._is_of_Verma_type():
+        #    return None
+
+        if cm[i-shift,i-shift] == 2:
+            Aik = {(i, ke): 1, (i, ke+1): 1}
+        if cm[i-shift,i-shift] < 0:
+            for k in range(ke+cm[i-shift,i-shift]+1,ke+1):
+                Aik[(i,k)] = 1
+
         for j_index,j in enumerate(self.parent().index_set()):
             if i == j:
                 continue
             c = self.parent()._c[j_index,i-shift]
             if cm[j_index,i-shift] != 0:
                 Aik[(j, ke+c)] = cm[j_index,i-shift]
+
         # Multiply by Aik
         for key,value in six.iteritems(Aik):
             if key in newdict:
@@ -693,6 +765,7 @@ class NakajimaMonomial(Element):
                     newdict[key] += value
             else:
                 newdict[key] = value
+
         A = copy(self._A)
         A[(i,ke)] = A.get((i,ke),0) + 1
         if not A[(i,ke)]:
@@ -723,6 +796,7 @@ class NakajimaMonomial(Element):
         kf = self._kf(i)
         ct = self.parent().cartan_type()
         cm = ct.cartan_matrix()
+
         Aik = {}
         shift = 0
         if ct.is_finite() and not cm._borcherds:
@@ -740,6 +814,7 @@ class NakajimaMonomial(Element):
             c = self.parent()._c[j_index,i-shift]
             if cm[j_index,i-shift] != 0:
                 Aik[(j, kf+c)] = -cm[j_index,i-shift]
+
         # Multiply by Aik
         for key,value in six.iteritems(Aik):
             if key in newdict:
@@ -749,6 +824,7 @@ class NakajimaMonomial(Element):
                     newdict[key] += value
             else:
                 newdict[key] = value
+
         A = copy(self._A)
         A[(i,kf)] = A.get((i,kf),0) - 1
         if not A[(i,kf)]:
