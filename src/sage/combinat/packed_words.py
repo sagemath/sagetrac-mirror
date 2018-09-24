@@ -425,7 +425,7 @@ class PackedWord(ClonableIntArray):
         Return the set of left weak order inversions of ``self``.
 
         Let `u` be a packed word. The *left weak order inversions*
-        of `u` are the pairs `(a, b)` such that `a < b` and the first
+        of `u` are the pairs `(b, a)` such that `a < b` and the first
         occurence of `a` in `u` is after the last occrence of `b` in `u`.
 
         EXAMPLES::
@@ -437,46 +437,51 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([1, 2, 1]).inversions_left()
             set()
             sage: PackedWord([3, 1, 2]).inversions_left()
-            {(1, 3), (2, 3)}
+            {(3, 1), (3, 2)}
             sage: PackedWord([3, 1, 4, 1, 2]).inversions_left()
-            {(1, 3), (2, 3), (2, 4)}
+            {(3, 1), (3, 2), (4, 2)}
         """
         if not self:
             return set()
         n = len(self)
         m = max(self)
-        return set((i, j)
+        rev = self[::-1]
+        return set((j, i)
                    for i in range(1, m)
                    for j in range(i + 1, m + 1)
-                   if self.index(i) > n - self[::-1].index(j) - 1)
+                   if self.index(i) > n - rev.index(j) - 1)
 
     #FIXME: Is the indexing convenion correct? Is it 0-based or 1-based?
     def coinversions_left(self):
         r"""
         Return the set of left weak order coinversions of ``self``.
 
-        ???
+        Let `u` be a packed word. Then *left weak order coinversions*
+        of `u` are the pairs `(i, j)` such that
+        `i < j` and the first occurence of `u_j` in `u`
+        is after the last occrence of `u_i` in `u`.
 
         EXAMPLES::
 
-            sage: PackedWord([]).inversions_right()
+            sage: PackedWord([]).inversions_left()
             set()
-            sage: PackedWord([1, 2, 3]).coinversions_right()
+            sage: PackedWord([1, 2, 3]).coinversions_left()
             set()
-            sage: PackedWord([1, 2, 1]).coinversions_right()
-            {(2, 1)}
-            sage: PackedWord([3, 1, 2]).coinversions_right()
-            {(3, 1), (3, 2)}
-            sage: PackedWord([3, 1, 4, 1, 2]).coinversions_right()
-            {(3, 1), (3, 2), (4, 1), (4, 2)}
+            sage: PackedWord([1, 2, 1]).coinversions_left()
+            set()
+            sage: PackedWord([3, 1, 2]).coinversions_left()
+            {(1, 2), (1, 3)}
+            sage: PackedWord([3, 1, 4, 1, 2]).coinversions_left()
+            {(1, 2), (1, 5), (3, 5)}
         """
         if not self:
             return set()
         n = len(self)
+        m = max(self)
         rev = self[::-1]
-        return set((self.index(i), n - rev.index(j) - 1)
-                   for i in range(1, n)
-                   for j in range(i + 1, n + 1)
+        return set((n - rev.index(j), self.index(i) + 1)
+                   for i in range(1, m)
+                   for j in range(i + 1, m + 1)
                    if self.index(i) > n - rev.index(j) - 1)
 
     def left_weak_order_succ(self):
