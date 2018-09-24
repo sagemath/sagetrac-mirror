@@ -97,7 +97,7 @@ void dictAdd (Dict *d, int e)
 
 #define DISP_MEMORY	false
 
-Automaton NewAutomaton (int n, int na)
+Automaton NewAutomaton(int n, int na)
 {
 #if DISP_MEMORY
 	printf("New %d...\n", n);

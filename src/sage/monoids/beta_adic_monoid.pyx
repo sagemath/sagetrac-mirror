@@ -69,8 +69,7 @@ from libc.stdlib cimport malloc, free
 #from sage.misc.cachefunc import cached_method
 from cysignals.signals cimport sig_on, sig_off
 cimport sage.combinat.words.cautomata
-from sage.combinat.words.cautomata cimport Automate, DetAutomaton, FreeAutomaton
-from sage.combinat.words.cautomata import DetAutomaton
+from sage.combinat.words.cautomata cimport DetAutomaton, FreeAutomaton
 from sage.rings.integer import Integer
 from sage.rings.number_field.all import *
 # from sage.structure.parent_gens import normalize_names
@@ -111,7 +110,7 @@ def absp(c, p, d):
 
 
 # garde la composante fortement connexe de 0
-# def emonde(a, K):
+# def prune(a, K):
 #     """
 #     Return the strongly connex component
 #
@@ -128,7 +127,7 @@ def absp(c, p, d):
 #     EXAMPLES::
 #
 #         sage:
-#         sage: emonde()
+#         sage: prune()
 #     """
 #     for s in a.strongly_connected_components_subgraphs():
 #         if K.zero() in s:
@@ -152,10 +151,34 @@ cdef extern from "complex.h":
 # cdef extern from "automataC.h":
 #    Automate NewAutomaton (int n, int na)
 
+
 cdef extern from "Automaton.h":
     ctypedef char bool
-#    Automate NewAutomaton (int n, int na)
-#    void FreeAutomaton (Automate *a)
+    cdef cppclass State:
+        int* f
+        bool final
+
+    cdef cppclass Automaton:
+        State* e # states
+        int n   # number of states
+        int na  # number of letters
+        int i # initial state
+
+    cdef cppclass Transition:
+        int l # label
+        int e # arrival state
+
+    cdef cppclass NState:
+        Transition* a
+        int n
+        bool final
+        bool initial
+
+    cdef cppclass NAutomaton:
+        NState* e # states
+        int n   # number of states
+        int na  # number of letters
+
 
 cdef extern from "relations.h":
     cdef cppclass Element:
@@ -180,8 +203,8 @@ cdef extern from "relations.h":
     void FreeElement(Element e)
     InfoBetaAdic allocInfoBetaAdic(int n, int na, int ncmax, bool verb)
     void freeInfoBetaAdic(InfoBetaAdic iba)
-    Automate RelationsAutomaton(InfoBetaAdic iba2, bool isvide, bool ext, bool verb)
-    Automate RelationsAutomatonT(InfoBetaAdic iba2, Element t, bool isvide, bool ext, bool verb)
+    Automaton RelationsAutomaton(InfoBetaAdic iba2, bool isvide, bool ext, bool verb)
+    Automaton RelationsAutomatonT(InfoBetaAdic iba2, Element t, bool isvide, bool ext, bool verb)
 
 cdef getElement(e, Element r, int n):
     cdef j
@@ -339,12 +362,12 @@ cdef extern from "draw.h":
         Complexe b
         Complexe* t  # liste des translations
         int n        # nombre de translations
-        Automate a
+        Automaton a
     cdef cppclass BetaAdic2:
         Complexe b
         Complexe* t  # liste des translations
         int n        # nombre de translations
-        Automate* a
+        Automaton* a
         int na
     ctypedef Color* ColorList
     #    cdef cppclass SDLImage:
@@ -363,13 +386,13 @@ cdef extern from "draw.h":
     Color randColor(int a)
     #    Automate NewAutomate (int n, int na)
     #    void FreeAutomate(Automate a)
-    void FreeAutomates(Automate* a, int n)
+    void FreeAutomatons(Automaton* a, int n)
     BetaAdic NewBetaAdic(int n)
     void FreeBetaAdic(BetaAdic b)
     BetaAdic2 NewBetaAdic2(int n, int na)
     void FreeBetaAdic2(BetaAdic2 b)
     void DrawZoom(BetaAdic b, int sx, int sy, int n, int ajust, Color col, double coeff, int verb)
-    Automate UserDraw(BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, int verb)
+    Automaton UserDraw(BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, int verb)
     #    void WordZone (BetaAdic b, int *word, int nmax)
     int *WordDrawn()
     void Draw(BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int verb)
@@ -411,7 +434,7 @@ cdef surface_to_img(Surface s):
     # img.save("/Users/mercat/Desktop/output.png")
     # img.save(file)
 
-cdef Automate getAutomate(a, d, list C, iss=None, verb=False):
+cdef Automaton getAutomate(a, d, list C, iss=None, verb=False):
     cdef int i
     if verb:
         print("getAutomate %s..." % a)
@@ -827,31 +850,31 @@ class BetaAdicMonoid(Monoid_class):
         TestSDL()
         sig_off()
 
-<<<<<<< HEAD
-    def default_ss(self, C=None):
-        r"""
-        Returns the full subshift (given by an Automaton) corresponding
-        to the beta-adic monoid.
 
-        EXAMPLES::
-
-            sage: m=BetaAdicMonoid((1+sqrt(5))/2, {0,1})
-            sage: m.default_ss()
-            Finite automaton with 1 states
-        """
-        if C is None:
-            C = self.C
-        ss = Automaton()
-        ss.allow_multiple_edges(True)
-        ss.allow_loops(True)
-        ss.add_vertex(0)
-        for c in C:
-            ss.add_edge(0, 0, c)
-        ss.I = [0]
-        ss.F = [0]
-        ss.A = C
-        return ss
-=======
+#     def default_ss(self, C=None):
+#         r"""
+#         Returns the full subshift (given by an Automaton) corresponding
+#         to the beta-adic monoid.
+# 
+#         EXAMPLES::
+# 
+#             sage: m=BetaAdicMonoid((1+sqrt(5))/2, {0,1})
+#             sage: m.default_ss()
+#             Finite automaton with 1 states
+#         """
+#         if C is None:
+#             C = self.C
+#         ss = Automaton()
+#         ss.allow_multiple_edges(True)
+#         ss.allow_loops(True)
+#         ss.add_vertex(0)
+#         for c in C:
+#             ss.add_edge(0, 0, c)
+#         ss.I = [0]
+#         ss.F = [0]
+#         ss.A = C
+#         return ss
+    
  #   def default_ss(self, C=None):
  #       r"""
  #       Returns the full subshift (given by an Automaton) corresponding to the beta-adic monoid.
@@ -874,7 +897,6 @@ class BetaAdicMonoid(Monoid_class):
 #        ss.F = [0]
 #        ss.A = C
 #        return ss
->>>>>>> 26b96afdea69ca745bc5b405c2480f92b10902ee
 
     # liste des automates donnant le coloriage de l'ensemble limite
     def get_la(self, ss=None, tss=None, verb=False):
@@ -900,7 +922,7 @@ class BetaAdicMonoid(Monoid_class):
             if verb:
                 print(ss)
                 print("simplify...")
-            ss = ss.emonde_inf().emonde()  # emonde0_simplify()
+            ss = ss.prune_inf().prune()  # prune0_simplify()
             if verb:
                 print(ss)
         if tss is None:
@@ -913,7 +935,7 @@ class BetaAdicMonoid(Monoid_class):
             if verb:
                 print(tss)
                 print("simplify...")
-            tss = tss.emonde_inf().emonde()  # 0_simplify()
+            tss = tss.prune_inf().prune()  # 0_simplify()
             if verb:
                 print(tss)
 
@@ -928,7 +950,7 @@ class BetaAdicMonoid(Monoid_class):
             if verb:
                 print(a[v])
                 print("simplify...")
-            a[v] = a[v].emonde_inf().emonde()
+            a[v] = a[v].prune_inf().prune()
             if verb:
                 print(a[v])
         return [tss]+a.values()
@@ -1118,7 +1140,7 @@ class BetaAdicMonoid(Monoid_class):
             tss = self.reduced_words_automaton2()
         sig_on()
         cdef BetaAdic b
-        cdef Automate a
+        cdef Automaton a
         cdef DetAutomaton r
         b = getBetaAdic(self, prec=prec, tss=tss, ss=ss, iss=iss,
                         add_letters=add_letters, transpose=True, verb=verb)
@@ -1280,7 +1302,7 @@ class BetaAdicMonoid(Monoid_class):
         cdef Surface s = NewSurface(sx, sy)
         cdef BetaAdic b
         if tss is not None:
-            tss = tss.emonde()
+            tss = tss.prune()
         b = getBetaAdic(self, prec=prec, tss=tss, ss=ss, iss=iss,
                         add_letters=add_letters, transpose=True, verb=verb)
         # if verb:
@@ -1401,7 +1423,7 @@ class BetaAdicMonoid(Monoid_class):
 
         """
         if tss is not None:
-            tss = tss.emonde()
+            tss = tss.prune()
         cdef Surface s = NewSurface(sx, sy)
         cdef BetaAdic2 b
         sig_on()
@@ -1446,9 +1468,9 @@ class BetaAdicMonoid(Monoid_class):
         sig_on()
         FreeSurface(s)
         if la is None:
-            FreeAutomates(b.a, b.na)
+            FreeAutomatons(b.a, b.na)
         else:
-            la[0] = la[0].emonde()
+            la[0] = la[0].prune()
 #        else:
 #            for i,a in enumerate(la):
 #                if not isinstance(a, DetAutomaton):
@@ -1627,377 +1649,377 @@ class BetaAdicMonoid(Monoid_class):
                 if ok:
                     # on ajoute l'état et la transition à l'automate
                     di[current_state][e] = c
-                    di = self._relations_automaton_rec (current_state=e, di=di, parch=parch, pultra=pultra, m=m, Cd=Cd, ext=ext, verb=verb, niter=niter-1)
+                    di = self._relations_automaton_rec(current_state=e, di=di, parch=parch, pultra=pultra, m=m, Cd=Cd, ext=ext, verb=verb, niter=niter-1)
             else:
                 # ajoute la transition
                 di[current_state][e] = c
         return di
 
-    def relations_automaton(self, ext=False, ss=None, noss=False, Cd=None,
-                            verb=False, step=100, limit=None, niter=None):
-        r"""
-        Compute the relations automaton of the beta-adic monoid
-        (with or without subshift).
-        See http://www.latp.univ-mrs.fr/~paul.mercat/Publis/
-        Semi-groupes%20fortement%20automatiques.pdf for a definition
-        of such automaton (without subshift).
+#     def relations_automaton(self, ext=False, ss=None, noss=False, Cd=None,
+#                             verb=False, step=100, limit=None, niter=None):
+#         r"""
+#         Compute the relations automaton of the beta-adic monoid
+#         (with or without subshift).
+#         See http://www.latp.univ-mrs.fr/~paul.mercat/Publis/
+#         Semi-groupes%20fortement%20automatiques.pdf for a definition
+#         of such automaton (without subshift).
+# 
+#         INPUT:
+# 
+#         - ``ext`` - bool (default: ``False``)
+#           If True, compute the extended relations automaton (which permit to describe infinite words in the monoid).
+# 
+#         - ``ss`` - Automaton (default: ``None``)
+#           The subshift to associate to the beta-adic monoid for this operation.
+# 
+#         - ``noss`` - bool (default: ``False``)
+# 
+# 
+#         - ``verb`` - bool (default: ``False``)
+#           If True, print informations for debugging.
+# 
+#         - ``step`` - int (default: ``100``)
+#           Stop to an intermediate state of the computing to verify that all is right.
+# 
+#         - ``limit``- int (default: None)
+#           Stop the computing after a number of states limit.
+# 
+#         OUTPUT:
+# 
+#         A Automaton.
+# 
+#         EXAMPLES::
+# 
+#             sage: m = BetaAdicMonoid(3, {0,1,3})
+#             sage: m.relations_automaton()
+#             Finite automaton with 3 states
+# 
+#             sage: b = (x^3-x-1).roots(ring=QQbar)[0][0]
+#             sage: m = BetaAdicMonoid(b, {0,1})
+#             sage: m.relations_automaton()
+#             Finite automaton with 179 states
+# 
+#         REFERENCES:
+# 
+#         ..  [Me13] Mercat P.
+#             Bull. SMF 141, fascicule 3, 2013.
+# 
+#         """
+#         if not noss:
+#             a = self.relations_automaton(ext=ext, ss=None,
+#                                          noss=True, Cd=Cd, verb=verb,
+#                                          step=step, limit=limit)
+#             if not step:
+#                 return a
+#             step = step-1
+#             if ss is None:
+#                 if hasattr(self, 'ss'):
+#                     ss = self.ss
+#                 else:
+#                     return a  # pas de sous-shift
+#             if not step:
+#                 return ss
+#             step = step-1
+#             d = dict()
+#             for u in self.C:
+#                 for v in self.C:
+#                     if not d.has_key(u - v):
+#                         d[u-v] = []
+#                     d[u - v] += [(u, v)]
+#             if not step:
+#                 return d
+#             step = step - 1
+#             ss = ss.prune0_simplify()
+#             P = ss.product(A=ss)
+#             # P = P.prune0_simplify()
+#             if not step:
+#                 return P
+#             step = step-1
+#             a.relabel2(d)
+#             if not step:
+#                 return a
+#             step = step-1
+#             a = a.intersection(A=P)
+#             if not step:
+#                 return a
+#             step = step-1
+#             a = a.prune0_simplify()
+#             if not step:
+#                 return a
+#             step = step-1
+#             if not ext:
+#                 a.pruneF()
+#                 if not step:
+#                     return a
+#                 step = step - 1
+#             # a = a.determinize(A=a.A, noempty=True)
+#             # if not step:
+#             #    return a
+#             # step = step-1
+#             # return a
+#             return a.minimize()
+# 
+#         K = self.C[0].parent()
+#         b = self.b
+# 
+#         if verb:
+#             print(K)
+# 
+#         # détermine les places qu'il faut considérer
+#         parch = []
+#         for p in K.places():  # places archimédiennes
+#             if p(b).abs() < 1:
+#                 parch += [p]
+#         pi = K.defining_polynomial()
+#         from sage.arith.misc import gcd
+#         # rend le polynôme à coefficients entiers et de contenu 1
+#         pi = pi / gcd(pi.list())
+#         # den = pi.constant_coefficient().denominator()
+#         # lp = (pi.list()[pi.degree()].numerator()*den).prime_divisors()
+#         # liste des nombres premiers concernés
+#         lp = (Integer(pi.list()[0])).prime_divisors()
+#         pultra = []  # liste des places ultramétriques considérées
+#         for p in lp:
+#             # détermine toutes les places au dessus
+#             # de p dans le corps de nombres K
+#             k = Qp(p)
+#             Kp = k['a']
+#             a = Kp.gen()
+#             for f in pi(a).factor():
+#                 kp = f[0].root_field('e')
+# #                c = kp.gen()
+#                 if kp == k:
+#                     c = f[0].roots(kp)[0][0]
+#                 else:
+#                     c = kp.gen()
+#                 if verb:
+#                     print("c=%s (abs=%s)" % (c, (c.norm().abs())**(1/f[0].degree())))
+#                 if (c.norm().abs())**(1/f[0].degree()) < 1:  # absp(c, c, f[0].degree()) > 1:
+#                     pultra += [(c, f[0].degree())]
+# 
+#         if verb:
+#             print("position: ")
+#             print(parch)
+#             print(pultra)
+# 
+#         # calcule les bornes max pour chaque valeur absolue
+#         if Cd is None:
+#             Cd = Set([c-c2 for c in self.C for c2 in self.C])
+#         if verb:
+#             print("Cd = %s" % Cd)
+#         m = dict([])
+#         for p in parch:
+#             m[p] = max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs())
+#         for p, d in pultra:
+#             m[p] = max([absp(c, p, d) for c in Cd])
+# 
+#         if verb:
+#             print("m = %s" % m)
+# 
+#         if verb:
+#             print(K.zero().parent())
+# 
+#         global count
+#         # print limit
+#         if limit is None:
+#             count = -1
+#         else:
+#             count = limit
+#         if niter is None:
+#             niter = -1
+#         # print count
+#         if verb:
+#             print("Way...")
+#         di = self._relations_automaton_rec(current_state=K.zero(), di=dict([]),
+#                                            parch=parch, pultra=pultra, m=m,
+#                                            Cd=Cd, ext=ext, verb=verb, niter=niter)
+# 
+#         if count == 0:
+#             print("Maximum number of reached states.")
+#         else:
+#             if verb:
+#                 if limit is None:
+#                     print("%s covered states." % (-1 - count))
+#                 else:
+#                     print("%s covered states." % (limit - count))
+# 
+#         # a = Automaton([K.zero()], [K.zero()], di)
+# 
+#         # if verb: print "di = %s"%di
+# 
+#         res = Automaton(di, loops=True)  # , multiedges=True)
+# 
+#         if verb:
+#             print("Avant emondation : %s" % res)
+# 
+#         res.I = [K.zero()]
+#         res.A = Cd  # Set([c-c2 for c in self.C for c2 in self.C])
+#         if verb:
+#             print("Emondation...")
+#         if not ext:
+#             res.F = [K.zero()]
+#             res.prune()
+#         else:
+#             # res = res.prune0_simplify() #pour retirer les états puits
+#             res.prune0()
+#             res.F = res.vertices()
+#         return res
 
-        INPUT:
-
-        - ``ext`` - bool (default: ``False``)
-          If True, compute the extended relations automaton (which permit to describe infinite words in the monoid).
-
-        - ``ss`` - Automaton (default: ``None``)
-          The subshift to associate to the beta-adic monoid for this operation.
-
-        - ``noss`` - bool (default: ``False``)
-
-
-        - ``verb`` - bool (default: ``False``)
-          If True, print informations for debugging.
-
-        - ``step`` - int (default: ``100``)
-          Stop to an intermediate state of the computing to verify that all is right.
-
-        - ``limit``- int (default: None)
-          Stop the computing after a number of states limit.
-
-        OUTPUT:
-
-        A Automaton.
-
-        EXAMPLES::
-
-            sage: m = BetaAdicMonoid(3, {0,1,3})
-            sage: m.relations_automaton()
-            Finite automaton with 3 states
-
-            sage: b = (x^3-x-1).roots(ring=QQbar)[0][0]
-            sage: m = BetaAdicMonoid(b, {0,1})
-            sage: m.relations_automaton()
-            Finite automaton with 179 states
-
-        REFERENCES:
-
-        ..  [Me13] Mercat P.
-            Bull. SMF 141, fascicule 3, 2013.
-
-        """
-        if not noss:
-            a = self.relations_automaton(ext=ext, ss=None,
-                                         noss=True, Cd=Cd, verb=verb,
-                                         step=step, limit=limit)
-            if not step:
-                return a
-            step = step-1
-            if ss is None:
-                if hasattr(self, 'ss'):
-                    ss = self.ss
-                else:
-                    return a  # pas de sous-shift
-            if not step:
-                return ss
-            step = step-1
-            d = dict()
-            for u in self.C:
-                for v in self.C:
-                    if not d.has_key(u - v):
-                        d[u-v] = []
-                    d[u - v] += [(u, v)]
-            if not step:
-                return d
-            step = step - 1
-            ss = ss.emonde0_simplify()
-            P = ss.product(A=ss)
-            # P = P.emonde0_simplify()
-            if not step:
-                return P
-            step = step-1
-            a.relabel2(d)
-            if not step:
-                return a
-            step = step-1
-            a = a.intersection(A=P)
-            if not step:
-                return a
-            step = step-1
-            a = a.emonde0_simplify()
-            if not step:
-                return a
-            step = step-1
-            if not ext:
-                a.emondeF()
-                if not step:
-                    return a
-                step = step - 1
-            # a = a.determinize(A=a.A, noempty=True)
-            # if not step:
-            #    return a
-            # step = step-1
-            # return a
-            return a.minimize()
-
-        K = self.C[0].parent()
-        b = self.b
-
-        if verb:
-            print(K)
-
-        # détermine les places qu'il faut considérer
-        parch = []
-        for p in K.places():  # places archimédiennes
-            if p(b).abs() < 1:
-                parch += [p]
-        pi = K.defining_polynomial()
-        from sage.arith.misc import gcd
-        # rend le polynôme à coefficients entiers et de contenu 1
-        pi = pi / gcd(pi.list())
-        # den = pi.constant_coefficient().denominator()
-        # lp = (pi.list()[pi.degree()].numerator()*den).prime_divisors()
-        # liste des nombres premiers concernés
-        lp = (Integer(pi.list()[0])).prime_divisors()
-        pultra = []  # liste des places ultramétriques considérées
-        for p in lp:
-            # détermine toutes les places au dessus
-            # de p dans le corps de nombres K
-            k = Qp(p)
-            Kp = k['a']
-            a = Kp.gen()
-            for f in pi(a).factor():
-                kp = f[0].root_field('e')
-#                c = kp.gen()
-                if kp == k:
-                    c = f[0].roots(kp)[0][0]
-                else:
-                    c = kp.gen()
-                if verb:
-                    print("c=%s (abs=%s)" % (c, (c.norm().abs())**(1/f[0].degree())))
-                if (c.norm().abs())**(1/f[0].degree()) < 1:  # absp(c, c, f[0].degree()) > 1:
-                    pultra += [(c, f[0].degree())]
-
-        if verb:
-            print("position: ")
-            print(parch)
-            print(pultra)
-
-        # calcule les bornes max pour chaque valeur absolue
-        if Cd is None:
-            Cd = Set([c-c2 for c in self.C for c2 in self.C])
-        if verb:
-            print("Cd = %s" % Cd)
-        m = dict([])
-        for p in parch:
-            m[p] = max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs())
-        for p, d in pultra:
-            m[p] = max([absp(c, p, d) for c in Cd])
-
-        if verb:
-            print("m = %s" % m)
-
-        if verb:
-            print(K.zero().parent())
-
-        global count
-        # print limit
-        if limit is None:
-            count = -1
-        else:
-            count = limit
-        if niter is None:
-            niter = -1
-        # print count
-        if verb:
-            print("Way...")
-        di = self._relations_automaton_rec(current_state=K.zero(), di=dict([]),
-                                           parch=parch, pultra=pultra, m=m,
-                                           Cd=Cd, ext=ext, verb=verb, niter=niter)
-
-        if count == 0:
-            print("Maximum number of reached states.")
-        else:
-            if verb:
-                if limit is None:
-                    print("%s covered states." % (-1 - count))
-                else:
-                    print("%s covered states." % (limit - count))
-
-        # a = Automaton([K.zero()], [K.zero()], di)
-
-        # if verb: print "di = %s"%di
-
-        res = Automaton(di, loops=True)  # , multiedges=True)
-
-        if verb:
-            print("Avant emondation : %s" % res)
-
-        res.I = [K.zero()]
-        res.A = Cd  # Set([c-c2 for c in self.C for c2 in self.C])
-        if verb:
-            print("Emondation...")
-        if not ext:
-            res.F = [K.zero()]
-            res.emonde()
-        else:
-            # res = res.emonde0_simplify() #pour retirer les états puits
-            res.emonde0()
-            res.F = res.vertices()
-        return res
-
-    def relations_automaton2(self, verb=False, step=100,
-                             limit=None, niter=None):
-        r"""
-
-        Do the same as relations_automaton, but avoid recursivity in order
-        to avoid the crash of sage.
-
-        INPUT:
-
-        - ``verb`` - bool (default: ``False``)
-          If True, print informations for debugging.
-
-        - ``step`` - int (default: ``100``)
-          Stop to an intermediate state of the computing to verify
-          that all is right.
-
-        - ``limit``- int (default: None)
-          Stop the computing after a number of states limit.
-
-        OUTPUT:
-
-        A Automaton.
-        """
-
-        K = self.C[0].parent()
-        b = self.b
-
-        if verb:
-            print(K)
-
-        # détermine les places qu'il faut considérer
-        parch = []
-        for p in K.places():  # places archimédiennes
-            if p(b).abs() < 1:
-                parch += [p]
-        pi = K.defining_polynomial()
-        from sage.arith.misc import gcd
-        # rend le polynôme à coefficients entiers et de contenu 1
-        pi = pi/gcd(pi.list())  
-        # liste des nombres premiers concernés
-        lp = (Integer(pi.list()[0])).prime_divisors()
-        pultra = []  # liste des places ultramétriques considérées
-        for p in lp:
-            # détermine toutes les places au dessus de p dans le corps de nombres K
-            k = Qp(p)
-            Kp = k['a']
-            a = Kp.gen()
-            for f in pi(a).factor():
-                kp = f[0].root_field('e')
-                if kp == k:
-                    c = f[0].roots(kp)[0][0]
-                else:
-                    c = kp.gen()
-                if verb:
-                    print("c=%s (abs=%s)" % (c, (c.norm().abs())**(1/f[0].degree())))
-                if (c.norm().abs())**(1/f[0].degree()) < 1:  # absp(c, c, f[0].degree()) > 1:
-                    pultra += [(c, f[0].degree())]
-
-        if verb:
-            print("positions: ")
-            print(parch)
-            print(pultra)
-
-        # calcule les bornes max pour chaque valeur absolue
-        Cd = Set([c-c2 for c in self.C for c2 in self.C])
-        if verb:
-            print("Cd = %s" % Cd)
-        m = dict([])
-        for p in parch:
-            m[p] = max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs())
-        for p, d in pultra:
-            m[p] = max([absp(c, p, d) for c in Cd])
-
-        if verb:
-            print("m = %s" % m)
-
-        if verb:
-            print(K.zero().parent())
-
-        if limit is None:
-            count = -1
-        else:
-            count = limit
-        if niter is None:
-            niter = -1
-
-        if verb:
-            print("Way...")
-
-        di = dict([])
-        S = [K.zero()]  # set of states to look at
-        iter = 0
-        while len(S) != 0:
-            if iter == niter:
-                break
-            for s in S:
-                S.remove(s)
-                if not di.has_key(s):
-                    di[s] = dict([])
-                    if count % 10000 == 0:
-                        print(count)
-                    count -= 1
-                    if count == 0:
-                        iter = niter-1  # to break the main loop
-                        break
-                for c in Cd:  # parcours les transitions partant de current_state
-                    e = (s + c)/b  # calcule l'état obtenu en suivant la transition c
-                    # if verb:
-                    # print "b=%s, e=%s, cur=%s, c=%s, di=%s"%(b, e, current_state, c, di)
-                    # détermine si l'état est déjà dans le dictionnaire
-                    if not di.has_key(e):
-                        ok = True
-                        # calcule les valeurs abolues pour déterminer si l'état n'est pas trop grand
-                        for p in parch:
-                            if p(e).abs() >= m[p]:
-                                ok = False
-                                break
-                        if not ok:
-                            continue  # cesse de considérer cette transition
-                        for p, d in pultra:
-                            if absp(e, p, d) > m[p]:
-                                # if verb: print "abs(%s)=%s trop grand !"%(e, absp(e, p, d))
-                                ok = False
-                                break
-                        if ok:
-                            # on ajoute l'état et la transition à l'automate
-                            di[s][e] = c
-                            S.append(e)
-                        else:
-                            # ajoute la transition
-                            di[s][e] = c
-                            iter += 1
-
-                if count == 0:
-                    print("Maximum number of reached states.")
-                    return
-                else:
-                    if verb:
-                        if limit is None:
-                            print("%s états parcourus." % (-1 - count))
-                        else:
-                            print("%s covered states." % (limit - count))
-
-        res = Automaton(di, loops=True) # , multiedges=True)
-
-        if verb:
-            print("Before emondation : %s" % res)
-
-        res.I = [K.zero()]
-        res.A = Set([c-c2 for c in self.C for c2 in self.C])
-        res.F = [K.zero()]
-        if verb:
-            print("Emondation...")
-        res.emonde()
-        return res
+#     def relations_automaton2(self, verb=False, step=100,
+#                              limit=None, niter=None):
+#         r"""
+# 
+#         Do the same as relations_automaton, but avoid recursivity in order
+#         to avoid the crash of sage.
+# 
+#         INPUT:
+# 
+#         - ``verb`` - bool (default: ``False``)
+#           If True, print informations for debugging.
+# 
+#         - ``step`` - int (default: ``100``)
+#           Stop to an intermediate state of the computing to verify
+#           that all is right.
+# 
+#         - ``limit``- int (default: None)
+#           Stop the computing after a number of states limit.
+# 
+#         OUTPUT:
+# 
+#         A Automaton.
+#         """
+# 
+#         K = self.C[0].parent()
+#         b = self.b
+# 
+#         if verb:
+#             print(K)
+# 
+#         # détermine les places qu'il faut considérer
+#         parch = []
+#         for p in K.places():  # places archimédiennes
+#             if p(b).abs() < 1:
+#                 parch += [p]
+#         pi = K.defining_polynomial()
+#         from sage.arith.misc import gcd
+#         # rend le polynôme à coefficients entiers et de contenu 1
+#         pi = pi/gcd(pi.list())  
+#         # liste des nombres premiers concernés
+#         lp = (Integer(pi.list()[0])).prime_divisors()
+#         pultra = []  # liste des places ultramétriques considérées
+#         for p in lp:
+#             # détermine toutes les places au dessus de p dans le corps de nombres K
+#             k = Qp(p)
+#             Kp = k['a']
+#             a = Kp.gen()
+#             for f in pi(a).factor():
+#                 kp = f[0].root_field('e')
+#                 if kp == k:
+#                     c = f[0].roots(kp)[0][0]
+#                 else:
+#                     c = kp.gen()
+#                 if verb:
+#                     print("c=%s (abs=%s)" % (c, (c.norm().abs())**(1/f[0].degree())))
+#                 if (c.norm().abs())**(1/f[0].degree()) < 1:  # absp(c, c, f[0].degree()) > 1:
+#                     pultra += [(c, f[0].degree())]
+# 
+#         if verb:
+#             print("positions: ")
+#             print(parch)
+#             print(pultra)
+# 
+#         # calcule les bornes max pour chaque valeur absolue
+#         Cd = Set([c-c2 for c in self.C for c2 in self.C])
+#         if verb:
+#             print("Cd = %s" % Cd)
+#         m = dict([])
+#         for p in parch:
+#             m[p] = max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs())
+#         for p, d in pultra:
+#             m[p] = max([absp(c, p, d) for c in Cd])
+# 
+#         if verb:
+#             print("m = %s" % m)
+# 
+#         if verb:
+#             print(K.zero().parent())
+# 
+#         if limit is None:
+#             count = -1
+#         else:
+#             count = limit
+#         if niter is None:
+#             niter = -1
+# 
+#         if verb:
+#             print("Way...")
+# 
+#         di = dict([])
+#         S = [K.zero()]  # set of states to look at
+#         iter = 0
+#         while len(S) != 0:
+#             if iter == niter:
+#                 break
+#             for s in S:
+#                 S.remove(s)
+#                 if not di.has_key(s):
+#                     di[s] = dict([])
+#                     if count % 10000 == 0:
+#                         print(count)
+#                     count -= 1
+#                     if count == 0:
+#                         iter = niter-1  # to break the main loop
+#                         break
+#                 for c in Cd:  # parcours les transitions partant de current_state
+#                     e = (s + c)/b  # calcule l'état obtenu en suivant la transition c
+#                     # if verb:
+#                     # print "b=%s, e=%s, cur=%s, c=%s, di=%s"%(b, e, current_state, c, di)
+#                     # détermine si l'état est déjà dans le dictionnaire
+#                     if not di.has_key(e):
+#                         ok = True
+#                         # calcule les valeurs abolues pour déterminer si l'état n'est pas trop grand
+#                         for p in parch:
+#                             if p(e).abs() >= m[p]:
+#                                 ok = False
+#                                 break
+#                         if not ok:
+#                             continue  # cesse de considérer cette transition
+#                         for p, d in pultra:
+#                             if absp(e, p, d) > m[p]:
+#                                 # if verb: print "abs(%s)=%s trop grand !"%(e, absp(e, p, d))
+#                                 ok = False
+#                                 break
+#                         if ok:
+#                             # on ajoute l'état et la transition à l'automate
+#                             di[s][e] = c
+#                             S.append(e)
+#                         else:
+#                             # ajoute la transition
+#                             di[s][e] = c
+#                             iter += 1
+# 
+#                 if count == 0:
+#                     print("Maximum number of reached states.")
+#                     return
+#                 else:
+#                     if verb:
+#                         if limit is None:
+#                             print("%s états parcourus." % (-1 - count))
+#                         else:
+#                             print("%s covered states." % (limit - count))
+# 
+#         res = Automaton(di, loops=True) # , multiedges=True)
+# 
+#         if verb:
+#             print("Before emondation : %s" % res)
+# 
+#         res.I = [K.zero()]
+#         res.A = Set([c-c2 for c in self.C for c2 in self.C])
+#         res.F = [K.zero()]
+#         if verb:
+#             print("Emondation...")
+#         res.prune()
+#         return res
 
     def relations_automaton3(self, t=0, isvide=False, Cd=None,
                              ext=False, verb=False):
@@ -2026,7 +2048,7 @@ class BetaAdicMonoid(Monoid_class):
         sig_on()
         cdef InfoBetaAdic ib
         ib = initInfoBetaAdic(self, Cd=Cd, plus=True, verb=verb)
-        cdef Automate a
+        cdef Automaton a
         a = RelationsAutomaton(ib, isvide, ext, verb)
         r = DetAutomaton(None)
         r.a[0] = a
@@ -2036,15 +2058,15 @@ class BetaAdicMonoid(Monoid_class):
         if isvide:
             return a.na != 0
         if ext:
-            r2 = r.emonde_inf()
+            r2 = r.prune_inf()
             r2.set_final_states(r2.states())
         else:
-            r2 = r.emonde()
+            r2 = r.prune()
         return r2.transpose_det()
 
     def relations_automaton4(self, t=0, isvide=False, Cd=None, A=None, B=None,
                              couples=False, ext=False, transp=False,
-                             emonde=True, verb=False):
+                             prune=True, verb=False):
         r"""
         Compute the relation automaton of the beta-adic monoid.
         For beta algebraic integer only.
@@ -2064,7 +2086,7 @@ class BetaAdicMonoid(Monoid_class):
         sig_on()
         cdef InfoBetaAdic ib
         ib = initInfoBetaAdic(self, Cd=Cd, plus=False, verb=verb)
-        cdef Automate a
+        cdef Automaton a
         cdef Element e
         e = NewElement(ib.n)
         K = self.b.parent()
@@ -2085,14 +2107,14 @@ class BetaAdicMonoid(Monoid_class):
         if isvide:
             return a.na != 0
         cdef DetAutomaton r2
-        if emonde:
+        if prune:
             if verb:
-                print("emonde...")
+                print("prune...")
             if ext:
-                r2 = r.emonde_inf()
+                r2 = r.prune_inf()
                 r2.set_final_states(r2.states())
             else:
-                r2 = r.emonde()
+                r2 = r.prune()
         else:
             r2 = r
         if transp:
@@ -2268,7 +2290,7 @@ class BetaAdicMonoid(Monoid_class):
                 sage: ss1 = ss.prefix(w=[1], i=iss)
                 sage: ssi = m.intersection(ss=ss0, ss2=ss1)
                 sage: ssd = ssi.determinize(A=m.C, noempty=True)
-                sage: ssd = ssd.emonde0_simplify()
+                sage: ssd = ssd.prune0_simplify()
                 sage: m.plot(ss = ssd, n=19)     # long time
         """
 
@@ -2340,14 +2362,14 @@ class BetaAdicMonoid(Monoid_class):
         p = a.product(A=ar, d=d)
         # I = [((i,i2),self.b.parent().zero()) for i in Iss for i2 in Iss2]
         # if verb: print "I = %s"%I
-        # p.emondeI(I=I)
+        # p.pruneI(I=I)
         # if verb: print "%s"%p
-        # p.emonde0(I=I)
+        # p.prune0(I=I)
         p.I = [((i, i2), self.b.parent().zero()) for i, i2 in zip(Iss, Iss2)]
-        p = p.emonde0_simplify()
+        p = p.prune0_simplify()
         if m is not None:
             ssd = p.determinize2(A=self.C, noempty=True)
-            ssd = ssd.emonde0_simplify()
+            ssd = ssd.prune0_simplify()
             return ssd
         return p
 
@@ -2386,24 +2408,24 @@ class BetaAdicMonoid(Monoid_class):
                 sage: m.plot2(tss = ssi)     # long time
         """
         a = self.relations_automaton3()
-        a = a.emonde_inf()
+        a = a.prune_inf()
         a.set_final_states(a.states())
         ssp = ss1.product(ss2)
-        ssp = ssp.emonde()
+        ssp = ssp.prune()
         d = {}
         for (la1, la2) in ssp.alphabet:
             for lb in a.alphabet:
                 if lb == la1-la2:
                     d[((la1, la2), lb)] = (la1, la2)
         ssi = ssp.product(a, d)
-        ssi = ssi.emonde_inf()
-        ssi = ssi.emonde()
+        ssi = ssi.prune_inf()
+        ssi = ssi.prune()
         d = {}
         for (l1, l2) in ssi.alphabet:
             d[(l1, l2)] = l1
         ssi = ssi.determinise_proj(d)
-        ssi = ssi.emonde_inf()
-        ssi = ssi.emonde()
+        ssi = ssi.prune_inf()
+        ssi = ssi.prune()
         return ssi.minimize()
 
     def intersection_words(self, w1, w2, ss=None, iss=None):
@@ -2457,7 +2479,7 @@ class BetaAdicMonoid(Monoid_class):
         ss2 = ss.prefix(w=w2, i=iss)
         ssi = self.intersection(ss=ss1, ss2=ss2)
         ssd = ssi.determinize2(A=self.C, noempty=True)
-        ssd = ssd.emonde0_simplify()
+        ssd = ssd.prune0_simplify()
         return ssd
 
 
@@ -2487,7 +2509,7 @@ class BetaAdicMonoid(Monoid_class):
         Cd = list(set([c-c2 for c in self.C for c2 in self.C]))
         Cdp = [k for k in range(len(Cd)) if Cd[k] in [self.C[j]-self.C[i] for i in range(len(self.C)) for j in range(i)]] #indices des chiffres strictements négatifs dans Cd
         arel = self.relations_automaton3(Cd=Cd, ext=False)
-        arel = arel.emonde()
+        arel = arel.prune()
         if transpose:
             arel = arel.transpose_det()
         if verb:
@@ -2547,261 +2569,261 @@ class BetaAdicMonoid(Monoid_class):
         # project on the first value of the couple, determinise and take the complementary
         if verb:
             print(arel)
-        arel = arel.emonde()
-        arel = arel.emonde_inf()
+        arel = arel.prune()
+        arel = arel.prune_inf()
         if step == 10:
             return arel
         return arel.minimize()
 
-    def reduced_words_automaton(self, ss=None, Iss=None, ext=False,
-                                verb=False, step=None, arel=None):
-        r"""
-        Compute the reduced words automaton of the beta-adic monoid (with or without subshift).
-        See http://www.latp.univ-mrs.fr/~paul.mercat/Publis/Semi-groupes%20fortement%20automatiques.pdf for a definition of such automaton (without subshift).
-
-        WARNING: It seems there is a bug : result may be incorrect if ss is not None.
-
-        INPUT:
-
-        - ``ss``- Automaton (default: ``None``)
-          The first subshift to associate to the beta-adic monoid for this operation.
-
-        - ``Iss``- set of states of ss (default: ``None``)
-
-        - ``ext`` - bool (default: ``True``)
-          If True, compute the extended relations automaton (which permit to describe infinite words in the monoid).  
-
-        - ``verb`` - bool (default: ``False``)
-          If True, print informations for debugging.
-
-        - ``step`` - int (default: ``None``)
-          Stop to a intermediate state of the computing to make verifications.
-
-        - ``arel`` - Automaton (default: ``None``)
-          Automaton of relations.
-
-        OUTPUT:
-
-        A Automaton.
-
-        EXAMPLES:
-
-            #. 3-adic expansion with numerals set {0,1,3}::
-
-                sage: m = BetaAdicMonoid(3, {0,1,3})
-                sage: m.reduced_words_automaton()
-                Finite automaton with 2 states
-
-            #. phi-adic expansion with numerals set {0,1}::
-
-                sage: m = BetaAdicMonoid((1+sqrt(5))/2, {0,1})
-                sage: m.reduced_words_automaton()
-                Finite automaton with 3 states
-
-            #. beta-adic expansion with numerals set {0,1} where beta is the plastic number::
-                sage: b = (x^3-x-1).roots(ring=QQbar)[0][0]
-                sage: m = BetaAdicMonoid(b, {0,1})
-                sage: m.reduced_words_automaton()        # long time
-                Finite automaton with 5321 states
-        """
-        if ss is None:
-            if hasattr(self, 'ss'):
-                ss = self.ss
-                if hasattr(self.ss, 'I'):
-                    Iss = self.ss.I
-
-        if step is None:
-            step = 1000
-
-        K = self.C[0].parent()
-
-        if verb:
-            print("Computation of relations's automata")
-            # "Calcul de l'automate des relations..."
-
-        if arel is None:
-            a = self.relations_automaton(noss=True)
-        else:
-            a = arel
-
-        if verb:
-            print(" -> %s" % a)
-
-        if step == 1:
-            return ("relations's automata", a)
-
-        # add a state copy of K.0 (it will be the new initial state)
-        a.add_vertex('O')
-
-        #        #add transitions to K.0 to 'O'
-        #        for f, d, l in a.incoming_edges(K.zero(), labels=True):
-        #            if f == K.zero():
-        #                a.add_edge('O', 'O', l)
-        #            else:
-        #                a.add_edge(f, 'O', l)
-
-        # subset of positives labels
-        Cdp = []
-        for i in range(self.C.cardinality()):
-            for j in range(i):
-                Cdp += [self.C[i] - self.C[j]]
-
-        # redirect positives transitions from K.0
-        for f, d, l in a.outgoing_edges(K.zero(), labels=True):
-            if l in Cdp:
-            #                a.delete_edge(K.zero(), d, l)
-                # add the edge
-                a.add_edge('O', d, l)
-
-        a.add_edge('O', 'O', a.edge_label(K.zero(), K.zero()))
-
-        if verb:
-            print(a.incoming_edges(K.zero(), labels=True))
-
-        # remove outgoing edges from K.0 (except from K.0 to K.0)
-        for f, d, l in a.outgoing_edges(K.zero(), labels=True):
-            if f != d:
-                a.delete_edge(f, d, l)
-
-        if step == 2:
-            a.I = ['O']
-            a.F = Set([K.zero()])
-            return ("automaton of ordoned relations", a)
-        a.emondeI(I=['O'])
-
-        if step == 3:
-            return ("emonded automaton of ordoned relations", a)
-
-        if ss is not None:  # not full sub-shift
-            if Iss is None:
-                Iss = [ss.vertices()[0]]
-            # maps actual edges to the list of corresponding couple
-            m = dict([])
-            for c in self.C:
-                for c2 in self.C:
-                    if m.has_key(c - c2):
-                        m[c-c2] += [(c, c2)]
-                    else:
-                        m[c-c2] = [(c, c2)]
-            # if verb: print "m=%s"%m
-
-            # calculate the 'product to the right' of a with ss
-            d = dict([])
-            La = a.edge_labels()
-            Lss = ss.edge_labels()
-            for ka in La:
-                for kss in Lss:
-                    d[(ka, kss)] = None
-                    for k in m[ka]:
-                        if k[1] == kss:
-                            d[(ka, kss)] = k[0]
-                            break
-
-            # if verb: print "d=%s"%d
-            if verb:
-                # "avant produit : a=%s (%s etats)"%(a, a.num_verts())
-                print(" before product : a=%s (%s states)" % (a, a.num_verts()))
-            a = a.product(A=ss, d=d)
-            if verb:
-                print(" after product : a=%s" % a)
-            if step == 4:
-                return ("non reduce general words automata", a) #"automate des mots généraux non réduits", a)
-
-            I = [('O', i) for i in Iss]
-            nof = Set([(K.zero(), i) for i in ss.vertices()])
-
-            # if verb: print "I=%s, F=%s"%(I, nof)
-
-            if ext:
-                # a.emondeI(I=I)
-                # a.emonde0(I=I) #pour retirer les états puits
-                a = a.emonde0_simplify(I=I)
-            else:
-                a = a.emonde0_simplify(I=I)
-                a.emonde(I=I, F=nof)
-            # a.emondeI(I=I)
-            # a.emondeF(F=nof)
-            # if step == 4:
-            #    return ("automate des mots généraux non réduits, émondé", a)
-            # a.emondeF(F=nof)
-
-            if verb:
-                print("After emondation : a=%s" % a)
-            if step == 5:
-                return("emonded automaton of non reducted general words", a)
-
-            # return a
-        else:
-            # maps actual edges to element of self.C (the left part when writted c-c2)
-            m = dict([])
-            for c in self.C:
-                for c2 in self.C:
-                    if m.has_key(c-c2):
-                        m[c-c2] += [c]
-                    else:
-                        m[c-c2] = [c]
-            # if verb: print "m=%s"%m
-
-            a.allow_multiple_edges(True)
-            # replace each label by its mapping
-            for f, d, l in a.edges():
-                a.delete_edge(f, d, l)
-                for l2 in m[l]:
-                    a.add_edge(f, d, l2)
-
-            I = ['O']
-            nof = Set([K.zero()])
-
-        a.I = I
-        a.F = nof
-        a.C = self.C
-
-        if verb:
-            print("Before determinisation : a=%s" % a)
-        if step == 6:
-            return ("emonded automaton of non reducted general words", a)
-
-        # rend l'automate plus simple
-        a = a.emonde0_simplify()
-
-        if verb:
-            print("simplification : a=%s" % a)
-
-        if verb:
-            print("Determinization...")
-        # determinize
-        ad = a.determinize2(nof=a.F)
-        # ad = a.determinize(nof=a.F, verb=False)
-        # ad = a.determinize(I, self.C, nof, verb=verb)
-
-        if verb:
-            print(" -> %s" % ad)
-        if step == 7:
-            return ("automate des mots généraux réduits", ad)
-
-        if ss is not None:  # not full sub-shift
-            # calculate the intersection with ss
-            ad = ad.emonde0_simplify()
-            ad = ad.intersection(ss)
-            if verb:
-                print("after intersection : a=%s" % ad)
-
-        if step == 8:
-            return ("automaton of reduces words", ad)
-
-        # F2=[e for e in a.vertices() nof in e[0]]
-        # if verb: print "I2=%s"%I2 #, F2=%s"%(I2,F2)
-        ad.A = self.C
-        # ad.emondeI(I=I2) #, F=F2)
-        ad = ad.emonde0_simplify()
-        ad.F = ad.vertices()
-
-        if verb:
-            print("after emondation : a=%s" % ad)
-        if step == 9:
-            return ("emonded automaton of reduced words", ad)
-
-        return ad
+#     def reduced_words_automaton(self, ss=None, Iss=None, ext=False,
+#                                 verb=False, step=None, arel=None):
+#         r"""
+#         Compute the reduced words automaton of the beta-adic monoid (with or without subshift).
+#         See http://www.latp.univ-mrs.fr/~paul.mercat/Publis/Semi-groupes%20fortement%20automatiques.pdf for a definition of such automaton (without subshift).
+# 
+#         WARNING: It seems there is a bug : result may be incorrect if ss is not None.
+# 
+#         INPUT:
+# 
+#         - ``ss``- Automaton (default: ``None``)
+#           The first subshift to associate to the beta-adic monoid for this operation.
+# 
+#         - ``Iss``- set of states of ss (default: ``None``)
+# 
+#         - ``ext`` - bool (default: ``True``)
+#           If True, compute the extended relations automaton (which permit to describe infinite words in the monoid).  
+# 
+#         - ``verb`` - bool (default: ``False``)
+#           If True, print informations for debugging.
+# 
+#         - ``step`` - int (default: ``None``)
+#           Stop to a intermediate state of the computing to make verifications.
+# 
+#         - ``arel`` - Automaton (default: ``None``)
+#           Automaton of relations.
+# 
+#         OUTPUT:
+# 
+#         A Automaton.
+# 
+#         EXAMPLES:
+# 
+#             #. 3-adic expansion with numerals set {0,1,3}::
+# 
+#                 sage: m = BetaAdicMonoid(3, {0,1,3})
+#                 sage: m.reduced_words_automaton()
+#                 Finite automaton with 2 states
+# 
+#             #. phi-adic expansion with numerals set {0,1}::
+# 
+#                 sage: m = BetaAdicMonoid((1+sqrt(5))/2, {0,1})
+#                 sage: m.reduced_words_automaton()
+#                 Finite automaton with 3 states
+# 
+#             #. beta-adic expansion with numerals set {0,1} where beta is the plastic number::
+#                 sage: b = (x^3-x-1).roots(ring=QQbar)[0][0]
+#                 sage: m = BetaAdicMonoid(b, {0,1})
+#                 sage: m.reduced_words_automaton()        # long time
+#                 Finite automaton with 5321 states
+#         """
+#         if ss is None:
+#             if hasattr(self, 'ss'):
+#                 ss = self.ss
+#                 if hasattr(self.ss, 'I'):
+#                     Iss = self.ss.I
+# 
+#         if step is None:
+#             step = 1000
+# 
+#         K = self.C[0].parent()
+# 
+#         if verb:
+#             print("Computation of relations's automata")
+#             # "Calcul de l'automate des relations..."
+# 
+#         if arel is None:
+#             a = self.relations_automaton(noss=True)
+#         else:
+#             a = arel
+# 
+#         if verb:
+#             print(" -> %s" % a)
+# 
+#         if step == 1:
+#             return ("relations's automata", a)
+# 
+#         # add a state copy of K.0 (it will be the new initial state)
+#         a.add_vertex('O')
+# 
+#         #        #add transitions to K.0 to 'O'
+#         #        for f, d, l in a.incoming_edges(K.zero(), labels=True):
+#         #            if f == K.zero():
+#         #                a.add_edge('O', 'O', l)
+#         #            else:
+#         #                a.add_edge(f, 'O', l)
+# 
+#         # subset of positives labels
+#         Cdp = []
+#         for i in range(self.C.cardinality()):
+#             for j in range(i):
+#                 Cdp += [self.C[i] - self.C[j]]
+# 
+#         # redirect positives transitions from K.0
+#         for f, d, l in a.outgoing_edges(K.zero(), labels=True):
+#             if l in Cdp:
+#             #                a.delete_edge(K.zero(), d, l)
+#                 # add the edge
+#                 a.add_edge('O', d, l)
+# 
+#         a.add_edge('O', 'O', a.edge_label(K.zero(), K.zero()))
+# 
+#         if verb:
+#             print(a.incoming_edges(K.zero(), labels=True))
+# 
+#         # remove outgoing edges from K.0 (except from K.0 to K.0)
+#         for f, d, l in a.outgoing_edges(K.zero(), labels=True):
+#             if f != d:
+#                 a.delete_edge(f, d, l)
+# 
+#         if step == 2:
+#             a.I = ['O']
+#             a.F = Set([K.zero()])
+#             return ("automaton of ordoned relations", a)
+#         a.pruneI(I=['O'])
+# 
+#         if step == 3:
+#             return ("pruned automaton of ordoned relations", a)
+# 
+#         if ss is not None:  # not full sub-shift
+#             if Iss is None:
+#                 Iss = [ss.vertices()[0]]
+#             # maps actual edges to the list of corresponding couple
+#             m = dict([])
+#             for c in self.C:
+#                 for c2 in self.C:
+#                     if m.has_key(c - c2):
+#                         m[c-c2] += [(c, c2)]
+#                     else:
+#                         m[c-c2] = [(c, c2)]
+#             # if verb: print "m=%s"%m
+# 
+#             # calculate the 'product to the right' of a with ss
+#             d = dict([])
+#             La = a.edge_labels()
+#             Lss = ss.edge_labels()
+#             for ka in La:
+#                 for kss in Lss:
+#                     d[(ka, kss)] = None
+#                     for k in m[ka]:
+#                         if k[1] == kss:
+#                             d[(ka, kss)] = k[0]
+#                             break
+# 
+#             # if verb: print "d=%s"%d
+#             if verb:
+#                 # "avant produit : a=%s (%s etats)"%(a, a.num_verts())
+#                 print(" before product : a=%s (%s states)" % (a, a.num_verts()))
+#             a = a.product(A=ss, d=d)
+#             if verb:
+#                 print(" after product : a=%s" % a)
+#             if step == 4:
+#                 return ("non reduce general words automata", a) #"automate des mots généraux non réduits", a)
+# 
+#             I = [('O', i) for i in Iss]
+#             nof = Set([(K.zero(), i) for i in ss.vertices()])
+# 
+#             # if verb: print "I=%s, F=%s"%(I, nof)
+# 
+#             if ext:
+#                 # a.emondeI(I=I)
+#                 # a.emonde0(I=I) #pour retirer les états puits
+#                 a = a.emonde0_simplify(I=I)
+#             else:
+#                 a = a.emonde0_simplify(I=I)
+#                 a.emonde(I=I, F=nof)
+#             # a.emondeI(I=I)
+#             # a.emondeF(F=nof)
+#             # if step == 4:
+#             #    return ("automate des mots généraux non réduits, émondé", a)
+#             # a.emondeF(F=nof)
+# 
+#             if verb:
+#                 print("After emondation : a=%s" % a)
+#             if step == 5:
+#                 return("emonded automaton of non reducted general words", a)
+# 
+#             # return a
+#         else:
+#             # maps actual edges to element of self.C (the left part when writted c-c2)
+#             m = dict([])
+#             for c in self.C:
+#                 for c2 in self.C:
+#                     if m.has_key(c-c2):
+#                         m[c-c2] += [c]
+#                     else:
+#                         m[c-c2] = [c]
+#             # if verb: print "m=%s"%m
+# 
+#             a.allow_multiple_edges(True)
+#             # replace each label by its mapping
+#             for f, d, l in a.edges():
+#                 a.delete_edge(f, d, l)
+#                 for l2 in m[l]:
+#                     a.add_edge(f, d, l2)
+# 
+#             I = ['O']
+#             nof = Set([K.zero()])
+# 
+#         a.I = I
+#         a.F = nof
+#         a.C = self.C
+# 
+#         if verb:
+#             print("Before determinisation : a=%s" % a)
+#         if step == 6:
+#             return ("emonded automaton of non reducted general words", a)
+# 
+#         # rend l'automate plus simple
+#         a = a.emonde0_simplify()
+# 
+#         if verb:
+#             print("simplification : a=%s" % a)
+# 
+#         if verb:
+#             print("Determinization...")
+#         # determinize
+#         ad = a.determinize2(nof=a.F)
+#         # ad = a.determinize(nof=a.F, verb=False)
+#         # ad = a.determinize(I, self.C, nof, verb=verb)
+# 
+#         if verb:
+#             print(" -> %s" % ad)
+#         if step == 7:
+#             return ("automate des mots généraux réduits", ad)
+# 
+#         if ss is not None:  # not full sub-shift
+#             # calculate the intersection with ss
+#             ad = ad.emonde0_simplify()
+#             ad = ad.intersection(ss)
+#             if verb:
+#                 print("after intersection : a=%s" % ad)
+# 
+#         if step == 8:
+#             return ("automaton of reduces words", ad)
+# 
+#         # F2=[e for e in a.vertices() nof in e[0]]
+#         # if verb: print "I2=%s"%I2 #, F2=%s"%(I2,F2)
+#         ad.A = self.C
+#         # ad.emondeI(I=I2) #, F=F2)
+#         ad = ad.emonde0_simplify()
+#         ad.F = ad.vertices()
+# 
+#         if verb:
+#             print("after emondation : a=%s" % ad)
+#         if step == 9:
+#             return ("emonded automaton of reduced words", ad)
+# 
+#         return ad
 
     def critical_exponent_free(self, ss=None, prec=None, verb=False):
         r"""
@@ -3051,8 +3073,8 @@ class BetaAdicMonoid(Monoid_class):
             print("arel=%s" % arel)
         ai = ap.intersection(arel)
         if ext:
-            ai = ai.emonde_inf()
-        ai = ai.emonde()
+            ai = ai.prune_inf()
+        ai = ai.prune()
         ai = ai.minimize()
         if verb:
             if ai.n_states < 100:
@@ -3064,8 +3086,8 @@ class BetaAdicMonoid(Monoid_class):
                 d[(c, c2)] = c
         ac = ai.determinise_proj(d)
         if ext:
-            ac = ac.emonde_inf()
-        ac = ac.emonde()
+            ac = ac.prune_inf()
+        ac = ac.prune()
         ac = ac.minimize()
         return ac
 
@@ -3092,8 +3114,8 @@ class BetaAdicMonoid(Monoid_class):
         if step == 1:
             return a
         if ext:
-            a = a.emonde_inf()
-        a = a.emonde()
+            a = a.prune_inf()
+        a = a.prune()
         if verb:
             print(" Après émondation : %s" % a)
         if step == 2:
@@ -3121,8 +3143,8 @@ class BetaAdicMonoid(Monoid_class):
         if step == 5:
             return a2
         if ext:
-            a2 = a2.emonde_inf()
-        a2 = a2.emonde()
+            a2 = a2.prune_inf()
+        a2 = a2.prune()
         if step == 6:
             return a2
         a2 = a2.minimize()
@@ -3139,8 +3161,8 @@ class BetaAdicMonoid(Monoid_class):
         if verb:
             print(" -> %s" % a2)
         if ext:
-            a2 = a2.emonde_inf()
-        a2 = a2.emonde()
+            a2 = a2.prune_inf()
+        a2 = a2.prune()
         if step == 9:
             return a2
         if verb:
@@ -3265,7 +3287,7 @@ class BetaAdicMonoid(Monoid_class):
         if verb:
             print("min")
         ai.zero_completeOP()
-        return ai.emonde().minimize()
+        return ai.prune().minimize()
 
     # return the automaton recognizing the division by beta and translation t
     def shift(self, DetAutomaton aa,
@@ -3288,7 +3310,7 @@ class BetaAdicMonoid(Monoid_class):
         for i in range(0, len(l)):
             a2 = aa.copy()
             a2.set_initial_state(aa.a.e[aa.a.i].f[l[i]])
-            a2 = a2.emonde().minimize()
+            a2 = a2.prune().minimize()
             a2 = self.move2(t=-(A[l[i]]-t)/self.b, a=a2, b=bb)
             a = a.union(a2)
         return a
@@ -3297,7 +3319,7 @@ class BetaAdicMonoid(Monoid_class):
     def intersection3(self, DetAutomaton a, DetAutomaton b, ext=True):
         a2 = self.complete(a, ext=ext)
         b2 = self.complete(b, ext=ext)
-        return a2.intersection(b2).emonde()
+        return a2.intersection(b2).prune()
 
     # determine if the limit sets intersect
     def intersect(self, DetAutomaton a, DetAutomaton b, ext=True, verb=False):
@@ -3666,9 +3688,9 @@ class BetaAdicMonoid(Monoid_class):
             at[t] = at[t].intersection(uc)
             at[t].zero_completeOP()
             # if verb: print "union..."
-            u = u.union(at[t]).emonde().minimize()
-            # if verb: print "emonde..."
-            at[t] = at[t].emonde().minimize()
+            u = u.union(at[t]).prune().minimize()
+            # if verb: print "prune..."
+            at[t] = at[t].prune().minimize()
             # teste si c'est fini
             # if verb: print "compl..."
             uc = u.complementary()
@@ -3798,7 +3820,7 @@ class BetaAdicMonoid(Monoid_class):
             ad = ad.determinise_proj(d)
             if verb:
                 print("minimise...")
-            ad = ad.emonde().minimize()
+            ad = ad.prune().minimize()
             ad.zero_completeOP()
             if verb:
                 print("ad = %s" % ad)
@@ -3851,11 +3873,11 @@ class BetaAdicMonoid(Monoid_class):
                 raise ValueError("Error : uc is not included in aoc !!!")
             at[t] = at[t].intersection(uc)
             at[t].zero_completeOP()
-            # if verb: print "emonde..."
-            at[t] = at[t].emonde().minimize()
+            # if verb: print "prune..."
+            at[t] = at[t].prune().minimize()
             # if verb: print "union..."
-            u = u.union(at[t]).emonde().minimize()
-            at[t] = at[t].emonde()
+            u = u.union(at[t]).prune().minimize()
+            at[t] = at[t].prune()
             # teste si c'est fini
             # if verb: print "compl..."
             uc = u.complementary()
@@ -3969,7 +3991,7 @@ class BetaAdicMonoid(Monoid_class):
             ad = ad.determinise_proj(d)
             if verb:
                 print("minimise...")
-            ad = ad.emonde().minimize()
+            ad = ad.prune().minimize()
             if verb:
                 print("ad = %s" % ad)
             # project on ap
@@ -4085,7 +4107,7 @@ class BetaAdicMonoid(Monoid_class):
         # complete a
         aoc = m.move2(t=0, a=a)
         aoc.zero_completeOP()
-        aoc = aoc.emonde().minimize()
+        aoc = aoc.prune().minimize()
         if verb:
             print("aoc = %s" % aoc)
         # test if np is big enough
@@ -4167,7 +4189,7 @@ class BetaAdicMonoid(Monoid_class):
                         break
                     tr += lm[j][1]
                 # calcule b^np*a + tr
-            a = a1.unshift(0, np).emonde().minimize()
+            a = a1.unshift(0, np).prune().minimize()
             if tr != 0:
                 if verb:
                     print("Translation of %s..." % tr)
@@ -4193,7 +4215,7 @@ class BetaAdicMonoid(Monoid_class):
                         a = m.move2(t=tr, a=a2)  # translate a2 de -tr
                         a.zero_completeOP()
                         a.shiftOP(0, np)  # multiplie par b^(-np)
-                        a = a.emonde().minimize()
+                        a = a.prune().minimize()
                         k = len(lm)  # indice du nouveau morceau
                         lf.append(k)  # nouvelle feuille
                         arbre[i].append(k)
@@ -4287,7 +4309,7 @@ class BetaAdicMonoid(Monoid_class):
                         break
                     if arbre[j] != []:  # il faut recalculer cette lettre
                         # calcule b^np*a + tr
-                        a = a1.unshift(0, np).emonde().minimize()
+                        a = a1.unshift(0, np).prune().minimize()
                         if tr != 0:
                             if verb:
                                 print("Translation of %s..." % tr)
@@ -4316,7 +4338,7 @@ class BetaAdicMonoid(Monoid_class):
                                 a = m.move2(t=tr, a=a2)  # translate a2 de -tr
                                 a.zero_completeOP()
                                 a.shiftOP(0, np)  # multiplie par b^(-np)
-                                a = a.emonde().minimize()
+                                a = a.prune().minimize()
                                 k = len(lm)  # indice du nouveau morceau
                                 lf.append(k)  # nouvelle feuille
                                 arbre[i].append(k)
@@ -4494,7 +4516,7 @@ class BetaAdicMonoid(Monoid_class):
                         break
                     tr += lm[j][1]
             # calcule b^np*a + tr
-            a = a1.unshift(0, np).emonde().minimize()
+            a = a1.unshift(0, np).prune().minimize()
             if tr != 0:
                 if verb:
                     print("Translation de %s..." % tr)
@@ -4521,7 +4543,7 @@ class BetaAdicMonoid(Monoid_class):
                         # m.move2(t=tr, a=a2) #translate a2 de -tr
                         a = m.Proj(a2, ap.unshift(0, np), t=tr)
                         a.shiftOP(0, np)  # multiplie par b^(-np)
-                        a = a.emonde().minimize()
+                        a = a.prune().minimize()
                         k = len(lm)  # indice du nouveau morceau
                         lf.append(k)  # nouvelle feuille
                         arbre[i].append(k)
@@ -4615,7 +4637,7 @@ class BetaAdicMonoid(Monoid_class):
                         break
                     if arbre[j] != []:  # il faut recalculer cette lettre
                         # calcule b^np*a + tr
-                        a = a1.unshift(0, np).emonde().minimize()
+                        a = a1.unshift(0, np).prune().minimize()
                         if tr != 0:
                             if verb:
                                 print("Translation of %s..." % tr)
@@ -4646,7 +4668,7 @@ class BetaAdicMonoid(Monoid_class):
                                 # a.zero_completeOP()
                                 a = m.Proj(a2, ap.unshift(0, np), t=tr)
                                 a.shiftOP(0, np)  # multiplie par b^(-np)
-                                a = a.emonde().minimize()
+                                a = a.prune().minimize()
                                 k = len(lm)  # indice du nouveau morceau
                                 lf.append(k)  # nouvelle feuille
                                 arbre[i].append(k)

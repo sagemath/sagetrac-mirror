@@ -44,7 +44,7 @@ int geti1 (int c, int n1);
 int geti2 (int c, int n1);
 Automaton Product (Automaton a1, Automaton a2, Dict d, bool verb);
 Automaton Product2 (Automaton a1, Automaton a2, Dict d, bool verb); //same without induction
-void AddState (Automaton *a, bool final);
+void AddState(Automaton *a, bool final);
 
 struct States
 {
@@ -177,10 +177,10 @@ void PermutOP (Automaton a, int *l, int na, bool verb);
 
 //minimisation par l'algo d'Hopcroft
 //voir "Around Hopcroft’s Algorithm" de Manuel BACLET and Claire PAGETTI
-Automaton Minimise (Automaton a, bool verb);
+Automaton Minimise(Automaton a, bool verb);
 
-void DeleteVertexOP (Automaton *a, int e);
-Automaton DeleteVertex (Automaton a, int e);
+void DeleteVertexOP(Automaton *a, int e);
+Automaton DeleteVertex(Automaton a, int e);
 
 //détermine si les langages des automates sont les mêmes
 //le dictionnaires donne les lettres de a2 en fonction de celles de a1 (-1 si la lettre de a1 ne correspond à aucune lettre de a2). Ce dictionnaire est supposé inversible.

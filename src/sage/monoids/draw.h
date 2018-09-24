@@ -23,7 +23,7 @@ struct BetaAdic
 	Complexe b; //
 	Complexe *t; //liste des translations
 	int n; //nombre de translations
-	Automate a;
+	Automaton a;
 };
 typedef struct BetaAdic BetaAdic;
 
@@ -32,7 +32,7 @@ struct BetaAdic2
 	Complexe b; //
 	Complexe *t; //liste des translations
 	int n; //nombre de translations
-	Automate *a; //liste des couleurs
+	Automaton *a; //liste des couleurs
 	int na; //nombre d'automates
 };
 typedef struct BetaAdic2 BetaAdic2;
@@ -57,7 +57,7 @@ void Fill (Surface s, Color c);
 //Automate NewAutomate (int n, int na);
 //void FreeAutomate (Automate a);
 //void FreeAutomates (Automate* a, int n);
-BetaAdic NewBetaAdic (int n);
+BetaAdic NewBetaAdic(int n);
 void FreeBetaAdic (BetaAdic b);
 BetaAdic2 NewBetaAdic2 (int n, int na);
 void FreeBetaAdic2 (BetaAdic2 b);
@@ -69,7 +69,7 @@ void DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double c
 Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, int verb);
 //void WordZone (BetaAdic b, int *word, int nmax);
 int *WordDrawn ();
-void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int verb);
-void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb);
-void printAutomate (Automate a);
-void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double alpha, int verb);
+void Draw(BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int verb);
+void Draw2(BetaAdic b, Surface s, int n, int ajust, Color col, int verb);
+void printAutomate(Automaton a);
+void DrawList(BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double alpha, int verb);

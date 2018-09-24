@@ -347,7 +347,7 @@ Complexe FindTr (int n, Complexe c, BetaAdic b, SDL_Surface *s, bool *ok, bool v
 	return r;
 }
 
-bool addA (Automaton *a, int n)
+bool addA(Automaton *a, int n)
 {
 	int e = a->i;
 	int i;
@@ -357,7 +357,7 @@ bool addA (Automaton *a, int n)
 		if (a->e[e].f[lt[i]] == -1)
 		{
 			r = true;
-			AddEtat(a, false);
+			AddState(a, false);
 			a->e[e].f[lt[i]] = a->n-1;
 		}
 		e = a->e[e].f[lt[i]];
@@ -960,7 +960,7 @@ BetaAdic2 NewBetaAdic2 (int n, int na)
 	b.n = n;
 	b.na = na;
 	b.t = (Complexe *)malloc(sizeof(Complexe)*n);
-	b.a = (Automate *)malloc(sizeof(Automate)*na);
+	b.a = (Automaton *)malloc(sizeof(Automaton)*na);
 	return b;
 }
 
@@ -1529,7 +1529,7 @@ void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 	Draw_rec2 (b, s, n, b.a.i);
 }
 
-void printAutomate (Automate a)
+void printAutomate(Automaton a)
 {
 	printf("Automate ayant %d sommets, %d lettres.\n", a.n, a.na);
 	int i,j;

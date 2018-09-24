@@ -363,7 +363,7 @@ int indElement (Element e)
 }
 
 //calcule l'automate des relations
-Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool ext, bool verb)
+Automaton RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool ext, bool verb)
 {
 	int i,j;
 	
@@ -466,7 +466,7 @@ Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool ext, bool verb
 		printf("%d états rencontrés.\n", compteur);
 	
 	//créé l'automate
-	Automate r = NewAutomaton(compteur, iba.nc);
+	Automaton r = NewAutomaton(compteur, iba.nc);
 	for (i=0;i<r.n;i++)
 	{
 		for (j=0;j<r.na;j++)
@@ -535,7 +535,7 @@ Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool ext, bool verb
 }
 
 //calcule l'automate des relations avec translation
-Automate RelationsAutomatonT (InfoBetaAdic iba2, Element t, bool isvide, bool ext, bool verb)
+Automaton RelationsAutomatonT(InfoBetaAdic iba2, Element t, bool isvide, bool ext, bool verb)
 {
 	int i,j;
 	
@@ -657,7 +657,7 @@ Automate RelationsAutomatonT (InfoBetaAdic iba2, Element t, bool isvide, bool ex
 	if (verb)
 		printf("NewAutomaton(%d, %d)\n", compteur, iba.nc);
 	//créé l'automate
-	Automate r = NewAutomaton(compteur, iba.nc);
+	Automaton r = NewAutomaton(compteur, iba.nc);
 	int k, ind;
 	for (i=0;i<nhash;i++)
 	{
