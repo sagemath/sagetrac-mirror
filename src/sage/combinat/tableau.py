@@ -5000,8 +5000,12 @@ class SymplecticTableau(Tableau):
 
     def _to_coadmissible(self, col, co=False):
         """
-        auxilliary function to convert between KashiwaraNakashima and 
+        auxiliary function to convert between KashiwaraNakashima and 
         DeConciniProcesi tableaux.
+        
+        INPUT:
+        
+        - ``col`` -- A list of integers representing a column in a KN or DP tableau
 
         In Lecouvey, this converts between KN-admissible tableaux and 
         KN-coadmissible. If co set to False (default), maps admissible to 
@@ -5291,7 +5295,10 @@ class SymplecticTableau(Tableau):
                     new_col = [right]
                     new_col_right = []
                     for row in new_st:
-                        (left, middle) = (row[spotc-1], row[spotc])
+                        try:
+                            (left, middle) = (row[spotc-1], row[spotc])
+                        except:
+                            (left, middle) = (None, None)
                         try:
                             (r_left, r_right) = (row[spotc+1], row[spotc+2])
                         except:
@@ -5311,7 +5318,7 @@ class SymplecticTableau(Tableau):
                     new_split_col_right = self._to_coadmissible(new_col_right)
 
                     # replace cols
-                    for r in range(len(new_st)):
+                    for r in range(len(new_col)):
                         new_st[r][spotc-1] = new_split_col[0][r]
                         new_st[r][spotc] = new_split_col[1][r]
                         if spotc+1 < len(new_st[r]) and r < len(new_split_col_right[0]):
@@ -5331,7 +5338,10 @@ class SymplecticTableau(Tableau):
                     new_col = [right]
                     new_col_right = []
                     for row in new_st:
-                        (left, middle) = (row[spotc-1], row[spotc])
+                        try:
+                            (left, middle) = (row[spotc-1], row[spotc])
+                        except:
+                            (left, middle) = (None, None)
                         try:
                             (r_left, r_right) = (row[spotc+1], row[spotc+2])
                         except:
@@ -5351,7 +5361,7 @@ class SymplecticTableau(Tableau):
                     new_split_col_right = self._to_coadmissible(new_col_right, co=True)
 
                     # replace cols
-                    for r in range(len(new_st)):
+                    for r in range(len(new_col)):
                         new_st[r][spotc-1] = new_split_col[0][r]
                         new_st[r][spotc] = new_split_col[1][r]
                         if spotc+1 < len(new_st[r]) and r < len(new_split_col_right[0]):
@@ -5380,18 +5390,28 @@ class SymplecticTableau(Tableau):
 
     def sheats(self):
         '''
-        Return King Symplectictableau from DeConciniProcesi SymplecticTableau
+        Return King SymplecticTableau from DeConciniProcesi SymplecticTableau
         using Sheats bijection.
 
         EXAMPLES::
 
             sage: t = SymplecticTableau([[-3,-2],[-2,-1],[2,3]], "DP")
-            sage: t.Sheats()
+            sage: t.sheats()
             [[-1, -2], [-3, -3], [3, 3]]
             sage: t = SymplecticTableau([[-5,-2],[-4,-1],[4]], "DP")
-            sage: t.Sheats()
+            sage: t.sheats()
             [[-1, -4], [-2, -5], [4]]
+        
+        TESTS::
 
+            sage: STKN = SymplecticTableaux([2,1])
+            sage: King = SymplecticTableaux([2,1], tableau_type="King")
+            sage: all(kn.to_deconcini_procesi().sheats() in King for kn in STKN) # long time
+            True
+            sage: STKN = SymplecticTableaux([3,1])
+            sage: King = SymplecticTableaux([3,1], tableau_type="King")
+            sage: STKN[9].to_deconcini_procesi().sheats() in King # long time
+            True
         '''
         from sage.combinat.skew_tableau import SkewTableau
         t = Tableau(self.to_list())
@@ -5402,7 +5422,7 @@ class SymplecticTableau(Tableau):
                 n -= 1
                 continue
             # form "DeConcini-Procesi" and "King" parts
-            King = Tableau(t.anti_restrict(n-1)) # stored as Tableau
+            king = Tableau(t.anti_restrict(n-1)) # stored as Tableau
             DP = t.anti_restrict(-n).restrict(n-1) # stored as SkewTableau
 
             if DP.inner_shape() == []:
@@ -5412,7 +5432,7 @@ class SymplecticTableau(Tableau):
             while k > 0:
                 # apply sjdt, set vacated outer corner to -n
                 (DP, outer) = self._slide(DP, (0, k-1), return_vacated=True)
-                King = King.add_entry(outer, -n)
+                king = king.add_entry(outer, -n)
 
                 # check if n and -n in kth col of D
                 DP_conj = DP.conjugate()
@@ -5420,7 +5440,7 @@ class SymplecticTableau(Tableau):
                 if k-1 < len(DP_conj) and n in DP_conj[k-1] and -n in DP_conj[k-1]:
                     # move n to King
                     cell = (DP_conj[k-1].index(n), k-1)
-                    King = King.add_entry(cell, n)
+                    king = king.add_entry(cell, n)
                     # remove n from DP
                     DP_list[cell[0]].pop()
                     if not DP_list[cell[0]]:
@@ -5433,7 +5453,7 @@ class SymplecticTableau(Tableau):
 
             # add King part to running construction of KING tableau
             for cell in KING.cells_containing(None):
-                KING = KING.add_entry(cell, King[cell[0]][cell[1]])
+                KING = KING.add_entry(cell, king[cell[0]][cell[1]])
 
             t = Tableau(DP)
             n -= 1
@@ -5442,9 +5462,18 @@ class SymplecticTableau(Tableau):
         for cell in KING.cells_containing(None):
             KING = KING.add_entry(cell, t[cell[0]][cell[1]])
 
-        return KING
+        return SymplecticTableau(KING, tableau_type="King")
 
     def to_kashiwara_nakashima(self):
+        '''
+        Return SymplecticTableau of type KashiwaraNakashima.
+
+        INPUT:
+
+        - ``self`` -- SymplecticTableau object
+        
+        TESTS::
+        '''
         if self.tab_type == "KashiwaraNakashima":
             return self
         elif self.tab_type == "DeConciniProcesi":
@@ -5463,10 +5492,37 @@ class SymplecticTableau(Tableau):
             raise NotImplementedError("Sheats bijection not yet implemented")
 
     def to_deconcini_procesi(self):
+        '''
+        Return SymplecticTableau of type DeConciniProcesi.
+
+        INPUT:
+
+        - ``self`` -- SymplecticTableau object
+        
+        EXAMPLES::
+
+            sage: kn = SymplecticTableau([[1],[4],[-5],[-4],[-3]])
+            sage: kn.to_deconcini_procesi()
+            [[-5], [-4], [1], [3], [4]]
+
+        TESTS::
+
+            sage: STKN = SymplecticTableaux([2,1])
+            sage: STDP = SymplecticTableaux([2,1], tableau_type="DP")
+            sage: all(kn.to_deconcini_procesi() in STDP for kn in STKN) # long time
+            True
+            sage: STKN = SymplecticTableaux([3,1])
+            sage: STDP = SymplecticTableaux([3,1], tableau_type="DP")
+            sage: all(kn.to_deconcini_procesi() in STDP for kn in STKN) # long time
+            True
+            sage: SymplecticTableau([]).to_deconcini_procesi()
+            []
+        '''
         if self.tab_type == "KashiwaraNakashima":
             tc = Tableau(self.to_list()).conjugate()
             res = []
-            n = max(max(map(abs, col)) for col in tc)
+            if self:
+                n = max(max(map(abs, col)) for col in tc)
             for col in tc:
                 left, right = self._to_coadmissible(col)
                 single = [i for i in left if i > 0] + [i for i in right if i < 0]
@@ -5482,9 +5538,9 @@ class SymplecticTableau(Tableau):
 
     def to_king(self):
         if self.tab_type == "KashiwaraNakashima":
-            raise NotImplementedError("Sheats bijection not yet implemented")
+            return self.to_deconcini_procesi().sheats()
         elif self.tab_type == "DeConciniProcesi":
-            raise NotImplementedError("Sheats bijection not yet implemented")
+            return self.sheats()
         elif self.tab_type == "King":
             return self
         elif self.tab_type == "Sundaram":
@@ -5492,9 +5548,11 @@ class SymplecticTableau(Tableau):
 
     def to_sundaram(self):
         if self.tab_type == "KashiwaraNakashima":
-            raise NotImplementedError("Sheats bijection not yet implemented")
+            t = self.to_deconcini_procesi().sheats()
+            return SymplecticTableau([[-x for x in row] for row in t], "Sundaram")
         elif self.tab_type == "DeConciniProcesi":
-            raise NotImplementedError("Sheats bijection not yet implemented")
+            t = self.sheats()
+            return SymplecticTableau([[-x for x in row] for row in t], "Sundaram")
         elif self.tab_type == "King":
             return SymplecticTableau([[-x for x in row] for row in self], "Sundaram")
         elif self.tab_type == "Sundaram":
@@ -8774,13 +8832,13 @@ class SymplecticTableaux(Tableaux):
             tc = t.conjugate()
 
             if self.tab_type == 'KashiwaraNakashima':
-                # check each col is in C_k
+                # check each col is admissible (in C_k)
                 for col in tc:
                     for (i, a) in enumerate(col):
                         if a > 0 and -a in col and (i+1) + (len(col)-col.index(-a)) > a:
                             return False
 
-                # auxilliary function to check pair of columns satisfies (C3)
+                # auxiliary function to check pair of columns satisfies (C3)
                 def _is_C3(col1, col2):
                     for (a, i) in enumerate(col1):
                         if i > 0 and -i in col2:
@@ -8813,7 +8871,7 @@ class SymplecticTableaux(Tableaux):
                         if sum([col.count(j) + col.count(-j) for j in range(1,i+1)]) > i:
                             return False
                 
-                # auxilliary function to compute split_form            
+                # auxiliary function to compute split_form            
                 def _split_form(col):
                     A = [i for i in col if i < 0]
                     D = [i for i in col if i > 0]
@@ -8841,6 +8899,7 @@ class SymplecticTableaux(Tableaux):
                 # check symplectic
                 if not all( abs(t.entry(cell)) > cell[0] for cell in t.cells() ):
                     return False
+                return True
 
             elif self.tab_type == 'Sundaram':
                 convert = lambda k : 2*k-1 if k > 0 else -2*k
@@ -8850,6 +8909,7 @@ class SymplecticTableaux(Tableaux):
                 # check symplectic
                 if not all( abs(t.entry(cell)) > cell[0] for cell in t.cells() ):
                     return False
+                return True
         else:
             return False
 
@@ -9067,19 +9127,18 @@ class SymplecticTableaux_shape_weight(SymplecticTableaux_shape):
                 yield self.element_class(self, s)
         elif self.tab_type == 'DeConciniProcesi':
             raise NotImplementedError("cannot yet iterate through DeConciniProcesi tableaux")
-        elif self.tab_type == 'King':
-            raise NotImplementedError("cannot yet iterate through King tableaux")
-        elif self.tab_type == 'Sundaram':
+        elif self.tab_type == 'King' or self.tab_type == 'Sundaram':
             # wt_zero_pairs will be the number of {i, -i} pairs for all i
             wt_zero_pairs = sum(self.shape) - sum(self.weight)
             if wt_zero_pairs % 2 != 0:
                 return
             elif wt_zero_pairs == 0:
                 for st in SemistandardTableaux(self.shape, Composition(self.weight)).list():
-                    yield self.element_class(self, st, "Sundaram")
+                    yield self.element_class(self, st, self.tab_type)
             else:
                 wt_zero_pairs = wt_zero_pairs / 2
-                to_symplectic = lambda k : Integer((k+1)/2) if k%2 == 1 else Integer(-k/2)
+                sgn = 1*(self.tab_type == 'Sundaram') + (-1)*(self.tab_type == 'King')
+                to_symplectic = lambda k : Integer(sgn*(k+1)/2) if k%2 == 1 else Integer(sgn*k/2)
                 for iv in IntegerVectors(wt_zero_pairs, self.max_entry):
                     # iv[i] denotes the number of {i, -i} pairs in the tableau
                     # pos_wt is the weight when we convert all the entries to the
@@ -9092,7 +9151,7 @@ class SymplecticTableaux_shape_weight(SymplecticTableaux_shape):
                     # converted to Sundaram orering
                     for st in SemistandardTableaux(self.shape, Composition(pos_wt)):
                         if all(abs(to_symplectic(st.entry(cell))) > cell[0] for cell in st.cells()):
-                            yield self.element_class(self, [map(to_symplectic, row) for row in st], "Sundaram")
+                            yield self.element_class(self, [map(to_symplectic, row) for row in st], self.tab_type)
         return
 
     def list(self):
