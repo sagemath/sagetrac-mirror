@@ -70,6 +70,7 @@ from libc.stdlib cimport malloc, free
 from cysignals.signals cimport sig_on, sig_off
 cimport sage.combinat.words.cautomata
 from sage.combinat.words.cautomata cimport DetAutomaton, FreeAutomaton
+from sage.combinat.words.cautomata_generators import DetAutomatonGenerators
 from sage.rings.integer import Integer
 from sage.rings.number_field.all import *
 # from sage.structure.parent_gens import normalize_names
@@ -874,29 +875,30 @@ class BetaAdicMonoid(Monoid_class):
 #         ss.F = [0]
 #         ss.A = C
 #         return ss
-    
- #   def default_ss(self, C=None):
- #       r"""
- #       Returns the full subshift (given by an Automaton) corresponding to the beta-adic monoid.
- #
- #       EXAMPLES::
-#
-#            sage: m=BetaAdicMonoid((1+sqrt(5))/2, {0,1})
-#            sage: m.default_ss()
-#            Finite automaton with 1 states
-#        """
-#        if C is None:
-#            C = self.C
-#        ss = Automaton()
-#        ss.allow_multiple_edges(True)
-#        ss.allow_loops(True)
-#        ss.add_vertex(0)
-#        for c in C:
-#            ss.add_edge(0, 0, c)
-#        ss.I = [0]
-#        ss.F = [0]
-#        ss.A = C
-#        return ss
+
+    def default_ss(self, C=None):
+        r"""
+        Returns the full subshift (given by an Automaton) corresponding to the beta-adic monoid.
+ 
+        EXAMPLES::
+
+            sage: m=BetaAdicMonoid((1+sqrt(5))/2, {0,1})
+            sage: m.default_ss()
+            Finite automaton with 1 states
+        """
+        if C is None:
+            C = self.C
+        #ss = Automaton()
+        ss = DetAutomatonGenerators().AnyWord(C)
+        #ss.allow_multiple_edges(True)
+        #ss.allow_loops(True)
+        #ss.add_vertex(0)
+        #for c in C:
+        #    ss.add_edge(0, 0, c)
+        #ss.I = [0]
+        #ss.F = [0]
+        #ss.A = C
+        return ss
 
     # liste des automates donnant le coloriage de l'ensemble limite
     def get_la(self, ss=None, tss=None, verb=False):
@@ -918,7 +920,7 @@ class BetaAdicMonoid(Monoid_class):
                 # raise ValueError("la, ss, or tss must be defined !")
             if verb:
                 print("Compute the transposition of tss=%s..." % tss)
-            ss = tss.mirror().determinise()  # ze()
+            ss = tss.mirror().determinize()  # ze()
             if verb:
                 print(ss)
                 print("simplify...")
@@ -931,7 +933,7 @@ class BetaAdicMonoid(Monoid_class):
                 # raise ValueError("la, ss, or tss must be defined !")
             if verb:
                 print("Compute the transposition of ss=%s..." % ss)
-            tss = ss.mirror().determinise()  # ze()
+            tss = ss.mirror().determinize()  # ze()
             if verb:
                 print(tss)
                 print("simplify...")
@@ -946,7 +948,7 @@ class BetaAdicMonoid(Monoid_class):
             a[v].set_final_states([v])
             if verb:
                 print("Compute the transposition...")
-            a[v] = a[v].mirror().determinise()  # ze()
+            a[v] = a[v].mirror().determinize()  # ze()
             if verb:
                 print(a[v])
                 print("simplify...")
@@ -2423,7 +2425,7 @@ class BetaAdicMonoid(Monoid_class):
         d = {}
         for (l1, l2) in ssi.alphabet:
             d[(l1, l2)] = l1
-        ssi = ssi.determinise_proj(d)
+        ssi = ssi.determinize_proj(d)
         ssi = ssi.prune_inf()
         ssi = ssi.prune()
         return ssi.minimize()
@@ -2565,14 +2567,14 @@ class BetaAdicMonoid(Monoid_class):
         if verb:
             print(d)
             print(arel)
-        arel = arel.determinise_proj(d, noempty=False, nof=True)  # , verb=True)
+        arel = arel.determinize_proj(d, noempty=False, nof=True)  # , verb=True)
         # project on the first value of the couple, determinise and take the complementary
         if verb:
             print(arel)
         arel = arel.prune()
         arel = arel.prune_inf()
         if step == 10:
-            return arel
+            return arels
         return arel.minimize()
 
 #     def reduced_words_automaton(self, ss=None, Iss=None, ext=False,
@@ -3084,7 +3086,7 @@ class BetaAdicMonoid(Monoid_class):
         for c in C:
             for c2 in a.A:
                 d[(c, c2)] = c
-        ac = ai.determinise_proj(d)
+        ac = ai.determinize_proj(d)
         if ext:
             ac = ac.prune_inf()
         ac = ac.prune()
@@ -3155,7 +3157,7 @@ class BetaAdicMonoid(Monoid_class):
         d = {}
         for c1, c2 in a2.alphabet:
             d[(c1, c2)] = c2
-        a2 = a2.determinise_proj(d, verb=verb)
+        a2 = a2.determinisze_proj(d, verb=verb)
         if step == 8:
             return a2
         if verb:
@@ -3280,8 +3282,8 @@ class BetaAdicMonoid(Monoid_class):
         if verb:
             print("d=%s" % d)
         if verb:
-            print("determinise...")
-        ai = ai.determinise_proj(d, verb=verb)
+            print("determinize...")
+        ai = ai.determinize_proj(d, verb=verb)
         if verb:
             print("ai=%s" % ai)
         if verb:
@@ -3568,7 +3570,7 @@ class BetaAdicMonoid(Monoid_class):
             for t2 in self.C:
                 d[(t1, t2)] = t1 - t2
         ad = aoc.product(aoc)
-        ad = ad.determinise_proj(d)
+        ad = ad.determinize_proj(d)
         if verb:
             print("ad = %s" % ad)
         # compute the reduced words automaton with the difference alphabet
@@ -3816,8 +3818,8 @@ class BetaAdicMonoid(Monoid_class):
             else:
                 ad = uc.product(aoc)
             if verb:
-                print("determinise...")
-            ad = ad.determinise_proj(d)
+                print("determinize...")
+            ad = ad.determinize_proj(d)
             if verb:
                 print("minimise...")
             ad = ad.prune().minimize()
@@ -3987,8 +3989,8 @@ class BetaAdicMonoid(Monoid_class):
                 print("product...")
             ad = uc.product(aa)
             if verb:
-                print("determinise...")
-            ad = ad.determinise_proj(d)
+                print("determinize...")
+            ad = ad.determinize_proj(d)
             if verb:
                 print("minimise...")
             ad = ad.prune().minimize()
