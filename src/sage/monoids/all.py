@@ -11,3 +11,6 @@ from .string_ops import (
     frequency_distribution,
     coincidence_index,
     coincidence_discriminant)
+
+from .beta_adic_monoid import BetaAdicMonoid
+from .beta_adic_monoid import ImageIn

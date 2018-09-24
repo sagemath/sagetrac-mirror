@@ -981,6 +981,19 @@ ext_modules = [
     Extension('sage.modules.with_basis.indexed_element',
               sources = ['sage/modules/with_basis/indexed_element.pyx']),
 
+
+    ################################
+    ## 
+    ## sage.monoids
+    ##
+    ################################
+    
+    Extension('sage.monoids.beta_adic_monoid',
+              sources = ['sage/monoids/beta_adic_monoid.pyx', 'sage/monoids/draw.c', 'sage/monoids/relations.c', 'sage/monoids/complex.c', 'sage/combinat/words/automataC.c'],
+              libraries=['stdc++','SDL2','SDL2main','SDL2_image'], #'cautomata.so'],
+              include_dirs=['sage/combinat/words', '/usr/local/include'],
+              depends = ['sage/monoids/draw.h', 'sage/combinat/words/Automaton.h', 'sage/monoids/relations.h', 'sage/monoids/complex.h']),
+
     ################################
     ##
     ## sage.numerical
