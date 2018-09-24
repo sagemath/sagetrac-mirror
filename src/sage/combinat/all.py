@@ -206,6 +206,9 @@ lazy_import('sage.combinat.sine_gordon', 'SineGordonYsystem')
 # Fully Packed Loop
 lazy_import('sage.combinat.fully_packed_loop', ['FullyPackedLoop', 'FullyPackedLoops'])
 
+# Packed Words
+lazy_import('sage.combinat.packed_words', ['PackedWord', 'PackedWords'])
+
 # Subword complex and cluster complex
 lazy_import('sage.combinat.subword_complex', 'SubwordComplex')
 lazy_import("sage.combinat.cluster_complex", "ClusterComplex")
@@ -219,5 +222,3 @@ lazy_import('sage.combinat.growth', ['GrowthDiagram',
                                      'GrowthDiagramBinWord', 'GrowthDiagramDomino',
                                      'GrowthDiagramYoungFibonacci', 'GrowthDiagramSylvester'])
 
-# Packed Words
-from .packed_words import PackedWord, PackedWords

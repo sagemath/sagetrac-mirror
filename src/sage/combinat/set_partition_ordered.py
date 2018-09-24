@@ -809,6 +809,7 @@ class OrderedSetPartition(ClonableArray):
 
         Note that this method returns an occurence of the class ``Word`` 
         and not ``PackedWord``, you can obtain a PackedWord this way::
+
             sage: x = S([['a', 'c', 'e'], ['b', 'd']])
             sage: PackedWord(x.to_packed_word())
             [1, 2, 1, 2, 1]
