@@ -505,7 +505,7 @@ cdef BetaAdic getBetaAdic(input_a, prec=53, ss=None, tss=None, iss=None,
         if transpose and tss is None:
             if verb:
                 print("Transpose computation...\n")  # "Calcul de la transposée...\n"
-            tss = ss.transpose().determinize()
+            tss = ss.mirror().determinize()
             self.tss = tss
             if verb:
                 print(tss)
@@ -516,7 +516,7 @@ cdef BetaAdic getBetaAdic(input_a, prec=53, ss=None, tss=None, iss=None,
             else:
                 if verb:
                     print("Transpose computation...\n")  # "Calcul de la transposée...\n"
-                tss = ss.transpose().determinize()
+                tss = ss.mirror().determinize()
                 self.tss = tss
                 if verb:
                     print(tss)
@@ -918,7 +918,7 @@ class BetaAdicMonoid(Monoid_class):
                 # raise ValueError("la, ss, or tss must be defined !")
             if verb:
                 print("Compute the transposition of tss=%s..." % tss)
-            ss = tss.transpose().determinise()  # ze()
+            ss = tss.mirror().determinise()  # ze()
             if verb:
                 print(ss)
                 print("simplify...")
@@ -931,7 +931,7 @@ class BetaAdicMonoid(Monoid_class):
                 # raise ValueError("la, ss, or tss must be defined !")
             if verb:
                 print("Compute the transposition of ss=%s..." % ss)
-            tss = ss.transpose().determinise()  # ze()
+            tss = ss.mirror().determinise()  # ze()
             if verb:
                 print(tss)
                 print("simplify...")
@@ -946,7 +946,7 @@ class BetaAdicMonoid(Monoid_class):
             a[v].set_final_states([v])
             if verb:
                 print("Compute the transposition...")
-            a[v] = a[v].transpose().determinise()  # ze()
+            a[v] = a[v].mirror().determinise()  # ze()
             if verb:
                 print(a[v])
                 print("simplify...")
@@ -1530,7 +1530,7 @@ class BetaAdicMonoid(Monoid_class):
             sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
             sage: m = s.rauzy_fractal_beta_adic_monoid()
             sage: m.b = 1/m.b
-            sage: m.ss = m.ss.transpose().determinize().minimize()
+            sage: m.ss = m.ss.mirror().determinize().minimize()
             sage: m.plot()     # long time
             Graphics object consisting of 1 graphics primitive
 
@@ -2062,7 +2062,7 @@ class BetaAdicMonoid(Monoid_class):
             r2.set_final_states(r2.states())
         else:
             r2 = r.prune()
-        return r2.transpose_det()
+        return r2.mirror_det()
 
     def relations_automaton4(self, t=0, isvide=False, Cd=None, A=None, B=None,
                              couples=False, ext=False, transp=False,
@@ -2118,7 +2118,7 @@ class BetaAdicMonoid(Monoid_class):
         else:
             r2 = r
         if transp:
-            r2 = r2.transpose_det()
+            r2 = r2.mirror_det()
         if couples:
             if A is None or B is None:
                 raise ValueError("Alphabets A and B must be defined !")
@@ -2511,7 +2511,7 @@ class BetaAdicMonoid(Monoid_class):
         arel = self.relations_automaton3(Cd=Cd, ext=False)
         arel = arel.prune()
         if transpose:
-            arel = arel.transpose_det()
+            arel = arel.mirror_det()
         if verb:
             print("arel = %s" % arel)
         if step == 1:
@@ -2540,7 +2540,7 @@ class BetaAdicMonoid(Monoid_class):
 
         # change edges that point to the initial state :
         # make them point to the new state
-        for e in arel.states():
+        for e in arel.states:
             if e != ei:
                 for j in range(len(Cd)):
                     if arel.succ(e, j) == ei:
@@ -2887,7 +2887,7 @@ class BetaAdicMonoid(Monoid_class):
                 sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
                 sage: m = s.rauzy_fractal_beta_adic_monoid()
                 sage: m.b = 1/m.b
-                sage: m.ss = m.ss.transpose().determinize().minimize()
+                sage: m.ss = m.ss.mirror().determinize().minimize()
                 sage: m.critical_exponent_free()
                 log(y)/log(|1/2*b^2 - 1/2*b + 1/2|) where y is the max root of x^3 - x^2 + x - 2
                 1.5485260383...
