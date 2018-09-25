@@ -75,6 +75,14 @@ cdef Obj make_gap_list(sage_list) except NULL:
     return l.value
 
 
+cdef crepr(Obj obj):
+    cdef Obj s, o
+    s = NEW_STRING(0);
+    o = CALL_2ARGS(   # setting a string buffer
+              GAP_ValueGlobalVariable("OutputTextString"), s, GAP_True)
+    CALL_2ARGS(GAP_ValueGlobalVariable("PrintTo"), o, obj)
+    return CSTR_STRING(s)
+
 cdef Obj make_gap_record(sage_dict) except NULL:
     """
     Convert Sage lists into Gap lists
@@ -597,12 +605,11 @@ cdef class GapElement(RingElement):
             return 'NULL'
         try:
             libgap_enter()
-            libgap_start_interaction('')
-            ViewObjHandler(self.value)
-            s = libgap_get_output()
+            # ViewObjHandler(self.value)
+            # s = libgap_get_output()
+            s = crepr(self.value) 
             return s.strip()
         finally:
-            libgap_finish_interaction()
             libgap_exit()
 
     cpdef _set_compare_by_id(self):
