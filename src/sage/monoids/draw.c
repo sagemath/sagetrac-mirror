@@ -72,14 +72,14 @@ void DrawRond (int x, int y, SDL_Surface *s)
 	}
 }
 
-void TestSDL ()
+void TestSDL()
 {
 	SDL_Window* win;
 	SDL_Surface * s;
     int i, j;
     if (SDL_Init(SDL_INIT_VIDEO) == -1)
     {
-        printf("Erreur lors de l'initialisation de SDL: %s\n", SDL_GetError());
+        printf("Error during usage of SDL: %s\n", SDL_GetError());
         return;
     }
     
@@ -94,7 +94,7 @@ void TestSDL ()
 		s = SDL_GetWindowSurface( win );
 	}
 
-    printf("Mode vidéo: %dx%d %d bits/pixel\n", s->w, s->h, s->format->BitsPerPixel);
+    printf("Video Mode: %dx%d %d bits/pixel\n", s->w, s->h, s->format->BitsPerPixel);
            
     SDL_FillRect(s, NULL, SDL_MapRGB(s->format, 0x00, 0xff, 0xff));
     SDL_UpdateWindowSurface(win);

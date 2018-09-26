@@ -62,8 +62,6 @@ from monoid import Monoid_class
 from sage.rings.qqbar import QQbar
 from sage.rings.padics.all import *
 from libc.stdlib cimport malloc, free
-#from sage.combinat.words.automata import Automaton
-#from sage.combinat.words.cautomata import DetAutomaton
 
 #from sage.structure.factory import UniqueFactory
 #from sage.misc.cachefunc import cached_method
@@ -83,31 +81,6 @@ from sage.rings.number_field.all import *
 # from sage.structure.factory import UniqueFactory
 # from sage.misc.cachefunc import cached_method
 from cysignals.signals cimport sig_on, sig_off
-
-
-# calcul de la valeur absolue p-adique (car non encore implémenté autrement)
-def absp(c, p, d):
-    """
-    computation of the p-adic absolute value (not yet implemented)
-
-    INPUT:
-
-    - ``c`` first argument
-
-    - ``p`` second argument
-
-    - ``d`` third argument
-
-    OUTPUT:
-
-    The p-adic absolute value
-
-    TESTS:
-
-        sage: absp(1, 2, 3) # todo: not implemented
-
-    """
-    return ((c.polynomial())(p).norm().abs())**(1/d)
 
 
 # garde la composante fortement connexe de 0
@@ -138,21 +111,6 @@ cdef extern from "complex.h":
     cdef cppclass Complexe:
         double x, y
 
-
-# cdef extern from "Automaton.h":
-#    cdef cppclass Etat:
-#        int* f
-#        int final
-#    cdef cppclass Automate:
-#        int n
-#        int na
-#        Etat* e
-#        int i
-
-# cdef extern from "automataC.h":
-#    Automate NewAutomaton (int n, int na)
-
-
 cdef extern from "Automaton.h":
     ctypedef char bool
     cdef cppclass State:
@@ -160,14 +118,14 @@ cdef extern from "Automaton.h":
         bool final
 
     cdef cppclass Automaton:
-        State* e # states
+        State* e  # states
         int n   # number of states
         int na  # number of letters
-        int i # initial state
+        int i  # initial state
 
     cdef cppclass Transition:
-        int l # label
-        int e # arrival state
+        int l  # label
+        int e  # arrival state
 
     cdef cppclass NState:
         Transition* a
@@ -176,29 +134,28 @@ cdef extern from "Automaton.h":
         bool initial
 
     cdef cppclass NAutomaton:
-        NState* e # states
+        NState* e  # states
         int n   # number of states
         int na  # number of letters
 
-
 cdef extern from "relations.h":
     cdef cppclass Element:
-        int *c    # liste des n coeffs
+        int *c  # liste des n coeffs
 
     cdef cppclass PlaceArch:
-        Complexe *c    # 1, b, b^2, ... pour cette place
+        Complexe *c  # 1, b, b^2, ... pour cette place
 
     # structure contenant les infos nécessaires pour calculer l'automate des relations
     cdef cppclass InfoBetaAdic:
-        int n        # degré
-        Element bn   # expression de b^n comme un polynome en b de degré < n
-        Element b1   # expression de 1/b comme un polynôme en b de degré < n
-        Element *c   # liste des chiffres utilisés pour le calcul de l'automate des relations
-        int nc       # nombre de chiffre
-        int ncmax    # nombre de chiffres alloués
-        PlaceArch *p # liste des na places
-        double *cM   # carré des valeurs absolues max
-        int na         # nombre de va
+        int n         # degre
+        Element bn    # expression of b^n as a polynome in b of degree < n
+        Element b1    # expression of 1/b as a polynome in b of degree < n
+        Element *c    # list of figures used for the calculation of  relations' automaton
+        int nc        # number of figures
+        int ncmax     # number of allocated figures
+        PlaceArch *p  # list of na places
+        double *cM    # square of valeurs absolues max
+        int na        # number of va
 
     Element NewElement(int n)
     void FreeElement(Element e)
@@ -206,6 +163,86 @@ cdef extern from "relations.h":
     void freeInfoBetaAdic(InfoBetaAdic iba)
     Automaton RelationsAutomaton(InfoBetaAdic iba2, bool isvide, bool ext, bool verb)
     Automaton RelationsAutomatonT(InfoBetaAdic iba2, Element t, bool isvide, bool ext, bool verb)
+
+cdef extern from "draw.h":
+    ctypedef unsigned char uint8
+    cdef cppclass Color:
+        uint8 r
+        uint8 g
+        uint8 b
+        uint8 a
+    cdef cppclass Surface:
+        Color **pix
+        int sx, sy
+    cdef cppclass Complexe:
+        double x
+        double y
+    cdef cppclass BetaAdic:
+        Complexe b
+        Complexe* t  # liste des translations
+        int n        # nombre de translations
+        Automaton a
+    cdef cppclass BetaAdic2:
+        Complexe b
+        Complexe* t  # liste des translations
+        int n        # nombre de translations
+        Automaton* a
+        int na
+    ctypedef Color* ColorList
+    #    cdef cppclass SDLImage:
+    #        void *img
+
+    void* OpenImage(const char *file_name)
+    bool InImage(void* img, int x, int y)
+    int ImageWidth(void *img)
+    int ImageHeight(void *img)
+    void CloseImage(void* img)
+    void TestSDL()
+    Surface NewSurface(int sx, int sy)
+    void FreeSurface(Surface s)
+    ColorList NewColorList(int n)
+    void FreeColorList(ColorList l)
+    Color randColor(int a)
+    #    Automate NewAutomate (int n, int na)
+    #    void FreeAutomate(Automate a)
+    void FreeAutomatons(Automaton* a, int n)
+    BetaAdic NewBetaAdic(int n)
+    void FreeBetaAdic(BetaAdic b)
+    BetaAdic2 NewBetaAdic2(int n, int na)
+    void FreeBetaAdic2(BetaAdic2 b)
+    void DrawZoom(BetaAdic b, int sx, int sy, int n, int ajust, Color col, double coeff, int verb)
+    Automaton UserDraw(BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, int verb)
+    #  void WordZone (BetaAdic b, int *word, int nmax)
+    int *WordDrawn()
+    void Draw(BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int verb)
+    void Draw2(BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
+    void DrawList(BetaAdic2 b, Surface s, int n, int ajust, ColorList lc, double alpha, int verb)
+    void print_word(BetaAdic b, int n, int etat)
+
+# calcul de la valeur absolue p-adique (car non encore implémenté autrement)
+def absp(c, p, d):
+    """
+    Computation of the p-adic absolute value (not yet implemented)
+
+    INPUT:
+
+    - ``c`` first argument
+
+    - ``p`` second argument
+
+    - ``d`` third argument
+
+    OUTPUT:
+
+    The p-adic absolute value
+
+    TESTS:
+
+        sage: absp(1, 2, 3) # not implemented
+
+    """
+    return ((c.polynomial())(p).norm().abs())**(1/d)
+
 
 cdef getElement(e, Element r, int n):
     cdef j
@@ -217,7 +254,7 @@ cdef InfoBetaAdic initInfoBetaAdic(self,
                                    Cd=None, plus=True,
                                    verb=False) except *:
     # compute all the data in sage
-    #    K = NumberField((1/self.b).minpoly(), 'b', embedding=QQbar(1/self.b))
+    # K = NumberField((1/self.b).minpoly(), 'b', embedding=QQbar(1/self.b))
     b = self.b
     K = b.parent()
     #    b = K.gen()
@@ -271,7 +308,7 @@ cdef InfoBetaAdic initInfoBetaAdic(self,
                     pultra += [(c, f[0].degree())]
 
     if verb:
-        print("places: ")
+        print("spaces: ")
         print(parch)
         print(pultra)
 
@@ -301,7 +338,9 @@ cdef InfoBetaAdic initInfoBetaAdic(self,
     cdef InfoBetaAdic i
     if verb:
         print("alloc...")
+    sig_on()
     i = allocInfoBetaAdic(n, na, ncmax, verb)
+    sig_off()
     cdef int j
     # initialise bn
     if verb:
@@ -345,61 +384,6 @@ cdef initCdInfoBetaAdic(self, InfoBetaAdic *i, Cd, verb=False):
         getElement(c, i.c[j], i.n)
     for j, p in enumerate(self.parch):
         i.cM[j] = m[p]**2
-
-cdef extern from "draw.h":
-    ctypedef unsigned char uint8
-    cdef cppclass Color:
-        uint8 r
-        uint8 g
-        uint8 b
-        uint8 a
-    cdef cppclass Surface:
-        Color **pix
-        int sx, sy
-    cdef cppclass Complexe:
-        double x
-        double y
-    cdef cppclass BetaAdic:
-        Complexe b
-        Complexe* t  # liste des translations
-        int n        # nombre de translations
-        Automaton a
-    cdef cppclass BetaAdic2:
-        Complexe b
-        Complexe* t  # liste des translations
-        int n        # nombre de translations
-        Automaton* a
-        int na
-    ctypedef Color* ColorList
-    #    cdef cppclass SDLImage:
-    #        void *img
-
-    void* OpenImage(const char *file_name)
-    bool InImage(void* img, int x, int y)
-    int ImageWidth(void *img)
-    int ImageHeight(void *img)
-    void CloseImage(void* img)
-    void TestSDL()
-    Surface NewSurface(int sx, int sy)
-    void FreeSurface(Surface s)
-    ColorList NewColorList(int n)
-    void FreeColorList(ColorList l)
-    Color randColor(int a)
-    #    Automate NewAutomate (int n, int na)
-    #    void FreeAutomate(Automate a)
-    void FreeAutomatons(Automaton* a, int n)
-    BetaAdic NewBetaAdic(int n)
-    void FreeBetaAdic(BetaAdic b)
-    BetaAdic2 NewBetaAdic2(int n, int na)
-    void FreeBetaAdic2(BetaAdic2 b)
-    void DrawZoom(BetaAdic b, int sx, int sy, int n, int ajust, Color col, double coeff, int verb)
-    Automaton UserDraw(BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, int verb)
-    #    void WordZone (BetaAdic b, int *word, int nmax)
-    int *WordDrawn()
-    void Draw(BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int verb)
-    void Draw2(BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
-    void DrawList(BetaAdic2 b, Surface s, int n, int ajust, ColorList lc, double alpha, int verb)
-    void print_word(BetaAdic b, int n, int etat)
 
 cdef Complexe complex(c):
     cdef Complexe r
@@ -491,7 +475,6 @@ cdef Automaton getAutomate(a, d, list C, iss=None, verb=False):
 #        print "...getAutomate"
 #    return r
 
-
 cdef BetaAdic getBetaAdic(input_a, prec=53, ss=None, tss=None, iss=None,
                           transpose=True, add_letters=True, verb=False):
     from sage.rings.complex_field import ComplexField
@@ -574,7 +557,6 @@ cdef BetaAdic2 getBetaAdic2(input_a, la=None, ss=None, tss=None,
         b.a[i] = getAutomate(la[i], d, C=C, iss=None, verb=verb)
     return b
 
-
 def PrintWord(m, n):
     """
     Print of beta adic 
@@ -591,6 +573,9 @@ def PrintWord(m, n):
     Print the word
 
     TESTS:
+
+        sage:import sage.monoids.beta_adic_monoid as mn
+
     """
     b = getBetaAdic(m, prec=53, ss=None, tss=None, iss=None, transpose=False,
                     add_letters=True, verb=False)
@@ -765,7 +750,7 @@ class BetaAdicMonoid(Monoid_class):
         sage: m3 = BetaAdicMonoid(b, {0,1})
         sage: print(m3)
         Monoid of b-adic expansion with b root of x^3 - x - 1 and numerals set {0, 1}
-        
+
     """
     def __init__(self, b, C):
         r"""
@@ -775,9 +760,16 @@ class BetaAdicMonoid(Monoid_class):
         EXAMPLES::
 
             sage: m1 = BetaAdicMonoid(3, {0,1,3})
+            sage: m1
+            Monoid of 3-adic expansion with numerals set {0, 1, 3}
             sage: m2 = BetaAdicMonoid((1+sqrt(5))/2, {0,1})
+            sage: m2
+            Monoid of b-adic expansion with b root of x^2 - x - 1 and numerals set {0, 1}
             sage: b = (x^3-x-1).roots(ring=QQbar)[0][0]
             sage: m3 = BetaAdicMonoid(b, {0,1})
+            sage: m3
+            Monoid of b-adic expansion with b root of x^3 - x - 1 and numerals set {0, 1}
+
         """
         # print "init BAM with (%s,%s)"%(b,C)
         if b in QQbar:
@@ -800,13 +792,45 @@ class BetaAdicMonoid(Monoid_class):
     def gen(self, i):
         r"""
         Return the element of C of index i.
+
+        INPUT:
+
+        - ``i`` -- index to return
+
+        OUTPUT:
+        
+        Return the element of C of index ``i``
+
+        EXAMPLES::
+
+            sage: m1 = BetaAdicMonoid(3, {0,1,3})
+            sage: m1.gen(2)
+            3
+            sage: m1.gen(3)
+            IndexError                                Traceback (most recent call last)
+            ...
+            IndexError: list index out of range
+
         """
-#        g(x) = self.b*x+self.C[i]
+        if i >= len(self.C):
+            raise IndexError()
+
         return self.C[i]
 
     def ngens(self):
         r"""
         Return the number of elements of C.
+
+        OUTPUT:
+
+        Return the number of elements of C.
+
+        EXAMPLES::
+
+            sage: m1 = BetaAdicMonoid(3, {0,1,3})
+            sage: m1.ngens()
+            3
+
         """
         return len(self.C)
 
@@ -846,11 +870,20 @@ class BetaAdicMonoid(Monoid_class):
                 else:
                     return "Monoid of b-adic expansion with b root of %s and numerals set %s"%(K.modulus(),self.C) + str
 
-    def testSDL(self):
+    def _testSDL(self):
+        """
+        Open mode video for graphical representation
+
+        TESTS::
+
+        sage: b = (x^3-x-1).roots(ring=QQbar)[0][0]
+        sage: m3 = BetaAdicMonoid(b, {0,1})
+        sage: m3._testSDL()
+        Video Mode: 800x600 32 bits/pixel
+        """
         sig_on()
         TestSDL()
         sig_off()
-
 
 #     def default_ss(self, C=None):
 #         r"""
@@ -878,13 +911,23 @@ class BetaAdicMonoid(Monoid_class):
 
     def default_ss(self, C=None):
         r"""
-        Returns the full subshift (given by an Automaton) corresponding to the beta-adic monoid.
- 
+        Returns the full subshift (given by an Automaton) corresponding
+        to the beta-adic monoid.
+
+        INPUT:
+
+        - ``C`` -- (default -- None)  alphabet
+
+        OUTPUT:
+        Returns the full subshift (given by an DetAutomaton) corresponding
+        to the beta-adic monoid.
+
         EXAMPLES::
 
             sage: m=BetaAdicMonoid((1+sqrt(5))/2, {0,1})
             sage: m.default_ss()
-            Finite automaton with 1 states
+            DetAutomaton with 1 states and an alphabet of 2 letters
+
         """
         if C is None:
             C = self.C
@@ -902,6 +945,27 @@ class BetaAdicMonoid(Monoid_class):
 
     # liste des automates donnant le coloriage de l'ensemble limite
     def get_la(self, ss=None, tss=None, verb=False):
+        """
+        Retun the ''la of betaAdic
+        INPUT:
+
+        - ``ss`` -- (default ''None'') ``DetAutomaton``
+
+        -``tss`` -- (default ''None'') transition
+
+        -``verb`` -- (default ''False'') set to ''True'' for verbose mode
+
+        OUTPUT:
+        Return the list of automaton giving color of limit set
+
+        EXAMPLES::
+
+            sage: m=BetaAdicMonoid((1+sqrt(5))/2, {0,1})
+            sage: m.get_la()
+            [DetAutomaton with 1 states and an alphabet of 2 letters,
+             DetAutomaton with 1 states and an alphabet of 2 letters]
+        """
+
         if hasattr(self, 'la'):
             return self.la
         if tss is None:
@@ -943,7 +1007,7 @@ class BetaAdicMonoid(Monoid_class):
 
         # compute la
         a = {}
-        for v in ss.states():  # ss.vertices():
+        for v in ss.states:  # ss.vertices():
             a[v] = ss.copy()  # Automaton(ss) ##
             a[v].set_final_states([v])
             if verb:
@@ -987,6 +1051,8 @@ class BetaAdicMonoid(Monoid_class):
             sage: print(m)
             Monoid of b-adic expansion with b root of x^2 - x + 1/2 and numerals set {0, 1}
             sage: P = m.points_exact()
+            Give the begin state iss of the automaton ss !
+            sage: P = m.points_exact(iss=0)
             sage: len(P)
             65536
         """
@@ -1075,7 +1141,7 @@ class BetaAdicMonoid(Monoid_class):
 
                 sage: e = QQbar(1/(1+I))
                 sage: m = BetaAdicMonoid(e, {0,1})
-                sage: P = m.points()     # long time (360 s)
+                sage: P = m.points(iss=0)     # long time (360 s)
                 sage: len(P)
                 32768
         """
@@ -1138,6 +1204,56 @@ class BetaAdicMonoid(Monoid_class):
     def user_draw(self, n=None, tss=None, ss=None, iss=None,
                   sx=800, sy=600, ajust=True, prec=53, color=(0, 0, 0, 255),
                   method=0, add_letters=True, only_pos=False, verb=False):
+        r"""
+        Returns a set of values (real or complex) corresponding to the drawing
+        of the limit set of the beta-adic monoid.
+
+        INPUT:
+
+        - ``n`` - integer (default: ``None``)
+          The number of iterations used to plot the fractal.
+          Default values: between ``5`` and ``16`` depending on the number
+          of generators.
+
+        -``tss`` -- (default ''None'') transition
+
+        - ``ss`` - DetAutomaton (default: ``None``)
+          The subshift to associate to the beta-adic monoid for this drawing.
+
+        - ``iss`` - set of initial states of the automaton
+          ss (default: ``None``)
+
+        - ``sx``  -- (default 800)
+
+        - ``sy``  -- (default 600)
+
+        - ``ajust``  -- (default ``True``)
+
+        - ``prec``  precision of returned values -- (default: ``53``)
+
+        - ``color`` tuple of color in RGB values -- (default: (0, 0, 0, 255))
+
+        - ``method`` -- (default 0)
+
+        - ``add_letters`` -- (default ``True``)
+
+        - ``only_pos`` -- (default ``False``)
+
+        - ``verb`` -- (default ``False``) set ti ``True`` for verbose mod
+
+        OUTPUT:
+
+        list of real or complex numbers
+
+        EXAMPLES:
+
+            #. The dragon fractal::
+
+                sage: e = QQbar(1/(1+I))
+                sage: m = BetaAdicMonoid(e, {0,1})
+                sage: P = m.user_draw()     # long time (360 s)
+
+        """
         if tss is None:
             tss = self.reduced_words_automaton2()
         sig_on()
@@ -1172,7 +1288,7 @@ class BetaAdicMonoid(Monoid_class):
                   method=0, add_letters=True, coeff=8., verb=False):
         if tss is None:
             tss = self.reduced_words_automaton2()
-        sig_on()
+        
         cdef BetaAdic b
         b = getBetaAdic(self, prec=prec, tss=tss, ss=ss, iss=iss,
                         add_letters=add_letters, transpose=True, verb=verb)
@@ -1187,11 +1303,13 @@ class BetaAdicMonoid(Monoid_class):
         if n is None:
             n = -1
         if method == 0:
+            sig_on()
             DrawZoom(b, sx, sy, n, ajust, col, coeff, verb)
+            sig_off()
         elif method == 1:
             print("Not implemented !")
             return
-        sig_off()
+       
 
     # give a word corresponding to one of the previously drawn points
     def word_drawn(self):
@@ -2047,10 +2165,10 @@ class BetaAdicMonoid(Monoid_class):
         if Cd is None:
             Cd = Set([c-c2 for c in self.C for c2 in self.C])
         Cd = list(Cd)
-        sig_on()
         cdef InfoBetaAdic ib
         ib = initInfoBetaAdic(self, Cd=Cd, plus=True, verb=verb)
         cdef Automaton a
+        sig_on()
         a = RelationsAutomaton(ib, isvide, ext, verb)
         r = DetAutomaton(None)
         r.a[0] = a
