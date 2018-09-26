@@ -103,7 +103,6 @@ cdef Obj make_gap_record(sage_dict) except NULL:
     from sage.libs.gap.libgap import libgap
     data = [ (str(key), libgap(value)) for key, value in sage_dict.iteritems() ]
 
-    libgap_enter()
     cdef Obj rec = NEW_PREC(len(data))
     cdef GapElement val
     cdef UInt rnam
@@ -111,7 +110,6 @@ cdef Obj make_gap_record(sage_dict) except NULL:
         key, val = d
         rnam = RNamName(key)
         AssPRec(rec, rnam, val.value)
-    libgap_exit()
     return rec
 
 
@@ -132,9 +130,7 @@ cdef Obj make_gap_integer(sage_int) except NULL:
         sage: libgap(1)   # indirect doctest
         1
     """
-    libgap_enter()
     cdef Obj result = INTOBJ_INT(<int>sage_int)
-    libgap_exit()
     return result
 
 
@@ -155,10 +151,8 @@ cdef Obj make_gap_string(sage_string) except NULL:
         sage: libgap('string')   # indirect doctest
         "string"
     """
-    libgap_enter()
     cdef Obj result
     C_NEW_STRING(result, len(sage_string), <char*>sage_string)
-    libgap_exit()
     return result
 
 
@@ -604,11 +598,10 @@ cdef class GapElement(RingElement):
         if  self.value == NULL:
             return 'NULL'
         try:
-            libgap_enter()
             s = crepr(self.value) 
             return s.strip()
         finally:
-            libgap_exit()
+            pass
 
     cpdef _set_compare_by_id(self):
         """
@@ -767,7 +760,6 @@ cdef class GapElement(RingElement):
             return id(self) == id(other)
         cdef GapElement c_other = <GapElement>other
         cdef bint result
-        libgap_enter()
         try:
             sig_on()
             result = EQ(self.value, c_other.value)
@@ -775,7 +767,7 @@ cdef class GapElement(RingElement):
         except RuntimeError as msg:
             raise ValueError('libGAP: cannot compare equality: '+str(msg))
         finally:
-            libgap_exit()
+            pass
         return result
 
     cdef bint _compare_less(self, Element other) except -2:
@@ -793,7 +785,6 @@ cdef class GapElement(RingElement):
             return id(self) < id(other)
         cdef bint result
         cdef GapElement c_other = <GapElement>other
-        libgap_enter()
         try:
             sig_on()
             result = LT(self.value, c_other.value)
@@ -801,7 +792,7 @@ cdef class GapElement(RingElement):
         except RuntimeError as msg:
             raise ValueError('libGAP: cannot compare less than: '+str(msg))
         finally:
-            libgap_exit()
+            pass
         return result
 
     cpdef _add_(self, right):
@@ -825,7 +816,6 @@ cdef class GapElement(RingElement):
         """
         cdef Obj result
         try:
-            libgap_enter()
             sig_on()
             result = SUM(self.value, (<GapElement>right).value)
             sig_off()
@@ -833,7 +823,7 @@ cdef class GapElement(RingElement):
             ClearError()
             raise ValueError('libGAP: '+str(msg))
         finally:
-            libgap_exit()
+            pass
         return make_any_gap_element(self.parent(), result)
 
 
@@ -858,7 +848,6 @@ cdef class GapElement(RingElement):
         """
         cdef Obj result
         try:
-            libgap_enter()
             sig_on()
             result = DIFF(self.value, (<GapElement>right).value)
             sig_off()
@@ -866,7 +855,7 @@ cdef class GapElement(RingElement):
             ClearError()
             raise ValueError('libGAP: {}'.format(msg))
         finally:
-            libgap_exit()
+            pass
         return make_any_gap_element(self.parent(), result)
 
 
@@ -891,7 +880,6 @@ cdef class GapElement(RingElement):
         """
         cdef Obj result
         try:
-            libgap_enter()
             sig_on()
             result = PROD(self.value, (<GapElement>right).value)
             sig_off()
@@ -899,7 +887,7 @@ cdef class GapElement(RingElement):
             ClearError()
             raise ValueError('libGAP: {}'.format(msg))
         finally:
-            libgap_exit()
+            pass
         return make_any_gap_element(self.parent(), result)
 
 
@@ -929,7 +917,6 @@ cdef class GapElement(RingElement):
         """
         cdef Obj result
         try:
-            libgap_enter()
             sig_on()
             result = QUO(self.value, (<GapElement>right).value)
             sig_off()
@@ -937,7 +924,7 @@ cdef class GapElement(RingElement):
             ClearError()
             raise ValueError('libGAP: '+str(msg))
         finally:
-            libgap_exit()
+            pass
         return make_any_gap_element(self.parent(), result)
 
     cpdef _mod_(self, right):
@@ -959,7 +946,6 @@ cdef class GapElement(RingElement):
         """
         cdef Obj result
         try:
-            libgap_enter()
             sig_on()
             result = MOD(self.value, (<GapElement>right).value)
             sig_off()
@@ -967,7 +953,7 @@ cdef class GapElement(RingElement):
             ClearError()
             raise ValueError('libGAP: '+str(msg))
         finally:
-            libgap_exit()
+            pass
         return make_any_gap_element(self.parent(), result)
 
 
@@ -999,7 +985,6 @@ cdef class GapElement(RingElement):
             right = libgap(right)
         cdef Obj result
         try:
-            libgap_enter()
             sig_on()
             result = POW(self.value, (<GapElement>right).value)
             sig_off()
@@ -1007,7 +992,7 @@ cdef class GapElement(RingElement):
             ClearError()
             raise ValueError('libGAP: ' + str(msg))
         finally:
-            libgap_exit()
+            pass
         return make_any_gap_element(self.parent(), result)
 
 
@@ -2099,9 +2084,7 @@ cdef class GapElement_String(GapElement):
             sage: type(_)
             <... 'str'>
         """
-        libgap_enter()
         s = CSTR_STRING(self.value)
-        libgap_exit()
         return s
 
     sage = __str__
@@ -2267,7 +2250,6 @@ cdef class GapElement_Function(GapElement):
             a = [x if isinstance(x,GapElement) else libgap(x) for x in args]
 
         try:
-            libgap_enter()
             sig_on()
             if n == 0:
                 result = CALL_0ARGS(self.value)
@@ -2305,15 +2287,13 @@ cdef class GapElement_Function(GapElement):
                                            (<GapElement>a[4]).value,
                                            (<GapElement>a[5]).value)
             elif n >= 7:
-                libgap_exit()
                 arg_list = make_gap_list(args)
-                libgap_enter()
                 result = CALL_XARGS(self.value, arg_list)
             sig_off()
         except RuntimeError as msg:
             raise ValueError('libGAP: ' + str(msg))
         finally:
-            libgap_exit()
+            pass
 
         if result == NULL:
             # We called a procedure that does not return anything
@@ -2918,10 +2898,9 @@ cdef class GapElement_Record(GapElement):
         """
         cdef char* c_name = py_name
         try:
-            libgap_enter()
             return RNamName(c_name)
         finally:
-            libgap_exit()
+            pass
 
     def __getitem__(self, name):
         r"""
@@ -3038,11 +3017,9 @@ cdef class GapElement_RecordIterator(object):
         if i>len(self.rec):
             raise StopIteration
         # note the abs: negative values mean the rec keys are not sorted
-        libgap_enter()
         key_index = abs(GET_RNAM_PREC(self.rec.value, i))
         key = NAME_RNAM(key_index)
         cdef Obj result = GET_ELM_PREC(self.rec.value,i)
-        libgap_exit()
         val = make_any_gap_element(self.rec.parent(), result)
         self.i += 1
         return (key, val)
