@@ -605,8 +605,6 @@ cdef class GapElement(RingElement):
             return 'NULL'
         try:
             libgap_enter()
-            # ViewObjHandler(self.value)
-            # s = libgap_get_output()
             s = crepr(self.value) 
             return s.strip()
         finally:
