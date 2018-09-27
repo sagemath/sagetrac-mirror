@@ -798,7 +798,7 @@ class BetaAdicMonoid(Monoid_class):
         - ``i`` -- index to return
 
         OUTPUT:
-        
+
         Return the element of C of index ``i``
 
         EXAMPLES::
@@ -1256,7 +1256,6 @@ class BetaAdicMonoid(Monoid_class):
         """
         if tss is None:
             tss = self.reduced_words_automaton2()
-        sig_on()
         cdef BetaAdic b
         cdef Automaton a
         cdef DetAutomaton r
@@ -1273,11 +1272,13 @@ class BetaAdicMonoid(Monoid_class):
         if n is None:
             n = -1
         if method == 0:
+            sig_on()
             a = UserDraw(b, sx, sy, n, ajust, col, only_pos, verb)
+            sig_off()
         elif method == 1:
             print("Not implemented !")
             return
-        sig_off()
+        
         r = DetAutomaton(None)
         r.a[0] = a
         r.A = list(self.C)
@@ -2166,9 +2167,9 @@ class BetaAdicMonoid(Monoid_class):
             Cd = Set([c-c2 for c in self.C for c2 in self.C])
         Cd = list(Cd)
         cdef InfoBetaAdic ib
+        sig_on()
         ib = initInfoBetaAdic(self, Cd=Cd, plus=True, verb=verb)
         cdef Automaton a
-        sig_on()
         a = RelationsAutomaton(ib, isvide, ext, verb)
         r = DetAutomaton(None)
         r.a[0] = a

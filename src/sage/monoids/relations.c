@@ -79,7 +79,7 @@ Elements *thash; //table de hachage
 Element *pile; //pile utilisée pendant le parcours
 int npile;
 
-InfoBetaAdic allocInfoBetaAdic (int n, int na, int ncmax, bool verb)
+InfoBetaAdic allocInfoBetaAdic(int n, int na, int ncmax, bool verb)
 {
 	if (verb)
 	{
@@ -363,18 +363,17 @@ int indElement (Element e)
 }
 
 //calcule l'automate des relations
-Automaton RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool ext, bool verb)
+Automaton RelationsAutomaton(InfoBetaAdic iba2, bool isvide, bool ext, bool verb)
 {
 	int i,j;
-	
+	printf(" n pile %d :", npile);
 	iba = iba2;
-	
 	////affiche les données : chiffres, places, bornes pour vérif
 	if (verb)
 	{
 		for (i=0;i<iba.nc;i++)
 		{
-			printf("chiffre %d : ", i);
+			printf("figure %d : ", i);
 			printElement(iba.c[i]);
 			printf("\n");
 		}
@@ -385,7 +384,7 @@ Automaton RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool ext, bool ver
 			{
 				printf("(%lf, %lf) ", iba.p[i].c[j].x, iba.p[i].c[j].y);
 			}
-			printf("borne %lf\n", iba.cM[i]);
+			printf("boundary %lf\n", iba.cM[i]);
 		}
 	}
 
@@ -395,7 +394,7 @@ Automaton RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool ext, bool ver
 	initHash();
 	
 	if (verb)
-		printf("parcours...\n");
+		printf("way...\n");
 	int n = 1; //nombre d'éléments sur la pile
 	compteur = 0; //nombre d'états de l'automate
 	//état initial 
@@ -406,15 +405,16 @@ Automaton RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool ext, bool ver
 	vide = true;
 	while (n)
 	{
+		printf("in while %d : ", n);
 		//parcours le dernier élément mis sur la pile
 		n--; //dépile
 		copy(pile[n], e);
 		FreeElement(pile[n]);
 		if (verb)
 		{
-			printf("état ");
+			printf("state ");
 			printElement(e);
-			printf("vu\n");
+			printf("seen\n");
 		}
 		for (i=0;i<iba.nc;i++)
 		{
@@ -440,9 +440,10 @@ Automaton RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool ext, bool ver
 					pile[n] = NewElement(iba.n);
 					copy(s, pile[n]);
 					n++;
-					if (n > npile)
+					if (n >= npile)
 					{
-						printf("Erreur : dépassement de la pile !!!\n");
+						printf("Error : stack overtaking !!!\n");
+						return;
 					}
 				}else
 				{//on retombe sur un état déjà vu
@@ -459,14 +460,15 @@ Automaton RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool ext, bool ver
 		}
 	}
 	if (verb)
-		printf("..fini !\n");
+		printf("..ended !\n");
 	FreeElement(e);
 	
 	if (verb)
-		printf("%d états rencontrés.\n", compteur);
+		printf("%d meet states.\n", compteur);
 	
 	//créé l'automate
 	Automaton r = NewAutomaton(compteur, iba.nc);
+	printf("print 1 : ");
 	for (i=0;i<r.n;i++)
 	{
 		for (j=0;j<r.na;j++)
@@ -475,12 +477,13 @@ Automaton RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool ext, bool ver
 		}
 	}
 	int k, ind;
+	printf("print 2 : ");
 	for (i=0;i<nhash;i++)
 	{
 		if (verb)
 		{
 			if (thash[i].n > 0)
-				printf("hash %d : %d éléments.\n", i, thash[i].n);
+				printf("hash %d : %d elements.\n", i, thash[i].n);
 		}
 		for (j=0;j<thash[i].n;j++)
 		{
@@ -489,7 +492,7 @@ Automaton RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool ext, bool ver
 			{
 				printf("Element ");
 				printElement(e);
-				printf("indice %d\n", thash[i].ind[j]);			
+				printf("inddex %d\n", thash[i].ind[j]);
 			}
 			r.e[thash[i].ind[j]].final = false;
 			for (k=0;k<iba.nc;k++)
@@ -508,6 +511,7 @@ Automaton RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool ext, bool ver
 			}
 		}
 	}
+	printf("print 3 : ");
 	//états initiaux et finaux : zéro
 	e = zeroElement();
 	ind = indElement(e);
