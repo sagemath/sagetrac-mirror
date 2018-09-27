@@ -1449,16 +1449,12 @@ class BetaAdicMonoid(Monoid_class):
             sage: e = QQbar(1/(1+I))
             sage: m = BetaAdicMonoid(e, {0,1})
             sage: m.plot2()     # long time
-            ValueError                                Traceback (most recent call last)
-            ValueError: DetAutomaton expected.
-
-            Exception ValueError: ValueError('DetAutomaton expected.',) in 'sage.monoids.beta_adic_monoid.getAutomate' ignored
 
         #. The Rauzy fractal of the Tribonacci substitution::
 
             sage: s = WordMorphism('1->12,2->13,3->1')
-            sage: m = s.rauzy_fractal_beta_adic_monoid()
-            sage: m.plot2()     # long time
+            sage: m = s.rauzy_fractal_plot()
+            sage: m     # long time
 
         #. A non-Pisot Rauzy fractal::
 
