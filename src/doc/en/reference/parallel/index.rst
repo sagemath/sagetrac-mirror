@@ -14,6 +14,6 @@ Parallel Computing
 
 .. SEEALSO::
 
-    - :mod:`sage.interfaces.psage`
+    - :ref:`sage.interfaces.psage`
 
 .. include:: ../footer.txt

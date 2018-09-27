@@ -419,7 +419,8 @@ cdef class EvenlyDistributedSetsBacktracker:
 
         TESTS::
 
-            sage: from sage.combinat.designs.evenly_distributed_sets import EvenlyDistributedSetsBacktracker
+            sage: from sage.combinat.designs.evenly_distributed_sets import \
+            ....:     EvenlyDistributedSetsBacktracker
             sage: E = EvenlyDistributedSetsBacktracker(Zmod(13), 4, up_to_isomorphism=True)
             sage: E.cardinality()   # indirect doctest
             1

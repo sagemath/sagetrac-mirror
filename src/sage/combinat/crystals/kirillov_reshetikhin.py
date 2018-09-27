@@ -15,7 +15,7 @@ Kirillov-Reshetikhin Crystals
 #
 #  The full text of the GPL is available at:
 #
-#                  https://www.gnu.org/licenses/
+#                  http://www.gnu.org/licenses/
 #****************************************************************************
 # Acknowledgment: most of the design and implementation of this
 # library is heavily inspired from MuPAD-Combinat.
@@ -353,9 +353,8 @@ def KirillovReshetikhinCrystal(cartan_type, r, s, model='KN'):
 
     raise ValueError("invalid model")
 
-
 def KashiwaraNakashimaTableaux(cartan_type, r, s):
-    r"""
+    """
     Return the Kashiwara-Nakashima model for the Kirillov-Reshetikhin crystal
     `B^{r,s}` in the given type.
 
@@ -868,7 +867,7 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
 
     @cached_method
     def promotion(self):
-        r"""
+        """
         Specifies the promotion operator used to construct the affine
         type `D_n^{(1)}` etc. crystal.
 
@@ -952,8 +951,27 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
         """
         return self.from_pm_diagram_to_highest_weight_vector(self.from_highest_weight_vector_to_pm_diagram(b).sigma())
 
+    def promotion_on_highest_weight_vectors(self):
+        """
+        Calculates promotion on `{2,3,...,n}` highest weight vectors.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['D',4,1], 2,2)
+            sage: T = K.classical_decomposition()
+            sage: hw = [ b for b in T if all(b.epsilon(i)==0 for i in [2,3,4]) ]
+            sage: f = K.promotion_on_highest_weight_vectors()
+            doctest:...: DeprecationWarning: Call self.promotion_on_highest_weight_vector directly
+            See http://trac.sagemath.org/22429 for details.
+            sage: f(hw[0])
+            [[1, 2], [-2, -1]]
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(22429, "Call self.promotion_on_highest_weight_vector directly")
+        return self.promotion_on_highest_weight_vector
+
     def from_highest_weight_vector_to_pm_diagram(self, b):
-        r"""
+        """
         This gives the bijection between an element ``b`` in the classical
         decomposition of the KR crystal that is `{2, 3, \ldots, n}`-highest
         weight and `\pm` diagrams.
@@ -984,7 +1002,7 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
         return PMDiagram([self.r(), self.s(), outer, inter, inner], from_shapes=True)
 
     def from_pm_diagram_to_highest_weight_vector(self, pm):
-        r"""
+        """
         This gives the bijection between a `\pm` diagram and an element
         ``b`` in the classical decomposition of the KR crystal that
         is `{2, 3, \ldots, n}`-highest weight.
@@ -2439,7 +2457,7 @@ class KR_type_Cn(KirillovReshetikhinGenericCrystal):
         return CrystalOfTableaux(self.cartan_type().classical(), shape = [self.s()]*self.r() )
 
     def from_highest_weight_vector_to_pm_diagram(self, b):
-        r"""
+        """
         This gives the bijection between an element ``b`` in the classical
         decomposition of the KR crystal that is `{2,3,..,n}`-highest weight
         and `\pm` diagrams.
@@ -2467,7 +2485,7 @@ class KR_type_Cn(KirillovReshetikhinGenericCrystal):
         return PMDiagram([self.r(), self.s(), outer, inter, inner], from_shapes=True)
 
     def from_pm_diagram_to_highest_weight_vector(self, pm):
-        r"""
+        """
         This gives the bijection between a `\pm` diagram and an element ``b``
         in the classical decomposition of the KR crystal that is
         `\{2,3,..,n\}`-highest weight.
@@ -3454,9 +3472,8 @@ class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
 
 #####################################################################
 
-
 class PMDiagram(CombinatorialObject):
-    r"""
+    """
     Class of `\pm` diagrams. These diagrams are in one-to-one bijection with
     `X_{n-1}` highest weight vectors in an `X_n` highest weight crystal
     `X=B,C,D`. See Section 4.1 of [Schilling08]_.
@@ -3535,7 +3552,7 @@ class PMDiagram(CombinatorialObject):
         self.width = sum(self._list)
 
     def _repr_(self):
-        r"""
+        """
         Turning on pretty printing allows to display the `\pm` diagram as a
         tableau with the `+` and `-` displayed.
 
@@ -3615,7 +3632,7 @@ class PMDiagram(CombinatorialObject):
         return Partition(list(reversed(t)))
 
     def outer_shape(self):
-        r"""
+        """
         Return the outer shape of the `\pm` diagram
 
         EXAMPLES::
@@ -3670,7 +3687,7 @@ class PMDiagram(CombinatorialObject):
         return Partition(p)
 
     def heights_of_minus(self):
-        r"""
+        """
         Return a list with the heights of all minus in the `\pm` diagram.
 
         EXAMPLES::
@@ -3690,7 +3707,7 @@ class PMDiagram(CombinatorialObject):
         return heights
 
     def heights_of_addable_plus(self):
-        r"""
+        """
         Return a list with the heights of all addable plus in the `\pm` diagram.
 
         EXAMPLES::

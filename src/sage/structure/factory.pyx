@@ -258,10 +258,9 @@ cdef class UniqueFactory(SageObject):
 
     The factory only knows about the pickling protocol used by new style
     classes. Hence, again, pickling and unpickling fails to use the cache,
-    even though the "factory data" are now available (this is not the case
-    on Python 3 which *only* has new style classes)::
+    even though the "factory data" are now available::
 
-        sage: loads(dumps(d)) is d  # py2
+        sage: loads(dumps(d)) is d
         False
         sage: d._factory_data
         (<__main__.MyFactory object at ...>,
@@ -349,12 +348,12 @@ cdef class UniqueFactory(SageObject):
             sage: from sage.structure.test_factory import test_factory
             sage: _ = test_factory(1,2,3); _
             Making object (1, 2, 3)
-            <sage.structure.test_factory.A object at ...>
+            <sage.structure.test_factory.A instance at ...>
 
         It already created one, so don't re-create::
 
             sage: test_factory(1,2,3)
-            <sage.structure.test_factory.A object at ...>
+            <sage.structure.test_factory.A instance at ...>
             sage: test_factory(1,2,3) is test_factory(1,2,3)
             True
 
@@ -379,7 +378,7 @@ cdef class UniqueFactory(SageObject):
             sage: from sage.structure.test_factory import test_factory
             sage: a = test_factory.get_object(3.0, 'a', {}); a
             Making object a
-            <sage.structure.test_factory.A object at ...>
+            <sage.structure.test_factory.A instance at ...>
             sage: test_factory.get_object(3.0, 'a', {}) is test_factory.get_object(3.0, 'a', {})
             True
             sage: test_factory.get_object(3.0, 'a', {}) is test_factory.get_object(3.1, 'a', {})
@@ -493,12 +492,12 @@ cdef class UniqueFactory(SageObject):
             sage: from sage.structure.test_factory import test_factory
             sage: test_factory.create_object(0, (1,2,3))
             Making object (1, 2, 3)
-            <sage.structure.test_factory.A object at ...>
+            <sage.structure.test_factory.A instance at ...>
             sage: test_factory('a')
             Making object ('a',)
-            <sage.structure.test_factory.A object at ...>
+            <sage.structure.test_factory.A instance at ...>
             sage: test_factory('a') # NOT called again
-            <sage.structure.test_factory.A object at ...>
+            <sage.structure.test_factory.A instance at ...>
         """
         raise NotImplementedError
 

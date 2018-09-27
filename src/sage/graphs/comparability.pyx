@@ -36,7 +36,7 @@ edge between any two elements that are comparable. Co-comparability graph are
 complements of such graphs, i.e. graphs built from a poset by adding an edge
 between any two incomparable elements.
 
-For more information on comparability graphs, see the
+For more information on comparability graphs, see
 :wikipedia:`Comparability_graph`.
 
 **Permutation graphs**
@@ -54,8 +54,7 @@ Definitions:
 - A graph is a permutation graph if it is both a comparability graph and a
   co-comparability graph.
 
-For more information on permutation graphs, see the
-:wikipedia:`Permutation_graph`.
+For more information on permutation graphs, see :wikipedia:`Permutation_graph`.
 
 
 Recognition algorithm for comparability graphs
@@ -257,7 +256,7 @@ def greedy_is_comparability(g, no_certificate = False, equivalence_class = False
       sage: is_comparability(g)
       False
       sage: is_comparability(g, no_certificate = True)
-      (False, [0, 4, 9, 6, 1, 0])
+      (False, [9, 6, 1, 0, 4, 9])
 
     But the Bull graph is::
 
@@ -352,12 +351,12 @@ def greedy_is_comparability_with_certificate(g, certificate = False):
 
       sage: from sage.graphs.comparability import greedy_is_comparability_with_certificate as is_comparability
       sage: is_comparability(graphs.CycleGraph(5), certificate = True)
-      (False, [1, 2, 3, 4, 0, 1])
+      (False, [3, 4, 0, 1, 2, 3])
       sage: g = graphs.PetersenGraph()
       sage: is_comparability(g)
       False
       sage: is_comparability(g, certificate = True)
-      (False, [0, 4, 9, 6, 1, 0])
+      (False, [9, 6, 1, 0, 4, 9])
 
     But the Bull graph is::
 

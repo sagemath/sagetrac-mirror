@@ -77,7 +77,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
         sage: e = F.basis()
         sage: e
-        Finite family {'a': B['a'], 'b': B['b'], 'c': B['c']}
+        Finite family {'a': B['a'], 'c': B['c'], 'b': B['b']}
 
     ::
 
@@ -380,7 +380,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'], category = FiniteDimensionalModulesWithBasis(QQ))
             sage: F.basis()
-            Finite family {'a': B['a'], 'b': B['b'], 'c': B['c']}
+            Finite family {'a': B['a'], 'c': B['c'], 'b': B['b']}
             sage: F.category()
             Category of finite dimensional vector spaces with basis over Rational Field
 

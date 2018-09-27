@@ -116,7 +116,7 @@ cdef class ntl_ZZ_pEX(object):
             self.c = (<ntl_ZZ_pEX>v).c
         elif isinstance(v, ntl_ZZ_pE):
             self.c = (<ntl_ZZ_pE>v).c
-        elif isinstance(v, (list, tuple)) and v:
+        elif (isinstance(v, list) or isinstance(v, tuple)) and len(v) > 0:
             if isinstance(v[0], ntl_ZZ_pEX):
                 self.c = (<ntl_ZZ_pEX>v[0]).c
             elif isinstance(v[0], ntl_ZZ_pE):

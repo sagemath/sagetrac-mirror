@@ -189,7 +189,7 @@ class CNFEncoder(ANF2CNFConverter):
 
     def zero_blocks(self, f):
         """
-        Divide the zero set of ``f`` into blocks.
+        Divides the zero set of ``f`` into blocks.
 
         EXAMPLES::
 
@@ -197,10 +197,10 @@ class CNFEncoder(ANF2CNFConverter):
             sage: from sage.sat.converters.polybori import CNFEncoder
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: e = CNFEncoder(DIMACS(), B)
-            sage: sorted(sorted(d.items()) for d in e.zero_blocks(a*b*c))
-            [[(c, 0)], [(b, 0)], [(a, 0)]]
+            sage: sorted(e.zero_blocks(a*b*c))
+            [{c: 0}, {b: 0}, {a: 0}]
 
-        .. NOTE::
+        .. note::
 
             This function is randomised.
         """
@@ -331,7 +331,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         if self.use_xor_clauses:
             self.solver.add_xor_clause(f, rhs=not equal_zero)
-        elif len(f) > self.cutting_number:
+        elif f > self.cutting_number:
             for fpart, this_equal_zero in self.split_xor(f, equal_zero):
                 ll = len(fpart)
                 for p in self.permutations(ll, this_equal_zero):

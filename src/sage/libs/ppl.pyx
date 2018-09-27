@@ -104,17 +104,20 @@ basis vectors::
     sage: from sage.libs.ppl import Variable, Generator_System, point, C_Polyhedron
     sage: basis = list(range(5))
     sage: x = [ Variable(i) for i in basis ]
-    sage: gs = Generator_System()
+    sage: gs = Generator_System();
     sage: for coeff in Permutations(basis):
     ....:    gs.insert(point( sum( (coeff[i]+1)*x[i] for i in basis ) ))
     sage: C_Polyhedron(gs)
     A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 120 points
 
-The same computation with cddlib which is slightly slower::
+The above computation (using PPL) finishes without noticeable delay (timeit
+measures it to be 90 microseconds on sage.math). Below we do the same
+computation with cddlib, which needs more than 3 seconds on the same
+hardware::
 
     sage: basis = list(range(5))
     sage: gs = [ tuple(coeff) for coeff in Permutations(basis) ]
-    sage: Polyhedron(vertices=gs, backend='cdd')
+    sage: Polyhedron(vertices=gs, backend='cdd')  # long time (3s on sage.math, 2011)
     A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 120 vertices
 
 DIFFERENCES VS. C++
@@ -890,7 +893,7 @@ cdef class MIP_Problem(_mutable_or_immutable):
             sage: m.space_dimension()
             7
         """
-        self.assert_mutable("The MIP_Problem is not mutable!")
+        self.assert_mutable("The MIP_Problem is not mutable!");
         sig_on()
         self.thisptr.add_space_dimensions_and_embed(m)
         sig_off()
@@ -967,7 +970,7 @@ cdef class MIP_Problem(_mutable_or_immutable):
             ValueError: PPL::MIP_Problem::add_constraint(c):
             c.space_dimension() == 3 exceeds this->space_dimension == 2.
         """
-        self.assert_mutable("The MIP_Problem is not mutable!")
+        self.assert_mutable("The MIP_Problem is not mutable!");
         sig_on()
         try:
             self.thisptr.add_constraint(c.thisptr[0])
@@ -1003,7 +1006,7 @@ cdef class MIP_Problem(_mutable_or_immutable):
             ValueError: PPL::MIP_Problem::add_constraints(cs):
             cs.space_dimension() == 10 exceeds this->space_dimension() == 2.
         """
-        self.assert_mutable("The MIP_Problem is not mutable!")
+        self.assert_mutable("The MIP_Problem is not mutable!");
         sig_on()
         try:
             self.thisptr.add_constraints(cs.thisptr[0])
@@ -1031,7 +1034,7 @@ cdef class MIP_Problem(_mutable_or_immutable):
             sage: m.optimal_value()
             3
         """
-        self.assert_mutable("The MIP_Problem is not mutable!")
+        self.assert_mutable("The MIP_Problem is not mutable!");
         sig_on()
         try:
             self.thisptr.add_to_integer_space_dimensions(i_vars.thisptr[0])
@@ -1065,7 +1068,7 @@ cdef class MIP_Problem(_mutable_or_immutable):
             ValueError: PPL::MIP_Problem::set_objective_function(obj):
             obj.space_dimension() == 3 exceeds this->space_dimension == 2.
         """
-        self.assert_mutable("The MIP_Problem is not mutable!")
+        self.assert_mutable("The MIP_Problem is not mutable!");
         self.thisptr.set_objective_function(obj.thisptr[0])
 
     def set_optimization_mode(self, mode):
@@ -5147,7 +5150,7 @@ cdef class Generator(object):
         TESTS::
 
             sage: from sage.libs.ppl import Generator, Variable, line, ray, point, closure_point
-            sage: x = Variable(0); y = Variable(1)
+            sage: x = Variable(0); y = Variable(1);
             sage: loads(dumps(Generator.point(2*x+7*y, 3)))
             point(2/3, 7/3)
             sage: loads(dumps(Generator.closure_point(2*x+7*y, 3)))
@@ -7097,7 +7100,7 @@ cdef class Poly_Con_Relation(object):
         if self.implies(Poly_Con_Relation.saturates()):
             rel.append('saturates')
 
-        if rel:
+        if len(rel)>0:
             return ', '.join(rel)
         else:
             return 'nothing'

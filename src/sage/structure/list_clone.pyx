@@ -575,9 +575,9 @@ cdef class ClonableArray(ClonableElement):
         EXAMPLES::
 
             sage: from sage.structure.list_clone_demo import IncreasingArrays
-            sage: bool(IncreasingArrays()([1,2,3]))
+            sage: IncreasingArrays()([1,2,3]).__nonzero__()
             True
-            sage: bool(IncreasingArrays()([]))
+            sage: IncreasingArrays()([]).__nonzero__()
             False
         """
         return bool(self._list)
@@ -869,7 +869,7 @@ cdef class ClonableArray(ClonableElement):
             sage: elc = copy(el)
             sage: el is elc
             False
-            sage: bool(elc)
+            sage: elc.__nonzero__()
             False
             sage: elc.is_mutable()
             True
@@ -1342,9 +1342,9 @@ cdef class ClonableIntArray(ClonableElement):
         EXAMPLES::
 
             sage: from sage.structure.list_clone_demo import IncreasingIntArrays
-            sage: bool(IncreasingIntArrays()([1,2,3]))
+            sage: IncreasingIntArrays()([1,2,3]).__nonzero__()
             True
-            sage: bool(IncreasingIntArrays()([]))
+            sage: IncreasingIntArrays()([]).__nonzero__()
             False
         """
         return self._len != 0
@@ -1649,7 +1649,7 @@ cdef class ClonableIntArray(ClonableElement):
             sage: elc = copy(el)
             sage: el is elc
             False
-            sage: bool(elc)
+            sage: elc.__nonzero__()
             True
             sage: elc.is_mutable()
             True

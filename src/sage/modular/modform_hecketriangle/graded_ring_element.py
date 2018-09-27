@@ -980,8 +980,7 @@ class FormsRingElement(six.with_metaclass(
 
     def sqrt(self):
         r"""
-        Return the square root of ``self`` if it exists.
-
+        Try to return the square root of ``self``.
         I.e. the element corresponding to ``sqrt(self.rat())``.
 
         Whether this works or not depends on whether
@@ -997,21 +996,24 @@ class FormsRingElement(six.with_metaclass(
         In particular this is the case if ``self``
         is a (homogeneous) element of a forms space.
 
+        .. TODO::
+
+            Make square root in the underlying rational field work.
+
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
-            sage: E2 = QuasiModularForms(k=2, ep=-1).E2()
-            sage: (E2^2).sqrt()
-            1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 + O(q^5)
-            sage: (E2^2).sqrt() == E2
-            True
+            sage: E2=QuasiModularForms(k=2, ep=-1).E2()
+            sage: sqrt(E2^2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: is_square() not implemented for elements of Multivariate Polynomial Ring in x, y, z, d over Integer Ring
         """
-        res = self._rat.sqrt()
-        assert res.parent() is self.parent().rat_field()
+
+        res = self.parent().rat_field()(self._rat.sqrt())
         #new_parent = self.parent().extend_type(ring=True)
         # The sqrt of a homogeneous element is homogeneous if it exists
-        new_parent = self.parent().extend_type(ring=True)
-        return new_parent(res).reduce()
+        return self.parent()(res).reduce()
 
     def diff_op(self, op, new_parent=None):
         r"""

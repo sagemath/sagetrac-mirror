@@ -54,7 +54,6 @@ def max_clique(graph):
     EXAMPLES::
 
           sage: C=graphs.PetersenGraph()
-          sage: from sage.graphs.cliquer import max_clique
           sage: max_clique(C)
           [7, 9]
 
@@ -185,11 +184,11 @@ def clique_number(graph):
     EXAMPLES::
 
         sage: C = Graph('DJ{')
-        sage: C.clique_number()
+        sage: clique_number(C)
         4
         sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
         sage: G.show(figsize=[2,2])
-        sage: G.clique_number()
+        sage: clique_number(G)
         3
 
     TESTS::

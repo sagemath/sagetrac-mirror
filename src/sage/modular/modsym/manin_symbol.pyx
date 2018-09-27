@@ -454,25 +454,26 @@ def _print_polypart(i, j):
         'Y'
     """
     if i > 1:
-        xpart = "X^%s" % i
+        xpart = "X^%s"%i
     elif i == 1:
         xpart = "X"
     else:
         xpart = ""
     if j > 1:
-        ypart = "Y^%s" % j
+        ypart = "Y^%s"%j
     elif j == 1:
         ypart = "Y"
     else:
         ypart = ""
-    if xpart and ypart:
+    if len(xpart) > 0 and len(ypart) > 0:
         times = "*"
     else:
         times = ""
-    if xpart or ypart:
-        return xpart + times + ypart
+    if len(xpart + ypart) > 0:
+        polypart = "%s%s%s"%(xpart, times, ypart)
     else:
-        return ""
+        polypart = ""
+    return polypart
 
 
 register_unpickle_override('sage.modular.modsym.manin_symbols',

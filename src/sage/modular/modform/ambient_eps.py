@@ -139,10 +139,6 @@ class ModularFormsAmbient_eps(ModularFormsAmbient):
             sage: m._repr_()
             'Modular Forms space of dimension 2, character [1, -1] and weight 2 over Rational Field'
 
-            sage: m = ModularForms(DirichletGroup(31, QQ).0, 1, eis_only=True)
-            sage: m._repr_()
-            'Modular Forms space of character [-1] and weight 1 over Rational Field'
-
         You can rename the space with the rename command.
 
         ::
@@ -158,7 +154,6 @@ class ModularFormsAmbient_eps(ModularFormsAmbient):
             return "Modular Forms space of dimension %s, character %s and weight %s over %s"%(
             self.dimension(), self.character()._repr_short_(), self.weight(), self.base_ring())
 
-    @cached_method
     def cuspidal_submodule(self):
         """
         Return the cuspidal submodule of this ambient space of modular forms.
@@ -171,10 +166,14 @@ class ModularFormsAmbient_eps(ModularFormsAmbient):
             sage: M.cuspidal_submodule()
             Cuspidal subspace of dimension 1 of Modular Forms space of dimension 3, character [-1] and weight 5 over Rational Field
         """
-        if self.weight() > 1:
-            return cuspidal_submodule.CuspidalSubmodule_eps(self)
-        else:
-            return cuspidal_submodule.CuspidalSubmodule_wt1_eps(self)
+        try:
+            return self.__cuspidal_submodule
+        except AttributeError:
+            if self.weight() > 1:
+                self.__cuspidal_submodule = cuspidal_submodule.CuspidalSubmodule_eps(self)
+            else:
+                self.__cuspidal_submodule = cuspidal_submodule.CuspidalSubmodule_wt1_eps(self)
+        return self.__cuspidal_submodule
 
     def change_ring(self, base_ring):
         """
@@ -226,7 +225,6 @@ class ModularFormsAmbient_eps(ModularFormsAmbient):
                                      sign = sign,
                                      base_ring = self.base_ring())
 
-    @cached_method
     def eisenstein_submodule(self):
         """
         Return the submodule of this ambient module with character that is
@@ -240,7 +238,11 @@ class ModularFormsAmbient_eps(ModularFormsAmbient):
             sage: m.eisenstein_submodule()
             Eisenstein subspace of dimension 2 of Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 6 and degree 2
         """
-        return eisenstein_submodule.EisensteinSubmodule_eps(self)
+        try:
+            return self.__eisenstein_submodule
+        except AttributeError:
+            self.__eisenstein_submodule = eisenstein_submodule.EisensteinSubmodule_eps(self)
+        return self.__eisenstein_submodule
 
     def hecke_module_of_level(self, N):
         r"""

@@ -7,7 +7,7 @@ Affine `n` space over a ring
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  https://www.gnu.org/licenses/
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
 from six import integer_types
@@ -282,19 +282,6 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             True
         """
         return not (self == other)
-
-    def __hash__(self):
-        """
-        Return the hash of ``self``.
-
-        EXAMPLES::
-
-            sage: hash(AffineSpace(QQ,3,'a')) == hash(AffineSpace(ZZ,3,'a'))
-            False
-            sage: hash(AffineSpace(ZZ,1,'a')) == hash(AffineSpace(ZZ,0,'a'))
-            False
-        """
-        return hash((self.dimension_relative(), self.coordinate_ring()))
 
     def _latex_(self):
         r"""
@@ -700,16 +687,6 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             sage: A.<x,y> = AffineSpace(ZZ, 2)
             sage: A.projective_embedding(2).codomain().affine_patch(2) == A
             True
-
-        TESTS:
-
-        Check that :trac:`25897` is fixed::
-
-            sage: A.<x,y> = AffineSpace(ZZ, 2)
-            sage: A.projective_embedding(4)
-            Traceback (most recent call last):
-            ...
-            ValueError: argument i (=4) must be between 0 and 2, inclusive
         """
         n = self.dimension_relative()
         if i is None:
@@ -740,7 +717,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
         R = self.coordinate_ring()
         v = list(R.gens())
-        if i < 0 or i > n:
+        if n < 0 or n >self.dimension_relative():
             raise ValueError("argument i (=%s) must be between 0 and %s, inclusive"%(i,n))
         v.insert(i, R(1))
         phi = self.hom(v, PP)

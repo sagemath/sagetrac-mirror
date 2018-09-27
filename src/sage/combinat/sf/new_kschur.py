@@ -672,10 +672,9 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
 
             INPUT:
 
-            -  ``nu`` -- a partition or a list of integers
+            -  ``nu`` -- a partition
 
-            - ``t`` -- (default: ``None``, in which case ``t`` is used) an
-              element of the base ring
+            - ``t`` -- a parameter (default: None, in this case `t` is used)
 
             REFERENCES:
 
@@ -860,7 +859,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
 
 
 class kSchur(CombinatorialFreeModule):
-    r"""
+    """
     Space of `k`-Schur functions.
 
     EXAMPLES::

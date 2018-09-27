@@ -1,4 +1,4 @@
-"""
+""""
 A triangulation
 
 In Sage, the
@@ -35,7 +35,7 @@ See :mod:`sage.geometry.triangulation.point_configuration` for more details.
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  https://www.gnu.org/licenses/
+#                  http://www.gnu.org/licenses/
 ########################################################################
 from six import iteritems
 

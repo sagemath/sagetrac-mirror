@@ -931,14 +931,8 @@ class Order(IntegralDomain):
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 2)
-            sage: L.<b> = NumberField(x^3 + 3)
             sage: O1 = K.order(a)
-            sage: hash(O1) == hash(K.order(a))
-            True
-            sage: hash(O1) == hash(K.order(a^2))
-            False
-            sage: hash(O1) == hash(L.order(b))
-            False
+            sage: h = hash(O1)
         """
         return hash((self._K, self._module_rep))
 
@@ -1106,7 +1100,7 @@ class Order(IntegralDomain):
         TESTS:
 
         This also works for trivial extensions::
-
+        
             sage: R.<t> = QQ[]
             sage: K.<a> = QQ.extension(t); K
             Number Field in a with defining polynomial t

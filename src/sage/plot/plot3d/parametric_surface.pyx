@@ -89,7 +89,6 @@ from cysignals.signals cimport sig_check
 from math import cos, sin
 from sage.rings.all import RDF
 
-from sage.plot.colors import check_color_data
 from .base import RenderParams
 from .transform cimport point_c, face_c
 from sage.ext.fast_eval cimport FastDoubleFunc
@@ -196,9 +195,8 @@ cdef class ParametricSurface(IndexFaceSet):
             IndexFaceSet.__init__(self, [], [], **kwds)
         else:
             # case of a color depending on parameters
-            cf, cm = check_color_data(color_data)
-            self.color_function = cf
-            self.colormap = cm
+            self.color_function = color_data[0]
+            self.colormap = color_data[1]
             IndexFaceSet.__init__(self, [], [], texture_list=[], **kwds)
 
     def default_render_params(self):

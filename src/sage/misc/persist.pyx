@@ -1110,7 +1110,7 @@ def unpickle_all(dir, debug=False, run_test_suite=False):
                 if debug:
                     tracebacks.append(sys.exc_info())
 
-    if failed:
+    if len(failed) > 0:
         print("Failed:\n%s" % ('\n'.join(failed)))
     print("Successfully unpickled %s objects." % i)
     print("Failed to unpickle %s objects." % j)

@@ -294,7 +294,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
             sage: a.residue(2)
             8
             sage: a % 7^2
-            1 + 7 + O(7^4)
+            0
 
             sage: b = K(1/7)
             sage: b.residue()
@@ -415,7 +415,8 @@ cdef class pAdicCappedRelativeElement(CRElement):
 
             sage: r = Zp(5,prec=4,type='fixed-mod')(6)
             sage: r._log_binary_splitting(5)
-            5 + 2*5^2 + 4*5^3
+            5 + 2*5^2 + 4*5^3 + O(5^4)
+
         """
         cdef unsigned long p
         cdef unsigned long prec = min(aprec, self.relprec)
@@ -558,7 +559,6 @@ cdef class pAdicCappedRelativeElement(CRElement):
         sig_off()
 
         return ans
-
 
 def unpickle_pcre_v1(R, unit, ordp, relprec):
     """

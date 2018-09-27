@@ -128,7 +128,6 @@ from six.moves import zip
 
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
-from sage.env import COMBINATORIAL_DESIGN_DATA_DIR
 
 
 def are_mutually_orthogonal_latin_squares(l, verbose=False):
@@ -547,7 +546,8 @@ def MOLS_table(start,stop=None,compare=False,width=None):
         return
 
     if compare:
-        handbook_file = open("{}/MOLS_table.txt".format(COMBINATORIAL_DESIGN_DATA_DIR), 'r')
+        from sage.env import SAGE_SHARE
+        handbook_file = open(SAGE_SHARE+"/combinatorial_designs/MOLS_table.txt",'r')
         hb = [int(_) for _ in handbook_file.readlines()[9].split(',')]
         handbook_file.close()
 

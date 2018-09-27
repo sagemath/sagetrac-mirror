@@ -237,3 +237,4 @@ def Jacobian_of_equation(polynomial, variables=None, curve=None):
     X, Y, Z = WeierstrassForm(polynomial, variables=variables, transformation=True)
     from sage.schemes.elliptic_curves.weierstrass_transform import WeierstrassTransformation
     return WeierstrassTransformation(curve, E, [X*Z, Y, Z**3], 1)
+

@@ -165,8 +165,7 @@ def ProductProjectiveSpaces(n, R=None, names='x'):
             X = ProductProjectiveSpaces_field(n, R, names)
         else:
             X = ProductProjectiveSpaces_ring(n, R, names)
-    return X
-
+    return(X)
 
 class ProductProjectiveSpaces_ring(AmbientSpace):
     r"""
@@ -328,7 +327,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             sage: T[0]
             Projective Space of dimension 3 over Rational Field
         """
-        return self._components[i]
+        return(self._components[i])
 
     def __eq__(self, right):
         r"""
@@ -370,22 +369,6 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             True
         """
         return not (self == other)
-
-    def __hash__(self):
-        """
-        Return the hash of ``self``.
-
-        EXAMPLES::
-
-            sage: S.<a,x,y,z,u,v,w> = ProductProjectiveSpaces([3, 2], QQ)
-            sage: T.<x,y,z,u,v,w> = ProductProjectiveSpaces([2, 2], QQ)
-            sage: U.<a,x,y,z,u,v,w> = ProductProjectiveSpaces([3, 2], QQ)
-            sage: hash(S) == hash(T)
-            False
-            sage: hash(S) == hash(U)
-            True
-        """
-        return hash(tuple(self._components))
 
     def __pow__(self, m):
         """
@@ -470,7 +453,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             psi = right.ambient_space().coordinate_ring().hom(list(CR.gens()[n:]), CR)
             return AS.subscheme([phi(t) for t in self.defining_polynomials()] + [psi(t) for t in right.defining_polynomials()])
         else:
-            raise TypeError('%s must be a projective space, product of projective spaces, or subscheme' % right)
+            raise TypeError('%s must be a projective space, product of projective spaces, or subscheme'%right)
 
     def components(self):
         r"""
@@ -499,7 +482,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             sage: T.dimension_relative()
             5
         """
-        return sum(self._dims)
+        return(sum(self._dims))
 
     def dimension_absolute(self):
         r"""
@@ -534,7 +517,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             sage: T.dimension_relative_components()
             [3, 2]
         """
-        return self._dims
+        return(self._dims)
 
     def dimension_absolute_components(self):
         r"""
@@ -569,7 +552,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             sage: T.num_components()
             3
         """
-        return len(self._components)
+        return(len(self._components))
 
     def ngens(self):
         r"""
@@ -586,7 +569,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             sage: T.ngens()
             6
         """
-        return sum([P.ngens() for P in self._components])
+        return(sum([P.ngens() for P in self._components]))
 
     def _factors(self, v):
         r"""
@@ -614,7 +597,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         for i in range(len(dims)):
             splitv.append(v[index:index+dims[i]+1])
             index += dims[i]+1
-        return splitv
+        return(splitv)
 
     def _degree(self, polynomial):
         r"""
@@ -640,11 +623,11 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             ValueError: polynomial is not multi-homogeneous
         """
         E = polynomial.exponents()
-        if not E:
+        if len(E) == 0:
             return []
         d = [sum(t) for t in self._factors(E[0])]
         for k in range(len(E)):
-            if d != [sum(t) for t in self._factors(E[k])]:
+            if not all([d == [sum(t) for t in self._factors(E[k])]]):
                 raise ValueError("polynomial is not multi-homogeneous")
         return d
 
@@ -1165,73 +1148,48 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
         EXAMPLES::
 
             sage: PP = ProductProjectiveSpaces(QQ, [1, 2])
-            sage: sorted(list(PP.points_of_bounded_height(bound=1)))
-            [(-1 : 1 , -1 : -1 : 1), (-1 : 1 , -1 : 0 : 1), (-1 : 1 , -1 : 1 : 0), (-1 : 1 , -1 : 1 : 1),
-             (-1 : 1 , 0 : -1 : 1), (-1 : 1 , 0 : 0 : 1), (-1 : 1 , 0 : 1 : 0), (-1 : 1 , 0 : 1 : 1),
-             (-1 : 1 , 1 : -1 : 1), (-1 : 1 , 1 : 0 : 0), (-1 : 1 , 1 : 0 : 1), (-1 : 1 , 1 : 1 : 0),
-             (-1 : 1 , 1 : 1 : 1), (0 : 1 , -1 : -1 : 1), (0 : 1 , -1 : 0 : 1), (0 : 1 , -1 : 1 : 0),
-             (0 : 1 , -1 : 1 : 1), (0 : 1 , 0 : -1 : 1), (0 : 1 , 0 : 0 : 1), (0 : 1 , 0 : 1 : 0),
-             (0 : 1 , 0 : 1 : 1), (0 : 1 , 1 : -1 : 1), (0 : 1 , 1 : 0 : 0), (0 : 1 , 1 : 0 : 1),
-             (0 : 1 , 1 : 1 : 0), (0 : 1 , 1 : 1 : 1), (1 : 0 , -1 : -1 : 1), (1 : 0 , -1 : 0 : 1),
-             (1 : 0 , -1 : 1 : 0), (1 : 0 , -1 : 1 : 1), (1 : 0 , 0 : -1 : 1), (1 : 0 , 0 : 0 : 1),
-             (1 : 0 , 0 : 1 : 0), (1 : 0 , 0 : 1 : 1), (1 : 0 , 1 : -1 : 1), (1 : 0 , 1 : 0 : 0),
-             (1 : 0 , 1 : 0 : 1), (1 : 0 , 1 : 1 : 0), (1 : 0 , 1 : 1 : 1), (1 : 1 , -1 : -1 : 1),
-             (1 : 1 , -1 : 0 : 1), (1 : 1 , -1 : 1 : 0), (1 : 1 , -1 : 1 : 1), (1 : 1 , 0 : -1 : 1),
-             (1 : 1 , 0 : 0 : 1), (1 : 1 , 0 : 1 : 0), (1 : 1 , 0 : 1 : 1), (1 : 1 , 1 : -1 : 1),
-             (1 : 1 , 1 : 0 : 0), (1 : 1 , 1 : 0 : 1), (1 : 1 , 1 : 1 : 0), (1 : 1 , 1 : 1 : 1)]
+            sage: list(PP.points_of_bounded_height(bound=2))
+            [(0 : 1 , 0 : 0 : 1), (0 : 1 , 1 : 0 : 1), (0 : 1 , -1 : 0 : 1), (0 : 1 , 0 : 1 : 1),
+            (0 : 1 , 1 : 1 : 1), (0 : 1 , -1 : 1 : 1), (0 : 1 , 0 : -1 : 1), (0 : 1 , 1 : -1 : 1),
+            (0 : 1 , -1 : -1 : 1), (0 : 1 , 0 : 1 : 0), (0 : 1 , 1 : 1 : 0), (0 : 1 , -1 : 1 : 0),
+            (0 : 1 , 1 : 0 : 0), (1 : 1 , 0 : 0 : 1), (1 : 1 , 1 : 0 : 1), (1 : 1 , -1 : 0 : 1),
+            (1 : 1 , 0 : 1 : 1), (1 : 1 , 1 : 1 : 1), (1 : 1 , -1 : 1 : 1), (1 : 1 , 0 : -1 : 1),
+            (1 : 1 , 1 : -1 : 1), (1 : 1 , -1 : -1 : 1), (1 : 1 , 0 : 1 : 0), (1 : 1 , 1 : 1 : 0),
+            (1 : 1 , -1 : 1 : 0), (1 : 1 , 1 : 0 : 0), (-1 : 1 , 0 : 0 : 1), (-1 : 1 , 1 : 0 : 1),
+            (-1 : 1 , -1 : 0 : 1), (-1 : 1 , 0 : 1 : 1), (-1 : 1 , 1 : 1 : 1), (-1 : 1 , -1 : 1 : 1),
+            (-1 : 1 , 0 : -1 : 1), (-1 : 1 , 1 : -1 : 1), (-1 : 1 , -1 : -1 : 1), (-1 : 1 , 0 : 1 : 0),
+            (-1 : 1 , 1 : 1 : 0), (-1 : 1 , -1 : 1 : 0), (-1 : 1 , 1 : 0 : 0), (1 : 0 , 0 : 0 : 1),
+            (1 : 0 , 1 : 0 : 1), (1 : 0 , -1 : 0 : 1), (1 : 0 , 0 : 1 : 1), (1 : 0 , 1 : 1 : 1),
+            (1 : 0 , -1 : 1 : 1), (1 : 0 , 0 : -1 : 1), (1 : 0 , 1 : -1 : 1), (1 : 0 , -1 : -1 : 1),
+            (1 : 0 , 0 : 1 : 0), (1 : 0 , 1 : 1 : 0), (1 : 0 , -1 : 1 : 0), (1 : 0 , 1 : 0 : 0)]
 
         ::
 
             sage: u = QQ['u'].0
             sage: P = ProductProjectiveSpaces([1, 1], NumberField(u^2 - 2, 'v'))
-            sage: sorted(list(P.points_of_bounded_height(bound=1.5)))
-            [(-v : 1 , -v : 1), (-v : 1 , -1 : 1), (-v : 1 , -1/2*v : 1), (-v : 1 , 0 : 1), (-v : 1 , 1/2*v : 1),
-             (-v : 1 , 1 : 0), (-v : 1 , 1 : 1), (-v : 1 , v : 1), (-1 : 1 , -v : 1), (-1 : 1 , -1 : 1),
-             (-1 : 1 , -1/2*v : 1), (-1 : 1 , 0 : 1), (-1 : 1 , 1/2*v : 1), (-1 : 1 , 1 : 0), (-1 : 1 , 1 : 1),
-             (-1 : 1 , v : 1), (-1/2*v : 1 , -v : 1), (-1/2*v : 1 , -1 : 1), (-1/2*v : 1 , -1/2*v : 1), (-1/2*v : 1 , 0 : 1),
-             (-1/2*v : 1 , 1/2*v : 1), (-1/2*v : 1 , 1 : 0), (-1/2*v : 1 , 1 : 1), (-1/2*v : 1 , v : 1), (0 : 1 , -v : 1),
-             (0 : 1 , -1 : 1), (0 : 1 , -1/2*v : 1), (0 : 1 , 0 : 1), (0 : 1 , 1/2*v : 1), (0 : 1 , 1 : 0),
-             (0 : 1 , 1 : 1), (0 : 1 , v : 1), (1/2*v : 1 , -v : 1), (1/2*v : 1 , -1 : 1), (1/2*v : 1 , -1/2*v : 1),
-             (1/2*v : 1 , 0 : 1), (1/2*v : 1 , 1/2*v : 1), (1/2*v : 1 , 1 : 0), (1/2*v : 1 , 1 : 1), (1/2*v : 1 , v : 1),
-             (1 : 0 , -v : 1), (1 : 0 , -1 : 1), (1 : 0 , -1/2*v : 1), (1 : 0 , 0 : 1), (1 : 0 , 1/2*v : 1),
-             (1 : 0 , 1 : 0), (1 : 0 , 1 : 1), (1 : 0 , v : 1), (1 : 1 , -v : 1), (1 : 1 , -1 : 1),
-             (1 : 1 , -1/2*v : 1), (1 : 1 , 0 : 1), (1 : 1 , 1/2*v : 1), (1 : 1 , 1 : 0), (1 : 1 , 1 : 1),
-             (1 : 1 , v : 1), (v : 1 , -v : 1), (v : 1 , -1 : 1), (v : 1 , -1/2*v : 1), (v : 1 , 0 : 1),
-             (v : 1 , 1/2*v : 1), (v : 1 , 1 : 0), (v : 1 , 1 : 1), (v : 1 , v : 1)]
+            sage: list(P.points_of_bounded_height(bound=1.5))
+            [(0 : 1 , 0 : 1), (0 : 1 , -1 : 1), (0 : 1 , 1 : 1), (0 : 1 , -1/2*v : 1), (0 : 1 , -v : 1),
+            (0 : 1 , 1/2*v : 1), (0 : 1 , v : 1), (0 : 1 , 1 : 0), (-1 : 1 , 0 : 1), (-1 : 1 , -1 : 1),
+            (-1 : 1 , 1 : 1), (-1 : 1 , -1/2*v : 1), (-1 : 1 , -v : 1), (-1 : 1 , 1/2*v : 1), (-1 : 1 , v : 1),
+            (-1 : 1 , 1 : 0), (1 : 1 , 0 : 1), (1 : 1 , -1 : 1), (1 : 1 , 1 : 1), (1 : 1 , -1/2*v : 1),
+            (1 : 1 , -v : 1), (1 : 1 , 1/2*v : 1), (1 : 1 , v : 1), (1 : 1 , 1 : 0), (-1/2*v : 1 , 0 : 1),
+            (-1/2*v : 1 , -1 : 1), (-1/2*v : 1 , 1 : 1), (-1/2*v : 1 , -1/2*v : 1), (-1/2*v : 1 , -v : 1),
+            (-1/2*v : 1 , 1/2*v : 1), (-1/2*v : 1 , v : 1), (-1/2*v : 1 , 1 : 0), (-v : 1 , 0 : 1),
+            (-v : 1 , -1 : 1), (-v : 1 , 1 : 1), (-v : 1 , -1/2*v : 1), (-v : 1 , -v : 1), (-v : 1 , 1/2*v : 1),
+            (-v : 1 , v : 1), (-v : 1 , 1 : 0), (1/2*v : 1 , 0 : 1), (1/2*v : 1 , -1 : 1), (1/2*v : 1 , 1 : 1),
+            (1/2*v : 1 , -1/2*v : 1), (1/2*v : 1 , -v : 1), (1/2*v : 1 , 1/2*v : 1), (1/2*v : 1 , v : 1),
+            (1/2*v : 1 , 1 : 0), (v : 1 , 0 : 1), (v : 1 , -1 : 1), (v : 1 , 1 : 1), (v : 1 , -1/2*v : 1),
+            (v : 1 , -v : 1), (v : 1 , 1/2*v : 1), (v : 1 , v : 1), (v : 1 , 1 : 0), (1 : 0 , 0 : 1),
+            (1 : 0 , -1 : 1), (1 : 0 , 1 : 1), (1 : 0 , -1/2*v : 1), (1 : 0 , -v : 1), (1 : 0 , 1/2*v : 1),
+            (1 : 0 , v : 1), (1 : 0 , 1 : 0)]
         """
         B = kwds.pop('bound')
         tol = kwds.pop('tolerance', 1e-2)
         prec = kwds.pop('precision', 53)
         m = self.num_components()
-        iters = [ self[i].points_of_bounded_height(bound=B, tolerance=tol, precision=prec) for i in range(m) ]
-        dim = [self[i].dimension_relative() + 1 for i in range(m)]
-        
-        dim_prefix = [0, dim[0]] # prefixes dim list
-        for i in range(1, len(dim)):
-            dim_prefix.append(dim_prefix[i] + dim[i])
-
-        pts = []
-        P = []
-        for i in range(m):
-            pt = next(iters[i])
-            for j in range(dim[i]):
-                P.append(pt[j]) # initial value of P
-        yield self(P)
-
-        i = 0
-        while i < m:
-            try:
-                pt = next(iters[i])
-                for j in range(dim[i]):
-                    P[dim_prefix[i] + j] = pt[j]
-                yield self(P)
-                i = 0
-            except StopIteration:
-                iters[i] = self[i].points_of_bounded_height(bound=B, tolerance=tol, precision=prec)
-                pt = next(iters[i]) # reset
-                for j in range(dim[i]):
-                    P[dim_prefix[i] + j] = pt[j]
-                i += 1
+        comp_points = [list(self._components[i].points_of_bounded_height(bound=B, tolerance=tol, precision=prec)) for i in range(m)]
+        indices = xmrange([len(comp_points[i]) for i in range(m)])
+        return iter([self([comp_points[t][I[t]] for t in range(m)]) for I in indices])
 
 class ProductProjectiveSpaces_finite_field(ProductProjectiveSpaces_field):
     def _point(self, *args, **kwds):

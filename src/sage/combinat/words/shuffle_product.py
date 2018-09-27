@@ -273,3 +273,4 @@ class ShuffleProduct_shifted(ShuffleProduct_w1w2):
 
 lazy_import('sage.combinat.shuffle', 'ShuffleProduct_overlapping_r', deprecation=15597)
 lazy_import('sage.combinat.shuffle', 'ShuffleProduct_overlapping', deprecation=15597)
+

@@ -28,7 +28,6 @@ AUTHOR:
 # Global parameter that sets the maximum number of entries of an IntList to print.
 max_print = 10
 
-cimport cython
 from libc.string cimport memcpy
 from cysignals.memory cimport sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
@@ -288,9 +287,12 @@ cdef class IntList:
             sage: loads(dumps(a)) == a
             True
 
+
             sage: v = stats.IntList([1,-3])
-            sage: v.__reduce__()
-            (<cyfunction unpickle_intlist_v1 at ...>, (..., 2))
+            sage: v.__reduce__()  # py2
+            (<built-in function unpickle_intlist_v1>, ('...', 2))
+            sage: v.__reduce__()  # py3
+            (<built-in function unpickle_intlist_v1>, (b'...', 2))
             sage: loads(dumps(v)) == v
             True
 
@@ -300,6 +302,7 @@ cdef class IntList:
             sage: v = stats.IntList([1..10^5])
             sage: loads(dumps(v, compress=False),compress=False) == v
             True
+
         """
         buf = PyBytes_FromStringAndSize(<char*>self._values, self._length*sizeof(int)/sizeof(char))
         return unpickle_intlist_v1, (buf, self._length)
@@ -559,7 +562,6 @@ cdef IntList new_int_list(Py_ssize_t length):
     return t
 
 
-@cython.binding(True)
 def unpickle_intlist_v1(bytes v, Py_ssize_t n):
     """
     Version 1 unpickle method.
@@ -572,13 +574,13 @@ def unpickle_intlist_v1(bytes v, Py_ssize_t n):
 
         sage: v = stats.IntList([1,2,3])
         sage: s = v.__reduce__()[1][0]
-        sage: type(s) == type(b'')
-        True
+        sage: type(s)
+        <... 'str'>
         sage: sage.stats.intlist.unpickle_intlist_v1(s, 3)
         [1, 2, 3]
         sage: sage.stats.intlist.unpickle_intlist_v1(s+s,6)
         [1, 2, 3, 1, 2, 3]
-        sage: sage.stats.intlist.unpickle_intlist_v1(b'',0)
+        sage: sage.stats.intlist.unpickle_intlist_v1('',0)
         []
     """
     cdef IntList t = new_int_list(n)

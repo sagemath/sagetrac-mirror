@@ -112,15 +112,10 @@ class LinearExtensionOfPoset(ClonableArray):
             Finite poset containing 4 elements
             sage: TestSuite(p).run()
 
-        TESTS::
-
             sage: LinearExtensionOfPoset([4,3,2,1], P)
             Traceback (most recent call last):
             ...
             ValueError: [4, 3, 2, 1] is not a linear extension of Finite poset containing 4 elements
-
-            sage: p is LinearExtensionOfPoset(p, P)
-            True
         """
         if isinstance(linear_extension, cls):
             return linear_extension
@@ -219,7 +214,7 @@ class LinearExtensionOfPoset(ClonableArray):
         return P.relabel(relabelling).with_linear_extension(new)
 
     def is_greedy(self):
-        r"""
+        """
         Return ``True`` if the linear extension is greedy.
 
         A linear extension `[e_1, e_2, \ldots, e_n]` is *greedy* if for
@@ -365,7 +360,7 @@ class LinearExtensionOfPoset(ClonableArray):
         return self
 
     def jump_count(self):
-        r"""
+        """
         Return the number of jumps in the linear extension.
 
         A *jump* in a linear extension `[e_1, e_2, \ldots, e_n]`
@@ -404,7 +399,6 @@ class LinearExtensionOfPoset(ClonableArray):
             if not P.covers(self[i], self[i+1]):
                 n += 1
         return n
-
 
 class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
     """

@@ -59,10 +59,10 @@ EXAMPLES::
     Simplicial complex morphism:
       From: Simplicial complex with 4 vertices and 4 facets
       To:   Minimal triangulation of the 2-sphere
-      Defn: L0R0 |--> 0
-            L1R1 |--> 1
-            L2R2 |--> 2
+      Defn: L1R1 |--> 1
             L3R3 |--> 3
+            L2R2 |--> 2
+            L0R0 |--> 0
     sage: S = simplicial_complexes.Sphere(2)
     sage: T = S.product(SimplicialComplex([[0,1]]), rename_vertices = False, is_mutable=False)
     sage: H = Hom(T,S)
@@ -83,7 +83,7 @@ EXAMPLES::
     Simplicial complex morphism:
       From: Simplicial complex with 6 vertices and 6 facets
       To:   Minimal triangulation of the 2-sphere
-      Defn: ['L0R(0, 0)', 'L0R(0, 1)', 'L1R(1, 0)', 'L1R(1, 1)', 'L2R(2, 0)', 'L2R(2, 1)'] --> [0, 0, 1, 1, 2, 2]
+      Defn: ['L2R(2, 0)', 'L2R(2, 1)', 'L0R(0, 0)', 'L0R(0, 1)', 'L1R(1, 0)', 'L1R(1, 1)'] --> [2, 2, 0, 0, 1, 1]
 """
 
 #*****************************************************************************
@@ -289,19 +289,9 @@ class SimplicialComplexMorphism(Morphism):
             [0, 1, 2, 3, 4, 5, 6] --> [0, 1, 2, 3, 4, 5, 6]
         """
         vd = self._vertex_dictionary
-        try:
-            keys = sorted(vd.keys())
-        except TypeError:
-            keys = sorted(vd.keys(), key=str)
         if len(vd) < 5:
-            return '\n'.join("{} |--> {}".format(v, vd[v]) for v in keys)
-        domain = list(vd.keys())
-        try:
-            domain = sorted(domain)
-        except TypeError:
-            domain = sorted(domain, key=str)
-        codomain = [vd[v] for v in domain]
-        return "{} --> {}".format(domain, codomain)
+            return '\n'.join("{} |--> {}".format(v, vd[v]) for v in vd)
+        return "{} --> {}".format(vd.keys(), vd.values())
 
     def associated_chain_complex_morphism(self,base_ring=ZZ,augmented=False,cochain=False):
         """
@@ -381,8 +371,8 @@ class SimplicialComplexMorphism(Morphism):
             else:
                 matrices[-1] = m.transpose()
         for dim in range(min_dim+1):
-            X_faces = self.domain()._n_cells_sorted(dim)
-            Y_faces = self.codomain()._n_cells_sorted(dim)
+            X_faces = list(self.domain().n_cells(dim))
+            Y_faces = list(self.codomain().n_cells(dim))
             num_faces_X = len(X_faces)
             num_faces_Y = len(Y_faces)
             mval = [0 for i in range(num_faces_X*num_faces_Y)]
@@ -412,12 +402,13 @@ class SimplicialComplexMorphism(Morphism):
             else:
                 matrices[dim] = m.transpose()
         if not cochain:
-            return ChainComplexMorphism(matrices,
-                    self.domain().chain_complex(base_ring=base_ring,augmented=augmented,cochain=cochain),
+            return ChainComplexMorphism(matrices,\
+                    self.domain().chain_complex(base_ring=base_ring,augmented=augmented,cochain=cochain),\
                     self.codomain().chain_complex(base_ring=base_ring,augmented=augmented,cochain=cochain))
-        return ChainComplexMorphism(matrices,
-                self.codomain().chain_complex(base_ring=base_ring,augmented=augmented,cochain=cochain),
-                self.domain().chain_complex(base_ring=base_ring,augmented=augmented,cochain=cochain))
+        else:
+            return ChainComplexMorphism(matrices,\
+                    self.codomain().chain_complex(base_ring=base_ring,augmented=augmented,cochain=cochain),\
+                    self.domain().chain_complex(base_ring=base_ring,augmented=augmented,cochain=cochain))
 
     def image(self):
         """
@@ -583,10 +574,10 @@ class SimplicialComplexMorphism(Morphism):
             Simplicial complex morphism:
               From: Simplicial complex with 4 vertices and facets {('L1R1',), ('L2R0',), ('L0R0', 'L1R2')}
               To:   Simplicial complex with vertex set (0, 1, 2) and facets {(2,), (0, 1)}
-              Defn: L0R0 |--> 0
+              Defn: L1R2 |--> 1
                     L1R1 |--> 1
-                    L1R2 |--> 1
                     L2R0 |--> 0
+                    L0R0 |--> 0
         """
         if self.codomain() != other.codomain():
             raise ValueError("self and other must have the same codomain.")
@@ -689,30 +680,25 @@ class SimplicialComplexMorphism(Morphism):
             [1]
             sage: h.to_matrix(1) # in degree 1
             [1]
-            [1]
+            [0]
             sage: h.to_matrix()  # the entire homomorphism
             [1|0]
             [-+-]
             [0|1]
-            [0|1]
+            [0|0]
             [-+-]
             [0|0]
 
-        The map on cohomology should be dual to the map on homology::
+        We can evaluate it on (co)homology classes::
 
             sage: coh = diag.induced_homology_morphism(QQ, cohomology=True)
             sage: coh.to_matrix(1)
-            [1 1]
-            sage: h.to_matrix() == coh.to_matrix().transpose()
-            True
-
-        We can evaluate the map on (co)homology classes::
-
+            [1 0]
             sage: x,y = list(T.cohomology_ring(QQ).basis(1))
             sage: coh(x)
             h^{1,0}
             sage: coh(2*x+3*y)
-            5*h^{1,0}
+            2*h^{1,0}
 
         Note that the complexes must be immutable for this to
         work. Many, but not all, complexes are immutable when

@@ -179,8 +179,10 @@ class ConwayPolynomials(collections.Mapping):
 
             sage: c = ConwayPolynomials()
             sage: itr = iter(c)
-            sage: next(itr)  # random
+            sage: next(itr)
             (65537, 4)
+            sage: next(itr)
+            (2, 1)
         """
         for a, b in iteritems(self._store):
             for c in b:
@@ -219,9 +221,9 @@ class ConwayPolynomials(collections.Mapping):
             RuntimeError: Conway polynomial over F_97 of degree 128 not in database.
         """
         try:
-            return self[p, n]
+            return self[p,n]
         except KeyError:
-            raise RuntimeError("Conway polynomial over F_%s of degree %s not in database." % (p, n))
+            raise RuntimeError("Conway polynomial over F_%s of degree %s not in database."%(p,n))
 
     def has_polynomial(self, p, n):
         """

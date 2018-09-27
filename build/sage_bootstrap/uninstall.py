@@ -187,9 +187,7 @@ def modern_uninstall(spkg_name, sage_local, files, verbose=False):
     # Remove the files; if a directory is empty after removing a file
     # from it, remove the directory too.
     for filename in files:
-        # Just in case: use lstrip to remove leading "/" from
-        # filename. See https://trac.sagemath.org/ticket/26013.
-        filename = pth.join(sage_local, filename.lstrip(os.sep))
+        filename = pth.join(sage_local, filename)
         dirname = pth.dirname(filename)
         if os.path.exists(filename):
             if verbose:

@@ -54,7 +54,6 @@ Lists and Iteration, etc.
    sage/misc/multireplace
    sage/misc/map_threaded
    sage/arith/srange
-   sage/misc/element_with_label
 
 File and OS Access
 ~~~~~~~~~~~~~~~~~~

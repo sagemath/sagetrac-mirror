@@ -40,7 +40,6 @@ from sage.rings.finite_rings.finite_field_base cimport FiniteField
 
 from sage.libs.pari.all import pari
 from cypari2.gen cimport Gen
-from cypari2.stack cimport clear_stack
 
 from sage.interfaces.gap import is_GapElement
 
@@ -381,7 +380,7 @@ cdef class Cache_ntl_gf2e(SageObject):
 
             if typ(t) == t_INT:
                 GF2E_conv_long(res.x, itos(t))
-                clear_stack()
+                sig_off()
             elif typ(t) == t_POL:
                 g = self._gen
                 x = self._new()
@@ -391,10 +390,9 @@ cdef class Cache_ntl_gf2e(SageObject):
                     if gtolong(gel(t, i+2)):
                         GF2E_add(res.x, res.x, x.x)
                     GF2E_mul(x.x, x.x, g.x)
-                clear_stack()
+                sig_off()
             else:
-                clear_stack()
-                raise TypeError(f"unable to convert PARI {e.type()} to {self.parent}")
+                raise TypeError("bad PARI type %r" % e.type())
 
             return res
 

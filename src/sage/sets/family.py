@@ -35,7 +35,6 @@ Check :trac:`12482` (shall be run in a fresh session)::
 #*****************************************************************************
 import types
 from copy import copy
-from pprint import pformat, saferepr
 
 from six import itervalues
 from six.moves import range
@@ -93,7 +92,7 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
 
     Instead of a list you can as well pass any iterable object::
 
-        sage: f = Family(2*i+1 for i in [1,2,3])
+        sage: f = Family(2*i+1 for i in [1,2,3]);
         sage: f
         Family (3, 5, 7)
 
@@ -660,20 +659,8 @@ class FiniteFamily(AbstractFamily):
             sage: from sage.sets.family import FiniteFamily
             sage: FiniteFamily({3: 'a'}) # indirect doctest
             Finite family {3: 'a'}
-
-            sage: FiniteFamily({3: 'a', 4: 'b'}) # indirect doctest
-            Finite family {3: 'a', 4: 'b'}
-
-            sage: FiniteFamily({3: 'a', 4: 'b'}, keys=[4,3]) # indirect doctest
-            Finite family {4: 'b', 3: 'a'}
         """
-        if self._keys is None:
-            d = ' '.join(pformat(self._dictionary)[1:-1].splitlines())
-        else:
-            d = ', '.join('{}: {}'.format(saferepr(key),
-                                          saferepr(self._dictionary[key]))
-                          for key in self._keys)
-        return 'Finite family {{{}}}'.format(d)
+        return "Finite family %s"%self._dictionary
 
     def __contains__(self, x):
         """
@@ -894,7 +881,7 @@ class LazyFamily(AbstractFamily):
         Check for :trac:`5538`::
 
             sage: l = [3,4,7]
-            sage: f = LazyFamily(l, lambda i: 2*i)
+            sage: f = LazyFamily(l, lambda i: 2*i);
             sage: l[1] = 18
             sage: f
             Lazy family (<lambda>(i))_{i in [3, 4, 7]}
@@ -1395,7 +1382,7 @@ class EnumeratedFamily(LazyFamily):
         EXAMPLES::
 
             sage: from sage.sets.family import EnumeratedFamily
-            sage: f = EnumeratedFamily(Permutations(3))
+            sage: f = EnumeratedFamily(Permutations(3));
             sage: f[1]
             [1, 3, 2]
         """
@@ -1406,7 +1393,7 @@ class EnumeratedFamily(LazyFamily):
         EXAMPLES::
 
             sage: from sage.sets.family import EnumeratedFamily
-            sage: f = EnumeratedFamily(Permutations(3))
+            sage: f = EnumeratedFamily(Permutations(3));
             sage: f.__getstate__()
             {'enumset': Standard permutations of 3}
             sage: loads(dumps(f)) == f
@@ -1419,7 +1406,7 @@ class EnumeratedFamily(LazyFamily):
         EXAMPLES::
 
             sage: from sage.sets.family import EnumeratedFamily
-            sage: f = EnumeratedFamily(Permutations(0))
+            sage: f = EnumeratedFamily(Permutations(0));
             sage: f.__setstate__({'enumset': Permutations(3)})
             sage: f
             Family (Standard permutations of 3)

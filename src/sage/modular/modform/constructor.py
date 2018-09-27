@@ -165,15 +165,16 @@ def ModularForms(group  = 1,
 
     INPUT:
 
-    - ``group`` - A congruence subgroup or a Dirichlet character eps.
 
-    - ``weight`` - int, the weight, which must be an integer >= 1.
+    -  ``group`` - A congruence subgroup or a Dirichlet
+       character eps.
 
-    - ``base_ring`` - the base ring (ignored if group is a Dirichlet character)
+    -  ``weight`` - int, the weight, which must be an
+       integer = 1.
 
-    - ``eis_only`` - if True, compute only the Eisenstein part of the space.
-      Only permitted (and only useful) in weight 1, where computing dimensions
-      of cusp form spaces is expensive.
+    -  ``base_ring`` - the base ring (ignored if group is
+       a Dirichlet character)
+
 
     Create using the command ModularForms(group, weight, base_ring)
     where group could be either a congruence subgroup or a Dirichlet
@@ -255,9 +256,7 @@ def ModularForms(group  = 1,
         sage: ModularForms(chi, 2, base_ring = CyclotomicField(15))
         Modular Forms space of dimension 10, character [zeta3 + 1] and weight 2 over Cyclotomic Field of order 15 and degree 8
 
-    We create some weight 1 spaces. Here modular symbol algorithms do not work.
-    In some small examples we can prove using Riemann--Roch that there are no
-    cusp forms anyway, so the entire space is Eisenstein::
+    We create some weight 1 spaces. The first example works fine, since we can prove purely by Riemann surface theory that there are no weight 1 cusp forms::
 
         sage: M = ModularForms(Gamma1(11), 1); M
         Modular Forms space of dimension 5 for Congruence Subgroup Gamma1(11) of weight 1 over Rational Field
@@ -275,24 +274,18 @@ def ModularForms(group  = 1,
         sage: M == M.eisenstein_subspace()
         True
 
-    When this does not work (which happens as soon as the level is more than
-    about 30), we use the Hecke stability algorithm of George Schaeffer::
+    This example doesn't work so well, because we can't calculate the cusp
+    forms; but we can still work with the Eisenstein series.
 
-        sage: M = ModularForms(Gamma1(57), 1); M # long time
-        Modular Forms space of dimension 38 for Congruence Subgroup Gamma1(57) of weight 1 over Rational Field
-        sage: M.cuspidal_submodule().basis() # long time
-        [
-        q - q^4 + O(q^6),
-        q^3 - q^4 + O(q^6)
-        ]
+        sage: M = ModularForms(Gamma1(57), 1); M
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
 
-    The Eisenstein subspace in weight 1 can be computed quickly, without
-    triggering the expensive computation of the cuspidal part::
-
-        sage: E = EisensteinForms(Gamma1(59), 1); E # indirect doctest
-        Eisenstein subspace of dimension 29 of Modular Forms space for Congruence Subgroup Gamma1(59) of weight 1 over Rational Field
+        sage: E = EisensteinForms(Gamma1(57), 1); E
+        Eisenstein subspace of dimension 36 of Modular Forms space for Congruence Subgroup Gamma1(57) of weight 1 over Rational Field
         sage: (E.0 + E.2).q_expansion(40)
-        1 + q^2 + 196*q^29 - 197*q^30 - q^31 + q^33 + q^34 + q^37 + q^38 - q^39 + O(q^40)
+        1 + q^2 + 1473/2*q^36 - 1101/2*q^37 + q^38 - 373/2*q^39 + O(q^40)
 
     """
     if isinstance(group, dirichlet.DirichletCharacter):
@@ -307,11 +300,7 @@ def ModularForms(group  = 1,
     else:
         level = group
 
-    eis_only = bool(eis_only)
     key = canonical_parameters(group, level, weight, base_ring) + (eis_only,)
-
-    if eis_only and weight != 1:
-        raise ValueError("eis_only parameter only valid in weight 1")
 
     if use_cache and key in _cache:
          M = _cache[key]()
@@ -400,7 +389,7 @@ def EisensteinForms(group  = 1,
     if weight==1:
         return ModularForms(group, weight, base_ring,
                         use_cache=use_cache, eis_only=True, prec=prec).eisenstein_submodule()
-    else:
+    else:    
         return ModularForms(group, weight, base_ring,
                         use_cache=use_cache, prec=prec).eisenstein_submodule()
 

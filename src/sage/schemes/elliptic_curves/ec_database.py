@@ -168,5 +168,6 @@ class EllipticCurves:
                 break
         return v
 
-
 elliptic_curves = EllipticCurves()
+
+

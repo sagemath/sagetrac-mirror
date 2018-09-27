@@ -949,3 +949,4 @@ cn{{ myself.id }} = self.domain({{ py }})
 mpc_set_fr_fr({{ c }}, cn.__re, cn.__im, MPC_RNDNN)""", myself=self, c=c, py=py)
 
 ty_mpc = StorageTypeMPC()
+

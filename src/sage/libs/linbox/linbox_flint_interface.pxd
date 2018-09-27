@@ -1,6 +1,3 @@
-# distutils: libraries = LINBOX_LIBRARIES
-# distutils: library_dirs = LINBOX_LIBDIR
-
 from sage.libs.flint.types cimport fmpz_t, fmpz_mat_t, fmpz_poly_t
 
 # set C <- A * B

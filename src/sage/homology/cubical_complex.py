@@ -35,10 +35,8 @@ a list (or tuple) of "intervals", and an "interval" is a pair of
 integers, of one of the two forms `[i, i]` or `[i, i+1]`.  So the
 cubical complex ``S1`` above has four maximal cubes::
 
-    sage: len(S1.maximal_cells())
-    4
-    sage: sorted(S1.maximal_cells())
-    [[0,0] x [2,3], [0,1] x [2,2], [0,1] x [3,3], [1,1] x [2,3]]
+    sage: S1.maximal_cells()
+    {[0,0] x [2,3], [1,1] x [2,3], [0,1] x [3,3], [0,1] x [2,2]}
 
 The first of these, for instance, is the product of the degenerate
 interval `[0,0]` with the unit interval `[2,3]`: this is the line
@@ -802,29 +800,8 @@ class CubicalComplex(GenericCellComplex):
 
     You can get the set of maximal cells or a dictionary of all cells::
 
-        sage: X.maximal_cells() # random: order may depend on the version of Python
+        sage: X.maximal_cells()
         {[0,0] x [2,3] x [-12,-12], [0,1] x [3,3] x [5,5], [0,1] x [2,2] x [3,3], [0,1] x [2,2] x [0,0], [0,1] x [3,3] x [6,6], [1,1] x [2,3] x [0,0], [0,1] x [2,2] x [-12,-12], [0,0] x [2,3] x [6,6], [1,1] x [2,3] x [-12,-12], [1,1] x [2,3] x [5,5], [0,1] x [2,2] x [5,5], [0,1] x [3,3] x [3,3], [1,1] x [2,3] x [3,3], [0,0] x [2,3] x [5,5], [0,1] x [3,3] x [0,0], [1,1] x [2,3] x [6,6], [0,1] x [2,2] x [6,6], [0,0] x [2,3] x [0,0], [0,0] x [2,3] x [3,3], [0,1] x [3,3] x [-12,-12]}
-        sage: sorted(X.maximal_cells())
-        [[0,0] x [2,3] x [-12,-12],
-         [0,0] x [2,3] x [0,0],
-         [0,0] x [2,3] x [3,3],
-         [0,0] x [2,3] x [5,5],
-         [0,0] x [2,3] x [6,6],
-         [0,1] x [2,2] x [-12,-12],
-         [0,1] x [2,2] x [0,0],
-         [0,1] x [2,2] x [3,3],
-         [0,1] x [2,2] x [5,5],
-         [0,1] x [2,2] x [6,6],
-         [0,1] x [3,3] x [-12,-12],
-         [0,1] x [3,3] x [0,0],
-         [0,1] x [3,3] x [3,3],
-         [0,1] x [3,3] x [5,5],
-         [0,1] x [3,3] x [6,6],
-         [1,1] x [2,3] x [-12,-12],
-         [1,1] x [2,3] x [0,0],
-         [1,1] x [2,3] x [3,3],
-         [1,1] x [2,3] x [5,5],
-         [1,1] x [2,3] x [6,6]]
         sage: S1.cells()
         {-1: set(),
          0: {[0,0] x [2,2], [0,0] x [3,3], [1,1] x [2,2], [1,1] x [3,3]},
@@ -986,10 +963,12 @@ class CubicalComplex(GenericCellComplex):
 
             sage: I1 = cubical_complexes.Cube(1)
             sage: I2 = cubical_complexes.Cube(1)
-            sage: hash(I1) == hash(I2)
-            True
-            sage: hash(I1.product(I1)) == hash(I2.product(I1))
-            True
+            sage: hash(I1)
+            2025268965           # 32-bit
+            6535457225869567717  # 64-bit
+            sage: hash(I1.product(I1))
+            -117854811           # 32-bit
+            -1640877824464540251 # 64-bit
         """
         return hash(frozenset(self._facets))
 
@@ -1034,9 +1013,11 @@ class CubicalComplex(GenericCellComplex):
             {[0,1] x [0,0]}
         """
         other_facets = other.maximal_cells()
-        return all(any(cube.is_face(other_cube)
-                       for other_cube in other_facets)
-                   for cube in self.maximal_cells())
+        answer = True
+        for cube in self.maximal_cells():
+            answer = answer and any([cube.is_face(other_cube)
+                                     for other_cube in other_facets])
+        return answer
 
     def cells(self, subcomplex=None):
         """
@@ -1196,7 +1177,7 @@ class CubicalComplex(GenericCellComplex):
             empty_cell = 1  # number of (-1)-dimensional cubes
         else:
             empty_cell = 0
-        vertices = self._n_cells_sorted(0, subcomplex=subcomplex)
+        vertices = self.n_cells(0, subcomplex=subcomplex)
         n = len(vertices)
         mat = matrix(base_ring, empty_cell, n, n*empty_cell*[1])
         if cochain:
@@ -1226,7 +1207,7 @@ class CubicalComplex(GenericCellComplex):
                 # dictionary seems to be faster than finding the index
                 # of an entry in a list.
                 old = dict(zip(current, range(len(current))))
-                current = self._n_cells_sorted(dim, subcomplex=subcomplex)
+                current = list(self.n_cells(dim, subcomplex=subcomplex))
                 # construct matrix.  it is easiest to construct it as
                 # a sparse matrix, specifying which entries are
                 # nonzero via a dictionary.

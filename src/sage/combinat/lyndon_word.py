@@ -23,8 +23,8 @@ from sage.arith.all import factorial, divisors, gcd, moebius
 from sage.misc.all import prod
 
 from . import necklace
+from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.words.words import FiniteWords
-from sage.combinat.combinat_cython import lyndon_word_iterator
 
 
 def LyndonWords(e=None, k=None):
@@ -60,16 +60,16 @@ def LyndonWords(e=None, k=None):
     If e is an integer, then e specifies the length of the
     alphabet; k must also be specified in this case::
 
-        sage: LW = LyndonWords(3, 4); LW
-        Lyndon words from an alphabet of size 3 of length 4
+        sage: LW = LyndonWords(3,3); LW
+        Lyndon words from an alphabet of size 3 of length 3
         sage: LW.first()
-        word: 1112
+        word: 112
         sage: LW.last()
-        word: 2333
+        word: 233
         sage: LW.random_element() # random
-        word: 1232
+        word: 112
         sage: LW.cardinality()
-        18
+        8
 
     If e is a (weak) composition, then it returns the class of Lyndon
     words that have evaluation e::
@@ -342,13 +342,7 @@ class LyndonWords_evaluation(UniqueRepresentation, Parent):
 
 class LyndonWords_nk(UniqueRepresentation, Parent):
     r"""
-    Lyndon words of fixed length `k` over the alphabet
-    `\{1, 2, \ldots, n\}`.
-
-    INPUT:
-
-    - ``n`` -- the size of the alphabet
-    - ``k`` -- the length of the words
+    Lyndon words of fixed length `n` over the alphabet `{1, 2, ..., k}`.
 
     EXAMPLES::
 
@@ -366,7 +360,11 @@ class LyndonWords_nk(UniqueRepresentation, Parent):
     """
     def __init__(self, n, k):
         """
-        Initialize ``self``.
+        INPUT:
+
+        - ``n`` -- the length of the words
+
+        - ``k`` -- the size of the alphabet
 
         TESTS::
 
@@ -452,24 +450,18 @@ class LyndonWords_nk(UniqueRepresentation, Parent):
         """
         TESTS::
 
-            sage: LyndonWords(3,3).list()  # indirect doctest
+            sage: LyndonWords(3,3).list() # indirect doctest
             [word: 112, word: 113, word: 122, word: 123, word: 132, word: 133, word: 223, word: 233]
-
-            sage: sum(1 for lw in LyndonWords(11, 6))
-            295020
-
-            sage: sum(1 for lw in LyndonWords(1000, 1))
-            1000
-
-            sage: sum(1 for lw in LyndonWords(1, 1000))
-            0
-
-            sage: list(LyndonWords(1, 1))
-            [word: 1]
         """
-        W = self._words._element_classes['list']
-        for lw in lyndon_word_iterator(self._n, self._k):
-            yield W(self._words, [i+1 for i in lw])
+        for c in IntegerVectors(self._k, self._n):
+            cf = []
+            nonzero_indices = []
+            for i,x in enumerate(c):
+                if x:
+                    nonzero_indices.append(i)
+                    cf.append(x)
+            for lw in LyndonWords_evaluation(Composition(cf)):
+                yield self._words([nonzero_indices[x-1]+1 for x in lw], check=False)
 
 def StandardBracketedLyndonWords(n, k):
     """
@@ -581,4 +573,3 @@ def standard_bracketing(lw):
     for i in range(1, len(lw)):
         if lw[i:] in LyndonWords():
             return [standard_bracketing(lw[:i]), standard_bracketing(lw[i:])]
-

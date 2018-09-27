@@ -814,19 +814,12 @@ class Set_object_enumerated(Set_object):
             sage: S = Set(GF(2))
             sage: S
             {0, 1}
-
-        TESTS::
-
-            sage: Set()
-            {}
         """
-        py_set = self.set()
+        s = repr(self.set())
         if six.PY3:
-            if not py_set:
-                return "{}"
-            return repr(py_set)
+            return s
         else:
-            return "{" + repr(py_set)[5:-2] + "}"
+            return "{" + s[5:-2] + "}"
 
     def list(self):
         """

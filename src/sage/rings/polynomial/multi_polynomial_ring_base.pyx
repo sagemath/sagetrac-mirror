@@ -938,10 +938,7 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
 
         counts, total = self._precomp_counts(n, degree)
 
-        # Note that 'terms' could be None while 'total' is a
-        # nonnegative integer, so the comparison 'terms > total' could
-        # fail in Python 3.
-        if terms and terms > total:
+        if terms > total:
             terms = total
 
         if terms is None:
@@ -1309,9 +1306,9 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
 
         if len(flist) <= 0:
             raise TypeError('input list should contain at least 1 polynomial')
-        if not all(f.is_homogeneous() for f in flist):
+        if not all([f.is_homogeneous() for f in flist]):
             raise TypeError('resultant for non-homogeneous polynomials is not supported')
-        if not all(self.is_parent_of(f) for f in flist):
+        if not all([self.is_parent_of(f) for f in flist]):
             raise TypeError('not all inputs are polynomials in the calling ring')
 
         sparse = kwds.pop('sparse', False)

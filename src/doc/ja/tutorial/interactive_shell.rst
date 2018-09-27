@@ -423,6 +423,11 @@ IPythonのクイック レファレンスガイドを見たければ， ``%quick
 
 ::
 
+    sage: 3_2
+    Traceback (most recent call last):
+    ...
+    SyntaxError: invalid syntax
+
     sage: EllipticCurve([0,infinity])
     Traceback (most recent call last):
     ...

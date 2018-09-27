@@ -556,8 +556,6 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             ValueError: incorrect root label
 
             sage: R.<x,y> = algebras.GrossmanLarson(QQ)
-            sage: R(x) is x
-            True
             sage: S.<z> = algebras.GrossmanLarson(GF(3))
             sage: R(z)
             Traceback (most recent call last):

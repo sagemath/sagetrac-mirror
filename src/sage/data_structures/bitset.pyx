@@ -390,7 +390,7 @@ cdef class FrozenBitset:
             bitset_from_str(self._bitset, iter)
         else:  # an iterable
             iter = list(iter)
-            if iter:
+            if len(iter) > 0:
                 need_capacity = max(iter) + 1
             else:
                 need_capacity = 0

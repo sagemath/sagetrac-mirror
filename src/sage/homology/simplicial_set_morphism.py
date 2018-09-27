@@ -300,7 +300,7 @@ class SimplicialSetHomset(Homset):
                 pass
 
     def _latex_(self):
-        r"""
+        """
         LaTeX representation
 
         EXAMPLES::
@@ -417,6 +417,8 @@ class SimplicialSetMorphism(Morphism):
             sage: one
             Simplicial set endomorphism of S^5
               Defn: Identity map
+            sage: one._dictionary
+            {v_0: v_0, sigma_5: sigma_5}
 
         TESTS:
 
@@ -1394,9 +1396,9 @@ class SimplicialSetMorphism(Morphism):
             [0|2]
             sage: g3 = f.induced_homology_morphism(base_ring=GF(3), cohomology=True)
             sage: g3.to_matrix()
-            [1|0]
+            [2|0]
             [-+-]
-            [0|2]
+            [0|1]
         """
         return InducedHomologyMorphism(self, base_ring, cohomology)
 

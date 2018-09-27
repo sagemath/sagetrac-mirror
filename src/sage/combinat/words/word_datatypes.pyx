@@ -104,8 +104,6 @@ cdef class WordDatatype_list(WordDatatype):
             self._data = list(data)
         self._hash = None
 
-    __hash__ = WordDatatype.__hash__
-
     def __contains__(self, a):
         r"""
         Test whether ``a`` is a letter of ``self``.
@@ -328,8 +326,6 @@ cdef class WordDatatype_str(WordDatatype):
         else:
             self._data = "".join(str(u) for u in data)
         self._hash = None
-
-    __hash__ = WordDatatype.__hash__
 
     def __iter__(self):
         r"""
@@ -934,8 +930,6 @@ cdef class WordDatatype_tuple(WordDatatype):
         else:
             self._data = tuple(data)
         self._hash = None
-
-    __hash__ = WordDatatype.__hash__
 
     def __iter__(self):
         r"""

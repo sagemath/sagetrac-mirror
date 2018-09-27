@@ -172,7 +172,7 @@ Then try ::
     sage: inverse_mod(4, 24)
     Traceback (most recent call last):
     ...
-    ZeroDivisionError: inverse of Mod(4, 24) does not exist
+    ZeroDivisionError: Inverse does not exist.
 
 and explain the result.
 

@@ -301,10 +301,8 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
 
     M = Matrix(libgap.InvariantQuadraticForm(libgap.GeneralOrthogonalGroup(e,m,q))['matrix'])
     Fq = libgap.GF(q).sage()
-    PG = [vector(s) for s in ProjectiveSpace(m - 1, Fq)]
-
-    for v in PG:
-        v.set_immutable()
+    PG = map(vector, ProjectiveSpace(m - 1, Fq))
+    map(lambda x: x.set_immutable(), PG)
 
     def F(x):
         return x*M*x
@@ -516,12 +514,12 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
         # **use** v and k to select appropriate orbit and orbital
         nvert = (q**n)*(q**n+e)/2     # v
         deg = (q**n-e)*(q**(n-1)+e)   # k
-        S = [libgap.Elements(libgap.Basis(x))[0]
-             for x in libgap.Elements(libgap.Subspaces(W, 1))]
+        S=map(lambda x: libgap.Elements(libgap.Basis(x))[0], \
+            libgap.Elements(libgap.Subspaces(W,1)))
         (V,) = [x for x in libgap.Orbits(g, S, libgap.OnLines)
                 if len(x) == nvert]
-        gp = libgap.Action(g, V, libgap.OnLines)  # make a permutation group
-        h = libgap.Stabilizer(gp, 1)
+        gp = libgap.Action(g,V,libgap.OnLines)  # make a permutation group
+        h = libgap.Stabilizer(gp,1)
         (Vh,) = [x for x in libgap.Orbits(h, libgap.Orbit(gp, 1))
                  if len(x) == deg]
         Vh = Vh[0]
@@ -573,7 +571,7 @@ def _polar_graph(m, q, g, intersection_size=None):
     s = libgap.Subspace(W,[B[i] for i in range(m//2)]) # a totally isotropic subspace
     # and the points there
     sp = [libgap.Elements(libgap.Basis(x))[0] for x in libgap.Elements(s.Subspaces(1))]
-    h = libgap.Set([libgap.Position(V, x) for x in sp]) # indices of the points in s
+    h = libgap.Set(map(lambda x: libgap.Position(V, x), sp)) # indices of the points in s
     L = libgap.Orbit(gp, h, libgap.OnSets) # orbit on these subspaces
     if intersection_size is None:
         G = Graph()
@@ -630,10 +628,7 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
         from sage.modules.free_module_element import free_module_element as vector
         Fq = FiniteField(q**2, 'a')
         PG = map(vector, ProjectiveSpace(m - 1, Fq))
-
-        for v in PG:
-            v.set_immutable()
-
+        map(lambda x: x.set_immutable(), PG)
         def P(x, y):
             return sum(x[j] * y[m - 1 - j] ** q for j in range(m)) == 0
 
@@ -713,8 +708,7 @@ def NonisotropicUnitaryPolarGraph(m, q):
 
     # and the points there
     sp = [libgap.Elements(libgap.Basis(x))[0] for x in libgap.Elements(s.Subspaces(1))]
-    h = libgap.Set([libgap.Position(V, x)
-                    for x in libgap.Intersection(V, sp)])  # indices
+    h = libgap.Set(map(lambda x: libgap.Position(V, x), libgap.Intersection(V,sp))) # indices
     L = libgap.Orbit(gp, h, libgap.OnSets) # orbit on the tangent lines
     G = Graph()
     for x in L: # every pair of points in the subspace is adjacent to each other in G
@@ -727,7 +721,7 @@ def UnitaryDualPolarGraph(m, q):
     r"""
     Returns the Dual Unitary Polar Graph `U(m,q)`.
 
-    For more information on Unitary Dual Polar graphs, see [BCN1989]_ and
+    For more information on Unitary Dual Polar graphs, see [BCN89]_ and
     Sect. 2.3.1 of [Co81]_.
 
     INPUT:
@@ -780,7 +774,7 @@ def SymplecticDualPolarGraph(m, q):
     r"""
     Returns the Symplectic Dual Polar Graph `DSp(m,q)`.
 
-    For more information on Symplectic Dual Polar graphs, see [BCN1989]_ and
+    For more information on Symplectic Dual Polar graphs, see [BCN89]_ and
     Sect. 2.3.1 of [Co81]_.
 
     INPUT:
@@ -968,7 +962,8 @@ def AhrensSzekeresGeneralizedQuadrangleGraph(q, dual=False):
 
     REFERENCE:
 
-    .. [GQwiki] :wikipedia:`Generalized_quadrangle`
+    .. [GQwiki] `Generalized quadrangle
+      <http://en.wikipedia.org/wiki/Generalized_quadrangle>`__
 
     .. [PT09] \S. Payne, J. A. Thas.
       Finite generalized quadrangles.
@@ -983,10 +978,10 @@ def AhrensSzekeresGeneralizedQuadrangleGraph(q, dual=False):
     L = []
     for a in F:
         for b in F:
-            L.append(tuple((s, a, b) for s in F))
-            L.append(tuple((a, s, b) for s in F))
+            L.append(tuple(map(lambda s: (s, a, b), F)))
+            L.append(tuple(map(lambda s: (a, s, b), F)))
             for c in F:
-                L.append(tuple((c*s**2 - b*s + a, -2*c*s + b, s) for s in F))
+                L.append(tuple(map(lambda s: (c*s**2 - b*s + a, -2*c*s + b, s), F)))
     if dual:
         G = IncidenceStructure(L).intersection_graph()
         G.name('AS('+str(q)+')*; GQ'+str((q+1,q-1)))
@@ -1078,13 +1073,10 @@ def T2starGeneralizedQuadrangleGraph(q, dual=False, hyperoval=None, field=None, 
     Theta = PG(3, 1, F, point_coordinates=1)
     Pi = set(filter(lambda x: x[0]==F.zero(), Theta.ground_set()))
     if hyperoval is None:
-        O = set(x for x in Pi
-                if (x[1] + x[2] * x[3] == 0) or
-                   (x[1] == 1 and x[2] == x[3] == 0))
+        O = filter(lambda x: x[1]+x[2]*x[3]==0 or (x[1]==1 and x[2]==0 and x[3]==0), Pi)
+        O = set(O)
     else:
-        for v in hyperoval:
-            v.set_immutable()
-
+        map(lambda x: x.set_immutable(), hyperoval)
         O = set(hyperoval)
         if check_hyperoval:
             if len(O) != q+2:
@@ -1093,10 +1085,8 @@ def T2starGeneralizedQuadrangleGraph(q, dual=False, hyperoval=None, field=None, 
                 if set(L).issubset(Pi):
                     if not len(O.intersection(L)) in [0,2]:
                         raise RuntimeError("incorrect hyperoval")
-
-    L = [[y for y in z if y not in O]
-         for z in [x for x in Theta.blocks() if len(O.intersection(x)) == 1]]
-
+    L = map(lambda z: filter(lambda y: not y in O, z),
+            filter(lambda x: len(O.intersection(x)) == 1, Theta.blocks()))
     if dual:
         G = IncidenceStructure(L).intersection_graph()
         G.name('T2*(O,'+str(q)+')*; GQ'+str((q+1,q-1)))
@@ -1197,7 +1187,7 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
     else:
         F = field
 
-    # for q=8, 95% of CPU time taken by this function is spent in the following call
+    # for q=8, 95% of CPU time taken by this function is spent in the follwing call
     G = T2starGeneralizedQuadrangleGraph(q, field=F, dual=True, hyperoval=hyperoval, check_hyperoval=check_hyperoval)
 
     def normalize(v):  # make sure the 1st non-0 coordinate is 1.
@@ -1205,8 +1195,8 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
         return vector([x / d for x in v])
 
     # build the partition into independent sets
-    P = [tuple(normalize(v[0] - v[1])) for v in G.vertices()]
-    O = list(set(P))
+    P = map(lambda x: normalize(x[0]-x[1]), G.vertices())
+    O = list(set(map(tuple,P)))
     I_ks = {x:[] for x in range(q+2)} # the partition into I_k's
     for i, Pi in enumerate(P):
         I_ks[O.index(tuple(Pi))].append(i)
@@ -1232,7 +1222,7 @@ def CossidentePenttilaGraph(q):
     quadrange `GQ(q,q^2)` into two parts, so that on any of them the induced subgraph of
     the point graph of the GQ has parameters as above [CP05]_.
 
-    Directly following the construction in [CP05]_ is not efficient,
+    Directly follwing the construction in [CP05]_ is not efficient,
     as one then needs to construct the dual `GQ(q^2,q)`. Thus we
     describe here a more efficient approach that we came up with, following a suggestion by
     T.Penttila. Namely, this partition is invariant
@@ -1429,14 +1419,10 @@ def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperov
     Theta = PG(2, 1, F, point_coordinates=1)
     Pi = Theta.ground_set()
     if hyperoval is None:
-        hyperoval = [x for x in Pi
-                     if (x[0] + x[1] * x[2] == 0) or
-                        (x[0] == 1 and x[1] == x[2] == 0)]
+        hyperoval = filter(lambda x: x[0]+x[1]*x[2]==0 or (x[0]==1 and x[1]==0 and x[2]==0), Pi)
         O = set(hyperoval)
     else:
-        for v in hyperoval:
-            v.set_immutable()
-
+        map(lambda x: x.set_immutable(), hyperoval)
         O = set(hyperoval)
         if check_hyperoval:
             if len(O) != q+2:
@@ -1446,9 +1432,7 @@ def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperov
                     if not len(O.intersection(L)) in [0,2]:
                         raise RuntimeError("incorrect hyperoval")
     M = matrix(hyperoval)
-    F_0 = F.zero()
-    C = [p for p in [M*x for x in F**3] if F_0 not in p]
-
+    C = filter(lambda x: not F.zero() in x, map(lambda x: M*x, F**3))
     for x in C:
         x.set_immutable()
     G = Graph([C, lambda x,y: not F.zero() in x+y])

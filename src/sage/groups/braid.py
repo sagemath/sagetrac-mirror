@@ -51,7 +51,6 @@ AUTHORS:
 - Robert Lipshitz
 - Thierry Monteil: add a ``__hash__`` method consistent with the word
   problem to ensure correct Cayley graph computations.
-- Sebastian Oehms (July 2018): add other versions for burau_matrix (unitary + wikipedia)
 """
 
 ##############################################################################
@@ -172,7 +171,7 @@ class Braid(FiniteTypeArtinGroupElement):
         return self.strands() - sum(len(c)-1 for c in cycles)
 
     def burau_matrix(self, var='t', reduced=False):
-        r"""
+        """
         Return the Burau matrix of the braid.
 
         INPUT:
@@ -180,25 +179,14 @@ class Braid(FiniteTypeArtinGroupElement):
         - ``var`` -- string (default: ``'t'``); the name of the
           variable in the entries of the matrix
         - ``reduced`` -- boolean (default: ``False``); whether to
-          return the reduced or unreduced Burau representation, can
-          be one of the following:
-
-          * ``True`` or ``'increasing'`` - returns the reduced form using
-            the basis given by `e_1 - e_i` for `2 \leq i \leq n`
-          * ``'unitary'`` - the unitary form according to Squier [Squ1984]_
-          * ``'simple'`` - returns the reduced form using the basis given
-            by simple roots `e_i - e_{i+1}`, which yields the matrices
-            given on the Wikipedia page
+          return the reduced or unreduced Burau representation
 
         OUTPUT:
 
         The Burau matrix of the braid. It is a matrix whose entries
         are Laurent polynomials in the variable ``var``. If ``reduced``
         is ``True``, return the matrix for the reduced Burau representation
-        instead in the format specified. If ``reduced`` is ``'unitary'``,
-        a triple ``M, Madj, H`` is returned, where ``M`` is the Burau matrix
-        in the unitary form, ``Madj`` the adjoined to ``M`` and ``H``
-        the hermitian form.
+        instead.
 
         EXAMPLES::
 
@@ -221,33 +209,9 @@ class Braid(FiniteTypeArtinGroupElement):
             [-t  1  0]
             [-t  0  1]
 
-        Using the different reduced forms::
-
-            sage: b.burau_matrix(reduced='simple')
-            [    1 - t -t^-1 + 1        -1]
-            [        1 -t^-1 + 1        -1]
-            [        1     -t^-1         0]
-
-            sage: M, Madj, H = b.burau_matrix(reduced='unitary')
-            sage: M
-            [  1 - t^2 -t^-1 + t      -t^2]  
-            [     t^-1 -t^-2 + 1        -t]
-            [     t^-2     -t^-3         0]
-            sage: Madj
-            [-t^-2 + 1         t       t^2]
-            [ t^-1 - t   1 - t^2      -t^3]
-            [    -t^-2     -t^-1         0]
-            sage: H
-            [t^-1 + t       -1        0]
-            [      -1 t^-1 + t       -1]
-            [       0       -1 t^-1 + t]
-            sage: Madj * H * M == H
-            True
-
         REFERENCES:
 
         - :wikipedia:`Burau_representation`
-        - [Squ1984]_
         """
         R = LaurentPolynomialRing(IntegerRing(), var)
         t = R.gen()
@@ -267,74 +231,30 @@ class Braid(FiniteTypeArtinGroupElement):
                     A[-1-i, -i] = 1
                     A[-i, -1-i] = t**(-1)
                 M = M * A
-
         else:
-            if reduced is True or reduced == "increasing":
-                M = identity_matrix(R, n - 1)
-                for j in self.Tietze():
-                    A = identity_matrix(R, n - 1)
-                    if j > 1:
-                        i = j - 1
-                        A[i-1, i-1] = 1 - t
-                        A[i, i] = 0
-                        A[i, i-1] = 1
-                        A[i-1, i] = t
-                    if j < -1:
-                        i = j + 1
-                        A[-1-i, -1-i] = 0
-                        A[-i, -i] = 1 - t**-1
-                        A[-1-i, -i] = 1
-                        A[-i, -1-i] = t**-1
-                    if j == 1:
-                        for k in range(n - 1):
-                            A[k, 0] = -t
-                    if j == -1:
-                        A[0, 0] = -t**-1
-                        for k in range(1, n - 1):
-                            A[k, 0] = -1
-                    M = M * A
-
-            elif reduced in ["simple", "unitary"]:
-                M = identity_matrix(R, n - 1)
-                for j in self.Tietze():
-                    A = identity_matrix(R, n-1)
-                    if j > 0:
-                        A[j-1, j-1] = -t
-                        if j > 1:
-                            A[j-1, j-2] = t
-                        if j < n-1:
-                            A[j-1, j] = 1
-                    if j < 0:
-                        A[-j-1, -j-1] = -t**(-1)
-                        if -j > 1:
-                            A[-j-1, -j-2] = 1
-                        if -j < n-1 :
-                            A[-j-1, -j] = t**(-1)
-                    M = M * A
-
-            else:
-                raise ValueError("invalid reduced type")
-
-            if reduced == "unitary":
-                t_sq = R.hom([t**2], codomain=R)
-                M = matrix(R, n-1, n-1, lambda i, j: t**(j-i) * t_sq(M[i,j]))
-
-                t_inv = R.hom([t**(-1)], codomain=R)
-                Madj = matrix(R, n-1, n-1, lambda i, j: t_inv(M[j,i]))
-
-                # We see if the hermitian form has been cached
-                #   in the parent
-                H = self.parent()._hermitian_form
-                if H is None:
-                    # Defining the hermitian form
-                    H = (t + t**(-1)) * identity_matrix(R, n-1)
-                    for i in range(n-2):
-                        H[i, i+1] = -1
-                        H[i+1 ,i] = -1
-                    self.parent()._hermitian_form = H
-
-                return M, Madj, H
-
+            M = identity_matrix(R, n - 1)
+            for j in self.Tietze():
+                A = identity_matrix(R, n - 1)
+                if j > 1:
+                    i = j-1
+                    A[i-1, i-1] = 1-t
+                    A[i, i] = 0
+                    A[i, i-1] = 1
+                    A[i-1, i] = t
+                if j < -1:
+                    i = j+1
+                    A[-1-i, -1-i] = 0
+                    A[-i, -i] = 1-t**(-1)
+                    A[-1-i, -i] = 1
+                    A[-i, -1-i] = t**(-1)
+                if j == 1:
+                    for k in range(n - 1):
+                        A[k, 0] = -t
+                if j == -1:
+                    A[0, 0] = -t**(-1)
+                    for k in range(1, n - 1):
+                        A[k, 0] = -1
+                M = M * A
         return M
 
     def alexander_polynomial(self, var='t', normalized=True):
@@ -1062,8 +982,13 @@ class Braid(FiniteTypeArtinGroupElement):
 
             sage: B = BraidGroup(4)
             sage: b = B([1, 2, 1, -2, 3, 1])
-            sage: b.right_normal_form()
+            sage: b.right_normal_form() # optional - libbraiding
             (s1*s0, s0*s2, 1)
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import rightnormalform
@@ -1081,9 +1006,13 @@ class Braid(FiniteTypeArtinGroupElement):
 
             sage: B = BraidGroup(4)
             sage: b = B([2, 1, 3, 2])
-            sage: b.centralizer()
+            sage: b.centralizer() # optional - libbraiding
             [s1*s0*s2*s1, s0*s2]
 
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import centralizer
@@ -1101,12 +1030,16 @@ class Braid(FiniteTypeArtinGroupElement):
 
             sage: B = BraidGroup(3)
             sage: b = B([1, 2, -1, -2, -2, 1])
-            sage: b.super_summit_set()
+            sage: b.super_summit_set() # optional - libbraiding
             [s0^-1*s1^-1*s0^-2*s1^2*s0^2,
             (s0^-1*s1^-1*s0^-1)^2*s1^2*s0^3*s1,
             (s0^-1*s1^-1*s0^-1)^2*s1*s0^3*s1^2,
             s0^-1*s1^-1*s0^-2*s1^-1*s0*s1^3*s0]
 
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import supersummitset
@@ -1129,10 +1062,15 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: B = BraidGroup(3)
             sage: b = B([1, 2, -1, -2, -2, 1])
             sage: c = B([1, 2, 1])
-            sage: b.gcd(c)
+            sage: b.gcd(c) # optional - libbraiding
             s0^-1*s1^-1*s0^-2*s1^2*s0
-            sage: c.gcd(b)
+            sage: c.gcd(b) # optional - libbraiding
             s0^-1*s1^-1*s0^-2*s1^2*s0
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import greatestcommondivisor
@@ -1155,8 +1093,12 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: B = BraidGroup(3)
             sage: b = B([1, 2, -1, -2, -2, 1])
             sage: c = B([1, 2, 1])
-            sage: b.lcm(c)
+            sage: b.lcm(c) # optional - libbraiding
             (s0*s1)^2*s0
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package to be installed.
         """
         try:
             from sage.libs.braiding import leastcommonmultiple
@@ -1180,13 +1122,18 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: a = B([2, 2, -1, -1])
             sage: b = B([2, 1, 2, 1])
             sage: c = b * a / b
-            sage: d = a.conjugating_braid(c)
-            sage: d * c / d == a
+            sage: d = a.conjugating_braid(c) # optional - libbraiding
+            sage: d * c / d == a # optional - libbraiding
             True
-            sage: d
+            sage: d # optional - libbraiding
             s1*s0
-            sage: d * a / d == c
+            sage: d * a / d == c # optional - libbraiding
             False
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import conjugatingbraid
@@ -1212,10 +1159,15 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: a = B([2, 2, -1, -1])
             sage: b = B([2, 1, 2, 1])
             sage: c = b * a / b
-            sage: c.is_conjugated(a)
+            sage: c.is_conjugated(a) # optional - libbraiding
             True
-            sage: c.is_conjugated(b)
+            sage: c.is_conjugated(b) # optional - libbraiding
             False
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import conjugatingbraid
@@ -1233,9 +1185,9 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: B = BraidGroup(3)
             sage: a = B([2, 2, -1, -1, 2, 2])
             sage: b = B([2, 1, 2, 1])
-            sage: b.ultra_summit_set()
+            sage: b.ultra_summit_set() # optional - libbraiding
             [[s0*s1*s0^2, (s0*s1)^2]]
-            sage: a.ultra_summit_set()
+            sage: a.ultra_summit_set() # optional - libbraiding
             [[(s0^-1*s1^-1*s0^-1)^2*s1^3*s0^2*s1^3,
             (s0^-1*s1^-1*s0^-1)^2*s1^2*s0^2*s1^4,
             (s0^-1*s1^-1*s0^-1)^2*s1*s0^2*s1^5,
@@ -1248,6 +1200,11 @@ class Braid(FiniteTypeArtinGroupElement):
             (s0^-1*s1^-1*s0^-1)^2*s1*s0^6*s1,
             s0^-1*s1^-1*s0^-2*s1^-1*s0^4*s1^2*s0,
             s0^-1*s1^-1*s0^-2*s1^-1*s0^3*s1^2*s0^2]]
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import ultrasummitset
@@ -1269,14 +1226,19 @@ class Braid(FiniteTypeArtinGroupElement):
 
             sage: B = BraidGroup(3)
             sage: b = B([1, 2, -1])
-            sage: b.thurston_type()
+            sage: b.thurston_type() # optional - libbraiding
             'reducible'
             sage: a = B([2, 2, -1, -1, 2, 2])
-            sage: a.thurston_type()
+            sage: a.thurston_type() # optional - libbraiding
             'pseudo-anosov'
             sage: c = B([2, 1, 2, 1])
-            sage: c.thurston_type()
+            sage: c.thurston_type() # optional - libbraiding
             'periodic'
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import thurston_type
@@ -1292,12 +1254,16 @@ class Braid(FiniteTypeArtinGroupElement):
 
             sage: B = BraidGroup(3)
             sage: b = B([1, 2, -1])
-            sage: b.is_reducible()
+            sage: b.is_reducible() # optional - libbraiding
             True
             sage: a = B([2, 2, -1, -1, 2, 2])
-            sage: a.is_reducible()
+            sage: a.is_reducible() # optional - libbraiding
             False
 
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         return self.thurston_type() == 'reducible'
 
@@ -1310,10 +1276,15 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: B = BraidGroup(3)
             sage: a = B([2, 2, -1, -1, 2, 2])
             sage: b = B([2, 1, 2, 1])
-            sage: a.is_periodic()
+            sage: a.is_periodic() # optional - libbraiding
             False
-            sage: b.is_periodic()
+            sage: b.is_periodic() # optional - libbraiding
             True
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         return self.thurston_type() == 'periodic'
 
@@ -1326,10 +1297,15 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: B = BraidGroup(3)
             sage: a = B([2, 2, -1, -1, 2, 2])
             sage: b = B([2, 1, 2, 1])
-            sage: a.is_pseudoanosov()
+            sage: a.is_pseudoanosov() # optional - libbraiding
             True
-            sage: b.is_pseudoanosov()
+            sage: b.is_pseudoanosov() # optional - libbraiding
             False
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         return self.thurston_type() == 'pseudo-anosov'
 
@@ -1342,10 +1318,15 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: B = BraidGroup(3)
             sage: b = B([2, 1, 2, 1])
             sage: a = B([2, 2, -1, -1, 2, 2])
-            sage: a.rigidity()
+            sage: a.rigidity() # optional - libbraiding
             6
-            sage: b.rigidity()
+            sage: b.rigidity() # optional - libbraiding
             0
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import rigidity
@@ -1366,7 +1347,7 @@ class Braid(FiniteTypeArtinGroupElement):
 
             sage: B = BraidGroup(3)
             sage: a = B([2, 2, -1, -1, 2, 2])
-            sage: a.sliding_circuits()
+            sage: a.sliding_circuits() # optional - libbraiding
             [[(s0^-1*s1^-1*s0^-1)^2*s1^3*s0^2*s1^3],
              [s0^-1*s1^-1*s0^-2*s1^-1*s0^2*s1^2*s0^3],
              [s0^-1*s1^-1*s0^-2*s1^-1*s0^3*s1^2*s0^2],
@@ -1380,8 +1361,13 @@ class Braid(FiniteTypeArtinGroupElement):
              [(s0^-1*s1^-1*s0^-1)^2*s1*s0^6*s1],
              [s0^-1*s1^-1*s0^-2*s1^5*s0]]
             sage: b = B([2, 1, 2, 1])
-            sage: b.sliding_circuits()
+            sage: b.sliding_circuits() # optional - libbraiding
             [[s0*s1*s0^2, (s0*s1)^2]]
+
+        .. WARNING::
+
+            This functionality requires the libbraiding package
+            to be installed.
         """
         try:
             from sage.libs.braiding import sliding_circuits
@@ -1473,9 +1459,6 @@ class BraidGroup_class(FiniteTypeArtinGroup):
 
         # For caching TL_representation()
         self._TL_representation_dict = {}
-
-        # For caching hermitian form of unitary Burau representation
-        self._hermitian_form = None
 
     def __reduce__(self):
         """

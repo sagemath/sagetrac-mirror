@@ -5,10 +5,9 @@ from sage.symbolic.function import BuiltinFunction, GinacFunction
 from sage.symbolic.expression import is_Expression
 import math
 
-
 class Function_sin(GinacFunction):
     def __init__(self):
-        r"""
+        """
         The sine function.
 
         EXAMPLES::
@@ -123,10 +122,9 @@ class Function_sin(GinacFunction):
 
 sin = Function_sin()
 
-
 class Function_cos(GinacFunction):
     def __init__(self):
-        r"""
+        """
         The cosine function.
 
         EXAMPLES::
@@ -186,10 +184,9 @@ class Function_cos(GinacFunction):
 
 cos = Function_cos()
 
-
 class Function_tan(GinacFunction):
     def __init__(self):
-        r"""
+        """
         The tangent function.
 
         EXAMPLES::

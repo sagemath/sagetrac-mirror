@@ -37,7 +37,6 @@ are implemented using the PolyBoRi library (cf. :mod:`sage.rings.polynomial.pbor
    sage/rings/polynomial/multi_polynomial_ideal_libsingular
 
    sage/rings/polynomial/polydict
-   sage/rings/polynomial/hilbert
 
    sage/rings/polynomial/flatten
 

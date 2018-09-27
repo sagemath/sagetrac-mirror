@@ -29,7 +29,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
 cdef class MIPVariable(SageObject):
     cdef MixedIntegerLinearProgram _p
     cdef dict _dict
-    cdef bint _dynamic_indices
     cdef int _vtype
     cdef str _name
     cdef object _lower_bound
