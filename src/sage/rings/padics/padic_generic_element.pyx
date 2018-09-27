@@ -194,69 +194,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
     cdef bint _set_prec_both(self, long absprec, long relprec) except -1:
         return 0
 
-    def _quo_rem(self, right):
-        """
-        Quotient with remainder.
-
-        We choose the remainder to have the same p-adic expansion
-        as the numerator, but truncated at the valuation of the denominator.
-
-        EXAMPLES::
-
-            sage: R = Zp(3, 5)
-            sage: R(12).quo_rem(R(2))
-            (2*3 + O(3^6), 0)
-            sage: R(2).quo_rem(R(12))
-            (O(3^4), 2 + O(3^5))
-            sage: q, r = R(4).quo_rem(R(12)); q, r
-            (1 + 2*3 + 2*3^3 + O(3^4), 1 + O(3^5))
-            sage: 12*q + r == 4
-            True
-
-        In general, the remainder is returned with maximal precision.
-        However, it is not the case when the valuation of the divisor
-        is greater than the absolute precision on the numerator::
-
-            sage: R(1,2).quo_rem(R(81))
-            (O(3^0), 1 + O(3^2))
-
-        For fields the normal quotient always has remainder 0:
-
-            sage: K = Qp(3, 5)
-            sage: K(12).quo_rem(K(2))
-            (2*3 + O(3^6), 0)
-            sage: q, r = K(4).quo_rem(K(12)); q, r
-            (3^-1 + O(3^4), 0)
-            sage: 12*q + r == 4
-            True
-
-        You can get the same behavior for fields as for rings
-        by using this underscored method::
-
-            sage: K(12)._quo_rem(K(2))
-            (2*3 + O(3^6), 0)
-            sage: K(2)._quo_rem(K(12))
-            (O(3^4), 2 + O(3^5))
-        """
-        if right._is_exact_zero():
-            raise ZeroDivisionError("cannot divide by zero")
-        if right.is_zero():
-            raise PrecisionError("cannot divide by something indistinguishable from zero")
-        K = self.parent()
-        R = K.integer_ring()
-        sval = self.valuation()
-        diff = sval - right.valuation()
-        srelprec = self.precision_relative()
-        if diff + srelprec < 0:
-            return K(0,0), self
-        if srelprec == 0:
-            return K(0,diff), K(0)
-        if diff >= 0:  # remainder is 0
-            return K(self/right), K(0)
-        unit = R(self.unit_part())
-        high = (unit << diff) >> (diff - sval)
-        return K(high/right), K(self-high).lift_to_precision()
-
     def __floordiv__(self, right):
         """
         Divides self by right and throws away the nonintegral part if
@@ -304,35 +241,41 @@ cdef class pAdicGenericElement(LocalGenericElement):
         a // b = ((a - a % b) >> b.valuation()) / b.unit_part()
 
 
-        In Sage we choose option (4) since it has better precision behavior.
+        In Sage we choose option (3), mainly because it is more easily
+        defined in terms of shifting and thus generalizes more easily
+        to extension rings.
 
         EXAMPLES::
 
             sage: R = ZpCA(5); a = R(129378); b = R(2398125)
             sage: a // b #indirect doctest
-            1 + 2*5 + 2*5^3 + 4*5^4 + 5^6 + 5^7 + 5^8 + 4*5^9 + 2*5^10 + 4*5^11 + 4*5^12 + 2*5^13 + 3*5^14 + O(5^16)
+            3 + 3*5 + 4*5^2 + 2*5^4 + 2*5^6 + 4*5^7 + 5^9 + 5^10 + 5^11 + O(5^12)
             sage: a / b
             4*5^-4 + 3*5^-3 + 2*5^-2 + 5^-1 + 3 + 3*5 + 4*5^2 + 2*5^4 + 2*5^6 + 4*5^7 + 5^9 + 5^10 + 5^11 + O(5^12)
             sage: a % b
-            3 + O(5^20)
-            sage: a
-            3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
+            3 + 5^4 + 3*5^5 + 2*5^6 + 4*5^7 + 5^8 + O(5^16)
             sage: (a // b) * b + a % b
-            3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
+            3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^16)
 
         The alternative definition::
 
-            sage: c = (a // b.unit_part()) >> b.valuation(); c
-            3 + 3*5 + 4*5^2 + 2*5^4 + 2*5^6 + 4*5^7 + 5^9 + 5^10 + 5^11 + O(5^12)
-            sage: othermod = a - c*b; othermod
-            3 + 5^4 + 3*5^5 + 2*5^6 + 4*5^7 + 5^8 + O(5^16)
+            sage: a
+            3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
+            sage: c = ((a - 3)>>4)/b.unit_part(); c
+            1 + 2*5 + 2*5^3 + 4*5^4 + 5^6 + 5^7 + 5^8 + 4*5^9 + 2*5^10 + 4*5^11 + 4*5^12 + 2*5^13 + 3*5^14 + O(5^16)
+            sage: c*b + 3
+            3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
         """
-        right = self.parent()(right)
-        if right._is_inexact_zero():
-            raise PrecisionError("cannot divide by something indistinguishable from zero")
-        elif right._is_exact_zero():
-            raise ZeroDivisionError("cannot divide by zero")
-        return self._floordiv_(right)
+        P = self.parent()
+        if P.is_field():
+            return self / right
+        else:
+            right = P(right)
+            if right._is_inexact_zero():
+                raise PrecisionError("cannot divide by something indistinguishable from zero")
+            elif right._is_exact_zero():
+                raise ZeroDivisionError("cannot divide by zero")
+            return self._floordiv_(right)
 
     cpdef _floordiv_(self, right):
         """
@@ -342,9 +285,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: R = Zp(5, 5); a = R(77)
             sage: a // 15 # indirect doctest
-            5 + O(5^4)
+            1 + 4*5 + 5^2 + 3*5^3 + O(5^4)
         """
-        return self.quo_rem(right, integral=True)[0]
+        v, u = right.val_unit()
+        return self.parent()(self / u) >> v
 
     def __getitem__(self, n):
         r"""
@@ -494,15 +438,22 @@ cdef class pAdicGenericElement(LocalGenericElement):
         a // b = ((a - a % b) >> b.valuation()) / b.unit_part()
 
 
-        In Sage we choose option (4) because it has better precision behavior.
+        In Sage we choose option (3), mainly because it is more easily
+        defined in terms of shifting and thus generalizes more easily
+        to extension rings.
 
         EXAMPLES::
 
             sage: R = ZpCA(5); a = R(129378); b = R(2398125)
             sage: a % b
-            3 + O(5^20)
+            3 + 5^4 + 3*5^5 + 2*5^6 + 4*5^7 + 5^8 + O(5^16)
         """
-        return self._quo_rem(right)[1]
+        if right == 0:
+            raise ZeroDivisionError
+        if self.parent().is_field():
+            return self.parent()(0)
+        else:
+            return self - (self // right) * right
 
     #def _is_exact_zero(self):
     #    return False
@@ -540,18 +491,19 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         return self.parent()._printer.repr_gen(self, do_latex, mode=mode)
 
-    def additive_order(self, prec=None):
+    def additive_order(self, prec):
         r"""
-        Returns the additive order of this element truncated
-        at precision ``prec``
+        Returns the additive order of self, where self is considered
+        to be zero if it is zero modulo `p^{\mbox{prec}}`.
 
         INPUT:
 
-        - ``prec`` -- an integer or ``None`` (default: ``None``)
+        - ``self`` -- a p-adic element
+        - ``prec`` -- an integer
 
         OUTPUT:
 
-        The additive order of this element
+        integer -- the additive order of self
 
         EXAMPLES::
 
@@ -567,167 +519,72 @@ cdef class pAdicGenericElement(LocalGenericElement):
         else:
             return infinity
 
-    def minimal_polynomial(self, name='x', base=None):
+    def minimal_polynomial(self, name):
         """
-        Returns the minimal polynomial of this element over ``base``
+        Returns a minimal polynomial of this `p`-adic element, i.e., ``x - self``
 
         INPUT:
 
-        - ``name`` -- string (default: ``x``): the name of the variable
+        - ``self`` -- a `p`-adic element
 
-        - ``base`` -- a ring (default: the base ring of the parent):
-          the base ring over which the minimal polynomial is computed
+        - ``name`` -- string: the name of the variable
 
         EXAMPLES::
 
             sage: Zp(5,5)(1/3).minimal_polynomial('x')
-            (1 + O(5^5))*x + 3 + 5 + 3*5^2 + 5^3 + 3*5^4 + O(5^5)
-
-            sage: Zp(5,5)(1/3).minimal_polynomial('foo')
-            (1 + O(5^5))*foo + 3 + 5 + 3*5^2 + 5^3 + 3*5^4 + O(5^5)
-
-        ::
-
-            sage: K.<a> = QqCR(2^3,5)
-            sage: S.<x> = K[]
-            sage: L.<pi> = K.extension(x^4 - 2*a)
-
-            sage: pi.minimal_polynomial()
-            (1 + O(2^5))*x^4 + a*2 + a*2^2 + a*2^3 + a*2^4 + a*2^5 + O(2^6)
-            sage: (pi^2).minimal_polynomial()
-            (1 + O(2^5))*x^2 + a*2 + a*2^2 + a*2^3 + a*2^4 + a*2^5 + O(2^6)
-            sage: (1/pi).minimal_polynomial()
-            (1 + O(2^5))*x^4 + (a^2 + 1)*2^-1 + O(2^4)
-
-            sage: elt = L.random_element()
-            sage: P = elt.minimal_polynomial()
-            sage: P(elt) == 0
-            True
+            (1 + O(5^5))*x + (3 + 5 + 3*5^2 + 5^3 + 3*5^4 + O(5^5))
         """
-        parent = self.parent()
-        R = parent.base_ring()
-        if base is None:
-            base = R
-        polring = base[name]
-        if base is parent:
-            return polring([-self,1])
-        elif base is R:
-            from sage.modules.free_module import VectorSpace
-            L = parent.fraction_field()
-            K = base.fraction_field()
-            deg = L.relative_degree()
-            V = VectorSpace(K, deg)
-            vector = [K(1)] + (deg-1)*[K(0)]
-            vectors = [vector]
-            W = V.span(vectors)
-            elt = self
-            while True:
-                poly = elt.polynomial()
-                vector = V([ poly[i] for i in range(deg) ])
-                if vector in W: break
-                vectors.append(vector)
-                W += V.span([vector])
-                elt *= self
-            W = V.span_of_basis(vectors)
-            coeffs = [ -c for c in W.coordinate_vector(vector) ] + [K(1)]
-            return polring(coeffs)
-        else:
-            raise NotImplementedError
+        R = self.parent()[name]
+        return R.gen() - R(self)
 
-    def norm(self, base=None):
+    def norm(self, ground=None):
         """
-        Returns the norm of this `p`-adic element over ``base``.
+        Returns the norm of this `p`-adic element over the ground ring.
 
         .. WARNING::
 
             This is not the `p`-adic absolute value.  This is a field
-            theoretic norm down to a base ring.  If you want the
+            theoretic norm down to a ground ring.  If you want the
             `p`-adic absolute value, use the ``abs()`` function
             instead.
 
         INPUT:
 
-        - ``base`` -- a subring of the parent (default: base ring)
-
-        OUTPUT:
-
-        The norm of this `p`-adic element over the given base.
+        - ``ground`` -- a subring of the parent (default: base ring)
 
         EXAMPLES::
 
             sage: Zp(5)(5).norm()
             5 + O(5^21)
-
-        ::
-
-            sage: K.<a> = QqCR(2^3,5)
-            sage: S.<x> = K[]
-            sage: L.<pi> = K.extension(x^4 - 2*a)
-
-            sage: pi.norm()  # norm over K
-            a*2 + a*2^2 + a*2^3 + a*2^4 + a*2^5 + O(2^6)
-            sage: (pi^2).norm()
-            a^2*2^2 + O(2^7)
-            sage: pi.norm()^2
-            a^2*2^2 + O(2^7)
-
-        TESTS::
-
-            sage: x = L.random_element()
-            sage: y = L.random_element()
-            sage: (x*y).norm() == x.norm() * y.norm()
-            True
-
         """
-        parent = self.parent()
-        if base is None:
-            base = parent.base_ring()
-        poly = self.minimal_polynomial(base=base)
-        polydeg = poly.degree()
-        extdeg = parent.absolute_degree() // (base.absolute_degree() * polydeg)
-        return ((-1)**polydeg * poly[0]) ** extdeg
+        if (ground is not None) and (ground != self.parent()):
+            raise ValueError("Ground Ring not a subfield")
+        else:
+            return self
 
-    def trace(self, base=None):
+    def trace(self, ground=None):
         """
-        Returns the trace of this `p`-adic element over the base ring
+        Returns the trace of this `p`-adic element over the ground ring
 
         INPUT:
 
-        - ``base`` -- a subring of the parent (default: base ring)
+        - ``ground`` -- a subring of the ground ring (default: base
+          ring)
 
         OUTPUT:
 
-        The trace of this `p`-adic element over the given base.
+        - ``element`` -- the trace of this `p`-adic element over the
+          ground ring
 
         EXAMPLES::
 
             sage: Zp(5,5)(5).trace()
             5 + O(5^6)
-
-            sage: K.<a> = QqCR(2^3,7)
-            sage: S.<x> = K[]
-            sage: L.<pi> = K.extension(x^4 - 4*a*x^3 + 2*a)
-
-            sage: pi.trace()  # trace over K
-            a*2^2 + O(2^8)
-            sage: (pi+1).trace()
-            (a + 1)*2^2 + O(2^7)
-
-        TESTS::
-
-            sage: x = L.random_element()
-            sage: y = L.random_element()
-            sage: (x+y).trace() == x.trace() + y.trace()
-            True
-
         """
-        parent = self.parent()
-        if base is None:
-            base = parent.base_ring()
-        poly = self.minimal_polynomial(base=base)
-        polydeg = poly.degree()
-        extdeg = parent.absolute_degree() // (base.absolute_degree() * polydeg)
-        return -extdeg * poly[polydeg-1]
+        if (ground is not None) and (ground != self.parent()):
+            raise ValueError("Ground ring not a subring")
+        else:
+            return self
 
     def algdep(self, n):
         """
@@ -923,7 +780,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         - ``algorithm`` -- string. Can be set to ``'pari'`` to call
           the pari function, or ``'sage'`` to call the function
-          implemented in sage. The default is ``'pari'`` since
+          implemented in sage.  set to ``'pari'`` by default, since
           pari is about 10 times faster than sage.
 
         OUTPUT:
@@ -994,7 +851,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: all(l1[i] == l2[i] for i in range(p-1))
             True
         """
-        if self.parent().absolute_degree() > 1 or self.valuation() < 0:
+        if self.valuation() < 0:
             raise ValueError('The p-adic gamma function only works '
                              'on elements of Zp')
         parent = self.parent()
@@ -1006,7 +863,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             return parent(self.__pari__().gamma())
         elif algorithm == 'sage':
             p = parent.prime()
-            bd = n + 2*n // p
+            bd = n + 2*n//p
             k = Integer(-self.residue(field=False)) # avoid GF(p) for efficiency
             x = (self+k) >> 1
             return -x.dwork_expansion(bd, a=k)
@@ -1136,7 +993,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: R = ZpFM(3)
             sage: R(3).gcd(9)
-            3
+            3 + O(3^20)
 
         And elements with a capped absolute precision::
 
@@ -1300,7 +1157,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: R = ZpFM(3)
             sage: R(3).xgcd(9)
-            (3, 1, 0)
+            (3 + O(3^20), 1 + O(3^20), O(3^20))
 
         And elements with a capped absolute precision::
 
@@ -1333,13 +1190,17 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         return s*self+t*other,s,t
 
-    def is_square(self):
+    def is_square(self): #should be overridden for lazy elements
         """
-        Returns whether this element is a square
+        Returns whether self is a square
 
         INPUT:
 
         - ``self`` -- a p-adic element
+
+        OUTPUT:
+
+        boolean -- whether self is a square
 
         EXAMPLES::
 
@@ -1429,20 +1290,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
             False
             sage: K2(1/4).is_square()
             True
-        """
-        if self._is_exact_zero():
+       """
+        if self._is_exact_zero() or self._is_inexact_zero():
             return True
-        parent = self.parent()
-        if parent.prime() != 2:
-            if self.is_zero():
-                raise PrecisionError("not enough precision to be sure that this element has a square root")
+        elif self.parent().prime() != 2:
             return (self.valuation() % 2 == 0) and (self.unit_part().residue(1).is_square())
         else:
-            e = parent.absolute_e()
-            if self.precision_relative() < 1 + 2*e:
-                raise PrecisionError("not enough precision to be sure that this element has a square root")
-            sq = self.add_bigoh(self.valuation() + 2*e + 1)._square_root()
-            return sq is not None
+            #won't work for general extensions...
+            return (self.valuation() % 2 == 0) and (self.unit_part().residue(3) == 1)
 
     def is_squarefree(self):
         r"""
@@ -1588,7 +1443,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             return order
 
         # Compute multiplicative order at p
-        e = parent.absolute_e()
+        e = parent.e()
         if not (p-1).divides(e):
             return infinity
         n = e.valuation(p)
@@ -1757,37 +1612,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: R(1/2).ordp()
             0
         """
-        return self.valuation(p) / self.parent().absolute_e()
-
-    def is_prime(self):
-        """
-        Return whether this element is prime in its parent
-
-        EXAMPLES::
-
-            sage: A = Zp(2)
-            sage: A(1).is_prime()
-            False
-            sage: A(2).is_prime()
-            True
-
-            sage: K = A.fraction_field()
-            sage: K(2).is_prime()
-            False
-
-        ::
-
-            sage: B.<pi> = A.extension(x^5 - 2)
-            sage: pi.is_prime()
-            True
-            sage: B(2).is_prime()
-            False
-        """
-        if self.is_zero():
-            return True
-        if self.parent().is_field():
-            return False
-        return self.valuation() == 1
+        return self.valuation(p) / self.parent().ramification_index()
 
     def rational_reconstruction(self):
         r"""
@@ -1862,8 +1687,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
             # Might convert to K's base ring.
             return Kbase(self)
         L = [Kbase(c) for c in self.polynomial().list()]
-        if len(L) < K.relative_degree():
-            L += [Kbase(0)] * (K.relative_degree() - len(L))
+        if len(L) < K.degree():
+            L += [Kbase(0)] * (K.degree() - len(L))
         return K(L)
 
     def _log_generic(self, aprec, mina=0):
@@ -1905,7 +1730,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: r = Zp(5,prec=4,type='fixed-mod')(6)
             sage: r._log_generic(5)
-            5 + 2*5^2 + 4*5^3
+            5 + 2*5^2 + 4*5^3 + O(5^4)
 
         Only implemented for elements congruent to 1 modulo the maximal ideal::
 
@@ -1913,7 +1738,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: r._log_generic(5)
             Traceback (most recent call last):
             ...
-            ValueError: Input value (=2) must be 1 in the residue field
+            ValueError: Input value (=2 + O(5^4)) must be 1 in the residue field
 
         """
         x = 1-self
@@ -1928,7 +1753,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         if alpha<=0:
             raise ValueError('Input value (=%s) must be 1 in the residue field' % self)
 
-        e=R.absolute_e()
+        e=R.ramification_index()
         p=R.prime()
 
         # we sum all terms of the power series of log into total
@@ -2059,7 +1884,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: r = Zp(5,prec=4,type='fixed-mod')(6)
             sage: r._log_binary_splitting(5)
-            5 + 2*5^2 + 4*5^3
+            5 + 2*5^2 + 4*5^3 + O(5^4)
+
         """
         raise NotImplementedError
 
@@ -2351,13 +2177,13 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: R = ZpFM(7,10)
             sage: x = R(41152263); x
-            5 + 3*7^2 + 4*7^3 + 3*7^4 + 5*7^5 + 6*7^6 + 7^9
+            5 + 3*7^2 + 4*7^3 + 3*7^4 + 5*7^5 + 6*7^6 + 7^9 + O(7^10)
             sage: x.log(aprec = 5)
-            7 + 3*7^2 + 4*7^3 + 3*7^4
+            7 + 3*7^2 + 4*7^3 + 3*7^4 + O(7^10)
             sage: x.log(aprec = 7)
-            7 + 3*7^2 + 4*7^3 + 3*7^4 + 7^5 + 3*7^6
+            7 + 3*7^2 + 4*7^3 + 3*7^4 + 7^5 + 3*7^6 + O(7^10)
             sage: x.log()
-            7 + 3*7^2 + 4*7^3 + 3*7^4 + 7^5 + 3*7^6 + 7^7 + 3*7^8 + 4*7^9
+            7 + 3*7^2 + 4*7^3 + 3*7^4 + 7^5 + 3*7^6 + 7^7 + 3*7^8 + 4*7^9 + O(7^10)
 
         Check that precision is computed correctly in highly ramified
         extensions::
@@ -2395,7 +2221,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         Performances::
 
-            sage: R = Zp(17, prec=10^5)
+            sage: R = Zp(17, prec=10^6)
             sage: a = R.random_element()
             sage: b = a.log(p_branch=0)   # should be rather fast
 
@@ -2428,8 +2254,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             raise ValueError("You may only specify a branch of the logarithm in one way")
         R = self.parent()
         p = R.prime()
-        q = p**R.absolute_f()
-        e = R.absolute_e()
+        q = p**R.f()
 
         if self.is_padic_unit():
             total = R.zero()
@@ -2437,9 +2262,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             if pi_branch is None:
                 if p_branch is None:
                     raise ValueError("You must specify a branch of the logarithm for non-units")
-                pi_branch = (p_branch - R._log_unit_part_p()) / e
-                # Be careful: in ramified extensions, R._log_unit_part_p() is theoretically known at higher precision than the cap
-                # In some cases, this may result in a loss of precision on pi_branch, and then on the final result
+                pi_branch = (p_branch - R._log_unit_part_p()) / R.e()
             total = self.valuation() * pi_branch
         y = self.unit_part()
         x = 1 - y
@@ -2453,6 +2276,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         minaprec = y.precision_absolute()
         minn = 0
+        e = R.e()
         if e != 1:
             xval = x.valuation()
             lamb = minaprec - xval
@@ -2467,11 +2291,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
                 # deriv0 is within 1 of the n yielding the minimal
                 # absolute precision
-                tmp = (e / (minaprec * p.log(prec=53))).floor()
-                if tmp > 0:
-                    deriv0 = tmp.exact_log(p)
-                else:
-                    deriv0 = 0
+                deriv0 = (e / (minaprec * p.log(prec=53))).floor().exact_log(p)
 
                 # These are the absolute precisions of x^(p^n) at potential minimum points
                 L = [(minaprec * p**n - n * e, n) for n in [0, kink, deriv0, deriv0+1]]
@@ -2499,7 +2319,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         if not change_frac:
             if retval.valuation() < 0 and not R.is_field():
                 raise ValueError("logarithm is not integral, use change_frac=True to obtain a result in the fraction field")
-            retval = R(retval)
+            retval=R(retval)
         return retval.add_bigoh(aprec)
 
 
@@ -2536,7 +2356,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         R=self.parent()
         p=self.parent().prime()
-        e=self.parent().absolute_e()
+        e=self.parent().ramification_index()
         x_unit=self.unit_part()
         p_unit=R(p).unit_part().lift_to_precision()
         x_val=self.valuation()
@@ -2672,7 +2492,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             1 + w*7 + (4*w + 2)*7^2 + (w + 6)*7^3 + 5*7^4 + O(7^5)
         """
         R = self.parent()
-        e = R.absolute_e()
+        e = R.e()
         a = R(1,aprec)
         l = R(0,aprec)
         if R.prime() == 2:
@@ -2823,18 +2643,18 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: Z13 = ZpFM(13, 10)
             sage: a = Z13(14); a
-            1 + 13
+            1 + 13 + O(13^10)
             sage: a.log().exp()
-            1 + 13
+            1 + 13 + O(13^10)
 
             sage: R = ZpFM(5,5)
             sage: S.<x> = R[]
             sage: f = x^4 + 15*x^2 + 625*x - 5
             sage: W.<w> = R.ext(f)
             sage: z = 1 + w^2 + 4*w^7; z
-            1 + w^2 + 4*w^7
+            1 + w^2 + 4*w^7 + O(w^20)
             sage: z.log().exp()
-            1 + w^2 + 4*w^7
+            1 + w^2 + 4*w^7 + O(w^20)
 
         Some corner cases::
 
@@ -2871,7 +2691,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         Performances::
 
-            sage: R = Zp(17,10^5)
+            sage: R = Zp(17,10^6)
             sage: a = 17 * R.random_element()
             sage: b = a.exp()    # should be rather fast
 
@@ -2888,7 +2708,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         p = self.parent().prime()
 
-        if (p-1)*self.valuation() <= self.parent().absolute_e():
+        if (p-1)*self.valuation() <= self.parent().ramification_index():
             raise ValueError('Exponential does not converge for that input.')
 
         # The optimal absolute precision on exp(self)
@@ -3024,11 +2844,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
         if self._is_exact_zero():
             return self
         parent = self.parent()
-        if self.is_zero() or (parent.prime() == 2 and self.precision_relative() < 1 + 2*parent.absolute_e()):
+        if self.is_zero() or (parent.prime() == 2 and self.precision_relative() < 1 + 2*parent.e()):
             raise PrecisionError("not enough precision to be sure that this element has a square root")
 
         if algorithm is None:
-            if parent.absolute_degree() == 1:
+            if parent.degree() == 1:
                 algorithm = "pari"
             else:
                 algorithm = "sage"
@@ -3114,7 +2934,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         ring = self.parent()
         p = ring.prime()
-        e = ring.absolute_e()
+        e = ring.e()
 
         # First, we check valuation and renormalize if needed
         val = self.valuation()
@@ -3139,10 +2959,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
             # We will need 1/a at higher precision
             ainv = ~(a.add_bigoh(2*e+1))
 
-            # If x^2 is not correct modulo pi^2, there is no solution
-            if (ainv - x**2).valuation() < 2:
-                return None
-
             # We lift modulo 2
             k = ring.residue_field()
             while curprec < e:   # curprec is the number of correct digits of x
@@ -3154,25 +2970,21 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 for i in range(e - curprec):
                     if i % 2 == 0:
                         try:
-                            # We shouldn't recompute the expansion of b at the iteration
                             cbar = k(b.expansion(i)).sqrt(extend=False)
                         except ValueError:
                             return None
                         c = ring(cbar).lift_to_precision()
                         x += c << (curprec + i//2)
                     else:
-                        if k(b.expansion(i)) != 0:
+                        if b.expansion(i) != 0:
                             return None
                 curprec = (curprec + e + 1) // 2
 
             # We lift one step further
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             S = PolynomialRing(k, name='x')
-            b = ainv - x**2
-            if b.valuation() < 2*e:
-                return None
-            b >>= (2*e)
-            AS = S([ b.residue(), xbar*k(ring(2).expansion(e)), 1 ])
+            b = (ainv - x**2) >> (2*e)
+            AS = S([ b.residue(), xbar*k(ring(2,e+1).expansion(e)), 1 ])
             roots = AS.roots()
             if len(roots) == 0:
                 return None
@@ -3269,7 +3081,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             0.000000000000000
         """
         K = self.parent()
-        if not prec and K.absolute_e() > 1:
+        if not prec and K.e() > 1:
             prec = 53
         if prec:
             from sage.rings.real_mpfr import RealField
@@ -3462,7 +3274,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         from sage.functions.other import ceil,floor
         from sage.rings.infinity import PlusInfinity
 
-        if self.parent().absolute_degree() != 1:
+        if self.parent().degree() != 1:
             raise NotImplementedError("Polylogarithms are not currently implemented for elements of extensions")
             # TODO implement this (possibly after the change method for padic generic elements is added).
 
@@ -3591,7 +3403,7 @@ def _compute_g(p, n, prec, terms):
     EXAMPLES::
 
         sage: sage.rings.padics.padic_generic_element._compute_g(7, 3, 3, 3)[0]
-        O(7^3)*v^2 + (1 + O(7^3))*v + O(7^3)
+        (O(7^3))*v^2 + (1 + O(7^3))*v + (O(7^3))
 
     """
     from sage.rings.power_series_ring import PowerSeriesRing

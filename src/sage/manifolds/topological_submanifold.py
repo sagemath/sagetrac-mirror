@@ -188,6 +188,7 @@ class TopologicalSubmanifold(TopologicalManifold):
         self._embedded = False
         self._adapted_charts = None
         self._subs = None
+        self._codim = self._ambient._dim-self._dim
 
     def _repr_(self):
         r"""

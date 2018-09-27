@@ -283,11 +283,10 @@ continue down the MRO and find the ``_add_`` method in the category.
 
 from __future__ import absolute_import, division, print_function
 
-cimport cython
 from cpython cimport *
-from cpython.ref cimport PyObject
-
 from sage.ext.stdsage cimport *
+
+from cpython.ref cimport PyObject
 
 import types
 cdef add, sub, mul, div, truediv, floordiv, mod, pow
@@ -385,7 +384,6 @@ cdef class Element(SageObject):
     .. automethod:: __floordiv__
     .. automethod:: __mod__
     """
-    @cython.binding(False)
     def __getmetaclass__(_):
         from sage.misc.inherit_comparison import InheritComparisonMetaclass
         return InheritComparisonMetaclass
@@ -2172,7 +2170,6 @@ cdef class ElementWithCachedMethod(Element):
     ::
 
         sage: cython_code = ["from sage.structure.element cimport Element, ElementWithCachedMethod",
-        ....:     "from sage.structure.richcmp cimport richcmp",
         ....:     "cdef class MyBrokenElement(Element):",
         ....:     "    cdef public object x",
         ....:     "    def __init__(self,P,x):",
@@ -2184,8 +2181,8 @@ cdef class ElementWithCachedMethod(Element):
         ....:     "        return '<%s>'%self.x",
         ....:     "    def __hash__(self):",
         ....:     "        return hash(self.x)",
-        ....:     "    cpdef _richcmp_(left, right, int op):",
-        ....:     "        return richcmp(left.x,right.x,op)",
+        ....:     "    cpdef int _cmp_(left, right) except -2:",
+        ....:     "        return cmp(left.x,right.x)",
         ....:     "    def raw_test(self):",
         ....:     "        return -self",
         ....:     "cdef class MyElement(ElementWithCachedMethod):",
@@ -2199,8 +2196,8 @@ cdef class ElementWithCachedMethod(Element):
         ....:     "        return '<%s>'%self.x",
         ....:     "    def __hash__(self):",
         ....:     "        return hash(self.x)",
-        ....:     "    cpdef _richcmp_(left, right, int op):",
-        ....:     "        return richcmp(left.x,right.x,op)",
+        ....:     "    cpdef int _cmp_(left, right) except -2:",
+        ....:     "        return cmp(left.x,right.x)",
         ....:     "    def raw_test(self):",
         ....:     "        return -self",
         ....:     "class MyPythonElement(MyBrokenElement): pass",
@@ -3094,7 +3091,7 @@ cdef class CommutativeRingElement(RingElement):
 
             sage: R.<x> = QQ[]
             sage: a = 2*(x+1)^2 / (2*(x-1)^2); a.sqrt()
-            (x + 1)/(x - 1)
+            (2*x + 2)/(2*x - 2)
             sage: sqrtx=(1/x).sqrt(name="y"); sqrtx
             y
             sage: sqrtx^2

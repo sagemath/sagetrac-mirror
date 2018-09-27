@@ -2566,7 +2566,7 @@ class FreeModuleTensor(ModuleElement):
             if pos not in pos2:
                 nb_con_o += 1
         if nb_cov_s != 0 and nb_con_o != 0:
-            # some reordering is necessary:
+            # some reodering is necessary:
             p2 = k1 + l1 - ncontr
             p1 = p2 - nb_cov_s
             p3 = p2 + nb_con_o

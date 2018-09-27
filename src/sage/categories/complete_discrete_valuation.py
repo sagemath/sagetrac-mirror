@@ -89,6 +89,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
             """
             return self.parent()(1)
 
+
         @abstract_method
         def lift_to_precision(self, absprec=None):
             """

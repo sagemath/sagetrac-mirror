@@ -175,7 +175,6 @@ class ModularForm_abstract(ModuleElement):
         """
         return self.q_expansion(prec)(x)
 
-    @cached_method
     def valuation(self):
         """
         Return the valuation of self (i.e. as an element of the power
@@ -192,10 +191,16 @@ class ModularForm_abstract(ModuleElement):
             sage: ModularForms(25,6).6.valuation()
             7
         """
-        v = self.qexp().valuation()
-        if v != self.qexp().prec():
+        try:
+            return self.__valuation
+        except AttributeError:
+            v = self.qexp().valuation()
+            if v != self.qexp().prec():
+                self.__valuation = v
+                return v
+            v = self.qexp(self.parent().sturm_bound()).valuation()
+            self.__valuation = v
             return v
-        return self.qexp(self.parent().sturm_bound()).valuation()
 
     def qexp(self, prec=None):
         """
@@ -1384,7 +1389,6 @@ class Newform(ModularForm_abstract):
         # other is a ModularFormElement
         return self.element() == other
 
-    @cached_method
     def abelian_variety(self):
         """
         Return the abelian variety associated to self.
@@ -1401,8 +1405,12 @@ class Newform(ModularForm_abstract):
             TypeError: f must have weight 2
 
         """
-        from sage.modular.abvar.abvar_newform import ModularAbelianVariety_newform
-        return ModularAbelianVariety_newform(self)
+        try:
+            return self.__abelian_variety
+        except AttributeError:
+            from sage.modular.abvar.abvar_newform import ModularAbelianVariety_newform
+            self.__abelian_variety = ModularAbelianVariety_newform(self)
+            return self.__abelian_variety
 
     def hecke_eigenvalue_field(self):
         r"""
@@ -1758,7 +1766,7 @@ class Newform(ModularForm_abstract):
         return w / Q0 / sign * self.character()(crt(1, Q//Q0, Q, N//Q))
 
     def atkin_lehner_action(self, d=None, normalization='analytic', embedding=None):
-        r"""
+        """
         Return the result of the Atkin-Lehner operator `W_d` on this form `f`,
         in the form of a constant `\lambda_d(f)` and a normalized newform `f'`
         such that
@@ -1836,6 +1844,7 @@ class Newform(ModularForm_abstract):
             Traceback (most recent call last):
             ...
             ValueError: d (= 2) does not divide the level (= 11)
+
         """
         # normalise d
         N = self.level()
@@ -2742,8 +2751,8 @@ class EisensteinSeries(ModularFormElement):
         return v
 
     def __compute_general_case(self, X):
-        r"""
-        Return the list coefficients of `q^n` of the power series of self,
+        """
+        Returns the list coefficients of `q^n` of the power series of self,
         for `n` in the list `X`.  The results are not cached.  (Use
         coefficients for cached results).
 
@@ -2787,7 +2796,6 @@ class EisensteinSeries(ModularFormElement):
                               for d in divisors(m)]))
         return v
 
-    @cached_method
     def __defining_parameters(self):
         r"""
         Return defining parameters for ``self``.
@@ -2797,19 +2805,23 @@ class EisensteinSeries(ModularFormElement):
             sage: EisensteinForms(11,2).eisenstein_series()[0]._EisensteinSeries__defining_parameters()
             (-1/24, Dirichlet character modulo 1 of conductor 1, Dirichlet character modulo 1 of conductor 1, Rational Field, 2, 11, 1, 1)
         """
-        chi = self.__chi.primitive_character()
-        psi = self.__psi.primitive_character()
-        k = self.weight()
-        t = self.__t
-        L = chi.conductor()
-        M = psi.conductor()
-        K = chi.base_ring()
-        n = K.zeta_order()
-        if L == 1:
-            c0 = K(-psi.bernoulli(k))/K(2*k)
-        else:
-            c0 = K(0)
-        return (c0, chi, psi, K, n, t, L, M)
+        try:
+            return self.__defining_params
+        except AttributeError:
+            chi = self.__chi.primitive_character()
+            psi = self.__psi.primitive_character()
+            k = self.weight()
+            t = self.__t
+            L = chi.conductor()
+            M = psi.conductor()
+            K = chi.base_ring()
+            n = K.zeta_order()
+            if L == 1:
+                c0 = K(-psi.bernoulli(k))/K(2*k)
+            else:
+                c0 = K(0)
+            self.__defining_params = (c0, chi, psi, K, n, t, L, M)
+        return self.__defining_params
 
     def chi(self):
         """
@@ -2877,7 +2889,6 @@ class EisensteinSeries(ModularFormElement):
         """
         return self.__psi.conductor()
 
-    @cached_method
     def character(self):
         """
         Return the character associated to self.
@@ -2906,7 +2917,11 @@ class EisensteinSeries(ModularFormElement):
             sage: [ [ f.character() == chi for f in EisensteinForms(chi).eisenstein_series() ] for chi in DirichletGroup(16) ]
             [[True, True, True, True, True], [], [True, True], [], [True, True, True, True], [], [True, True], []]
         """
-        return self.__chi * self.__psi
+        try:
+            return self.__character
+        except AttributeError:
+            self.__character = self.__chi * self.__psi
+        return self.__character
 
     def new_level(self):
         """

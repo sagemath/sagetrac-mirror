@@ -60,6 +60,7 @@ AUTHOR:
 from __future__ import print_function, absolute_import
 
 # Standard python imports
+from six.moves import cPickle
 import os
 import types
 
@@ -69,7 +70,7 @@ cdef caller_locals = builtins.locals
 
 # Sage imports
 from .misc import embedded
-from sage.misc.persist import load, save, loads, dumps
+from sage.misc.persist import load, save
 
 # This module-scope variables is used to save the
 # global state of the sage environment at the moment
@@ -213,17 +214,8 @@ def show_identifiers(hidden=False):
         sage: show_identifiers(hidden=True)        # random output
         ['__', '_i', '_6', '_4', '_3', '_1', '_ii', '__doc__', '__builtins__', '___', '_9', '__name__', '_', 'a', '_i12', '_i14', 'factor', '__file__', '_hello', '_i13', '_i11', '_i10', '_i15', '_i5', '_13', '_10', '_iii', '_i9', '_i8', '_i7', '_i6', '_i4', '_i3', '_i2', '_i1', '_init_cmdline', '_14']
     """
-    from sage.doctest.forker import DocTestTask
     state = caller_locals()
-    # Ignore extra variables injected into the global namespace by the doctest
-    # runner
-    _none = object()
-    def _in_extra_globals(name, val):
-        return val == DocTestTask.extra_globals.get(name, _none)
-
-    return sorted([x for x, v in state.items() if _is_new_var(x, v, hidden)
-                   and not _in_extra_globals(x, v)])
-
+    return sorted([x for x, v in state.iteritems() if _is_new_var(x, v, hidden)])
 
 def save_session(name='sage_session', verbose=False):
     r"""
@@ -318,7 +310,7 @@ def save_session(name='sage_session', verbose=False):
             # doesn't change in the Sage library itself).  Otherwise,
             # we could easily pickle whole sessions but get something
             # not at all useful.
-            _ = loads(dumps(x, False), False)
+            _ = cPickle.loads(cPickle.dumps(x, protocol=2))
             if verbose:
                 print("Saving %s" % k)
             D[k] = x

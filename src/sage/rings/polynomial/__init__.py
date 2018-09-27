@@ -1,2 +1,1 @@
-# Resolve a cyclic import
-import sage.rings.convert.mpfi
+# Initialization file for polynomials

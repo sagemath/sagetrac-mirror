@@ -352,8 +352,7 @@ class SageMagics(Magics):
             ....: def f():
             ....:     print('test')
             ....: ''')
-            sage: f()
-            test
+            ....: shell.run_cell('f()')
         """
         from sage.misc.cython import cython_compile
         return cython_compile(cell)

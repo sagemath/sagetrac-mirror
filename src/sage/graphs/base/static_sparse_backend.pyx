@@ -978,22 +978,6 @@ cdef class StaticSparseBackend(CGraphBackend):
             sage: g = Graph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.neighbors(0)
             [1, 4, 5]
-
-        TESTS:
-
-        Ticket :trac:`25550` is fixed::
-
-            sage: g = DiGraph({0: [1]}, immutable=True)
-            sage: g.neighbors(1)
-            [0]
-            sage: g = DiGraph({0: [0, 1, 1]}, loops=True, multiedges=True, immutable=True)
-            sage: g.neighbors(0)
-            [0, 1]
-            sage: g = DiGraph({0: [1, 1], 1:[0, 0]}, multiedges=True, immutable=True)
-            sage: g.neighbors(0)
-            [1]
-            sage: g.neighbors(1)
-            [0]
         """
         try:
             v = self._vertex_to_int[v]
@@ -1001,26 +985,10 @@ cdef class StaticSparseBackend(CGraphBackend):
             raise LookupError("The vertex does not belong to the graph")
 
         cdef StaticSparseCGraph cg = self._cg
-        cdef int i, u
-        cdef set seen = set()
+        cdef int i
 
-        if cg._directed:
-            for i in range(out_degree(cg.g, v)):
-                u = cg.g.neighbors[v][i]
-                if not u in seen:
-                    yield self._vertex_to_labels[u]
-                    seen.add(u)
-            for i in range(out_degree(cg.g_rev, v)):
-                u = cg.g_rev.neighbors[v][i]
-                if not u in seen:
-                    yield self._vertex_to_labels[u]
-                    seen.add(u)
-        else:
-            for i in range(out_degree(cg.g, v)):
-                u = cg.g.neighbors[v][i]
-                if not u in seen:
-                    yield self._vertex_to_labels[cg.g.neighbors[v][i]]
-                    seen.add(u)
+        for i in range(out_degree(cg.g,v)):
+            yield self._vertex_to_labels[cg.g.neighbors[v][i]]
 
     def iterator_out_nbrs(self, v):
         r"""
@@ -1042,18 +1010,14 @@ cdef class StaticSparseBackend(CGraphBackend):
             raise LookupError("The vertex does not belong to the graph")
 
         cdef StaticSparseCGraph cg = self._cg
-        cdef int i, u
-        cdef set seen = set()
+        cdef int i
 
-        for i in range(out_degree(cg.g, v)):
-            u = cg.g.neighbors[v][i]
-            if not u in seen:
-                yield self._vertex_to_labels[u]
-                seen.add(u)
+        for i in range(out_degree(cg.g,v)):
+            yield self._vertex_to_labels[cg.g.neighbors[v][i]]
 
     def iterator_in_nbrs(self, v):
         r"""
-        Returns the in-neighbors of a vertex
+        Returns the out-neighbors of a vertex
 
         INPUT:
 
@@ -1064,12 +1028,6 @@ cdef class StaticSparseBackend(CGraphBackend):
             sage: g = DiGraph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.neighbors_in(0)
             [1, 4, 5]
-
-        TESTS::
-
-            sage: g = DiGraph({0: [1]}, immutable=True)
-            sage: print(g.neighbors_in(1))
-            [0]
         """
         try:
             v = self._vertex_to_int[v]
@@ -1077,21 +1035,14 @@ cdef class StaticSparseBackend(CGraphBackend):
             raise LookupError("The vertex does not belong to the graph")
 
         cdef StaticSparseCGraph cg = self._cg
-        cdef int i, u
-        cdef set seen = set()
+        cdef short_digraph g
 
         if cg._directed:
-            for i in range(out_degree(cg.g_rev, v)):
-                u = cg.g_rev.neighbors[v][i]
-                if not u in seen:
-                    yield self._vertex_to_labels[u]
-                    seen.add(u)
+            for i in range(out_degree(cg.g_rev,v)):
+                yield self._vertex_to_labels[cg.g_rev.neighbors[v][i]]
         else:
-            for i in range(out_degree(cg.g, v)):
-                u = cg.g.neighbors[v][i]
-                if not u in seen:
-                    yield self._vertex_to_labels[u]
-                    seen.add(u)
+            for i in range(out_degree(cg.g,v)):
+                yield self._vertex_to_labels[cg.g.neighbors[v][i]]
 
     def add_vertex(self,v):
         r"""

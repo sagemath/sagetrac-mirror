@@ -152,6 +152,7 @@ def siegel_product(self, u):
     #cout << " The Prime divisors of S are :";
     #PrintV(S_divisors);
 
+
     for p in S_divisors:
         Q_normal = self.local_normal_form(p)
 
@@ -177,8 +178,11 @@ def siegel_product(self, u):
         ## DIAGNOSTIC
         #cout << " Including the p = " << p << " factor: " << local_density(Q_normal, p, u) << endl;
 
-        ## DIAGNOSTIC
+        ## DIAGNSOTIC
         verbose("    ---  Exiting loop \n")
+
+
+
 
     #// ****************  Important *******************
     #// Additional fix (only included for n=4) to deal
@@ -190,18 +194,27 @@ def siegel_product(self, u):
     #  genericfactor = 4 * genericfactor;
     #*/
 
-    ## DIAGNOSTIC
+
+    ## DIAGNSOTIC
     #cout << endl;
     #cout << " generic factor = " << genericfactor << endl;
     #cout << " omit = " << omit << endl;
     #cout << " include = " << include << endl;
     #cout << endl;
 
-    ## DIAGNOSTIC
+
+    ## DIAGNSOTIC
     #//  cout << "siegel_product Break 3. " << endl;
 
+
     ## Return the final factor (and divide by 2 if n=2)
-    if n == 2:
-        return genericfactor * omit * include / 2
+    if (n == 2):
+        return (genericfactor * omit * include / 2)
     else:
-        return genericfactor * omit * include
+        return (genericfactor * omit * include)
+
+
+
+
+
+

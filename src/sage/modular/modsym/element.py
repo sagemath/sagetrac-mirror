@@ -42,9 +42,8 @@ def is_ModularSymbolsElement(x):
     """
     return isinstance(x, ModularSymbolsElement)
 
-
 def set_modsym_print_mode(mode="manin"):
-    r"""
+    """
     Set the mode for printing of elements of modular symbols spaces.
 
     INPUT:

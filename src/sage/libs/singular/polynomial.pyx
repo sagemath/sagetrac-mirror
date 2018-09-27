@@ -493,7 +493,7 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
                 multi = "%s %s"%(sc,multi)
 
         # Now add on coefficiented multinomials
-        if poly:
+        if len(poly) > 0:
             poly = poly + " + "
         poly = poly + multi
 

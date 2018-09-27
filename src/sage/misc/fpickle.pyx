@@ -1,5 +1,4 @@
 # cython: old_style_globals=True
-# cython: binding=True
 """
 Function pickling
 
@@ -21,7 +20,7 @@ def code_ctor(*args):
 
         sage: def foo(a,b,c=10): return a+b+c
         sage: sage.misc.fpickle.reduce_code(foo.__code__)
-        (<cyfunction code_ctor at ...>, ...)
+        (<built-in function code_ctor>, ...)
         sage: unpickle_function(pickle_function(foo))
         <function foo at ...>
     """
@@ -34,7 +33,7 @@ def reduce_code(co):
 
         sage: def foo(N): return N+1
         sage: sage.misc.fpickle.reduce_code(foo.__code__)
-        (<cyfunction code_ctor at ...>, ...)
+        (<built-in function code_ctor>, ...)
     """
     if co.co_freevars or co.co_cellvars:
         raise ValueError("Cannot pickle code objects from closures")

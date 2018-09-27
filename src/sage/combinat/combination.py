@@ -346,9 +346,8 @@ class Combinations_msetk(CombinatorialClass):
             [['a', 'a'], ['a', 'b']]
         """
         items = map(self.mset.index, self.mset)
-        indices = uniq(sorted(items))  # this consumes "items" in python3
+        indices = uniq(sorted(items))
         counts = [0] * len(indices)
-        items = map(self.mset.index, self.mset)
         for i in items:
             counts[indices.index(i)] += 1
         for iv in IntegerVectors(self.k, len(indices), outer=counts):
@@ -356,9 +355,8 @@ class Combinations_msetk(CombinatorialClass):
 
     def cardinality(self):
         """
-        Return the size of combinations(mset,k).
-
-        IMPLEMENTATION: Wraps GAP's NrCombinations.
+        Returns the size of combinations(mset,k). IMPLEMENTATION: Wraps
+        GAP's NrCombinations.
 
         EXAMPLES::
 

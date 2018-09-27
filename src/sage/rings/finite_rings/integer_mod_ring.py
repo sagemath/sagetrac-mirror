@@ -538,7 +538,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return True
 
-    def extension(self, poly, name=None, names=None, **kwds):
+    def extension(self, poly, name=None, names=None, embedding=None):
         """
         Return an algebraic extension of ``self``. See
         :meth:`sage.rings.ring.CommutativeRing.extension()` for more
@@ -554,7 +554,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             return self
 
         from sage.rings.ring import CommutativeRing
-        return CommutativeRing.extension(self, poly, name, names, **kwds)
+        return CommutativeRing.extension(self, poly, name, names, embedding)
 
     @cached_method
     def is_prime_field(self):
@@ -593,8 +593,6 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             [1, 5, 7, 11]
             sage: type(L[0])
             <... 'int'>
-            sage: Zmod(1).list_of_elements_of_multiplicative_group()
-            [0]
         """
         import sage.rings.fast_arith as a
         if self.__order <= 46340:   # todo: don't hard code
@@ -602,9 +600,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         elif self.__order <= 2147483647:   # todo: don't hard code
             gcd = a.arith_llong().gcd_longlong
         else:
-            raise NotImplementedError("list_of_elements_of_multiplicative_group() is not implemented for large moduli")
+            raise MemoryError("creating the list would exhaust memory")
         N = self.__order
-        # Don't use N.coprime_integers() here because we want Python ints
         return [i for i in range(N) if gcd(i, N) == 1]
 
     @cached_method

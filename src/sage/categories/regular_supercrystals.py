@@ -113,12 +113,7 @@ class RegularSuperCrystals(Category_singleton):
 
                 sage: B = crystals.Letters(['A', [1,3]])
                 sage: G = B.digraph(); G
-                Multi-digraph on 6 vertices
-                sage: Q = crystals.Letters(['Q',3])
-                sage: G = Q.digraph(); G
-                Multi-digraph on 3 vertices
-                sage: G.edges()
-                [(1, 2, -1), (1, 2, 1), (2, 3, -2), (2, 3, 2)]
+                Digraph on 6 vertices
 
             The edges of the crystal graph are by default colored using
             blue for edge 1, red for edge 2, green for edge 3, and dashed with
@@ -130,13 +125,13 @@ class RegularSuperCrystals(Category_singleton):
             from sage.misc.latex import LatexExpr
             from sage.combinat.root_system.cartan_type import CartanType
 
-            G = DiGraph(multiedges=True)
-            G.add_vertices(self)
+            d = {x: {} for x in self}
             for i in self.index_set():
-                for x in G:
+                for x in d:
                     y = x.f(i)
                     if y is not None:
-                        G.add_edge(x, y, i)
+                        d[x][y] = i
+            G = DiGraph(d, format='dict_of_dicts')
 
             def edge_options(data):
                 u, v, l = data
@@ -294,15 +289,10 @@ class RegularSuperCrystals(Category_singleton):
                 True
             """
             cartan_type = self.cartan_type()
+            from sage.combinat.crystals.tensor_product import FullTensorProductOfSuperCrystals
             if any(c.cartan_type() != cartan_type for c in crystals):
                 raise ValueError("all crystals must be of the same Cartan type")
-
-            if cartan_type.letter == 'Q':
-                from sage.combinat.crystals.tensor_product import FullTensorProductOfQueerSuperCrystals
-                return FullTensorProductOfQueerSuperCrystals((self,) + tuple(crystals), **options)
-            else:
-                from sage.combinat.crystals.tensor_product import FullTensorProductOfSuperCrystals
-                return FullTensorProductOfSuperCrystals((self,) + tuple(crystals), **options)
+            return FullTensorProductOfSuperCrystals((self,) + tuple(crystals), **options)
 
         def character(self):
             """
@@ -345,9 +335,10 @@ class RegularSuperCrystals(Category_singleton):
 
                 sage: B = crystals.Tableaux(['A', [1,1]], shape=[3,2,1])
                 sage: B.highest_weight_vectors()
-                ([[-2, -2, -2], [-1, -1], [1]],
-                 [[-2, -2, -2], [-1, 2], [1]],
+                ([[-2, -2, -2], [-1, 2], [1]],
+                 [[-2, -2, -2], [-1, -1], [1]],
                  [[-2, -2, 2], [-1, -1], [1]])
+
                 sage: B.genuine_highest_weight_vectors()
                 ([[-2, -2, -2], [-1, -1], [1]],)
             """
@@ -373,9 +364,10 @@ class RegularSuperCrystals(Category_singleton):
 
                 sage: B = crystals.Tableaux(['A', [1,1]], shape=[3,2,1])
                 sage: B.lowest_weight_vectors()
-                ([[-1, 1, 2], [1, 2], [2]],
-                 [[-2, 1, 2], [-1, 2], [1]],
+                ([[-2, 1, 2], [-1, 2], [1]],
+                 [[-1, 1, 2], [1, 2], [2]],
                  [[-2, 1, 2], [-1, 2], [2]])
+
                 sage: B.genuine_lowest_weight_vectors()
                 ([[-1, 1, 2], [1, 2], [2]],)
             """
@@ -446,8 +438,8 @@ class RegularSuperCrystals(Category_singleton):
                 sage: B = crystals.Tableaux(['A', [1,1]], shape=[3,2,1])
                 sage: for b in B.highest_weight_vectors():
                 ....:     print("{} {}".format(b, b.is_genuine_highest_weight()))
-                [[-2, -2, -2], [-1, -1], [1]] True
                 [[-2, -2, -2], [-1, 2], [1]] False
+                [[-2, -2, -2], [-1, -1], [1]] True
                 [[-2, -2, 2], [-1, -1], [1]] False
                 sage: [b for b in B if b.is_genuine_highest_weight([-1,0])]
                 [[[-2, -2, -2], [-1, -1], [1]],
@@ -479,8 +471,8 @@ class RegularSuperCrystals(Category_singleton):
                 sage: B = crystals.Tableaux(['A', [1,1]], shape=[3,2,1])
                 sage: for b in B.lowest_weight_vectors():
                 ....:     print("{} {}".format(b, b.is_genuine_lowest_weight()))
-                [[-1, 1, 2], [1, 2], [2]] True
                 [[-2, 1, 2], [-1, 2], [1]] False
+                [[-1, 1, 2], [1, 2], [2]] True
                 [[-2, 1, 2], [-1, 2], [2]] False
                 sage: [b for b in B if b.is_genuine_lowest_weight([-1,0])]
                 [[[-2, -1, 1], [-1, 1], [1]],

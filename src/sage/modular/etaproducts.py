@@ -397,11 +397,11 @@ class EtaGroupElement(MultiplicativeGroupElement):
         sumR = sumDR = sumNoverDr = 0
         prod = 1
 
-        for d in rdict:
+        for d in rdict.keys():
             if N % d:
                 raise ValueError("%s does not divide %s" % (d, N))
 
-        for d in list(rdict):
+        for d in rdict.keys():
             if rdict[d] == 0:
                 rdict.pop(d)
                 continue
@@ -419,9 +419,9 @@ class EtaGroupElement(MultiplicativeGroupElement):
         if not is_square(prod):
             raise ValueError("product (N/d)^(r_d) (=%s) is not a square" % prod)
 
-        self._sumDR = sumDR  # this is useful to have around
+        self._sumDR = sumDR # this is useful to have around
         self._rdict = rdict
-        self._keys = list(rdict)  # avoid factoring N every time
+        self._keys = rdict.keys() # avoid factoring N every time
 
     def _mul_(self, other):
         r"""
@@ -787,8 +787,9 @@ class CuspFamily(SageObject):
         return self._N
 
     def sage_cusp(self):
-        r"""
-        Return the corresponding element of `\mathbb{P}^1(\QQ)`.
+        """
+        Return the corresponding element of
+        `\mathbb{P}^1(\QQ)`.
 
         EXAMPLES::
 

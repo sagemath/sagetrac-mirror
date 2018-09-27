@@ -13,7 +13,6 @@ Lie Algebras
    sage/algebras/lie_algebras/lie_algebra
    sage/algebras/lie_algebras/lie_algebra_element
    sage/algebras/lie_algebras/morphism
-   sage/algebras/lie_algebras/nilpotent_lie_algebra
    sage/algebras/lie_algebras/onsager
    sage/algebras/lie_algebras/poincare_birkhoff_witt
    sage/algebras/lie_algebras/structure_coefficients

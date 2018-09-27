@@ -81,9 +81,7 @@ def numerical_integral(func, a, b=None,
 
     - ``max_points`` -- sets the maximum number of sample points
     - ``params`` -- used to pass parameters to your function
-    - ``eps_abs``, ``eps_rel`` -- sets the absolute and relative error
-      tolerances which satisfies the relation ``|RESULT - I|  <= max(eps_abs,
-      eps_rel * |I|)``, where ``I = \int_a^b f(x) d x``.
+    - ``eps_abs``, ``eps_rel`` -- absolute and relative error tolerances
     - ``rule`` -- This controls the Gauss-Kronrod rule used in the adaptive integration:
 
       * rule=1 -- 15 point rule
@@ -216,12 +214,7 @@ def numerical_integral(func, a, b=None,
     - Robert Bradshaw
     - Jeroen Demeyer
 
-    ALGORITHM: Uses calls to the GSL (GNU Scientific Library) C library [GSL]_.
-
-    REFERENCES:
-
-    .. [GSL] GNU numerical integration.
-       https://www.gnu.org/software/gsl/manual/html_node/Numerical-Integration.html
+    ALGORITHM: Uses calls to the GSL (GNU Scientific Library) C library.
 
     TESTS:
 

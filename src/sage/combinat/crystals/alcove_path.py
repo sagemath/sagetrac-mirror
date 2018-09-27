@@ -381,7 +381,7 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
             return self.element_class(self, tuple(sorted([lambda_chain[i] for i in data])))
 
     def vertices(self):
-        r"""
+        """
         Return a list of all the vertices of the crystal.
 
         The vertices are represented as lists of integers recording the folding
@@ -475,7 +475,6 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
         if not self._highest_weight_crystal:
             return super(CrystalOfAlcovePaths, self).digraph()
         return super(CrystalOfAlcovePaths, self).digraph(depth=depth)
-
 
 class CrystalOfAlcovePathsElement(ElementWrapper):
     """
@@ -747,56 +746,57 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
         affine_ambient_space = RootSystem(ct.affine()).ambient_space()
         return affine_ambient_space.plot() + affine_ambient_space.plot_alcove_walk( word, foldings=foldings, labels=False)
 
-    def _richcmp_(self, other, op):
+    def __eq__(self, other):
         r"""
-        Comparison of ``self.value`` and ``other.value``.
-
-        For inequalities, ``self.value`` is compared to
-        ``other.value`` in dictionary order.
+        Test equality of ``self.value`` and ``other.value``.
 
         EXAMPLES::
 
-            sage: C = crystals.AlcovePaths(['B',2],[1,0])
-            sage: lst = list(C)
+            sage: C=crystals.AlcovePaths(['B',2],[1,0])
+            sage: lst=list(C)
             sage: lst[2] == lst[2]
             True
             sage: lst[2] == lst[1]
             False
-            sage: lst[2] != lst[2]
-            False
-            sage: lst[2] != lst[1]
-            True
-
-            sage: C = crystals.AlcovePaths(['A',2],[2,0])
-            sage: x = C(())
-            sage: x < x.f(1)
-            True
-            sage: a = x.f(1) ; b = x.f(1).f(1).f(2)
-            sage: a < b
-            False
-
-            sage: C = crystals.AlcovePaths(['A',2],[2,0])
-            sage: x = C( () )
-            sage: x > x.f(1)
-            False
-            sage: a = x.f(1) ; b = x.f(1).f(1).f(2)
-            sage: a > b
-            True
         """
-        return richcmp(self.value, other.value, op)
+        #note: may want to use _eq_ for coercion
+        try:
+            return self.value == other.value
+        except (NameError, AttributeError):
+            return False
 
-    def __hash__(self):
-        """
-        Return the hash of ``self``.
+    def __lt__(self, other):
+        r"""
+        Test if ``self.value`` is less than ``other.value`` in dictionary order.
 
         EXAMPLES::
 
-            sage: C = crystals.AlcovePaths(['B',2],[1,0])
-            sage: lst = list(C)
-            sage: hash(lst[2]) == hash(lst[2])
+            sage: C = crystals.AlcovePaths(['A',2],[2,0])
+            sage: x = C( () )
+            sage: x.__lt__(x.f(1))
+            True
+            sage: a=x.f(1) ; b = x.f(1).f(1).f(2)
+            sage: a.__lt__(b)
+            False
+        """
+        return self.value < other.value
+
+    def __gt__(self, other):
+        r"""
+        Test if ``self.value`` is greater than ``other.value`` in dictionary
+        order.
+
+        EXAMPLES::
+
+            sage: C = crystals.AlcovePaths(['A',2],[2,0])
+            sage: x = C( () )
+            sage: x.__gt__(x.f(1))
+            False
+            sage: a=x.f(1) ; b = x.f(1).f(1).f(2)
+            sage: a.__gt__(b)
             True
         """
-        return hash(self.value)
+        return self.value > other.value
 
     def _folding_data(self, i):
         r"""
@@ -827,7 +827,7 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             {(alpha[2], 0): 1, (alpha[1] + alpha[2], 1): 1, 'infinity': 1}
             sage: fd['infinity']
             1
-            sage: sorted(fd.values())
+            sage: fd.values()
             [1, 1, 1]
         """
         Parent = self.parent()

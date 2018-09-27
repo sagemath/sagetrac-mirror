@@ -368,7 +368,7 @@ def function(s, *args, **kwds):
         sage: B
         B   
     """
-    if args:
+    if len(args) > 0:
         from sage.misc.superseded import deprecation
         deprecation(17447, "Calling function('f',x) is deprecated. Use function('f')(x) instead.")
         return function(s, **kwds)(*args)

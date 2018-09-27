@@ -346,6 +346,11 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         """
         if self._ambient is None:
             return super(PseudoRiemannianManifold, self).__repr__()
+        if self._ambient._dim-self._dim==1:
+            return "pseudo-Riemannian hypersurface {} embedded " \
+               "in {}-dimensional differentiable " \
+               "manifold {}".format(self._name, self._ambient._dim,
+                                    self._ambient._name)
         return "{}-dimensional pseudo-Riemannian submanifold {} embedded " \
                "in {}-dimensional differentiable " \
                "manifold {}".format(self._dim, self._name, self._ambient._dim,
