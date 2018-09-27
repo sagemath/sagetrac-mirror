@@ -221,63 +221,141 @@ class PackedWord(ClonableIntArray):
         """
         return len(self)
 
+    def inversions(self, side="right", support="position"):
+        r"""
+        Return the set of ``side`` weak order inversions on ``support``  of ``self``.
+
+        INPUT:
+
+        - ``side`` -- "left" or "right":
+          the side of the weak order of inversions
+        - ``support`` -- "position" or "value":
+          the support of the result
+
+        OUTPUT:
+        
+        ``right`` inversions are generally on ``positions`` whereas
+        ``left`` inversions are generally on ``values``.
+
+        Return by default ``right`` weak order inversions on ``positions``.
+
+            Let `u` be a packed word of size `n`. Then *right weak order
+            inversions* of `u` are the pairs `(i, j)` such that
+            `1 \leq i < j \leq n` and `u_i > u_j`.
+
+            EXAMPLES::
+
+                sage: PackedWord([]).inversions()
+                set()
+                sage: PackedWord([1, 2, 3]).inversions()
+                set()
+                sage: PackedWord([1, 2, 1]).inversions()
+                {(2, 3)}
+                sage: PackedWord([3, 2, 1]).inversions()
+                {(1, 2), (1, 3), (2, 3)}
+                sage: PackedWord([2, 3, 4, 1, 2, 4, 3]).inversions()
+                {(1, 4), (2, 4), (2, 5), (3, 4), (3, 5), (3, 7), (6, 7)}
+
+        If the option ``side`` is still ``right`` and ``support`` is ``value``.
+
+            Let `u` be a packed word. Then *right weak order inversions*
+            on *values* of `u` are the pairs `(u_i, u_j)` such that `u_i > u_j`
+            for some `i < j`.
+
+            EXAMPLES::
+
+                sage: PackedWord([]).inversions(support="value")
+                set()
+                sage: PackedWord([1, 2, 3]).inversions(support="value")
+                set()
+                sage: PackedWord([1, 2, 1]).inversions(support="value")
+                {(2, 1)}
+                sage: PackedWord([3, 2, 1]).inversions(support="value")
+                {(2, 1), (3, 1), (3, 2)}
+                sage: PackedWord([2, 3, 4, 1, 2, 4, 3]).inversions(support="value")
+                {(2, 1), (3, 1), (3, 2), (4, 1), (4, 2), (4, 3)}
+
+        If the option ``side`` is ``left`` and ``support`` is ``value``.
+
+            Let `u` be a packed word. The *left weak order inversions* on *values*
+            of `u` are the pairs `(b, a)` such that `a < b` and the first
+            occurence of `a` in `u` is after the last occrence of `b` in `u`.
+
+            EXAMPLES::
+
+                sage: PackedWord([]).inversions(side="left",support="value")
+                set()
+                sage: PackedWord([1, 2, 3]).inversions(side="left",support="value")
+                set()
+                sage: PackedWord([1, 2, 1]).inversions(side="left",support="value")
+                set()
+                sage: PackedWord([3, 1, 2]).inversions(side="left",support="value")
+                {(3, 1), (3, 2)}
+                sage: PackedWord([3, 1, 4, 1, 2]).inversions(side="left",support="value")
+                {(3, 1), (3, 2), (4, 2)}
+        
+        If the option ``side`` is ``left`` and ``support`` is ``position``.
+
+            Let `u` be a packed word. Then *left weak order inversions*
+            on *positions* of `u` are the pairs `(i, j)` such that
+            `i < j` and the first occurence of `u_j` in `u`
+            is after the last occrence of `u_i` in `u`.
+        
+            EXAMPLES::
+
+                sage: PackedWord([]).inversions(side="left",support="position")
+                set()
+                sage: PackedWord([1, 2, 3]).inversions(side="left",support="position")
+                set()
+                sage: PackedWord([1, 2, 1]).inversions(side="left",support="position")
+                set()
+                sage: PackedWord([3, 1, 2]).inversions(side="left",support="position")
+                {(1, 2), (1, 3)}
+                sage: PackedWord([3, 1, 4, 1, 2]).inversions(side="left",support="position")
+                {(1, 2), (1, 5), (3, 5)}
+
+        """
+        if not side in ["left", "right"]:
+            raise ValueError("option 'side' must be 'left' or 'right'")
+        if not support in ["position", "value"]:
+            raise ValueError("option 'support' must be 'position' or 'value'")
+        
+        if not self:
+            return set()
+        
+        n=len(self)
+        m=max(self)
+
+        if side == "right":
+
+            if support == "position":
+                return set((i + 1, j + 1)
+                           for i in range(n - 1)
+                           for j in range(i + 1, n)
+                           if self[i] > self[j])
+            
+            if support == "value":
+                return set((self[i], self[j])
+                           for i in range(n - 1)
+                           for j in range(i + 1, n)
+                           if self[i] > self[j])
+
+        if side == "left":
+            rev = self[::-1]
+
+            if support == "value":
+                return set((j, i)
+                           for i in range(1, m)
+                           for j in range(i + 1, m + 1)
+                           if self.index(i) > n - rev.index(j) - 1)
+            
+            if support == "position":
+                return set((n - rev.index(j), self.index(i) + 1)
+                           for i in range(1, m)
+                           for j in range(i + 1, m + 1)
+                           if self.index(i) > n - rev.index(j) - 1)
+
 ###################     Right Weak Order     ##################################
-
-    #FIXME: It is actually more natural in programming for these to start at 0.
-    #   Do we want to change that?
-    def inversions_right(self):
-        r""" 
-        Return the set of right weak order inversions of ``self``.
-
-        Let `u` be a packed word of size `n`. Then *right weak order
-        inversions* of `u` are the pairs `(i, j)` such that
-        `1 \leq i < j \leq n` and `u_i > u_j`.
-
-        EXAMPLES::
-
-            sage: PackedWord([]).inversions_right()
-            set()
-            sage: PackedWord([1, 2, 3]).inversions_right()
-            set()
-            sage: PackedWord([1, 2, 1]).inversions_right()
-            {(2, 3)}
-            sage: PackedWord([3, 2, 1]).inversions_right()
-            {(1, 2), (1, 3), (2, 3)}
-            sage: PackedWord([2, 3, 4, 1, 2, 4, 3]).inversions_right()
-            {(1, 4), (2, 4), (2, 5), (3, 4), (3, 5), (3, 7), (6, 7)}
-        """
-        n = len(self)
-        return set((i + 1, j + 1)
-                   for i in range(n - 1)
-                   for j in range(i + 1, n)
-                   if self[i] > self[j])
-
-    def coinversions_right(self):
-        r""" 
-        Return the set of right weak order coinversions of ``self``.
-
-        Let `u` be a packed word. Then *right weak order coinversions*
-        of `u` are the pairs `(u_i, u_j)` such that `u_i > u_j`
-        for some `i < j`.
-
-        EXAMPLES::
-
-            sage: PackedWord([]).coinversions_right()
-            set()
-            sage: PackedWord([1, 2, 3]).coinversions_right()
-            set()
-            sage: PackedWord([1, 2, 1]).coinversions_right()
-            {(2, 1)}
-            sage: PackedWord([3, 2, 1]).coinversions_right()
-            {(2, 1), (3, 1), (3, 2)}
-            sage: PackedWord([2, 3, 4, 1, 2, 4, 3]).coinversions_right()
-            {(2, 1), (3, 1), (3, 2), (4, 1), (4, 2), (4, 3)}
-        """
-        n = len(self)
-        return set((self[i], self[j])
-                   for i in range(n - 1)
-                   for j in range(i + 1, n)
-                   if self[i] > self[j])
 
     def right_weak_order_succ(self):
         r"""
@@ -298,9 +376,9 @@ class PackedWord(ClonableIntArray):
             sage: v = PackedWord([1, 2, 1])
             sage: u, = v.right_weak_order_succ(); u
             [2, 1, 1]
-            sage: v.inversions_right()
+            sage: v.inversions()
             {(2, 3)}
-            sage: u.inversions_right()
+            sage: u.inversions()
             {(1, 2), (1, 3)}
 
             sage: PackedWord([3, 1, 2]).right_weak_order_succ()
@@ -337,9 +415,9 @@ class PackedWord(ClonableIntArray):
             sage: u = PackedWord([1, 2, 1])
             sage: v, = u.right_weak_order_pred(); v
             [1, 1, 2]
-            sage: u.inversions_right()
+            sage: u.inversions()
             {(2, 3)}
-            sage: v.inversions_right()
+            sage: v.inversions()
             set()
 
             sage: PackedWord([3, 1, 2]).right_weak_order_pred()
@@ -420,70 +498,6 @@ class PackedWord(ClonableIntArray):
 
 ###################     Left Weak Order     ###################################
 
-    def inversions_left(self):
-        r"""
-        Return the set of left weak order inversions of ``self``.
-
-        Let `u` be a packed word. The *left weak order inversions*
-        of `u` are the pairs `(b, a)` such that `a < b` and the first
-        occurence of `a` in `u` is after the last occrence of `b` in `u`.
-
-        EXAMPLES::
-
-            sage: PackedWord([]).inversions_left()
-            set()
-            sage: PackedWord([1, 2, 3]).inversions_left()
-            set()
-            sage: PackedWord([1, 2, 1]).inversions_left()
-            set()
-            sage: PackedWord([3, 1, 2]).inversions_left()
-            {(3, 1), (3, 2)}
-            sage: PackedWord([3, 1, 4, 1, 2]).inversions_left()
-            {(3, 1), (3, 2), (4, 2)}
-        """
-        if not self:
-            return set()
-        n = len(self)
-        m = max(self)
-        rev = self[::-1]
-        return set((j, i)
-                   for i in range(1, m)
-                   for j in range(i + 1, m + 1)
-                   if self.index(i) > n - rev.index(j) - 1)
-
-    #FIXME: Is the indexing convenion correct? Is it 0-based or 1-based?
-    def coinversions_left(self):
-        r"""
-        Return the set of left weak order coinversions of ``self``.
-
-        Let `u` be a packed word. Then *left weak order coinversions*
-        of `u` are the pairs `(i, j)` such that
-        `i < j` and the first occurence of `u_j` in `u`
-        is after the last occrence of `u_i` in `u`.
-
-        EXAMPLES::
-
-            sage: PackedWord([]).inversions_left()
-            set()
-            sage: PackedWord([1, 2, 3]).coinversions_left()
-            set()
-            sage: PackedWord([1, 2, 1]).coinversions_left()
-            set()
-            sage: PackedWord([3, 1, 2]).coinversions_left()
-            {(1, 2), (1, 3)}
-            sage: PackedWord([3, 1, 4, 1, 2]).coinversions_left()
-            {(1, 2), (1, 5), (3, 5)}
-        """
-        if not self:
-            return set()
-        n = len(self)
-        m = max(self)
-        rev = self[::-1]
-        return set((n - rev.index(j), self.index(i) + 1)
-                   for i in range(1, m)
-                   for j in range(i + 1, m + 1)
-                   if self.index(i) > n - rev.index(j) - 1)
-
     def left_weak_order_succ(self):
         r"""
         Return the list of successors of ``self`` under the left weak order.
@@ -505,10 +519,10 @@ class PackedWord(ClonableIntArray):
             sage: u = PackedWord([3, 1, 2])
             sage: v, = u.left_weak_order_succ(); v
             [3, 2, 1]
-            sage: u.inversions_left()
-            {(1, 3), (2, 3)}
-            sage: v.inversions_left()
-            {(1, 2), (1, 3), (2, 3)}
+            sage: u.inversions(side="left",support="value")
+            {(3, 1), (3, 2)}
+            sage: v.inversions(side="left",support="value")
+            {(2, 1), (3, 1), (3, 2)}
 
             sage: PackedWord([1, 2, 4, 3, 3, 2]).left_weak_order_succ()
             [[2, 1, 4, 3, 3, 1]]
@@ -555,10 +569,10 @@ class PackedWord(ClonableIntArray):
             sage: v = PackedWord([3, 1, 2])
             sage: u, = v.left_weak_order_pred(); u
             [2, 1, 3]
-            sage: v.inversions_left()
-            {(1, 3), (2, 3)}
-            sage: u.inversions_left()
-            {(1, 2)}
+            sage: v.inversions(side="left",support="value")
+            {(3, 1), (3, 2)}
+            sage: u.inversions(side="left",support="value")
+            {(2, 1)}
 
             sage: PackedWord([3, 1, 2, 4, 4]).left_weak_order_pred()
             [[2, 1, 3, 4, 4]]
