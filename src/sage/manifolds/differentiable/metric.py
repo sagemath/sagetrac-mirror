@@ -2381,19 +2381,19 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
 class DegenerateMetric(TensorField):
     r"""
-    Pseudo-Riemannian metric with values on an open subset of a
+    Degenerate metric with values on an open subset of a
     differentiable manifold.
 
-    An instance of this class is a field of nondegenerate symmetric bilinear
+    An instance of this class is a field of degenerate symmetric bilinear
     forms (metric field) along a differentiable manifold `U` with
     values on a differentiable manifold `M` over `\RR`, via a differentiable
     mapping `\Phi: U \rightarrow M`.
-    The standard case of a metric field *on* a manifold corresponds to `U=M`
+    The standard case of a degenerate metric field *on* a manifold corresponds to `U=M`
     and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi` being an
     immersion and `\Phi` being a curve in `M` (`U` is then an open interval
     of `\RR`).
 
-    A *metric* `g` is a field on `U`, such that at each point `p\in U`, `g(p)`
+    A *degenerate metric* `g` is a field on `U`, such that at each point `p\in U`, `g(p)`
     is a bilinear map of the type:
 
     .. MATH::
@@ -2403,12 +2403,12 @@ class DegenerateMetric(TensorField):
     where `T_q M` stands for the tangent space to the
     manifold `M` at the point `q=\Phi(p)`, such that `g(p)` is symmetric:
     `\forall (u,v)\in  T_q M\times T_q M, \ g(p)(v,u) = g(p)(u,v)`
-    and nondegenerate:
-    `(\forall v\in T_q M,\ \ g(p)(u,v) = 0) \Longrightarrow u=0`.
+    and degenerate:
+    `\exists v\in T_q M;\ \ g(p)(u,v) = 0\ \ \forall u\in T_qM`.
 
     .. NOTE::
 
-        If `M` is parallelizable, the class :class:`PseudoRiemannianMetricParal`
+        If `M` is parallelizable, the class :class:`DegenerateMetricParal`
         should be used instead.
 
     INPUT:
@@ -2417,247 +2417,43 @@ class DegenerateMetric(TensorField):
       fields along `U` with values on `\Phi(U)\subset M`
     - ``name`` -- name given to the metric
     - ``signature`` -- (default: ``None``) signature `S` of the metric as a
-      single integer: `S = n_+ - n_-`, where `n_+` (resp. `n_-`) is the number
-      of positive terms (resp. number of negative terms) in any diagonal
-      writing of the metric components; if ``signature`` is ``None``, `S` is
-      set to the dimension of manifold `M` (Riemannian signature)
+      tuple: `S = (n_+, n_-, n_0)`, where `n_+` (resp. `n_-`, resp. `n_0`) is the
+      number of positive terms (resp. negative terms, resp. zero tems) in any
+      diagonal writing of the metric components; if ``signature`` is not
+      provided, `S` is set to `(ndim-1, 0, 1)`, being `ndim` the manifold's dimension
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the metric;
       if ``None``, it is formed from ``name``
 
     EXAMPLES:
 
-    Standard metric on the sphere `S^2`::
+    Lightlike cone::
 
-        sage: M = Manifold(2, 'S^2', start_index=1)
-        sage: # The two open domains covered by stereographic coordinates (North and South):
-        sage: U = M.open_subset('U') ; V = M.open_subset('V')
-        sage: M.declare_union(U,V)   # S^2 is the union of U and V
-        sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart() # stereographic coord
-        sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-        ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
-        ....:                 restrictions2= u^2+v^2!=0)
-        sage: uv_to_xy = xy_to_uv.inverse()
-        sage: W = U.intersection(V) # The complement of the two poles
-        sage: eU = c_xy.frame() ; eV = c_uv.frame()
-        sage: c_xyW = c_xy.restrict(W) ; c_uvW = c_uv.restrict(W)
-        sage: eUW = c_xyW.frame() ; eVW = c_uvW.frame()
-        sage: g = M.metric('g') ; g
-        Riemannian metric g on the 2-dimensional differentiable manifold S^2
-
-    The metric is considered as a tensor field of type (0,2) on `S^2`::
-
+        sage: M = Manifold(3, 'M'); X.<x,y,z> = M.chart()
+        sage: g = M.metric('g', signature=(2,0,1)); g
+        degenerate metric g on the 3-dimensional differentiable manifold M
+        sage: det(g)
+        0
         sage: g.parent()
-        Module T^(0,2)(S^2) of type-(0,2) tensors fields on the 2-dimensional
-         differentiable manifold S^2
+        Free module T^(0,2)(M) of type-(0,2) tensors fields on the 
+        3-dimensional differentiable manifold M
+        sage: g[0,0], g[0,1], g[0,2] = (y^2 + z^2)/(x^2 + y^2 + z^2), \
+        ....: - x*y/(x^2 + y^2 + z^2), - x*z/(x^2 + y^2 + z^2)
+        sage: g[1,1], g[1,2], g[2,2] = (x^2 + z^2)/(x^2 + y^2 + z^2), \
+        ....: - y*z/(x^2 + y^2 + z^2), (x^2 + y^2)/(x^2 + y^2 + z^2)
+        sage: g.disp()
+        g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx*dx - x*y/(x^2 + y^2 + z^2) dx*dy 
+        - x*z/(x^2 + y^2 + z^2) dx*dz - x*y/(x^2 + y^2 + z^2) dy*dx 
+        + (x^2 + z^2)/(x^2 + y^2 + z^2) dy*dy - y*z/(x^2 + y^2 + z^2) dy*dz 
+        - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy 
+        + (x^2 + y^2)/(x^2 + y^2 + z^2) dz*dz
+        
+    The position vector is a lightlike vector field.
 
-    We define g by its components on domain U (factorizing them to have a nicer
-    view)::
-
-        sage: g[eU,1,1], g[eU,2,2] = 4/(1+x^2+y^2)^2, 4/(1+x^2+y^2)^2
-        sage: g.display(eU)
-        g = 4/(x^2 + y^2 + 1)^2 dx*dx + 4/(x^2 + y^2 + 1)^2 dy*dy
-
-    A matrix view of the components::
-
-        sage: g[eU,:]
-        [4/(x^2 + y^2 + 1)^2                   0]
-        [                  0 4/(x^2 + y^2 + 1)^2]
-
-    The components of g on domain V expressed in terms of (u,v) coordinates are
-    similar to those on domain U expressed in (x,y) coordinates, as we can
-    check explicitly by asking for the component transformation on the
-    common subdomain W::
-
-        sage: g.display(eVW, c_uvW)
-        g = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du*du
-         + 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) dv*dv
-
-    Therefore, we set::
-
-        sage: g[eV,1,1], g[eV,2,2] = 4/(1+u^2+v^2)^2, 4/(1+u^2+v^2)^2
-        sage: g[eV,1,1].factor() ; g[eV,2,2].factor()
-        4/(u^2 + v^2 + 1)^2
-        4/(u^2 + v^2 + 1)^2
-        sage: g.display(eV)
-        g = 4/(u^2 + v^2 + 1)^2 du*du + 4/(u^2 + v^2 + 1)^2 dv*dv
-
-    At this stage, the metric is fully defined on the whole sphere. Its
-    restriction to some subdomain is itself a metric (by default, it bears the
-    same symbol)::
-
-        sage: g.restrict(U)
-        Riemannian metric g on the Open subset U of the 2-dimensional
-         differentiable manifold S^2
-        sage: g.restrict(U).parent()
-        Free module T^(0,2)(U) of type-(0,2) tensors fields on the Open subset
-         U of the 2-dimensional differentiable manifold S^2
-
-    The parent of `g|_U` is a free module because is `U` is a parallelizable
-    domain, contrary to `S^2`. Actually, `g` and `g|_U` have different Python
-    type::
-
-        sage: type(g)
-        <class 'sage.manifolds.differentiable.metric.PseudoRiemannianMetric'>
-        sage: type(g.restrict(U))
-        <class 'sage.manifolds.differentiable.metric.PseudoRiemannianMetricParal'>
-
-    As a field of bilinear forms, the metric acts on pairs of tensor fields,
-    yielding a scalar field::
-
-        sage: a = M.vector_field('a')
-        sage: a[eU,:] = [x, 2+y]
-        sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
-        sage: b = M.vector_field('b')
-        sage: b[eU,:] = [-y, x]
-        sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
-        sage: s = g(a,b) ; s
-        Scalar field g(a,b) on the 2-dimensional differentiable manifold S^2
-        sage: s.display()
-        g(a,b): S^2 --> R
-        on U: (x, y) |--> 8*x/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1)
-        on V: (u, v) |--> 8*(u^3 + u*v^2)/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1)
-
-    The inverse metric is::
-
-        sage: ginv = g.inverse() ; ginv
-        Tensor field inv_g of type (2,0) on the 2-dimensional differentiable
-         manifold S^2
-        sage: ginv.parent()
-        Module T^(2,0)(S^2) of type-(2,0) tensors fields on the 2-dimensional
-         differentiable manifold S^2
-        sage: latex(ginv)
-        g^{-1}
-        sage: ginv.display(eU) # again the components are expanded
-        inv_g = (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dx*d/dx
-         + (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dy*d/dy
-        sage: ginv.display(eV)
-        inv_g = (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/du*d/du
-         + (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/dv*d/dv
-
-    We have::
-
-        sage: ginv.restrict(U) is g.restrict(U).inverse()
-        True
-        sage: ginv.restrict(V) is g.restrict(V).inverse()
-        True
-        sage: ginv.restrict(W) is g.restrict(W).inverse()
-        True
-
-    The volume form (Levi-Civita tensor) associated with `g`::
-
-        sage: eps = g.volume_form() ; eps
-        2-form eps_g on the 2-dimensional differentiable manifold S^2
-        sage: eps.display(eU)
-        eps_g = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx/\dy
-        sage: eps.display(eV)
-        eps_g = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du/\dv
-
-    The unique non-trivial component of the volume form is nothing but the
-    square root of the determinant of g in the corresponding frame::
-
-        sage: eps[[eU,1,2]] == g.sqrt_abs_det(eU)
-        True
-        sage: eps[[eV,1,2]] == g.sqrt_abs_det(eV)
-        True
-
-    The Levi-Civita connection associated with the metric `g`::
-
-        sage: nabla = g.connection() ; nabla
-        Levi-Civita connection nabla_g associated with the Riemannian metric g
-         on the 2-dimensional differentiable manifold S^2
-        sage: latex(nabla)
-        \nabla_{g}
-
-    The Christoffel symbols `\Gamma^i_{\ \, jk}` associated with some
-    coordinates::
-
-        sage: g.christoffel_symbols(c_xy)
-        3-indices components w.r.t. Coordinate frame (U, (d/dx,d/dy)), with
-         symmetry on the index positions (1, 2)
-        sage: g.christoffel_symbols(c_xy)[:]
-        [[[-2*x/(x^2 + y^2 + 1), -2*y/(x^2 + y^2 + 1)],
-          [-2*y/(x^2 + y^2 + 1), 2*x/(x^2 + y^2 + 1)]],
-         [[2*y/(x^2 + y^2 + 1), -2*x/(x^2 + y^2 + 1)],
-          [-2*x/(x^2 + y^2 + 1), -2*y/(x^2 + y^2 + 1)]]]
-        sage: g.christoffel_symbols(c_uv)[:]
-        [[[-2*u/(u^2 + v^2 + 1), -2*v/(u^2 + v^2 + 1)],
-          [-2*v/(u^2 + v^2 + 1), 2*u/(u^2 + v^2 + 1)]],
-         [[2*v/(u^2 + v^2 + 1), -2*u/(u^2 + v^2 + 1)],
-          [-2*u/(u^2 + v^2 + 1), -2*v/(u^2 + v^2 + 1)]]]
-
-    The Christoffel symbols are nothing but the connection coefficients w.r.t.
-    the coordinate frame::
-
-        sage: g.christoffel_symbols(c_xy) is nabla.coef(c_xy.frame())
-        True
-        sage: g.christoffel_symbols(c_uv) is nabla.coef(c_uv.frame())
-        True
-
-    Test that `\nabla` is the connection compatible with `g`::
-
-        sage: t = nabla(g) ; t
-        Tensor field nabla_g(g) of type (0,3) on the 2-dimensional
-         differentiable manifold S^2
-        sage: t.display(eU)
-        nabla_g(g) = 0
-        sage: t.display(eV)
-        nabla_g(g) = 0
-        sage: t == 0
-        True
-
-    The Riemann curvature tensor of `g`::
-
-        sage: riem = g.riemann() ; riem
-        Tensor field Riem(g) of type (1,3) on the 2-dimensional differentiable
-         manifold S^2
-        sage: riem.display(eU)
-        Riem(g) = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dx*dy*dx*dy
-         - 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dx*dy*dy*dx
-         - 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dy*dx*dx*dy
-         + 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dy*dx*dy*dx
-        sage: riem.display(eV)
-        Riem(g) = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/du*dv*du*dv
-         - 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/du*dv*dv*du
-         - 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/dv*du*du*dv
-         + 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/dv*du*dv*du
-
-    The Ricci tensor of `g`::
-
-        sage: ric = g.ricci() ; ric
-        Field of symmetric bilinear forms Ric(g) on the 2-dimensional
-         differentiable manifold S^2
-        sage: ric.display(eU)
-        Ric(g) = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx*dx
-         + 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dy*dy
-        sage: ric.display(eV)
-        Ric(g) = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du*du
-         + 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) dv*dv
-        sage: ric == g
-        True
-
-    The Ricci scalar of `g`::
-
-        sage: r = g.ricci_scalar() ; r
-        Scalar field r(g) on the 2-dimensional differentiable manifold S^2
-        sage: r.display()
-        r(g): S^2 --> R
-        on U: (x, y) |--> 2
-        on V: (u, v) |--> 2
-
-    In dimension 2, the Riemann tensor can be expressed entirely in terms of
-    the Ricci scalar `r`:
-
-    .. MATH::
-
-        R^i_{\ \, jlk} = \frac{r}{2} \left( \delta^i_{\ \, k} g_{jl}
-            - \delta^i_{\ \, l} g_{jk} \right)
-
-    This formula can be checked here, with the r.h.s. rewritten as
-    `-r g_{j[k} \delta^i_{\ \, l]}`::
-
-        sage: delta = M.tangent_identity_field()
-        sage: riem == - r*(g*delta).antisymmetrize(2,3)
-        True
+        sage: v = M.vector_field()
+        sage: v[0], v[1], v[2] = x , y, z
+        sage: g(v, v).disp()
+        M --> R
+        (x, y, z) |--> 0
 
     """
     
@@ -2668,32 +2464,25 @@ class DegenerateMetric(TensorField):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M')
-            sage: U = M.open_subset('U') ; V = M.open_subset('V')
-            sage: M.declare_union(U,V)   # M is the union of U and V
-            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
-            ....:               intersection_name='W', restrictions1= x>0,
-            ....:               restrictions2= u+v>0)
-            sage: uv_to_xy = xy_to_uv.inverse()
-            sage: W = U.intersection(V)
-            sage: e_xy = c_xy.frame() ; e_uv = c_uv.frame()
+            sage: M = Manifold(3, 'M'); X.<x,y,z> = M.chart()
             sage: XM = M.vector_field_module()
             sage: from sage.manifolds.differentiable.metric import \
-            ....:                                        PseudoRiemannianMetric
-            sage: g = PseudoRiemannianMetric(XM, 'g', signature=0); g
-            Lorentzian metric g on the 2-dimensional differentiable
+            ....:                                        DegenerateMetric
+            sage: g = DegenerateMetric(XM, 'g', signature=(2,0,1)); g
+            degenerate metric g on the 2-dimensional differentiable
              manifold M
-            sage: g[e_xy,0,0], g[e_xy,1,1] = -(1+x^2), 1+y^2
-            sage: g.add_comp_by_continuation(e_uv, W, c_uv)
-            sage: TestSuite(g).run(skip=['_test_category', '_test_pickling'])
+            sage: g[0,0], g[0,1], g[0,2] = (y^2 + z^2)/(x^2 + y^2 + z^2), \
+            ....: - x*y/(x^2 + y^2 + z^2), - x*z/(x^2 + y^2 + z^2)
+            sage: g[1,1], g[1,2], g[2,2] = (x^2 + z^2)/(x^2 + y^2 + z^2), \
+            ....: - y*z/(x^2 + y^2 + z^2), (x^2 + y^2)/(x^2 + y^2 + z^2)
+            sage: g.disp()
+            g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx*dx - x*y/(x^2 + y^2 + z^2) dx*dy 
+            - x*z/(x^2 + y^2 + z^2) dx*dz - x*y/(x^2 + y^2 + z^2) dy*dx 
+            + (x^2 + z^2)/(x^2 + y^2 + z^2) dy*dy - y*z/(x^2 + y^2 + z^2) dy*dz 
+            - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy 
+            + (x^2 + y^2)/(x^2 + y^2 + z^2) dz*dz
 
-        .. TODO::
-
-            - fix _test_pickling (in the superclass TensorField)
-            - add a specific parent to the metrics, to fit with the category
-              framework
-
+        
         """
         TensorField.__init__(self, vector_field_module, (0,2),
                              name=name, latex_name=latex_name, sym=(0,1))
@@ -2903,19 +2692,19 @@ class DegenerateMetric(TensorField):
 
 class DegenerateMetricParal(DegenerateMetric, TensorFieldParal):
     r"""
-    Pseudo-Riemannian metric with values on an open subset of a
+    Degenerate metric with values on an open subset of a
     differentiable manifold.
 
-    An instance of this class is a field of nondegenerate symmetric bilinear
+    An instance of this class is a field of degenerate symmetric bilinear
     forms (metric field) along a differentiable manifold `U` with
     values on a differentiable manifold `M` over `\RR`, via a differentiable
     mapping `\Phi: U \rightarrow M`.
-    The standard case of a metric field *on* a manifold corresponds to `U=M`
+    The standard case of a degenerate metric field *on* a manifold corresponds to `U=M`
     and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi` being an
     immersion and `\Phi` being a curve in `M` (`U` is then an open interval
     of `\RR`).
 
-    A *metric* `g` is a field on `U`, such that at each point `p\in U`, `g(p)`
+    A *degenerate metric* `g` is a field on `U`, such that at each point `p\in U`, `g(p)`
     is a bilinear map of the type:
 
     .. MATH::
@@ -2925,12 +2714,12 @@ class DegenerateMetricParal(DegenerateMetric, TensorFieldParal):
     where `T_q M` stands for the tangent space to the
     manifold `M` at the point `q=\Phi(p)`, such that `g(p)` is symmetric:
     `\forall (u,v)\in  T_q M\times T_q M, \ g(p)(v,u) = g(p)(u,v)`
-    and nondegenerate:
-    `(\forall v\in T_q M,\ \ g(p)(u,v) = 0) \Longrightarrow u=0`.
+    and degenerate:
+    `\exists v\in T_q M;\ \ g(p)(u,v) = 0\ \ \forall u\in T_qM`.
 
     .. NOTE::
 
-        If `M` is parallelizable, the class :class:`PseudoRiemannianMetricParal`
+        If `M` is parallelizable, the class :class:`DegenerateMetricParal`
         should be used instead.
 
     INPUT:
@@ -2939,247 +2728,43 @@ class DegenerateMetricParal(DegenerateMetric, TensorFieldParal):
       fields along `U` with values on `\Phi(U)\subset M`
     - ``name`` -- name given to the metric
     - ``signature`` -- (default: ``None``) signature `S` of the metric as a
-      single integer: `S = n_+ - n_-`, where `n_+` (resp. `n_-`) is the number
-      of positive terms (resp. number of negative terms) in any diagonal
-      writing of the metric components; if ``signature`` is ``None``, `S` is
-      set to the dimension of manifold `M` (Riemannian signature)
+      tuple: `S = (n_+, n_-, n_0)`, where `n_+` (resp. `n_-`, resp. `n_0`) is the
+      number of positive terms (resp. negative terms, resp. zero tems) in any
+      diagonal writing of the metric components; if ``signature`` is not
+      provided, `S` is set to `(ndim-1, 0, 1)`, being `ndim` the manifold's dimension
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the metric;
       if ``None``, it is formed from ``name``
 
     EXAMPLES:
 
-    Standard metric on the sphere `S^2`::
+    Lightlike cone::
 
-        sage: M = Manifold(2, 'S^2', start_index=1)
-        sage: # The two open domains covered by stereographic coordinates (North and South):
-        sage: U = M.open_subset('U') ; V = M.open_subset('V')
-        sage: M.declare_union(U,V)   # S^2 is the union of U and V
-        sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart() # stereographic coord
-        sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-        ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
-        ....:                 restrictions2= u^2+v^2!=0)
-        sage: uv_to_xy = xy_to_uv.inverse()
-        sage: W = U.intersection(V) # The complement of the two poles
-        sage: eU = c_xy.frame() ; eV = c_uv.frame()
-        sage: c_xyW = c_xy.restrict(W) ; c_uvW = c_uv.restrict(W)
-        sage: eUW = c_xyW.frame() ; eVW = c_uvW.frame()
-        sage: g = M.metric('g') ; g
-        Riemannian metric g on the 2-dimensional differentiable manifold S^2
-
-    The metric is considered as a tensor field of type (0,2) on `S^2`::
-
+        sage: M = Manifold(3, 'M'); X.<x,y,z> = M.chart()
+        sage: g = M.metric('g', signature=(2,0,1)); g
+        degenerate metric g on the 3-dimensional differentiable manifold M
+        sage: det(g)
+        0
         sage: g.parent()
-        Module T^(0,2)(S^2) of type-(0,2) tensors fields on the 2-dimensional
-         differentiable manifold S^2
+        Free module T^(0,2)(M) of type-(0,2) tensors fields on the 
+        3-dimensional differentiable manifold M
+        sage: g[0,0], g[0,1], g[0,2] = (y^2 + z^2)/(x^2 + y^2 + z^2), \
+        ....: - x*y/(x^2 + y^2 + z^2), - x*z/(x^2 + y^2 + z^2)
+        sage: g[1,1], g[1,2], g[2,2] = (x^2 + z^2)/(x^2 + y^2 + z^2), \
+        ....: - y*z/(x^2 + y^2 + z^2), (x^2 + y^2)/(x^2 + y^2 + z^2)
+        sage: g.disp()
+        g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx*dx - x*y/(x^2 + y^2 + z^2) dx*dy 
+        - x*z/(x^2 + y^2 + z^2) dx*dz - x*y/(x^2 + y^2 + z^2) dy*dx 
+        + (x^2 + z^2)/(x^2 + y^2 + z^2) dy*dy - y*z/(x^2 + y^2 + z^2) dy*dz 
+        - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy 
+        + (x^2 + y^2)/(x^2 + y^2 + z^2) dz*dz
+        
+    The position vector is a lightlike vector field.
 
-    We define g by its components on domain U (factorizing them to have a nicer
-    view)::
-
-        sage: g[eU,1,1], g[eU,2,2] = 4/(1+x^2+y^2)^2, 4/(1+x^2+y^2)^2
-        sage: g.display(eU)
-        g = 4/(x^2 + y^2 + 1)^2 dx*dx + 4/(x^2 + y^2 + 1)^2 dy*dy
-
-    A matrix view of the components::
-
-        sage: g[eU,:]
-        [4/(x^2 + y^2 + 1)^2                   0]
-        [                  0 4/(x^2 + y^2 + 1)^2]
-
-    The components of g on domain V expressed in terms of (u,v) coordinates are
-    similar to those on domain U expressed in (x,y) coordinates, as we can
-    check explicitly by asking for the component transformation on the
-    common subdomain W::
-
-        sage: g.display(eVW, c_uvW)
-        g = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du*du
-         + 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) dv*dv
-
-    Therefore, we set::
-
-        sage: g[eV,1,1], g[eV,2,2] = 4/(1+u^2+v^2)^2, 4/(1+u^2+v^2)^2
-        sage: g[eV,1,1].factor() ; g[eV,2,2].factor()
-        4/(u^2 + v^2 + 1)^2
-        4/(u^2 + v^2 + 1)^2
-        sage: g.display(eV)
-        g = 4/(u^2 + v^2 + 1)^2 du*du + 4/(u^2 + v^2 + 1)^2 dv*dv
-
-    At this stage, the metric is fully defined on the whole sphere. Its
-    restriction to some subdomain is itself a metric (by default, it bears the
-    same symbol)::
-
-        sage: g.restrict(U)
-        Riemannian metric g on the Open subset U of the 2-dimensional
-         differentiable manifold S^2
-        sage: g.restrict(U).parent()
-        Free module T^(0,2)(U) of type-(0,2) tensors fields on the Open subset
-         U of the 2-dimensional differentiable manifold S^2
-
-    The parent of `g|_U` is a free module because is `U` is a parallelizable
-    domain, contrary to `S^2`. Actually, `g` and `g|_U` have different Python
-    type::
-
-        sage: type(g)
-        <class 'sage.manifolds.differentiable.metric.PseudoRiemannianMetric'>
-        sage: type(g.restrict(U))
-        <class 'sage.manifolds.differentiable.metric.PseudoRiemannianMetricParal'>
-
-    As a field of bilinear forms, the metric acts on pairs of tensor fields,
-    yielding a scalar field::
-
-        sage: a = M.vector_field('a')
-        sage: a[eU,:] = [x, 2+y]
-        sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
-        sage: b = M.vector_field('b')
-        sage: b[eU,:] = [-y, x]
-        sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
-        sage: s = g(a,b) ; s
-        Scalar field g(a,b) on the 2-dimensional differentiable manifold S^2
-        sage: s.display()
-        g(a,b): S^2 --> R
-        on U: (x, y) |--> 8*x/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1)
-        on V: (u, v) |--> 8*(u^3 + u*v^2)/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1)
-
-    The inverse metric is::
-
-        sage: ginv = g.inverse() ; ginv
-        Tensor field inv_g of type (2,0) on the 2-dimensional differentiable
-         manifold S^2
-        sage: ginv.parent()
-        Module T^(2,0)(S^2) of type-(2,0) tensors fields on the 2-dimensional
-         differentiable manifold S^2
-        sage: latex(ginv)
-        g^{-1}
-        sage: ginv.display(eU) # again the components are expanded
-        inv_g = (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dx*d/dx
-         + (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dy*d/dy
-        sage: ginv.display(eV)
-        inv_g = (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/du*d/du
-         + (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/dv*d/dv
-
-    We have::
-
-        sage: ginv.restrict(U) is g.restrict(U).inverse()
-        True
-        sage: ginv.restrict(V) is g.restrict(V).inverse()
-        True
-        sage: ginv.restrict(W) is g.restrict(W).inverse()
-        True
-
-    The volume form (Levi-Civita tensor) associated with `g`::
-
-        sage: eps = g.volume_form() ; eps
-        2-form eps_g on the 2-dimensional differentiable manifold S^2
-        sage: eps.display(eU)
-        eps_g = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx/\dy
-        sage: eps.display(eV)
-        eps_g = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du/\dv
-
-    The unique non-trivial component of the volume form is nothing but the
-    square root of the determinant of g in the corresponding frame::
-
-        sage: eps[[eU,1,2]] == g.sqrt_abs_det(eU)
-        True
-        sage: eps[[eV,1,2]] == g.sqrt_abs_det(eV)
-        True
-
-    The Levi-Civita connection associated with the metric `g`::
-
-        sage: nabla = g.connection() ; nabla
-        Levi-Civita connection nabla_g associated with the Riemannian metric g
-         on the 2-dimensional differentiable manifold S^2
-        sage: latex(nabla)
-        \nabla_{g}
-
-    The Christoffel symbols `\Gamma^i_{\ \, jk}` associated with some
-    coordinates::
-
-        sage: g.christoffel_symbols(c_xy)
-        3-indices components w.r.t. Coordinate frame (U, (d/dx,d/dy)), with
-         symmetry on the index positions (1, 2)
-        sage: g.christoffel_symbols(c_xy)[:]
-        [[[-2*x/(x^2 + y^2 + 1), -2*y/(x^2 + y^2 + 1)],
-          [-2*y/(x^2 + y^2 + 1), 2*x/(x^2 + y^2 + 1)]],
-         [[2*y/(x^2 + y^2 + 1), -2*x/(x^2 + y^2 + 1)],
-          [-2*x/(x^2 + y^2 + 1), -2*y/(x^2 + y^2 + 1)]]]
-        sage: g.christoffel_symbols(c_uv)[:]
-        [[[-2*u/(u^2 + v^2 + 1), -2*v/(u^2 + v^2 + 1)],
-          [-2*v/(u^2 + v^2 + 1), 2*u/(u^2 + v^2 + 1)]],
-         [[2*v/(u^2 + v^2 + 1), -2*u/(u^2 + v^2 + 1)],
-          [-2*u/(u^2 + v^2 + 1), -2*v/(u^2 + v^2 + 1)]]]
-
-    The Christoffel symbols are nothing but the connection coefficients w.r.t.
-    the coordinate frame::
-
-        sage: g.christoffel_symbols(c_xy) is nabla.coef(c_xy.frame())
-        True
-        sage: g.christoffel_symbols(c_uv) is nabla.coef(c_uv.frame())
-        True
-
-    Test that `\nabla` is the connection compatible with `g`::
-
-        sage: t = nabla(g) ; t
-        Tensor field nabla_g(g) of type (0,3) on the 2-dimensional
-         differentiable manifold S^2
-        sage: t.display(eU)
-        nabla_g(g) = 0
-        sage: t.display(eV)
-        nabla_g(g) = 0
-        sage: t == 0
-        True
-
-    The Riemann curvature tensor of `g`::
-
-        sage: riem = g.riemann() ; riem
-        Tensor field Riem(g) of type (1,3) on the 2-dimensional differentiable
-         manifold S^2
-        sage: riem.display(eU)
-        Riem(g) = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dx*dy*dx*dy
-         - 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dx*dy*dy*dx
-         - 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dy*dx*dx*dy
-         + 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dy*dx*dy*dx
-        sage: riem.display(eV)
-        Riem(g) = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/du*dv*du*dv
-         - 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/du*dv*dv*du
-         - 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/dv*du*du*dv
-         + 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/dv*du*dv*du
-
-    The Ricci tensor of `g`::
-
-        sage: ric = g.ricci() ; ric
-        Field of symmetric bilinear forms Ric(g) on the 2-dimensional
-         differentiable manifold S^2
-        sage: ric.display(eU)
-        Ric(g) = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx*dx
-         + 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dy*dy
-        sage: ric.display(eV)
-        Ric(g) = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du*du
-         + 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) dv*dv
-        sage: ric == g
-        True
-
-    The Ricci scalar of `g`::
-
-        sage: r = g.ricci_scalar() ; r
-        Scalar field r(g) on the 2-dimensional differentiable manifold S^2
-        sage: r.display()
-        r(g): S^2 --> R
-        on U: (x, y) |--> 2
-        on V: (u, v) |--> 2
-
-    In dimension 2, the Riemann tensor can be expressed entirely in terms of
-    the Ricci scalar `r`:
-
-    .. MATH::
-
-        R^i_{\ \, jlk} = \frac{r}{2} \left( \delta^i_{\ \, k} g_{jl}
-            - \delta^i_{\ \, l} g_{jk} \right)
-
-    This formula can be checked here, with the r.h.s. rewritten as
-    `-r g_{j[k} \delta^i_{\ \, l]}`::
-
-        sage: delta = M.tangent_identity_field()
-        sage: riem == - r*(g*delta).antisymmetrize(2,3)
-        True
+        sage: v = M.vector_field()
+        sage: v[0], v[1], v[2] = x , y, z
+        sage: g(v, v).disp()
+        M --> R
+        (x, y, z) |--> 0
 
     """
     
@@ -3190,32 +2775,25 @@ class DegenerateMetricParal(DegenerateMetric, TensorFieldParal):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M')
-            sage: U = M.open_subset('U') ; V = M.open_subset('V')
-            sage: M.declare_union(U,V)   # M is the union of U and V
-            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
-            ....:               intersection_name='W', restrictions1= x>0,
-            ....:               restrictions2= u+v>0)
-            sage: uv_to_xy = xy_to_uv.inverse()
-            sage: W = U.intersection(V)
-            sage: e_xy = c_xy.frame() ; e_uv = c_uv.frame()
+            sage: M = Manifold(3, 'M'); X.<x,y,z> = M.chart()
             sage: XM = M.vector_field_module()
             sage: from sage.manifolds.differentiable.metric import \
-            ....:                                        PseudoRiemannianMetric
-            sage: g = PseudoRiemannianMetric(XM, 'g', signature=0); g
-            Lorentzian metric g on the 2-dimensional differentiable
+            ....:                                        DegenerateMetric
+            sage: g = DegenerateMetric(XM, 'g', signature=(2,0,1)); g
+            degenerate metric g on the 2-dimensional differentiable
              manifold M
-            sage: g[e_xy,0,0], g[e_xy,1,1] = -(1+x^2), 1+y^2
-            sage: g.add_comp_by_continuation(e_uv, W, c_uv)
-            sage: TestSuite(g).run(skip=['_test_category', '_test_pickling'])
+            sage: g[0,0], g[0,1], g[0,2] = (y^2 + z^2)/(x^2 + y^2 + z^2), \
+            ....: - x*y/(x^2 + y^2 + z^2), - x*z/(x^2 + y^2 + z^2)
+            sage: g[1,1], g[1,2], g[2,2] = (x^2 + z^2)/(x^2 + y^2 + z^2), \
+            ....: - y*z/(x^2 + y^2 + z^2), (x^2 + y^2)/(x^2 + y^2 + z^2)
+            sage: g.disp()
+            g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx*dx - x*y/(x^2 + y^2 + z^2) dx*dy 
+            - x*z/(x^2 + y^2 + z^2) dx*dz - x*y/(x^2 + y^2 + z^2) dy*dx 
+            + (x^2 + z^2)/(x^2 + y^2 + z^2) dy*dy - y*z/(x^2 + y^2 + z^2) dy*dz 
+            - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy 
+            + (x^2 + y^2)/(x^2 + y^2 + z^2) dz*dz
 
-        .. TODO::
-
-            - fix _test_pickling (in the superclass TensorField)
-            - add a specific parent to the metrics, to fit with the category
-              framework
-
+        
         """
         TensorFieldParal.__init__(self, vector_field_module, (0,2),
                              name=name, latex_name=latex_name, sym=(0,1))
