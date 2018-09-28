@@ -75,6 +75,7 @@ Geometry
 --------
 
 * :ref:`geometry`
+* :ref:`polymake`
 
 Combinatorics
 -------------
