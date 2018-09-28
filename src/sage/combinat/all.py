@@ -89,7 +89,7 @@ from .similarity_class_type import PrimarySimilarityClassType, PrimarySimilarity
 from .core import Core, Cores
 
 #Tableaux
-lazy_import('sage.combinat.tableau',["Tableau", "SemistandardTableau", "StandardTableau", "RowStandardTableau", 
+lazy_import('sage.combinat.tableau',["Tableau", "SemistandardTableau", "StandardTableau", "RowStandardTableau",
                                      "Tableaux","SemistandardTableaux","StandardTableaux","RowStandardTableaux"])
 from .skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux, SemistandardSkewTableaux
 from .ribbon_shaped_tableau import RibbonShapedTableau, RibbonShapedTableaux, StandardRibbonShapedTableaux
@@ -218,3 +218,7 @@ lazy_import('sage.combinat.growth', ['GrowthDiagram',
                                      'GrowthDiagramRSK', 'GrowthDiagramBurge',
                                      'GrowthDiagramBinWord', 'GrowthDiagramDomino',
                                      'GrowthDiagramYoungFibonacci', 'GrowthDiagramSylvester'])
+
+# Path tableaux
+lazy_import('sage.combinat.pathtableaux.pathtableau', ['PathTableau', 'PathTableaux'])
+lazy_import('sage.combinat.pathtableaux.catalan', ['CatalanTableau', 'CatalanTableaux'])
