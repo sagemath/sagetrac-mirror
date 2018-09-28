@@ -27,3 +27,7 @@ LCM = lcm
 
 from .srange import xsrange, srange, ellipsis_iter, ellipsis_range
 sxrange = xsrange
+
+#the following doesn't work for an unknown reason....
+#from sage.arith.beta_adic import BetaAdicMonoid
+#from sage.arith.beta_adic import ImageIn
