@@ -4983,7 +4983,14 @@ class SymplecticTableau(Tableau):
         is we also initialize attribute tab_type.
         
         TESTS::
+            
+            sage: t = SymplecticTableau([[1,-1]], tableau_type="sundaram")
+            sage: TestSuite(t).run()
 
+            sage: SymplecticTableau([[1]], tableau_type="asdf")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: tableau type not implemented
         
         """
         if tableau_type in ['KashiwaraNakashima', 'KN', 'kn']:
@@ -5005,7 +5012,8 @@ class SymplecticTableau(Tableau):
         
         INPUT:
         
-        - ``col`` -- A list of integers representing a column in a KN or DP tableau
+        - ``col`` -- A list of integers representing a column in a 
+                     KashiwaraNakashima or DeConciniProcesi tableau
 
         In Lecouvey, this converts between KN-admissible tableaux and 
         KN-coadmissible. If co set to False (default), maps admissible to 
@@ -5026,7 +5034,29 @@ class SymplecticTableau(Tableau):
             The notion of (co)admissible columns is only defined for
             Kashiwara-Nakashima and DeConcini-Procesi tableaux.
 
+            Input ``col`` is not checked to be admissible or coadmissible.
+
+        TESTS::
+
+            sage: kn = SymplecticTableau([])
+            sage: dp = SymplecticTableau([], "DP")
+            sage: kn._to_coadmissible([1,3,5,-5,-2])
+            [[1, 3, 4, -5, -2], [1, 3, 5, -4, -2]]
+            sage: kn._to_coadmissible([1,3,5,-5,-2], co=True)
+            [[1, 3, 5, -6, -2], [1, 3, 6, -5, -2]]
+            sage: dp._to_coadmissible([-5,-3,-2,2,4])
+            [[-5, -3, -2, 1, 4], [-5, -3, -1, 2, 4]]
+            sage: dp._to_coadmissible([-5,-3,-2,2,4], co=True)
+            [[-6, -5, -3, 2, 4], [-5, -3, -2, 4, 6]]
+
+            sage: SymplecticTableau([], "King")._to_coadmissible([1])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: admissible columns only defined for KN and DP
         """
+        if self.tab_type not in ["KashiwaraNakashima", "DeConciniProcesi"]:
+            raise NotImplementedError("admissible columns only defined for KN and DP")
+        
         B = [i for i in col if i < 0]
         C = [i for i in col if i > 0]
         I = [i for i in C if -i in B]
@@ -5057,12 +5087,17 @@ class SymplecticTableau(Tableau):
                return [sorted(A+C), sorted(B+D)]
             else:
                 return [sorted(B+D), sorted(A+C)]
-        else:
-            raise NotImplementedError("admissible columns only defined for KN and DP")
-    
+
     def split_form(self, co=False):
         """
         Return split form if co is set to False, otherwise return cosplit form.
+        
+        TESTS::
+
+            sage: t = SymplecticTableau([[-6],[-5],[2],[4],[5]], tableau_type="DP")
+            sage: t.split_form()
+            [[-6, -6], [-5, -3], [2, 2], [3, 4], [4, 5]]
+
         """
         tc = Tableau(self).conjugate()
         return Tableau(sum([self._to_coadmissible(col, co=co) for col in tc], [])).conjugate()
@@ -5130,7 +5165,7 @@ class SymplecticTableau(Tableau):
                 raise ValueError("tableau has barred entry too high as Sundaram tableau")
 
         else:
-            raise ValueError("tableau type not implemented")
+            raise NotImplementedError("tableau type not implemented")
 
     def tableau_type(self):
         r"""
@@ -5198,6 +5233,15 @@ class SymplecticTableau(Tableau):
         
         Differs from split_form in that t can have None entries.
         Used as auxiliary function in Sheats bijection.
+
+        TESTS::
+
+            sage: t = [[None, None, -2],[None, -2, -1],[-1, 2],[2]]
+            sage: SymplecticTableau([], tableau_type="DP")._split_form_skew(t)
+            [[None, None, None, None, -2, -2], [None, None, -2, -1, -1, -1], [-1, -1, 1, 2], [2, 2]]        
+            sage: t = [[None, None, -5],[None, -6, -2],[-5,-5,4],[3,3,5],[4,6]]
+            sage: SymplecticTableau([], tableau_type="DP")._split_form_skew(t)
+            [[None, None, None, None, -5, -3], [None, None, -6, -5, -2, -2], [-5, -5, -5, -4, 3, 4], [3, 3, 3, 3, 4, 5], [4, 4, 4, 6]]
         """
         from sage.combinat.skew_tableau import SkewTableau
         tc = SkewTableau(sk).conjugate()
@@ -5249,7 +5293,11 @@ class SymplecticTableau(Tableau):
         - ``self``: Skew DeConcini-Procesi Symplectic Tableau
         - ``corner``: inner corner of t
         - ``return_vacated``: boolean. If True, also return vacated corner.
+        
+        .. WARNING::
 
+            Input is not checked to be DeConciniProcesi tableau.
+        
         '''
         t = self._split_form_skew(dp)
         corner = (corner[0], 2*corner[1]+1)
@@ -5403,14 +5451,22 @@ class SymplecticTableau(Tableau):
             [[-1, -4], [-2, -5], [4]]
         
         TESTS::
-
+            
+            sage: STKN = SymplecticTableaux([1,1,1], max_entry=4)
+            sage: is_sorted = True
+            ....: for kn in STKN:
+            ....:     dp = kn.to_deconcini_procesi()
+            ....:     is_sorted = is_sorted and sorted(sum(dp.sheats().to_list(),[])) == sum(dp.to_list(),[])
+            ....:
+            sage: is_sorted
+            True
             sage: STKN = SymplecticTableaux([2,1])
             sage: King = SymplecticTableaux([2,1], tableau_type="King")
-            sage: all(kn.to_deconcini_procesi().sheats() in King for kn in STKN) # long time
+            sage: all(kn.to_deconcini_procesi().sheats() in King for kn in STKN)
             True
-            sage: STKN = SymplecticTableaux([3,1])
-            sage: King = SymplecticTableaux([3,1], tableau_type="King")
-            sage: STKN[9].to_deconcini_procesi().sheats() in King # long time
+            sage: STKN = SymplecticTableaux([2,2], max_entry=3)
+            sage: King = SymplecticTableaux([2,2], max_entry=3, tableau_type="King")
+            sage: all(kn.to_deconcini_procesi().sheats() in King for kn in STKN)
             True
         '''
         from sage.combinat.skew_tableau import SkewTableau
@@ -8650,7 +8706,7 @@ class SymplecticTableaux(Tableaux):
             sage: SymplecticTableaux([4,1], max_entry=3, tableau_type="asdf")
             Traceback (most recent call last):
             ...
-            ValueError: tableau type not implemented
+            NotImplementedError: tableau type not implemented
 
             sage: SymplecticTableaux(mu=[[1]])
             Traceback (most recent call last):
@@ -8744,7 +8800,7 @@ class SymplecticTableaux(Tableaux):
         if tableau_type not in ['KashiwaraNakashima', 'KN', 'kn', 'DeConciniProcesi', 
                                 'DeconciniProcesi', 'DP', 'dp', 'King', 'king', 
                                 'Sundaram', 'sundaram']:
-            raise ValueError("tableau type not implemented")
+            raise NotImplementedError("tableau type not implemented")
 
 
         # Dispatch appropriately
@@ -8821,7 +8877,7 @@ class SymplecticTableaux(Tableaux):
         raise IndexError('value out of range')
 
     def __contains__(self, t):
-        if isinstance(t, SymplecticTableau):
+        if isinstance(t, SymplecticTableau) and t.tab_type == self.tab_type:
             return self.max_entry is None or len(t) == 0 or \
             max(max(map(abs, row)) for row in t) <= self.max_entry
         elif not t:
