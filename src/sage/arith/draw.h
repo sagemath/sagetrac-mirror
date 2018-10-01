@@ -1,3 +1,4 @@
+#include "numpy/ndarraytypes.h"
 
 void TestSDL ();
 

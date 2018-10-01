@@ -216,19 +216,19 @@ cdef extern from "draw.h":
 # calcul de la valeur absolue p-adique (car non encore implémenté autrement)
 def absp(c, p, d):
     """
-    Computation of the p-adic absolute value (not yet implemented)
+    Computation of the p-adic absolute value.
 
     INPUT:
 
-    - ``c`` first argument
+    - ``c`` -- the algebraic number for which we compute the absolute value
 
-    - ``p`` second argument
+    - ``p`` -- the prime number
 
-    - ``d`` third argument
+    - ``d`` -- the degree
 
     OUTPUT:
 
-    The p-adic absolute value
+    The p-adic absolute value.
 
     TESTS:
 
@@ -398,7 +398,7 @@ cdef Color getColor(c):
 cdef surface_to_img(Surface s):
     import numpy as np
     from PIL import Image
-    arr = np.zeros([s.sy, s.sx], dtype=[('r', 'uint8'), ('g', 'uint8'),
+    arr = np.empty([s.sy, s.sx], dtype=[('r', 'uint8'), ('g', 'uint8'),
                                         ('b', 'uint8'), ('a', 'uint8')])
     cdef int x, y
     cdef Color c
