@@ -6,7 +6,10 @@
 #include "complex.h"
 #include "Automaton.h"
 #include "automataC.h"
+#include "numpy/ndarraytypes.h"
 #include "draw.h"
+
+//#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 double mx = -2, my = -2, Mx = 2, My = 2; //zone de dessin
 
@@ -50,7 +53,7 @@ void CloseImage (void* img)
 	SDL_FreeSurface(s);
 }
 
-//////////////////////////////TEST
+//////////////////////////////TEST(
 #define WIDTH	800
 #define HEIGHT	600
 
@@ -171,7 +174,55 @@ void TestSDL()
 	//SDL_FreeSurface(s);
     SDL_Quit();
 }
-//////////////////////////////TEST
+//////////////////////////////)TEST
+
+void *GetSDL_SurfaceFromNumpy (PyArrayObject *o)
+{
+    //PyArrayObject *o = (PyArrayObject *)np;
+    if (o->nd != 2)
+    {
+        printf("Error: numpy array must be two-dimensional (here %d-dimensional).", o->nd);
+        return NULL;
+    }
+    if (o->strides[0] != 4)
+    {
+        printf("Error: pixels must be stored with 4 bytes (RGBA format). Here %ld bytes/pixel.", o->strides[0]);
+    }
+    
+    Uint8 *data = (Uint8 *)o->data;
+    
+    Uint32 rmask, gmask, bmask, amask;
+    /* SDL interprets each pixel as a 32-bit number, so our masks must depend
+       on the endianness (byte order) of the machine */
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+    rmask = 0xff000000;
+    gmask = 0x00ff0000;
+    bmask = 0x0000ff00;
+    amask = 0x000000ff;
+#else
+    rmask = 0x000000ff;
+    gmask = 0x0000ff00;
+    bmask = 0x00ff0000;
+    amask = 0xff000000;
+#endif
+    int sx = o->dimensions[1];
+    int sy = o->dimensions[0];
+	SDL_Surface *r = SDL_CreateRGBSurface(0, sx, sy, 32, rmask, gmask, bmask, amask);
+	int x,y;
+	Uint32 *ptr = r->pixels;
+	for (y=0;y<sy;y++)
+	{
+		for (x=0;x<sx;x++)
+		{
+			// *ptr = SDL_MapRGBA(r->format, x, y, x-y, 255);
+			*ptr = SDL_MapRGBA(r->format, *data, *(data+1), *(data+2), *(data+3));
+			data+=4;
+			ptr++;
+		}
+		ptr += (r->pitch/4) - sx;
+	}
+	return (void *)r;
+}
 
 //dessine la surface dans la SDL_Surface
 SDL_Surface *GetSurface (Surface s)

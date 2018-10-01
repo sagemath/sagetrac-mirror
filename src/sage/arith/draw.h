@@ -1,5 +1,3 @@
-#include "numpy/ndarraytypes.h"
-
 void TestSDL ();
 
 typedef unsigned char uint8;
@@ -49,6 +47,8 @@ bool InImage (void* img, int x, int y);
 int ImageWidth (void *img);
 int ImageHeight (void *img);
 void CloseImage (void* img);
+
+void *GetSDL_SurfaceFromNumpy (PyArrayObject *o);
 
 ColorList NewColorList (int n);
 void FreeColorList (ColorList l);

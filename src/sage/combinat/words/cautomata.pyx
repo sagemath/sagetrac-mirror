@@ -4478,10 +4478,28 @@ cdef class DetAutomaton:
             4
 
         """
-        sig_on()
-        n = self.a.n
-        sig_off()
-        return n
+        return self.a.n
+        
+    @property
+    def n_letters(self):
+        """
+        return the numbers of states
+
+        OUTPUT:
+
+        return the numbers of states
+
+        EXAMPLES::
+
+            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a.n_states
+            4
+            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
+            sage: a.n_states
+            4
+
+        """
+        return self.a.na
 
     def bigger_alphabet(self, nA):
         """

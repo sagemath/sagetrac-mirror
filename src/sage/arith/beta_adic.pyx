@@ -8,6 +8,7 @@ Beta-adic is a way to write numbers in the form
 
 where :math:`beta` is a element of a field (for example a complex number),
 and the :math:`c_i` are varying in a finite set of digits.
+The possible finite sequences of digits are given by a deterministic automaton.
 
 AUTHORS:
 
@@ -158,6 +159,17 @@ cdef extern from "relations.h":
     void freeInfoBetaAdic(InfoBetaAdic *iba)
     Automaton RelationsAutomatonT(InfoBetaAdic *iba2, Element t, bool isvide, bool ext, bool verb)
 
+cdef extern from "numpy/arrayobject.h":
+    ctypedef int intp
+    ctypedef extern class numpy.ndarray [object PyArrayObject]:
+        cdef char *data
+        cdef int nd
+        cdef intp *dimensions
+        cdef intp *strides
+        cdef int flags
+
+cimport numpy
+
 cdef extern from "draw.h":
     ctypedef unsigned char uint8
     cdef cppclass Color:
@@ -191,6 +203,7 @@ cdef extern from "draw.h":
     int ImageWidth(void *img)
     int ImageHeight(void *img)
     void CloseImage(void* img)
+    void *GetSDL_SurfaceFromNumpy (numpy.ndarray np)
     void TestSDL()
     Surface NewSurface(int sx, int sy)
     void FreeSurface(Surface s)
@@ -398,8 +411,8 @@ cdef Color getColor(c):
 cdef surface_to_img(Surface s):
     import numpy as np
     from PIL import Image
-    arr = np.empty([s.sy, s.sx], dtype=[('r', 'uint8'), ('g', 'uint8'),
-                                        ('b', 'uint8'), ('a', 'uint8')])
+    arr = np.empty([s.sy, s.sx], dtype=['uint8', 'uint8', 'uint8', 'uint8'])
+    #arr = np.empty([s.sy, s.sx], dtype=[('r', 'uint8'), ('g', 'uint8'),('b', 'uint8'), ('a', 'uint8')])
     cdef int x, y
     cdef Color c
     for x in range(s.sx):
@@ -413,15 +426,15 @@ cdef surface_to_img(Surface s):
     # img.save("/Users/mercat/Desktop/output.png")
     # img.save(file)
 
-cdef Automaton getAutomate(a, d, list C, iss=None, verb=False):
+cdef Automaton getAutomate(a, list A, verb=False):
     cdef int i
     if verb:
         print("getAutomate %s..." % a)
     cdef DetAutomaton fa
     if isinstance(a, DetAutomaton):
         fa = a
-        fa.permut_op(C, verb=verb)
-        # fa = fa.permut(C, verb=verb)
+        fa.permut_op(A, verb=verb)
+        # fa = fa.permut(A, verb=verb)
         return fa.a[0]
     else:
         raise ValueError("DetAutomaton expected.")
@@ -469,56 +482,21 @@ cdef Automaton getAutomate(a, d, list C, iss=None, verb=False):
 #        print "...getAutomate"
 #    return r
 
-cdef BetaAdic getBetaAdic(input_a, prec=53, ss=None, tss=None, iss=None,
-                          transpose=True, add_letters=True, verb=False):
+cdef BetaAdic getBetaAdic(m, prec=53, mirror=True, verb=False):
     from sage.rings.complex_field import ComplexField
     CC = ComplexField(prec)
     cdef BetaAdic b
-    if ss is None:
-        if hasattr(input_a, 'ss'):
-            ss = input_a.ss
-        else:
-            ss = input_a.default_ss()
-    else:
-        if transpose and tss is None:
-            if verb:
-                print("Transpose computation...\n")  # "Calcul de la transposée...\n"
-            tss = ss.mirror().determinize()
-            self.tss = tss
-            if verb:
-                print(tss)
-    if transpose:
-        if tss is None:
-            if hasattr(input_a, 'tss'):
-                tss = input_a.tss
-            else:
-                if verb:
-                    print("Transpose computation...\n")  # "Calcul de la transposée...\n"
-                tss = ss.mirror().determinize()
-                self.tss = tss
-                if verb:
-                    print(tss)
-        a = tss
-    else:
-        a = ss
-
-    if add_letters:
-        C = set(input_a.C)
-        C.update(a.alphabet)
-    else:
-        C = a.alphabet
-    C = list(C)
-
-    b = NewBetaAdic(len(C))
-    b.b = complex(CC(input_a.b))
-    d = {}
+    a = m.a
+    if mirror:
+        a = a.mirror().determinize().minimize()
+    A = a.alphabet
+    nA = a.n_letters
+    
+    b = NewBetaAdic(nA)
+    b.b = complex(CC(m.b))
     for i, c in zip(range(b.n), C):
         b.t[i] = complex(CC(c))
-        d[c] = i
-    # automaton
-    # if isinstance(a, DetAutomaton):
-    #    a = a.permut(C, verb=verb)
-    b.a = getAutomate(a, d, C=C, iss=iss, verb=verb)
+    b.a = getAutomate(a, A=A, verb=verb)
     return b
 
 cdef BetaAdic2 getBetaAdic2(input_a, la=None, ss=None, tss=None,
@@ -548,7 +526,7 @@ cdef BetaAdic2 getBetaAdic2(input_a, la=None, ss=None, tss=None,
     for i in range(len(la)):
         # if isinstance(la[i], DetAutomaton):
         #    la[i] = la[i].permut(C, verb=verb)
-        b.a[i] = getAutomate(la[i], d, C=C, iss=None, verb=verb)
+        b.a[i] = getAutomate(la[i], A=C, verb=verb)
     return b
 
 def PrintWord(m, n):
@@ -571,8 +549,7 @@ def PrintWord(m, n):
         sage:import sage.monoids.beta_adic_monoid as mn
 
     """
-    b = getBetaAdic(m, prec=53, ss=None, tss=None, iss=None, transpose=False,
-                    add_letters=True, verb=False)
+    b = getBetaAdic(m, prec=53, mirror=False, verb=False)
     print_word(b, n, b.a.i)
 
 
@@ -720,16 +697,18 @@ cdef class ImageIn:
 
 class BetaAdicMonoid:
     r"""
-    It is the beta-adic monoid generated by the set of affine transformations
-    `:math:`{x -> b*x + c | c \in \mathbb C}`.
+    Define a numeration in base b, i.e. set of numbers of the form
+    
+        :math:`\sum_{i=0}^\infty \beta^i c_i`
+
+    where :math:`beta` is a element of a field (for example a complex number),
+    and the :math:`c_i` form a word recognized by a deterministic automaton ``a``.
 
     INPUT:
 
-    - ``b`` -- coefficient ''b'' of affine transformation
-      :math:`{x -> b*x + c | c \in \mathbb C}`
+    - ``b`` -- number, base of the numeration.
 
-    - ``C` -- coefficient ''C''of affine transformation  
-      :math:`{x -> b*x + c | c \in \mathbb C}`
+    - ``a`` -- DetAutomaton, giving the allowed sequence of digits.
 
 
     EXAMPLES::
@@ -746,10 +725,9 @@ class BetaAdicMonoid:
         Monoid of b-adic expansion with b root of x^3 - x - 1 and numerals set {0, 1}
 
     """
-    def __init__(self, b, C):
+    def __init__(self, b, a):
         r"""
-        Construction of the b-adic monoid generated by the set of
-        affine transformations ``{x -> b*x + c | c in C}``.
+        Construction of the b-adic with base ``b`` and automaton ``a``.
 
         EXAMPLES::
 
@@ -765,68 +743,29 @@ class BetaAdicMonoid:
             Monoid of b-adic expansion with b root of x^3 - x - 1 and numerals set {0, 1}
 
         """
-        # print "init BAM with (%s,%s)"%(b,C)
+        from sage.rings.complex_field import ComplexField
+        CC = ComplexField()
+        if b not in CC:
+            raise ValueError("b must be a number.")
         if b in QQbar:
-            #            print b
             pi = QQbar(b).minpoly()
-            K = NumberField(pi, 'b', embedding=QQbar(b))
+            self.K = NumberField(pi, 'b', embedding=QQbar(b))
+            self.b = self.K.gen()
         else:
-            K = b.parent()
+            self.K = b.parent()
+            self.b = b
+        
+#            try:
+#                K.places()
+#            except:
+#                print("b=%s must be a algebraic number, ring %s not accepted." % (b, K))
+        
+        if type(a) != DetAutomaton:
             try:
-                K.places()
+                a = DetAutomaton(a)
             except:
-                print("b=%s must be a algebraic number, ring %s not accepted." % (b, K))
-
-#        print K
-        self.b = K.gen()  # beta (element of an NumberField)
-#        print "b="; print self.b
-        self.C = Set([K(c) for c in C])  # set of numerals
-#        print "C="; print self.C
-
-    def gen(self, i):
-        r"""
-        Return the element of C of index i.
-
-        INPUT:
-
-        - ``i`` -- index to return
-
-        OUTPUT:
-
-        Return the element of C of index ``i``
-
-        EXAMPLES::
-
-            sage: m1 = BetaAdicMonoid(3, {0,1,3})
-            sage: m1.gen(2)
-            3
-            sage: m1.gen(3)
-            IndexError                                Traceback (most recent call last)
-            ...
-            IndexError: list index out of range
-
-        """
-        if i >= len(self.C):
-            raise IndexError()
-
-        return self.C[i]
-
-    def ngens(self):
-        r"""
-        Return the number of elements of C.
-
-        OUTPUT:
-
-        Return the number of elements of C.
-
-        EXAMPLES::
-
-            sage: m1 = BetaAdicMonoid(3, {0,1,3})
-            sage: m1.ngens()
-            3
-
-        """
-        return len(self.C)
+                raise ValueError("a must be an automaton.")        
+        self.a = a
 
     def _repr_(self):
         r"""
@@ -845,28 +784,24 @@ class BetaAdicMonoid:
             sage: repr(m)
             'Monoid of b-adic expansion with b root of x^2 - 9/2 and numerals set {0, 1}'
         """
-
-        str = ""
-        if hasattr(self, 'ss'):
-            if self.ss is not None:
-                str = " with subshift of %s states" % self.ss.num_verts()
-
-        from sage.rings.rational_field import QQ
-        if self.b in QQ:
-            return "Monoid of %s-adic expansion with numerals set %s" % (self.b, self.C) + str
+        
+        from sage.rings.qqbar import QQbar
+        if self.b not in QQbar:
+            return "(%s)-adic set with an automaton of %s states and %s letters." % (self.b, self.a.n_states, self.a.n_letters)
         else:
             K = self.b.parent()
+            from sage.rings.rational_field import QQ
             if K.base_field() == QQ:
-                return "Monoid of b-adic expansion with b root of %s and numerals set %s" % (self.b.minpoly(), self.C) + str
+                return "b-adic set with b root of %s, and an automaton of %s states and %s letters." % (self.b.minpoly(), self.a.n_states, self.a.n_letters)
             else:
                 if K.characteristic() != 0:
-                    return "Monoid of b-adic expansion with b root of %s and numerals set %s, in characteristic %s"%(self.b.minpoly(), self.C, K.characteristic()) + str
+                    return "b-adic set with b root of %s (in characteristic %s), and an automaton of %s states and %s letters."%(self.b.minpoly(), K.characteristic(), self.a.n_states, self.a.n_letters)
                 else:
-                    return "Monoid of b-adic expansion with b root of %s and numerals set %s"%(K.modulus(),self.C) + str
-
+                    return "b-adic set with b root of %s, an automaton of %s states and %s letters."%(K.modulus(), self.a.n_states, self.a.n_letters)
+    
     def _testSDL(self):
         """
-        Open mode video for graphical representation
+        Open a window to test the SDL library used for graphical representation.
 
         TESTS::
 
@@ -879,68 +814,11 @@ class BetaAdicMonoid:
         TestSDL()
         sig_off()
 
-#     def default_ss(self, C=None):
-#         r"""
-#         Returns the full subshift (given by an Automaton) corresponding
-#         to the beta-adic monoid.
-# 
-#         EXAMPLES::
-# 
-#             sage: m=BetaAdicMonoid((1+sqrt(5))/2, {0,1})
-#             sage: m.default_ss()
-#             Finite automaton with 1 states
-#         """
-#         if C is None:
-#             C = self.C
-#         ss = Automaton()
-#         ss.allow_multiple_edges(True)
-#         ss.allow_loops(True)
-#         ss.add_vertex(0)
-#         for c in C:
-#             ss.add_edge(0, 0, c)
-#         ss.I = [0]
-#         ss.F = [0]
-#         ss.A = C
-#         return ss
-
-    def default_ss(self, C=None):
-        r"""
-        Returns the full subshift (given by an Automaton) corresponding
-        to the beta-adic monoid.
-
-        INPUT:
-
-        - ``C`` -- (default -- None)  alphabet
-
-        OUTPUT:
-        Returns the full subshift (given by an DetAutomaton) corresponding
-        to the beta-adic monoid.
-
-        EXAMPLES::
-
-            sage: m=BetaAdicMonoid((1+sqrt(5))/2, {0,1})
-            sage: m.default_ss()
-            DetAutomaton with 1 states and an alphabet of 2 letters
-
-        """
-        if C is None:
-            C = self.C
-        #ss = Automaton()
-        ss = DetAutomatonGenerators().AnyWord(C)
-        #ss.allow_multiple_edges(True)
-        #ss.allow_loops(True)
-        #ss.add_vertex(0)
-        #for c in C:
-        #    ss.add_edge(0, 0, c)
-        #ss.I = [0]
-        #ss.F = [0]
-        #ss.A = C
-        return ss
-
+    ####to be put in generators
     # liste des automates donnant le coloriage de l'ensemble limite
     def get_la(self, ss=None, tss=None, verb=False):
         """
-        Retun the ''la of betaAdic
+        Return a list of b-adic sets 
         INPUT:
 
         - ``ss`` -- (default ''None'') ``DetAutomaton``
@@ -1015,10 +893,10 @@ class BetaAdicMonoid:
                 print(a[v])
         return [tss]+a.values()
 
-    def points_exact(self, n=None, ss=None, iss=None):
+    def points_exact(self, n=None, i=None):
         r"""
-        Returns a set of exacts values (in the number field of beta)
-        corresponding to the drawing of the limit set of the beta-adic monoid.
+        Returns a set of exacts values (in the number field of b)
+        corresponding to points of the b-adic set for words of length at most ``n``.
 
         INPUT:
 
@@ -1026,16 +904,13 @@ class BetaAdicMonoid:
           The number of iterations used to plot the fractal.
           Default values: between ``5`` and ``16`` depending on the number
           of generators.
-
-        - ``ss`` - DetAutomaton (default: ``None``)
-          The subshift to associate to the beta-adic monoid for this drawing.
-
-        - ``iss`` - set of initial states of the automaton
-          ss (default: ``None``)
+        
+        - ``i`` - integer (default: ``None``)
+          State of the automaton of self taken as the initial state .
 
         OUTPUT:
 
-            list of exact values
+            List of numbers, given with exact values.
 
         EXAMPLES::
 
@@ -1050,25 +925,14 @@ class BetaAdicMonoid:
             sage: len(P)
             65536
         """
-        # global co
-
-        C = self.C
-        K = self.b.parent()
+        K = self.K
         b = self.b
-        ng = C.cardinality()
-
-        if ss is None:
-            if hasattr(self, 'ss'):
-                ss = self.ss
-            else:
-                ss = self.default_ss()
-
-        if iss is None:
-            if hasattr(ss, 'I'):
-                iss = [i for i in ss.I][0]
-            if iss is None:
-                print("Give the begin state iss of the automaton ss !")
-                return
+        a = self.a
+        A = a.alphabet
+        ng = a.n_letters()
+        
+        if i is None:
+            i = a.initial_state
 
         if n is None:
             if ng == 2:
@@ -1077,30 +941,22 @@ class BetaAdicMonoid:
                 n = 9
             else:
                 n = 5
+        
         if n == 0:
-            # donne un point au hasard dans l'ensemble limite
-            # co = co+1
             return [0]
         else:
             orbit_points = set()
-            V = set([v for c in C for v in [ss.succ(iss, c)] if v is not None])
+            V = set([v for c in A for v in [a.succ(i, c)] if v != -1])
             orbit_points0 = dict()
             for v in V:
-                orbit_points0[v] = self.points_exact(n=n-1, ss=ss, iss=v)
-            for c in C:
-                v = ss.succ(iss, c)
+                orbit_points0[v] = self.points_exact(n=n-1, i=v)
+            for c in A:
+                v = a.succ(i, c)
                 if v is not None:
                     orbit_points.update([b*p+c for p in orbit_points0[v]])
-                    # orbit_points = orbit_points.union([b*p+c for p in self.points_exact(n=n-1, ss=ss, iss=v)])
-            # orbit_points0 = self.points_exact(n-1)
-            # orbit_points = Set([])
-            # for c in C:
-            #    v = self.succ(i, c)
-            #    if v is not None:
-            #       orbit_points = orbit_points.union(Set([b*p+c for p in orbit_points0]))
-        # print "no=%s"%orbit_points.cardinality()
         return orbit_points
 
+    #to remove
     def points(self, n=None, place=None, ss=None, iss=None, prec=53):
         r"""
         Returns a set of values (real or complex) corresponding to the drawing
@@ -1195,12 +1051,11 @@ class BetaAdicMonoid:
 #                 orbit_points = orbit_points.union(Set([place(b)*p+place(c) for p in orbit_points0]))
 #         return orbit_points
 
-    def user_draw(self, n=None, tss=None, ss=None, iss=None,
+    def user_draw(self, n=None,
                   sx=800, sy=600, ajust=True, prec=53, color=(0, 0, 0, 255),
                   method=0, add_letters=True, only_pos=False, verb=False):
         r"""
-        Returns a set of values (real or complex) corresponding to the drawing
-        of the limit set of the beta-adic monoid.
+        Display a window where the user can draw a b-adic set based on the current b-adic set.
 
         INPUT:
 
@@ -1209,21 +1064,13 @@ class BetaAdicMonoid:
           Default values: between ``5`` and ``16`` depending on the number
           of generators.
 
-        -``tss`` -- (default ''None'') transition
+        - ``sx`` -- integer (default 800) width of the window
 
-        - ``ss`` - DetAutomaton (default: ``None``)
-          The subshift to associate to the beta-adic monoid for this drawing.
+        - ``sy`` -- integer (default 600) height of the window
 
-        - ``iss`` - set of initial states of the automaton
-          ss (default: ``None``)
+        - ``ajust``  -- boolean (default ``True``) If True, change the zoom in order to fit the window.
 
-        - ``sx``  -- (default 800)
-
-        - ``sy``  -- (default 600)
-
-        - ``ajust``  -- (default ``True``)
-
-        - ``prec``  precision of returned values -- (default: ``53``)
+        - ``prec`` -- integer (default: ``53``) precision of returned values
 
         - ``color`` tuple of color in RGB values -- (default: (0, 0, 0, 255))
 
@@ -1237,7 +1084,7 @@ class BetaAdicMonoid:
 
         OUTPUT:
 
-        list of real or complex numbers
+        A b-adic set, corresponding to what has been drawn by the user.
 
         EXAMPLES::
 
@@ -1248,13 +1095,10 @@ class BetaAdicMonoid:
                 sage: P = m.user_draw()     # long time (360 s)
 
         """
-        if tss is None:
-            tss = self.reduced_words_automaton2()
         cdef BetaAdic b
         cdef Automaton a
         cdef DetAutomaton r
-        b = getBetaAdic(self, prec=prec, tss=tss, ss=ss, iss=iss,
-                        add_letters=add_letters, transpose=True, verb=verb)
+        b = getBetaAdic(self, prec=prec, mirror=True, verb=verb)
         # if verb:
         #    printAutomaton(b.a)
         # dessin
@@ -1276,7 +1120,8 @@ class BetaAdicMonoid:
         r = DetAutomaton(None)
         r.a[0] = a
         r.A = list(self.C)
-        return r
+        r.S = range(a.n)
+        return BetaAdicMonoid(self.b, r)
 
     def draw_zoom(self, n=None, tss=None, ss=None, iss=None,
                   sx=800, sy=600, ajust=True, prec=53, color=(0, 0, 0, 255),
@@ -1335,8 +1180,7 @@ class BetaAdicMonoid:
             tss = self.reduced_words_automaton2()
         
         cdef BetaAdic b
-        b = getBetaAdic(self, prec=prec, tss=tss, ss=ss, iss=iss,
-                        add_letters=add_letters, transpose=True, verb=verb)
+        b = getBetaAdic(self, prec=prec, mirror=True, verb=verb)
         # if verb:
         #     printAutomaton(b.a)
         # dessin
@@ -1494,8 +1338,7 @@ class BetaAdicMonoid:
         cdef BetaAdic b
         if tss is not None:
             tss = tss.prune()
-        b = getBetaAdic(self, prec=prec, tss=tss, ss=ss, iss=iss,
-                        add_letters=add_letters, transpose=True, verb=verb)
+        b = getBetaAdic(self, prec=prec, mirror=True, verb=verb)
         # if verb:
         #    printAutomaton(b.a)
         # dessin
