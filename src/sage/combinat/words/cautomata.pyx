@@ -1130,7 +1130,7 @@ cdef class NFastAutomaton:
         r.S = None
         return r
 
-    def plot(self, file=None, int sx=10, int sy=8, verb=False):
+    def plot (self, file=None, int sx=10, int sy=8, verb=False):
         """
         plot a representation of the :class:`NFastAutomaton`.
 
@@ -1187,6 +1187,16 @@ cdef class NFastAutomaton:
                 print("Ouvre l'image produite...")
             from PIL import Image
             return Image.open(file+'.png')
+#            import ipywidgets as widgets
+#            file = open(file+'.png', "rb")
+#            image = file.read()
+#            w = widgets.Image(
+#                value=image,
+#                format='png',
+##                width=600,
+##                height=400,
+#            )
+#            return w
         else:
             if verb:
                 print(" -> no.")
@@ -1754,6 +1764,16 @@ cdef class DetAutomaton:
                 sig_off()
             from PIL import Image
             return Image.open(file+'.png')
+#            import ipywidgets as widgets
+#            file = open(file+'.png', "rb")
+#            image = file.read()
+#            w = widgets.Image(
+#                value=image,
+#                format='png',
+##                width=600,
+##                height=400,
+#            )
+#            return w
         else:
             return AutomatonToSageAutomaton(self.a[0], self.A).plot()
             # raise NotImplementedError("You cannot plot the DetAutomaton without dot. Install the dot command of the GraphViz package.")

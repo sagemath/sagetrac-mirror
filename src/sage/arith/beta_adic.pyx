@@ -54,7 +54,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
 from sage.sets.set import Set
-#from sage.rings.qqbar import QQbar
+from sage.rings.qqbar import QQbar
 from sage.rings.padics.all import *
 from libc.stdlib cimport malloc, free
 
@@ -1716,7 +1716,7 @@ class BetaAdicMonoid:
 
         return G
 
-    def relations_automaton4(self, t=0, isvide=False, Cd=None, A=None, B=None,
+    def relations_automaton(self, t=0, isvide=False, Cd=None, A=None, B=None,
                              couples=False, ext=False, transp=False,
                              prune=True, nhash=1000003, verb=False):
         r"""
@@ -2059,7 +2059,7 @@ class BetaAdicMonoid:
                 sage: ssi = m.intersection2(ss0, ss1)
                 sage: m.plot2(tss = ssi)     # long time
         """
-        a = self.relations_automaton3()
+        a = self.relations_automaton()
         a = a.prune_inf()
         a.set_final_states(a.states())
         ssp = ss1.product(ss2)
@@ -2160,7 +2160,7 @@ class BetaAdicMonoid:
         # compute the relations automaton
         Cd = list(set([c-c2 for c in self.C for c2 in self.C]))
         Cdp = [k for k in range(len(Cd)) if Cd[k] in [self.C[j]-self.C[i] for i in range(len(self.C)) for j in range(i)]] #indices des chiffres strictements négatifs dans Cd
-        arel = self.relations_automaton3(Cd=Cd, ext=False)
+        arel = self.relations_automaton(Cd=Cd, ext=False)
         arel = arel.prune()
         if transpose:
             arel = arel.mirror_det()
@@ -2716,7 +2716,7 @@ class BetaAdicMonoid:
             for c2 in a.A:
                 d[c - c2].append((c, c2))
         if arel is None:
-            arel = self.relations_automaton3(Cd=Cd, ext=ext).duplicate(d)
+            arel = self.relations_automaton(Cd=Cd, ext=ext).duplicate(d)
         else:
             arel = arel.duplicate(d)
         if verb:
@@ -2760,7 +2760,7 @@ class BetaAdicMonoid:
         Cd = list(set([c1 - c2 for c1 in C2 for c2 in C]))
         if verb:
             print("Cd=%s" % Cd)
-        a = self.relations_automaton3(Cd=Cd, ext=ext)
+        a = self.relations_automaton(Cd=Cd, ext=ext)
         if verb:
             print(" -> %s" % a)
         if step == 1:
@@ -2866,7 +2866,7 @@ class BetaAdicMonoid:
         m2 = BetaAdicMonoid(self.b, set(a.alphabet+b.alphabet))
         if arel is None:
             # compute the relations automaton with translation t
-            arel = m2.relations_automaton4(t=t, couples=True,
+            arel = m2.relations_automaton(t=t, couples=True,
                                            A=a.alphabet, B=b.alphabet)
         ai = arel.intersection(a.zero_complete2().product(b))
         d = {}
@@ -2905,7 +2905,7 @@ class BetaAdicMonoid:
             B = list(set(b.A))
         if ar is None:
             # compute the relations automaton with translation t
-            ar = self.relations_automaton4(t=t, A=A, B=B,
+            ar = self.relations_automaton(t=t, A=A, B=B,
                                            couples=True, verb=False)
         # compute the product of a and b
         if verb:
@@ -3000,7 +3000,7 @@ class BetaAdicMonoid:
         d = dict([])  # dictionnaire des automates complétés
         if verb:
             print("Automaton of relations...")
-        arel = self.relations_automaton3(ext=ext)
+        arel = self.relations_automaton(ext=ext)
         for i in range(n):
             if verb:
                 print("piece %s" % i)
@@ -3794,7 +3794,7 @@ class BetaAdicMonoid:
             print("Pre- computation...")
         arel = dict()
         for a, t in lt:
-            arel[t] = m.relations_automaton4(t=-t, A=a.A, B=m.C, couples=True)
+            arel[t] = m.relations_automaton(t=-t, A=a.A, B=m.C, couples=True)
             if verb:
                 print("arel[%s]=%s" % (t, arel[t]))
         baoc = aoc.unshift(0, np)  # multiplie par b
@@ -4123,7 +4123,7 @@ class BetaAdicMonoid:
             print("Pre-computation...")
         arel = dict()
         for a, t in lt:
-            arel[t] = m.relations_automaton4(t=-t, A=aa.A,
+            arel[t] = m.relations_automaton(t=-t, A=aa.A,
                                              B=ap.A, couples=True)
             if verb:
                 print("arel[%s]=%s" % (t, arel[t]))
