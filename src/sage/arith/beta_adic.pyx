@@ -1037,7 +1037,7 @@ class BetaAdicMonoid:
 
             list of exact values
 
-        EXAMPLES:
+        EXAMPLES::
 
             #. The dragon fractal::
             sage: e = QQbar(1/(1+I))
@@ -1129,7 +1129,7 @@ class BetaAdicMonoid:
 
             list of real or complex numbers
 
-        EXAMPLES:
+        EXAMPLES::
 
             #. The dragon fractal::
 
@@ -1239,7 +1239,7 @@ class BetaAdicMonoid:
 
         list of real or complex numbers
 
-        EXAMPLES:
+        EXAMPLES::
 
             #. The dragon fractal::
 
@@ -1281,6 +1281,56 @@ class BetaAdicMonoid:
     def draw_zoom(self, n=None, tss=None, ss=None, iss=None,
                   sx=800, sy=600, ajust=True, prec=53, color=(0, 0, 0, 255),
                   method=0, add_letters=True, coeff=8., verb=False):
+        r"""
+        Returns a set of values (real or complex) corresponding to the drawing
+        of the limit set of the beta-adic monoid.
+
+        INPUT:
+
+        - ``n`` - integer (default: ``None``)
+          The number of iterations used to plot the fractal.
+          Default values: between ``5`` and ``16`` depending on the number
+          of generators.
+
+        -``tss`` -- (default ''None'') transition
+
+        - ``ss`` - DetAutomaton (default: ``None``)
+          The subshift to associate to the beta-adic monoid for this drawing.
+
+        - ``iss`` - set of initial states of the automaton
+          ss (default: ``None``)
+
+        - ``sx``  -- (default 800)
+
+        - ``sy``  -- (default 600)
+
+        - ``ajust``  -- (default ``True``)
+
+        - ``prec``  precision of returned values -- (default: ``53``)
+
+        - ``color`` tuple of color in RGB values -- (default: (0, 0, 0, 255))
+
+        - ``method`` -- (default 0)
+
+        - ``add_letters`` -- (default ``True``)
+
+        - ``coeff`` -- (default 8.)
+
+        - ``verb`` -- (default ``False``) set ti ``True`` for verbose mod
+
+        OUTPUT:
+
+        list of real or complex numbers
+
+        EXAMPLES::
+
+            #. The dragon fractal::
+
+                sage: e = QQbar(1/(1+I))
+                sage: m = BetaAdicMonoid(e, {0,1})
+                sage: P = m.draw_zoom()     # long time (360 s)
+
+        """
         if tss is None:
             tss = self.reduced_words_automaton2()
         
@@ -1308,6 +1358,22 @@ class BetaAdicMonoid:
 
     # give a word corresponding to one of the previously drawn points
     def word_drawn(self):
+        r"""
+        Draw word, return the list of words
+
+        OUTPUT:
+
+        return list of words
+
+        EXAMPLES::
+
+            #. The dragon fractal::
+
+                sage: e = QQbar(1/(1+I))
+                sage: m = BetaAdicMonoid(e, {0,1})
+                sage: P = m.draw_zoom()     # long time (360 s)
+
+        """
         sig_on()
         cdef int *word = WordDrawn()
         sig_off()
@@ -1335,14 +1401,18 @@ class BetaAdicMonoid:
         - ``place`` - place of the number field of beta (default: ``None``)
           The place used to evaluate elements of the number field.
 
+        - ``tss`` (default: ``None``) transition
+
         - ``ss`` - Automaton (default: ``None``)
           The subshift to associate to the beta-adic monoid for this drawing.
 
         - ``iss`` - set of initial states of the
           automaton ss (default: ``None``)
 
-        - ``sx, sy`` - dimensions of the resulting
-          image (default : ``800, 600``)
+        - ``sx`` -- (default: 800) dimensions of the resulting in x dimension
+
+        - ``sy`` -- (default : 600) dimensions of the resulting
+          in y dimension image
 
         - ``ajust`` - adapt the drawing to fill all the image,
           with ratio 1 (default: ``True``)
@@ -1352,6 +1422,12 @@ class BetaAdicMonoid:
         - ``color`` - list of three integer between 0
           and 255 (default: ``(0,0,255,255)``) Color of the drawing.
 
+        - ``method`` -- (default : 0)
+
+        - ``add_letters`` -- (default ``True``)
+
+        - ``coeff`` -- (default 8.)
+
         - ``verb`` - bool (default: ``False``)
           Print informations for debugging.
 
@@ -1359,7 +1435,7 @@ class BetaAdicMonoid:
 
             A Graphics object.
 
-        EXAMPLES:
+        EXAMPLES::
 
         #. The dragon fractal::
 
@@ -1374,8 +1450,8 @@ class BetaAdicMonoid:
         #. The Rauzy fractal of the Tribonacci substitution::
 
             sage: s = WordMorphism('1->12,2->13,3->1')
-            sage: m = s.rauzy_fractal_beta_adic_monoid()
-            sage: m.plot2()     # long time
+            sage: m = s.rauzy_fractal_plot()
+            sage: m     # long time
 
         #. A non-Pisot Rauzy fractal::
 
@@ -1493,7 +1569,7 @@ class BetaAdicMonoid:
 
             A Graphics object.
 
-        EXAMPLES:
+        EXAMPLES::
 
         #. The dragon fractal::
             sage: e = QQbar(1/(1+I))
@@ -1626,7 +1702,7 @@ class BetaAdicMonoid:
 
             A Graphics object.
 
-        EXAMPLES:
+        EXAMPLES::
 
         #. The dragon fractal::
             sage: e = QQbar(1/(1+I))
@@ -1930,7 +2006,7 @@ class BetaAdicMonoid:
 
         A Automaton.
 
-        EXAMPLES:
+        EXAMPLES::
 
             #. Compute the boundary of the dragon fractal (see intersection_words for a easier way) ::
 
@@ -2046,7 +2122,7 @@ class BetaAdicMonoid:
 
         A DetAutomaton.
 
-        EXAMPLES:
+        EXAMPLES::
 
             #. Compute the boundary of the dragon fractal (see intersection_words for a easier way) ::
 
@@ -2102,7 +2178,7 @@ class BetaAdicMonoid:
 
         A Automaton.
 
-        EXAMPLES:
+        EXAMPLES::
 
             #. Compute the boundary of the dragon fractal::
 
@@ -2155,6 +2231,16 @@ class BetaAdicMonoid:
         OUTPUT:
 
         DetAutomaton.
+
+        EXAMPLES::
+
+            sage: pi = x^3-x^2-x-1
+            sage: b = pi.roots(ring=QQbar)[1][0]
+            sage: m = BetaAdicMonoid(b, {0,1})
+            sage: ared = m.reduced_words_automaton2()
+            sage: ared
+            DetAutomaton with 4 states and an alphabet of 2 letters
+
         """
 
         # compute the relations automaton
@@ -2258,7 +2344,7 @@ class BetaAdicMonoid:
 # 
 #         A Automaton.
 # 
-#         EXAMPLES:
+#         EXAMPLES::
 # 
 #             #. 3-adic expansion with numerals set {0,1,3}::
 # 
@@ -2500,7 +2586,7 @@ class BetaAdicMonoid:
 
         A real number.
 
-        EXAMPLES:
+        EXAMPLES::
 
             #. Hausdorff dimension of limit set of 3-adic expansion with numerals set {0,1,3}::
 
@@ -2593,7 +2679,7 @@ class BetaAdicMonoid:
 
         A real number.
 
-        EXAMPLES:
+        EXAMPLES::
 
             #. Hausdorff dimension of limit set of 3-adic expansion with numerals set {0, 1, 3}::
 
@@ -3292,7 +3378,7 @@ class BetaAdicMonoid:
 
         A list of (DetAutomaton, translation).
 
-        EXAMPLES:
+        EXAMPLES::
 
             #. Full Tribonnacci::
 
@@ -3409,7 +3495,7 @@ class BetaAdicMonoid:
 
         A list of (DetAutomaton, translation).
 
-        EXAMPLES:
+        EXAMPLES::
 
             #. Full Tribonnacci::
 
@@ -3739,7 +3825,7 @@ class BetaAdicMonoid:
 
         A word morphism given by a dictionnary.
 
-        EXAMPLES:
+        EXAMPLES::
 
             #. Full Tribonnacci::
 
@@ -4061,7 +4147,7 @@ class BetaAdicMonoid:
 
         A word morphism given by a dictionnary.
 
-        EXAMPLES:
+        EXAMPLES::
 
             #. Full Tribonnacci::
 
