@@ -4154,7 +4154,6 @@ class BetaAdicMonoid:
                 sage: m = BetaAdicMonoid((x^3-x^2-x-1).roots(ring=QQbar)[1][0], {0, 1})
                 sage: m.compute_substitution(verb=False)          # long time
                 {1: [1, 3], 2: [1], 3: [1, 2]}
-
         """
         m = self
         if ap is None:
