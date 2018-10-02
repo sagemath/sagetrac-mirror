@@ -115,6 +115,11 @@ class PackedWord(ClonableIntArray):
         r"""
         Check that ``self`` is a packed word.
 
+        TODO:
+        
+            - Check all entries in ZZ.
+            - simplify check (existing code should be in _element_constructor_?)
+        
         TESTS::
 
             sage: PackedWord([3, 3, 2, 1])  # indirect doctest
@@ -140,10 +145,6 @@ class PackedWord(ClonableIntArray):
 
         if len(self) != parent(self)._size:
             raise ValueError("{} is not a packed word of size {}".format(self, parent(self)._size))
-
-    def _element_constructor_(self, lst=[], check=True):
-        r"""
-        """
 
     def _latex_(self):
         r"""
@@ -1160,6 +1161,7 @@ class PackedWords(UniqueRepresentation, Parent):
         TODO:
 
             - needs some english language improvement; I'll fix
+            - (existing code in check should be in _element_constructor_ or here ?)
 
         TESTS::
 
@@ -1235,6 +1237,11 @@ class PackedWords_all(PackedWords, DisjointUnionEnumeratedSets):
     def _element_constructor_(self, lst=[], check=True):
         r"""
         Construct an element of ``self``.
+
+        TODO:
+
+            - move in PackedWords
+            - (existing code in check should be here or in __contains__ ?)
 
         EXAMPLES::
 
