@@ -253,7 +253,7 @@ class PackedWord(ClonableIntArray):
             sage: pw2 * p
             Traceback (most recent call last):
             ...
-            ValueError: the size of the left packed word must be equal to the maximum value of the right packed word 
+            ValueError: the maximum value of the right packed word must be equal to the size of the left packed word
 
             sage: pw1 * PackedWord([1, 2, 3])
             [2, 1, 2]
@@ -803,6 +803,52 @@ class PackedWord(ClonableIntArray):
         """
         return transitive_ideal(lambda x: x.right_weak_order_succ(), self)
 
+    def right_weak_order_interval(self, pw):
+        r"""
+        Return the list of packed words in the interval 
+        between `self` and `pw` under the right weak order.
+
+        EXAMPLES::
+        
+            sage: P = PackedWord
+            sage: P([1, 2, 1]).right_weak_order_interval(P([1, 2, 1, 3]))
+            []
+            sage: P([1, 2, 1]).right_weak_order_interval(P([1, 2, 1]))
+            [[1, 2, 1]]
+            sage: P([1, 2, 1]).right_weak_order_interval(P([2, 1, 1]))
+            [[1, 2, 1], [2, 1, 1]]
+            sage: P([2, 1, 1]).right_weak_order_interval(P([1, 2, 1]))
+            [[1, 2, 1], [2, 1, 1]]
+            sage: P([1, 2, 1]).right_weak_order_interval(P([2, 1, 2]))
+            []
+            sage: P([1, 2, 1, 3, 4, 1]).right_weak_order_interval(P([3, 1, 2, 1, 1, 4]))
+            []
+            sage: P([1, 2, 1, 3, 4, 1]).right_weak_order_interval(P([3, 1, 2, 4, 1, 1]))
+            [[1, 2, 1, 3, 4, 1],
+             [1, 2, 3, 1, 4, 1],
+             [1, 2, 3, 4, 1, 1],
+             [1, 3, 2, 1, 4, 1],
+             [1, 3, 2, 4, 1, 1],
+             [3, 1, 2, 1, 4, 1],
+             [3, 1, 2, 4, 1, 1]]
+        """
+        G = self.right_weak_order_greater()
+        res = []
+
+        if pw in G:
+            for s_pw in pw.right_weak_order_smaller():
+                if s_pw in G:
+                    res += [s_pw]
+            return res
+        
+        S = self.right_weak_order_smaller()
+        if pw in S :
+            for g_pw in pw.right_weak_order_greater():
+                if g_pw in S:
+                    res += [g_pw]
+                    
+        return res
+
     ###################     Left Weak Order     ################################
 
     def left_weak_order_succ(self):
@@ -952,6 +998,49 @@ class PackedWord(ClonableIntArray):
             [[3, 1, 2, 4, 1, 2], [4, 1, 2, 3, 1, 2]]
         """
         return transitive_ideal(lambda x: x.left_weak_order_succ(), self)
+
+    def left_weak_order_interval(self, pw):
+        r"""
+        Return the list of packed words in the interval 
+        between `self` and `pw` under the let weak order.
+
+        EXAMPLES::
+        
+            sage: P = PackedWord
+            sage: P([1, 2, 1]).left_weak_order_interval(P([1, 2, 1, 3]))
+            []
+            sage: P([1, 2, 1]).left_weak_order_interval(P([1, 2, 1]))
+            [[1, 2, 1]]
+            sage: P([1, 2, 1]).left_weak_order_interval(P([2, 1, 1]))
+            []
+            sage: P([1, 2, 1]).left_weak_order_interval(P([2, 1, 2]))
+            []
+            sage: P([1, 1, 2]).left_weak_order_interval(P([2, 2, 1]))
+            [[1, 1, 2], [2, 2, 1]]
+            sage: P([2, 2, 1]).left_weak_order_interval(P([1, 1, 2]))
+            [[1, 1, 2], [2, 2, 1]]
+            sage: P([1, 4, 2, 3, 2, 3]).left_weak_order_interval(P([4, 3, 1, 2, 1, 2]))
+            [[1, 4, 2, 3, 2, 3],
+             [2, 4, 1, 3, 1, 3],
+             [3, 4, 1, 2, 1, 2],
+             [4, 3, 1, 2, 1, 2]]
+        """
+        G = self.left_weak_order_greater()
+        res = []
+
+        if pw in G:
+            for s_pw in pw.left_weak_order_smaller():
+                if s_pw in G:
+                    res += [s_pw]
+            return res
+        
+        S = self.left_weak_order_smaller()
+        if pw in S :
+            for g_pw in pw.left_weak_order_greater():
+                if g_pw in S:
+                    res += [g_pw]
+                    
+        return res
 
 #==============================================================================
 # Parent classes
