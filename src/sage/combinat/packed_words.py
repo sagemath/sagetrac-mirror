@@ -72,7 +72,7 @@ class PackedWord(ClonableIntArray):
 
         sage: w = PackedWord()
         sage: TestSuite(w).run()
-        sage: w = PackedWord([1,3,3,2,4,1,3])
+        sage: w = PackedWord([1, 3, 3, 2, 4, 1, 3])
         sage: TestSuite(w).run()
     """    
     @staticmethod
@@ -223,10 +223,58 @@ class PackedWord(ClonableIntArray):
         """
         return not self
 
-    def __add__(self,pw):
+    def __add__(self, pw):
         r"""
+        Return the concatenation of the two packed words.
+
+        EXAMPLES::
+
+            sage: pw1 = PackedWord([1, 3, 2, 1])
+            sage: pw2 = PackedWord([1, 2, 1])
+            sage: pw1 + pw2
+            [1, 3, 2, 1, 1, 2, 1]
+            sage: pw2 + pw1
+            [1, 2, 1, 1, 3, 2, 1]
         """
         return PackedWord([i for i in self] + [i for i in pw])
+
+    def __mul__(self, pw):
+        r"""
+        Return the usual composition of surjections if `size(pw) = max(self)`.
+        
+        The right element can be a permutation.
+
+        EXAMPLES::
+
+            sage: pw1 = PackedWord([2, 1, 2])
+            sage: pw2 = PackedWord([2, 1, 3, 2, 1])
+            sage: p = Permutation([1, 3, 2])
+            sage: pw2 * p
+            Traceback (most recent call last):
+            ...
+            ValueError: the size of the left packed word must be equal to the maximum value of the right packed word 
+
+            sage: pw1 * PackedWord([1, 2, 3])
+            [2, 1, 2]
+            sage: pw1 * PackedWord([3, 2, 1])
+            [2, 1, 2]
+            sage: pw1 * p
+            [2, 2, 1]
+            sage: pw1 * pw2
+            [1, 2, 2, 1, 2]
+            sage: pw2 * PackedWord([1, 2, 3, 4, 5, 4])
+            [2, 1, 3, 2, 1, 2]
+            sage: pw2 * PackedWord([5, 4, 3, 2, 2, 1])
+            [1, 2, 3, 1, 1, 2]
+        """
+        if pw in Permutations():
+            m = pw.size()
+        elif pw in PackedWords():
+            m = pw._max
+        if self.size() == m:
+            return PackedWord([self[i - 1] for i in pw])
+            
+        raise ValueError("the maximum value of the right packed word must be equal to the size of the left packed word")
 
     def size(self):
         r"""
@@ -249,7 +297,7 @@ class PackedWord(ClonableIntArray):
 
         EXAMPLES::
 
-            sage: pw=PackedWord([2,4,3,1,2,1])
+            sage: pw=PackedWord([2, 4, 3, 1, 2, 1])
             sage: pw.max()
             4
             sage: pw.to_ordered_set_partition().length()
@@ -265,9 +313,9 @@ class PackedWord(ClonableIntArray):
             
             sage: PackedWord([]).reverse()
             []
-            sage: PackedWord([3,2,1,2]).reverse()
+            sage: PackedWord([3, 2, 1, 2]).reverse()
             [2, 1, 2, 3]
-            sage: PackedWord([1,2,3,4,5]).reverse()
+            sage: PackedWord([1, 2, 3, 4, 5]).reverse()
             [5, 4, 3, 2, 1]
         """
         return self.__class__(self.parent(), [i for i in reversed(self)] )
@@ -303,26 +351,25 @@ class PackedWord(ClonableIntArray):
 
             sage: PackedWord([]).global_descents()
             []
-            sage: PackedWord([1,2,1]).global_descents()
+            sage: PackedWord([1, 2, 1]).global_descents()
             []
-            sage: PackedWord([2,1]).global_descents()
+            sage: PackedWord([2, 1]).global_descents()
             [1]
-            sage: PackedWord([7,5,4,6,3,1,2,1]).global_descents()
+            sage: PackedWord([7, 5, 4, 6, 3, 1, 2, 1]).global_descents()
             [1, 4, 5]
-            sage: PackedWord([7,5,4,6,3,1,2,1]).global_descents(from_zero=True)
+            sage: PackedWord([7, 5, 4, 6, 3, 1, 2, 1]).global_descents(from_zero=True)
             [0, 3, 4]
-            sage: PackedWord([7,5,4,6,3,1,2,1]).global_descents(final_descent=True)
+            sage: PackedWord([7, 5, 4, 6, 3, 1, 2, 1]).global_descents(final_descent=True)
             [1, 4, 5, 8]
-
         """
         if not self:
             return []
         g_descents = []
         local_left_min = self._max
-        for i in range(len(self)-1):
+        for i in range(len(self) - 1):
             local_left_min = min(local_left_min,self[i])
-            if local_left_min > max(self[i+1::]+[0]):
-                g_descents.append(i+1)
+            if local_left_min > max(self[i + 1::] + [0]):
+                g_descents.append(i + 1)
 
         if final_descent:
             g_descents.append(len(self))
@@ -345,11 +392,11 @@ class PackedWord(ClonableIntArray):
 
             sage: PackedWord([]).global_descents_factorization()
             [[]]
-            sage: PackedWord([1,2,1]).global_descents_factorization()
+            sage: PackedWord([1, 2, 1]).global_descents_factorization()
             [[1, 2, 1]]
-            sage: PackedWord([5,4,3,4,1,2,1]).global_descents_factorization()
+            sage: PackedWord([5, 4, 3, 4, 1, 2, 1]).global_descents_factorization()
             [[1], [2, 1, 2], [1, 2, 1]]
-            sage: PackedWord([5,4,3,4,1,2,1,4]).global_descents_factorization()
+            sage: PackedWord([5, 4, 3, 4, 1, 2, 1, 4]).global_descents_factorization()
             [[1], [4, 3, 4, 1, 2, 1, 4]]
         """
         g_descents = self.global_descents(final_descent=True)
@@ -393,27 +440,27 @@ class PackedWord(ClonableIntArray):
 
             sage: PackedWord([]).global_ascents()
             []
-            sage: PackedWord([1,2,1]).global_ascents()
+            sage: PackedWord([1, 2, 1]).global_ascents()
             []
-            sage: PackedWord([2,1]).global_ascents()
+            sage: PackedWord([2, 1]).global_ascents()
             []
-            sage: PackedWord([1,2]).global_ascents()
+            sage: PackedWord([1, 2]).global_ascents()
             [1]
-            sage: PackedWord([3,1,2,1,4,6,6,5,7,8,7]).global_ascents()
+            sage: PackedWord([3, 1, 2, 1, 4, 6, 6, 5, 7, 8, 7]).global_ascents()
             [4, 5, 8]
-            sage: PackedWord([3,1,2,1,4,6,6,5,7,8,7]).global_ascents(from_zero=True)
+            sage: PackedWord([3, 1, 2, 1, 4, 6, 6, 5, 7, 8, 7]).global_ascents(from_zero=True)
             [3, 4, 7]
-            sage: PackedWord([3,1,2,1,4,6,6,5,7,8,7]).global_ascents(final_ascent=True)
+            sage: PackedWord([3, 1, 2, 1, 4, 6, 6, 5, 7, 8, 7]).global_ascents(final_ascent=True)
             [4, 5, 8, 11]
         """
         if not self:
             return []
         g_ascents = []
         local_left_max = 0
-        for i in range(len(self)-1):
+        for i in range(len(self) - 1):
             local_left_max = max(local_left_max,self[i])
-            if local_left_max < min(self[i+1::]+[self._max]):
-                g_ascents.append(i+1)
+            if local_left_max < min(self[i + 1::] + [self._max]):
+                g_ascents.append(i + 1)
 
         if final_ascent:
             g_ascents.append(len(self))
@@ -436,13 +483,13 @@ class PackedWord(ClonableIntArray):
         
             sage: PackedWord([]).global_ascents_factorization()
             [[]]
-            sage: PackedWord([1,2,1]).global_ascents_factorization()
+            sage: PackedWord([1, 2, 1]).global_ascents_factorization()
             [[1, 2, 1]]
-            sage: PackedWord([3,1,2,1,4]).global_ascents_factorization()
+            sage: PackedWord([3, 1, 2, 1, 4]).global_ascents_factorization()
             [[3, 1, 2, 1], [1]]
-            sage: PackedWord([3,1,2,1,4,6,6,5,7,8,7]).global_ascents_factorization()
+            sage: PackedWord([3, 1, 2, 1, 4, 6, 6, 5, 7, 8, 7]).global_ascents_factorization()
             [[3, 1, 2, 1], [1], [2, 2, 1], [1, 2, 1]]
-            sage: PackedWord([3,1,2,1,4,6,6,5,7,8,7,4]).global_ascents_factorization()
+            sage: PackedWord([3, 1, 2, 1, 4, 6, 6, 5, 7, 8, 7, 4]).global_ascents_factorization()
             [[3, 1, 2, 1], [1, 3, 3, 2, 4, 5, 4, 1]]
         """
         g_ascents = self.global_ascents(final_ascent=True)
@@ -1005,12 +1052,12 @@ class PackedWords(UniqueRepresentation, Parent):
 
             sage: PackedWords.from_ordered_set_partition([])
             []
-            sage: osp=[[1,3],[2]]
+            sage: osp=[[1, 3],[2]]
             sage: PackedWords.from_ordered_set_partition(osp)
             [1, 2, 1]
 
-            sage: pw=PackedWord([1,4,1,3,2])
-            sage: PackedWords.from_ordered_set_partition(pw.to_ordered_set_partition())==pw
+            sage: pw=PackedWord([1, 4, 1, 3, 2])
+            sage: PackedWords.from_ordered_set_partition(pw.to_ordered_set_partition()) == pw
             True
         """
         OSP=OrderedSetPartition
@@ -1196,7 +1243,7 @@ class PackedWords_all(PackedWords, DisjointUnionEnumeratedSets):
             []
             sage: P([1])
             [1]
-            sage: P([5,1,3,2,1,1,4,3])
+            sage: P([5, 1, 3, 2, 1, 1, 4, 3])
             [5, 1, 3, 2, 1, 1, 4, 3]
         """
         if isinstance(parent(lst), PackedWords):
