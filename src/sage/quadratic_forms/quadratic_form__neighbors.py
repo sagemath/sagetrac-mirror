@@ -154,6 +154,34 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
             return w
 
 
+def neighbor_from_vect(self, p, y):
+    r"""
+    """
+    p = ZZ(p)
+    if not (p).divides(self(y)):
+        raise ValueError("v=%s must be of square divisible by p^2=%s"%(v,p))
+    n = self.dim()
+
+
+    # y' = y + p z mit -y Gy = 2(yGz) mod p
+    # pL + y
+    # B = (p*matrix.identity(n)).stack(y)
+
+    G = self.Hessian_matrix()
+    #w = B*G*y / p;
+    #if p == ZZ(2):
+    #    w[n]/=p
+    # L_y
+    w = G*y
+    Ly = w.change_ring(GF(p)).column().kernel().matrix().lift()
+    B = Ly.stack(p*matrix.identity(n)) #??
+    B = y.row().stack(p*B)
+
+    if p == ZZ(2):
+        B *= 2
+    B = B.smith_form()[1][:n, :] * B / p
+    assert B.det() == 1, (B.det(),B)
+    return QuadraticForm(B*G*B.T)
 
 
 ## ----------------------------------------------------------------------------------------------
@@ -254,7 +282,7 @@ def find_p_neighbor_from_vec(self, p, v):
 
 #def find_classes_in_genus(self):
 
-def neighbor_method(self, p, verbose=False):
+def neighbor_iteration_orbits(self, p, verbose=False):
     r"""
     Return all classes in the `p`-neighbor graph of ``self``.
 
@@ -320,7 +348,7 @@ def neighbor_method(self, p, verbose=False):
     return isom_classes
 
 
-def neighbor_method_old(self, p, verbose=False):
+def neighbor_iteration_exaustion(self, p, verbose=False):
     r"""
     Return all classes in the `p`-neighbor graph of ``self``.
 
@@ -375,6 +403,74 @@ def neighbor_method_old(self, p, verbose=False):
             v = Q.find_primitive_p_divisible_vector__next(p, v)
     # sanity check
     assert c_mass == c_mass_0, "some classes are missing!"
+    return isom_classes
+
+
+def neighbor_iteration_random(self, p, verbose=False, max_trys=1000):
+    r"""
+    Return all classes in the `p`-neighbor graph of ``self``.
+
+    Starting from the given quadratic form, this function successively
+    finds p-neighbors untill the mass matches the mass of the genus or
+    the maximum number of tries is reached
+
+    INPUT:
+
+    - ``p`` -- a prime number
+
+    OUTPUT:
+
+    - a list of quadratic forms
+    - max_trys -- (default:`1000`) an Integer
+
+    EXAMPLES::
+
+        sage: Q = QuadraticForm(ZZ,3,[1,0,0,2,1,3])
+        sage: Q.det()
+        46
+        sage: Q.neighbor_method(3)
+        [Quadratic form in 3 variables over Integer Ring with coefficients:
+        [ 1 0 0 ]
+        [ * 2 1 ]
+        [ * * 3 ], Quadratic form in 3 variables over Integer Ring with coefficients:
+        [ 1 0 -1 ]
+        [ * 1 0 ]
+        [ * * 6 ], Quadratic form in 3 variables over Integer Ring with coefficients:
+        [ 1 -1 -1 ]
+        [ * 1 1 ]
+        [ * * 8 ]]
+    """
+    from sage.quadratic_forms.genera.genus import Genus
+    isom_classes = [self.lll()]
+    genus = Genus(isom_classes[0].Hessian_matrix())
+    waiting_list = [isom_classes[0]]
+    c_mass = isom_classes[0].number_of_automorphisms()**(-1)
+    c_mass_0 = isom_classes[0].conway_mass()
+    while len(waiting_list) > 0 and c_mass < c_mass_0:
+        # find all p-neighbors of Q
+        Q = waiting_list.pop()
+        v = Q.find_primitive_p_divisible_vector__random(p)
+        for k in range(max_trys):
+            Q_neighbor = Q.find_p_neighbor_from_vec(p, v).lll()
+            for S in isom_classes:
+                if Q_neighbor.is_globally_equivalent_to(S):
+                    break
+            else:
+                # TODO: there is a bug here
+                gen = Genus(Q_neighbor.Hessian_matrix())
+                if gen == genus:
+                    isom_classes.append(Q_neighbor)
+                    waiting_list.append(Q_neighbor)
+                    c_mass += Q_neighbor.number_of_automorphisms()**(-1)
+                    if c_mass == c_mass_0:
+                        break
+                    if verbose:
+                        print(Q_neighbor,c_mass_0 - c_mass)
+                else:
+                    return Q,v,Q_neighbor
+            v = Q.find_primitive_p_divisible_vector__random(p)
+    # sanity check
+    #assert c_mass == c_mass_0, "some classes are missing!"
     return isom_classes
 
 def orbits_mod_p(self, p):

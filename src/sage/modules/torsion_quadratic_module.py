@@ -594,6 +594,8 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: Gen == L.genus()
             True
         """
+        if not self.is_genus((signature_pair)):
+            raise ValueError("this signature=%s and torsion quadratic form do define a genus"%signature_pair)
         from sage.quadratic_forms.genera.genus import (Genus_Symbol_p_adic_ring,
                                                     GenusSymbol_global_ring,
                                                     p_adic_symbol,

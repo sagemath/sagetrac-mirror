@@ -21,6 +21,58 @@ from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from copy import copy, deepcopy
 from sage.misc.misc import verbose
 
+def M_p(species, p):
+    r"""
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.genus import M_p
+        sage: M_p(0,2)
+        1
+        sage: M_p(1,2)
+        1/2
+        sage: M_p(-2,2)
+        1/3
+        sage: M_p(2,2)
+        1
+        sage: M_p(3,2)
+        2/3
+        sage: M_p(-4,2)
+        8/15
+        sage: M_p(4,2)
+        8/9
+        sage: M_p(5,2)
+        32/45
+
+        sage: M_p(0,3)
+        1
+        sage: M_p(1,3)
+        1/2
+        sage: M_p(-2,3)
+        3/8
+        sage: M_p(2,3)
+        3/4
+        sage: M_p(3,3)
+        9/16
+        sage: M_p(-4,3)
+        81/160
+    """
+    if species == 0:
+        return QQ(1)
+    n = species.abs()
+    s = (n+1) // ZZ(2)
+    mp = ZZ(2) * ZZ.prod(ZZ(1)-p**(-2*k) for k in range(1, s))
+    if n % 2 == 0:
+        mp *= ZZ(1) - species.sign() * p**(-s)
+    return QQ(1) / mp
+
+def my_zeta(s,D, max_terms=40000):
+    r"""
+    """
+    from sage.all import RR
+    D = ZZ(D)
+    return RR.sum(D.jacobi(m)/RR(m)**s for m in range(1,max_terms,2))
+
 def all_genera_by_det(sig_pair, determinant, max_scale=None, even=True):
     r"""
     Return a list of all global genera with the given conditions.
@@ -1756,6 +1808,110 @@ class Genus_Symbol_p_adic_ring(object):
             assert Genus_Symbol_p_adic_ring(p, symG) == self, "oops"
         return G.change_ring(ZZ)
 
+    def mass(self):
+        r"""
+        Returns the local mass of this form as defined by Conway.
+        """
+        if self.dimension() <= 1:
+            raise ValueError("the dimension must be at least 2")
+        p = self.prime()
+        sym = self._symbol
+        ##############
+        #diagonal product
+        ##############
+        species = self._species_list()
+
+        # diagonal factor
+        m_p = ZZ.prod(M_p(species, p) for species in self._species_list())
+        # cross terms
+        r = len(sym)
+        ct = 0
+        for j in range(r):
+            for i in range(j):
+                ct += (sym[j][0] - sym[i][0]) * sym[i][1] * sym[j][1]
+        ct = ct / QQ(2)
+        m_p *= p**ct
+
+        if p != 2:
+            return m_p
+
+        # type factors
+        nII = ZZ.sum(fq[1] for fq in sym if fq[3] == 0)
+
+        nI_I = ZZ(0)   # the total number of pairs of adjacent constituents f_q,
+        # f_2q that are both of type I (odd)
+        for k in range(r-1):
+            if sym[k][3] == sym[k+1][3] == 1 and sym[k][0] + 1 == sym[k+1][0]:
+                nI_I += ZZ(1)
+        return m_p * ZZ(2)**(nI_I - nII)
+
+    def _standard_mass(self):
+        r"""
+        """
+        n = self.dimension()
+        p = self.prime()
+        s = (n + 1) // ZZ(2)
+        std = QQ(2) * QQ.prod(ZZ(1)-p**ZZ(-2*k) for k in range(1, s))
+        if n % 2 == 0:
+            epsilon = (ZZ(-1)**s).kronecker(p)
+            if p == 2:
+                d = 0
+            else:
+                d = ZZ.prod(fq[2] for fq in self._symbol)
+            epsilon *= d
+            std * (1- epsilon*p**(-s))
+        return QQ(1) / std
+
+    def _species_list(self):
+        r"""
+        """
+        p = self.prime()
+        species_list = []
+        sym = self._symbol
+        if self.prime() != 2:
+            for k in range(len(sym)):
+                n = sym[k][1]
+                d = sym[k][2]
+                if n % 2 == 0 and d != ZZ(-1).kronecker(p)**(n//ZZ(2)):
+                    species = -n
+                else:
+                    species = n
+                species_list.append(species)
+            return species_list
+
+        #  p == 2
+        # create a dense list of symbols
+        symbols = []
+        s = 0
+        for k in range(sym[-1][0]+1):
+            if sym[s][0] == k:
+                symbols.append(sym[s])
+                s +=1
+            else:
+                symbols.append([k,0,1,0,0])
+        # avoid a case distinction
+        sym = [[-2,0,1,0,0],[-1,0,1,0,0]] + symbols + [[sym[-1][0]+1,0,1,0,0],[sym[-1][0]+2,0,1,0,0]]
+        for k in range(1, len(sym)-1):
+            free = True
+            if sym[k-1][3]== 1 or sym[k+1][3] == 1:
+                free = False
+            n = sym[k][1]
+            o = sym[k][4]
+            if ZZ(sym[k][2]).kronecker(2) == -1:
+                o = (o + ZZ(4)) % 8
+            if sym[k][3] == 0 or n % 2 == 1:
+                t = n // ZZ(2)
+            else:
+                t = (n // ZZ(2)) - ZZ(1)
+            if free and (o == 0 or o == 1 or o == 7):
+                species = 2*t
+            elif free and (o == 3 or o == 5 or o == 4):
+                species = -2*t
+            else:
+                species = 2*t + 1
+            species_list.append(species)
+        return species_list
+
     def prime(self):
         r"""
         Return the prime number `p` of this `p`-adic local symbol.
@@ -2550,6 +2706,52 @@ class GenusSymbol_global_ring(object):
                 P.append(p)
         return rational_qf_from_invariants(m, det, P, sminus)
 
+    def _standard_mass(self):
+        r"""
+        """
+        from sage.functions.gamma import gamma
+        from sage.functions.transcendental import zeta
+        from sage.symbolic.constants import pi
+        from sage.symbolic.ring import SR
+        n = self.dimension()
+        if n % 2 == 0:
+            s = n // 2
+        else:
+            s = (n // 2) + 1
+        d = self.determinant()
+        std = QQ(2) * pi**(-n*(n+1)/QQ(4))
+        std *= SR.prod(gamma(QQ(j)/QQ(2)) for j in range(1, n+1))
+        std *= SR.prod(zeta(ZZ(2)*ZZ(k)) for k in range(1, s))
+        if n % 2 == 0:
+            from sage.quadratic_forms.special_values import quadratic_L_function__exact
+            D = ZZ(-1)**(s)*self.determinant()
+            L = quadratic_L_function__exact(ZZ(s), D)
+            print(s,D)
+            L = my_zeta(s,D) #
+            std *= L
+        return std
+
+
+    def mass(self, algorithm='sage'):
+        r"""
+        Return the mass of this genus.
+        """
+        if algorithm == 'sage':
+            from sage.functions.gamma import gamma
+            from sage.symbolic.constants import pi
+            n = self.dimension()
+            mass = self._standard_mass()
+            for sym in self._local_symbols:
+                mass *= sym.mass()/sym._standard_mass()
+            return mass.n() #QQ(AA(mass))
+        if algorithm == 'magma':
+            from sage.interfaces.magma import Magma
+            magma = Magma()
+            magma.set_server_and_command(command="magma")
+            L = magma(self.representative())
+            L = L.LatticeWithGram()
+            return QQ(L.Mass())
+
     def representative(self):
         r"""
         Return a representative in this genus.
@@ -2584,7 +2786,7 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: Genus(matrix.
+            sage:
         """
         return prod([s.scale() for s in self.local_symbols()])
 
@@ -2945,3 +3147,5 @@ def _gram_from_jordan_block(p, block, discr_form=False):
             q[0,0] = u
         q = q * p**scale
     return q
+
+
