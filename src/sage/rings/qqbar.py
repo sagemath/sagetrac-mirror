@@ -4748,6 +4748,8 @@ class AlgebraicReal(AlgebraicNumber_base):
         """
         return self._floor_ceil(lambda x: x.round())
 
+    __round__ = round
+
     def trunc(self):
         r"""
         Round ``self`` to the nearest integer toward zero.

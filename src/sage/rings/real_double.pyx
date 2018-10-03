@@ -1463,6 +1463,8 @@ cdef class RealDoubleElement(FieldElement):
         """
         return Integer(round(self._value))
 
+    __round__ = round
+
     def floor(self):
         """
         Return the floor of ``self``.

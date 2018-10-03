@@ -1275,6 +1275,8 @@ cdef class NumberFieldElement(FieldElement):
 
         return (self + QQ((1,2))).floor()
 
+    __round__ = round
+
     def abs(self, prec=None, i=None):
         r"""Return the absolute value of this element.
 

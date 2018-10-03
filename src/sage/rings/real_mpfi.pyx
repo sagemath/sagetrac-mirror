@@ -2997,6 +2997,8 @@ cdef class RealIntervalFieldElement(RingElement):
         """
         return self.parent()(self.lower().round(), self.upper().round())
 
+    __round__ = round
+
     def trunc(self):
         r"""
         Return the truncation of this interval as an interval

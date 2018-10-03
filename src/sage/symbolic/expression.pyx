@@ -6025,6 +6025,8 @@ cdef class Expression(CommutativeRingElement):
         else:
             return result
 
+    __round__ = round
+
     def function(self, *args):
         """
         Return a callable symbolic expression with the given variables.

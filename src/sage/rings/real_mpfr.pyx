@@ -2839,6 +2839,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpfr_round(x.value, self.value)
         return x.integer_part()
 
+    __round__ = round
+
     def floor(self):
         """
         Return the floor of ``self``.

@@ -2274,7 +2274,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
     def round(self):
         r"""
-        Returns the round (nearest integer).
+        Return the round (nearest integer).
 
         EXAMPLES::
 
@@ -2313,6 +2313,9 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             return n + 1
         else:
             return n
+
+    __round__ = round
+
 
 cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
     """
