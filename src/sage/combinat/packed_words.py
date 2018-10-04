@@ -129,10 +129,22 @@ class PackedWord(ClonableIntArray):
             Traceback (most recent call last):
             ...
             ValueError: [2, 2, 1, 0, 4] is not a packed word
+
+            sage: PackedWords(3)([1,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: [1, 2] is not a packed word of size 3
+
+            sage: PackedWords(3)([]) 
+            Traceback (most recent call last):
+            ...
+            ValueError: [] is not a packed word of size 3
         """
         if not self:
-            return
-
+            if parent(self)._size == 0:
+                return 
+            else:
+                raise ValueError("{} is not a packed word of size {}".format(self, parent(self)._size))
         try:
             s = set(self)
         except (ValueError, TypeError):
