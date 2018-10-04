@@ -637,6 +637,9 @@ REFERENCES:
              Secret. Cryptology ePrint Archive, Report 2013/164. 2013.
              2013/164. http://eprint.iacr.org/2013/164
 
+.. [Conr] Keith Conrad, "Artin-Hasse-Type Series and Roots of Unity",
+          http://www.math.uconn.edu/~kconrad/blurbs/gradnumthy/AHrootofunity.pdf
+
 .. [CGMRV16] \A. Conte, R. Grossi, A. Marino, R. Rizzi, L. Versari,
              "Directing Road Networks by Listing Strong Orientations.",
              Combinatorial Algorithms, Proceedings of 27th International Workshop,
@@ -797,6 +800,9 @@ REFERENCES:
 .. [CS1986] \J. Conway and N. Sloane. *Lexicographic codes:
             error-correcting codes from game theory*, IEEE
             Trans. Infor. Theory **32** (1986) 337-348.
+
+.. [CS2003] \John E. Cremona and Michael Stoll. On The Reduction Theory of Binary Forms.
+            Journal für die reine und angewandte Mathematik, 565 (2003), 79-99.
 
 .. [Cu1984] \R. Curtis, The Steiner system `S(5,6,12)`, the Mathieu
             group `M_{12}`, and the kitten. *Computational group
@@ -1320,6 +1326,10 @@ REFERENCES:
 
 .. [Gu] GUAVA manual, http://www.gap-system.org/Packages/guava.html
 
+.. [Gut2001] Carsten Gutwenger and Petra Mutzel. *A Linear Time Implementation
+             of SPQR-Trees*, International Symposium on Graph Drawing,
+             (2001) 77-90
+
 .. [GW1999] Frederick M. Goodman and Hans Wenzl. *Crystal bases of quantum
             affine algebras and affine Kazhdan-Lusztig polyonmials*.
             Int. Math. Res. Notices **5** (1999), 251-275.
@@ -1400,6 +1410,9 @@ REFERENCES:
 
 .. [Hoc] Winfried Hochstaettler, "About the Tic-Tac-Toe Matroid",
          preprint.
+
+.. [Hopcroft1973] J. E. Hopcroft and R. E. Tarjan. *Dividing a Graph into
+                  Triconnected Components*, SIAM J. Comput., 2(3), 135–158
 
 .. [Hopkins2017] Sam Hopkins,
                  *RSK via local transformations*,
@@ -2191,6 +2204,9 @@ REFERENCES:
             Number Theory" (ed. Y. Motohashi), London Math. Soc. Lecture Notes
             247 (1997), 313-320, Cambridge Univ. Press.
 
+.. [Mur1983] \G. E. Murphy. *The idempotents of the symmetric group
+             and Nakayama's conjecture*. J. Algebra **81** (1983). 258-265.
+
 .. [MV2010] \D. Micciancio, P. Voulgaris. *A Deterministic Single
             Exponential Time Algorithm for Most Lattice Problems based
             on Voronoi Cell Computations*. Proceedings of the 42nd ACM
@@ -2797,6 +2813,9 @@ REFERENCES:
              Jacobi elliptic functions for real
              argument". 1997. https://researchspace.auckland.ac.nz/bitstream/handle/2292/5042/390.pdf.
 
+.. [Terwilliger2011] Paul Terwilliger. *The universal Askey-Wilson algebra*.
+                     SIGMA **7** (2011), 069, 24 pages. :arxiv:`1104.2813`.
+
 .. [TIDES] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. TIDES tutorial:
            Integrating ODEs by using the Taylor Series Method
            (http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm)
@@ -3036,6 +3055,10 @@ REFERENCES:
              778: L-BFGS-B, FORTRAN routines for large scale bound
              constrained optimization. ACM Transactions on
              Mathematical Software, Vol 23, Num. 4, pp.550--560, 1997.
+
+.. [Zhedanov1991] \A.S. Zhedanov.
+                  *"Hidden symmetry" of the Askey–Wilson polynomials*,
+                  Theoret. and Math. Phys. **89** (1991), 1146--1157.
 
 .. [Zie1998] \G. M. Ziegler. *Shelling polyhedral 3-balls and
              4-polytopes*. Discrete Comput. Geom. 19 (1998), 159-174.
