@@ -1841,15 +1841,15 @@ def direct_sum_embed(D, i1, i2, OD, G1, G2):
 
     EXAMPLES::
 
-    sage: from sage.modules.torsion_quadratic_module import direct_sum_embed
-    sage: T = TorsionQuadraticForm(matrix.diagonal([2/3]*3))
-    sage: T1 = TorsionQuadraticForm(matrix.diagonal([2/3]*3))
-    sage: T2 = TorsionQuadraticForm(matrix.diagonal([2/3]*2))
-    sage: D, i1, i2 = T1.direct_sum(T2)
-    sage: OD = D.orthogonal_group()
-    sage: G1 = T1.orthogonal_group()
-    sage: G2 = T2.orthogonal_group()
-    sage: phi1, phi2 = direct_sum_embed(D,i1,i2,OD,G1,G2)
+        sage: from sage.modules.torsion_quadratic_module import direct_sum_embed
+        sage: T = TorsionQuadraticForm(matrix.diagonal([2/3]*3))
+        sage: T1 = TorsionQuadraticForm(matrix.diagonal([2/3]*3))
+        sage: T2 = TorsionQuadraticForm(matrix.diagonal([2/3]*2))
+        sage: D, i1, i2 = T1.direct_sum(T2)
+        sage: OD = D.orthogonal_group()
+        sage: G1 = T1.orthogonal_group()
+        sage: G2 = T2.orthogonal_group()
+        sage: phi1, phi2 = direct_sum_embed(D,i1,i2,OD,G1,G2)
     """
     Dgap = OD.domain()
     direct_sum_gens = [(Dgap(D(g))).gap() for g in i1.image().gens() + i2.image().gens()]

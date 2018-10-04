@@ -565,7 +565,10 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
 
         EXAMPLES::
 
-
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: A = AbelianGroupGap([2,3,4,5])
+            sage: S = A.subgroup(A.gens()[:1])
+            sage: A.quotient(S)
         """
         if not isinstance(N, AbelianGroup_gap):
             raise TypeError("not an abelian group")

@@ -480,8 +480,6 @@ def orbits_mod_p(self, p):
 
     INPUT:
 
-    - ``q`` -- a quadratic form over `\ZZ
-
     - ``p`` -- a prime number
 
     OUTPUT:

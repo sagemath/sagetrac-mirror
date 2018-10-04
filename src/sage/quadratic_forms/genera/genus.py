@@ -1847,18 +1847,21 @@ class Genus_Symbol_p_adic_ring(object):
     def _standard_mass(self):
         r"""
         """
+        from sage.arith.misc import fundamental_discriminant
+        from sage.quadratic_forms.extras import least_quadratic_nonresidue
         n = self.dimension()
         p = self.prime()
         s = (n + 1) // ZZ(2)
         std = QQ(2) * QQ.prod(ZZ(1)-p**ZZ(-2*k) for k in range(1, s))
         if n % 2 == 0:
-            epsilon = (ZZ(-1)**s).kronecker(p)
-            if p == 2:
-                d = 0
-            else:
-                d = ZZ.prod(fq[2] for fq in self._symbol)
-            epsilon *= d
-            std * (1- epsilon*p**(-s))
+            D = ZZ(-1)**s*self.determinant()
+            u = ZZ.prod(fq[2] for fq in self._symbol)
+            if p != 2 and u == -1:
+                u = least_quadratic_nonresidue(p)
+            D *= u
+            D = fundamental_discriminant(D)
+            epsilon = D.kronecker(p)
+            std *= (1- epsilon*p**(-s))
         return QQ(1) / std
 
     def _species_list(self):
@@ -1869,7 +1872,7 @@ class Genus_Symbol_p_adic_ring(object):
         sym = self._symbol
         if self.prime() != 2:
             for k in range(len(sym)):
-                n = sym[k][1]
+                n = ZZ(sym[k][1])
                 d = sym[k][2]
                 if n % 2 == 0 and d != ZZ(-1).kronecker(p)**(n//ZZ(2)):
                     species = -n
@@ -2527,7 +2530,7 @@ class GenusSymbol_global_ring(object):
         """
         return self._signature
 
-    signature_pair = signature_pair_of_matrix
+    signature_pair_of_matrix = signature_pair
 
     def automorphous_numbers(self):
         r"""
@@ -2553,8 +2556,6 @@ class GenusSymbol_global_ring(object):
             for A in sym.automorphous_numbers():
                 kernel_gens.append(grp.delta(A, p=sym.prime()))
         return grp, grp.subgroup(kernel_gens)
-
-    signature_pair_of_matrix = signature_pair
 
     def signature(self):
         r"""
@@ -2741,8 +2742,6 @@ class GenusSymbol_global_ring(object):
             from sage.quadratic_forms.special_values import quadratic_L_function__exact
             D = ZZ(-1)**(s)*self.determinant()
             L = quadratic_L_function__exact(ZZ(s), D)
-            print(s,D)
-            L = my_zeta(s,D) #
             std *= L
         return std
 
@@ -2758,7 +2757,7 @@ class GenusSymbol_global_ring(object):
             mass = self._standard_mass()
             for sym in self._local_symbols:
                 mass *= sym.mass()/sym._standard_mass()
-            return mass.n() #QQ(AA(mass))
+            return QQ(mass.canonicalize_radical())
         if algorithm == 'magma':
             from sage.interfaces.magma import Magma
             magma = Magma()
