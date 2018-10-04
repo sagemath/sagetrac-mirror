@@ -448,7 +448,7 @@ class Ideal_generic(MonoidElement):
             sage: R = Zp(7, prec=10); R
             7-adic Ring with capped relative precision 10
             sage: I = 7*R; I
-            Principal ideal (7 + O(7^11)) of 7-adic Ring with capped relative precision 10
+            Principal ideal (7) of 7-adic Ring with capped relative precision 10
             sage: I.base_ring()
             7-adic Ring with capped relative precision 10
         """

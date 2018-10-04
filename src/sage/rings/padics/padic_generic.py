@@ -636,6 +636,15 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 #         """
 #         raise NotImplementedError
 
+    def _ideal_class_(self, n=0):
+        if self.is_field():
+            from sage.rings.padics.local_ideal import Ideal_local_fractional
+            return Ideal_local_fractional
+        else:
+            from sage.rings.padics.local_ideal import Ideal_local
+            return Ideal_local
+
+
     def extension(self, modulus, prec = None, names = None, print_mode = None, implementation='FLINT', **kwds):
         """
         Create an extension of this p-adic ring.

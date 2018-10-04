@@ -545,7 +545,7 @@ cdef class Ring(ParentWithGens):
         EXAMPLES::
 
             sage: Zp(7).unit_ideal()
-            Principal ideal (1 + O(7^20)) of 7-adic Ring with capped relative precision 20
+            Principal ideal (1) of 7-adic Ring with capped relative precision 20
         """
         if self._unit_ideal is None:
             I = Ring.ideal(self, [self(1)], coerce=False)
