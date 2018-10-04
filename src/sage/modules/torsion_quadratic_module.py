@@ -1242,8 +1242,8 @@ class TorsionQuadraticModule(FGP_Module_class):
         ambient = FreeQuadraticModule(self.base_ring(), n, inner_product_matrix)
         V = ambient.span(self.V().basis())
         W = ambient.span(self.W().basis())
-        modulus = s * self._modulus
-        modulus_qf = s * self._modulus_qf
+        modulus = s.abs() * self._modulus
+        modulus_qf = s.abs() * self._modulus_qf
         return TorsionQuadraticModule(V, W, modulus=modulus, modulus_qf=modulus_qf)
 
     def value_module(self):
