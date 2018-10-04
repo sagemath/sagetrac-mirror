@@ -250,6 +250,7 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
             "[{1, 11, 3, 4}, {3, 5, 'a'}]"
         """
         # TODO: simplify if/once ``_repr_`` method for ``Set`` sorts its elements.
+        # sage: repr(Set([1,8])) == '{1, 8}'
         if self._n:
             string_parts = map(lambda k: str(sorted(k)), self)
         else:
@@ -736,6 +737,8 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
         # trim common prefix and suffix to make the search-space smaller
         co1 = map(set, self)
         co2 = map(set, co)
+        if co1 == co2:
+            return True
         while co1[0] == co2[0]:
             co1 = co1[1:]; co2 = co2[1:]
         while co1[-1] == co2[-1]:
