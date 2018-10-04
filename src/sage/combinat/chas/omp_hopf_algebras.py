@@ -18,14 +18,12 @@ from functools import reduce
 
 from sage.misc.bindable_class import BindableClass
 from sage.misc.cachefunc import cached_method
-#from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.realizations import Category_realization_of_parent
-#from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
 from sage.categories.hopf_algebras import HopfAlgebras
-from sage.categories.rings import Rings
+from sage.categories.commutative_rings import CommutativeRings
 from sage.categories.fields import Fields
 
 from sage.matrix.matrix_space import MatrixSpace
@@ -34,13 +32,11 @@ from sage.rings.all import ZZ
 
 from sage.functions.other import factorial
 
-from sage.combinat.permutation import Permutations_mset
-from sage.combinat.free_module import CombinatorialFreeModule
-#from .bases import OMPBases, MultiplicativeOMPBases, OMPBasis_abstract
-from sage.combinat.multiset_partition_into_sets_ordered import OrderedMultisetPartitionsIntoSets #OrderedMultisetPartitionsIntoSets, OrderedMultisetPartitionsIntoSets_n, OrderedMultisetPartitionsIntoSets_alph_d
-from sage.sets.set import Set, Set_object
 from sage.combinat.posets.posets import Poset
 from sage.combinat.sf.sf import SymmetricFunctions
+from sage.combinat.permutation import Permutations_mset
+from sage.combinat.free_module import CombinatorialFreeModule
+from sage.combinat.multiset_partition_into_sets_ordered import OrderedMultisetPartitionsIntoSets
 
 class OMPBases(Category_realization_of_parent):
     r"""
@@ -63,9 +59,6 @@ class OMPBases(Category_realization_of_parent):
             sage: OMPSym.H() in bases
             True
         """
-        # TODO: do I need the next two lines?
-        self._A = base._A
-        self._order_grading = base._order_grading
         self._graded = graded
         Category_realization_of_parent.__init__(self, base)
 
@@ -115,7 +108,6 @@ class OMPBases(Category_realization_of_parent):
         """
         R = self.base().base_ring()
         cat = HopfAlgebras(R).Graded().WithBasis()
-        #cat = GradedHopfAlgebras(R).WithBasis()
         if self._graded:
             cat = cat.Graded()
         else:
@@ -123,9 +115,6 @@ class OMPBases(Category_realization_of_parent):
         return [self.base().Realizations(),
                 HopfAlgebras(R).Graded().Realizations(),
                 cat.Connected()]
-        #return [self.base().Realizations(),
-        #        GradedHopfAlgebras(R).Realizations(),
-        #        cat.Connected()]
 
     class ParentMethods:
         def _repr_(self):
@@ -185,28 +174,6 @@ class OMPBases(Category_realization_of_parent):
                 False
             """
             return self._A == []
-
-        def is_commutative(self):
-            """
-            Return whether ``self`` is commutative.
-
-            EXAMPLES::
-
-                sage: OMPNonCommutativeSymmetricFunctions(ZZ).H().is_commutative()
-                False
-                sage: OMPNonCommutativeSymmetricFunctions(ZZ, alphabet=[2]).H().is_commutative()
-                True
-                sage: OMPQuasiSymmetricFunctions(ZZ).M().is_commutative()
-                True
-            """
-            # TODO: refactor code.
-            # if self is OMPQSym, return True
-
-            if self.base_ring().is_zero():
-                return True
-            if self._A is not None and len(self._A) == 1:
-                return True
-            return False
 
         def one_basis(self):
             """
@@ -522,9 +489,8 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
         x = o.leading_support()
         s = self.base_ring().an_element()
         a = self.an_element()
-        _a = dict(a).iteritems()
-        fake_commutator = self.sum_of_terms([(x+y, c) for (y,c) in _a]) \
-                    - self.sum_of_terms([(y+x, -c) for (y,c) in _a])
+        fake_commutator = self.sum_of_terms([(x+y, c) for (y,c) in a]) \
+                    - self.sum_of_terms([(y+x, -c) for (y,c) in a])
         return [u, o, s + a, o*o, fake_commutator]
 
 
@@ -554,6 +520,24 @@ class OMPBasis_OMPSym(OMPBasis_abstract):
         else:
             return OMPBasis_abstract._coerce_map_from_(self, R)
 
+    def is_commutative(self):
+        """
+        Return whether ``self`` is commutative.
+
+        EXAMPLES::
+
+            sage: OMPNonCommutativeSymmetricFunctions(ZZ).H().is_commutative()
+            False
+            sage: OMPNonCommutativeSymmetricFunctions(ZZ, alphabet=[2]).H().is_commutative()
+            True
+            sage: OMPQuasiSymmetricFunctions(ZZ).M().is_commutative()
+            True
+        """
+        if self.base_ring().is_zero():
+            return True
+        if self._A is not None and len(self._A) == 1:
+            return True
+        return False
 
     class Element(OMPBasis_abstract.Element):
         def to_symmetric_function(self):
@@ -662,7 +646,7 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         sage: OMPSym = OMPNonCommutativeSymmetricFunctions(QQ)
         sage: H = OMPSym.H()
-        sage: P = OMPSym.P() # ???
+        sage: P = OMPSym.P()
         sage: H
         Free Hopf Algebra on Finite Sets over Rational Field
          in the Homogeneous basis
@@ -686,8 +670,10 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     Restricting the alphabet and alternate grading:
 
-    Instead of working over ordered multiset partitions of positive integers,
-    we may restrict each block's elements to come from a finite alphabet `A`::
+    Instead of working over ordered multiset partitions into sets, we
+    may restrict each block's elements to come from a finite alphabet `A`.
+    If parents' alphabets are compatible, coerce elements between different
+    realizations of Dual of Free Hopf Algebra on Finite Sets::
 
         sage: OMPSymA = OMPNonCommutativeSymmetricFunctions(QQ, alphabet=[3,4,5])
         sage: HA = OMPSymA.HA()
@@ -695,10 +681,14 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         ???
         sage: H.an_element()
         ???
-        sage: H.an_element() in OMPSymA
-        False???
-        sage: HA.an_element() in OMPSym
-        True??? # I'm happy with either answer, I suppose
+        sage: H(HA.an_element()) in H
+        True
+        sage: HA(H.an_element()) in HA
+        Traceback (most recent call last):
+        ...
+        TypeError: do not know how to make x (= 2*H[{1},{1,2}] + H[{4}])
+         an element of self (=Free Hopf Algebra on Finite Sets on alphabet
+         {3, 4, 5} over the Rational Field with order grading in the Homogeneous basis)
 
     The homogeneous component of degree `d` of the basis is indexed by
     ordered multiset partitions over `A` of order `d`::
@@ -753,9 +743,9 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             else:
                 _A = Set(ZZ(a) for a in alphabet)
             if _A == Set() or any(a not in ZZ for a in _A):
-                raise ValueError("keyword alphabet was converted to %s, which must be a nonempty set of positive integers"%(self._A))
+                raise ValueError("keyword alphabet (=%s) must be a nonempty set of positive integers"%(_A))
         else:
-            # treat as ``_A`` is PositiveIntegers
+            # treat ``_A`` as PositiveIntegers
             _A = None
 
         # pick an appropriate value for grading
@@ -786,7 +776,7 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             sage: A = OMPNonCommutativeSymmetricFunctions(QQ)
             sage: TestSuite(A).run()  # long time
         """
-        category = GradedHopfAlgebras(R).Connected()  # TODO: add Cocommutative
+        category = HopfAlgebras(R).Graded().Connected()  # TODO: add Cocommutative
         Parent.__init__(self, base=R, category=category.WithRealizations())
         self._A = alphabet
         self._order_grading = order_grading
@@ -955,7 +945,9 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: H[{2,3}].coproduct()
                 H[] # H[{2,3}] + H[{2}] # H[{3}] + H[{3}] # H[{2}] + H[{2,3}] # H[]
                 sage: H[{2,3}, {2}].coproduct()
-                H[] # H[{2,3}, {2}] + H[{2}] # H[{3}, {2}] + H[{3}] # H[{2}, {2}] + H[{2,3}] # H[{2}] + H[{2}] # H[{2,3}] + H[{2}, {2}] # H[{3}] + H[{3}, {2}] # H[{2}] + H[{2,3}, {2}] # H[]
+                H[] # H[{2,3}, {2}] + H[{2}] # H[{3}, {2}] + H[{3}] # H[{2}, {2}]
+                 + H[{2,3}] # H[{2}] + H[{2}] # H[{2,3}] + H[{2}, {2}] # H[{3}]
+                 + H[{3}, {2}] # H[{2}] + H[{2,3}, {2}] # H[]
             """
             return self.tensor_square()._from_dict( A.split_blocks(2) )
 
@@ -1108,8 +1100,7 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 ???
             """
             H = self.realization_of().H()
-            P_refine = Poset((A.finer(), lambda a,b: a.is_finer(b)))  #A.parent().is_finer
-            #print A, A.finer(), P_refine
+            P_refine = Poset((A.finer(), lambda a,b: a.is_finer(b)))
             c = abs(prod((-1)**(i-1) * factorial(i-1) for i in A.shape_from_size()))
             R = self.base_ring()
             return H._from_dict({B: R(P_refine.moebius_function(B, A) / R(c))
@@ -1148,14 +1139,14 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: P = OMPNonCommutativeSymmetricFunctions(QQ).Powersum()
-                sage: elt = P.primitive(OrderedMultisetPartitionIntoSets([[1,3], [1,2]])); elt
-                -p{{1, 2}, {3}} + p{{1, 3}, {2}}
-                sage: elt.coproduct()
-                -p{} # p{{1, 2}, {3}} + p{} # p{{1, 3}, {2}} - p{{1, 2}, {3}} # p{} + p{{1, 3}, {2}} # p{}
-                sage: p.primitive(SetPartition([[1], [2,3]]))
+                sage: elt = P.primitive([[1,3], [1,2]]); elt
+                ???
+                sage: elt.coproduct() - elt.tensor(P.one()) - P.one().tensor(elt)
                 0
-                sage: p.primitive(SetPartition([]))
-                p{}
+                sage: P.primitive([[1], [2,3]])
+                ???
+                sage: P.primitive([])
+                0
             """
             if len(A) == 0:
                 return self.zero()
@@ -1201,6 +1192,16 @@ class OMPBasis_OMPQSym(OMPBasis_abstract):
         else:
             return OMPBasis_abstract._coerce_map_from_(self, R)
 
+    def is_commutative(self):
+        """
+        Return whether ``self`` is commutative.
+
+        EXAMPLES::
+
+            sage: OMPQuasiSymmetricFunctions(ZZ).M().is_commutative()
+            True
+        """
+        return True
 
     class Element(OMPBasis_abstract.Element):
         def is_symmetric(self):
@@ -1299,7 +1300,10 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
     The Hopf algebra that is graded dual to Free Hopf Algebra on Finite Sets (OMPSym).
 
-    .. TODO: modify/correct documentation (simply copied from OMPNonCommutativeSymmetricFunctions)
+    .. TODO:
+
+        modify/correct documentation, which was simply copied verbatim
+        from OMPNonCommutativeSymmetricFunctions
 
     The Hopf algebra OMPSym is a free algebra built on finite subsets
     of positive integers. Its coproduct is defined on subsets `K` via
@@ -1343,12 +1347,11 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     We begin by first creating the ring of `OMPSym` and the bases that are
     analogues of the usual non-commutative symmetric functions::
 
-        sage: OMPSym = OMPNonCommutativeSymmetricFunctions(QQ)
-        sage: H = OMPSym.H()
-        sage: P = OMPSym.P() # ???
-        sage: H
-        Free Hopf Algebra on Finite Sets over Rational Field
-         in the Homogeneous basis
+        sage: OMPQSym = OMPQuasiSymmetricFunctions(QQ)
+        sage: M = OMPQSym.M()
+        sage: M
+        Dual of Free Hopf Algebra on Finite Sets over Rational Field
+         in the Monomial basis
 
     The basis is indexed by ordered multiset partitions, so we create an
     element and convert it between these bases::
@@ -1369,19 +1372,29 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     Restricting the alphabet and alternate grading:
 
-    Instead of working over ordered multiset partitions of positive integers,
-    we may restrict each block's elements to come from a finite alphabet `A`::
+    Instead of working over ordered multiset partitions into sets, we
+    may restrict each block's elements to come from a finite alphabet `A`.
+    If parents' alphabets are compatible, coerce elements between different
+    realizations of Dual of Free Hopf Algebra on Finite Sets::
 
-        sage: OMPSymA = OMPNonCommutativeSymmetricFunctions(QQ, alphabet=[3,4,5])
-        sage: HA = OMPSymA.HA()
-        sage: HA.an_element()
-        ???
-        sage: H.an_element()
-        ???
-        sage: H.an_element() in OMPSymA
-        False???
-        sage: HA.an_element() in OMPSym
-        True??? # I'm happy with either answer, I suppose
+        sage: MA = OMPQuasiSymmetricFunctions(QQ, alphabet=[3,4,5]).M()
+        sage: MO = OMPQuasiSymmetricFunctions(QQ, alphabet=[3,4,5], order_grading=False).M()
+        sage: MO.an_element()
+        2*M[{3},{3},{4,5}] + M[{3},{3,4,5}]
+        sage: MA(MO.an_element()) in MA
+        True
+
+        sage: M(MA.an_element()) in M
+        True
+
+        sage: M.an_element()
+        2*M[{1},{1,2}] + M[{4}]
+        sage: MA(M.an_element()) in MA
+        Traceback (most recent call last):
+        ...
+        TypeError: do not know how to make x (= 2*H[{1},{1,2}] + H[{4}])
+         an element of self (=Free Hopf Algebra on Finite Sets on alphabet
+         {3, 4, 5} over the Rational Field with order grading in the Homogeneous basis)
 
     The homogeneous component of degree `d` of the basis is indexed by
     ordered multiset partitions over `A` of order `d`::
@@ -1435,7 +1448,7 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             else:
                 _A = Set(ZZ(a) for a in alphabet)
             if _A == Set() or any(a not in ZZ for a in _A):
-                raise ValueError("keyword alphabet was converted to %s, which must be a nonempty set of positive integers"%(self._A))
+                raise ValueError("keyword alphabet (=%s) must be a nonempty set of positive integers"%(_A))
         else:
             # treat as ``_A`` is PositiveIntegers
             _A = None
@@ -1468,7 +1481,7 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             sage: A = OMPQuasiSymmetricFunctions(QQ)
             sage: TestSuite(A).run()  # long time
         """
-        category = GradedHopfAlgebras(R).Connected().Commutative()
+        category = HopfAlgebras(R).Graded().Connected().Commutative()
         Parent.__init__(self, base=R, category=category.WithRealizations())
         self._A = alphabet
         self._order_grading = order_grading
@@ -1698,9 +1711,3 @@ def zee(x):
     if not x in Partitions():
         x = Partitions()(sorted(x, reverse=True))
     return x.centralizer_size()
-
-
-##############
-OMPSym = OMPNonCommutativeSymmetricFunctions(QQ)
-H = OMPSym.H()
-H
