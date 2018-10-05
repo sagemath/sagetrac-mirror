@@ -767,7 +767,7 @@ class BetaAdicMonoid:
                 raise ValueError("a must be an automaton.")        
         self.a = a
 
-    def _repr_(self):
+    def __repr__(self):
         r"""
         Returns the string representation of the beta-adic monoid.
 
