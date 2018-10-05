@@ -1,5 +1,5 @@
 r"""
-Base class for matrices, part 2
+This module implements the base class, part 2 for matrices.
 
 For design documentation see matrix/docs.py.
 
@@ -7,28 +7,14 @@ AUTHORS:
 
 - William Stein: initial version
 
+- Sebastian Pancratz (2009-06-25): fixed ``adjoint`` reflecting the change that
+  ``_adjoint`` is now implemented in :class:`Matrix`
+
 - Miguel Marco (2010-06-19): modified eigenvalues and eigenvectors functions to
   allow the option extend=False
 
 - Rob Beezer (2011-02-05): refactored all of the matrix kernel routines
 
-TESTS::
-
-    sage: m = matrix(ZZ['x'], 2, 3, [1..6])
-    sage: TestSuite(m).run()
-
-Check that a pair consisting of a matrix and its echelon form is
-pickled correctly (this used to give a wrong answer due to a Python
-bug, see :trac:`17527`)::
-
-    sage: K.<x> = FractionField(QQ['x'])
-    sage: m = Matrix([[1], [x]])
-    sage: t = (m, m.echelon_form())
-    sage: loads(dumps(t))
-    (
-    [1]  [1]
-    [x], [0]
-    )
 """
 
 #*****************************************************************************
@@ -69,8 +55,28 @@ from . import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
 from sage.matrix.matrix_misc import permanental_minor_polynomial
 
-
 cdef class Matrix(Matrix1):
+    """
+    Base class for matrices, part 2
+
+    TESTS::
+
+        sage: m = matrix(ZZ['x'], 2, 3, [1..6])
+        sage: TestSuite(m).run()
+
+    Check that a pair consisting of a matrix and its echelon form is
+    pickled correctly (this used to give a wrong answer due to a Python
+    bug, see :trac:`17527`)::
+
+        sage: K.<x> = FractionField(QQ['x'])
+        sage: m = Matrix([[1], [x]])
+        sage: t = (m, m.echelon_form())
+        sage: loads(dumps(t))
+        (
+        [1]  [1]
+        [x], [0]
+        )
+    """
     def _backslash_(self, B):
         r"""
         Used to compute `A \backslash B`, i.e., the backslash solver
@@ -1486,7 +1492,7 @@ cdef class Matrix(Matrix1):
 
         If the base ring has a method :meth:`_matrix_determinant`, we call it.
 
-        Otherwise, for small matrices (n less than 4), this is computed using the 
+        Otherwise, for small matrices (n less than 4), this is computed using the
         naive formula. In the specific case of matrices over the integers modulo a
         non-prime, the determinant of a lift is computed over the integers.
         In general, the characteristic polynomial is computed either using
@@ -8855,16 +8861,27 @@ cdef class Matrix(Matrix1):
 
     def adjoint(self):
         """
-        Returns the adjoint matrix of self (matrix of cofactors).
+        Return the adjugate(classical adjoint) of this matrix.
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(10501, "Use adjugate method instead.")
+
+        return self.adjugate()
+
+    def adjugate(self):
+        """
+        Return the adjugate matrix of ``self`` (transposed matrix of cofactors).
 
         OUTPUT:
 
         - ``N`` - the adjoint matrix, such that
           N \* M = M \* N = M.parent(M.det())
 
+        An alias of this method is :meth:`adjoint_classical`.
+
         ALGORITHM:
 
-        Use PARI whenever the method ``self._adjoint`` is included to do so
+        Use PARI whenever the method ``self._adjugate`` is included to do so
         in an inheriting class.  Otherwise, use a generic division-free
         algorithm to compute the characteristic polynomial and hence the
         adjoint.
@@ -8876,7 +8893,7 @@ cdef class Matrix(Matrix1):
             sage: M = Matrix(ZZ,2,2,[5,2,3,4]) ; M
             [5 2]
             [3 4]
-            sage: N = M.adjoint() ; N
+            sage: N = M.adjugate() ; N
             [ 4 -2]
             [-3  5]
             sage: M * N
@@ -8888,38 +8905,34 @@ cdef class Matrix(Matrix1):
             sage: M = Matrix(QQ,2,2,[5/3,2/56,33/13,41/10]) ; M
             [  5/3  1/28]
             [33/13 41/10]
-            sage: N = M.adjoint() ; N
+            sage: N = M.adjugate() ; N
             [ 41/10  -1/28]
             [-33/13    5/3]
             sage: M * N
             [7363/1092         0]
             [        0 7363/1092]
-
-        AUTHORS:
-
-        - Unknown: No author specified in the file from 2009-06-25
-        - Sebastian Pancratz (2009-06-25): Reflecting the change that
-          ``_adjoint`` is now implemented in this class
         """
 
         if self._nrows != self._ncols:
-            raise ValueError("self must be a square matrix")
+            raise ValueError("must be a square matrix")
 
-        X = self.fetch('adjoint')
+        X = self.fetch('adjugate')
         if not X is None:
             return X
 
-        X = self._adjoint()
-        self.cache('adjoint', X)
+        X = self._adjugate()
+        self.cache('adjugate', X)
         return X
 
-    def _adjoint(self):
+    adjoint_classical = adjugate
+
+    def _adjugate(self):
         r"""
-        Returns the adjoint of self.
+        Return the adjugate of this matrix.
 
         OUTPUT:
 
-        - matrix -- the adjoint of self
+        - matrix -- the adjugate of the matrix
 
         EXAMPLES:
 
@@ -8929,7 +8942,7 @@ cdef class Matrix(Matrix1):
             sage: A
             [ 1 24]
             [ 3  5]
-            sage: A._adjoint()
+            sage: A._adjugate()
             [  5 -24]
             [ -3   1]
 
@@ -8946,7 +8959,7 @@ cdef class Matrix(Matrix1):
             [       -2*t^2 + t + 3/2       7*t^2 + 1/2*t - 1       -6*t^2 + t - 2/11]
             [-7/3*t^2 - 1/2*t - 1/15         -2*t^2 + 19/8*t     -10*t^2 + 2*t + 1/2]
             [            6*t^2 - 1/2        -1/7*t^2 + 9/4*t       -t^2 - 4*t - 1/10]
-            sage: A._adjoint()
+            sage: A._adjugate()
             [          4/7*t^4 + 1591/56*t^3 - 961/70*t^2 - 109/80*t 55/7*t^4 + 104/7*t^3 + 6123/1540*t^2 - 959/220*t - 1/10       -82*t^4 + 101/4*t^3 + 1035/88*t^2 - 29/22*t - 1/2]
             [   -187/3*t^4 + 13/6*t^3 + 57/10*t^2 - 79/60*t - 77/300            38*t^4 + t^3 - 793/110*t^2 - 28/5*t - 53/220 -6*t^4 + 44/3*t^3 + 4727/330*t^2 - 1147/330*t - 487/660]
             [          37/3*t^4 - 136/7*t^3 - 1777/840*t^2 + 83/80*t      292/7*t^4 + 107/14*t^3 - 323/28*t^2 - 29/8*t + 1/2   61/3*t^4 - 25/12*t^3 - 269/120*t^2 + 743/240*t - 1/15]
@@ -8965,10 +8978,10 @@ cdef class Matrix(Matrix1):
             -4*x
             sage: A.charpoly('T')
             T^2 + (-x^10*y - x*y^2)*T - 4*x
-            sage: A.adjoint()
+            sage: A.adjugate()
             [x^10*y   -2*x]
             [    -2  x*y^2]
-            sage: A.adjoint() * A
+            sage: A.adjugate() * A
             [-4*x    0]
             [   0 -4*x]
 
@@ -8979,20 +8992,20 @@ cdef class Matrix(Matrix1):
             sage: A = matrix(ZZ, 0, 0)
             sage: A
             []
-            sage: A._adjoint()
+            sage: A._adjugate()
             []
             sage: A = matrix(ZZ, [[2]])
             sage: A
             [2]
-            sage: A._adjoint()
+            sage: A._adjugate()
             [1]
 
-        Ensure proper computation of the adjoint matrix even in the
+        Ensure proper computation of the adjugate matrix even in the
         presence of non-integral powers of the variable `x`
         (:trac:`14403`)::
 
             sage: x = var('x')
-            sage: Matrix([[sqrt(x),x],[1,0]]).adjoint()
+            sage: Matrix([[sqrt(x),x],[1,0]]).adjugate()
             [      0      -x]
             [     -1 sqrt(x)]
 
@@ -9003,9 +9016,9 @@ cdef class Matrix(Matrix1):
             ring (commutative and with multiplicative identity).  The algorithm
             is described in full detail as Algorithm 3.1 in [Se02]_.
 
-            Note that this method does not utilise a lookup if the adjoint has
+            Note that this method does not utilise a lookup if the adjugate has
             already been computed previously, and it does not cache the result.
-            This is all left to the method `adjoint`.
+            This is all left to the method `adjugate`.
 
         REFERENCES:
 
