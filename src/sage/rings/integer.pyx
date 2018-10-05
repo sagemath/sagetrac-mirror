@@ -120,7 +120,7 @@ AUTHORS:
 
 - Vincent Klein (2017-05-22): Integer constructor support gmpy2.mpz parameter
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2004,2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2006 Gonzalo Tornaria <tornaria@math.utexas.edu>
 #       Copyright (C) 2006 Didier Deshommes <dfdeshom@gmail.com>
@@ -133,8 +133,8 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import absolute_import, print_function
 
@@ -1143,7 +1143,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def __format__(self, *args, **kwargs):
         """
-        Returns a string representation using Python's Format protocol.
+        Return a string representation using Python's Format protocol.
+
         Valid format descriptions are exactly those for Python integers.
 
         EXAMPLES::
@@ -1156,7 +1157,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def ordinal_str(self):
         """
-        Returns a string representation of the ordinal associated to self.
+        Return a string representation of the ordinal associated to ``self``.
 
         EXAMPLES::
 
@@ -2215,7 +2216,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def nth_root(self, int n, bint truncate_mode=0):
         r"""
-        Returns the (possibly truncated) n'th root of self.
+        Return the (possibly truncated) n-th root of ``self``.
 
         INPUT:
 
@@ -2502,11 +2503,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def exact_log(self, m):
         r"""
-        Returns the largest integer `k` such that `m^k \leq \text{self}`,
+        Return the largest integer `k` such that `m^k \leq \text{self}`,
         i.e., the floor of `\log_m(\text{self})`.
 
         This is guaranteed to return the correct answer even when the usual
-        log function doesn't have sufficient precision.
+        log function does not have sufficient precision.
 
         INPUT:
 
@@ -2646,7 +2647,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def log(self, m=None, prec=None):
         r"""
-        Returns symbolic log by default, unless the logarithm is exact (for
+        Return symbolic log by default, unless the logarithm is exact (for
         an integer argument). When precision is given, the RealField
         approximation to that bit precision is used.
 
@@ -2759,7 +2760,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def exp(self, prec=None):
         r"""
-        Returns the exponential function of self as a real number.
+        Return the exponential function of ``self`` as a real number.
 
         This function is provided only so that Sage integers may be treated
         in the same manner as real numbers when convenient.
@@ -2798,7 +2799,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def prime_to_m_part(self, m):
         """
-        Returns the prime-to-m part of self, i.e., the largest divisor of
+        Return the prime-to-m part of ``self``, i.e., the largest divisor of
         ``self`` that is coprime to ``m``.
 
         INPUT:
@@ -2908,8 +2909,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     @cython.wraparound(False)
     def divisors(self, method=None):
         """
-        Returns a list of all positive integer divisors of the integer
-        self.
+        Return a list of all positive integer divisors of the integer ``self``.
 
         EXAMPLES::
 
@@ -3184,7 +3184,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def sign(self):
         """
-        Returns the sign of this integer, which is -1, 0, or 1
+        Return the sign of this integer, which is -1, 0, or 1
         depending on whether this number is negative, zero, or positive
         respectively.
 
@@ -3289,7 +3289,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def quo_rem(Integer self, other):
         """
-        Returns the quotient and the remainder of self divided by other.
+        Return the quotient and the remainder of ``self`` divided by ``other``.
+
         Note that the remainder returned is always either zero or of the
         same sign as other.
 
@@ -3519,7 +3520,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def _rpy_(self):
         """
-        Returns int(self) so that rpy can convert self into an object it
+        Return ``int(self)`` so that rpy can convert ``self`` into an object it
         knows how to work with.
 
         EXAMPLES::
@@ -4087,8 +4088,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     cdef object _val_unit(Integer self, Integer p):
         r"""
-        Returns a pair: the p-adic valuation of self, and the p-adic unit
-        of self.
+        Return a pair: the p-adic valuation of ``self``, and the p-adic unit
+        of ``self``.
 
         We do not require the p be prime, but it must be at least 2. For
         more documentation see ``val_unit``
@@ -4144,8 +4145,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def val_unit(self, p):
         r"""
-        Returns a pair: the p-adic valuation of self, and the p-adic unit
-        of self.
+        Return a pair: the p-adic valuation of ``self``, and the p-adic unit
+        of ``self``.
 
         INPUT:
 
@@ -4207,11 +4208,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     cdef Integer _divide_knowing_divisible_by(Integer self, Integer right):
         r"""
-        Returns the integer self / right when self is divisible by right.
+        Return the integer ``self / right`` when ``self`` is divisible
+        by ``right``.
 
-        If self is not divisible by right, the return value is undefined,
-        and may not even be close to self/right. For more documentation see
-        ``divide_knowing_divisible_by``
+        If ``self`` is not divisible by ``right``, the return value is
+        undefined, and may not even be close to ``self/right``. For more
+        documentation see :meth:`divide_knowing_divisible_by`.
 
         AUTHORS:
 
@@ -4233,10 +4235,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def divide_knowing_divisible_by(self, right):
         r"""
-        Returns the integer self / right when self is divisible by right.
+        Return the integer ``self / right`` when ``self`` is divisible
+        by ``right``.
 
-        If self is not divisible by right, the return value is undefined,
-        and may not even be close to self/right for multi-word integers.
+        If ``self`` is not divisible by ``right``, the return value is
+        undefined, and may not even be close to ``self/right`` for
+        multi-word integers.
 
         EXAMPLES::
 
@@ -4263,7 +4267,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def _lcm(self, Integer n):
         """
-        Returns the least common multiple of self and `n`.
+        Return the least common multiple of ``self`` and `n`.
 
         EXAMPLES::
 
@@ -4462,8 +4466,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def floor(self):
         """
-        Return the floor of self, which is just self since self is an
-        integer.
+        Return the floor of ``self``, which is just ``self``
+        since ``self`` is an integer.
 
         EXAMPLES::
 
@@ -4475,8 +4479,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def ceil(self):
         """
-        Return the ceiling of self, which is self since self is an
-        integer.
+        Return the ceiling of ``self``, which is ``self``
+        since ``self`` is an integer.
 
         EXAMPLES::
 
@@ -4488,8 +4492,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def trunc(self):
         """
-        Round this number to the nearest integer, which is self since
-        self is an integer.
+        Round this number to the nearest integer, which is ``self``
+        since ``self`` is an integer.
 
         EXAMPLES::
 
@@ -4501,8 +4505,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def round(Integer self, mode="away"):
         """
-        Returns the nearest integer to ``self``, which is self since
-        self is an integer.
+        Return the nearest integer to ``self``, which is ``self``
+        since ``self`` is an integer.
 
         EXAMPLES:
 
@@ -4514,9 +4518,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self
 
+    __round__ = round
+
     def real(self):
         """
-        Returns the real part of self, which is self.
+        Return the real part of ``self``, which is ``self``.
 
         EXAMPLES::
 
@@ -4527,7 +4533,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def imag(self):
         """
-        Returns the imaginary part of self, which is zero.
+        Return the imaginary part of ``self``, which is zero.
 
         EXAMPLES::
 
@@ -4538,7 +4544,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_one(self):
         r"""
-        Returns ``True`` if the integer is `1`, otherwise ``False``.
+        Return ``True`` if the integer is `1`, otherwise ``False``.
 
         EXAMPLES::
 
@@ -4551,7 +4557,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def __nonzero__(self):
         r"""
-        Returns ``True`` if the integer is not `0`, otherwise ``False``.
+        Return ``True`` if the integer is not `0`, otherwise ``False``.
 
         EXAMPLES::
 
@@ -4587,7 +4593,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_integer(self):
         """
-        Returns ``True`` as they are integers
+        Return ``True`` as they are integers
 
         EXAMPLES::
 
@@ -4598,7 +4604,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_unit(self):
         r"""
-        Returns ``true`` if this integer is a unit, i.e., 1 or `-1`.
+        Return ``True`` if this integer is a unit, i.e., 1 or `-1`.
 
         EXAMPLES::
 
@@ -4614,7 +4620,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_square(self):
         r"""
-        Returns ``True`` if self is a perfect square.
+        Return ``True`` if ``self`` is a perfect square.
 
         EXAMPLES::
 
@@ -4627,7 +4633,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def perfect_power(self):
         r"""
-        Returns ``(a, b)``, where this integer is `a^b` and `b` is maximal.
+        Return ``(a, b)``, where this integer is `a^b` and `b` is maximal.
 
         If called on `-1`, `0` or `1`, `b` will be `1`, since there is no
         maximal value of `b`.
@@ -4666,7 +4672,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def global_height(self, prec=None):
         r"""
-        Returns the absolute logarithmic height of this rational integer.
+        Return the absolute logarithmic height of this rational integer.
 
         INPUT:
 
@@ -4701,7 +4707,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     cdef bint _is_power_of(Integer self, Integer n):
         r"""
-        Returns a non-zero int if there is an integer b with
+        Return a non-zero int if there is an integer b with
         `\mathtt{self} = n^b`.
 
         For more documentation see ``is_power_of``.
@@ -4821,7 +4827,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_power_of(Integer self, n):
         r"""
-        Returns ``True`` if there is an integer b with
+        Return ``True`` if there is an integer b with
         `\mathtt{self} = n^b`.
 
         .. SEEALSO::
@@ -5124,8 +5130,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_irreducible(self):
         r"""
-        Returns ``True`` if self is irreducible, i.e. +/-
-        prime
+        Return ``True`` if ``self`` is irreducible, i.e. +/- prime
 
         EXAMPLES::
 
@@ -5209,7 +5214,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_perfect_power(self):
         r"""
-        Returns ``True`` if ``self`` is a perfect power, ie if there exist integers
+        Return ``True`` if ``self`` is a perfect power, ie if there exist integers
         `a` and `b`, `b > 1` with ``self`` `= a^b`.
 
         .. SEEALSO::
@@ -5529,7 +5534,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def next_probable_prime(self):
         """
-        Returns the next probable prime after self, as determined by PARI.
+        Return the next probable prime after ``self``, as determined by PARI.
+
+        See :pari:`nextprime`.
 
         EXAMPLES::
 
@@ -5589,9 +5596,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def previous_prime(self, proof=None):
         r"""
-        Returns the previous prime before self.
+        Return the previous prime before ``self``.
 
-        This method calls the PARI ``precprime`` function.
+        This method calls the PARI :pari:`precprime` function.
 
         INPUT:
 
@@ -5812,8 +5819,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_squarefree(self):
         """
-        Returns True if this integer is not divisible by the square of any
-        prime and False otherwise.
+        Return ``True`` if this integer is not divisible by the square of any
+        prime and ``False`` otherwise.
+
+        See :pari:`issquarefree`
 
         EXAMPLES::
 
@@ -5828,7 +5837,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     cpdef __pari__(self):
         """
-        Returns the PARI version of this integer.
+        Return the PARI version of this integer.
 
         EXAMPLES::
 
@@ -5992,8 +6001,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def isqrt(self):
         r"""
-        Returns the integer floor of the square root of self, or raises an
-        ``ValueError`` if self is negative.
+        Return the integer floor of the square root of ``self``, or raises an
+        ``ValueError`` if ``self`` is negative.
 
         EXAMPLES::
 
@@ -6520,7 +6529,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def inverse_mod(self, n):
         """
-        Returns the inverse of self modulo `n`, if this inverse exists.
+        Return the inverse of ``self`` modulo `n`, if this inverse exists.
         Otherwise, raises a ``ZeroDivisionError`` exception.
 
         INPUT:
@@ -7093,7 +7102,7 @@ cdef class int_to_Z(Morphism):
 
     cpdef Element _call_(self, a):
         """
-        Returns a new integer with the same value as a.
+        Return a new integer with the same value as a.
 
         TESTS::
 
