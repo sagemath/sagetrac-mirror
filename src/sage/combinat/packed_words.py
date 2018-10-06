@@ -31,7 +31,6 @@ from sage.rings.integer_ring import ZZ
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.family import Family
-from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.set_partition_ordered import OrderedSetPartition, OrderedSetPartitions
 from sage.combinat.tools import transitive_ideal
@@ -114,11 +113,6 @@ class PackedWord(ClonableIntArray):
         r"""
         Check that ``self`` is a packed word.
 
-        TODO:
-
-            - Check all entries in ZZ.
-            - simplify check (existing code should be in _element_constructor_?)
-
         TESTS::
 
             sage: PackedWord([3, 3, 2, 1])  # indirect doctest
@@ -127,7 +121,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([2, 2, 1, 0, 4])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: [2, 2, 1, 0, 4] is not a packed word
+            ValueError: [2, 2, 1, 0, 4] not in Packed words
 
             sage: PackedWords(3)([1,2])
             Traceback (most recent call last):
@@ -139,23 +133,8 @@ class PackedWord(ClonableIntArray):
             ...
             ValueError: [] is not a packed word of size 3
         """
-        if not self:
-            if parent(self)._size == 0:
-                return
-            else:
-                raise ValueError("{} is not a packed word of size {}".format(self, parent(self)._size))
-        try:
-            s = set(self)
-        except (ValueError, TypeError):
-            # Elements not hashable
-            raise ValueError("{} is not a packed word".format(self))
-
-        m = max(s)
-        if s != set(range(1, m + 1)):
-            raise ValueError("{} is not a packed word".format(self))
-
-        if len(self) != parent(self)._size:
-            raise ValueError("{} is not a packed word of size {}".format(self, parent(self)._size))
+        if self not in self.parent():
+            raise ValueError("%s not in %s"%(self, self.parent()))
 
     def _latex_(self):
         r"""
@@ -1286,36 +1265,97 @@ class PackedWords(UniqueRepresentation, Parent):
         r"""
         Determine if ``w`` may be viewed as belonging to ``self``.
 
-        TODO:
-
-            - (existing code in check should be in _element_constructor_ or here ?)
-
         TESTS::
 
             sage: P = PackedWords()
-            sage: 1 in P
-            False
+            sage: P([2,3,1]) in P
+            True
             sage: PackedWord([]) in P
             True
+            sage: P([]) in PackedWords(0)
+            True
+
+            sage: 1 in P
+            False
             sage: [1, 1, 4, 2, 3] in P
             True
+            sage: {2,3,4,1} in P  # perhaps undesireable answer
+            True
         """
-        if isinstance(parent(w), PackedWords):
-            return True
         try:
-            w = list(w)
-        except (TypeError, ValueError):
-            return False
-        if not w:
-            return True
-        m = max(w)
-        try:
-            return m in ZZ and set(w) == set(range(1, m + 1))
-        except (TypeError, ValueError):
-            # Elements may not be hashable
+            # check for a list of integers
+            if all(a in ZZ and ZZ(a) > 0 for a in w):
+                s = sorted(set(int(a) for a in w))
+                n = len(w)
+            else:
+                #raise ValueError("{} is not a packed word".format(w))
+                return False
+        except (ValueError, TypeError):
+            # Elements not integers or w not iterable
+            #raise ValueError("{} is not a packed word".format(w))
             return False
 
+        # if parent has a size, it should agree with that of w
+        size = getattr(self, "_size", None)
+        if size and n != size:
+            return False
+
+        # the distinct letters in w should be {1, 2, ..., max(w)}
+        if s != [i for i in range(1, max([0]+s[-1:])+1)]:
+            return False
+
+        return True
+
     Element = PackedWord
+
+    def _element_constructor_(self, lst=[], check=True):
+        r"""
+        Construct an element of ``self``.
+
+        TODO:
+
+            Should ``PackedWords_all`` ever be used as a parent,
+            or should we use ``PackedWords_size.element_class``
+            in place of ``self.element_class`` below?
+
+        EXAMPLES::
+
+            sage: P = PackedWords()
+            sage: P4 = PackedWords(4)
+            sage: P([])
+            []
+            sage: p = P([1, 3, 3, 2]); p
+            [1, 3, 3, 2]
+            sage: p.parent()
+            Packed words
+            sage: p4 = P4([1, 3, 3, 2]); p4
+            [1, 3, 3, 2]
+            sage: p4.parent()
+            Packed words of size 4
+            sage: P4([1, 3, 3, 2, 2])
+            Traceback (most recent call last):
+            ...
+            ValueError: [1, 3, 3, 2, 2] is not a packed word of size 4
+            sage: P4([1, 4, 4, 2])
+            Traceback (most recent call last):
+            ...
+            ValueError: [1, 3, 3, 2, 2] not in Packed words of size 4
+            sage: P([1, 4, 4, 2])
+            Traceback (most recent call last):
+            ...
+            ValueError: [1, 3, 3, 2, 2] not in Packed words
+        """
+        # if parent has a size, it should agree with the size of lst
+        size = getattr(self, "_size", None)
+        if size and len(lst) != size:
+            raise ValueError("{0} is not a packed word of size {1}".format(lst, size))
+
+        if isinstance(parent(lst), self.__class__):
+            return lst
+        if not lst:
+            return self.element_class(self, [], check=False)
+
+        return self.element_class(self, lst, check=check)
 
 
 #==============================================================================
@@ -1360,33 +1400,6 @@ class PackedWords_all(PackedWords, DisjointUnionEnumeratedSets):
             Packed words
         """
         return "Packed words"
-
-    def _element_constructor_(self, lst=[], check=True):
-        r"""
-        Construct an element of ``self``.
-
-        TODO:
-
-            - move in PackedWords
-            - (existing code in check should be here or in __contains__ ?)
-
-        EXAMPLES::
-
-            sage: P = PackedWords()
-            sage: P([])
-            []
-            sage: P([1])
-            [1]
-            sage: P([5, 1, 3, 2, 1, 1, 4, 3])
-            [5, 1, 3, 2, 1, 1, 4, 3]
-        """
-        if isinstance(parent(lst), PackedWords):
-            return lst
-        if not lst:
-            P = PackedWords_size(0)
-            return P.list()[0]
-        P = PackedWords_size(len(lst))
-        return P.element_class(P, lst, check=check)
 
     def subset(self, size=None):
         r"""
