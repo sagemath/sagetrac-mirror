@@ -46,12 +46,10 @@ class PackedWord(ClonableIntArray):
     r"""
     A packed word.
 
-    A word `w` over the positive integers is a *packed word* if for each
-    number `k > 1` appearing in `w`, the number `k - 1` also appears in `w`.
+    A word `u` over the positive integers is a *packed word* if for each
+    number `k > 1` appearing in `u`, the number `k - 1` also appears in `u`.
 
-    .. SEEALSO::
-
-        :class:`PackedWords`
+    .. SEEALSO:: :class:`PackedWords`
 
     EXAMPLES::
 
@@ -201,9 +199,9 @@ class PackedWord(ClonableIntArray):
         r"""
         Return the compostion associated to ``self``.
 
-        Given a packed word `w` with greatest letter `\ell`, we construct a
+        Given a packed word `u` with greatest letter `\ell`, we construct a
         composition `\alpha = (\alpha_1, \alpha_2, \dotsc, \alpha_{\ell})`
-        by `\alpha_i` being the multiplicity of `i` in `w`.
+        by `\alpha_i` being the multiplicity of `i` in `u`.
 
         EXAMPLES::
 
@@ -340,8 +338,8 @@ class PackedWord(ClonableIntArray):
         Return the image of ``self`` under the complement involution
         on packed words.
 
-        Given a packed word `w` of size `n` and greatest letter `\ell`,
-        its *complement* is the word `[\ell+1-w_1, \ldots, \ell+1-w_n]`.
+        Given a packed word `u` of size `n` and greatest letter `\ell`,
+        its *complement* is the word `[\ell+1-u_1, \ldots, \ell+1-u_n]`.
 
         EXAMPLES::
 
@@ -358,20 +356,17 @@ class PackedWord(ClonableIntArray):
 
     def global_descents(self, final_descent=False, from_zero=False):
         r"""
-        Return the list of the global descents of ``self``.
+        Return the list of global descents of ``self``.
 
-        A global descent of a packed word `p` is an integer `d` such that
-        `\forall i <= d < j, p(i) > p(j)`.
+        A *global descent* of a packed word `u` is a position (index) `d`
+        of `u` such that `\forall i <= d < j, u_i > u_j`.
 
         .. WARNING::
 
-            By default, the descents are returned starting at `1`.
-            If you want them to start at `0`,
-            set the keyword ``from_zero`` to ``True``.
+            By default, the positions of ``self`` start at `1`. If you want
+            them to start at `0`, set the keyword ``from_zero`` to ``True``.
 
-        .. SEEALSO::
-
-            :meth:`global_descents_factorization`
+        .. SEEALSO:: :meth:`global_descents_factorization`
 
         INPUT:
 
@@ -416,12 +411,10 @@ class PackedWord(ClonableIntArray):
 
     def global_descents_factorization(self):
         r"""
-        Return the list of packed words comming from the factorization
-        of global descents.
+        Return the list of packed words resulting from the factorization
+        of ``self`` at global descents.
 
-        .. SEEALSO::
-
-            :meth:`global_descents`
+        .. SEEALSO:: :meth:`global_descents`
 
         EXAMPLES::
 
@@ -448,19 +441,15 @@ class PackedWord(ClonableIntArray):
         r"""
         Return the list of the global ascents of ``self``.
 
-        A global ascent of a packed word `p` is an integer `d` such that
-        `\forall i <= d < j, p(i) < p(j)`.
+        A *global ascent* of a packed word `u` is a position (index) `d`
+        of `u` such that `\forall i <= d < j, u_i < u_j`.
 
         .. WARNING::
 
+            By default, the positions of ``self`` start at `1`. If you want
+            them to start at `0`, set the keyword ``from_zero`` to ``True``.
 
-            By default, the ascents are returned starting at `1`.
-            If you want them to start at `0`,
-            set the keyword ``from_zero`` to ``True``.
-
-        .. SEEALSO::
-
-            :meth:`global_ascents_factorization`
+        .. SEEALSO:: :meth:`global_ascents_factorization`
 
         INPUT:
 
@@ -507,12 +496,10 @@ class PackedWord(ClonableIntArray):
 
     def global_ascents_factorization(self):
         r"""
-        Return the list of packed words comming from the factorization
-        of global ascents.
+        Return the list of packed words resulting from the factorization
+        of ``self`` at global ascents.
 
-        .. SEEALSO::
-
-            :meth:`global_ascents`
+        .. SEEALSO:: :meth:`global_ascents`
 
         EXAMPLES::
 
@@ -540,33 +527,34 @@ class PackedWord(ClonableIntArray):
 
     def inversions(self, side="right", support=None, from_zero=False):
         r"""
-        Return the set of ``side`` weak order inversions on ``support``  of ``self``.
+        Return the (``side``) weak order inversions (on ``support``)  of ``self``.
 
         .. WARNING::
 
-            By default, the invertions are returned starting at position `1`
-            If you want them to start at `0` for the support ``position``,
-            set the keyword ``from_zero`` to ``True``. If the support is ``value``,
-            the keyword ``from_zero`` will not change the result.
+            By default, the inversions of ``self`` start at `1`. If you want
+            them to start at `0` for support "position", set the keyword
+            ``from_zero`` to ``True``. If the support is "value", then the
+            keyword ``from_zero`` does not affect the result.
 
         INPUT:
 
-        - ``side`` -- "left" or "right":
-          the side of the weak order of inversions
-        - ``support`` -- "position" or "value":
-          the support of the result
+        - ``side`` -- "left" or "right": the side of the weak order of inversions
+        - ``support`` -- "position" or "value": the support of the result
 
-        - ``right`` inversions are by default on ``positions`` whereas
-          ``left`` inversions are by default on ``values``.
+        The ``right`` inversions are taken on ``positions`` by default,
+        whereas the ``left`` inversions are taken by default on ``values``.
 
         OUTPUT:
 
         .. rubric:: Right inversions on positions
 
-        Return by default ``right`` weak order inversions on ``positions``.
+        The behavior when ``side`` is "right" and ``support`` is "value".
 
-        Let `u` be a packed word of size `n`. Then *right weak order
-        inversions* of `u` are the pairs `(i, j)` such that
+        This is the default behavior when no keywords are specified, and also
+        when only the ``side`` keyword is specified.
+
+        Let `u` be a packed word of size `n`. The *right weak order
+        inversions* on *positions* of `u` are the pairs `(i, j)` such that
         `1 \leq i < j \leq n` and `u_i > u_j`.
 
         EXAMPLES::
@@ -586,11 +574,10 @@ class PackedWord(ClonableIntArray):
 
         .. rubric:: Right inversions on values
 
-        If the option ``side`` is still ``right`` and ``support`` is ``value``.
+        The behavior when ``side`` is "right" and ``support`` is "value".
 
-        Let `u` be a packed word. Then *right weak order inversions*
-        on *values* of `u` are the pairs `(u_i, u_j)` such that `u_i > u_j`
-        for some `i < j`.
+        The *right weak order inversions* on *values* of a packed word `u`
+        are the pairs `(u_i, u_j)` such that `u_i > u_j` for some `i < j`.
 
         EXAMPLES::
 
@@ -609,12 +596,13 @@ class PackedWord(ClonableIntArray):
 
         .. rubric:: Left inversions on values
 
-        If the option ``side`` is ``left`` and ``support`` is not given,
-        it is set to ``value``.
+        The behavior when ``side`` is "left" and ``support`` is "value".
 
-        Let `u` be a packed word. The *left weak order inversions* on *values*
-        of `u` are the pairs `(b, a)` such that `a < b` and the first
-        occurence of `a` in `u` is after the last occrence of `b` in `u`.
+        This is the default behavior when only the ``side`` keyword is specified.
+
+        The *left weak order inversions* on *values* of a packed word `u`
+        are the pairs `(b, a)` such that `a < b` and the first occurence of
+        `a` in `u` is after the last occurrence of `b` in `u`.
 
         EXAMPLES::
 
@@ -633,12 +621,11 @@ class PackedWord(ClonableIntArray):
 
         .. rubric:: Left inversions on positions
 
-        If the option ``side`` is ``left`` and ``support`` is ``position``.
+        The behavior when ``side`` is "left" and ``support`` is "position".
 
-        Let `u` be a packed word. Then *left weak order inversions*
-        on *positions* of `u` are the pairs `(i, j)` such that
-        `i < j` and the first occurence of `u_j` in `u`
-        is after the last occrence of `u_i` in `u`.
+        The *left weak order inversions* on *positions* of a packed word `u`
+        are the pairs `(i, j)` such that `i < j` and the first occurence of
+        `u_j` in `u` is after the last occurrence of `u_i` in `u`.
 
         EXAMPLES::
 
@@ -703,10 +690,11 @@ class PackedWord(ClonableIntArray):
         r"""
         Return the list of successors of ``self`` under the right weak order.
 
-        For the right weak order, we say `u` is a right successor of `v`
-        if there exist `i < n - 1` such that `v` is equal to `u` except that
-        the `u_i` and `u_{i+1}` are switched and `u` has one more
-        right inversions on positions than `v`.
+        For the right weak order on packed words of size `n`, we say `u` is a
+        *right successor* of `v` if: (1) there exists a position `i < n - 1` such
+        that `u` and `v` agree at all positions except `i` and `i + 1`, where the
+        values are switched; and (2) `u` has one more right inversion on positions
+        than `v` has.
 
         EXAMPLES::
 
@@ -716,7 +704,7 @@ class PackedWord(ClonableIntArray):
             []
 
             sage: v = PackedWord([1, 2, 1])
-            sage: u, = v.right_weak_order_succ(); u
+            sage: u = v.right_weak_order_succ(); u
             [2, 1, 1]
             sage: v.inversions()
             {(2, 3)}
@@ -741,10 +729,11 @@ class PackedWord(ClonableIntArray):
         r"""
         Return the list of predecessors of ``self`` under the right weak order.
 
-        For the right weak order, we say `v` is a right predecessor of `u`
-        if there exist `i < n - 1` such that `v` is equal to `u` except that
-        the `u_i` and `u_{i+1}` are switched and `v` has one fewer
-        right inversions on positions than `u`.
+        For the right weak order on packed words of size `n`, we say `v` is a
+        *right predecessor* of `u` if: (1) there exists a position `i < n - 1` such
+        that `u` and `v` agree at all positions except `i` and `i + 1`, where the
+        values are switched; and (2) `v` has one fewer right inversion on positions
+        than `u` has.
 
         EXAMPLES::
 
@@ -780,9 +769,7 @@ class PackedWord(ClonableIntArray):
         Return the list of smaller or equal packed words of ``self``
         under the right weak order.
 
-        .. SEEALSO::
-
-            :meth:`right_weak_order_pred`
+        .. SEEALSO:: :meth:`right_weak_order_pred`
 
         EXAMPLES::
 
@@ -804,9 +791,7 @@ class PackedWord(ClonableIntArray):
         Return the list of greater or equal packed words of ``self``
         under the right weak order.
 
-        .. SEEALSO::
-
-            :meth:`right_weak_order_succ`
+        .. SEEALSO:: :meth:`right_weak_order_succ`
 
         EXAMPLES::
 
@@ -889,10 +874,10 @@ class PackedWord(ClonableIntArray):
         r"""
         Return the list of successors of ``self`` under the left weak order.
 
-        For the left weak order, we say `v` is a left successor of `u`
-        if there exist a value `i < m - 1` with m the maximal value of `v` and `u`
-        such that `v` is equal to `u` except that all values `i` and `i + 1`
-        are inversed and `v` has one more left inversions on values than `u`.
+        For the left weak order on packed words, we say `u` is a *left successor*
+        of `v` if: (1) `u` is built from `v` by switching all occurrences of the
+        values `i` and `i+1`, for some `i` less than the maximum letter in `v`;
+        and (2) `u` has one more left inversion on values than `v` has.
 
         EXAMPLES::
 
@@ -903,12 +888,12 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([1, 2, 1]).left_weak_order_succ()
             []
 
-            sage: u = PackedWord([3, 1, 2])
-            sage: v, = u.left_weak_order_succ(); v
+            sage: v = PackedWord([3, 1, 2])
+            sage: u = v.left_weak_order_succ(); u
             [3, 2, 1]
-            sage: u.inversions(side="left",support="value")
+            sage: v.inversions(side="left")
             {(3, 1), (3, 2)}
-            sage: v.inversions(side="left",support="value")
+            sage: u.inversions(side="left")
             {(2, 1), (3, 1), (3, 2)}
 
             sage: PackedWord([1, 2, 4, 3, 3, 2]).left_weak_order_succ()
@@ -939,10 +924,10 @@ class PackedWord(ClonableIntArray):
         r"""
         Return the list of predecessors of ``self`` under the left weak order.
 
-        For the left weak order, we say `u` is a left predecessor of `v`
-        if there exist a value `i < m - 1` with m the maximal value of `u` and `v`
-        such that `u` is equal to `v` except that all values `i` and `i + 1`
-        are inversed and `u` has one fewer left inversions on values than `v`.
+        For the left weak order on packed words, we say `v` is a *left predecessor*
+        of `u` if: (1) `v` is built from `u` by switching all occurrences of the
+        values `i` and `i+1`, for some `i` less than the maximum letter in `u`;
+        and (2) `v` has one fewer left inversion on values than `u` has.
 
         EXAMPLES::
 
@@ -953,12 +938,12 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([1, 2, 1]).left_weak_order_pred()
             []
 
-            sage: v = PackedWord([3, 1, 2])
-            sage: u, = v.left_weak_order_pred(); u
+            sage: u = PackedWord([3, 1, 2])
+            sage: v = u.left_weak_order_pred(); v
             [2, 1, 3]
-            sage: v.inversions(side="left",support="value")
+            sage: u.inversions(side="left")
             {(3, 1), (3, 2)}
-            sage: u.inversions(side="left",support="value")
+            sage: v.inversions(side="left")
             {(2, 1)}
 
             sage: PackedWord([3, 1, 2, 4, 4]).left_weak_order_pred()
@@ -990,9 +975,7 @@ class PackedWord(ClonableIntArray):
         Return the list of smaller or equal packed words of ``self``
         under the left weak order.
 
-        .. SEEALSO::
-
-            :meth:`left_weak_order_pred`
+        .. SEEALSO:: :meth:`left_weak_order_pred`
 
         EXAMPLES::
 
@@ -1014,9 +997,7 @@ class PackedWord(ClonableIntArray):
         Return the list of greater or equal packed words of ``self``
         under the left weak order.
 
-        .. SEEALSO::
-
-            :meth:`left_weak_order_succ`
+        .. SEEALSO:: :meth:`left_weak_order_succ`
 
         EXAMPLES::
 
@@ -1084,20 +1065,19 @@ class PackedWords(UniqueRepresentation, Parent):
     r"""
     Packed words.
 
-    A word `w` over the positive integers is a *packed word* if for each
-    number `k > 1` appearing in `w`, the number `k - 1` also appears in `w`.
+    A word `u` over the positive integers is a *packed word* if for each
+    number `k > 1` appearing in `u`, the number `k - 1` also appears in `u`.
 
     TODO:
 
-        - needs some english improvement; I'll fix.
         - perhaps reformat the display of packed words of sizes 0..3.
           (I need to look at the documentation to see.)
 
-    Packed words in natural bijection with ordered set partitions. Thus,
-    a packed word `w` can be obtained from an ordered set partition `O`
-    by setting `w_i = j` if `i` belongs to the `j`-th block of `O`.
+    Packed words are in bijection with ordered set partitions as follows.
+    Given an ordered set partition `O`, the corresponding packed word `u`
+    is obtained by setting `u_i = j` if `i` belongs to the `j`-th block of `O`.
 
-    Here are the Packed Words of size 0 to 3::
+    Here are the Packed Words of sizes 0 to 3::
 
         \emptyset
         1
@@ -1169,8 +1149,8 @@ class PackedWords(UniqueRepresentation, Parent):
 
         INPUT::
 
-        ``osp`` can be an object or iterable that defines an ordered set
-        partition, it can be a list of lists.
+        ``osp`` -- an object or iterable (e.g., a list of lists)
+        that defines an ordered set partition.
 
         EXAMPLES::
 
@@ -1193,8 +1173,9 @@ class PackedWords(UniqueRepresentation, Parent):
         Return the packed word associated to ``li``.
 
         This map is the analog for packed words of the standardization map
-        (:meth:`sage.combinat.permutation.Permutation.to_standard`)
         for permutations.
+
+        .. SEEALSO:: :meth:`sage.combinat.permutation.Permutation.to_standard`
 
         EXAMPLES::
 
@@ -1216,8 +1197,10 @@ class PackedWords(UniqueRepresentation, Parent):
 
     def permutation_to_packed_words(self, sigma):
         r"""
-        Compute all packed words of size `n` (i.e., of ``self``) whose
-        standardization is ``sigma``.
+        Compute all packed words whose standardization is ``sigma``.
+
+        If ``self._size`` is not None, first check that this size agrees
+        with the size of ``sigma``.
 
         INPUT:
 
@@ -1281,11 +1264,10 @@ class PackedWords(UniqueRepresentation, Parent):
 
     def __contains__(self, w):
         r"""
-        Return if ``w`` is contained in ``self``.
+        Determine if ``w`` may be viewed as belonging to ``self``.
 
         TODO:
 
-            - needs some english language improvement; I'll fix
             - (existing code in check should be in _element_constructor_ or here ?)
 
         TESTS::
@@ -1322,7 +1304,7 @@ class PackedWords(UniqueRepresentation, Parent):
 
 class PackedWords_all(PackedWords, DisjointUnionEnumeratedSets):
     """
-    The set of all packed words.
+    The set of all packed words of any size.
 
     EXAMPLES::
 
@@ -1492,7 +1474,7 @@ class PackedWords_size(PackedWords):
 
     def __contains__(self, x):
         r"""
-        Check to see if ``x`` is in ``self``.
+        Determine if ``x`` may be viewed as belonging to ``self``.
 
         TESTS::
 
@@ -1556,6 +1538,15 @@ class PackedWords_size(PackedWords):
 
         The packed words of size ``self._size`` are not covered with
         uniform probability, but they are all covered.
+
+        TESTS::
+
+            sage: PackedWords(0).random_element()
+            []
+            sage: PackedWords(1).random_element()
+            [1]
+            sage: PackedWords(5).random_element()  # random
+            [1, 3, 3, 2, 4]
         """
         osp = OrderedSetPartitions(self._size).random_element()
         return self.element_class(self, osp.to_packed_word(), check=False)
