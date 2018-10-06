@@ -97,10 +97,10 @@ class PackedWord(ClonableIntArray):
             True
         """
         P = PackedWords_all()
-        return P(lst, check = check)
+        return P(lst, check=check)
 
 
-    def __init__(self, parent, lst, check = True):
+    def __init__(self, parent, lst, check=True):
         r"""
         Initialize ``self``.
 
@@ -108,7 +108,7 @@ class PackedWord(ClonableIntArray):
 
             sage: TestSuite(PackedWords()).run()  # long time
         """
-        ClonableIntArray.__init__(self, parent, lst, check = check)
+        ClonableIntArray.__init__(self, parent, lst, check=check)
         self._max = 0 if not lst else max(lst)
 
     def check(self):
@@ -191,7 +191,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([1, 2, 3, 1, 1, 3]).to_ordered_set_partition()
             [{1, 4, 5}, {2}, {3, 6}]
         """
-        lst = [[]]*self._max
+        lst = [[]] * self._max
         for i, val in enumerate(self):
             lst[val-1] = lst[val-1] + [i+1]
         return OrderedSetPartition(lst)
@@ -219,7 +219,7 @@ class PackedWord(ClonableIntArray):
         if not self:
             return Composition([])
         d = evaluation_dict(self)
-        return Composition([d[i + 1] for i in range(self._max)])
+        return Composition([d[i+1] for i in range(self._max)])
 
     def is_empty(self):
         r"""
@@ -285,7 +285,7 @@ class PackedWord(ClonableIntArray):
         elif pw in PackedWords():
             m = pw._max
         if self.size() == m:
-            return PackedWord([self[i - 1] for i in pw])
+            return PackedWord([self[i-1] for i in pw])
 
         raise ValueError("the maximum value of the right packed word must be equal to the size of the left packed word")
 
@@ -331,7 +331,8 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([1, 2, 3, 4, 5]).reverse()
             [5, 4, 3, 2, 1]
         """
-        return self.__class__(self.parent(), [i for i in reversed(self)] )
+        n = self.parent().size
+        return self.__class__(self.parent(), [self[i for i in reversed(self)] )
 
     @combinatorial_map(name='complement')
     def complement(self):
@@ -402,7 +403,7 @@ class PackedWord(ClonableIntArray):
         local_left_min = self._max
         for i in range(len(self) - 1):
             local_left_min = min(local_left_min,self[i])
-            if local_left_min > max(self[i + 1::] + [0]):
+            if local_left_min > max(self[i+1::] + [0]):
                 g_descents.append(i + 1)
 
         if final_descent:
@@ -493,7 +494,7 @@ class PackedWord(ClonableIntArray):
         local_left_max = 0
         for i in range(len(self) - 1):
             local_left_max = max(local_left_max,self[i])
-            if local_left_max < min(self[i + 1::] + [self._max]):
+            if local_left_max < min(self[i+1::] + [self._max]):
                 g_ascents.append(i + 1)
 
         if final_ascent:
@@ -731,8 +732,8 @@ class PackedWord(ClonableIntArray):
         n = len(self)
         P = parent(self)
         for i in range(n - 1):
-            if self[i] < self[i + 1]:
-                p = self[:i] + [self[i + 1], self[i]] + self[i + 2:]
+            if self[i] < self[i+1]:
+                p = self[:i] + [self[i+1], self[i]] + self[i+2:]
                 succ.append(P.element_class(P, p, check=False))
         return succ
 
@@ -769,8 +770,8 @@ class PackedWord(ClonableIntArray):
         n = len(self)
         P = parent(self)
         for i in range(n - 1):
-            if self[i] > self[i + 1]:
-                p = self[:i] + [self[i + 1], self[i]] + self[i + 2:]
+            if self[i] > self[i+1]:
+                p = self[:i] + [self[i+1], self[i]] + self[i+2:]
                 pred.append(P.element_class(P, p, check=False))
         return pred
 
@@ -1307,7 +1308,7 @@ class PackedWords(UniqueRepresentation, Parent):
             return True
         m = max(w)
         try:
-            return m in ZZ and set(w) == set(range(1, m+1))
+            return m in ZZ and set(w) == set(range(1, m + 1))
         except (TypeError, ValueError):
             # Elements may not be hashable
             return False
