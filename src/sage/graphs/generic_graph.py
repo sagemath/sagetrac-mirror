@@ -1746,6 +1746,7 @@ class GenericGraph(GenericGraph_pyx):
         Algorithm as described in section 14 of Nauty's guide (version 2.6),
         http://pallini.di.uniroma1.it/Guide.html
         """
+        from sage.functions.log import log
         self_edge_labels = self.edge_labels()
         if not [el for el in self_edge_labels if el != None]:
             return self, []
