@@ -108,6 +108,7 @@ class PackedWord(ClonableIntArray):
         """
         ClonableIntArray.__init__(self, parent, lst, check=check)
         self._max = 0 if not lst else max(lst)
+        self._size = len(lst)
 
     def check(self):
         r"""
@@ -298,7 +299,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([2, 1, 1]).size()
             3
         """
-        return len(self)
+        return self._size
 
     def max(self):
         r"""
@@ -329,8 +330,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([1, 2, 3, 4, 5]).reverse()
             [5, 4, 3, 2, 1]
         """
-        n = self.parent().size
-        return self.__class__(self.parent(), [self[i for i in reversed(self)] )
+        return self.__class__(self.parent(), [i for i in reversed(self)])
 
     @combinatorial_map(name='complement')
     def complement(self):
@@ -352,7 +352,7 @@ class PackedWord(ClonableIntArray):
         """
         if not self:
             return self
-        return self.__class__(self.parent(), [self._max + 1 - i for i in self] )
+        return self.__class__(self.parent(), [self._max + 1 - i for i in self])
 
     def global_descents(self, final_descent=False, from_zero=False):
         r"""
@@ -396,13 +396,13 @@ class PackedWord(ClonableIntArray):
             return []
         g_descents = []
         local_left_min = self._max
-        for i in range(len(self) - 1):
+        for i in range(self._size - 1):
             local_left_min = min(local_left_min,self[i])
             if local_left_min > max(self[i+1::] + [0]):
                 g_descents.append(i + 1)
 
         if final_descent:
-            g_descents.append(len(self))
+            g_descents.append(self._size)
 
         if from_zero:
             return [i - 1 for i in g_descents]
@@ -437,12 +437,12 @@ class PackedWord(ClonableIntArray):
             i=j
         return g_d_f
 
-    def global_ascents(self, final_ascent=False, from_zero=False):
+    def global_ascents(self, initial_ascent=False, from_zero=False):
         r"""
         Return the list of the global ascents of ``self``.
 
         A *global ascent* of a packed word `u` is a position (index) `d`
-        of `u` such that `\forall i <= d < j, u_i < u_j`.
+        of `u` such that `\forall i < d <= j, u_i < u_j`.
 
         .. WARNING::
 
@@ -453,8 +453,8 @@ class PackedWord(ClonableIntArray):
 
         INPUT:
 
-        - ``final_ascent`` -- boolean (default ``False``);
-          if ``True``, the last position of a non-empty
+        - ``initial_ascent`` -- boolean (default ``False``);
+          if ``True``, the first position of a non-empty
           packed word is also considered as a global ascent
 
         - ``from_zero`` -- boolean (default ``False``);
@@ -469,25 +469,25 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([2, 1]).global_ascents()
             []
             sage: PackedWord([1, 2]).global_ascents()
-            [1]
+            [2]
             sage: PackedWord([3, 1, 2, 1, 4, 6, 6, 5, 7, 8, 7]).global_ascents()
-            [4, 5, 8]
+            [5, 6, 9]
             sage: PackedWord([3, 1, 2, 1, 4, 6, 6, 5, 7, 8, 7]).global_ascents(from_zero=True)
-            [3, 4, 7]
-            sage: PackedWord([3, 1, 2, 1, 4, 6, 6, 5, 7, 8, 7]).global_ascents(final_ascent=True)
-            [4, 5, 8, 11]
+            [4, 5, 8]
+            sage: PackedWord([3, 1, 2, 1, 4, 6, 6, 5, 7, 8, 7]).global_ascents(initial_ascent=True)
+            [0, 5, 6, 9]
         """
         if not self:
             return []
         g_ascents = []
         local_left_max = 0
-        for i in range(len(self) - 1):
-            local_left_max = max(local_left_max,self[i])
-            if local_left_max < min(self[i+1::] + [self._max]):
+        for i in range(1, self._size):
+            local_left_max = max(local_left_max, self[i-1])
+            if local_left_max < min(self[i:] + [self._max]):
                 g_ascents.append(i + 1)
 
-        if final_ascent:
-            g_ascents.append(len(self))
+        if initial_ascent:
+            g_ascents.insert(0, 1)
 
         if from_zero:
             return [i - 1 for i in g_ascents]
@@ -514,15 +514,11 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([3, 1, 2, 1, 4, 6, 6, 5, 7, 8, 7, 4]).global_ascents_factorization()
             [[3, 1, 2, 1], [1, 3, 3, 2, 4, 5, 4, 1]]
         """
-        g_ascents = self.global_ascents(final_ascent=True)
-        if not g_ascents:
+        g_a = self.global_ascents(from_zero=True, initial_ascent=True)
+        if not g_a:
             return [self]
-        i = g_ascents[0]
-        g_a_f = [PackedWords.pack(self[:i])]
-        for j in g_ascents[1:]:
-            g_a_f.append(PackedWords.pack(self[i:j]))
-            i=j
-        return g_a_f
+        g_a.append(self._size)
+        return [PackedWords.pack(self[g_a[i]:g_a[i+1]]) for i in range(len(g_a)-1)]
 
 
     def inversions(self, side="right", support=None, from_zero=False):
@@ -652,8 +648,8 @@ class PackedWord(ClonableIntArray):
         if not self:
             return set()
 
-        n=len(self)
-        m=self._max
+        n = self._size
+        m = self._max
 
         if side == "right":
 
@@ -717,7 +713,7 @@ class PackedWord(ClonableIntArray):
             [[3, 2, 1, 1, 1, 2, 4], [3, 1, 2, 1, 2, 1, 4], [3, 1, 2, 1, 1, 4, 2]]
         """
         succ = []
-        n = len(self)
+        n = self._size
         P = parent(self)
         for i in range(n - 1):
             if self[i] < self[i+1]:
@@ -756,7 +752,7 @@ class PackedWord(ClonableIntArray):
             [[1, 3, 2, 1, 1, 2, 4], [3, 1, 1, 2, 1, 2, 4]]
         """
         pred = []
-        n = len(self)
+        n = self._size
         P = parent(self)
         for i in range(n - 1):
             if self[i] > self[i+1]:
@@ -851,6 +847,11 @@ class PackedWord(ClonableIntArray):
              [3, 1, 2, 1, 4, 1],
              [3, 1, 2, 4, 1, 1]]
         """
+        if pw in self.parent():
+            pw = self.parent()(pw)
+        else:
+            raise ValueError("{0} is not a member of {1}".format(pw, self.parent()))
+
         G = self.right_weak_order_greater()
         res = []
 
@@ -907,7 +908,7 @@ class PackedWord(ClonableIntArray):
         succ = []
         m = self._max
         for i in range(1, m):
-            if len(self) - 1 - self[::-1].index(i) < self.index(i + 1):
+            if self._size - 1 - self[::-1].index(i) < self.index(i + 1):
                 l = []
                 for x in self:
                     if x == i:
@@ -957,7 +958,7 @@ class PackedWord(ClonableIntArray):
         pred = []
         m = self._max
         for i in range(1, m):
-            if self.index(i) > len(self) - 1 - self[::-1].index(i + 1):
+            if self.index(i) > self._size - 1 - self[::-1].index(i + 1):
                 l = []
                 for x in self:
                     if x == i:
@@ -1040,6 +1041,11 @@ class PackedWord(ClonableIntArray):
              [3, 4, 1, 2, 1, 2],
              [4, 3, 1, 2, 1, 2]]
         """
+        if pw in self.parent():
+            pw = self.parent()(pw)
+        else:
+            raise ValueError("{0} is not a member of {1}".format(pw, self.parent()))
+
         G = self.left_weak_order_greater()
         res = []
 
@@ -1218,31 +1224,45 @@ class PackedWords(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: PW = PackedWords(4)
-            sage: PW.permutation_to_packed_words(Permutation([1, 2, 3]))
-            Traceback (most recent call last):
-            ...
-            ValueError: [1, 2, 3] is not a standard permutation of 4
-
-            sage: PW = PackedWords(1)
-            sage: PW.permutation_to_packed_words([1])
+            sage: PackedWords(0).permutation_to_packed_words([])
+            [[]]
+            sage: PackedWords(1).permutation_to_packed_words([1])
             [[1]]
 
-            sage: PW = PackedWords(0)
-            sage: PW.permutation_to_packed_words([])
-            [[]]
-        """
-        if self._size <= 1:
-            if self._size == 0:
-                return [self.element_class(self, [], check=False)]
-            if self._size == 1:
-                return [self.element_class(self, [1], check=False)]
+            sage: PW = PackedWords()
+            sage: PW.permutation_to_packed_words([1,4,2,3])
 
-        if sigma not in Permutations(self._size):
-            raise ValueError("{} is not a standard permutation of {}".format(sigma, self._size))
+            sage: PW = PackedWords(4)
+            sage: PW.permutation_to_packed_words([1, 2, 3])
+            Traceback (most recent call last):
+            ...
+            ValueError: [1, 2, 3] does not represent a packed word of size 4
+
+            sage: PW.permutation_to_packed_words([1, 2, 4, 4])
+            Traceback (most recent call last):
+            ...
+            ValueError: [1, 2, 3] does not represent a permutation of 4
+
+        """
+        try:
+            n = Permutations()(sigma).size()
+        except ValueError:
+            raise ValueError("{0} does not represent a permutation of {1}".format(sigma, len(sigma)))
+
+        try:
+            size = self._size
+            if size != n:
+                raise ValueError("{0} does not represent a packed word of size {1}".format(sigma, self._size))
+        except AttributeError:
+            size = None
+
+        if size == 0:
+            return [self.element_class(self, [], check=False)]
+        if size == 1:
+            return [self.element_class(self, [1], check=False)]
 
         li = [({sigma.index(1): 1}, sigma.index(1))]
-        for i in range(2, self._size):
+        for i in range(2, n):
             index_i = sigma.index(i)
             tmp = []
             for (pw, l_index) in li:
@@ -1252,7 +1272,7 @@ class PackedWords(UniqueRepresentation, Parent):
                 pw[index_i] = pw[l_index] + 1
                 tmp.append((dict(pw), index_i))
             li = tmp
-        index_i = sigma.index(self._size)
+        index_i = sigma.index(n)
         res = []
         for (pw, l_index) in li:
             if l_index < index_i:
