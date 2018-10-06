@@ -5477,7 +5477,7 @@ class SymplecticTableau(Tableau):
             if t.cells_containing(n) == [] and t.cells_containing(-n) == []:
                 n -= 1
                 continue
-            # form "DeConcini-Procesi" and "King" parts
+            # form "DeConciniProcesi" and "King" parts
             king = Tableau(t.anti_restrict(n-1)) # stored as Tableau
             DP = t.anti_restrict(-n).restrict(n-1) # stored as SkewTableau
 
@@ -8646,6 +8646,11 @@ class SymplecticTableaux(Tableaux):
         - :class:`SymplecticTableau`
         - :class:`SemistandardTableau`
         - :class:`SemistandardTableaux`
+    
+    TESTS::
+        
+        sage: TestSuite( SymplecticTableaux() ).run(skip="_test_enumerated_set_contains")
+
     """
     @staticmethod
     def __classcall_private__(cls, *args, **kwargs):
@@ -8983,6 +8988,9 @@ class SymplecticTableaux_all(SymplecticTableaux, DisjointUnionEnumeratedSets):
             ensure the options are properly parsed.
 
         TESTS::
+            
+            sage: ST = sage.combinat.tableau.SymplecticTableaux_all()
+            sage: TestSuite(ST).run(skip="_test_enumerated_set_contains")
 
         """
         if tableau_type in ['KashiwaraNakashima', 'KN', 'kn']:
@@ -9045,7 +9053,12 @@ class SymplecticTableaux_size(SymplecticTableaux):
             to ensure the options are properly parsed.
 
         TESTS::
+            
+            sage: ST = sage.combinat.tableau.SymplecticTableaux_size(3)
+            sage: TestSuite(ST).run(skip="_test_enumerated_set_contains")
 
+            sage: ST = sage.combinat.tableau.SymplecticTableaux_size(0)
+            sage: TestSuite(ST).run(skip="_test_enumerated_set_contains")
 
         """
         if max_entry is None:
@@ -9072,8 +9085,8 @@ class SymplecticTableaux_size(SymplecticTableaux):
     def __iter__(self):
         from sage.combinat.partition import Partitions
         for part in Partitions(self.size):
-            for sympt in SymplecticTableaux_shape(part, self.max_entry, self.tableau_type):
-                yield self.element_class(self, sympt)
+            for sympt in SymplecticTableaux_shape(part, self.max_entry, self.tab_type):
+                yield self.element_class(self, sympt, self.tab_type)
 
 class SymplecticTableaux_shape(SymplecticTableaux):
     """
@@ -9102,6 +9115,11 @@ class SymplecticTableaux_shape(SymplecticTableaux):
 
         TESTS::
 
+            sage: ST = SymplecticTableaux([2,1])
+            sage: TestSuite(ST).run(skip="_test_enumerated_set_contains")
+
+            sage: ST = SymplecticTableaux([2,1], max_entry=4, tableau_type="Sundaram")
+            sage: TestSuite(ST).run(skip="_test_enumerated_set_contains")
         """
         if max_entry == None:
             max_entry = sum(p)
@@ -9120,7 +9138,7 @@ class SymplecticTableaux_shape(SymplecticTableaux):
                                      max_part=2*n):
                 wt = tuple([i-n for i in iv])
                 for sympt in SymplecticTableaux_shape_weight(self.shape, wt, self.tab_type):
-                    yield self.element_class(self, sympt)
+                    yield self.element_class(self, sympt, self.tab_type)
 
     def __contains__(self, x):
         return SymplecticTableaux.__contains__(self, x) and [len(_) for _ in x] == self.shape
@@ -9144,6 +9162,8 @@ class SymplecticTableaux_shape_weight(SymplecticTableaux_shape):
 
         TESTS::
 
+            sage: ST = SymplecticTableaux([2,1], [1,0], "King")
+            sage: TestSuite(ST).run(skip="_test_enumerated_set_contains")
         """
         super(SymplecticTableaux_shape_weight, self).__init__(p, max_entry=len(mu), tableau_type=tableau_type)
         self.weight = mu
@@ -9162,13 +9182,13 @@ class SymplecticTableaux_shape_weight(SymplecticTableaux_shape):
         content = {}
         for row in x:
             for i in row:
-                content[abs(i)] = content.get(abs(i), 0) + sign(i)
+                content[abs(i)] = content.get(abs(i), 0) + 1 - 2*(i<0)
         content_list = [0]*int(max(content))
 
         for key in content:
             content_list[key-1] = content[key]
 
-        if content_list != self.weight:
+        if content_list != list(self.weight):
             return False
 
         return True
@@ -9176,33 +9196,69 @@ class SymplecticTableaux_shape_weight(SymplecticTableaux_shape):
 
     def __iter__(self):
         if self.tab_type == 'KashiwaraNakashima':
+            if self.max_entry == 0:
+                return
             from sage.combinat.crystals.tensor_product import CrystalOfTableaux
             C = CrystalOfTableaux(['C', self.max_entry], shape=self.shape)
             WL = C.weight_lattice_realization()
             for s in [t.to_tableau() for t in C if t.weight() == WL(list(self.weight))]:
                 yield self.element_class(self, s)
+
+        # FIX THIS. can reduce all this code by combining these cases into one
         elif self.tab_type == 'DeConciniProcesi':
-            raise NotImplementedError("cannot yet iterate through DeConciniProcesi tableaux")
-        elif self.tab_type == 'King' or self.tab_type == 'Sundaram':
-            # wt_zero_pairs will be the number of {i, -i} pairs for all i
-            wt_zero_pairs = sum(self.shape) - sum(self.weight)
+            #raise NotImplementedError("cannot yet iterate through DeConciniProcesi tableaux")
+            wt_zero_pairs = sum(self.shape) - sum(map(abs, self.weight))
+            to_dp = lambda k: k - self.max_entry - 1*(k <= self.max_entry)
+            to_classical = lambda k : k + self.max_entry + 1*(k < 0)
             if wt_zero_pairs % 2 != 0:
                 return
             elif wt_zero_pairs == 0:
-                for st in SemistandardTableaux(self.shape, Composition(self.weight)).list():
-                    yield self.element_class(self, st, self.tab_type)
+                pos_wt = [0]*(2*self.max_entry)
+                for i in range(self.max_entry):
+                    pos_wt[self.max_entry+i] = self.weight[i]*(self.weight[i] > 0)
+                    pos_wt[self.max_entry-i-1] = -self.weight[i]*(self.weight[i] < 0)
+                for st in SemistandardTableaux(self.shape, Composition(pos_wt)):
+                    dp = [[to_dp(entry) for entry in row] for row in st]
+                    if SymplecticTableaux.__contains__(self, dp):
+                        yield self.element_class(self, dp, self.tab_type)
             else:
                 wt_zero_pairs = wt_zero_pairs / 2
-                sgn = 1*(self.tab_type == 'Sundaram') + (-1)*(self.tab_type == 'King')
-                to_symplectic = lambda k : Integer(sgn*(k+1)/2) if k%2 == 1 else Integer(sgn*k/2)
+                to_dp = lambda k: k - self.max_entry - 1*(k <= self.max_entry)
+                for iv in IntegerVectors(wt_zero_pairs, self.max_entry):
+                    # iv[i-1] denotes the number of {i, -i} pairs in the tableau
+                    # pos_wt is the weight when we convert all the entries to the
+                    # classical ordering, which we do by adding self.max_entry
+                    pos_wt = [0]*(2*self.max_entry)
+                    for i in range(self.max_entry):
+                        pos_wt[self.max_entry+i] = self.weight[i]*(self.weight[i] > 0) + iv[i] # number of i's
+                        pos_wt[self.max_entry-i-1] = -self.weight[i]*(self.weight[i] < 0) + iv[i] # number of (-i)'s
+                    for st in SemistandardTableaux(self.shape, Composition(pos_wt)):
+                        dp = [[to_dp(entry) for entry in row] for row in st]
+                        if SymplecticTableaux.__contains__(self, dp):
+                            yield self.element_class(self, dp, self.tab_type)
+
+        elif self.tab_type == 'King' or self.tab_type == 'Sundaram':
+            # wt_zero_pairs will be the number of {i, -i} pairs for all i
+            wt_zero_pairs = sum(self.shape) - sum(map(abs, self.weight))
+            if wt_zero_pairs % 2 != 0:
+                return
+            elif wt_zero_pairs == 0:
+                for st in SemistandardTableaux(self.shape, Composition(map(abs, self.weight))):
+                    # FIX THIS: import sign so not as obscure
+                    symp_tab = [[entry*(-1+2*(self.weight[entry-1]>0)) for entry in row] for row in st]
+                    yield self.element_class(self, symp_tab, self.tab_type)
+            else:
+                wt_zero_pairs = wt_zero_pairs / 2
+                tab_sgn = 1*(self.tab_type == 'Sundaram') + (-1)*(self.tab_type == 'King')
+                to_symplectic = lambda k : Integer(tab_sgn*(k+1)/2) if k%2 == 1 else Integer(-tab_sgn*k/2)
                 for iv in IntegerVectors(wt_zero_pairs, self.max_entry):
                     # iv[i] denotes the number of {i, -i} pairs in the tableau
                     # pos_wt is the weight when we convert all the entries to the
                     # classical ordering
                     pos_wt = [0]*(2*self.max_entry)
                     for i in range(self.max_entry):
-                        pos_wt[2*i] = self.weight[i] + iv[i]
-                        pos_wt[2*i+1] = iv[i]
+                        pos_wt[2*i] = self.weight[i]*(self.weight[i] > 0) + iv[i]
+                        pos_wt[2*i+1] = -self.weight[i]*(self.weight[i] < 0) + iv[i]
                     # keep the semistandard tableaux that are symplectic when 
                     # converted to Sundaram orering
                     for st in SemistandardTableaux(self.shape, Composition(pos_wt)):
@@ -9229,6 +9285,8 @@ class SymplecticTableaux_size_weight(SymplecticTableaux):
 
         TESTS::
 
+            sage: ST = SymplecticTableaux(3, [2,1])
+            sage: TestSuite(ST).run(skip="_test_enumerated_set_contains")
 
         """
         super(SymplecticTableaux_size_weight, self).__init__(max_entry=len(mu),
@@ -9252,7 +9310,7 @@ class SymplecticTableaux_size_weight(SymplecticTableaux):
         from sage.combinat.partition import Partitions
         for p in Partitions(self.size):
             for sst in SymplecticTableaux_shape_weight(p, self.weight, self.tab_type):
-                yield self.element_class(self, sst)
+                yield self.element_class(self, sst, self.tab_type)
 
     def __contains__(self, x):
         """
