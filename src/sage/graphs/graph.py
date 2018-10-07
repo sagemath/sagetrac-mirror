@@ -7222,12 +7222,12 @@ class Graph(GenericGraph):
         The Bull Graph is prime::
 
             sage: graphs.BullGraph().modular_decomposition()
-            (PRIME, [1, 2, 0, 3, 4])
+            (PRIME, [2, 1, 0, 4, 3])
 
         The Petersen Graph too::
 
             sage: graphs.PetersenGraph().modular_decomposition()
-            (PRIME, [1, 4, 5, 0, 3, 7, 2, 8, 9, 6])
+            (PRIME, [1, 5, 4, 0, 7, 3, 2, 9, 8, 6])
 
         This a clique on 5 vertices with 2 pendant edges, though, has a more
         interesting decomposition ::

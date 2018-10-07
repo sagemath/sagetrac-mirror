@@ -118,9 +118,6 @@ class Node:
     - ``comp_num`` -- specifies the number given to nodes in a (co)component 
                       before refinement
 
-    - ``is_separated`` -- specifies whether a split has occurred with the node 
-                          as the root
-
     """
 
     def __init__(self, node_type):
@@ -128,7 +125,6 @@ class Node:
         self.node_split = NodeSplit.NO_SPLIT
         self.index_in_root = -1
         self.comp_num = -1
-        self.is_separated = False
         self.children = []
 
     def set_node_split(self, node_split):
@@ -239,7 +235,6 @@ class Node:
                self.node_split == other.node_split and \
                self.index_in_root == other.index_in_root and \
                self.comp_num == other.comp_num and \
-               self.is_separated == other.is_separated and \
                self.children == other.children
 
 
@@ -269,17 +264,17 @@ def modular_decomposition(graph):
               modular_decomposition, test_modular_decomposition, print_md_tree
         sage: print_md_tree(modular_decomposition(graphs.IcosahedralGraph()))
         PRIME
-              8
               5
+              8
               1
-              11
               7
+              11
               0
-              6
               9
+              6
               2
-              4
               10
+              4
               3
 
     The Octahedral graph is not Prime::
@@ -1880,7 +1875,7 @@ def promote_right(root):
         sage: refine(g, forest, vertex_dist, vertex_status)
         sage: promote_right(forest)
         sage: forest
-        FOREST [NORMAL [2], SERIES [SERIES [NORMAL [4]], SERIES [NORMAL [5]]], NORMAL [3], PARALLEL [], PARALLEL [NORMAL [7]], PARALLEL [NORMAL [6]], NORMAL [1]]
+        FOREST [NORMAL [2], SERIES [SERIES [NORMAL [4]], SERIES [NORMAL [5]]], NORMAL [3], PARALLEL [], PARALLEL [], PARALLEL [], PARALLEL [NORMAL [6]], PARALLEL [], PARALLEL [], PARALLEL [NORMAL [7]], NORMAL [1]]
 
     """
     q = deque()
@@ -1967,7 +1962,7 @@ def promote_child(root):
         sage: promote_right(forest)
         sage: promote_child(forest)
         sage: forest
-        FOREST [NORMAL [2], SERIES [NORMAL [4], NORMAL [5]], NORMAL [3], NORMAL [7], NORMAL [6], NORMAL [1]]
+        FOREST [NORMAL [2], SERIES [NORMAL [4], NORMAL [5]], NORMAL [3], NORMAL [6], NORMAL [7], NORMAL [1]]
 
     """
     q = deque()
@@ -2310,13 +2305,7 @@ def maximal_subtrees_with_leaves_in_x(root, v, x, vertex_status,
                     node.set_node_split(split)
                 return [False, split]
 
-            if root.is_separated:
-                # if root has already been split then further split not
-                # required
-                return [flag, root.node_split]
-
             node_type = root.node_type
-            root.is_separated = True
 
             # root[1] would now contain Ta and Tb
             root.children = []
@@ -2437,17 +2426,17 @@ def print_md_tree(root):
               modular_decomposition, test_modular_decomposition, print_md_tree
         sage: print_md_tree(modular_decomposition(graphs.IcosahedralGraph()))
         PRIME
-              8
               5
+              8
               1
-              11
               7
+              11
               0
-              6
               9
+              6
               2
-              4
               10
+              4
               3    
 
     """
