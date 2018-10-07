@@ -5,6 +5,7 @@ from __future__ import print_function
 
 from sage.modules.free_module_element import vector
 from sage.rings.integer_ring import ZZ
+from sage.rings.all import GF
 from copy import deepcopy
 from sage.quadratic_forms.extras import extend_to_primitive
 from sage.matrix.constructor import matrix
@@ -154,35 +155,45 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
             return w
 
 
-def neighbor_from_vect(self, p, y):
+def neighbor_from_vec(self, p, y):
     r"""
     """
     p = ZZ(p)
     if not (p).divides(self(y)):
         raise ValueError("v=%s must be of square divisible by p^2=%s"%(v,p))
     n = self.dim()
-
-
-    # y' = y + p z mit -y Gy = 2(yGz) mod p
-    # pL + y
-    # B = (p*matrix.identity(n)).stack(y)
-
     G = self.Hessian_matrix()
-    #w = B*G*y / p;
-    #if p == ZZ(2):
-    #    w[n]/=p
-    # L_y
+
+    q = y*G*y
+    if not q % p == 0:
+        raise ValueError("")
+    if q % p**2 != 0:
+        for k in range(n):
+            w = y*G
+            if w[k] % p != 0:
+                z = (ZZ**n).gen(k)
+                break
+        z *= (2*y*G*z).inverse_mod(p)
+        y = y - q*z
+    if p == 2:
+        raise NotImplementedError("")
+
     w = G*y
     Ly = w.change_ring(GF(p)).column().kernel().matrix().lift()
     B = Ly.stack(p*matrix.identity(n)) #??
     B = y.row().stack(p*B)
 
-    if p == ZZ(2):
-        B *= 2
-    B = B.smith_form()[1][:n, :] * B / p
-    assert B.det() == 1, (B.det(),B)
-    return QuadraticForm(B*G*B.T)
+    B = B.hermite_form()[:n, :] / p
+    assert B.det().abs() == 1
+    QuadraticForm = type(self)
+    Gnew = (B*G*B.T).change_ring(ZZ)
+    return QuadraticForm(Gnew)
 
+def p_neighbor(self, p):
+    r"""
+    """
+    v = self.find_primitive_p_divisible_vector__next(p)
+    return self.find_p_neighbor_from_vec(p, v)
 
 ## ----------------------------------------------------------------------------------------------
 
@@ -390,7 +401,7 @@ def neighbor_iteration_exaustion(self, p, verbose=False):
         Q = waiting_list.pop()
         v = Q.find_primitive_p_divisible_vector__next(p)
         while not v is None:
-            Q_neighbor = Q.find_p_neighbor_from_vec(p, v).lll()
+            Q_neighbor = Q.neighbor_from_vec(p, v).lll()
             for S in isom_classes:
                 if Q_neighbor.is_globally_equivalent_to(S):
                     break
@@ -402,7 +413,7 @@ def neighbor_iteration_exaustion(self, p, verbose=False):
                     print(Q_neighbor,c_mass_0 - c_mass)
             v = Q.find_primitive_p_divisible_vector__next(p, v)
     # sanity check
-    assert c_mass == c_mass_0, "some classes are missing!"
+    #assert c_mass == c_mass_0, "some classes are missing!"
     return isom_classes
 
 

@@ -72,6 +72,7 @@ class AdelicSquareClasses(AbelianGroupGap):
             f1*f2
         """
         x = QQ(x)
+        x = QQ(x.squarefree_part())
         if x == 0:
             raise ValueError("x must be non zero")
         if not p in self._primes:

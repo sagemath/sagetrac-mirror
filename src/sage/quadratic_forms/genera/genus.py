@@ -2222,6 +2222,16 @@ class Genus_Symbol_p_adic_ring(object):
         """
         return self.prime()**self._symbol[0][0]
 
+    def norm(self):
+        r"""
+        """
+        p = self.prime()
+        if p == 2:
+            fq = self._symbol[0]
+            return self.prime()**(fq[0]+1-fq[3])
+        else:
+            return self.scale()
+
     def level(self):
         r"""
         Return the maximal scale of a jordan component.
@@ -2540,7 +2550,7 @@ class GenusSymbol_global_ring(object):
             aut_numbers.append((sym.prime(),sym.automorphous_numbers()))
         return aut_numbers
 
-    def spinor_kernel(self):
+    def _spinor_kernel(self):
         r"""
         """
         from sage.quadratic_forms.genera.spinor_genus import AdelicSquareClasses
@@ -2555,7 +2565,75 @@ class GenusSymbol_global_ring(object):
         for sym in syms:
             for A in sym.automorphous_numbers():
                 kernel_gens.append(grp.delta(A, p=sym.prime()))
-        return grp, grp.subgroup(kernel_gens)
+        return grp.quotient(grp.subgroup(kernel_gens))
+
+    def spinor_generators(self):
+        r"""
+        Return generators of the spinor generators.
+
+        OUTPUT:
+
+        a list of primes not dividing the determinant
+
+        EXAMPLES::
+
+            sage: g = matrix(ZZ,3,[2,1,0, 1,2,0,0,0,18])
+            sage: gen = Genus(g)
+            sage: gen.spinor_generators()
+            [5]
+        """
+        from sage.sets.primes import Primes
+        Q = self._spinor_kernel()
+        q = Q.order()
+        A = Q.cover()
+        U = Q.subgroup([])
+        P = Primes()
+        p = ZZ(2)
+        spinor_gens = []
+        while not U.order() == q:
+            p = P.next(p)
+            if p.divides(self.determinant()):
+                continue
+            g = Q(A.delta(p))
+            if g in U:
+                continue
+            else:
+                spinor_gens.append(p)
+                U = Q.subgroup((g,) + Q.gens())
+        return spinor_gens
+
+    def proper_is_improper(self):
+        r"""
+        """
+        G = self.representative()
+        d = self.dimension()
+        V = ZZ**d
+        x = V.gen(0)
+        while True:
+            q = x*G*x
+            if q !=0:
+                break
+            x = V.random_element()
+        P = []
+        for a in self.automorphous_numbers():
+            if a[0] == 2 and a[1] != [ZZ(1), ZZ(3), ZZ(5), ZZ(7)]:
+                P.append(a)
+            elif len(a) != 2 or any(b % a[0] == 0 for b in a[1]):
+                P.append(a[0])
+        norm = self.norm()
+        Q = [p for p in (norm*q).prime_factors() if norm.valuation(p) != q.valuation(p)]
+        T = []
+        for p in set(P+Q):
+            for k in range(d):
+                if G[k,k].valuation(p) == norm.valuation(p):
+                    x_p = V.gen(k)
+                    break
+            T.append((p, x_p, (q*G[k,k]).squarefree_part()))
+        K = self._spinor_kernel()
+        A = K.cover()
+        j = prod(A.to_square_class(t[2],t[0]) for t in T)
+        return K(j) == K(1), x
+
 
     def signature(self):
         r"""
@@ -2803,6 +2881,20 @@ class GenusSymbol_global_ring(object):
             sage:
         """
         return prod([s.scale() for s in self.local_symbols()])
+
+    def norm(self):
+        r"""
+        Return the scale of this genus.
+
+        OUTPUT:
+
+        an integer
+
+        EXAMPLES::
+
+            sage:
+        """
+        return prod([s.norm() for s in self.local_symbols()])
 
     def _compute_representative(self, LLL=True):
         r"""
