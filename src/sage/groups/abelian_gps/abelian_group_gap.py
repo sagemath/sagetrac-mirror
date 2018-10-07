@@ -569,6 +569,7 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
             sage: A = AbelianGroupGap([2,3,4,5])
             sage: S = A.subgroup(A.gens()[:1])
             sage: A.quotient(S)
+            Quotient abelian group with generator orders (1, 3, 4, 5)
         """
         if not isinstance(N, AbelianGroup_gap):
             raise TypeError("not an abelian group")
@@ -921,3 +922,50 @@ class AbelianGroupQuotient_gap(AbelianGroup_gap):
         """
         if isinstance(S, AbelianGroup_gap):
             return self._cover._coerce_map_from_(S)
+
+
+    def cover(self):
+        r"""
+        """
+        return self._cover
+
+    def relations(self):
+        r"""
+        """
+        return self._relations
+
+    @cached_method
+    def natural_homomorphism(self):
+        r"""
+        Return the defining homomorphism into self.
+
+        EXAMPLES::
+
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: A = AbelianGroupGap([4])
+            sage: N = A.subgroup([A.gen(0)^2])
+            sage: Q = A.quotient(N)
+            sage: Q.natural_homomorphism()
+            Group morphism:
+            From: Abelian group with gap, generator orders (4,)
+            To:   Quotient abelian group with generator orders (2,)
+        """
+        phi = self.gap().NaturalHomomorphism()
+        Hom = self._cover.Hom(self)
+        return Hom(phi)
+
+    def lift(self, x):
+        r"""
+        Lift an element to the cover.
+
+        EXAMPLES::
+
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: A = AbelianGroupGap([4])
+            sage: N = A.subgroup([A.gen(0)^2])
+            sage: Q = A.quotient(N)
+            sage: Q.lift(Q.0)
+            f1
+        """
+        x = self(x)
+        return self.natural_homomorphism().lift(x)
