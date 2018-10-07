@@ -5363,16 +5363,19 @@ class SymplecticTableau(Tableau):
 
                     # get split form
                     new_split_col = self._to_coadmissible(sorted(new_col), co=True)
-                    new_split_col_right = self._to_coadmissible(new_col_right)
+                    new_r_left, new_r_right = self._to_coadmissible(new_col_right)
+                    if spotr < len(new_r_left):
+                        new_r_left = new_r_left[:spotr] + [None] + new_r_left[spotr:]
+                        new_r_right = new_r_right[:spotr] + [None] + new_r_right[spotr:]
 
                     # replace cols
                     for r in range(len(new_col)):
                         new_st[r][spotc-1] = new_split_col[0][r]
                         new_st[r][spotc] = new_split_col[1][r]
-                        if spotc+1 < len(new_st[r]) and r < len(new_split_col_right[0]):
-                            new_st[r][spotc+1] = new_split_col_right[0][r]
-                        if spotc+2 < len(new_st[r]) and r < len(new_split_col_right[1]):
-                            new_st[r][spotc+2] = new_split_col_right[1][r]
+                        if spotc+1 < len(new_st[r]) and r < len(new_r_left):
+                            new_st[r][spotc+1] = new_r_left[r]
+                        if spotc+2 < len(new_st[r]) and r < len(new_r_right):
+                            new_st[r][spotc+2] = new_r_right[r]
 
                     # move puncture to right
                     new_st[spotr][spotc+1] = None
@@ -5406,16 +5409,19 @@ class SymplecticTableau(Tableau):
 
                     # get split form
                     new_split_col = self._to_coadmissible(sorted(new_col))
-                    new_split_col_right = self._to_coadmissible(new_col_right, co=True)
+                    new_r_left, new_r_right = self._to_coadmissible(new_col_right, co=True)
+                    if spotr < len(new_r_left):
+                        new_r_left = new_r_left[:spotr] + [None] + new_r_left[spotr:]
+                        new_r_right = new_r_right[:spotr] + [None] + new_r_right[spotr:]
 
                     # replace cols
                     for r in range(len(new_col)):
                         new_st[r][spotc-1] = new_split_col[0][r]
                         new_st[r][spotc] = new_split_col[1][r]
-                        if spotc+1 < len(new_st[r]) and r < len(new_split_col_right[0]):
-                            new_st[r][spotc+1] = new_split_col_right[0][r]
-                        if spotc+2 < len(new_st[r]) and r < len(new_split_col_right[1]):
-                            new_st[r][spotc+2] = new_split_col_right[1][r]
+                        if spotc+1 < len(new_st[r]) and r < len(new_r_left):
+                            new_st[r][spotc+1] = new_r_left[r]
+                        if spotc+2 < len(new_st[r]) and r < len(new_r_right):
+                            new_st[r][spotc+2] = new_r_right[r]
 
                     # move puncture to right
                     new_st[spotr][spotc+1] = None
@@ -5452,25 +5458,24 @@ class SymplecticTableau(Tableau):
         
         TESTS::
             
-            sage: STKN = SymplecticTableaux([1,1,1], max_entry=4)
-            sage: is_sorted = True
-            ....: for kn in STKN:
-            ....:     dp = kn.to_deconcini_procesi()
-            ....:     is_sorted = is_sorted and sorted(sum(dp.sheats().to_list(),[])) == sum(dp.to_list(),[])
-            ....:
-            sage: is_sorted
-            True
-            sage: STKN = SymplecticTableaux([2,1])
+            sage: STDP = SymplecticTableaux([2,1], tableau_type="DP")
             sage: King = SymplecticTableaux([2,1], tableau_type="King")
-            sage: all(kn.to_deconcini_procesi().sheats() in King for kn in STKN)
+            sage: all(dp.sheats() in King for dp in STDP)
             True
-            sage: STKN = SymplecticTableaux([2,2], max_entry=3)
+            sage: Set(dp.sheats() for dp in STDP) == Set(King.list())
+            True
+            sage: STDP = SymplecticTableaux([2,2], max_entry=3, tableau_type="DP")
             sage: King = SymplecticTableaux([2,2], max_entry=3, tableau_type="King")
-            sage: all(kn.to_deconcini_procesi().sheats() in King for kn in STKN)
+            sage: all(dp.sheats() in King for dp in STDP)
             True
+            sage: Set(dp.sheats() for dp in STDP) == Set(King.list())
+            True
+
         '''
         from sage.combinat.skew_tableau import SkewTableau
         t = Tableau(self.to_list())
+        if t == []:
+            return SymplecticTableau([], tableau_type="King")
         n = max(max(map(abs, row)) for row in t)
         KING = Tableau([[None]*i for i in t.shape()])
         while n > 1:
@@ -5489,7 +5494,6 @@ class SymplecticTableau(Tableau):
                 # apply sjdt, set vacated outer corner to -n
                 (DP, outer) = self._slide(DP, (0, k-1), return_vacated=True)
                 king = king.add_entry(outer, -n)
-
                 # check if n and -n in kth col of D
                 DP_conj = DP.conjugate()
                 DP_list = DP.to_list()
@@ -5573,6 +5577,15 @@ class SymplecticTableau(Tableau):
             True
             sage: SymplecticTableau([]).to_deconcini_procesi()
             []
+            sage: STKN = SymplecticTableaux([1,1,1], max_entry=4)
+            sage: is_sorted = True
+            ....: for kn in STKN:
+            ....:     dp = kn.to_deconcini_procesi()
+            ....:     is_sorted = is_sorted and sorted(sum(dp.sheats().to_list(),[])) == sum(dp.to_list(),[])
+            ....:
+            sage: is_sorted
+            True
+
         '''
         if self.tab_type == "KashiwaraNakashima":
             tc = Tableau(self.to_list()).conjugate()
@@ -9195,6 +9208,35 @@ class SymplecticTableaux_shape_weight(SymplecticTableaux_shape):
 
 
     def __iter__(self):
+        """
+
+        TESTS:
+            sage: [t for t in SymplecticTableaux([3,1],[-1,1,0], tableau_type="King")]
+            [[[-1, -1, 1], [2]],
+             [[-1, -2, 2], [2]],
+             [[-1, 2, 2], [-2]],
+             [[-1, 2, -3], [3]],
+             [[-1, 2, 3], [-3]],
+             [[-1, -3, 3], [2]]]
+            sage: [t for t in SymplecticTableaux([3,2],[1,-1,-2,1], tableau_type="Sundaram")]
+            [[[1, -2, -3], [-3, 4]], [[1, -2, 4], [-3, -3]], [[1, -3, -3], [-2, 4]]]
+            sage: [t for t in SymplecticTableaux([2,2,1],[1,2,1,1],tableau_type="King")]
+            [[[1, 2], [2, 3], [4]], [[1, 2], [2, 4], [3]]]
+            sage: [t for t in SymplecticTableaux([3,2,1],[0,-2,1,0,-1],tableau_type="DP")]
+            [[[-5, -2, -2], [-1, 1], [3]], [[-5, -2, -1], [-2, 1], [3]], [[-5, -2, -1], [-2, 3], [1]], 
+            [[-5, -2, 1], [-2, -1], [3]], [[-5, -2, 1], [-2, 3], [-1]], [[-5, -2, 3], [-2, -1], [1]], 
+            [[-5, -2, 3], [-2, 1], [-1]], [[-5, -2, -2], [-2, 3], [2]], [[-5, -3, -2], [-2, 3], [3]], 
+            [[-5, -3, 3], [-2, -2], [3]], [[-5, -2, -2], [-3, 3], [3]], [[-5, -2, 3], [-3, 3], [-2]],
+            [[-5, -4, -2], [-2, 3], [4]], [[-5, -4, -2], [-2, 4], [3]], [[-5, -4, 3], [-2, -2], [4]], 
+            [[-5, -4, 4], [-2, -2], [3]], [[-5, -2, -2], [-4, 3], [4]], [[-5, -2, -2], [-4, 4], [3]], 
+            [[-5, -2, 3], [-4, 4], [-2]], [[-5, -2, 4], [-4, 3], [-2]], [[-5, -5, -2], [-2, 5], [3]], 
+            [[-5, -5, 5], [-2, -2], [3]]]
+            sage: [t for t in SymplecticTableaux([3,3],[2,0,1,1],tableau_type="KN")]
+            [[[1, 1, 4], [3, 4, -4]], [[1, 1, 3], [4, 4, -4]], [[1, 1, 4], [3, 3, -3]], 
+            [[1, 1, 4], [2, 3, -2]], [[1, 1, 3], [3, 4, -3]], [[1, 1, 3], [2, 4, -2]], 
+            [[1, 1, 2], [3, 4, -2]]]
+
+        """
         if self.tab_type == 'KashiwaraNakashima':
             if self.max_entry == 0:
                 return
@@ -9206,7 +9248,6 @@ class SymplecticTableaux_shape_weight(SymplecticTableaux_shape):
 
         # FIX THIS. can reduce all this code by combining these cases into one
         elif self.tab_type == 'DeConciniProcesi':
-            #raise NotImplementedError("cannot yet iterate through DeConciniProcesi tableaux")
             wt_zero_pairs = sum(self.shape) - sum(map(abs, self.weight))
             to_dp = lambda k: k - self.max_entry - 1*(k <= self.max_entry)
             to_classical = lambda k : k + self.max_entry + 1*(k < 0)
@@ -9257,8 +9298,8 @@ class SymplecticTableaux_shape_weight(SymplecticTableaux_shape):
                     # classical ordering
                     pos_wt = [0]*(2*self.max_entry)
                     for i in range(self.max_entry):
-                        pos_wt[2*i] = self.weight[i]*(self.weight[i] > 0) + iv[i]
-                        pos_wt[2*i+1] = -self.weight[i]*(self.weight[i] < 0) + iv[i]
+                        pos_wt[2*i+(1-tab_sgn)/2] = self.weight[i]*(self.weight[i] > 0) + iv[i]
+                        pos_wt[2*i+(1+tab_sgn)/2] = -self.weight[i]*(self.weight[i] < 0) + iv[i]
                     # keep the semistandard tableaux that are symplectic when 
                     # converted to Sundaram orering
                     for st in SemistandardTableaux(self.shape, Composition(pos_wt)):
