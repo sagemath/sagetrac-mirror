@@ -80,7 +80,7 @@ class VerlindeAlgebra(CombinatorialFreeModule):
     number of `\overline{\mathfrak{g}}`. We can define Verlinde algebras using
     level `k` representations of `\mathfrak{g}` which has a basis consisting
     of level `k` dominant weights and the structure coefficients are given
-    by the Kac-Waldron formula:
+    by the Kac-Walton formula:
 
     .. MATH::
 
@@ -143,9 +143,10 @@ class VerlindeAlgebra(CombinatorialFreeModule):
 
     REFERENCES:
 
-    - [Feigngold2004]_
+    - [Feingold2004]_
     - [Fuchs1992]_
     - [QRS2002]_
+    - [Wal1990]_
     """
     @staticmethod
     def __classcall_private__(cls, base_ring, cartan_type, level):
@@ -180,10 +181,12 @@ class VerlindeAlgebra(CombinatorialFreeModule):
         """
         self._cartan_type = cartan_type
         self._level = level
+        # We'll need to do something slightly different for twisted types
+        self._classical = self._cartan_type.classical()
         category = Algebras(base_ring).FiniteDimensional().Commutative().WithBasis()
 
         P = cartan_type.root_system().weight_lattice()
-        P_cl = cartan_type.classical().root_system().weight_lattice()
+        P_cl = self._classical.root_system().weight_lattice()
 
         # Generate all dominant classical weights (thought of as affine weights)
         #   with level <= self._level
@@ -247,11 +250,11 @@ class VerlindeAlgebra(CombinatorialFreeModule):
             sage: V.one_basis().parent()
             Weight lattice of the Root system of type ['A', 2]
         """
-        return self._cartan_type.classical().root_system().weight_lattice().zero()
+        return self._classical.root_system().weight_lattice().zero()
 
     @cached_method
     def product_on_basis(self, la, mu):
-        """
+        r"""
         Return the fusion product of two basis elements indexed by
         ``la`` and ``mu``.
 
@@ -305,16 +308,13 @@ class VerlindeAlgebra(CombinatorialFreeModule):
             sage: all(x*y == y*x for x in V.basis() for y in V.basis())
             True
         """
-        # We'll need to do something slightly different for twisted types
-        classical = self._cartan_type.classical()
-
         # Compute the set of shifted weights of B(la)
-        P = classical.root_system().weight_lattice()
+        P = self._classical.root_system().weight_lattice()
         # We use Nakajima monomials because they are currently the fastest
         #   to iterate over
-        B = CrystalOfNakajimaMonomials(classical, la)
+        B = CrystalOfNakajimaMonomials(self._classical, la)
         rho = P.rho()
-        index_set = classical.index_set()
+        index_set = self._classical.index_set()
         alpha = P.simple_roots()
         def next_elt(x):
             ret = []
@@ -333,12 +333,12 @@ class VerlindeAlgebra(CombinatorialFreeModule):
             mults[wt] = mults.get(wt, 0) + 1
 
         ret = []
-        Q = classical.root_system().root_lattice()
+        Q = self._classical.root_system().root_lattice()
         theta = P.highest_root()
         thetacheck = Q.highest_root().associated_coroot()
         k = self._level
-        n = classical.rank()
-        wall = k + classical.dual_coxeter_number()
+        n = self._classical.rank()
+        wall = k + self._classical.dual_coxeter_number()
         for wt,mult in mults.items():
             sgn = 1
             wt, red = wt.to_dominant_chamber(reduced_word=True)

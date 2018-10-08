@@ -3003,6 +3003,9 @@ REFERENCES:
 .. [Wal1970] David W. Walkup, "The lower bound conjecture for 3- and
              4-manifolds", Acta Math. 125 (1970), 75-107.
 
+.. [Wal1990] Mark A. Walton. *Fusion rules in Wess-Zumino-Witten models*.
+             Nuclear Phys. B **340** (1990), no. 2-3, 777-790. 
+
 .. [Wal2001] Timothy Walsh, *Gray codes for involutions*, J. Combin.
              Math. Combin. Comput. **36** (2001), 95-118.
              http://www.info2.uqam.ca/~walsh_t/papers/Involutions%20paper.pdf
