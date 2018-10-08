@@ -86,7 +86,7 @@ from sage.rings.integer_ring import ZZ
 from sage.functions.other import binomial
 from sage.calculus.var import var
 
-from sage.combinat.subset import Subsets_sk
+from sage.combinat.subset import Subsets_s, Subsets_sk
 from sage.combinat.composition import Composition, Compositions, composition_iterator_fast
 from sage.combinat.permutation import Permutations_mset
 from sage.combinat.integer_lists.invlex import IntegerListsLex
@@ -684,13 +684,14 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
         Return the set of ordered multiset partitions into sets that are finer
         than ``self``.
 
-        An ordered multiset partition into sets `A` is finer than another `B`
+        An ordered multiset partition into sets `A` is *finer* than another `B`
         if, reading left-to-right, every block of `B` is the union of some
         consecutive blocks of `A`.
 
         If optional argument ``strong`` is set to ``True``, then return
         only those `A` whose blocks are deconcatenations of blocks of `B`.
         (Here, we view blocks of `B` as sorted lists instead of sets.)
+        This is the notion of *strongly finer*.
 
         EXAMPLES::
 
@@ -716,10 +717,63 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
         CP = cartesian_product([_refine_block(block, strong) for block in self])
         return set(P(_concatenate(map(list,c))) for c in CP)
 
-    def is_finer(self, co):
+    def finer_succ(self, strong=False):
+        r"""
+        Return the successors of ``self`` in the refinement partial order.
+
+        If optional argument ``strong`` is set to ``True``, then return
+        the successors in the strong refinement partial order. That is, only
+        those  `A` with exactly one more block than ``self`` and all of
+        whose blocks are deconcatenations of blocks of `self`. (Here, we
+        view blocks of `self` as sorted lists instead of sets.)
+
+        .. SEEALSO:: :meth:`OrderedMultisetPartitionIntoSets.finer()`
+
+        EXAMPLES::
+
+            sage: OMP = OrderedMultisetPartitionsIntoSets()
+            sage: OMP([]).finer_succ()
+            {}
+            sage: OMP([[2],[3]]).finer_succ()
+            {}
+            sage: C = OMP([[2,3],[1,4,5]]).finer_succ()
+            sage: sorted(C, key=repr, reverse=True)
+            [[{3}, {2}, {1,4,5}], [{2}, {3}, {1,4,5}],
+             [{2,3}, {5}, {1,4}], [{2,3}, {4}, {1,5}],
+             [{2,3}, {4,5}, {1}], [{2,3}, {1}, {4,5}],
+             [{2,3}, {1,5}, {4}], [{2,3}, {1,4}, {5}]]
+            sage: C = OMP([[2,3],[1,4,5]]).finer_succ(strong=True)
+            sage: sorted(C)
+            [[{2}, {3}, {1,4,5}], [{2,3}, {1}, {4,5}], [{2,3}, {1,4}, {5}]]
+            sage: len(OMP([[2,3],[1,4,5],[2,3,6,7]]).finer_succ(strong=True))
+            6
+        """
+        P = OrderedMultisetPartitionsIntoSets(self._multiset)
+
+        if not self or all(len(a) == 1 for a in self):
+            return set()
+
+        def cut(S):
+            if strong:
+                sS = sorted(S)
+                return [[sS[:i], sS[i:]] for i in range(1,len(sS))]
+            else:
+                n = len(S)
+                return [[A,B] for (A,B) in _split_block(S) if len(A) not in (0, n)]
+        succ = set()
+        for i in range(len(self)):
+            succ.update(set(P(self[:i] + [A,B] + self[i+1:]) for [A,B] in cut(self[i])))
+        return succ
+
+    def is_finer(self, co, strong=False):
         """
         Return ``True`` if the ordered multiset partition into sets ``self``
         is finer than the composition ``co``; otherwise, return ``False``.
+
+        If optional argument ``strong`` is set to ``True``, then return
+        ``True`` only if ``co`` is strongly finer than ``self``.
+
+        .. SEEALSO:: :meth:`OrderedMultisetPartitionIntoSets.finer()`
 
         EXAMPLES::
 
@@ -729,6 +783,11 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
             True
             sage: OrderedMultisetPartitionIntoSets([[1,4],[1],[1]]).is_finer([[1,4],[2]])
             False
+
+            sage: OrderedMultisetPartitionIntoSets([[4],[1],[2]]).is_finer([[1,4],[2]], strong=True)
+            False
+            sage: OrderedMultisetPartitionIntoSets([[1],[4],[2]]).is_finer([[1,4],[2]], strong=True)
+            True
         """
         X = _concatenate(co)
         if self.weight() != OrderedMultisetPartitionsIntoSets(_get_weight(X))(co).weight():
@@ -746,7 +805,7 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
 
         co1 = OrderedMultisetPartitionIntoSets(co1)
         co2 = OrderedMultisetPartitionIntoSets(co2)
-        return co1 in co2.finer()
+        return co1 in co2.finer(strong=strong)
 
     def fatten(self, grouping):
         r"""
@@ -816,9 +875,11 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
         Return the set of ordered multiset partitions into sets which are fatter
         than ``self``.
 
-        An ordered multiset partition into sets `A` is fatter than another `B`
+        An ordered multiset partition into sets `A` is *fatter* than another `B`
         if, reading left-to-right, every block of `A` is the union of some
         consecutive blocks of `B`.
+
+        .. SEEALSO:: :meth:`OrderedMultisetPartitionIntoSets.finer()`
 
         EXAMPLES::
 

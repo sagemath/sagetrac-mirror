@@ -21,6 +21,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.categories.cartesian_product import cartesian_product
 from sage.categories.realizations import Category_realization_of_parent
 from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.commutative_rings import CommutativeRings
@@ -36,6 +37,7 @@ from sage.combinat.posets.posets import Poset
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.permutation import Permutations_mset
 from sage.combinat.free_module import CombinatorialFreeModule
+from sage.combinat.set_partition import SetPartitions_set
 from sage.combinat.multiset_partition_into_sets_ordered import OrderedMultisetPartitionsIntoSets
 
 class OMPBases(Category_realization_of_parent):
@@ -539,6 +541,65 @@ class OMPBasis_OMPSym(OMPBasis_abstract):
             return True
         return False
 
+    def primitive(self, K, i=None, within_self=True):
+        r"""
+        Return a primitive associated to ``K`` in ``self``.
+
+        Suppose `K` is a nonempty set with distinguished element `i`.
+        Return the primitive
+
+        .. MATH::
+
+            p_i(K) = \sum_{B} (-1)^{\ell(B)-1} H_B,
+
+        where the sum is over all ordered set partitions `B` that are finer
+        than `[K]` and that have `i` in their first block. If ``within_self``
+        is ``True``, return this primitive as an element of ``self``.
+
+        INPUT:
+
+        - ``K`` -- a nonempty set
+        - ``i`` -- (default: min(K)) distinguished element in ``K``
+          around which the primitive is built.
+
+        OUTPUT:
+
+        - an element in the basis ``self``
+
+        EXAMPLES::
+
+            sage: H = OMPNonCommutativeSymmetricFunctions(QQ).Homogeneous()
+            sage: P = OMPNonCommutativeSymmetricFunctions(QQ).Powersum()
+            sage: H.primitive({2,3,4})
+            ???
+            sage: _ == H(P[[2,3,4]])
+            True
+            sage: elt = H.primitive({2,3,4}, i=3); elt
+            ???
+            sage: P.primitive({2,3,4}, within_self=False)
+            ???
+            sage: P(_) == P[[2,3,4]]
+            True
+            sage: elt.coproduct() - elt.tensor(H.one()) - H.one().tensor(elt)
+            0
+            sage: P.primitive({2,3,4}).coproduct()
+            P[{2,3,4}] # P[] + P[] # P[{2,3,4}]
+        """
+        if [K] not in self._indices:
+            raise ValueError("{0} must be a nonempty set compatible with {1}".format(K, self._indices))
+        if i is None:
+            i = min(K)
+
+        # build a primitive in H
+        H = self.realization_of().H()
+        A = self._indices([K])
+        primitive = H.sum_of_terms([(B, (-1)**(1+len(B))) for B in A.finer() if i in B[0]])
+
+        # return in the given basis
+        if within_self:
+            primitive = self(primitive)
+        return primitive
+
     class Element(OMPBasis_abstract.Element):
         def to_symmetric_function(self):
             r"""
@@ -888,6 +949,25 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         _prefix = "H"
         _basis_name = "Homogeneous"
 
+        def dual_basis(self):
+            r"""
+            Return the dual basis to the `\mathbf{H}` basis.
+
+            The dual basis to the `\mathbf{H}` basis is the Monomial basis
+            of Dual of Free Hopf Algebra on Finite Sets.
+
+            OUTPUT:
+
+            - the Monomial basis of Dual of Free Hopf Algebra on Finite Sets
+
+            EXAMPLES::
+
+                sage: H = OMPNonCommutativeSymmetricFunctions(QQ).H()
+                sage: H.dual_basis()
+                Dual of Free Hopf Algebra on Finite Sets over the Rational Field in the Monomial basis
+            """
+            return self.realization_of().dual().M()
+
         def product_on_basis(self, A, B):
             r"""
             Return the (associative) `*` product of the basis elements
@@ -896,7 +976,7 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             INPUT:
 
-            - ``A, B`` -- two ordered multiset partitions
+            - ``A, B`` -- two ordered multiset partitions into sets
 
             OUTPUT:
 
@@ -932,7 +1012,7 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             INPUT:
 
-            - ``A`` -- a set partition
+            - ``A`` -- an ordered multiset partition into sets
 
             OUTPUT:
 
@@ -998,25 +1078,6 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 out.append((C, (-1)**ell))
             return self.sum_of_terms(out)
 
-        def dual_basis(self):
-            r"""
-            Return the dual basis to the `\mathbf{H}` basis.
-
-            The dual basis to the `\mathbf{H}` basis is the Monomial basis
-            of Dual of Free Hopf Algebra on Finite Sets.
-
-            OUTPUT:
-
-            - the Monomial basis of Dual of Free Hopf Algebra on Finite Sets
-
-            EXAMPLES::
-
-                sage: H = OMPNonCommutativeSymmetricFunctions(QQ).H()
-                sage: H.dual_basis()
-                Dual of Free Hopf Algebra on Finite Sets over the Rational Field in the Monomial basis
-            """
-            return self.realization_of().dual().M()
-
     Homogeneous = H
 
     class P(OMPBasis_OMPSym):
@@ -1024,13 +1085,21 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         The Powersum basis of Free Hopf Algebra on Finite Sets.
 
         The family `(P_\mu)`, as `\mu` ranges over all ordered multiset
-        partitions of nonnegative integers, is called the *Powersum basis*
-        here. It is defined via a unitriangular change of basis from the
-        Homogeneous basis of `OMPSym` via *some partial order* on
-        ordered multiset partitions.
+        partitions into sets, is a multiplicative basis of `OMPSym` called
+        the *Powersum basis* here. It is defined via a unitriangular change
+        of basis from the Homogeneous basis as described below.
 
         The principle feature of the Powersum basis is that for subsets `K`,
         `P_{[K]}` is primitive.
+
+        Given a nonempty subset `K`, we identify a special element `k_0\in K` and take
+
+        .. MATH::
+
+            P_{[K]} = \sum_{\pi in F^*(K)} H_{\pi},
+
+        where the sum is over all refinements of the ordered set partition `[K]`
+        that contain `k_0` in the first block. (Here
 
         EXAMPLES::
 
@@ -1065,29 +1134,26 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             OMPBasis_OMPSym.__init__(self, alg)
 
             # Register coercions
-            # TODO: check (uni)triangular claim(s)
             H = self.realization_of().H()
-            phi = self.module_morphism(self._P_to_H_on_basis, codomain=H, unitriangular="upper")
+            phi = self.module_morphism(self._P_to_H, codomain=H, unitriangular="upper")
             phi.register_as_coercion()
-            (~phi).register_as_coercion()
+            #(~phi).register_as_coercion()
+            phi_inv = H.module_morphism(self._H_to_P, codomain=self, unitriangular="upper")
+            phi_inv.register_as_coercion()
 
-        def _P_to_H_on_basis(self, A):
+        def _P_to_H(self, A):
             """
             Return `P_A` in terms of the Homogeneous basis.
 
             INPUT:
 
-            - ``A`` -- an ordered multiset partition
+            - ``A`` -- an ordered multiset partition into sets
 
             OUTPUT:
 
             - An element of the Homogeneous basis
 
-            .. TODO::
-
-                - Fix this method! As a placeholder, I am
-                  currently just taking a definition from `NCSym`.
-                - What is "remove_zeros" meant to do? (should I use it?)
+            TODO:: improve the examples!
 
             EXAMPLES::
 
@@ -1100,71 +1166,154 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 ???
             """
             H = self.realization_of().H()
-            P_refine = Poset((A.finer(), lambda a,b: a.is_finer(b)))
-            c = abs(prod((-1)**(i-1) * factorial(i-1) for i in A.shape_from_size()))
-            R = self.base_ring()
-            return H._from_dict({B: R(P_refine.moebius_function(B, A) / R(c))
-                                 for B in list(P_refine)}) #, remove_zeros=False)
+            if not A:
+                return H.one()
 
-        def primitive(self, A, i=None):
-            r"""
-            Return the primitive associated to ``A`` in ``self``.
+            # If `A` has one part, make `P_A` primitive.
+            if len(A) == 1:
+                return H.primitive(A[0], min(A[0]), within_self=False)
 
-            Suppose `A` is an ordered multiset partition with a single block.
-            Return the primitive
+            # Else, extend multiplicatively to a basis
+            OMP = self._indices
+            return prod(H(self([a])) for a in A)
 
-            .. MATH::
-
-                p(A) = \sum_{B} (-1)^{\ell(B)-1} B,
-
-            where the sum is over all ordered set partitions `B` that are finer
-            than `A` and that have `i \in A` in their first block.
-
-            .. TODO::
-
-                If `A` has more than one block, then create some sort of
-                Lie polynomial from its constituent blocks.
+        def _H_to_P(self, A):
+            """
+            Return `H_A` in terms of the Powersum basis.
 
             INPUT:
 
-            - ``A`` -- an ordered multiset partition
-            - ``i`` -- (default: A[0][0]) index in the base multiset
-                       for ``A`` specifying which family of primitives output
-                       should belong to
+            - ``A`` -- an ordered multiset partition into sets
 
             OUTPUT:
 
-            - an element in the basis ``self``
+            - An element of the Powersum basis
+
+            TODO:: improve the examples!
+
+            EXAMPLES::
+
+                sage: P = OMPNonCommutativeymmetricFunctions(QQ).Pd()
+                sage: A = OrderedMultisetPartitionIntoSets([[1,2,3]])
+                sage: P._H_to_P_on_basis(A)
+                ???
+                sage: B = OrderedMultisetPartitionIntoSets([[1,2],[3]])
+                sage: P._H_to_P_on_basis(B)
+                ???
+            """
+            # base cases
+            if A._order == A.length():
+                return self.monomial(A)
+
+            # sum over the set partitions of each block of A
+            OMP = self._indices
+            terms = []
+            for tup in cartesian_product([SetPartitions_set(block) for block in A]):
+                terms.append(sum(map(OMP, tup)))
+            return self.sum_of_monomials(terms)
+
+        def dual_basis(self):
+            r"""
+            Return the dual basis to the `\mathbf{P}` basis.
+
+            The dual basis to the `\mathbf{P}` basis is the dual Powersum
+            basis of Dual of Free Hopf Algebra on Finite Sets.
+
+            OUTPUT:
+
+            - the dual Powersum basis of Dual of Free Hopf Algebra on Finite Sets
+
+            EXAMPLES::
+
+                sage: P = OMPNonCommutativeSymmetricFunctions(QQ).P()
+                sage: P.dual_basis()
+                Dual of Free Hopf Algebra on Finite Sets over the Rational Field in the dual Powersum basis
+            """
+            return self.realization_of().dual().PowersumDual()
+
+        def product_on_basis(self, A, B):
+            r"""
+            Return the (associative) `*` product of the basis elements
+            of ``self`` indexed by the ordered multiset partitions
+            `A` and `B`.
+
+            INPUT:
+
+            - ``A, B`` -- two ordered multiset partitions into sets
+
+            OUTPUT:
+
+            - The basis element of ``self`` indexed by the concatenation
+              `A + B`. (This product is non-commutative.)
 
             EXAMPLES::
 
                 sage: P = OMPNonCommutativeSymmetricFunctions(QQ).Powersum()
-                sage: elt = P.primitive([[1,3], [1,2]]); elt
-                ???
-                sage: elt.coproduct() - elt.tensor(P.one()) - P.one().tensor(elt)
-                0
-                sage: P.primitive([[1], [2,3]])
-                ???
-                sage: P.primitive([])
-                0
+                sage: P[{2,3}] * P[{1}, {4,5}]
+                P[{2,3}, {1}, {4,5}]
+
+            TESTS::
+
+                sage: OMP = OrderedMultisetPartitionsIntoSets
+                sage: one = OMP()([])
+                sage: all(P.product_on_basis(one, z) == P(z) == P.basis()[z] for z in [one] + list(OMP(3)))
+                True
+                sage: all(P.product_on_basis(z, one) == P(z) == P.basis()[z] for z in OMP(3))
+                True
+                sage: all(P[A] * P[B] == P( H(P[A])*H(P[B]) ) for A in OMP(3) for B in OMP(3))  # indirect doctest
+                True
             """
-            if len(A) == 0:
-                return self.zero()
-            elif len(A) > 1:
-                # TODO: finish the job!
-                return None
+            return self.monomial(A + B)
+
+        def coproduct_on_basis(self, A):
+            r"""
+            Return the coproduct in the basis `(P_\mu)`.
+
+            Partitions `A` with one block yield primitives, i.e.,
+
+            .. MATH::
+
+                \Delta(P_A) = P_A \otimes P_{[]} + P_{[]} \otimes P_A.
+
+            This formula is extended multiplicatively to all of `(P_\mu)`.
+
+            INPUT:
+
+            - ``A`` -- an ordered multiset partition into sets
+
+            OUTPUT:
+
+            - The coproduct applied to the element of `OMPSym` indexed by ``A``
+              expressed in the Powersum basis.
+
+            EXAMPLES::
+
+                sage: P = OMPNonCommutativeSymmetricFunctions(QQ).Powersum()
+                sage: P[{2,3,4}].coproduct()
+                P[{2,3,4}] # P[] + P[] # P[{2,3,4}]
+                sage: P[{2,3,4}, {1,2}].coproduct()
+                P[{2,3,4},{1,2}] # P[] + P[{2,3,4}] # P[{1,2}]
+                 + P[{1,2}] # P[{2,3,4}] + P[] # P[{2,3,4},{1,2}]
+
+            TESTS::
+
+                sage: OMP = OrderedMultisetPartitionsIntoSets
+                sage: all(P.coproduct_on_basis(A) == P.tensor_square()( H(P[A]).coproduct() ) for A in OMP(3))
+                True
+            """
+            z = self.one().leading_support()
+            if not A:
+                return self.tensor_square().sum_of_terms([((z,z), 1)])
+            if len(A) == 1:
+                return self.tensor_square().sum_of_terms([((A,z), 1), ((z,A), 1)])
+
             else:
-                # TODO:
-                # Is ``.finer()`` the best/only set to sum over?
-                # What about setting strong=True?
-                P = OrderedMultisetPartitionsIntoSets()
-                if i not in A[0]:
-                    i = A[0][0]
-                return self.sum_of_terms((finer, (-1)**len(finer))
-                                    for finer in A.finer() if i in finer[0])
+                # `P` is a multiplicative basis of primitives...
+                # use the rule `\Delta(xy) = \Delta(x) * \Delta(y)`
+                X = self._indices
+                return reduce(lambda x,y: x*y, [self.monomial(X([a])).coproduct() for a in A], self(z).tensor(self(z)))
 
     Powersum = P
-
 
 #################
 class OMPBasis_OMPQSym(OMPBasis_abstract):
@@ -1208,7 +1357,7 @@ class OMPBasis_OMPQSym(OMPBasis_abstract):
             r"""
             Meant to model the inclusion of SYM inside QSYM, though there is
             no notion of quasisymmetric polynomials related to
-            Dual to Hopf Algebra on Ordered Multiset Partitions
+            Dual of Hopf Algebra on Ordered Multiset Partitions
             as of yet.
 
             Determine if a `OMPQSym` function, expressed in the
@@ -1494,7 +1643,7 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             sage: OMPQuasiSymmetricFunctions(ZZ)
             Dual of Free Hopf Algebra on Finite Sets over Integer Ring
         """
-        return "Dual to " + repr(self.dual())
+        return "Dual of " + repr(self.dual())
 
     def a_realization(self):
         r"""
@@ -1519,12 +1668,11 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             sage: OMPD.dual()
             Free Hopf Algebra on Finite Sets over the Rational Field
         """
-        from . import OMPNonCommutativeSymmetricFunctions
         return OMPNonCommutativeSymmetricFunctions(self.base_ring(), self._A, self._order_grading)
 
     class M(OMPBasis_OMPQSym):
         r"""
-        The Monomial basis of Dual to Hopf Algebra on Ordered Multiset Partitions.
+        The Monomial basis of Dual of Hopf Algebra on Ordered Multiset Partitions.
 
 
         The family `(M_\mu)`, as `\mu` ranges over all ordered multiset
@@ -1571,6 +1719,25 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         """
         _prefix = "M"
         _basis_name = "Monomial"
+
+        def dual_basis(self):
+            r"""
+            Return the dual basis to the `\mathbf{M}` basis.
+
+            The dual basis to the `\mathbf{M}` basis is the Homogeneous basis
+            of Free Hopf Algebra on Finite Sets.
+
+            OUTPUT:
+
+            - the Homogeneous basis of Free Hopf Algebra on Finite Sets
+
+            EXAMPLES::
+
+                sage: M = OMPQuasiSymmetricFunctions(QQ).M()
+                sage: M.dual_basis()
+                Free Hopf Algebra on Finite Sets over the Rational Field in the Homogeneous basis
+            """
+            return self.realization_of().dual().H()
 
         def product_on_basis(self, A, B):
             r"""
@@ -1638,7 +1805,7 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: M.coproduct_on_basis(OrderedMultisetComposition([]))
                 M[] # M[]
             """
-            return self.tensor_square().sum_of_terms(A.deconcatenate(2), distinct=True)
+            return self.tensor_square().sum_of_monomials(A.deconcatenate(2))
 
         def _Antipode_on_basis(self, A):
             r"""
@@ -1653,25 +1820,6 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             - an element in the basis ``self``
             """
             pass
-
-        def dual_basis(self):
-            r"""
-            Return the dual basis to the `\mathbf{M}` basis.
-
-            The dual basis to the `\mathbf{M}` basis is the Homogeneous basis
-            of Free Hopf Algebra on Finite Sets.
-
-            OUTPUT:
-
-            - the Homogeneous basis of Free Hopf Algebra on Finite Sets
-
-            EXAMPLES::
-
-                sage: M = OMPQuasiSymmetricFunctions(QQ).M()
-                sage: M.dual_basis()
-                Free Hopf Algebra on Finite Sets over the Rational Field in the Homogeneous basis
-            """
-            return self.realization_of().dual().H()
 
         def sum_of_derangements(self, A):
             """
@@ -1700,11 +1848,237 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             return self.sum_of_terms([(OMP(pi),1) \
                         for pi in Permutations_mset(list(A))], distinct=True)
 
+    Monomial = M
 
-        class Element(CombinatorialFreeModule.Element):
-            r"""
-            An element in the `\mathbf{M}` basis of OMP^*.
+    class Pd(OMPBasis_OMPQSym):
+        r"""
+        The dual Powersum basis of Dual of Free Hopf Algebra on Finite Sets.
+
+        The family `(P_\mu)`, as `\mu` ranges over all ordered multiset
+        partitions into sets, is called the *dual Powersum basis* here. It
+        is defined in relation to the Monomial basis of `OMPQSym` as the
+        transpose of the relationship between the bases `(H_\mu)` and
+        `(P_\nu)` of `OMPSym`.
+
+        .. TODO:: give a more explicit description.
+
+        EXAMPLES::
+
+            sage: Pd = OMPQuasiSymmetricFunctions(QQ).PowersumDual()
+            sage: Pd[[2], [1,3]] - 2*Pd[[1,2,3]]
+            ???
+            sage: Pd[[2,3]].coproduct()
+            ???
+            sage: Pd[[2,3],[1,2]].coproduct()
+            ???
+            sage: Pd[[2,3]] * Pd[[1,2]]
+            ???
+            sage: p = Pd.an_element(); p
+            ???
+            sage: M = OMPQuasiSymmetricFunctions(QQ).Monomial()
+            sage: H(p)
+            ???
+
+        TESTS::
+
+            sage: TestSuite(Pd).run()  # long time
+            sage: all(Pd(M(p)) == p for p in Pd.some_elements())
+            True
+        """
+        _prefix = "Pd"
+        _basis_name = "dual Powersum"
+
+        def __init__(self, alg):
             """
+            Initialize ``self``.
+            """
+            OMPBasis_OMPQSym.__init__(self, alg)
+
+            # Register coercions
+            M = self.realization_of().M()
+            phi = self.module_morphism(self._Pd_to_M, codomain=M, triangular="lower")
+            phi.register_as_coercion()
+            #(~phi).register_as_coercion()
+            phi_inv = M.module_morphism(self._M_to_Pd, codomain=self, triangular="lower")
+            phi_inv.register_as_coercion()
+
+        def _Pd_to_M(self, A):
+            """
+            Return `M_A` in terms of the Monomial basis.
+
+            INPUT:
+
+            - ``A`` -- an ordered multiset partition into sets
+
+            OUTPUT:
+
+            - An element of the dual Powersum basis
+
+            TODO:: improve the examples!
+
+            EXAMPLES::
+
+                sage: Pd = OMPQuasiSymmetricFunctions(QQ).Pd()
+                sage: A = OrderedMultisetPartitionIntoSets([[1,2,3]])
+                sage: Pd._Pd_to_M_on_basis(A)
+                ???
+                sage: B = OrderedMultisetPartitionIntoSets([[1,2],[3]])
+                sage: Pd._Pd_to_M_on_basis(B)
+                ???
+            """
+            M = self.realization_of().M()
+            # base cases
+            if A.length() <= 1:
+                return M.monomial(A)
+
+            # sum over certain elements in ``A.fatter()``
+            # a merging of adjacent blocks is allowed if their min elements are in order
+
+            def glueings(tupl_of_sets):
+                terms = [tupl_of_sets]
+                for A in terms:
+                    for i in range(len(A)-1):
+                        A1,A2 = A[i:i+2]
+                        if min(A1) < min(A2) and len(A1)+len(A2) == len(A1.union(A2)):
+                            B = A[:i] + (A1.union(A2),) + A[i+2:]
+                            terms.append(tuple([b for b in B if b]))
+                # kill undesired repeats within added_terms with ``distinct=True``
+                return set(terms)
+            descents = [i+1 for i in range(len(A)-1) if min(A[i]) >= min(A[i+1])]
+            descents = [0] + descents + [len(A)]
+            factored_A = [tuple(A[descents[i]:descents[i+1]]) for i in range(len(descents)-1)]
+            out = M.zero()
+            for AA in cartesian_product([glueings(ll) for ll in factored_A]):
+                out += M.monomial(sum(map(self._indices, AA)))
+            return out
+
+
+        def _M_to_Pd(self, A):
+            """
+            Return `M_A` in terms of the dual Powersum basis.
+
+            INPUT:
+
+            - ``A`` -- an ordered multiset partition into sets
+
+            OUTPUT:
+
+            - An element of the dual Powersum basis
+
+            TODO:: improve the examples!
+
+            EXAMPLES::
+
+                sage: Pd = OMPQuasiSymmetricFunctions(QQ).Pd()
+                sage: A = OrderedMultisetPartitionIntoSets([[1,2,3]])
+                sage: Pd._M_to_Pd_on_basis(A)
+                ???
+                sage: B = OrderedMultisetPartitionIntoSets([[1,2],[3]])
+                sage: Pd._M_to_Pd_on_basis(B)
+                ???
+            """
+            # base cases
+            if A.length() <= 1:
+                return self.monomial(A)
+
+            # signed sum over certain elements in ``A.fatter()``
+            # a merging of adjacent blocks is allowed if their min elements are in order
+            terms = [(A,1)]
+            for (A,c) in terms:
+                for i in range(A.length()-1):
+                    A1,A2 = A[i:i+2]
+                    if min(A1) < min(A2) and len(A1)+len(A2) == len(A1.union(A2)):
+                        B = A[:i] + [A1.union(A2)] + A[i+2:]
+                        terms.append((self._indices([b for b in B if b]),-c))
+            # kill undesired repeats within added_terms with ``distinct=True``
+            return self.sum_of_terms(terms, distinct=True)
+
+        def dual_basis(self):
+            r"""
+            Return the dual basis to the `\mathbf{Pd}` basis.
+
+            The dual basis to the `\mathbf{Pd}` basis is the Powersum
+            basis of Free Hopf Algebra on Finite Sets.
+
+            OUTPUT:
+
+            - the Powersum basis of Free Hopf Algebra on Finite Sets
+
+            EXAMPLES::
+
+                sage: Pd = OMPNonCommutativeSymmetricFunctions(QQ).PowersumDual()
+                sage: Pd.dual_basis()
+                Free Hopf Algebra on Finite Sets over the Rational Field in the Powersum basis
+            """
+            return self.realization_of().dual().Powersum()
+
+        def product_on_basis(self, A, B):
+            r"""
+            Return the (associative, commutative) `*` product of the
+            basis elements of ``self`` indexed by the ordered multiset
+            partitions `A` and `B`.
+
+            INPUT:
+
+            - ``A, B`` -- two ordered multiset partitions into sets
+
+            OUTPUT:
+
+            - The shuffle of the blocks of `A` with the blocks of `B`.
+
+            EXAMPLES::
+
+                sage: Pd = OMPQuasiSymmetricFunctions(QQ, alphabet=[2,3,4,5]).PowersumDual()
+                sage: Pd[{2,3}] * Pd[{3,5}, {4}]
+                Pd[{3,5},{4},{2,3}] + Pd[{2,3},{3,5},{4}] + Pd[{3,5},{2,3},{4}]
+
+            TESTS::
+
+                sage: OMP = OrderedMultisetPartitionsIntoSets(alphabet=[2,3,4])
+                sage: M = Pd.realization_of().Monomial()
+                sage: one = OMP([])
+                sage: all(Pd.product_on_basis(one, z) == Pd(z) == Pd.basis()[z] for z in [one] + list(OMP.subset(3)))
+                True
+                sage: all(Pd.product_on_basis(z, one) == Pd(z) == Pd.basis()[z] for z in OMP.subset(3))
+                True
+                sage: all(Pd[A] * Pd[B] == Pd( M(Pd[A])*M(Pd[B]) ) for A in OMP.subset(3) for B in OMP.subset(2))  # indirect doctest
+                True
+            """
+            terms = A.shuffle_product(B, overlap=False)
+            return self.sum_of_terms([(s, 1) for s in terms])
+
+        def coproduct_on_basis(self, A):
+            r"""
+            Return the coproduct in the basis `(Pd_\mu)`.
+
+            As for the Monomial basis, the rule for coproducts in the
+            dual Powersum basis is "deconcatenate".
+
+            INPUT:
+
+            - ``A`` -- an ordered multiset partition into sets
+
+            EXAMPLES::
+
+                sage: Pd = OMPQuasiSymmetricFunctions(QQ).PowersumDual()
+                sage: Pd[{2,3,4}].coproduct()
+                Pd[] # Pd[{2,3,4}] + Pd[{2,3,4}] # Pd[]
+                sage: Pd[{1}, {2,3,4}, {1,2}].coproduct()
+                Pd[] # Pd[{1},{2,3,4},{1,2}] + Pd[{1}] # Pd[{2,3,4},{1,2}]
+                 + Pd[{1},{2,3,4}] # Pd[{1,2}] + Pd[{1},{2,3,4},{1,2}] # Pd[]
+
+            TESTS::
+
+                sage: OMP = OrderedMultisetPartitionsIntoSets
+                sage: M = Pd.realization_of().Monomial()
+                sage: all(Pd.coproduct_on_basis(A) == Pd.tensor_square()( M(Pd[A]).coproduct() ) for A in OMP(4))
+                True
+            """
+            return self.tensor_square().sum_of_monomials(A.deconcatenate(2))
+
+    PowersumDual = Pd
+
+
 
 ####### Auxillary Functions #################
 def zee(x):
