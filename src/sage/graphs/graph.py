@@ -7271,6 +7271,21 @@ class Graph(GenericGraph):
 
             sage: Graph({(1,2):[(2,3)],(2,3):[(1,2)]}).modular_decomposition()
             (SERIES, [(2, 3), (1, 2)])
+
+        Ticket :trac:`25872` is fixed::
+
+            sage: G1 = Graph('FwA]w')
+            sage: G2 = Graph('F@Nfg')
+            sage: G1.is_isomorphic(G2)
+            True
+            sage: G1.modular_decomposition()
+            (PRIME, [6, 2, 1, 5, 0, (PARALLEL, [3, 4])])
+            sage: G2.modular_decomposition()
+            (PRIME, [6, 5, (PARALLEL, [0, 1]), 2, 3, 4])
+            sage: G2.add_edges([(2,7), (3,7)])
+            sage: G2.modular_decomposition()
+            (PRIME, [6, 5, (PARALLEL, [0, 1]), 2, 3, (PARALLEL, [4, 7])])
+
         """
         from sage.graphs.modular_decomposition import modular_decomposition, NodeType
 
