@@ -1632,7 +1632,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: sym[0].automorphous_numbers()
             [1, 2, 5]
         """
-        from .normal_form import collect_small_blocks, _min_nonsquare
+        from sage.quadratic_forms.genera.normal_form import collect_small_blocks, _min_nonsquare
         automorphs = []
         sym = self.symbol_tuple_list()
         G = self.gram_matrix().change_ring(ZZ)
@@ -2597,10 +2597,10 @@ class GenusSymbol_global_ring(object):
         # -1 adic contribution
         sig = self.signature_pair_of_matrix()
         if sig[0]*sig[1] > 1:
-            kernel_gens.append(grp.delta(-1, p=-1))
+            kernel_gens.append(grp.delta(-1, prime=-1))
         for sym in syms:
             for A in sym.automorphous_numbers():
-                kernel_gens.append(grp.delta(A, p=sym.prime()))
+                kernel_gens.append(grp.delta(A, prime=sym.prime()))
         return grp.quotient(grp.subgroup(kernel_gens))
 
     def spinor_generators(self):
@@ -2644,31 +2644,33 @@ class GenusSymbol_global_ring(object):
         G = self.representative()
         d = self.dimension()
         V = ZZ**d
-        x = V.gen(0)
-        while True:
-            q = x*G*x
-            if q !=0:
-                break
-            x = V.random_element()
-        P = []
-        for a in self.automorphous_numbers():
-            if a[0] == 2 and a[1] != [ZZ(1), ZZ(3), ZZ(5), ZZ(7)]:
-                P.append(a)
-            elif len(a) != 2 or any(b % a[0] == 0 for b in a[1]):
-                P.append(a[0])
+        det = self.determinant()
+        P = [s.prime() for s in self._local_symbols]
         norm = self.norm()
-        Q = [p for p in (norm*q).prime_factors() if norm.valuation(p) != q.valuation(p)]
-        T = []
-        for p in set(P+Q):
-            for k in range(d):
-                if G[k,k].valuation(p) == norm.valuation(p):
-                    x_p = V.gen(k)
-                    break
-            T.append((p, x_p, (q*G[k,k]).squarefree_part()))
+        while True:
+            x = V.random_element()
+            q = x*G*x
+            if q != 0 and all(q.valuation(p) == norm.valuation(p) for p in P):
+                break
+        from sage.groups.fqf_orthogonal.group import reflection
+        # M = reflection(G,x)
+        Q = [p for p in q.prime_factors() if norm.valuation(p) != q.valuation(p)]
+        # M = \tau_x(L)
+        # r = [L: L & M]
+        r = ZZ.prod(Q)
         K = self._spinor_kernel()
         A = K.cover()
-        j = prod(A.to_square_class(t[2],t[0]) for t in T)
-        return K(j) == K(1), x
+        j = A.delta(r)
+        L = []
+        for p in Q:
+            for k in range(d):
+                w = V.gen(k)
+                qw = w*G*w
+                if qw.valuation(p) == norm.valuation(p):
+                    break
+            L.append(((qw*q).squarefree_part(), p))
+        j = A.prod([A.delta(a[0],prime=a[1]) for a in L])
+        return L,K.one() == K(j)
 
 
     def signature(self):
