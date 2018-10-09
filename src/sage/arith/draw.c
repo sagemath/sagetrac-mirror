@@ -1390,7 +1390,6 @@ int *Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int
 			}
 		}
 		printf("\n");
-		return NULL;
 	}
 	//ajust the window of the drawing
 	if (ajust)

@@ -410,19 +410,23 @@ cdef Color getColor(c):
     return r
 
 cdef surface_to_img(Surface s):
+    #print("surface_to_img %s, %s..."%(s.sx, s.sy))
     import numpy as np
     from PIL import Image
     #arr = np.empty([s.sy, s.sx], dtype=['uint8', 'uint8', 'uint8', 'uint8'])
-    arr = np.empty([s.sy, s.sx], dtype=[('r', 'uint8'), ('g', 'uint8'),('b', 'uint8'), ('a', 'uint8')])
+    #arr = np.empty([s.sy, s.sx], dtype=[('r', 'uint8'), ('g', 'uint8'),('b', 'uint8'), ('a', 'uint8')])
+    #arr = np.zeros([s.sy, s.sx], dtype=[('r', 'uint8'), ('g', 'uint8'),('b', 'uint8'), ('a', 'uint8')])
+    arr = np.empty([s.sy, s.sx], dtype=np.dtype((np.int32, {'r':(np.int8,0), 'g':(np.int8,1), 'b':(np.int8,2), 'a':(np.int8,3)})))
+    
     cdef int x, y
     cdef Color c
     for x in range(s.sx):
         for y in range(s.sy):
             c = s.pix[x][s.sy - y - 1]
-            arr[y, x][0] = c.r
-            arr[y, x][1] = c.g
-            arr[y, x][2] = c.b
-            arr[y, x][3] = c.a
+            #arr[y, x]['r'] = c.r
+            #arr[y, x]['g'] = c.g
+            #arr[y, x]['b'] = c.b
+            arr[y, x] = c.r | c.g << 8 | c.b << 16 | c.a<<24;
     return Image.fromarray(arr, 'RGBA')
     # img.save("/Users/mercat/Desktop/output.png")
     # img.save(file)
@@ -1132,7 +1136,7 @@ cdef class BetaAdicMonoid:
         
         r = DetAutomaton(None)
         r.a[0] = a
-        r.A = list(self.C)
+        r.A = self.a.A
         r.S = range(a.n)
         return BetaAdicMonoid(self.b, r)
 
@@ -1367,8 +1371,7 @@ cdef class BetaAdicMonoid:
             Draw(b, s, n, ajust, col, coeff, verb)
             sig_off()
         elif method == 1:
-            print("Not implemented !")
-            return
+            raise NotImplementedError("Method 1 not implemented !")
         sig_on()
         im = surface_to_img(s)
         sig_off()
