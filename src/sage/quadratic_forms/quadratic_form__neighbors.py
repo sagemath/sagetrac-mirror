@@ -155,19 +155,19 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
             return w
 
 
-def neighbor_from_vec(self, p, y):
+def neighbor_from_vec(self, p, y, odd=False):
     r"""
     """
     p = ZZ(p)
     if not (p).divides(self(y)):
-        raise ValueError("v=%s must be of square divisible by p^2=%s"%(v,p))
+        raise ValueError("v=%s must be of square divisible by p=%s"%(v,p))
     n = self.dim()
     G = self.Hessian_matrix()
 
     q = y*G*y
     if not q % p == 0:
         raise ValueError("")
-    if q % p**2 != 0:
+    if p!=2 and q % p**2 != 0:
         for k in range(n):
             w = y*G
             if w[k] % p != 0:
@@ -175,8 +175,19 @@ def neighbor_from_vec(self, p, y):
                 break
         z *= (2*y*G*z).inverse_mod(p)
         y = y - q*z
-    if p == 2:
-        raise NotImplementedError("")
+    if p == 2 and not odd:
+        val = q.valuation(p)
+        if val <= 1:
+            raise ValueError("v=%s must be of square divisible by 4"%v)
+        if val == 2:
+            # modify it to have square 8
+            w = y*G
+            for k in range(n):
+                if w[k] % p != 0:
+                    z = (ZZ**n).gen(k)
+                    break
+            y +=z
+        assert y*G*y % 8 == 0
 
     w = G*y
     Ly = w.change_ring(GF(p)).column().kernel().matrix().lift()
@@ -193,7 +204,7 @@ def p_neighbor(self, p):
     r"""
     """
     v = self.find_primitive_p_divisible_vector__next(p)
-    return self.find_p_neighbor_from_vec(p, v)
+    return self.neighbor_from_vec(p, v)
 
 ## ----------------------------------------------------------------------------------------------
 

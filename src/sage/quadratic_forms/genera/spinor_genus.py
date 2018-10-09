@@ -95,7 +95,7 @@ class AdelicSquareClasses(AbelianGroupGap):
             y *= self.gens()[i]
         return y
 
-    def delta(self, r, p=None):
+    def delta(self, r, prime=None):
         r"""
         Diagonal embedding of rational square classes.
 
@@ -103,25 +103,27 @@ class AdelicSquareClasses(AbelianGroupGap):
 
         - ``r`` -- a non zero rational number
 
-        - ``p`` -- a prime
+        - ``prime`` -- a prime
 
         EXAMPLES::
 
             sage: from sage.quadratic_forms.genera.spinor_genus import AdelicSquareClasses
             sage: AS = AdelicSquareClasses((2,3,7))
-            sage: AS.delta(2,p=3)
+            sage: AS.delta(2, prime=3)
             f4
             sage: AS.delta(2)
             f3*f4
         """
         r = QQ(r)
-        if p is None:
+        if prime is None:
             return self.prod([self.to_square_class(r, p) for p in self._primes])
-        if p == -1:
+        prime = ZZ(prime)
+        if prime == -1:
             r = r.sign()
             return self.prod([self.to_square_class(r, p) for p in self._primes])
-        v, u = r.val_unit(p)
-        pv = p**v
-        y = self.prod([self.to_square_class(pv,q) for q in self._primes if q!=p])
-        y *= self.to_square_class(u, p)
+        v, u = r.val_unit(prime)
+        pv = prime**v
+        y = self.prod([self.to_square_class(pv,q) for q in self._primes if q!=prime])
+        if prime in self._primes:
+            y *= self.to_square_class(u, p=prime)
         return y
