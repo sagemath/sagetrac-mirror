@@ -36,10 +36,12 @@ struct BetaAdic2
 };
 typedef struct BetaAdic2 BetaAdic2;
 
+/*
 struct SDLImage
 {
 	void *img;
 };
+*/
 
 //rend une SDL_Surface contenant l'image
 void* OpenImage (const char *file_name);
@@ -66,11 +68,10 @@ Color moy (Color a, Color b, double ratio);
 bool set_pix (Surface s, Complexe p);
 void print_word (BetaAdic b, int n, int etat);
 Color randColor (int a);
-void DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double coeff, int verb);
+int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double coeff, int verb);
 Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, int verb);
 //void WordZone (BetaAdic b, int *word, int nmax);
-int *WordDrawn ();
-void Draw(BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int verb);
+int *Draw(BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int verb);
 void Draw2(BetaAdic b, Surface s, int n, int ajust, Color col, int verb);
 void printAutomate(Automaton a);
 void DrawList(BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double alpha, int verb);

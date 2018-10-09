@@ -133,6 +133,8 @@ cdef extern from "Automaton.h":
         NState* e  # states
         int n   # number of states
         int na  # number of letters
+    
+    Automaton CopyAutomaton (Automaton a, int nalloc, int naalloc)
 
 cdef extern from "relations.h":
     cdef cppclass Element:
@@ -217,11 +219,10 @@ cdef extern from "draw.h":
     void FreeBetaAdic(BetaAdic b)
     BetaAdic2 NewBetaAdic2(int n, int na)
     void FreeBetaAdic2(BetaAdic2 b)
-    void DrawZoom(BetaAdic b, int sx, int sy, int n, int ajust, Color col, double coeff, int verb)
+    int *DrawZoom(BetaAdic b, int sx, int sy, int n, int ajust, Color col, double coeff, int verb)
     Automaton UserDraw(BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, int verb)
     #  void WordZone (BetaAdic b, int *word, int nmax)
-    int *WordDrawn()
-    void Draw(BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int verb)
+    int *Draw(BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int verb)
     void Draw2(BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
     void DrawList(BetaAdic2 b, Surface s, int n, int ajust, ColorList lc, double alpha, int verb)
     void print_word(BetaAdic b, int n, int etat)
@@ -411,8 +412,8 @@ cdef Color getColor(c):
 cdef surface_to_img(Surface s):
     import numpy as np
     from PIL import Image
-    arr = np.empty([s.sy, s.sx], dtype=['uint8', 'uint8', 'uint8', 'uint8'])
-    #arr = np.empty([s.sy, s.sx], dtype=[('r', 'uint8'), ('g', 'uint8'),('b', 'uint8'), ('a', 'uint8')])
+    #arr = np.empty([s.sy, s.sx], dtype=['uint8', 'uint8', 'uint8', 'uint8'])
+    arr = np.empty([s.sy, s.sx], dtype=[('r', 'uint8'), ('g', 'uint8'),('b', 'uint8'), ('a', 'uint8')])
     cdef int x, y
     cdef Color c
     for x in range(s.sx):
@@ -431,11 +432,13 @@ cdef Automaton getAutomate(a, list A, verb=False):
     if verb:
         print("getAutomate %s..." % a)
     cdef DetAutomaton fa
+    cdef Automaton aut
     if isinstance(a, DetAutomaton):
-        fa = a
-        fa.permut_op(A, verb=verb)
+        fa = a.permut(A, verb=verb)
         # fa = fa.permut(A, verb=verb)
-        return fa.a[0]
+        aut = fa.a[0]
+        aut = CopyAutomaton(aut, aut.n, aut.na);
+        return aut
     else:
         raise ValueError("DetAutomaton expected.")
 
@@ -494,7 +497,7 @@ cdef BetaAdic getBetaAdic(m, prec=53, mirror=True, verb=False):
     
     b = NewBetaAdic(nA)
     b.b = complex(CC(m.b))
-    for i, c in zip(range(b.n), C):
+    for i, c in zip(range(b.n), A):
         b.t[i] = complex(CC(c))
     b.a = getAutomate(a, A=A, verb=verb)
     return b
@@ -695,7 +698,7 @@ cdef class ImageIn:
         return ImageHeight(self.s[0])
 
 
-class BetaAdicMonoid:
+cdef class BetaAdicMonoid:
     r"""
     Define a numeration in base b, i.e. set of numbers of the form
     
@@ -798,6 +801,18 @@ class BetaAdicMonoid:
                     return "b-adic set with b root of %s (in characteristic %s), and an automaton of %s states and %s letters."%(self.b.minpoly(), K.characteristic(), self.a.n_states, self.a.n_letters)
                 else:
                     return "b-adic set with b root of %s, an automaton of %s states and %s letters."%(K.modulus(), self.a.n_states, self.a.n_letters)
+    
+    @property
+    def a (self):
+        return self.a
+    
+    @property
+    def b (self):
+        return self.b
+    
+    @property
+    def K (self):
+        return self.K
     
     def _testSDL(self):
         """
@@ -1053,7 +1068,7 @@ class BetaAdicMonoid:
 
     def user_draw(self, n=None,
                   sx=800, sy=600, ajust=True, prec=53, color=(0, 0, 0, 255),
-                  method=0, add_letters=True, only_pos=False, verb=False):
+                  method=0, only_pos=False, verb=False):
         r"""
         Display a window where the user can draw a b-adic set based on the current b-adic set.
 
@@ -1070,17 +1085,15 @@ class BetaAdicMonoid:
 
         - ``ajust``  -- boolean (default ``True``) If True, change the zoom in order to fit the window.
 
-        - ``prec`` -- integer (default: ``53``) precision of returned values
+        - ``prec`` -- integer (default: ``53``) precision of computed values
 
         - ``color`` tuple of color in RGB values -- (default: (0, 0, 0, 255))
 
-        - ``method`` -- (default 0)
-
-        - ``add_letters`` -- (default ``True``)
+        - ``method`` -- (default 0) 
 
         - ``only_pos`` -- (default ``False``)
 
-        - ``verb`` -- (default ``False``) set ti ``True`` for verbose mod
+        - ``verb`` -- (default ``False``) set to ``True`` for verbose mod
 
         OUTPUT:
 
@@ -1123,12 +1136,9 @@ class BetaAdicMonoid:
         r.S = range(a.n)
         return BetaAdicMonoid(self.b, r)
 
-    def draw_zoom(self, n=None, tss=None, ss=None, iss=None,
-                  sx=800, sy=600, ajust=True, prec=53, color=(0, 0, 0, 255),
-                  method=0, add_letters=True, coeff=8., verb=False):
+    def draw_zoom(self, n=None, int sx=800, int sy=600, bool ajust=True, int prec=53, color=(0, 0, 0, 255), int method=0, float coeff=8., bool verb=False):
         r"""
-        Returns a set of values (real or complex) corresponding to the drawing
-        of the limit set of the beta-adic monoid.
+        Display the b-adic set in a window, with possibility for the user to zoom in.
 
         INPUT:
 
@@ -1136,14 +1146,6 @@ class BetaAdicMonoid:
           The number of iterations used to plot the fractal.
           Default values: between ``5`` and ``16`` depending on the number
           of generators.
-
-        -``tss`` -- (default ''None'') transition
-
-        - ``ss`` - DetAutomaton (default: ``None``)
-          The subshift to associate to the beta-adic monoid for this drawing.
-
-        - ``iss`` - set of initial states of the automaton
-          ss (default: ``None``)
 
         - ``sx``  -- (default 800)
 
@@ -1157,15 +1159,13 @@ class BetaAdicMonoid:
 
         - ``method`` -- (default 0)
 
-        - ``add_letters`` -- (default ``True``)
-
         - ``coeff`` -- (default 8.)
 
         - ``verb`` -- (default ``False``) set ti ``True`` for verbose mod
 
         OUTPUT:
 
-        list of real or complex numbers
+        None
 
         EXAMPLES::
 
@@ -1176,15 +1176,17 @@ class BetaAdicMonoid:
                 sage: P = m.draw_zoom()     # long time (360 s)
 
         """
-        if tss is None:
-            tss = self.reduced_words_automaton2()
+        #if tss is None:
+        #    tss = self.reduced_words_automaton2()
         
         cdef BetaAdic b
         b = getBetaAdic(self, prec=prec, mirror=True, verb=verb)
         # if verb:
         #     printAutomaton(b.a)
         # dessin
+        cdef int *word
         cdef Color col
+        cdef int i
         col.r = color[0]
         col.g = color[1]
         col.b = color[2]
@@ -1193,45 +1195,56 @@ class BetaAdicMonoid:
             n = -1
         if method == 0:
             sig_on()
-            DrawZoom(b, sx, sy, n, ajust, col, coeff, verb)
+            word = DrawZoom(b, sx, sy, n, ajust, col, coeff, verb)
             sig_off()
+            res = []
+            if word is not NULL:
+                for i in xrange(1024):
+                    if word[i] < 0:
+                        break
+                    res.append(self.Alphabet[word[i]])
+                res.reverse()
+            return res
         elif method == 1:
             print("Not implemented !")
-            return
+            return None
        
 
-    # give a word corresponding to one of the previously drawn points
-    def word_drawn(self):
-        r"""
-        Draw word, return the list of words
+# Integrated to draw_zoom
+#    # give a word corresponding to one of the previously drawn points
+#    def word_drawn(self):
+#        r"""
+#        Return a word corresponding to the current window of the drawing.
+#        This window is changed for example when the user zoom using the function draw_zoom().
+#
+#        OUTPUT:
+#
+#        return a word, given as a list.
+#
+#        EXAMPLES::
+#
+#            #. The dragon fractal::
+#
+#                sage: e = QQbar(1/(1+I))
+#                sage: m = BetaAdicMonoid(e, {0,1})
+#                sage: P = m.draw_zoom()     # long time (360 s)
+#                sage: m.word_drawn()
+#
+#        """
+#        sig_on()
+#        cdef int *word = WordDrawn()
+#        sig_off()
+#        cdef int i
+#        res = []
+#        for i in xrange(1024):
+#            if word[i] < 0:
+#                break
+#            res.append(word[i])
+#        res.reverse()
+#        return res
 
-        OUTPUT:
-
-        return list of words
-
-        EXAMPLES::
-
-            #. The dragon fractal::
-
-                sage: e = QQbar(1/(1+I))
-                sage: m = BetaAdicMonoid(e, {0,1})
-                sage: P = m.draw_zoom()     # long time (360 s)
-
-        """
-        sig_on()
-        cdef int *word = WordDrawn()
-        sig_off()
-        cdef int i
-        res = []
-        for i in xrange(1024):
-            if word[i] < 0:
-                break
-            res.append(word[i])
-        res.reverse()
-        return res
-
-    def plot2(self, n=None, tss=None, ss=None, iss=None, sx=800, sy=600,
-              ajust=True, prec=53, color=(0, 0, 0, 255), method=0, add_letters=True,
+    def plot2(self, n=None, sx=800, sy=600,
+              ajust=True, prec=53, color=(0, 0, 0, 255), method=0,
               coeff=8., verb=False):
         r"""
         Draw the limit set of the beta-adic monoid (with or without subshift).
@@ -1244,14 +1257,6 @@ class BetaAdicMonoid:
 
         - ``place`` - place of the number field of beta (default: ``None``)
           The place used to evaluate elements of the number field.
-
-        - ``tss`` (default: ``None``) transition
-
-        - ``ss`` - Automaton (default: ``None``)
-          The subshift to associate to the beta-adic monoid for this drawing.
-
-        - ``iss`` - set of initial states of the
-          automaton ss (default: ``None``)
 
         - ``sx`` -- (default: 800) dimensions of the resulting in x dimension
 
@@ -1267,8 +1272,6 @@ class BetaAdicMonoid:
           and 255 (default: ``(0,0,255,255)``) Color of the drawing.
 
         - ``method`` -- (default : 0)
-
-        - ``add_letters`` -- (default ``True``)
 
         - ``coeff`` -- (default 8.)
 
@@ -1327,21 +1330,31 @@ class BetaAdicMonoid:
             sage: m.plot2(19)                                   # long time
 
         """
-        # cdef char *file
-        # from sage.misc.temporary_file import tmp_filename
-        # file_name = tmp_filename()
-        # file = file_name
-        # if verb:
-        #    print("file=%s"%file_name)
-        sig_on()
-        cdef Surface s = NewSurface(sx, sy)
+        cdef Surface s
         cdef BetaAdic b
-        if tss is not None:
-            tss = tss.prune()
+        cdef Automaton aut
+        cdef int i,j
+        sig_on()
+        s = NewSurface(sx, sy)
+        sig_off()
+        sig_on()
         b = getBetaAdic(self, prec=prec, mirror=True, verb=verb)
-        # if verb:
-        #    printAutomaton(b.a)
-        # dessin
+        sig_off()
+        if verb:
+            print("b=%s+%s*I", b.b.x, b.b.y)
+            print("n=%s"%b.n)
+            for i in range(b.n):
+                print("t[%s] = %s+%s*I"%(i, b.t[i].x, b.t[i].y))
+            #print("a=%s"%b.a)
+            for i in range(b.a.n):
+                if b.a.e[i].final:
+                    print("(%s) "%i)
+                else:
+                    print("%s "%i)
+            aut = b.a;
+            for i in range(aut.n):
+                for j in range(aut.na):
+                    print("%s -%s-> %s\n"%(i, j, aut.e[i].f[j]))
         cdef Color col
         col.r = color[0]
         col.g = color[1]
@@ -1350,26 +1363,23 @@ class BetaAdicMonoid:
         if n is None:
             n = -1
         if method == 0:
+            sig_on()
             Draw(b, s, n, ajust, col, coeff, verb)
+            sig_off()
         elif method == 1:
             print("Not implemented !")
             return
-            # lv = s.rauzy_fractal_projection_exact().values()
-            # for i,v in zip(range(len(lv)),lv):
-            #        b.t[i] = complex(CC(v))
-            # Draw2(b, s, n, ajust, col, verb)
-        # enregistrement du résultat
+        sig_on()
         im = surface_to_img(s)
+        sig_off()
         if verb:
             print("Free...")
+        sig_on()
         FreeSurface(s)
-        #  if not isinstance(tss, DetAutomaton):
-        #  FreeAutomaton(&b.a)
         FreeBetaAdic(b)
         sig_off()
-        # from PIL import Image
-        return im  # Image.open(file_name+'.png')
-
+        return im
+    
     def plot3(self, n=None, la=None, ss=None, tss=None,
               sx=800, sy=600, ajust=True, prec=53, colormap='hsv',
               backcolor=None, opacity=1., add_letters=True, verb=False):

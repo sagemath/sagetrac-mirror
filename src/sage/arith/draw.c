@@ -453,7 +453,7 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
 		printf("Conversion en SDL...\n");
 	SDL_Surface *s = GetSurface(s0);	//utilisé pour dessiner les transformées
 	
-	    Uint32 rmask, gmask, bmask, amask;
+	Uint32 rmask, gmask, bmask, amask;
 
     // SDL interprets each pixel as a 32-bit number, so our masks must depend
     //  on the endianness (byte order) of the machine
@@ -667,18 +667,20 @@ int sign(int a)
 	return -1;
 }
 
+int word[1024];
+
 double mousex = 0, mousey = 0;
 
 double *Rmaj = NULL; //liste de majorants mesurés pour chaque état
 
 //ouvre une fenêtre avec la fractale sur laquelle on peut zoomer
 //coeff = coefficient de calcul du nombre d'itérations
-void DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double coeff, int verb)
+int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double coeff, int verb)
 {
 	if (SDL_Init(SDL_INIT_VIDEO) == -1)
     {
         printf("Erreur lors de l'initialisation de SDL: %s\n", SDL_GetError());
-        return;
+        return NULL;
     }
     
     Surface s0 = NewSurface(sx, sy);
@@ -897,6 +899,7 @@ void DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double c
 		free(Rmaj);
 	SDL_FreeSurface(s);
     SDL_Quit();
+    return word;
 }
 
 ColorList NewColorList (int n)
@@ -1186,6 +1189,7 @@ void DrawList_rec (BetaAdic2 b, Surface s, int n, Complexe p, Complexe bn, int *
 //compute the (almost) longest word w such that w(w^{-1}L) and L give the same drawing in the zone
 //where L is the language given by b
 //NON UTILISE : NE FONCTIONNE PAS BIEN
+/*
 void WordZone (BetaAdic b, int *word, int nmax)
 {
 	Complexe p = zero();
@@ -1237,14 +1241,7 @@ void WordZone (BetaAdic b, int *word, int nmax)
 		}
 	}
 }
-
-int word[1024];
-
-int *WordDrawn ()
-{
-	word[1023] = -1;
-	return word;
-}
+*/
 
 void Draw_rec (BetaAdic b, Surface s, int n, Complexe p, Complexe bn, int etat)
 {
@@ -1330,7 +1327,7 @@ double absd (double f)
 	return f;
 }
 
-void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int verb)
+int *Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int verb)
 {
 	int auto_n = (n < 0);
 	//set global variables
@@ -1378,17 +1375,22 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int
 		{
 			if (b.a.e[i].final)
 				printf("%d ", i);
+			else
+			    printf("(%d) ", i);
 		}
 		printf("\n");
+		printf("Transitions: ");
 		for (i=0;i<b.a.n;i++)
 		{
 			for (j=0;j<b.a.na;j++)
 			{
+			    printf("(i=%d, j=%d)", i, j);
 				if (b.a.e[i].f[j] != -1)
 					printf("%d --%d--> %d, ", i, j, b.a.e[i].f[j]);
 			}
 		}
 		printf("\n");
+		return NULL;
 	}
 	//ajust the window of the drawing
 	if (ajust)
@@ -1473,6 +1475,9 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int
 	}
 	//niter = n;
 	Draw_rec(b, s, n, zero(), un(), b.a.i);
+	//return the word
+	word[1023] = -1;
+	return word;
 }
 
 void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)

@@ -52,3 +52,5 @@ struct NAutomaton
 	int na; //number of letters
 };
 typedef struct NAutomaton NAutomaton;
+
+Automaton CopyAutomaton (Automaton a, int nalloc, int naalloc);
