@@ -51,6 +51,8 @@ int ImageHeight (void *img);
 void CloseImage (void* img);
 
 void *GetSDL_SurfaceFromNumpy (PyArrayObject *o);
+void SurfaceToNumpy (Surface *s, PyArrayObject *o);
+void SDL_SurfaceToNumpy (void *ss, PyArrayObject *o);
 
 ColorList NewColorList (int n);
 void FreeColorList (ColorList l);

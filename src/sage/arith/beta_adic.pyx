@@ -205,7 +205,9 @@ cdef extern from "draw.h":
     int ImageWidth(void *img)
     int ImageHeight(void *img)
     void CloseImage(void* img)
-    void *GetSDL_SurfaceFromNumpy (numpy.ndarray np)
+    void *GetSDL_SurfaceFromNumpy (numpy.ndarray na)
+    void SurfaceToNumpy (Surface *s, numpy.ndarray na)
+    void SDL_SurfaceToNumpy (void *ss, numpy.ndarray na)
     void TestSDL()
     Surface NewSurface(int sx, int sy)
     void FreeSurface(Surface s)
@@ -418,15 +420,16 @@ cdef surface_to_img(Surface s):
     #arr = np.zeros([s.sy, s.sx], dtype=[('r', 'uint8'), ('g', 'uint8'),('b', 'uint8'), ('a', 'uint8')])
     arr = np.empty([s.sy, s.sx], dtype=np.dtype((np.int32, {'r':(np.int8,0), 'g':(np.int8,1), 'b':(np.int8,2), 'a':(np.int8,3)})))
     
-    cdef int x, y
-    cdef Color c
-    for x in range(s.sx):
-        for y in range(s.sy):
-            c = s.pix[x][s.sy - y - 1]
-            #arr[y, x]['r'] = c.r
-            #arr[y, x]['g'] = c.g
-            #arr[y, x]['b'] = c.b
-            arr[y, x] = c.r | c.g << 8 | c.b << 16 | c.a<<24;
+#    cdef int x, y
+#    cdef Color c
+#    for x in range(s.sx):
+#        for y in range(s.sy):
+#            c = s.pix[x][s.sy - y - 1]
+#            #arr[y, x]['r'] = c.r
+#            #arr[y, x]['g'] = c.g
+#            #arr[y, x]['b'] = c.b
+#            arr[y, x] = c.r | c.g << 8 | c.b << 16 | c.a<<24;
+    SurfaceToNumpy (&s, arr)
     return Image.fromarray(arr, 'RGBA')
     # img.save("/Users/mercat/Desktop/output.png")
     # img.save(file)
@@ -750,6 +753,7 @@ cdef class BetaAdicMonoid:
             Monoid of b-adic expansion with b root of x^3 - x - 1 and numerals set {0, 1}
 
         """
+        cdef int i,j
         from sage.rings.complex_field import ComplexField
         CC = ComplexField()
         if b not in CC:
@@ -762,10 +766,13 @@ cdef class BetaAdicMonoid:
             self.K = b.parent()
             self.b = b
         
-#            try:
-#                K.places()
-#            except:
-#                print("b=%s must be a algebraic number, ring %s not accepted." % (b, K))
+        #test if letters of a are in K
+        for c in a.A:
+            if c not in self.K:
+                if c not in CC:
+                    raise ValueError("Label %s of the automaton is not in the field %s !"%(c, self.K))
+                else:
+                    self.K = CC
         
         if type(a) != DetAutomaton:
             try:
@@ -1247,7 +1254,7 @@ cdef class BetaAdicMonoid:
 #        res.reverse()
 #        return res
 
-    def plot2(self, n=None, sx=800, sy=600,
+    def plot(self, n=None, sx=800, sy=600,
               ajust=True, prec=53, color=(0, 0, 0, 255), method=0,
               coeff=8., verb=False):
         r"""
@@ -1292,7 +1299,7 @@ cdef class BetaAdicMonoid:
 
             sage: e = QQbar(1/(1+I))
             sage: m = BetaAdicMonoid(e, {0,1})
-            sage: m.plot2()     # long time
+            sage: m.plot()     # long time
             ValueError                                Traceback (most recent call last)
             ValueError: DetAutomaton expected.
 
@@ -1309,29 +1316,29 @@ cdef class BetaAdicMonoid:
             sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
             sage: m = s.rauzy_fractal_beta_adic_monoid()
             sage: m.b = 1/m.b
-            sage: m.plot2(tss=m.ss)     # long time
+            sage: m.plot(tss=m.ss)     # long time
 
         #. The dragon fractal and its boundary::
 
             sage: e = QQbar(1/(1+I))
             sage: m = BetaAdicMonoid(e, {0,1})
             sage: ssi = m.intersection_words(w1=[0], w2=[1])     # long time
-            sage: m.plot2(tss=ssi)                               # long time
-            sage: m.plot2()                                      # long time
+            sage: m.plot(tss=ssi)                               # long time
+            sage: m.plot()                                      # long time
 
         #. The "Hokkaido" fractal and its boundary::
 
             sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
             sage: m = s.rauzy_fractal_beta_adic_monoid()
             sage: ssi = m.intersection_words(w1=[0], w2=[1])                  # long time
-            sage: m.plot2(la=[la[0], ssi]+la[1:], colormap='gist_rainbow')    # long time
+            sage: m.plot(la=[la[0], ssi]+la[1:], colormap='gist_rainbow')    # long time
 
         #. A limit set that look like a tiling::
 
             sage: P=x^4 + x^3 - x + 1
             sage: b = P.roots(ring=QQbar)[2][0]
             sage: m = BetaAdicMonoid(b, {0,1})
-            sage: m.plot2(19)                                   # long time
+            sage: m.plot(19)                                   # long time
 
         """
         cdef Surface s
@@ -1450,7 +1457,7 @@ cdef class BetaAdicMonoid:
             sage: e = QQbar(1/(1+I))
             sage: m = BetaAdicMonoid(e, {0,1})
             sage: ssi = m.intersection_words(w1=[0], w2=[1])                               # long time
-            sage: m.plot2(tss=ssi) #plot the boundary                                      # long time
+            sage: m.plot(tss=ssi) #plot the boundary                                      # long time
             sage: m.plot3(la=[m.default_ss(), ssi], colormap=[(.5,.5,.5,.5), (0,0,0,1.)])  # long time
 
         #. The "Hokkaido" fractal and its boundary::
@@ -1466,7 +1473,7 @@ cdef class BetaAdicMonoid:
             sage: P = x^4 + x^3 - x + 1
             sage: b = P.roots(ring=QQbar)[2][0]
             sage: m = BetaAdicMonoid(b, {0,1})
-            sage: m.plot2(19)                                   # long time
+            sage: m.plot(19)                                   # long time
 
         """
         if tss is not None:
@@ -1526,127 +1533,6 @@ cdef class BetaAdicMonoid:
         FreeColorList(cl)
         sig_off()
         return im
-
-    def plot(self, n=None, place=None, ss=None, iss=None,
-             prec=53, point_size=None, color='blue', verb=False):
-        r"""
-        Draw the limit set of the beta-adic monoid (with or without subshift).
-
-        INPUT:
-
-        - ``n`` - integer (default: ``None``)
-          The number of iterations used to plot the fractal.
-          Default values: between ``5`` and ``16`` depending on the number of generators.
-
-        - ``place`` - place of the number field of beta (default: ``None``)
-          The place we should use to evaluate elements of the number field given by points_exact()
-
-        - ``ss`` - Automaton (default: ``None``)
-          The subshift to associate to the beta-adic monoid for this drawing.
-
-        - ``iss`` - set of initial states of the automaton ss (default: ``None``)
-
-        - ``prec`` - precision of returned values (default: ``53``)
-
-        - ``point_size`` - real (default: ``None``)
-          Size of the plotted points.
-
-        - ``verb`` - bool (default: ``False``)
-          Print informations for debugging.
-
-        OUTPUT:
-
-            A Graphics object.
-
-        EXAMPLES::
-
-        #. The dragon fractal::
-            sage: e = QQbar(1/(1+I))
-            sage: m=BetaAdicMonoid(e, {0,1})
-            sage: m.plot()     # long time
-
-        #. The Rauzy fractal of the Tribonacci substitution::
-
-            sage: s = WordMorphism('1->12,2->13,3->1')
-            sage: m = s.rauzy_fractal_beta_adic_monoid()
-            sage: m.plot()     # long time
-            Graphics object consisting of 1 graphics primitive
-
-        #. A non-Pisot Rauzy fractal::
-
-            sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
-            sage: m = s.rauzy_fractal_beta_adic_monoid()
-            sage: m.b = 1/m.b
-            sage: m.ss = m.ss.mirror().determinize().minimize()
-            sage: m.plot()     # long time
-            Graphics object consisting of 1 graphics primitive
-
-        #. The dragon fractal and its boundary::
-
-            sage: e = QQbar(1/(1+I))
-            sage: m = BetaAdicMonoid(e, {0,1})
-            sage: p1 = m.plot()      # long time
-            Graphics object consisting of 1 graphics primitive
-            sage: ssi = m.intersection_words(w1=[0], w2=[1])     # long time
-            sage: p2 = m.plot(ss = ssi, n=18)                    # long time
-            sage: p1+p2                                          # long time
-
-        #. The "Hokkaido" fractal and its boundary::
-
-            sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
-            sage: m = s.rauzy_fractal_beta_adic_monoid()
-            sage: p1 = m.plot()                                     # long time
-            Graphics object consisting of 1 graphics primitive
-            sage: ssi = m.intersection_words(w1=[0], w2=[1])        # long time
-            sage: p2 = m.plot(ss=ssi, n=40)                         # long time
-            sage: p1+p2                                             # long time
-
-        #. A limit set that look like a tiling::
-
-            sage: P = x^4 + x^3 - x + 1
-            sage: b = P.roots(ring=QQbar)[2][0]
-            sage: m = BetaAdicMonoid(b, {0,1})
-            sage: m.plot(18)                                    # long time
-            Graphics object consisting of 1 graphics primitive
-
-        """
-
-        global co
-
-        co = 0
-        orbit_points = self.points(n=n, place=place, ss=ss, iss=iss, prec=prec)
-        if verb:
-            print("co=%s" % co)
-
-        # Plot points size
-        if point_size is None:
-            point_size = 1
-
-        # Make graphics
-        from sage.plot.plot import Graphics
-        G = Graphics()
-
-        # dim = self.b.minpoly().degree()
-
-        from sage.rings.qqbar import QQbar, AA
-        if QQbar(self.b) not in AA:  # 2D plots
-            from sage.all import points
-            G = points(orbit_points, size=point_size, color=color)
-        else:  # 1D plots
-            from sage.all import plot
-            G += plot(orbit_points, thickness=point_size, color=color)
-#            if plotbasis:
-#                from matplotlib import cm
-#                from sage.plot.arrow import arrow
-#                canonicalbasis_proj = self.rauzy_fractal_projection(eig=eig, prec=prec)
-#                for i,a in enumerate(alphabet):
-#                    x = canonicalbasis_proj[a]
-#                    G += arrow((-1.1,0), (-1.1,x[0]), color=cm.__dict__["gist_gray"](0.75*float(i)/float(size_alphabet))[:3])
-#        else:
-#            print "dimension too large !"
-        G.set_aspect_ratio(1)
-
-        return G
 
     def relations_automaton(self, t=0, isvide=False, Cd=None, A=None, B=None,
                              couples=False, ext=False, transp=False,
@@ -1989,7 +1875,7 @@ cdef class BetaAdicMonoid:
                 sage: ss0 = DetAutomaton([(0,1,0)]+[(1,1,l) for l in m.C], i=0, final_states=[1])
                 sage: ss1 = DetAutomaton([(0,1,1)]+[(1,1,l) for l in m.C], i=0, final_states=[1])
                 sage: ssi = m.intersection2(ss0, ss1)
-                sage: m.plot2(tss = ssi)     # long time
+                sage: m.plot(tss = ssi)     # long time
         """
         a = self.relations_automaton()
         a = a.prune_inf()
@@ -2066,7 +1952,7 @@ cdef class BetaAdicMonoid:
         ssd = ssd.prune0_simplify()
         return ssd
 
-
+    #to be put in generators
     #     - ``aut`` - DetAutomaton (default: ``None``, full language)
     #       Automaton describing the language in which we live.
     def reduced_words_automaton2(self, step=100,
@@ -2100,8 +1986,8 @@ cdef class BetaAdicMonoid:
         """
 
         # compute the relations automaton
-        Cd = list(set([c-c2 for c in self.C for c2 in self.C]))
-        Cdp = [k for k in range(len(Cd)) if Cd[k] in [self.C[j]-self.C[i] for i in range(len(self.C)) for j in range(i)]] #indices des chiffres strictements négatifs dans Cd
+        Cd = list(set([c-c2 for c in self.a.A for c2 in self.a.A]))
+        Cdp = [k for k in range(len(Cd)) if Cd[k] in [self.a.A[j]-self.a.A[i] for i in range(len(self.a.A)) for j in range(i)]] #indices des chiffres strictements négatifs dans Cd
         arel = self.relations_automaton(Cd=Cd, ext=False)
         arel = arel.prune()
         if transpose:

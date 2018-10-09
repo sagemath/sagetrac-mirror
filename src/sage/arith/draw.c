@@ -224,6 +224,81 @@ void *GetSDL_SurfaceFromNumpy (PyArrayObject *o)
 	return (void *)r;
 }
 
+void SDL_SurfaceToNumpy (void *ss, PyArrayObject *o)
+{
+    SDL_Surface *s = (SDL_Surface *)ss;
+    //PyArrayObject *o = (PyArrayObject *)np;
+    if (o->nd != 2)
+    {
+        printf("Error: numpy array must be two-dimensional (here %d-dimensional).", o->nd);
+        return;
+    }
+    if (o->strides[0] != 4)
+    {
+        printf("Error: pixels must be stored with 4 bytes (RGBA format). Here %ld bytes/pixel.", o->strides[0]);
+    }
+    
+    Uint32 *data = (Uint32 *)o->data;
+    Uint32 *ptr = (Uint32 *)s->pixels;
+    int sx = o->dimensions[1];
+    int sy = o->dimensions[0];
+        if (s->w != sx || s->h != sy)
+    {
+        printf("Error: dimensions of the surface must be the same as the dimension of the numpy array.");
+        return;
+    }
+	int x,y;
+	for (y=0;y<s->h;y++)
+	{
+		for (x=0;x<s->w;x++)
+		{
+		    *data = *ptr;
+		    ptr++;
+		    data++;
+		}
+		ptr += (s->pitch/4) - sx;
+	}
+}
+
+void SurfaceToNumpy (Surface *s, PyArrayObject *o)
+{
+    //PyArrayObject *o = (PyArrayObject *)np;
+    if (o->nd != 2)
+    {
+        printf("Error: numpy array must be two-dimensional (here %d-dimensional).", o->nd);
+        return;
+    }
+    if (o->strides[0] != 4)
+    {
+        printf("Error: pixels must be stored with 4 bytes (RGBA format). Here %ld bytes/pixel.", o->strides[0]);
+        return;
+    }
+    
+    Uint8 *data = (Uint8 *)o->data;
+    int sx = o->dimensions[1];
+    int sy = o->dimensions[0];
+    if (s->sx != sx || s->sy != sy)
+    {
+        printf("Error: dimensions of the surface must be the same as the dimension of the numpy array.");
+        return;
+    }
+	int x,y;
+	for (y=0;y<sy;y++)
+	{
+		for (x=0;x<sx;x++)
+		{
+		    *data = s->pix[x][y].r;
+		    data++;
+		    *data = s->pix[x][y].g;
+		    data++;
+		    *data = s->pix[x][y].b;
+		    data++;
+		    *data = s->pix[x][y].a;
+		    data++;
+		}
+	}
+}
+
 //dessine la surface dans la SDL_Surface
 SDL_Surface *GetSurface (Surface s)
 {
@@ -949,6 +1024,37 @@ void Fill (Surface s, Color c)
 	}
 }
 
+void FillSDL (SDL_Surface *s, Color c)
+{
+	int x,y;
+	Uint32 *ptr = (Uint32 *)s->pixels;
+	Uint32 col = (Uint32)c.r | (Uint32)c.g<<8 | (Uint32)c.b<<16 | (Uint32)c.a<<24;
+	for (y=0;y<s->h;y++)
+	{
+		for (x=0;x<s->w;x++)
+		{
+			*ptr = col;
+			ptr++;
+		}
+		ptr += (s->pitch/4) - s->w;
+	}
+}
+
+void FillNP (PyArrayObject *o, Color c)
+{
+	int i;
+	int sx = o->dimensions[1];
+    int sy = o->dimensions[0];
+    int m = sx*sy;
+	Uint32 *ptr = (Uint32 *)o->data;
+	Uint32 col = (Uint32)c.r | (Uint32)c.g<<8 | (Uint32)c.b<<16 | (Uint32)c.a<<24;
+	for (i=0;i<m;i++)
+	{
+		*ptr = col;
+		ptr++;
+	}
+}
+
 /*
 Automate NewAutomate (int n, int na)
 {
@@ -1024,7 +1130,7 @@ void FreeBetaAdic2 (BetaAdic2 b)
 	free(b.a);
 }
 
-Color moy (Color a, Color b, double ratio)
+inline Color moy (Color a, Color b, double ratio)
 {
 	Color r;
 	//ratio = 1.-ratio;
@@ -1035,10 +1141,15 @@ Color moy (Color a, Color b, double ratio)
 	return r;
 }
 
+inline Uint32 moy2 (Uint32 a, Uint32 b, double ratio)
+{
+    return (Uint32)(Uint8)((a%256)*(1.-ratio) + (b%256)*ratio) | ((Uint32)((Uint8)(((a>>8)%256)*(1.-ratio) + ((b>>8)%256)*ratio)))<<8 | ((Uint32)((Uint8)(((a>>16)%256)*(1.-ratio) + ((b>>16)%256)*ratio)))<<16 | ((Uint32)((Uint8)((a>>24)*(1.-ratio) + (b>>24)*ratio)))<<24;
+}
+
 int ns;
 Complexe cs;
 
-bool set_pix (Surface s, Complexe p)
+inline bool set_pix (Surface s, Complexe p)
 {
 	if (p.x < mx || p.x >= Mx || p.y < my || p.y >= My)
 		return false;
@@ -1059,6 +1170,70 @@ bool set_pix (Surface s, Complexe p)
 			s.pix[x+1][y+1] = moy(s.pix[x+1][y+1], color, (fx-x)*(fy-y));
 		}else
 			s.pix[x][y] = color;
+		return true;
+	}
+	return false;
+}
+
+inline bool set_pix2 (SDL_Surface *s, Complexe p)
+{
+	if (p.x < mx || p.x >= Mx || p.y < my || p.y >= My)
+		return false;
+	cs.x += p.x;
+	cs.y += p.y;
+	ns++;
+	double fx = (p.x - mx)*s->w/(Mx-mx);
+	double fy = (p.y - my)*s->h/(My-my);
+	unsigned int x = fx;
+	unsigned int y = fy;
+	Uint32 *ptr = (Uint32 *)s->pixels;
+	Uint32 col = (Uint32)color.r | (Uint32)color.g<<8 | (Uint32)color.b<<16 | (Uint32)color.a<<24;
+	if (x < s->w && y < s->h)
+	{
+		if (x+1 < s->w && y+1 < s->h)
+		{
+		    ptr = ptr + x + (s->pitch/4)*y;
+			*ptr = moy2(*ptr, col, (1.-fx+x)*(1.-fy+y));
+			ptr++;
+			*ptr = moy2(*ptr, col, (fx-x)*(1.-fy+y));
+			ptr += (s->pitch/4);
+			*ptr = moy2(*ptr, col, (fx-x)*(fy-y));
+			ptr--;
+			*ptr = moy2(*ptr, col, (1.-fx+x)*(fy-y));
+		}else
+			*(ptr + x + (s->pitch/4)*y) = col;
+		return true;
+	}
+	return false;
+}
+
+inline bool set_pixNP (Uint32 *pix, int sx, int sy, Complexe p)
+{
+	if (p.x < mx || p.x >= Mx || p.y < my || p.y >= My)
+		return false;
+	cs.x += p.x;
+	cs.y += p.y;
+	ns++;
+	double fx = (p.x - mx)*sx/(Mx-mx);
+	double fy = (p.y - my)*sy/(My-my);
+	unsigned int x = fx;
+	unsigned int y = fy;
+	Uint32 *ptr = pix;
+	Uint32 col = (Uint32)color.r | (Uint32)color.g<<8 | (Uint32)color.b<<16 | (Uint32)color.a<<24;
+	if (x < sx && y < sy)
+	{
+		if (x+1 < sx && y+1 < sy)
+		{
+			ptr = ptr + x + sx*y;
+			*ptr = moy2(*ptr, col, (1.-fx+x)*(1.-fy+y));
+			ptr++;
+			*ptr = moy2(*ptr, col, (fx-x)*(1.-fy+y));
+			ptr += sx;
+			*ptr = moy2(*ptr, col, (fx-x)*(fy-y));
+			ptr--;
+			*ptr = moy2(*ptr, col, (1.-fx+x)*(fy-y));
+		}else
+			*(ptr + x + sx*y) = col;
 		return true;
 	}
 	return false;
@@ -1243,6 +1418,7 @@ void WordZone (BetaAdic b, int *word, int nmax)
 }
 */
 
+//used by Draw
 void Draw_rec (BetaAdic b, Surface s, int n, Complexe p, Complexe bn, int etat)
 {
 	if (n == 0)
@@ -1297,6 +1473,153 @@ void Draw_rec (BetaAdic b, Surface s, int n, Complexe p, Complexe bn, int etat)
 			if (b.a.e[etat].f[i] != -1)
 			{
 				Draw_rec (b, s, n-1, add(p, prod(bn, b.t[i])), prod(bn, b.b), b.a.e[etat].f[i]);
+				if (n < 1024)
+				{
+					if (word[n-1] == -2)
+					{
+						word[n-1] = i;
+						word[n] = -2;
+					}
+				}
+			}
+		}
+	}
+}
+
+//used by Draw_
+void Draw_rec_ (BetaAdic b, SDL_Surface s, int n, Complexe p, Complexe bn, int etat)
+{
+	if (n == 0)
+	{
+		if (etat >= 0 && etat < b.a.n)
+		{
+			if (!b.a.e[etat].final)
+			{
+				//printf("%d pas final !", etat);
+				return;
+			}
+		}else
+		{
+			printf("état %d !\n", etat);
+			return;
+		}
+		if (p.x < mx2)
+			mx2 = p.x;
+		if (p.x > Mx2)
+			Mx2 = p.x;
+		if (p.y < my2)
+			my2 = p.y;
+		if (p.y > My2)
+			My2 = p.y;
+		if (set_pix2(&s, p))
+			word[0] = -2;
+	}else
+	{
+		if (n > 5)
+		{
+			//teste si l'on sort de la zone de dessin
+			//sous-arbre inclus dans le disque de centre p et de rayon abs(bn)*M
+			double Mn = Maj*sqrt(cnorm(bn));
+			if (p.x + Mn > mx && p.x - Mn < Mx && p.y + Mn > my && p.y - Mn < My)
+			{
+				/*
+				if (Rmaj != NULL)
+				{
+					///////////TODO !!!
+				}
+				*/
+			}else
+				return; //intersection des rectangles vide
+		}
+		int i;
+		for (i=0;i<b.a.na;i++)
+		{
+			//if (n == niter-1)
+			//{
+			//	color = colors[i];
+			//}
+			if (b.a.e[etat].f[i] != -1)
+			{
+				Draw_rec_ (b, s, n-1, add(p, prod(bn, b.t[i])), prod(bn, b.b), b.a.e[etat].f[i]);
+				if (n < 1024)
+				{
+					if (word[n-1] == -2)
+					{
+						word[n-1] = i;
+						word[n] = -2;
+					}
+				}
+			}
+		}
+	}
+}
+
+//used by DrawNP
+struct ArgNP
+{
+    BetaAdic b;
+    Uint32 *data;
+    int sx;
+    int sy;
+    
+};
+typedef struct ArgNP ArgNP;
+
+//used by DrawNP
+void Draw_recNP (ArgNP *a, int n, Complexe p, Complexe bn, int etat)
+{
+	if (n == 0)
+	{
+		if (etat >= 0 && etat < a->b.a.n)
+		{
+			if (!a->b.a.e[etat].final)
+			{
+				//printf("%d pas final !", etat);
+				return;
+			}
+		}else
+		{
+			printf("état %d !\n", etat);
+			return;
+		}
+		if (p.x < mx2)
+			mx2 = p.x;
+		if (p.x > Mx2)
+			Mx2 = p.x;
+		if (p.y < my2)
+			my2 = p.y;
+		if (p.y > My2)
+			My2 = p.y;
+		if (set_pixNP(a->data, a->sx, a->sy, p))
+			word[0] = -2;
+	}else
+	{
+		if (n > 5)
+		{
+			//teste si l'on sort de la zone de dessin
+			//sous-arbre inclus dans le disque de centre p et de rayon abs(bn)*M
+			double Mn = Maj*sqrt(cnorm(bn));
+			if (p.x + Mn > mx && p.x - Mn < Mx && p.y + Mn > my && p.y - Mn < My)
+			{
+				/*
+				if (Rmaj != NULL)
+				{
+					///////////TODO !!!
+				}
+				*/
+			}else
+				return; //intersection des rectangles vide
+		}
+		int i;
+		for (i=0;i<a->b.a.na;i++)
+		{
+			//if (n == niter-1)
+			//{
+			//	color = colors[i];
+			//}
+			if (a->b.a.e[etat].f[i] != -1)
+			{
+				Draw_recNP (a, n-1, add(p, prod(bn, a->b.t[i])), prod(bn, a->b.b), a->b.a.e[etat].f[i]);
 				if (n < 1024)
 				{
 					if (word[n-1] == -2)
@@ -1474,6 +1797,336 @@ int *Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int
 	}
 	//niter = n;
 	Draw_rec(b, s, n, zero(), un(), b.a.i);
+	//return the word
+	word[1023] = -1;
+	return word;
+}
+
+//same as Draw, but use SDL_Surface rather than Surface
+int *Draw_ (BetaAdic b, SDL_Surface s, int n, int ajust, Color col, double coeff, int verb)
+{
+	int auto_n = (n < 0);
+	//set global variables
+	mx2 = 1000000, my2 = 1000000, Mx2 = -1000000, My2 = -1000000; //extremum observés
+	if (ajust)
+	{
+		mx = -1000000; my = -1000000; Mx = 1000000; My = 1000000;
+	}
+	color0.r = color0.g = color0.b = 255;
+	color0.a = 0;
+	color = col;
+	int i, j;
+	/*
+	colors = (Color *)malloc(sizeof(Color)*b.a.n);
+	for (i=0;i<b.a.n;i++)
+	{
+		colors[i] = randCol(255);
+	}
+	*/
+	
+	word[0] = -1; //initialise le mot
+	
+	if (cnorm(b.b) < 1)
+	{
+		//calcul du majorant
+		Maj = 0;
+		double m;
+		for (i=0;i<b.n;i++)
+		{
+			m = cnorm(b.t[i]);
+			if (Maj < m)
+				Maj = m;
+		}
+		Maj = sqrt(Maj)/(1. - sqrt(cnorm(b.b)));
+	}
+	
+	if (verb)
+	{
+		printf("%d translations, %d lettres, %d états.\n", b.n, b.a.na, b.a.n);
+		printf("couleur de fond : %d %d %d %d\n", color0.r, color0.g, color0.b, color0.a);
+		printf("couleur de dessin : %d %d %d %d\n", color.r, color.g, color.b, color.a);
+		printf("état initial : %d\n", b.a.i);
+		printf("états finaux : ");
+		for (i=0;i<b.a.n;i++)
+		{
+			if (b.a.e[i].final)
+				printf("%d ", i);
+			else
+			    printf("(%d) ", i);
+		}
+		printf("\n");
+		printf("Transitions: ");
+		for (i=0;i<b.a.n;i++)
+		{
+			for (j=0;j<b.a.na;j++)
+			{
+			    printf("(i=%d, j=%d)", i, j);
+				if (b.a.e[i].f[j] != -1)
+					printf("%d --%d--> %d, ", i, j, b.a.e[i].f[j]);
+			}
+		}
+		printf("\n");
+	}
+	//ajust the window of the drawing
+	if (ajust)
+	{
+		//ajuste le cadre
+		if (auto_n)
+		{
+			if (verb)
+			{
+				printf("max = %d\n", max(s.w, s.h));
+				printf("maj = %lf\n", (1.-sqrt(cnorm(b.b))));
+				printf("abs(b) = %lf\n", sqrt(cnorm(b.b)));
+			}
+			if (cnorm(b.b) < 1)
+				n = .5 + -3.*log(max(s.w, s.h)*absd(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
+			else
+				n = .5 + 3.*log(max(s.w, s.h)*absd(1.-1./sqrt(cnorm(b.b))))/log(cnorm(b.b));
+			
+			if (n < 0)
+				n = 0;
+			if (n > 1000000)
+				n = 100;
+				
+			if (verb)
+				printf("n = %d\n", n);
+		}
+		//niter = n;
+		ns = 0;
+		cs.x = 0;
+		cs.y = 0;
+		Draw_rec_(b, s, n, zero(), un(), b.a.i);
+		barycentre.x = cs.x/ns;
+		barycentre.y = cs.y/ns;
+		mx = mx2 - (Mx2 - mx2)/100;
+		my = my2 - (My2 - my2)/100;
+		Mx = Mx2 + (Mx2-mx2)/s.w + (Mx2 - mx2)/20;
+		My = My2 + (My2-my2)/s.h + (My2 - my2)/20;
+		//preserve le ratio
+		double delta = (Mx - mx)*s.h - (My - my)*s.w;
+		if (delta > 0)
+		{
+			My = My + delta/(2*s.w);
+			my = my - delta/(2*s.w);
+		}else
+		{
+			Mx = Mx - delta/(2*s.h);
+			mx = mx + delta/(2*s.h);
+		}
+	}
+	if (verb)
+	{
+		printf("Zone de dessin : (%lf, %lf) (%lf, %lf)\n", mx, my, Mx, My);
+	}
+	FillSDL(&s, color0);
+	if (auto_n)
+	{
+		if (cnorm(b.b) < 1)
+			n = coeff + 2.*absd(log(max(s.w/(Mx-mx), s.h/(My-my)))/log(cnorm(b.b)));
+		else
+		{
+			double ratio = pow(cnorm(b.b), n/2);
+			n = .75 + coeff*absd(log(ratio*max(3.*s.w/(Mx-mx), 3.*s.h/(My-my)))/log(cnorm(b.b)));
+			//change d'échelle pour dessiner la fractale à la bonne échelle
+			ratio = pow(cnorm(b.b), n/2)/ratio;
+			Mx = Mx*ratio;
+			mx = mx*ratio;
+			My = My*ratio;
+			my = my*ratio;
+			if (verb)
+			{
+				printf("Zone de dessin : (%lf, %lf) (%lf, %lf)\n", mx, my, Mx, My);
+			}
+		}
+		
+		if (n < 0)
+			n = 0;
+		if (n > 1000000)
+			n = 100;
+		
+		if (verb)
+			printf("n = %d\n", n);
+	}
+	//niter = n;
+	Draw_rec_(b, s, n, zero(), un(), b.a.i);
+	//return the word
+	word[1023] = -1;
+	return word;
+}
+
+//same as Draw, but draw into a numpy array rather than a surface
+int *DrawNP (BetaAdic b, PyArrayObject *o, int n, int ajust, Color col, double coeff, int verb)
+{
+    //check the numpy array
+    if (o->nd != 2)
+    {
+        printf("Error: numpy array must be two-dimensional (here %d-dimensional).", o->nd);
+        return NULL;
+    }
+    if (o->strides[0] != 4)
+    {
+        printf("Error: pixels must be stored with 4 bytes (RGBA format). Here %ld bytes/pixel.", o->strides[0]);
+    }
+    
+    Uint32 *data = (Uint32 *)o->data;
+    int sx = o->dimensions[1];
+    int sy = o->dimensions[0];
+    
+	int auto_n = (n < 0);
+	//set global variables
+	mx2 = 1000000, my2 = 1000000, Mx2 = -1000000, My2 = -1000000; //extremum observés
+	if (ajust)
+	{
+		mx = -1000000; my = -1000000; Mx = 1000000; My = 1000000;
+	}
+	color0.r = color0.g = color0.b = 255;
+	color0.a = 0;
+	color = col;
+	int i, j;
+	/*
+	colors = (Color *)malloc(sizeof(Color)*b.a.n);
+	for (i=0;i<b.a.n;i++)
+	{
+		colors[i] = randCol(255);
+	}
+	*/
+	
+	word[0] = -1; //initialise le mot
+	
+	if (cnorm(b.b) < 1)
+	{
+		//calcul du majorant
+		Maj = 0;
+		double m;
+		for (i=0;i<b.n;i++)
+		{
+			m = cnorm(b.t[i]);
+			if (Maj < m)
+				Maj = m;
+		}
+		Maj = sqrt(Maj)/(1. - sqrt(cnorm(b.b)));
+	}
+	
+	if (verb)
+	{
+		printf("%d translations, %d lettres, %d états.\n", b.n, b.a.na, b.a.n);
+		printf("couleur de fond : %d %d %d %d\n", color0.r, color0.g, color0.b, color0.a);
+		printf("couleur de dessin : %d %d %d %d\n", color.r, color.g, color.b, color.a);
+		printf("état initial : %d\n", b.a.i);
+		printf("états finaux : ");
+		for (i=0;i<b.a.n;i++)
+		{
+			if (b.a.e[i].final)
+				printf("%d ", i);
+			else
+			    printf("(%d) ", i);
+		}
+		printf("\n");
+		printf("Transitions: ");
+		for (i=0;i<b.a.n;i++)
+		{
+			for (j=0;j<b.a.na;j++)
+			{
+			    printf("(i=%d, j=%d)", i, j);
+				if (b.a.e[i].f[j] != -1)
+					printf("%d --%d--> %d, ", i, j, b.a.e[i].f[j]);
+			}
+		}
+		printf("\n");
+	}
+	ArgNP a;
+	//ajust the window of the drawing
+	if (ajust)
+	{
+		//ajuste le cadre
+		if (auto_n)
+		{
+			if (verb)
+			{
+				printf("max = %d\n", max(sx, sy));
+				printf("maj = %lf\n", (1.-sqrt(cnorm(b.b))));
+				printf("abs(b) = %lf\n", sqrt(cnorm(b.b)));
+			}
+			if (cnorm(b.b) < 1)
+				n = .5 + -3.*log(max(sx, sy)*absd(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
+			else
+				n = .5 + 3.*log(max(sx, sy)*absd(1.-1./sqrt(cnorm(b.b))))/log(cnorm(b.b));
+			
+			if (n < 0)
+				n = 0;
+			if (n > 1000000)
+				n = 100;
+				
+			if (verb)
+				printf("n = %d\n", n);
+		}
+		//niter = n;
+		ns = 0;
+		cs.x = 0;
+		cs.y = 0;
+		a.b = b;
+		a.data = data;
+		a.sx = sx;
+		a.sy = sy;
+		Draw_recNP(&a, n, zero(), un(), b.a.i);
+		barycentre.x = cs.x/ns;
+		barycentre.y = cs.y/ns;
+		mx = mx2 - (Mx2 - mx2)/100;
+		my = my2 - (My2 - my2)/100;
+		Mx = Mx2 + (Mx2-mx2)/sx + (Mx2 - mx2)/20;
+		My = My2 + (My2-my2)/sy + (My2 - my2)/20;
+		//preserve le ratio
+		double delta = (Mx - mx)*sy - (My - my)*sx;
+		if (delta > 0)
+		{
+			My = My + delta/(2*sx);
+			my = my - delta/(2*sx);
+		}else
+		{
+			Mx = Mx - delta/(2*sy);
+			mx = mx + delta/(2*sy);
+		}
+	}
+	if (verb)
+	{
+		printf("Zone de dessin : (%lf, %lf) (%lf, %lf)\n", mx, my, Mx, My);
+	}
+	FillNP(o, color0);
+	if (auto_n)
+	{
+		if (cnorm(b.b) < 1)
+			n = coeff + 2.*absd(log(max(sx/(Mx-mx), sy/(My-my)))/log(cnorm(b.b)));
+		else
+		{
+			double ratio = pow(cnorm(b.b), n/2);
+			n = .75 + coeff*absd(log(ratio*max(3.*sx/(Mx-mx), 3.*sy/(My-my)))/log(cnorm(b.b)));
+			//change d'échelle pour dessiner la fractale à la bonne échelle
+			ratio = pow(cnorm(b.b), n/2)/ratio;
+			Mx = Mx*ratio;
+			mx = mx*ratio;
+			My = My*ratio;
+			my = my*ratio;
+			if (verb)
+			{
+				printf("Zone de dessin : (%lf, %lf) (%lf, %lf)\n", mx, my, Mx, My);
+			}
+		}
+		
+		if (n < 0)
+			n = 0;
+		if (n > 1000000)
+			n = 100;
+		
+		if (verb)
+			printf("n = %d\n", n);
+	}
+	//niter = n;
+	a.b = b;
+    a.data = data;
+    a.sx = sx;
+    a.sy = sy;
+	Draw_recNP(&a, n, zero(), un(), b.a.i);
 	//return the word
 	word[1023] = -1;
 	return word;
