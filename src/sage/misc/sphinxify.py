@@ -65,14 +65,15 @@ def sphinxify(docstring, format='html'):
     """
     srcdir = mkdtemp()
     outdir = mkdtemp()
-    base_name = os.path.join(srcdir, 'docstring')
-    rst_name = base_name + '.rst'
+    src_base_name = os.path.join(srcdir, 'docstring')
+    out_base_name = os.path.join(outdir, 'docstring')
+    rst_name = src_base_name + '.rst'
 
     if format == 'html':
         suffix = '.html'
     else:
         suffix = '.txt'
-    output_name = base_name + suffix
+    output_name = out_base_name + suffix
 
     with open(rst_name, 'w') as filed:
         filed.write(docstring)
@@ -115,7 +116,8 @@ smart_quotes = no
         # Remove spurious \(, \), \[, \].
         output = output.replace('\\(', '').replace('\\)', '').replace('\\[', '').replace('\\]', '')
     else:
-        print("BUG -- Sphinx error")
+        from warnings import warn
+        warn("Sphinx did not produce any output", Warning)
         if format == 'html':
             output = '<pre class="introspection">%s</pre>' % docstring
         else:
