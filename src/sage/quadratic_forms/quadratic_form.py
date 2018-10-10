@@ -296,10 +296,7 @@ class QuadraticForm(SageObject):
             find_primitive_p_divisible_vector__next, \
             find_p_neighbor_from_vec, \
             neighbor_from_vec, \
-            neighbor_iteration_exaustion,\
-            neighbor_iteration_orbits,\
-            neighbor_iteration_random,\
-            orbits_mod_p,\
+            orbits_lines_mod_p,\
             p_neighbor
 
     ## Routines to reduce a given quadratic form

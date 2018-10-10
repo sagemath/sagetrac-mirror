@@ -5,7 +5,7 @@ from __future__ import print_function
 
 from sage.modules.free_module_element import vector
 from sage.rings.integer_ring import ZZ
-from sage.rings.all import GF
+from sage.rings.all import GF, QQ
 from copy import deepcopy
 from sage.quadratic_forms.extras import extend_to_primitive
 from sage.matrix.constructor import matrix
@@ -59,19 +59,6 @@ def find_primitive_p_divisible_vector__random(self, p):
             return v
         else:
             v[ZZ.random_element(n)] = ZZ.random_element(p)      ## Replace a random entry and try again.
-
-
-
-
-#def find_primitive_p_divisible_vector__all(self, p):
-#    """
-#    Finds all random p-primitive vectors (up to scaling) in L/pL whose
-#    value is p-divisible.
-#
-#    Note: Since there are about p^(n-2) of these lines, we should avoid this for large n.
-#    """
-#    pass
-
 
 def find_primitive_p_divisible_vector__next(self, p, v=None):
     """
@@ -186,8 +173,8 @@ def neighbor_from_vec(self, p, y, odd=False):
                 if w[k] % p != 0:
                     z = (ZZ**n).gen(k)
                     break
-            y +=z
-        assert y*G*y % 8 == 0
+            y +=2*z
+        assert y*G*y % 8 == 0, (y, G)
 
     w = G*y
     Ly = w.change_ring(GF(p)).column().kernel().matrix().lift()
@@ -299,12 +286,7 @@ def find_p_neighbor_from_vec(self, p, v):
     return QuadraticForm(R, M * self.matrix() * M.transpose())
 
 
-## ----------------------------------------------------------------------------------------------
-
-
-#def find_classes_in_genus(self):
-
-def neighbor_iteration_orbits(self, p, verbose=False):
+def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**4, algorithm=None, max_random_trys=1000):
     r"""
     Return all classes in the `p`-neighbor graph of ``self``.
 
@@ -336,166 +318,68 @@ def neighbor_iteration_orbits(self, p, verbose=False):
         [ * 1 1 ]
         [ * * 8 ]]
     """
-    def _normalize_vec(v):
-        r"""
-        """
-        # the find_p_neighbor_from_vec method
-        # has undocumented stupid assumptions for example that the last coordinate is 1
-        for k in range(v.degree()):
-            if v[-1-k] != 0:
-                return (v/v[-1-k]).lift()
+    p = ZZ(p)
+    # if not all(isinstance(s, QuadraticForm) for s in seeds):
+    #     raise ValueError("seeds must be a list of quadratic forms")
+    if p.divides(seeds[0].det()):
+        raise ValueError("p must not divide the determinant")
+    if algorithm is None:
+        n = seeds[0].dim()
+        if p**n > ZZ(2)**18:
+            # too many lines to compute the orbits fast
+            algorithm = 'random'
+        else:
+            algorithm = 'orbits'
+    if mass is None:
+        # no mass bound
+        mass = max_classes
 
-    isom_classes = [self.lll()]
-    waiting_list = [isom_classes[0]]
-    c_mass = isom_classes[0].number_of_automorphisms()**(-1)
-    c_mass_0 = isom_classes[0].conway_mass()
-    while len(waiting_list) > 0 and c_mass < c_mass_0:
+    if algorithm == 'orbits':
+        def p_divisible_vectors(Q):
+            return iter([v.lift() for v in Q.orbits_lines_mod_p(p)
+                        if v!=0 and Q(v.lift()).valuation(p) > 0])
+    elif algorithm == 'exaustion':
+        def p_divisible_vectors(Q):
+            v = Q.find_primitive_p_divisible_vector__next(p)
+            while k < max_vecs:
+                k = k + 1
+                v = Q.find_primitive_p_divisible_vector__next(p, v)
+                yield v
+    elif algorithm == 'random':
+        def p_divisible_vectors(Q):
+            k = 0
+            while k < max_random_trys:
+                k = k +1
+                v = Q.find_primitive_p_divisible_vector__random(p)
+                yield v
+    else:
+        raise ValueError("unknown algorithm")
+    from copy import copy
+    waiting_list = copy(seeds)
+    isom_classes = []
+    mass_count = QQ(0)
+    n_isom_classes = ZZ(0)
+    while len(waiting_list) > 0 and mass_count < mass and  n_isom_classes < max_classes:
         # find all p-neighbors of Q
         Q = waiting_list.pop()
-        vecs = [_normalize_vec(v) for v in Q.orbits_mod_p(p) if v!=0 and Q(v.lift()).valuation(p) > 0]
-        for v in vecs:
-            Q_neighbor = Q.find_p_neighbor_from_vec(p, v).lll()
-            for S in isom_classes:
-                if Q_neighbor.is_globally_equivalent_to(S):
-                    break
-            else:
-                isom_classes.append(Q_neighbor)
-                waiting_list.append(Q_neighbor)
-                c_mass += Q_neighbor.number_of_automorphisms()**(-1)
-                if verbose:
-                    print(Q_neighbor,c_mass_0 - c_mass)
-    # sanity check
-    if c_mass != c_mass_0:
-        print("some classes are missing")
-    return isom_classes
-
-
-def neighbor_iteration_exaustion(self, p, verbose=False):
-    r"""
-    Return all classes in the `p`-neighbor graph of ``self``.
-
-    Starting from the given quadratic form, this function successively
-    finds p-neighbors untill no new quadratic form (class) is obtained.
-
-    INPUT:
-
-    - ``p`` -- a prime number
-
-    OUTPUT:
-
-    - a list of quadratic forms
-
-    EXAMPLES::
-
-        sage: Q = QuadraticForm(ZZ,3,[1,0,0,2,1,3])
-        sage: Q.det()
-        46
-        sage: Q.neighbor_method(3)
-        [Quadratic form in 3 variables over Integer Ring with coefficients:
-        [ 1 0 0 ]
-        [ * 2 1 ]
-        [ * * 3 ], Quadratic form in 3 variables over Integer Ring with coefficients:
-        [ 1 0 -1 ]
-        [ * 1 0 ]
-        [ * * 6 ], Quadratic form in 3 variables over Integer Ring with coefficients:
-        [ 1 -1 -1 ]
-        [ * 1 1 ]
-        [ * * 8 ]]
-    """
-
-    isom_classes = [self.lll()]
-    waiting_list = [isom_classes[0]]
-    c_mass = isom_classes[0].number_of_automorphisms()**(-1)
-    c_mass_0 = isom_classes[0].conway_mass()
-    while len(waiting_list) > 0 and c_mass < c_mass_0:
-        # find all p-neighbors of Q
-        Q = waiting_list.pop()
-        v = Q.find_primitive_p_divisible_vector__next(p)
-        while not v is None:
+        for v in p_divisible_vectors(Q):
             Q_neighbor = Q.neighbor_from_vec(p, v).lll()
-            for S in isom_classes:
-                if Q_neighbor.is_globally_equivalent_to(S):
-                    break
-            else:
+            if not any(Q_neighbor.is_globally_equivalent_to(S) for S in isom_classes):
                 isom_classes.append(Q_neighbor)
                 waiting_list.append(Q_neighbor)
-                c_mass += Q_neighbor.number_of_automorphisms()**(-1)
-                if verbose:
-                    print(Q_neighbor,c_mass_0 - c_mass)
-            v = Q.find_primitive_p_divisible_vector__next(p, v)
-    # sanity check
-    #assert c_mass == c_mass_0, "some classes are missing!"
-    return isom_classes
-
-
-def neighbor_iteration_random(self, p, verbose=False, max_trys=1000):
-    r"""
-    Return all classes in the `p`-neighbor graph of ``self``.
-
-    Starting from the given quadratic form, this function successively
-    finds p-neighbors untill the mass matches the mass of the genus or
-    the maximum number of tries is reached
-
-    INPUT:
-
-    - ``p`` -- a prime number
-
-    OUTPUT:
-
-    - a list of quadratic forms
-    - max_trys -- (default:`1000`) an Integer
-
-    EXAMPLES::
-
-        sage: Q = QuadraticForm(ZZ,3,[1,0,0,2,1,3])
-        sage: Q.det()
-        46
-        sage: Q.neighbor_method(3)
-        [Quadratic form in 3 variables over Integer Ring with coefficients:
-        [ 1 0 0 ]
-        [ * 2 1 ]
-        [ * * 3 ], Quadratic form in 3 variables over Integer Ring with coefficients:
-        [ 1 0 -1 ]
-        [ * 1 0 ]
-        [ * * 6 ], Quadratic form in 3 variables over Integer Ring with coefficients:
-        [ 1 -1 -1 ]
-        [ * 1 1 ]
-        [ * * 8 ]]
-    """
-    from sage.quadratic_forms.genera.genus import Genus
-    isom_classes = [self.lll()]
-    genus = Genus(isom_classes[0].Hessian_matrix())
-    waiting_list = [isom_classes[0]]
-    c_mass = isom_classes[0].number_of_automorphisms()**(-1)
-    c_mass_0 = isom_classes[0].conway_mass()
-    while len(waiting_list) > 0 and c_mass < c_mass_0:
-        # find all p-neighbors of Q
-        Q = waiting_list.pop()
-        v = Q.find_primitive_p_divisible_vector__random(p)
-        for k in range(max_trys):
-            Q_neighbor = Q.find_p_neighbor_from_vec(p, v).lll()
-            for S in isom_classes:
-                if Q_neighbor.is_globally_equivalent_to(S):
+                n_isom_classes += 1
+                mass_count += Q_neighbor.number_of_automorphisms()**(-1)
+                if mass_count == mass and  n_isom_classes >= max_classes:
                     break
-            else:
-                # TODO: there is a bug here
-                gen = Genus(Q_neighbor.Hessian_matrix())
-                if gen == genus:
-                    isom_classes.append(Q_neighbor)
-                    waiting_list.append(Q_neighbor)
-                    c_mass += Q_neighbor.number_of_automorphisms()**(-1)
-                    if c_mass == c_mass_0:
-                        break
-                    if verbose:
-                        print(Q_neighbor,c_mass_0 - c_mass)
-                else:
-                    return Q,v,Q_neighbor
-            v = Q.find_primitive_p_divisible_vector__random(p)
-    # sanity check
-    #assert c_mass == c_mass_0, "some classes are missing!"
+
+    if len(isom_classes) >= max_classes:
+        Warning("reached the maximum number of isometry classes=%s. Increase the optional argument max_classes to obtain more." %max_classes)
+
+    if mass is not None and mass != mass_count:
+        raise AssertionError("not all classes in the genus were found")
     return isom_classes
 
-def orbits_mod_p(self, p):
+def orbits_lines_mod_p(self, p):
     r"""
     Let `(L, q)` be a lattice. This returns representatives of the
     orbits of `L/pL` under the orthogonal group of `q`.
@@ -510,17 +394,25 @@ def orbits_mod_p(self, p):
     """
     from sage.libs.gap.libgap import libgap
     from sage.rings.all import GF
-    G = self.automorphism_group()
-    orbs = libgap.function_factory("""function(G, p)
-    local one, gens, reps, V;
+    from sage.groups.all import MatrixGroup
+    # careful the self.automorphism_group() acts from the left
+    # but in gap we act from the right!!
+    gens = self.automorphism_group().gens()
+    gens = [g.matrix().transpose().change_ring(GF(p)) for g in gens]
+    orbs = libgap.function_factory("""function(gens, p)
+    local one, G, reps, V;
     one:= One(GF(p));
-    gens:=List(GeneratorsOfGroup(G), g -> g*one);
-    G:= Group(gens);
+    G:=Group(List(gens, g -> g*one));
     n:= Size(gens[1]);
     V:= GF(p)^n;
     orb:= OrbitsDomain(G, V, OnLines);
     reps:= List(orb, g->g[1]);
     return reps;
     end;""")
+    from sage.interfaces.gap import get_gap_memory_pool_size, set_gap_memory_pool_size
+    memory_gap = get_gap_memory_pool_size()
+    set_gap_memory_pool_size(4*memory_gap)
+    orbs_reps = orbs(gens, p)
+    set_gap_memory_pool_size(memory_gap)
     M = GF(p)**self.dim()
-    return [M(m.sage()) for m in orbs(G.gap(), p)]
+    return [M(m.sage()) for m in orbs_reps]
