@@ -420,16 +420,20 @@ cdef surface_to_img(Surface s):
     #arr = np.zeros([s.sy, s.sx], dtype=[('r', 'uint8'), ('g', 'uint8'),('b', 'uint8'), ('a', 'uint8')])
     arr = np.empty([s.sy, s.sx], dtype=np.dtype((np.int32, {'r':(np.int8,0), 'g':(np.int8,1), 'b':(np.int8,2), 'a':(np.int8,3)})))
     
-    cdef int x, y
-    cdef Color c
-    for x in range(s.sx):
-        for y in range(s.sy):
-            c = s.pix[x][s.sy - y - 1]
-            #arr[y, x]['r'] = c.r
-            #arr[y, x]['g'] = c.g
-            #arr[y, x]['b'] = c.b
-            arr[y, x] = c.r | c.g << 8 | c.b << 16 | c.a<<24;
-#    SurfaceToNumpy (&s, arr)
+#    cdef int x, y
+#    cdef Color c
+#    for x in range(s.sx):
+#        for y in range(s.sy):
+#            c = s.pix[x][s.sy - y - 1]
+#            #arr[y, x]['r'] = c.r
+#            #arr[y, x]['g'] = c.g
+#            #arr[y, x]['b'] = c.b
+#            arr[y, x] = c.r | c.g << 8 | c.b << 16 | c.a<<24;
+    #print("Surface to numpy...")
+    sig_on()
+    SurfaceToNumpy (&s, arr)
+    sig_off()
+    #print("...done !")
     return Image.fromarray(arr, 'RGBA')
     # img.save("/Users/mercat/Desktop/output.png")
     # img.save(file)

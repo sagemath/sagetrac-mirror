@@ -189,9 +189,9 @@ void *GetSDL_SurfaceFromNumpy (PyArrayObject *o)
         printf("Error: numpy array must be two-dimensional (here %d-dimensional).", o->nd);
         return NULL;
     }
-    if (o->strides[0] != 4)
+    if (o->strides[1] != 4)
     {
-        printf("Error: pixels must be stored with 4 bytes (RGBA format). Here %ld bytes/pixel.", o->strides[0]);
+        printf("Error: pixels must be stored with 4 bytes (RGBA format). Here %ld bytes/pixel.", o->strides[1]);
     }
     
     Uint8 *data = (Uint8 *)o->data;
@@ -238,9 +238,9 @@ void SDL_SurfaceToNumpy (void *ss, PyArrayObject *o)
         printf("Error: numpy array must be two-dimensional (here %d-dimensional).", o->nd);
         return;
     }
-    if (o->strides[0] != 4)
+    if (o->strides[1] != 4)
     {
-        printf("Error: pixels must be stored with 4 bytes (RGBA format). Here %ld bytes/pixel.", o->strides[0]);
+        printf("Error: pixels must be stored with 4 bytes (RGBA format). Here %ld bytes/pixel.", o->strides[1]);
         return;
     }
     
@@ -271,12 +271,12 @@ void SurfaceToNumpy (Surface *s, PyArrayObject *o)
     //PyArrayObject *o = (PyArrayObject *)np;
     if (o->nd != 2)
     {
-        printf("Error: numpy array must be two-dimensional (here %d-dimensional).", o->nd);
+        printf("Error: numpy array must be two-dimensional (here %d-dimensional).\n", o->nd);
         return;
     }
-    if (o->strides[0] != 4)
+    if (o->strides[1] != 4)
     {
-        printf("Error: pixels must be stored with 4 bytes (RGBA format). Here %ld bytes/pixel.", o->strides[0]);
+        printf("Error: pixels must be stored with 4 bytes (RGBA format). Here %ld bytes/pixel.\n", o->strides[1]);
         return;
     }
     
@@ -285,9 +285,10 @@ void SurfaceToNumpy (Surface *s, PyArrayObject *o)
     int sy = o->dimensions[0];
     if (s->sx != sx || s->sy != sy)
     {
-        printf("Error: dimensions of the surface must be the same as the dimension of the numpy array.");
+        printf("Error: dimensions of the surface must be the same as the dimension of the numpy array.\n");
         return;
     }
+    //printf("C Copy data %dx%d...\n", sx, sy);
 	int x,y;
 	for (y=0;y<sy;y++)
 	{
@@ -303,6 +304,7 @@ void SurfaceToNumpy (Surface *s, PyArrayObject *o)
 		    data++;
 		}
 	}
+	//printf("...done !\n");
 }
 
 //dessine la surface dans la SDL_Surface
@@ -1715,22 +1717,23 @@ int *Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int
 		}
 		printf("\n");
 	}
-	//ajust the window of the drawing
 	if (ajust)
-	{
-		//ajuste le cadre
+	{ //ajust the window of the drawing
 		if (auto_n)
-		{
+		{ //ajust the number of iterations
 			if (verb)
 			{
 				printf("max = %d\n", max(s.sx, s.sy));
 				printf("maj = %lf\n", (1.-sqrt(cnorm(b.b))));
 				printf("abs(b) = %lf\n", sqrt(cnorm(b.b)));
 			}
+			/*
 			if (cnorm(b.b) < 1)
 				n = .5 + -3.*log(max(s.sx, s.sy)*absd(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
 			else
 				n = .5 + 3.*log(max(s.sx, s.sy)*absd(1.-1./sqrt(cnorm(b.b))))/log(cnorm(b.b));
+			*/
+			n = log(s.sx*s.sy)/absd(log(cnorm(b.b)));
 			
 			if (n < 0)
 				n = 0;
@@ -1771,11 +1774,14 @@ int *Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int
 	if (auto_n)
 	{
 		if (cnorm(b.b) < 1)
-			n = coeff + 2.*absd(log(max(s.sx/(Mx-mx), s.sy/(My-my)))/log(cnorm(b.b)));
-		else
+		{
+			//n = coeff + 2.*absd(log(max(s.sx/(Mx-mx), s.sy/(My-my)))/log(cnorm(b.b)));
+			n = 1+log(s.sx*s.sy)/absd(log(cnorm(b.b)));
+		}else
 		{
 			double ratio = pow(cnorm(b.b), n/2);
-			n = .75 + coeff*absd(log(ratio*max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b)));
+			n = 1+log(s.sx*s.sy)/absd(log(cnorm(b.b)));
+			//n = .75 + coeff*absd(log(ratio*max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b)));
 			//change d'échelle pour dessiner la fractale à la bonne échelle
 			ratio = pow(cnorm(b.b), n/2)/ratio;
 			Mx = Mx*ratio;
@@ -1965,9 +1971,9 @@ int *DrawNP (BetaAdic b, PyArrayObject *o, int n, int ajust, Color col, double c
         printf("Error: numpy array must be two-dimensional (here %d-dimensional).", o->nd);
         return NULL;
     }
-    if (o->strides[0] != 4)
+    if (o->strides[1] != 4)
     {
-        printf("Error: pixels must be stored with 4 bytes (RGBA format). Here %ld bytes/pixel.", o->strides[0]);
+        printf("Error: pixels must be stored with 4 bytes (RGBA format). Here %ld bytes/pixel.", o->strides[1]);
     }
     
     Uint32 *data = (Uint32 *)o->data;
