@@ -26,6 +26,7 @@ EXAMPLES::
 
 # ****************************************************************************
 #       Copyright (C) 2015 Volker Braun <vbraun.name@gmail.com>
+#                     2018 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -33,8 +34,9 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-
 import warnings
+import os
+import sys
 
 from sage.structure.sage_object import SageObject
 from sage.repl.rich_output.output_basic import (
@@ -743,7 +745,7 @@ class DisplayManager(SageObject):
             if spkg_version != version:
                 raise NotImplementedError("expected version {0} to be installed but found {1}; did you upgrade the threejs SPKG without changing the hard-coded version number in the source code?".format(version, spkg_version))
 
-        if online:
+        if from_cdn:
             # Serve three.js from GitHub
             return """
 <script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/build/three.min.js"></script>
