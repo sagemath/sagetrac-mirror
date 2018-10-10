@@ -504,7 +504,7 @@ bool addA(Automaton *a, int n)
 	return r;
 }
 
-Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, int verb)
+Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, double sp, int verb)
 {
 	Automaton r = NewAutomaton(2, b.n);
 	r.i = 0;
@@ -531,7 +531,7 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
 		printf("Dessin de la fractale...\n");
 		printf("n=%d, ajust=%d, verb=%d\n", n, ajust, verb);
 	}
-	Draw(b, s0, n, ajust, col, 3., verb);
+	Draw(b, s0, n, ajust, col, 3., sp, verb);
 	if (verb)
 		printf("Conversion en SDL...\n");
 	SDL_Surface *s = GetSurface(s0);	//utilisé pour dessiner les transformées
@@ -758,7 +758,7 @@ double *Rmaj = NULL; //liste de majorants mesurés pour chaque état
 
 //ouvre une fenêtre avec la fractale sur laquelle on peut zoomer
 //coeff = coefficient de calcul du nombre d'itérations
-int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double coeff, int verb)
+int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double coeff, double sp, int verb)
 {
 	if (SDL_Init(SDL_INIT_VIDEO) == -1)
     {
@@ -799,7 +799,7 @@ int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double c
 		printf("Dessin de la fractale...\n");
 		printf("n=%d, ajust=%d, verb=%d\n", n, ajust, verb);
 	}
-	Draw(b, s0, n, ajust, col, coeff, verb);
+	Draw(b, s0, n, ajust, col, coeff, sp, verb);
 	if (verb)
 		printf("Conversion en SDL...\n");
 	SDL_Surface *s = GetSurface(s0);	//utilisé pour dessiner les transformées
@@ -907,7 +907,7 @@ int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double c
 					//réinitialise les extremum observés
 			    	mx2 = 1000000; my2 = 1000000; Mx2 = -1000000; My2 = -1000000;
 			    	mx = -1000000; my = -1000000; Mx = 1000000; My = 1000000;
-    				Draw(b, s0, n, true, col, coeff, verb);
+    				Draw(b, s0, n, true, col, coeff, sp, verb);
 					redraw = true;
 				}
 				break;
@@ -968,7 +968,7 @@ int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double c
 				printf("zone (%lf ... %lf)x(%lf ... %lf)\n", mx, Mx, my, My);
 				printf("n=%d, ajust=%d, verb=%d\n", n, ajust, verb);
 			}
-			Draw(b, s0, n, false, col, coeff, verb);
+			Draw(b, s0, n, false, col, coeff, sp, verb);
 			s = GetSurface(s0);	//utilisé pour dessiner les transformées
 		    SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0xFF, 0xFF, 0xFF));
 		    SDL_BlitSurface(s, NULL, screen, NULL);
@@ -1653,7 +1653,7 @@ double absd (double f)
 	return f;
 }
 
-int *Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int verb)
+int *Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, double sp, int verb)
 {
 	int auto_n = (n < 0);
 	//set global variables
@@ -1733,7 +1733,7 @@ int *Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int
 			else
 				n = .5 + 3.*log(max(s.sx, s.sy)*absd(1.-1./sqrt(cnorm(b.b))))/log(cnorm(b.b));
 			*/
-			n = log(s.sx*s.sy)/absd(log(cnorm(b.b)));
+			n = log(s.sx*s.sy)/absd(log(sp));
 			
 			if (n < 0)
 				n = 0;
@@ -1776,7 +1776,7 @@ int *Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int
 		if (cnorm(b.b) < 1)
 		{
 			//n = coeff + 2.*absd(log(max(s.sx/(Mx-mx), s.sy/(My-my)))/log(cnorm(b.b)));
-			n = 1+log(s.sx*s.sy)/absd(log(cnorm(b.b)));
+			n = 1+log(s.sx*s.sy)/absd(log(sp));
 		}else
 		{
 			double ratio = pow(cnorm(b.b), n/2);

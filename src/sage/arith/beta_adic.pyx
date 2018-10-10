@@ -221,10 +221,10 @@ cdef extern from "draw.h":
     void FreeBetaAdic(BetaAdic b)
     BetaAdic2 NewBetaAdic2(int n, int na)
     void FreeBetaAdic2(BetaAdic2 b)
-    int *DrawZoom(BetaAdic b, int sx, int sy, int n, int ajust, Color col, double coeff, int verb)
-    Automaton UserDraw(BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, int verb)
+    int *DrawZoom(BetaAdic b, int sx, int sy, int n, int ajust, Color col, double coeff, double sp, int verb)
+    Automaton UserDraw(BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, double sp, int verb)
     #  void WordZone (BetaAdic b, int *word, int nmax)
-    int *Draw(BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, int verb)
+    int *Draw(BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, double sp, int verb)
     void Draw2(BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
     void DrawList(BetaAdic2 b, Surface s, int n, int ajust, ColorList lc, double alpha, int verb)
     void print_word(BetaAdic b, int n, int etat)
@@ -762,11 +762,12 @@ cdef class BetaAdicMonoid:
         CC = ComplexField()
         if b not in CC:
             raise ValueError("b must be a number.")
-        if b in QQbar:
+        try:
+            b = QQbar(b)
             pi = QQbar(b).minpoly()
             self.K = NumberField(pi, 'b', embedding=QQbar(b))
             self.b = self.K.gen()
-        else:
+        except:
             self.K = b.parent()
             self.b = b
         
@@ -1143,7 +1144,7 @@ cdef class BetaAdicMonoid:
             n = -1
         if method == 0:
             sig_on()
-            a = UserDraw(b, sx, sy, n, ajust, col, only_pos, verb)
+            a = UserDraw(b, sx, sy, n, ajust, col, only_pos, self.a.spectral_radius(), verb)
             sig_off()
         elif method == 1:
             print("Not implemented !")
@@ -1214,7 +1215,7 @@ cdef class BetaAdicMonoid:
             n = -1
         if method == 0:
             sig_on()
-            word = DrawZoom(b, sx, sy, n, ajust, col, coeff, verb)
+            word = DrawZoom(b, sx, sy, n, ajust, col, coeff, self.a.spectral_radius(), verb)
             sig_off()
             res = []
             if word is not NULL:
@@ -1302,51 +1303,50 @@ cdef class BetaAdicMonoid:
             A Graphics object.
 
         EXAMPLES::
-
+        
         #. The dragon fractal::
 
-            sage: e = QQbar(1/(1+I))
-            sage: m = BetaAdicMonoid(e, {0,1})
+            sage: m = BetaAdicMonoid(1/(1+I), dag.AnyWord([0,1]))
             sage: m.plot()     # long time
-            ValueError                                Traceback (most recent call last)
-            ValueError: DetAutomaton expected.
-
-            Exception ValueError: ValueError('DetAutomaton expected.',) in 'sage.monoids.beta_adic_monoid.getAutomate' ignored
-
+        
+        #. Another dragon fractal::
+    
+            sage: b = (2*x^2+x+1).roots(ring=CC)[0][0]
+            sage: m = BetaAdicMonoid(b, dag.AnyWord([0,1]))
+            sage: m.plot()      # long time
+        
         #. The Rauzy fractal of the Tribonacci substitution::
 
             sage: s = WordMorphism('1->12,2->13,3->1')
-            sage: m = s.rauzy_fractal_plot()
-            sage: m     # long time
-
+            sage: m = s.rauzy_fractal_beta_adic_monoid()
+            sage: m.plot()    # long time
+        
         #. A non-Pisot Rauzy fractal::
 
             sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
             sage: m = s.rauzy_fractal_beta_adic_monoid()
-            sage: m.b = 1/m.b
-            sage: m.plot(tss=m.ss)     # long time
+            sage: m = BetaAdicMonoid(1/m.b, m.a)
+            sage: m.plot()     # long time
+        
+        #. A part of the boundary of the dragon fractal::
 
-        #. The dragon fractal and its boundary::
+            sage: m = BetaAdicMonoid(1/(1+I), {0,1})
+            sage: i = m.intersection_words(w1=[0], w2=[1])     # long time
+            sage: i.plot()                               # long time
 
-            sage: e = QQbar(1/(1+I))
-            sage: m = BetaAdicMonoid(e, {0,1})
-            sage: ssi = m.intersection_words(w1=[0], w2=[1])     # long time
-            sage: m.plot(tss=ssi)                               # long time
-            sage: m.plot()                                      # long time
-
-        #. The "Hokkaido" fractal and its boundary::
+        #. A part of the boundary of the "Hokkaido" fractal::
 
             sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
             sage: m = s.rauzy_fractal_beta_adic_monoid()
-            sage: ssi = m.intersection_words(w1=[0], w2=[1])                  # long time
-            sage: m.plot(la=[la[0], ssi]+la[1:], colormap='gist_rainbow')    # long time
+            sage: i = m.intersection_words(w1=[0], w2=[1])                  # long time
+            sage: i.plot(colormap='gist_rainbow')    # long time
 
-        #. A limit set that look like a tiling::
+        #. A limit set that look like a tiling but with holes::
 
             sage: P=x^4 + x^3 - x + 1
             sage: b = P.roots(ring=QQbar)[2][0]
-            sage: m = BetaAdicMonoid(b, {0,1})
-            sage: m.plot(19)                                   # long time
+            sage: m = BetaAdicMonoid(b, dag.AnyWord([0,1]))
+            sage: m.plot()                                   # long time
 
         """
         cdef Surface s
@@ -1383,7 +1383,7 @@ cdef class BetaAdicMonoid:
             n = -1
         if method == 0:
             sig_on()
-            Draw(b, s, n, ajust, col, coeff, verb)
+            Draw(b, s, n, ajust, col, coeff, self.a.spectral_radius(), verb)
             sig_off()
         elif method == 1:
             raise NotImplementedError("Method 1 not implemented !")
