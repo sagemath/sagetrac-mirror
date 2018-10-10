@@ -64,6 +64,7 @@ def sphinxify(docstring, format='html'):
         sage: assert n == len(sys.path)
     """
     srcdir = mkdtemp()
+    outdir = mkdtemp()
     base_name = os.path.join(srcdir, 'docstring')
     rst_name = base_name + '.rst'
 
@@ -76,8 +77,6 @@ def sphinxify(docstring, format='html'):
     with open(rst_name, 'w') as filed:
         filed.write(docstring)
 
-    # Sphinx constructor: Sphinx(srcdir, confdir, outdir, doctreedir,
-    # buildername, confoverrides, status, warning, freshenv).
     confdir = os.path.join(SAGE_DOC_SRC, 'en', 'introspect')
 
     open(os.path.join(srcdir, 'docutils.conf'), 'w').write(r"""
@@ -89,7 +88,9 @@ smart_quotes = no
 
     import sys
     old_sys_path = list(sys.path)  # Sphinx modifies sys.path
-    sphinx_app = Sphinx(srcdir, confdir, srcdir, doctreedir, format,
+    # Sphinx constructor: Sphinx(srcdir, confdir, outdir, doctreedir,
+    # buildername, confoverrides, status, warning, freshenv).
+    sphinx_app = Sphinx(srcdir, confdir, outdir, doctreedir, format,
                         confoverrides, None, None, True)
     sphinx_app.build(None, [rst_name])
     sys.path = old_sys_path
@@ -121,6 +122,7 @@ smart_quotes = no
             output = docstring
 
     shutil.rmtree(srcdir, ignore_errors=True)
+    shutil.rmtree(outdir, ignore_errors=True)
 
     return output
 
