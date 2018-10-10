@@ -241,13 +241,14 @@ void SDL_SurfaceToNumpy (void *ss, PyArrayObject *o)
     if (o->strides[0] != 4)
     {
         printf("Error: pixels must be stored with 4 bytes (RGBA format). Here %ld bytes/pixel.", o->strides[0]);
+        return;
     }
     
     Uint32 *data = (Uint32 *)o->data;
     Uint32 *ptr = (Uint32 *)s->pixels;
     int sx = o->dimensions[1];
     int sy = o->dimensions[0];
-        if (s->w != sx || s->h != sy)
+    if (s->w != sx || s->h != sy)
     {
         printf("Error: dimensions of the surface must be the same as the dimension of the numpy array.");
         return;

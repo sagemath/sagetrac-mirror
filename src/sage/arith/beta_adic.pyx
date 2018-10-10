@@ -420,16 +420,16 @@ cdef surface_to_img(Surface s):
     #arr = np.zeros([s.sy, s.sx], dtype=[('r', 'uint8'), ('g', 'uint8'),('b', 'uint8'), ('a', 'uint8')])
     arr = np.empty([s.sy, s.sx], dtype=np.dtype((np.int32, {'r':(np.int8,0), 'g':(np.int8,1), 'b':(np.int8,2), 'a':(np.int8,3)})))
     
-#    cdef int x, y
-#    cdef Color c
-#    for x in range(s.sx):
-#        for y in range(s.sy):
-#            c = s.pix[x][s.sy - y - 1]
-#            #arr[y, x]['r'] = c.r
-#            #arr[y, x]['g'] = c.g
-#            #arr[y, x]['b'] = c.b
-#            arr[y, x] = c.r | c.g << 8 | c.b << 16 | c.a<<24;
-    SurfaceToNumpy (&s, arr)
+    cdef int x, y
+    cdef Color c
+    for x in range(s.sx):
+        for y in range(s.sy):
+            c = s.pix[x][s.sy - y - 1]
+            #arr[y, x]['r'] = c.r
+            #arr[y, x]['g'] = c.g
+            #arr[y, x]['b'] = c.b
+            arr[y, x] = c.r | c.g << 8 | c.b << 16 | c.a<<24;
+#    SurfaceToNumpy (&s, arr)
     return Image.fromarray(arr, 'RGBA')
     # img.save("/Users/mercat/Desktop/output.png")
     # img.save(file)
@@ -774,12 +774,16 @@ cdef class BetaAdicMonoid:
         self.a = a
         
         #test if letters of a are in K
+        
         for c in self.a.A:
-            if c not in self.K:
-                if c not in CC:
-                    raise ValueError("Label %s of the automaton is not in the field %s !"%(c, self.K))
-                else:
-                    self.K = CC
+            try:
+                if c not in self.K:
+                    if c not in CC:
+                        raise ValueError("Label %s of the automaton is not in the field %s !"%(c, self.K))
+                    else:
+                        self.K = CC
+            except:
+                raise ValueError("Cannot check if the letter '%s' of the alphabet of the automaton is in the field '%s'."%(c, self.K))
 
     def __repr__(self):
         r"""
