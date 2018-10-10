@@ -60,7 +60,7 @@ class RightWeakOrder(WordQuasiSymmetricFunctions.Bases.Base):
 
             '''
             return self.tensor_square().sum_of_monomials(
-                (Packedwords.to_pack(sigma[:i]), Packedwords.to_pack(sigma[i:]))
+                (PackedWords.pack(sigma[:i]), PackedWords.pack(sigma[i:]))
                     for i in range(len(sigma) + 1)
                     if [sigma[:i].count(x)
                         for x in sigma[i:]].count(0)==len(sigma[i:])
@@ -123,7 +123,7 @@ class RightWeakOrder(WordQuasiSymmetricFunctions.Bases.Base):
                 for ll in self.sub_composition(l): # l=[3,2] truc(l) = [[0,0],[0,1],[1,0],[1,1],[2,0],[2,1]]
                         r0=ZZ(1)/prod(factorial(k+1) for k in ll)
                         r1=self.untass_pw(sigma,ll)
-                        res+=[(r0,PackedWords.to_pack(rr1)) for rr1 in r1]
+                        res+=[(r0,PackedWords.pack(rr1)) for rr1 in r1]
                 return sum(c*self.monomial(PackedWord(pw)) for (c,pw) in res)
 
         def S_to_R(self):

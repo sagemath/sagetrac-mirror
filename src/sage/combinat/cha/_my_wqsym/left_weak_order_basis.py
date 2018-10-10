@@ -71,8 +71,8 @@ class LeftWeakOrder(WordQuasiSymmetricFunctions.Bases.Base):
         
         '''
         return self.tensor_square().sum_of_monomials(
-            (Packedwords.to_pack([x for x in sigma if x<=i]),
-             Packedwords.to_pack([x for x in sigma if x>i]))
+            (PackedWords.pack([x for x in sigma if x<=i]),
+             PackedWords.pack([x for x in sigma if x>i]))
             for i in range(max(list(sigma)+[0]) + 1)
         )
 

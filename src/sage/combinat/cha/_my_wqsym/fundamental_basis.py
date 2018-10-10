@@ -82,8 +82,8 @@ class Fundamental(WordQuasiSymmetricFunctions.Bases.Base):
             '''
             from sage.combinat.packed_words import PackedWords
             return self.tensor_square().sum_of_monomials(
-                (PackedWords.to_pack(sigma[:i]), 
-                PackedWords.to_pack(sigma[i:]))
+                (PackedWords.pack(sigma[:i]), 
+                PackedWords.pack(sigma[i:]))
                     for i in range(len(sigma) + 1)
             )
 
@@ -96,7 +96,7 @@ class Fundamental(WordQuasiSymmetricFunctions.Bases.Base):
                         raise IndexError
                 n=len(mu)
                 print sigma, mu
-                return self.monomial(PackedWords.to_pack(
+                return self.monomial(PackedWords.pack(
                         [str(sigma[i])+str(mu[i]) for i in range(n)]))
                         
                 

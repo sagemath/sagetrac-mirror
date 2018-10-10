@@ -51,7 +51,7 @@ class FundamentalDual(WordQuasiSymmetricFunctions.Bases.Base):
         #     G = FreeQuasiSymmetricFunctions(self.base()).G()
         #     G.module_morphism(
         #         on_basis=lambda sigma: self.sum_of_monomials(
-        #             self.basis().keys().permutation_to_packed_words(sigma)
+        #             self.basis().keys().permutation_packed_words(sigma)
         #         ), codomain=self
         #     ).register_as_coercion()
 
@@ -111,7 +111,7 @@ class FundamentalDual(WordQuasiSymmetricFunctions.Bases.Base):
                                 while x-k in e:
                                         k+=1
                                 r1+=[x-k+1]
-                        res+=[(ZZ(1)/prod(factorial(k) for k in r0),PackedWords.to_pack(r1))]
+                        res+=[(ZZ(1)/prod(factorial(k) for k in r0),PackedWords.pack(r1))]
                 return sum(c*self.monomial(PackedWord(pw)) for (c,pw) in res)
         
         def L_to_M(self):
@@ -141,7 +141,7 @@ class FundamentalDual(WordQuasiSymmetricFunctions.Bases.Base):
                 M[1, 1, 1] + M[1, 1, 2] + M[2, 2, 1]
             '''
             from quasi_shuffle_product import Shifted_QuasiShuffleProduct
-            return self.sum_of_monomials(OrderedSetPartition(osp).to_packed_word()
+            return self.sum_of_monomials(OrderedSetPartition(osp).packed_word()
                 for osp in Shifted_QuasiShuffleProduct(
                         pw1.to_ordered_set_partition(),
                         pw2.to_ordered_set_partition()))
@@ -170,7 +170,7 @@ class FundamentalDual(WordQuasiSymmetricFunctions.Bases.Base):
                         right.append(l)
                     else:
                         left.append(l)
-                return (self.basis().keys()(left), PackedWords.to_pack(right))
+                return (self.basis().keys()(left), PackedWords.pack(right))
 
             return self.tensor_square().sum_of_monomials(
                 restriction(e, i)
