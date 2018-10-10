@@ -766,20 +766,20 @@ cdef class BetaAdicMonoid:
             self.K = b.parent()
             self.b = b
         
-        #test if letters of a are in K
-        for c in a.A:
-            if c not in self.K:
-                if c not in CC:
-                    raise ValueError("Label %s of the automaton is not in the field %s !"%(c, self.K))
-                else:
-                    self.K = CC
-        
         if type(a) != DetAutomaton:
             try:
                 a = DetAutomaton(a)
             except:
                 raise ValueError("a must be an automaton.")        
         self.a = a
+        
+        #test if letters of a are in K
+        for c in self.a.A:
+            if c not in self.K:
+                if c not in CC:
+                    raise ValueError("Label %s of the automaton is not in the field %s !"%(c, self.K))
+                else:
+                    self.K = CC
 
     def __repr__(self):
         r"""

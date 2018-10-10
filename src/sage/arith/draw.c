@@ -19,6 +19,11 @@ Color color0; //couleur du fond
 Color color; //couleur de dessin
 Color* colors; //liste de couleurs de dessin
 
+Uint32 moyUint32 (Uint32 a, Uint32 b, double ratio)
+{
+    return (Uint32)(Uint8)((a%256)*(1.-ratio) + (b%256)*ratio) | ((Uint32)((Uint8)(((a>>8)%256)*(1.-ratio) + ((b>>8)%256)*ratio)))<<8 | ((Uint32)((Uint8)(((a>>16)%256)*(1.-ratio) + ((b>>16)%256)*ratio)))<<16 | ((Uint32)((Uint8)((a>>24)*(1.-ratio) + (b>>24)*ratio)))<<24;
+}
+
 //rend une SDL_Surface contenant l'image
 void* OpenImage (const char *file_name)
 {
@@ -1141,11 +1146,6 @@ inline Color moy (Color a, Color b, double ratio)
 	return r;
 }
 
-inline Uint32 moy2 (Uint32 a, Uint32 b, double ratio)
-{
-    return (Uint32)(Uint8)((a%256)*(1.-ratio) + (b%256)*ratio) | ((Uint32)((Uint8)(((a>>8)%256)*(1.-ratio) + ((b>>8)%256)*ratio)))<<8 | ((Uint32)((Uint8)(((a>>16)%256)*(1.-ratio) + ((b>>16)%256)*ratio)))<<16 | ((Uint32)((Uint8)((a>>24)*(1.-ratio) + (b>>24)*ratio)))<<24;
-}
-
 int ns;
 Complexe cs;
 
@@ -1193,13 +1193,13 @@ inline bool set_pix2 (SDL_Surface *s, Complexe p)
 		if (x+1 < s->w && y+1 < s->h)
 		{
 		    ptr = ptr + x + (s->pitch/4)*y;
-			*ptr = moy2(*ptr, col, (1.-fx+x)*(1.-fy+y));
+			*ptr = moyUint32(*ptr, col, (1.-fx+x)*(1.-fy+y));
 			ptr++;
-			*ptr = moy2(*ptr, col, (fx-x)*(1.-fy+y));
+			*ptr = moyUint32(*ptr, col, (fx-x)*(1.-fy+y));
 			ptr += (s->pitch/4);
-			*ptr = moy2(*ptr, col, (fx-x)*(fy-y));
+			*ptr = moyUint32(*ptr, col, (fx-x)*(fy-y));
 			ptr--;
-			*ptr = moy2(*ptr, col, (1.-fx+x)*(fy-y));
+			*ptr = moyUint32(*ptr, col, (1.-fx+x)*(fy-y));
 		}else
 			*(ptr + x + (s->pitch/4)*y) = col;
 		return true;
@@ -1225,13 +1225,13 @@ inline bool set_pixNP (Uint32 *pix, int sx, int sy, Complexe p)
 		if (x+1 < sx && y+1 < sy)
 		{
 			ptr = ptr + x + sx*y;
-			*ptr = moy2(*ptr, col, (1.-fx+x)*(1.-fy+y));
+			*ptr = moyUint32(*ptr, col, (1.-fx+x)*(1.-fy+y));
 			ptr++;
-			*ptr = moy2(*ptr, col, (fx-x)*(1.-fy+y));
+			*ptr = moyUint32(*ptr, col, (fx-x)*(1.-fy+y));
 			ptr += sx;
-			*ptr = moy2(*ptr, col, (fx-x)*(fy-y));
+			*ptr = moyUint32(*ptr, col, (fx-x)*(fy-y));
 			ptr--;
-			*ptr = moy2(*ptr, col, (1.-fx+x)*(fy-y));
+			*ptr = moyUint32(*ptr, col, (1.-fx+x)*(fy-y));
 		}else
 			*(ptr + x + sx*y) = col;
 		return true;
