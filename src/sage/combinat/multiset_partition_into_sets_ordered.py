@@ -708,7 +708,20 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
             [[{1}, {'a','b'}, {1}], [{1}, {'a'}, {'b'}, {1}], [{1}, {'b'}, {'a'}, {1}]]
             sage: o.finer() & o.fatter() == set([o])
             True
-        """
+
+            sage: o = OrderedMultisetPartitionIntoSets([[1,2,3], [4], [1]])
+            sage: sorted(o.finer(), key=str)
+            [[{1,2,3}, {4}, {1}], [{1,2}, {3}, {4}, {1}],
+             [{1,3}, {2}, {4}, {1}], [{1}, {2,3}, {4}, {1}],
+             [{1}, {2}, {3}, {4}, {1}], [{1}, {3}, {2}, {4}, {1}],
+             [{2,3}, {1}, {4}, {1}], [{2}, {1,3}, {4}, {1}],
+             [{2}, {1}, {3}, {4}, {1}], [{2}, {3}, {1}, {4}, {1}],
+             [{3}, {1,2}, {4}, {1}], [{3}, {1}, {2}, {4}, {1}],
+             [{3}, {2}, {1}, {4}, {1}]]
+            sage: sorted(o.finer(strong=True), key=str)
+            [[{1,2,3}, {4}, {1}], [{1,2}, {3}, {4}, {1}],
+             [{1}, {2,3}, {4}, {1}], [{1}, {2}, {3}, {4}, {1}]]
+             """
         P = OrderedMultisetPartitionsIntoSets(self._multiset)
 
         if not self:
@@ -733,9 +746,9 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
 
             sage: OMP = OrderedMultisetPartitionsIntoSets()
             sage: OMP([]).finer_succ()
-            {}
+            set()
             sage: OMP([[2],[3]]).finer_succ()
-            {}
+            set()
             sage: C = OMP([[2,3],[1,4,5]]).finer_succ()
             sage: sorted(C, key=repr, reverse=True)
             [[{3}, {2}, {1,4,5}], [{2}, {3}, {1,4,5}],
@@ -764,6 +777,55 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
         for i in range(len(self)):
             succ.update(set(P(self[:i] + [A,B] + self[i+1:]) for [A,B] in cut(self[i])))
         return succ
+
+    def finer_pred(self, strong=False):
+        r"""
+        Return the predecessors of ``self`` in the refinement partial order.
+
+        If optional argument ``strong`` is set to ``True``, then return
+        the predecessors in the strong refinement partial order. That is,
+        only those  `A` with exactly one fewer block than ``self`` and all
+        of whose blocks are concatenations of blocks of `self`. (Here, we
+        view blocks of `self` as sorted lists instead of sets.)
+
+        .. SEEALSO:: :meth:`OrderedMultisetPartitionIntoSets.finer()`
+
+        EXAMPLES::
+
+            sage: OMP = OrderedMultisetPartitionsIntoSets()
+            sage: OMP([[3],[2],[4]]).finer_pred()
+            {[{3}, {2,4}], [{2,3}, {4}]}
+            sage: OMP([[3],[2],[4]]).finer_pred(strong=True)
+            {[{3}, {2,4}]}
+            sage: pi = OMP([[1],[2,3],[4],[4],[1,5],[2]])
+            sage: sorted(pi.finer_pred(), key=repr, reverse=True)
+            [[{1}, {2,3}, {4}, {4}, {1,2,5}], [{1}, {2,3}, {4}, {1,4,5}, {2}],
+             [{1}, {2,3,4}, {4}, {1,5}, {2}], [{1,2,3}, {4}, {4}, {1,5}, {2}]]
+            sage: sorted(pi.finer_pred(strong=True), key=repr, reverse=True)
+            [[{1}, {2,3,4}, {4}, {1,5}, {2}], [{1,2,3}, {4}, {4}, {1,5}, {2}]]
+
+            sage: OMP([]).finer_pred()
+            set()
+            sage: OMP([[2,3],[1,4,5],[2,3,6,7]]).finer_pred(strong=True)
+            set()
+        """
+        # base cases
+        if self.length() <= 1:
+            return set()
+
+        P = OrderedMultisetPartitionsIntoSets(self._multiset)
+        if strong:
+            check = lambda A1,A2: sorted(A1) + sorted(A2) == sorted(A1.union(A2))
+        else:
+            check = lambda A1,A2: len(A1) + len(A2) == len(A1.union(A2))
+
+        pred = set()
+        for i in range(self.length()-1):
+            A1,A2 = self[i:i+2]
+            if check(A1,A2):
+                B = self[:i] + [A1.union(A2)] + self[i+2:]
+                pred.add(P([b for b in B if b]))
+        return pred
 
     def is_finer(self, co, strong=False):
         """
@@ -870,7 +932,7 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
         else:
             return OrderedMultisetPartitionsIntoSets(self._multiset)(result)
 
-    def fatter(self):
+    def fatter(self, strong=False):
         """
         Return the set of ordered multiset partitions into sets which are fatter
         than ``self``.
@@ -879,36 +941,84 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
         if, reading left-to-right, every block of `A` is the union of some
         consecutive blocks of `B`.
 
+        If optional argument ``strong`` is set to ``True``, then return
+        only those `A` whose blocks are concatenations of blocks of `B`.
+        (Here, we view blocks as sorted lists instead of sets.)
+        In this case, we say `B` is *strongly finer* than `A`.
+
         .. SEEALSO:: :meth:`OrderedMultisetPartitionIntoSets.finer()`
 
         EXAMPLES::
 
-            sage: C = OrderedMultisetPartitionIntoSets([{1,4,5}, {2}, {1,7}]).fatter()
-            sage: len(C)
-            3
-            sage: list(C)
+            sage: OMP = OrderedMultisetPartitionIntoSets
+            sage: C = OMP([{1}, {2,4,5}, {6,7}]).fatter(strong=True)
+            sage: sorted(C)
+            [[{1}, {2,4,5}, {6,7}], [{1}, {2,4,5,6,7}],
+             [{1,2,4,5}, {6,7}], [{1,2,4,5,6,7}]]
+
+            sage: pi = OMP([{1,4,5}, {2}, {1,7}])
+            sage: C = pi.fatter(strong=True)
+            sage: C
+            {[{1,4,5}, {2}, {1,7}]}
+            sage: C = pi.fatter()
+            sage: sorted(C)
             [[{1,4,5}, {2}, {1,7}], [{1,4,5}, {1,2,7}], [{1,2,4,5}, {1,7}]]
-            sage: list(OrderedMultisetPartitionIntoSets([['a','b'],['c'],['a']]).fatter())
-            [[{'a','b'}, {'a','c'}], [{'a','b','c'}, {'a'}], [{'a','b'}, {'c'}, {'a'}]]
+
+            sage: sorted(OMP([['a','b'],['c'],['a']]).fatter(), key=str)
+            [[{'a','b','c'}, {'a'}], [{'a','b'}, {'a','c'}], [{'a','b'}, {'c'}, {'a'}]]
+
+            sage: O = OrderedMultisetPartitionsIntoSets([1,1,2,2,3,3,4])
+            sage: o = O([[1], [2,3], [1,2,4], [3]])
+            sage: sorted(o.fatter())
+            [[{1}, {2,3}, {1,2,4}, {3}], [{1}, {2,3}, {1,2,3,4}],
+             [{1,2,3}, {1,2,4}, {3}], [{1,2,3}, {1,2,3,4}]]
+            sage: sorted(o.fatter(strong=True))
+            [[{1}, {2,3}, {1,2,4}, {3}], [{1,2,3}, {1,2,4}, {3}]]
 
         Some extreme cases::
 
-            sage: list(OrderedMultisetPartitionIntoSets([['a','b','c']]).fatter())
+            sage: list(OMP([['a','b','c']]).fatter())
             [[{'a','b','c'}]]
-            sage: list(OrderedMultisetPartitionIntoSets([]).fatter())
+            sage: list(OMP([]).fatter())
             [[]]
-            sage: A = OrderedMultisetPartitionIntoSets([[1], [2], [3], [4]])
-            sage: B = OrderedMultisetPartitionIntoSets([[1,2,3,4]])
+
+        TESTS::
+
+            sage: A = OMP([[1], [2], [3], [4]])
+            sage: B = OMP([[1,2,3,4]])
             sage: A.fatter().issubset(B.finer())
             True
+
+            sage: A1 = OMP([[1], [3], [2], [4], [3]])
+            sage: len(A1.fatter()), len(A1.fatter(strong=True))
+            (14, 4)
+            sage: A2 = OMP([[1], [2], [3], [3], [4]])
+            sage: len(A2.fatter()), len(A2.fatter(strong=True))
+            (8, 8)
         """
-        out = set()
-        for c in composition_iterator_fast(self.length()):
-            try:
-                out.add(self.fatten(c))
-            except ValueError:
-                pass
-        return out
+        # base cases
+        if self.length() <= 1:
+            return set([self])
+
+        P = OrderedMultisetPartitionsIntoSets(self._multiset)
+        if strong:
+            check = lambda A1,A2: sorted(A1) + sorted(A2) == sorted(A1.union(A2))
+        else:
+            check = lambda A1,A2: len(A1) + len(A2) == len(A1.union(A2))
+
+        fatt = [self]
+        # iteratively add predecessors to the end of an ever-growing list
+        for A in fatt:
+            for i in range(A.length()-1):
+                A1,A2 = A[i:i+2]
+                if check(A1,A2):
+                    B = A[:i] + [A1.union(A2)] + A[i+2:]
+                    fatt.append(P([b for b in B if b]))
+        # kill undesired repeats within fatt
+        return set(fatt)
+        # An alternative approach:
+        #next_func = lambda a: a.finer_succ(strong=strong)
+        #return set(RecursivelyEnumeratedSet([self], next_func, structure="graded"))
 
     def minimaj(self):
         r"""
