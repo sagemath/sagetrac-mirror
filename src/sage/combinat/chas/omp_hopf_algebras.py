@@ -74,7 +74,7 @@ class OMPBases(Category_realization_of_parent):
             sage: from sage.combinat.chas.omp_hopf_algebras import OMPBases
             sage: OMPNSym = OMPNonCommutativeSymmetricFunctions(ZZ)
             sage: OMPBases(OMPNSym, True)
-            Category of graded bases of Free Hopf Algebra on Finite Sets over Integer Ring
+            Category of graded bases of Free Hopf Algebra on Finite Sets over the Integer Ring
             sage: OMPQSym = OMPQuasiSymmetricFunctions(QQ, alphabet=[2,3,4], order_grading=False)
             sage: OMPBases(OMPQSym, False)
             Category of filtered bases of Dual of Free Hopf Algebra on Finite Sets over Rational Field
@@ -128,10 +128,10 @@ class OMPBases(Category_realization_of_parent):
 
                 sage: OMPNSym = OMPNonCommutativeSymmetricFunctions(ZZ)
                 sage: OMPNSym.H()
-                Free Hopf Algebra on Finite Sets over Integer Ring in the Homogeneous basis
+                Free Hopf Algebra on Finite Sets over the Integer Ring in the Homogeneous basis
                 sage: OMPQSymA = OMPQuasiSymmetricFunctions(QQ, alphabet=[2,3,4])
                 sage: OMPQSymA.M()
-                Dual of Free Hopf Algebra on Finite Sets on alphabet {1, 4} over Rational Field with order grading in the Monomial basis
+                Dual of Free Hopf Algebra on Finite Sets on alphabet {2, 3, 4} over the Rational Field with order grading in the Monomial basis
             """
             return "{} in the {} basis".format(self.realization_of(), self._basis_name)
 
@@ -142,13 +142,6 @@ class OMPBases(Category_realization_of_parent):
             INPUT:
 
             - ``A`` -- an ordered multiset partition into sets
-
-            .. TODO::
-
-                - Fix the output below. It should be ``H[{3,4,5}]``:
-                    sage: H[[[3,4,5]]]
-                    H[{3}, {4}, {5}]
-                - Allow for input such as `H[3,4,0,5]` and `H[3,4,5]`?
 
             EXAMPLES::
 
@@ -248,16 +241,16 @@ class OMPBases(Category_realization_of_parent):
                 3
                 sage: P = OMPNonCommutativeSymmetricFunctions(QQ).P()
                 sage: matrix([[M(A).duality_pairing(P(B)) for A in OrderedMultisetPartitionsIntoSets(3)] for B in OrderedMultisetPartitionsIntoSets(3)])
-                [_ _ _ _ _]
-                [_ _ _ _ _]
-                [_ _ _ _ _]
-                [_ _ _ _ _]
-                [_ _ _ _ _]
+                [ 1  0  0  0  0]
+                [ 0  1  0 -1  0]
+                [ 0  0  1  0  0]
+                [ 0  0  0  1  0]
+                [ 0  0  0  0  1]
             """
             x = self.parent().dual_basis()(x)
             return sum(coeff * x[I] for (I, coeff) in self)
 
-###### Common Basis Methods for OMPNSym & OMPQSym ######
+###### Common Basis Methods for OMPNSym & OMPQSym ############
 class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
     """
     Abstract base class for bases of `OMPNSym` and `OMPQSym`.
@@ -275,12 +268,12 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
         EXAMPLES::
 
             sage: OMPNonCommutativeSymmetricFunctions(ZZ).H()
-            Free Hopf Algebra on Finite Sets over Integer Ring in the Homogeneous basis
+            Free Hopf Algebra on Finite Sets over the Integer Ring in the Homogeneous basis
 
             sage: OMPQuasiSymmetricFunctions(ZZ, alphabet=[2,3,4]).M()
-            Dual of Free Hopf Algebra on Finite Sets on alphabet {2, 3, 4} over Integer Ring with order grading in the Monomial basis
+            Dual of Free Hopf Algebra on Finite Sets on alphabet {2, 3, 4} over the Integer Ring with order grading in the Monomial basis
             sage: OMPQuasiSymmetricFunctions(ZZ, alphabet=[2,3,4], order_grading=False).M()
-            Dual of Free Hopf Algebra on Finite Sets on alphabet {2, 3, 4} over Integer Ring in the Monomial basis
+            Dual of Free Hopf Algebra on Finite Sets on alphabet {2, 3, 4} over the Integer Ring in the Monomial basis
 
         TESTS::
 
@@ -319,9 +312,9 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
 
             sage: M = OMPQuasiSymmetricFunctions(QQ).M()
             sage: elt = M[[1,2]]*M[[1]]; elt
-            ???
+            M[{1}, {1,2}] + M[{1,2}, {1}]
         """
-        return self._prefix + repr(x).replace(", ", ",")  #.replace("}, {", "}{")
+        return self._prefix + repr(x) #.replace(", ", ",")
 
     def _coerce_map_from_(self, R):
         r"""
@@ -345,7 +338,8 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
         EXAMPLES::
 
             sage: H = OMPNonCommutativeSymmetricFunctions(GF(7)).H(); H
-            Free Hopf Algebra on Finite Sets over Finite Field of size 7 in the Homogeneous basis
+            Free Hopf Algebra on Finite Sets over the Finite Field
+             of size 7 in the Homogeneous basis
 
         Elements of the Homogeneous basis of OMPNSym canonically coerce in::
 
@@ -357,7 +351,7 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
         since `\ZZ` coerces to `\GF{7}`::
 
             sage: HZ = OMPNonCommutativeSymmetricFunctions(ZZ).H(); HZ
-            Free Hopf Algebra on Finite Sets over Integer Ring in the Homogeneous basis
+            Free Hopf Algebra on Finite Sets over the Integer Ring in the Homogeneous basis
             sage: aZ, bZ = HZ([[1]]), HZ([[2,3]])
             sage: c = H.coerce(aZ+bZ); c
             H[{2,3}] + H[{1}]
@@ -371,8 +365,8 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Free Hopf Algebra on Finite Sets
-             over Finite Field of size 7 in the Homogeneous basis to
-             Free Hopf Algebra on Finite Sets over Integer Ring in
+             over the Finite Field of size 7 in the Homogeneous basis to
+             Free Hopf Algebra on Finite Sets over the Integer Ring in
              the Homogeneous basis
 
         Elements of the Homogeneous basis of OMPNSym over the same base ring
@@ -389,7 +383,8 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
             2*H[{2}] + H[{2,4}] + H[{2,3}]
             sage: c.parent() is H
             True
-            sage: b
+            sage: a
+            H[{1}]
             sage: H1(a)  # support not built over parent's alphabet
             Traceback (most recent call last):
             ...
@@ -466,7 +461,7 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
 
             sage: H = OMPNonCommutativeSymmetricFunctions(QQ).H()
             sage: H.an_element()
-            H[{4}] + 2*H[{1}, {1,2}]
+            2*H[{1}, {1,2}] + H[{4}]
         """
         if self._A:
             A = self._A
@@ -482,8 +477,8 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
 
             sage: M = OMPQuasiSymmetricFunctions(QQ).M()
             sage: M.some_elements()
-            [M[], M[{1}], 1/2*M[] + M[{4}] + 2*M[{1}, {1,2}],
-             ???]
+            [M[], M[{1}], 1/2*M[] + 2*M[{1}, {1,2}] + M[{4}], 2*M[{1}, {1}],
+             M[{1}, {4}] + 2*M[{1}, {1}, {1,2}] + 2*M[{1}, {1,2}, {1}] + M[{4}, {1}]]
         """
         u = self.one()
         if self._A:
@@ -499,7 +494,7 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
 
 
 
-###### Basis Methods for OMPNSym ######
+###### Basis Methods for OMPNSym ############
 class OMPBasis_OMPNSym(OMPBasis_abstract):
     """
     Add methods for `OMPNSym` beyond those appearing in ``OMPBasis_abstract``
@@ -573,19 +568,23 @@ class OMPBasis_OMPNSym(OMPBasis_abstract):
             sage: H = OMPNonCommutativeSymmetricFunctions(QQ).Homogeneous()
             sage: P = OMPNonCommutativeSymmetricFunctions(QQ).Powersum()
             sage: H.primitive({2,3,4})
-            ???
+            H[{2}, {4}, {3}] + H[{2}, {3}, {4}] - H[{2}, {3,4}]
+             - H[{2,3}, {4}] - H[{2,4}, {3}] + H[{2,3,4}]
             sage: _ == H(P[[2,3,4]])
             True
             sage: elt = H.primitive({2,3,4}, i=3); elt
-            ???
-            sage: P.primitive({2,3,4}, within_self=False)
-            ???
-            sage: P(_) == P[[2,3,4]]
-            True
+            H[{3}, {4}, {2}] + H[{3}, {2}, {4}] - H[{3}, {2,4}]
+             - H[{2,3}, {4}] - H[{3,4}, {2}] + H[{2,3,4}]
             sage: elt.coproduct() - elt.tensor(H.one()) - H.one().tensor(elt)
             0
+
+            sage: P.primitive({2,3,4}, within_self=False)
+            H[{2}, {4}, {3}] + H[{2}, {3}, {4}] - H[{2}, {3,4}]
+             - H[{2,3}, {4}] - H[{2,4}, {3}] + H[{2,3,4}]
+            sage: P(_) == P.primitive({2,3,4}) == P[[2,3,4]]
+            True
             sage: P.primitive({2,3,4}).coproduct()
-            P[{2,3,4}] # P[] + P[] # P[{2,3,4}]
+            P[] # P[{2,3,4}] + P[{2,3,4}] # P[]
         """
         if [K] not in self._indices:
             raise ValueError("{0} must be a nonempty set compatible with {1}".format(K, self._indices))
@@ -636,7 +635,7 @@ class OMPBasis_OMPNSym(OMPBasis_abstract):
 
                 sage: H = OMPNonCommutativeSymmetricFunctions(QQ).H()
                 sage: (H[[1,3],[1]] - 2*H[[1],[1,3]]).to_noncommutative_symmetric_function()
-                ???
+                #???
                 sage: X, Y = H[[1,3]], H[[1]]
                 sage: X.to_noncommutative_symmetric_function() * Y.to_noncommutative_symmetric_function() == (X*Y).to_noncommutative_symmetric_function()
                 True
@@ -650,13 +649,13 @@ class OMPBasis_OMPNSym(OMPBasis_abstract):
                 True
             """
             # TODO: fix the map, which is just a placeholder for the true definition.
-            from sage.combinat.ncsf_qsym.nsym import NonCommutativeSymmetricFunctions
+            from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
             S = NonCommutativeSymmetricFunctions(self.parent().base_ring()).Complete()
             H = self.parent().realization_of().H()
             return S.sum_of_terms((A.shape_from_cardinality(), coeff/prod(factorial(len(a)) for a in A))
                                   for (A, coeff) in H(self))
 
-###### The Hopf algebra OMPNSym ######
+###### The Hopf algebra OMPNSym ############
 class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
     Free Hopf Algebra on Finite Sets (OMPNSym).
@@ -730,39 +729,49 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: H = OMPNSym.H()
         sage: P = OMPNSym.P()
         sage: H
-        Free Hopf Algebra on Finite Sets over Rational Field
+        Free Hopf Algebra on Finite Sets over the Rational Field
          in the Homogeneous basis
 
     The homogeneous component of degree `d` of any basis is indexed by
     ordered multiset partitions into sets of size `d`::
 
         sage: H.basis(3).keys()
-        ???
+        Ordered Multiset Partitions into Sets of integer 3
 
     So we create an element and convert it between these bases::
 
-        sage; OMP = OrderedMultisetPartitionIntoSets
+        sage: OMP = OrderedMultisetPartitionIntoSets
         sage: elt = H(OMP([[2], [1,3]])) - 2*H(OMP([[1,2,3]])); elt
-        -2*H[{1,2,3}] + H[{2}, {1,3}]
+        H[{2}, {1,3}] - 2*H[{1,2,3}]
         sage: P(elt)
-        ???
+        -2*P[{1}, {2,3}] + P[{2}, {1}, {3}] + P[{2}, {1,3}] - 2*P[{1}, {2}, {3}]
+         - 2*P[{1,2}, {3}] - 2*P[{1,3}, {2}] - 2*P[{1,2,3}]
 
     Given an element of `OMPNSym` expressed in two different bases, the two
-    expressions are not treated as equal::
+    expressions are treated as equal::
 
         sage: P(elt) == elt
-        False
-        sage: H(P(elt)) == elt
         True
+        sage: dict(P(elt)) == dict(elt)
+        False
 
     There is also a shorthand for creating elements. We note that we must
-    use ``P[[]]`` to create the empty ordered multiset partition due to
+    use ``H[[]]`` to create the empty ordered multiset partition due to
     python's syntax::
 
-        sage: elth = H[[2], [1,3]] - 2*H[[1,2,3]]; elth
-        -2*H[{1,2,3}] + H[{2}, {1,3}]
-        sage: eltp = P[[]] + elth; eltp
-        ???
+        sage: elth = H[[2], [1,3]] - 2*H[[1,2,3]] + H[[]]; elth
+        H[] + H[{2}, {1,3}] - 2*H[{1,2,3}]
+
+    Finally, expressions are returned in only one basis, even if given
+    in mixed bases::
+
+        sage: eltp = 2*P[[1,2,3]] + elth; eltp
+        P[] - 2*P[{1}, {2,3}] + P[{2}, {1}, {3}] - 2*P[{1}, {2}, {3}]
+         - 2*P[{1,2}, {3}] - 2*P[{1,3}, {2}] + P[{2}, {1,3}]
+
+        sage: elth * P[[1],[2],[3]]
+        H[{2}, {1,3}, {1}, {2}, {3}] + H[{1}, {2}, {3}]
+         - 2*H[{1,2,3}, {1}, {2}, {3}]
 
     .. RUBRIC:: Restricting the alphabet and using the order grading
 
@@ -772,21 +781,21 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         sage: OMPNSymA = OMPNonCommutativeSymmetricFunctions(QQ, alphabet=[3,4,5])
         sage: HA = OMPNSymA.H()
-        sage: HA.basis(3).keys()
-        ???
+        sage: HA.basis(2).keys()
+        Ordered Multiset Partitions into Sets of order 2 over alphabet {3, 4, 5}
 
     The keyword argument ``order_grading`` may be used to override the default
     grading::
 
         sage: OMPNSym_order = OMPNonCommutativeSymmetricFunctions(QQ, order_grading=True)
         sage: H_order = OMPNSym_order.H()
-        sage: H_order.basis(3).keys()
-        ???
+        sage: H_order.basis(2).keys()
+        #??? wrong!!! Ordered Multiset Partitions into Sets of integer 2
 
         sage: OMPNSymA_size = OMPNonCommutativeSymmetricFunctions(QQ, alphabet=[3,4,5], order_grading=False)
         sage: H_size = OMPNSymA_size.H()
-        sage: H_size.basis(3).keys()
-        ???
+        sage: H_size.basis(2).keys()
+        #??? wrong!!! Ordered Multiset Partitions into Sets of order 2 over alphabet {3, 4, 5}
 
     *Warning:* Realizations of `OMPNSym` such as ``OMPNSym_order`` above will
     have infinite dimensional spaces for their graded slices `OMPNSym_d`.
@@ -797,15 +806,15 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     realizations of `OMPNSym`::
 
         sage: HA.an_element()
-        ???
+        2*H[{3}, {3}, {4,5}] + H[{3}, {3,4,5}]
         sage: H.an_element()
-        ???
+        2*H[{1}, {1,2}] + H[{4}]
         sage: H(HA.an_element()) in H
         True
         sage: HA(H.an_element()) in HA
         Traceback (most recent call last):
         ...
-        TypeError: do not know how to make x (= 2*H[{1},{1,2}] + H[{4}])
+        TypeError: do not know how to make x (= 2*H[{1}, {1,2}] + H[{4}])
          an element of self (=Free Hopf Algebra on Finite Sets on alphabet
          {3, 4, 5} over the Rational Field with order grading in the Homogeneous basis)
 
@@ -827,7 +836,7 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     .. TODO::
 
-        - Add/correct maps to/from NCSym, NSym, Sym, ...
+        - Add maps to/from NCSym, NSym, Sym, ...
     """
     @staticmethod
     def __classcall_private__(cls, R, alphabet=None, order_grading=None):
@@ -890,11 +899,12 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: OMPNonCommutativeSymmetricFunctions(ZZ)
-            Free Hopf Algebra on Finite Sets over Integer Ring
+            Free Hopf Algebra on Finite Sets over the Integer Ring
             sage: OMPNonCommutativeSymmetricFunctions(ZZ, alphabet=[2,3])
-            Free Hopf Algebra on Finite Sets on alphabet {2, 3} over Integer Ring with order grading
+            Free Hopf Algebra on Finite Sets on alphabet {2, 3} over
+             the Integer Ring with order grading
             sage: OMPNonCommutativeSymmetricFunctions(ZZ, alphabet=[2,3], order_grading=False)
-            Free Hopf Algebra on Finite Sets on alphabet {2, 3} over Integer Ring
+            Free Hopf Algebra on Finite Sets on alphabet {2, 3} over the Integer Ring
         """
         OMP = "Free Hopf Algebra on Finite Sets"
         if self._A:
@@ -911,7 +921,7 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: OMPNonCommutativeSymmetricFunctions(QQ).a_realization()
-            Free Hopf Algebra on Finite Sets over Rational Field in the Homogeneous basis
+            Free Hopf Algebra on Finite Sets over the Rational Field in the Homogeneous basis
         """
         return self.H()
 
@@ -956,19 +966,20 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: H = OMPNonCommutativeSymmetricFunctions(QQ).H()
             sage: H[[2], [1,3]] - 2*H[[1,2,4]]
-            H[{2},{1,3}] - 2*H[{1,2,4}]
+            H[{2}, {1,3}] - 2*H[{1,2,4}]
 
             sage: H[[2], [1,3]] * H[[1,2],[4]]
-            H[{2},{1,3},{1,2},{4}]
+            H[{2}, {1,3}, {1,2}, {4}]
 
             sage: H[[4]].coproduct()
             H[] # H[{4}] + H[{4}] # H[]
             sage: H[[1,2]].coproduct()
             H[] # H[{1,2}] + H[{1}] # H[{2}] + H[{2}] # H[{1}] + H[{1,2}] # H[]
             sage: H[[4],[1,2]].coproduct()
-            H[] # H[{4},{1,2}] + H[{1}] # H[{4},{2}] + H[{2}] # H[{4},{1}]
-             + H[{1,2}] # H[{4}] + H[{4}] # H[{1,2}] + H[{4},{1}] # H[{2}]
-             + H[{4},{2}] # H[{1}] + H[{4},{1,2}] # H[]
+            H[] # H[{4}, {1,2}] + H[{4}] # H[{1,2}]
+             + H[{4}, {1}] # H[{2}] + H[{4}, {2}] # H[{1}]
+             + H[{4}, {1,2}] # H[] + H[{2}] # H[{4}, {1}]
+             + H[{1}] # H[{4}, {2}] + H[{1,2}] # H[{4}]
 
         TESTS::
 
@@ -986,6 +997,7 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             ....:     for hb in [H[[]]] + list(H.basis(1)) + list(H.basis(2)):
             ....:         tests.append((ha * hb).coproduct() == ha.coproduct() * hb.coproduct())
             sage: all(tests)
+            True
         """
         _prefix = "H"
         _basis_name = "Homogeneous"
@@ -1066,9 +1078,10 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: H[{2,3}].coproduct()
                 H[] # H[{2,3}] + H[{2}] # H[{3}] + H[{3}] # H[{2}] + H[{2,3}] # H[]
                 sage: H[{2,3}, {2}].coproduct()
-                H[] # H[{2,3}, {2}] + H[{2}] # H[{3}, {2}] + H[{3}] # H[{2}, {2}]
-                 + H[{2,3}] # H[{2}] + H[{2}] # H[{2,3}] + H[{2}, {2}] # H[{3}]
-                 + H[{3}, {2}] # H[{2}] + H[{2,3}, {2}] # H[]
+                H[] # H[{2,3}, {2}] + H[{2}, {2}] # H[{3}]
+                 + H[{3}] # H[{2}, {2}] + H[{2}] # H[{3}, {2}]
+                 + H[{3}, {2}] # H[{2}] + H[{2}] # H[{2,3}]
+                 + H[{2,3}] # H[{2}] + H[{2,3}, {2}] # H[]
             """
             return self.tensor_square()._from_dict( A.split_blocks(2) )
 
@@ -1103,9 +1116,9 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: H = OMPNonCommutativeSymmetricFunctions(QQ).Homogeneous()
                 sage: H[{2,3}].antipode()
-                -H[{2,3}] + H[{2}, {3}] + H[{3}, {2}]
+                H[{2}, {3}] + H[{3}, {2}] - H[{2,3}]
                 sage: H[{2,3}, {2}].antipode()
-                H[{2}, {2,3}] - H[{2}, {2}, {3}] - H[{2}, {3}, {2}]
+                -H[{2}, {3}, {2}] - H[{2}, {2}, {3}] + H[{2}, {2,3}]
                 sage: HH = H[[1,3],[5],[1,4]].coproduct()
                 sage: HH.apply_multilinear_morphism(lambda x,y: x.antipode()*y)
                 0
@@ -1148,16 +1161,17 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             sage: P[[2], [1,3]] - 2*P[[1,2,3]]
             P[{2}, {1,3}] - 2*P[{1,2,3}]
             sage: P[[2,3]].coproduct()
-            ???
+            P[] # P[{2,3}] + P[{2,3}] # P[]
             sage: P[[2,3],[1,2]].coproduct()
-            ???
+            P[{2,3}, {1,2}] # P[] + P[{2,3}] # P[{1,2}]
+             + P[{1,2}] # P[{2,3}] + P[] # P[{2,3}, {1,2}]
             sage: P[[2,3]] * P[[1,2]]
-            ???
+            P[{2,3}, {1,2}]
             sage: p = P.an_element(); p
-            ???
+            2*P[{1}, {1,2}] + P[{4}]
             sage: H = OMPNonCommutativeSymmetricFunctions(QQ).Homogeneous()
             sage: H(p)
-            ???
+            H[{4}] - 2*H[{1}, {1}, {2}] + 2*H[{1}, {1,2}]
 
         TESTS::
 
@@ -1193,17 +1207,28 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             - An element of the Homogeneous basis
 
-            TODO:: improve the examples!
-
             EXAMPLES::
 
                 sage: P = OMPNonCommutativeSymmetricFunctions(QQ).P()
-                sage: A = OrderedMultisetPartitionIntoSets([[1,2,3]])
-                sage: P._P_to_H_on_basis(A)
-                ???
-                sage: B = OrderedMultisetPartitionIntoSets([[1,2],[3]])
-                sage: P._P_to_H_on_basis(B)
-                ???
+                sage: A = OrderedMultisetPartitionIntoSets([])
+                sage: P._P_to_H(A)
+                H[]
+                sage: A = OrderedMultisetPartitionIntoSets([[1], [3], [3]])
+                sage: P._P_to_H(A)
+                H[{1}, {3}, {3}]
+
+                sage: B = OrderedMultisetPartitionIntoSets([[1,3], [2]])
+                sage: P._P_to_H(B)
+                -H[{1}, {3}, {2}] + H[{1,3}, {2}]
+                sage: B = OrderedMultisetPartitionIntoSets([[1,3], [1,4]])
+                sage: P._P_to_H(B)
+                H[{1}, {3}, {1}, {4}] - H[{1}, {3}, {1,4}]
+                 - H[{1,3}, {1}, {4}] + H[{1,3}, {1,4}]
+
+                sage: C = OrderedMultisetPartitionIntoSets([[1,3,4]])
+                sage: P._P_to_H(C)
+                H[{1}, {3}, {4}] + H[{1}, {4}, {3}] - H[{1}, {3,4}]
+                 - H[{1,3}, {4}] - H[{1,4}, {3}] + H[{1,3,4}]
             """
             H = self.realization_of().H()
             if not A:
@@ -1233,13 +1258,26 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: P = OMPNonCommutativeymmetricFunctions(QQ).Pd()
-                sage: A = OrderedMultisetPartitionIntoSets([[1,2,3]])
-                sage: P._H_to_P_on_basis(A)
-                ???
-                sage: B = OrderedMultisetPartitionIntoSets([[1,2],[3]])
-                sage: P._H_to_P_on_basis(B)
-                ???
+                sage: P = OMPNonCommutativeSymmetricFunctions(QQ).P()
+                sage: A = OrderedMultisetPartitionIntoSets([])
+                sage: P._H_to_P(A)
+                P[]
+                sage: A = OrderedMultisetPartitionIntoSets([[1], [3], [3]])
+                sage: P._H_to_P(A)
+                P[{1}, {3}, {3}]
+
+                sage: B = OrderedMultisetPartitionIntoSets([[1,3], [2]])
+                sage: P._H_to_P(B)
+                P[{1}, {3}, {2}] + P[{1,3}, {2}]
+                sage: B = OrderedMultisetPartitionIntoSets([[1,3], [1,4]])
+                sage: P._H_to_P(B)
+                P[{1}, {3}, {1}, {4}] + P[{1}, {3}, {1,4}]
+                 + P[{1,3}, {1}, {4}] + P[{1,3}, {1,4}]
+
+                sage: C = OrderedMultisetPartitionIntoSets([[1,3,4]])
+                sage: P._H_to_P(C)
+                P[{1}, {3}, {4}] + P[{1}, {3,4}] + P[{1,4}, {3}]
+                 + P[{1,3}, {4}] + P[{1,3,4}]
             """
             # base cases
             if A._order == A.length():
@@ -1300,6 +1338,7 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 True
                 sage: all(P.product_on_basis(z, one) == P(z) == P.basis()[z] for z in OMP(3))
                 True
+                sage: H = OMPNonCommutativeSymmetricFunctions(QQ).H()
                 sage: all(P[A] * P[B] == P( H(P[A])*H(P[B]) ) for A in OMP(3) for B in OMP(3))  # indirect doctest
                 True
             """
@@ -1330,14 +1369,15 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: P = OMPNonCommutativeSymmetricFunctions(QQ).Powersum()
                 sage: P[{2,3,4}].coproduct()
-                P[{2,3,4}] # P[] + P[] # P[{2,3,4}]
+                P[] # P[{2,3,4}] + P[{2,3,4}] # P[]
                 sage: P[{2,3,4}, {1,2}].coproduct()
-                P[{2,3,4},{1,2}] # P[] + P[{2,3,4}] # P[{1,2}]
-                 + P[{1,2}] # P[{2,3,4}] + P[] # P[{2,3,4},{1,2}]
+                P[] # P[{2,3,4}, {1,2}] + P[{2,3,4}] # P[{1,2}]
+                + P[{2,3,4}, {1,2}] # P[] + P[{1,2}] # P[{2,3,4}]
 
             TESTS::
 
                 sage: OMP = OrderedMultisetPartitionsIntoSets
+                sage: H = OMPNonCommutativeSymmetricFunctions(QQ).H()
                 sage: all(P.coproduct_on_basis(A) == P.tensor_square()( H(P[A]).coproduct() ) for A in OMP(3))
                 True
             """
@@ -1368,21 +1408,28 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: R = OMPNonCommutativeSymmetricFunctions(QQ).Ribbon()
             sage: H = OMPNonCommutativeSymmetricFunctions(QQ).Homogeneous()
-            sage: x = R[[1,2],[2],[4,5]]
+            sage: x = R[[1,2],[4,5],[3]]
             sage: H(x)
-            ???
-            sage: x = R[[1,2],[2,4,5]]
+            H[{1,2}, {4,5}, {3}] - H[{1,2,4,5}, {3}]
+            sage: x = R[[1,2],[3,4],[5]]
             sage: H(x)
-            ???
+            -H[{1,2}, {3,4,5}] - H[{1,2,3,4}, {5}]
+             + H[{1,2}, {3,4}, {5}] + H[{1,2,3,4,5}]
 
-            sage: R[[2,3],[1],[2,4]] * R[[1,3],[5]]
-            ???
             sage: R[[2,3],[1],[2,4]] * R[[2,3],[5]]
-            ???
+            R[{2,3}, {1}, {2,4}, {2,3}, {5}]
+            sage: R[[2,3],[1],[2,4]] * R[[3,6],[5]]
+            R[{2,3}, {1}, {2,4}, {3,6}, {5}]
+            sage: R[[2,3],[1],[2,4]] * R[[5,6],[5]]
+            R[{2,3}, {1}, {2,4}, {5,6}, {5}] + R[{2,3}, {1}, {2,4,5,6}, {5}]
+
             sage: R[[2,3]].coproduct()
-            ???
-            sage: R[[2,3],[1,2]].coproduct()
-            ???
+            R[] # R[{2,3}] + R[{2}] # R[{3}] + R[{3}] # R[{2}] + R[{2,3}] # R[]
+            sage: R[[2,3],[2]].coproduct()
+            R[] # R[{2,3}, {2}] + R[{2}, {2}] # R[{3}]
+             + R[{3}] # R[{2}, {2}] + R[{2}] # R[{3}, {2}]
+             + R[{3}, {2}] # R[{2}] + R[{2}] # R[{2,3}]
+             + R[{2,3}] # R[{2}] + R[{2,3}, {2}] # R[]
 
         TESTS::
 
@@ -1421,25 +1468,25 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: R = OMPQuasiSymmetricFunctions(QQ).Ribbon()
+                sage: R = OMPNonCommutativeSymmetricFunctions(QQ).Ribbon()
                 sage: A = OrderedMultisetPartitionIntoSets([])
                 sage: R._R_to_H(A)
-                M[]
-                sage: A = OrderedMultisetPartitionIntoSets([[1], [3], [3]])
+                H[]
+                sage: A = OrderedMultisetPartitionIntoSets([[4], [3], [3]])
                 sage: R._R_to_H(A)
-                M[{1},{3},{3}]
+                H[{4}, {3}, {3}]
 
                 sage: B = OrderedMultisetPartitionIntoSets([[1,3], [2]])
                 sage: R._R_to_H(B)
-                M[{1},{3},{2}] + M[{1,3},{2}]
-                sage: B = OrderedMultisetPartitionIntoSets([[1,3], [1,4]])
+                H[{1,3}, {2}]
+                sage: B = OrderedMultisetPartitionIntoSets([[1,3], [4]])
                 sage: R._R_to_H(B)
-                M[{1},{3},{1},{4}] + M[{1},{3},{1,4}]
-                 + M[{1,3},{1},{4}] + M[{1,3},{1,4}]
+                H[{1,3}, {4}] - H[{1,3,4}]
 
-                sage: C = OrderedMultisetPartitionIntoSets([[1,3,4]])
+                sage: C = OrderedMultisetPartitionIntoSets([[1,3], [4,5], [6]])
                 sage: R._R_to_H(C)
-                M[{1},{3},{4}] + M[{1},{3,4}] + M[{1,3},{4}] + M[{1,3,4}]
+                H[{1,3}, {4,5}, {6}] - H[{1,3}, {4,5,6}]
+                 - H[{1,3,4,5}, {6}] + H[{1,3,4,5,6}]
             """
             H = self.realization_of().H()
             PS = Poset({B:B.finer_pred(strong=True) for B in A.fatter(strong=True)})
@@ -1459,24 +1506,25 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: R = OMPQuasiSymmetricFunctions(QQ).R()
+                sage: R = OMPNonCommutativeSymmetricFunctions(QQ).R()
                 sage: A = OrderedMultisetPartitionIntoSets([])
                 sage: R._H_to_R(A)
-                F[]
-                sage: A = OrderedMultisetPartitionIntoSets([[1], [3], [3]])
+                R[]
+                sage: A = OrderedMultisetPartitionIntoSets([[1,3], [3]])
                 sage: R._H_to_R(A)
-                F[{1},{3},{3}]
+                R[{1,3}, {3}]
+                sage: A = OrderedMultisetPartitionIntoSets([[1,3], [2,4]])
+                sage: R._H_to_R(A)
+                R[{1,3}, {2,4}]
 
-                sage: B = OrderedMultisetPartitionIntoSets([[1,3], [2]])
+                sage: B = OrderedMultisetPartitionIntoSets([[1,2], [3]])
                 sage: R._H_to_R(B)
-                -F[{1},{3},{2}] + F[{1,3},{2}]
-                sage: B = OrderedMultisetPartitionIntoSets([[1,3], [1,4]])
-                sage: R._H_to_R(B)
-                F[{1},{3},{1},{4}] - F[{1},{3},{1,4}] - M[{1,3},{1},{4}] + F[{1,3},{1,4}]
+                R[{1,2}, {3}] + R[{1,2,3}]
 
-                sage: C = OrderedMultisetPartitionIntoSets([[1,3,4]])
+                sage: C = OrderedMultisetPartitionIntoSets([[1,2], [3,4], [5]])
                 sage: R._H_to_R(C)
-                F[{1},{3},{4}] - F[{1},{3,4}] - F[{1,3},{4}] + F[{1,3,4}]
+                R[{1,2}, {3,4}, {5}] + R[{1,2}, {3,4,5}]
+                 + R[{1,2,3,4}, {5}] + R[{1,2,3,4,5}]
             """
             # base cases
             if A.length() <= 1:
@@ -1508,7 +1556,7 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     Ribbon = R
 
 
-###### Basis Methods for OMPQSym ######
+###### Basis Methods for OMPQSym ############
 class OMPBasis_OMPQSym(OMPBasis_abstract):
     """
     Add methods for `OMPQSym` beyond those appearing in ``OMPBasis_abstract``
@@ -1522,7 +1570,7 @@ class OMPBasis_OMPQSym(OMPBasis_abstract):
 
             - poke around for interesting (known) subalgebras
             - describe code added here:
-                if R is ???, bring things in, else punt to the default method.
+                if R is #???, bring things in, else punt to the default method.
             - add "See :meth:`OMPBasis_abstract._coerce_map_from_` for additional coercions."
         """
         # see fqsym.py: :meth:`FQSymBasis_abstract._coerce_map_from_` for hints
@@ -1636,7 +1684,7 @@ class OMPBasis_OMPQSym(OMPBasis_abstract):
                 terms.append((I, coeff))
             return M.sum_of_terms(terms)
 
-###### The Hopf algebra OMPQSym ######
+###### The Hopf algebra OMPQSym ############
 class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
     The Hopf algebra (`OMPQSym`) that is the graded dual to
@@ -1724,42 +1772,51 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     are analogues of the usual non-commutative symmetric functions::
 
         sage: OMPQSym = OMPQuasiSymmetricFunctions(QQ)
-        sage: H = OMPQSym.M()
+        sage: M = OMPQSym.M()
         sage: Pd = OMPQSym.Pd()
-        sage: H
-        Dual of Free Hopf Algebra on Finite Sets over Rational Field
+        sage: M
+        Dual of Free Hopf Algebra on Finite Sets over the Rational Field
          in the Monomial basis
 
     The homogeneous component of degree `d` of any basis is indexed by
     ordered multiset partitions into sets of size `d`::
 
         sage: M.basis(3).keys()
-        ???
+        Ordered Multiset Partitions into Sets of integer 3
 
     So we create an element and convert it between these bases::
 
-        sage; OMP = OrderedMultisetPartitionIntoSets
-        sage: elt = M(OMP([[2], [1,3]])) - 2*M(OMP([[1,2,3]])); elt
-        -2*M[{1,2,3}] + M[{2}, {1,3}]
+        sage: OMP = OrderedMultisetPartitionIntoSets
+        sage: elt = M(OMP([[1,3], [2]])) + 9*M(OMP([[2,3], [1]])); elt
+        9*M[{2,3}, {1}] + M[{1,3}, {2}]
         sage: Pd(elt)
-        ???
+        9*Pd[{2,3}, {1}] + Pd[{1,3}, {2}] - Pd[{1,2,3}]
 
-    Given an element of `OMPQSym` expressed in two different bases, the two
-    expressions are not treated as equal::
+    Given an element of `OMPNSym` expressed in two different bases, the two
+    expressions are treated as equal::
 
         sage: Pd(elt) == elt
-        False
-        sage: M(Pd(elt)) == elt
         True
+        sage: dict(Pd(elt)) == dict(elt)
+        False
 
     There is also a shorthand for creating elements. We note that we must
-    use ``Pd[[]]`` to create the empty ordered multiset partition due to
+    use ``M[[]]`` to create the empty ordered multiset partition due to
     python's syntax::
 
-        sage: eltm = M[[2], [1,3]] - 2*M[[1,2,3]]; eltm
-        -2*M[{1,2,3}] + M[{2}, {1,3}]
-        sage: eltp = Pd[[]] + eltm; eltm
-        ???
+        sage: eltm = M[[2], [1,3]] - 2*M[[1,2],[3]] + M[[]]; eltm
+        M[] + M[{2}, {1,3}] - 2*M[{1,2}, {3}]
+
+    Finally, expressions are returned in only one basis, even if given
+    in mixed bases::
+
+        sage: eltp = Pd[[1,2,3]] + eltm; eltp
+        Pd[] + Pd[{2}, {1,3}] - 2*Pd[{1,2}, {3}] + 3*Pd[{1,2,3}]
+
+        sage: eltm * Pd[[1,2,3]]
+        M[{1,2,3}] + M[{2}, {1,3}, {1,2,3}] + M[{2}, {1,2,3}, {1,3}]
+         - 2*M[{1,2}, {3}, {1,2,3}] - 2*M[{1,2}, {1,2,3}, {3}]
+         + M[{1,2,3}, {2}, {1,3}] - 2*M[{1,2,3}, {1,2}, {3}]
 
     .. RUBRIC:: Restricting the alphabet and using the order grading
 
@@ -1770,20 +1827,20 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         sage: OMPQSymA = OMPQuasiSymmetricFunctions(QQ, alphabet=[3,4,5])
         sage: MA = OMPQSymA.M()
         sage: MA.basis(3).keys()
-        ???
+        Ordered Multiset Partitions into Sets of order 3 over alphabet {3, 4, 5}
 
     The keyword argument ``order_grading`` may be used to override the default
     grading::
 
         sage: OMPQSym_order = OMPQuasiSymmetricFunctions(QQ, order_grading=True)
         sage: M_order = OMPQSym_order.M()
-        sage: M_order.basis(3).keys()
-        ???
+        sage: M_order.basis(2).keys()
+        #??? wrong!!! Ordered Multiset Partitions into Sets of integer 2
 
         sage: OMPQSymA_size = OMPQuasiSymmetricFunctions(QQ, alphabet=[3,4,5], order_grading=False)
         sage: M_size = OMPQSymA_size.M()
-        sage: M_size.basis(3).keys()
-        ???
+        sage: M_size.basis(2).keys()
+        #??? wrong!!! Ordered Multiset Partitions into Sets of order 2 over alphabet {3, 4, 5}
 
     *Warning:* Realizations of `OMPQSym` such as ``OMPQSym_order`` above will
     have infinite dimensional spaces for their graded slices `OMPQSym_d`.
@@ -1794,15 +1851,15 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     realizations of `OMPQSym`::
 
         sage: MA.an_element()
-        ???
+        2*M[{3}, {3}, {4,5}] + M[{3}, {3,4,5}]
         sage: M.an_element()
-        ???
+        2*M[{1}, {1,2}] + M[{4}]
         sage: M(MA.an_element()) in M
         True
         sage: MA(M.an_element()) in MA
         Traceback (most recent call last):
         ...
-        TypeError: do not know how to make x (= 2*M[{1},{1,2}] + M[{4}])
+        TypeError: do not know how to make x (= 2*M[{1}, {1,2}] + M[{4}])
          an element of self (=Dual of Free Hopf Algebra on Finite Sets on alphabet
          {3, 4, 5} over the Rational Field with order grading in the Monomial basis)
 
@@ -1814,7 +1871,7 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         sage: c = M[[1]]
         sage: a == b == c
         True
-        sage: M = OMPNonCommutativeSymmetricFunctions(QQ, alphabet=[2]).M()
+        sage: M = OMPQuasiSymmetricFunctions(QQ, alphabet=[2]).M()
         sage: a = M[OrderedMultisetPartitionIntoSets([[2]])]
         sage: b = M[OrderedMultisetPartitionsIntoSets(2)([[2]])]
         sage: c = M[[2]]
@@ -1824,7 +1881,7 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     .. TODO::
 
-        - Add/correct maps to/from NCQSym, QSym, Sym, ...
+        - Add maps to/from NCQSym, QSym, Sym, ...
     """
     @staticmethod
     def __classcall_private__(cls, R, alphabet=None, order_grading=None):
@@ -1886,7 +1943,7 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: OMPQuasiSymmetricFunctions(ZZ)
-            Dual of Free Hopf Algebra on Finite Sets over Integer Ring
+            Dual of Free Hopf Algebra on Finite Sets over the Integer Ring
         """
         return "Dual of " + repr(self.dual())
 
@@ -1936,15 +1993,15 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             M[{2}, {1,3}] - 2*M[{1,2,4}]
 
             sage: M[[2], [1,3]] * M[[2,4]]
-            M[{2},{1,3},{2,4}] + M[{2},{1,2,3,4}] + M[{2},{2,4},{1,3}]
-             + M[{2,4},{2},{1,3}]
+            M[{2}, {2,4}, {1,3}] + M[{2}, {1,3}, {2,4}]
+             + M[{2}, {1,2,3,4}] + M[{2,4}, {2}, {1,3}]
             sage: M[[5], [1,3]] * M[[2,4]]
-            M[{5},{1,3},{2,4}] + M[{5},{1,2,3,4}] + M[{5},{2,4},{1,3}]
-             + M[{2,4,5},{1,3}] + M[{2,4},{5},{1,3}]
+            M[{5}, {2,4}, {1,3}] + M[{5}, {1,3}, {2,4}] + M[{5}, {1,2,3,4}]
+             + M[{2,4}, {5}, {1,3}] + M[{2,4,5}, {1,3}]
 
             sage: M[[2], [1,3], [1,2,4]].coproduct()
-            M[] # M[{2},{1,3},{1,2,4}] + M[{2}] # M[{1,3},{1,2,4}]
-             + M[{2},{1,3}] # M[{1,2,4}] + M[{2},{1,3},{1,2,4}] # M[]
+            M[] # M[{2}, {1,3}, {1,2,4}] + M[{2}] # M[{1,3}, {1,2,4}]
+             + M[{2}, {1,3}] # M[{1,2,4}] + M[{2}, {1,3}, {1,2,4}] # M[]
 
         TESTS::
 
@@ -1957,10 +2014,25 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             sage: B = OrderedMultisetPartitionIntoSets([[3]])
             sage: C = OrderedMultisetPartitionIntoSets([[1,2,3],[3]])
             sage: D = OrderedMultisetPartitionIntoSets([[1,2],[3],[3]])
+
+            sage: M[A] * M[B]
+            2*M[{1,2}, {3}, {3}] + M[{3}, {1,2}, {3}] + M[{1,2,3}, {3}]
             sage: (M[A] * M[B]).duality_pairing(H[C])
+            1
             sage: (M[A] * M[B]).duality_pairing(H[D])
-            sage: M[C].coproduct().duality_pairing(H[A].tensor(H[B]))
-            sage: M[D].coproduct().duality_pairing(H[A].tensor(H[B]))
+            2
+
+            sage: M[C].coproduct()
+            M[] # M[{1,2,3}, {3}] + M[{1,2,3}] # M[{3}] + M[{1,2,3}, {3}] # M[]
+            sage: [M[pi].duality_pairing(H[A]) * M[mu].duality_pairing(H[B]) \
+                   for ((pi,mu), c) in M[C].coproduct()]
+            [0, 0, 0]
+            sage: M[D].coproduct()
+            M[] # M[{1,2}, {3}, {3}] + M[{1,2}] # M[{3}, {3}]
+             + M[{1,2}, {3}] # M[{3}] + M[{1,2}, {3}, {3}] # M[]
+            sage: [M[pi].duality_pairing(H[A]) * M[mu].duality_pairing(H[B]) \
+                   for ((pi,mu), c) in M[D].coproduct()]
+            [0, 0, 0, 1]
 
         .. TODO: Do we need these tests, or are they checked within TestSuite?::
 
@@ -1973,6 +2045,7 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             ....:     for mb in [M[[]]] + list(M.basis(1)) + list(M.basis(2)):
             ....:         tests.append((ma * mb).coproduct() == ma.coproduct() * mb.coproduct())
             sage: all(tests)
+            True
         """
         _prefix = "M"
         _basis_name = "Monomial"
@@ -2000,15 +2073,20 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             r"""
             The product on `\mathbf{M}` basis elements.
 
-            The product on the `\mathbf{M}` is the dual to the coproduct on the
-            `\mathbf{H}` basis.  On the basis `\mathbf{M}` it is defined as
+            This commutative product on the `\mathbf{M}` basis is the dual to
+            the coproduct on the `\mathbf{H}` basis. On the basis `\mathbf{M}`
+            it is defined as
 
             .. MATH::
 
-                ???
+                M_A \cdot M_B = \sum_{C} M_C,
 
-            where the sum is over all possible ... ???
-            This product is commutative.
+            where the sum is over all overlapping shuffles of the blocks of
+            `A` with the blocks of `B`. This is (ultimately) implemented via
+            :class:`~sage.combinat.shuffle.ShuffleProduct_overlapping` with
+            the ``+`` operation for the overlapping defined as:
+            the union of sets, if the summands are disjoint; and ``None``
+            otherwise.
 
             INPUT:
 
@@ -2020,18 +2098,19 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: M = HopfAlgebraOnOrderedMultisetPartitions(QQ).dual().M()
-                sage: A = OrderedMultisetComposition(from_zero_list=[2,1,3,0,1,2]); A
+                sage: M = OMPNonCommutativeSymmetricFunctions(QQ).dual().M()
+                sage: A = OrderedMultisetPartitionsIntoSets()._from_list([2,1,3,0,1,2]); A
                 [{1,2,3}, {1,2}]
-                sage: B = OrderedMultisetComposition([[3,4]]); B
+                sage: B = OrderedMultisetPartitionIntoSets([[3,4]]); B
                 [{3,4}]
                 sage: M.product_on_basis(A, B)
-                M[{1,2,3}, {1,2}, {3,4}] + M[{1,2,3}, {3,4}, {1,2}] + M[{3,4}, {1,2,3}, {1,2}] + M[{1,2,3}, {1,2,3,4}]
-                sage: C = OrderedMultisetComposition([[4,5]]); C
+                M[{3,4}, {1,2,3}, {1,2}] + M[{1,2,3}, {3,4}, {1,2}]
+                 + M[{1,2,3}, {1,2}, {3,4}] + M[{1,2,3}, {1,2,3,4}]
+                sage: C = OrderedMultisetPartitionIntoSets([[4,5]]); C
                 [{4,5}]
                 sage: M.product_on_basis(A, C)
-                M[{1,2,3}, {1,2}, {4,5}] + M[{1,2,3}, {4,5}, {1,2}] + M[{4,5}, {1,2,3}, {1,2}] + M[{1,2,3}, {1,2,4,5}] + M[{1,2,3,4,5}, {1,2}]
-                sage: M.product_on_basis(A, OrderedMultisetComposition([]))
+                M[{4,5}, {1,2,3}, {1,2}] + M[{1,2,3}, {4,5}, {1,2}] + M[{1,2,3}, {1,2}, {4,5}] + M[{1,2,3}, {1,2,4,5}] + M[{1,2,3,4,5}, {1,2}]
+                sage: M.product_on_basis(A, OrderedMultisetPartitionIntoSets([]))
                 M[{1,2,3}, {1,2}]
             """
             terms = A.shuffle_product(B, overlap=True)
@@ -2056,10 +2135,10 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: M = HopfAlgebraOnOrderedMultisetPartitions(QQ).dual().M()
+                sage: M = OMPNonCommutativeSymmetricFunctions(QQ).dual().M()
                 sage: M[[2], [2,3]].coproduct()
                 M[] # M[{2}, {2,3}] + M[{2}] # M[{2,3}] + M[{2}, {2,3}] # M[]
-                sage: M.coproduct_on_basis(OrderedMultisetComposition([]))
+                sage: M.coproduct_on_basis(OrderedMultisetPartitionIntoSets([]))
                 M[] # M[]
             """
             return self.tensor_square().sum_of_monomials(A.deconcatenate(2))
@@ -2099,9 +2178,10 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: M = OMPQuasiSymmetricFunctions(QQ).M()
                 sage: M.sum_of_derangements([[2,1],[1]])
-                M[{1},{1,2}] + M[{1,2},{1}]
+                M[{1}, {1,2}] + M[{1,2}, {1}]
             """
             OMP = self._indices
+            A = OMP(A)
             return self.sum_of_terms([(OMP(pi),1) \
                         for pi in Permutations_mset(list(A))], distinct=True)
 
@@ -2122,19 +2202,20 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: Pd = OMPQuasiSymmetricFunctions(QQ).PowersumDual()
-            sage: Pd[[2], [1,3]] - 2*Pd[[1,2,3]]
-            ???
-            sage: Pd[[2,3]].coproduct()
-            ???
-            sage: Pd[[2,3],[1,2]].coproduct()
-            ???
-            sage: Pd[[2,3]] * Pd[[1,2]]
-            ???
-            sage: p = Pd.an_element(); p
-            ???
+            sage: p = Pd[[2,4], [3]] - 2*Pd[[1,2,3]]; p
+            -2*Pd[{1,2,3}] + Pd[{2,4}, {3}]
+
             sage: M = OMPQuasiSymmetricFunctions(QQ).Monomial()
-            sage: H(p)
-            ???
+            sage: M(p)
+            -2*M[{1,2,3}] + M[{2,4}, {3}] + M[{2,3,4}]
+
+            sage: Pd[[2,3]].coproduct()
+            Pd[] # Pd[{2,3}] + Pd[{2,3}] # Pd[]
+            sage: Pd[[2,3],[1,2]].coproduct()
+            Pd[] # Pd[{2,3}, {1,2}] + Pd[{2,3}] # Pd[{1,2}] + Pd[{2,3}, {1,2}] # Pd[]
+
+            sage: Pd[[2,3]] * Pd[[1,2]]
+            Pd[{2,3}, {1,2}] + Pd[{1,2}, {2,3}]
 
         TESTS::
 
@@ -2179,15 +2260,15 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 M[{1,2,3}]
                 sage: A = OrderedMultisetPartitionIntoSets([[2,3,4],[1]])
                 sage: Pd._Pd_to_M(A)
-                M[{2,3,4},{1}]
+                M[{2,3,4}, {1}]
 
                 sage: B = OrderedMultisetPartitionIntoSets([[1,3,4],[2]])
                 sage: Pd._Pd_to_M(B)
-                M[{1,3,4},{2}] + M[{1,2,3,4}]
+                M[{1,3,4}, {2}] + M[{1,2,3,4}]
                 sage: B = OrderedMultisetPartitionIntoSets([[1,3,6],[2,4],[5]])
                 sage: Pd._Pd_to_M(B)
-                M[{1,3,6},{2,4},{5}] + M[{1,3,6},{2,4,5}]
-                 + M[{1,2,3,4,6},{5}] + M[{1,2,3,4,5,6}]
+                M[{1,3,6}, {2,4}, {5}] + M[{1,3,6}, {2,4,5}]
+                 + M[{1,2,3,4,6}, {5}] + M[{1,2,3,4,5,6}]
             """
             M = self.realization_of().M()
             # base cases
@@ -2237,15 +2318,15 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 Pd[{1,2,3}]
                 sage: A = OrderedMultisetPartitionIntoSets([[2,3,4],[1]])
                 sage: Pd._M_to_Pd(A)
-                Pd[{2,3,4},{1}]
+                Pd[{2,3,4}, {1}]
 
                 sage: B = OrderedMultisetPartitionIntoSets([[1,3,4],[2]])
                 sage: Pd._M_to_Pd(B)
-                Pd[{1,3,4},{2}] - Pd[{1,2,3,4}]
+                Pd[{1,3,4}, {2}] - Pd[{1,2,3,4}]
                 sage: B = OrderedMultisetPartitionIntoSets([[1,3,6],[2,4],[5]])
                 sage: Pd._M_to_Pd(B)
-                -Pd[{1,3,6},{2,4,5}] - Pd[{1,2,3,4,6},{5}]
-                 + Pd[{1,2,3,4,5,6}] + Pd[{1,3,6},{2,4},{5}]
+                Pd[{1,3,6}, {2,4}, {5}] - Pd[{1,3,6}, {2,4,5}]
+                 - Pd[{1,2,3,4,6}, {5}] + Pd[{1,2,3,4,5,6}]
             """
             # base cases
             if A.length() <= 1:
@@ -2276,7 +2357,7 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: Pd = OMPNonCommutativeSymmetricFunctions(QQ).PowersumDual()
+                sage: Pd = OMPQuasiSymmetricFunctions(QQ).PowersumDual()
                 sage: Pd.dual_basis()
                 Free Hopf Algebra on Finite Sets over the Rational Field in the Powersum basis
             """
@@ -2300,7 +2381,7 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: Pd = OMPQuasiSymmetricFunctions(QQ, alphabet=[2,3,4,5]).PowersumDual()
                 sage: Pd[{2,3}] * Pd[{3,5}, {4}]
-                Pd[{3,5},{4},{2,3}] + Pd[{2,3},{3,5},{4}] + Pd[{3,5},{2,3},{4}]
+                Pd[{2,3}, {3,5}, {4}] + Pd[{3,5}, {2,3}, {4}] + Pd[{3,5}, {4}, {2,3}]
 
             TESTS::
 
@@ -2334,8 +2415,8 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: Pd[{2,3,4}].coproduct()
                 Pd[] # Pd[{2,3,4}] + Pd[{2,3,4}] # Pd[]
                 sage: Pd[{1}, {2,3,4}, {1,2}].coproduct()
-                Pd[] # Pd[{1},{2,3,4},{1,2}] + Pd[{1}] # Pd[{2,3,4},{1,2}]
-                 + Pd[{1},{2,3,4}] # Pd[{1,2}] + Pd[{1},{2,3,4},{1,2}] # Pd[]
+                Pd[] # Pd[{1}, {2,3,4}, {1,2}] + Pd[{1}] # Pd[{2,3,4}, {1,2}]
+                 + Pd[{1}, {2,3,4}] # Pd[{1,2}] + Pd[{1}, {2,3,4}, {1,2}] # Pd[]
 
             TESTS::
 
@@ -2363,18 +2444,27 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: F = OMPQuasiSymmetricFunctions(QQ).Fundamental()
             sage: F[[2,3]].coproduct()
-            ???
-            sage: F[[2,3],[1,2]].coproduct()
-            ???
+            F[] # F[{2,3}] + F[{2,3}] # F[] + F[{2}] # F[{3}]
+            sage: F[[2,3], [1,2]].coproduct()
+            F[] # F[{2,3}, {1,2}] + F[{2,3}] # F[{1,2}]
+             + F[{2}] # F[{3}, {1,2}] + F[{2,3}, {1}] # F[{2}]
+             + F[{2,3}, {1,2}] # F[]
+
             sage: F[[2,3]] * F[[1,2]]
-            ???
+            F[{2}, {1,3}, {2}] + F[{2}, {1,2,3}] + 2*F[{1,2}, {2,3}]
+            + F[{2,3}, {1,2}] + F[{1,2,3}, {2}]
+
             sage: M = OMPQuasiSymmetricFunctions(QQ).Monomial()
             sage: p = F[[1,2],[3],[4,5]]
             sage: M(p)
-            ???
+            M[{1}, {2}, {3}, {4}, {5}] + M[{1}, {2}, {3}, {4,5}]
+            + M[{1,2}, {3}, {4}, {5}] + M[{1,2}, {3}, {4,5}]
             sage: q = F[[1,2],[3],[1,4,5]]
             sage: M(q)
-            ???
+            M[{1}, {2}, {3}, {1}, {4}, {5}] + M[{1}, {2}, {3}, {1}, {4,5}]
+            + M[{1}, {2}, {3}, {1,4}, {5}] + M[{1}, {2}, {3}, {1,4,5}]
+            + M[{1,2}, {3}, {1}, {4}, {5}] + M[{1,2}, {3}, {1}, {4,5}]
+            + M[{1,2}, {3}, {1,4}, {5}] + M[{1,2}, {3}, {1,4,5}]
 
         TESTS::
 
@@ -2419,19 +2509,19 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 M[]
                 sage: A = OrderedMultisetPartitionIntoSets([[1], [3], [3]])
                 sage: F._F_to_M(A)
-                M[{1},{3},{3}]
+                M[{1}, {3}, {3}]
 
                 sage: B = OrderedMultisetPartitionIntoSets([[1,3], [2]])
                 sage: F._F_to_M(B)
-                M[{1},{3},{2}] + M[{1,3},{2}]
+                M[{1}, {3}, {2}] + M[{1,3}, {2}]
                 sage: B = OrderedMultisetPartitionIntoSets([[1,3], [1,4]])
                 sage: F._F_to_M(B)
-                M[{1},{3},{1},{4}] + M[{1},{3},{1,4}]
-                 + M[{1,3},{1},{4}] + M[{1,3},{1,4}]
+                M[{1}, {3}, {1}, {4}] + M[{1}, {3}, {1,4}]
+                 + M[{1,3}, {1}, {4}] + M[{1,3}, {1,4}]
 
                 sage: C = OrderedMultisetPartitionIntoSets([[1,3,4]])
                 sage: F._F_to_M(C)
-                M[{1},{3},{4}] + M[{1},{3,4}] + M[{1,3},{4}] + M[{1,3,4}]
+                M[{1}, {3}, {4}] + M[{1}, {3,4}] + M[{1,3}, {4}] + M[{1,3,4}]
             """
             M = self.realization_of().M()
             # base cases
@@ -2462,18 +2552,19 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 F[]
                 sage: A = OrderedMultisetPartitionIntoSets([[1], [3], [3]])
                 sage: F._M_to_F(A)
-                F[{1},{3},{3}]
+                F[{1}, {3}, {3}]
 
                 sage: B = OrderedMultisetPartitionIntoSets([[1,3], [2]])
                 sage: F._M_to_F(B)
-                -F[{1},{3},{2}] + F[{1,3},{2}]
+                -F[{1}, {3}, {2}] + F[{1,3}, {2}]
                 sage: B = OrderedMultisetPartitionIntoSets([[1,3], [1,4]])
                 sage: F._M_to_F(B)
-                F[{1},{3},{1},{4}] - F[{1},{3},{1,4}] - M[{1,3},{1},{4}] + F[{1,3},{1,4}]
+                F[{1}, {3}, {1}, {4}] - F[{1}, {3}, {1,4}]
+                 - F[{1,3}, {1}, {4}] + F[{1,3}, {1,4}]
 
                 sage: C = OrderedMultisetPartitionIntoSets([[1,3,4]])
                 sage: F._M_to_F(C)
-                F[{1},{3},{4}] - F[{1},{3,4}] - F[{1,3},{4}] + F[{1,3,4}]
+                F[{1}, {3}, {4}] - F[{1}, {3,4}] - F[{1,3}, {4}] + F[{1,3,4}]
             """
             PS = Poset({B:B.finer_succ(strong=True) for B in A.finer(strong=True)})
             return self.sum_of_terms([(B, PS.moebius_function(A, B)) for B in PS])
@@ -2491,7 +2582,7 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: F = OMPNonCommutativeSymmetricFunctions(QQ).Fundamental()
+                sage: F = OMPQuasiSymmetricFunctions(QQ).Fundamental()
                 sage: F.dual_basis()
                 Free Hopf Algebra on Finite Sets over the Rational Field in the Ribbon basis
             """
