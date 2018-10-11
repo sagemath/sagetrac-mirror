@@ -1398,6 +1398,93 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         zeta, order = self.primitive_root_of_unity(n, order=True)
         return [ zeta**i for i in range(order) ]
 
+    def _is_valid_homomorphism_(self, codomain, im_gens):
+        if len(im_gens) != 1:
+            print("a")
+            return False
+        im = im_gens[0]
+        if not self.modulus()(im).is_zero():
+            print("b")
+            return False
+        if im.precision_absolute() > im.valuation() * self.uniformizer().precision_absolute():
+            print("im = %s" % im)
+            print("im.precision_absolue() = %s" % im.precision_absolute())
+            print("im.valuation() = %s" % im.valuation())
+            print("unif.valuation() = %s" % self.uniformizer().precision_absolute())
+            return False
+        return True
+
+    @cached_method
+    def ramification_filtration(self, name=None):
+        """
+        EXAMPLES::
+
+            sage: K = Qp(3, 10, print_mode='terse')
+            sage: S.<x> = K[]
+            sage: E = ((1 + x)^27 - 1) // ((1 + x)^9 - 1)
+            sage: L.<w> = K.extension(E)
+            sage: L
+            3-adic Eisenstein Extension Field in w defined by x^18 + 18*x^17 + ... + 3
+
+            sage: Fil = L.ramification_filtration()
+            sage: Fil
+            [3-adic Eisenstein Extension Field in w defined by x^18 + 18*x^17 + ... + 3,
+             3-adic Eisenstein Extension Field in w1 defined by x^6 + 6*x^5 + 15*x^4 + 21*x^3 + 18*x^2 + 9*x + 3,
+             3-adic Eisenstein Extension Field in w2 defined by x^2 + 3*x + 3,
+             3-adic Field with capped relative precision 10]
+
+            sage: Fil[0] is L
+            True
+            sage: Fil[-1] is K
+            True
+
+        We have coercion between the fields in the ramification filtration::
+
+            sage: L1 = Fil[1]; w1 = L1.gen()
+            sage: L2 = Fil[2]; w2 = L2.gen()
+            sage: w + w1 + w2
+            19696*w + 19722*w^2 + 85*w^3 + 126*w^4 + ... + O(w^171)
+
+        We check that the ramification filtration is correct::
+
+            sage: (1 + w1)^3 == 1 + w2
+            True
+            sage: (1 + w2)^3 == 1
+            True
+
+        """
+        F = self.base_ring()
+        if self.absolute_e() == 1:
+            return [F]
+        if name is None:
+            name = self.variable_name()
+        K = self
+        E = K.modulus()
+        polring = E.parent()
+        x = polring.gen()
+        depth = 1
+        Fil = [ self ]
+        while True:
+            w = K.gen()
+            P = E(x+w) >> 1
+            vertices = P.newton_polygon().vertices(copy=False)
+            if len(vertices) <= 2:
+                break
+            degree = vertices[1][0]
+            Q = P._factor_of_degree(degree).monic()
+            w *= Q(-w)
+            E = w.minimal_polynomial()
+            E = polring([ c.lift_to_precision() for c in E.list() ])  # we should check the Krasner bound
+            Kp = F.extension(E, names="%s%s" % (name, depth))
+            K.register_coercion(Kp.hom([w]))
+            K = Kp
+            Fil.append(K)
+            depth += 1
+        Fil.append(F)
+        if F.base_ring() is not F:
+            Fil.append(F.base_ring())
+        return Fil
+
 
 class ResidueReductionMap(Morphism):
     """

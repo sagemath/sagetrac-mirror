@@ -571,6 +571,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
         else:
             return infinity
 
+    def _im_gens_(self, codomain, im_gens):
+        im = codomain(im_gens[0])
+        return self.polynomial()(im)
+
 
     def artin_hasse_exp(self, prec=None, algorithm=None):
         r"""
