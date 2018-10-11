@@ -27,7 +27,7 @@ from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.commutative_rings import CommutativeRings
 from sage.categories.fields import Fields
 
-from sage.matrix.matrix_space import MatrixSpace
+from sage.matrix.constructor import matrix
 from sage.sets.set import Set
 from sage.rings.all import ZZ
 
@@ -35,6 +35,7 @@ from sage.functions.other import factorial
 
 from sage.combinat.posets.posets import Poset
 from sage.combinat.sf.sf import SymmetricFunctions
+from sage.combinat.sf.sfa import zee
 from sage.combinat.permutation import Permutations_mset
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.set_partition import SetPartitions_set
@@ -42,7 +43,7 @@ from sage.combinat.multiset_partition_into_sets_ordered import OrderedMultisetPa
 
 class OMPBases(Category_realization_of_parent):
     r"""
-    The category of bases of `OMPSym` and `OMPQSym`.
+    The category of bases of `OMPNSym` and `OMPQSym`.
     """
     def __init__(self, base, graded):
         r"""
@@ -50,15 +51,15 @@ class OMPBases(Category_realization_of_parent):
 
         INPUT:
 
-        - ``base`` -- an instance of `OMPSym` or `OMPQSym`
+        - ``base`` -- an instance of `OMPNSym` or `OMPQSym`
         - ``graded`` -- boolean; if the basis is graded or filtered
 
         TESTS::
 
             sage: from sage.combinat.chas.omp_hopf_algebras import OMPBases
-            sage: OMPSym = OMPNonCommutativeSymmetricFunctions(ZZ)
-            sage: bases = OMPBases(OMPSym, True)
-            sage: OMPSym.H() in bases
+            sage: OMPNSym = OMPNonCommutativeSymmetricFunctions(ZZ)
+            sage: bases = OMPBases(OMPNSym, True)
+            sage: OMPNSym.H() in bases
             True
         """
         self._graded = graded
@@ -71,8 +72,8 @@ class OMPBases(Category_realization_of_parent):
         EXAMPLES::
 
             sage: from sage.combinat.chas.omp_hopf_algebras import OMPBases
-            sage: OMPSym = OMPNonCommutativeSymmetricFunctions(ZZ)
-            sage: OMPBases(OMPSym, True)
+            sage: OMPNSym = OMPNonCommutativeSymmetricFunctions(ZZ)
+            sage: OMPBases(OMPNSym, True)
             Category of graded bases of Free Hopf Algebra on Finite Sets over Integer Ring
             sage: OMPQSym = OMPQuasiSymmetricFunctions(QQ, alphabet=[2,3,4], order_grading=False)
             sage: OMPBases(OMPQSym, False)
@@ -121,12 +122,12 @@ class OMPBases(Category_realization_of_parent):
     class ParentMethods:
         def _repr_(self):
             """
-            Text representation of this basis of `OMPSym` or `OMPQSym`.
+            Text representation of this basis of `OMPNSym` or `OMPQSym`.
 
             EXAMPLES::
 
-                sage: OMPSym = OMPNonCommutativeSymmetricFunctions(ZZ)
-                sage: OMPSym.H()
+                sage: OMPNSym = OMPNonCommutativeSymmetricFunctions(ZZ)
+                sage: OMPNSym.H()
                 Free Hopf Algebra on Finite Sets over Integer Ring in the Homogeneous basis
                 sage: OMPQSymA = OMPQuasiSymmetricFunctions(QQ, alphabet=[2,3,4])
                 sage: OMPQSymA.M()
@@ -226,7 +227,7 @@ class OMPBases(Category_realization_of_parent):
 
             INPUT:
 
-            - ``self`` -- an element of `OMPSym` or `OMPQSym`.
+            - ``self`` -- an element of `OMPNSym` or `OMPQSym`.
             - ``x`` -- an element of ``self.parent().dual_basis()``.
 
             OUTPUT:
@@ -256,15 +257,16 @@ class OMPBases(Category_realization_of_parent):
             x = self.parent().dual_basis()(x)
             return sum(coeff * x[I] for (I, coeff) in self)
 
+###### Common Basis Methods for OMPNSym & OMPQSym ######
 class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
     """
-    Abstract base class for bases of `OMPSym` and `OMPQSym`.
+    Abstract base class for bases of `OMPNSym` and `OMPQSym`.
 
     This must define two attributes:
 
     - ``_prefix`` -- the basis prefix
     - ``_basis_name`` -- the name of the basis (must match one
-      of the names that the basis can be constructed from OMPSym or OMPQSym)
+      of the names that the basis can be constructed from OMPNSym or OMPQSym)
     """
     def __init__(self, alg, graded=True):
         r"""
@@ -310,7 +312,7 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
 
     def _repr_term(self, x):
         """
-        Return a string representation of an element of `OMPSym` or `OMPQSym`
+        Return a string representation of an element of `OMPNSym` or `OMPQSym`
         in the basis ``self``.
 
         TESTS::
@@ -327,7 +329,7 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
         and ``False`` otherwise.
 
         The things that coerce into ``self`` are elements of a parent
-        of similar type (`OMPSym` or `OMPQSym`) over a base with a
+        of similar type (`OMPNSym` or `OMPQSym`) over a base with a
         coercion map into ``self.base_ring()``.
 
         TODO:
@@ -337,7 +339,7 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
               + if each omp in support of x is over an alphabet contained in H2._A,
               + then allow H2(x) instead of throwing a TypeError.
 
-            - add similar method in :class:`rCompBasis_OMPSym` that also absorbs NSYM.
+            - add similar method in :class:`rCompBasis_OMPNSym` that also absorbs NSYM.
             - add similar method in :class:`rCompBasis_OMPQSym` that also absorbs NCQSYM??
 
         EXAMPLES::
@@ -345,13 +347,13 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
             sage: H = OMPNonCommutativeSymmetricFunctions(GF(7)).H(); H
             Free Hopf Algebra on Finite Sets over Finite Field of size 7 in the Homogeneous basis
 
-        Elements of the Homogeneous basis of OMPSym canonically coerce in::
+        Elements of the Homogeneous basis of OMPNSym canonically coerce in::
 
             sage: a, b = H([[1]]), H([[2,3]])
             sage: H.coerce(a+b) == a+b
             True
 
-        Elements of the Homogeneous basis of OMPSym over `\ZZ` coerce in,
+        Elements of the Homogeneous basis of OMPNSym over `\ZZ` coerce in,
         since `\ZZ` coerces to `\GF{7}`::
 
             sage: HZ = OMPNonCommutativeSymmetricFunctions(ZZ).H(); HZ
@@ -362,7 +364,7 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
             sage: c.parent() is H
             True
 
-        However, `\GF{7}` does not coerce to `\ZZ`, so `OMPSym` over `\GF{7}`
+        However, `\GF{7}` does not coerce to `\ZZ`, so `OMPNSym` over `\GF{7}`
         does not coerce to the same algebra over `\ZZ`::
 
             sage: HZ.coerce(b)
@@ -373,7 +375,7 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
              Free Hopf Algebra on Finite Sets over Integer Ring in
              the Homogeneous basis
 
-        Elements of the Homogeneous basis of OMPSym over the same base ring
+        Elements of the Homogeneous basis of OMPNSym over the same base ring
         but with different alphabet coerce when one is contained in the other.
         This is independent of the grading chosen::
 
@@ -497,10 +499,10 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
 
 
 
-#################
-class OMPBasis_OMPSym(OMPBasis_abstract):
+###### Basis Methods for OMPNSym ######
+class OMPBasis_OMPNSym(OMPBasis_abstract):
     """
-    Add methods for `OMPSym` beyond those appearing in ``OMPBasis_abstract``
+    Add methods for `OMPNSym` beyond those appearing in ``OMPBasis_abstract``
     """
     def _Coerce_map_from_(self, R):
         """
@@ -621,7 +623,7 @@ class OMPBasis_OMPSym(OMPBasis_abstract):
                 - check and add to docstring: vsp map?, alg map?, coalg map? Hopf map?
                 - Fix what follows (docstring and code).
 
-            There is a canonical projection `\pi : OMPSym \to NSym`
+            There is a canonical projection `\pi : OMPNSym \to NSym`
             that sends ...
             This `\pi` is a Hopf algebra homomorphism.
 
@@ -654,12 +656,29 @@ class OMPBasis_OMPSym(OMPBasis_abstract):
             return S.sum_of_terms((A.shape_from_cardinality(), coeff/prod(factorial(len(a)) for a in A))
                                   for (A, coeff) in H(self))
 
-
+###### The Hopf algebra OMPNSym ######
 class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
-    Free Hopf Algebra on Finite Sets (OMPSym).
+    Free Hopf Algebra on Finite Sets (OMPNSym).
 
-    The Hopf algebra OMPSym is a free algebra built on finite subsets
+    INPUT:
+
+    - ``R`` -- a base ring for the algebra
+
+    OPTIONAL KEYWORDS:
+
+    - ``alphabet`` -- a list of positive integers or an integer `n`.
+      In the latter case, the alphabet is taken to be `\{1,\ldots,\}`.
+      If alphabet is passed, then basis keys are restricted to those
+      ordered multiset partitions into sets supported by ``alphabet``.
+
+    - ``order_grading`` -- a boolean that defaults to ``True`` if an
+      alphabet is passed, and to ``False`` otherwise. Determines the
+      grading function to be used for `OMPQSym`. Let `A` be an ordered
+      multiset partition into sets. If this keyword is ``True``, then
+      use ``A.order()`` as a degree function; else use ``A.size()``.
+
+    The Hopf algebra `OMPNSym` is a free algebra built on finite subsets
     of positive integers. Its coproduct is defined on subsets `K` via
 
     .. MATH::
@@ -668,7 +687,7 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     then extended multiplicatively and linearly. See [LM2018]_.
 
-    The product and coproduct are analogous to the complete/homogeneous
+    The product and coproduct are analogous to the complete (homogeneous)
     basis for the Hopf algebras :class:`NonCommutativeSymmetricFunctions`
     and :class:`SymmetricFunctions`, so we use `H` as prefix for this
     natural basis. E.g., for two subsets `K` and `L`, we write
@@ -679,15 +698,18 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     This Hopf algebra is implemented in the Homogeneous basis as a
     :class:`CombinatorialFreeModule` whose basis elements are indexed
-    by *ordered multiset partitions*, which are simply lists of subsets
-    of positive integers.
+    by *ordered multiset partitions into sets*, which are simply lists
+    of subsets of positive integers.
 
-    There are two natural gradings on OMP: grading by the *size* or by
-    the *order* of ordered multiset partitions. Only the first of these
+    There are two natural gradings on `OMPNSym`: grading by the *size* or
+    by the *order* of ordered multiset partitions. Only the first of these
     yields finite dimensional slices if a finite alphabet is not also
     provided. Hence, we allow an alphabet to be passed as an optional
-    argument. (The user may also elect to use the size grading, even if
-    a finite alphabet is passed.)
+    keyword argument. (The user may also elect to use the size grading,
+    even if a finite alphabet is passed.)
+
+    In the case that graded pieces are finite dimensional, then one may
+    speak of the graded dual Hopf algebra `OMPQSym`.
 
     .. SEEALSO::
 
@@ -698,46 +720,82 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     - [LM2018]_
 
-    EXAMPLES:
 
-    Standard use of Free Hopf Algebra on Finite Sets:
+    .. RUBRIC:: Standard use of Free Hopf Algebra on Finite Sets
 
-    We begin by first creating the ring of `OMPSym` and the bases that are
-    analogues of the usual non-commutative symmetric functions::
+    We begin by first creating the ring of `OMPNSym` and two bases that
+    are analogues of the usual non-commutative symmetric functions::
 
-        sage: OMPSym = OMPNonCommutativeSymmetricFunctions(QQ)
-        sage: H = OMPSym.H()
-        sage: P = OMPSym.P()
+        sage: OMPNSym = OMPNonCommutativeSymmetricFunctions(QQ)
+        sage: H = OMPNSym.H()
+        sage: P = OMPNSym.P()
         sage: H
         Free Hopf Algebra on Finite Sets over Rational Field
          in the Homogeneous basis
 
-    The basis is indexed by ordered multiset partitions, so we create an
-    element and convert it between these bases::
+    The homogeneous component of degree `d` of any basis is indexed by
+    ordered multiset partitions into sets of size `d`::
 
-        sage: elt = H(OrderedMultisetPartitionIntoSets([[2], [1,3]])) - 2*H(OrderedMultisetPartitionIntoSets([[1,2,3]])); elt
+        sage: H.basis(3).keys()
+        ???
+
+    So we create an element and convert it between these bases::
+
+        sage; OMP = OrderedMultisetPartitionIntoSets
+        sage: elt = H(OMP([[2], [1,3]])) - 2*H(OMP([[1,2,3]])); elt
         -2*H[{1,2,3}] + H[{2}, {1,3}]
         sage: P(elt)
         ???
 
+    Given an element of `OMPNSym` expressed in two different bases, the two
+    expressions are not treated as equal::
+
+        sage: P(elt) == elt
+        False
+        sage: H(P(elt)) == elt
+        True
+
     There is also a shorthand for creating elements. We note that we must
     use ``P[[]]`` to create the empty ordered multiset partition due to
-    python's syntax. ::
+    python's syntax::
 
         sage: elth = H[[2], [1,3]] - 2*H[[1,2,3]]; elth
         -2*H[{1,2,3}] + H[{2}, {1,3}]
         sage: eltp = P[[]] + elth; eltp
         ???
 
-    Restricting the alphabet and alternate grading:
+    .. RUBRIC:: Restricting the alphabet and using the order grading
 
-    Instead of working over ordered multiset partitions into sets, we
-    may restrict each block's elements to come from a finite alphabet `A`.
+    When the keyword ``alphabet`` is used to select an alphabet `A`, then
+    the homogeneous component of degree `d` of the basis is indexed by
+    ordered multiset partitions over `A` of order `d`::
+
+        sage: OMPNSymA = OMPNonCommutativeSymmetricFunctions(QQ, alphabet=[3,4,5])
+        sage: HA = OMPNSymA.H()
+        sage: HA.basis(3).keys()
+        ???
+
+    The keyword argument ``order_grading`` may be used to override the default
+    grading::
+
+        sage: OMPNSym_order = OMPNonCommutativeSymmetricFunctions(QQ, order_grading=True)
+        sage: H_order = OMPNSym_order.H()
+        sage: H_order.basis(3).keys()
+        ???
+
+        sage: OMPNSymA_size = OMPNonCommutativeSymmetricFunctions(QQ, alphabet=[3,4,5], order_grading=False)
+        sage: H_size = OMPNSymA_size.H()
+        sage: H_size.basis(3).keys()
+        ???
+
+    *Warning:* Realizations of `OMPNSym` such as ``OMPNSym_order`` above will
+    have infinite dimensional spaces for their graded slices `OMPNSym_d`.
+
+    .. RUBRIC:: Moving between realizations of `OMPNSym`
+
     If parents' alphabets are compatible, coerce elements between different
-    realizations of Dual of Free Hopf Algebra on Finite Sets::
+    realizations of `OMPNSym`::
 
-        sage: OMPSymA = OMPNonCommutativeSymmetricFunctions(QQ, alphabet=[3,4,5])
-        sage: HA = OMPSymA.HA()
         sage: HA.an_element()
         ???
         sage: H.an_element()
@@ -750,21 +808,6 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         TypeError: do not know how to make x (= 2*H[{1},{1,2}] + H[{4}])
          an element of self (=Free Hopf Algebra on Finite Sets on alphabet
          {3, 4, 5} over the Rational Field with order grading in the Homogeneous basis)
-
-    The homogeneous component of degree `d` of the basis is indexed by
-    ordered multiset partitions over `A` of order `d`::
-
-        sage: HA.basis(3).keys().list()
-        ???
-
-    If the keyword argument ``order_grading`` is set to ``False`` (or, if the
-    ``alphabet`` keyword is not used), then homogeneous degree is determined
-    by size of ordered multiset partitions::
-
-        sage: OMPSymB = OMPNonCommutativeSymmetricFunctions(QQ, alphabet=[3,4,5], order_grading=False)
-        sage: HB = OMPSymB.HB()
-        sage: HB.basis(12).keys().list()
-        ???
 
     TESTS::
 
@@ -784,9 +827,7 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     .. TODO::
 
-        - Add/correct the powersum basis.
-        - Add/correct maps to NCSym, NSym, Sym.
-        - Implement dual basis of `OMPSym` (which I call `OMPQSym` below).
+        - Add/correct maps to/from NCSym, NSym, Sym, ...
     """
     @staticmethod
     def __classcall_private__(cls, R, alphabet=None, order_grading=None):
@@ -874,7 +915,7 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.H()
 
-    _shorthands = tuple(['H', 'P'])
+    _shorthands = tuple(['H', 'P', 'R'])
 
     def dual(self):
         r"""
@@ -888,7 +929,7 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return OMPQuasiSymmetricFunctions(self.base_ring(), self._A, self._order_grading)
 
-    class H(OMPBasis_OMPSym):
+    class H(OMPBasis_OMPNSym):
         r"""
         The Homogeneous basis of Free Hopf Algebra on Finite Sets.
 
@@ -1080,12 +1121,12 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     Homogeneous = H
 
-    class P(OMPBasis_OMPSym):
+    class P(OMPBasis_OMPNSym):
         r"""
         The Powersum basis of Free Hopf Algebra on Finite Sets.
 
         The family `(P_\mu)`, as `\mu` ranges over all ordered multiset
-        partitions into sets, is a multiplicative basis of `OMPSym` called
+        partitions into sets, is a multiplicative basis of `OMPNSym` called
         the *Powersum basis* here. It is defined via a unitriangular change
         of basis from the Homogeneous basis as described below.
 
@@ -1131,13 +1172,12 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             Initialize ``self``.
             """
-            OMPBasis_OMPSym.__init__(self, alg)
+            OMPBasis_OMPNSym.__init__(self, alg)
 
             # Register coercions
             H = self.realization_of().H()
             phi = self.module_morphism(self._P_to_H, codomain=H, unitriangular="upper")
             phi.register_as_coercion()
-            #(~phi).register_as_coercion()
             phi_inv = H.module_morphism(self._H_to_P, codomain=self, unitriangular="upper")
             phi_inv.register_as_coercion()
 
@@ -1283,7 +1323,7 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - The coproduct applied to the element of `OMPSym` indexed by ``A``
+            - The coproduct applied to the element of `OMPNSym` indexed by ``A``
               expressed in the Powersum basis.
 
             EXAMPLES::
@@ -1315,7 +1355,160 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     Powersum = P
 
-#################
+    class R(OMPBasis_OMPNSym):
+        r"""
+        The Ribbon basis of Free Hopf Algebra on Finite Sets.
+
+        The family `(R_\mu)`, as `\mu` ranges over all ordered multiset
+        partitions into sets, is called the *Ribbon basis* here. It
+        is defined in relation to the Monomial basis of `OMPNSym` as "sum
+        above `\mu` in the strong refinement order."
+
+        EXAMPLES::
+
+            sage: R = OMPNonCommutativeSymmetricFunctions(QQ).Ribbon()
+            sage: H = OMPNonCommutativeSymmetricFunctions(QQ).Homogeneous()
+            sage: x = R[[1,2],[2],[4,5]]
+            sage: H(x)
+            ???
+            sage: x = R[[1,2],[2,4,5]]
+            sage: H(x)
+            ???
+
+            sage: R[[2,3],[1],[2,4]] * R[[1,3],[5]]
+            ???
+            sage: R[[2,3],[1],[2,4]] * R[[2,3],[5]]
+            ???
+            sage: R[[2,3]].coproduct()
+            ???
+            sage: R[[2,3],[1,2]].coproduct()
+            ???
+
+        TESTS::
+
+            sage: TestSuite(R).run()  # long time
+            sage: all(R(H(p)) == p for p in R.some_elements())
+            True
+        """
+        _prefix = "R"
+        _basis_name = "Ribbon"
+
+        def __init__(self, alg):
+            """
+            Initialize ``self``.
+            """
+            OMPBasis_OMPNSym.__init__(self, alg)
+
+            # Register coercions
+            H = self.realization_of().H()
+            phi = self.module_morphism(self._R_to_H, codomain=H, triangular="lower")
+            phi.register_as_coercion()
+            #(~phi).register_as_coercion()
+            phi_inv = H.module_morphism(self._H_to_R, codomain=self, triangular="lower")
+            phi_inv.register_as_coercion()
+
+        def _R_to_H(self, A):
+            """
+            Return `R_A` in terms of the Homogeneous basis.
+
+            INPUT:
+
+            - ``A`` -- an ordered multiset partition into sets
+
+            OUTPUT:
+
+            - An element of the Homogeneous basis
+
+            EXAMPLES::
+
+                sage: R = OMPQuasiSymmetricFunctions(QQ).Ribbon()
+                sage: A = OrderedMultisetPartitionIntoSets([])
+                sage: R._R_to_H(A)
+                M[]
+                sage: A = OrderedMultisetPartitionIntoSets([[1], [3], [3]])
+                sage: R._R_to_H(A)
+                M[{1},{3},{3}]
+
+                sage: B = OrderedMultisetPartitionIntoSets([[1,3], [2]])
+                sage: R._R_to_H(B)
+                M[{1},{3},{2}] + M[{1,3},{2}]
+                sage: B = OrderedMultisetPartitionIntoSets([[1,3], [1,4]])
+                sage: R._R_to_H(B)
+                M[{1},{3},{1},{4}] + M[{1},{3},{1,4}]
+                 + M[{1,3},{1},{4}] + M[{1,3},{1,4}]
+
+                sage: C = OrderedMultisetPartitionIntoSets([[1,3,4]])
+                sage: R._R_to_H(C)
+                M[{1},{3},{4}] + M[{1},{3,4}] + M[{1,3},{4}] + M[{1,3,4}]
+            """
+            H = self.realization_of().H()
+            PS = Poset({B:B.finer_pred(strong=True) for B in A.fatter(strong=True)})
+            return H.sum_of_terms([(B, PS.moebius_function(A, B)) for B in PS])
+
+        def _H_to_R(self, A):
+            """
+            Return `H_A` in terms of the Ribbon basis.
+
+            INPUT:
+
+            - ``A`` -- an ordered multiset partition into sets
+
+            OUTPUT:
+
+            - An element of the Ribbon basis
+
+            EXAMPLES::
+
+                sage: R = OMPQuasiSymmetricFunctions(QQ).R()
+                sage: A = OrderedMultisetPartitionIntoSets([])
+                sage: R._H_to_R(A)
+                F[]
+                sage: A = OrderedMultisetPartitionIntoSets([[1], [3], [3]])
+                sage: R._H_to_R(A)
+                F[{1},{3},{3}]
+
+                sage: B = OrderedMultisetPartitionIntoSets([[1,3], [2]])
+                sage: R._H_to_R(B)
+                -F[{1},{3},{2}] + F[{1,3},{2}]
+                sage: B = OrderedMultisetPartitionIntoSets([[1,3], [1,4]])
+                sage: R._H_to_R(B)
+                F[{1},{3},{1},{4}] - F[{1},{3},{1,4}] - M[{1,3},{1},{4}] + F[{1,3},{1,4}]
+
+                sage: C = OrderedMultisetPartitionIntoSets([[1,3,4]])
+                sage: R._H_to_R(C)
+                F[{1},{3},{4}] - F[{1},{3,4}] - F[{1,3},{4}] + F[{1,3,4}]
+            """
+            # base cases
+            if A.length() <= 1:
+                return self.monomial(A)
+
+            # sum over strongly fatter elements
+            terms = A.fatter(strong=True)
+            return self.sum_of_terms([(B,1) for B in terms])
+
+        def dual_basis(self):
+            r"""
+            Return the dual basis to the `\mathbf{R}` basis.
+
+            The dual basis to the `\mathbf{R}` basis is the Fundamental
+            basis of Dual of Free Hopf Algebra on Finite Sets.
+
+            OUTPUT:
+
+            - the Fundamental basis of Dual of Free Hopf Algebra on Finite Sets
+
+            EXAMPLES::
+
+                sage: R = OMPNonCommutativeSymmetricFunctions(QQ).Ribbon()
+                sage: R.dual_basis()
+                Dual of Free Hopf Algebra on Finite Sets over the Rational Field in the Fundamental basis
+            """
+            return self.realization_of().dual().Fundamental()
+
+    Ribbon = R
+
+
+###### Basis Methods for OMPQSym ######
 class OMPBasis_OMPQSym(OMPBasis_abstract):
     """
     Add methods for `OMPQSym` beyond those appearing in ``OMPBasis_abstract``
@@ -1443,143 +1636,195 @@ class OMPBasis_OMPQSym(OMPBasis_abstract):
                 terms.append((I, coeff))
             return M.sum_of_terms(terms)
 
-
-############################
+###### The Hopf algebra OMPQSym ######
 class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
-    The Hopf algebra that is graded dual to Free Hopf Algebra on Finite Sets (OMPSym).
+    The Hopf algebra (`OMPQSym`) that is the graded dual to
+    Free Hopf Algebra on Finite Sets (OMPNSym).
 
-    .. TODO:
+    INPUT:
 
-        modify/correct documentation, which was simply copied verbatim
-        from OMPNonCommutativeSymmetricFunctions
+    - ``R`` -- a base ring for the algebra
 
-    The Hopf algebra OMPSym is a free algebra built on finite subsets
-    of positive integers. Its coproduct is defined on subsets `K` via
+    OPTIONAL KEYWORDS:
+
+    - ``alphabet`` -- a list of positive integers or an integer `n`.
+      In the latter case, the alphabet is taken to be `\{1,\ldots,\}`.
+      If alphabet is passed, then basis keys are restricted to those
+      ordered multiset partitions into sets supported by ``alphabet``.
+
+    - ``order_grading`` -- a boolean that defaults to ``True`` if an
+      alphabet is passed, and to ``False`` otherwise. Determines the
+      grading function to be used for `OMPQSym`. Let `A` be an ordered
+      multiset partition into sets. If this keyword is ``True``, then
+      use ``A.order()`` as a degree function; else use ``A.size()``.
+
+    In addition to being the dual of the Hopf algebra `OMPNSym`, this
+    Hopf algebra has a realization as quasi-symmetric functions in
+    variables `x_{i,K}` satisfying the following relations:
+
+    - `x_{i, K}` and `x_{j, L}` commute if `i \neq j`;
+    - `x_{i, K} * x_{i, L}` equals zero when `K \cap L` is nonempty,
+      and equals `x_{i, K \cup L}` otherwise.
+
+    The quasi-symmetrizing action is on the first subscript, so, e.g.,
 
     .. MATH::
 
-        \Delta(K) = \sum_{I\sqcup J = K} I \otimes J,
+        (23) *\ast x_{1,\{2,5\}}x_{3, \{1,4,5\}} = x_{1,\{2,5\}}x_{2, \{1,4,5\}}
 
-    then extended multiplicatively and linearly. See [LM]_.
-
-    The product and coproduct are analogous to the complete/homogeneous
-    basis for the Hopf algebras :class:`NonCommutativeSymmetricFunctions`
-    and :class:`SymmetricFunctions`, so we use `H` as prefix for this
-    natural basis. E.g., for two subsets `K` and `L`, we write
+    The resulting quasi-symmetrized polynomial is denoted here by
+    `M_{[\{2,5\}, \{1,4,5\}]}`. As the number of variables `n` tends to
+    infinity, the product rule in this "monomial basis" becomes that
+    of the basis `H^*`, where `H` is the Homogeneous basis of `OMPNSym`:
 
     .. MATH::
 
-        H_{[K]} \cdot H_{[L]} = H_{[K, L]}.
+        M_A \cdot M_B = \sum_{C} M_C,
 
-    This Hopf algebra is implemented in the Homogeneous basis as a
+    where the sum is over "quasi-shuffles" of the ordered multiset
+    partitions `A` and `B`. (That is, shuffle the blocks `a` of `A`
+    with the blocks `b` of `B`, as well as merging `a\cup b` when
+    `a\cap b` is empty.)
+
+    A natural coproduct may be defined for these quasi-symmetric functions
+    using an alphabet doubling procedure. The resulting formula is
+    precisely the one holding for `H^*`:
+
+    .. MATH::
+
+        \Delta(M_C) = \sum_{A+B = C} M_A \otimes M_B,
+
+    where the sum is taken over deconcatenations of the ordered multiset
+    partition `C`.
+
+    This Hopf algebra is implemented in the Monomial basis as a
     :class:`CombinatorialFreeModule` whose basis elements are indexed
-    by *ordered multiset partitions*, which are simply lists of subsets
-    of positive integers.
+    by *ordered multiset partitions into sets*, which are simply lists
+    of subsets of positive integers.
 
-    There are two natural gradings on OMP: grading by the *size* or by
-    the *order* of ordered multiset partitions. Only the first of these
+    There are two natural gradings on `OMPQSym`: grading by the *size* or
+    by the *order* of ordered multiset partitions. Only the first of these
     yields finite dimensional slices if a finite alphabet is not also
     provided. Hence, we allow an alphabet to be passed as an optional
-    argument. (The user may also elect to use the size grading, even if
-    a finite alphabet is passed.)
+    keyword argument. (The user may also elect to use the size grading,
+    even if a finite alphabet is passed.)
+
+    In the case that graded pieces are finite dimensional, then one may
+    speak of the graded dual Hopf algebra `OMPNSym`.
 
     .. SEEALSO::
 
         :class:`OMPNonCommutativeSymmetricFunctions`
         :class:`OrderedMultisetPartitionsIntoSets`
 
-    EXAMPLES:
+    .. RUBRIC:: Standard use of Dual of Free Hopf Algebra on Finite Sets
 
-    Standard use of Free Hopf Algebra on Finite Sets:
-
-    We begin by first creating the ring of `OMPSym` and the bases that are
-    analogues of the usual non-commutative symmetric functions::
+    We begin by first creating the ring of `OMPQSym` and two bases that
+    are analogues of the usual non-commutative symmetric functions::
 
         sage: OMPQSym = OMPQuasiSymmetricFunctions(QQ)
-        sage: M = OMPQSym.M()
-        sage: M
+        sage: H = OMPQSym.M()
+        sage: Pd = OMPQSym.Pd()
+        sage: H
         Dual of Free Hopf Algebra on Finite Sets over Rational Field
          in the Monomial basis
 
-    The basis is indexed by ordered multiset partitions, so we create an
-    element and convert it between these bases::
+    The homogeneous component of degree `d` of any basis is indexed by
+    ordered multiset partitions into sets of size `d`::
 
-        sage: elt = H(OrderedMultisetPartitionIntoSets([[2], [1,3]])) - 2*H(OrderedMultisetPartitionIntoSets([[1,2,3]])); elt
-        -2*H[{1,2,3}] + H[{2}, {1,3}]
-        sage: P(elt)
+        sage: M.basis(3).keys()
         ???
+
+    So we create an element and convert it between these bases::
+
+        sage; OMP = OrderedMultisetPartitionIntoSets
+        sage: elt = M(OMP([[2], [1,3]])) - 2*M(OMP([[1,2,3]])); elt
+        -2*M[{1,2,3}] + M[{2}, {1,3}]
+        sage: Pd(elt)
+        ???
+
+    Given an element of `OMPQSym` expressed in two different bases, the two
+    expressions are not treated as equal::
+
+        sage: Pd(elt) == elt
+        False
+        sage: M(Pd(elt)) == elt
+        True
 
     There is also a shorthand for creating elements. We note that we must
-    use ``P[[]]`` to create the empty ordered multiset partition due to
-    python's syntax. ::
+    use ``Pd[[]]`` to create the empty ordered multiset partition due to
+    python's syntax::
 
-        sage: elth = H[[2], [1,3]] - 2*H[[1,2,3]]; elth
-        -2*H[{1,2,3}] + H[{2}, {1,3}]
-        sage: eltp = P[[]] + elth; eltp
+        sage: eltm = M[[2], [1,3]] - 2*M[[1,2,3]]; eltm
+        -2*M[{1,2,3}] + M[{2}, {1,3}]
+        sage: eltp = Pd[[]] + eltm; eltm
         ???
 
-    Restricting the alphabet and alternate grading:
+    .. RUBRIC:: Restricting the alphabet and using the order grading
 
-    Instead of working over ordered multiset partitions into sets, we
-    may restrict each block's elements to come from a finite alphabet `A`.
+    When the keyword ``alphabet`` is used to select an alphabet `A`, then
+    the homogeneous component of degree `d` of the basis is indexed by
+    ordered multiset partitions over `A` of order `d`::
+
+        sage: OMPQSymA = OMPQuasiSymmetricFunctions(QQ, alphabet=[3,4,5])
+        sage: MA = OMPQSymA.M()
+        sage: MA.basis(3).keys()
+        ???
+
+    The keyword argument ``order_grading`` may be used to override the default
+    grading::
+
+        sage: OMPQSym_order = OMPQuasiSymmetricFunctions(QQ, order_grading=True)
+        sage: M_order = OMPQSym_order.M()
+        sage: M_order.basis(3).keys()
+        ???
+
+        sage: OMPQSymA_size = OMPQuasiSymmetricFunctions(QQ, alphabet=[3,4,5], order_grading=False)
+        sage: M_size = OMPQSymA_size.M()
+        sage: M_size.basis(3).keys()
+        ???
+
+    *Warning:* Realizations of `OMPQSym` such as ``OMPQSym_order`` above will
+    have infinite dimensional spaces for their graded slices `OMPQSym_d`.
+
+    .. RUBRIC:: Moving between realizations of `OMPQSym`
+
     If parents' alphabets are compatible, coerce elements between different
-    realizations of Dual of Free Hopf Algebra on Finite Sets::
+    realizations of `OMPQSym`::
 
-        sage: MA = OMPQuasiSymmetricFunctions(QQ, alphabet=[3,4,5]).M()
-        sage: MO = OMPQuasiSymmetricFunctions(QQ, alphabet=[3,4,5], order_grading=False).M()
-        sage: MO.an_element()
-        2*M[{3},{3},{4,5}] + M[{3},{3,4,5}]
-        sage: MA(MO.an_element()) in MA
-        True
-
+        sage: MA.an_element()
+        ???
+        sage: M.an_element()
+        ???
         sage: M(MA.an_element()) in M
         True
-
-        sage: M.an_element()
-        2*M[{1},{1,2}] + M[{4}]
         sage: MA(M.an_element()) in MA
         Traceback (most recent call last):
         ...
-        TypeError: do not know how to make x (= 2*H[{1},{1,2}] + H[{4}])
-         an element of self (=Free Hopf Algebra on Finite Sets on alphabet
-         {3, 4, 5} over the Rational Field with order grading in the Homogeneous basis)
-
-    The homogeneous component of degree `d` of the basis is indexed by
-    ordered multiset partitions over `A` of order `d`::
-
-        sage: HA.basis(3).keys().list()
-        ???
-
-    If the keyword argument ``order_grading`` is set to ``False`` (or, if the
-    ``alphabet`` keyword is not used), then homogeneous degree is determined
-    by size of ordered multiset partitions::
-
-        sage: OMPSymB = OMPNonCommutativeSymmetricFunctions(QQ, alphabet=[3,4,5], order_grading=False)
-        sage: HB = OMPSymB.HB()
-        sage: HB.basis(12).keys().list()
-        ???
+        TypeError: do not know how to make x (= 2*M[{1},{1,2}] + M[{4}])
+         an element of self (=Dual of Free Hopf Algebra on Finite Sets on alphabet
+         {3, 4, 5} over the Rational Field with order grading in the Monomial basis)
 
     TESTS::
 
-        sage: H = OMPNonCommutativeSymmetricFunctions(QQ).H()
-        sage: a = H[OrderedMultisetPartitionIntoSets([[1]])]
-        sage: b = H[OrderedMultisetPartitionsIntoSets(1)([[1]])]
-        sage: c = H[[1]]
+        sage: M = OMPQuasiSymmetricFunctions(QQ).M()
+        sage: a = M[OrderedMultisetPartitionIntoSets([[1]])]
+        sage: b = M[OrderedMultisetPartitionsIntoSets(1)([[1]])]
+        sage: c = M[[1]]
         sage: a == b == c
         True
-        sage: H = OMPNonCommutativeSymmetricFunctions(QQ, alphabet=[2]).H()
-        sage: a = H[OrderedMultisetPartitionIntoSets([[2]])]
-        sage: b = H[OrderedMultisetPartitionsIntoSets(2)([[2]])]
-        sage: c = H[[2]]
-        sage: d = H[OrderedMultisetPartitionsIntoSets([1,2], 1)([[2]])]
+        sage: M = OMPNonCommutativeSymmetricFunctions(QQ, alphabet=[2]).M()
+        sage: a = M[OrderedMultisetPartitionIntoSets([[2]])]
+        sage: b = M[OrderedMultisetPartitionsIntoSets(2)([[2]])]
+        sage: c = M[[2]]
+        sage: d = M[OrderedMultisetPartitionsIntoSets([1,2], 1)([[2]])]
         sage: a == b == c == d
         True
 
     .. TODO::
 
-        - Add dual to the powersum basis of OMPSym.
-        - Add/correct maps to/from NCSym, NCQSym, Sym, QSym.
+        - Add/correct maps to/from NCQSym, QSym, Sym, ...
     """
     @staticmethod
     def __classcall_private__(cls, R, alphabet=None, order_grading=None):
@@ -1656,7 +1901,7 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.M()
 
-    _shorthands = tuple(['M'])
+    _shorthands = tuple(['M', 'Pd', 'F'])
 
     def dual(self):
         r"""
@@ -1674,14 +1919,15 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         r"""
         The Monomial basis of Dual of Hopf Algebra on Ordered Multiset Partitions.
 
-
         The family `(M_\mu)`, as `\mu` ranges over all ordered multiset
         partitions into sets, is the basis that is graded dual to the
         Homogeneous basis of Hopf Algebra on Ordered Multiset Partitions.
         By analogy with :class:`QuasiSymmetricFunctions`, it is called the
         *Monomial basis* here.
 
-        .. TODO: expand the docstring (mention quasi shuffle and deconcatenation)
+        Analogous to the Monomial basis of :class:`QuasiSymmetricFunctions`,
+        product and coproduct rules for `(M_\mu)` are given by "quasi-shuffle"
+        and "deconcatenate", respectively.
 
         EXAMPLES::
 
@@ -1704,6 +1950,17 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: M = OMPQuasiSymmetricFunctions(QQ).M()
             sage: TestSuite(M).run()  # long time
+
+            sage: M = OMPQuasiSymmetricFunctions(QQ).M()
+            sage: H = OMPNonCommutativeSymmetricFunctions(QQ).H()
+            sage: A = OrderedMultisetPartitionIntoSets([[1,2],[3]])
+            sage: B = OrderedMultisetPartitionIntoSets([[3]])
+            sage: C = OrderedMultisetPartitionIntoSets([[1,2,3],[3]])
+            sage: D = OrderedMultisetPartitionIntoSets([[1,2],[3],[3]])
+            sage: (M[A] * M[B]).duality_pairing(H[C])
+            sage: (M[A] * M[B]).duality_pairing(H[D])
+            sage: M[C].coproduct().duality_pairing(H[A].tensor(H[B]))
+            sage: M[D].coproduct().duality_pairing(H[A].tensor(H[B]))
 
         .. TODO: Do we need these tests, or are they checked within TestSuite?::
 
@@ -1858,7 +2115,7 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         partitions into sets, is called the *dual Powersum basis* here. It
         is defined in relation to the Monomial basis of `OMPQSym` as the
         transpose of the relationship between the bases `(H_\mu)` and
-        `(P_\nu)` of `OMPSym`.
+        `(P_\nu)` of `OMPNSym`.
 
         .. TODO:: give a more explicit description.
 
@@ -1914,26 +2171,33 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             - An element of the dual Powersum basis
 
-            TODO:: improve the examples!
-
             EXAMPLES::
 
                 sage: Pd = OMPQuasiSymmetricFunctions(QQ).Pd()
                 sage: A = OrderedMultisetPartitionIntoSets([[1,2,3]])
-                sage: Pd._Pd_to_M_on_basis(A)
-                ???
-                sage: B = OrderedMultisetPartitionIntoSets([[1,2],[3]])
-                sage: Pd._Pd_to_M_on_basis(B)
-                ???
+                sage: Pd._Pd_to_M(A)
+                M[{1,2,3}]
+                sage: A = OrderedMultisetPartitionIntoSets([[2,3,4],[1]])
+                sage: Pd._Pd_to_M(A)
+                M[{2,3,4},{1}]
+
+                sage: B = OrderedMultisetPartitionIntoSets([[1,3,4],[2]])
+                sage: Pd._Pd_to_M(B)
+                M[{1,3,4},{2}] + M[{1,2,3,4}]
+                sage: B = OrderedMultisetPartitionIntoSets([[1,3,6],[2,4],[5]])
+                sage: Pd._Pd_to_M(B)
+                M[{1,3,6},{2,4},{5}] + M[{1,3,6},{2,4,5}]
+                 + M[{1,2,3,4,6},{5}] + M[{1,2,3,4,5,6}]
             """
             M = self.realization_of().M()
             # base cases
             if A.length() <= 1:
                 return M.monomial(A)
 
-            # sum over certain elements in ``A.fatter()``
-            # a merging of adjacent blocks is allowed if their min elements are in order
-
+            # Sum over certain elements in ``A.fatter()``.
+            # A merging of adjacent blocks is allowed if their min elements are in order.
+            # This condition always reaches back to `A`, so one cannot just
+            # iterate through elements of `A`.fatter().
             def glueings(tupl_of_sets):
                 terms = [tupl_of_sets]
                 for A in terms:
@@ -1965,17 +2229,23 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             - An element of the dual Powersum basis
 
-            TODO:: improve the examples!
-
             EXAMPLES::
 
                 sage: Pd = OMPQuasiSymmetricFunctions(QQ).Pd()
                 sage: A = OrderedMultisetPartitionIntoSets([[1,2,3]])
-                sage: Pd._M_to_Pd_on_basis(A)
-                ???
-                sage: B = OrderedMultisetPartitionIntoSets([[1,2],[3]])
-                sage: Pd._M_to_Pd_on_basis(B)
-                ???
+                sage: Pd._M_to_Pd(A)
+                Pd[{1,2,3}]
+                sage: A = OrderedMultisetPartitionIntoSets([[2,3,4],[1]])
+                sage: Pd._M_to_Pd(A)
+                Pd[{2,3,4},{1}]
+
+                sage: B = OrderedMultisetPartitionIntoSets([[1,3,4],[2]])
+                sage: Pd._M_to_Pd(B)
+                Pd[{1,3,4},{2}] - Pd[{1,2,3,4}]
+                sage: B = OrderedMultisetPartitionIntoSets([[1,3,6],[2,4],[5]])
+                sage: Pd._M_to_Pd(B)
+                -Pd[{1,3,6},{2,4,5}] - Pd[{1,2,3,4,6},{5}]
+                 + Pd[{1,2,3,4,5,6}] + Pd[{1,3,6},{2,4},{5}]
             """
             # base cases
             if A.length() <= 1:
@@ -2078,10 +2348,153 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     PowersumDual = Pd
 
+    class F(OMPBasis_OMPQSym):
+        r"""
+        The Fundamental basis of Dual of Free Hopf Algebra on Finite Sets.
 
+        The family `(F_\mu)`, as `\mu` ranges over all ordered multiset
+        partitions into sets, is called the *Fundamental basis* here. It
+        is defined in relation to the Monomial basis of `OMPQSym` as "sum
+        above `\mu` in the refinement order."
 
-####### Auxillary Functions #################
-def zee(x):
-    if not x in Partitions():
-        x = Partitions()(sorted(x, reverse=True))
-    return x.centralizer_size()
+        .. TODO:: tell the truth above and give a more explicit description.
+
+        EXAMPLES::
+
+            sage: F = OMPQuasiSymmetricFunctions(QQ).Fundamental()
+            sage: F[[2,3]].coproduct()
+            ???
+            sage: F[[2,3],[1,2]].coproduct()
+            ???
+            sage: F[[2,3]] * F[[1,2]]
+            ???
+            sage: M = OMPQuasiSymmetricFunctions(QQ).Monomial()
+            sage: p = F[[1,2],[3],[4,5]]
+            sage: M(p)
+            ???
+            sage: q = F[[1,2],[3],[1,4,5]]
+            sage: M(q)
+            ???
+
+        TESTS::
+
+            sage: TestSuite(F).run()  # long time
+            sage: all(F(M(p)) == p for p in F.some_elements())
+            True
+        """
+        _prefix = "F"
+        _basis_name = "Fundamental"
+
+        def __init__(self, alg):
+            """
+            Initialize ``self``.
+            """
+            OMPBasis_OMPQSym.__init__(self, alg)
+
+            # Register coercions
+            M = self.realization_of().M()
+            phi = self.module_morphism(self._F_to_M, codomain=M, triangular="lower")
+            phi.register_as_coercion()
+            #(~phi).register_as_coercion()
+            phi_inv = M.module_morphism(self._M_to_F, codomain=self, triangular="lower")
+            phi_inv.register_as_coercion()
+
+        def _F_to_M(self, A):
+            """
+            Return `F_A` in terms of the Monomial basis.
+
+            INPUT:
+
+            - ``A`` -- an ordered multiset partition into sets
+
+            OUTPUT:
+
+            - An element of the Monomial basis
+
+            EXAMPLES::
+
+                sage: F = OMPQuasiSymmetricFunctions(QQ).F()
+                sage: A = OrderedMultisetPartitionIntoSets([])
+                sage: F._F_to_M(A)
+                M[]
+                sage: A = OrderedMultisetPartitionIntoSets([[1], [3], [3]])
+                sage: F._F_to_M(A)
+                M[{1},{3},{3}]
+
+                sage: B = OrderedMultisetPartitionIntoSets([[1,3], [2]])
+                sage: F._F_to_M(B)
+                M[{1},{3},{2}] + M[{1,3},{2}]
+                sage: B = OrderedMultisetPartitionIntoSets([[1,3], [1,4]])
+                sage: F._F_to_M(B)
+                M[{1},{3},{1},{4}] + M[{1},{3},{1,4}]
+                 + M[{1,3},{1},{4}] + M[{1,3},{1,4}]
+
+                sage: C = OrderedMultisetPartitionIntoSets([[1,3,4]])
+                sage: F._F_to_M(C)
+                M[{1},{3},{4}] + M[{1},{3,4}] + M[{1,3},{4}] + M[{1,3,4}]
+            """
+            M = self.realization_of().M()
+            # base cases
+            if A.length() == A.order():
+                return M.monomial(A)
+
+            # sum over strongly finer elements
+            terms = A.finer(strong=True)
+            return M.sum_of_terms([(B,1) for B in terms])
+
+        def _M_to_F(self, A):
+            """
+            Return `M_A` in terms of the Fundamental basis.
+
+            INPUT:
+
+            - ``A`` -- an ordered multiset partition into sets
+
+            OUTPUT:
+
+            - An element of the Fundamental basis
+
+            EXAMPLES::
+
+                sage: F = OMPQuasiSymmetricFunctions(QQ).F()
+                sage: A = OrderedMultisetPartitionIntoSets([])
+                sage: F._M_to_F(A)
+                F[]
+                sage: A = OrderedMultisetPartitionIntoSets([[1], [3], [3]])
+                sage: F._M_to_F(A)
+                F[{1},{3},{3}]
+
+                sage: B = OrderedMultisetPartitionIntoSets([[1,3], [2]])
+                sage: F._M_to_F(B)
+                -F[{1},{3},{2}] + F[{1,3},{2}]
+                sage: B = OrderedMultisetPartitionIntoSets([[1,3], [1,4]])
+                sage: F._M_to_F(B)
+                F[{1},{3},{1},{4}] - F[{1},{3},{1,4}] - M[{1,3},{1},{4}] + F[{1,3},{1,4}]
+
+                sage: C = OrderedMultisetPartitionIntoSets([[1,3,4]])
+                sage: F._M_to_F(C)
+                F[{1},{3},{4}] - F[{1},{3,4}] - F[{1,3},{4}] + F[{1,3,4}]
+            """
+            PS = Poset({B:B.finer_succ(strong=True) for B in A.finer(strong=True)})
+            return self.sum_of_terms([(B, PS.moebius_function(A, B)) for B in PS])
+
+        def dual_basis(self):
+            r"""
+            Return the dual basis to the `\mathbf{F}` basis.
+
+            The dual basis to the `\mathbf{F}` basis is the Ribbon
+            basis of Free Hopf Algebra on Finite Sets.
+
+            OUTPUT:
+
+            - the Ribbon basis of Free Hopf Algebra on Finite Sets
+
+            EXAMPLES::
+
+                sage: F = OMPNonCommutativeSymmetricFunctions(QQ).Fundamental()
+                sage: F.dual_basis()
+                Free Hopf Algebra on Finite Sets over the Rational Field in the Ribbon basis
+            """
+            return self.realization_of().dual().Ribbon()
+
+    Fundamental = F
