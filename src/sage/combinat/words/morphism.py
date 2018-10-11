@@ -13,6 +13,7 @@ AUTHORS:
 - Sebastien Labbe (2009-11-20): allowing the choice of the
   datatype of the image. Doc improvements.
 - Stepan Starosta (2012-11-09): growing letters
+- Paul Mercat (2018): computation of Dumont-Thomas numeration
 
 EXAMPLES:
 
@@ -2843,7 +2844,66 @@ class WordMorphism(SageObject):
             G.set_aspect_ratio(1)
 
         return G
-
+    
+    def DumontThomas(self, initial_state=None, final_states=None, verb=False):
+#        r"""
+#        Return a BetaAdic corresponding to the Dumont-Thomas numeration of the substitution.
+#        """
+        M = self.incidence_matrix()
+        #choose b
+        le = M.eigenvalues()
+        dm = max([x.minpoly().degree() for x in le])
+        led = [x for x in le if x.minpoly().degree() == dm]
+        lem = [x for x in led if abs(x) < 1]
+        if lem == []:
+            from sage.rings.qqbar import AA
+            lec = [x for x in led if x not in AA]
+            if lec == []:
+                b = led[0]
+            else:
+                b = lec[0]
+        else:
+            from sage.rings.qqbar import AA
+            lec = [x for x in lem if x not in AA]
+            if lec == []:
+                b = lem[0]
+            else:
+                b = lec[0]
+        if verb:
+            print(b)
+        from sage.rings.number_field.number_field import NumberField
+        K = NumberField(b.minpoly(), 'b', embedding=b)
+        b = K.gen()
+        # Left eigenvector vb in the number field Q(b)
+        vb = (M-b).kernel().basis()[0]
+        if verb:
+            print(vb)
+        #construct the automaton
+        A = self.domain().alphabet()
+        if initial_state is None:
+            initial_state = A[0]
+        if verb:
+            print("initial state %s"%initial_state)
+        dA = dict()
+        for i,a in enumerate(A):
+            dA[a] = i
+        L = []
+        for c in A:
+            t = 0
+            for c2 in self(c):
+                L.append((c,c2,t))
+                t += vb[dA[c2]]
+        if verb:
+            print(L)
+        from sage.combinat.words.cautomata import DetAutomaton
+        if final_states is None:
+            final_states = A
+        a = DetAutomaton(L, i=initial_state, final_states=final_states)
+        if verb:
+            print(a)
+        from sage.arith.beta_adic import BetaAdicMonoid
+        return BetaAdicMonoid(b, a)
+    
     def is_growing(self, letter=None):
         r"""
         Return ``True`` if ``letter`` is a growing letter.

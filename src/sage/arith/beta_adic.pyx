@@ -779,16 +779,21 @@ cdef class BetaAdicMonoid:
         self.a = a
         
         #test if letters of a are in K
-        
-        for c in self.a.A:
-            try:
-                if c not in self.K:
-                    if c not in CC:
-                        raise ValueError("Label %s of the automaton is not in the field %s !"%(c, self.K))
-                    else:
-                        self.K = CC
-            except:
-                raise ValueError("Cannot check if the letter '%s' of the alphabet of the automaton is in the field '%s'."%(c, self.K))
+        try:
+            self.a.A = [self.K(c) for c in self.a.A]
+        except:
+            raise ValueError("Alphabet %s of the automaton is not in the field %s of b !"%(self.a.A, self.K))
+#        for c in self.a.A:
+#            try:
+#                c = self.K(c)
+#            except:
+#                try:
+#                    if c not in CC:
+#                        raise ValueError("Label %s of the automaton is not in the field %s !"%(c, self.K))
+#                    else:
+#                        self.K = CC
+#                else:
+#                    raise ValueError("Cannot check if the letter '%s' of the alphabet of the automaton is in the field '%s'."%(c, self.K))
 
     def __repr__(self):
         r"""
@@ -1307,37 +1312,44 @@ cdef class BetaAdicMonoid:
         #. The dragon fractal::
 
             sage: m = BetaAdicMonoid(1/(1+I), dag.AnyWord([0,1]))
-            sage: m.plot()     # long time
+            sage: m.plot()
         
         #. Another dragon fractal::
     
             sage: b = (2*x^2+x+1).roots(ring=CC)[0][0]
             sage: m = BetaAdicMonoid(b, dag.AnyWord([0,1]))
-            sage: m.plot()      # long time
+            sage: m.plot()
         
         #. The Rauzy fractal of the Tribonacci substitution::
 
             sage: s = WordMorphism('1->12,2->13,3->1')
-            sage: m = s.rauzy_fractal_beta_adic_monoid()
-            sage: m.plot()    # long time
+            sage: m = s.DumontThomas()
+            sage: m.plot()
+        
+        #. The Rauzy fractal of the flipped Tribonacci substitution::
+
+            sage: s = WordMorphism('1->12,2->31,3->1')
+            sage: m = s.DumontThomas()
+            sage: m.plot()
         
         #. A non-Pisot Rauzy fractal::
 
             sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
-            sage: m = s.rauzy_fractal_beta_adic_monoid()
+            sage: m = s.DumontThomas()
+            sage: m.plot()
             sage: m = BetaAdicMonoid(1/m.b, m.a)
-            sage: m.plot()     # long time
+            sage: m.plot()
         
         #. A part of the boundary of the dragon fractal::
 
-            sage: m = BetaAdicMonoid(1/(1+I), {0,1})
+            sage: m = BetaAdicMonoid(1/(1+I), dag.AnyWord([0,1]))
             sage: i = m.intersection_words(w1=[0], w2=[1])     # long time
             sage: i.plot()                               # long time
 
         #. A part of the boundary of the "Hokkaido" fractal::
 
             sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
-            sage: m = s.rauzy_fractal_beta_adic_monoid()
+            sage: m = s.Du‡montThomas()
             sage: i = m.intersection_words(w1=[0], w2=[1])                  # long time
             sage: i.plot(colormap='gist_rainbow')    # long time
 
@@ -1346,7 +1358,7 @@ cdef class BetaAdicMonoid:
             sage: P=x^4 + x^3 - x + 1
             sage: b = P.roots(ring=QQbar)[2][0]
             sage: m = BetaAdicMonoid(b, dag.AnyWord([0,1]))
-            sage: m.plot()                                   # long time
+            sage: m.plot()
 
         """
         cdef Surface s
@@ -1450,13 +1462,13 @@ cdef class BetaAdicMonoid:
         #. The Rauzy fractal of the Tribonacci substitution::
 
             sage: s = WordMorphism('1->12,2->13,3->1')
-            sage: m = s.rauzy_fractal_beta_adic_monoid()
+            sage: m = s.DumontThomas()
             sage: m.plot3()     # long time
 
         #. A non-Pisot Rauzy fractal::
 
             sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
-            sage: m = s.rauzy_fractal_beta_adic_monoid()
+            sage: m = s.DumontThomas()
             sage: m.b = 1/m.b
             sage: m.plot3(tss=m.ss)     # long time
 
@@ -1471,7 +1483,7 @@ cdef class BetaAdicMonoid:
         #. The "Hokkaido" fractal and its boundary::
 
             sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
-            sage: m = s.rauzy_fractal_beta_adic_monoid()
+            sage: m = s.DumontThomas()
             sage: ssi = m.intersection_words(w1=[0], w2=[1])                # long time
 
             sage: m.plot3(la=[la[0], ssi]+la[1:], colormap='gist_rainbow')  # long time
@@ -2364,7 +2376,7 @@ cdef class BetaAdicMonoid:
             #. Hausdorff dimension of the boundary of a Rauzy fractal::
 
                 sage: s = WordMorphism('1->12,2->13,3->1')
-                sage: m = s.rauzy_fractal_beta_adic_monoid()
+                sage: m = s.DumontThomas()
                 sage: ssi = m.intersection_words(w1=[0], w2=[1])
                 sage: m.critical_exponent_free(ss=ssi)
                 log(y)/log(|b|) where y is the max root of x^4 - 2*x - 1
@@ -2373,7 +2385,7 @@ cdef class BetaAdicMonoid:
             #. Hausdorff dimension of a non-Pisot Rauzy fractal::
 
                 sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
-                sage: m = s.rauzy_fractal_beta_adic_monoid()
+                sage: m = s.DumontThomas()
                 sage: m.b = 1/m.b
                 sage: m.ss = m.ss.mirror().determinize().minimize()
                 sage: m.critical_exponent_free()

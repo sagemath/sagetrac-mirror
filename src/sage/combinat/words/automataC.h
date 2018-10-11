@@ -30,7 +30,6 @@ void FreeAutomatons (Automaton* a, int n);
 void FreeNAutomaton (NAutomaton *a);
 void AddTransitionN (NAutomaton *a, int e, int f, int l);
 void AddPathN (NAutomaton *a, int e, int f, int *l, int len, bool verb);
-Automaton CopyAutomaton (Automaton a, int nalloc, int naalloc);
 NAutomaton CopyNAutomaton(NAutomaton a, int nalloc, int naalloc);
 Automaton PieceAutomaton (Automaton a, int *w, int n, int e); //gives an automaton recognizing w(w^(-1)L) where L is the language of a starting from e
 void initAutomaton (Automaton *a);
