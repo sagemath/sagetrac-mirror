@@ -32,10 +32,12 @@ from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.family import Family
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.combinat.set_partition_ordered import OrderedSetPartition, OrderedSetPartitions
 from sage.combinat.tools import transitive_ideal
 from sage.combinat.composition import Composition
 from sage.combinat.permutation import Permutations
+from sage.combinat.permutation import to_standard
 from sage.combinat.words.finite_word import evaluation_dict
 from sage.combinat.combinatorial_map import combinatorial_map
 
@@ -797,7 +799,7 @@ class PackedWord(ClonableIntArray):
         """
         return transitive_ideal(lambda x: x.right_weak_order_succ(), self)
 
-    def right_weak_order_interval(self, pw):
+    def right_weak_order_interval(self, other):
         r"""
         Return the list of packed words in the interval
         between `self` and `pw` under the right weak order.
@@ -820,31 +822,34 @@ class PackedWord(ClonableIntArray):
             sage: P([1, 2, 1, 3, 4, 1]).right_weak_order_interval(P([3, 1, 2, 4, 1, 1]))
             [[1, 2, 1, 3, 4, 1],
              [1, 2, 3, 1, 4, 1],
-             [1, 2, 3, 4, 1, 1],
              [1, 3, 2, 1, 4, 1],
-             [1, 3, 2, 4, 1, 1],
+             [1, 2, 3, 4, 1, 1],
              [3, 1, 2, 1, 4, 1],
+             [1, 3, 2, 4, 1, 1],
              [3, 1, 2, 4, 1, 1]]
         """
-        if pw in self.parent():
-            pw = self.parent()(pw)
+        if other in self.parent():
+            other = self.parent()(other)
         else:
-            raise ValueError("{0} is not a member of {1}".format(pw, self.parent()))
+            raise ValueError("{0} is not a member of {1}".format(other, self.parent()))
 
-        G = self.right_weak_order_greater()
         res = []
-
-        if pw in G:
-            for s_pw in pw.right_weak_order_smaller():
-                if s_pw in G:
-                    res += [s_pw]
-            return res
-
-        S = self.right_weak_order_smaller()
-        if pw in S :
-            for g_pw in pw.right_weak_order_greater():
-                if g_pw in S:
-                    res += [g_pw]
+        up = lambda a: a.right_weak_order_succ()
+        if self.is_gequal(other):
+            UP_other = RecursivelyEnumeratedSet([other], up, structure="graded")
+            for x in UP_other:
+                if x.is_lequal(self):
+                    res.append(x)
+                elif len(x.inversions()) > len(self.inversions()):
+                    break
+                    
+        elif other.is_gequal(self):
+            UP_self = RecursivelyEnumeratedSet([self], up, structure="graded")
+            for x in UP_self:
+                if x.is_lequal(other):
+                    res.append(x)
+                elif len(x.inversions()) > len(other.inversions()):
+                    break
 
         return res
 
@@ -994,7 +999,7 @@ class PackedWord(ClonableIntArray):
         """
         return transitive_ideal(lambda x: x.left_weak_order_succ(), self)
 
-    def left_weak_order_interval(self, pw):
+    def left_weak_order_interval(self, other):
         r"""
         Return the list of packed words in the interval
         between `self` and `pw` under the let weak order.
@@ -1020,27 +1025,107 @@ class PackedWord(ClonableIntArray):
              [3, 4, 1, 2, 1, 2],
              [4, 3, 1, 2, 1, 2]]
         """
-        if pw in self.parent():
-            pw = self.parent()(pw)
+        if other in self.parent():
+            other = self.parent()(other)
         else:
-            raise ValueError("{0} is not a member of {1}".format(pw, self.parent()))
+            raise ValueError("{0} is not a member of {1}".format(other, self.parent()))
 
-        G = self.left_weak_order_greater()
         res = []
-
-        if pw in G:
-            for s_pw in pw.left_weak_order_smaller():
-                if s_pw in G:
-                    res += [s_pw]
-            return res
-
-        S = self.left_weak_order_smaller()
-        if pw in S :
-            for g_pw in pw.left_weak_order_greater():
-                if g_pw in S:
-                    res += [g_pw]
+        up = lambda a: a.left_weak_order_succ()
+        if self.is_gequal(other, side="left"):
+            UP_other = RecursivelyEnumeratedSet([other], up, structure="graded")
+            for x in UP_other:
+                if x.is_lequal(self, side="left"):
+                    res.append(x)
+                elif len(x.inversions(side="left")) > len(self.inversions(side="left")):
+                    break
+                    
+        elif other.is_gequal(self, side="left"):
+            UP_self = RecursivelyEnumeratedSet([self], up, structure="graded")
+            for x in UP_self:
+                if x.is_lequal(other, side="left"):
+                    res.append(x)
+                elif len(x.inversions(side="left")) > len(other.inversions(side="left")):
+                    break
 
         return res
+
+    def is_gequal(self, pw, side="right"):
+        r"""
+        Return whether ``pw`` is greater than
+
+            sage: u = PackedWord([3, 1, 1, 2])
+            sage: v = PackedWord([3, 1, 2, 1])
+            sage: w = PackedWord([3, 2, 2, 1])
+            sage: v.is_gequal(v)
+            True
+            sage: v.is_gequal(u)
+            True
+            sage: v.is_gequal(w)
+            False
+            sage: w.is_gequal(u, side="left")
+            True
+            
+            sage: u = PackedWords(3).random_element()
+            sage: v = PackedWords(4).random_element()
+            sage: v.is_gequal(u)
+            False
+            sage: v.is_gequal(u, side="left")
+            False
+            
+            sage: u = PackedWords(5).random_element()
+            sage: v = PackedWords(5).random_element()
+            sage: v.is_gequal(u) == (v in u.right_weak_order_greater())
+            True
+            sage: v.is_gequal(u, side="left") == (v in u.left_weak_order_greater())
+            True
+        """
+        if not side in ["left", "right"]:
+            raise ValueError("option 'side' must be 'left' or 'right'")
+        
+        if side == "right" and self.to_composition() == pw.to_composition():
+            std_self = PackedWord(to_standard(self))
+            std_pw = PackedWord(to_standard(pw))
+            return std_pw.inversions(side="left").issubset(std_self.inversions(side="left"))
+        
+        s1=set(self.to_ordered_set_partition())
+        s2=set(pw.to_ordered_set_partition())
+        if side == "left" and s1 == s2:
+            return pw.inversions().issubset(self.inversions())
+        
+        return False
+    
+    def is_lequal(self, pw, side="right"):
+        r"""
+        Return whether ``pw`` is greater than
+
+            sage: u = PackedWord([3, 1, 1, 2])
+            sage: v = PackedWord([3, 1, 2, 1])
+            sage: w = PackedWord([3, 2, 2, 1])
+            sage: v.is_lequal(v)
+            True
+            sage: v.is_lequal(u)
+            False
+            sage: v.is_lequal(w)
+            False
+            sage: u.is_lequal(w, side="left")
+            True
+            
+            sage: u = PackedWords(3).random_element()
+            sage: v = PackedWords(4).random_element()
+            sage: v.is_lequal(u)
+            False
+            sage: v.is_lequal(u, side="left")
+            False
+            
+            sage: u = PackedWords(5).random_element()
+            sage: v = PackedWords(5).random_element()
+            sage: v.is_lequal(u) == (v in u.right_weak_order_greater())
+            True
+            sage: v.is_lequal(u, side="left") == (v in u.left_weak_order_greater())
+            True
+        """
+        return pw.is_gequal(self, side)
 
 #==============================================================================
 # Parent classes
