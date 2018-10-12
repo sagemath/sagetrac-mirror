@@ -26,17 +26,18 @@ from sage.structure.element import parent
 from sage.structure.list_clone import ClonableIntArray
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.misc import uniq
-from collections import defaultdict
 
 from sage.rings.integer_ring import ZZ
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.family import Family
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.combinat.set_partition_ordered import OrderedSetPartition, OrderedSetPartitions
 from sage.combinat.tools import transitive_ideal
 from sage.combinat.composition import Composition
 from sage.combinat.permutation import Permutations
+from sage.combinat.permutation import to_standard
 from sage.combinat.words.finite_word import evaluation_dict
 from sage.combinat.combinatorial_map import combinatorial_map
 
@@ -46,12 +47,10 @@ class PackedWord(ClonableIntArray):
     r"""
     A packed word.
 
-    A word `w` over the positive integers is a *packed word* if for each
-    number `k > 1` appearing in `w`, the number `k - 1` also appears in `w`.
+    A word `u` over the positive integers is a *packed word* if for each
+    number `k > 1` appearing in `u`, the number `k - 1` also appears in `u`.
 
-    .. SEEALSO::
-
-        :class:`PackedWords`
+    .. SEEALSO:: :class:`PackedWords`
 
     EXAMPLES::
 
@@ -74,7 +73,7 @@ class PackedWord(ClonableIntArray):
         sage: TestSuite(w).run()
         sage: w = PackedWord([1, 3, 3, 2, 4, 1, 3])
         sage: TestSuite(w).run()
-    """    
+    """
     @staticmethod
     def __classcall_private__(cls, lst=[], check=True):
         r"""
@@ -97,10 +96,10 @@ class PackedWord(ClonableIntArray):
             True
         """
         P = PackedWords_all()
-        return P(lst, check = check)
+        return P(lst, check=check)
 
-    
-    def __init__(self, parent, lst, check = True):
+
+    def __init__(self, parent, lst, check=True):
         r"""
         Initialize ``self``.
 
@@ -108,18 +107,14 @@ class PackedWord(ClonableIntArray):
 
             sage: TestSuite(PackedWords()).run()  # long time
         """
-        ClonableIntArray.__init__(self, parent, lst, check = check)
+        ClonableIntArray.__init__(self, parent, lst, check=check)
         self._max = 0 if not lst else max(lst)
+        self._size = len(lst)
 
     def check(self):
         r"""
         Check that ``self`` is a packed word.
 
-        TODO:
-        
-            - Check all entries in ZZ.
-            - simplify check (existing code should be in _element_constructor_?)
-        
         TESTS::
 
             sage: PackedWord([3, 3, 2, 1])  # indirect doctest
@@ -128,35 +123,20 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([2, 2, 1, 0, 4])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: [2, 2, 1, 0, 4] is not a packed word
+            ValueError: [2, 2, 1, 0, 4] not in Packed words
 
             sage: PackedWords(3)([1,2])
             Traceback (most recent call last):
             ...
             ValueError: [1, 2] is not a packed word of size 3
 
-            sage: PackedWords(3)([]) 
+            sage: PackedWords(3)([])
             Traceback (most recent call last):
             ...
             ValueError: [] is not a packed word of size 3
         """
-        if not self:
-            if parent(self)._size == 0:
-                return 
-            else:
-                raise ValueError("{} is not a packed word of size {}".format(self, parent(self)._size))
-        try:
-            s = set(self)
-        except (ValueError, TypeError):
-            # Elements not hashable
-            raise ValueError("{} is not a packed word".format(self))
-
-        m = max(s)
-        if s != set(range(1, m + 1)):
-            raise ValueError("{} is not a packed word".format(self))
-
-        if len(self) != parent(self)._size:
-            raise ValueError("{} is not a packed word of size {}".format(self, parent(self)._size))
+        if self not in self.parent():
+            raise ValueError("%s not in %s"%(self, self.parent()))
 
     def _latex_(self):
         r"""
@@ -191,20 +171,20 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([1, 2, 3, 1, 1, 3]).to_ordered_set_partition()
             [{1, 4, 5}, {2}, {3, 6}]
         """
-        lst = [[]]*self._max
+        lst = [[]] * self._max
         for i, val in enumerate(self):
             lst[val-1] = lst[val-1] + [i+1]
         return OrderedSetPartition(lst)
-    
+
     @combinatorial_map(name='to composition')
     def to_composition(self):
         r"""
         Return the compostion associated to ``self``.
 
-        Given a packed word `w` with `\ell` letters, we construct a
+        Given a packed word `u` with greatest letter `\ell`, we construct a
         composition `\alpha = (\alpha_1, \alpha_2, \dotsc, \alpha_{\ell})`
-        by `\alpha_i` being the multiplicity of `i` in `w`.
-        
+        by `\alpha_i` being the multiplicity of `i` in `u`.
+
         EXAMPLES::
 
             sage: PackedWord([]).to_composition()
@@ -219,7 +199,7 @@ class PackedWord(ClonableIntArray):
         if not self:
             return Composition([])
         d = evaluation_dict(self)
-        return Composition([d[i + 1] for i in range(self._max)])
+        return Composition([d[i+1] for i in range(self._max)])
 
     def is_empty(self):
         r"""
@@ -253,8 +233,8 @@ class PackedWord(ClonableIntArray):
 
     def __mul__(self, pw):
         r"""
-        Return the usual composition of surjections if `size(pw) = max(self)`.
-        
+        Return the usual composition of surjections if ``size(pw) == max(self)``.
+
         The right element can be a permutation.
 
         EXAMPLES::
@@ -285,8 +265,8 @@ class PackedWord(ClonableIntArray):
         elif pw in PackedWords():
             m = pw._max
         if self.size() == m:
-            return PackedWord([self[i - 1] for i in pw])
-            
+            return PackedWord([self[i-1] for i in pw])
+
         raise ValueError("the maximum value of the right packed word must be equal to the size of the left packed word")
 
     def size(self):
@@ -300,7 +280,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([2, 1, 1]).size()
             3
         """
-        return len(self)
+        return self._size
 
     def max(self):
         r"""
@@ -320,10 +300,10 @@ class PackedWord(ClonableIntArray):
 
     def reverse(self):
         """
-        Returns the packed word obtained by reversing the list.
+        Return the packed word obtained by reversing the list ``self``.
 
         EXAMPLES::
-            
+
             sage: PackedWord([]).reverse()
             []
             sage: PackedWord([3, 2, 1, 2]).reverse()
@@ -331,25 +311,43 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([1, 2, 3, 4, 5]).reverse()
             [5, 4, 3, 2, 1]
         """
-        return self.__class__(self.parent(), [i for i in reversed(self)] )
+        return self.__class__(self.parent(), [i for i in reversed(self)])
 
+    @combinatorial_map(name='complement')
+    def complement(self):
+        r"""
+        Return the image of ``self`` under the complement involution
+        on packed words.
+
+        Given a packed word `u` of size `n` and greatest letter `\ell`,
+        its *complement* is the word `[\ell+1-u_1, \ldots, \ell+1-u_n]`.
+
+        EXAMPLES::
+
+            sage: PackedWord([]).complement()
+            []
+            sage: PackedWord([1, 2, 1]).complement()
+            [2, 1, 2]
+            sage: PackedWord([1, 2, 3, 1, 1, 4]).complement()
+            [4, 3, 2, 4, 4, 1]
+        """
+        if not self:
+            return self
+        return self.__class__(self.parent(), [self._max + 1 - i for i in self])
 
     def global_descents(self, final_descent=False, from_zero=False):
         r"""
-        Return the list of the global descents of ``self``.
+        Return the list of global descents of ``self``.
 
-        A global descent of a packed word `p` is an integer `d` such that
-        `\forall i <= d < j, p(i) > p(j)`.
+        A *global descent* of a packed word `u` is a position (index) `d`
+        of `u` such that `\forall i <= d < j, u_i > u_j`.
 
         .. WARNING::
 
-            By default, the descents are returned starting at `1`.
-            If you want them to start at `0`, 
-            set the keyword ``from_zero`` to ``True``.
+            By default, the positions of ``self`` start at `1`. If you want
+            them to start at `0`, set the keyword ``from_zero`` to ``True``.
 
-        .. SEEALSO::
-
-            :meth:`global_descents_factorization`
+        .. SEEALSO:: :meth:`global_descents_factorization`
 
         INPUT:
 
@@ -379,14 +377,14 @@ class PackedWord(ClonableIntArray):
             return []
         g_descents = []
         local_left_min = self._max
-        for i in range(len(self) - 1):
+        for i in range(self._size - 1):
             local_left_min = min(local_left_min,self[i])
-            if local_left_min > max(self[i + 1::] + [0]):
+            if local_left_min > max(self[i+1::] + [0]):
                 g_descents.append(i + 1)
 
         if final_descent:
-            g_descents.append(len(self))
-            
+            g_descents.append(self._size)
+
         if from_zero:
             return [i - 1 for i in g_descents]
 
@@ -394,12 +392,10 @@ class PackedWord(ClonableIntArray):
 
     def global_descents_factorization(self):
         r"""
-        Return the list of packed words comming from the factorization
-        of global descents.
+        Return the list of packed words resulting from the factorization
+        of ``self`` at global descents.
 
-        .. SEEALSO::
-
-            :meth:`global_descents`
+        .. SEEALSO:: :meth:`global_descents`
 
         EXAMPLES::
 
@@ -421,29 +417,25 @@ class PackedWord(ClonableIntArray):
             g_d_f.append(PackedWords.pack(self[i:j]))
             i=j
         return g_d_f
-    
-    def global_ascents(self, final_ascent=False, from_zero=False):
+
+    def global_ascents(self, initial_ascent=False, from_zero=False):
         r"""
         Return the list of the global ascents of ``self``.
 
-        A global ascent of a packed word `p` is an integer `d` such that
-        `\forall i <= d < j, p(i) < p(j)`.
+        A *global ascent* of a packed word `u` is a position (index) `d`
+        of `u` such that `\forall i < d <= j, u_i < u_j`.
 
         .. WARNING::
 
+            By default, the positions of ``self`` start at `1`. If you want
+            them to start at `0`, set the keyword ``from_zero`` to ``True``.
 
-            By default, the ascents are returned starting at `1`.
-            If you want them to start at `0`, 
-            set the keyword ``from_zero`` to ``True``.
-
-        .. SEEALSO::
-
-            :meth:`global_ascents_factorization`
+        .. SEEALSO:: :meth:`global_ascents_factorization`
 
         INPUT:
 
-        - ``final_ascent`` -- boolean (default ``False``);
-          if ``True``, the last position of a non-empty
+        - ``initial_ascent`` -- boolean (default ``False``);
+          if ``True``, the first position of a non-empty
           packed word is also considered as a global ascent
 
         - ``from_zero`` -- boolean (default ``False``);
@@ -458,26 +450,26 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([2, 1]).global_ascents()
             []
             sage: PackedWord([1, 2]).global_ascents()
-            [1]
+            [2]
             sage: PackedWord([3, 1, 2, 1, 4, 6, 6, 5, 7, 8, 7]).global_ascents()
-            [4, 5, 8]
+            [5, 6, 9]
             sage: PackedWord([3, 1, 2, 1, 4, 6, 6, 5, 7, 8, 7]).global_ascents(from_zero=True)
-            [3, 4, 7]
-            sage: PackedWord([3, 1, 2, 1, 4, 6, 6, 5, 7, 8, 7]).global_ascents(final_ascent=True)
-            [4, 5, 8, 11]
+            [4, 5, 8]
+            sage: PackedWord([3, 1, 2, 1, 4, 6, 6, 5, 7, 8, 7]).global_ascents(initial_ascent=True)
+            [0, 5, 6, 9]
         """
         if not self:
             return []
         g_ascents = []
         local_left_max = 0
-        for i in range(len(self) - 1):
-            local_left_max = max(local_left_max,self[i])
-            if local_left_max < min(self[i + 1::] + [self._max]):
+        for i in range(1, self._size):
+            local_left_max = max(local_left_max, self[i-1])
+            if local_left_max < min(self[i:] + [self._max]):
                 g_ascents.append(i + 1)
 
-        if final_ascent:
-            g_ascents.append(len(self))
-            
+        if initial_ascent:
+            g_ascents.insert(0, 1)
+
         if from_zero:
             return [i - 1 for i in g_ascents]
 
@@ -485,15 +477,13 @@ class PackedWord(ClonableIntArray):
 
     def global_ascents_factorization(self):
         r"""
-        Return the list of packed words comming from the factorization
-        of global ascents.
+        Return the list of packed words resulting from the factorization
+        of ``self`` at global ascents.
 
-        .. SEEALSO::
-
-            :meth:`global_ascents`
+        .. SEEALSO:: :meth:`global_ascents`
 
         EXAMPLES::
-        
+
             sage: PackedWord([]).global_ascents_factorization()
             [[]]
             sage: PackedWord([1, 2, 1]).global_ascents_factorization()
@@ -505,50 +495,47 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([3, 1, 2, 1, 4, 6, 6, 5, 7, 8, 7, 4]).global_ascents_factorization()
             [[3, 1, 2, 1], [1, 3, 3, 2, 4, 5, 4, 1]]
         """
-        g_ascents = self.global_ascents(final_ascent=True)
-        if not g_ascents:
+        g_a = self.global_ascents(from_zero=True, initial_ascent=True)
+        if not g_a:
             return [self]
-        i = g_ascents[0]
-        g_a_f = [PackedWords.pack(self[:i])]
-        for j in g_ascents[1:]:
-            g_a_f.append(PackedWords.pack(self[i:j]))
-            i=j
-        return g_a_f
-     
+        g_a.append(self._size)
+        return [PackedWords.pack(self[g_a[i]:g_a[i+1]]) for i in range(len(g_a)-1)]
+
 
     def inversions(self, side="right", support=None, from_zero=False):
         r"""
-        Return the set of ``side`` weak order inversions on ``support``  of ``self``.
+        Return the (``side``) weak order inversions (on ``support``)  of ``self``.
 
         .. WARNING::
 
-            By default, the invertions are returned starting at position `1`
-            If you want them to start at `0` for the support ``position``,
-            set the keyword ``from_zero`` to ``True``. If the support is ``value``, 
-            the keyword ``from_zero`` will not change the result.
+            By default, the inversions of ``self`` start at `1`. If you want
+            them to start at `0` for support "position", set the keyword
+            ``from_zero`` to ``True``. If the support is "value", then the
+            keyword ``from_zero`` does not affect the result.
 
         INPUT:
 
-        - ``side`` -- "left" or "right":
-          the side of the weak order of inversions
-        - ``support`` -- "position" or "value":
-          the support of the result
+        - ``side`` -- "left" or "right": the side of the weak order of inversions
+        - ``support`` -- "position" or "value": the support of the result
 
-        - ``right`` inversions are by default on ``positions`` whereas
-          ``left`` inversions are by default on ``values``.
+        The ``right`` inversions are taken on ``positions`` by default,
+        whereas the ``left`` inversions are taken by default on ``values``.
 
         OUTPUT:
 
         .. rubric:: Right inversions on positions
 
-        Return by default ``right`` weak order inversions on ``positions``.
+        The behavior when ``side`` is "right" and ``support`` is "value".
 
-        Let `u` be a packed word of size `n`. Then *right weak order
-        inversions* of `u` are the pairs `(i, j)` such that
+        This is the default behavior when no keywords are specified, and also
+        when only the ``side`` keyword is specified.
+
+        Let `u` be a packed word of size `n`. The *right weak order
+        inversions* on *positions* of `u` are the pairs `(i, j)` such that
         `1 \leq i < j \leq n` and `u_i > u_j`.
-        
+
         EXAMPLES::
-        
+
             sage: PackedWord([]).inversions()
             set()
             sage: PackedWord([1, 2, 3]).inversions()
@@ -564,12 +551,11 @@ class PackedWord(ClonableIntArray):
 
         .. rubric:: Right inversions on values
 
-        If the option ``side`` is still ``right`` and ``support`` is ``value``.
-        
-        Let `u` be a packed word. Then *right weak order inversions*
-        on *values* of `u` are the pairs `(u_i, u_j)` such that `u_i > u_j`
-        for some `i < j`.
-        
+        The behavior when ``side`` is "right" and ``support`` is "value".
+
+        The *right weak order inversions* on *values* of a packed word `u`
+        are the pairs `(u_i, u_j)` such that `u_i > u_j` for some `i < j`.
+
         EXAMPLES::
 
             sage: PackedWord([]).inversions(support = "value")
@@ -587,13 +573,14 @@ class PackedWord(ClonableIntArray):
 
         .. rubric:: Left inversions on values
 
-        If the option ``side`` is ``left`` and ``support`` is not given,
-        it is set to ``value``.
+        The behavior when ``side`` is "left" and ``support`` is "value".
 
-        Let `u` be a packed word. The *left weak order inversions* on *values*
-        of `u` are the pairs `(b, a)` such that `a < b` and the first
-        occurence of `a` in `u` is after the last occrence of `b` in `u`.
-        
+        This is the default behavior when only the ``side`` keyword is specified.
+
+        The *left weak order inversions* on *values* of a packed word `u`
+        are the pairs `(b, a)` such that `a < b` and the first occurence of
+        `a` in `u` is after the last occurrence of `b` in `u`.
+
         EXAMPLES::
 
             sage: PackedWord([]).inversions(side = "left")
@@ -608,18 +595,17 @@ class PackedWord(ClonableIntArray):
             {(3, 1), (3, 2)}
             sage: PackedWord([3, 1, 4, 1, 2]).inversions(side = "left")
             {(3, 1), (3, 2), (4, 2)}
-        
+
         .. rubric:: Left inversions on positions
 
-        If the option ``side`` is ``left`` and ``support`` is ``position``.
+        The behavior when ``side`` is "left" and ``support`` is "position".
 
-        Let `u` be a packed word. Then *left weak order inversions*
-        on *positions* of `u` are the pairs `(i, j)` such that
-        `i < j` and the first occurence of `u_j` in `u`
-        is after the last occrence of `u_i` in `u`.
-        
+        The *left weak order inversions* on *positions* of a packed word `u`
+        are the pairs `(i, j)` such that `i < j` and the first occurence of
+        `u_j` in `u` is after the last occurrence of `u_i` in `u`.
+
         EXAMPLES::
-        
+
             sage: PackedWord([]).inversions(side = "left", support = "position")
             set()
             sage: PackedWord([1, 2, 3]).inversions(side = "left", support = "position")
@@ -639,12 +625,12 @@ class PackedWord(ClonableIntArray):
             support = "position" if side == "right" else "value"
         if not support in ["position", "value"]:
             raise ValueError("option 'support' must be 'position' or 'value'")
-        
+
         if not self:
             return set()
-        
-        n=len(self)
-        m=self._max
+
+        n = self._size
+        m = self._max
 
         if side == "right":
 
@@ -653,7 +639,7 @@ class PackedWord(ClonableIntArray):
                            for i in range(n - 1)
                            for j in range(i + 1, n)
                            if self[i] > self[j])
-            
+
             if support == "value":
                 return set((self[i], self[j])
                            for i in range(n - 1)
@@ -668,7 +654,7 @@ class PackedWord(ClonableIntArray):
                            for i in range(1, m)
                            for j in range(i + 1, m + 1)
                            if self.index(i) > n - rev.index(j) - 1)
-            
+
             if support == "position":
                 return set((n - rev.index(j) - from_zero, self.index(i) + 1 - from_zero)
                            for i in range(1, m)
@@ -681,10 +667,11 @@ class PackedWord(ClonableIntArray):
         r"""
         Return the list of successors of ``self`` under the right weak order.
 
-        For the right weak order, we say `u` is a right successor of `v`
-        if there exist `i < n - 1` such that `v` is equal to `u` except that
-        the `u_i` and `u_{i+1}` are switched and `u` has one more 
-        right inversions on positions than `v`.
+        For the right weak order on packed words of size `n`, we say `u` is a
+        *right successor* of `v` if: (1) there exists a position `i < n - 1` such
+        that `u` and `v` agree at all positions except `i` and `i + 1`, where the
+        values are switched; and (2) `u` has one more right inversion on positions
+        than `v` has.
 
         EXAMPLES::
 
@@ -694,7 +681,7 @@ class PackedWord(ClonableIntArray):
             []
 
             sage: v = PackedWord([1, 2, 1])
-            sage: u, = v.right_weak_order_succ(); u
+            sage: u = v.right_weak_order_succ(); u
             [2, 1, 1]
             sage: v.inversions()
             {(2, 3)}
@@ -707,11 +694,11 @@ class PackedWord(ClonableIntArray):
             [[3, 2, 1, 1, 1, 2, 4], [3, 1, 2, 1, 2, 1, 4], [3, 1, 2, 1, 1, 4, 2]]
         """
         succ = []
-        n = len(self)
+        n = self._size
         P = parent(self)
         for i in range(n - 1):
-            if self[i] < self[i + 1]:
-                p = self[:i] + [self[i + 1], self[i]] + self[i + 2:]
+            if self[i] < self[i+1]:
+                p = self[:i] + [self[i+1], self[i]] + self[i+2:]
                 succ.append(P.element_class(P, p, check=False))
         return succ
 
@@ -719,10 +706,11 @@ class PackedWord(ClonableIntArray):
         r"""
         Return the list of predecessors of ``self`` under the right weak order.
 
-        For the right weak order, we say `v` is a right predecessor of `u`
-        if there exist `i < n - 1` such that `v` is equal to `u` except that
-        the `u_i` and `u_{i+1}` are switched and `v` has one fewer 
-        right inversions on positions than `u`.
+        For the right weak order on packed words of size `n`, we say `v` is a
+        *right predecessor* of `u` if: (1) there exists a position `i < n - 1` such
+        that `u` and `v` agree at all positions except `i` and `i + 1`, where the
+        values are switched; and (2) `v` has one fewer right inversion on positions
+        than `u` has.
 
         EXAMPLES::
 
@@ -745,11 +733,11 @@ class PackedWord(ClonableIntArray):
             [[1, 3, 2, 1, 1, 2, 4], [3, 1, 1, 2, 1, 2, 4]]
         """
         pred = []
-        n = len(self)
+        n = self._size
         P = parent(self)
         for i in range(n - 1):
-            if self[i] > self[i + 1]:
-                p = self[:i] + [self[i + 1], self[i]] + self[i + 2:]
+            if self[i] > self[i+1]:
+                p = self[:i] + [self[i+1], self[i]] + self[i+2:]
                 pred.append(P.element_class(P, p, check=False))
         return pred
 
@@ -758,9 +746,7 @@ class PackedWord(ClonableIntArray):
         Return the list of smaller or equal packed words of ``self``
         under the right weak order.
 
-        .. SEEALSO::
-
-            :meth:`right_weak_order_pred`
+        .. SEEALSO:: :meth:`right_weak_order_pred`
 
         EXAMPLES::
 
@@ -782,12 +768,10 @@ class PackedWord(ClonableIntArray):
         Return the list of greater or equal packed words of ``self``
         under the right weak order.
 
-        .. SEEALSO::
-
-            :meth:`right_weak_order_succ`
+        .. SEEALSO:: :meth:`right_weak_order_succ`
 
         EXAMPLES::
-        
+
             sage: PackedWord([]).right_weak_order_greater()
             [[]]
             sage: PackedWord([1, 1, 1]).right_weak_order_greater()
@@ -815,13 +799,13 @@ class PackedWord(ClonableIntArray):
         """
         return transitive_ideal(lambda x: x.right_weak_order_succ(), self)
 
-    def right_weak_order_interval(self, pw):
+    def right_weak_order_interval(self, other):
         r"""
-        Return the list of packed words in the interval 
+        Return the list of packed words in the interval
         between `self` and `pw` under the right weak order.
 
         EXAMPLES::
-        
+
             sage: P = PackedWord
             sage: P([1, 2, 1]).right_weak_order_interval(P([1, 2, 1, 3]))
             []
@@ -838,27 +822,35 @@ class PackedWord(ClonableIntArray):
             sage: P([1, 2, 1, 3, 4, 1]).right_weak_order_interval(P([3, 1, 2, 4, 1, 1]))
             [[1, 2, 1, 3, 4, 1],
              [1, 2, 3, 1, 4, 1],
-             [1, 2, 3, 4, 1, 1],
              [1, 3, 2, 1, 4, 1],
-             [1, 3, 2, 4, 1, 1],
+             [1, 2, 3, 4, 1, 1],
              [3, 1, 2, 1, 4, 1],
+             [1, 3, 2, 4, 1, 1],
              [3, 1, 2, 4, 1, 1]]
         """
-        G = self.right_weak_order_greater()
-        res = []
+        if other in self.parent():
+            other = self.parent()(other)
+        else:
+            raise ValueError("{0} is not a member of {1}".format(other, self.parent()))
 
-        if pw in G:
-            for s_pw in pw.right_weak_order_smaller():
-                if s_pw in G:
-                    res += [s_pw]
-            return res
-        
-        S = self.right_weak_order_smaller()
-        if pw in S :
-            for g_pw in pw.right_weak_order_greater():
-                if g_pw in S:
-                    res += [g_pw]
+        res = []
+        up = lambda a: a.right_weak_order_succ()
+        if self.is_gequal(other):
+            UP_other = RecursivelyEnumeratedSet([other], up, structure="graded")
+            for x in UP_other:
+                if x.is_lequal(self):
+                    res.append(x)
+                elif len(x.inversions()) > len(self.inversions()):
+                    break
                     
+        elif other.is_gequal(self):
+            UP_self = RecursivelyEnumeratedSet([self], up, structure="graded")
+            for x in UP_self:
+                if x.is_lequal(other):
+                    res.append(x)
+                elif len(x.inversions()) > len(other.inversions()):
+                    break
+
         return res
 
     ###################     Left Weak Order     ################################
@@ -867,10 +859,10 @@ class PackedWord(ClonableIntArray):
         r"""
         Return the list of successors of ``self`` under the left weak order.
 
-        For the left weak order, we say `v` is a left successor of `u`
-        if there exist a value `i < m - 1` with m the maximal value of `v` and `u`
-        such that `v` is equal to `u` except that all values `i` and `i + 1`
-        are inversed and `v` has one more left inversions on values than `u`.
+        For the left weak order on packed words, we say `u` is a *left successor*
+        of `v` if: (1) `u` is built from `v` by switching all occurrences of the
+        values `i` and `i+1`, for some `i` less than the maximum letter in `v`;
+        and (2) `u` has one more left inversion on values than `v` has.
 
         EXAMPLES::
 
@@ -881,12 +873,12 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([1, 2, 1]).left_weak_order_succ()
             []
 
-            sage: u = PackedWord([3, 1, 2])
-            sage: v, = u.left_weak_order_succ(); v
+            sage: v = PackedWord([3, 1, 2])
+            sage: u = v.left_weak_order_succ(); u
             [3, 2, 1]
-            sage: u.inversions(side="left",support="value")
+            sage: v.inversions(side="left")
             {(3, 1), (3, 2)}
-            sage: v.inversions(side="left",support="value")
+            sage: u.inversions(side="left")
             {(2, 1), (3, 1), (3, 2)}
 
             sage: PackedWord([1, 2, 4, 3, 3, 2]).left_weak_order_succ()
@@ -900,7 +892,7 @@ class PackedWord(ClonableIntArray):
         succ = []
         m = self._max
         for i in range(1, m):
-            if len(self) - 1 - self[::-1].index(i) < self.index(i + 1):
+            if self._size - 1 - self[::-1].index(i) < self.index(i + 1):
                 l = []
                 for x in self:
                     if x == i:
@@ -917,11 +909,11 @@ class PackedWord(ClonableIntArray):
         r"""
         Return the list of predecessors of ``self`` under the left weak order.
 
-        For the left weak order, we say `u` is a left predecessor of `v`
-        if there exist a value `i < m - 1` with m the maximal value of `u` and `v` 
-        such that `u` is equal to `v` except that all values `i` and `i + 1`
-        are inversed and `u` has one fewer left inversions on values than `v`.
-        
+        For the left weak order on packed words, we say `v` is a *left predecessor*
+        of `u` if: (1) `v` is built from `u` by switching all occurrences of the
+        values `i` and `i+1`, for some `i` less than the maximum letter in `u`;
+        and (2) `v` has one fewer left inversion on values than `u` has.
+
         EXAMPLES::
 
             sage: PackedWord([]).left_weak_order_pred()
@@ -931,12 +923,12 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([1, 2, 1]).left_weak_order_pred()
             []
 
-            sage: v = PackedWord([3, 1, 2])
-            sage: u, = v.left_weak_order_pred(); u
+            sage: u = PackedWord([3, 1, 2])
+            sage: v = u.left_weak_order_pred(); v
             [2, 1, 3]
-            sage: v.inversions(side="left",support="value")
+            sage: u.inversions(side="left")
             {(3, 1), (3, 2)}
-            sage: u.inversions(side="left",support="value")
+            sage: v.inversions(side="left")
             {(2, 1)}
 
             sage: PackedWord([3, 1, 2, 4, 4]).left_weak_order_pred()
@@ -950,7 +942,7 @@ class PackedWord(ClonableIntArray):
         pred = []
         m = self._max
         for i in range(1, m):
-            if self.index(i) > len(self) - 1 - self[::-1].index(i + 1):
+            if self.index(i) > self._size - 1 - self[::-1].index(i + 1):
                 l = []
                 for x in self:
                     if x == i:
@@ -968,9 +960,7 @@ class PackedWord(ClonableIntArray):
         Return the list of smaller or equal packed words of ``self``
         under the left weak order.
 
-        .. SEEALSO::
-
-            :meth:`left_weak_order_pred`
+        .. SEEALSO:: :meth:`left_weak_order_pred`
 
         EXAMPLES::
 
@@ -992,12 +982,10 @@ class PackedWord(ClonableIntArray):
         Return the list of greater or equal packed words of ``self``
         under the left weak order.
 
-        .. SEEALSO::
-
-            :meth:`left_weak_order_succ`
+        .. SEEALSO:: :meth:`left_weak_order_succ`
 
         EXAMPLES::
-        
+
             sage: PackedWord([]).left_weak_order_greater()
             [[]]
             sage: PackedWord([1, 1, 1]).left_weak_order_greater()
@@ -1011,13 +999,13 @@ class PackedWord(ClonableIntArray):
         """
         return transitive_ideal(lambda x: x.left_weak_order_succ(), self)
 
-    def left_weak_order_interval(self, pw):
+    def left_weak_order_interval(self, other):
         r"""
-        Return the list of packed words in the interval 
+        Return the list of packed words in the interval
         between `self` and `pw` under the let weak order.
 
         EXAMPLES::
-        
+
             sage: P = PackedWord
             sage: P([1, 2, 1]).left_weak_order_interval(P([1, 2, 1, 3]))
             []
@@ -1037,22 +1025,107 @@ class PackedWord(ClonableIntArray):
              [3, 4, 1, 2, 1, 2],
              [4, 3, 1, 2, 1, 2]]
         """
-        G = self.left_weak_order_greater()
-        res = []
+        if other in self.parent():
+            other = self.parent()(other)
+        else:
+            raise ValueError("{0} is not a member of {1}".format(other, self.parent()))
 
-        if pw in G:
-            for s_pw in pw.left_weak_order_smaller():
-                if s_pw in G:
-                    res += [s_pw]
-            return res
-        
-        S = self.left_weak_order_smaller()
-        if pw in S :
-            for g_pw in pw.left_weak_order_greater():
-                if g_pw in S:
-                    res += [g_pw]
+        res = []
+        up = lambda a: a.left_weak_order_succ()
+        if self.is_gequal(other, side="left"):
+            UP_other = RecursivelyEnumeratedSet([other], up, structure="graded")
+            for x in UP_other:
+                if x.is_lequal(self, side="left"):
+                    res.append(x)
+                elif len(x.inversions(side="left")) > len(self.inversions(side="left")):
+                    break
                     
+        elif other.is_gequal(self, side="left"):
+            UP_self = RecursivelyEnumeratedSet([self], up, structure="graded")
+            for x in UP_self:
+                if x.is_lequal(other, side="left"):
+                    res.append(x)
+                elif len(x.inversions(side="left")) > len(other.inversions(side="left")):
+                    break
+
         return res
+
+    def is_gequal(self, pw, side="right"):
+        r"""
+        Return whether ``pw`` is greater than
+
+            sage: u = PackedWord([3, 1, 1, 2])
+            sage: v = PackedWord([3, 1, 2, 1])
+            sage: w = PackedWord([3, 2, 2, 1])
+            sage: v.is_gequal(v)
+            True
+            sage: v.is_gequal(u)
+            True
+            sage: v.is_gequal(w)
+            False
+            sage: w.is_gequal(u, side="left")
+            True
+            
+            sage: u = PackedWords(3).random_element()
+            sage: v = PackedWords(4).random_element()
+            sage: v.is_gequal(u)
+            False
+            sage: v.is_gequal(u, side="left")
+            False
+            
+            sage: u = PackedWords(5).random_element()
+            sage: v = PackedWords(5).random_element()
+            sage: v.is_gequal(u) == (v in u.right_weak_order_greater())
+            True
+            sage: v.is_gequal(u, side="left") == (v in u.left_weak_order_greater())
+            True
+        """
+        if not side in ["left", "right"]:
+            raise ValueError("option 'side' must be 'left' or 'right'")
+        
+        if side == "right" and self.to_composition() == pw.to_composition():
+            std_self = PackedWord(to_standard(self))
+            std_pw = PackedWord(to_standard(pw))
+            return std_pw.inversions(side="left").issubset(std_self.inversions(side="left"))
+        
+        s1=set(self.to_ordered_set_partition())
+        s2=set(pw.to_ordered_set_partition())
+        if side == "left" and s1 == s2:
+            return pw.inversions().issubset(self.inversions())
+        
+        return False
+    
+    def is_lequal(self, pw, side="right"):
+        r"""
+        Return whether ``pw`` is greater than
+
+            sage: u = PackedWord([3, 1, 1, 2])
+            sage: v = PackedWord([3, 1, 2, 1])
+            sage: w = PackedWord([3, 2, 2, 1])
+            sage: v.is_lequal(v)
+            True
+            sage: v.is_lequal(u)
+            False
+            sage: v.is_lequal(w)
+            False
+            sage: u.is_lequal(w, side="left")
+            True
+            
+            sage: u = PackedWords(3).random_element()
+            sage: v = PackedWords(4).random_element()
+            sage: v.is_lequal(u)
+            False
+            sage: v.is_lequal(u, side="left")
+            False
+            
+            sage: u = PackedWords(5).random_element()
+            sage: v = PackedWords(5).random_element()
+            sage: v.is_lequal(u) == (v in u.right_weak_order_greater())
+            True
+            sage: v.is_lequal(u, side="left") == (v in u.left_weak_order_greater())
+            True
+        """
+        return pw.is_gequal(self, side)
 
 #==============================================================================
 # Parent classes
@@ -1062,20 +1135,19 @@ class PackedWords(UniqueRepresentation, Parent):
     r"""
     Packed words.
 
-    A word `w` over the positive integers is a *packed word* if for each
-    number `k > 1` appearing in `w`, the number `k - 1` also appears in `w`.
+    A word `u` over the positive integers is a *packed word* if for each
+    number `k > 1` appearing in `u`, the number `k - 1` also appears in `u`.
 
     TODO:
 
-        - needs some english improvement; I'll fix.
         - perhaps reformat the display of packed words of sizes 0..3.
           (I need to look at the documentation to see.)
 
-    Packed words in natural bijection with ordered set partitions. Thus,
-    a packed word `w` can be obtained from an ordered set partition `O`
-    by setting `w_i = j` if `i` belongs to the `j`-th block of `O`.
+    Packed words are in bijection with ordered set partitions as follows.
+    Given an ordered set partition `O`, the corresponding packed word `u`
+    is obtained by setting `u_i = j` if `i` belongs to the `j`-th block of `O`.
 
-    Here are the Packed Words of size 0 to 3::
+    Here are the Packed Words of sizes 0 to 3::
 
         \emptyset
         1
@@ -1147,8 +1219,8 @@ class PackedWords(UniqueRepresentation, Parent):
 
         INPUT::
 
-        ``osp`` can be an object or iterable that defines an ordered set
-        partition, it can be a list of lists.
+        ``osp`` -- an object or iterable (e.g., a list of lists)
+        that defines an ordered set partition.
 
         EXAMPLES::
 
@@ -1162,15 +1234,18 @@ class PackedWords(UniqueRepresentation, Parent):
             sage: PackedWords.from_ordered_set_partition(pw.to_ordered_set_partition()) == pw
             True
         """
-        OSP=OrderedSetPartition
-        return PackedWord(OSP.to_packed_word(OSP(osp)))
-    
+        OSP = OrderedSetPartition
+        return PackedWord(OSP(osp).to_packed_word())
+
     @staticmethod
     def pack(li):
         r"""
-        The analogue map of the :meth:`standardization
-        <sage.combinat.permutation.Permutation.to_standard>`)
-        for *packed words*.
+        Return the packed word associated to ``li``.
+
+        This map is the analog for packed words of the standardization map
+        for permutations.
+
+        .. SEEALSO:: :meth:`sage.combinat.permutation.Permutation.to_standard`
 
         EXAMPLES::
 
@@ -1192,8 +1267,10 @@ class PackedWords(UniqueRepresentation, Parent):
 
     def permutation_to_packed_words(self, sigma):
         r"""
-        Compute all packed words of size `n` (i.e., of ``self``) whose
-        standardization is ``sigma``.
+        Compute all packed words whose standardization is ``sigma``.
+
+        If ``self._size`` is not None, first check that this size agrees
+        with the size of ``sigma``.
 
         INPUT:
 
@@ -1211,31 +1288,45 @@ class PackedWords(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: PW = PackedWords(4)
-            sage: PW.permutation_to_packed_words(Permutation([1, 2, 3]))
-            Traceback (most recent call last):
-            ...
-            ValueError: [1, 2, 3] is not a standard permutation of 4
-
-            sage: PW = PackedWords(1)
-            sage: PW.permutation_to_packed_words([1])
+            sage: PackedWords(0).permutation_to_packed_words([])
+            [[]]
+            sage: PackedWords(1).permutation_to_packed_words([1])
             [[1]]
 
-            sage: PW = PackedWords(0)
-            sage: PW.permutation_to_packed_words([])
-            [[]]
-        """
-        if self._size <= 1:
-            if self._size == 0:
-                return [self.element_class(self, [], check=False)]
-            if self._size == 1:
-                return [self.element_class(self, [1], check=False)]
+            sage: PW = PackedWords()
+            sage: PW.permutation_to_packed_words([1,4,2,3])
 
-        if sigma not in Permutations(self._size):
-            raise ValueError("{} is not a standard permutation of {}".format(sigma, self._size))
+            sage: PW = PackedWords(4)
+            sage: PW.permutation_to_packed_words([1, 2, 3])
+            Traceback (most recent call last):
+            ...
+            ValueError: [1, 2, 3] does not represent a packed word of size 4
+
+            sage: PW.permutation_to_packed_words([1, 2, 4, 4])
+            Traceback (most recent call last):
+            ...
+            ValueError: [1, 2, 3] does not represent a permutation of 4
+
+        """
+        try:
+            n = Permutations()(sigma).size()
+        except ValueError:
+            raise ValueError("{0} does not represent a permutation of {1}".format(sigma, len(sigma)))
+
+        try:
+            size = self._size
+            if size != n:
+                raise ValueError("{0} does not represent a packed word of size {1}".format(sigma, self._size))
+        except AttributeError:
+            size = None
+
+        if size == 0:
+            return [self.element_class(self, [], check=False)]
+        if size == 1:
+            return [self.element_class(self, [1], check=False)]
 
         li = [({sigma.index(1): 1}, sigma.index(1))]
-        for i in range(2, self._size):
+        for i in range(2, n):
             index_i = sigma.index(i)
             tmp = []
             for (pw, l_index) in li:
@@ -1245,7 +1336,7 @@ class PackedWords(UniqueRepresentation, Parent):
                 pw[index_i] = pw[l_index] + 1
                 tmp.append((dict(pw), index_i))
             li = tmp
-        index_i = sigma.index(self._size)
+        index_i = sigma.index(n)
         res = []
         for (pw, l_index) in li:
             if l_index < index_i:
@@ -1257,39 +1348,99 @@ class PackedWords(UniqueRepresentation, Parent):
 
     def __contains__(self, w):
         r"""
-        Return if ``w`` is contained in ``self``.
-
-        TODO:
-
-            - needs some english language improvement; I'll fix
-            - (existing code in check should be in _element_constructor_ or here ?)
+        Determine if ``w`` may be viewed as belonging to ``self``.
 
         TESTS::
 
             sage: P = PackedWords()
-            sage: 1 in P
-            False
+            sage: P([2,3,1]) in P
+            True
             sage: PackedWord([]) in P
             True
+            sage: P([]) in PackedWords(0)
+            True
+
+            sage: 1 in P
+            False
             sage: [1, 1, 4, 2, 3] in P
             True
+            sage: {2,3,4,1} in P  # perhaps undesireable answer
+            True
         """
-        if isinstance(parent(w), PackedWords):
-            return True
         try:
-            w = list(w)
-        except (TypeError, ValueError):
-            return False
-        if not w:
-            return True
-        m = max(w)
-        try:
-            return m in ZZ and set(w) == set(range(1, m+1))
-        except (TypeError, ValueError):
-            # Elements may not be hashable
+            # check for a list of integers
+            if all(a in ZZ and ZZ(a) > 0 for a in w):
+                s = sorted(set(int(a) for a in w))
+                n = len(w)
+            else:
+                #raise ValueError("{} is not a packed word".format(w))
+                return False
+        except (ValueError, TypeError):
+            # Elements not integers or w not iterable
+            #raise ValueError("{} is not a packed word".format(w))
             return False
 
+        # if parent has a size, it should agree with that of w
+        size = getattr(self, "_size", None)
+        if size and n != size:
+            return False
+
+        # the distinct letters in w should be {1, 2, ..., max(w)}
+        if s != [i for i in range(1, max([0]+s[-1:])+1)]:
+            return False
+
+        return True
+
     Element = PackedWord
+
+    def _element_constructor_(self, lst=[], check=True):
+        r"""
+        Construct an element of ``self``.
+
+        TODO:
+
+            Should ``PackedWords_all`` ever be used as a parent,
+            or should we use ``PackedWords_size.element_class``
+            in place of ``self.element_class`` below?
+
+        EXAMPLES::
+
+            sage: P = PackedWords()
+            sage: P4 = PackedWords(4)
+            sage: P([])
+            []
+            sage: p = P([1, 3, 3, 2]); p
+            [1, 3, 3, 2]
+            sage: p.parent()
+            Packed words
+            sage: p4 = P4([1, 3, 3, 2]); p4
+            [1, 3, 3, 2]
+            sage: p4.parent()
+            Packed words of size 4
+            sage: P4([1, 3, 3, 2, 2])
+            Traceback (most recent call last):
+            ...
+            ValueError: [1, 3, 3, 2, 2] is not a packed word of size 4
+            sage: P4([1, 4, 4, 2])
+            Traceback (most recent call last):
+            ...
+            ValueError: [1, 3, 3, 2, 2] not in Packed words of size 4
+            sage: P([1, 4, 4, 2])
+            Traceback (most recent call last):
+            ...
+            ValueError: [1, 3, 3, 2, 2] not in Packed words
+        """
+        # if parent has a size, it should agree with the size of lst
+        size = getattr(self, "_size", None)
+        if size and len(lst) != size:
+            raise ValueError("{0} is not a packed word of size {1}".format(lst, size))
+
+        if isinstance(parent(lst), self.__class__):
+            return lst
+        if not lst:
+            return self.element_class(self, [], check=False)
+
+        return self.element_class(self, lst, check=check)
 
 
 #==============================================================================
@@ -1298,7 +1449,7 @@ class PackedWords(UniqueRepresentation, Parent):
 
 class PackedWords_all(PackedWords, DisjointUnionEnumeratedSets):
     """
-    The set of all packed words.
+    The set of all packed words of any size.
 
     EXAMPLES::
 
@@ -1314,7 +1465,7 @@ class PackedWords_all(PackedWords, DisjointUnionEnumeratedSets):
         []
     """
     def __init__(self):
-        r"""
+        """
         Initialize ``self``.
 
         TESTS::
@@ -1325,7 +1476,7 @@ class PackedWords_all(PackedWords, DisjointUnionEnumeratedSets):
         DisjointUnionEnumeratedSets.__init__(self, fam, facade=True, keepkey=False)
 
     def _repr_(self):
-        r"""
+        """
         Return a string representation of ``self``.
 
         TESTS::
@@ -1335,39 +1486,12 @@ class PackedWords_all(PackedWords, DisjointUnionEnumeratedSets):
         """
         return "Packed words"
 
-    def _element_constructor_(self, lst=[], check=True):
-        r"""
-        Construct an element of ``self``.
-
-        TODO:
-
-            - move in PackedWords
-            - (existing code in check should be here or in __contains__ ?)
-
-        EXAMPLES::
-
-            sage: P = PackedWords()
-            sage: P([])
-            []
-            sage: P([1])
-            [1]
-            sage: P([5, 1, 3, 2, 1, 1, 4, 3])
-            [5, 1, 3, 2, 1, 1, 4, 3]
-        """
-        if isinstance(parent(lst), PackedWords):
-            return lst
-        if not lst:
-            P = PackedWords_size(0)
-            return P.list()[0]
-        P = PackedWords_size(len(lst))
-        return P.element_class(P, lst, check=check)
-
     def subset(self, size=None):
         r"""
         Return the set of packed words of size ``size``.
 
         EXAMPLES::
-        
+
             sage: P = PackedWords()
             sage: P.subset(6) is PackedWords(6)
             True
@@ -1389,7 +1513,7 @@ class PackedWords_all(PackedWords, DisjointUnionEnumeratedSets):
             return self
         return PackedWords(size)
 
-    
+
 #==============================================================================
 # Enumerated set of packed words of a given size
 #==============================================================================
@@ -1468,7 +1592,7 @@ class PackedWords_size(PackedWords):
 
     def __contains__(self, x):
         r"""
-        Return if ``x`` is contained in ``self``.
+        Determine if ``x`` may be viewed as belonging to ``self``.
 
         TESTS::
 
@@ -1522,6 +1646,25 @@ class PackedWords_size(PackedWords):
             yield self.element_class(self, [], check=False)
             return
 
-        osp = OrderedSetPartitions(self._size)
-        for part in osp:
-            yield self.element_class(self, part.to_packed_word(), check=False)
+        OSP = OrderedSetPartitions(self._size)
+        for osp in OSP:
+            yield self.element_class(self, osp.to_packed_word(), check=False)
+
+    def random_element(self):
+        r"""
+        Return a random element of ``self``.
+
+        The packed words of size ``self._size`` are not covered with
+        uniform probability, but they are all covered.
+
+        TESTS::
+
+            sage: PackedWords(0).random_element()
+            []
+            sage: PackedWords(1).random_element()
+            [1]
+            sage: PackedWords(5).random_element()  # random
+            [1, 3, 3, 2, 4]
+        """
+        osp = OrderedSetPartitions(self._size).random_element()
+        return self.element_class(self, osp.to_packed_word(), check=False)
