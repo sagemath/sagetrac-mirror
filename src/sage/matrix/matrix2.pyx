@@ -8859,23 +8859,13 @@ cdef class Matrix(Matrix1):
         """
         return ~self
 
-    def adjoint(self):
-        """
-        Return the adjugate(classical adjoint) of this matrix.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(10501, "Use adjugate method instead.")
-
-        return self.adjugate()
-
     def adjugate(self):
         """
-        Return the adjugate matrix of ``self`` (transposed matrix of cofactors).
+        Return the adjugate matrix of ``self`` (transpose of the matrix of
+        cofactors).
 
-        OUTPUT:
-
-        - ``N`` - the adjoint matrix, such that
-          N \* M = M \* N = M.parent(M.det())
+        Let `M` be ``self``. The adjugate matrix `N` of `M` is such that `NM =
+        MN = \det(M)I`.
 
         An alias of this method is :meth:`adjoint_classical`.
 
@@ -8923,6 +8913,9 @@ cdef class Matrix(Matrix1):
         X = self._adjugate()
         self.cache('adjugate', X)
         return X
+
+    from sage.misc.superseded import deprecated_function_alias
+    adjoint = deprecated_function_alias(10501, adjugate)
 
     adjoint_classical = adjugate
 
