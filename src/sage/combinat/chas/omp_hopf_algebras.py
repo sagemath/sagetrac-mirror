@@ -1085,7 +1085,7 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             return self.tensor_square()._from_dict( A.split_blocks(2) )
 
-        def _Antipode_on_basis(self, A):
+        def antipode_on_basis(self, A):
             r"""
             Return the antipode applied to a Homogeneous basis element.
 
@@ -1094,23 +1094,16 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             .. MATH::
 
-                S(A) = \sum_{B \prec A} (-1)^{\ell(B)} B,
+                S(H_A) = \sum_{B \prec A} (-1)^{\ell(B)} H_B,
 
-            where we sum over all ordered multiset partitions that refine `A`.
+            where the sum is over all refinements of `A`.
 
             If `A` has more than one block, then we extend using the fact that
             the antipode is an algebra antimorphism.
 
             INPUT:
 
-            - ``A`` -- an ordered multiset partition
-
-            .. TODO::
-
-                - Check that this method is faster than the default
-                  implementation coming from the fact that ``self`` is
-                  an instance of a connected Hopf algebra.
-                - Check that it is correct!
+            - ``A`` -- an ordered multiset partition into sets
 
             EXAMPLES::
 
@@ -1119,10 +1112,20 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 H[{2}, {3}] + H[{3}, {2}] - H[{2,3}]
                 sage: H[{2,3}, {2}].antipode()
                 -H[{2}, {3}, {2}] - H[{2}, {2}, {3}] + H[{2}, {2,3}]
-                sage: HH = H[[1,3],[5],[1,4]].coproduct()
+
+            TESTS::
+
+                sage: H[[]].antipode()
+                H[]
+                sage: H[[1]].antipode()
+                -H[{1}]
+                sage: HH = H[[1,2,3],[5],[1,4]].coproduct()
                 sage: HH.apply_multilinear_morphism(lambda x,y: x.antipode()*y)
                 0
             """
+            if not A:
+                return self.monomial(A)
+
             out = []
             P = self.basis().keys()
             AA = [P([a]).finer() for a in A.reversal()]
@@ -1392,6 +1395,38 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 # use the rule `\Delta(xy) = \Delta(x) * \Delta(y)`
                 X = self._indices
                 return reduce(lambda x,y: x*y, [self.monomial(X([a])).coproduct() for a in A], self(z).tensor(self(z)))
+
+        def antipode_on_basis(self, A):
+            r"""
+            Return the antipode applied to a Powersum basis element.
+
+            If `A` is an ordered multiset partition with a single block then
+            the antipode is given by `S(P_A) = -P_A`.
+
+            If `A` has more than one block, then we extend using the fact that
+            the antipode is an algebra antimorphism.
+
+            INPUT:
+
+            - ``A`` -- an ordered multiset partition into sets
+
+            EXAMPLES::
+
+                sage: P = OMPNonCommutativeSymmetricFunctions(QQ).Powersum()
+                sage: P[{2,3}].antipode()
+                -P[{2,3}]
+                sage: P[{2,3}, {2}].antipode()
+                P[{2}, {2,3}]
+
+            TESTS::
+
+                sage: P[[]].antipode()
+                P[]
+                sage: PP = P[[1,2,3],[5],[1,4]].coproduct()
+                sage: PP.apply_multilinear_morphism(lambda x,y: x.antipode()*y)
+                0
+            """
+            return (-1)**A.length() * self.monomial(A.reversal())
 
     Powersum = P
 
@@ -2143,20 +2178,6 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             """
             return self.tensor_square().sum_of_monomials(A.deconcatenate(2))
 
-        def _Antipode_on_basis(self, A):
-            r"""
-            Return the antipode applied to the basis element indexed by ``A``.
-
-            INPUT:
-
-            - ``A`` -- an ordered multiset partition into sets
-
-            OUTPUT:
-
-            - an element in the basis ``self``
-            """
-            pass
-
         def sum_of_derangements(self, A):
             """
             Return the sum, in the Monomial basis, over all ordered multiset
@@ -2427,6 +2448,38 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             """
             return self.tensor_square().sum_of_monomials(A.deconcatenate(2))
 
+        def antipode_on_basis(self, A):
+            r"""
+            Return the antipode applied to a dual Powersum basis element.
+
+            If `A` is an ordered multiset partition with a single block then
+            the antipode is given by `S(Pd_A) = -Pd_A`.
+
+            If `A` has more than one block, then we extend using the fact that
+            the antipode is an algebra antimorphism.
+
+            INPUT:
+
+            - ``A`` -- an ordered multiset partition into sets
+
+            EXAMPLES::
+
+                sage: Pd = OMPNonCommutativeSymmetricFunctions(QQ).PowersumDual()
+                sage: Pd[{2,3}].antipode()
+                -Pd[{2,3}]
+                sage: Pd[{2,3}, {2}].antipode()
+                Pd[{2}, {2,3}]
+
+            TESTS::
+
+                sage: Pd[[]].antipode()
+                Pd[]
+                sage: PP = Pd[[1,2,3],[5],[1,4]].coproduct()
+                sage: PP.apply_multilinear_morphism(lambda x,y: x.antipode()*y)
+                0
+            """
+            return (-1)**A.length() * self.monomial(A.reversal())
+
     PowersumDual = Pd
 
     class F(OMPBasis_OMPQSym):
@@ -2436,9 +2489,16 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         The family `(F_\mu)`, as `\mu` ranges over all ordered multiset
         partitions into sets, is called the *Fundamental basis* here. It
         is defined in relation to the Monomial basis of `OMPQSym` as "sum
-        above `\mu` in the refinement order."
+        above `\mu` in the strong refinement order."
 
-        .. TODO:: tell the truth above and give a more explicit description.
+        .. TODO::
+
+            - decide if this should be called the "fundamental".
+              Pros: defined via refinement; and product and coproduct are
+              reminiscent of those for Gessel's basis for quasisymmetric
+              functions.
+              Con: the antipode does not act as a signed permutation matrix
+              in this basis, as it does for Gessel's basis.
 
         EXAMPLES::
 
