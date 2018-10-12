@@ -55,6 +55,9 @@ from . import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
 from sage.matrix.matrix_misc import permanental_minor_polynomial
 
+# used to deprecate only adjoint method
+from sage.misc.superseded import deprecated_function_alias
+
 cdef class Matrix(Matrix1):
     """
     Base class for matrices, part 2
@@ -8914,7 +8917,6 @@ cdef class Matrix(Matrix1):
         self.cache('adjugate', X)
         return X
 
-    from sage.misc.superseded import deprecated_function_alias
     adjoint = deprecated_function_alias(10501, adjugate)
 
     adjoint_classical = adjugate
