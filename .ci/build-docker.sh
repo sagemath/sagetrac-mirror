@@ -17,10 +17,14 @@ set -ex
 
 # We speed up the build process by copying built artifacts from ARTIFACT_BASE
 # during docker build. See /docker/Dockerfile for more details.
-ARTIFACT_BASE=${ARTIFACT_BASE:-sagemath/sagemath-dev:develop}
+ARTIFACT_BASE=${ARTIFACT_BASE:-sagemath/sagemath-dev:`git describe --abbrev=0 --tags`}
 
 # Seed our cache with $ARTIFACT_BASE if it exists.
-docker pull "$ARTIFACT_BASE" > /dev/null || true
+if ! (docker pull "$ARTIFACT_BASE" > /dev/null); then
+    # If this image does not exist, fall back to sagemath-dev:develop (this might happen when the latest tag has not been built yet.)
+    ARTIFACT_BASE=${ARTIFACT_BASE:-sagemath/sagemath-dev:develop}
+    docker pull "$ARTIFACT_BASE" > /dev/null || true;
+fi
 
 docker_build() {
     # Docker's --cache-from does not really work with multi-stage builds: https://github.com/moby/moby/issues/34715
