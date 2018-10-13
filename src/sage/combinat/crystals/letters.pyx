@@ -30,7 +30,7 @@ from sage.combinat.root_system.cartan_type import CartanType
 from sage.rings.integer import Integer
 
 
-def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
+def CrystalOfLetters(cartan_type, element_print_style=None, dual=None, seq=None):
     r"""
     Return the crystal of letters of the given type.
 
@@ -95,7 +95,7 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
     if ct.letter == 'A':
         from sage.combinat.root_system.cartan_type import SuperCartanType_standard
         if isinstance(ct, SuperCartanType_standard):
-            return CrystalOfBKKLetters(ct, dual=dual)
+            return CrystalOfBKKLetters(ct, dual=dual, seq=seq)
         return ClassicalCrystalOfLetters(ct, Crystal_of_letters_type_A_element)
     elif ct.letter == 'B':
         return ClassicalCrystalOfLetters(ct, Crystal_of_letters_type_B_element)
@@ -2422,6 +2422,7 @@ cdef class BKKLetter(Letter):
             1
             sage: c.e(-2)
         """
+        cdef int pos = int(self._parent._m) + i
         cdef int b = self.value
         if self._parent._dual:
             if 0 < i:
@@ -2434,14 +2435,9 @@ cdef class BKKLetter(Letter):
                 return self._parent._element_constructor_(1)
             return None
 
-        if i < 0:
-            if b == i:
-                return self._parent._element_constructor_(b - 1)
-        elif 0 < i:
-            if b == i + 1:
-                return self._parent._element_constructor_(b - 1)
-        elif i == 0 and b == 1:
-            return self._parent._element_constructor_(-1)
+        cdef int val = (<list> self._parent._val)[pos+1]
+        if b == val:
+            return self._parent._element_constructor_((<list> self._parent._val)[pos])
         return None
 
     cpdef Letter f(self, int i):
@@ -2462,6 +2458,7 @@ cdef class BKKLetter(Letter):
             2
             sage: c.f(-2)
         """
+        cdef int pos = int(self._parent._m) + i
         cdef int b = self.value
         if self._parent._dual:
             if i < 0:
@@ -2474,14 +2471,9 @@ cdef class BKKLetter(Letter):
                 return self._parent._element_constructor_(-1)
             return None
 
-        if 0 < i:
-            if self.value == i:
-                return self._parent._element_constructor_(b + 1)
-        elif i < 0:
-            if b == i - 1:
-                return self._parent._element_constructor_(b + 1)
-        elif i == 0 and b == -1:
-            return self._parent._element_constructor_(1)
+        cdef int val = (<list> self._parent._val)[pos]
+        if b == val:
+            return self._parent._element_constructor_((<list> self._parent._val)[pos+1])
         return None
 
     def weight(self):
@@ -2521,7 +2513,7 @@ class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
         The crystal of letters for type ['A', [2, 4]] (dual)
     """
     @staticmethod
-    def __classcall_private__(cls, ct, dual=None):
+    def __classcall_private__(cls, ct, dual=None, seq=None):
         """
         TESTS::
 
@@ -2531,9 +2523,13 @@ class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
         if dual is None:
             dual = False
         ct = CartanType(ct)
-        return super(CrystalOfBKKLetters, cls).__classcall__(cls, ct, dual)
+        if seq is None:
+            seq = '0' * (ct.m+1) + '1' * (ct.n+1)
+        if seq.count('0') != ct.m + 1 and seq.count('1') != ct.n + 1:
+            raise ValueError("invalid 01 sequence")
+        return super(CrystalOfBKKLetters, cls).__classcall__(cls, ct, dual, seq)
 
-    def __init__(self, ct, dual):
+    def __init__(self, ct, dual, seq):
         """
         Initialize ``self``.
 
@@ -2544,8 +2540,20 @@ class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
         """
         self._dual = dual
         self._cartan_type = ct
+        self._seq = seq
+        self._val = []
+        self._m = int(ct.m)
+        letter0 = -self._m - 1
+        letter1 = 1
+        for let in seq:
+            if let == '0':
+                self._val.append(letter0)
+                letter0 += 1
+            else:
+                self._val.append(letter1)
+                letter1 += 1
         Parent.__init__(self, category=RegularSuperCrystals())
-        self.module_generators = (self._element_constructor_(-self._cartan_type.m-1),)
+        self.module_generators = (self._element_constructor_(self._val[0]),)
         self._list = list(self.__iter__())
 
     def __iter__(self):
@@ -2570,7 +2578,7 @@ class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
             sage: crystals.Letters(['A', [2, 1]])
             The crystal of letters for type ['A', [2, 1]]
         """
-        ret = "The crystal of letters for type %s"%self._cartan_type
+        ret = "The crystal of letters for type %s with 01 sequence %s" % (self._cartan_type, self._seq)
         if self._dual:
             ret += " (dual)"
         return ret
