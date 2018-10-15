@@ -59,7 +59,7 @@ from sage.sets.set import Set
 from sage.rings.qqbar import QQbar
 from sage.rings.padics.all import *
 from libc.stdlib cimport malloc, free
-
+from math import pi as pi_number
 #from sage.structure.factory import UniqueFactory
 #from sage.misc.cachefunc import cached_method
 from cysignals.signals cimport sig_on, sig_off
@@ -1174,7 +1174,7 @@ cdef class BetaAdicMonoid:
         elif method == 1:
             print("Not implemented !")
             return
-        
+
         r = DetAutomaton(None)
         r.a[0] = a
         r.A = self.a.A
@@ -1217,13 +1217,13 @@ cdef class BetaAdicMonoid:
             #. The dragon fractal::
 
                 sage: e = QQbar(1/(1+I))
-                sage: m = BetaAdicMonoid(e, {0,1})
+                sage: m = BetaAdicMonoid(e, dag.AnyWord([0, 1]))
                 sage: P = m.draw_zoom()     # long time (360 s)
 
         """
         #if tss is None:
         #    tss = self.reduced_words_automaton2()
-        
+
         cdef BetaAdic b
         b = getBetaAdic(self, prec=prec, mirror=True, verb=verb)
         # if verb:
@@ -1247,13 +1247,13 @@ cdef class BetaAdicMonoid:
                 for i in xrange(1024):
                     if word[i] < 0:
                         break
-                    res.append(self.Alphabet[word[i]])
+                    res.append(self.alphabet[word[i]])
                 res.reverse()
             return res
         elif method == 1:
             print("Not implemented !")
             return None
-       
+
 
 # Integrated to draw_zoom
 #    # give a word corresponding to one of the previously drawn points
@@ -1328,30 +1328,33 @@ cdef class BetaAdicMonoid:
             A Graphics object.
 
         EXAMPLES::
-        
+
         #. The dragon fractal::
 
             sage: m = BetaAdicMonoid(1/(1+I), dag.AnyWord([0,1]))
             sage: m.plot()
-        
+
         #. Another dragon fractal::
-    
+
             sage: b = (2*x^2+x+1).roots(ring=CC)[0][0]
             sage: m = BetaAdicMonoid(b, dag.AnyWord([0,1]))
             sage: m.plot()
-        
+            <PIL.Image.Image image mode=RGBA size=800x600 at 0x7FABDBBDCC90>
+
         #. The Rauzy fractal of the Tribonacci substitution::
 
             sage: s = WordMorphism('1->12,2->13,3->1')
             sage: m = s.DumontThomas()
             sage: m.plot()
-        
+            <PIL.Image.Image image mode=RGBA size=800x600 at 0x7FABDC35B1D0>
+
+
         #. The Rauzy fractal of the flipped Tribonacci substitution::
 
             sage: s = WordMorphism('1->12,2->31,3->1')
             sage: m = s.DumontThomas()
             sage: m.plot()
-        
+
         #. A non-Pisot Rauzy fractal::
 
             sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
@@ -1359,7 +1362,7 @@ cdef class BetaAdicMonoid:
             sage: m.plot()
             sage: m = BetaAdicMonoid(1/m.b, m.a)
             sage: m.plot()
-        
+
         #. A part of the boundary of the dragon fractal::
 
             sage: m = BetaAdicMonoid(1/(1+I), dag.AnyWord([0,1]))
@@ -1429,7 +1432,7 @@ cdef class BetaAdicMonoid:
         FreeBetaAdic(b)
         sig_off()
         return im
-    
+
     def plot_list(self, list la=None, n=None,
               sx=800, sy=600, ajust=True, prec=53, colormap='hsv',
               backcolor=None, opacity=1., verb=False):
@@ -1489,7 +1492,7 @@ cdef class BetaAdicMonoid:
         #. The dragon fractal and its boundary::
 
             sage: e = QQbar(1/(1+I))
-            sage: m = BetaAdicMonoid(e, {0,1})
+            sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
             sage: ssi = m.intersection_words(w1=[0], w2=[1])                               # long time
             sage: m.plot(tss=ssi) #plot the boundary                                      # long time
             sage: m.plot_list(la=[m.default_ss(), ssi], colormap=[(.5,.5,.5,.5), (0,0,0,1.)])  # long time
@@ -1506,7 +1509,7 @@ cdef class BetaAdicMonoid:
 
             sage: P = x^4 + x^3 - x + 1
             sage: b = P.roots(ring=QQbar)[2][0]
-            sage: m = BetaAdicMonoid(b, {0,1})
+            sage: m = BetaAdicMonoid(b, dag.AnyWord([0,1]))
             sage: m.plot(19)                                   # long time
 
         """
@@ -1578,9 +1581,47 @@ cdef class BetaAdicMonoid:
         t is the translation of one of the side
         (initial state of the automaton).
         ext : automate des relations à l'infini ou pas.
-        Ad : alphabet of differences
-        A : alphabet on one side (used if Ad is None)
-        B : alphabet on the other side (used if Ad is None)
+
+         INPUT:
+
+        - ``t`` integer (default: 0) is the translation of one of the side
+
+        - ``isvide`` boolean - (default: ''False'') If isvide is True,
+          it only checks if the automaton is trivial or not.
+
+        - ``Ad`` - (default: ``None``)
+          Ad alphabet of differences  A-B where A and B
+          are the alphabets to compare.
+
+        - ``A`` -  (default: ``None``) alphabet on one side
+          (used if Ad is None)
+
+        - ``B`` -  (default: ``None``) alphabet on the other side
+         (used if Ad is None)
+
+        - ``couples``  boolean - (default: ''False'')
+
+        - ``ext``  boolean - (default: ''False'')
+          where automaton has relations at infinity or not
+
+        - ``transp`` boolean - (default: ''False'')
+
+        - ``prune`` boolean - (default: ''False'')
+
+        - ``nhash`` int (default: 1000003)
+
+        - ``verb`` - bool (default: ``False``)
+          Print informations for debugging.
+
+        OUTPUT:
+        A DetAutomaton  corresponding to relation
+
+        EXAMPLES::
+
+            sage: e = QQbar(1/(1+I))
+            sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
+            sage: m.relations_automaton()
+
         """
         cdef InfoBetaAdic ib
         cdef Automaton a
@@ -1698,7 +1739,7 @@ cdef class BetaAdicMonoid:
         if couples:
             if A is None or B is None:
                 raise ValueError("Alphabets A and B must be defined !")
-            d={}
+            d = {}
             for c1 in A:
                 for c2 in B:
                     if not d.has_key(c1-c2):
@@ -1710,9 +1751,28 @@ cdef class BetaAdicMonoid:
         return r
 
     def critical_exponent_aprox(self, niter=10, verb=False):
+        """
+        
+         
+        - ``niter`` int (default: 10) number of iterations
+
+        - ``verb`` - bool (default: ``False``)
+          verbose mode
+
+        OUTPUT:
+        print a approximated value of thecritical exponent
+
+        EXAMPLES::
+
+            sage: e = QQbar(1/(1+I))
+            sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
+            sage: m.critical_exponent_aproxn()   3 long time
+            0.693147180559945
+         
+        """
         b = self.b
         K = b.parent()
-        C = self.C
+        C = self.a.alphabet
         S = set([K.zero()])
         for i in range(niter):
             S2 = set([])
@@ -1744,11 +1804,11 @@ cdef class BetaAdicMonoid:
         EXAMPLES::
 
             sage: b = (x^3-x^2-x-1).roots(ring=QQbar)[1][0]
-            sage: m = BetaAdicMonoid(b, [0,1])
+            sage: m = BetaAdicMonoid(b, dag.AnyWord([0,1]))
             sage: m.complexity()
-            108.523461211014
+            108.523461214115
         """
-        K = self.C[0].parent()
+        K = self.a.alphabet[0].parent()
         b = self.b
 
         if verb:
@@ -1791,7 +1851,7 @@ cdef class BetaAdicMonoid:
             print(pultra)
 
         # calcule les bornes max pour chaque valeur absolue
-        Cd = Set([c-c2 for c in self.C for c2 in self.C])
+        Cd = Set([c-c2 for c in self.a.alphabet for c2 in self.a.alphabet])
         if verb:
             print("Cd = %s" % Cd)
         vol = 1.
@@ -1802,7 +1862,7 @@ cdef class BetaAdicMonoid:
                 if verb:
                     print("real place  %s" % p)
             else:
-                vol *= 3.1415926535*(max([p(c).abs() for c in Cd])/abs(1-p(b).abs()))**2
+                vol *= pi_number*(max([p(c).abs() for c in Cd])/abs(1-p(b).abs()))**2
                 if verb:
                     print("complex place %s" % p)
             # vol *= max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs())
@@ -1875,7 +1935,7 @@ cdef class BetaAdicMonoid:
                 ss2 = self.ss
             else:
                 raise ValueError("Only one sub-shift given, I need two !")
-            if type(ss) == type(BetaAdicMonoid(2, {0, 1})):
+            if type(ss) == type(BetaAdicMonoid(2, dag.AnyWord([0,1]))):
                 m = ss
                 ss = m.ss
                 if m.b != self.b:
@@ -1883,10 +1943,10 @@ cdef class BetaAdicMonoid:
                 m.C = m.C.union(self.C)
                 self.C = self.C.union(m.C)
                 if hasattr(m, 'ss'):
-                    m.ss.A = m.C
+                    m.ss.A = m.a.alphabet
                 else:
                     raise ValueError("Only one sub-shift given, I need two !")
-                self.ss.A = self.C
+                self.ss.A = self.a.alphabet
 
         if Iss is None:
             if hasattr(ss, 'I'):
@@ -1911,8 +1971,8 @@ cdef class BetaAdicMonoid:
 
         # maps actual edges to the list of corresponding couple
         m = dict([])
-        for c in self.C:
-            for c2 in self.C:
+        for c in self.a.alphabet:
+            for c2 in self.a.alphabet:
                 if m.has_key(c - c2):
                     m[c-c2] += [(c, c2)]
                 else:
@@ -1942,7 +2002,7 @@ cdef class BetaAdicMonoid:
         p.I = [((i, i2), self.b.parent().zero()) for i, i2 in zip(Iss, Iss2)]
         p = p.prune0_simplify()
         if m is not None:
-            ssd = p.determinize2(A=self.C, noempty=True)
+            ssd = p.determinize2(A=self.a.alphabet, noempty=True)
             ssd = ssd.prune0_simplify()
             return ssd
         return p
@@ -2043,12 +2103,12 @@ cdef class BetaAdicMonoid:
             if hasattr(self, 'ss'):
                 ss = self.ss
             else:
-                ss = self.default_ss()
+                ss = self.a
         if iss is None:
             if hasattr(ss, 'I'):
                 iss = ss.I[0]
             if iss is None:
-                iss = ss.vertices()[0]
+                iss = ss.states[0]
         ss1 = ss.prefix(w=w1, i=iss)
         ss2 = ss.prefix(w=w2, i=iss)
         ssi = self.intersection(ss=ss1, ss2=ss2)
