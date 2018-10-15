@@ -59,7 +59,7 @@ from sage.sets.set import Set
 from sage.rings.qqbar import QQbar
 from sage.rings.padics.all import *
 from libc.stdlib cimport malloc, free
-
+from math import pi as pi_number
 #from sage.structure.factory import UniqueFactory
 #from sage.misc.cachefunc import cached_method
 from cysignals.signals cimport sig_on, sig_off
@@ -1622,13 +1622,15 @@ cdef class BetaAdicMonoid:
         - ``isvide`` boolean - (default: ''False'') If isvide is True,
           it only checks if the automaton is trivial or not.
 
-        - ``Cd`` - (default: ``None``)
-          Cd is the set of differences A-B where A and B
+        - ``Ad`` - (default: ``None``)
+          Ad alphabet of differences  A-B where A and B
           are the alphabets to compare.
 
-        - ``A`` -  (default: ``None``)
+        - ``A`` -  (default: ``None``) alphabet on one side
+          (used if Ad is None)
 
-        - ``B`` -  (default: ``None``) 
+        - ``B`` -  (default: ``None``) alphabet on the other side
+         (used if Ad is None)
 
         - ``couples``  boolean - (default: ''False'')
 
@@ -1652,11 +1654,6 @@ cdef class BetaAdicMonoid:
             sage: e = QQbar(1/(1+I))
             sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
             sage: m.relations_automaton()
-
-        Ad : alphabet of differences
-        A : alphabet on one side (used if Ad is None)
-        B : alphabet on the other side (used if Ad is None)
-
 
         """
         if Ad is None:
@@ -1721,6 +1718,25 @@ cdef class BetaAdicMonoid:
         return r2
 
     def critical_exponent_aprox(self, niter=10, verb=False):
+        """
+        
+         
+        - ``niter`` int (default: 10) number of iterations
+
+        - ``verb`` - bool (default: ``False``)
+          verbose mode
+
+        OUTPUT:
+        print a approximated value of thecritical exponent
+
+        EXAMPLES::
+
+            sage: e = QQbar(1/(1+I))
+            sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
+            sage: m.critical_exponent_aproxn()   3 long time
+            0.693147180559945
+         
+        """
         b = self.b
         K = b.parent()
         C = self.a.alphabet
@@ -1755,11 +1771,11 @@ cdef class BetaAdicMonoid:
         EXAMPLES::
 
             sage: b = (x^3-x^2-x-1).roots(ring=QQbar)[1][0]
-            sage: m = BetaAdicMonoid(b, [0,1])
+            sage: m = BetaAdicMonoid(b, dag.AnyWord([0,1]))
             sage: m.complexity()
-            108.523461211014
+            108.523461214115
         """
-        K = self.C[0].parent()
+        K = self.a.alphabet[0].parent()
         b = self.b
 
         if verb:
@@ -1802,7 +1818,7 @@ cdef class BetaAdicMonoid:
             print(pultra)
 
         # calcule les bornes max pour chaque valeur absolue
-        Cd = Set([c-c2 for c in self.C for c2 in self.C])
+        Cd = Set([c-c2 for c in self.a.alphabet for c2 in self.a.alphabet])
         if verb:
             print("Cd = %s" % Cd)
         vol = 1.
@@ -1813,7 +1829,7 @@ cdef class BetaAdicMonoid:
                 if verb:
                     print("real place  %s" % p)
             else:
-                vol *= 3.1415926535*(max([p(c).abs() for c in Cd])/abs(1-p(b).abs()))**2
+                vol *= pi_number*(max([p(c).abs() for c in Cd])/abs(1-p(b).abs()))**2
                 if verb:
                     print("complex place %s" % p)
             # vol *= max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs())
