@@ -1610,6 +1610,11 @@ cdef class BetaAdicMonoid:
 
         - ``nhash`` int (default: 1000003)
 
+        - ''prec'' int (default:53)
+
+        - ''algo'' int (default: 1) for any one else that 1 use 
+          initInfoBetaAdic
+
         - ``verb`` - bool (default: ``False``)
           Print informations for debugging.
 
@@ -1619,8 +1624,11 @@ cdef class BetaAdicMonoid:
         EXAMPLES::
 
             sage: e = QQbar(1/(1+I))
-            sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
+            sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1,3]))
             sage: m.relations_automaton()
+            DetAutomaton with 49 states and an alphabet of 7 letters
+            sage: m.relations_automaton(algo=0)
+            DetAutomaton with 49 states and an alphabet of 7 letters
 
         """
         cdef InfoBetaAdic ib
@@ -1769,7 +1777,7 @@ cdef class BetaAdicMonoid:
             sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
             sage: m.critical_exponent_aproxn()   3 long time
             0.693147180559945
-         
+
         """
         b = self.b
         K = b.parent()
@@ -2195,8 +2203,8 @@ cdef class BetaAdicMonoid:
 
         # project, determinise and take the complementary
         d = {}
-        for a in self.C:
-            for b in self.C:
+        for a in self.a.alphabet:
+            for b in self.a.alphabet:
                 if not d.has_key(a - b):
                     d[a-b] = []
                 d[a-b].append((a, b))
@@ -2204,8 +2212,8 @@ cdef class BetaAdicMonoid:
             print(d)
         arel = arel.duplicate(d)  # replace differences with couples
         d = {}
-        for j in self.C:
-            for i in self.C:
+        for j in self.a.alphabet:
+            for i in self.a.alphabet:
                 d[(i, j)] = i
         if verb:
             print(d)
