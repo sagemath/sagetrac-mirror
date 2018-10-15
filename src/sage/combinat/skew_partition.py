@@ -733,7 +733,7 @@ class SkewPartition(CombinatorialElement):
 
     def conjugate(self):
         """
-        Return the conjugate of the skew partition skp.
+        Return the conjugate of the skew partition ``self``.
 
         EXAMPLES::
 
