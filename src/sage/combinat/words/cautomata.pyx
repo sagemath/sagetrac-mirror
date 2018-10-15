@@ -3441,8 +3441,8 @@ cdef class DetAutomaton:
 
         return r
 
-    # permute les lettres SUR PLACE
-    # A = liste des lettres dans le nouvel ordre (il peut y en avoir moins)
+    # permute letters ON PLACE
+    # A = list of letters in the new order (with possibly less letters)
     def permut_op(self, list A, verb=False):
         """
         Permutes (and eventually remove) letters ON PLACE.
