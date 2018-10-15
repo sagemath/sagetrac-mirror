@@ -43,9 +43,9 @@ cdef extern from "automataC.h":
 cdef class DetAutomaton:
     cdef Automaton* a
     cdef list A	 # alphabet
-    cdef dict dA  # dictionnary giving the index in A
+    #cdef dict dA  # dictionnary giving the index in A
     cdef list S	 # states
-    cdef dict dS  # dictionnary giving the index in S
+    #cdef dict dS  # dictionnary giving the index in S
     # cdef set_a(self, Automaton a)
 
 

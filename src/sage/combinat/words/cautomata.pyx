@@ -287,9 +287,9 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
         r.e[d[e]].f[da[l]] = d[f]
     if w:
         print("Warning: the automaton was not deterministic !\nThe result lost some informations.")
-    a.dA = da
+    #a.dA = da
     a.S = V
-    a.dS = d
+    #a.dS = d
     return r
 
 cdef NAutomaton getNAutomaton(a, I=None, F=None, A=None, verb=False):
@@ -385,22 +385,22 @@ cdef NAutomaton getNAutomaton(a, I=None, F=None, A=None, verb=False):
     a.S = V
     return r
 
-cdef AutomatonGet(Automaton a, A):
-    """
-    Transform an Automaton a with an alphabet A to a DiGraph
-    """
-    from sage.graphs.digraph import DiGraph
-    r = DiGraph(multiedges=True, loops=True)
-    cdef int i, j
-    r.F = []
-    for i in range(a.n):
-        for j in range(a.na):
-            if a.e[i].f[j] != -1:
-                r.add_edge((i, a.e[i].f[j], A[j]))
-        if a.e[i].final:
-            r.F.append(i)
-    r.I = [a.i]
-    return r
+#cdef AutomatonGet(Automaton a, A):
+#    """
+#    Transform an Automaton a with an alphabet A to a DiGraph
+#    """
+#    from sage.graphs.digraph import DiGraph
+#    r = DiGraph(multiedges=True, loops=True)
+#    cdef int i, j
+#    r.F = []
+#    for i in range(a.n):
+#        for j in range(a.na):
+#            if a.e[i].f[j] != -1:
+#                r.add_edge((i, a.e[i].f[j], A[j]))
+#        if a.e[i].final:
+#            r.F.append(i)
+#    r.I = [a.i]
+#    return r
 
 cdef AutomatonToSageAutomaton(Automaton a, A):
     from sage.combinat.finite_state_machine import Automaton as SageAutomaton
@@ -697,6 +697,7 @@ cdef class NFastAutomaton:
             ll[i] = strA[i]
         sig_on()
         NplotDot(file, self.a[0], ll, "Automaton", sx, sy, False)
+        free(ll)
         sig_off()
         dotfile = open(file_name)
         return LatexExpr(dot2tex(dotfile.read()))
@@ -1098,6 +1099,7 @@ cdef class NFastAutomaton:
             l[i] = li[i]
         sig_on()
         AddPathN(self.a, e, f, l, len(li), verb)
+        free(l)
         sig_off()
 
     def determinize(self, puits=False, verb=0):
@@ -1121,8 +1123,8 @@ cdef class NFastAutomaton:
             DetAutomaton with 2 states and an alphabet of 2 letters
         """
         cdef Automaton a
-        sig_on()
         r = DetAutomaton(None)
+        sig_on()
         a = DeterminizeN(self.a[0], puits, verb)
         sig_off()
         r.a[0] = a
@@ -1156,6 +1158,7 @@ cdef class NFastAutomaton:
         cdef char** ll
         cdef int i
         cdef char *cfile
+        cdef bool de
         if verb:
             print("Test if dot exists...")
         sig_on()
@@ -1258,8 +1261,8 @@ cdef class DetAutomaton:
         self.a.i = -1
         self.A = []
         self.S = None
-        self.dA = None
-        self.dS = None
+        #self.dA = None
+        #self.dS = None
 
     def __init__(self, a, i=None, final_states=None, A=None, S=None, keep_S=True, verb=False):
         r"""
@@ -1322,15 +1325,17 @@ cdef class DetAutomaton:
                 A = list(set(a.edge_labels()))
             self.A = A
             self.a[0] = getAutomaton(a, initial=i, F=final_states, A=self.A)
-            self.dA = a.dA
+            #self.dA = a.dA
             if keep_S:
                 self.S = a.S
-                self.dS = a.dS
+                #self.dS = a.dS
         elif isinstance(a, DetAutomaton):
             if verb:
                 print("DetAutomaton...")
             da = a
+            sig_on()
             self.a[0] = CopyAutomaton(da.a[0], da.a.n, da.a.na)
+            sig_off()
             self.A = da.A
             self.S = da.S
         else:
@@ -1524,18 +1529,19 @@ cdef class DetAutomaton:
 
     def __hash__(self):
         r"""
-        Hash automaton,  Overwrite built-in function
+        Hash the automaton
 
         OUTPUT:
 
-        Return the hash code of the :class:`DetAutomaton`
+        Return a ``int``, hash code of the :class:`DetAutomaton`
 
         TESTS::
 
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: hash(a)
-            -3816799034168020408
+            761033288
         """
+        cdef int h
         h = hash(tuple(self.A))
         sig_on()
         h += hashAutomaton(self.a[0])
@@ -1588,10 +1594,10 @@ cdef class DetAutomaton:
         """
         return AutomatonToSageAutomaton(self.a[0], self.A)
 
-    # give a Sage Automon from the DetAutomaton
+    # give a Graph from the DetAutomaton
     def get_DiGraph(self):
         r"""
-        Give a Sage Automon from the DetAutomaton
+        Give a DiGraph from the DetAutomaton
 
         TESTS::
 
@@ -1601,45 +1607,6 @@ cdef class DetAutomaton:
 
         """
         return AutomatonToDiGraph(self.a[0], self.A)
-
-    # give a DetAutomaton recognizing the full language over A.
-    def full(self, list A):
-        """
-        Give a :class:`DetAutomaton` recognizing the full language over A.
-
-        INPUT:
-
-        - ``A`` -- list of letters of alphabet
-
-        OUTPUT:
-
-        Return a :class:`DetAutomaton` recognizing the full language over A.
-
-        EXAMPLES::
-
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: a
-            DetAutomaton with 4 states and an alphabet of 2 letters
-            sage: a.full(['a'])
-            DetAutomaton with 1 states and an alphabet of 1 letters
-            sage: a.full(['a','b'])
-            DetAutomaton with 1 states and an alphabet of 2 letters
-            sage: a.full(['a','b','c'])
-            DetAutomaton with 1 states and an alphabet of 3 letters
-        """
-        cdef Automaton a
-        r = DetAutomaton(None)
-        sig_on()
-        a = NewAutomaton(1, len(A))
-        sig_off()
-        for i in range(len(A)):
-            a.e[0].f[i] = 0
-        a.e[0].final = True
-        a.i = 0
-        r.a[0] = a
-        r.A = A
-        r.S = None
-        return r
 
     def plot(self, int sx=10, int sy=8, vlabels=None,
              html=False, file=None, bool draw=True, verb=False):
@@ -1676,8 +1643,8 @@ cdef class DetAutomaton:
             sphinx_plot(a)
         """
         cdef char *cfile
-        cdef char** ll # labels of edges
-        cdef char** vl # labels of vertices
+        cdef char** ll = NULL # labels of edges
+        cdef char** vl = NULL # labels of vertices
         cdef int i
         sig_on()
         de = DotExists()
@@ -1755,15 +1722,17 @@ cdef class DetAutomaton:
             sig_off()
             if verb:
                 print("free...plot")
-            sig_on()
-            free(ll)
-            sig_off()
-            if vlabels is not None and self.S is not None:
+            if ll is not NULL:
+                sig_on()
+                free(ll)
+                sig_off()
+            if vl is not NULL: #vlabels is not None and self.S is not None:
                 sig_on()
                 free(vl)
                 sig_off()
             from PIL import Image
             return Image.open(file+'.png')
+#other possibility to get the image
 #            import ipywidgets as widgets
 #            file = open(file+'.png', "rb")
 #            image = file.read()
@@ -1795,9 +1764,9 @@ cdef class DetAutomaton:
         """
         return self.A
 
-    def setAlphabet(self, list A):
+    def set_alphabet(self, list A):
         """
-        Set the alphabet
+        Replace the alphabet by another one.
 
         INPUT:
 
@@ -1806,25 +1775,30 @@ cdef class DetAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: a.setAlphabet(['a', 'b', 'c'])
+            sage: a.set_alphabet(['a', 'b', 'c'])
+            Traceback (most recent call last):
+            ...
+            ValueError: The size 3 of the new alphabet has to be the same (i.e. 2).
             sage: a.alphabet
-            ['a', 'b', 'c']
+            ['a', 'b']
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: a.setAlphabet(['a','e'])
+            sage: a.set_alphabet(['a','e'])
             sage: a.alphabet
             ['a', 'e']
         """
+        if len(A) != len(self.A):
+            raise ValueError("The size %s of the new alphabet has to be the same (i.e. %s)."%(len(A), len(self.A)))
         self.A = A
         self.a[0].na = len(A)
 
     @property
     def initial_state(self):
         """
-        Get the initial state :class:`DetAutomaton` attribut
+        Get the initial state of the :class:`DetAutomaton`
 
         OUTPUT:
 
-        Return the initial state ``i``  of  :class:`DetAutomaton`
+        Return an int, index of the initial state ``i``  of  :class:`DetAutomaton`
 
         EXAMPLES::
 
@@ -1843,7 +1817,7 @@ cdef class DetAutomaton:
 
         INPUT:
 
-        - ``i`` -- int the initial state of the automaton
+        - ``i`` -- int -- the initial state of the automaton
 
         EXAMPLES::
 
@@ -1854,12 +1828,12 @@ cdef class DetAutomaton:
             sage: a.set_initial_state(6)
             Traceback (most recent call last):
             ...
-            ValueError: initial state must be a current state : 6 not in [-1, 3]
+            ValueError: The initial state must be a state of the automaton or -1 : 6 not in [-1, 3]
         """
         if i < self.a.n and i >= -1:
             self.a.i = i
         else:
-            raise ValueError("initial state must be a current state : " +
+            raise ValueError("The initial state must be a state of the automaton or -1 : " +
                              "%d not in [-1, %d]" % (i, self.a.n - 1))
     @property
     def final_states(self):
@@ -1908,9 +1882,9 @@ cdef class DetAutomaton:
         else:
             return self.S
 
-    def set_final_states(self, lf):
+    def set_final_states(self, list lf):
         """
-        Set the final states.
+        Set the set of final states.
 
          INPUT:
 
@@ -1985,25 +1959,26 @@ cdef class DetAutomaton:
             sage: a.set_final_state(4)
             Traceback (most recent call last):
             ...
-            ValueError: 4 is not a state !
+            ValueError: 4 is not the index of a state (i.e. it is not between 0 and 4)!
         """
         if e >= 0 and e < self.a.n:
             self.a.e[e].final = final
         else:
-            raise ValueError("%d is not a state !" % e)
+            raise ValueError("%d is not the index of a state (i.e. it is not between 0 and %s)!" % (e, self.a.n))
 
     def succ(self, int i, int j):
         """
         Return the state reached by following the edge j from state i.
+        Return -1 if it doesn't exists.
 
         INPUT:
 
-        - ``i`` - int - number of the input state
-        - ``j`` - int - number of the edge
+        - ``i`` - int - index of the state
+        - ``j`` - int - index of the edge
 
         OUTPUT:
 
-        return successor of state
+        return a int, successor of the state i following edge j
 
         EXAMPLES::
 
@@ -2038,16 +2013,14 @@ cdef class DetAutomaton:
             []
 
         """
-#        if i is None:
-#            i = self.a.i
-#        el
+        cdef int j
         if i < 0 or i >= self.a.n:
             return []
         return [j for j in range(self.a.na) if self.a.e[i].f[j] != -1]
 
     def path(self, list l, i=None):
         """
-        Follows the path labeled by ``l`` and return the reached state
+        Follows the path labeled by a list of edges ``l`` and return the reached state
 
         INPUT:
 
@@ -2341,9 +2314,7 @@ cdef class DetAutomaton:
             DetAutomaton with 0 states and an alphabet of 2 letters
         """
         if self.initial_state == -1:
-            empty = DetAutomaton([])
-            empty.setAlphabet(self.alphabet)
-            return empty
+            return DetAutomaton([], A=self.alphabet)
         cdef Automaton a
         r = DetAutomaton(None)
         sig_on()
