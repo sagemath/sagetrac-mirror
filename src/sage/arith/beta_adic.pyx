@@ -1589,7 +1589,7 @@ cdef class BetaAdicMonoid:
         - ``isvide`` boolean - (default: ''False'') If isvide is True,
           it only checks if the automaton is trivial or not.
 
-        - ``Ad`` - (default: ``None``)
+        - ``Ad`` - list (default: ``None``)
           Ad alphabet of differences  A-B where A and B
           are the alphabets to compare.
 
@@ -1604,7 +1604,7 @@ cdef class BetaAdicMonoid:
         - ``ext``  boolean - (default: ''False'')
           where automaton has relations at infinity or not
 
-        - ``transp`` boolean - (default: ''False'')
+        - ``mirror``  boolean - (default: ''False'')
 
         - ``prune`` boolean - (default: ''False'')
 
@@ -1915,7 +1915,7 @@ cdef class BetaAdicMonoid:
           If True, compute the extended relations automaton (which permit to describe infinite words in the monoid).  
 
         - ``verb``- bool (default: ``False``)
-          If True, print informations for debugging.
+          If True, verbose mod.
 
         OUTPUT:
 
@@ -1961,12 +1961,12 @@ cdef class BetaAdicMonoid:
             if hasattr(ss, 'I'):
                 Iss = ss.I
             if Iss is None:
-                Iss = [ss.vertices()[0]]
+                Iss = [ss.states[0]]
         if Iss2 is None:
             if hasattr(ss2, 'I'):
                 Iss2 = ss2.I
             if Iss2 is None:
-                Iss2 = [ss2.vertices()[0]]
+                Iss2 = [ss2.states[0]]
             if verb:
                 print("Iss = %s, Iss2 = %s" % (Iss, Iss2))
 
@@ -1974,7 +1974,7 @@ cdef class BetaAdicMonoid:
         if verb:
             print("Product = %s" % a)
 
-        ar = self.relations_automaton(ext=ext, noss=True)
+        ar = self.relations_automaton(ext=ext, verb=verb)
         if verb:
             print("Arel = %s" % ar)
 
@@ -2891,9 +2891,9 @@ cdef class BetaAdicMonoid:
                 else:
                     a = DetAutomaton(self.tss)
             else:
-                a = DetAutomaton(self.default_ss())
+                a = DetAutomaton(None)
         if b is None:
-            b = DetAutomaton(self.default_ss())
+            b = DetAutomaton(None)
             #            if hasattr(self, 'tss'):
             #                if isinstance(self.tss, DetAutomaton):
             #                    b = self.tss
@@ -2908,7 +2908,7 @@ cdef class BetaAdicMonoid:
         if ar is None:
             # compute the relations automaton with translation t
             ar = self.relations_automaton(t=t, A=A, B=B,
-                                           couples=True, verb=False)
+                                          couples=True, verb=False)
         # compute the product of a and b
         if verb:
             print("product...")
@@ -3745,7 +3745,7 @@ cdef class BetaAdicMonoid:
 
             #. Full Tribonnacci::
 
-                sage: m = BetaAdicMonoid((x^3-x^2-x-1).roots(ring=QQbar)[1][0], {0, 1})
+                sage: m = BetaAdicMonoid((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
                 sage: m.compute_substitution(verb=False)      # long time
                 {1: [1, 3], 2: [1], 3: [1, 2]}
 
@@ -3755,7 +3755,7 @@ cdef class BetaAdicMonoid:
             if hasattr(self, 'tss'):
                 a = DetAutomaton(self.tss)
             else:
-                a = DetAutomaton(None).full(list(self.C))
+                a = DetAutomaton(a=None, A=list(self.a.alphabet))
         a.zero_completeOP()
         A = a.A
         # complete a
@@ -4067,7 +4067,7 @@ cdef class BetaAdicMonoid:
 
             #. Full Tribonnacci::
 
-                sage: m = BetaAdicMonoid((x^3-x^2-x-1).roots(ring=QQbar)[1][0], {0, 1})
+                sage: m = BetaAdicMonoid((x^3-x^2-x-1).roots(ring=QQbar)[1][0], )
                 sage: m.compute_substitution(verb=False)          # long time
                 {1: [1, 3], 2: [1], 3: [1, 2]}
         """
