@@ -1667,7 +1667,7 @@ cdef class BetaAdicMonoid:
             print("Ad=%s"%Ad)
         sig_on()
         cdef InfoBetaAdic ib
-        ib = initInfoBetaAdic(self, Cd=Cd, plus=False, nhash=nhash, verb=verb)
+        ib = initInfoBetaAdic(self, Cd=Ad, plus=False, nhash=nhash, verb=verb)
         cdef Automaton a
         cdef Element e
         e = NewElement(ib.n)
@@ -1719,15 +1719,16 @@ cdef class BetaAdicMonoid:
 
     def critical_exponent_aprox(self, niter=10, verb=False):
         """
+        print a approximated value of the critical exponent
+        INPUT:
         
-         
         - ``niter`` int (default: 10) number of iterations
 
         - ``verb`` - bool (default: ``False``)
           verbose mode
 
         OUTPUT:
-        print a approximated value of thecritical exponent
+        print a approximated value of the critical exponent
 
         EXAMPLES::
 
@@ -1884,9 +1885,9 @@ cdef class BetaAdicMonoid:
             #. Compute the boundary of the dragon fractal (see intersection_words for a easier way) ::
 
                 sage: e = QQbar(1/(1+I))
-                sage: m = BetaAdicMonoid(e, {0,1})
-                sage: ss=m.default_ss()
-                sage: iss=ss.I[0]
+                sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
+                sage: ss = m.a
+                sage: iss = ss.initial_state
                 sage: ss0 = ss.prefix(w=[0], i=iss)
                 sage: ss1 = ss.prefix(w=[1], i=iss)
                 sage: ssi = m.intersection(ss=ss0, ss2=ss1)
@@ -1902,7 +1903,7 @@ cdef class BetaAdicMonoid:
                 ss2 = self.ss
             else:
                 raise ValueError("Only one sub-shift given, I need two !")
-            if type(ss) == type(BetaAdicMonoid(2, dag.AnyWord([0,1]))):
+            if isinstance(ss, BetaAdicMonoid):
                 m = ss
                 ss = m.ss
                 if m.b != self.b:
@@ -2000,7 +2001,7 @@ cdef class BetaAdicMonoid:
             #. Compute the boundary of the dragon fractal (see intersection_words for a easier way) ::
 
                 sage: e = QQbar(1/(1+I)) 
-                sage: m = BetaAdicMonoid(e, {0,1})
+                sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
                 sage: import sage.combinat.words.cautomata
                 sage: from sage.combinat.words.cautomata import DetAutomaton
                 sage: ss0 = DetAutomaton([(0,1,0)]+[(1,1,l) for l in m.C], i=0, final_states=[1])
@@ -2056,13 +2057,13 @@ cdef class BetaAdicMonoid:
             #. Compute the boundary of the dragon fractal::
 
                 sage: e = QQbar(1/(1+I))
-                sage: m = BetaAdicMonoid(e, {0,1})
+                sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
                 sage: m.intersection_words(w1=[0], w2=[1])
                 Finite automaton with 21 states
 
             #. Draw the intersection of two sub-sets of a limit set::
 
-                sage: m = BetaAdicMonoid(1/(1+I), {0,1})
+                sage: m = BetaAdicMonoid(1/(1+I), dag.AnyWord([0,1]))
                 sage: ssi = m.intersection_words(w1=[0], w2=[1])
                 sage: m.plot(n=10, ss=ssi)                        # long time
         """
@@ -2086,8 +2087,8 @@ cdef class BetaAdicMonoid:
     #to be put in generators
     #     - ``aut`` - DetAutomaton (default: ``None``, full language)
     #       Automaton describing the language in which we live.
-    def reduced_words_automaton2(self, step=100,
-                                 verb=False, transpose=False):  # , DetAutomaton aut=None):
+    def reduced_words_automaton(self, step=100,
+                                verb=False, transpose=False):  # , DetAutomaton aut=None):
         r"""
         Compute the reduced words automaton of the beta-adic monoid
         (without considering the automaton of authorized words).
@@ -2109,8 +2110,8 @@ cdef class BetaAdicMonoid:
 
             sage: pi = x^3-x^2-x-1
             sage: b = pi.roots(ring=QQbar)[1][0]
-            sage: m = BetaAdicMonoid(b, {0,1})
-            sage: ared = m.reduced_words_automaton2()
+            sage: m = BetaAdicMonoid(b, dag.AnyWord([0,1]))
+            sage: ared = m.reduced_words_automaton()
             sage: ared
             DetAutomaton with 4 states and an alphabet of 2 letters
 
@@ -2119,7 +2120,7 @@ cdef class BetaAdicMonoid:
         # compute the relations automaton
         Cd = list(set([c-c2 for c in self.a.A for c2 in self.a.A]))
         Cdp = [k for k in range(len(Cd)) if Cd[k] in [self.a.A[j]-self.a.A[i] for i in range(len(self.a.A)) for j in range(i)]] #indices des chiffres strictements négatifs dans Cd
-        arel = self.relations_automaton(Cd=Cd, ext=False)
+        arel = self.relations_automaton(Ad=Cd, ext=False)
         arel = arel.prune()
         if transpose:
             arel = arel.mirror_det()
@@ -2463,14 +2464,14 @@ cdef class BetaAdicMonoid:
 
             #. Hausdorff dimension of limit set of 3-adic expansion with numerals set {0,1,3}::
 
-                sage: m = BetaAdicMonoid(3, {0,1,3})
+                sage: m = BetaAdicMonoid(3, dag.AnyWord([0,1,3]))
                 sage: m.critical_exponent_free(m.reduced_words_automaton())
                 log(y)/log(|3|) where y is the max root of x^2 - 3*x + 1
                 0.8760357589...
 
             #. Hausdorff dimension of limit set of phi-adic expansion with numerals set {0,1}::
 
-                sage: m = BetaAdicMonoid((1+sqrt(5))/2, {0,1})
+                sage: m = BetaAdicMonoid((1+sqrt(5))/2, dag.AnyWord([0,1]))
                 sage: m.critical_exponent_free(m.reduced_words_automaton())
                 log(y)/log(|b|) where y is the max root of x^2 - x - 1
                 1.0000000000...
@@ -2478,7 +2479,7 @@ cdef class BetaAdicMonoid:
             #. Hausdorff dimension of the boundary of the dragon fractal::
 
                 sage: e = QQbar(1/(1+I))
-                sage: m = BetaAdicMonoid(e, {0,1})
+                sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
                 sage: ssi = m.intersection_words(w1=[0], w2=[1])
                 sage: m.critical_exponent_free(ss=ssi)
                 log(y)/log(|b|) where y is the max root of x^3 - x^2 - 2
@@ -2556,14 +2557,14 @@ cdef class BetaAdicMonoid:
 
             #. Hausdorff dimension of limit set of 3-adic expansion with numerals set {0, 1, 3}::
 
-                sage: m = BetaAdicMonoid(3, {0,1,3})
+                sage: m = BetaAdicMonoid(3, dag.AnyWord([0,1,3]))
                 sage: m.critical_exponent()
                 log(y)/log(|3|) where y is the max root of x^2 - 3*x + 1
                 0.8760357589...
 
             #. Hausdorff dimension of limit set of phi-adic expansion with numerals set {0, 1}::
 
-                sage: m = BetaAdicMonoid((1+sqrt(5))/2, {0,1})
+                sage: m = BetaAdicMonoid((1+sqrt(5))/2, dag.AnyWord([0,1]))
                 sage: m.critical_exponent()
                 log(y)/log(|b|) where y is the max root of x^2 - x - 1
                 1.0000000000...
@@ -2572,7 +2573,7 @@ cdef class BetaAdicMonoid:
 
                 sage: P = x^7 - 2*x^6 + x^3 - 2*x^2 + 2*x - 1
                 sage: b = P.roots(ring=QQbar)[3][0]
-                sage: m = BetaAdicMonoid(b, {0,1})
+                sage: m = BetaAdicMonoid(b, dag.AnyWord([0,1]))
                 sage: m.critical_exponent()                    # long time
                 log(y)/log(|b|) where y is the max root of x^11 - 2*x^10 - 4*x^2 + 8*x + 2
                 3.3994454205...
@@ -2657,6 +2658,7 @@ cdef class BetaAdicMonoid:
         - ``a`` - A DetAutomaton.
 
         - ``C`` - list of digits (default : ``None``).
+        
         """
         if C is None:
             C = self.C
