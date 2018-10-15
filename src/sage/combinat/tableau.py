@@ -9252,6 +9252,12 @@ class SymplecticTableaux_shape_weight(SymplecticTableaux_shape):
         self.weight = mu
 
     def _repr_(self):
+        """
+        TESTS::
+
+            sage: repr(SymplecticTableaux([2,1],[0, -1], tableau_type="DP"))    # indirect doctest
+            'DeConciniProcesi Symplectic tableaux of shape [2, 1] and weight (0, -1)'
+        """
         return "%s Symplectic tableaux of shape %s and symplectic weight %s"%(self.tab_type, self.shape, self.weight)
 
     def __contains__(self, x):
@@ -9290,21 +9296,19 @@ class SymplecticTableaux_shape_weight(SymplecticTableaux_shape):
              [[-1, -3, 3], [2]]]
             sage: [t for t in SymplecticTableaux([3,2],[1,-1,-2,1], tableau_type="Sundaram")]
             [[[1, -2, -3], [-3, 4]], [[1, -2, 4], [-3, -3]], [[1, -3, -3], [-2, 4]]]
-            sage: [t for t in SymplecticTableaux([2,2,1],[1,2,1,1],tableau_type="King")]
-            [[[1, 2], [2, 3], [4]], [[1, 2], [2, 4], [3]]]
-            sage: [t for t in SymplecticTableaux([3,2,1],[0,-2,1,0,-1],tableau_type="DP")]
-            [[[-5, -2, -2], [-1, 1], [3]], [[-5, -2, -1], [-2, 1], [3]], [[-5, -2, -1], [-2, 3], [1]], 
-            [[-5, -2, 1], [-2, -1], [3]], [[-5, -2, 1], [-2, 3], [-1]], [[-5, -2, 3], [-2, -1], [1]], 
-            [[-5, -2, 3], [-2, 1], [-1]], [[-5, -2, -2], [-2, 3], [2]], [[-5, -3, -2], [-2, 3], [3]], 
-            [[-5, -3, 3], [-2, -2], [3]], [[-5, -2, -2], [-3, 3], [3]], [[-5, -2, 3], [-3, 3], [-2]],
-            [[-5, -4, -2], [-2, 3], [4]], [[-5, -4, -2], [-2, 4], [3]], [[-5, -4, 3], [-2, -2], [4]], 
-            [[-5, -4, 4], [-2, -2], [3]], [[-5, -2, -2], [-4, 3], [4]], [[-5, -2, -2], [-4, 4], [3]], 
-            [[-5, -2, 3], [-4, 4], [-2]], [[-5, -2, 4], [-4, 3], [-2]], [[-5, -5, -2], [-2, 5], [3]], 
-            [[-5, -5, 5], [-2, -2], [3]]]
             sage: [t for t in SymplecticTableaux([3,3],[2,0,1,1],tableau_type="KN")]
             [[[1, 1, 4], [3, 4, -4]], [[1, 1, 3], [4, 4, -4]], [[1, 1, 4], [3, 3, -3]], 
             [[1, 1, 4], [2, 3, -2]], [[1, 1, 3], [3, 4, -3]], [[1, 1, 3], [2, 4, -2]], 
             [[1, 1, 2], [3, 4, -2]]]
+            sage: [t for t in SymplecticTableaux([3,2],[2,2], tableau_type="Sundaram")]
+            []
+            sage: [t for t in SymplecticTableaux([2,2,1],[1,2,1,1],tableau_type="King")]
+            [[[1, 2], [2, 3], [4]], [[1, 2], [2, 4], [3]]]
+            sage: STDP = SymplecticTableaux([2,2,1],[1,2,1,1], tableau_type="DP")
+            sage: [t for t in STDP]
+            [[[1, 2], [2, 3], [4]], [[1, 2], [2, 4], [3]]]
+            sage: STDP[0].parent() is STDP
+            True
 
         """
         if self.tab_type == 'KashiwaraNakashima':
@@ -9353,66 +9357,6 @@ class SymplecticTableaux_shape_weight(SymplecticTableaux_shape):
                         if SymplecticTableaux.__contains__(self, symp):
                             yield self.element_class(self, symp, self.tab_type)
         return
-
-        # elif self.tab_type == 'DeConciniProcesi':
-        #     wt_zero_pairs = sum(self.shape) - sum(map(abs, self.weight))
-        #     to_dp = lambda k: k - self.max_entry - 1*(k <= self.max_entry)
-        #     to_classical = lambda k : k + self.max_entry + 1*(k < 0)
-        #     if wt_zero_pairs % 2 != 0:
-        #         return
-        #     elif wt_zero_pairs == 0:
-        #         pos_wt = [0]*(2*self.max_entry)
-        #         for i in range(self.max_entry):
-        #             pos_wt[self.max_entry+i] = self.weight[i]*(self.weight[i] > 0)
-        #             pos_wt[self.max_entry-i-1] = -self.weight[i]*(self.weight[i] < 0)
-        #         for st in SemistandardTableaux(self.shape, Composition(pos_wt)):
-        #             dp = [[to_dp(entry) for entry in row] for row in st]
-        #             if SymplecticTableaux.__contains__(self, dp):
-        #                 yield self.element_class(self, dp, self.tab_type)
-        #     else:
-        #         wt_zero_pairs = wt_zero_pairs / 2
-        #         to_dp = lambda k: k - self.max_entry - 1*(k <= self.max_entry)
-        #         for iv in IntegerVectors(wt_zero_pairs, self.max_entry):
-        #             # iv[i-1] denotes the number of {i, -i} pairs in the tableau
-        #             # pos_wt is the weight when we convert all the entries to the
-        #             # classical ordering, which we do by adding self.max_entry
-        #             pos_wt = [0]*(2*self.max_entry)
-        #             for i in range(self.max_entry):
-        #                 pos_wt[self.max_entry+i] = self.weight[i]*(self.weight[i] > 0) + iv[i] # number of i's
-        #                 pos_wt[self.max_entry-i-1] = -self.weight[i]*(self.weight[i] < 0) + iv[i] # number of (-i)'s
-        #             for st in SemistandardTableaux(self.shape, Composition(pos_wt)):
-        #                 dp = [[to_dp(entry) for entry in row] for row in st]
-        #                 if SymplecticTableaux.__contains__(self, dp):
-        #                     yield self.element_class(self, dp, self.tab_type)
-
-        # elif self.tab_type == 'King' or self.tab_type == 'Sundaram':
-        #     # wt_zero_pairs will be the number of {i, -i} pairs for all i
-        #     wt_zero_pairs = sum(self.shape) - sum(map(abs, self.weight))
-        #     if wt_zero_pairs % 2 != 0:
-        #         return
-        #     elif wt_zero_pairs == 0:
-        #         for st in SemistandardTableaux(self.shape, Composition(map(abs, self.weight))):
-        #             # FIX THIS: import sign so not as obscure
-        #             symp_tab = [[entry*(-1+2*(self.weight[entry-1]>0)) for entry in row] for row in st]
-        #             yield self.element_class(self, symp_tab, self.tab_type)
-        #     else:
-        #         wt_zero_pairs = wt_zero_pairs / 2
-        #         tab_sgn = 1*(self.tab_type == 'Sundaram') + (-1)*(self.tab_type == 'King')
-        #         to_symplectic = lambda k : Integer(tab_sgn*(k+1)/2) if k%2 == 1 else Integer(-tab_sgn*k/2)
-        #         for iv in IntegerVectors(wt_zero_pairs, self.max_entry):
-        #             # iv[i] denotes the number of {i, -i} pairs in the tableau
-        #             # pos_wt is the weight when we convert all the entries to the
-        #             # classical ordering
-        #             pos_wt = [0]*(2*self.max_entry)
-        #             for i in range(self.max_entry):
-        #                 pos_wt[2*i+(1-tab_sgn)/2] = self.weight[i]*(self.weight[i] > 0) + iv[i]
-        #                 pos_wt[2*i+(1+tab_sgn)/2] = -self.weight[i]*(self.weight[i] < 0) + iv[i]
-        #             # keep the semistandard tableaux that are symplectic when 
-        #             # converted to Sundaram orering
-        #             for st in SemistandardTableaux(self.shape, Composition(pos_wt)):
-        #                 if all(abs(to_symplectic(st.entry(cell))) > cell[0] for cell in st.cells()):
-        #                     yield self.element_class(self, [map(to_symplectic, row) for row in st], self.tab_type)
-        # return
 
     def list(self):
         return [y for y in self]
