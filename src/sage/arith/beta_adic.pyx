@@ -262,17 +262,13 @@ cdef getElement(e, Element r, int n):
         r.c[j] = p[j]
 
 cdef InfoBetaAdic initInfoBetaAdic(self,
-                                   Cd=None, plus=True, nhash=1000003,
+                                   Ad=None, plus=True, nhash=1000003,
                                    verb=False) except *:
-    # compute all the data in sage
-    # K = NumberField((1/self.b).minpoly(), 'b', embedding=QQbar(1/self.b))
     b = self.b
     K = b.parent()
-    #    b = K.gen()
-    #    C = [c.lift()(1/b) for c in self.C]
-    C = self.a.alphabet
+    A = self.a.alphabet
     if verb:
-        print("letter = %s" % C)
+        print("A = %s" % A)
 
     if verb:
         print(K)
@@ -322,30 +318,19 @@ cdef InfoBetaAdic initInfoBetaAdic(self,
         print("spaces: ")
         print(parch)
         print(pultra)
-
-    self.parch = parch
-
+    
     if (len(pultra) > 0):
         raise ValueError("Not implemented for b algebraic non-integer.")
     # calcule les bornes max pour chaque valeur absolue
-    if Cd is None:
-        Cd = Set([c-c2 for c in C for c2 in C])
-    else:
-        #        Cd = [K(c).lift()(1/b) for c in Cd]
-        Cd = [K(c) for c in Cd]
+    if Ad is None:
+        Ad = Set([c-c2 for c in A for c2 in A])
+    Ad = [K(c) for c in Ad]
     if verb:
-        print("Cd = %s" % Cd)
+        print("Ad = %s" % Ad)
 
-    #    m = dict([])
-    #    for p in parch:
-    #        m[p] = max([p(c).abs() for c in Cd])/abs(1-p(b).abs())
-    #    for p, d in pultra:
-    #        m[p] = max([absp(c, p, d) for c in Cd])
-    #    if verb: print "bornes : %s"%m
-    # convert the data in C
     n = K.degree()
     na = len(parch)
-    ncmax = len(set([c-c2 for c in self.C for c2 in self.C]))
+    ncmax = len(Ad)
     cdef InfoBetaAdic i
     if verb:
         print("alloc...")
@@ -370,30 +355,24 @@ cdef InfoBetaAdic initInfoBetaAdic(self,
     # initialise les chiffres et bornes
     if verb:
         print("init chiffres...")
-    initCdInfoBetaAdic(self, &i, Cd=Cd, verb=verb)
+    initCdInfoBetaAdic(self, &i, Ad=Ad, parch=parch, verb=verb)
     return i
 
-cdef initCdInfoBetaAdic(self, InfoBetaAdic *i, Cd, verb=False):
-    # recalcule les bornes max pour chaque valeur absolue
-    #    if Cd is None:
-    #        Cd = Set([c-c2 for c in self.C for c2 in self.C])
-    Cd = list(Cd)
+cdef initCdInfoBetaAdic(self, InfoBetaAdic *i, list Ad, list parch, verb=False):
     if verb:
-        print("Cd = %s" % Cd)
+        print("initCdInfoBetaAdic Ad = %s" % Ad)
     m = dict([])
-    for p in self.parch:
-        m[p] = max([p(c).abs() for c in Cd])/abs(1-p(self.b).abs())
+    for p in parch:
+        m[p] = max([p(c).abs() for c in Ad])/abs(1-p(self.b).abs())
     if verb:
-        print("bornes : %s" % m)
-    #    for p, d in self.pultra:
-    #        m[p] = max([absp(c, p, d) for c in Cd])
-    # conversion en C
-    i.nc = len(Cd)
+        print("bounds : %s" % m)
+    # conversion to C
+    i.nc = len(Ad)
     if i.nc > i.ncmax:
-        raise ValueError("Trop de chiffres : %d > %d max (initialiser le BetaAdicMonoid avec plus de chiffre)."%(i.nc, i.ncmax))
-    for j, c in enumerate(Cd):
+        raise ValueError("Too much decimals : %d > %d max (initialize BetaAdicMonoid with more digits)."%(i.nc, i.ncmax))
+    for j, c in enumerate(Ad):
         getElement(c, i.c[j], i.n)
-    for j, p in enumerate(self.parch):
+    for j, p in enumerate(parch):
         i.cM[j] = m[p]**2
 
 cdef Complexe complex(c):
@@ -514,34 +493,30 @@ cdef BetaAdic getBetaAdic(m, prec=53, mirror=True, verb=False):
     b.a = getAutomate(a, A=A, verb=verb)
     return b
 
-cdef BetaAdic2 getBetaAdic2(input_a, la=None, ss=None, tss=None,
-                            prec=53, add_letters=True, verb=False):
+cdef BetaAdic2 getBetaAdic2(input_a, la=None,
+                            prec=53, verb=False):
     if verb:
         print("getBetaAdic %s" % input_a)
     from sage.rings.complex_field import ComplexField
-    #from sage.combinat.words.automata import Automaton
     CC = ComplexField(prec)
     cdef BetaAdic2 b
     if la is None:
-        la = input_a.get_la(ss=ss, tss=tss, verb=verb)
+        la = input_a.get_la(verb=verb)
 
-    if add_letters:
-        C = set(input_a.C)
-        for a in la:
-            C.update(a.alphabet)
-    C = list(C)
+    A = set(input_a.alphabet)
+    for a in la:
+        A.update(a.alphabet)
+    A = list(A)
 
-    b = NewBetaAdic2(len(C), len(la))
+    b = NewBetaAdic2(len(A), len(la))
     b.b = complex(CC(input_a.b))
     d = {}
-    for i, c in zip(range(b.n), C):
+    for i, c in zip(range(b.n), A):
         b.t[i] = complex(CC(c))
         d[c] = i
     # automata
     for i in range(len(la)):
-        # if isinstance(la[i], DetAutomaton):
-        #    la[i] = la[i].permut(C, verb=verb)
-        b.a[i] = getAutomate(la[i], A=C, verb=verb)
+        b.a[i] = getAutomate(la[i], A=A, verb=verb)
     return b
 
 def PrintWord(m, n):
@@ -1458,11 +1433,11 @@ cdef class BetaAdicMonoid:
         sig_off()
         return im
 
-    def plot3(self, n=None, la=None, ss=None, tss=None,
+    def plot_list(self, list la=None, n=None,
               sx=800, sy=600, ajust=True, prec=53, colormap='hsv',
-              backcolor=None, opacity=1., add_letters=True, verb=False):
+              backcolor=None, opacity=1., verb=False):
         r"""
-        Draw the limit set of the beta-adic monoid with colors.
+        Draw the beta-adic sets with color according to the list of automata given.
 
         INPUT:
 
@@ -1470,15 +1445,9 @@ cdef class BetaAdicMonoid:
           The number of iterations used to plot the fractal.
           Default values: between ``5`` and ``16`` depending on the number of generators.
 
-        - ``place`` - place of the number field of beta (default: ``None``)
-          The place we should use to evaluate elements of the number field.
-
-        - ``ss`` - Automaton (default: ``None``)
-          The subshift to associate to the beta-adic monoid for this drawing.
-
-        - ``iss`` - set of initial states of the
-          automaton ss (default: ``None``)
-
+        - ``la``- list (default: ``None``)
+          List of automata.
+        
         - ``sx, sy`` - dimensions of the resulting
           image (default : ``800, 600``)
 
@@ -1505,20 +1474,20 @@ cdef class BetaAdicMonoid:
         #. The dragon fractal::
             sage: e = QQbar(1/(1+I))
             sage: m=BetaAdicMonoid(e, {0,1})
-            sage: m.plot3()     # long time
+            sage: m.plot_list()     # long time
 
         #. The Rauzy fractal of the Tribonacci substitution::
 
             sage: s = WordMorphism('1->12,2->13,3->1')
             sage: m = s.DumontThomas()
-            sage: m.plot3()     # long time
+            sage: m.plot_list()     # long time
 
         #. A non-Pisot Rauzy fractal::
 
             sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
             sage: m = s.DumontThomas()
             sage: m.b = 1/m.b
-            sage: m.plot3(tss=m.ss)     # long time
+            sage: m.plot_list(tss=m.ss)     # long time
 
         #. The dragon fractal and its boundary::
 
@@ -1526,7 +1495,7 @@ cdef class BetaAdicMonoid:
             sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
             sage: ssi = m.intersection_words(w1=[0], w2=[1])                               # long time
             sage: m.plot(tss=ssi) #plot the boundary                                      # long time
-            sage: m.plot3(la=[m.default_ss(), ssi], colormap=[(.5,.5,.5,.5), (0,0,0,1.)])  # long time
+            sage: m.plot_list(la=[m.default_ss(), ssi], colormap=[(.5,.5,.5,.5), (0,0,0,1.)])  # long time
 
         #. The "Hokkaido" fractal and its boundary::
 
@@ -1534,7 +1503,7 @@ cdef class BetaAdicMonoid:
             sage: m = s.DumontThomas()
             sage: ssi = m.intersection_words(w1=[0], w2=[1])                # long time
 
-            sage: m.plot3(la=[la[0], ssi]+la[1:], colormap='gist_rainbow')  # long time
+            sage: m.plot_list(la=[la[0], ssi]+la[1:], colormap='gist_rainbow')  # long time
 
         #. A limit set that look like a tiling::
 
@@ -1544,12 +1513,10 @@ cdef class BetaAdicMonoid:
             sage: m.plot(19)                                   # long time
 
         """
-        if tss is not None:
-            tss = tss.prune()
         cdef Surface s = NewSurface(sx, sy)
         cdef BetaAdic2 b
         sig_on()
-        b = getBetaAdic2(self, la=la, ss=ss, tss=tss, prec=prec, add_letters=add_letters, verb=verb)
+        b = getBetaAdic2(self, la=la, prec=prec, verb=verb)
         sig_off()
         # dessin
         if n is None:
@@ -1602,9 +1569,9 @@ cdef class BetaAdicMonoid:
         sig_off()
         return im
 
-    def relations_automaton(self, t=0, isvide=False, Ad=None, A=None, B=None,
-                             couples=False, ext=False, transp=False,
-                             prune=True, nhash=1000003, verb=False):
+    def relations_automaton(self, t=0, bool isvide=False, list Ad=None, list A=None, list B=None,
+                             bool couples=False, bool ext=False, bool mirror=False,
+                             bool prune=True, int nhash=1000003, int prec=53, int algo=1, bool verb=False):
         r"""
         Compute the relation automaton of the beta-adic monoid.
         For beta algebraic integer only.
@@ -1656,51 +1623,119 @@ cdef class BetaAdicMonoid:
             sage: m.relations_automaton()
 
         """
+        cdef InfoBetaAdic ib
+        cdef Automaton a
+        cdef Element e
+        cdef DetAutomaton r
+
+        b = self.b
+        K = b.parent()
+        if not K.is_field():
+            raise ValueError("b must live in a field!")
+        if not K.is_exact() or not hasattr(K, 'abs_val'):
+            raise ValueError("b must live in a number field!")
+        pi = b.minpoly()
+        #alphabet
+        Ad = None
         if Ad is None:
             if A is None:
                 A = self.a.A
             if B is None:
                 B = self.a.A
-            Ad = Set([a1-b1 for a1 in A for b1 in B])
-        Ad = list(Ad)
+            Ad = list(set([a1-b1 for a1 in A for b1 in B]))
         if verb:
             print("Ad=%s"%Ad)
-        sig_on()
-        cdef InfoBetaAdic ib
-        ib = initInfoBetaAdic(self, Cd=Ad, plus=False, nhash=nhash, verb=verb)
-        cdef Automaton a
-        cdef Element e
-        e = NewElement(ib.n)
-        K = self.b.parent()
-        t = K(t)
-        getElement(t, e, ib.n)
-        a = RelationsAutomatonT(&ib, e, isvide, ext, verb)
-        r = DetAutomaton(None)
-        r.a[0] = a
-        if verb:
-            print("a (%s etats)" % a.n)
-            print("Free element...")
-        FreeElement(e)
-        r.A = Cd
-        if verb:
-            print("Free InfoBetaAdic...")
-        freeInfoBetaAdic(&ib)
-        sig_off()
-        if isvide:
-            return a.na != 0
-        cdef DetAutomaton r2
-        if prune:
+        if algo == 1:
+            #find absolute values for which b is greater than one
+            places = []
+            narch = 0
+            #archimedian places
+            for p in K.places(prec=prec):
+                if K.abs_val(p, b) > 1:
+                    places.append(p)
+                    narch+=1
+            #ultra-metric places
+            from sage.arith.misc import prime_divisors
+            for p in prime_divisors(pi(0)):
+                for P in K.primes_above(p):
+                    if K.abs_val(P, b, prec=prec) > 1:
+                        places.append(P)
             if verb:
-                print("prune...")
+                print(places)
+            #bounds
+            bo = []
+            for i,p in enumerate(places):
+                if i < narch:
+                    bo.append(max([K.abs_val(p,x) for x in Ad])/(K.abs_val(p, b) - 1))
+                else:
+                    bo.append(max([K.abs_val(p,x) for x in Ad])/K.abs_val(p, b))
+            if verb:
+                print("bounds=%s"%bo)
+            #compute the automaton
+            L = []
+            S = [0] #remaining state to look at
+            d = dict() #states already seen and their number
+            d[0] = 0
+            c = 1 #count the states seen
+            while len(S) > 0:
+                S2 = []
+                for s in S:
+                    for t in Ad:
+                        ss = b*s + t
+                        #test if we keep ss
+                        keep = True
+                        for p,m in zip(places, bo):
+                            if K.abs_val(p, ss) > m + .00000001:
+                                keep = False
+                                break
+                        if keep:
+                            if not d.has_key(ss):
+                                S.append(ss)
+                                d[ss] = c
+                                c+=1
+                            L.append((d[s], d[ss], t))
+                S = S2
             if ext:
-                r2 = r.prune_inf()
-                r2.set_final_states(r2.states())
+                r = DetAutomaton(L, i=0, final_states=range(c))
+                if prune:
+                    r = r.prune_inf()
             else:
-                r2 = r.prune()
+                r = DetAutomaton(L, i=0, final_states=[0])
+            if prune:
+                r = r.prune()
+            if not mirror:
+                r = r.mirror_det()
         else:
-            r2 = r
-        if transp:
-            r2 = r2.mirror_det()
+            sig_on()
+            ib = initInfoBetaAdic(self, Ad=Ad, plus=False, nhash=nhash, verb=verb)
+            e = NewElement(ib.n)
+            K = self.b.parent()
+            t = K(t)
+            getElement(t, e, ib.n)
+            a = RelationsAutomatonT(&ib, e, isvide, ext, verb)
+            r = DetAutomaton(None)
+            r.a[0] = a
+            if verb:
+                print("a (%s etats)" % a.n)
+                print("Free element...")
+            FreeElement(e)
+            r.A = Ad
+            if verb:
+                print("Free InfoBetaAdic...")
+            freeInfoBetaAdic(&ib)
+            sig_off()
+            if isvide:
+                return a.na != 0
+            if prune:
+                if verb:
+                    print("prune...")
+                if ext:
+                    r = r.prune_inf()
+                    r.set_final_states(r2.states())
+                else:
+                    r = r.prune()
+            if mirror:
+                r = r.mirror_det()
         if couples:
             if A is None or B is None:
                 raise ValueError("Alphabets A and B must be defined !")
@@ -1712,16 +1747,14 @@ cdef class BetaAdicMonoid:
                     d[c1-c2].append((c1, c2))
             if verb:
                 print(d)
-            r2 = r2.duplicate(d, verb=verb)
-        if verb:
-            print("return...")
-        return r2
+            r = r.duplicate(d, verb=verb)
+        return r
 
     def critical_exponent_aprox(self, niter=10, verb=False):
         """
         print a approximated value of the critical exponent
         INPUT:
-        
+
         - ``niter`` int (default: 10) number of iterations
 
         - ``verb`` - bool (default: ``False``)

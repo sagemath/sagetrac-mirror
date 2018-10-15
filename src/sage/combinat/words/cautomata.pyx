@@ -283,10 +283,10 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
     w = False
     for e, f, l in a.edges():
         if r.e[d[e]].f[da[l]] != -1:
+            if not w:
+                print("Warning: the automaton was not deterministic! (edge %s -%s-> %s and edge %s -%s-> %s)\nThe result lost some informations."% (d[e], l, r.e[d[e]].f[da[l]], d[e], l, d[f]))
             w = True
         r.e[d[e]].f[da[l]] = d[f]
-    if w:
-        print("Warning: the automaton was not deterministic !\nThe result lost some informations.")
     #a.dA = da
     a.S = V
     #a.dS = d
