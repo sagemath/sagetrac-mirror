@@ -199,9 +199,6 @@ ext_modules = [
               sources=['sage/combinat/words/cautomata.pyx', 'sage/combinat/words/automataC.c'],
               depends=['sage/combinat/words/Automaton.h', 'sage/combinat/words/automataC.h']),
 
-              depends=['sage/combinat/words/Automaton.h', 'sage/combinat/words/automataC.h']),
-
-
     Extension('sage.combinat.subword_complex_c',
               sources=['sage/combinat/subword_complex_c.pyx']),
 
