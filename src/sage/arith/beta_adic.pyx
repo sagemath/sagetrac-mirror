@@ -20,6 +20,7 @@ EXAMPLES::
 
     sage: pi = x^3-x^2-x-1 # Tribonacci
     sage: b = pi.roots(ring=QQbar)[1][0]
+    sage: a = DetAutomaton(
     sage: m = BetaAdicMonoid(b, {0,1})
     sage: print(m)
     Monoid of b-adic expansion with b root of x^3 - x^2 - x - 1 and numerals set {0, 1}
@@ -712,7 +713,7 @@ cdef class ImageIn:
 cdef class BetaAdicMonoid:
     r"""
     Define a numeration in base b, i.e. set of numbers of the form
-    
+
         :math:`\sum_{i=0}^\infty \beta^i c_i`
 
     where :math:`beta` is a element of a field (for example a complex number),
@@ -727,16 +728,16 @@ cdef class BetaAdicMonoid:
 
     EXAMPLES::
 
-        sage: m1 = BetaAdicMonoid(3, {0,1,3})
+        sage: m1 = BetaAdicMonoid(3, dag.AnyWord([0, 1, 3]))
         sage: print(m1)
-        Monoid of 3-adic expansion with numerals set {0, 1, 3}
-        sage: m2 = BetaAdicMonoid((1 + sqrt(5)) / 2, {0,1})
+        b-adic set with b root of x - 3, and an automaton of 1 states and 3 letters.
+        sage: m2 = BetaAdicMonoid((1 + sqrt(5)) / 2, dag.AnyWord([0, 1]))
         sage: print(m2)
-        Monoid of b-adic expansion with b root of x^2 - x - 1 and numerals set {0, 1}
+        b-adic set with b root of x^2 - x - 1, and an automaton of 1 states and 2 letters.
         sage: b = (x^3-x-1).roots(ring=QQbar)[0][0]
-        sage: m3 = BetaAdicMonoid(b, {0,1})
+        sage: m3 = BetaAdicMonoid(b, dag.AnyWord([0, 1]))
         sage: print(m3)
-        Monoid of b-adic expansion with b root of x^3 - x - 1 and numerals set {0, 1}
+        b-adic set with b root of x^3 - x - 1, and an automaton of 1 states and 2 letters.
 
     """
     def __init__(self, b, a):
@@ -745,16 +746,13 @@ cdef class BetaAdicMonoid:
 
         EXAMPLES::
 
-            sage: m1 = BetaAdicMonoid(3, {0,1,3})
+            sage: m1 = BetaAdicMonoid(3, dag.AnyWord([0, 1, 3]))
             sage: m1
-            Monoid of 3-adic expansion with numerals set {0, 1, 3}
-            sage: m2 = BetaAdicMonoid((1+sqrt(5))/2, {0,1})
-            sage: m2
-            Monoid of b-adic expansion with b root of x^2 - x - 1 and numerals set {0, 1}
-            sage: b = (x^3-x-1).roots(ring=QQbar)[0][0]
-            sage: m3 = BetaAdicMonoid(b, {0,1})
+            b-adic set with b root of x - 3, and an automaton of 1 states and 3 letters.
+            sage: c = Automaton({0:{1:'0',2:'1',3:'2'}, 2:{5:'1'}},initial_states=[0])
+            m3 = BetaAdicMonoid(b, c)
             sage: m3
-            Monoid of b-adic expansion with b root of x^3 - x - 1 and numerals set {0, 1}
+            b-adic set with b root of x^3 - x - 1, and an automaton of 5 states and 3 letters.
 
         """
         cdef int i,j
@@ -770,14 +768,14 @@ cdef class BetaAdicMonoid:
         except:
             self.K = b.parent()
             self.b = b
-        
+
         if type(a) != DetAutomaton:
             try:
                 a = DetAutomaton(a)
             except:
                 raise ValueError("a must be an automaton.")        
         self.a = a
-        
+
         #test if letters of a are in K
         try:
             self.a.A = [self.K(c) for c in self.a.A]
@@ -801,18 +799,20 @@ cdef class BetaAdicMonoid:
 
         EXAMPLES::
 
-            sage: BetaAdicMonoid((1+sqrt(5))/2, {0,1})
-            Monoid of b-adic expansion with b root of x^2 - x - 1 and numerals set {0, 1}
-            sage: BetaAdicMonoid(3, {0,1,3})
-            Monoid of 3-adic expansion with numerals set {0, 1, 3}
+            sage: BetaAdicMonoid((1+sqrt(5))/2, dag.AnyWord([0, 1]))
+            b-adic set with b root of x^2 - x - 1, and an automaton of 1 states and 2 letters.
+            sage: BetaAdicMonoid(3, dag.AnyWord([0, 1, 3]))
+            b-adic set with b root of x - 3, and an automaton of 1 states and 3 letters.
+
 
         TESTS::
 
-            sage: m=BetaAdicMonoid(3/sqrt(2), {0,1})
+            sage: m=BetaAdicMonoid(3/sqrt(2), dag.AnyWord([0, 1]))
             sage: repr(m)
-            'Monoid of b-adic expansion with b root of x^2 - 9/2 and numerals set {0, 1}'
+            'b-adic set with b root of x^2 - 9/2, and an automaton of 1 states and 2 letters.'
+
         """
-        
+
         from sage.rings.qqbar import QQbar
         if self.b not in QQbar:
             return "(%s)-adic set with an automaton of %s states and %s letters." % (self.b, self.a.n_states, self.a.n_letters)
@@ -826,29 +826,71 @@ cdef class BetaAdicMonoid:
                     return "b-adic set with b root of %s (in characteristic %s), and an automaton of %s states and %s letters."%(self.b.minpoly(), K.characteristic(), self.a.n_states, self.a.n_letters)
                 else:
                     return "b-adic set with b root of %s, an automaton of %s states and %s letters."%(K.modulus(), self.a.n_states, self.a.n_letters)
-    
+
     @property
-    def a (self):
+    def a(self):
+        """
+        get the attribut ``DetAutomaton``, ``a`` of ``BetaAdicMonoid``
+
+        OUTPUT:
+
+        ``a`` attribut ``DetAutomaton``
+
+        EXAMPLES::
+
+            sage: m = BetaAdicMonoid((1+sqrt(5))/2, dag.AnyWord([0, 1]))
+            sage: m.a
+            DetAutomaton with 1 states and an alphabet of 2 letters
+
+        """
         return self.a
-    
+
     @property
-    def b (self):
+    def b(self):
+        """
+        get the attribut ``b`` of ``BetaAdicMonoid``
+
+        OUTPUT:
+
+        ``b`` attribut of field number
+
+        EXAMPLES::
+
+            sage: m = BetaAdicMonoid((1+sqrt(5))/2, dag.AnyWord([0, 1]))
+            sage: m.b
+            b
+
+        """
         return self.b
-    
+
     @property
     def K (self):
+        """
+        get the attribut ``K`` of ``BetaAdicMonoid``
+
+        OUTPUT:
+
+        ``K`` attribut, Number Field in b 
+
+        EXAMPLES::
+
+            sage: m = BetaAdicMonoid((1+sqrt(5))/2, dag.AnyWord([0, 1]))
+            sage: m.K
+            Number Field in b with defining polynomial x^2 - x - 1
+
+        """
         return self.K
-    
+
     def _testSDL(self):
         """
         Open a window to test the SDL library used for graphical representation.
 
         TESTS::
 
-        sage: b = (x^3-x-1).roots(ring=QQbar)[0][0]
-        sage: m3 = BetaAdicMonoid(b, {0,1})
-        sage: m3._testSDL()
-        Video Mode: 800x600 32 bits/pixel
+            sage: b = (x^3-x-1).roots(ring=QQbar)[0][0]
+            sage: m3 = BetaAdicMonoid(b, dag.AnyWord([0, 1]))
+            sage: m3._testSDL()
+            Video Mode: 800x600 32 bits/pixel
         """
         sig_on()
         TestSDL()
@@ -858,7 +900,8 @@ cdef class BetaAdicMonoid:
     # liste des automates donnant le coloriage de l'ensemble limite
     def get_la(self, ss=None, tss=None, verb=False):
         """
-        Return a list of b-adic sets 
+        Return a list of b-adic sets
+
         INPUT:
 
         - ``ss`` -- (default ''None'') ``DetAutomaton``
@@ -872,7 +915,7 @@ cdef class BetaAdicMonoid:
 
         EXAMPLES::
 
-            sage: m=BetaAdicMonoid((1+sqrt(5))/2, {0,1})
+            sage: m=BetaAdicMonoid((1+sqrt(5))/2, dag.AnyWord([0, 1]))
             sage: m.get_la()
             [DetAutomaton with 1 states and an alphabet of 2 letters,
              DetAutomaton with 1 states and an alphabet of 2 letters]
@@ -880,6 +923,7 @@ cdef class BetaAdicMonoid:
 
         if hasattr(self, 'la'):
             return self.la
+
         if tss is None:
             if hasattr(self, 'tss'):
                 tss = self.tss
@@ -892,7 +936,7 @@ cdef class BetaAdicMonoid:
                     ss = DetAutomaton(ss)
         if ss is None:
             if tss is None:
-                tss = DetAutomaton(None).full(list(self.C))
+                tss = DetAutomaton(None).full(list(self.a.alphabet))
                 # raise ValueError("la, ss, or tss must be defined !")
             if verb:
                 print("Compute the transposition of tss=%s..." % tss)
@@ -944,7 +988,7 @@ cdef class BetaAdicMonoid:
           The number of iterations used to plot the fractal.
           Default values: between ``5`` and ``16`` depending on the number
           of generators.
-        
+
         - ``i`` - integer (default: ``None``)
           State of the automaton of self taken as the initial state .
 
@@ -956,12 +1000,13 @@ cdef class BetaAdicMonoid:
 
             #. The dragon fractal::
             sage: e = QQbar(1/(1+I))
-            sage: m=BetaAdicMonoid(e, {0,1})
+            sage: m=BetaAdicMonoid(e, dag.AnyWord([0, 1]))
             sage: print(m)
-            Monoid of b-adic expansion with b root of x^2 - x + 1/2 and numerals set {0, 1}
+            b-adic set with b root of x^2 - x + 1/2, and an automaton of 1 states and 2 letters.
             sage: P = m.points_exact()
-            Give the begin state iss of the automaton ss !
-            sage: P = m.points_exact(iss=0)
+            age: len(P)
+            65536
+            sage: P = m.points_exact(i=0)
             sage: len(P)
             65536
         """
@@ -969,8 +1014,8 @@ cdef class BetaAdicMonoid:
         b = self.b
         a = self.a
         A = a.alphabet
-        ng = a.n_letters()
-        
+        ng = a.n_letters
+
         if i is None:
             i = a.initial_state
 
@@ -981,7 +1026,7 @@ cdef class BetaAdicMonoid:
                 n = 9
             else:
                 n = 5
-        
+
         if n == 0:
             return [0]
         else:
@@ -996,90 +1041,90 @@ cdef class BetaAdicMonoid:
                     orbit_points.update([b*p+c for p in orbit_points0[v]])
         return orbit_points
 
-    #to remove
-    def points(self, n=None, place=None, ss=None, iss=None, prec=53):
-        r"""
-        Returns a set of values (real or complex) corresponding to the drawing
-        of the limit set of the beta-adic monoid.
-
-        INPUT:
-
-        - ``n`` - integer (default: ``None``)
-          The number of iterations used to plot the fractal.
-          Default values: between ``5`` and ``16`` depending on the number
-          of generators.
-
-        - ``place`` - place of the number field of beta (default: ``None``)
-          The place we should use to evaluate elements of the number field
-          given by points_exact()
-
-        - ``ss`` - DetAutomaton (default: ``None``)
-          The subshift to associate to the beta-adic monoid for this drawing.
-
-        - ``iss`` - set of initial states of the automaton
-          ss (default: ``None``)
-
-        - ``prec`` - precision of returned values (default: ``53``)
-
-        OUTPUT:
-
-            list of real or complex numbers
-
-        EXAMPLES::
-
-            #. The dragon fractal::
-
-                sage: e = QQbar(1/(1+I))
-                sage: m = BetaAdicMonoid(e, {0,1})
-                sage: P = m.points(iss=0)     # long time (360 s)
-                sage: len(P)
-                32768
-        """
-
-        C = self.C
-        K = self.b.parent()
-        b = self.b
-        ng = C.cardinality()
-
-        if n is None:
-            if ng == 2:
-                n = 18
-            elif ng == 3:
-                n = 14
-            elif ng == 4:
-                n = 10
-            elif ng == 5:
-                n = 7
-            else:
-                n = 5
-            from sage.functions.log import log
-            n = int(5.2/-log(abs(self.b.n(prec=prec))))
-
-        from sage.rings.complex_field import ComplexField
-        CC = ComplexField(prec)
-        if place is None:
-            if abs(b) < 1:
-                # garde la place courante
-                # place = lambda x: CC(x.n())
-                return [CC(c).n(prec) for c in self.points_exact(n=n, ss=ss, iss=iss)]
-            else:
-                # choisis une place
-                places = K.places()
-                place = places[0]
-                for p in places:
-                    if abs(p(b)) < 1:
-                        place = p
-                        # break
-
-        # from sage.rings.qqbar import QQbar
-        # from sage.rings.qqbar import QQbar, AA
-        # if QQbar(self.b) not in AA:
-        #    #print "not in AA !"
-        #    return [(place(c).conjugate().N().real(), place(c).conjugate().N().imag()) for c in self.points_exact(n=n, ss=ss, iss=iss)]
-        # else:
-        #    #print "in AA !"
-        #    return [place(c).conjugate().N() for c in self.points_exact(n=n, ss=ss, iss=iss)]
-        return [place(c).n(prec) for c in self.points_exact(n=n, ss=ss, iss=iss)]
+#     # to remove
+#     def points(self, n=None, place=None, ss=None, iss=None, prec=53):
+#         r"""
+#         Returns a set of values (real or complex) corresponding to the drawing
+#         of the limit set of the beta-adic monoid.
+# 
+#         INPUT:
+# 
+#         - ``n`` - integer (default: ``None``)
+#           The number of iterations used to plot the fractal.
+#           Default values: between ``5`` and ``16`` depending on the number
+#           of generators.
+# 
+#         - ``place`` - place of the number field of beta (default: ``None``)
+#           The place we should use to evaluate elements of the number field
+#           given by points_exact()
+# 
+#         - ``ss`` - DetAutomaton (default: ``None``)
+#           The subshift to associate to the beta-adic monoid for this drawing.
+# 
+#         - ``iss`` - set of initial states of the automaton
+#           ss (default: ``None``)
+# 
+#         - ``prec`` - precision of returned values (default: ``53``)
+# 
+#         OUTPUT:
+# 
+#             list of real or complex numbers
+# 
+#         EXAMPLES::
+# 
+#             #. The dragon fractal::
+# 
+#                 sage: e = QQbar(1/(1+I))
+#                 sage: m = BetaAdicMonoid(e, dag.AnyWord([0, 1]))
+#                 sage: P = m.points(iss=0)     # long time (360 s)
+#                 sage: len(P)
+#                 32768
+#         """
+# 
+#         C = self.a.alphabet
+#         K = self.b.parent()
+#         b = self.b
+#         ng = C.cardinality()
+# 
+#         if n is None:
+#             if ng == 2:
+#                 n = 18
+#             elif ng == 3:
+#                 n = 14
+#             elif ng == 4:
+#                 n = 10
+#             elif ng == 5:
+#                 n = 7
+#             else:
+#                 n = 5
+#             from sage.functions.log import log
+#             n = int(5.2/-log(abs(self.b.n(prec=prec))))
+# 
+#         from sage.rings.complex_field import ComplexField
+#         CC = ComplexField(prec)
+#         if place is None:
+#             if abs(b) < 1:
+#                 # garde la place courante
+#                 # place = lambda x: CC(x.n())
+#                 return [CC(c).n(prec) for c in self.points_exact(n=n, ss=ss, iss=iss)]
+#             else:
+#                 # choisis une place
+#                 places = K.places()
+#                 place = places[0]
+#                 for p in places:
+#                     if abs(p(b)) < 1:
+#                         place = p
+#                         # break
+# 
+#         # from sage.rings.qqbar import QQbar
+#         # from sage.rings.qqbar import QQbar, AA
+#         # if QQbar(self.b) not in AA:
+#         #    #print "not in AA !"
+#         #    return [(place(c).conjugate().N().real(), place(c).conjugate().N().imag()) for c in self.points_exact(n=n, ss=ss, iss=iss)]
+#         # else:
+#         #    #print "in AA !"
+#         #    return [place(c).conjugate().N() for c in self.points_exact(n=n, ss=ss, iss=iss)]
+#         return [place(c).n(prec) for c in self.points_exact(n=n, ss=ss, iss=iss)]
 
 #          if n == 0:
 #             #donne un point au hasard dans l'ensemble limite
@@ -1129,7 +1174,7 @@ cdef class BetaAdicMonoid:
             #. The dragon fractal::
 
                 sage: e = QQbar(1/(1+I))
-                sage: m = BetaAdicMonoid(e, {0,1})
+                sage: m = BetaAdicMonoid(e, dag.AnyWord([0, 1]))
                 sage: P = m.user_draw()     # long time (360 s)
 
         """
