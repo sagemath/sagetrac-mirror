@@ -1602,7 +1602,7 @@ cdef class BetaAdicMonoid:
         sig_off()
         return im
 
-    def relations_automaton(self, t=0, isvide=False, Cd=None, A=None, B=None,
+    def relations_automaton(self, t=0, isvide=False, Ad=None, A=None, B=None,
                              couples=False, ext=False, transp=False,
                              prune=True, nhash=1000003, verb=False):
         r"""
@@ -1653,14 +1653,21 @@ cdef class BetaAdicMonoid:
             sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
             sage: m.relations_automaton()
 
+        Ad : alphabet of differences
+        A : alphabet on one side (used if Ad is None)
+        B : alphabet on the other side (used if Ad is None)
+
 
         """
-        if Cd is None:
-            if A is None or B is None:
-                Cd = Set([c-c2 for c in self.a.alphabet for c2 in self.a.alphabet])
-            else:
-                Cd = Set([a1-b1 for a1 in A for b1 in B])
-        Cd = list(Cd)
+        if Ad is None:
+            if A is None:
+                A = self.a.A
+            if B is None:
+                B = self.a.A
+            Ad = Set([a1-b1 for a1 in A for b1 in B])
+        Ad = list(Ad)
+        if verb:
+            print("Ad=%s"%Ad)
         sig_on()
         cdef InfoBetaAdic ib
         ib = initInfoBetaAdic(self, Cd=Cd, plus=False, nhash=nhash, verb=verb)
