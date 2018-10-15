@@ -5233,6 +5233,14 @@ class SymplecticTableau(Tableau):
         
         Differs from split_form in that t can have None entries.
         Used as auxiliary function in Sheats bijection.
+        
+        INPUT:
+
+        - ``sk`` -- Tableau or SkewTableau object,
+
+        OUTPUT:
+
+        - SkewTableau object
 
         TESTS::
 
@@ -5258,6 +5266,12 @@ class SymplecticTableau(Tableau):
         """
         Return single column form from split form. If co=True, return cosingle
         column form.
+
+        INPUT:
+
+        - ``cls`` -- SymplecticTableau class
+        - ``t_split`` -- Tableau or SkewTableau object with even number of columns
+        - ``co`` -- boolean, default to False.
 
         OUTPUT:
 
@@ -5290,9 +5304,10 @@ class SymplecticTableau(Tableau):
 
         INPUT:
 
-        - ``self``: Skew DeConcini-Procesi Symplectic Tableau
-        - ``corner``: inner corner of t
-        - ``return_vacated``: boolean. If True, also return vacated corner.
+        - ``self`` -- any SymplecticTableau object
+        - ``dp`` -- SkewTableau object, viewed as DeConciniProcesi Symplectic Tableau
+        - ``corner`` -- inner corner of t
+        - ``return_vacated`` -- boolean. If True, also return vacated corner.
         
         .. WARNING::
 
@@ -8650,7 +8665,7 @@ class SymplecticTableaux(Tableaux):
 
     .. WARNING::
 
-        ``max_entry`` set to infinity is not yet implemented.
+        ``max_entry`` set to PlusInfinity is not yet implemented.
 
     .. SEEALSO::
 
@@ -8659,10 +8674,6 @@ class SymplecticTableaux(Tableaux):
         - :class:`SymplecticTableau`
         - :class:`SemistandardTableau`
         - :class:`SemistandardTableaux`
-    
-    TESTS::
-        
-        sage: TestSuite( SymplecticTableaux() ).run(skip="_test_enumerated_set_contains")
 
     """
     @staticmethod
@@ -8846,6 +8857,22 @@ class SymplecticTableaux(Tableaux):
     Element = SymplecticTableau
 
     def __init__(self, **kwds):
+        """
+        TESTS::
+        
+            sage: STS = SymplecticTableaux(tableau_type="Sundaram")
+            sage: TestSuite(STS).run(skip="_test_enumerated_set_contains")
+
+            sage: STDP = SymplecticTableaux(tableau_type="DP")
+            sage: TestSuite(STDP).run(skip="_test_enumerated_set_contains")
+
+            sage: STK = SymplecticTableaux(tableau_type="King")
+            sage: TestSuite(STK).run(skip="_test_enumerated_set_contains")
+
+            sage: STKN = SymplecticTableaux()
+            sage: TestSuite(STKN).run(skip="_test_enumerated_set_contains")        
+        
+        """
         if 'max_entry' in kwds:
             self.max_entry = kwds['max_entry']
             kwds.pop('max_entry')
@@ -8870,6 +8897,16 @@ class SymplecticTableaux(Tableaux):
         r"""
         The default implementation of ``__getitem__`` for enumerated sets
         does not allow slices so we override it.
+
+        TESTS::
+
+            sage: STKN = SymplecticTableaux([2,1], max_entry=4)
+            sage: STKN[100]
+            [[4, -3], [-4]]
+            sage: STDP = SymplecticTableaux([3,2,1], max_entry=4, tableau_type="DP")
+            sage: STDP[100]
+            [[-4, 1, 2], [1, 4], [2]]
+
         """
         if isinstance(r,(int,Integer)):
             return self.unrank(r)
@@ -8895,6 +8932,35 @@ class SymplecticTableaux(Tableaux):
         raise IndexError('value out of range')
 
     def __contains__(self, t):
+        """
+        Return ``True`` if ``t`` can be interpreted as a
+        :class:`SymplecticTableau`.
+
+        TESTS::
+
+            sage: STKN = sage.combinat.tableau.SymplecticTableaux_all()
+            sage: STDP = sage.combinat.tableau.SymplecticTableaux_all(tableau_type="DP")
+            sage: STK = sage.combinat.tableau.SymplecticTableaux_all(tableau_type="King")
+            sage: STS = sage.combinat.tableau.SymplecticTableaux_all(tableau_type="Sundaram")
+            sage: [[1,2,3,-1],[4,4,-3],[-4,-2,-1],[-3]] in STKN
+            True
+            sage: [[-4, 1, 2], [1, 4], [2]] in STDP
+            True
+            sage: ([] in STKN) and ([] in STDP) and ([] in STK) and ([] in STS)
+            True
+            sage: Tableau([[-2,-2],[2,2]]) in STK
+            True
+            sage: Tableau([[-2,-2],[2,2]]) in STDP
+            False
+            sage: Tableau([[-2,-2],[2,2]]) in STS
+            False
+            sage: Tableau([[-2,-2],[2,2]]) in STKN
+            False
+
+            sage: t = SymplecticTableau([[1]])
+            sage: (t in STKN) and (t in STDP) and (t in STK) and (t in STS)
+            True
+        """
         if isinstance(t, SymplecticTableau) and t.tab_type == self.tab_type:
             return self.max_entry is None or len(t) == 0 or \
             max(max(map(abs, row)) for row in t) <= self.max_entry
@@ -8965,18 +9031,11 @@ class SymplecticTableaux(Tableaux):
                 # remains to check self is semistandard and split form is semistandard 
                 return t.is_semistandard() and t_split.is_semistandard()
 
-            elif self.tab_type == 'King':
-                convert = lambda k : 2*k if k > 0 else -2*k-1
-                # check semistandard
-                if not Tableau([map(convert, row) for row in t]).is_semistandard():
-                    return False
-                # check symplectic
-                if not all( abs(t.entry(cell)) > cell[0] for cell in t.cells() ):
-                    return False
-                return True
-
-            elif self.tab_type == 'Sundaram':
-                convert = lambda k : 2*k-1 if k > 0 else -2*k
+            elif (self.tab_type == 'King') or (self.tab_type == 'Sundaram'):
+                if self.tab_type == 'King':
+                    convert = lambda k : 2*k if k > 0 else -2*k-1
+                else:
+                    convert = lambda k : 2*k-1 if k > 0 else -2*k
                 # check semistandard
                 if not Tableau([map(convert, row) for row in t]).is_semistandard():
                     return False
@@ -9004,6 +9063,12 @@ class SymplecticTableaux_all(SymplecticTableaux, DisjointUnionEnumeratedSets):
             
             sage: ST = sage.combinat.tableau.SymplecticTableaux_all()
             sage: TestSuite(ST).run(skip="_test_enumerated_set_contains")
+            
+            sage: STDP = sage.combinat.tableau.SymplecticTableaux_all(max_entry=3, tableau_type="DP")
+            sage: TestSuite(STDP).run(skip="_test_enumerated_set_contains")
+
+            sage: STS = sage.combinat.tableau.SymplecticTableaux_all(max_entry=4, tableau_type="Sundaram")
+            sage: TestSuite(STS).run(skip="_test_enumerated_set_contains")
 
         """
         if tableau_type in ['KashiwaraNakashima', 'KN', 'kn']:
@@ -9028,6 +9093,11 @@ class SymplecticTableaux_all(SymplecticTableaux, DisjointUnionEnumeratedSets):
         """
         TESTS::
 
+            sage: SymplecticTableaux(tableau_type="Sundaram")   # indirect doctest
+            Sundaram Symplectic tableaux
+
+            sage: SymplecticTableaux(max_entry=3)
+            KashiwaraNakashima Symplectic tableaux with maximum entry 3
 
         """
         if self.max_entry is not None:
@@ -9246,66 +9316,103 @@ class SymplecticTableaux_shape_weight(SymplecticTableaux_shape):
             for s in [t.to_tableau() for t in C if t.weight() == WL(list(self.weight))]:
                 yield self.element_class(self, s)
 
-        # FIX THIS. can reduce all this code by combining these cases into one
-        elif self.tab_type == 'DeConciniProcesi':
-            wt_zero_pairs = sum(self.shape) - sum(map(abs, self.weight))
-            to_dp = lambda k: k - self.max_entry - 1*(k <= self.max_entry)
-            to_classical = lambda k : k + self.max_entry + 1*(k < 0)
-            if wt_zero_pairs % 2 != 0:
-                return
-            elif wt_zero_pairs == 0:
-                pos_wt = [0]*(2*self.max_entry)
-                for i in range(self.max_entry):
-                    pos_wt[self.max_entry+i] = self.weight[i]*(self.weight[i] > 0)
-                    pos_wt[self.max_entry-i-1] = -self.weight[i]*(self.weight[i] < 0)
-                for st in SemistandardTableaux(self.shape, Composition(pos_wt)):
-                    dp = [[to_dp(entry) for entry in row] for row in st]
-                    if SymplecticTableaux.__contains__(self, dp):
-                        yield self.element_class(self, dp, self.tab_type)
-            else:
-                wt_zero_pairs = wt_zero_pairs / 2
-                to_dp = lambda k: k - self.max_entry - 1*(k <= self.max_entry)
-                for iv in IntegerVectors(wt_zero_pairs, self.max_entry):
-                    # iv[i-1] denotes the number of {i, -i} pairs in the tableau
-                    # pos_wt is the weight when we convert all the entries to the
-                    # classical ordering, which we do by adding self.max_entry
-                    pos_wt = [0]*(2*self.max_entry)
-                    for i in range(self.max_entry):
-                        pos_wt[self.max_entry+i] = self.weight[i]*(self.weight[i] > 0) + iv[i] # number of i's
-                        pos_wt[self.max_entry-i-1] = -self.weight[i]*(self.weight[i] < 0) + iv[i] # number of (-i)'s
-                    for st in SemistandardTableaux(self.shape, Composition(pos_wt)):
-                        dp = [[to_dp(entry) for entry in row] for row in st]
-                        if SymplecticTableaux.__contains__(self, dp):
-                            yield self.element_class(self, dp, self.tab_type)
+        else:
+            if self.tab_type == 'DeConciniProcesi':
+                to_symp = lambda k: k - self.max_entry - 1*(k <= self.max_entry)
+            elif self.tab_type == 'King':
+                to_symp = lambda k : Integer(-(k+1)/2) if k%2 == 1 else Integer(k/2)
+            elif self.tab_type == 'Sundaram':
+                to_symp = lambda k : Integer((k+1)/2) if k%2 == 1 else Integer(-k/2)
 
-        elif self.tab_type == 'King' or self.tab_type == 'Sundaram':
-            # wt_zero_pairs will be the number of {i, -i} pairs for all i
             wt_zero_pairs = sum(self.shape) - sum(map(abs, self.weight))
             if wt_zero_pairs % 2 != 0:
                 return
-            elif wt_zero_pairs == 0:
-                for st in SemistandardTableaux(self.shape, Composition(map(abs, self.weight))):
-                    # FIX THIS: import sign so not as obscure
-                    symp_tab = [[entry*(-1+2*(self.weight[entry-1]>0)) for entry in row] for row in st]
-                    yield self.element_class(self, symp_tab, self.tab_type)
             else:
-                wt_zero_pairs = wt_zero_pairs / 2
-                tab_sgn = 1*(self.tab_type == 'Sundaram') + (-1)*(self.tab_type == 'King')
-                to_symplectic = lambda k : Integer(tab_sgn*(k+1)/2) if k%2 == 1 else Integer(-tab_sgn*k/2)
+                wt_zero_pairs = wt_zero_pairs/2
+                pos_wt = [0]*(2*self.max_entry)
                 for iv in IntegerVectors(wt_zero_pairs, self.max_entry):
                     # iv[i] denotes the number of {i, -i} pairs in the tableau
                     # pos_wt is the weight when we convert all the entries to the
                     # classical ordering
-                    pos_wt = [0]*(2*self.max_entry)
                     for i in range(self.max_entry):
-                        pos_wt[2*i+(1-tab_sgn)/2] = self.weight[i]*(self.weight[i] > 0) + iv[i]
-                        pos_wt[2*i+(1+tab_sgn)/2] = -self.weight[i]*(self.weight[i] < 0) + iv[i]
+                        i_wt = self.weight[i]*(self.weight[i] > 0) + iv[i]
+                        i_bar_wt = -self.weight[i]*(self.weight[i] < 0) + iv[i]
+                        if self.tab_type == 'DeConciniProcesi':
+                            pos_wt[self.max_entry+i] = i_wt
+                            pos_wt[self.max_entry-i-1] = i_bar_wt
+                        if self.tab_type == 'King':
+                            pos_wt[2*i+1] = i_wt
+                            pos_wt[2*i] = i_bar_wt
+                        if self.tab_type == 'Sundaram':
+                            pos_wt[2*i] = i_wt
+                            pos_wt[2*i+1] = i_bar_wt
                     # keep the semistandard tableaux that are symplectic when 
-                    # converted to Sundaram orering
+                    # converted to symplectic ordering
                     for st in SemistandardTableaux(self.shape, Composition(pos_wt)):
-                        if all(abs(to_symplectic(st.entry(cell))) > cell[0] for cell in st.cells()):
-                            yield self.element_class(self, [map(to_symplectic, row) for row in st], self.tab_type)
+                        symp = [list(map(to_symp, row)) for row in st]
+                        if SymplecticTableaux.__contains__(self, symp):
+                            yield self.element_class(self, symp, self.tab_type)
         return
+
+        # elif self.tab_type == 'DeConciniProcesi':
+        #     wt_zero_pairs = sum(self.shape) - sum(map(abs, self.weight))
+        #     to_dp = lambda k: k - self.max_entry - 1*(k <= self.max_entry)
+        #     to_classical = lambda k : k + self.max_entry + 1*(k < 0)
+        #     if wt_zero_pairs % 2 != 0:
+        #         return
+        #     elif wt_zero_pairs == 0:
+        #         pos_wt = [0]*(2*self.max_entry)
+        #         for i in range(self.max_entry):
+        #             pos_wt[self.max_entry+i] = self.weight[i]*(self.weight[i] > 0)
+        #             pos_wt[self.max_entry-i-1] = -self.weight[i]*(self.weight[i] < 0)
+        #         for st in SemistandardTableaux(self.shape, Composition(pos_wt)):
+        #             dp = [[to_dp(entry) for entry in row] for row in st]
+        #             if SymplecticTableaux.__contains__(self, dp):
+        #                 yield self.element_class(self, dp, self.tab_type)
+        #     else:
+        #         wt_zero_pairs = wt_zero_pairs / 2
+        #         to_dp = lambda k: k - self.max_entry - 1*(k <= self.max_entry)
+        #         for iv in IntegerVectors(wt_zero_pairs, self.max_entry):
+        #             # iv[i-1] denotes the number of {i, -i} pairs in the tableau
+        #             # pos_wt is the weight when we convert all the entries to the
+        #             # classical ordering, which we do by adding self.max_entry
+        #             pos_wt = [0]*(2*self.max_entry)
+        #             for i in range(self.max_entry):
+        #                 pos_wt[self.max_entry+i] = self.weight[i]*(self.weight[i] > 0) + iv[i] # number of i's
+        #                 pos_wt[self.max_entry-i-1] = -self.weight[i]*(self.weight[i] < 0) + iv[i] # number of (-i)'s
+        #             for st in SemistandardTableaux(self.shape, Composition(pos_wt)):
+        #                 dp = [[to_dp(entry) for entry in row] for row in st]
+        #                 if SymplecticTableaux.__contains__(self, dp):
+        #                     yield self.element_class(self, dp, self.tab_type)
+
+        # elif self.tab_type == 'King' or self.tab_type == 'Sundaram':
+        #     # wt_zero_pairs will be the number of {i, -i} pairs for all i
+        #     wt_zero_pairs = sum(self.shape) - sum(map(abs, self.weight))
+        #     if wt_zero_pairs % 2 != 0:
+        #         return
+        #     elif wt_zero_pairs == 0:
+        #         for st in SemistandardTableaux(self.shape, Composition(map(abs, self.weight))):
+        #             # FIX THIS: import sign so not as obscure
+        #             symp_tab = [[entry*(-1+2*(self.weight[entry-1]>0)) for entry in row] for row in st]
+        #             yield self.element_class(self, symp_tab, self.tab_type)
+        #     else:
+        #         wt_zero_pairs = wt_zero_pairs / 2
+        #         tab_sgn = 1*(self.tab_type == 'Sundaram') + (-1)*(self.tab_type == 'King')
+        #         to_symplectic = lambda k : Integer(tab_sgn*(k+1)/2) if k%2 == 1 else Integer(-tab_sgn*k/2)
+        #         for iv in IntegerVectors(wt_zero_pairs, self.max_entry):
+        #             # iv[i] denotes the number of {i, -i} pairs in the tableau
+        #             # pos_wt is the weight when we convert all the entries to the
+        #             # classical ordering
+        #             pos_wt = [0]*(2*self.max_entry)
+        #             for i in range(self.max_entry):
+        #                 pos_wt[2*i+(1-tab_sgn)/2] = self.weight[i]*(self.weight[i] > 0) + iv[i]
+        #                 pos_wt[2*i+(1+tab_sgn)/2] = -self.weight[i]*(self.weight[i] < 0) + iv[i]
+        #             # keep the semistandard tableaux that are symplectic when 
+        #             # converted to Sundaram orering
+        #             for st in SemistandardTableaux(self.shape, Composition(pos_wt)):
+        #                 if all(abs(to_symplectic(st.entry(cell))) > cell[0] for cell in st.cells()):
+        #                     yield self.element_class(self, [map(to_symplectic, row) for row in st], self.tab_type)
+        # return
 
     def list(self):
         return [y for y in self]
