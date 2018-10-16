@@ -493,23 +493,26 @@ cdef BetaAdic getBetaAdic(m, prec=53, mirror=True, verb=False):
     b.a = getAutomate(a, A=A, verb=verb)
     return b
 
-cdef BetaAdic2 getBetaAdic2(input_a, la=None,
-                            prec=53, verb=False):
+cdef BetaAdic2 getBetaAdic2(self, la=None, at=None,
+                            prec=53, mirror=True, verb=False):
     if verb:
-        print("getBetaAdic %s" % input_a)
+        print("getBetaAdic %s" % self)
     from sage.rings.complex_field import ComplexField
     CC = ComplexField(prec)
     cdef BetaAdic2 b
     if la is None:
-        la = input_a.get_la(verb=verb)
+        la = self.get_la(at=at, verb=verb)
+    
+    if mirror:
+        la = [a.mirror().determinize().minimize() for a in la]
 
-    A = set(input_a.alphabet)
+    A = set(self.a.alphabet)
     for a in la:
         A.update(a.alphabet)
     A = list(A)
 
     b = NewBetaAdic2(len(A), len(la))
-    b.b = complex(CC(input_a.b))
+    b.b = complex(CC(self.b))
     d = {}
     for i, c in zip(range(b.n), A):
         b.t[i] = complex(CC(c))
@@ -873,15 +876,11 @@ cdef class BetaAdicMonoid:
 
     ####to be put in generators
     # liste des automates donnant le coloriage de l'ensemble limite
-    def get_la(self, ss=None, tss=None, verb=False):
+    def get_la(self, at=None, verb=False):
         """
         Return a list of b-adic sets
 
         INPUT:
-
-        - ``ss`` -- (default ''None'') ``DetAutomaton``
-
-        -``tss`` -- (default ''None'') transition
 
         -``verb`` -- (default ''False'') set to ''True'' for verbose mode
 
@@ -895,62 +894,24 @@ cdef class BetaAdicMonoid:
             [DetAutomaton with 1 states and an alphabet of 2 letters,
              DetAutomaton with 1 states and an alphabet of 2 letters]
         """
-
-        if hasattr(self, 'la'):
-            return self.la
-
-        if tss is None:
-            if hasattr(self, 'tss'):
-                tss = self.tss
-                if not isinstance(tss, DetAutomaton):
-                    tss = DetAutomaton(tss)
-        if ss is None:
-            if hasattr(self, 'ss'):
-                ss = self.ss
-                if not isinstance(ss, DetAutomaton):
-                    ss = DetAutomaton(ss)
-        if ss is None:
-            if tss is None:
-                tss = DetAutomaton(None).full(list(self.a.alphabet))
-                # raise ValueError("la, ss, or tss must be defined !")
-            if verb:
-                print("Compute the transposition of tss=%s..." % tss)
-            ss = tss.mirror().determinize()  # ze()
-            if verb:
-                print(ss)
-                print("simplify...")
-            ss = ss.prune_inf().prune()  # prune0_simplify()
-            if verb:
-                print(ss)
-        if tss is None:
-            if ss is None:
-                ss = DetAutomaton(None).full(list(self.C))  # self.default_ss()
-                # raise ValueError("la, ss, or tss must be defined !")
-            if verb:
-                print("Compute the transposition of ss=%s..." % ss)
-            tss = ss.mirror().determinize()  # ze()
-            if verb:
-                print(tss)
-                print("simplify...")
-            tss = tss.prune_inf().prune()  # 0_simplify()
-            if verb:
-                print(tss)
-
+        
+        if at is None:
+            at = self.a.mirror().determinize().prune().minimize()
+        
         # compute la
         a = {}
-        for v in ss.states:  # ss.vertices():
-            a[v] = ss.copy()  # Automaton(ss) ##
-            a[v].set_final_states([v])
+        for v in at.states:
+            at.set_final_states([v])
             if verb:
-                print("Compute the transposition...")
-            a[v] = a[v].mirror().determinize()  # ze()
+                print("Compute the mirror...")
+            a[v] = at.mirror().determinize()
             if verb:
                 print(a[v])
                 print("simplify...")
             a[v] = a[v].prune_inf().prune()
             if verb:
                 print(a[v])
-        return [tss]+a.values()
+        return [self.a]+a.values()
 
     def points_exact(self, n=None, i=None):
         r"""
@@ -1433,7 +1394,7 @@ cdef class BetaAdicMonoid:
         sig_off()
         return im
 
-    def plot_list(self, list la=None, n=None,
+    def plot_list(self, list la=None, DetAutomaton at=None, n=None,
               sx=800, sy=600, ajust=True, prec=53, colormap='hsv',
               backcolor=None, opacity=1., verb=False):
         r"""
@@ -1447,6 +1408,9 @@ cdef class BetaAdicMonoid:
 
         - ``la``- list (default: ``None``)
           List of automata.
+          
+        - ``at`` - DetAutomaton (default: ``None``)
+          A automaton used to color according to its final states. Used only if la is None.
         
         - ``sx, sy`` - dimensions of the resulting
           image (default : ``800, 600``)
@@ -1516,7 +1480,7 @@ cdef class BetaAdicMonoid:
         cdef Surface s = NewSurface(sx, sy)
         cdef BetaAdic2 b
         sig_on()
-        b = getBetaAdic2(self, la=la, prec=prec, verb=verb)
+        b = getBetaAdic2(self, la=la, at=at, prec=prec, mirror=True, verb=verb)
         sig_off()
         # dessin
         if n is None:
@@ -2070,11 +2034,13 @@ cdef class BetaAdicMonoid:
         ssi = ssi.prune_inf()
         ssi = ssi.prune()
         return ssi.minimize()
-
-    def intersection_words(self, w1, w2, ss=None, iss=None):
+    
+    def prefix(self, w):
+        return BetaAdicMonoid(self.b, self.a.prefix(w))
+    
+    def intersection_words(self, w1, w2):
         r"""
-        Compute the intersection of two beta-adic monoid with
-        subshifts corresponding to two prefix
+        Compute the intersection of the two beta-adic sets corresponding to words with prefix w1 and prefix w2.
 
         INPUT:
 
@@ -2083,11 +2049,6 @@ cdef class BetaAdicMonoid:
 
         - ``w2``- word
           The second prefix.
-
-        - ``ss``- Automaton (default: ``None``)
-          The subshift to associate to the beta-adic monoid for this operation.
-
-        - ``iss``- initial state of ss (default: ``None``)
 
         OUTPUT:
 
@@ -2108,22 +2069,10 @@ cdef class BetaAdicMonoid:
                 sage: ssi = m.intersection_words(w1=[0], w2=[1])
                 sage: m.plot(n=10, ss=ssi)                        # long time
         """
-        if ss is None:
-            if hasattr(self, 'ss'):
-                ss = self.ss
-            else:
-                ss = self.a
-        if iss is None:
-            if hasattr(ss, 'I'):
-                iss = ss.I[0]
-            if iss is None:
-                iss = ss.states[0]
-        ss1 = ss.prefix(w=w1, i=iss)
-        ss2 = ss.prefix(w=w2, i=iss)
-        ssi = self.intersection(ss=ss1, ss2=ss2)
-        ssd = ssi.determinize2(A=self.C, noempty=True)
-        ssd = ssd.prune0_simplify()
-        return ssd
+        m1 = self.prefix(w=w1)
+        m2 = self.prefix(w=w2)
+        mi = m1.intersection(m2)
+        return mi
 
     #to be put in generators
     #     - ``aut`` - DetAutomaton (default: ``None``, full language)
@@ -2159,10 +2108,7 @@ cdef class BetaAdicMonoid:
         """
 
         # compute the relations automaton
-        Cd = list(set([c-c2 for c in self.a.A for c2 in self.a.A]))
-        Cdp = [k for k in range(len(Cd)) if Cd[k] in [self.a.A[j]-self.a.A[i] for i in range(len(self.a.A)) for j in range(i)]] #indices des chiffres strictements négatifs dans Cd
-        arel = self.relations_automaton(Ad=Cd, ext=False)
-        arel = arel.prune()
+        arel = self.relations_automaton()
         if transpose:
             arel = arel.mirror_det()
         if verb:
@@ -2175,7 +2121,7 @@ cdef class BetaAdicMonoid:
         ei = arel.initial_state
         ne = arel.n_states  # new added state
         arel.add_state(True)
-        arel.set_final_state(ei, final=False)  # it is the new final state
+        arel.set_final_state(ei, final=False)  # the new state is final
         if step == 2:
             return arel
 
