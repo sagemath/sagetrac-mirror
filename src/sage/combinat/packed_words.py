@@ -340,7 +340,7 @@ class PackedWord(ClonableIntArray):
         Return the list of global descents of ``self``.
 
         A *global descent* of a packed word `u` is a position (index) `d`
-        of `u` such that `\forall i <= d < j, u_i > u_j`.
+        of `u` such that `u_i > u_j` for all `i \leq d < j.`
 
         .. WARNING::
 
@@ -423,7 +423,7 @@ class PackedWord(ClonableIntArray):
         Return the list of the global ascents of ``self``.
 
         A *global ascent* of a packed word `u` is a position (index) `d`
-        of `u` such that `\forall i < d <= j, u_i < u_j`.
+        of `u` such that `u_i < u_j` for all `i < d \leq j`.
 
         .. WARNING::
 
@@ -515,15 +515,15 @@ class PackedWord(ClonableIntArray):
 
         INPUT:
 
-        - ``side`` -- "left" or "right": the side of the weak order of inversions
-        - ``support`` -- "position" or "value": the support of the result
+        - ``side`` -- ``"left"`` or ``"right"``; the side of the weak order of inversions
+        - ``support`` -- ``"position"`` or ``"value"``; the support of the result
 
         The ``right`` inversions are taken on ``positions`` by default,
         whereas the ``left`` inversions are taken by default on ``values``.
 
         OUTPUT:
 
-        .. rubric:: Right inversions on positions
+        .. RUBRIC:: Right inversions on positions
 
         The behavior when ``side`` is "right" and ``support`` is "value".
 
@@ -549,7 +549,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([2, 3, 4, 1, 2, 4, 3]).inversions()
             {(1, 4), (2, 4), (2, 5), (3, 4), (3, 5), (3, 7), (6, 7)}
 
-        .. rubric:: Right inversions on values
+        .. RUBRIC:: Right inversions on values
 
         The behavior when ``side`` is "right" and ``support`` is "value".
 
@@ -571,7 +571,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([2, 3, 4, 1, 2, 4, 3]).inversions(support = "value")
             {(2, 1), (3, 1), (3, 2), (4, 1), (4, 2), (4, 3)}
 
-        .. rubric:: Left inversions on values
+        .. RUBRIC:: Left inversions on values
 
         The behavior when ``side`` is "left" and ``support`` is "value".
 
@@ -596,7 +596,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([3, 1, 4, 1, 2]).inversions(side = "left")
             {(3, 1), (3, 2), (4, 2)}
 
-        .. rubric:: Left inversions on positions
+        .. RUBRIC:: Left inversions on positions
 
         The behavior when ``side`` is "left" and ``support`` is "position".
 
@@ -1219,8 +1219,8 @@ class PackedWords(UniqueRepresentation, Parent):
 
         INPUT::
 
-        ``osp`` -- an object or iterable (e.g., a list of lists)
-        that defines an ordered set partition.
+        - ``osp`` -- an object or iterable (e.g., a list of lists)
+          that defines an ordered set partition.
 
         EXAMPLES::
 
@@ -1397,12 +1397,6 @@ class PackedWords(UniqueRepresentation, Parent):
     def _element_constructor_(self, lst=[], check=True):
         r"""
         Construct an element of ``self``.
-
-        TODO:
-
-            Should ``PackedWords_all`` ever be used as a parent,
-            or should we use ``PackedWords_size.element_class``
-            in place of ``self.element_class`` below?
 
         EXAMPLES::
 
