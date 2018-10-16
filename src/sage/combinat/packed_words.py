@@ -65,7 +65,7 @@ class PackedWord(ClonableIntArray):
         sage: PackedWord([2])
         Traceback (most recent call last):
         ...
-        ValueError: [2] is not a packed word
+        ValueError: [2] not in Packed words
 
     TESTS::
 
@@ -87,7 +87,7 @@ class PackedWord(ClonableIntArray):
             True
             sage: w0 = PackedWord([4, 2, 3, 1, 2])
             sage: w0.parent()
-            Packed words of size 5
+            Packed words
 
             sage: w1 = PackedWords()([4, 2, 3, 1, 2])
             sage: w1.parent() is w0.parent()
@@ -456,7 +456,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([3, 1, 2, 1, 4, 6, 6, 5, 7, 8, 7]).global_ascents(from_zero=True)
             [4, 5, 8]
             sage: PackedWord([3, 1, 2, 1, 4, 6, 6, 5, 7, 8, 7]).global_ascents(initial_ascent=True)
-            [0, 5, 6, 9]
+            [1, 5, 6, 9]
         """
         if not self:
             return []
@@ -681,7 +681,7 @@ class PackedWord(ClonableIntArray):
             []
 
             sage: v = PackedWord([1, 2, 1])
-            sage: u = v.right_weak_order_succ(); u
+            sage: u, = v.right_weak_order_succ(); u
             [2, 1, 1]
             sage: v.inversions()
             {(2, 3)}
@@ -874,7 +874,7 @@ class PackedWord(ClonableIntArray):
             []
 
             sage: v = PackedWord([3, 1, 2])
-            sage: u = v.left_weak_order_succ(); u
+            sage: u, = v.left_weak_order_succ(); u
             [3, 2, 1]
             sage: v.inversions(side="left")
             {(3, 1), (3, 2)}
@@ -924,7 +924,7 @@ class PackedWord(ClonableIntArray):
             []
 
             sage: u = PackedWord([3, 1, 2])
-            sage: v = u.left_weak_order_pred(); v
+            sage: v, = u.left_weak_order_pred(); v
             [2, 1, 3]
             sage: u.inversions(side="left")
             {(3, 1), (3, 2)}
@@ -1295,6 +1295,7 @@ class PackedWords(UniqueRepresentation, Parent):
 
             sage: PW = PackedWords()
             sage: PW.permutation_to_packed_words([1,4,2,3])
+            [[1, 2, 1, 1], [1, 3, 1, 2], [1, 3, 2, 2], [1, 4, 2, 3]]
 
             sage: PW = PackedWords(4)
             sage: PW.permutation_to_packed_words([1, 2, 3])
@@ -1305,7 +1306,7 @@ class PackedWords(UniqueRepresentation, Parent):
             sage: PW.permutation_to_packed_words([1, 2, 4, 4])
             Traceback (most recent call last):
             ...
-            ValueError: [1, 2, 3] does not represent a permutation of 4
+            ValueError: [1, 2, 4, 4] does not represent a permutation of 4
 
         """
         try:
@@ -1424,11 +1425,11 @@ class PackedWords(UniqueRepresentation, Parent):
             sage: P4([1, 4, 4, 2])
             Traceback (most recent call last):
             ...
-            ValueError: [1, 3, 3, 2, 2] not in Packed words of size 4
+            ValueError: [1, 4, 4, 2] not in Packed words of size 4
             sage: P([1, 4, 4, 2])
             Traceback (most recent call last):
             ...
-            ValueError: [1, 3, 3, 2, 2] not in Packed words
+            ValueError: [1, 4, 4, 2] not in Packed words
         """
         # if parent has a size, it should agree with the size of lst
         size = getattr(self, "_size", None)
@@ -1563,7 +1564,7 @@ class PackedWords_size(PackedWords):
         sage: P([1])
         Traceback (most recent call last):
         ...
-        ValueError: [1] is not a packed word of size 0
+        ValueError: [1]  not in Packed words of size 0
     """
     def __init__(self, size):
         """
