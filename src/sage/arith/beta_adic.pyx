@@ -1988,7 +1988,7 @@ cdef class BetaAdicMonoid:
 
         INPUT:
 
-        - ``ss``- DetAutomaton (default: ``None``)
+        - ``ss1``- DetAutomaton (default: ``None``)
           The first subshift to associate to the beta-adic monoid for this operation.
 
         - ``ss2``- DetAutomaton (default: ``None``)
@@ -2034,10 +2034,10 @@ cdef class BetaAdicMonoid:
         ssi = ssi.prune_inf()
         ssi = ssi.prune()
         return ssi.minimize()
-    
+
     def prefix(self, w):
         return BetaAdicMonoid(self.b, self.a.prefix(w))
-    
+
     def intersection_words(self, w1, w2):
         r"""
         Compute the intersection of the two beta-adic sets corresponding to words with prefix w1 and prefix w2.
@@ -2088,10 +2088,16 @@ cdef class BetaAdicMonoid:
         (Consider using reduced_words_automaton() if you're not in this case.)
 
         INPUT:
+        
+        - ``step`` - int (default: 100)
+          number of steps
 
         - ``verb`` - bool (default: ``False``)
           If True, print informations for debugging.
-
+          
+        - ``transpose`` - bool (default: ``False``)
+          
+          
         OUTPUT:
 
         DetAutomaton.
@@ -2632,20 +2638,37 @@ cdef class BetaAdicMonoid:
             print("Zero is an inner point iff the %s has non-empty interior." % self)
             self.ss = ss
 
-    # complete the langage of a
+    # complete the language of a
     def complete(self, DetAutomaton a, C=None,
                  ext=False, arel=None, verb=False):
         r"""
         Return an automaton that recognize the language of all words over
-        C that represent elements recognized by a.
-        If ext is True, this also include words equal at infinity.
+        alphabet that represent elements recognized by a.
+        If ''ext'' is True, this also include words equal at infinity.
 
         INPUT:
 
-        - ``a`` - A DetAutomaton.
+        - ``a`` a ``DetAutomaton`` A DetAutomaton.
 
-        - ``C`` - list of digits (default : ``None``).
-        
+        - ``C`` list -- (default : ``None``)list of digits .
+
+        - ``ext``  bool -- (default: ``False``)
+          If ''ext'' is True, this also include words equal at infinity.
+
+        - ``arel`` - Automaton (default: ``None``)
+            Automaton of relations.
+
+        - ``verb``- bool (default: ``False``)
+          If True, print informations for debugging.
+
+        OUTPUT:
+
+        An automaton that recognize the language
+
+        EXAMPLES::
+
+            sage: m = BetaAdicMonoid(3, dag.AnyWord([0,1,3]))
+            sage: m.complete(dag.AnyWord([0,1]))
         """
         if C is None:
             C = self.C
@@ -2694,6 +2717,31 @@ cdef class BetaAdicMonoid:
     # donne l'automate décrivant l'adhérence de l'ensemble limite avec un nouvel alphabet C
     def adherence(self, tss=None, C=None, C2=None,
                   ext=False, verb=False, step=None):
+        """
+        Return an automaton describing the adhesion of the limit set
+        with a new alphabet C
+
+        INPUT:
+
+        - ``tss``
+        - ``C`` list -- (default : ``None``)list of digits .
+        - ``C2`` list -- (default : ``None``)list of digits .
+        - ``ext``  bool -- (default: ``False``)
+          If ''ext'' is True, this also include words equal at infinity.
+        - ``verb``- bool (default: ``False``)
+          If True, print informations for debugging.
+        - ``step`` - int (default: ``None``)
+          Stop to a intermediate state of the computing to make verifications.
+
+        OUTPUT:
+
+        Return an automaton describing the adhesion of the limit set
+        with a new alphabet C
+
+        EXAMPLES::
+            sage: m = BetaAdicMonoid(3, dag.AnyWord([0,1,3]))
+            sage: m.adherence()
+        """
         if tss is None:
             if hasattr(self, 'tss'):
                 tss = self.tss
@@ -2773,6 +2821,33 @@ cdef class BetaAdicMonoid:
     # donne l'automate décrivant le translaté de +t, avec les chiffres C
     # obsolete use move2
     def move(self, t, DetAutomaton tss=None, list C=None, step=None):
+        """
+        Return the computed  adherence of the new automaton
+        (Give the automaton of translated +t with letters)
+
+        INPUT:
+
+        - ``t`` int translated index
+        - ``tss``- DetAutomaton (default: ``None``)
+          The first subshift to associate to the beta-adic monoid
+          for this operation.
+
+        - ``C`` list - precision (default: ``None``)
+
+        - ``step``-  (default: ``None``)
+
+
+        OUTPUT:
+
+        return the computed  adherence of the new automaton
+
+
+        EXAMPLES::
+
+            sage: m = BetaAdicMonoid(3, dag.AnyWord([0,1,3]))
+            sage: m.move(1)
+
+        """
         if tss is None:
             if hasattr(self, 'tss'):
                 if isinstance(self.tss, DetAutomaton):
