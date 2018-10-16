@@ -3695,7 +3695,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
             sage: q = invariant_theory.quaternary_biquadratic(p1, p2, [x, y, z])
             sage: T = invariant_theory.quaternary_quadratic(q.T_covariant(), [x,y,z]).matrix()
             sage: M = q[0].matrix().adjugate() + t*q[1].matrix().adjugate()
-            sage: M = M.adjoint().apply_map(             # long time (4s on my thinkpad W530)
+            sage: M = M.adjugate().apply_map(             # long time (4s on my thinkpad W530)
             ....:         lambda m: m.coefficient(t))
             sage: M == q.Delta_invariant()*T             # long time
             True
@@ -3718,7 +3718,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
             sage: Tprime = invariant_theory.quaternary_quadratic(
             ....:     q.T_prime_covariant(), [x,y,z]).matrix()
             sage: M = q[0].matrix().adjugate() + t*q[1].matrix().adjugate()
-            sage: M = M.adjoint().apply_map(                # long time (4s on my thinkpad W530)
+            sage: M = M.adjugate().apply_map(                # long time (4s on my thinkpad W530)
             ....:         lambda m: m.coefficient(t^2))
             sage: M == q.Delta_prime_invariant() * Tprime   # long time
             True
