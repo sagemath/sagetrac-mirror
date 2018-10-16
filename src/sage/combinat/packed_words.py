@@ -506,6 +506,42 @@ class PackedWord(ClonableIntArray):
         r"""
         Return the (``side``) weak order inversions (on ``support``)  of ``self``.
 
+        .. RUBRIC:: Right inversions on positions
+
+        The behavior when ``side`` is "right" and ``support`` is "position".
+
+        This is the default behavior when no keywords are specified, and also
+        when only the ``side`` keyword is specified.
+
+        Let `u` be a packed word of size `n`. The *right weak order
+        inversions* on *positions* of `u` are the pairs `(i, j)` such that
+        `1 \leq i < j \leq n` and `u_i > u_j`.
+
+        .. RUBRIC:: Right inversions on values
+
+        The behavior when ``side`` is "right" and ``support`` is "value".
+
+        The *right weak order inversions* on *values* of a packed word `u`
+        are the pairs `(u_i, u_j)` such that `u_i > u_j` for some `i < j`.
+   
+        .. RUBRIC:: Left inversions on values
+
+        The behavior when ``side`` is "left" and ``support`` is "value".
+
+        This is the default behavior when only the ``side`` keyword is specified.
+
+        The *left weak order inversions* on *values* of a packed word `u`
+        are the pairs `(b, a)` such that `a < b` and the first occurence of
+        `a` in `u` is after the last occurrence of `b` in `u`.
+
+        .. RUBRIC:: Left inversions on positions
+
+        The behavior when ``side`` is "left" and ``support`` is "position".
+
+        The *left weak order inversions* on *positions* of a packed word `u`
+        are the pairs `(i, j)` such that `i < j` and the first occurence of
+        `u_j` in `u` is after the last occurrence of `u_i` in `u`.
+
         .. WARNING::
 
             By default, the inversions of ``self`` start at `1`. If you want
@@ -521,19 +557,8 @@ class PackedWord(ClonableIntArray):
         The ``right`` inversions are taken on ``positions`` by default,
         whereas the ``left`` inversions are taken by default on ``values``.
 
-        OUTPUT:
-
-        .. RUBRIC:: Right inversions on positions
-
-        The behavior when ``side`` is "right" and ``support`` is "value".
-
-        This is the default behavior when no keywords are specified, and also
-        when only the ``side`` keyword is specified.
-
-        Let `u` be a packed word of size `n`. The *right weak order
-        inversions* on *positions* of `u` are the pairs `(i, j)` such that
-        `1 \leq i < j \leq n` and `u_i > u_j`.
-
+        Exemples when ``side`` is "right" and ``support`` is "position".
+        
         EXAMPLES::
 
             sage: PackedWord([]).inversions()
@@ -549,12 +574,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([2, 3, 4, 1, 2, 4, 3]).inversions()
             {(1, 4), (2, 4), (2, 5), (3, 4), (3, 5), (3, 7), (6, 7)}
 
-        .. RUBRIC:: Right inversions on values
-
-        The behavior when ``side`` is "right" and ``support`` is "value".
-
-        The *right weak order inversions* on *values* of a packed word `u`
-        are the pairs `(u_i, u_j)` such that `u_i > u_j` for some `i < j`.
+        Exemples when ``side`` is "right" and ``support`` is "value".
 
         EXAMPLES::
 
@@ -571,15 +591,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([2, 3, 4, 1, 2, 4, 3]).inversions(support = "value")
             {(2, 1), (3, 1), (3, 2), (4, 1), (4, 2), (4, 3)}
 
-        .. RUBRIC:: Left inversions on values
-
-        The behavior when ``side`` is "left" and ``support`` is "value".
-
-        This is the default behavior when only the ``side`` keyword is specified.
-
-        The *left weak order inversions* on *values* of a packed word `u`
-        are the pairs `(b, a)` such that `a < b` and the first occurence of
-        `a` in `u` is after the last occurrence of `b` in `u`.
+        Exemples when ``side`` is "left" and ``support`` is "value".
 
         EXAMPLES::
 
@@ -596,13 +608,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([3, 1, 4, 1, 2]).inversions(side = "left")
             {(3, 1), (3, 2), (4, 2)}
 
-        .. RUBRIC:: Left inversions on positions
-
-        The behavior when ``side`` is "left" and ``support`` is "position".
-
-        The *left weak order inversions* on *positions* of a packed word `u`
-        are the pairs `(i, j)` such that `i < j` and the first occurence of
-        `u_j` in `u` is after the last occurrence of `u_i` in `u`.
+        Exemples when ``side`` is "left" and ``support`` is "position".
 
         EXAMPLES::
 
