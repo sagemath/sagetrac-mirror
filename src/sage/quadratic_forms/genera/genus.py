@@ -3094,6 +3094,16 @@ class GenusSymbol_global_ring(object):
                 return representatives
 
         elif algorithm == "sage":
+            if n == 1:
+                return self.representative()
+            if n == 2:
+                d = - 4 * self.determinant()
+                from sage.quadratic_forms.binary_qf import BinaryQF_reduced_representatives
+                for q in BinaryQF_reduced_representatives(d, proper=False):
+                    if q[1] % 2 == 0:  # we want integrality of the gram matrix
+                        m = matrix(ZZ, 2, [q[0], q[1]//2, q[1]//2, q[2]])
+                        if Genus(m) == self:
+                            representatives.append(m)
             if n > 2:
                 from sage.quadratic_forms.quadratic_form import QuadraticForm
                 from sage.quadratic_forms.quadratic_form__neighbors import neighbor_iteration
@@ -3111,23 +3121,20 @@ class GenusSymbol_global_ring(object):
                     # we do a neighbor iteration
                     from sage.sets.primes import Primes
                     P = Primes()
-                    p = ZZ(2)
-                    while p.divides(self.determinant()):
+                    # we need a prime with L_p isotropic
+                    # this is certainly the case if the lattice is even
+                    # and p does not divide the determinant
+                    if self.is_even():
+                        p = ZZ(2)
+                    else:
+                        p = ZZ(3)
+                    det = self.determinant()
+                    while p.divides(det):
                         p = P.next(p)
                     representatives = neighbor_iteration(seeds, p, mass=Q.conway_mass())
                 representatives = [g.Hessian_matrix() for g in representatives]
                 if not self.is_even():
                     representatives = [(g/2).change_ring(ZZ) for g in representatives]
-            if n == 1:
-                return self.representative()
-            if n == 2:
-                d = - 4 * self.determinant()
-                from sage.quadratic_forms.binary_qf import BinaryQF_reduced_representatives
-                for q in BinaryQF_reduced_representatives(d, proper=False):
-                    if q[1] % 2 == 0:  # we want integrality of the gram matrix
-                        m = matrix(ZZ, 2, [q[0], q[1]//2, q[1]//2, q[2]])
-                        if Genus(m) == self:
-                            representatives.append(m)
             # recompute using magma for debugging
             # if ZZ.prod(self.signature_pair_of_matrix()) == 0:
             #     assert len(representatives)==len(self.representatives(algorithm="magma"))

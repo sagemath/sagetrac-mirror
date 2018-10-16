@@ -187,6 +187,7 @@ def neighbor_from_vec(self, p, y, odd=False):
     Gnew = (B*G*B.T).change_ring(ZZ)
     return QuadraticForm(Gnew)
 
+
 def p_neighbor(self, p):
     r"""
     """
@@ -363,8 +364,9 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**4, algorithm=Non
         # find all p-neighbors of Q
         Q = waiting_list.pop()
         for v in p_divisible_vectors(Q):
-            Q_neighbor = Q.neighbor_from_vec(p, v).lll()
+            Q_neighbor = Q.neighbor_from_vec(p, v)
             if not any(Q_neighbor.is_globally_equivalent_to(S) for S in isom_classes):
+                Q_neighbor = Q_neighbor.lll()
                 isom_classes.append(Q_neighbor)
                 waiting_list.append(Q_neighbor)
                 n_isom_classes += 1
