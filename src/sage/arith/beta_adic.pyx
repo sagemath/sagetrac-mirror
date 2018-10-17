@@ -493,7 +493,7 @@ cdef BetaAdic getBetaAdic(m, prec=53, mirror=True, verb=False):
     b.a = getAutomate(a, A=A, verb=verb)
     return b
 
-cdef BetaAdic2 getBetaAdic2(self, la=None, at=None,
+cdef BetaAdic2 getBetaAdic2(self, la=None,
                             prec=53, mirror=True, verb=False):
     if verb:
         print("getBetaAdic %s" % self)
@@ -501,7 +501,7 @@ cdef BetaAdic2 getBetaAdic2(self, la=None, at=None,
     CC = ComplexField(prec)
     cdef BetaAdic2 b
     if la is None:
-        la = self.get_la(at=at, verb=verb)
+        la = self.get_la(verb=verb)
     
     la = [self.a]+la
     
@@ -883,7 +883,7 @@ cdef class BetaAdicMonoid:
 
     ####to be put in generators
     # liste des automates donnant le coloriage de l'ensemble limite
-    def get_la(self, at=None, verb=False):
+    def get_la(self, verb=False):
         """
         Return a list of b-adic sets
 
@@ -901,24 +901,13 @@ cdef class BetaAdicMonoid:
             [DetAutomaton with 1 states and an alphabet of 2 letters,
              DetAutomaton with 1 states and an alphabet of 2 letters]
         """
-        
-        if at is None:
-            at = self.a.mirror().determinize().prune().minimize()
-        
+        cdef DetAutomaton a = self.a.copy()
         # compute la
-        a = {}
-        for v in at.states:
-            at.set_final_states([v])
-            if verb:
-                print("Compute the mirror...")
-            a[v] = at.mirror().determinize()
-            if verb:
-                print(a[v])
-                print("simplify...")
-            a[v] = a[v].prune_inf().prune()
-            if verb:
-                print(a[v])
-        return [self.a]+a.values()
+        la = []
+        for v in a.states:
+            a.set_final_states([v])
+            la.append(a.copy())
+        return la
 
     def points_exact(self, n=None, i=None):
         r"""
@@ -1178,7 +1167,7 @@ cdef class BetaAdicMonoid:
 
         OUTPUT:
 
-        None
+        A word that corresponds to the place where we draw.
 
         EXAMPLES::
 
@@ -1215,7 +1204,7 @@ cdef class BetaAdicMonoid:
                 for i in xrange(1024):
                     if word[i] < 0:
                         break
-                    res.append(self.alphabet[word[i]])
+                    res.append(self.a.alphabet[word[i]])
                 res.reverse()
             return res
         elif method == 1:
@@ -1257,10 +1246,10 @@ cdef class BetaAdicMonoid:
 #        return res
 
     def plot(self, n=None, sx=800, sy=600,
-              ajust=True, prec=53, color=(0, 0, 0, 255), method=0,
-              coeff=8., verb=False):
+              ajust=True, prec=53, color=(0, 0, 0, 255),
+              method=0, coeff=8., mirror=True, verb=False):
         r"""
-        Draw the limit set of the beta-adic monoid (with or without subshift).
+        Draw the beta-adic set.
 
         INPUT:
 
@@ -1360,7 +1349,7 @@ cdef class BetaAdicMonoid:
         s = NewSurface(sx, sy)
         sig_off()
         sig_on()
-        b = getBetaAdic(self, prec=prec, mirror=True, verb=verb)
+        b = getBetaAdic(self, prec=prec, mirror=mirror, verb=verb)
         sig_off()
         if verb:
             print("b=%s+%s*I", b.b.x, b.b.y)
@@ -1401,7 +1390,7 @@ cdef class BetaAdicMonoid:
         sig_off()
         return im
 
-    def plot_list(self, list la=None, DetAutomaton at=None, n=None,
+    def plot_list(self, list la=None, n=None,
               sx=800, sy=600, ajust=True, prec=53, colormap='hsv',
               backcolor=None, opacity=1., verb=False):
         r"""
@@ -1416,9 +1405,6 @@ cdef class BetaAdicMonoid:
         - ``la``- list (default: ``None``)
           List of automata.
           
-        - ``at`` - DetAutomaton (default: ``None``)
-          A automaton used to color according to its final states. Used only if la is None.
-        
         - ``sx, sy`` - dimensions of the resulting
           image (default : ``800, 600``)
 
@@ -1442,52 +1428,48 @@ cdef class BetaAdicMonoid:
 
         EXAMPLES::
 
-        #. The dragon fractal::
-            sage: e = QQbar(1/(1+I))
-            sage: m=BetaAdicMonoid(e, {0,1})
-            sage: m.plot_list()     # long time
-
         #. The Rauzy fractal of the Tribonacci substitution::
 
             sage: s = WordMorphism('1->12,2->13,3->1')
             sage: m = s.DumontThomas()
-            sage: m.plot_list()     # long time
+            sage: m.plot_list()
 
         #. A non-Pisot Rauzy fractal::
 
             sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
             sage: m = s.DumontThomas()
-            sage: m.b = 1/m.b
-            sage: m.plot_list(tss=m.ss)     # long time
+            sage: m.plot_list()
+            sage: m = BetaAdicMonoid(1/m.b, m.a)
+            sage: m.plot_list()
 
         #. The dragon fractal and its boundary::
 
             sage: e = QQbar(1/(1+I))
             sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
-            sage: ssi = m.intersection_words(w1=[0], w2=[1])                               # long time
-            sage: m.plot(tss=ssi) #plot the boundary                                      # long time
-            sage: m.plot_list(la=[m.default_ss(), ssi], colormap=[(.5,.5,.5,.5), (0,0,0,1.)])  # long time
+            sage: mi = m.intersection_words(w1=[0], w2=[1])
+            sage: m.plot_list(la=[mi.a], colormap=[(.5,.5,.5,.5), (0,0,0,1.)])  # long time
 
         #. The "Hokkaido" fractal and its boundary::
 
             sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
             sage: m = s.DumontThomas()
-            sage: ssi = m.intersection_words(w1=[0], w2=[1])                # long time
-
-            sage: m.plot_list(la=[la[0], ssi]+la[1:], colormap='gist_rainbow')  # long time
+            sage: mi = m.intersection_words(w1=[0], w2=[1])                # long time
+            sage: m.plot_list(la=[mi.a], colormap='gist_rainbow')  # long time
 
         #. A limit set that look like a tiling::
 
             sage: P = x^4 + x^3 - x + 1
             sage: b = P.roots(ring=QQbar)[2][0]
             sage: m = BetaAdicMonoid(b, dag.AnyWord([0,1]))
-            sage: m.plot(19)                                   # long time
+            sage: a = m.reduced_word_automaton()
+            sage: m = BetaAdicMonoid(m.b, a)
+            sage: m.plot_list()
 
         """
         cdef Surface s = NewSurface(sx, sy)
         cdef BetaAdic2 b
         sig_on()
-        b = getBetaAdic2(self, la=la, at=at, prec=prec, mirror=True, verb=verb)
+        b = getBetaAdic2(self, la=la, prec=prec, mirror=True, verb=verb)
         sig_off()
         # dessin
         if n is None:
@@ -2085,7 +2067,7 @@ cdef class BetaAdicMonoid:
     #     - ``aut`` - DetAutomaton (default: ``None``, full language)
     #       Automaton describing the language in which we live.
     def reduced_words_automaton(self, step=100,
-                                verb=False, transpose=False):  # , DetAutomaton aut=None):
+                                verb=False, mirror=False):  # , DetAutomaton aut=None):
         r"""
         Compute the reduced words automaton of the beta-adic monoid
         (without considering the automaton of authorized words).
@@ -2113,11 +2095,13 @@ cdef class BetaAdicMonoid:
             DetAutomaton with 4 states and an alphabet of 2 letters
 
         """
-
+        cdef list A
+        cdef list Ad
+        cdef list Adp
+        cdef int nAd
+        
         # compute the relations automaton
-        arel = self.relations_automaton()
-        if transpose:
-            arel = arel.mirror_det()
+        arel = self.relations_automaton(mirror=mirror)
         if verb:
             print("arel = %s" % arel)
         if step == 1:
@@ -2131,15 +2115,21 @@ cdef class BetaAdicMonoid:
         arel.set_final_state(ei, final=False)  # the new state is final
         if step == 2:
             return arel
-
+        
+        A = self.a.alphabet
+        Ad = arel.alphabet
+        nAd = len(Ad)
+        
         # add edges from the new state (copy edges from the initial state)
-        for j in range(len(Cd)):
+        for j in range(nAd):
             arel.set_succ(ne, j, arel.succ(ei, j))
         if step == 3:
             return arel
-
+        
+        Adp = [i for i in range(nAd) if Ad[i] in [x-y for j,x in enumerate(A) for y in A[:j]]]
+        
         # suppress some edges from the initial state
-        for j in Cdp:
+        for j in Adp:
             arel.set_succ(ei, j, -1)
         if step == 4:
             return arel
@@ -2148,7 +2138,7 @@ cdef class BetaAdicMonoid:
         # make them point to the new state
         for e in arel.states:
             if e != ei:
-                for j in range(len(Cd)):
+                for j in range(nAd):
                     if arel.succ(e, j) == ei:
                         arel.set_succ(e, j, ne)
         if step == 5:
@@ -2156,8 +2146,8 @@ cdef class BetaAdicMonoid:
 
         # project, determinise and take the complementary
         d = {}
-        for a in self.a.alphabet:
-            for b in self.a.alphabet:
+        for a in A:
+            for b in A:
                 if not d.has_key(a - b):
                     d[a-b] = []
                 d[a-b].append((a, b))
@@ -2165,8 +2155,8 @@ cdef class BetaAdicMonoid:
             print(d)
         arel = arel.duplicate(d)  # replace differences with couples
         d = {}
-        for j in self.a.alphabet:
-            for i in self.a.alphabet:
+        for j in A:
+            for i in A:
                 d[(i, j)] = i
         if verb:
             print(d)
@@ -2176,7 +2166,6 @@ cdef class BetaAdicMonoid:
         if verb:
             print(arel)
         arel = arel.prune()
-        arel = arel.prune_inf()
         if step == 10:
             return arels
         return arel.minimize()
@@ -2498,27 +2487,17 @@ cdef class BetaAdicMonoid:
                 log(y)/log(|1/2*b^2 - 1/2*b + 1/2|) where y is the max root of x^3 - x^2 + x - 2
                 1.5485260383...
         """
-
-        if ss is None:
-            if hasattr(self, 'ss'):
-                ss = self.ss
-        if ss is None:
-            y = self.C.cardinality()
-            print("log(%s)/log(|%s|)" % (y, self.b))
-        else:
-            if verb:
-                print("")
-            M = ss.adjacency_matrix()
-            if verb:
-                print("Eigen values...")
-            e = M.eigenvalues()
-            if verb:
-                print("max...")
-            y = max(e, key=abs)
-            if verb:
-                print("")
-            print("log(y)/log(|%s|) where y is the max root of %s" % (self.b, QQbar(y).minpoly()))
-            y = y.n(prec)
+        M = self.a.adjacency_matrix()
+        if verb:
+            print("Eigen values...")
+        e = M.eigenvalues()
+        if verb:
+            print("max...")
+        y = max(e, key=abs)
+        if verb:
+            print("")
+        print("log(y)/log(|%s|) where y is the max root of %s" % (self.b, QQbar(y).minpoly()))
+        y = y.n(prec)
         from sage.functions.log import log
         b = self.b.n(prec)
         if verb:

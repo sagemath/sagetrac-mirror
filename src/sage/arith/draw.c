@@ -1655,7 +1655,12 @@ double absd (double f)
 
 int choose_n (int sx, int sy, Complexe b, double sp, int prec, bool verb)
 {
-    int n = prec+log(sx*sy)/absd(log(sp));
+    int n;
+    
+    if (prec)
+        n = prec+log(sx*sy/absd((Mx-mx)*(My-my)))/absd(log(sp));
+    else
+        n = log(sx*sy)/absd(log(sp));
     
     if (n < 0)
         n = 0;
@@ -1767,7 +1772,7 @@ int *Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, dou
 	Fill(s, color0);
 	if (auto_n)
 	{
-		n = choose_n (s.sx, s.sy, b.b, sp, 1, verb);
+		n = choose_n (s.sx, s.sy, b.b, sp, 3, verb);
 	}
 	//niter = n;
 	Draw_rec(b, s, n, zero(), un(), b.a.i);
@@ -1879,7 +1884,7 @@ int *Draw_ (BetaAdic b, SDL_Surface s, int n, int ajust, Color col, double coeff
 	FillSDL(&s, color0);
 	if (auto_n)
 	{
-		n = choose_n (s.w, s.h, b.b, sp, 1, verb);
+		n = choose_n (s.w, s.h, b.b, sp, 3, verb);
 	}
 	//niter = n;
 	Draw_rec_(b, s, n, zero(), un(), b.a.i);
@@ -2011,7 +2016,7 @@ int *DrawNP (BetaAdic b, PyArrayObject *o, int n, int ajust, Color col, double c
 	FillNP(o, color0);
 	if (auto_n)
 	{
-		n = choose_n (sx, sy, b.b, sp, 1, verb);
+		n = choose_n (sx, sy, b.b, sp, 3, verb);
 	}
 	//niter = n;
 	a.b = b;
@@ -2103,7 +2108,7 @@ void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, double sp, int v
 	Fill(s, color0);
 	if (auto_n)
 	{
-		n = choose_n (s.sx, s.sy, b.b, sp, 1, verb);
+		n = choose_n (s.sx, s.sy, b.b, sp, 3, verb);
 	}
 	pos = zero();
 	Draw_rec2 (b, s, n, b.a.i);
@@ -2248,7 +2253,7 @@ void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double al
 	Fill(s, color0);
 	if (auto_n)
 	{
-		n = choose_n (s.sx, s.sy, b.b, sp, 1, verb);
+		n = choose_n (s.sx, s.sy, b.b, sp, 3, verb);
 	}
 	pos = zero();
 	for (i=0;i<b.na;i++)
