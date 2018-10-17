@@ -1223,7 +1223,7 @@ class PackedWords(UniqueRepresentation, Parent):
         r"""
         Build a packed word corresponding to the ordered set partition ``osp``.
 
-        INPUT::
+        INPUT:
 
         - ``osp`` -- an object or iterable (e.g., a list of lists)
           that defines an ordered set partition.
