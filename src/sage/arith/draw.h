@@ -74,6 +74,6 @@ int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double c
 Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, double sp, int verb);
 //void WordZone (BetaAdic b, int *word, int nmax);
 int *Draw(BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, double sp, int verb);
-void Draw2(BetaAdic b, Surface s, int n, int ajust, Color col, int verb);
+void Draw2(BetaAdic b, Surface s, int n, int ajust, Color col, double sp, int verb);
 void printAutomate(Automaton a);
-void DrawList(BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double alpha, int verb);
+void DrawList(BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double alpha, double sp, int verb);

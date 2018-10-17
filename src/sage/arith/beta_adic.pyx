@@ -226,8 +226,8 @@ cdef extern from "draw.h":
     Automaton UserDraw(BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, double sp, int verb)
     #  void WordZone (BetaAdic b, int *word, int nmax)
     int *Draw(BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, double sp, int verb)
-    void Draw2(BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
-    void DrawList(BetaAdic2 b, Surface s, int n, int ajust, ColorList lc, double alpha, int verb)
+    void Draw2(BetaAdic b, Surface s, int n, int ajust, Color col, double sp, int verb)
+    void DrawList(BetaAdic2 b, Surface s, int n, int ajust, ColorList lc, double alpha, double sp, int verb)
     void print_word(BetaAdic b, int n, int etat)
 
 # calcul de la valeur absolue p-adique (car non encore implémenté autrement)
@@ -503,14 +503,21 @@ cdef BetaAdic2 getBetaAdic2(self, la=None, at=None,
     if la is None:
         la = self.get_la(at=at, verb=verb)
     
+    la = [self.a]+la
+    
     if mirror:
         la = [a.mirror().determinize().minimize() for a in la]
-
-    A = set(self.a.alphabet)
+    
+    if verb:
+        print("la=%s"%la)
+    
+    A = set()
     for a in la:
         A.update(a.alphabet)
     A = list(A)
-
+    if verb:
+        print("A=%s"%A)
+    
     b = NewBetaAdic2(len(A), len(la))
     b.b = complex(CC(self.b))
     d = {}
@@ -1510,7 +1517,7 @@ cdef class BetaAdicMonoid:
                 cl[i+1] = getColor(colormap(float(i)/float(b.na-1)))
         else:
             raise TypeError("Type of option colormap (=%s) must be list of colors or str" % colormap)
-        DrawList(b, s, n, ajust, cl, opacity, verb)
+        DrawList(b, s, n, ajust, cl, opacity, self.a.spectral_radius(), verb)
         sig_off()
         # enregistrement du résultat
         sig_on()

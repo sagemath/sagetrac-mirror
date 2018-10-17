@@ -1653,6 +1653,20 @@ double absd (double f)
 	return f;
 }
 
+int choose_n (int sx, int sy, Complexe b, double sp, int prec, bool verb)
+{
+    int n = prec+log(sx*sy)/absd(log(sp));
+    
+    if (n < 0)
+        n = 0;
+    if (n > 1000000)
+        n = 100;
+    
+    if (verb)
+        printf("n = %d\n", n);
+    return n;
+}
+
 int *Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, double sp, int verb)
 {
 	int auto_n = (n < 0);
@@ -1721,27 +1735,7 @@ int *Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, dou
 	{ //ajust the window of the drawing
 		if (auto_n)
 		{ //ajust the number of iterations
-			if (verb)
-			{
-				printf("max = %d\n", max(s.sx, s.sy));
-				printf("maj = %lf\n", (1.-sqrt(cnorm(b.b))));
-				printf("abs(b) = %lf\n", sqrt(cnorm(b.b)));
-			}
-			/*
-			if (cnorm(b.b) < 1)
-				n = .5 + -3.*log(max(s.sx, s.sy)*absd(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
-			else
-				n = .5 + 3.*log(max(s.sx, s.sy)*absd(1.-1./sqrt(cnorm(b.b))))/log(cnorm(b.b));
-			*/
-			n = log(s.sx*s.sy)/absd(log(sp));
-			
-			if (n < 0)
-				n = 0;
-			if (n > 1000000)
-				n = 100;
-				
-			if (verb)
-				printf("n = %d\n", n);
+			n = choose_n (s.sx, s.sy, b.b, sp, 0, verb);
 		}
 		//niter = n;
 		ns = 0;
@@ -1773,34 +1767,7 @@ int *Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, dou
 	Fill(s, color0);
 	if (auto_n)
 	{
-		if (cnorm(b.b) < 1)
-		{
-			//n = coeff + 2.*absd(log(max(s.sx/(Mx-mx), s.sy/(My-my)))/log(cnorm(b.b)));
-			n = 1+log(s.sx*s.sy)/absd(log(sp));
-		}else
-		{
-			double ratio = pow(cnorm(b.b), n/2);
-			n = 1+log(s.sx*s.sy)/absd(log(cnorm(b.b)));
-			//n = .75 + coeff*absd(log(ratio*max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b)));
-			//change d'échelle pour dessiner la fractale à la bonne échelle
-			ratio = pow(cnorm(b.b), n/2)/ratio;
-			Mx = Mx*ratio;
-			mx = mx*ratio;
-			My = My*ratio;
-			my = my*ratio;
-			if (verb)
-			{
-				printf("Zone de dessin : (%lf, %lf) (%lf, %lf)\n", mx, my, Mx, My);
-			}
-		}
-		
-		if (n < 0)
-			n = 0;
-		if (n > 1000000)
-			n = 100;
-		
-		if (verb)
-			printf("n = %d\n", n);
+		n = choose_n (s.sx, s.sy, b.b, sp, 1, verb);
 	}
 	//niter = n;
 	Draw_rec(b, s, n, zero(), un(), b.a.i);
@@ -1810,7 +1777,7 @@ int *Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, dou
 }
 
 //same as Draw, but use SDL_Surface rather than Surface
-int *Draw_ (BetaAdic b, SDL_Surface s, int n, int ajust, Color col, double coeff, int verb)
+int *Draw_ (BetaAdic b, SDL_Surface s, int n, int ajust, Color col, double coeff, double sp, int verb)
 {
 	int auto_n = (n < 0);
 	//set global variables
@@ -1880,24 +1847,7 @@ int *Draw_ (BetaAdic b, SDL_Surface s, int n, int ajust, Color col, double coeff
 		//ajuste le cadre
 		if (auto_n)
 		{
-			if (verb)
-			{
-				printf("max = %d\n", max(s.w, s.h));
-				printf("maj = %lf\n", (1.-sqrt(cnorm(b.b))));
-				printf("abs(b) = %lf\n", sqrt(cnorm(b.b)));
-			}
-			if (cnorm(b.b) < 1)
-				n = .5 + -3.*log(max(s.w, s.h)*absd(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
-			else
-				n = .5 + 3.*log(max(s.w, s.h)*absd(1.-1./sqrt(cnorm(b.b))))/log(cnorm(b.b));
-			
-			if (n < 0)
-				n = 0;
-			if (n > 1000000)
-				n = 100;
-				
-			if (verb)
-				printf("n = %d\n", n);
+			n = choose_n (s.w, s.h, b.b, sp, 0, verb);
 		}
 		//niter = n;
 		ns = 0;
@@ -1929,31 +1879,7 @@ int *Draw_ (BetaAdic b, SDL_Surface s, int n, int ajust, Color col, double coeff
 	FillSDL(&s, color0);
 	if (auto_n)
 	{
-		if (cnorm(b.b) < 1)
-			n = coeff + 2.*absd(log(max(s.w/(Mx-mx), s.h/(My-my)))/log(cnorm(b.b)));
-		else
-		{
-			double ratio = pow(cnorm(b.b), n/2);
-			n = .75 + coeff*absd(log(ratio*max(3.*s.w/(Mx-mx), 3.*s.h/(My-my)))/log(cnorm(b.b)));
-			//change d'échelle pour dessiner la fractale à la bonne échelle
-			ratio = pow(cnorm(b.b), n/2)/ratio;
-			Mx = Mx*ratio;
-			mx = mx*ratio;
-			My = My*ratio;
-			my = my*ratio;
-			if (verb)
-			{
-				printf("Zone de dessin : (%lf, %lf) (%lf, %lf)\n", mx, my, Mx, My);
-			}
-		}
-		
-		if (n < 0)
-			n = 0;
-		if (n > 1000000)
-			n = 100;
-		
-		if (verb)
-			printf("n = %d\n", n);
+		n = choose_n (s.w, s.h, b.b, sp, 1, verb);
 	}
 	//niter = n;
 	Draw_rec_(b, s, n, zero(), un(), b.a.i);
@@ -1963,7 +1889,7 @@ int *Draw_ (BetaAdic b, SDL_Surface s, int n, int ajust, Color col, double coeff
 }
 
 //same as Draw, but draw into a numpy array rather than a surface
-int *DrawNP (BetaAdic b, PyArrayObject *o, int n, int ajust, Color col, double coeff, int verb)
+int *DrawNP (BetaAdic b, PyArrayObject *o, int n, int ajust, Color col, double coeff, double sp, int verb)
 {
     //check the numpy array
     if (o->nd != 2)
@@ -2049,24 +1975,7 @@ int *DrawNP (BetaAdic b, PyArrayObject *o, int n, int ajust, Color col, double c
 		//ajuste le cadre
 		if (auto_n)
 		{
-			if (verb)
-			{
-				printf("max = %d\n", max(sx, sy));
-				printf("maj = %lf\n", (1.-sqrt(cnorm(b.b))));
-				printf("abs(b) = %lf\n", sqrt(cnorm(b.b)));
-			}
-			if (cnorm(b.b) < 1)
-				n = .5 + -3.*log(max(sx, sy)*absd(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
-			else
-				n = .5 + 3.*log(max(sx, sy)*absd(1.-1./sqrt(cnorm(b.b))))/log(cnorm(b.b));
-			
-			if (n < 0)
-				n = 0;
-			if (n > 1000000)
-				n = 100;
-				
-			if (verb)
-				printf("n = %d\n", n);
+			n = choose_n (sx, sy, b.b, sp, 0, verb);
 		}
 		//niter = n;
 		ns = 0;
@@ -2102,31 +2011,7 @@ int *DrawNP (BetaAdic b, PyArrayObject *o, int n, int ajust, Color col, double c
 	FillNP(o, color0);
 	if (auto_n)
 	{
-		if (cnorm(b.b) < 1)
-			n = coeff + 2.*absd(log(max(sx/(Mx-mx), sy/(My-my)))/log(cnorm(b.b)));
-		else
-		{
-			double ratio = pow(cnorm(b.b), n/2);
-			n = .75 + coeff*absd(log(ratio*max(3.*sx/(Mx-mx), 3.*sy/(My-my)))/log(cnorm(b.b)));
-			//change d'échelle pour dessiner la fractale à la bonne échelle
-			ratio = pow(cnorm(b.b), n/2)/ratio;
-			Mx = Mx*ratio;
-			mx = mx*ratio;
-			My = My*ratio;
-			my = my*ratio;
-			if (verb)
-			{
-				printf("Zone de dessin : (%lf, %lf) (%lf, %lf)\n", mx, my, Mx, My);
-			}
-		}
-		
-		if (n < 0)
-			n = 0;
-		if (n > 1000000)
-			n = 100;
-		
-		if (verb)
-			printf("n = %d\n", n);
+		n = choose_n (sx, sy, b.b, sp, 1, verb);
 	}
 	//niter = n;
 	a.b = b;
@@ -2139,7 +2024,7 @@ int *DrawNP (BetaAdic b, PyArrayObject *o, int n, int ajust, Color col, double c
 	return word;
 }
 
-void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
+void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, double sp, int verb)
 {
 	int auto_n = (n < 0);
 	//set global variables
@@ -2191,18 +2076,7 @@ void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 		//ajuste le cadre
 		if (auto_n)
 		{
-			//printf("max = %d\n", max(s.sx, s.sy));
-			//printf("maj = %lf\n", (1.-sqrt(cnorm(b.b))));
-			if (cnorm(b.b) < 1)
-				n = -2.*log(max(s.sx, s.sy)*(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
-			else
-				n = 2.*log(max(s.sx, s.sy)*(1.-1./sqrt(cnorm(b.b))))/log(cnorm(b.b));
-			if (n < 0)
-				n = 0;
-			if (n > 1000000)
-				n = 100;
-			if (verb)
-				printf("n = %d\n", n);
+			n = choose_n (s.sx, s.sy, b.b, sp, 0, verb);
 		}
 		pos = zero();
 		Draw_rec2 (b, s, n, b.a.i);
@@ -2229,16 +2103,7 @@ void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 	Fill(s, color0);
 	if (auto_n)
 	{
-		if (cnorm(b.b) < 1)
-			n = .75 + 2.*absd(log(max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b)));
-		else
-			n = .75 + 2.*absd(log(max(.3*s.sx/(Mx-mx), .3*s.sy/(My-my)))/log(cnorm(b.b)));
-		if (n < 0)
-			n = 0;
-		if (n > 1000000)
-			n = 100;
-		if (verb)
-			printf("n = %d\n", n);
+		n = choose_n (s.sx, s.sy, b.b, sp, 1, verb);
 	}
 	pos = zero();
 	Draw_rec2 (b, s, n, b.a.i);
@@ -2295,7 +2160,7 @@ Automaton ApproxImage (BetaAdic b, SDLImage s, int n)
 }
 */
 
-void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double alpha, int verb)
+void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double alpha, double sp, int verb)
 {
 	int auto_n = (n < 0);
 	//set global variables
@@ -2351,18 +2216,7 @@ void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double al
 		//ajuste le cadre
 		if (auto_n)
 		{
-			//printf("max = %d\n", max(s.sx, s.sy));
-			//printf("maj = %lf\n", (1.-sqrt(cnorm(b.b))));
-			if (cnorm(b.b) < 1)
-				n = .5 + -3.*log(max(s.sx, s.sy)*(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
-			else
-				n = .5 + 3.*log(max(s.sx, s.sy)*(1.-1./sqrt(cnorm(b.b))))/log(cnorm(b.b));
-			if (n < 0)
-				n = 0;
-			if (n > 1000000)
-				n = 100;
-			if (verb)
-				printf("n = %d\n", n);
+			n = choose_n (s.sx, s.sy, b.b, sp, 0, verb);
 		}
 		pos = zero();
 		
@@ -2394,16 +2248,7 @@ void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double al
 	Fill(s, color0);
 	if (auto_n)
 	{
-		if (cnorm(b.b) < 1)
-			n = .5 + 2.*absd(log(max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b)));
-		else
-			n = .5 + 2.*absd(log(max(.3*s.sx/(Mx-mx), .3*s.sy/(My-my)))/log(cnorm(b.b)));
-		if (n < 0)
-			n = 0;
-		if (n > 1000000)
-			n = 100;
-		if (verb)
-			printf("n = %d\n", n);
+		n = choose_n (s.sx, s.sy, b.b, sp, 1, verb);
 	}
 	pos = zero();
 	for (i=0;i<b.na;i++)
