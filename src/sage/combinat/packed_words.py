@@ -65,7 +65,7 @@ class PackedWord(ClonableIntArray):
         sage: PackedWord([2])
         Traceback (most recent call last):
         ...
-        ValueError: [2] is not a packed word
+        ValueError: [2] not in Packed words
 
     TESTS::
 
@@ -87,7 +87,7 @@ class PackedWord(ClonableIntArray):
             True
             sage: w0 = PackedWord([4, 2, 3, 1, 2])
             sage: w0.parent()
-            Packed words of size 5
+            Packed words
 
             sage: w1 = PackedWords()([4, 2, 3, 1, 2])
             sage: w1.parent() is w0.parent()
@@ -340,7 +340,7 @@ class PackedWord(ClonableIntArray):
         Return the list of global descents of ``self``.
 
         A *global descent* of a packed word `u` is a position (index) `d`
-        of `u` such that `\forall i <= d < j, u_i > u_j`.
+        of `u` such that `u_i > u_j` for all `i \leq d < j.`
 
         .. WARNING::
 
@@ -423,7 +423,7 @@ class PackedWord(ClonableIntArray):
         Return the list of the global ascents of ``self``.
 
         A *global ascent* of a packed word `u` is a position (index) `d`
-        of `u` such that `\forall i < d <= j, u_i < u_j`.
+        of `u` such that `u_i < u_j` for all `i < d \leq j`.
 
         .. WARNING::
 
@@ -456,7 +456,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([3, 1, 2, 1, 4, 6, 6, 5, 7, 8, 7]).global_ascents(from_zero=True)
             [4, 5, 8]
             sage: PackedWord([3, 1, 2, 1, 4, 6, 6, 5, 7, 8, 7]).global_ascents(initial_ascent=True)
-            [0, 5, 6, 9]
+            [1, 5, 6, 9]
         """
         if not self:
             return []
@@ -506,6 +506,42 @@ class PackedWord(ClonableIntArray):
         r"""
         Return the (``side``) weak order inversions (on ``support``)  of ``self``.
 
+        .. RUBRIC:: Right inversions on positions
+
+        The behavior when ``side`` is "right" and ``support`` is "position".
+
+        This is the default behavior when no keywords are specified, and also
+        when only the ``side`` keyword is specified.
+
+        Let `u` be a packed word of size `n`. The *right weak order
+        inversions* on *positions* of `u` are the pairs `(i, j)` such that
+        `1 \leq i < j \leq n` and `u_i > u_j`.
+
+        .. RUBRIC:: Right inversions on values
+
+        The behavior when ``side`` is "right" and ``support`` is "value".
+
+        The *right weak order inversions* on *values* of a packed word `u`
+        are the pairs `(u_i, u_j)` such that `u_i > u_j` for some `i < j`.
+   
+        .. RUBRIC:: Left inversions on values
+
+        The behavior when ``side`` is "left" and ``support`` is "value".
+
+        This is the default behavior when only the ``side`` keyword is specified.
+
+        The *left weak order inversions* on *values* of a packed word `u`
+        are the pairs `(b, a)` such that `a < b` and the first occurence of
+        `a` in `u` is after the last occurrence of `b` in `u`.
+
+        .. RUBRIC:: Left inversions on positions
+
+        The behavior when ``side`` is "left" and ``support`` is "position".
+
+        The *left weak order inversions* on *positions* of a packed word `u`
+        are the pairs `(i, j)` such that `i < j` and the first occurence of
+        `u_j` in `u` is after the last occurrence of `u_i` in `u`.
+
         .. WARNING::
 
             By default, the inversions of ``self`` start at `1`. If you want
@@ -515,25 +551,14 @@ class PackedWord(ClonableIntArray):
 
         INPUT:
 
-        - ``side`` -- "left" or "right": the side of the weak order of inversions
-        - ``support`` -- "position" or "value": the support of the result
+        - ``side`` -- ``"left"`` or ``"right"``; the side of the weak order of inversions
+        - ``support`` -- ``"position"`` or ``"value"``; the support of the result
 
         The ``right`` inversions are taken on ``positions`` by default,
         whereas the ``left`` inversions are taken by default on ``values``.
 
-        OUTPUT:
-
-        .. rubric:: Right inversions on positions
-
-        The behavior when ``side`` is "right" and ``support`` is "value".
-
-        This is the default behavior when no keywords are specified, and also
-        when only the ``side`` keyword is specified.
-
-        Let `u` be a packed word of size `n`. The *right weak order
-        inversions* on *positions* of `u` are the pairs `(i, j)` such that
-        `1 \leq i < j \leq n` and `u_i > u_j`.
-
+        Exemples when ``side`` is "right" and ``support`` is "position".
+        
         EXAMPLES::
 
             sage: PackedWord([]).inversions()
@@ -549,12 +574,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([2, 3, 4, 1, 2, 4, 3]).inversions()
             {(1, 4), (2, 4), (2, 5), (3, 4), (3, 5), (3, 7), (6, 7)}
 
-        .. rubric:: Right inversions on values
-
-        The behavior when ``side`` is "right" and ``support`` is "value".
-
-        The *right weak order inversions* on *values* of a packed word `u`
-        are the pairs `(u_i, u_j)` such that `u_i > u_j` for some `i < j`.
+        Exemples when ``side`` is "right" and ``support`` is "value".
 
         EXAMPLES::
 
@@ -571,15 +591,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([2, 3, 4, 1, 2, 4, 3]).inversions(support = "value")
             {(2, 1), (3, 1), (3, 2), (4, 1), (4, 2), (4, 3)}
 
-        .. rubric:: Left inversions on values
-
-        The behavior when ``side`` is "left" and ``support`` is "value".
-
-        This is the default behavior when only the ``side`` keyword is specified.
-
-        The *left weak order inversions* on *values* of a packed word `u`
-        are the pairs `(b, a)` such that `a < b` and the first occurence of
-        `a` in `u` is after the last occurrence of `b` in `u`.
+        Exemples when ``side`` is "left" and ``support`` is "value".
 
         EXAMPLES::
 
@@ -596,13 +608,7 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([3, 1, 4, 1, 2]).inversions(side = "left")
             {(3, 1), (3, 2), (4, 2)}
 
-        .. rubric:: Left inversions on positions
-
-        The behavior when ``side`` is "left" and ``support`` is "position".
-
-        The *left weak order inversions* on *positions* of a packed word `u`
-        are the pairs `(i, j)` such that `i < j` and the first occurence of
-        `u_j` in `u` is after the last occurrence of `u_i` in `u`.
+        Exemples when ``side`` is "left" and ``support`` is "position".
 
         EXAMPLES::
 
@@ -681,7 +687,7 @@ class PackedWord(ClonableIntArray):
             []
 
             sage: v = PackedWord([1, 2, 1])
-            sage: u = v.right_weak_order_succ(); u
+            sage: u, = v.right_weak_order_succ(); u
             [2, 1, 1]
             sage: v.inversions()
             {(2, 3)}
@@ -874,7 +880,7 @@ class PackedWord(ClonableIntArray):
             []
 
             sage: v = PackedWord([3, 1, 2])
-            sage: u = v.left_weak_order_succ(); u
+            sage: u, = v.left_weak_order_succ(); u
             [3, 2, 1]
             sage: v.inversions(side="left")
             {(3, 1), (3, 2)}
@@ -924,7 +930,7 @@ class PackedWord(ClonableIntArray):
             []
 
             sage: u = PackedWord([3, 1, 2])
-            sage: v = u.left_weak_order_pred(); v
+            sage: v, = u.left_weak_order_pred(); v
             [2, 1, 3]
             sage: u.inversions(side="left")
             {(3, 1), (3, 2)}
@@ -1217,10 +1223,10 @@ class PackedWords(UniqueRepresentation, Parent):
         r"""
         Build a packed word corresponding to the ordered set partition ``osp``.
 
-        INPUT::
+        INPUT:
 
-        ``osp`` -- an object or iterable (e.g., a list of lists)
-        that defines an ordered set partition.
+        - ``osp`` -- an object or iterable (e.g., a list of lists)
+          that defines an ordered set partition.
 
         EXAMPLES::
 
@@ -1295,6 +1301,7 @@ class PackedWords(UniqueRepresentation, Parent):
 
             sage: PW = PackedWords()
             sage: PW.permutation_to_packed_words([1,4,2,3])
+            [[1, 2, 1, 1], [1, 3, 1, 2], [1, 3, 2, 2], [1, 4, 2, 3]]
 
             sage: PW = PackedWords(4)
             sage: PW.permutation_to_packed_words([1, 2, 3])
@@ -1305,7 +1312,7 @@ class PackedWords(UniqueRepresentation, Parent):
             sage: PW.permutation_to_packed_words([1, 2, 4, 4])
             Traceback (most recent call last):
             ...
-            ValueError: [1, 2, 3] does not represent a permutation of 4
+            ValueError: [1, 2, 4, 4] does not represent a permutation of 4
 
         """
         try:
@@ -1397,12 +1404,6 @@ class PackedWords(UniqueRepresentation, Parent):
         r"""
         Construct an element of ``self``.
 
-        TODO:
-
-            Should ``PackedWords_all`` ever be used as a parent,
-            or should we use ``PackedWords_size.element_class``
-            in place of ``self.element_class`` below?
-
         EXAMPLES::
 
             sage: P = PackedWords()
@@ -1424,11 +1425,11 @@ class PackedWords(UniqueRepresentation, Parent):
             sage: P4([1, 4, 4, 2])
             Traceback (most recent call last):
             ...
-            ValueError: [1, 3, 3, 2, 2] not in Packed words of size 4
+            ValueError: [1, 4, 4, 2] not in Packed words of size 4
             sage: P([1, 4, 4, 2])
             Traceback (most recent call last):
             ...
-            ValueError: [1, 3, 3, 2, 2] not in Packed words
+            ValueError: [1, 4, 4, 2] not in Packed words
         """
         # if parent has a size, it should agree with the size of lst
         size = getattr(self, "_size", None)
@@ -1563,7 +1564,7 @@ class PackedWords_size(PackedWords):
         sage: P([1])
         Traceback (most recent call last):
         ...
-        ValueError: [1] is not a packed word of size 0
+        ValueError: [1]  not in Packed words of size 0
     """
     def __init__(self, size):
         """
