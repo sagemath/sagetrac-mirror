@@ -1542,7 +1542,7 @@ cdef class BetaAdicMonoid:
         - ``isvide`` boolean - (default: ''False'') If isvide is True,
           it only checks if the automaton is trivial or not.
 
-        - ``Ad`` - (default: ``None``)
+        - ``Ad`` - list (default: ``None``)
           Ad alphabet of differences  A-B where A and B
           are the alphabets to compare.
 
@@ -1557,7 +1557,7 @@ cdef class BetaAdicMonoid:
         - ``ext``  boolean - (default: ''False'')
           where automaton has relations at infinity or not
 
-        - ``transp`` boolean - (default: ''False'')
+        - ``mirror``  boolean - (default: ''False'')
 
         - ``prune`` boolean - (default: ''False'')
 
@@ -1868,7 +1868,7 @@ cdef class BetaAdicMonoid:
           If True, compute the extended relations automaton (which permit to describe infinite words in the monoid).  
 
         - ``verb``- bool (default: ``False``)
-          If True, print informations for debugging.
+          If True, verbose mod.
 
         OUTPUT:
 
@@ -1914,12 +1914,12 @@ cdef class BetaAdicMonoid:
             if hasattr(ss, 'I'):
                 Iss = ss.I
             if Iss is None:
-                Iss = [ss.vertices()[0]]
+                Iss = [ss.states[0]]
         if Iss2 is None:
             if hasattr(ss2, 'I'):
                 Iss2 = ss2.I
             if Iss2 is None:
-                Iss2 = [ss2.vertices()[0]]
+                Iss2 = [ss2.states[0]]
             if verb:
                 print("Iss = %s, Iss2 = %s" % (Iss, Iss2))
 
@@ -1927,7 +1927,7 @@ cdef class BetaAdicMonoid:
         if verb:
             print("Product = %s" % a)
 
-        ar = self.relations_automaton(ext=ext, noss=True)
+        ar = self.relations_automaton(ext=ext, verb=verb)
         if verb:
             print("Arel = %s" % ar)
 
@@ -1977,7 +1977,7 @@ cdef class BetaAdicMonoid:
 
         INPUT:
 
-        - ``ss``- DetAutomaton (default: ``None``)
+        - ``ss1``- DetAutomaton (default: ``None``)
           The first subshift to associate to the beta-adic monoid for this operation.
 
         - ``ss2``- DetAutomaton (default: ``None``)
@@ -2023,10 +2023,10 @@ cdef class BetaAdicMonoid:
         ssi = ssi.prune_inf()
         ssi = ssi.prune()
         return ssi.minimize()
-    
+
     def prefix(self, w):
         return BetaAdicMonoid(self.b, self.a.prefix(w))
-    
+
     def intersection_words(self, w1, w2):
         r"""
         Compute the intersection of the two beta-adic sets corresponding to words with prefix w1 and prefix w2.
@@ -2077,10 +2077,16 @@ cdef class BetaAdicMonoid:
         (Consider using reduced_words_automaton() if you're not in this case.)
 
         INPUT:
+        
+        - ``step`` - int (default: 100)
+          number of steps
 
         - ``verb`` - bool (default: ``False``)
           If True, print informations for debugging.
-
+          
+        - ``transpose`` - bool (default: ``False``)
+          
+          
         OUTPUT:
 
         DetAutomaton.
@@ -2618,20 +2624,37 @@ cdef class BetaAdicMonoid:
             print("Zero is an inner point iff the %s has non-empty interior." % self)
             self.ss = ss
 
-    # complete the langage of a
+    # complete the language of a
     def complete(self, DetAutomaton a, C=None,
                  ext=False, arel=None, verb=False):
         r"""
         Return an automaton that recognize the language of all words over
-        C that represent elements recognized by a.
-        If ext is True, this also include words equal at infinity.
+        alphabet that represent elements recognized by a.
+        If ''ext'' is True, this also include words equal at infinity.
 
         INPUT:
 
-        - ``a`` - A DetAutomaton.
+        - ``a`` a ``DetAutomaton`` A DetAutomaton.
 
-        - ``C`` - list of digits (default : ``None``).
-        
+        - ``C`` list -- (default : ``None``)list of digits .
+
+        - ``ext``  bool -- (default: ``False``)
+          If ''ext'' is True, this also include words equal at infinity.
+
+        - ``arel`` - Automaton (default: ``None``)
+            Automaton of relations.
+
+        - ``verb``- bool (default: ``False``)
+          If True, print informations for debugging.
+
+        OUTPUT:
+
+        An automaton that recognize the language
+
+        EXAMPLES::
+
+            sage: m = BetaAdicMonoid(3, dag.AnyWord([0,1,3]))
+            sage: m.complete(dag.AnyWord([0,1]))
         """
         if C is None:
             C = self.C
@@ -2680,6 +2703,31 @@ cdef class BetaAdicMonoid:
     # donne l'automate décrivant l'adhérence de l'ensemble limite avec un nouvel alphabet C
     def adherence(self, tss=None, C=None, C2=None,
                   ext=False, verb=False, step=None):
+        """
+        Return an automaton describing the adhesion of the limit set
+        with a new alphabet C
+
+        INPUT:
+
+        - ``tss``
+        - ``C`` list -- (default : ``None``)list of digits .
+        - ``C2`` list -- (default : ``None``)list of digits .
+        - ``ext``  bool -- (default: ``False``)
+          If ''ext'' is True, this also include words equal at infinity.
+        - ``verb``- bool (default: ``False``)
+          If True, print informations for debugging.
+        - ``step`` - int (default: ``None``)
+          Stop to a intermediate state of the computing to make verifications.
+
+        OUTPUT:
+
+        Return an automaton describing the adhesion of the limit set
+        with a new alphabet C
+
+        EXAMPLES::
+            sage: m = BetaAdicMonoid(3, dag.AnyWord([0,1,3]))
+            sage: m.adherence()
+        """
         if tss is None:
             if hasattr(self, 'tss'):
                 tss = self.tss
@@ -2759,6 +2807,33 @@ cdef class BetaAdicMonoid:
     # donne l'automate décrivant le translaté de +t, avec les chiffres C
     # obsolete use move2
     def move(self, t, DetAutomaton tss=None, list C=None, step=None):
+        """
+        Return the computed  adherence of the new automaton
+        (Give the automaton of translated +t with letters)
+
+        INPUT:
+
+        - ``t`` int translated index
+        - ``tss``- DetAutomaton (default: ``None``)
+          The first subshift to associate to the beta-adic monoid
+          for this operation.
+
+        - ``C`` list - precision (default: ``None``)
+
+        - ``step``-  (default: ``None``)
+
+
+        OUTPUT:
+
+        return the computed  adherence of the new automaton
+
+
+        EXAMPLES::
+
+            sage: m = BetaAdicMonoid(3, dag.AnyWord([0,1,3]))
+            sage: m.move(1)
+
+        """
         if tss is None:
             if hasattr(self, 'tss'):
                 if isinstance(self.tss, DetAutomaton):
@@ -2823,9 +2898,9 @@ cdef class BetaAdicMonoid:
                 else:
                     a = DetAutomaton(self.tss)
             else:
-                a = DetAutomaton(self.default_ss())
+                a = DetAutomaton(None)
         if b is None:
-            b = DetAutomaton(self.default_ss())
+            b = DetAutomaton(None)
             #            if hasattr(self, 'tss'):
             #                if isinstance(self.tss, DetAutomaton):
             #                    b = self.tss
@@ -2840,7 +2915,7 @@ cdef class BetaAdicMonoid:
         if ar is None:
             # compute the relations automaton with translation t
             ar = self.relations_automaton(t=t, A=A, B=B,
-                                           couples=True, verb=False)
+                                          couples=True, verb=False)
         # compute the product of a and b
         if verb:
             print("product...")
@@ -3677,7 +3752,7 @@ cdef class BetaAdicMonoid:
 
             #. Full Tribonnacci::
 
-                sage: m = BetaAdicMonoid((x^3-x^2-x-1).roots(ring=QQbar)[1][0], {0, 1})
+                sage: m = BetaAdicMonoid((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
                 sage: m.compute_substitution(verb=False)      # long time
                 {1: [1, 3], 2: [1], 3: [1, 2]}
 
@@ -3687,7 +3762,7 @@ cdef class BetaAdicMonoid:
             if hasattr(self, 'tss'):
                 a = DetAutomaton(self.tss)
             else:
-                a = DetAutomaton(None).full(list(self.C))
+                a = DetAutomaton(a=None, A=list(self.a.alphabet))
         a.zero_completeOP()
         A = a.A
         # complete a
@@ -3999,7 +4074,7 @@ cdef class BetaAdicMonoid:
 
             #. Full Tribonnacci::
 
-                sage: m = BetaAdicMonoid((x^3-x^2-x-1).roots(ring=QQbar)[1][0], {0, 1})
+                sage: m = BetaAdicMonoid((x^3-x^2-x-1).roots(ring=QQbar)[1][0], )
                 sage: m.compute_substitution(verb=False)          # long time
                 {1: [1, 3], 2: [1], 3: [1, 2]}
         """
