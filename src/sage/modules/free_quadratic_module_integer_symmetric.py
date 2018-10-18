@@ -60,6 +60,7 @@ from copy import copy
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
+from sage.modules.free_module import FreeModule_generic
 from sage.modules.free_quadratic_module import FreeQuadraticModule_submodule_with_basis_pid, FreeQuadraticModule
 from sage.matrix.constructor import matrix
 from sage.structure.element import is_Matrix
@@ -1155,6 +1156,8 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             ...
             ValueError: the basis (= [(1, -1)]) does not span a submodule
         """
+        if isinstance(basis, FreeModule_generic):
+            basis = basis.matrix()
         M = FreeQuadraticModule_integer_symmetric(
             ambient=self.ambient_module(), basis=basis,
             inner_product_matrix=self.inner_product_matrix(),
