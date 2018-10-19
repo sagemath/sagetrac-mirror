@@ -287,7 +287,8 @@ def find_p_neighbor_from_vec(self, p, v):
     return QuadraticForm(R, M * self.matrix() * M.transpose())
 
 
-def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**4, algorithm=None, max_random_trys=1000):
+def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**4,
+                       algorithm=None, max_random_trys=1000, verbose=False):
     r"""
     Return all classes in the `p`-neighbor graph of ``self``.
 
@@ -371,6 +372,9 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**4, algorithm=Non
                 waiting_list.append(Q_neighbor)
                 n_isom_classes += 1
                 mass_count += Q_neighbor.number_of_automorphisms()**(-1)
+                if verbose:
+                    print(mass-mass_count)
+                    print(len(waiting_list))
                 if mass_count == mass and  n_isom_classes >= max_classes:
                     break
 
@@ -413,7 +417,7 @@ def orbits_lines_mod_p(self, p):
     end;""")
     from sage.interfaces.gap import get_gap_memory_pool_size, set_gap_memory_pool_size
     memory_gap = get_gap_memory_pool_size()
-    set_gap_memory_pool_size(4*memory_gap)
+    set_gap_memory_pool_size(8*memory_gap)
     orbs_reps = orbs(gens, p)
     set_gap_memory_pool_size(memory_gap)
     M = GF(p)**self.dim()

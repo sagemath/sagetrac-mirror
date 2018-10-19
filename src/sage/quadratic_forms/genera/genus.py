@@ -3057,7 +3057,7 @@ class GenusSymbol_global_ring(object):
         assert Genus(L) == self
         self._representative = L
 
-    def representatives(self, algorithm="sage"):
+    def representatives(self, backend="sage", algorithm=None):
         r"""
         Return a list of representatives for the classes in this genus
         """
@@ -3068,7 +3068,7 @@ class GenusSymbol_global_ring(object):
             pass
         n = self.dimension()
         representatives = []
-        if algorithm == "magma":
+        if backend == "magma":
             from sage.interfaces.magma import Magma
             magma = Magma()
             magma.set_server_and_command(command="magma")
@@ -3093,7 +3093,7 @@ class GenusSymbol_global_ring(object):
                 representatives = [e*r.GramMatrix().sage() for r in representatives]
                 return representatives
 
-        elif algorithm == "sage":
+        elif backend == "sage":
             if n == 1:
                 return self.representative()
             if n == 2:
@@ -3107,10 +3107,11 @@ class GenusSymbol_global_ring(object):
             if n > 2:
                 from sage.quadratic_forms.quadratic_form import QuadraticForm
                 from sage.quadratic_forms.quadratic_form__neighbors import neighbor_iteration
-                if self.is_even():
-                    Q = QuadraticForm(self.representative())
-                else:
-                    Q = QuadraticForm(2*self.representative())
+                if not self.is_even():
+                    e = ZZ(2)
+                if self.signature_pair()[0] == 0:
+                    e *= ZZ(-1)
+                Q = QuadraticForm(e*self.representative())
                 seeds = [Q]
                 for p in self.spinor_generators(proper=False):
                     seeds.append(Q.p_neighbor(p))
@@ -3131,13 +3132,12 @@ class GenusSymbol_global_ring(object):
                     det = self.determinant()
                     while p.divides(det):
                         p = P.next(p)
-                    representatives = neighbor_iteration(seeds, p, mass=Q.conway_mass())
+                    representatives = neighbor_iteration(seeds, p, mass=Q.conway_mass(), algorithm=algorithm)
                 representatives = [g.Hessian_matrix() for g in representatives]
-                if not self.is_even():
-                    representatives = [(g/2).change_ring(ZZ) for g in representatives]
+                representatives = [(g/e).change_ring(ZZ) for g in representatives]
             # recompute using magma for debugging
             # if ZZ.prod(self.signature_pair_of_matrix()) == 0:
-            #     assert len(representatives)==len(self.representatives(algorithm="magma"))
+            #    assert len(representatives)==len(self.representatives(algorithm="magma"))
         else:
             raise ValueError("unknown algorithm")
         for g in representatives:
