@@ -1649,6 +1649,11 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: R = QQ.extension(y^2-2,'a')['x']
             sage: R("a*x").factor()
             (a) * x
+
+        :trac:`26443`::
+
+            sage: CyclotomicField(3).extension(x^2+1, 'i')(QQ.extension(x^2+1, 'i').gen())
+            i
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             K = x.parent()
@@ -1661,6 +1666,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                 if L is self:
                     return self._element_class(self, x)
                 x = L(x)
+            if self.relative_polynomial() == K.relative_polynomial() \
+                    and self.variable_name() == K.variable_name():
+                base = self.base_field()
+                try:
+                    return self([base(c) for c in x.list()])
+                except (TypeError, ValueError):
+                    pass
             return self._coerce_from_other_number_field(x)
         elif isinstance(x, pari_gen):
             if x.type() == "t_POLMOD":
