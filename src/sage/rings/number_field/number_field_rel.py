@@ -996,6 +996,15 @@ class NumberField_relative(NumberField_generic):
             sage: k.coerce(2/3)
             2/3
             sage: c = a + b # no output
+
+        TESTS:
+
+        :trac:`26443`::
+
+            sage: a = CyclotomicField(3).extension(x^2+1, 'i').gen()
+            sage: b = QQ.extension(x^2+1, 'i').gen()
+            sage: a * b
+            -1
         """
         if R in integer_types:
             return self._generic_coerce_map(R)
@@ -1003,6 +1012,11 @@ class NumberField_relative(NumberField_generic):
             return self._generic_coerce_map(R)
         from sage.rings.number_field.order import is_NumberFieldOrder
         if is_NumberFieldOrder(R) and R.number_field() is self:
+            return self._generic_coerce_map(R)
+        if is_NumberField(R) \
+                and self.relative_polynomial() == R.relative_polynomial() \
+                and self.variable_name() == R.variable_name() \
+                and self.base_field().has_coerce_map_from(R.base_field()):
             return self._generic_coerce_map(R)
         mor = self.base_field()._internal_coerce_map_from(R)
         if mor is not None:
