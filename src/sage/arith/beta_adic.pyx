@@ -2679,10 +2679,11 @@ cdef class BetaAdicMonoid:
 
             sage: m = BetaAdicMonoid(3, dag.AnyWord([0,1,3]))
             sage: m.complete(dag.AnyWord([0,1]))
+            DetAutomaton with 1 states and an alphabet of 3 letters
         """
         if C is None:
-            C = self.C
-        ap = DetAutomaton(None).full(list(C)).product(a)
+            C = self.a.alphabet
+        ap = DetAutomaton([], A=list(C)).product(a)
         if ext:
             ap = ap.prefix_closure()
         if verb:
@@ -2697,7 +2698,7 @@ cdef class BetaAdicMonoid:
             for c2 in a.A:
                 d[c - c2].append((c, c2))
         if arel is None:
-            arel = self.relations_automaton(Cd=Cd, ext=ext).duplicate(d)
+            arel = self.relations_automaton(Ad=Cd, ext=ext).duplicate(d)
         else:
             arel = arel.duplicate(d)
         if verb:
@@ -2751,14 +2752,15 @@ cdef class BetaAdicMonoid:
         EXAMPLES::
             sage: m = BetaAdicMonoid(3, dag.AnyWord([0,1,3]))
             sage: m.adherence()
+            DetAutomaton with 1 states and an alphabet of 3 letters
         """
         if tss is None:
             if hasattr(self, 'tss'):
                 tss = self.tss
             else:
-                tss = self.default_ss()
+                tss = self.a
         if C is None:
-            C = list(set(self.C))
+            C = list(set(self.a.alphabet))
         if C2 is None:
             C2 = list(set(tss.alphabet))
         if verb:
@@ -2766,7 +2768,7 @@ cdef class BetaAdicMonoid:
         Cd = list(set([c1 - c2 for c1 in C2 for c2 in C]))
         if verb:
             print("Cd=%s" % Cd)
-        a = self.relations_automaton(Cd=Cd, ext=ext)
+        a = self.relations_automaton(Ad=Cd, ext=ext)
         if verb:
             print(" -> %s" % a)
         if step == 1:
@@ -2792,7 +2794,7 @@ cdef class BetaAdicMonoid:
             print(a2)
         if step == 3:
             return a2
-        ap = tss.product(DetAutomaton(self.default_ss(C=C)), verb=verb)
+        ap = tss.product(DetAutomaton(self.a), verb=verb)
         if ext:
             ap = ap.prefix_closure()
         if step == 4:
@@ -2813,7 +2815,7 @@ cdef class BetaAdicMonoid:
         d = {}
         for c1, c2 in a2.alphabet:
             d[(c1, c2)] = c2
-        a2 = a2.determinisze_proj(d, verb=verb)
+        a2 = a2.determinize_proj(d, verb=verb)
         if step == 8:
             return a2
         if verb:
@@ -2841,9 +2843,7 @@ cdef class BetaAdicMonoid:
         - ``tss``- DetAutomaton (default: ``None``)
           The first subshift to associate to the beta-adic monoid
           for this operation.
-
         - ``C`` list - precision (default: ``None``)
-
         - ``step``-  (default: ``None``)
 
 
@@ -2856,7 +2856,7 @@ cdef class BetaAdicMonoid:
 
             sage: m = BetaAdicMonoid(3, dag.AnyWord([0,1,3]))
             sage: m.move(1)
-
+            DetAutomaton with 3703 states and an alphabet of 3 letters
         """
         if tss is None:
             if hasattr(self, 'tss'):
@@ -2865,9 +2865,9 @@ cdef class BetaAdicMonoid:
                 else:
                     tss = DetAutomaton(self.tss)
             else:
-                tss = DetAutomaton(self.default_ss())
+                tss = DetAutomaton(self.a)
         if C is None:
-            C = list(set(self.C))
+            C = list(set(self.a.alphabet))
 
         A = tss.alphabet
         k = self.b.parent()

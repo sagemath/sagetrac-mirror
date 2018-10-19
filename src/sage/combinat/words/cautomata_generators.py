@@ -32,20 +32,21 @@ from sage.misc.prandom import randint, random
 
 class DetAutomatonGenerators(object):
     def AnyLetter(self, A):
-        return DetAutomaton([(0,1,i) for i in A], i=0, final_states=[1])
-    
+        return DetAutomaton([(0, 1, i) for i in A], i=0, final_states=[1])
+
     def AnyWord(self, A):
-        return DetAutomaton([(0,0,i) for i in A], i=0, final_states=[0])
-    
+        return DetAutomaton([(0, 0, i) for i in A], i=0, final_states=[0])
+
     def Empty(self, A):
         return DetAutomaton([], A=A)
-    
+
     def EmptyWord(self, A):
         return DetAutomaton([], S=[0], i=0, final_states=[0], A=A)
-    
+
     def Word(self, w):
-        return DetAutomaton([(i, i+1, j) for i,j in enumerate(w)], i=0, final_states=[len(w)])
-        
+        return DetAutomaton(
+            [(i, i+1, j) for i, j in enumerate(w)], i=0, final_states=[len(w)])
+
     def Random(self, n=None, A=None, density_edges=None, 
                density_finals=None, verb=False):
         if density_edges is None:
@@ -75,6 +76,7 @@ class DetAutomatonGenerators(object):
         if verb:
             print("final states %s" % F)
         return DetAutomaton(L, S=range(n), i=randint(0,n-1), final_states=F)
-        
- # Easy access to the automaton generators from the command line:
+
+
+# Easy access to the automaton generators from the command line:
 dag = DetAutomatonGenerators()
