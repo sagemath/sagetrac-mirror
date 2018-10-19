@@ -1323,15 +1323,15 @@ cdef class BetaAdicMonoid:
         #. A part of the boundary of the dragon fractal::
 
             sage: m = BetaAdicMonoid(1/(1+I), dag.AnyWord([0,1]))
-            sage: i = m.intersection_words(w1=[0], w2=[1])     # long time
-            sage: i.plot()                               # long time
+            sage: i = m.intersection_words(w1=[0], w2=[1])
+            sage: i.plot(mirror=False)
 
         #. A part of the boundary of the "Hokkaido" fractal::
 
             sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
             sage: m = s.Du‡montThomas()
-            sage: i = m.intersection_words(w1=[0], w2=[1])                  # long time
-            sage: i.plot(colormap='gist_rainbow')    # long time
+            sage: i = m.intersection_words(w1=[0], w2=[1])
+            sage: i.plot(mirror=False, colormap='gist_rainbow')
 
         #. A limit set that look like a tiling but with holes::
 
@@ -1523,7 +1523,7 @@ cdef class BetaAdicMonoid:
         return im
 
     def relations_automaton(self, t=0, bool isvide=False, list Ad=None, list A=None, list B=None,
-                             bool couples=False, bool ext=False, bool mirror=False,
+                             bool couples=False, bool ext=False, mirror=None,
                              bool prune=True, int nhash=1000003, int prec=53, int algo=1, bool verb=False):
         r"""
         Compute the relation automaton of the beta-adic monoid.
@@ -1557,7 +1557,7 @@ cdef class BetaAdicMonoid:
         - ``ext``  boolean - (default: ''False'')
           where automaton has relations at infinity or not
 
-        - ``mirror``  boolean - (default: ''False'')
+        - ``mirror``  boolean - (default: ''None'')
 
         - ``prune`` boolean - (default: ''False'')
 
@@ -1588,7 +1588,14 @@ cdef class BetaAdicMonoid:
         cdef Automaton a
         cdef Element e
         cdef DetAutomaton r
-
+        cdef bool tb
+        
+        if mirror is not None:
+            try:
+                tb = mirror
+            except:
+                raise ValueError("mirror=%s must be a bool."%mirror)
+        
         b = self.b
         K = b.parent()
         if not K.is_field():
@@ -1607,6 +1614,12 @@ cdef class BetaAdicMonoid:
         if verb:
             print("Ad=%s"%Ad)
         if algo == 1:
+            if mirror is None:
+                mirror = True
+            if ext:
+                b = 1/b
+                pi = b.minpoly()
+                mirror = not mirror
             #find absolute values for which b is greater than one
             places = []
             narch = 0
@@ -1656,17 +1669,23 @@ cdef class BetaAdicMonoid:
                                 c+=1
                             L.append((d[s], d[ss], t))
                 S = S2
-            if ext:
-                r = DetAutomaton(L, i=0, final_states=range(c))
-                if prune:
-                    r = r.prune_inf()
-            else:
-                r = DetAutomaton(L, i=0, final_states=[0])
-            if prune:
-                r = r.prune()
-            if not mirror:
+            r = DetAutomaton(L, i=0, final_states=[0])
+            if verb:
+                print("before pruning: %s"%r)
+            if mirror:
                 r = r.mirror_det()
-        else:
+            if prune:
+                if verb:
+                    print("prune...")
+                if ext:
+                    r = r.prune_inf()
+                else:
+                    r = r.prune()
+            if ext:
+                r.set_final_states(range(r.a.n))
+        elif algo == 2:
+            if mirror is None:
+                mirror = False
             sig_on()
             ib = initInfoBetaAdic(self, Ad=Ad, plus=False, nhash=nhash, verb=verb)
             e = NewElement(ib.n)
@@ -1692,11 +1711,80 @@ cdef class BetaAdicMonoid:
                     print("prune...")
                 if ext:
                     r = r.prune_inf()
-                    r.set_final_states(r2.states())
+                    r.set_final_states(r.states)
                 else:
                     r = r.prune()
             if mirror:
                 r = r.mirror_det()
+        else:
+            if mirror is None:
+                mirror = False
+            #find absolute values for which b is less than one
+            places = []
+            narch = 0
+            #archimedian places
+            for p in K.places(prec=prec):
+                if K.abs_val(p, b) < 1:
+                    places.append(p)
+                    narch+=1
+            #ultra-metric places
+            from sage.arith.misc import prime_divisors
+            for p in prime_divisors(pi(0)):
+                for P in K.primes_above(p):
+                    if K.abs_val(P, b, prec=prec) < 1:
+                        places.append(P)
+            if verb:
+                print(places)
+            #bounds
+            bo = []
+            for i,p in enumerate(places):
+                if i < narch:
+                    bo.append(max([K.abs_val(p,x) for x in Ad])/(1 - K.abs_val(p, b)))
+                else:
+                    bo.append(max([K.abs_val(p,x) for x in Ad]))
+            if verb:
+                print("bounds=%s"%bo)
+            #compute the automaton
+            L = []
+            S = [0] #remaining state to look at
+            d = dict() #states already seen and their number
+            d[0] = 0
+            c = 1 #count the states seen
+            while len(S) > 0:
+                S2 = []
+                for s in S:
+                    for t in Ad:
+                        ss = (s - t)/b
+                        #test if we keep ss
+                        keep = True
+                        for p,m in zip(places, bo):
+                            if K.abs_val(p, ss) > m + .00000001:
+                                if verb:
+                                    print("|%s|=%s > %s"%(ss, K.abs_val(p, ss), m))
+                                keep = False
+                                break
+                        if keep:
+                            if not d.has_key(ss):
+                                S.append(ss)
+                                d[ss] = c
+                                c+=1
+                            L.append((d[s], d[ss], t))
+                            #L.append((s, ss, t))
+                S = S2
+            r = DetAutomaton(L, i=0, final_states=[0])
+            if verb:
+                print("before pruning: %s"%r)
+            if mirror:
+                r = r.mirror_det()
+            if prune:
+                if verb:
+                    print("prune...")
+                if ext:
+                    r = r.prune_inf()
+                else:
+                    r = r.prune()
+            if ext:
+                r.set_final_states(range(r.a.n))
         if couples:
             if A is None or B is None:
                 raise ValueError("Alphabets A and B must be defined !")
@@ -1847,22 +1935,11 @@ cdef class BetaAdicMonoid:
     #            return a
     # calcule le sous-shift correspondant à l'intersection des deux
     # monoïdes avec sous-shifts
-    def intersection(self, ss, ss2=None, Iss=None,
-                     Iss2=None, ext=True, verb=False):
+    def intersection(self, BetaAdicMonoid m, ext=True, verb=False):
         r"""
         Compute the intersection of two beta-adic monoid with subshifts
 
         INPUT:
-
-        - ``ss``- Automaton (default: ``None``)
-          The first subshift to associate to the beta-adic monoid for this operation.
-
-        - ``ss2``- Automaton (default: ``None``)
-          The second subshift to associate to the beta-adic monoid for this operation.
-
-        - ``Iss``- set of states of ss (default: ``None``)
-
-        - ``Iss2``- set of states of ss2 (default: ``None``)
 
         - ``ext`` - bool (default: ``True``)
           If True, compute the extended relations automaton (which permit to describe infinite words in the monoid).  
@@ -1872,7 +1949,7 @@ cdef class BetaAdicMonoid:
 
         OUTPUT:
 
-        A Automaton.
+        A BetaAdicMonoid.
 
         EXAMPLES::
 
@@ -1882,92 +1959,39 @@ cdef class BetaAdicMonoid:
                 sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
                 sage: ss = m.a
                 sage: iss = ss.initial_state
-                sage: ss0 = ss.prefix(w=[0], i=iss)
-                sage: ss1 = ss.prefix(w=[1], i=iss)
+                sage: ss0 = ss.prefix([0])
+                sage: ss1 = ss.prefix([1])
                 sage: ssi = m.intersection(ss=ss0, ss2=ss1)
                 sage: ssd = ssi.determinize(A=m.C, noempty=True)
                 sage: ssd = ssd.prune0_simplify()
                 sage: m.plot(ss = ssd, n=19)     # long time
         """
-
-        m = None
-
-        if ss2 is None:
-            if hasattr(self, 'ss'):
-                ss2 = self.ss
-            else:
-                raise ValueError("Only one sub-shift given, I need two !")
-            if isinstance(ss, BetaAdicMonoid):
-                m = ss
-                ss = m.ss
-                if m.b != self.b:
-                    raise ValueError("Cannot compute the intersection of two beta-adic monoids with differents beta.")
-                m.C = m.C.union(self.C)
-                self.C = self.C.union(m.C)
-                if hasattr(m, 'ss'):
-                    m.ss.A = m.a.alphabet
-                else:
-                    raise ValueError("Only one sub-shift given, I need two !")
-                self.ss.A = self.a.alphabet
-
-        if Iss is None:
-            if hasattr(ss, 'I'):
-                Iss = ss.I
-            if Iss is None:
-                Iss = [ss.states[0]]
-        if Iss2 is None:
-            if hasattr(ss2, 'I'):
-                Iss2 = ss2.I
-            if Iss2 is None:
-                Iss2 = [ss2.states[0]]
-            if verb:
-                print("Iss = %s, Iss2 = %s" % (Iss, Iss2))
-
-        a = ss.product(ss2)
+        cdef DetAutomaton a, ar, ai
+        
+        if self.b != m.b:
+            raise ValueError("The two beta-adic sets must have same beta.")
+        
+        a = self.a.product(m.a).prune().minimize()
         if verb:
             print("Product = %s" % a)
 
-        ar = self.relations_automaton(ext=ext, verb=verb)
+        ar = self.relations_automaton(ext=ext, couples=True, A=self.a.A, B=m.a.A, verb=verb)
         if verb:
             print("Arel = %s" % ar)
-
-        # maps actual edges to the list of corresponding couple
-        m = dict([])
-        for c in self.a.alphabet:
-            for c2 in self.a.alphabet:
-                if m.has_key(c - c2):
-                    m[c-c2] += [(c, c2)]
-                else:
-                    m[c-c2] = [(c, c2)]
+        
+        ai = ar.intersection(a)
         if verb:
-            print("m = %s" % m)
-
-        L = a.alphabet  # a.edge_labels()
-        LA = ar.alphabet  # ar.edge_labels()
-        d = dict([])
-        for u, v in L:
-            for ka in LA:
-                for u2, v2 in m[ka]:
-                    if u == u2 and v == v2:
-                        d[((u,v), ka)] = u
-                        break
-                    else:
-                        d[((u,v), ka)] = None
+            print("ai = %s"% ai)
+            
+        ai = ai.proji(0)
         if verb:
-            print("d = %s" % d)
-        p = a.product(A=ar, d=d)
-        # I = [((i,i2),self.b.parent().zero()) for i in Iss for i2 in Iss2]
-        # if verb: print "I = %s"%I
-        # p.pruneI(I=I)
-        # if verb: print "%s"%p
-        # p.prune0(I=I)
-        p.I = [((i, i2), self.b.parent().zero()) for i, i2 in zip(Iss, Iss2)]
-        p = p.prune0_simplify()
-        if m is not None:
-            ssd = p.determinize2(A=self.a.alphabet, noempty=True)
-            ssd = ssd.prune0_simplify()
-            return ssd
-        return p
+            print("ai = %s"%ai)
+        
+        if ext:
+            ai = ai.prune_inf()
+        else:
+            ai = ai.prune().minimize()
+        return BetaAdicMonoid(self.b, ai)
 
     # calcule le sous-shift correspondant à l'intersection
     # des deux monoïdes avec sous-shifts, utilise des DetAutomaton
@@ -2027,7 +2051,7 @@ cdef class BetaAdicMonoid:
     def prefix(self, w):
         return BetaAdicMonoid(self.b, self.a.prefix(w))
 
-    def intersection_words(self, w1, w2):
+    def intersection_words(self, w1, w2, ext=True, verb=True):
         r"""
         Compute the intersection of the two beta-adic sets corresponding to words with prefix w1 and prefix w2.
 
@@ -2058,9 +2082,9 @@ cdef class BetaAdicMonoid:
                 sage: ssi = m.intersection_words(w1=[0], w2=[1])
                 sage: m.plot(n=10, ss=ssi)                        # long time
         """
-        m1 = self.prefix(w=w1)
-        m2 = self.prefix(w=w2)
-        mi = m1.intersection(m2)
+        m1 = self.prefix(w1)
+        m2 = self.prefix(w2)
+        mi = m1.intersection(m2, ext=ext, verb=verb)
         return mi
 
     #to be put in generators

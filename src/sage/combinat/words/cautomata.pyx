@@ -2590,7 +2590,16 @@ cdef class DetAutomaton:
                 # add a label for the sink state
                 self.S.append(label_sink)
         return res
-
+    
+    def prefix(self, list w):
+        """
+        Give an automaton recognizing the language w(w^(-1)L) where L is the language of self.
+        It is the set of words recognized by self and starting with word w.
+        """
+        cdef DetAutomaton a = self.copy()
+        a.shift_listOP(w)
+        return dag.Word(w).concat(a)
+    
     def prefix_closure(self):
         """
         give an automaton recognizing the smallest language stable
@@ -2916,7 +2925,7 @@ cdef class DetAutomaton:
 
     # modify the automaton to recognize the langage shifted by l^np
     # (where l is a letter given by its index)
-    def shiftOP(self, l, int np, verb=False):
+    def shiftOP(self, int l, int np, verb=False):
         """
         Shift the automaton ON PLACE to recognize the language shifted ``np``
         times by l (letter given by its index).
@@ -2943,6 +2952,34 @@ cdef class DetAutomaton:
         for i in range(np):
             if self.a.i != -1:
                 self.a.i = self.a.e[self.a.i].f[l]
+    
+    def shift_listOP(self, list l):
+        """
+        Shift the automaton ON PLACE to recognize the language shifted by l (list of letters given by their index).
+        The new language is the language of words u such that lu 
+        was recognized by self.
+
+        INPUT:
+
+        - ``l`` -- list - list of letter to shift
+        - ``verb`` -- boolean (default: ``False``) if True, print
+          debugging informations
+
+        EXAMPLES::
+
+            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a.initial_state
+            0
+            sage: a.shiftOP(0, 2)
+            sage: a.initial_state
+            -1
+        """
+        cdef int i
+        for i in l:
+            if i < 0 or i >= self.a.na:
+                raise ValueError("%d is not the index of a letter (i.e. between 0 and %s) !"% (i, self.a.na))
+            if self.a.i != -1:
+                self.a.i = self.a.e[self.a.i].f[i]
 
     def unshift1(self, int l, final=False):
         """
