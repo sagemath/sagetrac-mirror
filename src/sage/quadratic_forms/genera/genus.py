@@ -3095,7 +3095,7 @@ class GenusSymbol_global_ring(object):
 
         elif backend == "sage":
             if n == 1:
-                return self.representative()
+                return [self.representative()]
             if n == 2:
                 d = - 4 * self.determinant()
                 from sage.quadratic_forms.binary_qf import BinaryQF_reduced_representatives
