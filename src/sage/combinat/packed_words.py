@@ -66,13 +66,6 @@ class PackedWord(ClonableIntArray):
         Traceback (most recent call last):
         ...
         ValueError: [2] not in Packed words
-
-    TESTS::
-
-        sage: w = PackedWord()
-        sage: TestSuite(w).run()
-        sage: w = PackedWord([1, 3, 3, 2, 4, 1, 3])
-        sage: TestSuite(w).run()
     """
     @staticmethod
     def __classcall_private__(cls, lst=[], check=True):
@@ -105,7 +98,10 @@ class PackedWord(ClonableIntArray):
 
         TESTS::
 
-            sage: TestSuite(PackedWords()).run()  # long time
+            sage: w = PackedWord()
+            sage: TestSuite(w).run()
+            sage: w = PackedWord([1, 3, 3, 2, 4, 1, 3])
+            sage: TestSuite(w).run()
         """
         ClonableIntArray.__init__(self, parent, lst, check=check)
         self._max = 0 if not lst else max(lst)
@@ -523,7 +519,7 @@ class PackedWord(ClonableIntArray):
 
         The *right weak order inversions* on *values* of a packed word `u`
         are the pairs `(u_i, u_j)` such that `u_i > u_j` for some `i < j`.
-   
+
         .. RUBRIC:: Left inversions on values
 
         The behavior when ``side`` is "left" and ``support`` is "value".
@@ -558,7 +554,7 @@ class PackedWord(ClonableIntArray):
         whereas the ``left`` inversions are taken by default on ``values``.
 
         Exemples when ``side`` is "right" and ``support`` is "position".
-        
+
         EXAMPLES::
 
             sage: PackedWord([]).inversions()
@@ -848,7 +844,7 @@ class PackedWord(ClonableIntArray):
                     res.append(x)
                 elif len(x.inversions()) > len(self.inversions()):
                     break
-                    
+
         elif other.is_gequal(self):
             UP_self = RecursivelyEnumeratedSet([self], up, structure="graded")
             for x in UP_self:
@@ -1045,7 +1041,7 @@ class PackedWord(ClonableIntArray):
                     res.append(x)
                 elif len(x.inversions(side="left")) > len(self.inversions(side="left")):
                     break
-                    
+
         elif other.is_gequal(self, side="left"):
             UP_self = RecursivelyEnumeratedSet([self], up, structure="graded")
             for x in UP_self:
@@ -1071,14 +1067,14 @@ class PackedWord(ClonableIntArray):
             False
             sage: w.is_gequal(u, side="left")
             True
-            
+
             sage: u = PackedWords(3).random_element()
             sage: v = PackedWords(4).random_element()
             sage: v.is_gequal(u)
             False
             sage: v.is_gequal(u, side="left")
             False
-            
+
             sage: u = PackedWords(5).random_element()
             sage: v = PackedWords(5).random_element()
             sage: v.is_gequal(u) == (v in u.right_weak_order_greater())
@@ -1088,19 +1084,19 @@ class PackedWord(ClonableIntArray):
         """
         if not side in ["left", "right"]:
             raise ValueError("option 'side' must be 'left' or 'right'")
-        
+
         if side == "right" and self.to_composition() == pw.to_composition():
             std_self = PackedWord(to_standard(self))
             std_pw = PackedWord(to_standard(pw))
             return std_pw.inversions(side="left").issubset(std_self.inversions(side="left"))
-        
+
         s1=set(self.to_ordered_set_partition())
         s2=set(pw.to_ordered_set_partition())
         if side == "left" and s1 == s2:
             return pw.inversions().issubset(self.inversions())
-        
+
         return False
-    
+
     def is_lequal(self, pw, side="right"):
         r"""
         Return whether ``pw`` is greater than
@@ -1116,14 +1112,14 @@ class PackedWord(ClonableIntArray):
             False
             sage: u.is_lequal(w, side="left")
             True
-            
+
             sage: u = PackedWords(3).random_element()
             sage: v = PackedWords(4).random_element()
             sage: v.is_lequal(u)
             False
             sage: v.is_lequal(u, side="left")
             False
-            
+
             sage: u = PackedWords(5).random_element()
             sage: v = PackedWords(5).random_element()
             sage: v.is_lequal(u) == (v in u.right_weak_order_greater())
@@ -1486,6 +1482,23 @@ class PackedWords_all(PackedWords, DisjointUnionEnumeratedSets):
             Packed words
         """
         return "Packed words"
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: it = iter(PackedWords())
+            sage: [next(it) for _ in range(10)]
+            [[], [1], [1, 2], [2, 1], [1, 1], [1, 2, 3],
+             [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2]]
+        """
+        n = 0
+        while True:
+            for w in PackedWords(n):
+                yield self.element_class(self, list(w))
+            n += 1
 
     def subset(self, size=None):
         r"""
