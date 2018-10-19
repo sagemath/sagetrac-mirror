@@ -1601,7 +1601,7 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
 ###### Basis Methods for OMPQSym ############
 class OMPBasis_OMPQSym(OMPBasis_abstract):
-    """
+    r"""
     Add methods for `OMPQSym` beyond those appearing in ``OMPBasis_abstract``
 
     .. TODO::
@@ -1622,8 +1622,8 @@ class OMPBasis_OMPQSym(OMPBasis_abstract):
     REFERENCES:
 
     - [AguBerSot2006] \M. Aguiar, N. Bergeron, F. Sottile. *Combinatorial
-                      Hopf algebras and generalized Dehn–Sommerville relations*.
-                      Compositio Math. 142 (2006) 1–30.
+                      Hopf algebras and generalized Dehn--Sommerville relations*.
+                      Compositio Math. 142 (2006) 1--30.
     """
     def is_commutative(self):
         """
@@ -2506,6 +2506,13 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             sage: F[[2,3]] * F[[1,2]]
             F[{2}, {1,3}, {2}] + F[{2}, {1,2,3}] + 2*F[{1,2}, {2,3}]
             + F[{2,3}, {1,2}] + F[{1,2,3}, {2}]
+
+        Products are not always positive::
+
+            sage: F[[2],[5]] * F[[3]]
+            F[{2}, {5}, {3}] - F[{2}, {3}, {5}] + F[{2}, {3,5}] + F[{3}, {2}, {5}] + F[{2,3}, {5}]
+
+        Changing between Fundamental and Monomial bases::
 
             sage: M = OMPQuasiSymmetricFunctions(QQ).Monomial()
             sage: p = F[[1,2],[3],[4,5]]
