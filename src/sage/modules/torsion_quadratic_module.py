@@ -28,6 +28,8 @@ from sage.matrix.special import diagonal_matrix
 from sage.misc.cachefunc import cached_method
 from sage.arith.misc import legendre_symbol
 from sage.rings.finite_rings.integer_mod import mod
+from sage.libs.gap.libgap import libgap
+
 
 def TorsionQuadraticForm(q):
     r"""
@@ -775,37 +777,47 @@ class TorsionQuadraticModule(FGP_Module_class):
     def is_isomorphic_to(self, other):
         r"""
         Return if the underlying quadratic forms are isomorphic.
+
+        INPUT:
+
+        - ``other`` -- a torsion quadratic form
         """
         if self._modulus_qf != 2:
             raise NotImplementedError()
-        if self.value_module_qf() != other.value_module():
-            return False
+        if self.value_module_qf() != other.value_module_qf():
+            return False, None
         if self.invariants() != other.invariants():
-            return False
+            return False, None
         if self.is_degenerate() != other.is_degenerate():
-            return False
+            return False, None
         if len(self.invariants())==0:
-            return True
+            return True, (self.gens(), other.gens())
         qf1 = self.normal_form().gram_matrix_quadratic()
         qf2 = other.normal_form().gram_matrix_quadratic()
+        isom = (self.normal_form().gens(), other.normal_form().gens())
         if (qf1 - qf2).denominator() != 1: # the bilinear forms agree
-            return False
+            return False, None
         if not self.is_degenerate():
-            if ZZ(2).divides(self.invariants()[-1]):
-                return qf1 == qf2 # check the diagonal agrees too
-            return True
+            # check the diagonal agrees too
+            if ZZ(2).divides(self.invariants()[-1]) and qf1 != qf2:
+                return False, None
+            return True, isom
         if len(set(self.invariants())) == 1 and not ZZ(2).divides(self.invariants()[-1]):
-            return True
+            return True, isom
         # now the normal form is not unique anymore.
         ker1 = self.orthogonal_submodule_to(self.gens())
         ker2 = other.orthogonal_submodule_to(other.gens())
         if ker1.invariants() != ker2.invariants():
-            return False
-        if 2 == self.invariants()[-1]:
-            d1 = set(ker1.gram_matrix_quadratic().diagonal())
-            d2 = set(ker2.gram_matrix_quadratic().diagonal())
-            return d1 == d2
-        raise NotImplementedError(self)
+            return False, None
+        #if 2 == self.invariants()[-1]:
+        #    d1 = set(ker1.gram_matrix_quadratic().diagonal())
+        #    d2 = set(ker2.gram_matrix_quadratic().diagonal())
+        #    return d1 == d2
+        try:
+            isom = _isom_fqf(self,other)
+            return True, (self.smith_form_gens(), isom)
+        except ValueError:
+            return False, None
 
 
     def orthogonal_submodule_to(self, S):
@@ -1033,7 +1045,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         return self.submodule_with_gens(gens)
 
     @cached_method
-    def orthogonal_group(self):
+    def orthogonal_group(self, gens=None, check=False):
         r"""
         Orthognal group of the associated torsion quadratic form.
 
@@ -1069,7 +1081,9 @@ class TorsionQuadraticModule(FGP_Module_class):
         from sage.matrix.matrix_space import MatrixSpace
         from sage.rings.all import GF
         from copy import copy
-        if not self.is_degenerate():
+        if gens is not None:
+            pass
+        elif not self.is_degenerate():
             gens = _compute_gens(self.normal_form()) #are we assuming normal form??
         elif self.invariants()[-1].is_prime():
             p = self.invariants()[-1]
@@ -1094,11 +1108,12 @@ class TorsionQuadraticModule(FGP_Module_class):
                     gens.append(copy(h))
             gens = [T._to_gens() * g * T._to_smith() for g in gens]
         else:
-            raise NotImplementedError()
+            # slow brute force implementation
+            gens = [matrix(g) for g in _isom_fqf(self)]
         ambient = AbelianGroupGap(self.invariants()).aut()
         gens = [ambient(g) for g in gens]
         gens = tuple(g for g in gens if g != ambient.one())
-        return FqfOrthogonalGroup(ambient, gens, self)
+        return FqfOrthogonalGroup(ambient, gens, self, check=check)
 
     def primary_part(self, m):
         r"""
@@ -1406,7 +1421,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         T = TorsionQuadraticModule(V, W, modulus=self._modulus)
         fs = self.hom([fVs(g.lift()) for g in self.gens()], T)
         fo = other.hom([fVo(g.lift()) for g in other.gens()], T)
-        return T, fs, fo
+        return T, fs, fo, fVs, fVo
 
     def _subgroup_to_gap(self, S):
         r"""
@@ -1479,6 +1494,8 @@ class TorsionQuadraticModule(FGP_Module_class):
             subgroup_reps = libgap.function_factory("SubgroupRepresentatives")
             subgroup_reps = [dict(S) for S in subgroup_reps(Hgap, G, max_order)]
         elif algorithm =="elementary abelian":
+            if not H.invariants()[-1].is_prime():
+                raise ValueError("")
             from sage.env import SAGE_EXTCODE
             gapcode = SAGE_EXTCODE + '/gap/subgroup_orbits/subgroup_orbits.g'
             libgap.Read(gapcode)
@@ -1489,126 +1506,14 @@ class TorsionQuadraticModule(FGP_Module_class):
         # convert back to sage
         if return_stabilizers:
             subgroup_reps = [[self._subgroup_from_gap(S['repr']),G.subgroup(S['stab'].GeneratorsOfGroup())] for S in subgroup_reps]
+            #for sub in subgroup_reps:
+            #    S = sub[0]
+            #    stab = sub[1]
+            #    assert all(self(s)*g in S for s in S.gens() for g in stab.gens())
         else:
             subgroup_reps = [self._subgroup_from_gap(S['repr']) for S in subgroup_reps]
         #subgroup_reps = map(self._subgroup_from_gap, subgroup_reps)
         return subgroup_reps
-
-    def all_primitive_modulo(self, H1, H2, G, algorithm='hulpke'):
-        r"""
-        Return all totally isotropic subgroups `S` of `H1 + H2` such that
-        ``H1 & S == 1`` and ``H2 & S = 1`` modulo the subgroup
-        G of the orthogonal group of self
-
-        Input:
-
-        - ``H1``, ``H2`` -- subgroups of self
-
-        - ``G`` - a subgroup of the automorphism group of self
-
-        - ``algorithm`` -- a string which is either
-
-          * ``"hulpke"`` -- following an algorithm of A. Hulpke
-
-          * ``"brute force""`` -- enumerates all subgroups first and takes orbits.
-
-        EXAMPLES::
-
-            sage: q1 = TorsionQuadraticForm(matrix.diagonal([2/3,2/27]))
-            sage: q2 = TorsionQuadraticForm(matrix.diagonal([2/3,2/9]))
-            sage: q, fs , fo = q1.direct_sum(q2)
-            sage: q.all_primitive_modulo(3*fs.image(),fo.image())
-        """
-        primitive_extensions = []
-        A = G.domain()
-        H = self.submodule(H1.gens() + H2.gens())
-        if len(H.invariants()) > 6:
-            print("this might take a while. Invariants: %s" %(H.invariants(),))
-        subgroup_reps = self.subgroup_representatives(H, G, algorithm=algorithm, return_stabilizers=True)
-        # filter for primitive and isotropic
-        for rep in subgroup_reps:
-            S = rep[0]
-            if S.gram_matrix_quadratic() == 0:
-                if S.V() & H1.V() <= self.W() and S.V() & H2.V() <= self.W():
-                    primitive_extensions.append(rep)
-        return primitive_extensions
-
-    def all_primitive_prime(self, other, H1, H2, G1, G2):
-        r"""
-        Return all totally isotropic subgroups `S` of `H1 + H2` such that
-        ``H1 & S == 1`` and ``H2 & S = 1`` modulo the subgroup
-        G of the orthogonal group of self
-
-        Input:
-
-        - ``H1``, ``H2`` -- subgroups of self
-
-        - ``G`` - a subgroup of the automorphism group of self
-
-        - ``algorithm`` -- a string which is either
-
-          * ``"hulpke"`` -- following an algorithm of A. Hulpke
-
-          * ``"brute force""`` -- enumerates all subgroups first and takes orbits.
-
-        EXAMPLES::
-
-            sage: q1 = TorsionQuadraticForm(matrix.diagonal([2/3,2/27]))
-            sage: q2 = TorsionQuadraticForm(matrix.diagonal([2/3,2/9]))
-            sage: q, fs , fo = q1.direct_sum(q2)
-            sage: q.all_primitive_modulo(3*fs.image(),fo.image())
-        """
-        D, i1, i2 = self.direct_sum(other)
-        primitive_extensions = []
-        if H1.cardinality()==1 or H2.cardinality() == 1:
-            return [self.submodule([])]
-        p1 = H1.invariants()[-1]
-        p2 = H2.invariants()[-1]
-        if p1 != p2:
-            raise ValueError("invariants do not match")
-        if not p1.is_prime():
-            raise ValueError("not a prime number")
-        m = min(H1.cardinality(),H2.cardinality())
-        subs1 = self.subgroup_representatives(H1, G1, return_stabilizers=True, max_order=m)
-        subs2 = other.subgroup_representatives(H2, G2, return_stabilizers=True, max_order=m)
-        #subs1 = [[_normalize(s[0]),s[1]] for s in subs1]
-        subs2 = [[_normalize(s[0]),s[1]] for s in subs2]
-
-        subs1 = [[s[0], s[0].orthogonal_group().subgroup(s[1].gens())] for s in subs1]
-        subs2 = [[s[0], s[0].orthogonal_group().subgroup(s[1].gens())] for s in subs2]
-
-        for S1 in subs1:
-            S1n = _normalize(S1[0].twist(-1))
-            if S1[0].cardinality()==1:
-                primitive_extensions.append(D.submodule([]))
-                continue
-            n = len(S1[0].gens())
-            for S2 in subs2:
-                q1 = S1n.gram_matrix_quadratic()
-                q2 = S2[0].gram_matrix_quadratic()
-                if q1 != q2:
-                    continue
-                # there is a glue map
-
-                A1 = S1[0].orthogonal_group().domain()
-                A2 = S2[0].orthogonal_group().domain()
-                gens1 = [A1(g).gap() for g in S1n.gens()]
-                gens2 = [A2(g).gap() for g in S2[0].gens()]
-
-                phi = A1.gap().GroupHomomorphismByImages(A2.gap(), gens1, gens2)
-                O2 = S2[0].orthogonal_group()
-
-                stab1phi= [phi.InducedAutomorphism(g) for g in S1[1].gap().GeneratorsOfGroup()]
-                stab1phi = O2.gap().Subgroup(stab1phi)
-                reps = O2.gap().DoubleCosetRepsAndSizes(S2[1],stab1phi)
-
-                for g in reps:
-                    g = g[0]
-                    g = O2(g)
-                    gens = [i1(S1n.gen(k)) + i2(S2[0].gen(k)*g) for k in range(n)]
-                    primitive_extensions.append(D.submodule(gens))
-        return primitive_extensions
-
 
     def all_primitive_prime_equiv(self, other, H1, H2, G1, G2, h1, h2, g):
         r"""
@@ -1679,7 +1584,6 @@ class TorsionQuadraticModule(FGP_Module_class):
         #subs2 = [[s[0], s[0].orthogonal_group().subgroup(s[1].gens())] for s in subs2]
 
 
-
         for S1 in subs1:
             S1n, S1, stab1 = S1
             n = len(S1.gens())
@@ -1716,6 +1620,7 @@ class TorsionQuadraticModule(FGP_Module_class):
 
                 stab1phi= [phi.InducedAutomorphism(O1(g).gap()) for g in stab1.gens()]
                 stab1phi = center.Subgroup(stab1phi)
+
                 stab2c = O2.subgroup(stab2.gens())
                 reps = center.DoubleCosetRepsAndSizes(stab2c,stab1phi)
 
@@ -1739,10 +1644,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         return primitive_extensions
 
 
-
-
-
-    def all_primitive(self, other, H1, H2, G1, G2, h1, h2, g):
+    def all_primitive(self, other, H1, H2, G1, G2, h1=None, h2=None, glue_order=None):
         r"""
         Return all totally isotropic subgroups `S` of `H1 + H2` such that
         ``H1 & S == 1`` and ``H2 & S = 1`` modulo the subgroup
@@ -1753,7 +1655,6 @@ class TorsionQuadraticModule(FGP_Module_class):
         - ``H1``, ``H2`` -- subgroups of ``self``, ``other``
         - ``G1``, ``G2`` -- subgroups of ``self``, ``other``
         - ``h1``, ``h2`` -- elements in the center of ``G1``, ``G2``
-        - ``g`` -- non negative integer; the glue order `p^g`
 
         EXAMPLES::
 
@@ -1762,16 +1663,24 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: q, fs , fo = q1.direct_sum(q2)
             sage: q.all_primitive_modulo(3*fs.image(),fo.image())
         """
+        if h1 is None:
+            h1 = G1.one()
+        if h2 is None:
+            h2 = G2.one()
+        if glue_order is None:
+            glue_order = ZZ.gcd(H1.cardinality(), H2.cardinality())
         h1 = G1.subgroup([h1]).gen(0)
         h2 = G2.subgroup([h2]).gen(0)
         if not h1 in G1:#.center():
             raise ValueError()
         if not h2 in G2:#.center():
             raise ValueError()
-        g = ZZ(g)
-        if not g >= 0:
+        if not glue_order >= 0:
             raise ValueError()
-        D, i1, i2 = self.direct_sum(other)
+        if not (H1.is_submodule(self) and H2.is_submodule(other)):
+            raise ValueError()
+
+        D, i1, i2, iV1, iV2 = self.direct_sum(other)
         OD = D.orthogonal_group()
         embedG1, embedG2 = direct_sum_embed(D, i1, i2, OD, G1, G2)
 
@@ -1782,66 +1691,46 @@ class TorsionQuadraticModule(FGP_Module_class):
         OnSubgroups = libgap.function_factory("OnSubgroups")
 
         primitive_extensions = []
-        if g == 0:
+        if glue_order == 1:
             gens = embedG1.Image(G1.gap()).GeneratorsOfGroup()
             gens = gens.Concatenation(embedG2.Image(G2.gap()).GeneratorsOfGroup())
             return [[D.submodule([]),OD.subgroup(gens)]]
         if H1.cardinality()==1 or H2.cardinality()==1:
             return []
-        p1 = H1.invariants()[-1]
-        p2 = H2.invariants()[-1]
-        if p1 != p2:
-            raise ValueError("invariants do not match")
-        if not p1.is_prime():
-            raise ValueError("not a prime number")
-        p = p1
-
-        glue_order = p**g
 
         # these may not be invariant subspaces!!! ---> crap
-        subs1 = self.subgroup_representatives(H1, G1, algorithm="elementary abelian",
-                                              return_stabilizers=True, order=glue_order, g=h1.gap())
-        subs2 = other.subgroup_representatives(H2, G2, algorithm="elementary abelian",
-                                               return_stabilizers=True, order=glue_order, g=h2.gap())
-
-        #subs1 = [[s[0], s[0].orthogonal_group().subgroup(s[1].gens())] for s in subs1]
-        #subs2 = [[s[0], s[0].orthogonal_group().subgroup(s[1].gens())] for s in subs2]
+        subs1 = self.subgroup_representatives(H1, G1, algorithm="hulpke",
+                                              return_stabilizers=True,
+                                              order=glue_order, g=h1.gap())
+        subs2 = other.subgroup_representatives(H2, G2, algorithm="hulpke",
+                                               return_stabilizers=True,
+                                               order=glue_order, g=h2.gap())
 
 
         for S1 in subs1:
             S1, stab1 = S1
-            n = len(S1.gens())
             for S2 in subs2:
                 S2, stab2 = S2
-                try:
-                    if not S1.is_isomorphic_to(S2):
-                        continue
-                except NotImplementedError:
-                    pass
 
-                S1toS2 = isom_fqf_brute_force(S1, S2)
-                if len(S1toS2) == 0:
+                is_isom, isom = S1.is_isomorphic_to(S2.twist(-1))
+                if not is_isom:
                     continue
-
-
-
+                isom = [isom[0],[S2(g) for g in isom[1]]]
 
                 # there are glue maps
-
                 O1 = S1.orthogonal_group()
                 O2 = S2.orthogonal_group()
 
                 A1 = O1.domain()
                 A2 = O2.domain()
-                gens1 = [A1(g).gap() for g in S1n.gens()]
-                gens2 = [A2(g).gap() for g in S2n.gens()]
+                gens1 = [A1(g).gap() for g in isom[0]]
+                gens2 = [A2((g)).gap() for g in isom[1]]
 
-                # create a glue map   
-
+                # create a glue map
                 phi = A1.gap().GroupHomomorphismByImages(A2.gap(), gens1, gens2)
 
-                h1_on_S2 = phi.InducedAutomorphism(O1(h1).gap())
-                h2_on_S2 = O2(h2).gap()
+                h1_on_S2 = phi.InducedAutomorphism(O1(h1,False).gap())
+                h2_on_S2 = O2(h2, False).gap()
                 if not O2.gap().IsConjugate(h1_on_S2, h2_on_S2):
                     # this glue map cannot be modified to be equivariant
                     continue
@@ -1852,19 +1741,16 @@ class TorsionQuadraticModule(FGP_Module_class):
                 assert h2_on_S2==phi.InducedAutomorphism(O1(h1).gap())
 
                 center = O2.gap().Centraliser(h2_on_S2)
-
-                stab1phi= [phi.InducedAutomorphism(O1(g).gap()) for g in stab1.gens()]
+                stab1phi= [phi.InducedAutomorphism(O1(g,False).gap()) for g in stab1.gens()]
                 stab1phi = center.Subgroup(stab1phi)
-                stab2c = O2.subgroup(stab2.gens())
+                stab2c = O2.subgroup(O2(g,False) for g in stab2.gens())
                 reps = center.DoubleCosetRepsAndSizes(stab2c,stab1phi)
 
-                if reps.Size() > 1:
-                    print("warning, more than one glue")
                 for g in reps:
                     g = g[0]
                     phig = phi*g
-                    g = O2(g)
-                    gens = [i1(S1n.gen(k)) + i2(S2n.gen(k)*g) for k in range(n)]
+                    g = O2(g,False)
+                    gens = [i1(isom[0][k]) + i2(isom[1][k]*g) for k in range(len(isom[0]))]
                     ext = D.submodule(gens)
                     # we also need the centralizer of h1 x h2 in S1 x S2
                     ###############################
@@ -1875,12 +1761,86 @@ class TorsionQuadraticModule(FGP_Module_class):
                     stab = S1_times_S2.Stabilizer(phig_graph, OnSubgroups).GeneratorsOfGroup()
                     ##############################
                     primitive_extensions.append([ext, OD.subgroup(stab)])
-        return primitive_extensions
+        return primitive_extensions, iV1, iV2
 
 
+def _isom_fqf(A, B=None):
+    r"""
+    Return isometries from `A` to `B`.
 
+    INPUT:
 
+    - ``A`` -- a torsion quadratic module
+    - ``B`` -- (default: ``None``) a torsion quadratic module
 
+    OUTPUT:
+
+    A list of generators of the orthogonal group of A.
+    If ``B`` is given returns instead an isometry of `A` and `B` or
+    raises an ``ValueError`` if `A` and `B` are not isometric
+    """
+    if B is None:
+        B = A
+        automorphisms = True
+    else:
+        automorphisms = False
+    if A.invariants() != B.invariants():
+        raise ValueError()
+    na = len(A.smith_form_gens())
+    nb = len(B.smith_form_gens())
+
+    b_cand = [[b for b in B if b.q()==a.q() and b.order() == a.order()] for a in A.smith_form_gens()]
+
+    res = []
+    G = B.orthogonal_group(tuple(res))
+    ambient = G.ambient()
+    waiting = [[]]
+    while len(waiting) > 0:
+        f = waiting.pop()
+        i = len(f)
+        if i == na:
+            if not automorphisms:
+                return f
+            g = ambient(matrix(f))
+            if not g in G:
+                res.append(tuple(f))
+                G = B.orthogonal_group(tuple(ambient(s.matrix()) for s in G.gens())+(g,))
+                waiting = _orbits(G, waiting)
+            continue
+        a = A.smith_form_gens()[i]
+        card = ZZ.prod(A.smith_form_gen(k).order() for k in range(i+1))
+        for b in b_cand[i]:
+            if all(b.b(f[k])==a.b(A.smith_form_gens()[k]) for k in range(i)):
+                fnew = f + [b]
+                # check that the elements of fnew are independent
+                if B.submodule(fnew).cardinality() == card:
+                    waiting.append(fnew)
+
+    if len(res) == 0:
+        raise ValueError()
+    return res
+
+def _orbits(G, L):
+    r"""
+    Return the orbits of L under G.
+
+    INPUT:
+
+    - G a torsion orthogonal group
+    - L a list of tuples of elements of the domain of G
+
+    EXAMPLES::
+
+        sage:
+        sage:
+    """
+    D = G.invariant_form()
+    A = G.domain()
+    L = libgap([[A(g).gap() for g in f] for f in L])
+    orb = G.gap().Orbits(L,libgap.OnTuples)
+    orb = [g[0] for g in orb]
+    orb = [[D.linear_combination_of_smith_form_gens(A(g).exponents()) for g in f] for f in orb]
+    return orb
 
 
 def _brown_indecomposable(q, p):
@@ -1945,7 +1905,7 @@ def _normalize(D):
     r"""
     INPUT:
 
-    - a possibly degenerate torsion quadratic form over a field
+    - a possibly degenerate torsion quadratic form
 
     OUTPUT:
 
@@ -1977,7 +1937,6 @@ def _normalize(D):
     gens = kergens + nondeg
     # translate all others to the kernel of q
     return D.submodule_with_gens(gens)
-
 
 def direct_sum_embed(D, i1, i2, OD, G1, G2):
     r"""
