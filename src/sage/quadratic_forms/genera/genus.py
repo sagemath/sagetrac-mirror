@@ -2871,7 +2871,7 @@ class GenusSymbol_global_ring(object):
 
         primes = [s.prime() for s in self.local_symbols()]
         primes += [s.prime() for s in other.local_symbols() if not s.prime() in primes]
-
+        primes.sort()
         local_symbols = []
         for p in primes:
             sym_p = self.local_symbols(p=p).direct_sum(other.local_symbols(p=p))
@@ -3107,16 +3107,21 @@ class GenusSymbol_global_ring(object):
             if n == 1:
                 return [self.representative()]
             if n == 2:
+                # Binary forms are considered positive definite take care of that.
+                e = ZZ(1)
+                if self.signature_pair()[0] == 0:
+                    e = ZZ(-1)
                 d = - 4 * self.determinant()
                 from sage.quadratic_forms.binary_qf import BinaryQF_reduced_representatives
                 for q in BinaryQF_reduced_representatives(d, proper=False):
                     if q[1] % 2 == 0:  # we want integrality of the gram matrix
-                        m = matrix(ZZ, 2, [q[0], q[1]//2, q[1]//2, q[2]])
+                        m = e*matrix(ZZ, 2, [q[0], q[1]//2, q[1]//2, q[2]])
                         if Genus(m) == self:
                             representatives.append(m)
             if n > 2:
                 from sage.quadratic_forms.quadratic_form import QuadraticForm
                 from sage.quadratic_forms.quadratic_form__neighbors import neighbor_iteration
+                e = 1
                 if not self.is_even():
                     e = ZZ(2)
                 if self.signature_pair()[0] == 0:
@@ -3153,6 +3158,7 @@ class GenusSymbol_global_ring(object):
         for g in representatives:
             g.set_immutable()
         self._representatives = representatives
+        assert len(representatives) > 0, self
         return copy(representatives)
 
 

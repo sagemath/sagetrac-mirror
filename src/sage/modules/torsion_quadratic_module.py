@@ -1515,7 +1515,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         #subgroup_reps = map(self._subgroup_from_gap, subgroup_reps)
         return subgroup_reps
 
-    def all_primitive_prime_equiv(self, other, H1, H2, G1, G2, h1, h2, g):
+    def all_primitive_prime_equiv(self, other, H1, H2, G1, G2, h1, h2, glue_valuation):
         r"""
         Return all totally isotropic subgroups `S` of `H1 + H2` such that
         ``H1 & S == 1`` and ``H2 & S = 1`` modulo the subgroup
@@ -1541,10 +1541,10 @@ class TorsionQuadraticModule(FGP_Module_class):
             raise ValueError()
         if not h2 in G2:#.center():
             raise ValueError()
-        g = ZZ(g)
-        if not g >= 0:
+        glue_valuation = ZZ(glue_valuation)
+        if not glue_valuation >= 0:
             raise ValueError()
-        D, i1, i2 = self.direct_sum(other)
+        D, i1, i2, iV1, iV2 = self.direct_sum(other)
         OD = D.orthogonal_group()
         embedG1, embedG2 = direct_sum_embed(D, i1, i2, OD, G1, G2)
 
@@ -1555,7 +1555,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         OnSubgroups = libgap.function_factory("OnSubgroups")
 
         primitive_extensions = []
-        if g == 0:
+        if glue_valuation == 0:
             gens = embedG1.Image(G1.gap()).GeneratorsOfGroup()
             gens = gens.Concatenation(embedG2.Image(G2.gap()).GeneratorsOfGroup())
             return [[D.submodule([]),OD.subgroup(gens)]]
@@ -1569,7 +1569,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             raise ValueError("not a prime number")
         p = p1
 
-        glue_order = p**g
+        glue_order = p**glue_valuation
 
         # these may not be invariant subspaces!!! ---> crap
         subs1 = self.subgroup_representatives(H1, G1, algorithm="elementary abelian",
@@ -1612,7 +1612,7 @@ class TorsionQuadraticModule(FGP_Module_class):
                     continue
                 else:
                     # make it equivariant
-                    g = O2.gap().RepresentativeAction(h2_on_S2, h1_on_S2)
+                    g = O2.gap().RepresentativeAction(h1_on_S2, h2_on_S2)
                     phi = phi*g
                 assert h2_on_S2==phi.InducedAutomorphism(O1(h1).gap())
 
@@ -1624,8 +1624,6 @@ class TorsionQuadraticModule(FGP_Module_class):
                 stab2c = O2.subgroup(stab2.gens())
                 reps = center.DoubleCosetRepsAndSizes(stab2c,stab1phi)
 
-                if reps.Size() > 1:
-                    print("warning, more than one glue")
                 for g in reps:
                     g = g[0]
                     phig = phi*g
@@ -1675,7 +1673,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             raise ValueError()
         if not h2 in G2:#.center():
             raise ValueError()
-        if not glue_order >= 0:
+        if not glue_order > 0:
             raise ValueError()
         if not (H1.is_submodule(self) and H2.is_submodule(other)):
             raise ValueError()
@@ -1731,7 +1729,7 @@ class TorsionQuadraticModule(FGP_Module_class):
 
                 h1_on_S2 = phi.InducedAutomorphism(O1(h1,False).gap())
                 h2_on_S2 = O2(h2, False).gap()
-                if not O2.gap().IsConjugate(h1_on_S2, h2_on_S2):
+                if not O2.gap().IsConjugate(h2_on_S2, h1_on_S2):
                     # this glue map cannot be modified to be equivariant
                     continue
                 else:

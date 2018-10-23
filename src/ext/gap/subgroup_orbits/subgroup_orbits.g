@@ -85,6 +85,9 @@ ElemAbelSubgrpOrbsStabs_equiv:=function(G, aut, gens_aut, gens_act, min_order, m
   # gens_aut -- a list of generators
   # gens_act -- a list of elements of Aut(G) defining the action
   #             of aut on G.
+  # min_order -- minimal order of the subgroups
+  # max_order -- maximal order of the subgroups
+  # g -- an element of aut; return only invariant subspaces under g
   # gens_aut and gens_act must have the same length and
   # define a group homomorphism
   # no input checks
