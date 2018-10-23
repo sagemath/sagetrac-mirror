@@ -1424,20 +1424,12 @@ void WordZone (BetaAdic b, int *word, int nmax)
 //used by Draw
 void Draw_rec (BetaAdic b, Surface s, int n, Complexe p, Complexe bn, int etat)
 {
+    if (etat < 0 || etat >= b.a.n)
+	    return;
 	if (n == 0)
 	{
-		if (etat >= 0 && etat < b.a.n)
-		{
-			if (!b.a.e[etat].final)
-			{
-				//printf("%d pas final !", etat);
-				return;
-			}
-		}else
-		{
-			printf("état %d !\n", etat);
+		if (!b.a.e[etat].final)
 			return;
-		}
 		if (p.x < mx2)
 			mx2 = p.x;
 		if (p.x > Mx2)
@@ -1656,11 +1648,20 @@ double absd (double f)
 int choose_n (int sx, int sy, Complexe b, double sp, int prec, bool verb)
 {
     int n;
+    double lsp = absd(log(sp));
+    double lb = absd(log(cnorm(b)));
+    if (lb > lsp)
+    {
+        lsp = (lb*3+lsp)/4;
+    }
     
     if (prec)
-        n = prec+log(sx*sy/absd((Mx-mx)*(My-my)))/absd(log(sp));
-    else
-        n = log(sx*sy)/absd(log(sp));
+    {
+        n = prec+log(sx*sy/absd((Mx-mx)*(My-my)))/lsp;
+    }else
+    {
+        n = log(sx*sy)/lsp;
+    }
     
     if (n < 0)
         n = 0;

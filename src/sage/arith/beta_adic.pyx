@@ -815,11 +815,11 @@ cdef class BetaAdicMonoid:
     @property
     def a(self):
         """
-        get the attribut ``DetAutomaton``, ``a`` of ``BetaAdicMonoid``
+        Get the ``DetAutomaton`` ``a`` of the ``BetaAdicMonoid``
 
         OUTPUT:
 
-        ``a`` attribut ``DetAutomaton``
+        ``DetAutomaton`` ``a`` attribut
 
         EXAMPLES::
 
@@ -833,11 +833,11 @@ cdef class BetaAdicMonoid:
     @property
     def b(self):
         """
-        get the attribut ``b`` of ``BetaAdicMonoid``
+        Get the number ``b`` of the ``BetaAdicMonoid``
 
         OUTPUT:
 
-        ``b`` attribut of field number
+        number ``b`` attribut
 
         EXAMPLES::
 
@@ -848,32 +848,13 @@ cdef class BetaAdicMonoid:
         """
         return self.b
 
-    @property
-    def K (self):
-        """
-        get the attribut ``K`` of ``BetaAdicMonoid``
-
-        OUTPUT:
-
-        ``K`` attribut, Number Field in b 
-
-        EXAMPLES::
-
-            sage: m = BetaAdicMonoid((1+sqrt(5))/2, dag.AnyWord([0, 1]))
-            sage: m.K
-            Number Field in b with defining polynomial x^2 - x - 1
-
-        """
-        return self.K
-
     def _testSDL(self):
         """
         Open a window to test the SDL library used for graphical representation.
 
         TESTS::
 
-            sage: b = (x^3-x-1).roots(ring=QQbar)[0][0]
-            sage: m3 = BetaAdicMonoid(b, dag.AnyWord([0, 1]))
+            sage: m3 = BetaAdicMonoid(1/(1+I), dag.AnyWord([0, 1]))
             sage: m3._testSDL()
             Video Mode: 800x600 32 bits/pixel
         """
@@ -881,25 +862,22 @@ cdef class BetaAdicMonoid:
         TestSDL()
         sig_off()
 
-    ####to be put in generators
-    # liste des automates donnant le coloriage de l'ensemble limite
     def get_la(self, verb=False):
         """
-        Return a list of b-adic sets
+        Return a list of automata corresponding to each final state of the automaton.
 
         INPUT:
 
         -``verb`` -- (default ''False'') set to ''True'' for verbose mode
 
         OUTPUT:
-        Return the list of automaton giving color of limit set
+        Return a list of automata.
 
         EXAMPLES::
 
             sage: m=BetaAdicMonoid((1+sqrt(5))/2, dag.AnyWord([0, 1]))
             sage: m.get_la()
-            [DetAutomaton with 1 states and an alphabet of 2 letters,
-             DetAutomaton with 1 states and an alphabet of 2 letters]
+            [DetAutomaton with 1 states and an alphabet of 2 letters]
         """
         cdef DetAutomaton a = self.a.copy()
         # compute la
@@ -909,164 +887,69 @@ cdef class BetaAdicMonoid:
             la.append(a.copy())
         return la
 
-    def points_exact(self, n=None, i=None):
-        r"""
-        Returns a set of exacts values (in the number field of b)
-        corresponding to points of the b-adic set for words of length at most ``n``.
-
-        INPUT:
-
-        - ``n`` - integer (default: ``None``)
-          The number of iterations used to plot the fractal.
-          Default values: between ``5`` and ``16`` depending on the number
-          of generators.
-
-        - ``i`` - integer (default: ``None``)
-          State of the automaton of self taken as the initial state .
-
-        OUTPUT:
-
-            List of numbers, given with exact values.
-
-        EXAMPLES::
-
-            #. The dragon fractal::
-            sage: e = QQbar(1/(1+I))
-            sage: m=BetaAdicMonoid(e, dag.AnyWord([0, 1]))
-            sage: print(m)
-            b-adic set with b root of x^2 - x + 1/2, and an automaton of 1 states and 2 letters.
-            sage: P = m.points_exact()
-            age: len(P)
-            65536
-            sage: P = m.points_exact(i=0)
-            sage: len(P)
-            65536
-        """
-        K = self.K
-        b = self.b
-        a = self.a
-        A = a.alphabet
-        ng = a.n_letters
-
-        if i is None:
-            i = a.initial_state
-
-        if n is None:
-            if ng == 2:
-                n = 16
-            elif ng == 3:
-                n = 9
-            else:
-                n = 5
-
-        if n == 0:
-            return [0]
-        else:
-            orbit_points = set()
-            V = set([v for c in A for v in [a.succ(i, c)] if v != -1])
-            orbit_points0 = dict()
-            for v in V:
-                orbit_points0[v] = self.points_exact(n=n-1, i=v)
-            for c in A:
-                v = a.succ(i, c)
-                if v is not None:
-                    orbit_points.update([b*p+c for p in orbit_points0[v]])
-        return orbit_points
-
-#     # to remove
-#     def points(self, n=None, place=None, ss=None, iss=None, prec=53):
-#         r"""
-#         Returns a set of values (real or complex) corresponding to the drawing
-#         of the limit set of the beta-adic monoid.
-# 
-#         INPUT:
-# 
-#         - ``n`` - integer (default: ``None``)
-#           The number of iterations used to plot the fractal.
-#           Default values: between ``5`` and ``16`` depending on the number
-#           of generators.
-# 
-#         - ``place`` - place of the number field of beta (default: ``None``)
-#           The place we should use to evaluate elements of the number field
-#           given by points_exact()
-# 
-#         - ``ss`` - DetAutomaton (default: ``None``)
-#           The subshift to associate to the beta-adic monoid for this drawing.
-# 
-#         - ``iss`` - set of initial states of the automaton
-#           ss (default: ``None``)
-# 
-#         - ``prec`` - precision of returned values (default: ``53``)
-# 
-#         OUTPUT:
-# 
-#             list of real or complex numbers
-# 
-#         EXAMPLES::
-# 
-#             #. The dragon fractal::
-# 
-#                 sage: e = QQbar(1/(1+I))
-#                 sage: m = BetaAdicMonoid(e, dag.AnyWord([0, 1]))
-#                 sage: P = m.points(iss=0)     # long time (360 s)
-#                 sage: len(P)
-#                 32768
-#         """
-# 
-#         C = self.a.alphabet
-#         K = self.b.parent()
-#         b = self.b
-#         ng = C.cardinality()
-# 
-#         if n is None:
-#             if ng == 2:
-#                 n = 18
-#             elif ng == 3:
-#                 n = 14
-#             elif ng == 4:
-#                 n = 10
-#             elif ng == 5:
-#                 n = 7
-#             else:
-#                 n = 5
-#             from sage.functions.log import log
-#             n = int(5.2/-log(abs(self.b.n(prec=prec))))
-# 
-#         from sage.rings.complex_field import ComplexField
-#         CC = ComplexField(prec)
-#         if place is None:
-#             if abs(b) < 1:
-#                 # garde la place courante
-#                 # place = lambda x: CC(x.n())
-#                 return [CC(c).n(prec) for c in self.points_exact(n=n, ss=ss, iss=iss)]
-#             else:
-#                 # choisis une place
-#                 places = K.places()
-#                 place = places[0]
-#                 for p in places:
-#                     if abs(p(b)) < 1:
-#                         place = p
-#                         # break
-# 
-#         # from sage.rings.qqbar import QQbar
-#         # from sage.rings.qqbar import QQbar, AA
-#         # if QQbar(self.b) not in AA:
-#         #    #print "not in AA !"
-#         #    return [(place(c).conjugate().N().real(), place(c).conjugate().N().imag()) for c in self.points_exact(n=n, ss=ss, iss=iss)]
-#         # else:
-#         #    #print "in AA !"
-#         #    return [place(c).conjugate().N() for c in self.points_exact(n=n, ss=ss, iss=iss)]
-#         return [place(c).n(prec) for c in self.points_exact(n=n, ss=ss, iss=iss)]
-
-#          if n == 0:
-#             #donne un point au hasard dans l'ensemble limite
-#             return [0]
-#         else:
-#             orbit_points0 = self.points(n-1)
-#             orbit_points = Set([])
-#             for c in C:
-#                 orbit_points = orbit_points.union(Set([place(b)*p+place(c) for p in orbit_points0]))
-#         return orbit_points
+#    def points_exact(self, n=None, i=None):
+#        r"""
+#        Returns a set of exacts values (in the number field of b)
+#        corresponding to points of the b-adic set for words of length at most ``n``.
+#
+#        INPUT:
+#
+#        - ``n`` - integer (default: ``None``)
+#          The number of iterations used to plot the fractal.
+#          Default values: between ``5`` and ``16`` depending on the number
+#          of generators.
+#
+#        - ``i`` - integer (default: ``None``)
+#          State of the automaton of self taken as the initial state .
+#
+#        OUTPUT:
+#
+#            List of numbers, given with exact values.
+#
+#        EXAMPLES::
+#
+#            #. The dragon fractal::
+#            sage: e = QQbar(1/(1+I))
+#            sage: m=BetaAdicMonoid(e, dag.AnyWord([0, 1]))
+#            sage: print(m)
+#            b-adic set with b root of x^2 - x + 1/2, and an automaton of 1 states and 2 letters.
+#            sage: P = m.points_exact()
+#            age: len(P)
+#            65536
+#            sage: P = m.points_exact(i=0)
+#            sage: len(P)
+#            65536
+#        """
+#        K = self.K
+#        b = self.b
+#        a = self.a
+#        A = a.alphabet
+#        ng = a.n_letters
+#
+#        if i is None:
+#            i = a.initial_state
+#
+#        if n is None:
+#            if ng == 2:
+#                n = 16
+#            elif ng == 3:
+#                n = 9
+#            else:
+#                n = 5
+#
+#        if n == 0:
+#            return [0]
+#        else:
+#            orbit_points = set()
+#            V = set([v for c in A for v in [a.succ(i, c)] if v != -1])
+#            orbit_points0 = dict()
+#            for v in V:
+#                orbit_points0[v] = self.points_exact(n=n-1, i=v)
+#            for c in A:
+#                v = a.succ(i, c)
+#                if v is not None:
+#                    orbit_points.update([b*p+c for p in orbit_points0[v]])
+#        return orbit_points
 
     def user_draw(self, n=None,
                   sx=800, sy=600, ajust=True, prec=53, color=(0, 0, 0, 255),
@@ -1178,13 +1061,8 @@ cdef class BetaAdicMonoid:
                 sage: P = m.draw_zoom()     # long time (360 s)
 
         """
-        #if tss is None:
-        #    tss = self.reduced_words_automaton2()
-
         cdef BetaAdic b
         b = getBetaAdic(self, prec=prec, mirror=True, verb=verb)
-        # if verb:
-        #     printAutomaton(b.a)
         # dessin
         cdef int *word
         cdef Color col
@@ -1210,40 +1088,6 @@ cdef class BetaAdicMonoid:
         elif method == 1:
             print("Not implemented !")
             return None
-
-
-# Integrated to draw_zoom
-#    # give a word corresponding to one of the previously drawn points
-#    def word_drawn(self):
-#        r"""
-#        Return a word corresponding to the current window of the drawing.
-#        This window is changed for example when the user zoom using the function draw_zoom().
-#
-#        OUTPUT:
-#
-#        return a word, given as a list.
-#
-#        EXAMPLES::
-#
-#            #. The dragon fractal::
-#
-#                sage: e = QQbar(1/(1+I))
-#                sage: m = BetaAdicMonoid(e, {0,1})
-#                sage: P = m.draw_zoom()     # long time (360 s)
-#                sage: m.word_drawn()
-#
-#        """
-#        sig_on()
-#        cdef int *word = WordDrawn()
-#        sig_off()
-#        cdef int i
-#        res = []
-#        for i in xrange(1024):
-#            if word[i] < 0:
-#                break
-#            res.append(word[i])
-#        res.reverse()
-#        return res
 
     def plot(self, n=None, sx=800, sy=600,
               ajust=True, prec=53, color=(0, 0, 0, 255),
@@ -1511,12 +1355,6 @@ cdef class BetaAdicMonoid:
         FreeSurface(s)
         if la is None:
             FreeAutomatons(b.a, b.na)
-        else:
-            la[0] = la[0].prune()
-#        else:
-#            for i,a in enumerate(la):
-#                if not isinstance(a, DetAutomaton):
-#                    FreeAutomaton(&b.a[i])
         FreeBetaAdic2(b)
         FreeColorList(cl)
         sig_off()
@@ -1603,6 +1441,7 @@ cdef class BetaAdicMonoid:
         if not K.is_exact() or not hasattr(K, 'abs_val'):
             raise ValueError("b must live in a number field!")
         pi = b.minpoly()
+        pi = pi*pi.denominator()
         #alphabet
         Ad = None
         if Ad is None:
@@ -1619,6 +1458,7 @@ cdef class BetaAdicMonoid:
             if ext:
                 b = 1/b
                 pi = b.minpoly()
+                pi = pi*pi.denominator()
                 mirror = not mirror
             #find absolute values for which b is greater than one
             places = []
@@ -1630,7 +1470,8 @@ cdef class BetaAdicMonoid:
                     narch+=1
             #ultra-metric places
             from sage.arith.misc import prime_divisors
-            for p in prime_divisors(pi(0)):
+            lc = pi.leading_coefficient()
+            for p in prime_divisors(lc):
                 for P in K.primes_above(p):
                     if K.abs_val(P, b, prec=prec) > 1:
                         places.append(P)
@@ -1814,20 +1655,25 @@ cdef class BetaAdicMonoid:
 
         EXAMPLES::
 
-            sage: e = QQbar(1/(1+I))
-            sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
-            sage: m.critical_exponent_aproxn()   3 long time
-            0.693147180559945
+        #.  sage: m = BetaAdicMonoid(1/(1+I), dag.AnyWord([0,1]))
+            sage: m.critical_exponent_aprox()
+            2.00000000000000
+        
+        #.  sage: s = WordMorphism('1->12,2->13,3->1')
+            sage: m = s.DumontThomas()
+            sage: m.critical_exponent_aprox()
+            2.09949525214019
 
         """
+        cdef set S, S2, S3
         b = self.b
         K = b.parent()
-        C = self.a.alphabet
+        A = self.a.alphabet
         S = set([K.zero()])
         for i in range(niter):
             S2 = set([])
             for s in S:
-                for c in C:
+                for c in A:
                     S2.add((s+c)/b)
             # intervertit S et S2
             S3 = S2
@@ -1838,7 +1684,7 @@ cdef class BetaAdicMonoid:
         from sage.functions.log import log
         print("%s" % (log(len(S)).n() / (niter * abs(log(abs(b.n()))))))
 
-    def complexity(self, verb=False):
+    def complexity(self, Ad=None, prec=None, verb=False):
         r"""
         Return a estimation of an upper bound of the number of states
         of the relations automaton.
@@ -1858,94 +1704,68 @@ cdef class BetaAdicMonoid:
             sage: m.complexity()
             108.523461214115
         """
-        K = self.a.alphabet[0].parent()
         b = self.b
-
+        K = b.parent()
+        pi = b.minpoly()
+        pi = pi*pi.denominator()
+        
         if verb:
             print(K)
+        
+        A = self.a.A
+        if Ad is None:
+            Ad = list(set([c1-c2 for c1 in A for c2 in A]))
 
-        # détermine les places qu'il faut considérer
-        parch = K.places()
-        r = len(parch)
-        pi = K.defining_polynomial()
-        from sage.arith.misc import gcd
-        pi = pi/gcd(pi.list())
-        # rend le polynôme à coefficients entiers et de contenu 1
-        # den = pi.constant_coefficient().denominator()
-        # lp = (pi.list()[pi.degree()].numerator()*den).prime_divisors()
-        # liste des nombres premiers concernés
-        lp = (Integer(pi.list()[0])).prime_divisors()
-        # liste des nombres premiers concernés
-        pultra = []
-        # liste des places ultramétriques considérées
-        for p in lp:
-            # détermine toutes les places au dessus de p dans le corps de nombres K
-            k = Qp(p)
-            Kp = k['a']
-            a = Kp.gen()
-            for f in pi(a).factor():
-                kp = f[0].root_field('e')
-#                c = kp.gen()
-                if kp == k:
-                    c = f[0].roots(kp)[0][0]
-                else:
-                    c = kp.gen()
-                if verb:
-                    print("c=%s (abs=%s)" % (c, (c.norm().abs())**(1 / f[0].degree())))
-                if c.norm().abs() != 1:  # absp(c, c, f[0].degree()) > 1:
-                    pultra += [(c, f[0].degree())]
-
+        #find absolute values for which b is greater than one
+        places = []
+        narch = 0
+        #archimedian places
+        for p in K.places(prec=prec):
+            if K.abs_val(p, b) > 1:
+                places.append(p)
+                narch+=1
+        #ultra-metric places
+        from sage.arith.misc import prime_divisors
+        lc = pi.leading_coefficient()
+        for p in prime_divisors(lc):
+            for P in K.primes_above(p):
+                if K.abs_val(P, b, prec=prec) > 1:
+                    places.append(P)
         if verb:
-            print("places: ")
-            print(parch)
-            print(pultra)
-
-        # calcule les bornes max pour chaque valeur absolue
-        Cd = Set([c-c2 for c in self.a.alphabet for c2 in self.a.alphabet])
-        if verb:
-            print("Cd = %s" % Cd)
+            print(places)
+        #bounds
+        bo = []
         vol = 1.
-        # from sage.rings.real_mpfr import RR
-        for p in parch:
-            if (p(b)).imag() == 0:
-                vol *= 2 * max([p(c).abs() for c in Cd])/abs(1-p(b).abs())
+        for i,p in enumerate(places):
+            if i < narch:
+                bo.append(max([K.abs_val(p,x) for x in Ad])/(K.abs_val(p, b) - 1))
                 if verb:
-                    print("real place  %s" % p)
+                    print("bo = %s"%bo[-1])
+                if p(b).imag() == 0:
+                    vol *= 2*bo[-1]
+                else:
+                    vol *= pi_number*bo[-1]^2
             else:
-                vol *= pi_number*(max([p(c).abs() for c in Cd])/abs(1-p(b).abs()))**2
-                if verb:
-                    print("complex place %s" % p)
-            # vol *= max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs())
-            # vol *= max(1, max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs()))
-        for p, d in pultra:
-            vol *= max([(c.polynomial())(p).norm().abs() for c in Cd])
-            # vol *= max([absp(c, p, d) for c in Cd])
-            # vol *= max(1, max([absp(c, p, d) for c in Cd]))
-        # from sage.functions.other import sqrt
-        # return vol/(K.regulator()*(sqrt(r+1).n()))
-        return vol
+                bo.append(max([K.abs_val(p,x) for x in Ad])/K.abs_val(p, b))
+                vol *= bo[-1]
+        if verb:
+            print("bounds=%s"%bo)
+        from sage.functions.other import ceil
+        return ceil(vol)
 
-    # def infinite_relations_automaton (self, verb=False):
-    #    a = self.relations_automaton (ext=True, verb=verb)
-    #    #retire la composante fortement connexe de l'etat initial
-    #    K = self.b.parent()
-    #    for s in a.strongly_connected_components_subgraphs():
-    #        if K.zero() in s:
-    #            a.delete_vertices(a.strongly_connected_components_subgraphs()[0].vertices())
-    #            return a
-    # calcule le sous-shift correspondant à l'intersection des deux
-    # monoïdes avec sous-shifts
-    def intersection(self, BetaAdicMonoid m, ext=True, verb=False):
+    def intersection(self, BetaAdicMonoid m, ext=False, verb=False):
         r"""
-        Compute the intersection of two beta-adic monoid with subshifts
+        Compute the intersection of two beta-adic sets.
 
         INPUT:
-
+        
+        - ``m`` - the other beta-adic set
+        
         - ``ext`` - bool (default: ``True``)
-          If True, compute the extended relations automaton (which permit to describe infinite words in the monoid).  
+          If True, compute the extended relations automaton.
 
         - ``verb``- bool (default: ``False``)
-          If True, verbose mod.
+          If True, verbose mode.
 
         OUTPUT:
 
@@ -1955,16 +1775,13 @@ cdef class BetaAdicMonoid:
 
             #. Compute the boundary of the dragon fractal (see intersection_words for a easier way) ::
 
-                sage: e = QQbar(1/(1+I))
-                sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
-                sage: ss = m.a
-                sage: iss = ss.initial_state
-                sage: ss0 = ss.prefix([0])
-                sage: ss1 = ss.prefix([1])
-                sage: ssi = m.intersection(ss=ss0, ss2=ss1)
-                sage: ssd = ssi.determinize(A=m.C, noempty=True)
-                sage: ssd = ssd.prune0_simplify()
-                sage: m.plot(ss = ssd, n=19)     # long time
+                sage: m = BetaAdicMonoid(1/(1+I), dag.AnyWord([0,1]))
+                sage: m1 = m.prefix([0])
+                sage: m2 = m.prefix([1])
+                sage: mi = m1.intersection(m2, ext=True)
+                sage: mi
+                b-adic set with b root of x^2 - x + 1/2, and an automaton of 21 states and 2 letters.
+                sage: mi.plot(mirror=False)
         """
         cdef DetAutomaton a, ar, ai
         
