@@ -1296,6 +1296,8 @@ cdef class DetAutomaton:
             return
         from sage.graphs.digraph import DiGraph
         from sage.combinat.finite_state_machine import Automaton as SageAutomaton
+        if isinstance(a, NFastAutomaton):
+            a = a.determinize().minimize()
         if isinstance(a, SageAutomaton):
             L = []
             for t in a.transitions():

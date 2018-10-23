@@ -1761,7 +1761,7 @@ cdef class BetaAdicMonoid:
         
         - ``m`` - the other beta-adic set
         
-        - ``ext`` - bool (default: ``True``)
+        - ``ext`` - bool (default: ``False``)
           If True, compute the extended relations automaton.
 
         - ``verb``- bool (default: ``False``)
@@ -1809,62 +1809,7 @@ cdef class BetaAdicMonoid:
         else:
             ai = ai.prune().minimize()
         return BetaAdicMonoid(self.b, ai)
-
-    # calcule le sous-shift correspondant à l'intersection
-    # des deux monoïdes avec sous-shifts, utilise des DetAutomaton
-    def intersection2(self, ss1, ss2, verb=False):
-        r"""
-        Compute the intersection of two beta-adic monoid with subshifts given by DetAutomaton
-
-        INPUT:
-
-        - ``ss1``- DetAutomaton (default: ``None``)
-          The first subshift to associate to the beta-adic monoid for this operation.
-
-        - ``ss2``- DetAutomaton (default: ``None``)
-          The second subshift to associate to the beta-adic monoid for this operation.
-
-        - ``verb``- bool (default: ``False``)
-          If True, print informations for debugging.
-
-        OUTPUT:
-
-        A DetAutomaton.
-
-        EXAMPLES::
-
-            #. Compute the boundary of the dragon fractal (see intersection_words for a easier way) ::
-
-                sage: e = QQbar(1/(1+I)) 
-                sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
-                sage: import sage.combinat.words.cautomata
-                sage: from sage.combinat.words.cautomata import DetAutomaton
-                sage: ss0 = DetAutomaton([(0,1,0)]+[(1,1,l) for l in m.C], i=0, final_states=[1])
-                sage: ss1 = DetAutomaton([(0,1,1)]+[(1,1,l) for l in m.C], i=0, final_states=[1])
-                sage: ssi = m.intersection2(ss0, ss1)
-                sage: m.plot(tss = ssi)     # long time
-        """
-        a = self.relations_automaton()
-        a = a.prune_inf()
-        a.set_final_states(a.states())
-        ssp = ss1.product(ss2)
-        ssp = ssp.prune()
-        d = {}
-        for (la1, la2) in ssp.alphabet:
-            for lb in a.alphabet:
-                if lb == la1-la2:
-                    d[((la1, la2), lb)] = (la1, la2)
-        ssi = ssp.product(a, d)
-        ssi = ssi.prune_inf()
-        ssi = ssi.prune()
-        d = {}
-        for (l1, l2) in ssi.alphabet:
-            d[(l1, l2)] = l1
-        ssi = ssi.determinize_proj(d)
-        ssi = ssi.prune_inf()
-        ssi = ssi.prune()
-        return ssi.minimize()
-
+    
     def prefix(self, w):
         return BetaAdicMonoid(self.b, self.a.prefix(w))
 
@@ -1907,7 +1852,7 @@ cdef class BetaAdicMonoid:
     #to be put in generators
     #     - ``aut`` - DetAutomaton (default: ``None``, full language)
     #       Automaton describing the language in which we live.
-    def reduced_words_automaton(self, step=100,
+    def reduced_words_automaton(self, full=False, step=100,
                                 verb=False, mirror=False):  # , DetAutomaton aut=None):
         r"""
         Compute the reduced words automaton of the beta-adic monoid
@@ -1945,77 +1890,96 @@ cdef class BetaAdicMonoid:
         cdef list A
         cdef list Ad
         cdef list Adp
-        cdef int nAd
-        
-        # compute the relations automaton
-        arel = self.relations_automaton(mirror=mirror)
-        if verb:
-            print("arel = %s" % arel)
-        if step == 1:
-            return arel
-
-        # add a new state
+        cdef int nAd, nA
+        cdef DetAutomaton arel
         cdef int ne, ei
-        ei = arel.initial_state
-        ne = arel.n_states  # new added state
-        arel.add_state(True)
-        arel.set_final_state(ei, final=False)  # the new state is final
-        if step == 2:
-            return arel
         
-        A = self.a.alphabet
-        Ad = arel.alphabet
-        nAd = len(Ad)
+        A = self.a.A
+        nA = len(A)
         
-        # add edges from the new state (copy edges from the initial state)
-        for j in range(nAd):
-            arel.set_succ(ne, j, arel.succ(ei, j))
-        if step == 3:
-            return arel
+        if full:
+             # compute the relations automaton
+            arel = self.relations_automaton(mirror=mirror)
+            if verb:
+                print("arel = %s" % arel)
+            if step == 1:
+                return arel
         
-        Adp = [i for i in range(nAd) if Ad[i] in [x-y for j,x in enumerate(A) for y in A[:j]]]
+            # add a new state
+            ei = arel.a.i
+            ne = arel.a.n  # new added state
+            arel.add_state(True)
+            arel.set_final_state(ei, final=False)  # the new state is final
+            if step == 2:
+                return arel
         
-        # suppress some edges from the initial state
-        for j in Adp:
-            arel.set_succ(ei, j, -1)
-        if step == 4:
-            return arel
+            Ad = arel.A
+            nAd = len(Ad)
+        
+            # add edges from the new state (copy edges from the initial state)
+            for j in range(nAd):
+                arel.set_succ(ne, j, arel.succ(ei, j))
+            if step == 3:
+                return arel
+        
+            Adp = [i for i in range(nAd) if Ad[i] in [x-y for j,x in enumerate(A) for y in A[:j]]]
+        
+            # suppress some edges from the initial state
+            for j in Adp:
+                arel.set_succ(ei, j, -1)
+            if step == 4:
+                return arel
 
-        # change edges that point to the initial state :
-        # make them point to the new state
-        for e in arel.states:
-            if e != ei:
-                for j in range(nAd):
-                    if arel.succ(e, j) == ei:
-                        arel.set_succ(e, j, ne)
-        if step == 5:
-            return arel
+            # change edges that point to the initial state :
+            # make them point to the new state
+            for e in arel.states:
+                if e != ei:
+                    for j in range(nAd):
+                        if arel.succ(e, j) == ei:
+                            arel.set_succ(e, j, ne)
+            if step == 5:
+                return arel
 
-        # project, determinise and take the complementary
-        d = {}
-        for a in A:
-            for b in A:
-                if not d.has_key(a - b):
-                    d[a-b] = []
-                d[a-b].append((a, b))
-        if verb:
-            print(d)
-        arel = arel.duplicate(d)  # replace differences with couples
-        d = {}
-        for j in A:
-            for i in A:
-                d[(i, j)] = i
-        if verb:
-            print(d)
-            print(arel)
-        arel = arel.determinize_proj(d, noempty=False, nof=True)  # , verb=True)
-        # project on the first value of the couple, determinise and take the complementary
-        if verb:
-            print(arel)
-        arel = arel.prune()
-        if step == 10:
-            return arels
-        return arel.minimize()
+            # project, determinise and take the complementary
+            d = {}
+            for a in A:
+                for b in A:
+                    if not d.has_key(a - b):
+                        d[a-b] = []
+                    d[a-b].append((a, b))
+            if verb:
+                print(d)
+            arel = arel.duplicate(d)  # replace differences with couples
+            d = {}
+            for j in A:
+                for i in A:
+                    d[(i, j)] = i
+            if verb:
+                print(d)
+                print(arel)
+            arel = arel.determinize_proj(d, noempty=False, nof=True)  # , verb=True)
+            # project on the first value of the couple, determinise and take the complementary
+            if verb:
+                print(arel)
+            arel = arel.prune()
+            if step == 10:
+                return arels
+            return arel.minimize()
+        else:
+            arel = self.relations_automaton(couples=True, ext=False)
+            ap = self.a.product(self.a)
+            ai = ap.intersection(arel)
+            alex = DetAutomaton([(0,0,(i,i)) for i in range(nA)]
+                   +[(0,1,(i,j)) for i in range(nA) for j in range(i)]
+                   +[(1,1,(i,j)) for i in range(nA) for j in range(nA)],
+                   i=0, final_states=[1])
+            ai = ai.intersection(alex)
+            ai = ai.proji(0)
+            ai.complementary_op()
+            return self.a.intersection(ai)
+    
+    def reduced (self, mirror=False, verb=False):
+        return BetaAdicMonoid(self.b, self.reduced_words_automaton())
 
 #     def reduced_words_automaton(self, ss=None, Iss=None, ext=False,
 #                                 verb=False, step=None, arel=None):
@@ -2053,7 +2017,7 @@ cdef class BetaAdicMonoid:
 #             #. 3-adic expansion with numerals set {0,1,3}::
 # 
 #                 sage: m = BetaAdicMonoid(3, {0,1,3})
-#                 sage: m.reduced_words_automaton()
+#                 sage: mr = m.reduced()
 #                 Finite automaton with 2 states
 # 
 #             #. phi-adic expansion with numerals set {0,1}::
@@ -2267,19 +2231,18 @@ cdef class BetaAdicMonoid:
 # 
 #         return ad
 
-    def critical_exponent_free(self, ss=None, prec=None, verb=False):
+    def critical_exponent_free(self, prec=None, verb=False):
         r"""
-        Compute the critical exponent of the beta-adic monoid
-        (with or without subshift), assuming it is free.
-        See http://www.latp.univ-mrs.fr/~paul.mercat/
-        Publis/Semi-groupes%20fortement%20automatiques.pdf
-        for a definition (without subshift).
-
+        Compute the critical exponent of the beta-adic set,
+        assuming it is free (or reduced, i.e. there is no relation).
+        When the beta-adic set is moreover algebraic,
+        this critical exponent is equal to the Hausdorff
+        dimension of the limit set on the contracting space.
+        
+        Rk: beta-adic sets coming from WordMorphism.DumontThomas()
+        are always free and algebraic.
+        
         INPUT:
-
-        - ``ss``- Automaton (default: ``None``)
-          The first subshift to associate to the beta-adic monoid
-          for this operation.
 
         - ``prec``- precision (default: ``None``)
 
@@ -2295,23 +2258,24 @@ cdef class BetaAdicMonoid:
             #. Hausdorff dimension of limit set of 3-adic expansion with numerals set {0,1,3}::
 
                 sage: m = BetaAdicMonoid(3, dag.AnyWord([0,1,3]))
-                sage: m.critical_exponent_free(m.reduced_words_automaton())
+                sage: mr = m.reduced()
+                sage: mr.critical_exponent_free()
                 log(y)/log(|3|) where y is the max root of x^2 - 3*x + 1
                 0.8760357589...
 
             #. Hausdorff dimension of limit set of phi-adic expansion with numerals set {0,1}::
 
                 sage: m = BetaAdicMonoid((1+sqrt(5))/2, dag.AnyWord([0,1]))
-                sage: m.critical_exponent_free(m.reduced_words_automaton())
+                sage: m = m.reduced()
+                sage: m.critical_exponent_free()
                 log(y)/log(|b|) where y is the max root of x^2 - x - 1
                 1.0000000000...
 
             #. Hausdorff dimension of the boundary of the dragon fractal::
 
-                sage: e = QQbar(1/(1+I))
-                sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
-                sage: ssi = m.intersection_words(w1=[0], w2=[1])
-                sage: m.critical_exponent_free(ss=ssi)
+                sage: m = BetaAdicMonoid(1/(1+I), dag.AnyWord([0,1]))
+                sage: mi = m.intersection_words(w1=[0], w2=[1])
+                sage: mi.critical_exponent_free()
                 log(y)/log(|b|) where y is the max root of x^3 - x^2 - 2
                 1.5236270862...
 
@@ -2319,8 +2283,8 @@ cdef class BetaAdicMonoid:
 
                 sage: s = WordMorphism('1->12,2->13,3->1')
                 sage: m = s.DumontThomas()
-                sage: ssi = m.intersection_words(w1=[0], w2=[1])
-                sage: m.critical_exponent_free(ss=ssi)
+                sage: mi = m.intersection_words(w1=[0], w2=[1])
+                sage: mi.critical_exponent_free()
                 log(y)/log(|b|) where y is the max root of x^4 - 2*x - 1
                 1.0933641642...
 
@@ -2328,8 +2292,7 @@ cdef class BetaAdicMonoid:
 
                 sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
                 sage: m = s.DumontThomas()
-                sage: m.b = 1/m.b
-                sage: m.ss = m.ss.mirror().determinize().minimize()
+                sage: m2 = BetaAdicMonoid(1/m.b, m.a.mirror())
                 sage: m.critical_exponent_free()
                 log(y)/log(|1/2*b^2 - 1/2*b + 1/2|) where y is the max root of x^3 - x^2 + x - 2
                 1.5485260383...
@@ -2351,18 +2314,14 @@ cdef class BetaAdicMonoid:
             print("y=%s, b=%s" % (y, b))
         return abs(log(y) / log(abs(b))).n()
 
-    def critical_exponent(self, ss=None, prec=None, verb=False):
+    def critical_exponent(self, prec=None, verb=False):
         r"""
-        Compute the critical exponent of the beta-adic monoid
-        (with or without subshift).
-        See http://www.latp.univ-mrs.fr/~paul.mercat/Publis/
-        Semi-groupes%20fortement%20automatiques.pdf for a definition (without subshift).
-
+        Compute the critical exponent of the beta-adic set.
+        If the beta-adic set is algebraic, then it is equal
+        to the Hausdorff dimension of the limit set in the
+        contracting space.
+        
         INPUT:
-
-        - ``ss``- Automaton (default: ``None``)
-          The first subshift to associate to the beta-adic monoid
-          for this operation.
 
         - ``prec``- precision (default: ``None``)
 
@@ -2401,395 +2360,342 @@ cdef class BetaAdicMonoid:
             #. See more examples with doc critical_exponent_free()
 
         """
-        #     #. Critical exponent that is not the Hausdorff dimension of the limit set::
-        #
-        #     sage:
-
-        if ss is None:
-            if hasattr(self, 'ss'):
-                ss = self.ss
         if verb:
-            # Calcul de l'automate des mots réduits...\n")
             print("Computation of reduce words' automata")
-        a = self.reduced_words_automaton(ss=ss, verb=verb)
-        return self.critical_exponent_free(prec=prec, ss=a, verb=verb)
+        m = self.reduced(verb=verb)
+        return m.critical_exponent_free(prec=prec, verb=verb)
 
-    # test if 0 is an inner point of the limit set
-    def ZeroInner(self, verb=False):
-
-        if not hasattr(self, 'ss'):
-            self.ss = self.default_ss()
-
-        if verb:
-            print("relations automaton...")
-
-        ar = self.relations_automaton(ext=True)
-        ar.complementary()
-
-        if verb:
-            print("complementary : %s" % ar)
-        # return ar
-
-        a = self.default_ss().product(self.ss)
-
-        if verb:
-            print("a = %s" % a)
-        # return a
-
-        # a = ar.intersection(a)
-
-        if verb:
-            print("product...")
-
-        L = a.edge_labels()
-        Lr = ar.edge_labels()
-        d = dict([])
-        for k in L:
-            for kr in Lr:
-                if k == kr and k[0] == 0:
-                    d[(k, kr)] = 0
-                else:
-                    d[(k, kr)] = None
-        a2 = a.product(A=ar, d=d)
-
-        if verb:
-            print("product = %s" % a2)
-        # return a2
-
-        # test if there is a cycle in the graph
-        if a2.is_directed_acyclic():
-            print("0 is not an inner point.")
-        else:
-            ss = self.ss
-            self.ss = None
-            print("Zero is an inner point iff the %s has non-empty interior." % self)
-            self.ss = ss
+#    # test if 0 is an inner point of the limit set
+#    def ZeroInner(self, verb=False):
+#
+#        if not hasattr(self, 'ss'):
+#            self.ss = self.default_ss()
+#
+#        if verb:
+#            print("relations automaton...")
+#
+#        ar = self.relations_automaton(ext=True)
+#        ar.complementary()
+#
+#        if verb:
+#            print("complementary : %s" % ar)
+#        # return ar
+#
+#        a = self.default_ss().product(self.ss)
+#
+#        if verb:
+#            print("a = %s" % a)
+#        # return a
+#
+#        # a = ar.intersection(a)
+#
+#        if verb:
+#            print("product...")
+#
+#        L = a.edge_labels()
+#        Lr = ar.edge_labels()
+#        d = dict([])
+#        for k in L:
+#            for kr in Lr:
+#                if k == kr and k[0] == 0:
+#                    d[(k, kr)] = 0
+#                else:
+#                    d[(k, kr)] = None
+#        a2 = a.product(A=ar, d=d)
+#
+#        if verb:
+#            print("product = %s" % a2)
+#        # return a2
+#
+#        # test if there is a cycle in the graph
+#        if a2.is_directed_acyclic():
+#            print("0 is not an inner point.")
+#        else:
+#            ss = self.ss
+#            self.ss = None
+#            print("Zero is an inner point iff the %s has non-empty interior." % self)
+#            self.ss = ss
 
     # complete the language of a
-    def complete(self, DetAutomaton a, C=None,
-                 ext=False, arel=None, verb=False):
+    def complete(self, list A=None,
+                 ext=False, arel=None, simplify=True, verb=False):
         r"""
-        Return an automaton that recognize the language of all words over
-        alphabet that represent elements recognized by a.
-        If ''ext'' is True, this also include words equal at infinity.
+        Return the language of all words over the alphabet A
+        that describe points of the beta-adic set.
+        If ''ext'' is True, it includes infinite words that fall
+        into the limit set.
 
         INPUT:
 
-        - ``a`` a ``DetAutomaton`` A DetAutomaton.
+        - ``A`` - list -- (default : ``None``) alphabet of the result.
 
-        - ``C`` list -- (default : ``None``)list of digits .
-
-        - ``ext``  bool -- (default: ``False``)
+        - ``ext`` - bool -- (default: ``False``)
           If ''ext'' is True, this also include words equal at infinity.
 
         - ``arel`` - Automaton (default: ``None``)
-            Automaton of relations.
+            Automaton of relations (if already computed, this permits to
+            avoid recomputing it).
+        
+        - ``simplify`` - bool (default: ``True``)
+            Prune and minimize the result if True.
 
         - ``verb``- bool (default: ``False``)
           If True, print informations for debugging.
 
         OUTPUT:
 
-        An automaton that recognize the language
+        An automaton.
 
         EXAMPLES::
 
             sage: m = BetaAdicMonoid(3, dag.AnyWord([0,1,3]))
-            sage: m.complete(dag.AnyWord([0,1]))
+            sage: m.complete(dag.AnyWord([0,1,2]))
             DetAutomaton with 1 states and an alphabet of 3 letters
         """
-        if C is None:
-            C = self.a.alphabet
-        ap = DetAutomaton([], A=list(C)).product(a)
-        if ext:
-            ap = ap.prefix_closure()
-        if verb:
-            if ap.n_states < 100:
-                ap.plot()
-            print("ap=%s" % ap)
-        d = dict()
-        Cd = [c - c2 for c in C for c2 in a.A]
-        for c in Cd:
-            d[c] = []
-        for c in C:
-            for c2 in a.A:
-                d[c - c2].append((c, c2))
+        cdef DetAutomaton a
+        if A is None:
+            A = self.a.A
+        if 0 not in self.a.A:
+            a = self.a.bigger_alphabet([0]+self.a.A)
+        l = a.index(0)
+        ap = a.zero_complete2(l=l).product(dag.AnyWord(A))
         if arel is None:
-            arel = self.relations_automaton(Ad=Cd, ext=ext).duplicate(d)
-        else:
-            arel = arel.duplicate(d)
-        if verb:
-            if arel.n_states < 100:
-                arel.plot()
-            print("arel=%s" % arel)
+            arel = self.relations_automaton(couples=True, ext=ext, A=a.A, B=A)
         ai = ap.intersection(arel)
+        ai = ai.proji(1)
         if ext:
             ai = ai.prune_inf()
-        ai = ai.prune()
-        ai = ai.minimize()
-        if verb:
-            if ai.n_states < 100:
-                ai.plot()
-            print("ai=%s" % ai)
-        d = dict()
-        for c in C:
-            for c2 in a.A:
-                d[(c, c2)] = c
-        ac = ai.determinize_proj(d)
-        if ext:
-            ac = ac.prune_inf()
-        ac = ac.prune()
-        ac = ac.minimize()
-        return ac
+        else:
+            ai.zero_completeOP()
+        if simplify:
+            ai = ai.prune().minimize()
+        return ai
+        
+#        ap = DetAutomaton([], A=list(C)).product(a)
+#        if ext:
+#            ap = ap.prefix_closure()
+#        if verb:
+#            if ap.n_states < 100:
+#                ap.plot()
+#            print("ap=%s" % ap)
+#        d = dict()
+#        Ad = [c - c2 for c in self.a.A for c2 in A]
+#        for c in Cd:
+#            d[c] = []
+#        for c in C:
+#            for c2 in a.A:
+#                d[c - c2].append((c, c2))
+#        if arel is None:
+#            arel = self.relations_automaton(Ad=Cd, ext=ext).duplicate(d)
+#        else:
+#            arel = arel.duplicate(d)
+#        if verb:
+#            if arel.n_states < 100:
+#                arel.plot()
+#            print("arel=%s" % arel)
+#        ai = ap.intersection(arel)
+#        if ext:
+#            ai = ai.prune_inf()
+#        ai = ai.prune()
+#        ai = ai.minimize()
+#        if verb:
+#            if ai.n_states < 100:
+#                ai.plot()
+#            print("ai=%s" % ai)
+#        d = dict()
+#        for c in C:
+#            for c2 in a.A:
+#                d[(c, c2)] = c
+#        ac = ai.determinize_proj(d)
+#        if ext:
+#            ac = ac.prune_inf()
+#        ac = ac.prune()
+#        ac = ac.minimize()
+#        return ac
+#
+#    # donne l'automate décrivant l'adhérence de l'ensemble limite avec un nouvel alphabet C
+#    def adherence(self, tss=None, C=None, C2=None,
+#                  ext=False, verb=False, step=None):
+#        """
+#        Return an automaton describing the adhesion of the limit set
+#        with a new alphabet C
+#
+#        INPUT:
+#
+#        - ``tss``
+#        - ``C`` list -- (default : ``None``)list of digits .
+#        - ``C2`` list -- (default : ``None``)list of digits .
+#        - ``ext``  bool -- (default: ``False``)
+#          If ''ext'' is True, this also include words equal at infinity.
+#        - ``verb``- bool (default: ``False``)
+#          If True, print informations for debugging.
+#        - ``step`` - int (default: ``None``)
+#          Stop to a intermediate state of the computing to make verifications.
+#
+#        OUTPUT:
+#
+#        Return an automaton describing the adhesion of the limit set
+#        with a new alphabet C
+#
+#        EXAMPLES::
+#            sage: m = BetaAdicMonoid(3, dag.AnyWord([0,1,3]))
+#            sage: m.adherence()
+#            DetAutomaton with 1 states and an alphabet of 3 letters
+#        """
+#        if tss is None:
+#            if hasattr(self, 'tss'):
+#                tss = self.tss
+#            else:
+#                tss = self.a
+#        if C is None:
+#            C = list(set(self.a.alphabet))
+#        if C2 is None:
+#            C2 = list(set(tss.alphabet))
+#        if verb:
+#            print("Calcul de l'automate des relations...")
+#        Cd = list(set([c1 - c2 for c1 in C2 for c2 in C]))
+#        if verb:
+#            print("Cd=%s" % Cd)
+#        a = self.relations_automaton(Ad=Cd, ext=ext)
+#        if verb:
+#            print(" -> %s" % a)
+#        if step == 1:
+#            return a
+#        if ext:
+#            a = a.prune_inf()
+#        a = a.prune()
+#        if verb:
+#            print(" Après émondation : %s" % a)
+#        if step == 2:
+#            return a
+#        d = {}
+#        for c1 in C2:
+#            for c2 in C:
+#                if not d.has_key(c1 - c2):
+#                    d[c1-c2] = []
+#                d[c1-c2].append((c1, c2))
+#        if verb:
+#            print(d)
+#        a2 = a.duplicate(d, verb=verb)
+#        if verb:
+#            print(a2.alphabet)
+#            print(a2)
+#        if step == 3:
+#            return a2
+#        ap = tss.product(DetAutomaton(self.a), verb=verb)
+#        if ext:
+#            ap = ap.prefix_closure()
+#        if step == 4:
+#            return ap
+#        a2 = ap.intersection(a2)
+#        if step == 5:
+#            return a2
+#        if ext:
+#            a2 = a2.prune_inf()
+#        a2 = a2.prune()
+#        if step == 6:
+#            return a2
+#        a2 = a2.minimize()
+#        if step == 7:
+#            return a2
+#        if verb:
+#            print("determine...")
+#        d = {}
+#        for c1, c2 in a2.alphabet:
+#            d[(c1, c2)] = c2
+#        a2 = a2.determinize_proj(d, verb=verb)
+#        if step == 8:
+#            return a2
+#        if verb:
+#            print(" -> %s" % a2)
+#        if ext:
+#            a2 = a2.prune_inf()
+#        a2 = a2.prune()
+#        if step == 9:
+#            return a2
+#        if verb:
+#            print("After simplification : %s" % a2)
+#        return a2.minimize()
 
-    # donne l'automate décrivant l'adhérence de l'ensemble limite avec un nouvel alphabet C
-    def adherence(self, tss=None, C=None, C2=None,
-                  ext=False, verb=False, step=None):
-        """
-        Return an automaton describing the adhesion of the limit set
-        with a new alphabet C
-
-        INPUT:
-
-        - ``tss``
-        - ``C`` list -- (default : ``None``)list of digits .
-        - ``C2`` list -- (default : ``None``)list of digits .
-        - ``ext``  bool -- (default: ``False``)
-          If ''ext'' is True, this also include words equal at infinity.
-        - ``verb``- bool (default: ``False``)
-          If True, print informations for debugging.
-        - ``step`` - int (default: ``None``)
-          Stop to a intermediate state of the computing to make verifications.
-
-        OUTPUT:
-
-        Return an automaton describing the adhesion of the limit set
-        with a new alphabet C
-
-        EXAMPLES::
-            sage: m = BetaAdicMonoid(3, dag.AnyWord([0,1,3]))
-            sage: m.adherence()
-            DetAutomaton with 1 states and an alphabet of 3 letters
-        """
-        if tss is None:
-            if hasattr(self, 'tss'):
-                tss = self.tss
-            else:
-                tss = self.a
-        if C is None:
-            C = list(set(self.a.alphabet))
-        if C2 is None:
-            C2 = list(set(tss.alphabet))
-        if verb:
-            print("Calcul de l'automate des relations...")
-        Cd = list(set([c1 - c2 for c1 in C2 for c2 in C]))
-        if verb:
-            print("Cd=%s" % Cd)
-        a = self.relations_automaton(Ad=Cd, ext=ext)
-        if verb:
-            print(" -> %s" % a)
-        if step == 1:
-            return a
-        if ext:
-            a = a.prune_inf()
-        a = a.prune()
-        if verb:
-            print(" Après émondation : %s" % a)
-        if step == 2:
-            return a
-        d = {}
-        for c1 in C2:
-            for c2 in C:
-                if not d.has_key(c1 - c2):
-                    d[c1-c2] = []
-                d[c1-c2].append((c1, c2))
-        if verb:
-            print(d)
-        a2 = a.duplicate(d, verb=verb)
-        if verb:
-            print(a2.alphabet)
-            print(a2)
-        if step == 3:
-            return a2
-        ap = tss.product(DetAutomaton(self.a), verb=verb)
-        if ext:
-            ap = ap.prefix_closure()
-        if step == 4:
-            return ap
-        a2 = ap.intersection(a2)
-        if step == 5:
-            return a2
-        if ext:
-            a2 = a2.prune_inf()
-        a2 = a2.prune()
-        if step == 6:
-            return a2
-        a2 = a2.minimize()
-        if step == 7:
-            return a2
-        if verb:
-            print("determine...")
-        d = {}
-        for c1, c2 in a2.alphabet:
-            d[(c1, c2)] = c2
-        a2 = a2.determinize_proj(d, verb=verb)
-        if step == 8:
-            return a2
-        if verb:
-            print(" -> %s" % a2)
-        if ext:
-            a2 = a2.prune_inf()
-        a2 = a2.prune()
-        if step == 9:
-            return a2
-        if verb:
-            print("After simplification : %s" % a2)
-        return a2.minimize()
-
-    # obsolete
-    # donne l'automate décrivant le translaté de +t, avec les chiffres C
-    # obsolete use move2
-    def move(self, t, DetAutomaton tss=None, list C=None, step=None):
-        """
-        Return the computed  adherence of the new automaton
-        (Give the automaton of translated +t with letters)
-
-        INPUT:
-
-        - ``t`` int translated index
-        - ``tss``- DetAutomaton (default: ``None``)
-          The first subshift to associate to the beta-adic monoid
-          for this operation.
-        - ``C`` list - precision (default: ``None``)
-        - ``step``-  (default: ``None``)
-
-
-        OUTPUT:
-
-        return the computed  adherence of the new automaton
-
-
-        EXAMPLES::
-
-            sage: m = BetaAdicMonoid(3, dag.AnyWord([0,1,3]))
-            sage: m.move(1)
-            DetAutomaton with 3703 states and an alphabet of 3 letters
-        """
-        if tss is None:
-            if hasattr(self, 'tss'):
-                if isinstance(self.tss, DetAutomaton):
-                    tss = self.tss
-                else:
-                    tss = DetAutomaton(self.tss)
-            else:
-                tss = DetAutomaton(self.a)
-        if C is None:
-            C = list(set(self.a.alphabet))
-
-        A = tss.alphabet
-        k = self.b.parent()
-        nA = list(set([k(a+t2) for a in A for t2 in [0,t]]))
-        a = tss.bigger_alphabet(nA)
-
-        # add a new state
-        cdef int ne, ei
-        ei = a.initial_state
-        ne = a.n_states  # new added state
-        a.add_state(a.is_final(ei))
-        a.set_initial_state(ne)  # it is the new initial state
-        if step == 2:
-            return a
-
-        # add edges from the new state (copy edges
-        # from the initial state and move them)
-        cdef s
-        for j in range(len(A)):
-            a.set_succ(ne, nA.index(A[j] + t), tss.succ(ei, j))
-        if step == 3:
-            return a
-
-        # compute the adherence of the new automaton
-        return self.adherence(tss=a, C=C, C2=nA)
-
-    # project a translated by t on b (do the same as move2)
-    def Proj(self, a, b, t=0, arel=None):
-        m2 = BetaAdicMonoid(self.b, set(a.alphabet+b.alphabet))
+    # project a translated by t on a
+    def Proj(self, a, t=0, arel=None):
+        if isinstance(a, BetaAdicMonoid):
+            a = a.a
+        try:
+            a = DetAutomaton(a)
+        except:
+            raise ValueError("a must be an automaton or a BetaAdicMonoid.")
         if arel is None:
             # compute the relations automaton with translation t
-            arel = m2.relations_automaton(t=t, couples=True,
-                                           A=a.alphabet, B=b.alphabet)
-        ai = arel.intersection(a.zero_complete2().product(b))
-        d = {}
-        for i in a.alphabet:
-            for j in b.alphabet:
-                d[(i, j)] = j
-        r = ai.proj(d)
+            arel = self.relations_automaton(t=t, couples=True,
+                                           A=self.a.alphabet, B=a.alphabet)
+        ai = arel.intersection(self.a.zero_complete2().product(a))
+        r = ai.proji(1)
         r.zero_completeOP()
         return r
 
-
-    # donne l'automate décrivant le translaté de +t de a,
-    # avec les chiffres A au départ et B à l'arrivée, le tout dans l'ensemble décrit par b
-    def move2(self, t, DetAutomaton a=None, DetAutomaton b=None,
-              list A=None, list B=None, ar=None, verb=False):
-        if a is None:
-            if hasattr(self, 'tss'):
-                if isinstance(self.tss, DetAutomaton):
-                    a = self.tss
-                else:
-                    a = DetAutomaton(self.tss)
-            else:
-                a = DetAutomaton(None)
-        if b is None:
-            b = DetAutomaton(None)
-            #            if hasattr(self, 'tss'):
-            #                if isinstance(self.tss, DetAutomaton):
-            #                    b = self.tss
-            #                else:
-            #                    b = DetAutomaton(self.tss)
-            #            else:
-            #                b = DetAutomaton(self.default_ss())
-        if A is None:
-            A = list(set(a.A))
-        if B is None:
-            B = list(set(b.A))
-        if ar is None:
-            # compute the relations automaton with translation t
-            ar = self.relations_automaton(t=t, A=A, B=B,
-                                          couples=True, verb=False)
-        # compute the product of a and b
-        if verb:
-            print("product...")
-        ap = a.zero_complete2().product(b.zero_complete2())
-        if verb:
-            print("ap = %s" % ap)
-        # compute the intersections
-        if verb:
-            print("intersection...")
-        ai = ar.intersection(ap)
-        if verb:
-            print("ai = %s" % ai)
-        if verb:
-            print("min...")
-        ai = ai.minimize()
-        if verb:
-            print("ai = %s" % ai)
-        # project on one side
-        d = {}
-        for c1 in A:
-            for c2 in B:
-                d[(c1, c2)] = c2
-        if verb:
-            print("d=%s" % d)
-        if verb:
-            print("determinize...")
-        ai = ai.determinize_proj(d, verb=verb)
-        if verb:
-            print("ai=%s" % ai)
-        if verb:
-            print("min")
-        ai.zero_completeOP()
-        return ai.prune().minimize()
+#    # donne l'automate décrivant le translaté de +t de a,
+#    # avec les chiffres A au départ et B à l'arrivée, le tout dans l'ensemble décrit par b
+#    def move2(self, t, DetAutomaton a=None, DetAutomaton b=None,
+#              list A=None, list B=None, ar=None, verb=False):
+#        if a is None:
+#            if hasattr(self, 'tss'):
+#                if isinstance(self.tss, DetAutomaton):
+#                    a = self.tss
+#                else:
+#                    a = DetAutomaton(self.tss)
+#            else:
+#                a = DetAutomaton(None)
+#        if b is None:
+#            b = DetAutomaton(None)
+#            #            if hasattr(self, 'tss'):
+#            #                if isinstance(self.tss, DetAutomaton):
+#            #                    b = self.tss
+#            #                else:
+#            #                    b = DetAutomaton(self.tss)
+#            #            else:
+#            #                b = DetAutomaton(self.default_ss())
+#        if A is None:
+#            A = list(set(a.A))
+#        if B is None:
+#            B = list(set(b.A))
+#        if ar is None:
+#            # compute the relations automaton with translation t
+#            ar = self.relations_automaton(t=t, A=A, B=B,
+#                                          couples=True, verb=False)
+#        # compute the product of a and b
+#        if verb:
+#            print("product...")
+#        ap = a.zero_complete2().product(b.zero_complete2())
+#        if verb:
+#            print("ap = %s" % ap)
+#        # compute the intersections
+#        if verb:
+#            print("intersection...")
+#        ai = ar.intersection(ap)
+#        if verb:
+#            print("ai = %s" % ai)
+#        if verb:
+#            print("min...")
+#        ai = ai.minimize()
+#        if verb:
+#            print("ai = %s" % ai)
+#        # project on one side
+#        d = {}
+#        for c1 in A:
+#            for c2 in B:
+#                d[(c1, c2)] = c2
+#        if verb:
+#            print("d=%s" % d)
+#        if verb:
+#            print("determinize...")
+#        ai = ai.determinize_proj(d, verb=verb)
+#        if verb:
+#            print("ai=%s" % ai)
+#        if verb:
+#            print("min")
+#        ai.zero_completeOP()
+#        return ai.prune().minimize()
 
     # return the automaton recognizing the division by beta and translation t
     def shift(self, DetAutomaton aa,
@@ -2817,112 +2723,112 @@ cdef class BetaAdicMonoid:
             a = a.union(a2)
         return a
 
-    # calcule l'intersection des ensembles limites
-    def intersection3(self, DetAutomaton a, DetAutomaton b, ext=True):
-        a2 = self.complete(a, ext=ext)
-        b2 = self.complete(b, ext=ext)
-        return a2.intersection(b2).prune()
-
-    # determine if the limit sets intersect
-    def intersect(self, DetAutomaton a, DetAutomaton b, ext=True, verb=False):
-        a2 = self.complete(a, ext=ext)
-        if verb:
-            print("a2=%s" % a2)
-        b2 = self.complete(b, ext=ext)
-        if verb:
-            print("b2=%s" % b2)
-        return not a2.intersection(b2).is_empty(ext)
-
-    # Dit si toutes les tuiles du pavages autosimilaire sont connexes ou pas
-    def is_all_connected(self, DetAutomaton a=None, ext=True, verb=False):
-        if a is None:
-            if hasattr(self, 'tss'):
-                if isinstance(self.tss, DetAutomaton):
-                    a = m.tss
-                else:
-                    a = DetAutomaton(self.tss)
-            else:
-                a = DetAutomaton(None).full(list(self.C))
-
-        from sage.graphs.graph import Graph
-        n = a.n_states
-        na = len(a.alphabet)
-        d = dict([])  # dictionnaire des automates complétés
-        if verb:
-            print("Automaton of relations...")
-        arel = self.relations_automaton(ext=ext)
-        for i in range(n):
-            if verb:
-                print("piece %s" % i)
-            g = Graph({j: {} for j in range(na) if a.succ(i, j) != -1})
-            # compute the neighboorhood graph of the piece i
-            for j in g.vertices():
-                for k in g.vertices():
-                    if k >= j:
-                        continue
-                    if verb:
-                        print(" intersection %s et %s..." % (j, k))
-                    la = []
-                    la.append(a.piece(j, e=i).minimize())
-                    la.append(a.piece(k, e=i).minimize())
-                    for l in range(2):
-                        a2 = d.get(la[l])
-                        # récupère le complété dans le dictionnaire s'il y est
-                        if a2 is None:
-                            if verb:
-                                print("  complete %s..." % la[l])
-                            a2 = self.complete(la[l], ext=ext)
-                            d[la[l]] = a2
-                            la[l] = a2
-                        else:
-                            la[l] = a2
-                            if verb:
-                                print("  already calculated !")
-                    if verb:
-                        print("  intersect...")
-                    # if self.intersect(a.piece(j, e=i), a.piece(k, e=i), ext=ext, verb=verb):
-                    if la[0].intersect(la[1], ext=ext):
-                        if verb:
-                            print("  yes !")
-                        g.add_edge(j, k)
-            if not g.is_connected():
-                return False
-        return True
-
-    # Dit si l'ensemble limite est connexe ou pas
-    def is_connected(self, DetAutomaton a=None):
-        if a is None:
-            if hasattr(self, 'tss'):
-                a = DetAutomaton(self.tss)
-            else:
-                a = DetAutomaton(None).full(self.C)
-
-        n = a.n_states
-        na = len(a.alphabet)
-        rules = [[[l] for l in a.alphabet] for i in range(n)]
-        gvois = [Graph(na) for i in range(n)]  # graphe des morceaux voisins
-        gnvois = [Graph(na) for i in range(n)]  # graphe des morceaux non voisins
-
-        # liste des morceaux dont il faut tester
-        # la connexité du graphe de voisinage
-        m = [a.initial_state]
-
-        while len(m) > 0:
-            i = m.pop()
-            gvois[i].connected_component_containing_vertex(i)
-
-        raise ValueError("Not implemented !")
-
-    # Dit si l'ensemble limite est simplement connexe ou pas
-    def is_simply_connected(self, DetAutomaton a=None):
-        if a is None:
-            if hasattr(self, 'tss'):
-                a = DetAutomaton(self.tss)
-            else:
-                a = DetAutomaton(None).full(self.C)
-        # TODO!
-        else:
-            raise ValueError("Not implemented !")
+#    # calcule l'intersection des ensembles limites
+#    def intersection3(self, DetAutomaton a, DetAutomaton b, ext=True):
+#        a2 = self.complete(a, ext=ext)
+#        b2 = self.complete(b, ext=ext)
+#        return a2.intersection(b2).prune()
+#
+#    # determine if the limit sets intersect
+#    def intersect(self, DetAutomaton a, DetAutomaton b, ext=True, verb=False):
+#        a2 = self.complete(a, ext=ext)
+#        if verb:
+#            print("a2=%s" % a2)
+#        b2 = self.complete(b, ext=ext)
+#        if verb:
+#            print("b2=%s" % b2)
+#        return not a2.intersection(b2).is_empty(ext)
+#
+#    # Dit si toutes les tuiles du pavages autosimilaire sont connexes ou pas
+#    def is_all_connected(self, DetAutomaton a=None, ext=True, verb=False):
+#        if a is None:
+#            if hasattr(self, 'tss'):
+#                if isinstance(self.tss, DetAutomaton):
+#                    a = m.tss
+#                else:
+#                    a = DetAutomaton(self.tss)
+#            else:
+#                a = DetAutomaton(None).full(list(self.C))
+#
+#        from sage.graphs.graph import Graph
+#        n = a.n_states
+#        na = len(a.alphabet)
+#        d = dict([])  # dictionnaire des automates complétés
+#        if verb:
+#            print("Automaton of relations...")
+#        arel = self.relations_automaton(ext=ext)
+#        for i in range(n):
+#            if verb:
+#                print("piece %s" % i)
+#            g = Graph({j: {} for j in range(na) if a.succ(i, j) != -1})
+#            # compute the neighboorhood graph of the piece i
+#            for j in g.vertices():
+#                for k in g.vertices():
+#                    if k >= j:
+#                        continue
+#                    if verb:
+#                        print(" intersection %s et %s..." % (j, k))
+#                    la = []
+#                    la.append(a.piece(j, e=i).minimize())
+#                    la.append(a.piece(k, e=i).minimize())
+#                    for l in range(2):
+#                        a2 = d.get(la[l])
+#                        # récupère le complété dans le dictionnaire s'il y est
+#                        if a2 is None:
+#                            if verb:
+#                                print("  complete %s..." % la[l])
+#                            a2 = self.complete(la[l], ext=ext)
+#                            d[la[l]] = a2
+#                            la[l] = a2
+#                        else:
+#                            la[l] = a2
+#                            if verb:
+#                                print("  already calculated !")
+#                    if verb:
+#                        print("  intersect...")
+#                    # if self.intersect(a.piece(j, e=i), a.piece(k, e=i), ext=ext, verb=verb):
+#                    if la[0].intersect(la[1], ext=ext):
+#                        if verb:
+#                            print("  yes !")
+#                        g.add_edge(j, k)
+#            if not g.is_connected():
+#                return False
+#        return True
+#
+#    # Dit si l'ensemble limite est connexe ou pas
+#    def is_connected(self, DetAutomaton a=None):
+#        if a is None:
+#            if hasattr(self, 'tss'):
+#                a = DetAutomaton(self.tss)
+#            else:
+#                a = DetAutomaton(None).full(self.C)
+#
+#        n = a.n_states
+#        na = len(a.alphabet)
+#        rules = [[[l] for l in a.alphabet] for i in range(n)]
+#        gvois = [Graph(na) for i in range(n)]  # graphe des morceaux voisins
+#        gnvois = [Graph(na) for i in range(n)]  # graphe des morceaux non voisins
+#
+#        # liste des morceaux dont il faut tester
+#        # la connexité du graphe de voisinage
+#        m = [a.initial_state]
+#
+#        while len(m) > 0:
+#            i = m.pop()
+#            gvois[i].connected_component_containing_vertex(i)
+#
+#        raise ValueError("Not implemented !")
+#
+#    # Dit si l'ensemble limite est simplement connexe ou pas
+#    def is_simply_connected(self, DetAutomaton a=None):
+#        if a is None:
+#            if hasattr(self, 'tss'):
+#                a = DetAutomaton(self.tss)
+#            else:
+#                a = DetAutomaton(None).full(self.C)
+#        # TODO!
+#        else:
+#            raise ValueError("Not implemented !")
 
     # used by Approx
     def Approx_rec(self, DetAutomaton a, test, f, x, int n, int n2):
@@ -2990,7 +2896,7 @@ cdef class BetaAdicMonoid:
     # calcule la liste triée (par rapport à la place >1) des
     # premiers points dans omega-omega
     #
-    # THIS FUNCTION IS UNCORRECT AND VERY INEFFICIENT ! SHOULD BE IMPROVED.
+    # THIS FUNCTION IS INCORRECT AND VERY INEFFICIENT ! SHOULD BE IMPROVED.
     #
     def compute_translations(self, DetAutomaton aoc, imax=None, verb=False):
         b = self.b
