@@ -1219,7 +1219,7 @@ cdef class DetAutomaton:
         DetAutomaton with 4 states and an alphabet of 2 letters
         sage: d = DiGraph({0: [1,2,3], 1: [0,2]})
         sage: DetAutomaton(d)
-        Warning: the automaton was not deterministic !
+        Warning: the automaton was not deterministic! (edge 0 -None-> 1 and edge 0 -None-> 2)
         The result lost some informations.
         DetAutomaton with 4 states and an alphabet of 1 letters
         sage: g = DiGraph({0:{1:'x',2:'z',3:'a'}, 2:{5:'o'}})
@@ -2343,42 +2343,10 @@ cdef class DetAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.prune(True)
-            4 components : [ 1 0 3 2 ]
-            0 : [ 1 ]
-            1 : [ 0 ]
-            2 : [ 3 ]
-            3 : [ 2 ]
-            0 co-acc
-            1 co-acc
-            2 co-acc
-            3 co-acc
-            rec...
-            l : [ 0(7) 1(7) -1(5) -1(5) ]
-            create the new automaton 2 2...
-            pass 2
-            pass 3
-            deleted states : [ 2( non-acc ) 3( non-acc ) ]
+            sage: a.prune()
             DetAutomaton with 2 states and an alphabet of 2 letters
             sage: b = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: b.prune(True)
-            4 components : [ 1 0 3 2 ]
-            0 : [ 1 ]
-            1 : [ 0 ]
-            2 : [ 3 ]
-            3 : [ 2 ]
-            0 co-acc
-            1 co-acc
-            2 co-acc
-            3 co-acc
-            rec...
-            l : [ -1(5) -1(5) -1(5) -1(5) ]
-            create the new automaton 0 2...
-            pass 0
-            pass 1
-            pass 2
-            pass 3
-            deleted states : [ 0( non-acc ) 1( non-acc ) 2( non-acc ) 3( non-acc ) ]
+            sage: b.prune()
             DetAutomaton with 0 states and an alphabet of 2 letters
 
         """
@@ -2521,6 +2489,8 @@ cdef class DetAutomaton:
             sage: a.intersection(b, simplify=False)
             DetAutomaton with 12 states and an alphabet of 0 letters
         """
+        cdef dict d
+        cdef DetAutomaton p
         d = {}
         for l in self.A:
             if l in a.A:
@@ -2553,6 +2523,7 @@ cdef class DetAutomaton:
             sage: a.is_complete()
             True
         """
+        cdef bool res
         sig_on()
         res = IsCompleteAutomaton(self.a[0])
         answ = c_bool(res)
@@ -2604,9 +2575,9 @@ cdef class DetAutomaton:
     
     def prefix_closure(self):
         """
-        give an automaton recognizing the smallest language stable
-        by prefix containing the language of self
-        i.e. every states begin final
+        Give an automaton recognizing the smallest language stable
+        by prefix and containing the language of self
+        i.e. every states after pruning begins final
 
         OUTPUT:
 
@@ -2633,89 +2604,30 @@ cdef class DetAutomaton:
             a.e[i].final = True
         return r
 
-    # DetAutomaton
     def union(self, DetAutomaton a, simplify=True, verb=False):
         """
-        re-union :class:`DetAutomaton`
+        Return an automaton recognizing the union of the two languages.
 
         INPUT:
 
-        - ``a`` -- :class:`DetAutomaton` to union
-        - ``simplify`` --  (default: ``True``) if simplification
-          is required
+        - ``a`` -- :class:`DetAutomaton`
+        - ``simplify`` --  (default: ``True``)
+          prune and minimize the result ?
         - ``verb`` -- boolean (default: ``False``) if True,
           print debugging informations
 
         OUTPUT:
 
-        Return the union :class:`DetAutomaton`
+        Return a :class:`DetAutomaton`
 
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
-            sage: a.union(b, verb=True)
-            Av=['a']
-            dv={'a': 0}
-            {'a': 0, 'b': 1}
-            {'a': 0, 'd': 1}
-            Keys=[('a', 'a')]
-            dC=
-            [ 0 -1 -1 -1 ]
-            Automaton with 5 states, 2 letters.
-            0 --0--> 1
-            0 --1--> 4
-            1 --0--> 4
-            1 --1--> 4
-            2 --0--> 4
-            2 --1--> 3
-            3 --0--> 4
-            3 --1--> 4
-            4 --0--> 4
-            4 --1--> 4
-            initial state 0.
-            Automaton with 4 states, 2 letters.
-            0 --0--> 3
-            0 --1--> 1
-            1 --0--> 3
-            1 --1--> 3
-            2 --0--> 1
-            2 --1--> 3
-            3 --0--> 3
-            3 --1--> 3
-            initial state 1.
+            sage: a.union(b)
             DetAutomaton with 2 states and an alphabet of 1 letters
             sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')])
-            sage: a.union(b, verb=True)
-            Av=['a']
-            dv={'a': 0}
-            {'a': 0, 'b': 1}
-            {'a': 0, 'd': 1}
-            Keys=[('a', 'a')]
-            dC=
-            [ 0 -1 -1 -1 ]
-            Automaton with 5 states, 2 letters.
-            0 --0--> 1
-            0 --1--> 4
-            1 --0--> 4
-            1 --1--> 4
-            2 --0--> 4
-            2 --1--> 3
-            3 --0--> 4
-            3 --1--> 4
-            4 --0--> 4
-            4 --1--> 4
-            initial state 0.
-            Automaton with 4 states, 2 letters.
-            0 --0--> 3
-            0 --1--> 1
-            1 --0--> 3
-            1 --1--> 3
-            2 --0--> 1
-            2 --1--> 3
-            3 --0--> 3
-            3 --1--> 3
-            initial state 3.
+            sage: a.union(b)
             DetAutomaton with 2 states and an alphabet of 1 letters
 
         """
@@ -2768,7 +2680,10 @@ cdef class DetAutomaton:
     # split the automaton with respect to a DetAutomaton
     def split(self, DetAutomaton a, simplify=True, verb=False):
         """
-        Split the automaton with respect to ``a`` a :class:`DetAutomaton`
+        Split the automaton with respect to ``a`` a :class:`DetAutomaton`.
+        Return two DetAutomaton recognizing the intersection of the language
+        of self with the one of a and with the complementary of the language of a.
+        Warning: There is a side-effect: the automaton self is completed.
 
         INPUT:
 
@@ -2789,57 +2704,20 @@ cdef class DetAutomaton:
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
-            sage: a.split(b, verb=True)
-            Av=['a']
-            dv={'a': 0}
-            {'a': 0, 'b': 1}
-            {'a': 0, 'd': 1}
-            Keys=[('a', 'a')]
-            dC=
-            [ 0 -1 -1 -1 ]
-            Automaton with 4 states, 2 letters.
-            0 --0--> 1
-            2 --1--> 3
-            initial state 0.
-            Automaton with 4 states, 2 letters.
-            0 --0--> 3
-            0 --1--> 1
-            1 --0--> 3
-            1 --1--> 3
-            2 --0--> 1
-            2 --1--> 3
-            3 --0--> 3
-            3 --1--> 3
-            initial state 1.
+            sage: a.split(b)
             [DetAutomaton with 1 states and an alphabet of 1 letters,
              DetAutomaton with 2 states and an alphabet of 1 letters]
             sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')])
-            sage: a.split(b, verb=True)
-            Av=['a']
-            dv={'a': 0}
-            {'a': 0, 'b': 1}
-            {'a': 0, 'd': 1}
-            Keys=[('a', 'a')]
-            dC=
-            [ 0 -1 -1 -1 ]
-            Automaton with 4 states, 2 letters.
-            0 --0--> 1
-            2 --1--> 3
-            initial state 0.
-            Automaton with 4 states, 2 letters.
-            0 --0--> 3
-            0 --1--> 1
-            1 --0--> 3
-            1 --1--> 3
-            2 --0--> 1
-            2 --1--> 3
-            3 --0--> 3
-            3 --1--> 3
-            initial state 3.
+            sage: a.split(b)
             [DetAutomaton with 1 states and an alphabet of 1 letters,
              DetAutomaton with 2 states and an alphabet of 1 letters]
 
         """
+        cdef Automaton ap, ap2
+        cdef Dict dC
+        cdef DetAutomaton r, r2
+        cdef list Av
+        
         # complete the automaton a
         sig_on()
         CompleteAutomaton(a.a)
@@ -2850,8 +2728,6 @@ cdef class DetAutomaton:
             if l in a.A:
                 d[(l, l)] = l
 
-        cdef Automaton ap
-        cdef Dict dC
         r = DetAutomaton(None)
         r2 = DetAutomaton(None)
         Av = []
@@ -2863,11 +2739,11 @@ cdef class DetAutomaton:
             print("dv=%s" % dv)
         sig_on()
         dC = getProductDict(d, self.A, a.A, dv=dv, verb=verb)
-
+        sig_off()
         if verb:
             print("dC=")
             printDict(dC)
-
+        sig_on()
         ap = Product(self.a[0], a.a[0], dC, verb)
         FreeDict(&dC)
         sig_off()
@@ -2879,7 +2755,6 @@ cdef class DetAutomaton:
                 ap.e[i+n1*j].final = self.a.e[i].final and a.a.e[j].final
 
         # complementary of a in self
-        cdef Automaton ap2
         sig_on()
         ap2 = CopyAutomaton(ap, ap.n, ap.na)
         sig_off()
@@ -3008,13 +2883,16 @@ cdef class DetAutomaton:
             sage: a.unshift1(1)
             DetAutomaton with 5 states and an alphabet of 2 letters
         """
-        r = DetAutomaton(None)
+        cdef DetAutomaton r
         cdef Automaton aut
+        cdef int i
+        cdef int ne
+        
+        r = DetAutomaton(None)
         sig_on()
         aut = CopyAutomaton(self.a[0], self.a.n+1, self.a.na)
         sig_off()
-        cdef int i
-        cdef int ne = self.a.n
+        ne = self.a.n
         for i in range(aut.na):
             aut.e[ne].f[i] = -1
         aut.e[ne].f[l] = self.a.i
@@ -3048,6 +2926,8 @@ cdef class DetAutomaton:
             sage: a.unshiftl([0, 1])
             DetAutomaton with 6 states and an alphabet of 2 letters
         """
+        cdef int i
+        
         a = self
         l.reverse()
         for i in l:
@@ -3080,6 +2960,11 @@ cdef class DetAutomaton:
             sage: a.unshift(0, 2)
             DetAutomaton with 0 states and an alphabet of 0 letters
         """
+        cdef Automaton aut
+        cdef DetAutomaton r
+        cdef int i
+        cdef int ne
+        
         if np == 0:
             return self
         if final is None:
@@ -3089,12 +2974,10 @@ cdef class DetAutomaton:
                 return r
             final = self.a.e[self.a.i].final
         r = DetAutomaton(None)
-        cdef Automaton aut
         sig_on()
         aut = CopyAutomaton(self.a[0], self.a.n+np, self.a.na)
         sig_off()
-        cdef int i
-        cdef int ne = self.a.n
+        ne = self.a.n
         for j in range(np):
             for i in range(aut.na):
                 aut.e[ne+j].f[i] = -1
@@ -3103,12 +2986,13 @@ cdef class DetAutomaton:
             else:
                 aut.e[ne+j].f[l] = self.a.i
             aut.e[ne+j].final = final
+            sig_check()
         aut.i = ne+np-1
         r.a[0] = aut
         r.A = self.A
         return r
 
-    def copyn(self, verb=False):  # NFastAutomaton r, verb=False):
+    def copyn(self, verb=False):
         """
         Convert  a determinist automaton :class:`DetAutomaton` to
         a non determinist automaton :class:`NFastAutomaton`
@@ -3132,6 +3016,8 @@ cdef class DetAutomaton:
             NFastAutomaton with 4 states and an alphabet of 2 letters
         """
         cdef NAutomaton a
+        cdef NFastAutomaton r
+        
         r = NFastAutomaton(None)
         sig_on()
         a = CopyN(self.a[0], verb)
@@ -3142,11 +3028,11 @@ cdef class DetAutomaton:
 
     def concat(self, DetAutomaton b, det=True, simplify=True, verb=False):
         """
-        Concatenates :class:`DetAutomaton`, ``b``
+        Return an automaton recognizing the concatenation of the languages of self and ``b``.
 
         INPUT:
 
-        - ``b`` -- :class:`DetAutomaton`  to concatenate
+        - ``b`` -- :class:`DetAutomaton`  to concatenate to self
         - ``det``  -- (default: ``True``) - if True, determinize
         - ``simplify`` -- (default: ``True``) - if True and if det=True,
           prune and minimize
@@ -3155,8 +3041,8 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return a :class:`NFastAutomaton` (if ``det``=``False``)
-        or  :class:`DetAutomaton` (if ``det``=``True``)
+        Return a :class:`NFastAutomaton` (if ``det`` is ``False``)
+        or  :class:`DetAutomaton` (if ``det`` is ``True``)
 
         EXAMPLES::
 
@@ -3173,20 +3059,21 @@ cdef class DetAutomaton:
 
         """
         cdef DetAutomaton a
+        cdef NAutomaton na
+        cdef NFastAutomaton r
+        cdef DetAutomaton r2
+        
         if self.A != b.A:
             A = list(set(self.A).union(set(b.A)))
             if verb:
                 print("Alphabet Changing (%s, %s -> %s)..." % (self.A, b.A, A))
             a = self.bigger_alphabet(A)
             b = b.bigger_alphabet(A)
-            # raise ValueError("Error : concatenation of automaton having 
-            # differents alphabets.")
         else:
             a = self
             A = self.A
         if verb:
             print("a=%s (A=%s)\nb=%s (A=%s)" % (a, a.A, b, b.A))
-        cdef NAutomaton na
         r = NFastAutomaton(None)
         sig_on()
         na = Concat(a.a[0], b.a[0], verb)
@@ -3210,7 +3097,7 @@ cdef class DetAutomaton:
     def proj(self, dict d, det=True, simplify=True, verb=False):
         """
         Project following the dictionary ``d``.
-        Give an automaton where labels are replaced according to ``d``
+        Give an automaton where labels are replaced according to ``d``.
 
         INPUT:
 
@@ -3238,6 +3125,9 @@ cdef class DetAutomaton:
         """
         cdef NAutomaton a
         cdef Dict dC
+        cdef NFastAutomaton r
+        cdef DetAutomaton r2
+        
         r = NFastAutomaton(None)
         A2 = []
         sig_on()
@@ -3293,6 +3183,8 @@ cdef class DetAutomaton:
             DetAutomaton with 1 states and an alphabet of 2 letters
 
         """
+        cdef dict d
+        
         d = {}
         for l in self.A:
             if i < len(l):
@@ -3301,55 +3193,58 @@ cdef class DetAutomaton:
                 raise ValueError("index i %d must be smaller then label size  %d" % (i, len(l)))
         return self.proj(d, det=det, simplify=simplify, verb=verb)
 
-    def determinize_proj(self, d, noempty=True,
-                         onlyfinals=False, nof=False, verb=False):
-        """
-        Project following the dictonary ``d`` and determinize the result.
-
-        INPUT:
-
-        - ``d`` -- dictionary to determine projection
-        - ``noempty``  -- (default: ``True``) If ``True`` won't put the empty
-          set state, if ``False`` put it and gives a complete automaton.
-        - ``onlyfinals``  -- (default: ``False``)
-        - ``nof``  -- (default: ``False``)
-        - ``verb`` -- boolean (default: ``False``) activate or
-          desactivate the verbose mode
-
-        OUTPUT:
-
-        Return a new projected  :class:`DetAutomaton`
-
-        EXAMPLES::
-
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: d = { 'a' : 'a', 'b': 'c', 'c':'c', 'd':'b'}
-            sage: a.determinize_proj(d)
-            DetAutomaton with 2 states and an alphabet of 2 letters
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: a.determinize_proj(d)
-            DetAutomaton with 1 states and an alphabet of 2 letters
-
-        """
-        cdef Automaton a
-        cdef Dict dC
-        if noempty and not onlyfinals and not nof:
-            return self.proj(d=d, verb=verb)
-        else:
-            r = DetAutomaton(None)
-            A2 = []
-            sig_on()
-            d1 = imagDict(d, self.A, A2=A2)
-            if verb:
-                print("d1=%s, A2=%s" % (d1, A2))
-            dC = getDict(d, self.A, d1=d1)
-            a = Determinize(self.a[0], dC, noempty, onlyfinals, nof, verb)
-            FreeDict(&dC)
-            sig_off()
-            # FreeAutomaton(self.a[0])
-            r.a[0] = a
-            r.A = A2
-            return r
+#    def determinize_proj(self, d, noempty=True,
+#                         onlyfinals=False, nof=False, verb=False):
+#        """
+#        Project following the dictonary ``d`` and determinize the result.
+#
+#        INPUT:
+#
+#        - ``d`` -- dictionary to determine projection
+#        - ``noempty``  -- (default: ``True``) If ``True`` won't put the empty
+#          set state, if ``False`` put it and gives a complete automaton.
+#        - ``onlyfinals``  -- (default: ``False``)
+#        - ``nof``  -- (default: ``False``)
+#        - ``verb`` -- boolean (default: ``False``) activate or
+#          desactivate the verbose mode
+#
+#        OUTPUT:
+#
+#        Return a new projected  :class:`DetAutomaton`
+#
+#        EXAMPLES::
+#
+#            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+#            sage: d = { 'a' : 'a', 'b': 'c', 'c':'c', 'd':'b'}
+#            sage: a.determinize_proj(d)
+#            DetAutomaton with 2 states and an alphabet of 2 letters
+#            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
+#            sage: a.determinize_proj(d)
+#            DetAutomaton with 1 states and an alphabet of 2 letters
+#
+#        """
+#        cdef Automaton a
+#        cdef Dict dC
+#        cdef DetAutomaton r
+#        
+#        if noempty and not onlyfinals and not nof:
+#            return self.proj(d=d, verb=verb)
+#        else:
+#            r = DetAutomaton(None)
+#            A2 = []
+#            sig_on()
+#            d1 = imagDict(d, self.A, A2=A2)
+#            sig_off()
+#            if verb:
+#                print("d1=%s, A2=%s" % (d1, A2))
+#            sig_on()
+#            dC = getDict(d, self.A, d1=d1)
+#            a = Determinize(self.a[0], dC, noempty, onlyfinals, nof, verb)
+#            FreeDict(&dC)
+#            sig_off()
+#            r.a[0] = a
+#            r.A = A2
+#            return r
 
     # change lettes according to d, duplicating edges if necessary
     # the result is assumed deterministic !!!
@@ -3378,18 +3273,28 @@ cdef class DetAutomaton:
         """
         cdef Automaton a
         cdef InvertDict dC
+        cdef DetAutomaton r
+        
         r = DetAutomaton(None)
         A2 = []
         sig_on()
         d1 = imagDict2(d, self.A, A2=A2)
+        sig_off()
         if verb:
             print("d1=%s, A2=%s" % (d1, A2))
+        sig_on()
         dC = getDict2(d, self.A, d1=d1)
+        sig_off()
         if verb:
+            sig_on()
             printInvertDict(dC)
+            sig_off()
+        sig_on()
         a = Duplicate(self.a[0], dC, len(A2), verb)
+        sig_off()
         if verb:
             print("end...")
+        sig_on()
         FreeInvertDict(dC)
         sig_off()
         r.a[0] = a
@@ -3448,15 +3353,18 @@ cdef class DetAutomaton:
             l = [ 1 -1 0 ]
 
         """
+        cdef Automaton a
+        cdef int *l
+        cdef int i
+        cdef DetAutomaton r
+        
         if verb:
             print("A=%s" % A)
-        cdef Automaton a
         r = DetAutomaton(None)
-        cdef int *l = <int*>malloc(sizeof(int) * len(A))
+        l = <int*>malloc(sizeof(int) * len(A))
         if l is NULL:
             raise MemoryError("Failed to allocate memory for l in "
                               "permut")
-        cdef int i
         for i in range(self.a.na):
             l[i] = -1
         d = {}
@@ -3498,26 +3406,40 @@ cdef class DetAutomaton:
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.alphabet
             ['a', 'b']
-            sage: l = [ 'b', 'c', 'a']
-            sage: a.permut_op(l, verb=True)
-            A=['b', 'c', 'a']
-            l=[ 1 -1 0 ]
-            l = [ 1 -1 0 ]
+            sage: l = [ 'b', 'a']
+            sage: a.permut_op(l)
             sage: a.alphabet
-            ['b', 'c', 'a']
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
+            ['b', 'a']
+        
+        TESTS::
+            
+            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: l = [ 'b', 'a', 'c']
+            sage: a.permut_op(l)
+            Traceback (most recent call last):
+            ...
+            ValueError: The new alphabet (lenght 3) must have less letters (i.e. <=2).
+            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b'), (1, 2, 'c')])
+            sage: a.alphabet
+            ['a', 'c', 'b']
             sage: a.permut_op(l, verb=True)
-            A=['b', 'c', 'a']
-            l=[ 1 -1 0 ]
-            l = [ 1 -1 0 ]
+            A=['b', 'a', 'c']
+            l=[ 2 0 1 ]
+            l = [ 2 0 1 ]
         """
+        cdef int *l
+        cdef int i
+        cdef int nA = len(A)
+        
+        if nA > self.a.na:
+            raise ValueError("The new alphabet (lenght %s) must have less letters (i.e. <=%s)."% (nA, self.a.na))
+        
         if verb:
             print("A=%s" % A)
-        cdef int *l = <int*>malloc(sizeof(int) * len(A))
+        l = <int*>malloc(sizeof(int) * nA)
         if l is NULL:
             raise MemoryError("Failed to allocate memory for l in "
                               "permut_op")
-        cdef int i
         for i in range(self.a.na):
             l[i] = -1
         d = {}
@@ -3526,6 +3448,7 @@ cdef class DetAutomaton:
         for i, c in enumerate(A):
             if d.has_key(c):
                 l[i] = d[c]  # l gives the old index from the new one
+                sig_check()
         if verb:
             str = "l=["
             for i in range(len(A)):
@@ -3543,7 +3466,7 @@ cdef class DetAutomaton:
         """
         Return a :class:`DetAutomaton`, whose language is the mirror of the
         language of self.
-        Assume the result to be deterministic !!!
+        Assume the result to be deterministic!
 
         OUTPUT:
 
@@ -3558,6 +3481,8 @@ cdef class DetAutomaton:
             sage: a.mirror_det()
             DetAutomaton with 4 states and an alphabet of 2 letters
         """
+        cdef DetAutomaton r
+        
         r = DetAutomaton(None)
         sig_on()
         r.a[0] = MirrorDet(self.a[0])
@@ -3584,6 +3509,8 @@ cdef class DetAutomaton:
             NFastAutomaton with 4 states and an alphabet of 2 letters
 
         """
+        cdef NFastAutomaton r
+        
         r = NFastAutomaton(None)
         sig_on()
         r.a[0] = Mirror(self.a[0])
@@ -3620,16 +3547,20 @@ cdef class DetAutomaton:
             [[1], [0], [3], [2]]
 
         """
-        cdef int* l = <int*>malloc(sizeof(int) * self.a.n)
+        cdef int* l
+        cdef int ncc
+        cdef dict l2
+        cdef int i
+        
+        l = <int*>malloc(sizeof(int) * self.a.n)
         if l is NULL:
             raise MemoryError("Failed to allocate memory for l in "
                               "strongly_connected_component.")
         sig_on()
-        cdef int ncc = StronglyConnectedComponents(self.a[0], l)
+        ncc = StronglyConnectedComponents(self.a[0], l)
         sig_off()
         # inverse la liste
         l2 = {}
-        cdef int i
         for i in range(self.a.n):
             if not l2.has_key(l[i]):
                 l2[l[i]] = []
@@ -3667,14 +3598,19 @@ cdef class DetAutomaton:
             sage: a.acc_and_coacc()
             []
         """
+        cdef int* l
+        cdef int n = self.a.n
+        
         sig_on()
-        cdef int* l = <int*>malloc(sizeof(int) * self.a.n)
+        l = <int*>malloc(sizeof(int) * n)
+        sig_off()
         if l is NULL:
             raise MemoryError("Failed to allocate memory for l in "
                               "acc_and_coacc")
+        sig_on()
         AccCoAcc(self.a, l)
         sig_off()
-        return [i for i in range(self.a.n) if l[i] == 1]
+        return [i for i in range(n) if l[i] == 1]
 
     def coaccessible_states(self):
         """
@@ -3694,16 +3630,21 @@ cdef class DetAutomaton:
             [0, 1, 2, 3]
 
         """
+        cdef int* l
+        cdef int n = self.a.n
+        
         sig_on()
-        cdef int* l = <int*>malloc(sizeof(int) * self.a.n)
+        l = <int*>malloc(sizeof(int) * n)
+        sig_off()
         if l is NULL:
             raise MemoryError("Failed to allocate memory for l in "
                               "coaccessible_states.")
+        sig_on()
         CoAcc(self.a, l)
         sig_off()
-        return [i for i in range(self.a.n) if l[i] == 1]
+        return [i for i in range(n) if l[i] == 1]
 
-    def sub_automaton(self, l, keep_vlabels=True, verb=False):
+    def sub_automaton(self, list l, keep_vlabels=True, verb=False):
         """
         Compute the sub automaton whose states are given by the list ``l``.
 
@@ -3730,13 +3671,21 @@ cdef class DetAutomaton:
             sage: a.sub_automaton(l)
             DetAutomaton with 2 states and an alphabet of 2 letters
         """
-        sig_on()
+        cdef DetAutomaton r
+        cdef int i, n
+        
         r = DetAutomaton(None)
+        sig_on()
         r.a[0] = SubAutomaton(self.a[0], list_to_Dict(l), verb)
+        sig_off()
         r.A = self.A
         if keep_vlabels and self.S is not None:
-            r.S = [self.S[i] for i in l]
-        sig_off()
+            n = len(self.S)
+            r.S = []
+            for i in l:
+                if i < 0 or i >= n:
+                    raise ValueError("Element %s of the list l is not between 0 and %s."% (i, n))
+                r.S.append(self.S[i])
         return r
 
     def minimize(self, verb=False):
@@ -3845,11 +3794,13 @@ cdef class DetAutomaton:
             removes the sink state  1...
             DetAutomaton with 3 states and an alphabet of 2 letters
         """
-        sig_on()
+        cdef DetAutomaton r
+        
         r = DetAutomaton(None)
+        sig_on()
         r.a[0] = Minimise(self.a[0], verb)
-        r.A = self.A
         sig_off()
+        r.A = self.A
         return r
 
     def adjacency_matrix(self, sparse=None):
@@ -3880,6 +3831,9 @@ cdef class DetAutomaton:
             [0 0 0 0]
 
         """
+        cdef int i, j, f
+        cdef dict d
+        
         if sparse is None:
             if self.a.n <= 128:
                 sparse = False
@@ -3887,7 +3841,6 @@ cdef class DetAutomaton:
                 sparse = True
 
         d = {}
-        cdef int i, j, f
         for i in range(self.a.n):
             for j in range(self.a.na):
                 f = self.a.e[i].f[j]
@@ -3923,11 +3876,13 @@ cdef class DetAutomaton:
             DetAutomaton with 3 states and an alphabet of 2 letters
 
         """
-        sig_on()
+        cdef DetAutomaton r
+        
         r = DetAutomaton(None)
+        sig_on()
         r.a[0] = DeleteVertex(self.a[0], i)
-        r.A = self.A
         sig_off()
+        r.A = self.A
         return r
 
     def delete_vertex_op(self, int i):
@@ -3968,37 +3923,12 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return spectral radius of strongly connex component
+        A positive real algebraic number.
 
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.spectral_radius(only_non_trivial=False, verb=True)
-            minimal Automata : DetAutomaton with 3 states and an alphabet of 2 letters
-            3 component strongly connex.
-            component with 1 states...
-            x
-            (x, 1)
-            component with 1 states...
-            x
-            (x, 1)
-            component with 1 states...
-            x
-            (x, 1)
-            0
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: a.spectral_radius(only_non_trivial=False, verb=True)
-            minimal Automata : DetAutomaton with 3 states and an alphabet of 2 letters
-            3 component strongly connex.
-            component with 1 states...
-            x
-            (x, 1)
-            component with 1 states...
-            x
-            (x, 1)
-            component with 1 states...
-            x
-            (x, 1)
+            sage: a.spectral_radius()
             0
 
         """
@@ -4042,6 +3972,8 @@ cdef class DetAutomaton:
             DetAutomaton with 4 states and an alphabet of 2 letters
 
         """
+        cdef DetAutomaton r
+        
         r = DetAutomaton(None)
         sig_on()
         r.a[0] = CopyAutomaton(self.a[0], self.a.n, self.a.na)
@@ -4104,10 +4036,12 @@ cdef class DetAutomaton:
             sage: a.equals_langages(c)
             False
         """
-        sig_on()
-        cdef Dict d = NewDict(self.a.na)
-        sig_off()
+        cdef Dict d
         cdef int i, j
+        
+        sig_on()
+        d = NewDict(self.a.na)
+        sig_off()
         for i in range(self.a.na):
             for j in range(a2.a.na):
                 if self.A[i] == a2.A[j]:
@@ -4116,9 +4050,11 @@ cdef class DetAutomaton:
                         print("%d -> %d" % (i, j))
                     break
                 sig_check()
-        sig_on()
         if verb:
+            sig_on()
             printDict(d)
+            sig_off()
+        sig_on()
         res = equalsLanguages(self.a, a2.a, d, minimized, pruned, verb)
         answ = c_bool(res)
         sig_off()
@@ -4150,7 +4086,7 @@ cdef class DetAutomaton:
         INPUT:
 
         -  ``a2``  -- the :class:`Detautomaton` to intersect
-        - ``verb`` -- boolean (default: ``False``) True to active
+        - ``verb`` -- boolean (default: ``False``) True to activate
           the verbose mode
 
         OUTPUT:
@@ -4211,8 +4147,10 @@ cdef class DetAutomaton:
             sage: a.find_word()
 
         """
-        sig_on()
         cdef Dict w
+        cdef list r
+        
+        sig_on()
         res = findWord(self.a[0], &w, verb)
         sig_off()
         if not res:
@@ -4227,7 +4165,7 @@ cdef class DetAutomaton:
 
     def shortest_word(self, i=None, f=None, bool verb=False):
         """
-        Compute a shortest words of the automaton
+        Compute a shortest words of the language of self.
 
         INPUT:
 
@@ -4249,6 +4187,7 @@ cdef class DetAutomaton:
 
         """
         cdef Dict w
+        
         if i is None:
             i = self.a.i
         if f is None:
@@ -4268,7 +4207,7 @@ cdef class DetAutomaton:
 
     def shortest_words(self, i=None, verb=False):
         """
-        Compute the shortest words of the automaton
+        Compute the shortest words of from the initial state to every state.
 
         INPUT:
 
@@ -4288,8 +4227,10 @@ cdef class DetAutomaton:
             sage: a.shortest_words()
 
         """
+        cdef Dict* w
+        
         sig_on()
-        cdef Dict* w = <Dict*>malloc(sizeof(Dict) * self.a.n)
+        w = <Dict*>malloc(sizeof(Dict) * self.a.n)
         sig_off()
         if w is NULL:
             raise MemoryError("Failed to allocate memory for w in "
@@ -4339,12 +4280,15 @@ cdef class DetAutomaton:
             0
 
         """
+        cdef Dict d
+        cdef dict rd
+        cdef bool res
+        
         rd = {}
         for i, a in enumerate(self.A):
             rd[a] = i
         sig_on()
-        cdef Dict d = NewDict(len(w))
-        cdef bool res
+        d = NewDict(len(w))
         for i, a in enumerate(w):
             d.e[i] = rd[a]
         res = rec_word(self.a[0], d)
@@ -4374,7 +4318,10 @@ cdef class DetAutomaton:
             sage: a.rec_word(w)
             False
         """
-        cdef int e = self.a.i
+        cdef int i, e
+        cdef dict d
+        
+        e = self.a.i
         if e == -1:
             return False
         d = {}
@@ -4463,7 +4410,6 @@ cdef class DetAutomaton:
         try:
             k = self.A.index(l)
         except Exception:
-            # La lettre %s n'existe pas.
             raise ValueError("The letter %s doesn't exist." % l)
         sig_on()
         self.a.e[i].f[k] = j
@@ -4493,20 +4439,20 @@ cdef class DetAutomaton:
     @property
     def n_letters(self):
         """
-        return the numbers of states
+        return the numbers of letters of the alphabet.
 
         OUTPUT:
 
-        return the numbers of states
+        int
 
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.n_states
-            4
+            sage: a.n_letters
+            2
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: a.n_states
-            4
+            sage: a.n_letters
+            2
 
         """
         return self.a.na
@@ -4536,12 +4482,18 @@ cdef class DetAutomaton:
 
         """
         cdef Dict d
+        cdef int i
+        cdef DetAutomaton r
+        
         r = DetAutomaton(None)
         sig_on()
         d = NewDict(self.a.na)
+        sig_off()
         for i in range(self.a.na):
             if self.A[i] in nA:
                 d.e[i] = nA.index(self.A[i])
+                sig_check()
+        sig_on()
         r.a[0] = BiggerAlphabet(self.a[0], d, len(nA))
         sig_off()
         r.A = nA
@@ -4567,8 +4519,9 @@ cdef class DetAutomaton:
             sage: a
             DetAutomaton with 5 states and an alphabet of 2 letters
         """
-        self.complete()
         cdef i
+        
+        self.complete()
         for i in range(self.a.n):
             self.a.e[i].final = not self.a.e[i].final
 
@@ -4626,6 +4579,8 @@ cdef class DetAutomaton:
             True
         """
         cdef DetAutomaton b, a2
+        cdef list A
+        
         if self.A != a.A:
             A = list(set(a.A+self.A))
             b = self.bigger_alphabet(A)
@@ -4722,7 +4677,7 @@ cdef class DetAutomaton:
         """
         return (self.find_word() is None)
 
-    def random_word(self, nmin=-1, nmax=100):
+    def random_word(self, int nmin=-1, int nmax=100):
         r"""
         Return a random word recognized by the automaton, by following a
         random path in the automaton from the initial state. If we don't fall
@@ -4746,7 +4701,10 @@ cdef class DetAutomaton:
             ['a']
  
         """
-        cdef int i = self.a.i
+        cdef int i, j, l, na
+        cdef list w, li
+        
+        i = self.a.i
         w = []
         na = len(self.A)
         if nmin < 0:
@@ -4765,6 +4723,6 @@ cdef class DetAutomaton:
             l = li[(int)(random() * len(li))]
             w.append(self.A[l])
             i = self.succ(i, l)
-        if not self.a.e[i].final:
-            print("word not found !")  # "Mot non trouvé !"
+        if i<0 or not self.a.e[i].final:
+            print("word not found !")
         return w
