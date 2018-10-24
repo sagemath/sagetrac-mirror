@@ -3741,6 +3741,7 @@ start:
             a.e[state].final |= 2; //mark the state as seen
             countStates++;
             //for (j=0;j<a.na;j++)
+            j = 0;
             while(true)
             {
                 if (j >= a.na)

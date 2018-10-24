@@ -19,6 +19,9 @@ Color color0; //couleur du fond
 Color color; //couleur de dessin
 Color* colors; //liste de couleurs de dessin
 
+int ns;
+Complexe cs;
+
 Uint32 moyUint32 (Uint32 a, Uint32 b, double ratio)
 {
     return (Uint32)(Uint8)((a%256)*(1.-ratio) + (b%256)*ratio) | ((Uint32)((Uint8)(((a>>8)%256)*(1.-ratio) + ((b>>8)%256)*ratio)))<<8 | ((Uint32)((Uint8)(((a>>16)%256)*(1.-ratio) + ((b>>16)%256)*ratio)))<<16 | ((Uint32)((Uint8)((a>>24)*(1.-ratio) + (b>>24)*ratio)))<<24;
@@ -504,6 +507,145 @@ bool addA(Automaton *a, int n)
 	return r;
 }
 
+int word[1024];
+
+int sign(int a)
+{
+	if (a > 0)
+		return 1;
+	if (a == 0)
+		return 0;
+	return -1;
+}
+
+double absd (double f)
+{
+	if (f < 0)
+		return -f;
+	return f;
+}
+
+double maxd (double a, double b)
+{
+    if (a < b)
+        return b;
+    return a;
+}
+
+double sqr (double x)
+{
+    return x*x;
+}
+
+int choose_n (int sx, int sy, Complexe b, double sp, int prec, bool verb)
+{
+    int n;
+    double lsp = absd(log(sp));
+    double lb = absd(log(cnorm(b)));
+    if (lb > lsp)
+    {
+        lsp = (lb*3+lsp)/4;
+    }
+    
+    if (prec)
+    {
+        if (verb)
+        {
+            printf("num = %lf", sqr(maxd(absd(Mx2-mx2), absd(My2-my2))));
+            printf("denum = %lf", sqr(maxd(absd(Mx-mx), absd(My-my))));
+        }
+        n = -3 + prec+log(sx*sy*sqr(maxd(absd(Mx2-mx2), absd(My2-my2)))/sqr(maxd(absd(Mx-mx), absd(My-my))))/lsp;
+    }else
+    {
+        n = -1 + log(sx*sy)/lsp;
+    }
+    
+    if (n < 0)
+        n = 0;
+    if (n > 1000000)
+        n = 100;
+    
+    if (verb)
+        printf("n = %d\n", n);
+    return n;
+}
+
+//used by Ajust
+void Browse_rec (BetaAdic b, int n, Complexe p, Complexe bn, int etat)
+{
+    if (etat < 0 || etat >= b.a.n)
+	    return;
+	if (n == 0)
+	{
+		if (!b.a.e[etat].final)
+			return;
+		if (p.x < mx2)
+			mx2 = p.x;
+		if (p.x > Mx2)
+			Mx2 = p.x;
+		if (p.y < my2)
+			my2 = p.y;
+		if (p.y > My2)
+			My2 = p.y;
+	}else
+	{
+		int i;
+		for (i=0;i<b.a.na;i++)
+		{
+			//if (n == niter-1)
+			//{
+			//	color = colors[i];
+			//}
+			if (b.a.e[etat].f[i] != -1)
+			{
+				Browse_rec (b, n-1, add(p, prod(bn, b.t[i])), prod(bn, b.b), b.a.e[etat].f[i]);
+				if (n < 1024)
+				{
+					if (word[n-1] == -2)
+					{
+						word[n-1] = i;
+						word[n] = -2;
+					}
+				}
+			}
+		}
+	}
+}
+
+void Ajust (BetaAdic b, int sx, int sy, int *n, double sp, bool auto_n, bool verb)
+{
+    //initialize the global variables
+    mx2 = 1000000, my2 = 1000000, Mx2 = -1000000, My2 = -1000000; //extremum observés
+    if (verb)
+        printf("Ajust %dx%d, sp=%lf, auto_n=%d...", sx, sy, sp, auto_n);
+    if (auto_n)
+    { //ajust the number of iterations
+        *n = choose_n (sx, sy, b.b, sp, 0, verb);
+    }
+    //niter = n;
+    ns = 0;
+    cs.x = 0;
+    cs.y = 0;
+    Browse_rec(b, *n, zero(), un(), b.a.i);
+    barycentre.x = cs.x/ns;
+    barycentre.y = cs.y/ns;
+    mx = mx2 - (Mx2 - mx2)/100;
+    my = my2 - (My2 - my2)/100;
+    Mx = Mx2 + (Mx2-mx2)/sx + (Mx2 - mx2)/20;
+    My = My2 + (My2-my2)/sy + (My2 - my2)/20;
+    //preserve le ratio
+    double delta = (Mx - mx)*sy - (My - my)*sx;
+    if (delta > 0)
+    {
+        My = My + delta/(2*sx);
+        my = my - delta/(2*sx);
+    }else
+    {
+        Mx = Mx - delta/(2*sy);
+        mx = mx + delta/(2*sy);
+    }
+}
+
 Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, double sp, int verb)
 {
 	Automaton r = NewAutomaton(2, b.n);
@@ -741,24 +883,13 @@ void invertRect(SDL_Surface *s, int x1, int y1, int x2, int y2)
 	}
 }
 
-int sign(int a)
-{
-	if (a > 0)
-		return 1;
-	if (a == 0)
-		return 0;
-	return -1;
-}
-
-int word[1024];
-
 double mousex = 0, mousey = 0;
 
 double *Rmaj = NULL; //liste de majorants mesurés pour chaque état
 
-//ouvre une fenêtre avec la fractale sur laquelle on peut zoomer
-//coeff = coefficient de calcul du nombre d'itérations
-int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double coeff, double sp, int verb)
+//Open a window where we can zoom in the fractal
+//prec = number of additionnal iterations
+int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int nprec, double sp, int verb)
 {
 	if (SDL_Init(SDL_INIT_VIDEO) == -1)
     {
@@ -771,9 +902,7 @@ int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double c
     Rmaj = NULL;
     if (ajust)
     {
-    	//réinitialise les extremum observés
-    	mx2 = 1000000; my2 = 1000000; Mx2 = -1000000; My2 = -1000000;
-    	mx = -1000000; my = -1000000; Mx = 1000000; My = 1000000;
+    	Ajust (b, sx, sy, &n, sp, true, verb);
     	/*
     	if (b.a.n < 10)
     	{
@@ -794,12 +923,14 @@ int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double c
     	*/
     }
     
-	if (verb)
-	{
-		printf("Dessin de la fractale...\n");
-		printf("n=%d, ajust=%d, verb=%d\n", n, ajust, verb);
-	}
-	Draw(b, s0, n, ajust, col, coeff, sp, verb);
+    //n = choose_n();
+    
+	//if (verb)
+	//{
+	//	printf("Dessin de la fractale...\n");
+	//	printf("n=%d, ajust=%d, verb=%d\n", n, ajust, verb);
+	//}
+	//Draw(b, s0, n, ajust, col, nprec, sp, verb);
 	if (verb)
 		printf("Conversion en SDL...\n");
 	SDL_Surface *s = GetSurface(s0);	//utilisé pour dessiner les transformées
@@ -836,7 +967,8 @@ int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double c
     int x, y, rx, ry, x1, y1, x2, y2;
 	SDL_Event event;
 	bool clic = false;
-	bool redraw = false;
+	bool redraw = true;
+	bool ren = true; //recompute the number of iterations n
 	for(;;)
 	{
 		SDL_WaitEvent(&event); // Récupération des actions de l'utilisateur
@@ -889,6 +1021,7 @@ int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double c
 					My = (My+my + (My-my)*m)/2;
 					my = m2;
 					redraw = true;
+					ren = true;
 				}
 				if (event.key.keysym.sym == SDLK_p)
 				{
@@ -901,13 +1034,11 @@ int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double c
 					My = (My+my + (My-my)*m)/2;
 					my = m2;
 					redraw = true;
+					ren = true;
 				}
 				if (event.key.keysym.sym == SDLK_r)
 				{
-					//réinitialise les extremum observés
-			    	mx2 = 1000000; my2 = 1000000; Mx2 = -1000000; My2 = -1000000;
-			    	mx = -1000000; my = -1000000; Mx = 1000000; My = 1000000;
-    				Draw(b, s0, n, true, col, coeff, sp, verb);
+			    	Ajust (b, sx, sy, &n, sp, true, verb);
 					redraw = true;
 				}
 				break;
@@ -938,15 +1069,17 @@ int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double c
 					x2 = rx;
 					y2 = ry;
 					// change la fenetre de dessin et redessine
-					Mx2 = mx + (double)max(x1,x2)*(Mx-mx)/sx;
-					My2 = my + (double)max(y1,y2)*(My-my)/sy;
+					double M2;
+					M2 = mx + (double)max(x1,x2)*(Mx-mx)/sx;
 					mx = mx + (double)mini(x1,x2)*(Mx-mx)/sx;
+					Mx = M2;
+					M2 = my + (double)max(y1,y2)*(My-my)/sy;
 					my = my + (double)mini(y1,y2)*(My-my)/sy;
-					Mx = Mx2;
-					My = My2;
+					My = M2;
 					//invertRect(screen, x1, y1, rx, ry); //éfface le précédent dessin
 					redraw = true;
 					clic = false;
+					ren = true;
 				}
 				if (clic && (x != rx || y != ry))
 				{
@@ -959,6 +1092,15 @@ int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double c
 				ry = y;
 				break;
 		}
+		if (ren)
+		{
+		    if (verb)
+		        printf("choose_n mx=%lf, my=%lf, Mx=%lf, My=%lf, mx2=%lf, my2=%lf, Mx2=%lf, My2=%lf... ", mx, my, Mx, My, mx2, my2, Mx2, My2);
+		    n = choose_n (sx, sy, b.b, sp, nprec, verb);
+		    if (verb)
+    		    printf("...n=%d\n", n);
+    		ren = false;
+		}
 		if (redraw)
 		{
 			redraw = false;
@@ -968,7 +1110,7 @@ int *DrawZoom (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double c
 				printf("zone (%lf ... %lf)x(%lf ... %lf)\n", mx, Mx, my, My);
 				printf("n=%d, ajust=%d, verb=%d\n", n, ajust, verb);
 			}
-			Draw(b, s0, n, false, col, coeff, sp, verb);
+			Draw(b, s0, n, false, col, nprec, sp, verb);
 			s = GetSurface(s0);	//utilisé pour dessiner les transformées
 		    SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0xFF, 0xFF, 0xFF));
 		    SDL_BlitSurface(s, NULL, screen, NULL);
@@ -1149,9 +1291,6 @@ inline Color moy (Color a, Color b, double ratio)
 	return r;
 }
 
-int ns;
-Complexe cs;
-
 inline bool set_pix (Surface s, Complexe p)
 {
 	if (p.x < mx || p.x >= Mx || p.y < my || p.y >= My)
@@ -1280,6 +1419,7 @@ void Draw_rec2 (BetaAdic b, Surface s, int n, int etat)
 			printf("état %d !\n", etat);
 			return;
 		}
+		/*
 		if (pos.x < mx2)
 			mx2 = pos.x;
 		if (pos.x > Mx2)
@@ -1288,6 +1428,7 @@ void Draw_rec2 (BetaAdic b, Surface s, int n, int etat)
 			my2 = pos.y;
 		if (pos.y > My2)
 			My2 = pos.y;
+		*/
 		pos = add(pos, b.t[etat]);
 		set_pix (s, pos);
 	}else
@@ -1311,6 +1452,7 @@ void DrawList_rec (BetaAdic2 b, Surface s, int n, Complexe p, Complexe bn, int *
 		{
 			return;
 		}
+		/*
 		if (p.x < mx2)
 			mx2 = p.x;
 		if (p.x > Mx2)
@@ -1319,6 +1461,7 @@ void DrawList_rec (BetaAdic2 b, Surface s, int n, Complexe p, Complexe bn, int *
 			my2 = p.y;
 		if (p.y > My2)
 			My2 = p.y;
+		*/
 		color = colors[0];
 		for (i=b.na-1;i>0;i--)
 		{
@@ -1430,6 +1573,7 @@ void Draw_rec (BetaAdic b, Surface s, int n, Complexe p, Complexe bn, int etat)
 	{
 		if (!b.a.e[etat].final)
 			return;
+		/*
 		if (p.x < mx2)
 			mx2 = p.x;
 		if (p.x > Mx2)
@@ -1438,6 +1582,7 @@ void Draw_rec (BetaAdic b, Surface s, int n, Complexe p, Complexe bn, int etat)
 			my2 = p.y;
 		if (p.y > My2)
 			My2 = p.y;
+		*/
 		if (set_pix(s, p))
 			word[0] = -2;
 	}else
@@ -1498,6 +1643,7 @@ void Draw_rec_ (BetaAdic b, SDL_Surface s, int n, Complexe p, Complexe bn, int e
 			printf("état %d !\n", etat);
 			return;
 		}
+		/*
 		if (p.x < mx2)
 			mx2 = p.x;
 		if (p.x > Mx2)
@@ -1506,6 +1652,7 @@ void Draw_rec_ (BetaAdic b, SDL_Surface s, int n, Complexe p, Complexe bn, int e
 			my2 = p.y;
 		if (p.y > My2)
 			My2 = p.y;
+		*/
 		if (set_pix2(&s, p))
 			word[0] = -2;
 	}else
@@ -1577,6 +1724,7 @@ void Draw_recNP (ArgNP *a, int n, Complexe p, Complexe bn, int etat)
 			printf("état %d !\n", etat);
 			return;
 		}
+		/*
 		if (p.x < mx2)
 			mx2 = p.x;
 		if (p.x > Mx2)
@@ -1585,6 +1733,7 @@ void Draw_recNP (ArgNP *a, int n, Complexe p, Complexe bn, int etat)
 			my2 = p.y;
 		if (p.y > My2)
 			My2 = p.y;
+		*/
 		if (set_pixNP(a->data, a->sx, a->sy, p))
 			word[0] = -2;
 	}else
@@ -1638,46 +1787,11 @@ Color randColor (int a)
 	return c;
 }
 
-double absd (double f)
-{
-	if (f < 0)
-		return -f;
-	return f;
-}
-
-int choose_n (int sx, int sy, Complexe b, double sp, int prec, bool verb)
-{
-    int n;
-    double lsp = absd(log(sp));
-    double lb = absd(log(cnorm(b)));
-    if (lb > lsp)
-    {
-        lsp = (lb*3+lsp)/4;
-    }
-    
-    if (prec)
-    {
-        n = prec+log(sx*sy/absd((Mx-mx)*(My-my)))/lsp;
-    }else
-    {
-        n = log(sx*sy)/lsp;
-    }
-    
-    if (n < 0)
-        n = 0;
-    if (n > 1000000)
-        n = 100;
-    
-    if (verb)
-        printf("n = %d\n", n);
-    return n;
-}
-
-int *Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, double sp, int verb)
+int *Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int nprec, double sp, int verb)
 {
 	int auto_n = (n < 0);
 	//set global variables
-	mx2 = 1000000, my2 = 1000000, Mx2 = -1000000, My2 = -1000000; //extremum observés
+	//mx2 = 1000000, my2 = 1000000, Mx2 = -1000000, My2 = -1000000; //extremum observés
 	if (ajust)
 	{
 		mx = -1000000; my = -1000000; Mx = 1000000; My = 1000000;
@@ -1739,41 +1853,16 @@ int *Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, dou
 	}
 	if (ajust)
 	{ //ajust the window of the drawing
-		if (auto_n)
-		{ //ajust the number of iterations
-			n = choose_n (s.sx, s.sy, b.b, sp, 0, verb);
-		}
-		//niter = n;
-		ns = 0;
-		cs.x = 0;
-		cs.y = 0;
-		Draw_rec(b, s, n, zero(), un(), b.a.i);
-		barycentre.x = cs.x/ns;
-		barycentre.y = cs.y/ns;
-		mx = mx2 - (Mx2 - mx2)/100;
-		my = my2 - (My2 - my2)/100;
-		Mx = Mx2 + (Mx2-mx2)/s.sx + (Mx2 - mx2)/20;
-		My = My2 + (My2-my2)/s.sy + (My2 - my2)/20;
-		//preserve le ratio
-		double delta = (Mx - mx)*s.sy - (My - my)*s.sx;
-		if (delta > 0)
-		{
-			My = My + delta/(2*s.sx);
-			my = my - delta/(2*s.sx);
-		}else
-		{
-			Mx = Mx - delta/(2*s.sy);
-			mx = mx + delta/(2*s.sy);
-		}
+		Ajust (b, s.sx, s.sy, &n, sp, auto_n, verb);
 	}
 	if (verb)
 	{
 		printf("Zone de dessin : (%lf, %lf) (%lf, %lf)\n", mx, my, Mx, My);
 	}
 	Fill(s, color0);
-	if (auto_n)
+	if (auto_n && (!ajust || cnorm(b.b) < 1))
 	{
-		n = choose_n (s.sx, s.sy, b.b, sp, 3, verb);
+		n = choose_n (s.sx, s.sy, b.b, sp, nprec, verb);
 	}
 	//niter = n;
 	Draw_rec(b, s, n, zero(), un(), b.a.i);
@@ -1783,15 +1872,9 @@ int *Draw (BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, dou
 }
 
 //same as Draw, but use SDL_Surface rather than Surface
-int *Draw_ (BetaAdic b, SDL_Surface s, int n, int ajust, Color col, double coeff, double sp, int verb)
+int *Draw_ (BetaAdic b, SDL_Surface s, int n, int ajust, Color col, int nprec, double sp, int verb)
 {
 	int auto_n = (n < 0);
-	//set global variables
-	mx2 = 1000000, my2 = 1000000, Mx2 = -1000000, My2 = -1000000; //extremum observés
-	if (ajust)
-	{
-		mx = -1000000; my = -1000000; Mx = 1000000; My = 1000000;
-	}
 	color0.r = color0.g = color0.b = 255;
 	color0.a = 0;
 	color = col;
@@ -1850,42 +1933,16 @@ int *Draw_ (BetaAdic b, SDL_Surface s, int n, int ajust, Color col, double coeff
 	//ajust the window of the drawing
 	if (ajust)
 	{
-		//ajuste le cadre
-		if (auto_n)
-		{
-			n = choose_n (s.w, s.h, b.b, sp, 0, verb);
-		}
-		//niter = n;
-		ns = 0;
-		cs.x = 0;
-		cs.y = 0;
-		Draw_rec_(b, s, n, zero(), un(), b.a.i);
-		barycentre.x = cs.x/ns;
-		barycentre.y = cs.y/ns;
-		mx = mx2 - (Mx2 - mx2)/100;
-		my = my2 - (My2 - my2)/100;
-		Mx = Mx2 + (Mx2-mx2)/s.w + (Mx2 - mx2)/20;
-		My = My2 + (My2-my2)/s.h + (My2 - my2)/20;
-		//preserve le ratio
-		double delta = (Mx - mx)*s.h - (My - my)*s.w;
-		if (delta > 0)
-		{
-			My = My + delta/(2*s.w);
-			my = my - delta/(2*s.w);
-		}else
-		{
-			Mx = Mx - delta/(2*s.h);
-			mx = mx + delta/(2*s.h);
-		}
+		Ajust (b, s.w, s.h, &n, sp, auto_n, verb);
 	}
 	if (verb)
 	{
 		printf("Zone de dessin : (%lf, %lf) (%lf, %lf)\n", mx, my, Mx, My);
 	}
 	FillSDL(&s, color0);
-	if (auto_n)
+	if (auto_n && (!ajust || cnorm(b.b) < 1))
 	{
-		n = choose_n (s.w, s.h, b.b, sp, 3, verb);
+		n = choose_n (s.w, s.h, b.b, sp, nprec, verb);
 	}
 	//niter = n;
 	Draw_rec_(b, s, n, zero(), un(), b.a.i);
@@ -1895,7 +1952,7 @@ int *Draw_ (BetaAdic b, SDL_Surface s, int n, int ajust, Color col, double coeff
 }
 
 //same as Draw, but draw into a numpy array rather than a surface
-int *DrawNP (BetaAdic b, PyArrayObject *o, int n, int ajust, Color col, double coeff, double sp, int verb)
+int *DrawNP (BetaAdic b, PyArrayObject *o, int n, int ajust, Color col, int nprec, double sp, int verb)
 {
     //check the numpy array
     if (o->nd != 2)
@@ -1914,7 +1971,7 @@ int *DrawNP (BetaAdic b, PyArrayObject *o, int n, int ajust, Color col, double c
     
 	int auto_n = (n < 0);
 	//set global variables
-	mx2 = 1000000, my2 = 1000000, Mx2 = -1000000, My2 = -1000000; //extremum observés
+	//mx2 = 1000000, my2 = 1000000, Mx2 = -1000000, My2 = -1000000; //extremum observés
 	if (ajust)
 	{
 		mx = -1000000; my = -1000000; Mx = 1000000; My = 1000000;
@@ -1978,46 +2035,16 @@ int *DrawNP (BetaAdic b, PyArrayObject *o, int n, int ajust, Color col, double c
 	//ajust the window of the drawing
 	if (ajust)
 	{
-		//ajuste le cadre
-		if (auto_n)
-		{
-			n = choose_n (sx, sy, b.b, sp, 0, verb);
-		}
-		//niter = n;
-		ns = 0;
-		cs.x = 0;
-		cs.y = 0;
-		a.b = b;
-		a.data = data;
-		a.sx = sx;
-		a.sy = sy;
-		Draw_recNP(&a, n, zero(), un(), b.a.i);
-		barycentre.x = cs.x/ns;
-		barycentre.y = cs.y/ns;
-		mx = mx2 - (Mx2 - mx2)/100;
-		my = my2 - (My2 - my2)/100;
-		Mx = Mx2 + (Mx2-mx2)/sx + (Mx2 - mx2)/20;
-		My = My2 + (My2-my2)/sy + (My2 - my2)/20;
-		//preserve le ratio
-		double delta = (Mx - mx)*sy - (My - my)*sx;
-		if (delta > 0)
-		{
-			My = My + delta/(2*sx);
-			my = my - delta/(2*sx);
-		}else
-		{
-			Mx = Mx - delta/(2*sy);
-			mx = mx + delta/(2*sy);
-		}
+		Ajust (b, sx, sy, &n, sp, auto_n, verb);
 	}
 	if (verb)
 	{
 		printf("Zone de dessin : (%lf, %lf) (%lf, %lf)\n", mx, my, Mx, My);
 	}
 	FillNP(o, color0);
-	if (auto_n)
+	if (auto_n && (!ajust || cnorm(b.b) < 1))
 	{
-		n = choose_n (sx, sy, b.b, sp, 3, verb);
+		n = choose_n (sx, sy, b.b, sp, nprec, verb);
 	}
 	//niter = n;
 	a.b = b;
@@ -2030,11 +2057,11 @@ int *DrawNP (BetaAdic b, PyArrayObject *o, int n, int ajust, Color col, double c
 	return word;
 }
 
-void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, double sp, int verb)
+void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int nprec, double sp, int verb)
 {
 	int auto_n = (n < 0);
 	//set global variables
-	mx2 = 1000000, my2 = 1000000, Mx2 = -1000000, My2 = -1000000; //extremum observés
+	//mx2 = 1000000, my2 = 1000000, Mx2 = -1000000, My2 = -1000000; //extremum observés
 	color0.r = color0.g = color0.b = 255;
 	color0.a = 0;
 	color = col;
@@ -2079,37 +2106,16 @@ void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, double sp, int v
 	//ajust the window of the drawing
 	if (ajust)
 	{
-		//ajuste le cadre
-		if (auto_n)
-		{
-			n = choose_n (s.sx, s.sy, b.b, sp, 0, verb);
-		}
-		pos = zero();
-		Draw_rec2 (b, s, n, b.a.i);
-		mx = mx2 - (Mx2 - mx2)/100;
-		my = my2 - (My2 - my2)/100;
-		Mx = Mx2 + (Mx2-mx2)/s.sx + (Mx2 - mx2)/20;
-		My = My2 + (My2-my2)/s.sy + (My2 - my2)/20;
-		//preserve le ratio
-		double delta = (Mx - mx)*s.sy - (My - my)*s.sx;
-		if (delta > 0)
-		{
-			My = My + delta/(2*s.sx);
-			my = my - delta/(2*s.sx);
-		}else
-		{
-			Mx = Mx - delta/(2*s.sy);
-			mx = mx + delta/(2*s.sy);
-		}
+		Ajust (b, s.sx, s.sy, &n, sp, auto_n, verb);
 	}
 	if (verb)
 	{
 		printf("Zone de dessin : (%lf, %lf) (%lf, %lf)\n", mx, my, Mx, My);
 	}
 	Fill(s, color0);
-	if (auto_n)
+	if (auto_n && (!ajust || cnorm(b.b) < 1))
 	{
-		n = choose_n (s.sx, s.sy, b.b, sp, 3, verb);
+		n = choose_n (s.sx, s.sy, b.b, sp, nprec, verb);
 	}
 	pos = zero();
 	Draw_rec2 (b, s, n, b.a.i);
@@ -2168,9 +2174,13 @@ Automaton ApproxImage (BetaAdic b, SDLImage s, int n)
 
 void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double alpha, double sp, int verb)
 {
+    if (b.na < 1)
+    {
+        printf("Error : DrawList called without any automaton!\n");
+    }
 	int auto_n = (n < 0);
 	//set global variables
-	mx2 = 1000000, my2 = 1000000, Mx2 = -1000000, My2 = -1000000; //extremum observés
+	//mx2 = 1000000, my2 = 1000000, Mx2 = -1000000, My2 = -1000000; //extremum observés
 	color0.r = color0.g = color0.b = 255;
 	color0.a = 0;
 	colors = (Color *)malloc(sizeof(Color)*b.na);
@@ -2219,42 +2229,21 @@ void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double al
 	//ajust the window of the drawing
 	if (ajust)
 	{
-		//ajuste le cadre
-		if (auto_n)
-		{
-			n = choose_n (s.sx, s.sy, b.b, sp, 0, verb);
-		}
-		pos = zero();
-		
-		for (i=0;i<b.na;i++)
-		{
-			etat[i] = b.a[i].i;
-		}
-		DrawList_rec (b, s, n, zero(), un(), etat);
-		mx = mx2 - (Mx2 - mx2)/20;
-		my = my2 - (My2 - my2)/20;
-		Mx = Mx2 + (Mx2-mx2)/s.sx + (Mx2 - mx2)/20;
-		My = My2 + (My2-my2)/s.sy + (My2 - my2)/20;
-		//preserve le ratio
-		double delta = (Mx - mx)*s.sy - (My - my)*s.sx;
-		if (delta > 0)
-		{
-			My = My + delta/(2*s.sx);
-			my = my - delta/(2*s.sx);
-		}else
-		{
-			Mx = Mx - delta/(2*s.sy);
-			mx = mx + delta/(2*s.sy);
-		}
+	    BetaAdic bb;
+	    bb.b = b.b;
+	    bb.n = b.n;
+	    bb.t = b.t;
+	    bb.a = b.a[0];
+	    Ajust (bb, s.sx, s.sy, &n, sp, auto_n, verb);
 	}
 	if (verb)
 	{
 		printf("Zone de dessin : (%lf, %lf) (%lf, %lf)\n", mx, my, Mx, My);
 	}
 	Fill(s, color0);
-	if (auto_n)
+	if (auto_n && (!ajust || cnorm(b.b) < 1))
 	{
-		n = choose_n (s.sx, s.sy, b.b, sp, 3, verb);
+		n = choose_n (s.sx, s.sy, b.b, sp, 4, verb);
 	}
 	pos = zero();
 	for (i=0;i<b.na;i++)

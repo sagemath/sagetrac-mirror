@@ -419,15 +419,19 @@ cdef AutomatonToSageAutomaton(Automaton a, A):
             F.append(i)
     return SageAutomaton(L, initial_states=I, final_states=F)
 
-cdef AutomatonToDiGraph(Automaton a, A):
+cdef AutomatonToDiGraph(Automaton a, A, keep_edges_labels=True):
     from sage.graphs.digraph import DiGraph
-    L = []
     cdef int i, j
+    cdef list L
+    L = []
     for i in range(a.n):
         for j in range(a.na):
             if a.e[i].f[j] != -1:
-                L.append((i, a.e[i].f[j], A[j]))
-    return DiGraph(L, loops=True, multiedges=True)
+                if keep_edges_labels:
+                    L.append((i, a.e[i].f[j], A[j]))
+                else:
+                    L.append((i, a.e[i].f[j]))
+    return DiGraph([range(a.n), L], loops=True, multiedges=True)
 
 
 # cdef initFA (Automaton *a):
@@ -1597,7 +1601,7 @@ cdef class DetAutomaton:
         return AutomatonToSageAutomaton(self.a[0], self.A)
 
     # give a Graph from the DetAutomaton
-    def get_DiGraph(self):
+    def get_DiGraph(self, keep_edges_labels=True):
         r"""
         Give a DiGraph from the DetAutomaton
 
@@ -1608,7 +1612,7 @@ cdef class DetAutomaton:
             Looped multi-digraph on 4 vertices
 
         """
-        return AutomatonToDiGraph(self.a[0], self.A)
+        return AutomatonToDiGraph(self.a[0], self.A, keep_edges_labels=keep_edges_labels)
 
     def plot(self, int sx=10, int sy=8, vlabels=None,
              html=False, file=None, bool draw=True, verb=False):
@@ -3909,12 +3913,15 @@ cdef class DetAutomaton:
         DeleteVertexOP(self.a, i)
         sig_off()
 
-    def spectral_radius(self, only_non_trivial=False, verb=False):
+    def spectral_radius(self, approx=True, couple=False, only_non_trivial=False, verb=False):
         """
         Return the spectral radius of the underlying graph.
 
         INPUT:
-
+        
+        - ``approx`` - (default: ``True``) If True gives an approximation,
+          otherwise gives the exact value as an algebraic number. 
+        
         - ``only_non_trivial``  - (default: ``False``) - if True,
           don't take into account strongly connected components of
           cardinality one.
@@ -3923,7 +3930,8 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        A positive real algebraic number.
+        A positive real algebraic number if approx is False,
+        and an interval for the approximation otherwise.
 
         EXAMPLES::
 
@@ -3939,23 +3947,49 @@ cdef class DetAutomaton:
         if verb:
             print("%s component strongly connex." % len(l))
         r = 0  # valeur propre maximale trouvée
+        spm = (0,0) #encadrement de l'approximation maximale trouvée
         for c in l:
             if not only_non_trivial or len(c) > 1:
                 if verb:
                     print("component with %s states..." % len(c))
                 b = a.sub_automaton(c)
-                m = b.adjacency_matrix()
-                cp = m.charpoly()
-                fs = cp.factor()
-                if verb:
-                    print(fs)
-                for f in fs:
+                if approx:
+                    g = b.get_DiGraph()
                     if verb:
-                        print(f)
-                    from sage.functions.other import real_part
-                    from sage.rings.qqbar import AlgebraicRealField
-                    r = max([ro[0] for ro in f[0].roots(ring=AlgebraicRealField())] + [r])
-        return r
+                        print("g=%s"%g)
+                    if g.is_aperiodic():
+                        if verb:
+                            print("aperiodic")
+                        sp = g.spectral_radius()
+                        if verb:
+                            print("sp=%s"%sp)
+                    else:
+                        if verb:
+                            print("non aperiodic")
+                        r = max(b.adjacency_matrix().charpoly().real_roots())
+                        sp = (r,r)
+                    spm = max([sp, spm], key=lambda x:x[0])
+                    if verb:
+                        print("spm=%s"%spm)
+                else:
+                    m = b.adjacency_matrix()
+                    cp = m.charpoly()
+                    fs = cp.factor()
+                    if verb:
+                        print(fs)
+                    for f in fs:
+                        if verb:
+                            print(f)
+                        from sage.functions.other import real_part
+                        from sage.rings.qqbar import AlgebraicRealField
+                        r = max([ro[0] for ro in f[0].roots(ring=AlgebraicRealField())] + [r])
+        if approx:
+            if couple:
+                return spm
+            else:
+                return spm[1]
+        else:
+            return r
 
     def copy(self):
         """

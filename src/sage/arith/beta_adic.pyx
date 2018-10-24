@@ -222,10 +222,10 @@ cdef extern from "draw.h":
     void FreeBetaAdic(BetaAdic b)
     BetaAdic2 NewBetaAdic2(int n, int na)
     void FreeBetaAdic2(BetaAdic2 b)
-    int *DrawZoom(BetaAdic b, int sx, int sy, int n, int ajust, Color col, double coeff, double sp, int verb)
+    int *DrawZoom(BetaAdic b, int sx, int sy, int n, int ajust, Color col, int nprec, double sp, int verb)
     Automaton UserDraw(BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, double sp, int verb)
     #  void WordZone (BetaAdic b, int *word, int nmax)
-    int *Draw(BetaAdic b, Surface s, int n, int ajust, Color col, double coeff, double sp, int verb)
+    int *Draw(BetaAdic b, Surface s, int n, int ajust, Color col, int nprec, double sp, int verb)
     void Draw2(BetaAdic b, Surface s, int n, int ajust, Color col, double sp, int verb)
     void DrawList(BetaAdic2 b, Surface s, int n, int ajust, ColorList lc, double alpha, double sp, int verb)
     void print_word(BetaAdic b, int n, int etat)
@@ -476,7 +476,7 @@ cdef Automaton getAutomate(a, list A, verb=False):
 #        print "...getAutomate"
 #    return r
 
-cdef BetaAdic getBetaAdic(m, prec=53, mirror=True, verb=False):
+cdef BetaAdic getBetaAdic(m, prec=53, mirror=False, verb=False):
     from sage.rings.complex_field import ComplexField
     CC = ComplexField(prec)
     cdef BetaAdic b
@@ -494,7 +494,7 @@ cdef BetaAdic getBetaAdic(m, prec=53, mirror=True, verb=False):
     return b
 
 cdef BetaAdic2 getBetaAdic2(self, la=None,
-                            prec=53, mirror=True, verb=False):
+                            prec=53, mirror=False, verb=False):
     if verb:
         print("getBetaAdic %s" % self)
     from sage.rings.complex_field import ComplexField
@@ -847,7 +847,13 @@ cdef class BetaAdicMonoid:
 
         """
         return self.b
-
+    
+    def mirror(self):
+        """
+        Return the beta-adic set with the mirror automaton.
+        """
+        return BetaAdicMonoid(self.b, self.a.mirror())
+    
     def _testSDL(self):
         """
         Open a window to test the SDL library used for graphical representation.
@@ -953,7 +959,7 @@ cdef class BetaAdicMonoid:
 
     def user_draw(self, n=None,
                   sx=800, sy=600, ajust=True, prec=53, color=(0, 0, 0, 255),
-                  method=0, only_pos=False, verb=False):
+                  method=0, only_pos=False, mirror=False, verb=False):
         r"""
         Display a window where the user can draw a b-adic set based on the current b-adic set.
 
@@ -996,7 +1002,7 @@ cdef class BetaAdicMonoid:
         cdef BetaAdic b
         cdef Automaton a
         cdef DetAutomaton r
-        b = getBetaAdic(self, prec=prec, mirror=True, verb=verb)
+        b = getBetaAdic(self, prec=prec, mirror=mirror, verb=verb)
         # if verb:
         #    printAutomaton(b.a)
         # dessin
@@ -1021,7 +1027,7 @@ cdef class BetaAdicMonoid:
         r.S = range(a.n)
         return BetaAdicMonoid(self.b, r)
 
-    def draw_zoom(self, n=None, int sx=800, int sy=600, bool ajust=True, int prec=53, color=(0, 0, 0, 255), int method=0, float coeff=8., bool verb=False):
+    def draw_zoom(self, n=None, int sx=800, int sy=600, bool ajust=True, int prec=53, color=(0, 0, 0, 255), int method=0, int nprec=3, bool mirror=False, bool verb=False):
         r"""
         Display the b-adic set in a window, with possibility for the user to zoom in.
 
@@ -1044,7 +1050,7 @@ cdef class BetaAdicMonoid:
 
         - ``method`` -- (default 0)
 
-        - ``coeff`` -- (default 8.)
+        - ``nprec`` -- (default 1) - additional iterations for the drawing (if ``n`` is None).
 
         - ``verb`` -- (default ``False``) set ti ``True`` for verbose mod
 
@@ -1062,7 +1068,7 @@ cdef class BetaAdicMonoid:
 
         """
         cdef BetaAdic b
-        b = getBetaAdic(self, prec=prec, mirror=True, verb=verb)
+        b = getBetaAdic(self, prec=prec, mirror=mirror, verb=verb)
         # dessin
         cdef int *word
         cdef Color col
@@ -1075,7 +1081,7 @@ cdef class BetaAdicMonoid:
             n = -1
         if method == 0:
             sig_on()
-            word = DrawZoom(b, sx, sy, n, ajust, col, coeff, self.a.spectral_radius(), verb)
+            word = DrawZoom(b, sx, sy, n, ajust, col, nprec, self.a.spectral_radius(), verb)
             sig_off()
             res = []
             if word is not NULL:
@@ -1091,7 +1097,7 @@ cdef class BetaAdicMonoid:
 
     def plot(self, n=None, sx=800, sy=600,
               ajust=True, prec=53, color=(0, 0, 0, 255),
-              method=0, coeff=8., mirror=True, verb=False):
+              method=0, nprec=3, mirror=False, verb=False):
         r"""
         Draw the beta-adic set.
 
@@ -1119,7 +1125,7 @@ cdef class BetaAdicMonoid:
 
         - ``method`` -- (default : 0)
 
-        - ``coeff`` -- (default 8.)
+        - ``nprec`` -- (default 1) - additionnal iterations
 
         - ``verb`` - bool (default: ``False``)
           Print informations for debugging.
@@ -1175,7 +1181,7 @@ cdef class BetaAdicMonoid:
             sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
             sage: m = s.Du‡montThomas()
             sage: i = m.intersection_words(w1=[0], w2=[1])
-            sage: i.plot(mirror=False, colormap='gist_rainbow')
+            sage: i.plot(mirror=False)
 
         #. A limit set that look like a tiling but with holes::
 
@@ -1219,7 +1225,7 @@ cdef class BetaAdicMonoid:
             n = -1
         if method == 0:
             sig_on()
-            Draw(b, s, n, ajust, col, coeff, self.a.spectral_radius(), verb)
+            Draw(b, s, n, ajust, col, nprec, self.a.spectral_radius(), verb)
             sig_off()
         elif method == 1:
             raise NotImplementedError("Method 1 not implemented !")
@@ -1236,7 +1242,7 @@ cdef class BetaAdicMonoid:
 
     def plot_list(self, list la=None, n=None,
               sx=800, sy=600, ajust=True, prec=53, colormap='hsv',
-              backcolor=None, opacity=1., verb=False):
+              backcolor=None, opacity=1., mirror=False, verb=False):
         r"""
         Draw the beta-adic sets with color according to the list of automata given.
 
@@ -1276,29 +1282,29 @@ cdef class BetaAdicMonoid:
 
             sage: s = WordMorphism('1->12,2->13,3->1')
             sage: m = s.DumontThomas()
-            sage: m.plot_list()
+            sage: m.plot_list(mirror=True)
 
         #. A non-Pisot Rauzy fractal::
 
             sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
             sage: m = s.DumontThomas()
-            sage: m.plot_list()
             sage: m = BetaAdicMonoid(1/m.b, m.a)
-            sage: m.plot_list()
+            sage: m.plot_list(mirror=True)
+            sage: m = BetaAdicMonoid(m.b, m.a.mirror())
+            sage: m.plot_list(mirror=True)
 
         #. The dragon fractal and its boundary::
 
-            sage: e = QQbar(1/(1+I))
-            sage: m = BetaAdicMonoid(e, dag.AnyWord([0,1]))
+            sage: m = BetaAdicMonoid(1/(1+I), dag.AnyWord([0,1]))
             sage: mi = m.intersection_words(w1=[0], w2=[1])
-            sage: m.plot_list(la=[mi.a], colormap=[(.5,.5,.5,.5), (0,0,0,1.)])  # long time
+            sage: m.plot_list(la=[mi.a], n=19, colormap=[(.5,.5,.5,.5), (0,0,0,1.)])  # long time
 
         #. The "Hokkaido" fractal and its boundary::
 
             sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
             sage: m = s.DumontThomas()
             sage: mi = m.intersection_words(w1=[0], w2=[1])                # long time
-            sage: m.plot_list(la=[mi.a], colormap='gist_rainbow')  # long time
+            sage: m.plot_list(la=[mi.a], n=45, colormap='gist_rainbow')  # long time
 
         #. A limit set that look like a tiling::
 
@@ -1306,14 +1312,14 @@ cdef class BetaAdicMonoid:
             sage: b = P.roots(ring=QQbar)[2][0]
             sage: m = BetaAdicMonoid(b, dag.AnyWord([0,1]))
             sage: a = m.reduced_word_automaton()
-            sage: m = BetaAdicMonoid(m.b, a)
-            sage: m.plot_list()
+            sage: m = BetaAdicMonoid(m.b, a.mirror())
+            sage: m.plot_list(mirror=True)
 
         """
         cdef Surface s = NewSurface(sx, sy)
         cdef BetaAdic2 b
         sig_on()
-        b = getBetaAdic2(self, la=la, prec=prec, mirror=True, verb=verb)
+        b = getBetaAdic2(self, la=la, prec=prec, mirror=mirror, verb=verb)
         sig_off()
         # dessin
         if n is None:
@@ -1813,7 +1819,7 @@ cdef class BetaAdicMonoid:
     def prefix(self, w):
         return BetaAdicMonoid(self.b, self.a.prefix(w))
 
-    def intersection_words(self, w1, w2, ext=True, verb=True):
+    def intersection_words(self, w1, w2, ext=True, verb=False):
         r"""
         Compute the intersection of the two beta-adic sets corresponding to words with prefix w1 and prefix w2.
 
