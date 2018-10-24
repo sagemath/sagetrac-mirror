@@ -3,7 +3,7 @@
 # This script gets called from CI to run minimal tests on the sagemath-jupyter
 # image.
 
-# Usage: ./test-jupyter.sh IMAGE-NAME [HOST]
+# Usage: ./check-jupyter.sh IMAGE-NAME [HOST]
 
 # ****************************************************************************
 #       Copyright (C) 2018 Julian Rüth <julian.rueth@fsfe.org>

@@ -40,6 +40,7 @@ if [ -z "$RAMTHREADS" ]; then
         RAMTHREADS=1;
     fi
 fi
+
 if [ -z "$RAMTHREADS_DOCBUILD" ]; then
     RAMTHREADS_DOCBUILD=$(( `docker run docker cat /proc/meminfo | grep MemTotal | awk '{ print $2 }'` / 2097152 ))
     if [ $RAMTHREADS_DOCBUILD = 0 ];then
