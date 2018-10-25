@@ -1668,4 +1668,4 @@ class PackedWords_size(PackedWords):
             [1, 3, 3, 2, 4]
         """
         osp = OrderedSetPartitions(self._size).random_element()
-        return self.element_class(self, osp.to_packed_word(), check=False)
+        return PackedWord(osp.to_packed_word())
