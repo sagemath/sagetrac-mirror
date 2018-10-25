@@ -4,7 +4,7 @@ The Left Weak Order basis of PQSym Hopf algebra.
 """
 
 
-from my_pqsym import ParkingQuasiSymmetricFunctions
+from sage.combinat.cha.my_pqsym import ParkingQuasiSymmetricFunctions
 
 
 class LeftWeakOrder(ParkingQuasiSymmetricFunctions.Bases.Base):

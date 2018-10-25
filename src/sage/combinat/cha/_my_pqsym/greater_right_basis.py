@@ -3,7 +3,7 @@ r"""
 The left elementary basis of WQSym for Weak Order
 """
 
-from my_pqsym import ParkingQuasiSymmetricFunctions
+from sage.combinat.cha.my_pqsym import ParkingQuasiSymmetricFunctions
 
 class GreaterRight(ParkingQuasiSymmetricFunctions.Bases.Base):
     '''

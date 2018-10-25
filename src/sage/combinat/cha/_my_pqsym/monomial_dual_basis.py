@@ -4,7 +4,7 @@ The monomial dual basis of PQSym Hopf algebra.
 """
 
 
-from my_pqsym import ParkingQuasiSymmetricFunctions
+from sage.combinat.cha.my_pqsym import ParkingQuasiSymmetricFunctions
 
 
 class MonomialDual(ParkingQuasiSymmetricFunctions.Bases.Base):

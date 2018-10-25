@@ -3,7 +3,7 @@ r"""
 The homogene basis of WQSym for Weak Order
 """
 
-from my_pqsym import ParkingQuasiSymmetricFunctions
+from sage.combinat.cha.my_pqsym import ParkingQuasiSymmetricFunctions
 
 
 class SmallerLeft(ParkingQuasiSymmetricFunctions.Bases.Base):

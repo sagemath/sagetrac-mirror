@@ -29,21 +29,21 @@ class ParkingQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         )
 
     M = Monomial = LazyImport(
-        "monomial_basis", "Monomial")#sage.combinat.cha._my_pqsym.
+        "sage.combinat.cha._my_pqsym.monomial_basis", "Monomial")
     S = MonomialDual = LazyImport(
-        "monomial_dual_basis", "MonomialDual")#sage.combinat.cha._my_pqsym.
+        "sage.combinat.cha._my_pqsym.monomial_dual_basis", "MonomialDual")
     L = LeftWeakOrder = LazyImport(
-        "left_weak_order_basis","LeftWeakOrder")
+        "sage.combinat.cha._my_pqsym.left_weak_order_basis","LeftWeakOrder")
     R = RightWeakOrder = LazyImport(
-        "right_weak_order_basis","RightWeakOrder")
+        "sage.combinat.cha._my_pqsym.right_weak_order_basis","RightWeakOrder")
     GL = GreaterLeft = LazyImport(
-        "greater_left_basis", "GreaterLeft")
+        "sage.combinat.cha._my_pqsym.greater_left_basis", "GreaterLeft")
     SR = SmallerRight = LazyImport(
-        "smaller_right_basis", "SmallerRight")
+        "sage.combinat.cha._my_pqsym.smaller_right_basis", "SmallerRight")
     GR = GreaterRight = LazyImport(
-        "greater_right_basis", "GreaterRight")
+        "sage.combinat.cha._my_pqsym.greater_right_basis", "GreaterRight")
     SL = SmallerLeft = LazyImport(
-        "smaller_left_basis", "SmallerLeft")
+        "sage.combinat.cha._my_pqsym.smaller_left_basis", "SmallerLeft")
     
     def _repr_(self):
         return "The combinatorial Hopf algebra of Parking Quasi-Symmetric" + \
