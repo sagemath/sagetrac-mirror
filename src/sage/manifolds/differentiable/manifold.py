@@ -3200,6 +3200,59 @@ class DifferentiableManifold(TopologicalManifold):
         vmodule = self.vector_field_module(dest_map)
         return vmodule.metric(name, signature=signature, latex_name=latex_name)
 
+    def degenerate_metric(self, name, latex_name=None, dest_map=None):
+        r"""
+        Define a Riemannian metric on the manifold.
+
+        A *Riemannian metric* is a field of positive definite symmetric
+        bilinear forms acting in the tangent spaces.
+
+        See
+        :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+        for a complete documentation.
+
+        INPUT:
+
+        - ``name`` -- name given to the metric
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          metric; if ``None``, it is formed from ``name``
+        - ``dest_map`` -- (default: ``None``) instance of
+          class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the destination map `\Phi:\ U \rightarrow M`, where `U`
+          is the current manifold; if ``None``, the identity map is assumed
+          (case of a metric tensor field *on* `U`)
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+          representing the defined Riemannian metric.
+
+        EXAMPLES:
+
+        Metric of the hyperbolic plane `H^2`::
+
+            sage: H2 = Manifold(2, 'H^2', start_index=1)
+            sage: X.<x,y> = H2.chart('x y:(0,+oo)')  # Poincaré half-plane coord.
+            sage: g = H2.riemannian_metric('g')
+            sage: g[1,1], g[2,2] = 1/y^2, 1/y^2
+            sage: g
+            Riemannian metric g on the 2-dimensional differentiable manifold H^2
+            sage: g.display()
+            g = y^(-2) dx*dx + y^(-2) dy*dy
+            sage: g.signature()
+            2
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+            for more examples.
+
+        """
+        vmodule = self.vector_field_module(dest_map)
+        dim = vmodule.ambient_domain().dimension()
+        return vmodule.metric(name, signature=(0,dim-1,1), latex_name=latex_name)
+
     def riemannian_metric(self, name, latex_name=None, dest_map=None):
         r"""
         Define a Riemannian metric on the manifold.
