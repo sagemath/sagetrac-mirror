@@ -463,6 +463,19 @@ class Glucose(DIMACS):
     An instance of the Glucose solver.
 
     For information on Glucose see: http://www.lri.fr/~simon/?page=glucose
+
+    EXAMPLES::
+
+        sage: from sage.sat.solvers import Glucose
+        sage: solver = Glucose()
+        sage: solver
+        DIMACS Solver: 'glucose_static -verb=2 {input} {output}'
+        sage: solver.add_clause( (1, 2, 3) )
+        sage: solver.add_clause( (-1,) )
+        sage: solver.add_clause( (-2,) )
+        sage: solver()                            # optional - glucose-syrup
+        (None, False, False, True)
+
     """
 
     command = "glucose_static -verb=2 {input} {output}"
@@ -489,6 +502,26 @@ class Glucose(DIMACS):
            sage: from sage.sat.boolean_polynomials import solve as solve_sat
            sage: F,s = mq.SR(1,1,1,4,gf2=True,polybori=True).polynomial_system()
            sage: solve_sat(F, solver=sage.sat.solvers.Glucose)  # optional - Glucose
+           [{k003: ...,
+             k002: ...,
+             k001: ...,
+             k000: ...,
+             s003: ...,
+             s002: ...,
+             s001: ...,
+             s000: ...,
+             w103: ...,
+             w102: ...,
+             w101: ...,
+             w100: ...,
+             x103: ...,
+             x102: ...,
+             x101: ...,
+             x100: ...,
+             k103: ...,
+             k102: ...,
+             k101: ...,
+             k100: ...}]
         """
         DIMACS.__call__(self)
 
@@ -505,3 +538,24 @@ class Glucose(DIMACS):
             except ValueError:
                 pass
         return False
+class GlucoseSyrup(Glucose):
+    """
+    An instance of the glucose-syrup solver.
+
+    For information on glucose-syrup see: http://www.lri.fr/~simon/?page=glucose
+
+    EXAMPLES::
+
+        sage: from sage.sat.solvers import GlucoseSyrup
+        sage: solver = GlucoseSyrup()
+        sage: solver
+        DIMACS Solver: 'glucose-syrup_static -verb=2 {input} {output}'
+        sage: solver.add_clause( (1, 2, 3) )
+        sage: solver.add_clause( (-1,) )
+        sage: solver.add_clause( (-2,) )
+        sage: solver()                            # optional - glucose-syrup
+        (None, False, False, True)
+
+    """
+    command = "glucose-syrup_static -verb=2 {input} {output}"
+

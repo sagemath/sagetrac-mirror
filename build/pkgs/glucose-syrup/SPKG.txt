@@ -1,0 +1,27 @@
+= Glucose =
+
+== Description ==
+
+  Glucose is a SAT solver based on a particular scoring scheme for the clause
+  learning mechanism, based on the paper Gilles Audemard and Laurent Simon
+  wrote at IJCAI'09.  It is designed to be parallel, since 2014. The name of
+  the Solver is a contraction of the concept of "glue clauses", a
+  particular kind of clauses that glucose detects and preserves during search.
+
+  Glucose is heavily based on Minisat, so please do cite Minisat also if you
+  want to cite Glucose.
+
+== License ==
+
+Their own written licence including a Minisat licence.
+
+== Upstream Contact ==
+
+ * Authors:  Gilles Audemard and Laurent Simon
+ * Email:    http://www.labri.fr/perso/lsimon/contact/
+ * Website:  http://www.labri.fr/perso/lsimon/glucose/
+
+== Special Update/Build Instructions ==
+
+Glucose's tarball (glucose-syrup-4.1.tgz) downloaded from their website.
+
