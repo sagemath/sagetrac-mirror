@@ -551,3 +551,24 @@ class Glucose(DIMACS):
             except ValueError:
                 pass
         return False
+
+class GlucoseSyrup(Glucose):
+    """
+    An instance of the glucose-syrup solver.
+
+    For information on Glucose see: http://www.labri.fr/perso/lsimon/glucose/
+
+    EXAMPLES::
+
+        sage: from sage.sat.solvers import GlucoseSyrup
+        sage: solver = GlucoseSyrup()
+        sage: solver
+        DIMACS Solver: 'glucose-syrup -verb=2 {input} {output}'
+        sage: solver.add_clause( (1, 2, 3) )
+        sage: solver.add_clause( (-1,) )
+        sage: solver.add_clause( (-2,) )
+        sage: solver()                            # optional - glucose
+        (None, False, False, True)
+
+    """
+    command = "glucose-syrup -verb=2 {input} {output}"

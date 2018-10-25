@@ -329,6 +329,9 @@ def SAT(solver=None, *args, **kwds):
 
         - ``"glucose"`` -- note that the glucose package must be installed.
 
+        - ``"glucose-syrup"`` -- note that the glucose package must be
+          installed. This is the parallel version of glucose.
+
         - ``"LP"`` -- use :class:`~sage.sat.solvers.sat_lp.SatLP` to solve the
           SAT instance.
 
@@ -361,6 +364,8 @@ def SAT(solver=None, *args, **kwds):
 
         sage: SAT(solver="glucose")
         DIMACS Solver: 'glucose -verb=2 {input} {output}'
+        sage: SAT(solver="glucose-syrup")
+        DIMACS Solver: 'glucose-syrup -verb=2 {input} {output}'
     """
     if solver is None:
         import pkgutil
@@ -383,6 +388,9 @@ def SAT(solver=None, *args, **kwds):
     elif solver == 'glucose':
         from .dimacs import Glucose
         return Glucose(*args, **kwds)
+    elif solver == 'glucose-syrup':
+        from .dimacs import GlucoseSyrup
+        return GlucoseSyrup(*args, **kwds)
     else:
         raise ValueError("Solver '{}' is not available".format(solver))
 
