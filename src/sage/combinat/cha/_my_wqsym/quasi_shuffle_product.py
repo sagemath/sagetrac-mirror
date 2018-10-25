@@ -64,15 +64,15 @@ class QuasiShuffleProduct(CombinatorialClass):
             # # {a} (S::{b}S')
             a = [self._p1[0]]
             for osp in QuasiShuffleProduct(self._p1[1:], self._p2):
-                yield a + osp
+                yield a + list(osp)
             # # {a,b} (S::S')
             b = [self._p1[0] + self._p2[0]]
             for osp in QuasiShuffleProduct(self._p1[1:], self._p2[1:]):
-                yield b + osp
+                yield b + list(osp)
             # # {b} ({a}S::S')
             c = [self._p2[0]]
             for osp in QuasiShuffleProduct(self._p1, self._p2[1:]):
-                yield c + osp
+                yield c + list(osp)
 
 
 class Shifted_QuasiShuffleProduct(QuasiShuffleProduct):
