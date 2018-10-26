@@ -433,7 +433,7 @@ Complexe FindTr (int n, Complexe c, BetaAdic b, SDL_Surface *s, bool *ok, bool v
 	Complexe r = zero();
 	int i, j;
 	double nn, nmax;
-	int imax;
+	int imax = 0;
 	Complexe ib = inv(b.b);
 	Complexe m = un();
 	Complexe bb = prod(barycentre, b.b);

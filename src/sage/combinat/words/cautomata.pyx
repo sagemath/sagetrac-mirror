@@ -1297,6 +1297,15 @@ cdef class DetAutomaton:
         cdef DetAutomaton da
         # print("init")
         if a is None:
+            if A is not None:
+                self.A = A
+                self.a.na = len(A)
+            if i is not None:
+                print("Warning: Ignore i since there is no state.")
+            if final_states is not None:
+                print("Warning: Ignore final_states since there is no state.")
+            if S is not None:
+                print("Warning: Ignore S since there is no state.")
             return
         from sage.graphs.digraph import DiGraph
         from sage.combinat.finite_state_machine import Automaton as SageAutomaton

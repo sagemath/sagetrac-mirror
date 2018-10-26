@@ -476,6 +476,17 @@ cdef Automaton getAutomate(a, list A, verb=False):
 #        print "...getAutomate"
 #    return r
 
+def mahler(pi):
+    from sage.rings.qqbar import AA
+    pi = pi/pi.denominator()
+    rr = pi.roots(ring=QQbar)
+    p = pi.leading_coefficient()
+    for r in rr:
+        if r[0] not in AA:
+            rr.remove((r[0].conjugate(), r[1]))
+        p *= abs(r[0])
+    return p
+
 cdef BetaAdic getBetaAdic(m, prec=53, mirror=False, verb=False):
     from sage.rings.complex_field import ComplexField
     CC = ComplexField(prec)
@@ -748,7 +759,7 @@ cdef class BetaAdicMonoid:
         try:
             b = QQbar(b)
             pi = QQbar(b).minpoly()
-            self.K = NumberField(pi, 'b', embedding=QQbar(b))
+            self.K = NumberField(pi, 'b', embedding=b)
             self.b = self.K.gen()
         except:
             self.K = b.parent()
@@ -1688,7 +1699,7 @@ cdef class BetaAdicMonoid:
             if verb:
                 print(len(S))
         from sage.functions.log import log
-        print("%s" % (log(len(S)).n() / (niter * abs(log(abs(b.n()))))))
+        print("%s" % (log(len(S)).n() / (niter * log(mahler(b.minpoly()).n()))))
 
     def complexity(self, Ad=None, prec=None, verb=False):
         r"""
@@ -2312,20 +2323,23 @@ cdef class BetaAdicMonoid:
         y = max(e, key=abs)
         if verb:
             print("")
-        print("log(y)/log(|%s|) where y is the max root of %s" % (self.b, QQbar(y).minpoly()))
+        m = mahler(self.b.minpoly())
+        print("log(y)/log(%s) where y is the max root of %s, and %s is root of %s." % (m, QQbar(y).minpoly(), m, m.minpoly()))
         y = y.n(prec)
         from sage.functions.log import log
-        b = self.b.n(prec)
+        m = m.n(prec)
         if verb:
-            print("y=%s, b=%s" % (y, b))
-        return abs(log(y) / log(abs(b))).n()
+            print("y=%s, m=%s" % (y, m))
+        return (log(y) / log(m)).n()
 
     def critical_exponent(self, prec=None, verb=False):
         r"""
         Compute the critical exponent of the beta-adic set.
-        If the beta-adic set is algebraic, then it is equal
+        If the beta-adic set is algebraic and conformal, then it is equal
         to the Hausdorff dimension of the limit set in the
-        contracting space.
+        contracting space (R or C). If the beta-adic set is algebraic but not conformal,
+        then this critical exponent is equal to the dimension of the limit set
+        in the contracting space (product of R, C and p-adic spaces), for an appropriate notion of dimension.
         
         INPUT:
 
@@ -2344,7 +2358,7 @@ cdef class BetaAdicMonoid:
 
                 sage: m = BetaAdicMonoid(3, dag.AnyWord([0,1,3]))
                 sage: m.critical_exponent()
-                log(y)/log(|3|) where y is the max root of x^2 - 3*x + 1
+                log(y)/log(3) where y is the max root of x^2 - 3*x + 1
                 0.8760357589...
 
             #. Hausdorff dimension of limit set of phi-adic expansion with numerals set {0, 1}::
@@ -2354,7 +2368,7 @@ cdef class BetaAdicMonoid:
                 log(y)/log(|b|) where y is the max root of x^2 - x - 1
                 1.0000000000...
 
-            #. Critical exponent that is not the Hausdorff dimension of the limit set::
+            #. Non-conformal example::
 
                 sage: P = x^7 - 2*x^6 + x^3 - 2*x^2 + 2*x - 1
                 sage: b = P.roots(ring=QQbar)[3][0]
@@ -2428,7 +2442,8 @@ cdef class BetaAdicMonoid:
         r"""
         Return the language of all words over the alphabet A
         that describe points of the beta-adic set.
-        If ''ext'' is True, it includes infinite words that fall
+        If ''ext'' is True, it includes words that can be
+        prolongated to infinite words that fall
         into the limit set.
 
         INPUT:
@@ -2471,8 +2486,7 @@ cdef class BetaAdicMonoid:
         ai = ai.proji(1)
         if ext:
             ai = ai.prune_inf()
-        else:
-            ai.zero_completeOP()
+        ai.zero_completeOP()
         if simplify:
             ai = ai.prune().minimize()
         return ai
@@ -2623,7 +2637,7 @@ cdef class BetaAdicMonoid:
 #            print("After simplification : %s" % a2)
 #        return a2.minimize()
 
-    # project a translated by t on a
+    # project the translation by t of self on a
     def Proj(self, a, t=0, arel=None):
         if isinstance(a, BetaAdicMonoid):
             a = a.a
@@ -2702,32 +2716,32 @@ cdef class BetaAdicMonoid:
 #            print("min")
 #        ai.zero_completeOP()
 #        return ai.prune().minimize()
-
-    # return the automaton recognizing the division by beta and translation t
-    def shift(self, DetAutomaton aa,
-              DetAutomaton bb, t=0, verb=False):
-        # détermine la liste des successeurs de l'état initial
-        cdef int i
-        cdef int e
-        l = set()
-        for j in range(aa.a.na):
-            e = aa.a.e[aa.a.i].f[j]
-            if e != -1:
-                l.add(j)
-        l = list(l)
-        if verb:
-            print("états à considérer : %s" % l)
-        # calcule l'union des automates translatés
-        a = DetAutomaton(None)
-        A = aa.alphabet
-        a.setAlphabet(A)
-        for i in range(0, len(l)):
-            a2 = aa.copy()
-            a2.set_initial_state(aa.a.e[aa.a.i].f[l[i]])
-            a2 = a2.prune().minimize()
-            a2 = self.move2(t=-(A[l[i]]-t)/self.b, a=a2, b=bb)
-            a = a.union(a2)
-        return a
+#
+#    # return the automaton recognizing the division by beta and translation by t
+#    def shift(self, DetAutomaton aa,
+#              DetAutomaton bb, t=0, verb=False):
+#        # détermine la liste des successeurs de l'état initial
+#        cdef int i
+#        cdef int e
+#        l = set()
+#        for j in range(aa.a.na):
+#            e = aa.a.e[aa.a.i].f[j]
+#            if e != -1:
+#                l.add(j)
+#        l = list(l)
+#        if verb:
+#            print("états à considérer : %s" % l)
+#        # calcule l'union des automates translatés
+#        a = DetAutomaton(None)
+#        A = aa.alphabet
+#        a.setAlphabet(A)
+#        for i in range(0, len(l)):
+#            a2 = aa.copy()
+#            a2.set_initial_state(aa.a.e[aa.a.i].f[l[i]])
+#            a2 = a2.prune().minimize()
+#            a2 = self.move2(t=-(A[l[i]]-t)/self.b, a=a2, b=bb)
+#            a = a.union(a2)
+#        return a
 
 #    # calcule l'intersection des ensembles limites
 #    def intersection3(self, DetAutomaton a, DetAutomaton b, ext=True):
@@ -2876,8 +2890,7 @@ cdef class BetaAdicMonoid:
     def Approx(self, n, test):  # , ared=None):
         #        if ared is None:
         #            ared = m.reduced_words_automaton2()
-        a = DetAutomaton(None)
-        a.setAlphabet(list(self.C))
+        a = DetAutomaton(None, A=self.a.A)
         f = a.add_state(1)
         e = self.Approx_rec(a, test, f, 0, n, n)
         for t in self.C:
