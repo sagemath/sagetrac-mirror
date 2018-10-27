@@ -724,6 +724,7 @@ cdef class BetaAdicMonoid:
 
     EXAMPLES::
 
+        sage: from sage.combinat.words.cautomata_generators import dag
         sage: m1 = BetaAdicMonoid(3, dag.AnyWord([0, 1, 3]))
         sage: print(m1)
         b-adic set with b root of x - 3, and an automaton of 1 states and 3 letters.
@@ -742,6 +743,7 @@ cdef class BetaAdicMonoid:
 
         EXAMPLES::
 
+            sage: from sage.combinat.words.cautomata_generators import dag
             sage: m1 = BetaAdicMonoid(3, dag.AnyWord([0, 1, 3]))
             sage: m1
             b-adic set with b root of x - 3, and an automaton of 1 states and 3 letters.
@@ -769,7 +771,12 @@ cdef class BetaAdicMonoid:
             try:
                 a = DetAutomaton(a)
             except:
-                raise ValueError("a must be an automaton.")        
+                try:
+                    a = list(a)
+                except:
+                    raise ValueError("a must be an automaton or an iterable.")
+                from sage.combinat.words.cautomata_generators import dag
+                a = dag.AnyWord(a)
         self.a = a
 
         #test if letters of a are in K
@@ -795,6 +802,7 @@ cdef class BetaAdicMonoid:
 
         EXAMPLES::
 
+            sage: from sage.combinat.words.cautomata_generators import dag
             sage: BetaAdicMonoid((1+sqrt(5))/2, dag.AnyWord([0, 1]))
             b-adic set with b root of x^2 - x - 1, and an automaton of 1 states and 2 letters.
             sage: BetaAdicMonoid(3, dag.AnyWord([0, 1, 3]))
@@ -803,6 +811,7 @@ cdef class BetaAdicMonoid:
 
         TESTS::
 
+            sage: from sage.combinat.words.cautomata_generators import dag
             sage: m=BetaAdicMonoid(3/sqrt(2), dag.AnyWord([0, 1]))
             sage: repr(m)
             'b-adic set with b root of x^2 - 9/2, and an automaton of 1 states and 2 letters.'
@@ -834,6 +843,7 @@ cdef class BetaAdicMonoid:
 
         EXAMPLES::
 
+            sage: from sage.combinat.words.cautomata_generators import dag
             sage: m = BetaAdicMonoid((1+sqrt(5))/2, dag.AnyWord([0, 1]))
             sage: m.a
             DetAutomaton with 1 states and an alphabet of 2 letters
@@ -2368,7 +2378,7 @@ cdef class BetaAdicMonoid:
                 log(y)/log(|b|) where y is the max root of x^2 - x - 1
                 1.0000000000...
 
-            #. Non-conformal example::
+            #. A non-conformal example::
 
                 sage: P = x^7 - 2*x^6 + x^3 - 2*x^2 + 2*x - 1
                 sage: b = P.roots(ring=QQbar)[3][0]
@@ -2474,12 +2484,15 @@ cdef class BetaAdicMonoid:
             DetAutomaton with 1 states and an alphabet of 3 letters
         """
         cdef DetAutomaton a
-        if A is None:
-            A = self.a.A
         if 0 not in self.a.A:
             a = self.a.bigger_alphabet([0]+self.a.A)
-        l = a.index(0)
-        ap = a.zero_complete2(l=l).product(dag.AnyWord(A))
+        else:
+            a = self.a
+        if A is None:
+            A = self.a.A
+        z = A.index(0)
+        from sage.combinat.words.cautomata_generators import dag
+        ap = a.zero_complete2(z=z).product(dag.AnyWord(A))
         if arel is None:
             arel = self.relations_automaton(couples=True, ext=ext, A=a.A, B=A)
         ai = ap.intersection(arel)
@@ -2489,7 +2502,7 @@ cdef class BetaAdicMonoid:
         ai.zero_completeOP()
         if simplify:
             ai = ai.prune().minimize()
-        return ai
+        return BetaAdicMonoid(self.b, ai)
         
 #        ap = DetAutomaton([], A=list(C)).product(a)
 #        if ext:
@@ -2558,6 +2571,7 @@ cdef class BetaAdicMonoid:
 #        with a new alphabet C
 #
 #        EXAMPLES::
+#            sage: from sage.combinat.words.cautomata_generators import dag
 #            sage: m = BetaAdicMonoid(3, dag.AnyWord([0,1,3]))
 #            sage: m.adherence()
 #            DetAutomaton with 1 states and an alphabet of 3 letters
@@ -2637,19 +2651,20 @@ cdef class BetaAdicMonoid:
 #            print("After simplification : %s" % a2)
 #        return a2.minimize()
 
-    # project the translation by t of self on a
-    def Proj(self, a, t=0, arel=None):
+    # project the translation by t of self on the zero completion of a
+    def proj(self, a, t=0, arel=None):
         if isinstance(a, BetaAdicMonoid):
             a = a.a
-        try:
-            a = DetAutomaton(a)
-        except:
-            raise ValueError("a must be an automaton or a BetaAdicMonoid.")
+        else:
+            try:
+                a = DetAutomaton(a)
+            except:
+                raise ValueError("a must be an automaton or a BetaAdicMonoid.")
         if arel is None:
             # compute the relations automaton with translation t
             arel = self.relations_automaton(t=t, couples=True,
                                            A=self.a.alphabet, B=a.alphabet)
-        ai = arel.intersection(self.a.zero_complete2().product(a))
+        ai = arel.intersection(self.a.zero_complete2().product(a.zero_complete2()))
         r = ai.proji(1)
         r.zero_completeOP()
         return r
@@ -2852,6 +2867,30 @@ cdef class BetaAdicMonoid:
 
     # used by Approx
     def Approx_rec(self, DetAutomaton a, test, f, x, int n, int n2):
+        if n == 0:
+            if test(x):
+                return f
+            else:
+                return -1
+        else:
+            e = dict()
+            add = False
+            for t in a.A:
+                e[t] = self.Approx_rec(a, test, f, x+t*self.b**(n2-n), n-1, n2)
+                if e[t] != -1:
+                    add = True
+            if add:
+                e3 = a.add_state(0)
+                for t in self.A:
+                    if e[t] != -1:
+                        a.add_edge(e3, t, e[t])
+                return e3
+            return -1
+
+    # gives a automaton describing a approximation of a set defined by
+    # the characteritic function test
+    # rk : can be improve using a reduced words automaton
+    def Approx(self, n, test):  # , ared=None):
         """
         EXAMPLE::
 
@@ -2864,52 +2903,24 @@ cdef class BetaAdicMonoid:
             sage: aoc
             DetAutomaton with 182 states and an alphabet of 2 letters
         """
-        if n == 0:
-            if test(x):
-                return f
-            else:
-                return -1
-        else:
-            e = dict()
-            add = False
-            for t in self.C:
-                e[t] = self.Approx_rec(a, test, f, x+t*self.b**(n2-n), n-1, n2)
-                if e[t] != -1:
-                    add = True
-            if add:
-                e3 = a.add_state(0)
-                for t in self.C:
-                    if e[t] != -1:
-                        a.add_edge(e3, t, e[t])
-                return e3
-            return -1
-
-    # gives a automaton describing a approximation of a set defined by
-    # the characteritic function test
-    # rk : can be improve using a reduced words automaton
-    def Approx(self, n, test):  # , ared=None):
         #        if ared is None:
         #            ared = m.reduced_words_automaton2()
         a = DetAutomaton(None, A=self.a.A)
         f = a.add_state(1)
         e = self.Approx_rec(a, test, f, 0, n, n)
-        for t in self.C:
+        for t in self.A:
             a.add_edge(f, t, f)
-        a.set_initial_state(e)
+        a.i = e
         return a
 
-    def zero_complete(self, a, verb=False, test=False):
+    #return the BetaAdicMonoid describing the same set of points,
+    #but with the maximal language over the alphabet A
+    def full(self, list A = None, bool verb=False):
         if verb:
             print("a = %s" % a)
-        a2 = a.zero_complete2()
-        a2.zero_completeOP()
-        if verb:
-            print("a2 = %s (après zero-complétion)" % a2)
-        aoc = self.move2(0, a2)
-        if verb:
-            print("aoc = %s" % aoc)
-        aoc.zero_completeOP()
-        aoc = aoc.zero_complete2()
+        if A is None:
+            A = self.a.A
+        aoc = self.proj(dag.AnyWord(A))
         return aoc
 
     # calcule la liste triée (par rapport à la place >1) des
@@ -2957,6 +2968,7 @@ cdef class BetaAdicMonoid:
     # décrit les mots de a de longueur n partant de e (utilisé par compute_translation2)
     def Parcours(self, A, a, e, t, n, bn):
         # print "Parcours e=%s t=%s n=%s bn=%s"%(e,t,n,bn)
+        
         if n == 0:
             if a.is_final(e):
                 return [t]
@@ -3517,7 +3529,8 @@ cdef class BetaAdicMonoid:
         EXAMPLES::
 
             #. Full Tribonnacci::
-
+                
+                sage: from sage.combinat.words.cautomata_generators import dag
                 sage: m = BetaAdicMonoid((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
                 sage: m.compute_substitution(verb=False)      # long time
                 {1: [1, 3], 2: [1], 3: [1, 2]}
