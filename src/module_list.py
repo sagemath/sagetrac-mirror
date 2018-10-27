@@ -1262,8 +1262,8 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.rings.function_field.function_field_element',
-              sources = ['sage/rings/function_field/function_field_element.pyx']),
+    Extension('sage.rings.function_field.element',
+              sources = ['sage/rings/function_field/element.pyx']),
 
     ################################
     ##
@@ -1412,6 +1412,9 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.laurent_polynomial',
               sources = ['sage/rings/polynomial/laurent_polynomial.pyx']),
+
+    Extension('sage.rings.polynomial.hilbert',
+              sources = ['sage/rings/polynomial/hilbert.pyx']),
 
     Extension('sage.rings.polynomial.multi_polynomial',
               sources = ['sage/rings/polynomial/multi_polynomial.pyx']),
