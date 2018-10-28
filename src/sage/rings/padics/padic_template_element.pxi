@@ -1222,10 +1222,12 @@ cdef class ExpansionIterable(object):
             -2
         """
         if isinstance(n, slice):
-            start = int(n.start) if n.start is not None else None
-            stop = int(n.stop) if n.stop is not None else None
-            step = int(n.step) if n.step is not None else None
-            return itertools.islice(iter(self), start, stop, step)
+            # Have to work around a bug in islice (see #24528)
+            args = [n.start, n.stop, n.step]
+            for i, x in enumerate(args):
+                if x is not None:
+                    args[i] = int(x)
+            return itertools.islice(iter(self), *args)
         cdef long m = n - self.val_shift
         cdef celement value
         if n < 0:
