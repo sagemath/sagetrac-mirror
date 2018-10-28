@@ -15,7 +15,7 @@ from sage.libs.all import libgap
 from sage.misc.cachefunc import cached_method
 from sage.groups.class_function import ClassFunction_libgap
 from sage.misc.superseded import deprecated_function_alias
-
+from sage.rings.integer_ring import ZZ
 
 class GroupMixinLibGAP(object):
 
@@ -259,6 +259,24 @@ class GroupMixinLibGAP(object):
         if len(center) == 0:
             center = [G.One()]
         return self.subgroup(center)
+
+    def group_id(self):
+        """
+        Return the ID code of this group, which is a list of two integers.
+        Requires "optional" database_gap package.
+
+        EXAMPLES::
+
+            sage: A = Matrix([(0, 1/2, 0), (2, 0, 0), (0, 0, 1)])
+            sage: B = Matrix([(0, 1/2, 0), (-2, -1, 2), (0, 0, 1)])
+            sage: G = MatrixGroup([A,B])
+            sage: G.group_id()    # optional - database_gap
+            [12, 4]
+        """
+        from sage.features.gap import SmallGroupsLibrary
+        SmallGroupsLibrary().require()
+
+        return [ZZ(n) for n in self.gap().IdGroup()]
 
     def intersection(self, other):
         """

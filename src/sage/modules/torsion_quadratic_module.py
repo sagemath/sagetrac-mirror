@@ -1412,7 +1412,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         #     assert 0 == (tmp[:, k]-E[:, k]) % invs[k]
         return to_gens
 
-    def direct_sum(self, other):
+    def direct_sum(self, other, return_more=False):
         r"""
         """
         V, fVs, fVo = self.V().direct_sum(other.V(),return_embeddings=True)
@@ -1421,7 +1421,10 @@ class TorsionQuadraticModule(FGP_Module_class):
         T = TorsionQuadraticModule(V, W, modulus=self._modulus)
         fs = self.hom([fVs(g.lift()) for g in self.gens()], T)
         fo = other.hom([fVo(g.lift()) for g in other.gens()], T)
-        return T, fs, fo, fVs, fVo
+        if return_more:
+            return T, fs, fo, fVs, fVo
+        else:
+            return T, fs, fo
 
     def _subgroup_to_gap(self, S):
         r"""

@@ -3121,7 +3121,7 @@ class GenusSymbol_global_ring(object):
             if n > 2:
                 from sage.quadratic_forms.quadratic_form import QuadraticForm
                 from sage.quadratic_forms.quadratic_form__neighbors import neighbor_iteration
-                e = 1
+                e = ZZ(1)
                 if not self.is_even():
                     e = ZZ(2)
                 if self.signature_pair()[0] == 0:
