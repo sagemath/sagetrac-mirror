@@ -27,7 +27,3 @@ Home page: https://github.com/minrk/thebelab
 == Dependencies ==
 
 * the jupyter notebook (for the installation)
-
-== Special Update/Build Instructions ==
-
-Run spkg-src

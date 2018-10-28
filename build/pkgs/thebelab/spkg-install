@@ -1,1 +1,3 @@
-jupyter nbextension install --sys-prefix src/thebelab.js
+cd src
+mv lib thebelab
+jupyter nbextension install --sys-prefix thebelab

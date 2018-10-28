@@ -1,6 +1,6 @@
 // Functions for the thebe activate button and status field
 //
-// 
+//
 
 function thebe_place_activate_button(){
   $('.thebe_status_field')
@@ -27,7 +27,7 @@ about=' (<a href="http://sage-package.readthedocs.io/en/latest/sage_package/theb
 server=''
 
 messages = {
-  'downloading': 'Downloading Thebe',
+  'downloading': 'Downloading ThebeLab',
   'building': 'Building '+sagemath,
   'built': 'Built '+sagemath,
   'launching': 'Launching server',
@@ -38,14 +38,14 @@ messages = {
 }
 
 function thebe_update_status_field(evt, data) {
-  console.log("Thebe: status changed (" + data.status + "): " + data.message);
+  console.log("ThebeLab: status changed (" + data.status + "): " + data.message);
   $(".thebe-status-field")
     .attr("class", "thebe-status-field thebe-status-" + data.status)
     .html(messages[data.status]+server+about);
 }
 
 function thebe_bootstrap_local () {
-  console.log("Thebe: using local server");
+  console.log("ThebeLab: using local server");
   thebelab.on("status", thebe_update_status_field);
   thebelab.bootstrap({
     binderOptions: {repo: null},
@@ -59,7 +59,7 @@ function thebe_bootstrap_local () {
 }
 
 function thebe_bootstrap_binder () {
-  console.log("Thebe: using remote server on binder");
+  console.log("ThebeLab: using remote server on binder");
   thebelab.on("status", thebe_update_status_field); // Duplicated with above; would be nicer as thebe option
   server = " on "+mybinder;
   thebelab.bootstrap();
@@ -68,8 +68,8 @@ function thebe_bootstrap_binder () {
 // Try downloading thebe remotely; if successfull call next_operation
 function thebe_download_remote(next_operation) {
   thebe_update_status_field({}, {status: 'downloading', message: ''})
-  // Load the Thebe library
-  $.getScript("https://unpkg.com/thebelab@^0.1.0")
+  // Load the ThebeLab library
+  $.getScript("https://unpkg.com/thebelab@^0.2.1")
     .done(function(script, textStatus) {
       next_operation()
     })
@@ -81,8 +81,8 @@ function thebe_download_remote(next_operation) {
 
 // Try downloading thebe locally, or remotely if unavailable; if successfull call next_operation
 function thebe_download_local(next_operation) {
-  console.log("Thebe: trying to get thebe from the nbextensions");
-  $.getScript("/nbextensions/thebelab.js")
+  console.log("ThebeLab: trying to get thebe from the nbextensions");
+  $.getScript("/nbextensions/thebelab/index.js")
     .done(function(script, textStatus) {
       next_operation()
     })
