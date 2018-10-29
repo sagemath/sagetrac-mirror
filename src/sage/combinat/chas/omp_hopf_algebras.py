@@ -26,16 +26,20 @@ from sage.categories.realizations import Category_realization_of_parent
 from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.commutative_rings import CommutativeRings
 from sage.categories.fields import Fields
+from sage.categories.tensor import tensor
 
 from sage.matrix.constructor import matrix
 from sage.sets.set import Set
-from sage.rings.all import ZZ
+from sage.rings.all import PolynomialRing, ZZ
 
 from sage.functions.other import factorial
 
+from sage.combinat.composition import Composition
 from sage.combinat.posets.posets import Poset
-from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.sf.sfa import zee
+from sage.combinat.sf.sf import SymmetricFunctions
+from sage.combinat.ncsf_qsym.qsym import QuasiSymmetricFunctions
+from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
 from sage.combinat.permutation import Permutations_mset
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.set_partition import SetPartitions_set
@@ -212,6 +216,38 @@ class OMPBases(Category_realization_of_parent):
             else:
                 return A.size()
 
+        def character_polynomial_on_basis(self, pi, char=None, variable='t'):
+            r"""
+            Return the character polynomial corresponding to ``char`` on ``pi``.
+
+            .. SEEALSO::
+
+                :meth:`OMPBases.ElementMethods.character_polynomial`
+
+            .. TODO::
+
+                - Move this code to :class:`GradedHopfAlgebrasWithBasis.Connected.ElementMethods`.
+                - Within :meth:`BialgebrasWithBasis.ElementMethods.convolution_product`,
+                  allow for different codomains, e.g., different from ``self.parent()``.
+                - Allow ``char`` to have a different codomain than ``self.parent().base_ring()``.
+            """
+            if isinstance(char, str):
+                variable = char
+                char = None
+
+            if char is None:
+                try:
+                    char = self.element_class.combinatorial_character
+                except AttributeError:
+                    char = self.element_class.counit
+            s_char = lambda x: self(char(x))
+
+            x = self(pi)
+            n = x.degree()
+            evals = [(k, x.convolution_product((s_char,)*k).counit()) for k in range(n+1)]
+            Rt = PolynomialRing(self.base_ring(), variable)
+            return Rt.lagrange_polynomial(evals)
+
     class ElementMethods:
         def duality_pairing(self, x):
             r"""
@@ -249,6 +285,205 @@ class OMPBases(Category_realization_of_parent):
             """
             x = self.parent().dual_basis()(x)
             return sum(coeff * x[I] for (I, coeff) in self)
+
+        def character_polynomial(self, char=None, variable='t'):
+            r"""
+            Return the character polynomial corresponding to ``char`` on ``self``.
+
+            If `h` is an element of a combinatorial Hopf algebra with character `f`,
+            then `P_{f,h}` is the polynomial satisfying
+
+            .. MATH::
+
+                P_{f,h}(k) = f^{*k}(h)
+
+            for all `k in \ZZ`, where `f^{*k}` represents the `k`th convolution
+            power of `f`. If `h` is homogeneous of degree `n`, then `P_{f,h}`
+            is a polynomial of degree at most `n`. See Proposition 2.2 of [HM2012]_.
+
+            .. TODO::
+
+                Move this code to :class:`GradedHopfAlgebrasWithBasis.Connected.ElementMethods`.
+
+            EXAMPLES::
+
+                sage: f = lambda x: sum(x.coefficients())
+                sage: H = OMPNonCommutativeSymmetricFunctions(QQ).H()  # size grading
+                sage: x = 2*H[[2,3]] + 100*H[[2],[3]]
+
+                sage: x.character_polynomial(f)
+                102*t^2
+                sage: x.character_polynomial()
+                102*t^2 - 2*t
+
+                sage: HA = OMPNonCommutativeSymmetricFunctions(QQ, alphabet=3).H()  # order grading
+                sage: xA = 2*HA[[2,3]] + 100*HA[[2],[3]]
+
+                sage: xA.character_polynomial(f)
+                102*t^2
+                sage: xA.character_polynomial()
+                102*t^2 - 2*t
+            """
+            P = self.parent()
+            out = []
+            for (pi,c) in self:
+                out.append(c * P.character_polynomial_on_basis(pi, char, variable))
+            return sum(out)
+
+        def to_quasisymmetric_function(self, char=None):
+            r"""
+            Return the image of ``self`` under the unique Hopf morphism to
+            :class:`QuasiSymmetricFunctions` built from the character ``char``.
+
+            When ``char`` is ``None``: use the character defined by the method
+            ``self.combinatorial_character()``, if the latter exists; else use
+            the counit map, ``self.counit()``.
+
+            The unique morphism `\Phi_f` from the combinatorial Hopf algebra
+            `(H, f)` to the Hopf algebra of quasisymmetric functions is defined
+            as follows. For `h \in H`, homogeneous of degree `n`, put
+
+            .. MATH::
+
+                \Phi_{f}(h) = \sum_{I \vDash n} f_I(h).
+
+            If `I = (a_1,\ldots, a_k)` is a composition, and `f` is an algebra
+            map from `H` (=``self.parent()``) to any algebra `A`, then
+            `f_I` is defined to be the composition
+
+            .. MATH::
+
+                \Delta^{(k-1)} \colon H \to H^{\otimes k},
+
+                \mathop{proj}_I \colon H^{\otimes k} \to H_{a_1}\otimes H_{a_k},
+
+                f^{\otimes k} \colon H_{a_1}\otimes H_{a_k} \to A^{\otimes k},
+
+                \mathop{mult} \colon A^{\otimes k} \to A.
+
+            The morphism `\Phi_f` is introduced in Theorem 4.1 of [ABS2006]_.
+
+            REFERENCES:
+
+            - [ABS2006]_
+
+            .. TODO::
+
+                Move this code to :class:`GradedHopfAlgebrasWithBasis.Connected.ElementMethods`.
+
+            EXAMPLES::
+
+                sage: f = lambda x: sum(x.coefficients())
+                sage: g = lambda x: x.counit()
+
+                sage: H = OMPNonCommutativeSymmetricFunctions(QQ).H()  # size grading
+                sage: M = H.dual_basis()  # f is not a character for OMPQSym*
+
+                sage: x = 3*H[[]] - 9*H[[1,3]] + 27*H[[2],[3]]
+                sage: x.to_quasisymmetric_function(f)
+                3*M[] - 9*M[1, 3] + 27*M[2, 3] - 9*M[3, 1] + 27*M[3, 2] - 9*M[4] + 27*M[5]
+                sage: H[[2,3]].to_quasisymmetric_function(f) * H[[1]].to_quasisymmetric_function(f) == (H[[2,3]] * H[[1]]).to_quasisymmetric_function(f)
+                True
+
+                sage: x.to_quasisymmetric_function(g)
+                3*M[]
+                sage: x.to_quasisymmetric_function()  # see ``.combinatorial_character`` for details
+                3*M[] - 9*M[1, 3] + 27*M[2, 3] - 9*M[3, 1] + 27*M[3, 2] + 27*M[5]
+
+                sage: y = 3*M[[]] - 9*M[[1,3]] + 27*M[[2],[3]]
+                sage: y.to_quasisymmetric_function(f)
+                3*M[] + 27*M[2, 3] - 9*M[4] + 27*M[5]
+                sage: M[[2,3]].to_quasisymmetric_function(f) * M[[1]].to_quasisymmetric_function(f) == (M[[2,3]] * M[[1]]).to_quasisymmetric_function(f)
+                False
+                sage: y.to_quasisymmetric_function(g)
+                3*M[]
+                sage: M[[2,3]].to_quasisymmetric_function(g) * M[[1]].to_quasisymmetric_function(g) == (M[[2,3]] * M[[1]]).to_quasisymmetric_function(g)
+                True
+                sage: x.to_quasisymmetric_function()  # see ``.combinatorial_character`` for details
+                3*M[] - 9*M[1, 3] + 27*M[2, 3] - 9*M[3, 1] + 27*M[3, 2] + 27*M[5]
+
+            TESTS::
+
+                sage: HA = OMPNonCommutativeSymmetricFunctions(QQ, alphabet=3).H()  # order grading
+                sage: xA = 3*HA[[]] - 30*HA[[1,3]] + 300*HA[[2],[3]]
+                sage: xA.to_quasisymmetric_function(f)
+                3*M[] + 540*M[1, 1] + 270*M[2]
+                sage: HA[[2,3]].to_quasisymmetric_function(f) * HA[[1]].to_quasisymmetric_function(f) == (HA[[2,3]] * HA[[1]]).to_quasisymmetric_function(f)
+                True
+
+                sage: R = QQ['t']; t = R.gen()
+                sage: def char_t(x):
+                ....:     out = []
+                ....:     for (pi, c) in x:
+                ....:         out.append(c*t^pi.length())
+                ....:     return sum(out)
+
+                sage: x
+                3*H[] - 9*H[{1,3}] + 27*H[{2}, {3}]
+                sage: x.to_quasisymmetric_function(char_t)
+                3*M[] - 9*t^2*M[1, 3] + 27*t^2*M[2, 3] - 9*t^2*M[3, 1]
+                 + 27*t^2*M[3, 2] - 9*t*M[4] + 27*t^2*M[5]
+
+                sage: xA.to_quasisymmetric_function(char_t)
+                3*M[] + 540*t^2*M[1, 1] + (300*t^2-30*t)*M[2]
+            """
+            P = self.parent()
+            if not char:
+                try:
+                    char = lambda x: x.combinatorial_character()
+                except AttributeError:
+                    char = lambda x: x.counit()
+            R = char(P.one()).parent()
+
+            def split_first(*args):
+                # a multilinear morphism from P^\otimes{k} to P^\otimes{k+1}:
+                # - on the first entry in *args, yield the positive parts of the coproduct
+                # - for remaining entries, act as identity morphism
+                #
+                # N.B. returns zero if args[0] is primitive or args[0] has degree zero.
+                a = args[0]
+                P = a.parent()
+                cop_pos = P.zero().tensor(P.zero())
+                for (pi, c) in a:
+                    if pi:
+                        cop_pos += c * (P[pi].coproduct() - P[pi].tensor(P.one()) - P.one().tensor(P[pi]))
+                if len(args) == 1:
+                    return cop_pos
+                else:
+                    return cop_pos.tensor(tensor(b for b in args[1:]))
+
+            M = QuasiSymmetricFunctions(R).M()
+            terms = {}
+            for (pi, c) in self:
+                # follow formula 4.2 of [ABS2006]_
+                n = P[pi].degree()
+                xx = c * P[pi]
+                if not n:
+                    comp = Composition([])
+                    if comp in terms:
+                        terms[comp] += char(xx)
+                    else:
+                        terms[comp] = char(xx)
+                else:
+                    comp = Composition([n])
+                    if comp in terms:
+                        terms[comp] += char(xx)
+                    else:
+                        terms[comp] = char(xx)
+
+                    # apply ``split_first`` to each pi until result is zero
+                    xx = split_first(xx)
+                    while xx:
+                        for (pi_vec, d) in xx:
+                            P_pi_vec = [P(mu) for mu in pi_vec]
+                            comp = Composition([a.degree() for a in P_pi_vec])
+                            val = d * prod(char(a) for a in P_pi_vec)
+                            if comp in terms:
+                                terms[comp] += val
+                            else:
+                                terms[comp] = val
+                        xx = xx.apply_multilinear_morphism(lambda *args: split_first(*args))
+            return M._from_dict(terms)
 
 ###### Common Basis Methods for OMPNSym & OMPQSym ############
 class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
@@ -325,15 +560,15 @@ class OMPBasis_abstract(CombinatorialFreeModule, BindableClass):
         of similar type (`OMPNSym` or `OMPQSym`) over a base with a
         coercion map into ``self.base_ring()``.
 
-        TODO:
+        .. TODO::
 
-            - consider being more accommodating with coercions:
+            - Consider being more accommodating with coercions:
               + suppose x is an element of H1 and H1._A is not a subset of H2._A.
               + if each omp in support of x is over an alphabet contained in H2._A,
               + then allow H2(x) instead of throwing a TypeError.
 
-            - add similar method in :class:`rCompBasis_OMPNSym` that also absorbs NSYM.
-            - add similar method in :class:`rCompBasis_OMPQSym` that also absorbs NCQSYM??
+            - Add similar method in :class:`rCompBasis_OMPNSym` that also absorbs NSYM.
+            - Add similar method in :class:`rCompBasis_OMPQSym` that also absorbs NCQSYM??
 
         EXAMPLES::
 
@@ -589,6 +824,43 @@ class OMPBasis_OMPNSym(OMPBasis_abstract):
         return primitive
 
     class Element(OMPBasis_abstract.Element):
+        def combinatorial_character(self):
+            r"""
+            Return the image of ``self`` under the combinatorial character
+            for ``self.parent()``.
+
+            A character is an algebra map from ``self.parent()`` to a
+            commutative ring---usually the base ring of ``self.parent()``.
+
+            Given an ordered multiset partition `\pi`, indexing a basis vector
+            in the *Homogeneous* basis of ``OMPNonCommutativeSymmetricFunctions``,
+            this combinatorial character sends `\pi` to:
+             - one, if each block of `\pi` is a singleton; and
+             - zero, otherwise.
+
+            EXAMPLES::
+
+                sage: H = OMPNonCommutativeSymmetricFunctions(QQ).H()  # size grading
+                sage: x = 2*H[[2,3]] + 20*H[[1,2],[3]] + 200*H[[2],[3]]
+                sage: x.combinatorial_character()
+                200
+
+                sage: H[[]].combinatorial_character()
+                1
+            """
+            H = self.parent().realization_of().H()
+            R = H.base_ring()
+
+            def _char(pi):
+                return R(all(len(block) == 1 for block in pi))
+
+            # at present, the map is the same regardless of grading,
+            # but leave open the option to make it different.
+            if H._order_grading:
+                pass
+
+            return sum(c * _char(pi) for (pi,c) in H(self))
+
         def to_symmetric_function(self):
             r"""
             Return the image of ``self`` in the homogeneous basis of the
@@ -656,7 +928,6 @@ class OMPBasis_OMPNSym(OMPBasis_abstract):
                 sage: D_Phi == Phi_D
                 True
             """
-            from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
             S = NonCommutativeSymmetricFunctions(self.parent().base_ring()).Complete()
             H = self.parent().realization_of().H()
             return S.sum_of_terms((A.shape_from_cardinality(),
@@ -844,7 +1115,7 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         .. TODO::
 
-            - sort out the degree issues above. (search for "wrong!!!")
+            Sort out the degree issues above. (search for "wrong!!!")
     """
     @staticmethod
     def __classcall_private__(cls, R, alphabet=None, order_grading=None):
@@ -1265,7 +1536,9 @@ class OMPNonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             - An element of the Powersum basis
 
-            TODO:: improve the examples!
+            .. TODO::
+
+                Improve the examples!
 
             EXAMPLES::
 
@@ -1637,6 +1910,42 @@ class OMPBasis_OMPQSym(OMPBasis_abstract):
         return True
 
     class Element(OMPBasis_abstract.Element):
+        def combinatorial_character(self):
+            r"""
+            Return the image of ``self`` under the combinatorial character
+            for ``self.parent()``.
+
+            A character is an algebra map from ``self.parent()`` to a
+            commutative ring---usually the base ring of ``self.parent()``.
+
+            Given an ordered multiset partition `\pi` of length `k`,
+            indexing a basis vector in the *dual Powersum* basis of
+            ``OMPQuasiSymmetricFunctions``, this combinatorial character
+            sends `\pi` to `1/k!`.
+
+            EXAMPLES::
+
+                sage: Pd = OMPQuasiSymmetricFunctions(QQ).Pd()  # size grading
+                sage: x = Pd[[2,3]] + 200*Pd[[1,2],[3]] + 60000*Pd[[1],[2],[3]]
+                sage: x.combinatorial_character()
+                10101
+
+                sage: Pd[[]].combinatorial_character()
+                1
+            """
+            Pd = self.parent().realization_of().Pd()
+            R = Pd.base_ring()
+
+            def _char(pi):
+                return R.one() / factorial(len(pi))
+
+            # at present, the map is the same regardless of grading,
+            # but leave open the option to make it different.
+            if Pd._order_grading:
+                pass
+
+            return sum(c * _char(pi) for (pi,c) in Pd(self))
+
         def is_symmetric(self):
             r"""
             Determine if a `OMPQSym` function, expressed in the
@@ -2178,7 +2487,7 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             .. TODO:
 
-                - investigate if this behaves like `Sym` inside `QSym`.
+                Investigate if this behaves like `Sym` inside `QSym`.
 
             INPUT:
 
@@ -2211,7 +2520,9 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         transpose of the relationship between the bases `(H_\mu)` and
         `(P_\nu)` of `OMPNSym`.
 
-        .. TODO:: give a more explicit description.
+        .. TODO::
+
+            Give a more explicit description.
 
         EXAMPLES::
 
@@ -2486,12 +2797,13 @@ class OMPQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
         .. TODO::
 
-            - decide if this should be called the "fundamental".
-              Pros: defined via refinement; and product and coproduct are
+            Decide if this should be called the "fundamental".
+            - Pros: defined via refinement; and product and coproduct are
               reminiscent of those for Gessel's basis for quasisymmetric
               functions.
-              Con: the antipode does not act as a signed permutation matrix
-              in this basis, as it does for Gessel's basis.
+            - Cons: the antipode does not act as a signed permutation matrix
+              in this basis, as it does for Gessel's basis; product does not
+              always exhibit positive structure constants.
 
         EXAMPLES::
 
