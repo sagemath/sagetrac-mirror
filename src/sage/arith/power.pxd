@@ -7,9 +7,11 @@ ctypedef fused ulong_or_object:
     object
 
 
-cpdef generic_power(a, n)
-cdef generic_power_long(a, long n)
+cpdef generic_power(a, n, mul=?, inv=?)
+cdef generic_power_long(a, long n, mul, inv)
 cdef generic_power_pos(a, ulong_or_object n)  # n > 0
+cdef generic_power_pos2(a, ulong_or_object n, mul)
+
 
 
 cdef inline invert(a):
