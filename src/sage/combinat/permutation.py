@@ -2522,14 +2522,14 @@ class Permutation(CombinatorialElement):
 
         TESTS::
 
-            sage: all( P.fundamental_transformation_inverse() \
-            ....:       .fundamental_transformation() == P
-            ....:      for P in Permutations(4))
+            sage: all(P.fundamental_transformation_inverse().
+            ....:     fundamental_transformation() == P
+            ....:     for P in Permutations(4))
             True
 
-            sage: all( P.fundamental_transformation() \
-            ....:       .fundamental_transformation_inverse() == P
-            ....:      for P in Permutations(3))
+            sage: all(P.fundamental_transformation().
+            ....:     fundamental_transformation_inverse() == P
+            ....:     for P in Permutations(3))
             True
 
         Border cases::
@@ -2894,6 +2894,24 @@ class Permutation(CombinatorialElement):
         """
 
         return len(self.fixed_points())
+
+    def is_derangement(self):
+        r"""
+        Return if ``self`` is a derangement.
+
+        A permutation `\sigma` is a derangement if `\sigma` has no
+        fixed points.
+
+        EXAMPLES::
+
+            sage: P = Permutation([1,4,2,3])
+            sage: P.is_derangement()
+            False
+            sage: P = Permutation([2,3,1])
+            sage: P.is_derangement()
+            True
+        """
+        return not self.fixed_points()
 
 
     ############

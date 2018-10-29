@@ -240,6 +240,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         if not (not self or len(self) == 2):
             raise ValueError("this is not a binary tree")
 
+    __hash__ = ClonableArray.__hash__
+
     def _repr_(self):
         """
         TESTS::
@@ -1051,7 +1053,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: bt.tamari_interval(BinaryTree([[None,[]],[]]))
             Traceback (most recent call last):
             ...
-            ValueError: The two binary trees are not comparable on the Tamari lattice.
+            ValueError: the two binary trees are not comparable on the Tamari lattice
 
         TESTS:
 
@@ -2124,8 +2126,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             ....:    l.append(leaf)
             ....:    leaf = chr( ord(leaf)+1 )
             sage: n_action = lambda node: l.append( node.label() )
-            sage: b = BinaryTree([[None,[]],[[[],[]],[]]]).\
-            ....:     canonical_labelling()
+            sage: b = BinaryTree([[None,[]],[[[],[]],[]]])
+            sage: b = b.canonical_labelling()
             sage: b.in_order_traversal(n_action, l_action)
             sage: l
             ['a', 1, 'b', 2, 'c', 3, 'd', 4, 'e', 5, 'f', 6, 'g', 7, 'h', 8,
@@ -4807,6 +4809,8 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
             return ((0,),)
         resu = [(l, self.label())] + [u for t in self for u in t._sort_key()]
         return tuple(resu)
+
+    __hash__ = ClonableArray.__hash__
 
     def binary_search_insert(self, letter):
         r"""

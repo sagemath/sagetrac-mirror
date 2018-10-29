@@ -962,7 +962,7 @@ done from the right side.""")
         some_elements_base = iter(self.base().some_elements())
         n = self.degree()
         while True:
-            L = list(islice(some_elements_base, n))
+            L = list(islice(some_elements_base, int(n)))
             if len(L) != n:
                 return
             try:
@@ -1124,7 +1124,7 @@ done from the right side.""")
 
         We test that :trac:`5525` is fixed::
 
-            sage: A = (QQ^1).span([[1/3]],ZZ); B = (QQ^1).span([[1]],ZZ);
+            sage: A = (QQ^1).span([[1/3]],ZZ); B = (QQ^1).span([[1]],ZZ)
             sage: A.intersection(B)
             Free module of degree 1 and rank 1 over Integer Ring
             Echelon basis matrix:
@@ -1619,7 +1619,7 @@ done from the right side.""")
 
         ::
 
-            sage: M = FreeModule(GF(7),3).span_of_basis([[2,3,4],[1,1,1]]);
+            sage: M = FreeModule(GF(7),3).span_of_basis([[2,3,4],[1,1,1]])
             sage: M.basis_matrix()
             [2 3 4]
             [1 1 1]
@@ -5272,12 +5272,12 @@ class FreeModule_ambient_domain(FreeModule_ambient):
 
     def ambient_vector_space(self):
         """
-        Returns the ambient vector space, which is this free module
+        Return the ambient vector space, which is this free module
         tensored with its fraction field.
 
         EXAMPLES::
 
-            sage: M = ZZ^3;
+            sage: M = ZZ^3
             sage: V = M.ambient_vector_space(); V
             Vector space of dimension 3 over Rational Field
 
