@@ -797,7 +797,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
                 return self.metric(name, latex_name=latex_name)
                 # NB: the signature is not treated
             if issubclass(specific_type, DegenerateMetric):
-                return self.metric(name, latex_name=latex_name, signature=(0,0,self._domain._dim))
+                sign = self._domain._dim
+                return self.metric(name, latex_name=latex_name, signature=(0,sign-1,1))
         # Generic case
         return self.tensor_module(*tensor_type).element_class(self,
                         tensor_type, name=name, latex_name=latex_name,
@@ -2039,7 +2040,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                 return self.metric(name, latex_name=latex_name)
                 # NB: the signature is not treated
             if issubclass(specific_type, DegenerateMetric):
-                return self.metric(name, latex_name=latex_name, signature=(0,0,self._domain._dim))
+                sign = self._domain._dim
+                return self.metric(name, latex_name=latex_name, signature=(0,sign-1,1))
         # Generic case
         return self.tensor_module(*tensor_type).element_class(self,
                         tensor_type, name=name, latex_name=latex_name,

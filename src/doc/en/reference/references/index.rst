@@ -1006,6 +1006,11 @@ REFERENCES:
              Amer. Math. Soc. **100**
              (1987). No 3. http://educ.jmu.edu/~dromscg/vita/preprints/Isomorphisms.pdf
 
+.. [DB1996] \I. K. L. Duggal and A. Bejancu
+            *Lightlike submanifolds of semi-Riemannian manifolds and application*, 
+            Springer Netherlands (1996) http://www.worldcat.org/title/lightlike-submanifolds-of-semi-riemannian-manifolds-and-applications/oclc/851375811.
+
+
 .. [Du2003] \I. Duursma, "Extremal weight enumerators and
             ultraspherical polynomials", Discrete Mathematics 268
             (2003), 103–127.

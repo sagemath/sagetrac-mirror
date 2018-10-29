@@ -2504,7 +2504,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                                       latex_name=latex_name,
                                       start_index=start_index,
                                       unique_tag=getrandbits(128)*time())
-    elif structure in ['pseudo-Riemannian', 'Riemannian', 'Lorentzian','degenerate']:
+    elif structure in ['pseudo-Riemannian', 'Riemannian', 'Lorentzian','degenerate_metric']:
         if 'diff_degree' in extra_kwds:
             diff_degree = extra_kwds['diff_degree']
         else:
@@ -2524,8 +2524,8 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                 signature = None
         elif structure == 'Riemannian':
             signature = dim
-        elif structure == 'degenerate':
-            signature = (dim-1,0,1)
+        elif structure == 'degenerate_metric':
+            signature = (0,dim-1,1)
         elif structure == 'Lorentzian':
             if 'signature' in extra_kwds:
                 signat = extra_kwds['signature']
@@ -2546,7 +2546,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
             if dim>ambient._dim:
                 raise ValueError("the submanifold must be of smaller "
                                  + "dimension than its ambient manifold")
-            if structure == 'degenerate':
+            if structure == 'degenerate_metric':
                 return DegenerateSubmanifold(dim, name, ambient = ambient,
                                                metric_name=metric_name,
                                                signature=signature,
@@ -2563,7 +2563,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                                                metric_latex_name=metric_latex_name,
                                                start_index=start_index,
                                                unique_tag=getrandbits(128)*time())
-        if structure == 'degenerate':
+        if structure == 'degenerate_metric':
                 return DegenerateManifold(dim, name, metric_name=metric_name,
                                                signature=signature,
                                                diff_degree=diff_degree,

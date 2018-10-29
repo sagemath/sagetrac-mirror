@@ -2379,7 +2379,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
 class DegenerateMetric(TensorField):
     r"""
-    Degenerate metric with values on an open subset of a
+    Degenerate (or null or lightlike) metric with values on an open subset of a
     differentiable manifold.
 
     An instance of this class is a field of degenerate symmetric bilinear
@@ -2462,22 +2462,21 @@ class DegenerateMetric(TensorField):
 
         TESTS::
 
-            sage: M = Manifold(3, 'M'); X.<x,y,z> = M.chart()
-            sage: XM = M.vector_field_module()
+            sage: M = Manifold(4, 'M', structure='Lorentzian')
+            sage: var('m'); assume(m>0)
+            m
+            sage: Int = M.open_subset('Int')
+            sage: X.<t,r,th,ph>=Int.chart(r"t r:(0,2*m) th:(0,pi):\theta ph:(0,2*pi):\phi")
+            sage: XM = M.vector_field_module(); e= X.frame()
             sage: from sage.manifolds.differentiable.metric import \
-            ....:                                        DegenerateMetricParal
-            sage: g = DegenerateMetricParal(XM, 'g', signature=(2,0,1)); g
-            degenerate metric g on the 3-dimensional differentiable manifold M
-            sage: g[0,0], g[0,1], g[0,2] = (y^2 + z^2)/(x^2 + y^2 + z^2), \
-            ....: - x*y/(x^2 + y^2 + z^2), - x*z/(x^2 + y^2 + z^2)
-            sage: g[1,1], g[1,2], g[2,2] = (x^2 + z^2)/(x^2 + y^2 + z^2), \
-            ....: - y*z/(x^2 + y^2 + z^2), (x^2 + y^2)/(x^2 + y^2 + z^2)
-            sage: g.disp()
-            g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx*dx - x*y/(x^2 + y^2 + z^2) dx*dy 
-            - x*z/(x^2 + y^2 + z^2) dx*dz - x*y/(x^2 + y^2 + z^2) dy*dx 
-            + (x^2 + z^2)/(x^2 + y^2 + z^2) dy*dy - y*z/(x^2 + y^2 + z^2) dy*dz 
-            - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy 
-            + (x^2 + y^2)/(x^2 + y^2 + z^2) dz*dz
+            ....:                                        DegenerateMetric
+            sage: g = DegenerateMetric(XM, 'g', signature=(2,1,1)); g
+            degenerate metric g on the 4-dimensional Lorentzian manifold M
+            sage: g[e, 0,0], g[e, 0,1], g[e, 1,1], g[e, 2,2], \
+            ....: g[e, 3,3] = -1+2*m/r, 2*m/r, 1+2*m/r, r^2, r^2*sin(th)^2
+            sage: g.disp(e)
+            g = (2*m/r - 1) dt*dt + 2*m/r dt*dr + 2*m/r dr*dt + (2*m/r + 1) dr*dr 
+            + r^2 dth*dth + r^2*sin(th)^2 dph*dph
 
         
         """
@@ -2494,8 +2493,8 @@ class DegenerateMetric(TensorField):
                         raise ValueError("{} must be a positive integer".format(elt))
                     if elt > ndim:
                         raise ValueError("{} must be less than {}".format(elt,ndim))
-                    sing = signature[0]+signature[1]+signature[2]
-                    if sing!=ndim:
+                    sign = signature[0]+signature[1]+signature[2]
+                    if sign!=ndim:
                         raise ValueError("{} is different from {}".format(sign, ndim))
             except TypeError:
                 raise TypeError("signature must be an iterable")
@@ -2558,10 +2557,10 @@ class DegenerateMetric(TensorField):
             sage: g = M.metric('g', signature=(1,1,1))
             sage: g.signature()
             (1, 1, 1)
-            sage: M = Manifold(3, 'M', structure='degenerate')
+            sage: M = Manifold(3, 'M', structure='degenerate_metric')
             sage: g = M.metric()
             sage: g.signature()
-            (2, 0, 1)
+            (0, 2, 1)
 
         """
         return self._signature  
@@ -2653,7 +2652,8 @@ class DegenerateMetric(TensorField):
             sage: g = M.metric('g', signature=(3,1,1))
             sage: U = M.open_subset('U')
             sage: g.restrict(U)
-            degenerate metric g on the Open subset U of the 5-dimensional differentiable manifold M
+            degenerate metric g on the Open subset U of the 5-dimensional 
+            differentiable manifold M
             sage: g.restrict(U).signature()
             (3, 1, 1)
 
@@ -2688,20 +2688,20 @@ class DegenerateMetric(TensorField):
 
 class DegenerateMetricParal(DegenerateMetric, TensorFieldParal):
     r"""
-    Degenerate metric with values on an open subset of a
+    Degenerate (or null or lightlike) metric with values on an open subset of a
     differentiable manifold.
 
     An instance of this class is a field of degenerate symmetric bilinear
     forms (metric field) along a differentiable manifold `U` with
     values on a differentiable manifold `M` over `\RR`, via a differentiable
     mapping `\Phi: U \rightarrow M`.
-    The standard case of a degenerate metric field *on* a manifold corresponds to `U=M`
-    and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi` being an
+    The standard case of a degenerate metric field *on* a manifold corresponds 
+    to `U=M` and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi` being an
     immersion and `\Phi` being a curve in `M` (`U` is then an open interval
     of `\RR`).
 
-    A *degenerate metric* `g` is a field on `U`, such that at each point `p\in U`, `g(p)`
-    is a bilinear map of the type:
+    A *degenerate metric* `g` is a field on `U`, such that at each point 
+    `p\in U`, `g(p)` is a bilinear map of the type:
 
     .. MATH::
 
@@ -2715,7 +2715,7 @@ class DegenerateMetricParal(DegenerateMetric, TensorFieldParal):
 
     .. NOTE::
 
-        If `M` is parallelizable, the class :class:`DegenerateMetricParal`
+        If `M` is not parallelizable, the class :class:`DegenerateMetric`
         should be used instead.
 
     INPUT:
@@ -2823,32 +2823,17 @@ class DegenerateMetricParal(DegenerateMetric, TensorFieldParal):
         EXAMPLES:
 
         Metric defined from a field of symmetric bilinear forms on a
-        non-parallelizable 2-dimensional manifold::
+        parallelizable 3-dimensional manifold::
 
-            sage: M = Manifold(2, 'M')
-            sage: U = M.open_subset('U') ; V = M.open_subset('V')
-            sage: M.declare_union(U,V)   # M is the union of U and V
-            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W',
-            ....:                              restrictions1= x>0, restrictions2= u+v>0)
-            sage: uv_to_xy = xy_to_uv.inverse()
-            sage: W = U.intersection(V)
-            sage: eU = c_xy.frame() ; eV = c_uv.frame()
-            sage: h = M.sym_bilin_form_field(name='h')
-            sage: h[eU,0,0], h[eU,0,1], h[eU,1,1] = 1+x, x*y, 1-y
-            sage: h.add_comp_by_continuation(eV, W, c_uv)
-            sage: h.display(eU)
-            h = (x + 1) dx*dx + x*y dx*dy + x*y dy*dx + (-y + 1) dy*dy
-            sage: h.display(eV)
-            h = (1/8*u^2 - 1/8*v^2 + 1/4*v + 1/2) du*du + 1/4*u du*dv
-             + 1/4*u dv*du + (-1/8*u^2 + 1/8*v^2 + 1/4*v + 1/2) dv*dv
-            sage: g = M.metric('g')
-            sage: g.set(h)
-            sage: g.display(eU)
-            g = (x + 1) dx*dx + x*y dx*dy + x*y dy*dx + (-y + 1) dy*dy
-            sage: g.display(eV)
-            g = (1/8*u^2 - 1/8*v^2 + 1/4*v + 1/2) du*du + 1/4*u du*dv
-             + 1/4*u dv*du + (-1/8*u^2 + 1/8*v^2 + 1/4*v + 1/2) dv*dv
+            sage: M = Manifold(3, 'M', start_index=1); 
+            sage: X.<x,y,z> = M.chart()
+            sage: dx, dy = X.coframe()[1], X.coframe()[2]
+            sage: b = dx*dx + dy*dy
+            sage: g = M.metric('g', signature=(1,1,1)); g
+            degenerate metric g on the 3-dimensional differentiable manifold M
+            sage: g.set(b)
+            sage: g.display()
+            g = dx*dx + dy*dy
 
         """
         if not isinstance(symbiform, TensorFieldParal):

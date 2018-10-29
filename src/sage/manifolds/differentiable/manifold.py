@@ -3206,13 +3206,13 @@ class DifferentiableManifold(TopologicalManifold):
 
     def degenerate_metric(self, name, latex_name=None, dest_map=None):
         r"""
-        Define a Riemannian metric on the manifold.
+        Define a degenerate (or null or lightlike) metric on the manifold.
 
-        A *Riemannian metric* is a field of positive definite symmetric
+        A *degenerate metric* is a field of degenerate symmetric
         bilinear forms acting in the tangent spaces.
 
         See
-        :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+        :class:`~sage.manifolds.differentiable.metric.DegenerateMetric`
         for a complete documentation.
 
         INPUT:
@@ -3229,23 +3229,31 @@ class DifferentiableManifold(TopologicalManifold):
         OUTPUT:
 
         - instance of
-          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
-          representing the defined Riemannian metric.
+          :class:`~sage.manifolds.differentiable.metric.DegenerateMetric`
+          representing the defined degenerate metric.
 
         EXAMPLES:
 
-        Metric of the hyperbolic plane `H^2`::
+        Lightlike cone::
 
-            sage: H2 = Manifold(2, 'H^2', start_index=1)
-            sage: X.<x,y> = H2.chart('x y:(0,+oo)')  # Poincaré half-plane coord.
-            sage: g = H2.riemannian_metric('g')
-            sage: g[1,1], g[2,2] = 1/y^2, 1/y^2
-            sage: g
-            Riemannian metric g on the 2-dimensional differentiable manifold H^2
-            sage: g.display()
-            g = y^(-2) dx*dx + y^(-2) dy*dy
-            sage: g.signature()
-            2
+        sage: M = Manifold(3, 'M'); X.<x,y,z> = M.chart()
+        sage: g = M.degenerate_metric('g'); g
+        degenerate metric g on the 3-dimensional differentiable manifold M
+        sage: det(g)
+        0
+        sage: g.parent()
+        Free module T^(0,2)(M) of type-(0,2) tensors fields on the 
+        3-dimensional differentiable manifold M
+        sage: g[0,0], g[0,1], g[0,2] = (y^2 + z^2)/(x^2 + y^2 + z^2), \
+        ....: - x*y/(x^2 + y^2 + z^2), - x*z/(x^2 + y^2 + z^2)
+        sage: g[1,1], g[1,2], g[2,2] = (x^2 + z^2)/(x^2 + y^2 + z^2), \
+        ....: - y*z/(x^2 + y^2 + z^2), (x^2 + y^2)/(x^2 + y^2 + z^2)
+        sage: g.disp()
+        g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx*dx - x*y/(x^2 + y^2 + z^2) dx*dy 
+        - x*z/(x^2 + y^2 + z^2) dx*dz - x*y/(x^2 + y^2 + z^2) dy*dx 
+        + (x^2 + z^2)/(x^2 + y^2 + z^2) dy*dy - y*z/(x^2 + y^2 + z^2) dy*dz 
+        - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy 
+        + (x^2 + y^2)/(x^2 + y^2 + z^2) dz*dz
 
         .. SEEALSO::
 
