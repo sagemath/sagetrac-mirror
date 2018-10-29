@@ -227,7 +227,7 @@ cdef extern from "draw.h":
     #  void WordZone (BetaAdic b, int *word, int nmax)
     int *Draw(BetaAdic b, Surface s, int n, int ajust, Color col, int nprec, double sp, int verb)
     void Draw2(BetaAdic b, Surface s, int n, int ajust, Color col, double sp, int verb)
-    void DrawList(BetaAdic2 b, Surface s, int n, int ajust, ColorList lc, double alpha, double sp, int verb)
+    void DrawList(BetaAdic2 b, Surface s, int n, int ajust, ColorList lc, double alpha, double sp, int nprec, int verb)
     void print_word(BetaAdic b, int n, int etat)
 
 # calcul de la valeur absolue p-adique (car non encore implémenté autrement)
@@ -1048,7 +1048,7 @@ cdef class BetaAdicMonoid:
         r.S = range(a.n)
         return BetaAdicMonoid(self.b, r)
 
-    def draw_zoom(self, n=None, int sx=800, int sy=600, bool ajust=True, int prec=53, color=(0, 0, 0, 255), int method=0, int nprec=3, bool mirror=False, bool verb=False):
+    def draw_zoom(self, n=None, int sx=800, int sy=600, bool ajust=True, int prec=53, color=(0, 0, 0, 255), int method=0, int nprec=4, bool mirror=False, bool verb=False):
         r"""
         Display the b-adic set in a window, with possibility for the user to zoom in.
 
@@ -1071,7 +1071,7 @@ cdef class BetaAdicMonoid:
 
         - ``method`` -- (default 0)
 
-        - ``nprec`` -- (default 1) - additional iterations for the drawing (if ``n`` is None).
+        - ``nprec`` -- (default 4) - additional iterations for the drawing (if ``n`` is None).
 
         - ``verb`` -- (default ``False``) set ti ``True`` for verbose mod
 
@@ -1118,7 +1118,7 @@ cdef class BetaAdicMonoid:
 
     def plot(self, n=None, sx=800, sy=600,
               ajust=True, prec=53, color=(0, 0, 0, 255),
-              method=0, nprec=3, mirror=False, verb=False):
+              method=0, nprec=4, mirror=False, verb=False):
         r"""
         Draw the beta-adic set.
 
@@ -1146,7 +1146,7 @@ cdef class BetaAdicMonoid:
 
         - ``method`` -- (default : 0)
 
-        - ``nprec`` -- (default 1) - additionnal iterations
+        - ``nprec`` -- (default 4) - additionnal iterations
 
         - ``verb`` - bool (default: ``False``)
           Print informations for debugging.
@@ -1194,15 +1194,15 @@ cdef class BetaAdicMonoid:
         #. A part of the boundary of the dragon fractal::
 
             sage: m = BetaAdicMonoid(1/(1+I), dag.AnyWord([0,1]))
-            sage: i = m.intersection_words(w1=[0], w2=[1])
-            sage: i.plot(mirror=False)
+            sage: mi = m.intersection_words(w1=[0], w2=[1])
+            sage: mi.plot(nprec=6)
 
         #. A part of the boundary of the "Hokkaido" fractal::
 
             sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
-            sage: m = s.Du‡montThomas()
-            sage: i = m.intersection_words(w1=[0], w2=[1])
-            sage: i.plot(mirror=False)
+            sage: m = s.DumontThomas()
+            sage: mi = m.intersection_words(w1=[0], w2=[1])
+            sage: mi.plot()
 
         #. A limit set that look like a tiling but with holes::
 
@@ -1263,7 +1263,7 @@ cdef class BetaAdicMonoid:
 
     def plot_list(self, list la=None, n=None,
               sx=800, sy=600, ajust=True, prec=53, colormap='hsv',
-              backcolor=None, opacity=1., mirror=False, verb=False):
+              backcolor=None, opacity=1., mirror=False, nprec=4, verb=False):
         r"""
         Draw the beta-adic sets with color according to the list of automata given.
 
@@ -1370,7 +1370,7 @@ cdef class BetaAdicMonoid:
                 cl[i+1] = getColor(colormap(float(i)/float(b.na-1)))
         else:
             raise TypeError("Type of option colormap (=%s) must be list of colors or str" % colormap)
-        DrawList(b, s, n, ajust, cl, opacity, self.a.spectral_radius(), verb)
+        DrawList(b, s, n, ajust, cl, opacity, self.a.spectral_radius(), nprec, verb)
         sig_off()
         # enregistrement du résultat
         sig_on()
@@ -1880,7 +1880,7 @@ cdef class BetaAdicMonoid:
     #     - ``aut`` - DetAutomaton (default: ``None``, full language)
     #       Automaton describing the language in which we live.
     def reduced_words_automaton(self, full=False, step=100,
-                                verb=False, mirror=False):  # , DetAutomaton aut=None):
+                                mirror=False, verb=False):  # , DetAutomaton aut=None):
         r"""
         Compute the reduced words automaton of the beta-adic monoid
         (without considering the automaton of authorized words).
@@ -1994,19 +1994,33 @@ cdef class BetaAdicMonoid:
             return arel.minimize()
         else:
             arel = self.relations_automaton(couples=True, ext=False)
+            if verb:
+                print("arel=%s"%arel)		
             ap = self.a.product(self.a)
+            if verb:
+                print("ap=%s"%ap)
             ai = ap.intersection(arel)
-            alex = DetAutomaton([(0,0,(i,i)) for i in range(nA)]
-                   +[(0,1,(i,j)) for i in range(nA) for j in range(i)]
-                   +[(1,1,(i,j)) for i in range(nA) for j in range(nA)],
+            if verb:
+                print("ai=%s"%ai)
+            alex = DetAutomaton([(0,0,(i,i)) for i in A]
+                   +[(0,1,(A[i],A[j])) for i in range(nA) for j in range(i)]
+                   +[(1,1,(i,j)) for i in A for j in A],
                    i=0, final_states=[1])
+            if verb:
+                print("alex=%s"%alex)
             ai = ai.intersection(alex)
+            if verb:
+                print("ai=%s"%ai)
             ai = ai.proji(0)
+            if verb:
+                print("ai=%s"%ai)
             ai.complementary_op()
-            return self.a.intersection(ai)
+            if verb:
+                print("ai=%s"%ai)
+            return ai.intersection(self.a)
     
     def reduced (self, mirror=False, verb=False):
-        return BetaAdicMonoid(self.b, self.reduced_words_automaton())
+        return BetaAdicMonoid(self.b, self.reduced_words_automaton(mirror=mirror, verb=verb))
 
 #     def reduced_words_automaton(self, ss=None, Iss=None, ext=False,
 #                                 verb=False, step=None, arel=None):

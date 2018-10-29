@@ -76,4 +76,4 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
 int *Draw(BetaAdic b, Surface s, int n, int ajust, Color col, int nprec, double sp, int verb);
 void Draw2(BetaAdic b, Surface s, int n, int ajust, Color col, int nprec, double sp, int verb);
 void printAutomate(Automaton a);
-void DrawList(BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double alpha, double sp, int verb);
+void DrawList(BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double alpha, double sp, int nprec, int verb);

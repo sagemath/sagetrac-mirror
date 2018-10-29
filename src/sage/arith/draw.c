@@ -2172,7 +2172,7 @@ Automaton ApproxImage (BetaAdic b, SDLImage s, int n)
 }
 */
 
-void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double alpha, double sp, int verb)
+void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double alpha, double sp, int nprec, int verb)
 {
     if (b.na < 1)
     {
@@ -2243,7 +2243,7 @@ void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double al
 	Fill(s, color0);
 	if (auto_n && (!ajust || cnorm(b.b) < 1))
 	{
-		n = choose_n (s.sx, s.sy, b.b, sp, 4, verb);
+		n = choose_n (s.sx, s.sy, b.b, sp, nprec, verb);
 	}
 	pos = zero();
 	for (i=0;i<b.na;i++)
