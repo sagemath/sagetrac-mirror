@@ -283,7 +283,6 @@ Methods
 #*****************************************************************************
 
 from __future__ import absolute_import, print_function
-from six import iteritems
 
 from libc.string cimport memset
 from cysignals.memory cimport check_malloc, sig_malloc, sig_free
@@ -1598,7 +1597,7 @@ def vertex_separation_BAB(G,
     cdef binary_matrix_t H
     cdef dict vertex_to_int = dense_graph_init(H, G, translation=True)
     cdef int i
-    cdef dict int_to_vertex = {i: v for v, i in iteritems(vertex_to_int)}
+    cdef dict int_to_vertex = {i: v for v, i in vertex_to_int.iteritems()}
 
     # We need 2 bitsets here + 3 per call to vertex_separation_BAB_C, so overall
     # 3*n + 2. We use another binary matrix as a pool of bitsets.

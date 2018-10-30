@@ -134,7 +134,6 @@ Methods
 #******************************************************************************
 
 from copy import copy
-from six import iteritems
 
 def is_cartesian_product(g, certificate=False, relabeling=False):
     r"""
@@ -243,7 +242,7 @@ def is_cartesian_product(g, certificate=False, relabeling=False):
     # relabel it
     cdef dict vertex_to_int
     g_int, vertex_to_int = g.relabel(inplace=False, return_map=True)
-    cdef dict int_to_vertex = {i: vert for vert, i in iteritems(vertex_to_int)}
+    cdef dict int_to_vertex = {i: vert for vert, i in vertex_to_int.iteritems()}
 
     # Reorder the vertices of an edge
     r = lambda x_int, y_int: (x_int, y_int) if x_int < y_int else (y_int, x_int)
