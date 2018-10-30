@@ -425,56 +425,17 @@ cdef Automaton getAutomate(a, list A, verb=False):
     cdef DetAutomaton fa
     cdef Automaton aut
     if isinstance(a, DetAutomaton):
-        fa = a.permut(A, verb=verb)
-        # fa = fa.permut(A, verb=verb)
+        if set(A).issubset(a.alphabet):
+            fa = a.permut(A, verb=verb)
+        else:
+            fa = a.bigger_alphabet(A)
         aut = fa.a[0]
+        #free(fa.a)
+        #fa.a = NULL
         aut = CopyAutomaton(aut, aut.n, aut.na);
         return aut
     else:
         raise ValueError("DetAutomaton expected.")
-
-#    #assume in the following that a is a Automaton
-#    lv = a.vertices()
-#    if hasattr(a, 'F'):
-#        F = a.F
-#    else:
-#        F = lv
-#    #alloue l'automate
-#    cdef Automate r
-#    r = NewAutomaton(a.num_verts(), len(a.alphabet))
-#    #réindice les sommets
-#    dv = {}
-#    for u,i in zip(lv, range(len(lv))):
-#        dv[u] = i
-#        if u in F:
-#            r.e[i].final = 1
-#    if verb:
-#        print len(lv)
-#    #copie l'automate en C
-#    le = a.edges()
-#    if verb:
-#        print "len(le)=%s"%len(le)
-#    for u,v,l in le:
-#        if d.has_key(l):
-#            #if dv.has_key(u) and dv.has_key(v):
-#            r.e[dv[u]].f[d[l]] = dv[v]
-#            #else:
-#            #   print "Erreur : pas de clef %s ou %s !"%(u,v)
-#        else:
-#            print "Erreur : pas de clef %s !"%l
-#    if verb:
-#        print "I..."
-#    if iss is not None:
-#        r.i = iss
-#    else:
-#        if hasattr(a, 'I') and len(a.I) > 0:
-#            r.i = dv[list(a.I)[0]]
-#        else:
-#            r.i = -1
-#            #raise ValueError("The initial state must be defined !")
-#    if verb:
-#        print "...getAutomate"
-#    return r
 
 def mahler(pi):
     from sage.rings.qqbar import AA
@@ -705,6 +666,29 @@ cdef class ImageIn:
     def height(self):
         return ImageHeight(self.s[0])
 
+def getDetAutomaton (self, a):
+    if type(a) is BetaAdicMonoid:
+        if self.b != a.b:
+            raise ValueError("The two beta-adic sets must have the same b (here %s != %s).", self.b, a.b)
+        a = a.a
+    elif type(a) is not DetAutomaton:
+        try:
+           a = DetAutomaton(a)
+        except:
+           raise ValueError("The argument a must be a BetaAdicMonoid or an automaton.")
+    return a
+
+cdef getBetaAdicMonoid (self, a):
+    if type(a) is BetaAdicMonoid:
+        if self.b != a.b:
+            raise ValueError("The two beta-adic sets must have the same b (here %s != %s).", self.b, a.b)
+    elif type(a) is not DetAutomaton:
+        try:
+           a = DetAutomaton(a)
+        except:
+           raise ValueError("The argument a must be a BetaAdicMonoid or an automaton.")
+        a = BetaAdicMonoid(self.b, a)
+    return a
 
 cdef class BetaAdicMonoid:
     r"""
@@ -874,6 +858,20 @@ cdef class BetaAdicMonoid:
         Return the beta-adic set with the mirror automaton.
         """
         return BetaAdicMonoid(self.b, self.a.mirror())
+    
+    def is_included (self, a, verb=False):
+        a = getDetAutomaton(self, a)
+        if verb:
+            print("a=%s"%a)
+        b = self.a.zero_complete2()
+        b.zero_completeOP()
+        if verb:
+            print("b=%s"%b)
+        m = BetaAdicMonoid(self.b, a)
+        ap = m.proj(b, aut=True)
+        if verb:
+            print("ap=%s"%ap)
+        return ap.equal_languages(b)
     
     def _testSDL(self):
         """
@@ -1389,7 +1387,7 @@ cdef class BetaAdicMonoid:
 
     def relations_automaton(self, t=0, bool isvide=False, list Ad=None, list A=None, list B=None,
                              bool couples=False, bool ext=False, mirror=None,
-                             bool prune=True, int nhash=1000003, int prec=53, int algo=1, bool verb=False):
+                             bool prune=True, int nhash=1000003, int prec=53, int algo=1, int coeff=1, bool verb=False):
         r"""
         Compute the relation automaton of the beta-adic monoid.
         For beta algebraic integer only.
@@ -1470,13 +1468,18 @@ cdef class BetaAdicMonoid:
         pi = b.minpoly()
         pi = pi*pi.denominator()
         #alphabet
-        Ad = None
         if Ad is None:
             if A is None:
                 A = self.a.A
             if B is None:
                 B = self.a.A
             Ad = list(set([a1-b1 for a1 in A for b1 in B]))
+        else:
+            try:
+                list(Ad[0])
+                Ad = list(set([a1-b1 for a1,b1 in Ad]))
+            except:
+                pass
         if verb:
             print("Ad=%s"%Ad)
         if algo == 1:
@@ -1508,9 +1511,9 @@ cdef class BetaAdicMonoid:
             bo = []
             for i,p in enumerate(places):
                 if i < narch:
-                    bo.append(max([K.abs_val(p,x) for x in Ad])/(K.abs_val(p, b) - 1))
+                    bo.append(coeff*max([K.abs_val(p,x) for x in Ad])/(K.abs_val(p, b) - 1))
                 else:
-                    bo.append(max([K.abs_val(p,x) for x in Ad])/K.abs_val(p, b))
+                    bo.append(coeff*max([K.abs_val(p,x) for x in Ad])/K.abs_val(p, b))
             if verb:
                 print("bounds=%s"%bo)
             #compute the automaton
@@ -1607,9 +1610,9 @@ cdef class BetaAdicMonoid:
             bo = []
             for i,p in enumerate(places):
                 if i < narch:
-                    bo.append(max([K.abs_val(p,x) for x in Ad])/(1 - K.abs_val(p, b)))
+                    bo.append(coeff*max([K.abs_val(p,x) for x in Ad])/(1 - K.abs_val(p, b)))
                 else:
-                    bo.append(max([K.abs_val(p,x) for x in Ad]))
+                    bo.append(coeff*max([K.abs_val(p,x) for x in Ad]))
             if verb:
                 print("bounds=%s"%bo)
             #compute the automaton
@@ -2666,14 +2669,14 @@ cdef class BetaAdicMonoid:
 #        return a2.minimize()
 
     # project the translation by t of self on the zero completion of a
-    def proj(self, a, t=0, arel=None):
-        if isinstance(a, BetaAdicMonoid):
-            a = a.a
-        else:
-            try:
-                a = DetAutomaton(a)
-            except:
-                raise ValueError("a must be an automaton or a BetaAdicMonoid.")
+    def proj(self, a, t=0, arel=None, bool aut=False):
+        r"""
+        aut - return a DetAutomaton or a BetaAdicMonoid ?
+        """
+        cdef DetAutomaton ai
+        cdef DetAutomaton r
+        
+        a = getDetAutomaton(self, a)
         if arel is None:
             # compute the relations automaton with translation t
             arel = self.relations_automaton(t=t, couples=True,
@@ -2681,7 +2684,10 @@ cdef class BetaAdicMonoid:
         ai = arel.intersection(self.a.zero_complete2().product(a.zero_complete2()))
         r = ai.proji(1)
         r.zero_completeOP()
-        return r
+        if aut:
+            return r
+        else:
+            return BetaAdicMonoid(self.b, r)
 
 #    # donne l'automate décrivant le translaté de +t de a,
 #    # avec les chiffres A au départ et B à l'arrivée, le tout dans l'ensemble décrit par b
@@ -2901,6 +2907,7 @@ cdef class BetaAdicMonoid:
                 return e3
             return -1
 
+    # TO BE PUT IN GENERATORS
     # gives a automaton describing a approximation of a set defined by
     # the characteritic function test
     # rk : can be improve using a reduced words automaton
@@ -2936,7 +2943,24 @@ cdef class BetaAdicMonoid:
             A = self.a.A
         aoc = self.proj(dag.AnyWord(A))
         return aoc
-
+    
+    def union (self, a):
+        a = getDetAutomaton(self, a)
+        return BetaAdicMonoid(self.b, self.a.union(a))
+    
+    def unshift (self, l):
+        try:
+            l = list(l)
+            return BetaAdicMonoid(self.b, self.a.unshiftl(l))
+        except:
+            return BetaAdicMonoid(self.b, self.a.unshift1(l))
+    
+    #compute the difference of two beta-adic sets.
+    #it is a beta-adic set which is the set of differences of the two beta-adic sets
+    def diff (self, a):
+        a = getDetAutomaton(self, a)
+        return BetaAdicMonoid(self.b, self.a.diff(a)) 
+    
     # calcule la liste triée (par rapport à la place >1) des
     # premiers points dans omega-omega
     #

@@ -584,8 +584,9 @@ cdef class NFastAutomaton:
 
     def __dealloc__(self):
         sig_on()
-        FreeNAutomaton(self.a)
-        free(self.a)
+        if self.a is not NULL:
+            FreeNAutomaton(self.a)
+            free(self.a)
         sig_off()
 
     def __repr__(self):
@@ -2112,7 +2113,20 @@ cdef class DetAutomaton:
         sig_on()
         ZeroComplete(self.a, z, verb)
         sig_off()
-
+    
+    #compute an automaton whose language is the set of differences of the tow languages
+    def diff (self, DetAutomaton a, bool det=True, bool simplify=True):
+        cdef DetAutomaton r
+        cdef NFastAutomaton nr
+        cdef dict d
+        r = self.product(a)
+        d = {}
+        for i in self.A:
+            for j in a.A:
+                d[(i,j)] = i-j
+        return r.proj(d, det=det, simplify=simplify)
+    
+    #CHANGE THE NAME !
     def zero_complete2(self, z=0, sink_state=False, verb=False):
         """
         Compute an automaton recognizing the language L(l*), where L is
@@ -2881,8 +2895,7 @@ cdef class DetAutomaton:
         INPUT:
 
         - ``l`` -- int  index of letter to shift
-        - ``verb`` -- boolean (default: ``False``) if True, print
-          debugging informations
+        - ``final`` -- boolean (default: ``False``) if True, the empty word is added to the language
 
         OUTPUT:
 
@@ -2900,6 +2913,9 @@ cdef class DetAutomaton:
         cdef Automaton aut
         cdef int i
         cdef int ne
+        
+        if l < 0 or l >= self.a.na:
+            raise ValueError("l=%s must be an index of a letter (i.e. between 0 and %s)."%(l,self.a.na))
         
         r = DetAutomaton(None)
         sig_on()
@@ -4046,7 +4062,7 @@ cdef class DetAutomaton:
         sig_off()
         return answ
 
-    def equals_langages(self, DetAutomaton a2, minimized=False,
+    def equal_languages(self, DetAutomaton a2, minimized=False,
                         pruned=False, verb=False):
         """
         Test if the languages of :class:`DetAutomaton` ``self`` and ``a2`` are
@@ -4071,12 +4087,12 @@ cdef class DetAutomaton:
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=3)
             sage: c = DetAutomaton([(3, 2, 'd'), (1, 2, 'c')], i=2)
-            sage: a.equals_langages(b)
+            sage: a.equal_languages(b)
             True
-            sage: a.equals_langages(c)
+            sage: a.equal_languages(c)
             False
             sage: c = DetAutomaton([(3, 2, 'd'), (1, 2, 'c')])
-            sage: a.equals_langages(c)
+            sage: a.equal_languages(c)
             False
         """
         cdef Dict d
