@@ -418,24 +418,24 @@ cdef surface_to_img(Surface s):
     # img.save("/Users/mercat/Desktop/output.png")
     # img.save(file)
 
-cdef Automaton getAutomate(a, list A, verb=False):
+cdef Automaton getAutomaton(DetAutomaton a, list A, verb=False):
     cdef int i
     if verb:
-        print("getAutomate %s..." % a)
+        print("getAutomaton %s..." % a)
     cdef DetAutomaton fa
     cdef Automaton aut
-    if isinstance(a, DetAutomaton):
-        if set(A).issubset(a.alphabet):
-            fa = a.permut(A, verb=verb)
-        else:
-            fa = a.bigger_alphabet(A)
-        aut = fa.a[0]
-        #free(fa.a)
-        #fa.a = NULL
-        aut = CopyAutomaton(aut, aut.n, aut.na);
-        return aut
+    #if isinstance(a, DetAutomaton):
+    if set(A).issubset(a.A):
+        fa = a.permut(A, verb=verb)
     else:
-        raise ValueError("DetAutomaton expected.")
+        fa = a.bigger_alphabet(A)
+    aut = fa.a[0]
+    #free(fa.a)
+    #fa.a = NULL
+    aut = CopyAutomaton(aut, aut.n, aut.na);
+    return aut
+    #else:
+    #    raise ValueError("DetAutomaton expected.")
 
 def mahler(pi):
     from sage.rings.qqbar import AA
@@ -462,10 +462,10 @@ cdef BetaAdic getBetaAdic(m, prec=53, mirror=False, verb=False):
     b.b = complex(CC(m.b))
     for i, c in zip(range(b.n), A):
         b.t[i] = complex(CC(c))
-    b.a = getAutomate(a, A=A, verb=verb)
+    b.a = getAutomaton(a, A=A, verb=verb)
     return b
 
-cdef BetaAdic2 getBetaAdic2(self, la=None,
+cdef BetaAdic2 getBetaAdic2(BetaAdicMonoid self, la=None,
                             prec=53, mirror=False, verb=False):
     if verb:
         print("getBetaAdic %s" % self)
@@ -475,6 +475,10 @@ cdef BetaAdic2 getBetaAdic2(self, la=None,
     if la is None:
         la = self.get_la(verb=verb)
     
+    #check that every element of la is a DetAutomaton or convert it
+    la = [getDetAutomaton(self, a) for a in la]
+    
+    #add the automaton of self as first element
     la = [self.a]+la
     
     if mirror:
@@ -498,7 +502,7 @@ cdef BetaAdic2 getBetaAdic2(self, la=None,
         d[c] = i
     # automata
     for i in range(len(la)):
-        b.a[i] = getAutomate(la[i], A=A, verb=verb)
+        b.a[i] = getAutomaton(getDetAutomaton(self,la[i]), A=A, verb=verb)
     return b
 
 def PrintWord(m, n):
@@ -678,7 +682,7 @@ def getDetAutomaton (self, a):
            raise ValueError("The argument a must be a BetaAdicMonoid or an automaton.")
     return a
 
-cdef getBetaAdicMonoid (self, a):
+cdef getBetaAdicMonoid (BetaAdicMonoid self, a):
     if type(a) is BetaAdicMonoid:
         if self.b != a.b:
             raise ValueError("The two beta-adic sets must have the same b (here %s != %s).", self.b, a.b)
@@ -1272,7 +1276,7 @@ cdef class BetaAdicMonoid:
           Default values: between ``5`` and ``16`` depending on the number of generators.
 
         - ``la``- list (default: ``None``)
-          List of automata.
+          List of automata or BetaAdicMonoid.
           
         - ``sx, sy`` - dimensions of the resulting
           image (default : ``800, 600``)
@@ -2947,6 +2951,10 @@ cdef class BetaAdicMonoid:
     def union (self, a):
         a = getDetAutomaton(self, a)
         return BetaAdicMonoid(self.b, self.a.union(a))
+    
+    def intersection (self, a):
+        a = getDetAutomaton(self, a)
+        return BetaAdicMonoid(self.b, self.a.intersection(a))
     
     def unshift (self, l):
         try:
