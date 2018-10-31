@@ -3106,7 +3106,8 @@ cdef class BetaAdicMonoid:
                 print("Translated pieces do not overlap !")
             return False
         return True
-
+    
+    #to be rewritten
     def compute_morceaux(self, DetAutomaton aoc, lt=None, method=1, imax=None,
                          verb=False, stop=-1):
         r"""
@@ -3225,6 +3226,7 @@ cdef class BetaAdicMonoid:
                                 res.append(t2)
         return res
 
+    #to be rewritten
     def compute_morceaux2(self, DetAutomaton aoc, iplus=1,
                           reduit=False, verb=False, step=None):
         r"""
@@ -3383,6 +3385,7 @@ cdef class BetaAdicMonoid:
             raise ValueError("Error: piece exchange doesn't pave!!!")
         return [(at[t], t) for t in at.keys()]
 
+    #to be rewritten
     def compute_morceaux3(self, DetAutomaton a, DetAutomaton ap=None,
                           bound=100, iplus=1, getad=False, verb=False,
                           need_included=True, step=None):
@@ -3544,6 +3547,7 @@ cdef class BetaAdicMonoid:
                 break
         return [(at[t], t) for t in at.keys()]
 
+    #to be rewritten
     def compute_substitution(self, DetAutomaton a=None,
                              np=None, lt=None, method=2,
                              method_tr=1, iplus=2, imax=None,
@@ -3862,6 +3866,7 @@ cdef class BetaAdicMonoid:
         else:
             return d
 
+    #to be rewritten
     def compute_substitution2(self, DetAutomaton a, DetAutomaton ap=None,
                               np=None, lt=None, method=2, method_tr=1,
                               iplus=2, imax=None, need_included=True,
