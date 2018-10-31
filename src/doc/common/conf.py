@@ -770,7 +770,7 @@ autodoc_builtin_argspec = sage_getargspec
 # version of the docs the user was linked from (this would work better if we
 # had release branches...)
 viewcode_extra_links = [
-    ('https://gitlab.com/sagemath/sage/blob/develop/src/{filename}#L{start}-{end}',
+    ('https://gitlab.com/sagemath/dev/sage/blob/develop/src/{filename}#L{start}-{end}',
      'edit on gitlab',
      'Click the edit button on the next page', 'edit-on-gitlab')
 ]

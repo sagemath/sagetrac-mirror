@@ -124,6 +124,7 @@ def doctree_read(app, doctree):
         if objnode.get('domain') != 'py':
             continue
         names = set()  # type: Set[unicode]
+        links = []
         for signode in objnode:
             if not isinstance(signode, addnodes.desc_signature):
                 continue
@@ -142,26 +143,32 @@ def doctree_read(app, doctree):
                 # only one link per name, please
                 continue
             names.add(fullname)
-
             filename, tags = entry[1:3]
             filename_parts = filename.split(os.sep)
             n_parts = modname.count('.') + 1
             rel_filename = '/'.join(filename_parts[-n_parts:])
 
             pagename = '_modules/' + os.path.splitext(rel_filename)[0]
+
             onlynode = addnodes.only(expr='html')
             onlynode += addnodes.pending_xref(
                 '', reftype='viewcode', refdomain='std', refexplicit=False,
                 reftarget=pagename, refid=fullname,
                 refdoc=env.docname)
             onlynode[0] += nodes.inline('', _('[source]'),
-                                        classes=['viewcode-link'])
-            signode += onlynode
+                                        classes=['sage-viewcode-link'])
+            links.append(onlynode)
             for link in env.config.viewcode_extra_links:
                 urlfmt, textfmt, titlefmt, linkcls = link
-                signode += make_extra_link_node(urlfmt, textfmt, titlefmt,
-                        rel_filename, linkcls, name=fullname, module=modname,
-                        start=tags[fullname][1], end=tags[fullname][2])
+                links.append(
+                    make_extra_link_node(urlfmt, textfmt, titlefmt,
+                                         rel_filename, linkcls,
+                                         name=fullname, module=modname,
+                                         start=tags[fullname][1],
+                                         end=tags[fullname][2]))
+
+            new_par = nodes.paragraph('', '', *links)
+            signode += new_par
 
 
 def make_extra_link_node(urlfmt, textfmt, titlefmt, filename, linkcls=None,
@@ -170,7 +177,7 @@ def make_extra_link_node(urlfmt, textfmt, titlefmt, filename, linkcls=None,
     url = urlfmt.format(**tmpl_vars)
     text = textfmt.format(**tmpl_vars)
     title = titlefmt.format(**tmpl_vars)
-    classes = ['viewcode-link']
+    classes = ['sage-viewcode-link']
     if linkcls:
         classes.append(linkcls)
 

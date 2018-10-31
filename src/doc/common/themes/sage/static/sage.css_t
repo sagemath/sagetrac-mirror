@@ -241,6 +241,12 @@ p.admonition-title:after {
     content: ":";
 }
 
+/* For source links in API reference docs */
+span.viewcode-link {
+    float: none;
+    margin-left: 0.2em;
+}
+
 /**
  * Code block.
  * The border colour should be a darker shade of the background colour.
