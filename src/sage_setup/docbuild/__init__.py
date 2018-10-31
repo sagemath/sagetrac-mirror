@@ -54,7 +54,7 @@ import sphinx.ext.intersphinx
 import sage.all
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import sage_makedirs
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, SAGE_SHARE
 
 from .build_options import (LANGUAGES, SPHINXOPTS, PAPER, OMIT,
      PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS,
@@ -1707,6 +1707,19 @@ def main():
         if not dirnames + filenames:
             logger.warning('Deleting empty directory {0}'.format(dirpath))
             os.rmdir(dirpath)
+
+    # Clean up: check for and delete bad mathjax symlink and
+    # directories. See trac #26612.
+    bad_mathjax_link = os.path.join(SAGE_SHARE, 'mathjax', 'mathjax')
+    if os.path.islink(bad_mathjax_link):
+        logger.warning('Bad mathjax symlink found. Deleting.')
+        os.unlink(bad_mathjax_link)
+    for dirpath, dirnames, filenames in os.walk(os.path.join(SAGE_DOC, 'html')):
+        if dirpath.endswith('_static'):
+            bad_mathjax_dir = os.path.join(dirpath, 'mathjax')
+            if os.path.isdir(bad_mathjax_dir):
+                logger.warning('Bad mathjax directory found in {}. Deleting.'.format(dirpath))
+                shutil.rmtree(bad_mathjax_dir)
 
     # Set up Intersphinx cache
     C = IntersphinxCache()
