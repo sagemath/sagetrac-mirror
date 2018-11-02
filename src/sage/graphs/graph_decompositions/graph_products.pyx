@@ -35,8 +35,9 @@ Two remarks follow :
 
 #. The Cartesian product is commutative
 
-#. Any edge `uv` of a graph `G_1 \square \cdots \square G_k` can be given a color
-   `i` corresponding to the unique index `i` such that `u_i` and `v_i` differ.
+#. Any edge `uv` of a graph `G_1 \square \cdots \square G_k` can be given a
+   color `i` corresponding to the unique index `i` such that `u_i` and `v_i`
+   differ.
 
 The problem that is of interest to us in the present module is the following:
 
@@ -134,24 +135,22 @@ Methods
 
 from copy import copy
 
-
-def is_cartesian_product(g, certificate = False, relabeling = False):
+def is_cartesian_product(g, certificate=False, relabeling=False):
     r"""
-    Tests whether the graph is a Cartesian product.
+    Test whether the graph is a Cartesian product.
 
     INPUT:
 
-    - ``certificate`` (boolean) -- if ``certificate = False`` (default) the
-      method only returns ``True`` or ``False`` answers. If ``certificate =
-      True``, the ``True`` answers are replaced by the list of the factors of
-      the graph.
+    - ``certificate`` -- boolean (default: ``False``); if ``certificate =
+      False`` (default) the method only returns ``True`` or ``False``
+      answers. If ``certificate = True``, the ``True`` answers are replaced by
+      the list of the factors of the graph.
 
-    - ``relabeling`` (boolean) -- if ``relabeling = True`` (implies
-      ``certificate = True``), the method also returns a dictionary associating
-      to each vertex its natural coordinates as a vertex of a product graph. If
-      `g` is not a Cartesian product, ``None`` is returned instead.
-
-      This is set to ``False`` by default.
+    - ``relabeling`` -- boolean (default: ``False``); if ``relabeling = True``
+      (implies ``certificate = True``), the method also returns a dictionary
+      associating to each vertex its natural coordinates as a vertex of a
+      product graph. If `g` is not a Cartesian product, ``None`` is returned
+      instead.
 
     .. SEEALSO::
 
@@ -177,8 +176,8 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
 
     A 2d grid is the product of paths::
 
-        sage: g = graphs.Grid2dGraph(5,5)
-        sage: p1, p2 = is_cartesian_product(g, certificate = True)
+        sage: g = graphs.Grid2dGraph(5, 5)
+        sage: p1, p2 = is_cartesian_product(g, certificate=True)
         sage: p1.is_isomorphic(graphs.PathGraph(5))
         True
         sage: p2.is_isomorphic(graphs.PathGraph(5))
@@ -187,7 +186,7 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
     Forgetting the graph's labels, then finding them back::
 
         sage: g.relabel()
-        sage: g.is_cartesian_product(g, relabeling = True)
+        sage: g.is_cartesian_product(g, relabeling=True)
         (True, {0: (0, 0), 1: (0, 1), 2: (0, 2), 3: (0, 3),
                 4: (0, 4), 5: (5, 0), 6: (5, 1), 7: (5, 2),
                 8: (5, 3), 9: (5, 4), 10: (10, 0), 11: (10, 1),
@@ -200,10 +199,10 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
     product::
 
         sage: g = graphs.PetersenGraph().cartesian_product(graphs.CycleGraph(3))
-        sage: g1, g2 = is_cartesian_product(g, certificate = True)
-        sage: any( x.is_isomorphic(graphs.PetersenGraph()) for x in [g1,g2])
+        sage: g1, g2 = is_cartesian_product(g, certificate=True)
+        sage: any(x.is_isomorphic(graphs.PetersenGraph()) for x in [g1, g2])
         True
-        sage: any( x.is_isomorphic(graphs.CycleGraph(3)) for x in [g1,g2])
+        sage: any(x.is_isomorphic(graphs.CycleGraph(3)) for x in [g1, g2])
         True
 
     TESTS:
@@ -218,7 +217,7 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
 
         sage: Graph().is_cartesian_product()
         False
-        sage: Graph({0:[]}).is_cartesian_product()
+        sage: Graph({0: []}).is_cartesian_product()
         False
     """
     g._scream_if_not_simple()
@@ -241,29 +240,32 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
 
     # As we need the vertices of g to be linearly ordered, we copy the graph and
     # relabel it
-    g = copy(g)
-    trev = g.relabel(return_map = True)
-    t = dict([(x,y) for y,x in trev.iteritems()])
+    cdef dict vertex_to_int
+    g_int, vertex_to_int = g.relabel(inplace=False, return_map=True)
+    cdef dict int_to_vertex = {i: vert for vert, i in vertex_to_int.iteritems()}
 
     # Reorder the vertices of an edge
-    r = lambda x,y : (x,y) if x<y else (y,x)
+    r = lambda x_int, y_int: (x_int, y_int) if x_int < y_int else (y_int, x_int)
+
+    cdef int x, y, u, v
+    cdef set un, intersect
 
     # The equivalence graph on the edges of g
     h = Graph()
-    h.add_vertices([r(x,y) for x, y in g.edges(labels = False)])
+    h.add_vertices(r(x, y) for x, y in g_int.edge_iterator(labels=False))
 
     # For all pairs of vertices u,v of G, according to their number of common
     # neighbors... See the module's documentation !
-    for u in g:
-        un = set(g.neighbors(u))
-        for v in g.breadth_first_search(u):
+    for u in g_int:
+        un = set(g_int.neighbor_iterator(u))
+        for v in g_int.breadth_first_search(u):
 
             # u and v are different
             if u == v:
                 continue
 
             # List of common neighbors
-            intersect = un & set(g.neighbors(v))
+            intersect = un & set(g_int.neighbor_iterator(v))
 
             # If u and v have no neighbors and uv is not an edge then their
             # distance is at least 3. As we enumerate the vertices in a
@@ -271,72 +273,73 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
             # vertices at distance less than two from u, and we are done with
             # this loop !
             if not intersect:
-                if g.has_edge(u,v):
+                if g_int.has_edge(u, v):
                     continue
                 else:
                     break
 
             # If uv is an edge
-            if g.has_edge(u,v):
-                h.add_path([r(u,x) for x in intersect] + [r(v,x) for x in intersect])
+            if g_int.has_edge(u, v):
+                h.add_path([r(u, x) for x in intersect] + [r(v, x) for x in intersect])
 
             # Only one common neighbor
             elif len(intersect) == 1:
                 x = intersect.pop()
-                h.add_edge(r(u,x),r(v,x))
+                h.add_edge(r(u, x), r(v, x))
 
             # Exactly 2 neighbors
             elif len(intersect) == 2:
-                x,y = intersect
-                h.add_edge(r(u,x),r(v,y))
-                h.add_edge(r(v,x),r(u,y))
+                x, y = intersect
+                h.add_edge(r(u, x), r(v, y))
+                h.add_edge(r(v, x), r(u, y))
             # More
             else:
-                h.add_path([r(u,x) for x in intersect] + [r(v,x) for x in intersect])
+                h.add_path([r(u, x) for x in intersect] + [r(v, x) for x in intersect])
 
     # Edges uv and u'v' such that d(u,u')+d(v,v') != d(u,v')+d(v,u') are also
     # equivalent
 
-    edges = g.edges(labels = False)
-    d = g.distance_all_pairs()
-    for i,(u,v) in enumerate(edges):
+    cdef list edges = g_int.edges(labels=False)
+    cdef dict d = g_int.distance_all_pairs()
+    for i, (u, v) in enumerate(edges):
         du = d[u]
         dv = d[v]
-        for j in range(i+1,len(edges)):
-            uu,vv = edges[j]
-            if du[uu]+dv[vv] != du[vv] + dv[uu]:
-                h.add_edge(r(u,v),r(uu,vv))
+        for j in range(i + 1, g_int.size()):
+            uu, vv = edges[j]
+            if du[uu] + dv[vv] != du[vv] + dv[uu]:
+                h.add_edge(r(u, v), r(uu, vv))
 
     # Gathering the connected components, relabeling the vertices on-the-fly
-    edges = [[(t[y[0]], t[y[1]]) for y in x]
-             for x in h.connected_components()]
+    cdef list cc
+    edges = [[(int_to_vertex[u], int_to_vertex[v]) for u, v in cc]
+             for cc in h.connected_components()]
 
-    #Print the graph, distinguishing the edges according to their color classes
+    # Print the graph, distinguishing the edges according to their color classes
     #
-    #from sage.plot.colors import rainbow
-    #g.show(edge_colors = dict(zip(rainbow(len(edges)),edges)))
+    # from sage.plot.colors import rainbow
+    # g.show(edge_colors = dict(zip(rainbow(len(edges)),edges)))
 
     # Only one connected component ?
     if len(edges) == 1:
         return (False, None) if relabeling else False
 
     # Building the list of factors
-    factors = []
+    cdef list factors = []
     for cc in edges:
         tmp = Graph()
         tmp.add_edges(cc)
-        factors.append(tmp.subgraph(vertices = tmp.connected_components()[0]))
+        factors.append(tmp.subgraph(vertices=tmp.connected_components()[0]))
 
     # Computing the product of these graphs
     answer = factors[0]
-    for i in range(1,len(factors)):
+    for i in range(1, len(factors)):
         answer = answer.cartesian_product(factors[i])
 
     # Checking that the resulting graph is indeed isomorphic to what we have.
     isiso, dictt = g.is_isomorphic(answer, certificate=True)
     if not isiso:
-        raise ValueError("Something weird happened during the algorithm... "+
-                         "Please report the bug and give us the graph instance"+
+        raise ValueError("Something weird happened during the algorithm... "
+                         "Please report the bug and give us the graph instance"
                          " that made it fail !!!")
     if relabeling:
         return isiso, dictt
