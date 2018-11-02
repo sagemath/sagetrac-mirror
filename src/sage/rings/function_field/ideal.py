@@ -107,7 +107,11 @@ from sage.categories.monoids import Monoids
 from sage.rings.infinity import infinity
 from sage.rings.ideal import Ideal_generic
 
+from .place import FunctionFieldPlace_rational
+from .place import FunctionFieldPlace_global
+
 lazy_import('sage.matrix.constructor', 'matrix')
+lazy_import('sage.rings.function_field.divisor', 'FunctionFieldDivisor')
 
 class FunctionFieldIdeal(Element):
     """
@@ -475,6 +479,53 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
         """
         return (self._gen,)
 
+    def valuation(self, ideal):
+        """
+        Return the valuation of the ideal at this prime ideal.
+
+        INPUT:
+
+        - ``ideal`` -- fractional ideal
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(QQ)
+            sage: O = F.maximal_order()
+            sage: I = O.ideal(x^2*(x^2+x+1)^3)
+            sage: [f.valuation(I) for f,_ in I.factor()]
+            [2, 3]
+        """
+        if not self.is_prime():
+            raise TypeError("not a prime ideal")
+
+        O = self.ring()
+        d = ideal.denominator()
+        return self._valuation(d*ideal) - self._valuation(O.ideal(d))
+
+    def _valuation(self, ideal):
+        """
+        Return the valuation of the integral ideal at this prime ideal.
+
+        INPUT:
+
+        - ``ideal`` -- ideal
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(QQ)
+            sage: O = F.maximal_order()
+            sage: p = O.ideal(x)
+            sage: p.valuation(O.ideal(x+1))  # indirect doctest
+            0
+            sage: p.valuation(O.ideal(x^2))  # indirect doctest
+            2
+            sage: p.valuation(O.ideal(1/x^3))  # indirect doctest
+            -3
+            sage: p.valuation(O.ideal(0))  # indirect doctest
+            +Infinity
+        """
+        return ideal.gen().valuation(self.gen())
+
     def factor(self):
         """
         Return the factorization of this ideal.
@@ -513,6 +564,83 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
         for f,m in self._gen.factor():
              factors.append( (self.ring().ideal(f), m) )
         return factors
+
+    def place(self):
+        """
+        Return the place associated with the prime ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4))
+            sage: O = K.maximal_order()
+            sage: I = O.ideal(x^2+x+1)
+            sage: I.place()
+            Traceback (most recent call last):
+            ...
+            TypeError: not a prime ideal
+            sage: I = O.ideal(x^3+x+1)
+            sage: I.place()
+            Place (x^3 + x + 1)
+        """
+        if not self.is_prime():
+            raise TypeError("not a prime ideal")
+
+        place_set = self.ring().fraction_field().place_set()
+        return place_set.element_class(place_set, self)
+
+    def divisor(self):
+        """
+        Return divisor corresponding to the ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4))
+            sage: O = K.maximal_order()
+            sage: I = O.ideal(x*(x+1)^2/(x^2+x+1))
+            sage: I.divisor()
+            Place (x) + 2*Place (x + 1) - Place (x + z2) - Place (x + z2 + 1)
+        """
+        if self._gen == 0:
+            raise ValueError("not defined for zero element")
+
+        data = {prime.place(): multiplicity for prime, multiplicity in self._factor()}
+        return FunctionFieldDivisor(self.ring().fraction_field(), data)
+
+    def divisor_of_zeros(self):
+        """
+        Return divisor of zeros corresponding to the ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4))
+            sage: O = K.maximal_order()
+            sage: I = O.ideal(x*(x+1)^2/(x^2+x+1))
+            sage: I.divisor_of_zeros()
+            Place (x) + 2*Place (x + 1)
+        """
+        if self._gen == 0:
+            raise ValueError("not defined for zero element")
+
+        data = {prime.place(): multiplicity for prime, multiplicity in self._factor() if multiplicity > 0}
+        return FunctionFieldDivisor(self.ring().fraction_field(), data)
+
+    def divisor_of_poles(self):
+        """
+        Return divisor corresponding to the ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4))
+            sage: O = K.maximal_order()
+            sage: I = O.ideal(x*(x+1)^2/(x^2+x+1))
+            sage: I.divisor_of_poles()
+            Place (x + z2) + Place (x + z2 + 1)
+        """
+        if self._gen == 0:
+            raise ValueError("not defined for zero element")
+
+        data = {prime.place(): - multiplicity for prime, multiplicity in self._factor() if multiplicity < 0}
+        return FunctionFieldDivisor(self.ring().fraction_field(), data)
 
 class FunctionFieldIdeal_module(FunctionFieldIdeal, Ideal_generic):
     """
@@ -1293,11 +1421,29 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: I.gens_over_base()
             (x^3 + 1, y + x)
         """
+        gens, d  = self._gens_over_base()
+        return tuple([~d * b for b in gens])
+
+    @cached_method
+    def _gens_over_base(self):
+        """
+        Return the generators of the integral ideal, which is
+        the denominator times of the fractional ideal, together
+        with the denominator.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x^3*y - x)
+            sage: O = L.maximal_order()
+            sage: I = O.ideal(1/y)
+            sage: I._gens_over_base()
+            ([x, y], x)
+        """
         gens = []
         for row in self._hnf:
             gens.append(sum([c1*c2 for c1,c2 in zip(row, self._ring.basis())]))
-        denom_inv = ~self._denominator
-        return tuple([denom_inv * b for b in gens])
+        return gens, self._denominator
 
     def gens(self):
         """
@@ -1646,6 +1792,63 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
         """
         return reduce(operator.mul, self.basis_matrix().diagonal())
 
+    def divisor(self):
+        """
+        Return the divisor corresponding to the ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
+            sage: O = F.maximal_order()
+            sage: I = O.ideal(y)
+            sage: I.divisor()
+            2*Place (x, (1/(x^3 + x^2 + x))*y^2)
+             + 2*Place (x^2 + x + 1, (1/(x^3 + x^2 + x))*y^2)
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2+Y+x+1/x)
+            sage: O = L.maximal_order()
+            sage: I = O.ideal(y)
+            sage: I.divisor()
+            -1*Place (x, x*y)
+             + 2*Place (x + 1, x*y)
+        """
+        data = {prime.place(): multiplicity for prime, multiplicity in self.factor()}
+        return FunctionFieldDivisor(self.ring().fraction_field(), data)
+
+    def divisor_of_zeros(self):
+        """
+        Return the divisor of zeros corresponding to the ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2+Y + x + 1/x)
+            sage: O = L.maximal_order()
+            sage: I = O.ideal(y)
+            sage: I.divisor_of_zeros()
+            2*Place (x + 1, x*y)
+        """
+        data = {prime.place(): multiplicity for prime, multiplicity in self.factor() if multiplicity > 0}
+        return FunctionFieldDivisor(self.ring().fraction_field(), data)
+
+    def divisor_of_poles(self):
+        """
+        Return the divisor of poles corresponding to the ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: O = L.maximal_order()
+            sage: I = O.ideal(y)
+            sage: I.divisor_of_poles()
+            Place (x, x*y)
+        """
+        data = {prime.place(): - multiplicity for prime, multiplicity in self.factor() if multiplicity < 0}
+        return FunctionFieldDivisor(self.ring().fraction_field(), data)
+
     @cached_method
     def is_prime(self):
         """
@@ -1778,6 +1981,33 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
              Ideal (x + 1) of Maximal order of Rational function field in x over Finite Field of size 2]
         """
         return self._prime_below
+
+    def place(self):
+        """
+        Return the place corresponding to the prime ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
+            sage: O = F.maximal_order()
+            sage: I = O.ideal(y)
+            sage: [f.place() for f,_ in I.factor()]
+            [Place (x, (1/(x^3 + x^2 + x))*y^2),
+             Place (x^2 + x + 1, (1/(x^3 + x^2 + x))*y^2)]
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: O = L.maximal_order()
+            sage: I = O.ideal(y)
+            sage: [f.place() for f,_ in I.factor()]
+            [Place (x, x*y), Place (x + 1, x*y)]
+        """
+        if not self.is_prime():
+            raise TypeError("not a prime ideal")
+
+        place_set = self.ring().fraction_field().place_set()
+        return place_set.element_class(place_set, self)
 
 class FunctionFieldIdealInfinite(FunctionFieldIdeal):
     """
@@ -2014,6 +2244,79 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
         else:
             factors = [(self.ring().ideal(g), m)]
         return Factorization(factors, cr=True)
+
+    def divisor(self):
+        """
+        Return divisor corresponding to the fractional ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: Oinf = K.maximal_order_infinite()
+            sage: I = Oinf.ideal((x+1)/(x^3+1))
+            sage: I.divisor()
+            2*Place (1/x)
+        """
+        if self._gen == 0:
+            raise ValueError("not defined for zero element")
+
+        data = {prime.place(): multiplicity for prime, multiplicity in self.factor()}
+        return FunctionFieldDivisor(self.ring().fraction_field(), data)
+
+    def divisor_of_zeros(self):
+        """
+        Return divisor corresponding to the fractional ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: Oinf = K.maximal_order_infinite()
+            sage: I = Oinf.ideal((x+1)/(x^3+1))
+            sage: I.divisor_of_zeros()
+            2*Place (1/x)
+        """
+        if self._gen == 0:
+            raise ValueError("not defined for zero element")
+
+        data = {prime.place(): multiplicity for prime, multiplicity in self.factor() if multiplicity > 0}
+        return FunctionFieldDivisor(self.ring().fraction_field(), data)
+
+    def divisor_of_poles(self):
+        """
+        Return divisor corresponding to the fractional ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: Oinf = K.maximal_order_infinite()
+            sage: I = Oinf.ideal((x + 1)/(x^3 + 1))
+            sage: I.divisor_of_poles()
+            0
+        """
+        if self._gen == 0:
+            raise ValueError("not defined for zero element")
+
+        data = {prime.place(): - multiplicity for prime, multiplicity in self.factor() if multiplicity < 0}
+        return FunctionFieldDivisor(self.ring().fraction_field(), data)
+
+    def place(self):
+        """
+        Return the place corresponding to the prime ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: Oinf = K.maximal_order_infinite()
+            sage: I = Oinf.ideal((x+1)/(x^3+1))
+            sage: p = I.factor()[0][0]
+            sage: p.place()
+            Place (1/x)
+        """
+        if not self.is_prime():
+            raise TypeError("not a prime ideal")
+
+        place_set = self.ring().fraction_field().place_set()
+        return place_set.element_class(place_set, self)
 
     def valuation(self, ideal):
         """
@@ -2697,6 +3000,109 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
             factors.append((prime, exp))
 
         return factors
+
+    def place(self):
+        """
+        Return the place corresponding to the prime ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(3^2)); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3 + t^2 - x^4)
+            sage: Oinf = F.maximal_order_infinite()
+            sage: I = Oinf.ideal(1/x)
+            sage: I.factor()
+            (Ideal (1/x,1/x^3*y^2) of Maximal infinite order of Function field
+            in y defined by y^3 + y^2 + 2*x^4)^3
+            sage: J = I.factor()[0][0]
+            sage: J.is_prime()
+            True
+            sage: J.place()
+            Place (1/x, 1/x^3*y^2)
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: Oinf = L.maximal_order_infinite()
+            sage: I = Oinf.ideal(1/x)
+            sage: I.factor()
+            (Ideal (1/x,1/x*y) of Maximal infinite order of Function field in y
+            defined by y^2 + y + (x^2 + 1)/x)^2
+            sage: J = I.factor()[0][0]
+            sage: J.is_prime()
+            True
+            sage: J.place()
+            Place (1/x, 1/x*y)
+        """
+        if not self.is_prime():
+            raise ValueError("not a prime ideal")
+
+        place_set = self.ring().fraction_field().place_set()
+        return place_set.element_class(place_set, self)
+
+    def divisor(self):
+        """
+        Return the divisor corresponding to the ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2+x+1)^2)
+            sage: Oinf = F.maximal_order_infinite()
+            sage: I = Oinf.ideal(y)
+            sage: I.divisor()
+            -2*Place (1/x, 1/x^4*y^2 + 1/x^2*y + 1)
+             - 2*Place (1/x, 1/x^2*y + 1)
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: Oinf = L.maximal_order_infinite()
+            sage: I = Oinf.ideal(y)
+            sage: I.divisor()
+            -1*Place (1/x, 1/x*y)
+        """
+        F = self.ring().fraction_field()
+
+        if self._ideal.is_prime.is_in_cache() and self._ideal.is_prime():
+            from .divisor import prime_divisor
+
+            place = FunctionFieldPlace_global(F, self)
+            div = prime_divisor(F, place)
+            return div
+        else:
+            data = {prime.place(): multiplicity for prime, multiplicity in self.factor()}
+            return FunctionFieldDivisor(self.ring().fraction_field(), data)
+
+    def divisor_of_zeros(self):
+        """
+        Return the divisor of zeros corresponding to the ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2+Y+x+1/x)
+            sage: O = L.maximal_order()
+            sage: I = O.ideal(y)
+            sage: I.divisor_of_zeros()
+            2*Place (x + 1, x*y)
+        """
+        data = {prime.place(): multiplicity for prime, multiplicity in self.factor() if multiplicity > 0}
+        return FunctionFieldDivisor(self.ring().fraction_field(), data)
+
+    def divisor_of_poles(self):
+        """
+        Return the divisor of poles corresponding to the ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: O = L.maximal_order()
+            sage: I = O.ideal(y)
+            sage: I.divisor_of_poles()
+            Place (x, x*y)
+        """
+        data = {prime.place(): - multiplicity for prime, multiplicity in self.factor() if multiplicity < 0}
+        return FunctionFieldDivisor(self.ring().fraction_field(), data)
 
     def valuation(self, ideal):
         """
