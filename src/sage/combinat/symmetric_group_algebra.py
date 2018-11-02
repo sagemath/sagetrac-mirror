@@ -95,7 +95,7 @@ def SymmetricGroupAlgebra(R, W, category=None):
         sage: SGA.group()
         Symmetric group of order 4! as a permutation group
         sage: SGA.an_element()
-        () + (2,3,4) + 2*(1,2) + 3*(1,2,3,4)
+        () + (2,3,4) + 2*(1,3)(2,4) + 3*(1,4)(2,3)
 
         sage: SGA = SymmetricGroupAlgebra(QQ, WeylGroup(["A",3], prefix='s')); SGA
         Symmetric group algebra of order 4 over Rational Field
@@ -249,7 +249,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
             sage: G = SymmetricGroup(4).algebra(QQ)
             sage: S = SymmetricGroupAlgebra(QQ,4)
             sage: S(G.an_element())
-            [1, 2, 3, 4] + [1, 3, 4, 2] + 2*[2, 1, 3, 4] + 3*[2, 3, 4, 1]
+            [1, 2, 3, 4] + [1, 3, 4, 2] + 2*[3, 4, 1, 2] + 3*[4, 3, 2, 1]
             sage: G(S.an_element())
             () + 2*(3,4) + 3*(2,3) + (1,4,3,2)
 
@@ -809,7 +809,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
 
             sage: G = SymmetricGroup(4).algebra(QQ)
             sage: G.retract_plain(G.an_element(), 3)
-            () + 2*(1,2)
+            ()
 
         .. SEEALSO::
 
@@ -875,7 +875,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
 
             sage: G = SymmetricGroup(4).algebra(QQ)
             sage: G.retract_direct_product(G.an_element(), 3)
-            () + 2*(1,2)
+            ()
 
         .. SEEALSO::
 
@@ -938,7 +938,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
 
             sage: G = SymmetricGroup(4).algebra(QQ)
             sage: G.retract_okounkov_vershik(G.an_element(), 3)
-            () + (2,3) + 2*(1,2) + 3*(1,2,3)
+            () + 4*(2,3) + 2*(1,3)
 
         .. SEEALSO::
 
@@ -1753,13 +1753,6 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
              1/4*(2,3) - 1/4*(1,2,3) + 1/4*(1,3,2) - 1/4*(1,3),
              1/3*() - 1/6*(2,3) + 1/3*(1,2) - 1/6*(1,2,3) - 1/6*(1,3,2) - 1/6*(1,3),
              1/6*() - 1/6*(2,3) - 1/6*(1,2) + 1/6*(1,2,3) + 1/6*(1,3,2) - 1/6*(1,3)]
-
-        REFERENCES:
-
-        .. [Ram1997] Arun Ram. *Seminormal representations of Weyl groups
-           and Iwahori-Hecke algebras*. Proc. London Math. Soc. (3)
-           **75** (1997). 99-133. :arxiv:`math/9511223v1`.
-           http://www.ms.unimelb.edu.au/~ram/Publications/1997PLMSv75p99.pdf
         """
         basis = []
         for part in Partitions_n(self.n):
@@ -2155,14 +2148,7 @@ def a(tableau, star=0, base_ring=QQ):
     This is the sum (in the group algebra of the relevant symmetric
     group over `\QQ`) of all the permutations which preserve
     the rows of ``tableau``. It is called `a_{\text{tableau}}` in
-    [EtRT]_, Section 4.2.
-
-    REFERENCES:
-
-    .. [EtRT] Pavel Etingof, Oleg Golberg, Sebastian Hensel, Tiankai
-       Liu, Alex Schwendner, Dmitry Vaintrob, Elena Yudovina,
-       "Introduction to representation theory",
-       :arXiv:`0901.0827v5`.
+    [EGHLSVY]_, Section 4.2.
 
     INPUT:
 
@@ -2229,7 +2215,7 @@ def b(tableau, star=0, base_ring=QQ):
     symmetric group over `\QQ`) of all the permutations which
     preserve the column of ``tableau`` (where the signs are the usual
     signs of the permutations). It is called `b_{\text{tableau}}` in
-    [EtRT]_, Section 4.2.
+    [EGHLSVY]_, Section 4.2.
 
     INPUT:
 
@@ -2486,7 +2472,7 @@ def seminormal_test(n):
     Run a variety of tests to verify that the construction of the
     seminormal basis works as desired. The numbers appearing are
     results in James and Kerber's 'Representation Theory of the
-    Symmetric Group' [JamesKerber]_.
+    Symmetric Group' [JK1981]_.
 
     EXAMPLES::
 
@@ -2560,7 +2546,7 @@ def HeckeAlgebraSymmetricGroupT(R, n, q=None):
     for all `i` (the "quadratic relations", also known in the form
     `(T_i + 1) (T_i - q) = 0`). (This is only one of several existing
     definitions in literature, not all of which are fully equivalent.
-    We are following the conventions of [GS93]_.) For any permutation
+    We are following the conventions of [Go1993]_.) For any permutation
     `w \in S_n`, we can define an element `T_w` of this Hecke algebra by
     setting `T_w = T_{i_1} T_{i_2} \cdots T_{i_k}`, where
     `w = s_{i_1} s_{i_2} \cdots s_{i_k}` is a reduced word for `w`
@@ -2583,12 +2569,6 @@ def HeckeAlgebraSymmetricGroupT(R, n, q=None):
         :meth:`~sage.combinat.permutation.Permutations.options`).
         It is always as defined above. It does not match the default
         option (``mult=l2r``) of the symmetric group algebra!
-
-    REFERENCES:
-
-    .. [GS93] David M. Goldschmidt.
-       *Group characters, symmetric functions, and the Hecke algebras*.
-       AMS 1993.
 
     EXAMPLES::
 
