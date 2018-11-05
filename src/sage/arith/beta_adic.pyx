@@ -2675,11 +2675,32 @@ cdef class BetaAdicMonoid:
     # project the translation by t of self on the zero completion of a
     def proj(self, a, t=0, arel=None, bool aut=False):
         r"""
-        aut - return a DetAutomaton or a BetaAdicMonoid ?
+        project the translation by t of self on the zero completion of a
+        aut -  ?
+
+        INPUT:
+
+        - ``a`` 
+        - ``t`` int (default : ``0``)
+        - ``arel`` list -- (default : ``None``) list of digits .
+
+        - ``aut``  bool -- (default: ``False``)
+
+        OUTPUT:
+
+        Return a DetAutomaton or a BetaAdicMonoid
+
+        EXAMPLES::
+            sage: from sage.combinat.words.cautomata_generators import dag
+            sage: a = dag.AnyWord([0,1,2])
+            sage: m = BetaAdicMonoid(3, dag.AnyWord([0,1,3]))
+            sage: m.proj(a)
+            b-adic set with b root of x - 3, and an automaton of 2 states and 3 letters.
+
         """
         cdef DetAutomaton ai
         cdef DetAutomaton r
-        
+
         a = getDetAutomaton(self, a)
         if arel is None:
             # compute the relations automaton with translation t
@@ -2947,28 +2968,28 @@ cdef class BetaAdicMonoid:
             A = self.a.A
         aoc = self.proj(dag.AnyWord(A))
         return aoc
-    
+
     def union (self, a):
         a = getDetAutomaton(self, a)
         return BetaAdicMonoid(self.b, self.a.union(a))
-    
+
     def intersection (self, a):
         a = getDetAutomaton(self, a)
         return BetaAdicMonoid(self.b, self.a.intersection(a))
-    
+
     def unshift (self, l):
         try:
             l = list(l)
             return BetaAdicMonoid(self.b, self.a.unshiftl(l))
         except:
             return BetaAdicMonoid(self.b, self.a.unshift1(l))
-    
+
     #compute the difference of two beta-adic sets.
     #it is a beta-adic set which is the set of differences of the two beta-adic sets
     def diff (self, a):
         a = getDetAutomaton(self, a)
         return BetaAdicMonoid(self.b, self.a.diff(a)) 
-    
+
     # calcule la liste triée (par rapport à la place >1) des
     # premiers points dans omega-omega
     #
@@ -3014,7 +3035,7 @@ cdef class BetaAdicMonoid:
     # décrit les mots de a de longueur n partant de e (utilisé par compute_translation2)
     def Parcours(self, A, a, e, t, n, bn):
         # print "Parcours e=%s t=%s n=%s bn=%s"%(e,t,n,bn)
-        
+
         if n == 0:
             if a.is_final(e):
                 return [t]
