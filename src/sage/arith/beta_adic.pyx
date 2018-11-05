@@ -230,7 +230,43 @@ cdef extern from "draw.h":
     void DrawList(BetaAdic2 b, Surface s, int n, int ajust, ColorList lc, double alpha, double sp, int nprec, int verb)
     void print_word(BetaAdic b, int n, int etat)
 
-# calcul de la valeur absolue p-adique (car non encore implémenté autrement)
+#plot the Rauzy fractal corresponding to the direction vector d,
+#for the C-adic system given by the Cassaigne's algorithm
+cdef plot_Cadic (numpy.ndarray dv, int sx=800, int sy=600, int n=10):
+    cdef numpy.ndarray ms, mt, l, d, im
+    cdef int i
+    
+    import numpy as np
+    d = dv.copy()
+    s = WordMorphism('a->a,b->ac,c->b')
+    t = WordMorphism('a->b,b->ac,c->c')
+    ms = s.incidence_matrix().numpy()
+    mt = t.incidence_matrix().numpy()
+    msi = ms^(-1)
+    mti = mt^(-1)
+    m = [ms, mt]
+    #Cassaigne's algorithm
+    l = np.empty(n, dtype=np.int8)
+    for i in range(n):
+        if d[0] > d[2]:
+            d = msi*d
+            l[i] = 0
+        else:
+            d = mti*d
+            l[i] = 1
+    #Draw the Rauzy fractal
+    im = np.empty([sy, sx], dtype=np.dtype((np.uint32, {'r':(np.uint8,0), 'g':(np.uint8,1), 'b':(np.uint8,2), 'a':(np.uint8,3)})))
+    im.fill(255+255*256+255*256^2+255*256^3) #fill the image with white
+    
+    p = [(np.identity(3, dtype=np.int), 0., 0)]
+    while len(p)>0:
+        m, t, i, e = p.pop()
+        
+    
+    return Image.fromarray(im, 'RGBA')
+    
+
+# calcul de la valeur absolue p-adique
 def absp(c, p, d):
     """
     Computation of the p-adic absolute value.
@@ -398,7 +434,7 @@ cdef surface_to_img(Surface s):
     #arr = np.empty([s.sy, s.sx], dtype=['uint8', 'uint8', 'uint8', 'uint8'])
     #arr = np.empty([s.sy, s.sx], dtype=[('r', 'uint8'), ('g', 'uint8'),('b', 'uint8'), ('a', 'uint8')])
     #arr = np.zeros([s.sy, s.sx], dtype=[('r', 'uint8'), ('g', 'uint8'),('b', 'uint8'), ('a', 'uint8')])
-    arr = np.empty([s.sy, s.sx], dtype=np.dtype((np.int32, {'r':(np.int8,0), 'g':(np.int8,1), 'b':(np.int8,2), 'a':(np.int8,3)})))
+    arr = np.empty([s.sy, s.sx], dtype=np.dtype((np.uint32, {'r':(np.uint8,0), 'g':(np.uint8,1), 'b':(np.uint8,2), 'a':(np.uint8,3)})))
     
 #    cdef int x, y
 #    cdef Color c
