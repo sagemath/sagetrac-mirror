@@ -363,14 +363,11 @@ class GenericTerm(MultiplicativeGroupElement):
             sage: GenericTerm(T, GrowthGroup('y^ZZ').gen())
             Traceback (most recent call last):
             ...
-            ValueError: y is not in Growth Group x^ZZ
+            ValueError: y is not in Growth Group x^ZZ.
         """
         if parent is None:
             raise ValueError('The parent must be provided')
-        try:
-            self.growth = parent.growth_group(growth)
-        except (ValueError, TypeError):
-            raise ValueError("%s is not in %s" % (growth, parent.growth_group))
+        self.growth = parent.growth_group(growth)
 
         super(GenericTerm, self).__init__(parent=parent)
 
@@ -2224,7 +2221,8 @@ class OTerm(GenericTerm):
             ZeroDivisionError: Cannot take O(z) to exponent -1.
             > *previous* ZeroDivisionError: rational division by zero
         """
-        return self._calculate_pow_test_zero_(exponent)
+        from .misc import strip_symbolic
+        return self._calculate_pow_test_zero_(strip_symbolic(exponent))
 
     def can_absorb(self, other):
         r"""
@@ -3428,7 +3426,8 @@ class ExactTerm(TermWithCoefficient):
             sage: t^(1/2)  # indirect doctest
             sqrt(2)*z^(1/2)
         """
-        return self._calculate_pow_(exponent)
+        from .misc import strip_symbolic
+        return self._calculate_pow_(strip_symbolic(exponent))
 
     def can_absorb(self, other):
         r"""
@@ -3711,18 +3710,19 @@ class ExactTerm(TermWithCoefficient):
             Traceback (most recent call last):
             ...
             ArithmeticError: Cannot construct 2^(x^2) in
-            Growth Group QQ^x * x^ZZ * log(x)^ZZ
+            Growth Group QQ^x * x^ZZ * log(x)^ZZ * S^x
             > *previous* TypeError: unsupported operand parent(s) for *:
-            'Growth Group QQ^x * x^ZZ * log(x)^ZZ' and 'Growth Group ZZ^(x^2)'
+            'Growth Group QQ^x * x^ZZ * log(x)^ZZ * S^x' and
+            'Growth Group ZZ^(x^2)'
 
         ::
 
-            sage: T = TermMonoid('exact', GrowthGroup('QQ^n * n^QQ'), SR)
+            sage: T = TermMonoid('exact', GrowthGroup('(QQ_+)^n * n^QQ'), SR)
             sage: n = T('n')
             sage: n.rpow(2)
             2^n
             sage: _.parent()
-            Exact Term Monoid QQ^n * n^SR with coefficients in Symbolic Ring
+            Exact Term Monoid QQ^n * n^QQ with coefficients in Symbolic Ring
 
         Above, we get ``QQ^n * n^SR``. The reason is the following:
         Since $n = 1_{SR} \cdot (1_{\QQ})^n \cdot n^{1_{\QQ}}$, we have
@@ -3740,6 +3740,17 @@ class ExactTerm(TermWithCoefficient):
             (Rational Field, Symbolic Ring)
 
         was used.
+
+        TESTS::
+
+            sage: SCR = SR.subring(no_variables=True)
+            sage: T = TermMonoid('exact', GrowthGroup('QQ^x * x^ZZ'), SCR)
+            sage: x = T('x')
+            sage: x.rpow(SCR(5))
+            5^x
+            sage: _.parent()
+            Exact Term Monoid (Symbolic Constants Subring)^x * x^ZZ * S^x
+            with coefficients in Symbolic Constants Subring
         """
         P = self.parent()
 
@@ -4000,7 +4011,7 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
         O-Term Monoid x^ZZ with implicit coefficients in Rational Field
 
         sage: TermMonoid('exact', 'QQ^m * m^QQ * log(n)^ZZ', ZZ)
-        Exact Term Monoid QQ^m * m^QQ * log(n)^ZZ
+        Exact Term Monoid QQ^m * m^QQ * S^m * log(n)^ZZ
         with coefficients in Integer Ring
 
     TESTS::
