@@ -240,7 +240,147 @@ cdef uint32_t moy (uint32_t a, uint32_t b, float ratio):
 
 #plot the Rauzy fractal corresponding to the direction vector d,
 #for the C-adic system given by the Cassaigne's algorithm
-def plot_Cadic (numpy.ndarray dv, int sx=800, int sy=600, float mx=-2, float my=-2, float Mx=2, float My=2, int n=10, bool verb=False, bool printl=True):
+def plot_Cadic (numpy.ndarray dv, int sx=800, int sy=600, float mx=-2, float my=-2, float Mx=2, float My=2, int n=1000, int nptsmin=50000, int nptsmax=60000, bool verb=False, bool printl=True):
+    cdef numpy.ndarray l, d, im
+    cdef int i, j, k, u, nA, i0, e, e0, npts, su, rsu
+    cdef uint32_t x, y
+    cdef uint32_t color
+    cdef float fx, fy
+    
+    npts=0
+    color = 255<<24
+    colors = [255 | 255<<24, 255<<8 | 255<<24, 255<<16 | 255<<24]
+    import numpy as np
+    d = dv.copy()
+    from sage.combinat.words.morphism import WordMorphism
+    s = WordMorphism('a->a,b->ac,c->b')
+    t = WordMorphism('a->b,b->ac,c->c')
+    auts = s.DumontThomas(proj=False)
+    autt = t.DumontThomas(proj=False)
+    aut = [auts, autt]
+    A = [np.array(a) for a in auts.alphabet]
+    nA = len(A)
+    #if autt.alphabet != A:
+    #    raise RuntimeError("The two Dumont-Thomas automata must have the same alphabet !")
+    ms = s.incidence_matrix()
+    mt = t.incidence_matrix()
+    if verb:
+        print("ms=%s"%ms)
+        print("mt=%s"%mt)
+    msi = (ms**(-1)).numpy()
+    mti = (mt**(-1)).numpy()
+    if verb:
+        print("msi=%s"%msi)
+        print("mti=%s"%mti)
+    lm = [ms.numpy(), mt.numpy()]
+    #compute an orthonormal basis
+    v1 = np.array([1,-1,0])
+    v2 = np.array([1,0,-1])
+    v1 = v1 - v1.dot(d)/d.dot(d)*d
+    v2 = v2 - v2.dot(d)/d.dot(d)*d
+    from sage.functions.other import sqrt
+    v1 = v1/sqrt(v1.dot(v1))
+    v2 = v2/sqrt(v2.dot(v2))
+    v2 = v2 - v1.dot(v2)*v1
+    #Cassaigne's algorithm
+    l = np.empty(n, dtype=np.int8)
+    m = np.identity(3, dtype=np.int)
+    v0 = np.zeros(3, dtype=np.int)
+    v0[0] = 1
+    su = 0
+    for i in range(n):
+        if d[0] > d[2]:
+            d = msi.dot(d)
+            l[i] = 0
+        else:
+            d = mti.dot(d)
+            l[i] = 1
+        m = m.dot(lm[l[i]])
+        rsu = su
+        su = sum(m.dot(v0))
+        if rsu > nptsmin:
+            n = i
+            break
+        if su > nptsmax:
+            n = i
+            break
+        d = d/sum(d)
+        if verb:
+            print("d=%s"%d)
+    if verb or printl:
+        print("n=%s, l=%s"%(n,l[:n]))
+    #Draw the Rauzy fractal
+    im = np.empty([sy, sx], dtype=np.dtype((np.uint32, {'r':(np.uint8,0), 'g':(np.uint8,1), 'b':(np.uint8,2), 'a':(np.uint8,3)})))
+    #im.fill(0) #fill the image with transparent
+    im.fill(255 | 255<<8 | 255<<16 | 255<<24) #fill with white
+    
+    if verb:
+        print("A=%s"%A)
+        print("nA=%s"%nA)
+    
+    p = [(np.zeros(3, dtype=np.int), 0, 0)]
+    while len(p)>0:
+        k = len(p)-1
+        u = l[n-k-1]
+        #print("k=%s"%k)
+        t, i, e = p[-1]
+        #print("t=%s, i=%s, e=%s"%(t, i, e))
+        if k == n:
+            #we draw the point t
+            #print(t)
+            fx = (t.dot(v1) - mx)*sx/(Mx-mx)
+            fy = (t.dot(v2) - my)*sy/(My-my)
+            x = <uint32_t>fx
+            y = <uint32_t>fy
+            if verb:
+                print(t)
+                print(fx,fy)
+                print(x,y)
+                #print("")
+            if x < sx and y < sy:
+                if x+1 < sx and y+1 < sy:
+                    im[y,x] = moy(im[y,x], colors[e], (1.-fx+x)*(1.-fy+y))
+                    im[y,x+1] = moy(im[y,x+1], colors[e], (fx-x)*(1.-fy+y))
+                    im[y+1,x] = moy(im[y+1,x], colors[e], (1.-fx+x)*(fy-y))
+                    im[y+1,x+1] = moy(im[y+1,x+1], colors[e], (fx-x)*(fy-y))
+                else:
+                    im[y,x] = colors[e]
+            npts += 1
+            #increment
+            #print("increment...")
+            while True:
+                t, i, e = p.pop()
+                k = len(p)
+                if k == 0:
+                    break
+                t0, i0, e0 = p[-1]
+                u = l[n-k]
+                #print("k=%s, u=%s, t=%s, i=%s, e=%s"%(k, u, t, i, e))
+                while True:
+                    i0 += 1
+                    if i0 == nA or aut[u].succ(e0, i0) != -1:
+                        break
+                #print("i=%s"%i)
+                if i0 != nA:
+                    p[-1] = (t0, i0, e0)
+                    p.append((lm[u].dot(t0)+A[i0], 0, aut[u].succ(e0, i0)))
+                    break
+        else:
+            i = 0
+            while i < nA and aut[u].succ(e, i) == -1:
+                i += 1
+            #print("starting i=%s k=%s u=%s t=%s e=%s"%(i, k, u, t, e))
+            p[-1] = (t, i, e)
+            p.append((lm[u].dot(t)+A[i], 0, aut[u].succ(e, i)))
+        #for j2, (m2, t2, i2, e2) in enumerate(p):
+            #print("%s : m=%s, t=%s, i=%s, e=%s"%(j2, m2, t2, i2, e2))
+    print("%s pts computed."%npts)
+    from PIL import Image
+    return Image.fromarray(im, 'RGBA')
+
+#plot the Rauzy fractal corresponding to the direction vector d,
+#for the C-adic system given by the Cassaigne's algorithm
+def plot_Cadic2 (numpy.ndarray dv, int sx=800, int sy=600, float mx=-2, float my=-2, float Mx=2, float My=2, int n=40, bool verb=False, bool printl=True):
     cdef numpy.ndarray l, d, im
     cdef int i, j, k, u, nA, i0, e, e0, npts
     cdef uint32_t x, y
@@ -254,8 +394,8 @@ def plot_Cadic (numpy.ndarray dv, int sx=800, int sy=600, float mx=-2, float my=
     from sage.combinat.words.morphism import WordMorphism
     s = WordMorphism('a->a,b->ac,c->b')
     t = WordMorphism('a->b,b->ac,c->c')
-    auts = s.DumontThomas(proj=False)
-    autt = t.DumontThomas(proj=False)
+    auts = s.DumontThomas(proj=False).mirror()
+    autt = t.DumontThomas(proj=False).mirror()
     aut = [auts, autt]
     A = [np.array(a) for a in auts.alphabet]
     nA = len(A)
@@ -304,14 +444,14 @@ def plot_Cadic (numpy.ndarray dv, int sx=800, int sy=600, float mx=-2, float my=
         print("A=%s"%A)
         print("nA=%s"%nA)
     
-    p = [(np.zeros(3, dtype=np.int), 0, 0)]
+    p = [(np.identity(3, dtype=np.int), np.zeros(3, dtype=np.int), 0, 0)]
     while len(p)>0:
         k = len(p)-1
-        u = l[n-k-1]
+        u = l[k]
         #print("k=%s"%k)
-        t, i, e = p[-1]
+        m, t, i, e = p[-1]
         #print("t=%s, i=%s, e=%s"%(t, i, e))
-        if k == n:
+        if k == n-1:
             #we draw the point t
             #print(t)
             fx = (t.dot(v1) - mx)*sx/(Mx-mx)
@@ -335,12 +475,13 @@ def plot_Cadic (numpy.ndarray dv, int sx=800, int sy=600, float mx=-2, float my=
             #increment
             #print("increment...")
             while True:
-                t, i, e = p.pop()
+                m, t, i, e = p.pop()
                 k = len(p)
                 if k == 0:
                     break
-                t0, i0, e0 = p[-1]
-                u = l[n-k]
+                m0, t0, i0, e0 = p[-1]
+                u = l[k-1]
+                nA = aut[u].n_succs(e0)
                 #print("k=%s, u=%s, t=%s, i=%s, e=%s"%(k, u, t, i, e))
                 while True:
                     i0 += 1
@@ -348,22 +489,23 @@ def plot_Cadic (numpy.ndarray dv, int sx=800, int sy=600, float mx=-2, float my=
                         break
                 #print("i=%s"%i)
                 if i0 != nA:
-                    p[-1] = (t0, i0, e0)
-                    p.append((lm[u].dot(t0)+A[i0], 0, aut[u].succ(e0, i0)))
+                    p[-1] = (m0, t0, i0, e0)
+                    p.append((m, t0+m0.dot(A[i0]), 0, aut[u].succ(e0, i0)))
                     break
         else:
             i = 0
+            nA = aut[u].n_succs(e)
             while i < nA and aut[u].succ(e, i) == -1:
                 i += 1
             #print("starting i=%s k=%s u=%s t=%s e=%s"%(i, k, u, t, e))
-            p[-1] = (t, i, e)
-            p.append((lm[u].dot(t)+A[i], 0, aut[u].succ(e, i)))
+            p[-1] = (m, t, i, e)
+            p.append((m.dot(lm[u]), lm[u].dot(t)+A[i], 0, aut[u].succ(e, i)))
         #for j2, (m2, t2, i2, e2) in enumerate(p):
             #print("%s : m=%s, t=%s, i=%s, e=%s"%(j2, m2, t2, i2, e2))
     print("%s pts computed."%npts)
     from PIL import Image
     return Image.fromarray(im, 'RGBA')
-    
+
 
 # calcul de la valeur absolue p-adique
 def absp(c, p, d):
@@ -884,10 +1026,9 @@ cdef class BetaAdicSet:
         try:
             b = QQbar(b)
             pi = QQbar(b).minpoly()
-            self.K = NumberField(pi, 'b', embedding=b)
-            self.b = self.K.gen()
+            K = NumberField(pi, 'b', embedding=b)
+            self.b = K.gen()
         except:
-            self.K = b.parent()
             self.b = b
 
         if type(a) != DetAutomaton:
@@ -904,20 +1045,10 @@ cdef class BetaAdicSet:
 
         #test if letters of a are in K
         try:
-            self.a.A = [self.K(c) for c in self.a.A]
+            K = self.b.parent()
+            self.a.A = [K(c) for c in self.a.A]
         except:
-            raise ValueError("Alphabet %s of the automaton is not in the field %s of b !"%(self.a.A, self.K))
-#        for c in self.a.A:
-#            try:
-#                c = self.K(c)
-#            except:
-#                try:
-#                    if c not in CC:
-#                        raise ValueError("Label %s of the automaton is not in the field %s !"%(c, self.K))
-#                    else:
-#                        self.K = CC
-#                else:
-#                    raise ValueError("Cannot check if the letter '%s' of the alphabet of the automaton is in the field '%s'."%(c, self.K))
+            raise ValueError("Alphabet %s of the automaton is not in the field %s of b !"%(self.a.A, self.b.parent()))
 
     def __repr__(self):
         r"""
