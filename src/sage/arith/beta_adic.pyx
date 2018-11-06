@@ -173,6 +173,8 @@ cdef extern from "numpy/arrayobject.h":
 
 cimport numpy
 
+from libc.stdint cimport uint8_t, uint32_t
+
 cdef extern from "draw.h":
     ctypedef unsigned char uint8
     cdef cppclass Color:
@@ -230,39 +232,136 @@ cdef extern from "draw.h":
     void DrawList(BetaAdic2 b, Surface s, int n, int ajust, ColorList lc, double alpha, double sp, int nprec, int verb)
     void print_word(BetaAdic b, int n, int etat)
 
+cdef uint32_t moy (uint32_t a, uint32_t b, float ratio):
+    return <uint32_t><uint8_t>((a%256)*(1.-ratio) + (b%256)*ratio) | \
+           (<uint32_t>(<uint8_t>(((a>>8)%256)*(1.-ratio) + ((b>>8)%256)*ratio)))<<8 | \
+           (<uint32_t>(<uint8_t>(((a>>16)%256)*(1.-ratio) + ((b>>16)%256)*ratio)))<<16 | \
+           (<uint32_t>(<uint8_t>((a>>24)*(1.-ratio) + (b>>24)*ratio)))<<24;
+
 #plot the Rauzy fractal corresponding to the direction vector d,
 #for the C-adic system given by the Cassaigne's algorithm
-cdef plot_Cadic (numpy.ndarray dv, int sx=800, int sy=600, int n=10):
-    cdef numpy.ndarray ms, mt, l, d, im
-    cdef int i
+def plot_Cadic (numpy.ndarray dv, int sx=800, int sy=600, float mx=-2, float my=-2, float Mx=2, float My=2, int n=10, bool verb=False, bool printl=True):
+    cdef numpy.ndarray l, d, im
+    cdef int i, j, k, u, nA, i0, e, e0, npts
+    cdef uint32_t x, y
+    cdef uint32_t color
+    cdef float fx, fy
     
+    npts=0
+    color = 255<<24
     import numpy as np
     d = dv.copy()
+    from sage.combinat.words.morphism import WordMorphism
     s = WordMorphism('a->a,b->ac,c->b')
     t = WordMorphism('a->b,b->ac,c->c')
-    ms = s.incidence_matrix().numpy()
-    mt = t.incidence_matrix().numpy()
-    msi = ms^(-1)
-    mti = mt^(-1)
-    m = [ms, mt]
+    auts = s.DumontThomas(proj=False)
+    autt = t.DumontThomas(proj=False)
+    aut = [auts, autt]
+    A = [np.array(a) for a in auts.alphabet]
+    nA = len(A)
+    #if autt.alphabet != A:
+    #    raise RuntimeError("The two Dumont-Thomas automata must have the same alphabet !")
+    ms = s.incidence_matrix()
+    mt = t.incidence_matrix()
+    if verb:
+        print("ms=%s"%ms)
+        print("mt=%s"%mt)
+    msi = (ms**(-1)).numpy()
+    mti = (mt**(-1)).numpy()
+    if verb:
+        print("msi=%s"%msi)
+        print("mti=%s"%mti)
+    lm = [ms.numpy(), mt.numpy()]
+    #compute an orthonormal basis
+    v1 = np.array([1,-1,0])
+    v2 = np.array([1,0,-1])
+    v1 = v1 - v1.dot(d)/d.dot(d)*d
+    v2 = v2 - v2.dot(d)/d.dot(d)*d
+    from sage.functions.other import sqrt
+    v1 = v1/sqrt(v1.dot(v1))
+    v2 = v2/sqrt(v2.dot(v2))
+    v2 = v2 - v1.dot(v2)*v1
     #Cassaigne's algorithm
     l = np.empty(n, dtype=np.int8)
     for i in range(n):
         if d[0] > d[2]:
-            d = msi*d
+            d = msi.dot(d)
             l[i] = 0
         else:
-            d = mti*d
+            d = mti.dot(d)
             l[i] = 1
+        d = d/sum(d)
+        if verb:
+            print("d=%s"%d)
+    if verb or printl:
+        print("l=%s"%l)
     #Draw the Rauzy fractal
     im = np.empty([sy, sx], dtype=np.dtype((np.uint32, {'r':(np.uint8,0), 'g':(np.uint8,1), 'b':(np.uint8,2), 'a':(np.uint8,3)})))
-    im.fill(255+255*256+255*256^2+255*256^3) #fill the image with white
+    #im.fill(0) #fill the image with transparent
+    im.fill(255 | 255<<8 | 255<<16 | 255<<24) #fill with white
     
-    p = [(np.identity(3, dtype=np.int), 0., 0)]
+    if verb:
+        print("A=%s"%A)
+        print("nA=%s"%nA)
+    
+    p = [(np.zeros(3, dtype=np.int), 0, 0)]
     while len(p)>0:
-        m, t, i, e = p.pop()
-        
-    
+        k = len(p)-1
+        u = l[n-k-1]
+        #print("k=%s"%k)
+        t, i, e = p[-1]
+        #print("t=%s, i=%s, e=%s"%(t, i, e))
+        if k == n:
+            #we draw the point t
+            #print(t)
+            fx = (t.dot(v1) - mx)*sx/(Mx-mx)
+            fy = (t.dot(v2) - my)*sy/(My-my)
+            x = <uint32_t>fx
+            y = <uint32_t>fy
+            if verb:
+                print(t)
+                print(fx,fy)
+                print(x,y)
+                #print("")
+            if x < sx and y < sy:
+                #if x+1 < sx and y+1 < sy:
+                #    im[y,x] = moy(im[y,x], color, (1.-fx+x)*(1.-fy+y))
+                #    im[y,x+1] = moy(im[y,x+1], color, (fx-x)*(1.-fy+y))
+                #    im[y+1,x] = moy(im[y+1,x], color, (1.-fx+x)*(fy-y))
+                #    im[y+1,x+1] = moy(im[y+1,x+1], color, (fx-x)*(fy-y))
+                #else:
+                im[y,x] = color
+            npts += 1
+            #increment
+            #print("increment...")
+            while True:
+                t, i, e = p.pop()
+                k = len(p)
+                if k == 0:
+                    break
+                t0, i0, e0 = p[-1]
+                u = l[n-k]
+                #print("k=%s, u=%s, t=%s, i=%s, e=%s"%(k, u, t, i, e))
+                while True:
+                    i0 += 1
+                    if i0 == nA or aut[u].succ(e0, i0) != -1:
+                        break
+                #print("i=%s"%i)
+                if i0 != nA:
+                    p[-1] = (t0, i0, e0)
+                    p.append((lm[u].dot(t0)+A[i0], 0, aut[u].succ(e0, i0)))
+                    break
+        else:
+            i = 0
+            while i < nA and aut[u].succ(e, i) == -1:
+                i += 1
+            #print("starting i=%s k=%s u=%s t=%s e=%s"%(i, k, u, t, e))
+            p[-1] = (t, i, e)
+            p.append((lm[u].dot(t)+A[i], 0, aut[u].succ(e, i)))
+        #for j2, (m2, t2, i2, e2) in enumerate(p):
+            #print("%s : m=%s, t=%s, i=%s, e=%s"%(j2, m2, t2, i2, e2))
+    print("%s pts computed."%npts)
+    from PIL import Image
     return Image.fromarray(im, 'RGBA')
     
 
@@ -2038,7 +2137,7 @@ cdef class BetaAdicMonoid:
         else:
             arel = self.relations_automaton(couples=True, ext=False)
             if verb:
-                print("arel=%s"%arel)		
+                print("arel=%s"%arel)        
             ap = self.a.product(self.a)
             if verb:
                 print("ap=%s"%ap)
