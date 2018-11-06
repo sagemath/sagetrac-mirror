@@ -251,7 +251,10 @@ def plot_Cadic (numpy.ndarray dv, int sx=800, int sy=600, float mx=-2, float my=
     color = 255<<24
     colors = [255 | 255<<24, 255<<8 | 255<<24, 255<<16 | 255<<24]
     import numpy as np
-    d = dv.copy()
+    d = np.empty(3, dtype=np.float)
+    d[0] = <float>dv[0]
+    d[1] = <float>dv[1]
+    d[2] = <float>dv[2]
     from sage.combinat.words.morphism import WordMorphism
     s = WordMorphism('a->a,b->ac,c->b')
     t = WordMorphism('a->b,b->ac,c->c')
@@ -390,7 +393,10 @@ def plot_Cadic2 (numpy.ndarray dv, int sx=800, int sy=600, float mx=-2, float my
     npts=0
     color = 255<<24
     import numpy as np
-    d = dv.copy()
+    d = np.empty(3, dtype=np.float)
+    d[0] = <float>dv[0]
+    d[1] = <float>dv[1]
+    d[2] = <float>dv[2]
     from sage.combinat.words.morphism import WordMorphism
     s = WordMorphism('a->a,b->ac,c->b')
     t = WordMorphism('a->b,b->ac,c->c')
