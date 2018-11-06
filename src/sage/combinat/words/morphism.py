@@ -3017,38 +3017,41 @@ class WordMorphism(SageObject):
         Return a ``BetaAdic`` corresponding to the Dumont-Thomas numeration of the substitution.
 
 
-#        """
+        """
         M = self.incidence_matrix()
-        #choose b
-        le = M.eigenvalues()
-        dm = max([x.minpoly().degree() for x in le])
-        led = [x for x in le if x.minpoly().degree() == dm]
-        lem = [x for x in led if abs(x) < 1]
-        if lem == []:
-            from sage.rings.qqbar import AA
-            lec = [x for x in led if x not in AA]
-            if lec == []:
-                b = led[0]
+        proj = 1
+        if proj:
+            #choose b
+            le = M.eigenvalues()
+            dm = max([x.minpoly().degree() for x in le])
+            led = [x for x in le if x.minpoly().degree() == dm]
+            lem = [x for x in led if abs(x) < 1]
+            if lem == []:
+                from sage.rings.qqbar import AA
+                lec = [x for x in led if x not in AA]
+                if lec == []:
+                    b = led[0]
+                else:
+                    b = lec[0]
             else:
-                b = lec[0]
-        else:
-            from sage.rings.qqbar import AA
-            lec = [x for x in lem if x not in AA]
-            if lec == []:
-                b = lem[0]
-            else:
-                b = lec[0]
-        if verb:
-            print(b)
-        from sage.rings.number_field.number_field import NumberField
-        K = NumberField(b.minpoly(), 'b', embedding=b)
-        b = K.gen()
-        # Left eigenvector vb in the number field Q(b)
-        vb = (M-b).kernel().basis()[0]
-        if verb:
-            print(vb)
+                from sage.rings.qqbar import AA
+                lec = [x for x in lem if x not in AA]
+                if lec == []:
+                    b = lem[0]
+                else:
+                    b = lec[0]
+            if verb:
+                print(b)
+            from sage.rings.number_field.number_field import NumberField
+            K = NumberField(b.minpoly(), 'b', embedding=b)
+            b = K.gen()
+            # Left eigenvector vb in the number field Q(b)
+            vb = (M-b).kernel().basis()[0]
+            if verb:
+                print(vb)
         #construct the automaton
         A = self.domain().alphabet()
+        nA = len(A)
         if initial_state is None:
             initial_state = A[0]
         if verb:
@@ -3057,11 +3060,20 @@ class WordMorphism(SageObject):
         for i,a in enumerate(A):
             dA[a] = i
         L = []
+        from sage.matrix.special import identity_matrix
+        I = identity_matrix(nA)
         for c in A:
-            t = 0
+            if not proj:
+                t = vector([0 for i in range(nA)])
+            else:
+                t = 0
             for c2 in self(c):
-                L.append((c,c2,t))
-                t += vb[dA[c2]]
+                if proj:
+                    L.append((c,c2,t))
+                    t += vb[dA[c2]]
+                else:
+                    L.append((c,c2,tuple(t)))
+                    t += vector(I[A.index(c2)])
         if verb:
             print(L)
         from sage.combinat.words.cautomata import DetAutomaton
