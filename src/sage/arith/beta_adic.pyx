@@ -240,7 +240,7 @@ cdef uint32_t moy (uint32_t a, uint32_t b, float ratio):
 
 #plot the Rauzy fractal corresponding to the direction vector d,
 #for the C-adic system given by the Cassaigne's algorithm
-def plot_Cadic (numpy.ndarray dv, int sx=800, int sy=600, float mx=-2, float my=-2, float Mx=2, float My=2, int n=1000, int nptsmin=50000, int nptsmax=60000, bool verb=False, bool printl=True):
+def plot_Cadic (numpy.ndarray dv, int sx=800, int sy=600, float mx=-2, float my=-2, float Mx=2, float My=2, int n=1000, int nptsmin=50000, int nptsmax=60000, bool verb=False, bool printl=True, bool get_ndarray=False):
     cdef numpy.ndarray l, d, im
     cdef int i, j, k, u, nA, i0, e, e0, npts, su, rsu
     cdef uint32_t x, y
@@ -378,6 +378,8 @@ def plot_Cadic (numpy.ndarray dv, int sx=800, int sy=600, float mx=-2, float my=
         #for j2, (m2, t2, i2, e2) in enumerate(p):
             #print("%s : m=%s, t=%s, i=%s, e=%s"%(j2, m2, t2, i2, e2))
     print("%s pts computed."%npts)
+    if get_ndarray:
+        return im
     from PIL import Image
     return Image.fromarray(im, 'RGBA')
 
