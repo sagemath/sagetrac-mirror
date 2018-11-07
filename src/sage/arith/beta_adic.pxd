@@ -13,7 +13,7 @@ cdef extern from "Automaton.h":
 
 from sage.combinat.words.cautomata cimport DetAutomaton
 
-cdef class BetaAdicMonoid:
+cdef class BetaAdicSet:
     cdef b
     cdef K
     cdef DetAutomaton a

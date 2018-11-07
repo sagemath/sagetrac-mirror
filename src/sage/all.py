@@ -92,12 +92,13 @@ from sage.doctest.all    import *
 
 from sage.structure.all  import *
 from sage.rings.all      import *
-from sage.arith.all      import *
+
 from sage.matrix.all     import *
 
 from sage.symbolic.all   import *
 from sage.modules.all    import *
 from sage.monoids.all    import *
+from sage.arith.all      import *
 from sage.algebras.all   import *
 from sage.modular.all    import *
 from sage.sat.all        import *
@@ -184,6 +185,7 @@ from copy import copy, deepcopy
 # The code executed here uses a large amount of Sage components
 from sage.rings.qqbar import _init_qqbar
 _init_qqbar()
+from sage.arith.beta_adic import BetaAdicSet
 
 
 ###########################################################

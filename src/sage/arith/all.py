@@ -1,4 +1,5 @@
-from .misc import (algdep, bernoulli, is_prime, is_prime_power,
+
+from sage.arith.misc import (algdep, bernoulli, is_prime, is_prime_power,
     is_pseudoprime, is_pseudoprime_power,
     prime_powers, primes_first_n, eratosthenes, primes,
     next_prime_power, next_probable_prime, next_prime,
@@ -22,12 +23,12 @@ from .misc import (algdep, bernoulli, is_prime, is_prime_power,
     Moebius, dedekind_sum,
     prime_factors, prime_range, valuation)
 
-from .functions import lcm
+from sage.arith.functions import lcm
 LCM = lcm
 
-from .srange import xsrange, srange, ellipsis_iter, ellipsis_range
+from sage.arith.srange import xsrange, srange, ellipsis_iter, ellipsis_range
 sxrange = xsrange
-#from .beta_adic import BetaAdicMonoid
+
 
 #the following doesn't work for an unknown reason....
 #from sage.arith.beta_adic import BetaAdicMonoid

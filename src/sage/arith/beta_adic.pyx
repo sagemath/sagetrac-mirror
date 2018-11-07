@@ -57,7 +57,8 @@ EXAMPLES::
 # *****************************************************************************
 from sage.sets.set import Set
 from sage.rings.qqbar import QQbar
-from sage.rings.padics.all import *
+#from sage.rings.padics.all import *
+from sage.rings.padics.factory import Qp
 from libc.stdlib cimport malloc, free
 from math import pi as pi_number
 #from sage.structure.factory import UniqueFactory
@@ -67,7 +68,9 @@ cimport sage.combinat.words.cautomata
 from sage.combinat.words.cautomata cimport DetAutomaton, FreeAutomaton
 from sage.combinat.words.cautomata_generators import DetAutomatonGenerators
 from sage.rings.integer import Integer
-from sage.rings.number_field.all import *
+from sage.combinat.words.morphism import WordMorphism
+#from sage.rings.number_field.all import *
+from sage.rings.number_field.number_field import NumberField
 # from sage.structure.parent_gens import normalize_names
 # from free_monoid_element import FreeMonoidElement
 
@@ -230,12 +233,13 @@ cdef extern from "draw.h":
     void DrawList(BetaAdic2 b, Surface s, int n, int ajust, ColorList lc, double alpha, double sp, int nprec, int verb)
     void print_word(BetaAdic b, int n, int etat)
 
-#plot the Rauzy fractal corresponding to the direction vector d,
-#for the C-adic system given by the Cassaigne's algorithm
-cdef plot_Cadic (numpy.ndarray dv, int sx=800, int sy=600, int n=10):
+# plot the Rauzy fractal corresponding to the direction vector d,
+# for the C-adic system given by the Cassaigne's algorithm
+cdef plot_Cadic(numpy.ndarray dv, int sx=800, int sy=600, int n=10):
+
     cdef numpy.ndarray ms, mt, l, d, im
     cdef int i
-    
+
     import numpy as np
     d = dv.copy()
     s = WordMorphism('a->a,b->ac,c->b')
@@ -245,7 +249,7 @@ cdef plot_Cadic (numpy.ndarray dv, int sx=800, int sy=600, int n=10):
     msi = ms^(-1)
     mti = mt^(-1)
     m = [ms, mt]
-    #Cassaigne's algorithm
+    # Cassaigne's algorithm
     l = np.empty(n, dtype=np.int8)
     for i in range(n):
         if d[0] > d[2]:
@@ -254,17 +258,16 @@ cdef plot_Cadic (numpy.ndarray dv, int sx=800, int sy=600, int n=10):
         else:
             d = mti*d
             l[i] = 1
-    #Draw the Rauzy fractal
+    # Draw the Rauzy fractal
     im = np.empty([sy, sx], dtype=np.dtype((np.uint32, {'r':(np.uint8,0), 'g':(np.uint8,1), 'b':(np.uint8,2), 'a':(np.uint8,3)})))
-    im.fill(255+255*256+255*256^2+255*256^3) #fill the image with white
-    
+    im.fill(255 + 255*256 + 255*256^2 + 255*256^3) # fill the image with white
+
     p = [(np.identity(3, dtype=np.int), 0., 0)]
-    while len(p)>0:
+    while len(p) > 0:
         m, t, i, e = p.pop()
-        
-    
+    from PIL import Image
     return Image.fromarray(im, 'RGBA')
-    
+
 
 # calcul de la valeur absolue p-adique
 def absp(c, p, d):
@@ -354,7 +357,7 @@ cdef InfoBetaAdic initInfoBetaAdic(self,
         print("spaces: ")
         print(parch)
         print(pultra)
-    
+
     if (len(pultra) > 0):
         raise ValueError("Not implemented for b algebraic non-integer.")
     # calcule les bornes max pour chaque valeur absolue
@@ -428,14 +431,14 @@ cdef Color getColor(c):
     return r
 
 cdef surface_to_img(Surface s):
-    #print("surface_to_img %s, %s..."%(s.sx, s.sy))
+    # print("surface_to_img %s, %s..."%(s.sx, s.sy))
     import numpy as np
     from PIL import Image
-    #arr = np.empty([s.sy, s.sx], dtype=['uint8', 'uint8', 'uint8', 'uint8'])
-    #arr = np.empty([s.sy, s.sx], dtype=[('r', 'uint8'), ('g', 'uint8'),('b', 'uint8'), ('a', 'uint8')])
-    #arr = np.zeros([s.sy, s.sx], dtype=[('r', 'uint8'), ('g', 'uint8'),('b', 'uint8'), ('a', 'uint8')])
+    # arr = np.empty([s.sy, s.sx], dtype=['uint8', 'uint8', 'uint8', 'uint8'])
+    # arr = np.empty([s.sy, s.sx], dtype=[('r', 'uint8'), ('g', 'uint8'),('b', 'uint8'), ('a', 'uint8')])
+    # arr = np.zeros([s.sy, s.sx], dtype=[('r', 'uint8'), ('g', 'uint8'),('b', 'uint8'), ('a', 'uint8')])
     arr = np.empty([s.sy, s.sx], dtype=np.dtype((np.uint32, {'r':(np.uint8,0), 'g':(np.uint8,1), 'b':(np.uint8,2), 'a':(np.uint8,3)})))
-    
+
 #    cdef int x, y
 #    cdef Color c
 #    for x in range(s.sx):
@@ -772,12 +775,13 @@ cdef class BetaAdicSet:
             sage: m1
             b-adic set with b root of x - 3, and an automaton of 1 states and 3 letters.
             sage: c = Automaton({0:{1:'0',2:'1',3:'2'}, 2:{5:'1'}},initial_states=[0])
+            sage: b = m1.b
             m3 = BetaAdicSet(b, c)
             sage: m3
-            b-adic set with b root of x^3 - x - 1, and an automaton of 5 states and 3 letters.
+            b-adic set with b root of x - 3, and an automaton of 5 states and 3 letters.
 
         """
-        cdef int i,j
+        cdef int i, j
         from sage.rings.complex_field import ComplexField
         CC = ComplexField()
         if b not in CC:
@@ -1963,18 +1967,18 @@ cdef class BetaAdicSet:
         cdef int nAd, nA
         cdef DetAutomaton arel
         cdef int ne, ei
-        
+
         A = self.a.A
         nA = len(A)
-        
+
         if full:
-             # compute the relations automaton
+            # compute the relations automaton
             arel = self.relations_automaton(mirror=mirror)
             if verb:
                 print("arel = %s" % arel)
             if step == 1:
                 return arel
-        
+
             # add a new state
             ei = arel.a.i
             ne = arel.a.n  # new added state
@@ -1982,18 +1986,18 @@ cdef class BetaAdicSet:
             arel.set_final_state(ei, final=False)  # the new state is final
             if step == 2:
                 return arel
-        
+
             Ad = arel.A
             nAd = len(Ad)
-        
+
             # add edges from the new state (copy edges from the initial state)
             for j in range(nAd):
                 arel.set_succ(ne, j, arel.succ(ei, j))
             if step == 3:
                 return arel
-        
+
             Adp = [i for i in range(nAd) if Ad[i] in [x-y for j,x in enumerate(A) for y in A[:j]]]
-        
+
             # suppress some edges from the initial state
             for j in Adp:
                 arel.set_succ(ei, j, -1)
@@ -2033,7 +2037,7 @@ cdef class BetaAdicSet:
                 print(arel)
             arel = arel.prune()
             if step == 10:
-                return arels
+                return arel
             return arel.minimize()
         else:
             arel = self.relations_automaton(couples=True, ext=False)
@@ -2061,8 +2065,8 @@ cdef class BetaAdicSet:
             if verb:
                 print("ai=%s"%ai)
             return ai.intersection(self.a)
-    
-    def reduced (self, mirror=False, verb=False):
+
+    def reduced(self, mirror=False, verb=False):
         return BetaAdicSet(self.b, self.reduced_words_automaton(mirror=mirror, verb=verb))
 
 #     def reduced_words_automaton(self, ss=None, Iss=None, ext=False,
@@ -3065,7 +3069,7 @@ cdef class BetaAdicSet:
         """
         from sage.combinat.words.cautomata_generators import dag
         if verb:
-            print("a = %s" % a)
+            print("a = %s" % A)
         if A is None:
             A = self.a.A
         aoc = self.proj(dag.AnyWord(A))
