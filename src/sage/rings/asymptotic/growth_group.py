@@ -1165,6 +1165,23 @@ class GenericGrowthElement(MultiplicativeGroupElement):
                                                   parent.base())),
                 e)
 
+        self._check_()
+
+    def _check_(self):
+        r"""
+        Perform an additional check at the end of :meth:`__init__`.
+
+        No check is performed for this class.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+            sage: G = GenericGrowthGroup(ZZ)
+            sage: G(raw_element=42)  # indirect doctest
+            GenericGrowthElement(42)
+        """
+        pass
+
     def _repr_(self):
         r"""
         A representation string for this generic element.
@@ -3801,9 +3818,12 @@ class ExponentialGrowthElement(GenericGrowthElement):
         True
     """
 
-    def __init__(self, parent, raw_element):
+    def _check_(self):
         r"""
-        See :class:`ExponentialGrowthElement` for details.
+        Perform an additional check at the end of :meth:`__init__`.
+
+        This check is whether the base of this
+        exponential growth group is positive.
 
         TESTS::
 
@@ -3814,14 +3834,13 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: P(raw_element=-2/3)  # indirect doctest
             Traceback (most recent call last):
             ...
-            PartialConversionValueError: base -2/3 must be positive
+            PartialConversionValueError: base -2/3 (Rational Field) must be positive
         """
-        super(ExponentialGrowthElement, self).__init__(
-            parent=parent, raw_element=raw_element)
         if not self.base > 0:
+            from sage.structure.element import parent
             raise PartialConversionValueError(
-                PartialConversionElement(parent, self.base),
-                'base {} must be positive'.format(self.base))
+                PartialConversionElement(self.parent(), self.base),
+                'base {} ({}) must be positive'.format(self.base, parent(self.base)))
 
     @property
     def base(self):
@@ -4335,7 +4354,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: P((-333)^x)  # indirect doctest
             Traceback (most recent call last):
             ...
-            PartialConversionValueError: base -333 must be positive
+            PartialConversionValueError: base -333 (Rational Field) must be positive
             sage: P(0)  # indirect doctest
             Traceback (most recent call last):
             ...
@@ -4348,7 +4367,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: P('(-2)^x')
             Traceback (most recent call last):
             ...
-            PartialConversionValueError: base -2 must be positive
+            PartialConversionValueError: base -2 (Rational Field) must be positive
 
         ::
 
@@ -4547,7 +4566,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: ExponentialGrowthGroup(SR, 'n').an_element()  # indirect doctest
             Traceback (most recent call last):
             ...
-            PartialConversionValueError: base abs(some_variable) must be positive
+            PartialConversionValueError: base abs(some_variable) (Symbolic Ring) must be positive
 
             sage: assume(SR.an_element() > 0)
             sage: ExponentialGrowthGroup(SR, 'n').an_element()  # indirect doctest
@@ -4899,7 +4918,23 @@ class ExponentialNonGrowthElement(GenericNonGrowthElement,
     r"""
     An element of :class:`ExponentialNonGrowthGroup`.
     """
-    pass
+
+    def _check_(self):
+        r"""
+        Perform an additional check at the end of :meth:`__init__`.
+
+        No check is performed for this class.
+
+        TESTS::
+
+            sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
+            sage: from sage.rings.asymptotic.growth_group import ExponentialNonGrowthGroup
+            sage: U = RootsOfUnityGroup()
+            sage: E = ExponentialNonGrowthGroup(U, 'n')
+            sage: E(raw_element=U(-1))  # indirect doctest
+            (-1)^n
+        """
+        pass
 
 
 class ExponentialNonGrowthGroup(GenericNonGrowthGroup,
@@ -4928,6 +4963,19 @@ class ExponentialNonGrowthGroup(GenericNonGrowthGroup,
     """
 
     Element = ExponentialNonGrowthElement
+
+    def _an_element_base_(self):
+        r"""
+        Return a base for :meth:`_an_element_` of this exponential non growth group.
+
+        EXAMPLES::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: from sage.rings.asymptotic.growth_group import ExponentialNonGrowthGroup
+            sage: ExponentialNonGrowthGroup(SignGroup(), 'n').an_element()  # indirect doctest
+            (-1)^n
+        """
+        return self.base().an_element()
 
     def construction(self):
         r"""
