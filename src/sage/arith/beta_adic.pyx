@@ -382,13 +382,10 @@ def plot_Cadic(numpy.ndarray dv, int sx=800, int sy=600, float mx=-2, float my=-
             p.append((lm[u].dot(t)+A[i], 0, aut[u].succ(e, i)))
         #for j2, (m2, t2, i2, e2) in enumerate(p):
             #print("%s : m=%s, t=%s, i=%s, e=%s"%(j2, m2, t2, i2, e2))
-<<<<<<< HEAD
-    print("%s pts computed."%npts)
+    if printl:
+        print("%s pts computed."%npts)
     if get_ndarray:
         return im
-=======
-    # print("%s pts computed."%npts)
->>>>>>> 8e597631b1f8e537633d8f93c276149f7f4c6027
     from PIL import Image
     return Image.fromarray(im, 'RGBA')
 
@@ -3394,13 +3391,25 @@ cdef class BetaAdicSet:
         """
         a = getDetAutomaton(self, a)
         return BetaAdicSet(self.b, self.a.diff(a))
-
+    
+    def compute_translations(self, DetAutomaton a):
+        """
+        Assume that self.b is a Pisot number.
+        Compute a list of numbers containing the smallest differences of points of the BetaAdicSet viewed in the expanding direction.
+        """
+    
+    def compute_domain_exchange(self, DetAutomaton a):
+        """
+        Assume that self.b is a Pisot number.
+        Compute the domain exchange describing the BetaAdicSet.
+        """
+    
     # calcule la liste triée (par rapport à la place >1) des
     # premiers points dans omega-omega
     #
     # THIS FUNCTION IS INCORRECT AND VERY INEFFICIENT ! SHOULD BE IMPROVED.
     #
-    def compute_translations(self, DetAutomaton aoc, imax=None, verb=False):
+    def compute_translations_old(self, DetAutomaton aoc, imax=None, verb=False):
         """
         computes the sorted list (relative to the place> 1) of
         first points in omega-omega
