@@ -3009,17 +3009,12 @@ class WordMorphism(SageObject):
             G.set_aspect_ratio(1)
 
         return G
-
-    def DumontThomas(self, initial_state=None, final_states=None, verb=False):
-        r"""
-
-        OUTPUT:
-        Return a ``BetaAdic`` corresponding to the Dumont-Thomas numeration of the substitution.
-
-
-        """
+    
+    def DumontThomas(self, initial_state=None, final_states=None, proj=True, verb=False):
+#        r"""
+#        Return a BetaAdic corresponding to the Dumont-Thomas numeration of the substitution.
+#        """
         M = self.incidence_matrix()
-        proj = 1
         if proj:
             #choose b
             le = M.eigenvalues()
@@ -3082,9 +3077,12 @@ class WordMorphism(SageObject):
         a = DetAutomaton(L, i=initial_state, final_states=final_states)
         if verb:
             print(a)
-        from sage.arith.beta_adic import BetaAdicSet
-        return BetaAdicSet(b, a)
-
+        if proj:
+            from sage.arith.beta_adic import BetaAdicSet
+            return BetaAdicSet(b, a)
+        else:
+            return a
+    
     def is_growing(self, letter=None):
         r"""
         Return ``True`` if ``letter`` is a growing letter.

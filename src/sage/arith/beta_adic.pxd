@@ -15,8 +15,5 @@ from sage.combinat.words.cautomata cimport DetAutomaton
 
 cdef class BetaAdicSet:
     cdef b
-    cdef K
     cdef DetAutomaton a
-    
-    #cdef draw_zoom(self, n, int sx, int sy, bool ajust, int prec, color, int method, float coeff, bool verb)
-    
+
