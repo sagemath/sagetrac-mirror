@@ -242,6 +242,7 @@ cdef uint32_t moy(uint32_t a, uint32_t b, float ratio):
            (<uint32_t>(<uint8_t>(((a>>16)%256)*(1.-ratio) + ((b>>16)%256)*ratio)))<<16 | \
            (<uint32_t>(<uint8_t>((a>>24)*(1.-ratio) + (b>>24)*ratio)))<<24;
 
+<<<<<<< HEAD
 
 # plot the Rauzy fractal corresponding to the direction vector d,
 # for the C-adic system given by the Cassaigne's algorithm
@@ -291,6 +292,11 @@ def plot_Cadic(numpy.ndarray dv, int sx=800, int sy=600,
             sage: m.plot_Cadic(dv=)
 
     """
+=======
+#plot the Rauzy fractal corresponding to the direction vector d,
+#for the C-adic system given by the Cassaigne's algorithm
+def plot_Cadic(numpy.ndarray dv, int sx=800, int sy=600, float mx=-2, float my=-2, float Mx=2, float My=2, int n=1000, int nptsmin=50000, int nptsmax=60000, bool verb=False, bool printl=True, bool get_ndarray=False):
+>>>>>>> 2100ad203ddf5d74a1a70f53c0bb02b2dd3d5f7a
     cdef numpy.ndarray l, d, im
     cdef int i, j, k, u, nA, i0, e, e0, npts, su, rsu
     cdef uint32_t x, y
@@ -428,11 +434,15 @@ def plot_Cadic(numpy.ndarray dv, int sx=800, int sy=600,
             # print("starting i=%s k=%s u=%s t=%s e=%s"%(i, k, u, t, e))
             p[-1] = (t, i, e)
             p.append((lm[u].dot(t)+A[i], 0, aut[u].succ(e, i)))
-        # for j2, (m2, t2, i2, e2) in enumerate(p):
-            # print("%s : m=%s, t=%s, i=%s, e=%s"%(j2, m2, t2, i2, e2))
-    # print("%s pts computed."%npts)
+        #for j2, (m2, t2, i2, e2) in enumerate(p):
+            #print("%s : m=%s, t=%s, i=%s, e=%s"%(j2, m2, t2, i2, e2))
+    if printl:
+        print("%s pts computed."%npts)
+    if get_ndarray:
+        return im
     from PIL import Image
     return Image.fromarray(im, 'RGBA')
+
 
 # plot the Rauzy fractal corresponding to the direction vector d,
 # for the C-adic system given by the Cassaigne's algorithm
@@ -3440,13 +3450,25 @@ cdef class BetaAdicSet:
         """
         a = getDetAutomaton(self, a)
         return BetaAdicSet(self.b, self.a.diff(a))
-
+    
+    def compute_translations(self, DetAutomaton a):
+        """
+        Assume that self.b is a Pisot number.
+        Compute a list of numbers containing the smallest differences of points of the BetaAdicSet viewed in the expanding direction.
+        """
+    
+    def compute_domain_exchange(self, DetAutomaton a):
+        """
+        Assume that self.b is a Pisot number.
+        Compute the domain exchange describing the BetaAdicSet.
+        """
+    
     # calcule la liste triée (par rapport à la place >1) des
     # premiers points dans omega-omega
     #
     # THIS FUNCTION IS INCORRECT AND VERY INEFFICIENT ! SHOULD BE IMPROVED.
     #
-    def compute_translations(self, DetAutomaton aoc, imax=None, verb=False):
+    def compute_translations_old(self, DetAutomaton aoc, imax=None, verb=False):
         """
         computes the sorted list (relative to the place> 1) of
         first points in omega-omega
