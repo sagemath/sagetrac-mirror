@@ -18,8 +18,8 @@ from six import integer_types
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.functions.gamma',
-    ('gamma', 'log_gamma', 'gamma_inc', 'incomplete_gamma',
-      'gamma_inc_lower', 'psi', 'beta'), deprecation=24411)
+            ('gamma', 'log_gamma', 'gamma_inc',
+             'gamma_inc_lower', 'psi', 'beta'), deprecation=24411)
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
@@ -1941,10 +1941,14 @@ class Function_cases(GinacFunction):
 
         TESTS::
 
-            sage: cases()
+            sage: cases()  # py2
             Traceback (most recent call last):
             ...
             TypeError: __call__() takes exactly 2 arguments (1 given)
+            sage: cases()  # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: __call__() missing 1 required positional argument: 'l'
 
             sage: cases(x)
             Traceback (most recent call last):
