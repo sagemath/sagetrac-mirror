@@ -982,7 +982,7 @@ cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
         instance) breaks the iterator::
 
             sage: def f(a):
-            ....:     sleep(0.05)
+            ....:     sleep(0.05r)
             ....:     return [a-1,a+1]
             sage: C = RecursivelyEnumeratedSet([0], f, structure='symmetric')
             sage: it = C.graded_component_iterator()
@@ -1042,7 +1042,7 @@ cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
         We make sure that :trac:`21312` is fixed::
 
             sage: def f(a):
-            ....:    sleep(0.1)
+            ....:    sleep(0.1r)
             ....:    return [a-1,a+1]
             sage: C = RecursivelyEnumeratedSet([0], f, structure='symmetric')
             sage: from cysignals.alarm import alarm
@@ -1252,7 +1252,7 @@ cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
         We make sure that :trac:`21312` is fixed::
 
             sage: def f(a):
-            ....:    sleep(0.1)
+            ....:    sleep(0.1r)
             ....:    return [a+1, a+I]
             sage: C = RecursivelyEnumeratedSet([0], f, structure='graded')
             sage: from cysignals.alarm import alarm
