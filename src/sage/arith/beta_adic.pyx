@@ -242,14 +242,13 @@ cdef uint32_t moy(uint32_t a, uint32_t b, float ratio):
            (<uint32_t>(<uint8_t>(((a>>16)%256)*(1.-ratio) + ((b>>16)%256)*ratio)))<<16 | \
            (<uint32_t>(<uint8_t>((a>>24)*(1.-ratio) + (b>>24)*ratio)))<<24;
 
-<<<<<<< HEAD
 
 # plot the Rauzy fractal corresponding to the direction vector d,
 # for the C-adic system given by the Cassaigne's algorithm
 def plot_Cadic(numpy.ndarray dv, int sx=800, int sy=600,
                float mx=-2, float my=-2, float Mx=2, float My=2,
                int n=1000, int nptsmin=50000, int nptsmax=60000,
-               bool verb=False, bool printl=True):
+               bool verb=False, bool printl=True, bool get_ndarray=False):
     """
     plot the Rauzy fractal corresponding to the direction vector ``dv``
     for the C-adic system given by the Cassaigne's algorithm
@@ -262,7 +261,7 @@ def plot_Cadic(numpy.ndarray dv, int sx=800, int sy=600,
 
         - ``sy`` int -- (default 60) size of Image direction y
 
-        - ``mx`` float -- (default 2)
+        - ``mx`` float -- (default -2)
 
         - ``my`` float -- (default -2)
 
@@ -292,11 +291,6 @@ def plot_Cadic(numpy.ndarray dv, int sx=800, int sy=600,
             sage: m.plot_Cadic(dv=)
 
     """
-=======
-#plot the Rauzy fractal corresponding to the direction vector d,
-#for the C-adic system given by the Cassaigne's algorithm
-def plot_Cadic(numpy.ndarray dv, int sx=800, int sy=600, float mx=-2, float my=-2, float Mx=2, float My=2, int n=1000, int nptsmin=50000, int nptsmax=60000, bool verb=False, bool printl=True, bool get_ndarray=False):
->>>>>>> 2100ad203ddf5d74a1a70f53c0bb02b2dd3d5f7a
     cdef numpy.ndarray l, d, im
     cdef int i, j, k, u, nA, i0, e, e0, npts, su, rsu
     cdef uint32_t x, y
@@ -374,7 +368,7 @@ def plot_Cadic(numpy.ndarray dv, int sx=800, int sy=600, float mx=-2, float my=-
         (np.uint32, {'r': (np.uint8, 0), 'g': (np.uint8, 1),
                      'b': (np.uint8, 2), 'a': (np.uint8, 3)})))
     # im.fill(0) #fill the image with transparent
-    im.fill(255 | 25 5 << 8 | 255 << 16 | 255 << 24)  # fill with white
+    im.fill(255 | 255 << 8 | 255 << 16 | 255 << 24)  # fill with white
 
     if verb:
         print("A=%s" % A)
