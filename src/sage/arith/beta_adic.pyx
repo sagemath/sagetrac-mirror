@@ -1037,7 +1037,20 @@ cdef class BetaAdicSet:
         from sage.rings.complex_field import ComplexField
         CC = ComplexField()
         if b not in CC:
-            raise ValueError("b must be a number.")
+            #raise ValueError("b must be a number.")
+            from sage.rings.qqbar import QQ
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            K = PolynomialRing(QQ, 'x')
+            try:
+                pi = K(b)
+                rr = [r[0] for r in pi.roots(ring=QQbar)]
+                rrm = [r for r in rr if abs(r) < 1]
+                if len(rrm) > 0:
+                    b = rrm[0]
+                else:
+                    b = rr[0]
+            except:
+                raise ValueError("b must be a number, or a polynomial over QQ")
         try:
             b = QQbar(b)
             pi = QQbar(b).minpoly()
@@ -3392,13 +3405,99 @@ cdef class BetaAdicSet:
         a = getDetAutomaton(self, a)
         return BetaAdicSet(self.b, self.a.diff(a))
     
-    def compute_translations(self, DetAutomaton a):
+    def is_Pisot(self, bool verb=False):
+        """
+        Test if the number b is the conjugate of a Pisot number or not.
+        
+        verb: If true, explains why we return False when it happens.
+        
+        EXAMPLE::
+            
+            sage: m = BetaAdicSet(x^2-x-1, [0,1])
+            sage: m.is_Pisot()
+            True
+            
+            sage: m = BetaAdicSet(x^4-2*x^3+x^2-2*x+1, [0,1])
+            sage: m.is_Pisot()
+            False
+            
+            sage: m = BetaAdicSet(1+I, [0,1])
+            sage: m.is_Pisot(verb=True)
+            There are more than one conjugate of modulus > 1.
+            False
+        
+        """
+        try:
+            if not self.b.is_integral():
+                if verb:
+                    print("b is not an algebraic integer.")
+                return False
+            pi = self.b.minpoly()
+            rr = [r[0] for r in pi.roots(ring=QQbar)]
+            np = 0
+            for r in rr:
+                if abs(r) > 1:
+                    if np != 0:
+                        if verb:
+                            print("There are more than one conjugate of modulus > 1.")
+                        return False
+                    np = 1
+                elif abs(r) == 1:
+                    if verb:
+                        print("There is a conjugate of modulus one.")
+                    return False
+            if np == 0:
+                if verb:
+                    print("There is no conjugate of modulus > 1.")
+                return False
+            return True
+        except:
+            if verb:
+                print("b is not an algebraic number.")
+            return False
+    
+    def points(self, int n, int nmax):
+        """
+        Compute points (in the number field of b) corresponding to words of length k recognized by the automaton,
+        where k is at most n, and the total number of points is at most nmax.
+        """
+        ## TO DO !!! REUSE WHAT IS DONE IN plot_Cadic()
+    
+    def compute_translations(self, bool test_Pisot=True, list B=None, bool verb=False):
         """
         Assume that self.b is a Pisot number.
         Compute a list of numbers containing the smallest differences of points of the BetaAdicSet viewed in the expanding direction.
+        
+        test_Pisot : test if b is the conjugate of a Pisot number as needed
+        B : basis of a lattice containing the BetaAdicSet
+        
         """
-    
-    def compute_domain_exchange(self, DetAutomaton a):
+        if test_Pisot:
+            if not self.is_Pisot():
+                raise ValueError("b must be the conjugate of a Pisot number")
+        #take a basis of the lattice
+        if B is None:
+            B = [self.b**i for i in range(self.b.minpoly().degree())]
+        #compute the min of the differences for every place
+        Bd = set([a-b for a in B for b in B if a != b])
+        K = self.b.parent()
+        n = 0
+        from sage.functions.other import ceil
+        from sage.functions.log import log
+        for p in K.places():
+            if abs(p(self.b)) < 1:
+                m = min([abs(p(b)) for b in Bd])
+                M = max([abs(c) for c in self.a.A])/abs(1-abs(p(self.b))) ##IMPROVE THIS BOUND
+                if verb:
+                    print("p=%s, m=%s, M=%s"%(p,m,M))
+                    print("%s"%(log(m/M)/log(abs(p(self.b)))))
+                n = max(n, ceil(log(m/M)/log(abs(p(self.b))))-1)
+        if verb:
+            print("n=%s"%n)
+        ##TO BE CONTINUED !!!
+           
+        
+    def compute_domain_exchange(self):
         """
         Assume that self.b is a Pisot number.
         Compute the domain exchange describing the BetaAdicSet.
