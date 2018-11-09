@@ -177,6 +177,7 @@ cdef extern from "numpy/arrayobject.h":
 cimport numpy
 
 from libc.stdint cimport uint8_t, uint32_t
+from libc.math cimport log
 
 cdef extern from "draw.h":
     ctypedef unsigned char uint8
@@ -2039,7 +2040,7 @@ cdef class BetaAdicSet:
         #.  sage: m = BetaAdicSet(1/(1+I), dag.AnyWord([0,1]))
             sage: m.critical_exponent_aprox()
             2.00000000000000
-        
+
         #.  sage: s = WordMorphism('1->12,2->13,3->1')
             sage: m = s.DumontThomas()
             sage: m.critical_exponent_aprox()
@@ -2062,7 +2063,7 @@ cdef class BetaAdicSet:
             S = S3
             if verb:
                 print(len(S))
-        from sage.functions.log import log
+        #from sage.functions.log import log
         print("%s" % (log(len(S)).n() / (niter * log(mahler(b.minpoly()).n()))))
 
     def complexity(self, Ad=None, prec=None, verb=False):
@@ -2169,7 +2170,7 @@ cdef class BetaAdicSet:
         if self.b != m.b:
             raise ValueError("The two beta-adic sets must have same beta.")
 
-        a = self.a.product(m.a).prune().minimize()
+        a = self.a.zero_complete2().product(m.a.zero_complete2()).prune().minimize()
         if verb:
             print("Product = %s" % a)
 
@@ -2189,6 +2190,7 @@ cdef class BetaAdicSet:
             ai = ai.prune_inf()
         else:
             ai = ai.prune().minimize()
+        ai.zero_completeOP()
         return BetaAdicSet(self.b, ai)
     
     def prefix(self, w):
@@ -2704,7 +2706,7 @@ cdef class BetaAdicSet:
         m = mahler(self.b.minpoly())
         print("log(y)/log(%s) where y is the max root of %s, and %s is root of %s." % (m, QQbar(y).minpoly(), m, m.minpoly()))
         y = y.n(prec)
-        from sage.functions.log import log
+        #from sage.functions.log import log
         m = m.n(prec)
         if verb:
             print("y=%s, m=%s" % (y, m))
@@ -3314,7 +3316,7 @@ cdef class BetaAdicSet:
     # gives a automaton describing a approximation of a set defined by
     # the characteritic function test
     # rk : can be improve using a reduced words automaton
-    def approx(self, n, test):  # , ared=None):
+    def approx(self, n, test, get_aut=False, bool simplify=True):
         """
         gives a automaton describing a approximation of a set defined by the
         characteritic function test
@@ -3336,19 +3338,20 @@ cdef class BetaAdicSet:
             sage: a = m.approx(13, lambda x: (pm(x).real())^2 + (pm(x).imag())^2 < .4 )
             sage: print(a)
             DetAutomaton with 3538 states and an alphabet of 2 letters
-#             sage: aoc = m.zero_complete(a) #get the canonical representation of the g-b-set
-#             sage: aoc
-#             DetAutomaton with 182 states and an alphabet of 2 letters
         """
-        #        if ared is None:
-        #            ared = m.reduced_words_automaton2()
+        cdef DetAutomaton a
         a = DetAutomaton(None, A=self.a.A)
         f = a.add_state(1)
         e = self._approx_rec(a, test, f, 0, n, n)
         for t in self.a.A:
             a.add_edge(f, t, f)
         a.a.i = e
-        return a
+        if simplify:
+            a = a.minimize()
+        if get_aut:
+            return a
+        else:
+            return BetaAdicSet(self.b, a)
 
     # return the BetaAdicSet describing the same set of points,
     # but with the maximal language over the alphabet A
@@ -3509,13 +3512,37 @@ cdef class BetaAdicSet:
                 print("b is not an algebraic number.")
             return False
     
-    def points(self, int n, int nmax):
+    def points(self, int n=1000, int npts=10000):
         """
         Compute points (in the number field of b) corresponding to words of length k recognized by the automaton,
-        where k is at most n, and the total number of points is at most nmax.
+        where k is at most n, and the total number of points is approximatively npts.
+        Return (k, list of couples (state, point))
         """
-        ## TO DO !!! REUSE WHAT IS DONE IN plot_Cadic()
-    
+        cdef int i, j, k, f, nA
+        nA = self.a.a.na
+        l = self.a.spectral_radius()
+        n = min(n, <int>(log(<double>npts)/log(<double>l)))
+        r = [(self.a.a.i, 0)]
+        bn = 1
+        for i in range(n):
+            rr = []
+            for j,t in r:
+                for k in range(nA):
+                    f = self.a.a.e[j].f[k]
+                    if f != -1:
+                        rr.append((f, t + bn*self.a.A[k]))
+            bn = bn*self.b
+            r = rr
+        return (n, r)
+
+    def zero_ball(self, p, int npts=1000):
+        """
+        Compute the radius of a ball centered at 0 and that covers the BetaAdicSet for the place p.
+        """
+        pts = self.points(npts=npts)
+        M = abs(p(self.b**pts[0]))*max([abs(p(c)) for c in self.a.A])/abs(1-abs(p(self.b)))
+        return max([abs(p(c[1]))+M for c in pts[1]])
+
     def compute_translations(self, bool test_Pisot=True, list B=None, bool verb=False):
         """
         Assume that self.b is a Pisot number.
@@ -3536,11 +3563,11 @@ cdef class BetaAdicSet:
         K = self.b.parent()
         n = 0
         from sage.functions.other import ceil
-        from sage.functions.log import log
+        #from sage.functions.log import log
         for p in K.places():
             if abs(p(self.b)) < 1:
                 m = min([abs(p(b)) for b in Bd])
-                M = max([abs(c) for c in self.a.A])/abs(1-abs(p(self.b))) ##IMPROVE THIS BOUND
+                M = self.zero_ball(p)
                 if verb:
                     print("p=%s, m=%s, M=%s"%(p,m,M))
                     print("%s"%(log(m/M)/log(abs(p(self.b)))))
