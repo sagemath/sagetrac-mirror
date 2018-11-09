@@ -178,6 +178,9 @@ cimport numpy
 
 from libc.stdint cimport uint8_t, uint32_t
 from libc.math cimport log
+from libc.math cimport ceil
+from libc.math cimport floor
+from libc.math cimport round
 
 cdef extern from "draw.h":
     ctypedef unsigned char uint8
@@ -2132,7 +2135,7 @@ cdef class BetaAdicSet:
                 vol *= bo[-1]
         if verb:
             print("bounds=%s"%bo)
-        from sage.functions.other import ceil
+        #from sage.functions.other import ceil
         return ceil(vol)
 
     def intersection(self, BetaAdicSet m, ext=False, verb=False):
@@ -3353,8 +3356,6 @@ cdef class BetaAdicSet:
         else:
             return BetaAdicSet(self.b, a)
 
-    # return the BetaAdicSet describing the same set of points,
-    # but with the maximal language over the alphabet A
     def full(self, list A=None, bool verb=False):
         """
         Return the BetaAdicSet describing the same set of points,
@@ -3413,7 +3414,7 @@ cdef class BetaAdicSet:
 
         INPUT:
 
-        - ``l``  list or  of alphabet or one letter
+        - ``l``  list of indices of letters or the index of a letter
 
         OUTPUT:
 
@@ -3538,44 +3539,82 @@ cdef class BetaAdicSet:
     def zero_ball(self, p, int npts=1000):
         """
         Compute the radius of a ball centered at 0 and that covers the BetaAdicSet for the place p.
+        We assume that abs(p(self.b)) < 1.
         """
-        pts = self.points(npts=npts)
-        M = abs(p(self.b**pts[0]))*max([abs(p(c)) for c in self.a.A])/abs(1-abs(p(self.b)))
+        pts = self.points(npts=npts) 
+        M = abs(p(self.b**pts[0]))*max([abs(p(c)) for c in self.a.A])/abs(1-abs(self.b))
         return max([abs(p(c[1]))+M for c in pts[1]])
 
-    def compute_translations(self, bool test_Pisot=True, list B=None, bool verb=False):
+    def compute_translations(self, bool test_Pisot=True, bool verb=False):
         """
         Assume that self.b is a Pisot number.
-        Compute a list of numbers containing the smallest differences of points of the BetaAdicSet viewed in the expanding direction.
+        Compute a list of numbers containing the positive part of the BetaAdicSet, ordered in the expanding direction.
+        
+        Return an iterator.
         
         test_Pisot : test if b is the conjugate of a Pisot number as needed
         B : basis of a lattice containing the BetaAdicSet
         
         """
+        cdef int n, i, j
         if test_Pisot:
             if not self.is_Pisot():
                 raise ValueError("b must be the conjugate of a Pisot number")
         #take a basis of the lattice
-        if B is None:
-            B = [self.b**i for i in range(self.b.minpoly().degree())]
+        d = self.b.minpoly().degree()
+        B = [self.b**i for i in range(d)]
         #compute the min of the differences for every place
         Bd = set([a-b for a in B for b in B if a != b])
         K = self.b.parent()
-        n = 0
-        from sage.functions.other import ceil
+        n = -2147483648
+        #from sage.functions.other import ceil
         #from sage.functions.log import log
-        for p in K.places():
-            if abs(p(self.b)) < 1:
-                m = min([abs(p(b)) for b in Bd])
-                M = self.zero_ball(p)
-                if verb:
-                    print("p=%s, m=%s, M=%s"%(p,m,M))
-                    print("%s"%(log(m/M)/log(abs(p(self.b)))))
-                n = max(n, ceil(log(m/M)/log(abs(p(self.b))))-1)
+        P = [p for p in K.places() if abs(p(self.b)) < 1]
+        M = [self.zero_ball(p) for p in P]
+        for i,p in enumerate(P):
+            m = min([abs(p(b)) for b in Bd])
+            if verb:
+                print("p=%s, m=%s, M=%s"%(p,m,M))
+                print("%s"%(log(m/(2*M[i]))/log(abs(p(self.b)))))
+            n = max(n, <int>floor(log(m/(2*M[i]))/log(abs(p(self.b)))))
         if verb:
             print("n=%s"%n)
-        ##TO BE CONTINUED !!!
-           
+        #multiply the bound by this power of b
+        bn = self.b**n
+        M = [M[i]*abs(p(bn)) for i,p in enumerate(P)]
+        #compute the matrix corresponding to the multiplication by M to the left
+        from sage.matrix.constructor import identity_matrix
+        I = identity_matrix(d)
+        pi = self.b.minpoly()
+        pi /= pi.leading_coefficient()
+        from sage.matrix.constructor import matrix
+        m = matrix([I[i] for i in range(1,d)]+[[-c for c in pi.coefficients()[:d]]]).transpose()
+        if verb:
+            print("m=%s"%m)
+        #compute the Perron-Frobenius eigenvector
+        from sage.modules.free_module_element import vector
+        v = vector(max([r[1][0] for r in m.right_eigenvectors()], key=lambda x: x[0]))
+        v /= sum(v)
+        vB = vector(B)
+        if verb:
+            print("v=%s"%v)
+        r = []
+        from itertools import count
+        for j in count(start=1):
+            vi = vector([<int>round(j*x) for x in v])
+            t = vi*vB
+            if t == 0:
+                continue
+            if verb:
+                print("j=%s, t=%s"%(j,t))
+            #test if t is in the domain
+            keep = True
+            for i,p in enumerate(P):
+                if abs(p(t)) > M[i]:
+                    keep = False
+                    break
+            if keep:
+                yield t/bn
         
     def compute_domain_exchange(self):
         """
