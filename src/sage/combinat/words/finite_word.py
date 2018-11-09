@@ -228,6 +228,7 @@ from sage.combinat.words.words import Words
 from sage.misc.cachefunc import cached_method
 from sage.combinat.words.word_options import word_options
 from sage.rings.all import Integer, Infinity, ZZ, QQ
+from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.sets.set import Set
 from sage.misc.superseded import deprecated_function_alias
 
@@ -7253,7 +7254,7 @@ class FiniteWord_class(Word_class):
 
         word -- the modular sweep map or sweep map applied to ``self``.
 
-        EXAMPLES::
+        EXAMPLES:
 
         We begin by illustrating the modular sweep map following
         Example 3.1 of [HT2018]_ ::
@@ -7321,13 +7322,11 @@ class FiniteWord_class(Word_class):
         .. [ALW2015]  \D. Armstrong, N. Loehr, and G. Warrington. "Sweep maps: A continuous family of sorting algorithms." Advances in Mathematics 284 (2015): 159-185.
 
         """
-        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
-        from sage.rings.integer_ring import IntegerRing_class
         from sage.combinat.words.word import Word
         from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
         alph = self.parent().alphabet()
-        if isinstance(alph, IntegerModRing_generic):
+        if is_IntegerModRing(alph):
             levels = list(self)
             l_i = alph(0)
             for i, w_i in enumerate(self):
@@ -7346,7 +7345,7 @@ class FiniteWord_class(Word_class):
                 if i in b:
                     out += b[i]
             return self.parent()(out)
-        elif isinstance(alph, IntegerRing_class):
+        elif alph is ZZ:
             m = sum(map(abs, self)) + 1
             return self.parent()(Word(list(self), IntegerModRing(m)).sweep())
         else:
@@ -7368,11 +7367,12 @@ class FiniteWord_class(Word_class):
         INPUT:
 
         - ``self`` -- word defined over ``IntegerModRing`` or
-          ``IntegerRing`` alphabet.
+          ``IntegerRing`` alphabet
 
         OUTPUT:
 
-        word -- the inverse modular sweep map or inverse sweep map applied to ``self``.
+        word -- the inverse modular sweep map or inverse sweep map
+        applied to ``self``.
 
         EXAMPLES:
 
@@ -7459,60 +7459,57 @@ class FiniteWord_class(Word_class):
             sage: w = Word([1,1,1,-1,1,1,-1,-1,-1,-1,1,-1,1,1,-1,1,1,-1,-1,1,1,-1,-1,-1,1,1,-1,-1],IntegerRing());w.inverse_sweep().sweep()==w
             True
         """
-        try:
-            alph = self.parent().alphabet()
-        except AttributeError:
-            raise ValueError("Alphabet of input word not initialized.")
-        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
-        from sage.rings.integer_ring import IntegerRing_class
-        if isinstance(alph,IntegerModRing_generic):
-            m=alph.characteristic()
+        from sage.functions.other import floor
+        from sage.combinat.words.word import Word
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+
+        alph = self.parent().alphabet()
+        if is_IntegerModRing(alph):
+            m = alph.characteristic()
             sum_w = sum([int(alph(i)) for i in list(self)])
             mod_sum_w = int(alph(sum_w))
-            from sage.functions.other import floor
-            desired_lengths_w = floor(sum_w/m)
-            def equitably_distributed_leq(pw,c):
+            desired_lengths_w = floor(sum_w / m)
+
+            def equitably_distributed_leq(pw, c):
                 ww = [[int(alph(pwij)) for pwij in pwi] for pwi in pw]
                 tot = 0
-                for i in range(c+1):
-                    tot += len([j for j in ww[i] if j+i-1>=c])
-                for i in range(c+1,m):
-                    tot += len([j for j in ww[i] if j+i-1-m>=c])
-                if (c+1<=m-mod_sum_w-1 or c+1==m) and tot>=desired_lengths_w:
+                for i in range(c + 1):
+                    tot += len([j for j in ww[i] if j + i - 1 >= c])
+                for i in range(c + 1, m):
+                    tot += len([j for j in ww[i] if j + i - 1 - m >= c])
+                if (c + 1<=m-mod_sum_w-1 or c+1==m) and tot>=desired_lengths_w:
                     return True
                 elif (c+1>m-mod_sum_w-1 and c+1<m) and tot>=desired_lengths_w+1:
                     return True
                 else:
                     return False
-            pw = (m-1)*[[]] + [list(self)]
-            b = m-1
+            pw = (m - 1) * [[]] + [list(self)]
+            b = m - 1
             while b >= 0:
-                if not equitably_distributed_leq(pw,b):
-                    tmp = pw[b+1][0]
-                    del pw[b+1][0]
+                if not equitably_distributed_leq(pw, b):
+                    tmp = pw[b + 1][0]
+                    del pw[b + 1][0]
                     pw[b] = pw[b] + [tmp]
-                    b = m-1
+                    b = m - 1
                 else:
                     b -= 1
-            pw_flat = reduce(lambda x, y: x+y, pw)
+            pw_flat = sum(pw, [])
             out = []
             i = 0
             cur = m - mod_sum_w - 1
-            while i<len(pw_flat):
-                if len(pw[cur])>0:
+            while i < len(pw_flat):
+                if pw[cur]:
                     tmp = pw[cur][0]
                     del pw[cur][0]
-                    out = [tmp]+out
-                    cur = (cur+tmp)%m
+                    out = [tmp] + out
+                    cur = (cur + tmp) % m
                     i += 1
                 else:
-                    raise ValueError("Failure. You have done something wrong, since you have apparently found a counterexample to Theorem 4.16 of Reference [1].",pw)
+                    raise ValueError("Failure. You have done something wrong, since you have apparently found a counterexample to Theorem 4.16 of Reference [1].", pw)
             return self.parent()(out)
-        elif isinstance(alph,IntegerRing_class):
-            m = sum(map(abs,self))+1
-            from sage.combinat.words.word import Word
-            from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
-            return self.parent()(Word(list(self),IntegerModRing(m)).inverse_sweep())
+        elif alph is ZZ:
+            m = sum(map(abs, self)) + 1
+            return self.parent()(Word(list(self), IntegerModRing(m)).inverse_sweep())
         else:
             raise ValueError("Alphabet of input word must be an 'IntegerModRing' or 'IntegerRing'.")
 
