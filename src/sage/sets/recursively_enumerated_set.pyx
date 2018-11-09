@@ -67,8 +67,9 @@ In this case, depth first search is the default enumeration for iteration::
 Breadth first search::
 
     sage: it_breadth = C.breadth_first_search_iterator()
-    sage: sorted([next(it_breadth) for _ in range(10)])
-    [(-2, 0),  (-1, -1),  (-1, 0),  (-1, 1),  (0, -1),  (0, 0),  (0, 1),  (1, 0),  (1, 1),  (2, 0)]
+    sage: sorted([next(it_breadth) for _ in range(13)])
+    [(-2, 0), (-1, -1), (-1, 0), (-1, 1), (0, -2), (0, -1),
+     (0, 0), (0, 1), (0, 2), (1, -1), (1, 0), (1, 1), (2, 0)]
 
 Levels (elements of given depth)::
 
