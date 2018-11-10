@@ -31,11 +31,11 @@ from sage.misc.prandom import randint, random
 
 
 class DetAutomatonGenerators(object):
-    def AnyLetter(self, A):
-        return DetAutomaton([(0, 1, i) for i in A], i=0, final_states=[1])
+    def AnyLetter(self, A, A2=None):
+        return DetAutomaton([(0, 1, i) for i in A], A=A2, i=0, final_states=[1])
 
-    def AnyWord(self, A):
-        return DetAutomaton([(0, 0, i) for i in A], i=0, final_states=[0])
+    def AnyWord(self, A, A2=None):
+        return DetAutomaton([(0, 0, i) for i in A], A=A2, i=0, final_states=[0])
 
     def Empty(self, A):
         return DetAutomaton([], A=A)
@@ -43,9 +43,9 @@ class DetAutomatonGenerators(object):
     def EmptyWord(self, A):
         return DetAutomaton([], S=[0], i=0, final_states=[0], A=A)
 
-    def Word(self, w):
+    def Word(self, w, A=None):
         return DetAutomaton(
-            [(i, i+1, j) for i, j in enumerate(w)], i=0, final_states=[len(w)])
+            [(i, i+1, j) for i, j in enumerate(w)], A=A, i=0, final_states=[len(w)])
 
     def Random(self, n=None, A=None, density_edges=None, 
                density_finals=None, verb=False):

@@ -1208,6 +1208,9 @@ cdef class BetaAdicSet:
         """
         return self.b
     
+    def copy(self):
+        return BetaAdicSet(self.b, self.a.copy())
+    
     def mirror(self):
         """
         Return the beta-adic set with the mirror automaton.
@@ -1215,6 +1218,9 @@ cdef class BetaAdicSet:
         return BetaAdicSet(self.b, self.a.mirror())
     
     def is_included (self, a, verb=False):
+        """
+        Determine if the BetaAdicSet is included in the BetaAdicSet given by a.
+        """
         a = getDetAutomaton(self, a)
         if verb:
             print("a=%s"%a)
@@ -1227,6 +1233,16 @@ cdef class BetaAdicSet:
         if verb:
             print("ap=%s"%ap)
         return ap.equal_languages(b)
+    
+    def is_equal (self, a):
+        a = getBetaAdicSet(self, a)
+        return self.is_included(a) and a.is_included(self)
+    
+    def is_empty(self):
+        """
+        Tell if the BetaAdicSet is empty.
+        """
+        return self.a.is_empty()
     
     def _testSDL(self):
         """
@@ -1808,6 +1824,7 @@ cdef class BetaAdicSet:
         cdef DetAutomaton r
         cdef bool tb
         
+        t0 = t
         if mirror is not None:
             try:
                 tb = mirror
@@ -2138,13 +2155,15 @@ cdef class BetaAdicSet:
         #from sage.functions.other import ceil
         return ceil(vol)
 
-    def intersection(self, BetaAdicSet m, ext=False, verb=False):
+    def intersection(self, BetaAdicSet m, t=0, ext=False, algo=2, verb=False):
         r"""
         Compute the intersection of two beta-adic sets.
 
         INPUT:
 
         - ``m`` - the other beta-adic set
+        
+        - ``t`` - translate m by t
 
         - ``ext`` - bool (default: ``False``)
           If True, compute the extended relations automaton.
@@ -2158,7 +2177,7 @@ cdef class BetaAdicSet:
 
         EXAMPLES::
 
-            #. Compute the boundary of the dragon fractal (see intersection_words for a easier way) ::
+            #. Compute the boundary of the dragon fractal (see intersection_words for an easier way) ::
 
                 sage: m = BetaAdicSet(1/(1+I), dag.AnyWord([0,1]))
                 sage: m1 = m.prefix([0])
@@ -2177,7 +2196,7 @@ cdef class BetaAdicSet:
         if verb:
             print("Product = %s" % a)
 
-        ar = self.relations_automaton(ext=ext, couples=True, A=self.a.A, B=m.a.A, verb=verb)
+        ar = self.relations_automaton(ext=ext, t=t, algo=algo, couples=True, A=self.a.A, B=m.a.A, verb=verb)
         if verb:
             print("Arel = %s" % ar)
 
@@ -3616,12 +3635,40 @@ cdef class BetaAdicSet:
             if keep:
                 yield t/bn
         
-    def compute_domain_exchange(self):
+    def compute_domain_exchange(self, n=None, verb=False):
         """
         Assume that self.b is a Pisot number.
         Compute the domain exchange describing the BetaAdicSet.
         """
-    
+        if verb:
+            print("diff...")
+        md = self.diff(self)
+        if verb:
+            print("compute translations...")
+        it = md.compute_translations(verb=verb)
+        m = self.copy()
+        from sage.combinat.words.cautomata_generators import dag
+        a = self.a.intersection(dag.AnyWord([0], A2=self.a.A).complementary())
+        r = []
+        if n is None:
+            n=-1
+        for t in it:
+            if verb:
+                print("t=%s"%t)
+            mi = m.intersection(m, -t)
+            mia = mi.a.intersection(a)
+            if not mia.is_empty():
+                if verb:
+                    print("not empty ! mia=%s"%mia)
+                mi = BetaAdicSet(m.b, mia)
+                r.append((t, mi))
+                a = a.intersection(mi.a.complementary())
+                if a.is_empty():
+                    return r
+            n -= 1
+            if n == 0:
+                return r   
+
     # calcule la liste triée (par rapport à la place >1) des
     # premiers points dans omega-omega
     #
