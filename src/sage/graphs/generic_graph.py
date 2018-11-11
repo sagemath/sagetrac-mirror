@@ -15544,7 +15544,7 @@ class GenericGraph(GenericGraph_pyx):
         Return a dictionary associating to each vertex ``v`` a shortest path
         from ``u`` to ``v``, if it exists.
 
-        If `u` and ``v are not connected, vertex `v` is not present in the
+        If `u` and `v` are not connected, vertex `v` is not present in the
         dictionary.
 
         INPUT:
