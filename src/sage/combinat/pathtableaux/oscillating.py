@@ -1,6 +1,6 @@
 #Created on Sat May 19 07:15:40 2018
-"""
-This is an implementation of the category PathTableaux.
+r"""
+Oscillating Tableaux
 
 The purpose is to define promotion, evacuation and the action of
 the cactus group on oscillating tableaux.
@@ -32,8 +32,10 @@ from sage.combinat.partition import Partition
 from sage.modules.free_module_element import vector
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
-class OscillatingTableau(ClonableList):
+class OscillatingTableau(PathTableau):
 
+    _conversions = [ "to_perfect_matching" ]
+    
     @staticmethod
     def __classcall_private__(self, ot):
 
@@ -117,6 +119,12 @@ class OscillatingTableau(ClonableList):
             return 0
         return max( a[0] for a in self if a.length() > 0)
 
+	def to_perfect_matching(self):
+		"""
+		Construct the perfect matching.
+		"""
+		return self.sundaram()[1]
+		
     def to_word(self):
         """
         Converts an oscillating tableau to a word in the alphabet
@@ -213,26 +221,7 @@ class OscillatingTableau(ClonableList):
 
 ###############################################################################
 
-class OscillatingTableaux(UniqueRepresentation,Parent):
-
-    @staticmethod
-    def __classcall_private__(cls):
-        return super(OscillatingTableaux, cls).__classcall__(cls)
-
-    def __init__(self):
-
-        Parent.__init__(self, category=PathTableaux())
-
-    def __contains__(self, ot):
-
-        return isinstance(ot, (list, tuple, OscillatingTableau))
-
-    def _element_constructor_(self, ot, check=True):
-
-        if isinstance(ot, OscillatingTableaux) and ot.parent() == self:
-            return ot
-
-        return self.element_class(self, list(ot))
+class OscillatingTableaux(PathTableaux):
 
     def from_word(self,w):
         """
@@ -262,7 +251,7 @@ class OscillatingTableaux(UniqueRepresentation,Parent):
             
         return self.element_class(self,ot)
     
-    def from_perfectmatching(self,pm):
+    def from_perfect_matching(self,pm):
         """
         Constructs an oscillating tableau from a perfect matching.
         The intial and final shapes are the empty partition.
