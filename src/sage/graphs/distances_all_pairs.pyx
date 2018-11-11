@@ -828,12 +828,14 @@ cdef uint32_t * c_eccentricity_bounding(G, vertex_list=None) except NULL:
 
     return LB
 
-def eccentricity(G, algorithm="standard"):
+def eccentricity(G, algorithm="standard", vertex_list=None):
     r"""
     Return the vector of eccentricities in G.
 
     The array returned is of length `n`, and its `i`-th component is the
-    eccentricity of the ith vertex in ``G.vertices()``.
+    eccentricity of the `i`-th vertex in ``G.vertices()``. When ``vertex_list``
+    is specified, the `i`-th component is the eccentricity of the `i`-th vertex
+    in ``vertex_list`` (i.e., ``vertex_list[i]``).
 
     INPUT:
 
@@ -843,6 +845,12 @@ def eccentricity(G, algorithm="standard"):
       to compute the eccentricity of the vertices. Available algorithms are
       ``'standard'`` which performs a BFS from each vertex and ``'bounds'``
       which uses the fast algorithm proposed in [TK13]_ for undirected graphs.
+
+    - ``vertex_list`` -- list (default: ``None``); list of `n` vertices
+      specifying a mapping from `(0, \ldots, n-1)` to vertex labels in `G`. When
+      set, the `i`-th component of the returned vector is the eccentricity of
+      the `i`-th vertex in ``vertex_list`` (i.e., ``vertex_list[i]``)``.
+      Otherwise, the ordering ``G.vertices()`` is assumed.
 
     EXAMPLES::
 
@@ -900,7 +908,7 @@ def eccentricity(G, algorithm="standard"):
         return [Infinity] * n
 
     cdef uint32_t* ecc
-    cdef list int_to_vertex = G.vertices()
+    cdef list int_to_vertex = G.vertices() if vertex_list is None else vertex_list
     if algorithm == "bounds":
         ecc = c_eccentricity_bounding(G, vertex_list=int_to_vertex)
     elif algorithm == "standard":
