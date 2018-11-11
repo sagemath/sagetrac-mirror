@@ -1563,6 +1563,28 @@ cdef class DetAutomaton:
         h += hashAutomaton(self.a[0])
         sig_off()
         return h
+    
+    def string (self):
+        r"""
+        Return a "string" that can be evaluated to recover the DetAutomaton.
+        """
+        r = "DetAutomaton([["
+        for i,c in enumerate(self.A):
+            if i != 0:
+                r+=", "
+            r += str(c)
+        r += "], ["
+        c = 0
+        for i in range(self.a.n):
+            for j in range(self.a.na):
+                k = self.a.e[i].f[j]
+                if k != -1:
+                    if c != 0:
+                        r += ", "
+                    r += "(%s, %s, %s)"%(i, k, j)
+                    c += 1
+        r += "]], i=%s, final_states=%s)"%(self.a.i, self.final_states)
+        return r
 
     def _richcmp_(self, DetAutomaton other, int op):
         r"""
