@@ -3289,31 +3289,25 @@ cdef class BetaAdicSet:
 #        ai.zero_completeOP()
 #        return ai.prune().minimize()
 #
-#    # return the automaton recognizing the division by beta and translation by t
-#    def shift(self, DetAutomaton aa,
-#              DetAutomaton bb, t=0, verb=False):
-#        # détermine la liste des successeurs de l'état initial
-#        cdef int i
-#        cdef int e
-#        l = set()
-#        for j in range(aa.a.na):
-#            e = aa.a.e[aa.a.i].f[j]
-#            if e != -1:
-#                l.add(j)
-#        l = list(l)
-#        if verb:
-#            print("états à considérer : %s" % l)
-#        # calcule l'union des automates translatés
-#        a = DetAutomaton(None)
-#        A = aa.alphabet
-#        a.setAlphabet(A)
-#        for i in range(0, len(l)):
-#            a2 = aa.copy()
-#            a2.set_initial_state(aa.a.e[aa.a.i].f[l[i]])
-#            a2 = a2.prune().minimize()
-#            a2 = self.move2(t=-(A[l[i]]-t)/self.b, a=a2, b=bb)
-#            a = a.union(a2)
-#        return a
+
+    def shift_op(self, w):
+        """
+        Shift the automaton of self by w ON PLACE.
+        """
+        try:
+            w = list(w)
+            self.a.shift_listOP(w)
+        except:
+            self.a.shift1OP(w)
+    
+    
+    def shift(self, w):
+        """
+        Shift the automaton of self.
+        """
+        m = self.copy()
+        m.shift_op(w)
+        return m
 
 #    # calcule l'intersection des ensembles limites
 #    def intersection3(self, DetAutomaton a, DetAutomaton b, ext=True):
@@ -3932,7 +3926,7 @@ cdef class BetaAdicSet:
             if keep:
                 yield t/bn
         
-    def domain_exchange(self, n=None, int algo=1, verb=False):
+    def domain_exchange(self, n=None, int algo=1, bool test_Pisot=True, bool verb=False):
         """
         Assume that self.b is a Pisot number.
         Compute the domain exchange describing the BetaAdicSet.
@@ -3954,7 +3948,7 @@ cdef class BetaAdicSet:
         
         #A more complicated domain exchange
         sage: m = BetaAdicSet((x^3 - x^2 - x - 1).roots(ring=QQbar)[1][0], DetAutomaton([[0, 1], [(0, 17, 0), (0, 4, 1), (1, 16, 0), (2, 17, 0), (2, 4, 1), (3, 17, 0), (4, 17, 0), (5, 7, 0), (5, 0, 1), (6, 5, 0), (6, 0, 1), (7, 6, 0), (8, 10, 0), (9, 8, 0), (9, 0, 1), (10, 9, 0), (11, 15, 0), (11, 1, 1), (12, 14, 0), (12, 11, 1), (13, 8, 0), (13, 2, 1), (14, 13, 0), (14, 18, 1), (15, 5, 0), (15, 2, 1), (16, 17, 0), (16, 0, 1), (17, 17, 0), (17, 0, 1), (18, 16, 0), (18, 3, 1)]], i=12, final_states=[0, 1, 2, 3, 4, 16, 17, 18]))
-        sage: m.domain_exchange()
+        sage: l = m.domain_exchange(); l
         [(b^2 - b - 1,
   b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 5 states and 2 letters.),
  (b - 1,
@@ -3972,11 +3966,11 @@ cdef class BetaAdicSet:
         if algo == 1:
             if verb:
                 print("compute translations...")
-            it = self.translations_diff_iterator(verb=verb)
+            it = self.translations_diff_iterator(test_Pisot=test_Pisot, verb=verb)
         else:
             if verb:
                 print("diff...")
-            md = self.diff(self)
+            md = self.diff(test_Pisot=test_Pisot)
             if verb:
                 print("compute translations...")
             it = md.translations_iterator(verb=verb)
@@ -4004,11 +3998,9 @@ cdef class BetaAdicSet:
             if n == 0:
                 return r
 
-    # décrit les mots de a de longueur n partant de e (utilisé par compute_translation2)
     def way(self, A, a, e, t, n, bn):
         """
         Describes the words of ``a``  of length ``n`` starting from ``e``
-        (used by compute_translation2)
 
         INPUT:
 
@@ -4020,7 +4012,7 @@ cdef class BetaAdicSet:
         - ``verb`` bool -- (default : ``False``) set to ``True
 
         OUTPUT:
-        Return computes the sorted list
+        Return computed sorted list
 
         EXAMPLE::
 
@@ -4045,6 +4037,66 @@ cdef class BetaAdicSet:
             if a.is_final(e):
                 l.append(t)
             return l
+    
+    def substitution(self, get_aut=False, np=None):
+        r"""
+        Assume that b is a conjugate of a Pisot number.
+        Compute a substitution whose discrete line is this BetaAdicSet.
+        
+        Return a WordMorphism. If get_aut is True, return also a list of (translation, automaton) describing each piece of the Rauzy fractal.
+        
+        np -- int (default: None) - power of b used to compute the substitution. If np is None, take the smallest one possible.
+        """
+        #test is b is a Pisot number
+        if not self.is_Pisot():
+            raise ValueError("The number b of the BetaAdicSet must be for the conjugate of a Pisot number.")
+        #ensure that the alphabet of a contains 0
+        a = self.a.copy()
+        A = a.A
+        try:
+            l0 = A.index(0)
+        except:
+            A = [0]+A
+            a = a.bigger_alphabet([0]+A)
+            l0 = 0
+        #find np such that b^np*self is included in self
+        if np is None:
+            an = a.copy()
+            for i in range(1, 100):
+                an = an.unshift(l0)
+                if BetaAdicSet(self.b, an).is_included(a):
+                    break
+            np = i
+        zn = [l0 for i in range(np)]
+        an = a.unshift(zn)
+        if not BetaAdicSet(self.b, an).is_included(a):
+            raise ValueError("The BetaAdicSet is not invariant by multiplication by b^np with np=%s !"%np)
+        #compute the domain exchange
+        l = self.domain_exchange(test_Pisot=False)
+        #for each piece P, compute b^(-np)P projected on a
+        lm = []
+        for t,m in l:
+            m2 = m.proj(an).shift(zn)
+            if not m2.is_empty():
+                lm.append((t,m2))
+        #subdivide 
+        #TO BE CONTINUED... 
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
     # to be rewritten
     def compute_substitution(self, DetAutomaton a=None,
