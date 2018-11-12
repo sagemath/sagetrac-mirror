@@ -454,8 +454,8 @@ Complexe FindTr (int n, Complexe c, BetaAdic b, SDL_Surface *s, bool *ok, bool v
 				ComplexeToPoint(prod(sub(c, b.t[i]), ib), &x, &y, s->w, s->h);
 				if (x < 0 || y < 0 || x >=s->w || y >= s->h)
 					continue; //le point n'est pas dedans
-				SDL_GetRGBA(*((Uint32 *)s->pixels+x+(s->pitch/4)*y), s->format, &r0, &g0, &b0, &a);
-				if (a >= 50)
+				//SDL_GetRGBA(*((Uint32 *)s->pixels+x+(s->pitch/4)*y), s->format, &r0, &g0, &b0, &a);
+				//if (a >= 50)
 				{
 					if (ok)
 						*ok = true;
@@ -484,7 +484,7 @@ Complexe FindTr (int n, Complexe c, BetaAdic b, SDL_Surface *s, bool *ok, bool v
 	return r;
 }
 
-bool addA(Automaton *a, int n)
+bool addA(Automaton *a, int ri, int n)
 {
 	int e = a->i;
 	int i;
@@ -499,10 +499,10 @@ bool addA(Automaton *a, int n)
 		}
 		e = a->e[e].f[lt[i]];
 	}
-	if (a->e[e].f[lt[i]] != 1)
+	if (a->e[e].f[lt[i]] != ri)
 	{
 		r = true;
-		a->e[e].f[lt[i]] = 1;
+		a->e[e].f[lt[i]] = ri;
 	}
 	return r;
 }
@@ -646,21 +646,14 @@ void Ajust (BetaAdic b, int sx, int sy, int *n, double sp, bool auto_n, bool ver
     }
 }
 
-Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, double sp, int verb)
+Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, double sp, int verb)
 {
-	Automaton r = NewAutomaton(2, b.n);
-	r.i = 0;
-	int i;
-	if (!only_pos)
-	{
-        for (i=0;i<b.n;i++)
-        {
-            r.e[1].f[i] = 1; //état reconnaissant tout
-        }
-	}
-	r.e[0].final = false;
-	r.e[1].final = true;
-
+    int i, j, ri;
+    Automaton r = CopyAutomaton(b.a, b.a.n+1, b.n);
+    r.e[b.a.n].final = false;
+    ri = r.i;
+	r.i = b.a.n;
+    
 	if (SDL_Init(SDL_INIT_VIDEO) == -1)
     {
         printf("Erreur lors de l'initialisation de SDL: %s\n", SDL_GetError());
@@ -704,7 +697,7 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
 	SDL_Surface *screen;
 
     // Création de la fenêtre
-    win = SDL_CreateWindow("Fenetre user_draw", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, sx, sy, SDL_WINDOW_SHOWN);
+    win = SDL_CreateWindow("Fenetre user_draw", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, sx, sy+20, SDL_WINDOW_SHOWN);
     if( win == NULL )
 	{
 		printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
@@ -805,7 +798,7 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, int
 				if (event.type == SDL_MOUSEBUTTONDOWN || (clic && event.motion.state & SDL_BUTTON_LMASK))
 				{ //clic
 					clic = true;
-					if (addA(&r, np)) //ajoute le morceau à l'automate
+					if (addA(&r, ri, np)) //ajoute le morceau à l'automate
 					{ //si morceau ajouté
 						drawTransf(s, sf, f, t, colf);
 						if (SDL_BlitSurface(sf, NULL, screen, NULL) < 0)

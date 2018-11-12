@@ -233,7 +233,7 @@ cdef extern from "draw.h":
     BetaAdic2 NewBetaAdic2(int n, int na)
     void FreeBetaAdic2(BetaAdic2 b)
     int *DrawZoom(BetaAdic b, int sx, int sy, int n, int ajust, Color col, int nprec, double sp, int verb)
-    Automaton UserDraw(BetaAdic b, int sx, int sy, int n, int ajust, Color col, int only_pos, double sp, int verb)
+    Automaton UserDraw(BetaAdic b, int sx, int sy, int n, int ajust, Color col, double sp, int verb)
     #  void WordZone (BetaAdic b, int *word, int nmax)
     int *Draw(BetaAdic b, Surface s, int n, int ajust, Color col, int nprec, double sp, int verb)
     void Draw2(BetaAdic b, Surface s, int n, int ajust, Color col, double sp, int verb)
@@ -1402,7 +1402,7 @@ cdef class BetaAdicSet:
 
     def user_draw(self, n=None,
                   sx=800, sy=600, ajust=True, prec=53, color=(0, 0, 0, 255),
-                  method=0, only_pos=False, mirror=False, verb=False):
+                  method=0, simplify=True, mirror=False, only_aut=False, verb=False):
         r"""
         Display a window where the user can draw a b-adic set based on the current b-adic set.
         Use keyboard p to reduce the size of the pen and the keyboard m to increse.
@@ -1425,15 +1425,17 @@ cdef class BetaAdicSet:
 
         - ``color`` tuple of color in RGB values -- (default: (0, 0, 0, 255))
 
-        - ``method`` -- (default 0) 
-
-        - ``only_pos`` -- (default ``False``)
+        - ``method`` -- (default: ``0``) For futur implementations, must be 0 for the moment.
+        
+        - ``simplify`` -- (default: ``True``) If True, minimize the result
+        
+        - ``only_aut`` -- (default: ``False``) If True return a DetAutomaton, otherwise return a BetaAdicSet
 
         - ``verb`` -- (default ``False``) set to ``True`` for verbose mod
 
         OUTPUT:
 
-        A b-adic set, corresponding to what has been drawn by the user.
+        A b-adic set, corresponding to what has been drawn by the user. Or only the automaton if only_aut was True.
 
         EXAMPLES::
 
@@ -1460,17 +1462,21 @@ cdef class BetaAdicSet:
             n = -1
         if method == 0:
             sig_on()
-            a = UserDraw(b, sx, sy, n, ajust, col, only_pos, self.a.spectral_radius(), verb)
+            a = UserDraw(b, sx, sy, n, ajust, col, self.a.spectral_radius(), verb)
             sig_off()
         elif method == 1:
             print("Not implemented !")
             return
-
         r = DetAutomaton(None)
         r.a[0] = a
         r.A = self.a.A
         r.S = range(a.n)
-        return BetaAdicSet(self.b, r)
+        if simplify:
+            r = r.minimize()
+        if only_aut:
+            return r
+        else:
+            return BetaAdicSet(self.b, r)
 
     def draw_zoom(self, n=None, int sx=800, int sy=600, bool ajust=True, int prec=53, color=(0, 0, 0, 255), int method=0, int nprec=4, bool mirror=False, bool verb=False):
         r"""
@@ -3643,7 +3649,7 @@ cdef class BetaAdicSet:
             if verb:
                 print("rr : %s elements"%len(rr))
             r = []
-            #compute the diameter of the set rr
+            #compute the diameter of the set rr (this could be improved)
             dmm = 0
             dm = np.zeros(len(rr), dtype=np.float)
             v = np.empty(len(rr), dtype=np.complex)
@@ -3861,8 +3867,9 @@ cdef class BetaAdicSet:
                 print("compute translations...")
             it = md.translations_iterator(verb=verb)
         m = self.copy()
-        from sage.combinat.words.cautomata_generators import dag
-        a = self.a.intersection(dag.AnyWord([0], A2=self.a.A).complementary())
+        #from sage.combinat.words.cautomata_generators import dag
+        #a = self.a.intersection(dag.AnyWord([0], A2=self.a.A).complementary())
+        a = self.a.copy()
         r = []
         if n is None:
             n=-1
@@ -3881,72 +3888,7 @@ cdef class BetaAdicSet:
                     return r
             n -= 1
             if n == 0:
-                return r   
-
-    # calcule la liste triée (par rapport à la place >1) des
-    # premiers points dans omega-omega
-    #
-    # THIS FUNCTION IS INCORRECT AND VERY INEFFICIENT ! SHOULD BE IMPROVED.
-    #
-    def compute_translations_old(self, DetAutomaton aoc, imax=None, verb=False):
-        """
-        computes the sorted list (relative to the place> 1) of
-        first points in omega-omega
-
-        INPUT:
-
-        - ``aoc``  DetAutomaton an automaton
-        - ``imax``  (default : ``None``)  max number st to 20 if ``None``
-        - ``verb`` bool -- (default : ``False``) set to ``True
-
-        OUTPUT:
-        Return computes the sorted list
-
-        EXAMPLE::
-
-            sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
-            sage: aoc = dag.AnyWord([0, 1, 2, 4])
-            sage: m.compute_translations(aoc=aoc)
-            [2*b^2 - 2*b - 3,
-            ...
-            19*b^2 + 19*b + 14]
-
-        """
-        b = self.b
-        p = b.parent().places()
-        if verb:
-            print(p)
-        if abs(p[0](b)) > 1:
-            pp = p[0]
-            pm = p[1]
-        else:
-            pp = p[1]
-            pm = p[0]
-        l = []
-        if imax is None:
-            imax = 20
-        bound = max([abs(pm(x)) for x in self.a.alphabet])/(1-abs(pm(b)))
-        if verb:
-            print("bound = %s" % bound)
-        if b.minpoly().degree() == 3:
-            for i in range(-imax, imax):
-                for j in range(-imax, imax):
-                    for k in range(-imax, imax):
-                        x = i + b*j + b*b*k
-                        if abs(pm(x)) <= bound and pp(x) > 0:
-                        # if abs(pm(x)-z) < r + .5 and pp(x) > 0:
-                            l.append(x)
-        elif b.minpoly().degree() == 2:
-            for i in range(-imax, imax):
-                for j in range(-imax, imax):
-                    x = i + b*j
-                    if abs(pm(x)) <= bound and pp(x) > 0:
-                    # if abs(pm(x)-z) < r + .5 and pp(x) > 0:
-                        l.append(x)
-        else:
-            raise NotImplemented
-        l.sort(key=pp)
-        return l
+                return r
 
     # décrit les mots de a de longueur n partant de e (utilisé par compute_translation2)
     def way(self, A, a, e, t, n, bn):
@@ -3989,523 +3931,6 @@ cdef class BetaAdicSet:
             if a.is_final(e):
                 l.append(t)
             return l
-
-    def compute_translations2(self, DetAutomaton aoc, imax=None, verb=False):
-        b = self.b
-        A = self.C
-        p = b.parent().places()
-        if verb:
-            print(p)
-        if abs(p[0](b)) > 1:
-            pp = p[0]
-            pm = p[1]
-        else:
-            pp = p[1]
-            pm = p[0]
-        if imax is None:
-            imax = 8
-        # compute a reduced version of aoc
-        # ared = self.reduced_words_automaton2()
-        # aoc = aoc.intersection(ared)
-        # compute aoc-aoc
-        d = dict()
-        for t1 in self.C:
-            for t2 in self.C:
-                d[(t1, t2)] = t1 - t2
-        ad = aoc.product(aoc)
-        ad = ad.determinize_proj(d)
-        if verb:
-            print("ad = %s" % ad)
-        # compute the reduced words automaton with the difference alphabet
-        # m2 = BetaAdicSet(b, set([t1 - t2 for t1 in A for t2 in A]))
-        # if verb: print "m2 = %s"%m2
-        # ar2 = m2.reduced_words_automaton2()
-        # if verb: print "ar2 = %s"%ar2
-        # intersect
-        # adr = ad.intersection(ar2)
-        # if verb: print "adr = %s"%adr
-        adr = ad
-        # compute the list of points
-        if verb:
-            print("Ways %s..." % imax)
-        l = self.way(adr.alphabet, adr, adr.initial_state, 0, imax, 1)
-        if verb:
-            print("%s computed points" % len(l))
-        # sort
-        if verb:
-            print("sort...")
-        l = list(set(l)) #avoid repetitions
-        l.sort(key=pp)
-        return l[l.index(0)+1:]
-
-    # verify that a piece exchange is correct
-    # w e assume that pieces are disjoints
-    # WARNING : IF DOES NOT CONTAIN 0 THE PIECE EXCHANGE
-    # IS NOT NECESSARLY INVERSIBLE
-    def correct_morceaux(self, DetAutomaton aoc, list lm, bool verb=False):
-        u = DetAutomaton(None)
-        u.setAlphabet(aoc.alphabet)
-        # verify that the union of the pieces is equal to aoc
-        for a, t in lm:
-            u = u.union(a)
-        if not u.equals_langages(aoc):
-            if verb: 
-                print("Les morceaux ne recouvrent pas !")
-            return False
-        # verify that the union of the translated pieces is equal to aoc
-        u = DetAutomaton(None)
-        u.setAlphabet(aoc.alphabet)
-        u.add_state(True)
-        u.set_initial_state(0)
-        # reconnait 0 (le seul élément à ne pas avoir forcément d'inverse)
-        u.add_edge(0, 0, 0)  
-        for a, t in lm:
-            u = u.union(self.move2(-t, a))
-        if not u.equals_langages(aoc):
-            if verb:
-                print("Translated pieces do not overlap !")
-            return False
-        return True
-
-    #to be rewritten
-    def compute_morceaux(self, DetAutomaton aoc, lt=None, method=1, imax=None,
-                         verb=False, stop=-1):
-        r"""
-        Compute the domain exchange describing the
-        g-beta-expansion given by the automaton aoc.
-
-        INPUT:
-
-        - ``aoc``- DetAutomaton
-            Automaton of the g-beta-expansion.
-
-        - ``verb``- bool (default: ``False``)
-          If True, print informations about the computing.
-
-        OUTPUT:
-
-        A list of (DetAutomaton, translation).
-
-        EXAMPLES::
-
-            #. Full Tribonnacci::
-
-                sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], {0, 1})
-                sage: pm = m.b.parent().places()[1]
-                sage: a = m.Approx(13, lambda x: (pm(x).real())^2 + (pm(x).imag())^2 < .4 )
-                sage: aoc = m.zero_complete(a)
-                sage: m.compute_morceaux(aoc) # long time
-                [(DetAutomaton with 85 states and an alphabet of 2 letters, 1),
-                 (DetAutomaton with 71 states and an alphabet of 2 letters, b^2 - b),
-                 (DetAutomaton with 173 states and an alphabet of 2 letters, b^2),
-                 (DetAutomaton with 69 states and an alphabet of 2 letters, b^2 + 1),
-                 (DetAutomaton with 59 states and an alphabet of 2 letters, b^2 + b +
-                1),
-                 (DetAutomaton with 38 states and an alphabet of 2 letters, b^2 + b),
-                 (DetAutomaton with 119 states and an alphabet of 2 letters, b),
-                 (DetAutomaton with 80 states and an alphabet of 2 letters, b + 1)]
-        """
-        m = self
-        A = aoc.A
-        if lt is None:
-            if verb:
-                print("Compute the list of translations...")
-            if method == 1:
-                lt = self.compute_translations(aoc, imax, verb)
-            else:
-                lt = self.compute_translations2(aoc, imax, verb)
-        if verb:
-            print("list of %s points." % len(lt))
-        if verb:
-            print("Compute the pieces...")
-        u = DetAutomaton(None)
-        u.setAlphabet(list(A))
-        uc = u.complementary()
-        at = dict()
-        for i, t in enumerate(lt):
-            if i == stop:
-                break
-            if verb:
-                print("t=%s" % t)
-            at[t] = m.move2(t=t, a=aoc, b=aoc)  # , verb=verb)
-            # if verb: print "intersection..."
-            at[t].zero_completeOP()
-            # if verb: print "intersection..."
-            at[t] = at[t].intersection(uc)
-            at[t].zero_completeOP()
-            # if verb: print "union..."
-            u = u.union(at[t]).prune().minimize()
-            # if verb: print "prune..."
-            at[t] = at[t].prune().minimize()
-            # teste si c'est fini
-            # if verb: print "compl..."
-            uc = u.complementary()
-            ai = uc.intersection(aoc)
-            # if verb: print "empty..."
-            if ai.is_empty():
-                break  # c'est fini !
-            if at[t].is_empty():
-                if verb:
-                    print("Empty Automaton !")
-                del at[t]
-            else:
-                if verb:
-                    print(at[t])
-        if stop == -1 and not ai.is_empty():
-            raise ValueError("Incorrect list of translations for" +
-                             "the computation of piece exchange." +
-                             "Try to increase imax.")
-
-    # décrit les éléments de a de longueur n (utilisé par compute_morceaux2)
-    #
-    #  NE FONCTIONNE PAS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    #
-    def ParcoursUnic(self, a, pp, n, verb=False):
-        r = dict()
-        A = a.alphabet
-        b = self.b
-        p = [(a.initial_state, 0, 1)]  # pile des éléments à traiter
-        r[0] = None
-        res = []
-        bnm = b**n
-        while len(p) != 0:
-            e, t, bn = p.pop()
-            r[t] = None
-            if verb:
-                print("%s, %s, %s" % (e, t, bn))
-            # print("p = %s"%p)
-            for l in A:
-                f = a.succ(e, l)
-                if f != -1:
-                    t2 = t+bn*l
-                    # print "l=%s, t2 = %s, pp(bn)=%s, pp(bnm)=%s"%(l, t2, pp(bn), pp(bnm))
-                    if pp(bn) <= pp(bnm):
-                        p.append((f, t2, bn*b))
-                        if a.is_final(f):
-                            if not r.has_key(t2) and pp(t2) > 0:
-                                res.append(t2)
-        return res
-
-    #to be rewritten
-    def compute_morceaux2(self, DetAutomaton aoc, iplus=1,
-                          reduit=False, verb=False, step=None):
-        r"""
-        Compute the domain exchange describing the g-beta-expansion given by the automaton aoc.
-
-        INPUT:
-
-        - ``aoc``- DetAutomaton
-            Automaton of the g-beta-expansion.
-
-        - ``verb``- bool (default: ``False``)
-          If True, print informations about the computing.
-
-        OUTPUT:
-
-        A list of (DetAutomaton, translation).
-
-        EXAMPLES::
-
-            #. Full Tribonnacci::
-
-                sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], {0, 1})
-                sage: pm = m.b.parent().places()[1]
-                sage: a = m.Approx(13, lambda x: (pm(x).real())^2 + (pm(x).imag())^2 < .4 )
-                sage: aoc = m.zero_complete(a)
-                sage: m.compute_morceaux2(aoc) # long time
-                [(DetAutomaton with 85 states and an alphabet of 2 letters, 1),
-                 (DetAutomaton with 71 states and an alphabet of 2 letters, b^2 - b),
-                 (DetAutomaton with 173 states and an alphabet of 2 letters, b^2),
-                 (DetAutomaton with 69 states and an alphabet of 2 letters, b^2 + 1),
-                 (DetAutomaton with 59 states and an alphabet of 2 letters, b^2 + b +
-                1),
-                 (DetAutomaton with 38 states and an alphabet of 2 letters, b^2 + b),
-                 (DetAutomaton with 119 states and an alphabet of 2 letters, b),
-                 (DetAutomaton with 80 states and an alphabet of 2 letters, b + 1)]       
-        """
-        m = self
-        A = aoc.A
-        b = self.b
-        p = b.parent().places()
-        d = dict()
-        for t1 in A:
-            for t2 in A:
-                d[(t1, t2)] = t2 - t1
-        if verb:
-            print(p)
-        if abs(p[0](b)) > 1:
-            pp = p[0]
-            # pm = p[1]
-        else:
-            pp = p[1]
-            # pm = p[0]
-        if reduit:
-            if verb:
-                print("Compute ared...")
-            ared = self.reduced_words_automaton2()
-            if verb:
-                print("Compute aocr...")
-            aocr = aoc.intersection(ared)
-        if verb:
-            print("Compute the pieces...")
-        u = DetAutomaton(None)
-        u.setAlphabet(list(A))
-        uc = u.complementary().intersection(aoc)
-        at = dict()
-        while True:
-            #############
-            # compute uc-aoc
-            if verb:
-                print("product...")
-            if reduit:
-                ucr = uc.intersection(ared)
-                ad = ucr.product(aocr)
-            else:
-                ad = uc.product(aoc)
-            if verb:
-                print("determinize...")
-            ad = ad.determinize_proj(d)
-            if verb:
-                print("minimise...")
-            ad = ad.prune().minimize()
-            ad.zero_completeOP()
-            if verb:
-                print("ad = %s" % ad)
-            # compute the list of points
-            imax = 3
-            fin = False
-            while True:
-                if imax >= 1000:
-                    return "imax too big!", ad, uc, [(at[t], t) for t in at.keys()]
-                if verb:
-                    print("Way %s..." % imax)
-                l = self.Parcours(ad.alphabet, ad, ad.initial_state, 0, imax, 1)
-                if len(l) == 0:
-                    imax += 1
-                    continue
-                if verb:
-                    print("%s computed points" % len(l))
-                # sort
-                if verb:
-                    print("sort...")
-                l = list(set(l)) #avoid repetitions
-                l.sort(key=pp)
-                if 0 in l:
-                    l = l[l.index(0) + 1:]
-                else:
-                    return "0 non présent !", ad
-                    raise ValueError("Erreur : 0 non présent dans la différence !!!")
-                if fin:
-                    break
-                if l != []:
-                    # if iplus == 0:
-                    #    break
-                    fin = True
-                    imax += iplus
-                imax += 1
-            t = l[0]
-            if verb:
-                print(l[:10])
-            #############
-            if verb:
-                print("t=%s" % t)
-            if at.has_key(t):
-                return "tr deja vu", [(at[t], t) for t in at.keys()], uc
-                raise ValueError("Error : computed translation already seen!!!")
-            at[t] = m.move2(t=t, a=aoc)  # , verb=verb)
-            # if verb: print "intersection..."
-            at[t].zero_completeOP()
-            # if verb: print "intersection..."
-            if not uc.included(aoc):
-                raise ValueError("Error : uc is not included in aoc !!!")
-            at[t] = at[t].intersection(uc)
-            at[t].zero_completeOP()
-            # if verb: print "prune..."
-            at[t] = at[t].prune().minimize()
-            # if verb: print "union..."
-            u = u.union(at[t]).prune().minimize()
-            at[t] = at[t].prune()
-            # teste si c'est fini
-            # if verb: print "compl..."
-            uc = u.complementary()
-            uc = uc.intersection(aoc)
-            # if verb: print "empty..."
-            if at[t].is_empty():
-                return "tr incorrecte", [(at[t], t) for t in at.keys()], uc
-                raise ValueError("Error : incorrect computed translation!!!")
-            else:
-                if verb:
-                    print("at[%s]=%s, uc=%s" % (t, at[t], uc))
-            if uc.is_empty():
-                break  # c'est fini !
-            if step is not None:
-                if step == 0:
-                    return "Arret", [(at[t], t) for t in at.keys()], uc
-        if not uc.is_empty():
-            raise ValueError("Error: piece exchange doesn't pave!!!")
-        return [(at[t], t) for t in at.keys()]
-
-    # to be rewritten
-    def compute_morceaux3(self, DetAutomaton a, DetAutomaton ap=None,
-                          bound=100, iplus=1, getad=False, verb=False,
-                          need_included=True, step=None):
-        r"""
-        Compute the domain exchange describing the g-beta-expansion given by the automaton aoc.
-
-        INPUT:
-
-        - ``a``- DetAutomaton
-          Automaton of the g-beta-expansion.
-        -  ``ap``- DetAutomaton (default: ``None``)
-           Langage used for the computations. Everything is projected on it.
-        - ``verb``- bool (default: ``False``)
-          If True, print informations about the computing.
-
-        OUTPUT:
-
-        A list of (DetAutomaton, translation).
-
-        EXAMPLES::
-
-            # Full Tribonnacci::
-
-                sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], {0,1})
-                sage: pm = m.b.parent().places()[1]
-                sage: a = m.Approx(13, lambda x: (pm(x).real())^2 + (pm(x).imag())^2 < .4 )
-                sage: aoc = m.zero_complete(a)
-                sage: m.compute_morceaux3(aoc) # long time
-                [(DetAutomaton with 86 states and an alphabet of 2 letters, 1),
-                 (DetAutomaton with 164 states and an alphabet of 2 letters, b^2),
-                 (DetAutomaton with 70 states and an alphabet of 2 letters, b^2 + 1),
-                 (DetAutomaton with 60 states and an alphabet of 2 letters, b^2 + b +
-                1),
-                 (DetAutomaton with 39 states and an alphabet of 2 letters, b^2 + b),
-                 (DetAutomaton with 120 states and an alphabet of 2 letters, b),
-                 (DetAutomaton with 81 states and an alphabet of 2 letters, b + 1)]
-        """
-        m = self
-        if ap is None:
-            if hasattr(self, 'tss'):
-                ap = DetAutomaton(self.tss)
-            else:
-                ap = DetAutomaton(None).full(list(self.C))
-        cdef DetAutomaton aa
-        if not a.included(ap):
-            if verb:
-                print("Project a on ap...")
-            aa = a.copy()
-            # check that Qap contains Qaa
-            if not m.Proj(ap, aa).equals_langages(aa) and need_included:
-                raise ValueError("The g-beta-set described by a is not included in the one described by ap.")
-            # project aa on ap
-            aa = m.Proj(aa, ap)
-        else:
-            aa = a
-        A = ap.A
-        if verb:
-            print("A=%s, aa=%s, ap=%s" % (A, aa, ap))
-        b = self.b
-        p = b.parent().places()
-        d = dict()
-        for t1 in A:
-            for t2 in A:
-                d[(t1, t2)] = t2 - t1
-        if abs(p[0](b)) > 1:
-            pp = p[0]
-            # pm = p[1]
-        else:
-            pp = p[1]
-            # pm = p[0]
-        if verb:
-            print("pp=%s" % pp)
-        # check that the alphabet of ap is non-negative
-        for i in ap.alphabet:
-            if pp(i) < 0:
-                raise ValueError("The alphabet of ap must be non-negative in the expanding direction !")
-        if verb:
-            print("Compute the pieces...")
-        u = DetAutomaton(None)
-        u.setAlphabet(list(A))
-        uc = u.complementary().intersection(aa)
-        at = dict()
-        while True:
-            #############
-            # compute uc-aa
-            if verb:
-                print("product...")
-            ad = uc.product(aa)
-            if verb:
-                print("determinize...")
-            ad = ad.determinize_proj(d)
-            if verb:
-                print("minimise...")
-            ad = ad.prune().minimize()
-            if verb:
-                print("ad = %s" % ad)
-            # project on ap
-            if verb:
-                print("proj on ap...")
-            ad = m.Proj(ad, ap)
-            if verb:
-                print("ad = %s" % ad)
-            if getad:
-                return ad
-            #############
-            # compute the list of points
-            R = set()
-            while len(R) == 0:
-                if verb:
-                    print("bound=%s" % bound)
-                S = set()
-                R = set()
-                TS = [(ad.initial_state, 0, 1)]
-                while len(TS) > 0:
-                    TS2 = []
-                    # print TS
-                    for s, t, bn in TS:
-                        for i in ad.alphabet:
-                            ss = ad.succ(s, i)
-                            if ss != -1:
-                                tt = t + i*bn
-                                if pp(tt) < bound:
-                                    if (ss, tt) not in S:
-                                        S.add((ss, tt))
-                                        TS2.append((ss, tt, bn * m.b))
-                                        if ad.is_final(ss) and pp(tt) > 0:
-                                            R.add(tt)
-                    TS = TS2
-                bound = bound * 2
-            l = sorted(R, key=pp)
-            if verb:
-                print(l)
-            #############
-            # compute the pieces for these translations
-            for t in l:
-                if verb:
-                    print("t=%s" % t)
-                if at.has_key(t):
-                    return "tr deja vu",at, uc
-                    raise ValueError("Erreur : translation calculée déjà vue !!!")
-                # pourrait valoir le coup de projeter sur aa pour l'éfficacité des calculs ?
-                at[t] = m.Proj(aa, ap, t=t)
-                # if verb: print "intersection..."
-                at[t] = at[t].intersection(uc)
-                if at[t].is_empty():
-                    at.pop(t)
-                    continue
-                # if verb: print "union..."
-                u = u.union(at[t])
-                # if verb: print "compl..."
-                uc = u.complementary()
-                uc = uc.intersection(aa)
-                if uc.is_empty():
-                    break  # c'est fini !
-                else:
-                    if verb:
-                        print("at[%s]=%s, uc=%s" % (t, at[t], uc))
-            if uc.is_empty():
-                break
-        return [(at[t], t) for t in at.keys()]
 
     # to be rewritten
     def compute_substitution(self, DetAutomaton a=None,
