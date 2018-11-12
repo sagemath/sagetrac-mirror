@@ -1163,7 +1163,7 @@ cdef class BetaAdicSet:
         TESTS::
 
             sage: from sage.combinat.words.cautomata_generators import dag
-            sage: m=BetaAdicSet(3/sqrt(2), dag.AnyWord([0, 1]))
+            sage: m = BetaAdicSet(3/sqrt(2), dag.AnyWord([0, 1]))
             sage: repr(m)
             'b-adic set with b root of x^2 - 9/2, and an automaton of 1 states and 2 letters.'
 
@@ -1247,32 +1247,65 @@ cdef class BetaAdicSet:
 
     def copy(self):
         """
-        Get the ``DetAutomaton`` ``a`` of the ``BetaAdicSet``
+        return a copy of  the ``BetaAdicSet``
 
         OUTPUT:
 
-        ``DetAutomaton`` ``a`` attribut
+        a ``BetaAdicSet``
 
         EXAMPLES::
 
             sage: from sage.combinat.words.cautomata_generators import dag
             sage: m = BetaAdicSet((1+sqrt(5))/2, dag.AnyWord([0, 1]))
-            sage: m.a
-            DetAutomaton with 1 states and an alphabet of 2 letters
+            sage: m.copy()
+            b-adic set with b root of x^2 - x - 1, and an automaton of 1 states and 2 letters.
 
         """
-   
+
         return BetaAdicSet(self.b, self.a.copy())
-    
+
     def mirror(self):
         """
         Return the beta-adic set with the mirror automaton.
+
+        OUTPUT:
+
+        a ``BetaAdicSet`` with the mirror a automaton as attribuet ``a``
+
+        EXAMPLES::
+
+            sage: from sage.combinat.words.cautomata_generators import dag
+            sage: m = BetaAdicSet((1+sqrt(5))/2, dag.AnyWord([0, 1]))
+            sage: m.mirror()
+            b-adic set with b root of x^2 - x - 1, and an automaton of 1 states and 2 letters.
+
         """
         return BetaAdicSet(self.b, self.a.mirror())
-    
-    def is_included (self, a, verb=False):
+
+    def is_included(self, a, verb=False):
         """
         Determine if the BetaAdicSet is included in the BetaAdicSet given by a.
+        
+        INPUT:
+
+        - ``a`` - ``BetaAdicSet`` to compare
+        - ``verb`` - Boolean (default: False) Display informations for debug.
+
+        OUTPUT:
+
+        ``True``  if the BetaAdicSet is included in the BetaAdicSet given
+        by a  ``False`` otherwise
+
+
+        EXAMPLES::
+
+            sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
+            sage: m1 = BetaAdicSet(x^3-x^2-x-1, [0,1,2])
+            sage: m1.is_included(m)
+            True
+
+
+
         """
         a = getDetAutomaton(self, a)
         if verb:
@@ -1286,17 +1319,55 @@ cdef class BetaAdicSet:
         if verb:
             print("ap=%s"%ap)
         return ap.equal_languages(b)
-    
-    def is_equal (self, a):
+
+    def is_equal(self, a):
+        """
+        Determine if the ``BetaAdicSet`` is eqaul to the given``BetaAdicSet``.
+
+        INPUT:
+
+        - ``a`` - ``BetaAdicSet`` to compare
+
+        OUTPUT:
+
+        ``True``  if the BetaAdicSet is equal in the BetaAdicSet given
+        by a  ``False`` otherwise
+ 
+
+        EXAMPLES::
+
+            sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
+            sage: m1 = BetaAdicSet(x^3-x^2-x-1, [0,1,2])
+            sage: m1.is_equal(m)
+            True
+
+
+        """
         a = getBetaAdicSet(self, a)
         return self.is_included(a) and a.is_included(self)
-    
+
     def is_empty(self):
         """
         Tell if the BetaAdicSet is empty.
+
+        OUTPUT:
+
+        ``True``  if the BetaAdicSet is empty in the BetaAdicSet given
+        by a  ``False`` otherwise
+ 
+
+        EXAMPLES::
+
+            sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
+            sage: m.is_empty()
+            False
+            sage: m = BetaAdicSet(3, [])
+            sage: m.is_empty()
+            True
+
         """
         return self.a.is_empty()
-    
+
     def _testSDL(self):
         """
         Open a window to test the SDL library used for graphical representation.
@@ -1426,9 +1497,9 @@ cdef class BetaAdicSet:
         - ``color`` tuple of color in RGB values -- (default: (0, 0, 0, 255))
 
         - ``method`` -- (default: ``0``) For futur implementations, must be 0 for the moment.
-        
+
         - ``simplify`` -- (default: ``True``) If True, minimize the result
-        
+
         - ``only_aut`` -- (default: ``False``) If True return a DetAutomaton, otherwise return a BetaAdicSet
 
         - ``verb`` -- (default ``False``) set to ``True`` for verbose mod
@@ -1443,7 +1514,10 @@ cdef class BetaAdicSet:
 
                 sage: e = QQbar(1/(1+I))
                 sage: m = BetaAdicSet(e, dag.AnyWord([0, 1]))
-                sage: P = m.user_draw()     # long time (360 s)
+                # sage: P = m.user_draw()     # long time (360 s)
+                # sage: P.string()   # random
+                # 'BetaAdicSet((x^2 - x + 1/2).roots(ring=QQbar)[0][0], DetAutomaton([[0, 1], [(0, 0, 0), (0, 0, 1), (1, 17, 1), (2, 0, 0), (2, 0, 1), (3, 0, 0), (3, 13, 1), (4, 0, 1), (5, 4, 1), (6, 5, 0), (7, 6, 0), (8, 7, 0), (9, 8, 1), (10, 9, 0), (11, 10, 1), (12, 1, 0), (12, 11, 1), (13, 15, 0), (13, 12, 1), (14, 0, 0), (15, 2, 0), (15, 14, 1), (16, 2, 0), (17, 16, 0), (18, 16, 1)]], i=3, final_states=[0]))'
+
 
         """
         cdef BetaAdic b
@@ -1478,9 +1552,11 @@ cdef class BetaAdicSet:
         else:
             return BetaAdicSet(self.b, r)
 
-    def draw_zoom(self, n=None, int sx=800, int sy=600, bool ajust=True, int prec=53, color=(0, 0, 0, 255), int method=0, int nprec=4, bool mirror=False, bool verb=False):
+    def draw_zoom(self, n=None, int sx=800, int sy=600,
+                  bool ajust=True, int prec=53, color=(0, 0, 0, 255),
+                  int method=0, int nprec=4, bool mirror=False, bool verb=False):
         r"""
-        Display the b-adic set in a window, with possibility for the user to zoom in.
+        Display the b-adic set in a window, with possibility for the userto zoom in.
 
         INPUT:
 
@@ -1499,9 +1575,11 @@ cdef class BetaAdicSet:
 
         - ``color`` tuple of color in RGB values -- (default: (0, 0, 0, 255))
 
-        - ``method`` -- (default 0)
+        - ``method`` int -- (default 0)
 
-        - ``nprec`` -- (default 4) - additional iterations for the drawing (if ``n`` is None).
+        - ``nprec`` int -- (default 4) - additional iterations for the drawing (if ``n`` is None).
+    
+        - ``mirror`` bool -- (default ``False) st to ``True`` to to the mirror
 
         - ``verb`` -- (default ``False``) set ti ``True`` for verbose mod
 
@@ -1574,9 +1652,11 @@ cdef class BetaAdicSet:
         - ``color`` - list of three integer between 0
           and 255 (default: ``(0,0,255,255)``) Color of the drawing.
 
-        - ``method`` -- (default : 0)
+        - ``method`` int -- (default : 0)
 
-        - ``nprec`` -- (default 4) - additionnal iterations
+        - ``mirror`` bool -- (default ``False) st to ``True`` to to the mirror
+
+        - ``nprec`` int -- (default 4) - additionnal iterations
 
         - ``verb`` - bool (default: ``False``)
           Print informations for debugging.
@@ -2264,18 +2344,18 @@ cdef class BetaAdicSet:
         ai = ar.intersection(a)
         if verb:
             print("ai = %s"% ai)
-            
+
         ai = ai.proji(0)
         if verb:
             print("ai = %s"%ai)
-        
+
         if ext:
             ai = ai.prune_inf()
         else:
             ai = ai.prune().minimize()
         ai.zero_completeOP()
         return BetaAdicSet(self.b, ai)
-    
+
     def prefix(self, w):
         return BetaAdicSet(self.b, self.a.prefix(w))
 
@@ -2329,16 +2409,16 @@ cdef class BetaAdicSet:
         (Consider using reduced_words_automaton() if you're not in this case.)
 
         INPUT:
-        
+
         - ``step`` - int (default: 100)
           number of steps
 
         - ``verb`` - bool (default: ``False``)
           If True, print informations for debugging.
-          
+
         - ``transpose`` - bool (default: ``False``)
-          
-          
+
+
         OUTPUT:
 
         DetAutomaton.
@@ -2434,7 +2514,7 @@ cdef class BetaAdicSet:
         else:
             arel = self.relations_automaton(couples=True, ext=False)
             if verb:
-                print("arel=%s"%arel)        
+                print("arel=%s"%arel)
             ap = self.a.product(self.a)
             if verb:
                 print("ap=%s"%ap)
@@ -3592,12 +3672,45 @@ cdef class BetaAdicSet:
             if verb:
                 print("b is not an algebraic number.")
             return False
-    
+
     def points(self, int n=1000, int npts=10000):
         """
         Compute points (in the number field of b) corresponding to words of length k recognized by the automaton,
         where k is at most n, and the total number of points is approximatively npts.
         Return (k, list of couples (state, point))
+
+
+
+        INPUT:
+
+        - ``n`` - integer (default: 1000)
+          The number of iterations used to plot the fractal.
+          Default values: between ``5`` and ``16`` depending on the number
+          of generators.
+
+        - ``npts`` - integer (default: 10000 )
+          State of the automaton of self taken as the initial state .
+
+        OUTPUT:
+
+        Return (k, list of couples (state, point))
+
+        EXAMPLES::
+
+            #. The dragon fractal::
+            sage: e = QQbar(1/(1+I))
+            sage: m=BetaAdicSet(e, dag.AnyWord([0, 1]))
+            sage: print(m)
+            b-adic set with b root of x^2 - x + 1/2, and an automaton of 1 states and 2 letters.
+            sage: P = m.points()
+            sage: [0]
+            13
+            sage: len(P[1])
+            8192
+            sage: P = m.points(n=0)
+            sage: P
+            (0, [(0, 0)])
+
         """
         cdef int i, j, k, f, nA
         nA = self.a.a.na
@@ -3620,11 +3733,12 @@ cdef class BetaAdicSet:
         """
         Compute the radius of a ball centered at 0 and that covers the BetaAdicSet for the place p.
         We assume that abs(p(self.b)) < 1.
+        
         """
         pts = self.points(npts=npts) 
         M = abs(p(self.b**pts[0]))*max([abs(p(c)) for c in self.a.A])/abs(1-abs(self.b))
         return max([abs(p(c[1]))+M for c in pts[1]])
-    
+
     def diameter(self, p, int n=10, bool verb=False):
         """
         Compute an upper bound of the diameter of the BetaAdicSet for the place p.
