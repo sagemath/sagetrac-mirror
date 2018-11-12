@@ -1094,13 +1094,19 @@ cdef class BetaAdicSet:
             m3 = BetaAdicSet(b, c)
             sage: m3
             b-adic set with b root of x - 3, and an automaton of 5 states and 3 letters.
+            sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
+            sage: m
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 states and 2 letters.
+            sage: m1 = BetaAdicSet(3,[0,1])
+            sage: m1
+            b-adic set with b root of x - 3, and an automaton of 1 states and 2 letters.
 
         """
         cdef int i, j
         from sage.rings.complex_field import ComplexField
         CC = ComplexField()
         if b not in CC:
-            #raise ValueError("b must be a number.")
+            # raise ValueError("b must be a number.")
             from sage.rings.qqbar import QQ
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             K = PolynomialRing(QQ, 'x')
@@ -1176,19 +1182,32 @@ cdef class BetaAdicSet:
                     return "b-adic set with b root of %s (in characteristic %s), and an automaton of %s states and %s letters."%(self.b.minpoly(), K.characteristic(), self.a.n_states, self.a.n_letters)
                 else:
                     return "b-adic set with b root of %s, an automaton of %s states and %s letters."%(K.modulus(), self.a.n_states, self.a.n_letters)
-    
+
     def string(self):
         r"""
-        Return a string that can be evaluated to recover the BetaAdicSet.
+        Return a string that can be evaluated to recover the BetaAdicSet
+
+        OUTPUT:
+        Return a string to define a BetaAdicSet, this set can be obtained by the ``use_draw`` method
+
+        EXAMPLES::
+
+            sage: m1 = BetaAdicSet(3,[0,1])
+            sage: m1.string()
+            'BetaAdicSet((x - 3).roots(ring=QQbar)[0][0], DetAutomaton([[0, 1], [(0, 0, 0), (0, 0, 1)]], i=0, final_states=[0]))'
+            sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
+            sage: m.string()
+            'BetaAdicSet((x^3 - x^2 - x - 1).roots(ring=QQbar)[1][0], DetAutomaton([[0, 1], [(0, 0, 0), (0, 0, 1)]], i=0, final_states=[0]))'
+
         """
         pi = self.b.minpoly()
         from sage.rings.qqbar import QQbar
         rr = pi.roots(ring=QQbar)
-        for i,r in enumerate(rr):
+        for i, r in enumerate(rr):
             if r[0] == self.b:
                 break
         return "BetaAdicSet((%s).roots(ring=QQbar)[%s][0], %s)"%(pi, i, self.a.string())
-    
+
     @property
     def a(self):
         """
@@ -1225,8 +1244,24 @@ cdef class BetaAdicSet:
 
         """
         return self.b
-    
+
     def copy(self):
+        """
+        Get the ``DetAutomaton`` ``a`` of the ``BetaAdicSet``
+
+        OUTPUT:
+
+        ``DetAutomaton`` ``a`` attribut
+
+        EXAMPLES::
+
+            sage: from sage.combinat.words.cautomata_generators import dag
+            sage: m = BetaAdicSet((1+sqrt(5))/2, dag.AnyWord([0, 1]))
+            sage: m.a
+            DetAutomaton with 1 states and an alphabet of 2 letters
+
+        """
+   
         return BetaAdicSet(self.b, self.a.copy())
     
     def mirror(self):
@@ -1370,6 +1405,8 @@ cdef class BetaAdicSet:
                   method=0, only_pos=False, mirror=False, verb=False):
         r"""
         Display a window where the user can draw a b-adic set based on the current b-adic set.
+        Use keyboard p to reduce the size of the pen and the keyboard m to increse.
+        Draw the figure with the the mouse and click to record the shape.
 
         INPUT:
 
