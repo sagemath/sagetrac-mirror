@@ -1644,7 +1644,7 @@ cdef class BetaAdicSet:
         - ``sy`` -- (default : 600) dimensions of the resulting
           in y dimension image
 
-        - ``ajust`` - adapt the drawing to fill all the image,
+        - ``ajust`` boll - (default: ``True``) adapt the drawing to fill all the image,
           with ratio 1 (default: ``True``)
 
         - ``prec`` - precision of returned values (default: ``53``)
@@ -1778,18 +1778,20 @@ cdef class BetaAdicSet:
         Draw the beta-adic sets with color according to the list of automata given.
 
         INPUT:
+        
+        - ``la``- list (default: ``None``)
+          List of automata or BetaAdicSet.
 
         - ``n`` - integer (default: ``None``)
           The number of iterations used to plot the fractal.
           Default values: between ``5`` and ``16`` depending on the number of generators.
 
-        - ``la``- list (default: ``None``)
-          List of automata or BetaAdicSet.
-          
-        - ``sx, sy`` - dimensions of the resulting
-          image (default : ``800, 600``)
+        - ``sx`` -- (default: 800) dimensions of the resulting in x dimension
 
-        - ``ajust`` - adapt the drawing to fill all the image, with
+        - ``sy`` -- (default : 600) dimensions of the resulting
+          in y dimension image
+
+        - ``ajust`` bool - (default: ``True``) adapt the drawing to fill all the image, with
           ratio 1 (default: ``True``)
 
         - ``prec`` - precision of returned values (default: ``53``)
@@ -1797,8 +1799,15 @@ cdef class BetaAdicSet:
         - ``colormap`` - list of colors (default: ``hsv``)
           Colors of the drawing.
 
+        - ``backcolor`` - (default: ``None``) list of three integer between 0
+          and 255  .
+
         - ``opacity``- float (default: ``1.``)
           Transparency of the drawing.
+
+        - ``mirror`` bool -- (default ``False) st to ``True`` to to the mirror
+
+        - ``nprec`` int -- (default 4) - additionnal iterations
 
         - ``verb`` - bool (default: ``False``)
           Print informations for debugging.
