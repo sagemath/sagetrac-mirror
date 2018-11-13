@@ -1024,27 +1024,30 @@ cdef class ImageIn:
     def height(self):
         return ImageHeight(self.s[0])
 
-def getDetAutomaton (self, a):
+
+def getDetAutomaton(self, a):
     if type(a) is BetaAdicSet:
         if self.b != a.b:
-            raise ValueError("The two beta-adic sets must have the same b (here %s != %s).", self.b, a.b)
+            raise ValueError("The two beta-adic sets must have the same" +
+                             "b (here %s != %s).", self.b, a.b)
         a = a.a
     elif type(a) is not DetAutomaton:
         try:
-           a = DetAutomaton(a)
-        except:
-           raise ValueError("The argument a must be a BetaAdicSet or an automaton.")
+            a = DetAutomaton(a)
+        except Exception:
+            raise ValueError("The argument a must be a BetaAdicSet or an automaton.")
     return a
 
-cdef getBetaAdicSet (BetaAdicSet self, a):
+
+cdef getBetaAdicSet(BetaAdicSet self, a):
     if type(a) is BetaAdicSet:
         if self.b != a.b:
             raise ValueError("The two beta-adic sets must have the same b (here %s != %s).", self.b, a.b)
     elif type(a) is not DetAutomaton:
         try:
-           a = DetAutomaton(a)
-        except:
-           raise ValueError("The argument a must be a BetaAdicSet or an automaton.")
+            a = DetAutomaton(a)
+        except Exception:
+            raise ValueError("The argument a must be a BetaAdicSet or an automaton.")
         a = BetaAdicSet(self.b, a)
     return a
 
@@ -1118,33 +1121,33 @@ cdef class BetaAdicSet:
                     b = rrm[0]
                 else:
                     b = rr[0]
-            except:
+            except Exception:
                 raise ValueError("b must be a number, or a polynomial over QQ")
         try:
             b = QQbar(b)
             pi = QQbar(b).minpoly()
             K = NumberField(pi, 'b', embedding=b)
             self.b = K.gen()
-        except:
+        except Exception:
             self.b = b
 
         if type(a) != DetAutomaton:
             try:
                 a = DetAutomaton(a)
-            except:
+            except Exception:
                 try:
                     a = list(a)
-                except:
+                except Exception:
                     raise ValueError("a must be an automaton or an iterable.")
                 from sage.combinat.words.cautomata_generators import dag
                 a = dag.AnyWord(a)
         self.a = a
 
-        #test if letters of a are in K
+        # test if letters of a are in K
         try:
             K = self.b.parent()
             self.a.A = [K(c) for c in self.a.A]
-        except:
+        except Exception:
             raise ValueError("Alphabet %s of the automaton is not in the field %s of b !"%(self.a.A, self.b.parent()))
 
     def __repr__(self):
@@ -1285,7 +1288,7 @@ cdef class BetaAdicSet:
     def is_included(self, a, verb=False):
         """
         Determine if the BetaAdicSet is included in the BetaAdicSet given by a.
-        
+
         INPUT:
 
         - ``a`` - ``BetaAdicSet`` to compare
@@ -1304,8 +1307,6 @@ cdef class BetaAdicSet:
             sage: m1.is_included(m)
             True
 
-
-
         """
         a = getDetAutomaton(self, a)
         if verb:
@@ -1322,7 +1323,7 @@ cdef class BetaAdicSet:
 
     def is_equal(self, a):
         """
-        Determine if the ``BetaAdicSet`` is eqaul to the given``BetaAdicSet``.
+        Determine if the ``BetaAdicSet`` is equal to the given``BetaAdicSet``.
 
         INPUT:
 
