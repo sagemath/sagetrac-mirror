@@ -21,7 +21,6 @@ from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.categories.map import Map
 from sage.categories.fields import Fields
 _Fields = Fields()
-from sage.categories.homset import End
 from sage.categories.number_fields import NumberFields
 from sage.misc.all import latex
 from sage.structure.category_object import normalize_names
@@ -308,7 +307,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         TESTS::
 
             sage: AffineSpace(3, Zp(5), 'y')._latex_()
-            '\\mathbf{A}_{\\ZZ_{5}}^3'
+            '\\mathbf{A}_{\\Bold{Z}_{5}}^3'
         """
         return "\\mathbf{A}_{%s}^%s"%(latex(self.base_ring()), self.dimension_relative())
 
