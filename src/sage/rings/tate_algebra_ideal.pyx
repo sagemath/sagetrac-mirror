@@ -80,7 +80,7 @@ cdef _groebner_basis_buchberger(I, prec, bint integral):
         if g == 0: continue
         gb.append(g)
         l += 1
-    indices = range(l)
+    indices = list(range(l))
 
     # We minimize the family of generators
     rgb = gb[:]

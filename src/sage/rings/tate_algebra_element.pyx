@@ -1148,7 +1148,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         if self._prec is Infinity: return
         cdef int v
         cdef pAdicGenericElement coeff
-        for (e,c) in self._poly.__repn.items():
+        for (e,c) in list(self._poly.__repn.items()):
             v = (<ETuple>self._parent._log_radii).dotprod(<ETuple>e)
             coeff = self._poly.__repn[e]
             if coeff.precision_absolute() > self._prec - v:
