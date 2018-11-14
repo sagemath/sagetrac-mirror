@@ -515,12 +515,15 @@ class Macaulay2(ExtraTabCompletion, Expect):
             QQ[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16}, DegreeRank => 1]
                                                                      {Lex => 2          }
                                                                      {Position => Up    }
+
+        TESTS::
+
+            sage: macaulay2.ring('QQ', '[a_0..a_2,b..<d,f]').vars()     # optional - macaulay2
+            | a_0 a_1 a_2 b c f |
         """
         varstr = str(vars)[1:-1]
-        if ".." in varstr:
-            varstr = "symbol " + varstr[0] + ".." + "symbol " + varstr[-1]
-        else:
-            varstr = ", ".join(["symbol " + v for v in varstr.split(", ")])
+        r = re.compile("(?<=,)|(?<=\.\.<)|(?<=\.\.)(?!<)")
+        varstr = "symbol " + r.sub("symbol ", varstr)
         return self.new('%s[%s, MonomialSize=>16, MonomialOrder=>%s]'%(base_ring, varstr, order))
 
     def help(self, s):
