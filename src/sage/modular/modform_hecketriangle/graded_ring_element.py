@@ -793,6 +793,7 @@ class FormsRingElement(six.with_metaclass(
     def quasi_parts(self, depth=None):
         r"""
         Return the summands of ``self`` divided by their depths.
+
         This assumes that ``self`` has a depth (see :meth:`has_depth`).
 
         INPUT:
@@ -1325,7 +1326,7 @@ class FormsRingElement(six.with_metaclass(
         return new_parent(res).reduce()
 
     # note that this is qd/dq, resp 1/(2*pi*i)*d/dtau
-    def derivative(self, m=ZZ(1)):
+    def derivative(self, m=None):
         r"""
         Return the derivative ``d/dq = lambda/(2*pi*i) d/dtau`` of ``self``.
 
@@ -1393,13 +1394,16 @@ class FormsRingElement(six.with_metaclass(
             -24*q + 192*q^2 - 2592*q^3 + 1536*q^4 + O(q^5)
         """
 
-        m = ZZ(m)
+        if (m is None):
+            m = ZZ(1)
+        else:
+            m = ZZ(m)
         if m < 0:
             raise TypeError("m={} must be a non-negative integer.".format(m))
 
         return self.diff_op(self.parent()._derivative_op()**m, self.parent().extend_type("quasi", ring=True))
 
-    def serre_derivative(self, m=ZZ(1)):
+    def serre_derivative(self, m=None):
         r"""
         Return the Serre derivative of ``self``.
 
@@ -1474,7 +1478,10 @@ class FormsRingElement(six.with_metaclass(
             ModularForms(n=+Infinity, k=8, ep=1) over Integer Ring
         """
 
-        m = ZZ(m)
+        if (m is None):
+            m = ZZ(1)
+        else:
+            m = ZZ(m)
         if m < 0:
             raise TypeError("m={} must be a non-negative integer.".format(m))
 

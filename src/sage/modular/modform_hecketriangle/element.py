@@ -350,9 +350,10 @@ class FormsElement(FormsRingElement):
     def rc(self, g, m=1):
         r"""
         Return [self,g]_m, the ``m``th Rankin Cohen bracket of ``self`` with ``g``.
+
         See ``self.parent().rankin_cohen_bracket`` for more information.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(n=4)

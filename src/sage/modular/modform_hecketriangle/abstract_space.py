@@ -84,7 +84,7 @@ def as_power_or_laurent_series(series, try_hard=True):
         series_parent = laurent_series.add_bigoh(ZZ(0)).parent()
         laurent_series = series_parent(laurent_series)
     if is_FractionField(series_parent) and try_hard == True:
-        numerator_parent = laurent_series.numerator().parent()
+        #numerator_parent = laurent_series.numerator().parent()
         try:
             new_gen = laurent_series.numerator().add_bigoh(ZZ(0)).parent().gen()
             new_parent = (ZZ(1)/new_gen).parent()
@@ -835,7 +835,7 @@ class FormsSpace_abstract(FormsRing_abstract):
                 t = M.acton(t)
         return aut_f
 
-    def rankin_cohen_bracket(self, f=None, g=None, m=ZZ(1), s=None, t=None):
+    def rankin_cohen_bracket(self, f=None, g=None, m=None, s=None, t=None):
         r"""
         Return the Rankin Cohen bracket [f,g]_m.
 
@@ -862,7 +862,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         the Rankin Cohen bracket) is returned instead, with arguments corresponding
         to the missing element(s).
 
-        The Rankin Cohen bracket is defined according to http://arxiv.org/abs/math/0509653.
+        The Rankin Cohen bracket is defined according to :arxiv:`math/0509653v2`.
         In particular it is defined for quasi forms. The parameters ``s`` and ``t``
         specify the desired depth arguments. The classical case is given by ``s=t=0``,
         for non-quasi elements the definitions agree.
@@ -962,14 +962,16 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: RC(E2, E2) == -48*Delta
             True
 
-        See http://arxiv.org/abs/math/0509653v2 and http://arxiv.org/abs/1306.3634v2
-        for more information.
+        See :arxiv:`math/0509653v2` and :arxiv:`1306.3634v2` for more information.
         """
 
         from sage.functions.other import binomial
         from .analytic_type import AnalyticType
 
-        m = ZZ(m)
+        if (m is None):
+            m = ZZ(1)
+        else:
+            m = ZZ(m)
         if m < 0:
             raise TypeError("m={} is not a nonnegative integer".format(m))
 
@@ -1008,7 +1010,7 @@ class FormsSpace_abstract(FormsRing_abstract):
                 r"""
                 Return the Rankin Cohen bracket [f,G]_m (with f, m fixed).
 
-                EXAMPLES:
+                EXAMPLES::
 
                     sage: from sage.modular.modform_hecketriangle.space import ModularForms
                     sage: MF = ModularForms(n=7)
@@ -1034,7 +1036,7 @@ class FormsSpace_abstract(FormsRing_abstract):
                 r"""
                 Return the Rankin Cohen bracket [F,g]_m (with g, m fixed).
 
-                EXAMPLES:
+                EXAMPLES::
 
                     sage: from sage.modular.modform_hecketriangle.space import ModularForms
                     sage: MF = ModularForms(n=3)
@@ -1057,7 +1059,7 @@ class FormsSpace_abstract(FormsRing_abstract):
                 r"""
                 Return the Rankin Cohen bracket [F,G]_m (with m fixed).
 
-                EXAMPLES:
+                EXAMPLES::
 
                     sage: from sage.modular.modform_hecketriangle.space import ModularForms
                     sage: MF = ModularForms(n=infinity)
@@ -2643,7 +2645,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         d = self.get_d()
         q = self.get_q()
 
-        if len(laurent_series.exponents()) == 0:
+        if not laurent_series.exponents():
             if (series_prec < 0):
                 return (0*(1/q)).add_bigoh(series_prec)
             else:
