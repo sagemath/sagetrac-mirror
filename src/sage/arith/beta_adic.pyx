@@ -884,15 +884,15 @@ def PrintWord(m, n):
 
 
 # ##used by compute_substitution()
-# donne la liste des feuilles du sous-arbre partant de e
+# gives the list of sleeves of the sub-tree starting at e
 def fils(tree, e):
     """
-    Return the list of sheet's sub-tree  starting on e.
+    Return the list of sheet's sub-tree  starting at e.
 
     INPUT:
 
     - ``tree`` the tree.
-    - ``e`` the starting sheet.
+    - ``e`` the starting node.
 
     OUTPUT:
 
@@ -1557,7 +1557,9 @@ cdef class BetaAdicSet:
                   bool ajust=True, int prec=53, color=(0, 0, 0, 255),
                   int method=0, int nprec=4, bool mirror=False, bool verb=False):
         r"""
-        Display the b-adic set in a window, with possibility for the userto zoom in.
+        Display the BetaAdicSet in a window, with possibility for the user to zoom in.
+        Use 'p' to zoom in, 'm' to zoom out, the arrows to translate the view, and 'Esc' to quit.
+        You can also select a zone to zoom in with the mouse.
 
         INPUT:
 
@@ -1592,9 +1594,14 @@ cdef class BetaAdicSet:
 
             #. The dragon fractal::
 
-                sage: e = QQbar(1/(1+I))
-                sage: m = BetaAdicSet(e, dag.AnyWord([0, 1]))
-                sage: P = m.draw_zoom()     # long time (360 s)
+                sage: m = BetaAdicSet(1/(1+I), [0, 1])
+                sage: P = m.draw_zoom()     # not tested
+            
+            #. Zoom in a complicated Rauzy fractal
+
+                sage: s = WordMorphism('1->2,2->3,3->12')
+                sage: m = s.DumontThomas().mirror(); m
+                sage: m.draw_zoom()         # not tested
 
         """
         cdef BetaAdic b
@@ -2883,7 +2890,7 @@ cdef class BetaAdicSet:
         m = m.n(prec)
         if verb:
             print("y=%s, m=%s" % (y, m))
-        return (log(y) / log(m)).n()
+        return log(y) / log(m)
 
     def critical_exponent(self, prec=None, verb=False):
         r"""
@@ -3688,33 +3695,29 @@ cdef class BetaAdicSet:
         INPUT:
 
         - ``n`` - integer (default: 1000)
-          The number of iterations used to plot the fractal.
+          The maximum number of iterations used to plot the fractal.
           Default values: between ``5`` and ``16`` depending on the number
           of generators.
 
         - ``npts`` - integer (default: 10000 )
-          State of the automaton of self taken as the initial state .
+          Approximation of the number of points computed.
 
         OUTPUT:
 
-        Return (k, list of couples (state, point))
+        Return (k, list of couples (state, point)), where k is the number of iterations computed.
 
         EXAMPLES::
 
             #. The dragon fractal::
-            sage: e = QQbar(1/(1+I))
-            sage: m=BetaAdicSet(e, dag.AnyWord([0, 1]))
+            sage: m = BetaAdicSet(1/(1+I), [0, 1])
             sage: print(m)
             b-adic set with b root of x^2 - x + 1/2, and an automaton of 1 states and 2 letters.
             sage: P = m.points()
-            sage: [0]
+            sage: P[0]
             13
             sage: len(P[1])
             8192
-            sage: P = m.points(n=0)
-            sage: P
-            (0, [(0, 0)])
-
+            sage: points([x for i,x in P[1]], aspect_ratio=1) # long time
         """
         cdef int i, j, k, f, nA
         nA = self.a.a.na
@@ -3793,7 +3796,7 @@ cdef class BetaAdicSet:
             if verb:
                 print("r : %s elements"%len(r))
     
-    def translations_iterator(self, bool test_Pisot=True, bool verb=False):
+    def translations_iterator(self, bool test_Pisot=True, int ndiam=20, bool verb=False):
         """
         Assume that self.b is a Pisot number.
         Compute a list of numbers containing the positive part of the BetaAdicSet, ordered in the expanding direction.
@@ -3802,6 +3805,7 @@ cdef class BetaAdicSet:
         
         test_Pisot : test if b is the conjugate of a Pisot number as needed
         B : basis of a lattice containing the BetaAdicSet
+        ndiam : number of iterations used for the estimation of the diameter
         
         """
         cdef int n, i, j
@@ -3818,7 +3822,7 @@ cdef class BetaAdicSet:
         #from sage.functions.other import ceil
         #from sage.functions.log import log
         P = [p for p in K.places() if abs(p(self.b)) < 1]
-        M = [self.diameter(p) for p in P]
+        M = [self.diameter(p, n=ndiam) for p in P]
         for i,p in enumerate(P):
             m = min([abs(p(b)) for b in Bd])
             if verb:
@@ -3836,7 +3840,7 @@ cdef class BetaAdicSet:
         pi = self.b.minpoly()
         pi /= pi.leading_coefficient()
         from sage.matrix.constructor import matrix
-        m = matrix([I[i] for i in range(1,d)]+[[-c for c in pi.coefficients()[:d]]]).transpose()
+        m = matrix([I[i] for i in range(1,d)]+[[-c for c in pi.list()[:d]]]).transpose()
         if verb:
             print("m=%s"%m)
         #compute the Perron-Frobenius eigenvector
@@ -3864,7 +3868,7 @@ cdef class BetaAdicSet:
             if keep:
                 yield t/bn
     
-    def translations_diff_iterator(self, bool test_Pisot=True, bool verb=False):
+    def translations_diff_iterator(self, bool test_Pisot=True, int ndiam=20, bool verb=False):
         """
         Assume that self.b is a Pisot number.
         Compute a list that contains the set of differences of points of the BetaAdicSet.
@@ -3874,6 +3878,7 @@ cdef class BetaAdicSet:
         
         test_Pisot : test if b is the conjugate of a Pisot number as needed
         B : basis of a lattice containing the BetaAdicSet
+        ndiam: number of iterations used for the estimation of the diameter
         
         """
         cdef int n, i, j
@@ -3907,8 +3912,10 @@ cdef class BetaAdicSet:
         I = identity_matrix(d)
         pi = self.b.minpoly()
         pi /= pi.leading_coefficient()
+        if verb:
+            print("pi=%s"%pi)
         from sage.matrix.constructor import matrix
-        m = matrix([I[i] for i in range(1,d)]+[[-c for c in pi.coefficients()[:d]]]).transpose()
+        m = matrix([I[i] for i in range(1,d)]+[[-c for c in pi.list()[:d]]]).transpose()
         if verb:
             print("m=%s"%m)
         #compute the Perron-Frobenius eigenvector
@@ -3936,11 +3943,13 @@ cdef class BetaAdicSet:
             if keep:
                 yield t/bn
         
-    def domain_exchange(self, n=None, int algo=1, bool test_Pisot=True, bool verb=False):
+    def domain_exchange(self, n=None, int algo=1, bool test_Pisot=True, int ndiam=30, bool verb=False):
         """
         Assume that self.b is a Pisot number.
         Compute the domain exchange describing the BetaAdicSet.
         Return a list of (translation, BetaAdicSet).
+        
+        ndiam: number of iterations used for the estimation of the diameter
         
         EXAMPLE::
         
@@ -3976,14 +3985,14 @@ cdef class BetaAdicSet:
         if algo == 1:
             if verb:
                 print("compute translations...")
-            it = self.translations_diff_iterator(test_Pisot=test_Pisot, verb=verb)
+            it = self.translations_diff_iterator(test_Pisot=test_Pisot, ndiam=ndiam, verb=verb)
         else:
             if verb:
                 print("diff...")
             md = self.diff(test_Pisot=test_Pisot)
             if verb:
                 print("compute translations...")
-            it = md.translations_iterator(verb=verb)
+            it = md.translations_iterator(verb=verb, ndiam=ndiam)
         m = self.copy()
         #from sage.combinat.words.cautomata_generators import dag
         #a = self.a.intersection(dag.AnyWord([0], A2=self.a.A).complementary())
@@ -4048,7 +4057,7 @@ cdef class BetaAdicSet:
                 l.append(t)
             return l
     
-    def substitution(self, get_aut=False, np=None):
+    def substitution(self, lt=None, get_aut=False, np=None, verb=False):
         r"""
         Assume that b is a conjugate of a Pisot number.
         Compute a substitution whose discrete line is this BetaAdicSet.
@@ -4078,20 +4087,262 @@ cdef class BetaAdicSet:
                     break
             np = i
         zn = [l0 for i in range(np)]
-        an = a.unshift(zn)
-        if not BetaAdicSet(self.b, an).is_included(a):
+        ba = a.unshift(zn)
+        if not BetaAdicSet(self.b, ba).is_included(a):
             raise ValueError("The BetaAdicSet is not invariant by multiplication by b^np with np=%s !"%np)
         #compute the domain exchange
-        l = self.domain_exchange(test_Pisot=False)
+        if lt is None:
+            lt = self.domain_exchange(test_Pisot=False)
         #for each piece P, compute b^(-np)P projected on a
-        lm = []
-        for t,m in l:
-            m2 = m.proj(an).shift(zn)
-            if not m2.is_empty():
-                lm.append((t,m2))
-        #subdivide 
-        #TO BE CONTINUED... 
+        #lm = []
+        #for t,m in l:
+        #    m2 = m.proj(an).shift(zn)
+        #    if not m2.is_empty():
+        #        lm.append((t,m2))
         
+        if verb:
+            print("Exchange of %s pieces" % len(lt))
+        # computation of the induction, starting from the list (translation, domain)
+        # precomputing
+        if verb:
+            print("Pre-computation...")
+        #arel = dict()
+        #for t,a in lt:
+        #    arel[t] = m.relations_automaton(t=-t, A=aa.A,
+        #                                     B=ap.A, couples=True)
+        #    if verb:
+        #        print("arel[%s]=%s" % (t, arel[t]))
+        if verb:
+            print("ba : %s" % ba)
+        # tree of subdivision of the pieces
+        tree = [range(1, len(lt) + 1)] + [[] for i in range(len(lt))] 
+        if verb:
+            print("initial tree: %s" % tree)
+        #lm = [(0, a)] + lt  # list of the translations, pieces
+        lm = lt        
+        if verb:
+            print("lm = %s" % lm)
+        # browse the pieces
+        d = [[] for i in range(len(lm))]
+        if verb:
+            print("d = %s" % d)
+        lf = range(1, len(lm))  # list of sleeves
+        if verb:
+            print("lf = %s" % lf)
+
+        from copy import copy
+
+        if verb:
+            print("\n**********************\n   Step 1   \n**********************")
+
+        # étape 1 : completion of the words of the substitution
+        for i, (a1, t1) in enumerate(lm):
+            if tree[i] != []:
+                continue  # this piece is not a sleeve
+            if verb:
+                print("\nCompute the piece %s/%s (%s, %s)..." % (i, len(lm), a1, t1))
+                # print "lf = %s"%lf
+                # print "d = %s"%d
+                # print "tree = %s"%tree
+            tr = 0  # total translation
+            if d[i] != []:
+                if d[i][-1] == -1:
+                    continue  # the computation of this piece was already finished
+                # va à la fin du mot
+                for j in d[i]:
+                    if j < 0:
+                        break
+                    tr += lm[j][1]
+#            # calcule b^np*a + tr
+#            a = a1.unshift(0, np).prune().minimize()
+#            if tr != 0:
+#                if verb:
+#                    print("Translation de %s..." % tr)
+#            # m.move2(t=-tr, a=a)
+#            # TODO : ne pas recalculer cet automate déjà calculé
+#            a = m.Proj(a, ap, t=-tr)
+#            while True:
+#                # split selon les autres morceaux
+#                j = included(a, lf, lm)
+#                if j is None:
+#                    # détermine les morceaux qui intersectent a
+#                    l = []
+#                    for j in lf:
+#                        if lm[j][0].intersect(a):
+#                            l.append(j)
+#                    if len(l) < 2:
+#                        print("Error : intersection with %s piece but not included !!!"%len(l))
+#                    if verb:
+#                        print("Subdivision on %s pieces..." % len(l))
+#                    # calcule les intersections (découpe en morceaux a1)
+#                    for j in l:
+#                        a2 = lm[j][0]
+#                        # découpe a selon a2
+#                        # m.move2(t=tr, a=a2) #translate a2 de -tr
+#                        a = m.Proj(a2, ap.unshift(0, np), t=tr)
+#                        a.shiftOP(0, np)  # multiplie par b^(-np)
+#                        a = a.prune().minimize()
+#                        k = len(lm)  # indice du nouveau morceau
+#                        lf.append(k)  # nouvelle feuille
+#                        tree[i].append(k)
+#                        tree.append([])
+#                        from copy import copy
+#                        # print copy
+#                        d.append(copy(d[i]))
+#                        d[k].append(j)  # ajoute la translation suivante
+#                        # ajoute le nouveau morceau à la liste
+#                        lm.append((a.intersection(a1), t1))
+#                        # split selon ba
+#                        (ab, abc) = split_ba(k, tr+lm[j][1], np,
+#                                             lm, m, aa, ap, verb)
+#                        if ab is None:
+#                            if verb:
+#                                print("k=%s, tr=%s+%s : calcul à continuer" % (k, tr, lm[j][1]))
+#                        else:
+#                            if abc is None:
+#                                if verb:
+#                                    print("tr=%s : calcul terminé" % tr)
+#                                d[k].append(-1)  # indique que le calcul de ce morceau est terminé
+#                            else:
+#                                if verb:
+#                                    print("tr=%s : subdivision of %s by ba (new %s)..." % (tr, i, len(lm)))
+#                                lf.append(len(lm))  # nouvelle feuille
+#                                tree[k].append(len(lm))
+#                                tree.append([])
+#                                d.append(copy(d[k]))
+#                                # indique que le calcul est terminé pour ce morceau (pour l'étape 1)
+#                                d[len(lm)].append(-1)
+#                                lm.append((ab, t1))
+#                                lf.append(len(lm))  # nouvelle feuille
+#                                tree[k].append(len(lm))
+#                                tree.append([])
+#                                d.append(copy(d[k]))
+#                                lm.append((abc, t1))
+#                                lf.remove(k)  # le morceau k n'est plus une feuille
+#                    lf.remove(i)  # le morceau i n'est plus une feuille
+#                    # calcul fini pour ce morceau puisque ce n'est plus une feuille
+#                    break
+#                else:
+#                    # ajoute le morceau à la liste et translate
+#                    d[i].append(j)
+#                    # if verb: print "Translation de %s..."%lm[j][1]
+#                    # m.move2(t=-lm[j][1], a=a, ar=arel[lm[j][1]])
+#                    a = m.Proj(a, ap, t=-lm[j][1], arel=arel[lm[j][1]])  
+#                    tr += lm[j][1]
+#                # split selon ba
+#                (ab, abc) = split_ba(i, tr, np, lm, m, aa, ap, verb)
+#                if ab is None:
+#                    pass
+#                    # if verb: print "tr=%s : calcul à continuer"%tr
+#                else:
+#                    if abc is None:
+#                        if verb:
+#                            print("tr=%s : end of computation" % tr)
+#                    else:
+#                        if verb:
+#                            print("tr=%s : subdivision of %s by ba (new %s)..." % (tr, i, len(lm)))
+#                        lf.append(len(lm))  # nouvelle feuille
+#                        tree[i].append(len(lm))
+#                        tree.append([])
+#                        d.append(copy(d[i]))
+#                        # indique que le calcul est terminé pour ce morceau (pour l'étape 1)
+#                        d[len(lm)].append(-1)
+#                        lm.append((ab, t1))
+#                        lf.append(len(lm))  # nouvelle feuille
+#                        tree[i].append(len(lm))
+#                        tree.append([])
+#                        d.append(copy(d[i]))
+#                        lm.append((abc, t1))
+#                        lf.remove(i)  # le morceau i n'est plus une feuille
+#                    break  # calcul fini pour ce morceau (pour cette étape)
+#
+#        if verb:
+#            print("\n*************\n   Step 2   \n*************")
+#
+#        # étape 2 : remplacement des lettres qui ne sont pas des feuilles
+#        while True:
+#            end = True
+#            for i in lf:
+#                a1, t1 = lm[i]
+#                if verb:
+#                    print("\nPiece %s/%s..." % (i, len(lm)))
+#                tr = 0  # translation totale
+#                if d[i] == []:
+#                    print("Error : empty sheet !!!!")
+#                # va à la fin du mot
+#                for ij, j in enumerate(d[i]):
+#                    if j < 0:
+#                        break
+#                    if tree[j] != []:  # il faut recalculer cette lettre
+#                        # calcule b^np*a + tr
+#                        a = a1.unshift(0, np).prune().minimize()
+#                        if tr != 0:
+#                            if verb:
+#                                print("Translation of %s..." % tr)
+#                        # m.move2(t=-tr, a=a)
+#                        # TODO : ne pas recalculer cet automate déjà calculé
+#                        a = m.Proj(a, ap, t=-tr)
+#                        # split selon les autres morceaux
+#                        f = fils(tree, j)
+#                        if verb:
+#                            print("Split by %s pieces" % len(f))
+#                        k = included(a, f, lm)
+#                        if k is None:
+#                            end = False
+#                            # détermine les morceaux qui intersectent a
+#                            l = []
+#                            for k in lf:
+#                                if lm[k][0].intersect(a):
+#                                    l.append(k)
+#                            if len(l) < 2:
+#                                print("Error : intersection with %s pieces but not included !!!" % len(l))
+#                            if verb:
+#                                print("Subdivision of %s pieces..." % len(l))
+#                            # calcule les intersections (découpe en morceaux a1)
+#                            for j2 in l:
+#                                a2 = lm[j2][0]
+#                                # découpe selon a2
+#                                # a = m.move2(t=tr, a=a2) #translate a2 de -tr
+#                                # a.zero_completeOP()
+#                                a = m.Proj(a2, ap.unshift(0, np), t=tr)
+#                                a.shiftOP(0, np)  # multiplie par b^(-np)
+#                                a = a.prune().minimize()
+#                                k = len(lm)  # indice du nouveau morceau
+#                                lf.append(k)  # nouvelle feuille
+#                                tree[i].append(k)
+#                                tree.append([])
+#                                d.append(copy(d[i]))
+#                                d[k][ij] = j2  # remplace la lettre
+#                                # ajoute le nouveau morceau à la liste
+#                                lm.append((a.intersection(a1), t1))
+#                            lf.remove(i)  # i n'est plus une feuille
+#                            if verb:
+#                                print("break...")
+#                            break  # le morceau n'est plus une feuille
+#                        else:
+#                            # remplace la lettre
+#                            d[i][ij] = k
+#                    tr += lm[j][1]
+#            if end:
+#                break
+#        # compute the substitution
+#        s = dict()
+#        for i in lf:
+#            if d[i][-1] < 0:
+#                d[i].pop()
+#            s[i] = d[i]
+#        # recode the substitution
+#        l = s.keys()
+#        dl = dict()  # inverse of l
+#        for i, k in enumerate(l):
+#            dl[k] = i+1
+#        d = dict()
+#        for i in s:
+#            d[dl[i]] = [dl[j] for j in s[i]]
+#        if get_aut:
+#            return d, [(a, t) for i, (a, t) in enumerate(lm) if tree[i] == []]
+#        else:
+#            return d
         
         
         
@@ -4201,10 +4452,10 @@ cdef class BetaAdicSet:
         baoc.zero_completeOP()
         if verb:
             print("baoc : %s" % baoc)
-        # arbre de subdivision des morceaux
-        arbre = [range(1, len(lt) + 1)] + [[] for i in range(len(lt))]
+        # tree de subdivision des morceaux
+        tree = [range(1, len(lt) + 1)] + [[] for i in range(len(lt))]
         if verb:
-            print("initial tree: %s" % arbre)
+            print("initial tree: %s" % tree)
         lm = [(aoc, 0)] + lt  # liste des morceaux, translations
         if verb:
             print("lm = %s" % lm)
@@ -4223,13 +4474,13 @@ cdef class BetaAdicSet:
 
         # étape 1 : complétion des mots
         for i, (a1, t1) in enumerate(lm):
-            if arbre[i] != []:
+            if tree[i] != []:
                 continue  # ce morceau n'est pas une feuille
             if verb:
                 print("\nComputation of piece %s/%s (%s, %s)..." % (i, len(lm), a1, t1))
                 # print "lf = %s"%lf
                 # print "d = %s"%d
-                # print "arbre = %s"%arbre
+                # print "tree = %s"%tree
             tr = 0  # translation totale
             if d[i] != []:
                 if d[i][-1] == -1:
@@ -4269,8 +4520,8 @@ cdef class BetaAdicSet:
                         a = a.prune().minimize()
                         k = len(lm)  # indice du nouveau morceau
                         lf.append(k)  # nouvelle feuille
-                        arbre[i].append(k)
-                        arbre.append([])
+                        tree[i].append(k)
+                        tree.append([])
                         from copy import copy
                         # print copy
                         d.append(copy(d[i]))
@@ -4293,15 +4544,15 @@ cdef class BetaAdicSet:
                                 if verb:
                                     print("tr=%s : subdivision of %s by baoc (new %s)..." % (tr, i, len(lm)))
                                 lf.append(len(lm))  # nouvelle feuille
-                                arbre[k].append(len(lm))
-                                arbre.append([])
+                                tree[k].append(len(lm))
+                                tree.append([])
                                 d.append(copy(d[k]))
                                 # indique que le calcul est terminé pour ce morceau (pour l'étape 1)
                                 d[len(lm)].append(-1)
                                 lm.append((ab, t1))
                                 lf.append(len(lm))  # nouvelle feuille
-                                arbre[k].append(len(lm))
-                                arbre.append([])
+                                tree[k].append(len(lm))
+                                tree.append([])
                                 d.append(copy(d[k]))
                                 lm.append((abc, t1))
                                 # le morceau k n'est plus une feuille
@@ -4328,15 +4579,15 @@ cdef class BetaAdicSet:
                         if verb:
                             print("tr=%s : subdivision of %s by baoc (new %s)..." % (tr, i, len(lm)))
                         lf.append(len(lm))  # nouvelle feuille
-                        arbre[i].append(len(lm))
-                        arbre.append([])
+                        tree[i].append(len(lm))
+                        tree.append([])
                         d.append(copy(d[i]))
                         # indique que le calcul est terminé pour ce morceau (pour l'étape 1)
                         d[len(lm)].append(-1)
                         lm.append((ab, t1))
                         lf.append(len(lm))  # nouvelle feuille
-                        arbre[i].append(len(lm))
-                        arbre.append([])
+                        tree[i].append(len(lm))
+                        tree.append([])
                         d.append(copy(d[i]))
                         lm.append((abc, t1))
                         lf.remove(i)  # le morceau i n'est plus une feuille
@@ -4358,7 +4609,7 @@ cdef class BetaAdicSet:
                 for ij, j in enumerate(d[i]):
                     if j < 0:
                         break
-                    if arbre[j] != []:  # il faut recalculer cette lettre
+                    if tree[j] != []:  # il faut recalculer cette lettre
                         # calcule b^np*a + tr
                         a = a1.unshift(0, np).prune().minimize()
                         if tr != 0:
@@ -4367,7 +4618,7 @@ cdef class BetaAdicSet:
                             # TODO : ne pas recalculer cet automate déjà calculé
                             a = m.move2(t=-tr, a=a)
                         # split selon les autres morceaux
-                        f = fils(arbre, j)
+                        f = fils(tree, j)
                         if verb:
                             print("Split selon %s morceaux" % len(f))
                         k = included(a, f, lm)
@@ -4392,8 +4643,8 @@ cdef class BetaAdicSet:
                                 a = a.prune().minimize()
                                 k = len(lm)  # indice du nouveau morceau
                                 lf.append(k)  # nouvelle feuille
-                                arbre[i].append(k)
-                                arbre.append([])
+                                tree[i].append(k)
+                                tree.append([])
                                 d.append(copy(d[i]))
                                 d[k][ij] = j2  # remplace la lettre
                                 # ajoute le nouveau morceau à la liste
@@ -4423,7 +4674,7 @@ cdef class BetaAdicSet:
         for i in s:
             d[dl[i]] = [dl[j] for j in s[i]]
         if get_aut:
-            return d, [(a, t) for i, (a, t) in enumerate(lm) if arbre[i] == []]
+            return d, [(a, t) for i, (a, t) in enumerate(lm) if tree[i] == []]
         else:
             return d
 
@@ -4528,10 +4779,10 @@ cdef class BetaAdicSet:
                 print("arel[%s]=%s" % (t, arel[t]))
         if verb:
             print("ba : %s" % ba)
-        # arbre de subdivision des morceaux
-        arbre = [range(1, len(lt) + 1)] + [[] for i in range(len(lt))] 
+        # tree de subdivision des morceaux
+        tree = [range(1, len(lt) + 1)] + [[] for i in range(len(lt))] 
         if verb:
-            print("initial tree: %s" % arbre)
+            print("initial tree: %s" % tree)
         lm = [(aa, 0)] + lt  # liste des morceaux, translations
         if verb:
             print("lm = %s" % lm)
@@ -4550,13 +4801,13 @@ cdef class BetaAdicSet:
 
         # étape 1 : complétion des mots
         for i, (a1, t1) in enumerate(lm):
-            if arbre[i] != []:
+            if tree[i] != []:
                 continue  # ce morceau n'est pas une feuille
             if verb:
                 print("\nCalcul du morceau %s/%s (%s, %s)..." % (i, len(lm), a1, t1))
                 # print "lf = %s"%lf
                 # print "d = %s"%d
-                # print "arbre = %s"%arbre
+                # print "tree = %s"%tree
             tr = 0  # translation totale
             if d[i] != []:
                 if d[i][-1] == -1:
@@ -4597,8 +4848,8 @@ cdef class BetaAdicSet:
                         a = a.prune().minimize()
                         k = len(lm)  # indice du nouveau morceau
                         lf.append(k)  # nouvelle feuille
-                        arbre[i].append(k)
-                        arbre.append([])
+                        tree[i].append(k)
+                        tree.append([])
                         from copy import copy
                         # print copy
                         d.append(copy(d[i]))
@@ -4620,15 +4871,15 @@ cdef class BetaAdicSet:
                                 if verb:
                                     print("tr=%s : subdivision of %s by ba (new %s)..." % (tr, i, len(lm)))
                                 lf.append(len(lm))  # nouvelle feuille
-                                arbre[k].append(len(lm))
-                                arbre.append([])
+                                tree[k].append(len(lm))
+                                tree.append([])
                                 d.append(copy(d[k]))
                                 # indique que le calcul est terminé pour ce morceau (pour l'étape 1)
                                 d[len(lm)].append(-1)
                                 lm.append((ab, t1))
                                 lf.append(len(lm))  # nouvelle feuille
-                                arbre[k].append(len(lm))
-                                arbre.append([])
+                                tree[k].append(len(lm))
+                                tree.append([])
                                 d.append(copy(d[k]))
                                 lm.append((abc, t1))
                                 lf.remove(k)  # le morceau k n'est plus une feuille
@@ -4655,15 +4906,15 @@ cdef class BetaAdicSet:
                         if verb:
                             print("tr=%s : subdivision of %s by ba (new %s)..." % (tr, i, len(lm)))
                         lf.append(len(lm))  # nouvelle feuille
-                        arbre[i].append(len(lm))
-                        arbre.append([])
+                        tree[i].append(len(lm))
+                        tree.append([])
                         d.append(copy(d[i]))
                         # indique que le calcul est terminé pour ce morceau (pour l'étape 1)
                         d[len(lm)].append(-1)
                         lm.append((ab, t1))
                         lf.append(len(lm))  # nouvelle feuille
-                        arbre[i].append(len(lm))
-                        arbre.append([])
+                        tree[i].append(len(lm))
+                        tree.append([])
                         d.append(copy(d[i]))
                         lm.append((abc, t1))
                         lf.remove(i)  # le morceau i n'est plus une feuille
@@ -4686,7 +4937,7 @@ cdef class BetaAdicSet:
                 for ij, j in enumerate(d[i]):
                     if j < 0:
                         break
-                    if arbre[j] != []:  # il faut recalculer cette lettre
+                    if tree[j] != []:  # il faut recalculer cette lettre
                         # calcule b^np*a + tr
                         a = a1.unshift(0, np).prune().minimize()
                         if tr != 0:
@@ -4696,7 +4947,7 @@ cdef class BetaAdicSet:
                         # TODO : ne pas recalculer cet automate déjà calculé
                         a = m.Proj(a, ap, t=-tr)
                         # split selon les autres morceaux
-                        f = fils(arbre, j)
+                        f = fils(tree, j)
                         if verb:
                             print("Split by %s pieces" % len(f))
                         k = included(a, f, lm)
@@ -4722,8 +4973,8 @@ cdef class BetaAdicSet:
                                 a = a.prune().minimize()
                                 k = len(lm)  # indice du nouveau morceau
                                 lf.append(k)  # nouvelle feuille
-                                arbre[i].append(k)
-                                arbre.append([])
+                                tree[i].append(k)
+                                tree.append([])
                                 d.append(copy(d[i]))
                                 d[k][ij] = j2  # remplace la lettre
                                 # ajoute le nouveau morceau à la liste
@@ -4753,7 +5004,7 @@ cdef class BetaAdicSet:
         for i in s:
             d[dl[i]] = [dl[j] for j in s[i]]
         if get_aut:
-            return d, [(a, t) for i, (a, t) in enumerate(lm) if arbre[i] == []]
+            return d, [(a, t) for i, (a, t) in enumerate(lm) if tree[i] == []]
         else:
             return d
 
