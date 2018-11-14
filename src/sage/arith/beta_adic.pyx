@@ -1581,7 +1581,7 @@ cdef class BetaAdicSet:
         - ``method`` int -- (default 0)
 
         - ``nprec`` int -- (default 4) - additional iterations for the drawing (if ``n`` is None).
-    
+
         - ``mirror`` bool -- (default ``False) st to ``True`` to to the mirror
 
         - ``verb`` -- (default ``False``) set ti ``True`` for verbose mod
@@ -1633,8 +1633,8 @@ cdef class BetaAdicSet:
             return None
 
     def plot(self, n=None, sx=800, sy=600,
-              ajust=True, prec=53, color=(0, 0, 0, 255),
-              method=0, nprec=4, mirror=False, verb=False):
+             ajust=True, prec=53, color=(0, 0, 0, 255),
+             method=0, nprec=4, mirror=False, verb=False):
         r"""
         Draw the beta-adic set.
 
@@ -1642,7 +1642,8 @@ cdef class BetaAdicSet:
 
         - ``n`` - integer (default: ``None``)
           The number of iterations used to plot the fractal.
-          Default values: between ``5`` and ``16`` depending on the number of generators.
+          Default values: between ``5`` and ``16`` depending on the
+          number of generators.
 
         - ``place`` - place of the number field of beta (default: ``None``)
           The place used to evaluate elements of the number field.
@@ -1652,7 +1653,8 @@ cdef class BetaAdicSet:
         - ``sy`` -- (default : 600) dimensions of the resulting
           in y dimension image
 
-        - ``ajust`` boll - (default: ``True``) adapt the drawing to fill all the image,
+        - ``ajust`` boll - (default: ``True``) adapt the drawing
+          to fill all the image,
           with ratio 1 (default: ``True``)
 
         - ``prec`` - precision of returned values (default: ``53``)
@@ -1742,19 +1744,19 @@ cdef class BetaAdicSet:
         sig_off()
         if verb:
             print("b=%s+%s*I", b.b.x, b.b.y)
-            print("n=%s"%b.n)
+            print("n=%s" % b.n)
             for i in range(b.n):
-                print("t[%s] = %s+%s*I"%(i, b.t[i].x, b.t[i].y))
-            #print("a=%s"%b.a)
+                print("t[%s] = %s+%s*I" % (i, b.t[i].x, b.t[i].y))
+            # print("a=%s"%b.a)
             for i in range(b.a.n):
                 if b.a.e[i].final:
-                    print("(%s) "%i)
+                    print("(%s) " % i)
                 else:
-                    print("%s "%i)
+                    print("%s " % i)
             aut = b.a;
             for i in range(aut.n):
                 for j in range(aut.na):
-                    print("%s -%s-> %s\n"%(i, j, aut.e[i].f[j]))
+                    print("%s -%s-> %s\n" % (i, j, aut.e[i].f[j]))
         cdef Color col
         col.r = color[0]
         col.g = color[1]
@@ -1780,13 +1782,14 @@ cdef class BetaAdicSet:
         return im
 
     def plot_list(self, list la=None, n=None,
-              sx=800, sy=600, ajust=True, prec=53, colormap='hsv',
-              backcolor=None, opacity=1., mirror=False, nprec=4, verb=False):
+                  sx=800, sy=600, ajust=True, prec=53, colormap='hsv',
+                  backcolor=None, opacity=1., mirror=False,
+                  nprec=4, verb=False):
         r"""
         Draw the beta-adic sets with color according to the list of automata given.
 
         INPUT:
-        
+
         - ``la``- list (default: ``None``)
           List of automata or BetaAdicSet.
 
@@ -1810,8 +1813,8 @@ cdef class BetaAdicSet:
         - ``backcolor`` - (default: ``None``) list of three integer between 0
           and 255  .
 
-        - ``opacity``- float (default: ``1.``)
-          Transparency of the drawing.
+        - ``opacity`` float - (default: ``1.``)
+          Transparency of the drawing coefficient.
 
         - ``mirror`` bool -- (default ``False) st to ``True`` to to the mirror
 
@@ -1981,14 +1984,14 @@ cdef class BetaAdicSet:
         cdef Element e
         cdef DetAutomaton r
         cdef bool tb
-        
+
         t0 = t
         if mirror is not None:
             try:
                 tb = mirror
-            except:
+            except Exception:
                 raise ValueError("mirror=%s must be a bool."%mirror)
-        
+
         b = self.b
         K = b.parent()
         if not K.is_field():
@@ -1997,7 +2000,7 @@ cdef class BetaAdicSet:
             raise ValueError("b must live in a number field!")
         pi = b.minpoly()
         pi = pi*pi.denominator()
-        #alphabet
+        # alphabet
         if Ad is None:
             if A is None:
                 A = self.a.A
@@ -2007,11 +2010,11 @@ cdef class BetaAdicSet:
         else:
             try:
                 list(Ad[0])
-                Ad = list(set([a1-b1 for a1,b1 in Ad]))
-            except:
+                Ad = list(set([a1-b1 for a1, b1 in Ad]))
+            except Exception:
                 pass
         if verb:
-            print("Ad=%s"%Ad)
+            print("Ad=%s" % Ad)
         if algo == 1:
             if mirror is None:
                 mirror = True
@@ -2020,15 +2023,15 @@ cdef class BetaAdicSet:
                 pi = b.minpoly()
                 pi = pi*pi.denominator()
                 mirror = not mirror
-            #find absolute values for which b is greater than one
+            # find absolute values for which b is greater than one
             places = []
             narch = 0
-            #archimedian places
+            # archimedian places
             for p in K.places(prec=prec):
                 if K.abs_val(p, b) > 1:
                     places.append(p)
                     narch+=1
-            #ultra-metric places
+            # ultra-metric places
             from sage.arith.misc import prime_divisors
             lc = pi.leading_coefficient()
             for p in prime_divisors(lc):
@@ -2037,29 +2040,33 @@ cdef class BetaAdicSet:
                         places.append(P)
             if verb:
                 print(places)
-            #bounds
+            # bounds
             bo = []
-            for i,p in enumerate(places):
+            for i, p in enumerate(places):
                 if i < narch:
-                    bo.append(coeff*max([K.abs_val(p,x) for x in Ad])/(K.abs_val(p, b) - 1))
+                    bo.append(
+                        coeff*max(
+                            [K.abs_val(p, x) for x in Ad])/(K.abs_val(p, b) - 1))
                 else:
-                    bo.append(coeff*max([K.abs_val(p,x) for x in Ad])/K.abs_val(p, b))
+                    bo.append(
+                        coeff*max(
+                            [K.abs_val(p, x) for x in Ad])/K.abs_val(p, b))
             if verb:
                 print("bounds=%s"%bo)
-            #compute the automaton
+            # compute the automaton
             L = []
-            S = [0] #remaining state to look at
-            d = dict() #states already seen and their number
+            S = [0]  # remaining state to look at
+            d = dict()  # states already seen and their number
             d[0] = 0
-            c = 1 #count the states seen
+            c = 1  # count the states seen
             while len(S) > 0:
                 S2 = []
                 for s in S:
                     for t in Ad:
                         ss = b*s + t
-                        #test if we keep ss
+                        # test if we keep ss
                         keep = True
-                        for p,m in zip(places, bo):
+                        for p, m in zip(places, bo):
                             if K.abs_val(p, ss) > m + .00000001:
                                 keep = False
                                 break
@@ -2067,12 +2074,12 @@ cdef class BetaAdicSet:
                             if not d.has_key(ss):
                                 S.append(ss)
                                 d[ss] = c
-                                c+=1
+                                c += 1
                             L.append((d[s], d[ss], t))
                 S = S2
             r = DetAutomaton(L, i=0, final_states=[0])
             if verb:
-                print("before pruning: %s"%r)
+                print("before pruning: %s" % r)
             if mirror:
                 r = r.mirror_det()
             if prune:
@@ -2120,15 +2127,15 @@ cdef class BetaAdicSet:
         else:
             if mirror is None:
                 mirror = False
-            #find absolute values for which b is less than one
+            # find absolute values for which b is less than one
             places = []
             narch = 0
-            #archimedian places
+            # archimedian places
             for p in K.places(prec=prec):
                 if K.abs_val(p, b) < 1:
                     places.append(p)
                     narch+=1
-            #ultra-metric places
+            # ultra-metric places
             from sage.arith.misc import prime_divisors
             for p in prime_divisors(pi(0)):
                 for P in K.primes_above(p):
@@ -2136,45 +2143,49 @@ cdef class BetaAdicSet:
                         places.append(P)
             if verb:
                 print(places)
-            #bounds
+            # bounds
             bo = []
-            for i,p in enumerate(places):
+            for i, p in enumerate(places):
                 if i < narch:
-                    bo.append(coeff*max([K.abs_val(p,x) for x in Ad])/(1 - K.abs_val(p, b)))
+                    bo.append(
+                        coeff*max(
+                            [K.abs_val(p, x) for x in Ad])/(1 - K.abs_val(p, b)))
                 else:
-                    bo.append(coeff*max([K.abs_val(p,x) for x in Ad]))
+                    bo.append(
+                        coeff*max([K.abs_val(p,x) for x in Ad]))
             if verb:
-                print("bounds=%s"%bo)
-            #compute the automaton
+                print("bounds=%s" % bo)
+            # compute the automaton
             L = []
-            S = [0] #remaining state to look at
-            d = dict() #states already seen and their number
+            S = [0]  # remaining state to look at
+            d = dict()  # states already seen and their number
             d[0] = 0
-            c = 1 #count the states seen
+            c = 1  # count the states seen
             while len(S) > 0:
                 S2 = []
                 for s in S:
                     for t in Ad:
                         ss = (s - t)/b
-                        #test if we keep ss
+                        # test if we keep ss
                         keep = True
-                        for p,m in zip(places, bo):
+                        for p, m in zip(places, bo):
                             if K.abs_val(p, ss) > m + .00000001:
                                 if verb:
-                                    print("|%s|=%s > %s"%(ss, K.abs_val(p, ss), m))
+                                    print("|%s|=%s > %s"
+                                          % (ss, K.abs_val(p, ss), m))
                                 keep = False
                                 break
                         if keep:
                             if not d.has_key(ss):
                                 S.append(ss)
                                 d[ss] = c
-                                c+=1
+                                c += 1
                             L.append((d[s], d[ss], t))
-                            #L.append((s, ss, t))
+                            # L.append((s, ss, t))
                 S = S2
             r = DetAutomaton(L, i=0, final_states=[0])
             if verb:
-                print("before pruning: %s"%r)
+                print("before pruning: %s" % r)
             if mirror:
                 r = r.mirror_det()
             if prune:
@@ -2241,7 +2252,7 @@ cdef class BetaAdicSet:
             S = S3
             if verb:
                 print(len(S))
-        #from sage.functions.log import log
+        # from sage.functions.log import log
         print("%s" % (log(len(S)).n() / (niter * log(mahler(b.minpoly()).n()))))
 
     def complexity(self, Ad=None, prec=None, verb=False):
@@ -2268,23 +2279,23 @@ cdef class BetaAdicSet:
         K = b.parent()
         pi = b.minpoly()
         pi = pi*pi.denominator()
-        
+
         if verb:
             print(K)
-        
+
         A = self.a.A
         if Ad is None:
             Ad = list(set([c1-c2 for c1 in A for c2 in A]))
 
-        #find absolute values for which b is greater than one
+        # find absolute values for which b is greater than one
         places = []
         narch = 0
-        #archimedian places
+        # archimedian places
         for p in K.places(prec=prec):
             if K.abs_val(p, b) > 1:
                 places.append(p)
-                narch+=1
-        #ultra-metric places
+                narch += 1
+        # ultra-metric places
         from sage.arith.misc import prime_divisors
         lc = pi.leading_coefficient()
         for p in prime_divisors(lc):
@@ -2293,24 +2304,25 @@ cdef class BetaAdicSet:
                     places.append(P)
         if verb:
             print(places)
-        #bounds
+        # bounds
         bo = []
         vol = 1.
-        for i,p in enumerate(places):
+        for i, p in enumerate(places):
             if i < narch:
-                bo.append(max([K.abs_val(p,x) for x in Ad])/(K.abs_val(p, b) - 1))
+                bo.append(
+                    max([K.abs_val(p, x) for x in Ad])/(K.abs_val(p, b) - 1))
                 if verb:
-                    print("bo = %s"%bo[-1])
+                    print("bo = %s" % bo[-1])
                 if p(b).imag() == 0:
                     vol *= 2*bo[-1]
                 else:
                     vol *= pi_number*bo[-1]^2
             else:
-                bo.append(max([K.abs_val(p,x) for x in Ad])/K.abs_val(p, b))
+                bo.append(max([K.abs_val(p, x) for x in Ad])/K.abs_val(p, b))
                 vol *= bo[-1]
         if verb:
-            print("bounds=%s"%bo)
-        #from sage.functions.other import ceil
+            print("bounds=%s" % bo)
+        # from sage.functions.other import ceil
         return ceil(vol)
 
     def intersection(self, BetaAdicSet m, t=0, ext=False, algo=2, verb=False):
@@ -2320,7 +2332,7 @@ cdef class BetaAdicSet:
         INPUT:
 
         - ``m`` - the other beta-adic set
-        
+
         - ``t`` - translate m by t
 
         - ``ext`` - bool (default: ``False``)
@@ -2360,11 +2372,11 @@ cdef class BetaAdicSet:
 
         ai = ar.intersection(a)
         if verb:
-            print("ai = %s"% ai)
+            print("ai = %s" % ai)
 
         ai = ai.proji(0)
         if verb:
-            print("ai = %s"%ai)
+            print("ai = %s" % ai)
 
         if ext:
             ai = ai.prune_inf()
@@ -2374,11 +2386,32 @@ cdef class BetaAdicSet:
         return BetaAdicSet(self.b, ai)
 
     def prefix(self, w):
+        """
+        Compute the prefix of word ``w``
+
+        INPUT:
+
+        - ``w`` - list  word to get prefix
+
+        OUTPUT:
+
+        DetAutomaton.
+
+        EXAMPLES::
+
+            sage: pi = x^3-x^2-x-1
+            sage: b = pi.roots(ring=QQbar)[1][0]
+            sage: m = BetaAdicSet(b, dag.AnyWord([0,1]))
+            sage: m.prefix([0, 1, 1, 1])
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 5 states and 2 letters.
+
+        """
         return BetaAdicSet(self.b, self.a.prefix(w))
 
     def intersection_words(self, w1, w2, ext=True, verb=False):
         r"""
-        Compute the intersection of the two beta-adic sets corresponding to words with prefix w1 and prefix w2.
+        Compute the intersection of the two beta-adic sets corresponding to
+        words with prefix w1 and prefix w2.
 
         INPUT:
 
@@ -2412,13 +2445,13 @@ cdef class BetaAdicSet:
         mi = m1.intersection(m2, ext=ext, verb=verb)
         return mi
 
-    #to be put in generators
+    # to be put in generators
     #     - ``aut`` - DetAutomaton (default: ``None``, full language)
     #       Automaton describing the language in which we live.
     def reduced_words_automaton(self, full=False, step=100,
                                 mirror=False, verb=False):  # , DetAutomaton aut=None):
         r"""
-        Compute the reduced words automaton of the beta-adic monoid
+        Compute the reduced words automaton of the ``BetaAdicSet``
         (without considering the automaton of authorized words).
         See http://www.latp.univ-mrs.fr/~paul.mercat/Publis/
         Semi-groupes%20fortement%20automatiques.pdf for a definition of such automaton.
@@ -2485,7 +2518,8 @@ cdef class BetaAdicSet:
             if step == 3:
                 return arel
 
-            Adp = [i for i in range(nAd) if Ad[i] in [x-y for j,x in enumerate(A) for y in A[:j]]]
+            Adp = [i for i in range(
+                nAd) if Ad[i] in [x-y for j, x in enumerate(A) for y in A[:j]]]
 
             # suppress some edges from the initial state
             for j in Adp:
@@ -2531,32 +2565,58 @@ cdef class BetaAdicSet:
         else:
             arel = self.relations_automaton(couples=True, ext=False)
             if verb:
-                print("arel=%s"%arel)
+                print("arel=%s" % arel)
             ap = self.a.product(self.a)
             if verb:
-                print("ap=%s"%ap)
+                print("ap=%s" % ap)
             ai = ap.intersection(arel)
             if verb:
-                print("ai=%s"%ai)
-            alex = DetAutomaton([(0,0,(i,i)) for i in A]
-                   +[(0,1,(A[i],A[j])) for i in range(nA) for j in range(i)]
-                   +[(1,1,(i,j)) for i in A for j in A],
-                   i=0, final_states=[1])
+                print("ai=%s" % ai)
+            alex = DetAutomaton([(0, 0, (i, i)) for i in A]
+                                + [(0, 1, (A[i], A[j]))
+                                   for i in range(nA) for j in range(i)]
+                                + [(1, 1, (i, j)) for i in A for j in A],
+                                i=0, final_states=[1])
             if verb:
-                print("alex=%s"%alex)
+                print("alex=%s" % alex)
             ai = ai.intersection(alex)
             if verb:
-                print("ai=%s"%ai)
+                print("ai=%s" % ai)
             ai = ai.proji(0)
             if verb:
-                print("ai=%s"%ai)
+                print("ai=%s" % ai)
             ai.complementary_op()
             if verb:
-                print("ai=%s"%ai)
+                print("ai=%s" % ai)
             return ai.intersection(self.a)
 
     def reduced(self, mirror=False, verb=False):
-        return BetaAdicSet(self.b, self.reduced_words_automaton(mirror=mirror, verb=verb))
+        r"""
+        Compute the reduced  of the ``BetaAdicSet``
+
+
+        INPUT:
+
+        - ``mirror`` bool -- (default ``False) st to ``True`` to to the mirror
+
+        - ``verb`` - bool (default: ``False``)
+          If True, print informations for debugging.
+
+
+        OUTPUT:
+
+        DetAutomaton.
+
+        EXAMPLES::
+
+            sage: pi = x^3-x^2-x-1
+            sage: b = pi.roots(ring=QQbar)[1][0]
+            sage: m = BetaAdicSet(b, dag.AnyWord([0,1]))
+            sage: ared = m.reduced()
+            sage: ared
+        """
+        return BetaAdicSet(self.b, self.reduced_words_automaton(mirror=mirror,
+                                                                verb=verb))
 
 #     def reduced_words_automaton(self, ss=None, Iss=None, ext=False,
 #                                 verb=False, step=None, arel=None):
@@ -2584,25 +2644,25 @@ cdef class BetaAdicSet:
 # 
 #         - ``arel`` - Automaton (default: ``None``)
 #           Automaton of relations.
-# 
+#
 #         OUTPUT:
-# 
+#
 #         A Automaton.
-# 
+#
 #         EXAMPLES::
-# 
+#
 #             #. 3-adic expansion with numerals set {0,1,3}::
-# 
+#
 #                 sage: m = BetaAdicSet(3, {0,1,3})
 #                 sage: mr = m.reduced()
 #                 Finite automaton with 2 states
-# 
+#
 #             #. phi-adic expansion with numerals set {0,1}::
-# 
+#
 #                 sage: m = BetaAdicSet((1+sqrt(5))/2, {0,1})
 #                 sage: m.reduced_words_automaton()
 #                 Finite automaton with 3 states
-# 
+#
 #             #. beta-adic expansion with numerals set {0,1} where beta is the plastic number::
 #                 sage: b = (x^3-x-1).roots(ring=QQbar)[0][0]
 #                 sage: m = BetaAdicSet(b, {0,1})
@@ -2614,30 +2674,30 @@ cdef class BetaAdicSet:
 #                 ss = self.ss
 #                 if hasattr(self.ss, 'I'):
 #                     Iss = self.ss.I
-# 
+#
 #         if step is None:
 #             step = 1000
-# 
+#
 #         K = self.C[0].parent()
-# 
+#
 #         if verb:
 #             print("Computation of relations's automata")
 #             # "Calcul de l'automate des relations..."
-# 
+#
 #         if arel is None:
 #             a = self.relations_automaton(noss=True)
 #         else:
 #             a = arel
-# 
+#
 #         if verb:
 #             print(" -> %s" % a)
-# 
+#
 #         if step == 1:
 #             return ("relations's automata", a)
-# 
+#
 #         # add a state copy of K.0 (it will be the new initial state)
 #         a.add_vertex('O')
-# 
+#
 #         #        #add transitions to K.0 to 'O'
 #         #        for f, d, l in a.incoming_edges(K.zero(), labels=True):
 #         #            if f == K.zero():
@@ -2650,24 +2710,24 @@ cdef class BetaAdicSet:
 #         for i in range(self.C.cardinality()):
 #             for j in range(i):
 #                 Cdp += [self.C[i] - self.C[j]]
-# 
+#
 #         # redirect positives transitions from K.0
 #         for f, d, l in a.outgoing_edges(K.zero(), labels=True):
 #             if l in Cdp:
 #             #                a.delete_edge(K.zero(), d, l)
 #                 # add the edge
 #                 a.add_edge('O', d, l)
-# 
+#
 #         a.add_edge('O', 'O', a.edge_label(K.zero(), K.zero()))
-# 
+#
 #         if verb:
 #             print(a.incoming_edges(K.zero(), labels=True))
-# 
+#
 #         # remove outgoing edges from K.0 (except from K.0 to K.0)
 #         for f, d, l in a.outgoing_edges(K.zero(), labels=True):
 #             if f != d:
 #                 a.delete_edge(f, d, l)
-# 
+#
 #         if step == 2:
 #             a.I = ['O']
 #             a.F = Set([K.zero()])
@@ -2805,7 +2865,7 @@ cdef class BetaAdicSet:
 #             print("after emondation : a=%s" % ad)
 #         if step == 9:
 #             return ("emonded automaton of reduced words", ad)
-# 
+#
 #         return ad
 
     def critical_exponent_free(self, prec=None, verb=False):
@@ -2815,10 +2875,10 @@ cdef class BetaAdicSet:
         When the beta-adic set is moreover algebraic,
         this critical exponent is equal to the Hausdorff
         dimension of the limit set on the contracting space.
-        
+
         Rk: beta-adic sets coming from WordMorphism.DumontThomas()
         are always free and algebraic.
-        
+
         INPUT:
 
         - ``prec``- precision (default: ``None``)
@@ -2886,7 +2946,7 @@ cdef class BetaAdicSet:
         m = mahler(self.b.minpoly())
         print("log(y)/log(%s) where y is the max root of %s, and %s is root of %s." % (m, QQbar(y).minpoly(), m, m.minpoly()))
         y = y.n(prec)
-        #from sage.functions.log import log
+        # from sage.functions.log import log
         m = m.n(prec)
         if verb:
             print("y=%s, m=%s" % (y, m))
@@ -2900,7 +2960,7 @@ cdef class BetaAdicSet:
         contracting space (R or C). If the beta-adic set is algebraic but not conformal,
         then this critical exponent is equal to the dimension of the limit set
         in the contracting space (product of R, C and p-adic spaces), for an appropriate notion of dimension.
-        
+
         INPUT:
 
         - ``prec``- precision (default: ``None``)
@@ -3016,7 +3076,7 @@ cdef class BetaAdicSet:
         - ``arel`` - Automaton (default: ``None``)
             Automaton of relations (if already computed, this permits to
             avoid recomputing it).
-        
+
         - ``simplify`` - bool (default: ``True``)
             Prune and minimize the result if True.
 
@@ -3053,7 +3113,7 @@ cdef class BetaAdicSet:
         if simplify:
             ai = ai.prune().minimize()
         return BetaAdicSet(self.b, ai)
-        
+
 #        ap = DetAutomaton([], A=list(C)).product(a)
 #        if ext:
 #            ap = ap.prefix_closure()
@@ -3209,10 +3269,9 @@ cdef class BetaAdicSet:
 
         INPUT:
 
-        - ``a`` 
+        - ``a`` automaton
         - ``t`` int (default : ``0``)
         - ``arel`` list -- (default : ``None``) list of digits .
-
         - ``aut``  bool -- (default: ``False``)
 
         OUTPUT:
@@ -3234,7 +3293,7 @@ cdef class BetaAdicSet:
         if arel is None:
             # compute the relations automaton with translation t
             arel = self.relations_automaton(t=t, couples=True, algo=algo,
-                                           A=self.a.alphabet, B=a.alphabet)
+                                            A=self.a.alphabet, B=a.alphabet)
         ai = arel.intersection(a.zero_complete2().product(self.a.zero_complete2()))
         r = ai.proji(0)
         r.zero_completeOP()
@@ -3310,17 +3369,50 @@ cdef class BetaAdicSet:
     def shift_op(self, w):
         """
         Shift the automaton of self by w ON PLACE.
+
+        INPUT:
+
+        - ``w`` list  or object converted to list- word to shift
+
+        OUTPUT:
+
+        Return the shifted BetaAdicSet
+
+        EXAMPLES::
+            sage: from sage.combinat.words.cautomata_generators import dag
+            sage: a = dag.AnyWord([0,1,2])
+            sage: m = BetaAdicSet(3, dag.AnyWord([0,1,3]))
+            sage: m.shift_op([0,1, 0])
+            sage: m
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 states and 2 letters.
+
         """
         try:
             w = list(w)
             self.a.shift_listOP(w)
-        except:
+        except Exception:
             self.a.shift1OP(w)
-    
-    
+
     def shift(self, w):
         """
         Shift the automaton of self.
+
+        INPUT:
+
+        - ``w`` list - word to shift
+
+
+        OUTPUT:
+
+        Return the shifted BetaAdicSet
+
+        EXAMPLES::
+            sage: from sage.combinat.words.cautomata_generators import dag
+            sage: a = dag.AnyWord([0,1,2])
+            sage: m = BetaAdicSet(3, dag.AnyWord([0,1,3]))
+            sage: m.shift([0,1, 0])
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 states and 2 letters.
+
         """
         m = self.copy()
         m.shift_op(w)
@@ -3436,14 +3528,14 @@ cdef class BetaAdicSet:
     # used by Approx
     def _approx_rec(self, DetAutomaton a, test, f, x, int n, int n2):
         r"""
-        used by Approx
+        used by approx
 
         INPUT:
 
         - ``a``  DetAutomaton
-        - ``test`` 
-        - ``f`` 
-        - ``x`` 
+        - ``test``
+        - ``f``
+        - ``x``
         - ``n``  int
         - ``n2``  int
 
@@ -3452,8 +3544,8 @@ cdef class BetaAdicSet:
 
         number of state or -1
 
-        EXAMPLES::
-        
+        TESTS::
+
             sage: from sage.combinat.words.cautomata_generators import dag
             sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
             sage n = 13
@@ -3500,12 +3592,16 @@ cdef class BetaAdicSet:
 
         - ``n``  int
         - ``test`` function
+        - ``get_aut``  bool -- (default ``False``)
+          if ``False`` return  DetAutomaton
+        - ``simplify``  bool -- (default ``True``) set
+          to ``True`` to minimize the automaton
 
         OUTPUT:
 
         Return a DetAutomaton or a BetaAdicSet
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
             sage: pm = m.b.parent().places()[1]
@@ -3563,7 +3659,7 @@ cdef class BetaAdicSet:
 
         INPUT:
 
-        - ``a``  automaton 
+        - ``a``  automaton
 
         OUTPUT:
 
@@ -3632,28 +3728,35 @@ cdef class BetaAdicSet:
         """
         a = getDetAutomaton(self, a)
         return BetaAdicSet(self.b, self.a.diff(a))
-    
+
     def is_Pisot(self, bool verb=False):
         """
         Test if the number b is the conjugate of a Pisot number or not.
-        
-        verb: If true, explains why we return False when it happens.
-        
-        EXAMPLE::
-            
+
+
+        INPUT:
+
+        - ``verb`` bool -- (default : ``False``) set to ``True`` for verbose mode
+          If true, explains why we return False when it happens.
+
+        OUTPUT:
+        Return ``True`` or ``False``
+
+        EXAMPLES::
+
             sage: m = BetaAdicSet(x^2-x-1, [0,1])
             sage: m.is_Pisot()
             True
-            
+
             sage: m = BetaAdicSet(x^4-2*x^3+x^2-2*x+1, [0,1])
             sage: m.is_Pisot()
             False
-            
+
             sage: m = BetaAdicSet(1+I, [0,1])
             sage: m.is_Pisot(verb=True)
             There are more than one conjugate of modulus > 1.
             False
-        
+
         """
         try:
             if not self.b.is_integral():
@@ -3679,7 +3782,7 @@ cdef class BetaAdicSet:
                     print("There is no conjugate of modulus > 1.")
                 return False
             return True
-        except:
+        except Exception:
             if verb:
                 print("b is not an algebraic number.")
             return False
@@ -3689,8 +3792,6 @@ cdef class BetaAdicSet:
         Compute points (in the number field of b) corresponding to words of length k recognized by the automaton,
         where k is at most n, and the total number of points is approximatively npts.
         Return (k, list of couples (state, point))
-
-
 
         INPUT:
 
@@ -3727,7 +3828,7 @@ cdef class BetaAdicSet:
         bn = 1
         for i in range(n):
             rr = []
-            for j,t in r:
+            for j, t in r:
                 for k in range(nA):
                     f = self.a.a.e[j].f[k]
                     if f != -1:
@@ -3740,10 +3841,18 @@ cdef class BetaAdicSet:
         """
         Compute the radius of a ball centered at 0 and that covers the BetaAdicSet for the place p.
         We assume that abs(p(self.b)) < 1.
-        
+
+        INPUT:
+
+        - ``p`` - integer
+
+        - ``npts`` - integer (default: 10000 )
+          State of the automaton of self taken as the initial state .
+
         """
-        pts = self.points(npts=npts) 
-        M = abs(p(self.b**pts[0]))*max([abs(p(c)) for c in self.a.A])/abs(1-abs(self.b))
+        pts = self.points(npts=npts)
+        M = abs(p(self.b**pts[0]))*max([abs(p(c))
+                                        for c in self.a.A])/abs(1-abs(self.b))
         return max([abs(p(c[1]))+M for c in pts[1]])
 
     def diameter(self, p, int n=10, bool verb=False):
@@ -3761,7 +3870,7 @@ cdef class BetaAdicSet:
         import numpy as np
         for i in range(n):
             rr = []
-            for j,t in r:
+            for j, t in r:
                 for k in range(nA):
                     f = self.a.a.e[j].f[k]
                     if f != -1:
@@ -3770,11 +3879,11 @@ cdef class BetaAdicSet:
             if verb:
                 print("rr : %s elements"%len(rr))
             r = []
-            #compute the diameter of the set rr (this could be improved)
+            # compute the diameter of the set rr (this could be improved)
             dmm = 0
             dm = np.zeros(len(rr), dtype=np.float)
             v = np.empty(len(rr), dtype=np.complex)
-            for f,(j,t) in enumerate(rr):
+            for f, (j, t) in enumerate(rr):
                 v[f] = p(t)
             nrr = len(rr)
             for f in range(nrr):
@@ -3786,44 +3895,44 @@ cdef class BetaAdicSet:
                 dmm = fmax(dmm, dm2)
                 dm[f] = dm2
             if verb:
-                print("dmm = %s"%dmm)
+                print("dmm = %s" % dmm)
             M2 = 2*abs(p(bn))*M
             if i == n-1:
                 return dmm+M2
-            for f,(j,t) in enumerate(rr):
+            for f, (j, t) in enumerate(rr):
                 if dm[f]+M2 >= dmm:
-                    r.append((j,t))
+                    r.append((j, t))
             if verb:
-                print("r : %s elements"%len(r))
-    
+                print("r : %s elements" % len(r))
+
     def translations_iterator(self, bool test_Pisot=True, int ndiam=20, bool verb=False):
         """
         Assume that self.b is a Pisot number.
         Compute a list of numbers containing the positive part of the BetaAdicSet, ordered in the expanding direction.
-        
+
         Return an iterator.
-        
+
         test_Pisot : test if b is the conjugate of a Pisot number as needed
         B : basis of a lattice containing the BetaAdicSet
         ndiam : number of iterations used for the estimation of the diameter
-        
+
         """
         cdef int n, i, j
         if test_Pisot:
             if not self.is_Pisot():
                 raise ValueError("b must be the conjugate of a Pisot number")
-        #take a basis of the lattice
+        # take a basis of the lattice
         d = self.b.minpoly().degree()
         B = [self.b**i for i in range(d)]
-        #compute the min of the differences for every place
+        # compute the min of the differences for every place
         Bd = set([a-b for a in B for b in B if a != b])
         K = self.b.parent()
         n = -2147483648
-        #from sage.functions.other import ceil
-        #from sage.functions.log import log
+        # from sage.functions.other import ceil
+        # from sage.functions.log import log
         P = [p for p in K.places() if abs(p(self.b)) < 1]
         M = [self.diameter(p, n=ndiam) for p in P]
-        for i,p in enumerate(P):
+        for i, p in enumerate(P):
             m = min([abs(p(b)) for b in Bd])
             if verb:
                 print("p=%s, m=%s, M=%s"%(p,m,M))
@@ -3831,10 +3940,10 @@ cdef class BetaAdicSet:
             n = max(n, <int>floor(log(m/(2*M[i]))/log(abs(p(self.b)))))
         if verb:
             print("n=%s"%n)
-        #multiply the bound by this power of b
+        # multiply the bound by this power of b
         bn = self.b**n
         M = [M[i]*abs(p(bn)) for i,p in enumerate(P)]
-        #compute the matrix corresponding to the multiplication by M to the left
+        # compute the matrix corresponding to the multiplication by M to the left
         from sage.matrix.constructor import identity_matrix
         I = identity_matrix(d)
         pi = self.b.minpoly()
@@ -3843,13 +3952,13 @@ cdef class BetaAdicSet:
         m = matrix([I[i] for i in range(1,d)]+[[-c for c in pi.list()[:d]]]).transpose()
         if verb:
             print("m=%s"%m)
-        #compute the Perron-Frobenius eigenvector
+        # compute the Perron-Frobenius eigenvector
         from sage.modules.free_module_element import vector
         v = vector(max([r[1][0] for r in m.right_eigenvectors()], key=lambda x: x[0]))
         v /= sum(v)
         vB = vector(B)
         if verb:
-            print("v=%s"%v)
+            print("v=%s" % v)
         r = []
         from itertools import count
         for j in count(start=1):
@@ -3859,27 +3968,27 @@ cdef class BetaAdicSet:
                 continue
             if verb:
                 print("j=%s, t=%s"%(j,t))
-            #test if t is in the domain
+            # test if t is in the domain
             keep = True
-            for i,p in enumerate(P):
+            for i, p in enumerate(P):
                 if abs(p(t)) > M[i]:
                     keep = False
                     break
             if keep:
                 yield t/bn
-    
+
     def translations_diff_iterator(self, bool test_Pisot=True, int ndiam=20, bool verb=False):
         """
         Assume that self.b is a Pisot number.
         Compute a list that contains the set of differences of points of the BetaAdicSet.
         The list is increasing for the expanding place.
-        
+
         Return an iterator.
-        
+
         test_Pisot : test if b is the conjugate of a Pisot number as needed
         B : basis of a lattice containing the BetaAdicSet
         ndiam: number of iterations used for the estimation of the diameter
-        
+
         """
         cdef int n, i, j
         if test_Pisot:
