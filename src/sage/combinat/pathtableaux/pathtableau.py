@@ -51,17 +51,13 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class PathTableau(ClonableList):
-    @staticmethod
-    @abstract_method(optional=False)
-    def _rule(p):
-        """
-        This is an abstract method. It must be overwritten.
-        This rule provides the functionality. It is called in
-        :method:`_local_rule`.
 
-        The key property is that the following operation on lists
-        of length three is an involution: apply the rule to a list
-        and replace the middle term with the output.
+    _conversions = []
+
+    @abstract_method(optional=False)
+    def _local_rule(self,i):
+        """
+        This is the abstract local rule defined in any coboundary category.
         """
 
     def __getattr__(self,name):
@@ -86,7 +82,7 @@ class PathTableau(ClonableList):
             AttributeError: unable to find method nonsense
 
         """
-        for x in self.parent()._conversions:
+        for x in self._conversions:
             try:
                 return getattr(getattr(self,x)(),name)
             except:
@@ -104,6 +100,9 @@ class PathTableau(ClonableList):
             sage: c._check_conversions()
             to_DyckWord
             (())
+            <BLANKLINE>
+            to_perfect_matching 
+            [(0, 3), (1, 2)] 
             <BLANKLINE>
             to_standard_tableau
             [[1, 2], [3, 4]]
@@ -128,7 +127,7 @@ class PathTableau(ClonableList):
             [1 0]
             <BLANKLINE>
         """
-        for x in self.parent()._conversions:
+        for x in self._conversions:
             print x, "\n", getattr(self,x)(), "\n"
 
     def _check_getattr(self):
@@ -141,7 +140,7 @@ class PathTableau(ClonableList):
 
         """
 
-        for x in self.parent()._conversions:
+        for x in self._conversions:
             print x
             c = getattr(self,x)()
             v = [ a for a in dir(c) if not a in dir(self) ]
@@ -192,28 +191,6 @@ class PathTableau(ClonableList):
 
 ############################# Jeu de taquin ###################################
 
-    def _local_rule(self,i):
-        """
-        This is the local rule that is used for the remaining constructions.
-        This has input a list of objects. This method first takes
-        the list of objects of length three consisting of the `(i-1)`-st,
-        `i`-th and `(i+1)`-term and applies the rule. It then replaces
-        the `i`-th object  by the object returned by the rule.
-
-        EXAMPLES::
-
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
-            sage: t._local_rule(3)
-            [0, 1, 2, 1, 2, 1, 0]
-        """
-        if not (i > 0 and i < len(self) ):
-            raise ValueError("%d is not a valid integer" % i)
-
-        with self.clone() as result:
-            result[i] = self._rule(self[i-1:i+2])
-
-        return result
-
     def promotion(self):
         """
         Return the promotion operator applied to ``self``.
@@ -226,7 +203,7 @@ class PathTableau(ClonableList):
         """
         with self.clone() as result:
             for i in range(1,len(result)-1):
-                result[i] = self._rule(result[i-1:i+2])
+                result = result._local_rule(i)
 
         return result
 
@@ -544,7 +521,8 @@ class PathTableau(ClonableList):
 
 class PathTableaux(UniqueRepresentation,Parent):
 
-    _conversions = []
+    def __init(self):
+        Parent.__init__(self, category=Sets())
 
     def _element_constructor_(self, *args, **keywords):
         return self.element_class(self, *args, **keywords)
