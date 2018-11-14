@@ -724,7 +724,7 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, dou
     col.r = 80;
     col.g = 80;
     col.b = 80;
-    drawTransf(s, sf, un(), zero(), col);
+    //drawTransf(s, sf, un(), zero(), col);
     if (SDL_BlitSurface(sf, NULL, screen, NULL) < 0)
     {
         printf("Error : %s\n", SDL_GetError());
