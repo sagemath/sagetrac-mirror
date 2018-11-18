@@ -859,35 +859,34 @@ cdef BetaAdic2 getBetaAdic2(BetaAdicSet self, la=None,
         b.a[i] = getAutomaton(getDetAutomaton(self,la[i]), A=A, verb=verb)
     return b
 
-def PrintWord(m, n):
-    """
-    Print of beta adic 
+#def PrintWord(m, n):
+#    """
+#    Print of beta adic 
+#
+#    INPUT:
+#
+#    - ``m`` first word argument
+#
+#    - ``n`` second word argument
+#
+#
+#    OUTPUT:
+#
+#    Print the word
+#
+#    TESTS:
+#
+#        sage:import sage.monoids.beta_adic_monoid as mn
+#
+#    """
+#    b = getBetaAdic(m, prec=53, mirror=False, verb=False)
+#    print_word(b, n, b.a.i)
 
-    INPUT:
 
-    - ``m`` first word argument
-
-    - ``n`` second word argument
-
-
-    OUTPUT:
-
-    Print the word
-
-    TESTS:
-
-        sage:import sage.monoids.beta_adic_monoid as mn
-
-    """
-    b = getBetaAdic(m, prec=53, mirror=False, verb=False)
-    print_word(b, n, b.a.i)
-
-
-# ##used by compute_substitution()
-# gives the list of sleeves of the sub-tree starting at e
+# used by substitution()
 def fils(tree, e):
     """
-    Return the list of sheet's sub-tree  starting at e.
+    Return the list of leaves's sub-tree  starting at e.
 
     INPUT:
 
@@ -896,7 +895,7 @@ def fils(tree, e):
 
     OUTPUT:
 
-    list of ``tree`` sheet's sub-tree  starting on e.
+    list of ``tree`` leaves's sub-tree  starting at e.
 
     """
     if tree[e] == []:  # e is a
@@ -1038,6 +1037,10 @@ def getDetAutomaton(self, a):
             raise ValueError("The argument a must be a BetaAdicSet or an automaton.")
     return a
 
+cdef class BetaBase:
+    """
+    """
+    
 
 cdef getBetaAdicSet(BetaAdicSet self, a):
     if type(a) is BetaAdicSet:
@@ -3702,12 +3705,10 @@ cdef class BetaAdicSet:
         except:
             return BetaAdicSet(self.b, self.a.unshift1(l))
 
-    # compute the difference of two beta-adic sets.
-    # it is a beta-adic set which is the set of differences of the two beta-adic sets
     def diff(self, a):
         """
-        compute the difference of two beta-adic sets.
-        it is a beta-adic set which is the set of differences of the two beta-adic sets
+        Compute the difference of two beta-adic sets.
+        It is a beta-adic set which is the set of differences of the two beta-adic sets.
 
         INPUT:
 
@@ -3818,7 +3819,7 @@ cdef class BetaAdicSet:
             13
             sage: len(P[1])
             8192
-            sage: points([x for i,x in P[1]], aspect_ratio=1) # long time
+            sage: points([x.n() for i,x in P[1]], aspect_ratio=1)   # long time
         """
         cdef int i, j, k, f, nA
         nA = self.a.a.na
@@ -4199,6 +4200,7 @@ cdef class BetaAdicSet:
         ba = a.unshift(zn)
         if not BetaAdicSet(self.b, ba).is_included(a):
             raise ValueError("The BetaAdicSet is not invariant by multiplication by b^np with np=%s !"%np)
+        bn = self.b**np
         #compute the domain exchange
         if lt is None:
             lt = self.domain_exchange(test_Pisot=False)
@@ -4227,17 +4229,18 @@ cdef class BetaAdicSet:
         tree = [range(1, len(lt) + 1)] + [[] for i in range(len(lt))] 
         if verb:
             print("initial tree: %s" % tree)
-        #lm = [(0, a)] + lt  # list of the translations, pieces
-        lm = lt        
+        lm = [(0, a)] + lt  # list of the translations, pieces
+        #lm = lt        
         if verb:
             print("lm = %s" % lm)
         # browse the pieces
         d = [[] for i in range(len(lm))]
         if verb:
             print("d = %s" % d)
-        lf = range(1, len(lm))  # list of sleeves
+        lf = range(1, len(lm))  # list of leaves
         if verb:
             print("lf = %s" % lf)
+        m = BetaAdicSet(self.b, self.a)
 
         from copy import copy
 
@@ -4247,7 +4250,7 @@ cdef class BetaAdicSet:
         # étape 1 : completion of the words of the substitution
         for i, (a1, t1) in enumerate(lm):
             if tree[i] != []:
-                continue  # this piece is not a sleeve
+                continue  # this piece is not a leaf
             if verb:
                 print("\nCompute the piece %s/%s (%s, %s)..." % (i, len(lm), a1, t1))
                 # print "lf = %s"%lf
@@ -4270,8 +4273,43 @@ cdef class BetaAdicSet:
 #            # m.move2(t=-tr, a=a)
 #            # TODO : ne pas recalculer cet automate déjà calculé
 #            a = m.Proj(a, ap, t=-tr)
-#            while True:
-#                # split selon les autres morceaux
+            while True:
+                # split a1 according to how b^np*a1 + tr intersect the other pieces
+                for j, (a2, t2) in enumerate(lm):
+                    if tree[j] != []:
+                        continue  # this piece is not a leaf          
+                    m.a = a2
+                    a3 = m.proj(a1.unshift(zn), t=-tr/bn, aut=True).shift(zn)
+                    if a3.is_empty():
+                        continue
+                    tr += t2
+                    if a3.equal_languages(a2):
+                        k = i
+                    else:
+                        k = len(lm)  # index of the new piece
+                        lf.append(k)  # new leaf
+                        tree[i].append(k)
+                        tree.append([])
+                        from copy import copy
+                        d.append(copy(d[i]))
+                        # add the new piece to the list
+                        lm.append((a3, t1))
+                    d[k].append(j) # add the next translation
+                    #split a3 according to a-tr
+                    m.a = a
+                    a4 = m.proj(a3, t=-tr/bn)
+#                    if a4.equal_languages(a3):
+#                    		k2 = k
+#                    else:
+#                        k2 = len(lm)  # index of the new piece
+#                        lf.append(k2)  # new leaf
+#                        tree[i].append(k2)
+#                        tree.append([])
+#                        from copy import copy
+#                        d.append(copy(d[i]))
+#                        # add the new piece to the list
+#                        lm.append((a3, t1))
+                    
 #                j = included(a, lf, lm)
 #                if j is None:
 #                    # détermine les morceaux qui intersectent a
@@ -4377,7 +4415,7 @@ cdef class BetaAdicSet:
 #                    print("\nPiece %s/%s..." % (i, len(lm)))
 #                tr = 0  # translation totale
 #                if d[i] == []:
-#                    print("Error : empty sheet !!!!")
+#                    print("Error : empty leaf !!!!")
 #                # va à la fin du mot
 #                for ij, j in enumerate(d[i]):
 #                    if j < 0:
@@ -4713,7 +4751,7 @@ cdef class BetaAdicSet:
                     print("\nPiece %s/%s..." % (i, len(lm)))
                 tr = 0  # translation totale
                 if d[i] == []:
-                    print("Error : empty sheet !!!!")
+                    print("Error : empty leaf !!!!")
                 # va à la fin du mot
                 for ij, j in enumerate(d[i]):
                     if j < 0:
@@ -4788,7 +4826,7 @@ cdef class BetaAdicSet:
             return d
 
     #to be rewritten
-    def compute_substitution2(self, DetAutomaton a, DetAutomaton ap=None,
+    def compute_substitution2(self, DetAutomaton ap=None,
                               np=None, lt=None, method=2, method_tr=1,
                               iplus=2, imax=None, need_included=True,
                               get_aut=False, verb=True):
@@ -4829,12 +4867,11 @@ cdef class BetaAdicSet:
                 sage: m.compute_substitution(verb=False)          # long time
                 {1: [1, 3], 2: [1], 3: [1, 2]}
         """
-        m = self
+        cdef DetAutomaton a
+        a = self.a
+        m = BetaAdicSet(self.b, self.a)
         if ap is None:
-            if hasattr(self, 'tss'):
-                ap = DetAutomaton(self.tss)
-            else:
-                ap = DetAutomaton(None).full(list(self.C))
+            ap = a
         if verb:
             print("ap=%s" % ap)
         cdef DetAutomaton aa
@@ -5041,7 +5078,7 @@ cdef class BetaAdicSet:
                     print("\nPiece %s/%s..." % (i, len(lm)))
                 tr = 0  # translation totale
                 if d[i] == []:
-                    print("Error : empty sheet !!!!")
+                    print("Error : empty leaf !!!!")
                 # va à la fin du mot
                 for ij, j in enumerate(d[i]):
                     if j < 0:
