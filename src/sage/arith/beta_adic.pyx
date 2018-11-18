@@ -559,12 +559,12 @@ def plot_Cadic2(numpy.ndarray dv, int sx=800, int sy=600,
                 m0, t0, i0, e0 = p[-1]
                 u = l[k-1]
                 nA = aut[u].n_succs(e0)
-                #print("k=%s, u=%s, t=%s, i=%s, e=%s"%(k, u, t, i, e))
+                # print("k=%s, u=%s, t=%s, i=%s, e=%s"%(k, u, t, i, e))
                 while True:
                     i0 += 1
                     if i0 == nA or aut[u].succ(e0, i0) != -1:
                         break
-                #print("i=%s"%i)
+                # print("i=%s"%i)
                 if i0 != nA:
                     p[-1] = (m0, t0, i0, e0)
                     p.append((m, t0+m0.dot(A[i0]), 0, aut[u].succ(e0, i0)))
@@ -574,12 +574,12 @@ def plot_Cadic2(numpy.ndarray dv, int sx=800, int sy=600,
             nA = aut[u].n_succs(e)
             while i < nA and aut[u].succ(e, i) == -1:
                 i += 1
-            #print("starting i=%s k=%s u=%s t=%s e=%s"%(i, k, u, t, e))
+            # print("starting i=%s k=%s u=%s t=%s e=%s"%(i, k, u, t, e))
             p[-1] = (m, t, i, e)
             p.append((m.dot(lm[u]), lm[u].dot(t)+A[i], 0, aut[u].succ(e, i)))
-        #for j2, (m2, t2, i2, e2) in enumerate(p):
-            #print("%s : m=%s, t=%s, i=%s, e=%s"%(j2, m2, t2, i2, e2))
-    print("%s pts computed."%npts)
+        # for j2, (m2, t2, i2, e2) in enumerate(p):
+            # print("%s : m=%s, t=%s, i=%s, e=%s"%(j2, m2, t2, i2, e2))
+    print("%s pts computed." % npts)
     from PIL import Image
     return Image.fromarray(im, 'RGBA')
 
@@ -784,12 +784,13 @@ cdef Automaton getAutomaton(DetAutomaton a, list A, verb=False):
     else:
         fa = a.bigger_alphabet(A)
     aut = fa.a[0]
-    #free(fa.a)
-    #fa.a = NULL
+    # free(fa.a)
+    # fa.a = NULL
     aut = CopyAutomaton(aut, aut.n, aut.na);
     return aut
-    #else:
+    # else:
     #    raise ValueError("DetAutomaton expected.")
+
 
 def mahler(pi):
     from sage.rings.qqbar import AA
@@ -802,6 +803,7 @@ def mahler(pi):
         p *= abs(r[0])
     return p
 
+
 cdef BetaAdic getBetaAdic(m, prec=53, mirror=False, verb=False):
     from sage.rings.complex_field import ComplexField
     CC = ComplexField(prec)
@@ -811,7 +813,7 @@ cdef BetaAdic getBetaAdic(m, prec=53, mirror=False, verb=False):
         a = a.mirror().determinize().minimize()
     A = a.alphabet
     nA = a.n_letters
-    
+
     b = NewBetaAdic(nA)
     b.b = complex(CC(m.b))
     for i, c in zip(range(b.n), A):
@@ -828,26 +830,26 @@ cdef BetaAdic2 getBetaAdic2(BetaAdicSet self, la=None,
     cdef BetaAdic2 b
     if la is None:
         la = self.get_la(verb=verb)
-    
-    #check that every element of la is a DetAutomaton or convert it
+
+    # check that every element of la is a DetAutomaton or convert it
     la = [getDetAutomaton(self, a) for a in la]
-    
-    #add the automaton of self as first element
+
+    # add the automaton of self as first element
     la = [self.a]+la
-    
+
     if mirror:
         la = [a.mirror().determinize().minimize() for a in la]
-    
+
     if verb:
-        print("la=%s"%la)
-    
+        print("la=%s" % la)
+
     A = set()
     for a in la:
         A.update(a.alphabet)
     A = list(A)
     if verb:
-        print("A=%s"%A)
-    
+        print("A=%s" % A)
+
     b = NewBetaAdic2(len(A), len(la))
     b.b = complex(CC(self.b))
     d = {}
@@ -856,7 +858,7 @@ cdef BetaAdic2 getBetaAdic2(BetaAdicSet self, la=None,
         d[c] = i
     # automata
     for i in range(len(la)):
-        b.a[i] = getAutomaton(getDetAutomaton(self,la[i]), A=A, verb=verb)
+        b.a[i] = getAutomaton(getDetAutomaton(self, la[i]), A=A, verb=verb)
     return b
 
 #def PrintWord(m, n):
@@ -881,7 +883,6 @@ cdef BetaAdic2 getBetaAdic2(BetaAdicSet self, la=None,
 #    """
 #    b = getBetaAdic(m, prec=53, mirror=False, verb=False)
 #    print_word(b, n, b.a.i)
-
 
 # used by substitution()
 def fils(tree, e):
@@ -3719,7 +3720,7 @@ cdef class BetaAdicSet:
         Return the difference of two beta-adic sets.
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
             sage: a = dag.AnyWord([0, 1, 2, 4])
@@ -3861,6 +3862,25 @@ cdef class BetaAdicSet:
         Compute an upper bound of the diameter of the BetaAdicSet for the place p.
         The error has order p(self.b)^n.
         (The algorithm used here is not optimal.)
+
+        INPUT:
+
+        - ``p`` - integer
+
+        - ``n`` - integer (default: 10 )
+
+        - ``verb`` bool -- (default : ``False``) set to ``True`` for verbose mode
+
+        OUTPUT:
+
+        Return the diameter  beta-adic sets.
+
+
+        EXAMPLES::
+
+            sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
+            sage: p =
+            sage: m.diameter()
         """
         cdef int i, j, k, f, f2, nrr, nA
         cdef double d, dmm, dm2
@@ -3878,7 +3898,7 @@ cdef class BetaAdicSet:
                         rr.append((f, t + bn*self.a.A[k]))
             bn = bn*self.b
             if verb:
-                print("rr : %s elements"%len(rr))
+                print("rr : %s elements" % len(rr))
             r = []
             # compute the diameter of the set rr (this could be improved)
             dmm = 0
@@ -3909,13 +3929,27 @@ cdef class BetaAdicSet:
     def translations_iterator(self, bool test_Pisot=True, int ndiam=20, bool verb=False):
         """
         Assume that self.b is a Pisot number.
-        Compute a list of numbers containing the positive part of the BetaAdicSet, ordered in the expanding direction.
+        Compute a list of numbers containing the positive
+        part of the BetaAdicSet, ordered in the expanding direction.
 
+        INPUT:
+
+        - ``test_Pisot``  bool -- (default : ``True``) : test if b is the conjugate of a Pisot number as needed
+          B : basis of a lattice containing the BetaAdicSet
+
+        - ``verb`` bool -- (default : ``False``) set to ``True`` for verbose mode
+
+        - ``ndiam`` int  -- (default : 20): number of iterations
+          used for the estimation of the diameter
+
+        OUTPUT:
         Return an iterator.
 
-        test_Pisot : test if b is the conjugate of a Pisot number as needed
-        B : basis of a lattice containing the BetaAdicSet
-        ndiam : number of iterations used for the estimation of the diameter
+
+        EXAMPLES::
+
+            sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
+            sage: m.translations_iterator().next()
 
         """
         cdef int n, i, j
@@ -3936,26 +3970,31 @@ cdef class BetaAdicSet:
         for i, p in enumerate(P):
             m = min([abs(p(b)) for b in Bd])
             if verb:
-                print("p=%s, m=%s, M=%s"%(p,m,M))
-                print("%s"%(log(m/(2*M[i]))/log(abs(p(self.b)))))
+                print("p=%s, m=%s, M=%s" % (p,m,M))
+                print("%s" % (log(m/(2*M[i]))/log(abs(p(self.b)))))
             n = max(n, <int>floor(log(m/(2*M[i]))/log(abs(p(self.b)))))
         if verb:
-            print("n=%s"%n)
+            print("n=%s" % n)
         # multiply the bound by this power of b
         bn = self.b**n
-        M = [M[i]*abs(p(bn)) for i,p in enumerate(P)]
+        M = [M[i]*abs(p(bn)) for i, p in enumerate(P)]
         # compute the matrix corresponding to the multiplication by M to the left
         from sage.matrix.constructor import identity_matrix
         I = identity_matrix(d)
         pi = self.b.minpoly()
         pi /= pi.leading_coefficient()
         from sage.matrix.constructor import matrix
-        m = matrix([I[i] for i in range(1,d)]+[[-c for c in pi.list()[:d]]]).transpose()
+
+        m = matrix(
+            [I[i] for i in range(1, d)] +
+            [[-c for c in pi.list()[:d]]]).transpose()
+
         if verb:
-            print("m=%s"%m)
+            print("m=%s" % m)
         # compute the Perron-Frobenius eigenvector
         from sage.modules.free_module_element import vector
-        v = vector(max([r[1][0] for r in m.right_eigenvectors()], key=lambda x: x[0]))
+        v = vector(max(
+            [r[1][0] for r in m.right_eigenvectors()], key=lambda x: x[0]))
         v /= sum(v)
         vB = vector(B)
         if verb:
@@ -3963,7 +4002,102 @@ cdef class BetaAdicSet:
         r = []
         from itertools import count
         for j in count(start=1):
-            vi = vector([<int>round(j*x) for x in v])
+            vi = vector([<int> round(j * x) for x in v])
+            t = vi * vB
+            if t == 0:
+                continue
+            if verb:
+                print("j=%s, t=%s" % (j, t))
+            # test if t is in the domain
+            keep = True
+            for i, p in enumerate(P):
+                if abs(p(t)) > M[i]:
+                    keep = False
+                    break
+            if keep:
+                yield t/bn
+
+    def translations_diff_iterator(self, bool test_Pisot=True, 
+                                   int ndiam=20, bool verb=False):
+        """
+        Assume that self.b is a Pisot number.
+        Compute a list that contains the set of differences of points of the BetaAdicSet.
+        The list is increasing for the expanding place.
+
+        INPUT:
+
+        - ``test_Pisot``  bool -- (default : ``True``) : test if b is 
+          the conjugate of a Pisot number as needed
+          B : basis of a lattice containing the BetaAdicSet
+
+        - ``ndiam`` int -- (default : 20): number of iterations used
+          for the estimation of the diameter
+
+        - ``verb`` bool -- (default : ``False``) set to ``True`` for verbose mode
+
+        OUTPUT:
+        Return an iterator.
+
+        EXAMPLES::
+
+            sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
+            sage: m.translations_diff_iterator().next()
+            2*b^2 - 3*b - 1
+
+        """
+        cdef int n, i, j
+        if test_Pisot:
+            if not self.is_Pisot():
+                raise ValueError("b must be the conjugate of a Pisot number")
+        # take a basis of the lattice
+        d = self.b.minpoly().degree()
+        B = [self.b**i for i in range(d)]
+        # compute the min of the differences for every place
+        Bd = set([a-b for a in B for b in B if a != b])
+        K = self.b.parent()
+        n = -2147483648
+        # from sage.functions.other import ceil
+        # from sage.functions.log import log
+        P = [p for p in K.places() if abs(p(self.b)) < 1]
+        M = [self.diameter(p) for p in P]
+        for i, p in enumerate(P):
+            m = min([abs(p(b)) for b in Bd])
+            if verb:
+                print("p=%s, m=%s, M=%s" % (p, m,M))
+                print("%s" % (log(m/(2*M[i]))/log(abs(p(self.b)))))
+            n = max(n, <int> floor(log(m/(2*M[i])) / log(abs(p(self.b)))))
+        if verb:
+            print("n=%s" % n)
+        # multiply the bound by this power of b
+        bn = self.b**n
+        M = [M[i]*abs(p(bn)) for i, p in enumerate(P)]
+        # compute the matrix corresponding to the multiplication by M to the left
+        from sage.matrix.constructor import identity_matrix
+        I = identity_matrix(d)
+        pi = self.b.minpoly()
+        pi /= pi.leading_coefficient()
+        if verb:
+            print("pi=%s" % pi)
+        from sage.matrix.constructor import matrix
+
+        m = matrix(
+            [I[i] for i in range(1,d)] +
+            [[-c for c in pi.list()[:d]]]).transpose()
+
+        if verb:
+            print("m=%s" % m)
+        # compute the Perron-Frobenius eigenvector
+        from sage.modules.free_module_element import vector
+        v = vector(
+            max([r[1][0] for r in m.right_eigenvectors()], key=lambda x: x[0]))
+        v /= sum(v)
+        vB = vector(B)
+        if verb:
+            print("v=%s" % v)
+        r = []
+        from itertools import count
+        for j in count(start=1):
+            vi = vector([<int>round(j * x) for x in v])
             t = vi*vB
             if t == 0:
                 continue
@@ -3978,124 +4112,74 @@ cdef class BetaAdicSet:
             if keep:
                 yield t/bn
 
-    def translations_diff_iterator(self, bool test_Pisot=True, int ndiam=20, bool verb=False):
-        """
-        Assume that self.b is a Pisot number.
-        Compute a list that contains the set of differences of points of the BetaAdicSet.
-        The list is increasing for the expanding place.
-
-        Return an iterator.
-
-        test_Pisot : test if b is the conjugate of a Pisot number as needed
-        B : basis of a lattice containing the BetaAdicSet
-        ndiam: number of iterations used for the estimation of the diameter
-
-        """
-        cdef int n, i, j
-        if test_Pisot:
-            if not self.is_Pisot():
-                raise ValueError("b must be the conjugate of a Pisot number")
-        #take a basis of the lattice
-        d = self.b.minpoly().degree()
-        B = [self.b**i for i in range(d)]
-        #compute the min of the differences for every place
-        Bd = set([a-b for a in B for b in B if a != b])
-        K = self.b.parent()
-        n = -2147483648
-        #from sage.functions.other import ceil
-        #from sage.functions.log import log
-        P = [p for p in K.places() if abs(p(self.b)) < 1]
-        M = [self.diameter(p) for p in P]
-        for i,p in enumerate(P):
-            m = min([abs(p(b)) for b in Bd])
-            if verb:
-                print("p=%s, m=%s, M=%s"%(p,m,M))
-                print("%s"%(log(m/(2*M[i]))/log(abs(p(self.b)))))
-            n = max(n, <int>floor(log(m/(2*M[i]))/log(abs(p(self.b)))))
-        if verb:
-            print("n=%s"%n)
-        #multiply the bound by this power of b
-        bn = self.b**n
-        M = [M[i]*abs(p(bn)) for i,p in enumerate(P)]
-        #compute the matrix corresponding to the multiplication by M to the left
-        from sage.matrix.constructor import identity_matrix
-        I = identity_matrix(d)
-        pi = self.b.minpoly()
-        pi /= pi.leading_coefficient()
-        if verb:
-            print("pi=%s"%pi)
-        from sage.matrix.constructor import matrix
-        m = matrix([I[i] for i in range(1,d)]+[[-c for c in pi.list()[:d]]]).transpose()
-        if verb:
-            print("m=%s"%m)
-        #compute the Perron-Frobenius eigenvector
-        from sage.modules.free_module_element import vector
-        v = vector(max([r[1][0] for r in m.right_eigenvectors()], key=lambda x: x[0]))
-        v /= sum(v)
-        vB = vector(B)
-        if verb:
-            print("v=%s"%v)
-        r = []
-        from itertools import count
-        for j in count(start=1):
-            vi = vector([<int>round(j*x) for x in v])
-            t = vi*vB
-            if t == 0:
-                continue
-            if verb:
-                print("j=%s, t=%s"%(j,t))
-            #test if t is in the domain
-            keep = True
-            for i,p in enumerate(P):
-                if abs(p(t)) > M[i]:
-                    keep = False
-                    break
-            if keep:
-                yield t/bn
         
-    def domain_exchange(self, n=None, int algo=1, bool test_Pisot=True, int ndiam=30, bool verb=False):
+    def domain_exchange(self, n=None, int algo=1, bool test_Pisot=True,
+                        int ndiam=30, bool verb=False):
+
         """
         Assume that self.b is a Pisot number.
         Compute the domain exchange describing the BetaAdicSet.
         Return a list of (translation, BetaAdicSet).
-        
-        ndiam: number of iterations used for the estimation of the diameter
-        
-        EXAMPLE::
-        
-        #Domain exchange of the Tribonnacci substitution
-        sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
-        sage: l = m.domain_exchange(); l
-        [(b^2 - b - 1,
-  b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 4 states and 2 letters.),
- (b - 1,
-  b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 4 states and 2 letters.),
- (1,
-  b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 6 states and 2 letters.)]
-        sage: m.plot_list([a for t,a in l])             # not tested
-        sage: m.plot_list([a.proj(m, t) for t,a in l])  # not tested
-        
-        #A more complicated domain exchange
-        sage: m = BetaAdicSet((x^3 - x^2 - x - 1).roots(ring=QQbar)[1][0], DetAutomaton([[0, 1], [(0, 17, 0), (0, 4, 1), (1, 16, 0), (2, 17, 0), (2, 4, 1), (3, 17, 0), (4, 17, 0), (5, 7, 0), (5, 0, 1), (6, 5, 0), (6, 0, 1), (7, 6, 0), (8, 10, 0), (9, 8, 0), (9, 0, 1), (10, 9, 0), (11, 15, 0), (11, 1, 1), (12, 14, 0), (12, 11, 1), (13, 8, 0), (13, 2, 1), (14, 13, 0), (14, 18, 1), (15, 5, 0), (15, 2, 1), (16, 17, 0), (16, 0, 1), (17, 17, 0), (17, 0, 1), (18, 16, 0), (18, 3, 1)]], i=12, final_states=[0, 1, 2, 3, 4, 16, 17, 18]))
-        sage: l = m.domain_exchange(); l
-        [(b^2 - b - 1,
-  b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 5 states and 2 letters.),
- (b - 1,
-  b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 9 states and 2 letters.),
- (1,
-  b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 8 states and 2 letters.),
- (2,
-  b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 6 states and 2 letters.),
- (2*b - 1,
-  b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 7 states and 2 letters.)]
-        sage: m.plot_list([a for t,a in l])             # not tested
-        sage: m.plot_list([a.proj(m, t) for t,a in l])  # not tested
-        
+
+        INPUT:
+
+        - ``n``  int -- (default : ``None``)
+
+        - ``algo``  int -- (default : 1) nomro of algorithm
+
+        - ``test_Pisot``  bool -- (default : ``True``) : test if b is 
+          the conjugate of a Pisot number as needed
+          B : basis of a lattice containing the BetaAdicSet
+
+        - ``ndiam`` int -- (default : 30) : number of iterations used for
+           the estimation of the diameter
+
+        - ``verb`` bool -- (default : ``False``) set to ``True`` 
+          for verbose mode
+
+
+        OUTPUT:
+        List of tuple ``BetaAdicSet``
+
+        EXAMPLES::
+
+            #Domain exchange of the Tribonnacci substitution
+            sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
+            sage: l = m.domain_exchange(); l
+            [(b^2 - b - 1,
+              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 4 states and 2 letters.),
+             (b - 1,
+              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 4 states and 2 letters.),
+             (1,
+              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 4 states and 2 letters.)]
+            sage: m.plot_list([a for t,a in l])             # not tested
+            sage: m.plot_list([a.proj(m, t) for t,a in l])  # random
+            <PIL.Image.Image image mode=RGBA size=800x600 at 0x7F57DFF3BC10>
+
+            # A more complicated domain exchange
+            sage: m = BetaAdicSet((x^3 - x^2 - x - 1).roots(ring=QQbar)[1][0], DetAutomaton([[0, 1], [(0, 17, 0), (0, 4, 1), (1, 16, 0), (2, 17, 0), (2, 4, 1), (3, 17, 0), (4, 17, 0), (5, 7, 0), (5, 0, 1), (6, 5, 0), (6, 0, 1), (7, 6, 0), (8, 10, 0), (9, 8, 0), (9, 0, 1), (10, 9, 0), (11, 15, 0), (11, 1, 1), (12, 14, 0), (12, 11, 1), (13, 8, 0), (13, 2, 1), (14, 13, 0), (14, 18, 1), (15, 5, 0), (15, 2, 1), (16, 17, 0), (16, 0, 1), (17, 17, 0), (17, 0, 1), (18, 16, 0), (18, 3, 1)]], i=12, final_states=[0, 1, 2, 3, 4, 16, 17, 18]))
+            sage: l = m.domain_exchange(); l
+            [(b^2 - b - 1,
+              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 5 states and 2 letters.),
+             (b - 1,
+              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 9 states and 2 letters.),
+             (1,
+              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 8 states and 2 letters.),
+             (2,
+              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 6 states and 2 letters.),
+             (2*b - 1,
+              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 7 states and 2 letters.)]
+            sage: m.plot_list([a for t,a in l])             # random
+            <PIL.Image.Image image mode=RGBA size=800x600 at 0x7F57DFE50450>
+            sage: m.plot_list([a.proj(m, t) for t,a in l])  # random
+            <PIL.Image.Image image mode=RGBA size=800x600 at 0x7F57DFE50BD0>
+
         """
         if algo == 1:
             if verb:
                 print("compute translations...")
-            it = self.translations_diff_iterator(test_Pisot=test_Pisot, ndiam=ndiam, verb=verb)
+            it = self.translations_diff_iterator(test_Pisot=test_Pisot,
+                                                 ndiam=ndiam, verb=verb)
         else:
             if verb:
                 print("diff...")
@@ -4104,20 +4188,20 @@ cdef class BetaAdicSet:
                 print("compute translations...")
             it = md.translations_iterator(verb=verb, ndiam=ndiam)
         m = self.copy()
-        #from sage.combinat.words.cautomata_generators import dag
-        #a = self.a.intersection(dag.AnyWord([0], A2=self.a.A).complementary())
+        # from sage.combinat.words.cautomata_generators import dag
+        # a = self.a.intersection(dag.AnyWord([0], A2=self.a.A).complementary())
         a = self.a.copy()
         r = []
         if n is None:
-            n=-1
+            n = -1
         for t in it:
             if verb:
-                print("t=%s"%t)
+                print("t=%s" % t)
             mi = m.intersection(m, -t)
             mia = mi.a.intersection(a)
             if not mia.is_empty():
                 if verb:
-                    print("not empty ! mia=%s"%mia)
+                    print("not empty ! mia=%s" % mia)
                 mi = BetaAdicSet(m.b, mia)
                 r.append((t, mi))
                 a = a.intersection(mi.a.complementary())
@@ -4143,7 +4227,7 @@ cdef class BetaAdicSet:
         OUTPUT:
         Return computed sorted list
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
             sage: aoc = dag.AnyWord([0, 1, 2, 4])
@@ -4166,14 +4250,13 @@ cdef class BetaAdicSet:
             if a.is_final(e):
                 l.append(t)
             return l
-    
+
     def substitution(self, lt=None, get_aut=False, np=None, verb=False):
         r"""
         Assume that b is a conjugate of a Pisot number.
         Compute a substitution whose discrete line is this BetaAdicSet.
-        
+
         Return a WordMorphism. If get_aut is True, return also a list of (translation, automaton) describing each piece of the Rauzy fractal.
-        
         np -- int (default: None) - power of b used to compute the substitution. If np is None, take the smallest one possible.
         """
         #test is b is a Pisot number
