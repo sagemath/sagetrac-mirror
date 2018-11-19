@@ -17,3 +17,6 @@ cdef class BetaAdicSet:
     cdef b
     cdef DetAutomaton a
 
+cdef class BetaBase:
+    cdef BetaAdicSet m
+    cdef b
