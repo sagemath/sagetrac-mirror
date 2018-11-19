@@ -149,7 +149,7 @@ class PALPreader(SageObject):
             sage: polygons = PALPreader(2)
             sage: palp = polygons._palp_Popen()
             sage: palp.stdout.readline()
-            '2 3  \n'
+            b'2 3  \n'
             sage: polygons._read_vertices(palp.stdout, 2, 3)
             [[1, 0], [0, 1], [-1, -1]]
         """
@@ -173,7 +173,7 @@ class PALPreader(SageObject):
             sage: polygons = PALPreader(2)
             sage: palp = polygons._palp_Popen()
             sage: palp.stdout.readline()
-            '2 3  \n'
+            b'2 3  \n'
             sage: polygons._read_vertices_transposed(palp.stdout, 2, 3)
             [[1, 0, -1], [0, 1, -1]]
         """
@@ -207,13 +207,12 @@ class PALPreader(SageObject):
             start = 0
         if step is None:
             step = 1
-
         palp = self._palp_Popen()
         with terminate(palp):
             palp_out = palp.stdout
             i = 0
             while True:
-                l = palp_out.readline().strip()
+                l = str(palp_out.readline().decode("utf-8")).strip()
                 if l=='' or l.startswith('#'):
                     return  # EOF
                 l=l.split()
