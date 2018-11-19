@@ -148,8 +148,8 @@ class PALPreader(SageObject):
             sage: from sage.geometry.polyhedron.palp_database import PALPreader
             sage: polygons = PALPreader(2)
             sage: palp = polygons._palp_Popen()
-            sage: palp.stdout.readline()
-            b'2 3  \n'
+            sage: palp.stdout.readline().decode('utf-8')
+            u'2 3  \n'
             sage: polygons._read_vertices(palp.stdout, 2, 3)
             [[1, 0], [0, 1], [-1, -1]]
         """
@@ -172,8 +172,8 @@ class PALPreader(SageObject):
             sage: from sage.geometry.polyhedron.palp_database import PALPreader
             sage: polygons = PALPreader(2)
             sage: palp = polygons._palp_Popen()
-            sage: palp.stdout.readline()
-            b'2 3  \n'
+            sage: palp.stdout.readline().decode('utf-8')
+            u'2 3  \n'
             sage: polygons._read_vertices_transposed(palp.stdout, 2, 3)
             [[1, 0, -1], [0, 1, -1]]
         """
