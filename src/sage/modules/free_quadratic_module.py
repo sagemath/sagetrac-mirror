@@ -468,6 +468,8 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
         """
         return self.gram_matrix().determinant()
 
+    det = determinant
+
     def direct_sum(self, M, return_embeddings=False):
         r"""
         Return the direct sum of this quadratic module with ``M``.

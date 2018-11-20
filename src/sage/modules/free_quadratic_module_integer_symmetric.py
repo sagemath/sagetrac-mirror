@@ -67,6 +67,7 @@ from sage.structure.element import is_Matrix
 from sage.arith.misc import gcd
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.misc.cachefunc import cached_method
+from sage.quadratic_forms.quadratic_form import QuadraticForm
 
 ###############################################################################
 #
@@ -1438,6 +1439,72 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             gammaS = Gamma.gammaS()
             sub = codom.subgroup([codom(g) for g in gammaS])
             return f.preimage(sub)
+
+    @cached_method
+    def quadratic_form(self):
+        return QuadraticForm(self.gram_matrix())
+
+    @cached_method
+    def maximum(self):
+        r"""
+        """
+        p, n = self.signature_pair()
+        if p != 0:
+            return infinity
+        else:
+            return QuadraticForm(-self.gram_matrix()).minimum()
+
+    @cached_method
+    def minimum(self):
+        r"""
+        """
+        p, n = self.signature_pair()
+        if n != 0:
+            from sage.rings.infinity import MinusInfinity
+            return MinusInfinity()
+        m = min(self.gram_matrix().diagonal())
+        sv = self.short_vectors(m.abs() - 1)
+        return min((m,) +tuple(k for k in range(1,len(sv)) if len(sv[k])!=0))
+
+    @cached_method
+    def maximum(self):
+        r"""
+        """
+        p, n = self.signature_pair()
+        if p != 0:
+            from sage.rings.infinity import PlusInfinity
+            return PlusInfinity()
+        m = max(self.gram_matrix().diagonal())
+        sv = self.short_vectors(m.abs())
+        return min((m,) +tuple(k for k in range(1,len(sv)) if len(sv[k])!=0))
+
+    min = minimum
+    max = maximum
+
+    def LLL(self):
+        r"""
+        """
+        p, n = self.signature_pair()
+        if p*n != 0:
+            raise NotImplementedError("")
+        e = 1
+        if n != 0:
+            e = -1
+        U = (e*self.gram_matrix()).LLL_gram().T
+        return self.sublattice(U*self.basis_matrix())
+
+    lll = LLL
+
+    def short_vectors(self, n, **kwargs):
+        p, m = self.signature_pair()
+        if p*m != 0:
+            raise NotImplementedError("")
+        e = 1
+        if m != 0:
+            e = -1
+        q = QuadraticForm(e*2*self.gram_matrix())
+        short = q.short_vector_list_up_to_length(n, *kwargs)
+        return [[self(v*self.basis_matrix()) for v in L] for L in short]
 
     def tensor_product(self, other, discard_basis=False):
         r"""
