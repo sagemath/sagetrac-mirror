@@ -3697,7 +3697,14 @@ cdef class BetaAdicSet:
         """
         a = getDetAutomaton(self, a)
         return BetaAdicSet(self.b, self.a.union(a))
-
+    
+    def complementary(self, a):
+        """
+        Compute the complementary of the BetaAdicSet in the BetaAdicSet a.
+        """
+        a = getDetAutomaton(self, a)
+        return BetaAdicSet(self.b, self.proj(a, aut=True).complementary().intersection(a))
+    
     def unshift(self, l):
         """
         Return a BetaAdicSet with a unshiftted ``self.a`` of ``l``

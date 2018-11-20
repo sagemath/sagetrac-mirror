@@ -27,6 +27,11 @@ Uint32 moyUint32 (Uint32 a, Uint32 b, double ratio)
     return (Uint32)(Uint8)((a%256)*(1.-ratio) + (b%256)*ratio) | ((Uint32)((Uint8)(((a>>8)%256)*(1.-ratio) + ((b>>8)%256)*ratio)))<<8 | ((Uint32)((Uint8)(((a>>16)%256)*(1.-ratio) + ((b>>16)%256)*ratio)))<<16 | ((Uint32)((Uint8)((a>>24)*(1.-ratio) + (b>>24)*ratio)))<<24;
 }
 
+double sqr (double x)
+{
+    return x*x;
+}
+
 //rend une SDL_Surface contenant l'image
 void* OpenImage (const char *file_name)
 {
@@ -425,10 +430,76 @@ void drawTransf (SDL_Surface *s, SDL_Surface *screen, Complexe m, Complexe t, Co
 int lt[256]; //liste des indices des translations du morceau courant
 
 Complexe barycentre;
+double majorant;
 
-//cherche la translation donnant le morceau le plus proche du point
-//morceau de taille b^n
+double FindNearest(BetaAdic b, Complexe ib, Complexe c, int n, double mmm)
+{
+    int i,j, im;
+    double m, mm = mmm;
+    m = cnorm(c);
+    /*
+    if (m > majorant+mmm)
+    {
+        return m;
+    }
+    */
+    if (n == 0)
+    {
+        return m;
+    }
+    for (i=0;i<b.n;i++)
+    {
+        m = FindNearest(b, ib, prod(sub(c, b.t[i]), ib), n-1, mm);
+        if (m < mm)
+        {
+            mm = m;
+            im = i;
+        }
+    }
+    if (mm < mmm)
+        lt[n-1] = im;
+    return mm;
+}
+
+//find the path that get closest to c
 Complexe FindTr (int n, Complexe c, BetaAdic b, SDL_Surface *s, bool *ok, bool verb)
+{
+    if (verb)
+        printf("FindTr n=%d\n", n);
+    int i, j;
+    double m;
+    for (i=0;i<b.n;i++)
+    {
+        m = cnorm(b.t[i]);
+        if (i == 0 || majorant < m)
+            majorant = m;
+    }
+    majorant /= sqr(1 - sqrt(cnorm(b.b)));
+    FindNearest(b, inv(b.b), c, n, 1000000);
+    for (i=0;i<n/2;i++)
+    {
+        //invert the order of the list
+        j = lt[i];
+        lt[i] = lt[n-i-1];
+        lt[n-i-1] = j;
+    }
+    Complexe r = zero();
+    Complexe bn = un();
+    for (i=0;i<n;i++)
+    {
+        //compute r
+        r = add(r, prod(b.t[lt[i]], bn));
+        bn = prod(bn, b.b);
+    }
+    if (ok)
+        *ok = true;
+    r.x = -r.x;
+    r.y = -r.y;   
+    return r;
+}
+
+/*
+Complexe FindTr2 (int n, Complexe c, BetaAdic b, SDL_Surface *s, bool *ok, bool verb)
 {
 	Complexe r = zero();
 	int i, j;
@@ -483,6 +554,7 @@ Complexe FindTr (int n, Complexe c, BetaAdic b, SDL_Surface *s, bool *ok, bool v
 	r.y = -r.y;
 	return r;
 }
+*/
 
 bool addA(Automaton *a, int ri, int n)
 {
@@ -530,11 +602,6 @@ double maxd (double a, double b)
     if (a < b)
         return b;
     return a;
-}
-
-double sqr (double x)
-{
-    return x*x;
 }
 
 int choose_n (int sx, int sy, Complexe b, double sp, int prec, bool verb)
@@ -808,6 +875,10 @@ Automaton UserDraw (BetaAdic b, int sx, int sy, int n, int ajust, Color col, dou
 						ComplexeToPoint(zero(), &x, &y, screen->w, screen->h);
 						DrawRond(x, y, screen);
 						SDL_UpdateWindowSurface(win);
+					}else
+					{
+					    if (verb)
+					        printf("Already there !!!\n");
 					}
 				}else
 				{
