@@ -616,7 +616,6 @@ def latex_extra_preamble():
 
         sage: from sage.misc.latex import latex_extra_preamble
         sage: print(latex_extra_preamble())
-        ...
         <BLANKLINE>
         \newcommand{\ZZ}{\Bold{Z}}
         \newcommand{\NN}{\Bold{N}}
@@ -2620,7 +2619,7 @@ def latex_variable_name(x, is_fname=False):
     """
     import re
     # if x is an integer (it might be the case for padics), we return x
-    if re.match('\d+$', x):
+    if re.match(r'\d+$', x):
         return x
     underscore = x.find("_")
     if underscore == -1:
