@@ -681,15 +681,15 @@ bool equalsAutomaton(Automaton a1, Automaton a2)
 
 //used by equalsLanguages
 //determine if the languages of states e1 of a1 and state e2 of a2 are the same
-bool equalsLanguages_ind (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, int e1, int e2, bool verb)
+bool equalsLanguages_ind (Automaton a1, Automaton a2, Dict d, Dict a1toa2, Dict a2toa1, int e1, int e2, bool verb)
 {
 	if ((a1.e[e1].final & 1) != (a2.e[e2].final & 1))
 		return false; //one of the states is final but not the other one
-	if (a1.e[e1].final & 2 && a2.e[e2].final & 2)
-		return true; //state already seen
-	//indicate that the state a has been seen
-	a1.e[e1].final |= 2;
-	a2.e[e2].final |= 2;
+	if (d.e[e1] == e2)
+	    return true;
+	if (d.e[e1] != -1)
+	    return false;
+	d.e[e1] = e2;
 	//browse the sons of e1 in a1
 	int i;
 	for (i=0;i<a1.na;i++)
@@ -704,7 +704,7 @@ bool equalsLanguages_ind (Automaton a1, Automaton a2, Dict a1toa2, Dict a2toa1, 
 						printf("%d -%d-> exists in a1 but %d -%d-> doesn't exists in a2.", e1, i, e2, a1toa2.e[i]);
 					return false;
 				}
-				if (!equalsLanguages_ind(a1, a2, a1toa2, a2toa1, a1.e[e1].f[i], a2.e[e2].f[a1toa2.e[i]], verb))
+				if (!equalsLanguages_ind(a1, a2, d, a1toa2, a2toa1, a1.e[e1].f[i], a2.e[e2].f[a1toa2.e[i]], verb))
 				{
 					return false;
 				}
@@ -740,25 +740,25 @@ bool equalsLanguages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, 
 	if (!pruned)
 	{
 		if (verb)
-			printf("Emonde...\n");
+			printf("Prune...\n");
 		//prun the automata
 		Automaton a3 = prune(*a1, false);
 		FreeAutomaton(a1);
 		*a1 = a3;
 		a3 = prune(*a2, false);
-		FreeAutomaton(a2);
+		FreeAutomaton(a2); ///////////////////////////////////////////////////////////
 		*a2 = a3;
 	}
 	if (!minimized)
 	{
 		if (verb)
-			printf("Minimise...\n");
+			printf("Minimize...\n");
 		//minimise les automates
 		Automaton a3 = Minimise(*a1, false);
 		FreeAutomaton(a1);
 		*a1 = a3;
 		a3 = Minimise(*a2, false);
-		FreeAutomaton(a2);
+		FreeAutomaton(a2); /////////////////////////////////////////////////////////////
 		*a2 = a3;
 	}
 	if (verb)
@@ -767,6 +767,11 @@ bool equalsLanguages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, 
 		printAutomaton(*a1);
 		printAutomaton(*a2);
 	}
+	//
+    if (a1->n != a2->n)
+    {
+        return false;   
+    }
 	//inverse the dictionnary
 	Dict a2toa1 = NewDict(a2->na);
 	for (i=0;i<a1toa2.n;i++)
@@ -775,23 +780,23 @@ bool equalsLanguages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, 
 	}
 	if (verb)
 		printDict(a2toa1);
+	//Alloc the dict that goes from states of a1 to states of a2
+	Dict d = NewDict(a1->n);
+	for (i=0;i<a1->n;i++)
+	{
+	    d.e[i] = -1;
+	}
 	//
 	bool res;
 	if (a1->i == -1 || a2->i == -1)
 		res = (a1->i == a2->i);
 	else
 	{
-		res = equalsLanguages_ind(*a1, *a2, a1toa2, a2toa1, a1->i, a2->i, verb);
+		res = equalsLanguages_ind(*a1, *a2, d, a1toa2, a2toa1, a1->i, a2->i, verb);
 	}
-	//put back final states
-	for (i=0;i<a1->n;i++)
-	{
-		a1->e[i].final &= 1;
-	}
-	for (i=0;i<a2->n;i++)
-	{
-		a2->e[i].final &= 1;
-	}
+	//free memory
+	FreeDict(&d);
+	FreeDict(&a2toa1);
 	return res;
 }
 

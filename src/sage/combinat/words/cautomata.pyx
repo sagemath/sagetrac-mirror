@@ -1568,12 +1568,7 @@ cdef class DetAutomaton:
         r"""
         Return a "string" that can be evaluated to recover the DetAutomaton.
         """
-        r = "DetAutomaton([["
-        for i,c in enumerate(self.A):
-            if i != 0:
-                r+=", "
-            r += str(c)
-        r += "], ["
+        r = "DetAutomaton([%s, ["%self.states
         c = 0
         for i in range(self.a.n):
             for j in range(self.a.na):
@@ -1581,9 +1576,9 @@ cdef class DetAutomaton:
                 if k != -1:
                     if c != 0:
                         r += ", "
-                    r += "(%s, %s, %s)"%(i, k, j)
+                    r += "(%s, %s, %s)"%(i, k, self.A[j])
                     c += 1
-        r += "]], i=%s, final_states=%s)"%(self.a.i, self.final_states)
+        r += "]], A=%s, i=%s, final_states=%s)"%(self.A, self.a.i, self.final_states)
         return r
 
     def _richcmp_(self, DetAutomaton other, int op):
@@ -4084,8 +4079,8 @@ cdef class DetAutomaton:
         sig_off()
         return answ
 
-    def equal_languages(self, DetAutomaton a2, minimized=False,
-                        pruned=False, verb=False):
+    def equal_languages(self, DetAutomaton a2, bool minimized=False,
+                        bool pruned=False, bool verb=False):
         """
         Test if the languages of :class:`DetAutomaton` ``self`` and ``a2`` are
         equal or not.

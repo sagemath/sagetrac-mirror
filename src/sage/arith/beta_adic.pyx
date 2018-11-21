@@ -931,7 +931,10 @@ def included(a, l, lm):
     incl = False
     w = a.find_word()
     if w is None:
-        print("Error : empty automata!")
+        if a.has_empty_langage():
+            print("Error : empty automata!")
+        else:
+            print("Error :empty word, but non-empty language!")
         return True
     lr = []
     for j in l:
@@ -1232,7 +1235,11 @@ cdef class BetaAdicSet:
         for i, r in enumerate(rr):
             if r[0] == self.b:
                 break
-        return "BetaAdicSet((%s).roots(ring=QQbar)[%s][0], %s)"%(pi, i, self.a.string())
+        from sage.rings.rational_field import QQ
+        if len([c for c in self.a.A if c not in QQ]) == 0:
+            return "BetaAdicSet((%s).roots(ring=QQbar)[%s][0], %s)"%(pi, i, self.a.string())
+        else:
+            return "m = BetaAdicSet((%s).roots(ring=QQbar)[%s][0], DetAutomaton(None))\nb=m.b\nBetaAdicSet(b, %s)"%(pi, i, self.a.string())
 
     @property
     def a(self):
@@ -5095,6 +5102,8 @@ cdef class BetaAdicSet:
             # m.move2(t=-tr, a=a)
             # TODO : ne pas recalculer cet automate déjà calculé
             a = m.Proj(a, ap, t=-tr)
+            if a.has_empty_langage():
+                raise RuntimeError("Empty language when projecting a on ap for t=%s"%(-tr))
             while True:
                 # split selon les autres morceaux
                 j = included(a, lf, lm)
