@@ -800,7 +800,9 @@ def mahler(pi):
     for r in rr:
         if r[0] not in AA:
             rr.remove((r[0].conjugate(), r[1]))
-        p *= abs(r[0])
+        a = abs(r[0])
+        if a > 1:
+            p *= abs(r[0])
     return p
 
 
@@ -1059,12 +1061,12 @@ cdef class BetaBase:
         return self.m.proj(b, t=-t, arel=arel, aut=only_aut)
         
     def relations_automaton(self, t=0, bool isvide=False, list Ad=None, list A=None, list B=None,
-                             bool couples=False, bool ext=False, mirror=None,
-                             bool prune=True, int nhash=1000003, int prec=53, int algo=2, int coeff=1, bool verb=False):
+                             bool couples=False, bool ext=False, bool mirror=False,
+                             bool prune=True, int nhash=1000003, int prec=53, int algo=3, int coeff=1, bool verb=False):
         return self.m.relations_automaton(t=-t, isvide=isvide, Ad=Ad, A=A, B=B,
                              couples=couples, ext=ext, mirror=mirror,
                              prune=prune, nhash=nhash, prec=prec, algo=algo, coeff=coeff, verb=verb)
-
+        
 cdef getBetaAdicSet(BetaAdicSet self, a):
     if type(a) is BetaAdicSet:
         if self.b != a.b:
@@ -1098,14 +1100,14 @@ cdef class BetaAdicSet:
         sage: from sage.combinat.words.cautomata_generators import dag
         sage: m1 = BetaAdicSet(3, dag.AnyWord([0, 1, 3]))
         sage: print(m1)
-        b-adic set with b root of x - 3, and an automaton of 1 states and 3 letters.
+        b-adic set with b root of x - 3, and an automaton of 1 states and 3 letters
         sage: m2 = BetaAdicSet((1 + sqrt(5)) / 2, dag.AnyWord([0, 1]))
         sage: print(m2)
-        b-adic set with b root of x^2 - x - 1, and an automaton of 1 states and 2 letters.
+        b-adic set with b root of x^2 - x - 1, and an automaton of 1 states and 2 letters
         sage: b = (x^3-x-1).roots(ring=QQbar)[0][0]
         sage: m3 = BetaAdicSet(b, dag.AnyWord([0, 1]))
         sage: print(m3)
-        b-adic set with b root of x^3 - x - 1, and an automaton of 1 states and 2 letters.
+        b-adic set with b root of x^3 - x - 1, and an automaton of 1 states and 2 letters
 
     """
     def __init__(self, b, a):
@@ -1117,18 +1119,18 @@ cdef class BetaAdicSet:
             sage: from sage.combinat.words.cautomata_generators import dag
             sage: m1 = BetaAdicSet(3, dag.AnyWord([0, 1, 3]))
             sage: m1
-            b-adic set with b root of x - 3, and an automaton of 1 states and 3 letters.
+            b-adic set with b root of x - 3, and an automaton of 1 states and 3 letters
             sage: c = Automaton({0:{1:'0',2:'1',3:'2'}, 2:{5:'1'}},initial_states=[0])
             sage: b = m1.b
             m3 = BetaAdicSet(b, c)
             sage: m3
-            b-adic set with b root of x - 3, and an automaton of 5 states and 3 letters.
+            b-adic set with b root of x - 3, and an automaton of 5 states and 3 letters
             sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
             sage: m
-            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 states and 2 letters.
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 states and 2 letters
             sage: m1 = BetaAdicSet(3,[0,1])
             sage: m1
-            b-adic set with b root of x - 3, and an automaton of 1 states and 2 letters.
+            b-adic set with b root of x - 3, and an automaton of 1 states and 2 letters
 
         """
         cdef int i, j
@@ -1184,9 +1186,9 @@ cdef class BetaAdicSet:
 
             sage: from sage.combinat.words.cautomata_generators import dag
             sage: BetaAdicSet((1+sqrt(5))/2, dag.AnyWord([0, 1]))
-            b-adic set with b root of x^2 - x - 1, and an automaton of 1 states and 2 letters.
+            b-adic set with b root of x^2 - x - 1, and an automaton of 1 states and 2 letters
             sage: BetaAdicSet(3, dag.AnyWord([0, 1, 3]))
-            b-adic set with b root of x - 3, and an automaton of 1 states and 3 letters.
+            b-adic set with b root of x - 3, and an automaton of 1 states and 3 letters
 
 
         TESTS::
@@ -1194,23 +1196,23 @@ cdef class BetaAdicSet:
             sage: from sage.combinat.words.cautomata_generators import dag
             sage: m = BetaAdicSet(3/sqrt(2), dag.AnyWord([0, 1]))
             sage: repr(m)
-            'b-adic set with b root of x^2 - 9/2, and an automaton of 1 states and 2 letters.'
+            'b-adic set with b root of x^2 - 9/2, and an automaton of 1 states and 2 letters'
 
         """
 
         from sage.rings.qqbar import QQbar
         if self.b not in QQbar:
-            return "(%s)-adic set with an automaton of %s states and %s letters." % (self.b, self.a.n_states, self.a.n_letters)
+            return "(%s)-adic set with an automaton of %s states and %s letters" % (self.b, self.a.n_states, self.a.n_letters)
         else:
             K = self.b.parent()
             from sage.rings.rational_field import QQ
             if K.base_field() == QQ:
-                return "b-adic set with b root of %s, and an automaton of %s states and %s letters." % (self.b.minpoly(), self.a.n_states, self.a.n_letters)
+                return "b-adic set with b root of %s, and an automaton of %s states and %s letters" % (self.b.minpoly(), self.a.n_states, self.a.n_letters)
             else:
                 if K.characteristic() != 0:
-                    return "b-adic set with b root of %s (in characteristic %s), and an automaton of %s states and %s letters."%(self.b.minpoly(), K.characteristic(), self.a.n_states, self.a.n_letters)
+                    return "b-adic set with b root of %s (in characteristic %s), and an automaton of %s states and %s letters"%(self.b.minpoly(), K.characteristic(), self.a.n_states, self.a.n_letters)
                 else:
-                    return "b-adic set with b root of %s, an automaton of %s states and %s letters."%(K.modulus(), self.a.n_states, self.a.n_letters)
+                    return "b-adic set with b root of %s, an automaton of %s states and %s letters"%(K.modulus(), self.a.n_states, self.a.n_letters)
 
     def string(self):
         r"""
@@ -1291,7 +1293,7 @@ cdef class BetaAdicSet:
             sage: from sage.combinat.words.cautomata_generators import dag
             sage: m = BetaAdicSet((1+sqrt(5))/2, dag.AnyWord([0, 1]))
             sage: m.copy()
-            b-adic set with b root of x^2 - x - 1, and an automaton of 1 states and 2 letters.
+            b-adic set with b root of x^2 - x - 1, and an automaton of 1 states and 2 letters
 
         """
 
@@ -1310,7 +1312,7 @@ cdef class BetaAdicSet:
             sage: from sage.combinat.words.cautomata_generators import dag
             sage: m = BetaAdicSet((1+sqrt(5))/2, dag.AnyWord([0, 1]))
             sage: m.mirror()
-            b-adic set with b root of x^2 - x - 1, and an automaton of 1 states and 2 letters.
+            b-adic set with b root of x^2 - x - 1, and an automaton of 1 states and 2 letters
 
         """
         return BetaAdicSet(self.b, self.a.mirror())
@@ -1463,7 +1465,7 @@ cdef class BetaAdicSet:
 #            sage: e = QQbar(1/(1+I))
 #            sage: m=BetaAdicSet(e, dag.AnyWord([0, 1]))
 #            sage: print(m)
-#            b-adic set with b root of x^2 - x + 1/2, and an automaton of 1 states and 2 letters.
+#            b-adic set with b root of x^2 - x + 1/2, and an automaton of 1 states and 2 letters
 #            sage: P = m.points_exact()
 #            age: len(P)
 #            65536
@@ -1948,8 +1950,8 @@ cdef class BetaAdicSet:
         return im
 
     def relations_automaton(self, t=0, bool isvide=False, list Ad=None, list A=None, list B=None,
-                             bool couples=False, bool ext=False, mirror=None,
-                             bool prune=True, int nhash=1000003, int prec=53, int algo=1, int coeff=1, bool verb=False):
+                             bool couples=False, bool ext=False, bool mirror=False,
+                             bool prune=True, int nhash=1000003, int prec=53, int algo=3, int coeff=1, bool verb=False):
         r"""
         Compute the relation automaton of the beta-adic monoid.
         For beta algebraic integer only.
@@ -1982,7 +1984,7 @@ cdef class BetaAdicSet:
         - ``ext``  boolean - (default: ''False'')
           where automaton has relations at infinity or not
 
-        - ``mirror``  boolean - (default: ''None'')
+        - ``mirror``  boolean - (default: ''False'')
 
         - ``prune`` boolean - (default: ''False'')
 
@@ -2045,9 +2047,18 @@ cdef class BetaAdicSet:
                 pass
         if verb:
             print("Ad=%s" % Ad)
+        if ext:
+            if algo == 1 and not mirror:
+                if verb:
+                    print("Algo 1 cannot be used with ext=True and mirror=False: change to algo 3.")
+                algo = 3
+            elif (algo == 3 or algo == 2) and mirror:
+                if verb:
+                    print("Algo 2 or 3 cannot be used with ext=True and mirror=True: change to algo 1.")
+                algo = 1
+        if verb:
+            print("algo=%s, mirror=%s"%(algo, mirror))
         if algo == 1:
-            if mirror is None:
-                mirror = True
             if ext:
                 b = 1/b
                 pi = b.minpoly()
@@ -2085,9 +2096,9 @@ cdef class BetaAdicSet:
                 print("bounds=%s"%bo)
             # compute the automaton
             L = []
-            S = [0]  # remaining state to look at
+            S = [t]  # remaining state to look at
             d = dict()  # states already seen and their number
-            d[0] = 0
+            d[t] = 0
             c = 1  # count the states seen
             while len(S) > 0:
                 S2 = []
@@ -2107,10 +2118,13 @@ cdef class BetaAdicSet:
                                 c += 1
                             L.append((d[s], d[ss], t))
                 S = S2
-            r = DetAutomaton(L, i=0, final_states=[0])
+            if d.has_key(0):
+                r = DetAutomaton(L, A=Ad, i=d[0], final_states=[0])
+            else:
+                r = DetAutomaton(L, final_states=[0])
             if verb:
                 print("before pruning: %s" % r)
-            if mirror:
+            if not mirror:
                 r = r.mirror_det()
             if prune:
                 if verb:
@@ -2122,8 +2136,6 @@ cdef class BetaAdicSet:
             if ext:
                 r.set_final_states(range(r.a.n))
         elif algo == 2:
-            if mirror is None:
-                mirror = False
             sig_on()
             ib = initInfoBetaAdic(self, Ad=Ad, plus=False, nhash=nhash, verb=verb)
             e = NewElement(ib.n)
@@ -2155,8 +2167,6 @@ cdef class BetaAdicSet:
             if mirror:
                 r = r.mirror_det()
         else:
-            if mirror is None:
-                mirror = False
             # find absolute values for which b is less than one
             places = []
             narch = 0
@@ -2187,9 +2197,9 @@ cdef class BetaAdicSet:
                 print("bounds=%s" % bo)
             # compute the automaton
             L = []
-            S = [0]  # remaining state to look at
+            S = [t]  # remaining state to look at
             d = dict()  # states already seen and their number
-            d[0] = 0
+            d[t] = 0
             c = 1  # count the states seen
             while len(S) > 0:
                 S2 = []
@@ -2213,7 +2223,10 @@ cdef class BetaAdicSet:
                             L.append((d[s], d[ss], t))
                             # L.append((s, ss, t))
                 S = S2
-            r = DetAutomaton(L, i=0, final_states=[0])
+            if d.has_key(0):
+                r = DetAutomaton(L, A=Ad, i=0, final_states=[d[0]])
+            else:
+                r = DetAutomaton(L, A=Ad, i=0, final_states=[])
             if verb:
                 print("before pruning: %s" % r)
             if mirror:
@@ -2355,7 +2368,7 @@ cdef class BetaAdicSet:
         # from sage.functions.other import ceil
         return ceil(vol)
 
-    def intersection(self, BetaAdicSet m, t=0, ext=False, algo=2, verb=False):
+    def intersection(self, BetaAdicSet m, t=0, ext=False, algo=3, verb=False):
         r"""
         Compute the intersection of two beta-adic sets.
 
@@ -2384,7 +2397,7 @@ cdef class BetaAdicSet:
                 sage: m2 = m.prefix([1])
                 sage: mi = m1.intersection(m2, ext=True)
                 sage: mi
-                b-adic set with b root of x^2 - x + 1/2, and an automaton of 21 states and 2 letters.
+                b-adic set with b root of x^2 - x + 1/2, and an automaton of 21 states and 2 letters
                 sage: mi.plot(mirror=False)
         """
         cdef DetAutomaton a, ar, ai
@@ -2433,7 +2446,7 @@ cdef class BetaAdicSet:
             sage: b = pi.roots(ring=QQbar)[1][0]
             sage: m = BetaAdicSet(b, dag.AnyWord([0,1]))
             sage: m.prefix([0, 1, 1, 1])
-            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 5 states and 2 letters.
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 5 states and 2 letters
 
         """
         return BetaAdicSet(self.b, self.a.prefix(w))
@@ -2927,7 +2940,7 @@ cdef class BetaAdicSet:
                 sage: m = BetaAdicSet(3, dag.AnyWord([0,1,3]))
                 sage: mr = m.reduced()
                 sage: mr.critical_exponent_free()
-                log(y)/log(|3|) where y is the max root of x^2 - 3*x + 1
+                log(y)/log(3) where y is the max root of x^2 - 3*x + 1, and 3 is root of x - 3.
                 0.8760357589...
 
             #. Hausdorff dimension of limit set of phi-adic expansion with numerals set {0,1}::
@@ -2935,7 +2948,7 @@ cdef class BetaAdicSet:
                 sage: m = BetaAdicSet((1+sqrt(5))/2, dag.AnyWord([0,1]))
                 sage: m = m.reduced()
                 sage: m.critical_exponent_free()
-                log(y)/log(|b|) where y is the max root of x^2 - x - 1
+                log(y)/log(1.618033988749895?) where y is the max root of x^2 - x - 1, and 1.618033988749895? is root of x^2 - x - 1.
                 1.0000000000...
 
             #. Hausdorff dimension of the boundary of the dragon fractal::
@@ -3006,14 +3019,14 @@ cdef class BetaAdicSet:
 
             #. Hausdorff dimension of limit set of 3-adic expansion with numerals set {0, 1, 3}::
 
-                sage: m = BetaAdicSet(3, dag.AnyWord([0,1,3]))
+                sage: m = BetaAdicSet(3, [0,1,3])
                 sage: m.critical_exponent()
                 log(y)/log(3) where y is the max root of x^2 - 3*x + 1
                 0.8760357589...
 
             #. Hausdorff dimension of limit set of phi-adic expansion with numerals set {0, 1}::
 
-                sage: m = BetaAdicSet((1+sqrt(5))/2, dag.AnyWord([0,1]))
+                sage: m = BetaAdicSet((1+sqrt(5))/2, [0,1])
                 sage: m.critical_exponent()
                 log(y)/log(|b|) where y is the max root of x^2 - x - 1
                 1.0000000000...
@@ -3022,7 +3035,7 @@ cdef class BetaAdicSet:
 
                 sage: P = x^7 - 2*x^6 + x^3 - 2*x^2 + 2*x - 1
                 sage: b = P.roots(ring=QQbar)[3][0]
-                sage: m = BetaAdicSet(b, dag.AnyWord([0,1]))
+                sage: m = BetaAdicSet(b, [0,1])
                 sage: m.critical_exponent()                    # long time
                 log(y)/log(|b|) where y is the max root of x^11 - 2*x^10 - 4*x^2 + 8*x + 2
                 3.3994454205...
@@ -3119,9 +3132,9 @@ cdef class BetaAdicSet:
 
         EXAMPLES::
 
-            sage: m = BetaAdicSet(3, dag.AnyWord([0,1,3]))
-            sage: m.complete(dag.AnyWord([0,1,2]))
-            DetAutomaton with 1 states and an alphabet of 3 letters
+            sage: m = BetaAdicSet(3, [0,1,3])
+            sage: m.complete([0,1,2])
+            b-adic set with b root of x - 3, and an automaton of 2 states and 3 letters
         """
         cdef DetAutomaton a
         if 0 not in self.a.A:
@@ -3292,7 +3305,7 @@ cdef class BetaAdicSet:
 #        return a2.minimize()
 
     # project the translation by t of self on the zero completion of a
-    def proj(self, a, t=0, arel=None, algo=2, bool aut=False):
+    def proj(self, a, t=0, arel=None, int algo=3, bool aut=False):
         r"""
         project the translation by t of self on the zero completion of a
         aut -  ?
@@ -3309,11 +3322,17 @@ cdef class BetaAdicSet:
         Return a DetAutomaton or a BetaAdicSet
 
         EXAMPLES::
-            sage: from sage.combinat.words.cautomata_generators import dag
-            sage: a = dag.AnyWord([0,1,2])
-            sage: m = BetaAdicSet(3, dag.AnyWord([0,1,3]))
-            sage: m.proj(a)
-            b-adic set with b root of x - 3, and an automaton of 2 states and 3 letters.
+
+            sage: m = BetaAdicSet(3, [0,1,3])
+            sage: m2 = BetaAdicSet(3, [0,1])
+            sage: m.proj(m2)
+            b-adic set with b root of x - 3, and an automaton of 1 states and 2 letters
+            
+            sage: m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
+            sage: m = m.proj(m, t=1+m.b)
+            sage: m
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 12 states and 2 letters
+            sage: m.plot()          # not tested
 
         """
         cdef DetAutomaton ai
@@ -3409,12 +3428,10 @@ cdef class BetaAdicSet:
         Return the shifted BetaAdicSet
 
         EXAMPLES::
-            sage: from sage.combinat.words.cautomata_generators import dag
-            sage: a = dag.AnyWord([0,1,2])
-            sage: m = BetaAdicSet(3, dag.AnyWord([0,1,3]))
+            sage: m = BetaAdicSet(3, [0,1,3])
             sage: m.shift_op([0,1, 0])
             sage: m
-            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 states and 2 letters.
+            b-adic set with b root of x - 3, and an automaton of 1 states and 3 letters
 
         """
         try:
@@ -3437,11 +3454,9 @@ cdef class BetaAdicSet:
         Return the shifted BetaAdicSet
 
         EXAMPLES::
-            sage: from sage.combinat.words.cautomata_generators import dag
-            sage: a = dag.AnyWord([0,1,2])
-            sage: m = BetaAdicSet(3, dag.AnyWord([0,1,3]))
-            sage: m.shift([0,1, 0])
-            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 states and 2 letters.
+            sage: m = BetaAdicSet(3, [0,1,3])
+            sage: m.shift([0, 1, 0])
+            b-adic set with b root of x - 3, and an automaton of 1 states and 3 letters
 
         """
         m = self.copy()
@@ -3578,7 +3593,7 @@ cdef class BetaAdicSet:
 
             sage: from sage.combinat.words.cautomata_generators import dag
             sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
-            sage n = 13
+            sage: n = 13
             sage: pm = m.b.parent().places()[1]
             sage: test = lambda x: (pm(x).real())^2 + (pm(x).imag())^2 < .4
             sage: a = DetAutomaton(None, A=m.a.alphabet)
@@ -3634,7 +3649,7 @@ cdef class BetaAdicSet:
             sage: pm = m.b.parent().places()[1]
             sage: a = m.approx(13, lambda x: (pm(x).real())^2 + (pm(x).imag())^2 < .4 )
             sage: print(a)
-            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 201 states and 2 letters.
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 201 states and 2 letters
             sage: a.plot()  # not tested
         """
         cdef DetAutomaton a
@@ -3670,7 +3685,7 @@ cdef class BetaAdicSet:
 
             sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
             sage: m.full()
-            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 states and 2 letters.
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 states and 2 letters
 
         """
         from sage.combinat.words.cautomata_generators import dag
@@ -3726,10 +3741,10 @@ cdef class BetaAdicSet:
 
             sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
             sage: m.unshift(1)
-            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 2 states and 2 letters.
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 2 states and 2 letters
             sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
             sage: m.unshift([0,1])
-            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 3 states and 2 letters.
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 3 states and 2 letters
         """
         try:
             l = list(l)
@@ -3756,7 +3771,7 @@ cdef class BetaAdicSet:
             sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
             sage: a = dag.AnyWord([0, 1, 2, 4])
             sage: m.diff(a)
-            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 states and 6 letters.
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 states and 6 letters
 
         """
         a = getDetAutomaton(self, a)
@@ -3845,7 +3860,7 @@ cdef class BetaAdicSet:
             #. The dragon fractal::
             sage: m = BetaAdicSet(1/(1+I), [0, 1])
             sage: print(m)
-            b-adic set with b root of x^2 - x + 1/2, and an automaton of 1 states and 2 letters.
+            b-adic set with b root of x^2 - x + 1/2, and an automaton of 1 states and 2 letters
             sage: P = m.points()
             sage: P[0]
             13
@@ -3909,8 +3924,8 @@ cdef class BetaAdicSet:
 
         EXAMPLES::
 
-            sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
-            sage: p =
+            sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
+            sage: p = m.b.parent().places()[1]
             sage: m.diameter()
         """
         cdef int i, j, k, f, f2, nrr, nA
@@ -3981,6 +3996,7 @@ cdef class BetaAdicSet:
 
             sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
             sage: m.translations_iterator().next()
+            -b^2 + 2*b
 
         """
         cdef int n, i, j
@@ -4144,7 +4160,7 @@ cdef class BetaAdicSet:
                 yield t/bn
 
         
-    def domain_exchange(self, n=None, int algo=1, bool test_Pisot=True,
+    def domain_exchange(self, n=None, int algo=1, int algo_rel=3, bool test_Pisot=True,
                         int ndiam=30, bool verb=False):
 
         """
@@ -4178,11 +4194,11 @@ cdef class BetaAdicSet:
             sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
             sage: l = m.domain_exchange(); l
             [(b^2 - b - 1,
-              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 4 states and 2 letters.),
+              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 4 states and 2 letters),
              (b - 1,
-              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 4 states and 2 letters.),
+              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 4 states and 2 letters),
              (1,
-              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 4 states and 2 letters.)]
+              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 4 states and 2 letters)]
             sage: m.plot_list([a for t,a in l])             # not tested
             sage: m.plot_list([a.proj(m, t) for t,a in l])  # random
             <PIL.Image.Image image mode=RGBA size=800x600 at 0x7F57DFF3BC10>
@@ -4191,15 +4207,15 @@ cdef class BetaAdicSet:
             sage: m = BetaAdicSet((x^3 - x^2 - x - 1).roots(ring=QQbar)[1][0], DetAutomaton([[0, 1], [(0, 17, 0), (0, 4, 1), (1, 16, 0), (2, 17, 0), (2, 4, 1), (3, 17, 0), (4, 17, 0), (5, 7, 0), (5, 0, 1), (6, 5, 0), (6, 0, 1), (7, 6, 0), (8, 10, 0), (9, 8, 0), (9, 0, 1), (10, 9, 0), (11, 15, 0), (11, 1, 1), (12, 14, 0), (12, 11, 1), (13, 8, 0), (13, 2, 1), (14, 13, 0), (14, 18, 1), (15, 5, 0), (15, 2, 1), (16, 17, 0), (16, 0, 1), (17, 17, 0), (17, 0, 1), (18, 16, 0), (18, 3, 1)]], i=12, final_states=[0, 1, 2, 3, 4, 16, 17, 18]))
             sage: l = m.domain_exchange(); l
             [(b^2 - b - 1,
-              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 5 states and 2 letters.),
+              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 5 states and 2 letters),
              (b - 1,
-              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 9 states and 2 letters.),
+              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 9 states and 2 letters),
              (1,
-              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 8 states and 2 letters.),
+              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 8 states and 2 letters),
              (2,
-              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 6 states and 2 letters.),
+              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 6 states and 2 letters),
              (2*b - 1,
-              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 7 states and 2 letters.)]
+              b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 7 states and 2 letters)]
             sage: m.plot_list([a for t,a in l])             # random
             <PIL.Image.Image image mode=RGBA size=800x600 at 0x7F57DFE50450>
             sage: m.plot_list([a.proj(m, t) for t,a in l])  # random
@@ -4230,7 +4246,7 @@ cdef class BetaAdicSet:
                 continue
             if verb:
                 print("t=%s" % t)
-            mi = m.intersection(m, -t)
+            mi = m.intersection(m, -t, algo=algo_rel)
             mia = mi.a.intersection(a)
             if not mia.is_empty():
                 if verb:
@@ -4415,7 +4431,7 @@ cdef class BetaAdicSet:
 #                    m.a = a
 #                    a4 = m.proj(a3, t=-tr/bn)
 ##                    if a4.equal_languages(a3):
-##                    		k2 = k
+##                    	    k2 = k
 ##                    else:
 ##                        k2 = len(lm)  # index of the new piece
 ##                        lf.append(k2)  # new leaf

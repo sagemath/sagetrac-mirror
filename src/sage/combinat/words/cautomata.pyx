@@ -258,13 +258,14 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
         r.e[i].final = 0
         d[V[i]] = i
     for v in F:
-        if not d.has_key(v):
-            sig_on()
-            FreeAutomaton(&r)
-            r = NewAutomaton(0, 0)
-            sig_off()
-            raise ValueError("Incorrect set of final states.")
-        r.e[d[v]].final = 1
+        #if not d.has_key(v):
+        #    sig_on()
+        #    FreeAutomaton(&r)
+        #    r = NewAutomaton(0, 0)
+        #    sig_off()
+        #    raise ValueError("Incorrect set of final states.")
+        if d.has_key(v):
+            r.e[d[v]].final = 1
 
     if initial is None:
         if not hasattr(a, 'I'):
@@ -278,7 +279,10 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
         else:
             r.i = -1
     else:
-        r.i = d[initial]
+        if d.has_key(initial):
+            r.i = d[initial]
+        else:
+            r.i = -1
 
     w = False
     for e, f, l in a.edges():
@@ -1343,7 +1347,7 @@ cdef class DetAutomaton:
             self.a[0] = getAutomaton(a, initial=i, F=final_states, A=self.A)
             #self.dA = a.dA
             if keep_S:
-                self.S = a.S
+                self.S = a.vertices()
                 #self.dS = a.dS
         elif isinstance(a, DetAutomaton):
             if verb:
@@ -4801,4 +4805,3 @@ cdef class DetAutomaton:
             i = self.succ(i, l)
         if i<0 or not self.a.e[i].final:
             print("word not found !")
-        return w
