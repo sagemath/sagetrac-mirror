@@ -1,4 +1,4 @@
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -10,9 +10,8 @@
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import, division, print_function
 
 from cysignals.signals cimport sig_on, sig_off
@@ -57,7 +56,7 @@ cdef make_ZZ_pX(ZZ_pX_c* x, ntl_ZZ_pContext_class ctx):
 
 cdef class ntl_ZZ_pX(object):
     r"""
-    The class \class{ZZ_pX} implements polynomial arithmetic modulo $p$.
+    The class \class{ZZ_pX} implements polynomial arithmetic modulo `p`.
 
     Polynomial arithmetic is implemented using the FFT, combined with
     the Chinese Remainder Theorem.  A more detailed description of the
@@ -94,11 +93,10 @@ cdef class ntl_ZZ_pX(object):
 
         if isinstance(v, ntl_ZZ_pX) and (<ntl_ZZ_pX>v).c is self.c:
             self.x = (<ntl_ZZ_pX>v).x
-        elif isinstance(v, list) or isinstance(v, tuple):
-            for i from 0 <= i < len(v):
-                x = v[i]
+        elif isinstance(v, (list, tuple, range)):
+            for i, x in enumerate(v):
                 if not isinstance(x, ntl_ZZ_p):
-                    cc = ntl_ZZ_p(x,self.c)
+                    cc = ntl_ZZ_p(x, self.c)
                 else:
                     cc = x
                 ZZ_pX_SetCoeff(self.x, i, cc.x)
