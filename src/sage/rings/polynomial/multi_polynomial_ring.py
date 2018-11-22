@@ -524,7 +524,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             v = self.gens_dict_recursive()[str(x.variable())]
             return sum(self(x[i]) * v ** i for i in range(x.poldegree() + 1))
 
-        raise TypeError("unable to coerce {!r} in {}".format(x, self))
+        # if everythine else failed we may still be able to convert into the base ring
+        return C(self, {self._zero_tuple:mybase(x)})
 
 ### The following methods are handy for implementing Groebner
 ### basis algorithms. They do only superficial type/sanity checks
