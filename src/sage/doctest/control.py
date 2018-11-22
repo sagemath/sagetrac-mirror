@@ -658,7 +658,7 @@ class DocTestController(SageObject):
 
     def add_files(self):
         r"""
-        Checks for the flags '--all', '--new' and '--sagenb'.
+        Checks for the flags '--all', '--new' and '--sagenb' and '--python3'.
 
         For each one present, this function adds the appropriate directories and files to the todo list.
 
@@ -690,6 +690,13 @@ class DocTestController(SageObject):
             Doctesting the Sage notebook.
             sage: DC.files[0][-6:]  # py2
             'sagenb'
+
+        ::
+
+            sage: DD = DocTestDefaults(python3 = True)
+            sage: DC = DocTestController(DD, [])
+            sage: DC.add_files()
+            Doctesting modules compatible with Python 3
         """
         opj = os.path.join
         from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT
@@ -706,9 +713,29 @@ class DocTestController(SageObject):
             self.files.append(SAGE_DOC_SRC)
             self.options.sagenb = True
 
+        def python3_files():
+            # TEMPORARY HACK to prevent regressions
+            # THIS LIST MUST BE UPDATED WHEN MORE MODULES ARE CHECKED
+            list_python3 = ['algebras/steenrod', 'arith',
+                            'combinat/sf', 'combinat/words', 'docs',
+                            'features', 'finance', 'games', 'libs/gsl',
+                            'groups/matrix_gps', 'groups/lie_gps',
+                            'knots', 'lfunctions', 'logic',
+                            'manifolds', 'media', 'monoids',
+                            'parallel', 'probability',
+                            'quadratic_forms', 'quivers',
+                            'rings/asymptotic', 'rings/number_field',
+                            'sat', 'schemes/toric', 'server', 'stats',
+                            'tensor', 'typeset']
+            for dir in list_python3:
+                self.files.append(opj(SAGE_SRC, 'sage', *dir.split('/')))
+
         if self.options.all or (self.options.new and not have_git):
             self.log("Doctesting entire Sage library.")
             all_files()
+        elif self.options.python3:
+            self.log("Doctesting modules compatible with Python 3")
+            python3_files()
         elif self.options.new and have_git:
             # Get all files changed in the working repo.
             self.log("Doctesting files changed since last git commit")

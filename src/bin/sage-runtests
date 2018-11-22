@@ -36,6 +36,7 @@ if __name__ == "__main__":
     parser.add_option("-a", "--all", action="store_true", default=False, help="test all files in the Sage library")
     parser.add_option("--logfile", metavar="FILE", help="log all output to FILE")
     parser.add_option("--sagenb", action="store_true", default=False, help="test all files from the Sage notebook sources")
+    parser.add_option("--python3", action="store_true", default=False, help="test files known to be compatible with Python 3")
 
     parser.add_option("-l", "--long", action="store_true", default=False, help="include lines with the phrase 'long time'")
     parser.add_option("-s", "--short", dest="target_walltime", default=None, action="callback",
@@ -115,7 +116,8 @@ if __name__ == "__main__":
 
     options, args = parser.parse_args()
 
-    if len(args) == 0 and not (options.all or options.sagenb or options.new):
+    if len(args) == 0 and not (options.all or options.sagenb
+                               or options.new or options.python3):
         parser.print_help()
         sys.exit(2)
 
