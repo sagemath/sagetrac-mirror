@@ -3609,23 +3609,20 @@ cdef class BetaAdicSet:
             return -1
 
     # TO BE PUT IN GENERATORS
-    # gives a automaton describing a approximation of a set defined by
-    # the characteritic function test
-    # rk : can be improve using a reduced words automaton
     def approx(self, n, test, get_aut=False, bool simplify=True):
         """
-        gives a automaton describing a approximation of a set defined by the
+        gives a BetaAdicSet describing a approximation of a set defined by the
         characteritic function test
-        rk : can be improve using a reduced words automaton
+        Rk: could be improved by drawing with the automaton of self
 
         INPUT:
 
         - ``n``  int
         - ``test`` function
         - ``get_aut``  bool -- (default ``False``)
-          if ``False`` return  DetAutomaton
+          if ``True`` return only a DetAutomaton
         - ``simplify``  bool -- (default ``True``) set
-          to ``True`` to minimize the automaton
+          to ``True`` to minimize and prune the automaton of the result
 
         OUTPUT:
 
@@ -3633,11 +3630,12 @@ cdef class BetaAdicSet:
 
         EXAMPLES::
 
-            sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
+            sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
             sage: pm = m.b.parent().places()[1]
             sage: a = m.approx(13, lambda x: (pm(x).real())^2 + (pm(x).imag())^2 < .4 )
             sage: print(a)
-            DetAutomaton with 3538 states and an alphabet of 2 letters
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 201 states and 2 letters.
+            sage: a.plot()  # not tested
         """
         cdef DetAutomaton a
         a = DetAutomaton(None, A=self.a.A)
@@ -4228,6 +4226,8 @@ cdef class BetaAdicSet:
         if n is None:
             n = -1
         for t in it:
+            if not t.is_integral():
+                continue
             if verb:
                 print("t=%s" % t)
             mi = m.intersection(m, -t)
@@ -4974,11 +4974,33 @@ cdef class BetaAdicSet:
 
         EXAMPLES::
 
-            #. Full Tribonnacci::
+            #. Tribonnacci::
 
-                sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], )
-                sage: m.compute_substitution(verb=False)          # long time
+                sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
+                sage: m.substitution()          # long time
                 {1: [1, 3], 2: [1], 3: [1, 2]}
+            
+            #. Exemple with infinitely many connected components and where zero is not an inner point
+            
+                sage: m = BetaAdicSet(x^3-x^2-x-1, dag.AnyWord([0]).concat(dag.Word([1,0,0,0])).concat(dag.AnyWord([0,1])))
+                sage: WordMorphism(m.substitution())
+                WordMorphism: a->c, b->ba, c->d, d->h, e->gi, f->jma, g->fma, h->be, i->l, j->bma, k->ga, l->fe, m->gka
+                
+            #. Substitution whose Rauzy fractal approximate a disk
+            
+                sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
+                sage: pm = m.b.parent().places()[1]
+                sage: a = m.approx(13, lambda x: (pm(x).real())^2 + (pm(x).imag())^2 < .4 )
+                sage: s = WordMorphism(a.substitution())    # long time (>30s)
+                sage: s.rauzy_fractal_plot()                # not tested
+             
+            #. Find a substitution whose Rauzy fractal is what the user draw
+            
+                sage: m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
+                sage: m = m.user_draw()                     # not tested (need the intervention of the user)
+                sage: s = WordMorphism(m.substitution())    # not tested
+                sage: s.rauzy_fractal_plot()                # not tested
+                
         """
         cdef DetAutomaton a
         
@@ -4986,7 +5008,8 @@ cdef class BetaAdicSet:
         if not self.is_Pisot():
             raise ValueError("The number b of the BetaAdicSet must be for the conjugate of a Pisot number.")
         #ensure that the alphabet of a contains 0
-        a = self.a.copy()
+        a = self.a.zero_complete2()
+        a.zero_completeOP()
         A = a.A
         try:
             l0 = A.index(0)
@@ -5000,6 +5023,8 @@ cdef class BetaAdicSet:
                 print("Compute the domain exchange...")
             l = self.domain_exchange(test_Pisot=False)
             lt = [(m.a,t) for t,m in l]
+        if verb:
+            print("Domain exchange with %s pieces."%len(lt))
         m = BetaBase(self.b)
         if ap is None:
             ap = a
@@ -5277,10 +5302,14 @@ cdef class BetaAdicSet:
         # recode the substitution
         l = s.keys()
         dl = dict()  # inverse of l
-        for i, k in enumerate(l):
-            dl[k] = i+1
+        if len(l) > 9 and len(l) < 27:
+            for i, k in enumerate(l):
+                dl[k] = chr(i+ord('a'))
+        else:
+            for i, k in enumerate(l):
+                dl[k] = i+1
         d = dict()
-        for i in s:
+        for i in l:
             d[dl[i]] = [dl[j] for j in s[i]]
         if get_aut:
             return d, [(a, t) for i, (a, t) in enumerate(lm) if tree[i] == []]
