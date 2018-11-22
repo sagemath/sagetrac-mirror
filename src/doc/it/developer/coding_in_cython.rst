@@ -622,7 +622,7 @@ che tipicamente restituir\`a una tupla ``(f, args, ...)`` tale che ``f(*args)`` 
 
             sage: n = 5
             sage: t = n.__reduce__(); t
-            (<built-in function make_integer>, ('5',))
+            (<... make_integer...>, ('5',))
             sage: t[0](*t[1])
             5
             sage: loads(dumps(n)) == n

@@ -193,7 +193,7 @@ Sfortunamente il supporto che NumPy fornisce a questi tipi avanzati di Sage, qua
     sage: RealNumber = float; Integer = int
     sage: from scipy import stats
     sage: stats.ttest_ind(list([1,2,3,4,5]),list([2,3,4,5,.6]))
-    Ttest_indResult(statistic=0.076752955645333687, pvalue=0.94070490247380478)
+    Ttest_indResult(statistic=0.076752955645333..., pvalue=0.94070490247380...)
     sage: stats.uniform(0,15).ppf([0.5,0.7])
     array([  7.5,  10.5])
 
