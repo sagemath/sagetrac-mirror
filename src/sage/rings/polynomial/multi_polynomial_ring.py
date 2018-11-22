@@ -75,6 +75,7 @@ from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_s
 from sage.rings.polynomial.polydict import PolyDict, ETuple
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 
 from sage.interfaces.singular import is_SingularElement
 from sage.interfaces.all import macaulay2 as macaulay2_default
@@ -135,6 +136,14 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
     Element = MPolynomial_polydict
 
+    # This polynomial ring should belong to Algebras(base_ring).
+    # Algebra.__init__ also calls __init_extra__ of Algebras(...).parent_class, which
+    # tries to provide a conversion from the base ring, if it does not exist.
+    # This is for algebras that only do the generic stuff in their initialisation.
+    # But the attribute _no_generic_basering_coercion prevents that from happening,
+    # since we want to use PolynomialBaseringInjection.
+    _no_generic_basering_coercion = True
+
     def __init__(self, base_ring, n, names, order):
         from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         order = TermOrder(order,n)
@@ -150,16 +159,24 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         self._gens = tuple(self._gens)
         self._zero_tuple = tuple(v)
         self._has_singular = can_convert_to_singular(self)
-        # This polynomial ring should belong to Algebras(base_ring).
-        # Algebras(...).parent_class, which was called from MPolynomialRing_base.__init__,
-        # tries to provide a conversion from the base ring, if it does not exist.
-        # This is for algebras that only do the generic stuff in their initialisation.
-        # But here, we want to use PolynomialBaseringInjection. Hence, we need to
-        # wipe the memory and construct the conversion from scratch.
+
+        # If we have at least one generator use PolynomialBaseringInjection to coerce
+        # elements from the base ring.
         if n:
             from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
             base_inject = PolynomialBaseringInjection(base_ring, self)
             self.register_coercion(base_inject)
+
+        self._populate_coercion_lists_()
+
+    def _coerce_map_from_(self, S):
+        if self.base_ring().has_coerce_map_from(S):
+            return True
+
+        if is_PolynomialRing(S) or is_MPolynomialRing(S):
+            base_ok = self.base_ring().has_coerce_map_from(S.base_ring())
+            vars_ok = all(x in self.variable_names() for x in  S.variable_names())
+            return base_ok and vars_ok
 
     def _monomial_order_function(self):
         return self.__monomial_order_function
@@ -204,7 +221,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         return hash((self.base_ring(), self.ngens(),
                      self.variable_names(), self.term_order()))
 
-    def __call__(self, x, check=True):
+    def _element_constructor_(self, x):
         """
         Convert ``x`` to an element of this multivariate polynomial ring,
         possibly non-canonically.
@@ -433,87 +450,38 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             sage: type(R({(1,2): 3}).coefficients()[0])
             <class 'sage.rings.qqbar.AlgebraicNumber'>
         """
-        import sage.rings.polynomial.polynomial_element as polynomial_element
-
-        # handle constants that coerce into self.base_ring() first, if possible
-        if isinstance(x, Element) and x.parent() is self.base_ring():
-            # A Constant multi-polynomial
-            return self({self._zero_tuple:x})
-
-        try:
-            y = self.base_ring()._coerce_(x)
-            return self.element_class(self, {self._zero_tuple:y})
-        except TypeError:
-            pass
-
-        from .multi_polynomial_libsingular import MPolynomial_libsingular
-
-        if isinstance(x, MPolynomial_polydict):
+        C = self.element_class
+        mybase = self.base_ring()
+        myvars = self.variable_names()
+        if isinstance(x, Element):
             P = x.parent()
-
             if P is self:
                 return x
-            elif P == self:
-                return self.element_class(self, x.element().dict())
-            elif self.base_ring().has_coerce_map_from(P):
-                # it might be in the base ring (i.e. a poly ring over a poly ring)
-                c = self.base_ring()(x)
-                return self.element_class(self, {self._zero_tuple:c})
-            elif len(P.variable_names()) == len(self.variable_names()):
-                # Map the variables in some crazy way (but in order,
-                # of course).  This is here since R(blah) is supposed
-                # to be "make an element of R if at all possible with
-                # no guarantees that this is mathematically solid."
-                K = self.base_ring()
-                D = x.element().dict()
-                for i, a in iteritems(D):
-                    D[i] = K(a)
-                return self.element_class(self, D)
-            elif set(P.variable_names()).issubset(set(self.variable_names())) and self.base_ring().has_coerce_map_from(P.base_ring()):
-                # If the named variables are a superset of the input, map the variables by name
-                return self.element_class(self, self._extract_polydict(x))
-            else:
-                return self.element_class(self, x._mpoly_dict_recursive(self.variable_names(), self.base_ring()))
+            base_inject = mybase.coerce_map_from(P)
+            if base_inject:
+                return C(self, {self._zero_tuple:base_inject(x)})
+            if is_MPolynomialRing(P):
+                base_inject = mybase.coerce_map_from(P.base_ring())
+                if base_inject:
+                    if all(v in myvars for v in P.variable_names()):
+                        # If the named variables are a superset of the input, map the variables by name
+                        return C(self, self._extract_polydict(x))
+                    elif self.ngens() == P.ngens():
+                        # Map the variables in some crazy way (but in order,
+                        # of course).  This is here since R(blah) is supposed
+                        # to be "make an element of R if at all possible with
+                        # no guarantees that this is mathematically solid."
+                        return C(self, {i:base_inject(a) for i,a in iteritems(x.dict())})
+            if is_PolynomialRing(P) and P.variable_name() in myvars:
+                return C(self, x._mpoly_dict_recursive(myvars, mybase))
+            if isinstance(x, fraction_field_element.FractionFieldElement) and x.parent().ring() == self:
+                if x.denominator() == 1:
+                    return x.numerator()
+                else:
+                    raise TypeError("unable to coerce since the denominator is not 1")
 
-        elif isinstance(x, MPolynomial_libsingular):
-            P = x.parent()
-            if P == self:
-                return self.element_class(self, x.dict())
-            elif self.base_ring().has_coerce_map_from(P):
-                # it might be in the base ring (i.e. a poly ring over a poly ring)
-                c = self.base_ring()(x)
-                return self.element_class(self, {self._zero_tuple:c})
-            elif len(P.variable_names()) == len(self.variable_names()):
-                # Map the variables in some crazy way (but in order,
-                # of course).  This is here since R(blah) is supposed
-                # to be "make an element of R if at all possible with
-                # no guarantees that this is mathematically solid."
-                K = self.base_ring()
-                D = x.dict()
-                for i, a in iteritems(D):
-                    D[i] = K(a)
-                return self.element_class(self, D)
-            elif set(P.variable_names()).issubset(set(self.variable_names())) and self.base_ring().has_coerce_map_from(P.base_ring()):
-                # If the named variables are a superset of the input, map the variables by name
-                return self.element_class(self, self._extract_polydict(x))
-            else:
-                return self.element_class(self, x._mpoly_dict_recursive(self.variable_names(), self.base_ring()))
-
-        elif isinstance(x, polynomial_element.Polynomial):
-            return self.element_class(self, x._mpoly_dict_recursive(self.variable_names(), self.base_ring()))
-
-        elif isinstance(x, PolyDict):
-            return self.element_class(self, x)
-
-        elif isinstance(x, dict):
-            K = self.base_ring()
-            return self.element_class(self, {i: K(a) for i, a in iteritems(x)})
-
-        elif isinstance(x, fraction_field_element.FractionFieldElement) and x.parent().ring() == self:
-            if x.denominator() == 1:
-                return x.numerator()
-            else:
-                raise TypeError("unable to coerce since the denominator is not 1")
+        elif isinstance(x, (PolyDict, dict)):
+            return C(self, {i:mybase(a) for i, a in iteritems(x)})
 
         elif is_SingularElement(x) and self._has_singular:
             self._singular_().set_ring()
@@ -556,11 +524,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             v = self.gens_dict_recursive()[str(x.variable())]
             return sum(self(x[i]) * v ** i for i in range(x.poldegree() + 1))
 
-        if isinstance(x, dict):
-            return self.element_class(self, x)
-        else:
-            c = self.base_ring()(x)
-            return self.element_class(self, {self._zero_tuple:c})
+        raise TypeError("unable to coerce {!r} in {}".format(x, self))
 
 ### The following methods are handy for implementing Groebner
 ### basis algorithms. They do only superficial type/sanity checks
