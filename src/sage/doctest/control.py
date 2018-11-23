@@ -90,6 +90,7 @@ class DocTestDefaults(SageObject):
         self.all = False
         self.logfile = None
         self.sagenb = False
+        self.python3 = False
         self.long = False
         self.warn_long = None
         self.randorder = None
