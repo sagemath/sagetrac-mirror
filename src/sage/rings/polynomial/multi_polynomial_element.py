@@ -1497,7 +1497,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: 2*x//4
             1/2*x
             sage: type(0//y)
-            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            <class 'sage.rings.polynomial.multi_polynomial_ring.MPolynomialRing_polydict_domain_with_category.element_class'>
         """
         # handle division by monomials without using Singular
         if len(right.dict()) == 1:
@@ -1963,7 +1963,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: R.<y1,y2>=PolynomialRing(Qp(5),2, order='lex')
             sage: G=[y1^2 + y2^2, y1*y2 + y2^2, y2^3]
             sage: type((y2^3).reduce(G))
-            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            <class 'sage.rings.polynomial.multi_polynomial_ring.MPolynomialRing_polydict_domain_with_category.element_class'>
         """
         from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 
