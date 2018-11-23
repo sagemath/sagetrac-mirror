@@ -169,17 +169,35 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         self._populate_coercion_lists_()
 
-    def _coerce_map_from_(self, S):
-        if self.base_ring().has_coerce_map_from(S):
+    def _coerce_map_from_(self, other):
+        r"""
+        Test whether there is a coercion from ``other`` to ``self``.
+
+        EXAMPLES::
+
+            sage: R1 = PolynomialRing(QQbar,2,'x'); R1
+            Multivariate Polynomial Ring in x0, x1 over Algebraic Field
+            sage: R1.has_coerce_map_from(QQ)
+            True
+            sage: R2 = PolynomialRing(QQbar,3,'x'); R2
+            Multivariate Polynomial Ring in x0, x1, x2 over Algebraic Field
+            sage: R2.has_coerce_map_from(R1)
+            True
+            sage: R3 = PolynomialRing(R1,"x2,x3,x4"); R3
+            Multivariate Polynomial Ring in x2, x3, x4 over Multivariate Polynomial Ring in x0, x1 over Algebraic Field
+            sage: R3.has_coerce_map_from(R2)
+            True
+        """
+        if self.base_ring().has_coerce_map_from(other):
             return True
 
-        if is_PolynomialRing(S) or is_MPolynomialRing(S):
-            base_ok = self.base_ring().has_coerce_map_from(S.base_ring())
+        if is_PolynomialRing(other) or is_MPolynomialRing(other):
+            base_ok = self.base_ring().has_coerce_map_from(other.base_ring())
             myvars = self.variable_names()
             if is_PolynomialRing(self.base_ring()) or is_MPolynomialRing(self.base_ring()):
-                # S may have some vars from the base ring
+                # other may have some vars from the base ring
                 myvars += self.base_ring().variable_names()
-            vars_ok = all(x in myvars for x in  S.variable_names())
+            vars_ok = all(x in myvars for x in  other.variable_names())
             return base_ok and vars_ok
 
     def _monomial_order_function(self):
