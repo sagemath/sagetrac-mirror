@@ -175,7 +175,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         if is_PolynomialRing(S) or is_MPolynomialRing(S):
             base_ok = self.base_ring().has_coerce_map_from(S.base_ring())
-            myvars = self.variable_names() 
+            myvars = self.variable_names()
             if is_PolynomialRing(self.base_ring()) or is_MPolynomialRing(self.base_ring()):
                 # S may have some vars from the base ring
                 myvars += self.base_ring().variable_names()
@@ -455,7 +455,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             <class 'sage.rings.qqbar.AlgebraicNumber'>
         """
         import sage.rings.polynomial.polynomial_element as polynomial_element
-        
+
         C = self.element_class
 
         # handle constants that coerce into self.base_ring() first, if possible
@@ -576,6 +576,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             # univariate polynomials.  Below, v is the variable
             # with highest priority, and the x[i] are expressions
             # in the remaining variables.
+            if x == 0:
+                return self(0)
             v = self.gens_dict_recursive()[str(x.variable())]
             return sum(self(x[i]) * v ** i for i in range(x.poldegree() + 1))
 
