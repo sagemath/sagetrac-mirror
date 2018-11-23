@@ -175,7 +175,11 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         if is_PolynomialRing(S) or is_MPolynomialRing(S):
             base_ok = self.base_ring().has_coerce_map_from(S.base_ring())
-            vars_ok = all(x in self.variable_names() for x in  S.variable_names())
+            myvars = self.variable_names() 
+            if is_PolynomialRing(self.base_ring()) or is_MPolynomialRing(self.base_ring()):
+                # S may have some vars from the base ring
+                myvars += self.base_ring().variable_names()
+            vars_ok = all(x in myvars for x in  S.variable_names())
             return base_ok and vars_ok
 
     def _monomial_order_function(self):
