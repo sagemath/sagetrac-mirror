@@ -32,6 +32,7 @@ from __future__ import absolute_import
 
 from cysignals.memory cimport check_allocarray, sig_free
 from cysignals.signals cimport sig_check
+from libc.limits cimport CHAR_BIT
 from libc.string cimport memcpy
 from libc.stdint cimport int64_t, uint64_t
 
@@ -47,22 +48,18 @@ from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 include "sage/data_structures/bitset.pxi"
 
-cdef extern from "limits.h":
-    enum: CHAR_BIT
-
 # for details about the implementation of hamming_weight_int,
 # walsh_hadamard transform, reed_muller transform, and a lot
 # more, see 'Matters computational' available on www.jjj.de.
 
-# constants for 64 bits
-cdef enum:
-    m1  = 0x5555555555555555UL #binary: 0101...
-    m2  = 0x3333333333333333UL #binary: 00110011..
-    m4  = 0x0f0f0f0f0f0f0f0fUL #binary:  4 zeros,  4 ones ...
-    h01 = 0x0101010101010101UL #the sum of 256 to the power of 0,1,2,3...
-    s = 56
-
 cdef inline uint64_t hamming_weight(uint64_t x):
+    # constants for 64 bits
+    cdef uint64_t m1  = <uint64_t>0x5555555555555555 #binary: 0101...
+    cdef uint64_t m2  = <uint64_t>0x3333333333333333 #binary: 00110011..
+    cdef uint64_t m4  = <uint64_t>0x0f0f0f0f0f0f0f0f #binary:  4 zeros,  4 ones ...
+    cdef uint64_t h01 = <uint64_t>0x0101010101010101 #the sum of 256 to the power of 0,1,2,3...
+    cdef uint64_t s = 56
+
     # valid for 64 bits
     x -=  (x>>1) & m1              # 0-2 in 2 bits
     x  = ((x>>2) & m2) + (x & m2)  # 0-4 in 4 bits
@@ -87,9 +84,9 @@ cdef walsh_hadamard(int64_t *f, uint64_t ldn):
     """
     cdef uint64_t n, ldm, m, mh, r, t1, t2
     cdef int64_t u, v
-    n = 1UL << ldn
+    n = <uint64_t>1 << ldn
     for ldm in range(1, ldn+1):
-        m  = 1UL << ldm
+        m  = <uint64_t>1 << ldm
         mh = m//2
         for r in range(0, n, m):
             t1 = r
@@ -151,13 +148,13 @@ cdef reed_muller(mp_limb_t* f, uint64_t ldn):
         (False, False, False, True, False, False, False, True)
     """
     cdef uint64_t n, r, ldm, m, mh, t1, t2
-    n = 1UL << ldn
+    n = <uint64_t>1 << ldn
     # intra word transform
     for r in range(n):
         f[r] = yellow_code(f[r])
     # inter word transform
     for ldm in range(1, ldn+1):
-        m  = 1UL << ldm
+        m  = <uint64_t>1 << ldm
         mh = m//2
         for r in range(0, n, m):
             t1 = r
@@ -905,7 +902,7 @@ cdef class BooleanFunction(SageObject):
 
         if self._autocorrelation is None:
             n =  self._truth_table.size
-            temp = <int64_t *>check_allocarray(n, sizeof(long))
+            temp = <int64_t *>check_allocarray(n, sizeof(int64_t))
             W = self.walsh_hadamard_transform()
 
             for i in range(n):
