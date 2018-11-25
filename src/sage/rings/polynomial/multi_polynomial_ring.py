@@ -684,8 +684,6 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
            term of g and return the multiplicant m. If this rule is
            violated, funny things may happen.
         """
-        from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
-
         if not f:
             return f
         if not g:
