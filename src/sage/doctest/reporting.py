@@ -178,6 +178,7 @@ class DocTestReporter(SageObject):
         cmd = "sage -t"
         if self.controller.options.long:
             cmd += " --long"
+
         warnlong = self.controller.options.warn_long
         if warnlong is not None:
             cmd += " --warn-long"
@@ -476,12 +477,16 @@ class DocTestReporter(SageObject):
                         optionals = result_dict.optionals
                     except AttributeError:
                         optionals = dict()
-                    for tag in sorted(optionals.keys()):
+                    for tag in sorted(optionals):
                         nskipped = optionals[tag]
                         if tag == "long time":
                             if not self.controller.options.long:
                                 if self.controller.options.show_skipped:
                                     log("    %s not run"%(count_noun(nskipped, "long test")))
+                        elif tag == "high_mem":
+                            if self.controller.options.memlimit <= 0:
+                                seen_other = True
+                                log("    %s not run"%(count_noun(nskipped, "high mem")))
                         elif tag == "not tested":
                             if self.controller.options.show_skipped:
                                 log("    %s not run"%(count_noun(nskipped, "not tested test")))

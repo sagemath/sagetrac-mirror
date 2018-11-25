@@ -36,6 +36,7 @@
 
 # If you want to provide your own runners, make sure to tag them as follows:
 # * "big" (60GB of disk space are available) to make build-from-clean pass.
+# * "long", enough resources to run long doctest, i.e., at least 5 CPU hours
 
 image: docker:latest
 
@@ -93,6 +94,7 @@ build-from-latest: &build
     - gitlab-build-docker.log
     expire_in: 1 month
   script:
+    - set -o pipefail
     - apk --update add coreutils
     # The output of the build can get larger than gitlab.com's limit; only print the first 3MB (and the last 80 lines.)
     - .ci/build-docker.sh | tee gitlab-build-docker.log | .ci/head-tail.sh 3145728

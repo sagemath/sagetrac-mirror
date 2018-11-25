@@ -52,5 +52,5 @@ esac
 
 docker run "$1" "$SETUP && \
                  (sage -tp $DOCTEST_PARAMETERS || \
-                  sage -tp --failed $DOCTEST_PARAMETERS || \
-                  sage -tp --failed $DOCTEST_PARAMETERS)"
+                  (echo Some tests failed. Retrying only the failed tests. && sage -tp --failed $DOCTEST_PARAMETERS) || \
+                  (echo Some tests failed. Retrying only the failed tests. && sage -tp --failed $DOCTEST_PARAMETERS))"
