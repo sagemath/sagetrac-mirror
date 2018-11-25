@@ -793,13 +793,13 @@ cdef Automaton getAutomaton(DetAutomaton a, list A, verb=False):
 
 
 def mahler(pi):
-    from sage.rings.qqbar import AA
+    #from sage.rings.qqbar import AA
     pi = pi/pi.denominator()
     rr = pi.roots(ring=QQbar)
     p = pi.leading_coefficient()
     for r in rr:
-        if r[0] not in AA:
-            rr.remove((r[0].conjugate(), r[1]))
+        #if r[0] not in AA:
+        #    rr.remove((r[0].conjugate(), r[1]))
         a = abs(r[0])
         if a > 1:
             p *= abs(r[0])
@@ -810,7 +810,7 @@ cdef BetaAdic getBetaAdic(m, prec=53, mirror=False, verb=False):
     from sage.rings.complex_field import ComplexField
     CC = ComplexField(prec)
     cdef BetaAdic b
-    a = m.a
+    a = m.a.prune().minimize()
     if mirror:
         a = a.mirror().determinize().minimize()
     A = a.alphabet
@@ -835,9 +835,12 @@ cdef BetaAdic2 getBetaAdic2(BetaAdicSet self, la=None,
 
     # check that every element of la is a DetAutomaton or convert it
     la = [getDetAutomaton(self, a) for a in la]
-
+    
     # add the automaton of self as first element
     la = [self.a]+la
+
+    # simplify each automaton
+    la = [a.prune().minimize() for a in la]
 
     if mirror:
         la = [a.mirror().determinize().minimize() for a in la]
@@ -1401,19 +1404,19 @@ cdef class BetaAdicSet:
         """
         return self.a.is_empty()
 
-    def _testSDL(self):
-        """
-        Open a window to test the SDL library used for graphical representation.
-
-        TESTS::
-
-            sage: m3 = BetaAdicSet(1/(1+I), dag.AnyWord([0, 1]))
-            sage: m3._testSDL()
-            Video Mode: 800x600 32 bits/pixel
-        """
-        sig_on()
-        TestSDL()
-        sig_off()
+#    def _testSDL(self):
+#        """
+#        Open a window to test the SDL library used for graphical representation.
+#
+#        TESTS::
+#
+#            sage: m3 = BetaAdicSet(1/(1+I), dag.AnyWord([0, 1]))
+#            sage: m3._testSDL()
+#            Video Mode: 800x600 32 bits/pixel
+#        """
+#        sig_on()
+#        TestSDL()
+#        sig_off()
 
     def get_la(self, verb=False):
         """
@@ -1543,14 +1546,17 @@ cdef class BetaAdicSet:
 
         EXAMPLES::
 
-            #. The dragon fractal::
+            #. Draw a BetaAdicSet from the dragon fractal::
 
-                sage: e = QQbar(1/(1+I))
-                sage: m = BetaAdicSet(e, dag.AnyWord([0, 1]))
-                # sage: P = m.user_draw()     # long time (360 s)
-                # sage: P.string()   # random
-                # 'BetaAdicSet((x^2 - x + 1/2).roots(ring=QQbar)[0][0], DetAutomaton([[0, 1], [(0, 0, 0), (0, 0, 1), (1, 17, 1), (2, 0, 0), (2, 0, 1), (3, 0, 0), (3, 13, 1), (4, 0, 1), (5, 4, 1), (6, 5, 0), (7, 6, 0), (8, 7, 0), (9, 8, 1), (10, 9, 0), (11, 10, 1), (12, 1, 0), (12, 11, 1), (13, 15, 0), (13, 12, 1), (14, 0, 0), (15, 2, 0), (15, 14, 1), (16, 2, 0), (17, 16, 0), (18, 16, 1)]], i=3, final_states=[0]))'
+                sage: m = BetaAdicSet(1/(1+I), [0, 1])
+                sage: P = m.user_draw()     # not tested (need the intervention of the user)
+                sage: P.string()            # random
+            
+            #. Draw a BetaAdicSet from a Rauzy fractal::
 
+                sage: m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
+                sage: P = m.user_draw()     # not tested (need the intervention of the user)
+                sage: P.plot()              # random
 
         """
         cdef BetaAdic b
@@ -1569,7 +1575,7 @@ cdef class BetaAdicSet:
             n = -1
         if method == 0:
             sig_on()
-            a = UserDraw(b, sx, sy, n, ajust, col, self.a.spectral_radius(), verb)
+            a = UserDraw(b, sx, sy, n, ajust, col, self.a.prune().spectral_radius(), verb)
             sig_off()
         elif method == 1:
             print("Not implemented !")
@@ -1627,13 +1633,14 @@ cdef class BetaAdicSet:
             #. The dragon fractal::
 
                 sage: m = BetaAdicSet(1/(1+I), [0, 1])
-                sage: P = m.draw_zoom()     # not tested
+                sage: P = m.draw_zoom()     # not tested (need the intervention of the user)
             
             #. Zoom in a complicated Rauzy fractal
 
                 sage: s = WordMorphism('1->2,2->3,3->12')
                 sage: m = s.DumontThomas().mirror(); m
-                sage: m.draw_zoom()         # not tested
+                b-adic set with b root of x^3 - x - 1, and an automaton of 4 states and 2 letters
+                sage: m.draw_zoom()         # not tested (need the intervention of the user)
 
         """
         cdef BetaAdic b
@@ -1650,7 +1657,7 @@ cdef class BetaAdicSet:
             n = -1
         if method == 0:
             sig_on()
-            word = DrawZoom(b, sx, sy, n, ajust, col, nprec, self.a.spectral_radius(), verb)
+            word = DrawZoom(b, sx, sy, n, ajust, col, nprec, self.a.prune().spectral_radius(), verb)
             sig_off()
             res = []
             if word is not NULL:
@@ -1712,56 +1719,53 @@ cdef class BetaAdicSet:
         #. The dragon fractal::
 
             sage: m = BetaAdicSet(1/(1+I), dag.AnyWord([0,1]))
-            sage: m.plot()
+            sage: m.plot()                                      # random
 
         #. Another dragon fractal::
 
             sage: b = (2*x^2+x+1).roots(ring=CC)[0][0]
             sage: m = BetaAdicSet(b, dag.AnyWord([0,1]))
-            sage: m.plot()
-            <PIL.Image.Image image mode=RGBA size=800x600 at 0x7FABDBBDCC90>
+            sage: m.plot()                                      # random
 
         #. The Rauzy fractal of the Tribonacci substitution::
 
             sage: s = WordMorphism('1->12,2->13,3->1')
             sage: m = s.DumontThomas()
-            sage: m.plot()
-            <PIL.Image.Image image mode=RGBA size=800x600 at 0x7FABDC35B1D0>
-
+            sage: m.plot()                                      # random
 
         #. The Rauzy fractal of the flipped Tribonacci substitution::
 
             sage: s = WordMorphism('1->12,2->31,3->1')
             sage: m = s.DumontThomas()
-            sage: m.plot()
+            sage: m.plot()                                      # random
 
         #. A non-Pisot Rauzy fractal::
 
             sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
             sage: m = s.DumontThomas()
-            sage: m.plot()
+            sage: m.plot()                                      # random
             sage: m = BetaAdicSet(1/m.b, m.a)
-            sage: m.plot()
+            sage: m.plot()                                      # random
 
         #. A part of the boundary of the dragon fractal::
 
             sage: m = BetaAdicSet(1/(1+I), dag.AnyWord([0,1]))
             sage: mi = m.intersection_words(w1=[0], w2=[1])
-            sage: mi.plot(nprec=6)
+            sage: mi.plot(nprec=6)                              # random
 
         #. A part of the boundary of the "Hokkaido" fractal::
 
             sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
             sage: m = s.DumontThomas()
             sage: mi = m.intersection_words(w1=[0], w2=[1])
-            sage: mi.plot()
+            sage: mi.plot()                                     # random
 
         #. A limit set that look like a tiling but with holes::
 
             sage: P=x^4 + x^3 - x + 1
             sage: b = P.roots(ring=QQbar)[2][0]
             sage: m = BetaAdicSet(b, dag.AnyWord([0,1]))
-            sage: m.plot()
+            sage: m.plot()                                      # random
 
         """
         cdef Surface s
@@ -1798,7 +1802,7 @@ cdef class BetaAdicSet:
             n = -1
         if method == 0:
             sig_on()
-            Draw(b, s, n, ajust, col, nprec, self.a.spectral_radius(), verb)
+            Draw(b, s, n, ajust, col, nprec, self.a.prune().spectral_radius(), verb)
             sig_off()
         elif method == 1:
             raise NotImplementedError("Method 1 not implemented !")
@@ -1865,39 +1869,38 @@ cdef class BetaAdicSet:
 
             sage: s = WordMorphism('1->12,2->13,3->1')
             sage: m = s.DumontThomas()
-            sage: m.plot_list(mirror=True)
+            sage: m.plot_list(mirror=True)  # random
 
         #. A non-Pisot Rauzy fractal::
 
             sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
             sage: m = s.DumontThomas()
             sage: m = BetaAdicSet(1/m.b, m.a)
-            sage: m.plot_list(mirror=True)
+            sage: m.plot_list(mirror=True)             # random
             sage: m = BetaAdicSet(m.b, m.a.mirror())
-            sage: m.plot_list(mirror=True)
+            sage: m.plot_list(mirror=True)             # random
 
         #. The dragon fractal and its boundary::
 
             sage: m = BetaAdicSet(1/(1+I), dag.AnyWord([0,1]))
             sage: mi = m.intersection_words(w1=[0], w2=[1])
-            sage: m.plot_list(la=[mi.a], n=19, colormap=[(.5,.5,.5,.5), (0,0,0,1.)])  # long time
+            sage: m.plot_list(la=[mi.a], n=19, colormap=[(.5,.5,.5,.5), (0,0,0,1.)])  # random
 
         #. The "Hokkaido" fractal and its boundary::
 
             sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
             sage: m = s.DumontThomas()
             sage: mi = m.intersection_words(w1=[0], w2=[1])                # long time
-            sage: m.plot_list(la=[mi.a], n=45, colormap='gist_rainbow')  # long time
+            sage: m.plot_list(la=[mi.a], n=45, colormap='gist_rainbow')  # random
 
         #. A limit set that look like a tiling::
 
             sage: P = x^4 + x^3 - x + 1
             sage: b = P.roots(ring=QQbar)[2][0]
             sage: m = BetaAdicSet(b, dag.AnyWord([0,1]))
-            sage: a = m.reduced_word_automaton()
+            sage: a = m.reduced_words_automaton()
             sage: m = BetaAdicSet(m.b, a.mirror())
-            sage: m.plot_list(mirror=True)
-
+            sage: m.plot_list(mirror=True)                 # random
         """
         cdef Surface s = NewSurface(sx, sy)
         cdef BetaAdic2 b
@@ -1932,7 +1935,7 @@ cdef class BetaAdicSet:
                 cl[i+1] = getColor(colormap(float(i)/float(b.na-1)))
         else:
             raise TypeError("Type of option colormap (=%s) must be list of colors or str" % colormap)
-        DrawList(b, s, n, ajust, cl, opacity, self.a.spectral_radius(), nprec, verb)
+        DrawList(b, s, n, ajust, cl, opacity, self.a.prune().spectral_radius(), nprec, verb)
         sig_off()
         # enregistrement du résultat
         sig_on()
@@ -2269,14 +2272,16 @@ cdef class BetaAdicSet:
 
         EXAMPLES::
 
-        #.  sage: m = BetaAdicSet(1/(1+I), dag.AnyWord([0,1]))
+        #.
+            sage: m = BetaAdicSet(1/(1+I), dag.AnyWord([0,1]))
             sage: m.critical_exponent_aprox()
-            2.00000000000000
+            2.0000000000...
 
-        #.  sage: s = WordMorphism('1->12,2->13,3->1')
+        #.
+            sage: s = WordMorphism('1->12,2->13,3->1')
             sage: m = s.DumontThomas()
             sage: m.critical_exponent_aprox()
-            2.09949525214019
+            2.0994952521...
 
         """
         cdef set S, S2, S3
@@ -2295,8 +2300,7 @@ cdef class BetaAdicSet:
             S = S3
             if verb:
                 print(len(S))
-        # from sage.functions.log import log
-        print("%s" % (log(len(S)).n() / (niter * log(mahler(b.minpoly()).n()))))
+        print("%s" % (log(len(S)) / (niter * log(mahler(b.minpoly())))))
 
     def complexity(self, Ad=None, prec=None, verb=False):
         r"""
@@ -2398,7 +2402,7 @@ cdef class BetaAdicSet:
                 sage: mi = m1.intersection(m2, ext=True)
                 sage: mi
                 b-adic set with b root of x^2 - x + 1/2, and an automaton of 21 states and 2 letters
-                sage: mi.plot(mirror=False)
+                sage: mi.plot(mirror=False)     # not tested
         """
         cdef DetAutomaton a, ar, ai
 
@@ -2657,6 +2661,7 @@ cdef class BetaAdicSet:
             sage: m = BetaAdicSet(b, dag.AnyWord([0,1]))
             sage: ared = m.reduced()
             sage: ared
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 4 states and 2 letters
         """
         return BetaAdicSet(self.b, self.reduced_words_automaton(mirror=mirror,
                                                                 verb=verb))
@@ -2949,7 +2954,8 @@ cdef class BetaAdicSet:
                 sage: m = m.reduced()
                 sage: m.critical_exponent_free()
                 log(y)/log(1.618033988749895?) where y is the max root of x^2 - x - 1, and 1.618033988749895? is root of x^2 - x - 1.
-                1.0000000000...
+                1.0
+
 
             #. Hausdorff dimension of the boundary of the dragon fractal::
 
@@ -2976,6 +2982,8 @@ cdef class BetaAdicSet:
                 sage: m.critical_exponent_free()
                 log(y)/log(|1/2*b^2 - 1/2*b + 1/2|) where y is the max root of x^3 - x^2 + x - 2
                 1.5485260383...
+                log(y)/log(1.645120034647518?) where y is the max root of x^3 - x^2 + x - 2, and 1.645120034647518? is root of x^6 - 2*x^4 + 4*x^2 - 16.
+                0.6076163300099383
         """
         M = self.a.adjacency_matrix()
         if verb:
@@ -3021,15 +3029,15 @@ cdef class BetaAdicSet:
 
                 sage: m = BetaAdicSet(3, [0,1,3])
                 sage: m.critical_exponent()
-                log(y)/log(3) where y is the max root of x^2 - 3*x + 1
+                log(y)/log(3) where y is the max root of x^2 - 3*x + 1, and 3 is root of x - 3.
                 0.8760357589...
 
             #. Hausdorff dimension of limit set of phi-adic expansion with numerals set {0, 1}::
 
                 sage: m = BetaAdicSet((1+sqrt(5))/2, [0,1])
                 sage: m.critical_exponent()
-                log(y)/log(|b|) where y is the max root of x^2 - x - 1
-                1.0000000000...
+                log(y)/log(1.618033988749895?) where y is the max root of x^2 - x - 1, and 1.618033988749895? is root of x^2 - x - 1.
+                1.0
 
             #. A non-conformal example::
 
@@ -3710,17 +3718,43 @@ cdef class BetaAdicSet:
 
         EXAMPLE::
 
-            sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
+            sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
             sage: a = dag.AnyWord([0, 1, 2, 4])
             sage: m.union(a)
-            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 states and 2 letters
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 states and 4 letters
+            
+            #. Disjoint union of two Rauzy fractals with same beta
+            sage: s = WordMorphism('1->12,2->13,3->1')
+            sage: t = WordMorphism('1->12,2->31,3->1')
+            sage: a = s.DumontThomas().mirror().unshift([0,0])
+            sage: b = t.DumontThomas().mirror().unshift([1,0,0,0,0])
+            sage: m = a.union(b); m
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 13 states and 3 letters
+            sage: m.plot()              # not tested
         """
         a = getDetAutomaton(self, a)
         return BetaAdicSet(self.b, self.a.union(a))
     
     def complementary(self, a):
         """
-        Compute the complementary of the BetaAdicSet in the BetaAdicSet a.
+        Compute the complementary of the BetaAdicSet in the BetaAdicSet or automaton a.
+        
+        INPUT:
+        
+        - a -- BetaAdicSet or DetAutomaton in which we take the complementary
+        
+        OUTPUT:
+        
+        A BetaAdicSet.
+        
+        EXAMPLES:
+        
+            #. The Rauzy fractal with a hole
+            sage: m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
+            sage: m = m.unshift([1,0,0,0]).complementary(m); m
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 7 states and 2 letters
+            sage: m.plot()      # not tested
+        
         """
         a = getDetAutomaton(self, a)
         return BetaAdicSet(self.b, self.proj(a, aut=True).complementary().intersection(a))
@@ -3735,7 +3769,7 @@ cdef class BetaAdicSet:
 
         OUTPUT:
 
-        Return a BetaAdicSet with a unshiftted ``self.a`` of ``l``
+        Return a BetaAdicSet with an unshifted language
 
         EXAMPLE::
 
@@ -3802,7 +3836,7 @@ cdef class BetaAdicSet:
 
             sage: m = BetaAdicSet(1+I, [0,1])
             sage: m.is_Pisot(verb=True)
-            There are more than one conjugate of modulus > 1.
+            There is a conjugate of modulus greater than one which is not real.
             False
 
         """
@@ -3819,6 +3853,15 @@ cdef class BetaAdicSet:
                     if np != 0:
                         if verb:
                             print("There are more than one conjugate of modulus > 1.")
+                        return False
+                    from sage.rings.qqbar import AA
+                    if r not in AA:
+                        if verb:
+                            print("There is a conjugate of modulus greater than one which is not real.")
+                        return False
+                    if r < 0:
+                        if verb:
+                            print("There is conjugate of modulus greater than one which is negative.")
                         return False
                     np = 1
                 elif abs(r) == 1:
@@ -3870,7 +3913,7 @@ cdef class BetaAdicSet:
         """
         cdef int i, j, k, f, nA
         nA = self.a.a.na
-        l = self.a.spectral_radius()
+        l = self.a.prune().spectral_radius()
         n = min(n, <int>(log(<double>npts)/log(<double>l)))
         r = [(self.a.a.i, 0)]
         bn = 1
@@ -3926,14 +3969,15 @@ cdef class BetaAdicSet:
 
             sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
             sage: p = m.b.parent().places()[1]
-            sage: m.diameter()
+            sage: m.diameter(p)
+            2.93122910465427
         """
         cdef int i, j, k, f, f2, nrr, nA
         cdef double d, dmm, dm2
         nA = self.a.a.na
         r = [(self.a.a.i, 0)]
         bn = 1
-        M = max([abs(p(c)) for c in self.a.A])/abs(1-abs(self.b))
+        M = max([abs(p(c)) for c in self.a.A])/abs(1-abs(self.b.n()))
         import numpy as np
         for i in range(n):
             rr = []
@@ -4019,7 +4063,7 @@ cdef class BetaAdicSet:
             if verb:
                 print("p=%s, m=%s, M=%s" % (p,m,M))
                 print("%s" % (log(m/(2*M[i]))/log(abs(p(self.b)))))
-            n = max(n, <int>floor(log(m/(2*M[i]))/log(abs(p(self.b)))))
+            n = max(n, 1+<int>floor(log(m/(2*M[i]))/log(abs(p(self.b)))))
         if verb:
             print("n=%s" % n)
         # multiply the bound by this power of b
@@ -4087,9 +4131,9 @@ cdef class BetaAdicSet:
 
         EXAMPLES::
 
-            sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
+            sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
             sage: m.translations_diff_iterator().next()
-            2*b^2 - 3*b - 1
+            -b + 2
 
         """
         cdef int n, i, j
@@ -4112,7 +4156,7 @@ cdef class BetaAdicSet:
             if verb:
                 print("p=%s, m=%s, M=%s" % (p, m,M))
                 print("%s" % (log(m/(2*M[i]))/log(abs(p(self.b)))))
-            n = max(n, <int> floor(log(m/(2*M[i])) / log(abs(p(self.b)))))
+            n = max(n, 1+<int> floor(log(m/(2*M[i])) / log(abs(p(self.b)))))
         if verb:
             print("n=%s" % n)
         # multiply the bound by this power of b
@@ -4135,8 +4179,8 @@ cdef class BetaAdicSet:
             print("m=%s" % m)
         # compute the Perron-Frobenius eigenvector
         from sage.modules.free_module_element import vector
-        v = vector(
-            max([r[1][0] for r in m.right_eigenvectors()], key=lambda x: x[0]))
+        v = vector(max([r for r in m.right_eigenvectors()],
+                        key=lambda x: abs(x[0]))[1][0])
         v /= sum(v)
         vB = vector(B)
         if verb:
@@ -4154,6 +4198,8 @@ cdef class BetaAdicSet:
             keep = True
             for i, p in enumerate(P):
                 if abs(p(t)) > M[i]:
+                    if verb:
+                        print("%s > %s"%(abs(p(t)), M[i]))
                     keep = False
                     break
             if keep:
@@ -4243,6 +4289,8 @@ cdef class BetaAdicSet:
             n = -1
         for t in it:
             if not t.is_integral():
+                if verb:
+                    print("t=%s not integral", t)
                 continue
             if verb:
                 print("t=%s" % t)
@@ -4260,45 +4308,45 @@ cdef class BetaAdicSet:
             if n == 0:
                 return r
 
-    def way(self, A, a, e, t, n, bn):
-        """
-        Describes the words of ``a``  of length ``n`` starting from ``e``
-
-        INPUT:
-
-        - ``A`` alphabet
-        - ``a``  DetAutomaton an automaton
-        - ``e``  begin states
-        - ``t``  transition
-        - ``n``  int length
-        - ``verb`` bool -- (default : ``False``) set to ``True
-
-        OUTPUT:
-        Return computed sorted list
-
-        EXAMPLES::
-
-            sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
-            sage: aoc = dag.AnyWord([0, 1, 2, 4])
-            sage: m.compute_translations(aoc=aoc)
-
-        """
-        # print "Parcours e=%s t=%s n=%s bn=%s"%(e,t,n,bn)
-
-        if n == 0:
-            if a.is_final(e):
-                return [t]
-            else:
-                return []
-        else:
-            l = []
-            for i in range(len(A)):
-                f = a.succ(e, i)
-                if f != -1:
-                    l += self.way(A, a, f, t + bn * A[i], n - 1, bn*self.b)
-            if a.is_final(e):
-                l.append(t)
-            return l
+  #  def way(self, A, a, e, t, n, bn):
+#        """
+#        Describes the words of ``a``  of length ``n`` starting from ``e``
+#
+#        INPUT:
+#
+#        - ``A`` alphabet
+#        - ``a``  DetAutomaton an automaton
+#        - ``e``  begin states
+#        - ``t``  transition
+#        - ``n``  int length
+#        - ``verb`` bool -- (default : ``False``) set to ``True
+#
+#        OUTPUT:
+#        Return computed sorted list
+#
+#        EXAMPLES::
+#
+#            sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
+#            sage: aoc = dag.AnyWord([0, 1, 2, 4])
+#            sage: m.compute_translations(aoc=aoc)
+#
+#        """
+#        # print "Parcours e=%s t=%s n=%s bn=%s"%(e,t,n,bn)
+#
+#        if n == 0:
+#            if a.is_final(e):
+#                return [t]
+#            else:
+#                return []
+#        else:
+#            l = []
+#            for i in range(len(A)):
+#                f = a.succ(e, i)
+#                if f != -1:
+#                    l += self.way(A, a, f, t + bn * A[i], n - 1, bn*self.b)
+#            if a.is_final(e):
+#                l.append(t)
+#            return l
 
 #    def substitution(self, lt=None, get_aut=False, np=None, verb=False):
 #        r"""
@@ -4993,8 +5041,8 @@ cdef class BetaAdicSet:
             #. Tribonnacci::
 
                 sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
-                sage: m.substitution()          # long time
-                {1: [1, 3], 2: [1], 3: [1, 2]}
+                sage: m.substitution()
+                {1: [3], 2: [3, 1], 3: [3, 2]}
             
             #. Exemple with infinitely many connected components and where zero is not an inner point
             
@@ -5016,7 +5064,39 @@ cdef class BetaAdicSet:
                 sage: m = m.user_draw()                     # not tested (need the intervention of the user)
                 sage: s = WordMorphism(m.substitution())    # not tested
                 sage: s.rauzy_fractal_plot()                # not tested
+           
+            #. The Tribonnacci Rauzy fractal with a hole
+
+                sage: m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
+                sage: m = m.unshift([1,0,0,0]).complementary(m); m
+                b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 7 states and 2 letters
+                sage: m.substitution()
+                {1: [5], 2: [5, 1], 3: [3, 5, 1], 4: [3], 5: [6, 2], 6: [4, 2]}
+
+            #. Disjoint union of two Rauzy fractals with same beta
+
+                sage: s = WordMorphism('1->12,2->13,3->1')
+                sage: t = WordMorphism('1->12,2->31,3->1')
+                sage: a = s.DumontThomas().mirror().unshift([0,0])
+                sage: b = t.DumontThomas().mirror().unshift([1,0,0,0,0])
+                sage: m = a.union(b)
+                sage: WordMorphism(m.substitution())        # long time (>15s)
+                WordMorphism: a->h, b->j, c->cd, d->jkv, e->cdj, f->jk, g->cdjk, h->lg, i->zcfz, j->lgz, k->cdjlh, l->cdjkv, m->zcfze, n->lgzcb, o->ljkv, p->mqcd, q->xio, r->xix, s->mqcdh, t->nrpav, u->lj, v->mq, w->nr, x->kptw, y->nrsv, z->spyu
                 
+             #. A substitution whose Rauzy fractal is the union of a Cantor set and an interval
+             
+                sage: a = DetAutomaton([(0,1,0), (1,1,0), (1,1,1), (1,1,2), (0,2,2), (2,2,0), (2,2,2)], i=0)
+                sage: m = BetaAdicSet(1-sqrt(2), a)
+                sage: m.substitution()
+                {1: [5],
+                2: [3, 1, 4],
+                3: [3, 1, 7],
+                4: [9, 2],
+                5: [3, 1],
+                6: [6, 6, 8],
+                7: [9, 2, 6, 8],
+                8: [6],
+                9: [7]}
         """
         cdef DetAutomaton a
         
@@ -5309,6 +5389,7 @@ cdef class BetaAdicSet:
                     tr += lm[j][1]
             if end:
                 break
+        lf = [i for i in range(len(tree)) if tree[i] == []]
         # compute the substitution
         s = dict()
         for i in lf:
