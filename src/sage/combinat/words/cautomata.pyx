@@ -4112,7 +4112,7 @@ cdef class DetAutomaton:
         OUTPUT:
 
         Return ``True`` if the both :class:`DetAutomaton` have
-        the same language ``False`` if not
+        the same language and same alphabet ``False`` if not
 
         EXAMPLES::
 
@@ -4120,12 +4120,16 @@ cdef class DetAutomaton:
             sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=3)
             sage: c = DetAutomaton([(3, 2, 'd'), (1, 2, 'c')], i=2)
             sage: a.equal_languages(b)
-            True
+            False
             sage: a.equal_languages(c)
             False
             sage: c = DetAutomaton([(3, 2, 'd'), (1, 2, 'c')])
             sage: a.equal_languages(c)
             False
+            
+            sage: a = DetAutomaton([(0,0,0), (0,1,1), (1,1,0), (1,1,1)], i=0)
+            sage: dag.AnyWord([0,1]).equal_languages(a)
+            True
         """
         cdef Dict d
         cdef int i, j
@@ -4232,7 +4236,7 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        return a word of the language of the Automaton as list of letters
+        return a word of the language of the Automaton as list of letters if it exists, otherwise return None
 
         EXAMPLES::
 
@@ -4241,7 +4245,10 @@ cdef class DetAutomaton:
             []
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
             sage: a.find_word()
-            []
+            
+            sage: a = DetAutomaton([(0, 0, 'x'), (0, 1, 'y')], i=0, final_states=[1])
+            sage: a.find_word()
+            ['y']
         """
         cdef Dict w
         cdef list r
@@ -4250,7 +4257,7 @@ cdef class DetAutomaton:
         res = findWord(self.a[0], &w, verb)
         sig_off()
         if not res:
-            return []
+            return None
         r = []
         for i in range(w.n):
             r.append(self.A[w.e[i]])
@@ -4771,7 +4778,7 @@ cdef class DetAutomaton:
             True
 
         """
-        return (self.find_word() is None)
+        return (self.find_word()==None)
 
     def random_word(self, int nmin=-1, int nmax=100):
         r"""
