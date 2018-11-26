@@ -1,5 +1,10 @@
 from cpython.exc cimport PyErr_Clear
+from cpython.list cimport PyList_CheckExact
 from cpython.sequence cimport PySequence_Check
+from cpython.tuple cimport PyTuple_CheckExact
+
+cdef extern from *:
+    int likely(int) nogil
 
 
 cdef extern from "Python.h":
@@ -68,7 +73,11 @@ cpdef inline bint issequence(obj):
         sage: list(s)
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     """
+    cdef bint ret
 
-    cdef bint ret = PySequence_Check(obj) and PySequence_Length(obj) >= 0
+    if likely(PyList_CheckExact(obj) or PyTuple_CheckExact(obj)):
+        return 1
+
+    ret = PySequence_Check(obj) and PySequence_Length(obj) >= 0
     PyErr_Clear()
     return ret
