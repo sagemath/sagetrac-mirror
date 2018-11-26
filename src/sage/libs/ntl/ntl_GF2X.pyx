@@ -569,7 +569,7 @@ cdef class ntl_GF2X(object):
             from sage.rings.finite_rings.finite_field_constructor import FiniteField
             R = PolynomialRing(FiniteField(2), 'x')
 
-        return R(map(int,self.list()))
+        return R([int(_) for _ in self.list()])
 
     def coeff(self, int i):
         """
