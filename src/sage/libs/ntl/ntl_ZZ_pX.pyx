@@ -21,6 +21,7 @@ include 'misc.pxi'
 include 'decl.pxi'
 
 from cpython.object cimport Py_EQ, Py_NE
+from sage.cpython.sequence cimport issequence
 from sage.cpython.string cimport char_to_str
 from sage.rings.integer cimport Integer
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
@@ -93,7 +94,7 @@ cdef class ntl_ZZ_pX(object):
 
         if isinstance(v, ntl_ZZ_pX) and (<ntl_ZZ_pX>v).c is self.c:
             self.x = (<ntl_ZZ_pX>v).x
-        elif isinstance(v, (list, tuple, range)):
+        elif issequence(v):
             for i, x in enumerate(v):
                 if not isinstance(x, ntl_ZZ_p):
                     cc = ntl_ZZ_p(x, self.c)
