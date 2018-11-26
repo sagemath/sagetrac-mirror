@@ -793,13 +793,13 @@ cdef Automaton getAutomaton(DetAutomaton a, list A, verb=False):
 
 
 def mahler(pi):
-    #from sage.rings.qqbar import AA
+    from sage.rings.qqbar import AA
     pi = pi/pi.denominator()
     rr = pi.roots(ring=QQbar)
     p = pi.leading_coefficient()
     for r in rr:
-        #if r[0] not in AA:
-        #    rr.remove((r[0].conjugate(), r[1]))
+        if r[0] not in AA:
+            rr.remove((r[0].conjugate(), r[1]))
         a = abs(r[0])
         if a > 1:
             p *= abs(r[0])
