@@ -3979,7 +3979,7 @@ cdef class DetAutomaton:
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.spectral_radius()
-            0
+            0.000000000000000
 
         """
         a = self.minimize()

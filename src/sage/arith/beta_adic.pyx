@@ -2644,6 +2644,7 @@ cdef class BetaAdicSet:
             sage: m = BetaAdicSet(b, dag.AnyWord([0,1]))
             sage: ared = m.reduced()
             sage: ared
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 4 states and 2 letters.
         """
         return BetaAdicSet(self.b, self.reduced_words_automaton(mirror=mirror,
                                                                 verb=verb))
@@ -2927,24 +2928,25 @@ cdef class BetaAdicSet:
                 sage: m = BetaAdicSet(3, dag.AnyWord([0,1,3]))
                 sage: mr = m.reduced()
                 sage: mr.critical_exponent_free()
-                log(y)/log(|3|) where y is the max root of x^2 - 3*x + 1
-                0.8760357589...
+                log(y)/log(3) where y is the max root of x^2 - 3*x + 1, and 3 is root of x - 3.
+                0.8760357589718848
 
             #. Hausdorff dimension of limit set of phi-adic expansion with numerals set {0,1}::
 
                 sage: m = BetaAdicSet((1+sqrt(5))/2, dag.AnyWord([0,1]))
                 sage: m = m.reduced()
                 sage: m.critical_exponent_free()
-                log(y)/log(|b|) where y is the max root of x^2 - x - 1
-                1.0000000000...
+                log(y)/log(1) where y is the max root of x^2 - x - 1, and 1 is root of x - 1.
+                inf
 
             #. Hausdorff dimension of the boundary of the dragon fractal::
 
                 sage: m = BetaAdicSet(1/(1+I), dag.AnyWord([0,1]))
                 sage: mi = m.intersection_words(w1=[0], w2=[1])
                 sage: mi.critical_exponent_free()
-                log(y)/log(|b|) where y is the max root of x^3 - x^2 - 2
-                1.5236270862...
+                log(y)/log(0.3535533905932738?) where y is the max root of x^3 - x^2 - 2, and 0.3535533905932738? is root of x^2 - 1/8.
+                -0.5078756954008306
+
 
             #. Hausdorff dimension of the boundary of a Rauzy fractal::
 
@@ -2952,8 +2954,8 @@ cdef class BetaAdicSet:
                 sage: m = s.DumontThomas()
                 sage: mi = m.intersection_words(w1=[0], w2=[1])
                 sage: mi.critical_exponent_free()
-                log(y)/log(|b|) where y is the max root of x^4 - 2*x - 1
-                1.0933641642...
+                log(y)/log(1.356203065626296?) where y is the max root of x^4 - 2*x - 1, and 1.356203065626296? is root of x^6 - x^4 - x^2 - 1.
+                1.0933641642823064
 
             #. Hausdorff dimension of a non-Pisot Rauzy fractal::
 
@@ -2961,8 +2963,8 @@ cdef class BetaAdicSet:
                 sage: m = s.DumontThomas()
                 sage: m2 = BetaAdicSet(1/m.b, m.a.mirror())
                 sage: m.critical_exponent_free()
-                log(y)/log(|1/2*b^2 - 1/2*b + 1/2|) where y is the max root of x^3 - x^2 + x - 2
-                1.5485260383...
+                log(y)/log(1.645120034647518?) where y is the max root of x^3 - x^2 + x - 2, and 1.645120034647518? is root of x^6 - 2*x^4 + 4*x^2 - 16.
+                0.6076163300099383
         """
         M = self.a.adjacency_matrix()
         if verb:
@@ -3008,15 +3010,15 @@ cdef class BetaAdicSet:
 
                 sage: m = BetaAdicSet(3, dag.AnyWord([0,1,3]))
                 sage: m.critical_exponent()
-                log(y)/log(3) where y is the max root of x^2 - 3*x + 1
-                0.8760357589...
+                log(y)/log(3) where y is the max root of x^2 - 3*x + 1, and 3 is root of x - 3.
+                0.8760357589718848
 
             #. Hausdorff dimension of limit set of phi-adic expansion with numerals set {0, 1}::
 
                 sage: m = BetaAdicSet((1+sqrt(5))/2, dag.AnyWord([0,1]))
                 sage: m.critical_exponent()
-                log(y)/log(|b|) where y is the max root of x^2 - x - 1
-                1.0000000000...
+                log(y)/log(1) where y is the max root of x^2 - x - 1, and 1 is root of x - 1.
+                inf
 
             #. A non-conformal example::
 
