@@ -683,6 +683,19 @@ bool equalsAutomaton(Automaton a1, Automaton a2)
 //determine if the languages of states e1 of a1 and state e2 of a2 are the same
 bool equalsLanguages_ind (Automaton a1, Automaton a2, Dict d, Dict a1toa2, Dict a2toa1, int e1, int e2, bool verb)
 {
+    if (e1 >= d.n)
+	{
+	    printf("Error: we try to access to the element %d of the dictionnary of size %d.\n", e1, d.n);
+	    return false;
+	}
+	if (e1 >= a1.n)
+	{
+	    printf("Error: %d is not a state of a1 !\n", e1);
+	}
+	if (e2 >= a2.n)
+	{
+	    printf("Error: %d is not a state of a2 !\n", e2);
+	}
 	if ((a1.e[e1].final & 1) != (a2.e[e2].final & 1))
 		return false; //one of the states is final but not the other one
 	if (d.e[e1] == e2)
