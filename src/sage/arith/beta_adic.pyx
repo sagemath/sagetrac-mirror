@@ -3036,6 +3036,7 @@ cdef class BetaAdicSet:
                 sage: m.critical_exponent()
                 log(y)/log(1) where y is the max root of x^2 - x - 1, and 1 is root of x - 1.
                 inf
+                log(y)/log(1.618033988749895?) where y is the max root of x^2 - x - 1, and 1.618033988749895? is root of x^2 - x - 1.
 
             #. A non-conformal example::
 
