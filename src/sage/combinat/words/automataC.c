@@ -737,43 +737,46 @@ bool equalsLanguages_ind (Automaton a1, Automaton a2, Dict d, Dict a1toa2, Dict 
 bool equalsLanguages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, bool pruned, bool verb)
 {
 	int i;
+	Automaton a3 = *a1;
+	Automaton a4 = *a2;
+	bool tofree = false;
 	if (!pruned)
 	{
 		if (verb)
 			printf("Prune...\n");
-		//prun the automata
-		Automaton a3 = prune(*a1, false);
-		FreeAutomaton(a1);
-		*a1 = a3;
-		a3 = prune(*a2, false);
-		FreeAutomaton(a2); ///////////////////////////////////////////////////////////
-		*a2 = a3;
+		//prune the automata
+		a3 = prune(a3, false);
+		a4 = prune(a4, false);
+		tofree = true;
 	}
 	if (!minimized)
 	{
 		if (verb)
 			printf("Minimize...\n");
-		//minimise les automates
-		Automaton a3 = Minimise(*a1, false);
-		FreeAutomaton(a1);
-		*a1 = a3;
-		a3 = Minimise(*a2, false);
-		FreeAutomaton(a2); /////////////////////////////////////////////////////////////
-		*a2 = a3;
+		//minimize the automata
+		Automaton a = Minimise(a3, false);
+		if (tofree)
+    		FreeAutomaton(&a3);
+    	a3 = a;
+		a = Minimise(a4, false);
+		if (tofree)
+		    FreeAutomaton(&a4);
+		a4 = a;
+		tofree = true;
 	}
 	if (verb)
 	{
 		printf("Automata : ");
-		printAutomaton(*a1);
-		printAutomaton(*a2);
+		printAutomaton(a3);
+		printAutomaton(a4);
 	}
 	//
-    if (a1->n != a2->n)
+    if (a3.n != a4.n)
     {
         return false;   
     }
 	//inverse the dictionnary
-	Dict a2toa1 = NewDict(a2->na);
+	Dict a2toa1 = NewDict(a4.na);
 	for (i=0;i<a1toa2.n;i++)
 	{
 		a2toa1.e[a1toa2.e[i]] = i;
@@ -781,22 +784,27 @@ bool equalsLanguages(Automaton *a1, Automaton *a2, Dict a1toa2, bool minimized, 
 	if (verb)
 		printDict(a2toa1);
 	//Alloc the dict that goes from states of a1 to states of a2
-	Dict d = NewDict(a1->n);
-	for (i=0;i<a1->n;i++)
+	Dict d = NewDict(a3.n);
+	for (i=0;i<a3.n;i++)
 	{
 	    d.e[i] = -1;
 	}
 	//
 	bool res;
-	if (a1->i == -1 || a2->i == -1)
-		res = (a1->i == a2->i);
+	if (a3.i == -1 || a4.i == -1)
+		res = (a3.i == a4.i);
 	else
 	{
-		res = equalsLanguages_ind(*a1, *a2, d, a1toa2, a2toa1, a1->i, a2->i, verb);
+		res = equalsLanguages_ind(a3, a4, d, a1toa2, a2toa1, a3.i, a4.i, verb);
 	}
 	//free memory
 	FreeDict(&d);
 	FreeDict(&a2toa1);
+	if (tofree)
+	{
+	    FreeAutomaton(&a3);
+	    FreeAutomaton(&a4);
+	}
 	return res;
 }
 

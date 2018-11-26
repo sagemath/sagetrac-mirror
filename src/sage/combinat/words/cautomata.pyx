@@ -258,13 +258,14 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
         r.e[i].final = 0
         d[V[i]] = i
     for v in F:
-        if not d.has_key(v):
-            sig_on()
-            FreeAutomaton(&r)
-            r = NewAutomaton(0, 0)
-            sig_off()
-            raise ValueError("Incorrect set of final states.")
-        r.e[d[v]].final = 1
+        #if not d.has_key(v):
+        #    sig_on()
+        #    FreeAutomaton(&r)
+        #    r = NewAutomaton(0, 0)
+        #    sig_off()
+        #    raise ValueError("Incorrect set of final states.")
+        if d.has_key(v):
+            r.e[d[v]].final = 1
 
     if initial is None:
         if not hasattr(a, 'I'):
@@ -278,7 +279,10 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
         else:
             r.i = -1
     else:
-        r.i = d[initial]
+        if d.has_key(initial):
+            r.i = d[initial]
+        else:
+            r.i = -1
 
     w = False
     for e, f, l in a.edges():
@@ -1343,7 +1347,7 @@ cdef class DetAutomaton:
             self.a[0] = getAutomaton(a, initial=i, F=final_states, A=self.A)
             #self.dA = a.dA
             if keep_S:
-                self.S = a.S
+                self.S = a.vertices()
                 #self.dS = a.dS
         elif isinstance(a, DetAutomaton):
             if verb:
@@ -2648,6 +2652,9 @@ cdef class DetAutomaton:
             a.e[i].final = True
         return r
 
+    # TODO : remove the side effect
+    # and the problem with different alphabets
+    # use epsilon-transitions rather than product ?
     def union(self, DetAutomaton a, simplify=True, verb=False):
         """
         Return an automaton recognizing the union of the two languages.
@@ -2675,44 +2682,52 @@ cdef class DetAutomaton:
             DetAutomaton with 2 states and an alphabet of 1 letters
 
         """
+        cdef DetAutomaton a1 = self
+        cdef DetAutomaton a2 = a
+        
+        #increase the alphabets if necessary
+        if set(a1.A) != set(a2.A):
+            A = list(set(a1.A+a2.A))
+            a1 = a1.bigger_alphabet(A)
+            a2 = a2.bigger_alphabet(A)
+        
         # complete the automata
         sig_on()
-        CompleteAutomaton(self.a)
-        CompleteAutomaton(a.a)
+        CompleteAutomaton(a1.a)
+        CompleteAutomaton(a2.a)
         sig_off()
 
         # make the product
         d = {}
-        for l in self.A:
-            if l in a.A:
-                d[(l, l)] = l
+        for l in a1.A:
+            d[(l, l)] = l
 
         cdef Automaton ap
         cdef Dict dC
         r = DetAutomaton(None)
         Av = []
         sig_on()
-        dv = imagProductDict(d, self.A, a.A, Av=Av)
+        dv = imagProductDict(d, a1.A, a2.A, Av=Av)
         sig_off()
         if verb:
             print("Av=%s" % Av)
             print("dv=%s" % dv)
         sig_on()
-        dC = getProductDict(d, self.A, a.A, dv=dv, verb=verb)
+        dC = getProductDict(d, a1.A, a2.A, dv=dv, verb=verb)
         sig_off()
         sig_on()
         if verb:
             print("dC=")
             printDict(dC)
-        ap = Product(self.a[0], a.a[0], dC, verb)
+        ap = Product(a1.a[0], a2.a[0], dC, verb)
         FreeDict(&dC)
         sig_off()
         # set final states
         cdef int i, j
-        cdef n1 = self.a.n
+        cdef n1 = a1.a.n
         for i in range(n1):
-            for j in range(a.a.n):
-                ap.e[i + n1 * j].final = self.a.e[i].final or a.a.e[j].final
+            for j in range(a2.a.n):
+                ap.e[i + n1 * j].final = a1.a.e[i].final or a2.a.e[j].final
 
         r.a[0] = ap
         r.A = Av
@@ -4801,4 +4816,3 @@ cdef class DetAutomaton:
             i = self.succ(i, l)
         if i<0 or not self.a.e[i].final:
             print("word not found !")
-        return w
