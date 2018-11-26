@@ -1,0 +1,20 @@
+commit 052632190bd65bdce8f9c3843f7fdbf655c76969
+Author: Erik M. Bray <erik.bray@lri.fr>
+Date:   Tue Jul 31 14:34:55 2018 +0000
+
+    fix numeric::ratlog in the case where the argument is an MPZ type but the base is a LONG type
+
+diff --git a/ginac/numeric.cpp b/ginac/numeric.cpp
+index e6344cd..a8cd2e4 100644
+--- a/ginac/numeric.cpp
++++ b/ginac/numeric.cpp
+@@ -3757,7 +3757,7 @@ const numeric numeric::ratlog(const numeric &b, bool& israt) const {
+                 return c;
+         }
+         if (b.t == LONG)
+-                return ratlog(to_bigint(), israt);
++                return ratlog(b.to_bigint(), israt);
+         if (t == LONG)
+                 return to_bigint().ratlog(b, israt);
+         if (t == MPZ and b.t == MPZ) {
+
