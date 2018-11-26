@@ -4099,6 +4099,7 @@ cdef class DetAutomaton:
         """
         Test if the languages of :class:`DetAutomaton` ``self`` and ``a2`` are
         equal or not.
+        If the alphabets are differents it returns False, even if the automata describe the same languages.
 
         INPUT:
 
@@ -4130,6 +4131,9 @@ cdef class DetAutomaton:
         cdef Dict d
         cdef int i, j
         
+        if set(self.A) != set(a2.A):
+            return False;
+        
         sig_on()
         d = NewDict(self.a.na)
         sig_off()
@@ -4148,6 +4152,9 @@ cdef class DetAutomaton:
         sig_on()
         res = equalsLanguages(self.a, a2.a, d, minimized, pruned, verb)
         answ = c_bool(res)
+        sig_off()
+        sig_on()
+        FreeDict(&d)
         sig_off()
         return answ
 
