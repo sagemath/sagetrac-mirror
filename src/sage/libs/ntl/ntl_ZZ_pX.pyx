@@ -68,7 +68,7 @@ cdef class ntl_ZZ_pX(object):
     or Karatsuba algorithms.
     """
     # See ntl_ZZ_pX.pxd for definition of data members
-    def __init__(self, v = None, modulus = None):
+    def __init__(self, v=None, modulus=None):
         """
         EXAMPLES::
 
@@ -83,6 +83,13 @@ cdef class ntl_ZZ_pX(object):
             [0 0 0 0 0 0 0 0 0 0 5]
             sage: g[10]
             5
+
+        NTL polynomial string inputs are also accepted::
+
+            sage: ntl.ZZ_pX('[1 2 5 11]', c)
+            [1 2 5 11]
+            sage: ntl.ZZ_pX(b'[1 2 5 11]', c)
+            [1 2 5 11]
         """
         if modulus is None:
             raise ValueError("You must specify a modulus when creating a ZZ_pX.")
@@ -94,6 +101,8 @@ cdef class ntl_ZZ_pX(object):
 
         if isinstance(v, ntl_ZZ_pX) and (<ntl_ZZ_pX>v).c is self.c:
             self.x = (<ntl_ZZ_pX>v).x
+        elif isinstance(v, (bytes, str)):
+            ccreadstr(self.x, v)
         elif issequence(v):
             for i, x in enumerate(v):
                 if not isinstance(x, ntl_ZZ_p):
@@ -101,9 +110,6 @@ cdef class ntl_ZZ_pX(object):
                 else:
                     cc = x
                 ZZ_pX_SetCoeff(self.x, i, cc.x)
-        elif v is not None:
-            s = str(v).replace(',',' ').replace('L','')
-            ccreadstr(self.x, s)
 
     def __cinit__(self, v=None, modulus=None):
         #################### WARNING ###################
