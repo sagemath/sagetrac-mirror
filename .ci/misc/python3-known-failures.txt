@@ -306,6 +306,7 @@ src/sage/tests/article_heuberger_krenn_kropf_fsm-in-sage.py
 src/sage/tests/book_schilling_zabrocki_kschur_primer.py
 src/sage/tests/books/judson-abstract-algebra/vect-sage.py
 src/sage/tests/cmdline.py
+src/sage/tests/french_book/domaines_doctest.py
 src/sage/tests/french_book/linalg_doctest.py
 src/sage/tests/french_book/mpoly.py
 src/sage/tests/french_book/nonlinear_doctest.py
