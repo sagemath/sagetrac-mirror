@@ -249,7 +249,7 @@ void FreeNAutomaton(NAutomaton *a)
 	a->n = 0;
 }
 
-//add an edge on the NFastAutomaton
+//add an edge on the CAutomaton
 void AddTransitionN (NAutomaton *a, int e, int f, int l)
 {
 	a->e[e].n++;
@@ -261,7 +261,7 @@ void AddTransitionN (NAutomaton *a, int e, int f, int l)
 	a->e[e].a[a->e[e].n - 1].l = l;
 }
 
-//Add a path between states e and f of NFastAutomaton a
+//Add a path between states e and f of CAutomaton a
 void AddPathN (NAutomaton *a, int e, int f, int *l, int len, bool verb)
 {
 	int n = a->n;
