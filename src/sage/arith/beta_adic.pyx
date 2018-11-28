@@ -2485,7 +2485,7 @@ cdef class BetaAdicSet:
     #     - ``aut`` - DetAutomaton (default: ``None``, full language)
     #       Automaton describing the language in which we live.
     def reduced_words_automaton(self, full=False, step=100,
-                                mirror=False, verb=False):  # , DetAutomaton aut=None):
+                                mirror=False, int algo_rel=3, verb=False):  # , DetAutomaton aut=None):
         r"""
         Compute the reduced words automaton of the ``BetaAdicSet``
         (without considering the automaton of authorized words).
@@ -2498,7 +2498,10 @@ cdef class BetaAdicSet:
 
         - ``step`` - int (default: 100)
           number of steps
-
+        
+        - ``algo_rel`` - int (default ``2``)
+          Algorithm used for the computation of the relations automaton.
+        
         - ``verb`` - bool (default: ``False``)
           If True, print informations for debugging.
 
@@ -2531,7 +2534,7 @@ cdef class BetaAdicSet:
 
         if full:
             # compute the relations automaton
-            arel = self.relations_automaton(mirror=mirror)
+            arel = self.relations_automaton(algo=algo_rel, mirror=mirror)
             if verb:
                 print("arel = %s" % arel)
             if step == 1:
@@ -2626,15 +2629,18 @@ cdef class BetaAdicSet:
                 print("ai=%s" % ai)
             return ai.intersection(self.a)
 
-    def reduced(self, mirror=False, verb=False):
+    def reduced(self, mirror=False, int algo_rel=3, verb=False):
         r"""
         Compute the reduced  of the ``BetaAdicSet``
 
 
         INPUT:
 
-        - ``mirror`` bool -- (default ``False) st to ``True`` to to the mirror
-
+        - ``mirror`` bool -- (default ``False) set to ``True`` in order to compute the mirror of the reduced language
+        
+        - ``algo_rel`` - int (default ``2``)
+          Algorithm used for the computation of the relations automaton.
+        
         - ``verb`` - bool (default: ``False``)
           If True, print informations for debugging.
 
@@ -2653,6 +2659,7 @@ cdef class BetaAdicSet:
             b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 4 states and 2 letters
         """
         return BetaAdicSet(self.b, self.reduced_words_automaton(mirror=mirror,
+                                                                algo_rel=algo_rel,
                                                                 verb=verb))
 
 #     def reduced_words_automaton(self, ss=None, Iss=None, ext=False,
@@ -2991,7 +2998,7 @@ cdef class BetaAdicSet:
             print("y=%s, m=%s" % (y, m))
         return log(y) / abs(log(m))
 
-    def critical_exponent(self, prec=None, verb=False):
+    def critical_exponent(self, prec=None, int algo_rel=3, verb=False):
         r"""
         Compute the critical exponent of the beta-adic set.
         If the beta-adic set is algebraic and conformal, then it is equal
@@ -3003,6 +3010,9 @@ cdef class BetaAdicSet:
         INPUT:
 
         - ``prec``- precision (default: ``None``)
+        
+        - ``algo_rel`` - int (default: ``2``)
+          Algorithm used for the computation of the relations automaton.
 
         - ``verb``- bool (default: ``False``)
           If True, print informations for debugging.
@@ -3041,7 +3051,9 @@ cdef class BetaAdicSet:
         """
         if verb:
             print("Computation of reduce words' automata")
-        m = self.reduced(verb=verb)
+        m = self.reduced(algo_rel=algo_rel, verb=verb)
+        if verb:
+            print("%s"%m.a)
         return m.critical_exponent_free(prec=prec, verb=verb)
 
 #    # test if 0 is an inner point of the limit set

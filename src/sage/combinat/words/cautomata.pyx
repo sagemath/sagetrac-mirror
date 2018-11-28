@@ -4287,7 +4287,10 @@ cdef class DetAutomaton:
             []
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
             sage: a.shortest_word(i=2, f=1)
-
+            
+            sage: a = DetAutomaton([(0, 0, 'x'), (0, 1, 'y')], i=0, final_states=[1])
+            sage: a.shortest_word()
+            ['y']
         """
         cdef Dict w
         
