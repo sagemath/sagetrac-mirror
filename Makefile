@@ -59,6 +59,11 @@ buildbot-python3: configure
 	./configure --with-python=3
 	$(MAKE) build
 
+ptest-python3: buildbot-python3
+	$(PTESTALL) --logfile=logs/ptest-python3.log \
+		--known-failure @.ci/misc/python3-known-failures.txt
+
+
 # Preemptively download all standard upstream source tarballs.
 download:
 	export SAGE_ROOT=$$(pwd) && \
@@ -210,4 +215,4 @@ list:
 	misc-clean bdist-clean distclean bootstrap-clean maintainer-clean \
 	test check testoptional testall testlong testoptionallong testallong \
 	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong \
-	buildbot-python3 list
+	buildbot-python3 ptest-python3 list
