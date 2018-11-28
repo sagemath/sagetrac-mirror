@@ -511,4 +511,38 @@ run it may have increased. Try increasing the limit. ::
     ....:     ok = ("MemoryError: failed to allocate" in out)
     sage: ok or out
     True
+
+Test handling of the ``--known-failure`` option, including a couple tests that
+are expected to fail and do, and one test that is expected to fail but actually
+succeeds::
+
+    sage: F = tmp_filename()
+    sage: with open(F, 'w') as fobj:
+    ....:     _ = fobj.write('simple_failure.rst\n')
+    ....:     _ = fobj.write('abort.rst\n')
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0",
+    ....:                  "--known-failure", "simple_success.rst",
+    ....:                  "--known-failure", "@" + F,
+    ....:                  "simple_failure.rst", "abort.rst",
+    ....:                  "simple_success.rst"], **kwds)
+    Running doctests...
+    Doctesting 3 files.
+    sage -t --warn-long 0.0 simple_failure.rst
+    ...
+    **********************************************************************
+    1 item had failures (known failure):
+       1 of   5 in sage.doctest.tests.simple_failure
+        [4 tests, 1 failure, ...]
+    sage -t --warn-long 0.0 abort.rst
+        Killed due to abort (known failure)
+    ...
+    sage -t --warn-long 0.0 simple_success.rst
+        [3 tests, ...]
+    ----------------------------------------------------------------------
+    sage -t --warn-long 0.0 simple_failure.rst  # 1 doctest failed (known failure)
+    sage -t --warn-long 0.0 abort.rst  # Killed due to abort (known failure)
+    sage -t --warn-long 0.0 simple_success.rst  # 4 doctests passed (known failure)
+    ----------------------------------------------------------------------
+    ...
+    0
 """
