@@ -34,7 +34,6 @@ from sage.rings.integer_ring import ZZ
 from sage.groups.libgap_wrapper import ParentLibGAP
 from sage.libs.gap.element import GapElement
 from sage.misc.latex import latex
-from sage.misc.cachefunc import cached_method
 
 
 class GroupMorphism_libgap(Morphism):
@@ -625,6 +624,7 @@ class GroupHomset_libgap(HomsetWithBase):
 
     Element = GroupMorphism_libgap
 
+
     def _element_constructor_(self, x, check=True, **options):
         r"""
         Handle conversions and coercions.
@@ -655,16 +655,27 @@ class GroupHomset_libgap(HomsetWithBase):
         """
         if isinstance(x, (tuple, list)):
             # there should be a better way
-            if not len(self.domain().gens()) == len(x):
-                raise ValueError("provide an image for each generator")
-            phi = self._obtain_gap_hom(tuple(x), check)
+            from sage.libs.gap.libgap import libgap
+            dom = self.domain()
+            codom = self.codomain()
+            gens = dom.gap().GeneratorsOfGroup()
+            if list(x) == codom.gens():
+                # avoid buffer size overflow in the interface
+                imgs = codom.gap().GeneratorsOfGroup()
+            else:
+                imgs = [codom(g).gap() for g in x]
             if check:
+                if not len(gens) == len(imgs):
+                    raise ValueError("provide an image for each generator")
+                phi = libgap.GroupHomomorphismByImages(dom.gap(), codom.gap(), gens, imgs)
                 # if it is not a group homomorphism, then
                 # self._phi is the gap boolean fail
                 if phi.is_bool():     # check we did not fail
                     raise ValueError("images do not define a group homomorphism")
+            else:
+                ByImagesNC = libgap.function_factory("GroupHomomorphismByImagesNC")
+                phi = ByImagesNC(dom.gap(), codom.gap(), gens, imgs)
             return self.element_class(self, phi, check=check, **options)
-
         if isinstance(x, GapElement):
             try:
                 return self.element_class(self, x, check=True, **options)
@@ -693,68 +704,6 @@ class GroupHomset_libgap(HomsetWithBase):
         one = self.codomain().one()
         return self._element_constructor_((one,) * n, check=False)
 
-    @cached_method
-    def _obtain_gap_hom(self, x_tuple, check):
-        """
-        the purpose of this local method is to avoid the group generators
-        to be transfered to GAP, since this might cause a buffer size
-        overflow in the interface, for example if larger permutation
-        groups are involved. The example below doesn't work if the
-        GAP function GroupHomomorphismByImage is called from sage.
-
-        INPUT:
-
-        - ``x_tuple`` -- the list of images converted as a tuple to be hashable
-        - ``check``   -- see _element_constructor_
-
-        OUTPUT:
-
-        an instance of :class:`sage.libs.gap.element.GapElement` representing a GAP group homomorphism
-
-        EXAMPLES::
-
-            sage: S = Sp(8,3)
-            sage: P = PSp(8,3)
-            sage: E = copy(S.one().matrix())
-            sage: E[7,0]=2
-            sage: e=S(E)
-            sage: H = Hom(S,P)
-            sage: gap_hom = H._obtain_gap_hom(tuple(P.gens()),True)  # longtime
-            sage: pr = H.element_class(H, gap_hom)
-            sage: pe=pr(e)
-            sage: pr.lift(pe)
-            [2 0 0 0 0 0 0 0]
-            [0 2 0 0 0 0 0 0]
-            [0 0 2 0 0 0 0 0]
-            [0 0 0 2 0 0 0 0]
-            [0 0 0 0 2 0 0 0]
-            [0 0 0 0 0 2 0 0]
-            [0 0 0 0 0 0 2 0]
-            [1 0 0 0 0 0 0 2]
-        """
-        dom   = self.domain()
-        codom = self.codomain()
-        from sage.libs.gap.libgap import libgap
-        nc = ''
-        if not check:
-            nc = 'NC'
-
-        if list(x_tuple) == codom.gens():
-            gap_func_decl='function(G, H) local Gg, Hg;'\
-                      + 'Gg:=GeneratorsOfGroup(G); Hg:=GeneratorsOfGroup(H);'\
-                      + 'return GroupHomomorphismByImages%s(G, H, Gg, Hg); end;' %(nc)
-            gap_hom_func = libgap.function_factory(gap_func_decl)
-            phi = gap_hom_func(dom.gap(), codom.gap())
-        else:
-            gap_func_decl='function(G, H, imgs) local Gg;'\
-                      + 'Gg:=GeneratorsOfGroup(G);'\
-                      + 'return GroupHomomorphismByImages%s(G, H, Gg, imgs); end;' %(nc)
-            gap_hom_func = libgap.function_factory(gap_func_decl)
-            imgs = [codom(g).gap() for g in x_tuple]
-            phi = gap_hom_func(dom.gap(), codom.gap(), imgs)
-
-        return phi
-
     def natural_map(self):
         r"""
         This method from :class:`HomsetWithBase` is overloaded here for cases in which
@@ -762,7 +711,7 @@ class GroupHomset_libgap(HomsetWithBase):
 
         OUTPUT:
 
-        an instance of the element class of self if the exists a group homomorphism
+        an instance of the element class of self if there exists a group homomorphism
         mapping the generators of the domain of self to the according generators of
         the codomain. Else the method falls back to the default.
 
@@ -778,7 +727,10 @@ class GroupHomset_libgap(HomsetWithBase):
             (1,2,4,5,7,3,6)
         """
         if len(self.domain().gens()) == len(self.codomain().gens()):
-            phi = self._obtain_gap_hom(tuple(self.codomain().gens()), True)
+            dom_gap = self.domain().gap()
+            codom_gap = self.codomain().gap()
+            from sage.libs.gap.libgap import libgap
+            phi = libgap.GroupHomomorphismByImages(dom_gap, codom_gap, dom_gap.GeneratorsOfGroup(), codom_gap.GeneratorsOfGroup())
             if not phi.is_bool():     # phi is indeed a group homomorphism
                 return self.element_class(self, phi)
         return super(GroupHomset_libgap, self).natural_map()
