@@ -2585,14 +2585,13 @@ cdef class DetAutomaton:
 
         INPUT:
 
-        - ``label_sink`` -- (default: ``None``) - label of the sink state
-          if added and if self has labels of states
+        - ``label_sink`` -- (default: ``s``) - label of the sink state
+          if added and if self has labels of states.
 
         OUTPUT:
 
         Return ``True`` if the automaton was not complete
-        (a sink state has been added),
-        return ``False``otherwise.
+        (a sink state has been added), return ``False`` otherwise.
 
         EXAMPLES::
 
@@ -2611,7 +2610,7 @@ cdef class DetAutomaton:
                 # add a label for the sink state
                 self.S.append(label_sink)
         return res
-    
+
     def prefix(self, list w):
         """
         Give an automaton recognizing the language w(w^(-1)L) where L is the language of self.
