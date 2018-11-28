@@ -3025,11 +3025,13 @@ class WordMorphism(SageObject):
         # Zoom in a complicated Rauzy fractal
         sage: s = WordMorphism('1->2,2->3,3->12')
         sage: m = s.DumontThomas().mirror(); m
-        sage: m.draw_zoom()         # not tested
+        b-adic set with b root of x^3 - x - 1, and an automaton of 4 states and 2 letters
+        sage: m.draw_zoom()         # not tested (need the intervention of the user)
         
         # Draw the Rauzy fractal of the Hokkaido substitution
         sage: s = WordMorphism('1->12,2->3,3->4,4->5,5->1')
         sage: m = s.DumontThomas(); m
+        b-adic set with b root of x^3 - x - 1, and an automaton of 5 states and 2 letters
         sage: m.plot_list(mirror=True)      # random
         
         """
