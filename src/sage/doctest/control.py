@@ -119,6 +119,9 @@ class DocTestDefaults(SageObject):
         # the auto_optional_tags there.
         self.optional = set(['sage']) | auto_optional_tags
 
+        # set of tests marked as known failures for the current test scenario
+        self.known_failures = set()
+
         # > 0: always run GC before every test
         # < 0: disable GC
         self.gc = 0
@@ -364,6 +367,27 @@ class DocTestController(SageObject):
                         raise ValueError('invalid optional tag {!r}'.format(o))
 
                 options.optional |= auto_optional_tags
+
+        # Process known failures--entries beginning with '@' should be the path
+        # to a file, and we raise an exception if that file cannot be found;
+        # otherwise we don't check that the known-failures are themselves
+        # actual files
+        if options.known_failures:
+            known_failures = set()
+            for filename in options.known_failures:
+                if filename.startswith('@'):
+                    filename = filename[1:]
+                    try:
+                        with open(filename) as fobj:
+                            known_failures.update(
+                                os.path.abspath(l.strip()) for l in fobj)
+                    except IOError as exc:
+                        raise ValueError('could not open known failures file '
+                                         '"{}": {}'.format(filename, exc))
+                else:
+                    known_failures.add(os.path.abspath(filename))
+
+            options.known_failures = known_failures
 
         self.options = options
 

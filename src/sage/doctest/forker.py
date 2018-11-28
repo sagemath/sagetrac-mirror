@@ -466,6 +466,7 @@ class SageSpoofInOut(SageObject):
 from collections import namedtuple
 TestResults = namedtuple('TestResults', 'failed attempted')
 
+
 class SageDocTestRunner(doctest.DocTestRunner, object):
     def __init__(self, *args, **kwds):
         """
@@ -502,6 +503,8 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
         self._fakeout = SageSpoofInOut(O)
         if self.msgfile is None:
             self.msgfile = self._fakeout.real_stdout
+
+        self.test = None
         self.history = []
         self.references = []
         self.setters = {}
@@ -602,7 +605,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             # If 'SKIP' is set, then skip this example.
             if self.optionflags & doctest.SKIP:
                 continue
-            
+
             # Record that we started this example.
             tries += 1
 
@@ -924,8 +927,18 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                 for thing, count in passed:
                     print(" %s in %s"%(count_noun(count, "test", pad_number=3, pad_noun=True), thing), file=m)
         if failed:
+            known_failure = ''
+            if self.test:
+                filename = self.test.filename
+                if filename:
+                    filename = os.path.abspath(filename)
+
+                if filename in self.options.known_failures:
+                    known_failure = ' (known failure)'
+
             print(self.DIVIDER, file=m)
-            print(count_noun(len(failed), "item"), "had failures:", file=m)
+            print(count_noun(len(failed), "item"),
+                  "had failures{}:".format(known_failure), file=m)
             failed.sort()
             for thing, (f, t) in failed:
                 print(" %3d of %3d in %s"%(f, t, thing), file=m)

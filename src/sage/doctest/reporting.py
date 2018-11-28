@@ -34,6 +34,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
+import os
 import sys
 import signal
 from sage.structure.sage_object import SageObject
@@ -360,12 +361,20 @@ class DocTestReporter(SageObject):
                 [... tests, 1 failure, ... s]
         """
         log = self.controller.log
+        options = self.controller.options
         process_name = 'process (pid={0})'.format(pid) if pid else 'process'
         try:
             postscript = self.postscript
             stats = self.stats
             basename = source.basename
             cmd = self.report_head(source)
+
+            filename = os.path.abspath(source.printpath)
+            if filename in options.known_failures:
+                known_failure = ' (known failure)'
+            else:
+                known_failure = ''
+
             try:
                 ntests, result_dict = results
             except (TypeError, ValueError):
@@ -385,12 +394,15 @@ class DocTestReporter(SageObject):
                         fail_msg += " (and interrupt failed)"
                     else:
                         fail_msg += " (with %s after interrupt)"%signal_name(sig)
+
+                fail_msg += known_failure
                 log("    %s\n%s\nTests run before %s timed out:"%(fail_msg, "*"*70, process_name))
                 log(output)
                 log("*"*70)
-                postscript['lines'].append(cmd + "  # %s"%fail_msg)
+                postscript['lines'].append(cmd + "  # %s" % fail_msg)
                 stats[basename] = dict(failed=True, walltime=1e6)
-                self.error_status |= 4
+                if not known_failure:
+                    self.error_status |= 4
             elif return_code:
                 if return_code > 0:
                     fail_msg = "Bad exit: %s"%return_code
@@ -398,12 +410,15 @@ class DocTestReporter(SageObject):
                     fail_msg = "Killed due to %s"%signal_name(-return_code)
                 if ntests > 0:
                     fail_msg += " after testing finished"
+                fail_msg += known_failure
+
                 log("    %s\n%s\nTests run before %s failed:"%(fail_msg,"*"*70, process_name))
                 log(output)
                 log("*"*70)
                 postscript['lines'].append(cmd + "  # %s" % fail_msg)
                 stats[basename] = dict(failed=True, walltime=1e6)
-                self.error_status |= (8 if return_code > 0 else 16)
+                if not known_failure:
+                    self.error_status |= (8 if return_code > 0 else 16)
             else:
                 if hasattr(result_dict, 'walltime') and hasattr(result_dict.walltime, '__len__') and len(result_dict.walltime) > 0:
                     wall = sum(result_dict.walltime) / len(result_dict.walltime)
@@ -464,8 +479,15 @@ class DocTestReporter(SageObject):
                 if result_dict.err is None or result_dict.err == 'tab':
                     f = result_dict.failures
                     if f:
-                        postscript['lines'].append(cmd + "  # %s failed" % (count_noun(f, "doctest")))
-                        self.error_status |= 1
+                        line = '%s  # %s failed%s' % (
+                                cmd, count_noun(f, 'doctest'), known_failure)
+                        postscript['lines'].append(line)
+                        if not known_failure:
+                            self.error_status |= 1
+                    elif known_failure:
+                        line = '%s  # %s passed (known failure)' % (
+                            cmd, count_noun(result_dict.tests, 'doctest'))
+                        postscript['lines'].append(line)
                     if f or result_dict.err == 'tab':
                         stats[basename] = dict(failed=True, walltime=wall)
                     else:
@@ -480,30 +502,28 @@ class DocTestReporter(SageObject):
                     for tag in sorted(optionals):
                         nskipped = optionals[tag]
                         if tag == "long time":
-                            if not self.controller.options.long:
-                                if self.controller.options.show_skipped:
+                            if not options.long:
+                                if options.show_skipped:
                                     log("    %s not run"%(count_noun(nskipped, "long test")))
                         elif tag == "high_mem":
-                            if self.controller.options.memlimit <= 0:
+                            if options.memlimit <= 0:
                                 seen_other = True
                                 log("    %s not run"%(count_noun(nskipped, "high mem")))
                         elif tag == "not tested":
-                            if self.controller.options.show_skipped:
+                            if options.show_skipped:
                                 log("    %s not run"%(count_noun(nskipped, "not tested test")))
                         elif tag == "not implemented":
-                            if self.controller.options.show_skipped:
+                            if options.show_skipped:
                                 log("    %s for not implemented functionality not run"%(count_noun(nskipped, "test")))
                         else:
-                            if not self.have_optional_tag(tag):
+                            if (not self.have_optional_tag(tag) and
+                                    options.show_skipped):
                                 if tag == "bug":
-                                    if self.controller.options.show_skipped:
-                                        log("    %s not run due to known bugs"%(count_noun(nskipped, "test")))
+                                    log("    %s not run due to known bugs"%(count_noun(nskipped, "test")))
                                 elif tag == "":
-                                    if self.controller.options.show_skipped:
-                                        log("    %s not run"%(count_noun(nskipped, "unlabeled test")))
+                                    log("    %s not run"%(count_noun(nskipped, "unlabeled test")))
                                 else:
-                                    if self.controller.options.show_skipped:
-                                        log("    %s not run"%(count_noun(nskipped, tag + " test")))
+                                    log("    %s not run"%(count_noun(nskipped, tag + " test")))
 
                     nskipped = result_dict.walltime_skips
                     if self.controller.options.show_skipped:
