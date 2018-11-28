@@ -246,7 +246,7 @@ def plot_Cadic(numpy.ndarray dv, int sx=800, int sy=600,
                int n=1000, int nptsmin=50000, int nptsmax=60000,
                bool verb=False, bool printl=True, bool get_ndarray=False):
     """
-    plot the Rauzy fractal corresponding to the direction vector ``dv``
+    Plot the Rauzy fractal corresponding to the direction vector ``dv``
     for the C-adic system given by the Cassaigne's algorithm
 
     INPUT:
@@ -278,7 +278,7 @@ def plot_Cadic(numpy.ndarray dv, int sx=800, int sy=600,
 
         OUTPUT:
 
-        Plot Rauzy fractal corresponding to the direction vector dv
+        Plot the Rauzy fractal corresponding to the direction vector dv.
 
         EXAMPLES::
 
@@ -876,7 +876,7 @@ cdef BetaAdic2 getBetaAdic2(BetaAdicSet self, la=None,
 #    print_word(b, n, b.a.i)
 
 # used by substitution()
-def fils(tree, e):
+cdef fils(list tree, int e):
     """
     Return the list of leaves's sub-tree  starting at e.
 
@@ -899,23 +899,25 @@ def fils(tree, e):
 
 
 # teste si a est inclus dans un des morceaux de l ou pas
-def included(a, l, lm):
+cdef included(DetAutomaton a, list l, list lm):
     """
-    Return the index of
+    Test if the piece described by the automaton a is included in one of the pieces of lm whose indices are in l.
 
     INPUT:
 
-    - ``a`` word to find in ``l``.
+    - ``a`` DetAutomaton.
 
-    - ``l`` including word to test
+    - ``l`` list of indices of pieces to compare with a
+    
+    - ``lm`` list of pieces with corresponding translations
 
     OUTPUT:
+    
+    - ``True`` if a is empty
+    
+    - int, index of the piece of lm where a is included
 
-    - the word in ``l`` if a is present
-
-    - ``True`` if the automata is empty
-
-    - ``None``
+    - ``None`` if a is not included in one of the pieces of l
 
     """
     # teste vite fait si l'on est inclus dans un morceau ou pas
@@ -935,8 +937,7 @@ def included(a, l, lm):
                 return j
             else:
                 return None
-    print("******* Error : word %s is conconize by any automata ! *********" % w)
-    return None
+    raise RuntimeError("******* Error: the word %s of a=%s is not in any pieces of the list l=%s ! *********" %(w, a, l))
 
 
 # split a1 selon ba (rend un couple (a11, a12) avec a11 la partie
@@ -2484,7 +2485,7 @@ cdef class BetaAdicSet:
     #     - ``aut`` - DetAutomaton (default: ``None``, full language)
     #       Automaton describing the language in which we live.
     def reduced_words_automaton(self, full=False, step=100,
-                                mirror=False, verb=False):  # , DetAutomaton aut=None):
+                                mirror=False, int algo_rel=3, verb=False):  # , DetAutomaton aut=None):
         r"""
         Compute the reduced words automaton of the ``BetaAdicSet``
         (without considering the automaton of authorized words).
@@ -2497,7 +2498,10 @@ cdef class BetaAdicSet:
 
         - ``step`` - int (default: 100)
           number of steps
-
+        
+        - ``algo_rel`` - int (default ``2``)
+          Algorithm used for the computation of the relations automaton.
+        
         - ``verb`` - bool (default: ``False``)
           If True, print informations for debugging.
 
@@ -2530,7 +2534,7 @@ cdef class BetaAdicSet:
 
         if full:
             # compute the relations automaton
-            arel = self.relations_automaton(mirror=mirror)
+            arel = self.relations_automaton(algo=algo_rel, mirror=mirror)
             if verb:
                 print("arel = %s" % arel)
             if step == 1:
@@ -2625,15 +2629,18 @@ cdef class BetaAdicSet:
                 print("ai=%s" % ai)
             return ai.intersection(self.a)
 
-    def reduced(self, mirror=False, verb=False):
+    def reduced(self, mirror=False, int algo_rel=3, verb=False):
         r"""
         Compute the reduced  of the ``BetaAdicSet``
 
 
         INPUT:
 
-        - ``mirror`` bool -- (default ``False) st to ``True`` to to the mirror
-
+        - ``mirror`` bool -- (default ``False) set to ``True`` in order to compute the mirror of the reduced language
+        
+        - ``algo_rel`` - int (default ``2``)
+          Algorithm used for the computation of the relations automaton.
+        
         - ``verb`` - bool (default: ``False``)
           If True, print informations for debugging.
 
@@ -2652,6 +2659,7 @@ cdef class BetaAdicSet:
             b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 4 states and 2 letters
         """
         return BetaAdicSet(self.b, self.reduced_words_automaton(mirror=mirror,
+                                                                algo_rel=algo_rel,
                                                                 verb=verb))
 
 #     def reduced_words_automaton(self, ss=None, Iss=None, ext=False,
@@ -2990,7 +2998,7 @@ cdef class BetaAdicSet:
             print("y=%s, m=%s" % (y, m))
         return log(y) / abs(log(m))
 
-    def critical_exponent(self, prec=None, verb=False):
+    def critical_exponent(self, prec=None, int algo_rel=3, verb=False):
         r"""
         Compute the critical exponent of the beta-adic set.
         If the beta-adic set is algebraic and conformal, then it is equal
@@ -3002,6 +3010,9 @@ cdef class BetaAdicSet:
         INPUT:
 
         - ``prec``- precision (default: ``None``)
+        
+        - ``algo_rel`` - int (default: ``2``)
+          Algorithm used for the computation of the relations automaton.
 
         - ``verb``- bool (default: ``False``)
           If True, print informations for debugging.
@@ -3040,7 +3051,9 @@ cdef class BetaAdicSet:
         """
         if verb:
             print("Computation of reduce words' automata")
-        m = self.reduced(verb=verb)
+        m = self.reduced(algo_rel=algo_rel, verb=verb)
+        if verb:
+            print("%s"%m.a)
         return m.critical_exponent_free(prec=prec, verb=verb)
 
 #    # test if 0 is an inner point of the limit set
