@@ -1417,7 +1417,7 @@ cdef class BetaAdicSet:
             False
             sage: m = BetaAdicSet(3, [])
             sage: m.is_empty()
-            True
+            False
 
         """
         return self.a.is_empty()

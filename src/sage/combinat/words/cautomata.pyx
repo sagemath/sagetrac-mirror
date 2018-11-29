@@ -1,7 +1,7 @@
 # coding=utf8
 """
 Det automaton of Finite state machines using C
-DetAutomaton for determinist automata and NFastAutomaton for non determinist
+DetAutomaton for determinist automata and CAutomaton for non determinist
 
 
 AUTHORS:
@@ -447,9 +447,9 @@ cdef AutomatonToDiGraph(Automaton a, A, keep_edges_labels=True):
 #     return False
 
 
-cdef class NFastAutomaton:
+cdef class CAutomaton:
     """
-    Class :class:`NFastAutomaton`, this class encapsulates a C structure
+    Class :class:`CAutomaton`, this class encapsulates a C structure
     for Automata and implement methods to manipulate non-determinist automata.
 
     INPUT:
@@ -458,32 +458,32 @@ cdef class NFastAutomaton:
 
     OUTPUT:
 
-    Return a instance of :class:`NFastAutomaton`.
+    Return a instance of :class:`CAutomaton`.
 
     EXAMPLES::
 
         sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
-        sage: b = NFastAutomaton(a)
+        sage: b = CAutomaton(a)
         sage: b
-        NFastAutomaton with 4 states and an alphabet of 2 letters
+        CAutomaton with 4 states and an alphabet of 2 letters
         sage: c = Automaton({0:{1:'x',2:'z',3:'a'}, 2:{5:'o'}},initial_states=[0])
-        sage: b = NFastAutomaton(c)
+        sage: b = CAutomaton(c)
         sage: b
-        NFastAutomaton with 5 states and an alphabet of 4 letters
+        CAutomaton with 5 states and an alphabet of 4 letters
         sage: d = DiGraph({0: [1,2,3], 1: [0,2]})
-        sage: b = NFastAutomaton(d)
+        sage: b = CAutomaton(d)
         sage: b
-        NFastAutomaton with 4 states and an alphabet of 1 letters
-        sage: g =  NFastAutomaton([(0,1,'a') ,(2,3,'b')])
+        CAutomaton with 4 states and an alphabet of 1 letters
+        sage: g =  CAutomaton([(0,1,'a') ,(2,3,'b')])
         sage: g
-        NFastAutomaton with 4 states and an alphabet of 2 letters
+        CAutomaton with 4 states and an alphabet of 2 letters
 
     """
     def __cinit__(self):
         self.a = <NAutomaton *>malloc(sizeof(NAutomaton))
         if self.a is NULL:
             raise MemoryError("Failed to allocate memory for "
-                              "C initialization of NFastAutomaton.")
+                              "C initialization of CAutomaton.")
         self.a.e = NULL
         self.a.n = 0
         self.a.na = 0
@@ -493,7 +493,7 @@ cdef class NFastAutomaton:
 #    def _initialise_automaton(self, a):
 #        """
 #        Transform a determinist :class:`DetAutomaton` to a non determinist
-#        :class:`NFastAutomaton`
+#        :class:`CAutomaton`
 #
 #        INPUT:
 #
@@ -501,33 +501,33 @@ cdef class NFastAutomaton:
 #
 #        OUTPUT:
 #
-#        Return a instance of :class:`NFastAutomaton` initialized with ``a``
+#        Return a instance of :class:`CAutomaton` initialized with ``a``
 #
 #        EXAMPLES::
 #                sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
-#                sage: b = NFastAutomaton(a)
+#                sage: b = CAutomaton(a)
 #                sage: b
-#                NFastAutomaton with 4 states and an alphabet of 2 letters
+#                CAutomaton with 4 states and an alphabet of 2 letters
 #        """
 #        if type(a) == DetAutomaton:
 #            a.copyn(self)
 #        else:
-#            raise NotImplementedError("Cannot construct directly a NFastAutomaton for the moment, except from a deterministic one.")
+#            raise NotImplementedError("Cannot construct directly a CAutomaton for the moment, except from a deterministic one.")
 #        return self
 
     def __init__(self, a, I=None, F=None, A=None, keep_S=True, verb=False):
         """
         TESTS::
 
-            sage: NFastAutomaton([(0, 1, 'a'), (2, 3, 'b')], I=[1])
-            NFastAutomaton with 4 states and an alphabet of 2 letters
+            sage: CAutomaton([(0, 1, 'a'), (2, 3, 'b')], I=[1])
+            CAutomaton with 4 states and an alphabet of 2 letters
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=1)
-            sage: NFastAutomaton(a)
-            NFastAutomaton with 4 states and an alphabet of 2 letters
+            sage: CAutomaton(a)
+            CAutomaton with 4 states and an alphabet of 2 letters
 
         """
         cdef DetAutomaton da
-        cdef NFastAutomaton na
+        cdef CAutomaton na
         if a is None:
             if verb:
                 print("a is None")
@@ -562,9 +562,9 @@ cdef class NFastAutomaton:
             self.a[0] = getNAutomaton(a, I=I, F=F, A=self.A, verb=verb)
             if keep_S:
                 self.S = a.S
-        elif isinstance(a, NFastAutomaton):
+        elif isinstance(a, CAutomaton):
             if verb:
-                print("NFastAutomaton")
+                print("CAutomaton")
             na = a
             sig_on()
             self.a[0] = CopyNAutomaton(na.a[0], na.a.n, na.a.na)
@@ -580,7 +580,7 @@ cdef class NFastAutomaton:
             self.a[0] = CopyN(da.a[0], verb=verb)
             self.A = da.A
         else:
-            raise ValueError("Cannot convert the input to NFastAutomaton.")
+            raise ValueError("Cannot convert the input to CAutomaton.")
 #        if a is None:
 #            pass
 #        else:
@@ -594,7 +594,7 @@ cdef class NFastAutomaton:
         sig_off()
 
     def __repr__(self):
-        return "NFastAutomaton with %d states and an alphabet of %d letters" % (self.a.n, self.a.na)
+        return "CAutomaton with %d states and an alphabet of %d letters" % (self.a.n, self.a.na)
 
     def _latex_(self):
         r"""
@@ -603,7 +603,7 @@ cdef class NFastAutomaton:
         TESTS::
 
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: latex(b)     # optional -  dot2tex
             \documentclass{article}
             \usepackage[x11names, rgb]{xcolor}
@@ -692,7 +692,7 @@ cdef class NFastAutomaton:
         try:
             from dot2tex import dot2tex
         except ImportError:
-            raise ModuleNotFoundError("dot2tex must be installed in order to have the LaTeX representation of the NFastAutomaton.\n\
+            raise ModuleNotFoundError("dot2tex must be installed in order to have the LaTeX representation of the CAutomaton.\n\
                 You can install it by doing './sage -i dot2tex' in a shell in the sage directory, or by doing 'install_package(package='dot2tex')' in the notebook.")
         cdef char** ll
         ll = <char **> malloc(sizeof(char*) * self.a.na)
@@ -713,20 +713,20 @@ cdef class NFastAutomaton:
 
     def copy(self):
         """
-        Do a copy of the :class:`NFastAutomaton`.
+        Do a copy of the :class:`CAutomaton`.
 
         OUTPUT:
 
-        Return a copy of the :class:`NFastAutomaton`
+        Return a copy of the :class:`CAutomaton`
 
         EXAMPLES::
 
-            sage: a = NFastAutomaton([(0, 1, 'a'), (2, 3, 'b')], I=[0])
+            sage: a = CAutomaton([(0, 1, 'a'), (2, 3, 'b')], I=[0])
             sage: a.copy()
-            NFastAutomaton with 4 states and an alphabet of 2 letters
+            CAutomaton with 4 states and an alphabet of 2 letters
 
         """
-        r = NFastAutomaton(None)
+        r = CAutomaton(None)
         sig_on()
         r.a[0] = CopyNAutomaton(self.a[0], self.a.n, self.a.na)
         sig_off()
@@ -745,7 +745,7 @@ cdef class NFastAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: b.n_states
             4
         """
@@ -764,7 +764,7 @@ cdef class NFastAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: b.n_succs(0)
             1
         """
@@ -789,7 +789,7 @@ cdef class NFastAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'),(1, 2, 'c'), (2, 3, 'b')], i=0)
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: b.succ(1, 0)
             2
         """
@@ -816,7 +816,7 @@ cdef class NFastAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'),(1, 2, 'c'), (2, 3, 'b')], i=0)
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: b.label(1, 0)
             1
         """
@@ -841,7 +841,7 @@ cdef class NFastAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'),(1, 2, 'c'), (2, 3, 'b')], i=0)
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: b.is_final(1)
             True
         """
@@ -867,7 +867,7 @@ cdef class NFastAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'),(1, 2, 'c'), (2, 3, 'b')], i=0)
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: b.is_initial(1)
             False
         """
@@ -881,20 +881,20 @@ cdef class NFastAutomaton:
     @property
     def initial_states(self):
         """
-        Get the initial state :class:`NFastAutomaton` attribut
+        Get the initial state :class:`CAutomaton` attribut
 
         OUTPUT:
 
-        Return the initial state ``i``  of  :class:`NFastAutomaton`
+        Return the initial state ``i``  of  :class:`CAutomaton`
 
         EXAMPLES::
 
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: b.initial_states
             []
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')], i=2)
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: b.initial_states
             [2]
         """
@@ -916,15 +916,15 @@ cdef class NFastAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: b.final_states
             [0, 1, 2, 3]
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')], )
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: b.final_states
             [0, 1, 2, 3]
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')], final_states=[0,3])
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: b.final_states
             [0, 3]
             sage: a = DetAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
@@ -942,16 +942,16 @@ cdef class NFastAutomaton:
     @property
     def alphabet(self):
         """
-        To get the :class:`NFastAutomaton` attribut alphabet
+        To get the :class:`CAutomaton` attribut alphabet
 
         OUTPUT:
 
-        Return a the alphabet ``A`` of  :class:`NFastAutomaton`
+        Return a the alphabet ``A`` of  :class:`CAutomaton`
 
         EXAMPLES::
 
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: b.alphabet
             ['a', 'b']
             sage: a = DetAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
@@ -974,7 +974,7 @@ cdef class NFastAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')], i=0, final_states=[])
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: b.set_final_state(2)
             sage: b.final_states
             [2]
@@ -1001,7 +1001,7 @@ cdef class NFastAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: b.set_initial_state(2)
             sage: b.initial_states
             [2]
@@ -1029,7 +1029,7 @@ cdef class NFastAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: b.add_edge(2,'a',1)
             sage: b.add_edge(2,'v',1)
             Traceback (most recent call last):
@@ -1072,7 +1072,7 @@ cdef class NFastAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: b.add_state(True)  # not implemented
             TypeError                                 Traceback (most recent call last)
             ...
@@ -1083,7 +1083,7 @@ cdef class NFastAutomaton:
     def add_path(self, int e, int f, list li, verb=False):
         """
         Add a path between states ``e`` and ``f``
-        of :class:`NFastAutomaton` following ``li``
+        of :class:`CAutomaton` following ``li``
 
         INPUT:
 
@@ -1096,7 +1096,7 @@ cdef class NFastAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0,1,'a'), (2,3,'b')], i=2)
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: b.add_path(1, 2, [1])
 
         """
@@ -1122,12 +1122,12 @@ cdef class NFastAutomaton:
 
         OUTPUT:
 
-        Return a non determinist automaton  :class:`NFastAutomaton`
+        Return a non determinist automaton  :class:`CAutomaton`
 
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: b.determinize()
             DetAutomaton with 2 states and an alphabet of 2 letters
         """
@@ -1143,7 +1143,7 @@ cdef class NFastAutomaton:
 
     def plot (self, file=None, int sx=10, int sy=8, verb=False):
         """
-        plot a representation of the :class:`NFastAutomaton`.
+        plot a representation of the :class:`CAutomaton`.
 
         INPUT:
 
@@ -1154,13 +1154,13 @@ cdef class NFastAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: b = NFastAutomaton(a)
+            sage: b = CAutomaton(a)
             sage: #g = b.plot()   # random
 
         .. PLOT::
 
             a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            b = NFastAutomaton(a)
+            b = CAutomaton(a)
             sphinx_plot(b)
 
         """
@@ -1212,7 +1212,7 @@ cdef class NFastAutomaton:
         else:
             if verb:
                 print(" -> no.")
-            raise NotImplementedError("You cannot plot the NFastAutomaton without dot. Install the dot command of the GraphViz package.")
+            raise NotImplementedError("You cannot plot the CAutomaton without dot. Install the dot command of the GraphViz package.")
 
 # cdef set_DetAutomaton (DetAutomaton a, Automaton a2):
 #    a.a[0] = a2
@@ -1314,7 +1314,7 @@ cdef class DetAutomaton:
             return
         from sage.graphs.digraph import DiGraph
         from sage.combinat.finite_state_machine import Automaton as SageAutomaton
-        if isinstance(a, NFastAutomaton):
+        if isinstance(a, CAutomaton):
             a = a.determinize().minimize()
         if isinstance(a, SageAutomaton):
             L = []
@@ -2134,20 +2134,20 @@ cdef class DetAutomaton:
         sig_on()
         ZeroComplete(self.a, z, verb)
         sig_off()
-    
-    #compute an automaton whose language is the set of differences of the tow languages
-    def diff (self, DetAutomaton a, bool det=True, bool simplify=True):
+
+    # compute an automaton whose language is the set of differences of the tow languages
+    def diff(self, DetAutomaton a, bool det=True, bool simplify=True):
         cdef DetAutomaton r
-        cdef NFastAutomaton nr
+        cdef CAutomaton nr
         cdef dict d
         r = self.product(a)
         d = {}
         for i in self.A:
             for j in a.A:
-                d[(i,j)] = i-j
+                d[(i, j)] = i-j
         return r.proj(d, det=det, simplify=simplify)
-    
-    #CHANGE THE NAME !
+
+    # CHANGE THE NAME !
     def zero_complete2(self, z=0, sink_state=False, verb=False):
         """
         Compute an automaton recognizing the language L(l*), where L is
@@ -2585,14 +2585,13 @@ cdef class DetAutomaton:
 
         INPUT:
 
-        - ``label_sink`` -- (default: ``None``) - label of the sink state
-          if added and if self has labels of states
+        - ``label_sink`` -- (default: ``s``) - label of the sink state
+          if added and if self has labels of states.
 
         OUTPUT:
 
         Return ``True`` if the automaton was not complete
-        (a sink state has been added),
-        return ``False``otherwise.
+        (a sink state has been added), return ``False`` otherwise.
 
         EXAMPLES::
 
@@ -2611,7 +2610,7 @@ cdef class DetAutomaton:
                 # add a label for the sink state
                 self.S.append(label_sink)
         return res
-    
+
     def prefix(self, list w):
         """
         Give an automaton recognizing the language w(w^(-1)L) where L is the language of self.
@@ -3056,17 +3055,17 @@ cdef class DetAutomaton:
     def copyn(self, verb=False):
         """
         Convert  a determinist automaton :class:`DetAutomaton` to
-        a non determinist automaton :class:`NFastAutomaton`
+        a non determinist automaton :class:`CAutomaton`
 
         INPUT:
 
         - ``verb`` -- boolean (default: ``False``) if True,
           print debugging informations
-        - ``r`` -- :class:`NFastAutomaton` to replace
+        - ``r`` -- :class:`CAutomaton` to replace
 
         OUTPUT:
 
-        Return the :class:`NFastAutomaton` copy like of
+        Return the :class:`CAutomaton` copy like of
         the :class:`DetAutomaton`
 
         EXAMPLES::
@@ -3074,12 +3073,12 @@ cdef class DetAutomaton:
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = a.copyn()
             sage: b
-            NFastAutomaton with 4 states and an alphabet of 2 letters
+            CAutomaton with 4 states and an alphabet of 2 letters
         """
         cdef NAutomaton a
-        cdef NFastAutomaton r
+        cdef CAutomaton r
 
-        r = NFastAutomaton(None)
+        r = CAutomaton(None)
         sig_on()
         a = CopyN(self.a[0], verb)
         sig_off()
@@ -3102,7 +3101,7 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return a :class:`NFastAutomaton` (if ``det`` is ``False``)
+        Return a :class:`CAutomaton` (if ``det`` is ``False``)
         or  :class:`DetAutomaton` (if ``det`` is ``True``)
 
         EXAMPLES::
@@ -3113,7 +3112,7 @@ cdef class DetAutomaton:
             DetAutomaton with 2 states and an alphabet of 3 letters
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.concat(b, det=False)
-            NFastAutomaton with 7 states and an alphabet of 3 letters
+            CAutomaton with 7 states and an alphabet of 3 letters
             sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')])
             sage: a.concat(b)
             DetAutomaton with 1 states and an alphabet of 3 letters
@@ -3121,7 +3120,7 @@ cdef class DetAutomaton:
         """
         cdef DetAutomaton a
         cdef NAutomaton na
-        cdef NFastAutomaton r
+        cdef CAutomaton r
         cdef DetAutomaton r2
 
         if self.A != b.A:
@@ -3135,7 +3134,7 @@ cdef class DetAutomaton:
             A = self.A
         if verb:
             print("a=%s (A=%s)\nb=%s (A=%s)" % (a, a.A, b, b.A))
-        r = NFastAutomaton(None)
+        r = CAutomaton(None)
         sig_on()
         na = Concat(a.a[0], b.a[0], verb)
         sig_off()
@@ -3171,7 +3170,7 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return a new projected :class:`NFastAutomaton` (``det``=``False``)
+        Return a new projected :class:`CAutomaton` (``det``=``False``)
         or  :class:`DetAutomaton` (``det``=``True``)
 
         EXAMPLES::
@@ -3186,10 +3185,10 @@ cdef class DetAutomaton:
         """
         cdef NAutomaton a
         cdef Dict dC
-        cdef NFastAutomaton r
+        cdef CAutomaton r
         cdef DetAutomaton r2
 
-        r = NFastAutomaton(None)
+        r = CAutomaton(None)
         A2 = []
         sig_on()
         d1 = imagDict(d, self.A, A2=A2)
@@ -3230,7 +3229,7 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return a new projected :class:`NFastAutomaton` (``det``=``False``)
+        Return a new projected :class:`CAutomaton` (``det``=``False``)
         or  :class:`DetAutomaton` (``det``=``True``)
 
 
@@ -3553,26 +3552,26 @@ cdef class DetAutomaton:
 
     def mirror(self):
         """
-        Return a :class:`NFastAutomaton`, whose language is the mirror of the
+        Return a :class:`CAutomaton`, whose language is the mirror of the
         language of self.
 
         OUTPUT:
 
-        Return a :class:`NFastAutomaton`
+        Return a :class:`CAutomaton`
 
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.mirror()
-            NFastAutomaton with 4 states and an alphabet of 2 letters
+            CAutomaton with 4 states and an alphabet of 2 letters
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
             sage: a.mirror()
-            NFastAutomaton with 4 states and an alphabet of 2 letters
+            CAutomaton with 4 states and an alphabet of 2 letters
 
         """
-        cdef NFastAutomaton r
+        cdef CAutomaton r
 
-        r = NFastAutomaton(None)
+        r = CAutomaton(None)
         sig_on()
         r.a[0] = Mirror(self.a[0])
         r.A = self.A

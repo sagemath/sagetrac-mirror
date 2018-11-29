@@ -99,6 +99,7 @@ Parents/Elements, Categories and algebraic structures
 * :ref:`sage.categories.primer`
 * :ref:`sage.categories.tutorial`
 * :ref:`tutorial-implementing-algebraic-structures`
+* :ref:`beta_adic_set`
 
 Numerical computations
 ----------------------

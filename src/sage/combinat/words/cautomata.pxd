@@ -49,7 +49,7 @@ cdef class DetAutomaton:
     # cdef set_a(self, Automaton a)
 
 
-cdef class NFastAutomaton:
+cdef class CAutomaton:
     cdef NAutomaton* a
     cdef list A
     cdef list S	 # states
