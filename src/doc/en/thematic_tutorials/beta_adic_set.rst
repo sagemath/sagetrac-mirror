@@ -47,7 +47,7 @@ Here this matrix is
 and :math:`\begin{pmatrix} 1 \\ \beta-1 \end{pmatrix}` is an eigenvector for the Perron eigenvalue :math:`\beta`, which is the golden number.
 
 Self-similar tiling of :math:`\mathbf R_+`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The set of points that appears at the boundaries of intervals in this self-similar tiling are elements of :math:`\mathbf Q(\beta)`, and this set of points have very strong properties, because it is a non-periodic self-similar Meyer set.
 Here, we get the points
@@ -162,7 +162,7 @@ and the contracting one
     	E_\lambda^- := \prod_{v \in P_-} E_v.
    
     
-Let's take :math:`\sigma_+` and :math:`\sigma_-` some embeddings of :math:`  Q(\lambda)` into the spaces :math:`E_+` and :math:`E_-` respectively.
+Let's take :math:`\sigma_+` and :math:`\sigma_-` some embeddings of :math:`Q(\lambda)` into the spaces :math:`E_+` and :math:`E_-` respectively.
 We will also denote by :math:`\sigma_\beta` the maximal real embedding when :math:`\beta is a Perron number.
       
 So Rauzy fractal of the substitution :math:`s` can be define as the adherence of :math:`\sigma_-(Q_\omega)` in :math:`E_{\lambda}^-`.
@@ -332,4 +332,63 @@ otherwise the induction only give the same domain exchange on :math:`\lambda Q` 
 Examples of Usage of BetaAdicSet
 --------------------------------
 
+
+
+
+A Sierpinsky gasket
+~~~~~~~~~~~~~~~~~~~
+
+Take the Tribonnacci Pisot number β, root of x 3 − x 2 − x − 1,
+and take L the regular language defined by the followed automaton.
+
+
+.. PLOT::
+   :width: 80%
+
+   # automaton that describe a Sierpinsky gasket
+   a = DetAutomaton([(0,2,0),(0,6,1),(2,3,1),(2,12,0),(6,7,1),(6,9,0),(3,4,1),(3,5,0),(12,13,1),(12,14,0),(7,8,0),(7,15,1),(9,10,0),(9,11,1),(4,0,0),(5,0,0),(5,0,1),(13,0,0),(13,0,1),(14,0,0),(8,0,0),(8,0,1),(15,0,1),(10,0,1),(11,0,1),(11,0,0)], i=0)
+
+   # automaton recognizing a set of non-empty interior
+   a2 = DetAutomaton([(0,1,0),(1,2,0),(2,2,0),(2,2,1)],i=0, final_states=[2])
+   # multiply by b^2
+   a3 = a.unshift1(0, final=True).unshift1(1)
+
+   a = a2.union(a3)
+   sphinx_plot(a)
+
+Then we
+can compute the domain exchange conjugated to the shift on σ + (Q L ). See figure 7.
+The smallest substitution whose a fixed point ω verify Q ω = Q L , and whose Perron
+number is β 4 , has 15 letters and is displayed in figure 6
+
+
+.. code-block:: Python
+
+   m = BetaAdicSet(x^3-x^2-x-1, a) #choose to work with the alphabet {0,1} and with the Tribonnacci polynomial
+   pp = m.b.parent().places()[0] #expanding place
+   print pp
+   m.plot(nprec=6)
+
+.. image:: beta_adic_image1.png
+  :scale: 80 %
+
+.. code-block:: Python
+   # compute a domain exchange
+   l = m.domain_exchange()
+   print("Exchange with %s pieces."%len(l))
+   Exchange with 6 pieces.
+   # plot it
+   m.plot_list([a for t,a in l], nprec=6)
+
+
+
+
+
+.. PLOT::
+   :width: 80%
+
+   a = DetAutomaton([(0,0,0),(0,1,1),(1,1,0),(1,2,1),(2,2,0),(2,1,1)], i=0, final_states=[0,1])
+   m = BetaAdicSet(x^3-x^2-x-1, a) # choose Tribonnacci
+   m.plot()
+   sphinx_plot(m)
 
