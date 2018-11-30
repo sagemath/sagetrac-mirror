@@ -38,8 +38,17 @@ void* OpenImage (const char *file_name)
 	return IMG_Load(file_name);
 }
 
+void PrintImageError()
+{
+    printf("*** %s ***\n", IMG_GetError());
+}
+
 bool InImage (void* img, int x, int y)
 {
+    if (img == NULL)
+    {
+        return false;
+	}
 	SDL_Surface *s = (SDL_Surface *)img;
 	if (x < 0 || y < 0 || x >= s->w || y >= s->h)
 		return false;
@@ -50,18 +59,30 @@ bool InImage (void* img, int x, int y)
 
 int ImageWidth (void *img)
 {
+    if (img == NULL)
+    {
+        return 0;
+	}
 	SDL_Surface *s = (SDL_Surface *)img;
 	return s->w;
 }
 
 int ImageHeight (void *img)
 {
+    if (img == NULL)
+    {
+        return 0;
+	}
 	SDL_Surface *s = (SDL_Surface *)img;
 	return s->h;
 }
 
 void CloseImage (void* img)
 {
+    if (img == NULL)
+    {
+        return;
+	}
 	SDL_Surface *s = (SDL_Surface *)img;
 	SDL_FreeSurface(s);
 }

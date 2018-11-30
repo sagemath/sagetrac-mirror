@@ -202,6 +202,7 @@ cdef extern from "draw.h":
     int ImageWidth(void *img)
     int ImageHeight(void *img)
     void CloseImage(void* img)
+    void PrintImageError()
     void *GetSDL_SurfaceFromNumpy (numpy.ndarray na)
     void SurfaceToNumpy (Surface *s, numpy.ndarray na)
     void SDL_SurfaceToNumpy (void *ss, numpy.ndarray na)
@@ -988,36 +989,65 @@ def split_baoc(i, tr, np, lm, m, aoc, verb=False):
 
 
 cdef class ImageIn:
+    r"""
+    This class permits to load an image and test if a point is in the image or outside (using transparency).
+    
+    INPUT:
+    
+    -- file_name - The location of the image file.
+    
+    """
     cdef void** s
 
     def __cinit__(self):
         self.s = <void **>malloc(sizeof(void*))
 
     def __init__(self, file_name):
+        sig_on()
         self.s[0] = OpenImage(file_name)
+        sig_off()
 
     def __dealloc__(self):
+        sig_on()
         CloseImage(self.s[0])
         free(self.s)
+        sig_off()
 
     def __repr__(self):
+        if self.s[0] == NULL:
+            PrintImageError()
+            return "Image not loaded."
+        sig_on()
         w = ImageWidth(self.s[0])
         h = ImageHeight(self.s[0])
+        sig_off()
         return "Image of size %sx%s" % (w, h)
 
     def __contains__(self, p):
         from sage.rings.complex_field import ComplexField
         CC = ComplexField(53)
-        if p in CC:
-            return InImage(self.s[0], p.real(), p.imag())
-        else:
-            return InImage(self.s[0], p[0], p[1])
+        try:
+            p = CC(p)
+            sig_on()
+            r = InImage(self.s[0], p.real(), p.imag())
+            sig_off()
+        except:
+            sig_on()
+            r = InImage(self.s[0], p[0], p[1])
+            sig_off()
+        return r
 
     def width(self):
-        return ImageWidth(self.s[0])
+        sig_on()
+        r = ImageWidth(self.s[0])
+        sig_off()
+        return r
 
     def height(self):
-        return ImageHeight(self.s[0])
+        sig_on()
+        r = ImageHeight(self.s[0])
+        sig_off()
+        return r
 
 
 def getDetAutomaton(self, a):
@@ -2942,7 +2972,7 @@ cdef class BetaAdicSet:
                 sage: mr = m.reduced()
                 sage: mr.critical_exponent_free()
                 log(y)/log(3) where y is the max root of x^2 - 3*x + 1, and 3 is root of x - 3.
-                0.8760357589718848
+                0.8760357589...
 
             #. Hausdorff dimension of limit set of phi-adic expansion with numerals set {0,1}::
 
@@ -2958,8 +2988,8 @@ cdef class BetaAdicSet:
                 sage: m = BetaAdicSet(1/(1+I), dag.AnyWord([0,1]))
                 sage: mi = m.intersection_words(w1=[0], w2=[1])
                 sage: mi.critical_exponent_free()
-                log(y)/log(0.7071067811865475?) where y is the max root of x^3 - x^2 - 2, and 0.7071067811865475? is root of x^2 - 1/2.
-                1.5236270862024914
+                log(y)/log(1.414213562373095?) where y is the max root of x^3 - x^2 - 2, and 1.414213562373095? is root of x^2 - 2.
+                1.5236270862...
 
 
             #. Hausdorff dimension of the boundary of a Rauzy fractal::
@@ -2968,8 +2998,8 @@ cdef class BetaAdicSet:
                 sage: m = s.DumontThomas()
                 sage: mi = m.intersection_words(w1=[0], w2=[1])
                 sage: mi.critical_exponent_free()
-                log(y)/log(0.7373527057603277?) where y is the max root of x^4 - 2*x - 1, and 0.7373527057603277? is root of x^6 + x^4 + x^2 - 1.
-                1.093364164282307
+                log(y)/log(1.356203065626296?) where y is the max root of x^4 - 2*x - 1, and 1.356203065626296? is root of x^6 - x^4 - x^2 - 1.
+                1.0933641642...
 
             #. Hausdorff dimension of a non-Pisot Rauzy fractal::
 
@@ -2977,7 +3007,7 @@ cdef class BetaAdicSet:
                 sage: m = s.DumontThomas().mirror()
                 sage: m.critical_exponent_free()
                 log(y)/log(1.215716761013442?) where y is the max root of x^3 - x^2 + x - 2, and 1.215716761013442? is root of x^6 - x^4 + 2*x^2 - 4.
-                1.5485260383678239
+                1.5485260383...
         """
         M = self.a.adjacency_matrix()
         if verb:
@@ -2990,6 +3020,11 @@ cdef class BetaAdicSet:
             print("")
         #m = mahler((1/self.b).minpoly())
         m = QQbar(self.b).abs()
+        m.simplify()
+        if m == 1:
+            raise NotImplementedError("The computation of the critical exponent is not implemented for a number of absolute value 1.")
+        if m < 1:
+            m = 1/m
         print("log(y)/log(%s) where y is the max root of %s, and %s is root of %s." % (m, QQbar(y).minpoly(), m, m.minpoly()))
         y = y.n(prec)
         # from sage.functions.log import log
@@ -3599,8 +3634,7 @@ cdef class BetaAdicSet:
 
         TESTS::
 
-            sage: from sage.combinat.words.cautomata_generators import dag
-            sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
+            sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
             sage: n = 13
             sage: pm = m.b.parent().places()[1]
             sage: test = lambda x: (pm(x).real())^2 + (pm(x).imag())^2 < .4
@@ -3631,10 +3665,9 @@ cdef class BetaAdicSet:
                 return e3
             return -1
 
-    # TO BE PUT IN GENERATORS
     def approx(self, n, test, get_aut=False, bool simplify=True):
         """
-        gives a BetaAdicSet describing a approximation of a set defined by the
+        gives a BetaAdicSet describing an approximation of a set defined by the
         characteritic function test
         Rk: could be improved by drawing with the automaton of self
 
@@ -3653,12 +3686,23 @@ cdef class BetaAdicSet:
 
         EXAMPLES::
 
-            sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
-            sage: pm = m.b.parent().places()[1]
-            sage: a = m.approx(13, lambda x: (pm(x).real())^2 + (pm(x).imag())^2 < .4 )
-            sage: print(a)
-            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 201 states and 2 letters
-            sage: a.plot()  # not tested
+            #. BetaAdicSet approximating a disk
+                sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
+                sage: pm = m.b.parent().places()[1]
+                sage: a = m.approx(13, lambda x: (pm(x).real())^2 + (pm(x).imag())^2 < .4 )
+                sage: print(a)
+                b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 201 states and 2 letters
+                sage: a.plot()  # not tested
+
+            #. BetaAdicSet approximating a square
+                sage: m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
+                sage: pm = m.b.parent().places()[1]
+                sage: a = m.approx(14, lambda x: (pm(x).real())^2 < .3 and (pm(x).imag())^2 < .3 )
+                sage: print(a)
+                b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 236 states and 2 letters
+                sage: m.plot_list([a])  # not tested
+            
+            #.
         """
         cdef DetAutomaton a
         a = DetAutomaton(None, A=self.a.A)
@@ -4205,7 +4249,51 @@ cdef class BetaAdicSet:
                     break
             if keep:
                 yield t/bn
-
+    
+#    def interior(self, verb=False):
+#        r"""
+#        We assume that self.b is a Pisot number.
+#        Compute a BetaAdicSet describing the interior for the topology for which open sets are
+#        sets of points of that are in the BetaAdicSet with same beta but with a language that recognize every words over the alphabet of self.a and that projects to an open set of P, for the natural projection on the contracting space (which is a product of copies of R, C and p-adic fields).
+#        """
+#        def S(a, verb=False):
+#            F = []
+#            for e in a.states:
+#                ok = True
+#                for l in range(len(a.alphabet)):
+#                    if a.succ(e, l) != e:
+#                        ok = False
+#                        break
+#                    if ok:
+#                        F.append(e)
+#                        a2 = a.copy()
+#                        a2.set_final_states(F)
+#                        if verb:
+#                            print "F =",F
+#                        return a2
+#        arel = self.relations_automaton(t=0,couples=True)
+#        if verb:
+#            print "arel =",arel
+#            #arel.plot()
+#        ap = dag.AnyWord(self.a.alphabet).product(self.a.zero_complete2())
+#        ai = ap.intersection(arel)
+#        if verb:
+#            print "ai =",ai
+#        aip = ai.proji(0)
+#        if verb:
+#            print "aip =", aip
+#        aip.zero_completeOP()
+#        af = S(aip.minimize())
+#        af.zero_completeOP()
+#        if verb:
+#            print "af =",af
+#        af2 = af.minimize().intersection(self.a)
+#        af2 = af2.prune()
+#        if verb:
+#            print "af2 =",af2
+#            print af2.equals_langages(self.a)
+#        return BetaAdicSet(self.b, af2) 
+#
         
     def domain_exchange(self, n=None, int algo=1, int algo_rel=3, bool test_Pisot=True,
                         int ndiam=30, bool verb=False):

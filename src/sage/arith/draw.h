@@ -49,6 +49,7 @@ bool InImage (void* img, int x, int y);
 int ImageWidth (void *img);
 int ImageHeight (void *img);
 void CloseImage (void* img);
+void PrintImageError();
 
 void *GetSDL_SurfaceFromNumpy (PyArrayObject *o);
 void SurfaceToNumpy (Surface *s, PyArrayObject *o);
