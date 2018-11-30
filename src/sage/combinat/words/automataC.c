@@ -661,21 +661,35 @@ bool CompleteAutomaton (Automaton *a)
 }
 
 //determine if the two automata are the same (different if permuted states)
-bool equalsAutomaton(Automaton a1, Automaton a2)
+bool equalsAutomaton(Automaton a1, Automaton a2, bool verb)
 {
 	if (a1.n != a2.n || a1.na != a2.na || a1.i != a2.i)
+	{
+	    if (verb)
+    	    printf("n:(%d,%d) na:(%d,%d) i:(%d,%d)\n", a1.n, a2.n, a1.na, a2.na, a1.i, a2.i);
 		return false;
+	}
 	int i, j;
 	for (i=0;i<a1.n;i++)
 	{
 		for (j=0;j<a1.na;j++)
 		{
 			if (a1.e[i].f[j] != a2.e[i].f[j])
+			{
+			    if (verb)
+    			    printf("%d -%d-> %d in a1 but %d -%d-> %d in a2\n", i, j, a1.e[i].f[j], i, j, a2.e[i].f[j]);
 				return false;
+			}
 		}
 		if (a1.e[i].final != a2.e[i].final)
-			return false;
+		{
+            if (verb)
+	            printf("%d final and not final\n", i);
+            return false;
+		}
 	}
+	if (verb)
+	    printf("equals !\n");
 	return true;
 }
 
@@ -704,7 +718,7 @@ bool equalsLanguages_ind (Automaton a1, Automaton a2, Dict d, Dict a1toa2, Dict 
 	    return false;
 	d.e[e1] = e2;
 	//browse the sons of e1 in a1
-	int i;
+	int i;  
 	for (i=0;i<a1.na;i++)
 	{
 		if (a1.e[e1].f[i] != -1)

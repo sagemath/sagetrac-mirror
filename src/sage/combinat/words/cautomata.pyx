@@ -86,7 +86,7 @@ cdef extern from "automataC.h":
     Automaton pruneI(Automaton a, bool verb)
     void AccCoAcc(Automaton *a, int *coa)
     void CoAcc(Automaton *a, int *coa)
-    bool equalsAutomaton(Automaton a1, Automaton a2)
+    bool equalsAutomaton(Automaton a1, Automaton a2, bool verb)
     Dict NewDict(int n)
     void FreeDict(Dict *d)
     void printDict(Dict d)
@@ -1247,6 +1247,8 @@ cdef class DetAutomaton:
         sage: b = DetAutomaton(c)
         sage: b
         DetAutomaton with 5 states and an alphabet of 4 letters
+        sage: dag.AnyWord([0, 1, 'a'])
+        DetAutomaton with 1 states and an alphabet of 3 letters
         sage: dag.Random(n=40, A=[None, -1, 1,2,3,'x','y','z'])  # random
 
     """
@@ -1570,7 +1572,7 @@ cdef class DetAutomaton:
     
     def string (self):
         r"""
-        Return a "string" that can be evaluated to recover the DetAutomaton.
+        Return a ``string`` that can be evaluated to recover the DetAutomaton.
         """
         r = "DetAutomaton([%s, ["%self.states
         c = 0
@@ -1584,8 +1586,42 @@ cdef class DetAutomaton:
                     c += 1
         r += "]], A=%s, i=%s, final_states=%s)"%(self.A, self.a.i, self.final_states)
         return r
+    
+    def are_equal(self, DetAutomaton other, verb=False):
+        r"""
+        Test if the two DetAutomata are equal.
+        To be equal, the automata must have the same alphabet
+        and exactly the same transitions
+        (a permutation of the indices is not allowed).
+        
+        INPUT:
 
-    def _richcmp_(self, DetAutomaton other, int op):
+        - ``other`` -- other :class:`DetAutomaton` to compare
+
+        OUTPUT:
+
+        Return the result of test (``True`` or ``False``)
+
+        TESTS::
+
+            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: b = DetAutomaton([(0, 1, 'a'),(2,3,'b')], i=0)
+            sage: a.are_equal(b)
+            False
+            sage: a.set_initial_state(0)
+            sage: a.are_equal(b)
+            True
+        """
+        if self.A != other.A:
+            if verb:
+                print("The alphabets are differents.")
+            return False
+        sig_on()
+        r = equalsAutomaton(self.a[0], other.a[0], verb)
+        sig_off()
+        return c_bool(r)
+    
+    def __richcmp__(self, DetAutomaton other, int op):
         r"""
         Compare function, Overwrite built-in function
 
@@ -1600,9 +1636,19 @@ cdef class DetAutomaton:
         TESTS::
 
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: b = DetAutomaton([(0, 1, 'a'),(1,2,'c')], i=0)
+            sage: b = DetAutomaton([(0, 1, 'a'),(2,3,'b')], i=0)
             sage: a == b
             False
+            sage: a.set_initial_state(0)
+            sage: a == b
+            True
+            sage: a != b
+            False
+            sage: a < b
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Comparaison <, >, <= or >= not implemented for DetAutomata.
+            
         """
         from sage.structure.richcmp import (op_EQ, op_NE)
         # (rich_to_bool,
@@ -1611,12 +1657,12 @@ cdef class DetAutomaton:
         if op != op_EQ and op != op_NE:
             raise NotImplementedError("Comparaison <, >, <= or >= not implemented for DetAutomata.")
         sig_on()
-        r = equalsAutomaton(self.a[0], other.a[0]) and self.A == other.A
+        r = equalsAutomaton(self.a[0], other.a[0], False) and self.A == other.A
         sig_off()
         if op == op_EQ:
-            return (r == 1)
+            return c_bool(r)
         else:
-            return (r == 0)
+            return not c_bool(r)
 
     # give a Sage Automon from the DetAutomaton
     def get_automaton(self):
@@ -4759,6 +4805,7 @@ cdef class DetAutomaton:
 #        r.A = self.A
 #        return r
 
+    # SAME AS has_empty_langage(), TO REMOVE !!!!
     # tell if the language of the automaton is empty
     # (this function is not very efficient)
     def is_empty(self):

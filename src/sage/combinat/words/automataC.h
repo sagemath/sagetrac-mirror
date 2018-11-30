@@ -37,7 +37,7 @@ void initNAutomaton (NAutomaton *a);
 void printAutomaton (Automaton a);
 void plotDot (const char *file, Automaton a, const char **labels, const char *graph_name, double sx, double sy, const char **vlabels, bool html, bool verb, bool run_dot);
 void NplotDot (const char *file, NAutomaton a, const char **labels, const char *graph_name, double sx, double sy, bool run_dot);
-bool equalsAutomaton (Automaton a1, Automaton a2); //determine if automata are the same (differents if permuted states)
+bool equalsAutomaton (Automaton a1, Automaton a2, bool verb); //determine if automata are the same (differents if permuted states)
 int contract (int i1, int i2, int n1);
 int geti1 (int c, int n1);
 int geti2 (int c, int n1);

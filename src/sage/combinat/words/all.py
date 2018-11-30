@@ -11,6 +11,6 @@ from .word_options import WordOptions
 from .word_generators import words
 from .words import Words, FiniteWords, InfiniteWords
 from .cautomata import DetAutomaton
-from .cautomata import NFastAutomaton
+from .cautomata import CAutomaton
 from .cautomata_generators import DetAutomatonGenerators
 dag = DetAutomatonGenerators()

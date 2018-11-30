@@ -1417,10 +1417,19 @@ cdef class BetaAdicSet:
             False
             sage: m = BetaAdicSet(3, [])
             sage: m.is_empty()
+            True
+
+        TESTS::
+
+            sage: m = BetaAdicSet(1/(1+I), DetAutomaton([(0,0,0),(0,1,1)], i=0, final_states=[]))
+            sage: m.is_empty()
+            True
+            sage: m = BetaAdicSet(1/(1+I), DetAutomaton([(0,0,0),(0,1,1)], i=0, final_states=[1]))
+            sage: m.is_empty()
             False
 
         """
-        return self.a.is_empty()
+        return self.a.has_empty_langage()
 
 #    def _testSDL(self):
 #        """
