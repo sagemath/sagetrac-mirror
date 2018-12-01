@@ -281,6 +281,11 @@ lazy_import("rpy2", "robjects")
 lazy_import("rpy2.robjects", "packages", "rpy2_packages")
 lazy_import("rpy2.robjects.conversion", "localconverter")
 
+# for help page fetching
+lazy_import("rpy2.robjects.help", "HelpNotFoundError")
+lazy_import("rpy2.robjects.help", "Package")
+lazy_import("rpy2", "rinterface")
+
 COMMANDS_CACHE = '%s/r_commandlist.sobj'%DOT_SAGE
 
 #there is a mirror network, but lets take #1 for now
@@ -928,6 +933,22 @@ class R(ExtraTabCompletion, Interface):
         """
         # return the symbol for checking equality, e.g., == or eq.
         return "=="
+
+    # A replacement for rpy2's help.pages that only considers loaded packages
+    # (as R's help function does by default). Hopefully upstream will support
+    # this in the future: https://bitbucket.org/rpy2/rpy2/issues/498
+    def _loaded_package_pages(topic):
+        res = list()
+
+        for name in rinterface.baseenv['loadedNamespaces']():
+            pack = Package(name)
+            try:
+                page = pack.fetch(topic)
+                res.append(page)
+            except HelpNotFoundError:
+                pass
+
+        return tuple(res)
 
     def help(self, command):
         """
