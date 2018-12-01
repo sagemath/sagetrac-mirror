@@ -43,6 +43,12 @@ from sage.rings.integer import Integer
 Here we illustrate one of the main theorems of [PRW2018]_ that
 promotion for oscillating tableaux corresponds to rotation of perfect matchings.
 
+TEST::
+
+     sage: all(OscillatingTableau(pm) == OscillatingTableau(pm.rotate()).promotion() for pm in PerfectMatchings(6))
+     True
+
+
 REFERENCES:
 
 .. [PRW2018] Stephan Pfannerer, Martin Rubey, Bruce W. Westbury.
