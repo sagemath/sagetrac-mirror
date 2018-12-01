@@ -2,6 +2,13 @@
 r"""
 Oscillating Tableaux
 
+This is an implementation of the abstract base class
+:class:`sage.combinat.path_tableau.path_tableaux`.
+
+In this implementation we have oscillating tableaux which are sequences
+of partitions such that at each step either one box is added or one box
+is removed.
+
 The purpose is to define promotion, evacuation and the action of
 the cactus group on oscillating tableaux.
 
@@ -31,6 +38,34 @@ from sage.combinat.tableau import Tableau
 from sage.combinat.partition import Partition
 from sage.modules.free_module_element import vector
 from sage.rings.integer import Integer
+
+"""
+Here we illustrate one of the main theorems of [PRW2018]_ that
+promotion for oscillating tableaux corresponds to rotation of perfect matchings.
+
+REFERENCES:
+
+.. [PRW2018] Stephan Pfannerer, Martin Rubey, Bruce W. Westbury.
+   *Promotion on oscillating and alternating tableaux and rotation of matchings and permutations *,
+   :arxiv:`1804.06736`
+
+EXAMPLES::
+
+    sage: t = OscillatingTableau([1,2,-2,-1])
+    sage: SkewTableau(t.cylindrical_diagram()).pp()
+     [][1][1, 1][1] []
+      . [][1][1, 1][1] []
+      .  . [][1][1, 1][1] []
+      .  .  . [][1][1, 1][1] []
+      .  .  .  . [][1][1, 1][1] []
+
+    sage: TestSuite(t).run()
+
+    sage: t = OscillatingTableau([1,2,1,-1,-2,-1])
+    sage: len(t.orbit())
+    9
+    sage: TestSuite(t).run()
+"""
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class OscillatingTableau(PathTableau):
@@ -94,19 +129,22 @@ class OscillatingTableau(PathTableau):
             w = [Partition([])]*(n+1)
 
             for i in range(n,1,-1):
-                c = tb.cells_containing(i)
-                if len(c) > 1:
-                    raise RuntimeError("Tableau should be standard.")
+                c = [ k for k, r in enumerate(tb) if i in r ]
                 if len(c) == 1:
-                    tc = list(tb)
-                    tc[c[0][0]] = list(tc[c[0][0]]).remove(i)
-                    tc = [ a for a in tc if a != None ]
-                    tb = Tableau(tc)
-                    w[i-1] = tb.shape()
-                else:
+                    k = c[0]
+                    tc = map(list,tb)
+                    tc[k] = tc[k].remove(i)
+                    tb = Tableau( a for a in tc if a != None )
+                    if len(tb) == 0:
+                        w[i-1] = Partition([])
+                    else:
+                        w[i-1] = Partition(map(len,tb))
+                elif len(c) == 0:
                     x = ot.partner(i)
                     tb = tb.bump(x)
                     w[i-1] = tb.shape()
+                else:
+                    raise RuntimeError("Tableau should be standard.")
 
         if w is None:
             raise ValueError("invalid input %s" % ot)
@@ -131,15 +169,39 @@ class OscillatingTableau(PathTableau):
                 if not h.contains(t):
                     raise ValueError("Next partition is not obtained by removing a cell.")
 
-    @staticmethod
-    def _rule(x):
-        y = map(list,x)
-        m = max([ len(u) for u in y ])
-        z = map( lambda u: vector(u + [0]*(m-len(u)) ), y )
-        result = z[0]-z[1]+z[2]
-        result = map(abs,result)
-        result.sort(reverse=True)
-        return Partition(result)
+    def _local_rule(self,i):
+        """
+        This has input a list of objects. This method first takes
+        the list of objects of length three consisting of the `(i-1)`-st,
+        `i`-th and `(i+1)`-term and applies the rule. It then replaces
+        the `i`-th object  by the object returned by the rule.
+
+        EXAMPLES::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t._local_rule(3)
+            [0, 1, 2, 1, 2, 1, 0]
+        """
+
+        def _rule(x):
+            """
+            This is the rule on a sequence of three partitions.
+            """
+            y = map(list,x)
+            m = max([ len(u) for u in y ])
+            z = map( lambda u: vector(u + [0]*(m-len(u)) ), y )
+            result = z[0]-z[1]+z[2]
+            result = map(abs,result)
+            result.sort(reverse=True)
+            return Partition(result)
+
+        if not (i > 0 and i < len(self) ):
+            raise ValueError("%d is not a valid integer" % i)
+
+        with self.clone() as result:
+            result[i] = _rule(self[i-1:i+2])
+
+        return result
 
     def is_skew(self):
         """
@@ -171,9 +233,11 @@ class OscillatingTableau(PathTableau):
         2
         """
 
-        if all( a.length() == 0 for a in self ):
+        v = (a for a in self if a.length() > 0)
+        if v == None:
             return 0
-        return max( a[0] for a in self if a.length() > 0)
+        else:
+            return max( a[0] for a in v )
 
     def to_perfect_matching(self):
         """
@@ -186,24 +250,30 @@ class OscillatingTableau(PathTableau):
         Converts an oscillating tableau to a word in the alphabet
         ...,-2,-1,1,2,...
 
-        EXAMPLE:
-        sage: T = OscillatingTableau([[],[1],[2],[1],[]])
-        sage: T.to_word()
-        [1, 1, -1, -1]
+        EXAMPLE::
+
+            sage: T = OscillatingTableau([[],[1],[2],[1],[]])
+            sage: T.to_word()
+            [1, 1, -1, -1]
+            sage: T = OscillatingTableau([[],[1],[1,1],[1],[]])
+            sage: T.to_word()
+            [1, 2, -2, -1]
 
         """
         n = len(self)
-        m = self.crossing_number()
-
         result = [0]*(n-1)
+        l = map(len,self)
+
         for i in range(n-1):
-            u = list(self[i])
-            u = u + [0]*(m-len(u))
-            v = list(self[i+1])
-            v = v + [0]*(m-len(v))
-            for j in range(m):
-                if u[j] != v[j]:
-                    result[i] = v[j]-u[j]
+            if l[i] > l[i+1]:
+                result[i] = -l[i]
+            elif l[i] < l[i+1]:
+                result[i] = l[i+1]
+            else:
+                for u, v in zip(self[i],self[i+1]):
+                    if u != v:
+                        result[i] = v-u
+
         return result
 
     def descents(self):
@@ -256,8 +326,8 @@ class OscillatingTableau(PathTableau):
         ([[3, 7], [6]], [(1, 5), (2, 4), (8, 9)])
 
         """
-        if self.is_skew():
-            raise ValueError("This has only been implemented for straight oscillating tableaux.")
+#        if self.is_skew():
+#            raise ValueError("This has only been implemented for straight oscillating tableaux.")
         tb = Tableau([])
         pm = set([])
 
@@ -271,7 +341,6 @@ class OscillatingTableau(PathTableau):
                 cell = [ c for c in mu.corners() if c not in lb.corners() ][0]
                 tb, x = tb.reverse_bump(cell)
                 pm.add((i,x))
-
 
         return (tb,PerfectMatching(pm))
 

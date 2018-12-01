@@ -2,7 +2,7 @@ r"""
 Catalan Tableaux
 
 This is an implementation of the abstract base class
-:class:`sage.combinat.pathtableau.pathtableaux`.
+:class:`sage.combinat.path_tableau.pathtableaux`.
 This is the simplest implementation of PathTableaux and is included to
 provide a convenient test case and for pedagogical purposes.
 
