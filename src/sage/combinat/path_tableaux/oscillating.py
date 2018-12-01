@@ -26,36 +26,92 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableList
 from sage.structure.parent import Parent
 from sage.combinat.perfect_matching import PerfectMatching
-from sage.categories.pathtableaux import PathTableaux
+from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
 from sage.combinat.tableau import Tableau
 from sage.combinat.partition import Partition
 from sage.modules.free_module_element import vector
+from sage.rings.integer import Integer
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class OscillatingTableau(PathTableau):
 
-    _conversions = [ "to_perfect_matching" ]
-    
     @staticmethod
     def __classcall_private__(self, ot):
+        """
+        This is the preprocessing for creating paths.
+
+        INPUT:
+
+            - a sequence of partitions
+            - a sequence of nonzero integers
+            - a perfect matching
+
+        EXAMPLES::
+
+        sage: pm = PerfectMatching([[1,2]])
+        sage: OscillatingTableau(pm)
+        [[], [1], []]
+
+        sage: pm = PerfectMatching([[1,3],[2,4]])
+        sage: OscillatingTableau(pm)
+        [[], [1], [1, 1], [1], []]
+
+        sage: OscillatingTableau([1,-1])
+        [[], [1], []]
+        """
 
         if isinstance(ot, OscillatingTableau):
             return ot
-        
-        if isinstance(ot,PerfectMatching):
-            return OscillatingTableaux().from_perfectmatching(ot)
-        
+
+        w = None
+
         if isinstance(ot,(tuple,list)):
             try:
-                ot = tuple([ Partition(a) for a in ot ])
-                return OscillatingTableaux()(ot)
+                w = tuple([ Partition(a) for a in ot ])
             except TypeError:
                 pass
-            
-            ot =tuple([Integer(a) for a in ot])
-            return OscillatingTableaux().from_word(ot)
-            
-        raise ValueError("Sorry, I don't know what to do with %s." % str(ot) )
+
+            try:
+                ot = tuple([Integer(a) for a in ot])
+                if any([a==0 for a in ot]):
+                    raise ValueError("List may not contain zero.")
+
+                w = [Partition([])]*(len(ot)+1)
+
+                for i,a in enumerate(ot):
+                    if a > 0:
+                        w[i+1] = w[i].add_cell(a-1)
+                    else:
+                        pt = list(w[i])
+                        pt[abs(a)-1] -= 1
+                        w[i+1] = Partition(pt)
+            except TypeError:
+                pass
+
+        if isinstance(ot,PerfectMatching):
+            tb = Tableau([])
+            n = ot.size()
+            w = [Partition([])]*(n+1)
+
+            for i in range(n,1,-1):
+                c = tb.cells_containing(i)
+                if len(c) > 1:
+                    raise RuntimeError("Tableau should be standard.")
+                if len(c) == 1:
+                    tc = list(tb)
+                    tc[c[0][0]] = list(tc[c[0][0]]).remove(i)
+                    tc = [ a for a in tc if a != None ]
+                    tb = Tableau(tc)
+                    w[i-1] = tb.shape()
+                else:
+                    x = ot.partner(i)
+                    tb = tb.bump(x)
+                    w[i-1] = tb.shape()
+
+        if w is None:
+            raise ValueError("invalid input %s" % ot)
+
+        return OscillatingTableaux()(w)
 
     def _hash_(self):
         return hash(tuple(map(tuple, self)))
@@ -119,12 +175,12 @@ class OscillatingTableau(PathTableau):
             return 0
         return max( a[0] for a in self if a.length() > 0)
 
-	def to_perfect_matching(self):
-		"""
-		Construct the perfect matching.
-		"""
-		return self.sundaram()[1]
-		
+    def to_perfect_matching(self):
+        """
+        Construct the perfect matching.
+        """
+        return self.sundaram()[1]
+
     def to_word(self):
         """
         Converts an oscillating tableau to a word in the alphabet
@@ -173,24 +229,24 @@ class OscillatingTableau(PathTableau):
                 result.add(i)
 
         return result
-    
+
     def sundaram(self):
         """
         This implements the bijection due to S. Sundaram between
         oscillating tableaux with empty initial shape and pairs
         (S,M) where S is a partial standard tableaux whose shape
-        is the final shape of the oscillating tableau and a 
+        is the final shape of the oscillating tableau and a
         perfect matching on the complement of the set of entries
         of S.
-        
+
         INPUT: A straight oscillating tableau.
-        
+
         OUTPUT: A pair (S,M); S is a Tableau and M is a PerfectMatching
-        
+
         sage: t = OscillatingTableau([[],[1],[1,1],[1],[]])
         sage: t.sundaram()
         ([], [(1, 3), (2, 4)])
-        
+
         sage: t = OscillatingTableau([[],[1],[1,1],[2,1],[2],[1],[2],[2,1],[2,1,1],[2,1]])
         sage: t.sundaram()
         ([[2, 7], [8]], [(1, 4), (3, 5), (6, 9)])
@@ -204,7 +260,7 @@ class OscillatingTableau(PathTableau):
             raise ValueError("This has only been implemented for straight oscillating tableaux.")
         tb = Tableau([])
         pm = set([])
-        
+
         for i in range(1,len(self)):
             lb = self[i]
             mu = self[i-1]
@@ -215,76 +271,13 @@ class OscillatingTableau(PathTableau):
                 cell = [ c for c in mu.corners() if c not in lb.corners() ][0]
                 tb, x = tb.reverse_bump(cell)
                 pm.add((i,x))
-                
-            
+
+
         return (tb,PerfectMatching(pm))
 
 ###############################################################################
 
 class OscillatingTableaux(PathTableaux):
 
-    def from_word(self,w):
-        """
-        This constructs an oscillating tableaux from a list of
-        integers. The list may contain positive or negative entries
-        but not zero.
-        
-        This function attempts to construct a straight oscillating
-        tableaux. This may fail.
-        
-        sage: OscillatingTableau([1,-1])
-        [[], [1], []]
-
-        """
-        if any([a==0 for a in w]):
-            raise ValueError("List may not contain zero.")
-            
-        ot = [Partition([])]*(len(w)+1)
-        
-        for i,a in enumerate(w):
-            if a > 0:
-                ot[i+1] = ot[i].add_cell(a-1)
-            else:
-                pt = list(ot[i])  
-                pt[abs(a)-1] -= 1
-                ot[i+1] = Partition(pt)
-            
-        return self.element_class(self,ot)
-    
-    def from_perfect_matching(self,pm):
-        """
-        Constructs an oscillating tableau from a perfect matching.
-        The intial and final shapes are the empty partition.
-        
-        sage: pm = PerfectMatching([[1,2]])
-        sage: OscillatingTableau(pm)
-        [[], [1], []]
-
-        sage: pm = PerfectMatching([[1,3],[2,4]])
-        sage: OscillatingTableau(pm)
-        [[], [1], [1, 1], [1], []]
-
-        """
-        tb = Tableau([])
-        n = pm.size()
-        ot = [Partition([])]*(n+1)
-        
-        for i in range(n,1,-1):
-            c = tb.cells_containing(i)
-            if len(c) > 1:
-                raise RuntimeError("Tableau should be standard.")
-            if len(c) == 1:
-                tc = list(tb)
-                tc[c[0][0]] = list(tc[c[0][0]]).remove(i)
-                tc = [ a for a in tc if a != None ]
-                tb = Tableau(tc)
-                ot[i-1] = tb.shape()
-            else:
-                x = pm.partner(i)
-                tb = tb.bump(x)
-                ot[i-1] = tb.shape()
-                
-        return self.element_class(self,ot)
-    
     Element = OscillatingTableau
 
