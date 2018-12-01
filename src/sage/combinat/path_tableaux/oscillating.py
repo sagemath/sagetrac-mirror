@@ -29,8 +29,6 @@ AUTHORS:
 from six import add_metaclass
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.list_clone import ClonableList
 from sage.structure.parent import Parent
 from sage.combinat.perfect_matching import PerfectMatching
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
@@ -41,7 +39,7 @@ from sage.rings.integer import Integer
 
 """
 Here we illustrate one of the main theorems of [PRW2018]_ that
-promotion for oscillating tableaux corresponds to rotation of perfect matchings.
+promotion for oscillating tableaux corresponds to inverse rotation of perfect matchings.
 
 TEST::
 
@@ -50,6 +48,10 @@ TEST::
 
 
 REFERENCES:
+
+.. [RSW2013] Martin Rubey, Bruce Sagan, Bruce W. Westbury.
+   *Descent sets for symplectic groups *,
+   :arxiv:`1303.5850`
 
 .. [PRW2018] Stephan Pfannerer, Martin Rubey, Bruce W. Westbury.
    *Promotion on oscillating and alternating tableaux and rotation of matchings and permutations *,
@@ -294,8 +296,7 @@ class OscillatingTableau(PathTableau):
 
     def descents(self):
         """
-        Returns the descent set. This is defined in
-        https://arxiv.org/abs/1303.5850
+        Returns the descent set. This is defined in [RSW2013]_
 
         EXAMPLE:
         sage: T = OscillatingTableau([[],[1],[2],[1],[]])
@@ -342,8 +343,8 @@ class OscillatingTableau(PathTableau):
         ([[3, 7], [6]], [(1, 5), (2, 4), (8, 9)])
 
         """
-#        if self.is_skew():
-#            raise ValueError("This has only been implemented for straight oscillating tableaux.")
+        if self.is_skew():
+            raise ValueError("This has only been implemented for straight oscillating tableaux.")
         tb = Tableau([])
         pm = set([])
 
