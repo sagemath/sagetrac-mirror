@@ -128,23 +128,22 @@ class OscillatingTableau(PathTableau):
             n = ot.size()
             w = [Partition([])]*(n+1)
 
-            for i in range(n,1,-1):
+            for i in range(n,0,-1):
                 c = [ k for k, r in enumerate(tb) if i in r ]
                 if len(c) == 1:
                     k = c[0]
                     tc = map(list,tb)
-                    tc[k] = tc[k].remove(i)
-                    tb = Tableau( a for a in tc if a != None )
-                    if len(tb) == 0:
-                        w[i-1] = Partition([])
-                    else:
-                        w[i-1] = Partition(map(len,tb))
+                    tc[k].remove(i)
+                    if tc[k] == []:
+                        tc.remove(tc[k])
+                    tb = Tableau(tc)
+                    w[i-1] = tb.shape()
                 elif len(c) == 0:
                     x = ot.partner(i)
                     tb = tb.bump(x)
                     w[i-1] = tb.shape()
                 else:
-                    raise RuntimeError("Tableau should be standard.")
+                    raise RuntimeError("tableau must be standard")
 
         if w is None:
             raise ValueError("invalid input %s" % ot)
@@ -242,6 +241,17 @@ class OscillatingTableau(PathTableau):
     def to_perfect_matching(self):
         """
         Construct the perfect matching.
+
+        EXAMPLES::
+
+            sage: OscillatingTableau([1,2,-2,-1]).to_perfect_matching()
+            [(1, 3), (2, 4)]
+
+        TESTS::
+
+            sage: all(pm == OscillatingTableau(pm).to_perfect_matching()  for pm in PerfectMatchings(6) )
+            True
+
         """
         return self.sundaram()[1]
 
