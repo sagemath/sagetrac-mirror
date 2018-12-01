@@ -641,6 +641,22 @@ class GroupHomset_libgap(HomsetWithBase):
             ...
             TypeError: unable to convert 2 to an element of ...
 
+        A group homomorphism between a finitely presented group and a subgroup of a permutation group::
+
+            sage: PG= PGU(6,2)
+            sage: g, h = PG.gens()
+            sage: p1 = h^-3*(h^-1*g^-1)^2*h*g*h^2*g^-1*h^2*g*h^-5*g^-1
+            sage: p2 = g*(g*h)^2*g*h^-4*(g*h)^2*(h^2*g*h^-2*g)^2*h^-2*g*h^-2*g^-1*h^-1*g*h*g*h^-1*g
+            sage: p3 = h^-3*g^-1*h*g*h^4*g^-1*h^-1*g*h*(h^2*g^-1)^2*h^-4*g*h^2*g^-1*h^-7*g^-2*h^-2*g*h^-2*g^-1*h^-1*(g*h)^2*h^3
+            sage: p4 = h*(h^3*g)^2*h*g*h^-1*g*h^2*g^-1*h^-2*g*h^4*g^-1*h^3*g*h^-2*g*h^-1*g^-1*h^2*g*h*g^-1*h^-2*g*h*g^-1*h^2*g*h^2*g^-1
+            sage: p5 = h^2*g*h^2*g^-1*h*g*h^-1*g*h*g^-1*h^2*g*h^-2*g*h^2*g*h^-2*(h^-1*g)^2*h^4*(g*h^-1)^2*g^-1
+            sage: UPG = PG.subgroup([p1, p2, p3, p4, p5], canonicalize=False)
+            sage: B6 = BraidGroup(6)
+            sage: reprB6 = B6.hom(UPG.gens())
+            sage: b1, b2, b3, b4, b5 = B6.gens()
+            sage: reprB6(b1*b2*b3*b4*b5) == p1*p2*p3*p4*p5
+            True
+
         TESTS:
 
         The following input does not define a valid group homomorphism::
@@ -659,11 +675,7 @@ class GroupHomset_libgap(HomsetWithBase):
             dom = self.domain()
             codom = self.codomain()
             gens = dom.gap().GeneratorsOfGroup()
-            if list(x) == codom.gens():
-                # avoid buffer size overflow in the interface
-                imgs = codom.gap().GeneratorsOfGroup()
-            else:
-                imgs = [codom(g).gap() for g in x]
+            imgs = [codom(g).gap() for g in x]
             if check:
                 if not len(gens) == len(imgs):
                     raise ValueError("provide an image for each generator")

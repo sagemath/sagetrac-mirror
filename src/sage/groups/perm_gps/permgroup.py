@@ -541,6 +541,7 @@ class PermutationGroup_generic(FiniteGroup):
         """
         return 'Group([%s])'%(', '.join([g._gap_init_() for g in self.gens()]))
 
+    @cached_method
     def gap(self):
         r"""
         this method from :class:`ParentLibGAP` is added in order to achieve
@@ -563,13 +564,34 @@ class PermutationGroup_generic(FiniteGroup):
             Sym( [ 1 .. 3 ] )
             sage: gap(S3) == S3.gap()
             False
+
+        TESTS:
+
+        see that this method doesn't harm pickling:
+
+            sage: A4 = PermutationGroup([[(1,2,3)],[(2,3,4)]])
+            sage: A4.gap()
+            Group([ (2,3,4), (1,2,3) ])
+            sage: TestSuite(A4).run()
+
+        the follwing test shows, that support for the ``self._libgap`` attribute
+        is needed in the constructor of :class:`PermutationGroup_subgroup`:
+
+            sage: PG= PGU(6,2)
+            sage: g, h = PG.gens()
+            sage: p1 = h^-3*(h^-1*g^-1)^2*h*g*h^2*g^-1*h^2*g*h^-5*g^-1
+            sage: p2 = g*(g*h)^2*g*h^-4*(g*h)^2*(h^2*g*h^-2*g)^2*h^-2*g*h^-2*g^-1*h^-1*g*h*g*h^-1*g
+            sage: p3 = h^-3*g^-1*h*g*h^4*g^-1*h^-1*g*h*(h^2*g^-1)^2*h^-4*g*h^2*g^-1*h^-7*g^-2*h^-2*g*h^-2*g^-1*h^-1*(g*h)^2*h^3
+            sage: p4 = h*(h^3*g)^2*h*g*h^-1*g*h^2*g^-1*h^-2*g*h^4*g^-1*h^3*g*h^-2*g*h^-1*g^-1*h^2*g*h*g^-1*h^-2*g*h*g^-1*h^2*g*h^2*g^-1
+            sage: p5 = h^2*g*h^2*g^-1*h*g*h^-1*g*h*g^-1*h^2*g*h^-2*g*h^2*g*h^-2*(h^-1*g)^2*h^4*(g*h^-1)^2*g^-1
+            sage: UPG = PG.subgroup([p1, p2, p3, p4, p5], canonicalize=False)
+            sage: UPG.gap()
+            <permutation group with 5 generators>
         """
         if self._libgap is not None:
             return self._libgap
         from sage.libs.gap.libgap import libgap
-        self._libgap = libgap(self)
-        return self._libgap
-
+        return libgap(self)
 
     def _Hom_(self, G, category=None, check=True):
         r"""
@@ -4636,6 +4658,7 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
                 for g in self.gens():
                     if g._gap_() not in ambient_gap_group:
                         raise TypeError("each generator must be in the ambient group")
+            self._libgap = ambient.gap().Subgroup([g.gap() for g in self.gens()])
 
     def __richcmp__(self, other, op):
         r"""
