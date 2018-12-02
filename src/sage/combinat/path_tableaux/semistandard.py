@@ -31,6 +31,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+
 from six import add_metaclass
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -41,6 +42,29 @@ from sage.combinat.skew_tableau import SkewTableau
 from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPattern
 from sage.combinat.combinatorial_map import combinatorial_map
 
+"""
+Here we show that we have implemented the jeu-de-taquin operations.
+In the Tableau and SkewTableau classes promotion and evacuation have only been implemented
+for standard tableaux. Our constructions apply to all semistandard skew
+tableaux (including semistandard tableaux).
+
+We extend promotion, evacuation and dual equivalence graphs to semistandard tableaux.
+
+I wanted to put in checks of the claims I made. However SkewTableaux
+does not have the operations of promotion or evacuation
+
+TESTS::
+
+sage: ST = StandardTableaux([4,3,1])
+sage: all( DualSemistandardTableau(t.evacuation()) == DualSemistandardTableau(t).evacuation() for t in ST )
+True
+sage: all( DualSemistandardTableau(t.promotion()) == DualSemistandardTableau(t).promotion() for t in ST )
+True
+
+sage: ST = SkewTableaux(shape=[[4,3,1],[6,5,3]],content=[3,5])
+sage: all(t.check_bender_knuth(1))
+True
+"""
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class DualSemistandardTableau(PathTableau):
     """
@@ -146,9 +170,9 @@ class DualSemistandardTableau(PathTableau):
         Returns the conjugate skew tableau. This will be semistandard.
         """
         ch = [ p.conjugate() for p in self]
-        try:
+        if self.is_skew():
             return SemistandardSkewTableau(chain=ch)
-        except TypeError:
+        else:
             return SemistandardTableau(chain=ch)
 
     def is_skew(self):
@@ -168,25 +192,42 @@ class DualSemistandardTableau(PathTableau):
     def rectify(self):
         pass
 
-    def check_bender_knuth(self,i):
+    def _test_bender_knuth(self,i,**options):
+        tester = self._tester(**options)
+
         lhs = self.local_rule(i).to_tableau()
         rhs = self.to_tableau().bender_knuth_involution(i)
-        return lhs == rhs
+        tester.assertTrue( lhs == rhs )
 
-    def check_rectify(self):
+    def _test_rectify(self, **options):
+        tester = self._tester(**options)
+
         lhs = self.rectify().to_tableau()
-        rhs = self.to_tableau().rectify()
-        return lhs == rhs
+        t = self.to_tableau()
+        if isinstance(t,SemistandardTableaux):
+            rhs == t
+        else:
+            rhs = t.rectify()
+        tester.assertTrue( lhs == rhs )
 
-    def check_evacuation(self):
-        lhs = self.evacuation().to_tableau()
-        rhs = self.to_tableau().evacuation()
-        return lhs == rhs
-"""
-I wanted to put in checks of the claims I made. However SkewTableaux
-does not have the operations of promotion or evacuation
+    def _test_evacuation(self, **options):
+        tester = self._tester(**options)
+        if self.is_skew():
+            tester.assertTrue(True)
+        else:
+            lhs = self.evacuation().to_tableau()
+            rhs = self.to_tableau().evacuation()
+            tester.assertTrue( lhs == rhs )
 
-"""
+    def _test_promotion(self, **options):
+        tester = self._tester(**options)
+        if self.is_skew():
+            tester.assertTrue(True)
+        else:
+            lhs = self.promotion().to_tableau()
+            rhs = self.to_tableau().promotion()
+            tester.assertTrue( lhs == rhs )
+
 ########################################################################
 
 class DualSemistandardTableaux(PathTableaux):
