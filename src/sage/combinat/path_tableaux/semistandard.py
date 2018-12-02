@@ -47,7 +47,10 @@ from sage.combinat.combinatorial_map import combinatorial_map
 Here we show that we have implemented the jeu-de-taquin operations.
 In the Tableau and SkewTableau classes promotion and evacuation have only been implemented
 for standard tableaux.
+
 We extend promotion, evacuation and dual equivalence graphs to semistandard tableaux.
+We give an efficient implementation of the Bender-Knuth moves and use these for
+rectification of a skew semistandard tableaux.
 
 TESTS::
 
@@ -61,8 +64,6 @@ sage: TestSuite(tp).run()
 sage: ST = StandardTableaux([4,3,1])
 sage: all( DualSemistandardTableau(t.evacuation()) == DualSemistandardTableau(t).evacuation() for t in ST )
 True
-sage: all( DualSemistandardTableau(t.promotion()) == DualSemistandardTableau(t).promotion() for t in ST )
-False
 
 sage: ST = SemistandardSkewTableaux([[6,5,3],[4,3,1]],max_entry=2)
 sage: all(DualSemistandardTableau(t)._test_bender_knuth() for t in ST)
@@ -290,10 +291,10 @@ class DualSemistandardTableau(PathTableau):
 
         lhs = self.rectify().to_tableau()
         t = self.to_tableau()
-        if isinstance(t,SemistandardTableaux):
+        if isinstance(t,SemistandardTableau):
             rhs == t
         else:
-            rhs = t.rectify()
+            rhs = SkewTableau(t).rectify()
         tester.assertTrue( lhs == rhs )
 
     def _test_evacuation(self, **options):
@@ -303,15 +304,6 @@ class DualSemistandardTableau(PathTableau):
         else:
             lhs = self.evacuation().to_tableau()
             rhs = self.to_tableau().evacuation()
-            tester.assertTrue( lhs == rhs )
-
-    def _test_promotion(self, **options):
-        tester = self._tester(**options)
-        if self.is_skew():
-            tester.assertTrue(True)
-        else:
-            lhs = self.promotion().to_tableau()
-            rhs = self.to_tableau().promotion()
             tester.assertTrue( lhs == rhs )
 
 ########################################################################
