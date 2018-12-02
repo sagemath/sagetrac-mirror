@@ -49,7 +49,9 @@ class DualSemistandardTableau(PathTableau):
 
     The acceptable inputs are:
         - a sequence such that each term defines a partition
+        - a semistandard tableau
         - a semistandard skew tableau
+        - a Gelfand-Tsetlin pattern
 
     EXAMPLES:
 
@@ -63,6 +65,29 @@ class DualSemistandardTableau(PathTableau):
     """
     @staticmethod
     def __classcall_private__(self, ot):
+        """
+            The acceptable inputs are:
+        - a sequence such that each term defines a partition
+        - a semistandard tableau
+        - a semistandard skew tableau
+        - a Gelfand-Tsetlin pattern
+
+        EXAMPLES::
+
+        sage: DualSemistandardTableau([[],[1],[2],[2,1]])
+        [[], [1], [2], [2, 1]]
+
+        sage: t = SemistandardTableau([[1,1,3,3,3],[2]])
+        sage: DualSemistandardTableau(t)
+        [[], [1, 1], [2, 1], [2, 1, 1, 1, 1]]
+        sage: t = SkewTableau([[None,None,None,4,4,5,6,7],[None,2,4,6,7,7,7],[None,4,5,8,8,9],[None,6,7,10],[None,8,8,11],[None],[4]])
+        sage: DualSemistandardTableau(t)
+        [[6, 1, 1], [6, 1, 1], [6, 2, 1], [6, 2, 1], [7, 3, 2, 1, 1], [7, 3, 3, 1, 1, 1], [7, 4, 3, 2, 1, 1, 1], [7, 4, 4, 2, 2, 2, 2, 1], [7, 5, 5, 3, 3, 2, 2, 1], [7, 5, 5, 3, 3, 3, 2, 1], [7, 5, 5, 4, 3, 3, 2, 1], [7, 5, 5, 5, 3, 3, 2, 1]]
+        sage: gt = GelfandTsetlinPattern([[5,3,1],[4,2],[3]])
+        sage: DualSemistandardTableau(gt)
+        [[1, 1, 1], [2, 2, 1, 1], [3, 2, 2, 1, 1]]
+
+        """
 
         if isinstance(ot, DualSemistandardTableau):
             return ot
@@ -79,9 +104,10 @@ class DualSemistandardTableau(PathTableau):
             w = ot.conjugate().to_chain()
 
         if isinstance(ot,GelfandTsetlinPattern):
-            u = list(ot).reverse()
+            u = list(ot)
+            u.reverse()
             v = map(Partition,u)
-            w = map(conjugate,v)
+            w = [t.conjugate() for t in v]
 
         if w == None:
             raise ValueError( "Sorry, not sorry; I don't know what to do with %s." % str(ot) )
