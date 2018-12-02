@@ -34,25 +34,25 @@ AUTHORS:
 from six import add_metaclass
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.list_clone import ClonableArray
-from sage.structure.parent import Parent
-
-from pathtableaux import PathTableaux
-
+from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
+from sage.combinat.partition import Partition
+from sage.combinat.tableau import SemistandardTableau
+from sage.combinat.skew_tableau import SkewTableau
+from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPattern
+from sage.combinat.combinatorial_map import combinatorial_map
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
-class DualSemistandardTableau(ClonableArray):
+class DualSemistandardTableau(PathTableau):
     """
        An instance is the sequence of partitions correspond to the
        chain of partitions of a dual semistandard skew tableau.
-       
+
     The acceptable inputs are:
         - a sequence such that each term defines a partition
         - a semistandard skew tableau
 
     EXAMPLES:
-        
+
     sage: DualSemistandardTableau([[],[1],[2],[2,1]])
     [[], [1], [2], [2, 1]]
 
@@ -63,25 +63,30 @@ class DualSemistandardTableau(ClonableArray):
     """
     @staticmethod
     def __classcall_private__(self, ot):
-        
+
+        if isinstance(ot, DualSemistandardTableau):
+            return ot
+
         w = None
 
-        if isinstance(ot,(SemistandardSkewTableau,SemistandardTableau)):
-            w = ot.conjugate().to_chain()
-            
         if isinstance(ot,(list,tuple)):
             try:
                 w = tuple([ Partition(a) for a in ot ])
             except TypeError:
                 raise ValueError("%s is not a sequence of partitions." % str(ot) )
 
-        if w == None:
-            raise ValueError( "Sorry, not sorry; I don't know what to do with %s." % str(ot) )  
-                        
-        return DualSemistandardTableaux()(w)
+        if isinstance(ot,(SkewTableau,SemistandardTableau)):
+            w = ot.conjugate().to_chain()
 
-    def _hash_(self):
-        return hash(tuple(map(tuple, self)))
+        if isinstance(ot,GelfandTsetlinPattern):
+            u = list(ot).reverse()
+            v = map(Partition,u)
+            w = map(conjugate,v)
+
+        if w == None:
+            raise ValueError( "Sorry, not sorry; I don't know what to do with %s." % str(ot) )
+
+        return DualSemistandardTableaux()(w)
 
     def check(self):
         n = len(self)
@@ -96,6 +101,7 @@ class DualSemistandardTableau(ClonableArray):
             for a in t[len(h):]:
                 if a > 1:
                     raise ValueError( "%s / %s is not a vertical strip" % (str(t),str(h)) )
+
     @staticmethod
     def _rule(x):
         y = map(list,x)
@@ -108,7 +114,7 @@ class DualSemistandardTableau(ClonableArray):
     def evaluation(self):
         z = [ p.size() for p in self ]
         return [ z[i+1] - z[i] for i in range(len(self)-1) ]
-    
+
     def to_tableau(self):
         """
         Returns the conjugate skew tableau. This will be semistandard.
@@ -118,31 +124,34 @@ class DualSemistandardTableau(ClonableArray):
             return SemistandardSkewTableau(chain=ch)
         except TypeError:
             return SemistandardTableau(chain=ch)
-    
+
     def is_skew(self):
         """
         Returns True if Tableau is skew and False if not.
 
-        EXAMPLE:
-        sage: T = OscillatingTableau([[],[1],[2],[1],[]])
-        sage: T.is_skew()
-        False
+        EXAMPLE::
+
+            sage: DualSemistandardTableau([[],[1],[2],[3,1]]).is_skew()
+            False
+            sage: DualSemistandardTableau([[1],[2],[3,1]]).is_skew()
+            True
+
         """
         return self[0] != Partition([])
 
     def rectify(self):
         pass
-    
+
     def check_bender_knuth(self,i):
         lhs = self.local_rule(i).to_tableau()
         rhs = self.to_tableau().bender_knuth_involution(i)
         return lhs == rhs
-    
+
     def check_rectify(self):
         lhs = self.rectify().to_tableau()
         rhs = self.to_tableau().rectify()
         return lhs == rhs
-        
+
     def check_evacuation(self):
         lhs = self.evacuation().to_tableau()
         rhs = self.to_tableau().evacuation()
@@ -154,36 +163,17 @@ does not have the operations of promotion or evacuation
 """
 ########################################################################
 
-class DualSemistandardTableaux(UniqueRepresentation,Parent):
-
-    @staticmethod
-    def __classcall_private__(cls):
-        return super(DualSemistandardTableaux, cls).__classcall__(cls)
-
-    def __init__(self):
-
-        Parent.__init__(self, category=PathTableaux())
-
-    def __contains__(self, ot):
-
-        return isinstance(ot, (list, tuple, DualSemistandardTableau))
-
-    def _element_constructor_(self, ot, check=True):
-
-        if isinstance(ot, DualSemistandardTableaux) and ot.parent() == self:
-            return ot
-
-        return self.element_class(self, list(ot))
+class DualSemistandardTableaux(PathTableaux):
 
     Element = DualSemistandardTableau
 
 ########################################################################
 
 class StandardPathTableau(DualSemistandardTableau):
-	"""
-	A class for standard tableaux.
-	"""
-	
+    """
+    A class for standard tableaux.
+    """
+
     def check(self):
         n = len(self)
         for i in range(n-1):
