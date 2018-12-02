@@ -45,13 +45,8 @@ from sage.combinat.combinatorial_map import combinatorial_map
 """
 Here we show that we have implemented the jeu-de-taquin operations.
 In the Tableau and SkewTableau classes promotion and evacuation have only been implemented
-for standard tableaux. Our constructions apply to all semistandard skew
-tableaux (including semistandard tableaux).
-
+for standard tableaux.
 We extend promotion, evacuation and dual equivalence graphs to semistandard tableaux.
-
-I wanted to put in checks of the claims I made. However SkewTableaux
-does not have the operations of promotion or evacuation
 
 TESTS::
 
@@ -152,19 +147,41 @@ class DualSemistandardTableau(PathTableau):
                 if a > 1:
                     raise ValueError( "%s / %s is not a vertical strip" % (str(t),str(h)) )
 
-    @staticmethod
-    def _rule(x):
-        y = map(list,x)
-        m = max([ len(u) for u in y ])
-        z = map( lambda u: vector(u + [0]*(m-len(u)) ), y )
-        result = list(z[0]-z[1]+z[2])
-        result.sort(reverse=true)
-        return Partition(result)
+    def _local_rule(self,i):
+        """
+        This has input a list of objects. This method first takes
+        the list of objects of length three consisting of the `(i-1)`-st,
+        `i`-th and `(i+1)`-term and applies the rule. It then replaces
+        the `i`-th object  by the object returned by the rule.
+
+        EXAMPLES::
+
+            sage: t = DualSemistandardTableau([[],[1,1],[2,2,1],[3,2,1]])
+            sage: t._local_rule(3)
+            [0, 1, 2, 1, 2, 1, 0]
+        """
+
+        def _rule(x):
+            y = map(list,x)
+            m = max([ len(u) for u in y ])
+            z = map( lambda u: vector(u + [0]*(m-len(u)) ), y )
+            result = list(z[0]-z[1]+z[2])
+            result.sort(reverse=true)
+            return Partition(result)
+
+        if not (i > 0 and i < len(self) ):
+            raise ValueError("%d is not a valid integer" % i)
+
+        with self.clone() as result:
+            result[i] = _rule(self[i-1:i+2])
+
+        return result
 
     def evaluation(self):
         z = [ p.size() for p in self ]
         return [ z[i+1] - z[i] for i in range(len(self)-1) ]
 
+    @combinatorial_map(name='to Tableau')
     def to_tableau(self):
         """
         Returns the conjugate skew tableau. This will be semistandard.
