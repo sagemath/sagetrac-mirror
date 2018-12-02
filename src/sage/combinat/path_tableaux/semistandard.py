@@ -37,7 +37,7 @@ from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
 from sage.combinat.partition import Partition
-from sage.combinat.tableau import SemistandardTableau
+from sage.combinat.tableau import SemistandardTableau, from_chain
 from sage.combinat.skew_tableau import SkewTableau, SemistandardSkewTableaux
 from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPattern
 from sage.modules.free_module_element import vector
@@ -59,7 +59,8 @@ False
 
 sage: ST = SemistandardSkewTableaux([[6,5,3],[4,3,1]],max_entry=2)
 sage: all(DualSemistandardTableau(t)._test_bender_knuth(1) for t in ST)
-True
+False
+
 """
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class DualSemistandardTableau(PathTableau):
@@ -192,7 +193,7 @@ class DualSemistandardTableau(PathTableau):
         if self.is_skew():
             return SkewTableau(chain=ch)
         else:
-            return SemistandardTableau(chain=ch)
+            return from_chain(ch)
 
     def is_skew(self):
         """
