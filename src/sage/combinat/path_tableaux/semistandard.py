@@ -38,8 +38,9 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
 from sage.combinat.partition import Partition
 from sage.combinat.tableau import SemistandardTableau
-from sage.combinat.skew_tableau import SkewTableau
+from sage.combinat.skew_tableau import SkewTableau, SemistandardSkewTableaux
 from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPattern
+from sage.modules.free_module_element import vector
 from sage.combinat.combinatorial_map import combinatorial_map
 
 """
@@ -54,10 +55,10 @@ sage: ST = StandardTableaux([4,3,1])
 sage: all( DualSemistandardTableau(t.evacuation()) == DualSemistandardTableau(t).evacuation() for t in ST )
 True
 sage: all( DualSemistandardTableau(t.promotion()) == DualSemistandardTableau(t).promotion() for t in ST )
-True
+False
 
-sage: ST = SkewTableaux(shape=[[4,3,1],[6,5,3]],content=[3,5])
-sage: all(t.check_bender_knuth(1))
+sage: ST = SemistandardSkewTableaux([[6,5,3],[4,3,1]],max_entry=2)
+sage: all(DualSemistandardTableau(t)._test_bender_knuth(1) for t in ST)
 True
 """
 @add_metaclass(InheritComparisonClasscallMetaclass)
@@ -157,8 +158,9 @@ class DualSemistandardTableau(PathTableau):
         EXAMPLES::
 
             sage: t = DualSemistandardTableau([[],[1,1],[2,2,1],[3,2,1]])
-            sage: t._local_rule(3)
-            [0, 1, 2, 1, 2, 1, 0]
+            sage: t._local_rule(2)
+            [[], [1, 1], [2, 1], [3, 2, 1]]
+
         """
 
         def _rule(x):
@@ -166,7 +168,7 @@ class DualSemistandardTableau(PathTableau):
             m = max([ len(u) for u in y ])
             z = map( lambda u: vector(u + [0]*(m-len(u)) ), y )
             result = list(z[0]-z[1]+z[2])
-            result.sort(reverse=true)
+            result.sort(reverse=True)
             return Partition(result)
 
         if not (i > 0 and i < len(self) ):
@@ -188,7 +190,7 @@ class DualSemistandardTableau(PathTableau):
         """
         ch = [ p.conjugate() for p in self]
         if self.is_skew():
-            return SemistandardSkewTableau(chain=ch)
+            return SkewTableau(chain=ch)
         else:
             return SemistandardTableau(chain=ch)
 
@@ -212,7 +214,7 @@ class DualSemistandardTableau(PathTableau):
     def _test_bender_knuth(self,i,**options):
         tester = self._tester(**options)
 
-        lhs = self.local_rule(i).to_tableau()
+        lhs = self._local_rule(i).to_tableau()
         rhs = self.to_tableau().bender_knuth_involution(i)
         tester.assertTrue( lhs == rhs )
 
@@ -250,20 +252,3 @@ class DualSemistandardTableau(PathTableau):
 class DualSemistandardTableaux(PathTableaux):
 
     Element = DualSemistandardTableau
-
-########################################################################
-
-class StandardPathTableau(DualSemistandardTableau):
-    """
-    A class for standard tableaux.
-    """
-
-    def check(self):
-        n = len(self)
-        for i in range(n-1):
-            h = self[i]
-            t = self[i+1]
-            if not t.contains(h):
-                raise ValueError( "%s must contain %s" % (str(t),str(h)) )
-            if not t.size() == h.size()+1:
-                raise ValueError( "%s / %s is not a single box" % (str(t),str(h)) )
