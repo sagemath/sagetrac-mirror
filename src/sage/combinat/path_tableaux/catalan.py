@@ -29,7 +29,7 @@ AUTHORS:
 
 from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.combinat.pathtableaux.pathtableau import PathTableau, PathTableaux
+from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.dyck_word import DyckWord
 from sage.combinat.perfect_matching import PerfectMatching
@@ -80,46 +80,37 @@ class CatalanTableau(PathTableau):
     """
     An instance is the sequence of nonnegative
     integers given by the heights of a Dyck word.
-
-    INPUT:
-
-        - a sequence of nonnegative integers
-        - a two row standard skew tableau
-        - a Dyck word
-        - a noncrossing perfect matching
-
-    EXAMPLES::
-
-        sage: CatalanTableau([0,1,2,1,0])
-        [0, 1, 2, 1, 0]
-
-        sage: w = DyckWord([1,1,0,0])
-        sage: CatalanTableau(w)
-        [0, 1, 2, 1, 0]
-
-        sage: p = PerfectMatching([(1,2),(3,4)])
-        sage: CatalanTableau(p)
-        [0, 1, 0, 1, 0]
-
-        sage: t = Tableau([[1,2],[3,4]])
-        sage: CatalanTableau(t)
-        [0, 1, 2, 1, 0]
-
     """
-
-    _conversions = [ "to_DyckWord",
-                     "to_perfect_matching",
-                     "to_standard_tableau",
-                     "to_tableau",
-                     "to_noncrossing_partition",
-                     "to_binary_tree",
-                     "to_ordered_tree",
-                     "to_non_decreasing_parking_function",
-                     "to_alternating_sign_matrix" ]
 
     @staticmethod
     def __classcall_private__(cls, ot):
+        """This is the preprocessing for creating paths.
 
+        INPUT:
+
+            - a sequence of nonnegative integers
+            - a two row standard skew tableau
+            - a Dyck word
+            - a noncrossing perfect matching
+
+        EXAMPLES::
+
+            sage: CatalanTableau([0,1,2,1,0])
+            [0, 1, 2, 1, 0]
+
+            sage: w = DyckWord([1,1,0,0])
+            sage: CatalanTableau(w)
+            [0, 1, 2, 1, 0]
+
+            sage: p = PerfectMatching([(1,2),(3,4)])
+            sage: CatalanTableau(p)
+            [0, 1, 0, 1, 0]
+
+            sage: t = Tableau([[1,2],[3,4]])
+            sage: CatalanTableau(t)
+            [0, 1, 2, 1, 0]
+
+        """
         w = None
 
         if isinstance(ot, DyckWord):
