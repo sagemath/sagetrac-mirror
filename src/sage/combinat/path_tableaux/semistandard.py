@@ -131,7 +131,7 @@ class DualSemistandardTableau(PathTableau):
             w = [t.conjugate() for t in v]
 
         if w == None:
-            raise ValueError( "Sorry, not sorry; I don't know what to do with %s." % str(ot) )
+            raise ValueError( "%s is not a valid input" % str(ot) )
 
         return DualSemistandardTableaux()(w)
 
@@ -181,6 +181,16 @@ class DualSemistandardTableau(PathTableau):
         return result
 
     def evaluation(self):
+        """
+        The evaluation, or content, of a tableau.
+
+        EXAMPLES::
+
+            sage: t = DualSemistandardTableau([[],[1],[2],[2,1]])
+            sage: t.evaluation()
+            [1, 1, 1]
+
+        """
         z = [ p.size() for p in self ]
         return [ z[i+1] - z[i] for i in range(len(self)-1) ]
 
@@ -188,12 +198,45 @@ class DualSemistandardTableau(PathTableau):
     def to_tableau(self):
         """
         Returns the conjugate skew tableau. This will be semistandard.
+
+        EXAMPLES::
+
+            sage: t = DualSemistandardTableau([[],[1],[2],[2,1]])
+            sage: t.to_tableau()
+            [[1, 3], [2]]
+
+
         """
         ch = [ p.conjugate() for p in self]
         if self.is_skew():
             return SkewTableau(chain=ch)
         else:
             return from_chain(ch)
+
+    @combinatorial_map(name='to Gelfand-Tsetlin pattern')
+    def to_gelfand_tsetlin_pattern(self):
+        """
+        Returns the Gelfand-Tsetlin pattern. This is not implemented
+        for skew tableaux as skew Gelfand-Tsetlin patterns are not
+        implemented.
+
+        EXAMPLES::
+
+            sage: t = DualSemistandardTableau([[],[1],[2],[2,1]])
+            sage: t.to_gelfand_tsetlin_pattern()
+            [[2, 1, 0], [1, 1], [1], []]
+
+        """
+        if self.is_skew():
+            raise ValueError("not implemented for skew tableaux")
+
+        u = [a.conjugate() for a in self]
+        s = max(len(u),len(u[0]))
+        for i in range(s):
+            u[i] = list(u[i]) + [0]*(i-len(u[i]))
+        u.reverse()
+
+        return GelfandTsetlinPattern(u)
 
     def is_skew(self):
         """
