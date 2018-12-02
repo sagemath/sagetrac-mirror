@@ -51,6 +51,13 @@ We extend promotion, evacuation and dual equivalence graphs to semistandard tabl
 
 TESTS::
 
+sage: ta = StandardTableau([[1,2,3,4,5],[6,7,8]])
+sage: tp = DualSemistandardTableau(ta)
+sage: len(tp.orbit())
+14
+sage: TestSuite(tp).run()
+
+
 sage: ST = StandardTableaux([4,3,1])
 sage: all( DualSemistandardTableau(t.evacuation()) == DualSemistandardTableau(t).evacuation() for t in ST )
 True
@@ -58,7 +65,7 @@ sage: all( DualSemistandardTableau(t.promotion()) == DualSemistandardTableau(t).
 False
 
 sage: ST = SemistandardSkewTableaux([[6,5,3],[4,3,1]],max_entry=2)
-sage: all(DualSemistandardTableau(t)._test_bender_knuth(1) for t in ST)
+sage: all(DualSemistandardTableau(t)._test_bender_knuth() for t in ST)
 False
 
 """
@@ -253,14 +260,30 @@ class DualSemistandardTableau(PathTableau):
         return self[0] != Partition([])
 
     def rectify(self):
-        pass
+        """
+        The rectification of a skew tableau.
 
-    def _test_bender_knuth(self,i,**options):
+        EXAMPLE::
+
+            sage: DualSemistandardTableau([[1],[2],[3,1]]).rectify()
+            [[], [1], [2, 1]]
+
+        """
+        if not self.is_skew():
+            return self
+
+        la = self[0].conjugate()
+        mu = [ la[:i] for i in range(len(self)+1) ]
+        mu = [ Partition(a).conjugate() for a in mu ]
+
+        return DualSemistandardTableau(mu).commutor(self)[0]
+
+    def _test_bender_knuth(self, **options):
         tester = self._tester(**options)
-
-        lhs = self._local_rule(i).to_tableau()
-        rhs = self.to_tableau().bender_knuth_involution(i)
-        tester.assertTrue( lhs == rhs )
+        for i in range(1,len(self)-1):
+            lhs = self._local_rule(i).to_tableau()
+            rhs = self.to_tableau().bender_knuth_involution(i)
+            tester.assertTrue( lhs == rhs )
 
     def _test_rectify(self, **options):
         tester = self._tester(**options)
