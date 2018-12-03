@@ -1138,7 +1138,7 @@ def get_star_imports(module_name):
         [...]
         sage: os.remove(cache_file)
     """
-    global star_imports
+    global star_imports, _sage_all_import_done
     if star_imports is None:
         star_imports = {}
         try:
@@ -1152,13 +1152,43 @@ def get_star_imports(module_name):
     try:
         return star_imports[module_name]
     except KeyError:
+        all_done = sage_all_import_done
+        _sage_all_import_done = True  # so that checks pass
         module = __import__(module_name, {}, {}, ["*"])
+        _sage_all_import_done = all_done
         if hasattr(module, "__all__"):
             all = module.__all__
         else:
             all = [key for key in dir(module) if key[0] != "_"]
         star_imports[module_name] = all
         return all
+
+# Utility functions for asserting that things stay lazily imported.
+
+
+_sage_all_import_done = False
+
+
+def check_lazy(module_name=None):
+    """
+    Used to assert lazily imported modules do not actually get imported
+    during the import of sage.all is done.
+
+    TESTS::
+
+        sage: from sage.misc.lazy_import import check_lazy
+        sage: check_lazy("foo")
+        True
+        sage: sage.misc.lazy_import._sage_all_import_done = False
+        sage: check_lazy("foo")
+        False
+        sage: sage.misc.lazy_import._sage_all_import_done = True
+        sage: check_lazy("foo")
+        True
+    """
+    if module_name is None:
+        module_name = inspect.currentframe().f_globals['__name__']
+    return _sage_all_import_done
 
 
 # Add support for _instancedoc_

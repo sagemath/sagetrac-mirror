@@ -20,6 +20,8 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+import sage.misc.lazy_import
+assert sage.misc.lazy_import.check_lazy()
 
 from .jacobians.all import *
 

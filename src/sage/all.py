@@ -101,7 +101,7 @@ from sage.monoids.all    import *
 from sage.algebras.all   import *
 from sage.modular.all    import *
 from sage.sat.all        import *
-from sage.schemes.all    import *
+lazy_import("sage.schemes.all", "*", overwrite=False)
 from sage.graphs.all     import *
 from sage.groups.all     import *
 from sage.arith.power    import generic_power as power
@@ -263,6 +263,7 @@ register_unpickle_override('sage.libs.pari.gen_py', 'pari', pari)
 
 # Cache the contents of star imports.
 sage.misc.lazy_import.save_cache_file()
+sage.misc.lazy_import._sage_all_import_done = True
 
 
 ### Debugging for Singular, see trac #10903
@@ -318,6 +319,7 @@ set_random_seed()
 
 # From now on it is ok to resolve lazy imports
 sage.misc.lazy_import.finish_startup()
+
 
 def sage_globals():
     r"""
