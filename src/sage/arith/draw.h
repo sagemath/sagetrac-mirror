@@ -50,6 +50,8 @@ int ImageWidth (void *img);
 int ImageHeight (void *img);
 void CloseImage (void* img);
 void PrintImageError();
+void SDLInit();
+void SDLQuit();
 
 void *GetSDL_SurfaceFromNumpy (PyArrayObject *o);
 void SurfaceToNumpy (Surface *s, PyArrayObject *o);

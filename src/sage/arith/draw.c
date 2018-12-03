@@ -87,6 +87,16 @@ void CloseImage (void* img)
 	SDL_FreeSurface(s);
 }
 
+void SDLInit ()
+{
+    SDL_Init(SDL_INIT_VIDEO);
+}
+
+void SDLQuit ()
+{
+    SDL_Quit();
+}
+
 //////////////////////////////TEST(
 #define WIDTH	800
 #define HEIGHT	600
