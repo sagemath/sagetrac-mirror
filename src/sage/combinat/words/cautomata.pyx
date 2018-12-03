@@ -1587,7 +1587,7 @@ cdef class DetAutomaton:
         r += "]], A=%s, i=%s, final_states=%s)"%(self.A, self.a.i, self.final_states)
         return r
     
-    def are_equal(self, DetAutomaton other, verb=False):
+    def is_equal_to (self, DetAutomaton other, verb=False):
         r"""
         Test if the two DetAutomata are equal.
         To be equal, the automata must have the same alphabet
@@ -1606,10 +1606,10 @@ cdef class DetAutomaton:
 
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: b = DetAutomaton([(0, 1, 'a'),(2,3,'b')], i=0)
-            sage: a.are_equal(b)
+            sage: a.is_equal_to(b)
             False
             sage: a.set_initial_state(0)
-            sage: a.are_equal(b)
+            sage: a.is_equal_to(b)
             True
         """
         if self.A != other.A:
