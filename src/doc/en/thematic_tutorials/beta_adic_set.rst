@@ -160,9 +160,10 @@ and the contracting one
 .. MATH::
 
     	E_\lambda^- := \prod_{v \in P_-} E_v.
-   
-    
-Let's take :math:`\sigma_+` and :math:`\sigma_-` some embeddings of :math:`Q(\lambda)` into the spaces :math:`E_+` and :math:`E_-` respectively.
+
+
+Let's take :math:`\sigma_+` and :math:`\sigma_-` some embeddings of :math:`\mathbf Q(\lambda)`
+into the spaces :math:`E_+` and :math:`E_-` respectively.
 We will also denote by :math:`\sigma_\beta` the maximal real embedding when :math:`\beta is a Perron number.
       
 So Rauzy fractal of the substitution :math:`s` can be define as the adherence of :math:`\sigma_-(Q_\omega)` in :math:`E_{\lambda}^-`.
@@ -245,76 +246,11 @@ Indeed, it is enough to take intervals between two consecutive points, multiply 
 and see how the result is covered by others intervals.
 
 
+.. image:: subtitution.png
+  :scale: 280 %
 
-.. tikz::
-     \draw (0,0) -- (12, 0);
-     \draw (0.000, -.1) -- (0.000, .1);
-     \draw (1.000, -.1) -- (1.000, .1);
-     \draw (1.839, -.1) -- (1.839, .1);
-     \draw (2.839, -.1) -- (2.839, .1);
-     \draw (3.383, -.1) -- (3.383, .1);
-     \draw (4.383, -.1) -- (4.383, .1);
-     \draw (5.222, -.1) -- (5.222, .1);
-     \draw (6.222, -.1) -- (6.222, .1);
-     \draw (7.222, -.1) -- (7.222, .1);
-     \draw (8.062, -.1) -- (8.062, .1);
-     \draw (9.062, -.1) -- (9.062, .1);
-     \draw (9.605, -.1) -- (9.605, .1);
-     \draw (10.605, -.1) -- (10.605, .1);
-     \draw (11.445, -.1) -- (11.445, .1);
-
-     \draw (0,3) -- (12, 3);
-     \draw (0.000, 2.9) -- (0.000, 3.1);
-     \draw (1.000, 2.9) -- (1.000, 3.1);
-     \draw (1.839, 2.9) -- (1.839, 3.1);
-     \draw (2.839, 2.9) -- (2.839, 3.1);
-     \draw (3.383, 2.9) -- (3.383, 3.1);
-     \draw (4.383, 2.9) -- (4.383, 3.1);
-     \draw (5.222, 2.9) -- (5.222, 3.1);
-     \draw (6.222, 2.9) -- (6.222, 3.1);
-     \draw (7.222, 2.9) -- (7.222, 3.1);
-     \draw (8.062, 2.9) -- (8.062, 3.1);
-     \draw (9.062, 2.9) -- (9.062, 3.1);
-     \draw (9.605, 2.9) -- (9.605, 3.1);
-     \draw (10.605, 2.9) -- (10.605, 3.1);
-     \draw (11.445, 2.9) -- (11.445, 3.1);
-	
-     \draw (0.000, 3) -- (0.000, 0);
-     \draw (1.000, 3) -- (1.839, 0);
-     \draw (1.839, 3) -- (3.383, 0);
-     \draw (2.839, 3) -- (5.222, 0);
-     \draw (3.383, 3) -- (6.222, 0);
-     \draw (4.383, 3) -- (8.062, 0);
-     \draw (5.222, 3) -- (9.605, 0);
-     \draw (6.222, 3) -- (11.445, 0); 
-     \draw (0.500, -.2) node {a};
-     \draw (1.420, -.2) node {b};
-     \draw (2.339, -.2) node {a};
-     \draw (3.111, -.2) node {c};
-     \draw (3.883, -.2) node {a};
-     \draw (4.803, -.2) node {b};
-     \draw (5.722, -.2) node {a};
-     \draw (6.722, -.2) node {a};
-     \draw (7.642, -.2) node {b};
-     \draw (8.562, -.2) node {a};
-     \draw (9.333, -.2) node {c};
-     \draw (10.105, -.2) node {a};
-     \draw (11.025, -.2) node {b};
-     \draw (0.500, 3.2) node {a};
-     \draw (1.420, 3.2) node {b};
-     \draw (2.339, 3.2) node {a};
-     \draw (3.111, 3.2) node {c};
-     \draw (3.883, 3.2) node {a};
-     \draw (4.803, 3.2) node {b};
-     \draw (5.722, 3.2) node {a};
-     \draw (6.722, 3.2) node {a};
-     \draw (7.642, 3.2) node {b};
-     \draw (8.562, 3.2) node {a};
-     \draw (9.333, 3.2) node {c};
-     \draw (10.105, 3.2) node {a};
-     \draw (11.025, 3.2) node {b};
-     \draw[->] (-.3, 3) arc (150:210:3);
-     \draw (-.7 ,1.5) node[left] {:math:`\times \lambda`};
+.. image:: subtitution.pdf
+  :scale: 80 %
 
 Construction of a domain exchange in the disk of radius :math:`1` and center :math:`0`,
 for the Tribonnacci number :math:`\beta`.
@@ -373,6 +309,7 @@ number is β 4 , has 15 letters and is displayed in figure 6
   :scale: 80 %
 
 .. code-block:: Python
+
    # compute a domain exchange
    l = m.domain_exchange()
    print("Exchange with %s pieces."%len(l))
@@ -389,6 +326,7 @@ number is β 4 , has 15 letters and is displayed in figure 6
 
    a = DetAutomaton([(0,0,0),(0,1,1),(1,1,0),(1,2,1),(2,2,0),(2,1,1)], i=0, final_states=[0,1])
    m = BetaAdicSet(x^3-x^2-x-1, a) # choose Tribonnacci
-   m.plot()
+   #m.plot()
    sphinx_plot(m)
 
+plot

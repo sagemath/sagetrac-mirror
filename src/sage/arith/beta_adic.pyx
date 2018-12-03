@@ -1698,7 +1698,7 @@ cdef class BetaAdicSet:
             print("Not implemented !")
             return None
 
-    def plot(self, n=None, sx=800, sy=600,
+    def plot(self, n=None, int sx=800, int sy=600,
              ajust=True, prec=53, color=(0, 0, 0, 255),
              method=0, nprec=4, mirror=False, verb=False):
         r"""
