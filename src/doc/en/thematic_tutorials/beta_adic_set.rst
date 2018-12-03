@@ -164,7 +164,7 @@ and the contracting one
 
 Let's take :math:`\sigma_+` and :math:`\sigma_-` some embeddings of :math:`\mathbf Q(\lambda)`
 into the spaces :math:`E_+` and :math:`E_-` respectively.
-We will also denote by :math:`\sigma_\beta` the maximal real embedding when :math:`\beta is a Perron number.
+We will also denote by :math:`\sigma_\beta` the maximal real embedding when :math:`\beta` is a Perron number.
       
 So Rauzy fractal of the substitution :math:`s` can be define as the adherence of :math:`\sigma_-(Q_\omega)` in :math:`E_{\lambda}^-`.
 
@@ -245,12 +245,8 @@ it is not difficult to guess what is the substitution.
 Indeed, it is enough to take intervals between two consecutive points, multiply it by :math:`\lambda`,
 and see how the result is covered by others intervals.
 
-
-.. image:: subtitution.png
-  :scale: 280 %
-
-.. image:: subtitution.pdf
-  :scale: 80 %
+.. image:: media/subtitution.png
+  :scale: 20 %
 
 Construction of a domain exchange in the disk of radius :math:`1` and center :math:`0`,
 for the Tribonnacci number :math:`\beta`.
@@ -305,7 +301,7 @@ number is β 4 , has 15 letters and is displayed in figure 6
    print pp
    m.plot(nprec=6)
 
-.. image:: beta_adic_image1.png
+.. image:: media/beta_adic_image1.png
   :scale: 80 %
 
 .. code-block:: Python
@@ -318,15 +314,16 @@ number is β 4 , has 15 letters and is displayed in figure 6
    m.plot_list([a for t,a in l], nprec=6)
 
 
+.. image:: beta_adic_image2.png
+  :scale: 80 %
 
 
 
-.. PLOT::
-   :width: 80%
+.. code-block:: Python
 
    a = DetAutomaton([(0,0,0),(0,1,1),(1,1,0),(1,2,1),(2,2,0),(2,1,1)], i=0, final_states=[0,1])
    m = BetaAdicSet(x^3-x^2-x-1, a) # choose Tribonnacci
-   #m.plot()
+   # m.plot()
    sphinx_plot(m)
 
-plot
+

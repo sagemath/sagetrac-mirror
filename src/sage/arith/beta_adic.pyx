@@ -2068,9 +2068,10 @@ cdef class BetaAdicSet:
             
             sage: m = BetaAdicSet(1/pi, [0,1])
             sage: m.relations_automaton()
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
             ValueError: b must live in a number field!
+
 
         """
         cdef InfoBetaAdic ib
