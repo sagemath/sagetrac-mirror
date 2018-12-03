@@ -921,6 +921,19 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         mpq_clear(self.value)
 
+    def __format__(self, format_spec):
+        """
+        Return a formatted string representation of this rational number.
+
+        EXAMPLES::
+
+            sage: a = -17/37
+            sage: 'a: {:>10}'.format(a)
+            'a:     -17/37'
+
+        """
+        return self.str().__format__(format_spec)
+
     def __repr__(self):
         """
         Return string representation of this rational number.
