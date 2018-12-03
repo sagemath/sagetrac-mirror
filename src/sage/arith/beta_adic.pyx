@@ -2068,7 +2068,7 @@ cdef class BetaAdicSet:
             
             sage: m = BetaAdicSet(1/pi, [0,1])
             sage: m.relations_automaton()
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
             ValueError: b must live in a number field!
 
@@ -2376,17 +2376,17 @@ cdef class BetaAdicSet:
 
         OUTPUT:
 
-        A positive real number.
+        A positive integer.
 
         EXAMPLES::
 
             sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
             sage: m.complexity()
-            3.0
+            109
             
             sage: m = BetaAdicSet(x^3-x-1, [0,1])
             sage: m.complexity()
-            7.0
+            1125
         """
         b = self.b
         K = b.parent()
@@ -2400,20 +2400,15 @@ cdef class BetaAdicSet:
         if Ad is None:
             Ad = list(set([c1-c2 for c1 in A for c2 in A]))
 
-        # find absolute values for which b is greater than one
-        places = []
-        narch = 0
         # archimedian places
-        for p in K.places(prec=prec):
-            if K.abs_val(p, b) >= 1:
-                places.append(p)
-                narch += 1
+        places = K.places(prec=prec)
+        narch = len(places)
         # ultra-metric places
         from sage.arith.misc import prime_divisors
-        lc = pi.leading_coefficient()
+        lc = pi.leading_coefficient()*pi(0)
         for p in prime_divisors(lc):
             for P in K.primes_above(p):
-                if K.abs_val(P, b, prec=prec) >= 1:
+                if K.abs_val(P, b, prec=prec) != 1:
                     places.append(P)
         if verb:
             print(places)
@@ -2423,24 +2418,28 @@ cdef class BetaAdicSet:
         for i, p in enumerate(places):
             if i < narch:
                 bo.append(
-                    max([K.abs_val(p, x) for x in Ad])/(K.abs_val(p, b) - 1))
+                    max([K.abs_val(p, x) for x in Ad])/abs(1 - K.abs_val(p, b)))
                 if verb:
                     print("bo = %s" % bo[-1])
                 if p(b).imag() == 0:
                     vol *= 2*bo[-1]
                 else:
-                    vol *= pi_number*bo[-1]^2
+                    vol *= pi_number*bo[-1]**2
             else:
                 bo.append(max([K.abs_val(p, x) for x in Ad])/K.abs_val(p, b))
                 vol *= bo[-1]
+            if verb:
+                print("vol = %s", vol)
         if verb:
             print("bounds=%s" % bo)
         # from sage.functions.other import ceil
-        return ceil(vol)
+        return <int>(ceil(vol))
 
     def intersection(self, BetaAdicSet m, t=0, ext=False, algo=3, verb=False):
         r"""
+        Assume that b is an algebraic number.
         Compute the intersection of two beta-adic sets.
+        (This can also be done with proj() for ext=False.)
 
         INPUT:
 
@@ -2449,7 +2448,7 @@ cdef class BetaAdicSet:
         - ``t`` - translate m by t
 
         - ``ext`` - bool (default: ``False``)
-          If True, compute the extended relations automaton.
+          If True, consider the adherences.
 
         - ``verb``- bool (default: ``False``)
           If True, verbose mode.
@@ -2468,7 +2467,18 @@ cdef class BetaAdicSet:
                 sage: mi = m1.intersection(m2, ext=True)
                 sage: mi
                 b-adic set with b root of x^2 - x + 1/2, and an automaton of 21 states and 2 letters
-                sage: mi.plot(mirror=False)     # not tested
+                sage: mi.plot()     # random
+
+            #. Compute the intersection of two Rauzy fractals (for the same beta)
+                sage: m = WordMorphism("a->ab,b->ac,c->a").DumontThomas().mirror()      # Tribonnacci
+                sage: m2 = WordMorphism("a->ab,b->ca,c->a").DumontThomas().mirror()     # flipped Tribonnacci
+                sage: mi = m.intersection(m2)
+                sage: mi
+                b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 99 states and 2 letters
+                sage: mi.plot()                          # random
+                sage: WordMorphism(mi.substitution())    # long time (>4s)
+                WordMorphism: a->c, b->ba, c->bd, d->bg, e->id, f->be, g->h, h->bddfb, i->bdj, j->bek, k->idfb
+                
         """
         cdef DetAutomaton a, ar, ai
 
@@ -2500,11 +2510,11 @@ cdef class BetaAdicSet:
 
     def prefix(self, w):
         """
-        Compute the prefix of word ``w``
+        Return the BetaAdicSet like self but where we keep only words starting by w.
 
         INPUT:
 
-        - ``w`` - list  word to get prefix
+        - ``w`` - list - word that we want as prefix
 
         OUTPUT:
 
@@ -2512,19 +2522,18 @@ cdef class BetaAdicSet:
 
         EXAMPLES::
 
-            sage: pi = x^3-x^2-x-1
-            sage: b = pi.roots(ring=QQbar)[1][0]
-            sage: m = BetaAdicSet(b, dag.AnyWord([0,1]))
-            sage: m.prefix([0, 1, 1, 1])
+            sage: m = BetaAdicSet(x^3-x^2-x-1, dag.AnyWord([0,1]))
+            sage: mp = m.prefix([0, 1, 1, 1]); mp
             b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 5 states and 2 letters
+            sage: m.plot_list([mp])     # random
 
         """
         return BetaAdicSet(self.b, self.a.prefix(w))
 
     def intersection_words(self, w1, w2, ext=True, verb=False):
         r"""
-        Compute the intersection of the two beta-adic sets corresponding to
-        words with prefix w1 and prefix w2.
+        Compute the intersection of the adherences of the two beta-adic sets
+        corresponding to words with prefix w1 and prefix w2.
 
         INPUT:
 
@@ -2557,31 +2566,25 @@ cdef class BetaAdicSet:
         mi = m1.intersection(m2, ext=ext, verb=verb)
         return mi
 
-    # to be put in generators
-    #     - ``aut`` - DetAutomaton (default: ``None``, full language)
-    #       Automaton describing the language in which we live.
     def reduced_words_automaton(self, full=False, step=100,
                                 mirror=False, int algo_rel=3, verb=False):  # , DetAutomaton aut=None):
         r"""
-        Compute the reduced words automaton of the ``BetaAdicSet``
-        (without considering the automaton of authorized words).
+        Compute the reduced words automaton of the ``BetaAdicSet`` for the alphabet of the automaton of self.
         See http://www.latp.univ-mrs.fr/~paul.mercat/Publis/
         Semi-groupes%20fortement%20automatiques.pdf for a definition of such automaton.
-        Use fast C-functions but works only for algebraic integer.
-        (Consider using reduced_words_automaton() if you're not in this case.)
 
         INPUT:
 
         - ``step`` - int (default: 100)
-          number of steps
+          number of steps done (used for debugging)
         
-        - ``algo_rel`` - int (default ``2``)
+        - ``algo_rel`` - int (default ``3``)
           Algorithm used for the computation of the relations automaton.
         
         - ``verb`` - bool (default: ``False``)
           If True, print informations for debugging.
 
-        - ``transpose`` - bool (default: ``False``)
+        - ``mirror`` - bool (default: ``False``)
 
 
         OUTPUT:
@@ -3431,7 +3434,7 @@ cdef class BetaAdicSet:
         if arel is None:
             # compute the relations automaton with translation t
             arel = self.relations_automaton(t=t, couples=True, algo=algo,
-                                            A=self.a.alphabet, B=a.alphabet)
+                                            A=a.alphabet, B=self.a.alphabet)
         ai = arel.intersection(a.zero_complete2().product(self.a.zero_complete2()))
         r = ai.proji(0)
         r.zero_completeOP()
