@@ -274,6 +274,9 @@ Take the Tribonnacci Pisot number β, root of x 3 − x 2 − x − 1,
 and take L the regular language defined by the followed automaton.
 
 
+This automaton describing the regular language describing a g- :math:`\beta`-set which is a Sierpiński
+gasket union a set of non-empty interior for :math:`\beta` the Tribonnacci number.
+
 .. PLOT::
    :width: 80%
 
@@ -284,25 +287,42 @@ and take L the regular language defined by the followed automaton.
    a2 = DetAutomaton([(0,1,0),(1,2,0),(2,2,0),(2,2,1)],i=0, final_states=[2])
    # multiply by b^2
    a3 = a.unshift1(0, final=True).unshift1(1)
-
    a = a2.union(a3)
    sphinx_plot(a)
 
-Then we
-can compute the domain exchange conjugated to the shift on σ + (Q L ). See figure 7.
-The smallest substitution whose a fixed point ω verify Q ω = Q L , and whose Perron
-number is β 4 , has 15 letters and is displayed in figure 6
+Obtained by the code:
 
+.. code-block:: Python
+
+   # automaton that describe a Sierpinsky gasket
+   a = DetAutomaton([(0,2,0),(0,6,1),(2,3,1),(2,12,0),(6,7,1),(6,9,0),(3,4,1),(3,5,0),(12,13,1),(12,14,0),(7,8,0),(7,15,1),(9,10,0),(9,11,1),(4,0,0),(5,0,0),(5,0,1),(13,0,0),(13,0,1),(14,0,0),(8,0,0),(8,0,1),(15,0,1),(10,0,1),(11,0,1),(11,0,0)], i=0)
+
+   # automaton recognizing a set of non-empty interior
+   a2 = DetAutomaton([(0,1,0),(1,2,0),(2,2,0),(2,2,1)],i=0, final_states=[2])
+   # multiply by b^2
+   a3 = a.unshift1(0, final=True).unshift1(1)
+   a = a2.union(a3)
+   a.plot()
+
+
+
+The Domain exchange with :math:`6` pieces, describing the shift on :math:`\sigma_+(Q_L)` for the regular language :math:`L` can be computed.
 
 .. code-block:: Python
 
    m = BetaAdicSet(x^3-x^2-x-1, a) #choose to work with the alphabet {0,1} and with the Tribonnacci polynomial
    pp = m.b.parent().places()[0] #expanding place
    print pp
+   Ring morphism:
+     From: Number Field in b with defining polynomial x^3 - x^2 - x - 1
+     To:   Real Field with 106 bits of precision
+     Defn: b |--> 1.839286755214161132551852564671
    m.plot(nprec=6)
 
 .. image:: media/beta_adic_image1.png
   :scale: 80 %
+
+Now the code to plot the list after the exchange
 
 .. code-block:: Python
 
@@ -314,16 +334,117 @@ number is β 4 , has 15 letters and is displayed in figure 6
    m.plot_list([a for t,a in l], nprec=6)
 
 
-.. image:: beta_adic_image2.png
+
+.. image:: media/domain1.png
   :scale: 80 %
 
-
+And plot the domain after exchange
 
 .. code-block:: Python
 
-   a = DetAutomaton([(0,0,0),(0,1,1),(1,1,0),(1,2,1),(2,2,0),(2,1,1)], i=0, final_states=[0,1])
-   m = BetaAdicSet(x^3-x^2-x-1, a) # choose Tribonnacci
-   # m.plot()
-   sphinx_plot(m)
+   # plot it after exchange
+   m.plot_list([a.proj(m, t) for t,a in l], nprec=6)
 
+.. image:: media/domain2.png
+  :scale: 80 %
+
+
+Compute the subtitution
+
+.. code-block:: Python
+   # compute a substitution whose Rauzy fractal is this BetaAdicSet
+   %time d = m.substitution()
+   d
+   CPU times: user 24 s, sys: 156 ms, total: 24.1 s
+   Wall time: 24.1 s
+   
+   {1: [60, 6],
+    2: [19],
+    3: [19, 54],
+    4: [50, 42],
+    5: [57, 9, 58, 3],
+    6: [60, 6, 40, 48],
+    7: [60, 6, 53],
+    8: [21, 35, 48, 60, 1],
+    9: [19, 55, 5],
+    10: [21, 66, 49, 60, 1],
+    11: [64, 6, 15, 5],
+    12: [60, 6, 63, 49, 60, 1],
+    13: [53, 64, 7, 25, 4],
+    14: [54, 20, 33, 4],
+    15: [60, 18, 38, 3, 37, 46, 58, 2],
+    16: [36, 17, 45, 41, 46, 58, 2],
+    17: [64, 6, 53, 5],
+    18: [60, 6, 53, 64, 1],
+    19: [57, 9, 58, 3, 37, 46],
+    20: [57, 9, 58, 3, 52],
+    21: [34, 11, 58, 3, 37, 46],
+    22: [34, 11, 58, 3, 52],
+    23: [52, 41, 3, 52, 4],
+    24: [64, 18, 43, 41, 46, 58, 2],
+    25: [64, 18, 43, 50, 4],
+    26: [57, 9, 58, 3, 37, 46, 58, 2],
+    27: [57, 9, 58, 3, 52, 41, 2],
+    28: [40, 48, 60, 7, 65, 47, 58, 2],
+    29: [35, 48, 22, 61, 47, 58, 2],
+    30: [34, 11, 58, 3, 37, 46, 58, 2],
+    31: [34, 11, 58, 3, 52, 41, 2],
+    32: [41, 46, 45, 41, 46, 58, 2],
+    33: [41, 46, 45, 50, 4],
+    34: [15],
+    35: [16],
+    36: [24],
+    37: [26],
+    38: [28],
+    39: [29],
+    40: [30],
+    41: [32],
+    42: [50, 42, 50],
+    43: [13, 42, 50],
+    44: [14, 42, 50],
+    45: [23, 42, 50],
+    46: [19, 54, 5],
+    47: [21, 54, 5],
+    48: [64, 6, 40, 48, 60, 1],
+    49: [60, 6, 40, 48, 60, 1],
+    50: [50, 42, 50, 4],
+    51: [23, 42, 50, 4],
+    52: [27, 44, 50, 4],
+    53: [31, 39, 3, 37, 46, 58, 2],
+    54: [51, 41, 3, 37, 46, 58, 2],
+    55: [58, 46, 58, 3, 37, 46, 58, 2],
+    56: [37, 46, 58, 3, 37, 46, 58, 2],
+    57: [55],
+    58: [56],
+    59: [59, 12],
+    60: [62, 12],
+    61: [61, 8],
+    62: [63, 49],
+    63: [60, 49],
+    64: [68, 10],
+    65: [64, 49],
+    66: [69, 8],
+    67: [65, 8],
+    68: [66, 49],
+    69: [67, 49]}
+
+ The g-:math:`\beta`-set :math:`Q_{]-1,1[}` can be computed, for any quadratic Pisot number :math:`\beta`, and then compute a substitution describing the quasicrystal.
+
+And directly with the WordMorphism of the subtitution and it's rauzy_fractal_plot.
+
+.. code-block:: Python
+
+    #plot the Rauzy fractal from the substitution
+    s = WordMorphism(d)
+    s.rauzy_fractal_plot()
+
+.. image:: media/domain3.png
+  :scale: 100 %
+
+Irreducible example
+~~~~~~~~~~~~~~~~~~~
+
+that permit to draw a Rauzy fractal of any shape with the mouse, like in a drawing software,
+  and to compute the corresponding substitution.
+  The following example has been obtain by drawing randomly using this tool.
 
