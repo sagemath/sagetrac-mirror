@@ -14,5 +14,6 @@ internals.
    sage/cpython/cython_metaclass
    sage/cpython/wrapperdescr
    sage/cpython/dict_del_by_value
+   sage/cpython/multiref
 
 .. include:: ../footer.txt
