@@ -461,8 +461,6 @@ class RealTranscendentalExtensionField(Field):
         r"""
         The only thing that we accept coersions from is the constant field.
         """
-        if S == self:
-            return True
         if S is self._constant_field:
             return True
         if self._constant_field.has_coerce_map_from(S):
