@@ -44,137 +44,6 @@ from .real_mpfi import RealIntervalField
 from .real_mpfr import RealField, RR
 from .ring import Field
 
-class LazyRandomNumber(Element):
-    r"""
-    Represents a random number in [0,1] chosen with respect to Lebesgue measure.
-
-    The random number is computed lazily. You can access a representation in a
-    real interval field. The number is improved randomly when more precision
-    is requested.
-    """
-    def __init__(self, parent):
-        assert isinstance(parent, LazyRandomNumberSet_class)
-        Element.__init__(self, parent)
-        self._approx=[]
-
-    def __hash__(self):
-        return 43*hash(self.__float__())
-
-    def _real_mpfi_(self, real_interval_field):
-        i = (real_interval_field.prec()-1)//53
-        if i < len(self._approx):
-            return real_interval_field(self._approx[i])
-        else:
-            from sage.rings.integer_ring import ZZ
-            from sage.rings.real_mpfi import RealIntervalField
-            if len(self._approx)==0:
-                k = ZZ.random_element(0, 2**53)
-                self._approx.append(RealIntervalField(53)(k/2**53, (k+1)/2**53))
-            for j in xrange(len(self._approx), i+1):
-                k = ZZ.random_element(0, 2**53)
-                a = RealField( 53*(j+1) )(self._approx[j-1].lower())
-                self._approx.append(RealIntervalField(53*(j+1))( a + k / ZZ(2)**(53*(j+1)),
-                                                                 a + (k+1) / ZZ(2)**(53*(j+1)) ) )
-        return real_interval_field(self._approx[i])
-
-    def eval(self, R):
-        r"""
-        Convert ``self`` into an element of the field ``R``.
-        """
-        if R is float:
-            return self.__float__()
-        from sage.rings.real_mpfi import RealIntervalField
-        return R(self._real_mpfi_(RealIntervalField(R.prec())))
-
-    def _mpfr_(self, R):
-        return self.eval(R)
-
-    def _real_double_(self, R):
-        return self.eval(R)
-
-    def __float__(self):
-        return float(self.eval(RR))
-
-    def __repr__(self):
-        return repr(self._real_mpfi_(RIF))
-
-class LazyRandomNumberSet_class(Parent, UniqueRepresentation):
-    r"""
-    The set of random real numbers of type LazyRandomNumber.
-    """
-    Element = LazyRandomNumber
-
-    def __init__(self):
-        Parent.__init__(self, category=Sets())
-
-    def __repr__(self):
-        return "Set of lazy random numbers"
-
-    def _an_element_(self):
-        return self.element_class(self)
-
-    def random_real(self):
-        r"""
-        Return a random real number in the interval [0,1] as an element of RealLazyField.
-
-        The number is randomly extended as needed.
-        """
-        return RLF(self.element_class(self))
-
-LazyRandomNumberSet = LazyRandomNumberSet_class()
-
-def random_real(a=0, b=1):
-    r"""
-    Return a real number in the interval [a, b] as an element of RealLazyField.
-    The real number is determined at random with respect to Lebesgue measure on
-    the interval. By default the interval is taken to be [0, 1].
-
-    The number is randomly extended as needed. This has consequences for
-    pickling. A restored pickled random number will agree with the original
-    random number up to the known accuracy at the time of pickling, but if
-    further digits are needed later, then the numbers will diverge in value.
-    Consequently a random number is unequal to its recovered pickle.
-
-    EXAMPLES::
-
-    By default we return a number in [0,1]::
-
-        sage: from sage.rings.real_transcendental import random_real
-        sage: 0 < random_real() < 1
-        True
-
-    We can get any interval::
-
-        sage: from sage.symbolic.constants import e, pi
-        sage: RLF(e) < random_real(e, pi) < RLF(pi)
-        True
-
-    Two random reals are never the same (unless they are the same object)::
-
-        sage: random_real() == random_real()
-        False
-
-    Pickling::
-
-        sage: r = random_real()
-        sage: 0 < float(r) < 1
-        True
-        sage: rr = loads(dumps(r))
-        sage: float(r) == float(rr)
-        True
-        sage: F = RealField(100)
-        sage: F(r) == F(rr)
-        False
-        sage: r == rr
-        False
-        sage: TestSuite(r).run(skip="_test_pickling")
-    """
-    if a==0 and b==1:
-        return LazyRandomNumberSet.random_real()
-    else:
-        assert a != b, "Can not construct random number in degenerate interval."
-        return RLF(a)+RLF(b-a)*LazyRandomNumberSet.random_real()
-
 class RealTranscendentalExtensionFieldElement(FieldElement):
     r"""
     An element of a RealTranscendentalExtensionField.
@@ -187,6 +56,7 @@ class RealTranscendentalExtensionFieldElement(FieldElement):
         assert rf.parent() == parent.function_field()
         self._rf = rf
 
+        # I'm currently ignoring this issue:
         #try:
         #    # This .factor().expand() stuff is to deal with the fact that
         #    # FunctionField does not automatically cancel common factors:
@@ -269,8 +139,8 @@ class RealTranscendentalExtensionFieldElement(FieldElement):
             sage: RF(e) == RF(ee)
             True
 
-            sage: from sage.rings.real_transcendental import random_real, RealTranscendentalExtensionField
-            sage: RTE.<r> = RealTranscendentalExtensionField(QQ, random_real())
+            sage: from sage.rings.real_transcendental import RealTranscendentalExtensionField
+            sage: RTE.<r> = RealTranscendentalExtensionField(QQ, RLF.random())
             sage: z = 2^100*r - floor(2^100*r)
             sage: # Note the below will fail if r is in RealLazyField
             sage: 0 < z < 1
@@ -292,8 +162,7 @@ class RealTranscendentalExtensionFieldElement(FieldElement):
 
             sage: from sage.rings.real_transcendental import RealTranscendentalExtensionField
             sage: RTE.<ee> = RealTranscendentalExtensionField(QQ, e)
-            sage: RF = RealField(200)
-            sage: RDF(e) == RDF(ee)
+            sage: RealField(200)(e) == RealField(200)(ee)
             True
         """
         return R(self._mpfr_(RDF))
@@ -304,7 +173,6 @@ class RealTranscendentalExtensionFieldElement(FieldElement):
 
             sage: from sage.rings.real_transcendental import RealTranscendentalExtensionField
             sage: RTE.<ee> = RealTranscendentalExtensionField(QQ, e)
-            sage: RF = RealField(200)
             sage: float(e) == float(ee)
             True
         """
@@ -367,17 +235,16 @@ class RealTranscendentalExtensionField(Field):
 
     The field Q(r) where r in [0,1] is taken at random:
 
-        sage: from sage.rings.real_transcendental import random_real
-        sage: K.<r> = RealTranscendentalExtensionField(QQ, random_real())
+        sage: K.<r> = RealTranscendentalExtensionField(QQ, RLF.random())
         sage: 0 < r < 1
         True
-        sage: TestSuite(r).run(skip="_test_pickling")
-        sage: TestSuite(K).run(skip=["_test_elements","_test_pickling"])
+        sage: TestSuite(r).run()
+        sage: TestSuite(K).run()
 
     Exact arithmetic with a random unit vector::
 
         sage: # Construct a random angle
-        sage: theta = random_real(0, 2*pi)
+        sage: theta = 2*RLF.pi()*RLF.random()
         sage: # Choose y so that the point (1,y) lies on the line
         sage: # through (-1,0) and (cos(theta), sin(theta))
         sage: y_RLF = 2*sin(theta)/(1+cos(theta))
@@ -398,19 +265,19 @@ class RealTranscendentalExtensionField(Field):
 
     Extending by more than one element:
 
-        sage: FF.<r1,r2> = RealTranscendentalExtensionField(QQ, [random_real(), random_real()])
+        sage: FF.<r1,r2> = RealTranscendentalExtensionField(QQ, [RLF.random(), RLF.random()])
         sage: RDF(r1-r2) != 0
         True
         sage: 0 < r1 < 1 and 0 < r2 < 1
         True
-        sage: TestSuite(FF).run(skip=["_test_elements","_test_pickling"])
+        sage: TestSuite(FF).run()
 
         sage: F.<sqrt2> = NumberField(x^2-2, embedding=AA(sqrt(2)))
-        sage: L.<ee,r> = RealTranscendentalExtensionField(F, [e, random_real()])
+        sage: L.<ee,r> = RealTranscendentalExtensionField(F, [e, RLF.random()])
         sage: r < ee-sqrt2
         True
-        sage: TestSuite(FF).run(skip=["_test_elements","_test_pickling"])
-        sage: TestSuite( r*(ee-sqrt2) ).run(skip="_test_pickling")
+        sage: TestSuite(FF).run()
+        sage: TestSuite( r*(ee-sqrt2) ).run()
     """
 
     Element = RealTranscendentalExtensionFieldElement
@@ -439,7 +306,7 @@ class RealTranscendentalExtensionField(Field):
         Field.__init__(self, self._constant_field, category=Fields())
         try:
             # This line is just to test if transcendentals is a single number or a list:
-            real_value = RDF(transcendentals)
+            real_value = RR(transcendentals)
             # Found just one transcendental
             transcendentals = [transcendentals]
         except TypeError:
