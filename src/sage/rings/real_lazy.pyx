@@ -333,6 +333,8 @@ class RealLazyField_class(LazyField):
         """
         return RealLazyField, ()
 
+    def random(self):
+        return LazyRandomNumber(self)
 
 RLF = RealLazyField_class()
 
@@ -1758,4 +1760,136 @@ cdef class LazyWrapperMorphism(Morphism):
         else:
             e._value = x
         return e
+
+class LazyRandomNumber(LazyFieldElement):
+    r"""
+    Represents a random number in [0,1] chosen with respect to Lebesgue measure.
+
+    The random number is computed lazily. You can access a representation in a
+    real interval field. The number is improved randomly when more precision
+    is requested.
+
+    Note that as a consequence, pickling may not work as expected. A restored
+    pickle will agree with the original up to the precision already computed
+    but will deviate if further precision is requested.
+
+    IMPLEMENTATION: Internally we store a finite list (_approx) of nested
+    intervals in ``RealIntervalField(64*2**i)`` of width 1/2**(64*2**i),
+    where ``i`` represents the position in the list. When we need more
+    precision, we randomly extend this list.
+
+    EXAMPLES::
+
+        sage: r = RLF.random()
+        sage: 0 <= RealField(128)(r) <= 1
+        True
+        sage: rr = loads(dumps(r))
+        sage: RealField(128)(r) == RealField(128)(rr)
+        True
+        sage: RealField(256)(r) == RealField(256)(rr)
+        False
+        sage: TestSuite(r).run(skip="_test_category")
+
+    """
+    def __init__(self, parent, restore=None):
+        r"""
+        Construct a random number in [0,1]. The ``parent`` should be
+        the RealLazyField. The ``restore`` option is used for restoring
+        pickle data, and should not otherwise be used.
+        """
+        assert parent is RLF
+        LazyFieldElement.__init__(self, parent)
+        if restore is None:
+            self._approx = []
+        else:
+            self._approx = [val for val in restore]
+
+    def __hash__(self):
+        return 43*hash(self.approx())
+
+    def _real_mpfi_(self, real_interval_field):
+        r"""
+        EXAMPLES::
+            sage: r = RLF.random()
+            sage: r._mpfr_(RealField(1000)) in r._real_mpfi_(RealIntervalField(1000))
+            True
+            sage: r._real_mpfi_(RealIntervalField(45)) in RealIntervalField(45)
+            True
+        """
+        i = int(max(0, math.ceil(math.log(real_interval_field.prec(), int(2)) - 6)))
+        if i < len(self._approx):
+            return real_interval_field(self._approx[i])
+        else:
+            from sage.rings.integer_ring import ZZ
+            from sage.rings.real_mpfi import RealIntervalField
+            if len(self._approx)==0:
+                k = ZZ.random_element(0, 2**64)
+                self._approx.append(RealIntervalField(64)(k/ZZ(2)**64, (k+1)/ZZ(2)**64))
+            for j in xrange(len(self._approx), i+1):
+                new_prec = 64 * 2**j
+                # I was getting overflow errors at large precision (10000 or so) in
+                # the definition of k below until I coerced everything into ZZ.
+                k = ZZ.random_element(ZZ(0), ZZ(2)**ZZ(new_prec/2))
+                a = RealField(new_prec)(self._approx[j-1].lower())
+                self._approx.append(RealIntervalField(new_prec)(a + k / ZZ(2)**new_prec,
+                                                                a + (k+1) / ZZ(2)**new_prec))
+        return real_interval_field(self._approx[i])
+
+    def interval(self):
+        r"""
+        Return the smallest known interval which contains this random number.
+        """
+        return self._approx[-1]
+
+    def _test_intervals(self, **options):
+        tester = self._tester(**options)
+        last_interval = None
+        from sage.rings.integer_ring import ZZ
+        for i,interval in enumerate(self._approx):
+            # Check precision is correct:
+            tester.assertTrue(interval.prec() == 64 * 2**i)
+            # Test interval lengths:
+            tester.assertTrue(QQ(interval.absolute_diameter()) == ZZ(1)/ZZ(2)**(64 * 2**i))
+            # Check nesting:
+            if last_interval is not None:
+                # Increase precision of old interval
+                tester.assertTrue(last_interval.lower() <= interval.lower())
+                tester.assertTrue(last_interval.upper() >= interval.upper())
+            last_interval = interval
+
+    def eval(self, R):
+        r"""
+        Convert ``self`` into an element of the field ``R``.
+        """
+        if R is float:
+            return self.__float__()
+        from sage.rings.real_mpfi import RealIntervalField
+        return R(self._real_mpfi_(RealIntervalField(R.prec())))
+
+    def _mpfr_(self, R):
+        r"""
+        EXAMPLES::
+            sage: RLF.random()._mpfr_(RealField(450)) in RealField(450)
+            True
+        """
+        return self.eval(R)
+
+    def _real_double_(self, R):
+        return self.eval(R)
+
+    def __float__(self):
+        return float(self.eval(RR))
+
+    def __reduce__(self):
+        """
+        TESTS::
+
+            sage: from sage.rings.real_lazy import LazyRandomNumber
+            sage: a = LazyRandomNumber(RLF)
+            sage: 0 < float(a) < 1
+            True
+            sage: float(loads(dumps(a))) == float(a)
+            True
+        """
+        return make_element, (LazyRandomNumber, self.parent(), self._approx)
 
