@@ -188,7 +188,7 @@ sagelib: \
 
 # Don't just use "install" since we don't want to change permissions
 $(SAGE_LOCAL)/bin/%: $(SAGE_SRC)/bin/%
-	$(AM_V_at)cp $< $@
+	$(AM_V_at)cp -R $< $@
 
 # Don't just use "install -D" since we don't want to change permissions.
 # cp won't correctly setup the SAGE_EXTCODE directory structure
