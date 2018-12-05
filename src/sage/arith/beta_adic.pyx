@@ -2054,9 +2054,9 @@ cdef class BetaAdicSet:
             sage: m.relations_automaton(ext=True)
             DetAutomaton with 7 states and an alphabet of 3 letters
             sage: m.plot()          #random
-            
+
         TESTS::
-            
+
             sage: m = BetaAdicSet(x^3-x-1, [0,1])
             sage: a1 = m.relations_automaton(algo=1)
             sage: a2 = m.relations_automaton(algo=2)
@@ -2065,7 +2065,7 @@ cdef class BetaAdicSet:
             True
             sage: a2.equal_languages(a3)
             True
-            
+
             sage: m = BetaAdicSet(1/pi, [0,1])
             sage: m.relations_automaton()
             Traceback (most recent call last):
