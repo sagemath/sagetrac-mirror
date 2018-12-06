@@ -1152,7 +1152,7 @@ def get_star_imports(module_name):
     try:
         return star_imports[module_name]
     except KeyError:
-        all_done = sage_all_import_done
+        all_done = _sage_all_import_done
         _sage_all_import_done = True  # so that checks pass
         module = __import__(module_name, {}, {}, ["*"])
         _sage_all_import_done = all_done
