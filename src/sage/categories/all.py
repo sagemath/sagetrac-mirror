@@ -89,7 +89,7 @@ from .commutative_algebra_ideals import CommutativeAlgebraIdeals
 
 # schemes and varieties
 from .modular_abelian_varieties import ModularAbelianVarieties
-from .schemes import Schemes
+lazy_import('sage.categories.schemes', 'Schemes')
 
 # * with basis
 from .modules_with_basis import ModulesWithBasis

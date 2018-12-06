@@ -257,7 +257,7 @@ register_unpickle_override('sage.categories.category_types', 'Objects', Objects)
 register_unpickle_override('sage.categories.category_types', 'Rings', Rings)
 register_unpickle_override('sage.categories.category_types', 'Fields', Fields)
 register_unpickle_override('sage.categories.category_types', 'VectorSpaces', VectorSpaces)
-register_unpickle_override('sage.categories.category_types', 'Schemes_over_base', sage.categories.schemes.Schemes_over_base)
+# register_unpickle_override('sage.categories.category_types', 'Schemes_over_base', sage.categories.schemes.Schemes_over_base)
 register_unpickle_override('sage.categories.category_types', 'ModularAbelianVarieties', ModularAbelianVarieties)
 register_unpickle_override('sage.libs.pari.gen_py', 'pari', pari)
 
