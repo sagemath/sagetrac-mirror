@@ -101,7 +101,7 @@ from sage.monoids.all    import *
 from sage.algebras.all   import *
 from sage.modular.all    import *
 from sage.sat.all        import *
-lazy_import("sage.schemes.all", "*", overwrite=False)
+lazy_import("sage.schemes.all", "*")
 from sage.graphs.all     import *
 from sage.groups.all     import *
 from sage.arith.power    import generic_power as power
