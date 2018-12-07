@@ -21,6 +21,7 @@ cdef class MonoDict:
     cdef mono_cell* lookup(self, PyObject* key)
     cdef get(self, k)
     cdef int set(self, k, value) except -1
+    cdef int cleardead(self) except -1
     cdef int resize(self) except -1
 
 
@@ -47,4 +48,5 @@ cdef class TripleDict:
     cdef triple_cell* lookup(self, PyObject* key1, PyObject* key2, PyObject* key3)
     cdef get(self, k1, k2, k3)
     cdef int set(self, k1, k2, k3, value) except -1
+    cdef int cleardead(self) except -1
     cdef int resize(self) except -1

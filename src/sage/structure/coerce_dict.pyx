@@ -71,6 +71,8 @@ from cpython.tuple cimport PyTuple_New
 from cpython.weakref cimport PyWeakref_GetObject, PyWeakref_GET_OBJECT
 from cysignals.memory cimport check_calloc, sig_free
 
+from sage.cpython.multiref cimport MultiRef
+
 cdef extern from "Python.h":
     void PyTuple_SET_ITEM(object tuple, Py_ssize_t index, PyObject* item)
 
@@ -492,6 +494,21 @@ cdef class MonoDict:
                     first_deleted = cursor
             i = (5*i + 1) + perturb
 
+    cdef int cleardead(self) except -1:
+        """
+        Clear dead ``MultiRef`` values.
+        """
+        cdef size_t i = 0
+        while i <= self.mask:
+            cursor = &(self.table[i])
+            i += 1
+            if valid(cursor.key_id):
+                value = <object>(cursor.value)
+                if isinstance(value, MultiRef):
+                    if not (<MultiRef>value).alive():
+                        self.used -= 1
+                        extract_mono_cell(cursor)
+
     cdef int resize(self) except -1:
         """
         Resize dictionary. That can also mean shrink! Size is always a power of 2.
@@ -764,7 +781,11 @@ cdef class MonoDict:
             cursor[0] = entry
 
             if maybe_resize and 3*self.fill > 2*self.mask:
-                self.resize()
+                self.cleardead()
+                # Skip resizing if the dict is still over half filled
+                # after clearing dead references
+                if 2*self.fill > self.mask:
+                    self.resize()
         else:
             old_value = cursor.value
             cursor.value = entry.value
@@ -1212,6 +1233,21 @@ cdef class TripleDict:
                     first_deleted = cursor
             i = (5*i + 1) + perturb
 
+    cdef int cleardead(self) except -1:
+        """
+        Clear dead ``MultiRef`` values.
+        """
+        cdef size_t i = 0
+        while i <= self.mask:
+            cursor = &(self.table[i])
+            i += 1
+            if valid(cursor.key_id1):
+                value = <object>(cursor.value)
+                if isinstance(value, MultiRef):
+                    if not (<MultiRef>value).alive():
+                        self.used -= 1
+                        extract_triple_cell(cursor)
+
     cdef int resize(self) except -1:
         cdef triple_cell* old_table = self.table
         cdef size_t old_mask = self.mask
@@ -1486,7 +1522,11 @@ cdef class TripleDict:
             cursor[0] = entry
 
             if maybe_resize and 3*self.fill > 2*self.mask:
-                self.resize()
+                self.cleardead()
+                # Skip resizing if the dict is still over half filled
+                # after clearing dead references
+                if 2*self.fill > self.mask:
+                    self.resize()
         else:
             old_value = cursor.value
             cursor.value = entry.value
