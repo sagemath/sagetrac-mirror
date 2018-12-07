@@ -566,7 +566,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
         # o1, o2, etc. and automatic Sage variable names sage0, sage1, etc.
         # It is faster to get it back as a string.
         r = macaulay2.eval(r"""
-            toString select(
+            print toString select(
                 apply(apropos "^[[:alnum:]]+$", toString),
                 s -> not match("^(o|sage)[0-9]+$", s))
             """)
@@ -897,20 +897,27 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
 
         TESTS::
 
-            sage: a = macaulay2("QQ[x,y]")   # optional - macaulay2
-            sage: traits = a._tab_completion()   # optional - macaulay2
-            sage: "generators" in traits     # optional - macaulay2
+            sage: a = macaulay2("QQ[x,y]")      # optional - macaulay2
+            sage: traits = a._tab_completion()  # optional - macaulay2
+            sage: "generators" in traits        # optional - macaulay2
             True
+
+        The implementation of this function does not set or change global
+        variables::
+
+            sage: a.dictionary()._operator('#?', '"r"')  # optional - macaulay2
+            false
         """
         # It is possible, that these are not all possible methods, but
         # there are still plenty and at least there are no definitely
         # wrong ones...
         r = self.parent().eval(
-            """currentClass = class %s;
-            total = {};
+            """(() -> (
+            currentClass := class %s;
+            total := {};
             while true do (
                 -- Select methods with first argument of the given class
-                r = select(methods currentClass, s -> s_1 === currentClass);
+                r := select(methods currentClass, s -> s_1 === currentClass);
                 -- Get their names as strings
                 r = apply(r, s -> toString s_0);
                 -- Keep only alpha-numeric ones
@@ -919,8 +926,9 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                 total = total | select(r, s -> not any(total, e -> e == s));
                 if parent currentClass === currentClass then break;
                 currentClass = parent currentClass;
-                )
-            print toString total""" % self.name())
+                );
+            print toString total
+            ))()""" % self.name())
         r = sorted(r[1:-1].split(", "))
         return r
 
