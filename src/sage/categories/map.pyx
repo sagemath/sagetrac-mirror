@@ -29,6 +29,7 @@ from sage.sets.pythonclass cimport Set_PythonType
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.superseded import deprecated_function_alias
 from sage.structure.element cimport parent
+from sage.cpython.multiref import MultiRef
 from cpython.object cimport PyObject_RichCompare
 
 
@@ -231,6 +232,19 @@ cdef class Map(Element):
                 raise ValueError("This map is in an invalid state, the domain has been garbage collected")
             return homset.Hom(D, C, self._category_for)
         return self._parent
+
+    def _cache_in_parents(self):
+        """
+        Add this map to the cache of the domain and codomain in such a
+        way that the map will remain alive as long as both the domain
+        and codomain remain alive.
+        """
+        D = <Parent?>self.domain()
+        C = <Parent?>self.codomain()
+        r1 = MultiRef(self)
+        r2 = r1.weak_ref()
+        D._coercion_references.set(None, C, None, r1)
+        C._coercion_references.set(D, None, None, r2)
 
     def _make_weak_references(self):
         """
