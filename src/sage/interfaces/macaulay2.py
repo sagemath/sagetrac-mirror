@@ -96,6 +96,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six import string_types
 
 import os
 import re
@@ -686,6 +687,61 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
 
         s = multiple_replace({'\r':'', '\n':' '}, X)
         return s
+
+    def name(self, new_name=None):
+        """
+        Get or change the name of this Macaulay2 element.
+
+        INPUT:
+
+        - ``new_name`` -- string (default: ``None``). If ``None``, return the
+          name of this element; else return a new object identical to ``self``
+          whose name is ``new_name``.
+
+        Note that this can overwrite existing variables in the system.
+
+        EXAMPLES::
+
+            sage: S = macaulay2(QQ['x,y'])          # optional - macaulay2
+            sage: S.name()                          # optional - macaulay2
+            'sage...'
+            sage: R = S.name("R")                   # optional - macaulay2
+            sage: R.name()                          # optional - macaulay2
+            'R'
+            sage: R.vars().cokernel().resolution()  # optional - macaulay2
+             1      2      1
+            R  <-- R  <-- R  <-- 0
+            <BLANKLINE>
+            0      1      2      3
+
+        The name can also be given at definition::
+
+            sage: A = macaulay2(ZZ['x,y,z'], name='A')  # optional - macaulay2
+            sage: A.name()                              # optional - macaulay2
+            'A'
+            sage: A^1                                   # optional - macaulay2
+             1
+            A
+        """
+        if new_name is None:
+            return self._name
+        if not isinstance(new_name, string_types):
+            raise TypeError("new_name must be a string")
+
+        P = self.parent()
+        # First release self, so that new_name becomes the initial reference to
+        # its value.  This is needed to change the name of a PolynomialRing.
+        # NOTE: This does not work if self._name is not the initial reference.
+        cmd = """(() -> (
+            m := lookup(GlobalReleaseHook, class {0});
+            if m =!= null then m(symbol {0}, {0});
+            {1} = {0};
+            ))()""".format(self._name, new_name)
+        ans = P.eval(cmd)
+        if ans.find("stdio:") != -1:
+            raise RuntimeError("Error evaluating Macaulay2 code.\n"
+                               "IN:%s\nOUT:%s" % (cmd, ans))
+        return P._object_class()(P, new_name, is_name=True)
 
     def __len__(self):
         """
