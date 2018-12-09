@@ -875,6 +875,45 @@ class WeightLatticeRealizations(Category_over_base_ring):
             n = prod(((rho+highest_weight).scalar(x) for x in pr), Integer(1))
             d = prod((rho.scalar(x) for x in pr), Integer(1))
             return Integer(n/d)
+            
+        def weyl_dimension_q(self, highest_weight, expand=True):
+            r"""
+            Return the quantum dimension of the highest weight representation of highest weight ``highest_weight``.
+
+            EXAMPLES::
+
+                sage: RootSystem(['A',3]).ambient_lattice().weyl_dimension([2,1,0,0])
+                20
+                sage: P = RootSystem(['C',2]).weight_lattice()
+                sage: La = P.basis()
+                sage: P.weyl_dimension(La[1]+La[2])
+                16
+                
+                sage: P.weyl_dimension(La[1]+La[2],expand=False)
+                16
+
+                sage: type(RootSystem(['A',3]).ambient_lattice().weyl_dimension([2,1,0,0]))
+                <... 'sage.rings.integer.Integer'>
+            """
+            from collections import Counter
+			from sage.combinat.q_analogues import q_int
+			
+            highest_weight = self(highest_weight)
+            if not highest_weight.is_dominant():
+                raise ValueError("the highest weight must be dominant")
+            rho = self.rho()
+            pr = self.coroot_lattice().positive_roots()
+
+			res = Counter()
+			for x in pr:
+				res.add((rho+highest_weight).scalar(x))
+				res.subtract(rho.scalar(x))
+
+			if expand:
+				return prod( qint(a)**res(a) for a in res, 1).numerator()
+			else:
+				return res
+
 
         @lazy_attribute
         def _symmetric_form_matrix(self):
