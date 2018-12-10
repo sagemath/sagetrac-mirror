@@ -872,10 +872,9 @@ class WeightLatticeRealizations(Category_over_base_ring):
             rho = self.rho()
             pr = self.coroot_lattice().positive_roots()
             from sage.rings.integer import Integer
-            n = prod(((rho+highest_weight).scalar(x) for x in pr), Integer(1))
-            d = prod((rho.scalar(x) for x in pr), Integer(1))
-            return Integer(n/d)
-            
+            res = prod(((rho+highest_weight).scalar(x)/rho.scalar(x)  for x in pr), Integer(1))
+            return Integer(res)
+
         def weyl_dimension_q(self, highest_weight, expand=True):
             r"""
             Return the quantum dimension of the highest weight representation of highest weight ``highest_weight``.
@@ -888,7 +887,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 sage: La = P.basis()
                 sage: P.weyl_dimension(La[1]+La[2])
                 16
-                
+
                 sage: P.weyl_dimension(La[1]+La[2],expand=False)
                 16
 
@@ -896,23 +895,26 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 <... 'sage.rings.integer.Integer'>
             """
             from collections import Counter
-			from sage.combinat.q_analogues import q_int
-			
+            from sage.combinat.q_analogues import q_int
+
             highest_weight = self(highest_weight)
             if not highest_weight.is_dominant():
                 raise ValueError("the highest weight must be dominant")
             rho = self.rho()
             pr = self.coroot_lattice().positive_roots()
 
-			res = Counter()
-			for x in pr:
-				res.add((rho+highest_weight).scalar(x))
-				res.subtract(rho.scalar(x))
+            res = Counter()
+            for x in pr:
+                res.add((rho+highest_weight).scalar(x))
+                res.subtract(rho.scalar(x))
 
-			if expand:
-				return prod( qint(a)**res(a) for a in res, 1).numerator()
-			else:
-				return res
+            if expand:
+                rat = prod( qint(a)**res(a) for a in res, 1)
+                if rat.denominator() != 1:
+                    raise RuntimeError("{} should evaluate to a polynomial".format(rat)S
+                return rat.numerator()
+            else:
+                return res
 
 
         @lazy_attribute
@@ -1109,5 +1111,5 @@ class WeightLatticeRealizations(Category_over_base_ring):
             L = self.parent()
             if base_ring is None:
                 base_ring = L.base_ring()
-            
+
             return L.root_system.weight_space(base_ring).sum_of_terms([i, base_ring(self.scalar(L.simple_coroot(i)))] for i in L.cartan_type().index_set())

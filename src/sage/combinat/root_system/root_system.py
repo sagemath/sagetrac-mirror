@@ -822,3 +822,45 @@ def WeylDim(ct, coeffs):
     fw = lattice.fundamental_weights()
     hwv = lattice.sum(coeffs[i]*fw[i+1] for i in range(min(rank, len(coeffs))))
     return lattice.weyl_dimension(hwv)
+
+def WeylQuantumDim(ct, coeffs):
+    """
+    The Weyl Dimension Formula.
+
+    INPUT:
+
+
+    -  ``type`` - a Cartan type
+
+    -  ``coeffs`` - a list of nonnegative integers
+
+
+    The length of the list must equal the rank type[1]. A dominant
+    weight hwv is constructed by summing the fundamental weights with
+    coefficients from this list. The dimension of the irreducible
+    representation of the semisimple complex Lie algebra with highest
+    weight vector hwv is returned.
+
+    EXAMPLES:
+
+    For `SO(7)`, the Cartan type is `B_3`, so::
+
+        sage: WeylQuantumDim(['B',3],[1,0,0]) # standard representation of SO(7)
+        7
+        sage: WeylQuantumDim(['B',3],[0,1,0]) # exterior square
+        21
+        sage: WeylQuantumDim(['B',3],[0,0,1]) # spin representation of spin(7)
+        8
+        sage: WeylQuantumDim(['B',3],[1,0,1]) # sum of the first and third fundamental weights
+        48
+        sage: [WeylQuantumDim(['F',4],x) for x in ([1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1])]
+        [52, 1274, 273, 26]
+        sage: [WeylQuantumDim(['E', 6], x) for x in ([0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 2], [0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0], [1, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 1], [2, 0, 0, 0, 0, 0])]
+        [1, 78, 27, 351, 351, 351, 27, 650, 351]
+    """
+    ct = CartanType(ct)
+    lattice = RootSystem(ct).ambient_space()
+    rank = ct.rank()
+    fw = lattice.fundamental_weights()
+    hwv = lattice.sum(coeffs[i]*fw[i+1] for i in range(min(rank, len(coeffs))))
+    return lattice.weyl_dimension_q(hwv)
