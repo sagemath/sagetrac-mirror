@@ -1254,8 +1254,6 @@ class LatinSquare:
 
         assert self.nrows() == self.ncols()
 
-        n = self.nrows()
-
         dlx_rows, cmap = self.disjoint_mate_dlxcpp_rows_and_map(allow_subtrade)
 
         nr_found = 0
@@ -2200,7 +2198,6 @@ def LatinSquare_generator(L_start, check_assertions = False):
     from copy import copy
     L = copy(L_start)
 
-    L_rce = L
     L_cer = LatinSquare(n, n)
     L_erc = LatinSquare(n, n)
 
@@ -2833,8 +2830,6 @@ def dlxcpp_find_completions(P, nr_to_find = None):
         [1 0]]
     """
     assert P.nrows() == P.ncols()
-
-    n = P.nrows()
 
     dlx_rows, cmap = dlxcpp_rows_and_map(P)
 

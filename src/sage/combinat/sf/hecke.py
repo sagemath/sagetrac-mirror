@@ -168,7 +168,6 @@ class HeckeCharacter(SymmetricFunctionAlgebra_multiplicative):
         self._p = sym.power()
 
         # temporary until Hom(GradedHopfAlgebrasWithBasis work better)
-        category = ModulesWithBasis(self._sym.base_ring())
         self   .register_coercion(self._p._module_morphism(self._p_to_qbar_on_basis,
                                                            codomain=self))
         self._p.register_coercion(self._module_morphism(self._qbar_to_p_on_basis,

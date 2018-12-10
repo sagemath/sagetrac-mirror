@@ -546,7 +546,6 @@ class RiggedConfigurationElement(ClonableArray):
         if M[a,a] != 2:
             k = None
             set_vac_num = True
-            rigged_index = None
             if new_rigging[-1] != -M[a,a] // 2:
                 return None
             new_list.pop()
@@ -2389,7 +2388,7 @@ class KRRCTypeA2DualElement(KRRCNonSimplyLacedElement):
             True
         """
         #return self.to_virtual_configuration().cocharge() / self.parent()._folded_ct.gamma[0]
-        vct = self.parent()._folded_ct
+        # vct = self.parent()._folded_ct
         cc = ZZ.zero()
         rigging_sum = ZZ.zero()
         #sigma = vct.folding_orbit()

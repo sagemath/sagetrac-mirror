@@ -3499,7 +3499,7 @@ class RowStandardTableauTuples_shape(RowStandardTableauTuples):
                                       check=False)
 
         # now run through the linear extensions and return the corresponding tableau
-        for lin in Poset((range(1, mu.size()+1), relations)).linear_extensions():
+        for lin in Poset((range(1, n+1), relations)).linear_extensions():
             linear_tab = list(permutation.Permutation(lin).inverse())
             yield tableau_from_list(linear_tab)
 
