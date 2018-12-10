@@ -1714,7 +1714,7 @@ cdef class BetaAdicSet:
             res.reverse()
         return res
 
-    def plot(self, n=None, sx=800, sy=600,
+    def plot(self, n=None, int sx=800, int sy=600,
              ajust=True, prec=53, color=(0, 0, 0, 255),
              nprec=4, mirror=False, verb=False):
         r"""
@@ -2071,6 +2071,7 @@ cdef class BetaAdicSet:
             Traceback (most recent call last):
             ...
             ValueError: b must live in a number field!
+
 
         """
         cdef InfoBetaAdic ib

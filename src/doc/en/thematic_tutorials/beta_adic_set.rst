@@ -160,10 +160,11 @@ and the contracting one
 .. MATH::
 
     	E_\lambda^- := \prod_{v \in P_-} E_v.
-   
-    
-Let's take :math:`\sigma_+` and :math:`\sigma_-` some embeddings of :math:`Q(\lambda)` into the spaces :math:`E_+` and :math:`E_-` respectively.
-We will also denote by :math:`\sigma_\beta` the maximal real embedding when :math:`\beta is a Perron number.
+
+
+Let's take :math:`\sigma_+` and :math:`\sigma_-` some embeddings of :math:`\mathbf Q(\lambda)`
+into the spaces :math:`E_+` and :math:`E_-` respectively.
+We will also denote by :math:`\sigma_\beta` the maximal real embedding when :math:`\beta` is a Perron number.
       
 So Rauzy fractal of the substitution :math:`s` can be define as the adherence of :math:`\sigma_-(Q_\omega)` in :math:`E_{\lambda}^-`.
 
@@ -244,77 +245,8 @@ it is not difficult to guess what is the substitution.
 Indeed, it is enough to take intervals between two consecutive points, multiply it by :math:`\lambda`,
 and see how the result is covered by others intervals.
 
-
-
-.. tikz::
-     \draw (0,0) -- (12, 0);
-     \draw (0.000, -.1) -- (0.000, .1);
-     \draw (1.000, -.1) -- (1.000, .1);
-     \draw (1.839, -.1) -- (1.839, .1);
-     \draw (2.839, -.1) -- (2.839, .1);
-     \draw (3.383, -.1) -- (3.383, .1);
-     \draw (4.383, -.1) -- (4.383, .1);
-     \draw (5.222, -.1) -- (5.222, .1);
-     \draw (6.222, -.1) -- (6.222, .1);
-     \draw (7.222, -.1) -- (7.222, .1);
-     \draw (8.062, -.1) -- (8.062, .1);
-     \draw (9.062, -.1) -- (9.062, .1);
-     \draw (9.605, -.1) -- (9.605, .1);
-     \draw (10.605, -.1) -- (10.605, .1);
-     \draw (11.445, -.1) -- (11.445, .1);
-
-     \draw (0,3) -- (12, 3);
-     \draw (0.000, 2.9) -- (0.000, 3.1);
-     \draw (1.000, 2.9) -- (1.000, 3.1);
-     \draw (1.839, 2.9) -- (1.839, 3.1);
-     \draw (2.839, 2.9) -- (2.839, 3.1);
-     \draw (3.383, 2.9) -- (3.383, 3.1);
-     \draw (4.383, 2.9) -- (4.383, 3.1);
-     \draw (5.222, 2.9) -- (5.222, 3.1);
-     \draw (6.222, 2.9) -- (6.222, 3.1);
-     \draw (7.222, 2.9) -- (7.222, 3.1);
-     \draw (8.062, 2.9) -- (8.062, 3.1);
-     \draw (9.062, 2.9) -- (9.062, 3.1);
-     \draw (9.605, 2.9) -- (9.605, 3.1);
-     \draw (10.605, 2.9) -- (10.605, 3.1);
-     \draw (11.445, 2.9) -- (11.445, 3.1);
-	
-     \draw (0.000, 3) -- (0.000, 0);
-     \draw (1.000, 3) -- (1.839, 0);
-     \draw (1.839, 3) -- (3.383, 0);
-     \draw (2.839, 3) -- (5.222, 0);
-     \draw (3.383, 3) -- (6.222, 0);
-     \draw (4.383, 3) -- (8.062, 0);
-     \draw (5.222, 3) -- (9.605, 0);
-     \draw (6.222, 3) -- (11.445, 0); 
-     \draw (0.500, -.2) node {a};
-     \draw (1.420, -.2) node {b};
-     \draw (2.339, -.2) node {a};
-     \draw (3.111, -.2) node {c};
-     \draw (3.883, -.2) node {a};
-     \draw (4.803, -.2) node {b};
-     \draw (5.722, -.2) node {a};
-     \draw (6.722, -.2) node {a};
-     \draw (7.642, -.2) node {b};
-     \draw (8.562, -.2) node {a};
-     \draw (9.333, -.2) node {c};
-     \draw (10.105, -.2) node {a};
-     \draw (11.025, -.2) node {b};
-     \draw (0.500, 3.2) node {a};
-     \draw (1.420, 3.2) node {b};
-     \draw (2.339, 3.2) node {a};
-     \draw (3.111, 3.2) node {c};
-     \draw (3.883, 3.2) node {a};
-     \draw (4.803, 3.2) node {b};
-     \draw (5.722, 3.2) node {a};
-     \draw (6.722, 3.2) node {a};
-     \draw (7.642, 3.2) node {b};
-     \draw (8.562, 3.2) node {a};
-     \draw (9.333, 3.2) node {c};
-     \draw (10.105, 3.2) node {a};
-     \draw (11.025, 3.2) node {b};
-     \draw[->] (-.3, 3) arc (150:210:3);
-     \draw (-.7 ,1.5) node[left] {:math:`\times \lambda`};
+.. image:: media/subtitution.png
+  :scale: 20 %
 
 Construction of a domain exchange in the disk of radius :math:`1` and center :math:`0`,
 for the Tribonnacci number :math:`\beta`.
@@ -342,6 +274,9 @@ Take the Tribonnacci Pisot number β, root of x 3 − x 2 − x − 1,
 and take L the regular language defined by the followed automaton.
 
 
+This automaton describing the regular language describing a g- :math:`\beta`-set which is a Sierpiński
+gasket union a set of non-empty interior for :math:`\beta` the Tribonnacci number.
+
 .. PLOT::
    :width: 80%
 
@@ -352,27 +287,45 @@ and take L the regular language defined by the followed automaton.
    a2 = DetAutomaton([(0,1,0),(1,2,0),(2,2,0),(2,2,1)],i=0, final_states=[2])
    # multiply by b^2
    a3 = a.unshift1(0, final=True).unshift1(1)
-
    a = a2.union(a3)
    sphinx_plot(a)
 
-Then we
-can compute the domain exchange conjugated to the shift on σ + (Q L ). See figure 7.
-The smallest substitution whose a fixed point ω verify Q ω = Q L , and whose Perron
-number is β 4 , has 15 letters and is displayed in figure 6
+Obtained by the code:
 
+.. code-block:: Python
+
+   # automaton that describe a Sierpinsky gasket
+   a = DetAutomaton([(0,2,0),(0,6,1),(2,3,1),(2,12,0),(6,7,1),(6,9,0),(3,4,1),(3,5,0),(12,13,1),(12,14,0),(7,8,0),(7,15,1),(9,10,0),(9,11,1),(4,0,0),(5,0,0),(5,0,1),(13,0,0),(13,0,1),(14,0,0),(8,0,0),(8,0,1),(15,0,1),(10,0,1),(11,0,1),(11,0,0)], i=0)
+
+   # automaton recognizing a set of non-empty interior
+   a2 = DetAutomaton([(0,1,0),(1,2,0),(2,2,0),(2,2,1)],i=0, final_states=[2])
+   # multiply by b^2
+   a3 = a.unshift1(0, final=True).unshift1(1)
+   a = a2.union(a3)
+   a.plot()
+
+
+
+The Domain exchange with :math:`6` pieces, describing the shift on :math:`\sigma_+(Q_L)` for the regular language :math:`L` can be computed.
 
 .. code-block:: Python
 
    m = BetaAdicSet(x^3-x^2-x-1, a) #choose to work with the alphabet {0,1} and with the Tribonnacci polynomial
    pp = m.b.parent().places()[0] #expanding place
    print pp
+   Ring morphism:
+     From: Number Field in b with defining polynomial x^3 - x^2 - x - 1
+     To:   Real Field with 106 bits of precision
+     Defn: b |--> 1.839286755214161132551852564671
    m.plot(nprec=6)
 
-.. image:: beta_adic_image1.png
+.. image:: media/beta_adic_image1.png
   :scale: 80 %
 
+Now the code to plot the list after the exchange
+
 .. code-block:: Python
+
    # compute a domain exchange
    l = m.domain_exchange()
    print("Exchange with %s pieces."%len(l))
@@ -382,13 +335,116 @@ number is β 4 , has 15 letters and is displayed in figure 6
 
 
 
+.. image:: media/domain1.png
+  :scale: 80 %
+
+And plot the domain after exchange
+
+.. code-block:: Python
+
+   # plot it after exchange
+   m.plot_list([a.proj(m, t) for t,a in l], nprec=6)
+
+.. image:: media/domain2.png
+  :scale: 80 %
 
 
-.. PLOT::
-   :width: 80%
+Compute the subtitution
 
-   a = DetAutomaton([(0,0,0),(0,1,1),(1,1,0),(1,2,1),(2,2,0),(2,1,1)], i=0, final_states=[0,1])
-   m = BetaAdicSet(x^3-x^2-x-1, a) # choose Tribonnacci
-   m.plot()
-   sphinx_plot(m)
+.. code-block:: Python
+   # compute a substitution whose Rauzy fractal is this BetaAdicSet
+   %time d = m.substitution()
+   d
+   CPU times: user 24 s, sys: 156 ms, total: 24.1 s
+   Wall time: 24.1 s
+   
+   {1: [60, 6],
+    2: [19],
+    3: [19, 54],
+    4: [50, 42],
+    5: [57, 9, 58, 3],
+    6: [60, 6, 40, 48],
+    7: [60, 6, 53],
+    8: [21, 35, 48, 60, 1],
+    9: [19, 55, 5],
+    10: [21, 66, 49, 60, 1],
+    11: [64, 6, 15, 5],
+    12: [60, 6, 63, 49, 60, 1],
+    13: [53, 64, 7, 25, 4],
+    14: [54, 20, 33, 4],
+    15: [60, 18, 38, 3, 37, 46, 58, 2],
+    16: [36, 17, 45, 41, 46, 58, 2],
+    17: [64, 6, 53, 5],
+    18: [60, 6, 53, 64, 1],
+    19: [57, 9, 58, 3, 37, 46],
+    20: [57, 9, 58, 3, 52],
+    21: [34, 11, 58, 3, 37, 46],
+    22: [34, 11, 58, 3, 52],
+    23: [52, 41, 3, 52, 4],
+    24: [64, 18, 43, 41, 46, 58, 2],
+    25: [64, 18, 43, 50, 4],
+    26: [57, 9, 58, 3, 37, 46, 58, 2],
+    27: [57, 9, 58, 3, 52, 41, 2],
+    28: [40, 48, 60, 7, 65, 47, 58, 2],
+    29: [35, 48, 22, 61, 47, 58, 2],
+    30: [34, 11, 58, 3, 37, 46, 58, 2],
+    31: [34, 11, 58, 3, 52, 41, 2],
+    32: [41, 46, 45, 41, 46, 58, 2],
+    33: [41, 46, 45, 50, 4],
+    34: [15],
+    35: [16],
+    36: [24],
+    37: [26],
+    38: [28],
+    39: [29],
+    40: [30],
+    41: [32],
+    42: [50, 42, 50],
+    43: [13, 42, 50],
+    44: [14, 42, 50],
+    45: [23, 42, 50],
+    46: [19, 54, 5],
+    47: [21, 54, 5],
+    48: [64, 6, 40, 48, 60, 1],
+    49: [60, 6, 40, 48, 60, 1],
+    50: [50, 42, 50, 4],
+    51: [23, 42, 50, 4],
+    52: [27, 44, 50, 4],
+    53: [31, 39, 3, 37, 46, 58, 2],
+    54: [51, 41, 3, 37, 46, 58, 2],
+    55: [58, 46, 58, 3, 37, 46, 58, 2],
+    56: [37, 46, 58, 3, 37, 46, 58, 2],
+    57: [55],
+    58: [56],
+    59: [59, 12],
+    60: [62, 12],
+    61: [61, 8],
+    62: [63, 49],
+    63: [60, 49],
+    64: [68, 10],
+    65: [64, 49],
+    66: [69, 8],
+    67: [65, 8],
+    68: [66, 49],
+    69: [67, 49]}
+
+ The g-:math:`\beta`-set :math:`Q_{]-1,1[}` can be computed, for any quadratic Pisot number :math:`\beta`, and then compute a substitution describing the quasicrystal.
+
+And directly with the WordMorphism of the subtitution and it's rauzy_fractal_plot.
+
+.. code-block:: Python
+
+    #plot the Rauzy fractal from the substitution
+    s = WordMorphism(d)
+    s.rauzy_fractal_plot()
+
+.. image:: media/domain3.png
+  :scale: 100 %
+
+Irreducible example
+~~~~~~~~~~~~~~~~~~~
+
+that permit to draw a Rauzy fractal of any shape with the mouse, like in a drawing software,
+  and to compute the corresponding substitution.
+  The following example has been obtain by drawing randomly using this tool.
 
