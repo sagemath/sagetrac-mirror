@@ -864,29 +864,6 @@ cdef BetaAdic2 getBetaAdic2(BetaAdicSet self, la=None,
         b.a[i] = getAutomaton(getDetAutomaton(self, la[i]), A=A, verb=verb)
     return b
 
-#def PrintWord(m, n):
-#    """
-#    Print of beta adic 
-#
-#    INPUT:
-#
-#    - ``m`` first word argument
-#
-#    - ``n`` second word argument
-#
-#
-#    OUTPUT:
-#
-#    Print the word
-#
-#    TESTS:
-#
-#        sage:import sage.monoids.beta_adic_monoid as mn
-#
-#    """
-#    b = getBetaAdic(m, prec=53, mirror=False, verb=False)
-#    print_word(b, n, b.a.i)
-
 # used by substitution()
 cdef fils(list tree, int e):
     """
@@ -909,8 +886,8 @@ cdef fils(list tree, int e):
         r += fils(tree, f)
     return r
 
-
-# teste si a est inclus dans un des morceaux de l ou pas
+# used by substitution()
+# test if a is included in one of the pieces of l or not
 cdef included(DetAutomaton a, list l, list lm):
     """
     Test if the piece described by the automaton a is included in one of the pieces of lm whose indices are in l.
@@ -932,14 +909,14 @@ cdef included(DetAutomaton a, list l, list lm):
     - ``None`` if a is not included in one of the pieces of l
 
     """
-    # teste vite fait si l'on est inclus dans un morceau ou pas
+    # quickly test if we are included in a piece or not
     incl = False
     w = a.find_word()
     if w is None:
         if a.has_empty_langage():
-            print("Error : empty automata!")
+            print("Error: empty automata!")
         else:
-            print("Error :empty word, but non-empty language!")
+            print("Error: empty word, but non-empty language!")
         return True
     lr = []
     for j in l:
@@ -952,24 +929,22 @@ cdef included(DetAutomaton a, list l, list lm):
     raise RuntimeError("******* Error: the word %s of a=%s is not in any pieces of the list l=%s ! *********" %(w, a, l))
 
 
-# split a1 selon ba (rend un couple (a11, a12) avec a11 la partie
-# dans ba et a12 celle disjointe de ba)
+# split a1 according to ba (returns a couple (a11, a12), with
+# a11 in ba and a12 in the complementary)
 def split_ba(i, tr, np, lm, m, aa, ap, verb=False):
     b = m.b
     a1 = lm[i][0]
-    # teste l'intersection avec ba
-    # at = m.move2(t=(b**(-np))*tr, a=aoc)
-    # TODO : utiliser les automates des relations précalculés
-    # pour les translations de l'échange
+    # TODO : use precomputed relations automata
+    # for translations of the domain exchange
     at = m.Proj(aa, ap, t=(b**(-np))*tr)
     if at.intersect(a1):
         ar = at.intersection(a1)
-        # détermine si l'on est inclus dans ba
+        # determine if we are included in ba
         ar.zero_completeOP()
         if ar.equal_languages(a1):
             return (a1, None)
         else:
-            # on subdivise en deux
+            # split into two pieces
             ar2 = a1.intersection(ar.complementary())
             ar2.zero_completeOP()
             return (ar, ar2)
@@ -979,24 +954,25 @@ def split_ba(i, tr, np, lm, m, aa, ap, verb=False):
 
 # split a1 selon baoc (rend un couple (a11, a12) avec a11 la partie dans baoc
 # et a12 celle disjointe de baoc)
-def split_baoc(i, tr, np, lm, m, aoc, verb=False):
-    b = m.b
-    a1 = lm[i][0]
-    # teste l'intersection avec baoc
-    at = m.move2(t=(b**(-np))*tr, a=aoc)
-    # TODO : utiliser les automates des relations précalculés
-    # pour les translations de l'échange
-    if at.intersect(a1):
-        ar = at.intersection(a1)
-        # détermine si l'on est inclus dans baoc
-        ar.zero_completeOP()
-        if ar.equal_languages(a1):
-            return (a1, None)
-        else:
-            # on subdivise en deux
-            return (ar, a1.intersection(ar.complementary()))
-    else:
-        return (None, a1)
+# 
+#def split_baoc(i, tr, np, lm, m, aoc, verb=False):
+#    b = m.b
+#    a1 = lm[i][0]
+#    # teste l'intersection avec baoc
+#    at = m.move2(t=(b**(-np))*tr, a=aoc)
+#    # TODO : utiliser les automates des relations précalculés
+#    # pour les translations de l'échange
+#    if at.intersect(a1):
+#        ar = at.intersection(a1)
+#        # détermine si l'on est inclus dans baoc
+#        ar.zero_completeOP()
+#        if ar.equal_languages(a1):
+#            return (a1, None)
+#        else:
+#            # on subdivise en deux
+#            return (ar, a1.intersection(ar.complementary()))
+#    else:
+#        return (None, a1)
 
 
 cdef class ImageIn:
@@ -1018,25 +994,9 @@ cdef class ImageIn:
     """
     cdef numpy.ndarray img
 
-#    def __cinit__(self):
-#        sig_on()
-#        SDLInit();
-#        self.s = <void **>malloc(sizeof(void*))
-#        sig_off()
-
     def __init__(self, file_name):
         import matplotlib.image as mpimg
         self.img = mpimg.imread(file_name)
-#        sig_on()
-#        self.s[0] = OpenImage(file_name)
-#        sig_off()
-
-#    def __dealloc__(self):
-#        sig_on()
-#        CloseImage(self.s[0])
-#        free(self.s)
-#        SDLQuit();
-#        sig_off()
 
     def __repr__(self):
         if self.img.ndim < 2:
@@ -1091,7 +1051,8 @@ def getDetAutomaton(self, a):
 
 cdef class BetaBase:
     r"""
-    The purpose of this class is just to write more conveniently some computations, and in particular the computation of a substitution describing a BetaAdicSet.
+    The purpose of this class is just to write more conveniently some computations.
+    It is used in the computation of a substitution describing a BetaAdicSet.
     """
     
     def __init__(self, b):
