@@ -197,14 +197,14 @@ cdef extern from "draw.h":
     #    cdef cppclass SDLImage:
     #        void *img
 
-    void* OpenImage(const char *file_name)
-    bool InImage(void* img, int x, int y)
-    int ImageWidth(void *img)
-    int ImageHeight(void *img)
-    void CloseImage(void* img)
-    void PrintImageError()
-    void SDLInit()
-    void SDLQuit()
+#    void* OpenImage(const char *file_name)
+#    bool InImage(void* img, int x, int y)
+#    int ImageWidth(void *img)
+#    int ImageHeight(void *img)
+#    void CloseImage(void* img)
+#    void PrintImageError()
+#    void SDLInit()
+#    void SDLQuit()
     void *GetSDL_SurfaceFromNumpy (numpy.ndarray na)
     void SurfaceToNumpy (Surface *s, numpy.ndarray na)
     void SDL_SurfaceToNumpy (void *ss, numpy.ndarray na)
@@ -1001,66 +1001,70 @@ cdef class ImageIn:
     EXAMPLE::
 
         sage: from sage.arith.beta_adic import ImageIn
-        sage: ImageIn("Complete_adress_of_the_file")
-        *** Couldn't open Complete_adress_of_the_file ***
-        Image not loaded.
+        sage: ImageIn("SomeImage.png")
+        Traceback (most recent call last):
+        ...
+        IOError: [Errno 2] No such file or directory: 'SomeImage.png'
 
     """
-    cdef void** s
+    cdef numpy.ndarray img
 
-    def __cinit__(self):
-        sig_on()
-        SDLInit();
-        self.s = <void **>malloc(sizeof(void*))
-        sig_off()
+#    def __cinit__(self):
+#        sig_on()
+#        SDLInit();
+#        self.s = <void **>malloc(sizeof(void*))
+#        sig_off()
 
     def __init__(self, file_name):
-        sig_on()
-        self.s[0] = OpenImage(file_name)
-        sig_off()
+        import matplotlib.image as mpimg
+        self.img = mpimg.imread(file_name)
+#        sig_on()
+#        self.s[0] = OpenImage(file_name)
+#        sig_off()
 
-    def __dealloc__(self):
-        sig_on()
-        CloseImage(self.s[0])
-        free(self.s)
-        SDLQuit();
-        sig_off()
+#    def __dealloc__(self):
+#        sig_on()
+#        CloseImage(self.s[0])
+#        free(self.s)
+#        SDLQuit();
+#        sig_off()
 
     def __repr__(self):
-        if self.s[0] == NULL:
-            PrintImageError()
-            return "Image not loaded."
-        sig_on()
-        w = ImageWidth(self.s[0])
-        h = ImageHeight(self.s[0])
-        sig_off()
-        return "Image of size %sx%s" % (w, h)
+        if self.img.ndim < 2:
+            raise RuntimeError("the number of dimensions must be at least two")
+        return "Image of size %sx%s" % (self.img.shape[1], self.img.shape[0])
 
     def __contains__(self, p):
+        cdef int x,y,w,h
+        if self.img.ndim < 2:
+            raise RuntimeError("the number of dimensions must be at least two")
+        h = self.img.shape[0]
+        w = self.img.shape[1]
         from sage.rings.complex_field import ComplexField
         CC = ComplexField(53)
         try:
             p = CC(p)
-            sig_on()
-            r = InImage(self.s[0], p.real(), p.imag())
-            sig_off()
+            x = p.real
+            y = p.imag
         except:
-            sig_on()
-            r = InImage(self.s[0], p[0], p[1])
-            sig_off()
-        return r
+            x,y = p
+        if x < 0 or y < 0 or x >= w or y >= h:
+            return False
+        return self.img[y][x][3] > .5
 
-    def width(self):
-        sig_on()
-        r = ImageWidth(self.s[0])
-        sig_off()
-        return r
+    @property
+    def img(self):
+        return self.img
 
     def height(self):
-        sig_on()
-        r = ImageHeight(self.s[0])
-        sig_off()
-        return r
+        if self.img.ndim < 1:
+            raise RuntimeError("the number of dimensions must be at least one")
+        return self.img.shape[0]
+
+    def width(self):
+        if self.img.ndim < 2:
+            raise RuntimeError("the number of dimensions must be at least two")
+        return self.img.shape[1]
 
 
 def getDetAutomaton(self, a):
@@ -2372,6 +2376,7 @@ cdef class BetaAdicSet:
         r"""
         Return a estimation of an upper bound of the number of states
         of the relations automaton.
+        This estimation is obtained by computing the volume occupied by the lattice containing the BetaAdicSet, in the space product of completions of Q for every absolute archimedian value and p-adic absolute value for which beta as modulus different of one.
 
         INPUT:
 
@@ -2481,7 +2486,16 @@ cdef class BetaAdicSet:
                 sage: mi.plot()                          # random
                 sage: WordMorphism(mi.substitution())    # long time (>4s)
                 WordMorphism: a->c, b->ba, c->bd, d->bg, e->id, f->be, g->h, h->bddfb, i->bdj, j->bek, k->idfb
-                
+
+        TESTS::
+
+            sage: m = WordMorphism("a->ab,b->a").DumontThomas().mirror()
+            sage: m2 = WordMorphism("a->aab,b->a").DumontThomas().mirror()
+            sage: mi = m.intersection(m2)
+            Traceback (most recent call last):
+            ...
+            ValueError: The two beta-adic sets must have same beta.
+
         """
         cdef DetAutomaton a, ar, ai
 
@@ -2513,7 +2527,7 @@ cdef class BetaAdicSet:
 
     def prefix(self, w):
         """
-        Return the BetaAdicSet like self but where we keep only words starting by w.
+        Return a BetaAdicSet like self but where we keep only words starting by w.
 
         INPUT:
 
@@ -2521,7 +2535,7 @@ cdef class BetaAdicSet:
 
         OUTPUT:
 
-        DetAutomaton.
+        BetaAdicSet
 
         EXAMPLES::
 
@@ -2572,23 +2586,29 @@ cdef class BetaAdicSet:
     def reduced_words_automaton(self, full=False, step=100,
                                 mirror=False, int algo_rel=3, verb=False):  # , DetAutomaton aut=None):
         r"""
-        Compute the reduced words automaton of the ``BetaAdicSet`` for the alphabet of the automaton of self.
-        See http://www.latp.univ-mrs.fr/~paul.mercat/Publis/
-        Semi-groupes%20fortement%20automatiques.pdf for a definition of such automaton.
+        Compute the reduced words automaton for the alphabet of the automaton of self.
+        See http://www.i2m.univ-amu.fr/perso/paul.mercat/Publis/
+        Semi-groupes%20fortement%20automatiques.pdf
+        for a definition of such automaton.
+        The number beta is assumed algebraic.
 
         INPUT:
-
-        - ``step`` - int (default: 100)
-          number of steps done (used for debugging)
         
+        - ``full`` - bool (default: False)
+          If True, compute a reduced_words_automaton for the full set
+          of words over the alphabet of the automaton of self.
+
+        - ``mirror`` - bool (default: ``False``)
+          If True, compute the mirror.
+
         - ``algo_rel`` - int (default ``3``)
           Algorithm used for the computation of the relations automaton.
         
         - ``verb`` - bool (default: ``False``)
           If True, print informations for debugging.
-
-        - ``mirror`` - bool (default: ``False``)
-
+  
+        - ``step`` - int (default: 100)
+          number of steps done (used for debugging)
 
         OUTPUT:
 
@@ -2596,12 +2616,23 @@ cdef class BetaAdicSet:
 
         EXAMPLES::
 
-            sage: pi = x^3-x^2-x-1
-            sage: b = pi.roots(ring=QQbar)[1][0]
-            sage: m = BetaAdicSet(b, dag.AnyWord([0,1]))
+            sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
             sage: ared = m.reduced_words_automaton()
             sage: ared
             DetAutomaton with 4 states and an alphabet of 2 letters
+            
+            sage: m = BetaAdicSet(x^3-x-1, [0,1])
+            sage: ared = m.reduced_words_automaton()
+            sage: ared
+            DetAutomaton with 808 states and an alphabet of 2 letters
+        
+        TESTS::
+        
+            sage: m = BetaAdicSet(pi, [0,1])
+            sage: m.reduced_words_automaton()
+            Traceback (most recent call last):
+            ...
+            ValueError: b must live in a number field!
 
         """
         cdef list A
@@ -2713,8 +2744,7 @@ cdef class BetaAdicSet:
 
     def reduced(self, mirror=False, int algo_rel=3, verb=False):
         r"""
-        Compute the reduced  of the ``BetaAdicSet``
-
+        Compute a ``BetaAdicSet`` describing the same set, but with unicity (i.e. each point is described by an unique word).
 
         INPUT:
 
@@ -2733,9 +2763,7 @@ cdef class BetaAdicSet:
 
         EXAMPLES::
 
-            sage: pi = x^3-x^2-x-1
-            sage: b = pi.roots(ring=QQbar)[1][0]
-            sage: m = BetaAdicSet(b, dag.AnyWord([0,1]))
+            sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
             sage: ared = m.reduced()
             sage: ared
             b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 4 states and 2 letters
@@ -2997,10 +3025,11 @@ cdef class BetaAdicSet:
     def critical_exponent_free(self, prec=None, verb=False):
         r"""
         Compute the critical exponent of the beta-adic set,
-        assuming it is free (or reduced, i.e. there is no relation).
-        When the beta-adic set is moreover algebraic,
-        this critical exponent is equal to the Hausdorff
-        dimension of the limit set on the contracting space.
+        assuming it is free (or reduced, i.e. there is no relation,
+        i.e. every point is uniquely represented by a word).
+        When the beta-adic set is moreover algebraic and conformal, then it is equal
+        to the Hausdorff dimension of the limit set in the
+        contracting space (R or C).
 
         Rk: beta-adic sets coming from WordMorphism.DumontThomas()
         are always free and algebraic.
@@ -3143,70 +3172,21 @@ cdef class BetaAdicSet:
             print("%s"%m.a)
         return m.critical_exponent_free(prec=prec, verb=verb)
 
-#    # test if 0 is an inner point of the limit set
-#    def ZeroInner(self, verb=False):
-#
-#        if not hasattr(self, 'ss'):
-#            self.ss = self.default_ss()
-#
-#        if verb:
-#            print("relations automaton...")
-#
-#        ar = self.relations_automaton(ext=True)
-#        ar.complementary()
-#
-#        if verb:
-#            print("complementary : %s" % ar)
-#        # return ar
-#
-#        a = self.default_ss().product(self.ss)
-#
-#        if verb:
-#            print("a = %s" % a)
-#        # return a
-#
-#        # a = ar.intersection(a)
-#
-#        if verb:
-#            print("product...")
-#
-#        L = a.edge_labels()
-#        Lr = ar.edge_labels()
-#        d = dict([])
-#        for k in L:
-#            for kr in Lr:
-#                if k == kr and k[0] == 0:
-#                    d[(k, kr)] = 0
-#                else:
-#                    d[(k, kr)] = None
-#        a2 = a.product(A=ar, d=d)
-#
-#        if verb:
-#            print("product = %s" % a2)
-#        # return a2
-#
-#        # test if there is a cycle in the graph
-#        if a2.is_directed_acyclic():
-#            print("0 is not an inner point.")
-#        else:
-#            ss = self.ss
-#            self.ss = None
-#            print("Zero is an inner point iff the %s has non-empty interior." % self)
-#            self.ss = ss
-
     # complete the language of a
     def complete(self, list A=None,
                  ext=False, arel=None, simplify=True, verb=False):
         r"""
         Return the language of all words over the alphabet A
         that describe points of the beta-adic set.
-        If ''ext'' is True, it includes words that can be
+        If ``ext`` is True, it includes words that can be
         prolongated to infinite words that fall
         into the limit set.
+        If ``A`` is None, take the alphabet of the automaton of self.
 
         INPUT:
 
         - ``A`` - list -- (default : ``None``) alphabet of the result.
+          If None, takes the alphabet of the automaton of self.
 
         - ``ext`` - bool -- (default: ``False``)
           If ''ext'' is True, this also include words equal at infinity.
@@ -3230,6 +3210,10 @@ cdef class BetaAdicSet:
             sage: m = BetaAdicSet(3, [0,1,3])
             sage: m.complete([0,1,2])
             b-adic set with b root of x - 3, and an automaton of 2 states and 3 letters
+
+            sage: m = WordMorphism('1->12,2->13,3->1').DumontThomas().mirror()
+            sage: m.complete()
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 states and 2 letters
         """
         cdef DetAutomaton a
         if 0 not in self.a.A:
@@ -3252,165 +3236,24 @@ cdef class BetaAdicSet:
             ai = ai.prune().minimize()
         return BetaAdicSet(self.b, ai)
 
-#        ap = DetAutomaton([], A=list(C)).product(a)
-#        if ext:
-#            ap = ap.prefix_closure()
-#        if verb:
-#            if ap.n_states < 100:
-#                ap.plot()
-#            print("ap=%s" % ap)
-#        d = dict()
-#        Ad = [c - c2 for c in self.a.A for c2 in A]
-#        for c in Cd:
-#            d[c] = []
-#        for c in C:
-#            for c2 in a.A:
-#                d[c - c2].append((c, c2))
-#        if arel is None:
-#            arel = self.relations_automaton(Ad=Cd, ext=ext).duplicate(d)
-#        else:
-#            arel = arel.duplicate(d)
-#        if verb:
-#            if arel.n_states < 100:
-#                arel.plot()
-#            print("arel=%s" % arel)
-#        ai = ap.intersection(arel)
-#        if ext:
-#            ai = ai.prune_inf()
-#        ai = ai.prune()
-#        ai = ai.minimize()
-#        if verb:
-#            if ai.n_states < 100:
-#                ai.plot()
-#            print("ai=%s" % ai)
-#        d = dict()
-#        for c in C:
-#            for c2 in a.A:
-#                d[(c, c2)] = c
-#        ac = ai.determinize_proj(d)
-#        if ext:
-#            ac = ac.prune_inf()
-#        ac = ac.prune()
-#        ac = ac.minimize()
-#        return ac
-#
-#    # donne l'automate décrivant l'adhérence de l'ensemble limite avec un nouvel alphabet C
-#    def adherence(self, tss=None, C=None, C2=None,
-#                  ext=False, verb=False, step=None):
-#        """
-#        Return an automaton describing the adhesion of the limit set
-#        with a new alphabet C
-#
-#        INPUT:
-#
-#        - ``tss``
-#        - ``C`` list -- (default : ``None``)list of digits .
-#        - ``C2`` list -- (default : ``None``)list of digits .
-#        - ``ext``  bool -- (default: ``False``)
-#          If ''ext'' is True, this also include words equal at infinity.
-#        - ``verb``- bool (default: ``False``)
-#          If True, print informations for debugging.
-#        - ``step`` - int (default: ``None``)
-#          Stop to a intermediate state of the computing to make verifications.
-#
-#        OUTPUT:
-#
-#        Return an automaton describing the adhesion of the limit set
-#        with a new alphabet C
-#
-#        EXAMPLES::
-#            sage: from sage.combinat.words.cautomata_generators import dag
-#            sage: m = BetaAdicSet(3, dag.AnyWord([0,1,3]))
-#            sage: m.adherence()
-#            DetAutomaton with 1 states and an alphabet of 3 letters
-#        """
-#        if tss is None:
-#            if hasattr(self, 'tss'):
-#                tss = self.tss
-#            else:
-#                tss = self.a
-#        if C is None:
-#            C = list(set(self.a.alphabet))
-#        if C2 is None:
-#            C2 = list(set(tss.alphabet))
-#        if verb:
-#            print("Calcul de l'automate des relations...")
-#        Cd = list(set([c1 - c2 for c1 in C2 for c2 in C]))
-#        if verb:
-#            print("Cd=%s" % Cd)
-#        a = self.relations_automaton(Ad=Cd, ext=ext)
-#        if verb:
-#            print(" -> %s" % a)
-#        if step == 1:
-#            return a
-#        if ext:
-#            a = a.prune_inf()
-#        a = a.prune()
-#        if verb:
-#            print(" Après émondation : %s" % a)
-#        if step == 2:
-#            return a
-#        d = {}
-#        for c1 in C2:
-#            for c2 in C:
-#                if not d.has_key(c1 - c2):
-#                    d[c1-c2] = []
-#                d[c1-c2].append((c1, c2))
-#        if verb:
-#            print(d)
-#        a2 = a.duplicate(d, verb=verb)
-#        if verb:
-#            print(a2.alphabet)
-#            print(a2)
-#        if step == 3:
-#            return a2
-#        ap = tss.product(DetAutomaton(self.a), verb=verb)
-#        if ext:
-#            ap = ap.prefix_closure()
-#        if step == 4:
-#            return ap
-#        a2 = ap.intersection(a2)
-#        if step == 5:
-#            return a2
-#        if ext:
-#            a2 = a2.prune_inf()
-#        a2 = a2.prune()
-#        if step == 6:
-#            return a2
-#        a2 = a2.minimize()
-#        if step == 7:
-#            return a2
-#        if verb:
-#            print("determine...")
-#        d = {}
-#        for c1, c2 in a2.alphabet:
-#            d[(c1, c2)] = c2
-#        a2 = a2.determinize_proj(d, verb=verb)
-#        if step == 8:
-#            return a2
-#        if verb:
-#            print(" -> %s" % a2)
-#        if ext:
-#            a2 = a2.prune_inf()
-#        a2 = a2.prune()
-#        if step == 9:
-#            return a2
-#        if verb:
-#            print("After simplification : %s" % a2)
-#        return a2.minimize()
-
     # project the translation by t of self on the zero completion of a
     def proj(self, a, t=0, arel=None, int algo=3, bool aut=False):
         r"""
-        project the translation by t of self on the zero completion of a
-        aut -  ?
+        Project the translation by t of self on the zero completion of a.
 
         INPUT:
 
-        - ``a`` automaton
-        - ``t`` int (default : ``0``)
-        - ``arel`` list -- (default : ``None``) list of digits .
+        - ``a`` - automaton
+
+        - ``t`` - int (default : ``0``)
+          The translation.
+
+        - ``arel`` - list (default : ``None``)
+          The relations automaton
+          (if ``None`` compute it)
+
         - ``aut``  bool -- (default: ``False``)
+          If True, returns only the DetAutomaton rather that the BetaAdicSet.
 
         OUTPUT:
 
@@ -3418,16 +3261,26 @@ cdef class BetaAdicSet:
 
         EXAMPLES::
 
+        #. Use another alphabet to describe a part of the set
             sage: m = BetaAdicSet(3, [0,1,3])
-            sage: m2 = BetaAdicSet(3, [0,1])
+            sage: m2 = BetaAdicSet(3, [0,1,2])
             sage: m.proj(m2)
-            b-adic set with b root of x - 3, and an automaton of 1 states and 2 letters
-            
+            b-adic set with b root of x - 3, and an automaton of 2 states and 3 letters
+
+        #. Intersection of the Rauzy fractal with a translated copy of itself
             sage: m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
             sage: m = m.proj(m, t=1+m.b)
             sage: m
             b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 12 states and 2 letters
             sage: m.plot()          # not tested
+
+        #. Intersection of two Rauzy fractals (for the same beta)
+            sage: m1 = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
+            sage: m2 = WordMorphism('a->ab,b->ca,c->a').DumontThomas().mirror()
+            sage: m = m2.proj(m1)
+            sage: m
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 99 states and 2 letters
+            sage: m.plot()      # random
 
         """
         cdef DetAutomaton ai
@@ -3446,77 +3299,13 @@ cdef class BetaAdicSet:
         else:
             return BetaAdicSet(self.b, r)
 
-#    # donne l'automate décrivant le translaté de +t de a,
-#    # avec les chiffres A au départ et B à l'arrivée, le tout dans l'ensemble décrit par b
-#    def move2(self, t, DetAutomaton a=None, DetAutomaton b=None,
-#              list A=None, list B=None, ar=None, verb=False):
-#        if a is None:
-#            if hasattr(self, 'tss'):
-#                if isinstance(self.tss, DetAutomaton):
-#                    a = self.tss
-#                else:
-#                    a = DetAutomaton(self.tss)
-#            else:
-#                a = DetAutomaton(None)
-#        if b is None:
-#            b = DetAutomaton(None)
-#            #            if hasattr(self, 'tss'):
-#            #                if isinstance(self.tss, DetAutomaton):
-#            #                    b = self.tss
-#            #                else:
-#            #                    b = DetAutomaton(self.tss)
-#            #            else:
-#            #                b = DetAutomaton(self.default_ss())
-#        if A is None:
-#            A = list(set(a.A))
-#        if B is None:
-#            B = list(set(b.A))
-#        if ar is None:
-#            # compute the relations automaton with translation t
-#            ar = self.relations_automaton(t=t, A=A, B=B,
-#                                          couples=True, verb=False)
-#        # compute the product of a and b
-#        if verb:
-#            print("product...")
-#        ap = a.zero_complete2().product(b.zero_complete2())
-#        if verb:
-#            print("ap = %s" % ap)
-#        # compute the intersections
-#        if verb:
-#            print("intersection...")
-#        ai = ar.intersection(ap)
-#        if verb:
-#            print("ai = %s" % ai)
-#        if verb:
-#            print("min...")
-#        ai = ai.minimize()
-#        if verb:
-#            print("ai = %s" % ai)
-#        # project on one side
-#        d = {}
-#        for c1 in A:
-#            for c2 in B:
-#                d[(c1, c2)] = c2
-#        if verb:
-#            print("d=%s" % d)
-#        if verb:
-#            print("determinize...")
-#        ai = ai.determinize_proj(d, verb=verb)
-#        if verb:
-#            print("ai=%s" % ai)
-#        if verb:
-#            print("min")
-#        ai.zero_completeOP()
-#        return ai.prune().minimize()
-#
-
     def shift_op(self, w):
         """
         Shift the automaton of self by w ON PLACE.
 
         INPUT:
 
-        - ``w`` list  or object converted to list- word to shift
+        - ``w`` list (word to shift) or letter
 
         OUTPUT:
 
@@ -3524,7 +3313,7 @@ cdef class BetaAdicSet:
 
         EXAMPLES::
             sage: m = BetaAdicSet(3, [0,1,3])
-            sage: m.shift_op([0,1, 0])
+            sage: m.shift_op([0,1,0])
             sage: m
             b-adic set with b root of x - 3, and an automaton of 1 states and 3 letters
 
@@ -3541,7 +3330,7 @@ cdef class BetaAdicSet:
 
         INPUT:
 
-        - ``w`` list - word to shift
+        - ``w`` list (word to shift), or letter
 
 
         OUTPUT:
@@ -3557,113 +3346,6 @@ cdef class BetaAdicSet:
         m = self.copy()
         m.shift_op(w)
         return m
-
-#    # calcule l'intersection des ensembles limites
-#    def intersection3(self, DetAutomaton a, DetAutomaton b, ext=True):
-#        a2 = self.complete(a, ext=ext)
-#        b2 = self.complete(b, ext=ext)
-#        return a2.intersection(b2).prune()
-#
-#    # determine if the limit sets intersect
-#    def intersect(self, DetAutomaton a, DetAutomaton b, ext=True, verb=False):
-#        a2 = self.complete(a, ext=ext)
-#        if verb:
-#            print("a2=%s" % a2)
-#        b2 = self.complete(b, ext=ext)
-#        if verb:
-#            print("b2=%s" % b2)
-#        return not a2.intersection(b2).is_empty(ext)
-#
-#    # Dit si toutes les tuiles du pavages autosimilaire sont connexes ou pas
-#    def is_all_connected(self, DetAutomaton a=None, ext=True, verb=False):
-#        if a is None:
-#            if hasattr(self, 'tss'):
-#                if isinstance(self.tss, DetAutomaton):
-#                    a = m.tss
-#                else:
-#                    a = DetAutomaton(self.tss)
-#            else:
-#                a = DetAutomaton(None).full(list(self.C))
-#
-#        from sage.graphs.graph import Graph
-#        n = a.n_states
-#        na = len(a.alphabet)
-#        d = dict([])  # dictionnaire des automates complétés
-#        if verb:
-#            print("Automaton of relations...")
-#        arel = self.relations_automaton(ext=ext)
-#        for i in range(n):
-#            if verb:
-#                print("piece %s" % i)
-#            g = Graph({j: {} for j in range(na) if a.succ(i, j) != -1})
-#            # compute the neighboorhood graph of the piece i
-#            for j in g.vertices():
-#                for k in g.vertices():
-#                    if k >= j:
-#                        continue
-#                    if verb:
-#                        print(" intersection %s et %s..." % (j, k))
-#                    la = []
-#                    la.append(a.piece(j, e=i).minimize())
-#                    la.append(a.piece(k, e=i).minimize())
-#                    for l in range(2):
-#                        a2 = d.get(la[l])
-#                        # récupère le complété dans le dictionnaire s'il y est
-#                        if a2 is None:
-#                            if verb:
-#                                print("  complete %s..." % la[l])
-#                            a2 = self.complete(la[l], ext=ext)
-#                            d[la[l]] = a2
-#                            la[l] = a2
-#                        else:
-#                            la[l] = a2
-#                            if verb:
-#                                print("  already calculated !")
-#                    if verb:
-#                        print("  intersect...")
-#                    # if self.intersect(a.piece(j, e=i), a.piece(k, e=i), ext=ext, verb=verb):
-#                    if la[0].intersect(la[1], ext=ext):
-#                        if verb:
-#                            print("  yes !")
-#                        g.add_edge(j, k)
-#            if not g.is_connected():
-#                return False
-#        return True
-#
-#    # Dit si l'ensemble limite est connexe ou pas
-#    def is_connected(self, DetAutomaton a=None):
-#        if a is None:
-#            if hasattr(self, 'tss'):
-#                a = DetAutomaton(self.tss)
-#            else:
-#                a = DetAutomaton(None).full(self.C)
-#
-#        n = a.n_states
-#        na = len(a.alphabet)
-#        rules = [[[l] for l in a.alphabet] for i in range(n)]
-#        gvois = [Graph(na) for i in range(n)]  # graphe des morceaux voisins
-#        gnvois = [Graph(na) for i in range(n)]  # graphe des morceaux non voisins
-#
-#        # liste des morceaux dont il faut tester
-#        # la connexité du graphe de voisinage
-#        m = [a.initial_state]
-#
-#        while len(m) > 0:
-#            i = m.pop()
-#            gvois[i].connected_component_containing_vertex(i)
-#
-#        raise ValueError("Not implemented !")
-#
-#    # Dit si l'ensemble limite est simplement connexe ou pas
-#    def is_simply_connected(self, DetAutomaton a=None):
-#        if a is None:
-#            if hasattr(self, 'tss'):
-#                a = DetAutomaton(self.tss)
-#            else:
-#                a = DetAutomaton(None).full(self.C)
-#        # TODO!
-#        else:
-#            raise ValueError("Not implemented !")
 
     # used by Approx
     def _approx_rec(self, DetAutomaton a, test, f, x, int n, int n2):
@@ -3719,8 +3401,8 @@ cdef class BetaAdicSet:
 
     def approx(self, n, test, get_aut=False, bool simplify=True):
         """
-        gives a BetaAdicSet describing an approximation of a set defined by the
-        characteritic function test
+        Gives a BetaAdicSet describing an approximation of a set defined by the
+        characteritic function test, with the alphabet of the automaton of self.
         Rk: could be improved by drawing with the automaton of self
 
         INPUT:
@@ -3754,7 +3436,15 @@ cdef class BetaAdicSet:
                 b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 236 states and 2 letters
                 sage: m.plot_list([a])  # not tested
 
-            #.
+            #. BetaAdicSet approximating an image see `thematic_tutorial\beta_adic_set`
+                sage: m = WordMorphism('1->12,2->13,3->1').DumontThomas().mirror()
+                sage: from sage.arith.beta_adic import ImageIn
+                sage: im = ImageIn("SomeImage.png")                                     # not tested
+                sage: w = im.width()                                                    # not tested
+                sage: h = im.height()                                                   # not tested
+                sage: ma = max(w,h)                                                     # not tested
+                sage: pm = m.b.parent().places()[1]                                     # not tested
+                sage: m.approx(15, lambda x: (pm(x).conjugate()+.5*(1+I))*ma in im)     # not tested
         """
         cdef DetAutomaton a
         a = DetAutomaton(None, A=self.a.A)
@@ -3770,43 +3460,44 @@ cdef class BetaAdicSet:
         else:
             return BetaAdicSet(self.b, a)
 
-    def full(self, list A=None, bool verb=False):
-        """
-        Return the BetaAdicSet describing the same set of points,
-        but with the maximal language over the alphabet A
-
-        INPUT:
-
-        - ``A``  list -- (default : ``None``)  alphabet list
-        - ``verb`` bool -- (default : ``False``) set to ``True`` for verbose mode
-
-        OUTPUT:
-
-        Return the BetaAdicSet describing the same set of points,
-        but with the maximal language over the alphabet A
-
-        EXAMPLE::
-
-            sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
-            sage: m.full()
-            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 states and 2 letters
-
-        """
-        from sage.combinat.words.cautomata_generators import dag
-        if verb:
-            print("a = %s" % A)
-        if A is None:
-            A = self.a.A
-        aoc = self.proj(dag.AnyWord(A))
-        return aoc
+# PARTICULAR CASE OF complete()
+#    def full(self, list A=None, bool verb=False):
+#        """
+#        Return the BetaAdicSet describing the same set of points,
+#        but with the maximal language over the alphabet A
+#
+#        INPUT:
+#
+#        - ``A``  list -- (default : ``None``)  alphabet list
+#        - ``verb`` bool -- (default : ``False``) set to ``True`` for verbose mode
+#
+#        OUTPUT:
+#
+#        Return the BetaAdicSet describing the same set of points,
+#        but with the maximal language over the alphabet A
+#
+#        EXAMPLE::
+#
+#            sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
+#            sage: m.full()
+#            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 states and 2 letters
+#
+#        """
+#        from sage.combinat.words.cautomata_generators import dag
+#        if verb:
+#            print("a = %s" % A)
+#        if A is None:
+#            A = self.a.A
+#        aoc = self.proj(dag.AnyWord(A))
+#        return aoc
 
     def union(self, a):
         """
-        Return the union of BetaAdicSet and automaton a
+        Return the union of BetaAdicSet and automaton or BetaAdicSet a
 
         INPUT:
 
-        - ``a``  automaton
+        - ``a``  automaton or BetaAdicSet
 
         OUTPUT:
 
@@ -3820,13 +3511,40 @@ cdef class BetaAdicSet:
             b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 states and 4 letters
             
             #. Disjoint union of two Rauzy fractals with same beta
-            sage: s = WordMorphism('1->12,2->13,3->1')
-            sage: t = WordMorphism('1->12,2->31,3->1')
-            sage: a = s.DumontThomas().mirror().unshift([0,0])
-            sage: b = t.DumontThomas().mirror().unshift([1,0,0,0,0])
-            sage: m = a.union(b); m
-            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 13 states and 3 letters
-            sage: m.plot()              # not tested
+                sage: s = WordMorphism('1->12,2->13,3->1')
+                sage: t = WordMorphism('1->12,2->31,3->1')
+                sage: a = s.DumontThomas().mirror().unshift([0,0])
+                sage: b = t.DumontThomas().mirror().unshift([1,0,0,0,0])
+                sage: m = a.union(b); m
+                b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 13 states and 3 letters
+                sage: m.plot()              # not tested
+                sage: m.substitution()      # long time (>20s)
+                {'a': ['h'],
+                 'b': ['j'],
+                 'c': ['c', 'd'],
+                 'd': ['j', 'k', 'v'],
+                 'e': ['c', 'd', 'j'],
+                 'f': ['j', 'k'],
+                 'g': ['c', 'd', 'j', 'k'],
+                 'h': ['l', 'g'],
+                 'i': ['z', 'c', 'f', 'z'],
+                 'j': ['l', 'g', 'z'],
+                 'k': ['c', 'd', 'j', 'l', 'h'],
+                 'l': ['c', 'd', 'j', 'k', 'v'],
+                 'm': ['z', 'c', 'f', 'z', 'e'],
+                 'n': ['l', 'g', 'z', 'c', 'b'],
+                 'o': ['l', 'j', 'k', 'v'],
+                 'p': ['m', 'q', 'c', 'd'],
+                 'q': ['x', 'i', 'o'],
+                 'r': ['x', 'i', 'x'],
+                 's': ['m', 'q', 'c', 'd', 'h'],
+                 't': ['n', 'r', 'p', 'a', 'v'],
+                 'u': ['l', 'j'],
+                 'v': ['m', 'q'],
+                 'w': ['n', 'r'],
+                 'x': ['k', 'p', 't', 'w'],
+                 'y': ['n', 'r', 's', 'v'],
+                 'z': ['s', 'p', 'y', 'u']}
         """
         a = getDetAutomaton(self, a)
         return BetaAdicSet(self.b, self.a.union(a))
@@ -3846,22 +3564,36 @@ cdef class BetaAdicSet:
         EXAMPLES:
 
             #. The Rauzy fractal with a hole
-            sage: m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
-            sage: m = m.unshift([1,0,0,0]).complementary(m); m
-            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 7 states and 2 letters
-            sage: m.plot()      # not tested
-        
+                sage: m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
+                sage: m = m.unshift([1,0,0,0]).complementary(m); m
+                b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 7 states and 2 letters
+                sage: m.plot()      # not tested
+            
+            #. Complementary of a Rauzy fractal in another (for the same beta)
+                sage: s = WordMorphism('1->12,2->13,3->1')
+                sage: t = WordMorphism('1->12,2->31,3->1')
+                sage: a = s.DumontThomas().mirror()
+                sage: b = t.DumontThomas().mirror()
+                sage: m = b.complementary(a)
+                sage: m
+                b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 99 states and 2 letters
+                sage: m.plot()      # random
+                sage: m = a.complementary(b)
+                sage: m
+                b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 42 states and 3 letters
+                sage: m.plot()      # random
+
         """
         a = getDetAutomaton(self, a)
         return BetaAdicSet(self.b, self.proj(a, aut=True).complementary().intersection(a))
     
     def unshift(self, l):
         """
-        Return a BetaAdicSet with a unshiftted ``self.a`` of ``l``
+        Return a BetaAdicSet with a ``self.a`` unshifted by ``l``
 
         INPUT:
 
-        - ``l``  list of indices of letters or the index of a letter
+        - ``l``  list of indices of letters, or the index of a letter
 
         OUTPUT:
 
@@ -3869,10 +3601,10 @@ cdef class BetaAdicSet:
 
         EXAMPLE::
 
-            sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
+            sage: m = BetaAdicSet(x^3-x^2-x-1, dag.AnyWord([0,1]))
             sage: m.unshift(1)
             b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 2 states and 2 letters
-            sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
+            sage: m = BetaAdicSet(x^3-x^2-x-1, dag.AnyWord([0,1]))
             sage: m.unshift([0,1])
             b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 3 states and 2 letters
         """
@@ -3885,11 +3617,11 @@ cdef class BetaAdicSet:
     def diff(self, a):
         """
         Compute the difference of two beta-adic sets.
-        It is a beta-adic set which is the set of differences of the two beta-adic sets.
+        It is a beta-adic set describing the set of differences of the two beta-adic sets.
 
         INPUT:
 
-        - ``a``  an automaton
+        - ``a``  a BetaAdicSet or an automaton
 
         OUTPUT:
 
@@ -3898,10 +3630,25 @@ cdef class BetaAdicSet:
 
         EXAMPLES::
 
-            sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
+            sage: m = BetaAdicSet(x^3-x^2-x-1, dag.AnyWord([0,1]))
             sage: a = dag.AnyWord([0, 1, 2, 4])
             sage: m.diff(a)
             b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 states and 6 letters
+
+        #. Difference of a Rauzy fractal with itself
+            sage: m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
+            sage: mdr = m.diff(m).reduced()
+            sage: mdr
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 321 states and 3 letters
+            sage: mdr.plot()        # random
+
+        #. Covering of a Rauzy fractal by another
+            sage: m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror().unshift([0,0,0,0,0,0,0,0,0,0,0,0,0])
+            sage: m2 = WordMorphism('a->ab,b->ca,c->a').DumontThomas().mirror()
+            sage: mdr = m.diff(m2).reduced()    # long time (8s)
+            sage: mdr                           # long time
+            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1879 states and 5 letters
+            sage: mdr.plot()                    # random
 
         """
         a = getDetAutomaton(self, a)
@@ -3910,7 +3657,6 @@ cdef class BetaAdicSet:
     def is_Pisot(self, bool verb=False):
         """
         Test if the number b is the conjugate of a Pisot number or not.
-
 
         INPUT:
 
@@ -3983,30 +3729,29 @@ cdef class BetaAdicSet:
         INPUT:
 
         - ``n`` - integer (default: 1000)
-          The maximum number of iterations used to plot the fractal.
-          Default values: between ``5`` and ``16`` depending on the number
-          of generators.
+          The maximum number of iterations.
 
         - ``npts`` - integer (default: 10000 )
-          Approximation of the number of points computed.
+          Approximation of a bound on the number of points computed.
 
         OUTPUT:
 
-        Return (k, list of couples (state, point)), where k is the number of iterations computed.
+        Return (k, list of couples (state, point)),
+        where k is the number of iterations computed.
 
         EXAMPLES::
 
             #. The dragon fractal::
-            sage: m = BetaAdicSet(1/(1+I), [0, 1])
-            sage: print(m)
-            b-adic set with b root of x^2 - x + 1/2, and an automaton of 1 states and 2 letters
-            sage: P = m.points()
-            sage: P[0]
-            13
-            sage: len(P[1])
-            8192
-            sage: points([x.n() for i,x in P[1]], aspect_ratio=1)   # long time
-            Graphics object consisting of 1 graphics primitive
+                sage: m = BetaAdicSet(1/(1+I), [0, 1])
+                sage: print(m)
+                b-adic set with b root of x^2 - x + 1/2, and an automaton of 1 states and 2 letters
+                sage: P = m.points()
+                sage: P[0]
+                13
+                sage: len(P[1])
+                8192
+                sage: points([x.n() for i,x in P[1]], aspect_ratio=1)   # long time
+                Graphics object consisting of 1 graphics primitive
         """
         cdef int i, j, k, f, nA
         nA = self.a.a.na
@@ -4051,16 +3796,15 @@ cdef class BetaAdicSet:
 
         INPUT:
 
-        - ``p`` - integer
+        - ``p`` - place used to compute the diameter
 
-        - ``n`` - integer (default: 10 )
+        - ``n`` - integer (default: 10) - number of iterations
 
         - ``verb`` bool -- (default : ``False``) set to ``True`` for verbose mode
 
         OUTPUT:
 
-        Return the diameter  beta-adic sets.
-
+        double
 
         EXAMPLES::
 
@@ -4155,6 +3899,7 @@ cdef class BetaAdicSet:
         # from sage.functions.log import log
         P = [p for p in K.places() if abs(p(self.b)) < 1]
         M = [self.diameter(p, n=ndiam) for p in P]
+
         for i, p in enumerate(P):
             m = min([abs(p(b)) for b in Bd])
             if verb:
@@ -4209,7 +3954,7 @@ cdef class BetaAdicSet:
                                    int ndiam=20, bool verb=False):
         """
         Assume that self.b is a Pisot number.
-        Compute a list that contains the set of differences of points of the BetaAdicSet.
+        Compute a list that contains the set of positive differences of points of the BetaAdicSet.
         The list is increasing for the expanding place.
 
         INPUT:
@@ -4219,7 +3964,7 @@ cdef class BetaAdicSet:
           B : basis of a lattice containing the BetaAdicSet
 
         - ``ndiam`` int -- (default : 20): number of iterations used
-          for the estimation of the diameter
+          for the computation of the estimation of the diameter
 
         - ``verb`` bool -- (default : ``False``) set to ``True`` for verbose mode
 
@@ -4229,8 +3974,11 @@ cdef class BetaAdicSet:
         EXAMPLES::
 
             sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
-            sage: m.translations_diff_iterator().next()
+            sage: it = m.translations_diff_iterator()
+            sage: it.next()
             -b + 2
+            sage: it.next()
+            -b^2 + 2*b
 
         """
         cdef int n, i, j
@@ -4247,7 +3995,7 @@ cdef class BetaAdicSet:
         # from sage.functions.other import ceil
         # from sage.functions.log import log
         P = [p for p in K.places() if abs(p(self.b)) < 1]
-        M = [self.diameter(p) for p in P]
+        M = [self.diameter(p, ndiam) for p in P]
         for i, p in enumerate(P):
             m = min([abs(p(b)) for b in Bd])
             if verb:
@@ -4301,7 +4049,8 @@ cdef class BetaAdicSet:
                     break
             if keep:
                 yield t/bn
-    
+
+# TO BE ADDED LATER
 #    def interior(self, verb=False):
 #        r"""
 #        We assume that self.b is a Pisot number.

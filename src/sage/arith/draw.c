@@ -32,6 +32,7 @@ double sqr (double x)
     return x*x;
 }
 
+/*
 //rend une SDL_Surface contenant l'image
 void* OpenImage (const char *file_name)
 {
@@ -96,6 +97,7 @@ void SDLQuit ()
 {
     SDL_Quit();
 }
+*/
 
 //////////////////////////////TEST(
 #define WIDTH	800
