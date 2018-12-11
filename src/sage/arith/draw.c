@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include "SDL2/SDL.h"
-#include "SDL2/SDL_image.h"
 #include "complex.h"
 #include "Automaton.h"
 #include "automataC.h"
