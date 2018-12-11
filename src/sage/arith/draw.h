@@ -43,6 +43,7 @@ struct SDLImage
 };
 */
 
+/*
 //rend une SDL_Surface contenant l'image
 void* OpenImage (const char *file_name);
 bool InImage (void* img, int x, int y);
@@ -52,6 +53,7 @@ void CloseImage (void* img);
 void PrintImageError();
 void SDLInit();
 void SDLQuit();
+*/
 
 void *GetSDL_SurfaceFromNumpy (PyArrayObject *o);
 void SurfaceToNumpy (Surface *s, PyArrayObject *o);

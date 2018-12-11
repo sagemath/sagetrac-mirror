@@ -197,14 +197,14 @@ cdef extern from "draw.h":
     #    cdef cppclass SDLImage:
     #        void *img
 
-    void* OpenImage(const char *file_name)
-    bool InImage(void* img, int x, int y)
-    int ImageWidth(void *img)
-    int ImageHeight(void *img)
-    void CloseImage(void* img)
-    void PrintImageError()
-    void SDLInit()
-    void SDLQuit()
+#    void* OpenImage(const char *file_name)
+#    bool InImage(void* img, int x, int y)
+#    int ImageWidth(void *img)
+#    int ImageHeight(void *img)
+#    void CloseImage(void* img)
+#    void PrintImageError()
+#    void SDLInit()
+#    void SDLQuit()
     void *GetSDL_SurfaceFromNumpy (numpy.ndarray na)
     void SurfaceToNumpy (Surface *s, numpy.ndarray na)
     void SDL_SurfaceToNumpy (void *ss, numpy.ndarray na)
@@ -1001,66 +1001,70 @@ cdef class ImageIn:
     EXAMPLE::
     
         sage: from sage.arith.beta_adic import ImageIn
-        sage: ImageIn("Complete_adress_of_the_file")
-        *** Couldn't open Complete_adress_of_the_file ***
-        Image not loaded.
+        sage: ImageIn("SomeImage.png")
+        Traceback (most recent call last):
+        ...
+        IOError: [Errno 2] No such file or directory: 'SomeImage.png'
 
     """
-    cdef void** s
+    cdef numpy.ndarray img
 
-    def __cinit__(self):
-        sig_on()
-        SDLInit();
-        self.s = <void **>malloc(sizeof(void*))
-        sig_off()
+#    def __cinit__(self):
+#        sig_on()
+#        SDLInit();
+#        self.s = <void **>malloc(sizeof(void*))
+#        sig_off()
 
     def __init__(self, file_name):
-        sig_on()
-        self.s[0] = OpenImage(file_name)
-        sig_off()
+        import matplotlib.image as mpimg
+        self.img = mpimg.imread(file_name)
+#        sig_on()
+#        self.s[0] = OpenImage(file_name)
+#        sig_off()
 
-    def __dealloc__(self):
-        sig_on()
-        CloseImage(self.s[0])
-        free(self.s)
-        SDLQuit();
-        sig_off()
+#    def __dealloc__(self):
+#        sig_on()
+#        CloseImage(self.s[0])
+#        free(self.s)
+#        SDLQuit();
+#        sig_off()
 
     def __repr__(self):
-        if self.s[0] == NULL:
-            PrintImageError()
-            return "Image not loaded."
-        sig_on()
-        w = ImageWidth(self.s[0])
-        h = ImageHeight(self.s[0])
-        sig_off()
-        return "Image of size %sx%s" % (w, h)
+        if self.img.ndim < 2:
+            raise RuntimeError("the number of dimensions must be at least two")
+        return "Image of size %sx%s" % (self.img.shape[1], self.img.shape[0])
 
     def __contains__(self, p):
+        cdef int x,y,w,h
+        if self.img.ndim < 2:
+            raise RuntimeError("the number of dimensions must be at least two")
+        h = self.img.shape[0]
+        w = self.img.shape[1]
         from sage.rings.complex_field import ComplexField
         CC = ComplexField(53)
         try:
             p = CC(p)
-            sig_on()
-            r = InImage(self.s[0], p.real(), p.imag())
-            sig_off()
+            x = p.real
+            y = p.imag
         except:
-            sig_on()
-            r = InImage(self.s[0], p[0], p[1])
-            sig_off()
-        return r
+            x,y = p
+        if x < 0 or y < 0 or x >= w or y >= h:
+            return False
+        return self.img[y][x][3] > .5
 
-    def width(self):
-        sig_on()
-        r = ImageWidth(self.s[0])
-        sig_off()
-        return r
+    @property
+    def img(self):
+        return self.img
 
     def height(self):
-        sig_on()
-        r = ImageHeight(self.s[0])
-        sig_off()
-        return r
+        if self.img.ndim < 1:
+            raise RuntimeError("the number of dimensions must be at least one")
+        return self.img.shape[0]
+
+    def width(self):
+        if self.img.ndim < 2:
+            raise RuntimeError("the number of dimensions must be at least two")
+        return self.img.shape[1]
 
 
 def getDetAutomaton(self, a):
@@ -3433,12 +3437,12 @@ cdef class BetaAdicSet:
             #. BetaAdicSet approximating an image
                 sage: m = WordMorphism('1->12,2->13,3->1').DumontThomas().mirror()
                 sage: from sage.arith.beta_adic import ImageIn
-                sage: im = ImageIn("SomeImage.png")
-                sage: w = im.width()
-                sage: h = im.height()
-                sage: ma = max(w,h)
-                sage: pm = m.b.parent().places()[1]
-                sage: m.approx(15, lambda x: (pm(x).conjugate()+.5*(1+I))*ma in im)     # random (depends of the image loaded)
+                sage: im = ImageIn("SomeImage.png")                                     # not tested
+                sage: w = im.width()                                                    # not tested
+                sage: h = im.height()                                                   # not tested
+                sage: ma = max(w,h)                                                     # not tested
+                sage: pm = m.b.parent().places()[1]                                     # not tested
+                sage: m.approx(15, lambda x: (pm(x).conjugate()+.5*(1+I))*ma in im)     # not tested
         """
         cdef DetAutomaton a
         a = DetAutomaton(None, A=self.a.A)
