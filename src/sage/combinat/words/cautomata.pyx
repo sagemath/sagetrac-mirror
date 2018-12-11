@@ -320,10 +320,10 @@ cdef NAutomaton getNAutomaton(a, I=None, F=None, A=None, verb=False):
     cdef int na = len(A)
 
     if verb:
-        print("vertices=%s"%V)
+        print("vertices=%s" % V)
 
     if verb:
-        print("Alloc(%s, %s) and init..."%(n, na))
+        print("Alloc(%s, %s) and init..." % (n, na))
     sig_on()
     r = NewNAutomaton(n, na)
     # initNAutomaton(&r)
@@ -344,7 +344,7 @@ cdef NAutomaton getNAutomaton(a, I=None, F=None, A=None, verb=False):
             sig_off()
             raise ValueError("Incorrect set of final states.")
         if verb:
-            print("d[%s]=%s"%(v, d[v]))
+            print("d[%s]=%s" % (v, d[v]))
         r.e[d[v]].final = 1
     if verb:
         print("initial states...")
@@ -355,7 +355,7 @@ cdef NAutomaton getNAutomaton(a, I=None, F=None, A=None, verb=False):
             sig_off()
             raise ValueError("Incorrect set of final states.")
         if verb:
-            print("d[%s]=%s"%(v, d[v]))
+            print("d[%s]=%s" % (v, d[v]))
         r.e[d[v]].initial = 1
 
     if verb:
@@ -373,14 +373,14 @@ cdef NAutomaton getNAutomaton(a, I=None, F=None, A=None, verb=False):
     for e in V:
         r.e[d[e]].n = len(dt[e])
         if verb:
-            print("alloc r.e[%s].a (%s elements, %so total)"%(d[e], r.e[d[e]].n, sizeof(Transition)*r.e[d[e]].n))
+            print("alloc r.e[%s].a (%s elements, %so total)" % (d[e], r.e[d[e]].n, sizeof(Transition)*r.e[d[e]].n))
         if r.e[d[e]].n > 0:
             r.e[d[e]].a = <Transition *>malloc(sizeof(Transition)*r.e[d[e]].n)
             if r.e[d[e]].a is NULL:
                 raise MemoryError("Could not allocate the transition (size %s)"%(sizeof(Transition)*len(dt[e])))
             for i, (f, l) in enumerate(dt[e]):
                 if verb:
-                    print("r.e[%s].a[%s] = %s,%s"%(d[e], i, l, f))
+                    print("r.e[%s].a[%s] = %s,%s" % (d[e], i, l, f))
                 r.e[d[e]].a[i].l = da[l]
                 r.e[d[e]].a[i].e = d[f]
         else:
@@ -794,9 +794,9 @@ cdef class CAutomaton:
             2
         """
         if i >= self.a.n or i < 0:
-            raise ValueError("There is no state %s !"%i)
+            raise ValueError("There is no state %s !" % i)
         if j >= self.a.e[i].n or j < 0:
-            raise ValueError("The state %s has no edge number %s !"%(i,j))
+            raise ValueError("The state %s has no edge number %s !" % (i, j))
         return self.a.e[i].a[j].e
 
     # give the label of the jth edge of the state i
@@ -1176,7 +1176,7 @@ cdef class CAutomaton:
         if de:
             if verb:
                 print(" -> yes !")
-                print("alloc ll (size=%s)..."%self.a.na)
+                print("alloc ll (size=%s)..." % self.a.na)
             ll = <char **>malloc(sizeof(char*) * self.a.na)
             if ll is NULL:
                 raise MemoryError("Failed to allocate memory for ll in "
@@ -1275,11 +1275,12 @@ cdef class DetAutomaton:
         #self.dA = None
         #self.dS = None
 
-    def __init__(self, a, i=None, final_states=None, A=None, S=None, keep_S=True, verb=False):
+    def __init__(self, a, i=None, final_states=None,
+                 A=None, S=None, keep_S=True, verb=False):
         r"""
         INPUT:
 
-        -``a`` - a list, a DiGraph, or a ``DetAutomaton`` 
+        -``a`` - a list, a DiGraph, or a ``DetAutomaton``
 
         - ``i`` - (default: None) - initial state
 
@@ -1339,7 +1340,9 @@ cdef class DetAutomaton:
             if S is None:
                 a = DiGraph(a, multiedges=True, loops=True)
             else:
-                a = DiGraph([S,a], format='vertices_and_edges', multiedges=True, loops=True)
+                a = DiGraph([S, a],
+                            format='vertices_and_edges',
+                            multiedges=True, loops=True)
         if isinstance(a, DiGraph):
             if verb:
                 print("DiGraph...")
@@ -1569,12 +1572,12 @@ cdef class DetAutomaton:
         h += hashAutomaton(self.a[0])
         sig_off()
         return h
-    
-    def string (self):
+
+    def string(self):
         r"""
         Return a ``string`` that can be evaluated to recover the DetAutomaton.
         """
-        r = "DetAutomaton([%s, ["%self.states
+        r = "DetAutomaton([%s, [" % self.states
         c = 0
         for i in range(self.a.n):
             for j in range(self.a.na):
@@ -1582,18 +1585,18 @@ cdef class DetAutomaton:
                 if k != -1:
                     if c != 0:
                         r += ", "
-                    r += "(%s, %s, %s)"%(i, k, self.A[j])
+                    r += "(%s, %s, %s)" % (i, k, self.A[j])
                     c += 1
-        r += "]], A=%s, i=%s, final_states=%s)"%(self.A, self.a.i, self.final_states)
+        r += "]], A=%s, i=%s, final_states=%s)" % (self.A, self.a.i, self.final_states)
         return r
-    
-    def is_equal_to (self, DetAutomaton other, verb=False):
+
+    def is_equal_to(self, DetAutomaton other, verb=False):
         r"""
         Test if the two DetAutomata are equal.
         To be equal, the automata must have the same alphabet
         and exactly the same transitions
         (a permutation of the indices is not allowed).
-        
+
         INPUT:
 
         - ``other`` -- other :class:`DetAutomaton` to compare
@@ -1620,7 +1623,7 @@ cdef class DetAutomaton:
         r = equalsAutomaton(self.a[0], other.a[0], verb)
         sig_off()
         return c_bool(r)
-    
+
     def __richcmp__(self, DetAutomaton other, int op):
         r"""
         Compare function, Overwrite built-in function
@@ -1648,7 +1651,7 @@ cdef class DetAutomaton:
             Traceback (most recent call last):
             ...
             NotImplementedError: Comparaison <, >, <= or >= not implemented for DetAutomata.
-            
+
         """
         from sage.structure.richcmp import (op_EQ, op_NE)
         # (rich_to_bool,
@@ -1918,6 +1921,7 @@ cdef class DetAutomaton:
         else:
             raise ValueError("The initial state must be a state of the automaton or -1 : " +
                              "%d not in [-1, %d]" % (i, self.a.n - 1))
+
     @property
     def final_states(self):
         """
@@ -2263,7 +2267,7 @@ cdef class DetAutomaton:
         cdef Automaton a
         r = DetAutomaton(None)
         sig_on()
-        a = ZeroInv(self.a, z) # list(self.A).index(self.A[z]))
+        a = ZeroInv(self.a, z)  # list(self.A).index(self.A[z]))
         sig_off()
         r.a[0] = a
         r.A = self.A
@@ -2557,7 +2561,8 @@ cdef class DetAutomaton:
 
     def intersection(self, DetAutomaton a, verb=False, simplify=True):
         """
-        Give a automaton recognizing the intersection of the languages of ``self`` and ``a``.
+        Give a automaton recognizing the intersection of the languages
+        of ``self`` and ``a``.
 
         INPUT:
 
@@ -2665,7 +2670,7 @@ cdef class DetAutomaton:
         cdef DetAutomaton a = self.copy()
         a.shift_listOP(w)
         return dag.Word(w).concat(a)
-    
+
     def prefix_closure(self):
         """
         Give an automaton recognizing the smallest language stable
@@ -2730,7 +2735,7 @@ cdef class DetAutomaton:
         cdef DetAutomaton a1 = self
         cdef DetAutomaton a2 = a
 
-        #increase the alphabets if necessary
+        # increase the alphabets if necessary
         if set(a1.A) != set(a2.A):
             A = list(set(a1.A+a2.A))
             a1 = a1.bigger_alphabet(A)
@@ -2786,7 +2791,8 @@ cdef class DetAutomaton:
         """
         Split the automaton with respect to ``a`` a :class:`DetAutomaton`.
         Return two DetAutomaton recognizing the intersection of the language
-        of self with the one of a and with the complementary of the language of a.
+        of self with the one of a and with the complementary of the language
+        of a.
         Warning: There is a side-effect: the automaton self is completed.
 
         INPUT:
@@ -2821,7 +2827,7 @@ cdef class DetAutomaton:
         cdef Dict dC
         cdef DetAutomaton r, r2
         cdef list Av
-        
+
         # complete the automaton a
         sig_on()
         CompleteAutomaton(a.a)
@@ -2958,7 +2964,8 @@ cdef class DetAutomaton:
         cdef int i
         for i in l:
             if i < 0 or i >= self.a.na:
-                raise ValueError("%d is not the index of a letter (i.e. between 0 and %s) !"% (i, self.a.na))
+                raise ValueError("%d is not the index of a letter (i.e. between 0 and %s) !"
+                                 % (i, self.a.na))
             if self.a.i != -1:
                 self.a.i = self.a.e[self.a.i].f[i]
 
@@ -3013,7 +3020,7 @@ cdef class DetAutomaton:
         """
         Return a new automaton whose language is the set of words wu,
         where u is recognized by self, and w is the word
-        corresponding to the list of indices of letters l.  
+        corresponding to the list of indices of letters l.
 
         INPUT:
 
@@ -3134,7 +3141,8 @@ cdef class DetAutomaton:
 
     def concat(self, DetAutomaton b, det=True, simplify=True, verb=False):
         """
-        Return an automaton recognizing the concatenation of the languages of self and ``b``.
+        Return an automaton recognizing the concatenation of the
+        languages of self and ``b``.
 
         INPUT:
 
@@ -4058,13 +4066,13 @@ cdef class DetAutomaton:
                 if approx:
                     g = b.get_DiGraph()
                     if verb:
-                        print("g=%s"%g)
+                        print("g=%s" % g)
                     if g.is_aperiodic():
                         if verb:
                             print("aperiodic")
                         sp = g.spectral_radius()
                         if verb:
-                            print("sp=%s"%sp)
+                            print("sp=%s" % sp)
                     else:
                         if verb:
                             print("non aperiodic")
@@ -4072,7 +4080,7 @@ cdef class DetAutomaton:
                         sp = (r,r)
                     spm = max([sp, spm], key=lambda x:x[0])
                     if verb:
-                        print("spm=%s"%spm)
+                        print("spm=%s" % spm)
                 else:
                     m = b.adjacency_matrix()
                     cp = m.charpoly()
@@ -4171,7 +4179,7 @@ cdef class DetAutomaton:
             sage: c = DetAutomaton([(3, 2, 'd'), (1, 2, 'c')])
             sage: a.equal_languages(c)
             False
-            
+
             sage: a = DetAutomaton([(0,0,0), (0,1,1), (1,1,0), (1,1,1)], i=0)
             sage: dag.AnyWord([0,1]).equal_languages(a)
             True
@@ -4332,13 +4340,12 @@ cdef class DetAutomaton:
             []
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
             sage: a.shortest_word(i=2, f=1)
-            
+
             sage: a = DetAutomaton([(0, 0, 'x'), (0, 1, 'y')], i=0, final_states=[1])
             sage: a.shortest_word()
             ['y']
         """
         cdef Dict w
-        
         if i is None:
             i = self.a.i
         if f is None:
@@ -4379,7 +4386,6 @@ cdef class DetAutomaton:
 
         """
         cdef Dict* w
-        
         sig_on()
         w = <Dict*>malloc(sizeof(Dict) * self.a.n)
         sig_off()
@@ -4434,7 +4440,6 @@ cdef class DetAutomaton:
         cdef Dict d
         cdef dict rd
         cdef bool res
-        
         rd = {}
         for i, a in enumerate(self.A):
             rd[a] = i
@@ -4470,8 +4475,7 @@ cdef class DetAutomaton:
             False
         """
         cdef int i, e
-        cdef dict d
-        
+        cdef dict d     
         e = self.a.i
         if e == -1:
             return False
@@ -4586,7 +4590,7 @@ cdef class DetAutomaton:
 
         """
         return self.a.n
-        
+
     @property
     def n_letters(self):
         """
@@ -4635,7 +4639,6 @@ cdef class DetAutomaton:
         cdef Dict d
         cdef int i
         cdef DetAutomaton r
-        
         r = DetAutomaton(None)
         sig_on()
         d = NewDict(self.a.na)
@@ -4671,7 +4674,6 @@ cdef class DetAutomaton:
             DetAutomaton with 5 states and an alphabet of 2 letters
         """
         cdef i
-        
         self.complete()
         for i in range(self.a.n):
             self.a.e[i].final = not self.a.e[i].final
@@ -4731,7 +4733,6 @@ cdef class DetAutomaton:
         """
         cdef DetAutomaton b, a2
         cdef list A
-        
         if self.A != a.A:
             A = list(set(a.A+self.A))
             b = self.bigger_alphabet(A)
@@ -4827,7 +4828,7 @@ cdef class DetAutomaton:
             True
 
         """
-        return (self.find_word()==None)
+        return (self.find_word() is None)
 
     def random_word(self, int nmin=-1, int nmax=100):
         r"""
@@ -4835,27 +4836,26 @@ cdef class DetAutomaton:
         random path in the automaton from the initial state. If we don't fall
         into the set of final states before reaching the maximal length
         ``nmax``, then return ``word not found !``.
- 
+
         INPUT:
- 
+
         - ``nmin`` -- (default: -1) minimal length of the word
         - ``nmax`` -- (default: 100) maximal length of the word
- 
+
         OUTPUT:
- 
+
         Return a random word of length between ``nmin`` and ``nmax`` if found.
         Otherwise return ``word not found !``.
- 
+
         EXAMPLES::
- 
+
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b'), (0, 3, 'c')], i=0)
             sage: a.random_word()  # random
             ['a']
- 
+
         """
         cdef int i, j, l, na
         cdef list w, li
-        
         i = self.a.i
         w = []
         na = len(self.A)
@@ -4875,5 +4875,5 @@ cdef class DetAutomaton:
             l = li[(int)(random() * len(li))]
             w.append(self.A[l])
             i = self.succ(i, l)
-        if i<0 or not self.a.e[i].final:
+        if i < 0 or not self.a.e[i].final:
             print("word not found !")
