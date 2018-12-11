@@ -3416,6 +3416,7 @@ cdef class BetaAdicSet:
         Gives a BetaAdicSet describing an approximation of a set defined by the
         characteritic function test, with the alphabet of the automaton of self.
         Rk: could be improved by drawing with the automaton of self
+        see ref:`thematic_tutorial\beta_adic_set`
 
         INPUT:
 
@@ -3448,7 +3449,7 @@ cdef class BetaAdicSet:
                 b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 236 states and 2 letters
                 sage: m.plot_list([a])  # not tested
 
-            #. BetaAdicSet approximating an image see `thematic_tutorial\beta_adic_set`
+            #. BetaAdicSet approximating an image 
                 sage: m = WordMorphism('1->12,2->13,3->1').DumontThomas().mirror()
                 sage: from sage.arith.beta_adic import ImageIn
                 sage: im = ImageIn("SomeImage.png")                                     # not tested
