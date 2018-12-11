@@ -783,6 +783,15 @@ cdef Automaton getAutomaton(DetAutomaton a, list A, verb=False):
 
 def mahler(pi):
     from sage.rings.qqbar import AA
+    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+    from sage.rings.rational_field import RationalField
+    QQ = RationalField()
+    R = PolynomialRing(QQ, 'x')
+    try:
+        pi = R(pi)
+    except:
+        raise ValueError("The argument must be a polynomial over ZZ")
+    pi.leading_coefficient()
     pi *= pi.denominator()
     rr = pi.roots(ring=QQbar)
     p = pi.leading_coefficient()
@@ -3097,8 +3106,11 @@ cdef class BetaAdicSet:
         y = max(e, key=abs)
         if verb:
             print("")
-        #m = mahler((1/self.b).minpoly())
-        m = QQbar(self.b).abs()
+        #m = QQbar(mahler((1/self.b).minpoly()))
+        m = QQbar(self.b)
+        m = m*m.conjugate()
+        m.simplify()
+        m = m.sqrt()
         m.simplify()
         if m == 1:
             raise NotImplementedError("The computation of the critical exponent is not implemented for a number of absolute value 1.")
@@ -3157,7 +3169,7 @@ cdef class BetaAdicSet:
                 sage: b = P.roots(ring=QQbar)[3][0]
                 sage: m = BetaAdicSet(b, [0,1])
                 sage: m.critical_exponent()                    # long time
-                log(y)/log(|b|) where y is the max root of x^11 - 2*x^10 - 4*x^2 + 8*x + 2
+                log(y)/log(1.225816904767620?) where y is the max root of x^11 - 2*x^10 - 4*x^2 + 8*x + 2, and 1.225816904767620? is root of x^42 - 2*x^40 + 2*x^38 - 3*x^36 + 2*x^34 + x^32 - 8*x^30 - 3*x^28 + 6*x^26 + 10*x^24 + 4*x^22 + 4*x^20 + 14*x^18 + 6*x^16 - 11*x^14 - 21*x^12 + 20*x^10 - 9*x^8 + 2*x^6 + x^4 - 1.
                 3.3994454205...
 
             #. See more examples with doc critical_exponent_free()
