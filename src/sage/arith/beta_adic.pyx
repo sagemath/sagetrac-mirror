@@ -3787,10 +3787,10 @@ cdef class BetaAdicSet:
 
         INPUT:
 
-        - ``p`` - integer
+        - ``p`` - archimedian place
 
         - ``npts`` - integer (default: 10000 )
-          State of the automaton of self taken as the initial state .
+            Approximation of the number of points computed to find the bound.
 
         """
         pts = self.points(npts=npts)
@@ -3806,7 +3806,7 @@ cdef class BetaAdicSet:
 
         INPUT:
 
-        - ``p`` - place used to compute the diameter
+        - ``p`` - archimedian place used to compute the diameter
 
         - ``n`` - integer (default: 10) - number of iterations
 
@@ -3869,14 +3869,13 @@ cdef class BetaAdicSet:
 
     def translations_iterator(self, bool test_Pisot=True, int ndiam=20, bool verb=False):
         """
-        Assume that self.b is a Pisot number.
         Compute a list of numbers containing the positive
         part of the BetaAdicSet, ordered in the expanding direction.
+        Assume that self.b is the conjugate of a Pisot number.
 
         INPUT:
 
-        - ``test_Pisot``  bool -- (default : ``True``) : test if b is the conjugate of a Pisot number as needed
-          B : basis of a lattice containing the BetaAdicSet
+        - ``test_Pisot``  bool -- (default : ``True``) test if b is the conjugate of a Pisot number as needed
 
         - ``verb`` bool -- (default : ``False``) set to ``True`` for verbose mode
 
@@ -3963,9 +3962,9 @@ cdef class BetaAdicSet:
     def translations_diff_iterator(self, bool test_Pisot=True, 
                                    int ndiam=20, bool verb=False):
         """
-        Assume that self.b is a Pisot number.
         Compute a list that contains the set of positive differences of points of the BetaAdicSet.
         The list is increasing for the expanding place.
+        Assume that self.b is a Pisot number.
 
         INPUT:
 
@@ -4110,24 +4109,27 @@ cdef class BetaAdicSet:
                         int ndiam=30, bool verb=False):
 
         """
-        Assume that self.b is a Pisot number.
         Compute the domain exchange describing the BetaAdicSet.
+        Assume that self.b is a Pisot number.
         Return a list of (translation, BetaAdicSet).
 
         INPUT:
 
-        - ``n``  int -- (default : ``None``)
+        - ``n`` - int -- (default: ``None``)
 
-        - ``algo``  int -- (default : 1) nomro of algorithm
+        - ``algo`` - int -- (default: 1)
+            algorithm used to compute the list of translations
+        
+        - ``algo_rel`` - int -- (default: 3)
+            algorithm used to compute the relations automaton
 
-        - ``test_Pisot``  bool -- (default : ``True``) : test if b is 
-          the conjugate of a Pisot number as needed
-          B : basis of a lattice containing the BetaAdicSet
+        - ``test_Pisot``  bool -- (default: ``True``)
+            test if b is the conjugate of a Pisot number as needed
 
-        - ``ndiam`` int -- (default : 30) : number of iterations used for
+        - ``ndiam`` int -- (default: 30) : number of iterations used for
            the estimation of the diameter
 
-        - ``verb`` bool -- (default : ``False``) set to ``True`` 
+        - ``verb`` bool -- (default: ``False``) set to ``True`` 
           for verbose mode
 
 
@@ -4150,7 +4152,7 @@ cdef class BetaAdicSet:
             <PIL.Image.Image image mode=RGBA size=800x600 at 0x7F57DFF3BC10>
 
             # A more complicated domain exchange
-            sage: m = BetaAdicSet((x^3 - x^2 - x - 1).roots(ring=QQbar)[1][0], DetAutomaton([[0, 1], [(0, 17, 0), (0, 4, 1), (1, 16, 0), (2, 17, 0), (2, 4, 1), (3, 17, 0), (4, 17, 0), (5, 7, 0), (5, 0, 1), (6, 5, 0), (6, 0, 1), (7, 6, 0), (8, 10, 0), (9, 8, 0), (9, 0, 1), (10, 9, 0), (11, 15, 0), (11, 1, 1), (12, 14, 0), (12, 11, 1), (13, 8, 0), (13, 2, 1), (14, 13, 0), (14, 18, 1), (15, 5, 0), (15, 2, 1), (16, 17, 0), (16, 0, 1), (17, 17, 0), (17, 0, 1), (18, 16, 0), (18, 3, 1)]], i=12, final_states=[0, 1, 2, 3, 4, 16, 17, 18]))
+            sage: m = BetaAdicSet(x^3 - x^2 - x - 1, DetAutomaton([[0, 1], [(0, 17, 0), (0, 4, 1), (1, 16, 0), (2, 17, 0), (2, 4, 1), (3, 17, 0), (4, 17, 0), (5, 7, 0), (5, 0, 1), (6, 5, 0), (6, 0, 1), (7, 6, 0), (8, 10, 0), (9, 8, 0), (9, 0, 1), (10, 9, 0), (11, 15, 0), (11, 1, 1), (12, 14, 0), (12, 11, 1), (13, 8, 0), (13, 2, 1), (14, 13, 0), (14, 18, 1), (15, 5, 0), (15, 2, 1), (16, 17, 0), (16, 0, 1), (17, 17, 0), (17, 0, 1), (18, 16, 0), (18, 3, 1)]], i=12, final_states=[0, 1, 2, 3, 4, 16, 17, 18]))
             sage: l = m.domain_exchange(); l
             [(b^2 - b - 1,
               b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 5 states and 2 letters),
@@ -4166,6 +4168,8 @@ cdef class BetaAdicSet:
             <PIL.Image.Image image mode=RGBA size=800x600 at 0x7F57DFE50450>
             sage: m.plot_list([a.proj(m, t) for t,a in l])  # random
             <PIL.Image.Image image mode=RGBA size=800x600 at 0x7F57DFE50BD0>
+            
+            # See the thematic tutorial for more examples
 
         """
         if algo == 1:
@@ -4220,14 +4224,17 @@ cdef class BetaAdicSet:
         INPUT:
 
         - ``ap``- DetAutomaton (default: ``None``)
-            Language used to do the computations : we project everything on it. If ap is None, we use the automaton of self.
+            Language used to do the computations: we project everything on it. If ap is None, we use the automaton of self.
 
         - ``np``- int (default: ``None``)
-            Power of beta for the computing. The g-beta-expansion
+            Power of beta used for the computing. The BetaAdicSet
             must be b^np invariant.
+            If np is None, take the smallest possible positive integer.
 
-        - ``lt``- list (default: None) - list of elements of the integer rings
-            List of translations to compute the pieces exchange. If None, compute the domain exchange by calling self.domain_exchange().)
+        - ``lt``- list (default: None)
+            List of (DetAutomaton, translations) that describes the pieces exchange,
+            where the translation is an element of the integer ring.
+            If None, compute it by calling self.domain_exchange().
 
         - ``get_aut``- Bool (default: ``False``)
             If True, gives also the list of automata.
@@ -4247,7 +4254,7 @@ cdef class BetaAdicSet:
                 sage: m.substitution()
                 {1: [3], 2: [3, 1], 3: [3, 2]}
             
-            #. Exemple with infinitely many connected components and where zero is not an inner point
+            #. Example with infinitely many connected components and where zero is not an inner point
             
                 sage: m = BetaAdicSet(x^3-x^2-x-1, dag.AnyWord([0]).concat(dag.Word([1,0,0,0])).concat(dag.AnyWord([0,1])))
                 sage: WordMorphism(m.substitution())
@@ -4300,6 +4307,8 @@ cdef class BetaAdicSet:
                 7: [9, 2, 6, 8],
                 8: [6],
                 9: [7]}
+
+             #. See more examples in the thematic tutorial
         """
         cdef DetAutomaton a
         
