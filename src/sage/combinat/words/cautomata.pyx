@@ -72,7 +72,7 @@ cdef extern from "automataC.h":
     void NplotDot(const char *file, NAutomaton a, const char **labels, const char *graph_name, double sx, double sy, bool run_dot)
     Automaton Product(Automaton a1, Automaton a2, Dict d, bool verb)
     Automaton Determinize(Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb)
-    Automaton DeterminizeN(NAutomaton a, bool puits, int verb)
+    Automaton DeterminizeN(NAutomaton a, bool sink, int verb)
     NAutomaton Concat(Automaton a, Automaton b, bool verb)
     NAutomaton CopyN(Automaton a, bool verb)
     void AddTransitionN(NAutomaton *a, int e, int f, int l)
@@ -1114,8 +1114,8 @@ cdef class CAutomaton:
 
     def add_path(self, int e, int f, list li, verb=False):
         """
-        Add a path labeled by the list ``li`` between
-        states ``e`` and ``f`` of :class:`CAutomaton`
+        Add a path labeled by the list ``li`` from
+        state ``e`` to state ``f`` of :class:`CAutomaton`
 
         INPUT:
 
@@ -1147,13 +1147,13 @@ cdef class CAutomaton:
         free(l)
         sig_off()
 
-    def determinize(self, puits=False, verb=0):
+    def determinize(self, sink=False, verb=0):
         """
-        Determines a non determinist automaton with the same alphabet of ``self``
+        Compute a deterministic automaton that recognizes the same language as self.
 
         INPUT:
 
-        - ``puits``  -- (default: ``False``)
+        - ``sink``  -- (default: ``False``) - give a complete automaton, with a sink state
         - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
 
         OUTPUT:
@@ -1166,11 +1166,15 @@ cdef class CAutomaton:
             sage: b = CAutomaton(a)
             sage: b.determinize()
             DetAutomaton with 2 states and an alphabet of 2 letters
+            
+            sage: a = CAutomaton([(0,0,0),(0,0,1),(0,1,1),(1,2,0),(1,2,1),(2,3,0),(2,3,1),(3,4,0),(3,4,1)], I=[0], F=[4])
+            DetAutomaton with 16 states and an alphabet of 2 letters
+
         """
         cdef Automaton a
         r = DetAutomaton(None)
         sig_on()
-        a = DeterminizeN(self.a[0], puits, verb)
+        a = DeterminizeN(self.a[0], sink, verb)
         sig_off()
         r.a[0] = a
         r.A = self.A
@@ -1191,7 +1195,10 @@ cdef class CAutomaton:
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = CAutomaton(a)
-            sage: #g = b.plot()   # random
+            sage: b.plot()   # random
+
+            sage: a = CAutomaton([(0,0,0),(0,0,1),(0,1,1),(1,2,0),(1,2,1),(2,3,0),(2,3,1),(3,4,0),(3,4,1)], I=[0], F=[4])
+            sage: a.plot()   # random
 
         .. PLOT::
 
@@ -1250,13 +1257,11 @@ cdef class CAutomaton:
                 print(" -> no.")
             raise NotImplementedError("You cannot plot the CAutomaton without dot. Install the dot command of the GraphViz package.")
 
-# cdef set_DetAutomaton (DetAutomaton a, Automaton a2):
-#    a.a[0] = a2
 
 cdef class DetAutomaton:
     r"""
-    Class :class:`DetAutomaton`, this class encapsulates a C structure for Automata and 
-    implement methods to manipulate determinist automata.
+    Class :class:`DetAutomaton`, this class encapsulates a C structure
+    for deterministic automata and implement methods to manipulate them.
 
     EXAMPLES::
 
