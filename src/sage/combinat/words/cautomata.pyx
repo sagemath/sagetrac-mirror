@@ -1168,6 +1168,7 @@ cdef class CAutomaton:
             DetAutomaton with 2 states and an alphabet of 2 letters
             
             sage: a = CAutomaton([(0,0,0),(0,0,1),(0,1,1),(1,2,0),(1,2,1),(2,3,0),(2,3,1),(3,4,0),(3,4,1)], I=[0], F=[4])
+            sage: a.determinize()
             DetAutomaton with 16 states and an alphabet of 2 letters
 
         """
