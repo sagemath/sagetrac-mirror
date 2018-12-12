@@ -474,7 +474,7 @@ The Dragon Fractal
     m.plot_list([mi])
 
 .. image:: media/dragon1.png
-  :scale: 70 %
+   :scale: 70 %
 
 
 .. code-block:: Python
@@ -482,16 +482,17 @@ The Dragon Fractal
     mi.plot(nprec=6)
 
 .. image:: media/dragon2.png
-  :scale: 70 %
+   :scale: 70 %
+
 
 Compute the Hausdorff dimension.
 
 .. code-block:: Python
 
-    # compute the Hausdorff dimension
-    mi.critical_exponent()
-    log(y)/log(1.414213562373095?) where y is the max root of x^3 - x^2 - 2, and 1.414213562373095? is root of x^2 - 2.
-    1.523627086202492
+   # compute the Hausdorff dimension
+   mi.critical_exponent()
+   log(y)/log(1.414213562373095?) where y is the max root of x^3 - x^2 - 2, and 1.414213562373095? is root of x^2 - 2.
+   1.523627086202492
 
 
 Any Shape
@@ -508,13 +509,13 @@ Definition of the beta-Adic-Set:
 
 .. code-block:: Python
 
-    ######################################
-    # BetaAdicSet approximating a disk
-    ######################################
-    #. BetaAdicSet approximating a square
-    m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
-    m
-    b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 3 states and 2 letters
+   ######################################
+   # BetaAdicSet approximating a disk
+   ######################################
+   #. BetaAdicSet approximating a square
+   m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
+   m
+   b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 3 states and 2 letters
 
 
 The relation automaton associated
@@ -522,219 +523,199 @@ The relation automaton associated
 .. PLOT::
    :width: 60%
 
-    ######################################
-    # BetaAdicSet approximating a disk
-    ######################################
-    #. BetaAdicSet approximating a square
-    m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
-    a = m.relations_automaton()
-    sphinx_plot(a)
+   ######################################
+   # BetaAdicSet approximating a disk
+   ######################################
+   #. BetaAdicSet approximating a square
+   m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
+   a = m.relations_automaton()
+   sphinx_plot(a)
 
 
 .. code-block:: Python
 
-    pm = m.b.parent().places()[1]
-    pm
-    Ring morphism:
-      From: Number Field in b with defining polynomial x^3 - x^2 - x - 1
-      To:   Complex Field with 53 bits of precision
-      Defn: b |--> -0.419643377607080 + 0.606290729207199*I
+   pm = m.b.parent().places()[1]
+   pm
+   Ring morphism:
+     From: Number Field in b with defining polynomial x^3 - x^2 - x - 1
+     To:   Complex Field with 53 bits of precision
+     Defn: b |--> -0.419643377607080 + 0.606290729207199*I
 
 The disk definition:
 
 .. code-block:: Python
 
-    md = m.approx(14, lambda x: (pm(x).real())^2 + (pm(x).imag())^2 < .4)
-    print(md)
-    b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 265 states and 2 letters
+   md = m.approx(14, lambda x: (pm(x).real())^2 + (pm(x).imag())^2 < .4)
+   print(md)
+   b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 265 states and 2 letters
 
 .. code-block:: Python
 
-    m.plot_list([md])
+   m.plot_list([md])
 
 
 .. image:: media/shap1.png
-  :scale: 70 %
+   :scale: 70 %
 
 .. code-block:: Python
 
-    md1 = md.proj(m)
-    md1
-    b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 253 states and 2 letters
+   md1 = md.proj(m)
+   md1
+   b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 253 states and 2 letters
 
-    # domain exchange for this set
-    l = md1.domain_exchange()
-    print(l)
-    [(1, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 99 states and 2 letters), (b^2 - b, b-adic set with b root of x^3 - x^2
-    - x - 1, and an automaton of 70 states and 2 letters), (b, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 134 states and 2
-    letters), (b + 1, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 99 states and 2 letters), (b^2, b-adic set with b root of
-    x^3 - x^2 - x - 1, and an automaton of 164 states and 2 letters), (b^2 + 1, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of
-    61 states and 2 letters), (b^2 + b, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 37 states and 2 letters), 
-    (b^2 + b + 1, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 56 states and 2 letters)]
+   # domain exchange for this set
+   l = md1.domain_exchange()
+   print(l)
+   [(1, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 99 states and 2 letters), (b^2 - b, b-adic set with b root of x^3 - x^2
+   - x - 1, and an automaton of 70 states and 2 letters), (b, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 134 states and 2
+   letters), (b + 1, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 99 states and 2 letters), (b^2, b-adic set with b root of
+   x^3 - x^2 - x - 1, and an automaton of 164 states and 2 letters), (b^2 + 1, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of
+   61 states and 2 letters), (b^2 + b, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 37 states and 2 letters), 
+   (b^2 + b + 1, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 56 states and 2 letters)]
 
-    md1.plot_list([a for t,a in l], nprec=6)
+   md1.plot_list([a for t,a in l], nprec=6)
 
 .. image:: media/shap2.png
-  :scale: 70 %
+   :scale: 70 %
 
 And the domain exchange after exchange
 
 .. code-block:: Python
 
-    # plot the domain exchange after exchange
-    md1.plot_list([a.proj(md, t) for t,a in l], nprec=6)
+   # plot the domain exchange after exchange
+   md1.plot_list([a.proj(md, t) for t,a in l], nprec=6)
 
 .. image:: media/shap22.png
-  :scale: 70 %
+   :scale: 70 %
 
 Compute a substitution whose Rauzy fractal is this approximation of disk
 
 .. code-block:: Python
 
-    %time d, lm = md.substitution(get_aut=True)
-    d
-    CPU times: user 48.6 s, sys: 783 ms, total: 49.4 s
-    Wall time: 49.2 s
+   %time d, lm = md.substitution(get_aut=True)
+   d
+   CPU times: user 48.6 s, sys: 783 ms, total: 49.4 s
+   Wall time: 49.2 s
 
-    {1: [248, 318, 288, 324],
-     2: [168, 272, 92],
-     3: [264, 274],
-     4: [407, 2],
-     5: [117, 99],
-     6: [352, 218],
-     7: [226, 235, 372, 323],
-     8: [415, 134, 309, 232, 380, 291, 93],
-     9: [411, 6, 232, 288, 273, 208],
-     10: [374, 310, 123, 168, 292, 92],
-     11: [232, 169, 273, 208],
-     12: [232, 288, 281],
-     13: [411, 329, 232, 288, 273, 208],
-     14: [415, 339, 232, 380, 291, 93],
-     15: [237],
-     16: [4],
-     17: [5],
-     18: [152],
-     19: [8],
-     ...
-     ...
-     369: [364, 164, 123],
-     370: [364, 310, 123],
-     371: [326, 165],
-     372: [327, 165],
-     373: [331, 366, 126],
-     374: [396, 366, 126],
-     375: [343, 260],
-     376: [347, 260],
-     377: [414, 328, 232, 288, 281],
-     378: [410, 329, 232, 288, 280],
-     379: [375],
-     380: [376],
-     381: [377],
-     382: [378],
-     383: [369, 350],
-     384: [370, 344],
-     385: [381],
-     386: [382],
-     387: [385],
-     388: [386],
-     389: [191, 47],
-     390: [191, 308],
-     391: [383],
-     392: [384],
-     393: [373, 48, 125],
-     394: [373, 252, 125],
-     395: [393, 349],
-     396: [394, 349],
-     397: [345],
-     398: [346],
-     399: [352],
-     400: [390],
-     401: [395, 49, 126],
-     402: [396, 49, 126],
-     403: [401, 48, 231],
-     404: [402, 48, 231],
-     405: [395],
-     406: [374, 164, 123],
-     407: [374, 310, 123],
-     408: [406, 348],
-     409: [406, 350],
-     410: [408],
-     411: [409],
-     412: [407, 344],
-     413: [407, 348],
-     414: [412],
-     415: [413]}
+   {1: [248, 318, 288, 324],
+    2: [168, 272, 92],
+    3: [264, 274],
+    4: [407, 2],
+    5: [117, 99],
+    6: [352, 218],
+    7: [226, 235, 372, 323],
+    8: [415, 134, 309, 232, 380, 291, 93],
+    9: [411, 6, 232, 288, 273, 208],
+    10: [374, 310, 123, 168, 292, 92],
+    11: [232, 169, 273, 208],
+    12: [232, 288, 281],
+    13: [411, 329, 232, 288, 273, 208],
+    14: [415, 339, 232, 380, 291, 93],
+    15: [237],
+    16: [4],
+    17: [5],
+    18: [152],
+    19: [8],
+   ...
+   ...
+    389: [191, 47],
+    390: [191, 308],
+    391: [383],
+    392: [384],
+    393: [373, 48, 125],
+    394: [373, 252, 125],
+    395: [393, 349],
+    396: [394, 349],
+    397: [345],
+    398: [346],
+    399: [352],
+    400: [390],
+    401: [395, 49, 126],
+    402: [396, 49, 126],
+    403: [401, 48, 231],
+    404: [402, 48, 231],
+    405: [395],
+    406: [374, 164, 123],
+    407: [374, 310, 123],
+    408: [406, 348],
+    409: [406, 350],
+    410: [408],
+    411: [409],
+    412: [407, 344],
+    413: [407, 348],
+    414: [412],
+    415: [413]}
 
 .. code-block:: Python
 
-    s = WordMorphism(d)
-    s.rauzy_fractal_plot()
+   s = WordMorphism(d)
+   s.rauzy_fractal_plot()
 
 .. image:: media/shap3.png
-  :scale: 70 %
+   :scale: 70 %
 
 .. code-block:: Python
 
-    m.plot_list([a for a,t in lm], nprec=6)
+   m.plot_list([a for a,t in lm], nprec=6)
 
 .. image:: media/shap32.png
-  :scale: 70 %
+   :scale: 70 %
+
 
 Square
 ------
 
 Rauzy fractal approximating a square
 
-
 .. code-block:: Python
 
-    #########################################
-    # choose a Pisot number and an alphabet #
-    #########################################
-    pi = x^3-x^2-x-1 #Tribonacci
-    print(pi.roots(ring=CC))
-    b = pi.roots(ring=QQbar)[1][0] #we take the conjugate of modulus < 1 in order to plot the result
-    print b
-    m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
-    #m = BetaAdicSet(b, {0,1}) #choose the alphabet
-    pm = m.b.parent().places()[1]
-    ########################################
-    # Rauzy fractal approximating a square #
-    ########################################
-    #compute a g-b-set approximating a square
-    #the first argument of approx() is the precision,
-    #and the second one is the characteristic function of the shape to approximate
-    #the shape must be not too big in order to be inside the set of elements that admit a b-expansion
-    md  = m.approx(15, lambda x: abs(pm(x).real()) < .5 and abs(pm(x).imag()) < .5 )
-    m.plot_list([md])
-    [(1.83928675521416, 1), (-0.419643377607081 - 0.606290729207199*I, 1), (-0.419643377607081 + 0.606290729207199*I, 1)]
-    -0.4196433776070806? - 0.6062907292071993?*I
+   #########################################
+   # choose a Pisot number and an alphabet #
+   #########################################
+   pi = x^3-x^2-x-1 #Tribonacci
+   print(pi.roots(ring=CC))
+   b = pi.roots(ring=QQbar)[1][0] #we take the conjugate of modulus < 1 in order to plot the result
+   print b
+   m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
+   #m = BetaAdicSet(b, {0,1}) #choose the alphabet
+   pm = m.b.parent().places()[1]
+   ########################################
+   # Rauzy fractal approximating a square #
+   ########################################
+   #compute a g-b-set approximating a square
+   #the first argument of approx() is the precision,
+   #and the second one is the characteristic function of the shape to approximate
+   #the shape must be not too big in order to be inside the set of elements that admit a b-expansion
+   md  = m.approx(15, lambda x: abs(pm(x).real()) < .5 and abs(pm(x).imag()) < .5 )
+   m.plot_list([md])
+   [(1.83928675521416, 1), (-0.419643377607081 - 0.606290729207199*I, 1), (-0.419643377607081 + 0.606290729207199*I, 1)]
+   -0.4196433776070806? - 0.6062907292071993?*I
 
 
 .. image:: media/square1.png
-  :scale: 70 %
+   :scale: 70 %
 
 
 .. code-block:: Python
 
-    md = md.proj(m)
-    mdb-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 241 states and 2 letters
+   md = md.proj(m)
+   mdb-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 241 states and 2 letters
 
 domain exchange
 
 .. code-block:: Python
 
-    # domain exchange for this set
-    l = md.domain_exchange()
-    print(l)
-    md.plot_list([a for t,a in l], nprec=6)
-    [(1, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 84 states and 2 letters), 
-    (b, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 142 states and 2 letters), 
-    (b + 1, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 128 states and 2 letters),
-    (b^2, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 168 states and 2 letters), 
-    (b^2 + 1, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 115 states and 2 letters), 
-    (b^2 + b, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 84 states and 2 letters), 
-    (b^2 + b + 1, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 91 states and 2 letters)]
+   # domain exchange for this set
+   l = md.domain_exchange()
+   print(l)
+   md.plot_list([a for t,a in l], nprec=6)
+   [(1, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 84 states and 2 letters), 
+   (b, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 142 states and 2 letters), 
+   (b + 1, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 128 states and 2 letters),
+   (b^2, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 168 states and 2 letters), 
+   (b^2 + 1, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 115 states and 2 letters), 
+   (b^2 + b, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 84 states and 2 letters), 
+   (b^2 + b + 1, b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 91 states and 2 letters)]
 
 
 .. image:: media/square2.png
@@ -744,60 +725,60 @@ The projection
 
 .. code-block:: Python
 
-    # plot the domain exchange after exchange
-    md.plot_list([a.proj(md, t) for t,a in l], nprec=6)
+   # plot the domain exchange after exchange
+   md.plot_list([a.proj(md, t) for t,a in l], nprec=6)
 
 .. image:: media/square3.png
   :scale: 70 %
 
 .. code-block:: Python
 
-    d , lm = md.substitution(get_aut=True)
-    d
-    {1: [244, 131, 200, 174],
-     2: [265, 160, 206],
-     3: [31, 1, 262],
-     4: [314, 72, 132, 265, 86],
-     5: [77, 174, 121],
-     6: [100, 278, 184, 74, 94],
-     7: [298, 308, 203, 277, 124, 217, 105],
-     8: [189, 244, 40, 77, 186, 121],
-     9: [255, 275, 239, 74],
-     10: [56, 69, 1, 262],
-     11: [25, 154, 241, 261],
-     12: [117, 258, 288],
-     13: [301, 66, 157],
-     14: [301, 66, 26],
-     15: [301, 20, 28],
-     16: [201, 140, 22],
-     17: [201, 290, 8],
-     18: [77, 186, 121],
-     19: [255, 304, 152, 239, 74, 93],
-     20: [196, 296, 291, 217, 105],
-     21: [129, 296, 123, 216, 106],
-     22: [244, 43, 77, 174, 121],
-    ...
-    ...
-     302: [194, 303, 16],
-     303: [194, 303, 39],
-     304: [274, 178],
-     305: [274, 219],
-     306: [201, 290, 293, 18],
-     307: [201, 290, 294, 18],
-     308: [210, 235, 103],
-     309: [210, 236, 103],
-     310: [297, 309],
-     311: [210, 234, 103],
-     312: [210, 234, 169],
-     313: [210, 234, 252],
-     314: [297, 311],
-     315: [297, 312]}
+   d , lm = md.substitution(get_aut=True)
+   d
+   {1: [244, 131, 200, 174],
+    2: [265, 160, 206],
+    3: [31, 1, 262],
+    4: [314, 72, 132, 265, 86],
+    5: [77, 174, 121],
+    6: [100, 278, 184, 74, 94],
+    7: [298, 308, 203, 277, 124, 217, 105],
+    8: [189, 244, 40, 77, 186, 121],
+    9: [255, 275, 239, 74],
+    10: [56, 69, 1, 262],
+    11: [25, 154, 241, 261],
+    12: [117, 258, 288],
+    13: [301, 66, 157],
+    14: [301, 66, 26],
+    15: [301, 20, 28],
+    16: [201, 140, 22],
+    17: [201, 290, 8],
+    18: [77, 186, 121],
+    19: [255, 304, 152, 239, 74, 93],
+    20: [196, 296, 291, 217, 105],
+    21: [129, 296, 123, 216, 106],
+    22: [244, 43, 77, 174, 121],
+   ...
+   ...
+    302: [194, 303, 16],
+    303: [194, 303, 39],
+    304: [274, 178],
+    305: [274, 219],
+    306: [201, 290, 293, 18],
+    307: [201, 290, 294, 18],
+    308: [210, 235, 103],
+    309: [210, 236, 103],
+    310: [297, 309],
+    311: [210, 234, 103],
+    312: [210, 234, 169],
+    313: [210, 234, 252],
+    314: [297, 311],
+    315: [297, 312]}
 
 
 .. code-block:: Python
 
-     s = WordMorphism(d)
-     s.rauzy_fractal_plot()
+    s = WordMorphism(d)
+    s.rauzy_fractal_plot()
 
 .. image:: media/square4.png
   :scale: 70 %
@@ -805,7 +786,7 @@ The projection
 
 .. code-block:: Python
 
-     m.plot_list([a for a,t in lm], nprec=6)
+    m.plot_list([a for a,t in lm], nprec=6)
 
 
 .. image:: media/square5.png
@@ -814,6 +795,7 @@ The projection
 User Draw Shape
 ---------------
 
+.. code-block:: Python
 
      #########################################
      # choose a Pisot number and an alphabet #
@@ -868,17 +850,17 @@ described in figure
 
 .. code-block:: Python
 
-     # compute a domain exchange
-     l = md.domain_exchange()
-     print("Exchange with %s pieces."%len(l))
+   # compute a domain exchange
+   l = md.domain_exchange()
+   print("Exchange with %s pieces."%len(l))
 
-     Exchange with 17 pieces.
+   Exchange with 17 pieces.
 
 
 .. code-block:: Python
 
-     md = md.proj(m)
-     md.plot_list([a for t,a in l], nprec=6)
+   md = md.proj(m)
+   md.plot_list([a for t,a in l], nprec=6)
 
 .. image:: media/gabian2.png
   :scale: 70 %
@@ -891,12 +873,6 @@ described in figure
 
 .. image:: media/gabian3.png
   :scale: 70 %
-
-Substitution over 328 letters whose Perron number is the
-6 th power of the Tribonnacci number. The minimal automaton
-recognizing the language L Q of the g-β-set Q has 714 states, for β the
-Tribonnacci number, and for the alphabet {0, 1}.
-
 
 
 .. code-block:: Python
