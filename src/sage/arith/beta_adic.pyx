@@ -904,13 +904,13 @@ cdef class ImageIn:
     r"""
     This class permits to load an image and test
     if a point is in the image or outside (using transparency).
-    
+
     INPUT:
-    
-    -- file_name - The location of the image file.
-    
+
+    - file_name - The location of the image file.
+
     EXAMPLE::
-    
+
         sage: from sage.arith.beta_adic import ImageIn
         sage: ImageIn("SomeImage.png")
         Traceback (most recent call last):
@@ -975,31 +975,32 @@ def getDetAutomaton(self, a):
             raise ValueError("The argument a must be a BetaAdicSet or an automaton.")
     return a
 
+
 cdef class BetaBase:
     r"""
     The purpose of this class is just to write more conveniently some computations.
     It is used in the computation of a substitution describing a BetaAdicSet.
     """
-    
+
     def __init__(self, b):
         self.m = BetaAdicSet(b, DetAutomaton(None))
         self.b = self.m.b
-    
+
     @property
     def b(self):
         return self.b
-    
+
     def Proj(self, DetAutomaton a, DetAutomaton b, t=0, arel=None, bool only_aut=True):
         self.m.a = a
         return self.m.proj(b, t=-t, arel=arel, aut=only_aut)
-        
+
     def relations_automaton(self, t=0, bool isvide=False, list Ad=None, list A=None, list B=None,
                              bool couples=False, bool ext=False, bool mirror=False,
                              bool prune=True, int nhash=1000003, int prec=53, int algo=3, int coeff=1, bool verb=False):
         return self.m.relations_automaton(t=-t, isvide=isvide, Ad=Ad, A=A, B=B,
                              couples=couples, ext=ext, mirror=mirror,
                              prune=prune, nhash=nhash, prec=prec, algo=algo, coeff=coeff, verb=verb)
-        
+
 cdef getBetaAdicSet(BetaAdicSet self, a):
     if type(a) is BetaAdicSet:
         if self.b != a.b:
@@ -1504,7 +1505,7 @@ cdef class BetaAdicSet:
                 sage: m = BetaAdicSet(1/(1+I), [0, 1])
                 sage: P = m.user_draw()     # not tested (need the intervention of the user)
                 sage: P.string()            # not tested
-            
+
             #. Draw a BetaAdicSet from a Rauzy fractal::
 
                 sage: m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
@@ -1581,7 +1582,8 @@ cdef class BetaAdicSet:
 
                 sage: m = BetaAdicSet(1/(1+I), [0, 1])
                 sage: w = m.draw_zoom()     # not tested (need the intervention of the user)
-            
+
+
             #. Zoom in a complicated Rauzy fractal
 
                 sage: s = WordMorphism('1->2,2->3,3->12')
@@ -1831,9 +1833,9 @@ cdef class BetaAdicSet:
             sage: m = BetaAdicSet(x^4 + x^3 - x + 1, [0,1])
             sage: m = m.reduced().mirror()
             sage: m.plot_list(mirror=True)                 # random
-        
+
         #. Plot a domain exchange computed from a BetaAdicSet
-        
+
             sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
             sage: m = s.DumontThomas().mirror()
             sage: la = m.domain_exchange()              # long time
@@ -1954,9 +1956,9 @@ cdef class BetaAdicSet:
             sage: m.relations_automaton(ext=True)
             DetAutomaton with 7 states and an alphabet of 3 letters
             sage: m.plot()          #random
-            
+
         TESTS::
-            
+
             sage: m = BetaAdicSet(x^3-x-1, [0,1])
             sage: a1 = m.relations_automaton(algo=1)
             sage: a2 = m.relations_automaton(algo=2)
@@ -1965,7 +1967,7 @@ cdef class BetaAdicSet:
             True
             sage: a2.equal_languages(a3)
             True
-            
+
             sage: m = BetaAdicSet(1/pi, [0,1])
             sage: m.relations_automaton()
             Traceback (most recent call last):
@@ -3051,6 +3053,7 @@ cdef class BetaAdicSet:
         Gives a BetaAdicSet describing an approximation of a set defined by the
         characteritic function test, with the alphabet of the automaton of self.
         Rk: could be improved by drawing with the automaton of self
+        see ref:`thematic_tutorial\beta_adic_set`
 
         INPUT:
 
@@ -3082,8 +3085,8 @@ cdef class BetaAdicSet:
                 sage: print(a)
                 b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 236 states and 2 letters
                 sage: m.plot_list([a])  # not tested
-            
-            #. BetaAdicSet approximating an image
+
+            #. BetaAdicSet approximating an image 
                 sage: m = WordMorphism('1->12,2->13,3->1').DumontThomas().mirror()
                 sage: from sage.arith.beta_adic import ImageIn
                 sage: im = ImageIn("SomeImage.png")                                     # not tested
@@ -3207,9 +3210,9 @@ cdef class BetaAdicSet:
         OUTPUT:
         
         A BetaAdicSet.
-        
+
         EXAMPLES:
-        
+
             #. The Rauzy fractal with a hole
                 sage: m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
                 sage: m = m.unshift([1,0,0,0]).complementary(m); m
@@ -3896,17 +3899,17 @@ cdef class BetaAdicSet:
                 sage: m = BetaAdicSet(x^3-x^2-x-1, dag.AnyWord([0]).concat(dag.Word([1,0,0,0])).concat(dag.AnyWord([0,1])))
                 sage: WordMorphism(m.substitution())
                 WordMorphism: a->c, b->ba, c->d, d->h, e->gi, f->jma, g->fma, h->be, i->l, j->bma, k->ga, l->fe, m->gka
-                
+
             #. Substitution whose Rauzy fractal approximate a disk
-            
+
                 sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
                 sage: pm = m.b.parent().places()[1]
                 sage: a = m.approx(13, lambda x: (pm(x).real())^2 + (pm(x).imag())^2 < .4 )
                 sage: s = WordMorphism(a.substitution())    # long time (>30s)
                 sage: s.rauzy_fractal_plot()                # not tested
-             
+
             #. Find a substitution whose Rauzy fractal is what the user draw
-            
+
                 sage: m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
                 sage: m = m.user_draw()                     # not tested (need the intervention of the user)
                 sage: s = WordMorphism(m.substitution())    # not tested
