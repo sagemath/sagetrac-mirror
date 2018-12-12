@@ -1,7 +1,7 @@
 # coding=utf8
 """
 Det automaton of Finite state machines using C
-DetAutomaton for determinist automata and CAutomaton for non determinist
+DetAutomaton for determinist automata and CAutomaton for non necessarily determinist automaton
 
 
 AUTHORS:
@@ -450,11 +450,26 @@ cdef AutomatonToDiGraph(Automaton a, A, keep_edges_labels=True):
 cdef class CAutomaton:
     """
     Class :class:`CAutomaton`, this class encapsulates a C structure
-    for Automata and implement methods to manipulate non-determinist automata.
+    for Automata and implement methods to manipulate them.
 
     INPUT:
 
-    - ``a`` -- automaton must be a :class:`DetAutomaton`
+    - ``a`` -- an automaton given as a list, a DiGraph, an Automaton, a DetAutomaton or a CAutomaton
+
+    - ``I`` -- list (default: None)
+        The set of initial states.
+
+    - ``F`` -- list (default: None)
+        The set of final states.
+
+    - ``A```-- list (default: None)
+        The alphabet.
+
+    - ``keep_S`` -- bool (default: True)
+        Keep the labels of the states.
+    
+    - ``verb`` -- bool (default: False)
+        Display informations for debugging.
 
     OUTPUT:
 
@@ -489,31 +504,6 @@ cdef class CAutomaton:
         self.a.na = 0
         self.A = []
         self.S = None
-
-#    def _initialise_automaton(self, a):
-#        """
-#        Transform a determinist :class:`DetAutomaton` to a non determinist
-#        :class:`CAutomaton`
-#
-#        INPUT:
-#
-#        - ``a`` -- automaton must be a :class:`DetAutomaton`
-#
-#        OUTPUT:
-#
-#        Return a instance of :class:`CAutomaton` initialized with ``a``
-#
-#        EXAMPLES::
-#                sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
-#                sage: b = CAutomaton(a)
-#                sage: b
-#                CAutomaton with 4 states and an alphabet of 2 letters
-#        """
-#        if type(a) == DetAutomaton:
-#            a.copyn(self)
-#        else:
-#            raise NotImplementedError("Cannot construct directly a CAutomaton for the moment, except from a deterministic one.")
-#        return self
 
     def __init__(self, a, I=None, F=None, A=None, keep_S=True, verb=False):
         """
@@ -571,20 +561,14 @@ cdef class CAutomaton:
             sig_off()
             self.A = na.A
             self.S = na.S
-            # self = a.copy()
         elif isinstance(a, DetAutomaton):
             if verb:
                 print("DetAutomaton")
             da = a
-            # self = a.copyn()
             self.a[0] = CopyN(da.a[0], verb=verb)
             self.A = da.A
         else:
             raise ValueError("Cannot convert the input to CAutomaton.")
-#        if a is None:
-#            pass
-#        else:
-#            self = self._initialise_automaton(a)
 
     def __dealloc__(self):
         sig_on()

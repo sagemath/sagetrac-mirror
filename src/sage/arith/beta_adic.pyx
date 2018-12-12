@@ -43,55 +43,18 @@ EXAMPLES::
 # *****************************************************************************
 from sage.sets.set import Set
 from sage.rings.qqbar import QQbar
-# from sage.rings.padics.all import *
 from sage.rings.padics.factory import Qp
 from libc.stdlib cimport malloc, free
 from math import pi as pi_number
-# from sage.structure.factory import UniqueFactory
-# from sage.misc.cachefunc import cached_method
 from cysignals.signals cimport sig_on, sig_off
 cimport sage.combinat.words.cautomata
 from sage.combinat.words.cautomata cimport DetAutomaton, FreeAutomaton
 from sage.combinat.words.cautomata_generators import DetAutomatonGenerators
 from sage.rings.integer import Integer
 from sage.combinat.words.morphism import WordMorphism
-#from sage.rings.number_field.all import *
 from sage.rings.number_field.number_field import NumberField
-# from sage.structure.parent_gens import normalize_names
-# from free_monoid_element import FreeMonoidElement
 
-
-# from sage.combinat.words.automata import Automaton
-# from sage.combinat.words.cautomata import DetAutomaton
-
-# from sage.structure.factory import UniqueFactory
-# from sage.misc.cachefunc import cached_method
 from cysignals.signals cimport sig_on, sig_off
-
-
-# garde la composante fortement connexe de 0
-# def prune(a, K):
-#     """
-#     Return the strongly connex component
-#
-#     INPUT:
-#
-#     - ``a`` a tree
-#     - ``K``
-#
-#     OUTPUT:
-#
-#     the the strongly  connex component of a which
-#     correspond the the K zeros
-#
-#     EXAMPLES::
-#
-#         sage:
-#         sage: prune()
-#     """
-#     for s in a.strongly_connected_components_subgraphs():
-#         if K.zero() in s:
-#             return s
 
 cdef extern from "complex.h":
     cdef cppclass Complexe:
@@ -131,19 +94,19 @@ cdef extern from "relations.h":
         int *c  # liste des n coeffs
 
     cdef cppclass PlaceArch:
-        Complexe *c  # 1, b, b^2, ... pour cette place
+        Complexe *c  # 1, b, b^2, ... for this place
 
-    # structure contenant les infos nécessaires pour calculer l'automate des relations
+    # class containing the informations needed to compute the relations automaton
     cdef cppclass InfoBetaAdic:
-        int n         # degre
+        int n         # degree
         Element bn    # expression of b^n as a polynome in b of degree < n
         Element b1    # expression of 1/b as a polynome in b of degree < n
-        Element *c    # list of figures used for the calculation of  relations' automaton
-        int nc        # number of figures
-        int ncmax     # number of allocated figures
+        Element *c    # list of digits used for the calculation of relations automaton
+        int nc        # number of digits
+        int ncmax     # number of allocated digits
         PlaceArch *p  # list of na places
-        double *cM    # square of valeurs absolues max
-        int na        # number of va
+        double *cM    # square of the bound
+        int na        # number of places
 
     Element NewElement(int n)
     void FreeElement(Element e)
@@ -184,27 +147,17 @@ cdef extern from "draw.h":
         double y
     cdef cppclass BetaAdic:
         Complexe b
-        Complexe* t  # liste des translations
-        int n        # nombre de translations
+        Complexe* t  # list of translations
+        int n        # number of translations
         Automaton a
     cdef cppclass BetaAdic2:
         Complexe b
-        Complexe* t  # liste des translations
-        int n        # nombre de translations
+        Complexe* t  # list of translations
+        int n        # number of translations
         Automaton* a
         int na
     ctypedef Color* ColorList
-    #    cdef cppclass SDLImage:
-    #        void *img
 
-#    void* OpenImage(const char *file_name)
-#    bool InImage(void* img, int x, int y)
-#    int ImageWidth(void *img)
-#    int ImageHeight(void *img)
-#    void CloseImage(void* img)
-#    void PrintImageError()
-#    void SDLInit()
-#    void SDLQuit()
     void *GetSDL_SurfaceFromNumpy (numpy.ndarray na)
     void SurfaceToNumpy (Surface *s, numpy.ndarray na)
     void SDL_SurfaceToNumpy (void *ss, numpy.ndarray na)
@@ -573,7 +526,7 @@ def plot_Cadic2(numpy.ndarray dv, int sx=800, int sy=600,
     return Image.fromarray(im, 'RGBA')
 
 
-# calcul de la valeur absolue p-adique
+# compute the p-adic absolute value
 def absp(c, p, d):
     """
     Computation of the p-adic absolute value.
@@ -616,9 +569,9 @@ cdef InfoBetaAdic initInfoBetaAdic(self,
     if verb:
         print(K)
 
-    # détermine les places qu'il faut considérer
+    # determine the places to consider
     parch = []
-    for p in K.places():  # places archimédiennes
+    for p in K.places():  # archimedian places
         if plus:
             if p(b).abs() > 1:
                 parch += [p]
@@ -627,18 +580,18 @@ cdef InfoBetaAdic initInfoBetaAdic(self,
                 parch += [p]
     pi = K.defining_polynomial()
     from sage.arith.misc import gcd
-    # rend le polynôme à coefficients entiers et de contenu 1
+    # return the polynomial with integer coefficients and capacity 1
     pi = pi / gcd(pi.list())
     if verb:
         print("pi=%s" % pi)
-    # liste des nombres premiers concernés
+    # list of concerned prime numbers
     lp = (Integer(pi.list()[0])).prime_divisors()
     if verb:
         print("lp=%s" % lp)
-    # liste des place  s ultramétriques considérées
+    # list of the considered ultrametric places
     pultra = []
     for p in lp:
-        # détermine toutes les places au dessus de p dans le corps de nombres K
+        # find every places behind p in the field K
         k = Qp(p)
         Kp = k['a']
         a = Kp.gen()
@@ -664,7 +617,7 @@ cdef InfoBetaAdic initInfoBetaAdic(self,
 
     if (len(pultra) > 0):
         raise ValueError("Not implemented for b algebraic non-integer.")
-    # calcule les bornes max pour chaque valeur absolue
+    # compute the max bound for each absolute value
     if Ad is None:
         Ad = Set([c-c2 for c in A for c2 in A])
     Ad = [K(c) for c in Ad]
@@ -681,23 +634,23 @@ cdef InfoBetaAdic initInfoBetaAdic(self,
     i = allocInfoBetaAdic(n, na, ncmax, nhash, verb)
     sig_off()
     cdef int j
-    # initialise bn
+    # initialize bn
     if verb:
         print("init bn...")
     getElement(b**n, i.bn, n)
-    # initialise b1
+    # initialize b1
     if verb:
         print("init b1...")
     getElement(1/b, i.b1, n)
-    # initialise les places
+    # initialize places
     if verb:
         print("init places...")
     for k in range(na):
         for j in range(n):
             i.p[k].c[j] = complex(parch[k](b**j))
-    # initialise les chiffres et bornes
+    # initialize digits and bounds
     if verb:
-        print("init chiffres...")
+        print("init digits...")
     initCdInfoBetaAdic(self, &i, Ad=Ad, parch=parch, verb=verb)
     return i
 
@@ -712,7 +665,7 @@ cdef initCdInfoBetaAdic(self, InfoBetaAdic *i, list Ad, list parch, verb=False):
     # conversion to C
     i.nc = len(Ad)
     if i.nc > i.ncmax:
-        raise ValueError("Too much decimals : %d > %d max (initialize BetaAdicSet with more digits)."%(i.nc, i.ncmax))
+        raise ValueError("Too much digits : %d > %d max (initialize BetaAdicSet with more digits)."%(i.nc, i.ncmax))
     for j, c in enumerate(Ad):
         getElement(c, i.c[j], i.n)
     for j, p in enumerate(parch):
@@ -735,7 +688,6 @@ cdef Color getColor(c):
     return r
 
 cdef surface_to_img(Surface s):
-    # print("surface_to_img %s, %s..."%(s.sx, s.sy))
     import numpy as np
     from PIL import Image
     # arr = np.empty([s.sy, s.sx], dtype=['uint8', 'uint8', 'uint8', 'uint8'])
@@ -752,14 +704,10 @@ cdef surface_to_img(Surface s):
 #            #arr[y, x]['g'] = c.g
 #            #arr[y, x]['b'] = c.b
 #            arr[y, x] = c.r | c.g << 8 | c.b << 16 | c.a<<24;
-    #print("Surface to numpy...")
     sig_on()
     SurfaceToNumpy (&s, arr)
     sig_off()
-    #print("...done !")
     return Image.fromarray(arr, 'RGBA')
-    # img.save("/Users/mercat/Desktop/output.png")
-    # img.save(file)
 
 cdef Automaton getAutomaton(DetAutomaton a, list A, verb=False):
     cdef int i
@@ -864,29 +812,6 @@ cdef BetaAdic2 getBetaAdic2(BetaAdicSet self, la=None,
         b.a[i] = getAutomaton(getDetAutomaton(self, la[i]), A=A, verb=verb)
     return b
 
-#def PrintWord(m, n):
-#    """
-#    Print of beta adic 
-#
-#    INPUT:
-#
-#    - ``m`` first word argument
-#
-#    - ``n`` second word argument
-#
-#
-#    OUTPUT:
-#
-#    Print the word
-#
-#    TESTS:
-#
-#        sage:import sage.monoids.beta_adic_monoid as mn
-#
-#    """
-#    b = getBetaAdic(m, prec=53, mirror=False, verb=False)
-#    print_word(b, n, b.a.i)
-
 # used by substitution()
 cdef fils(list tree, int e):
     """
@@ -909,8 +834,8 @@ cdef fils(list tree, int e):
         r += fils(tree, f)
     return r
 
-
-# teste si a est inclus dans un des morceaux de l ou pas
+# used by substitution()
+# test if a is included in one of the pieces of l or not
 cdef included(DetAutomaton a, list l, list lm):
     """
     Test if the piece described by the automaton a is included in one of the pieces of lm whose indices are in l.
@@ -932,14 +857,14 @@ cdef included(DetAutomaton a, list l, list lm):
     - ``None`` if a is not included in one of the pieces of l
 
     """
-    # teste vite fait si l'on est inclus dans un morceau ou pas
+    # quickly test if we are included in a piece or not
     incl = False
     w = a.find_word()
     if w is None:
         if a.has_empty_langage():
-            print("Error : empty automata!")
+            print("Error: empty automata!")
         else:
-            print("Error :empty word, but non-empty language!")
+            print("Error: empty word, but non-empty language!")
         return True
     lr = []
     for j in l:
@@ -952,24 +877,22 @@ cdef included(DetAutomaton a, list l, list lm):
     raise RuntimeError("******* Error: the word %s of a=%s is not in any pieces of the list l=%s ! *********" %(w, a, l))
 
 
-# split a1 selon ba (rend un couple (a11, a12) avec a11 la partie
-# dans ba et a12 celle disjointe de ba)
+# split a1 according to ba (returns a couple (a11, a12), with
+# a11 in ba and a12 in the complementary)
 def split_ba(i, tr, np, lm, m, aa, ap, verb=False):
     b = m.b
     a1 = lm[i][0]
-    # teste l'intersection avec ba
-    # at = m.move2(t=(b**(-np))*tr, a=aoc)
-    # TODO : utiliser les automates des relations précalculés
-    # pour les translations de l'échange
+    # TODO : use precomputed relations automata
+    # for translations of the domain exchange
     at = m.Proj(aa, ap, t=(b**(-np))*tr)
     if at.intersect(a1):
         ar = at.intersection(a1)
-        # détermine si l'on est inclus dans ba
+        # determine if we are included in ba
         ar.zero_completeOP()
         if ar.equal_languages(a1):
             return (a1, None)
         else:
-            # on subdivise en deux
+            # split into two pieces
             ar2 = a1.intersection(ar.complementary())
             ar2.zero_completeOP()
             return (ar, ar2)
@@ -977,35 +900,14 @@ def split_ba(i, tr, np, lm, m, aa, ap, verb=False):
         return (None, a1)
 
 
-# split a1 selon baoc (rend un couple (a11, a12) avec a11 la partie dans baoc
-# et a12 celle disjointe de baoc)
-def split_baoc(i, tr, np, lm, m, aoc, verb=False):
-    b = m.b
-    a1 = lm[i][0]
-    # teste l'intersection avec baoc
-    at = m.move2(t=(b**(-np))*tr, a=aoc)
-    # TODO : utiliser les automates des relations précalculés
-    # pour les translations de l'échange
-    if at.intersect(a1):
-        ar = at.intersection(a1)
-        # détermine si l'on est inclus dans baoc
-        ar.zero_completeOP()
-        if ar.equal_languages(a1):
-            return (a1, None)
-        else:
-            # on subdivise en deux
-            return (ar, a1.intersection(ar.complementary()))
-    else:
-        return (None, a1)
-
-
 cdef class ImageIn:
     r"""
-    This class permits to load an image and test if a point is in the image or outside (using transparency).
+    This class permits to load an image and test
+    if a point is in the image or outside (using transparency).
 
     INPUT:
 
-    -- file_name - The location of the image file.
+    - file_name - The location of the image file.
 
     EXAMPLE::
 
@@ -1018,25 +920,9 @@ cdef class ImageIn:
     """
     cdef numpy.ndarray img
 
-#    def __cinit__(self):
-#        sig_on()
-#        SDLInit();
-#        self.s = <void **>malloc(sizeof(void*))
-#        sig_off()
-
     def __init__(self, file_name):
         import matplotlib.image as mpimg
         self.img = mpimg.imread(file_name)
-#        sig_on()
-#        self.s[0] = OpenImage(file_name)
-#        sig_off()
-
-#    def __dealloc__(self):
-#        sig_on()
-#        CloseImage(self.s[0])
-#        free(self.s)
-#        SDLQuit();
-#        sig_off()
 
     def __repr__(self):
         if self.img.ndim < 2:
@@ -1089,10 +975,11 @@ def getDetAutomaton(self, a):
             raise ValueError("The argument a must be a BetaAdicSet or an automaton.")
     return a
 
+
 cdef class BetaBase:
     r"""
-    The purpose of this class is just to write more conveniently some computations,
-    and in particular the computation of a substitution describing a BetaAdicSet.
+    The purpose of this class is just to write more conveniently some computations.
+    It is used in the computation of a substitution describing a BetaAdicSet.
     """
 
     def __init__(self, b):
@@ -1225,7 +1112,7 @@ cdef class BetaAdicSet:
 
     def __repr__(self):
         r"""
-        Returns the string representation of the beta-adic monoid.
+        Returns the string representation of the BetaAdicSet.
 
         EXAMPLES::
 
@@ -2009,7 +1896,7 @@ cdef class BetaAdicSet:
                              bool prune=True, int nhash=1000003, int prec=53, int algo=3, int coeff=1, bool verb=False):
         r"""
         Assume that beta is an algebraic integer.
-        Compute the relation automaton of the beta-adic monoid (also called "zero automaton").
+        Compute the relation automaton of the beta-adic set (also called "zero automaton").
         It is the minimal deterministic automaton that recognizes the set of words a_0 a_1 ... a_n in Ad^* such that
             a_0 + beta*a_1 + ... + beta^n*a_n = 0.
         If couples is True, then it describes the set of words over AxB (a_0, b_0) (a_1, b_1) ... (a_n, b_n) such that
@@ -2780,256 +2667,6 @@ cdef class BetaAdicSet:
         return BetaAdicSet(self.b, self.reduced_words_automaton(mirror=mirror,
                                                                 algo_rel=algo_rel,
                                                                 verb=verb))
-
-#     def reduced_words_automaton(self, ss=None, Iss=None, ext=False,
-#                                 verb=False, step=None, arel=None):
-#         r"""
-#         Compute the reduced words automaton of the beta-adic monoid (with or without subshift).
-#         See http://www.latp.univ-mrs.fr/~paul.mercat/Publis/Semi-groupes%20fortement%20automatiques.pdf for a definition of such automaton (without subshift).
-# 
-#         WARNING: It seems there is a bug : result may be incorrect if ss is not None.
-# 
-#         INPUT:
-# 
-#         - ``ss``- Automaton (default: ``None``)
-#           The first subshift to associate to the beta-adic monoid for this operation.
-# 
-#         - ``Iss``- set of states of ss (default: ``None``)
-# 
-#         - ``ext`` - bool (default: ``True``)
-#           If True, compute the extended relations automaton (which permit to describe infinite words in the monoid).  
-# 
-#         - ``verb`` - bool (default: ``False``)
-#           If True, print informations for debugging.
-# 
-#         - ``step`` - int (default: ``None``)
-#           Stop to a intermediate state of the computing to make verifications.
-# 
-#         - ``arel`` - Automaton (default: ``None``)
-#           Automaton of relations.
-#
-#         OUTPUT:
-#
-#         A Automaton.
-#
-#         EXAMPLES::
-#
-#             #. 3-adic expansion with numerals set {0,1,3}::
-#
-#                 sage: m = BetaAdicSet(3, {0,1,3})
-#                 sage: mr = m.reduced()
-#                 Finite automaton with 2 states
-#
-#             #. phi-adic expansion with numerals set {0,1}::
-#
-#                 sage: m = BetaAdicSet((1+sqrt(5))/2, {0,1})
-#                 sage: m.reduced_words_automaton()
-#                 Finite automaton with 3 states
-#
-#             #. beta-adic expansion with numerals set {0,1} where beta is the plastic number::
-#                 sage: b = (x^3-x-1).roots(ring=QQbar)[0][0]
-#                 sage: m = BetaAdicSet(b, {0,1})
-#                 sage: m.reduced_words_automaton()        # long time
-#                 Finite automaton with 5321 states
-#         """
-#         if ss is None:
-#             if hasattr(self, 'ss'):
-#                 ss = self.ss
-#                 if hasattr(self.ss, 'I'):
-#                     Iss = self.ss.I
-#
-#         if step is None:
-#             step = 1000
-#
-#         K = self.C[0].parent()
-#
-#         if verb:
-#             print("Computation of relations's automata")
-#             # "Calcul de l'automate des relations..."
-#
-#         if arel is None:
-#             a = self.relations_automaton(noss=True)
-#         else:
-#             a = arel
-#
-#         if verb:
-#             print(" -> %s" % a)
-#
-#         if step == 1:
-#             return ("relations's automata", a)
-#
-#         # add a state copy of K.0 (it will be the new initial state)
-#         a.add_vertex('O')
-#
-#         #        #add transitions to K.0 to 'O'
-#         #        for f, d, l in a.incoming_edges(K.zero(), labels=True):
-#         #            if f == K.zero():
-#         #                a.add_edge('O', 'O', l)
-#         #            else:
-#         #                a.add_edge(f, 'O', l)
-# 
-#         # subset of positives labels
-#         Cdp = []
-#         for i in range(self.C.cardinality()):
-#             for j in range(i):
-#                 Cdp += [self.C[i] - self.C[j]]
-#
-#         # redirect positives transitions from K.0
-#         for f, d, l in a.outgoing_edges(K.zero(), labels=True):
-#             if l in Cdp:
-#             #                a.delete_edge(K.zero(), d, l)
-#                 # add the edge
-#                 a.add_edge('O', d, l)
-#
-#         a.add_edge('O', 'O', a.edge_label(K.zero(), K.zero()))
-#
-#         if verb:
-#             print(a.incoming_edges(K.zero(), labels=True))
-#
-#         # remove outgoing edges from K.0 (except from K.0 to K.0)
-#         for f, d, l in a.outgoing_edges(K.zero(), labels=True):
-#             if f != d:
-#                 a.delete_edge(f, d, l)
-#
-#         if step == 2:
-#             a.I = ['O']
-#             a.F = Set([K.zero()])
-#             return ("automaton of ordoned relations", a)
-#         a.pruneI(I=['O'])
-# 
-#         if step == 3:
-#             return ("pruned automaton of ordoned relations", a)
-# 
-#         if ss is not None:  # not full sub-shift
-#             if Iss is None:
-#                 Iss = [ss.vertices()[0]]
-#             # maps actual edges to the list of corresponding couple
-#             m = dict([])
-#             for c in self.C:
-#                 for c2 in self.C:
-#                     if m.has_key(c - c2):
-#                         m[c-c2] += [(c, c2)]
-#                     else:
-#                         m[c-c2] = [(c, c2)]
-#             # if verb: print "m=%s"%m
-# 
-#             # calculate the 'product to the right' of a with ss
-#             d = dict([])
-#             La = a.edge_labels()
-#             Lss = ss.edge_labels()
-#             for ka in La:
-#                 for kss in Lss:
-#                     d[(ka, kss)] = None
-#                     for k in m[ka]:
-#                         if k[1] == kss:
-#                             d[(ka, kss)] = k[0]
-#                             break
-# 
-#             # if verb: print "d=%s"%d
-#             if verb:
-#                 # "avant produit : a=%s (%s etats)"%(a, a.num_verts())
-#                 print(" before product : a=%s (%s states)" % (a, a.num_verts()))
-#             a = a.product(A=ss, d=d)
-#             if verb:
-#                 print(" after product : a=%s" % a)
-#             if step == 4:
-#                 return ("non reduce general words automata", a) #"automate des mots généraux non réduits", a)
-# 
-#             I = [('O', i) for i in Iss]
-#             nof = Set([(K.zero(), i) for i in ss.vertices()])
-# 
-#             # if verb: print "I=%s, F=%s"%(I, nof)
-# 
-#             if ext:
-#                 # a.emondeI(I=I)
-#                 # a.emonde0(I=I) #pour retirer les états puits
-#                 a = a.emonde0_simplify(I=I)
-#             else:
-#                 a = a.emonde0_simplify(I=I)
-#                 a.emonde(I=I, F=nof)
-#             # a.emondeI(I=I)
-#             # a.emondeF(F=nof)
-#             # if step == 4:
-#             #    return ("automate des mots généraux non réduits, émondé", a)
-#             # a.emondeF(F=nof)
-# 
-#             if verb:
-#                 print("After emondation : a=%s" % a)
-#             if step == 5:
-#                 return("emonded automaton of non reducted general words", a)
-# 
-#             # return a
-#         else:
-#             # maps actual edges to element of self.C (the left part when writted c-c2)
-#             m = dict([])
-#             for c in self.C:
-#                 for c2 in self.C:
-#                     if m.has_key(c-c2):
-#                         m[c-c2] += [c]
-#                     else:
-#                         m[c-c2] = [c]
-#             # if verb: print "m=%s"%m
-# 
-#             a.allow_multiple_edges(True)
-#             # replace each label by its mapping
-#             for f, d, l in a.edges():
-#                 a.delete_edge(f, d, l)
-#                 for l2 in m[l]:
-#                     a.add_edge(f, d, l2)
-# 
-#             I = ['O']
-#             nof = Set([K.zero()])
-# 
-#         a.I = I
-#         a.F = nof
-#         a.C = self.C
-# 
-#         if verb:
-#             print("Before determinisation : a=%s" % a)
-#         if step == 6:
-#             return ("emonded automaton of non reducted general words", a)
-# 
-#         # rend l'automate plus simple
-#         a = a.emonde0_simplify()
-# 
-#         if verb:
-#             print("simplification : a=%s" % a)
-# 
-#         if verb:
-#             print("Determinization...")
-#         # determinize
-#         ad = a.determinize2(nof=a.F)
-#         # ad = a.determinize(nof=a.F, verb=False)
-#         # ad = a.determinize(I, self.C, nof, verb=verb)
-# 
-#         if verb:
-#             print(" -> %s" % ad)
-#         if step == 7:
-#             return ("automate des mots généraux réduits", ad)
-# 
-#         if ss is not None:  # not full sub-shift
-#             # calculate the intersection with ss
-#             ad = ad.emonde0_simplify()
-#             ad = ad.intersection(ss)
-#             if verb:
-#                 print("after intersection : a=%s" % ad)
-# 
-#         if step == 8:
-#             return ("automaton of reduces words", ad)
-# 
-#         # F2=[e for e in a.vertices() nof in e[0]]
-#         # if verb: print "I2=%s"%I2 #, F2=%s"%(I2,F2)
-#         ad.A = self.C
-#         # ad.emondeI(I=I2) #, F=F2)
-#         ad = ad.emonde0_simplify()
-#         ad.F = ad.vertices()
-# 
-#         if verb:
-#             print("after emondation : a=%s" % ad)
-#         if step == 9:
-#             return ("emonded automaton of reduced words", ad)
-#
-#         return ad
 
     def critical_exponent_free(self, prec=None, verb=False):
         r"""
