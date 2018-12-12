@@ -1002,7 +1002,8 @@ cdef class CAutomaton:
         INPUT:
 
         - ``i`` -- int - the index of the state
-        - ``initial`` -- (default: ``True``) - if True set this state as initial set, otherwise set this state as non-initial.
+        - ``initial`` -- (default: ``True``) - if True set this state as initial set,
+          otherwise set this state as non-initial.
 
         EXAMPLES::
 
@@ -1018,7 +1019,8 @@ cdef class CAutomaton:
 
         """
         if i < 0 or i >= self.a.n:
-            raise ValueError("i=%s is not the index of a state (i.e. between 0 and %s)."%(i, self.a.n - 1))
+            raise ValueError("i=%s is not the index of a state (i.e. between 0 and %s)."
+                             % (i, self.a.n - 1))
         self.a.e[i].initial = initial
 
     def add_transition(self, int i, l, int f):
@@ -1182,7 +1184,7 @@ cdef class CAutomaton:
         r.S = None
         return r
 
-    def plot (self, file=None, int sx=10, int sy=8, verb=False):
+    def plot(self, file=None, int sx=10, int sy=8, verb=False):
         """
         plot a representation of the :class:`CAutomaton`.
 

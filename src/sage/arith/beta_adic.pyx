@@ -26,7 +26,6 @@ EXAMPLES::
     sage: print(ared)
     DetAutomaton with 4 states and an alphabet of 2 letters
 """
-
 # *****************************************************************************
 #  Copyright (C) 2013 Paul Mercat <mercatp@icloud.com>
 #
@@ -994,12 +993,17 @@ cdef class BetaBase:
         self.m.a = a
         return self.m.proj(b, t=-t, arel=arel, aut=only_aut)
 
-    def relations_automaton(self, t=0, bool isvide=False, list Ad=None, list A=None, list B=None,
-                             bool couples=False, bool ext=False, bool mirror=False,
-                             bool prune=True, int nhash=1000003, int prec=53, int algo=3, int coeff=1, bool verb=False):
+    def relations_automaton(self, t=0, bool isvide=False, list Ad=None,
+                            list A=None, list B=None,
+                            bool couples=False, bool ext=False,
+                            bool mirror=False,
+                            bool prune=True, int nhash=1000003, int prec=53, int algo=3,
+                            int coeff=1, bool verb=False):
         return self.m.relations_automaton(t=-t, isvide=isvide, Ad=Ad, A=A, B=B,
-                             couples=couples, ext=ext, mirror=mirror,
-                             prune=prune, nhash=nhash, prec=prec, algo=algo, coeff=coeff, verb=verb)
+                                          couples=couples, ext=ext,
+                                          mirror=mirror,
+                                          prune=prune, nhash=nhash, prec=prec,
+                                          algo=algo, coeff=coeff, verb=verb)
 
 cdef getBetaAdicSet(BetaAdicSet self, a):
     if type(a) is BetaAdicSet:
@@ -1290,13 +1294,13 @@ cdef class BetaAdicSet:
         m = BetaAdicSet(self.b, a)
         ap = m.proj(b, aut=True)
         if verb:
-            print("ap=%s"%ap)
+            print("ap=%s" % ap)
         return b.included(ap)
-        #return ap.equal_languages(b)
+        # return ap.equal_languages(b)
 
-    def is_equal_to (self, a):
+    def is_equal_to(self, a):
         """
-        Determine if the ``BetaAdicSet`` is equal to the given``BetaAdicSet``.
+        Determine if the ``BetaAdicSet`` is equal to the given ``BetaAdicSet``.
 
         INPUT:
 
@@ -1620,7 +1624,7 @@ cdef class BetaAdicSet:
              ajust=True, prec=53, color=(0, 0, 0, 255),
              nprec=4, mirror=False, verb=False):
         r"""
-        Draw the beta-adic set.
+        Draw the beta-adic set. see processed examples on 
 
         INPUT:
 
@@ -1638,15 +1642,14 @@ cdef class BetaAdicSet:
           in y dimension image
 
         - ``ajust`` boll - (default: ``True``) adapt the drawing
-          to fill all the image,
-          with ratio 1 (default: ``True``)
+          to fill all the image, with ratio 1 
 
         - ``prec`` - precision of returned values (default: ``53``)
 
         - ``color`` - list of four integers between 0
           and 255 (RGBA format, default: ``(0,0,0,255)``) Color of the drawing.
 
-        - ``mirror`` bool -- (default ``False) set to ``True`` to use the mirror of the automaton
+        - ``mirror`` bool -- (default ``False``) set to ``True`` to use the mirror of the automaton
 
         - ``nprec`` int -- (default 4) - additionnal iterations (if n is ``None``)
 
@@ -1659,59 +1662,59 @@ cdef class BetaAdicSet:
 
         EXAMPLES::
 
-        #. The dragon fractal::
+            #. The dragon fractal::
 
-            sage: m = BetaAdicSet(1/(1+I), dag.AnyWord([0,1]))
-            sage: m.plot()                                      # random
+                sage: m = BetaAdicSet(1/(1+I), dag.AnyWord([0,1]))
+                sage: m.plot()                                      # random
 
-        #. Another dragon fractal::
+            #. Another dragon fractal::
 
-            sage: m = BetaAdicSet(2*x^2+x+1, dag.AnyWord([0,1]))
-            sage: m.plot()                                      # random
+                sage: m = BetaAdicSet(2*x^2+x+1, dag.AnyWord([0,1]))
+                sage: m.plot()                                      # random
 
-        #. The Rauzy fractal of the Tribonacci substitution::
+            #. The Rauzy fractal of the Tribonacci substitution::
 
-            sage: s = WordMorphism('1->12,2->13,3->1')
-            sage: m = s.DumontThomas().mirror()
-            sage: m.plot()                                      # random
+                sage: s = WordMorphism('1->12,2->13,3->1')
+                sage: m = s.DumontThomas().mirror()
+                sage: m.plot()                                      # random
 
-        #. The Rauzy fractal of the flipped Tribonacci substitution::
+            #. The Rauzy fractal of the flipped Tribonacci substitution::
 
-            sage: s = WordMorphism('1->12,2->31,3->1')
-            sage: m = s.DumontThomas().mirror()
-            sage: m.plot()                                      # random
+                sage: s = WordMorphism('1->12,2->31,3->1')
+                sage: m = s.DumontThomas().mirror()
+                sage: m.plot()                                      # random
 
-        #. A non-Pisot Rauzy fractal::
+            #. A non-Pisot Rauzy fractal::
 
-            sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
-            sage: m = s.DumontThomas().mirror()
-            sage: m.plot()                                      # random
-            sage: m = BetaAdicSet(1/m.b, m.a)
-            sage: m.plot()                                      # random
+                sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
+                sage: m = s.DumontThomas().mirror()
+                sage: m.plot()                                      # random
+                sage: m = BetaAdicSet(1/m.b, m.a)
+                sage: m.plot()                                      # random
 
-        #. A part of the boundary of the dragon fractal::
+            #. A part of the boundary of the dragon fractal::
 
-            sage: m = BetaAdicSet(1/(1+I), dag.AnyWord([0,1]))
-            sage: mi = m.intersection_words([0], [1])
-            sage: mi.plot(nprec=6)                              # random
+                sage: m = BetaAdicSet(1/(1+I), dag.AnyWord([0,1]))
+                sage: mi = m.intersection_words([0], [1])
+                sage: mi.plot(nprec=6)                              # random
 
-        #. A part of the boundary of the "Hokkaido" fractal::
+            #. A part of the boundary of the "Hokkaido" fractal::
 
-            sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
-            sage: m = s.DumontThomas().mirror()
-            sage: mi = m.intersection_words([0], [1])
-            sage: mi.plot()                                     # random
+                sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
+                sage: m = s.DumontThomas().mirror()
+                sage: mi = m.intersection_words([0], [1])
+                sage: mi.plot()                                     # random
 
-        #. A limit set that look like a tiling but with holes::
+            #. A limit set that look like a tiling but with holes::
 
-            sage: m = BetaAdicSet(x^4 + x^3 - x + 1, [0,1])
-            sage: m.plot()                                      # random
+                sage: m = BetaAdicSet(x^4 + x^3 - x + 1, [0,1])
+                sage: m.plot()                                      # random
 
         """
         cdef Surface s
         cdef BetaAdic b
         cdef Automaton aut
-        cdef int i,j
+        cdef int i, j
         sig_on()
         s = NewSurface(sx, sy)
         sig_off()
@@ -1800,46 +1803,46 @@ cdef class BetaAdicSet:
 
         EXAMPLES::
 
-        #. The Rauzy fractal of the Tribonacci substitution::
+            #. The Rauzy fractal of the Tribonacci substitution::
 
-            sage: s = WordMorphism('1->12,2->13,3->1')
-            sage: m = s.DumontThomas()
-            sage: m.plot_list(mirror=True)  # random
+                sage: s = WordMorphism('1->12,2->13,3->1')
+                sage: m = s.DumontThomas()
+                sage: m.plot_list(mirror=True)  # random
 
-        #. A non-Pisot Rauzy fractal::
+            #. A non-Pisot Rauzy fractal::
 
-            sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
-            sage: m = s.DumontThomas()
-            sage: m = BetaAdicSet(1/m.b, m.a)
-            sage: m.plot_list(mirror=True)             # random
-            sage: m = BetaAdicSet(m.b, m.a.mirror())
-            sage: m.plot_list(mirror=True)             # random
+                sage: s = WordMorphism({1:[3,2], 2:[3,3], 3:[4], 4:[1]})
+                sage: m = s.DumontThomas()
+                sage: m = BetaAdicSet(1/m.b, m.a)
+                sage: m.plot_list(mirror=True)             # random
+                sage: m = BetaAdicSet(m.b, m.a.mirror())
+                sage: m.plot_list(mirror=True)             # random
 
-        #. The dragon fractal and its boundary::
+            #. The dragon fractal and its boundary::
 
-            sage: m = BetaAdicSet(1/(1+I), [0,1])
-            sage: mi = m.intersection_words([0], [1])
-            sage: m.plot_list([mi], n=19, colormap=[(.5,.5,.5,.5), (0,0,0,1.)])  # random
+                sage: m = BetaAdicSet(1/(1+I), [0,1])
+                sage: mi = m.intersection_words([0], [1])
+                sage: m.plot_list([mi], n=19, colormap=[(.5,.5,.5,.5), (0,0,0,1.)])  # random
 
-        #. The "Hokkaido" fractal and its boundary::
+            #. The "Hokkaido" fractal and its boundary::
 
-            sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
-            sage: m = s.DumontThomas().mirror()
-            sage: mi = m.intersection_words([0], [1])                    # long time
-            sage: m.plot_list([mi], colormap='gist_rainbow')             # not tested
+                sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
+                sage: m = s.DumontThomas().mirror()
+                sage: mi = m.intersection_words([0], [1])                    # long time
+                sage: m.plot_list([mi], colormap='gist_rainbow')             # not tested
 
-        #. A limit set that look like a tiling::
+            #. A limit set that look like a tiling::
 
-            sage: m = BetaAdicSet(x^4 + x^3 - x + 1, [0,1])
-            sage: m = m.reduced().mirror()
-            sage: m.plot_list(mirror=True)                 # random
+                sage: m = BetaAdicSet(x^4 + x^3 - x + 1, [0,1])
+                sage: m = m.reduced().mirror()
+                sage: m.plot_list(mirror=True)                 # random
 
-        #. Plot a domain exchange computed from a BetaAdicSet
+            #. Plot a domain exchange computed from a BetaAdicSet
 
-            sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
-            sage: m = s.DumontThomas().mirror()
-            sage: la = m.domain_exchange()              # long time
-            sage: m.plot_list([a for t,a in la])        # not tested
+                sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
+                sage: m = s.DumontThomas().mirror()
+                sage: la = m.domain_exchange()              # long time
+                sage: m.plot_list([a for t,a in la])        # not tested
         """
         cdef Surface s = NewSurface(sx, sy)
         cdef BetaAdic2 b
@@ -1896,16 +1899,19 @@ cdef class BetaAdicSet:
                              bool prune=True, int nhash=1000003, int prec=53, int algo=3, int coeff=1, bool verb=False):
         r"""
         Assume that beta is an algebraic integer.
-        Compute the relation automaton of the beta-adic set (also called "zero automaton").
-        It is the minimal deterministic automaton that recognizes the set of words a_0 a_1 ... a_n in Ad^* such that
-            a_0 + beta*a_1 + ... + beta^n*a_n = 0.
-        If couples is True, then it describes the set of words over AxB (a_0, b_0) (a_1, b_1) ... (a_n, b_n) such that
-            a_0 + beta*a_1 + ... + beta^n*a_n = b_0 + beta*b_1 + ... + beta^n*b_n.
-        
+        Compute the relation automaton of the beta-adic set
+        (also called "zero automaton").
+        It is the minimal deterministic automaton that recognizes
+        the set of words a_0 a_1 ... a_n in Ad^* such that
+            :math:`a_0 + beta*a_1 + ... + beta^n*a_n = 0`.
+        If couples is True, then it describes the set of words over AxB
+        :math:`(a_0, b_0) (a_1, b_1) ... (a_n, b_n)` such that
+            :math:`a_0 + beta*a_1 + ... + beta^n*a_n = b_0 + beta*b_1 + ... + beta^n*b_n`.
+
         If ext is True, it describes the set of words that can be prolongated to an infinite relation
         in the contracting space (which is the product of copies of R, C and p-adic spaces corresponding to
         places of the number field for which beta has an absolute value less than one).
-        
+
          INPUT:
 
         - ``t`` integer (default: 0) the translation of one of the side
@@ -1921,7 +1927,7 @@ cdef class BetaAdicSet:
           (used if Ad is None)
 
         - ``B`` -  (default: ``None``) alphabet on the other side
-         (used if Ad is None)
+          (used if Ad is None)
 
         - ``couples``  boolean - (default: ``False``) If ``True``, the alphabet of the resulting automaton is AxB. If ``False``, it is Ad (=A-B).
 
@@ -1934,14 +1940,15 @@ cdef class BetaAdicSet:
 
         - ``nhash`` int (default: 1000003) Size of the hash table (only for algo 2).
 
-        - ``prec`` int (default:53)
+        - ``prec`` int - (default:53)
 
-        - ``algo`` int (default: 3) Algorithm used (choose in the set {1,2,3}).
+        - ``algo`` int - (default: 3) Algorithm used (choose in the set {1,2,3}).
 
-        - ``verb`` - bool (default: ``False``)
+        - ``verb`` bool - (default: ``False``)
           Print informations for debugging.
 
         OUTPUT:
+
         A DetAutomaton whose language describe the set of relations.
 
         EXAMPLES::
@@ -1949,7 +1956,7 @@ cdef class BetaAdicSet:
             sage: m = BetaAdicSet(1/(1+I), [0,1,3])
             sage: m.relations_automaton()
             DetAutomaton with 49 states and an alphabet of 7 letters
-            
+
             sage: m = BetaAdicSet(1/(1+I), [0,1])
             sage: m.relations_automaton()
             DetAutomaton with 1 states and an alphabet of 3 letters
@@ -2022,7 +2029,7 @@ cdef class BetaAdicSet:
                     print("Algo 2 or 3 cannot be used with ext=True and mirror=True: change to algo 1.")
                 algo = 1
         if verb:
-            print("algo=%s, mirror=%s"%(algo, mirror))
+            print("algo=%s, mirror=%s" % (algo, mirror))
         if algo == 1:
             if ext:
                 b = 1/b
@@ -2058,7 +2065,7 @@ cdef class BetaAdicSet:
                         coeff*max(
                             [K.abs_val(p, x) for x in Ad])/K.abs_val(p, b))
             if verb:
-                print("bounds=%s"%bo)
+                print("bounds=%s" % bo)
             # compute the automaton
             L = []
             S = [t]  # remaining state to look at
@@ -2276,7 +2283,7 @@ cdef class BetaAdicSet:
 
         INPUT:
 
-         - ``verb`` - Boolean (default: False) Display informations for debug.
+         - ``verb`` - Boolean (default: ``False``) Display informations for debug.
 
         OUTPUT:
 
@@ -2287,7 +2294,7 @@ cdef class BetaAdicSet:
             sage: m = BetaAdicSet(x^3-x^2-x-1, [0,1])
             sage: m.complexity()
             109
-            
+
             sage: m = BetaAdicSet(x^3-x-1, [0,1])
             sage: m.complexity()
             1125
@@ -2489,7 +2496,7 @@ cdef class BetaAdicSet:
         The number beta is assumed algebraic.
 
         INPUT:
-        
+
         - ``full`` - bool (default: False)
           If True, compute a reduced_words_automaton for the full set
           of words over the alphabet of the automaton of self.
@@ -2499,10 +2506,10 @@ cdef class BetaAdicSet:
 
         - ``algo_rel`` - int (default ``3``)
           Algorithm used for the computation of the relations automaton.
-        
+
         - ``verb`` - bool (default: ``False``)
           If True, print informations for debugging.
-  
+
         - ``step`` - int (default: 100)
           number of steps done (used for debugging)
 
@@ -2516,14 +2523,14 @@ cdef class BetaAdicSet:
             sage: ared = m.reduced_words_automaton()
             sage: ared
             DetAutomaton with 4 states and an alphabet of 2 letters
-            
+
             sage: m = BetaAdicSet(x^3-x-1, [0,1])
             sage: ared = m.reduced_words_automaton()
             sage: ared
             DetAutomaton with 808 states and an alphabet of 2 letters
-        
+
         TESTS::
-        
+
             sage: m = BetaAdicSet(pi, [0,1])
             sage: m.reduced_words_automaton()
             Traceback (most recent call last):
@@ -2645,10 +2652,10 @@ cdef class BetaAdicSet:
         INPUT:
 
         - ``mirror`` bool -- (default ``False) set to ``True`` in order to compute the mirror of the reduced language
-        
+
         - ``algo_rel`` - int (default ``2``)
           Algorithm used for the computation of the relations automaton.
-        
+
         - ``verb`` - bool (default: ``False``)
           If True, print informations for debugging.
 
@@ -2775,7 +2782,7 @@ cdef class BetaAdicSet:
         INPUT:
 
         - ``prec``- precision (default: ``None``)
-        
+
         - ``algo_rel`` - int (default: ``2``)
           Algorithm used for the computation of the relations automaton.
 
@@ -2811,7 +2818,10 @@ cdef class BetaAdicSet:
                 log(y)/log(1.225816904767620?) where y is the max root of x^11 - 2*x^10 - 4*x^2 + 8*x + 2, and 1.225816904767620? is root of x^42 - 2*x^40 + 2*x^38 - 3*x^36 + 2*x^34 + x^32 - 8*x^30 - 3*x^28 + 6*x^26 + 10*x^24 + 4*x^22 + 4*x^20 + 14*x^18 + 6*x^16 - 11*x^14 - 21*x^12 + 20*x^10 - 9*x^8 + 2*x^6 + x^4 - 1.
                 3.3994454205...
 
-            #. See more examples with doc critical_exponent_free()
+        .. SEEALSO::
+
+            #. See more examples with :ref:'../../../thematic_tutorials/beta_adic_set.html'
+            critical_exponent_free()
 
         """
         if verb:
@@ -2910,20 +2920,23 @@ cdef class BetaAdicSet:
 
         EXAMPLES::
 
-        #. Use another alphabet to describe a part of the set
+            #. Use another alphabet to describe a part of the set
+
             sage: m = BetaAdicSet(3, [0,1,3])
             sage: m2 = BetaAdicSet(3, [0,1,2])
             sage: m.proj(m2)
             b-adic set with b root of x - 3, and an automaton of 2 states and 3 letters
 
-        #. Intersection of the Rauzy fractal with a translated copy of itself
+            #. Intersection of the Rauzy fractal with a translated copy of itself
+
             sage: m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
             sage: m = m.proj(m, t=1+m.b)
             sage: m
             b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 12 states and 2 letters
             sage: m.plot()          # not tested
 
-        #. Intersection of two Rauzy fractals (for the same beta)
+            #. Intersection of two Rauzy fractals (for the same beta)
+
             sage: m1 = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
             sage: m2 = WordMorphism('a->ab,b->ca,c->a').DumontThomas().mirror()
             sage: m = m2.proj(m1)
@@ -3053,7 +3066,7 @@ cdef class BetaAdicSet:
         Gives a BetaAdicSet describing an approximation of a set defined by the
         characteritic function test, with the alphabet of the automaton of self.
         Rk: could be improved by drawing with the automaton of self
-        see ref:`thematic_tutorial\beta_adic_set`
+        see :doc:`thematic_tutorials/beta_adic_set`
 
         INPUT:
 
@@ -3198,28 +3211,32 @@ cdef class BetaAdicSet:
         """
         a = getDetAutomaton(self, a)
         return BetaAdicSet(self.b, self.a.union(a))
-    
+
     def complementary(self, a):
         """
         Compute the complementary of the BetaAdicSet in the BetaAdicSet or automaton a.
-        
+
         INPUT:
-        
-        - a -- BetaAdicSet or DetAutomaton in which we take the complementary
-        
+
+        - ``a`` -- :class:`BetaAdicSet`
+          or :class:`sage.combinat.words.cautomata.DetAutomaton`
+          in which we take the complementary
+
         OUTPUT:
-        
+
         A BetaAdicSet.
 
-        EXAMPLES:
+        EXAMPLES::
 
             #. The Rauzy fractal with a hole
+
                 sage: m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
                 sage: m = m.unshift([1,0,0,0]).complementary(m); m
                 b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 7 states and 2 letters
                 sage: m.plot()      # not tested
-            
+
             #. Complementary of a Rauzy fractal in another (for the same beta)
+
                 sage: s = WordMorphism('1->12,2->13,3->1')
                 sage: t = WordMorphism('1->12,2->31,3->1')
                 sage: a = s.DumontThomas().mirror()
@@ -3236,7 +3253,7 @@ cdef class BetaAdicSet:
         """
         a = getDetAutomaton(self, a)
         return BetaAdicSet(self.b, self.proj(a, aut=True).complementary().intersection(a))
-    
+
     def unshift(self, l):
         """
         Return a BetaAdicSet with a ``self.a`` unshifted by ``l``
@@ -3285,14 +3302,16 @@ cdef class BetaAdicSet:
             sage: m.diff(a)
             b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 states and 6 letters
 
-        #. Difference of a Rauzy fractal with itself
+            #. Difference of a Rauzy fractal with itself
+
             sage: m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
             sage: mdr = m.diff(m).reduced()
             sage: mdr
             b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 321 states and 3 letters
             sage: mdr.plot()        # random
 
-        #. Covering of a Rauzy fractal by another
+            #. Covering of a Rauzy fractal by another
+
             sage: m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror().unshift([0,0,0,0,0,0,0,0,0,0,0,0,0])
             sage: m2 = WordMorphism('a->ab,b->ca,c->a').DumontThomas().mirror()
             sage: mdr = m.diff(m2).reduced()    # long time (8s)
@@ -3314,6 +3333,7 @@ cdef class BetaAdicSet:
           If true, explains why we return False when it happens.
 
         OUTPUT:
+
         Return ``True`` or ``False``
 
         EXAMPLES::
@@ -3744,7 +3764,7 @@ cdef class BetaAdicSet:
 #            print af2.equals_langages(self.a)
 #        return BetaAdicSet(self.b, af2) 
 #
-        
+
     def domain_exchange(self, n=None, int algo=1, int algo_rel=3, bool test_Pisot=True,
                         int ndiam=30, bool verb=False):
 
@@ -3759,7 +3779,7 @@ cdef class BetaAdicSet:
 
         - ``algo`` - int -- (default: 1)
             algorithm used to compute the list of translations
-        
+
         - ``algo_rel`` - int -- (default: 3)
             algorithm used to compute the relations automaton
 

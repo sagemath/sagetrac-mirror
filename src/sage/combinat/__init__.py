@@ -18,7 +18,7 @@ Thematic indexes
   - :ref:`sage.combinat.crystals`
   - :ref:`sage.combinat.root_system`
   - :ref:`sage.combinat.sf`
-  - :ref:`sage.arith.beta_adic`  
+  - :ref:`sage.arith.beta_adic`
 
 - :ref:`sage.combinat.counting`
 - :ref:`sage.combinat.enumerated_sets`
