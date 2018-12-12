@@ -60,6 +60,7 @@ REFERENCES:
 from __future__ import absolute_import
 from six.moves import range
 
+from sage.structure.list_clone import ClonableList
 from .combinat import CombinatorialElement, catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
 from .backtrack import GenericBacktracker
@@ -70,6 +71,9 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.all import Posets
+
+from six import add_metaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 from sage.rings.all import ZZ, QQ
 from sage.combinat.permutation import Permutation, Permutations
@@ -171,7 +175,8 @@ def replace_symbols(x):
         raise ValueError
 
 
-class DyckWord(CombinatorialElement):
+@add_metaclass(InheritComparisonClasscallMetaclass)
+class DyckWord(ClonableList):
     r"""
     A Dyck word.
 
@@ -325,7 +330,11 @@ class DyckWord(CombinatorialElement):
 
         raise ValueError("invalid Dyck word")
 
-    def __init__(self, parent, l, latex_options={}):
+    def check(self):
+        if not is_a( list(self) ):
+            raise ValueError("the two paths have distinct ends")
+
+    def __init__(self, parent, l, latex_options={}, check=True):
         r"""
         TESTS::
 
@@ -338,7 +347,7 @@ class DyckWord(CombinatorialElement):
             sage: DW = DyckWords().from_area_sequence([])
             sage: TestSuite(DW).run()
         """
-        CombinatorialElement.__init__(self, parent, l)
+        ClonableList.__init__(self, parent, l, check)
         self._latex_options = dict(latex_options)
 
     _has_2D_print = False
@@ -1729,10 +1738,6 @@ class DyckWord(CombinatorialElement):
             [0, 1]
             sage: DyckWord([1, 0, 1, 0]).to_area_sequence()
             [0, 0]
-            sage: all(dw ==
-            ....:     DyckWords().from_area_sequence(dw.to_area_sequence())
-            ....:     for i in range(6) for dw in DyckWords(i))
-            True
             sage: DyckWord([1,0,1,0,1,0,1,0,1,0]).to_area_sequence()
             [0, 0, 0, 0, 0]
             sage: DyckWord([1,1,1,1,1,0,0,0,0,0]).to_area_sequence()
@@ -1741,6 +1746,13 @@ class DyckWord(CombinatorialElement):
             [0, 1, 2, 3, 3]
             sage: DyckWord([1,1,0,1,0,0,1,1,0,1,0,1,0,0]).to_area_sequence()
             [0, 1, 1, 0, 1, 1, 1]
+
+        TESTS::
+
+            sage: all(dw ==
+            ....:     DyckWords(i).from_area_sequence(dw.to_area_sequence())
+            ....:     for i in range(6) for dw in DyckWords(i))
+            True
         """
         seq = []
         a = 0
@@ -2330,8 +2342,11 @@ class DyckWord_complete(DyckWord):
             [0, 1]
             sage: DyckWord([1, 0, 1, 0]).to_Catalan_code()
             [0, 0]
+
+        TESTS::
+
             sage: all(dw ==
-            ....:     DyckWords().from_Catalan_code(dw.to_Catalan_code())
+            ....:     DyckWords(i).from_Catalan_code(dw.to_Catalan_code())
             ....:     for i in range(6) for dw in DyckWords(i))
             True
         """
@@ -3362,7 +3377,7 @@ class DyckWords(UniqueRepresentation, Parent):
                 res[i] = 1
             elif heights[i] != heights[i+1]+1:
                 raise ValueError("consecutive heights must differ by exactly 1: %s" % (heights,))
-        return self.element_class(self, res)
+        return self._element_constructor_(res)
 
     def min_from_heights(self, heights):
         r"""
@@ -3482,11 +3497,11 @@ class DyckWords_all(DyckWords):
              [1, 1, 0, 0]]
         """
         n = 0
-        yield self.element_class(self, [])
+        yield self._element_constructor_([])
         while True:
             for k in range(1, n+1):
                 for x in DyckWords_size(k, n-k):
-                    yield self.element_class(self, list(x))
+                    yield self._element_constructor_(list(x))
             n += 1
 
 
@@ -3636,12 +3651,12 @@ class DyckWords_size(DyckWords):
              [1, 1, 1, 0, 0]]
         """
         if self.k1 == 0:
-            yield self.element_class(self, [])
+            yield self._element_constructor_([])
         elif self.k2 == 0:
-            yield self.element_class(self, [open_symbol]*self.k1)
+            yield self._element_constructor_([open_symbol]*self.k1)
         else:
             for w in DyckWordBacktracker(self.k1, self.k2):
-                yield self.element_class(self, w)
+                yield self._element_constructor_(w)
 
     def cardinality(self):
         r"""
@@ -3736,11 +3751,11 @@ class CompleteDyckWords(DyckWords):
         """
         code = list(code)
         if not code:
-            return self.element_class(self, [])
+            return self._element_constructor_([])
         res = self.from_Catalan_code(code[:-1])
         cuts = [0] + res.returns_to_zero()
         lst = [1] + res[:cuts[code[-1]]] + [0] + res[cuts[code[-1]]:]
-        return self.element_class(self, lst)
+        return self._element_constructor_(lst)
 
     def from_area_sequence(self, code):
         r"""
@@ -3778,7 +3793,7 @@ class CompleteDyckWords(DyckWords):
                 dyck_word.extend([close_symbol]*(code[i-1]-code[i]+1))
             dyck_word.append(open_symbol)
         dyck_word.extend([close_symbol]*(2*len(code)-len(dyck_word)))
-        return self.element_class(self, dyck_word)
+        return self._element_constructor_(dyck_word)
 
     def from_noncrossing_partition(self, ncp):
         r"""
@@ -3806,7 +3821,7 @@ class CompleteDyckWords(DyckWords):
         res = []
         for i in l:
             res += [open_symbol] + [close_symbol] * i
-        return self.element_class(self, res)
+        return self._element_constructor_(res)
 
     def from_non_decreasing_parking_function(self, pf):
         r"""
@@ -3880,7 +3895,7 @@ class CompleteDyckWords_all(CompleteDyckWords, DyckWords_all):
         n = 0
         while True:
             for x in CompleteDyckWords_size(n):
-                yield self.element_class(self, list(x))
+                yield self._element_constructor_(list(x))
             n += 1
 
     class height_poset(UniqueRepresentation, Parent):
@@ -4040,7 +4055,7 @@ class CompleteDyckWords_size(CompleteDyckWords, DyckWords_size):
                     height_min = height
                     idx = i + 1
         w = w[idx:] + w[:idx]
-        return self.element_class(self, w[1:])
+        return self._element_constructor_(w[1:])
 
     def _iter_by_recursion(self):
         """
@@ -4071,12 +4086,12 @@ class CompleteDyckWords_size(CompleteDyckWords, DyckWords_size):
         # Do a couple of small cases first
         if self.k1 <= 2:
             if self.k1 == 0:
-                yield self.element_class(self, [])
+                yield self._element_constructor_([])
             elif self.k1 == 1:
-                yield self.element_class(self, [1, 0])
+                yield self._element_constructor_([1, 0])
             elif self.k1 == 2:
-                yield self.element_class(self, [1, 0, 1, 0])
-                yield self.element_class(self, [1, 1, 0, 0])
+                yield self._element_constructor_([1, 0, 1, 0])
+                yield self._element_constructor_([1, 1, 0, 0])
             return
 
         # Create all necessary parents
@@ -4086,7 +4101,7 @@ class CompleteDyckWords_size(CompleteDyckWords, DyckWords_size):
             for p in P[i]._iter_by_recursion():
                 list_1p0 = [1] + list(p) + [0]
                 for s in P[-i-1]._iter_by_recursion():
-                    yield self.element_class(self, list_1p0 + list(s))
+                    yield self._element_constructor_(list_1p0 + list(s))
 
 
 def is_area_sequence(seq):
