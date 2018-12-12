@@ -3057,7 +3057,7 @@ cdef class BetaAdicSet:
                 e3 = a.add_state(0)
                 for t in self.a.A:
                     if e[t] != -1:
-                        a.add_edge(e3, t, e[t])
+                        a.add_transition(e3, t, e[t])
                 return e3
             return -1
 
@@ -3114,7 +3114,7 @@ cdef class BetaAdicSet:
         f = a.add_state(1)
         e = self._approx_rec(a, test, f, 0, n, n)
         for t in self.a.A:
-            a.add_edge(f, t, f)
+            a.add_transition(f, t, f)
         a.a.i = e
         if simplify:
             a = a.minimize()
