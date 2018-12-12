@@ -400,7 +400,7 @@ cdef NAutomaton getNAutomaton(a, I=None, F=None, A=None, verb=False):
 #    for i in range(a.n):
 #        for j in range(a.na):
 #            if a.e[i].f[j] != -1:
-#                r.add_edge((i, a.e[i].f[j], A[j]))
+#                r.add_transition((i, a.e[i].f[j], A[j]))
 #        if a.e[i].final:
 #            r.F.append(i)
 #    r.I = [a.i]
@@ -436,15 +436,6 @@ cdef AutomatonToDiGraph(Automaton a, A, keep_edges_labels=True):
                 else:
                     L.append((i, a.e[i].f[j]))
     return DiGraph([range(a.n), L], loops=True, multiedges=True)
-
-
-# cdef initFA (Automaton *a):
-#    *a = NewAutomaton(1,1)
-
-# cdef Bool(int x):
-#     if x:
-#         return True
-#     return False
 
 
 cdef class CAutomaton:
@@ -512,6 +503,9 @@ cdef class CAutomaton:
             sage: CAutomaton([(0, 1, 'a'), (2, 3, 'b')], I=[1])
             CAutomaton with 4 states and an alphabet of 2 letters
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=1)
+            sage: a = CAutomaton(a)
+            sage: a
+            CAutomaton with 4 states and an alphabet of 2 letters
             sage: CAutomaton(a)
             CAutomaton with 4 states and an alphabet of 2 letters
 
@@ -578,6 +572,19 @@ cdef class CAutomaton:
         sig_off()
 
     def __repr__(self):
+        r"""
+        Return a representation of the automaton.
+        
+        OUTPUT:
+        
+            A string.
+        
+        EXAMPLES::
+
+            sage: CAutomaton(dag.AnyWord([0,1]))
+            CAutomaton with 1 states and an alphabet of 2 letters
+
+        """
         return "CAutomaton with %d states and an alphabet of %d letters" % (self.a.n, self.a.na)
 
     def _latex_(self):
@@ -744,6 +751,7 @@ cdef class CAutomaton:
         OUTPUT:
 
         return the numbers of successor of state ``i``
+        (i.e. the number of leaving transitions from state ``i``)
 
         EXAMPLES::
 
@@ -756,10 +764,9 @@ cdef class CAutomaton:
             raise ValueError("There is no state %s !" % i)
         return self.a.e[i].n
 
-    # give the state at end of the jth edge of the state i
     def succ(self, int i, int j):
         """
-        Give the state at end of the ``j`` th edge of the state ``i``
+        Give the state at end of the ``j`` th edge from the state ``i``
 
         INPUT:
 
@@ -783,7 +790,6 @@ cdef class CAutomaton:
             raise ValueError("The state %s has no edge number %s !"%(i,j))
         return self.a.e[i].a[j].e
 
-    # give the label of the jth edge of the state i
     def label(self, int i, int j):
         """
         Give the label of the ``j``th edge of the state ``i``
@@ -854,6 +860,14 @@ cdef class CAutomaton:
             sage: b = CAutomaton(a)
             sage: b.is_initial(1)
             False
+
+        TESTS::
+
+            sage: a = CAutomaton(dag.AnyWord([0,1]))
+            sage: a.is_initial(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: There is no state 2 !
         """
         if i >= self.a.n or i < 0:
             raise ValueError("There is no state %s !" % i)
@@ -865,11 +879,11 @@ cdef class CAutomaton:
     @property
     def initial_states(self):
         """
-        Get the initial state :class:`CAutomaton` attribut
+        Return the set of initial states of the :class:`CAutomaton`
 
         OUTPUT:
 
-        Return the initial state ``i``  of  :class:`CAutomaton`
+        list
 
         EXAMPLES::
 
@@ -877,11 +891,15 @@ cdef class CAutomaton:
             sage: b = CAutomaton(a)
             sage: b.initial_states
             []
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')], i=2)
+            sage: a = DetAutomaton([(10,11,'a') ,(12,13,'b')], i=12)
             sage: b = CAutomaton(a)
             sage: b.initial_states
             [2]
+            sage: a = DetAutomaton([(10,11,'a') ,(12,13,'b')], i=0).mirror()
+            sage: a.initial_states
+            [0, 1, 2, 3]
         """
+        cdef int i
         l = []
         for i in range(self.a.n):
             if self.a.e[i].initial:
@@ -891,15 +909,15 @@ cdef class CAutomaton:
     @property
     def final_states(self):
         """
-        Indicate all final states
+        Return the set of final states
 
         OUTPUT:
 
-        Return the list of indices of final states
+        list
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
+            sage: a = DetAutomaton([(10,11,'a') ,(12,13,'b')])
             sage: b = CAutomaton(a)
             sage: b.final_states
             [0, 1, 2, 3]
@@ -927,10 +945,11 @@ cdef class CAutomaton:
     def alphabet(self):
         """
         To get the :class:`CAutomaton` attribut alphabet
+        Return the alphabet of the :class:`CAutomaton`
 
         OUTPUT:
 
-        Return a the alphabet ``A`` of  :class:`CAutomaton`
+        list
 
         EXAMPLES::
 
@@ -957,11 +976,14 @@ cdef class CAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')], i=0, final_states=[])
+            sage: a = DetAutomaton([(10,11,'a') ,(12,13,'b')], i=10, final_states=[])
             sage: b = CAutomaton(a)
             sage: b.set_final_state(2)
             sage: b.final_states
             [2]
+
+        TESTS::
+
             sage: b.set_final_state(6)
             Traceback (most recent call last):
             ...
@@ -999,37 +1021,44 @@ cdef class CAutomaton:
             raise ValueError("i=%s is not the index of a state (i.e. between 0 and %s)."%(i, self.a.n - 1))
         self.a.e[i].initial = initial
 
-    def add_edge(self, i, l, f):
+    def add_transition(self, int i, l, int f):
         """
-        Add a edge in the automaton
+        Add a transition from ``i`` to ``f`` labeled by ``l`` in the automaton.
+        The states ``i`` and ``f`` must exist, and the label ``l`` must be in the alphabet.
+        To add new states, use add_state(). To add letters in the alphabet use bigger_alphabet().
 
         INPUT:
 
         - ``i`` -- the first state
-        - ``l`` -- the label of edge
+        - ``l`` -- the label of the edge
         - ``f`` -- the second state
-
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DetAutomaton([(10, 11, 'a'), (12, 13, 'b')], i=10)
             sage: b = CAutomaton(a)
-            sage: b.add_edge(2,'a',1)
-            sage: b.add_edge(2,'v',1)
+            sage: b.add_transition(2,'a',1)
+            sage: b.plot()  # random
+            
+        TESTS::
+            
+            sage: b.add_transition(2,'v',1)
             Traceback (most recent call last):
             ...
             ValueError: The letter v doesn't exist.
-            sage: b.add_edge(2,'v',6)
+            sage: b.add_transition(2,'v',6)
             Traceback (most recent call last):
+            ...
             ValueError: The state  6 doesn't exist.
-            sage: b.add_edge(5,'v',6)
+            sage: b.add_transition(5,'v',6)
             Traceback (most recent call last):
+            ...
             ValueError: The state  5 doesn't exist.
 
         """
-        if i >= self.a.n:
+        if i >= self.a.n or i < 0:
             raise ValueError("The state %s doesn't exist." % i)
-        if f >= self.a.n:
+        if f >= self.a.n or f < 0:
             raise ValueError("The state  %s doesn't exist." % f)
         try:
             k = self.A.index(l)
@@ -1064,16 +1093,35 @@ cdef class CAutomaton:
         """
         raise NotImplemented()
 
-    def add_path(self, int e, int f, list li, verb=False):
+    def bigger_alphabet(self, list nA):
         """
-        Add a path between states ``e`` and ``f``
-        of :class:`CAutomaton` following ``li``
+        Increase the size of the alphabet
 
         INPUT:
 
-        - ``e`` -- int the input state
-        - ``f`` -- int the final state
-        - ``li`` -- list of states
+        - ``nA`` -- list - new alphabet or new letters to add
+
+        EXAMPLES::
+
+            sage: a = CAutomaton(dag.AnyLetter([0, 1, 'a']))
+            sage: a.alphabet
+            ['a', 1, 0]
+            sage: a.bigger_alphabet(['b', 'c'])
+            sage: a.alphabet
+            ['a', 1, 0, 'c', 'b']
+        """
+        self.A = self.A+list(set(nA).difference(self.A))
+
+    def add_path(self, int e, int f, list li, verb=False):
+        """
+        Add a path labeled by the list ``li`` between
+        states ``e`` and ``f`` of :class:`CAutomaton`
+
+        INPUT:
+
+        - ``e`` -- int the starting state
+        - ``f`` -- int the ending state
+        - ``li`` -- list of labels
         - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
 
 
@@ -1081,7 +1129,8 @@ cdef class CAutomaton:
 
             sage: a = DetAutomaton([(0,1,'a'), (2,3,'b')], i=2)
             sage: b = CAutomaton(a)
-            sage: b.add_path(1, 2, [1])
+            sage: b.add_path(1, 2, ['a'])
+            sage: b.plot()  # random
 
         """
         cdef int *l = <int *>malloc(sizeof(int)*len(li))
@@ -1089,7 +1138,10 @@ cdef class CAutomaton:
             raise MemoryError("Failed to allocate memory for l in "
                               "add_path")
         for i in range(len(li)):
-            l[i] = li[i]
+            try:
+                l[i] = self.A.index(li[i])
+            except:
+                raise ValueError("The label %s is not in the alphabet! Use bigger_alphabet() if you want to add it"%li[i])
         sig_on()
         AddPathN(self.a, e, f, l, len(li), verb)
         free(l)
@@ -4507,7 +4559,7 @@ cdef class DetAutomaton:
         sig_off()
         return self.a.n-1
 
-    def add_edge(self, int i, l, int j):
+    def add_transition(self, int i, l, int j):
         """
         Add an edge in the automaton
 
@@ -4520,22 +4572,22 @@ cdef class DetAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.add_edge(2,'a',1)
+            sage: a.add_transition(2,'a',1)
 
-            sage: a.add_edge(2,'v',1)
+            sage: a.add_transition(2,'v',1)
             Traceback (most recent call last):
             ...
             ValueError: The letter v doesn't exist.
-            sage: a.add_edge(2,'v',6)
+            sage: a.add_transition(2,'v',6)
             Traceback (most recent call last):
             ...
             ValueError: The state 6 doesn't exist.
-            sage: a.add_edge(5,'v',6)
+            sage: a.add_transition(5,'v',6)
             Traceback (most recent call last):
             ...
             ValueError: The state 5 doesn't exist.
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: a.add_edge(2,'a',1)
+            sage: a.add_transition(2,'a',1)
 
         """
         if i < 0 or i >= self.a.n:
