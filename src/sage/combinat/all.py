@@ -42,7 +42,7 @@ from .permutation import Permutation, Permutations, Arrangements, CyclicPermutat
 from .affine_permutation import AffinePermutationGroup
 lazy_import('sage.combinat.colored_permutations', ['ColoredPermutations',
                                                    'SignedPermutations'])
-from .derangements import Derangements
+from .derangements import Derangement, Derangements
 lazy_import('sage.combinat.baxter_permutations', ['BaxterPermutations'])
 
 #RSK

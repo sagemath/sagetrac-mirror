@@ -34,8 +34,11 @@ from sage.rings.all import ZZ, QQ
 from sage.rings.integer import Integer
 from sage.combinat.permutation import Permutation, Permutations
 from sage.structure.list_clone import ClonableList
+from six import add_metaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class Derangement(ClonableList):
     r"""
     A derangement.
@@ -50,6 +53,14 @@ class Derangement(ClonableList):
         sage: elt = D([4,3,2,1])
         sage: TestSuite(elt).run()
     """
+    def __init__(self, parent, lst, check=True):
+        ClonableList.__init__(self, parent, lst, check)
+
+    @staticmethod
+    def __classcall_private__(cls, lst):
+        parent_set = [i+1 for i in range(len(lst))]
+        return Derangements(parent_set)(lst)
+
     def to_permutation(self):
         """
         Return the permutation corresponding to ``self``.
