@@ -32,11 +32,11 @@ from sage.misc.prandom import random, randint
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.all import ZZ, QQ
 from sage.rings.integer import Integer
-from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.permutation import Permutation, Permutations
+from sage.structure.list_clone import ClonableList
 
 
-class Derangement(CombinatorialElement):
+class Derangement(ClonableList):
     r"""
     A derangement.
 
@@ -70,6 +70,9 @@ class Derangement(CombinatorialElement):
         if self.parent()._set != tuple(range(1, len(self) + 1)):
             raise ValueError("Can only convert to a permutation for derangements of [1, 2, ..., n]")
         return Permutation(list(self))
+
+    def check(self):
+        pass
 
 
 class Derangements(UniqueRepresentation, Parent):
@@ -284,10 +287,10 @@ class Derangements(UniqueRepresentation, Parent):
         if self.__multi:
             for p in Permutations(self._set):
                 if not self._fixed_point(p):
-                    yield self.element_class(self, list(p))
+                    yield self._element_constructor_(list(p))
         else:
             for d in self._iter_der(len(self._set)):
-                yield self.element_class(self, [self._set[i - 1] for i in d])
+                yield self._element_constructor_([self._set[i - 1] for i in d])
 
     def _iter_der(self, n):
         r"""
@@ -499,8 +502,8 @@ class Derangements(UniqueRepresentation, Parent):
         if self.__multi:
             L = list(self)
             if len(L) == 0:
-                return self.element_class(self, [])
+                return self._element_constructor_([])
             i = randint(0, len(L))
             return L[i]
         temp = self._rand_der()
-        return self.element_class(self, [self._set[ii - 1] for ii in temp])
+        return self._element_constructor_([self._set[ii - 1] for ii in temp])
