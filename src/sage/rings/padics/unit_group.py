@@ -30,7 +30,7 @@ class pAdicUnit(AbelianGroupWithValuesElement):
         exponents = [ (x-y)%order if order !=0 else x-y
                       for x, y, order in
                       zip(left._exponents, right._exponents, G.gens_orders(prec)) ]
-        return G.element_class(G, exponents, value, prec)
+        return G.element_class(G, exponents, value)
 
     def _mul_(left, right):
         """
@@ -42,7 +42,7 @@ class pAdicUnit(AbelianGroupWithValuesElement):
         exponents = [ (x+y)%order if order != 0 else x+y
                       for x, y, order in
                       zip(left._exponents, right._exponents, G.gens_orders(prec)) ]
-        return G.element_class(G, exponents, value, prec)
+        return G.element_class(G, exponents, value)
 
     def __pow__(self, n):
         """
@@ -54,7 +54,7 @@ class pAdicUnit(AbelianGroupWithValuesElement):
         exponents = [ (n*x)%order if order != 0 else n*x
                       for x, order in
                       zip(self._exponents, G.gens_orders(prec)) ]
-        return G.element_class(G, exponents, value, prec)
+        return G.element_class(G, exponents, value)
 
     def _repr_(self):
         return repr(self.value())
@@ -430,6 +430,7 @@ class pAdicUnitGroup(AbelianGroupWithValues_class, UniqueRepresentation):
             L = x.value().parent()
             if L is self.K or L is self.OK:
                 coords = x._exponents
+            x = x.value()
         x = self.K(x) if self._field else self.OK(x)
         if coords is None:
             coords = self.discrete_log(x)
@@ -526,8 +527,33 @@ class pAdicUnitGroup(AbelianGroupWithValues_class, UniqueRepresentation):
             orders = orders + [ZZ(0)]
         return orders
 
+    @property
+    def _pbasis_gens(self):
+        return [self(u) for u in self._pbasis]
+
+    def gens_level(self, level):
+        """
+        Returns a list of generators for the group of units ``u`` with
+        ``(u-1).valuation() >= level``.
+        """
+        if level < 0:
+            raise ValueError("level must be non-negative")
+        elif level == 0:
+            gens = self._pbasis_gens
+            if self.q != 2:
+                gens = [self(self._values[0])] + gens
+        else:
+            p = self.p
+            exponents = [self._compute_order(flevel, level) for flevel in self.fundamental_levels() for _ in range(self.f)]
+            if self._mup_case:
+                if level > self.cutoff / p:
+                    exponents[self._index(self.e0)] = None
+                exponents.append(self._compute_order(self.cutoff_floor, level))
+            gens = [u**a for u,a in zip(self._pbasis_gens, exponents) if a is not None]
+        return gens
+
 class pAdicUnitSubgroup(AbelianGroupWithValues_class, UniqueRepresentation):
     def __classcall__(cls, U, gens=[], level=None, names=None, check=True):
         gens = [U(gen) for gen in gens]
         if level is not None:
-            gens.extend(
+            gens.extend(U.gens_level(level))
