@@ -4321,6 +4321,7 @@ class Polyhedron_base(Element):
 
         Returns a vector whose ``i``-th entry is the number of
         ``i``-dimensional faces of the polytope.
+        
 
         EXAMPLES::
 
