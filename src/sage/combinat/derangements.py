@@ -83,7 +83,17 @@ class Derangement(ClonableList):
         return Permutation(list(self))
 
     def check(self):
-        pass
+        pset = self.parent()._set
+        assert len(self) == len(pset), \
+            ("A derangement and his parent set must have the same size: "
+            "\nDerangement's size:{}, Parent set's size {}".format(len(self), len(pset)))
+
+        assert all([e in pset for e in self]), \
+            "All elements of a derangement must be present in their parent set"
+
+        assert all([self[i] != pset[i] for i in range(len(self))]), \
+            "At least one element is in the same position in the " \
+            "derangement and in the parent's set"
 
 
 class Derangements(UniqueRepresentation, Parent):
