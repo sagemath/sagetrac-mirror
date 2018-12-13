@@ -3000,8 +3000,7 @@ class DyckWord_complete(DyckWord):
 
         mode = "left"
         makeup_steps = 0
-        l = self._list[:]
-        l.reverse()
+        l = self[::-1]
 
         for move in l:
             if mode == "left":
