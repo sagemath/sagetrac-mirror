@@ -73,7 +73,6 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.all import Posets
 
 from six import add_metaclass
-from sage.structure.richcmp import richcmp, richcmp_method
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 from sage.rings.all import ZZ, QQ
@@ -176,7 +175,6 @@ def replace_symbols(x):
         raise ValueError
 
 
-@richcmp_method
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class DyckWord(ClonableList):
     r"""
@@ -351,56 +349,6 @@ class DyckWord(ClonableList):
         """
         ClonableList.__init__(self, parent, l, check)
         self._latex_options = dict(latex_options)
-
-    def __richcmp__(self, other, op):
-        r"""
-        Compare ``self`` to ``other``.
-
-        .. TODO::
-
-            This overwrites the comparison check of
-            :class:`~sage.structure.list_clone.ClonableList`
-            in order to circumvent the coercion framework.
-            Eventually this should be solved more elegantly,
-            for example along the lines of what was done for
-            `k`-tableaux.
-
-            For now, this compares two elements by their underlying
-            defining lists.
-
-        INPUT:
-
-        ``other`` -- the element that ``self`` is compared to
-
-        OUTPUT:
-
-        A Boolean.
-
-        TESTS::
-
-            sage: D1 = DyckWord([1,0,1,0,1,0])
-            sage: D2 = DyckWords()([1,0,1,0,1,0])
-            sage: D3 = DyckWords(3)([1,0,1,0,1,0])
-            sage: D1 == D2
-            True
-            sage: D1 == D3
-            True
-
-
-        TODO: REMOVE ME
-
-            sage: D = DyckWords(complete=False)
-            sage: dw = DyckWords(4)[0]
-            sage: ndw = D.from_heights(dw.heights())
-            sage: dw == ndw
-            True
-            sage: ndw == dw
-            True
-        """
-        if isinstance(other, DyckWord):
-            return richcmp(list(self), list(other), op)
-        else:
-            return richcmp(list(self), other, op)
 
     def _hash_(self):
         """
@@ -3428,6 +3376,7 @@ class DyckWords(UniqueRepresentation, Parent):
 
         TESTS::
 
+            sage: D = DyckWords()
             sage: all(dw == D.from_heights(dw.heights())
             ....:     for i in range(7) for dw in DyckWords(i))
             True
