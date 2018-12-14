@@ -1903,10 +1903,10 @@ cdef class BetaAdicSet:
         (also called "zero automaton").
         It is the minimal deterministic automaton that recognizes
         the set of words a_0 a_1 ... a_n in Ad^* such that
-            :math:`a_0 + beta*a_1 + ... + beta^n*a_n = 0`.
+        :math:`a_0 + beta*a_1 + ... + beta^n*a_n = 0`.
         If couples is True, then it describes the set of words over AxB
         :math:`(a_0, b_0) (a_1, b_1) ... (a_n, b_n)` such that
-            :math:`a_0 + beta*a_1 + ... + beta^n*a_n = b_0 + beta*b_1 + ... + beta^n*b_n`.
+        :math:`a_0 + beta*a_1 + ... + beta^n*a_n = b_0 + beta*b_1 + ... + beta^n*b_n`.
 
         If ext is True, it describes the set of words that can be prolongated to an infinite relation
         in the contracting space (which is the product of copies of R, C and p-adic spaces corresponding to
@@ -3061,12 +3061,13 @@ cdef class BetaAdicSet:
                 return e3
             return -1
 
+    # see :doc:`thematic_tutorials/beta_adic_set`
     def approx(self, n, test, get_aut=False, bool simplify=True):
         """
         Gives a BetaAdicSet describing an approximation of a set defined by the
         characteritic function test, with the alphabet of the automaton of self.
         Rk: could be improved by drawing with the automaton of self
-        see :doc:`thematic_tutorials/beta_adic_set`
+        
 
         INPUT:
 

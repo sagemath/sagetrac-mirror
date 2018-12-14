@@ -10,7 +10,7 @@ BetaAdicSet in Sage
                   AMU Aix-Marseille Universite
 
 
-The present tool BetaAdicSet is a convenient tool to describe sets like Rauzy fractals and quasicrystals associated to substitutions.
+The present tool BetaAdicSet is a convenient tool to describe sets like Rauzy fractals and quasicrystals associated to substitutions, and more generally sets described by :math:`\beta`-expansion with digits in a regular language.
 
 
 Introduction and Definitions
@@ -19,7 +19,7 @@ Introduction and Definitions
 Subtitution
 ~~~~~~~~~~~
 
-Given a substitution, let's say for example the Fibonnacci substitution :
+Given a substitution, let's say for example the Fibonnacci substitution:
 
 .. MATH::
     \left\{
@@ -29,7 +29,7 @@ Given a substitution, let's say for example the Fibonnacci substitution :
     \end{array}
     \right.
 
-A fixed point always exists, let see get the following fixed point :
+Up to replace the substitution by a power, a fixed point always exists. Here we have the following unique fixed point:
 
 :math:`abaababaabaababaababaabaababaabaababaaba...`
 
@@ -54,13 +54,13 @@ Here, we get the points
   
 :math:`0, 1,\ \beta,\ \beta + 1,\ \beta + 2,\ 2\beta + 1,\ 2\beta + 2,\ 3\beta + 1,\ 3\beta + 2,\ 3\beta + 3, \ 4\beta + 2,\ 4\beta + 3, ...`
 
-To get this set of points, we start from :math:`0` and read the fixed point : 
+To get this set of points, we start from :math:`0` and read the fixed point: 
 we add :math:`1` each time we read a letter :math:`a` and we add :math:`\beta-1` each time we read a letter :math:`b`.
   
 Automaton
 ~~~~~~~~~
 
-This set of points of :math:`\mathbf Q(\beta)` is described by the automaton followed figure describing the quasicrystal 
+This set of points of :math:`\mathbf Q(\beta)` is described by the automaton :math:`\mathcal{A}` of the following figure describing the quasicrystal 
 associated to the Fibonnacci substitution:
 
 .. PLOT::
@@ -69,15 +69,19 @@ associated to the Fibonnacci substitution:
     a = DetAutomaton([('a', 'b', '1'), ('a', 'a', '0'),('b', 'a', '0')], i='a')
     sphinx_plot(a)
 
-The initial state of this automaton is the one labelled by letter 'a', and the two states 'a' and 'b' are final states.
-The language recognized by this automaton, defined as the set of sequences of labels of paths from the initial state to a final state,
-is here exactly the set of words over the alphabet :math:`\{0,1\}` that does not contain the subword :math:`11`.
+The initial state of this automaton :math:`\mathcal{A}` is the one labelled by letter 'a', and the two states 'a' and 'b' are final states.
+The language :math:`L_{\mathcal{A}}` recognized by an automaton :math:`\mathcal{A}` is defined as the set of sequences of labels of paths from the initial state to a final state.
+Here, the language of :math:`\mathcal{A}` is exactly the set of words over the alphabet :math:`\{0,1\}` that does not contain the subword :math:`11`.
+
+The set of points is obtained from :math:`\beta` and from the automaton by:
+
+.. MATH::
+    \{\sum_{i=0}^n a_i \beta^i\ |\ a_n a_{n-1} ... a_1 a_0 \in L_{\mathcal{A}}\}.
 
 The self-similar tiling of :math:`\mathbf R_+` is obtained by taking the embedding of :math:`\mathbf Q(\beta)` in :math:`\mathbf R` corresponding to the Perron eigenvalue of the incidence matrix :math:`M`.
 If we look at the others embeddings, corresponding to eigenvalues less than :math:`1` we get a bounded set whose adherence is called Rauzy fractal of the substitution.
 Here there is a unic such embedding, which is a real one, corresponding to the root of :math:`x^2-x-1` between :math:`-1` and $:math:`1`.
 The Rauzy fractal is here the interval :math:`[-1, \varphi]` of :math:`\mathbf R` where :math:`\varphi` is the golden number (i.e. greatest root of :math:`x^2-x-1`).
-
 
 Main Definitions
 ----------------
@@ -85,17 +89,17 @@ Main Definitions
 Broken line
 ~~~~~~~~~~~
 
-Consider :math:`s` substitution, or in others words, a word morphism over a finite alphabet :math:`A = \{a_1, ..., a_n\}`.
+Consider :math:`s` a substitution, or in others words, a word morphism over a finite alphabet :math:`A = \{1, 2, ..., n\}`.
 Up to replace :math:`s` by a power, we can assume that :math:`s` has a fixed point :math:`\omega`.
     
 We defined the \defi{broken line} associated to :math:`\omega` as the subset of :math:`\mathbf Z^n` defined by
 
 .. MATH::
     \{ {\begin{pmatrix}
-    \text{number of occurences of } a_1 \text{ in } \omega_k \\
-    \text{number of occurences of } a_2 \text{ in } \omega_k \\
+    \text{number of occurences of } 1 \text{ in } \omega_k \\
+    \text{number of occurences of } 2 \text{ in } \omega_k \\
     \vdots \\
-    \text{number of occurences of } a_n \text{ in } \omega_k
+    \text{number of occurences of } n \text{ in } \omega_k
     \end{pmatrix}
     \in \mathbf Z^n
     } 
@@ -104,6 +108,7 @@ We defined the \defi{broken line} associated to :math:`\omega` as the subset of 
 where :math:`\omega_k` is the prefix of length :math:`k` of the infinite word :math:`\omega`.
 
 This broken line is very interesting since it is a geometrical object which completely encode the substitution and is stable by multiplication by the incidence matrix.
+And we get the quasicrystal or the Rauzy fractal by projecting this set of point.
 
 Rauzy fractal
 ~~~~~~~~~~~~~
@@ -116,18 +121,16 @@ Expanding line and contracting space
 The \og expanding line \fg\ has dimension :math:`1` for Pisot numbers, but it can have greater dimension for other Perron numbers.
 
 Let :math:`M_s` be the incidence matrix of the substitution :math:`s`.
-By definition the coefficient :math:`(i,j)` of this matrix is the number of occurrences of the letter :math:`a_j` in the word :math:`s(a_i)`.
-By Perron-Frobenius theorem, there exists an eigenvector :math:`v \in (\mathbf R_+)^n`, unic if the matrix is irreducible, for an eigenvalue :math:`\lambda` which is the spectral radius of :math:`M_s`,
+By definition the coefficient :math:`(i,j)` of this matrix is the number of occurrences of the letter :math:`j` in the word :math:`s(i)`.
+By Perron-Frobenius theorem, there exists an eigenvector :math:`v \in (\mathbf R_+)^n`, unique if the matrix is irreducible, for an eigenvalue :math:`\lambda` which is the spectral radius of :math:`M_s`,
 and moreover we can assume that :math:`v \in (\mathbf Q(\lambda))^{n}`.
     
-We can define a sort of broken line in $:math:`\mathbf Q(\lambda)`, by the following. 
+We can directly define the projection of the broken line in $:math:`\mathbf Q(\lambda)`, by the following. 
 
 .. MATH::
 
-    \{ Q_\omega = { \\sum_{k=1}^N v_{a_k} }{ N \in \mathbf N,\ a_1 a_2 ... a_N \text{ prefix of } \omega \text{ of length } N }.
+    \{ Q_\omega = \sum_{k=1}^N v_{a_k}\ |\ N \in \mathbf N,\ a_1 a_2 ... a_N \text{ prefix of } \omega \text{ of length } N \}.
     
-
-This is a projection of the broken line on :math:`\mathbf Q(\lambda)`.
 This set is invariant by multiplication by the Perron eigenvalue :math:`\lambda` and gives a self-similar tiling of :math:`\mathbf R_+`.
 The definition of :math:`Q_\omega` depends of the choice of an eigenvector.
 We prefer to choose an eigenvector whose coefficients belongs to the integer ring :math:`\mathcal O_\lambda`, in order to have :math:`Q_\omega \subset \mathcal O_\lambda`.
@@ -168,17 +171,17 @@ We will also denote by :math:`\sigma_\beta` the maximal real embedding when :mat
       
 So Rauzy fractal of the substitution :math:`s` can be define as the adherence of :math:`\sigma_-(Q_\omega)` in :math:`E_{\lambda}^-`.
 
-Set :math:`P`
-^^^^^^^^^^^^^
-Let :math:`\beta` be a Pisot number (not necessarly unit), and let :math:`P \subseteq E_\beta^-`.
-The set :math:`P` is arbitrarily approximated by Rauzy fractals, for the Hausdorff distance, associated to :math:`\beta^n`, 
-if and only if :math:`P` is bounded and :math:`0 \in \overline{P}`.
+..  Set :math:`P`
+    ^^^^^^^^^^^^^
+    Let :math:`\beta` be a Pisot number (not necessarly unit), and let :math:`P \subseteq E_\beta^-`.
+    The set :math:`P` is arbitrarily approximated by Rauzy fractals, for the Hausdorff distance, associated to :math:`\beta^n`, 
+    if and only if :math:`P` is bounded and :math:`0 \in \overline{P}`.
 
 
-g-:math:`\beta-sets`
-~~~~~~~~~~~~~~~~~~~~
+:math:`\beta`-adic sets
+~~~~~~~~~~~~~~~~~~~~~~~
 
-A g-:math:`\beta`-set, for an algebraic number :math:`\beta`, is a subset of :math:`\mathbf Q(\beta)` of the form
+A :math:`\beta`-adic set, for an number :math:`\beta`, is a subset of :math:`\mathbf Q(\beta)` of the form
 
 .. MATH::
 
@@ -190,26 +193,26 @@ Some Properties
 ^^^^^^^^^^^^^^^
 
 For a fixed algebraic number :math:`\beta` with no conjugate of modulus one,
-the set of g-:math:`\beta`-sets is stable by
+the set of :math:`\beta`-adic sets is stable by
 
 * intersection
 * union
-* complementary (in another g-:math:`\beta`-set)
-* Minkowski sum (i.e. the sum of two g-:math:`\beta`-sets is a g-:math:`\beta`-set)
+* complementary (in another :math:`\beta`-adic set)
+* Minkowski sum (i.e. the sum of two :math:`\beta`-adic sets is a :math:`\beta`-adic set)
 * multiplication by an element of :math:`\mathbf Q(\beta)`
 * translation by an element of :math:`\mathbf Q(\beta)`
 * adherence, interior, boundary, for the topology of :math:`\mathcal O_\beta` induced by :math:`E_-`. 
 
 
 
-The fact that g-:math:`\beta`-sets come naturally to describe quasicrystals arising from substitutions
+The fact that :math:`\beta`-adic sets come naturally to describe quasicrystals arising from substitutions
 and has a lot of nice properties show that it is an interesting fundamental object.
     
 
 Remarks: on any Shape
 ^^^^^^^^^^^^^^^^^^^^^
 
-We see from theses properties that we can construct g-:math:`\beta`-sets with any shape in the contracting space :math:`E^-`.
+We see from theses properties that we can construct :math:`\beta`-adic sets with any shape in the contracting space :math:`E^-`.
 This allows us to construct Rauzy fractals of any shape.
 
 
@@ -429,7 +432,7 @@ Compute the subtitution
     68: [66, 49],
     69: [67, 49]}
 
- The g-:math:`\beta`-set :math:`Q_{]-1,1[}` can be computed, for any quadratic Pisot number :math:`\beta`, and then compute a substitution describing the quasicrystal.
+ The :math:`\beta`-adic set :math:`Q_{]-1,1[}` can be computed, for any quadratic Pisot number :math:`\beta`, and then compute a substitution describing the quasicrystal.
 
 And directly with the WordMorphism of the subtitution and it's rauzy_fractal_plot.
 
