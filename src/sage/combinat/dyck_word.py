@@ -73,6 +73,7 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.all import Posets
 
 from six import add_metaclass
+from sage.structure.richcmp import richcmp, richcmp_method
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 from sage.rings.all import ZZ, QQ
@@ -175,6 +176,7 @@ def replace_symbols(x):
         raise ValueError
 
 
+@richcmp_method
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class DyckWord(ClonableList):
     r"""
@@ -332,7 +334,7 @@ class DyckWord(ClonableList):
 
     def check(self):
         if not is_a( list(self) ):
-            raise ValueError("the two paths have distinct ends")
+            raise ValueError("This is not a Dyck Word : %s"%(list(self)))
 
     def __init__(self, parent, l, latex_options={}, check=True):
         r"""
@@ -349,6 +351,78 @@ class DyckWord(ClonableList):
         """
         ClonableList.__init__(self, parent, l, check)
         self._latex_options = dict(latex_options)
+
+    def __richcmp__(self, other, op):
+        r"""
+        Compare ``self`` to ``other``.
+
+        .. TODO::
+
+            This overwrites the comparison check of
+            :class:`~sage.structure.list_clone.ClonableList`
+            in order to circumvent the coercion framework.
+            Eventually this should be solved more elegantly,
+            for example along the lines of what was done for
+            `k`-tableaux.
+
+            For now, this compares two elements by their underlying
+            defining lists.
+
+        INPUT:
+
+        ``other`` -- the element that ``self`` is compared to
+
+        OUTPUT:
+
+        A Boolean.
+
+        TESTS::
+
+            sage: D1 = DyckWord([1,0,1,0,1,0])
+            sage: D2 = DyckWords()([1,0,1,0,1,0])
+            sage: D3 = DyckWords(3)([1,0,1,0,1,0])
+            sage: D1 == D2
+            True
+            sage: D1 == D3
+            True
+
+
+        TODO: REMOVE ME
+
+            sage: D = DyckWords(complete=False)
+            sage: dw = DyckWords(4)[0]
+            sage: ndw = D.from_heights(dw.heights())
+            sage: dw == ndw
+            True
+            sage: ndw == dw
+            True
+        """
+        if isinstance(other, DyckWord):
+            return richcmp(list(self), list(other), op)
+        else:
+            return richcmp(list(self), other, op)
+
+    def _hash_(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: D = DyckWord([1,0,1,0,1,0])
+            sage: hash(tuple(D)) == hash(D)
+            True
+
+        TESTS::
+
+            sage: D1 = DyckWord([1,0,1,0,1,0])
+            sage: D2 = DyckWords()([1,0,1,0,1,0])
+            sage: D3 = DyckWords(3)([1,0,1,0,1,0])
+            sage: hash(D1) == hash(D2)
+            True
+            sage: hash(D1) == hash(D3)
+            True
+        """
+        return hash(tuple(self))
 
     _has_2D_print = False
 
@@ -3192,6 +3266,9 @@ class DyckWords(UniqueRepresentation, Parent):
             k1 = ZZ(k1)
             if k1 < 0:
                 raise ValueError("k1 (= %s) must be nonnegative" % k1)
+            if not complete:
+                raise ValueError("k2 must be specified for incomplete Dyck words")
+
             return CompleteDyckWords_size(k1)
         else:
             k1 = ZZ(k1)
@@ -3284,15 +3361,16 @@ class DyckWords(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: D = DyckWords()
-            sage: elt = D([1, 1, 0, 1, 0, 0]); elt
-            [1, 1, 0, 1, 0, 0]
+            sage: D = DyckWords(complete=False)
+            sage: elt = D([1, 1, 0, 1, 0]); elt
+            [1, 1, 0, 1, 0]
             sage: elt.parent() is D
             True
         """
-        if isinstance(word, DyckWord) and word.parent() is self:
+        D = DyckWords_all()
+        if isinstance(word, DyckWord) and word.parent() is D:
             return word
-        return self.element_class(self, list(word))
+        return D.element_class(D, word)
 
     def __contains__(self, x):
         r"""
@@ -3456,7 +3534,7 @@ class DyckWords_all(DyckWords):
 
             sage: TestSuite(DyckWords(complete=False)).run()
         """
-        DyckWords.__init__(self, category=InfiniteEnumeratedSets())
+        Parent.__init__(self, category=InfiniteEnumeratedSets())
 
     def _repr_(self):
         r"""
@@ -3472,9 +3550,9 @@ class DyckWords_all(DyckWords):
         TESTS::
 
             sage: DyckWords(complete=False).an_element()
-            [1, 0, 1, 0, 1, 0, 1, 0, 1, 0]
+            [1, 0, 1, 0, 1, 0, 1, 0, 1, 1]
         """
-        return DyckWords(5).an_element()
+        return self(DyckWords(6,4).an_element())
 
     def __iter__(self):
         """
@@ -3488,20 +3566,20 @@ class DyckWords_all(DyckWords):
              [1],
              [1, 0],
              [1, 1],
-             [1, 0, 0],
              [1, 0, 1],
              [1, 1, 0],
              [1, 1, 1],
              [1, 0, 1, 0],
-             [1, 1, 0, 0]]
+             [1, 1, 0, 0],
+             [1, 0, 1, 1]]
         """
         n = 0
         yield self._element_constructor_([])
         while True:
-            for k in range(1, n+1):
+            n += 1
+            for k in range((n + 1) // 2, n + 1):
                 for x in DyckWords_size(k, n-k):
                     yield self._element_constructor_(list(x))
-            n += 1
 
 
 class DyckWordBacktracker(GenericBacktracker):
@@ -3599,7 +3677,8 @@ class DyckWords_size(DyckWords):
         """
         self.k1 = ZZ(k1)
         self.k2 = ZZ(k2)
-        DyckWords.__init__(self, category=FiniteEnumeratedSets())
+        Parent.__init__(self, category=FiniteEnumeratedSets().Facade(),
+                        facade=DyckWords(complete=False))
 
     def _repr_(self):
         r"""
@@ -3692,6 +3771,23 @@ class CompleteDyckWords(DyckWords):
     Abstract base class for all complete Dyck words.
     """
     Element = DyckWord_complete
+
+    def _element_constructor_(self, word):
+        """
+        Construct an element of ``self``.
+
+        EXAMPLES::
+
+            sage: D = DyckWords()
+            sage: elt = D([1, 1, 0, 1, 0, 0]); elt
+            [1, 1, 0, 1, 0, 0]
+            sage: elt.parent() is D
+            True
+        """
+        D = CompleteDyckWords_all()
+        if isinstance(word, DyckWord_complete) and word.parent() is D:
+            return word
+        return D.element_class(D, list(word))
 
     def __contains__(self, x):
         r"""
@@ -3918,7 +4014,7 @@ class CompleteDyckWords_all(CompleteDyckWords, DyckWords_all):
             TESTS::
 
                 sage: DyckWords().height_poset().an_element()   # indirect doctest
-                [1, 0, 1, 0, 1, 0, 1, 0, 1, 0]
+                [1, 0, 1, 0, 1, 0, 1, 0, 1, 1]
             """
             return DyckWords_all().an_element()
 
@@ -3978,7 +4074,8 @@ class CompleteDyckWords_size(CompleteDyckWords, DyckWords_size):
 
             sage: TestSuite(DyckWords(4)).run()
         """
-        CompleteDyckWords.__init__(self, category=FiniteEnumeratedSets())
+        Parent.__init__(self, category=FiniteEnumeratedSets().Facade(),
+                        facade=DyckWords())
         DyckWords_size.__init__(self, k, k)
 
     def __contains__(self, x):
