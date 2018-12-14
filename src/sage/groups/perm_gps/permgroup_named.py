@@ -1780,18 +1780,18 @@ class TransitiveGroup(PermutationGroup_unique):
             Transitive group number 1 of degree 0
             sage: TransitiveGroup(1,1)
             Transitive group number 1 of degree 1
-            sage: G = TransitiveGroup(5, 2); G        
+            sage: G = TransitiveGroup(5, 2); G
             Transitive group number 2 of degree 5
-            sage: G.gens()                            
+            sage: G.gens()
             [(1,2,3,4,5), (1,4)(2,3)]
 
-            sage: G.category()                        
+            sage: G.category()
             Category of finite enumerated permutation groups
 
         .. warning:: this follows GAP's naming convention of indexing
           the transitive groups starting from ``1``::
 
-            sage: TransitiveGroup(5,0)                
+            sage: TransitiveGroup(5,0)
             Traceback (most recent call last):
             ...
             ValueError: Index n must be in {1,..,5}
@@ -1799,7 +1799,7 @@ class TransitiveGroup(PermutationGroup_unique):
         .. warning:: only transitive groups of "small" degree are
           available in GAP's database::
 
-            sage: TransitiveGroup(32,1)               
+            sage: TransitiveGroup(32,1)
             Traceback (most recent call last):
             ...
             NotImplementedError: Only the transitive groups of degree at most 31 are available in GAP's database
@@ -1814,7 +1814,7 @@ class TransitiveGroup(PermutationGroup_unique):
             sage: TestSuite(TransitiveGroup(1,1)).run()
             sage: TestSuite(TransitiveGroup(5,2)).run()
 
-            sage: TransitiveGroup(1,5)                
+            sage: TransitiveGroup(1,5)
             Traceback (most recent call last):
             ...
             ValueError: Index n must be in {1,..,1}
@@ -1898,7 +1898,7 @@ class TransitiveGroupsAll(DisjointUnionEnumeratedSets):
         sage: L.cardinality()
         +Infinity
 
-        sage: p = L.__iter__()           
+        sage: p = L.__iter__()
         sage: (next(p), next(p), next(p), next(p), next(p), next(p), next(p), next(p))
         (Transitive group number 1 of degree 0, Transitive group number 1 of degree 1, Transitive group number 1 of degree 2, Transitive group number 1 of degree 3, Transitive group number 2 of degree 3, Transitive group number 1 of degree 4, Transitive group number 2 of degree 4, Transitive group number 3 of degree 4)
 
@@ -1946,9 +1946,9 @@ class TransitiveGroupsOfDegree(CachedRepresentation, Parent):
 
     EXAMPLES::
 
-        sage: S = TransitiveGroups(4); S      
+        sage: S = TransitiveGroups(4); S
         Transitive Groups of degree 4
-        sage: list(S)                         
+        sage: list(S)
         [Transitive group number 1 of degree 4, Transitive group number 2 of degree 4, Transitive group number 3 of degree 4, Transitive group number 4 of degree 4, Transitive group number 5 of degree 4]
 
         sage: TransitiveGroups(5).an_element()
@@ -1956,7 +1956,7 @@ class TransitiveGroupsOfDegree(CachedRepresentation, Parent):
 
     We write the cardinality of all transitive groups of degree 5::
 
-        sage: for G in TransitiveGroups(5):   
+        sage: for G in TransitiveGroups(5):
         ....:     print(G.cardinality())
         5
         10
@@ -2016,7 +2016,7 @@ class TransitiveGroupsOfDegree(CachedRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: TransitiveGroups(5)[3]         
+            sage: TransitiveGroups(5)[3]
             Transitive group number 3 of degree 5
 
         .. warning::
@@ -2024,7 +2024,7 @@ class TransitiveGroupsOfDegree(CachedRepresentation, Parent):
             this follows GAP's naming convention of indexing
             the transitive groups starting from ``1``::
 
-                sage: TransitiveGroups(5)[0]         
+                sage: TransitiveGroups(5)[0]
                 Traceback (most recent call last):
                 ...
                 ValueError: Index n must be in {1,..,5}
@@ -2049,13 +2049,13 @@ class TransitiveGroupsOfDegree(CachedRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: TransitiveGroups(0).cardinality()                     
+            sage: TransitiveGroups(0).cardinality()
             1
-            sage: TransitiveGroups(2).cardinality()                     
+            sage: TransitiveGroups(2).cardinality()
             1
-            sage: TransitiveGroups(7).cardinality()                     
+            sage: TransitiveGroups(7).cardinality()
             7
-            sage: TransitiveGroups(12).cardinality()                    
+            sage: TransitiveGroups(12).cardinality()
             301
             sage: [TransitiveGroups(i).cardinality() for i in range(11)]
             [1, 1, 1, 2, 5, 5, 16, 7, 50, 34, 45]
@@ -2065,14 +2065,14 @@ class TransitiveGroupsOfDegree(CachedRepresentation, Parent):
             GAP comes with a database containing all transitive groups
             up to degree 31::
 
-                sage: TransitiveGroups(32).cardinality()                    
+                sage: TransitiveGroups(32).cardinality()
                 Traceback (most recent call last):
                 ...
                 NotImplementedError: Only the transitive groups of degree at most 31 are available in GAP's database
 
         TESTS::
 
-            sage: type(TransitiveGroups(12).cardinality())              
+            sage: type(TransitiveGroups(12).cardinality())
             <type 'sage.rings.integer.Integer'>
             sage: type(TransitiveGroups(0).cardinality())
             <type 'sage.rings.integer.Integer'>
@@ -2113,11 +2113,11 @@ class PrimitiveGroup(PermutationGroup_unique):
         Trivial group
         sage: PrimitiveGroup(1,1)
         Trivial group
-        sage: G = PrimitiveGroup(5, 2); G          
+        sage: G = PrimitiveGroup(5, 2); G
         D(2*5)
-        sage: G.gens()                             
+        sage: G.gens()
         [(2,4)(3,5), (1,2,3,5,4)]
-        sage: G.category()                         
+        sage: G.category()
         Category of finite enumerated permutation groups
 
     .. warning::
@@ -2125,7 +2125,7 @@ class PrimitiveGroup(PermutationGroup_unique):
         this follows GAP's naming convention of indexing the primitive
         groups starting from ``1``::
 
-            sage: PrimitiveGroup(5,0)              
+            sage: PrimitiveGroup(5,0)
             Traceback (most recent call last):
             ...
             ValueError: Index n must be in {1,..,5}
@@ -2133,7 +2133,7 @@ class PrimitiveGroup(PermutationGroup_unique):
     Only primitive groups of "small" degree are available in GAP's
     database::
 
-        sage: PrimitiveGroup(2500,1)         
+        sage: PrimitiveGroup(2500,1)
         Traceback (most recent call last):
         ...
         NotImplementedError: Only the primitive groups of degree less
@@ -2152,8 +2152,8 @@ class PrimitiveGroup(PermutationGroup_unique):
 
             sage: TestSuite(PrimitiveGroup(0,1)).run()
             sage: TestSuite(PrimitiveGroup(1,1)).run()
-            sage: TestSuite(PrimitiveGroup(5,2)).run() 
-            sage: PrimitiveGroup(6,5)                  
+            sage: TestSuite(PrimitiveGroup(5,2)).run()
+            sage: PrimitiveGroup(6,5)
             Traceback (most recent call last):
             ...
             ValueError: Index n must be in {1,..,4}
@@ -2191,7 +2191,7 @@ class PrimitiveGroup(PermutationGroup_unique):
 
         EXAMPLES::
 
-            sage: G = PrimitiveGroup(5,1); G            
+            sage: G = PrimitiveGroup(5,1); G
             C(5)
         """
         return self._pretty_name
@@ -2206,7 +2206,7 @@ class PrimitiveGroup(PermutationGroup_unique):
 
         EXAMPLES::
 
-            sage: G = PrimitiveGroup(5,2); G.group_primitive_id() 
+            sage: G = PrimitiveGroup(5,2); G.group_primitive_id()
             2
         """
         return self._n
@@ -2274,7 +2274,7 @@ class PrimitiveGroupsAll(DisjointUnionEnumeratedSets):
         sage: L.cardinality()
         +Infinity
 
-        sage: p = L.__iter__()           
+        sage: p = L.__iter__()
         sage: (next(p), next(p), next(p), next(p),
         ....:  next(p), next(p), next(p), next(p))
         (Trivial group, Trivial group, S(2), A(3), S(3), A(4), S(4), C(5))
@@ -2339,16 +2339,16 @@ class PrimitiveGroupsOfDegree(CachedRepresentation, Parent):
 
     EXAMPLES::
 
-        sage: S = PrimitiveGroups(5); S      
+        sage: S = PrimitiveGroups(5); S
         Primitive Groups of degree 5
-        sage: S.list()                         
+        sage: S.list()
         [C(5), D(2*5), AGL(1, 5), A(5), S(5)]
         sage: S.an_element()
         C(5)
 
     We write the cardinality of all primitive groups of degree 5::
 
-        sage: for G in PrimitiveGroups(5):   
+        sage: for G in PrimitiveGroups(5):
         ....:     print(G.cardinality())
         5
         10
@@ -2422,7 +2422,7 @@ class PrimitiveGroupsOfDegree(CachedRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: PrimitiveGroups(5)[3]         
+            sage: PrimitiveGroups(5)[3]
             AGL(1, 5)
 
         .. warning::
@@ -2430,7 +2430,7 @@ class PrimitiveGroupsOfDegree(CachedRepresentation, Parent):
             this follows GAP's naming convention of indexing the
             primitive groups starting from ``1``::
 
-                sage: PrimitiveGroups(5)[0]     
+                sage: PrimitiveGroups(5)[0]
                 Traceback (most recent call last):
                 ...
                 ValueError: Index n must be in {1,..,5}
@@ -2459,20 +2459,20 @@ class PrimitiveGroupsOfDegree(CachedRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: PrimitiveGroups(0).cardinality()                     
+            sage: PrimitiveGroups(0).cardinality()
             1
-            sage: PrimitiveGroups(2).cardinality()                     
+            sage: PrimitiveGroups(2).cardinality()
             1
-            sage: PrimitiveGroups(7).cardinality()                     
+            sage: PrimitiveGroups(7).cardinality()
             7
-            sage: PrimitiveGroups(12).cardinality()                    
+            sage: PrimitiveGroups(12).cardinality()
             6
             sage: [PrimitiveGroups(i).cardinality() for i in range(11)]
             [1, 1, 1, 2, 2, 5, 4, 7, 7, 11, 9]
 
         GAP contains all primitive groups up to degree 2499::
 
-            sage: PrimitiveGroups(2500).cardinality()                    
+            sage: PrimitiveGroups(2500).cardinality()
             Traceback (most recent call last):
             ...
             NotImplementedError: Only the primitive groups of degree less than
@@ -2480,7 +2480,7 @@ class PrimitiveGroupsOfDegree(CachedRepresentation, Parent):
 
         TESTS::
 
-            sage: type(PrimitiveGroups(12).cardinality())              
+            sage: type(PrimitiveGroups(12).cardinality())
             <type 'sage.rings.integer.Integer'>
             sage: type(PrimitiveGroups(0).cardinality())
             <type 'sage.rings.integer.Integer'>
