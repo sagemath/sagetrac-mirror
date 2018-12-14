@@ -1599,7 +1599,7 @@ class CachedMethodPickle(object):
         """
         return CachedMethodPickle,(self._instance,self._name,self._cache)
 
-    def __call__(self,*args,**kwds):
+    def __call__(self, *args, **kwds):
         """
         The purpose of this call method is to kill ``self`` and to
         replace it by an actual :class:`CachedMethodCaller`. The last
@@ -2140,9 +2140,28 @@ cdef class CachedMethodCaller(CachedFunction):
 
 cdef class CachedMethodCallerNoArgs(CachedFunction):
     """
-    Utility class that is used by :class:`CachedMethod` to bind a
-    cached method to an instance, in the case of a method that does
-    not accept any arguments except ``self``.
+    Utility class that is used by :class:`CachedMethod` to bind a cached method
+    ``f`` to an instance, in the case of a method that does not accept any
+    arguments except ``self``.
+
+    INPUT:
+
+    - ``inst`` -- an instance of the type that ``f`` binds to or ``None``. Upon
+      invocation, ``inst`` is passed as the only argument to ``f``. When
+      ``inst`` is ``None``, this is the equivalent of an unbound method.
+
+    - ``f`` -- an unbound method taking no arguments except for the instance as
+      its first argument.
+
+    - ``cache`` -- a seed for the cached value to use instead of the return
+      value of ``f``; if ``None`` (default), then ``f`` is evaluated to
+      determine the cached value.
+
+    - ``name`` -- a string (default: ``None``); controls where in the
+      instance's dict (or similar) this cached method is going to be stored.
+
+    - ``do_pickle`` -- a boolean (default: ``false``); whether to save the
+      value of this cache in pickles.
 
     .. NOTE::
 
@@ -2295,9 +2314,16 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         """
         return self.f(self._instance)
 
-    def __call__(self):
+    def __call__(self, instance=None):
         """
         Call the cached method.
+
+        INPUT:
+
+        - ``instance`` -- the instance to pass to the underlying method as the
+          first argument (default: ``None``); must be ``None`` unless this
+          represents an unbound method, i.e., no instance had been passed to
+          the constructor.
 
         EXAMPLES::
 
@@ -2308,8 +2334,36 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
             sage: I.gens() is I.gens()
             True
 
+        TESTS:
+
+        Check that #17201 has been resolved::
+
+            sage: class A(object):
+            ....:     def __init__(self, m):
+            ....:         self._m = m
+            ....:
+            ....:     @cached_method
+            ....:     def m(self):
+            ....:         return self._m
+
+            sage: class B(A):
+            ....:     def m(self):
+            ....:         return A.m(self)
+
+            sage: b1 = B(object())
+            sage: b2 = B(object())
+            sage: b1.m() is b1.m()
+            True
+            sage: b1.m() is not b2.m()
+            True
+
         """
         if self.cache is None:
+            if instance is not None:
+                if self._instance is not None:
+                    raise TypeError("__call__() takes at most 0 positional arguments (1 given)")
+                # Produce a bound version of this caller and fill its cache with the computed value
+                return self.__get__(instance, type(instance))()
             f = self.f
             self.cache = f(self._instance)
         return self.cache
