@@ -331,6 +331,19 @@ class Macaulay2(ExtraTabCompletion, Expect):
         if ans.find("stdio:") != -1:
             raise RuntimeError("Error evaluating Macaulay2 code.\nIN:%s\nOUT:%s"%(cmd, ans))
 
+    def _contains(self, v1, v2):
+        """
+        EXAMPLES::
+
+            sage: a = macaulay2([3,4,5])  # optional - macaulay2
+            sage: 0 in a, 2 in a, 3 in a  # optional - macaulay2, indirect doctest
+            (True, True, False)
+            sage: b = macaulay2('hashTable {"x" => 1, "y" => 2}')  # optional - macaulay2
+            sage: 'x' in b, '"x"' in b    # optional - macaulay2, indirect doctest
+            (False, True)
+        """
+        return self.eval("%s#?%s" % (v2, v1)) == self._true_symbol()
+
     def _object_class(self):
         """
         Returns the class of Macaulay2 elements.
