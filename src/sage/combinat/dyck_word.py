@@ -61,7 +61,7 @@ from __future__ import absolute_import
 from six.moves import range
 
 from sage.structure.list_clone import ClonableList
-from .combinat import CombinatorialElement, catalan_number
+from .combinat import catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
 from .backtrack import GenericBacktracker
 
@@ -331,6 +331,24 @@ class DyckWord(ClonableList):
         raise ValueError("invalid Dyck word")
 
     def check(self):
+        r"""
+        Check the input and raise an exception if it is not a proper Dyck Word
+
+        EXAMPLES::
+
+            sage: DyckWord([1,1,0,0])      # indirect docttest
+            [1, 1, 0, 0]
+            sage: DyckWord([1,0,1,0])      # indirect docttest
+            [1, 0, 1, 0]
+            sage: DyckWords(2)([1,0,1,0])  # indirect docttest
+            [1, 0, 1, 0]
+            sage: DyckWord([1,1,0])
+            [1, 1, 0]
+            sage: DyckWord([0,1,0])        # indirect docttest
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid Dyck word
+        """
         if not is_a( list(self) ):
             raise ValueError("This is not a Dyck Word : %s"%(list(self)))
 
@@ -349,28 +367,6 @@ class DyckWord(ClonableList):
         """
         ClonableList.__init__(self, parent, l, check)
         self._latex_options = dict(latex_options)
-
-    def _hash_(self):
-        """
-        Return the hash of ``self``.
-
-        EXAMPLES::
-
-            sage: D = DyckWord([1,0,1,0,1,0])
-            sage: hash(tuple(D)) == hash(D)
-            True
-
-        TESTS::
-
-            sage: D1 = DyckWord([1,0,1,0,1,0])
-            sage: D2 = DyckWords()([1,0,1,0,1,0])
-            sage: D3 = DyckWords(3)([1,0,1,0,1,0])
-            sage: hash(D1) == hash(D2)
-            True
-            sage: hash(D1) == hash(D3)
-            True
-        """
-        return hash(tuple(self))
 
     _has_2D_print = False
 
