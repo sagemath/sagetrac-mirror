@@ -229,8 +229,8 @@ Moreover, this domain exchange is conjugated to the shift on :math:`\sigma_+(Q)`
   :scale: 40 %
 
 
-  .. image:: echange_rond2.pdf
-  .. image:: echange_rond1.pdf
+  .. image:: media/echange_rond2.pdf
+  .. image:: media/echange_rond1.pdf
   Construction of a domain exchange in the unit disk, for the integer ring :math:`\mathcal O_\beta`,
   where :math:`\beta` is the Tribonnacci number. 
   \textcolor{red}{:math:`-2\beta^2+2\beta`}, \quad \textcolor{orange}{:math:`\beta^2-\beta-1`}, \quad \textcolor{lime}{:math:`\beta-1`}, \quad \textcolor{green}{:math:`1`}, \quad \textcolor{cyan}{:math:`-\beta^2+2\beta+1`, \quad \textcolor{bleu}{:math:`\beta^2-\beta`, \quad \textcolor{magenta}{:math:`\beta`
