@@ -45,4 +45,6 @@ from .btquotients.all import *
 
 from .pollack_stevens.all import *
 
+from .siegel.all import *
+
 del absolute_import
