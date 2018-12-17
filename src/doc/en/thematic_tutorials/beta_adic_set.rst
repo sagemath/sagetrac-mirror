@@ -1,6 +1,14 @@
 .. -*- coding: utf-8 -*-
 .. _beta_adic_set:
 
+.. raw:: html
+
+    <style> .red {color:red} </style>
+
+.. role:: red
+
+:red:`test - this text should be red`
+
 ===================
 BetaAdicSet in Sage
 ===================
@@ -225,17 +233,13 @@ Let :math:`\beta` be a Pisot number (eventually non unit), and let :math:`Q \sub
 Then there exists a domain exchange with a finite number of pieces such that the union of the pieces is :math:`Q`.
 Moreover, this domain exchange is conjugated to the shift on :math:`\sigma_+(Q)`. defined by the window :math:`\Omega`. 
 
-.. raw:: html
 
-    <style> .red {color:red} </style>
-
-
-.. figure:: ./media/echange_rond1.pdf.
+.. figure:: media/echange_rond1.pdf
    :scale: 50 %
 
   Construction of a domain exchange in the unit disk, for the integer ring :math:`\mathcal O_\beta`,
   where :math:`\beta` is the Tribonnacci number. 
-  \textcolor{red}{:math:`-2\beta^2+2\beta`}, \\quad \textcolor{orange}{:math:`\beta^2-\beta-1`}, \\quad \textcolor{lime}{:math:`\beta-1`}, \\quad \textcolor{green}{:math:`1`}, \\quad \textcolor{cyan}{:math:`-\beta^2+2\beta+1`, \\quad \textcolor{bleu}{:math:`\beta^2-\beta`, \\quad \textcolor{magenta}{:math:`\beta`}
+  :math:`\color{red}{-2\beta^2+2\beta}`, :math:`\color{orange}{\beta^2-\beta-1}`, :math:`\color{lime}{\beta-1}`, :math:`\color{green}{1}`,  :math:`\color{cyan}{-\beta^2+2\beta+1}`,  :math:`\color{blue}{\beta^2-\beta}`,  :math:`\color{magenta}{\beta}`
 
 The domain exchange described in the figure for the open unit disk gives exactly the list of Pisot numbers (including non-unit ones) of degree :math:`3` in :math:`\mathbf Q(\beta)`,
 where :math:`\beta` is the Tribonnacci number (i.e. greatest root of $x^3-x^2-x-1$).
