@@ -52,14 +52,46 @@ class Derangement(ClonableList):
         sage: D = Derangements(4)
         sage: elt = D([4,3,2,1])
         sage: TestSuite(elt).run()
+        sage: d = Derangement([4,3,2,1])
+        sage: d.parent()
+        Derangements of the set [1, 2, 3, 4]
     """
-    def __init__(self, parent, lst, check=True):
-        ClonableList.__init__(self, parent, lst, check)
-
     @staticmethod
     def __classcall_private__(cls, lst):
-        parent_set = [i+1 for i in range(len(lst))]
+        """
+        Return a Derangement with the elements of `lst` and generate the parent set
+        [1, 2, ..., n] with n=len(lst).
+
+         - ``lst`` -- a list of ``int`` variables
+
+        TESTS::
+
+            sage: d = Derangement.__classcall_private__(Derangement, [3, 1, 2])
+            sage: d
+            [3, 1, 2]
+            sage: d.parent()
+            Derangements of the set [1, 2, 3]
+            sage: Derangement.__classcall_private__(Derangement, 'Abc')
+            Traceback (most recent call last):
+            ...
+            AssertionError: All elements of a derangement must be present in their parent set
+        """
+        parent_set = [i + 1 for i in range(len(lst))]
         return Derangements(parent_set)(lst)
+
+    def __init__(self, parent, lst, check=True):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: d = Derangement([4,3,2,1]); d # indirect doctest
+            [4, 3, 2, 1]
+            sage: D = Derangements(3)
+            sage: list(D) # indirect doctest
+            [[2, 3, 1], [3, 1, 2]]
+        """
+        ClonableList.__init__(self, parent, lst, check)
 
     def to_permutation(self):
         """
@@ -83,10 +115,31 @@ class Derangement(ClonableList):
         return Permutation(list(self))
 
     def check(self):
+        """
+        Check consistency between a derangement and his parent's set.
+
+        TESTS::
+
+            sage: D = Derangements(3)
+            sage: D([1,2,3]) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            AssertionError: At least one element is in the same position in the derangement
+             and in the parent's set
+            sage: D([4,3,2,1]) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            AssertionError: A derangement and his parent set must have the same size:
+             Derangement's size:4, Parent set's size 3
+            sage: D([4,3,2]) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            AssertionError: All elements of a derangement must be present in their parent set
+        """
         pset = self.parent()._set
         assert len(self) == len(pset), \
             ("A derangement and his parent set must have the same size: "
-            "\nDerangement's size:{}, Parent set's size {}".format(len(self), len(pset)))
+                "\nDerangement's size:{}, Parent set's size {}".format(len(self), len(pset)))
 
         assert all([e in pset for e in self]), \
             "All elements of a derangement must be present in their parent set"
@@ -207,7 +260,7 @@ class Derangements(UniqueRepresentation, Parent):
             return "Derangements of the multiset %s" % list(self._set)
         return "Derangements of the set %s" % list(self._set)
 
-    def _element_constructor_(self, der):
+    def _element_constructor_(self, der, check=True):
         """
         Construct an element of ``self`` from ``der``.
 
@@ -223,7 +276,7 @@ class Derangements(UniqueRepresentation, Parent):
             if der.parent() is self:
                 return der
             raise ValueError("Cannot convert %s to an element of %s" % (der, self))
-        return self.element_class(self, der)
+        return self.element_class(self, der, check=check)
 
     Element = Derangement
 
@@ -523,7 +576,7 @@ class Derangements(UniqueRepresentation, Parent):
         if self.__multi:
             L = list(self)
             if len(L) == 0:
-                return self._element_constructor_([])
+                return self._element_constructor_([], check=False)
             i = randint(0, len(L))
             return L[i]
         temp = self._rand_der()
