@@ -223,17 +223,19 @@ The first step, to construct a substitution from a quasicrystal, is to construct
 
 Let :math:`\beta` be a Pisot number (eventually non unit), and let :math:`Q \subseteq \mathbf Q(\beta)` such that :math:`\sigma_+(Q)` is a quasicrystal of :math:`\mathbf R` or :math:`\mathbf R^+`.
 Then there exists a domain exchange with a finite number of pieces such that the union of the pieces is :math:`Q`.
-Moreover, this domain exchange is conjugated to the shift on :math:`\sigma_+(Q)`. %defined by the window $:math:`\Omega`. 
+Moreover, this domain exchange is conjugated to the shift on :math:`\sigma_+(Q)`. defined by the window :math:`\Omega`. 
 
-.. figure::echange_rond2.pdf, echange_rond1.pdf
-  :scale: 40 %
+.. raw:: html
+
+    <style> .red {color:red} </style>
 
 
-  .. image:: echange_rond2.pdf
-  .. image:: echange_rond1.pdf
+.. figure:: ./media/echange_rond1.pdf.
+   :scale: 50 %
+
   Construction of a domain exchange in the unit disk, for the integer ring :math:`\mathcal O_\beta`,
   where :math:`\beta` is the Tribonnacci number. 
-  \textcolor{red}{:math:`-2\beta^2+2\beta`}, \quad \textcolor{orange}{:math:`\beta^2-\beta-1`}, \quad \textcolor{lime}{:math:`\beta-1`}, \quad \textcolor{green}{:math:`1`}, \quad \textcolor{cyan}{:math:`-\beta^2+2\beta+1`, \quad \textcolor{bleu}{:math:`\beta^2-\beta`, \quad \textcolor{magenta}{:math:`\beta`
+  \textcolor{red}{:math:`-2\beta^2+2\beta`}, \\quad \textcolor{orange}{:math:`\beta^2-\beta-1`}, \\quad \textcolor{lime}{:math:`\beta-1`}, \\quad \textcolor{green}{:math:`1`}, \\quad \textcolor{cyan}{:math:`-\beta^2+2\beta+1`, \\quad \textcolor{bleu}{:math:`\beta^2-\beta`, \\quad \textcolor{magenta}{:math:`\beta`}
 
 The domain exchange described in the figure for the open unit disk gives exactly the list of Pisot numbers (including non-unit ones) of degree :math:`3` in :math:`\mathbf Q(\beta)`,
 where :math:`\beta` is the Tribonnacci number (i.e. greatest root of $x^3-x^2-x-1$).
@@ -795,8 +797,8 @@ The projection
 .. image:: media/square5.png
   :scale: 70 %
 
-User Draw Shape
----------------
+Any Shape
+---------
 
 .. code-block:: Python
 
@@ -903,4 +905,51 @@ described in figure
     s.rauzy_fractal_plot()
 
 .. image:: media/gabian6.png
+  :scale: 70 %
+
+
+User Draw
+---------
+
+.. code-block:: Python
+
+    #########################################
+    # choose a Pisot number and an alphabet #
+    #########################################
+    pi = x^3-x^2-x-1 #Tribonacci
+    b = pi.roots(ring=QQbar)[1][0] #we take the conjugate of modulus < 1 in order to plot the result
+    m = BetaAdicSet(b, {0,1}) #choose the alphabet
+    pm = m.b.parent().places()[1]
+    aoc = m.user_draw()
+    [(1.83928675521416, 1), (-0.419643377607081 - 0.606290729207199*I, 1), (-0.419643377607081 + 0.606290729207199*I, 1)]
+    -0.4196433776070806? - 0.6062907292071993?*I
+
+    aoc.plot()
+
+.. image:: media/user1.png
+  :scale: 70 %
+
+Compute the domain exchange
+
+.. code-block:: Python
+
+    # compute a domain exchange
+    l = aoc.domain_exchange()
+    print("Exchange with %s pieces."%len(l))
+    Exchange with 13 pieces.
+
+.. code-block:: Python
+
+    # plot it
+    aoc.plot_list([a for t,a in l], nprec=6)
+
+.. image:: media/user2.png
+  :scale: 70 %
+
+.. code-block:: Python
+
+    # plot it after exchange
+    aoc.plot_list([a.proj(m, t) for t,a in l], nprec=6)
+
+.. image:: media/user3.png
   :scale: 70 %

@@ -1174,7 +1174,7 @@ cdef class CAutomaton:
             sage: b = CAutomaton(a)
             sage: b.determinize()
             DetAutomaton with 2 states and an alphabet of 2 letters
-            
+
             sage: a = CAutomaton([(0,0,0),(0,0,1),(0,1,1),(1,2,0),(1,2,1),(2,3,0),(2,3,1),(3,4,0),(3,4,1)], I=[0], F=[4])
             sage: a.determinize()
             DetAutomaton with 16 states and an alphabet of 2 letters
@@ -1208,9 +1208,10 @@ cdef class CAutomaton:
 
             sage: a = CAutomaton([(0,0,0),(0,0,1),(0,1,1),(1,2,0),(1,2,1),(2,3,0),(2,3,1),(3,4,0),(3,4,1)], I=[0], F=[4])
             sage: a.plot()   # random
-
+            <PIL.PngImagePlugin.PngImageFile image mode=RGBA size=189x147 at 0x7F6711E442D0>
+            
         .. PLOT::
-          :scale: 50 %
+           :width: 50%
 
             a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             b = CAutomaton(a)
@@ -1803,7 +1804,7 @@ cdef class DetAutomaton:
             <PIL.PngImagePlugin.PngImageFile image mode=RGBA size=189x147 at 0x7FD4B6D94390>
 
         .. PLOT::
-          :width: 50 %
+           :width: 50%
 
             a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sphinx_plot(a)
