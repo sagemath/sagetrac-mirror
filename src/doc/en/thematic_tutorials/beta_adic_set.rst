@@ -795,8 +795,8 @@ The projection
 .. image:: media/square5.png
   :scale: 70 %
 
-User Draw Shape
----------------
+Any Shape
+---------
 
 .. code-block:: Python
 
@@ -904,3 +904,8 @@ described in figure
 
 .. image:: media/gabian6.png
   :scale: 70 %
+
+
+User Draw
+---------
+
