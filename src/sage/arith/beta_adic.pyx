@@ -2988,7 +2988,7 @@ cdef class BetaAdicSet:
 
     def shift(self, w):
         """
-        Shift the automaton of self.
+        Shift the automaton of self by w.
 
         INPUT:
 
@@ -3061,18 +3061,18 @@ cdef class BetaAdicSet:
                 return e3
             return -1
 
-    # see :doc:`thematic_tutorials/beta_adic_set`
     def approx(self, n, test, get_aut=False, bool simplify=True):
         """
         Gives a BetaAdicSet describing an approximation of a set defined by the
         characteritic function test, with the alphabet of the automaton of self.
         Rk: could be improved by drawing with the automaton of self
-        
+        .. see :doc:`thematic_tutorials/beta_adic_set`
 
         INPUT:
 
-        - ``n``  int
-        - ``test`` function
+        - ``n`` -- int - number of iterations/depth of the approximation
+        - ``test`` -- test function - function that associated
+            to any element of the beta-adic-set, a boolean
         - ``get_aut``  bool -- (default ``False``)
           if ``True`` return only a DetAutomaton
         - ``simplify``  bool -- (default ``True``) set
@@ -3099,6 +3099,13 @@ cdef class BetaAdicSet:
                 sage: print(a)
                 b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 236 states and 2 letters
                 sage: m.plot_list([a])  # not tested
+            
+            #. Slide of the dragon fractal
+                sage: m = BetaAdicSet(1/(1.+I), [0,1])
+                sage: m2 = m.approx(12, lambda x: x.real()^2 < .1)
+                sage: m2
+                (0.500000000000000 - 0.500000000000000*I)-adic set with an automaton of 32 states and 2 letters
+                sage: m.plot_list([m2])     # random
 
             #. BetaAdicSet approximating an image 
                 sage: m = WordMorphism('1->12,2->13,3->1').DumontThomas().mirror()
@@ -3161,7 +3168,7 @@ cdef class BetaAdicSet:
 
         INPUT:
 
-        - ``a``  automaton or BetaAdicSet
+        - ``a`` - automaton or BetaAdicSet
 
         OUTPUT:
 
@@ -3285,15 +3292,15 @@ cdef class BetaAdicSet:
     def diff(self, a):
         """
         Compute the difference of two beta-adic sets.
-        It is a beta-adic set describing the set of differences of the two beta-adic sets.
+        Return a beta-adic set describing the set of differences of the two beta-adic sets.
 
         INPUT:
 
-        - ``a``  a BetaAdicSet or an automaton
+        - ``a`` - a BetaAdicSet or an automaton
 
         OUTPUT:
 
-        Return the difference of two beta-adic sets.
+        Return the difference of the two beta-adic sets.
 
 
         EXAMPLES::
