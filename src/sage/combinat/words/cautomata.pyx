@@ -1190,8 +1190,8 @@ cdef class CAutomaton:
 
         INPUT:
 
-        - ``sx`` -- int (default: 10)
-        - ``sy`` -- int (default: 8)
+        - ``sx`` -- int (default: 10) - width given to dot command
+        - ``sy`` -- int (default: 8) - height given to dot command
         - ``verb`` -- boolean (default: ``False``) if True, print debugging informations
 
         EXAMPLES::
@@ -1204,6 +1204,7 @@ cdef class CAutomaton:
             sage: a.plot()   # random
 
         .. PLOT::
+          :scale: 50 %
 
             a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             b = CAutomaton(a)
