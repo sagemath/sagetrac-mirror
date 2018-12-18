@@ -1,13 +1,6 @@
 .. -*- coding: utf-8 -*-
 .. _beta_adic_set:
 
-.. raw:: html
-
-    <style> .red {color:red} </style>
-
-.. role:: red
-
-:red:`test - this text should be red`
 
 ===================
 BetaAdicSet in Sage
@@ -103,6 +96,7 @@ Up to replace :math:`s` by a power, we can assume that :math:`s` has a fixed poi
 We defined the \defi{broken line} associated to :math:`\omega` as the subset of :math:`\mathbf Z^n` defined by
 
 .. MATH::
+
     \{ {\begin{pmatrix}
     \text{number of occurences of } 1 \text{ in } \omega_k \\
     \text{number of occurences of } 2 \text{ in } \omega_k \\
@@ -234,16 +228,23 @@ Then there exists a domain exchange with a finite number of pieces such that the
 Moreover, this domain exchange is conjugated to the shift on :math:`\sigma_+(Q)`. defined by the window :math:`\Omega`. 
 
 
-.. figure:: media/echange_rond1.pdf
-   :scale: 50 %
+
+.. figure:: /media/echange_rond.jpg
+  :scale: 50%
+  :align: center
+  :alt: domain exchange
 
   Construction of a domain exchange in the unit disk, for the integer ring :math:`\mathcal O_\beta`,
   where :math:`\beta` is the Tribonnacci number. 
-  :math:`\color{red}{-2\beta^2+2\beta}`, :math:`\color{orange}{\beta^2-\beta-1}`, :math:`\color{lime}{\beta-1}`, :math:`\color{green}{1}`,  :math:`\color{cyan}{-\beta^2+2\beta+1}`,  :math:`\color{blue}{\beta^2-\beta}`,  :math:`\color{magenta}{\beta}`
+  :math:`\color{red}{-2\beta^2+2\beta}`, :math:`\color{orange}{\beta^2-\beta-1}`, :math:`\color{lime}{\beta-1}`, :math:`\color{green}{1}`,  :math:`\color{cyan}{-\beta^2+2\beta+1}`, :math:`\color{blue}{\beta^2-\beta}`, :math:`\color{magenta}{\beta}`
 
-The domain exchange described in the figure for the open unit disk gives exactly the list of Pisot numbers (including non-unit ones) of degree :math:`3` in :math:`\mathbf Q(\beta)`,
+
+
+The domain exchange described in the figure for the open unit disk gives exactly the list of Pisot numbers
+(including non-unit ones) of degree :math:`3` in :math:`\mathbf Q(\beta)`,
 where :math:`\beta` is the Tribonnacci number (i.e. greatest root of $x^3-x^2-x-1$).
-Indeed if :math:`x` is a Pisot number of degree three in :math:`\mathbf Q(\beta)`, the next Pisot number is obtained by looking in which piece is the conjugate :math:`\overline{x}`,
+Indeed if :math:`x` is a Pisot number of degree three in :math:`\mathbf Q(\beta)`,
+the next Pisot number is obtained by looking in which piece is the conjugate :math:`\overline{x}`,
 and adding the corresponding translation to :math:`x`.
 
 Construction of a substitution
@@ -477,6 +478,7 @@ The Dragon Fractal
     a = m.relations_automaton(ext=True)
     sphinx_plot(a)
 
+
 .. code-block:: Python
 
     mi = m.intersection_words([0], [1])
@@ -496,12 +498,13 @@ The Dragon Fractal
 
 Compute the Hausdorff dimension.
 
+
 .. code-block:: Python
 
-   # compute the Hausdorff dimension
-   mi.critical_exponent()
-   log(y)/log(1.414213562373095?) where y is the max root of x^3 - x^2 - 2, and 1.414213562373095? is root of x^2 - 2.
-   1.523627086202492
+    # compute the Hausdorff dimension
+    mi.critical_exponent()
+    log(y)/log(1.414213562373095?) where y is the max root of x^3 - x^2 - 2, and 1.414213562373095? is root of x^2 - 2.
+    1.523627086202492
 
 
 Any Shape
@@ -678,27 +681,26 @@ Rauzy fractal approximating a square
 
 .. code-block:: Python
 
-   #########################################
-   # choose a Pisot number and an alphabet #
-   #########################################
-   pi = x^3-x^2-x-1 #Tribonacci
-   print(pi.roots(ring=CC))
-   b = pi.roots(ring=QQbar)[1][0] #we take the conjugate of modulus < 1 in order to plot the result
-   print b
-   m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
-   #m = BetaAdicSet(b, {0,1}) #choose the alphabet
-   pm = m.b.parent().places()[1]
-   ########################################
-   # Rauzy fractal approximating a square #
-   ########################################
-   #compute a g-b-set approximating a square
-   #the first argument of approx() is the precision,
-   #and the second one is the characteristic function of the shape to approximate
-   #the shape must be not too big in order to be inside the set of elements that admit a b-expansion
-   md  = m.approx(15, lambda x: abs(pm(x).real()) < .5 and abs(pm(x).imag()) < .5 )
-   m.plot_list([md])
-   [(1.83928675521416, 1), (-0.419643377607081 - 0.606290729207199*I, 1), (-0.419643377607081 + 0.606290729207199*I, 1)]
-   -0.4196433776070806? - 0.6062907292071993?*I
+    #########################################
+    # choose a Pisot number and an alphabet #
+    #########################################
+    pi = x^3-x^2-x-1 #Tribonacci
+    print(pi.roots(ring=CC))
+    b = pi.roots(ring=QQbar)[1][0] #we take the conjugate of modulus < 1 in order to plot the result
+    print b
+    m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
+    pm = m.b.parent().places()[1]
+    ########################################
+    # Rauzy fractal approximating a square #
+    ########################################
+    #compute a g-b-set approximating a square
+    #the first argument of approx() is the precision,
+    #and the second one is the characteristic function of the shape to approximate
+    #the shape must be not too big in order to be inside the set of elements that admit a b-expansion
+    md  = m.approx(15, lambda x: abs(pm(x).real()) < .5 and abs(pm(x).imag()) < .5 )
+    m.plot_list([md])
+    [(1.83928675521416, 1), (-0.419643377607081 - 0.606290729207199*I, 1), (-0.419643377607081 + 0.606290729207199*I, 1)]
+    -0.4196433776070806? - 0.6062907292071993?*I
 
 
 .. image:: media/square1.png
