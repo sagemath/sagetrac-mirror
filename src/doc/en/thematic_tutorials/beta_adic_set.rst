@@ -275,8 +275,6 @@ Examples of Usage of BetaAdicSet
 --------------------------------
 
 
-
-
 A Sierpinsky gasket
 ~~~~~~~~~~~~~~~~~~~
 
@@ -439,7 +437,8 @@ Compute the subtitution
     68: [66, 49],
     69: [67, 49]}
 
- The :math:`\beta`-adic set :math:`Q_{]-1,1[}` can be computed, for any quadratic Pisot number :math:`\beta`, and then compute a substitution describing the quasicrystal.
+The :math:`\beta`-adic set :math:`Q_{]-1,1[}` can be computed, for any quadratic Pisot number :math:`\beta`,
+and then compute a substitution describing the quasicrystal.
 
 And directly with the WordMorphism of the subtitution and it's rauzy_fractal_plot.
 
@@ -450,7 +449,7 @@ And directly with the WordMorphism of the subtitution and it's rauzy_fractal_plo
     s.rauzy_fractal_plot()
 
 .. image:: media/domain3.png
-  :scale: 100 %
+    :scale: 100 %
 
 
 The Dragon Fractal
@@ -682,26 +681,25 @@ Rauzy fractal approximating a square.
 
 .. code-block:: Python
 
-    #########################################
-    # choose a Pisot number and an alphabet #
-    #########################################
-    pi = x^3-x^2-x-1 #Tribonacci
-    print(pi.roots(ring=CC))
-    b = pi.roots(ring=QQbar)[1][0] #we take the conjugate of modulus < 1 in order to plot the result
-    print b
-    m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
-    pm = m.b.parent().places()[1]
-    ########################################
-    # Rauzy fractal approximating a square #
-    ########################################
-    #compute a g-b-set approximating a square
-    #the first argument of approx() is the precision,
-    #and the second one is the characteristic function of the shape to approximate
-    #the shape must be not too big in order to be inside the set of elements that admit a b-expansion
-    md  = m.approx(15, lambda x: abs(pm(x).real()) < .5 and abs(pm(x).imag()) < .5 )
-    m.plot_list([md])
-    [(1.83928675521416, 1), (-0.419643377607081 - 0.606290729207199*I, 1), (-0.419643377607081 + 0.606290729207199*I, 1)]
-    -0.4196433776070806? - 0.6062907292071993?*I
+   #########################################
+   # choose a Pisot number and an alphabet #
+   #########################################
+   pi = x^3-x^2-x-1 #Tribonacci
+   print(pi.roots(ring=CC))
+   b = pi.roots(ring=QQbar)[1][0] #we take the conjugate of modulus < 1 in order to plot the result
+   m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
+   pm = m.b.parent().places()[1]
+   ########################################
+   # Rauzy fractal approximating a square #
+   ########################################
+   # compute a g-b-set approximating a square
+   # the first argument of approx() is the precision,
+   # and the second one is the characteristic function of the shape to approximate
+   # the shape must be not too big in order to be inside the set of elements that admit a b-expansion
+   md  = m.approx(15, lambda x: abs(pm(x).real()) < .5 and abs(pm(x).imag()) < .5 )
+   m.plot_list([md])
+   [(1.83928675521416, 1), (-0.419643377607081 - 0.606290729207199*I, 1), (-0.419643377607081 + 0.606290729207199*I, 1)]
+   -0.4196433776070806? - 0.6062907292071993?*I
 
 
 .. image:: media/square1.png
@@ -918,6 +916,8 @@ described in figure
 User Draw
 ---------
 
+
+
 .. code-block:: Python
 
     #########################################
@@ -933,7 +933,7 @@ User Draw
 
     aoc.plot()
 
-.. image:: media/user1.png
+.. image:: media/user11.png
   :scale: 70 %
 
 Compute the domain exchange
@@ -950,7 +950,7 @@ Compute the domain exchange
     # plot it
     aoc.plot_list([a for t,a in l], nprec=6)
 
-.. image:: media/user2.png
+.. image:: media/user21.png
   :scale: 70 %
 
 .. code-block:: Python
@@ -958,5 +958,57 @@ Compute the domain exchange
     # plot it after exchange
     aoc.plot_list([a.proj(m, t) for t,a in l], nprec=6)
 
-.. image:: media/user3.png
+.. image:: media/user31.png
   :scale: 70 %
+
+.. code-block:: Python
+
+    aoc.relations_automaton()
+    DetAutomaton with 7 states and an alphabet of 3 letters
+    aoc.relations_automaton().plot()
+
+
+.. image:: media/user41.png
+  :scale: 70 %
+
+.. code-block:: Python
+
+    aoc.reduced_words_automaton()
+    DetAutomaton with 43 states and an alphabet of 2 letters
+    aoc.reduced_words_automaton().plot()
+
+.. image:: media/user51.png
+  :scale: 70 %
+
+.. code-block:: Python
+
+    d , lm = aoc.substitution(get_aut=True)
+    d
+    {'a': ['o', 'm', 'e', 'r', 'g'],
+     'b': ['m', 'b', 'j', 'e', 'r', 'g', 'm', 'p', 'm', 'q'],
+     'c': ['m', 'b', 'j', 'e', 'r', 'g', 'm', 'o', 'j', 'e', 'r', 'g', 'm'],
+     'd': ['o', 'm', 'q', 'i', 'r', 'g', 'm', 'b', 'j', 'e', 'r', 'g', 'm', 'p', 'm', 'q'],
+     'e': ['m', 'b', 'j', 'e', 'r', 'g', 'm', 'o', 'j', 'e', 'r', 'g', 'm', 'o', 'm', 'e', 'r', 'g'],
+     'f': ['l', 'd', 'm', 'q'],
+     'g': ['p', 'm', 'q'],
+     'h': ['o', 'j', 'e', 'r', 'g', 'm'],
+     'i': ['o', 'j', 'e', 'r', 'g', 'm', 'o', 'm', 'e', 'r', 'g'],
+     'j': ['h', 'a', 'r', 'g', 'j', 'e', 'r', 'f', 'm', 'o', 'm', 'e', 'r', 'g'],
+     'k': ['k', 'j', 'e', 'r', 'g', 'm', 'o', 'm', 'e', 'r', 'g', 'm', 'b', 'j', 'e', 'r', 'g', 'm', 'p', 'm', 'q'],
+     'l': ['m', 'b', 'j', 'c', 'a', 'r', 'g', 'm'],
+     'm': ['i', 'r', 'g', 'j', 'e', 'r', 'g', 'm', 'o', 'm', 'e', 'r', 'g'],
+     'n': ['i', 'r', 'g', 'j', 'q', 'i', 'r', 'g', 'm', 'o', 'm', 'e', 'r', 'g'],
+     'o': ['m', 'b', 'j', 'c', 'a', 'r', 'g', 'm', 'o', 'm', 'e', 'r', 'g', 'm', 'b', 'j', 'e', 'r', 'g', 'm', 'p', 'm', 'q'],
+     'p': ['m', 'b', 'j', 'c', 'a', 'r', 'g', 'm', 'o', 'm', 'q', 'i', 'r', 'g', 'm', 'b', 'j', 'e', 'r', 'g', 'm', 'p', 'm', 'q'],
+     'q': ['m', 'b', 'j', 'e', 'r', 'g', 'm'],
+     'r': ['n', 'b', 'j', 'e', 'r', 'g', 'm']}
+
+
+.. code-block:: Python
+
+    aoc.plot_list([a for a,t in lm], nprec=6)
+
+
+.. image:: media/user61.png
+  :scale: 70 %
+
