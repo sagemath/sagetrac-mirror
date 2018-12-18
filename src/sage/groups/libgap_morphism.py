@@ -27,7 +27,6 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.categories.homset import HomsetWithBase
-from sage.categories.groups import Groups
 from sage.categories.morphism import Morphism
 from sage.rings.integer_ring import ZZ
 from sage.groups.libgap_wrapper import ParentLibGAP
@@ -36,18 +35,17 @@ from sage.misc.latex import latex
 
 class GroupMorphism_libgap(Morphism):
     r"""
-    Group morphism specified by the images of generators.
+    This wraps libGAP group homomorphisms.
 
-    This wraps GAP's ``GroupHomomorphismByImages`` function.
     Checking if the input defines a group homomorphism can be expensive
     if the group is large.
 
     INPUT:
 
     - ``homset`` -- the parent
-    - ``imgs`` -- a tuple of generators
-    - ``check`` -- (default: ``True``) check if the images define
-      a group homomorphism
+    - ``gap_hom`` -- a :class:`sage.libs.gap.element.GapElement` consisting of a group homomorphism
+    - ``check`` -- (default: ``True``) check if the ``gap_hom`` is a group
+      homomorphism; this can be expensive
 
     EXAMPLES::
 
@@ -237,10 +235,21 @@ class GroupMorphism_libgap(Morphism):
          to General Linear Group of degree 3 over Integer Ring in Category of groups
     """
     def __init__(self, homset, gap_hom, check=True):
-
-        #imgs, check=True):
         r"""
         Constructor method.
+
+        TESTS::
+
+            sage: G = GL(2, ZZ)
+            sage: H = GL(2, GF(2))
+            sage: P = Hom(G, H)
+            sage: gen1 = [g.gap() for g in G.gens()]
+            sage: gen2 = [H(g).gap() for g in G.gens()]
+            sage: phi = G.gap().GroupHomomorphismByImagesNC(H,gen1, gen2)
+            sage: phi = P.element_class(P,phi)
+            sage: phi(G.gen(0))
+            [0 1]
+            [1 0]
         """
         if check:
             if not gap_hom.IsGroupHomomorphism():
@@ -569,8 +578,6 @@ class GroupHomset_libgap(HomsetWithBase):
         """
         if isinstance(x, (tuple, list)):
             # there should be a better way
-            codomain = self.codomain()
-            im_gens = tuple([codomain(g) for g in x])
             from sage.libs.gap.libgap import libgap
             dom = self.domain()
             codom = self.codomain()
