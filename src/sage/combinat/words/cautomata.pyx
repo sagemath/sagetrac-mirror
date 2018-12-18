@@ -538,8 +538,13 @@ cdef class CAutomaton:
         if isinstance(a, DiGraph):
             if verb:
                 print("DiGraph...")
+            SL = set(a.edge_labels())
             if A is None:
-                A = list(set(a.edge_labels()))
+                A = list(SL)
+            else:
+                # test that A contains the labels
+                if not SL.issubset(A):
+                    raise ValueError("A label of a transition is not in the alphabet %s"%A)
             self.A = A
             if verb:
                 print("getNAutomaton(%s, I=%s, F=%s, A=%s)" % (a, I, F, self.A))
@@ -1398,8 +1403,13 @@ cdef class DetAutomaton:
         if isinstance(a, DiGraph):
             if verb:
                 print("DiGraph...")
+            SL = set(a.edge_labels())
             if A is None:
-                A = list(set(a.edge_labels()))
+                A = list(SL)
+            else:
+                # test that A contains the labels
+                if not SL.issubset(A):
+                    raise ValueError("A label of a transition is not in the alphabet %s"%A)
             self.A = A
             self.a[0] = getAutomaton(a, initial=i, F=final_states, A=self.A)
             #self.dA = a.dA

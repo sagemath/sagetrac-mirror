@@ -11,7 +11,7 @@ AUTHORS:
 """
 
 # *****************************************************************************
-#       Copyright (C) 2014 Paul Mercat <paul.mercat@univ-amu.fr>
+#       Copyright (C) 2018 Paul Mercat <paul.mercat@univ-amu.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -31,24 +31,194 @@ from sage.misc.prandom import randint, random
 
 
 class DetAutomatonGenerators(object):
+    """
+    This class permits to generate various usefull DetAutomata.
+
+    EXAMPLES::
+
+        #. DetAutomaton recognizing every words over a given alphabet
+        sage: dag.AnyWord(['a','b'])
+        DetAutomaton with 1 state and an alphabet of 2 letters
+
+        #. DetAutomaton recognizing every letters of a given alphabet
+        sage: dag.AnyLetter(['a','b'])
+        DetAutomaton with 2 states and an alphabet of 2 letters
+
+        #. DetAutomaton whose language is a single word
+        sage: dag.Word(['a','b','a'])
+        DetAutomaton with 4 states and an alphabet of 2 letters
+
+        #. DetAutomaton with a given alphabet, recognizing the empty word
+        sage: dag.EmptyWord(['a','b'])
+        DetAutomaton with 1 state and an alphabet of 2 letters
+
+        #. random DetAutomaton
+        sage: dag.Random()      # random
+        DetAutomaton with 244 states and an alphabet of 183 letters
+    """
+
     def AnyLetter(self, A, A2=None):
+        """
+        Generate a DetAutomaton recognizing every letter of the alphabet A.
+
+        INPUT:
+
+        - ``A`` -- the result recognize every letter of this alphabet
+
+        - ``A2`` (default: ``None``) -- alphabet of the result (must contain A)
+        
+        OUTPUT:
+
+        A :class:`DetAutomaton`
+
+        EXAMPLES::
+
+            sage: dag.AnyLetter(['a', 'b'])
+            DetAutomaton with 2 states and an alphabet of 2 letters
+
+            sage: dag.AnyLetter(['a', 'b'], ['a', 0, 'b', 1])
+            DetAutomaton with 2 states and an alphabet of 4 letters
+
+        TESTS::
+
+            sage: dag.AnyLetter(['a', 'b'], [0,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: A label of a transition is not in the alphabet [0, 1]
+        """
         return DetAutomaton([(0, 1, i) for i in A], A=A2, i=0, final_states=[1])
 
     def AnyWord(self, A, A2=None):
+        """
+        Generate a DetAutomaton recognizing every words over the alphabet A.
+
+        INPUT:
+
+        - ``A`` -- the result recognize every word over this alphabet
+
+        - ``A2`` (default: ``None``) -- alphabet of the result (must contain A)
+        
+        OUTPUT:
+
+        A :class:`DetAutomaton`
+
+        EXAMPLES::
+
+            sage: dag.AnyWord(['a', 'b'])
+            DetAutomaton with 1 state and an alphabet of 2 letters
+
+            sage: dag.AnyWord(['a', 'b'], ['a', 0, 'b', 1])
+            DetAutomaton with 1 state and an alphabet of 4 letters
+
+        TESTS::
+
+            sage: dag.AnyWord(['a', 'b'], [0,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: A label of a transition is not in the alphabet [0, 1]
+        """
         return DetAutomaton([(0, 0, i) for i in A], A=A2, i=0, final_states=[0])
 
     def Empty(self, A):
+        """
+        Generate a DetAutomaton recognizing the empty language over the alphabet A.
+
+        INPUT:
+
+        - ``A`` -- alphabet of the result
+        
+        OUTPUT:
+
+        A :class:`DetAutomaton`
+
+        EXAMPLES::
+
+            sage: dag.Empty(['a', 'b'])
+            DetAutomaton with 0 state and an alphabet of 2 letters
+        """
         return DetAutomaton([], A=A)
 
     def EmptyWord(self, A):
+        """
+        Generate a DetAutomaton recognizing the empty word and having the alphabet A.
+
+        INPUT:
+
+        - ``A`` -- alphabet of the result
+        
+        OUTPUT:
+
+        A :class:`DetAutomaton`
+
+        EXAMPLES::
+
+            sage: dag.EmptyWord(['a', 'b'])
+            DetAutomaton with 1 state and an alphabet of 2 letters
+        """
         return DetAutomaton([], S=[0], i=0, final_states=[0], A=A)
 
     def Word(self, w, A=None):
+        """
+        Generate a DetAutomaton recognizing the word w.
+
+        INPUT:
+
+        - ``w`` -- the result recognize this word
+
+        - ``A`` (default: ``None``) -- alphabet of the result (must contain the letters of w)
+        
+        OUTPUT:
+
+        A :class:`DetAutomaton`
+
+        EXAMPLES::
+
+            sage: dag.Word(['a', 'b'])
+            DetAutomaton with 3 states and an alphabet of 2 letters
+
+            sage: dag.Word(['a', 'b'], ['a', 0, 'b', 1])
+            DetAutomaton with 3 states and an alphabet of 4 letters
+
+        TESTS::
+
+            sage: dag.Word(['a', 'b'], [0,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: A label of a transition is not in the alphabet [0, 1]
+        """
         return DetAutomaton(
             [(i, i+1, j) for i, j in enumerate(w)], A=A, i=0, final_states=[len(w)])
 
     def Random(self, n=None, A=None, density_edges=None, 
                density_finals=None, verb=False):
+        """
+        Generate a random DetAutomaton.
+
+        INPUT:
+
+        - ``n`` - int (default: ``None``) -- the number of states 
+
+        - ``A`` (default: ``None``) -- alphabet of the result
+
+        - ``density_edges`` (default: ``None``) -- the density of the transitions among all possible transitions
+        
+        - ``density_finals`` (default: ``None``) -- the density of final states among all states
+        
+        - ``verb`` - bool (default: ``False``) -- print informations for debugging
+        
+        OUTPUT:
+
+        A :class:`DetAutomaton`
+
+        EXAMPLES::
+
+            sage: dag.Random()      # random
+            DetAutomaton with 401 states and an alphabet of 836 letters
+
+            sage: dag.Random(3, ['a','b'])
+            DetAutomaton with 3 states and an alphabet of 2 letters
+
+        """
         if density_edges is None:
             density_edges = random()
         if density_finals is None:
@@ -75,8 +245,8 @@ class DetAutomatonGenerators(object):
                 F.append(i)
         if verb:
             print("final states %s" % F)
-        return DetAutomaton(L, S=range(n), i=randint(0,n-1), final_states=F)
+        return DetAutomaton(L, A=A, S=range(n), i=randint(0,n-1), final_states=F)
 
 
-# Easy access to the automaton generators from the command line:
+# Easy access to the automaton generators:
 dag = DetAutomatonGenerators()
