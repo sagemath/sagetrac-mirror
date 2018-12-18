@@ -273,7 +273,7 @@ cdef Automaton getAutomaton(a, initial=None, F=None, A=None):
         else:
             I = list(a.I)
         if len(I) > 1:
-            raise ValueError("The automata must be determistic (I=%s)" %I)
+            raise ValueError("The automata must be determistic (I=%s)" % I)
         if len(I) >= 1:
             r.i = d[I[0]]
         else:
@@ -2337,7 +2337,7 @@ cdef class DetAutomaton:
             sage: a = dag.Word([0,1,0])
             sage: a.concat_zero_star()
             DetAutomaton with 4 states and an alphabet of 2 letters
-            
+
             sage: a = DetAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
             sage: a.concat_zero_star(z=0)
             DetAutomaton with 2 states and an alphabet of 2 letters
@@ -2347,7 +2347,7 @@ cdef class DetAutomaton:
             sage: b = DetAutomaton([(0, 1, 'a'), (0, 3, 'b')])
             sage: b.concat_zero_star(True)
             DetAutomaton with 1 state and an alphabet of 2 letters
-        
+
         TESTS::
 
             sage: a = dag.Word(['a', 'b'])
@@ -3966,7 +3966,7 @@ cdef class DetAutomaton:
             DetAutomaton with 2 states and an alphabet of 2 letters
 
         TESTS::
-            
+
             sage: a = dag.Word(['a','b','a'])
             sage: a.sub_automaton([3,4])
             Traceback (most recent call last):
@@ -4260,7 +4260,7 @@ cdef class DetAutomaton:
         - ``only_non_trivial`` - boolean (default: ``False``) - if True,
           don't take into account strongly connected components of
           cardinality one.
-        
+
         - ``couple``- boolean (default: ``False``) - return a interval
         containing the spectral radius (only when ``approx`` is ``True``)
 
@@ -4895,7 +4895,7 @@ cdef class DetAutomaton:
         for i in range(self.a.na):
             try:
                 d.e[i] = nA.index(self.A[i])
-            except:
+            except Exception:
                 raise ValueError("Letter %s not found in the new alphabet"%self.A[i])
             sig_check()
         sig_on()
