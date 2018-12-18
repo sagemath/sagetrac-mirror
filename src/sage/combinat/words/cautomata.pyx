@@ -2158,12 +2158,12 @@ cdef class DetAutomaton:
             sage: a.set_final(4)
             Traceback (most recent call last):
             ...
-            ValueError: 4 is not the index of a state (i.e. it is not between 0 and 4)!
+            ValueError: 4 is not the index of a state (i.e. it is not between 0 and 3)!
         """
         if e >= 0 and e < self.a.n:
             self.a.e[e].final = final
         else:
-            raise ValueError("%d is not the index of a state (i.e. it is not between 0 and %s)!" % (e, self.a.n))
+            raise ValueError("%d is not the index of a state (i.e. it is not between 0 and %s)!" % (e, self.a.n-1))
 
     def succ(self, int i, int j):
         """
@@ -2561,7 +2561,7 @@ cdef class DetAutomaton:
     def prune_i(self, verb=False):
         """
         Prune the automaton:
-        remove all not accessible states
+        remove all non-reachable states
 
         INPUT:
 
@@ -2599,7 +2599,7 @@ cdef class DetAutomaton:
     def prune(self, verb=False):
         """
         Prune the automaton:
-        remove all not accessible and not co-accessible states
+        remove all non-reachable and non-co-reachable states
 
         INPUT:
 
@@ -2889,11 +2889,11 @@ cdef class DetAutomaton:
         return r
 
     # TODO : remove the side effect
-    # and the problem with different alphabets
-    # use epsilon-transitions rather than product ?
+    # Use epsilon-transitions rather than product ?
     def union(self, DetAutomaton a, simplify=True, verb=False):
         """
         Return an automaton recognizing the union of the two languages.
+        Warning: there is a side effect, the automata are completed.
 
         INPUT:
 
@@ -3881,79 +3881,79 @@ cdef class DetAutomaton:
         sig_off()
         return l2.values()
 
-    def acc_and_coacc(self):
+#    def acc_and_coacc(self):
+#        """
+#        Determine accessible and coaccessible states
+#
+#        OUTPUT:
+#
+#        Return the list of accessible and coaccessible states
+#
+#        EXAMPLES::
+#
+#            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+#            sage: a.acc_and_coacc()
+#            [0, 1]
+#            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
+#            sage: a.acc_and_coacc()
+#            []
+#        """
+#        cdef int* l
+#        cdef int n = self.a.n
+#
+#        sig_on()
+#        l = <int*>malloc(sizeof(int) * n)
+#        sig_off()
+#        if l is NULL:
+#            raise MemoryError("Failed to allocate memory for l in "
+#                              "acc_and_coacc")
+#        sig_on()
+#        AccCoAcc(self.a, l)
+#        sig_off()
+#        return [i for i in range(n) if l[i] == 1]
+#
+#    def coaccessible_states(self):
+#        """
+#        Compute the co-accessible states of the :class:`DetAutomaton`
+#
+#        OUTPUT:
+#
+#        Return list of co-accessible states of the :class:`DetAutomaton`
+#
+#        EXAMPLES::
+#
+#            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+#            sage: a.coaccessible_states()
+#            [0, 1, 2, 3]
+#            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
+#            sage: a.coaccessible_states()
+#            [0, 1, 2, 3]
+#
+#        """
+#        cdef int* l
+#        cdef int n = self.a.n
+#
+#        sig_on()
+#        l = <int*>malloc(sizeof(int) * n)
+#        sig_off()
+#        if l is NULL:
+#            raise MemoryError("Failed to allocate memory for l in "
+#                              "coaccessible_states.")
+#        sig_on()
+#        CoAcc(self.a, l)
+#        sig_off()
+#        return [i for i in range(n) if l[i] == 1]
+
+    def sub_automaton(self, list l, keep_states_labels=True, verb=False):
         """
-        Determine accessible and coaccessible states
-
-        OUTPUT:
-
-        Return the list of accessible and coaccessible states
-
-        EXAMPLES::
-
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.acc_and_coacc()
-            [0, 1]
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: a.acc_and_coacc()
-            []
-        """
-        cdef int* l
-        cdef int n = self.a.n
-
-        sig_on()
-        l = <int*>malloc(sizeof(int) * n)
-        sig_off()
-        if l is NULL:
-            raise MemoryError("Failed to allocate memory for l in "
-                              "acc_and_coacc")
-        sig_on()
-        AccCoAcc(self.a, l)
-        sig_off()
-        return [i for i in range(n) if l[i] == 1]
-
-    def coaccessible_states(self):
-        """
-        Compute the co-accessible states of the :class:`DetAutomaton`
-
-        OUTPUT:
-
-        Return list of co-accessible states of the :class:`DetAutomaton`
-
-        EXAMPLES::
-
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.coaccessible_states()
-            [0, 1, 2, 3]
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: a.coaccessible_states()
-            [0, 1, 2, 3]
-
-        """
-        cdef int* l
-        cdef int n = self.a.n
-
-        sig_on()
-        l = <int*>malloc(sizeof(int) * n)
-        sig_off()
-        if l is NULL:
-            raise MemoryError("Failed to allocate memory for l in "
-                              "coaccessible_states.")
-        sig_on()
-        CoAcc(self.a, l)
-        sig_off()
-        return [i for i in range(n) if l[i] == 1]
-
-    def sub_automaton(self, list l, keep_vlabels=True, verb=False):
-        """
-        Compute the sub automaton whose states are given by the list ``l``.
+        Compute the sub automaton whose states are given by the set ``l``.
 
         INPUT:
 
         - ``l``  -- list of states to keep
         - ``verb`` -- boolean (default: ``False``) fix to ``True`` to activate
           the verbose mode
-        - ``keep_vlabels``  -- boolean (default: ``True``)
+        - ``keep_states_labels``  -- boolean (default: ``True``) keep the labels of states
 
         OUTPUT:
 
@@ -3962,29 +3962,35 @@ cdef class DetAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: l = [0, 1]
-            sage: a.sub_automaton(l)
+            sage: a.sub_automaton([0,1])
             DetAutomaton with 2 states and an alphabet of 2 letters
-            sage: a
-            DetAutomaton with 4 states and an alphabet of 2 letters
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: a.sub_automaton(l)
-            DetAutomaton with 2 states and an alphabet of 2 letters
+
+        TESTS::
+            
+            sage: a = dag.Word(['a','b','a'])
+            sage: a.sub_automaton([3,4])
+            Traceback (most recent call last):
+            ...
+            ValueError: Element 4 of the list given is not a state (i.e. between 0 and 4).
+
         """
         cdef DetAutomaton r
         cdef int i, n
-
+        # check that the list l is correct
+        if len(l) != len(set(l)):
+            raise ValueError("A state of the list appears several times")
+        n = self.a.n
+        for i in l:
+            if i < 0 or i >= n:
+                raise ValueError("Element %s of the list given is not a state (i.e. between 0 and %s)."% (i, n))
         r = DetAutomaton(None)
         sig_on()
         r.a[0] = SubAutomaton(self.a[0], list_to_Dict(l), verb)
         sig_off()
         r.A = self.A
-        if keep_vlabels and self.S is not None:
-            n = len(self.S)
+        if keep_states_labels and self.S is not None:
             r.S = []
             for i in l:
-                if i < 0 or i >= n:
-                    raise ValueError("Element %s of the list l is not between 0 and %s."% (i, n))
                 r.S.append(self.S[i])
         return r
 
@@ -4002,25 +4008,30 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        Return a minimized :class:`DetAutomaton` automaton
+        Return a minimized :class:`DetAutomaton`
 
         EXAMPLES::
+
+            sage: a = DetAutomaton([('a','b',0),('a','c',1),('b','a',0),('b','d',1),('c','e',0),('c','f',1),('d','e',0),('d','f',1),('e','e',0),('e','f',1),('f','f',0),('f','f',1)], i='a', final_states=['c','d','e'])
+            sage: a.minimize()
+            DetAutomaton with 3 states and an alphabet of 2 letters
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.minimize()
             DetAutomaton with 3 states and an alphabet of 2 letters
+
             sage: a = DetAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
                     (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
                     (10,30,'z')], i=10)
             sage: a.minimize()
             DetAutomaton with 1 state and an alphabet of 3 letters
-            sage: a = DetAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
-                    (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
-                    (10,30,'z')])
-            sage: a.minimize()
-            DetAutomaton with 1 state and an alphabet of 3 letters
 
         TESTS::
+
+            sage: a = DetAutomaton([('a','b',0),('a','c',1),('b','a',0),('b','d',1),('c','e',0),('c','f',1),('d','e',0),('d','f',1),('e','e',0),('e','f',1),('f','f',0),('f','f',1)], i='a', final_states=['c','d','e'])
+            sage: b = DetAutomaton([[0, 1, 2], [(0, 0, 0), (0, 2, 1), (1, 1, 0), (1, 0, 1), (2, 2, 0), (2, 2, 1)]], A=[0, 1], i=1, final_states=[0])
+            sage: a.minimize() == b
+            True
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.minimize(True)
@@ -4123,12 +4134,23 @@ cdef class DetAutomaton:
             [0 0 0 0]
             [0 0 0 1]
             [0 0 0 0]
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
+
+            sage: a = dag.Word(['a','b','a','c'])
             sage: a.adjacency_matrix()
-            [0 1 0 0]
-            [0 0 0 0]
-            [0 0 0 1]
-            [0 0 0 0]
+            [0 1 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+            [0 0 0 0 0]
+
+            sage: a = dag.AnyLetter(['a','b','c'])
+            sage: a.adjacency_matrix()
+            [0 3]
+            [0 0]
+
+            sage: a = dag.Random(500, ['a', 'b', 'c'])
+            sage: a.adjacency_matrix()
+            500 x 500 sparse matrix over Integer Ring (use the '.str()' method to see the entries)
 
         """
         cdef int i, j, f
@@ -4153,31 +4175,39 @@ cdef class DetAutomaton:
         from sage.rings.integer_ring import IntegerRing
         return matrix(IntegerRing(), self.a.n, self.a.n, d, sparse=sparse)
 
-    def delete_vertex(self, int i):
+    def delete_state(self, int i):
         """
         Gives a copy of the :class:`DetAutomaton` but
-        without the vertex ``i``.
+        without the state ``i``.
 
         INPUT:
 
-        - ``i``  - int - the vertex to remove
+        - ``i``  - int - the state to remove
 
         OUTPUT:
 
-        Return a copy of :class:`DetAutomaton` with deleted vertex
+        :class:`DetAutomaton`
 
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.delete_vertex(2)
+            sage: a.delete_state(2)
             DetAutomaton with 3 states and an alphabet of 2 letters
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: a.delete_vertex(1)
-            DetAutomaton with 3 states and an alphabet of 2 letters
+            sage: a.delete_state(2).delete_state(1)
+            DetAutomaton with 2 states and an alphabet of 2 letters
+
+        TESTS::
+
+            sage: a = dag.AnyWord(['a','b'])
+            sage: a.delete_state(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: 1 is not a state (should be between 0 and 0)
 
         """
         cdef DetAutomaton r
-
+        if i < 0 or i >= self.a.n:
+            raise ValueError("%s is not a state (should be between 0 and %s)"%(i, self.a.n-1))
         r = DetAutomaton(None)
         sig_on()
         r.a[0] = DeleteVertex(self.a[0], i)
@@ -4185,7 +4215,7 @@ cdef class DetAutomaton:
         r.A = self.A
         return r
 
-    def delete_vertex_op(self, int i):
+    def delete_state_op(self, int i):
         """
         Delete vertex ``i`` on place.
 
@@ -4196,44 +4226,69 @@ cdef class DetAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.delete_vertex_op(2)
+            sage: a.delete_state_op(2)
             sage: a
             DetAutomaton with 3 states and an alphabet of 2 letters
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: a.delete_vertex_op(1)
+            sage: a.delete_state_op(1)
             sage: a
-            DetAutomaton with 3 states and an alphabet of 2 letters
+            DetAutomaton with 2 states and an alphabet of 2 letters
+
+        TESTS::
+
+            sage: a = dag.AnyWord(['a','b'])
+            sage: a.delete_state_op(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: 1 is not a state (should be between 0 and 0)
 
         """
+        if i < 0 or i >= self.a.n:
+            raise ValueError("%s is not a state (should be between 0 and %s)"%(i, self.a.n-1))
         sig_on()
         DeleteVertexOP(self.a, i)
         sig_off()
 
-    def spectral_radius(self, approx=True, couple=False, only_non_trivial=False, verb=False):
+    def spectral_radius(self, bool approx=True, bool couple=False, bool only_non_trivial=False, bool verb=False):
         """
         Return the spectral radius of the underlying graph.
 
         INPUT:
 
-        - ``approx`` - (default: ``True``) If True gives an approximation,
+        - ``approx`` - boolean (default: ``True``) If True gives an approximation,
           otherwise gives the exact value as an algebraic number. 
 
-        - ``only_non_trivial``  - (default: ``False``) - if True,
+        - ``only_non_trivial`` - boolean (default: ``False``) - if True,
           don't take into account strongly connected components of
           cardinality one.
-        - ``verb`` - boolean (default: ``False``) - fix to ``True`` to activate
+        
+        - ``couple``- boolean (default: ``False``) - return a interval
+        containing the spectral radius (only when ``approx`` is ``True``)
+
+        - ``verb`` - boolean (default: ``False``) - set to ``True`` to activate
           the verbose mode
 
         OUTPUT:
 
         A positive real algebraic number if approx is False,
-        and an interval for the approximation otherwise.
+        and an float number otherwise.
 
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.spectral_radius()
-            0.000000000000000
+            0.0000000000...
+            
+            sage: a = DetAutomaton([(10,10,'a'),(10,20,'b'),(20,10,'a')], i=10)
+            sage: a.spectral_radius()
+            1.61803398...
+            
+            sage: a = DetAutomaton([(10,10,'a'),(10,20,'b'),(20,10,'a')], i=10)
+            sage: a.spectral_radius(couple=True)
+            (1.61803398..., 1.61803398...)
+            
+            sage: a = DetAutomaton([(10,10,'a'),(10,20,'b'),(20,10,'a')], i=10)
+            sage: a.spectral_radius(approx=False).minpoly()
+            x^2 - x - 1
 
         """
         a = self.minimize()
