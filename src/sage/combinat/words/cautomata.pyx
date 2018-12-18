@@ -458,7 +458,7 @@ cdef class CAutomaton:
 
     - ``keep_S`` -- bool (default: True)
         Keep the labels of the states.
-    
+
     - ``verb`` -- bool (default: False)
         Display informations for debugging.
 
@@ -579,11 +579,11 @@ cdef class CAutomaton:
     def __repr__(self):
         r"""
         Return a representation of the automaton.
-        
+
         OUTPUT:
-        
-            A string.
-        
+
+        A string.
+
         EXAMPLES::
 
             sage: CAutomaton(dag.AnyWord([0,1]))
@@ -1756,14 +1756,14 @@ cdef class DetAutomaton:
     def get_DiGraph(self, keep_transitions_labels=True):
         r"""
         Give a DiGraph from the DetAutomaton
-        
+
         INPUT:
-            
+
         - ``keep_transition_labels`` -- bool (default: ``True``)
             If false, return the graph without labels on edges.
-        
+
         EXAMPLES::
-        
+
             sage: a = dag.AnyLetter(['a', 'b'])
             sage: g = a.get_DiGraph()
             sage: g
@@ -1803,7 +1803,7 @@ cdef class DetAutomaton:
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.plot()  # random
             <PIL.PngImagePlugin.PngImageFile image mode=RGBA size=189x147 at 0x7F6711E442D0>
-            
+
             sage: a = dag.Word(['a', 0, None])
             sage: a.plot()  # random
 
@@ -1903,7 +1903,7 @@ cdef class DetAutomaton:
                 sig_on()
                 free(ll)
                 sig_off()
-            if vl is not NULL: #vlabels is not None and self.S is not None:
+            if vl is not NULL: # vlabels is not None and self.S is not None:
                 sig_on()
                 free(vl)
                 sig_off()
@@ -1937,7 +1937,7 @@ cdef class DetAutomaton:
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.alphabet
             ['a', 'b']
-            
+
             sage: a = dag.Word(['a', 1, None])
             sage: a.alphabet
             ['a', 1, None]
@@ -2150,7 +2150,7 @@ cdef class DetAutomaton:
             sage: a.set_final(1)
             sage: a.final_states
             [1, 2]
-            
+
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.set_final(2, False)
             sage: a.final_states

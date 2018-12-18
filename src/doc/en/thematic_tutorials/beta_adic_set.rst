@@ -240,7 +240,7 @@ Moreover, this domain exchange is conjugated to the shift on :math:`\sigma_+(Q)`
 
 
 
-The domain exchange described in the figure for the open unit disk gives exactly the list of Pisot numbers
+The domain exchange described in the above figure for the open unit disk gives exactly the list of Pisot numbers
 (including non-unit ones) of degree :math:`3` in :math:`\mathbf Q(\beta)`,
 where :math:`\beta` is the Tribonnacci number (i.e. greatest root of $x^3-x^2-x-1$).
 Indeed if :math:`x` is a Pisot number of degree three in :math:`\mathbf Q(\beta)`,
@@ -677,7 +677,8 @@ Compute a substitution whose Rauzy fractal is this approximation of disk
 Square
 ------
 
-Rauzy fractal approximating a square
+Rauzy fractal approximating a square.
+
 
 .. code-block:: Python
 
