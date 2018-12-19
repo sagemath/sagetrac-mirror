@@ -292,6 +292,13 @@ ext_modules = [
                          'sage/geometry/triangulation/data.h',
                          'sage/geometry/triangulation/triangulations.h'],
               language="c++"),
+    
+    Extension('sage.geometry.combinatorial_type.base',
+              sources = ['sage/geometry/combinatorial_type/base.pyx',
+                        'sage/geometry/combinatorial_type/hasse_diagram.cc'],
+              depends = ['sage/geometry/combinatorial_type/hasse_diagram.h'],
+              extra_compile_args=['-O3', '-msse4.2', '-mavx', '-mavx2'],
+              language = 'c++'),
 
     ################################
     ##
