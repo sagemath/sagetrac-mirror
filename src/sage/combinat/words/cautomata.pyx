@@ -189,7 +189,7 @@ cdef InvertDict getDict2(dict d, list A, dict d1=None):
 
 cdef imagProductDict(dict d, list A1, list A2, list Av=[]):
     """
-    Dictionary which is numbering the projected alphabet
+    Dictionary numbering the projected alphabet
     """
     dv = {}
     i = 0
@@ -732,7 +732,7 @@ cdef class CAutomaton:
         sig_on()
         r.a[0] = CopyNAutomaton(self.a[0], self.a.n, self.a.na)
         sig_off()
-        r.A = self.A
+        r.A = self.A[:]
         return r
 
     @property
@@ -1442,6 +1442,54 @@ cdef class DetAutomaton:
         free(self.a)
         sig_off()
 
+    def copy(self):
+        """
+        Do a copy of the :class:`DetAutomaton`.
+
+        OUTPUT:
+
+        Return a copy of the :class:`DetAutomaton`
+
+        EXAMPLES::
+
+            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a.copy()
+            DetAutomaton with 4 states and an alphabet of 2 letters
+        
+        TESTS::
+
+            sage: a = dag.AnyLetter(['a', 'b'])
+            sage: b = a.copy()
+            sage: a == b
+            True
+            sage: a.alphabet.append(0)
+            sage: a == b
+            False
+            sage: a = b.copy()
+            sage: a.delete_state_op(0)
+            sage: a == b
+            False
+
+        """
+        cdef DetAutomaton r 
+        r = DetAutomaton(None)
+        sig_on()
+        r.a[0] = CopyAutomaton(self.a[0], self.a.n, self.a.na)
+        sig_off()
+        if self.S is not None:
+            r.S = self.S[:]
+        r.A = self.A[:]
+        return r
+
+    def __copy__(self):
+        """
+        Return a copy of the :class:`DetAutomaton`.
+        Overwrite builtin function.
+        
+        See copy() for more details.
+        """
+        return self.copy()
+
     def __repr__(self):
         """
         Return a representation of automaton,  Overwrite built-in function
@@ -1649,7 +1697,8 @@ cdef class DetAutomaton:
         r"""
         Return a ``string`` that can be evaluated to recover the DetAutomaton.
         """
-        r = "DetAutomaton([%s, [" % self.states
+        S = self.states
+        r = "DetAutomaton([%s, [" % S
         c = 0
         for i in range(self.a.n):
             for j in range(self.a.na):
@@ -1657,9 +1706,9 @@ cdef class DetAutomaton:
                 if k != -1:
                     if c != 0:
                         r += ", "
-                    r += "(%s, %s, %s)" % (i, k, self.A[j])
+                    r += "(%r, %r, %r)" % (S[i], S[k], self.A[j])
                     c += 1
-        r += "]], A=%s, i=%s, final_states=%s)" % (self.A, self.a.i, self.final_states)
+        r += "]], A=%s, i=%r, final_states=%s)" % (self.A, S[self.a.i], self.final_states)
         return r
 
     def is_equal_to(self, DetAutomaton other, verb=False):
@@ -1964,18 +2013,24 @@ cdef class DetAutomaton:
 
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.set_alphabet(['a', 'b', 'c'])
-            Traceback (most recent call last):
-            ...
-            ValueError: The size 3 of the new alphabet has to be the same (i.e. 2). Use bigger_alphabet() if you want to add more letters
             sage: a.alphabet
-            ['a', 'b']
+            ['a', 'b', 'c']
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.set_alphabet(['a','e'])
             sage: a.alphabet
             ['a', 'e']
+
+        TESTS::
+
+            sage: a = dag.Word(['a', 'b', 'c'])
+            sage: a.set_alphabet([0, 1])
+            Traceback (most recent call last):
+            ...
+            ValueError: The size 2 of the new alphabet has to be the same or greater (i.e. >=3)
+
         """
-        if len(A) != len(self.A):
-            raise ValueError("The size %s of the new alphabet has to be the same (i.e. %s). Use bigger_alphabet() if you want to add more letters"%(len(A), len(self.A)))
+        if len(A) < len(self.A):
+            raise ValueError("The size %s of the new alphabet has to be the same or greater (i.e. >=%s)"%(len(A), len(self.A)))
         self.A = A
         self.a[0].na = len(A)
 
@@ -2228,6 +2283,7 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
+        int 
         return the state reached after following the path
 
         EXAMPLES::
@@ -2574,14 +2630,13 @@ cdef class DetAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (0, 3, 'b'), (1, 3, 'b')], i=0)
-            sage: a.prune_i(True)
-            deleted states : [ ]
+            sage: a.prune_i()
             DetAutomaton with 3 states and an alphabet of 2 letters
             sage: a = DetAutomaton([(0, 1, 'a'), (0, 3, 'b'), (1, 3, 'b')])
-            sage: a.prune_i(True)
+            sage: a.prune_i()
             DetAutomaton with 0 state and an alphabet of 2 letters
             sage: b = DetAutomaton([(0, 1, 'a'), (0, 3, 'b'), (1, 3, 'b')])
-            sage: b.prune_i(True)
+            sage: b.prune_i()
             DetAutomaton with 0 state and an alphabet of 2 letters
         """
         if self.initial_state == -1:
@@ -2629,7 +2684,6 @@ cdef class DetAutomaton:
         r.S = None
         return r
 
-    # assume that the dictionnary d is injective !!!
     def product(self, DetAutomaton b, dict d=None, bool simplify=True, verb=False):
         """
         Give the product of the :class:`DetAutomaton` and ``a`` an other
@@ -2674,6 +2728,14 @@ cdef class DetAutomaton:
             sage: d = dag.Word([('a',0),('b',1)], A = c.alphabet)
             sage: c.equal_languages(d)
             True
+            
+            sage: a = dag.Word(['a', 'b'])
+            sage: d = {('a', 'a'):0, ('b', 'b'):0}
+            sage: a.product(a, d)
+            Traceback (most recent call last):
+            ...
+            ValueError: The dictionnary is not injective!
+
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = DetAutomaton([(3, 2, 'c'), (1, 2, 'd')], i=2)
@@ -2707,6 +2769,10 @@ cdef class DetAutomaton:
                     d[(la, lb)] = (la, lb)
             if verb:
                 print(d)
+        else:
+            V = d.values()
+            if len(V) != len(set(V)):
+                raise ValueError("The dictionnary is not injective!")
         cdef Automaton a
         cdef Dict dC
         r = DetAutomaton(None)
@@ -3322,7 +3388,7 @@ cdef class DetAutomaton:
         a = CopyN(self.a[0], verb)
         sig_off()
         r.a[0] = a
-        r.A = self.A
+        r.A = self.A[:]
         return r
 
     def concat(self, DetAutomaton b, det=True, simplify=True, verb=False):
@@ -4198,6 +4264,12 @@ cdef class DetAutomaton:
 
         TESTS::
 
+            sage: a = DetAutomaton([('a', 'a', 0), ('a', 'b', 1), ('b', 'a', 0), ('b', 'c', 1), ('c', 'a', 0)], i='a')
+            sage: a = a.delete_state(1)
+            sage: b = DetAutomaton([('a', 'a', 0), ('c', 'a', 0)], A=[0, 1], i='a')
+            sage: a == b
+            True
+
             sage: a = dag.AnyWord(['a','b'])
             sage: a.delete_state(1)
             Traceback (most recent call last):
@@ -4213,6 +4285,8 @@ cdef class DetAutomaton:
         r.a[0] = DeleteVertex(self.a[0], i)
         sig_off()
         r.A = self.A
+        if self.S is not None:
+            r.S = [s for j,s in enumerate(self.S) if j != i]
         return r
 
     def delete_state_op(self, int i):
@@ -4247,6 +4321,8 @@ cdef class DetAutomaton:
         sig_on()
         DeleteVertexOP(self.a, i)
         sig_off()
+        if self.S is not None:
+            self.S = [s for j,s in enumerate(self.S) if j != i]
 
     def spectral_radius(self, bool approx=True, bool couple=False, bool only_non_trivial=False, bool verb=False):
         """
@@ -4341,29 +4417,6 @@ cdef class DetAutomaton:
                 return spm[1]
         else:
             return r
-
-    def copy(self):
-        """
-        Do a copy of the :class:`DetAutomaton`.
-
-        OUTPUT:
-
-        Return a copy of the :class:`DetAutomaton`
-
-        EXAMPLES::
-
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.copy()
-            DetAutomaton with 4 states and an alphabet of 2 letters
-
-        """
-        cdef DetAutomaton r 
-        r = DetAutomaton(None)
-        sig_on()
-        r.a[0] = CopyAutomaton(self.a[0], self.a.n, self.a.na)
-        sig_off()
-        r.A = self.A
-        return r
 
     def has_empty_langage(self):
         r"""
@@ -4730,13 +4783,15 @@ cdef class DetAutomaton:
         answ = c_bool(self.a.e[e].final)
         return answ
 
-    def add_state(self, bool final):
+    def add_state(self, bool final, label=""):
         """
         Add a state in the automaton
 
         INPUT:
 
         - ``final`` -- boolean indicate if the added state is final
+        
+        - ``label`` (default: "") -- label of the new state
 
         OUTPUT:
 
@@ -4766,6 +4821,8 @@ cdef class DetAutomaton:
         sig_on()
         AddState(self.a, final)
         sig_off()
+        if self.S is not None:
+            self.S.append(label)
         return self.a.n-1
 
     def add_transition(self, int i, l, int j):

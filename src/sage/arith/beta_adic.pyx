@@ -1376,14 +1376,14 @@ cdef class BetaAdicSet:
 #        TestSDL()
 #        sig_off()
 
-    def get_la(self, verb=False):
+    def get_la(self, bool verb=False):
         """
         Return a list of automata corresponding to each final state of the automaton.
         For each state of self, give a copy of self but whose set of final states is this state.
 
         INPUT:
 
-        -``verb`` -- (default ''False'') set to ''True'' for verbose mode
+        -``verb`` -- bool (default ''False'') - set to ''True'' for verbose mode
 
         OUTPUT:
         Return a list of automata.
@@ -1396,7 +1396,8 @@ cdef class BetaAdicSet:
             
          #. plot a Rauzy fractal
             sage: m=WordMorphism('a->ab,b->ac,c->a').DumontThomas()
-            sage: la = m.get_la(); la
+            sage: la = m.get_la()
+            sage: la
             [DetAutomaton with 3 states and an alphabet of 2 letters,
              DetAutomaton with 3 states and an alphabet of 2 letters,
              DetAutomaton with 3 states and an alphabet of 2 letters]
@@ -1405,7 +1406,7 @@ cdef class BetaAdicSet:
         cdef DetAutomaton a = self.a.copy()
         # compute la
         la = []
-        for v in a.states:
+        for v in range(a.a.n):
             a.set_final_states([v])
             la.append(a.copy())
         return la
@@ -1475,8 +1476,8 @@ cdef class BetaAdicSet:
 #        return orbit_points
 
     def user_draw(self, n=None,
-                  sx=800, sy=600, ajust=True, prec=53, color=(0, 0, 0, 255),
-                  simplify=True, mirror=False, only_aut=False, verb=False):
+                  int sx=800, int sy=600, bool ajust=True, int prec=53, color=(0, 0, 0, 255),
+                  bool simplify=True, bool mirror=False, bool only_aut=False, bool verb=False):
         r"""
         Display a window where the user can draw a b-adic set based on the current b-adic set.
         Use keyboard p to reduce the size of the pen and the keyboard m to increse.
@@ -1489,21 +1490,21 @@ cdef class BetaAdicSet:
           Default values: between ``5`` and ``16`` depending on the number
           of generators.
 
-        - ``sx`` -- integer (default 800) width of the window
+        - ``sx`` -- integer (default: ``800``) - width of the window
 
-        - ``sy`` -- integer (default 600) height of the window
+        - ``sy`` -- integer (default: ``600``) - height of the window
 
-        - ``ajust``  -- boolean (default ``True``) If True, change the zoom in order to fit the window.
+        - ``ajust``  -- boolean (default ``True``) - If True, change the zoom in order to fit the window.
 
-        - ``prec`` -- integer (default: ``53``) precision of computed values
+        - ``prec`` -- integer (default: ``53``) - precision of computed values
 
-        - ``color`` tuple of color in RGB values -- (default: (0, 0, 0, 255))
+        - ``color`` -- tuple (default: (0, 0, 0, 255)) - color in RGBA values
 
-        - ``simplify`` -- (default: ``True``) If True, minimize the result
+        - ``simplify`` -- (default: ``True``) - If True, minimize the result
 
-        - ``only_aut`` -- (default: ``False``) If True return a DetAutomaton, otherwise return a BetaAdicSet
+        - ``only_aut`` -- (default: ``False``) - If True return a DetAutomaton, otherwise return a BetaAdicSet
 
-        - ``verb`` -- (default ``False``) set to ``True`` for verbose mod
+        - ``verb`` -- (default ``False``) - set to ``True`` for verbose mod
 
         OUTPUT:
 
@@ -1628,8 +1629,8 @@ cdef class BetaAdicSet:
         return res
 
     def plot(self, n=None, int sx=800, int sy=600,
-             ajust=True, prec=53, color=(0, 0, 0, 255),
-             nprec=4, mirror=False, verb=False):
+             bool ajust=True, int prec=53, color=(0, 0, 0, 255),
+             int nprec=4, bool mirror=False, bool verb=False):
         r"""
         Draw the beta-adic set. see processed examples on 
 
@@ -1643,20 +1644,20 @@ cdef class BetaAdicSet:
         - ``place`` - place of the number field of beta (default: ``None``)
           The place used to evaluate elements of the number field.
 
-        - ``sx`` -- (default: 800) dimensions of the resulting in x dimension
+        - ``sx`` -- int (default: 800) - dimensions of the resulting in x dimension
 
-        - ``sy`` -- (default : 600) dimensions of the resulting
+        - ``sy`` -- int (default : 600) - dimensions of the resulting
           in y dimension image
 
-        - ``ajust`` boll - (default: ``True``) adapt the drawing
+        - ``ajust`` -- bool (default: ``True``) - adapt the drawing
           to fill all the image, with ratio 1 
 
-        - ``prec`` - precision of returned values (default: ``53``)
+        - ``prec`` - int (default: ``53``) - precision of returned values
 
         - ``color`` - list of four integers between 0
           and 255 (RGBA format, default: ``(0,0,0,255)``) Color of the drawing.
 
-        - ``mirror`` bool -- (default ``False``) set to ``True`` to use the mirror of the automaton
+        - ``mirror`` bool -- (default ``False``) - set to ``True`` to use the mirror of the automaton
 
         - ``nprec`` int -- (default 4) - additionnal iterations (if n is ``None``)
 
@@ -1765,9 +1766,9 @@ cdef class BetaAdicSet:
         return im
 
     def plot_list(self, list la=None, n=None,
-                  sx=800, sy=600, ajust=True, prec=53, colormap='hsv',
-                  backcolor=None, opacity=1., mirror=False,
-                  nprec=4, verb=False):
+                  int sx=800, int sy=600, bool ajust=True, int prec=53, colormap='hsv',
+                  backcolor=None, float opacity=1., bool mirror=False,
+                  int nprec=4, bool verb=False):
         r"""
         Draw the beta-adic set self, with color according to the list of automata or BetaAdicSets given.
 
@@ -1779,11 +1780,11 @@ cdef class BetaAdicSet:
         - ``n`` - integer (default: ``None``)
           The number of iterations used to plot the fractal.
 
-        - ``sx`` -- (default: 800) width of the result image
+        - ``sx`` -- int (default: 800) - width of the result image
 
-        - ``sy`` -- (default : 600) height of the result image
+        - ``sy`` -- int (default : 600) - height of the result image
 
-        - ``ajust`` bool - (default: ``True``) adapt the drawing to fill all the image, with
+        - ``ajust`` -- bool (default: ``True``) - adapt the drawing to fill all the image, with
           ratio 1 (default: ``True``)
 
         - ``prec`` - precision of returned values (default: ``53``)
@@ -1794,14 +1795,14 @@ cdef class BetaAdicSet:
         - ``backcolor`` - (default: ``None``) list of four integers between 0
           and 255  .
 
-        - ``opacity`` float - (default: ``1.``)
+        - ``opacity`` -- float (default: ``1.``)
           Transparency of the drawing coefficient.
 
-        - ``mirror`` bool -- (default ``False) set to ``True`` to use the mirror of the automaton
+        - ``mirror`` -- bool (default ``False) set to ``True`` to use the mirror of the automaton
 
-        - ``nprec`` int -- (default 4) - additionnal iterations
+        - ``nprec`` -- int (default 4) - additionnal iterations
 
-        - ``verb`` - bool (default: ``False``)
+        - ``verb`` -- bool (default: ``False``)
           Print informations for debugging.
 
         OUTPUT:
@@ -2282,7 +2283,7 @@ cdef class BetaAdicSet:
 #        m = abs(b.n())
 #        return (log(len(S)) / (niter * abs(log(m))))
 
-    def complexity(self, Ad=None, prec=None, verb=False):
+    def complexity(self, list Ad=None, prec=None, bool verb=False):
         r"""
         Return a estimation of an upper bound of the number of states
         of the relations automaton.
@@ -2290,7 +2291,11 @@ cdef class BetaAdicSet:
 
         INPUT:
 
-         - ``verb`` - Boolean (default: ``False``) Display informations for debug.
+         - ``Ad`` -- list (default: ``None``) - list of differences of digits
+
+         - ``prec`` -- integer (default: ``None``) - precision used for the computation
+
+         - ``verb`` - Boolean (default: ``False``) - Display informations for debug.
 
         OUTPUT:
 
@@ -2353,7 +2358,7 @@ cdef class BetaAdicSet:
         # from sage.functions.other import ceil
         return <int>(ceil(vol))
 
-    def intersection(self, BetaAdicSet m, t=0, ext=False, algo=3, verb=False):
+    def intersection(self, BetaAdicSet m, t=0, bool ext=False, int algo=3, bool verb=False):
         r"""
         Assume that b is an algebraic number.
         Compute the intersection of two beta-adic sets.
@@ -2435,7 +2440,7 @@ cdef class BetaAdicSet:
         ai.zero_complete_op()
         return BetaAdicSet(self.b, ai)
 
-    def prefix(self, w):
+    def prefix(self, list w):
         """
         Return a BetaAdicSet like self but where we keep only words starting by w.
 
@@ -2457,7 +2462,7 @@ cdef class BetaAdicSet:
         """
         return BetaAdicSet(self.b, self.a.prefix(w))
 
-    def intersection_words(self, w1, w2, ext=True, verb=False):
+    def intersection_words(self, list w1, list w2, bool ext=True, bool verb=False):
         r"""
         Compute the intersection of the adherences of the two beta-adic sets
         corresponding to words with prefix w1 and prefix w2.
@@ -2493,8 +2498,8 @@ cdef class BetaAdicSet:
         mi = m1.intersection(m2, ext=ext, verb=verb)
         return mi
 
-    def reduced_words_automaton(self, full=False, step=100,
-                                mirror=False, int algo_rel=3, verb=False):  # , DetAutomaton aut=None):
+    def reduced_words_automaton(self, bool full=False, int step=100,
+                                bool mirror=False, int algo_rel=3, bool verb=False):
         r"""
         Compute the reduced words automaton for the alphabet of the automaton of self.
         See http://www.i2m.univ-amu.fr/perso/paul.mercat/Publis/
@@ -2652,7 +2657,7 @@ cdef class BetaAdicSet:
                 print("ai=%s" % ai)
             return ai.intersection(self.a)
 
-    def reduced(self, mirror=False, int algo_rel=3, verb=False):
+    def reduced(self, bool mirror=False, int algo_rel=3, bool verb=False):
         r"""
         Compute a ``BetaAdicSet`` describing the same set, but with unicity (i.e. each point is described by an unique word).
 
@@ -2682,7 +2687,7 @@ cdef class BetaAdicSet:
                                                                 algo_rel=algo_rel,
                                                                 verb=verb))
 
-    def critical_exponent_free(self, prec=None, verb=False):
+    def critical_exponent_free(self, prec=None, bool verb=False):
         r"""
         Compute the critical exponent of the beta-adic set,
         assuming it is free (or reduced, i.e. there is no relation,
@@ -2777,7 +2782,7 @@ cdef class BetaAdicSet:
             print("y=%s, m=%s" % (y, m))
         return log(y) / abs(log(m))
 
-    def critical_exponent(self, prec=None, int algo_rel=3, verb=False):
+    def critical_exponent(self, prec=None, int algo_rel=3, bool verb=False):
         r"""
         Compute the critical exponent of the beta-adic set.
         If the beta-adic set is algebraic and conformal, then it is equal
@@ -2840,7 +2845,7 @@ cdef class BetaAdicSet:
 
     # complete the language of a
     def complete(self, list A=None,
-                 ext=False, arel=None, simplify=True, verb=False):
+                 bool ext=False, DetAutomaton arel=None, bool simplify=True, bool verb=False):
         r"""
         Return the language of all words over the alphabet A
         that describe points of the beta-adic set.
@@ -2857,7 +2862,7 @@ cdef class BetaAdicSet:
         - ``ext`` - bool -- (default: ``False``)
           If ''ext'' is True, this also include words equal at infinity.
 
-        - ``arel`` - Automaton (default: ``None``)
+        - ``arel`` - DetAutomaton (default: ``None``)
             Automaton of relations (if already computed, this permits to
             avoid recomputing it).
 
@@ -2903,7 +2908,7 @@ cdef class BetaAdicSet:
         return BetaAdicSet(self.b, ai)
 
     # project the translation by t of self on the zero completion of a
-    def proj(self, a, t=0, arel=None, int algo=3, bool aut=False):
+    def proj(self, a, t=0, DetAutomaton arel=None, int algo=3, bool aut=False):
         r"""
         Project the translation by t of self on the zero completion of a.
 
@@ -2914,7 +2919,7 @@ cdef class BetaAdicSet:
         - ``t`` - int (default : ``0``)
           The translation.
 
-        - ``arel`` - list (default : ``None``)
+        - ``arel`` - DetAutomaton (default : ``None``)
           The relations automaton
           (if ``None`` compute it)
 
@@ -3068,7 +3073,7 @@ cdef class BetaAdicSet:
                 return e3
             return -1
 
-    def approx(self, n, test, get_aut=False, bool simplify=True):
+    def approx(self, n, test, bool get_aut=False, bool simplify=True):
         """
         Gives a BetaAdicSet describing an approximation of a set defined by the
         characteritic function test, with the alphabet of the automaton of self.
@@ -3137,37 +3142,6 @@ cdef class BetaAdicSet:
             return a
         else:
             return BetaAdicSet(self.b, a)
-
-# PARTICULAR CASE OF complete()
-#    def full(self, list A=None, bool verb=False):
-#        """
-#        Return the BetaAdicSet describing the same set of points,
-#        but with the maximal language over the alphabet A
-#
-#        INPUT:
-#
-#        - ``A``  list -- (default : ``None``)  alphabet list
-#        - ``verb`` bool -- (default : ``False``) set to ``True`` for verbose mode
-#
-#        OUTPUT:
-#
-#        Return the BetaAdicSet describing the same set of points,
-#        but with the maximal language over the alphabet A
-#
-#        EXAMPLE::
-#
-#            sage: m = BetaAdicSet((x^3-x^2-x-1).roots(ring=QQbar)[1][0], dag.AnyWord([0,1]))
-#            sage: m.full()
-#            b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 1 state and 2 letters
-#
-#        """
-#        from sage.combinat.words.cautomata_generators import dag
-#        if verb:
-#            print("a = %s" % A)
-#        if A is None:
-#            A = self.a.A
-#        aoc = self.proj(dag.AnyWord(A))
-#        return aoc
 
     def union(self, a):
         """
@@ -3888,8 +3862,8 @@ cdef class BetaAdicSet:
                 return r
 
     def substitution(self, DetAutomaton ap=None,
-                              np=None, lt=None, need_included=True,
-                              get_aut=False, step=None, verb=False):
+                              np=None, list lt=None, bool need_included=True,
+                              bool get_aut=False, step=None, bool verb=False):
         r"""
         Assume that b is a conjugate of a Pisot number.
         Compute a substitution whose discrete line is this BetaAdicSet.
