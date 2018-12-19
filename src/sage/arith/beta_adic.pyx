@@ -2994,9 +2994,9 @@ cdef class BetaAdicSet:
         """
         try:
             w = list(w)
-            self.a.shift_listOP(w)
+            self.a.shift_list_op(w)
         except Exception:
-            self.a.shift1OP(w)
+            self.a.shift1_op(w)
 
     def shift(self, w):
         """

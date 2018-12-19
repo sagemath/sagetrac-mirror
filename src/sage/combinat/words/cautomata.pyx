@@ -2274,11 +2274,11 @@ cdef class DetAutomaton:
 
     def path(self, list l, i=None):
         """
-        Follows the path labeled by a list of edges ``l`` and return the reached state
+        Follows the path labeled by a list ``l`` and return the reached state
 
         INPUT:
 
-        - ``l`` -- list indicate the label of the path
+        - ``l`` -- list of indices of labels
         - ``i`` -- (default: ``None``) the initial state
 
         OUTPUT:
@@ -2304,6 +2304,7 @@ cdef class DetAutomaton:
         """
         Set the successor of the state i, following the transition labeled by j.
         In other words, add a transition from state i to state k labeled by A[j].
+        If k is -1, this permits to remove the transition from state i labeled by A[j].
 
         INPUT:
 
@@ -2427,6 +2428,63 @@ cdef class DetAutomaton:
         else:
             return r
 
+    def zero_star_concat(self, z=None, simplify=True):
+        """
+        Compute an automaton recognizing the language (l*)L, where L is
+        the language of self and l is the letter of index z.
+
+        INPUT:
+
+        - ``z`` - (default: ``None``) - index of the letter l
+            If ``None``, take the index of letter 0.
+
+        - ``simplify`` - (default: ``True``) - if True, prune and minimize the result
+
+        OUTPUT:
+
+        Return a :class:`DetAutomaton` whose language is the set of words of
+        the language of a with some zeroes on the beggining
+        (we call zero the letter of index z).
+
+        EXAMPLES::
+
+            sage: a = dag.Word([0,1,0])
+            sage: a.zero_star_concat()
+            DetAutomaton with 4 states and an alphabet of 2 letters
+
+            sage: a = DetAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
+            sage: a.zero_star_concat(0)
+            DetAutomaton with 2 states and an alphabet of 2 letters
+            sage: a.zero_star_concat(1)
+            DetAutomaton with 2 states and an alphabet of 2 letters
+            sage: b = DetAutomaton([(0, 1, 'a'), (0, 3, 'b')])
+            sage: b.zero_star_concat(1)
+            DetAutomaton with 1 state and an alphabet of 2 letters
+
+        TESTS::
+
+            sage: a = dag.Word(['a', 'b'])
+            sage: a.zero_star_concat()
+            Traceback (most recent call last):
+            ...
+            ValueError: 0 is not in list
+
+        """
+        cdef Automaton a
+        if z is None:
+            z = self.A.index(0)
+        r = DetAutomaton(None)
+        sig_on()
+        a = ZeroInv(self.a, z)  # list(self.A).index(self.A[z]))
+        sig_off()
+        r.a[0] = a
+        r.A = self.A
+        r.S = None
+        if simplify:
+            return r.prune().minimize()
+        else:
+            return r
+
     def diff(self, DetAutomaton a, bool det=True, bool simplify=True):
         """
         Compute an automaton whose language is the set of differences of the two languages.
@@ -2464,51 +2522,6 @@ cdef class DetAutomaton:
             for j in a.A:
                 d[(i, j)] = i-j
         return r.proj(d, det=det, simplify=simplify)
-
-    def zero_star_concat(self, z=None, simplify=True):
-        """
-        Compute an automaton recognizing the language (l*)L, where L is
-        the language of self and l is the letter of index z.
-
-        INPUT:
-
-        - ``z`` - (default: ``None``) - index of the letter l
-            If ``None``, take the index of letter 0.
-
-        - ``simplify`` - (default: ``True``) - if True, prune and minimize the result
-
-        OUTPUT:
-
-        Return a :class:`DetAutomaton` whose language is the set of words of
-        the language of a with some zeroes on the beggining
-        (we call zero the letter of index z).
-
-        EXAMPLES::
-
-            sage: a = DetAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
-            sage: a.zero_star_concat(0)
-            DetAutomaton with 2 states and an alphabet of 2 letters
-            sage: a.zero_star_concat(1)
-            DetAutomaton with 2 states and an alphabet of 2 letters
-            sage: b = DetAutomaton([(0, 1, 'a'), (0, 3, 'b')])
-            sage: b.zero_star_concat(1)
-            DetAutomaton with 1 state and an alphabet of 2 letters
-
-        """
-        cdef Automaton a
-        if z is None:
-            z = self.A.index(0)
-        r = DetAutomaton(None)
-        sig_on()
-        a = ZeroInv(self.a, z)  # list(self.A).index(self.A[z]))
-        sig_off()
-        r.a[0] = a
-        r.A = self.A
-        r.S = None
-        if simplify:
-            return r.prune().minimize()
-        else:
-            return r
 
 #    def prune_inf2OP(self, verb=False):
 #        """
@@ -2639,7 +2652,7 @@ cdef class DetAutomaton:
             sage: b.prune_i()
             DetAutomaton with 0 state and an alphabet of 2 letters
         """
-        if self.initial_state == -1:
+        if self.a.i == -1:
             return DetAutomaton([], A=self.alphabet)
         cdef Automaton a
         r = DetAutomaton(None)
@@ -2826,7 +2839,17 @@ cdef class DetAutomaton:
             sage: a.intersection(b)
             DetAutomaton with 1 state and an alphabet of 2 letters
 
+            sage: a = dag.AnyWord(['a', 'b'])
+            sage: b = dag.Word(['a','b','a'])
+            sage: a.intersection(b).equal_languages(b)
+            True
+
         TESTS::
+
+            sage: a = dag.AnyWord(['a','b','c'])
+            sage: b = dag.AnyWord(['a','b','e'])
+            sage: a.intersection(b) == dag.AnyWord(['a', 'b'])
+            True
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = DetAutomaton([(3, 2, 'c'), (1, 2, 'd')], i=2)
@@ -2903,6 +2926,20 @@ cdef class DetAutomaton:
             True
             sage: a
             DetAutomaton with 5 states and an alphabet of 2 letters
+
+            sage: dag.AnyWord(['a','b']).complete_op()
+            False
+
+        TESTS::
+
+            sage: a = dag.Word(['a','b','a'])
+            sage: a.complete_op()
+            True
+            sage: a.equal_languages(dag.Word(['a','b','a']))
+            True
+            sage: a == dag.Word(['a','b','a'])
+            False
+
         """
         sig_on()
         res = CompleteAutomaton(self.a)
@@ -2918,9 +2955,24 @@ cdef class DetAutomaton:
         """
         Give an automaton recognizing the language w(w^(-1)L) where L is the language of self.
         It is the set of words recognized by self and starting with word w.
+
+        EXAMPLES::
+
+            sage: a = dag.AnyWord(['a', 'b'])
+            sage: a.prefix(['a', 'a'])
+            DetAutomaton with 3 states and an alphabet of 2 letters
+
+        TESTS::
+
+            sage: a = dag.Word(['a', 'b', 'a'])
+            sage: a.prefix(['c'])
+            Traceback (most recent call last):
+            ...
+            ValueError: 'c' is not in the alphabet ['a', 'b']
+
         """
         cdef DetAutomaton a = self.copy()
-        a.shift_listOP(w)
+        a.shift_list_op(w)
         return dag.Word(w).concat(a)
 
     def prefix_closure(self):
@@ -2938,9 +2990,13 @@ cdef class DetAutomaton:
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.prefix_closure()
             DetAutomaton with 2 states and an alphabet of 2 letters
-            sage: b = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: b.prefix_closure()
-            DetAutomaton with 0 state and an alphabet of 2 letters
+
+            sage: b = dag.Word(['a','b','a'])
+            sage: c = b.prefix_closure()
+            sage: c
+            DetAutomaton with 4 states and an alphabet of 2 letters
+            sage: dag.Word(['a', 'b']).included(c)
+            True
         """
         cdef int i
         cdef Automaton a
@@ -2954,7 +3010,6 @@ cdef class DetAutomaton:
             a.e[i].final = True
         return r
 
-    # TODO : remove the side effect
     # Use epsilon-transitions rather than product ?
     def union(self, DetAutomaton a, simplify=True, verb=False):
         """
@@ -2964,8 +3019,10 @@ cdef class DetAutomaton:
         INPUT:
 
         - ``a`` -- :class:`DetAutomaton`
+
         - ``simplify`` --  (default: ``True``)
           prune and minimize the result ?
+
         - ``verb`` -- boolean (default: ``False``) if True,
           print debugging informations
 
@@ -2975,6 +3032,11 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
+            sage: a = dag.Word(['a','b','c'])
+            sage: b = dag.Word(['a','b','a'])
+            sage: a.union(b)
+            DetAutomaton with 4 states and an alphabet of 3 letters
+
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
             sage: a.union(b)
@@ -2982,6 +3044,13 @@ cdef class DetAutomaton:
             sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')])
             sage: a.union(b)
             DetAutomaton with 2 states and an alphabet of 3 letters
+
+        TESTS::
+
+            sage: a = dag.Word(['a','b','c'])
+            sage: b = dag.Word(['a','b','a'])
+            sage: a.included(a.union(b))
+            True
 
         """
         cdef DetAutomaton a1 = self
@@ -2992,6 +3061,9 @@ cdef class DetAutomaton:
             A = list(set(a1.A+a2.A))
             a1 = a1.bigger_alphabet(A)
             a2 = a2.bigger_alphabet(A)
+        else:
+            a1 = a1.copy()  # in order to avoid side effect
+            a2 = a2.copy()
 
         # complete the automata
         sig_on()
@@ -3039,20 +3111,23 @@ cdef class DetAutomaton:
             return r
 
     # split the automaton with respect to a DetAutomaton
-    def split(self, DetAutomaton a, simplify=True, verb=False):
+    def split(self, DetAutomaton a, bool simplify=True, bool verb=False):
         """
-        Split the automaton with respect to ``a`` a :class:`DetAutomaton`.
+        Split the automaton with respect to a :class:`DetAutomaton` ``a``.
         Return two DetAutomaton recognizing the intersection of the language
         of self with the one of a and with the complementary of the language
         of a.
-        Warning: There is a side-effect: the automaton self is completed.
+        We assume that the two automata have the same alphabet.
+        Warning: There is a side-effect: the automaton ``a`` is completed.
 
         INPUT:
 
-        - ``a`` -- :class:`DetAutomaton` in respect to split
-        - ``simplify`` - (default: True) - if True, prune and
+        - ``a`` -- :class:`DetAutomaton` - we split ``self`` with respect to this automaton
+
+        - ``simplify`` - bool (default: True) - if True, prune and
           minimize the result
-        - ``verb`` - (default: False) - if True, display
+
+        - ``verb`` - bool (default: False) - if True, display
           informations for debugging
 
         OUTPUT:
@@ -3064,6 +3139,12 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
+            sage: a = dag.AnyWord(['a', 'b'])
+            sage: b = a.concat(dag.Word(['a', 'a'])).concat(a)
+            sage: a.split(b)
+            [DetAutomaton with 3 states and an alphabet of 2 letters,
+             DetAutomaton with 2 states and an alphabet of 2 letters]
+
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
             sage: a.split(b)
@@ -3073,6 +3154,13 @@ cdef class DetAutomaton:
             sage: a.split(b)
             [DetAutomaton with 1 state and an alphabet of 1 letter,
              DetAutomaton with 2 states and an alphabet of 1 letter]
+
+        TESTS::
+            sage: a = dag.AnyWord(['a', 'b'])
+            sage: b = dag.AnyWord(['c', 'a'])
+            sage: a.split(b)
+            [DetAutomaton with 1 state and an alphabet of 1 letter,
+             DetAutomaton with 1 state and an alphabet of 1 letter]
 
         """
         cdef Automaton ap, ap2
@@ -3136,16 +3224,16 @@ cdef class DetAutomaton:
 
     # modify the automaton to recognize the langage shifted by l
     # (letter given by its index)
-    def shift1OP(self, int l, verb=False):
+    def shift1_op(self, l, verb=False):
         """
         Shift the automaton ON PLACE to recognize the language shifted
-        by ``l`` (letter given by its index).
+        by letter ``l``.
         The new language is the language of words u such that
         lu was recognized by self.
 
         INPUT:
 
-        - ``l`` -- int  index of letter to shift
+        - ``l`` -- letter to shift
         - ``verb`` - boolean (default: ``False``) - if True, display
           informations for debugging
 
@@ -3154,12 +3242,24 @@ cdef class DetAutomaton:
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.initial_state
             0
-            sage: a.shift1OP(0, verb=True)
+            sage: a.shift1_op('a')
             sage: a.initial_state
             1
 
+        TESTS::
+
+            sage: a = dag.AnyWord(['a', 'b'])
+            sage: a.shift1_op('c')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'c' is not a letter of the alphabet ['a', 'b']
+
         """
         if self.a.i != -1:
+            try:
+                l = self.A.index(l)
+            except:
+                raise ValueError("%r is not a letter of the alphabet %s" % (l, self.A))
             self.a.i = self.a.e[self.a.i].f[l]
 
     # modify the automaton to recognize the langage shifted by l^np
@@ -3192,9 +3292,9 @@ cdef class DetAutomaton:
             if self.a.i != -1:
                 self.a.i = self.a.e[self.a.i].f[l]
 
-    def shift_listOP(self, list l):
+    def shift_list_op(self, list l):
         """
-        Shift the automaton ON PLACE to recognize the language shifted by l (list of letters given by their index).
+        Shift the automaton ON PLACE to recognize the language shifted by l (list of letters).
         The new language is the language of words u such that lu 
         was recognized by self.
 
@@ -3209,15 +3309,15 @@ cdef class DetAutomaton:
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.initial_state
             0
-            sage: a.shiftOP(0, 2)
+            sage: a.shift_list_op(['a'])
             sage: a.initial_state
-            -1
+            1
         """
-        cdef int i
         for i in l:
-            if i < 0 or i >= self.a.na:
-                raise ValueError("%d is not the index of a letter (i.e. between 0 and %s) !"
-                                 % (i, self.a.na))
+            try:
+                i = self.A.index(i)
+            except:
+                raise ValueError("%r is not in the alphabet %s" % (i, self.A))
             if self.a.i != -1:
                 self.a.i = self.a.e[self.a.i].f[i]
 
