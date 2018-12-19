@@ -124,6 +124,7 @@ Number Theory
 
 Algebraic and Arithmetic Geometry
 ---------------------------------
+
 * :doc:`Schemes <schemes/index>`
 * :doc:`Plane, Elliptic and Hyperelliptic Curves <curves/index>`
 

@@ -1,5 +1,5 @@
 # coding=utf8
-"""
+r"""
 DetAutomaton generators
 
 AUTHORS:
@@ -66,7 +66,7 @@ class DetAutomatonGenerators(object):
         - ``A`` -- the result recognize every letter of this alphabet
 
         - ``A2`` (default: ``None``) -- alphabet of the result (must contain A)
-        
+
         OUTPUT:
 
         A :class:`DetAutomaton`
@@ -97,7 +97,7 @@ class DetAutomatonGenerators(object):
         - ``A`` -- the result recognize every word over this alphabet
 
         - ``A2`` (default: ``None``) -- alphabet of the result (must contain A)
-        
+
         OUTPUT:
 
         A :class:`DetAutomaton`
@@ -126,7 +126,7 @@ class DetAutomatonGenerators(object):
         INPUT:
 
         - ``A`` -- alphabet of the result
-        
+
         OUTPUT:
 
         A :class:`DetAutomaton`
@@ -145,7 +145,7 @@ class DetAutomatonGenerators(object):
         INPUT:
 
         - ``A`` -- alphabet of the result
-        
+
         OUTPUT:
 
         A :class:`DetAutomaton`
@@ -166,7 +166,7 @@ class DetAutomatonGenerators(object):
         - ``w`` -- the result recognize this word
 
         - ``A`` (default: ``None``) -- alphabet of the result (must contain the letters of w)
-        
+
         OUTPUT:
 
         A :class:`DetAutomaton`
@@ -201,11 +201,11 @@ class DetAutomatonGenerators(object):
         - ``A`` (default: ``None``) -- alphabet of the result
 
         - ``density_edges`` (default: ``None``) -- the density of the transitions among all possible transitions
-        
+
         - ``density_finals`` (default: ``None``) -- the density of final states among all states
-        
+
         - ``verb`` - bool (default: ``False``) -- print informations for debugging
-        
+
         OUTPUT:
 
         A :class:`DetAutomaton`
