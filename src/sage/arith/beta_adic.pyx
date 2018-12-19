@@ -4026,8 +4026,8 @@ cdef class BetaAdicSet:
         lt = [(m.Proj(a, ap), t) for a, t in lt]
         if verb:
             print("Exchange of %s pieces" % len(lt))
-        # calcule l'induction à partir de la liste de (morceau, translation)
-        # précalculs
+        # compute the induction from the list of (piece, translation)
+        # precomputation
         if verb:
             print("Pre-computation...")
         arel = dict()
@@ -4038,18 +4038,18 @@ cdef class BetaAdicSet:
                 print("arel[%s]=%s" % (t, arel[t]))
         if verb:
             print("ba : %s" % ba)
-        # tree de subdivision des morceaux
+        # tree of subdivision of the pieces
         tree = [range(1, len(lt) + 1)] + [[] for i in range(len(lt))] 
         if verb:
             print("initial tree: %s" % tree)
-        lm = [(aa, 0)] + lt  # liste des morceaux, translations
+        lm = [(aa, 0)] + lt  # list of pieces, translations
         if verb:
             print("lm = %s" % lm)
-        # parcours de chaque morceau (donné par une liste de morceaux)
+        # browse each piece (given by the list of pieces)
         d = [[] for i in range(len(lm))]
         if verb:
             print("d = %s" % d)
-        lf = range(1, len(lm))  # liste des feuilles
+        lf = range(1, len(lm))  # list of leaf
         if verb:
             print("lf = %s" % lf)
 
@@ -4061,36 +4061,36 @@ cdef class BetaAdicSet:
         # étape 1 : complétion des mots
         for i, (a1, t1) in enumerate(lm):
             if tree[i] != []:
-                continue  # ce morceau n'est pas une feuille
+                continue  # this piece is not a leaf
             if verb:
-                print("\nCalcul du morceau %s/%s (%s, %s)..." % (i, len(lm), a1, t1))
+                print("\nCompute the piece %s/%s (%s, %s)..." % (i, len(lm), a1, t1))
                 # print "lf = %s"%lf
                 # print "d = %s"%d
                 # print "tree = %s"%tree
-            tr = 0  # translation totale
+            tr = 0  # total translation
             if d[i] != []:
                 if d[i][-1] == -1:
-                    continue  # le morceau était déjà fini de calculé
-                # va à la fin du mot
+                    continue  # the computation for this piece was already finished
+                # go to the end of the word
                 for j in d[i]:
                     if j < 0:
                         break
                     tr += lm[j][1]
-            # calcule b^np*a + tr
+            # compute b^np*a + tr
             a = a1.unshift(0, np).prune().minimize()
             if tr != 0:
                 if verb:
-                    print("Translation de %s..." % tr)
+                    print("Translation of %s..." % tr)
             # m.move2(t=-tr, a=a)
-            # TODO : ne pas recalculer cet automate déjà calculé
+            # TODO : do not recompute this automaton already computed
             a = m.Proj(a, ap, t=-tr)
             if a.has_empty_langage():
                 raise RuntimeError("Empty language when projecting a on ap for t=%s"%(-tr))
             while True:
-                # split selon les autres morceaux
+                # split according to other pieces
                 j = included(a, lf, lm)
                 if j is None:
-                    # détermine les morceaux qui intersectent a
+                    # find the pieces that intersect a
                     l = []
                     for j in lf:
                         if lm[j][0].intersect(a):
@@ -4099,122 +4099,122 @@ cdef class BetaAdicSet:
                         print("Error : intersection with %s piece but not included !!!"%len(l))
                     if verb:
                         print("Subdivision on %s pieces..." % len(l))
-                    # calcule les intersections (découpe en morceaux a1)
+                    # compute intersections (split a1)
                     for j in l:
                         a2 = lm[j][0]
-                        # découpe a selon a2
+                        # cut a according to a2
                         # m.move2(t=tr, a=a2) #translate a2 de -tr
                         a = m.Proj(a2, ap.unshift(0, np), t=tr)
-                        a.shiftOP(0, np)  # multiplie par b^(-np)
+                        a.shiftOP(0, np)  # multiply by b^(-np)
                         a = a.prune().minimize()
-                        k = len(lm)  # indice du nouveau morceau
-                        lf.append(k)  # nouvelle feuille
+                        k = len(lm)  # index of the new piece
+                        lf.append(k)  # new leaf
                         tree[i].append(k)
                         tree.append([])
                         from copy import copy
                         # print copy
                         d.append(copy(d[i]))
-                        d[k].append(j)  # ajoute la translation suivante
-                        # ajoute le nouveau morceau à la liste
+                        d[k].append(j)  # add the next translation
+                        # add the new piece to the list
                         lm.append((a.intersection(a1), t1))
-                        # split selon ba
+                        # split according to ba
                         (ab, abc) = split_ba(k, tr+lm[j][1], np,
                                              lm, m, aa, ap, verb)
                         if ab is None:
                             if verb:
-                                print("k=%s, tr=%s+%s : calcul à continuer" % (k, tr, lm[j][1]))
+                                print("k=%s, tr=%s+%s : computation to continue" % (k, tr, lm[j][1]))
                         else:
                             if abc is None:
                                 if verb:
-                                    print("tr=%s : calcul terminé" % tr)
-                                d[k].append(-1)  # indique que le calcul de ce morceau est terminé
+                                    print("tr=%s : computation finished" % tr)
+                                d[k].append(-1)  # indicate that the computation of this piece is terminated
                             else:
                                 if verb:
-                                    print("tr=%s : subdivision of %s by ba (new %s)..." % (tr, i, len(lm)))
-                                lf.append(len(lm))  # nouvelle feuille
+                                    print("tr=%s : subdivision of %s according to ba (new %s)..." % (tr, i, len(lm)))
+                                lf.append(len(lm))  # new leaf
                                 tree[k].append(len(lm))
                                 tree.append([])
                                 d.append(copy(d[k]))
-                                # indique que le calcul est terminé pour ce morceau (pour l'étape 1)
+                                # indicate that the computation is terminated for this piece (for the first step)
                                 d[len(lm)].append(-1)
                                 lm.append((ab, t1))
-                                lf.append(len(lm))  # nouvelle feuille
+                                lf.append(len(lm))  # new leaf
                                 tree[k].append(len(lm))
                                 tree.append([])
                                 d.append(copy(d[k]))
                                 lm.append((abc, t1))
-                                lf.remove(k)  # le morceau k n'est plus une feuille
-                    lf.remove(i)  # le morceau i n'est plus une feuille
-                    # calcul fini pour ce morceau puisque ce n'est plus une feuille
+                                lf.remove(k)  # the piece k is no more a leaf
+                    lf.remove(i)  # the piece i is no more a leaf
+                    # computation ended for this piece since it is no more a leaf
                     break
                 else:
-                    # ajoute le morceau à la liste et translate
+                    # add the piece to the list and translate
                     d[i].append(j)
-                    # if verb: print "Translation de %s..."%lm[j][1]
+                    # if verb: print "Translation by %s..."%lm[j][1]
                     # m.move2(t=-lm[j][1], a=a, ar=arel[lm[j][1]])
                     a = m.Proj(a, ap, t=-lm[j][1], arel=arel[lm[j][1]])  
                     tr += lm[j][1]
-                # split selon ba
+                # split according to ba
                 (ab, abc) = split_ba(i, tr, np, lm, m, aa, ap, verb)
                 if ab is None:
                     pass
-                    # if verb: print "tr=%s : calcul à continuer"%tr
+                    # if verb: print "tr=%s : computation to continue"%tr
                 else:
                     if abc is None:
                         if verb:
                             print("tr=%s : end of computation" % tr)
                     else:
                         if verb:
-                            print("tr=%s : subdivision of %s by ba (new %s)..." % (tr, i, len(lm)))
-                        lf.append(len(lm))  # nouvelle feuille
+                            print("tr=%s : subdivision of %s according to ba (new %s)..." % (tr, i, len(lm)))
+                        lf.append(len(lm))  # new leaf
                         tree[i].append(len(lm))
                         tree.append([])
                         d.append(copy(d[i]))
-                        # indique que le calcul est terminé pour ce morceau (pour l'étape 1)
+                        # indicate that the computation is finished for this piece (for the first step)
                         d[len(lm)].append(-1)
                         lm.append((ab, t1))
-                        lf.append(len(lm))  # nouvelle feuille
+                        lf.append(len(lm))  # new leaf
                         tree[i].append(len(lm))
                         tree.append([])
                         d.append(copy(d[i]))
                         lm.append((abc, t1))
-                        lf.remove(i)  # le morceau i n'est plus une feuille
-                    break  # calcul fini pour ce morceau (pour cette étape)
+                        lf.remove(i)  # the piece i is no more a leaf
+                    break  # computation terminated for this piece (for the first step)
 
         if verb:
             print("\n*************\n   Step 2   \n*************")
 
-        # étape 2 : remplacement des lettres qui ne sont pas des feuilles
+        # second step : replacement of the letters that are not leaves
         while True:
             end = True
             for i in lf:
                 a1, t1 = lm[i]
                 if verb:
                     print("\nPiece %s/%s..." % (i, len(lm)))
-                tr = 0  # translation totale
+                tr = 0  # total translation
                 if d[i] == []:
                     print("Error : empty leaf !!!!")
-                # va à la fin du mot
+                # got to the end of the word
                 for ij, j in enumerate(d[i]):
                     if j < 0:
                         break
-                    if tree[j] != []:  # il faut recalculer cette lettre
-                        # calcule b^np*a + tr
+                    if tree[j] != []:  # we have to recompute this letter
+                        # compute b^np*a + tr
                         a = a1.unshift(0, np).prune().minimize()
                         if tr != 0:
                             if verb:
                                 print("Translation of %s..." % tr)
                         # m.move2(t=-tr, a=a)
-                        # TODO : ne pas recalculer cet automate déjà calculé
+                        # TODO : do not recompute this automaton already computed
                         a = m.Proj(a, ap, t=-tr)
-                        # split selon les autres morceaux
+                        # split according to the other pieces
                         f = fils(tree, j)
                         if verb:
                             print("Split by %s pieces" % len(f))
                         k = included(a, f, lm)
                         if k is None:
                             end = False
-                            # détermine les morceaux qui intersectent a
+                            # find pieces that intersect a
                             l = []
                             for k in lf:
                                 if lm[k][0].intersect(a):
@@ -4223,29 +4223,29 @@ cdef class BetaAdicSet:
                                 print("Error : intersection with %s pieces but not included !!!" % len(l))
                             if verb:
                                 print("Subdivision of %s pieces..." % len(l))
-                            # calcule les intersections (découpe en morceaux a1)
+                            # compute intersections (split a1)
                             for j2 in l:
                                 a2 = lm[j2][0]
-                                # découpe selon a2
+                                # cut according to a2
                                 # a = m.move2(t=tr, a=a2) #translate a2 de -tr
                                 # a.zero_complete_op()
                                 a = m.Proj(a2, ap.unshift(0, np), t=tr)
-                                a.shiftOP(0, np)  # multiplie par b^(-np)
+                                a.shiftOP(0, np)  # multiply by b^(-np)
                                 a = a.prune().minimize()
-                                k = len(lm)  # indice du nouveau morceau
-                                lf.append(k)  # nouvelle feuille
+                                k = len(lm)  # index of the new piece
+                                lf.append(k)  # new leaf
                                 tree[i].append(k)
                                 tree.append([])
                                 d.append(copy(d[i]))
-                                d[k][ij] = j2  # remplace la lettre
-                                # ajoute le nouveau morceau à la liste
+                                d[k][ij] = j2  # replace the letter
+                                # add the new piece to the list
                                 lm.append((a.intersection(a1), t1))
-                            lf.remove(i)  # i n'est plus une feuille
+                            lf.remove(i)  # i is not more a leaf
                             if verb:
                                 print("break...")
-                            break  # le morceau n'est plus une feuille
+                            break  # the piece is no more a leaf
                         else:
-                            # remplace la lettre
+                            # replace the letter
                             d[i][ij] = k
                     tr += lm[j][1]
             if end:
