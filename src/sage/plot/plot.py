@@ -3724,6 +3724,12 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
 
     exceptions = 0
     exception_indices = []
+
+    try:
+    	x = f(data[0])
+    except:
+    	raise ArithmeticError("The function cannot be plotted.")
+
     for i in range(len(data)):
         xi = data[i]
 
