@@ -1,9 +1,9 @@
 cdef extern from "hasse_diagram.h":
-    ctypedef void* CombinatorialType_ptr;
-    cdef CombinatorialType_ptr init_CombinatorialType(tuple py_tuple, unsigned int nr_vertices)
-    cdef CombinatorialType_ptr init_CombinatorialType(tuple py_tuple)
-    cdef unsigned int dimension(CombinatorialType_ptr C)
-    cdef tuple f_vector(CombinatorialType_ptr C)
-    cdef tuple edges(CombinatorialType_ptr C)
-    cdef tuple ridges(CombinatorialType_ptr C)
-    cdef void delete_CombinatorialType(CombinatorialType_ptr)
+    ctypedef void* CombinatorialPolytope_ptr;
+    cdef CombinatorialPolytope_ptr init_CombinatorialPolytope(tuple py_tuple, unsigned int nr_vertices)
+    cdef CombinatorialPolytope_ptr init_CombinatorialPolytope(tuple py_tuple)
+    cdef unsigned int dimension(CombinatorialPolytope_ptr C)
+    cdef tuple f_vector(CombinatorialPolytope_ptr C)
+    cdef tuple edges(CombinatorialPolytope_ptr C)
+    cdef tuple ridges(CombinatorialPolytope_ptr C)
+    cdef void delete_CombinatorialPolytope(CombinatorialPolytope_ptr)

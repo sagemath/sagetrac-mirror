@@ -73,12 +73,12 @@ inline unsigned int trailing_zero_workaround(chunktype chunk){
 
 
 
-CombinatorialType::CombinatorialType(PyObject* py_tuple, unsigned int nr_vertices_given){//this is initalizing CombinatorialType with a tuple of facets, each facet given as a tuple of vertices, the vertices must be exactly 0,...,nr_vertices-1
+CombinatorialPolytope::CombinatorialPolytope(PyObject* py_tuple, unsigned int nr_vertices_given){//this is initalizing CombinatorialPolytope with a tuple of facets, each facet given as a tuple of vertices, the vertices must be exactly 0,...,nr_vertices-1
             build_dictionary();
             unsigned int i;
             nr_vertices = nr_vertices_given;
             nr_facets = PyTuple_Size(py_tuple);
-            if (nr_facets > nr_vertices){//in this case the polar approach is actually much better, so we will save the polar CombinatorialType and compute accordingly
+            if (nr_facets > nr_vertices){//in this case the polar approach is actually much better, so we will save the polar CombinatorialPolytope and compute accordingly
                 Polar_Init(py_tuple, nr_vertices_given);
                 return;
             }
@@ -97,12 +97,12 @@ CombinatorialType::CombinatorialType(PyObject* py_tuple, unsigned int nr_vertice
             }
             facets_are_allocated = 1;
         }
-CombinatorialType::CombinatorialType(PyObject* py_tuple){//this is initalizing CombinatorialType incidence matrix as tuple of tuples
+CombinatorialPolytope::CombinatorialPolytope(PyObject* py_tuple){//this is initalizing CombinatorialPolytope incidence matrix as tuple of tuples
             build_dictionary();
             unsigned int i;
             nr_vertices = PyTuple_Size(PyTuple_GetItem(py_tuple,0));
             nr_facets = PyTuple_Size(py_tuple);
-            if (nr_facets > nr_vertices){//in this case the polar approach is actually much better, so we will save the polar CombinatorialType and compute accordingly
+            if (nr_facets > nr_vertices){//in this case the polar approach is actually much better, so we will save the polar CombinatorialPolytope and compute accordingly
                 Polar_Init(py_tuple);
                 return;
             }
@@ -121,7 +121,7 @@ CombinatorialType::CombinatorialType(PyObject* py_tuple){//this is initalizing C
             }
             facets_are_allocated = 1;
         }
-CombinatorialType::~CombinatorialType(){
+CombinatorialPolytope::~CombinatorialPolytope(){
             unsigned int i,j;
             if (facets_are_allocated){
                 for (i=0;i <nr_facets;i++){
@@ -138,21 +138,21 @@ CombinatorialType::~CombinatorialType(){
             delete(edges);
             delete(ridges);
         }
-unsigned int CombinatorialType::get_dimension(){
+unsigned int CombinatorialPolytope::get_dimension(){
             if (dimension){
                 return dimension;
             }
             dimension =  calculate_dimension(facets, nr_facets);
             return dimension;
         }
-inline PyObject* CombinatorialType::get_f_vector(){
+inline PyObject* CombinatorialPolytope::get_f_vector(){
             //need to take care of the polar case yet
             if (!f_vector){
                 calculate_f_vector();
             }
             return tuple_from_f_vector();
         }
-inline PyObject* CombinatorialType::get_edges(){
+inline PyObject* CombinatorialPolytope::get_edges(){
             if (polar){
                 if (!nr_ridges){
                     calculate_ridges();
@@ -167,7 +167,7 @@ inline PyObject* CombinatorialType::get_edges(){
                 return tuple_from_edges();
             }
         }
-inline PyObject* CombinatorialType::get_ridges(){
+inline PyObject* CombinatorialPolytope::get_ridges(){
             if (!polar){
                 if (!nr_ridges){
                     calculate_ridges();
@@ -182,13 +182,13 @@ inline PyObject* CombinatorialType::get_ridges(){
                 return tuple_from_edges();
             }
         }
-inline void CombinatorialType::intersection(chunktype *A, chunktype *B, chunktype *C){
+inline void CombinatorialPolytope::intersection(chunktype *A, chunktype *B, chunktype *C){
             unsigned int i;
             for (i = 0; i < length_of_face; i++){
                 C[i] = bitwise_intersection(A[i],B[i]);
             }
         }
-inline int CombinatorialType::is_subset(chunktype *A, chunktype *B){
+inline int CombinatorialPolytope::is_subset(chunktype *A, chunktype *B){
             unsigned int i;
             for (i = 0; i < length_of_face; i++){
                 if (bitwise_is_not_subset(A[i],B[i])){
@@ -197,7 +197,7 @@ inline int CombinatorialType::is_subset(chunktype *A, chunktype *B){
             }
             return 1;
         }
-inline unsigned int CombinatorialType::CountFaceBits(chunktype* A1) {
+inline unsigned int CombinatorialPolytope::CountFaceBits(chunktype* A1) {
             //this function is not implemented for speed (it basically gets called dimension times and once to convert a face to a tuple
             unsigned int i,count = 0;
             const unsigned int length_of_conversion_face = length_of_face*chunksize/64;
@@ -215,7 +215,7 @@ inline unsigned int CombinatorialType::CountFaceBits(chunktype* A1) {
             }
             return count;
         }
-inline void CombinatorialType::add_edge(chunktype *face){
+inline void CombinatorialPolytope::add_edge(chunktype *face){
             unsigned int i,one = 0,two = 0;
             for (i = 0; i < length_of_face; i++){
                 one += leading_zero_count(face[i]);
@@ -233,7 +233,7 @@ inline void CombinatorialType::add_edge(chunktype *face){
             //first_two_vertices_of_face(face,&one,&two);
             //add_edge_helper(one,two);
         }
-inline void CombinatorialType::add_edge(unsigned int one, unsigned int two){
+inline void CombinatorialPolytope::add_edge(unsigned int one, unsigned int two){
             if (nr_edges >= maxnumberedges*maxnumberedges){
                 return;
             }
@@ -246,7 +246,7 @@ inline void CombinatorialType::add_edge(unsigned int one, unsigned int two){
             edges[position_one][position_two + 1] = two;
             nr_edges += 1;
         }
-inline void CombinatorialType::add_ridge(unsigned int one, unsigned int two){
+inline void CombinatorialPolytope::add_ridge(unsigned int one, unsigned int two){
             if (nr_ridges >= maxnumberedges*maxnumberedges){
                 return;
             }
@@ -259,7 +259,7 @@ inline void CombinatorialType::add_ridge(unsigned int one, unsigned int two){
             ridges[position_one][position_two + 1] = two;
             nr_ridges += 1;
         }
-inline unsigned int CombinatorialType::get_next_level(chunktype **faces, unsigned int lenfaces, unsigned int face_to_intersect, chunktype **nextfaces, chunktype **nextfaces2, unsigned int nr_forbidden){
+inline unsigned int CombinatorialPolytope::get_next_level(chunktype **faces, unsigned int lenfaces, unsigned int face_to_intersect, chunktype **nextfaces, chunktype **nextfaces2, unsigned int nr_forbidden){
             unsigned int j, k, addthisface;
             unsigned int newfacescounter = 0;
             unsigned int counter = 0;
@@ -305,7 +305,7 @@ inline unsigned int CombinatorialType::get_next_level(chunktype **faces, unsigne
             }
             return newfacescounter;
         }
-unsigned int CombinatorialType::calculate_dimension(chunktype **faces, unsigned int nr_faces){
+unsigned int CombinatorialPolytope::calculate_dimension(chunktype **faces, unsigned int nr_faces){
             unsigned int i,j,k, newfacescounter, dimension;
             unsigned int bitcount = CountFaceBits(faces[0]);
             if (bitcount == 1){
@@ -327,7 +327,7 @@ unsigned int CombinatorialType::calculate_dimension(chunktype **faces, unsigned 
             }
             return dimension;
         }
-void CombinatorialType::calculate_ridges(){//this is a much simpler version of belows get_f_vector_and_edges
+void CombinatorialPolytope::calculate_ridges(){//this is a much simpler version of belows get_f_vector_and_edges
             unsigned int i,j,counter, addthisface, nr_forbidden = 0;
             unsigned long newfacescounter;
             void *nextfaces_creator[nr_facets-1];
@@ -357,7 +357,7 @@ void CombinatorialType::calculate_ridges(){//this is a much simpler version of b
                 free(nextfaces_creator[i]);
             }
         }
-void CombinatorialType::get_f_vector_and_edges(chunktype **faces, unsigned int dimension, unsigned int nr_faces, unsigned int nr_forbidden){
+void CombinatorialPolytope::get_f_vector_and_edges(chunktype **faces, unsigned int dimension, unsigned int nr_faces, unsigned int nr_forbidden){
             unsigned int i,j,counter, addthisface;
             unsigned long newfacescounter;
             if (dimension == 1){
@@ -380,7 +380,7 @@ void CombinatorialType::get_f_vector_and_edges(chunktype **faces, unsigned int d
                 nr_forbidden++;
             }
         }
-inline void CombinatorialType::calculate_f_vector(){
+inline void CombinatorialPolytope::calculate_f_vector(){
             unsigned int i,j;
             if (!dimension){
                 get_dimension();
@@ -408,7 +408,7 @@ inline void CombinatorialType::calculate_f_vector(){
             //f_vector[1] = nr_vertices; //this is commented out in order to make calculations also work for unbounded polyhedra
             get_f_vector_and_edges(facets,dimension-1,nr_facets,0);
         }
-void CombinatorialType::Polar_Init(PyObject* py_tuple, unsigned int nr_vertices_given){
+void CombinatorialPolytope::Polar_Init(PyObject* py_tuple, unsigned int nr_vertices_given){
             unsigned int i,j;
             nr_facets = nr_vertices_given;
             nr_vertices = PyTuple_Size(py_tuple);
@@ -439,7 +439,7 @@ void CombinatorialType::Polar_Init(PyObject* py_tuple, unsigned int nr_vertices_
             }
             facets_are_allocated = 1;
         }
-void CombinatorialType::Polar_Init(PyObject* py_tuple){
+void CombinatorialPolytope::Polar_Init(PyObject* py_tuple){
             unsigned int i,j;
             nr_facets = PyTuple_Size(PyTuple_GetItem(py_tuple,0));
             nr_vertices = PyTuple_Size(py_tuple);
@@ -467,7 +467,7 @@ void CombinatorialType::Polar_Init(PyObject* py_tuple){
             facets_are_allocated = 1;
         }
         //conversions
-void CombinatorialType::char_from_tuple(PyObject* py_tuple, chunktype *array1){//transforms a tuple to an array, the first entry gives the length of the tuple (and therefore the expected length of the array)
+void CombinatorialPolytope::char_from_tuple(PyObject* py_tuple, chunktype *array1){//transforms a tuple to an array, the first entry gives the length of the tuple (and therefore the expected length of the array)
             unsigned int len, entry, position, value,i ;
             const unsigned int size_array = length_of_face*chunksize/64;
             uint64_t *array = new uint64_t [size_array]();
@@ -483,7 +483,7 @@ void CombinatorialType::char_from_tuple(PyObject* py_tuple, chunktype *array1){/
             }
             delete(array);
         }
-void CombinatorialType::char_from_incidence_tuple(PyObject* py_tuple, chunktype *array1){
+void CombinatorialPolytope::char_from_incidence_tuple(PyObject* py_tuple, chunktype *array1){
             unsigned int len, entry, position, value,i ;
             const unsigned int size_array = length_of_face*chunksize/64;
             uint64_t *array = new uint64_t [size_array]();
@@ -501,7 +501,7 @@ void CombinatorialType::char_from_incidence_tuple(PyObject* py_tuple, chunktype 
             }
             delete(array);
         }
-void CombinatorialType::char_from_array(unsigned int* input, unsigned int len, chunktype *array1){
+void CombinatorialPolytope::char_from_array(unsigned int* input, unsigned int len, chunktype *array1){
             unsigned int entry, position, value,i ;
             const unsigned int size_array = length_of_face*chunksize/64;
             uint64_t *array = new uint64_t [size_array]();
@@ -516,7 +516,7 @@ void CombinatorialType::char_from_array(unsigned int* input, unsigned int len, c
             }
             delete(array);
         }
-inline PyObject* CombinatorialType::tuple_from_f_vector(){
+inline PyObject* CombinatorialPolytope::tuple_from_f_vector(){
             PyObject *py_tuple;
             unsigned int i;
             py_tuple = PyTuple_New(dimension + 2);
@@ -531,7 +531,7 @@ inline PyObject* CombinatorialType::tuple_from_f_vector(){
             }
             return py_tuple;
         }
-inline PyObject* CombinatorialType::tuple_from_edges(){
+inline PyObject* CombinatorialPolytope::tuple_from_edges(){
             PyObject *py_tuple;
             py_tuple = PyTuple_New(nr_edges);
             unsigned int i;
@@ -546,7 +546,7 @@ inline PyObject* CombinatorialType::tuple_from_edges(){
             }
             return py_tuple;
         }
-inline PyObject* CombinatorialType::tuple_from_ridges(){
+inline PyObject* CombinatorialPolytope::tuple_from_ridges(){
             PyObject *py_tuple;
             py_tuple = PyTuple_New(nr_ridges);
             unsigned int i;
@@ -562,33 +562,33 @@ inline PyObject* CombinatorialType::tuple_from_ridges(){
             return py_tuple;
         }
 
-CombinatorialType_ptr init_CombinatorialType(PyObject* py_tuple, unsigned int nr_vertices) {
-    CombinatorialType_ptr C = new CombinatorialType(py_tuple,nr_vertices);
+CombinatorialPolytope_ptr init_CombinatorialPolytope(PyObject* py_tuple, unsigned int nr_vertices) {
+    CombinatorialPolytope_ptr C = new CombinatorialPolytope(py_tuple,nr_vertices);
     return C;
 }
 
-CombinatorialType_ptr init_CombinatorialType(PyObject* py_tuple) {
-    CombinatorialType_ptr C = new CombinatorialType(py_tuple);
+CombinatorialPolytope_ptr init_CombinatorialPolytope(PyObject* py_tuple) {
+    CombinatorialPolytope_ptr C = new CombinatorialPolytope(py_tuple);
     return C;
 }
 
-unsigned int dimension(CombinatorialType_ptr C){
+unsigned int dimension(CombinatorialPolytope_ptr C){
   return (*C).get_dimension();
 }
 
-PyObject* edges(CombinatorialType_ptr C){
+PyObject* edges(CombinatorialPolytope_ptr C){
   return (*C).get_edges();
 }
 
-PyObject* f_vector(CombinatorialType_ptr C){
+PyObject* f_vector(CombinatorialPolytope_ptr C){
   return (*C).get_f_vector();
 }
 
-PyObject* ridges(CombinatorialType_ptr C){
+PyObject* ridges(CombinatorialPolytope_ptr C){
   return (*C).get_ridges();
 }
 
-void delete_CombinatorialType(CombinatorialType_ptr C)
+void delete_CombinatorialPolytope(CombinatorialPolytope_ptr C)
 {
   delete(C);
 }

@@ -51,11 +51,11 @@ const unsigned int chunksize = 64;
 const unsigned int maxnumberedges = 16348;//^2 (the edges will be build as an array of arrays, such that I can save up to maxnumberedges*maxnumberedges edges, the number should contain a high power of two
 
 
-class CombinatorialType {
+class CombinatorialPolytope {
     public:
-        CombinatorialType(PyObject* py_tuple, unsigned int nr_vertices_given);
-        CombinatorialType(PyObject* py_tuple);
-        ~CombinatorialType();
+        CombinatorialPolytope(PyObject* py_tuple, unsigned int nr_vertices_given);
+        CombinatorialPolytope(PyObject* py_tuple);
+        ~CombinatorialPolytope();
         unsigned int get_dimension();
         inline PyObject* get_f_vector();
         inline PyObject *get_edges();
@@ -96,16 +96,16 @@ class CombinatorialType {
         inline PyObject* tuple_from_ridges();
 };
 
-typedef CombinatorialType* CombinatorialType_ptr;
+typedef CombinatorialPolytope* CombinatorialPolytope_ptr;
 
-CombinatorialType_ptr init_CombinatorialType(PyObject* py_tuple, unsigned int nr_vertices);//initialize by facets as tuples of vertices
-CombinatorialType_ptr init_CombinatorialType(PyObject* py_tuple);//initialize by incidence_matrix
+CombinatorialPolytope_ptr init_CombinatorialPolytope(PyObject* py_tuple, unsigned int nr_vertices);//initialize by facets as tuples of vertices
+CombinatorialPolytope_ptr init_CombinatorialPolytope(PyObject* py_tuple);//initialize by incidence_matrix
 
-unsigned int dimension(CombinatorialType_ptr C);
-PyObject* f_vector(CombinatorialType_ptr C);
-PyObject* edges(CombinatorialType_ptr C);
-PyObject* ridges(CombinatorialType_ptr C);
+unsigned int dimension(CombinatorialPolytope_ptr C);
+PyObject* f_vector(CombinatorialPolytope_ptr C);
+PyObject* edges(CombinatorialPolytope_ptr C);
+PyObject* ridges(CombinatorialPolytope_ptr C);
 
-void delete_CombinatorialType(CombinatorialType_ptr);
+void delete_CombinatorialPolytope(CombinatorialPolytope_ptr);
 
 #endif

@@ -26,11 +26,11 @@ AUTHOR:
 from __future__ import absolute_import
 
 
-from .hasse_diagram cimport   CombinatorialType_ptr, init_CombinatorialType, dimension, edges, f_vector, ridges, delete_CombinatorialType
+from .hasse_diagram cimport   CombinatorialPolytope_ptr, init_CombinatorialPolytope, dimension, edges, f_vector, ridges, delete_CombinatorialPolytope
 
 
-cdef class CombinatorialType:
-    cdef CombinatorialType_ptr _C
+cdef class CombinatorialPolytope:
+    cdef CombinatorialPolytope_ptr _C
     r"""
     A class of atomic and coatiomic Eulerian lattices.
 
@@ -43,7 +43,7 @@ cdef class CombinatorialType:
     EXAMPLE::
     
         sage: P = polytopes.permutahedron(7)
-        sage: C = sage.geometry.combinatorial_type.base.CombinatorialType(incidence_matrix=P.incidence_matrix())
+        sage: C = sage.geometry.combinatorial_type.base.CombinatorialPolytope(incidence_matrix=P.incidence_matrix())
         sage: C.f_vector()
         (1L, 5040L, 15120L, 16800L, 8400L, 1806L, 126L, 1L)
     """
@@ -51,7 +51,7 @@ cdef class CombinatorialType:
         if incidence_matrix:
             rg = range(incidence_matrix.nrows())
             tup =  tuple(tuple(incidence_matrix[i,j] for i in rg) for j in range(incidence_matrix.ncols()) if not all(incidence_matrix[i,j] for i in rg))#transpose and get rid of trivial inequalites (which all vertices satisfie)
-            self._C = init_CombinatorialType(tup)
+            self._C = init_CombinatorialPolytope(tup)
         else:
             if vertices:
                 nr_vertices = len(vertices)
@@ -60,16 +60,16 @@ cdef class CombinatorialType:
                     facets = tuple(tuple(int(i) for i in j) for j in facets)
                 except:
                     raise ValueError("facets must be given as tuple of tuples of vertices")
-                self._C = init_CombinatorialType(facets,nr_vertices)
+                self._C = init_CombinatorialPolytope(facets,nr_vertices)
             else:
-                raise ValueError("Not sufficient information provided to obtain a CombinatorialType")
+                raise ValueError("Not sufficient information provided to obtain a CombinatorialPolytope")
 
     def __del__(self):
-        delete_CombinatorialType(self._C)
+        delete_CombinatorialPolytope(self._C)
 
     def edges(self):
         r"""
-        Calculates the edges of the CombinatorialType, i.e. the rank 2 faces.
+        Calculates the edges of the CombinatorialPolytope, i.e. the rank 2 faces.
         
         NOTE: If you want to compute edges and f_vector it is recommended to compute edges first.
         """
@@ -80,7 +80,7 @@ cdef class CombinatorialType:
 
     def ridges(self):
         r"""
-        Calculates the ridges of the CombinatorialType, i.e. the rank 2 faces. Those are given as tuples of facets.
+        Calculates the ridges of the CombinatorialPolytope, i.e. the rank 2 faces. Those are given as tuples of facets.
         
         E.g. a ridge (1,2) corresponds to the meet of facet[1] and facet[2].
         
@@ -90,7 +90,7 @@ cdef class CombinatorialType:
 
     def f_vector(self):
         r"""
-        Calculates the f_vector of the CombinatorialType, i.e. the vector containing the nr of faces of each rank.
+        Calculates the f_vector of the CombinatorialPolytope, i.e. the vector containing the nr of faces of each rank.
         
         NOTE: If you also want to compute edges or ridges, it is recommended to do that first.
         """
