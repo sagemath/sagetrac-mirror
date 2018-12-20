@@ -2835,23 +2835,80 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def round(self):
         """
-         Rounds ``self`` to the nearest integer. The rounding mode of the
-         parent field has no effect on this function.
+        Round ``self`` to the nearest integer.
 
-         EXAMPLES::
+        The output is a Sage integer.
 
-             sage: RR(0.49).round()
-             0
-             sage: RR(0.5).round()
-             1
-             sage: RR(-0.49).round()
-             0
-             sage: RR(-0.5).round()
-             -1
-         """
+        The rounding mode of the parent field has no effect on this function.
+
+        .. SEEALSO:: :meth:`__round__`
+
+        EXAMPLES::
+
+            sage: RR(0.49).round()
+            0
+            sage: RR(0.5).round()
+            1
+            sage: RR(-0.49).round()
+            0
+            sage: RR(-0.5).round()
+            -1
+            sage: RR(pi).round().parent()
+            Integer Ring
+        """
         cdef RealNumber x = self._new()
         mpfr_round(x.value, self.value)
         return x.integer_part()
+
+    def __round__(self, ndigits=0):
+        """
+        Implement support for Python 3's ``round`` builtin.
+
+        This is mostly equivalent to simply calling ``round(float(x),
+        ndigits)`` where ``x`` is a `RealNumber`.  The difference is that it
+        still returns an arbitrary-precision ``RealNumber`` of precision
+        equivalent to ``self`` (or an ``Integer`` if ``ndigits=0``).  It also
+        uses the rounding mode specified on the parent field.
+
+        .. SEEALSO:: :meth:`round`
+
+        EXAMPLES::
+
+            sage: RR(0.49).__round__()
+            0
+            sage: RR(0.5).__round__()
+            0
+            sage: RR(-0.49).__round__()
+            0
+            sage: RR(-0.5).__round__()
+            0
+            sage: x = RR(pi).__round__(); x
+            3
+            sage: x.parent()
+            Integer Ring
+
+            sage: x = RR(pi).__round__(6); x
+            3.14159300000000
+            sage: x.parent()
+            Real Field with 53 bits of precision
+        """
+        cdef Integer z
+        cdef RealNumber r
+        cdef char* s
+
+        if ndigits < 0:
+            return (<RealField_class>self._parent).zero()
+        elif ndigits == 0:
+            z = PY_NEW(Integer)
+            mpfr_get_z(z.value, self.value, (<RealField_class>self._parent).rnd)
+            return z
+        else:
+            rnd = (<RealField_class>self._parent).rnd
+            mpfr_asprintf(&s, "%.*R*f", <int>ndigits, rnd, self.value)
+            r = self._new()
+            mpfr_set_str(r.value, s, 10, rnd)
+            mpfr_free_str(s)
+            return r
 
     def floor(self):
         """
