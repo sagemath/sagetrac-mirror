@@ -43,6 +43,7 @@ from sage.libs.arb.acb cimport *
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 from sage.libs.mpfi cimport *
+from sage.libs.mpfr cimport *
 
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.element cimport Element
@@ -56,6 +57,7 @@ from sage.rings.complex_double import CDF
 from sage.categories.morphism cimport Morphism
 from sage.rings.number_field.number_field_element import _inverse_mod_generic
 from sage.rings.real_mpfi cimport RealIntervalField_class
+from sage.rings.real_mpfr cimport RealField_class, RealNumber
 from sage.rings.complex_interval cimport ComplexIntervalFieldElement
 from sage.rings.real_arb cimport RealBall
 from sage.rings.complex_arb cimport ComplexBall
@@ -548,6 +550,59 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         ZZX_rem(x.__numerator, result, _num.x)
         (<NumberFieldElement_absolute>x)._reduce_c_()
         return x
+
+    def _mpfr_(self, RealField_class R):
+        r"""
+        Despite being much faster, this method is not called::
+
+            sage: K.<a> = NumberField(x^2 - x - 1, embedding=(1+AA(5).sqrt())/2)
+            sage: RR(a)
+            1.61803398874989
+            sage: a._mpfr_(RR)
+            mpfr
+            1.61803398874989
+
+        The coercion model does not seem to favoritize this conversion
+        method::
+
+            sage: cm.explain(K, RR)
+            Coercion on left operand via
+                Composite map:
+                  From: Number Field in a with defining polynomial x^2 - x - 1
+                  To:   Real Field with 53 bits of precision
+                  Defn:   Generic morphism:
+                          From: Number Field in a with defining polynomial x^2 - x - 1
+                          To:   Algebraic Real Field
+                          Defn: a -> 1.618033988749895?
+                        then
+                          Generic morphism:
+                          From: Algebraic Real Field
+                          To:   Real Lazy Field
+                        then
+                          Conversion via _mpfr_ method map:
+                          From: Real Lazy Field
+                          To:   Real Field with 53 bits of precision
+            Arithmetic performed after coercions.
+            Result lives in Real Field with 53 bits of precision
+            Real Field with 53 bits of precision
+        """
+        print('mpfr')
+        cdef RealNumber ans = R._new()
+
+        if mpz_cmp_ui(self.b, 0):
+            if mpz_cmp_ui(self.D.value, 0) < 0:
+                raise ValueError(f"unable to convert complex algebraic number {self!r} to real floating point")
+            mpfr_set_z(ans.value, self.D.value, R.rnd)
+            mpfr_sqrt(ans.value, ans.value, R.rnd)
+            if not self.standard_embedding:
+                mpfr_neg(ans.value, ans.value, R.rnd)
+            mpfr_mul_z(ans.value, ans.value, self.b, R.rnd)
+            mpfr_add_z(ans.value, ans.value, self.a, R.rnd)
+        else:
+            mpfr_set_z(ans.value, self.a, R.rnd)
+
+        mpfr_div_z(ans.value, ans.value, self.denom, R.rnd)
+        return ans
 
     def _real_mpfi_(self, R):
         r"""
