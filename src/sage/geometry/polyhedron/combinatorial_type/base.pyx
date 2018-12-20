@@ -25,14 +25,15 @@ AUTHOR:
 
 from __future__ import absolute_import
 
+
 from .hasse_diagram cimport   CombinatorialType_ptr, init_CombinatorialType, dimension, edges, f_vector, ridges, delete_CombinatorialType
 
 
 cdef class CombinatorialType:
     cdef CombinatorialType_ptr _C
     r"""
-    The class of a Combinatorial type of an atomic and coatiomic lattice, where every interval of length 2 has at least 4 elements.
-    
+    A class of atomic and coatiomic Eulerian lattices.
+
     One must give
     - an incidence_matrix (with rows corresponding to the facets)
     or
@@ -46,8 +47,7 @@ cdef class CombinatorialType:
         sage: C.f_vector()
         (1L, 5040L, 15120L, 16800L, 8400L, 1806L, 126L, 1L)
     """
-    def __init__(self,facets=None,vertices=None,nr_vertices=None,incidence_matrix=None):
-        
+    def __init__(self, facets=None, vertices=None, nr_vertices=None, incidence_matrix=None):
         if incidence_matrix:
             rg = range(incidence_matrix.nrows())
             tup =  tuple(tuple(incidence_matrix[i,j] for i in rg) for j in range(incidence_matrix.ncols()) if not all(incidence_matrix[i,j] for i in rg))#transpose and get rid of trivial inequalites (which all vertices satisfie)
@@ -63,8 +63,10 @@ cdef class CombinatorialType:
                 self._C = init_CombinatorialType(facets,nr_vertices)
             else:
                 raise ValueError("Not sufficient information provided to obtain a CombinatorialType")
+
     def __del__(self):
         delete_CombinatorialType(self._C)
+
     def edges(self):
         r"""
         Calculates the edges of the CombinatorialType, i.e. the rank 2 faces.
@@ -72,8 +74,10 @@ cdef class CombinatorialType:
         NOTE: If you want to compute edges and f_vector it is recommended to compute edges first.
         """
         return edges(self._C)
+
     def dimension(self):
         return dimension(self._C)
+
     def ridges(self):
         r"""
         Calculates the ridges of the CombinatorialType, i.e. the rank 2 faces. Those are given as tuples of facets.
@@ -83,6 +87,7 @@ cdef class CombinatorialType:
         NOTE: If you want to compute ridges and f_vector it is recommended to compute ridges first.
         """
         return ridges(self._C)
+
     def f_vector(self):
         r"""
         Calculates the f_vector of the CombinatorialType, i.e. the vector containing the nr of faces of each rank.
@@ -90,3 +95,6 @@ cdef class CombinatorialType:
         NOTE: If you also want to compute edges or ridges, it is recommended to do that first.
         """
         return f_vector(self._C)
+        
+    def face_lattice(self):
+        pass

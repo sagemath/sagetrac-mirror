@@ -2,32 +2,9 @@
 
 #include <Python.h>
 #include <math.h>
-#include <time.h>
-#include <immintrin.h>
 #include "hasse_diagram.h"
 
-//TODO Preprossesor Commands
 
-
-//#define chunktype __m256i //alternatives might be uint64_t, __m128i, etc.
-#define bitwise_intersection(one,two) _mm256_and_si256((one),(two)) // this is supposed to something as (one) & (two)
-#define bitwise_is_not_subset(one,two) !_mm256_testc_si256((two),(one)) // this is supposed to something as (one) & ~(two)
-#define store_register(one,two) _mm256_storeu_si256((__m256i*)&(one),(two)) //this is supposed to be something as one = two, where two is a register
-#define load_register(one,two) (one) = _mm256_loadu_si256((const __m256i*)&(two)) //this is supposed to be somethign as one = two, where one is a register
-#define leading_zero_count(one) leading_zero_workaround(one) //in case of unsigned long int, this is supposed to call leading_zero_naive3
-#define trailing_zero_count(one) trailing_zero_workaround(one) //in case of unsigned long int, this is supposed to call trailing_zero_naive3
-const unsigned int chunksize = 256; //this depends on what kind of SIMD-commands are implemented, right now I'm using operations on at most 256 bit
-//const unsigned int maxnumberedges = 16348;//^2 (the edges will be build as an array of arrays, such that I can save up to maxnumberedges*maxnumberedges edges, the number should contain a high power of two
-
-//#define chunktype uint64_t
-//#define bitwise_intersection(one,two) (one) & (two)
-//#define bitwise_is_not_subset(one,two) (one) & ~(two)
-//#define store_register(one,two) (one) = (two) 
-//#define load_register(one,two) (one) = (two)
-//#define leading_zero_count(one) leading_zero_workaround(one)
-//#define trailing_zero_count(one) trailing_zero_workaround(one)
-//const unsigned int chunksize = 64;
-//const unsigned int maxnumberedges = 16348;//^2 (the edges will be build as an array of arrays, such that I can save up to maxnumberedges*maxnumberedges edges, the number should contain a high power of two
 
 static uint64_t vertex_to_bit_dictionary[64];
 
@@ -152,7 +129,7 @@ CombinatorialType::~CombinatorialType(){
                 }
             }
             if (newfaces_are_allocated){
-                for (i=0;i <dimension -2;i++){
+                for (i=0;i <dimension -1;i++){
                     for (j=0; j < nr_facets-1; j++){
                         free(newfaces_allocator[i][j]);
                     }
@@ -388,14 +365,16 @@ void CombinatorialType::get_f_vector_and_edges(chunktype **faces, unsigned int d
                 for (i = 0; i < nr_faces; i++){
                     add_edge(faces[i]);
                 }
+            }
+            if (dimension == 0){
                 return;
             }
             i = nr_faces;
             while (i--){
-                newfacescounter = get_next_level(faces,i+1,i,newfaces[dimension-2],newfaces2[dimension-2],nr_forbidden);
+                newfacescounter = get_next_level(faces,i+1,i,newfaces[dimension-1],newfaces2[dimension-1],nr_forbidden);
                 f_vector[dimension] += newfacescounter;
                 if (newfacescounter){
-                    get_f_vector_and_edges(newfaces2[dimension-2],dimension-1,newfacescounter,nr_forbidden);
+                    get_f_vector_and_edges(newfaces2[dimension-1],dimension-1,newfacescounter,nr_forbidden);
                 }
                 forbidden[nr_forbidden] = faces[i];
                 nr_forbidden++;
@@ -410,10 +389,10 @@ inline void CombinatorialType::calculate_f_vector(){
             const unsigned int const_facets = nr_facets;
             f_vector = new unsigned long[const_dimension + 2]();
             forbidden = new chunktype *[const_facets];
-            newfaces = new chunktype **[const_dimension -2 ];
-            newfaces2 = new chunktype **[const_dimension -2 ];
-            newfaces_allocator = new void **[const_dimension -2 ];
-            for (i=0; i < dimension -2; i++){
+            newfaces = new chunktype **[const_dimension -1 ];
+            newfaces2 = new chunktype **[const_dimension -1 ];
+            newfaces_allocator = new void **[const_dimension -1 ];
+            for (i=0; i < dimension -1; i++){
                 newfaces[i] = new chunktype*[const_facets-1];
                 newfaces2[i] = new chunktype*[const_facets-1];
                 newfaces_allocator[i] = new void*[const_facets-1];
@@ -426,7 +405,7 @@ inline void CombinatorialType::calculate_f_vector(){
             f_vector[0] = 1;
             f_vector[dimension+1] = 1;
             f_vector[dimension] = nr_facets;
-            f_vector[1] = nr_vertices;
+            //f_vector[1] = nr_vertices; //this is commented out in order to make calculations also work for unbounded polyhedra
             get_f_vector_and_edges(facets,dimension-1,nr_facets,0);
         }
 void CombinatorialType::Polar_Init(PyObject* py_tuple, unsigned int nr_vertices_given){
