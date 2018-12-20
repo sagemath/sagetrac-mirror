@@ -42,6 +42,7 @@ from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
+from sage.libs.mpfr cimport *
 from sage.libs.mpfi cimport *
 
 from sage.structure.parent_base cimport ParentWithBase
@@ -548,6 +549,41 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         ZZX_rem(x.__numerator, result, _num.x)
         (<NumberFieldElement_absolute>x)._reduce_c_()
         return x
+
+    def __float__(self):
+        r"""
+        Floating point conversion.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2 - x - 1, embedding=(1+AA(5).sqrt())/2)
+            sage: float(a)
+            1.618033988749895
+
+            sage: K.<a> = NumberField(x^2 - x - 1, embedding=(1-AA(5).sqrt())/2)
+            sage: float(a)
+            -0.6180339887498949
+        """
+        cdef mpfr_t x
+        if mpz_cmp_ui(self.b, 0):
+            if mpz_cmp_ui(self.D.value, 0) < 0:
+                raise ValueError(f"unable to convert complex algebraic number {self!r} to floating point")
+            mpfr_init2(x, 64)
+            mpfr_set_z(x, self.D.value, MPFR_RNDN)
+            mpfr_sqrt(x, x, MPFR_RNDN)
+            if not self.standard_embedding:
+                mpfr_neg(x, x, MPFR_RNDN)
+            mpfr_mul_z(x, x, self.b, MPFR_RNDN)
+            mpfr_add_z(x, x, self.a, MPFR_RNDN)
+        else:
+            mpfr_init2(x, 64)
+            mpfr_set_z(x, self.a, MPFR_RNDN)
+
+        mpfr_div_z(x, x, self.denom, MPFR_RNDN)
+
+        cdef double ans = mpfr_get_d(x, MPFR_RNDN)
+        mpfr_clear(x)
+        return ans
 
     def _real_mpfi_(self, R):
         r"""
