@@ -24,13 +24,15 @@ AUTHOR:
 #*****************************************************************************
 
 from __future__ import absolute_import
-
+from sage.rings.integer import Integer
 
 from .hasse_diagram cimport   CombinatorialPolytope_ptr, init_CombinatorialPolytope, dimension, edges, f_vector, ridges, delete_CombinatorialPolytope
 
 
 cdef class CombinatorialPolytope:
     cdef CombinatorialPolytope_ptr _C
+    cdef tuple _V
+    cdef dict _Vinv
     r"""
     A class of atomic and coatiomic Eulerian lattices.
 
@@ -43,26 +45,41 @@ cdef class CombinatorialPolytope:
     EXAMPLE::
     
         sage: P = polytopes.permutahedron(7)
-        sage: C = sage.geometry.combinatorial_type.base.CombinatorialPolytope(incidence_matrix=P.incidence_matrix())
+        sage: C = sage.geometry.combinatorial_polytope.base.CombinatorialPolytope(incidence_matrix=P.incidence_matrix())
         sage: C.f_vector()
         (1L, 5040L, 15120L, 16800L, 8400L, 1806L, 126L, 1L)
     """
-    def __init__(self, facets=None, vertices=None, nr_vertices=None, incidence_matrix=None):
-        if incidence_matrix:
-            rg = range(incidence_matrix.nrows())
-            tup =  tuple(tuple(incidence_matrix[i,j] for i in rg) for j in range(incidence_matrix.ncols()) if not all(incidence_matrix[i,j] for i in rg))#transpose and get rid of trivial inequalites (which all vertices satisfie)
+    def __init__(self, data, vertices=None):
+        if vertices:
+            self._V    = tuple(vertices)
+            self._Vinv = { v : i for i,v in enumerate(self._V) }
+        else:
+            self._V = None
+            self._Vinv = None
+
+        if hasattr(data,"incidence_matrix"):#TODO: Better check for incidence_matrix
+            data = data.incidence_matrix()
+
+        if hasattr(data,"nrows"):#TODO: Better check for matrix
+            rg = range(data.nrows())
+            tup =  tuple(tuple(data[i,j] for i in rg) for j in range(data.ncols()) if not all(data[i,j] for i in rg))#transpose and get rid of trivial inequalites (which all vertices satisfie)
             self._C = init_CombinatorialPolytope(tup)
         else:
-            if vertices:
+            if self._V is None:
+                vertices = sorted(set.union(*map(set,data)))
                 nr_vertices = len(vertices)
-            if facets and nr_vertices:
-                try:
-                    facets = tuple(tuple(int(i) for i in j) for j in facets)
-                except:
-                    raise ValueError("facets must be given as tuple of tuples of vertices")
-                self._C = init_CombinatorialPolytope(facets,nr_vertices)
+                if vertices != range(len(vertices)):
+                    self._V    = tuple(vertices)
+                    self._Vinv = { v : i for i,v in enumerate(self._V) }
             else:
-                raise ValueError("Not sufficient information provided to obtain a CombinatorialPolytope")
+                nr_vertices = len(self._V)
+
+            if not self._V is None:
+                f = lambda v: self._Vinv[v]
+            else:
+                f = lambda v: int(v)
+            facets = tuple(tuple(f(i) for i in j) for j in data)
+            self._C = init_CombinatorialPolytope(facets,nr_vertices)
 
     def __del__(self):
         delete_CombinatorialPolytope(self._C)
@@ -73,7 +90,12 @@ cdef class CombinatorialPolytope:
         
         NOTE: If you want to compute edges and f_vector it is recommended to compute edges first.
         """
-        return edges(self._C)
+        if self._V is not None:
+            f = lambda i : self._V[i]
+        else:
+            f = lambda i : Integer(i)
+
+        return tuple((f(i),f(j)) for i,j in edges(self._C))
 
     def dimension(self):
         return dimension(self._C)
@@ -86,7 +108,7 @@ cdef class CombinatorialPolytope:
         
         NOTE: If you want to compute ridges and f_vector it is recommended to compute ridges first.
         """
-        return ridges(self._C)
+        return tuple((Integer(i),Integer(j)) for i,j in ridges(self._C))
 
     def f_vector(self):
         r"""
@@ -94,7 +116,7 @@ cdef class CombinatorialPolytope:
         
         NOTE: If you also want to compute edges or ridges, it is recommended to do that first.
         """
-        return f_vector(self._C)
+        return tuple(Integer(i) for i in f_vector(self._C))
         
     def face_lattice(self):
         pass

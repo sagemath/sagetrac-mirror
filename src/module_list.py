@@ -293,10 +293,10 @@ ext_modules = [
                          'sage/geometry/triangulation/triangulations.h'],
               language="c++"),
     
-    Extension('sage.geometry.polyhedron.combinatorial_type.base',
-              sources = ['sage/geometry/polyhedron/combinatorial_type/base.pyx',
-                        'sage/geometry/polyhedron/combinatorial_type/hasse_diagram.cc'],
-              depends = ['sage/geometry/polyhedron/combinatorial_type/hasse_diagram.h'],
+    Extension('sage.geometry.polyhedron.combinatorial_polytope.base',
+              sources = ['sage/geometry/polyhedron/combinatorial_polytope/base.pyx',
+                        'sage/geometry/polyhedron/combinatorial_polytope/hasse_diagram.cc'],
+              depends = ['sage/geometry/polyhedron/combinatorial_polytope/hasse_diagram.h'],
               extra_compile_args=['-O3', '-march=native'],#'-march=native' is supposed to enable SSE and AVX where available, not sure if needed
               language = 'c++'),
 
