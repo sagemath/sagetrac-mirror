@@ -93,7 +93,9 @@ def test_packages(packages, only_failures=False):
     for pkgdir in packages:
         # to allow weird suffixes e.g. 'qpa-version'
         pkg = pkgdir.split('-')[0]
+        libgap.eval("SetInfoLevel(InfoWarning,0)")
         output = libgap.LoadPackage(pkg)
+        libgap.eval("SetInfoLevel(InfoWarning,1)")
         ok = bool(output)
         status = '' if ok else 'Failure'
         if ok and only_failures:
