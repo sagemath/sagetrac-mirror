@@ -371,7 +371,7 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         Be aware that the number of such submodules grows quickly.
         The method works by first creating all subgroups and then discarding the
-        non - isotropic ones. This can be time and memory consuming.
+        non-isotropic ones. This can be time and memory consuming.
 
         EXAMPLES::
 

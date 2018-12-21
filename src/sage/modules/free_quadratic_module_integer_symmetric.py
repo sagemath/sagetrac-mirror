@@ -410,7 +410,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         INPUT:
 
-        - ``only_even`` -- bool (default: ``False``) return only the even overlattices.
+        - ``only_even`` -- boolean (default: ``False``); return only the even overlattices
 
         EXAMPLES::
 
