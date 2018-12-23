@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 Plumbing Graphs
 
@@ -26,7 +25,7 @@ EXAMPLES::
 
 AUTHORS:
 
-- Baldur Sigurðsson (2018)
+- Baldur Sigur\dh sson (2018)
 """
 
 #*****************************************************************************
