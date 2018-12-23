@@ -401,7 +401,10 @@ class WordMorphism(SageObject):
                 elif not isinstance(domain, FiniteWords):
                     raise TypeError("the codomain must be a set of finite words")
             else:
-                dom_alph.sort()
+                try:
+                    dom_alph.sort()
+                except TypeError:
+                    pass
                 domain = FiniteWords(dom_alph)
             self._domain = domain
 
@@ -475,7 +478,11 @@ class WordMorphism(SageObject):
             except Exception:
                 it = [val]
             codom_alphabet.update(it)
-        return FiniteWords(sorted(codom_alphabet))
+        try:
+            codom_alphabet = sorted(codom_alphabet)
+        except TypeError:
+            pass
+        return FiniteWords(codom_alphabet)
 
     @cached_method
     def __hash__(self):
