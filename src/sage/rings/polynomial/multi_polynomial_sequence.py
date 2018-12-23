@@ -277,10 +277,13 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
         [0]
     """
     from sage.structure.element import is_Matrix
-    from sage.rings.polynomial.pbori import BooleanMonomialMonoid, BooleanMonomial
+    from sage.rings.polynomial.pbori import BooleanMonomialMonoid, BooleanMonomial, BooleanPolynomialRing
 
-    is_ring = lambda r: is_MPolynomialRing(r) or isinstance(r, BooleanMonomialMonoid) or (is_QuotientRing(r) and is_MPolynomialRing(r.cover_ring()))
-    is_poly = lambda f: is_MPolynomial(f) or isinstance(f, QuotientRingElement) or isinstance(f, BooleanMonomial)
+    is_ring = lambda r: (is_MPolynomialRing(r) or
+                         isinstance(r, BooleanMonomialMonoid) or
+                         isinstance(r, BooleanPolynomialRing) or
+                         (is_QuotientRing(r) and is_MPolynomialRing(r.cover_ring())))
+    # is_poly = lambda f: is_MPolynomial(f) or isinstance(f, QuotientRingElement) or isinstance(f, BooleanMonomial)
 
     if is_ring(arg1):
         ring, gens = arg1, arg2

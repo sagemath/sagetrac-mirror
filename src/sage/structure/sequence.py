@@ -262,11 +262,14 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
                 universe = sage.structure.element.parent(x[len(x)-1])
 
     from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
-    from sage.rings.polynomial.pbori import BooleanMonomialMonoid
+    from sage.rings.polynomial.pbori import BooleanMonomialMonoid, BooleanPolynomialRing
     from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
     from sage.rings.quotient_ring import is_QuotientRing
 
-    if is_MPolynomialRing(universe) or isinstance(universe, BooleanMonomialMonoid) or (is_QuotientRing(universe) and is_MPolynomialRing(universe.cover_ring())):
+    if (is_MPolynomialRing(universe) or
+        isinstance(universe, BooleanMonomialMonoid) or
+        isinstance(universe, BooleanPolynomialRing) or
+        (is_QuotientRing(universe) and is_MPolynomialRing(universe.cover_ring()))):
         return PolynomialSequence(x, universe, immutable=immutable, cr=cr, cr_str=cr_str)
     else:
         return Sequence_generic(x, universe, check, immutable, cr, cr_str, use_sage_types)

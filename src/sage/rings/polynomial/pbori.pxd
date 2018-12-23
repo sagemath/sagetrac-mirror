@@ -6,21 +6,28 @@ from sage.rings.polynomial.multi_polynomial cimport MPolynomial
 from sage.structure.element cimport MonoidElement
 
 from sage.libs.polybori.decl cimport *
+from sage.structure.element cimport CommutativeRingElement
+cimport sage.rings.ring
+from sage.structure.parent cimport Parent
 
-
-cdef class BooleanPolynomialRing(MPolynomialRing_base):
+cdef class BooleanPolynomialRing(sage.rings.ring.CommutativeRing):
     cdef PBRing _pbring
     cdef Py_ssize_t* pbind
     cdef public _monom_monoid
     cdef public object __interface
     cdef object _repr
 
+    cdef object __ngens
+    cdef object __term_order
+    cdef public object _has_singular
+    cdef public object _magma_gens
+    cdef public dict _magma_cache
     # it is very important to keep this cached, since otherwise the magma interface will break
     cdef public object __cover_ring
 
     cdef _convert(self, rhs)
 
-cdef class BooleanPolynomial(MPolynomial):
+cdef class BooleanPolynomial(CommutativeRingElement):
     cdef PBPoly _pbpoly
     cpdef _add_(self, other)
     cpdef _mul_(self, other)

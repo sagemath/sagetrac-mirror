@@ -225,6 +225,10 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.interfaces.all import singular as singular_default
 from sage.interfaces.singular import SingularElement
 
+from sage.rings.ideal import Ideal_generic
+
+from sage.categories.commutative_algebras import CommutativeAlgebras
+
 order_dict= {"lp": pblp,
              "dlex": pbdlex,
              "dp_asc": pbdp_asc,
@@ -262,7 +266,7 @@ block_dp_asc = int(pbblock_dp_asc)
 
 rings = sage.misc.weak_dict.WeakValueDictionary()
 
-cdef class BooleanPolynomialRing(MPolynomialRing_base):
+cdef class BooleanPolynomialRing(sage.rings.ring.CommutativeRing):
     """
     Construct a boolean polynomial ring with the following parameters:
 
@@ -335,7 +339,15 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         sage: P == S
         False
 
+    Check that :trac:`26929` is fixed::
 
+        sage: R.<a0,a1,a2> = BooleanPolynomialRing()
+        sage: P.<X> = R[]
+        sage: PQ.<t> = P.quo(X^4+X+1)
+        sage: (t^4+t+1) == 0
+        True
+        sage: (t^4+t+1).is_zero()
+        True
     """
     def __init__(self, n=None, names=None, order='lex'):
         """
@@ -421,8 +433,17 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
             pbnames = tuple(names)
             names = [name.replace('(','').replace(')','') for name in pbnames]
 
-        MPolynomialRing_base.__init__(self, GF(2), n, names, order)
-
+        # MPolynomialRing_base.__init__(self, GF(2), n, names, order)
+        self.__ngens = n
+        self.__term_order = order
+        self._has_singular = False #cannot convert to Singular by default
+        self._magma_cache = {}
+        # Ring.__init__ already does assign the names.
+        # It would be a mistake to call ParentWithGens.__init__
+        # as well, assigning the names twice.
+        #ParentWithGens.__init__(self, base_ring, names)
+        sage.rings.ring.Ring.__init__(self, GF(2), names, category=CommutativeAlgebras(GF(2)).Quotients().Finite())
+        
         counter = 0
         for i in range(len(order.blocks())-1):
             counter += len(order[i])
@@ -449,6 +470,9 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
     def __dealloc__(self):
         sig_free(self.pbind)
 
+    def term_order(self):
+        return self.__term_order
+        
     def __reduce__(self):
         """
         EXAMPLES::
@@ -2910,7 +2934,7 @@ cdef inline BooleanMonomialIterator new_BMI_from_BooleanMonomial(BooleanMonomial
     m.pbind = (<BooleanPolynomialRing> monom.ring()).pbind
     return m
 
-cdef class BooleanPolynomial(MPolynomial):
+cdef class BooleanPolynomial(CommutativeRingElement):
     """
     Construct a boolean polynomial object in the given boolean
     polynomial ring.
@@ -4898,7 +4922,7 @@ cdef inline BooleanPolynomialIterator new_BPI_from_BooleanPolynomial(BooleanPoly
     return m
 
 
-class BooleanPolynomialIdeal(MPolynomialIdeal):
+class BooleanPolynomialIdeal(Ideal_generic):
     def __init__(self, ring, gens=[], coerce=True):
         """
         Construct an ideal in the boolean polynomial ring.
@@ -4921,8 +4945,44 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             True
 
         """
-        MPolynomialIdeal.__init__(self, ring, gens, coerce)
+        Ideal_generic.__init__(self, ring, gens, coerce)
 
+    @cached_method
+    def gens(self):
+        """
+        Return a set of generators / a basis of this ideal. This is usually the
+        set of generators provided during object creation.
+
+        EXAMPLES::
+
+           sage: P.<x,y> = BooleanPolynomialRing(2)
+           sage: I = Ideal([x,y+1]); I
+           Ideal (x, y + 1) of Boolean PolynomialRing in x, y
+           sage: I.gens()
+           [x, y + 1]
+
+        TESTS::
+
+           sage: I.gens().parent()
+           <class 'sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence_gf2'>
+         """
+        from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+        return PolynomialSequence(self.ring(), Ideal_generic.gens(self), immutable=True)
+        
+    @property
+    def basis(self):
+        """
+        Shortcut to ``gens()``.
+
+        EXAMPLES::
+
+           sage: P.<x,y> = BooleanPolynomialRing(2)
+           sage: I = Ideal([x,y+1])
+           sage: I.basis
+           [x, y + 1]
+        """
+        return self.gens()
+        
     def dimension(self):
         """
         Return the dimension of ``self``, which is always zero.
@@ -4938,7 +4998,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             0
         """
         return 0
-
+   
     def groebner_basis(self, algorithm='polybori', **kwds):
         """
         Return a Groebner basis of this ideal.
@@ -7673,7 +7733,15 @@ cdef BooleanPolynomialRing BooleanPolynomialRing_from_PBRing(PBRing _ring):
 
     self._pbring = _ring
 
-    MPolynomialRing_base.__init__(self, GF(2), n, names, T)
+    self.__ngens = n
+    self.__term_order = T
+    self._has_singular = False #cannot convert to Singular by default
+    self._magma_cache = {}
+    # Ring.__init__ already does assign the names.
+    # It would be a mistake to call ParentWithGens.__init__
+    # as well, assigning the names twice.
+    #ParentWithGens.__init__(self, base_ring, names)
+    sage.rings.ring.Ring.__init__(self, GF(2), names, category=CommutativeAlgebras(GF(2)).Quotients().Finite())
 
     self._zero_element = new_BP(self)
     (<BooleanPolynomial>self._zero_element)._pbpoly = PBBoolePolynomial(0, self._pbring)
