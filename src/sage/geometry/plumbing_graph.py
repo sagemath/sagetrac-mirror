@@ -180,12 +180,6 @@ class PlumbingGraph():
             self.add_edge(e, 1)
         for e in n_edges:
             self.add_edge(e, -1)
-#        for i in range(0, len(mb)):
-#            for j in range(0,i+1):
-#                for k in range(0,p_edges[i,j]):
-#                    self.add_edge({i,j}, 1)
-#                for k in range(0,n_edges[i,j]):
-#                    self.add_edge({i,j}, -1)
     
     def __repr__(self):
         if len(self.vertices) == 0:
