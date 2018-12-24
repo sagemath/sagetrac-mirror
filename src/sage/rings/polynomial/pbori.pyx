@@ -196,21 +196,21 @@ from sage.cpython.string cimport str_to_bytes, char_to_str
 from sage.misc.cachefunc import cached_method
 
 from sage.misc.randstate import current_randstate
-from sage.arith.long cimport pyobject_to_long
 import sage.misc.weak_dict
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
+
+from sage.rings.polynomial.multi_polynomial_ring_base import MPolynomialRing_base
+from sage.rings.polynomial.multi_polynomial import MPolynomial
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 
 from sage.rings.ideal import FieldIdeal
 
-from sage.structure.element cimport (Element, RingElement,
-                                     have_same_parent, coercion_model)
-
+from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
 from sage.structure.element import coerce_binop
@@ -442,8 +442,8 @@ cdef class BooleanPolynomialRing(sage.rings.ring.CommutativeRing):
         # It would be a mistake to call ParentWithGens.__init__
         # as well, assigning the names twice.
         #ParentWithGens.__init__(self, base_ring, names)
-        sage.rings.ring.Ring.__init__(self, GF(2), names, category=CommutativeAlgebras(GF(2)).Quotients().Finite())
-        
+        sage.rings.ring.CommutativeRing.__init__(self, GF(2), names, category=CommutativeAlgebras(GF(2)).Quotients().Finite())
+
         counter = 0
         for i in range(len(order.blocks())-1):
             counter += len(order[i])
@@ -472,7 +472,7 @@ cdef class BooleanPolynomialRing(sage.rings.ring.CommutativeRing):
 
     def term_order(self):
         return self.__term_order
-        
+
     def __reduce__(self):
         """
         EXAMPLES::
@@ -561,6 +561,19 @@ cdef class BooleanPolynomialRing(sage.rings.ring.CommutativeRing):
         return tuple(new_BP_from_PBVar(self,
                                        self._pbring.variable(self.pbind[i]))
                      for i in range(self.__ngens))
+
+    def cardinality(self):
+        """
+        Return the cardinality of this ring.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = BooleanPolynomialRing(3)
+            sage: P.cardinality()
+            256
+        """
+        from sage.rings.integer_ring import ZZ
+        return ZZ(2)**(ZZ(2)**self.ngens())
 
     def change_ring(self, base_ring=None, names=None, order=None):
         """
@@ -985,7 +998,8 @@ cdef class BooleanPolynomialRing(sage.rings.ring.CommutativeRing):
                     new_monom *= var_mapping[i]
                 p += new_monom
             return p
-        elif (isinstance(other, MPolynomial) or \
+        elif (isinstance(other, BooleanPolynomial) or \
+              isinstance(other, MPolynomial) or \
                 isinstance(other, Polynomial)) and \
                 self.base_ring().has_coerce_map_from(other.base_ring()):
             try:
@@ -1210,7 +1224,6 @@ cdef class BooleanPolynomialRing(sage.rings.ring.CommutativeRing):
             sage: B = BooleanPolynomialRing(n, 'x')
             sage: r = B.random_element(terms=(n/2)**2)
         """
-        from sage.rings.integer import Integer
         from sage.arith.all import binomial
 
         if not vars_set:
@@ -1286,8 +1299,6 @@ cdef class BooleanPolynomialRing(sage.rings.ring.CommutativeRing):
             sage: P._random_uniform_rec(2, [1, 3, 4], (0,1), True, 2)
             0
         """
-        from sage.rings.integer import Integer
-        from sage.rings.integer_ring import ZZ
         if l == 0:
             return self._zero_element
         if l == 1:
@@ -1402,6 +1413,108 @@ cdef class BooleanPolynomialRing(sage.rings.ring.CommutativeRing):
                            self.variable_names(), order=self.term_order())
         self.__cover_ring = R
         return R
+
+    # This is to make the category framework happy
+    ambient = cover_ring
+
+    @cached_method
+    def cover(self):
+        r"""
+        The covering ring homomorphism `R \to R/I`, equipped with a
+        section.
+
+        EXAMPLES::
+
+            sage: R.<a> = BooleanPolynomialRing(1)
+            sage: pi = R.cover()
+            sage: pi
+            Ring morphism:
+              From: Multivariate Polynomial Ring in a over Finite Field of size 2
+              To:   Boolean PolynomialRing in a
+              Defn: Natural quotient map
+            sage: pi(5+a^2)
+            a + 1
+        """
+        from sage.rings import morphism
+        pi = morphism.RingHomomorphism_cover(self.cover_ring().Hom(self))
+        pi._set_lift(self.lifting_map())
+        return pi
+
+    @cached_method
+    def lifting_map(self):
+        """
+        Return the lifting map to the cover.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = BooleanPolynomialRing(2)
+            sage: pi = R.cover(); pi
+            Ring morphism:
+              From: Multivariate Polynomial Ring in x, y over Finite Field of size 2
+              To:   Boolean PolynomialRing in x, y
+              Defn: Natural quotient map
+            sage: L = R.lifting_map(); L
+            Set-theoretic ring morphism:
+              From: Boolean PolynomialRing in x, y
+              To:   Multivariate Polynomial Ring in x, y over Finite Field of size 2
+              Defn: Choice of lifting map
+            sage: L(R.0)
+            x
+            sage: L(R.1)
+            y
+        """
+        from sage.rings.morphism import RingMap_lift
+        return RingMap_lift(self, self.cover_ring())
+
+    # The following is to make the category framework happy.
+    def lift(self,x=None):
+        """
+        Return the lifting map to the cover, or the image
+        of an element under the lifting map.
+
+        .. NOTE::
+
+            The category framework imposes that ``Q.lift(x)`` returns
+            the image of an element `x` under the lifting map. For
+            backwards compatibility, we let ``Q.lift()`` return the
+            lifting map.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = BooleanPolynomialRing(2)
+            sage: R.lift()
+            Set-theoretic ring morphism:
+              From: Boolean PolynomialRing in x, y
+              To:   Multivariate Polynomial Ring in x, y over Finite Field of size 2
+              Defn: Choice of lifting map
+            sage: R.lift(R.0) == x
+            True
+
+        """
+        if x is None:
+            return self.lifting_map()
+        return self.lifting_map()(x)
+
+    def retract(self,x):
+        """
+        The image of an element of the cover ring under the quotient map.
+
+        INPUT:
+
+        - ``x`` -- An element of the cover ring
+
+        OUTPUT:
+
+        The image of the given element in ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = BooleanPolynomialRing(2)
+            sage: R.retract((x+y)^2)
+            x + y
+
+        """
+        return self.cover()(x)
 
     def defining_ideal(self):
         """
@@ -3025,6 +3138,21 @@ cdef class BooleanPolynomial(CommutativeRingElement):
         """
         R = self.parent().cover_ring()
         return R(self)._latex_()
+
+    def lift(self):
+        """
+        Return self as an element of the cover ring.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
+            <class 'sage.rings.quotient_ring.QuotientRing_generic_with_category.element_class'>
+            sage: a.lift()
+            x
+            sage: (3/5*(a + a^2 + b^2)).lift()
+            3/5*x
+        """
+        return self.parent().cover_ring()(self)
 
     cpdef _add_(left, right):
         """
@@ -4968,7 +5096,7 @@ class BooleanPolynomialIdeal(Ideal_generic):
          """
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
         return PolynomialSequence(self.ring(), Ideal_generic.gens(self), immutable=True)
-        
+
     @property
     def basis(self):
         """
@@ -4982,7 +5110,7 @@ class BooleanPolynomialIdeal(Ideal_generic):
            [x, y + 1]
         """
         return self.gens()
-        
+
     def dimension(self):
         """
         Return the dimension of ``self``, which is always zero.
@@ -4998,7 +5126,7 @@ class BooleanPolynomialIdeal(Ideal_generic):
             0
         """
         return 0
-   
+
     def groebner_basis(self, algorithm='polybori', **kwds):
         """
         Return a Groebner basis of this ideal.

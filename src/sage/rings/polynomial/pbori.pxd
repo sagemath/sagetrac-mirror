@@ -1,8 +1,4 @@
 from libcpp.memory cimport unique_ptr, shared_ptr, make_shared
-
-from sage.rings.polynomial.multi_polynomial_ring_base cimport \
-                                                MPolynomialRing_base
-from sage.rings.polynomial.multi_polynomial cimport MPolynomial
 from sage.structure.element cimport MonoidElement
 
 from sage.libs.polybori.decl cimport *
