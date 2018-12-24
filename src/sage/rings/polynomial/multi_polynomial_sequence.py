@@ -997,7 +997,7 @@ class PolynomialSequence_generic(Sequence_generic):
             True
 
         """
-        return PolynomialSequence, (self._ring, self._parts, self._is_immutable, 
+        return PolynomialSequence, (self._ring, self._parts, self._is_immutable,
                                     self._Sequence_generic__cr, self._Sequence_generic__cr_str)
 
     @singular_gb_standard_options
@@ -1437,7 +1437,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             []
 
         """
-        from sage.rings.polynomial.pbori import BooleanPolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import BooleanPolynomialRing_constructor as BooleanPolynomialRing
         from sage.modules.free_module import VectorSpace
 
         S = self

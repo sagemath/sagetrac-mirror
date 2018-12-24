@@ -635,6 +635,39 @@ cdef class BooleanPolynomialRing(sage.rings.ring.CommutativeRing):
             self._repr = "Boolean PolynomialRing in %s"%(gens)
         return self._repr
 
+    def repr_long(self):
+        """
+        Return structured string representation of self.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = BooleanPolynomialRing(3, order=TermOrder('deglex',1)+TermOrder('deglex',2))
+            sage: print(P.repr_long())
+            Polynomial Ring
+              Base Ring : Finite Field of size 2
+                   Size : 3 Variables
+               Block  0 : Ordering : deglex
+                          Names    : x
+               Block  1 : Ordering : deglex
+                          Names    : y, z
+        """
+        from sage.rings.polynomial.term_order import inv_singular_name_mapping
+        n = self.ngens()
+        k = self.base_ring()
+        names = self.variable_names()
+        T = self.term_order()
+        _repr =  "Polynomial Ring\n"
+        _repr += "  Base Ring : %s\n"%(k,)
+        _repr += "       Size : %d Variables\n"%(n,)
+        offset = 0
+        i = 0
+        for order in T.blocks():
+            _repr += "   Block % 2d : Ordering : %s\n"%(i,inv_singular_name_mapping.get(order.singular_str(), order.singular_str()))
+            _repr += "              Names    : %s\n"%(", ".join(names[offset:offset + len(order)]))
+            offset += len(order)
+            i+=1
+        return _repr
+
     # Coercion
     cpdef _coerce_map_from_(self,S):
         """
