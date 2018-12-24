@@ -1858,7 +1858,7 @@ class PlumbingGraph():
         In the following example, we start by creating a Seifert graph
         with two (-2)-neighbors which are leaves, like in N3. For this to
         really violate N3, we add another edge on the longer bamboo.
-        This graph satisfies N1 and N3, and after applying step_3(),
+        This graph satisfies N1 and N2, and after applying step_3(),
         it also satisfies N3.
         
             sage: from sage.geometry.plumbing_graph import *
