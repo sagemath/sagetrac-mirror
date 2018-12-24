@@ -4105,7 +4105,7 @@ cdef class BetaAdicSet:
                         # cut a according to a2
                         # m.move2(t=tr, a=a2) #translate a2 de -tr
                         a = m.Proj(a2, ap.unshift(0, np), t=tr)
-                        a.shiftOP(0, np)  # multiply by b^(-np)
+                        a.shift_op(0, np)  # multiply by b^(-np)
                         a = a.prune().minimize()
                         k = len(lm)  # index of the new piece
                         lf.append(k)  # new leaf
@@ -4230,7 +4230,7 @@ cdef class BetaAdicSet:
                                 # a = m.move2(t=tr, a=a2) #translate a2 de -tr
                                 # a.zero_complete_op()
                                 a = m.Proj(a2, ap.unshift(0, np), t=tr)
-                                a.shiftOP(0, np)  # multiply by b^(-np)
+                                a.shift_op(0, np)  # multiply by b^(-np)
                                 a = a.prune().minimize()
                                 k = len(lm)  # index of the new piece
                                 lf.append(k)  # new leaf

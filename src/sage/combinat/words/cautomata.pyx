@@ -2572,7 +2572,6 @@ cdef class DetAutomaton:
     def prune_inf(self, verb=False):
         """
         Prune "at infinity": remove all accessible states from which there no infinite way.
-        Warning: this is not an operation on regular languages!
 
         INPUT:
 
@@ -2725,8 +2724,11 @@ cdef class DetAutomaton:
 
             sage: a = dag.Word(['a','b'])
             sage: b = dag.Word([0,1])
-            sage: a.product(b)
+            sage: c = a.product(b)
+            sage: c
             DetAutomaton with 3 states and an alphabet of 4 letters
+            sage: c.alphabet
+            [('a', 0), ('a', 1), ('b', 0), ('b', 1)]
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = DetAutomaton([(3, 2, 'c'), (1, 2, 'd')], i=2)
@@ -2813,7 +2815,7 @@ cdef class DetAutomaton:
         else:
             return r
 
-    def intersection(self, DetAutomaton a, verb=False, simplify=True):
+    def intersection(self, DetAutomaton a, simplify=True, verb=False):
         """
         Give a automaton recognizing the intersection of the languages
         of ``self`` and ``a``.
@@ -2822,11 +2824,11 @@ cdef class DetAutomaton:
 
         - ``a`` -- :class:`DetAutomaton` to intersect
 
-        - ``verb`` -- boolean (default: ``False``) if True,
-            print debugging informations
-
         - ``simplify`` - (default: ``True``) - if True,
             prune and minimize the result
+
+        - ``verb`` -- boolean (default: ``False``) if True,
+            print debugging informations
 
         OUTPUT:
 
@@ -2834,10 +2836,19 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = dag.AnyWord(['a','b','c'])
-            sage: b = dag.AnyWord(['a','b','e'])
-            sage: a.intersection(b)
-            DetAutomaton with 1 state and an alphabet of 2 letters
+            #. Intersection of words that contains 'aa' and words that contains 'bb'
+
+                sage: a = dag.AnyWord(['a','b']).concat(dag.Word(['a', 'a'])).concat(dag.AnyWord(['a','b']))
+                sage: b = dag.AnyWord(['a','b']).concat(dag.Word(['b', 'b']).concat(dag.AnyWord(['a','b'])))
+                sage: a.intersection(b)
+                DetAutomaton with 8 states and an alphabet of 2 letters
+
+            #. Intersection of two languages whose alphabets are different
+
+                sage: a = dag.AnyWord(['a','b','c'])
+                sage: b = dag.AnyWord(['a','b','e'])
+                sage: a.intersection(b)
+                DetAutomaton with 1 state and an alphabet of 2 letters
 
             sage: a = dag.AnyWord(['a', 'b'])
             sage: b = dag.Word(['a','b','a'])
@@ -2999,15 +3010,13 @@ cdef class DetAutomaton:
             True
         """
         cdef int i
-        cdef Automaton a
         r = DetAutomaton(None)
         sig_on()
-        a = prune(self.a[0], False)
+        r.a[0] = prune(self.a[0], False)
         sig_off()
-        r.a[0] = a
         r.A = self.A
-        for i in range(a.n):
-            a.e[i].final = True
+        for i in range(r.a.n):
+            r.a.e[i].final = True
         return r
 
     # Use epsilon-transitions rather than product ?
@@ -3032,10 +3041,19 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = dag.Word(['a','b','c'])
-            sage: b = dag.Word(['a','b','a'])
-            sage: a.union(b)
-            DetAutomaton with 4 states and an alphabet of 3 letters
+            #. Union of words that contains 'aa' and words that contains 'bb'
+
+                sage: a = dag.AnyWord(['a','b']).concat(dag.Word(['a', 'a'])).concat(dag.AnyWord(['a','b']))
+                sage: b = dag.AnyWord(['a','b']).concat(dag.Word(['b', 'b']).concat(dag.AnyWord(['a','b'])))
+                sage: a.union(b)
+                DetAutomaton with 4 states and an alphabet of 2 letters
+
+            #. Union of two languages whose alphabets are differents
+
+                sage: a = dag.Word(['a','b','c'])
+                sage: b = dag.Word(['a','b','a'])
+                sage: a.union(b)
+                DetAutomaton with 4 states and an alphabet of 3 letters
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
@@ -3047,9 +3065,17 @@ cdef class DetAutomaton:
 
         TESTS::
 
+            sage: a = dag.AnyWord(['a','b']).concat(dag.Word(['a', 'a'])).concat(dag.AnyWord(['a','b']))
+            sage: b = dag.AnyWord(['a','b']).concat(dag.Word(['b', 'b']).concat(dag.AnyWord(['a','b'])))
+            sage: c = DetAutomaton([(0, 0, 'a'), (0, 0, 'b'), (1, 2, 'a'), (1, 3, 'b'), (2, 0, 'a'), (2, 3, 'b'), (3, 2, 'a'), (3, 0, 'b')], i=1, final_states=[0])
+            sage: a.union(b) == c
+            True
+
             sage: a = dag.Word(['a','b','c'])
             sage: b = dag.Word(['a','b','a'])
             sage: a.included(a.union(b))
+            True
+            sage: b.included(a.union(b))
             True
 
         """
@@ -3110,14 +3136,13 @@ cdef class DetAutomaton:
         else:
             return r
 
-    # split the automaton with respect to a DetAutomaton
     def split(self, DetAutomaton a, bool simplify=True, bool verb=False):
         """
         Split the automaton with respect to a :class:`DetAutomaton` ``a``.
         Return two DetAutomaton recognizing the intersection of the language
         of self with the one of a and with the complementary of the language
         of a.
-        We assume that the two automata have the same alphabet.
+        We assume that the two automata have the same alphabet, otherwise the complementary is taken in the set of words over the intersection of the two alphabets.
         Warning: There is a side-effect: the automaton ``a`` is completed.
 
         INPUT:
@@ -3145,6 +3170,13 @@ cdef class DetAutomaton:
             [DetAutomaton with 3 states and an alphabet of 2 letters,
              DetAutomaton with 2 states and an alphabet of 2 letters]
 
+            sage: a = dag.AnyWord(['a', 'b'])
+            sage: b = a.concat(dag.Word(['a', 'a'])).concat(a)
+            sage: c = a.concat(dag.Word(['b', 'b'])).concat(a)
+            sage: c.split(b)
+            [DetAutomaton with 8 states and an alphabet of 2 letters,
+             DetAutomaton with 5 states and an alphabet of 2 letters]
+
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
             sage: a.split(b)
@@ -3156,6 +3188,7 @@ cdef class DetAutomaton:
              DetAutomaton with 2 states and an alphabet of 1 letter]
 
         TESTS::
+
             sage: a = dag.AnyWord(['a', 'b'])
             sage: b = dag.AnyWord(['c', 'a'])
             sage: a.split(b)
@@ -3222,8 +3255,6 @@ cdef class DetAutomaton:
         else:
             return [r, r2]
 
-    # modify the automaton to recognize the langage shifted by l
-    # (letter given by its index)
     def shift1_op(self, l, verb=False):
         """
         Shift the automaton ON PLACE to recognize the language shifted
@@ -3264,7 +3295,7 @@ cdef class DetAutomaton:
 
     # modify the automaton to recognize the langage shifted by l^np
     # (where l is a letter given by its index)
-    def shiftOP(self, int l, int np, verb=False):
+    def shift_op(self, int l, int np, verb=False):
         """
         Shift the automaton ON PLACE to recognize the language shifted ``np``
         times by l (letter given by its index).
@@ -3283,7 +3314,7 @@ cdef class DetAutomaton:
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.initial_state
             0
-            sage: a.shiftOP(0, 2)
+            sage: a.shift_op(0, 2)
             sage: a.initial_state
             -1
         """
@@ -3387,7 +3418,7 @@ cdef class DetAutomaton:
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.initial_state
             0
-            sage: a.shiftOP(0, 2)
+            sage: a.shift_op(0, 2)
             sage: a.unshiftl([0, 1])
             DetAutomaton with 6 states and an alphabet of 2 letters
         """
