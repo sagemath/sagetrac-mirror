@@ -596,7 +596,7 @@ class PlumbingGraph():
         r"""
         Returns the set of those neighbours which are leaves, i.e. have
         degree == 1, are rational, i.e. g == 0, and have r == 0 and
-        mb == -2. It's used in N1 and N3.
+        mb == -2. It's used in N1 and N3 and step_3().
 
         INPUT:
 
@@ -895,7 +895,7 @@ class PlumbingGraph():
         if self.degree(i) == 2 and len(self.adjacent_edges(i)) == 1:
             return False
         return True
-    
+     
     def find_R1_candidate(self):
         r"""
         Returns a vertex which can be blown down, if it exists,
@@ -1084,21 +1084,24 @@ class PlumbingGraph():
          
         OUTPUT
          
-        True or False.
+        A list of the vertices [i,k,j], where i and j are as in the
+        picture on p. 305 of [Neu1981], and k is the newly extruded
+        zero-vertex, if the operation goes through, otherwise, the
+        empty list.
         """
         if len(MB) < 2 or MB[0] + MB[1] != self.mb[l]:
-            return False
+            return []
         if len(G) < 2 or genus_hash(G[0], G[1]) != self.g[l]:
-            return False
+            return []
         if len(R) < 2 or R[0] + R[1] != self.r[l]:
-            return False
+            return []
         if E[0] | E[1] != self.adjacent_edges(l):
-            return False
+            return []
         L = [
             [e for e in E[0]-E[1] if self.is_loop(e)],
             [e for e in E[1]-E[0] if self.is_loop(e)]]
         if len(E[0]) + len(L[0]) + len(E[1]) + len(L[1]) != self.degree(l):
-            return False
+            return []
         i = self.add_vertex(MB[0],G[0],R[0])
         j = self.add_vertex(MB[1],G[1],R[1])
         k = self.add_vertex(0,0,0)
@@ -1116,14 +1119,7 @@ class PlumbingGraph():
             if not (self.is_loop(e) and e in E[0]):
                 self.add_edge(self.adj[e] - {l} | {j}, self.epsilon[e])
         self.delete_vertex(l)
-        return True
-
-                    
-
-
-        
-        
-
+        return [i,k,j]
 
 ########################################################################
 # R4 - unoriented handle absorption
@@ -1568,10 +1564,17 @@ class PlumbingGraph():
         True or False.
         """
         for i in self.vertices:
-            if self.degree(i) == len(self.neighbors(i)) == 3 and len(self.minus_two_leaves(i)) == 2:
-                j = list(self.neighbors(i) - self.minus_two_leaves(i))[0]
-                if self.neighbor_yields_leg(i,j):
-                    return True
+            if self.N3_obstruction(i):
+                return False
+        return True
+
+    def N3_obstruction(self, i):
+        mtn = self.minus_two_leaves(i)
+        nbrs = self.neighbors(i)
+        if self.degree(i) == len(nbrs) == 3 and len(mtn) == 2 and self.g[i] == self.r[i] == 0:
+            j = list(nbrs - mtn)[0]
+            if not self.neighbor_yields_leg(i,j):
+                return True
         return False
 
 ########################################################################
@@ -1777,6 +1780,10 @@ class PlumbingGraph():
         r"""
         Executes step 1 in the proof of thm 4.1 in [Neu1981]. This just
         performs moves R1-8 until this is no longer possible..
+
+        OUTPUT:
+
+        True if N1() holds in the end, otherwise False.
         """
         dummy = True
         while dummy:
@@ -1786,6 +1793,10 @@ class PlumbingGraph():
                 if i != -1:
                     self.move_R(R, i)
                     dummy = True
+        if self.N1():
+            return True
+        else:
+            return False
             
 ########################################################################
 # Step two
@@ -1794,7 +1805,13 @@ class PlumbingGraph():
         r"""
         Executes steop 2 in the proof of thm 4.1 in [Neu1981]. This
         modifies all bamboos to have only Euler number <= -2.
+
+        OUTPUT:
+
+        True if N2() holds in the end, otherwise False.
         """
+        if not self.N1():
+            return False
         while True:
             L = [i for i in self.vertices - self.nodes() if self.mb[i] > -2]
             if len(L) == 0:
@@ -1820,7 +1837,68 @@ class PlumbingGraph():
                     e = self.blow_up_edge(e, -1)
                 self.blow_down(i)
                 self.step_1()
+        if self.N2():
+            return True
+        else:
+            return False
 
 ########################################################################
 # Step three
+    def step_3(self):
+        r"""
+        Executes steop 3 in the proof of thm 4.1 in [Neu1981]. This
+        modifies all bamboos to have only Euler number <= -2.
 
+        OUTPUT:
+
+        True if N3() holds in the end, otherwise False.
+
+        EXAMPLE:
+
+        In the following example, we start by creating a Seifert graph
+        with two (-2)-neighbors which are leaves, like in N3. For this to
+        really violate N3, we add another edge on the longer bamboo.
+        This graph satisfies N1 and N3, and after applying step_3(),
+        it also satisfies N3.
+        
+            sage: from sage.geometry.plumbing_graph import *
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(5, 0, [2,2,7/5])
+            0
+            sage: P.add_edge({5},1)
+            5
+            sage: P.N1()
+            True
+            sage: P.N2()
+            True
+            sage: P.N3()
+            False
+            sage: P.step_3()
+            True
+            sage: P.N3()
+            True
+        """
+        if (not self.N1()) or (not self.N2()):
+            return False
+        while True:
+            L = [j for j in self.vertices if self.N3_obstruction(j)]
+            if len(L) == 0:
+                return True
+            j = L[0]
+            i = list(self.neighbors(j) - self.minus_two_leaves(j))[0]
+            M = self.zero_chain_extrude(
+                j,
+                [self.mb[j]+1, -1],
+                [0,0],
+                [0,0],
+                [
+                    {e for e in self.adjacent_edges(j) if i in self.adj[e]},
+                    {e for e in self.adjacent_edges(j) if
+                        len(self.minus_two_leaves(j) & self.adj[e]) != 0}
+                ])
+            self.projective_absorb(M[2], M[1])
+        
+        if self.N3():
+            return True
+        else:
+            return False
