@@ -3562,7 +3562,7 @@ cdef class DetAutomaton:
 
     def proj(self, dict d, det=True, simplify=True, verb=False):
         """
-        Project following the dictionary ``d``.
+        Project with respect to the dictionary ``d``.
         Give an automaton where labels are replaced according to ``d``.
 
         INPUT:
