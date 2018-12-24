@@ -29,6 +29,7 @@ AUTHORS:
 from six import add_metaclass
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
 from sage.combinat.perfect_matching import PerfectMatching
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
@@ -76,7 +77,7 @@ EXAMPLES::
 """
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
-class OscillatingTableau(PathTableau):
+class OscillatingTableau(ClonableArray,PathTableau):
 
     @staticmethod
     def __classcall_private__(self, ot):
