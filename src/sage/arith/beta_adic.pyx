@@ -2996,7 +2996,7 @@ cdef class BetaAdicSet:
             w = list(w)
             self.a.shift_list_op(w)
         except Exception:
-            self.a.shift1_op(w)
+            self.a.shift_op(w)
 
     def shift(self, w):
         """
@@ -3268,7 +3268,7 @@ cdef class BetaAdicSet:
             l = list(l)
             return BetaAdicSet(self.b, self.a.unshiftl(l))
         except:
-            return BetaAdicSet(self.b, self.a.unshift1(l))
+            return BetaAdicSet(self.b, self.a.unshift(l))
 
     def diff(self, a):
         """
@@ -3958,6 +3958,15 @@ cdef class BetaAdicSet:
                 9: [7]}
 
              #. See more examples in the thematic tutorial
+
+        TESTS::
+
+            sage: m = BetaAdicSet(1/(1+I), [0,1])
+            sage: m.substitution()
+            Traceback (most recent call last):
+            ...
+            ValueError: The number b of the BetaAdicSet must be for the conjugate of a Pisot number.
+
         """
         cdef DetAutomaton a
         
