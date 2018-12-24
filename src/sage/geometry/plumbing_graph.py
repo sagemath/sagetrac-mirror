@@ -3458,6 +3458,8 @@ class PlumbingGraph():
             sage: P.mb
             {0: -2, 4: -5}
         """
+        if not self.N1():
+            return False
         while True:
             L = [i for i in self.vertices - self.nodes() if self.mb[i] > -2]
             if not L:
