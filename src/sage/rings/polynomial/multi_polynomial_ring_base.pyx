@@ -593,6 +593,19 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
         return False
 
     def term_order(self):
+        """
+        Return the term order used to sort the monomials.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = PolynomialRing(ZZ)
+            sage: P.term_order()
+            Degree reverse lexicographic term order
+
+            sage: P.<x,y> = PolynomialRing(ZZ, 2, order='negdegrevlex')
+            sage: P.term_order()
+            Negative degree reverse lexicographic term order
+        """
         return self.__term_order
 
     def characteristic(self):

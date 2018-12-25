@@ -471,6 +471,19 @@ cdef class BooleanPolynomialRing(sage.rings.ring.CommutativeRing):
         sig_free(self.pbind)
 
     def term_order(self):
+        """
+        Return the term order used to sort the monomials.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = BooleanPolynomialRing()
+            sage: P.term_order()
+            Lexicographic term order
+
+            sage: P.<x,y> = BooleanPolynomialRing(order='degrevlex')
+            sage: P.term_order()
+            Degree reverse lexicographic term order
+        """
         return self.__term_order
 
     def __reduce__(self):
