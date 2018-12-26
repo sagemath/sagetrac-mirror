@@ -480,9 +480,9 @@ cdef class BooleanPolynomialRing(sage.rings.ring.CommutativeRing):
             sage: P.term_order()
             Lexicographic term order
 
-            sage: P.<x,y> = BooleanPolynomialRing(order='degrevlex')
+            sage: P.<x,y> = BooleanPolynomialRing(order='deglex')
             sage: P.term_order()
-            Degree reverse lexicographic term order
+            Degree lexicographic term order
         """
         return self.__term_order
 
