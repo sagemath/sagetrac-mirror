@@ -3573,7 +3573,7 @@ cdef class DetAutomaton:
         else:
             return r
 
-    def proj(self, dict d, det=True, simplify=True, verb=False):
+    def proj(self, dict d, bool det=True, bool simplify=True, bool verb=False):
         """
         Project with respect to the dictionary ``d``.
         Give an automaton where labels are replaced according to ``d``.
@@ -3582,9 +3582,9 @@ cdef class DetAutomaton:
 
         - ``d`` -- dictionary used for the projection
 
-        - ``det``  --  (default: ``true``) - determinize the result or not
+        - ``det``  --  bool (default: ``true``) - determinize the result or not
 
-        - ``simplify`` -- (default: ``True``) - if True and if
+        - ``simplify`` -- bool (default: ``True``) - if True and if
           det=True, prune and minimize
 
         - ``verb`` -- boolean (default: ``False``) - activate or
@@ -3604,13 +3604,18 @@ cdef class DetAutomaton:
             DetAutomaton with 3 states and an alphabet of 2 letters
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: d = {'a' : 'a', 'b': 'c', 'c':'c', 'd':'b'}
+            sage: d = {'a' : 0, 'b': 0, 'c':1, 'd':1}
             sage: a.proj(d)
-            DetAutomaton with 2 states and an alphabet of 2 letters
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: a.proj(d)
-            DetAutomaton with 1 state and an alphabet of 2 letters
- 
+            DetAutomaton with 2 states and an alphabet of 1 letter
+
+            sage: a = dag.Word([(0,1), (1,0), (1,1)])
+            sage: d = {}
+            sage: for i in range(2):
+            ....:     for j in range(2):
+            ....:         d[(i,j)] = i-j
+            sage: a.proj(d).equal_languages(dag.Word([-1, 1, 0]))
+            True
+
         TESTS::
 
             sage: a = dag.Word(['a','b'])
@@ -3618,7 +3623,7 @@ cdef class DetAutomaton:
             sage: d = {('a','a'):'a', ('a','b'):'a', ('b','a'):'b', ('b','b'):'b'}
             sage: a.equal_languages(b.proj(d))
             True
- 
+
         """
         cdef NAutomaton a
         cdef Dict dC
@@ -3648,9 +3653,9 @@ cdef class DetAutomaton:
         else:
             return r
 
-    def proji(self, int i, det=True, simplify=True, verb=False):
+    def proji(self, int i, bool det=True, bool simplify=True, bool verb=False):
         """
-        Assuming that the alphabet of the automaton are tuples, project on
+        Assuming that the alphabet of the automaton are iterable, project on
         the ith coordinate.
         Give a new automaton where labels are replaced by the projection on
         the ith coordinate.
@@ -3658,101 +3663,69 @@ cdef class DetAutomaton:
         INPUT:
 
         - ``i`` -- int - coordinate of projection
-        - ``det``  --  (default: ``true``) - determinize or not the result
-        - ``simplify`` -- (default: ``True``) - if True and if det=True, prune
+
+        - ``det``  --  bool (default: ``true``) - determinize or not the result
+
+        - ``simplify`` -- bool (default: ``True``) - if True and if det=True, prune
           and minimize
+
         - ``verb`` -- boolean (default: ``False``) - to activate or
           desactivate the verbose mode
 
         OUTPUT:
 
-        Return a new projected :class:`CAutomaton` (``det``=``False``)
-        or  :class:`DetAutomaton` (``det``=``True``)
+        Return a :class:`CAutomaton` (``det``=``False``)
+        or :class:`DetAutomaton` (``det``=``True``)
 
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = dag.Word([('a', 'b'), ('b', 'a'), ('c', 'a')])
+            sage: a.proji(1)
+            DetAutomaton with 4 states and an alphabet of 2 letters
+
+            sage: a = DetAutomaton([(0, 1, 'abc')], i=0)
+            sage: b = a.proji(0)
+            sage: b
+            DetAutomaton with 2 states and an alphabet of 1 letter
+            sage: b == DetAutomaton([(1, 0, 'a')], i=1)
+            True
+
+        TESTS::
+
+            sage: a = dag.Word([('a', 'b'), ('b', 'a'), ('c', 'a')])
+            sage: a.proji(1).equal_languages(dag.Word(['b', 'a', 'a']))
+            True
+
+            sage: a = dag.Word([0,1])
             sage: a.proji(0)
-            DetAutomaton with 2 states and an alphabet of 2 letters
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: a.proji(0)
-            DetAutomaton with 1 state and an alphabet of 2 letters
+            Traceback (most recent call last):
+            ...
+            TypeError: object of type 'sage.rings.integer.Integer' has no len()
 
         """
         cdef dict d
 
+        if i < 0:
+            raise ValueError("index i=%d cannot be negative" % i)
         d = {}
         for l in self.A:
             if i < len(l):
                 d[l] = l[i]
             else:
-                raise ValueError("index i %d must be smaller then label size  %d" % (i, len(l)))
+                raise ValueError("index i=%d must be smaller than the dimension of the label %s" % (i, l))
         return self.proj(d, det=det, simplify=simplify, verb=verb)
 
-#    def determinize_proj(self, d, noempty=True,
-#                         onlyfinals=False, nof=False, verb=False):
-#        """
-#        Project following the dictonary ``d`` and determinize the result.
-#
-#        INPUT:
-#
-#        - ``d`` -- dictionary to determine projection
-#        - ``noempty``  -- (default: ``True``) If ``True`` won't put the empty
-#          set state, if ``False`` put it and gives a complete automaton.
-#        - ``onlyfinals``  -- (default: ``False``)
-#        - ``nof``  -- (default: ``False``)
-#        - ``verb`` -- boolean (default: ``False``) activate or
-#          desactivate the verbose mode
-#
-#        OUTPUT:
-#
-#        Return a new projected  :class:`DetAutomaton`
-#
-#        EXAMPLES::
-#
-#            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-#            sage: d = { 'a' : 'a', 'b': 'c', 'c':'c', 'd':'b'}
-#            sage: a.determinize_proj(d)
-#            DetAutomaton with 2 states and an alphabet of 2 letters
-#            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-#            sage: a.determinize_proj(d)
-#            DetAutomaton with 1 state and an alphabet of 2 letters
-#
-#        """
-#        cdef Automaton a
-#        cdef Dict dC
-#        cdef DetAutomaton r
-#        
-#        if noempty and not onlyfinals and not nof:
-#            return self.proj(d=d, verb=verb)
-#        else:
-#            r = DetAutomaton(None)
-#            A2 = []
-#            sig_on()
-#            d1 = imagDict(d, self.A, A2=A2)
-#            sig_off()
-#            if verb:
-#                print("d1=%s, A2=%s" % (d1, A2))
-#            sig_on()
-#            dC = getDict(d, self.A, d1=d1)
-#            a = Determinize(self.a[0], dC, noempty, onlyfinals, nof, verb)
-#            FreeDict(&dC)
-#            sig_off()
-#            r.a[0] = a
-#            r.A = A2
-#            return r
-
-    # change lettes according to d, duplicating edges if necessary
-    # the result is assumed deterministic !!!
     def duplicate(self, d, verb=False):
         """
-        Change letters according to dictionnary ``d``, with duplication of edge
-        if necessary, the result is assumed deterministic !!!
+        Replace every transition of self labeled by a letter l
+        by a list of transitions labeled by elements of d[l].
+        The result is assumed deterministic !!!
 
         INPUT:
 
-        - ``d``  -- dictionary for relabel
+        - ``d``  -- dictionary giving a list a new letters for each letter of the alphabet of self
+
         - ``verb`` -- boolean (default: ``False``) fix to ``True``
           for activation the verbose mode
 
@@ -3763,10 +3736,18 @@ cdef class DetAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: d = { 'a' : 'a', 'b': 'c', 'c':'c', 'd':'b'}
+            sage: d = { 'a' : 'ac', 'b': 'cc', 'ca':'c', 'd':'b'}
             sage: b = a.duplicate(d)
             sage: b.alphabet
             ['a', 'c']
+            
+            sage: a = dag.Word(['a', 'b', 'c'])
+            sage: d = { 'a' : [0,1], 'b': [0], 'c':[]}
+            sage: b = a.duplicate(d)
+            sage: b.alphabet
+            [0, 1]
+            sage: b.has_empty_language()
+            True
         """
         cdef Automaton a
         cdef InvertDict dC
@@ -3814,6 +3795,23 @@ cdef class DetAutomaton:
             sage: a.relabel(d)
             sage: a.alphabet
             ['a', 'c']
+            
+            sage: a = dag.Word(['a', 'b'])
+            sage: d = {'a':0, 'b':1}
+            sage: a.relabel(d)
+            sage: a.alphabet
+            [0, 1]
+            sage: a == dag.Word([0, 1])
+            True
+
+        TESTS::
+
+            sage: a = dag.AnyWord([0,1])
+            sage: a.relabel({})
+            Traceback (most recent call last):
+            ...
+            KeyError: 0
+
         """
         self.A = [d[c] for c in self.A]
 
@@ -3826,6 +3824,7 @@ cdef class DetAutomaton:
 
         - ``A``  -- list of letters in the new order
           (number can be less to the alphabet)
+
         - ``verb`` -- boolean (default: ``False``) fix to ``True`` to
           activate the verbose mode
 
@@ -4569,7 +4568,7 @@ cdef class DetAutomaton:
         else:
             return r
 
-    def has_empty_langage(self):
+    def has_empty_language(self):
         r"""
         Test if the  :class:`DetAutomaton` has an empty language.
 
@@ -4581,7 +4580,7 @@ cdef class DetAutomaton:
         EXAMPLES::
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.has_empty_langage()
+            sage: a.has_empty_language()
             False
 
         """
@@ -4660,7 +4659,7 @@ cdef class DetAutomaton:
 
 #    def empty_product (self, DetAutomaton a2, d=None, verb=False):
 #        if d is None:
-#            return self.has_empty_langage() or a2.has_empty_langage()
+#            return self.has_empty_language() or a2.has_empty_language()
 #        sig_on()
 #        cdef Dict dC
 #        Av = []
@@ -5227,7 +5226,7 @@ cdef class DetAutomaton:
 #        if step == 1:
 #            return p;
 #
-#        return p.has_empty_langage()
+#        return p.has_empty_language()
 
 #    # donne un automate reconnaissant w(w^(-1)L) où L est le langage
 #    # de a partant de e
@@ -5268,7 +5267,7 @@ cdef class DetAutomaton:
 #        r.A = self.A
 #        return r
 
-    # SAME AS has_empty_langage(), TO REMOVE !!!!
+    # SAME AS has_empty_language(), TO REMOVE !!!!
     # tell if the language of the automaton is empty
     # (this function is not very efficient)
     def is_empty(self):

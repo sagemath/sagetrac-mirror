@@ -860,7 +860,7 @@ cdef included(DetAutomaton a, list l, list lm):
     incl = False
     w = a.find_word()
     if w is None:
-        if a.has_empty_langage():
+        if a.has_empty_language():
             print("Error: empty automata!")
         else:
             print("Error: empty word, but non-empty language!")
@@ -1360,7 +1360,7 @@ cdef class BetaAdicSet:
             False
 
         """
-        return self.a.has_empty_langage()
+        return self.a.has_empty_language()
 
 #    def _testSDL(self):
 #        """
@@ -4093,7 +4093,7 @@ cdef class BetaAdicSet:
             # m.move2(t=-tr, a=a)
             # TODO : do not recompute this automaton already computed
             a = m.Proj(a, ap, t=-tr)
-            if a.has_empty_langage():
+            if a.has_empty_language():
                 raise RuntimeError("Empty language when projecting a on ap for t=%s"%(-tr))
             while True:
                 # split according to other pieces
