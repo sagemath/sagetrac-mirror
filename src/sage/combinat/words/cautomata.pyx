@@ -3732,7 +3732,7 @@ cdef class DetAutomaton:
         r.A = A2
         return r
 
-    def relabel(self, d):
+    def relabel(self, dict d):
         """
         Change letters of the :class:`DetAutomaton` ON PLACE,
         with respect to the dictionnary ``d``.
@@ -3857,11 +3857,10 @@ cdef class DetAutomaton:
         r.a.na = len(A)
         return r
 
-    # permute letters ON PLACE
-    # A = list of letters in the new order (with possibly less letters)
-    def permut_op(self, list A, verb=False):
+    def permut_op(self, list A, bool verb=False):
         """
-        Permutes (and eventually remove) letters ON PLACE.
+        Permutes (and eventually remove) letters of the alphabet ON PLACE,
+        without changing the language restricted to the new alphabet.
 
         INPUT:
 
@@ -3872,40 +3871,48 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = dag.Word([0,1,2])
+            sage: a.alphabet
+            [0, 1, 2]
+            sage: a.permut_op([2,1,0])
+            sage: a.alphabet
+            [2, 1, 0]
+            sage: a.has_same_language_as(dag.Word([0,1,2]))
+            True
+
+            sage: a = dag.AnyWord(['a', 'b', 'c'])
+            sage: a.alphabet
+            ['a', 'c', 'b']
+            sage: a.permut_op(['a', 'b'])
             sage: a.alphabet
             ['a', 'b']
-            sage: l = [ 'b', 'a']
+            sage: a.has_same_language_as(dag.AnyWord(['a', 'b']))
+            True
+
+            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: l = [ 'b', 'c', 'a']
             sage: a.permut_op(l)
             sage: a.alphabet
             ['b', 'a']
 
         TESTS::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: l = [ 'b', 'a', 'c']
-            sage: a.permut_op(l)
-            Traceback (most recent call last):
-            ...
-            ValueError: The new alphabet (lenght 3) must have less letters (i.e. <=2).
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b'), (1, 2, 'c')])
+            sage: a = dag.Word(['a', 'b'])
+            sage: a.permut_op([0,1])
             sage: a.alphabet
-            ['a', 'c', 'b']
-            sage: a.permut_op(l, verb=True)
-            A=['b', 'a', 'c']
-            l=[ 2 0 1 ]
-            l = [ 2 0 1 ]
+            []
+
         """
         cdef int *l
         cdef int i
         cdef int nA = len(A)
-
-        if nA > self.a.na:
-            raise ValueError("The new alphabet (lenght %s) must have less letters (i.e. <=%s)."% (nA, self.a.na))
+        cdef list A2
 
         if verb:
             print("A=%s" % A)
+        sig_on()
         l = <int*>malloc(sizeof(int) * nA)
+        sig_off()
         if l is NULL:
             raise MemoryError("Failed to allocate memory for l in "
                               "permut_op")
@@ -3914,9 +3921,11 @@ cdef class DetAutomaton:
         d = {}
         for i, c in enumerate(self.A):
             d[c] = i
+        A2 = []
         for i, c in enumerate(A):
             if d.has_key(c):
                 l[i] = d[c]  # l gives the old index from the new one
+                A2.append(c)
                 sig_check()
         if verb:
             str = "l=["
@@ -3928,14 +3937,15 @@ cdef class DetAutomaton:
         PermutOP(self.a[0], l, len(A), verb)
         free(l)
         sig_off()
-        self.A = A
+        self.A = A2
+        self.a.na = len(A2)
 
-    # Compute the mirror, assuming it is deterministic
     def mirror_det(self):
         """
         Return a :class:`DetAutomaton`, whose language is the mirror of the
         language of self.
         Assume the result to be deterministic!
+        If it is not the case, rather use mirror() to get a correct result.
 
         OUTPUT:
 
@@ -3943,20 +3953,36 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
+            sage: a = dag.Word(['a', 'b', 'c', 'b'])
+            sage: b = a.mirror_det()
+            sage: b
+            DetAutomaton with 5 states and an alphabet of 3 letters
+            sage: b.has_same_language_as(dag.Word(['b', 'c', 'b', 'a']))
+            True
+
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.mirror_det()
             DetAutomaton with 4 states and an alphabet of 2 letters
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: a.mirror_det()
-            DetAutomaton with 4 states and an alphabet of 2 letters
+
+        TESTS::
+
+            sage: a = DetAutomaton([('a','a',0), ('a','b',1), ('b','a',0)], i='a')
+            sage: b = a.mirror_det()
+            sage: b
+            DetAutomaton with 2 states and an alphabet of 2 letters
+            sage: b.has_same_language_as(a.mirror().determinize())
+            False
+            sage: b.states
+            ['a', 'b']
         """
         cdef DetAutomaton r
 
         r = DetAutomaton(None)
         sig_on()
         r.a[0] = MirrorDet(self.a[0])
-        r.A = self.A
         sig_off()
+        r.A = self.A
+        r.S = self.S
         return r
 
     def mirror(self):
@@ -3970,12 +3996,22 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
+            sage: a = dag.Word(['a', 'b', 'c', 'b'])
+            sage: b = a.mirror()
+            sage: b
+            CAutomaton with 5 states and an alphabet of 3 letters
+            sage: b.determinize().has_same_language_as(dag.Word(['b', 'c', 'b', 'a']))
+            True
+
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.mirror()
             CAutomaton with 4 states and an alphabet of 2 letters
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
+
+        TESTS::
+        
+            sage: a = DetAutomaton([('a','a',0), ('a','b',1), ('b','a',0)], i='a')
             sage: a.mirror()
-            CAutomaton with 4 states and an alphabet of 2 letters
+            CAutomaton with 2 states and an alphabet of 2 letters
 
         """
         cdef CAutomaton r
@@ -3983,8 +4019,9 @@ cdef class DetAutomaton:
         r = CAutomaton(None)
         sig_on()
         r.a[0] = Mirror(self.a[0])
-        r.A = self.A
         sig_off()
+        r.A = self.A
+        r.S = self.S
         return r
 
     def strongly_connected_components(self, no_trivials=False):
@@ -4008,6 +4045,14 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
+            sage: a = dag.Word(['a', 'b']).concat(dag.AnyWord(['a', 'b']))
+            sage: a
+            DetAutomaton with 3 states and an alphabet of 2 letters
+            sage: a.strongly_connected_components()
+            [[0], [2], [1]]
+            
+            
+
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.strongly_connected_components()
             [[1], [0], [3], [2]]
@@ -4021,7 +4066,9 @@ cdef class DetAutomaton:
         cdef dict l2
         cdef int i
 
+        sig_on()
         l = <int*>malloc(sizeof(int) * self.a.n)
+        sig_off()
         if l is NULL:
             raise MemoryError("Failed to allocate memory for l in "
                               "strongly_connected_component.")
