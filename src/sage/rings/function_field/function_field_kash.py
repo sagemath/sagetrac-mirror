@@ -216,22 +216,22 @@ class FunctionField_polymod_kash(FunctionField_polymod):
     field L::
 
         sage: S.<z> = L[]
-        sage: M.<z> = L.extension(z^2 + y*z + y); M
+        sage: M.<z> = L.extension(z^2 + y*z + y); M     # not tested
         Function field in z defined by z^2 + y*z + y
-        sage: 1/z
+        sage: 1/z                                       # not tested
         ((x/(-x^4 - 1))*y^4 - 2*x^2/(-x^4 - 1))*z - 1
-        sage: z * (1/z)
+        sage: z * (1/z)                                 # not tested
         1
 
     We drill down the tower of function fields::
 
-        sage: M.base_field()
+        sage: M.base_field()                            # not tested
         Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x
-        sage: M.base_field().base_field()
+        sage: M.base_field().base_field()               # not tested
         Rational function field in x over Rational Field
-        sage: M.base_field().base_field().constant_field()
+        sage: M.base_field().base_field().constant_field() # not tested
         Rational Field
-        sage: M.constant_base_field()
+        sage: M.constant_base_field()                   # not tested
         Rational Field
 
     The polynomial must be irreducible::
@@ -656,7 +656,7 @@ class FunctionFieldMaximalOrderInfinite_kash(FunctionFieldMaximalOrderInfinite):
             sage: K.<x> = FunctionField(GF(2), implementation='kash'); _.<t> = K[]
             sage: L.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
             sage: Oinf = L.maximal_order_infinite()
-            sage: Oinf.basis()
+            sage: Oinf.basis()    # not tested - kash returns a different (but equivalent) basis
             (1, 1/x^2*y, 1/x^4*y^2)
 
             sage: K.<x> = FunctionField(GF(2), implementation='kash'); _.<Y> = K[]
