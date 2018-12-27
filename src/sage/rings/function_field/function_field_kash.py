@@ -141,6 +141,9 @@ class RationalFunctionField_kash(RationalFunctionField):
         else:
             raise ValueError("The constant field must be either QQ or a finite field.")
 
+        # the field, without the function field structure (referenced by divisor.py)
+        self._field = constant_field[names[0]].fraction_field()
+
         # we seem to need this to avoid getting variable names like '$.1' Kash's output
         self.kash_constant_field.PolynomialAlgebra().AssignNames_(['"x"'])
 
@@ -293,6 +296,18 @@ class FunctionField_polymod_kash(FunctionField_polymod):
         FunctionField_polymod.__init__(self, polynomial, names, category)
 
         assert isinstance(polynomial.base_ring(), RationalFunctionField_kash)
+
+        # the field, without the function field structure (referenced by divisor.py)
+
+        # don't set these here; they were set in the superclass constructor
+        # self._base_field = polynomial.base_ring()
+        # self._polynomial = polynomial
+
+        # self._field = self._base_field[self._gen].extension(polynomial)
+        # self._field = self._base_field[polynomial.parent().gen(0)].extension(polynomial)
+        self._field = self
+
+        self._place_class = FunctionFieldPlace_kash
 
         kash_base_field = polynomial.base_ring().kash
         kTy = kash_base_field.PolynomialAlgebra()
