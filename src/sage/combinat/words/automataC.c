@@ -1218,7 +1218,7 @@ bool findWord2 (Automaton a, Dict *w, bool verb)
 //return a shortest word of the language
 bool shortestWord (Automaton a, Dict *w, int init, int end, bool verb)
 {
-	if (a.i == -1)
+	if (init == -1)
 		return false;
 	//Dijkstra's algorithm
 	int *d = malloc(sizeof(int)*a.n); //table of distances from initial state
@@ -1318,7 +1318,7 @@ bool shortestWord (Automaton a, Dict *w, int init, int end, bool verb)
 //return the shortest words up to each state
 bool shortestWords (Automaton a, Dict *w, int init, bool verb)
 {
-	if (a.i == -1)
+	if (init == -1)
 		return false;
 	//Dijkstra's algorithm
 	int *d = malloc(sizeof(int)*a.n); //table of distances from the initial state

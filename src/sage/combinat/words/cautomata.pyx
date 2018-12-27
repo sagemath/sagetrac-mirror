@@ -3944,8 +3944,9 @@ cdef class DetAutomaton:
         """
         Return a :class:`DetAutomaton`, whose language is the mirror of the
         language of self.
-        Assume the result to be deterministic!
-        If it is not the case, rather use mirror() to get a correct result.
+        We assume the result to be deterministic!
+        If it is not the case, you should rather use mirror()
+        to get a correct result.
 
         OUTPUT:
 
@@ -4024,17 +4025,19 @@ cdef class DetAutomaton:
         r.S = self.S
         return r
 
-    def strongly_connected_components(self, no_trivials=False):
+    def strongly_connected_components(self, bool no_trivials=False):
         r"""
         Determine a partition into strongly connected components.
         A strongly connected component is a minimal subset of the set
         of states such that
         there is no path going outside of the subset, from a state of
         the subset to a state of the subset.
+        This computation is done by computing an efficient topological
+        ordering of the graph.
 
         INPUT:
 
-        - ``no_trivials`` -- (default: ``False``) If True, do not take into
+        - ``no_trivials`` -- bool (default: ``False``) If True, do not take into
           account components without any transition from itself to itself
           (such component contains only one element).
 
@@ -4051,14 +4054,24 @@ cdef class DetAutomaton:
             sage: a.strongly_connected_components()
             [[0], [2], [1]]
             
-            
+            sage: a = dag.Random(20, [0, 1, 2])
+            sage: a.strongly_connected_components()     # random
+            [[4],
+             [12, 15],
+             [2, 6, 13, 18],
+             [3, 5, 7, 8, 10, 11, 16, 19],
+             [0, 14],
+             [17],
+             [1],
+             [9]]
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = DetAutomaton([(0, 1, 'a'), (1,0,'b'), (2, 3, 'b')], i=0)
             sage: a.strongly_connected_components()
-            [[1], [0], [3], [2]]
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
+            [[0, 1], [3], [2]]
+
+            sage: a = DetAutomaton([('a', 'a', 0), ('a', 'b', 1), ('b', 'a', 0)], i='a')
             sage: a.strongly_connected_components()
-            [[1], [0], [3], [2]]
+            [[0, 1]]
 
         """
         cdef int* l
@@ -4097,89 +4110,35 @@ cdef class DetAutomaton:
         sig_off()
         return l2.values()
 
-#    def acc_and_coacc(self):
-#        """
-#        Determine accessible and coaccessible states
-#
-#        OUTPUT:
-#
-#        Return the list of accessible and coaccessible states
-#
-#        EXAMPLES::
-#
-#            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-#            sage: a.acc_and_coacc()
-#            [0, 1]
-#            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-#            sage: a.acc_and_coacc()
-#            []
-#        """
-#        cdef int* l
-#        cdef int n = self.a.n
-#
-#        sig_on()
-#        l = <int*>malloc(sizeof(int) * n)
-#        sig_off()
-#        if l is NULL:
-#            raise MemoryError("Failed to allocate memory for l in "
-#                              "acc_and_coacc")
-#        sig_on()
-#        AccCoAcc(self.a, l)
-#        sig_off()
-#        return [i for i in range(n) if l[i] == 1]
-#
-#    def coaccessible_states(self):
-#        """
-#        Compute the co-accessible states of the :class:`DetAutomaton`
-#
-#        OUTPUT:
-#
-#        Return list of co-accessible states of the :class:`DetAutomaton`
-#
-#        EXAMPLES::
-#
-#            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-#            sage: a.coaccessible_states()
-#            [0, 1, 2, 3]
-#            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-#            sage: a.coaccessible_states()
-#            [0, 1, 2, 3]
-#
-#        """
-#        cdef int* l
-#        cdef int n = self.a.n
-#
-#        sig_on()
-#        l = <int*>malloc(sizeof(int) * n)
-#        sig_off()
-#        if l is NULL:
-#            raise MemoryError("Failed to allocate memory for l in "
-#                              "coaccessible_states.")
-#        sig_on()
-#        CoAcc(self.a, l)
-#        sig_off()
-#        return [i for i in range(n) if l[i] == 1]
-
-    def sub_automaton(self, list l, keep_states_labels=True, verb=False):
+    def sub_automaton(self, list l, bool keep_states_labels=True, bool verb=False):
         """
         Compute the sub automaton whose states are given by the set ``l``.
 
         INPUT:
 
         - ``l``  -- list of states to keep
-        - ``verb`` -- boolean (default: ``False``) fix to ``True`` to activate
+
+        - ``verb`` -- boolean (default: ``False``) set to ``True`` to activate
           the verbose mode
+
         - ``keep_states_labels``  -- boolean (default: ``True``) keep the labels of states
 
         OUTPUT:
 
-        Return a  :class:`DetAutomaton` sub automaton
+        Return a :class:`DetAutomaton`
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = dag.Word(['a', 'b', 'c'])
             sage: a.sub_automaton([0,1])
+            DetAutomaton with 2 states and an alphabet of 3 letters
+
+            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: b = a.sub_automaton([0,1])
+            sage: b
             DetAutomaton with 2 states and an alphabet of 2 letters
+            sage: b.has_same_language_as(a)
+            True
 
         TESTS::
 
@@ -4213,6 +4172,7 @@ cdef class DetAutomaton:
     def simplify(self):
         """
         Prune and minimize self.
+        This gives a canonical automaton for the language of self.
 
         OUTPUT:
 
@@ -4248,9 +4208,21 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([('a','b',0),('a','c',1),('b','a',0),('b','d',1),('c','e',0),('c','f',1),('d','e',0),('d','f',1),('e','e',0),('e','f',1),('f','f',0),('f','f',1)], i='a', final_states=['c','d','e'])
+            sage: a = DetAutomaton([('a','b',0),('a','c',1),('b','a',0),
+            ....:                   ('b','d',1),('c','e',0),('c','f',1),
+            ....:                   ('d','e',0),('d','f',1),('e','e',0),
+            ....:                   ('e','f',1),('f','f',0),('f','f',1)],
+            ....:                   i='a', final_states=['c','d','e'])
             sage: a.minimize()
             DetAutomaton with 3 states and an alphabet of 2 letters
+            
+            sage: a = DetAutomaton([(0,1,0), (0,5,1), (1,2,1), (1,6,0),
+            ....:                   (2,0,0), (2,2,1), (3,2,0), (3,6,1),
+            ....:                   (4,7,0), (4,5,1), (5,2,0), (5,6,1),
+            ....:                   (6,6,0), (6,4,1), (7,6,0), (7,2,1)],
+            ....:                   i=0, final_states=[2,6])
+            sage: a.minimize()
+            DetAutomaton with 5 states and an alphabet of 2 letters
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.minimize()
@@ -4264,8 +4236,26 @@ cdef class DetAutomaton:
 
         TESTS::
 
-            sage: a = DetAutomaton([('a','b',0),('a','c',1),('b','a',0),('b','d',1),('c','e',0),('c','f',1),('d','e',0),('d','f',1),('e','e',0),('e','f',1),('f','f',0),('f','f',1)], i='a', final_states=['c','d','e'])
-            sage: b = DetAutomaton([[0, 1, 2], [(0, 0, 0), (0, 2, 1), (1, 1, 0), (1, 0, 1), (2, 2, 0), (2, 2, 1)]], A=[0, 1], i=1, final_states=[0])
+            sage: a = DetAutomaton([('a','b',0),('a','c',1),('b','a',0),
+            ....:                   ('b','d',1),('c','e',0),('c','f',1),
+            ....:                   ('d','e',0),('d','f',1),('e','e',0),
+            ....:                   ('e','f',1),('f','f',0),('f','f',1)],
+            ....:                   i='a', final_states=['c','d','e'])
+            sage: b = DetAutomaton([(0, 0, 0), (0, 2, 1), (1, 1, 0),
+            ....:                   (1, 0, 1), (2, 2, 0), (2, 2, 1)],
+            ....:                  A=[0, 1], i=1, final_states=[0])
+            sage: a.minimize() == b
+            True
+            
+            sage: a = DetAutomaton([(0,1,0), (0,5,1), (1,2,1), (1,6,0),
+            ....:                   (2,0,0), (2,2,1), (3,2,0), (3,6,1),
+            ....:                   (4,7,0), (4,5,1), (5,2,0), (5,6,1),
+            ....:                   (6,6,0), (6,4,1), (7,6,0), (7,2,1)],
+            ....:                   i=0, final_states=[2,6])
+            sage: b = DetAutomaton([(0, 0, 0), (0, 2, 1), (1, 3, 0),
+            ....:                   (1, 0, 1), (2, 4, 0), (2, 1, 1),
+            ....:                   (3, 2, 0), (3, 3, 1), (4, 0, 0),
+            ....:                   (4, 3, 1)], i=2, final_states=[0, 3])
             sage: a.minimize() == b
             True
 
@@ -4435,7 +4425,7 @@ cdef class DetAutomaton:
         TESTS::
 
             sage: a = DetAutomaton([('a', 'a', 0), ('a', 'b', 1), ('b', 'a', 0), ('b', 'c', 1), ('c', 'a', 0)], i='a')
-            sage: a = a.delete_state(1)
+            sage: a = a.delete_state(a.states.index('b'))
             sage: b = DetAutomaton([('a', 'a', 0), ('c', 'a', 0)], A=[0, 1], i='a')
             sage: a == b
             True
@@ -4610,20 +4600,23 @@ cdef class DetAutomaton:
         sig_off()
         return answ
 
-    def has_same_language_as(self, DetAutomaton a2, bool minimized=False,
+    def has_same_language_as(self, DetAutomaton a, bool minimized=False,
                         bool pruned=False, bool verb=False):
         """
-        Test if the languages of :class:`DetAutomaton` ``self`` and ``a2`` are
+        Test if the languages of :class:`DetAutomaton` ``self`` and ``a`` are
         equal or not.
         If the alphabets are differents it returns False, even if the automata describe the same languages.
 
         INPUT:
 
-        - ``a2``  -- the :class:`DetAutomaton` to compare
+        - ``a``  -- the :class:`DetAutomaton` to compare
+
         - ``minimized``  -- (default: ``False``) if minimization is
           required or not
+
         - ``pruned``  -- (default: ``False``) if emondation is required or not
-        - ``verb`` -- boolean (default: ``False``) fix to ``True`` to activate
+
+        - ``verb`` -- boolean (default: ``False``) set to ``True`` to activate
           the verbose mode
 
         OUTPUT:
@@ -4650,14 +4643,14 @@ cdef class DetAutomaton:
         """
         cdef Dict d
         cdef int i, j
-        if set(self.A) != set(a2.A):
+        if set(self.A) != set(a.A):
             return False
         sig_on()
         d = NewDict(self.a.na)
         sig_off()
         for i in range(self.a.na):
-            for j in range(a2.a.na):
-                if self.A[i] == a2.A[j]:
+            for j in range(a.a.na):
+                if self.A[i] == a.A[j]:
                     d.e[i] = j
                     if verb:
                         print("%d -> %d" % (i, j))
@@ -4668,7 +4661,7 @@ cdef class DetAutomaton:
             printDict(d)
             sig_off()
         sig_on()
-        res = equalsLanguages(self.a, a2.a, d, minimized, pruned, verb)
+        res = equalsLanguages(self.a, a.a, d, minimized, pruned, verb)
         answ = c_bool(res)
         FreeDict(&d)
         sig_off()
@@ -4677,32 +4670,15 @@ cdef class DetAutomaton:
         sig_off()
         return answ
 
-#    def empty_product (self, DetAutomaton a2, d=None, verb=False):
-#        if d is None:
-#            return self.has_empty_language() or a2.has_empty_language()
-#        sig_on()
-#        cdef Dict dC
-#        Av = []
-#        dv = imagProductDict(d, self.A, a2.A, Av=Av)
-#        if verb:
-#            print("Av=%s"%Av
-#            print("dv=%s"%dv
-#        dC = getProductDict(d, self.A, a2.A, dv=dv, verb=verb)
-#        if verb:
-#            print("dC="
-#            printDict(dC)
-#        res = EmptyProduct(self.a[0], a2.a[0], dC, verb)
-#        sig_off()
-#        return c_bool(res)
-
-    def intersect(self, DetAutomaton a2, bool verb=False):
+    def intersect(self, DetAutomaton a, bool verb=False):
         """
         Determine if the languages of the :class:`DetAutomaton` ``self``
-        and ``a2`` have a non-empty intersection.
+        and ``a`` have a non-empty intersection.
 
         INPUT:
 
-        -  ``a2``  -- the :class:`Detautomaton` to intersect
+        -  ``a``  -- the :class:`Detautomaton` to intersect
+
         - ``verb`` -- boolean (default: ``False``) True to activate
           the verbose mode
 
@@ -4713,6 +4689,13 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
+            sage: a = dag.Word("ababb")
+            sage: b = dag.Word("aba")
+            sage: a.intersect(b)
+            False
+            sage: a.prefix_closure().intersect(b)
+            True
+
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
             sage: a.intersect(b)
@@ -4722,26 +4705,10 @@ cdef class DetAutomaton:
             False
         """
         sig_on()
-        res = Intersect(self.a[0], a2.a[0], verb)
+        res = Intersect(self.a[0], a.a[0], verb)
         answ = c_bool(res)
         sig_off()
         return answ
-
-#    def intersect (self, DetAutomaton a2, pruned=False, verb=False):
-#        sig_on()
-#        cdef Dict d = NewDict(self.a.na)
-#        cdef int i,j
-#        for i in range(self.a.na):
-#            for j in range(a2.a.na):
-#                if self.A[i] == a2.A[j]:
-#                    d.e[i] = j
-#                    if verb: print("%d -> %d"%(i, j))
-#                    break
-#        if verb:
-#            printDict(d)
-#        res = intersectLanguage(self.a, a2.a, d, pruned, verb)
-#        sig_off()
-#        return c_bool(res)
 
     def find_word(self, bool verb=False):
         """
@@ -4753,9 +4720,14 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        return a word of the language of the Automaton as list of letters if it exists, otherwise return None
+        return a word of the language of the Automaton as a list
+        of letters if it exists, otherwise return None
 
         EXAMPLES::
+
+            sage: a = dag.Word("gabian")
+            sage: a.find_word()
+            ['g', 'a', 'b', 'i', 'a', 'n']
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.find_word()
@@ -4790,7 +4762,9 @@ cdef class DetAutomaton:
         INPUT:
 
         - ``i`` -- (default: None)  the initial state
+
         - ``f`` -- (default: None)  the final state
+
         - ``verb`` -- (default: False)  the verbose parameter
 
         OUTPUT:
@@ -4799,15 +4773,21 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.shortest_word(i=2, f=1)
-            []
+            sage: a = dag.Word("gabian")
+            sage: a.shortest_word()
+            ['g', 'a', 'b', 'i', 'a', 'n']
+
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: a.shortest_word(i=2, f=1)
+            sage: a.shortest_word(i=2, f=3)
+            ['b']
 
             sage: a = DetAutomaton([(0, 0, 'x'), (0, 1, 'y')], i=0, final_states=[1])
             sage: a.shortest_word()
             ['y']
+
+            sage: a = DetAutomaton([(0,0,0)])
+            sage: a.shortest_word()
+            
         """
         cdef Dict w
         if i is None:
