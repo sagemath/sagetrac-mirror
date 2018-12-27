@@ -54,7 +54,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.fraction_field import FractionField
 from sage.rings.finite_rings.finite_field_base import FiniteField
 
-from .function_field import RationalFunctionField, CAT
+from .function_field import RationalFunctionField
 from .function_field import FunctionFieldElement_rational
 from .function_field import FunctionField_polymod
 from .function_field import FunctionFieldElement_polymod
@@ -102,9 +102,7 @@ class RationalFunctionField_kash(RationalFunctionField):
           Defn: t |--> tbar
     """
 
-    def __init__(self, constant_field, names,
-            element_class = FunctionFieldElement_rational,
-            category=CAT):
+    def __init__(self, constant_field, names, category=None):
         """
         Create a rational function field in one variable over the rational
         field.
@@ -132,7 +130,7 @@ class RationalFunctionField_kash(RationalFunctionField):
             TypeError: constant_field must be a field
         """
 
-        RationalFunctionField.__init__(self, constant_field, names, element_class, category)
+        RationalFunctionField.__init__(self, constant_field, names, category)
 
         if constant_field is QQ:
             self.kash_constant_field = kash.RationalField()
@@ -243,7 +241,7 @@ class FunctionField_polymod_kash(FunctionField_polymod):
         ValueError: The polynomial must be irreducible
     """
 
-    def __init__(self, polynomial, names, element_class=FunctionFieldElement_polymod, category=CAT):
+    def __init__(self, polynomial, names, category=None):
         """
         Create a function field defined as an extension of another function
         field by adjoining a root of a univariate polynomial.
@@ -292,7 +290,7 @@ class FunctionField_polymod_kash(FunctionField_polymod):
             Polynomial Ring in t over Rational Field
         """
 
-        FunctionField_polymod.__init__(self, polynomial, names, element_class, category)
+        FunctionField_polymod.__init__(self, polynomial, names, category)
 
         assert isinstance(polynomial.base_ring(), RationalFunctionField_kash)
 
