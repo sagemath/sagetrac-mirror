@@ -2012,9 +2012,9 @@ cdef class DetAutomaton:
             True
 
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
-            sage: a.set_alphabet(['a', 'b', 'c'])
+            sage: a.set_alphabet(['a', 'c', 'b'])
             sage: a.alphabet
-            ['a', 'b', 'c']
+            ['a', 'c']
             sage: a = DetAutomaton([(0,1,'a') ,(2,3,'b')])
             sage: a.set_alphabet(['a','e'])
             sage: a.alphabet
@@ -2026,13 +2026,12 @@ cdef class DetAutomaton:
             sage: a.set_alphabet([0, 1])
             Traceback (most recent call last):
             ...
-            ValueError: The size 2 of the new alphabet has to be the same or greater (i.e. >=3)
+            ValueError: The size 2 of the new alphabet has to be the same (i.e. 3)
 
         """
         if len(A) < len(self.A):
-            raise ValueError("The size %s of the new alphabet has to be the same or greater (i.e. >=%s)"%(len(A), len(self.A)))
-        self.A = A
-        self.a[0].na = len(A)
+            raise ValueError("The size %s of the new alphabet has to be the same (i.e. %s)"%(len(A), len(self.A)))
+        self.A = A[:self.a.na]
 
     @property
     def initial_state(self):
@@ -2523,52 +2522,6 @@ cdef class DetAutomaton:
                 d[(i, j)] = i-j
         return r.proj(d, det=det, simplify=simplify)
 
-#    def prune_inf2OP(self, verb=False):
-#        """
-#        Change final states of the automaton:
-#        new final states are the one in a strongly
-#        connected component containing a final state,
-#        others states are not final.
-#        Warning: this is not a function on regular languages!
-#        Rk: this function could be accelerated.
-#
-#        INPUT:
-#
-#        - ``verb`` -- boolean (default: ``False``) if True, print
-#          debugging informations
-#
-#        OUTPUT:
-#
-#        Return the pruned :class:`DetAutomaton`.
-#
-#        EXAMPLES::
-#
-#            sage: a = DetAutomaton([(0, 1, 'a'), (0, 3, 'b')], i=0)
-#            sage: a.prune_inf2OP(True)
-#            sage: a
-#            DetAutomaton with 3 states and an alphabet of 2 letters
-#            sage: b = DetAutomaton([(0, 1, 'a'), (0, 3, 'b')])
-#            sage: b.prune_inf2OP(True)
-#            sage: b
-#            DetAutomaton with 3 states and an alphabet of 2 letters
-#        """
-#        cc = self.strongly_connected_components()
-#        f = []
-#        for c in cc:
-#            # test que l'on peut boucler dans cette composante
-#            ok = False
-#            for i in range(self.a.na):
-#                if self.a.e[c[0]].f[i] in c:
-#                    ok = True
-#                    break
-#            if not ok:
-#                continue
-#            for i in c:
-#                if self.a.e[i].final:
-#                    f += c
-#                    break
-#        self.set_final_states(f)
-
     def prune_inf(self, verb=False):
         """
         Prune "at infinity": remove all accessible states from which there no infinite way.
@@ -2741,7 +2694,7 @@ cdef class DetAutomaton:
             sage: b = dag.Word([0,1])
             sage: c = a.product(b)
             sage: d = dag.Word([('a',0),('b',1)], A = c.alphabet)
-            sage: c.equal_languages(d)
+            sage: c.has_same_language_as(d)
             True
             
             sage: a = dag.Word(['a', 'b'])
@@ -2852,7 +2805,7 @@ cdef class DetAutomaton:
 
             sage: a = dag.AnyWord(['a', 'b'])
             sage: b = dag.Word(['a','b','a'])
-            sage: a.intersection(b).equal_languages(b)
+            sage: a.intersection(b).has_same_language_as(b)
             True
 
         TESTS::
@@ -2946,7 +2899,7 @@ cdef class DetAutomaton:
             sage: a = dag.Word(['a','b','a'])
             sage: a.complete_op()
             True
-            sage: a.equal_languages(dag.Word(['a','b','a']))
+            sage: a.has_same_language_as(dag.Word(['a','b','a']))
             True
             sage: a == dag.Word(['a','b','a'])
             False
@@ -3322,7 +3275,7 @@ cdef class DetAutomaton:
 
             sage: a = dag.Word(['a','b','a','b'])
             sage: a.shift_list_op(['a','b'])
-            sage: a.simplify().equal_languages(dag.Word(['a','b']))
+            sage: a.simplify().has_same_language_as(dag.Word(['a','b']))
             True
 
             sage: a = dag.AnyWord(['a', 'b'])
@@ -3533,7 +3486,7 @@ cdef class DetAutomaton:
 
             sage: a = dag.Word(['a', 'b'])
             sage: b = dag.Word(['a', 'c'])
-            sage: a.concat(b).equal_languages(dag.Word(['a','b','a','c']))
+            sage: a.concat(b).has_same_language_as(dag.Word(['a','b','a','c']))
             True
 
         """
@@ -3613,7 +3566,7 @@ cdef class DetAutomaton:
             sage: for i in range(2):
             ....:     for j in range(2):
             ....:         d[(i,j)] = i-j
-            sage: a.proj(d).equal_languages(dag.Word([-1, 1, 0]))
+            sage: a.proj(d).has_same_language_as(dag.Word([-1, 1, 0]))
             True
 
         TESTS::
@@ -3621,7 +3574,7 @@ cdef class DetAutomaton:
             sage: a = dag.Word(['a','b'])
             sage: b = a.product(a)
             sage: d = {('a','a'):'a', ('a','b'):'a', ('b','a'):'b', ('b','b'):'b'}
-            sage: a.equal_languages(b.proj(d))
+            sage: a.has_same_language_as(b.proj(d))
             True
 
         """
@@ -3694,7 +3647,7 @@ cdef class DetAutomaton:
         TESTS::
 
             sage: a = dag.Word([('a', 'b'), ('b', 'a'), ('c', 'a')])
-            sage: a.proji(1).equal_languages(dag.Word(['b', 'a', 'a']))
+            sage: a.proji(1).has_same_language_as(dag.Word(['b', 'a', 'a']))
             True
 
             sage: a = dag.Word([0,1])
@@ -3782,11 +3735,12 @@ cdef class DetAutomaton:
     def relabel(self, d):
         """
         Change letters of the :class:`DetAutomaton` ON PLACE,
-        the dictionary is assumed to be one-to-one.
+        with respect to the dictionnary ``d``.
+        The dictionary is assumed to be one-to-one.
 
         INPUT:
 
-         - ``d``  -- dictionary for relabel
+         - ``d``  -- dictionary that gives new letters from the old ones
 
         EXAMPLES::
 
@@ -3815,43 +3769,61 @@ cdef class DetAutomaton:
         """
         self.A = [d[c] for c in self.A]
 
-    def permut(self, list A, verb=False):
+    def permut(self, list A, bool verb=False):
         """
-        Permutes (and eventually remove) letters and return permuted
-        new :class:`DetAutomaton`
+        Permutes (and eventually remove) letters of the alphabet,
+        and return permuted new :class:`DetAutomaton` with
+        the same language restricted to the new alphabet.
 
         INPUT:
 
         - ``A``  -- list of letters in the new order
-          (number can be less to the alphabet)
+          (with potentially less letters)
 
-        - ``verb`` -- boolean (default: ``False``) fix to ``True`` to
+        - ``verb`` -- boolean (default: ``False``) set to ``True`` to
           activate the verbose mode
 
         OUTPUT:
 
-        Return permuted new :class:`DetAutomaton`
+        Return new :class:`DetAutomaton`
 
         EXAMPLES::
 
+            sage: a = dag.Word([0,1,2])
+            sage: a.alphabet
+            [0, 1, 2]
+            sage: b = a.permut([2,1,0])
+            sage: b.alphabet
+            [2, 1, 0]
+            sage: a.has_same_language_as(b)
+            True
+
+            sage: a = dag.AnyWord(['a', 'b', 'c'])
+            sage: a.alphabet
+            ['a', 'c', 'b']
+            sage: b = a.permut(['a', 'b'])
+            sage: b.alphabet
+            ['a', 'b']
+            sage: b.has_same_language_as(dag.AnyWord(['a', 'b']))
+            True
+
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: l = [ 'b', 'c', 'a']
-            sage: b = a.permut(l, verb=True)
-            A=['b', 'c', 'a']
-            l=[ 1 -1 0 ]
-            l = [ 1 -1 0 ]
+            sage: b = a.permut(l)
             sage: b.alphabet
-            ['b', 'c', 'a']
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: b = a.permut(l, verb=True)
-            A=['b', 'c', 'a']
-            l=[ 1 -1 0 ]
-            l = [ 1 -1 0 ]
+            ['b', 'a']
+
+        TESTS::
+
+            sage: a = dag.Word(['a', 'b'])
+            sage: b = a.permut([0,1])
+            sage: b.alphabet
+            []
 
         """
         cdef Automaton a
         cdef int *l
-        cdef int i
+        cdef int i, na
         cdef DetAutomaton r
 
         if verb:
@@ -3866,9 +3838,11 @@ cdef class DetAutomaton:
         d = {}
         for i, c in enumerate(self.A):
             d[c] = i
+        r.A = []
         for i, c in enumerate(A):
             if d.has_key(c):
                 l[i] = d[c]  # l gives the old index from the new one
+                r.A.append(c)
         if verb:
             str = "l=["
             for i in range(len(A)):
@@ -3880,8 +3854,7 @@ cdef class DetAutomaton:
         free(l)
         sig_off()
         r.a[0] = a
-        r.A = A
-
+        r.a.na = len(A)
         return r
 
     # permute letters ON PLACE
@@ -4590,7 +4563,7 @@ cdef class DetAutomaton:
         sig_off()
         return answ
 
-    def equal_languages(self, DetAutomaton a2, bool minimized=False,
+    def has_same_language_as(self, DetAutomaton a2, bool minimized=False,
                         bool pruned=False, bool verb=False):
         """
         Test if the languages of :class:`DetAutomaton` ``self`` and ``a2`` are
@@ -4616,16 +4589,16 @@ cdef class DetAutomaton:
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=3)
             sage: c = DetAutomaton([(3, 2, 'd'), (1, 2, 'c')], i=2)
-            sage: a.equal_languages(b)
+            sage: a.has_same_language_as(b)
             False
-            sage: a.equal_languages(c)
+            sage: a.has_same_language_as(c)
             False
             sage: c = DetAutomaton([(3, 2, 'd'), (1, 2, 'c')])
-            sage: a.equal_languages(c)
+            sage: a.has_same_language_as(c)
             False
 
             sage: a = DetAutomaton([(0,0,0), (0,1,1), (1,1,0), (1,1,1)], i=0)
-            sage: dag.AnyWord([0,1]).equal_languages(a)
+            sage: dag.AnyWord([0,1]).has_same_language_as(a)
             True
         """
         cdef Dict d

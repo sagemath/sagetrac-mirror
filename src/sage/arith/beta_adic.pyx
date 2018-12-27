@@ -888,7 +888,7 @@ def split_ba(i, tr, np, lm, m, aa, ap, verb=False):
         ar = at.intersection(a1)
         # determine if we are included in ba
         ar.zero_complete_op()
-        if ar.equal_languages(a1):
+        if ar.has_same_language_as(a1):
             return (a1, None)
         else:
             # split into two pieces
@@ -1303,7 +1303,7 @@ cdef class BetaAdicSet:
         if verb:
             print("ap=%s" % ap)
         return b.included(ap)
-        # return ap.equal_languages(b)
+        # return ap.has_same_language_as(b)
 
     def is_equal_to(self, a):
         """
@@ -1978,9 +1978,9 @@ cdef class BetaAdicSet:
             sage: a1 = m.relations_automaton(algo=1)
             sage: a2 = m.relations_automaton(algo=2)
             sage: a3 = m.relations_automaton(algo=3)
-            sage: a1.equal_languages(a2)
+            sage: a1.has_same_language_as(a2)
             True
-            sage: a2.equal_languages(a3)
+            sage: a2.has_same_language_as(a3)
             True
 
             sage: m = BetaAdicSet(1/pi, [0,1])
@@ -4001,7 +4001,7 @@ cdef class BetaAdicSet:
             aa = a.copy()
             aa.zero_complete_op()
             # check that Qap contains Qaa
-            if not m.Proj(ap, aa).equal_languages(aa) and need_included:
+            if not m.Proj(ap, aa).has_same_language_as(aa) and need_included:
                 raise ValueError("The g-beta-set described by a is not included in the one described by ap.")
             # project aa on ap
             aa = m.Proj(aa, ap)
@@ -4015,7 +4015,7 @@ cdef class BetaAdicSet:
             for i in range(1, 300):
                 ba = aa.unshift(0, i)
                 ba.zero_complete_op()
-                if m.Proj(aa, ba).equal_languages(ba):
+                if m.Proj(aa, ba).has_same_language_as(ba):
                     ba = m.Proj(ba, aa)
                     np = i
                     break
@@ -4024,7 +4024,7 @@ cdef class BetaAdicSet:
         else:
             ba = aa.unshift(0, np)
             ba.zero_complete_op()
-            if not m.Proj(aa, ba).equal_languages(ba):
+            if not m.Proj(aa, ba).has_same_language_as(ba):
                 raise ValueError('The g-beta-expansion must be b^np invariant (here np=%s).' % np)
             ba = m.Proj(ba, aa)
         if verb:
