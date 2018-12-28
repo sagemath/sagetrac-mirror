@@ -26,6 +26,7 @@ AUTHOR:
 from __future__ import absolute_import
 from sage.rings.integer import Integer
 
+
 from .hasse_diagram cimport   CombinatorialPolytope_ptr, init_CombinatorialPolytope, dimension, edges, f_vector, ridges, delete_CombinatorialPolytope
 
 

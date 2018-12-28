@@ -5,7 +5,6 @@
 #include "hasse_diagram.h"
 
 
-
 static uint64_t vertex_to_bit_dictionary[64];
 
 void build_dictionary(){
@@ -260,7 +259,7 @@ inline void CombinatorialPolytope::add_ridge(unsigned int one, unsigned int two)
             nr_ridges += 1;
         }
 inline unsigned int CombinatorialPolytope::get_next_level(chunktype **faces, unsigned int lenfaces, unsigned int face_to_intersect, chunktype **nextfaces, chunktype **nextfaces2, unsigned int nr_forbidden){
-            unsigned int j, k, addthisface;
+            unsigned int j,k, addthisface;
             unsigned int newfacescounter = 0;
             unsigned int counter = 0;
             for (j = 0; j < lenfaces; j++){
@@ -270,34 +269,38 @@ inline unsigned int CombinatorialPolytope::get_next_level(chunktype **faces, uns
                 }
             }
             //we have create all possible intersection with the i_th-face, but some might not be proper i_th-faces
-            for (j = 0; j< lenfaces-1; j++){
-                addthisface = 1;
-                for(k = 0; k < newfacescounter; k++){
-                    if(is_subset(nextfaces[j],nextfaces2[k])){
-                        addthisface = 0;
+            const unsigned int constlenfaces = lenfaces;
+	    int addfacearray[lenfaces] = { };
+	    for (j = 0; j< lenfaces-1; j++){
+		addfacearray[j] = 1;
+                for(k = 0; k < j; k++){
+		    if(is_subset(nextfaces[j],nextfaces[k])){
+                        addfacearray[j] = 0;
                         break;
                     }
                 }
-                if (!addthisface) {
+                if (!addfacearray[j]) {
                     continue;
                 }
-                for(k = j+1; k < lenfaces-1; k++){
-                    if(is_subset(nextfaces[j],nextfaces[k])){
-                        addthisface = 0;
-                        break;
-                    }
-                }
-                if (!addthisface) {
-                    continue;
-                }
-                //and some of them we might have counted already
-                for (k = 0; k < nr_forbidden; k++){
+		for(k = j+1; k < lenfaces-1; k++){
+		    if(is_subset(nextfaces[j],nextfaces[k])){
+			addfacearray[j] = 0;
+			break;
+		    }   
+		}   
+		if (!addfacearray[j]) {
+		    continue;
+		}   
+		for (k = 0; k < nr_forbidden; k++){
                     if(is_subset(nextfaces[j],forbidden[k])){
-                        addthisface = 0;
+                        addfacearray[j] = 0;
                         break;
                     }
                 }
-                if (!addthisface) {
+		
+	    }
+	    for (j = 0; j < lenfaces -1; j++){
+                if (!addfacearray[j]) {
                     continue;
                 }
                 nextfaces2[newfacescounter] = nextfaces[j];
