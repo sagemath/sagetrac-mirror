@@ -4720,7 +4720,7 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        return a word of the language of the Automaton as a list
+        return a word of the language as a list
         of letters if it exists, otherwise return None
 
         EXAMPLES::
@@ -4769,7 +4769,7 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        return a word, as list of letters
+        return a word, as list of letters, or None if the language is empty.
 
         EXAMPLES::
 
@@ -4788,12 +4788,33 @@ cdef class DetAutomaton:
             sage: a = DetAutomaton([(0,0,0)])
             sage: a.shortest_word()
             
+
+        TESTS::
+
+            sage: a = dag.AnyWord("ab")
+            sage: a.shortest_word(i=-2)
+            Traceback (most recent call last):
+            ...
+            ValueError: -2 is not a state (i.e. between 0 and 0)
+
+            sage: a = dag.AnyWord("ab")
+            sage: a.shortest_word(f=-2)
+            Traceback (most recent call last):
+            ...
+            ValueError: -2 is not a state (i.e. between 0 and 0)
+
         """
         cdef Dict w
         if i is None:
             i = self.a.i
+        else:
+            if i < -1 or i >= self.a.n:
+                raise ValueError("%s is not a state (i.e. between 0 and %s)" % (i, self.a.n-1))
         if f is None:
             f = -1
+        else:
+            if f < -1 or f >= self.a.n:
+                raise ValueError("%s is not a state (i.e. between 0 and %s)" % (f, self.a.n-1))
         sig_on()
         res = shortestWord(self.a[0], &w, i, f, verb)
         sig_off()
@@ -4807,14 +4828,15 @@ cdef class DetAutomaton:
         sig_off()
         return r
 
-    def shortest_words(self, i=None, verb=False):
+    def shortest_words(self, i=None, bool verb=False):
         """
-        Compute the shortest words of from the initial state to every state.
+        Compute the shortest words from the initial state to every state.
 
         INPUT:
 
         - ``i`` -- (default: None)  the initial state
-        - ``verb`` -- (default: False)  the verbose parameter
+
+        - ``verb`` -- bool (default: False)  the verbose parameter
 
         OUTPUT:
 
@@ -4822,12 +4844,25 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
+            sage: a = dag.Word("abaa")
+            sage: a.shortest_words()
+            [[], ['a'], ['a', 'b'], ['a', 'b', 'a'], ['a', 'b', 'a', 'a']]
+
+            sage: a = dag.AnyWord("ab")
+            sage: a.shortest_words()
+            [[]]
+
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.shortest_words()
             [[], ['a'], [], []]
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: a.shortest_words()
 
+        TESTS::
+
+            sage: a = dag.AnyWord("ab")
+            sage: a.shortest_words(i=-2)
+            Traceback (most recent call last):
+            ...
+            ValueError: -2 is not a state (i.e. between 0 and 0)
         """
         cdef Dict* w
         sig_on()
@@ -4838,6 +4873,9 @@ cdef class DetAutomaton:
                               "shortest_words")
         if i is None:
             i = self.a.i
+        else:
+            if i < -1 or i >= self.a.n:
+                raise ValueError("%s is not a state (i.e. between 0 and %s)" % (i, self.a.n-1))
         sig_on()
         res = shortestWords(self.a[0], w, i, verb)
         sig_off()
@@ -4857,46 +4895,7 @@ cdef class DetAutomaton:
         sig_off()
         return rt
 
-    # determine if the word is recognized by the automaton or not
-    def rec_word2(self, list w):
-        """
-        Determine if the word ``w`` is recognized or nor not by the automaton
-
-        INPUT:
-
-        - ``w`` -- a list of letters
-
-        OUTPUT:
-
-        return 1 if the word is recognized, otherwise 0
-
-        EXAMPLES::
-
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: w = ['a', 'b', 'b']
-            sage: a.rec_word2(w)
-            0
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: a.rec_word2(w)
-            0
-
-        """
-        cdef Dict d
-        cdef dict rd
-        cdef bool res
-        rd = {}
-        for i, a in enumerate(self.A):
-            rd[a] = i
-        sig_on()
-        d = NewDict(len(w))
-        for i, a in enumerate(w):
-            d.e[i] = rd[a]
-        res = rec_word(self.a[0], d)
-        sig_off()
-        return res
-
-    # determine if the word is recognized by the automaton or not
-    def rec_word(self, list w):
+    def rec_word(self, w):
         """
         Determine if the word ``w`` is recognized or nor not by the automaton
 
@@ -4910,13 +4909,26 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
+            sage: a = dag.Word("abaa")
+            sage: a.rec_word("aba")
+            False
+            sage: a.rec_word("abaa")
+            True
+
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: w = ['a', 'b', 'b']
-            sage: a.rec_word(w)
+            sage: a.rec_word(['a', 'b', 'b'])
             False
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: a.rec_word(w)
-            False
+            sage: a.rec_word("a")
+            True
+
+        TESTS::
+
+            sage: a = dag.Word("ab")
+            sage: a.rec_word(['a', 0])
+            Traceback (most recent call last):
+            ...
+            KeyError: 0
+
         """
         cdef int i, e
         cdef dict d     
@@ -4930,8 +4942,7 @@ cdef class DetAutomaton:
             e = self.a.e[e].f[d[a]]
             if e == -1:
                 return False
-        answ = c_bool(self.a.e[e].final)
-        return answ
+        return c_bool(self.a.e[e].final)
 
     def add_state(self, bool final, label=""):
         """
@@ -4949,23 +4960,27 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
+            sage: a = dag.Word("abaa")
+            sage: s = a.add_state(true)
+            sage: a.add_transition(2,'b',s)
+            sage: a.rec_word("abb")
+            True
+
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.add_state(True)
             4
             sage: a.add_state(False)
             5
+
             sage: a = DetAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
                 (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
                 (10,30,'z')], i=10)
+            sage: a
+            DetAutomaton with 3 states and an alphabet of 3 letters
             sage: a.add_state(True)
             3
             sage: a
             DetAutomaton with 4 states and an alphabet of 3 letters
-            sage: a = DetAutomaton([(10,10,'x'),(10,20,'y'),(20,20,'z'),\
-                (20,10,'y'),(20,30,'x'),(30,30,'y'),(30,10,'z'),(30,20,'x'),\
-                (10,30,'z')])
-            sage: a.add_state(True)
-            3
 
         """
         sig_on()
@@ -4982,14 +4997,30 @@ cdef class DetAutomaton:
         INPUT:
 
         - ``i`` - int - the first state
+
         - ``l`` -- the label of edge
+
         - ``j`` - int - the second state
 
         EXAMPLES::
 
+            sage: a = dag.Word("abaa")
+            sage: a.add_transition(2,'a',4)
+            sage: a.rec_word("aba")
+            True
+
+            sage: a = dag.Word("abaa")
+            sage: s = a.add_state(true)
+            sage: a.add_transition(2,'b',s)
+            sage: a.rec_word("abb")
+            True
+
+        TESTS::
+
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.add_transition(2,'a',1)
-
+            sage: a == DetAutomaton([(0, 1, 'a'), (2, 3, 'b'), (2, 1, 'a')], i=0)
+            True
             sage: a.add_transition(2,'v',1)
             Traceback (most recent call last):
             ...
@@ -5002,8 +5033,6 @@ cdef class DetAutomaton:
             Traceback (most recent call last):
             ...
             ValueError: The state 5 doesn't exist.
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: a.add_transition(2,'a',1)
 
         """
         if i < 0 or i >= self.a.n:
@@ -5025,14 +5054,15 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
-        return the numbers of states
+        int
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = dag.Word("abaa")
             sage: a.n_states
-            4
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
+            5
+
+            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.n_states
             4
 
@@ -5050,24 +5080,25 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = dag.Word("abaaca")
             sage: a.n_letters
-            2
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
+            3
+
+            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.n_letters
             2
 
         """
         return self.a.na
 
-    def bigger_alphabet(self, nA):
+    def bigger_alphabet(self, A):
         """
         Gives a copy of the :class:`DetAutomaton`, but with the
-        bigger alphabet ``nA``
+        bigger alphabet ``A``.
 
         INPUT:
 
-        - ``nA`` --  alphabet of the new automaton. We assume that it
+        - ``A`` --  alphabet of the new automaton. We assume that it
           contains the current alphabet of the automaton.
 
         OUTPUT:
@@ -5079,6 +5110,7 @@ cdef class DetAutomaton:
             sage: a = dag.AnyLetter(['a', 'b'])
             sage: a.bigger_alphabet(['a','b','c'])
             DetAutomaton with 2 states and an alphabet of 3 letters
+
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
             sage: a.bigger_alphabet(['a','b','c'])
             DetAutomaton with 4 states and an alphabet of 3 letters
@@ -5101,14 +5133,14 @@ cdef class DetAutomaton:
         sig_off()
         for i in range(self.a.na):
             try:
-                d.e[i] = nA.index(self.A[i])
+                d.e[i] = A.index(self.A[i])
             except Exception:
                 raise ValueError("Letter %s not found in the new alphabet"%self.A[i])
             sig_check()
         sig_on()
-        r.a[0] = BiggerAlphabet(self.a[0], d, len(nA))
+        r.a[0] = BiggerAlphabet(self.a[0], d, len(A))
         sig_off()
-        r.A = nA
+        r.A = A
         return r
 
     def complementary_op(self):
@@ -5116,7 +5148,7 @@ cdef class DetAutomaton:
         Change the language of the automaton to the complementary ON PLACE.
         If the language of self was L and the alphabet is A,
         then the new language of self is A^*\L
-        (i.e. words over the alphabet A not in L)
+        (i.e. words over the alphabet A that are not in L)
 
         OUTPUT:
 
@@ -5125,11 +5157,12 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = dag.Word("abaa")
             sage: a.complementary_op()
             sage: a
-            DetAutomaton with 5 states and an alphabet of 2 letters
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
+            DetAutomaton with 6 states and an alphabet of 2 letters
+
+            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.complementary_op()
             sage: a
             DetAutomaton with 5 states and an alphabet of 2 letters
@@ -5150,10 +5183,11 @@ cdef class DetAutomaton:
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
+            sage: a = dag.Word("abaa")
             sage: a.complementary()
-            DetAutomaton with 5 states and an alphabet of 2 letters
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
+            DetAutomaton with 6 states and an alphabet of 2 letters
+
+            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.complementary()
             DetAutomaton with 5 states and an alphabet of 2 letters
         """
