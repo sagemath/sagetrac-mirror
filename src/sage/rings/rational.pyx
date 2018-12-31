@@ -3155,66 +3155,101 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (125/8).log(5/2,prec=53)
             3.00000000000000
             
-        TESTS::
+        TESTS:
+
+        Test :trac:`26962`::
         
             sage: (25/2).log(5/2)
             log(25/2)/log(5/2)
+
+            sage: a = 2/3
+            sage: (a**3).log(a**2)
+            3/2
+            sage: (a**3).log(a**-2)
+            -3/2
+            sage: parent((a**3).log(a**2))
+            Rational Field
+            sage: parent((a**3).log(a**-2))
+            Rational Field
+
+            sage: QQ(2**6/3**10).log()
+            2*log(8/243)
+            sage: QQ(2**6 / 3**10).log(243)
+            2/5*log(8/243)/log(3)
+
+            sage: (-2/3).log()
+            I*pi + log(2/3)
+            sage: (-2/3).log(2/3)
+            (I*pi + log(2/3))/log(2/3)
+            sage: (-2/3).log(2/3).n() == (-2./3).log(2./3)
+            True
         """
-        if self.denom() == ZZ.one():
-            return ZZ(self.numer()).log(m, prec)
+        if m is not None:
+            try:
+                m = Rational(m)
+            except (ValueError, TypeError):
+                raise ValueError("log base must be rational")
+            if m <= 0:
+                raise ValueError("log base must be positive")
+
         if mpz_sgn(mpq_numref(self.value)) < 0:
-            from sage.symbolic.all import SR
-            return SR(self).log()
-        if m is not None and m <= 0:
-            raise ValueError("log base must be positive")
+            from sage.libs.pynac.pynac import I
+            from sage.symbolic.constants import pi
+            if m is None:
+                return I * pi + (-self).log()
+            else:
+                return (I * pi + (-self).log()) / m.log()
+
         if prec:
             from sage.rings.real_mpfr import RealField
+            R = RealField(prec)
             if m is None:
-                return RealField(prec)(self).log()
-            return RealField(prec)(self).log(m)
-
-        from sage.functions.log import function_log
-        if m is None:
-            return function_log(self, dont_call_method_on_arg=True)
+                return R(self).log()
+            else:
+                return R(self).log(m)
 
         anum = self.numer()
         aden = self.denom()
-        mrat = Rational(m)
-        bnum = mrat.numer()
-        bden = mrat.denom()
-
         anp = anum.perfect_power()
-        bnp = bnum.perfect_power()
         adp = aden.perfect_power()
-        bdp = bden.perfect_power()
 
         if anum.is_one():
-            a_exp=adp[1]
-            a_base=1/adp[0]
+            a_exp = adp[1]
+            a_base = 1 / adp[0]
         elif aden.is_one():
-            a_exp=anp[1]
-            a_base=anp[0]
+            a_exp = anp[1]
+            a_base = anp[0]
         else:
-            a_exp=anp[1].gcd(adp[1])
-            a_base=(anp[0]**(anp[1]//a_exp))/(adp[0]**(adp[1]//a_exp))
+            a_exp = anp[1].gcd(adp[1])
+            a_base = anp[0] ** (anp[1] // a_exp) / adp[0] ** (adp[1] // a_exp)
+
+        if m is None:
+            from sage.functions.log import function_log
+            return a_exp * function_log(a_base, dont_call_method_on_arg=True)
+
+        bnum = m.numer()
+        bden = m.denom()
+        bnp = bnum.perfect_power()
+        bdp = bden.perfect_power()
 
         if bnum.is_one():
-            b_exp=bdp[1]
-            b_base=1/bdp[0]
+            b_exp = bdp[1]
+            b_base = 1 / bdp[0]
         elif bden.is_one():
-            b_exp=bnp[1]
-            b_base=bnp[0]
+            b_exp = bnp[1]
+            b_base = bnp[0]
         else:
-            b_exp=bnp[1].gcd(bdp[1])
-            b_base=(bnp[0]**(bnp[1]//b_exp))/(bdp[0]**(bdp[1]//b_exp))
+            b_exp = bnp[1].gcd(bdp[1])
+            b_base = bnp[0] ** (bnp[1] // b_exp) / bdp[0] ** (bdp[1] // b_exp)
 
         if a_base == b_base:
-            return a_exp/b_exp
-        elif a_base*b_base == 1:
-            return -a_exp/b_exp
-
-        return (function_log(self, dont_call_method_on_arg=True) /
-                function_log(m, dont_call_method_on_arg=True))
+            return a_exp / b_exp
+        elif (a_base * b_base).is_one():
+            return -a_exp /b_exp
+        else:
+            from sage.functions.log import function_log
+            return (a_exp * function_log(a_base, dont_call_method_on_arg=True) /
+                    (b_exp * function_log(b_base, dont_call_method_on_arg=True)))
 
     def gamma(self, prec=None):
         """
