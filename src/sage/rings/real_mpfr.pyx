@@ -2891,6 +2891,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
             3.14159300000000
             sage: x.parent()
             Real Field with 53 bits of precision
+
+            sage: RealField(rnd='RNDN')(2.5).__round__()
+            2
+            sage: RealField(rnd='RNDU')(2.5).__round__()
+            3
         """
         cdef Integer z
         cdef RealNumber r
