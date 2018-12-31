@@ -481,7 +481,7 @@ class WordMorphism(SageObject):
         try:
             codom_alphabet = sorted(codom_alphabet)
         except TypeError:
-            pass
+            codom_alphabet = list(codom_alphabet)
         return FiniteWords(codom_alphabet)
 
     @cached_method
