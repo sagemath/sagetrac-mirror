@@ -89,6 +89,11 @@ toolchain-deps:
 all-toolchain: base-toolchain
 	$(MAKE) toolchain-deps
 
+# All packages needed as a prerequisite to install other Python packages
+# with pip; these should be given as a prerequisite to any pip-installed
+# packages
+PYTHON_TOOLCHAIN = setuptools pip setuptools_scm
+
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
 SAGERUNTIME = sagelib $(SCRIPTS) $(inst_ipython) $(inst_pexpect) \
