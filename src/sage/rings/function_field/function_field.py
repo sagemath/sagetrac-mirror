@@ -789,6 +789,25 @@ class FunctionField(Field):
         """
         return self if is_RationalFunctionField(self) else self.base_field().rational_function_field()
 
+    @cached_method
+    def space_of_differentials(self):
+        """
+        Return the space of differentials attached to the function field.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(5)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
+            sage: L.space_of_differentials()
+            Space of differentials of Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
+
+            sage: K.<t> = FunctionField(QQ)
+            sage: K.space_of_differentials()
+            Space of differentials of Rational function field in t over Rational Field
+        """
+        from .differential import DifferentialsSpace
+        return DifferentialsSpace(self)
+
     def valuation(self, prime):
         r"""
         Return the discrete valuation on this function field defined by
@@ -2646,21 +2665,6 @@ class FunctionField_global(FunctionField_polymod):
         return PlaceSet(self)
 
     @cached_method
-    def space_of_differentials(self):
-        """
-        Return the space of differentials attached to the function field.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(5)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
-            sage: L.space_of_differentials()
-            Space of differentials of Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
-        """
-        from .differential import DifferentialsSpace
-        return DifferentialsSpace(self)
-
-    @cached_method
     def divisor_group(self):
         """
         Return the group of divisors attached to the function field.
@@ -4077,20 +4081,6 @@ class RationalFunctionField(FunctionField):
         if not self.constant_base_field().is_perfect():
             raise NotImplementedError("not implemented for non-perfect base fields")
         return FunctionFieldDerivation_rational(self, self.one())
-
-    @cached_method
-    def space_of_differentials(self):
-        """
-        Return the space of differentials of the rational function field.
-
-        EXAMPLES::
-
-            sage: K.<t> = FunctionField(QQ)
-            sage: K.space_of_differentials()
-            Space of differentials of Rational function field in t over Rational Field
-        """
-        from .differential import DifferentialsSpace
-        return DifferentialsSpace(self)
 
     @cached_method
     def divisor_group(self):
