@@ -20,10 +20,9 @@ from .toric_lattice import ToricLattice
 
 from . import toric_plotter
 
-
 from .hyperbolic_space.all import *
 
-from .voronoi_diagram import *
+from .voronoi_diagram import VoronoiDiagram
 
 lazy_import('sage.geometry.ribbon_graph', 'RibbonGraph')
 lazy_import('sage.geometry.tat_graph', 'TatGraph')
@@ -32,3 +31,5 @@ lazy_import('sage.geometry.tat_graph', 'check_tat_property')
 lazy_import('sage.geometry.tat_graph', 'bipartite_tat_graph')
 lazy_import('sage.geometry.hyperplane_arrangement.arrangement', 'HyperplaneArrangements')
 lazy_import('sage.geometry.hyperplane_arrangement.library', 'hyperplane_arrangements')
+
+del absolute_import

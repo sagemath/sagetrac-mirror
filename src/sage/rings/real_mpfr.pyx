@@ -123,7 +123,7 @@ import math # for log
 import sys
 import re
 
-from cpython.object cimport Py_NE
+from cpython.object cimport Py_NE, Py_EQ
 from cysignals.signals cimport sig_on, sig_off
 
 from sage.ext.stdsage cimport PY_NEW
@@ -131,11 +131,11 @@ from sage.libs.gmp.pylong cimport mpz_set_pylong
 from sage.libs.gmp.mpz cimport *
 from sage.libs.mpfr cimport *
 from sage.misc.randstate cimport randstate, current_randstate
-from sage.cpython.string cimport char_to_str
+from sage.cpython.string cimport char_to_str, str_to_bytes
 from sage.misc.superseded import deprecation
 
 from sage.structure.element cimport RingElement, Element, ModuleElement
-from sage.structure.richcmp cimport rich_to_bool_sgn
+from sage.structure.richcmp cimport rich_to_bool_sgn, rich_to_bool
 cdef bin_op
 from sage.structure.element import bin_op
 
@@ -166,6 +166,7 @@ import sage.rings.infinity
 
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.arith.numerical_approx cimport digits_to_bits
+from sage.arith.constants cimport M_LN2_LN10
 
 IF HAVE_GMPY2:
     cimport gmpy2
@@ -438,7 +439,8 @@ cpdef RealField(int prec=53, int sci_not=0, rnd=MPFR_RNDN):
         try:
             r = rounding_modes[rnd]
         except KeyError:
-            raise ValueError("rounding mode (={!r}) must be one of {}".format(rnd, rounding_modes.keys()))
+            raise ValueError("rounding mode (={!r}) must be one of {}".format(rnd,
+                sorted(rounding_modes)))
 
     try:
         return RealField_cache[prec, sci_not, r]
@@ -525,7 +527,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         cdef const char* rnd_str = mpfr_print_rnd_mode(self.rnd)
         if rnd_str is NULL:
             raise ValueError("unknown rounding mode {}".format(rnd))
-        self.rnd_str = (rnd_str + 5)  # Strip "MPFR_"
+        self.rnd_str = char_to_str(rnd_str + 5)  # Strip "MPFR_"
 
         from sage.categories.fields import Fields
         ParentWithGens.__init__(self, self, tuple([]), False, category=Fields().Metric().Complete())
@@ -650,6 +652,8 @@ cdef class RealField_class(sage.rings.ring.Field):
             ValueError: can only convert signed infinity to RR
             sage: R(CIF(NaN))
             NaN
+            sage: R(complex(1.7))
+            1.7000
         """
         if hasattr(x, '_mpfr_'):
             return x._mpfr_(self)
@@ -737,7 +741,7 @@ cdef class RealField_class(sage.rings.ring.Field):
             return self.convert_method_map(S, "_mpfr_")
         return self._coerce_map_via([RLF], S)
 
-    def __cmp__(self, other):
+    def __richcmp__(RealField_class self, other, int op):
         """
         Compare two real fields, returning ``True`` if they are equivalent
         and ``False`` if they are not.
@@ -768,14 +772,14 @@ cdef class RealField_class(sage.rings.ring.Field):
             sage: RR == RS
             True
         """
+        if op != Py_EQ and op != Py_NE:
+            return NotImplemented
         if not isinstance(other, RealField_class):
-            return -1
-        cdef RealField_class _other
-        _other = other  # to access C structure
-        if self.__prec == _other.__prec and self.rnd == _other.rnd: \
-               #and self.sci_not == _other.sci_not:
-            return 0
-        return 1
+            return NotImplemented
+
+        _other = <RealField_class>other  # to access C structure
+        return (self.__prec == _other.__prec and
+                self.rnd == _other.rnd) == (op == Py_EQ)
 
     def __reduce__(self):
         """
@@ -1436,7 +1440,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: import numpy
             sage: numpy.arange(10.0)
-            array([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.])
+            array([0., 1., 2., 3., 4., 5., 6., 7., 8., 9.])
             sage: numpy.array([1.0, 1.1, 1.2]).dtype
             dtype('float64')
             sage: numpy.array([1.000000000000000000000000000000000000]).dtype
@@ -1457,7 +1461,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             if isinstance(x, RealLiteral):
                 s = (<RealLiteral>x).literal
                 base = (<RealLiteral>x).base
-                if mpfr_set_str(self.value, s, base, parent.rnd):
+                if mpfr_set_str(self.value, str_to_bytes(s), base, parent.rnd):
                     self._set(s, base)
             else:
                 mpfr_set(self.value, (<RealNumber>x).value, parent.rnd)
@@ -1475,6 +1479,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpfr_set_si(self.value, x, parent.rnd)
         elif isinstance(x, float):
             mpfr_set_d(self.value, x, parent.rnd)
+        elif isinstance(x, complex) and x.imag == 0:
+            mpfr_set_d(self.value, x.real, parent.rnd)
         elif isinstance(x, RealDoubleElement):
             mpfr_set_d(self.value, (<RealDoubleElement>x)._value, parent.rnd)
         elif HAVE_GMPY2 and type(x) is gmpy2.mpfr:
@@ -1488,7 +1494,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             s_lower = s.lower()
             if s_lower == 'infinity':
                 raise ValueError('can only convert signed infinity to RR')
-            elif mpfr_set_str(self.value, s, base, parent.rnd) == 0:
+            elif mpfr_set_str(self.value, str_to_bytes(s), base, parent.rnd) == 0:
                 pass
             elif s == 'NaN' or s == '@NaN@' or s == '[..NaN..]' or s == 'NaN+NaN*I':
                 mpfr_set_nan(self.value)
@@ -1837,10 +1843,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
           ``digits`` is zero, choose this automatically.
 
         - ``no_sci`` -- if 2, never print using scientific notation; if
-          ``True``, use scientific notation only for very large or very
-          small numbers; if ``False`` always print with scientific
-          notation; if ``None`` (the default), print how the parent
-          prints.
+          ``True``, use scientific notation only for large or small
+          numbers; if ``False`` always print with scientific notation;
+          if ``None`` (the default), print how the parent prints.
 
         - ``e`` -- symbol used in scientific notation; defaults to 'e' for
           base=10, and '@' otherwise
@@ -1930,6 +1935,26 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: y.str(digits=1)
             '-4.'
 
+        The output always contains a decimal point, except when using
+        scientific notation with exactly one digit::
+
+            sage: print((1e1).str(digits=1))
+            10.
+            sage: print((1e10).str(digits=1))
+            1e10
+            sage: print((1e-1).str(digits=1))
+            0.1
+            sage: print((1e-10).str(digits=1))
+            1e-10
+            sage: print((-1e1).str(digits=1))
+            -10.
+            sage: print((-1e10).str(digits=1))
+            -1e10
+            sage: print((-1e-1).str(digits=1))
+            -0.1
+            sage: print((-1e-10).str(digits=1))
+            -1e-10
+
         TESTS::
 
             sage: x = RR.pi()
@@ -1994,7 +2019,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             # This avoids the confusion a lot of people have with the last
             # 1-2 binary digits being wrong due to rounding coming from
             # representing numbers in binary.
-            digits = <size_t>(((<RealField_class>self._parent).__prec - 1) * 0.3010299956)
+            digits = <size_t>(((<RealField_class>self._parent).__prec - 1) * M_LN2_LN10)
             if digits < 2:
                 digits = 2
 
@@ -2006,45 +2031,39 @@ cdef class RealNumber(sage.structure.element.RingElement):
         sig_off()
         if s is NULL:
             raise RuntimeError("unable to convert an mpfr number to a string")
-        t = char_to_str(s)
+        # t contains just digits (no sign, decimal point or exponent)
+        if s[0] == '-':
+            sgn = "-"
+            t = char_to_str(s + 1)
+        else:
+            sgn = ""
+            t = char_to_str(s)
         mpfr_free_str(s)
 
         if skip_zeroes:
             t = _re_skip_zeroes.match(t).group(1)
 
         if no_sci is None:
-            no_sci = not (<RealField_class>self._parent).sci_not
+            use_sci = (<RealField_class>self._parent).sci_not or abs(exponent-1) >= 6
+        elif no_sci is True:
+            use_sci = abs(exponent-1) >= 6
+        else:
+            use_sci = not no_sci
 
-        if no_sci is True and abs(exponent-1) >= 6:
-            no_sci = False
-
-        if not no_sci:
-            if t[0] == "-":
-                return "-%s.%s%s%s" % (t[1:2], t[2:], e, exponent-1)
-            return "%s.%s%s%s" % (t[0], t[1:], e, exponent-1)
-
-        lpad = ''
+        if use_sci:
+            if len(t) > 1:
+                t = t[0] + "." + t[1:]
+            return "%s%s%s%s" % (sgn, t, e, exponent-1)
 
         if exponent <= 0:
-            n = len(t)
-            lpad = '0.' + '0'*abs(exponent)
+            # Only digits after decimal point
+            return sgn + '0.' + '0' * (-exponent) + t
+        elif exponent >= len(t):
+            # Only digits before decimal point
+            return sgn + t + '0' * (exponent - len(t)) + "."
         else:
-            n = exponent
-
-        if t[0] == '-':
-            lpad = '-' + lpad
-            t = t[1:]
-        z = lpad + str(t[:n])
-        w = t[n:]
-
-        if len(w) > 0 and '.' not in z:
-            z = z + ".%s" % w
-        elif exponent > 0:
-            z = z + '0'*(n-len(t))
-        if '.' not in z:
-            z = z + "."
-
-        return z
+            # Digits before and after decimal point
+            return sgn + t[:exponent] + "." + t[exponent:]
 
     def hex(self):
         """
@@ -5705,66 +5724,6 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
     return RealLiteral(R, s, base)
 
 
-# here because this imports the other real fields
-def create_RealField(prec=53, type="MPFR", rnd="RNDN", sci_not=0):
-    """
-    Create a real field with given precision, type, rounding mode and
-    scientific notation.
-
-    Some options are ignored for certain types (RDF for example).
-
-    INPUT:
-
-    - ``prec`` -- a positive integer
-
-    - ``type`` -- type of real field:
-
-      - ``'RDF'`` -- the Sage real field corresponding to native doubles
-      - ``'Interval'`` -- real fields implementing interval arithmetic
-      - ``'RLF'`` -- the real lazy field
-      - ``'MPFR'`` -- floating point real numbers implemented using the MPFR
-        library
-
-    - ``rnd`` -- rounding mode:
-
-      - ``'RNDN'`` -- round to nearest
-      - ``'RNDZ'`` -- round toward zero
-      - ``'RNDD'`` -- round down
-      - ``'RNDU'`` -- round up
-
-    - ``sci_not`` -- boolean, whether to use scientific notation for printing
-
-    OUTPUT:
-
-    the appropriate real field
-
-    EXAMPLES::
-
-        sage: from sage.rings.real_mpfr import create_RealField
-        sage: create_RealField(30)
-        Real Field with 30 bits of precision
-        sage: create_RealField(20, 'RDF') # ignores precision
-        Real Double Field
-        sage: create_RealField(60, 'Interval')
-        Real Interval Field with 60 bits of precision
-        sage: create_RealField(40, 'RLF') # ignores precision
-        Real Lazy Field
-    """
-    if type == "RDF":
-        return RDF
-    elif type == "Interval":
-        from .real_mpfi import RealIntervalField
-        return RealIntervalField(prec, sci_not)
-    elif type == "Ball":
-        from .real_arb import RealBallField
-        return RealBallField(prec)
-    elif type == "RLF":
-        from .real_lazy import RLF
-        return RLF
-    else:
-        return RealField(prec, sci_not, rnd)
-
-
 def is_RealField(x):
     """
     Returns ``True`` if ``x`` is technically of a Python real field type.
@@ -5848,7 +5807,8 @@ cdef class RRtoRR(Map):
         cdef RealField_class parent = <RealField_class>self._codomain
         cdef RealNumber y = parent._new()
         if type(x) is RealLiteral:
-            mpfr_set_str(y.value, (<RealLiteral>x).literal, (<RealLiteral>x).base, parent.rnd)
+            mpfr_set_str(y.value, str_to_bytes((<RealLiteral>x).literal),
+                         (<RealLiteral>x).base, parent.rnd)
         else:
             mpfr_set(y.value, (<RealNumber>x).value, parent.rnd)
         return y
@@ -5962,3 +5922,21 @@ cdef class int_toRR(Map):
             raise TypeError("argument cannot be converted to a Python int/long")
 
         return y
+
+
+def create_RealField(*args, **kwds):
+    r"""
+    Deprecated function moved to :mod:`sage.rings.real_field`.
+
+    TESTS::
+
+        sage: from sage.rings.real_mpfr import create_RealField
+        sage: create_RealField()
+        doctest:...: DeprecationWarning: Please import create_RealField from sage.rings.real_field
+        See http://trac.sagemath.org/24511 for details.
+        Real Field with 53 bits of precision
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(24511, "Please import create_RealField from sage.rings.real_field")
+    from sage.rings.real_field import create_RealField as cr
+    return cr(*args, **kwds)
