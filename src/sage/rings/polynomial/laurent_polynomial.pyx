@@ -3204,6 +3204,14 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: f = 4*x^7*z^-1 + 3*x^3*y + 2*x^4*z^-2 + x^6*y^-7
             sage: f.factor()
             (x^3*y^-7*z^-2) * (4*x^4*y^7*z + 3*y^8*z^2 + 2*x*y^7 + x^3*z^2)
+
+        TESTS:
+
+        Test that :trac:`20607` is fixed::
+
+            sage: L.<x,y> = LaurentPolynomialRing(ZZ)
+            sage: (y + x/y).factor()
+            (y^-1) * (y^2 + x)
         """
         P = self._parent
         pf = self._poly.factor()
