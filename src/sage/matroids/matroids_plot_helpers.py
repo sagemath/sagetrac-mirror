@@ -81,7 +81,7 @@ from sage.matroids.advanced import newlabel
 
 
 def it(M, B1, nB1, lps):
-    """
+    r"""
     Return points on and off the triangle and lines to be drawn for a rank 3
     matroid.
 
@@ -133,10 +133,8 @@ def it(M, B1, nB1, lps):
 
     .. NOTE::
 
-            This method does NOT do any checks.
-
+        This method does NOT do any checks.
     """
-
     tripts = [(0, 0), (1, 2), (2, 0)]
     pts = {}
     j = 0
@@ -241,7 +239,7 @@ def addnontripts(tripts_labels, nontripts_labels, ptsdict):
     OUTPUT:
 
     A dictionary containing ground set elements in ``tripts`` as keys and
-    their (x,y) position as values allong with all keys and respective values
+    their (x,y) position as values along with all keys and respective values
     in ``ptsdict``.
 
     EXAMPLES::
@@ -412,7 +410,7 @@ def slp(M1, pos_dict=None, B=None):
         sage: M.is_simple()
         True
         sage: setprint([L,P])
-        [{7}, {8, 9, 10}]
+        [{10, 8, 9}, {7}]
         sage: M1=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1,0,1],
         ....: [0, 1, 0, 1, 0, 1, 1,0,0,1,0],[0, 0, 1, 1, 1, 0, 1,0,0,0,0]])
         sage: posdict= {8: (0, 0),  1: (2, 0),  2: (1, 2),  3: (1.5, 1.0),
@@ -421,7 +419,7 @@ def slp(M1, pos_dict=None, B=None):
         sage: M.is_simple()
         True
         sage: setprint([L,P])
-        [{7}, {0, 9, 10}]
+        [{0, 10, 9}, {7}]
 
     .. NOTE::
 
