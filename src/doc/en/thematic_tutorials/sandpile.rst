@@ -732,7 +732,7 @@ Representatives of all divisor classes with nontrivial homology::
     sage: p = S.betti_complexes()
     sage: p[0]
     [{0: -8, 1: 5, 2: 4, 3: 1},
-     Simplicial complex with vertex set (1, 2, 3) and facets {(1, 2), (3,)}]
+     Simplicial complex with vertex set (1, 2, 3) and facets {(3,), (1, 2)}]
 
 The homology associated with the first divisor in the list::
 
@@ -742,7 +742,7 @@ The homology associated with the first divisor in the list::
     sage: [E.support() for E in D.effective_div()]
     [[3], [1, 2]]
     sage: D.Dcomplex()
-    Simplicial complex with vertex set (1, 2, 3) and facets {(1, 2), (3,)}
+    Simplicial complex with vertex set (1, 2, 3) and facets {(3,), (1, 2)}
     sage: D.Dcomplex().homology()
     {0: Z, 1: 0}
 
@@ -1141,7 +1141,7 @@ EXAMPLES::
     sage: S = Sandpile({0:{},1:{0: 1, 2: 1, 3: 4},2:{3: 5},3:{1: 1, 2: 1}},0)
     sage: p = S.betti_complexes()
     sage: p[0]
-    [{0: -8, 1: 5, 2: 4, 3: 1}, Simplicial complex with vertex set (1, 2, 3) and facets {(1, 2), (3,)}]
+    [{0: -8, 1: 5, 2: 4, 3: 1}, Simplicial complex with vertex set (1, 2, 3) and facets {(3,), (1, 2)}]
     sage: S.resolution()
     'R^1 <-- R^5 <-- R^5 <-- R^1'
     sage: S.betti()
@@ -3042,10 +3042,9 @@ fires in the stabilization.::
     sage: m = S.max_stable()
     sage: a = []
     sage: for i in range(1000):
-    ...       m = m.add_random()
-    ...       m, f = m.stabilize(True)
-    ...       a.append(sum(f.values()))
-    ...
+    ....:     m = m.add_random()
+    ....:     m, f = m.stabilize(True)
+    ....:     a.append(sum(f.values()))
     sage: p = list_plot([[log(i+1),log(a.count(i))] for i in [0..max(a)] if a.count(i)])
     sage: p.axes_labels(['log(N)','log(D(N))'])
     sage: t = text("Distribution of avalanche sizes", (2,2), rgbcolor=(1,0,0))
@@ -3656,7 +3655,7 @@ SandpileDivisor
 
 - :ref:`is_weierstrass_pt <is_weierstrass_pt-divisor>` --- Is the given vertex a Weierstrass point?
 
-- :ref:`polytope <polytope-divisor>` --- The polytope determinining the complete linear system.
+- :ref:`polytope <polytope-divisor>` --- The polytope determining the complete linear system.
 
 - :ref:`polytope_integer_pts <polytope_integer_pts-divisor>` --- The integer points inside divisor's polytope.
 
@@ -4173,7 +4172,7 @@ EXAMPLES::
     is_q_reduced           -- Is the divisor q-reduced?
     is_symmetric           -- Is the divisor symmetric?
     is_weierstrass_pt      -- Is the given vertex a Weierstrass point?
-    polytope               -- The polytope determinining the complete linear system.
+    polytope               -- The polytope determining the complete linear system.
     polytope_integer_pts   -- The integer points inside divisor's polytope.
     q_reduced              -- The linearly equivalent q-reduced divisor.
     rank                   -- The rank of the divisor.
@@ -4371,7 +4370,7 @@ EXAMPLES::
 
 **polytope()**
 
-The polytope determinining the complete linear system.
+The polytope determining the complete linear system.
 
 OUTPUT:
 
@@ -5042,7 +5041,7 @@ additional features and other improvements.
    Eds. V. Sidoravicius, M. E. Vares, in the Series Progress in Probability,
    Birkhauser (2008).
 
-.. [PPW2013] D. Perkinson, J. Perlman, and J. Wilmes.
+.. [PPW2013] \D. Perkinson, J. Perlman, and J. Wilmes.
              *Primer for the algebraic geometry of sandpiles*.
              Tropical and Non-Archimedean
              Geometry, Contemp. Math., 605, Amer. Math. Soc.,

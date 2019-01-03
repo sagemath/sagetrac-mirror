@@ -163,6 +163,45 @@ cdef class Matrix(Matrix0):
         from sage.libs.gap.libgap import libgap
         return libgap._construct_matrix(self)
 
+    def _fricas_init_(self):
+        """
+        Return a FriCAS string representation of this matrix.
+
+        EXAMPLES::
+
+            sage: M = matrix(ZZ,2,range(4))
+            sage: fricas(M)                                                     # optional - fricas
+            +0  1+
+            |    |
+            +2  3+
+
+        ::
+
+            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])
+            sage: fricas(M).sage().parent()                                     # optional - fricas
+            Full MatrixSpace of 3 by 3 dense matrices over Rational Field
+
+        ::
+
+            sage: P.<x> = ZZ[]
+            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5])
+            sage: fricas(M)                                                     # optional - fricas
+            +     2                      +
+            |- 9 x  - 2 x + 2    x - 1   |
+            |                            |
+            |     2                 2    |
+            +    x  + 8 x      - 3 x  + 5+
+
+        """
+        s = str(self.rows()).replace('(','[').replace(')',']')
+        R = self.base_ring()
+        try:
+            R._fricas_()
+        except TypeError:
+            return "matrix(%s)"%(s)
+
+        return "matrix(%s)$Matrix(%s)"%(s, R._fricas_init_())
+
     def _giac_init_(self):
         """
         Return a Giac string representation of this matrix.
@@ -1617,9 +1656,9 @@ cdef class Matrix(Matrix0):
         a more expansive ring.  Here we mix the rationals with a ring of
         polynomials with rational coefficients.  ::
 
-            sage: R = PolynomialRing(QQ, 'y')
+            sage: R.<y> = PolynomialRing(QQ)
             sage: A = matrix(QQ, 1, [1,2])
-            sage: B = matrix(R, 1, ['y', 'y^2'])
+            sage: B = matrix(R, 1, [y, y^2])
 
             sage: C = B.augment(A); C
             [  y y^2   1   2]
@@ -2178,6 +2217,10 @@ cdef class Matrix(Matrix0):
             sage: B = A.dense_matrix()
             sage: B.is_sparse()
             False
+            sage: A == B
+            True
+            sage: B.dense_matrix() is B
+            True
             sage: A*B
             [1 4]
             [0 1]
@@ -2218,10 +2261,8 @@ cdef class Matrix(Matrix0):
         if self.is_dense():
             return self
         cdef Matrix A
-        A = self.new_matrix(self._nrows, self._ncols, 0, coerce=False,
-                               copy=False, sparse=False)
-        for i,j in self.nonzero_positions():
-            A.set_unsafe(i,j,self.get_unsafe(i,j))
+        A = self.new_matrix(self._nrows, self._ncols, self,
+                coerce=False, sparse=False)
         A.subdivide(self.subdivisions())
         return A
 
@@ -2245,12 +2286,10 @@ cdef class Matrix(Matrix0):
             sage: B = A.sparse_matrix()
             sage: B.is_sparse()
             True
-            sage: A
-            [1 2]
-            [0 1]
-            sage: B
-            [1 2]
-            [0 1]
+            sage: A == B
+            True
+            sage: B.sparse_matrix() is B
+            True
             sage: A*B
             [1 4]
             [0 1]
@@ -2265,8 +2304,8 @@ cdef class Matrix(Matrix0):
         """
         if self.is_sparse():
             return self
-        A = self.new_matrix(self._nrows, self._ncols, entries = self.dict(), coerce=False,
-                               copy = False, sparse=True)
+        A = self.new_matrix(self._nrows, self._ncols, self,
+                coerce=False, sparse=True)
         A.subdivide(self.subdivisions())
         return A
 

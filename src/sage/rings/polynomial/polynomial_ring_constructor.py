@@ -29,7 +29,7 @@ import sage.rings.ring as ring
 import sage.rings.padics.padic_base_leaves as padic_base_leaves
 
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
 from sage.misc.cachefunc import weak_cached_function
@@ -660,7 +660,7 @@ def unpickle_PolynomialRing(base_ring, arg1=None, arg2=None, sparse=False):
     args = [arg for arg in (arg1, arg2) if arg is not None]
     return PolynomialRing(base_ring, *args, sparse=sparse)
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.rings.polynomial.polynomial_ring_constructor', 'PolynomialRing', unpickle_PolynomialRing)
 
 
@@ -812,43 +812,61 @@ def _multi_variate(base_ring, names, sparse=None, order="degrevlex", implementat
 from sage import categories
 from sage.categories.algebras import Algebras
 # Some fixed categories, in order to avoid the function call overhead
+_FiniteSets = categories.sets_cat.Sets().Finite()
+_InfiniteSets = categories.sets_cat.Sets().Infinite()
 _EuclideanDomains = categories.euclidean_domains.EuclideanDomains()
 _UniqueFactorizationDomains = categories.unique_factorization_domains.UniqueFactorizationDomains()
 _IntegralDomains = categories.integral_domains.IntegralDomains()
-_Rings = category = categories.rings.Rings()
+_Rings = categories.rings.Rings()
+
 
 @weak_cached_function
-def polynomial_default_category(base_ring_category, multivariate):
+def polynomial_default_category(base_ring_category, n_variables):
     """
     Choose an appropriate category for a polynomial ring.
 
+    It is assumed that the corresponding base ring is nonzero.
+
     INPUT:
 
-    - ``base_ring_category``: The category of ring over which the polynomial
-      ring shall be defined.
-    - ``multivariate``: Will the polynomial ring be multivariate?
+    - ``base_ring_category`` -- The category of ring over which the polynomial
+      ring shall be defined
+    - ``n_variables`` -- number of variables
 
     EXAMPLES::
 
         sage: from sage.rings.polynomial.polynomial_ring_constructor import polynomial_default_category
-        sage: polynomial_default_category(Rings(), False) is Algebras(Rings())
+        sage: polynomial_default_category(Rings(),1) is Algebras(Rings()).Infinite()
         True
-        sage: polynomial_default_category(Rings().Commutative(),False) is Algebras(Rings().Commutative()).Commutative()
+        sage: polynomial_default_category(Rings().Commutative(),1) is Algebras(Rings().Commutative()).Commutative().Infinite()
         True
-        sage: polynomial_default_category(Fields(),False) is EuclideanDomains() & Algebras(Fields())
+        sage: polynomial_default_category(Fields(),1) is EuclideanDomains() & Algebras(Fields()).Infinite()
         True
-        sage: polynomial_default_category(Fields(),True) is UniqueFactorizationDomains() & CommutativeAlgebras(Fields())
+        sage: polynomial_default_category(Fields(),2) is UniqueFactorizationDomains() & CommutativeAlgebras(Fields()).Infinite()
         True
 
-        sage: QQ['t'].category() is EuclideanDomains() & CommutativeAlgebras(QQ.category())
+        sage: QQ['t'].category() is EuclideanDomains() & CommutativeAlgebras(QQ.category()).Infinite()
         True
-        sage: QQ['s','t'].category() is UniqueFactorizationDomains() & CommutativeAlgebras(QQ.category())
+        sage: QQ['s','t'].category() is UniqueFactorizationDomains() & CommutativeAlgebras(QQ.category()).Infinite()
         True
-        sage: QQ['s']['t'].category() is UniqueFactorizationDomains() & CommutativeAlgebras(QQ['s'].category())
+        sage: QQ['s']['t'].category() is UniqueFactorizationDomains() & CommutativeAlgebras(QQ['s'].category()).Infinite()
         True
     """
     category = Algebras(base_ring_category)
-    if base_ring_category.is_subcategory(_Fields) and not multivariate:
+
+    if n_variables:
+        # here we assume the base ring to be nonzero
+        category = category.Infinite()
+    else:
+        if base_ring_category.is_subcategory(_Fields):
+            category = category & _Fields
+
+        if base_ring_category.is_subcategory(_FiniteSets):
+            category = category.Finite()
+        elif base_ring_category.is_subcategory(_InfiniteSets):
+            category = category.Infinite()
+
+    if base_ring_category.is_subcategory(_Fields) and n_variables == 1:
         return category & _EuclideanDomains
     elif base_ring_category.is_subcategory(_UniqueFactorizationDomains):
         return category & _UniqueFactorizationDomains
@@ -857,6 +875,7 @@ def polynomial_default_category(base_ring_category, multivariate):
     elif base_ring_category.is_subcategory(_CommutativeRings):
         return category & _CommutativeRings
     return category
+
 
 def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
     """

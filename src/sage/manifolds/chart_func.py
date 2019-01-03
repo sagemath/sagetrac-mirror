@@ -1427,7 +1427,7 @@ class ChartFunction(AlgebraElement):
 
             sage: X.set_calculus_method('sympy')
             sage: f = X.function(x+y)
-            sage: f.exp();
+            sage: f.exp()
             exp(x + y)
             sage: exp(f) # equivalent to f.exp()
             exp(x + y)
@@ -1964,7 +1964,7 @@ class ChartFunction(AlgebraElement):
 
         OUTPUT:
 
-        - chart function `\mathrm{arcosh}(f)`, where `f` is the current
+        - chart function `\mathrm{arccosh}(f)`, where `f` is the current
           chart function
 
         EXAMPLES::
@@ -2007,7 +2007,7 @@ class ChartFunction(AlgebraElement):
 
         OUTPUT:
 
-        - chart function `\mathrm{arsinh}(f)`, where `f` is the current
+        - chart function `\mathrm{arcsinh}(f)`, where `f` is the current
           chart function
 
         EXAMPLES::
@@ -2050,7 +2050,7 @@ class ChartFunction(AlgebraElement):
 
         OUTPUT:
 
-        - chart function `\mathrm{artanh}(f)`, where `f` is the
+        - chart function `\mathrm{arctanh}(f)`, where `f` is the
           current chart function
 
         EXAMPLES::

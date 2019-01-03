@@ -1,4 +1,4 @@
-"""
+r"""
 Elements of Infinite Polynomial Rings
 
 AUTHORS:
@@ -6,7 +6,7 @@ AUTHORS:
 - Simon King <simon.king@nuigalway.ie>
 - Mike Hansen <mhansen@gmail.com>
 
-An Infinite Polynomial Ring has generators `x_\\ast, y_\\ast,...`, so
+An Infinite Polynomial Ring has generators `x_\ast, y_\ast,...`, so
 that the variables are of the form `x_0, x_1, x_2, ..., y_0, y_1,
 y_2,...,...` (see :mod:`~sage.rings.polynomial.infinite_polynomial_ring`).
 Using the generators, we can create elements as follows::
@@ -347,11 +347,14 @@ class InfinitePolynomial_sparse(RingElement):
         EXAMPLES::
 
             sage: X.<x> = InfinitePolynomialRing(QQ)
-            sage: import sagenb.misc.support as s
+            sage: import sage.interfaces.tab_completion as s
             sage: p = x[3]*x[2]
-            sage: s.completions('p.co',globals(),system='python') # indirect doctest
-            ['p.coefficient', 'p.coefficients', 'p.constant_coefficient', 'p.content']
-
+            sage: s.completions('p.co',globals()) # indirect doctest
+            ['p.coefficient',
+             'p.coefficients',
+             'p.constant_coefficient',
+             'p.content',
+             'p.content_ideal']
         """
         return dir(self._p)
 
@@ -362,10 +365,14 @@ class InfinitePolynomial_sparse(RingElement):
         TESTS::
 
             sage: X.<x> = InfinitePolynomialRing(QQ)
-            sage: import sagenb.misc.support as s
+            sage: import sage.interfaces.tab_completion as s
             sage: p = x[3]*x[2]
-            sage: s.completions('p.co',globals(),system='python') # indirect doc test
-            ['p.coefficient', 'p.coefficients', 'p.constant_coefficient', 'p.content']
+            sage: s.completions('p.co',globals()) # indirect doc test
+            ['p.coefficient',
+             'p.coefficients',
+             'p.constant_coefficient',
+             'p.content',
+             'p.content_ideal']
             sage: 'constant_coefficient' in dir(p) # indirect doctest
             True
         """
@@ -394,10 +401,14 @@ class InfinitePolynomial_sparse(RingElement):
         ``__methods__`` is treated in a special way, which
         makes introspection and tab completion work::
 
-            sage: import sagenb.misc.support as s
+            sage: import sage.interfaces.tab_completion as s
             sage: p = alpha[3]*alpha[2]^2
-            sage: s.completions('p.co',globals(),system='python') # indirect doc test
-            ['p.coefficient', 'p.coefficients', 'p.constant_coefficient', 'p.content']
+            sage: s.completions('p.co',globals()) # indirect doc test
+            ['p.coefficient',
+             'p.coefficients',
+             'p.constant_coefficient',
+             'p.content',
+             'p.content_ideal']
             sage: 'constant_coefficient' in dir(p) # indirect doctest
             True
 
@@ -1185,7 +1196,7 @@ class InfinitePolynomial_sparse(RingElement):
 
     ## Essentials for Buchberger
     def reduce(self, I, tailreduce=False, report=None):
-        """
+        r"""
         Symmetrical reduction of ``self`` with respect to a symmetric ideal (or list of Infinite Polynomials).
 
         INPUT:

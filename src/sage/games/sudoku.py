@@ -227,6 +227,18 @@ class Sudoku(SageObject):
         """
         return self.puzzle == tuple(other.to_list())
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: a = Sudoku('.4..32....14..3.')
+            sage: hash(a) == hash(a.puzzle)
+            True
+        """
+        return hash(self.puzzle)
+
     def __ne__(self, other):
         """
         Check that ``self`` is not equal to ``other``.
@@ -426,11 +438,10 @@ class Sudoku(SageObject):
         nsquare = n*n
         m = self.to_matrix()
         m.subdivide(list(range(0,nsquare+1,n)), list(range(0,nsquare+1,n)))
-        naked_zero = compile('([\|, ]+)0')
+        naked_zero = compile(r'([\|, ]+)0')
         blanked = naked_zero.sub(lambda x: x.group(1)+' ', m.str())
-        brackets = compile('[\[,\]]')
+        brackets = compile(r'[\[,\]]')
         return brackets.sub('', blanked)
-
 
     def to_latex(self):
         r"""

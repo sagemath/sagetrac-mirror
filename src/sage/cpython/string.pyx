@@ -1,6 +1,16 @@
 # -*- encoding: utf-8 -*-
 """
 String <-> bytes encoding/decoding
+
+TESTS:
+
+Check that this can be used outside of Sage (see :trac:`25549`)::
+
+    sage: cython('''
+    ....: from sage.cpython.string cimport char_to_str
+    ....: print(char_to_str("hello world!"))
+    ....: ''')
+    hello world!
 """
 
 #*****************************************************************************
@@ -19,7 +29,7 @@ import sys
 
 
 # Provide this as a shortcut to calling sys.getfilesystemencoding(), which
-# after interpeter initialization is constant.
+# after interpreter initialization is constant.
 FS_ENCODING = sys.getfilesystemencoding()
 
 # Functions in this module are implemented in the .pxd file for inlining.

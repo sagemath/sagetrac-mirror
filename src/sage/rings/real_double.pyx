@@ -32,13 +32,13 @@ Test NumPy conversions::
     dtype('float64')
 """
 
-#*****************************************************************************
+# ****************************************************************************
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import print_function, absolute_import
 
@@ -71,6 +71,9 @@ from sage.structure.coerce cimport is_numpy_type
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.richcmp cimport rich_to_bool
 from sage.arith.constants cimport *
+
+IF HAVE_GMPY2:
+    cimport gmpy2
 
 
 def is_RealDoubleField(x):
@@ -384,6 +387,17 @@ cdef class RealDoubleField_class(Field):
         """
         return "RealField(%s : Bits := true)" % self.prec()
 
+    def _fricas_init_(self):
+        r"""
+        Return the FriCAS representation of the real double field.
+
+        EXAMPLES::
+
+            sage: fricas(RDF)    # indirect doctest, optional - fricas
+            DoubleFloat
+        """
+        return "DoubleFloat"
+
     def _polymake_init_(self):
         r"""
         Return the polymake representation of the real double field.
@@ -662,7 +676,7 @@ cdef class RealDoubleField_class(Field):
         # collect real roots and conjugate pairs of non-real roots
         real_roots = [(r, e) for r, e in roots if r.imag().is_zero()]
         non_real_roots = {r: e for r, e in roots if not r.imag().is_zero()}
-        assert all([non_real_roots[r.conj()] == e for r, e in non_real_roots.items()]), "Bug in root finding code over RDF - roots must always come in conjugate pairs"
+        assert all(non_real_roots[r.conj()] == e for r, e in non_real_roots.items()), "Bug in root finding code over RDF - roots must always come in conjugate pairs"
         non_real_roots = [(r, e) for r, e in non_real_roots.items() if r.imag() > 0]
 
         # turn the roots into irreducible factors
@@ -705,6 +719,16 @@ cdef class RealDoubleElement(FieldElement):
 
             sage: RDF(10^100)
             1e+100
+
+        TESTS::
+
+            sage: from gmpy2 import *  # optional - gmpy2
+            sage: RDF(mpz(42))         # optional - gmpy2
+            42.0
+            sage: RDF(mpq(3/4))        # optional - gmpy2
+            0.75
+            sage: RDF(mpq('4.1'))      # optional - gmpy2
+            4.1
         """
         self._value = float(x)
 
@@ -921,6 +945,30 @@ cdef class RealDoubleElement(FieldElement):
         """
         return Integer(self._value)
 
+    def __mpfr__(self):
+        """
+        Convert Sage ``RealDoubleElement`` to gmpy2 ``mpfr``.
+
+        EXAMPLES::
+
+            sage: RDF(42.2).__mpfr__()    # optional - gmpy2
+            mpfr('42.200000000000003')
+            sage: from gmpy2 import mpfr  # optional - gmpy2
+            sage: mpfr(RDF(5.1))          # optional - gmpy2
+            mpfr('5.0999999999999996')
+
+        TESTS::
+
+            sage: RDF().__mpfr__(); raise NotImplementedError("gmpy2 is not installed")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: gmpy2 is not installed
+        """
+        IF HAVE_GMPY2:
+            return gmpy2.mpfr(self._value)
+        ELSE:
+            raise NotImplementedError("gmpy2 is not installed")
+
     def _interface_init_(self, I=None):
         """
         Return ``self`` formatted as a string, suitable as input to another
@@ -1097,19 +1145,6 @@ cdef class RealDoubleElement(FieldElement):
         """
         return codomain(self) # since 1 |--> 1
 
-    def __str__(self):
-        """
-        Return the string representation of ``self``, see :meth:`str`.
-
-        EXAMPLES::
-
-            sage: print(RDF(-2/3))
-            -0.666666666667
-            sage: print(RDF(oo))
-            +infinity
-        """
-        return double_str(self._value)
-
     def str(self):
         """
         Return the informal string representation of ``self``.
@@ -1119,7 +1154,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: a = RDF('4.5'); a.str()
             '4.5'
             sage: a = RDF('49203480923840.2923904823048'); a.str()
-            '4.92034809238e+13'
+            '49203480923840.29'
             sage: a = RDF(1)/RDF(0); a.str()
             '+infinity'
             sage: a = -RDF(1)/RDF(0); a.str()
@@ -1136,7 +1171,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: str(RR(RDF(0)/RDF(0))) == str(RDF(0)/RDF(0))
             True
         """
-        return double_str(self._value)
+        return double_repr(self._value)
 
     def __copy__(self):
         """
@@ -1870,78 +1905,162 @@ cdef class RealDoubleElement(FieldElement):
         else:
             return self ** (float(1)/n)
 
-    cdef RealDoubleElement __pow_float(self, double exponent):
+    cdef __pow_double(self, double exponent, double sign):
         """
-        Raise ``self`` to a floating point value.
-
-        TESTS:
-
-              sage: RDF(0)^.5
-              0.0
-              sage: RDF(0)^(1/2)
-              0.0
-              sage: RDF(0)^RDF(0)
-              1.0
+        If ``sign == 1`` or ``self >= 0``, return ``self ^ exponent``.
+        If ``sign == -1`` and ``self < 0``, return ``- abs(self) ^ exponent``.
         """
-        if exponent == 0:
-            return self._new_c(1)
-        elif self._value == 0 or self._value == 1:
-            return self
-        else:
-            return self._new_c(gsl_sf_exp(gsl_sf_log(self._value) * exponent))
+        cdef double v = self._value
+        if v >= 0:
+            if v == 1:
+                return self
+            elif exponent == 0:
+                return self._new_c(1.0)
+            elif v == 0:
+                if exponent < 0:
+                    raise ZeroDivisionError("0.0 cannot be raised to a negative power")
+                return self
+            sign = 1.0
+        else:  # v < 0
+            expmod2 = libc.math.fmod(exponent, 2.0)
+            if expmod2 == 0.0:
+                pass
+            elif expmod2 == 1.0:
+                sign = -1.0
+            else:
+                raise ValueError("negative number cannot be raised to a fractional power")
+            v = -v
+        return self._new_c(sign * gsl_sf_exp(gsl_sf_log(v) * exponent))
 
-    cdef RealDoubleElement __pow_int(self, int exponent):
-        return self._new_c(gsl_pow_int(self._value, exponent))
-
-    def __pow__(self, exponent, modulus):
+    cpdef _pow_(self, other):
         """
-        Compute ``self`` raised to the power of exponent, rounded in the
-        direction specified by the parent of ``self``.
-
-        If the result is not a real number, ``self`` and the exponent are both
-        coerced to complex numbers (with sufficient precision), then the
-        exponentiation is computed in the complex numbers. Thus this
-        function can return either a real or complex number.
+        Return ``self`` raised to the real double power ``other``.
 
         EXAMPLES::
 
             sage: a = RDF('1.23456')
-            sage: a^20
-            67.64629770385...
             sage: a^a
             1.2971114817819216
 
-        Symbolic examples::
+        TESTS::
 
-            sage: x, y = var('x,y')
-            sage: RDF('-2.3')^(x+y^3+sin(x))
-            (-2.3)^(y^3 + x + sin(x))
-            sage: RDF('-2.3')^x
-            (-2.3)^x
+            sage: RDF(0) ^ RDF(0.5)
+            0.0
+            sage: RDF(0) ^ (1/2)
+            0.0
+            sage: RDF(0) ^ RDF(0)
+            1.0
+            sage: RDF(0) ^ RDF(-1)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: 0.0 cannot be raised to a negative power
+            sage: RDF(-1) ^ RDF(0)
+            1.0
+            sage: RDF(-1) ^ RDF(1)
+            -1.0
+            sage: RDF(-1) ^ RDF(0.5)
+            Traceback (most recent call last):
+            ...
+            ValueError: negative number cannot be raised to a fractional power
         """
-        cdef RealDoubleElement base, exp
-        if isinstance(self, RealDoubleElement):
-            base = self
-            if isinstance(exponent, RealDoubleElement):
-                return base.__pow_float((<RealDoubleElement>exponent)._value)
-            elif isinstance(exponent, float):
-                return base.__pow_float(exponent)
-            elif isinstance(exponent, int):
-                return base.__pow_int(exponent)
-            elif isinstance(exponent, Integer) and exponent < INT_MAX:
-                return base.__pow_int(exponent)
-            try:
-                exp = base._parent(exponent)
-                return base.__pow_float(exp._value)
-            except TypeError:
-                return exponent.parent()(self) ** exponent # neither operand is RealDoubleElement
-        else:
-            try:
-                base = exponent.parent()(self)
-                return base.__pow_float((<RealDoubleElement>exponent)._value)
-            except TypeError:
-                return self ** self.parent()(exponent) # neither operand is RealDoubleElement
+        return self.__pow_double((<RealDoubleElement>other)._value, 1)
 
+    cpdef _pow_int(self, n):
+        """
+        Return ``self`` raised to the integer power ``n``.
+
+        TESTS::
+
+            sage: RDF(1) ^ (2^1000)
+            1.0
+            sage: RDF(1) ^ (2^1000 + 1)
+            1.0
+            sage: RDF(1) ^ (-2^1000)
+            1.0
+            sage: RDF(1) ^ (-2^1000 + 1)
+            1.0
+            sage: RDF(-1) ^ (2^1000)
+            1.0
+            sage: RDF(-1) ^ (2^1000 + 1)
+            -1.0
+            sage: RDF(-1) ^ (-2^1000)
+            1.0
+            sage: RDF(-1) ^ (-2^1000 + 1)
+            -1.0
+
+        ::
+
+            sage: base = RDF(1.0000000000000002)
+            sage: base._pow_int(0)
+            1.0
+            sage: base._pow_int(1)
+            1.0000000000000002
+            sage: base._pow_int(2)
+            1.0000000000000004
+            sage: base._pow_int(3)
+            1.0000000000000007
+            sage: base._pow_int(2^57)
+            78962960182680.42
+            sage: base._pow_int(2^57 + 1)
+            78962960182680.42
+
+        ::
+
+            sage: base = RDF(-1.0000000000000002)
+            sage: base._pow_int(0)
+            1.0
+            sage: base._pow_int(1)
+            -1.0000000000000002
+            sage: base._pow_int(2)
+            1.0000000000000004
+            sage: base._pow_int(3)
+            -1.0000000000000007
+            sage: base._pow_int(2^57)
+            78962960182680.42
+            sage: base._pow_int(2^57 + 1)
+            -78962960182680.42
+        """
+        return self.__pow_double(n, -1.0 if (n & 1) else 1.0)
+
+    cdef _pow_long(self, long n):
+        """
+        Compute ``self`` raised to the power ``n``.
+
+        EXAMPLES::
+
+            sage: RDF('1.23456') ^ 20
+            67.64629770385...
+            sage: RDF(3) ^ 32
+            1853020188851841.0
+            sage: RDF(2)^(-1024)
+            5.562684646268003e-309
+
+        TESTS::
+
+            sage: base = RDF(1.0000000000000002)
+            sage: base ^ RDF(2^31)
+            1.000000476837272
+            sage: base ^ (2^57)
+            78962960182680.42
+            sage: base ^ RDF(2^57)
+            78962960182680.42
+        """
+        if -2048 <= n <= 2048:
+            # For small exponents, it is possible that the powering
+            # is exact either because the base is a power of 2
+            # (e.g. 2.0^1000) or because the exact result has few
+            # significant digits (e.g. 3.0^10). Here, we use the
+            # square-and-multiply algorithm by GSL.
+            return self._new_c(gsl_pow_int(self._value, <int>n))
+        # If the exponent is sufficiently large in absolute value, the
+        # result cannot be exact (except if the base is -1.0, 0.0 or
+        # 1.0 but those cases are handled by __pow_double too). The
+        # log-and-exp algorithm from __pow_double will be more precise
+        # than square-and-multiply.
+
+        # We do need to take care of the sign since the conversion
+        # of n to double might change an odd number to an even number.
+        return self.__pow_double(<double>n, -1.0 if (n & 1) else 1.0)
 
     cdef _log_base(self, double log_of_base):
         if self._value == 0:
@@ -2281,7 +2400,7 @@ cdef class RealDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: x = RDF(4e300); y = RDF(3e300);
+            sage: x = RDF(4e300); y = RDF(3e300)
             sage: x.hypot(y)
             5e+300
             sage: sqrt(x^2+y^2) # overflow
@@ -2595,7 +2714,7 @@ cdef class ToRDF(Morphism):
         """
         from sage.categories.homset import Hom
         if isinstance(R, type):
-            from sage.structure.parent import Set_PythonType
+            from sage.sets.pythonclass import Set_PythonType
             R = Set_PythonType(R)
         Morphism.__init__(self, Hom(R, RDF))
 
@@ -2783,11 +2902,3 @@ cdef double_repr(double x):
     if v < 0:
         return "-infinity"
     return "NaN"
-
-cdef double_str(double x):
-    """
-    Convert a double to an informal string.
-    """
-    if gsl_finite(x):
-        return str(x)
-    return double_repr(x)

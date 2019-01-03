@@ -17,28 +17,12 @@ Two classes implement differential forms, depending whether the manifold
 * :class:`DiffFormParal` when `M` is parallelizable
 * :class:`DiffForm` when `M` is not assumed parallelizable.
 
-.. NOTE::
-
-    A difference with the class
-    :class:`~sage.tensor.differential_form_element.DifferentialForm`
-    is that the present classes lie at the tensor field level. Accordingly, an
-    instance of :class:`DiffForm` or :class:`DiffFormParal` can have various
-    sets of components, each in a different coordinate system (or more
-    generally in a different coframe), while the class
-    :class:`~sage.tensor.differential_form_element.DifferentialForm`
-    considers differential forms at the component level in a fixed chart.
-    In this respect, the class
-    :class:`~sage.tensor.differential_form_element.DifferentialForm` is
-    closer to the class :class:`~sage.tensor.modules.comp.CompFullyAntiSym`
-    than to :class:`DiffForm`.
-
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013, 2014): initial version
 - Joris Vankerschaver (2010): developed a previous class,
-  :class:`~sage.tensor.differential_form_element.DifferentialForm` (cf. the
-  above note), which inspired the storage of the non-zero components as a
-  dictionary whose keys are the indices.
+  ``DifferentialForm`` (cf. :trac:`24444`), which inspired the storage of the
+  non-zero components as a dictionary whose keys are the indices.
 - Travis Scrimshaw (2016): review tweaks
 
 REFERENCES:
@@ -774,8 +758,8 @@ class DiffForm(TensorField):
         self_r = self.restrict(dom_resu)
         qvect_r = qvect.restrict(dom_resu)
         if ambient_dom_resu.is_manifestly_parallelizable():
-            # call of the AlternatingContrTensor version:
-            return AlternatingContrTensor.interior_product(self_r, qvect_r)
+            # call of the FreeModuleAltForm version:
+            return FreeModuleAltForm.interior_product(self_r, qvect_r)
         # Otherwise, the result is created here:
         # Name of the result
         resu_name = None
@@ -937,7 +921,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
     An example of 3-form is the volume element on `\RR^3` in Cartesian
     coordinates::
 
-        sage: M = Manifold(3, 'R3', '\RR^3', start_index=1)
+        sage: M = Manifold(3, 'R3', r'\RR^3', start_index=1)
         sage: c_cart.<x,y,z> = M.chart()
         sage: eps = M.diff_form(3, 'epsilon', r'\epsilon')
         sage: eps[1,2,3] = 1  # the only independent component
@@ -1302,7 +1286,6 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             True
 
         """
-        from sage.calculus.functional import diff
         from sage.tensor.modules.format_utilities import (format_unop_txt,
                                                           format_unop_latex)
         from sage.tensor.modules.comp import CompFullyAntiSym

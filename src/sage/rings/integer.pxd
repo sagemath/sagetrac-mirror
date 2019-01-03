@@ -19,6 +19,7 @@ cdef class Integer(EuclideanDomainElement):
     cpdef _shift_helper(Integer self, y, int sign)
     cpdef _add_(self, other)
     cpdef _mul_(self, other)
+    cpdef _pow_(self, other)
     cdef _and(Integer self, Integer other)
     cdef _or(Integer self, Integer other)
     cdef _xor(Integer self, Integer other)
@@ -32,8 +33,6 @@ cdef class Integer(EuclideanDomainElement):
 
     cdef bint _pseudoprime_is_prime(self, proof) except -1
     cpdef list _pari_divisors_small(self)
-
-    cdef _reduce_set(self, s) # do not use, since integers are immutable.
 
 cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1
 

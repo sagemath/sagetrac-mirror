@@ -282,7 +282,7 @@ class Fields(CategoryWithAxiom):
             return a
 
         def _xgcd_univariate_polynomial(self, a, b):
-            """
+            r"""
             Return an extended gcd of ``a`` and ``b``.
 
             INPUT:
@@ -505,7 +505,7 @@ class Fields(CategoryWithAxiom):
 
             return Factorization(factors, unit=unit, sort=False)
 
-        def __pow__(self, n):
+        def _pow_int(self, n):
             r"""
             Returns the vector space of dimension `n` over ``self``.
 
@@ -684,7 +684,7 @@ class Fields(CategoryWithAxiom):
 
         @coerce_binop
         def xgcd(self, other):
-            """
+            r"""
             Compute the extended gcd of ``self`` and ``other``.
 
             INPUT:
