@@ -31,6 +31,7 @@ from sage.rings.all import ZZ, QQ, RDF
 
 from sage.groups.perm_gps.permgroup_element cimport PermutationGroupElement
 from sage.combinat.permutation import Permutation
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 decode_type_number = {
     0: 'T_INT (integer)',
@@ -1208,6 +1209,12 @@ cdef class GapElement(RingElement):
             from sage.rings.infinity import Infinity
             return -Infinity
 
+        if self.IsUnivariatePolynomial():
+            base_ring = None  # HOW TO FIND THE parent RING in Gap ?
+            sage_ring = base_ring.sage()
+            L = self.CoefficientsOfUnivariatePolynomial().sage()
+            return sage_ring(L)
+
         raise NotImplementedError('cannot construct equivalent Sage object')
 
 
@@ -1892,7 +1899,6 @@ cdef class GapElement_Ring(GapElement):
         """
         return ZZ
 
-
     def ring_rational(self):
         """
         Construct the Sage rationals.
@@ -1903,7 +1909,6 @@ cdef class GapElement_Ring(GapElement):
             Rational Field
         """
         return ZZ.fraction_field()
-
 
     def ring_integer_mod(self):
         """
@@ -1945,6 +1950,24 @@ cdef class GapElement_Ring(GapElement):
         from sage.rings.number_field.number_field import CyclotomicField
         return CyclotomicField(conductor.sage())
 
+    def ring_polynomial(self):
+        """
+        Construct a polynomial ring.
+
+        EXAMPLES::
+
+            sage: B = libgap(QQ['x'])
+            sage: B.ring_polynomial()
+            Univariate Polynomial Ring in x over Rational Field
+
+            sage: B = libgap(ZZ['x','y'])
+            sage: B.ring_polynomial()
+            Multivariate Polynomial Ring in x, y over Integer Ring
+        """
+        base_ring = self.CoefficientsRing().sage()
+        vars = [x.String().sage()
+                for x in self.IndeterminatesOfPolynomialRing()]
+        return PolynomialRing(base_ring, vars)
 
     def sage(self, **kwds):
         r"""
@@ -1975,6 +1998,9 @@ cdef class GapElement_Ring(GapElement):
 
             sage: libgap.CyclotomicField(6).sage()
             Cyclotomic Field of order 3 and degree 2
+
+            sage: libgap(QQ['x','y']).sage()
+            Multivariate Polynomial Ring in x, y over Rational Field
         """
         if self.IsField():
             if self.IsRationals():
@@ -1988,6 +2014,8 @@ cdef class GapElement_Ring(GapElement):
                 return self.ring_integer(**kwds)
             if self.IsFinite():
                 return self.ring_integer_mod(**kwds)
+            if self.IsPolynomialRing():
+                return self.ring_polynomial(**kwds)
         raise NotImplementedError('cannot convert GAP ring to Sage')
 
 
