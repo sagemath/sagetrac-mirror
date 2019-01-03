@@ -32,6 +32,7 @@ from sage.rings.all import ZZ, QQ, RDF
 from sage.groups.perm_gps.permgroup_element cimport PermutationGroupElement
 from sage.combinat.permutation import Permutation
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.structure.element cimport coercion_model as cm
 
 decode_type_number = {
     0: 'T_INT (integer)',
@@ -1197,6 +1198,11 @@ cdef class GapElement(RingElement):
             'this is a string'
             sage: type(_)
             <... 'str'>
+
+            sage: x = polygen(ZZ, 'x')
+            sage: g = libgap(x+6)
+            sage: g.sage()
+            x + 6
         """
         if self.value is NULL:
             return None
@@ -1210,10 +1216,11 @@ cdef class GapElement(RingElement):
             return -Infinity
 
         if self.IsUnivariatePolynomial():
-            base_ring = None  # HOW TO FIND THE parent RING in Gap ?
-            sage_ring = base_ring.sage()
+            var = self.IndeterminateOfUnivariateRationalFunction().String()
+            var = var.sage()
             L = self.CoefficientsOfUnivariatePolynomial().sage()
-            return sage_ring(L)
+            base_ring = cm.common_parent(*L)
+            return PolynomialRing(base_ring, var)(L)
 
         raise NotImplementedError('cannot construct equivalent Sage object')
 
@@ -1357,8 +1364,10 @@ cdef class GapElement_Integer(GapElement):
 
             sage: int(libgap(2)**128)
             340282366920938463463374607431768211456L
-            sage: type(_)
+            sage: type(_)  # py2
             <type 'long'>
+            sage: type(_)  # py3
+            <class 'int'>
         """
         return self.sage(ring=int)
 
