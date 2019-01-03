@@ -483,7 +483,7 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
             multi = latex(c)
         elif c != 1:
             if  c == -1:
-                multi = "- %s"%(multi)
+                multi = "-%s"%(multi)
             else:
                 sc = latex(c)
                 # Add parenthesis if the coefficient consists of terms divided by +, -
