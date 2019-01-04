@@ -46,15 +46,15 @@ REFERENCES:
             Some new MOLS of order 2np for p a prime power,
             The Australasian Journal of Combinatorics, vol 10 (1994)
 
-<<<<<<< HEAD
+
 .. [AC2009] \N. A'Campo,'Tete-a-tete graphs and geometric monodromy'
               preprint, 2009.
-=======
+
 .. [ACFLSS04] \F. N. Abu-Khzam, R. L. Collins, M. R. Fellows, M. A.  Langston,
               W. H. Suters, and C. T. Symons: Kernelization Algorithm for the
               Vertex Cover Problem: Theory and Experiments. *SIAM
               ALENEX/ANALCO* 2004: 62-69.
->>>>>>> origin/develop
+
 
 .. [ADKF1970] \V. Arlazarov, E. Dinic, M. Kronrod,
               and I. Faradzev. 'On Economical Construction of the
@@ -546,7 +546,11 @@ REFERENCES:
              *The stability of the Kronecker products of Schur
              functions*.
              :arxiv:`0907.4652v2`.
-
+             
+.. [BPP2017] J. Fdez de Bobadilla, M. Pe Pereira, P. Portilla. *Representation of
+             surface homeomorphisms by tete-a-tete graphs*. 
+             :arxiv:`arXiv:1706.05580`
+             
 .. [Bou1989] \N. Bourbaki. *Lie Groups and Lie Algebras*. Chapters 1-3.
              Springer. 1989.
 
@@ -1535,16 +1539,14 @@ REFERENCES:
 .. [Gr2007] \J. Green, Polynomial representations of `GL_n`, Springer
             Verlag, 2007.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 .. [Gra2015] \C. Graf, 'Tete-a-tete graphs and twists', 
              :arxiv:`1408.1865`, 2015.
-=======
+
 .. [GriRei16] Darij Grinberg, Victor Reiner,
               *Hopf Algebras in Combinatorics*,
               :arxiv:`1409.8356v4`.
->>>>>>> origin/develop
-=======
+
 .. [GriRei18] Darij Grinberg, Victor Reiner,
               *Hopf Algebras in Combinatorics*,
               :arxiv:`1409.8356v5`.
@@ -1552,7 +1554,6 @@ REFERENCES:
 .. [GR1989] \A. M. Garsia, C. Reutenauer. *A decomposition of Solomon's
             descent algebra.* Adv. Math. **77** (1989).
             http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/1989/Decomposition%20Solomon.pdf
->>>>>>> a2e394e34418695898a50188b112ff65b41ac38f
 
 .. [GR2013] Darij Grinberg, Tom Roby. *Iterative properties of
             birational rowmotion*.
