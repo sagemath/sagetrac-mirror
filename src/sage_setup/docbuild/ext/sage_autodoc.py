@@ -1367,18 +1367,20 @@ class AttributeDocumenter(DocstringStripSignatureMixin, ClassLevelDocumenter):
                 isinstance(member, non_attr_types) and not \
                 type(member).__name__ == "instancemethod"
 
+        isattribute = isdatadesc or (not isinstance(parent, ModuleDocumenter) and isattr)
+
         # Trac #26522: This condition is here just to pass objects of classes
         # that inherit ClasscallMetaclass as attributes rather than method
         # descriptors.
-        isdatadesc = isdatadesc or isinstance(type(member), ClasscallMetaclass)
+        isattribute = isattribute or isinstance(type(member), ClasscallMetaclass)
 
         if PY2:
-            return isdatadesc
+            return isattribute
 
         # That last condition addresses an obscure case of C-defined
         # methods using a deprecated type in Python 3, that is not otherwise
         # exported anywhere by Python
-        return isdatadesc or (not isinstance(parent, ModuleDocumenter) and
+        return isattribute or (not isinstance(parent, ModuleDocumenter) and
                               not inspect.isroutine(member) and
                               not isinstance(member, type))
 
