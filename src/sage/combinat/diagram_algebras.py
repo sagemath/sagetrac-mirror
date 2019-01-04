@@ -1464,6 +1464,9 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
             sage: da.PartitionDiagrams(2)
             Partition diagrams of order 2
         """
+        # it may make sense to override this in the individual classes
+        # (eg., PartitionDiagrams) to get something analogous to
+        # Set partitions of {1,...,3,-1,...,-3} with 3 and -3 in the same block
         return "{} diagrams of order {}".format(self._name, self.order)
 
     def __iter__(self):
@@ -2959,8 +2962,9 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
 
     A computation that returned an incorrect result until :trac:`15958`::
 
+        sage: import sage.combinat.diagram_algebras as da
         sage: A = PartitionAlgebra(1,17)
-        sage: g = SetPartitionsAk(1).list()
+        sage: g = da.PartitionDiagrams(1).list()
         sage: a = A[g[1]]
         sage: a
         P{{-1}, {1}}
