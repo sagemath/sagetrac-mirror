@@ -78,6 +78,10 @@ REFERENCES:
             Some new MOLS of order 2np for p a prime power,
             The Australasian Journal of Combinatorics, vol 10 (1994)
 
+
+.. [AC2009] \N. A'Campo,'Tete-a-tete graphs and geometric monodromy'
+              preprint, 2009.
+
 .. [ACFLSS04] \F. N. Abu-Khzam, R. L. Collins, M. R. Fellows, M. A.  Langston,
               W. H. Suters, and C. T. Symons: Kernelization Algorithm for the
               Vertex Cover Problem: Theory and Experiments. *SIAM
@@ -1024,7 +1028,11 @@ REFERENCES:
              *The stability of the Kronecker products of Schur
              functions*.
              :arxiv:`0907.4652v2`.
-
+             
+.. [BPP2017] J. Fdez de Bobadilla, M. Pe Pereira, P. Portilla. *Representation of
+             surface homeomorphisms by tete-a-tete graphs*. 
+             :arxiv:`arXiv:1706.05580`
+             
 .. [Bou1989] \N. Bourbaki. *Lie Groups and Lie Algebras*. Chapters 1-3.
              Springer. 1989.
 
@@ -2626,9 +2634,9 @@ REFERENCES:
                 *Modular representations of Hecke algebras and related algebras*.
                 PhD thesis, University of Sydney, 1985.
 
-.. [GriRei18] Darij Grinberg, Victor Reiner,
+.. [GriRei16] Darij Grinberg, Victor Reiner,
               *Hopf Algebras in Combinatorics*,
-              :arxiv:`1409.8356v6`.
+              :arxiv:`1409.8356v4`.
 
 .. [GR1989] \A. M. Garsia, C. Reutenauer. *A decomposition of Solomon's
             descent algebra.* Adv. Math. **77** (1989).
