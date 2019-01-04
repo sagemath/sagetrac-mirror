@@ -461,13 +461,16 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
         sage: latex((z+1)*v*w - z*w^2 + z*v + z^2*w + z + 1)
         \left(z + 1\right) v w - z w^{2} + z v + \left(-z - 1\right) w + z + 1
 
-    Demonstrate that there is no blank in latex expression of multivariate
+    Demonstrate that there are no extra blanks in latex expression of multivariate
     polynomial (:trac:`12908`)::
+
         sage: R.<X,Y> = ZZ[]
         sage: latex(X-Y)
         X - Y
         sage: latex(X^2-X)
         X^{2} - X
+        sage: latex(-Y^2-Y)
+        -Y^{2} - Y
     """
     poly = ""
     cdef unsigned long e
