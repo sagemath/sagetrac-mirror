@@ -46,7 +46,7 @@ def _find(l, k):
 
     TESTS::
 
-        sage: from sage.geometry._ribbon_graph import _find
+        sage: from sage.geometry.ribbon_graph import _find
         sage: A = [[2,3,4],[4,5,2],[8,7]]
         sage: _find(A,2)
         [0, 0]
@@ -71,7 +71,7 @@ def safewalk(ribbon_graph, metric, edge, relative_boundary = [], t = 1):
 
     INPUT:
 
-    - ``ribbon_graph`` -- a ribbon graph 
+    - ``ribbon_graph`` -- a ribbon graph.
     - ``metric`` --  a vector of as many positive rational numbers as
       darts has the graph.
     - ``edge`` -- is a integer from 1 to the number of darts.
@@ -91,12 +91,12 @@ def safewalk(ribbon_graph, metric, edge, relative_boundary = [], t = 1):
 
         sage: s0 = PermutationGroupElement('(1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18)')
         sage: r0 = PermutationGroupElement('(1,9)(2,11)(3,4)(5,14)(6,7)(8,17)(10,18)(12,13)(15,16)')
-        sage: R0 = RibbonGraph(s0,r0); R0; R0.genus(); R0.number_boundaries(); print R0.boundary()
+        sage: R0 = RibbonGraph(s0,r0); R0; R0.genus(); R0.number_boundaries(); print(R0.boundary())
         Ribbon graph of genus 1 and 3 boundary components
         1
         3
         [[1, 9, 7, 6, 4, 3], [2, 11, 12, 13, 14, 5, 6, 7, 8, 17, 18, 10, 11, 2, 3, 4, 5, 14, 15, 16, 17, 8, 9, 1], [10, 18, 16, 15, 13, 12]]
-        sage: m0 = 6*[1/8,3/8,1/8]; print m0
+        sage: m0 = 6*[1/8,3/8,1/8]; print(m0)
         [1/8, 3/8, 1/8, 1/8, 3/8, 1/8, 1/8, 3/8, 1/8, 1/8, 3/8, 1/8, 1/8, 3/8, 1/8, 1/8, 3/8, 1/8]
         sage: perm_bound = [[1,9,7,6,4,3], [10,18,16,15,13,12]]
         sage: safewalk(R0,m0,2,relative_boundary = perm_bound)
@@ -129,7 +129,8 @@ def safewalk(ribbon_graph, metric, edge, relative_boundary = [], t = 1):
     elif rel_b == True:
         aux_ind = _find(relative_boundary, edge)
         if (ribbon_graph._rho(edge) == \
-           relative_boundary[aux_ind[0]][(aux_ind[1]-1) % len(relative_boundary[aux_ind[0]])]):
+           relative_boundary[aux_ind[0]][(aux_ind[1]-1) % 
+                                         len(relative_boundary[aux_ind[0]])]):
             while (t > 0):
                 t = t - metric[ribbon_graph._rho(end_point)-1] \
                     - metric[ribbon_graph._sigma(ribbon_graph._rho(end_point))-1]
@@ -139,7 +140,8 @@ def safewalk(ribbon_graph, metric, edge, relative_boundary = [], t = 1):
             elif t == 0:
                 return end_point
         elif (ribbon_graph._rho(edge) == \
-           relative_boundary[aux_ind[0]][(aux_ind[1]+1) % len(relative_boundary[aux_ind[0]])]):
+           relative_boundary[aux_ind[0]][(aux_ind[1]+1) % 
+                                         len(relative_boundary[aux_ind[0]])]):
             while (t > 0):
                 t = t - metric[ribbon_graph._sigma(end_point)-1] \
                     - metric[ribbon_graph._rho(ribbon_graph._sigma(end_point))-1]
@@ -159,7 +161,7 @@ def check_tat_property(ribbon_graph, metric, relative_boundary = []):
 
     INPUT:
 
-    - ``ribbon_graph`` -- a ribbon graph 
+    - ``ribbon_graph`` -- a ribbon graph.
     - ``metric`` --  a vector of as many positive rational numbers as
       darts has the graph.
     - ``relative_boundary`` -- a list of lists containing the permuted boundary
@@ -221,11 +223,12 @@ def bipartite_tat_graph(p,q):
 
     - a tat graph whose underlying ribbon graph is the complete
       bipartite graph of type `(p,q)` and with all darts of length 
-      `1/4`.
+      `1/4`. It models the Milnor fiber and monodromy of the Brieskorn-Pham
+      singularity `x^p+y^q`.
 
     EXAMPLES::
 
-        sage: T32 = bipartite_tat_graph(3,2); T32; T32.sigma(); T32.rho(); T32.metric();
+        sage: T23 = bipartite_tat_graph(2,3); T32 = bipartite_tat_graph(3,2); T32; T32.sigma(); T32.rho(); T32.metric();
         Tete-a-tete graph of order 6 on a ribbon graph of genus 1 and 1 boundary components.
         (1,2)(3,4)(5,6)(7,8,9)(10,11,12)
         (1,9)(2,12)(3,8)(4,11)(5,7)(6,10)
@@ -240,7 +243,7 @@ def bipartite_tat_graph(p,q):
         [ 1 -1]
         [ 1  0]
 
-        sage: T46 = bipartite_tat_graph(4,6); T46; T46.sigma(); T46.rho(); print T46.metric()
+        sage: T46 = bipartite_tat_graph(4,6); T46; T46.sigma(); T46.rho(); print(T46.metric())
         Tete-a-tete graph of order 12 on a ribbon graph of genus 7 and 2 boundary components.
         (1,2,3,4,5,6)(7,8,9,10,11,12)(13,14,15,16,17,18)(19,20,21,22,23,24)(25,26,27,28)(29,30,31,32)(33,34,35,36)(37,38,39,40)(41,42,43,44)(45,46,47,48)
         (1,28)(2,32)(3,36)(4,40)(5,44)(6,48)(7,27)(8,31)(9,35)(10,39)(11,43)(12,47)(13,26)(14,30)(15,34)(16,38)(17,42)(18,46)(19,25)(20,29)(21,33)(22,37)(23,41)(24,45)
@@ -252,7 +255,61 @@ def bipartite_tat_graph(p,q):
 
 class TatGraph(SageObject):
     r"""
-    A relative ribbon graph together with a metric.
+    A `t\^ete-\`a-t\^ete` graph codified as a ribbon graph and a list of rational 
+    numbers.
+
+    The original idea is due to A'Campo [AC2009]_. His original motivation was
+    to model the monodromies of isolated plane curves in a combinatorial way.
+    
+    The theory  was further developed by C. Graf in [Gra2015]_ and later on by J. Fernandez de Bobadilla, M. Pe Pereira and P. Portilla in [BPP2017]_ .
+
+    **Introduction**
+
+    Let `\Sigma` be an orientable surface with non-empty boundary and let 
+    `\Gamma` be the topological realization of a graph (a finite `1`-dimensional
+    CW-cmplex) that is embedded in `\Sigma` in such a way that the graph is a 
+    strong deformation retract of the surface. Suppose that `\Gamma` is endowed
+    with a metric `m`, that is, an assignation of a rational number to each edge.
+
+    A safe walk on `\Gamma` is an arc-length parametrized path starting at a 
+    point `p \in \Gamma` with the properties:
+    
+    - When the path reaches  a vertex, it turns to the next edge indicated by 
+      the permutation `\sigma` associated to that vertex (see Ribbon Graph
+      documentation)
+      
+    - It has total length equal to `1`.
+    
+    Given a point `p \in \Gamma` in the interior of and edge, there exist
+    exactly two safe walks starting at `p`. The tete-a-tete property says
+    that "for all points in the interior of `\Gamma`, the two safe walks 
+    starting at that point, end at the same point.
+    
+    As explained in the references that are mentioned above, a tete-a-tete
+    graph models an oriented surface with boundary together with a mapping
+    class of the surface which is freely periodic and has fractional Dehn
+    twist coefficients at all boundary components.
+    
+    Another object which is also modeled in this package is a relative
+    tete-a-tete graph. These are metric ribbon graphs with a marked set of 
+    circles in the graph which correspond to certain boundary components. While
+    in pure tete-a-tete graphs, all boundary components are left invariant by
+    the tete-a-tete automorphism, in their relative counterpart, the relative
+    boundary components might be permuted by the relative tete-a-tete 
+    mondromy.
+
+
+    INPUT:
+
+    - ``ribbon`` -- a ribbon graph.
+    - ``metric`` -- a list of as many rational numbers as darts has ``ribbon``.
+    - ``relative_boundary=[]`` -- a subset of ``ribbon.boundary()`` that 
+      constitutes the relative boundary components of ``ribbon``. It is, by
+      default, initialized to an empty list (for defining pure tête-à-tête graphs)
+
+    Alternatively, one can pass in 2 integers and this will construct
+    a bipartite tête-à-tête graph which realizes the corresponding 
+    Brieskorn-Pham singularity.
     """
     def __init__(self, ribbon, metric,  relative_boundary=[]):
         r"""
@@ -282,6 +339,7 @@ class TatGraph(SageObject):
 
             sage: s0 = PermutationGroupElement('(1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18)')
             sage: r0 = PermutationGroupElement('(1,9)(2,11)(3,4)(5,14)(6,7)(8,17)(10,18)(12,13)(15,16)')
+            sage: R0 = RibbonGraph(s0,r0)
             sage: m0 = 6*[1/8,3/8,1/8]; 
             sage: perm_bound = [[1, 9, 7, 6, 4, 3], [10, 18, 16, 15, 13, 12]]
             sage: T0 = TatGraph(R0,m0,relative_boundary = perm_bound); T0
@@ -397,11 +455,12 @@ class TatGraph(SageObject):
 
             sage: s0 = PermutationGroupElement('(1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18)')
             sage: r0 = PermutationGroupElement('(1,9)(2,11)(3,4)(5,14)(6,7)(8,17)(10,18)(12,13)(15,16)')
+            sage: R0 = RibbonGraph(s0,r0)
             sage: m0 = 6*[1/8,3/8,1/8]; 
             sage: perm_bound = [[1, 9, 7, 6, 4, 3], [10, 18, 16, 15, 13, 12]]
             sage: T0 = TatGraph(R0,m0,relative_boundary = perm_bound); T0
             Relative tete-a-tete graph of order 6 on a ribbon graph of genus 1 and 3 boundary components; where 2 boundary components are permuted by the automorphism.
-            sage: print T0._ribbon.boundary(); T0.rot_numbers()
+            sage: print(T0._ribbon.boundary()); T0.rot_numbers()
             [[1, 9, 7, 6, 4, 3], [2, 11, 12, 13, 14, 5, 6, 7, 8, 17, 18, 10, 11, 2, 3, 4, 5, 14, 15, 16, 17, 8, 9, 1], [10, 18, 16, 15, 13, 12]]
             [1/6]
         """
@@ -423,9 +482,9 @@ class TatGraph(SageObject):
         OUTPUT:
 
         - Return a `self._mu() \times self._mu()` matrix that represents
-        the action of the tat automorphism on the first homology group
-        with respect to the basis self._ribbon.homology_basis(). This 
-        matrix has only `0`, `1` and `-1` as entries.
+          the action of the tat automorphism on the first homology group
+          with respect to the basis self._ribbon.homology_basis(). This 
+          matrix has only `0`, `1` and `-1` as entries.
 
         EXAMPLES::
 
@@ -467,13 +526,13 @@ class TatGraph(SageObject):
             [0 0 0 1]
             sage: BT33 = blow_up(T33, 0, 1/8)
             sage: BT33.action_homology(); BT33.action_homology()**3
-            [ 0  0  0  0 -1  1  1]
-            [ 0  0  0  0  0  1  0]
-            [ 1  0  0  0  0  0 -1]
-            [ 0  0  0  0  0  1  1]
-            [ 0  0 -1  0  0  1  0]
-            [ 0  0  0  1  0  0 -1]
-            [ 0 -1  0  0  0  1  1]
+            [ 0 -1  1  1  0  0  0]
+            [ 0  0  1  0  0 -1  0]
+            [ 0  0  0 -1  0  0  1]
+            [ 0  0  1  1 -1  0  0]
+            [ 0  0  1  0  0  0  0]
+            [ 1  0  0 -1  0  0  0]
+            [ 0  0  1  1  0  0  0]
             [1 0 0 0 0 0 0]
             [0 1 0 0 0 0 0]
             [0 0 1 0 0 0 0]
@@ -588,23 +647,22 @@ class TatGraph(SageObject):
             sage: BT33 = blow_up(T33, 0, 1/8)
             sage: orb_vector_blow, orb_graph_blow = BT33.orbit_graph(); orb_vector_blow; orb_graph_blow; orb_graph_blow.sigma(); orb_graph_blow.rho()
             [[1, 8, 6],
-            [12, 13, 17],
-            [2, 9, 4],
-            [15, 16, 11],
-            [3, 7, 5],
-            [18, 10, 14],
-            [19, 33, 29],
-            [24, 32, 28],
-            [20, 34, 30],
-            [21, 35, 25],
-            [22, 36, 26],
-            [23, 31, 27]]
+             [12, 13, 17],
+             [2, 9, 4],
+             [15, 16, 11],
+             [3, 7, 5],
+             [18, 10, 14],
+             [19, 27, 35],
+             [24, 26, 34],
+             [20, 28, 36],
+             [21, 29, 31],
+             [22, 30, 32],
+             [23, 25, 33]]
             Ribbon graph of genus 0 and 4 boundary components
             (1,9,7)(2,6,4)(3,11,10)(5,8,12)
             (1,2)(3,4)(5,6)(7,8)(9,10)(11,12)
-
             sage: edges = [[3*x+1,3*x+2,3*x+3] for x in range(28)]
-            sage: edges += [[84+2*x+1, 84+2*x+2] for x in range(6)]; print edges
+            sage: edges += [[84+2*x+1, 84+2*x+2] for x in range(6)]; print(edges)
             [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12], [13, 14, 15], [16, 17, 18], [19, 20, 21], [22, 23, 24], [25, 26, 27], [28, 29, 30], [31, 32, 33], [34, 35, 36], [37, 38, 39], [40, 41, 42], [43, 44, 45], [46, 47, 48], [49, 50, 51], [52, 53, 54], [55, 56, 57], [58, 59, 60], [61, 62, 63], [64, 65, 66], [67, 68, 69], [70, 71, 72], [73, 74, 75], [76, 77, 78], [79, 80, 81], [82, 83, 84], [85, 86], [87, 88], [89, 90], [91, 92], [93, 94], [95, 96]]
             sage: s_ex = PermutationGroupElement([tuple(x) for x in edges]); s_ex
             (1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18)(19,20,21)(22,23,24)(25,26,27)(28,29,30)(31,32,33)(34,35,36)(37,38,39)(40,41,42)(43,44,45)(46,47,48)(49,50,51)(52,53,54)(55,56,57)(58,59,60)(61,62,63)(64,65,66)(67,68,69)(70,71,72)(73,74,75)(76,77,78)(79,80,81)(82,83,84)(85,86)(87,88)(89,90)(91,92)(93,94)(95,96)
@@ -648,7 +706,8 @@ class TatGraph(SageObject):
                                      safewalk(self._ribbon, 
                                               self._metric, 
                                               aux_edgeorbit[-1],
-                                              relative_boundary = self._relative_boundary
+                                              relative_boundary = 
+                                              self._relative_boundary
                                              )
                                     )
                 edges.remove(aux_edgeorbit[-1])
@@ -737,9 +796,8 @@ def blow_up(tat_graph, vertex, epsilon):
       indicating one of the vertices where the blow up will be performed
       (observe that the blow up is performed on all the vertices in the
       orbit of ``vertex``). Also we ask that ``vertex`` is not one vertex
-      that is already on the relative boundary of ``tat_graph`` in case
-      this is a relative tete-a-tete graph.
-    - ``epsilon`` -- a rational number that have to be smaller than all
+      that is already on the relative boundary of ``tat_graph``.
+    - ``epsilon`` -- a rational number that has to be smaller than all
       lengths of the darts adjacent to ``vertex``.
 
     OUTPUT:

@@ -1027,7 +1027,11 @@ REFERENCES:
              *The stability of the Kronecker products of Schur
              functions*.
              :arxiv:`0907.4652v2`.
-
+             
+.. [BPP2017] J. Fdez de Bobadilla, M. Pe Pereira, P. Portilla. *Representation of
+             surface homeomorphisms by tete-a-tete graphs*. 
+             :arxiv:`arXiv:1706.05580`
+             
 .. [Bou1989] \N. Bourbaki. *Lie Groups and Lie Algebras*. Chapters 1-3.
              Springer. 1989.
 
