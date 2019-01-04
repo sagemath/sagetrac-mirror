@@ -148,6 +148,8 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.categories.homset import Hom
 from sage.categories.function_fields import FunctionFields
+from sage.categories.fields import Fields
+from sage.categories.pushout import ConstructionFunctor
 
 from .element import (
     FunctionFieldElement,
@@ -183,6 +185,100 @@ def is_RationalFunctionField(x):
         True
     """
     return isinstance(x, RationalFunctionField)
+
+
+class FunctionFieldFunctor(ConstructionFunctor):
+    """
+    Construction functor for function fields.
+
+    NOTE:
+        I'm not sure what the rank should be.  I picked 10 because it's one
+        greater than 9, which is the rank of the polynomial functors.
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(QQ)
+        sage: c = K.construction()
+        sage: c[0](c[1]) is K
+        True
+
+    """
+    rank = 10
+
+    def __init__(self):
+        """
+        TESTS::
+
+            sage: from sage.rings.function_field.function_field import FunctionFieldFunctor
+            sage: R.<x> = QQ[]
+            sage: FunctionFieldFunctor()(Frac(R))
+            Rational function field in x over Rational Field
+
+        """
+        ConstructionFunctor.__init__(self, Fields(), FunctionFields())
+
+    def _apply_functor(self, F):
+        """
+        Apply the functor ``self`` to the field F.
+
+        TESTS::
+
+            sage: from sage.rings.function_field.function_field import FunctionFieldFunctor
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: FunctionFieldFunctor()(R.quo(y^3 + x^3 + 4*x + 1))
+            Function field in y defined by y^3 + x^3 + 4*x + 1
+
+        """
+        return F.function_field()
+
+    def _apply_functor_to_morphism(self, f):
+        """
+        Apply the functor ``self`` to the field homomorphism `f`.
+        """
+        raise NotImplementedError
+
+    def __eq__(self, other):
+        """
+        Check whether ``self`` is equal to ``other``.
+
+        TESTS::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: L.<x> = FunctionField(QQbar)
+            sage: c = K.construction()
+            sage: d = L.construction()
+            sage: c[0] == d[0]
+            True
+        """
+        return isinstance(other, FunctionFieldFunctor)
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        TESTS::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: c = K.construction()
+            sage: c[0] != QQ.construction()[0]
+            True
+        """
+        return not (self == other)
+
+    def _repr_(self):
+        """
+        Print the name of the functor ``self``.
+
+        TESTS::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: c = K.construction()
+            sage: c[0]
+            FunctionField
+
+        """
+        return "FunctionField"
+
 
 class FunctionField(Field):
     """
@@ -678,6 +774,22 @@ class FunctionField(Field):
                 from sage.categories.morphism import SetMorphism
                 return base_conversion * SetMorphism(R.Hom(R.base_field()), R._to_base_field)
 
+    def construction(self):
+        """
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: K.construction()
+            (FunctionField,
+             Fraction Field of Univariate Polynomial Ring in x over Rational Field)
+            sage: f, R = K.construction()
+            sage: f(R)
+            Rational function field in x over Rational Field
+            sage: f(R) == K
+            True
+        """
+        return FunctionFieldFunctor(), self.field()
+
     def _intermediate_fields(self, base):
         """
         Return the fields which lie in between base and the function field in the
@@ -1062,6 +1174,21 @@ class FunctionField_polymod(FunctionField):
             1
         """
         return 1
+
+    def field(self):
+        """
+        Return the underlying field, forgetting the function field
+        structure.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x))
+            sage: L.field()
+            Univariate Quotient Polynomial Ring in ybar over Rational function field in x
+             over Rational Field with modulus y^5 - 2*x*y + (-x^4 - 1)/x
+        """
+        return self._ring.quo(self._polynomial)
 
     def _to_base_field(self, f):
         r"""
