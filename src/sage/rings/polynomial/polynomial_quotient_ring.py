@@ -2180,4 +2180,23 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, Field):
         v = self.modulus().roots(multiplicities=False, ring=CC)
         return [self.hom([a], check=False) for a in v]
 
+    def function_field(self):
+        r"""
+        Return the isomorphic function field.
+
+        NOTE:
+            If the base field is not a function field, this method will just
+            return the same quotient ring (maybe with the variable name
+            changed), not a function field.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L = R.quo(y^5 - (x^3 + 2*x*y + 1/x))
+            sage: L.function_field()
+            Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x
+
+        """
+        return self.base_field().extension(self.modulus())
+
 
