@@ -27,6 +27,7 @@ from copy import copy
 from sage.geometry.ribbon_graph import *
 from sage.functions.other import floor
 from sage.rings.rational import Rational
+from sage.matrix.matrix_space import MatrixSpace
 
 def _find(l, k):
     r"""
@@ -90,7 +91,7 @@ def safewalk(ribbon_graph, metric, edge, relative_boundary = [], t = 1):
 
         sage: s0 = PermutationGroupElement('(1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18)')
         sage: r0 = PermutationGroupElement('(1,9)(2,11)(3,4)(5,14)(6,7)(8,17)(10,18)(12,13)(15,16)')
-        sage: R0 = RibbonGraph(s0,r0); R0; R0.genus(); R0.number_boundaries(); print R0._boundary()
+        sage: R0 = RibbonGraph(s0,r0); R0; R0.genus(); R0.number_boundaries(); print R0.boundary()
         Ribbon graph of genus 1 and 3 boundary components
         1
         3
@@ -258,7 +259,7 @@ class TatGraph(SageObject):
         Initialize ``self``.
         """
         for i in range(len(relative_boundary)):
-            assert relative_boundary[i] in ribbon._boundary()
+            assert relative_boundary[i] in ribbon.boundary()
         assert check_tat_property(ribbon, metric, relative_boundary) == True
         self._ribbon = ribbon
         self._metric = metric
@@ -358,7 +359,7 @@ class TatGraph(SageObject):
         Return a list containing the rotation numbers of the tat 
         automorphism at each boundary component which is not a relative
         boundary component. The list comes in the same order as the list
-        resulting from removing relative_boundary from self._boundary().
+        resulting from removing relative_boundary from self.boundary().
 
         By definition, these are signed rational numbers formed by an 
         integer which tells how many times the safe walk winds around
@@ -400,16 +401,16 @@ class TatGraph(SageObject):
             sage: perm_bound = [[1, 9, 7, 6, 4, 3], [10, 18, 16, 15, 13, 12]]
             sage: T0 = TatGraph(R0,m0,relative_boundary = perm_bound); T0
             Relative tete-a-tete graph of order 6 on a ribbon graph of genus 1 and 3 boundary components; where 2 boundary components are permuted by the automorphism.
-            sage: print T0._ribbon._boundary(); T0.rot_numbers()
+            sage: print T0._ribbon.boundary(); T0.rot_numbers()
             [[1, 9, 7, 6, 4, 3], [2, 11, 12, 13, 14, 5, 6, 7, 8, 17, 18, 10, 11, 2, 3, 4, 5, 14, 15, 16, 17, 8, 9, 1], [10, 18, 16, 15, 13, 12]]
             [1/6]
         """
         rot = []
         for i in range (self._ribbon.number_boundaries()):
             aux_rot = 0
-            if self._ribbon._boundary()[i] not in self._relative_boundary:
-                for j in range (len(self._ribbon._boundary()[i])):
-                    aux_rot += self._metric[self._ribbon._boundary()[i][j]-1]
+            if self._ribbon.boundary()[i] not in self._relative_boundary:
+                for j in range (len(self._ribbon.boundary()[i])):
+                    aux_rot += self._metric[self._ribbon.boundary()[i][j]-1]
 
                 rot.append(aux_rot ** (-1))
         return rot
@@ -761,18 +762,19 @@ def blow_up(tat_graph, vertex, epsilon):
     aux_dart = aux_sigma[vertex][0]
     aux_pos = _find(orb_vector, aux_dart)
     n = tat_graph.order()
-    for i in range(n):
+    for i in range(len(orb_vector[aux_pos[0]])):
         new_v = _find(aux_sigma,orb_vector[aux_pos[0]][i])[0]
         if new_v not in orb_vertex:
             orb_vertex.append(new_v)
     
-    #we hold in one variable the maximun of the darts
     darts = [x for i in range(len(aux_sigma)) for x in aux_sigma[i]]
-    m_dart = max(darts)
+    m_dart = max(darts) 
+    
+    #we hold in one variable the maximun of the darts
     for j in range(len(orb_vertex)):
         darts = [x for i in range(len(aux_sigma)) for x in aux_sigma[i]]
         m = max(darts)
-        aux_ver = aux_sigma[j]
+        aux_ver = aux_sigma[orb_vertex[j]]
         for k in range(len(aux_ver)):
             aux_sigma.append([m+2*k+1,aux_ver[k],m+2*k+2])
             aux_rho.append([m+2*k+2, m + ((2*k+3) % (2*len(aux_ver)))])
@@ -783,8 +785,9 @@ def blow_up(tat_graph, vertex, epsilon):
                                    PermutationGroupElement([tuple(x) for x in aux_sigma]), 
                                    PermutationGroupElement([tuple(x) for x in aux_rho])
                                    )
-    aux_bound = aux_ribbon._boundary()
+    aux_ribbon = aux_ribbon
+    aux_bound = aux_ribbon.boundary()
     for i in range(len(aux_bound)):
-        if min(aux_bound[i]) >= m_dart:
+        if min(aux_bound[i]) > m_dart:
             relative_boundary.append(aux_bound[i])
     return TatGraph(aux_ribbon, metric, relative_boundary)
