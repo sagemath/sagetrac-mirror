@@ -31,7 +31,6 @@ from sage.rings.all import ZZ, QQ, RDF
 
 from sage.groups.perm_gps.permgroup_element cimport PermutationGroupElement
 from sage.combinat.permutation import Permutation
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.structure.element cimport coercion_model as cm
 
 decode_type_number = {
@@ -1199,10 +1198,25 @@ cdef class GapElement(RingElement):
             sage: type(_)
             <... 'str'>
 
-            sage: x = polygen(ZZ, 'x')
-            sage: g = libgap(x+6)
-            sage: g.sage()
-            x + 6
+            sage: x = libgap.eval('Indeterminate(Integers, "x")')
+
+            sage: p = x^2 - 2*x + 3
+            sage: p.sage()
+            x^2 - 2*x + 3
+            sage: p.sage().parent()
+            Univariate Polynomial Ring in x over Integer Ring
+
+            sage: p = x^-2 + 3*x
+            sage: p.sage()
+            x^-2 + 3*x
+            sage: p.sage().parent()
+            Univariate Laurent Polynomial Ring in x over Integer Ring
+
+            sage: p = (3 * x^2 + x) / (x^2 - 2)
+            sage: p.sage()
+            (3*x^2 + x)/(x^2 - 2)
+            sage: p.sage().parent()
+            Fraction Field of Univariate Polynomial Ring in x over Integer Ring
         """
         if self.value is NULL:
             return None
@@ -1211,21 +1225,38 @@ cdef class GapElement(RingElement):
         if self.IsInfinity():
             from sage.rings.infinity import Infinity
             return Infinity
+
         elif self.IsNegInfinity():
             from sage.rings.infinity import Infinity
             return -Infinity
 
-        if self.IsUnivariatePolynomial():
+        elif self.IsUnivariateRationalFunction():
             var = self.IndeterminateOfUnivariateRationalFunction().String()
             var = var.sage()
-            L = self.CoefficientsOfUnivariatePolynomial().sage()
-            base_ring = cm.common_parent(*L)
-            return PolynomialRing(base_ring, var)(L)
+            num, den, val = self.CoefficientsOfUnivariateRationalFunction()
+            num = num.sage()
+            den = den.sage()
+            val = val.sage()
+            base_ring = cm.common_parent(*(num + den))
+
+            if self.IsUnivariatePolynomial():
+                from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+                R = PolynomialRing(base_ring, var)
+                return R(num)
+
+            elif self.IsLaurentPolynomial():
+                from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+                R = LaurentPolynomialRing(base_ring, var)
+                x = R.gen()
+                return x**val * R(num)
+
+            else:
+                from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+                R = PolynomialRing(base_ring, var)
+                x = R.gen()
+                return x**val * R(num) / R(den)
 
         raise NotImplementedError('cannot construct equivalent Sage object')
-
-
-
 
 
 ############################################################################
@@ -1976,6 +2007,7 @@ cdef class GapElement_Ring(GapElement):
         base_ring = self.CoefficientsRing().sage()
         vars = [x.String().sage()
                 for x in self.IndeterminatesOfPolynomialRing()]
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         return PolynomialRing(base_ring, vars)
 
     def sage(self, **kwds):
