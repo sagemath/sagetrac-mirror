@@ -1294,14 +1294,14 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
             return False
         if not obj:
             return self.order == 0
-        if self.order not in ZZ:
-            # check that k and -k are in the same block
-            k = ZZ(self.order + ZZ(1)/ZZ(2))
-            for b in obj:
-                if k in b:
-                    return -k in b
-            return False
-        return True
+        if self.order in ZZ:
+            return True
+        # check that k and -k are in the same block
+        k = ZZ(self.order + ZZ(1)/ZZ(2))
+        for b in obj:
+            if k in b:
+                return -k in b
+        return False
 
     def _element_constructor_(self, d):
         r"""
