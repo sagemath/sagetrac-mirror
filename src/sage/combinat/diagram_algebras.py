@@ -1222,21 +1222,86 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
             sage: pd = da.PartitionDiagrams(2)
             sage: pd.an_element() in pd
             True
-            sage: elm = pd([[1,2],[-1,-2]])
-            sage: elm in pd # indirect doctest
+            sage: [[1,2],[-1,-2]] in pd
+            True
+            sage: [] in pd
+            False
+            sage: [[1,-1]] in pd
+            False
+            sage: pd1p5 = da.PartitionDiagrams(1.5)
+            sage: set(pd1p5) == set(p for p in pd if p in pd1p5)
+            True
+
+            sage: bd = da.BrauerDiagrams(2)
+            sage: bd.an_element() in bd
+            True
+            sage: [[1,2],[-1,-2]] in bd
+            True
+            sage: [[1,2,-1,-2]] in bd
+            False
+            sage: [[1,-1]] in bd
+            False
+            sage: [] in bd
+            False
+            sage: bd1p5 = da.BrauerDiagrams(1.5)
+            sage: bd1p5.an_element() in bd1p5
+            True
+            sage: set(bd1p5) == set(p for p in bd if p in bd1p5)
+            True
+
+            sage: td = da.TemperleyLiebDiagrams(2)
+            sage: td.an_element() in td
+            True
+            sage: [[1,2],[-1,-2]] in td
+            True
+            sage: [[1,-2],[-1,2]] in td
+            False
+            sage: td1p5 = da.TemperleyLiebDiagrams(1.5)
+            sage: td1p5.an_element() in td1p5
+            True
+            sage: set(td1p5) == set(p for p in td if p in td1p5)
+            True
+
+            sage: pld = da.PlanarDiagrams(2)
+            sage: pld.an_element() in pld
+            True
+            sage: [[1,2],[-1,-2]] in pld
+            True
+            sage: [[1,-2],[-1,2]] in pld
+            False
+            sage: pld1p5 = da.PlanarDiagrams(1.5)
+            sage: pld1p5.an_element() in pld1p5
+            True
+            sage: set(pld1p5) == set(p for p in pld if p in pld1p5)
+            True
+
+            sage: id = da.IdealDiagrams(2)
+            sage: id.an_element() in id
+            True
+            sage: [[1,2],[-1,-2]] in id
+            True
+            sage: [[1,-2],[-1,2]] in id
+            False
+            sage: id1p5 = da.IdealDiagrams(1.5)
+            sage: id1p5.an_element() in id1p5
+            True
+            sage: set(id1p5) == set(p for p in id if p in id1p5)
             True
         """
-        if not hasattr(obj, '_base_diagram'):
-            try:
-                obj = self._element_constructor_(obj)
-            except (ValueError, TypeError):
-                return False
-        if obj.base_diagram():
-            tst = sorted(flatten(obj.base_diagram()))
-            if len(tst) % 2 or tst != list(range(-len(tst)//2,0)) + list(range(1,len(tst)//2+1)):
-                return False
-            return True
-        return self.order == 0
+        try:
+            obj = self._element_constructor_(obj)
+        except (ValueError, TypeError):
+            return False
+        if not obj:
+            return self.order == 0
+        if self.order not in ZZ:
+            # check that k and -k are in the same block
+            k = ZZ(self.order + ZZ(1)/ZZ(2))
+            for b in obj:
+                if k in b:
+                    return -k in b
+            return False
+        return True
 
     def _element_constructor_(self, d):
         r"""
@@ -1386,29 +1451,6 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
     options = BrauerDiagram.options
     _name = "Brauer"
     _diagram_func = brauer_diagrams
-
-    def __contains__(self, obj):
-        r"""
-        TESTS::
-
-            sage: import sage.combinat.diagram_algebras as da
-            sage: bd = da.BrauerDiagrams(2)
-            sage: bd.an_element() in bd
-            True
-            sage: bd([[1,2],[-1,-2]]) in bd
-            True
-            sage: [[1,2,-1,-2]] in bd
-            False
-            sage: bd = da.BrauerDiagrams(3/2)
-            sage: bd.an_element() in bd
-            True
-
-        """
-        if self.order in ZZ:
-            r = ZZ(self.order)
-        else:
-            r = ZZ(self.order + ZZ(1)/ZZ(2))
-        return super(BrauerDiagrams, self).__contains__(obj) and [len(i) for i in obj] == [2]*r
 
     def cardinality(self):
         r"""
@@ -1723,28 +1765,6 @@ class IdealDiagrams(AbstractPartitionDiagrams):
     Element = IdealDiagram
     _name = "Ideal"
     _diagram_func = ideal_diagrams
-
-    def __contains__(self, obj):
-        r"""
-        TESTS::
-
-            sage: import sage.combinat.diagram_algebras as da
-            sage: id = da.IdealDiagrams(2)
-            sage: id.an_element() in id
-            True
-            sage: id([[1,2],[-1,-2]]) in id
-            True
-            sage: [[1,2],[-1,-2]] in id
-            True
-            sage: [[1,-2],[-1,2]] in id
-            False
-        """
-        if not hasattr(obj, '_base_diagram'):
-            try:
-                obj = self._element_constructor_(obj)
-            except (ValueError, TypeError):
-                return False
-        return super(IdealDiagrams, self).__contains__(obj) and obj.propagating_number() < self.order
 
 class DiagramAlgebra(CombinatorialFreeModule):
     r"""
