@@ -1289,7 +1289,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
             True
         """
         try:
-            obj = self._element_constructor_(obj)
+            obj = self(obj)
         except (ValueError, TypeError):
             return False
         if not obj:
@@ -1659,7 +1659,7 @@ class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
         """
         if not hasattr(obj, '_base_diagram'):
             try:
-                obj = self._element_constructor_(obj)
+                obj = self(obj)
             except (ValueError, TypeError):
                 return False
         return obj in BrauerDiagrams(self.order) and obj.is_planar()
@@ -1736,7 +1736,7 @@ class PlanarDiagrams(AbstractPartitionDiagrams):
         """
         if not hasattr(obj, '_base_diagram'):
             try:
-                obj = self._element_constructor_(obj)
+                obj = self(obj)
             except (ValueError, TypeError):
                 return False
         return super(PlanarDiagrams, self).__contains__(obj)
