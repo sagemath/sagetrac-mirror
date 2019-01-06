@@ -3849,13 +3849,13 @@ cdef class BetaAdicSet:
                 print("t=%s" % t)
             mi = m.intersection(m, -t, algo=algo_rel)
             mia = mi.a.intersection(a)
-            if not mia.is_empty():
+            if not mia.has_empty_language():
                 if verb:
                     print("not empty ! mia=%s" % mia)
                 mi = BetaAdicSet(m.b, mia)
                 r.append((t, mi))
                 a = a.intersection(mi.a.complementary())
-                if a.is_empty():
+                if a.has_empty_language():
                     return r
             n -= 1
             if n == 0:

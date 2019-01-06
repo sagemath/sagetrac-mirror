@@ -2915,15 +2915,28 @@ cdef class DetAutomaton:
                 self.S.append(label_sink)
         return res
 
-    def prefix(self, list w):
+    def prefix(self, w, i=None, int algo=1):
         """
         Give an automaton recognizing the language w(w^(-1)L) where L is the language of self.
         It is the set of words recognized by self and starting with word w.
+
+        INPUT:
+
+        - ``w`` -- a word
+
+        - ``i`` -- int (default: ``None``) - the initial state used
+
+        - ``algo`` -- int (default: ``1``)
+            The algorithm used for the computation.
 
         EXAMPLES::
 
             sage: a = dag.AnyWord(['a', 'b'])
             sage: a.prefix(['a', 'a'])
+            DetAutomaton with 3 states and an alphabet of 2 letters
+
+            sage: a = dag.AnyWord(['a', 'b'])
+            sage: a.prefix(['a', 'a'], algo=2)
             DetAutomaton with 3 states and an alphabet of 2 letters
 
         TESTS::
@@ -2934,10 +2947,34 @@ cdef class DetAutomaton:
             ...
             ValueError: 'c' is not in the alphabet ['a', 'b']
 
+            sage: a = dag.AnyWord(['a', 'b'])
+            sage: a.prefix(['a', 'a']).has_same_language_as(a.prefix(['a', 'a'], algo=2))
+            True
+
         """
-        cdef DetAutomaton a = self.copy()
-        a.shift_list_op(w)
-        return dag.Word(w).concat(a)
+        cdef DetAutomaton a
+        cdef int* l
+        cdef int j
+        if algo == 2:
+            l = <int*>malloc(sizeof(int)*self.a.n)
+            for j in range(len(w)):
+                try:
+                    l[j] = self.A.index(w[j])
+                except:
+                    raise ValueError("letter %s of the word %s is not in the alphabet of self"%(w[j], w))
+            if i is None:
+                i = self.a.i
+            a = DetAutomaton(None)
+            sig_on()
+            a.a[0] = PieceAutomaton(self.a[0], l, len(w), i)
+            sig_off()
+            free(l)
+            a.A = self.A
+            return a
+        else:
+            a = self.copy()
+            a.shift_list_op(w)
+            return dag.Word(w).concat(a)
 
     def prefix_closure(self):
         """
@@ -4785,7 +4822,7 @@ cdef class DetAutomaton:
             sage: a.shortest_word()
             ['y']
 
-            sage: a = DetAutomaton([(0,0,0)])
+            sage: a = dag.Empty(['a', 'b'])
             sage: a.shortest_word()
             
 
@@ -4830,13 +4867,13 @@ cdef class DetAutomaton:
 
     def shortest_words(self, i=None, bool verb=False):
         """
-        Compute the shortest words from the initial state to every state.
+        Compute the list of shortest words from the initial state to every state.
 
         INPUT:
 
-        - ``i`` -- (default: None)  the initial state
+        - ``i`` -- (default: None) - the initial state
 
-        - ``verb`` -- bool (default: False)  the verbose parameter
+        - ``verb`` -- bool (default: False) - the verbose parameter
 
         OUTPUT:
 
@@ -5121,7 +5158,7 @@ cdef class DetAutomaton:
             sage: a.bigger_alphabet(['a','1','c'])
             Traceback (most recent call last):
             ...
-            ValueError: Letter b not found in the new alphabet
+            ValueError: Letter 'b' not found in the new alphabet
 
         """
         cdef Dict d
@@ -5135,7 +5172,7 @@ cdef class DetAutomaton:
             try:
                 d.e[i] = A.index(self.A[i])
             except Exception:
-                raise ValueError("Letter %s not found in the new alphabet"%self.A[i])
+                raise ValueError("Letter %r not found in the new alphabet"%self.A[i])
             sig_check()
         sig_on()
         r.a[0] = BiggerAlphabet(self.a[0], d, len(A))
@@ -5178,6 +5215,7 @@ cdef class DetAutomaton:
 
         OUTPUT:
 
+        :class:`DetAutomaton`
         return  a new automaton whose language is the complementary
         of the language of ``self``
 
@@ -5195,23 +5233,40 @@ cdef class DetAutomaton:
         a.complementary_op()
         return a
 
-    def included(self, DetAutomaton a, bool verb=False, pruned=False):
+    def included(self, DetAutomaton a, bool pruned=False, bool verb=False):
         r"""
         Test if the language of self is included in the language of ``a``
 
         INPUT:
 
         - ``a`` --  a :class:`DetAutomaton`
-        - ``verb`` -- (default: False) verbose parameter
-        - ``pruned`` -- (default: False) set to True if the automaton is
+
+        - ``pruned`` -- (default: False) - set to True if the automaton self is
           already pruned, in order to avoid unuseful computation.
+
+        - ``verb`` -- (default: False) - verbose parameter
 
         OUTPUT:
 
-        return  ``True`` if the language of ``self`` is included in the
-        language of ``a`` or return  ``False`` otherwise
+        Boolean
+        return ``True`` if the language of ``self`` is included in the
+        language of ``a``, otherwise return ``False`` 
 
         EXAMPLES::
+
+            sage: a = dag.AnyWord("ab")
+            sage: b = dag.Word("aba")
+            sage: b.included(a)
+            True
+            sage: a.included(b)
+            False
+
+            sage: a = dag.AnyWord("abc")
+            sage: b = dag.AnyWord("ab")
+            sage: a.included(b)
+            False
+            sage: b.included(a)
+            True
 
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: a.included(a)
@@ -5262,100 +5317,53 @@ cdef class DetAutomaton:
 #
 #        return p.has_empty_language()
 
-#    # donne un automate reconnaissant w(w^(-1)L) où L est le langage
-#    # de a partant de e
-#    def piece(self, w, e=None):
-#        """
-#        return a automaton recognizing ``w`` as :math:`w (w^{-1}L)` where ``L``
-#        is the language of automaton a from e entry state
-#
-#        INPUT:
-#
-#        - ``w`` --  word
-#        - ``e`` -- (default: None) the entry state
-#
-#        OUTPUT:
-#
-#        return  a automaton recognizing ``w``
-#
-#        EXAMPLES::
-#
-#            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-#            sage: a.piece([1])
-#            DetAutomaton with 0 state and an alphabet of 2 letters
-#
-#        """
-#        cdef int* l = <int*>malloc(sizeof(int)*self.a.n)
-#        cdef int i
-#        if type(w) != list:
-#            w = [int(w)]
-#        for i in range(len(w)):
-#            l[i] = w[i]
-#        if e is None:
-#            e = self.a.i
-#        r = DetAutomaton(None)
-#        sig_on()
-#        r.a[0] = PieceAutomaton(self.a[0], l, len(w), e)
-#        sig_off()
-#        free(l)
-#        r.A = self.A
-#        return r
-
-    # SAME AS has_empty_language(), TO REMOVE !!!!
-    # tell if the language of the automaton is empty
-    # (this function is not very efficient)
-    def is_empty(self):
-        """
-        Examines if the language of the automaton is empty
-
-        OUTPUT:
-
-        return ``True`` if the language of the automaton is empty,
-        ``False`` otherwise
-
-        EXAMPLES::
-
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
-            sage: a.is_empty()
-            False
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')])
-            sage: a.is_empty()
-            True
-
-        """
-        return (self.find_word() is None)
 
     def random_word(self, int nmin=-1, int nmax=100):
         r"""
         Return a random word recognized by the automaton, by following a
         random path in the automaton from the initial state. If we don't fall
         into the set of final states before reaching the maximal length
-        ``nmax``, then return ``word not found !``.
+        ``nmax``, then return ``word not found!``.
 
         INPUT:
 
-        - ``nmin`` -- (default: -1) minimal length of the word
-        - ``nmax`` -- (default: 100) maximal length of the word
+        - ``nmin`` -- (default: -1) - minimal length of the word
+
+        - ``nmax`` -- (default: 100) - maximal length of the word
 
         OUTPUT:
 
         Return a random word of length between ``nmin`` and ``nmax`` if found.
-        Otherwise return ``word not found !``.
+        Otherwise return ``word not found!``.
 
         EXAMPLES::
 
-            sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b'), (0, 3, 'c')], i=0)
-            sage: a.random_word()  # random
-            ['a']
+            sage: a = dag.Word("abaa")
+            sage: a.random_word()
+            ['a', 'b', 'a', 'a']
+
+            sage: a = dag.AnyWord("ab")
+            sage: a.random_word()
+            []
+
+            sage: a = dag.Word("aba").union(dag.Word("bab"))
+            sage: a.random_word()   # random
+            ['a', 'b', 'a']
+
+            sage: a = dag.Empty(['a', 'b'])
+            sage: a.random_word()
+            'word not found!'
 
         """
         cdef int i, j, l, na
         cdef list w, li
         i = self.a.i
+        if i == -1:
+            return "word not found!"
         w = []
         na = len(self.A)
         if nmin < 0:
-            nmin = 1
+            nmin = 0
         from sage.misc.prandom import random
         for j in range(nmin):
             li = [l for l in range(na) if self.succ(i, l) != -1]
@@ -5367,8 +5375,11 @@ cdef class DetAutomaton:
             if self.a.e[i].final:
                 break
             li = [l for l in range(na) if self.succ(i, l) != -1]
+            if li == []:
+                return "word not found!"
             l = li[(int)(random() * len(li))]
             w.append(self.A[l])
             i = self.succ(i, l)
         if i < 0 or not self.a.e[i].final:
-            print("word not found !")
+            return "word not found!"
+        return w
