@@ -81,7 +81,7 @@ The set of points is obtained from :math:`\beta` and from the automaton by:
 
 The self-similar tiling of :math:`\mathbf R_+` is obtained by taking the embedding of :math:`\mathbf Q(\beta)` in :math:`\mathbf R` corresponding to the Perron eigenvalue of the incidence matrix :math:`M`.
 If we look at the others embeddings, corresponding to eigenvalues less than :math:`1` we get a bounded set whose adherence is called Rauzy fractal of the substitution.
-Here there is a unic such embedding, which is a real one, corresponding to the root of :math:`x^2-x-1` between :math:`-1` and $:math:`1`.
+Here there is a unic such embedding, which is a real one, corresponding to the root of :math:`x^2-x-1` between :math:`-1` and :math:`1`.
 The Rauzy fractal is here the interval :math:`[-1, \varphi]` of :math:`\mathbf R` where :math:`\varphi` is the golden number (i.e. greatest root of :math:`x^2-x-1`).
 
 Main Definitions
@@ -120,14 +120,14 @@ The Rauzy fractal is the closure of the projection of the broken line to the con
 Expanding line and contracting space
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The \og expanding line \fg\ has dimension :math:`1` for Pisot numbers, but it can have greater dimension for other Perron numbers.
+The "expanding line" has dimension :math:`1` for Pisot numbers, but it can have greater dimension for other Perron numbers.
 
 Let :math:`M_s` be the incidence matrix of the substitution :math:`s`.
 By definition the coefficient :math:`(i,j)` of this matrix is the number of occurrences of the letter :math:`j` in the word :math:`s(i)`.
 By Perron-Frobenius theorem, there exists an eigenvector :math:`v \in (\mathbf R_+)^n`, unique if the matrix is irreducible, for an eigenvalue :math:`\lambda` which is the spectral radius of :math:`M_s`,
 and moreover we can assume that :math:`v \in (\mathbf Q(\lambda))^{n}`.
     
-We can directly define the projection of the broken line in $:math:`\mathbf Q(\lambda)`, by the following. 
+We can directly define the projection of the broken line in :math:`\mathbf Q(\lambda)`, by the following. 
 
 .. MATH::
 
@@ -138,7 +138,7 @@ The definition of :math:`Q_\omega` depends of the choice of an eigenvector.
 We prefer to choose an eigenvector whose coefficients belongs to the integer ring :math:`\mathcal O_\lambda`, in order to have :math:`Q_\omega \subset \mathcal O_\lambda`.
     
 For :math:`\mathbf Q(\lambda)`, there are natural contracting and expanding spaces for the multiplication by :math:`\lambda`.
-Indeed, consider the bigest sets :math:`P_+` and :math:`P_-` of places (i.e. equivalence class of absolute values) 
+Indeed, consider the biggest sets :math:`P_+` and :math:`P_-` of places (i.e. equivalence class of absolute values) 
 of :math:`\mathbf Q(\lambda)` such that
 
 .. MATH::
@@ -190,6 +190,7 @@ A :math:`\beta`-adic set, for an number :math:`\beta`, is a subset of :math:`\ma
         { \mathbf Q_{\beta,L} := \{ \sum_{i=0}^n a_i \beta^i} { n \in \mathbf N,\ a_0 a_1 ... a_n \in L } \}.
 
 where :math:`L` is a regular language over a finite alphabet :math:`\Sigma \subset \mathbf Q(\beta)`.
+It is represented in Sage by the class :class:`BetaAdicSet` which contains a number :math:`b` for :math:`\beta`, and the data of a :class:`DetAutomaton` `a` recognizing the language :math:`L`.
 
 Some Properties
 ^^^^^^^^^^^^^^^
@@ -211,11 +212,12 @@ The fact that :math:`\beta`-adic sets come naturally to describe quasicrystals a
 and has a lot of nice properties show that it is an interesting fundamental object.
     
 
-Remarks: on any Shape
-^^^^^^^^^^^^^^^^^^^^^
+Remark
+^^^^^^
 
 We see from theses properties that we can construct :math:`\beta`-adic sets with any shape in the contracting space :math:`E^-`.
-This allows us to construct Rauzy fractals of any shape.
+This allows us to construct Rauzy fractals of any shape: the :math:`\beta`-adic set comes from a substitution for the Pisot number :math:`\beta^k` if and only if it is invariant by multiplication by
+:math:`\beta^k` and it is a Meyer set in the expanding direction.
 
 
 
@@ -225,8 +227,7 @@ The first step, to construct a substitution from a quasicrystal, is to construct
 
 Let :math:`\beta` be a Pisot number (eventually non unit), and let :math:`Q \subseteq \mathbf Q(\beta)` such that :math:`\sigma_+(Q)` is a quasicrystal of :math:`\mathbf R` or :math:`\mathbf R^+`.
 Then there exists a domain exchange with a finite number of pieces such that the union of the pieces is :math:`Q`.
-Moreover, this domain exchange is conjugated to the shift on :math:`\sigma_+(Q)`. defined by the window :math:`\Omega`. 
-
+Moreover, this domain exchange is conjugated to the shift on :math:`\sigma_+(Q)`.
 
 
 .. figure:: /media/echange_rond.jpg
@@ -247,6 +248,8 @@ Indeed if :math:`x` is a Pisot number of degree three in :math:`\mathbf Q(\beta)
 the next Pisot number is obtained by looking in which piece is the conjugate :math:`\overline{x}`,
 and adding the corresponding translation to :math:`x`.
 
+For a :math:`\beta`-adic set, for a Pisot number :math:`\beta`, we can compute the domain exchange when it is finite. It is done by the function :meth:`sage.arith.beta_adic.domain_exchange`.
+
 Construction of a substitution
 ------------------------------
 
@@ -258,9 +261,6 @@ and see how the result is covered by others intervals.
 .. image:: media/subtitution.png
   :scale: 20 %
 
-Construction of a domain exchange in the disk of radius :math:`1` and center :math:`0`,
-for the Tribonnacci number :math:`\beta`.
-
 But we have to take care of the fact that one interval can have several substitutions rules,
 corresponding to the fact that several letters of a substitution can give intervals of same lengths.
 
@@ -270,6 +270,7 @@ But it's not really an induction : we have to distinguish between different poss
 trajectories for points in :math:`\lambda Q` before they come back to :math:`\lambda Q`,
 otherwise the induction only give the same domain exchange on :math:`\lambda Q` than in :math:`Q`.
 
+For a :math:`\beta`-adic set, for a Pisot number :math:`\beta`, we can compute the substitution when it exists. It is done by the function :meth:`sage.arith.beta_adic.substitution`.
 
 Examples of Usage of BetaAdicSet
 --------------------------------
@@ -278,11 +279,11 @@ Examples of Usage of BetaAdicSet
 A Sierpinsky gasket
 ~~~~~~~~~~~~~~~~~~~
 
-Take the Tribonnacci Pisot number β, root of x 3 − x 2 − x − 1,
-and take L the regular language defined by the followed automaton.
+Take the Tribonnacci Pisot number :math:`\beta`, root of :math:`x^3 - x^2 - x - 1`,
+and take :math:`L` the regular language defined by the following automaton.
 
 
-This automaton describing the regular language describing a g- :math:`\beta`-set which is a Sierpiński
+This automaton describing the regular language describing a :math:`\beta`-adic set which is a Sierpiński
 gasket union a set of non-empty interior for :math:`\beta` the Tribonnacci number.
 
 .. PLOT::
@@ -294,7 +295,7 @@ gasket union a set of non-empty interior for :math:`\beta` the Tribonnacci numbe
    # automaton recognizing a set of non-empty interior
    a2 = DetAutomaton([(0,1,0),(1,2,0),(2,2,0),(2,2,1)],i=0, final_states=[2])
    # multiply by b^2
-   a3 = a.unshift1(0, final=True).unshift1(1)
+   a3 = a.unshift(0, final=True).unshift(1)
    a = a2.union(a3)
    sphinx_plot(a)
 
@@ -308,29 +309,22 @@ Obtained by the code:
    # automaton recognizing a set of non-empty interior
    a2 = DetAutomaton([(0,1,0),(1,2,0),(2,2,0),(2,2,1)],i=0, final_states=[2])
    # multiply by b^2
-   a3 = a.unshift1(0, final=True).unshift1(1)
+   a3 = a.unshift(0, final=True).unshift(1)
    a = a2.union(a3)
    a.plot()
 
 
-
-The Domain exchange with :math:`6` pieces, describing the shift on :math:`\sigma_+(Q_L)` for the regular language :math:`L` can be computed.
+We define and plot this :math:`\beta`-adic set:
 
 .. code-block:: Python
 
    m = BetaAdicSet(x^3-x^2-x-1, a) #choose to work with the alphabet {0,1} and with the Tribonnacci polynomial
-   pp = m.b.parent().places()[0] #expanding place
-   print pp
-   Ring morphism:
-     From: Number Field in b with defining polynomial x^3 - x^2 - x - 1
-     To:   Real Field with 106 bits of precision
-     Defn: b |--> 1.839286755214161132551852564671
    m.plot(nprec=6)
 
 .. image:: media/beta_adic_image1.png
   :scale: 80 %
 
-Now the code to plot the list after the exchange
+The domain exchange with :math:`6` pieces, describing the shift on :math:`\beta`-adic-set can be computed:
 
 .. code-block:: Python
 
@@ -346,7 +340,7 @@ Now the code to plot the list after the exchange
 .. image:: media/domain1.png
   :scale: 80 %
 
-And plot the domain after exchange
+And we plot the domains after exchange
 
 .. code-block:: Python
 
@@ -361,7 +355,7 @@ Compute the subtitution
 
 .. code-block:: Python
 
-   # compute a substitution whose Rauzy fractal is this BetaAdicSet
+   # compute a substitution whose broken line is this BetaAdicSet
    %time d = m.substitution()
    d
    CPU times: user 24 s, sys: 156 ms, total: 24.1 s
@@ -437,10 +431,7 @@ Compute the subtitution
     68: [66, 49],
     69: [67, 49]}
 
-The :math:`\beta`-adic set :math:`Q_{]-1,1[}` can be computed, for any quadratic Pisot number :math:`\beta`,
-and then compute a substitution describing the quasicrystal.
-
-And directly with the WordMorphism of the subtitution and it's rauzy_fractal_plot.
+And we can plot directly the Rauzy fractal from a :class:`WordMorphism` describing this subtitution:
 
 .. code-block:: Python
 
@@ -509,14 +500,16 @@ Compute the Hausdorff dimension.
 Any Shape
 ~~~~~~~~~
 
+We can define :math:`\beta`-adic sets approximating any shape.
+This can be done with the function :meth:`sage.arith.beta_adic.approx`.
+And we can also draw a :math:`\beta`-adic set with the mouse, with the function
+:meth:`sage.arith.beta_adic.user_draw`.
+We present various examples.
+
 Disk
 ----
 
-that permit to draw a Rauzy fractal of any shape with the mouse, like in a drawing software,
-and to compute the corresponding substitution.
-The following example has been obtain by drawing randomly using this tool.
-
-Definition of the beta-Adic-Set:
+We start by taking a simple :math:`\beta`-adic set.
 
 .. code-block:: Python
 
@@ -552,7 +545,7 @@ The relation automaton associated
      To:   Complex Field with 53 bits of precision
      Defn: b |--> -0.419643377607080 + 0.606290729207199*I
 
-The disk definition:
+We compute an approximation of a disk included in this `\beta`-adic set:
 
 .. code-block:: Python
 
@@ -1011,4 +1004,12 @@ Compute the domain exchange
 
 .. image:: media/user61.png
   :scale: 70 %
+
+
+Intervals
+---------
+
+For any quadratic Pisot number :math:`\beta`,
+the :math:`\beta`-adic set :math:`Q_{(-1,1)}` of all elements of the integer rings that are in the intervalle :math:`(-1,1)` in the contracting space, can be computed,
+and then we can compute a substitution describing the quasicrystal.
 

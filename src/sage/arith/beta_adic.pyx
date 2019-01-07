@@ -1023,7 +1023,7 @@ cdef class BetaAdicSet:
 
         :math:`\sum_{i=0}^\infty \beta^i c_i`
 
-    where :math:`beta` is a element of a field (for example a complex number),
+    where :math:`\beta` is an element of a field (for example a complex number),
     and the :math:`c_i` form a word recognized by a deterministic automaton ``a``.
 
     INPUT:
@@ -3073,12 +3073,12 @@ cdef class BetaAdicSet:
                 return e3
             return -1
 
+    # .. see :doc:`thematic_tutorials/beta_adic_set`
     def approx(self, n, test, bool get_aut=False, bool simplify=True):
         """
         Gives a BetaAdicSet describing an approximation of a set defined by the
         characteritic function test, with the alphabet of the automaton of self.
         Rk: could be improved by drawing with the automaton of self
-        .. see :doc:`thematic_tutorials/beta_adic_set`
 
         INPUT:
 
