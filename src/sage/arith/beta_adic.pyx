@@ -3073,12 +3073,12 @@ cdef class BetaAdicSet:
                 return e3
             return -1
 
-    # .. see :doc:`thematic_tutorials/beta_adic_set`
     def approx(self, n, test, bool get_aut=False, bool simplify=True):
         """
         Gives a BetaAdicSet describing an approximation of a set defined by the
         characteritic function test, with the alphabet of the automaton of self.
         Rk: could be improved by drawing with the automaton of self
+        .. see `thematic_tutorials  beta adic <../../../../thematic_tutorials/beta_adic_set.html>`_
 
         INPUT:
 
@@ -3111,7 +3111,7 @@ cdef class BetaAdicSet:
                 sage: print(a)
                 b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 236 states and 2 letters
                 sage: m.plot_list([a])  # not tested
-            
+
             #. Slide of the dragon fractal
                 sage: m = BetaAdicSet(1/(1.+I), [0,1])
                 sage: m2 = m.approx(12, lambda x: x.real()^2 < .1)
