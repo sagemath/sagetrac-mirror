@@ -4216,14 +4216,14 @@ cdef class DetAutomaton:
         :class:`DetAutomaton`
 
         EXAMPLES::
-            
+
             sage: a = dag.Word(['a','b','a','b'])
             sage: a.shift_list_op(['a','b'])
             sage: a
             DetAutomaton with 5 states and an alphabet of 2 letters
             sage: a.simplify()
             DetAutomaton with 3 states and an alphabet of 2 letters
-            
+
         """
         return self.prune().minimize()
 
@@ -4252,7 +4252,7 @@ cdef class DetAutomaton:
             ....:                   i='a', final_states=['c','d','e'])
             sage: a.minimize()
             DetAutomaton with 3 states and an alphabet of 2 letters
-            
+
             sage: a = DetAutomaton([(0,1,0), (0,5,1), (1,2,1), (1,6,0),
             ....:                   (2,0,0), (2,2,1), (3,2,0), (3,6,1),
             ....:                   (4,7,0), (4,5,1), (5,2,0), (5,6,1),
