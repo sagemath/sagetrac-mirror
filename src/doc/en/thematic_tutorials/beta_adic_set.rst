@@ -248,7 +248,7 @@ Indeed if :math:`x` is a Pisot number of degree three in :math:`\mathbf Q(\beta)
 the next Pisot number is obtained by looking in which piece is the conjugate :math:`\overline{x}`,
 and adding the corresponding translation to :math:`x`.
 
-For a :math:`\beta`-adic set, for a Pisot number :math:`\beta`, we can compute the domain exchange when it is finite. It is done by the function :meth:`~../sage.arith.beta_adic.domain_exchange`.
+For a :math:`\beta`-adic set, for a Pisot number :math:`\beta`, we can compute the domain exchange when it is finite. It is done by the class :class:`BetaAdicSet`, with method :meth:`~sage.arith.beta_adic.BetaAdicSet.domain_exchange`.
 
 Construction of a substitution
 ------------------------------
@@ -270,7 +270,7 @@ But it's not really an induction : we have to distinguish between different poss
 trajectories for points in :math:`\lambda Q` before they come back to :math:`\lambda Q`,
 otherwise the induction only give the same domain exchange on :math:`\lambda Q` than in :math:`Q`.
 
-For a :math:`\beta`-adic set, for a Pisot number :math:`\beta`, we can compute the substitution when it exists. It is done by the function :meth:`~sage.arith.beta_adic.substitution`.
+For a :math:`\beta`-adic set, for a Pisot number :math:`\beta`, we can compute the substitution when it exists. It is done by the class :class:`BetaAdicSet` , with method  :meth:`~sage.arith.beta_adic.BetaAdicSet.substitution`.
 
 Examples of Usage of BetaAdicSet
 --------------------------------
@@ -504,8 +504,8 @@ Any Shape
 
 We can define :math:`\beta`-adic sets approximating any shape.
 This can be done with the function :meth:`~sage.arith.beta_adic.approx`.
-And we can also draw a :math:`\beta`-adic set with the mouse, with the function
-:meth:`~sage.arith.beta_adic.user_draw`.
+And we can also draw a :math:`\beta`-adic set with the mouse, with the class :class:`BetaAdicSet`, with the method
+:meth:`~sage.arith.beta_adic.BetaAdicSet.user_draw`.
 We present various examples.
 
 Disk

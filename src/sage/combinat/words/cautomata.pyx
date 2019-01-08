@@ -3132,18 +3132,21 @@ cdef class DetAutomaton:
         Return two DetAutomaton recognizing the intersection of the language
         of self with the one of a and with the complementary of the language
         of a.
-        We assume that the two automata have the same alphabet, otherwise the complementary is taken in the set of words over the intersection of the two alphabets.
+        We assume that the two automata have the same alphabet, otherwise the
+        complementary is taken in the set of words over the intersection of
+        the two alphabets.
         Warning: There is a side-effect: the automaton ``a`` is completed.
 
         INPUT:
 
-        - ``a`` -- :class:`DetAutomaton` - we split ``self`` with respect to this automaton
+        - ``a`` -- :class:`DetAutomaton` - we split ``self`` with respect
+          to this automaton.
 
         - ``simplify`` - bool (default: True) - if True, prune and
-          minimize the result
+          minimize the result.
 
         - ``verb`` - bool (default: False) - if True, display
-          informations for debugging
+          informations for debugging.
 
         OUTPUT:
 
@@ -3181,10 +3184,11 @@ cdef class DetAutomaton:
 
             sage: a = dag.AnyWord(['a', 'b'])
             sage: b = dag.AnyWord(['c', 'a'])
+            sage: 
             sage: a.split(b)
             [DetAutomaton with 1 state and an alphabet of 1 letter,
              DetAutomaton with 1 state and an alphabet of 1 letter]
-
+            sage:
         """
         cdef Automaton ap, ap2
         cdef Dict dC
