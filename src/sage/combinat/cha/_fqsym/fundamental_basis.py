@@ -175,31 +175,31 @@ class Fundamental(FreeQuasiSymmetricFunctions.Bases.Base):
             '''
             return self(sigma * mu)
 
-        def product_on_basis(self, sigma, mu):
-            '''
-            TESTS::
+        # def product_on_basis(self, sigma, mu):
+        #     '''
+        #     TESTS::
 
-                sage: F = FQSym(QQ).F()
-                sage: p = Permutations(6).random_element()
-                sage: F(p) * F[[]] == F[[]] * F(p) == F(p)
-                True
-                sage: F[1]**2 == F.sum(F(sigma) for sigma in Permutations(2))
-                True
-                sage: F[1]**3 == F.sum(F(sigma) for sigma in Permutations(3))
-                True
-                sage: F[1] * F[2, 1, 3]
-                F[1, 3, 2, 4] + F[3, 1, 2, 4] + F[3, 2, 1, 4] + F[3, 2, 4, 1]
-                sage: F[1, 2] * F[2, 1]
-                F[1, 2, 4, 3] + F[1, 4, 2, 3] + F[1, 4, 3, 2] + F[4, 1, 2, 3] + F[4, 1, 3, 2] + F[4, 3, 1, 2]
-            '''
-            from sage.combinat.words.shuffle_product import \
-                ShuffleProduct_shifted
-            Keys = self.basis().keys()
-            return self.sum_of_monomials(
-                map(lambda w: Keys(list(w)), ShuffleProduct_shifted(
-                        Word(sigma),
-                        Word(mu)
-            )))
+        #         sage: F = FQSym(QQ).F()
+        #         sage: p = Permutations(6).random_element()
+        #         sage: F(p) * F[[]] == F[[]] * F(p) == F(p)
+        #         True
+        #         sage: F[1]**2 == F.sum(F(sigma) for sigma in Permutations(2))
+        #         True
+        #         sage: F[1]**3 == F.sum(F(sigma) for sigma in Permutations(3))
+        #         True
+        #         sage: F[1] * F[2, 1, 3]
+        #         F[1, 3, 2, 4] + F[3, 1, 2, 4] + F[3, 2, 1, 4] + F[3, 2, 4, 1]
+        #         sage: F[1, 2] * F[2, 1]
+        #         F[1, 2, 4, 3] + F[1, 4, 2, 3] + F[1, 4, 3, 2] + F[4, 1, 2, 3] + F[4, 1, 3, 2] + F[4, 3, 1, 2]
+        #     '''
+        #     from sage.combinat.words.shuffle_product import \
+        #         ShuffleProduct_shifted
+        #     Keys = self.basis().keys()
+        #     return self.sum_of_monomials(
+        #         map(lambda w: Keys(list(w)), ShuffleProduct_shifted(
+        #                 Word(sigma),
+        #                 Word(mu)
+        #     )))
 
         def coproduct_on_basis(self, sigma):
             '''
@@ -243,8 +243,8 @@ class Fundamental(FreeQuasiSymmetricFunctions.Bases.Base):
             if len(sigma) < 1:
                 return self(self.base_ring().zero())
             return self.sum_of_monomials(map(
-                lambda gamma: self.basis().keys()([sigma[0]] + list(gamma)),
-                Word(sigma[1:]).shuffle(Word([l + len(sigma) for l in mu]))
+                lambda gamma: self.basis().keys()(list(gamma) + [sigma[-1]]),
+                Word(sigma[:-1]).shuffle(Word([l + len(sigma) for l in mu]))
             ))
 
         def right_product_on_basis(self, sigma, mu):
@@ -275,8 +275,8 @@ class Fundamental(FreeQuasiSymmetricFunctions.Bases.Base):
                 return self(self.base_ring().zero())
             return self.sum_of_monomials(map(
                 lambda gamma: self.basis().keys()(
-                    [mu[0] + len(sigma)] + list(gamma)),
-                Word(sigma).shuffle(Word([l + len(sigma) for l in mu[1:]]))
+                    list(gamma) + [mu[-1] + len(sigma)]),
+                Word(sigma).shuffle(Word([l + len(sigma) for l in mu[:-1]]))
             ))
 
         def left_coproduct_on_basis(self, sigma):
