@@ -23,13 +23,14 @@
 #ifndef FE_ALL_EXCEPT
 #define FE_ALL_EXCEPT 0
 #endif
+#define feclearexcept(flags) do {} while (0)
 #endif
 
 #ifndef HAVE_FEENABLEEXCEPT
 /* These are GNU extensions */
 #define fegetexcept() 0
-#define feenablexcept(flags)
-#define fdisableexcept(flags)
+#define feenablexcept(flags) do {} while (0)
+#define fdisableexcept(flags) do {} while (0)
 #endif
 
 static struct sigaction ecl_sigint_handler;
@@ -49,6 +50,10 @@ static inline void set_ecl_signal_handler(void)
     sigaction(SIGBUS, &ecl_sigbus_handler, &sage_sigbus_handler);
     sigaction(SIGFPE, &ecl_sigfpe_handler, &sage_sigfpe_handler);
     sigaction(SIGSEGV, &ecl_sigsegv_handler, &sage_sigsegv_handler);
+
+    /* first clear pending floating point exceptions, if any */
+    feclearexcept(FE_ALL_EXCEPT);
+
     /* sage_feflags should be 0; we don't set them otherwise */
     sage_feflags = fedisableexcept(FE_ALL_EXCEPT);
     feenableexcept(ecl_feflags);
@@ -56,12 +61,15 @@ static inline void set_ecl_signal_handler(void)
 
 static inline void unset_ecl_signal_handler(void)
 {
+    /* clear pending exceptions and restore previous exception mask */
+    feclearexcept(FE_ALL_EXCEPT);
+    ecl_feflags = fedisableexcept(FE_ALL_EXCEPT);
+    feenableexcept(sage_feflags);
+
     sigaction(SIGINT, &sage_sigint_handler, NULL);
     sigaction(SIGBUS, &sage_sigbus_handler, NULL);
     sigaction(SIGFPE, &sage_sigfpe_handler, NULL);
     sigaction(SIGSEGV, &sage_sigsegv_handler, NULL);
-    ecl_feflags = fedisableexcept(FE_ALL_EXCEPT);
-    feenableexcept(sage_feflags);
 }
 
 /* This MUST be a macro because sig_on() must be in the same
