@@ -25,11 +25,11 @@ AUTHOR:
 
 from __future__ import absolute_import
 from sage.rings.integer import Integer
-
+from sage.graphs.graph                      import Graph
 
 from .hasse_diagram cimport   CombinatorialPolytope_ptr, init_CombinatorialPolytope, dimension, edges, f_vector, ridges, delete_CombinatorialPolytope
 
-
+#TODO take care of the empty polyhedron, which does not have vertices
 cdef class CombinatorialPolytope:
     cdef CombinatorialPolytope_ptr _C
     cdef tuple _V
@@ -48,7 +48,7 @@ cdef class CombinatorialPolytope:
         sage: P = polytopes.permutahedron(7)
         sage: C = sage.geometry.combinatorial_polytope.base.CombinatorialPolytope(incidence_matrix=P.incidence_matrix())
         sage: C.f_vector()
-        (1L, 5040L, 15120L, 16800L, 8400L, 1806L, 126L, 1L)
+        (1, 5040, 15120, 16800, 8400, 1806, 126, 1)
     """
     def __init__(self, data, vertices=None):
         if vertices:
@@ -82,7 +82,10 @@ cdef class CombinatorialPolytope:
             facets = tuple(tuple(f(i) for i in j) for j in data)
             self._C = init_CombinatorialPolytope(facets,nr_vertices)
 
-    def __del__(self):
+    def __dealloc__(self):
+        r"""
+        This function deallocates all the memomory used by the underlying C++-class
+        """
         delete_CombinatorialPolytope(self._C)
 
     def edges(self):
@@ -97,7 +100,8 @@ cdef class CombinatorialPolytope:
             f = lambda i : Integer(i)
 
         return tuple((f(i),f(j)) for i,j in edges(self._C))
-
+    def edge_graph(self):
+        return Graph(self.edges(),format="list_of_edges")
     def dimension(self):
         return dimension(self._C)
 
@@ -110,7 +114,8 @@ cdef class CombinatorialPolytope:
         NOTE: If you want to compute ridges and f_vector it is recommended to compute ridges first.
         """
         return tuple((Integer(i),Integer(j)) for i,j in ridges(self._C))
-
+    def ridge_graph(self):
+        return Graph(self.ridges(),format="list_of_edges")
     def f_vector(self):
         r"""
         Calculates the f_vector of the CombinatorialPolytope, i.e. the vector containing the nr of faces of each rank.
@@ -121,3 +126,4 @@ cdef class CombinatorialPolytope:
         
     def face_lattice(self):
         pass
+        
