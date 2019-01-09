@@ -2004,24 +2004,24 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E=EllipticCurve([1024*K.0,1024*K.0])
             sage: E.reduction(2*K)
             Elliptic Curve defined by y^2 + (abar+1)*y = x^3 over Residue field in abar of Fractional ideal (2)
-       """
-       K = self.base_field()
-       OK = K.ring_of_integers()
-       try:
-           place = K.ideal(place)
-       except TypeError:
-           raise TypeError("The parameter must be an ideal of the base field of the elliptic curve")
-       if not place.is_prime():
-           raise ValueError("The ideal must be prime.")
-       disc = self.discriminant()
-       if not K.ideal(disc).valuation(place) == 0:
-           local_data=self.local_data(place)
-           if local_data.has_good_reduction():
-               Fv = OK.residue_field(place)
-               return local_data.minimal_model().change_ring(Fv)
-           raise ValueError("The curve must have good reduction at the place.")
-       Fv = OK.residue_field(place)
-       return self.change_ring(Fv)
+        """
+        K = self.base_field()
+        OK = K.ring_of_integers()
+        try:
+            place = K.ideal(place)
+        except TypeError:
+            raise TypeError("The parameter must be an ideal of the base field of the elliptic curve")
+        if not place.is_prime():
+            raise ValueError("The ideal must be prime.")
+        disc = self.discriminant()
+        if not K.ideal(disc).valuation(place) == 0:
+            local_data=self.local_data(place)
+            if local_data.has_good_reduction():
+                Fv = OK.residue_field(place)
+                return local_data.minimal_model().change_ring(Fv)
+            raise ValueError("The curve must have good reduction at the place.")
+        Fv = OK.residue_field(place)
+        return self.change_ring(Fv)
 
     @cached_method
     def root_number(self, P=None):
