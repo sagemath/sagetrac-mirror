@@ -435,6 +435,23 @@ class FunctionField_polymod_kash(FunctionField_polymod):
         """
         return FunctionFieldMaximalOrderInfinite_kash(self)
 
+    def different(self):
+        """
+        Return the different divisor of the function field.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
+            sage: F.different()
+            2*Place (x, (1/(x^3 + x^2 + x))*y^2)
+             + 2*Place (x^2 + x + 1, (1/(x^3 + x^2 + x))*y^2)
+        """
+        D = self.kash.DifferentDivisor()
+        support = D.Support()
+        data = {FunctionFieldPlace_kash(self, place) : D.Valuation(place) for place in support}
+        return FunctionFieldDivisor(self, data)
+
 class FunctionFieldMaximalOrder_kash(FunctionFieldMaximalOrder):
     """
     Base class of kash-implemented maximal orders of function fields.
@@ -735,7 +752,7 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
 
         - ``ring`` -- maximal order
 
-        - ``gens``-- generators
+        - ``gens``-- a list of generators, or a kash ideal
         """
 
         FunctionFieldIdeal.__init__(self, ring)
@@ -1115,7 +1132,7 @@ class FunctionFieldPlace_kash(FunctionFieldPlace):
     Places of kash-implemented function field.
     """
 
-    def __init__(self, field, prime):
+    def __init__(self, field, arg):
         """
         Initialize the place.
 
@@ -1123,16 +1140,23 @@ class FunctionFieldPlace_kash(FunctionFieldPlace):
 
         - ``field`` -- function field
 
-        - ``prime`` -- prime ideal associated with the place
+        - ``arg`` -- prime ideal associated with the place, or a kash place
         """
+
+        if isinstance(arg, KashElement):
+            ideal = arg.Ideal()
+            order = field.maximal_order()
+            prime = FunctionFieldIdeal_kash(order, order.kash.CoerceIdeal(ideal))
+            self.kash = arg
+        else:
+            prime = arg
+            self.kash = arg.kash.Place()
 
         FunctionFieldPlace.__init__(self, field, prime)
 
-        self.kash = prime.kash.Place()
-
     def is_infinite_place(self):
         """
-        Return ``True`` if the place is at infinite.
+        Return ``True`` if the place is at infinity.
         """
         F = self.function_field()
         return self.prime_ideal().ring() == F.maximal_order_infinite()
