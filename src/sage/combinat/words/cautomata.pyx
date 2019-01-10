@@ -13,7 +13,7 @@ AUTHORS:
 REFERENCES:
 
 .. [Hopcroft] "Around Hopcroft’s Algorithm"  Manuel of BACLET and
-    Claire PAGETTI.
+   Claire PAGETTI.
 
 """
 
@@ -453,7 +453,7 @@ cdef class CAutomaton:
     - ``F`` -- list (default: None)
         The set of final states.
 
-    - ``A```-- list (default: None)
+    - ``A``-- list (default: None)
         The alphabet.
 
     - ``keep_S`` -- bool (default: True)
@@ -2927,7 +2927,7 @@ cdef class DetAutomaton:
         - ``i`` -- int (default: ``None``) - the initial state used
 
         - ``algo`` -- int (default: ``1``)
-            The algorithm used for the computation.
+          The algorithm used for the computation.
 
         EXAMPLES::
 
@@ -3135,17 +3135,20 @@ cdef class DetAutomaton:
         We assume that the two automata have the same alphabet, otherwise the
         complementary is taken in the set of words over the intersection of
         the two alphabets.
-        Warning: There is a side-effect: the automaton ``a`` is completed.
+
+        .. WARNING::
+
+            There is a side-effect: the automaton ``a`` is completed.
 
         INPUT:
 
         - ``a`` -- :class:`DetAutomaton` - we split ``self`` with respect
           to this automaton.
 
-        - ``simplify`` - bool (default: True) - if True, prune and
+        - ``simplify`` -- bool (default: True) - if True, prune and
           minimize the result.
 
-        - ``verb`` - bool (default: False) - if True, display
+        - ``verb`` -- bool (default: False) - if True, display
           informations for debugging.
 
         OUTPUT:
@@ -3162,14 +3165,12 @@ cdef class DetAutomaton:
             sage: a.split(b)
             [DetAutomaton with 3 states and an alphabet of 2 letters,
              DetAutomaton with 2 states and an alphabet of 2 letters]
-
             sage: a = dag.AnyWord(['a', 'b'])
             sage: b = a.concat(dag.Word(['a', 'a'])).concat(a)
             sage: c = a.concat(dag.Word(['b', 'b'])).concat(a)
             sage: c.split(b)
             [DetAutomaton with 8 states and an alphabet of 2 letters,
              DetAutomaton with 5 states and an alphabet of 2 letters]
-
             sage: a = DetAutomaton([(0, 1, 'a'), (2, 3, 'b')], i=0)
             sage: b = DetAutomaton([(3, 2, 'a'), (1, 2, 'd')], i=2)
             sage: a.split(b)
@@ -3179,16 +3180,19 @@ cdef class DetAutomaton:
             sage: a.split(b)
             [DetAutomaton with 1 state and an alphabet of 1 letter,
              DetAutomaton with 2 states and an alphabet of 1 letter]
+            sage: print(a)
+            DetAutomaton with 4 states and an alphabet of 2 letters
 
         TESTS::
 
             sage: a = dag.AnyWord(['a', 'b'])
             sage: b = dag.AnyWord(['c', 'a'])
-            sage: 
             sage: a.split(b)
             [DetAutomaton with 1 state and an alphabet of 1 letter,
              DetAutomaton with 1 state and an alphabet of 1 letter]
-            sage:
+            sage: print(a)
+            DetAutomaton with 1 state and an alphabet of 2 letters
+
         """
         cdef Automaton ap, ap2
         cdef Dict dC
@@ -3489,9 +3493,12 @@ cdef class DetAutomaton:
         INPUT:
 
         - ``b`` -- :class:`DetAutomaton`  to concatenate to self
-        - ``det``  -- (default: ``True``) - if True, determinize
-        - ``simplify`` -- (default: ``True``) - if True and if det=True,
+
+        - ``det``  -- boolean (default: ``True``) - if True, determinize
+
+        - ``simplify`` -- boolean (default: ``True``) - if True and if det=True,
           prune and minimize
+
         - ``verb`` -- boolean (default: ``False``) if True, print
           debugging informations
 
@@ -3501,7 +3508,7 @@ cdef class DetAutomaton:
         or  :class:`DetAutomaton` (if ``det`` is ``True``)
 
         EXAMPLES::
-            
+
             #. Words starting by 'aa'
                 sage: dag.Word(['a','a']).concat(dag.AnyWord(['a','b']))
                 DetAutomaton with 3 states and an alphabet of 2 letters
