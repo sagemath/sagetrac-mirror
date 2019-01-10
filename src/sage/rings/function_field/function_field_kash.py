@@ -53,6 +53,7 @@ from sage.structure.factorization import Factorization
 from sage.rings.rational_field import QQ
 from sage.rings.fraction_field import FractionField
 from sage.rings.finite_rings.finite_field_base import FiniteField
+from sage.rings.number_field.number_field_base import NumberField
 
 from .function_field import RationalFunctionField
 from .function_field import FunctionFieldElement_rational
@@ -100,6 +101,35 @@ class RationalFunctionField_kash(RationalFunctionField):
           From: Rational function field in t over Rational Field
           To:   Rational function field in tbar over Rational Field
           Defn: t |--> tbar
+
+    Here's a calculation over a number field:
+
+        sage: R.<x> = FunctionField(QQ, implementation='kash')
+        sage: L.<y> = R[]
+        sage: F.<y> = R.extension(y^2 - (x^2+1))
+        sage: (y/x).divisor()
+        -1*Place (x, y + x - 1)
+         - Place (x, y + x + 1)
+         + Place (x^2 + 1, y)
+
+        sage: A.<z> = QQ[]
+        sage: NF.<i> = NumberField(z^2+1)
+        sage: R.<x> = FunctionField(NF, implementation='kash')
+        sage: L.<y> = R[]
+        sage: F.<y> = R.extension(y^2 - (x^2+1))
+
+        sage: (x/y*x.differential()).divisor()
+        -2*Place (1/x, 1/x*y + (-x + 1)/x)
+         - 2*Place (1/x, 1/x*y + (x + 1)/x)
+         + Place (x, y + x - 1)
+         + Place (x, y + x + 1)
+
+        sage: (x/y).divisor()
+        -1*Place (x - i, y)
+         + Place (x, y + x - 1)
+         + Place (x, y + x + 1)
+         - Place (x + i, y)
+
     """
 
     def __init__(self, constant_field, names, category=None):
@@ -134,10 +164,16 @@ class RationalFunctionField_kash(RationalFunctionField):
 
         if constant_field is QQ:
             self.kash_constant_field = kash.RationalField()
+            self.reverse_map = {}
         elif isinstance(constant_field, FiniteField):
             assert constant_field.order().is_prime()
             self.kash_constant_field = kash.GaloisField(constant_field.order())
-        #elif isinstance(constant_field, NumberField):
+            self.reverse_map = {}
+        elif isinstance(constant_field, NumberField):
+            kZa = kash.IntegerRing().PolynomialAlgebra()
+            ka = kZa.Element(list(constant_field.defining_polynomial()))
+            self.kash_constant_field = ka.NumberField()
+            self.reverse_map = {self.kash_constant_field.gen(1) : constant_field.gen(0)}
         else:
             raise ValueError("The constant field must be either QQ or a finite field.")
 
@@ -148,6 +184,31 @@ class RationalFunctionField_kash(RationalFunctionField):
         self.kash_constant_field.PolynomialAlgebra().AssignNames_(['"x"'])
 
         self.kash = self.kash_constant_field.RationalFunctionField()
+
+    def to_kash(self, c):
+        x = self.kash.gen(1)
+        c = c.element()
+        # c will be an element of a fraction field with polynomial coefficients
+        if c.denominator() == 1 and c.numerator().is_constant():
+            return c.numerator().constant_coefficient()
+        else:
+            # Sage considers QQ to be a number field, which is why I check
+            # to see if there's a reverse_map instead of just checking
+            # to see if self.constant_field() is a NumberField.
+            if len(self.reverse_map) > 0:
+                # P will be a polynomial ring with coeffs in a number field
+                P = c.numerator().parent()
+                R2 = QQ[P.gens() + ('a',)]
+                a = R2.gen(1)
+                n = c.numerator().map_coefficients(lambda v: v.polynomial().subs({v.polynomial().parent().gen(0) : a}), new_base_ring = R2)
+                n = n.subs({n.parent().gen(0): R2.gen(0)})
+                n = n.subs({R2.gen(0) : x, R2.gen(1) : self.kash_constant_field.gen(1)})
+                d = c.denominator().map_coefficients(lambda v: v.polynomial().subs({v.polynomial().parent().gen(0) : a}), new_base_ring = R2)
+                d = d.subs({d.parent().gen(0): R2.gen(0)})
+                d = d.subs({R2.gen(0) : x, R2.gen(1) : self.kash_constant_field.gen(1)})
+                return n/d
+            else:
+                return c(x)
 
     def extension(self, f, names=None):
         """
@@ -324,7 +385,8 @@ class FunctionField_polymod_kash(FunctionField_polymod):
         # extra call to element() to convert the FunctionFieldElement
         # to a FractionFieldElement
 
-        kash_polynomial = kTy.Element(map(lambda c: c.element()(x), list(polynomial)))
+        #kash_polynomial = kTy.Element(map(lambda c: c.element()(x), list(polynomial)))
+        kash_polynomial = kTy.Element([polynomial.base_ring().to_kash(c) for c in polynomial])
 
         try:
             self.kash = kash_polynomial.FunctionField()
@@ -338,6 +400,7 @@ class FunctionField_polymod_kash(FunctionField_polymod):
         # Set up reverse map to convert elements back from kash
 
         self.reverse_map = {x : polynomial.base_ring().gen(0), ybar : self.gen(0)}
+        self.reverse_map.update(polynomial.base_ring().reverse_map)
 
     def to_kash(self, polynomial):
 
@@ -350,14 +413,7 @@ class FunctionField_polymod_kash(FunctionField_polymod):
         x = self.base_ring().kash.gen(1)
         coeffs = list(self(polynomial).element())
         coeffs += [self.base_ring().zero()] * (self.degree() - len(coeffs))
-        def coeff_to_kash(c):
-            c = c.element()
-            # c will be an element of a fraction field
-            if c.denominator() == 1 and c.numerator().is_constant():
-                return c.numerator().constant_coefficient()
-            else:
-                return c(x)
-        coeffs = map(coeff_to_kash, coeffs)
+        coeffs = [self.base_ring().to_kash(c) for c in coeffs]
         return self.kash.Element(coeffs)
 
     @cached_method
