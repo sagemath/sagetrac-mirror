@@ -1864,11 +1864,12 @@ etc. This can be applied to generate:
 REFERENCES:
 
    .. [CMS2012] Alexandre Casamayou, Nathann Cohen, Guillaume Connan, Thierry Dumont, Laurent Fousse, François Maltey, Matthias Meulien, Marc Mezzarobba, Clément Pernet, Nicolas M. Thiéry, Paul Zimmermann
-         *Calcul Mathématique avec Sage*
-         http://sagebook.gforge.inria.fr/
+      *Calcul Mathématique avec Sage*
+      http://sagebook.gforge.inria.fr/
 
-   .. [Ca] O. Carton Langages formels, calculabilitè et complexitè, Chapitre 1, Editions Vuibert, ISBN : 978-2-7117-2077-4.
-         http://www.liafa.jussieu.fr/∼carton/Lfcc/chap1.pdf
+   .. [Ca1] O. Carton Langages formels, calculabilitè et complexitè, Chapitre 1, Editions Vuibert, ISBN : 978-2-7117-2077-4.
+      http://www.liafa.jussieu.fr
+      /carton/Lfcc/chap1.pdf
 
 .. [1]
    Or at least that should be the case; there are still many corners to

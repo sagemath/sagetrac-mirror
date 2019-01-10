@@ -270,7 +270,7 @@ But it's not really an induction : we have to distinguish between different poss
 trajectories for points in :math:`\lambda Q` before they come back to :math:`\lambda Q`,
 otherwise the induction only give the same domain exchange on :math:`\lambda Q` than in :math:`Q`.
 
-For a :math:`\beta`-adic set, for a Pisot number :math:`\beta`, we can compute the substitution when it exists. It is done by the function :func:`BetaAdicSet.substitution` of the class :class:`BetaAdicSet`.
+For a :math:`\beta`-adic set, for a Pisot number :math:`\beta`, we can compute the substitution when it exists. It is done by the method :func:`~BetaAdicSet.substitution` of the class :class:`BetaAdicSet`.
 
 Examples of Usage of BetaAdicSet
 --------------------------------
@@ -480,7 +480,7 @@ The Dragon Fractal
 
 .. code-block:: Python
 
-    mi.plot(nprec=6)
+   mi.plot(nprec=6)
 
 .. image:: media/dragon2.png
    :scale: 70 %
@@ -489,21 +489,23 @@ The Dragon Fractal
 Compute the Hausdorff dimension.
 
 
-.. code-block:: Python
+.. link
 
-    # compute the Hausdorff dimension
-    mi.critical_exponent()
-    log(y)/log(1.414213562373095?) where y is the max root of x^3 - x^2 - 2, and 1.414213562373095? is root of x^2 - 2.
-    1.523627086202492
+::
+
+   sage: # compute the Hausdorff dimension
+   sage: mi.critical_exponent()
+   log(y)/log(1.414213562373095?) where y is the max root of x^3 - x^2 - 2, and 1.414213562373095? is root of x^2 - 2.
+   1.523627086202492
 
 
 Any Shape
 ~~~~~~~~~
 
 We can define :math:`\beta`-adic sets approximating any shape.
-This can be done with the function :meth:`BetaAdicSet.approx`.
-And we can also draw a :math:`\beta`-adic set with the mouse, with the function
-:meth:`BetaAdicSet.user_draw`.
+This can be done with the method :meth:`~sage.arith.beta_adic.approx` of the class :class:`BetaAdicSet`.
+And we can also draw a :math:`\beta`-adic set with the mouse, with the method
+:meth:`~sage.arith.beta_adic.BetaAdicSet.user_draw` of the class :class:`BetaAdicSet`.
 We present various examples.
 
 Disk
@@ -673,26 +675,28 @@ Square
 
 Rauzy fractal approximating a square.
 
+.. link
 
-.. code-block:: Python
+::
+   
 
-   #########################################
-   # choose a Pisot number and an alphabet #
-   #########################################
-   pi = x^3-x^2-x-1 #Tribonacci
-   print(pi.roots(ring=CC))
-   b = pi.roots(ring=QQbar)[1][0] #we take the conjugate of modulus < 1 in order to plot the result
-   m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
-   pm = m.b.parent().places()[1]
-   ########################################
-   # Rauzy fractal approximating a square #
-   ########################################
-   # compute a beta-adic set approximating a square
-   # the first argument of approx() is the precision,
-   # and the second one is the characteristic function of the shape to approximate
-   # the shape must be not too big in order to be inside the set of elements that admit a b-expansion
-   md  = m.approx(15, lambda x: abs(pm(x).real()) < .5 and abs(pm(x).imag()) < .5 )
-   m.plot_list([md])
+   sage: #########################################
+   sage: # choose a Pisot number and an alphabet #
+   sage: #########################################
+   sage: pi = x^3-x^2-x-1 #Tribonacci
+   sage: print(pi.roots(ring=CC))
+   sage: b = pi.roots(ring=QQbar)[1][0] #we take the conjugate of modulus < 1 in order to plot the result
+   sage:  m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
+   sage: pm = m.b.parent().places()[1]
+   sage: ########################################
+   sage: # Rauzy fractal approximating a square #
+   sage: ########################################
+   sage: # compute a g-b-set approximating a square
+   sage: # the first argument of approx() is the precision,
+   sage: # and the second one is the characteristic function of the shape to approximate
+   sage: # the shape must be not too big in order to be inside the set of elements that admit a b-expansion
+   sage: md  = m.approx(15, lambda x: abs(pm(x).real()) < .5 and abs(pm(x).imag()) < .5 )
+   sage:  m.plot_list([md])
    [(1.83928675521416, 1), (-0.419643377607081 - 0.606290729207199*I, 1), (-0.419643377607081 + 0.606290729207199*I, 1)]
    -0.4196433776070806? - 0.6062907292071993?*I
 
@@ -894,21 +898,21 @@ User Draw
 ---------
 
 
+.. link
 
-.. code-block:: Python
+::
 
-    #########################################
-    # choose a Pisot number and an alphabet #
-    #########################################
-    pi = x^3-x^2-x-1 #Tribonacci
-    b = pi.roots(ring=QQbar)[1][0] #we take the conjugate of modulus < 1 in order to plot the result
-    m = BetaAdicSet(b, {0,1}) #choose the alphabet
-    pm = m.b.parent().places()[1]
-    aoc = m.user_draw()
+    sage: #########################################
+    sage: # choose a Pisot number and an alphabet #
+    sage: #########################################
+    sage: pi = x^3-x^2-x-1 #Tribonacci
+    sage: b = pi.roots(ring=QQbar)[1][0] #we take the conjugate of modulus < 1 in order to plot the result
+    sage: m = BetaAdicSet(b, {0,1}) #choose the alphabet
+    sage: pm = m.b.parent().places()[1]
+    sage: aoc = m.user_draw()
     [(1.83928675521416, 1), (-0.419643377607081 - 0.606290729207199*I, 1), (-0.419643377607081 + 0.606290729207199*I, 1)]
     -0.4196433776070806? - 0.6062907292071993?*I
-
-    aoc.plot()
+    sage: aoc.plot()
 
 .. image:: media/user11.png
   :scale: 70 %

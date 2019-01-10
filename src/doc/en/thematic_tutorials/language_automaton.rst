@@ -60,7 +60,7 @@ Determinist Automaton can be created in sage by the use of :class:`sage.combinat
     sage: a = DetAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
     sage: a.set_final_states([0])
     sage: a.set_initial_state(0)
-    sage: a.add_edge(0,'(1,0)',1)
+    sage: a.add_transition(0,'(1,0)',1)
     sage: a.plot().show()
 
 .. PLOT::
@@ -68,7 +68,7 @@ Determinist Automaton can be created in sage by the use of :class:`sage.combinat
     a = DetAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
     a.set_final_states([0])
     a.set_initial_state(0)
-    a.add_edge(0,'(1,0)',1)
+    a.add_transition(0,'(1,0)',1)
     sphinx_plot(a)
 
 Automaton with states \{0, 1, 2, 3, 4\}, alphabet \{(0,0), (0,1), (1,0), (1,1)\}, set of inital states \{0\}, and set of final states \{0\}.
@@ -81,15 +81,15 @@ Automaton with states \{0, 1, 2, 3, 4\}, alphabet \{(0,0), (0,1), (1,0), (1,1)\}
     a.set_initial_state(0)
     sphinx_plot(a)
 
+
 Automaton with states  \{0, 1, 2, 3, 4\},  alphabet \{0, 1, *\}, set of inital states \{0\} and set of final states \{0\}.
 
 .. PLOT::
 
     a = DetAutomaton([(0,0,'(0,0)'),(0,1,'(1,1)'),(0,3,'(0,1)'),(0,5,'(1,0)'),(3,4,'(0,1)'),(4,2,'(1,0)'),(2,1,'(1,1)'),(1,5,'(1,0)'),(5,6,'(0,1)'),(6,5,'(0,0)'),(6,5,'(1,1)')])
-    a.add_edge(1,'(1,1)',1)
-    a.add_edge(1,'(0,0)',2)
-    a.add_edge(4,'(0,0)',3)
-    a.add_edge(4,'(1,1)',3)
+    a.add_transition(1,'(1,1)',1)
+    a.add_transition(1,'(0,0)',2)
+    a.add_transition(4,'(0,0)',3)
     a.set_final_states([0,1,2])
     a.set_initial_state(0)
     sphinx_plot(a)
@@ -120,7 +120,7 @@ Examples
 some examples of automaton.
 
 .. PLOT::
-   :width: 50%
+    :width: 50%
 
     a = DetAutomaton([(0, 0,'0'),(0, 1, '1'),(1, 0, '1'), (1, 2, '0'), (2, 1, '0'), (2, 2, '1')])
     a.set_final_states([0])
@@ -144,8 +144,8 @@ The above automaton recognize the set of words of the form :math:`a(baa)^n`.
     a = DetAutomaton([(0,1,'l'),(1,2,'a'),(2,3,'p') ,(3,4,'i'),(4,10,'n'),(0,5,'l'),(5,6,'a'),(6,7,'i'),(7,8,'t'),(8,9,'u'),(9,11,'e') ])
     a.set_final_states([10,11])
     a.set_initial_state(0)
-    b= NFastAutomaton(a)
-    b.add_edge(0,'l',1)
+    b= CAutomaton(a)
+    b.add_transition(0,'l',1)
     sphinx_plot(b)
 
 The above non deterministic automaton recognize the set of words
@@ -154,8 +154,8 @@ The above non deterministic automaton recognize the set of words
     sage: a = DetAutomaton([(0,1,'l'),(1,2,'a'),(2,3,'p') ,(3,4,'i'),(4,10,'n'),(0,5,'l'),(5,6,'a'),(6,7,'i'),(7,8,'t'),(8,9,'u'),(9,11,'e')])
     sage: a.set_final_states([10,11])
     sage: a.set_initial_state(0)
-    sage: b = NFastAutomaton(a)
-    sage: b.add_edge(0,'l',1)
+    sage: b = CAutomaton(a)
+    sage: b.add_transition(0,'l',1)
     sage: b.plot().show()
 
 Equivalent automata
@@ -203,8 +203,8 @@ The minimal automaton of the language \{lapin, laitue\} is the following::
     sphinx_plot(a)
 
 
-Transpose automaton
-^^^^^^^^^^^^^^^^^^^
+Transpose(e.I. mirror) automaton
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The transposed (or the mirror) automaton of an automaton :math:`A := (\Sigma,\mathrm{Q},\mathrm{T},\mathrm{I},\mathrm{F})` is the automaton
 
@@ -219,7 +219,7 @@ The transposed (or the mirror) automaton of an automaton :math:`A := (\Sigma,\ma
 
 The transposed of the minimal automaton of the language \{lapin, laitue\} is::
 
-    sage: b = a.transpose()
+    sage: b = a.mirror()
     sage: b.plot().show()
 
 .. PLOT::
@@ -227,27 +227,27 @@ The transposed of the minimal automaton of the language \{lapin, laitue\} is::
     a = DetAutomaton([(7,6,'l'),(6,5,'a'),(5,1,'i') ,(1,8,'t'),(8,2,'u'),(2,0,'e'),(5,4,'p'),(4,3,'i'),(3,0,'n') ])
     a.set_final_states([0])
     a.set_initial_state(7)
-    b = a.transpose()
+    b = a.mirror()
     sphinx_plot(b)
 
-Emonded automaton
+Pruned automaton
 ^^^^^^^^^^^^^^^^^
 
-The emonded automaton is the automaton restricted to
+The pruned automaton is the automaton restricted to
 states that are reachable from an initial state, and from which we can go to a final state.
-An automaton is emonded if it is equal to its emonded.
+An automaton is pruned if it is equal to its prunedd.
 
 .. NOTE::
 
-    An automaton (possibly infinite) deterministic emonded, and with a deterministic transposed is minimal.
+    An automaton (possibly infinite) deterministic prund, and with a deterministic transposed is minimal.
     In particular, if it is infinite, the language that it recognizes is not rational.
 
-Example of non-emonded automaton::
+Example of non-p  automaton::
 
     sage: a = DetAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
     sage: a.set_final_states([0])
     sage: a.set_initial_state(0)
-    sage: a.add_edge(0,'(1,0)',1)
+    sage: a.add_transition(0,'(1,0)',1)
     sage: a.plot().show()
 
 .. PLOT::
@@ -255,12 +255,12 @@ Example of non-emonded automaton::
     a = DetAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
     a.set_final_states([0])
     a.set_initial_state(0)
-    a.add_edge(0,'(1,0)',1)
+    a.add_transition(0,'(1,0)',1)
     sphinx_plot(a)
 
-And the corresponding emonded automaton::
+And the corresponding runed automaton::
 
-    sage: b = a.emonde()
+    sage: b = a.prune()
     sage: b.plot().show()
 
 This automaton can be saw below:
@@ -271,9 +271,9 @@ This automaton can be saw below:
     a = DetAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
     a.set_final_states([0])
     a.set_initial_state(0)
-    a.add_edge(0,'(1,0)',1)
-    b = a.emonde()
+    a.add_transition(0,'(1,0)',1)
+    b = a.prune()
     sphinx_plot(b)
 
-The emonded example automaton.
+The pruned example automaton.
                    
