@@ -48,7 +48,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: type(RR['x,y'])
             <class 'sage.rings.polynomial.multi_polynomial_ring.MPolynomialRing_polydict_domain_with_category'>
             sage: type(RR['x, y'](0))
-            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            <class 'sage.rings.polynomial.multi_polynomial_ring.MPolynomialRing_polydict_domain_with_category.element_class'>
 
             sage: int(RR['x,y'](0)) # indirect doctest
             0
@@ -398,7 +398,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: S.<x, y> = PolynomialRing(R)
             sage: f = (t^2 + O(t^3))*x^2*y^3 + (37*t^4 + O(t^5))*x^3
             sage: type(f)
-            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            <class 'sage.rings.polynomial.multi_polynomial_ring.MPolynomialRing_polydict_domain_with_category.element_class'>
             sage: f.derivative(x)   # with respect to x
             (2*t^2 + O(t^3))*x*y^3 + (111*t^4 + O(t^5))*x^2
             sage: f.derivative(y)   # with respect to y

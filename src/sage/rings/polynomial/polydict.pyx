@@ -1563,7 +1563,7 @@ cdef class ETuple:
 
             sage: R.<y, z> = Frac(QQ['x'])[]
             sage: type(y)
-            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            <class 'sage.rings.polynomial.multi_polynomial_ring.MPolynomialRing_polydict_domain_with_category.element_class'>
             sage: y^(2^32)
             Traceback (most recent call last):
             ...
