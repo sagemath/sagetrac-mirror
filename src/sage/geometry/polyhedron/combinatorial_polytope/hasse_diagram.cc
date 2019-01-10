@@ -74,7 +74,14 @@ inline unsigned int trailing_zero_workaround(chunktype chunk){
 }
 
 
-
+inline unsigned int naive_popcount(uint64_t A){
+    unsigned int count = 0;
+    while (A){ 
+        count += A & 1; 
+        A >>= 1; 
+    }
+    return count;
+}
 
 
 //initialization with a tuple of facets (each facet a tuple of vertices, vertices labeled 0,1,...)
@@ -165,6 +172,22 @@ inline PyObject* CombinatorialPolytope::get_ridges(){
     }
 }
 
+inline PyObject* CombinatorialPolytope::get_faces(unsigned int face_dimension){
+    //TODO, special cases, dimension to low, face_dimension == 1, etc.
+    if (face_dimension == dimension -1){
+        return tuple_from_faces(facets, nr_facets,0);
+    }
+    if (!allfaces_are_allocated || !allfaces_are_allocated[face_dimension]){
+        allocate_allfaces(face_dimension);
+        record_faces(facets,dimension-1,nr_facets,0,face_dimension);
+    }
+    return tuple_from_faces(allfaces[face_dimension],allfaces_counter[face_dimension],0);
+}
+
+void CombinatorialPolytope::record_all_faces(){
+    allocate_allfaces(0);
+    record_faces(facets,dimension-1,nr_facets,0,1);
+}
 
 //will set C to be the intersection of A and B
 inline void CombinatorialPolytope::intersection(chunktype *A, chunktype *B, chunktype *C){
@@ -174,7 +197,7 @@ inline void CombinatorialPolytope::intersection(chunktype *A, chunktype *B, chun
     }
 }
 
-//returns 1 if A is a subset of B, otherwise returns 0
+//returns 1 if A is a proper subset of B, otherwise returns 0, this is done by checking if there is an element in A, which is not in B
 inline int CombinatorialPolytope::is_subset(chunktype *A, chunktype *B){
     unsigned int i;
     for (i = 0; i < length_of_face; i++){
@@ -196,11 +219,7 @@ inline unsigned int CombinatorialPolytope::CountFaceBits(chunktype* A1) {
         store_register(A[i*chunksize/64],A1[i]);
     }
     for (i=0;i<length_of_conversion_face;i++){
-        n = A[i];
-        while (n) { 
-            count += n & 1; 
-            n >>= 1; 
-        }
+        count += popcount(A[i]);
     }
     return count;
 }
@@ -305,7 +324,7 @@ inline unsigned int CombinatorialPolytope::get_next_level(chunktype **faces, uns
             nextfaces2[newfacescounter] = nextfaces[j];
             newfacescounter++;
         }
-        return newfacescounter;
+    return newfacescounter;
 }
 
 unsigned int CombinatorialPolytope::calculate_dimension(chunktype **faces, unsigned int nr_faces){
@@ -366,7 +385,7 @@ void CombinatorialPolytope::calculate_ridges(){//this is a much simpler version 
 }
 
 void CombinatorialPolytope::get_f_vector_and_edges(chunktype **faces, unsigned int dimension, unsigned int nr_faces, unsigned int nr_forbidden){
-    unsigned int i,j,counter, addthisface;
+    unsigned int i,j;
     unsigned long newfacescounter;
     if (dimension == 1){
         if (edgemode)//in this case we want to record the edges
@@ -389,7 +408,37 @@ void CombinatorialPolytope::get_f_vector_and_edges(chunktype **faces, unsigned i
     }
 }
 
-inline void CombinatorialPolytope::calculate_f_vector(){
+
+void CombinatorialPolytope::record_faces(chunktype **faces, unsigned int current_dimension, unsigned int nr_faces, unsigned int nr_forbidden, unsigned int lowest_dimension){
+    unsigned int i,j;
+    unsigned long newfacescounter;
+    if ((current_dimension < dimension - 1) && allfaces_are_allocated[current_dimension]){
+        for (i = 0; i < nr_faces; i++){
+            record_face(faces[i], current_dimension);
+        }
+    }
+    if (current_dimension == lowest_dimension){
+        return;
+    }
+    i = nr_faces;
+    while (i--){
+        newfacescounter = get_next_level(faces,i+1,i,newfaces[current_dimension-1],newfaces2[current_dimension-1],nr_forbidden);//get the facets contained in faces[i] but not in any of the forbidden
+        if (newfacescounter){
+            record_faces(newfaces2[current_dimension-1],current_dimension-1,(unsigned int) newfacescounter,nr_forbidden, lowest_dimension);//visit all faces in  faces[i], but not those which we visited already
+        }
+        forbidden[nr_forbidden] = faces[i];//we have visited all faces in faces[i], so we do not want to visit them again
+        nr_forbidden++;
+    }
+}
+
+inline void CombinatorialPolytope::record_face(chunktype *face, unsigned int current_dimension){
+    for (unsigned int j = 0; j < length_of_face; j++){
+        load_register(allfaces[current_dimension][allfaces_counter[current_dimension]][j],face[j]);
+    }
+    allfaces_counter[current_dimension]++;
+}
+
+ inline void CombinatorialPolytope::calculate_f_vector(){
     unsigned int i,j;
     if (!dimension){
         get_dimension();
@@ -402,9 +451,8 @@ inline void CombinatorialPolytope::calculate_f_vector(){
     f_vector[dimension] = nr_facets;
     //f_vector[1] = nr_vertices; //this is commented out in order to make calculations also work for unbounded polyhedra
     get_f_vector_and_edges(facets,dimension-1,nr_facets,0);
-    //cleanup, I assume that the f_vector is calculated at most once, so it makes sense to free the memory right away
-    deallocate_newfaces();
 }
+
 
 void CombinatorialPolytope::get_facets_from_tuple(PyObject* py_tuple){
     length_of_face = ((nr_vertices - 1)/chunksize + 1);//this determines the length of the face in terms of chunktype
@@ -527,6 +575,40 @@ void CombinatorialPolytope::char_from_tuple(PyObject* py_tuple, chunktype *array
         load_register(array1[i],array[i*chunksize/64]);
     }
     delete(array);
+}
+
+inline PyObject* CombinatorialPolytope::tuple_from_char(chunktype *array1, unsigned int facet_repr){
+    unsigned int i,j;
+    unsigned int face_length = length_of_face;
+    if (facet_repr){
+        face_length = length_of_face_in_facet_repr;
+    }
+    unsigned int len = CountFaceBits(array1);
+    unsigned int counter = 0;
+    PyObject* py_tuple = PyTuple_New(len);
+    const unsigned int size_array = face_length*chunksize/64;
+    uint64_t *array = new uint64_t [size_array]();
+    for (i = 0; i < face_length;i++){
+        store_register(array[i*chunksize/64],array1[i]);
+    }
+    for (i = 0; i < size_array;i++){
+        for (j = 0; j < 64; j++){
+            if (array[i] >= vertex_to_bit_dictionary[j]){
+                PyTuple_SET_ITEM(py_tuple,counter,PyLong_FromUnsignedLong(i*64+j));
+                counter++;
+                array[i] -= vertex_to_bit_dictionary[j];
+            }
+        }
+    }
+    return py_tuple;
+}
+
+inline PyObject* CombinatorialPolytope::tuple_from_faces(chunktype **array1, unsigned int len, unsigned int facet_repr){
+    PyObject* py_tuple = PyTuple_New(len);
+    for(unsigned int i = 0;i < len; i++){
+        PyTuple_SET_ITEM(py_tuple,i,tuple_from_char(array1[i],0));
+    }
+    return py_tuple;
 }
 
 void CombinatorialPolytope::char_from_incidence_tuple(PyObject* py_tuple, chunktype *array1, unsigned int facet_repr){
@@ -717,7 +799,7 @@ void CombinatorialPolytope::deallocate_newfaces(){
     delete(newfaces_allocator);
     newfaces_are_allocated = 0;
 }
-//allocates allfaces in a certain dimension, must be smaller than dimension and at least 1, if dimension is 0 all allfaces with be allocated
+//allocates allfaces in a certain dimension, must be smaller than dimension and at least 1, if dimension is 0 will be allocated in all dimensions
 void CombinatorialPolytope::allocate_allfaces(unsigned int dimension_to_allocate){
     unsigned int i;
     if (!f_vector){
@@ -725,47 +807,50 @@ void CombinatorialPolytope::allocate_allfaces(unsigned int dimension_to_allocate
     }
     if (!allfaces_are_allocated){
         const unsigned int const_dimension = dimension;
-        allfaces_are_allocated = new unsigned int[const_dimension - 1]();
-        allfaces_allocator = new void **[const_dimension -1]();
-        allfaces = new chunktype **[const_dimension - 1]();
-        allfaces_facet_repr_allocator = new void **[const_dimension -1]();
-        allfaces_facet_repr = new chunktype **[const_dimension - 1]();
+        allfaces_counter = new unsigned long[const_dimension]();
+        allfaces_are_allocated = new unsigned int[const_dimension]();
+        allfaces_allocator = new void **[const_dimension]();
+        allfaces = new chunktype **[const_dimension]();
+        allfaces_facet_repr_allocator = new void **[const_dimension]();
+        allfaces_facet_repr = new chunktype **[const_dimension]();
     }
     if (dimension_to_allocate == 0){
-        for (i = 1; i < dimension - 1; i++){
+        for (i = 1; i < dimension; i++){
             allocate_allfaces(i);
         }
     }
-    if ((1 <= dimension_to_allocate) && (dimension_to_allocate < dimension -1))
+    if ((1 <= dimension_to_allocate) && (dimension_to_allocate < dimension))
         { 
         if (!allfaces_are_allocated[dimension_to_allocate]){
-            const int size_one = f_vector[dimension_to_allocate-1];
+            const unsigned long size_one = f_vector[dimension_to_allocate+1];
             allfaces[dimension_to_allocate] = new chunktype *[size_one]();
             allfaces_allocator[dimension_to_allocate] = new void *[size_one]();
             allfaces_facet_repr[dimension_to_allocate] = new chunktype *[size_one]();
             allfaces_facet_repr_allocator[dimension_to_allocate] = new void *[size_one]();
-            for(i = 0;i<f_vector[dimension_to_allocate-1];i++){
+            for(i = 0;i<f_vector[dimension_to_allocate+1];i++){
                 allfaces_allocator[dimension_to_allocate][i] = aligned_alloc(chunksize/8,length_of_face*chunksize/8);
-                allfaces[dimension_to_allocate][i] = (chunktype*) facets_allocator[i];
+                allfaces[dimension_to_allocate][i] = (chunktype*) allfaces_allocator[dimension_to_allocate][i];
                 allfaces_facet_repr_allocator[dimension_to_allocate][i] = aligned_alloc(chunksize/8,length_of_face_in_facet_repr*chunksize/8);
-                allfaces_facet_repr[dimension_to_allocate][i] = (chunktype*) facets_allocator[i];
+                allfaces_facet_repr[dimension_to_allocate][i] = (chunktype*) allfaces_facet_repr_allocator[dimension_to_allocate][i];
             }
             allfaces_are_allocated[dimension_to_allocate] = 1;
         }
     }
 }
+
 void CombinatorialPolytope::deallocate_allfaces(){
     if (!allfaces_are_allocated)
         return;
     unsigned int i,j;
-    for (j = 1; j < dimension -1; j++){
+    for (j = 1; j < dimension; j++){
         if (allfaces_are_allocated[j]){
-            for (i = 1; i < f_vector[j]; i++){
+            for (i = 0; i < f_vector[j+1]; i++){
                 free(allfaces_allocator[j][i]);
                 free(allfaces_facet_repr_allocator[j][i]);
             }
         }
     }
+    delete(allfaces_counter);
     delete(allfaces);
     delete(allfaces_allocator);
     delete(allfaces_facet_repr);
@@ -802,7 +887,14 @@ PyObject* ridges(CombinatorialPolytope_ptr C){
   return (*C).get_ridges();
 }
 
-void delete_CombinatorialPolytope(CombinatorialPolytope_ptr C)
-{
+void record_all_faces(CombinatorialPolytope_ptr C){
+    (*C).record_all_faces();
+}
+
+PyObject* get_faces(CombinatorialPolytope_ptr C, unsigned int dimension){
+    return (*C).get_faces(dimension);
+}
+
+void delete_CombinatorialPolytope(CombinatorialPolytope_ptr C){
   delete(C);
 }

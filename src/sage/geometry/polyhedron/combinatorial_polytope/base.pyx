@@ -27,7 +27,7 @@ from __future__ import absolute_import
 from sage.rings.integer import Integer
 from sage.graphs.graph                      import Graph
 
-from .hasse_diagram cimport   CombinatorialPolytope_ptr, init_CombinatorialPolytope, dimension, edges, f_vector, ridges, delete_CombinatorialPolytope
+from .hasse_diagram cimport   CombinatorialPolytope_ptr, init_CombinatorialPolytope, dimension, edges, f_vector, ridges, record_all_faces, get_faces, delete_CombinatorialPolytope
 
 #TODO take care of the empty polyhedron, which does not have vertices
 cdef class CombinatorialPolytope:
@@ -123,7 +123,11 @@ cdef class CombinatorialPolytope:
         NOTE: If you also want to compute edges or ridges, it is recommended to do that first.
         """
         return tuple(Integer(i) for i in f_vector(self._C))
-        
+    def _record_all_faces(self):
+        record_all_faces(self._C)
+    def faces(self,dimension):#TODO fix the cpp-function for dimension 0,1,self.dimension -1, self.dimension
+        #TODO get faces in facet_representation (this is also important for the polar case)
+        return tuple(tuple(Integer(j) for j in i) for i in get_faces(self._C, dimension))
     def face_lattice(self):
         pass
         

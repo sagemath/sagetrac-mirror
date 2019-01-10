@@ -52,6 +52,12 @@ const unsigned int chunksize = 64;
 #endif
 #endif
 
+#if __POPCNT__
+#define popcount(A) _mm_popcnt_u64(A)
+#else
+#define popcount(A) naive_popcount(A)
+#endif
+
 const unsigned int maxnumberedges = 16348;//^2 (the edges will be build as an array of arrays, such that we can save up to maxnumberedges*maxnumberedges edges, the number should contain a high power of two
 
 
@@ -64,10 +70,10 @@ class CombinatorialPolytope {
         inline PyObject* get_f_vector();
         inline PyObject* get_edges();//returns a tuple of edges, each edges as tuple of vertices
         inline PyObject* get_ridges();//returns a tuple of ridges, each ridge as tuple of its to facets
-        void record_all_faces();
         inline PyObject* get_faces(unsigned int face_dimension);
+        void record_all_faces();
         inline PyObject* get_incidences(unsigned int one, unsigned int two);
-        inline PyObject* get_flag_count(PyObject* py_tuple);
+        //inline PyObject* get_flag_count(PyObject* py_tuple); This function is yet to be implemented
     private:
         int polar = 0;//in order to speed things up, we will consider the dual/polar whenever the number of vertices is smaller than the number of facets
         void **facets_allocator;
@@ -92,9 +98,10 @@ class CombinatorialPolytope {
         chunktype ***allfaces = NULL;
         void ***allfaces_facet_repr_allocator = NULL;
         chunktype ***allfaces_facet_repr = NULL;
-        
+        unsigned long *allfaces_counter = NULL;
+
         inline void intersection(chunktype *A, chunktype *B, chunktype *C);//will set C to be the intersection of A and B
-        inline int is_subset(chunktype *A, chunktype *B);//returns 1 if A is a subset of B, otherwise returns 0
+        inline int is_subset(chunktype *A, chunktype *B);//returns 1 if A is a proper subset of B, otherwise returns 0
         inline unsigned int CountFaceBits(chunktype* A1);//counts the number of vertices in a face by counting bits set to one
         inline void add_edge(chunktype *face);//adds an edge to the edges list
         inline void add_edge(unsigned int one, unsigned int two);//adds an edge to the edges list given as its two vertices
@@ -108,7 +115,11 @@ class CombinatorialPolytope {
         unsigned int calculate_dimension(chunktype **faces, unsigned int nr_faces);
         void calculate_ridges();
         void get_f_vector_and_edges(chunktype **faces, unsigned int dimension, unsigned int nr_faces, unsigned int nr_forbidden);
+        void record_faces(chunktype **faces, unsigned int current_dimension, unsigned int nr_faces, unsigned int nr_forbidden, unsigned int lowest_dimension);
+        inline void record_face(chunktype *face, unsigned int current_dimension);
         void calculate_f_vector();
+        
+        //initialization
         void get_facets_from_tuple(PyObject* py_tuple);
         void get_vertices_from_tuple(PyObject* py_tuple);
         void get_facets_or_vertices_from_tuple(PyObject* py_tuple, chunktype** facets_or_vertices, unsigned int flip, unsigned int nr_vertices_given, unsigned int nr_facets_given, unsigned int facet_repr);
@@ -119,6 +130,8 @@ class CombinatorialPolytope {
         
         //conversions
         void char_from_tuple(PyObject* py_tuple, chunktype *array1, unsigned int facet_repr);
+        inline PyObject* tuple_from_char(chunktype *array1, unsigned int facet_repr);
+        inline PyObject* tuple_from_faces(chunktype **array1, unsigned int len, unsigned int facet_repr);
         void char_from_incidence_tuple(PyObject* py_tuple, chunktype *array1, unsigned int facet_repr);
         void char_from_array(unsigned int* input, unsigned int len, chunktype *array1, unsigned int facet_repr);
         inline PyObject* tuple_from_f_vector();
@@ -132,7 +145,7 @@ class CombinatorialPolytope {
         void deallocate_vertices();
         void allocate_newfaces();
         void deallocate_newfaces();
-        void allocate_allfaces(unsigned int dimension_to_allocate);//allocates allfaces in a certain dimension, must be smaller than dimension and at least 1, if dimension is 0 all allfaces with be allocated
+        void allocate_allfaces(unsigned int dimension_to_allocate);//allocates allfaces in a certain dimension, must be smaller than dimension and at least 1, if dimension is 0 will allocate all dimensions
         void deallocate_allfaces();
         
 };
@@ -146,6 +159,8 @@ unsigned int dimension(CombinatorialPolytope_ptr C);
 PyObject* f_vector(CombinatorialPolytope_ptr C);
 PyObject* edges(CombinatorialPolytope_ptr C);
 PyObject* ridges(CombinatorialPolytope_ptr C);
+void record_all_faces(CombinatorialPolytope_ptr C);
+PyObject* get_faces(CombinatorialPolytope_ptr C, unsigned int dimension);
 
 void delete_CombinatorialPolytope(CombinatorialPolytope_ptr);
 
