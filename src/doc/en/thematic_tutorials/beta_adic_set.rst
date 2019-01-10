@@ -8,10 +8,10 @@ BetaAdicSet in Sage
 
 .. MODULEAUTHOR:: Paul Mercat, and Dominique Benielli
                   Labex Archimede - I2M -
-                  AMU Aix-Marseille Universite
+                  AMU Aix-Marseille Université
 
 
-The present tool BetaAdicSet is a convenient tool to describe sets like Rauzy fractals and quasicrystals associated to substitutions, and more generally sets described by :math:`\beta`-expansion with digits in a regular language.
+The present tool BetaAdicSet is a convenient tool to describe sets like Rauzy fractals and quasicrystals associated to substitutions, and more generally sets described by :math:`\beta`-expansion with list of digits in a regular language.
 
 
 Introduction and Definitions
@@ -30,7 +30,7 @@ Given a substitution, let's say for example the Fibonnacci substitution:
     \end{array}
     \right.
 
-Up to replace the substitution by a power, a fixed point always exists. Here we have the following unique fixed point:
+Up to replace the substitution by a power, a fixed point always exists. Here we have the following unique right-infinite fixed point:
 
 :math:`abaababaabaababaababaabaababaabaababaaba...`
 
@@ -61,8 +61,7 @@ we add :math:`1` each time we read a letter :math:`a` and we add :math:`\beta-1`
 Automaton
 ~~~~~~~~~
 
-This set of points of :math:`\mathbf Q(\beta)` is described by the automaton :math:`\mathcal{A}` of the following figure describing the quasicrystal 
-associated to the Fibonnacci substitution:
+This set of points of :math:`\mathbf Q(\beta)`, associated to the Fibonnacci substitution, is described by the automaton :math:`\mathcal{A}` of the following figure (and such automaton always exists for sets of points coming from substitutions).
 
 .. PLOT::
    :width: 30%
@@ -74,7 +73,7 @@ The initial state of this automaton :math:`\mathcal{A}` is the one labelled by l
 The language :math:`L_{\mathcal{A}}` recognized by an automaton :math:`\mathcal{A}` is defined as the set of sequences of labels of paths from the initial state to a final state.
 Here, the language of :math:`\mathcal{A}` is exactly the set of words over the alphabet :math:`\{0,1\}` that does not contain the subword :math:`11`.
 
-The set of points is obtained from :math:`\beta` and from the automaton by:
+The set of points is obtained from :math:`\beta` and from the automaton :math:`\mathcal{A}` by:
 
 .. MATH::
     \{\sum_{i=0}^n a_i \beta^i\ |\ a_n a_{n-1} ... a_1 a_0 \in L_{\mathcal{A}}\}.
@@ -83,6 +82,8 @@ The self-similar tiling of :math:`\mathbf R_+` is obtained by taking the embeddi
 If we look at the others embeddings, corresponding to eigenvalues less than :math:`1` we get a bounded set whose adherence is called Rauzy fractal of the substitution.
 Here there is a unic such embedding, which is a real one, corresponding to the root of :math:`x^2-x-1` between :math:`-1` and :math:`1`.
 The Rauzy fractal is here the interval :math:`[-1, \varphi]` of :math:`\mathbf R` where :math:`\varphi` is the golden number (i.e. greatest root of :math:`x^2-x-1`).
+
+A BetaAdicSet is by definition a set of this form, for a number :math:`\beta` and an automaton :math:`\mathcal{A}`. In Sage, a :class:`BetaAdicSet` is the data of a number :math:`b` (for :math:`\beta`) and a :class:`DetAutomaton` :math:`\mathcal{a}` (but we can initialize it from an :class:`Automaton` or a :class:`CAutomaton`).
 
 Main Definitions
 ----------------
@@ -216,18 +217,17 @@ Remark
 ^^^^^^
 
 We see from theses properties that we can construct :math:`\beta`-adic sets with any shape in the contracting space :math:`E^-`.
-This allows us to construct Rauzy fractals of any shape: the :math:`\beta`-adic set comes from a substitution for the Pisot number :math:`\beta^k` if and only if it is invariant by multiplication by
-:math:`\beta^k` and it is a Meyer set in the expanding direction.
+This allows us to construct Rauzy fractals of any shape: a :math:`\beta`-adic set comes from a substitution for a Pisot number :math:`\beta^k` if and only if it is invariant by multiplication by
+:math:`\beta^k`, it contains zero, and it is a Meyer set in the expanding direction.
 
 
 
 Construction of a domain exchange
 ---------------------------------
-The first step, to construct a substitution from a quasicrystal, is to construct a domain exchange which describe the shift on the quasicrystal.
+The first step, to construct a substitution from a quasicrystal, is to construct a domain exchange describing the shift on the quasicrystal.
 
 Let :math:`\beta` be a Pisot number (eventually non unit), and let :math:`Q \subseteq \mathbf Q(\beta)` such that :math:`\sigma_+(Q)` is a quasicrystal of :math:`\mathbf R` or :math:`\mathbf R^+`.
-Then there exists a domain exchange with a finite number of pieces such that the union of the pieces is :math:`Q`.
-Moreover, this domain exchange is conjugated to the shift on :math:`\sigma_+(Q)`.
+Then there exists a domain exchange with a finite number of pieces such that the union of the pieces is :math:`Q` and such that it is conjugated to the shift on :math:`\sigma_+(Q)`.
 
 
 .. figure:: /media/echange_rond.jpg
@@ -235,20 +235,20 @@ Moreover, this domain exchange is conjugated to the shift on :math:`\sigma_+(Q)`
   :align: center
   :alt: domain exchange
 
-  Construction of a domain exchange in the unit disk, for the integer ring :math:`\mathcal O_\beta`,
+  Construction of a domain exchange in the unit disk, for the points of the integer ring :math:`\mathcal O_\beta` that fall in the disk,
   where :math:`\beta` is the Tribonnacci number. 
   :math:`\color{red}{-2\beta^2+2\beta}`, :math:`\color{orange}{\beta^2-\beta-1}`, :math:`\color{lime}{\beta-1}`, :math:`\color{green}{1}`,  :math:`\color{cyan}{-\beta^2+2\beta+1}`, :math:`\color{blue}{\beta^2-\beta}`, :math:`\color{magenta}{\beta}`
 
 
 
-The domain exchange described in the above figure for the open unit disk gives exactly the list of Pisot numbers
+The domain exchange described in the above figure for the open unit disk, gives exactly the list of Pisot numbers
 (including non-unit ones) of degree :math:`3` in :math:`\mathbf Q(\beta)`,
 where :math:`\beta` is the Tribonnacci number (i.e. greatest root of $x^3-x^2-x-1$).
 Indeed if :math:`x` is a Pisot number of degree three in :math:`\mathbf Q(\beta)`,
 the next Pisot number is obtained by looking in which piece is the conjugate :math:`\overline{x}`,
 and adding the corresponding translation to :math:`x`.
 
-For a :math:`\beta`-adic set, for a Pisot number :math:`\beta`, we can compute the domain exchange when it is finite. It is done by the function :meth:`sage.arith.beta_adic.domain_exchange`.
+For a :math:`\beta`-adic set, for a Pisot number :math:`\beta`, we can compute the domain exchange when it is finite. It is done by the function :meth:`~BetaAdicSet.domain_exchange` of the class :class:`BetaAdicSet`.
 
 Construction of a substitution
 ------------------------------
@@ -270,7 +270,7 @@ But it's not really an induction : we have to distinguish between different poss
 trajectories for points in :math:`\lambda Q` before they come back to :math:`\lambda Q`,
 otherwise the induction only give the same domain exchange on :math:`\lambda Q` than in :math:`Q`.
 
-For a :math:`\beta`-adic set, for a Pisot number :math:`\beta`, we can compute the substitution when it exists. It is done by the function :meth:`sage.arith.beta_adic.substitution`.
+For a :math:`\beta`-adic set, for a Pisot number :math:`\beta`, we can compute the substitution when it exists. It is done by the function :func:`BetaAdicSet.substitution` of the class :class:`BetaAdicSet`.
 
 Examples of Usage of BetaAdicSet
 --------------------------------
@@ -283,7 +283,7 @@ Take the Tribonnacci Pisot number :math:`\beta`, root of :math:`x^3 - x^2 - x - 
 and take :math:`L` the regular language defined by the following automaton.
 
 
-This automaton describing the regular language describing a :math:`\beta`-adic set which is a Sierpiński
+This automaton describe a regular language giving a :math:`\beta`-adic set which is a Sierpiński
 gasket union a set of non-empty interior for :math:`\beta` the Tribonnacci number.
 
 .. PLOT::
@@ -501,9 +501,9 @@ Any Shape
 ~~~~~~~~~
 
 We can define :math:`\beta`-adic sets approximating any shape.
-This can be done with the function :meth:`sage.arith.beta_adic.approx`.
+This can be done with the function :meth:`BetaAdicSet.approx`.
 And we can also draw a :math:`\beta`-adic set with the mouse, with the function
-:meth:`sage.arith.beta_adic.user_draw`.
+:meth:`BetaAdicSet.user_draw`.
 We present various examples.
 
 Disk
@@ -516,7 +516,7 @@ We start by taking a simple :math:`\beta`-adic set.
    ######################################
    # BetaAdicSet approximating a disk
    ######################################
-   #. BetaAdicSet approximating a square
+   #. BetaAdicSet from Tribonnacci
    m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
    m
    b-adic set with b root of x^3 - x^2 - x - 1, and an automaton of 3 states and 2 letters
@@ -530,7 +530,7 @@ The relation automaton associated
    ######################################
    # BetaAdicSet approximating a disk
    ######################################
-   #. BetaAdicSet approximating a square
+   #. BetaAdicSet from Tribonnacci
    m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
    a = m.relations_automaton()
    sphinx_plot(a)
@@ -545,7 +545,7 @@ The relation automaton associated
      To:   Complex Field with 53 bits of precision
      Defn: b |--> -0.419643377607080 + 0.606290729207199*I
 
-We compute an approximation of a disk included in this `\beta`-adic set:
+We compute an approximation of a disk included in this :math:`\beta`-adic set:
 
 .. code-block:: Python
 
@@ -560,6 +560,8 @@ We compute an approximation of a disk included in this `\beta`-adic set:
 
 .. image:: media/shap1.png
    :scale: 70 %
+
+We compute the domain exchange describing this :math:`\beta`-adic set:
 
 .. code-block:: Python
 
@@ -685,7 +687,7 @@ Rauzy fractal approximating a square.
    ########################################
    # Rauzy fractal approximating a square #
    ########################################
-   # compute a g-b-set approximating a square
+   # compute a beta-adic set approximating a square
    # the first argument of approx() is the precision,
    # and the second one is the characteristic function of the shape to approximate
    # the shape must be not too big in order to be inside the set of elements that admit a b-expansion
@@ -795,24 +797,6 @@ The projection
 .. image:: media/square5.png
   :scale: 70 %
 
-Any Shape
----------
-
-.. code-block:: Python
-
-     #########################################
-     # choose a Pisot number and an alphabet #
-     #########################################
-     pi = x^3-x^2-x-1 #Tribonacci
-     #pi = x^3-2*x^2-x-1
-     print pi.roots(ring=CC)
-     b = pi.roots(ring=QQbar)[1][0] #we take the conjugate of modulus < 1 in order to plot the result
-     print b
-     m = BetaAdicSet(b, {0,1}) #choose the alphabet
-     pm = m.b.parent().places()[1]
-
-     aoc = m.user_draw()
-
 
 Imported Image
 --------------
@@ -823,12 +807,12 @@ Imported Image
      im = ImageIn('gabian.png') 
      im
      Image of size 573x628
-     #compute a g-b-set approximating the image 
+     # compute a beta-adic set approximating the image 
      w = im.width() 
      h = im.height() 
      ma = max(w,h) 
 
-     #compute the canonical g-b-expansion of this g-b-set aoc 
+     # approximate the image using Tribonnacci 
      m = WordMorphism('a->ab,b->ac,c->a').DumontThomas().mirror()
      pm = m.b.parent().places()[1]
      md  = m.approx(17, lambda x: (pm(x).conjugate()+.5*(1+I))*ma in im) 
