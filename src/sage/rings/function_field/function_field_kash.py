@@ -418,12 +418,12 @@ class FunctionField_polymod_kash(FunctionField_polymod):
 
             sage: K.<t> = FunctionField(QQ)
             sage: R.<x> = QQ[]
-            sage: M.<z> = K.extension(x^7-x-t)
-            sage: M(x)
+            sage: M.<z> = K.extension(x^7-x-t)  # not tested
+            sage: M(x)                          # not tested
             z
-            sage: M('z')
+            sage: M('z')                        # not tested
             z
-            sage: M('x')
+            sage: M('x')                        # not tested
             Traceback (most recent call last):
             ...
             TypeError: unable to evaluate 'x' in Fraction Field of Univariate
