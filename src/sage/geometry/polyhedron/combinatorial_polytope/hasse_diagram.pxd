@@ -6,6 +6,7 @@ cdef extern from "hasse_diagram.h":
     cdef tuple f_vector(CombinatorialPolytope_ptr C)
     cdef tuple edges(CombinatorialPolytope_ptr C)
     cdef tuple ridges(CombinatorialPolytope_ptr C)
+    cdef tuple incidences(CombinatorialPolytope_ptr C, int dimension_one, int dimension_two)
     cdef void record_all_faces(CombinatorialPolytope_ptr C)
-    cdef tuple get_faces(CombinatorialPolytope_ptr C, unsigned int dimension)
+    cdef tuple get_faces(CombinatorialPolytope_ptr C, int dimension, unsigned int facet_repr)
     cdef void delete_CombinatorialPolytope(CombinatorialPolytope_ptr)

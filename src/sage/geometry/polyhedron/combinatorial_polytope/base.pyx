@@ -26,8 +26,9 @@ AUTHOR:
 from __future__ import absolute_import
 from sage.rings.integer import Integer
 from sage.graphs.graph                      import Graph
+from sage.graphs.digraph import DiGraph
 
-from .hasse_diagram cimport   CombinatorialPolytope_ptr, init_CombinatorialPolytope, dimension, edges, f_vector, ridges, record_all_faces, get_faces, delete_CombinatorialPolytope
+from .hasse_diagram cimport   CombinatorialPolytope_ptr, init_CombinatorialPolytope, dimension, edges, f_vector, ridges, incidences, record_all_faces, get_faces, delete_CombinatorialPolytope
 
 #TODO take care of the empty polyhedron, which does not have vertices
 cdef class CombinatorialPolytope:
@@ -125,9 +126,38 @@ cdef class CombinatorialPolytope:
         return tuple(Integer(i) for i in f_vector(self._C))
     def _record_all_faces(self):
         record_all_faces(self._C)
-    def faces(self,dimension):#TODO fix the cpp-function for dimension 0,1,self.dimension -1, self.dimension
+    def faces(self,dimension, facet_repr=False):#TODO fix the cpp-function for dimension 0,1,self.dimension -1, self.dimension
         #TODO get faces in facet_representation (this is also important for the polar case)
-        return tuple(tuple(Integer(j) for j in i) for i in get_faces(self._C, dimension))
+        if (facet_repr):
+            facet_repr = 1
+        else:
+            facet_repr = 0
+        return tuple(tuple(Integer(j) for j in i) for i in get_faces(self._C, dimension, facet_repr))
+    def incidences(self,dimension_one,dimension_two):
+        return tuple((Integer(i),Integer(j)) for i,j in incidences(self._C,dimension_one,dimension_two))
+    def hasse_diagram(self):
+        f_vector = self.f_vector()
+        self._record_all_faces()
+        dimension = self.dimension()
+        dic = {}
+        mapdic = {}
+        counter = 0
+        for k in range(-1,dimension+1):
+            faces = (self.faces(k),self.faces(k,facet_repr=True))
+            dic[k] = tuple((faces[0][i],faces[1][i]) for i in range(f_vector[k+1]))
+            mapdic[k] = lambda i : i + sum(f_vector[:k+1])
+        dic_edges = {}
+        edges = tuple((i[0] + sum(f_vector[:k+1]),i[1] + sum(f_vector[:k+2])) for k in range(-1,dimension) for i in self.incidences(k,k+1))
+        V1 = tuple((k,i) for k in range(-1,dimension+1) for i in range(f_vector[k+1])) 
+        V = tuple(range(sum(f_vector)))
+        D = DiGraph([V, edges], format='vertices_and_edges')
+        return D
+        f = lambda i : dic[i[0]][i[1]]
+        D.relabel(f)
+        return D
+        counter = 0
+        edges = 0
+        return dic
     def face_lattice(self):
         pass
         
