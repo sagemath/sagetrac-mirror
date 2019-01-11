@@ -68,6 +68,7 @@ from .ideal import FunctionFieldIdeal
 from .place import FunctionFieldPlace
 from .divisor import FunctionFieldDivisor
 from .constructor import FunctionField
+from .maps import FunctionFieldCompletion
 
 class RationalFunctionField_kash(RationalFunctionField):
     """
@@ -605,6 +606,218 @@ class FunctionField_polymod_kash(FunctionField_polymod):
         support = D.Support()
         data = {FunctionFieldPlace_kash(self, place) : D.Valuation(place) for place in support}
         return FunctionFieldDivisor(self, data)
+
+    def completion(self, place, name=None, prec=None):
+        """
+        Return the completion of the function field at the place.
+
+        INPUT:
+
+        - ``place`` -- place
+
+        - ``name`` -- string; name of the series variable
+
+        - ``prec`` -- integer; default precision
+
+        EXAMPLES::
+
+            sage: R.<x> = FunctionField(QQbar, implementation='kash')
+            sage: L.<y> = R[]
+            sage: F.<y> = R.extension(y^2 - (x^2+1))
+            sage: D = (y/x).divisor()
+            sage: p = D.support()[0]
+            sage: m = F.completion(p)
+            sage: m
+            Completion map:
+              From: Function field in y defined by y^2 - x^2 - 1
+              To:   Laurent Series Ring in s over Algebraic Field
+            sage: m(x, 10)
+            I + 2*I*s^2 + 2*I*s^4 + 2*I*s^6 + 2*I*s^8 + O(s^10)
+            sage: m(y, 10)
+            2*I*s + 2*I*s^3 + 2*I*s^5 + 2*I*s^7 + 2*I*s^9 + O(s^10)
+
+        """
+        return FunctionFieldCompletion_kash(self, place, name=name, prec=prec)
+
+class FunctionFieldCompletion_kash(FunctionFieldCompletion):
+    """
+    Completions on kash function fields.  Currently only supports
+    QQbar as the field of constants.
+
+    EXAMPLES::
+
+        sage: R.<x> = FunctionField(QQbar, implementation='kash')
+        sage: L.<y> = R[]
+        sage: F.<y> = R.extension(y^2 - (x^2+1))
+        sage: D = (y/x).divisor()
+        sage: p = D.support()[0]
+        sage: m = F.completion(p)
+        sage: m
+        Completion map:
+          From: Function field in y defined by y^2 - x^2 - 1
+          To:   Laurent Series Ring in s over Algebraic Field
+        sage: m(x)
+        I + 2*I*s^2 + 2*I*s^4 + 2*I*s^6 + 2*I*s^8 + 2*I*s^10 + 2*I*s^12 + 2*I*s^14 + 2*I*s^16 + 2*I*s^18 + O(s^20)
+        sage: m(y)
+        2*I*s + 2*I*s^3 + 2*I*s^5 + 2*I*s^7 + 2*I*s^9 + 2*I*s^11 + 2*I*s^13 + 2*I*s^15 + 2*I*s^17 + 2*I*s^19 + O(s^20)
+        sage: m(x*y) == m(x) * m(y)
+        True
+        sage: m(x+y) == m(x) + m(y)
+        True
+        sage: m(y)^2 == m(x)^2 + 1
+        True
+
+    The variable name of the series can be supplied, as can the default precision.
+
+        sage: p2 = D.support()[1]
+        sage: p2
+        Place (x, y + x - 1)
+        sage: m2 = F.completion(p2, 't', prec=10)
+        sage: m2(x)
+        t + 1/4*t^3 + 1/16*t^5 + 1/64*t^7 + 1/256*t^9 + O(t^10)
+        sage: m2(y)
+        1 + 1/2*t^2 + 1/8*t^4 + 1/32*t^6 + 1/128*t^8 + O(t^10)
+    """
+    def __init__(self, field, place, name=None, prec=None):
+        """
+        Initialize.
+
+        INPUT:
+
+        - ``field`` -- function field
+
+        - ``place`` -- place of the function field
+
+        - ``name`` -- string for the name of the series variable
+
+        - ``prec`` -- positive integer; default precision
+
+        EXAMPLES::
+
+            sage: R.<x> = FunctionField(QQbar, implementation='kash')
+            sage: L.<y> = R[]
+            sage: F.<y> = R.extension(y^2 - (x^2+1))
+            sage: D = (y/x).divisor()
+            sage: p = D.support()[0]
+            sage: m = F.completion(p)
+            sage: m
+            Completion map:
+              From: Function field in y defined by y^2 - x^2 - 1
+              To:   Laurent Series Ring in s over Algebraic Field
+
+        """
+        from sage.rings.laurent_series_ring import LaurentSeriesRing
+
+        if name is None:
+            name = 's' # default
+
+        # Currently we only work on an algebraically closed constant base field,
+        # since otherwise our reside field would depend on the degree of the place.
+
+        assert field.constant_base_field() is QQbar
+
+        # if prec is None, the Laurent series ring provides default
+        # precision
+        codomain = LaurentSeriesRing(QQbar, name=name, default_prec=prec)
+
+        FunctionFieldCompletion.__init__(self, field, codomain)
+
+        self._place = place
+        self._precision = codomain.default_prec()
+
+    def _call_(self, f):
+        """
+        Call the completion for f
+
+        EXAMPLES::
+
+            sage: R.<x> = FunctionField(QQbar, implementation='kash')
+            sage: L.<y> = R[]
+            sage: F.<y> = R.extension(y^2 + y + x + 1/x)
+            sage: D = (x*y).divisor()
+            sage: p = D.support()[2]
+            sage: m = F.completion(p, prec=10)
+            sage: m
+            Completion map:
+              From: Function field in y defined by y^2 + y + (x^2 + 1)/x
+              To:   Laurent Series Ring in s over Algebraic Field
+            sage: m(x)
+            -s^2 - s^3 - s^4 - s^5 - 2*s^6 - 4*s^7 - 7*s^8 - 11*s^9 + O(s^10)
+        """
+        return self._expand(f, prec=None)
+
+    def _call_with_args(self, f, args=(), kwds={}):
+        """
+        Call the completion with ``args`` and ``kwds``.
+
+        EXAMPLES::
+
+            sage: R.<x> = FunctionField(QQbar, implementation='kash')
+            sage: L.<y> = R[]
+            sage: F.<y> = R.extension(y^2 + y + x + 1/x)
+            sage: D = (x*y).divisor()
+            sage: p = D.support()[2]
+            sage: m = F.completion(p)
+            sage: m(x+y, 10)  # indirect doctest
+            -s^-1 - s^2 - s^3 - s^4 - s^5 - 2*s^6 - 4*s^7 - 7*s^8 - 11*s^9 + O(s^10)
+        """
+        return self._expand(f, *args, **kwds)
+
+    def _expand(self, f, prec=None):
+        """
+        Return the power series representation of f of precision prec.
+
+        INPUT:
+
+        - ``f`` -- element of the function field
+
+        - ``prec`` -- integer; absolute precision of the series
+
+        OUTPUT:
+
+        - a series of precision prec
+
+        EXAMPLES::
+
+            sage: R.<x> = FunctionField(QQbar, implementation='kash')
+            sage: L.<y> = R[]
+            sage: F.<y> = R.extension(y^2 + y + x + 1/x)
+            sage: D = (x*y).divisor()
+            sage: p = D.support()[2]
+            sage: m = F.completion(p)
+            sage: m(x, 10)  # indirect doctest
+            -s^2 - s^3 - s^4 - s^5 - 2*s^6 - 4*s^7 - 7*s^8 - 11*s^9 + O(s^10)
+        """
+        if prec is None:
+            prec = self._precision
+
+        place = self._place
+        F = place.function_field()
+
+        kash_series = F.to_kash(f).Expand(place.kash, AbsPrec=prec)
+
+        val = kash_series.Valuation()
+        coeffs = [c.sage(F.reverse_map) for c in list(kash_series.Coefficients())]
+
+        return self.codomain()(coeffs, val).add_bigoh(prec)
+
+    def default_precision(self):
+        """
+        Return the default precision.
+
+        EXAMPLES::
+
+            sage: R.<x> = FunctionField(QQbar, implementation='kash')
+            sage: L.<y> = R[]
+            sage: F.<y> = R.extension(y^2 + y + x + 1/x)
+            sage: D = (x*y).divisor()
+            sage: p = D.support()[2]
+            sage: m = F.completion(p)
+            sage: m.default_precision()
+            20
+        """
+        return self._precision
+
 
 class FunctionFieldMaximalOrder_kash(FunctionFieldMaximalOrder):
     """
