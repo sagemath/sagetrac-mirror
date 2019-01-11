@@ -21,7 +21,7 @@ AUTHORS:
 from six import add_metaclass
 
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import Parent
+from sage.structure.set_factories import (SetFactory, ParentWithSetFactory, TopMostParentPolicy)
 from sage.structure.element import parent
 from sage.structure.list_clone import ClonableIntArray
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -30,8 +30,8 @@ from sage.misc.misc import uniq
 from sage.rings.integer_ring import ZZ
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.sets.family import Family
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.sets.family import LazyFamily #Family
+from sage.categories.enumerated_sets import EnumeratedSets
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.combinat.set_partition_ordered import OrderedSetPartition, OrderedSetPartitions
 from sage.combinat.tools import transitive_ideal
@@ -40,6 +40,8 @@ from sage.combinat.permutation import Permutations
 from sage.combinat.permutation import to_standard
 from sage.combinat.words.finite_word import evaluation_dict
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.misc.lazy_attribute import lazy_attribute
+
 
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
@@ -68,7 +70,7 @@ class PackedWord(ClonableIntArray):
         ValueError: [2] not in Packed words
     """
     @staticmethod
-    def __classcall_private__(cls, lst=[], check=True):
+    def __classcall_private__(cls, lst=[], check=True, policy=None):
         r"""
         Ensure that packed words created by the enumerated sets and directly
         are the same and that they are instances of :class:`PackedWord`.
@@ -88,7 +90,7 @@ class PackedWord(ClonableIntArray):
             sage: type(w1) is type(w0)
             True
         """
-        P = PackedWords_all()
+        P = PackedWords(policy=policy)
         return P(lst, check=check)
 
 
@@ -131,8 +133,21 @@ class PackedWord(ClonableIntArray):
             ...
             ValueError: [] is not a packed word of size 3
         """
-        if self not in self.parent():
-            raise ValueError("%s not in %s"%(self, self.parent()))
+        try:
+            # check for a list of integers
+            if all(a in ZZ and ZZ(a) > 0 for a in self):
+                s = sorted(set(int(a) for a in self))
+            else:
+                raise ValueError("{} is not a list of positive integers".format(self))
+
+        except (ValueError, TypeError):
+            # Elements not integers or w not iterable
+            raise ValueError("{} is not a list of positive integers".format(self))
+
+
+        # the distinct letters in w should be {1, 2, ..., max(self)}
+        if s != [i for i in range(1, max([0]+s[-1:])+1)]:
+            raise ValueError("If number `k > 1` appears then the number `k - 1` must also appear".format(self))
 
     def _latex_(self):
         r"""
@@ -701,7 +716,7 @@ class PackedWord(ClonableIntArray):
         for i in range(n - 1):
             if self[i] < self[i+1]:
                 p = self[:i] + [self[i+1], self[i]] + self[i+2:]
-                succ.append(P.element_class(P, p, check=False))
+                succ.append(P._element_constructor_(p, check=False))
         return succ
 
     def right_weak_order_pred(self):
@@ -740,7 +755,7 @@ class PackedWord(ClonableIntArray):
         for i in range(n - 1):
             if self[i] > self[i+1]:
                 p = self[:i] + [self[i+1], self[i]] + self[i+2:]
-                pred.append(P.element_class(P, p, check=False))
+                pred.append(P._element_constructor_(p, check=False))
         return pred
 
     def right_weak_order_smaller(self):
@@ -905,7 +920,7 @@ class PackedWord(ClonableIntArray):
                         l.append(x)
                 succ.append(l)
         P = parent(self)
-        return [P.element_class(P, p, check=False) for p in succ]
+        return [P._element_constructor_(p, check=False) for p in succ]
 
     def left_weak_order_pred(self):
         r"""
@@ -955,7 +970,7 @@ class PackedWord(ClonableIntArray):
                         l.append(x)
                 pred.append(l)
         P = parent(self)
-        return [P.element_class(P, p, check=False) for p in pred]
+        return [P._element_constructor_(p, check=False) for p in pred]
 
     def left_weak_order_smaller(self):
         r"""
@@ -1133,7 +1148,66 @@ class PackedWord(ClonableIntArray):
 # Parent classes
 #==============================================================================
 
-class PackedWords(UniqueRepresentation, Parent):
+class PackedWordsFactory(SetFactory):
+    r"""
+    """
+    def __call__(self, n=None, policy=None):
+        r"""
+        Construct the correct parent based upon input ``n``.
+
+        TESTS::
+
+            sage: from sage.combinat.packed_words import PackedWords_size, PackedWords_all
+            sage: isinstance(PackedWords(2), PackedWords)
+            True
+            sage: isinstance(PackedWords(), PackedWords)
+            True
+            sage: PackedWords(2) is PackedWords_size(2)
+            True
+            sage: PackedWords(5).cardinality()
+            541
+            sage: PackedWords() is PackedWords_all()
+            True
+
+            sage: PackedWords(3/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a non-negative integer
+        """
+        if policy is None:
+            policy = TopMostParentPolicy(self, (), PackedWord)
+        if n is None:
+            return PackedWords_all(policy)
+        if n not in ZZ or n < 0:
+            raise ValueError("n must be a non-negative integer")
+        return PackedWords_size(ZZ(n), policy)
+
+    @lazy_attribute
+    def _default_policy(self):
+        r"""
+        TODO: update this documentation.
+        TESTS::
+
+            sage: from sage.structure.set_factories_example import XYPairsFactory
+            sage: XYPairs = XYPairsFactory()
+            sage: XYPairs._default_policy
+            Set factory policy for <class 'sage.structure.set_factories_example.XYPair'> with parent AllPairs[=Factory for XY pairs(())]
+        """
+        return TopMostParentPolicy(self, (), PackedWord)
+
+    def add_constraints(self, cons, args_opts):
+        """
+        TODO: instead of returning an error, should we return an "empty family?"
+        """
+        args, opts = args_opts
+        if len(args + cons) > 1 and args[0] != cons[0]:
+            raise ValueError("Constraint size={} cannot replace constraint size={}".format(args[0], cons[0]))
+        res = args + cons
+        return (res[0],)
+
+PackedWords = PackedWordsFactory()
+
+class PackedWordsBaseClass(ParentWithSetFactory):
     r"""
     Packed words.
 
@@ -1184,36 +1258,6 @@ class PackedWords(UniqueRepresentation, Parent):
         sage: PackedWords(4)
         Packed words of size 4
     """
-    @staticmethod
-    def __classcall_private__(cls, n=None):
-        r"""
-        Construct the correct parent based upon input ``n``.
-
-        TESTS::
-
-            sage: from sage.combinat.packed_words import PackedWords_size, PackedWords_all
-            sage: isinstance(PackedWords(2), PackedWords)
-            True
-            sage: isinstance(PackedWords(), PackedWords)
-            True
-            sage: PackedWords(2) is PackedWords_size(2)
-            True
-            sage: PackedWords(5).cardinality()
-            541
-            sage: PackedWords() is PackedWords_all()
-            True
-
-            sage: PackedWords(3/2)
-            Traceback (most recent call last):
-            ...
-            ValueError: n must be a non-negative integer
-        """
-        if n is None:
-            return PackedWords_all()
-        if n not in ZZ or n < 0:
-            raise ValueError("n must be a non-negative integer")
-        return PackedWords_size(ZZ(n))
-
     @staticmethod
     def from_ordered_set_partition(osp):
         r"""
@@ -1324,9 +1368,9 @@ class PackedWords(UniqueRepresentation, Parent):
             size = None
 
         if size == 0:
-            return [self.element_class(self, [], check=False)]
+            return [self._element_constructor_([], check=False)]
         if size == 1:
-            return [self.element_class(self, [1], check=False)]
+            return [self._element_constructor_([1], check=False)]
 
         li = [({sigma.index(1): 1}, sigma.index(1))]
         for i in range(2, n):
@@ -1344,59 +1388,14 @@ class PackedWords(UniqueRepresentation, Parent):
         for (pw, l_index) in li:
             if l_index < index_i:
                 pw[index_i] = pw[l_index]
-                res.append(self.element_class(self, list(pw.values()), check=False))
+                res.append(self._element_constructor_(list(pw.values()), check=False))
             pw[index_i] = pw[l_index] + 1
-            res.append(self.element_class(self, list(pw.values()), check=False))
+            res.append(self._element_constructor_(list(pw.values()), check=False))
         return res
-
-    def __contains__(self, w):
-        r"""
-        Determine if ``w`` may be viewed as belonging to ``self``.
-
-        TESTS::
-
-            sage: P = PackedWords()
-            sage: P([2,3,1]) in P
-            True
-            sage: PackedWord([]) in P
-            True
-            sage: P([]) in PackedWords(0)
-            True
-
-            sage: 1 in P
-            False
-            sage: [1, 1, 4, 2, 3] in P
-            True
-            sage: {2,3,4,1} in P  # perhaps undesireable answer
-            True
-        """
-        try:
-            # check for a list of integers
-            if all(a in ZZ and ZZ(a) > 0 for a in w):
-                s = sorted(set(int(a) for a in w))
-                n = len(w)
-            else:
-                #raise ValueError("{} is not a packed word".format(w))
-                return False
-        except (ValueError, TypeError):
-            # Elements not integers or w not iterable
-            #raise ValueError("{} is not a packed word".format(w))
-            return False
-
-        # if parent has a size, it should agree with that of w
-        size = getattr(self, "_size", None)
-        if size and n != size:
-            return False
-
-        # the distinct letters in w should be {1, 2, ..., max(w)}
-        if s != [i for i in range(1, max([0]+s[-1:])+1)]:
-            return False
-
-        return True
 
     Element = PackedWord
 
-    def _element_constructor_(self, lst=[], check=True):
+    def check_element(self, lst, check=True):
         r"""
         Construct an element of ``self``.
 
@@ -1427,24 +1426,15 @@ class PackedWords(UniqueRepresentation, Parent):
             ...
             ValueError: [1, 4, 4, 2] not in Packed words
         """
-        # if parent has a size, it should agree with the size of lst
-        size = getattr(self, "_size", None)
-        if size and len(lst) != size:
-            raise ValueError("{0} is not a packed word of size {1}".format(lst, size))
+        pass
 
-        if isinstance(parent(lst), self.__class__):
-            return lst
-        if not lst:
-            return self.element_class(self, [], check=False)
-
-        return self.element_class(self, lst, check=check)
 
 
 #==============================================================================
 # Enumerated set of all packed words
 #==============================================================================
 
-class PackedWords_all(PackedWords, DisjointUnionEnumeratedSets):
+class PackedWords_all(PackedWordsBaseClass, DisjointUnionEnumeratedSets, UniqueRepresentation):
     """
     The set of all packed words of any size.
 
@@ -1461,7 +1451,7 @@ class PackedWords_all(PackedWords, DisjointUnionEnumeratedSets):
         sage: P([])
         []
     """
-    def __init__(self):
+    def __init__(self, policy):
         """
         Initialize ``self``.
 
@@ -1469,8 +1459,19 @@ class PackedWords_all(PackedWords, DisjointUnionEnumeratedSets):
 
             sage: TestSuite(PackedWords()).run()  # long time
         """
-        fam = Family(NonNegativeIntegers(), PackedWords_size)
-        DisjointUnionEnumeratedSets.__init__(self, fam, facade=True, keepkey=False)
+        fam = LazyFamily(NonNegativeIntegers(), self._packedwords_size)
+        #DisjointUnionEnumeratedSets.__init__(self, fam, facade=True, keepkey=False)
+        ParentWithSetFactory.__init__(self, (), policy=policy,
+                              category=EnumeratedSets())
+        DisjointUnionEnumeratedSets.__init__(self, fam,
+                                             facade=True, keepkey=False,
+                                             category=self.category())
+
+    def _packedwords_size(self, k):
+        """
+        Helper method to pass policy while iterating within LazyFamily.
+        """
+        return PackedWords_size(k, policy=self.facade_policy())
 
     def _repr_(self):
         """
@@ -1483,24 +1484,24 @@ class PackedWords_all(PackedWords, DisjointUnionEnumeratedSets):
         """
         return "Packed words"
 
-    def __iter__(self):
-        """
-        Iterate over ``self``.
+    # def __iter__(self):
+    #     """
+    #     Iterate over ``self``.
 
-        EXAMPLES::
+    #     EXAMPLES::
 
-            sage: it = iter(PackedWords())
-            sage: [next(it) for _ in range(10)]
-            [[], [1], [1, 2], [2, 1], [1, 1], [1, 2, 3],
-             [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2]]
-        """
-        n = 0
-        while True:
-            for w in PackedWords(n):
-                yield self.element_class(self, list(w))
-            n += 1
+    #         sage: it = iter(PackedWords())
+    #         sage: [next(it) for _ in range(10)]
+    #         [[], [1], [1, 2], [2, 1], [1, 1], [1, 2, 3],
+    #          [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2]]
+    #     """
+    #     n = 0
+    #     while True:
+    #         for w in PackedWords(n):
+    #             yield self._element_constructor_(list(w))
+    #         n += 1
 
-    def subset(self, size=None):
+    #def subset(self, size=None):
         r"""
         Return the set of packed words of size ``size``.
 
@@ -1523,16 +1524,16 @@ class PackedWords_all(PackedWords, DisjointUnionEnumeratedSets):
             ...
             ValueError: n must be a non-negative integer
         """
-        if size is None:
-            return self
-        return PackedWords(size)
+        #if size is None:
+        #    return self
+        #return PackedWords(size)
 
 
 #==============================================================================
 # Enumerated set of packed words of a given size
 #==============================================================================
 
-class PackedWords_size(PackedWords):
+class PackedWords_size(PackedWordsBaseClass, UniqueRepresentation):
     r"""
     Packed words of a fixed size (or length) `n`.
 
@@ -1579,7 +1580,7 @@ class PackedWords_size(PackedWords):
         ...
         ValueError: [1]  not in Packed words of size 0
     """
-    def __init__(self, size):
+    def __init__(self, size, policy):
         """
         Initialize ``self``.
 
@@ -1590,7 +1591,8 @@ class PackedWords_size(PackedWords):
             sage: TestSuite(PackedWords(2)).run()
             sage: TestSuite(PackedWords(5)).run()  # long time
         """
-        super(PackedWords_size, self).__init__(category=FiniteEnumeratedSets())
+        ParentWithSetFactory.__init__(self, (size,), policy=policy,
+                                      category=EnumeratedSets().Finite())
         self._size = size
 
     def _repr_(self):
@@ -1603,6 +1605,13 @@ class PackedWords_size(PackedWords):
             Packed words of size 4
         """
         return "Packed words of size %s" % (self._size)
+
+    def check_element(self, lst, check):
+        r"""
+        """
+        PackedWordsBaseClass.check_element(self, lst, check)
+        if len(lst) != self._size:
+            raise ValueError("{0} is not a packed word of size {1}".format(lst, size))
 
     def __contains__(self, x):
         r"""
@@ -1620,7 +1629,11 @@ class PackedWords_size(PackedWords):
             sage: PackedWord([1, 2, 1, 3]) in P
             True
         """
-        return PackedWords.__contains__(self, x) and len(x) == self._size
+        try:
+            PackedWord(x)
+        except ValueError:
+            return False
+        return len(x) == self._size
 
     def cardinality(self):
         r"""
@@ -1657,12 +1670,22 @@ class PackedWords_size(PackedWords):
              [1, 2, 1], [2, 1, 1], [1, 1, 1]]
         """
         if self._size == 0:
-            yield self.element_class(self, [], check=False)
+            yield self._element_constructor_([], check=False)
             return
 
         OSP = OrderedSetPartitions(self._size)
         for osp in OSP:
-            yield self.element_class(self, osp.to_packed_word(), check=False)
+            yield self._element_constructor_(osp.to_packed_word(), check=False)
+
+    def an_element(self):
+        r"""
+        """
+        n = self._size
+        if n == 0:
+            return self._element_constructor_([], check=False)
+        else:
+            m = [1] + range(min(3,n-1),1,-1)
+            return self._element_constructor_(m + [1]*(n-len(m)), check=False)
 
     def random_element(self):
         r"""
@@ -1681,4 +1704,4 @@ class PackedWords_size(PackedWords):
             [1, 3, 3, 2, 4]
         """
         osp = OrderedSetPartitions(self._size).random_element()
-        return self.element_class(self, osp.to_packed_word(), check=False)
+        return self._element_constructor_(osp.to_packed_word(), check=False)
