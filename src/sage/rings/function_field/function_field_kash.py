@@ -54,6 +54,9 @@ from sage.rings.rational_field import QQ
 from sage.rings.fraction_field import FractionField
 from sage.rings.finite_rings.finite_field_base import FiniteField
 from sage.rings.number_field.number_field_base import NumberField
+from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
+
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from .function_field import RationalFunctionField
 from .function_field import FunctionFieldElement_rational
@@ -64,6 +67,7 @@ from .order import FunctionFieldMaximalOrderInfinite
 from .ideal import FunctionFieldIdeal
 from .place import FunctionFieldPlace
 from .divisor import FunctionFieldDivisor
+from .constructor import FunctionField
 
 class RationalFunctionField_kash(RationalFunctionField):
     """
@@ -102,7 +106,7 @@ class RationalFunctionField_kash(RationalFunctionField):
           To:   Rational function field in tbar over Rational Field
           Defn: t |--> tbar
 
-    Here's a calculation over a number field:
+    Here's a calculation over a number field::
 
         sage: R.<x> = FunctionField(QQ, implementation='kash')
         sage: L.<y> = R[]
@@ -129,6 +133,19 @@ class RationalFunctionField_kash(RationalFunctionField):
          + Place (x, y + x - 1)
          + Place (x, y + x + 1)
          - Place (x + i, y)
+
+    We try the same calculation over QQbar.  We get the answer back
+    in a number field ('a' instead of 'I') because we can't handle
+    ideals and places over QQbar yet::
+
+        sage: R.<x> = FunctionField(QQbar, implementation='kash')
+        sage: L.<y> = R[]
+        sage: F.<y> = R.extension(y^2 - (x^2+1))
+        sage: (y/x).divisor()
+        Place (x - a, y)
+         - Place (x, y + x - 1)
+         - Place (x, y + x + 1)
+         + Place (x + a, y)
 
     """
 
@@ -162,7 +179,7 @@ class RationalFunctionField_kash(RationalFunctionField):
 
         RationalFunctionField.__init__(self, constant_field, names, category)
 
-        if constant_field is QQ:
+        if constant_field is QQ or constant_field is QQbar:
             self.kash_constant_field = kash.RationalField()
             self.reverse_map = {}
         elif isinstance(constant_field, FiniteField):
@@ -175,7 +192,7 @@ class RationalFunctionField_kash(RationalFunctionField):
             self.kash_constant_field = ka.NumberField()
             self.reverse_map = {self.kash_constant_field.gen(1) : constant_field.gen(0)}
         else:
-            raise ValueError("The constant field must be either QQ or a finite field.")
+            raise ValueError("The constant field must be either QQ, QQbar, a number field, or a finite field.")
 
         # the field, without the function field structure (referenced by divisor.py)
         self._field = constant_field[names[0]].fraction_field()
@@ -206,6 +223,14 @@ class RationalFunctionField_kash(RationalFunctionField):
                 d = c.denominator().map_coefficients(lambda v: v.polynomial().subs({v.polynomial().parent().gen(0) : a}), new_base_ring = R2)
                 d = d.subs({d.parent().gen(0): R2.gen(0)})
                 d = d.subs({R2.gen(0) : x, R2.gen(1) : self.kash_constant_field.gen(1)})
+                return n/d
+            elif True:
+                # P will be a polynomial ring with coeffs in either QQ or QQbar
+                # XXX this code assumes that even if we're in QQbar, actual coeffs are only in QQ
+                P = c.numerator().parent()
+                R2 = QQ[P.gens()]
+                n = c.numerator().change_ring(QQ)(x)
+                d = c.denominator().change_ring(QQ)(x)
                 return n/d
             else:
                 return c(x)
@@ -258,6 +283,56 @@ class RationalFunctionField_kash(RationalFunctionField):
         from .place import PlaceSet
         return PlaceSet(self)
 
+class FunctionFieldElement_polymod_kash(FunctionFieldElement_polymod):
+
+    def divisor(self):
+        """
+        Return the divisor of the element.
+        """
+
+        if self.is_zero():
+            raise ValueError("divisor not defined for zero")
+
+        # if we're working over QQbar, this divisor is over the Rational Field
+        D = super(FunctionFieldElement_polymod_kash, self).divisor()
+
+        if self.parent().constant_base_field() is not QQbar:
+            return D
+
+        # QQbar case - compute a number field that can factor all of our support
+        # polynomials in the base function field C(x).
+
+        # XXX - should also be able to factor polynomials in the extension function field C(x,y)
+
+        algebraics = []
+        for pls in D.support():
+            for g in pls.prime_ideal().gens():
+                if g.parent() is self.parent().base_field():
+                    for r,m in g.element().numerator().change_ring(QQbar).roots():
+                        algebraics.append(r)
+
+        (nf, new_algebraics, nftoQQbar) = number_field_elements_from_algebraics(algebraics)
+
+        # build function fields based on the computed number field
+        PR = PolynomialRing(nf, self.parent().base_field().gen(0))
+        R = FunctionField(nf, implementation='kash', names=repr(self.parent().base_field().gens()[0]))
+        F = R.extension(self.parent().polynomial().change_ring(R), names=repr(self.parent().gens()[0]))
+
+        # redo divisor computation in the new function field
+
+        # XXX can't we make a homomorphism to do this conversion?
+
+        def conv_fraction(e):
+            return PR(e.numerator())/PR(e.denominator())
+
+        D = F([conv_fraction(c.element()) for c in self.element().list()]).divisor()
+
+        # D is now a divisor over F.  We want to convert it to a divisor over self.parent(),
+        # but that's a problem because we need kash places and ideals that might require
+        # the number field to express them.
+
+        return D
+
 class FunctionField_polymod_kash(FunctionField_polymod):
     """
     Function fields defined by a univariate polynomial, as an extension of the
@@ -304,6 +379,7 @@ class FunctionField_polymod_kash(FunctionField_polymod):
         ...
         ValueError: The polynomial must be irreducible
     """
+    Element = FunctionFieldElement_polymod_kash
 
     def __init__(self, polynomial, names, category=None):
         """
