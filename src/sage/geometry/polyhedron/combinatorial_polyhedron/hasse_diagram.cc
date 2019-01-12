@@ -545,6 +545,9 @@ inline unsigned int CombinatorialPolyhedron::get_next_level(chunktype **faces, u
 
 unsigned int CombinatorialPolyhedron::calculate_dimension(chunktype **faces, unsigned int nr_faces){
     unsigned int i,j,k, newfacescounter, dimension;
+    if (nr_faces == 0){
+	return 0;//this isn't supposed to happen, but maybe the data is malformed
+    }
     unsigned int bitcount = CountFaceBits(faces[0]);
     if (bitcount == nr_lines){//if a facet contains only lines, then the polyhedron is of dimension nr_lines
         return nr_lines;
