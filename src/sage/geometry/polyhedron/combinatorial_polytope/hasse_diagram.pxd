@@ -9,4 +9,5 @@ cdef extern from "hasse_diagram.h":
     cdef tuple incidences(CombinatorialPolytope_ptr C, int dimension_one, int dimension_two)
     cdef void record_all_faces(CombinatorialPolytope_ptr C)
     cdef tuple get_faces(CombinatorialPolytope_ptr C, int dimension, unsigned int facet_repr)
+    cdef unsigned long  get_flag(CombinatorialPolytope_ptr C, tuple  py_tuple)
     cdef void delete_CombinatorialPolytope(CombinatorialPolytope_ptr)

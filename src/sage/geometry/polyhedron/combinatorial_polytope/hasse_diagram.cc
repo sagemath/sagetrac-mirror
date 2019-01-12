@@ -236,8 +236,12 @@ inline PyObject* CombinatorialPolytope::get_incidences(int dimension_one, int di
         twisted = 1;
     }
     if (dimension_two == dimension_one){//not really intended for this, but we can give a result anyway
-        PyObject* workaround = get_faces(dimension_two,0);
-        unsigned long i = PyTuple_Size(workaround);
+        PyObject* workaround;
+	if (polar)
+	    workaround = get_faces(dimension -1 - dimension_two,0);//in get_faces we have already considered that we are infact in the polar situation
+        else
+	    workaround = get_faces(dimension_two,0);
+	unsigned long i = PyTuple_Size(workaround);
         for (j = 0; j < i; j++){
             add_incidence(j,j);
         }
@@ -248,8 +252,12 @@ inline PyObject* CombinatorialPolytope::get_incidences(int dimension_one, int di
         return tuple_from_incidences(twisted);
     }
     if (dimension_two == -1){//the -1-dimensional face is contained in every face
-        PyObject* workaround = get_faces(dimension_one,0);
-        unsigned long i = PyTuple_Size(workaround);
+        PyObject* workaround;
+	if (polar)
+	    workaround = get_faces(dimension -1 - dimension_one,0);//in get_faces we have already considered that we are in the polar situation
+        else
+	    workaround = get_faces(dimension_one,0);
+	unsigned long i = PyTuple_Size(workaround);
         for (j = 0; j < i; j++){
             add_incidence(j,0);
         }
@@ -257,8 +265,12 @@ inline PyObject* CombinatorialPolytope::get_incidences(int dimension_one, int di
     }
     unsigned int two = (unsigned int) dimension_two;
     if (one == dimension){ //the polytope contains every face
-        PyObject* workaround = get_faces(dimension_two,0);
-        unsigned long i = PyTuple_Size(workaround);
+        PyObject* workaround;
+	if (polar)
+	    workaround = get_faces(dimension -1 - dimension_two,0);//in get_faces we have already considered that we are in the polar situation
+        else 
+	    workaround = get_faces(dimension_two,0);
+	unsigned long i = PyTuple_Size(workaround);
         for (j = 0; j < i; j++){
             add_incidence(0,j);
         }
@@ -303,6 +315,40 @@ inline PyObject* CombinatorialPolytope::get_incidences(int dimension_one, int di
     return tuple_from_incidences(twisted);
 }
 
+inline unsigned long CombinatorialPolytope::get_flag_number(PyObject* py_tuple){
+    unsigned int i;
+    unsigned int len = PyTuple_Size(py_tuple);
+    const unsigned int const_len = len;
+    unsigned int array[const_len];
+    unsigned int counter = get_dimension()-1;
+    if (!polar)
+	for(i=0;i<len;i++)
+	    array[i] = (unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, i));
+    else {
+	if ((unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, len-1)) == dimension){
+	    array[len-1] = dimension;
+	    for (i=0;i<len-1;i++){
+		array[len-i-2] = dimension - 1 - (unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, i));
+	    }
+	}
+	else
+	    for (i=0;i<len;i++){
+		array[len-i-1] = dimension -1 - (unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, i));
+	    }
+    }
+    for(i=0;i<len;i++){
+	if ((!allfaces_are_allocated) || (allfaces_are_allocated[array[i]] != 2)){
+	    if (array[i] < counter){
+		counter = array[i];
+	    }
+            allocate_allfaces(array[i]);
+        }
+    }
+    record_faces(counter);
+    return get_flag_number(array,len);
+}
+
+
 //will set C to be the intersection of A and B
 inline void CombinatorialPolytope::intersection(chunktype *A, chunktype *B, chunktype *C){
     unsigned int i;
@@ -345,6 +391,21 @@ inline unsigned int CombinatorialPolytope::CountFaceBits(chunktype* A1) {
     }
     for (i=0;i<length_of_conversion_face;i++){
         count += popcount(A[i]);
+    }
+    return count;
+}
+
+inline unsigned int CombinatorialPolytope::CountFaceBits_facet_repr(chunktype* A1) {
+    //this function is not implemented for speed (it basically gets called dimension times and once to convert a face to a tuple
+    unsigned int i,count = 0;
+    const unsigned int length_of_conversion_face = length_of_face_in_facet_repr*chunksize/64;
+    unsigned long A[length_of_conversion_face];
+    unsigned long n;
+    for (i=0;i<length_of_face_in_facet_repr;i++){
+	store_register(A[i*chunksize/64],A1[i]);
+    }
+    for (i=0;i<length_of_conversion_face;i++){
+	count += popcount(A[i]);
     }
     return count;
 }
@@ -455,7 +516,6 @@ inline unsigned int CombinatorialPolytope::get_next_level(chunktype **faces, uns
                     break;
                 }
             }
-    
     }
     for (j = 0; j < lenfaces -1; j++){
             if (!addfacearray[j]) {
@@ -652,6 +712,88 @@ void CombinatorialPolytope::vertex_facet_incidences(chunktype *array1, unsigned 
         }
     }
 }
+
+unsigned long CombinatorialPolytope::get_flag_number(unsigned int *array, unsigned int len){
+    if (len == 0){
+        return 0;
+    }
+    if (len == 1){
+        return f_vector[array[0]+1];
+    }
+    if (array[len-1] == dimension){
+        len -= 1;
+    }
+    if (len == 1){
+        return f_vector[array[0]+1];
+    }
+    get_f_vector_and_edges();
+    unsigned long i,j,k;
+    const unsigned int const_len = len;
+    unsigned long **saverarray = new unsigned long *[const_len];
+    for (i= 0; i < len; i++){
+        const unsigned int len_array = f_vector[array[i]+1];
+        saverarray[i] = new unsigned long [len_array](); 
+    }
+    unsigned int counter = 1;
+    if (array[0] == 0){
+        if (array[1] < dimension - 1){
+            if (len > 2){
+		for (i=0; i < f_vector[array[1]+1];i++){
+		    saverarray[1][i] = CountFaceBits(allfaces[array[1]][i]);
+		}
+	    }
+	    else{
+		unsigned long sum = 0;
+		for (i= 0;i < f_vector[array[1]+1]; i++){
+		    sum += CountFaceBits(allfaces[array[1]][i]);
+		}
+		delete(saverarray);
+		return sum;
+	    }
+        }
+        else {
+            unsigned long sum = 0;
+            for (i = 0; i < nr_facets; i++){
+                sum += CountFaceBits(facets[i]);
+            }
+            delete(saverarray);
+            return sum;
+        }
+        counter = 2;
+    }
+    else {
+        for (i= 0; i < f_vector[array[0]+1]; i++){
+            saverarray[0][i] = 1;
+        }
+    }
+    while (counter < len -1){
+        for (j= 0; j < f_vector[array[counter-1]+1]; j ++){
+            for (k = 0; k < f_vector[array[counter]+1]; k++){
+                if (is_subset_facet_repr(allfaces_facet_repr[array[counter]][k],allfaces_facet_repr[array[counter-1]][j])){
+                    saverarray[counter][k] += saverarray[counter -1][j];
+                }
+            }
+        }
+        counter++;
+    }
+    unsigned long sum = 0;
+    if (array[counter] == dimension -1){
+        for (i = 0; i < f_vector[array[counter-1]+1]; i++){
+            sum += CountFaceBits_facet_repr(allfaces_facet_repr[array[counter-1]][i]);
+        }
+    }
+    else {
+        for (j= 0; j < f_vector[array[counter-1]+1]; j ++)
+            for (k = 0; k < f_vector[array[counter]+1]; k++){
+                if (is_subset_facet_repr(allfaces_facet_repr[array[counter]][k],allfaces_facet_repr[array[counter-1]][j])){
+                    sum += saverarray[counter -1][j];
+                }
+            }
+    }
+    delete (saverarray);
+    return sum;
+}
+
 
 //initialization
 
@@ -1149,6 +1291,11 @@ void record_all_faces(CombinatorialPolytope_ptr C){
 PyObject* get_faces(CombinatorialPolytope_ptr C, int dimension, unsigned int facet_repr){
     return (*C).get_faces(dimension, facet_repr);
 }
+
+unsigned long get_flag(CombinatorialPolytope_ptr C, PyObject* py_tuple){
+    return (*C).get_flag_number(py_tuple);
+}
+
 
 void delete_CombinatorialPolytope(CombinatorialPolytope_ptr C){
   delete(C);

@@ -73,7 +73,7 @@ class CombinatorialPolytope {
         inline PyObject* get_faces(int face_dimension, unsigned int facet_repr);
         void record_all_faces();
         inline PyObject* get_incidences(int dimension_one, int dimension_two);
-        //inline PyObject* get_flag_count(PyObject* py_tuple); This function is yet to be implemented
+        inline unsigned long get_flag_number(PyObject* py_tuple); 
     private:
         int polar = 0;//in order to speed things up, we will consider the dual/polar whenever the number of vertices is smaller than the number of facets
         void **facets_allocator;
@@ -105,7 +105,8 @@ class CombinatorialPolytope {
         inline int is_subset(chunktype *A, chunktype *B);//returns 1 if A is a proper subset of B, otherwise returns 0
         inline int is_subset_facet_repr(chunktype *A, chunktype *B);//as above just in facet_repr
         inline unsigned int CountFaceBits(chunktype* A1);//counts the number of vertices in a face by counting bits set to one
-        inline void add_edge(chunktype *face);//adds an edge to the edges list
+        inline unsigned int CountFaceBits_facet_repr(chunktype* A1);
+	inline void add_edge(chunktype *face);//adds an edge to the edges list
         inline void add_edge(unsigned int one, unsigned int two);//adds an edge to the edges list given as its two vertices
         inline void add_ridge(unsigned int one, unsigned int two);//adds a ridge to the ridge list given as its two facets
         inline void add_incidence(unsigned long one, unsigned long two);//adds an incidence to the list of incidences, where one and two correspond to the number of the faces according to allfaces resp. vertices/facets
@@ -125,7 +126,8 @@ class CombinatorialPolytope {
         inline void record_face_facet_repr(chunktype *face, unsigned int current_dimension);
         void vertex_facet_incidences();
         void vertex_facet_incidences(chunktype *array1, unsigned int nr_facet);
-        
+        unsigned long get_flag_number(unsigned int *array, unsigned int len);
+
         //initialization
         void get_facets_from_tuple(PyObject* py_tuple);
         void get_vertices_from_tuple(PyObject* py_tuple);
@@ -172,6 +174,7 @@ PyObject* ridges(CombinatorialPolytope_ptr C);
 PyObject* incidences(CombinatorialPolytope_ptr C, int dimension_one, int dimension_two);
 void record_all_faces(CombinatorialPolytope_ptr C);
 PyObject* get_faces(CombinatorialPolytope_ptr C, int dimension, unsigned int facet_repr);
+unsigned long get_flag(CombinatorialPolytope_ptr C, PyObject* py_tuple);
 
 void delete_CombinatorialPolytope(CombinatorialPolytope_ptr);
 

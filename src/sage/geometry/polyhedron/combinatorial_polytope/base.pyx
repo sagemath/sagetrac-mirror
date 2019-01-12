@@ -27,8 +27,10 @@ from __future__ import absolute_import
 from sage.rings.integer import Integer
 from sage.graphs.graph                      import Graph
 from sage.graphs.digraph import DiGraph
+from sage.combinat.posets.lattices import FiniteLatticePoset
 
-from .hasse_diagram cimport   CombinatorialPolytope_ptr, init_CombinatorialPolytope, dimension, edges, f_vector, ridges, incidences, record_all_faces, get_faces, delete_CombinatorialPolytope
+
+from .hasse_diagram cimport   CombinatorialPolytope_ptr, init_CombinatorialPolytope, dimension, edges, f_vector, ridges, incidences, record_all_faces, get_faces, get_flag, delete_CombinatorialPolytope
 
 #TODO take care of the empty polyhedron, which does not have vertices
 cdef class CombinatorialPolytope:
@@ -127,37 +129,55 @@ cdef class CombinatorialPolytope:
     def _record_all_faces(self):
         record_all_faces(self._C)
     def faces(self,dimension, facet_repr=False):#TODO fix the cpp-function for dimension 0,1,self.dimension -1, self.dimension
-        #TODO get faces in facet_representation (this is also important for the polar case)
+        r"""
+        Gets all k-faces for specified dimenion k.
+
+        By default faces are given as tuple of vertices, but one may also choose tuple of facets instead.
+        """
         if (facet_repr):
             facet_repr = 1
         else:
             facet_repr = 0
         return tuple(tuple(Integer(j) for j in i) for i in get_faces(self._C, dimension, facet_repr))
     def incidences(self,dimension_one,dimension_two):
+        r"""
+        Gets a tuple of all incidens between faces of dimension dimension_one and dimension_two.
+
+        Incidences are given as tuple of integers, where the integer corresponds to the order according to self.faces(dimension)
+        """
         return tuple((Integer(i),Integer(j)) for i,j in incidences(self._C,dimension_one,dimension_two))
-    def hasse_diagram(self):
+    def face_lattice(self,vertices=True,facets=False):
+        r"""
+        Generates the face-lattice.
+
+        The faces in the face-lattice will be labeled by default by tuples of vertices. They can also be labeled by tuple of facets or both or as 0, 1, 2, ... where the order corresponds to the order of self.faces[0],self.faces[1],self.faces[2],...
+        """
+
         f_vector = self.f_vector()
         self._record_all_faces()
         dimension = self.dimension()
         dic = {}
-        mapdic = {}
-        counter = 0
         for k in range(-1,dimension+1):
             faces = (self.faces(k),self.faces(k,facet_repr=True))
             dic[k] = tuple((faces[0][i],faces[1][i]) for i in range(f_vector[k+1]))
-            mapdic[k] = lambda i : i + sum(f_vector[:k+1])
-        dic_edges = {}
         edges = tuple((i[0] + sum(f_vector[:k+1]),i[1] + sum(f_vector[:k+2])) for k in range(-1,dimension) for i in self.incidences(k,k+1))
-        V1 = tuple((k,i) for k in range(-1,dimension+1) for i in range(f_vector[k+1])) 
+        all_faces = tuple(i for k in range(-1,dimension+1) for i in dic[k])
+        if vertices and facets:
+            f = lambda i : all_faces[i]
+        elif vertices:  
+            f = lambda i : all_faces[i][0]
+        elif facets:
+            f = lambda i : all_faces[i][1]
+        else:
+            f = lambda i : i
         V = tuple(range(sum(f_vector)))
         D = DiGraph([V, edges], format='vertices_and_edges')
-        return D
-        f = lambda i : dic[i[0]][i[1]]
         D.relabel(f)
-        return D
-        counter = 0
-        edges = 0
-        return dic
-    def face_lattice(self):
-        pass
-        
+        return FiniteLatticePoset(D);
+    def get_flag(self,flag):
+        flag = sorted(set(flag))
+        flag = tuple(i for i in flag if i in range(-1,self.dimension()+1))
+        if flag == (-1,):
+            return 1
+        flag = tuple(i for i in flag if i in range(0,self.dimension()+1))
+        return Integer(get_flag(self._C,flag))
