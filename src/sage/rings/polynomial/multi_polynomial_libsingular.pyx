@@ -175,7 +175,7 @@ from __future__ import absolute_import, print_function
 #   * p_Normalize apparently needs currRing
 
 from cpython.object cimport Py_NE
-from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.memory cimport sig_malloc, sig_calloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
 from sage.cpython.string cimport char_to_str, str_to_bytes
@@ -213,7 +213,7 @@ from sage.libs.singular.polynomial cimport (
     singular_polynomial_length_bounded, singular_polynomial_subst )
 
 # singular rings
-from sage.libs.singular.ring cimport singular_ring_new, singular_ring_reference, singular_ring_delete
+from sage.libs.singular.ring cimport singular_ring_new, singular_ring_reference, singular_ring_delete, wrap_ring
 
 # polynomial imports
 from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict, MPolynomialRing_polydict_domain
@@ -390,7 +390,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         self._has_singular = True
         assert(n == len(self._names))
         self.__ngens = n
-        self._ring = singular_ring_new(base_ring, n, self._names, order)
+        if self._ring_ref is NULL:
+            self._ring_ref = <int*>sig_calloc(1, sizeof(int))
+        self._ring = singular_ring_reference( singular_ring_new(base_ring, n, self._names, order), self._ring_ref )
         self._zero_element = new_MP(self, NULL)
         cdef MPolynomial_libsingular one = new_MP(self, p_ISet(1, self._ring))
         self._one_element = one
@@ -431,8 +433,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             sage: del R3
             sage: _ = gc.collect()
         """
-        if self._ring != NULL:  # the constructor did not raise an exception
-            singular_ring_delete(self._ring)
+        singular_ring_delete(self._ring, self._ring_ref)
+        self._ring = NULL
 
     def __copy__(self):
         """
@@ -1990,17 +1992,18 @@ cdef class MPolynomial_libsingular(MPolynomial):
         """
         self._poly = NULL
         self._parent = parent
-        self._parent_ring = singular_ring_reference(parent._ring)
+        self._parent_ring_ref = (<MPolynomialRing_libsingular>parent)._ring_ref
+        self._parent_ring = singular_ring_reference(parent._ring, self._parent_ring_ref)
 
     def __dealloc__(self):
         # WARNING: the Cython class self._parent is now no longer accessible!
         if self._poly==NULL:
             # e.g. MPolynomialRing_libsingular._zero_element
-            singular_ring_delete(self._parent_ring)
+            singular_ring_delete(self._parent_ring, self._parent_ring_ref)
             return
         assert self._parent_ring != NULL # the constructor has no way to raise an exception
         p_Delete(&self._poly, self._parent_ring)
-        singular_ring_delete(self._parent_ring)
+        singular_ring_delete(self._parent_ring, self._parent_ring_ref)
 
     def __copy__(self):
         """
@@ -4479,12 +4482,12 @@ cdef class MPolynomial_libsingular(MPolynomial):
 
     def reduce(self,I):
         """
-        Return a remainder of this polynomial modulo the 
+        Return a remainder of this polynomial modulo the
         polynomials in ``I``.
-        
+
         INPUT:
 
-        - ``I`` - an ideal or a list/set/iterable of polynomials. 
+        - ``I`` - an ideal or a list/set/iterable of polynomials.
 
         OUTPUT:
 
@@ -4500,12 +4503,12 @@ cdef class MPolynomial_libsingular(MPolynomial):
         - ``I`` is an ideal, and Sage can compute a Groebner basis of it.
 
         - ``I`` is a list/set/iterable that is a (strong) Groebner basis
-          for the term order of ``self``. (A strong Groebner basis is 
+          for the term order of ``self``. (A strong Groebner basis is
           such that for every leading term ``t`` of the ideal generated
           by ``I``, there exists an element ``g`` of ``I`` such that the
           leading term of ``g`` divides ``t``.)
 
-        The result ``r`` is implementation-dependent (and possibly 
+        The result ``r`` is implementation-dependent (and possibly
         order-dependent) otherwise. If ``I`` is an ideal and no Groebner
         basis can be computed, its list of generators ``I.gens()`` is
         used for the reduction.
@@ -4540,7 +4543,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: f.reduce([2*x,y])
             3*x
 
-        The reduction is not canonical when ``I`` is not a Groebner 
+        The reduction is not canonical when ``I`` is not a Groebner
         basis::
 
             sage: A.<x,y> = QQ[]
@@ -5552,7 +5555,8 @@ cdef inline MPolynomial_libsingular new_MP(MPolynomialRing_libsingular parent, p
     """
     cdef MPolynomial_libsingular p = MPolynomial_libsingular.__new__(MPolynomial_libsingular)
     p._parent = parent
-    p._parent_ring = singular_ring_reference(parent._ring)
+    p._parent_ring_ref = parent._ring_ref
+    p._parent_ring = singular_ring_reference(parent._ring, p._parent_ring_ref)
     p._poly = juice
     p_Normalize(p._poly, p._parent_ring)
     return p

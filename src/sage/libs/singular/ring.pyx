@@ -16,6 +16,7 @@ AUTHORS:
 from __future__ import print_function
 
 from sage.cpython.string cimport str_to_bytes
+from cysignals.memory cimport sig_free
 
 from sage.libs.gmp.types cimport __mpz_struct
 from sage.libs.gmp.mpz cimport mpz_init_set_ui, mpz_init_set
@@ -370,7 +371,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     wrapped_ring = wrap_ring(_ring)
     if wrapped_ring in ring_refcount_dict:
         raise ValueError('newly created ring already in dictionary??')
-    ring_refcount_dict[wrapped_ring] = 1
+    ring_refcount_dict[wrapped_ring] = 0
 
     rComplete(_ring, 1)
 
@@ -382,7 +383,6 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
          assert(_ring.OrdSgn == 1)
 
     return _ring
-
 
 #############################################################################
 ring_refcount_dict = defaultdict(int)
@@ -520,13 +520,14 @@ cdef wrap_ring(ring* R):
     return W
 
 
-cdef ring *singular_ring_reference(ring *existing_ring) except NULL:
+cdef ring *singular_ring_reference(ring *existing_ring, int *refcount) except NULL:
     """
     Refcount the ring ``existing_ring``.
 
     INPUT:
 
     - ``existing_ring`` -- a Singular ring.
+    - ``refcount`` -- pointer to an int, for reference count
 
     OUTPUT:
 
@@ -566,16 +567,19 @@ cdef ring *singular_ring_reference(ring *existing_ring) except NULL:
         sage: ring_ptr in ring_refcount_dict
         True
     """
-    if existing_ring is NULL:
-        raise ValueError('singular_ring_reference(ring*) called with NULL pointer.')
+    if existing_ring is NULL or refcount is NULL:
+        raise ValueError('singular_ring_reference(ring*, int*) called with NULL pointer.')
 
     cdef object r = wrap_ring(existing_ring)
     ring_refcount_dict[r] += 1
+    refcount[0] += 1
+    assert ring_refcount_dict[r] == refcount[0], "New reference: Expected %d for %d, got %d"%(ring_refcount_dict[r], <long>existing_ring, refcount[0])
+    existing_ring.ref = refcount[0]  # Some singular functions mess with .ref, so, we force to keep it in sync
     return existing_ring
 
 
 #############################################################################
-cdef void singular_ring_delete(ring *doomed):
+cdef int singular_ring_delete(ring *doomed, int *refcount) except 1:
     """
     Carefully deallocate the ring, without changing "currRing" (since
     this method can be called at unpredictable times due to garbage
@@ -604,17 +608,24 @@ cdef void singular_ring_delete(ring *doomed):
     if doomed is NULL:
         # When this is called with a NULL pointer, we do nothing.
         # This is analogous to the libc function free().
-        return
+        return 0
 
     if not ring_refcount_dict:  # arbitrary finalization order when we shut Sage down
-        return
+        return 0
 
     cdef ring_wrapper_Py r = wrap_ring(doomed)
+    assert ring_refcount_dict.has_key(r), "Ringwrap for %d has not been tracked"%(<long>doomed)
     ring_refcount_dict[r] -= 1
-    if ring_refcount_dict[r] > 0:
-        return
+    refcount[0] -= 1
+#~     ring_refcount_dict[name, <long>doomed] -= 1
+    assert ring_refcount_dict[r] == refcount[0], "Delete reference: Expected %d for %d, got %d"%(ring_refcount_dict[r],<long>doomed,refcount[0])
+    doomed.ref = refcount[0]  # Some singular functions mess with .ref, so, we force to keep it in sync
+    if refcount[0]: # this includes the case that we try to delete a ring twice, i.e., "less than no reference"
+        return 0
 
     del ring_refcount_dict[r]
+    doomed.ref = 0  # force Singular to delete
+    sig_free(refcount)
 
     global currRing
     cdef ring *oldRing = currRing
@@ -625,7 +636,7 @@ cdef void singular_ring_delete(ring *doomed):
         rChangeCurrRing(doomed)
         rDelete(doomed)
         rChangeCurrRing(oldRing)
-
+    return 0
 
 #############################################################################
 # helpers for debugging

@@ -221,7 +221,7 @@ cdef int singular_polynomial_call(poly **ret, poly *p, ring *r, list args, poly 
 
     return 0
 
-cdef int singular_polynomial_cmp(poly *p, poly *q, ring *r):
+cdef int singular_polynomial_cmp(poly *p, poly *q, ring *r) except -2:
     """
     Compare two Singular elements ``p`` and ``q`` in ``r``.
 
@@ -247,6 +247,8 @@ cdef int singular_polynomial_cmp(poly *p, poly *q, ring *r):
     """
     cdef number *h
     cdef int ret = 0
+    assert r, "A valid ring must be provided"
+    assert r.ref >= 0, "This ring has %d references and thus has previously been deleted"%(r.ref)
 
     if(r != currRing): rChangeCurrRing(r)
 
@@ -533,14 +535,14 @@ cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
     cdef long _deg, deg
 
     deg = -1
-    _deg = -1 
+    _deg = -1
     if p == NULL:
         return -1
     if(r != currRing): rChangeCurrRing(r)
     if x == NULL:
-        while p:  
+        while p:
             _deg = p_WDegree(p,r)
-          
+
             if _deg > deg:
                 deg = _deg
             p = pNext(p)

@@ -209,6 +209,7 @@ cdef extern from "singular/Singular/libsingular.h":
 
         n_Procs_s*    cf # coefficient field/ring
         int ref
+        int sage_ref
 
         # return total degree of p
 
@@ -221,11 +222,11 @@ cdef extern from "singular/Singular/libsingular.h":
 
     long p_FDeg(poly *p, ring *r)
     long p_LDeg(poly *p, int *l, ring *r)
-    long p_Deg(poly *p, ring *r)    
+    long p_Deg(poly *p, ring *r)
     long p_WTotaldegree(poly *p, ring *r)
     long p_Totaldegree(poly *p, ring *r)
     long p_WDegree(poly *p, ring *r)
-    
+
     # available ring orders
 
     ctypedef struct AlgExtInfo:

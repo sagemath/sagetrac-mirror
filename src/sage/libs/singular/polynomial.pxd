@@ -19,7 +19,7 @@ from sage.libs.singular.decl cimport poly, ring
 cdef int singular_polynomial_check(poly *p, ring *r) except -1
 cdef int singular_polynomial_add (poly **ret, poly *p, poly *q, ring *r)
 cdef int singular_polynomial_call (poly **ret, poly *p, ring *r, list args, poly *(*get_element)(object))
-cdef int singular_polynomial_cmp (poly *p, poly *q, ring *r)
+cdef int singular_polynomial_cmp (poly *p, poly *q, ring *r) except -2
 cdef int singular_polynomial_rmul (poly **ret, poly *p, RingElement q, ring *r)
 cdef int singular_polynomial_mul (poly **ret, poly *p, poly *q, ring *r) except -1
 cdef int singular_polynomial_sub (poly **ret, poly *p, poly *q, ring *r)

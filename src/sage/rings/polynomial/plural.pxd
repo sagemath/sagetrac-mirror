@@ -21,6 +21,7 @@ cdef class NCPolynomialRing_plural(Ring):
     cdef public object _magma_gens, _magma_cache
 
     cdef ring *_ring
+    cdef int *_ring_ref
 #    cdef NCPolynomial_plural _one_element
 #    cdef NCPolynomial_plural _zero_element
 

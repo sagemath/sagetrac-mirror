@@ -112,7 +112,7 @@ from sage.cpython.string cimport char_to_str
 
 # singular rings
 
-from sage.libs.singular.ring cimport singular_ring_new, singular_ring_delete, wrap_ring, singular_ring_reference
+from sage.libs.singular.ring cimport singular_ring_delete, wrap_ring, singular_ring_reference
 
 from sage.libs.singular.singular cimport si2sa, sa2si, overflow_check
 
@@ -334,7 +334,8 @@ cdef class NCPolynomialRing_plural(Ring):
         cdef RingWrap rw = ncalgebra(self._c, self._d, ring = P)
 
         #       rw._output()
-        self._ring = singular_ring_reference(rw._ring)
+        self._ring_ref = rw._ring_ref
+        self._ring = singular_ring_reference(rw._ring, self._ring_ref)
         self._ring.ShortOut = 0
 
         self.__ngens = n
@@ -413,7 +414,10 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: del R3
             sage: _ = gc.collect()
         """
-        singular_ring_delete(self._ring)
+        singular_ring_delete(self._ring, self._ring_ref)
+        # It could be that elements are fully deallocated only later,
+        # and thus we need to make the ring reference NULL.
+#~         self._ring = NULL
 
     def _element_constructor_(self, element):
         """
@@ -564,8 +568,6 @@ cdef class NCPolynomialRing_plural(Ring):
                                       " of type "+ repr(type(element)) +
                                       " as noncommutative polynomial")  ### ??????
         return new_NCP(self,_p)
-
-
 
     cpdef _coerce_map_from_(self, S):
        """
@@ -1425,9 +1427,11 @@ cdef class NCPolynomial_plural(RingElement):
 
     def __dealloc__(self):
         # TODO: Warn otherwise!
-        # for some mysterious reason, various things may be NULL in some cases
+        # for some mysterious reason, various things may be NULL
+        # or already dealeted in some cases
         if self._parent is not None and (<NCPolynomialRing_plural>self._parent)._ring != NULL and self._poly != NULL:
-            p_Delete(&self._poly, (<NCPolynomialRing_plural>self._parent)._ring)
+            if (<NCPolynomialRing_plural>self._parent)._ring.ref >= 0:
+                p_Delete(&self._poly, (<NCPolynomialRing_plural>self._parent)._ring)
 
     def __reduce__(self):
         """
@@ -2812,10 +2816,8 @@ cpdef MPolynomialRing_libsingular new_CRing(RingWrap rw, base_ring):
 
     cdef MPolynomialRing_libsingular self = <MPolynomialRing_libsingular>MPolynomialRing_libsingular.__new__(MPolynomialRing_libsingular)
 
-    self._ring = rw._ring
-
-    wrapped_ring = wrap_ring(self._ring)
-    sage.libs.singular.ring.ring_refcount_dict[wrapped_ring] += 1
+    self._ring_ref = rw._ring_ref
+    self._ring = singular_ring_reference(rw._ring, self._ring_ref)
 
     self._ring.ShortOut = 0
 
@@ -2883,10 +2885,9 @@ cpdef NCPolynomialRing_plural new_NRing(RingWrap rw, base_ring):
     assert( not rw.is_commutative() )
 
     cdef NCPolynomialRing_plural self = <NCPolynomialRing_plural>NCPolynomialRing_plural.__new__(NCPolynomialRing_plural)
-    self._ring = rw._ring
 
-    wrapped_ring = wrap_ring(self._ring)
-    sage.libs.singular.ring.ring_refcount_dict[wrapped_ring] += 1
+    self._ring_ref = rw._ring_ref
+    self._ring = singular_ring_reference(rw._ring, self._ring_ref)
 
     self._ring.ShortOut = 0
 

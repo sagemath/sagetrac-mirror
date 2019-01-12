@@ -104,7 +104,9 @@ cdef class GroebnerStrategy(SageObject):
 
         cdef MPolynomialRing_libsingular R = <MPolynomialRing_libsingular>L.ring()
         self._parent = R
-        self._parent_ring = singular_ring_reference(R._ring)
+        assert R._ring_ref is not NULL, "MPolynomialRing_libsingular has no refcount"
+        self._parent_ring_ref = R._ring_ref
+        self._parent_ring = singular_ring_reference(R._ring, self._parent_ring_ref)
 
         if not R.term_order().is_global():
             raise NotImplementedError("The local case is not implemented yet.")
@@ -171,8 +173,11 @@ cdef class GroebnerStrategy(SageObject):
                 rChangeCurrRing(oldRing)
             else:
                 delete_skStrategy(self._strat)
-        if self._parent_ring:
-            singular_ring_delete(self._parent_ring)
+        singular_ring_delete(self._parent_ring, self._parent_ring_ref)
+
+    def show_refs(self):
+        print <long>(self._parent_ring),"with",self._parent_ring_ref[0],"references"
+        print <long>(self._strat)
 
     def _repr_(self):
         """
@@ -345,6 +350,9 @@ cdef class NCGroebnerStrategy(SageObject):
 
         cdef NCPolynomialRing_plural R = <NCPolynomialRing_plural>L.ring()
         self._parent = R
+        assert R._ring_ref, "Underlying ring for the Groebner strategy needs to have a refcount"
+        self._parent_ring_ref = R._ring_ref
+        self._parent_ring = singular_ring_reference(R._ring, self._parent_ring_ref)
 
         if not R.term_order().is_global():
             raise NotImplementedError("The local case is not implemented yet.")
@@ -387,6 +395,8 @@ cdef class NCGroebnerStrategy(SageObject):
             sage: strat = NCGroebnerStrategy(I)
             sage: del strat   # indirect doctest
         """
+        # WARNING: the Cython class self._parent is no longer accessible!
+        # see http://trac.sagemath.org/sage_trac/ticket/11339
         cdef ring *oldRing = NULL
         if self._strat:
             omfree(self._strat.sevS)
@@ -400,13 +410,14 @@ cdef class NCGroebnerStrategy(SageObject):
             omfree(self._strat.fromQ)
             id_Delete(&self._strat.Shdl, self._parent._ring)
 
-            if self._parent._ring != currRing:
+            if self._parent_ring != currRing:
                 oldRing = currRing
-                rChangeCurrRing(self._parent._ring)
+                rChangeCurrRing(self._parent_ring)
                 delete_skStrategy(self._strat)
                 rChangeCurrRing(oldRing)
             else:
                 delete_skStrategy(self._strat)
+        singular_ring_delete(self._parent_ring, self._parent_ring_ref)
 
     def _repr_(self):
         """
