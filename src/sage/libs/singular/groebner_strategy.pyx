@@ -104,7 +104,6 @@ cdef class GroebnerStrategy(SageObject):
 
         cdef MPolynomialRing_libsingular R = <MPolynomialRing_libsingular>L.ring()
         self._parent = R
-        assert R._ring_ref is not NULL, "MPolynomialRing_libsingular has no refcount"
         self._parent_ring_ref = R._ring_ref
         self._parent_ring = singular_ring_reference(R._ring, self._parent_ring_ref)
 

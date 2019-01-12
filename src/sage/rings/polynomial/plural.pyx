@@ -1424,14 +1424,16 @@ cdef class NCPolynomial_plural(RingElement):
         """
         self._poly = NULL
         self._parent = parent
+        self._parent_ring_ref = parent._ring_ref
+        self._parent_ring = singular_ring_reference(parent._ring, self._parent_ring_ref)
 
     def __dealloc__(self):
         # TODO: Warn otherwise!
         # for some mysterious reason, various things may be NULL
         # or already dealeted in some cases
-        if self._parent is not None and (<NCPolynomialRing_plural>self._parent)._ring != NULL and self._poly != NULL:
-            if (<NCPolynomialRing_plural>self._parent)._ring.ref >= 0:
-                p_Delete(&self._poly, (<NCPolynomialRing_plural>self._parent)._ring)
+        if self._parent_ring != NULL and self._poly != NULL:
+            p_Delete(&self._poly, self._parent_ring)
+        singular_ring_delete(self._parent_ring, self._parent_ring_ref)
 
     def __reduce__(self):
         """
@@ -2770,6 +2772,8 @@ cdef inline NCPolynomial_plural new_NCP(NCPolynomialRing_plural parent,
     """
     cdef NCPolynomial_plural p = NCPolynomial_plural.__new__(NCPolynomial_plural)
     p._parent = parent
+    p._parent_ring_ref = parent._ring_ref
+    p._parent_ring = singular_ring_reference(parent._ring, p._parent_ring_ref)
     p._poly = juice
     p_Normalize(p._poly, parent._ring)
     return p
