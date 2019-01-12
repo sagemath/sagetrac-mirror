@@ -28,7 +28,8 @@ from sage.rings.integer import Integer
 from sage.graphs.graph                      import Graph
 from sage.graphs.digraph import DiGraph
 from sage.combinat.posets.lattices import FiniteLatticePoset
-
+from sage.geometry.polyhedron.base import is_Polyhedron
+from sage.geometry.lattice_polytope import is_LatticePolytope
 
 from .hasse_diagram cimport   CombinatorialPolyhedron_ptr, init_CombinatorialPolyhedron, dimension, edges, f_vector, ridges, incidences, record_all_faces, get_faces, get_flag, delete_CombinatorialPolyhedron
 
@@ -36,6 +37,9 @@ from .hasse_diagram cimport   CombinatorialPolyhedron_ptr, init_CombinatorialPol
 cdef class CombinatorialPolyhedron:
     cdef CombinatorialPolyhedron_ptr _C
     cdef tuple _V
+    cdef tuple _H
+    cdef tuple _equalities
+    cdef dict _Hinv
     cdef dict _Vinv
     r"""
     A class of atomic and coatiomic Eulerian lattices.
@@ -53,21 +57,39 @@ cdef class CombinatorialPolyhedron:
         sage: C.f_vector()
         (1, 5040, 15120, 16800, 8400, 1806, 126, 1)
     """
-    def __init__(self, data, vertices=None):
+    def __init__(self, data, vertices=None, facets=None, is_unbounded=False, nr_lines=0):
+        if nr_lines:
+            is_unbounded = True
+        self._equalities = ()
+        if is_Polyhedron(data):
+            vertices = data.Vrepresentation()
+            facets = tuple(inequality for inequality in data.Hrepresentation() if inequality.is_inequality())
+            self._equalities = tuple(inequality for inequality in data.Hrepresentation() if not inequality.is_inequality())
+            is_unbounded = not data.is_compact()
+            nr_lines = data.n_lines()
+            data = data.incidence_matrix()
+        if is_LatticePolytope(data):
+            vertices = data.vertices()
+            facets = data.facets()
+            data = tuple(tuple(vert for vert in facet.vertices()) for facet in facets)
         if vertices:
             self._V    = tuple(vertices)
             self._Vinv = { v : i for i,v in enumerate(self._V) }
         else:
             self._V = None
             self._Vinv = None
-
+        if facets:
+            self._H    = tuple(facets)
+            self._Hinv = { v : i for i,v in enumerate(self._H) }
+        else:
+            self._H = None
+            self._Hinv = None
         if hasattr(data,"incidence_matrix"):#TODO: Better check for incidence_matrix
             data = data.incidence_matrix()
-
         if hasattr(data,"nrows"):#TODO: Better check for matrix
             rg = range(data.nrows())
             tup =  tuple(tuple(data[i,j] for i in rg) for j in range(data.ncols()) if not all(data[i,j] for i in rg))#transpose and get rid of trivial inequalites (which all vertices satisfie)
-            self._C = init_CombinatorialPolyhedron(tup)
+            self._C = init_CombinatorialPolyhedron(tup, int(is_unbounded), int (nr_lines))
         else:
             if self._V is None:
                 vertices = sorted(set.union(*map(set,data)))
@@ -83,14 +105,23 @@ cdef class CombinatorialPolyhedron:
             else:
                 f = lambda v: int(v)
             facets = tuple(tuple(f(i) for i in j) for j in data)
-            self._C = init_CombinatorialPolyhedron(facets,nr_vertices)
-
+            self._C = init_CombinatorialPolyhedron(facets, nr_vertices, int(is_unbounded), int (nr_lines))
+            
     def __dealloc__(self):
         r"""
         This function deallocates all the memomory used by the underlying C++-class
         """
         delete_CombinatorialPolyhedron(self._C)
-
+    
+    def __repr__(self):
+        return "The Combinatorial Type of a Polyhedron of dimension %s with %s vertices"%(self.dimension(),len(self.vertices()))
+    
+    def vertices(self):
+        if self._V is not None:
+            return self._V
+        else:
+            return tuple(i[0] for i in self.faces(0))
+    
     def edges(self):
         r"""
         Calculates the edges of the CombinatorialPolyhedron, i.e. the rank 2 faces.
@@ -101,14 +132,15 @@ cdef class CombinatorialPolyhedron:
             f = lambda i : self._V[i]
         else:
             f = lambda i : Integer(i)
-
         return tuple((f(i),f(j)) for i,j in edges(self._C))
+        
     def edge_graph(self):
         return Graph(self.edges(),format="list_of_edges")
+        
     def dimension(self):
-        return dimension(self._C)
-
-    def ridges(self):
+        return Integer(dimension(self._C))
+        
+    def ridges(self, add_equalities=False):
         r"""
         Calculates the ridges of the CombinatorialPolyhedron, i.e. the rank 2 faces. Those are given as tuples of facets.
         
@@ -116,9 +148,18 @@ cdef class CombinatorialPolyhedron:
         
         NOTE: If you want to compute ridges and f_vector it is recommended to compute ridges first.
         """
-        return tuple((Integer(i),Integer(j)) for i,j in ridges(self._C))
+        if self._H is not None:
+            f = lambda i : self._H[i]
+        else:
+            f = lambda i : Integer(i)
+        if add_equalities:
+            return tuple(((self._equalities + (f(i),)),(self._equalities + (f(j),))) for i,j in ridges(self._C))
+        else:
+            return tuple((f(i),f(j)) for i,j in ridges(self._C))
+        
     def ridge_graph(self):
         return Graph(self.ridges(),format="list_of_edges")
+        
     def f_vector(self):
         r"""
         Calculates the f_vector of the CombinatorialPolyhedron, i.e. the vector containing the nr of faces of each rank.
@@ -126,19 +167,37 @@ cdef class CombinatorialPolyhedron:
         NOTE: If you also want to compute edges or ridges, it is recommended to do that first.
         """
         return tuple(Integer(i) for i in f_vector(self._C))
+        
     def _record_all_faces(self):
+        r"""
+        Records all faces of the Polyhedron, such that you can quickly get them with self.faces(dimension)
+        """
         record_all_faces(self._C)
+        
     def faces(self,dimension, facet_repr=False):#TODO fix the cpp-function for dimension 0,1,self.dimension -1, self.dimension
         r"""
         Gets all k-faces for specified dimenion k.
 
         By default faces are given as tuple of vertices, but one may also choose tuple of facets instead.
         """
+        
+        addtuple = ()
         if (facet_repr):
             facet_repr = 1
+            if self._H is not None:
+                f = lambda i : self._H[i]
+            else:
+                f = lambda i : Integer(i)
+            f = lambda i : Integer(i)
+            addtuple = self._equalities
         else:
             facet_repr = 0
-        return tuple(tuple(Integer(j) for j in i) for i in get_faces(self._C, dimension, facet_repr))
+            if self._V is not None:
+                f = lambda i : self._V[i]
+            else:
+                f = lambda i : Integer(i)
+        return tuple(addtuple + tuple(f(j) for j in i) for i in get_faces(self._C, dimension, facet_repr))
+        
     def incidences(self,dimension_one,dimension_two):
         r"""
         Gets a tuple of all incidens between faces of dimension dimension_one and dimension_two.
@@ -146,6 +205,7 @@ cdef class CombinatorialPolyhedron:
         Incidences are given as tuple of integers, where the integer corresponds to the order according to self.faces(dimension)
         """
         return tuple((Integer(i),Integer(j)) for i,j in incidences(self._C,dimension_one,dimension_two))
+        
     def face_lattice(self,vertices=True,facets=False):
         r"""
         Generates the face-lattice.
@@ -174,7 +234,17 @@ cdef class CombinatorialPolyhedron:
         D = DiGraph([V, edges], format='vertices_and_edges')
         D.relabel(f)
         return FiniteLatticePoset(D);
-    def get_flag(self,flag):
+        
+    def flag(self,*flag):
+        r"""
+        Return counts the elements in that entry of the flag vector.
+        
+        flag(i) is equivalent to f_vector(i)
+        
+        flag(i_1,...,i_n) will count the number of tuples (face_1,...,face_n), where face_j is and i_j face and face_1 \subset face_2 ...
+        
+        The implementation sorts the i_1,...i_n.
+        """
         flag = sorted(set(flag))
         flag = tuple(i for i in flag if i in range(-1,self.dimension()+1))
         if flag == (-1,):

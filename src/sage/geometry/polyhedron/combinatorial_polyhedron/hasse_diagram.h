@@ -63,8 +63,8 @@ const unsigned int maxnumberincidences = 16348;//^2 the maximal number of incide
 
 class CombinatorialPolyhedron {
     public:
-        CombinatorialPolyhedron(PyObject* py_tuple, unsigned int nr_vertices_given);//initialization with a tuple of facets (each facet a tuple of vertices, vertices labeled 0,1,...)
-        CombinatorialPolyhedron(PyObject* py_tuple);//initialization with an incidence matrix given as tuple of tuples
+        CombinatorialPolyhedron(PyObject* py_tuple, unsigned int nr_vertices_given, int is_unbounded, unsigned int nr_of_lines);//initialization with a tuple of facets (each facet a tuple of vertices, vertices labeled 0,1,...)
+        CombinatorialPolyhedron(PyObject* py_tuple, int is_unbounded, unsigned int nr_of_lines);//initialization with an incidence matrix given as tuple of tuples
         ~CombinatorialPolyhedron();//cleanup to avoid memory leak
         unsigned int get_dimension();
         inline PyObject* get_f_vector();
@@ -76,6 +76,8 @@ class CombinatorialPolyhedron {
         inline unsigned long get_flag_number(PyObject* py_tuple); 
     private:
         int polar = 0;//in order to speed things up, we will consider the dual/polar whenever the number of vertices is smaller than the number of facets
+        int unbounded = 0;
+        unsigned int nr_lines = 0;
         void **facets_allocator;
         int facets_are_allocated = 0;
         void **vertices_allocator = NULL;
@@ -164,8 +166,8 @@ class CombinatorialPolyhedron {
 
 typedef CombinatorialPolyhedron* CombinatorialPolyhedron_ptr;
 
-CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(PyObject* py_tuple, unsigned int nr_vertices);//initialize by facets as tuples of vertices
-CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(PyObject* py_tuple);//initialize by incidence_matrix
+CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(PyObject* py_tuple, unsigned int nr_vertices, int is_unbounded, unsigned int nr_lines);//initialize by facets as tuples of vertices
+CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(PyObject* py_tuple, int is_unbounded, unsigned int nr_lines);//initialize by incidence_matrix
 
 unsigned int dimension(CombinatorialPolyhedron_ptr C);
 PyObject* f_vector(CombinatorialPolyhedron_ptr C);

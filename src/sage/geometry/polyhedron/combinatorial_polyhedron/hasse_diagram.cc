@@ -85,11 +85,13 @@ inline unsigned int naive_popcount(uint64_t A){
 
 
 //initialization with a tuple of facets (each facet a tuple of vertices, vertices labeled 0,1,...)
-CombinatorialPolyhedron::CombinatorialPolyhedron(PyObject* py_tuple, unsigned int nr_vertices_given){
+CombinatorialPolyhedron::CombinatorialPolyhedron(PyObject* py_tuple, unsigned int nr_vertices_given, int is_unbounded, unsigned int nr_of_lines){
+    unbounded = is_unbounded;
+    nr_lines = nr_of_lines;
     build_dictionary();
     nr_vertices = nr_vertices_given;
     nr_facets = PyTuple_Size(py_tuple);
-    if (nr_facets > nr_vertices){//in this case the polar approach is actually better, so we will save the polar CombinatorialPolyhedron and compute accordingly
+    if ((!unbounded) && (nr_facets > nr_vertices)){//in this case the polar approach is actually better, so we will save the polar CombinatorialPolyhedron and compute accordingly
         //Polar_Init(py_tuple, nr_vertices_given);
         polar = 1;
         nr_vertices = nr_facets;
@@ -99,12 +101,15 @@ CombinatorialPolyhedron::CombinatorialPolyhedron(PyObject* py_tuple, unsigned in
     get_vertices_from_tuple(py_tuple);
 }
 
+
 //initialization with an incidence matrix given as tuple of tuples
-CombinatorialPolyhedron::CombinatorialPolyhedron(PyObject* py_tuple){
+CombinatorialPolyhedron::CombinatorialPolyhedron(PyObject* py_tuple, int is_unbounded, unsigned int nr_of_lines){
+    unbounded = is_unbounded;
+    nr_lines = nr_of_lines;
     build_dictionary();
     nr_vertices = PyTuple_Size(PyTuple_GetItem(py_tuple,0));
     nr_facets = PyTuple_Size(py_tuple);
-    if (nr_facets > nr_vertices){//in this case the polar approach is actually much better, so we will save the polar CombinatorialPolyhedron and compute accordingly
+    if ((!unbounded) && (nr_facets > nr_vertices)){//in this case the polar approach is actually much better, so we will save the polar CombinatorialPolyhedron and compute accordingly
         polar = 1;
         unsigned int nr_vertices_given = nr_vertices;
         nr_vertices = nr_facets;
@@ -197,6 +202,8 @@ inline PyObject* CombinatorialPolyhedron::get_faces(int face_dimension, unsigned
             return n_trivial_tuples(nr_facets);
     }
     if (face_dimension_unsigned == 0){
+        if (nr_lines)
+            return n_trivial_tuples(0);
         if (facet_repr)
             return tuple_from_faces(vertices, nr_vertices,1);
         else
@@ -212,7 +219,10 @@ inline PyObject* CombinatorialPolyhedron::get_faces(int face_dimension, unsigned
         allocate_allfaces(face_dimension_unsigned);
         record_faces(face_dimension_unsigned);
     }
-    return tuple_from_faces(allfaces[face_dimension_unsigned],allfaces_counter[face_dimension_unsigned],0);
+    if (!facet_repr)
+        return tuple_from_faces(allfaces[face_dimension_unsigned],allfaces_counter[face_dimension_unsigned],0);
+    else
+        return tuple_from_faces(allfaces_facet_repr[face_dimension_unsigned],allfaces_counter[face_dimension_unsigned],1);
 }
 
 void CombinatorialPolyhedron::record_all_faces(){
@@ -229,6 +239,9 @@ inline PyObject* CombinatorialPolyhedron::get_incidences(int dimension_one, int 
         dimension_two = dimension -1  - dimension_two;
     }
     unsigned int twisted = 0;
+    if (nr_lines && ((dimension_one == 0) || (dimension_two == 0))){//if the unbounded polyhedron contains lines, then there are no vertices
+        return tuple_from_incidences(twisted);
+    }
     if (dimension_one < dimension_two){
         int foo = dimension_one;
         dimension_one = dimension_two;
@@ -237,11 +250,11 @@ inline PyObject* CombinatorialPolyhedron::get_incidences(int dimension_one, int 
     }
     if (dimension_two == dimension_one){//not really intended for this, but we can give a result anyway
         PyObject* workaround;
-	if (polar)
-	    workaround = get_faces(dimension -1 - dimension_two,0);//in get_faces we have already considered that we are infact in the polar situation
+        if (polar)
+            workaround = get_faces(dimension -1 - dimension_two,0);//in get_faces we have already considered that we are infact in the polar situation
         else
-	    workaround = get_faces(dimension_two,0);
-	unsigned long i = PyTuple_Size(workaround);
+            workaround = get_faces(dimension_two,0);
+        unsigned long i = PyTuple_Size(workaround);
         for (j = 0; j < i; j++){
             add_incidence(j,j);
         }
@@ -322,18 +335,21 @@ inline unsigned long CombinatorialPolyhedron::get_flag_number(PyObject* py_tuple
     unsigned int array[const_len];
     unsigned int counter = get_dimension()-1;
     if (!polar)
-	for(i=0;i<len;i++)
-	    array[i] = (unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, i));
+        for(i=0;i<len;i++){
+            array[i] = (unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, i));
+            if (nr_lines && (array[i] == 0))
+                return 0;
+            }
     else {
 	if ((unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, len-1)) == dimension){
 	    array[len-1] = dimension;
 	    for (i=0;i<len-1;i++){
-		array[len-i-2] = dimension - 1 - (unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, i));
+            array[len-i-2] = dimension - 1 - (unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, i));
 	    }
 	}
 	else
 	    for (i=0;i<len;i++){
-		array[len-i-1] = dimension -1 - (unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, i));
+            array[len-i-1] = dimension -1 - (unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, i));
 	    }
     }
     for(i=0;i<len;i++){
@@ -530,14 +546,11 @@ inline unsigned int CombinatorialPolyhedron::get_next_level(chunktype **faces, u
 unsigned int CombinatorialPolyhedron::calculate_dimension(chunktype **faces, unsigned int nr_faces){
     unsigned int i,j,k, newfacescounter, dimension;
     unsigned int bitcount = CountFaceBits(faces[0]);
-    if (bitcount == 1){//we have encountered vertex, if the facets have dimension 0, the polytope has dimension 1
-        return 1;
+    if (bitcount == nr_lines){//if a facet contains only lines, then the polyhedron is of dimension nr_lines
+        return nr_lines;
     }
-    if (bitcount == 2){//we have encountered edge
-        return 2;
-    }
-    if (bitcount == 0){//the polytope has only the empty face as facet
-        return 0;
+    if (bitcount == nr_lines + 1){
+        return nr_lines + 1;
     }
     void *nextfaces_creator[nr_faces-1];
     chunktype  *nextfaces2[nr_faces-1], *nextfaces[nr_faces-1];
@@ -547,6 +560,9 @@ unsigned int CombinatorialPolyhedron::calculate_dimension(chunktype **faces, uns
     }
     newfacescounter = get_next_level(faces,nr_faces,nr_faces-1,nextfaces,nextfaces2,0);//calculates the ridges contained in one facet
     dimension =  calculate_dimension(nextfaces2,newfacescounter) + 1;//calculates the dimension of that facet
+    if (dimension == 1){
+        dimension = bitcount;//our face should be a somewhat a vertex, but if the polyhedron is unbounded, than our face will have dimension equal to the number of 'vertices' it contains, where some of the vertices might represent lines
+    }
     for (i=0; i < (nr_faces - 1); i++){
         free(nextfaces_creator[i]);
     }
@@ -611,14 +627,14 @@ void CombinatorialPolyhedron::get_f_vector_and_edges(){
 void CombinatorialPolyhedron::get_f_vector_and_edges(chunktype **faces, unsigned int dimension, unsigned int nr_faces, unsigned int nr_forbidden){
     unsigned int i,j;
     unsigned long newfacescounter;
+    if (dimension == nr_lines){
+        return;
+    }
     if (dimension == 1){
         if (edgemode)//in this case we want to record the edges
         for (i = 0; i < nr_faces; i++){
             add_edge(faces[i]);
         }
-    }
-    if (dimension == 0){
-        return;
     }
     i = nr_faces;
     while (i--){
@@ -633,6 +649,9 @@ void CombinatorialPolyhedron::get_f_vector_and_edges(chunktype **faces, unsigned
 }
 
 void CombinatorialPolyhedron::record_faces(unsigned int lowest_dimension){
+    if (nr_lines > lowest_dimension){
+        lowest_dimension = nr_lines;
+    }
     record_faces(facets,dimension-1,nr_facets,0,lowest_dimension);
     for (unsigned int i = lowest_dimension; i < dimension - 1; i++)
         if (allfaces_are_allocated[i])
@@ -926,7 +945,11 @@ inline PyObject* CombinatorialPolyhedron::tuple_from_char(chunktype *array1, uns
     if (facet_repr){
         face_length = length_of_face_in_facet_repr;
     }
-    unsigned int len = CountFaceBits(array1);
+    unsigned int len;
+    if (!facet_repr)
+        len = CountFaceBits(array1);
+    else
+        len = CountFaceBits_facet_repr(array1);
     unsigned int counter = 0;
     PyObject* py_tuple = PyTuple_New(len);
     const unsigned int size_array = face_length*chunksize/64;
@@ -949,7 +972,7 @@ inline PyObject* CombinatorialPolyhedron::tuple_from_char(chunktype *array1, uns
 inline PyObject* CombinatorialPolyhedron::tuple_from_faces(chunktype **array1, unsigned int len, unsigned int facet_repr){
     PyObject* py_tuple = PyTuple_New(len);
     for(unsigned int i = 0;i < len; i++){
-        PyTuple_SET_ITEM(py_tuple,i,tuple_from_char(array1[i],0));
+        PyTuple_SET_ITEM(py_tuple,i,tuple_from_char(array1[i],facet_repr));
     }
     return py_tuple;
 }
@@ -1254,13 +1277,13 @@ void CombinatorialPolyhedron::deallocate_allfaces(){
 
 
 
-CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(PyObject* py_tuple, unsigned int nr_vertices) {
-    CombinatorialPolyhedron_ptr C = new CombinatorialPolyhedron(py_tuple,nr_vertices);
+CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(PyObject* py_tuple, unsigned int nr_vertices, int is_unbounded, unsigned int nr_lines) {
+    CombinatorialPolyhedron_ptr C = new CombinatorialPolyhedron(py_tuple,nr_vertices, is_unbounded, nr_lines);
     return C;
 }
 
-CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(PyObject* py_tuple) {
-    CombinatorialPolyhedron_ptr C = new CombinatorialPolyhedron(py_tuple);
+CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(PyObject* py_tuple, int is_unbounded, unsigned int nr_lines) {
+    CombinatorialPolyhedron_ptr C = new CombinatorialPolyhedron(py_tuple, is_unbounded, nr_lines);
     return C;
 }
 

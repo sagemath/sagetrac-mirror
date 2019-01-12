@@ -1,7 +1,7 @@
 cdef extern from "hasse_diagram.h":
     ctypedef void* CombinatorialPolyhedron_ptr;
-    cdef CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(tuple py_tuple, unsigned int nr_vertices)
-    cdef CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(tuple py_tuple)
+    cdef CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(tuple py_tuple, unsigned int nr_vertices, int is_unbounded, unsigned int nr_lines)
+    cdef CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(tuple py_tuple, int is_unbounded, unsigned int nr_lines)
     cdef unsigned int dimension(CombinatorialPolyhedron_ptr C)
     cdef tuple f_vector(CombinatorialPolyhedron_ptr C)
     cdef tuple edges(CombinatorialPolyhedron_ptr C)
