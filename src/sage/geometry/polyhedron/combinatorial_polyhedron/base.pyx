@@ -30,11 +30,11 @@ from sage.graphs.digraph import DiGraph
 from sage.combinat.posets.lattices import FiniteLatticePoset
 
 
-from .hasse_diagram cimport   CombinatorialPolytope_ptr, init_CombinatorialPolytope, dimension, edges, f_vector, ridges, incidences, record_all_faces, get_faces, get_flag, delete_CombinatorialPolytope
+from .hasse_diagram cimport   CombinatorialPolyhedron_ptr, init_CombinatorialPolyhedron, dimension, edges, f_vector, ridges, incidences, record_all_faces, get_faces, get_flag, delete_CombinatorialPolyhedron
 
 #TODO take care of the empty polyhedron, which does not have vertices
-cdef class CombinatorialPolytope:
-    cdef CombinatorialPolytope_ptr _C
+cdef class CombinatorialPolyhedron:
+    cdef CombinatorialPolyhedron_ptr _C
     cdef tuple _V
     cdef dict _Vinv
     r"""
@@ -49,7 +49,7 @@ cdef class CombinatorialPolytope:
     EXAMPLE::
     
         sage: P = polytopes.permutahedron(7)
-        sage: C = sage.geometry.combinatorial_polytope.base.CombinatorialPolytope(incidence_matrix=P.incidence_matrix())
+        sage: C = sage.geometry.combinatorial_polytope.base.CombinatorialPolyhedron(incidence_matrix=P.incidence_matrix())
         sage: C.f_vector()
         (1, 5040, 15120, 16800, 8400, 1806, 126, 1)
     """
@@ -67,7 +67,7 @@ cdef class CombinatorialPolytope:
         if hasattr(data,"nrows"):#TODO: Better check for matrix
             rg = range(data.nrows())
             tup =  tuple(tuple(data[i,j] for i in rg) for j in range(data.ncols()) if not all(data[i,j] for i in rg))#transpose and get rid of trivial inequalites (which all vertices satisfie)
-            self._C = init_CombinatorialPolytope(tup)
+            self._C = init_CombinatorialPolyhedron(tup)
         else:
             if self._V is None:
                 vertices = sorted(set.union(*map(set,data)))
@@ -83,17 +83,17 @@ cdef class CombinatorialPolytope:
             else:
                 f = lambda v: int(v)
             facets = tuple(tuple(f(i) for i in j) for j in data)
-            self._C = init_CombinatorialPolytope(facets,nr_vertices)
+            self._C = init_CombinatorialPolyhedron(facets,nr_vertices)
 
     def __dealloc__(self):
         r"""
         This function deallocates all the memomory used by the underlying C++-class
         """
-        delete_CombinatorialPolytope(self._C)
+        delete_CombinatorialPolyhedron(self._C)
 
     def edges(self):
         r"""
-        Calculates the edges of the CombinatorialPolytope, i.e. the rank 2 faces.
+        Calculates the edges of the CombinatorialPolyhedron, i.e. the rank 2 faces.
         
         NOTE: If you want to compute edges and f_vector it is recommended to compute edges first.
         """
@@ -110,7 +110,7 @@ cdef class CombinatorialPolytope:
 
     def ridges(self):
         r"""
-        Calculates the ridges of the CombinatorialPolytope, i.e. the rank 2 faces. Those are given as tuples of facets.
+        Calculates the ridges of the CombinatorialPolyhedron, i.e. the rank 2 faces. Those are given as tuples of facets.
         
         E.g. a ridge (1,2) corresponds to the meet of facet[1] and facet[2].
         
@@ -121,7 +121,7 @@ cdef class CombinatorialPolytope:
         return Graph(self.ridges(),format="list_of_edges")
     def f_vector(self):
         r"""
-        Calculates the f_vector of the CombinatorialPolytope, i.e. the vector containing the nr of faces of each rank.
+        Calculates the f_vector of the CombinatorialPolyhedron, i.e. the vector containing the nr of faces of each rank.
         
         NOTE: If you also want to compute edges or ridges, it is recommended to do that first.
         """

@@ -61,11 +61,11 @@ const unsigned int chunksize = 64;
 const unsigned int maxnumberedges = 16348;//^2 (the edges will be build as an array of arrays, such that we can save up to maxnumberedges*maxnumberedges edges, the number should contain a high power of two
 const unsigned int maxnumberincidences = 16348;//^2 the maximal number of incidences between l-faces and k-faces
 
-class CombinatorialPolytope {
+class CombinatorialPolyhedron {
     public:
-        CombinatorialPolytope(PyObject* py_tuple, unsigned int nr_vertices_given);//initialization with a tuple of facets (each facet a tuple of vertices, vertices labeled 0,1,...)
-        CombinatorialPolytope(PyObject* py_tuple);//initialization with an incidence matrix given as tuple of tuples
-        ~CombinatorialPolytope();//cleanup to avoid memory leak
+        CombinatorialPolyhedron(PyObject* py_tuple, unsigned int nr_vertices_given);//initialization with a tuple of facets (each facet a tuple of vertices, vertices labeled 0,1,...)
+        CombinatorialPolyhedron(PyObject* py_tuple);//initialization with an incidence matrix given as tuple of tuples
+        ~CombinatorialPolyhedron();//cleanup to avoid memory leak
         unsigned int get_dimension();
         inline PyObject* get_f_vector();
         inline PyObject* get_edges();//returns a tuple of edges, each edges as tuple of vertices
@@ -162,20 +162,20 @@ class CombinatorialPolytope {
         
 };
 
-typedef CombinatorialPolytope* CombinatorialPolytope_ptr;
+typedef CombinatorialPolyhedron* CombinatorialPolyhedron_ptr;
 
-CombinatorialPolytope_ptr init_CombinatorialPolytope(PyObject* py_tuple, unsigned int nr_vertices);//initialize by facets as tuples of vertices
-CombinatorialPolytope_ptr init_CombinatorialPolytope(PyObject* py_tuple);//initialize by incidence_matrix
+CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(PyObject* py_tuple, unsigned int nr_vertices);//initialize by facets as tuples of vertices
+CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(PyObject* py_tuple);//initialize by incidence_matrix
 
-unsigned int dimension(CombinatorialPolytope_ptr C);
-PyObject* f_vector(CombinatorialPolytope_ptr C);
-PyObject* edges(CombinatorialPolytope_ptr C);
-PyObject* ridges(CombinatorialPolytope_ptr C);
-PyObject* incidences(CombinatorialPolytope_ptr C, int dimension_one, int dimension_two);
-void record_all_faces(CombinatorialPolytope_ptr C);
-PyObject* get_faces(CombinatorialPolytope_ptr C, int dimension, unsigned int facet_repr);
-unsigned long get_flag(CombinatorialPolytope_ptr C, PyObject* py_tuple);
+unsigned int dimension(CombinatorialPolyhedron_ptr C);
+PyObject* f_vector(CombinatorialPolyhedron_ptr C);
+PyObject* edges(CombinatorialPolyhedron_ptr C);
+PyObject* ridges(CombinatorialPolyhedron_ptr C);
+PyObject* incidences(CombinatorialPolyhedron_ptr C, int dimension_one, int dimension_two);
+void record_all_faces(CombinatorialPolyhedron_ptr C);
+PyObject* get_faces(CombinatorialPolyhedron_ptr C, int dimension, unsigned int facet_repr);
+unsigned long get_flag(CombinatorialPolyhedron_ptr C, PyObject* py_tuple);
 
-void delete_CombinatorialPolytope(CombinatorialPolytope_ptr);
+void delete_CombinatorialPolyhedron(CombinatorialPolyhedron_ptr);
 
 #endif
