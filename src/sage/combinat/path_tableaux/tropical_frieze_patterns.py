@@ -5,13 +5,14 @@ This is an implementation of the abstract base class
 :class:`sage.combinat.pathtableau.pathtableaux`.
 
 In this implementation we have sequences of nonnegative integers.
+This follows [Pec2012]_
 
-This follows the paper:
-Cyclic sieving of increasing tableaux and small Schroder paths
-Oliver Pechenik
-arxiv:1209.1355
-Journal of Combinatorial Theory Vol. 125 (2014) p.357-378
+REFERENCES:
 
+.. [Pec2012] Oliver Pechenik.
+   *Cyclic sieving of increasing tableaux and small Schroder paths*,
+   :arxiv:`1209.1355`
+   
 AUTHORS:
 
 - Bruce Westbury (2019): initial version
@@ -32,7 +33,7 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
 from sage.combinat.combinatorial_map import combinatorial_map
-from sage.combinat.tableau import Tableau
+from sage.combinat.tableau import Tableau, StandardTableau
 from sage.rings.integer import Integer
 
 ###############################################################################
@@ -41,16 +42,59 @@ from sage.rings.integer import Integer
 
 EXAMPLES::
 
-    sage: t = CatalanTableau([0,1,2,3,2,1,0])
+    sage: t = TropicalFriezePattern([0,1,2,3,2,1,0])
+    sage: t.orbit()
+    {[0, -1, 0, -1, 0, 1, 0],
+     [0, -1, 0, 1, 0, 1, 0],
+     [0, -1, 0, 1, 2, 1, 0],
+     [0, 1, 0, -1, 0, 1, 0],
+     [0, 1, 0, 1, 0, 1, 0],
+     [0, 1, 0, 1, 2, 1, 0],
+     [0, 1, 2, 1, 0, 1, 0],
+     [0, 1, 2, 1, 2, 1, 0],
+     [0, 1, 2, 3, 2, 1, 0]}
+
     sage: SkewTableau(t.cylindrical_diagram()).pp()
       0  1  2  3  2  1  0
-      .  0  1  2  1  0  1  0
-      .  .  0  1  0  1  2  1  0
-      .  .  .  0  1  2  3  2  1  0
-      .  .  .  .  0  1  2  1  0  1  0
-      .  .  .  .  .  0  1  0  1  2  1  0
-      .  .  .  .  .  .  0  1  2  3  2  1  0
+      .  0  1  2  1  0 -1  0
+      .  .  0  1  0 -1  0  1  0
+      .  .  .  0 -1  0  1  2  1  0
+      .  .  .  .  0  1  2  3  2  1  0
+      .  .  .  .  .  0  1  2  1  0 -1  0
+      .  .  .  .  .  .  0  1  0 -1  0  1  0
+
     sage: TestSuite(t).run()
+
+    sage: t = TropicalFriezePattern([0,1,2,1,1,0])
+    sage: t.orbit()
+    {[0, -1, 0, 0, 1, 0],
+     [0, -1, 0, 1, 1, 0],
+     [0, 0, -1, 0, 1, 0],
+     [0, 0, 1, 0, 1, 0],
+     [0, 0, 1, 2, 1, 0],
+     [0, 1, 0, 0, 1, 0],
+     [0, 1, 0, 1, 1, 0],
+     [0, 1, 1, 0, 1, 0],
+     [0, 1, 1, 2, 1, 0],
+     [0, 1, 2, 1, 1, 0],
+     [0, 1, 2, 2, 1, 0]}
+
+    sage: SkewTableau(t.cylindrical_diagram()).pp()
+      0  1  2  1  1  0
+      .  0  1  0  0 -1  0
+      .  .  0 -1  0  0  1  0
+      .  .  .  0  1  1  2  1  0
+      .  .  .  .  0  0  1  0 -1  0
+      .  .  .  .  .  0  1  0  0  1  0
+
+    sage: TestSuite(t).run()
+    Failure in _test_promotion:
+    Traceback (most recent call last):
+        ...
+    AssertionError: False is not true
+    ------------------------------------------------------------
+    The following tests failed: _test_promotion
+
 """
 
 
@@ -58,7 +102,7 @@ EXAMPLES::
 class TropicalFriezePattern(ClonableArray,PathTableau):
     """
     An instance is the sequence of nonnegative
-    integers given by the heights of a Dyck word.
+    integers.
     """
 
     @staticmethod
@@ -68,26 +112,11 @@ class TropicalFriezePattern(ClonableArray,PathTableau):
         INPUT:
 
             - a sequence of nonnegative integers
-            - a two row standard skew tableau
-            - a Dyck word
-            - a noncrossing perfect matching
 
         EXAMPLES::
 
-            sage: CatalanTableau([0,1,2,1,0])
-            [0, 1, 2, 1, 0]
-
-            sage: w = DyckWord([1,1,0,0])
-            sage: CatalanTableau(w)
-            [0, 1, 2, 1, 0]
-
-            sage: p = PerfectMatching([(1,2),(3,4)])
-            sage: CatalanTableau(p)
-            [0, 1, 0, 1, 0]
-
-            sage: t = Tableau([[1,2],[3,4]])
-            sage: CatalanTableau(t)
-            [0, 1, 2, 1, 0]
+            sage: TropicalFriezePattern([0,1,2,1,1,0])
+            [0, 1, 2, 1, 1, 0]
 
         """
         w = None
@@ -106,11 +135,13 @@ class TropicalFriezePattern(ClonableArray,PathTableau):
     def check(self):
 
         n = len(self)
-        if any(a < 0 for a in self):
-           raise ValueError( "%s has a negative entry" % (str(self)) )
+        if any(a < -1 for a in self):
+           raise ValueError( "%s has an entry below -1" % (str(self)) )
         for i in range(n-1):
-            if abs(self[i+1]-self[i]) != 1:
-                raise ValueError( "%s is not a Dyck path" % str(self) )
+            if abs(self[i+1]-self[i]) > 1:
+                raise ValueError( "successive terms differ by more than 1" )
+            if self[i] == -1 and self[i+1] == -1:
+                raise ValueError( "there are successive -1s" )
 
     def _local_rule(self,i):
         """
@@ -121,9 +152,9 @@ class TropicalFriezePattern(ClonableArray,PathTableau):
 
         EXAMPLES::
 
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t = TropicalFriezePattern([0,1,2,1,1,0])
             sage: t._local_rule(3)
-            [0, 1, 2, 1, 2, 1, 0]
+            [0, 1, 2, 2, 1, 0]
         """
 
         def _rule(x):
@@ -146,70 +177,82 @@ class TropicalFriezePattern(ClonableArray,PathTableau):
 
         EXAMPLES::
 
-            sage: CatalanTableau([0,1,2,1]).is_skew()
+            sage: TropicalFriezePattern([0,1,2,1]).is_skew()
             False
 
-            sage: CatalanTableau([1,0,1,2,1]).is_skew()
+            sage: TropicalFriezePattern([1,0,1,2,1]).is_skew()
             True
         """
         return self[0] != 0
 
-    @combinatorial_map(name='to Dyck word')
-    def to_DyckWord(self):
+    @combinatorial_map(name='to Schroder path')
+    def to_height_word(self):
         """
-        Converts ``self`` to a Dyck word.
+        Converts ``self`` to the height sequence of a small Schroder path
 
         EXAMPLES::
 
-            sage: c = CatalanTableau([0,1,2,1,0])
-            sage: c.to_DyckWord()
-            [1, 1, 0, 0]
+            sage: TropicalFriezePattern([0,1,2,1,1,0]).to_height_word()
+            [0, 1, 2, 3, 2, 2, 1, 0]
         """
-        return DyckWord(heights_sequence = list(self))
+        return [0]+[ a+1 for a in self ]+[0]
 
-    def to_word(self):
+    @combinatorial_map(name='to increasing tableau')
+    def to_increasing_tableau(self):
         """
-        Return the word in the alphabet `\{0,1\}` associated to ``self``.
+        Return the increasing tableau associated to ``self``.
 
         EXAMPLES::
 
-            sage: CatalanTableau([1,0,1,2,1]).to_word()
-            [0, 1, 1, 0]
-        """
-        return [ (self[i+1]-self[i]+1)/2 for i in range(self.size()-1) ]
+           sage: TropicalFriezePattern([0,1,2,1,1,0]).to_increasing_tableau()
+           [[1, 2, 3, 5], [4, 5, 6, 7]]
 
-    def to_perfect_matching(self):
         """
-        Return the perfect matching associated to ``self``.
+        if self.is_skew():
+            raise ValueError("only implemented for straight shapes")
+
+        h = self.to_height_word()
+        top = []
+        bot = []
+        for i in range(1,len(h)):
+            if h[i] == h[i-1]+1:
+                top = top + [i]
+            elif h[i] == h[i-1]:
+                top = top + [i]
+                bot = bot + [i]
+            elif h[i] == h[i-1]-1:
+                bot = bot + [i]
+            else:
+                raise RuntimeError("this can't happen")
+
+        return Tableau([top,bot])
+
+    @combinatorial_map(name='to flag tableau')
+    def to_flag_tableau(self):
+        """
+        Return the increasing tableau associated to ``self``.
 
         EXAMPLES::
 
-            sage: CatalanTableau([0,1,2,1,2,1,0,1,0]).to_perfect_matching()
-            [(0, 5), (1, 2), (3, 4), (6, 7)]
+           sage: TropicalFriezePattern([0,1,2,1,1,0]).to_flag_tableau()
+           [[1, 2, 3], [4, 6, 7], [5]]
         """
-        w = self.to_word()
-        y = DyckWord(w)
-        pairs = set()
-        for i, a in enumerate(y):
-            c = y.associated_parenthesis(i)
-            if i < c:
-                pairs.add((i,c))
-        return PerfectMatching(pairs)
+        if self.is_skew():
+            raise ValueError("only implemented for straight shapes")
 
-    def to_tableau(self):
-        """
-        Return the skew tableau associated to ``self``.
+        h = self.to_height_word()
+        result = [[],[]]
+        for i in range(1,len(h)):
+            if h[i] == h[i-1]+1:
+                result[0] = result[0] + [i]
+            elif h[i] == h[i-1]:
+                result = result + [[i]]
+            elif h[i] == h[i-1]-1:
+                result[1] = result[1] + [i]
+            else:
+                raise RuntimeError("this can't happen")
 
-        EXAMPLES::
-
-           sage: T = CatalanTableau([0,1,2,3,2,3])
-           sage: T.to_tableau()
-           [[1, 2, 3, 5], [4]]
-        """
-        w = self.to_word()
-        top = [ i+1 for i, a in enumerate(w) if a == 1 ]
-        bot = [ i+1 for i, a in enumerate(w) if a == 0 ]
-        return SkewTableau([[None]*self[0]+top,bot])
+        return StandardTableau(result)
 
 class TropicalFriezePatterns(PathTableaux):
 
