@@ -805,6 +805,8 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
         place = self._place
         F = place.function_field()
 
+        place._recompute_kash()
+
         kash_series = F.to_kash(f).Expand(place.kash, AbsPrec=prec)
 
         val = kash_series.Valuation()
@@ -1148,6 +1150,7 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
         FunctionFieldIdeal.__init__(self, ring)
 
         ring._recompute_kash()
+        self._working_constant_field = ring.function_field()._working_constant_field()
 
         if isinstance(gens, KashElement):
             self.kash = gens
@@ -1156,6 +1159,12 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
         else:
             self._gens = tuple(flatten(gens))
             self.kash = ring.kash.Ideal(map(ring._field.to_kash, self._gens))
+
+    def _recompute_kash(self):
+        if self._working_constant_field != self.ring().function_field()._working_constant_field():
+            self._working_constant_field = self.ring().function_field()._working_constant_field()
+            self.ring()._recompute_kash()
+            self.kash = self.ring().kash.Ideal(map(self.ring().function_field().to_kash, self._gens))
 
     def __hash__(self):
         """
@@ -1199,6 +1208,8 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
             False
         """
 
+        self._recompute_kash()
+        other._recompute_kash()
         return richcmp((self.denominator(), self.gens_over_base()), (other.denominator(), other.gens_over_base()), op)
 
     def __repr__(self):
@@ -1545,6 +1556,13 @@ class FunctionFieldPlace_kash(FunctionFieldPlace):
             self.kash = arg.kash.Place()
 
         FunctionFieldPlace.__init__(self, field, prime)
+        self._working_constant_field = field._working_constant_field()
+
+    def _recompute_kash(self):
+        if self._working_constant_field != self.function_field()._working_constant_field():
+            self._working_constant_field = self.function_field()._working_constant_field()
+            self.prime_ideal()._recompute_kash()
+            self.kash = self.prime_ideal().kash.Place()
 
     def is_infinite_place(self):
         """
