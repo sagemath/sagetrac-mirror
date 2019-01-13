@@ -61,6 +61,10 @@ REFERENCES:
                 and T. Yalcin, *Block ciphers - focus on the linear layer
                 (feat. PRIDE)*; in CRYPTO, (2014), pp. 57-76.
 
+.. [ABBS2013] \J.-C Aval, A. Boussicault, M. Bouvel, M. Silimbani,
+              *Combinatorics of non-ambiguous trees*,
+              :arxiv:`1305.3716`
+
 .. [AGHJLPR2017] Benjamin Assarf, Ewgenij Gawrilow, Katrin Herr, Michael Joswig,
                  Benjamin Lorenz, Andreas Paffenholz, and Thomas Rehn,
                  Computing convex hulls and counting integer points with
@@ -594,6 +598,12 @@ REFERENCES:
 .. [Br2016] *Bresenham's Line Algorithm*, Python, 26 December 2016.
             http://www.roguebasin.com/index.php?title=Bresenham%27s_Line_Algorithm
 
+.. [BRS2015] \A. Boussicault, S. Rinaldi et S. Socci.
+             *The number of directed k-convex polyominoes*
+             27th Annual International Conference on Formal Power Series and
+             Algebraic Combinatorics (FPSAC 2015), 2015.
+             :arxiv:`1501.00872`
+
 .. [Bru1994] Richard A. Brualdi, Hyung Chan Jung, William T.Trotter Jr
              *On the poset of all posets on* `n` *elements*
              Volume 50, Issue 2, 6 May 1994, Pages 111-123
@@ -1006,8 +1016,15 @@ REFERENCES:
               orderings II. The parabolic analogue of Kazhdan-Lusztig
               polynomials, J. Alg. 111 (1987) 483-506.
 
+.. [DerZak1980] Nachum Dershowitz and Schmuel Zaks,
+                *Enumerations of ordered trees*,
+                Discrete Mathematics (1980), 31: 9-28.
+
 .. [Dev2005] Devaney, Robert L. *An Introduction to Chaotic Dynamical Systems.*
              Boulder: Westview, 2005, 331.
+
+.. [DeVi1984] \M.-P. Delest, and G. Viennot, *Algebraic Languages and
+              Polyominoes Enumeration.* Theoret. Comput. Sci. 34, 169-206, 1984.
 
 .. [DFMS1996] Philipppe Di Francesco, Pierre Mathieu, and David Sénéchal.
               *Conformal Field Theory*. Graduate Texts in Contemporary
@@ -2561,6 +2578,11 @@ REFERENCES:
              Volume 34, Issue 3, May 1983, Pages 340--359.
              http://www.sciencedirect.com/science/article/pii/0097316583900687
 
+.. [MR2016] \B. Malmskog, C. Rasmussen, "Picard curves over \mathbb{Q}
+            with good reduction away from 3". LMS Journal of Computation and
+            Mathematics 19 (2016), no. 2, 382-408.
+            :doi:`10.1112/S1461157016000413`.
+
 .. [MS2003] \T. Mulders, A. Storjohann, "On lattice reduction for
             polynomial matrices", J. Symbolic Comput. 35 (2003),
             no. 4, 377--401
@@ -2994,6 +3016,10 @@ REFERENCES:
             Reduction*. Advances in Cryptology - EUROCRYPT '95. LNCS
             Volume 921, 1995, pp 1-12.
 
+.. [SHET2018] \O. Seker, P. Heggernes, T. Ekim, and Z. Caner Taskin.
+              *Generation of random chordal graphs using subtrees of a tree*,
+              :arxiv:`1810.13326v1`.
+
 .. [Shi2002] \M. Shimozono
              *Affine type A crystal structure on tensor products of rectangles,
              Demazure characters, and nilpotent varieties*,
@@ -3041,6 +3067,13 @@ REFERENCES:
 
 .. [Sor1984] \A. Sorkin, *LUCIFER: a cryptographic algorithm*;
              in Cryptologia, 8(1), pp. 22–35, 1984.
+
+.. [Sma1995] \N.P. Smart, "The Solution of Triangularly Connected
+             Decomposable Form Equations". Math. Comp. 64 (1995), 819-840.
+             :doi:`10.1090/S0025-5718-1995-1277771-4`.
+
+.. [Sma1998] \N.P. Smart, *The algorithmic resolution of Diophantine equations*,
+             Number 41 in Student Texts. London Mathematical Society, 1998.
 
 .. [Spa1966] Edwin H. Spanier, *Algebraic Topology*,
              Springer-Verlag New York, 1966.
@@ -3455,6 +3488,10 @@ REFERENCES:
             submitted to NIST, (2008), available at
             http://www3.ntu.edu.sg/home/wuhj/research/jh/jh_round3.pdf
 
+.. [WW1991] Michelle Wachs and Dennis White, *p, q-Stirling numbers
+            and set partition statistics*, Journal of Combinatorial
+            Theory, Series A 56.1 (1991): 27-46.
+
 .. [WW2005] Ralf-Philipp Weinmann and Kai Wirt,
             *Analysis of the DVB Common Scrambling Algorithm*; in
             IFIP TC-6 TC-11, (2005).
@@ -3481,8 +3518,12 @@ REFERENCES:
                 associated with crystal base of* `U_q(D_4^{(3)})`.
                 \J. Math. Phys., **48** (4):043509, 28, (2007).
 
-.. [Yoc2005] Jean-Christophe Yoccoz, *Échange d'Intervalles*, Cours au
+.. [Yoc2005] Jean-Christophe Yoccoz "Echange d'Intervalles", Cours au
              collège de France
+
+.. [Yip2018] Yip, Martha. "Rook placements and Jordan forms of
+             upper-triangular nilpotent matrices."
+             Electronic J. Comb. 25(1) (2018) #P1.68. :arxiv:`1703.00057`.
 
 .. [Yun1976] Yun, David YY. On square-free decomposition
              algorithms. In Proceedings of the third ACM symposium on

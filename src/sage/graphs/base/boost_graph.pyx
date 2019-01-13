@@ -718,7 +718,7 @@ cpdef min_spanning_tree(g,
         return []
     else:
         edges = [(int_to_vertex[<int> result[2*i]], int_to_vertex[<int> result[2*i+1]]) for i in range(n-1)]
-        return sorted([(min(e[0],e[1]), max(e[0],e[1]), g.edge_label(e[0], e[1])) for e in edges])
+        return [(min(e[0],e[1]), max(e[0],e[1]), g.edge_label(e[0], e[1])) for e in edges]
 
 
 cpdef blocks_and_cut_vertices(g):
@@ -921,6 +921,10 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     if not isinstance(g, GenericGraph):
         raise TypeError("the input must be a Sage graph")
 
+    if start not in g:
+        raise ValueError("the starting vertex " + str(start) + " is not in " +
+                         "the graph")
+
     if not g.num_edges():
         return ({start:0}, {start:None})
 
@@ -931,10 +935,6 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     cdef BoostVecWeightedDiGraphU g_boost_dir
     cdef BoostVecWeightedGraph g_boost_und
     cdef result_distances result
-
-    if start not in v_to_int.keys():
-        raise ValueError("the starting vertex " + str(start) + " is not in " +
-                         "the graph")
 
     if algorithm is None:
         # Check if there are edges with negative weights
