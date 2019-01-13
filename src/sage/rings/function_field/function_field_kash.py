@@ -314,6 +314,33 @@ class RationalFunctionField_kash(RationalFunctionField):
 
 class FunctionFieldElement_polymod_kash(FunctionFieldElement_polymod):
 
+    def valuation(self, place):
+        """
+        Return the valuation of the element at the place.
+
+        INPUT:
+
+        - ``place`` -- a place of the function field
+
+        EXAMPLES::
+
+            sage: R.<x> = FunctionField(QQbar, implementation='kash')
+            sage: L.<y> = R[]
+            sage: F.<y> = R.extension(y^2 - (x^2+1))
+            sage: pl = F.maximal_order().ideal(x-QQbar(I),y).place()
+            sage: pl
+            Place (x - I, y)
+            sage: x.valuation(pl)
+            0
+            sage: y.valuation(pl)
+            1
+            sage: (x-QQbar(I)).valuation(pl)
+            2
+        """
+        prime = place.prime_ideal()
+        ideal = prime.ring().ideal(self)
+        return prime.valuation(ideal)
+
     def divisor(self):
         """
         Return the divisor of the element.
@@ -1528,6 +1555,27 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
         if not self.is_prime():
             raise TypeError("not a prime ideal")
         return FunctionFieldPlace_kash(self._ring._field, self)
+
+    def valuation(self, ideal):
+        """
+        Return the valuation of the ideal at this prime ideal.
+
+        INPUT:
+
+        - ``ideal`` -- fractional ideal
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(QQ, implementation='kash')
+            sage: O = F.maximal_order()
+            sage: I = O.ideal(x^2*(x^2+x+1)^3)
+            sage: [f.valuation(I) for f,_ in I.factor()]
+            [2, 3]
+        """
+        if not self.is_prime():
+            raise TypeError("not a prime ideal")
+
+        return ideal.kash.Valuation(self.kash)
 
 
 class FunctionFieldPlace_kash(FunctionFieldPlace):
