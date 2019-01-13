@@ -5,7 +5,7 @@ T\^ete-\`a-t\^ete graphs.
 
 
 
-- Pablo Portilla (2016)
+- Pablo Portilla (2019)
 """
 
 #*****************************************************************************
@@ -19,6 +19,8 @@ T\^ete-\`a-t\^ete graphs.
 #*****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.unique_representation import CachedRepresentation
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.rings.integer_ring import ZZ
 from sage.misc.cachefunc import cached_method
@@ -218,7 +220,7 @@ def bipartite_tat_graph(p,q):
 
     OUTPUT:
 
-    - a tat graph whose underlying ribbon graph is the complete
+    - a t\^ete-\`a-t\^ete graph whose underlying ribbon graph is the complete
       bipartite graph of type `(p,q)` and with all darts of length 
       `1/4`.
 
@@ -251,14 +253,96 @@ def bipartite_tat_graph(p,q):
 
 class TatGraph(SageObject):
     r"""
+<<<<<<< HEAD
     A relative ribbon graph together with a metric.
+=======
+    A t\^ete-\`a-t\^ete  graph codified as a ribbon graph and a list of rational 
+    numbers.
+
+    The original idea is due to A'Campo [AC2009]_. His original motivation was
+    to model the monodromies of isolated plane curves in a combinatorial way.
+    
+    The theory  was further developed by C. Graf in [Gra2015]_ and later on by J. Fernandez de Bobadilla, M. Pe Pereira and P. Portilla in [BPP2017]_ .
+
+    **Introduction**
+
+    Let `\Sigma` be an orientable surface with non-empty boundary and let 
+    `\Gamma` be the topological realization of a graph (a finite `1`-dimensional
+    CW-cmplex) that is embedded in `\Sigma` in such a way that the graph is a 
+    strong deformation retract of the surface. Suppose that `\Gamma` is endowed
+    with a metric `m`, that is, an assignation of a rational number to each edge.
+
+    A safe walk on `\Gamma` is an arc-length parametrized path starting at a 
+    point `p \in \Gamma` with the properties:
+    
+    - When the path reaches  a vertex, it turns to the next edge indicated by 
+      the permutation `\sigma` associated to that vertex (see Ribbon Graph
+      documentation)
+      
+    - It has total length equal to `1`.
+    
+    Given a point `p \in \Gamma` in the interior of and edge, there exist
+    exactly two safe walks starting at `p`. The t\^ete-\`a-t\^ete property says
+    that "for all points in the interior of `\Gamma`, the two safe walks 
+    starting at that point, end at the same point.
+    
+    As explained in the references that are mentioned above, a t\^ete-\`a-t\^ete
+    graph models an oriented surface with boundary together with a mapping
+    class of the surface which is freely periodic and has fractional Dehn
+    twist coefficients at all boundary components.
+    
+    Another object which is also modeled in this package is a relative
+    t\^ete-\`a-t\^ete graph. These are metric ribbon graphs with a marked set of 
+    circles in the graph which correspond to certain boundary components. While
+    in pure t\^ete-\`a-t\^ete graphs, all boundary components are left invariant by
+    the t\^ete-\`a-t\^ete automorphism, in their relative counterpart, the relative
+    boundary components might be permuted by the relative t\^ete-\`a-t\^ete 
+    mondromy.
+
+
+    INPUT:
+
+    - ``ribbon`` -- a ribbon graph.
+    - ``metric`` -- a list of as many rational numbers as darts has ``ribbon``.
+    - ``relative_boundary=[]`` -- a subset of ``ribbon.boundary()`` that 
+      constitutes the relative boundary components of ``ribbon``. It is, by
+      default, initialized to an empty list (for defining pure t\^ete-\`a-t\^ete graphs)
+
+    Alternatively, one can pass in 2 integers and this will construct
+    a bipartite t\^ete-\`a-t\^ete graph which realizes the corresponding 
+    Brieskorn-Pham singularity.
+    
+    
+    EXAMPLES:
+    
+        sage: T33 = bipartite_tat_graph(3,3); T33
+        Tete-a-tete graph of order 3 on a ribbon graph of genus 1 and 3 boundary components.
+        sage: T33.sigma()
+        (1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18)
+        sage: T33.rho()
+        (1,12)(2,15)(3,18)(4,11)(5,14)(6,17)(7,10)(8,13)(9,16)
+        sage: print(T33.metric())
+        [1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4]
+        sage: T33._relative_boundary
+        []
+        sage: B33 = blow_up(T33, 1,1/8); B33 ; B33._relative_boundary
+        Relative t\^ete-\`a-t\^ete graph of order 3 on a ribbon graph of genus 1 and 6 boundary components; where 3 boundary components are part of the relative boundary and might be permuted by the automorphism induced.
+        [[19, 24, 23, 22, 21, 20], [25, 30, 29, 28, 27, 26], [31, 36, 35, 34, 33, 32]]
+        sage: T517=bipartite_tat_graph(5,17);T517
+        Tete-a-tete graph of order 85 on a ribbon graph of genus 32 and 1 boundary components.
+>>>>>>> ç
     """
-    def __init__(self, ribbon, metric,  relative_boundary=[]):
+    def __init__(self, ribbon, metric, relative_boundary=[]):
         r"""
         Initialize ``self``.
         """
         for i in range(len(relative_boundary)):
+<<<<<<< HEAD
             assert relative_boundary[i] in ribbon._boundary()
+=======
+            assert relative_boundary[i] in ribbon.boundary()
+
+>>>>>>> ç
         assert check_tat_property(ribbon, metric, relative_boundary) == True
         self._ribbon = ribbon
         self._metric = metric
@@ -272,21 +356,21 @@ class TatGraph(SageObject):
 
     def _repr_(self):
         r"""
-        Return basic information about the tete-a-tete graph in string
+        Return basic information about the t\^ete-\`a-t\^ete graph in string
         format.
 
         EXAMPLES:
 
-        Example of a relative tat graph::
+        Example of a relative t\^ete-\`a-t\^ete graph::
 
             sage: s0 = PermutationGroupElement('(1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18)')
             sage: r0 = PermutationGroupElement('(1,9)(2,11)(3,4)(5,14)(6,7)(8,17)(10,18)(12,13)(15,16)')
             sage: m0 = 6*[1/8,3/8,1/8]; 
             sage: perm_bound = [[1, 9, 7, 6, 4, 3], [10, 18, 16, 15, 13, 12]]
             sage: T0 = TatGraph(R0,m0,relative_boundary = perm_bound); T0
-            Relative tete-a-tete graph of order 6 on a ribbon graph of genus 1 and 3 boundary components; where 2 boundary components are permuted by the automorphism.
+            Relative t\^ete-\`a-t\^ete graph of order 6 on a ribbon graph of genus 1 and 3 boundary components; where 2 boundary components are part of the relative boundary and might be permuted by the automorphism induced.
 
-        Example of a pure tat graph::
+        Example of a pure t\^ete-\`a-t\^ete graph::
 
             sage: T23 = bipartite_tat_graph(2,3); T23
             Tete-a-tete graph of order 6 on a ribbon graph of genus 1 and 1 boundary components.
@@ -294,7 +378,7 @@ class TatGraph(SageObject):
         if not self._relative_boundary:
             return "Tete-a-tete graph of order {} on a ribbon graph of genus {} and {} boundary components.".format(self.order(), self._ribbon.genus(), self._ribbon.number_boundaries())
         else:
-            return "Relative tete-a-tete graph of order {} on a ribbon graph of genus {} and {} boundary components; where {} boundary components are permuted by the automorphism.".format(self.order(), self._ribbon.genus(), self._ribbon.number_boundaries(), len(self._relative_boundary))
+            return "Relative t\^ete-\`a-t\^ete graph of order {} on a ribbon graph of genus {} and {} boundary components; where {} boundary components are part of the relative boundary and might be permuted by the automorphism induced.".format(self.order(), self._ribbon.genus(), self._ribbon.number_boundaries(), len(self._relative_boundary))
 
     def sigma(self):
         r"""
@@ -342,7 +426,7 @@ class TatGraph(SageObject):
 
     def ribbon(self):
         r"""
-        Return the underlying ribbon graph of the tat graph ``self``.
+        Return the underlying ribbon graph of the t\^ete-\`a-t\^ete graph ``self``.
 
         EXAMPLES::
 
@@ -353,6 +437,7 @@ class TatGraph(SageObject):
         """
         return self._ribbon
 
+    @cached_method
     def rot_numbers(self):
         r"""
         Return a list containing the rotation numbers of the tat 
@@ -363,8 +448,8 @@ class TatGraph(SageObject):
         By definition, these are signed rational numbers formed by an 
         integer which tells how many times the safe walk winds around
         that boundary component plus a rational number in `[0,1)` that
-        tells the rotation of the tat automorphism around that boundary 
-        component. In the case of tat automorphisms, the rotation 
+        tells the rotation of the t\^ete-\`a-t\^ete automorphism around that boundary 
+        component. In the case of t\^ete-\`a-t\^ete automorphisms, the rotation 
         numbers are always positive.
 
         EXAMPLES:
@@ -399,8 +484,13 @@ class TatGraph(SageObject):
             sage: m0 = 6*[1/8,3/8,1/8]; 
             sage: perm_bound = [[1, 9, 7, 6, 4, 3], [10, 18, 16, 15, 13, 12]]
             sage: T0 = TatGraph(R0,m0,relative_boundary = perm_bound); T0
+<<<<<<< HEAD
             Relative tete-a-tete graph of order 6 on a ribbon graph of genus 1 and 3 boundary components; where 2 boundary components are permuted by the automorphism.
             sage: print T0._ribbon._boundary(); T0.rot_numbers()
+=======
+            Relative t\^ete-\`a-t\^ete graph of order 6 on a ribbon graph of genus 1 and 3 boundary components; where 2 boundary components are part of the relative boundary and might be permuted by the automorphism induced.
+            sage: print(T0._ribbon.boundary()); T0.rot_numbers()
+>>>>>>> ç
             [[1, 9, 7, 6, 4, 3], [2, 11, 12, 13, 14, 5, 6, 7, 8, 17, 18, 10, 11, 2, 3, 4, 5, 14, 15, 16, 17, 8, 9, 1], [10, 18, 16, 15, 13, 12]]
             [1/6]
         """
@@ -416,15 +506,21 @@ class TatGraph(SageObject):
 
     def action_homology(self):
         r"""
-        Return matrix representing the action of the tat automorphism 
+        Return matrix representing the action of the t\^ete-\`a-t\^ete automorphism 
         on the first homology group.
 
         OUTPUT:
 
         - Return a `self._mu() \times self._mu()` matrix that represents
+<<<<<<< HEAD
         the action of the tat automorphism on the first homology group
         with respect to the basis self._ribbon.homology_basis(). This 
         matrix has only `0`, `1` and `-1` as entries.
+=======
+          the action of the t\^ete-\`a-t\^ete automorphism on the first homology group
+          with respect to the basis self._ribbon.homology_basis(). This 
+          matrix has only `0`, `1` and `-1` as entries.
+>>>>>>> ç
 
         EXAMPLES::
 
@@ -514,11 +610,11 @@ class TatGraph(SageObject):
 
     def order(self):
         r"""
-        Return the order of the tat automorphism.
+        Return the order of the t\^ete-\`a-t\^ete automorphism.
 
         OUTPUT:
 
-        - A positive integer which is the order of the tat automorphism.
+        - A positive integer which is the order of the t\^ete-\`a-t\^ete automorphism.
 
         EXAMPLES::
 
@@ -535,15 +631,15 @@ class TatGraph(SageObject):
 
     def orbit_graph(self):
         r"""
-        Return the orbits of the tat automorphism together with a
+        Return the orbits of the t\^ete-\`a-t\^ete automorphism together with a
         ribbon graph which is the orbit of the ribbon graph
-        by the action of the tat automorphism.
+        by the action of the t\^ete-\`a-t\^ete automorphism.
 
         OUTPUT:
 
         - A pair consisting of a list called ``orbits`` where each
           instance is a list containing all the edges of an orbit of
-          the tat automorphism; and a ribbon graph called ``orbit_graph``
+          the t\^ete-\`a-t\^ete automorphism; and a ribbon graph called ``orbit_graph``
           which is the orbit space of the action induced by that tat
           automorphism. They satisfy that the dart ``k`` in orbit_graph
           corresponds to the orbit ``orbits[k-1]``. (Observe that the
@@ -558,10 +654,11 @@ class TatGraph(SageObject):
             Tete-a-tete graph of order 12 on a ribbon graph of genus 3 and 1 boundary components.
             sage: orb_vector, orb_graph  = T34.orbit_graph(); orb_vector; orb_graph; orb_graph.sigma(); orb_graph.rho();
             [[1, 10, 7, 4, 9, 6, 3, 12, 5, 2, 11, 8],
-            [15, 16, 20, 24, 13, 17, 21, 22, 14, 18, 19, 23]]
+             [13, 17, 21, 22, 14, 18, 19, 23, 15, 16, 20, 24]]
             Ribbon graph of genus 0 and 1 boundary components
             ()
             (1,2)
+     
 
         We see that in the previous example ``orb_graph.sigma()`` produces
         the empty permutation. This is because that permutation is formed by two
@@ -572,7 +669,7 @@ class TatGraph(SageObject):
             Tete-a-tete graph of order 12 on a ribbon graph of genus 3 and 1 boundary components.
             sage: orb_vector, orb_graph  = T34.orbit_graph(); orb_vector; orb_graph; orb_graph.sigma().cycle_tuples(singletons = 1); orb_graph.rho();
             [[1, 10, 7, 4, 9, 6, 3, 12, 5, 2, 11, 8],
-            [15, 16, 20, 24, 13, 17, 21, 22, 14, 18, 19, 23]]
+             [13, 17, 21, 22, 14, 18, 19, 23, 15, 16, 20, 24]]
             Ribbon graph of genus 0 and 1 boundary components
             [(1,), (2,)]
             (1,2)
@@ -582,11 +679,12 @@ class TatGraph(SageObject):
             sage: T33 = bipartite_tat_graph(3,3); T33
             Tete-a-tete graph of order 3 on a ribbon graph of genus 1 and 3 boundary components.
             sage: orb_vector, orb_graph = T33.orbit_graph(); orb_vector; orb_graph;
-            [[1, 8, 6], [12, 13, 17], [2, 9, 4], [15, 16, 11], [3, 7, 5], [18, 10, 14]]
+            [[1, 8, 6], [2, 9, 4], [3, 7, 5], [10, 14, 18], [11, 15, 16], [12, 13, 17]]
             Ribbon graph of genus 0 and 3 boundary components
             sage: BT33 = blow_up(T33, 0, 1/8)
             sage: orb_vector_blow, orb_graph_blow = BT33.orbit_graph(); orb_vector_blow; orb_graph_blow; orb_graph_blow.sigma(); orb_graph_blow.rho()
             [[1, 8, 6],
+<<<<<<< HEAD
             [12, 13, 17],
             [2, 9, 4],
             [15, 16, 11],
@@ -602,6 +700,22 @@ class TatGraph(SageObject):
             (1,9,7)(2,6,4)(3,11,10)(5,8,12)
             (1,2)(3,4)(5,6)(7,8)(9,10)(11,12)
 
+=======
+             [20, 28, 36],
+             [19, 27, 35],
+             [2, 9, 4],
+             [22, 30, 32],
+             [21, 29, 31],
+             [3, 7, 5],
+             [24, 26, 34],
+             [23, 25, 33],
+             [10, 14, 18],
+             [11, 15, 16],
+             [12, 13, 17]]
+            Ribbon graph of genus 0 and 4 boundary components
+            (1,2,3)(4,5,6)(7,8,9)(10,11,12)
+            (1,12)(2,6)(3,8)(4,11)(5,9)(7,10)
+>>>>>>> ç
             sage: edges = [[3*x+1,3*x+2,3*x+3] for x in range(28)]
             sage: edges += [[84+2*x+1, 84+2*x+2] for x in range(6)]; print edges
             [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12], [13, 14, 15], [16, 17, 18], [19, 20, 21], [22, 23, 24], [25, 26, 27], [28, 29, 30], [31, 32, 33], [34, 35, 36], [37, 38, 39], [40, 41, 42], [43, 44, 45], [46, 47, 48], [49, 50, 51], [52, 53, 54], [55, 56, 57], [58, 59, 60], [61, 62, 63], [64, 65, 66], [67, 68, 69], [70, 71, 72], [73, 74, 75], [76, 77, 78], [79, 80, 81], [82, 83, 84], [85, 86], [87, 88], [89, 90], [91, 92], [93, 94], [95, 96]]
@@ -616,31 +730,26 @@ class TatGraph(SageObject):
             sage: T_ex = TatGraph(R_ex, metric)
             sage: T_ex.orbit_graph()
             ([[1, 6, 9, 12, 2, 4, 7, 10, 3, 5, 8, 11],
-            [15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48],
-            [13, 16, 19, 22, 25, 28, 31, 34, 37, 40, 43, 46],
-            [52, 58, 64, 70, 76, 82, 49, 55, 61, 67, 73, 79],
-            [14, 17, 20, 23, 26, 29, 32, 35, 38, 41, 44, 47],
-            [83, 50, 56, 62, 68, 74, 80, 53, 59, 65, 71, 77],
-            [51, 57, 63, 69, 75, 81, 54, 60, 66, 72, 78, 84],
-            [86, 88, 90, 92, 94, 96, 85, 87, 89, 91, 93, 95]],
-            Ribbon graph of genus 0 and 2 boundary components)
-
+              [13, 16, 19, 22, 25, 28, 31, 34, 37, 40, 43, 46],
+              [14, 17, 20, 23, 26, 29, 32, 35, 38, 41, 44, 47],
+              [15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48],
+              [49, 55, 61, 67, 73, 79, 52, 58, 64, 70, 76, 82],
+              [50, 56, 62, 68, 74, 80, 53, 59, 65, 71, 77, 83],
+              [51, 57, 63, 69, 75, 81, 54, 60, 66, 72, 78, 84],
+              [85, 87, 89, 91, 93, 95, 86, 88, 90, 92, 94, 96]],
+             Ribbon graph of genus 0 and 2 boundary components)
         """
         aux_sigma = [list(x) for 
                      x in self._sigma.cycle_tuples(singletons = 1)]
         aux_rho = [list(x) for 
                    x in self._rho.cycle_tuples()]
-        edges = []
-
-        for i in range (len(aux_rho)):
-            edges.append(aux_rho[i][0])
-            edges.append(aux_rho[i][1])
+        darts = [x for i in range(len(aux_sigma)) for x in aux_sigma[i]]
 
         n = self.order()
         orbits = []
-        while (len(edges) > 0):
-            aux_edgeorbit = [edges[0]]
-            edges.remove(aux_edgeorbit[-1])
+        while (len(darts) > 0):
+            aux_edgeorbit = [darts[0]]
+            darts.remove(aux_edgeorbit[-1])
 
             for i in range (n - 1):
                 aux_edgeorbit.append(
@@ -650,7 +759,7 @@ class TatGraph(SageObject):
                                               relative_boundary = self._relative_boundary
                                              )
                                     )
-                edges.remove(aux_edgeorbit[-1])
+                darts.remove(aux_edgeorbit[-1])
 
             orbits.append(aux_edgeorbit)
 
@@ -728,10 +837,22 @@ def blow_up(tat_graph, vertex, epsilon):
     r"""
     Return the result of performing a blow up on the orbit of the ``vertex``
     of length ``epsilon``.
+    
+    More concretely, the operation consists in taking the orbit of the given
+    vertex performing a real blow up at each of these vertices while seeing
+    the graph embedded in the thickenened surface. The result is a relative
+    t\^ete-\`a-t\^ete graph whose relative part is the union of the previous relative
+    t\^ete-\`a-t\^ete part (if any) with the new boundary components created by the
+    blowing up (as many as vertices were in the orbit of ``vertex``. The epsilon
+    input is taken to produce the final metric in the followin way: from each
+    dart adjacent to the vertices in the orbit we substract a length of epsilon.
+    Each new edge introduced has a total length of 2 epsilon in order to preserve
+    the t\^ete-\`a-t\^ete property. For this reason, epsilon has to be strictly smaller
+    than the lengths of all the darts adjacent to a vertex of the orbit.
 
     INPUT:
 
-    - ``tat_graph`` -- a tete-a-tete graph or a relative tete-a-tete graph.
+    - ``tat_graph`` -- a t\^ete-\`a-t\^ete graph or a relative t\^ete-\`a-t\^ete graph.
     - ``vertex`` -- a positive integer from 0 to len(tat_graph.sigma())
       indicating one of the vertices where the blow up will be performed
       (observe that the blow up is performed on all the vertices in the
@@ -743,9 +864,10 @@ def blow_up(tat_graph, vertex, epsilon):
 
     OUTPUT:
 
-    - A relative tete-a-tete graph resulting from the blow-up of ``tat_graph``
+    - A relative t\^ete-\`a-t\^ete graph resulting from the blow-up of ``tat_graph``
       at the indicated vertex of the indicated length.
     """
+    
     #we intialize the vector that is going to save the orbit of the 
     #vertex.
     orb_vertex = []
@@ -765,6 +887,12 @@ def blow_up(tat_graph, vertex, epsilon):
         new_v = _find(aux_sigma,orb_vector[aux_pos[0]][i])[0]
         if new_v not in orb_vertex:
             orb_vertex.append(new_v)
+            
+    #check that the lengths of the darts adjacent to the vertices in the orbit
+    #are bigger than epsilon (it is enought to check one vertex of the orbit)
+    for i in range(len(aux_sigma[orb_vertex[0]])):
+        assert tat_graph._metric[aux_sigma[orb_vertex[0]][i]] > epsilon
+    
     
     #we hold in one variable the maximun of the darts
     darts = [x for i in range(len(aux_sigma)) for x in aux_sigma[i]]
