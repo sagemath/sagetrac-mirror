@@ -6,6 +6,8 @@ AUTHORS:
 - Martin Albrecht (2009-07): initial implementation
 
 - Kwankyu Lee (2010-06): added matrix term order support
+
+- Simon King (2019-01): more efficient refcounting for libsingular rings
 """
 #*****************************************************************************
 #       Copyright (C) 2009 Martin Albrecht <malb@informatik.uni-bremen.de>
@@ -429,7 +431,7 @@ cdef ring *singular_ring_reference(ring *existing_ring, int *refcount) except NU
         sage: from sage.libs.singular.groebner_strategy import GroebnerStrategy
         sage: from sage.libs.singular.ring import total_ring_reference_count
         sage: n = total_ring_reference_count()
-        sage: P = MPolynomialRing_libsingular(GF(541), 2, ('x', 'y'), TermOrder('degrevlex', 2))
+        sage: P = PolynomialRing(GF(541), names=('x', 'y'), order = TermOrder('degrevlex', 2))
         sage: total_ring_reference_count() - n
         4
 
@@ -442,12 +444,15 @@ cdef ring *singular_ring_reference(ring *existing_ring, int *refcount) except NU
         sage: total_ring_reference_count() - n
         4
 
-    Unfortunately, polynomial rings currently are in a strong cache::
+    By :trac:`13447`, there is no longer a strong cache for multivariate
+    polynomial rings. Thus, we obtain
+    ::
 
         sage: del P
         sage: _ = gc.collect()
         sage: total_ring_reference_count() - n
-        4
+        0
+
     """
     if existing_ring is NULL or refcount is NULL:
         raise ValueError('singular_ring_reference(ring*, int*) called with NULL pointer.')

@@ -38,6 +38,8 @@ The libSINGULAR interface was implemented by
 
 - Volker Braun (2011-06): Major cleanup, refcount singular rings, bugfixes.
 
+- Simon King (2019-01): Make libSINGULAR rings garbage collectable.
+
 .. TODO::
 
     Implement Real, Complex coefficient rings via libSINGULAR
@@ -262,7 +264,6 @@ from sage.misc.sage_eval import sage_eval
 cimport cypari2.gen
 from . import polynomial_element
 
-permstore=[]
 cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
 
     def __cinit__(self):
@@ -406,8 +407,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
         base_inject = PolynomialBaseringInjection(base_ring, self)
         self.register_coercion(base_inject)
-        #permanently store a reference to this ring until deallocation works reliably
-        permstore.append(self)
 
     def __dealloc__(self):
         r"""
@@ -457,19 +456,16 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             sage: total_ring_reference_count() == n + 4
             True
 
-        Unfortunately, polynomial rings currently are strongly cached. But
-        at least references from additionally created elements vanish when they
-        are deleted::
+        By :trac:`13447`, multivariate polynomial rings are no longer strongly
+        cached. Therefore we have
+        ::
 
             sage: Q = copy(R)   # indirect doctest
             sage: p = R.gen(0)^2+R.gen(1)^2
             sage: q = copy(p)
-            sage: del R
-            sage: del Q
-            sage: del p
-            sage: del q
+            sage: del R, Q, p, q
             sage: gc.collect() # random output
-            sage: total_ring_reference_count() == n + 4
+            sage: total_ring_reference_count() == n
             True
         """
         return self
