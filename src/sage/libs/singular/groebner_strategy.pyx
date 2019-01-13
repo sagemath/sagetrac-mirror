@@ -174,10 +174,6 @@ cdef class GroebnerStrategy(SageObject):
                 delete_skStrategy(self._strat)
         singular_ring_delete(self._parent_ring, self._parent_ring_ref)
 
-    def show_refs(self):
-        print <long>(self._parent_ring),"with",self._parent_ring_ref[0],"references"
-        print <long>(self._strat)
-
     def _repr_(self):
         """
         TESTS::
