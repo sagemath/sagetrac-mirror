@@ -90,20 +90,21 @@ def KneserGraph(n,k):
 
     EXAMPLES::
 
-        sage: KG=graphs.KneserGraph(5,2)
-        sage: print(KG.vertices())
-        [{4, 5}, {1, 3}, {2, 5}, {2, 3}, {3, 4}, {3, 5}, {1, 4}, {1, 5}, {1, 2}, {2, 4}]
-        sage: P=graphs.PetersenGraph()
+        sage: KG = graphs.KneserGraph(5,2)
+        sage: sorted(KG.vertex_iterator(), key=str)
+        [{1, 2}, {1, 3}, {1, 4}, {1, 5}, {2, 3}, {2, 4}, {2, 5},
+         {3, 4}, {3, 5}, {4, 5}]
+        sage: P = graphs.PetersenGraph()
         sage: P.is_isomorphic(KG)
         True
 
     TESTS::
 
-        sage: KG=graphs.KneserGraph(0,0)
+        sage: KG = graphs.KneserGraph(0,0)
         Traceback (most recent call last):
         ...
         ValueError: Parameter n should be a strictly positive integer
-        sage: KG=graphs.KneserGraph(5,6)
+        sage: KG = graphs.KneserGraph(5,6)
         Traceback (most recent call last):
         ...
         ValueError: Parameter k should be a strictly positive integer inferior to n
@@ -2076,16 +2077,17 @@ def OddGraph(n):
 
     EXAMPLES::
 
-        sage: OG=graphs.OddGraph(3)
-        sage: print(OG.vertices())
-        [{4, 5}, {1, 3}, {2, 5}, {2, 3}, {3, 4}, {3, 5}, {1, 4}, {1, 5}, {1, 2}, {2, 4}]
-        sage: P=graphs.PetersenGraph()
+        sage: OG = graphs.OddGraph(3)
+        sage: sorted(OG.vertex_iterator(), key=str)
+        [{1, 2}, {1, 3}, {1, 4}, {1, 5}, {2, 3}, {2, 4}, {2, 5},
+         {3, 4}, {3, 5}, {4, 5}]
+        sage: P = graphs.PetersenGraph()
         sage: P.is_isomorphic(OG)
         True
 
     TESTS::
 
-        sage: KG=graphs.OddGraph(1)
+        sage: KG = graphs.OddGraph(1)
         Traceback (most recent call last):
         ...
         ValueError: Parameter n should be an integer strictly greater than 1
@@ -3175,15 +3177,16 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         sage: ff = list(map(lambda y: (y[0]-1,y[1]-1),
         ....:          Permutation(map(lambda x: 1+r.index(x^-1), r)).cycle_tuples()[1:]))
         sage: L = sum(i*(r[a]-r[b]) for i,(a,b) in zip(range(1,len(ff)+1), ff)); L
-        [ 0 -1  1 -2 -3 -4  2  4  3]
-        [ 1  0 -1 -4 -2 -3  3  2  4]
-        [-1  1  0 -3 -4 -2  4  3  2]
-        [ 2  4  3  0 -1  1 -2 -3 -4]
-        [ 3  2  4  1  0 -1 -4 -2 -3]
-        [ 4  3  2 -1  1  0 -3 -4 -2]
-        [-2 -3 -4  2  4  3  0 -1  1]
-        [-4 -2 -3  3  2  4  1  0 -1]
-        [-3 -4 -2  4  3  2 -1  1  0]
+        [ 0  1 -1 -3 -2 -4  3  4  2]
+        [-1  0  1 -4 -3 -2  2  3  4]
+        [ 1 -1  0 -2 -4 -3  4  2  3]
+        [ 3  4  2  0  1 -1 -3 -2 -4]
+        [ 2  3  4 -1  0  1 -4 -3 -2]
+        [ 4  2  3  1 -1  0 -2 -4 -3]
+        [-3 -2 -4  3  4  2  0  1 -1]
+        [-4 -3 -2  2  3  4 -1  0  1]
+        [-2 -4 -3  4  2  3  1 -1  0]
+
         sage: G.relabel()
         sage: G3x3=graphs.MathonPseudocyclicStronglyRegularGraph(2,G=G,L=L)
         sage: G3x3.is_strongly_regular(parameters=True)
