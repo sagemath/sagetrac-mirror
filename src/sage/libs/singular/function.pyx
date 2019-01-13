@@ -113,7 +113,6 @@ from sage.misc.misc import get_verbose
 
 from sage.structure.sequence import Sequence, Sequence_generic
 from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence, PolynomialSequence_generic
-from sage.libs.singular.ring cimport wrap_ring
 
 from cysignals.memory cimport sig_calloc
 

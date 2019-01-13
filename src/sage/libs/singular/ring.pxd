@@ -60,6 +60,3 @@ cdef ring *singular_ring_reference(ring *existing_ring, int *refcount) except NU
 # carefully delete a ring once its refcount is zero, in that case
 # also deallocating refcount
 cdef int singular_ring_delete(ring *doomed, int *refcount) except 1
-
-# Used internally for reference counting
-cdef wrap_ring(ring* R)

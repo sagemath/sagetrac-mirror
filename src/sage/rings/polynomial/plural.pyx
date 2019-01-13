@@ -112,7 +112,7 @@ from sage.cpython.string cimport char_to_str
 
 # singular rings
 
-from sage.libs.singular.ring cimport singular_ring_delete, wrap_ring, singular_ring_reference
+from sage.libs.singular.ring cimport singular_ring_delete, singular_ring_reference
 
 from sage.libs.singular.singular cimport si2sa, sa2si, overflow_check
 
@@ -2810,10 +2810,10 @@ cpdef MPolynomialRing_libsingular new_CRing(RingWrap rw, base_ring):
     Check that :trac:`13145` has been resolved::
 
         sage: h = hash(R.gen() + 1) # sets currRing
-        sage: from sage.libs.singular.ring import ring_refcount_dict, currRing_wrapper
-        sage: curcnt = ring_refcount_dict[currRing_wrapper()]
+        sage: from sage.libs.singular.ring import total_ring_reference_count
+        sage: curcnt = total_ring_reference_count()
         sage: newR = new_CRing(W, H.base_ring())
-        sage: ring_refcount_dict[currRing_wrapper()] - curcnt
+        sage: total_ring_reference_count() - curcnt
         1
     """
     assert( rw.is_commutative() )

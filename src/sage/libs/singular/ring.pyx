@@ -364,14 +364,9 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     if (_ring is NULL):
         raise ValueError("Failed to allocate Singular ring.")
 
-    _ring.ShortOut = 0
+#~     _ring.ShortOut = 0
 
     rChangeCurrRing(_ring)
-
-    wrapped_ring = wrap_ring(_ring)
-    if wrapped_ring in ring_refcount_dict:
-        raise ValueError('newly created ring already in dictionary??')
-    ring_refcount_dict[wrapped_ring] = 0
 
     rComplete(_ring, 1)
 
@@ -385,140 +380,29 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     return _ring
 
 #############################################################################
-ring_refcount_dict = defaultdict(int)
 
+cdef int ring_reference_count = 0
 
-cdef class ring_wrapper_Py(object):
-    r"""
-    Python object wrapping the ring pointer.
+def total_ring_reference_count():
+    """
+    Return the total number of all references to libsingular rings.
 
-    This is useful to store ring pointers in Python containers.
-
-    You must not construct instances of this class yourself, use
-    :func:`wrap_ring` instead.
+    This is for testing and debugging only.
 
     EXAMPLES::
 
-        sage: from sage.libs.singular.ring import ring_wrapper_Py
-        sage: ring_wrapper_Py
-        <type 'sage.libs.singular.ring.ring_wrapper_Py'>
+        sage: from sage.libs.singular.ring import total_ring_reference_count
+        sage: R.<x,y,z> = QQ[]
+        sage: n = total_ring_reference_count()
+        sage: t = x+y^2-z
+        sage: total_ring_reference_count() - n
+        1
+        sage: del t
+        sage: total_ring_reference_count() - n
+        0
+
     """
-
-    cdef ring* _ring
-
-    def __cinit__(self):
-        """
-        The Cython constructor.
-
-        EXAMPLES::
-
-            sage: from sage.libs.singular.ring import ring_wrapper_Py
-            sage: t = ring_wrapper_Py(); t
-            The ring pointer 0x0
-
-        These are just wrappers around a pointer, so it isn't really meaningful
-        to pickle them::
-
-            sage: TestSuite(t).run(skip='_test_pickling')
-        """
-        self._ring = NULL
-
-    def __hash__(self):
-        """
-        Return a hash value so that instances can be used as dictionary keys.
-
-        OUTPUT:
-
-        Integer.
-
-        EXAMPLES::
-
-            sage: from sage.libs.singular.ring import ring_wrapper_Py
-            sage: t = ring_wrapper_Py()
-            sage: t.__hash__()
-            0
-        """
-        return <long>(self._ring)
-
-    def __repr__(self):
-        """
-        Return a string representation.
-
-        OUTPUT:
-
-        String.
-
-        EXAMPLES::
-
-            sage: from sage.libs.singular.ring import ring_wrapper_Py
-            sage: t = ring_wrapper_Py()
-            sage: t
-            The ring pointer 0x0
-            sage: t.__repr__()
-            'The ring pointer 0x0'
-        """
-        return 'The ring pointer '+hex(self.__hash__())
-
-    # This could be written using __eq__ but that does not work
-    # due to https://github.com/cython/cython/issues/2019
-    def __richcmp__(ring_wrapper_Py self, other, int op):
-        """
-        Equality comparison between two ``ring_wrapper_Py`` instances,
-        for use when hashing.
-
-        INPUT:
-
-        - ``right`` -- a :class:`ring_wrapper_Py`
-
-        OUTPUT:
-
-        True if both ``ring_wrapper_Py`` wrap the same pointer.
-
-        EXAMPLES::
-
-            sage: from sage.libs.singular.ring import (ring_wrapper_Py,
-            ....:     currRing_wrapper)
-            sage: t = ring_wrapper_Py()
-            sage: t == t
-            True
-            sage: P.<x,y,z> = QQ[]
-            sage: t2 = currRing_wrapper()
-            sage: t3 = currRing_wrapper()
-            sage: t == t2
-            False
-            sage: t2 == t3
-            True
-            sage: t2 != t3
-            False
-            sage: t2 == None
-            False
-        """
-        if not (op == Py_EQ or op == Py_NE):
-            return NotImplemented
-
-        if type(other) is not ring_wrapper_Py:
-            return op != Py_EQ
-
-        r = <ring_wrapper_Py>other
-        return (self._ring == r._ring) == (op == Py_EQ)
-
-
-cdef wrap_ring(ring* R):
-    """
-    Wrap a C ring pointer into a Python object.
-
-    INPUT:
-
-    - ``R`` -- a singular ring (a C datastructure).
-
-    OUTPUT:
-
-    A Python object :class:`ring_wrapper_Py` wrapping the C pointer.
-    """
-    cdef ring_wrapper_Py W = ring_wrapper_Py()
-    W._ring = R
-    return W
-
+    return ring_reference_count
 
 cdef ring *singular_ring_reference(ring *existing_ring, int *refcount) except NULL:
     """
@@ -543,37 +427,34 @@ cdef ring *singular_ring_reference(ring *existing_ring, int *refcount) except NU
         sage: _ = gc.collect()
         sage: from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
         sage: from sage.libs.singular.groebner_strategy import GroebnerStrategy
-        sage: from sage.libs.singular.ring import ring_refcount_dict
-        sage: n = len(ring_refcount_dict)
-        sage: prev_rings = set(ring_refcount_dict)
+        sage: from sage.libs.singular.ring import total_ring_reference_count
+        sage: n = total_ring_reference_count()
         sage: P = MPolynomialRing_libsingular(GF(541), 2, ('x', 'y'), TermOrder('degrevlex', 2))
-        sage: ring_ptr = set(ring_refcount_dict).difference(prev_rings).pop()
-        sage: ring_ptr  # random output
-        The ring pointer 0x7f78a646b8d0
-        sage: ring_refcount_dict[ring_ptr]
+        sage: total_ring_reference_count() - n
         4
 
         sage: strat = GroebnerStrategy(Ideal([P.gen(0) + P.gen(1)]))
-        sage: ring_refcount_dict[ring_ptr]
+        sage: total_ring_reference_count() - n
         6
 
         sage: del strat
         sage: _ = gc.collect()
-        sage: ring_refcount_dict[ring_ptr]
+        sage: total_ring_reference_count() - n
         4
+
+    Unfortunately, polynomial rings currently are in a strong cache::
 
         sage: del P
         sage: _ = gc.collect()
-        sage: ring_ptr in ring_refcount_dict
-        True
+        sage: total_ring_reference_count() - n
+        4
     """
     if existing_ring is NULL or refcount is NULL:
         raise ValueError('singular_ring_reference(ring*, int*) called with NULL pointer.')
 
-    cdef object r = wrap_ring(existing_ring)
-    ring_refcount_dict[r] += 1
     refcount[0] += 1
-    assert ring_refcount_dict[r] == refcount[0], "New reference: Expected %d for %d, got %d"%(ring_refcount_dict[r], <long>existing_ring, refcount[0])
+    global ring_reference_count
+    ring_reference_count += 1
     existing_ring.ref = refcount[0]  # Some singular functions mess with .ref, so, we force to keep it in sync
     return existing_ring
 
@@ -610,23 +491,14 @@ cdef int singular_ring_delete(ring *doomed, int *refcount) except 1:
         # This is analogous to the libc function free().
         return 0
 
-    if not ring_refcount_dict:  # arbitrary finalization order when we shut Sage down
-        return 0
-
-    cdef ring_wrapper_Py r = wrap_ring(doomed)
-    assert ring_refcount_dict.has_key(r), "Ringwrap for %d has not been tracked"%(<long>doomed)
-    ring_refcount_dict[r] -= 1
     refcount[0] -= 1
-#~     ring_refcount_dict[name, <long>doomed] -= 1
-    assert ring_refcount_dict[r] == refcount[0], "Delete reference: Expected %d for %d, got %d"%(ring_refcount_dict[r],<long>doomed,refcount[0])
+    global ring_reference_count
+    ring_reference_count -= 1
     doomed.ref = refcount[0]  # Some singular functions mess with .ref, so, we force to keep it in sync
-    if refcount[0]: # this includes the case that we try to delete a ring twice, i.e., "less than no reference"
+    if doomed.ref:
         return 0
 
-    del ring_refcount_dict[r]
-    doomed.ref = 0  # force Singular to delete
     sig_free(refcount)
-
     global currRing
     cdef ring *oldRing = currRing
     if currRing == doomed:
@@ -691,16 +563,3 @@ cpdef print_currRing():
     """
     cdef size_t addr = <size_t>currRing
     print("DEBUG: currRing == " + str(hex(addr)))
-
-
-def currRing_wrapper():
-    """
-    Returns a wrapper for the current ring, for use in debugging ring_refcount_dict.
-
-    EXAMPLES::
-
-        sage: from sage.libs.singular.ring import currRing_wrapper
-        sage: currRing_wrapper()
-        The ring pointer ...
-    """
-    return wrap_ring(currRing)

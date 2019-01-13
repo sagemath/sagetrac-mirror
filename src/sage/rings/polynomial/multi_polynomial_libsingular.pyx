@@ -213,7 +213,7 @@ from sage.libs.singular.polynomial cimport (
     singular_polynomial_length_bounded, singular_polynomial_subst )
 
 # singular rings
-from sage.libs.singular.ring cimport singular_ring_new, singular_ring_reference, singular_ring_delete, wrap_ring
+from sage.libs.singular.ring cimport singular_ring_new, singular_ring_reference, singular_ring_delete
 
 # polynomial imports
 from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict, MPolynomialRing_polydict_domain
@@ -446,23 +446,31 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
 
             sage: import gc
             sage: from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
-            sage: from sage.libs.singular.ring import ring_refcount_dict
+            sage: from sage.libs.singular.ring import total_ring_reference_count
             sage: gc.collect()  # random output
-            sage: n = len(ring_refcount_dict)
+            sage: n = total_ring_reference_count()
             sage: R = MPolynomialRing_libsingular(GF(547), 2, ('x', 'y'), TermOrder('degrevlex', 2))
-            sage: len(ring_refcount_dict) == n + 1
+
+        We have references to the underlying libsingular ring from `R`, from its two
+        generators and from the zero and one elements of `R`. Therefore::
+
+            sage: total_ring_reference_count() == n + 4
             True
 
+        Unfortunately, polynomial rings currently are strongly cached. But
+        at least references from additionally created elements vanish when they
+        are deleted::
+
             sage: Q = copy(R)   # indirect doctest
-            sage: p = R.gen(0) ^2+R.gen(1)^2
+            sage: p = R.gen(0)^2+R.gen(1)^2
             sage: q = copy(p)
             sage: del R
             sage: del Q
             sage: del p
             sage: del q
             sage: gc.collect() # random output
-            sage: len(ring_refcount_dict) == n
-            False
+            sage: total_ring_reference_count() == n + 4
+            True
         """
         return self
 
