@@ -563,8 +563,14 @@ def PolynomialRing(base_ring, *args, **kwds):
         True
 
 
-    .. todo:: The following still leaks, likely because of strong refs in the coercion system::
+    .. TODO::
 
+        The following still leaks, likely because of strong refs in the coercion system.
+
+    ::
+
+        sage: from sage.libs.singular.ring import total_ring_reference_count
+        sage: n = total_ring_reference_count()
         sage: P.<x,y,z> = GF(19)[]
         sage: p = 2*x^3+x*y*z-z^2*x^2
         sage: del P,x,y,z,p
