@@ -831,7 +831,6 @@ cdef class Converter(SageObject):
         Append the ring ``r`` to the list.
         """
         cdef ring *_r =  access_singular_ring(r)
-#~         _r.ref+=1
         return self._append(<void *>_r, RING_CMD)
 
     cdef leftv *append_matrix(self, mat) except NULL:
@@ -1063,21 +1062,14 @@ cdef class LibraryCallHandler(BaseCallHandler):
 
     cdef leftv* handle_call(self, Converter argument_list, ring *_ring=NULL):
         if _ring != currRing: rChangeCurrRing(_ring)
-        cdef bint error
         cdef leftv * res
-        cdef int oldref = 0
-        try:
-            error = iiMake_proc(self.proc_idhdl, NULL, argument_list.args)
-            if not error:
-                res = <leftv*> omAllocBin(sleftv_bin)
-                res.Init()
-                res.Copy(&iiRETURNEXPR)
-                iiRETURNEXPR.Init()
-                return res
-            raise RuntimeError("Error raised calling singular function")
-        finally:
-            if _ring:
-                 _ring.ref = oldref
+        if not iiMake_proc(self.proc_idhdl, NULL, argument_list.args):
+            res = <leftv*> omAllocBin(sleftv_bin)
+            res.Init()
+            res.Copy(&iiRETURNEXPR)
+            iiRETURNEXPR.Init()
+            return res
+        raise RuntimeError("Error raised calling singular function")
 
     cdef bint free_res(self):
         """
@@ -1117,60 +1109,54 @@ cdef class KernelCallHandler(BaseCallHandler):
         cdef leftv *arg1
         cdef leftv *arg2
         cdef leftv *arg3
-        cdef int oldref = 0
-        if _ring:
-            oldref = _ring.ref
 
         cdef Py_ssize_t number_of_arguments = len(argument_list)
-        try:
-            # Handle functions with an arbitrary number of arguments, sent
-            # by an argument list.
-            if self.arity in [CMD_M, ROOT_DECL_LIST, RING_DECL_LIST]:
+
+        # Handle functions with an arbitrary number of arguments, sent
+        # by an argument list.
+        if self.arity in [CMD_M, ROOT_DECL_LIST, RING_DECL_LIST]:
+            if _ring != currRing: rChangeCurrRing(_ring)
+            iiExprArithM(res, argument_list.args, self.cmd_n)
+            return res
+
+        if number_of_arguments == 1:
+            if self.arity in [CMD_1, CMD_12, CMD_13, CMD_123, RING_CMD]:
+                arg1 = argument_list.pop_front()
                 if _ring != currRing: rChangeCurrRing(_ring)
-                iiExprArithM(res, argument_list.args, self.cmd_n)
+                iiExprArith1(res, arg1, self.cmd_n)
+                free_leftv(arg1, _ring)
                 return res
 
-            if number_of_arguments == 1:
-                if self.arity in [CMD_1, CMD_12, CMD_13, CMD_123, RING_CMD]:
-                    arg1 = argument_list.pop_front()
-                    if _ring != currRing: rChangeCurrRing(_ring)
-                    iiExprArith1(res, arg1, self.cmd_n)
-                    free_leftv(arg1, _ring)
-                    return res
+        elif number_of_arguments == 2:
+            if self.arity in [CMD_2, CMD_12, CMD_23, CMD_123]:
+                arg1 = argument_list.pop_front()
+                arg2 = argument_list.pop_front()
+                if _ring != currRing: rChangeCurrRing(_ring)
+                iiExprArith2(res, arg1, self.cmd_n, arg2, True)
+                free_leftv(arg1, _ring)
+                free_leftv(arg2, _ring)
+                return res
 
-            elif number_of_arguments == 2:
-                if self.arity in [CMD_2, CMD_12, CMD_23, CMD_123]:
-                    arg1 = argument_list.pop_front()
-                    arg2 = argument_list.pop_front()
-                    if _ring != currRing: rChangeCurrRing(_ring)
-                    iiExprArith2(res, arg1, self.cmd_n, arg2, True)
-                    free_leftv(arg1, _ring)
-                    free_leftv(arg2, _ring)
-                    return res
+        elif number_of_arguments == 3:
+            if self.arity in [CMD_3, CMD_13, CMD_23, CMD_123, RING_CMD]:
+                arg1 = argument_list.pop_front()
+                arg2 = argument_list.pop_front()
+                arg3 = argument_list.pop_front()
+                if _ring != currRing: rChangeCurrRing(_ring)
+                iiExprArith3(res, self.cmd_n, arg1, arg2, arg3)
+                free_leftv(arg1, _ring)
+                free_leftv(arg2, _ring)
+                free_leftv(arg3, _ring)
+                return res
 
-            elif number_of_arguments == 3:
-                if self.arity in [CMD_3, CMD_13, CMD_23, CMD_123, RING_CMD]:
-                    arg1 = argument_list.pop_front()
-                    arg2 = argument_list.pop_front()
-                    arg3 = argument_list.pop_front()
-                    if _ring != currRing: rChangeCurrRing(_ring)
-                    iiExprArith3(res, self.cmd_n, arg1, arg2, arg3)
-                    free_leftv(arg1, _ring)
-                    free_leftv(arg2, _ring)
-                    free_leftv(arg3, _ring)
-                    return res
+        global errorreported
+        global error_messages
 
-            global errorreported
-            global error_messages
-
-            errorreported += 1
-            error_messages.append(
-                    "Wrong number of arguments (got {} arguments, arity code is {})"
-                    .format(number_of_arguments, self.arity))
-            return NULL
-        finally:
-            if _ring:
-                _ring.ref = oldref
+        errorreported += 1
+        error_messages.append(
+                "Wrong number of arguments (got {} arguments, arity code is {})"
+                .format(number_of_arguments, self.arity))
+        return NULL
 
     cdef bint free_res(self):
         """
@@ -1210,6 +1196,8 @@ cdef class SingularFunction(SageObject):
                     currRingHdl.data.uring = currRing
                 else:
                     currRingHdl.data.uring = <ring *>omAlloc0Bin(sip_sring_bin)
+                    # deletion would result in a segfault, thus, we
+                    # prevent it from deletion:
                     currRingHdl.data.uring.ref += 1
 #~                 singular_ring_reference(currRing, ...) ?
 
@@ -1503,13 +1491,6 @@ cdef inline call_function(SingularFunction self, tuple args, object R, bint sign
     global error_messages
 
     cdef ring *si_ring
-    # ring.ref is supposed to be used by the Singular interpreter
-    # to count ring references. Here, Sage takes the role of the
-    # Singular interpreter and thus should be responsible to set
-    # the ring.ref slot. Unfortunately, *some* functions in libsingular
-    # change that slot. Therefore we store its current value and restore
-    # it after calling the libsingular function.
-    cdef int si_oldref, oldref
     if isinstance(R, MPolynomialRing_libsingular):
         si_ring = (<MPolynomialRing_libsingular>R)._ring
     else:
@@ -1522,7 +1503,6 @@ cdef inline call_function(SingularFunction self, tuple args, object R, bint sign
 #~         currRingHdl.data.uring = singular_ring_reference(currRing, ...) ?
         currRingHdl.data.uring = currRing
 
-    si_oldref = si_ring.ref
     cdef Converter argument_list = Converter(args, R, attributes)
 
     cdef leftv * _res
@@ -1554,18 +1534,12 @@ cdef inline call_function(SingularFunction self, tuple args, object R, bint sign
             (self._name, "\n".join(error_messages)))
 
     res = argument_list.to_python(_res)
-    if isinstance(res, RingWrap):
-        oldref = (<RingWrap>res)._ring.ref
-#~         (<RingWrap>res)._ring.ref += 1
 
     if self.call_handler.free_res():
         free_leftv(_res, si_ring)
     else:
         _res.CleanUp(si_ring)
 
-    if isinstance(res, RingWrap):
-        (<RingWrap>res)._ring.ref = oldref
-    si_ring.ref = si_oldref
     return res
 
 cdef class SingularLibraryFunction(SingularFunction):
