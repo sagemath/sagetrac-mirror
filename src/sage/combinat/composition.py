@@ -1379,13 +1379,13 @@ class Compositions(UniqueRepresentation, Parent):
     If `n` is not specified, this returns the combinatorial class of
     all (non-negative) integer compositions::
 
-        sage: _Compositions
+        sage: Compositions()
         Compositions of non-negative integers
-        sage: [] in _Compositions
+        sage: [] in Compositions()
         True
-        sage: [2,3,1] in _Compositions
+        sage: [2,3,1] in Compositions()
         True
-        sage: [-2,3,1] in _Compositions
+        sage: [-2,3,1] in Compositions()
         False
 
     If `n` is specified, it returns the class of compositions of `n`::
@@ -1400,7 +1400,7 @@ class Compositions(UniqueRepresentation, Parent):
     The following examples show how to test whether or not an object
     is a composition::
 
-        sage: [3,4] in _Compositions
+        sage: [3,4] in Compositions()
         True
         sage: [3,4] in Compositions(7)
         True
@@ -1626,7 +1626,7 @@ class Compositions(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: C = _Compositions
+            sage: C = Compositions()
             sage: TestSuite(C).run()
         """
         if is_infinite:
@@ -1642,7 +1642,7 @@ class Compositions(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: P = _Compositions
+            sage: P = Compositions()
             sage: P([3,3,1]) # indirect doctest
             [3, 3, 1]
         """
@@ -1657,13 +1657,13 @@ class Compositions(UniqueRepresentation, Parent):
         """
         TESTS::
 
-            sage: [2,1,3] in _Compositions
+            sage: [2,1,3] in Compositions()
             True
-            sage: [] in _Compositions
+            sage: [] in Compositions()
             True
-            sage: [-2,-1] in _Compositions
+            sage: [-2,-1] in Compositions()
             False
-            sage: [0,0] in _Compositions
+            sage: [0,0] in Compositions()
             True
         """
         if isinstance(x, Composition):
@@ -1699,9 +1699,9 @@ class Compositions(UniqueRepresentation, Parent):
 
             sage: [x-1 for x in Composition([1, 1, 3, 4, 3]).to_subset()]
             [0, 1, 4, 8]
-            sage: _Compositions.from_descents([1,0,4,8],12)
+            sage: Compositions().from_descents([1,0,4,8],12)
             [1, 1, 3, 4, 3]
-            sage: _Compositions.from_descents([1,0,4,8,11])
+            sage: Compositions().from_descents([1,0,4,8,11])
             [1, 1, 3, 4, 3]
         """
         d = [x+1 for x in sorted(descents)]
@@ -1725,19 +1725,19 @@ class Compositions(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: _Compositions.from_subset([2,1,5,9], 12)
+            sage: Compositions().from_subset([2,1,5,9], 12)
             [1, 1, 3, 4, 3]
-            sage: _Compositions.from_subset({2,1,5,9}, 12)
+            sage: Compositions().from_subset({2,1,5,9}, 12)
             [1, 1, 3, 4, 3]
 
-            sage: _Compositions.from_subset([], 12)
+            sage: Compositions().from_subset([], 12)
             [12]
-            sage: _Compositions.from_subset([], 0)
+            sage: Compositions().from_subset([], 0)
             []
 
         TESTS::
 
-            sage: _Compositions.from_subset([2,1,5,9],9)
+            sage: Compositions().from_subset([2,1,5,9],9)
             Traceback (most recent call last):
             ...
             ValueError: S (=[1, 2, 5, 9]) is not a subset of {1, ..., 8}
@@ -1773,11 +1773,11 @@ class Compositions(UniqueRepresentation, Parent):
 
             sage: Composition([4,1,2,3,5]).to_code()
             [1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
-            sage: _Compositions.from_code(_)
+            sage: Compositions().from_code(_)
             [4, 1, 2, 3, 5]
             sage: Composition([3,1,2,3,5]).to_code()
             [1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
-            sage: _Compositions.from_code(_)
+            sage: Compositions().from_code(_)
             [3, 1, 2, 3, 5]
         """
         if code == [0]:
@@ -1819,7 +1819,7 @@ class Compositions_all(Compositions):
 
         TESTS::
 
-            sage: C = _Compositions
+            sage: C = Compositions()
             sage: TestSuite(C).run()
         """
         Compositions.__init__(self, True)
@@ -1830,7 +1830,7 @@ class Compositions_all(Compositions):
 
         TESTS::
 
-            sage: repr(_Compositions)
+            sage: repr(Compositions())
             'Compositions of non-negative integers'
         """
         return "Compositions of non-negative integers"
@@ -1841,7 +1841,7 @@ class Compositions_all(Compositions):
 
         EXAMPLES::
 
-            sage: C = _Compositions
+            sage: C = Compositions()
             sage: C.subset(4)
             Compositions of 4
             sage: C.subset(size=3)
@@ -1857,7 +1857,7 @@ class Compositions_all(Compositions):
 
         TESTS::
 
-            sage: C = _Compositions
+            sage: C = Compositions()
             sage: it = C.__iter__()
             sage: [next(it) for i in range(10)]
             [[], [1], [1, 1], [2], [1, 1, 1], [1, 2], [2, 1], [3], [1, 1, 1, 1], [1, 1, 2]]
