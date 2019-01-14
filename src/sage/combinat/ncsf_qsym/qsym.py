@@ -37,7 +37,7 @@ REFERENCES:
 .. [HLNT09] \F. Hivert, J.-G. Luque, J.-C. Novelli, J.-Y. Thibon,
    *The (1-E)-transform in combinatorial Hopf algebras*.
    :arxiv:`math/0912.0184v2`
-   
+
 .. [LMvW13] Kurt Luoto, Stefan Mykytiuk and Stephanie van Willigenburg,
    *An introduction to quasisymmetric Schur functions -- Hopf algebras,
    quasisymmetric functions, and Young composition tableaux*,
@@ -88,15 +88,16 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
 from sage.combinat.permutation import Permutations
-from sage.combinat.composition import Composition, Compositions
+from sage.combinat.composition import Composition, Compositions, _Compositions
 from sage.combinat.partition import Partitions, _Partitions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.ncsf_qsym.generic_basis_code import BasesOfQSymOrNCSF
-from sage.combinat.ncsf_qsym.combinatorics import (number_of_fCT, number_of_SSRCT, 
+from sage.combinat.ncsf_qsym.combinatorics import (number_of_fCT, number_of_SSRCT,
                    compositions_order, coeff_pi, coeff_lp, coeff_sp, coeff_ell)
 from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
 from sage.combinat.words.word import Word
+from sage.combinat.tableau import StandardTableaux
 from sage.misc.cachefunc import cached_method
 
 
@@ -592,6 +593,11 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         Sym_m_to_M.register_as_coercion()
         self.to_symmetric_function = Sym_m_to_M.section()
 
+        Sym_s_to_F = Sym.s().module_morphism(Fundamental._from_schur_on_basis,
+                                             unitriangular='upper',
+                                             codomain=Fundamental, category=category)
+        Sym_s_to_F.register_as_coercion()
+
     def _repr_(self):
         r"""
         EXAMPLES::
@@ -689,7 +695,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         exponent_coefficient = f.dict()
         z = {}
         for (e, c) in six.iteritems(exponent_coefficient):
-            I = Compositions()([ei for ei in e if ei > 0])
+            I = _Compositions([ei for ei in e if ei > 0])
             if I not in z:
                 z[I] = c
         out = self.Monomial()._from_dict(z)
@@ -1693,7 +1699,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 Quasisymmetric functions over the Rational Field in the Monomial basis
                 sage: TestSuite(M).run()
             """
-            CombinatorialFreeModule.__init__(self, QSym.base_ring(), Compositions(),
+            CombinatorialFreeModule.__init__(self, QSym.base_ring(), _Compositions,
                                              prefix='M', bracket=False,
                                              category=QSym.Bases())
 
@@ -2177,9 +2183,37 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 Quasisymmetric functions over the Rational Field in the Fundamental basis
                 sage: TestSuite(F).run()
             """
-            CombinatorialFreeModule.__init__(self, QSym.base_ring(), Compositions(),
+            CombinatorialFreeModule.__init__(self, QSym.base_ring(), _Compositions,
                                              prefix='F', bracket=False,
                                              category=QSym.Bases())
+
+
+        def _from_schur_on_basis(self, la):
+            r"""
+            Maps the Schur symmetric function indexed by ``la`` to the
+            Fundamental basis.
+
+            EXAMPLES::
+
+                sage: s = SymmetricFunctions(QQ).schur()
+                sage: F = QuasiSymmetricFunctions(QQ).Fundamental()
+                sage: F(s[2,2]-s[3,1])                                          # indirect doctest
+                F[1, 2, 1] - F[1, 3] - F[3, 1]
+
+                sage: F._from_schur_on_basis(Partition([]))
+                F[]
+
+                sage: F._from_schur_on_basis(Partition([2,2,2]))
+                F[1, 1, 2, 1, 1] + F[1, 2, 1, 2] + F[1, 2, 2, 1] + F[2, 1, 2, 1] + F[2, 2, 2]
+            """
+            C = _Compositions
+            res = 0
+            n = la.size()
+            for T in StandardTableaux(la):
+                des = T.standard_descents()
+                comp = C.from_descents([d-1 for d in des], n)
+                res += self.monomial(comp)
+            return res
 
         def dual(self):
             r"""
@@ -2389,7 +2423,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 # Converting to a composition
                 d = [-1] + dex + [n-1]
-                monomials.append(Compositions()( [d[i+1]-d[i] for i in range(len(d)-1)] ))
+                monomials.append(_Compositions( [d[i+1]-d[i] for i in range(len(d)-1)] ))
 
             return self.sum_of_monomials(monomials)
 
@@ -2647,7 +2681,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 ....:     for c in Compositions(n))
                 True
             """
-            CombinatorialFreeModule.__init__(self, QSym.base_ring(), Compositions(),
+            CombinatorialFreeModule.__init__(self, QSym.base_ring(), _Compositions,
                                              prefix='E', bracket=False,
                                              category=QSym.Bases())
 
@@ -2813,7 +2847,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 True
                 sage: TestSuite(QS).run() # long time
             """
-            CombinatorialFreeModule.__init__(self, QSym.base_ring(), Compositions(),
+            CombinatorialFreeModule.__init__(self, QSym.base_ring(), _Compositions,
                                              prefix='QS', bracket=False,
                                              category=QSym.Bases())
 
@@ -3003,7 +3037,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             self._QS = QSym.QS()
             self._M = QSym.M()
             CombinatorialFreeModule.__init__(self, QSym.base_ring(),
-                                             Compositions(), prefix='YQS',
+                                             _Compositions, prefix='YQS',
                                              bracket=False, category=QSym.Bases())
             self.module_morphism(self._to_monomial_on_basis,
                                  codomain=self._M, category=QSym.Bases()).register_as_coercion()
@@ -3103,7 +3137,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: F(dI(F([2,1,3])))
                 F[2, 1, 3]
             """
-            CombinatorialFreeModule.__init__(self, QSym.base_ring(), Compositions(),
+            CombinatorialFreeModule.__init__(self, QSym.base_ring(), _Compositions,
                                              prefix='dI', bracket=False,
                                              category=QSym.Bases())
 
@@ -3133,7 +3167,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             M = self.realization_of().Monomial()
             if not J._list:
                 return M([])
-            C = Compositions()
+            C = _Compositions
             C_size = Compositions(J.size())
             return M.sum_of_terms( ( (C(I), number_of_fCT(C(I), J)) for I in C_size ),
                                    distinct=True )
@@ -3165,7 +3199,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             I = N.I()
             S = N.S()
             mat = []
-            C = Compositions()
+            C = _Compositions
             C_n = Compositions(n)
             for alp in C_n:
                 row = []
@@ -3199,7 +3233,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 -dI[1, 1, 1, 1, 1, 1] + dI[1, 1, 1, 1, 2] + dI[1, 1, 1, 3] - dI[1, 1, 4] - dI[1, 2, 1, 1, 1] + dI[1, 2, 3] + dI[2, 1, 1, 1, 1] - dI[2, 1, 1, 2] + dI[2, 2, 1, 1] - dI[2, 2, 2] - dI[3, 1, 1, 1] + dI[3, 1, 2]
             """
             n = J.size()
-            C = Compositions()
+            C = _Compositions
             C_n = Compositions(n)
             mat = self._matrix_monomial_to_dual_immaculate(n)
             column = C_n.list().index(J)
@@ -3308,7 +3342,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: HWL = QuasiSymmetricFunctions(QQ).HazewinkelLambda()
                 sage: TestSuite(HWL).run()
             """
-            CombinatorialFreeModule.__init__(self, QSym.base_ring(), Compositions(),
+            CombinatorialFreeModule.__init__(self, QSym.base_ring(), _Compositions,
                                              prefix='HWL', bracket=False,
                                              category=QSym.Bases())
 
@@ -3835,7 +3869,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 ....:     for c in Compositions(n))
                 True
             """
-            CombinatorialFreeModule.__init__(self, QSym.base_ring(), Compositions(),
+            CombinatorialFreeModule.__init__(self, QSym.base_ring(), _Compositions,
                                              prefix='psi', bracket=False,
                                              category=QSym.Bases())
 
@@ -3975,7 +4009,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 ....:     for c in Compositions(n))
                 True
             """
-            CombinatorialFreeModule.__init__(self, QSym.base_ring(), Compositions(),
+            CombinatorialFreeModule.__init__(self, QSym.base_ring(), _Compositions,
                                              prefix='phi', bracket=False,
                                              category=QSym.Bases())
 
@@ -4038,4 +4072,3 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             z = R(I.to_partition().centralizer_size())
             Monomial = self.realization_of().Monomial()
             return Monomial._from_dict({J: z / coeff_sp(I,J) for J in I.fatter()})
-
