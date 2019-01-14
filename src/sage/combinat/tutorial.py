@@ -659,9 +659,12 @@ which is roughly `2\cdot 10^{19728}`::
 
 or ask for its `237102124`-th element::
 
-    sage: S.unrank(237102123)
+    sage: S.unrank(237102123) # py2
     {{{2, 4}, {1, 4}, {}, {1, 3, 4}, {1, 2, 4}, {4}, {2, 3}, {1, 3}, {2}},
       {{1, 3}, {2, 4}, {1, 2, 4}, {}, {3, 4}}}
+    sage: S.unrank(237102123) # py3
+    {{{3, 4}, {1, 2, 4}, {2, 4}, {}, {1, 3}},
+      {{2}, {1, 4}, {2, 3}, {1, 2, 4}, {2, 4}, {}, {1, 3}, {1, 3, 4}, {4}}}
 
 It would be physically impossible to construct explicitly all the
 elements of `S`, as there are many more of them than there are
@@ -673,7 +676,7 @@ result of ``len`` be an integer of type ``int``; this could cause
 overflows, and would not permit the return of {Infinity} for infinite
 sets::
 
-    sage: len(S)
+    sage: len(S) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     OverflowError: Python int too large to convert to C long
@@ -832,8 +835,10 @@ Permutations::
 Set partitions::
 
     sage: C = SetPartitions(["a", "b", "c"])
-    sage: C
+    sage: C # py2
     Set partitions of {'a', 'c', 'b'}
+    sage: C # py3, random
+    Set partitions of {'b', 'c', 'a'}
     sage: C.cardinality()
     5
     sage: C.list()
