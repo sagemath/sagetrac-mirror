@@ -1,17 +1,17 @@
 .. -*- coding: utf-8 -*-
 .. _language_automaton:
 
-======================================
-Automata and Rational language in Sage
-======================================
+=====================================
+Automata and Regular language in Sage
+=====================================
 
 .. MODULEAUTHOR:: Paul Mercat, and Dominique Benielli
                   Labex Archimede - I2M -
                   AMU Aix-Marseille Universite 
                    
 
-Automata and Rational language
-------------------------------
+Automata and Regular language
+-----------------------------
 
 Automata are sort of machines that can realize linear time calculation only requiring a fine memory. For more details see [Ca].
 
@@ -108,7 +108,7 @@ Automaton recognizing a single word::
    :align: center
 
     a = dag.Word("gabian")
-    sphinx_plot(a)
+    draw(a)
 
 Automaton recognizing every words over a given alphabet::
 
@@ -124,8 +124,8 @@ Automaton recognizing every words over a given alphabet::
 Language
 ~~~~~~~~
 
-Definition: rational language
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Definition: regular language
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A language is a set of words over a given alphabet.
 The language recognized by an automaton :math:`A = (\Sigma, Q, T, I, F)` is the set :math:`L_A` of words :math:`a_1 \dots a_n \in \Sigma^*` such that there  exists a path
@@ -134,7 +134,7 @@ in the automaton :math:`A` from an initial state to an end state.
 
 A word :math:`u \in \Sigma^*` is recognized  by the automaton  :math:`A` if we have :math:`u \in L_A`.
 
-A word  $a_1 \dots a_n$ is therefore recognized by the automaton :math:`A` if there exists a path in the graph, labeled by  $a_1, a_2, \dots, a_n$, starting from an initial state and ending to a final state.
+A word  :math:`a_1 \dots a_n` is therefore recognized by the automaton :math:`A` if there exists a path in the graph, labeled by  :math:`a_1, a_2, \dots, a_n`, starting from an initial state and ending to a final state.
 
 .. note::
 
@@ -263,18 +263,17 @@ The transposed of the minimal automaton of the language \{lapin, laitue\} is::
     sphinx_plot(b)
 
 Pruned automaton
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
 
 The pruned automaton is the automaton restricted to
 states that are reachable from an initial state, and from which we can go to a final state.
-An automaton is pruned if it is equal to its prunedd.
 
 .. NOTE::
 
-    An automaton (possibly infinite) deterministic prund, and with a deterministic transposed is minimal.
-    In particular, if it is infinite, the language that it recognizes is not rational.
+    A (possibly infinite) deterministic pruned automaton, and with a deterministic transposed is minimal.
+    In particular, if it is infinite, the language that it recognizes is not regular.
 
-Example of non-p  automaton::
+Example of non-pruned automaton::
 
     sage: a = DetAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
     sage: a.set_final_states([0])
@@ -291,12 +290,12 @@ Example of non-p  automaton::
     a.add_transition(0,'(1,0)',1)
     sphinx_plot(a)
 
-And the corresponding runed automaton::
+And the corresponding pruned automaton::
 
     sage: b = a.prune()
     sage: b.plot().show()
 
-This automaton can be saw below:
+This automaton can be seen below:
 
 .. PLOT::
    :width: 50%
@@ -309,5 +308,4 @@ This automaton can be saw below:
     b = a.prune()
     sphinx_plot(b)
 
-The pruned example automaton.
                    

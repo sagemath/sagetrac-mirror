@@ -39,8 +39,6 @@ from cpython cimport bool as c_bool
 from sage.combinat.words.cautomata_generators import DetAutomatonGenerators
 cimport sage.combinat.words.cautomata
 
-# ctypedef Automate Automaton
-
 dag = DetAutomatonGenerators()
 
 cdef extern from "Automaton.h":
@@ -1944,7 +1942,7 @@ cdef class DetAutomaton:
             if verb:
                 print("plot...")
             sig_on()
-            plotDot(file, self.a[0], ll, "Automaton", sx, sy, vl, html, verb, True)
+            plotDot(file, self.a[0], ll, "Automaton", sx, sy, vl, html, verb, draw)
             sig_off()
             if verb:
                 print("free...plot")
@@ -1956,8 +1954,9 @@ cdef class DetAutomaton:
                 sig_on()
                 free(vl)
                 sig_off()
-            from PIL import Image
-            return Image.open(file+'.png')
+            if draw:
+                from PIL import Image
+                return Image.open(file+'.png')
 #other possibility to get the image
 #            import ipywidgets as widgets
 #            file = open(file+'.png', "rb")
