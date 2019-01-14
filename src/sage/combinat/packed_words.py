@@ -78,7 +78,7 @@ class PackedWord(ClonableIntArray):
         TESTS::
 
             sage: from sage.combinat.packed_words import PackedWords_all
-            sage: issubclass(PackedWords_all(PackedWordsFactory()._default_policy).element_class, PackedWord)
+            sage: issubclass(PackedWords_all(PackedWords._default_policy).element_class, PackedWord)
             True
             sage: w0 = PackedWord([4, 2, 3, 1, 2])
             sage: w0.parent()
@@ -836,13 +836,13 @@ class PackedWord(ClonableIntArray):
             []
             sage: P([1, 2, 1, 3, 4, 1]).right_weak_order_interval(P([3, 1, 2, 1, 1, 4]))
             []
-            sage: P([1, 2, 1, 3, 4, 1]).right_weak_order_interval(P([3, 1, 2, 4, 1, 1]))
+            sage: sorted(P([1, 2, 1, 3, 4, 1]).right_weak_order_interval(P([3, 1, 2, 4, 1, 1])))
             [[1, 2, 1, 3, 4, 1],
              [1, 2, 3, 1, 4, 1],
-             [1, 3, 2, 1, 4, 1],
              [1, 2, 3, 4, 1, 1],
-             [3, 1, 2, 1, 4, 1],
+             [1, 3, 2, 1, 4, 1],
              [1, 3, 2, 4, 1, 1],
+             [3, 1, 2, 1, 4, 1],
              [3, 1, 2, 4, 1, 1]]
         """
         if other in self.parent():
@@ -1271,14 +1271,14 @@ class PackedWordsBaseClass(ParentWithSetFactory):
 
         EXAMPLES::
 
-            sage: PackedWords.from_ordered_set_partition([])
+            sage: PackedWords().from_ordered_set_partition([])
             []
             sage: osp=[[1, 3],[2]]
-            sage: PackedWords.from_ordered_set_partition(osp)
+            sage: PackedWords().from_ordered_set_partition(osp)
             [1, 2, 1]
 
             sage: pw=PackedWord([1, 4, 1, 3, 2])
-            sage: PackedWords.from_ordered_set_partition(pw.to_ordered_set_partition()) == pw
+            sage: PackedWords().from_ordered_set_partition(pw.to_ordered_set_partition()) == pw
             True
         """
         OSP = OrderedSetPartition
@@ -1296,17 +1296,17 @@ class PackedWordsBaseClass(ParentWithSetFactory):
 
         EXAMPLES::
 
-            sage: PackedWords.pack([])
+            sage: PackedWords().pack([])
             []
-            sage: PackedWords.pack([3, 1])
+            sage: PackedWords().pack([3, 1])
             [2, 1]
-            sage: PackedWords.pack([1, 0, 0])
+            sage: PackedWords().pack([1, 0, 0])
             [2, 1, 1]
-            sage: PackedWords.pack([3, 1, 55])
+            sage: PackedWords().pack([3, 1, 55])
             [2, 1, 3]
-            sage: PackedWords.pack([11, 4, 1, 55])
+            sage: PackedWords().pack([11, 4, 1, 55])
             [3, 2, 1, 4]
-            sage: PackedWords.pack([11, 4, 1, 11, 4])
+            sage: PackedWords().pack([11, 4, 1, 11, 4])
             [3, 2, 1, 3, 2]
         """
         l = uniq(li)
@@ -1393,8 +1393,6 @@ class PackedWordsBaseClass(ParentWithSetFactory):
             pw[index_i] = pw[l_index] + 1
             res.append(self._element_constructor_(list(pw.values()), check=False))
         return res
-
-    Element = PackedWord
 
     def check_element(self, lst, check=True):
         r"""
