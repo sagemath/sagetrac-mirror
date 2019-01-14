@@ -64,6 +64,7 @@ Deterministic automaton can be created in sage by the use of :class:`sage.combin
     sage: a.plot().show()
 
 .. PLOT::
+   :align: center
 
     a = DetAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
     a.set_final_states([0])
@@ -75,6 +76,7 @@ Automaton with states \{0, 1, 2, 3, 4\}, alphabet \{(0,0), (0,1), (1,0), (1,1)\}
 
 .. PLOT::
    :width: 50%
+   :align: center
 
     a = DetAutomaton([(0,0,'*'),(0,1,'0'),(0,3,'1'),(1,2,'1'),(2,0,'1'),(2,1,'*'),(4,0,'0'),(4,3,'*'),(3,4,'0')])
     a.set_final_states([0])
@@ -84,6 +86,7 @@ Automaton with states \{0, 1, 2, 3, 4\}, alphabet \{(0,0), (0,1), (1,0), (1,1)\}
 Automaton with states  \{0, 1, 2, 3, 4\},  alphabet \{0, 1, *\}, set of inital states \{0\} and set of final states \{0\}.
 
 .. PLOT::
+   :align: center
 
     a = DetAutomaton([(0,0,'(0,0)'),(0,1,'(1,1)'),(0,3,'(0,1)'),(0,5,'(1,0)'),(3,4,'(0,1)'),(4,2,'(1,0)'),(2,1,'(1,1)'),(1,5,'(1,0)'),(5,6,'(0,1)'),(6,5,'(0,0)'),(6,5,'(1,1)')])
     a.add_transition(1,'(1,1)',1)
@@ -102,6 +105,7 @@ Automaton recognizing a single word::
     sage: a.plot()
 
 .. PLOT::
+   :align: center
 
     a = dag.Word("gabian")
     draw(a)
@@ -112,6 +116,7 @@ Automaton recognizing every words over a given alphabet::
     sage: a.plot()
 
 .. PLOT::
+   :align: center
 
     a = dag.AnyWord("abc")
     sphinx_plot(a)
@@ -140,7 +145,8 @@ Examples
 some examples of automaton.
 
 .. PLOT::
-    :width: 50%
+   :width: 60%
+   :align: center
 
     a = DetAutomaton([(0, 0,'0'),(0, 1, '1'),(1, 0, '1'), (1, 2, '0'), (2, 1, '0'), (2, 2, '1')])
     a.set_final_states([0])
@@ -150,7 +156,8 @@ some examples of automaton.
 The above automaton recognize all the numbers written in binaries that are divisible by 3.
 
 .. PLOT::
-   :width: 50%
+   :width: 40%
+   :align: center
 
     a = DetAutomaton([(0,1,'a'),(1,2,'b'),(2,0,'a')])
     a.set_final_states([1])
@@ -160,6 +167,8 @@ The above automaton recognize all the numbers written in binaries that are divis
 The above automaton recognize the set of words of the form :math:`a(baa)^n`.
 
 .. PLOT::
+   :format: doctest
+   :align: center
 
     a = DetAutomaton([(0,1,'l'),(1,2,'a'),(2,3,'p') ,(3,4,'i'),(4,10,'n'),(0,5,'l'),(5,6,'a'),(6,7,'i'),(7,8,'t'),(8,9,'u'),(9,11,'e') ])
     a.set_final_states([10,11])
@@ -188,6 +197,7 @@ Automaton equivalent to the previous one is::
     sage: c.plot().show()
 
 .. PLOT::
+   :align: center
 
     a = DetAutomaton([(0,1,'l'),(1,2,'a'),(2,3,'i') ,(3,5,'t'),(5,7,'u'),(7,9,'e'),(2,4,'p'),(4,6,'i'),(6,8,'n') ])
     a.set_final_states([8,9])
@@ -216,6 +226,7 @@ The minimal automaton of the language \{lapin, laitue\} is the following::
     sage: c.plot().show()
 
 .. PLOT::
+   :align: center
 
     a = DetAutomaton([(7,6,'l'),(6,5,'a'),(5,1,'i') ,(1,8,'t'),(8,2,'u'),(2,0,'e'),(5,4,'p'),(4,3,'i'),(3,0,'n') ])
     a.set_final_states([0])
@@ -243,6 +254,7 @@ The transposed of the minimal automaton of the language \{lapin, laitue\} is::
     sage: b.plot().show()
 
 .. PLOT::
+   :align: center
 
     a = DetAutomaton([(7,6,'l'),(6,5,'a'),(5,1,'i') ,(1,8,'t'),(8,2,'u'),(2,0,'e'),(5,4,'p'),(4,3,'i'),(3,0,'n') ])
     a.set_final_states([0])
@@ -270,6 +282,7 @@ Example of non-pruned automaton::
     sage: a.plot().show()
 
 .. PLOT::
+   :align: center
 
     a = DetAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
     a.set_final_states([0])
@@ -286,6 +299,7 @@ This automaton can be seen below:
 
 .. PLOT::
    :width: 50%
+   :align: center
       
     a = DetAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
     a.set_final_states([0])
