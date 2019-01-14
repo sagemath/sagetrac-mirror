@@ -157,10 +157,10 @@ cdef extern from "draw.h":
         int na
     ctypedef Color* ColorList
 
-    void *GetSDL_SurfaceFromNumpy (numpy.ndarray na)
+    # void *GetSDL_SurfaceFromNumpy (numpy.ndarray na)
     void SurfaceToNumpy (Surface *s, numpy.ndarray na)
-    void SDL_SurfaceToNumpy (void *ss, numpy.ndarray na)
-    void TestSDL()
+    # void SDL_SurfaceToNumpy (void *ss, numpy.ndarray na)
+    # void TestSDL()
     Surface NewSurface(int sx, int sy)
     void FreeSurface(Surface s)
     ColorList NewColorList(int n)
@@ -1525,33 +1525,34 @@ cdef class BetaAdicSet:
                 sage: P.plot()              # not tested
 
         """
-        cdef BetaAdic b
-        cdef Automaton a
-        cdef DetAutomaton r
-        b = getBetaAdic(self, prec=prec, mirror=mirror, verb=verb)
-        # if verb:
-        #    printAutomaton(b.a)
-        # dessin
-        cdef Color col
-        col.r = color[0]
-        col.g = color[1]
-        col.b = color[2]
-        col.a = color[3]
-        if n is None:
-            n = -1
-        sig_on()
-        a = UserDraw(b, sx, sy, n, ajust, col, self.a.prune().spectral_radius(), verb)
-        sig_off()
-        r = DetAutomaton(None)
-        r.a[0] = a
-        r.A = self.a.A
-        r.S = range(a.n)
-        if simplify:
-            r = r.minimize()
-        if only_aut:
-            return r
-        else:
-            return BetaAdicSet(self.b, r)
+        raise NotImplementedError("This function does not exists in this version of Sage, because it uses the library SDL2. To use this function, you need to install the library SDL2 on your system and then recompile Sage from the source where you include the ticket that contains the functions.")
+#        cdef BetaAdic b
+#        cdef Automaton a
+#        cdef DetAutomaton r
+#        b = getBetaAdic(self, prec=prec, mirror=mirror, verb=verb)
+#        # if verb:
+#        #    printAutomaton(b.a)
+#        # dessin
+#        cdef Color col
+#        col.r = color[0]
+#        col.g = color[1]
+#        col.b = color[2]
+#        col.a = color[3]
+#        if n is None:
+#            n = -1
+#        sig_on()
+#        a = UserDraw(b, sx, sy, n, ajust, col, self.a.prune().spectral_radius(), verb)
+#        sig_off()
+#        r = DetAutomaton(None)
+#        r.a[0] = a
+#        r.A = self.a.A
+#        r.S = range(a.n)
+#        if simplify:
+#            r = r.minimize()
+#        if only_aut:
+#            return r
+#        else:
+#            return BetaAdicSet(self.b, r)
 
     def draw_zoom(self, n=None, int sx=800, int sy=600,
                   bool ajust=True, int prec=53, color=(0, 0, 0, 255),
@@ -1604,29 +1605,30 @@ cdef class BetaAdicSet:
                 sage: m.draw_zoom()         # not tested (need the intervention of the user)
 
         """
-        cdef BetaAdic b
-        b = getBetaAdic(self, prec=prec, mirror=mirror, verb=verb)
-        # dessin
-        cdef int *word
-        cdef Color col
-        cdef int i
-        col.r = color[0]
-        col.g = color[1]
-        col.b = color[2]
-        col.a = color[3]
-        if n is None:
-            n = -1
-        sig_on()
-        word = DrawZoom(b, sx, sy, n, ajust, col, nprec, self.a.prune().spectral_radius(), verb)
-        sig_off()
-        res = []
-        if word is not NULL:
-            for i in xrange(1024):
-                if word[i] < 0:
-                    break
-                res.append(self.a.alphabet[word[i]])
-            res.reverse()
-        return res
+        raise NotImplementedError("This function does not exists in this version of Sage, because it uses the library SDL2. To use this function, you need to install the library SDL2 on your system and then recompile Sage from the source where you include the ticket that contains the functions.")
+#        cdef BetaAdic b
+#        b = getBetaAdic(self, prec=prec, mirror=mirror, verb=verb)
+#        # dessin
+#        cdef int *word
+#        cdef Color col
+#        cdef int i
+#        col.r = color[0]
+#        col.g = color[1]
+#        col.b = color[2]
+#        col.a = color[3]
+#        if n is None:
+#            n = -1
+#        sig_on()
+#        word = DrawZoom(b, sx, sy, n, ajust, col, nprec, self.a.prune().spectral_radius(), verb)
+#        sig_off()
+#        res = []
+#        if word is not NULL:
+#            for i in xrange(1024):
+#                if word[i] < 0:
+#                    break
+#                res.append(self.a.alphabet[word[i]])
+#            res.reverse()
+#        return res
 
     def plot(self, n=None, int sx=800, int sy=600,
              bool ajust=True, int prec=53, color=(0, 0, 0, 255),
