@@ -100,6 +100,7 @@ computer:
 - **ar** and **ranlib**: can be obtained as part of GNU binutils.
 - **tar**: GNU tar version 1.17 or later, or BSD tar.
 - **python**: Python >= 2.6.
+- **gfortran** compiler.
 
 
 Libraries
