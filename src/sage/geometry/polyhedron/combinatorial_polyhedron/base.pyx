@@ -200,7 +200,11 @@ from sage.combinat.posets.lattices import FiniteLatticePoset
 from sage.geometry.polyhedron.base import is_Polyhedron
 from sage.geometry.lattice_polytope import is_LatticePolytope
 
-from .hasse_diagram cimport   CombinatorialPolyhedron_ptr, init_CombinatorialPolyhedron, dimension, edges, f_vector, ridges, incidences, record_all_faces, get_faces, get_flag, delete_CombinatorialPolyhedron
+from .hasse_diagram cimport   CombinatorialPolyhedron_ptr, init_CombinatorialPolyhedron, dimension, edges, f_vector, ridges, incidences, record_all_faces, get_faces, get_flag, delete_CombinatorialPolyhedron, get_maxnumberedges
+
+from cpython cimport array
+import array
+
 
 #TODO take care of the empty polyhedron, which does not have vertices
 cdef class CombinatorialPolyhedron:
@@ -319,11 +323,22 @@ cdef class CombinatorialPolyhedron:
         """
         if self.is_empty == 1:
             return ()
+        cdef unsigned int ** edgepointer = edges(self._C) 
+        cdef unsigned long maxnumberedges = get_maxnumberedges()
+        #the edges are being saved in a list basically with the first entry the first vertex of the first edges, the second entry the second vertex of that edge
+        #as there might be many edges they are saved in an array of arrays, with each array containing maxnumberedges of edges
+        if self.dimension() <= 0:
+            return ()
+        cdef unsigned long nr_edges = self.f_vector()[2]
+        if nr_edges > maxnumberedges*maxnumberedges:
+            raise ValueError("Cannot calculate %s edges"%nr_edges)
         if self._V is not None:
             f = lambda i : self._V[i]
         else:
             f = lambda i : Integer(i)
-        return tuple((f(i),f(j)) for i,j in edges(self._C))
+        vertex_one = lambda i : f(edgepointer[i / maxnumberedges][2*(i % maxnumberedges)])
+        vertex_two = lambda i : f(edgepointer[i / maxnumberedges][2*(i % maxnumberedges)+1])
+        return tuple((vertex_one(i), vertex_two(i)) for i in range(nr_edges))
         
     def edge_graph(self):
         return Graph(self.edges(),format="list_of_edges")
@@ -343,14 +358,25 @@ cdef class CombinatorialPolyhedron:
         """
         if self.is_empty == 1:
             return ()
+        cdef unsigned int ** ridgepointer = ridges(self._C) 
+        cdef unsigned long maxnumberedges = get_maxnumberedges()
+        #the ridges are being saved in a list basically, with the first entry the first facet of the first ridge, the second entry the second facet of that ridges
+        #as there might be many ridges they are saved in an array of arrays, with each array containing maxnumberedges of ridges
+        if self.dimension() <= 0:
+            return ()
+        cdef unsigned long nr_ridges = self.f_vector()[-3]
+        if nr_ridges > maxnumberedges*maxnumberedges:
+            raise ValueError("Cannot calculate %s ridges"%nr_ridges)
         if self._H is not None:
             f = lambda i : self._H[i]
         else:
             f = lambda i : Integer(i)
+        facet_one = lambda i : f(ridgepointer[i / maxnumberedges][2*(i % maxnumberedges)])
+        facet_two = lambda i : f(ridgepointer[i / maxnumberedges][2*(i % maxnumberedges)+1])
         if add_equalities:
-            return tuple(((self._equalities + (f(i),)),(self._equalities + (f(j),))) for i,j in ridges(self._C))
+            return tuple(((self._equalities + (facet_one(i),)),(self._equalities + (facet_two(i),))) for i in range(nr_ridges))
         else:
-            return tuple((f(i),f(j)) for i,j in ridges(self._C))
+            return tuple((facet_one(i),facet_two(i)) for i in range(nr_ridges))
         
     def ridge_graph(self):
         return Graph(self.ridges(),format="list_of_edges")
@@ -363,7 +389,9 @@ cdef class CombinatorialPolyhedron:
         
         NOTE: If you also want to compute edges or ridges, it is recommended to do that first.
         """
-        return tuple(Integer(i) for i in f_vector(self._C))
+        cdef array.array vector = array.array('L', [0 for _ in range(self.dimension()+2)])
+        f_vector(self._C, vector.data.as_ulongs)
+        return tuple(Integer(i) for i in vector)
         
     def _record_all_faces(self):
         if self.is_empty == 1:

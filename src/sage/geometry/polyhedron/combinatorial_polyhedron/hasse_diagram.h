@@ -67,9 +67,9 @@ class CombinatorialPolyhedron {
         CombinatorialPolyhedron(PyObject* py_tuple, int is_unbounded, unsigned int nr_of_lines);//initialization with an incidence matrix given as tuple of tuples
         ~CombinatorialPolyhedron();//cleanup to avoid memory leak
         unsigned int get_dimension();
-        inline PyObject* get_f_vector();
-        inline PyObject* get_edges();//returns a tuple of edges, each edges as tuple of vertices
-        inline PyObject* get_ridges();//returns a tuple of ridges, each ridge as tuple of its to facets
+        inline void get_f_vector(unsigned long *vector);
+        inline unsigned int ** get_edges();//returns the edges as array of arrays of the vertices
+        inline unsigned int ** get_ridges();//returns the ridges as array of arrays of the facets
         inline PyObject* get_faces(int face_dimension, unsigned int facet_repr);
         void record_all_faces();
         inline PyObject* get_incidences(int dimension_one, int dimension_two);
@@ -108,7 +108,7 @@ class CombinatorialPolyhedron {
         inline int is_subset_facet_repr(chunktype *A, chunktype *B);//as above just in facet_repr
         inline unsigned int CountFaceBits(chunktype* A1);//counts the number of vertices in a face by counting bits set to one
         inline unsigned int CountFaceBits_facet_repr(chunktype* A1);
-	inline void add_edge(chunktype *face);//adds an edge to the edges list
+        inline void add_edge(chunktype *face);//adds an edge to the edges list
         inline void add_edge(unsigned int one, unsigned int two);//adds an edge to the edges list given as its two vertices
         inline void add_ridge(unsigned int one, unsigned int two);//adds a ridge to the ridge list given as its two facets
         inline void add_incidence(unsigned long one, unsigned long two);//adds an incidence to the list of incidences, where one and two correspond to the number of the faces according to allfaces resp. vertices/facets
@@ -170,14 +170,16 @@ CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(PyObject* py_tuple, uns
 CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(PyObject* py_tuple, int is_unbounded, unsigned int nr_lines);//initialize by incidence_matrix
 
 unsigned int dimension(CombinatorialPolyhedron_ptr C);
-PyObject* f_vector(CombinatorialPolyhedron_ptr C);
-PyObject* edges(CombinatorialPolyhedron_ptr C);
-PyObject* ridges(CombinatorialPolyhedron_ptr C);
+void f_vector(CombinatorialPolyhedron_ptr C, unsigned long *vector);
+unsigned int ** edges(CombinatorialPolyhedron_ptr C);
+unsigned int ** ridges(CombinatorialPolyhedron_ptr C);
 PyObject* incidences(CombinatorialPolyhedron_ptr C, int dimension_one, int dimension_two);
 void record_all_faces(CombinatorialPolyhedron_ptr C);
 PyObject* get_faces(CombinatorialPolyhedron_ptr C, int dimension, unsigned int facet_repr);
 unsigned long get_flag(CombinatorialPolyhedron_ptr C, PyObject* py_tuple);
 
 void delete_CombinatorialPolyhedron(CombinatorialPolyhedron_ptr);
+
+unsigned long get_maxnumberedges();
 
 #endif

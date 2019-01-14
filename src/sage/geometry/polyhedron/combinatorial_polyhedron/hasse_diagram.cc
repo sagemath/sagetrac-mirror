@@ -139,42 +139,53 @@ unsigned int CombinatorialPolyhedron::get_dimension(){
     return dimension;
 }
 
-inline PyObject* CombinatorialPolyhedron::get_f_vector(){
+
+inline void CombinatorialPolyhedron::get_f_vector(unsigned long *vector){
+    unsigned int i, dim = get_dimension();
     if (!f_vector){
         get_f_vector_and_edges();
     }
-    return tuple_from_f_vector();
+    if (!polar){
+        for (i = 0; i < dim + 2; i++){
+            vector[i] = f_vector[i];
+        }
+    }
+    else {
+        for (i = 0; i < dim + 2; i++){
+            vector[dimension + 1 - i] = f_vector[i];
+        }
+    }
 }
 
-inline PyObject* CombinatorialPolyhedron::get_edges(){
+inline unsigned int ** CombinatorialPolyhedron::get_edges(){
     if (polar){
         if (!nr_ridges){
             calculate_ridges();
         }
-        return tuple_from_ridges();
+        return ridges;
     }
     else {
         if (!nr_edges){
             edgemode = 1;
             get_f_vector_and_edges();
         }
-        return tuple_from_edges();
+        return edges;
     }
 }
 
-inline PyObject* CombinatorialPolyhedron::get_ridges(){
+inline unsigned int **  CombinatorialPolyhedron::get_ridges(){
     if (!polar){
         if (!nr_ridges){
             calculate_ridges();
         }
-        return tuple_from_ridges();
+        return ridges;
     }
     else {
         if (!nr_edges){
             edgemode = 1;
             get_f_vector_and_edges();
         }
-        return tuple_from_edges();
+        return edges;
     }
 }
 
@@ -266,11 +277,11 @@ inline PyObject* CombinatorialPolyhedron::get_incidences(int dimension_one, int 
     }
     if (dimension_two == -1){//the -1-dimensional face is contained in every face
         PyObject* workaround;
-	if (polar)
-	    workaround = get_faces(dimension -1 - dimension_one,0);//in get_faces we have already considered that we are in the polar situation
+    if (polar)
+        workaround = get_faces(dimension -1 - dimension_one,0);//in get_faces we have already considered that we are in the polar situation
         else
-	    workaround = get_faces(dimension_one,0);
-	unsigned long i = PyTuple_Size(workaround);
+        workaround = get_faces(dimension_one,0);
+    unsigned long i = PyTuple_Size(workaround);
         for (j = 0; j < i; j++){
             add_incidence(j,0);
         }
@@ -279,11 +290,11 @@ inline PyObject* CombinatorialPolyhedron::get_incidences(int dimension_one, int 
     unsigned int two = (unsigned int) dimension_two;
     if (one == dimension){ //the polytope contains every face
         PyObject* workaround;
-	if (polar)
-	    workaround = get_faces(dimension -1 - dimension_two,0);//in get_faces we have already considered that we are in the polar situation
+    if (polar)
+        workaround = get_faces(dimension -1 - dimension_two,0);//in get_faces we have already considered that we are in the polar situation
         else 
-	    workaround = get_faces(dimension_two,0);
-	unsigned long i = PyTuple_Size(workaround);
+        workaround = get_faces(dimension_two,0);
+    unsigned long i = PyTuple_Size(workaround);
         for (j = 0; j < i; j++){
             add_incidence(0,j);
         }
@@ -341,22 +352,22 @@ inline unsigned long CombinatorialPolyhedron::get_flag_number(PyObject* py_tuple
                 return 0;
             }
     else {
-	if ((unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, len-1)) == dimension){
-	    array[len-1] = dimension;
-	    for (i=0;i<len-1;i++){
+    if ((unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, len-1)) == dimension){
+        array[len-1] = dimension;
+        for (i=0;i<len-1;i++){
             array[len-i-2] = dimension - 1 - (unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, i));
-	    }
-	}
-	else
-	    for (i=0;i<len;i++){
+        }
+    }
+    else
+        for (i=0;i<len;i++){
             array[len-i-1] = dimension -1 - (unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, i));
-	    }
+        }
     }
     for(i=0;i<len;i++){
-	if ((!allfaces_are_allocated) || (allfaces_are_allocated[array[i]] != 2)){
-	    if (array[i] < counter){
-		counter = array[i];
-	    }
+    if ((!allfaces_are_allocated) || (allfaces_are_allocated[array[i]] != 2)){
+        if (array[i] < counter){
+        counter = array[i];
+        }
             allocate_allfaces(array[i]);
         }
     }
@@ -418,10 +429,10 @@ inline unsigned int CombinatorialPolyhedron::CountFaceBits_facet_repr(chunktype*
     unsigned long A[length_of_conversion_face];
     unsigned long n;
     for (i=0;i<length_of_face_in_facet_repr;i++){
-	store_register(A[i*chunksize/64],A1[i]);
+    store_register(A[i*chunksize/64],A1[i]);
     }
     for (i=0;i<length_of_conversion_face;i++){
-	count += popcount(A[i]);
+    count += popcount(A[i]);
     }
     return count;
 }
@@ -546,7 +557,7 @@ inline unsigned int CombinatorialPolyhedron::get_next_level(chunktype **faces, u
 unsigned int CombinatorialPolyhedron::calculate_dimension(chunktype **faces, unsigned int nr_faces){
     unsigned int i,j,k, newfacescounter, dimension;
     if (nr_faces == 0){
-	return 0;//this isn't supposed to happen, but maybe the data is malformed
+    return 0;//this isn't supposed to happen, but maybe the data is malformed
     }
     unsigned int bitcount = CountFaceBits(faces[0]);
     if (bitcount == nr_lines){//if a facet contains only lines, then the polyhedron is of dimension nr_lines
@@ -760,18 +771,18 @@ unsigned long CombinatorialPolyhedron::get_flag_number(unsigned int *array, unsi
     if (array[0] == 0){
         if (array[1] < dimension - 1){
             if (len > 2){
-		for (i=0; i < f_vector[array[1]+1];i++){
-		    saverarray[1][i] = CountFaceBits(allfaces[array[1]][i]);
-		}
-	    }
-	    else{
-		unsigned long sum = 0;
-		for (i= 0;i < f_vector[array[1]+1]; i++){
-		    sum += CountFaceBits(allfaces[array[1]][i]);
-		}
-		delete(saverarray);
-		return sum;
-	    }
+        for (i=0; i < f_vector[array[1]+1];i++){
+            saverarray[1][i] = CountFaceBits(allfaces[array[1]][i]);
+        }
+        }
+        else{
+        unsigned long sum = 0;
+        for (i= 0;i < f_vector[array[1]+1]; i++){
+            sum += CountFaceBits(allfaces[array[1]][i]);
+        }
+        delete(saverarray);
+        return sum;
+        }
         }
         else {
             unsigned long sum = 0;
@@ -1294,15 +1305,16 @@ unsigned int dimension(CombinatorialPolyhedron_ptr C){
   return (*C).get_dimension();
 }
 
-PyObject* edges(CombinatorialPolyhedron_ptr C){
+unsigned int ** edges(CombinatorialPolyhedron_ptr C){
   return (*C).get_edges();
 }
 
-PyObject* f_vector(CombinatorialPolyhedron_ptr C){
-  return (*C).get_f_vector();
+
+void f_vector(CombinatorialPolyhedron_ptr C, unsigned long *vector){
+  return (*C).get_f_vector(vector);
 }
 
-PyObject* ridges(CombinatorialPolyhedron_ptr C){
+unsigned int ** ridges(CombinatorialPolyhedron_ptr C){
   return (*C).get_ridges();
 }
 
@@ -1325,4 +1337,8 @@ unsigned long get_flag(CombinatorialPolyhedron_ptr C, PyObject* py_tuple){
 
 void delete_CombinatorialPolyhedron(CombinatorialPolyhedron_ptr C){
   delete(C);
+}
+
+unsigned long get_maxnumberedges(){
+    return (unsigned long) maxnumberedges;
 }
