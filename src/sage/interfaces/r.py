@@ -1316,10 +1316,28 @@ class R(ExtraTabCompletion, Interface):
 
             sage: r.eval('1+1')
             '[1] 2'
+
+        TESTS::
+
+        When the REPL would return nothing, our interface should do the
+        same (by returning None which is not printed in interactive
+        use). See :trac:`27025`::
+
+            sage: r.eval('graphics.off()')
         """
         self._lazy_init()
-        return str(robjects.r(code)).rstrip()
+        result = robjects.r(code)
+        if result == rinterface.NULL:
+            # trac #27025
+            result = None
+        else:
+            result = str(result)
 
+        if isinstance(result, str):
+            # no trailing newlines
+            result = result.rstrip()
+
+        return result
 
     def _r_to_sage_name(self, s):
         """
