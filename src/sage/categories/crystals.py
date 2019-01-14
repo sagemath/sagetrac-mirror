@@ -302,10 +302,13 @@ class Crystals(Category_singleton):
                 sage: Y.weight_lattice_realization()
                 Extended weight lattice of the Root system of type ['A', 3, 1]
             """
-            F = self.cartan_type().root_system()
-            if self.cartan_type().is_finite() and F.ambient_space() is not None:
-                return F.ambient_space()
-            if self.cartan_type().is_affine():
+            C = self.cartan_type()
+            F = C.root_system()
+            if C.is_finite():
+                A = F.ambient_space()
+                if A is not None:
+                    return A
+            elif C.is_affine():
                 return F.weight_lattice(extended=True)
             return F.weight_lattice()
 
@@ -2609,4 +2612,3 @@ class CrystalHomset(Homset):
         return self.element_class(self, lambda x: None)
 
     Element = CrystalMorphismByGenerators
-

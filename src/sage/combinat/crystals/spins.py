@@ -410,16 +410,16 @@ class Spin_crystal_type_B_element(Spin):
             [None, None, +-+], [+--, None, -++], [None, -+-, None], [None, None, --+]]
         """
         assert i in self.index_set()
-        rank = self.parent().cartan_type().n
+        rank = len(self.value)
         if i < rank:
             if self.value[i-1] == -1 and self.value[i] == 1:
-                ret = [self.value[x] for x in range(rank)]
+                ret = list(self.value)
                 ret[i-1] = 1
                 ret[i] = -1
                 return self.__class__(self.parent(), tuple(ret))
         elif i == rank:
             if self.value[i-1] == -1:
-                ret = [self.value[x] for x in range(rank)]
+                ret = list(self.value)
                 ret[i-1] = 1
                 return self.__class__(self.parent(), tuple(ret))
 
@@ -437,16 +437,16 @@ class Spin_crystal_type_B_element(Spin):
             [-+-, None, None], [None, --+, None], [None, None, ---], [None, None, None]]
         """
         assert i in self.index_set()
-        rank = self.parent().cartan_type().n
+        rank = len(self.value)
         if i < rank:
             if self.value[i-1] == 1 and self.value[i] == -1:
-                ret = [self.value[x] for x in range(rank)]
+                ret = list(self.value)
                 ret[i-1] = -1
                 ret[i] = 1
                 return self.__class__(self.parent(), tuple(ret))
         elif i == rank:
             if self.value[i-1] == 1:
-                ret = [self.value[x] for x in range(rank)]
+                ret = list(self.value)
                 ret[i-1] = -1
                 return self.__class__(self.parent(), tuple(ret))
 
@@ -475,16 +475,16 @@ class Spin_crystal_type_D_element(Spin):
             [None, None, None], [+---, None, None], [None, -+--, None], [None, None, --+-]]
         """
         assert i in self.index_set()
-        rank = self.parent().cartan_type().n
+        rank = len(self.value)
         if i < rank:
             if self.value[i-1] == -1 and self.value[i] == 1:
-                ret = [self.value[x] for x in range(rank)]
+                ret = list(self.value)
                 ret[i-1] = 1
                 ret[i] = -1
                 return self.__class__(self.parent(), tuple(ret))
         elif i == rank:
             if self.value[i-2] == -1 and self.value[i-1] == -1:
-                ret = [self.value[x] for x in range(rank)]
+                ret = list(self.value)
                 ret[i-2] = 1
                 ret[i-1] = 1
                 return self.__class__(self.parent(), tuple(ret))
@@ -510,16 +510,16 @@ class Spin_crystal_type_D_element(Spin):
             [-+--, None, None], [None, --+-, None], [None, None, ---+], [None, None, None]]
         """
         assert i in self.index_set()
-        rank = self.parent().cartan_type().n
+        rank = len(self.value)
         if i < rank:
             if self.value[i-1] == 1 and self.value[i] == -1:
-                ret = [self.value[x] for x in range(rank)]
+                ret = list(self.value)
                 ret[i-1] = -1
                 ret[i] = 1
                 return self.__class__(self.parent(), tuple(ret))
         elif i == rank:
             if self.value[i-2] == 1 and self.value[i-1] == 1:
-                ret = [self.value[x] for x in range(rank)]
+                ret = list(self.value)
                 ret[i-2] = -1
                 ret[i-1] = -1
                 return self.__class__(self.parent(), tuple(ret))

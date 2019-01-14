@@ -554,7 +554,7 @@ class CartanTypeFactory(SageObject):
             sage: CT.cartan_matrix()
             [ 2 -1]
             [-1  2]
-            sage: CT = CartanType(['A2'])   
+            sage: CT = CartanType(['A2'])
             sage: CT.is_irreducible()
             True
             sage: CartanType('A2')
@@ -1450,6 +1450,7 @@ class CartanType_abstract(object):
         except Exception:
             return False
 
+    @cached_method
     def root_system(self):
         """
         Return the root system associated to ``self``.
