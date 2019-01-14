@@ -145,18 +145,7 @@ ext_modules = [
     Extension('sage.algebras.lie_algebras.lie_algebra_element',
               sources = ["sage/algebras/lie_algebras/lie_algebra_element.pyx"]),
 
-    ################################
-    ##
-    ## sage.arith
-    ##
-    ################################
-    
-    Extension('sage.arith.beta_adic',
-              sources = ['sage/arith/beta_adic.pyx', 'sage/arith/draw.c', 'sage/arith/relations.c', 'sage/arith/complex.c', 'sage/combinat/words/automataC.c'],
-              libraries=['stdc++','SDL2'], #'cautomata.so'],
-              include_dirs=['sage/combinat/words', '/usr/local/include'],
-              depends = ['sage/arith/draw.h', 'sage/combinat/words/Automaton.h', 'sage/arith/relations.h', 'sage/arith/complex.h']),
-    
+   
     Extension('*', ['sage/arith/*.pyx']),
 
     ################################

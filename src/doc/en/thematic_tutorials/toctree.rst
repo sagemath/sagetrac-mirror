@@ -7,7 +7,6 @@ Thematic tutorial document tree
   
    algebraic_combinatorics
    language_automaton
-   beta_adic_set
    tutorial-notebook-and-help-long
    sandpile
    group_theory

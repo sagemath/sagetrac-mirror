@@ -91,7 +91,6 @@ Algebraic Combinatorics
 * :ref:`lie`
 * :ref:`sage.combinat.root_system.plot`
 * :ref:`abelian_sandpile_model`
-* :ref:`beta_adic_set`
 
 Parents/Elements, Categories and algebraic structures
 -----------------------------------------------------
