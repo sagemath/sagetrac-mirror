@@ -13,7 +13,7 @@ Automata and Rational language in Sage
 Automata and Rational language
 ------------------------------
 
-Automata are in a way machines that can realize linear time calculation only requiring a fine memory. For more details see [Ca].
+Automata are sort of machines that can realize linear time calculation only requiring a fine memory. For more details see [Ca].
 
 Automata
 ~~~~~~~~
@@ -55,7 +55,7 @@ Graphical representation
 
 Automata are represented as graphs whose edges are labeled by letters of the alphabet. 
 On the drawings in this section, the initial state is in bold, and the final states are the circles drawn with a double line
-Determinist Automaton can be created in sage by the use of :class:`sage.combinat.words.DetAutomaton` as follow::
+Deterministic automaton can be created in sage by the use of :class:`sage.combinat.words.DetAutomaton` as follow::
 
     sage: a = DetAutomaton([(0,0,'(0,0)'),(0,0,'(1,1)'),(0,3,'(1,0)'),(1,2,'(0,1)'),(2,0,'(0,1)'),(2,1,'(1,1)'),(2,1,'(0,0)'),(3,4,'(0,1)'),(4,3,'(0,0)'),(4,0,'(1,0)')])
     sage: a.set_final_states([0])
@@ -81,7 +81,6 @@ Automaton with states \{0, 1, 2, 3, 4\}, alphabet \{(0,0), (0,1), (1,0), (1,1)\}
     a.set_initial_state(0)
     sphinx_plot(a)
 
-
 Automaton with states  \{0, 1, 2, 3, 4\},  alphabet \{0, 1, *\}, set of inital states \{0\} and set of final states \{0\}.
 
 .. PLOT::
@@ -95,6 +94,27 @@ Automaton with states  \{0, 1, 2, 3, 4\},  alphabet \{0, 1, *\}, set of inital s
     sphinx_plot(a)
 
 Automaton of states \{0, 1, 2, 3, 4, 5, 6\},  alphabet \{(0,0), (0,1), (1,0), (1,1)\}, for inital state \{0\} and finals states \{0, 1, 2\}.
+
+And there are also deterministic automata generators that can be used.
+Automaton recognizing a single word::
+
+    sage: a = dag.Word("gabian")
+    sage: a.plot()
+
+.. PLOT::
+
+    a = dag.Word("gabian")
+    sphinx_plot(a)
+
+Automaton recognizing every words over a given alphabet::
+
+    sage: a = dag.AnyWord("abc")
+    sage: a.plot()
+
+.. PLOT::
+
+    a = dag.AnyWord("abc")
+    sphinx_plot(a)
 
 Language
 ~~~~~~~~
