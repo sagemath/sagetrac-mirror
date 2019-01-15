@@ -218,17 +218,12 @@ class RationalFunctionField_kash(RationalFunctionField):
         # the field, without the function field structure (referenced by divisor.py)
         self._field = constant_field[names[0]].fraction_field()
 
-        self.working_constant_field = None
-
         if constant_field is QQbar:
-            self._construct_kash_fields(QQ)
+            self.extend_constant_field(QQ)
         else:
-            self._construct_kash_fields(constant_field)
+            self.extend_constant_field(constant_field)
 
-    def _construct_kash_fields(self, constant_field):
-
-        if self.working_constant_field == constant_field:
-            return
+    def extend_constant_field(self, constant_field):
 
         self.working_constant_field = constant_field
 
@@ -250,10 +245,13 @@ class RationalFunctionField_kash(RationalFunctionField):
         # we seem to need this to avoid getting variable names like '$.1' Kash's output
         self.kash_constant_field.PolynomialAlgebra().AssignNames_(['"x"'])
 
-        self.kash = self.kash_constant_field.RationalFunctionField()
+        self._kash_ = self.kash_constant_field.RationalFunctionField()
+
+    def kash(self):
+        return self._kash_
 
     def to_kash(self, c):
-        x = self.kash.gen(1)
+        x = self.kash().gen(1)
         c = c.element()
         # c will be an element of a fraction field with polynomial coefficients
         if c.denominator() == 1 and c.numerator().is_constant():
@@ -411,8 +409,8 @@ class FunctionFieldElement_polymod_kash(FunctionFieldElement_polymod):
         # If we decided to expand our number field, then redo the divisor
         # computation in a new function field
 
-        if self.parent().working_constant_field != nf:
-            self.parent()._construct_kash_fields(nf)
+        if self.parent().base_field().working_constant_field != nf:
+            self.parent().base_field().extend_constant_field(nf)
             D = super(FunctionFieldElement_polymod_kash, self).divisor()
 
         return D
@@ -531,57 +529,53 @@ class FunctionField_polymod_kash(FunctionField_polymod):
 
         self._place_class = FunctionFieldPlace_kash
 
-        if polynomial.base_ring().constant_base_field() is QQbar:
-            self._construct_kash_fields(QQ)
-        else:
-            self._construct_kash_fields(polynomial.base_ring().constant_base_field())
+        self.kash_constant_field = None
 
+        # compute the kash field, so we check for irreducibility
+        # XXX for QQbar, need to check for irreducibility in Sage, over QQbar
+        self.kash()
 
-    def _construct_kash_fields(self, constant_field):
+    def kash(self):
 
-        self.base_field()._construct_kash_fields(constant_field)
-
-        polynomial = self.polynomial()
-
-        kash_base_field = self.base_field().kash
-        kTy = kash_base_field.PolynomialAlgebra()
-
-        x = kash_base_field.gen(1)
-        y = kTy.gen(1)
-
-        # Goofiness because 'subs' doesn't recurse into coefficient
-        # rings, so we convert our polynomial to a list of
-        # coefficients, map them to Kash, and pass the list to Kash's
-        # Element constructor, which builds a polynomial from a list.
-
-        # Also, FunctionFieldElement's aren't callable, and thus the
-        # extra call to element() to convert the FunctionFieldElement
-        # to a FractionFieldElement
-
-        #kash_polynomial = kTy.Element(map(lambda c: c.element()(x), list(polynomial)))
-        kash_polynomial = kTy.Element([self.base_field().to_kash(c) for c in polynomial])
-
-        try:
-            self.kash = kash_polynomial.FunctionField()
-        except TypeError as ex:
-            if 'Polynomial must be irreducible' in ex.args[0]:
-                raise ValueError("The polynomial must be irreducible")
-            raise ex
-
-        ybar = self.kash.gen(1)
-
-        # Set up reverse map to convert elements back from kash
-
-        self.reverse_map = {x : polynomial.base_ring().gen(0), ybar : self.gen(0)}
-        self.reverse_map.update(polynomial.base_ring().reverse_map)
-
-        self.working_constant_field = constant_field
-        self.kash_constant_field = self.base_field().kash_constant_field
-
-    def _recompute_kash(self):
         if self.kash_constant_field != self.base_field().kash_constant_field:
+
             self.kash_constant_field = self.base_field().kash_constant_field
-            self._construct_kash_fields(self.working_constant_field)
+
+            polynomial = self.polynomial()
+
+            kash_base_field = self.base_field().kash()
+            kTy = kash_base_field.PolynomialAlgebra()
+
+            x = kash_base_field.gen(1)
+            y = kTy.gen(1)
+
+            # Goofiness because 'subs' doesn't recurse into coefficient
+            # rings, so we convert our polynomial to a list of
+            # coefficients, map them to Kash, and pass the list to Kash's
+            # Element constructor, which builds a polynomial from a list.
+
+            # Also, FunctionFieldElement's aren't callable, and thus the
+            # extra call to element() to convert the FunctionFieldElement
+            # to a FractionFieldElement
+
+            #kash_polynomial = kTy.Element(map(lambda c: c.element()(x), list(polynomial)))
+            kash_polynomial = kTy.Element([self.base_field().to_kash(c) for c in polynomial])
+
+            try:
+                self._kash_ = kash_polynomial.FunctionField()
+            except TypeError as ex:
+                if 'Polynomial must be irreducible' in ex.args[0]:
+                    raise ValueError("The polynomial must be irreducible")
+                raise ex
+
+            ybar = self._kash_.gen(1)
+
+            # Set up reverse map to convert elements back from kash
+
+            self.reverse_map = {x : polynomial.base_ring().gen(0), ybar : self.gen(0)}
+            self.reverse_map.update(polynomial.base_ring().reverse_map)
+
+        return self._kash_
 
     def to_kash(self, polynomial):
 
@@ -591,12 +585,11 @@ class FunctionField_polymod_kash(FunctionField_polymod):
         # Element function doesn't accept constant polynomials - they
         # have to actually be constants.
 
-        self._recompute_kash()
-        x = self.base_ring().kash.gen(1)
+        x = self.base_ring().kash().gen(1)
         coeffs = list(self(polynomial).element())
         coeffs += [self.base_ring().zero()] * (self.degree() - len(coeffs))
         coeffs = [self.base_ring().to_kash(c) for c in coeffs]
-        return self.kash.Element(coeffs)
+        return self.kash().Element(coeffs)
 
     @cached_method
     def place_set(self):
@@ -685,7 +678,7 @@ class FunctionField_polymod_kash(FunctionField_polymod):
             2*Place (x, (1/(x^3 + x^2 + x))*y^2)
              + 2*Place (x^2 + x + 1, (1/(x^3 + x^2 + x))*y^2)
         """
-        D = self.kash.DifferentDivisor()
+        D = self.kash().DifferentDivisor()
         support = D.Support()
         data = {FunctionFieldPlace_kash(self, place) : D.Valuation(place) for place in support}
         return FunctionFieldDivisor(self, data)
@@ -877,9 +870,7 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
         place = self._place
         F = place.function_field()
 
-        place._recompute_kash()
-
-        kash_series = F.to_kash(f).Expand(place.kash, AbsPrec=prec)
+        kash_series = F.to_kash(f).Expand(place.kash(), AbsPrec=prec)
 
         val = kash_series.Valuation()
         coeffs = [c.sage(F.reverse_map) for c in list(kash_series.Coefficients())]
@@ -970,14 +961,13 @@ class FunctionFieldMaximalOrder_kash(FunctionFieldMaximalOrder):
         """
 
         FunctionFieldMaximalOrder.__init__(self, field, category)
-        self.kash = field.kash.MaximalOrderFinite()
-        self.kash_constant_field = field.kash_constant_field
+        self.kash_constant_field = None
 
-    def _recompute_kash(self):
+    def kash(self):
         if self.kash_constant_field != self.function_field().base_field().kash_constant_field:
-            self.function_field()._recompute_kash()
             self.kash_constant_field = self.function_field().base_field().kash_constant_field
-            self.kash = self.function_field().kash.MaximalOrderFinite()
+            self._kash_ = self.function_field().kash().MaximalOrderFinite()
+        return self._kash_
 
     def _element_constructor_(self, f, check=True):
         """
@@ -1017,7 +1007,7 @@ class FunctionFieldMaximalOrder_kash(FunctionFieldMaximalOrder):
         #    f = f.element()
         #f = self._field._ring(f)
         if check:
-            if not kash._contains(self._field.to_kash(f).name(), self.kash.name()):
+            if not kash._contains(self._field.to_kash(f).name(), self.kash().name()):
                 raise TypeError("%r is not an element of %r"%(f,self))
         # return f and not field._element_class(self, f) because
         # 1. that's what FunctionFieldMaximalOrder_global does
@@ -1053,7 +1043,7 @@ class FunctionFieldMaximalOrder_kash(FunctionFieldMaximalOrder):
             (1, y, y^2, y^3)
         """
 
-        return tuple(self.kash.Basis().sage(self._field.reverse_map))
+        return tuple(self.kash().Basis().sage(self._field.reverse_map))
 
     def ideal(self, *gens):
         """
@@ -1124,14 +1114,13 @@ class FunctionFieldMaximalOrderInfinite_kash(FunctionFieldMaximalOrderInfinite):
         """
 
         FunctionFieldMaximalOrderInfinite.__init__(self, field, category)
-        self.kash = field.kash.MaximalOrderInfinite()
-        self.kash_constant_field = field.kash_constant_field
+        self.kash_constant_field = None
 
-    def _recompute_kash(self):
+    def kash(self):
         if self.kash_constant_field != self.function_field().base_field().kash_constant_field:
-            self.function_field()._recompute_kash()
             self.kash_constant_field = self.function_field().base_field().kash_constant_field
-            self.kash = self.function_field().kash.MaximalOrderInfinite()
+            self._kash_ = self.function_field().kash().MaximalOrderInfinite()
+        return self._kash_
 
     def _element_constructor_(self, f):
         """
@@ -1156,7 +1145,7 @@ class FunctionFieldMaximalOrderInfinite_kash(FunctionFieldMaximalOrderInfinite):
         if not f.parent() is self.function_field():
             f = self.function_field()(f)
 
-        if not kash._contains(self._field.to_kash(f).name(), self.kash.name()):
+        if not kash._contains(self._field.to_kash(f).name(), self.kash().name()):
             raise TypeError("%r is not an element of %r"%(f,self))
 
         return f
@@ -1193,7 +1182,7 @@ class FunctionFieldMaximalOrderInfinite_kash(FunctionFieldMaximalOrderInfinite):
             (1, 1/x*y)
         """
 
-        return tuple(self.kash.Basis().sage(self._field.reverse_map))
+        return tuple(self.kash().Basis().sage(self._field.reverse_map))
 
     def ideal(self, *gens):
         """
@@ -1247,7 +1236,7 @@ class FunctionFieldMaximalOrderInfinite_kash(FunctionFieldMaximalOrderInfinite):
         """
 
         return [ ( FunctionFieldIdeal_kash(self, i), i.Degree().sage(), i.RamificationIndex().sage() )
-                 for i in self.kash.Decomposition()]
+                 for i in self.kash().Decomposition()]
 
 class FunctionFieldIdeal_kash(FunctionFieldIdeal):
     """
@@ -1267,22 +1256,20 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
 
         FunctionFieldIdeal.__init__(self, ring)
 
-        ring._recompute_kash()
-        self.kash_constant_field = ring.function_field().kash_constant_field
-
         if isinstance(gens, KashElement):
-            self.kash = gens
+            self._kash_ = gens
             self._gens = tuple(gens.Generators().sage(ring._field.reverse_map))
-            #self._gens = tuple(map(lambda x : x.sage(ring._field.reverse_map), gens.Generators()))
         else:
             self._gens = tuple(flatten(gens))
-            self.kash = ring.kash.Ideal(map(ring._field.to_kash, self._gens))
+            self._kash_ = ring.kash().Ideal(map(ring._field.to_kash, self._gens))
 
-    def _recompute_kash(self):
-        if self.kash_constant_field != self.ring().function_field().kash_constant_field:
-            self.kash_constant_field = self.ring().function_field().kash_constant_field
-            self.ring()._recompute_kash()
-            self.kash = self.ring().kash.Ideal(map(self.ring().function_field().to_kash, self._gens))
+        self.kash_constant_field = ring.function_field().kash_constant_field
+
+    def kash(self):
+        if self.kash_constant_field != self.ring().function_field().base_field().kash_constant_field:
+            self.kash_constant_field = self.ring().function_field().base_field().kash_constant_field
+            self._kash_ = self.ring().kash().Ideal(map(self.ring().function_field().to_kash, self._gens))
+        return self._kash_
 
     def __hash__(self):
         """
@@ -1326,8 +1313,6 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
             False
         """
 
-        self._recompute_kash()
-        other._recompute_kash()
         return richcmp((self.denominator(), self.gens_over_base()), (other.denominator(), other.gens_over_base()), op)
 
     def __repr__(self):
@@ -1369,7 +1354,7 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
             False
         """
         kashx = self._ring._field.to_kash(x)
-        return kash.eval("%s in %s" % (kashx.name(), self.kash.name())) == 'TRUE'
+        return kash.eval("%s in %s" % (kashx.name(), self.kash().name())) == 'TRUE'
 
     def __invert__(self):
         """
@@ -1401,7 +1386,7 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
             Ideal (1) of Maximal order of Function field in y defined by y^2 + y + (x^2 + 1)/x
         """
 
-        return FunctionFieldIdeal_kash(self._ring, 1 / self.kash)
+        return FunctionFieldIdeal_kash(self._ring, 1 / self.kash())
 
     def _add_(self, other):
         """
@@ -1425,7 +1410,7 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
             Ideal (1, y) of Maximal order of Function field in y defined by y^2 + y + (x^2 + 1)/x
         """
 
-        return FunctionFieldIdeal_kash(self._ring, self.kash + other.kash)
+        return FunctionFieldIdeal_kash(self._ring, self.kash() + other.kash())
 
     def _mul_(self, other):
         """
@@ -1485,7 +1470,7 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
             True
         """
 
-        return FunctionFieldIdeal_kash(self._ring, self.kash * other.kash)
+        return FunctionFieldIdeal_kash(self._ring, self.kash() * other.kash())
 
     def denominator(self):
         """
@@ -1502,7 +1487,7 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
             sage: d in O
             True
         """
-        return self.kash.Denominator().sage(self._ring._field.reverse_map)
+        return self.kash().Denominator().sage(self._ring._field.reverse_map)
 
     def factor(self):
         """
@@ -1542,7 +1527,7 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
             True
         """
         factors = []
-        for f,m in self.kash.Factorization():
+        for f,m in self.kash().Factorization():
             factors.append( (FunctionFieldIdeal_kash(self._ring, f), m) )
         return factors
 
@@ -1590,7 +1575,7 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
             sage: I.gens_over_base()
             (x^3 + 1, y + x)
         """
-        return tuple(self.kash.Basis().sage(self._ring._field.reverse_map))
+        return tuple(self.kash().Basis().sage(self._ring._field.reverse_map))
 
     def is_prime(self):
         """
@@ -1620,7 +1605,7 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
             [True, True]
         """
 
-        return bool(self.kash.IsPrime())
+        return bool(self.kash().IsPrime())
 
     def place(self):
         """
@@ -1666,7 +1651,7 @@ class FunctionFieldIdeal_kash(FunctionFieldIdeal):
         if not self.is_prime():
             raise TypeError("not a prime ideal")
 
-        return ideal.kash.Valuation(self.kash)
+        return ideal.kash().Valuation(self.kash())
 
 
 class FunctionFieldPlace_kash(FunctionFieldPlace):
@@ -1688,20 +1673,20 @@ class FunctionFieldPlace_kash(FunctionFieldPlace):
         if isinstance(arg, KashElement):
             ideal = arg.Ideal()
             order = field.maximal_order()
-            prime = FunctionFieldIdeal_kash(order, order.kash.CoerceIdeal(ideal))
-            self.kash = arg
+            prime = FunctionFieldIdeal_kash(order, order.kash().CoerceIdeal(ideal))
+            self._kash_ = arg
         else:
             prime = arg
-            self.kash = arg.kash.Place()
+            self._kash_ = arg.kash().Place()
 
         FunctionFieldPlace.__init__(self, field, prime)
-        self.kash_constant_field = field.kash_constant_field
+        self.kash_constant_field = field.base_field().kash_constant_field
 
-    def _recompute_kash(self):
-        if self.kash_constant_field != self.function_field().kash_constant_field:
-            self.kash_constant_field = self.function_field().kash_constant_field
-            self.prime_ideal()._recompute_kash()
-            self.kash = self.prime_ideal().kash.Place()
+    def kash(self):
+        if self.kash_constant_field != self.function_field().base_field().kash_constant_field:
+            self.kash_constant_field = self.function_field().base_field().kash_constant_field
+            self._kash_ = self.prime_ideal().kash().Place()
+        return self._kash_
 
     def is_infinite_place(self):
         """
