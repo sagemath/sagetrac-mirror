@@ -1450,7 +1450,6 @@ class CartanType_abstract(object):
         except Exception:
             return False
 
-    @cached_method
     def root_system(self):
         """
         Return the root system associated to ``self``.

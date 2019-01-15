@@ -452,6 +452,25 @@ class Spin_crystal_type_B_element(Spin):
 
         return None
 
+    def weight(self):
+        """
+        Return the weight of ``self``.
+
+        EXAMPLES::
+
+            sage: [v.weight() for v in crystals.Spins(['B',3])]
+            [(1/2, 1/2, 1/2),
+             (1/2, 1/2, -1/2),
+             (1/2, -1/2, 1/2),
+             (-1/2, 1/2, 1/2),
+             (1/2, -1/2, -1/2),
+             (-1/2, 1/2, -1/2),
+             (-1/2, -1/2, 1/2),
+             (-1/2, -1/2, -1/2)]
+        """
+        return self.parent().weight_lattice_realization()(self.value)/2
+
+
 class Spin_crystal_type_D_element(Spin):
     r"""
     Type D spin representation crystal element
@@ -525,3 +544,31 @@ class Spin_crystal_type_D_element(Spin):
                 return self.__class__(self.parent(), tuple(ret))
 
         return None
+
+    def weight(self):
+        """
+        Return the weight of ``self``.
+
+        EXAMPLES::
+
+            sage: [v.weight() for v in crystals.SpinsPlus(['D',4])]
+            [(1/2, 1/2, 1/2, 1/2),
+             (1/2, 1/2, -1/2, -1/2),
+             (1/2, -1/2, 1/2, -1/2),
+             (-1/2, 1/2, 1/2, -1/2),
+             (1/2, -1/2, -1/2, 1/2),
+             (-1/2, 1/2, -1/2, 1/2),
+             (-1/2, -1/2, 1/2, 1/2),
+             (-1/2, -1/2, -1/2, -1/2)]
+
+            sage: [v.weight() for v in crystals.SpinsMinus(['D',4])]
+            [(1/2, 1/2, 1/2, -1/2),
+             (1/2, 1/2, -1/2, 1/2),
+             (1/2, -1/2, 1/2, 1/2),
+             (-1/2, 1/2, 1/2, 1/2),
+             (1/2, -1/2, -1/2, -1/2),
+             (-1/2, 1/2, -1/2, -1/2),
+             (-1/2, -1/2, 1/2, -1/2),
+             (-1/2, -1/2, -1/2, 1/2)]
+        """
+        return self.parent().weight_lattice_realization()(self.value)/2
