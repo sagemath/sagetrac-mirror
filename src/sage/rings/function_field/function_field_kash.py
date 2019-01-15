@@ -366,14 +366,14 @@ class FunctionFieldElement_polymod_kash(FunctionFieldElement_polymod):
             sage: R.<x> = FunctionField(QQbar, implementation='kash')
             sage: L.<y> = R[]
             sage: F.<y> = R.extension(y^2 - (x^2+1))
-            sage: pl = F.maximal_order().ideal(x-QQbar(I),y).place()
+            sage: pl = F.maximal_order().ideal(x-QQbar(sqrt(-1)),y).place()
             sage: pl
             Place (x - I, y)
             sage: x.valuation(pl)
             0
             sage: y.valuation(pl)
             1
-            sage: (x-QQbar(I)).valuation(pl)
+            sage: (x-QQbar(sqrt(-1))).valuation(pl)
             2
         """
         prime = place.prime_ideal()
@@ -909,17 +909,26 @@ class FunctionFieldCompletion_kash(FunctionFieldCompletion):
             1/2*s^-1 + 1/2*s + O(s^20)
             sage: m(x/y*x.differential())
             2*I + 6*I*s^2 + 10*I*s^4 + 14*I*s^6 + 18*I*s^8 + 22*I*s^10 + 26*I*s^12 + 30*I*s^14 + 34*I*s^16 + 38*I*s^18 + O(s^20)
+
+            sage: K.<x> = FunctionField(QQbar, implementation='kash')
+            sage: L.<y> = K[]
+            sage: F.<y> = K.extension(y^2-x+1)
+            sage: pl = y.divisor().support()[1]
+            sage: m = F.completion(pl, prec=1)
+            sage: m(y*x.differential())
+            O(s^1)
+
         """
         if prec is None:
             prec = self._precision
 
-        t = f._field.base_field().gen()
-        ft = f._f.valuation(self._place)
-        dt = self._expand(t, prec-ft+1)
-        dtd = dt.derivative()
-        vtd = dtd.valuation()
-        df = self._expand(f._f, prec-vtd)
-        return df * dtd
+        t = f._field.base_field().gen()       # all differentials construction w.r.t this differential
+        vt = t.valuation(self._place)         # t's valuation
+        vf = f._f.valuation(self._place)      # f's valuation
+        st = self._expand(t, max(prec-vf,vt)+1) # t's series
+        sdt = st.derivative()                 # dt's series
+        sf = self._expand(f._f, prec-(vt-1))  # f's series
+        return sf * sdt
 
     def default_precision(self):
         """
