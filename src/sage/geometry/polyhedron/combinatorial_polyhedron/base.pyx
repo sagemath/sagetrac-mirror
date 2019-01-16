@@ -215,6 +215,7 @@ cdef class CombinatorialPolyhedron:
     cdef dict _Hinv
     cdef dict _Vinv
     cdef int is_empty
+    cdef int nr_lines
     cdef unsigned int _length_Hrep
     cdef unsigned int _length_Vrep
     r"""
@@ -245,6 +246,11 @@ cdef class CombinatorialPolyhedron:
             vertices = data.Vrepresentation()
             facets = tuple(inequality for inequality in data.Hrepresentation() if inequality.is_inequality())
             self._equalities = tuple(inequality for inequality in data.Hrepresentation() if not inequality.is_inequality())
+            if (len(vertices) == data.n_lines() + 1):#in this case the polyhedron is trivial and might not have facets
+                self.is_empty = 1
+                self.nr_lines = data.n_lines()
+                self._V = tuple(vertices)
+                return
             is_unbounded = not data.is_compact()
             nr_lines = data.n_lines()
             data = data.incidence_matrix()
@@ -313,11 +319,17 @@ cdef class CombinatorialPolyhedron:
     
     def __repr__(self):
         if self.is_empty == 1:
+            if self.nr_lines == 0:
+                return "The Combinatorial Type of the Polyhedron with one vertex"
+            if self.nr_lines:
+                return "The Combinatorial Type of a trivial Polyhedron of dimension %s"%self.nr_lines
             return "The Combinatorial Type of the empty Polyhedron"
         return "The Combinatorial Type of a Polyhedron of dimension %s with %s vertices"%(self.dimension(),len(self.vertices()))
     
     def vertices(self):
         if self.is_empty == 1:
+            if self.nr_lines == 0:
+                return (self._V,)
             return ()
         if self._V is not None:
             return self._V
@@ -354,6 +366,8 @@ cdef class CombinatorialPolyhedron:
         
     def dimension(self):
         if self.is_empty == 1:
+            if self.nr_lines is not None:
+                return Integer(self.nr_lines)
             return -1
         return Integer(dimension(self._C))
         
@@ -366,6 +380,8 @@ cdef class CombinatorialPolyhedron:
         NOTE: If you want to compute ridges and f_vector it is recommended to compute ridges first.
         """
         if self.is_empty == 1:
+            if self.nr_lines == 0:
+                return (self._equalities + (),)
             return ()
         cdef unsigned int ** ridgepointer = ridges(self._C) 
         cdef unsigned long maxnumberedges = get_maxnumberedges()
@@ -392,6 +408,8 @@ cdef class CombinatorialPolyhedron:
         
     def f_vector(self):
         if self.is_empty == 1:
+            if self.nr_lines is not None:
+                return (1,) + tuple(0 for _ in range(self.nr_lines)) + (1,)
             return (1,)
         r"""
         Calculates the f_vector of the CombinatorialPolyhedron, i.e. the vector containing the nr of faces of each rank.
@@ -420,8 +438,13 @@ cdef class CombinatorialPolyhedron:
         if self.is_empty == 1:
             if dimension == -1:
                 return ((),)
-            else:
-                return ()
+            if self.nr_lines == 0 and dimension == 0:
+                if facet_repr == True:
+                    return ((),)
+                return (tuple(self._V),)
+            if self.nr_lines and dimension == self.nr_lines:
+                return ((),)
+            return ()
         dim = self.dimension()
         if not dimension in range(-1,dim + 1):
             return ()
@@ -466,9 +489,10 @@ cdef class CombinatorialPolyhedron:
         """
         if self.is_empty == 1:
             if dimension_one == dimension_two == -1:
-                return ((),())
-            else:
-                return ()
+                return ((0,0),)
+            if dimension_one in (-1,self.nr_lines) and dimension_two in (-1,self.nr_lines):
+                return ((0,0),)
+            return ()
         cdef unsigned long maxnumberincidences = get_maxnumberincidences()
         cdef unsigned long nr_incidences[1]
         nr_incidences[:] = [0]
@@ -491,9 +515,14 @@ cdef class CombinatorialPolyhedron:
         The faces in the face-lattice will be labeled by default by tuples of vertices. They can also be labeled by tuple of facets or both or as 0, 1, 2, ... where the order corresponds to the order of self.faces[0],self.faces[1],self.faces[2],...
         """
 
-        if self.is_empty == 1:
+        if self.is_empty == 1 and self.nr_lines is None:
             D = DiGraph([((),),()], format='vertices_and_edges')
             return FiniteLatticePoset(D);
+        if self.is_empty == 1:
+            facets = False #the names by the facets will not be distinct
+            if self.nr_lines > 0:
+                D = DiGraph([(0,1),((1,0),)], format='vertices_and_edges')
+                return FiniteLatticePoset(D);
         f_vector = self.f_vector()
         self._record_all_faces()
         dimension = self.dimension()
