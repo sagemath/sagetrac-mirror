@@ -85,38 +85,38 @@ inline unsigned int naive_popcount(uint64_t A){
 
 
 //initialization with a tuple of facets (each facet a tuple of vertices, vertices labeled 0,1,...)
-CombinatorialPolyhedron::CombinatorialPolyhedron(PyObject* py_tuple, unsigned int nr_vertices_given, int is_unbounded, unsigned int nr_of_lines){
+CombinatorialPolyhedron::CombinatorialPolyhedron(unsigned int ** facets_pointer, unsigned int nr_facets_given, unsigned int *len_facets, unsigned int nr_vertices_given, int is_unbounded, unsigned int nr_lines_given){
     unbounded = is_unbounded;
-    nr_lines = nr_of_lines;
+    nr_lines = nr_lines_given;
     build_dictionary();
     nr_vertices = nr_vertices_given;
-    nr_facets = PyTuple_Size(py_tuple);
+    nr_facets = nr_facets_given;
     if ((!unbounded) && (nr_facets > nr_vertices)){//in this case the polar approach is actually better, so we will save the polar CombinatorialPolyhedron and compute accordingly
         //Polar_Init(py_tuple, nr_vertices_given);
         polar = 1;
         nr_vertices = nr_facets;
         nr_facets = nr_vertices_given;
     }
-    get_facets_from_tuple(py_tuple);
-    get_vertices_from_tuple(py_tuple);
+    get_facets_bitrep_from_facets_pointer(facets_pointer, len_facets);
+    get_vertices_bitrep_from_facets_pointer(facets_pointer, len_facets);
 }
 
 
 //initialization with an incidence matrix given as tuple of tuples
-CombinatorialPolyhedron::CombinatorialPolyhedron(PyObject* py_tuple, int is_unbounded, unsigned int nr_of_lines){
+CombinatorialPolyhedron::CombinatorialPolyhedron(unsigned int ** incidence_matrix, unsigned int nr_facets_given, unsigned int nr_vertices_given, int is_unbounded, unsigned int nr_lines_given){
     unbounded = is_unbounded;
-    nr_lines = nr_of_lines;
+    nr_lines = nr_lines_given;
     build_dictionary();
-    nr_vertices = PyTuple_Size(PyTuple_GetItem(py_tuple,0));
-    nr_facets = PyTuple_Size(py_tuple);
+    nr_vertices = nr_vertices_given;
+    nr_facets = nr_facets_given;
     if ((!unbounded) && (nr_facets > nr_vertices)){//in this case the polar approach is actually much better, so we will save the polar CombinatorialPolyhedron and compute accordingly
         polar = 1;
         unsigned int nr_vertices_given = nr_vertices;
         nr_vertices = nr_facets;
         nr_facets = nr_vertices_given;
     }
-    get_facets_from_incidence_matrix(py_tuple);
-    get_vertices_from_incidence_matrix(py_tuple);
+    get_facets_from_incidence_matrix(incidence_matrix);
+    get_vertices_from_incidence_matrix(incidence_matrix);
 }
 
 CombinatorialPolyhedron::~CombinatorialPolyhedron(){
@@ -838,29 +838,29 @@ unsigned long CombinatorialPolyhedron::get_flag_number(unsigned int *array, unsi
 
 //initialization
 
-void CombinatorialPolyhedron::get_facets_from_tuple(PyObject* py_tuple){
+void CombinatorialPolyhedron::get_facets_bitrep_from_facets_pointer(unsigned int ** facets_pointer, unsigned int *len_facets){
     length_of_face = ((nr_vertices - 1)/chunksize + 1);//this determines the length of the face in terms of chunktype
     allocate_facets();
     if (polar){
-        get_facets_or_vertices_from_tuple(py_tuple, facets, 1, nr_facets, nr_vertices, 0);
+        get_vertices_or_facets_bitrep_from_facets_pointer(facets_pointer, len_facets, facets, 1, nr_facets, nr_vertices, 0);
     }
     else {
-        get_facets_or_vertices_from_tuple(py_tuple, facets, 0, nr_vertices, nr_facets, 0);
+        get_vertices_or_facets_bitrep_from_facets_pointer(facets_pointer, len_facets, facets, 0, nr_vertices, nr_facets, 0);
     }
 }
 
-void CombinatorialPolyhedron::get_vertices_from_tuple(PyObject* py_tuple){
+void CombinatorialPolyhedron::get_vertices_bitrep_from_facets_pointer(unsigned int ** facets_pointer, unsigned int *len_facets){
     length_of_face_in_facet_repr = ((nr_facets - 1)/chunksize + 1);//this determines the length in facet representation in terms of chunktype
     allocate_vertices();
     if (!polar){
-        get_facets_or_vertices_from_tuple(py_tuple, vertices, 1, nr_vertices, nr_facets, 1);
+        get_vertices_or_facets_bitrep_from_facets_pointer(facets_pointer, len_facets, vertices, 1, nr_vertices, nr_facets, 1);
     }
     else {
-        get_facets_or_vertices_from_tuple(py_tuple, vertices, 0, nr_facets, nr_vertices, 1);
+        get_vertices_or_facets_bitrep_from_facets_pointer(facets_pointer, len_facets, vertices, 0, nr_facets, nr_vertices, 1);
     }
 }
 
-void CombinatorialPolyhedron::get_facets_or_vertices_from_tuple(PyObject* py_tuple, chunktype** facets_or_vertices, unsigned int flip, unsigned int nr_vertices_given, unsigned int nr_facets_given, unsigned int facet_repr){
+void CombinatorialPolyhedron::get_vertices_or_facets_bitrep_from_facets_pointer(unsigned int ** facets_pointer, unsigned int *len_facets, chunktype** facets_or_vertices, unsigned int flip, unsigned int nr_vertices_given, unsigned int nr_facets_given, unsigned int facet_repr){
     unsigned int i,j;
     if (flip){//getting the vertices from the original polytope, those will be facets or vertices depending on wether we consider polar or not
         const int size_three = nr_facets_given;
@@ -870,11 +870,11 @@ void CombinatorialPolyhedron::get_facets_or_vertices_from_tuple(PyObject* py_tup
         for(i = 0;i<nr_vertices_given;i++){
             length_that_face = 0;
             for (j=0;j < nr_facets_given;j++){
-                if (i == (unsigned int) PyInt_AsLong(PyTuple_GetItem(PyTuple_GetItem(py_tuple, j),old_facets_walker[j]))){
+                if (i == facets_pointer[j][old_facets_walker[j]]){//testing if vertex i is contained in the j-th facet
                     new_facets_array[length_that_face] = j;
                     old_facets_walker[j]++;
                     length_that_face++;
-                    if (old_facets_walker[j] >= PyTuple_Size(PyTuple_GetItem(py_tuple, j)))
+                    if (old_facets_walker[j] >= len_facets[j])
                         old_facets_walker[j]--;
                 }
             }
@@ -884,34 +884,34 @@ void CombinatorialPolyhedron::get_facets_or_vertices_from_tuple(PyObject* py_tup
     }
     else {//getting the facets from the original polytope, those will be facets or vertices depending on wether we consider polar or not
         for(i = 0;i<nr_facets_given;i++){
-            char_from_tuple(PyTuple_GetItem(py_tuple,i), facets_or_vertices[i], facet_repr);
+            char_from_array(facets_pointer[i], len_facets[i], facets_or_vertices[i], facet_repr);
         }
     }
 }
 
-void CombinatorialPolyhedron::get_facets_from_incidence_matrix(PyObject* py_tuple){
+void CombinatorialPolyhedron::get_facets_from_incidence_matrix(unsigned int **incidence_matrix){
     length_of_face = ((nr_vertices - 1)/chunksize + 1);//this determines the length of the face in terms of chunktype
     allocate_facets();
     if (polar){
-        get_facets_or_vertices_from_incidence_matrix(py_tuple, facets, 1, nr_facets, nr_vertices, 0);
+        get_facets_or_vertices_from_incidence_matrix(incidence_matrix, facets, 1, nr_facets, nr_vertices, 0);
     }
     else {
-        get_facets_or_vertices_from_incidence_matrix(py_tuple, facets, 0, nr_vertices, nr_facets, 0);
+        get_facets_or_vertices_from_incidence_matrix(incidence_matrix, facets, 0, nr_vertices, nr_facets, 0);
     }
 }
 
-void CombinatorialPolyhedron::get_vertices_from_incidence_matrix(PyObject* py_tuple){
+void CombinatorialPolyhedron::get_vertices_from_incidence_matrix(unsigned int **incidence_matrix){
     length_of_face_in_facet_repr = ((nr_facets - 1)/chunksize + 1);//this determines the length in facet representation in terms of chunktype
     allocate_vertices();
     if (!polar){
-        get_facets_or_vertices_from_incidence_matrix(py_tuple, vertices, 1, nr_vertices, nr_facets, 1);
+        get_facets_or_vertices_from_incidence_matrix(incidence_matrix, vertices, 1, nr_vertices, nr_facets, 1);
     }
     else {
-        get_facets_or_vertices_from_incidence_matrix(py_tuple, vertices, 0, nr_facets, nr_vertices, 1);
+        get_facets_or_vertices_from_incidence_matrix(incidence_matrix, vertices, 0, nr_facets, nr_vertices, 1);
     }
 }
 
-void CombinatorialPolyhedron::get_facets_or_vertices_from_incidence_matrix(PyObject* py_tuple, chunktype** facets_or_vertices, unsigned int flip, unsigned int nr_vertices_given, unsigned int nr_facets_given, unsigned int facet_repr){
+void CombinatorialPolyhedron::get_facets_or_vertices_from_incidence_matrix(unsigned int **incidence_matrix, chunktype** facets_or_vertices, unsigned int flip, unsigned int nr_vertices_given, unsigned int nr_facets_given, unsigned int facet_repr){
     unsigned int i,j;
     if (flip){//getting the vertices from the original polytope, those will be facets or vertices depending on wether we consider polar or not
         const int size_three = nr_facets_given;
@@ -920,7 +920,7 @@ void CombinatorialPolyhedron::get_facets_or_vertices_from_incidence_matrix(PyObj
         for(i = 0;i<nr_vertices_given;i++){
             length_that_face = 0;
             for (j=0;j < nr_facets_given;j++){
-                if (PyInt_AsLong(PyTuple_GetItem(PyTuple_GetItem(py_tuple, j),i))){
+                if (incidence_matrix[j][i]){
                     new_facets_array[length_that_face] = j;
                     length_that_face++;
                 }
@@ -930,36 +930,12 @@ void CombinatorialPolyhedron::get_facets_or_vertices_from_incidence_matrix(PyObj
     }
     else {//getting the facets from the original polytope, those will be facets or vertices depending on wether we consider polar or not
         for(i = 0;i<nr_facets_given;i++){
-            char_from_incidence_tuple(PyTuple_GetItem(py_tuple,i), facets_or_vertices[i], facet_repr);
+            char_from_incidence_list(incidence_matrix[i], nr_vertices_given, facets_or_vertices[i], facet_repr);
         }
     }
 }
 
 //conversions ----------------------------------------------------
-
-void CombinatorialPolyhedron::char_from_tuple(PyObject* py_tuple, chunktype *array1, unsigned int facet_repr){
-    unsigned int face_length;
-    if (facet_repr){
-        face_length = length_of_face_in_facet_repr;
-    }
-    else {
-        face_length = length_of_face;
-    }
-    unsigned int len, entry, position, value,i ;
-    const unsigned int size_array = face_length*chunksize/64;
-    uint64_t *array = new uint64_t [size_array]();
-    len = PyTuple_Size(py_tuple);
-    while (len--) {
-        entry = (unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, len));
-        value = entry % 64;
-        position = entry/64;
-        array[position] += vertex_to_bit_dictionary[value];
-    }
-    for (i=0;i<face_length;i++){
-        load_register(array1[i],array[i*chunksize/64]);
-    }
-    delete(array);
-}
 
 inline PyObject* CombinatorialPolyhedron::tuple_from_char(chunktype *array1, unsigned int facet_repr){
     unsigned int i,j;
@@ -1025,7 +1001,7 @@ inline void CombinatorialPolyhedron::bitrep_to_list(chunktype **array1, unsigned
     return;
 }
 
-void CombinatorialPolyhedron::char_from_incidence_tuple(PyObject* py_tuple, chunktype *array1, unsigned int facet_repr){
+void CombinatorialPolyhedron::char_from_incidence_list(unsigned int *incidence_list, unsigned int nr_vertices_given, chunktype *array1, unsigned int facet_repr){
     unsigned int face_length;
     if (facet_repr){
         face_length = length_of_face_in_facet_repr;
@@ -1033,15 +1009,14 @@ void CombinatorialPolyhedron::char_from_incidence_tuple(PyObject* py_tuple, chun
     else {
         face_length = length_of_face;
     }
-    unsigned int len, entry, position, value,i ;
+    unsigned int entry, position, value,i ;
     const unsigned int size_array = face_length*chunksize/64;
     uint64_t *array = new uint64_t [size_array]();
-    len = PyTuple_Size(py_tuple);
-    while (len--) {
-        entry = (unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, len));
+    while (nr_vertices_given--) {
+        entry = incidence_list[nr_vertices_given];
         if (entry){
-            value = len % 64;
-            position = len/64;
+            value = nr_vertices_given % 64;
+            position = nr_vertices_given/64;
             array[position] += vertex_to_bit_dictionary[value];
         }
     }
@@ -1325,13 +1300,13 @@ void CombinatorialPolyhedron::deallocate_allfaces(){
 
 
 
-CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(PyObject* py_tuple, unsigned int nr_vertices, int is_unbounded, unsigned int nr_lines) {
-    CombinatorialPolyhedron_ptr C = new CombinatorialPolyhedron(py_tuple,nr_vertices, is_unbounded, nr_lines);
+CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(unsigned int ** facets_pointer, unsigned int nr_facets, unsigned int *len_facets, unsigned int nr_vertices, int is_unbounded, unsigned int nr_lines) {
+    CombinatorialPolyhedron_ptr C = new CombinatorialPolyhedron(facets_pointer, nr_facets, len_facets, nr_vertices, is_unbounded, nr_lines);
     return C;
 }
 
-CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(PyObject* py_tuple, int is_unbounded, unsigned int nr_lines) {
-    CombinatorialPolyhedron_ptr C = new CombinatorialPolyhedron(py_tuple, is_unbounded, nr_lines);
+CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(unsigned int ** incidence_matrix, unsigned int nr_facets, unsigned int nr_vertices, int is_unbounded, unsigned int nr_lines) {
+    CombinatorialPolyhedron_ptr C = new CombinatorialPolyhedron(incidence_matrix, nr_facets, nr_vertices, is_unbounded, nr_lines);
     return C;
 }
 

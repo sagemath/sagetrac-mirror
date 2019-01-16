@@ -206,7 +206,7 @@ from cpython cimport array
 import array
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 
-#TODO take care of the empty polyhedron, which does not have vertices
+
 cdef class CombinatorialPolyhedron:
     cdef CombinatorialPolyhedron_ptr _C
     cdef tuple _V
@@ -235,7 +235,10 @@ cdef class CombinatorialPolyhedron:
         (1, 5040, 15120, 16800, 8400, 1806, 126, 1)
     """
     def __init__(self, data, vertices=None, facets=None, is_unbounded=False, nr_lines=0):
-        self.is_empty = 0#TODO full-dimensional polyhedron
+        cdef unsigned int **incidence_matrix
+        cdef unsigned int **facets_pointer
+        cdef unsigned int *len_facets
+        self.is_empty = 0
         if nr_lines:
             is_unbounded = True
         self._equalities = ()
@@ -286,12 +289,24 @@ cdef class CombinatorialPolyhedron:
             tup =  tuple(tuple(data[i,j] for i in rg) for j in range(data.ncols()) if not all(data[i,j] for i in rg))#transpose and get rid of trivial inequalites (which all vertices satisfie)
             if tup == ((),):
                 self.is_empty = 1
+                if nr_lines > 0:
+                    self.nr_lines = nr_lines
                 return
-            self._C = init_CombinatorialPolyhedron(tup, int(is_unbounded), int (nr_lines))
+            incidence_matrix = <unsigned int**> PyMem_Malloc(len(tup) * sizeof(unsigned int *))
+            for i in range(len(tup)):
+                incidence_matrix[i] = <unsigned int*> PyMem_Malloc(self._length_Vrep * sizeof(unsigned int))
+                for j in range(self._length_Vrep):
+                    incidence_matrix[i][j] = tup[i][j]
+            self._C = init_CombinatorialPolyhedron(incidence_matrix, len(tup), self._length_Vrep, int(is_unbounded), int (nr_lines))
+            for i in range(len(tup)):
+                PyMem_Free(incidence_matrix[i])
+            PyMem_Free(incidence_matrix)
         else:
             if self._V is None:
                 if len(data) == 0:
                     self.is_empty = 1
+                    if nr_lines > 0:
+                        self.nr_lines = nr_lines
                     return
                 vertices = sorted(set.union(*map(set,data)))
                 nr_vertices = len(vertices)
@@ -307,7 +322,18 @@ cdef class CombinatorialPolyhedron:
                 f = lambda v: int(v)
             facets = tuple(tuple(f(i) for i in j) for j in data)
             self._length_Hrep = len(facets)
-            self._C = init_CombinatorialPolyhedron(facets, nr_vertices, int(is_unbounded), int (nr_lines))
+            facets_pointer = <unsigned int**> PyMem_Malloc(len(facets) * sizeof(unsigned int *))
+            len_facets = <unsigned int*> PyMem_Malloc(len(facets) * sizeof(unsigned int))
+            for i in range(len(facets)):
+                len_facets[i] = len(facets[i])
+                facets_pointer[i] = <unsigned int*> PyMem_Malloc(len_facets[i]  * sizeof(unsigned int))
+                for j in range(len_facets[i] ):
+                    facets_pointer[i][j] = facets[i][j]
+            self._C = init_CombinatorialPolyhedron(facets_pointer, len(facets), len_facets, nr_vertices, int(is_unbounded), int (nr_lines))
+            for i in range(len(facets)):
+                PyMem_Free(facets_pointer[i])
+            PyMem_Free(facets_pointer)
+            PyMem_Free(len_facets)
             
     def __dealloc__(self):
         r"""

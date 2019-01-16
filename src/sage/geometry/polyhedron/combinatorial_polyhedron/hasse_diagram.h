@@ -63,8 +63,8 @@ const unsigned int maxnumberincidences = 16348;//^2 the maximal number of incide
 
 class CombinatorialPolyhedron {
     public:
-        CombinatorialPolyhedron(PyObject* py_tuple, unsigned int nr_vertices_given, int is_unbounded, unsigned int nr_of_lines);//initialization with a tuple of facets (each facet a tuple of vertices, vertices labeled 0,1,...)
-        CombinatorialPolyhedron(PyObject* py_tuple, int is_unbounded, unsigned int nr_of_lines);//initialization with an incidence matrix given as tuple of tuples
+        CombinatorialPolyhedron(unsigned int ** facets_pointer, unsigned int nr_facets_given, unsigned int *len_facets, unsigned int nr_vertices_given, int is_unbounded, unsigned int nr_lines_given);//initialization with a tuple of facets (each facet a tuple of vertices, vertices labeled 0,1,...)
+        CombinatorialPolyhedron(unsigned int ** incidence_matrix, unsigned int nr_facets_given, unsigned int nr_vertices_given, int is_unbounded, unsigned int nr_lines_given);//initialization with an incidence matrix given as tuple of tuples
         ~CombinatorialPolyhedron();//cleanup to avoid memory leak
         unsigned int get_dimension();
         inline void get_f_vector(unsigned long *vector);
@@ -132,20 +132,19 @@ class CombinatorialPolyhedron {
         unsigned long get_flag_number(unsigned int *array, unsigned int len);
 
         //initialization
-        void get_facets_from_tuple(PyObject* py_tuple);
-        void get_vertices_from_tuple(PyObject* py_tuple);
-        void get_facets_or_vertices_from_tuple(PyObject* py_tuple, chunktype** facets_or_vertices, unsigned int flip, unsigned int nr_vertices_given, unsigned int nr_facets_given, unsigned int facet_repr);
-        void get_facets_from_incidence_matrix(PyObject* py_tuple);
-        void get_vertices_from_incidence_matrix(PyObject* py_tuple);
-        void get_facets_or_vertices_from_incidence_matrix(PyObject* py_tuple, chunktype** facets_or_vertices, unsigned int flip, unsigned int nr_vertices_given, unsigned int nr_facets_given, unsigned int facet_repr);
+        void get_facets_bitrep_from_facets_pointer(unsigned int ** facets_pointer, unsigned int *len_facets);
+        void get_vertices_bitrep_from_facets_pointer(unsigned int ** facets_pointer, unsigned int *len_facets);
+        void get_vertices_or_facets_bitrep_from_facets_pointer(unsigned int ** facets_pointer, unsigned int *len_facets, chunktype** facets_or_vertices, unsigned int flip, unsigned int nr_vertices_given, unsigned int nr_facets_given, unsigned int facet_repr);
+        void get_facets_from_incidence_matrix(unsigned int **incidence_matrix);
+        void get_vertices_from_incidence_matrix(unsigned int **incidence_matrix);
+        void get_facets_or_vertices_from_incidence_matrix(unsigned int **incidence_matrix, chunktype** facets_or_vertices, unsigned int flip, unsigned int nr_vertices_given, unsigned int nr_facets_given, unsigned int facet_repr);
         
         
         //conversions
-        void char_from_tuple(PyObject* py_tuple, chunktype *array1, unsigned int facet_repr);
         inline PyObject* tuple_from_char(chunktype *array1, unsigned int facet_repr);
         inline void bitrep_to_list(chunktype *array1, unsigned int *face_to_return, unsigned int *length_of_faces, unsigned int facet_repr);
         inline void bitrep_to_list(chunktype **array1, unsigned int len, unsigned int **faces_to_return, unsigned int *length_of_faces, unsigned int facet_repr);
-        void char_from_incidence_tuple(PyObject* py_tuple, chunktype *array1, unsigned int facet_repr);
+        void char_from_incidence_list(unsigned int *incidence_list, unsigned int nr_vertices_given, chunktype *array1, unsigned int facet_repr);
         void char_from_array(unsigned int* input, unsigned int len, chunktype *array1, unsigned int facet_repr);
         inline PyObject* tuple_from_f_vector();
         inline PyObject* tuple_from_edges();
@@ -168,8 +167,8 @@ class CombinatorialPolyhedron {
 
 typedef CombinatorialPolyhedron* CombinatorialPolyhedron_ptr;
 
-CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(PyObject* py_tuple, unsigned int nr_vertices, int is_unbounded, unsigned int nr_lines);//initialize by facets as tuples of vertices
-CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(PyObject* py_tuple, int is_unbounded, unsigned int nr_lines);//initialize by incidence_matrix
+CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(unsigned int ** facets_pointer, unsigned int nr_facets, unsigned int *len_facets, unsigned int nr_vertices, int is_unbounded, unsigned int nr_lines);//initialize by facets as tuples of vertices
+CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(unsigned int ** incidence_matrix, unsigned int nr_facets, unsigned int nr_vertices, int is_unbounded, unsigned int nr_lines);//initialize by incidence_matrix
 
 unsigned int dimension(CombinatorialPolyhedron_ptr C);
 void f_vector(CombinatorialPolyhedron_ptr C, unsigned long *vector);
