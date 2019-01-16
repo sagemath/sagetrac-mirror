@@ -189,51 +189,77 @@ inline unsigned int **  CombinatorialPolyhedron::get_ridges(){
     }
 }
 
-inline PyObject* CombinatorialPolyhedron::get_faces(int face_dimension, unsigned int facet_repr){
+//get_faces fills faces_to_return with all faces in dimension face_dimension and length_of_faces with length of the faces, if facet_repr then faces will be given with facet_incidences, otherwise with vertex incidences
+void CombinatorialPolyhedron::get_faces(int face_dimension, unsigned int facet_repr, unsigned int **faces_to_return, unsigned int *length_of_faces){
     unsigned int dim = get_dimension();
+    unsigned int i;
     if (polar){ //if the polar is stored we should return the facet_repr for the vertex_repr and vice_versa
         facet_repr = polar - facet_repr;
-        face_dimension = dimension -1 - face_dimension;
+        face_dimension = ((int) dimension) -1 - face_dimension;
     }
     if (face_dimension == -1){
-        if (facet_repr)
-            return one_trivial_tuple(nr_facets);
-        else
-            return one_trivial_tuple(0);
+        if (facet_repr) {
+            for (i = 0; i < nr_facets; i++){
+                faces_to_return[0][i] = i;
+            }
+            length_of_faces[0] = nr_facets;
+            return;
+        }
+        else {
+            length_of_faces[0] = 0;
+            return;
+        }
     }
     if (face_dimension < -1)
-        return n_trivial_tuples(0);
+        return;
     unsigned int face_dimension_unsigned = (unsigned int) face_dimension;
     if (face_dimension_unsigned > dimension)
-        return n_trivial_tuples(0);
+        return;
     if (face_dimension_unsigned == dimension -1){
         if (!facet_repr)
-            return tuple_from_faces(facets, nr_facets,0);
-        else
-            return n_trivial_tuples(nr_facets);
+            return bitrep_to_list(facets, nr_facets, faces_to_return, length_of_faces, 0);
+        else {
+            for (i = 0; i < nr_facets; i++){
+                faces_to_return[i][0] = i;
+                length_of_faces[i] = 1;
+            }
+            return;
+        }
     }
     if (face_dimension_unsigned == 0){
         if (nr_lines)
-            return n_trivial_tuples(0);
+            return;
         if (facet_repr)
-            return tuple_from_faces(vertices, nr_vertices,1);
-        else
-            return n_trivial_tuples(nr_vertices);
+            return bitrep_to_list(vertices, nr_vertices, faces_to_return, length_of_faces, 1);
+        else {
+            for (i = 0; i < nr_vertices; i++){
+                faces_to_return[i][0] = i;
+                length_of_faces[i] = 1;
+            }
+            return;
+        }
     }
     if (face_dimension_unsigned == dimension){
-        if (!facet_repr)
-            return one_trivial_tuple(nr_vertices);
-        else
-            return one_trivial_tuple(0);
+        if (!facet_repr) {
+            for (i = 0; i < nr_vertices; i++){
+                faces_to_return[0][i] = i;
+            }
+            length_of_faces[0] = nr_vertices;
+            return;
+        }
+        else {
+            length_of_faces[0] = 0;
+            return;
+        }
     }
     if (!allfaces_are_allocated || (allfaces_are_allocated[face_dimension_unsigned] != 2)){
         allocate_allfaces(face_dimension_unsigned);
         record_faces(face_dimension_unsigned);
     }
     if (!facet_repr)
-        return tuple_from_faces(allfaces[face_dimension_unsigned],allfaces_counter[face_dimension_unsigned],0);
+        return bitrep_to_list(allfaces[face_dimension_unsigned], allfaces_counter[face_dimension_unsigned], faces_to_return, length_of_faces, 0);
     else
-        return tuple_from_faces(allfaces_facet_repr[face_dimension_unsigned],allfaces_counter[face_dimension_unsigned],1);
+        return bitrep_to_list(allfaces_facet_repr[face_dimension_unsigned], allfaces_counter[face_dimension_unsigned], faces_to_return, length_of_faces, 1);
 }
 
 void CombinatorialPolyhedron::record_all_faces(){
@@ -241,68 +267,61 @@ void CombinatorialPolyhedron::record_all_faces(){
     record_faces(1);
 }
 
-inline PyObject* CombinatorialPolyhedron::get_incidences(int dimension_one, int dimension_two){
+unsigned long ** CombinatorialPolyhedron::get_incidences(int dimension_one, int dimension_two, unsigned long * nr_incidences_to_return, unsigned int * twisted){
     nr_incidences = 0;
     unsigned int dim = get_dimension();
+    if (!f_vector)
+        get_f_vector_and_edges();
     unsigned long i,j;
     if (polar){
         dimension_one = dimension -1 - dimension_one;
         dimension_two = dimension -1  - dimension_two;
     }
-    unsigned int twisted = 0;
+    twisted[0] = 0;
     if (nr_lines && ((dimension_one == 0) || (dimension_two == 0))){//if the unbounded polyhedron contains lines, then there are no vertices
-        return tuple_from_incidences(twisted);
+        nr_incidences_to_return[0] = nr_incidences;
+        return incidences;
     }
     if (dimension_one < dimension_two){
         int foo = dimension_one;
         dimension_one = dimension_two;
         dimension_two = foo;
-        twisted = 1;
+        twisted[0] = 1;
     }
-    if (dimension_two == dimension_one){//not really intended for this, but we can give a result anyway
-        PyObject* workaround;
-        if (polar)
-            workaround = get_faces(dimension -1 - dimension_two,0);//in get_faces we have already considered that we are infact in the polar situation
-        else
-            workaround = get_faces(dimension_two,0);
-        unsigned long i = PyTuple_Size(workaround);
-        for (j = 0; j < i; j++){
+    if (dimension_two == dimension_one){
+        unsigned long nr_of_those_faces = f_vector[dimension_two + 1];
+        for (j = 0; j < nr_of_those_faces; j++){
             add_incidence(j,j);
         }
-        return tuple_from_incidences(twisted);
+        nr_incidences_to_return[0] = nr_incidences;
+        return incidences;
     }
     unsigned int one = (unsigned int) dimension_one;//if dimension_one < 0, then dimension_two < -1 and the next statement will be triggered anyway)
     if ((dimension_two < -1) || (one > dimension)){//in this case there will be no incidences
-        return tuple_from_incidences(twisted);
+        nr_incidences_to_return[0] = nr_incidences;
+        return incidences;
     }
     if (dimension_two == -1){//the -1-dimensional face is contained in every face
-        PyObject* workaround;
-    if (polar)
-        workaround = get_faces(dimension -1 - dimension_one,0);//in get_faces we have already considered that we are in the polar situation
-        else
-        workaround = get_faces(dimension_one,0);
-    unsigned long i = PyTuple_Size(workaround);
-        for (j = 0; j < i; j++){
+        unsigned long nr_of_those_faces = f_vector[dimension_one + 1];
+        for (j = 0; j < nr_of_those_faces; j++){
             add_incidence(j,0);
         }
-        return tuple_from_incidences(twisted);
+        nr_incidences_to_return[0] = nr_incidences;
+        return incidences;
     }
     unsigned int two = (unsigned int) dimension_two;
     if (one == dimension){ //the polytope contains every face
-        PyObject* workaround;
-    if (polar)
-        workaround = get_faces(dimension -1 - dimension_two,0);//in get_faces we have already considered that we are in the polar situation
-        else 
-        workaround = get_faces(dimension_two,0);
-    unsigned long i = PyTuple_Size(workaround);
-        for (j = 0; j < i; j++){
+        unsigned long nr_of_those_faces = f_vector[dimension_two + 1];
+        for (j = 0; j < nr_of_those_faces; j++){
             add_incidence(0,j);
         }
-        return tuple_from_incidences(twisted);
+        nr_incidences_to_return[0] = nr_incidences;
+        return incidences;
     }
     if ((one == dimension -1) && (two == 0)){//getting the vertex-facet incidence
         vertex_facet_incidences();
-        return tuple_from_incidences(twisted);
+        nr_incidences_to_return[0] = nr_incidences;
+        return incidences;
     }
     if (one == dimension -1){
         if (!allfaces_are_allocated || (allfaces_are_allocated[two] != 2)){
@@ -313,7 +332,8 @@ inline PyObject* CombinatorialPolyhedron::get_incidences(int dimension_one, int 
             for (j = 0; j < allfaces_counter[two]; j++)
                 if (is_subset(allfaces[two][j],facets[i]))
                     add_incidence(i,j);
-        return tuple_from_incidences(twisted);
+        nr_incidences_to_return[0] = nr_incidences;
+        return incidences;
     }
     if (two == 0){
         if (!allfaces_are_allocated || (allfaces_are_allocated[one] != 2)){
@@ -324,7 +344,8 @@ inline PyObject* CombinatorialPolyhedron::get_incidences(int dimension_one, int 
             for (j = 0; j < nr_vertices; j++)
                 if (is_subset_facet_repr(allfaces_facet_repr[one][i],vertices[j]))
                     add_incidence(i,j);
-        return tuple_from_incidences(twisted);
+        nr_incidences_to_return[0] = nr_incidences;
+        return incidences;
     }
     //at this point we know 0 < two < one < dimension - 1
     if (!allfaces_are_allocated || (allfaces_are_allocated[one] != 2) || (allfaces_are_allocated[two] != 2)){
@@ -336,7 +357,8 @@ inline PyObject* CombinatorialPolyhedron::get_incidences(int dimension_one, int 
         for (j = 0; j < allfaces_counter[two]; j++)
             if (is_subset_facet_repr(allfaces_facet_repr[one][i],allfaces_facet_repr[two][j]))
                 add_incidence(i,j);
-    return tuple_from_incidences(twisted);
+    nr_incidences_to_return[0] = nr_incidences;
+    return incidences;
 }
 
 //expects a sorted array of size lenght with pairwise distinct integers at least 0 and at most dim
@@ -966,15 +988,41 @@ inline PyObject* CombinatorialPolyhedron::tuple_from_char(chunktype *array1, uns
             }
         }
     }
+    delete(array);
     return py_tuple;
 }
 
-inline PyObject* CombinatorialPolyhedron::tuple_from_faces(chunktype **array1, unsigned int len, unsigned int facet_repr){
-    PyObject* py_tuple = PyTuple_New(len);
-    for(unsigned int i = 0;i < len; i++){
-        PyTuple_SET_ITEM(py_tuple,i,tuple_from_char(array1[i],facet_repr));
+inline void CombinatorialPolyhedron::bitrep_to_list(chunktype *array1, unsigned int *face_to_return, unsigned int *length_of_faces, unsigned int facet_repr){
+    unsigned int i,j;
+    unsigned int face_length = length_of_face;
+    if (facet_repr){
+        face_length = length_of_face_in_facet_repr;
     }
-    return py_tuple;
+    unsigned int counter = 0;
+    const unsigned int size_array = face_length*chunksize/64;
+    uint64_t *array = new uint64_t [size_array]();
+    for (i = 0; i < face_length;i++){
+        store_register(array[i*chunksize/64],array1[i]);
+    }
+    for (i = 0; i < size_array;i++){
+        for (j = 0; j < 64; j++){
+            if (array[i] >= vertex_to_bit_dictionary[j]){
+                face_to_return[counter] = i*64 + j;
+                counter++;
+                array[i] -= vertex_to_bit_dictionary[j];
+            }
+        }
+    }
+    length_of_faces[0] = counter;
+    delete(array);
+    return;
+}
+
+inline void CombinatorialPolyhedron::bitrep_to_list(chunktype **array1, unsigned int len, unsigned int **faces_to_return, unsigned int *length_of_faces, unsigned int facet_repr){
+    for(unsigned int i = 0;i < len; i++){
+        bitrep_to_list(array1[i], faces_to_return[i], &length_of_faces[i], facet_repr);
+    }
+    return;
 }
 
 void CombinatorialPolyhedron::char_from_incidence_tuple(PyObject* py_tuple, chunktype *array1, unsigned int facet_repr){
@@ -1304,16 +1352,16 @@ unsigned int ** ridges(CombinatorialPolyhedron_ptr C){
   return (*C).get_ridges();
 }
 
-PyObject* incidences(CombinatorialPolyhedron_ptr C, int dimension_one, int dimension_two){
-    return (*C).get_incidences(dimension_one, dimension_two);
+unsigned long ** incidences(CombinatorialPolyhedron_ptr C, int dimension_one, int dimension_two, unsigned long * nr_incidences, unsigned int * twisted){
+    return (*C).get_incidences(dimension_one, dimension_two, nr_incidences, twisted);
 }
 
 void record_all_faces(CombinatorialPolyhedron_ptr C){
     (*C).record_all_faces();
 }
 
-PyObject* get_faces(CombinatorialPolyhedron_ptr C, int dimension, unsigned int facet_repr){
-    return (*C).get_faces(dimension, facet_repr);
+void get_faces(CombinatorialPolyhedron_ptr C, int dimension, unsigned int facet_repr, unsigned int **faces_to_return, unsigned int *length_of_faces){
+    return (*C).get_faces(dimension, facet_repr, faces_to_return, length_of_faces);
 }
 
 unsigned long get_flag(CombinatorialPolyhedron_ptr C, unsigned int * flagarray, unsigned int length){
@@ -1327,4 +1375,8 @@ void delete_CombinatorialPolyhedron(CombinatorialPolyhedron_ptr C){
 
 unsigned long get_maxnumberedges(){
     return (unsigned long) maxnumberedges;
+}
+
+unsigned long get_maxnumberincidences(){
+    return (unsigned long) maxnumberincidences;
 }

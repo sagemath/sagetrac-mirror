@@ -200,11 +200,11 @@ from sage.combinat.posets.lattices import FiniteLatticePoset
 from sage.geometry.polyhedron.base import is_Polyhedron
 from sage.geometry.lattice_polytope import is_LatticePolytope
 
-from .hasse_diagram cimport   CombinatorialPolyhedron_ptr, init_CombinatorialPolyhedron, dimension, edges, f_vector, ridges, incidences, record_all_faces, get_faces, get_flag, delete_CombinatorialPolyhedron, get_maxnumberedges
+from .hasse_diagram cimport   CombinatorialPolyhedron_ptr, init_CombinatorialPolyhedron, dimension, edges, f_vector, ridges, incidences, record_all_faces, get_faces, get_flag, delete_CombinatorialPolyhedron, get_maxnumberedges, get_maxnumberincidences
 
 from cpython cimport array
 import array
-
+from cpython.mem cimport PyMem_Malloc, PyMem_Free
 
 #TODO take care of the empty polyhedron, which does not have vertices
 cdef class CombinatorialPolyhedron:
@@ -215,6 +215,8 @@ cdef class CombinatorialPolyhedron:
     cdef dict _Hinv
     cdef dict _Vinv
     cdef int is_empty
+    cdef unsigned int _length_Hrep
+    cdef unsigned int _length_Vrep
     r"""
     A class of atomic and coatiomic Eulerian lattices.
 
@@ -246,12 +248,16 @@ cdef class CombinatorialPolyhedron:
             is_unbounded = not data.is_compact()
             nr_lines = data.n_lines()
             data = data.incidence_matrix()
+            self._length_Hrep = data.ncols()
+            self._length_Vrep = data.nrows()
         if is_LatticePolytope(data):
             if data.npoints() == 1:
                 self.is_empty = 1
                 return
             vertices = data.vertices()
+            self._length_Vrep = len(vertices)
             facets = data.facets()
+            self._length_Hrep = len(facets)
             data = tuple(tuple(vert for vert in facet.vertices()) for facet in facets)
         if vertices:
             self._V    = tuple(vertices)
@@ -268,6 +274,8 @@ cdef class CombinatorialPolyhedron:
         if hasattr(data,"incidence_matrix"):#TODO: Better check for incidence_matrix
             data = data.incidence_matrix()
         if hasattr(data,"nrows"):#TODO: Better check for matrix
+            self._length_Hrep = data.ncols()
+            self._length_Vrep = data.nrows()
             rg = range(data.nrows())
             tup =  tuple(tuple(data[i,j] for i in rg) for j in range(data.ncols()) if not all(data[i,j] for i in rg))#transpose and get rid of trivial inequalites (which all vertices satisfie)
             if tup == ((),):
@@ -286,12 +294,13 @@ cdef class CombinatorialPolyhedron:
                     self._Vinv = { v : i for i,v in enumerate(self._V) }
             else:
                 nr_vertices = len(self._V)
-
+            self._length_Vrep = nr_vertices
             if not self._V is None:
                 f = lambda v: self._Vinv[v]
             else:
                 f = lambda v: int(v)
             facets = tuple(tuple(f(i) for i in j) for j in data)
+            self._length_Hrep = len(facets)
             self._C = init_CombinatorialPolyhedron(facets, nr_vertices, int(is_unbounded), int (nr_lines))
             
     def __dealloc__(self):
@@ -413,14 +422,27 @@ cdef class CombinatorialPolyhedron:
                 return ((),)
             else:
                 return ()
+        dim = self.dimension()
+        if not dimension in range(-1,dim + 1):
+            return ()
+        cdef unsigned long number_of_faces = self.f_vector()[dimension + 1]
+        cdef unsigned int length_of_face
+        if (facet_repr == False):
+            size_of_face = self._length_Vrep
+        else:
+            size_of_face = self._length_Hrep
+        cdef unsigned int **faces_to_return = <unsigned int**> PyMem_Malloc(number_of_faces * sizeof(unsigned int *))
+        for i in range(number_of_faces):
+            faces_to_return[i] = <unsigned int*> PyMem_Malloc(size_of_face * sizeof(unsigned int))
+        cdef unsigned int *length_of_faces = <unsigned int*> PyMem_Malloc(number_of_faces * sizeof(unsigned int))
         addtuple = ()
+        
         if (facet_repr):
             facet_repr = 1
             if self._H is not None:
                 f = lambda i : self._H[i]
             else:
                 f = lambda i : Integer(i)
-            f = lambda i : Integer(i)
             addtuple = self._equalities
         else:
             facet_repr = 0
@@ -428,7 +450,13 @@ cdef class CombinatorialPolyhedron:
                 f = lambda i : self._V[i]
             else:
                 f = lambda i : Integer(i)
-        return tuple(addtuple + tuple(f(j) for j in i) for i in get_faces(self._C, dimension, facet_repr))
+        get_faces(self._C, dimension, facet_repr, faces_to_return, length_of_faces)
+        returntuple = tuple(addtuple + tuple(f(faces_to_return[facecounter][j]) for j in range(length_of_faces[facecounter])) for facecounter in range(number_of_faces))
+        for i in range(number_of_faces):
+            PyMem_Free(faces_to_return[i])
+        PyMem_Free(faces_to_return)
+        PyMem_Free(length_of_faces)
+        return returntuple
         
     def incidences(self,dimension_one,dimension_two):
         r"""
@@ -439,8 +467,23 @@ cdef class CombinatorialPolyhedron:
         if self.is_empty == 1:
             if dimension_one == dimension_two == -1:
                 return ((),())
-        return tuple((Integer(i),Integer(j)) for i,j in incidences(self._C,dimension_one,dimension_two))
-        
+            else:
+                return ()
+        cdef unsigned long maxnumberincidences = get_maxnumberincidences()
+        cdef unsigned long nr_incidences[1]
+        nr_incidences[:] = [0]
+        cdef unsigned int twisted[1]
+        twisted[:] = [0]
+        cdef unsigned long **incidencepointer = incidences(self._C,dimension_one,dimension_two, nr_incidences, twisted)
+        if nr_incidences[0] > maxnumberincidences*maxnumberincidences:
+            raise ValueError("Cannot calculate %s incidences"%nr_incidences[0])
+        if twisted[0] == 0:
+            incidence_one = lambda i : Integer(incidencepointer[i / maxnumberincidences][2*(i % maxnumberincidences)])
+            incidence_two = lambda i : Integer(incidencepointer[i / maxnumberincidences][2*(i % maxnumberincidences)+1])
+        else:
+            incidence_two = lambda i : Integer(incidencepointer[i / maxnumberincidences][2*(i % maxnumberincidences)])
+            incidence_one = lambda i : Integer(incidencepointer[i / maxnumberincidences][2*(i % maxnumberincidences)+1])
+        return tuple((incidence_one(i), incidence_two(i)) for i in range(nr_incidences[0]))
     def face_lattice(self,vertices=True,facets=False):
         r"""
         Generates the face-lattice.

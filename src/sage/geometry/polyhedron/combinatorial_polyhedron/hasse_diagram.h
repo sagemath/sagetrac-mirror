@@ -70,9 +70,10 @@ class CombinatorialPolyhedron {
         inline void get_f_vector(unsigned long *vector);
         inline unsigned int ** get_edges();//returns the edges as array of arrays of the vertices
         inline unsigned int ** get_ridges();//returns the ridges as array of arrays of the facets
-        inline PyObject* get_faces(int face_dimension, unsigned int facet_repr);
+        //get_faces fills faces_to_return with all faces in dimension face_dimension and length_of_faces with length of the faces, if facet_repr then faces will be given with facet_incidences, otherwise with vertex incidences
+        void get_faces(int face_dimension, unsigned int facet_repr, unsigned int **faces_to_return, unsigned int *length_of_faces);
         void record_all_faces();
-        inline PyObject* get_incidences(int dimension_one, int dimension_two);
+        unsigned long ** get_incidences(int dimension_one, int dimension_two, unsigned long * nr_incidences_to_return, unsigned int * twisted);
         inline unsigned long get_flag_number_init(unsigned int *flagarray, unsigned int len); 
     private:
         int polar = 0;//in order to speed things up, we will consider the dual/polar whenever the number of vertices is smaller than the number of facets
@@ -142,7 +143,8 @@ class CombinatorialPolyhedron {
         //conversions
         void char_from_tuple(PyObject* py_tuple, chunktype *array1, unsigned int facet_repr);
         inline PyObject* tuple_from_char(chunktype *array1, unsigned int facet_repr);
-        inline PyObject* tuple_from_faces(chunktype **array1, unsigned int len, unsigned int facet_repr);
+        inline void bitrep_to_list(chunktype *array1, unsigned int *face_to_return, unsigned int *length_of_faces, unsigned int facet_repr);
+        inline void bitrep_to_list(chunktype **array1, unsigned int len, unsigned int **faces_to_return, unsigned int *length_of_faces, unsigned int facet_repr);
         void char_from_incidence_tuple(PyObject* py_tuple, chunktype *array1, unsigned int facet_repr);
         void char_from_array(unsigned int* input, unsigned int len, chunktype *array1, unsigned int facet_repr);
         inline PyObject* tuple_from_f_vector();
@@ -173,13 +175,14 @@ unsigned int dimension(CombinatorialPolyhedron_ptr C);
 void f_vector(CombinatorialPolyhedron_ptr C, unsigned long *vector);
 unsigned int ** edges(CombinatorialPolyhedron_ptr C);
 unsigned int ** ridges(CombinatorialPolyhedron_ptr C);
-PyObject* incidences(CombinatorialPolyhedron_ptr C, int dimension_one, int dimension_two);
+unsigned long ** incidences(CombinatorialPolyhedron_ptr C, int dimension_one, int dimension_two, unsigned long * nr_incidences, unsigned int * twisted);
 void record_all_faces(CombinatorialPolyhedron_ptr C);
-PyObject* get_faces(CombinatorialPolyhedron_ptr C, int dimension, unsigned int facet_repr);
+void get_faces(CombinatorialPolyhedron_ptr C, int dimension, unsigned int facet_repr, unsigned int **faces_to_return, unsigned int *length_of_faces);
 unsigned long get_flag(CombinatorialPolyhedron_ptr C, unsigned int *flagarray, unsigned int length);
 
 void delete_CombinatorialPolyhedron(CombinatorialPolyhedron_ptr);
 
 unsigned long get_maxnumberedges();
+unsigned long get_maxnumberincidences();
 
 #endif
