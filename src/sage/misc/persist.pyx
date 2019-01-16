@@ -285,7 +285,7 @@ def dumps(obj, compress=True):
         return _base_dumps(obj, compress=compress)
 
 
-# This is used below, and also by explain_pickle.py
+# This is used below
 unpickle_override = {}
 
 def register_unpickle_override(module, name, callable, call_name=None):
@@ -297,7 +297,7 @@ def register_unpickle_override(module, name, callable, call_name=None):
     and the Python callable (function, class with __call__ method, etc.)
     to use for unpickling.  (If this callable is a value in some module,
     you can specify the module name and class name, for the benefit of
-    :func:`~sage.misc.explain_pickle.explain_pickle` when called with ``in_current_sage=True``).)
+    ``explain_pickle`` when called with ``in_current_sage=True``).
 
     EXAMPLES:
 
@@ -396,7 +396,7 @@ def register_unpickle_override(module, name, callable, call_name=None):
     the instance dictionary of the pickled object, however, with some older
     classes such as :class:`CombinatorialObject` it will be a tuple. In general,
     the ``state`` can be any python object.  ``Sage`` provides a special tool,
-    :func:`~sage.misc.explain_pickle.explain_pickle`, which can help in figuring
+    ``explain_pickle``, which can help in figuring
     out the contents of an old pickle. Here is a second example.
 
     ::
@@ -424,12 +424,6 @@ def register_unpickle_override(module, name, callable, call_name=None):
         A(10)
         sage: loads(dumps(A(10)))
         A(10)
-        sage: sage.misc.explain_pickle.explain_pickle(dumps(A(10)))
-        pg_A = unpickle_global('__main__', 'A')
-        si = unpickle_newobj(pg_A, ())
-        pg_make_integer = unpickle_global('sage.rings.integer', 'make_integer')
-        unpickle_build(si, {'original_attribute':pg_make_integer('a')})
-        si
         sage: from sage.misc.persist import register_unpickle_override
         sage: register_unpickle_override('__main__', 'A', B)
         sage: loads(dumps(A(10)))

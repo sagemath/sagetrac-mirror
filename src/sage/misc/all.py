@@ -156,8 +156,6 @@ from .prandom import *
 
 from .sage_unittest import TestSuite
 
-from .explain_pickle import explain_pickle, unpickle_newobj, unpickle_global, unpickle_build, unpickle_instantiate, unpickle_persistent, unpickle_extension, unpickle_appends
-
 from .decorators import specialize, sage_wraps, infix_operator
 
 from .unknown import Unknown

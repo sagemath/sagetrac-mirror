@@ -1531,7 +1531,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         # The latter is a Poset which takes C among its arguments. Due
         # to UniqueRepresentation, this triggers a call to hash(C) which
         # itself depends on the attribute C._rays which have not yet
-        # been unpickled.  See ``explain_pickle(dumps(C))``.
+        # been unpickled.
         state.pop("_face_lattice", None)
         return state
 
