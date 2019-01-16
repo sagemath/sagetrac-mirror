@@ -349,6 +349,47 @@ class RationalFunctionField_kash(RationalFunctionField):
         from .place import PlaceSet
         return PlaceSet(self)
 
+def divisor_decorator(f):
+
+    def wrapper(self):
+
+        if self.is_zero():
+            raise ValueError("divisor not defined for zero")
+
+        # if we're working over QQbar, this divisor is over the current constant field
+        D = getattr(super(FunctionFieldElement_polymod_kash, self), f.__name__)()
+
+        if self.parent().constant_base_field() is not QQbar:
+            return D
+
+        # QQbar case - compute a number field that can factor all of our support
+        # polynomials in the base function field C(x).
+
+        # XXX - should also be able to factor polynomials in the extension function field C(x,y)
+
+        algebraics = []
+        if self.parent().base_field().working_constant_field != QQ:
+            algebraics.append(self.parent().base_field().working_constant_field.gen())
+
+        for pls in D.support():
+            for g in pls.prime_ideal().gens():
+                if g.parent() is self.parent().base_field():
+                    for r,m in g.element().numerator().change_ring(QQbar).roots():
+                        algebraics.append(r)
+
+        (nf, new_algebraics, nftoQQbar) = number_field_elements_from_algebraics(algebraics)
+
+        # If we decided to expand our number field, then redo the divisor
+        # computation in a new function field
+
+        if self.parent().base_field().working_constant_field != nf:
+            self.parent().base_field().extend_constant_field(nf)
+            D = getattr(super(FunctionFieldElement_polymod_kash, self), f.__name__)()
+
+        return D
+
+    return wrapper
+
 class FunctionFieldElement_polymod_kash(FunctionFieldElement_polymod):
 
     def valuation(self, place):
@@ -378,43 +419,17 @@ class FunctionFieldElement_polymod_kash(FunctionFieldElement_polymod):
         ideal = prime.ring().ideal(self)
         return prime.valuation(ideal)
 
+    @divisor_decorator
     def divisor(self):
-        """
-        Return the divisor of the element.
-        """
+        pass
 
-        if self.is_zero():
-            raise ValueError("divisor not defined for zero")
+    @divisor_decorator
+    def divisor_of_zeros(self):
+        pass
 
-        # if we're working over QQbar, this divisor is over the Rational Field
-        D = super(FunctionFieldElement_polymod_kash, self).divisor()
-
-        if self.parent().constant_base_field() is not QQbar:
-            return D
-
-        # QQbar case - compute a number field that can factor all of our support
-        # polynomials in the base function field C(x).
-
-        # XXX - should also be able to factor polynomials in the extension function field C(x,y)
-
-        algebraics = []
-        for pls in D.support():
-            for g in pls.prime_ideal().gens():
-                if g.parent() is self.parent().base_field():
-                    for r,m in g.element().numerator().change_ring(QQbar).roots():
-                        algebraics.append(r)
-
-        (nf, new_algebraics, nftoQQbar) = number_field_elements_from_algebraics(algebraics)
-
-        # If we decided to expand our number field, then redo the divisor
-        # computation in a new function field
-
-        if self.parent().base_field().working_constant_field != nf:
-            self.parent().base_field().extend_constant_field(nf)
-            D = super(FunctionFieldElement_polymod_kash, self).divisor()
-
-        return D
-
+    @divisor_decorator
+    def divisor_of_poles(self):
+        pass
 
 class FunctionField_polymod_kash(FunctionField_polymod):
     """
