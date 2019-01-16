@@ -60,8 +60,13 @@ Toric geometry
    sage/geometry/toric_plotter
    sage/rings/polynomial/groebner_fan
 
+
+Hyperbolic Geometry
+-------------------
+
 Base classes for polyhedra
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 .. toctree::
    :maxdepth: 1
@@ -106,6 +111,7 @@ Miscellaneous
    sage/geometry/linear_expression
    sage/geometry/newton_polygon
    sage/geometry/ribbon_graph
+   sage/geometry/tat_graph
    sage/geometry/pseudolines
    sage/geometry/voronoi_diagram
 
