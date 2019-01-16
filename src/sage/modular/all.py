@@ -12,22 +12,22 @@ from .ssmod.all import *
 from .abvar.all import *
 
 from .dirichlet import (DirichletGroup,
-                       kronecker_character, kronecker_character_upside_down,
-                       trivial_character)
+                        kronecker_character, kronecker_character_upside_down,
+                        trivial_character)
 
 from .arithgroup.all import (Gamma0, Gamma1, GammaH, Gamma, SL2Z,
-                            ArithmeticSubgroup_Permutation,
-                            CongruenceSubgroup, FareySymbol)
+                             ArithmeticSubgroup_Permutation,
+                             CongruenceSubgroup, FareySymbol)
 
 from .cusps import Cusp, Cusps
 
 from .dims import (dimension_cusp_forms,
-                  dimension_new_cusp_forms,
-                  dimension_eis,
-                  dimension_modular_forms,
-                  sturm_bound)
+                   dimension_new_cusp_forms,
+                   dimension_eis,
+                   dimension_modular_forms,
+                   sturm_bound)
 
-from .buzzard import buzzard_tpslopes
+lazy_import("sage.modular.buzzard", 'buzzard_tpslopes', deprecation=27066)
 
 from .etaproducts import (EtaGroup, EtaProduct, EtaGroupElement,
                           AllCusps, CuspFamily)
