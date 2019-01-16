@@ -3066,6 +3066,7 @@ class CartanType_simple_finite(object):
 
         This is the pickle for CartanType(["A", 4])::
 
+            sage: from sage.misc.persist import unpickle_global
             sage: pg_CartanType_simple_finite = unpickle_global('sage.combinat.root_system.cartan_type', 'CartanType_simple_finite')
             sage: si1 = unpickle_newobj(pg_CartanType_simple_finite, ())
             sage: pg_unpickleModule = unpickle_global('twisted.persisted.styles', 'unpickleModule')

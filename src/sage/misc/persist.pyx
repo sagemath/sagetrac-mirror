@@ -304,6 +304,7 @@ def register_unpickle_override(module, name, callable, call_name=None):
     Imagine that there used to be an ``old_integer`` module and old
     pickles essentially trying to do the following::
 
+        sage: from sage.misc.persist import unpickle_global
         sage: unpickle_global('sage.rings.old_integer', 'OldInteger')
         Traceback (most recent call last):
         ...
@@ -481,7 +482,7 @@ def unpickle_global(module, name):
 
     EXAMPLES::
 
-        sage: from sage.misc.persist import unpickle_override, register_unpickle_override
+        sage: from sage.misc.persist import unpickle_override, register_unpickle_override, unpickle_global
         sage: unpickle_global('sage.rings.integer', 'Integer')
         <type 'sage.rings.integer.Integer'>
 

@@ -1793,6 +1793,7 @@ class Compositions_constraints(IntegerListsLex):
         TESTS::
 
             # This is the unpickling sequence for Compositions(4, max_part=2) in sage <= 4.1.1
+            sage: from sage.misc.persist import unpickle_global
             sage: pg_Compositions_constraints = unpickle_global('sage.combinat.composition', 'Compositions_constraints')
             sage: si = unpickle_newobj(pg_Compositions_constraints, ())
             sage: pg_make_integer = unpickle_global('sage.rings.integer', 'make_integer')
