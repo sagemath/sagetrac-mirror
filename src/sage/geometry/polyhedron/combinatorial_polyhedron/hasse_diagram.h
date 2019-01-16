@@ -73,7 +73,7 @@ class CombinatorialPolyhedron {
         inline PyObject* get_faces(int face_dimension, unsigned int facet_repr);
         void record_all_faces();
         inline PyObject* get_incidences(int dimension_one, int dimension_two);
-        inline unsigned long get_flag_number(PyObject* py_tuple); 
+        inline unsigned long get_flag_number_init(unsigned int *flagarray, unsigned int len); 
     private:
         int polar = 0;//in order to speed things up, we will consider the dual/polar whenever the number of vertices is smaller than the number of facets
         int unbounded = 0;
@@ -176,7 +176,7 @@ unsigned int ** ridges(CombinatorialPolyhedron_ptr C);
 PyObject* incidences(CombinatorialPolyhedron_ptr C, int dimension_one, int dimension_two);
 void record_all_faces(CombinatorialPolyhedron_ptr C);
 PyObject* get_faces(CombinatorialPolyhedron_ptr C, int dimension, unsigned int facet_repr);
-unsigned long get_flag(CombinatorialPolyhedron_ptr C, PyObject* py_tuple);
+unsigned long get_flag(CombinatorialPolyhedron_ptr C, unsigned int *flagarray, unsigned int length);
 
 void delete_CombinatorialPolyhedron(CombinatorialPolyhedron_ptr);
 

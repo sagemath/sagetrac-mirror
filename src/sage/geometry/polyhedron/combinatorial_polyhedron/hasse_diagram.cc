@@ -339,40 +339,31 @@ inline PyObject* CombinatorialPolyhedron::get_incidences(int dimension_one, int 
     return tuple_from_incidences(twisted);
 }
 
-inline unsigned long CombinatorialPolyhedron::get_flag_number(PyObject* py_tuple){
+//expects a sorted array of size lenght with pairwise distinct integers at least 0 and at most dim
+inline unsigned long CombinatorialPolyhedron::get_flag_number_init(unsigned int *flagarray, unsigned int length){
     unsigned int i;
-    unsigned int len = PyTuple_Size(py_tuple);
-    const unsigned int const_len = len;
-    unsigned int array[const_len];
     unsigned int counter = get_dimension()-1;
-    if (!polar)
-        for(i=0;i<len;i++){
-            array[i] = (unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, i));
-            if (nr_lines && (array[i] == 0))
-                return 0;
-            }
-    else {
-    if ((unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, len-1)) == dimension){
-        array[len-1] = dimension;
-        for (i=0;i<len-1;i++){
-            array[len-i-2] = dimension - 1 - (unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, i));
+    if (!polar){
+        if (nr_lines > flagarray[0])
+            return 0;
+    }
+    else {//turning the array around
+        for (i=0;i< (length + 1)/2;i++){
+            unsigned int saver = flagarray[i];
+            flagarray[i] = dimension - 1 - flagarray[length - 1 - i]; //in case i = (length + 1)/2 - 1 both might be the same, which works fine
+            flagarray[length - 1 - i] = dimension - 1 - saver;
         }
     }
-    else
-        for (i=0;i<len;i++){
-            array[len-i-1] = dimension -1 - (unsigned int) PyInt_AsLong(PyTuple_GetItem(py_tuple, i));
+    for(i=0;i<length;i++){
+    if ((!allfaces_are_allocated) || (allfaces_are_allocated[flagarray[i]] != 2)){
+        if (flagarray[i] < counter){
+        counter = flagarray[i];
         }
-    }
-    for(i=0;i<len;i++){
-    if ((!allfaces_are_allocated) || (allfaces_are_allocated[array[i]] != 2)){
-        if (array[i] < counter){
-        counter = array[i];
-        }
-            allocate_allfaces(array[i]);
+            allocate_allfaces(flagarray[i]);
         }
     }
     record_faces(counter);
-    return get_flag_number(array,len);
+    return get_flag_number(flagarray,length);
 }
 
 
@@ -750,16 +741,11 @@ unsigned long CombinatorialPolyhedron::get_flag_number(unsigned int *array, unsi
     if (len == 0){
         return 0;
     }
+    if (!f_vector)
+        get_f_vector_and_edges();
     if (len == 1){
         return f_vector[array[0]+1];
     }
-    if (array[len-1] == dimension){
-        len -= 1;
-    }
-    if (len == 1){
-        return f_vector[array[0]+1];
-    }
-    get_f_vector_and_edges();
     unsigned long i,j,k;
     const unsigned int const_len = len;
     unsigned long **saverarray = new unsigned long *[const_len];
@@ -812,7 +798,7 @@ unsigned long CombinatorialPolyhedron::get_flag_number(unsigned int *array, unsi
     unsigned long sum = 0;
     if (array[counter] == dimension -1){
         for (i = 0; i < f_vector[array[counter-1]+1]; i++){
-            sum += CountFaceBits_facet_repr(allfaces_facet_repr[array[counter-1]][i]);
+            sum += saverarray[counter - 1][i]*CountFaceBits_facet_repr(allfaces_facet_repr[array[counter-1]][i]);
         }
     }
     else {
@@ -1330,8 +1316,8 @@ PyObject* get_faces(CombinatorialPolyhedron_ptr C, int dimension, unsigned int f
     return (*C).get_faces(dimension, facet_repr);
 }
 
-unsigned long get_flag(CombinatorialPolyhedron_ptr C, PyObject* py_tuple){
-    return (*C).get_flag_number(py_tuple);
+unsigned long get_flag(CombinatorialPolyhedron_ptr C, unsigned int * flagarray, unsigned int length){
+    return (*C).get_flag_number_init(flagarray, length);
 }
 
 

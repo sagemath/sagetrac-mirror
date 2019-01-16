@@ -232,7 +232,7 @@ cdef class CombinatorialPolyhedron:
         (1, 5040, 15120, 16800, 8400, 1806, 126, 1)
     """
     def __init__(self, data, vertices=None, facets=None, is_unbounded=False, nr_lines=0):
-        self.is_empty = 0
+        self.is_empty = 0#TODO full-dimensional polyhedron
         if nr_lines:
             is_unbounded = True
         self._equalities = ()
@@ -483,14 +483,16 @@ cdef class CombinatorialPolyhedron:
         
         The implementation sorts the i_1,...i_n.
         """
-        flag = sorted(set(flag))
-        flag = tuple(i for i in flag if i in range(-1,self.dimension()+1))
-        if flag == (-1,):
+        for number in flag:
+            if not isinstance(number,Integer):
+                return TypeError("All arguments of combinatorialPolyhedron.flag() must be integers.")
+        dim = self.dimension()
+        flag = set(number for number in flag if number in range(-1,dim+1))
+        if flag == set():
+            return 0
+        if flag  <= set([-1,dim]):
             return 1
-        flag = tuple(i for i in flag if i in range(0,self.dimension()+1))
         if self.is_empty == 1:
-            if flag == (-1,):
-                return 1
-            else:
-                return 0
-        return Integer(get_flag(self._C,flag))
+            return 0
+        cdef array.array flagarray = array.array('I', sorted(number for number in flag if number in range(0,dim)))
+        return Integer(get_flag(self._C, flagarray.data.as_uints, len(flagarray)))
