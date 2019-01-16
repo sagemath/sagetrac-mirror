@@ -333,13 +333,6 @@ def Hom(X, Y, category=None, check=True):
         sage: P.<x,y> = QQ['x,y']
         sage: Q = P.quotient([x^2-1,y^2-1])
         sage: q = Q.an_element()
-        sage: explain_pickle(dumps(Q))
-        pg_...
-        ... = pg_dynamic_class('QuotientRing_generic_with_category', (pg_QuotientRing_generic, pg_getattr(..., 'parent_class')), None, None, pg_QuotientRing_generic)
-        si... = unpickle_newobj(..., ())
-        ...
-        si... = pg_unpickle_MPolynomialRing_libsingular(..., ('x', 'y'), ...)
-        si... = ... pg_Hom(si..., si..., ...) ...
         sage: Q == loads(dumps(Q))
         True
 

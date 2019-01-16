@@ -205,7 +205,6 @@ Saving and Loading Sage Objects
    sage/misc/func_persist
    sage/misc/persist
    sage/misc/fpickle
-   sage/misc/explain_pickle
    sage/misc/nested_class
    sage/misc/session
 
