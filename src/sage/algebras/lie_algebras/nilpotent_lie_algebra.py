@@ -302,6 +302,13 @@ class FreeNilpotentLieAlgebra(NilpotentLieAlgebra_dense):
         sage: l = [LieAlgebra(QQ, 3, step=k) for k in range(1, 4)]
         sage: [L.dimension() for L in l]
         [3, 6, 14]
+
+    Verify that a free nilpotent Lie algebra of step > 2 with more than
+    10 generators can be created, see :trac:`27018`::
+
+        sage: L = LieAlgebra(QQ, 11, step=3)
+        sage: L.dimension() == 11 + (11^2-11)/2 + (11^3-11)/3
+        True
     """
     @staticmethod
     def __classcall_private__(cls, R, r, s, names=None, naming=None, category=None, **kwds):
@@ -348,7 +355,7 @@ class FreeNilpotentLieAlgebra(NilpotentLieAlgebra_dense):
         # free Lie algebra, and store the corresponding elements in a dict
         from sage.algebras.lie_algebras.lie_algebra import LieAlgebra
 
-        free_gen_names = ['F%d' % k for k in range(r)]
+        free_gen_names = sorted('F%d' % k for k in range(r))
         free_gen_names_inv = {val: i+1 for i,val in enumerate(free_gen_names)}
         L = LieAlgebra(R, free_gen_names).Lyndon()
 
