@@ -214,8 +214,8 @@ cdef class CombinatorialPolyhedron:
     cdef tuple _equalities
     cdef dict _Hinv
     cdef dict _Vinv
-    cdef int is_empty
-    cdef int nr_lines
+    cdef int is_trivial #in some instances the polyhedron might not have facets or otherwise produce errors in the C function
+    cdef int _dimension #in the case of is_trivial we will manually tell the dimension
     cdef unsigned int _length_Hrep
     cdef unsigned int _length_Vrep
     r"""
@@ -238,20 +238,21 @@ cdef class CombinatorialPolyhedron:
         cdef unsigned int **incidence_matrix
         cdef unsigned int **facets_pointer
         cdef unsigned int *len_facets
-        self.is_empty = 0
+        self.is_trivial = 0
         if nr_lines:
             is_unbounded = True
         self._equalities = ()
         if is_Polyhedron(data):
             if data.is_empty():
-                self.is_empty = 1
+                self.is_trivial = 1
+                self._dimension = -1
                 return
             vertices = data.Vrepresentation()
             facets = tuple(inequality for inequality in data.Hrepresentation() if inequality.is_inequality())
             self._equalities = tuple(inequality for inequality in data.Hrepresentation() if not inequality.is_inequality())
             if (len(vertices) == data.n_lines() + 1) and (data.n_lines > 0):#in this case the Polyhedron does not have facets
-                self.is_empty = 1
-                self.nr_lines = data.n_lines()
+                self.is_trivial = 1
+                self._dimension = data.n_lines()
                 self._V = tuple(vertices)
                 return
             is_unbounded = not data.is_compact()
@@ -261,7 +262,13 @@ cdef class CombinatorialPolyhedron:
             self._length_Vrep = data.nrows()
         if is_LatticePolytope(data):
             if data.npoints() == 0:
-                self.is_empty = 1
+                self.is_trivial = 1
+                self._dimension = -1
+                return
+            if data.npoints() == 1:
+                self.is_trivial = 1
+                self._dimension = 0
+                self._V = data.vertices()
                 return
             vertices = data.vertices()
             self._length_Vrep = len(vertices)
@@ -286,11 +293,10 @@ cdef class CombinatorialPolyhedron:
             self._length_Hrep = data.ncols()
             self._length_Vrep = data.nrows()
             rg = range(data.nrows())
-            tup =  tuple(tuple(data[i,j] for i in rg) for j in range(data.ncols()) if not all(data[i,j] for i in rg))#transpose and get rid of trivial inequalites (which all vertices satisfie)
-            if tup == ((),):
-                self.is_empty = 1
-                if nr_lines > 0:
-                    self.nr_lines = nr_lines
+            tup =  tuple(tuple(data[i,j] for i in rg) for j in range(data.ncols()) if not all(data[i,j] for i in rg))#transpose and get rid of equalities (which all vertices satisfie)
+            if tup == ():#the case of the empty Polyhedron
+                self.is_trivial = 1
+                self._dimension = -1  + data.nrows()#the elements in the Vrep are assumed to be one vertex and otherwise lines
                 return
             incidence_matrix = <unsigned int**> PyMem_Malloc(len(tup) * sizeof(unsigned int *))
             for i in range(len(tup)):
@@ -304,9 +310,10 @@ cdef class CombinatorialPolyhedron:
         else:
             if self._V is None:
                 if len(data) == 0:
-                    self.is_empty = 1
-                    if nr_lines > 0:
-                        self.nr_lines = nr_lines
+                    self.is_trivial = 1
+                    self._dimension = -1
+                    if nr_lines > 0:#we are assuming the Polyhedron to its affine hull and of dimension nr_lines
+                        self._dimension = nr_lines
                     return
                 vertices = sorted(set.union(*map(set,data)))
                 nr_vertices = len(vertices)
@@ -339,23 +346,26 @@ cdef class CombinatorialPolyhedron:
         r"""
         This function deallocates all the memomory used by the underlying C++-class
         """
-        if self.is_empty == 1:
+        if self.is_trivial == 1:
             return
         delete_CombinatorialPolyhedron(self._C)
     
     def __repr__(self):
-        if self.is_empty == 1:
-            if self.nr_lines == 0:
+        if self.is_trivial == 1:
+            if self._dimension == 0:
                 return "The Combinatorial Type of the Polyhedron with one vertex"
-            if self.nr_lines:
-                return "The Combinatorial Type of a trivial Polyhedron of dimension %s"%self.nr_lines
+            if self._dimension > 0:
+                return "The Combinatorial Type of a trivial Polyhedron of dimension %s"%self._dimension
             return "The Combinatorial Type of the empty Polyhedron"
         return "The Combinatorial Type of a Polyhedron of dimension %s with %s vertices"%(self.dimension(),len(self.vertices()))
     
     def vertices(self):
-        if self.is_empty == 1:
-            if self.nr_lines == 0:
-                return (self._V,)
+        if self.is_trivial == 1:
+            if self._dimension == 0:
+                if self._V is not None:
+                    return (self._V[-1],)
+                else:
+                    return (Integer(0),)
             return ()
         if self._V is not None:
             return self._V
@@ -368,7 +378,7 @@ cdef class CombinatorialPolyhedron:
         
         NOTE: If you want to compute edges and f_vector it is recommended to compute edges first.
         """
-        if self.is_empty == 1:
+        if self.is_trivial == 1:
             return ()
         cdef unsigned int ** edgepointer = edges(self._C) 
         cdef unsigned long maxnumberedges = get_maxnumberedges()
@@ -391,10 +401,8 @@ cdef class CombinatorialPolyhedron:
         return Graph(self.edges(),format="list_of_edges")
         
     def dimension(self):
-        if self.is_empty == 1:
-            if self.nr_lines is not None:
-                return Integer(self.nr_lines)
-            return -1
+        if self.is_trivial == 1:
+            return Integer(self._dimension)
         return Integer(dimension(self._C))
         
     def ridges(self, add_equalities=False):
@@ -405,8 +413,8 @@ cdef class CombinatorialPolyhedron:
         
         NOTE: If you want to compute ridges and f_vector it is recommended to compute ridges first.
         """
-        if self.is_empty == 1:
-            if self.nr_lines == 0:
+        if self.is_trivial == 1:
+            if self._dimension == 0:
                 return (self._equalities + (),)
             return ()
         cdef unsigned int ** ridgepointer = ridges(self._C) 
@@ -433,42 +441,45 @@ cdef class CombinatorialPolyhedron:
         return Graph(self.ridges(),format="list_of_edges")
         
     def f_vector(self):
-        if self.is_empty == 1:
-            if self.nr_lines is not None:
-                return (1,) + tuple(0 for _ in range(self.nr_lines)) + (1,)
-            return (1,)
         r"""
         Calculates the f_vector of the CombinatorialPolyhedron, i.e. the vector containing the nr of faces of each rank.
         
         NOTE: If you also want to compute edges or ridges, it is recommended to do that first.
         """
+        if self.is_trivial == 1:
+            if self._dimension == -1:
+                return (Integer(1),)
+            return (1,) + tuple(0 for _ in range(self._dimension)) + (1,)
         cdef array.array vector = array.array('L', [0 for _ in range(self.dimension()+2)])
         f_vector(self._C, vector.data.as_ulongs)
         return tuple(Integer(i) for i in vector)
         
     def _record_all_faces(self):
-        if self.is_empty == 1:
+        if self.is_trivial == 1:
             return 
         r"""
         Records all faces of the Polyhedron, such that you can quickly get them with self.faces(dimension)
         """
         record_all_faces(self._C)
         
-    def faces(self, dimension, facet_repr=False):#TODO fix the cpp-function for dimension 0,1,self.dimension -1, self.dimension
+    def faces(self, dimension, facet_repr=False):
         r"""
         Gets all k-faces for specified dimenion k.
 
         By default faces are given as tuple of vertices, but one may also choose tuple of facets instead.
         """
         
-        if self.is_empty == 1:
+        if self.is_trivial == 1:
             if dimension == -1:
                 return ((),)
-            if self.nr_lines == 0 and dimension == 0:
+            if self._dimension == 0 and dimension == 0:
                 if facet_repr == True:
                     return ((),)
-                return (tuple(self._V),)
-            if self.nr_lines and dimension == self.nr_lines:
+                if self._V is not None:
+                    return (tuple(self._V),)
+                else:
+                    return (Integer(0),)
+            if self._dimension and dimension == self._dimension:
                 return ((),)
             return ()
         dim = self.dimension()
@@ -513,10 +524,10 @@ cdef class CombinatorialPolyhedron:
 
         Incidences are given as tuple of integers, where the integer corresponds to the order according to self.faces(dimension)
         """
-        if self.is_empty == 1:
+        if self.is_trivial == 1:
             if dimension_one == dimension_two == -1:
                 return ((0,0),)
-            if dimension_one in (-1,self.nr_lines) and dimension_two in (-1,self.nr_lines):
+            if dimension_one in (-1,self._dimension) and dimension_two in (-1,self._dimension):
                 return ((0,0),)
             return ()
         cdef unsigned long maxnumberincidences = get_maxnumberincidences()
@@ -541,12 +552,12 @@ cdef class CombinatorialPolyhedron:
         The faces in the face-lattice will be labeled by default by tuples of vertices. They can also be labeled by tuple of facets or both or as 0, 1, 2, ... where the order corresponds to the order of self.faces[0],self.faces[1],self.faces[2],...
         """
 
-        if self.is_empty == 1 and self.nr_lines is None:
+        if self.is_trivial == 1 and self._dimension == -1:
             D = DiGraph([((),),()], format='vertices_and_edges')
             return FiniteLatticePoset(D);
-        if self.is_empty == 1:
+        if self.is_trivial == 1:
             facets = False #the names by the facets will not be distinct
-            if self.nr_lines > 0:
+            if self._dimension > 0:
                 D = DiGraph([(0,1),((1,0),)], format='vertices_and_edges')
                 return FiniteLatticePoset(D);
         f_vector = self.f_vector()
@@ -590,7 +601,7 @@ cdef class CombinatorialPolyhedron:
             return 0
         if flag  <= set([-1,dim]):
             return 1
-        if self.is_empty == 1:
+        if self.is_trivial == 1:
             return 0
         cdef array.array flagarray = array.array('I', sorted(number for number in flag if number in range(0,dim)))
         return Integer(get_flag(self._C, flagarray.data.as_uints, len(flagarray)))
