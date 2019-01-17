@@ -30,15 +30,13 @@ AUTHORS:
 import inspect
 import re
 import sys
-import warnings
 
 from docutils.statemachine import ViewList
-from six import PY2, iteritems, itervalues, text_type, class_types, string_types
+from six import PY2, itervalues, text_type, class_types, string_types
 
 import sphinx
-from sphinx.errors import ExtensionError
 from sphinx.ext.autodoc.importer import mock, import_object, get_object_members
-from sphinx.ext.autodoc.inspector import format_annotation, formatargspec
+from sphinx.ext.autodoc.inspector import formatargspec
 from sphinx.locale import _, __
 from sphinx.pycode import ModuleAnalyzer, PycodeError
 from sphinx.util import logging
@@ -47,7 +45,6 @@ from sphinx.util.docstrings import prepare_docstring
 from sphinx.util.inspect import Signature, isdescriptor, safe_getmembers, \
     safe_getattr, object_description, is_builtin_class_method, \
     isenumattribute, isclassmethod, isstaticmethod, getdoc
-from sphinx.util.inspect import getargspec
 
 from sage.misc.sageinspect import (sage_getdoc_original,
         sage_getargspec, isclassinstance)
