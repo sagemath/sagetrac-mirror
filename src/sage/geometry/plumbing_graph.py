@@ -25,7 +25,7 @@ AUTHORS:
 
 #from sage.structure.sage_object import SageObject
 #from sage.structure.unique_representation import UniqueRepresentation
-from sage.rings.rational import *
+from sage.rings.rational import Rational
 
 
 def genus_hash(a,b):
@@ -282,34 +282,32 @@ class PlumbingGraph():
         del self.epsilon[e]
         self.edges = self.edges.difference({e})
 
-    def add_bamboo(self, x, j=None, r=0):
+    def add_bamboo(self, x, j=None):
         r"""
         Create a bamboo in the graph. A bamboo is a string of rational (g=0)
         vertices. If the vertex j is specified, then this
         vertex is connected to the first vertex in the bamboo, otherwise the
         bamboo becomes a connected component. The function returns the last
-        vertex in the bamboo. The last vertex of the bamboo is decorated
-        by r.
+        vertex in the bamboo.
         
         INPUT:
         
         - ``x`` -- a rational number,
         - ``j`` -- a vertex of self,
-        - ``r`` -- an integer (nonnegative),
 
         OUTPUT
 
         The last vertex of the bamboo.
         """
-        # Sage will at some point complain if x is an int. Silly.
+        # Sage will at some point complain if x is an int. Silly. How do
+        # rationals even work in this language?
         x = Rational(x)
         i = self.add_vertex(-(x.ceil()),0,0)
         if j != None and j in self.vertices:
             self.add_edge({i,j})
         if not x.is_integer():
-            return self.add_bamboo(1/(x.ceil() - x), i, r)
+            return self.add_bamboo(1/(x.ceil() - x), i)
         else:
-            self.r[i] = r
             return i
 
     def add_cycle(self, x, epsilon=1):
@@ -463,6 +461,24 @@ class PlumbingGraph():
         nbrs -= {i}
         return nbrs
 
+    def neighbor(self, i):
+        r"""
+        Returns some neighbor of the vertex i if one exists, otherwise -1.
+
+        INPUT:
+
+        - ``i`` -- a vertex.
+
+        OUTPUT:
+        
+        A vertex (a nonnegative integer) or -1.
+        """
+        L = list(self.neighbors(i))
+        if len(L) == 0:
+            return -1
+        else:
+            return L[0]
+
     def adjacent_edges(self, i):
         r"""
         Returns a set of all edges adjacent to the vertex i.
@@ -561,6 +577,18 @@ class PlumbingGraph():
             S -= c
             C.append(c)
         return C
+    
+    def delete_component(self, i):
+        r"""
+        Deletes the connected component of self containing the vertex i.
+        
+        INPUT:
+        
+        - ``i`` -- a vertex.
+        """
+        C = self.component(i)
+        for j in C:
+            self.delete_vertex(j)
 
     def neighbor_yields_leg(self, i, j):
         r"""
@@ -976,6 +1004,51 @@ class PlumbingGraph():
             if self.R2_candidate(j):
                 return j
         return -1
+    
+    def projective_extrude(self, i, g, d, d1, d2):
+        r"""
+        Inverse to R2.
+
+        INPUT:
+
+        - ``i`` -- a vertex,
+        - ``g`` -- an integer, the genus of i after extrusion.
+        - ``d`` -- an integer (delta on p. 305),
+        - ``d1`` -- an integer (delta_1 on p. 305),
+        - ``d2`` -- an integer (delta_2 on p. 305),
+        
+        OUTPUT:
+        
+        True or False
+        
+        EXAMPLE:
+        
+        We construct a Seifert graph with a central vertex with genus -1,
+        and extrude it.
+        
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(4, -1, [4/3, 5/2, 9/4])
+            0
+            sage: P
+            A plumbing graph with 10 vertices
+            sage: P.projective_extrude(0, 0, -1, -1, -1)
+            True
+            sage: P
+            A plumbing graph with 13 vertice
+        """
+        if self.g[i] != genus_hash(g, -1):
+            return False
+        if d1*d1 != 1 or d2*d2 != 1 or 2*d != d1+d2:
+            return False
+        
+        self.g[i] = g
+        a = self.add_vertex(d, 0, 0)
+        self.add_edge({i,a})
+        b = self.add_vertex(d1, 0, 0)
+        self.add_edge({a,b})
+        c = self.add_vertex(d2, 0, 0)
+        self.add_edge({a,c})
+        return True
        
 
 ########################################################################
@@ -1271,9 +1344,9 @@ class PlumbingGraph():
         if g < 0:
             k = -g + (d-1) - len(self.components())
         for a in range(0,k):
-            self.add_bamboo(Rational(0))
+            self.add_bamboo(0)
         for a in range(0,r):
-            self.add_bamboo(Rational(0),r=1)
+            self.add_bamboo(0,r=1)
 
     def R6_candidate(self, j):
         r"""
@@ -1319,9 +1392,9 @@ class PlumbingGraph():
         r"""
         R7 in [Neu1981]. Replaces component with a single vertex and
         loop with the appropriate star-shaped graph.
-
+        
         INPUT:
-
+        
         - ``i`` -- a vertex.
 
         OUTPUT:
@@ -1547,10 +1620,12 @@ class PlumbingGraph():
         
         True or False
         """
+        if not self.N1():
+            return False
         for i in self.vertices - self.nodes():
             if self.mb[i] > -2:
                 return False
-            return True
+        return True
 
 ########################################################################
 # N3
@@ -1563,6 +1638,9 @@ class PlumbingGraph():
         
         True or False.
         """
+        if not self.N2():
+            return False
+        
         for i in self.vertices:
             if self.N3_obstruction(i):
                 return False
@@ -1592,13 +1670,31 @@ class PlumbingGraph():
 
         True or False.
         """
+        if not self.N3():
+            return False
         for j in self.vertices:
-            if self.mb[j] == 0 and self.g[j] == -1 and self.r[j] == 0 and self.degree(j) == 1:
-                i = list(self.neighbors(j))[0]
-                # is this what Neumann means by interior ?
-                if self.g[i] != 0 or self.r[i] != 0 or self.degree(i) != 2:
-                    return False
+            if self.N4_obstruction(j):
+                return False
         return True
+
+    def N4_obstruction(self, j):
+        r"""
+        Checks whether the vertex j violates N4.
+
+        INPUT:
+        
+        -``j`` -- a vertex.
+
+        OUTPUT:
+
+        True or False.
+        """
+        if self.mb[j] == 0 and self.g[j] == -1 and self.r[j] == 0 and self.degree(j) == 1:
+            i = list(self.neighbors(j))[0]
+            # is this what Neumann means by interior ?
+            if self.g[i] != 0 or self.r[i] != 0 or self.degree(i) > 2:
+                return True
+        return False
 
 ########################################################################
 # N5
@@ -1610,12 +1706,33 @@ class PlumbingGraph():
 
         True or False.
         """
-        for i in self.vertices:
-            if self.g[i] == -1 and self.r[i] == 0 and self.degree(i) == 1:
-                j = list(self.neighbors(i))[0]
-                if self.neighbor_yields_leg(i,j):
-                    return False
+        if not self.N4():
+            return False
+        for j in self.vertices:
+            if self.N5_obstruction(j):
+                return False
         return True
+    
+    def N5_obstruction(self, j):
+        r"""
+        Checks if j is the vertex with genus -1 in the drawing in N5.
+
+        INPUT:
+        
+        -``j`` -- a vertex.
+
+        OUTPUT:
+
+        True or False.
+        """
+        if self.g[j] == -1 and self.r[j] == 0 and self.degree(j) == 0:
+            return True
+        
+        if self.g[j] == -1 and self.r[j] == 0 and self.degree(j) == 1:
+            i = list(self.neighbors(j))[0]
+            if self.neighbor_yields_leg(j,i):
+                return True
+        return False
 
 ########################################################################
 # N6
@@ -1628,6 +1745,9 @@ class PlumbingGraph():
 
         True or False.
         """
+        if not self.N5():
+            return False
+        
         if self.N6_ab():
             return False
         if self.N6_c():
@@ -1652,18 +1772,52 @@ class PlumbingGraph():
         True if such a component exists, False otherwise.
         """
         for i in self.vertices:
-            # first the special case of a cycle with one vertex:
-            if self.mb[i] == -2 and self.g[i] == 0 and self.r[i] == 0 and self.degree(i) == 2 and self.has_loop(i):
+            if self.N6_ab_candidate(i):
                 return True
-            j = i
-            S = {i}
-            while self.mb[j] == -2 and self.g[j] == 0 and self.r[j] == 0 and self.degree(i) == 2 and not self.has_loop(i):
-                if self.neighbors(j) <= S:
-                    return True
-                else:
-                    S |= {j}
-                    j = list(self.neighbors(j) - S)[0]
         return False
+
+    def N6_ab_candidate(self, i):
+        r"""
+        Checks if the component containing the vertex i is a cycle of
+        vertices with mb = -2, g=0, r=0.
+
+        INPUT:
+
+        - ``i`` -- a vertex.
+
+        OUTPUT:
+
+        True or False.
+        """
+        if self.mb[i] == -2 and self.g[i] == 0 and self.r[i] == 0 and self.degree(i) == 2 and self.has_loop(i):
+            return True
+        j = i
+        S = {i}
+        while self.mb[j] == -2 and self.g[j] == 0 and self.r[j] == 0 and self.degree(i) == 2 and not self.has_loop(i):
+            if self.neighbors(j) <= S:
+                return True
+            else:
+                S |= {j}
+                j = list(self.neighbors(j) - S)[0]
+        return False
+
+    def N6_ab_find_candidate(self):
+        r"""
+        Returns some vertex which whose component is (equivalent to) one
+        of the first two grapohs under N6 on p. 312 of [Neu1981], otherwise
+        returns -1.
+        
+        OUTPUT:
+        
+        A vertex (nonnegative integer) or -1.
+        """
+        
+        for i in self.vertices:
+            if self.N6_ab_candidate(i):
+                return i
+        
+        return -1
+
     
     def N6_c(self):
         r"""
@@ -1675,21 +1829,59 @@ class PlumbingGraph():
 
         True or False
         """
+        if self.N6_c_find_candidate() == -1:
+            return False
+        else:
+            return True
+
+    def N6_c_candidate(self, i):
+        r"""
+        Chechs if the vertex i is one of the endpoints of a string seen as
+        the third graph under N6 on p. 312 of [Neu1981], i.e. a string whose
+        ends have mb =-1, g=-1, r=0 and in between vertices with
+        mb=-2, g=0, r=0.
+        
+        INPUT:
+        
+        - ``i`` -- a vertex.
+        
+        OUTPUT:
+        
+        True or False.
+        """
+        
+        if self.mb[i] != -1 or self.g[i] != -1 or self.r[i] != 0 or self.degree(i) != 1:
+            return False
+        
+        j = self.neighbor(i)
+        S = {i}
+        while True:
+            if self.mb[j] == -1 and self.g[j] == -1 and self.r[j] == 0 and self.degree(j) == 1:
+                return True
+            elif self.mb[j] == -2 and self.g[j] == 0 and self.r[j] == 0 and self.degree(j) == 2:
+                S |= {j}
+                j = list(self.neighbors(j) - S)[0]
+                continue
+            else:
+                return False
+
+    def N6_c_find_candidate(self):
+        r"""
+        Returns some vertex which is one of the endpoints of the third graph
+        under N6 on p. 312 of [Neu1981], otherwise returns -1.
+        
+        OUTPUT:
+        
+        A vertex (nonnegative integer) or -1.
+        """
+        
         for i in self.vertices:
-            if self.mb[i] == -1 and self.g[i] == -1 and self.r[i] == 0 and self.degree(i) == 1:
-                j = list(self.neighbors(i))[0]
-                S = {i}
-                dummy = True
-                while dummy:
-                    if self.mb[j] == -1 and self.g[j] == -1 and self.r[j] == 0 and self.degree(j) == 1:
-                        return True
-                    elif self.mb[j] == -2 and self.g[j] == 0 and self.r[j] == 0 and self.degree(j) == 2:
-                        S |= {j}
-                        j = list(self.neighbors(j) - S)[0]
-                    else:
-                        dummy = False
-        return False
-    
+            if self.N6_c_candidate(i):
+                return i
+        
+        return -1
+
+
     def N6_d(self):
         r"""
         Checks if the two-vertex graph on p. 312 of [Neu1981] apprears
@@ -1706,6 +1898,45 @@ class PlumbingGraph():
                     return True
         return False
 
+    def N6_d_candidate(self, i):
+        r"""
+        Chechs if the vertex i is one of the endpoints of a string seen as
+        the fourth graph under N6 on p. 312 of [Neu1981], i.e. a string which
+        consists of two vertices with mb=1, g=-1, r=0.
+        
+        INPUT:
+        
+        - ``i`` -- a vertex.
+        
+        OUTPUT:
+        
+        True or False.
+        """
+        
+        if self.mb[i] != 1 or self.g[i] != -1 or self.r[i] != 0 or self.degree(i) != 1:
+            return False
+        j = self.neighbor(i)
+        if self.mb[j] != 1 or self.g[j] != -1 or self.r[j] != 0 or self.degree(j) != 1:
+            return False
+        return True
+
+    def N6_d_find_candidate(self):
+        r"""
+        Returns some vertex which is one of the endpoints of the fourth graph
+        under N6 on p. 312 of [Neu1981], otherwise returns -1.
+        
+        OUTPUT:
+        
+        A vertex (nonnegative integer) or -1.
+        """
+        
+        for i in self.vertices:
+            if self.N6_d_candidate(i):
+                return i
+        
+        return -1
+
+
     def N6_e(self):
         r"""
         Checks if the three-vertex graph on p. 312 of [Neu1981] apprears
@@ -1716,13 +1947,49 @@ class PlumbingGraph():
         True or False
         """
         for i in self.vertices:
-            if self.mb[i] == 0 and self.g[i] == -1 and self.r[i] == 0 and self.degree(i) == 1:
-                j = list(self.neighbors(i))[0]
-                if self.g[j] == 0 and self.r[j] == 0 and self.degree(j) == 2:
-                    k = list(self.neighbors(j))[0]
-                    if self.mb[k] == 0 and self.g[k] == -1 and self.r[k] == 0 and self.degree(k) == 1:
-                        return True
+            if self.N6_e_candidate(i):
+                return True
         return False
+
+    def N6_e_candidate(self, i):
+        r"""
+        Checks if the vertex i is one of the endpoints of a string seen as
+        the fifth graph under N6 on p. 312 of [Neu1981], i.e. a string which
+        consists of three vertices, the endpoints having mb=1, g=-1, r=0,
+        and the middle one mb=e (some integer), g=0, r=0.
+        
+        INPUT:
+        
+        - ``i`` -- a vertex.
+        
+        OUTPUT:
+        
+        True or False.
+        """
+        if self.mb[i] == 0 and self.g[i] == -1 and self.r[i] == 0 and self.degree(i) == 1:
+            j = list(self.neighbors(i))[0]
+            if self.g[j] == 0 and self.r[j] == 0 and self.degree(j) == 2:
+                k = list(self.neighbors(j) - {i})[0]
+                if self.mb[k] == 0 and self.g[k] == -1 and self.r[k] == 0 and self.degree(k) == 1:
+                    return True
+        return False
+
+    def N6_e_find_candidate(self):
+        r"""
+        Returns some vertex which is one of the endpoints of the fifth graph
+        under N6 on p. 312 of [Neu1981], otherwise returns -1.
+        
+        OUTPUT:
+        
+        A vertex (nonnegative integer) or -1.
+        """
+        
+        for i in self.vertices:
+            if self.N6_e_candidate(i):
+                return i
+        
+        return -1
+
 
     def N6_f(self):
         r"""
@@ -1734,9 +2001,43 @@ class PlumbingGraph():
         True or False
         """
         for i in self.vertices:
-            if self.mb[i] == 0 and self.g[i] == -2 and self.r[i] == 0 and self.degree(i) == 0:
+            if self.N6_f_candidate(i):
                 return True
         return False
+
+    def N6_f_candidate(self, i):
+        r"""
+        Checks if the vertex i is the second-last graph on p. 312 of [Neu1981],
+        i.e. a singleton with mb=0, g=-2, r=0.
+        
+        INPUT:
+        
+        - ``i`` -- a vertex.
+        
+        OUTPUT:
+        
+        True or False.
+        """
+        if self.mb[i] == 0 and self.g[i] == -2 and self.r[i] == 0 and self.degree(i) == 0:
+            return True
+        return False
+
+    def N6_f_find_candidate(self):
+        r"""
+        Returns some vertex which is forms the second-last graph on
+        p. 312 of [Neu1981], otherwise returns -1.
+        
+        OUTPUT:
+        
+        A vertex (nonnegative integer) or -1.
+        """
+        
+        for i in self.vertices:
+            if self.N6_f_candidate(i):
+                return i
+        
+        return -1
+
 
     def N6_g(self):
         r"""
@@ -1751,6 +2052,39 @@ class PlumbingGraph():
             if self.g[i] == -1 and self.r[i] == 1 and self.degree(i) == 0:
                 return True
         return False
+
+    def N6_g_candidate(self, i):
+        r"""
+        Checks if the vertex i is the last graph on p. 312 of [Neu1981],
+        i.e. a singleton with g=-1, r=1.
+        
+        INPUT:
+        
+        - ``i`` -- a vertex.
+        
+        OUTPUT:
+        
+        True or False.
+        """
+        if self.g[i] == -1 and self.r[i] == 1 and self.degree(i) == 0:
+            return True
+        return False
+
+    def N6_g_find_candidate(self):
+        r"""
+        Returns some vertex which is forms the last graph on
+        p. 312 of [Neu1981], otherwise returns -1.
+        
+        OUTPUT:
+        
+        A vertex (nonnegative integer) or -1.
+        """
+        
+        for i in self.vertices:
+            if self.N6_g_candidate(i):
+                return i
+        
+        return -1
 
 ########################################################################
 # Finding minimal graphs
@@ -1772,6 +2106,17 @@ class PlumbingGraph():
                 return
             else:
                 blow_down(v)
+
+    def minimal_representative(self):
+        r"""
+        Performs steps 1-6 described in [Neu1981].
+        """
+        self.step_1()
+        self.step_2()
+        self.step_3()
+        self.step_4()
+        self.step_5()
+        self.step_6()
 
 ########################################################################
 # Step one
@@ -1818,7 +2163,7 @@ class PlumbingGraph():
                 return
             i = L[0]
             mc = self.max_chain(i)
-            plus_twos = {j for j in L if self.mb[j] == 2}
+            plus_twos = {j for j in mc if self.mb[j] == 2}
             if self.max_chain_is_cycle(i) and mc == plus_twos:
                 s = len(mc)
                 cycle_edges = [e for e in self.edges if self.adj[e] <= mc]
@@ -1834,7 +2179,9 @@ class PlumbingGraph():
             else:
                 e = list(self.adjacent_edges(i))[0]
                 for a in range(0, self.mb[i]-1):
-                    e = self.blow_up_edge(e, -1)
+                    new_vx = self.blow_up_edge(e, -1)
+                    e = [ ed for ed in self.edges
+                        if self.adj[ed] == {new_vx,i} ][0]
                 self.blow_down(i)
                 self.step_1()
         if self.N2():
@@ -1902,3 +2249,127 @@ class PlumbingGraph():
             return True
         else:
             return False
+
+########################################################################
+# Step four
+    def step_4(self):
+        r"""
+        Carries out step 4 in [Neu1981].
+
+        OUTPUT:
+        
+        True or False
+        """
+        if not self.N3():
+            return False
+        
+        while True:
+            L = [j for j in self.vertices if self.N4_obstruction(j)]
+            if len(L) == 0:
+                break
+            j = L[0]
+            self.projective_extrude(j, 0, -1, -1, -1)
+            self.zero_chain_absorb(j)
+        
+        if self.N4():
+            return True
+        else:
+            return False
+
+########################################################################
+# Step five
+    def step_5(self):
+        r"""
+        Carries out step 5 in [Neu1981].
+
+        OUTPUT:
+        
+        True or False
+        """
+        if not self.N4():
+            return False
+        
+        L = [ j for j in self.vertices if self.N5_obstruction(j) ]
+        for j in L:
+            self.projective_extrude(j, 0, -1, -1, -1)
+        self.step_1()
+        self.step_2()
+        
+        if self.N5():
+            return True
+        else:
+            return False
+
+########################################################################
+# Step six
+    def step_6(self):
+        r"""
+        Carries out step 6 in [Neu1981].
+
+        OUTPUT:
+        
+        True or False
+        """
+        if not self.N5():
+            return False
+
+        # We use here the naming convention abcdefg for the graphs on
+        # p. 316 [Neu1981] established above for N6.
+        
+        # ab
+        while True:
+            i = self.N6_ab_find_candidate()
+            if i == -1:
+                break
+            C = self.component(i)
+            e = len(C)
+            s = len({e for e in self.edges if self.adj[e] <= C and self.epsilon[e] == -1})
+            self.delete_component(i)
+            if s%2 == 0:
+                self.add_vertex(e, 1, 0)
+            if s%2 == 1:
+                self.add_vertex(e, -2, 0)
+        
+        # c
+        while True:
+            i = self.N6_c_find_candidate()
+            if i == -1:
+                break
+            C = self.component(i)
+            e = len(C) - 2
+            self.delete_component(i)
+            self.add_Seifert(e-1, 0, [2,2,2,2])
+
+        # d
+        while True:
+            i = self.N6_d_find_candidate()
+            if i == -1:
+                break
+            self.delete_component(i)
+            self.add_Seifert(-3, 0, [2,2,2,2])
+
+        # e
+        while True:
+            i = self.N6_e_find_candidate()
+            if i == -1:
+                break
+            j = self.neighbor(i)
+            e = self.mb[j]
+            self.delete_component(i)
+            self.add_Seifert(e-2, 0, [2,2,2,2])
+
+        # f
+        while True:
+            i = self.N6_f_find_candidate()
+            if i == -1:
+                break
+            self.delete_component(i)
+            self.add_Seifert(-2, 0, [2,2,2,2])
+
+        # g
+        while True:
+            i = self.N6_g_find_candidate()
+            if i == -1:
+                break
+            self.delete_component(i)
+            self.add_Seifert(0, 0, [2,2], r=1)
