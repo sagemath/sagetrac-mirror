@@ -249,7 +249,7 @@ cdef class CombinatorialPolyhedron:
             vertices = data.Vrepresentation()
             facets = tuple(inequality for inequality in data.Hrepresentation() if inequality.is_inequality())
             self._equalities = tuple(inequality for inequality in data.Hrepresentation() if not inequality.is_inequality())
-            if (len(vertices) == data.n_lines() + 1):#in this case the polyhedron is trivial and might not have facets
+            if (len(vertices) == data.n_lines() + 1) and (data.n_lines > 0):#in this case the Polyhedron does not have facets
                 self.is_empty = 1
                 self.nr_lines = data.n_lines()
                 self._V = tuple(vertices)
@@ -260,7 +260,7 @@ cdef class CombinatorialPolyhedron:
             self._length_Hrep = data.ncols()
             self._length_Vrep = data.nrows()
         if is_LatticePolytope(data):
-            if data.npoints() == 1:
+            if data.npoints() == 0:
                 self.is_empty = 1
                 return
             vertices = data.vertices()

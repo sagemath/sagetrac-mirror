@@ -161,7 +161,7 @@ unsigned int CombinatorialPolyhedron::get_dimension(){
     if (dimension){
         return dimension;
     }
-    calculate_dimension(facets, nr_facets);
+    dimension = calculate_dimension(facets, nr_facets);
     return dimension;
 }
 
