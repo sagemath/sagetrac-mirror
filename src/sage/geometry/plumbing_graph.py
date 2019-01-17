@@ -416,20 +416,18 @@ class PlumbingGraph():
         del self.epsilon[e]
         self.edges = self.edges.difference({e})
 
-    def add_bamboo(self, x, j=None, r=0):
+    def add_bamboo(self, x, j=None):
         r"""
-        Create a bamboo in the graph.
-
-        A bamboo is a string of rational (g=0) vertices. If the vertex
-        j is specified, then this vertex is connected to the first
-        vertex in the bamboo, otherwise the bamboo becomes a connected
-        component. The function returns the last vertex in the bamboo.
+        Create a bamboo in the graph. A bamboo is a string of rational (g=0)
+        vertices. If the vertex j is specified, then this
+        vertex is connected to the first vertex in the bamboo, otherwise the
+        bamboo becomes a connected component. The function returns the last
+        vertex in the bamboo.
         
         INPUT:
         
         - ``x`` -- a rational number,
         - ``j`` -- a vertex of self,
-        - ``r`` -- a nonnegative integer.
 
         OUTPUT:
 
@@ -1662,9 +1660,9 @@ class PlumbingGraph():
         self.g[i] = g
         a = self.add_vertex(d, 0, 0)
         self.add_edge({i,a})
-        b = self.add_vertex(2*d1, 0, 0)
+        b = self.add_vertex(d1, 0, 0)
         self.add_edge({a,b})
-        c = self.add_vertex(2*d2, 0, 0)
+        c = self.add_vertex(d2, 0, 0)
         self.add_edge({a,c})
         return True
        
@@ -2143,9 +2141,9 @@ class PlumbingGraph():
             k = 2*g + (d-1) - len(self.components())
         if g < 0:
             k = -g + (d-1) - len(self.components())
-        for a in range(k):
+        for a in range(0,k):
             self.add_bamboo(0)
-        for a in range(r):
+        for a in range(0,r):
             self.add_bamboo(0,r=1)
 
     def R6_candidate(self, j):
@@ -2620,6 +2618,8 @@ class PlumbingGraph():
             sage: P.N2()
             False
         """
+        if not self.N1():
+            return False
         for i in self.vertices - self.nodes():
             if self.mb[i] > -2:
                 return False
@@ -2648,6 +2648,9 @@ class PlumbingGraph():
             sage: P.N3()
             False
         """
+        if not self.N2():
+            return False
+        
         for i in self.vertices:
             if self.N3_obstruction(i):
                 return False
@@ -2731,6 +2734,8 @@ class PlumbingGraph():
             sage: P.N4()
             False
         """
+        if not self.N3():
+            return False
         for j in self.vertices:
             if self.N4_obstruction(j):
                 return False
@@ -2789,6 +2794,8 @@ class PlumbingGraph():
             sage: P.N5()
             True
         """
+        if not self.N4():
+            return False
         for j in self.vertices:
             if self.N5_obstruction(j):
                 return False
