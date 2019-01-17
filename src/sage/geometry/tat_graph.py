@@ -22,7 +22,6 @@ Tête-à-tête.
 from sage.structure.sage_object import SageObject
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.rings.integer_ring import ZZ
-from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
 from copy import copy
 from sage.geometry.ribbon_graph import RibbonGraph
