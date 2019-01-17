@@ -128,10 +128,33 @@ CombinatorialPolyhedron::~CombinatorialPolyhedron(){
     deallocate_newfaces();
     deallocate_vertices();
     deallocate_allfaces();//must be called before deleting f_vector
-    delete(f_vector);
-    delete(edges);
-    delete(ridges);
-    delete(incidences);
+    if (f_vector){
+        delete[] f_vector;
+    }
+    if (edges){
+        for (i=0; i< maxnumberedges; i++){
+            if (edges[i]){
+                delete[] edges[i];
+            }
+        }
+        delete[] edges;
+    }
+    if (ridges){
+        for (i=0; i< maxnumberedges; i++){
+            if (ridges[i]){
+                delete[] ridges[i];
+            }
+        }
+        delete[] ridges;
+    }
+    if (incidences){
+        for (i=0; i< maxnumberincidences; i++){
+            if (incidences[i]){
+                delete[] incidences[i];
+            }
+        }
+        delete[] incidences;
+    }
 }
 
 unsigned int CombinatorialPolyhedron::get_dimension(){
@@ -733,7 +756,7 @@ inline void CombinatorialPolyhedron::record_face_facet_repr(chunktype *face, uns
     for (i=0;i<length_of_face_in_facet_repr;i++){
         load_register(allfaces_facet_repr[current_dimension][allfaces_counter[current_dimension]][i],array[i*chunksize/64]);
     }
-    delete(array);
+    delete[] array;
 }
 
 
@@ -791,7 +814,7 @@ unsigned long CombinatorialPolyhedron::get_flag_number(unsigned int *array, unsi
         for (i= 0;i < f_vector[array[1]+1]; i++){
             sum += CountFaceBits(allfaces[array[1]][i]);
         }
-        delete(saverarray);
+        delete[] saverarray;
         return sum;
         }
         }
@@ -800,7 +823,7 @@ unsigned long CombinatorialPolyhedron::get_flag_number(unsigned int *array, unsi
             for (i = 0; i < nr_facets; i++){
                 sum += CountFaceBits(facets[i]);
             }
-            delete(saverarray);
+            delete[] saverarray;
             return sum;
         }
         counter = 2;
@@ -834,7 +857,7 @@ unsigned long CombinatorialPolyhedron::get_flag_number(unsigned int *array, unsi
                 }
             }
     }
-    delete (saverarray);
+    delete[] saverarray;
     return sum;
 }
 
@@ -883,7 +906,7 @@ void CombinatorialPolyhedron::get_vertices_or_facets_bitrep_from_facets_pointer(
             }
             char_from_array(new_facets_array, length_that_face, facets_or_vertices[i], facet_repr);
         }
-        delete(old_facets_walker);
+        delete[] old_facets_walker;
     }
     else {//getting the facets from the original polytope, those will be facets or vertices depending on wether we consider polar or not
         for(i = 0;i<nr_facets_given;i++){
@@ -962,7 +985,7 @@ inline void CombinatorialPolyhedron::bitrep_to_list(chunktype *array1, unsigned 
         }
     }
     length_of_faces[0] = counter;
-    delete(array);
+    delete[] array;
     return;
 }
 
@@ -995,7 +1018,7 @@ void CombinatorialPolyhedron::char_from_incidence_list(unsigned int *incidence_l
     for (i=0;i<face_length;i++){
         load_register(array1[i],array[i*chunksize/64]);
     }
-    delete(array);
+    delete[] array;
 }
 
 void CombinatorialPolyhedron::char_from_array(unsigned int* input, unsigned int len, chunktype *array1, unsigned int facet_repr){
@@ -1018,7 +1041,7 @@ void CombinatorialPolyhedron::char_from_array(unsigned int* input, unsigned int 
     for (i=0;i<face_length;i++){
         load_register(array1[i],array[i*chunksize/64]);
     }
-    delete(array);
+    delete[] array;
 }
 
 
@@ -1048,8 +1071,8 @@ void CombinatorialPolyhedron::deallocate_facets(){
     for (i=0;i <nr_facets;i++){
         free(facets_allocator[i]);
     }
-    delete(facets);
-    delete(facets_allocator);
+    delete[] facets;
+    delete[] facets_allocator;
     facets_are_allocated = 0;
 }
 void CombinatorialPolyhedron::allocate_vertices(){
@@ -1073,8 +1096,8 @@ void CombinatorialPolyhedron::deallocate_vertices(){
     for (i=0;i <nr_vertices;i++){
         free(vertices_allocator[i]);
     }
-    delete(vertices);
-    delete(vertices_allocator);
+    delete[] vertices;
+    delete[] vertices_allocator;
     vertices_are_allocated = 0;
 }
 void CombinatorialPolyhedron::allocate_newfaces(){
@@ -1108,10 +1131,10 @@ void CombinatorialPolyhedron::deallocate_newfaces(){
             free(newfaces_allocator[i][j]);
         }
     }
-    delete(forbidden);
-    delete(newfaces2);
-    delete(newfaces);
-    delete(newfaces_allocator);
+    delete[] forbidden;
+    delete[] newfaces2;
+    delete[] newfaces;
+    delete[] newfaces_allocator;
     newfaces_are_allocated = 0;
 }
 //allocates allfaces in a certain dimension, must be smaller than dimension and at least 1, if dimension is 0 will be allocated in all dimensions
@@ -1165,12 +1188,12 @@ void CombinatorialPolyhedron::deallocate_allfaces(){
             }
         }
     }
-    delete(allfaces_counter);
-    delete(allfaces);
-    delete(allfaces_allocator);
-    delete(allfaces_facet_repr);
-    delete(allfaces_facet_repr_allocator);
-    delete(allfaces_are_allocated);
+    delete[] allfaces_counter;
+    delete[] allfaces;
+    delete[] allfaces_allocator;
+    delete[] allfaces_facet_repr;
+    delete[] allfaces_facet_repr_allocator;
+    delete[] allfaces_are_allocated;
 }
 
 
