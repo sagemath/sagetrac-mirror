@@ -807,10 +807,11 @@ class PlumbingGraph():
 
         n = len(self.vertices)
         V = list(self.vertices)
+        d = { V[i]:i for i in range(0,n) }
         
         M = MatrixSpace(ZZ, n,n) 
         I  = copy(M.zero_matrix())
-        for i in range(n):
+        for i in range(0,n):
             I[i,i] += self.mb[V[i]]
         for e in self.edges:
             L = list(self.adj[e])
