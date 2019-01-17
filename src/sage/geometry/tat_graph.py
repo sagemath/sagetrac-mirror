@@ -1,5 +1,6 @@
-r"""
-T\^ete-\`a-t\^ete graphs.
+# -*- coding: utf-8 -*-
+"""
+Tête-à-tête.
 
 
 
@@ -223,7 +224,7 @@ def bipartite_tat_graph(p,q):
 
     OUTPUT:
 
-    - a t\^ete-\`a-t\^ete graph whose underlying ribbon graph is the complete
+    - a tête-à-tête graph whose underlying ribbon graph is the complete
       bipartite graph of type `(p,q)` and with all darts of length 
       `1/4`. It models the Milnor fiber and monodromy of the Brieskorn-Pham
       singularity `x^p+y^q`.
@@ -257,7 +258,7 @@ def bipartite_tat_graph(p,q):
 
 class TatGraph(SageObject):
     r"""
-    A t\^ete-\`a-t\^ete  graph codified as a ribbon graph and a list of rational 
+    A tête-à-tête  graph codified as a ribbon graph and a list of rational 
     numbers.
 
     The original idea is due to A'Campo [AC2009]_. His original motivation was
@@ -283,21 +284,21 @@ class TatGraph(SageObject):
     - It has total length equal to `1`.
     
     Given a point `p \in \Gamma` in the interior of and edge, there exist
-    exactly two safe walks starting at `p`. The t\^ete-\`a-t\^ete property says
+    exactly two safe walks starting at `p`. The tête-à-tête property says
     that "for all points in the interior of `\Gamma`, the two safe walks 
     starting at that point, end at the same point.
     
-    As explained in the references that are mentioned above, a t\^ete-\`a-t\^ete
+    As explained in the references that are mentioned above, a tête-à-tête
     graph models an oriented surface with boundary together with a mapping
     class of the surface which is freely periodic and has fractional Dehn
     twist coefficients at all boundary components.
     
     Another object which is also modeled in this package is a relative
-    t\^ete-\`a-t\^ete graph. These are metric ribbon graphs with a marked set of 
+    tête-à-tête graph. These are metric ribbon graphs with a marked set of 
     circles in the graph which correspond to certain boundary components. While
-    in pure t\^ete-\`a-t\^ete graphs, all boundary components are left invariant by
-    the t\^ete-\`a-t\^ete automorphism, in their relative counterpart, the relative
-    boundary components might be permuted by the relative t\^ete-\`a-t\^ete 
+    in pure tête-à-tête, all boundary components are left invariant by
+    the tête-à-tête automorphism, in their relative counterpart, the relative
+    boundary components might be permuted by the relative tête-à-tête 
     mondromy.
 
 
@@ -307,10 +308,10 @@ class TatGraph(SageObject):
     - ``metric`` -- a list of as many rational numbers as darts has ``ribbon``.
     - ``relative_boundary=[]`` -- a subset of ``ribbon.boundary()`` that 
       constitutes the relative boundary components of ``ribbon``. It is, by
-      default, initialized to an empty list (for defining pure t\^ete-\`a-t\^ete graphs)
+      default, initialized to an empty list (for defining pure tête-à-tête)
 
     Alternatively, one can pass in 2 integers and this will construct
-    a bipartite t\^ete-\`a-t\^ete graph which realizes the corresponding 
+    a bipartite tête-à-tête graph which realizes the corresponding 
     Brieskorn-Pham singularity.
     
     
@@ -327,7 +328,7 @@ class TatGraph(SageObject):
         sage: T33._relative_boundary
         []
         sage: B33 = blow_up(T33, 1,1/8); B33 ; B33._relative_boundary
-        Relative t\^ete-\`a-t\^ete graph of order 3 on a ribbon graph of genus 1 and 6 boundary components; where 3 boundary components are part of the relative boundary and might be permuted by the automorphism induced.
+        Relative tête-à-tête graph of order 3 on a ribbon graph of genus 1 and 6 boundary components; where 3 boundary components are part of the relative boundary and might be permuted by the automorphism induced.
         [[19, 24, 23, 22, 21, 20], [25, 30, 29, 28, 27, 26], [31, 36, 35, 34, 33, 32]]
         sage: T517=bipartite_tat_graph(5,17);T517
         Tete-a-tete graph of order 85 on a ribbon graph of genus 32 and 1 boundary components.
@@ -352,12 +353,12 @@ class TatGraph(SageObject):
 
     def _repr_(self):
         r"""
-        Return basic information about the t\^ete-\`a-t\^ete graph in string
+        Return basic information about the tête-à-tête graph in string
         format.
 
         EXAMPLES:
 
-        Example of a relative t\^ete-\`a-t\^ete graph::
+        Example of a relative tête-à-tête graph::
 
             sage: s0 = PermutationGroupElement('(1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18)')
             sage: r0 = PermutationGroupElement('(1,9)(2,11)(3,4)(5,14)(6,7)(8,17)(10,18)(12,13)(15,16)')
@@ -365,9 +366,9 @@ class TatGraph(SageObject):
             sage: m0 = 6*[1/8,3/8,1/8]; 
             sage: perm_bound = [[1, 9, 7, 6, 4, 3], [10, 18, 16, 15, 13, 12]]
             sage: T0 = TatGraph(R0,m0,relative_boundary = perm_bound); T0
-            Relative t\^ete-\`a-t\^ete graph of order 6 on a ribbon graph of genus 1 and 3 boundary components; where 2 boundary components are part of the relative boundary and might be permuted by the automorphism induced.
+            Relative tête-à-tête graph of order 6 on a ribbon graph of genus 1 and 3 boundary components; where 2 boundary components are part of the relative boundary and might be permuted by the automorphism induced.
 
-        Example of a pure t\^ete-\`a-t\^ete graph::
+        Example of a pure tête-à-tête graph::
 
             sage: T23 = bipartite_tat_graph(2,3); T23
             Tete-a-tete graph of order 6 on a ribbon graph of genus 1 and 1 boundary components.
@@ -375,7 +376,7 @@ class TatGraph(SageObject):
         if not self._relative_boundary:
             return "Tete-a-tete graph of order {} on a ribbon graph of genus {} and {} boundary components.".format(self.order(), self._ribbon.genus(), self._ribbon.number_boundaries())
         else:
-            return "Relative t\^ete-\`a-t\^ete graph of order {} on a ribbon graph of genus {} and {} boundary components; where {} boundary components are part of the relative boundary and might be permuted by the automorphism induced.".format(self.order(), self._ribbon.genus(), self._ribbon.number_boundaries(), len(self._relative_boundary))
+            return "Relative tête-à-tête graph of order {} on a ribbon graph of genus {} and {} boundary components; where {} boundary components are part of the relative boundary and might be permuted by the automorphism induced.".format(self.order(), self._ribbon.genus(), self._ribbon.number_boundaries(), len(self._relative_boundary))
 
     def sigma(self):
         r"""
@@ -423,7 +424,7 @@ class TatGraph(SageObject):
 
     def ribbon(self):
         r"""
-        Return the underlying ribbon graph of the t\^ete-\`a-t\^ete graph ``self``.
+        Return the underlying ribbon graph of the tête-à-tête graph ``self``.
 
         EXAMPLES::
 
@@ -445,8 +446,8 @@ class TatGraph(SageObject):
         By definition, these are signed rational numbers formed by an 
         integer which tells how many times the safe walk winds around
         that boundary component plus a rational number in `[0,1)` that
-        tells the rotation of the t\^ete-\`a-t\^ete automorphism around that boundary 
-        component. In the case of t\^ete-\`a-t\^ete automorphisms, the rotation 
+        tells the rotation of the tête-à-tête automorphism around that boundary 
+        component. In the case of tête-à-tête automorphisms, the rotation 
         numbers are always positive.
 
         EXAMPLES:
@@ -482,7 +483,7 @@ class TatGraph(SageObject):
             sage: m0 = 6*[1/8,3/8,1/8]; 
             sage: perm_bound = [[1, 9, 7, 6, 4, 3], [10, 18, 16, 15, 13, 12]]
             sage: T0 = TatGraph(R0,m0,relative_boundary = perm_bound); T0
-            Relative t\^ete-\`a-t\^ete graph of order 6 on a ribbon graph of genus 1 and 3 boundary components; where 2 boundary components are part of the relative boundary and might be permuted by the automorphism induced.
+            Relative tête-à-tête graph of order 6 on a ribbon graph of genus 1 and 3 boundary components; where 2 boundary components are part of the relative boundary and might be permuted by the automorphism induced.
             sage: print(T0._ribbon.boundary()); T0.rot_numbers()
             [[1, 9, 7, 6, 4, 3], [2, 11, 12, 13, 14, 5, 6, 7, 8, 17, 18, 10, 11, 2, 3, 4, 5, 14, 15, 16, 17, 8, 9, 1], [10, 18, 16, 15, 13, 12]]
             [1/6]
@@ -499,13 +500,13 @@ class TatGraph(SageObject):
 
     def action_homology(self):
         r"""
-        Return matrix representing the action of the t\^ete-\`a-t\^ete automorphism 
+        Return matrix representing the action of the tête-à-tête automorphism 
         on the first homology group.
 
         OUTPUT:
 
         - Return a `self._mu() \times self._mu()` matrix that represents
-          the action of the t\^ete-\`a-t\^ete automorphism on the first homology group
+          the action of the tête-à-tête automorphism on the first homology group
           with respect to the basis self._ribbon.homology_basis(). This 
           matrix has only `0`, `1` and `-1` as entries.
 
@@ -597,11 +598,11 @@ class TatGraph(SageObject):
 
     def order(self):
         r"""
-        Return the order of the t\^ete-\`a-t\^ete automorphism.
+        Return the order of the tête-à-tête automorphism.
 
         OUTPUT:
 
-        - A positive integer which is the order of the t\^ete-\`a-t\^ete automorphism.
+        - A positive integer which is the order of the tête-à-tête automorphism.
 
         EXAMPLES::
 
@@ -618,15 +619,15 @@ class TatGraph(SageObject):
 
     def orbit_graph(self):
         r"""
-        Return the orbits of the t\^ete-\`a-t\^ete automorphism together with a
+        Return the orbits of the tête-à-tête automorphism together with a
         ribbon graph which is the orbit of the ribbon graph
-        by the action of the t\^ete-\`a-t\^ete automorphism.
+        by the action of the tête-à-tête automorphism.
 
         OUTPUT:
 
         - A pair consisting of a list called ``orbits`` where each
           instance is a list containing all the edges of an orbit of
-          the t\^ete-\`a-t\^ete automorphism; and a ribbon graph called ``orbit_graph``
+          the tête-à-tête automorphism; and a ribbon graph called ``orbit_graph``
           which is the orbit space of the action induced by that tat
           automorphism. They satisfy that the dart ``k`` in orbit_graph
           corresponds to the orbit ``orbits[k-1]``. (Observe that the
@@ -811,18 +812,18 @@ def blow_up(tat_graph, vertex, epsilon):
     More concretely, the operation consists in taking the orbit of the given
     vertex performing a real blow up at each of these vertices while seeing
     the graph embedded in the thickenened surface. The result is a relative
-    t\^ete-\`a-t\^ete graph whose relative part is the union of the previous relative
-    t\^ete-\`a-t\^ete part (if any) with the new boundary components created by the
+    tête-à-tête graph whose relative part is the union of the previous relative
+    tête-à-tête part (if any) with the new boundary components created by the
     blowing up (as many as vertices were in the orbit of ``vertex``. The epsilon
     input is taken to produce the final metric in the followin way: from each
     dart adjacent to the vertices in the orbit we substract a length of epsilon.
     Each new edge introduced has a total length of 2 epsilon in order to preserve
-    the t\^ete-\`a-t\^ete property. For this reason, epsilon has to be strictly smaller
+    the tête-à-tête property. For this reason, epsilon has to be strictly smaller
     than the lengths of all the darts adjacent to a vertex of the orbit.
 
     INPUT:
 
-    - ``tat_graph`` -- a t\^ete-\`a-t\^ete graph or a relative t\^ete-\`a-t\^ete graph.
+    - ``tat_graph`` -- a tête-à-tête graph or a relative tête-à-tête graph.
     - ``vertex`` -- a positive integer from 0 to len(tat_graph.sigma())
       indicating one of the vertices where the blow up will be performed
       (observe that the blow up is performed on all the vertices in the
@@ -833,7 +834,7 @@ def blow_up(tat_graph, vertex, epsilon):
 
     OUTPUT:
 
-    - A relative t\^ete-\`a-t\^ete graph resulting from the blow-up of ``tat_graph``
+    - A relative tête-à-tête graph resulting from the blow-up of ``tat_graph``
       at the indicated vertex of the indicated length.
     """
     

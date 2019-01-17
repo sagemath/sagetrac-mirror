@@ -549,7 +549,7 @@ REFERENCES:
              
 .. [BPP2017] J. Fdez de Bobadilla, M. Pe Pereira, P. Portilla. *Representation of
              surface homeomorphisms by tete-a-tete graphs*. 
-             :arxiv:`arXiv:1706.05580`
+             :arxiv:`1706.05580`
              
 .. [Bou1989] \N. Bourbaki. *Lie Groups and Lie Algebras*. Chapters 1-3.
              Springer. 1989.
