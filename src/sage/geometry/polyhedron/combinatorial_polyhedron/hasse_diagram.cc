@@ -88,9 +88,9 @@ inline unsigned int naive_popcount(uint64_t A){
 
 
 //initialization with a tuple of facets (each facet a tuple of vertices, vertices labeled 0,1,...)
-CombinatorialPolyhedron::CombinatorialPolyhedron(unsigned int ** facets_pointer, unsigned int nr_facets_given, unsigned int *len_facets, unsigned int nr_vertices_given, int is_unbounded, unsigned int nr_lines_given){
+CombinatorialPolyhedron::CombinatorialPolyhedron(unsigned int ** facets_pointer, unsigned int nr_facets_given, unsigned int *len_facets, unsigned int nr_vertices_given, int is_unbounded){
     unbounded = is_unbounded;
-    nr_lines = nr_lines_given;
+    nr_lines = 0;
     build_dictionary();
     nr_vertices = nr_vertices_given;
     nr_facets = nr_facets_given;
@@ -106,9 +106,9 @@ CombinatorialPolyhedron::CombinatorialPolyhedron(unsigned int ** facets_pointer,
 
 
 //initialization with an incidence matrix given as tuple of tuples
-CombinatorialPolyhedron::CombinatorialPolyhedron(unsigned int ** incidence_matrix, unsigned int nr_facets_given, unsigned int nr_vertices_given, int is_unbounded, unsigned int nr_lines_given){
+CombinatorialPolyhedron::CombinatorialPolyhedron(unsigned int ** incidence_matrix, unsigned int nr_facets_given, unsigned int nr_vertices_given, int is_unbounded){
     unbounded = is_unbounded;
-    nr_lines = nr_lines_given;
+    nr_lines = 0;
     build_dictionary();
     nr_vertices = nr_vertices_given;
     nr_facets = nr_facets_given;
@@ -219,6 +219,12 @@ inline unsigned int **  CombinatorialPolyhedron::get_ridges(){
 //get_faces fills faces_to_return with all faces in dimension face_dimension and length_of_faces with length of the faces, if facet_repr then faces will be given with facet_incidences, otherwise with vertex incidences
 void CombinatorialPolyhedron::get_faces(int face_dimension, unsigned int facet_repr, unsigned int **faces_to_return, unsigned int *length_of_faces){
     get_dimension();//this assigns dimension the correct value
+    if (!f_vector){
+            get_f_vector_and_edges();
+    }
+    if (f_vector[1] < nr_vertices){
+        unbounded = 1;//in case unbounded was not passed properly, this is done to prevent crashing
+    }
     unsigned int i;
     if (polar){ //if the polar is stored we should return the facet_repr for the vertex_repr and vice_versa
         facet_repr = polar - facet_repr;
@@ -253,7 +259,7 @@ void CombinatorialPolyhedron::get_faces(int face_dimension, unsigned int facet_r
             return;
         }
     }
-    if (face_dimension_unsigned == 0){
+    if ((face_dimension_unsigned == 0) & (!unbounded)){
         if (nr_lines)
             return;
         if (facet_repr)
@@ -290,8 +296,13 @@ void CombinatorialPolyhedron::get_faces(int face_dimension, unsigned int facet_r
 }
 
 void CombinatorialPolyhedron::record_all_faces(){
-    allocate_allfaces(0);
-    record_faces(1);
+    allocate_allfaces();
+    if (unbounded){
+        record_faces(0);
+    }
+    else {
+        record_faces(1);
+    }
 }
 
 unsigned long ** CombinatorialPolyhedron::get_incidences(int dimension_one, int dimension_two, unsigned long * nr_incidences_to_return, unsigned int * twisted){
@@ -595,14 +606,18 @@ inline unsigned int CombinatorialPolyhedron::get_next_level(chunktype **faces, u
 unsigned int CombinatorialPolyhedron::calculate_dimension(chunktype **faces, unsigned int nr_faces){
     unsigned int i,j,k, newfacescounter, dim;
     if (nr_faces == 0){
-    return 0;//this isn't supposed to happen, but maybe the data is malformed
+        return 0;//this isn't supposed to happen, but maybe the data is malformed
     }
     unsigned int bitcount = CountFaceBits(faces[0]);
-    if (bitcount == nr_lines){//if a facet contains only lines, then the polyhedron is of dimension nr_lines
-        return nr_lines;
+    if (bitcount == 0){//if a polyhedron contains only the empty face as facet, then it is of dimension 0
+        return 0;
     }
-    if (bitcount == nr_lines + 1){
-        return nr_lines + 1;
+    if (nr_faces == 1){//if there is only one facet and this contains bitcount # of vertices/rays/lines then the polyhedron is of dimension bitcount -1
+        nr_lines = bitcount - 1;
+        return bitcount;
+    }
+    if (bitcount == 1){
+        return 1;
     }
     void *nextfaces_creator[nr_faces-1];
     chunktype  *nextfaces2[nr_faces-1], *nextfaces[nr_faces-1];
@@ -622,6 +637,9 @@ unsigned int CombinatorialPolyhedron::calculate_dimension(chunktype **faces, uns
 }
 
 void CombinatorialPolyhedron::calculate_ridges(){//this is a much simpler version of belows get_f_vector_and_edges
+    if (nr_facets <= 1){
+        return;
+    }
     unsigned int i,j,counter, addthisface, nr_forbidden = 0;
     unsigned long newfacescounter;
     void *nextfaces_creator[nr_facets-1];
@@ -687,6 +705,9 @@ void CombinatorialPolyhedron::get_f_vector_and_edges(chunktype **faces, unsigned
         for (i = 0; i < nr_faces; i++){
             add_edge(faces[i]);
         }
+    }
+    if (nr_faces <= 1){
+        return;//there will be no newfaces, in the case of nr_facets == 1, newfaces might not have been initialized properly, however with correct data, one of the above things should happen
     }
     i = nr_faces;
     while (i--){
@@ -1137,6 +1158,18 @@ void CombinatorialPolyhedron::deallocate_newfaces(){
     newfaces_are_allocated = 0;
 }
 //allocates allfaces in a certain dimension, must be smaller than dimension and at least 1, if dimension is 0 will be allocated in all dimensions
+void CombinatorialPolyhedron::allocate_allfaces(){
+    unsigned int i;
+    if (!dimension){
+        get_dimension();
+    }
+    for (i = 1; i < dimension; i++){
+        allocate_allfaces(i);
+    }
+    if (unbounded)
+        allocate_allfaces(0);
+}
+
 void CombinatorialPolyhedron::allocate_allfaces(unsigned int dimension_to_allocate){
     unsigned int i;
     if (!f_vector){
@@ -1151,12 +1184,7 @@ void CombinatorialPolyhedron::allocate_allfaces(unsigned int dimension_to_alloca
         allfaces_facet_repr_allocator = new void **[const_dimension]();
         allfaces_facet_repr = new chunktype **[const_dimension]();
     }
-    if (dimension_to_allocate == 0){
-        for (i = 1; i < dimension; i++){
-            allocate_allfaces(i);
-        }
-    }
-    if ((1 <= dimension_to_allocate) && (dimension_to_allocate < dimension))
+    if ((0 <= dimension_to_allocate) && (dimension_to_allocate < dimension))
         { 
         if (!allfaces_are_allocated[dimension_to_allocate]){
             const unsigned long size_one = f_vector[dimension_to_allocate+1];
@@ -1179,7 +1207,7 @@ void CombinatorialPolyhedron::deallocate_allfaces(){
     if (!allfaces_are_allocated)
         return;
     unsigned int i,j;
-    for (j = 1; j < dimension; j++){
+    for (j = 0; j < dimension; j++){
         if (allfaces_are_allocated[j]){
             for (i = 0; i < f_vector[j+1]; i++){
                 free(allfaces_allocator[j][i]);
@@ -1198,13 +1226,13 @@ void CombinatorialPolyhedron::deallocate_allfaces(){
 
 
 
-CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(unsigned int ** facets_pointer, unsigned int nr_facets, unsigned int *len_facets, unsigned int nr_vertices, int is_unbounded, unsigned int nr_lines) {
-    CombinatorialPolyhedron_ptr C = new CombinatorialPolyhedron(facets_pointer, nr_facets, len_facets, nr_vertices, is_unbounded, nr_lines);
+CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(unsigned int ** facets_pointer, unsigned int nr_facets, unsigned int *len_facets, unsigned int nr_vertices, int is_unbounded) {
+    CombinatorialPolyhedron_ptr C = new CombinatorialPolyhedron(facets_pointer, nr_facets, len_facets, nr_vertices, is_unbounded);
     return C;
 }
 
-CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(unsigned int ** incidence_matrix, unsigned int nr_facets, unsigned int nr_vertices, int is_unbounded, unsigned int nr_lines) {
-    CombinatorialPolyhedron_ptr C = new CombinatorialPolyhedron(incidence_matrix, nr_facets, nr_vertices, is_unbounded, nr_lines);
+CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(unsigned int ** incidence_matrix, unsigned int nr_facets, unsigned int nr_vertices, int is_unbounded) {
+    CombinatorialPolyhedron_ptr C = new CombinatorialPolyhedron(incidence_matrix, nr_facets, nr_vertices, is_unbounded);
     return C;
 }
 

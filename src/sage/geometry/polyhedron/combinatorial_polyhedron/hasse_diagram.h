@@ -63,8 +63,8 @@ const unsigned int maxnumberincidences = 16348;//^2 the maximal number of incide
 
 class CombinatorialPolyhedron {
     public:
-        CombinatorialPolyhedron(unsigned int ** facets_pointer, unsigned int nr_facets_given, unsigned int *len_facets, unsigned int nr_vertices_given, int is_unbounded, unsigned int nr_lines_given);//initialization with a tuple of facets (each facet a tuple of vertices, vertices labeled 0,1,...)
-        CombinatorialPolyhedron(unsigned int ** incidence_matrix, unsigned int nr_facets_given, unsigned int nr_vertices_given, int is_unbounded, unsigned int nr_lines_given);//initialization with an incidence matrix given as tuple of tuples
+        CombinatorialPolyhedron(unsigned int ** facets_pointer, unsigned int nr_facets_given, unsigned int *len_facets, unsigned int nr_vertices_given, int is_unbounded);//initialization with a tuple of facets (each facet a tuple of vertices, vertices labeled 0,1,...)
+        CombinatorialPolyhedron(unsigned int ** incidence_matrix, unsigned int nr_facets_given, unsigned int nr_vertices_given, int is_unbounded);//initialization with an incidence matrix given as tuple of tuples
         ~CombinatorialPolyhedron();//cleanup to avoid memory leak
         unsigned int get_dimension();
         inline void get_f_vector(unsigned long *vector);
@@ -153,6 +153,7 @@ class CombinatorialPolyhedron {
         void deallocate_vertices();
         void allocate_newfaces();
         void deallocate_newfaces();
+        void allocate_allfaces();
         void allocate_allfaces(unsigned int dimension_to_allocate);//allocates allfaces in a certain dimension, must be smaller than dimension and at least 1, if dimension is 0 will allocate all dimensions
         void deallocate_allfaces();
         
@@ -160,8 +161,8 @@ class CombinatorialPolyhedron {
 
 typedef CombinatorialPolyhedron* CombinatorialPolyhedron_ptr;
 
-CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(unsigned int ** facets_pointer, unsigned int nr_facets, unsigned int *len_facets, unsigned int nr_vertices, int is_unbounded, unsigned int nr_lines);//initialize by facets as tuples of vertices
-CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(unsigned int ** incidence_matrix, unsigned int nr_facets, unsigned int nr_vertices, int is_unbounded, unsigned int nr_lines);//initialize by incidence_matrix
+CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(unsigned int ** facets_pointer, unsigned int nr_facets, unsigned int *len_facets, unsigned int nr_vertices, int is_unbounded);//initialize by facets as tuples of vertices
+CombinatorialPolyhedron_ptr init_CombinatorialPolyhedron(unsigned int ** incidence_matrix, unsigned int nr_facets, unsigned int nr_vertices, int is_unbounded);//initialize by incidence_matrix
 
 unsigned int dimension(CombinatorialPolyhedron_ptr C);
 void f_vector(CombinatorialPolyhedron_ptr C, unsigned long *vector);
