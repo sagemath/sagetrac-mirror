@@ -593,7 +593,7 @@ inline unsigned int CombinatorialPolyhedron::get_next_level(chunktype **faces, u
 }
 
 unsigned int CombinatorialPolyhedron::calculate_dimension(chunktype **faces, unsigned int nr_faces){
-    unsigned int i,j,k, newfacescounter, dimension;
+    unsigned int i,j,k, newfacescounter, dim;
     if (nr_faces == 0){
     return 0;//this isn't supposed to happen, but maybe the data is malformed
     }
@@ -611,14 +611,14 @@ unsigned int CombinatorialPolyhedron::calculate_dimension(chunktype **faces, uns
         nextfaces[i] = (chunktype*) nextfaces_creator[i];
     }
     newfacescounter = get_next_level(faces,nr_faces,nr_faces-1,nextfaces,nextfaces2,0);//calculates the ridges contained in one facet
-    dimension =  calculate_dimension(nextfaces2,newfacescounter) + 1;//calculates the dimension of that facet
-    if (dimension == 1){
-        dimension = bitcount;//our face should be a somewhat a vertex, but if the polyhedron is unbounded, than our face will have dimension equal to the number of 'vertices' it contains, where some of the vertices might represent lines
+    dim =  calculate_dimension(nextfaces2,newfacescounter) + 1;//calculates the dimension of that facet
+    if (dim == 1){
+        dim = bitcount;//our face should be a somewhat a vertex, but if the polyhedron is unbounded, than our face will have dimension equal to the number of 'vertices' it contains, where some of the vertices might represent lines
     }
     for (i=0; i < (nr_faces - 1); i++){
         free(nextfaces_creator[i]);
     }
-    return dimension;
+    return dim;
 }
 
 void CombinatorialPolyhedron::calculate_ridges(){//this is a much simpler version of belows get_f_vector_and_edges
@@ -676,13 +676,13 @@ void CombinatorialPolyhedron::get_f_vector_and_edges(){
 }
 
 //will be called from the initial get_f_vector_and_edges()
-void CombinatorialPolyhedron::get_f_vector_and_edges(chunktype **faces, unsigned int dimension, unsigned int nr_faces, unsigned int nr_forbidden){
+void CombinatorialPolyhedron::get_f_vector_and_edges(chunktype **faces, unsigned int dim, unsigned int nr_faces, unsigned int nr_forbidden){
     unsigned int i;
     unsigned long newfacescounter;
-    if (dimension == nr_lines){
+    if (dim == nr_lines){
         return;
     }
-    if (dimension == 1){
+    if (dim == 1){
         if (edgemode)//in this case we want to record the edges
         for (i = 0; i < nr_faces; i++){
             add_edge(faces[i]);
@@ -690,10 +690,10 @@ void CombinatorialPolyhedron::get_f_vector_and_edges(chunktype **faces, unsigned
     }
     i = nr_faces;
     while (i--){
-        newfacescounter = get_next_level(faces,i+1,i,newfaces[dimension-1],newfaces2[dimension-1],nr_forbidden);//get the facets contained in faces[i] but not in any of the forbidden
-        f_vector[dimension] += newfacescounter;
+        newfacescounter = get_next_level(faces,i+1,i,newfaces[dim-1],newfaces2[dim-1],nr_forbidden);//get the facets contained in faces[i] but not in any of the forbidden
+        f_vector[dim] += newfacescounter;
         if (newfacescounter){
-            get_f_vector_and_edges(newfaces2[dimension-1],dimension-1,newfacescounter,nr_forbidden);//add all face in faces[i] to the f_vector, but not those which we have counted already
+            get_f_vector_and_edges(newfaces2[dim-1],dim-1,newfacescounter,nr_forbidden);//add all face in faces[i] to the f_vector, but not those which we have counted already
         }
         forbidden[nr_forbidden] = faces[i];//we have counted all faces in faces[i], so we do not want to count them ever again
         nr_forbidden++;
