@@ -20,15 +20,13 @@ Tête-à-tête.
 #*****************************************************************************
 
 from sage.structure.sage_object import SageObject
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.unique_representation import CachedRepresentation
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.rings.integer_ring import ZZ
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
 from copy import copy
-from sage.geometry.ribbon_graph import *
-from sage.functions.other import floor
+from sage.geometry.ribbon_graph import RibbonGraph
+from sage.geometry.ribbon_graph import bipartite_ribbon_graph
 from sage.rings.rational import Rational
 from sage.matrix.matrix_space import MatrixSpace
 
@@ -175,6 +173,25 @@ def check_tat_property(ribbon_graph, metric, relative_boundary = []):
 
     - True if the tat property is satisfied for the given
       ribbon graph and metric and False if not.
+
+    EXAMPLES::
+
+        sage: s0 = PermutationGroupElement('(1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18)')
+        sage: r0 = PermutationGroupElement('(1,9)(2,11)(3,4)(5,14)(6,7)(8,17)(10,18)(12,13)(15,16)');
+        sage: R0 = RibbonGraph(s0,r0); R0; R0.genus(); R0.number_boundaries(); print(R0.boundary());
+        Ribbon graph of genus 1 and 3 boundary components
+        1
+        3
+        [[1, 9, 7, 6, 4, 3], [2, 11, 12, 13, 14, 5, 6, 7, 8, 17, 18, 10, 11, 2, 3, 4, 5, 14, 15, 16, 17, 8, 9, 1], [10, 18, 16, 15, 13, 12]]
+        sage: m0 = 6*[1/8,3/8,1/8]; print(m0);
+        [1/8, 3/8, 1/8, 1/8, 3/8, 1/8, 1/8, 3/8, 1/8, 1/8, 3/8, 1/8, 1/8, 3/8, 1/8, 1/8, 3/8, 1/8]
+        sage: perm_bound = [[1,9,7,6,4,3], [10,18,16,15,13,12]]
+        sage: check_tat_property(R0,m0,relative_boundary = perm_bound)
+        True
+        sage: m0[1]=2/3; print(m0);
+        [1/8, 2/3, 1/8, 1/8, 3/8, 1/8, 1/8, 3/8, 1/8, 1/8, 3/8, 1/8, 1/8, 3/8, 1/8, 1/8, 3/8, 1/8]
+        sage: check_tat_property(R0,m0,relative_boundary = perm_bound)
+        False
     """
     #auxiliary variable prop that holds if the tat property is true
     #or false.
@@ -336,6 +353,33 @@ class TatGraph(SageObject):
     def __init__(self, ribbon, metric, relative_boundary=[]):
         r"""
         Initialize ``self``.
+
+        EXAMPLES::
+
+            Example of a manual definition of a relative tete-a-tete graph:
+
+            sage: s0 = PermutationGroupElement('(1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18)')
+            sage: r0 = PermutationGroupElement('(1,9)(2,11)(3,4)(5,14)(6,7)(8,17)(10,18)(12,13)(15,16)');
+            sage: R0 = RibbonGraph(s0,r0); R0; R0.genus(); R0.number_boundaries(); print(R0.boundary());
+            Ribbon graph of genus 1 and 3 boundary components
+            1
+            3
+            [[1, 9, 7, 6, 4, 3], [2, 11, 12, 13, 14, 5, 6, 7, 8, 17, 18, 10, 11, 2, 3, 4, 5, 14, 15, 16, 17, 8, 9, 1], [10, 18, 16, 15, 13, 12]]
+
+            sage: m0 = 6*[1/8,3/8,1/8]; print(m0);
+            [1/8, 3/8, 1/8, 1/8, 3/8, 1/8, 1/8, 3/8, 1/8, 1/8, 3/8, 1/8, 1/8, 3/8, 1/8, 1/8, 3/8, 1/8]
+            sage: perm_bound = [[1,9,7,6,4,3], [10,18,16,15,13,12]]
+            sage: T = TatGraph(R0,m0, relative_boundary = perm_bound);T;
+            Relative tête-à-tête graph of order 6 on a ribbon graph of genus 1 and 3 boundary components; where 2 boundary components are part of the relative boundary and might be permuted by the automorphism induced.
+
+            However, if we change the perm_bound to something that is not in the boundary, it raises an AssertionError:
+
+            sage: perm_bound[0]= [1,9,31]; perm_bound
+            [[1, 9, 31], [10, 18, 16, 15, 13, 12]]
+            sage: T = TatGraph(R0,m0, relative_boundary = perm_bound)
+            Traceback (most recent call last):
+            ...
+            AssertionError
         """
         for i in range(len(relative_boundary)):
             assert relative_boundary[i] in ribbon.boundary()
@@ -435,7 +479,6 @@ class TatGraph(SageObject):
         """
         return self._ribbon
 
-    @cached_method
     def rot_numbers(self):
         r"""
         Return a list containing the rotation numbers of the tat 
@@ -711,8 +754,6 @@ class TatGraph(SageObject):
         """
         aux_sigma = [list(x) for 
                      x in self._sigma.cycle_tuples(singletons = 1)]
-        aux_rho = [list(x) for 
-                   x in self._rho.cycle_tuples()]
         darts = [x for i in range(len(aux_sigma)) for x in aux_sigma[i]]
 
         n = self.order()
@@ -836,6 +877,29 @@ def blow_up(tat_graph, vertex, epsilon):
 
     - A relative tête-à-tête graph resulting from the blow-up of ``tat_graph``
       at the indicated vertex of the indicated length.
+
+    EXAMPLES:
+
+        We define a bipartite tete-a-tete graph of type `(3,4)` and first we 
+        blow up the orbit of 3 vertices; then we blow up the orbit formed by
+        4 vertices. As we can see we obtain two differente relative tete-a-tete
+        graphs::
+
+        sage: T = bipartite_tat_graph(3,4); T
+        Tete-a-tete graph of order 12 on a ribbon graph of genus 3 and 1 boundary components.
+        sage: B1=blow_up(T,2,1/10); B1
+        Relative tête-à-tête graph of order 12 on a ribbon graph of genus 3 and 4 boundary components; where 3 boundary components are part of the relative boundary and might be permuted by the automorphism induced.
+        sage: B2 = blow_up(T,4,1/30); B2
+        Relative tête-à-tête graph of order 12 on a ribbon graph of genus 3 and 5 boundary components; where 4 boundary components are part of the relative boundary and might be permuted by the automorphism induced.
+
+        In the previous example we blew up with two different lenghts, both
+        smaller than `1/2` which is the length of each dart of T. Now we try to
+        blow up with a length greater than that and it raises an AssertionError::
+
+        sage: B3 = blow_up(T,2,2/3)
+        Traceback (most recent call last):
+        ...
+        AssertionError
     """
     
     #we intialize the vector that is going to save the orbit of the 
@@ -852,7 +916,6 @@ def blow_up(tat_graph, vertex, epsilon):
     relative_boundary = copy(tat_graph._relative_boundary)
     aux_dart = aux_sigma[vertex][0]
     aux_pos = _find(orb_vector, aux_dart)
-    n = tat_graph.order()
     for i in range(len(orb_vector[aux_pos[0]])):
         new_v = _find(aux_sigma,orb_vector[aux_pos[0]][i])[0]
         if new_v not in orb_vertex:
