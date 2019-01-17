@@ -123,7 +123,7 @@ CombinatorialPolyhedron::CombinatorialPolyhedron(unsigned int ** incidence_matri
 }
 
 CombinatorialPolyhedron::~CombinatorialPolyhedron(){
-    unsigned int i,j;
+    unsigned int i;
     deallocate_facets();
     deallocate_newfaces();
     deallocate_vertices();
@@ -161,23 +161,24 @@ unsigned int CombinatorialPolyhedron::get_dimension(){
     if (dimension){
         return dimension;
     }
-    dimension =  calculate_dimension(facets, nr_facets);
+    calculate_dimension(facets, nr_facets);
     return dimension;
 }
 
 
 inline void CombinatorialPolyhedron::get_f_vector(unsigned long *vector){
-    unsigned int i, dim = get_dimension();
+    unsigned int i;
+    get_dimension();//this assigns dimension the correct value
     if (!f_vector){
         get_f_vector_and_edges();
     }
     if (!polar){
-        for (i = 0; i < dim + 2; i++){
+        for (i = 0; i < dimension + 2; i++){
             vector[i] = f_vector[i];
         }
     }
     else {
-        for (i = 0; i < dim + 2; i++){
+        for (i = 0; i < dimension + 2; i++){
             vector[dimension + 1 - i] = f_vector[i];
         }
     }
@@ -217,7 +218,7 @@ inline unsigned int **  CombinatorialPolyhedron::get_ridges(){
 
 //get_faces fills faces_to_return with all faces in dimension face_dimension and length_of_faces with length of the faces, if facet_repr then faces will be given with facet_incidences, otherwise with vertex incidences
 void CombinatorialPolyhedron::get_faces(int face_dimension, unsigned int facet_repr, unsigned int **faces_to_return, unsigned int *length_of_faces){
-    unsigned int dim = get_dimension();
+    get_dimension();//this assigns dimension the correct value
     unsigned int i;
     if (polar){ //if the polar is stored we should return the facet_repr for the vertex_repr and vice_versa
         facet_repr = polar - facet_repr;
@@ -295,7 +296,7 @@ void CombinatorialPolyhedron::record_all_faces(){
 
 unsigned long ** CombinatorialPolyhedron::get_incidences(int dimension_one, int dimension_two, unsigned long * nr_incidences_to_return, unsigned int * twisted){
     nr_incidences = 0;
-    unsigned int dim = get_dimension();
+    get_dimension();//this assigns dimension the correct value
     if (!f_vector)
         get_f_vector_and_edges();
     unsigned long i,j;
@@ -451,7 +452,6 @@ inline unsigned int CombinatorialPolyhedron::CountFaceBits(chunktype* A1) {
     unsigned int i,count = 0;
     const unsigned int length_of_conversion_face = length_of_face*chunksize/64;
     unsigned long A[length_of_conversion_face];
-    unsigned long n;
     for (i=0;i<length_of_face;i++){
         store_register(A[i*chunksize/64],A1[i]);
     }
@@ -466,7 +466,6 @@ inline unsigned int CombinatorialPolyhedron::CountFaceBits_facet_repr(chunktype*
     unsigned int i,count = 0;
     const unsigned int length_of_conversion_face = length_of_face_in_facet_repr*chunksize/64;
     unsigned long A[length_of_conversion_face];
-    unsigned long n;
     for (i=0;i<length_of_face_in_facet_repr;i++){
     store_register(A[i*chunksize/64],A1[i]);
     }
@@ -678,7 +677,7 @@ void CombinatorialPolyhedron::get_f_vector_and_edges(){
 
 //will be called from the initial get_f_vector_and_edges()
 void CombinatorialPolyhedron::get_f_vector_and_edges(chunktype **faces, unsigned int dimension, unsigned int nr_faces, unsigned int nr_forbidden){
-    unsigned int i,j;
+    unsigned int i;
     unsigned long newfacescounter;
     if (dimension == nr_lines){
         return;
@@ -712,7 +711,7 @@ void CombinatorialPolyhedron::record_faces(unsigned int lowest_dimension){
 }
 
 void CombinatorialPolyhedron::record_faces(chunktype **faces, unsigned int current_dimension, unsigned int nr_faces, unsigned int nr_forbidden, unsigned int lowest_dimension){
-    unsigned int i,j;
+    unsigned int i;
     unsigned long newfacescounter;
     if ((current_dimension < dimension - 1) && (allfaces_are_allocated[current_dimension] == 1)){
         for (i = 0; i < nr_faces; i++){
@@ -742,8 +741,8 @@ inline void CombinatorialPolyhedron::record_face(chunktype *face, unsigned int c
 }
 
 inline void CombinatorialPolyhedron::record_face_facet_repr(chunktype *face, unsigned int current_dimension){
-    unsigned int i,j;
-    unsigned int entry, position, value;
+    unsigned int i;
+    unsigned int position, value;
     const unsigned int size_array = length_of_face_in_facet_repr*chunksize/64;
     uint64_t *array = new uint64_t [size_array]();
     for (i = 0; i < nr_facets; i++){
