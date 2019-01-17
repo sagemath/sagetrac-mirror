@@ -92,8 +92,8 @@ class CombinatorialPolyhedron {
         unsigned int nr_vertices, nr_facets, length_of_face, length_of_face_in_facet_repr;
         unsigned int dimension = 0;
         unsigned long nr_edges = 0, nr_ridges = 0, nr_incidences = 0;
-        unsigned int **edges = new unsigned int *[maxnumberedges];
-        unsigned int **ridges = new unsigned int *[maxnumberedges];
+        unsigned int **edges = new unsigned int *[maxnumberedges]();
+        unsigned int **ridges = new unsigned int *[maxnumberedges]();
         unsigned long **incidences = new unsigned long *[maxnumberincidences]();
         unsigned int edgemode = 0;
         
