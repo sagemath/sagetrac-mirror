@@ -24,7 +24,7 @@ from .hyperbolic_space.all import *
 
 from .voronoi_diagram import VoronoiDiagram
 
-lazy_import('sage.geometry.ribbon_graph', 'RibbonGraph', 'TatGraph', 'safewalk', 'check_tat_property', 'bipartite_tat_graph', 'blow_up')
+lazy_import('sage.geometry.ribbon_graph', ['RibbonGraph', 'TatGraph', 'safewalk', 'check_tat_property', 'bipartite_tat_graph', 'blow_up'])
 lazy_import('sage.geometry.hyperplane_arrangement.arrangement', 'HyperplaneArrangements')
 lazy_import('sage.geometry.hyperplane_arrangement.library', 'hyperplane_arrangements')
 
