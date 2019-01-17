@@ -26,7 +26,9 @@ AUTHORS:
 #from sage.structure.sage_object import SageObject
 #from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.rational import Rational
-
+from sage.rings.integer_ring import ZZ
+from sage.matrix.matrix_space import MatrixSpace
+from copy import copy
 
 def genus_hash(a,b):
     r"""
@@ -504,10 +506,13 @@ class PlumbingGraph():
         graph.
         """
         # here we assume no loops, let's clarify what to do with loops.
+
         n = len(self.vertices)
         V = list(self.vertices)
         d = { V[i]:i for i in range(0,n) }
-        I = matrix(n,n)
+        
+        M = MatrixSpace(ZZ, n,n) 
+        I  = copy(M.zero_matrix())
         for i in range(0,n):
             I[i,i] += self.mb[V[i]]
         for e in self.edges:
