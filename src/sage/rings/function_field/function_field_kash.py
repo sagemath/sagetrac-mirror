@@ -219,11 +219,11 @@ class RationalFunctionField_kash(RationalFunctionField):
         self._field = constant_field[names[0]].fraction_field()
 
         if constant_field is QQbar:
-            self.extend_constant_field(QQ)
+            self._set_working_constant_field(QQ)
         else:
-            self.extend_constant_field(constant_field)
+            self._set_working_constant_field(constant_field)
 
-    def extend_constant_field(self, constant_field):
+    def _set_working_constant_field(self, constant_field):
 
         self.working_constant_field = constant_field
 
@@ -246,6 +246,34 @@ class RationalFunctionField_kash(RationalFunctionField):
         self.kash_constant_field.PolynomialAlgebra().AssignNames_(['"x"'])
 
         self._kash_ = self.kash_constant_field.RationalFunctionField()
+
+    def _extend_constant_field(self, D):
+        """
+        Extend the constant field to express `arg`.
+        (only for function fields over QQbar)
+
+        Currently, `arg` can only be a FunctionFieldDivisor.
+        """
+
+        # XXX - should also be able to factor polynomials in the extension function field C(x,y)
+
+        algebraics = []
+        if self.working_constant_field != QQ:
+            algebraics.append(self.working_constant_field.gen())
+
+        for pls in D.support():
+            for g in pls.prime_ideal().gens():
+                if g.parent() is self:
+                    for r,m in g.element().numerator().change_ring(QQbar).roots():
+                        algebraics.append(r)
+
+        (constant_field, new_algebraics, nftoQQbar) = number_field_elements_from_algebraics(algebraics)
+
+        # If we decided to expand our number field, then redo the divisor
+        # computation in a new function field
+
+        if constant_field != self.working_constant_field:
+            self._set_working_constant_field(constant_field)
 
     def kash(self):
         return self._kash_
@@ -365,26 +393,12 @@ def divisor_decorator(f):
         # QQbar case - compute a number field that can factor all of our support
         # polynomials in the base function field C(x).
 
-        # XXX - should also be able to factor polynomials in the extension function field C(x,y)
-
-        algebraics = []
-        if self.parent().base_field().working_constant_field != QQ:
-            algebraics.append(self.parent().base_field().working_constant_field.gen())
-
-        for pls in D.support():
-            for g in pls.prime_ideal().gens():
-                if g.parent() is self.parent().base_field():
-                    for r,m in g.element().numerator().change_ring(QQbar).roots():
-                        algebraics.append(r)
-
-        (nf, new_algebraics, nftoQQbar) = number_field_elements_from_algebraics(algebraics)
-
         # If we decided to expand our number field, then redo the divisor
         # computation in a new function field
 
-        if self.parent().base_field().working_constant_field != nf:
-            self.parent().base_field().extend_constant_field(nf)
-            D = getattr(super(FunctionFieldElement_polymod_kash, self), f.__name__)()
+        self.parent().base_field()._extend_constant_field(D)
+
+        D = getattr(super(FunctionFieldElement_polymod_kash, self), f.__name__)()
 
         return D
 
@@ -430,6 +444,20 @@ class FunctionFieldElement_polymod_kash(FunctionFieldElement_polymod):
     @divisor_decorator
     def divisor_of_poles(self):
         pass
+
+    def _divisor(self):
+        """
+        Return the divisor of the element, without extending the constant subfield.
+        """
+        return super(FunctionFieldElement_polymod_kash, self).divisor()
+
+    def _divisor_of_poles(self):
+        """
+        Return the divisor of poles of the element, without extending the constant
+        subfield.
+        """
+        return super(FunctionFieldElement_polymod_kash, self).divisor_of_poles()
+
 
 class FunctionField_polymod_kash(FunctionField_polymod):
     """
