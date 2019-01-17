@@ -7,109 +7,9 @@ This computes implicitely a finite atomic and coatomic lattices, where every int
 (Exactly 4 is known as the diamond property).
 In particular this module calculates quickly the f_vector of polytopes. The input must be a tuple of coatoms given each by a tuple of atoms. The atoms must be labeled 0,...,n.
 
-EXAMPLES:
 
-Initialization::
 
-    sage: P = polytopes.cube()
-    sage: CombinatorialPolyhedron(P)
-    The Combinatorial Type of a Polyhedron of dimension 3 with 8 vertices
-    
-    sage: points = [(1,0,0), (0,1,0), (0,0,1), (-1,0,0), (0,-1,0), (0,0,-1)]
-    sage: L = LatticePolytope(points)
-    sage: CombinatorialPolyhedron(L)
-    The Combinatorial Type of a Polyhedron of dimension 3 with 6 vertices
-
-You can also give the facets explicitely::
-
-    sage: CombinatorialPolyhedron(((1,2,3),(1,2,4),(1,3,4),(2,3,4)))
-    The Combinatorial Type of a Polyhedron of dimension 3 with 4 vertices
-
-Compute the dimension::
-
-    sage: C = CombinatorialPolyhedron(((1,2,3),(1,2,4),(1,3,4),(2,3,4)))
-    sage: C.dimension()
-    3
-
-Compute the f-vector::
-
-    sage: P = polytopes.permutahedron(7)
-    sage: C = CombinatorialPolyhedron(P)
-    sage: C.f_vector()
-    (1, 5040, 15120, 16800, 8400, 1806, 126, 1)
-    
-
-Retrieve the vertices::
-
-    sage: P = polytopes.cube()
-    sage: C = CombinatorialPolyhedron(P)
-    sage: C.vertices()
-    (A vertex at (-1, -1, -1),
-     A vertex at (-1, -1, 1),
-     A vertex at (-1, 1, -1),
-     A vertex at (-1, 1, 1),
-     A vertex at (1, -1, -1),
-     A vertex at (1, -1, 1),
-     A vertex at (1, 1, -1),
-     A vertex at (1, 1, 1))
-    
-    sage: points = [(1,0,0), (0,1,0), (0,0,1), (-1,0,0), (0,-1,0), (0,0,-1)]
-    sage: L = LatticePolytope(points)
-    sage: C = CombinatorialPolyhedron(L)
-    sage: C.vertices()
-    (M(1, 0, 0), M(0, 1, 0), M(0, 0, 1), M(-1, 0, 0), M(0, -1, 0), M(0, 0, -1))
-
-Get the edges::
-
-    sage: P = polytopes.cyclic_polytope(3,5)
-    sage: C = CombinatorialPolyhedron(P)
-    sage: C.edges()
-    ((A vertex at (0, 0, 0), A vertex at (4, 16, 64)),
-     (A vertex at (1, 1, 1), A vertex at (4, 16, 64)),
-     (A vertex at (2, 4, 8), A vertex at (4, 16, 64)),
-     (A vertex at (3, 9, 27), A vertex at (4, 16, 64)),
-     (A vertex at (0, 0, 0), A vertex at (3, 9, 27)),
-     (A vertex at (1, 1, 1), A vertex at (3, 9, 27)),
-     (A vertex at (0, 0, 0), A vertex at (2, 4, 8)),
-     (A vertex at (1, 1, 1), A vertex at (2, 4, 8)),
-     (A vertex at (0, 0, 0), A vertex at (1, 1, 1)))
-
-Get the ridges::
-
-    sage: P = polytopes.cyclic_polytope(3,5)
-    sage: C = CombinatorialPolyhedron(P)
-    sage: C.edges()
-    sage: C.ridges()
-    ((An inequality (12, -7, 1) x + 0 >= 0, An inequality (-4, 5, -1) x + 0 >= 0),
-     (An inequality (-14, 7, -1) x + 8 >= 0, An inequality (-4, 5, -1) x + 0 >= 0),
-     (An inequality (-26, 9, -1) x + 24 >= 0,
-      An inequality (-14, 7, -1) x + 8 >= 0),
-     (An inequality (12, -7, 1) x + 0 >= 0,
-      An inequality (-26, 9, -1) x + 24 >= 0),
-     (An inequality (6, -5, 1) x + 0 >= 0, An inequality (12, -7, 1) x + 0 >= 0),
-     (An inequality (6, -5, 1) x + 0 >= 0, An inequality (-26, 9, -1) x + 24 >= 0),
-     (An inequality (2, -3, 1) x + 0 >= 0, An inequality (6, -5, 1) x + 0 >= 0),
-     (An inequality (2, -3, 1) x + 0 >= 0, An inequality (-14, 7, -1) x + 8 >= 0),
-     (An inequality (2, -3, 1) x + 0 >= 0, An inequality (-4, 5, -1) x + 0 >= 0))
-
-Compute the edge graph::
-
-    sage: P = polytopes.buckyball()
-    sage: C = CombinatorialPolyhedron(P)
-    sage: G = C.edge_graph()
-    sage: G
-    Graph on 60 vertices
-    sage: G.diameter()
-    9
-
-Compute the ridge graph::
-
-    sage: P = polytopes.permutahedron(7)
-    sage: C = CombinatorialPolyhedron(P)
-    sage: C.ridge_graph()
-    Graph on 126 vertices
-
-Get the k-faces::
+Get the k-faces:
 
     sage: P = polytopes.simplex()
     sage: C = CombinatorialPolyhedron(P)
@@ -121,15 +21,28 @@ Get the k-faces::
      (A vertex at (0, 0, 0, 1), A vertex at (1, 0, 0, 0)),
      (A vertex at (0, 0, 0, 1), A vertex at (0, 0, 1, 0)))
     sage: C.faces(1,facet_repr=True)
-    ((An equation (1, 1, 1, 1) x - 1 == 0, 0, 3),
-     (An equation (1, 1, 1, 1) x - 1 == 0, 1, 3),
-     (An equation (1, 1, 1, 1) x - 1 == 0, 2, 3),
-     (An equation (1, 1, 1, 1) x - 1 == 0, 0, 2),
-     (An equation (1, 1, 1, 1) x - 1 == 0, 1, 2),
-     (An equation (1, 1, 1, 1) x - 1 == 0, 0, 1))
+    ((An equation (1, 1, 1, 1) x - 1 == 0,
+      An inequality (0, -1, -1, -1) x + 1 >= 0,
+      An inequality (0, 0, 0, 1) x + 0 >= 0),
+     (An equation (1, 1, 1, 1) x - 1 == 0,
+      An inequality (0, 1, 0, 0) x + 0 >= 0,
+      An inequality (0, 0, 0, 1) x + 0 >= 0),
+     (An equation (1, 1, 1, 1) x - 1 == 0,
+      An inequality (0, 0, 1, 0) x + 0 >= 0,
+      An inequality (0, 0, 0, 1) x + 0 >= 0),
+     (An equation (1, 1, 1, 1) x - 1 == 0,
+      An inequality (0, -1, -1, -1) x + 1 >= 0,
+      An inequality (0, 0, 1, 0) x + 0 >= 0),
+     (An equation (1, 1, 1, 1) x - 1 == 0,
+      An inequality (0, 1, 0, 0) x + 0 >= 0,
+      An inequality (0, 0, 1, 0) x + 0 >= 0),
+     (An equation (1, 1, 1, 1) x - 1 == 0,
+      An inequality (0, -1, -1, -1) x + 1 >= 0,
+      An inequality (0, 1, 0, 0) x + 0 >= 0))
+
 
 Get the incidences between j-faces and k-faces,
-this is given according to the enumaration of faces(j) and faces(k)::
+this is given according to the enumaration of faces(j) and faces(k):
 
     sage: j = 2
     sage: k = 3
@@ -139,30 +52,24 @@ this is given according to the enumaration of faces(j) and faces(k)::
     sage: C.incidences(j,k)
     ((0, 0), (1, 0), (2, 0), (3, 0))
 
-Get the face lattice as Finite Poset::
+Get the face lattice as Finite Poset:
 
     sage: P = polytopes.permutahedron(7)
     sage: C = CombinatorialPolyhedron(P)
     sage: C.face_lattice()
     Finite lattice containing 47294 elements
 
-One can simplify the labels of the vertices in the face lattice::
+One can simplify the labels of the vertices in the face lattice:
 
     sage: P = polytopes.permutahedron(6)
-    sage: %time CombinatorialPolyhedron(P).face_lattice(vertices=False,facets=False)
-    CPU times: user 400 ms, sys: 20 ms, total: 420 ms
-    Wall time: 380 ms
+    sage: CombinatorialPolyhedron(P).face_lattice(vertices=False,facets=False) #takes around 400ms
     Finite lattice containing 4684 elements
-    sage: %time CombinatorialPolyhedron(P).face_lattice(vertices=True,facets=True)
-    CPU times: user 2.48 s, sys: 60 ms, total: 2.54 s
-    Wall time: 2.4 s
+    sage: CombinatorialPolyhedron(P).face_lattice(vertices=True,facets=True) #takes around 2.48s
     Finite lattice containing 4684 elements
-    sage: %time CombinatorialPolyhedron(P).face_lattice(vertices=True,facets=False) #default
-    CPU times: user 1.87 s, sys: 48 ms, total: 1.92 s
-    Wall time: 1.76 s
+    sage: CombinatorialPolyhedron(P).face_lattice(vertices=True,facets=False) #default, takes about 1.87 seconds
     Finite lattice containing 4684 elements
 
-Calculate the entries of the flag-vector::
+Calculate the entries of the flag-vector:
 
     sage: P = polytopes.permutahedron(7)
     sage: C = CombinatorialPolyhedron(P)
@@ -212,72 +119,73 @@ cdef class CombinatorialPolyhedron:
     The class of the Combinatorial Type of a Polyehdron, a Polytope.
 
     INPUT:
-    
+
     - a ``Polyhedron``, i.e. an instance of
     :class:`~sage.geometry.polyhedron.parent.Polyhedra_base`.
-    
+
     or
-    
+
     - a ``LatticePolytope``, i.e. an instance of
     :class:`~sage.geometry.lattice_polytope.LatticePolytopeClass`.
-    
+
     or
-    
+
     - an incidence_matrix as in Polyhedron.incidence_matrix()
-    
-    - a list of vertices/Vrep, if the rows in the incidence_matrix should correspond to names
-    
+
+    - a list of vertices/rays/lines, if the rows in the incidence_matrix should correspond to names
+
     - a list of facets/Hrep, if the columns in the incidence_matrix should correspond to names
-    
-    - unbounded needs to be set to True, if the Polyhedron is unbounded
-    
-    or
-    
-    - a list of facets -- each facet given as a list of vertices/elements in Vrep
-    the input should correspond to the same rules as the incidence_matrix
-    
-    - a list of facets/Hrep, if the facets given should correspond to names
-    
+
     - unbounded needs to be set to True, if the Polyhedron is unbounded
 
-    
-    
+    or
+
+    - data is list of facets -- each facet given as a list of vertices/rays/lines in Vrep
+    the input should correspond to the same rules as the incidence_matrix
+
+    - a list of names of the facets, if the facets given should correspond to names
+
+    - unbounded needs to be set to True, if the Polyhedron is unbounded
+
+
+
     EXAMPLES:
 
     Input is Polyhedron::
-    
+
         sage: P = polytopes.cube()
         sage: CombinatorialPolyhedron(P)
         The Combinatorial Type of a Polyhedron of dimension 3 with 8 vertices
-    
+
     Input is a LatticePolytope::
-        
+
         sage: points = [(1,0,0), (0,1,0), (0,0,1), (-1,0,0), (0,-1,0), (0,0,-1)]
         sage: L = LatticePolytope(points)
         sage: CombinatorialPolyhedron(L)
         The Combinatorial Type of a Polyhedron of dimension 3 with 6 vertices
-        
+
     Input is an incidence matrix::
-    
+
         sage: data = Polyhedron(rays=[[0,1]]).incidence_matrix()
         sage: CombinatorialPolyhedron(data, unbounded=True)
-        The Combinatorial Type of a Polyhedron of dimension 1 with 1 vertices
-        sage: C = CombinatorialPolyhedron(data, vertices=['myvertex'], facets=['myface'], unbounded=True)
-        sage: C.vertices()
+        The Combinatorial Type of a half space of dimension 1
+        sage: C = CombinatorialPolyhedron(data, vertices=['myvertex'], facets=['myfacet'], unbounded=True)
+        sage: C.Vrepresentation()
         ('myvertex',)
+        sage: C.Hrepresentation()
+        ('myfacet',)
 
-    
+
     You can also give the facets explicitely::
-    
+
         sage: CombinatorialPolyhedron(((1,2,3),(1,2,4),(1,3,4),(2,3,4)))
         The Combinatorial Type of a Polyhedron of dimension 3 with 4 vertices
-    
-    EXAMPLE::
-    
-        sage: P = polytopes.permutahedron(7)
-        sage: C = sage.geometry.combinatorial_polytope.base.CombinatorialPolyhedron(incidence_matrix=P.incidence_matrix())
-        sage: C.f_vector()
-        (1, 5040, 15120, 16800, 8400, 1806, 126, 1)
+        sage: C = CombinatorialPolyhedron(((1,2,3),(1,2,4),(1,3,4),(2,3,4)), facets=['facet0', 'facet1', 'facet2', 'myfacet3'])
+        sage: C.Vrepresentation()
+        (1, 2, 3, 4)
+        sage: C.Hrepresentation()
+        ('facet0', 'facet1', 'facet2', 'myfacet3')
+
     """
     cdef CombinatorialPolyhedron_ptr _C
     cdef tuple _V
@@ -416,7 +324,7 @@ cdef class CombinatorialPolyhedron:
                 PyMem_Free(facets_pointer[i])
             PyMem_Free(facets_pointer)
             PyMem_Free(len_facets)
-            
+
     def __dealloc__(self):
         r"""
         This function deallocates all the memomory used by the underlying C++-class
@@ -424,7 +332,7 @@ cdef class CombinatorialPolyhedron:
         if self.is_trivial > 0:
             return
         delete_CombinatorialPolyhedron(self._C)
-    
+
     def __repr__(self):
         if self.is_trivial == 1:
             if self._dimension == 0:
@@ -435,35 +343,167 @@ cdef class CombinatorialPolyhedron:
         if self.is_trivial == 2:
             return "The Combinatorial Type of a half space of dimension %s"%self._dimension
         return "The Combinatorial Type of a Polyhedron of dimension %s with %s vertices"%(self.dimension(),len(self.vertices()))
-    
-    def vertices(self):
-        if self.is_trivial == 1:
-            if self._dimension == 0:
-                if self._V is not None:
-                    return (self._V[-1],)
-                else:
-                    return (Integer(0),)
-            return ()
-        if self.is_trivial == 2:
-            if self._dimension == 1:
-                if self._V is not None:
-                    return (self._V[-1],)
-                else:
-                    return (Integer(0),)
+
+    def Vrepresentation(self):
+        r"""
+        Return a list of names of vertices/rays/lines of the CombinatorialPolyhedron.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(rays=[[1,0,0],[0,1,0],[0,0,1],[0,0,-1]])
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.Vrepresentation()
+            (A line in the direction (0, 0, 1),
+             A ray in the direction (1, 0, 0),
+             A vertex at (0, 0, 0),
+             A ray in the direction (0, 1, 0))
+
+        """
         if self._V is not None:
             return self._V
         else:
-            return tuple(i[0] for i in self.faces(0))
-    
-    def edges(self):
+            return tuple(Integer(i) for i in range(self._length_Vrep))
+
+    def Hrepresentation(self):
         r"""
-        Calculates the edges of the CombinatorialPolyhedron, i.e. the rank 2 faces.
-        
+        Returns a list of names of facets of the CombinatorialPolyhedron.
+
+        EXAMPLES::
+
+            sage: P = polytopes.permutahedron(3)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.Hrepresentation()
+            (An equation (1, 1, 1) x - 6 == 0,
+             An inequality (0, -1, -1) x + 5 >= 0,
+             An inequality (0, 0, -1) x + 3 >= 0,
+             An inequality (0, -1, 0) x + 3 >= 0,
+             An inequality (0, 1, 0) x - 1 >= 0,
+             An inequality (0, 1, 1) x - 3 >= 0,
+             An inequality (0, 0, 1) x - 1 >= 0)
+
+        """
+        if self._H is not None:
+            return self._equalities + self._H
+        else:
+            return tuple(Integer(i) for i in range(self._length_Hrep))
+
+    def vertices(self, names=True):
+        r"""
+        Returns the elements in the Vrepresentation that are actual vertices.
+
+        If names is set to False, then the vertices are given by their indices in the Vrepresentation.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(rays=[[1,0,0],[0,1,0],[0,0,1]])
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.vertices()
+            (A vertex at (0, 0, 0),)
+            sage: C.Vrepresentation()
+            (A vertex at (0, 0, 0),
+             A ray in the direction (0, 0, 1),
+             A ray in the direction (0, 1, 0),
+             A ray in the direction (1, 0, 0))
+            sage: P = polytopes.cross_polytope(3)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.vertices()
+            (A vertex at (-1, 0, 0),
+             A vertex at (0, -1, 0),
+             A vertex at (0, 0, -1),
+             A vertex at (0, 0, 1),
+             A vertex at (0, 1, 0),
+             A vertex at (1, 0, 0))
+            sage: C.vertices(names=False)
+            (0, 1, 2, 3, 4, 5)
+
+            sage: points = [(1,0,0), (0,1,0), (0,0,1), (-1,0,0), (0,-1,0), (0,0,-1)]
+            sage: L = LatticePolytope(points)
+            sage: C = CombinatorialPolyhedron(L)
+            sage: C.vertices()
+            (M(1, 0, 0), M(0, 1, 0), M(0, 0, 1), M(-1, 0, 0), M(0, -1, 0), M(0, 0, -1))
+            sage: C.vertices(names=False)
+            (0, 1, 2, 3, 4, 5)
+
+        """
+
+        return tuple(i[0] for i in self.faces(0, names=names))
+
+    def facets(self, names=True):
+        r"""
+        Returns the facets as lists of vertices/rays/lines.
+
+        If names is set to False, then the vertices in the facets are given by their indices in the Vrepresentation.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.facets()
+            ((A vertex at (-1, -1, 1),
+              A vertex at (-1, 1, 1),
+              A vertex at (1, -1, 1),
+              A vertex at (1, 1, 1)),
+             (A vertex at (-1, 1, -1),
+              A vertex at (-1, 1, 1),
+              A vertex at (1, 1, -1),
+              A vertex at (1, 1, 1)),
+             (A vertex at (1, -1, -1),
+              A vertex at (1, -1, 1),
+              A vertex at (1, 1, -1),
+              A vertex at (1, 1, 1)),
+             (A vertex at (-1, -1, -1),
+              A vertex at (-1, -1, 1),
+              A vertex at (-1, 1, -1),
+              A vertex at (-1, 1, 1)),
+             (A vertex at (-1, -1, -1),
+              A vertex at (-1, 1, -1),
+              A vertex at (1, -1, -1),
+              A vertex at (1, 1, -1)),
+             (A vertex at (-1, -1, -1),
+              A vertex at (-1, -1, 1),
+              A vertex at (1, -1, -1),
+              A vertex at (1, -1, 1)))
+            sage: C.facets(names=False)
+            ((1, 3, 5, 7),
+             (2, 3, 6, 7),
+             (4, 5, 6, 7),
+             (0, 1, 2, 3),
+             (0, 2, 4, 6),
+             (0, 1, 4, 5))
+
+
+        """
+        return self.faces(self.dimension()-1, names=names)
+
+    def edges(self, names=True):
+        r"""
+        Returns the edges of the CombinatorialPolyhedron, i.e. the rank 2 faces, which contain 2 vertices.
+
+        If names is set to False, then the vertices in the edges are given by their indices in the Vrepresentation.
+
         NOTE: If you want to compute edges and f_vector it is recommended to compute edges first.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cyclic_polytope(3,5)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.edges()
+            ((A vertex at (0, 0, 0), A vertex at (4, 16, 64)),
+             (A vertex at (1, 1, 1), A vertex at (4, 16, 64)),
+             (A vertex at (2, 4, 8), A vertex at (4, 16, 64)),
+             (A vertex at (3, 9, 27), A vertex at (4, 16, 64)),
+             (A vertex at (0, 0, 0), A vertex at (3, 9, 27)),
+             (A vertex at (1, 1, 1), A vertex at (3, 9, 27)),
+             (A vertex at (0, 0, 0), A vertex at (2, 4, 8)),
+             (A vertex at (1, 1, 1), A vertex at (2, 4, 8)),
+             (A vertex at (0, 0, 0), A vertex at (1, 1, 1)))
+            sage: C.edges(names=False)
+            ((0, 4), (1, 4), (2, 4), (3, 4), (0, 3), (1, 3), (0, 2), (1, 2), (0, 1))
+
         """
         if self.is_trivial > 0:
             return ()
-        cdef unsigned int ** edgepointer = edges(self._C) 
+        cdef unsigned int ** edgepointer = edges(self._C)
         cdef unsigned long maxnumberedges = get_maxnumberedges()
         #the edges are being saved in a list basically with the first entry the first vertex of the first edges, the second entry the second vertex of that edge
         #as there might be many edges they are saved in an array of arrays, with each array containing maxnumberedges of edges
@@ -472,35 +512,116 @@ cdef class CombinatorialPolyhedron:
         cdef unsigned long nr_edges = self.f_vector()[2]
         if nr_edges > maxnumberedges*maxnumberedges:
             raise ValueError("Cannot calculate %s edges"%nr_edges)
-        if self._V is not None:
+        if self._V is not None and names==True:
             f = lambda i : self._V[i]
         else:
             f = lambda i : Integer(i)
         vertex_one = lambda i : f(edgepointer[i / maxnumberedges][2*(i % maxnumberedges)])
         vertex_two = lambda i : f(edgepointer[i / maxnumberedges][2*(i % maxnumberedges)+1])
         return tuple((vertex_one(i), vertex_two(i)) for i in range(nr_edges))
-        
-    def edge_graph(self):
-        return Graph(self.edges(),format="list_of_edges")
-        
+
+    def edge_graph(self,names=True):
+        r"""
+        Returns the edge graph, i.e. the graph of the edges of the CombinatorialPolyhedron with the edges as vertices.
+
+        If names is set to false, the vertices will carry names according to the indexing of the Vrepresentation.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cyclic_polytope(3,5)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.edge_graph()
+            Graph on 5 vertices
+            sage: G = C.edge_graph()
+            sage: G.degree()
+            [3, 4, 4, 3, 4]
+
+        """
+
+        return Graph(self.edges(names=names),format="list_of_edges")
+
     def dimension(self):
+        r"""
+        Returns the dimension of the CombinatorialPolyhedron.
+
+        EXAMPLES::
+
+            sage: C = CombinatorialPolyhedron(((1,2,3),(1,2,4),(1,3,4),(2,3,4)))
+            sage: C.dimension()
+            3
+
+            sage: P = Polyhedron(rays=[[1,0,0],[0,1,0],[0,0,1],[0,0,-1]])
+            sage: CombinatorialPolyhedron(P).dimension()
+            3
+
+
+        """
         if self.is_trivial > 0:
             return Integer(self._dimension)
         return Integer(dimension(self._C))
-        
-    def ridges(self, add_equalities=False):
+
+    def ridges(self, add_equalities=False, names=True):
         r"""
-        Calculates the ridges of the CombinatorialPolyhedron, i.e. the rank 2 faces. Those are given as tuples of facets.
-        
-        E.g. a ridge (1,2) corresponds to the meet of facet[1] and facet[2].
-        
+        Returns the ridges of the CombinatorialPolyhedron, i.e. the faces contained in exactly two facets.
+
+        The ridges will be given by the two facets, they are contained in.
+        If add_equalities is checked, then equalities the entire Polyhedron satisfies, are added.
+
+        If names is set to False, then the facets in the riddges are given by their indices in the Hrepresentation.
+
         NOTE: If you want to compute ridges and f_vector it is recommended to compute ridges first.
+
+        EXAMPLES::
+
+            sage: P = polytopes.permutahedron(2)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.ridges()
+            ((An inequality (0, -1) x + 2 >= 0, An inequality (0, 1) x - 1 >= 0),)
+            sage: C.ridges(add_equalities=True)
+            (((An equation (1, 1) x - 3 == 0, An inequality (0, -1) x + 2 >= 0),
+              (An equation (1, 1) x - 3 == 0, An inequality (0, 1) x - 1 >= 0)),)
+            sage: P = polytopes.cyclic_polytope(4,5)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.ridges()
+            ((An inequality (-6, 11, -6, 1) x + 0 >= 0,
+              An inequality (-50, 35, -10, 1) x + 24 >= 0),
+             (An inequality (8, -14, 7, -1) x + 0 >= 0,
+              An inequality (-50, 35, -10, 1) x + 24 >= 0),
+             (An inequality (-12, 19, -8, 1) x + 0 >= 0,
+              An inequality (-50, 35, -10, 1) x + 24 >= 0),
+             (An inequality (24, -26, 9, -1) x + 0 >= 0,
+              An inequality (-50, 35, -10, 1) x + 24 >= 0),
+             (An inequality (-6, 11, -6, 1) x + 0 >= 0,
+              An inequality (24, -26, 9, -1) x + 0 >= 0),
+             (An inequality (8, -14, 7, -1) x + 0 >= 0,
+              An inequality (24, -26, 9, -1) x + 0 >= 0),
+             (An inequality (-12, 19, -8, 1) x + 0 >= 0,
+              An inequality (24, -26, 9, -1) x + 0 >= 0),
+             (An inequality (-6, 11, -6, 1) x + 0 >= 0,
+              An inequality (-12, 19, -8, 1) x + 0 >= 0),
+             (An inequality (8, -14, 7, -1) x + 0 >= 0,
+              An inequality (-12, 19, -8, 1) x + 0 >= 0),
+             (An inequality (-6, 11, -6, 1) x + 0 >= 0,
+              An inequality (8, -14, 7, -1) x + 0 >= 0))
+            sage: C.ridges(names=False)
+            ((0, 4),
+             (1, 4),
+             (2, 4),
+             (3, 4),
+             (0, 3),
+             (1, 3),
+             (2, 3),
+             (0, 2),
+             (1, 2),
+             (0, 1))
+
         """
+
         if self.is_trivial > 1:
             return ()
         if self.f_vector()[-2] <= 1:
             return ()#in some instances there are no ridges as intersections of facets, i.e. if we treat a ray, or a halfspace
-        cdef unsigned int ** ridgepointer = ridges(self._C) 
+        cdef unsigned int ** ridgepointer = ridges(self._C)
         cdef unsigned long maxnumberedges = get_maxnumberedges()
         #the ridges are being saved in a list basically, with the first entry the first facet of the first ridge, the second entry the second facet of that ridges
         #as there might be many ridges they are saved in an array of arrays, with each array containing maxnumberedges of ridges
@@ -509,7 +630,7 @@ cdef class CombinatorialPolyhedron:
         cdef unsigned long nr_ridges = self.f_vector()[-3]
         if nr_ridges > maxnumberedges*maxnumberedges:
             raise ValueError("Cannot calculate %s ridges"%nr_ridges)
-        if self._H is not None:
+        if self._H is not None and names==True:
             f = lambda i : self._H[i]
         else:
             f = lambda i : Integer(i)
@@ -519,15 +640,42 @@ cdef class CombinatorialPolyhedron:
             return tuple(((self._equalities + (facet_one(i),)),(self._equalities + (facet_two(i),))) for i in range(nr_ridges))
         else:
             return tuple((facet_one(i),facet_two(i)) for i in range(nr_ridges))
-        
-    def ridge_graph(self):
-        return Graph(self.ridges(),format="list_of_edges")
-        
+
+    def ridge_graph(self, names=True):
+        r"""
+        Returns the ridge graph of the CombinatorialPolyhedron consisting of ridges as edges and facets as vertices.
+
+        If names is set to wrong, the vertices will be the incidences of the facetes in the Hrepresentation.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cyclic_polytope(4,6)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.ridge_graph()
+            Graph on 9 vertices
+
+        """
+        return Graph(self.ridges(names=names),format="list_of_edges")
+
     def f_vector(self):
         r"""
         Calculates the f_vector of the CombinatorialPolyhedron, i.e. the vector containing the nr of faces of each rank.
-        
-        NOTE: If you also want to compute edges or ridges, it is recommended to do that first.
+
+        NOTE: If you also want to compute edges and/or ridges, it is recommended to do that first.
+
+        EXAMPLES::
+
+            sage: P = polytopes.permutahedron(7)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.f_vector()
+            (1, 5040, 15120, 16800, 8400, 1806, 126, 1)
+
+            sage: P = polytopes.cyclic_polytope(6,40)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.f_vector()
+            (1, 40, 780, 9880, 25940, 25200, 8400, 1)
+
+
         """
         if self.is_trivial == 1:
             if self._dimension == -1:
@@ -538,22 +686,22 @@ cdef class CombinatorialPolyhedron:
         cdef array.array vector = array.array('L', [0 for _ in range(self.dimension()+2)])
         f_vector(self._C, vector.data.as_ulongs)
         return tuple(Integer(i) for i in vector)
-        
+
     def _record_all_faces(self):
-        if self.is_trivial >= 1:
-            return 
         r"""
-        Records all faces of the Polyhedron, such that you can quickly get them with self.faces(dimension)
+        Records all faces of the Polyhedron, such that they can quickly accessed later.
         """
+        if self.is_trivial >= 1:
+            return
         record_all_faces(self._C)
-        
-    def faces(self, dimension, facet_repr=False):
+
+    def faces(self, dimension, facet_repr=False, names=True):
         r"""
         Gets all k-faces for specified dimenion k.
 
         By default faces are given as tuple of vertices, but one may also choose tuple of facets instead.
         """
-        
+
         if self.is_trivial == 1:
             if dimension == -1:
                 return ((),)
@@ -599,17 +747,17 @@ cdef class CombinatorialPolyhedron:
             faces_to_return[i] = <unsigned int*> PyMem_Malloc(size_of_face * sizeof(unsigned int))
         cdef unsigned int *length_of_faces = <unsigned int*> PyMem_Malloc(number_of_faces * sizeof(unsigned int))
         addtuple = ()
-        
+
         if (facet_repr):
             facet_repr = 1
-            if self._H is not None:
+            if self._H is not None and names == True:
                 f = lambda i : self._H[i]
             else:
                 f = lambda i : Integer(i)
             addtuple = self._equalities
         else:
             facet_repr = 0
-            if self._V is not None:
+            if self._V is not None and names == True:
                 f = lambda i : self._V[i]
             else:
                 f = lambda i : Integer(i)
@@ -620,7 +768,7 @@ cdef class CombinatorialPolyhedron:
         PyMem_Free(faces_to_return)
         PyMem_Free(length_of_faces)
         return returntuple
-        
+
     def incidences(self,dimension_one,dimension_two):
         r"""
         Gets a tuple of all incidens between faces of dimension dimension_one and dimension_two.
@@ -650,7 +798,7 @@ cdef class CombinatorialPolyhedron:
             incidence_two = lambda i : Integer(incidencepointer[i / maxnumberincidences][2*(i % maxnumberincidences)])
             incidence_one = lambda i : Integer(incidencepointer[i / maxnumberincidences][2*(i % maxnumberincidences)+1])
         return tuple((incidence_one(i), incidence_two(i)) for i in range(nr_incidences[0]))
-    
+
     def face_lattice(self,vertices=True,facets=False):
         r"""
         Generates the face-lattice.
@@ -680,7 +828,7 @@ cdef class CombinatorialPolyhedron:
         all_faces = tuple(i for k in range(-1,dimension+1) for i in dic[k])
         if vertices and facets:
             f = lambda i : all_faces[i]
-        elif vertices:  
+        elif vertices:
             f = lambda i : all_faces[i][0]
         elif facets:
             f = lambda i : all_faces[i][1]
@@ -690,15 +838,15 @@ cdef class CombinatorialPolyhedron:
         D = DiGraph([V, edges], format='vertices_and_edges')
         D.relabel(f)
         return FiniteLatticePoset(D);
-        
+
     def flag(self,*flag):
         r"""
         Return counts the elements in that entry of the flag vector.
-        
+
         flag(i) is equivalent to f_vector(i)
-        
+
         flag(i_1,...,i_n) will count the number of tuples (face_1,...,face_n), where face_j is and i_j face and face_1 \subset face_2 ...
-        
+
         The implementation sorts the i_1,...i_n.
         """
         for number in flag:
