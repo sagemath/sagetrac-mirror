@@ -547,7 +547,7 @@ REFERENCES:
              functions*.
              :arxiv:`0907.4652v2`.
              
-.. [BPP2017] J. Fdez de Bobadilla, M. Pe Pereira, P. Portilla. *Representation of
+.. [BPP2017] \J. Fdez de Bobadilla, M. Pe Pereira, P. Portilla. *Representation of
              surface homeomorphisms by tete-a-tete graphs*. 
              :arxiv:`1706.05580`
              

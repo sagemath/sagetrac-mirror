@@ -61,9 +61,6 @@ Toric geometry
    sage/rings/polynomial/groebner_fan
 
 
-Hyperbolic Geometry
--------------------
-
 Base classes for polyhedra
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
