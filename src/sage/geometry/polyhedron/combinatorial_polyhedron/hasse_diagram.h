@@ -141,17 +141,10 @@ class CombinatorialPolyhedron {
         
         
         //conversions
-        inline PyObject* tuple_from_char(chunktype *array1, unsigned int facet_repr);
         inline void bitrep_to_list(chunktype *array1, unsigned int *face_to_return, unsigned int *length_of_faces, unsigned int facet_repr);
         inline void bitrep_to_list(chunktype **array1, unsigned int len, unsigned int **faces_to_return, unsigned int *length_of_faces, unsigned int facet_repr);
         void char_from_incidence_list(unsigned int *incidence_list, unsigned int nr_vertices_given, chunktype *array1, unsigned int facet_repr);
         void char_from_array(unsigned int* input, unsigned int len, chunktype *array1, unsigned int facet_repr);
-        inline PyObject* tuple_from_f_vector();
-        inline PyObject* tuple_from_edges();
-        inline PyObject* tuple_from_ridges();
-        inline PyObject* tuple_from_incidences(unsigned int twisted);
-        inline PyObject* n_trivial_tuples(unsigned int nr_elements); //Builds a tuple of the form ((1,), (2,), (3,), ... , (nr_elements,))
-        inline PyObject* one_trivial_tuple(unsigned int nr_elements); //Builds a tuple of the form ((1, 2, 3, ... , nr_elements),)
         
         //allocation and deallocation
         void allocate_facets();

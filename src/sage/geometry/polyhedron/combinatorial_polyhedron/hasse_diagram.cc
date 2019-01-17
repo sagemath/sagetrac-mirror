@@ -3,7 +3,10 @@
 #include <Python.h>
 #include <math.h>
 #include "hasse_diagram.h"
-
+#include <cstdlib> //for aligned_alloc in C++17
+#include <cstdio>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 static uint64_t vertex_to_bit_dictionary[64];
@@ -529,7 +532,7 @@ inline unsigned int CombinatorialPolyhedron::get_next_level(chunktype **faces, u
     }
     //we have create all possible intersection with the i_th-face, but some of them might not be of exactly one dimension less
     const unsigned int constlenfaces = lenfaces;
-    int addfacearray[lenfaces] = { };
+    int addfacearray[constlenfaces] = { };
     for (j = 0; j< lenfaces-1; j++){
     addfacearray[j] = 1;
             for(k = 0; k < j; k++){
@@ -937,37 +940,6 @@ void CombinatorialPolyhedron::get_facets_or_vertices_from_incidence_matrix(unsig
 
 //conversions ----------------------------------------------------
 
-inline PyObject* CombinatorialPolyhedron::tuple_from_char(chunktype *array1, unsigned int facet_repr){
-    unsigned int i,j;
-    unsigned int face_length = length_of_face;
-    if (facet_repr){
-        face_length = length_of_face_in_facet_repr;
-    }
-    unsigned int len;
-    if (!facet_repr)
-        len = CountFaceBits(array1);
-    else
-        len = CountFaceBits_facet_repr(array1);
-    unsigned int counter = 0;
-    PyObject* py_tuple = PyTuple_New(len);
-    const unsigned int size_array = face_length*chunksize/64;
-    uint64_t *array = new uint64_t [size_array]();
-    for (i = 0; i < face_length;i++){
-        store_register(array[i*chunksize/64],array1[i]);
-    }
-    for (i = 0; i < size_array;i++){
-        for (j = 0; j < 64; j++){
-            if (array[i] >= vertex_to_bit_dictionary[j]){
-                PyTuple_SET_ITEM(py_tuple,counter,PyLong_FromUnsignedLong(i*64+j));
-                counter++;
-                array[i] -= vertex_to_bit_dictionary[j];
-            }
-        }
-    }
-    delete(array);
-    return py_tuple;
-}
-
 inline void CombinatorialPolyhedron::bitrep_to_list(chunktype *array1, unsigned int *face_to_return, unsigned int *length_of_faces, unsigned int facet_repr){
     unsigned int i,j;
     unsigned int face_length = length_of_face;
@@ -1049,103 +1021,7 @@ void CombinatorialPolyhedron::char_from_array(unsigned int* input, unsigned int 
     delete(array);
 }
 
-inline PyObject* CombinatorialPolyhedron::tuple_from_f_vector(){
-    PyObject *py_tuple;
-    unsigned int i;
-    py_tuple = PyTuple_New(dimension + 2);
-    if (polar){
-        for(i=0;i< dimension + 2;i++){
-            PyTuple_SET_ITEM(py_tuple,dimension + 1 - i,PyLong_FromUnsignedLong(f_vector[i]));
-        }
-        return py_tuple;
-    }
-    for(i=0;i< dimension + 2;i++){
-        PyTuple_SET_ITEM(py_tuple,i,PyLong_FromUnsignedLong(f_vector[i]));
-    }
-    return py_tuple;
-}
 
-inline PyObject* CombinatorialPolyhedron::tuple_from_edges(){
-    PyObject *py_tuple;
-    py_tuple = PyTuple_New(nr_edges);
-    unsigned long i;
-    unsigned int position_one, position_two;
-    for (i=0;i < nr_edges;i++){
-        position_one = i / maxnumberedges;
-        position_two = 2*(i % maxnumberedges);
-        PyObject *py_edge = PyTuple_New(2);
-        PyTuple_SET_ITEM(py_edge,0,Py_BuildValue("i",edges[position_one][position_two]));
-        PyTuple_SET_ITEM(py_edge,1,Py_BuildValue("i",edges[position_one][position_two+1]));
-        PyTuple_SET_ITEM(py_tuple,i,py_edge);
-    }
-    return py_tuple;
-}
-
-inline PyObject* CombinatorialPolyhedron::tuple_from_ridges(){
-    PyObject *py_tuple;
-    py_tuple = PyTuple_New(nr_ridges);
-    unsigned long i;
-    unsigned int position_one, position_two;
-    for (i=0;i < nr_ridges;i++){
-        position_one = i / maxnumberedges;
-        position_two = 2*(i % maxnumberedges);
-        PyObject *py_ridge = PyTuple_New(2);
-        PyTuple_SET_ITEM(py_ridge,0,Py_BuildValue("i",ridges[position_one][position_two]));
-        PyTuple_SET_ITEM(py_ridge,1,Py_BuildValue("i",ridges[position_one][position_two+1]));
-        PyTuple_SET_ITEM(py_tuple,i,py_ridge);
-    }
-    return py_tuple;
-}
-
-inline PyObject* CombinatorialPolyhedron::tuple_from_incidences(unsigned int twisted){
-    PyObject *py_tuple;
-    py_tuple = PyTuple_New(nr_incidences);
-    unsigned int i;
-    unsigned long position_one, position_two;
-    if (!twisted){
-        for (i=0;i < nr_incidences;i++){
-            position_one = i / maxnumberincidences;
-            position_two = 2*(i % maxnumberincidences);
-            PyObject *py_ridge = PyTuple_New(2);
-            PyTuple_SET_ITEM(py_ridge,0,Py_BuildValue("l",incidences[position_one][position_two]));
-            PyTuple_SET_ITEM(py_ridge,1,Py_BuildValue("l",incidences[position_one][position_two+1]));
-            PyTuple_SET_ITEM(py_tuple,i,py_ridge);
-        }
-    }
-    else {
-        for (i=0;i < nr_incidences;i++){
-            position_one = i / maxnumberincidences;
-            position_two = 2*(i % maxnumberincidences);
-            PyObject *py_ridge = PyTuple_New(2);
-            PyTuple_SET_ITEM(py_ridge,0,Py_BuildValue("l",incidences[position_one][position_two+1]));//here is a tiny difference
-            PyTuple_SET_ITEM(py_ridge,1,Py_BuildValue("l",incidences[position_one][position_two]));//here is a tiny difference
-            PyTuple_SET_ITEM(py_tuple,i,py_ridge);
-        }
-    }
-    return py_tuple;
-}
-
-//Builds a tuple of the form ((1,), (2,), (3,), ... , (nr_elements,))
-inline PyObject* CombinatorialPolyhedron::n_trivial_tuples(unsigned int nr_elements){
-    PyObject *py_tuple = PyTuple_New(nr_elements);
-    for (unsigned int i = 0; i < nr_elements; i++){
-        PyObject *py_tuple2 = PyTuple_New(1);
-        PyTuple_SET_ITEM(py_tuple2,0,Py_BuildValue("i",i));
-        PyTuple_SET_ITEM(py_tuple,i,py_tuple2);
-    }
-    return py_tuple;
-}
-
-//Builds a tuple of the form ((1, 2, 3, ... , nr_elements),)
-inline PyObject* CombinatorialPolyhedron::one_trivial_tuple(unsigned int nr_elements){
-    PyObject *py_tuple = PyTuple_New(1);
-    PyObject *py_tuple2 = PyTuple_New(nr_elements);
-    for (unsigned int i = 0; i < nr_elements; i++){
-        PyTuple_SET_ITEM(py_tuple2,i,Py_BuildValue("i",i));
-    }
-    PyTuple_SET_ITEM(py_tuple,0,py_tuple2);
-    return py_tuple;
-}
 
 
 //allocation and deallocation -----------------------------------
