@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Tête-à-tête.
-
-
+Tête-à-tête graphs
 
 
 
@@ -329,10 +327,10 @@ class TatGraph(SageObject):
     Alternatively, one can pass in 2 integers and this will construct
     a bipartite tête-à-tête graph which realizes the corresponding 
     Brieskorn-Pham singularity.
-    
-    
-    EXAMPLES:
-    
+
+
+    EXAMPLES::
+
         sage: T33 = bipartite_tat_graph(3,3); T33
         Tete-a-tete graph of order 3 on a ribbon graph of genus 1 and 3 boundary components.
         sage: T33.sigma()
@@ -607,7 +605,6 @@ class TatGraph(SageObject):
             [0 0 0 0 0 1 0]
             [0 0 0 0 0 0 1]
 
-            
         """
         #Set the space of matrices that we will be working on and 
         #a copy  of the zero matrix that will be modified to get 
@@ -688,7 +685,7 @@ class TatGraph(SageObject):
             Ribbon graph of genus 0 and 1 boundary components
             ()
             (1,2)
-     
+
 
         We see that in the previous example ``orb_graph.sigma()`` produces
         the empty permutation. This is because that permutation is formed by two
@@ -848,7 +845,7 @@ def blow_up(tat_graph, vertex, epsilon):
     r"""
     Return the result of performing a blow up on the orbit of the ``vertex``
     of length ``epsilon``.
-    
+
     More concretely, the operation consists in taking the orbit of the given
     vertex performing a real blow up at each of these vertices while seeing
     the graph embedded in the thickenened surface. The result is a relative
@@ -877,12 +874,13 @@ def blow_up(tat_graph, vertex, epsilon):
     - A relative tête-à-tête graph resulting from the blow-up of ``tat_graph``
       at the indicated vertex of the indicated length.
 
+
     EXAMPLES:
 
-        We define a bipartite tete-a-tete graph of type `(3,4)` and first we 
-        blow up the orbit of 3 vertices; then we blow up the orbit formed by
-        4 vertices. As we can see we obtain two differente relative tete-a-tete
-        graphs::
+    We define a bipartite tete-a-tete graph of type `(3,4)` and first we 
+    blow up the orbit of 3 vertices; then we blow up the orbit formed by
+    4 vertices. As we can see we obtain two differente relative tete-a-tete
+    graphs::
 
         sage: T = bipartite_tat_graph(3,4); T
         Tete-a-tete graph of order 12 on a ribbon graph of genus 3 and 1 boundary components.
@@ -891,16 +889,17 @@ def blow_up(tat_graph, vertex, epsilon):
         sage: B2 = blow_up(T,4,1/30); B2
         Relative tête-à-tête graph of order 12 on a ribbon graph of genus 3 and 5 boundary components; where 4 boundary components are part of the relative boundary and might be permuted by the automorphism induced.
 
-        In the previous example we blew up with two different lenghts, both
-        smaller than `1/2` which is the length of each dart of T. Now we try to
-        blow up with a length greater than that and it raises an AssertionError::
+
+    In the previous example we blew up with two different lenghts, both
+    smaller than `1/2` which is the length of each dart of T. Now we try to
+    blow up with a length greater than that and it raises an AssertionError::
 
         sage: B3 = blow_up(T,2,2/3)
         Traceback (most recent call last):
         ...
         AssertionError
     """
-    
+
     #we intialize the vector that is going to save the orbit of the 
     #vertex.
     orb_vertex = []
@@ -919,16 +918,16 @@ def blow_up(tat_graph, vertex, epsilon):
         new_v = _find(aux_sigma,orb_vector[aux_pos[0]][i])[0]
         if new_v not in orb_vertex:
             orb_vertex.append(new_v)
-            
+
     #check that the lengths of the darts adjacent to the vertices in the orbit
     #are bigger than epsilon (it is enought to check one vertex of the orbit)
     for i in range(len(aux_sigma[orb_vertex[0]])):
         assert tat_graph._metric[aux_sigma[orb_vertex[0]][i]] > epsilon
-    
-    
+
+
     darts = [x for i in range(len(aux_sigma)) for x in aux_sigma[i]]
     m_dart = max(darts) 
-    
+
     #we hold in one variable the maximun of the darts
     for j in range(len(orb_vertex)):
         darts = [x for i in range(len(aux_sigma)) for x in aux_sigma[i]]
