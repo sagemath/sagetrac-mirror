@@ -10,7 +10,7 @@ AUTHORS:
 
 REFERENCES:
 
-.. [ABBS] Jean-Chritsophe Aval, Adrien Boussicault, Mathilde Bouvel and Matteo Silimbani.
+.. [ABBS] Jean-Christophe Aval, Adrien Boussicault, Mathilde Bouvel and Matteo Silimbani.
    *Combinatorics of non-ambiguous trees*,
    :arxiv:`1305.3716`.
 
@@ -1050,7 +1050,7 @@ class NonAmbiguousTree( ClonableList ):
             [1 0 1 0 1]
             [0 1 0 0 0]
         '''
-        return self.get_options().dispatch(self, '_repr_', 'display')
+        return self.get_options()._dispatch(self, '_repr_', 'display')
 
     def _repr_list( self ):
         r'''
@@ -1209,7 +1209,7 @@ class NonAmbiguousTree( ClonableList ):
         For more on the latex options, see
         :meth:`NonAmbiguousTrees.global_options`.
         '''
-        return self.get_options().dispatch(self, '_latex_', 'latex')
+        return self.get_options()._dispatch(self, '_latex_', 'latex')
 
     def _latex_drawing( self ):
         r'''
