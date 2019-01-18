@@ -63,7 +63,7 @@ def _find(l, k):
     raise ValueError("element {} not found".format(k))
 
 
-def safewalk(ribbon_graph, metric, edge, relative_boundary = [], t = 1):
+def safewalk(ribbon_graph, metric, edge, relative_boundary = [], sf_length = 1):
     r"""
     Return the endpoint of the safe walk starting at 'edge'.
 
@@ -76,7 +76,7 @@ def safewalk(ribbon_graph, metric, edge, relative_boundary = [], t = 1):
     - ``relative_boundary`` -- a list of lists containing the permuted boundary
       components. It is empty by default if the ribbon graph is not
       relative.
-    - ``t`` -- the length of the safewalk. It is 1 by default.
+    - ``sf_length`` -- the length of the safewalk. It is 1 by default.
 
     OUTPUT:
 
@@ -101,7 +101,7 @@ def safewalk(ribbon_graph, metric, edge, relative_boundary = [], t = 1):
         14
         sage: safewalk(R0,m0,14,relative_boundary = perm_bound)
         8
-        sage: safewalk(R0,m0,2,relative_boundary = perm_bound, t= 2)
+        sage: safewalk(R0,m0,2,relative_boundary = perm_bound, sf_length= 2)
         8
         sage: safewalk(R0,m0,9,relative_boundary = perm_bound)
         12
@@ -113,13 +113,13 @@ def safewalk(ribbon_graph, metric, edge, relative_boundary = [], t = 1):
     #if the edge in not in the relative boundary we execute one algorithm
     #that takes the safewalk that starts by applying rho.
     if rel_b == False:
-            while (t > 0):
-                t = t - metric[ribbon_graph._rho(end_point)-1] \
+            while (sf_length > 0):
+                sf_length = sf_length - metric[ribbon_graph._rho(end_point)-1] \
                     - metric[ribbon_graph._sigma(ribbon_graph._rho(end_point))-1]
                 end_point = ribbon_graph._sigma(ribbon_graph._rho(end_point))
-            if (t < 0):
+            if (sf_length < 0):
                 return 0
-            elif t == 0:
+            elif sf_length == 0:
                 return end_point
 
     #if the edge is in the relative boundary we execute another algorithm
@@ -129,30 +129,30 @@ def safewalk(ribbon_graph, metric, edge, relative_boundary = [], t = 1):
         if (ribbon_graph._rho(edge) == \
            relative_boundary[aux_ind[0]][(aux_ind[1]-1) % 
                                          len(relative_boundary[aux_ind[0]])]):
-            while (t > 0):
-                t = t - metric[ribbon_graph._rho(end_point)-1] \
+            while (sf_length > 0):
+                sf_length = sf_length - metric[ribbon_graph._rho(end_point)-1] \
                     - metric[ribbon_graph._sigma(ribbon_graph._rho(end_point))-1]
                 end_point = ribbon_graph._sigma(ribbon_graph._rho(end_point))
-            if (t < 0):
+            if (sf_length < 0):
                 return 0
-            elif t == 0:
+            elif sf_length == 0:
                 return end_point
         elif (ribbon_graph._rho(edge) == \
            relative_boundary[aux_ind[0]][(aux_ind[1]+1) % 
                                          len(relative_boundary[aux_ind[0]])]):
-            while (t > 0):
-                t = t - metric[ribbon_graph._sigma(end_point)-1] \
+            while (sf_length > 0):
+                sf_length = sf_length - metric[ribbon_graph._sigma(end_point)-1] \
                     - metric[ribbon_graph._rho(ribbon_graph._sigma(end_point))-1]
                 end_point = ribbon_graph._rho(ribbon_graph._sigma(end_point))
-            if (t < 0):
+            if (sf_length < 0):
                 return 0
-            elif t == 0:
+            elif sf_length == 0:
                 return end_point
 
 
 
 
-def check_tat_property(ribbon_graph, metric, relative_boundary = []):
+def check_tat_property(ribbon_graph, metric, relative_boundary = [], sf_length=1):
     r"""
     Check wether the tat property is satisfied for the given
     ribbon graph and metric or not.
@@ -165,6 +165,9 @@ def check_tat_property(ribbon_graph, metric, relative_boundary = []):
     - ``relative_boundary`` -- a list of lists containing the permuted boundary
       components. It is empty by default if the ribbon graph is not
       relative.
+    - ``sf_length`` -- a positive rational number. It is the length of the safe
+      walks for which the tête-à-tête property has to be checked. By default, it
+      is initialized to be `1`.
 
     OUTPUT:
 
@@ -194,6 +197,8 @@ def check_tat_property(ribbon_graph, metric, relative_boundary = []):
     #or false.
     prop = True
     i = 0
+    #store the length of the safe walks of the ribbon graph
+    sl = sf_length
     #we run a while that checks the tat property on each edge (i.e. each
     #element of rho.
     while (i < len(ribbon_graph._rho.cycle_tuples()) and 
@@ -204,21 +209,22 @@ def check_tat_property(ribbon_graph, metric, relative_boundary = []):
         if safewalk(ribbon_graph,
                     metric,
                     aux_edge[0],
-                    relative_boundary)==0:
+                    relative_boundary, sl)==0:
             prop = False
-        #if the lenght is exactly 0 at some point, it means that the 
+        #if the length is exactly 0 at some point, it means that the 
         #method safewalk ends at a dart, then this checks the tat
         #property.
         elif safewalk(ribbon_graph, 
                       metric, 
                       aux_edge[0],
-                      relative_boundary)!=0:
+                      relative_boundary,sl)!=0:
             prop = (ribbon_graph._rho(safewalk(ribbon_graph, 
                                           metric, 
                                           aux_edge[0],
-                                          relative_boundary)
+                                          relative_boundary,sl)
                                     ) == \
-                    safewalk(ribbon_graph, metric, aux_edge[1], relative_boundary)
+                    safewalk(ribbon_graph, metric, aux_edge[1], 
+                             relative_boundary,sl)
                    )
         i+=1
 
@@ -266,8 +272,7 @@ def bipartite_tat_graph(p,q):
         (1,28)(2,32)(3,36)(4,40)(5,44)(6,48)(7,27)(8,31)(9,35)(10,39)(11,43)(12,47)(13,26)(14,30)(15,34)(16,38)(17,42)(18,46)(19,25)(20,29)(21,33)(22,37)(23,41)(24,45)
         [1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4]
     """
-    darts = 2*p*q
-    metric = [Rational('1/4') for i in range(darts)]
+    metric = 2*p*q*[Rational('1/4')]
     return TatGraph(bipartite_ribbon_graph(p,q), metric)
 
 class TatGraph(SageObject):
@@ -304,8 +309,22 @@ class TatGraph(SageObject):
     
     As explained in the references that are mentioned above, a tête-à-tête
     graph models an oriented surface with boundary together with a mapping
-    class of the surface which is freely periodic and has fractional Dehn
-    twist coefficients at all boundary components.
+    class of the surface which is freely periodic and has positive fractional
+    Dehn twist coefficients at all boundary components. A quich summary of how 
+    to build the automorphism is the following:
+    
+    (1) Cut the surface along the graph `\Gamma` to obtain a disjoint collection
+        of cylinders.
+
+    (2) Perform a boundary Dehn twist of length `1` on each of the cylinders
+        around the boundary component that comes from cutting along the graph.
+    
+    (3) The tête-à-tête property exactly tells you that the boundary Dehn twists
+        performed in step (2) are compatible with the gluing map that recovers
+        `\Sigma`.
+
+    This proccess defines an element in the mapping class group of the surface
+    relative to the boundary.
     
     Another object which is also modeled in this package is a relative
     tête-à-tête graph. These are metric ribbon graphs with a marked set of 
@@ -315,7 +334,8 @@ class TatGraph(SageObject):
     boundary components might be permuted by the relative tête-à-tête 
     mondromy.
 
-
+    For a future implementation of mixed tête-à-tête graphs we include the 
+    possibility of changing the length of the safe walk.
     INPUT:
 
     - ``ribbon`` -- a ribbon graph.
@@ -323,10 +343,8 @@ class TatGraph(SageObject):
     - ``relative_boundary=[]`` -- a subset of ``ribbon.boundary()`` that 
       constitutes the relative boundary components of ``ribbon``. It is, by
       default, initialized to an empty list (for defining pure tête-à-tête)
-
-    Alternatively, one can pass in 2 integers and this will construct
-    a bipartite tête-à-tête graph which realizes the corresponding 
-    Brieskorn-Pham singularity.
+    - ``sf_length`` -- the length of the safe walks of the tête-à-tête graph. It
+      is `1` by default.
 
 
     EXAMPLES::
@@ -346,8 +364,47 @@ class TatGraph(SageObject):
         [[19, 24, 23, 22, 21, 20], [25, 30, 29, 28, 27, 26], [31, 36, 35, 34, 33, 32]]
         sage: T517=bipartite_tat_graph(5,17);T517
         Tete-a-tete graph of order 85 on a ribbon graph of genus 32 and 1 boundary components.
+
+        sage: T = bipartite_tat_graph(2,5)
+        sage: T
+        Tete-a-tete graph of order 10 on a ribbon graph of genus 2 and 1 boundary components.
+        sage: B = blow_up(T, 2, 1/7)
+        sage: B
+        Relative tête-à-tête graph of order 10 on a ribbon graph of genus 2 and 6 boundary components; where 5 boundary components are part of the relative boundary and might be permuted by the automorphism induced.
+        sage: R = T.ribbon();R
+        Ribbon graph of genus 2 and 1 boundary components
+        sage: m = 20*[1]
+        sage: S = TatGraph(R,m, sf_length = 4)
+        sage: S
+        Tete-a-tete graph of order 10 on a ribbon graph of genus 2 and 1 boundary components.
+        sage: K=blow_up(S,2,1/2)
+        sage: K
+        Relative tête-à-tête graph of order 10 on a ribbon graph of genus 2 and 6 boundary components; where 5 boundary components are part of the relative boundary and might be permuted by the automorphism induced.
+        sage: K._sf_length
+        4
+        sage: K.action_homology()
+        [ 0 -1  1  0  0  0  0  0  0]
+        [ 0  0  1  0 -1  0  0  0  0]
+        [ 0  0  1 -1  0  0  0  0  0]
+        [ 0  0  1  0  0  0 -1  0  0]
+        [ 0  0  1  0  0 -1  0  0  0]
+        [ 0  0  1  0  0  0  0  0 -1]
+        [ 0  0  1  0  0  0  0 -1  0]
+        [-1  0  1  0  0  0  0  0  0]
+        [ 0  0  1  0  0  0  0  0  0]
+        sage: K.action_homology()^10
+        [1 0 0 0 0 0 0 0 0]
+        [0 1 0 0 0 0 0 0 0]
+        [0 0 1 0 0 0 0 0 0]
+        [0 0 0 1 0 0 0 0 0]
+        [0 0 0 0 1 0 0 0 0]
+        [0 0 0 0 0 1 0 0 0]
+        [0 0 0 0 0 0 1 0 0]
+        [0 0 0 0 0 0 0 1 0]
+        [0 0 0 0 0 0 0 0 1]
+
     """
-    def __init__(self, ribbon, metric, relative_boundary=[]):
+    def __init__(self, ribbon, metric, relative_boundary=[], sf_length=1):
         r"""
         Initialize ``self``.
 
@@ -377,11 +434,26 @@ class TatGraph(SageObject):
             Traceback (most recent call last):
             ...
             AssertionError
+            sage: T = bipartite_tat_graph(2,7)
+            sage: T
+            Tete-a-tete graph of order 14 on a ribbon graph of genus 3 and 1 boundary components.
+            sage: R = T.ribbon()
+            sage: R
+            Ribbon graph of genus 3 and 1 boundary components
+            sage: m = 28*[1]
+            sage: check_tat_property(R,m)
+            False
+            sage: S = TatGraph(R,m,sf_length=4)
+            sage: S
+            Tete-a-tete graph of order 14 on a ribbon graph of genus 3 and 1 boundary components.
+
         """
         for i in range(len(relative_boundary)):
             assert relative_boundary[i] in ribbon.boundary()
 
-        assert check_tat_property(ribbon, metric, relative_boundary) == True
+        assert sf_length > 0
+        assert check_tat_property(ribbon, metric, 
+                                  relative_boundary, sf_length) == True
         self._ribbon = ribbon
         self._metric = metric
         self._sigma = ribbon._sigma
@@ -390,6 +462,7 @@ class TatGraph(SageObject):
         self._relative_boundary = relative_boundary
         self._basis = self._ribbon.homology_basis()
         self._mu = 2*self._ribbon.genus() + self._ribbon.number_boundaries()-1
+        self._sf_length = sf_length
 
 
     def _repr_(self):
@@ -453,7 +526,7 @@ class TatGraph(SageObject):
 
     def metric(self):
         r"""
-        Return a vector containing the metric of the graph where the `i`th
+        Return a vector containing the metric of the graph where the `i` -th
         (starting at `0`) value of the vector corresponds to the dart `i+1`.
 
         EXAMPLES::
@@ -535,7 +608,7 @@ class TatGraph(SageObject):
                 for j in range (len(self._ribbon.boundary()[i])):
                     aux_rot += self._metric[self._ribbon.boundary()[i][j]-1]
 
-                rot.append(aux_rot ** (-1))
+                rot.append(self._sf_length / aux_rot)
         return rot
 
     def action_homology(self):
@@ -545,7 +618,7 @@ class TatGraph(SageObject):
 
         OUTPUT:
 
-        - Return a `self._mu() \times self._mu()` matrix that represents
+        - Return a ``self._mu()`` by ``self._mu()`` matrix that represents
           the action of the tête-à-tête automorphism on the first homology group
           with respect to the basis self._ribbon.homology_basis(). This 
           matrix has only `0`, `1` and `-1` as entries.
@@ -623,13 +696,15 @@ class TatGraph(SageObject):
                     if (safewalk(self._ribbon, 
                                  self._metric, 
                                  self._basis[i][k][0],
-                                 self._relative_boundary) 
+                                 self._relative_boundary,
+                                 self._sf_length) 
                         == self._basis[j][0][0]):
                         T[i,j] = 1
                     elif (safewalk(self._ribbon, 
                                    self._metric, 
                                    self._basis[i][k][0],
-                                   self._relative_boundary) 
+                                   self._relative_boundary,
+                                   self._sf_length) 
                           == self._basis[j][0][1]):
 
                         T[i,j] = -1
@@ -750,7 +825,7 @@ class TatGraph(SageObject):
         """
         aux_sigma = [list(x) for 
                      x in self._sigma.cycle_tuples(singletons = 1)]
-        darts = [x for i in range(len(aux_sigma)) for x in aux_sigma[i]]
+        darts = [x for y in aux_sigma for x in y]
 
         n = self.order()
         orbits = []
@@ -764,7 +839,8 @@ class TatGraph(SageObject):
                                               self._metric, 
                                               aux_edgeorbit[-1],
                                               relative_boundary = 
-                                              self._relative_boundary
+                                              self._relative_boundary,
+                                              sf_length = self._sf_length
                                              )
                                     )
                 darts.remove(aux_edgeorbit[-1])
@@ -776,7 +852,7 @@ class TatGraph(SageObject):
         orbit_sigma = []
         orbit_rho = []
 
-        while (len(aux_orbits_sigma) > 0):
+        while aux_orbits_sigma:
             orbit_sigma += [[]]
             pos = _find(orbits,
                        aux_orbits_sigma[0][0]
@@ -784,7 +860,7 @@ class TatGraph(SageObject):
             orbit_sigma[-1].append(pos[0]+1)
             del aux_orbits_sigma[0]
             finish_cycle = False
-            while (finish_cycle == False):
+            while not finish_cycle:
                 aux_pos = _find(orbits,
                                self._sigma(orbits
                                                  [
@@ -805,7 +881,7 @@ class TatGraph(SageObject):
                     orbit_sigma[-1].append(aux_pos[0]+1)
                     del aux_orbits_sigma[del_pos[0]]
 
-        while (len(aux_orbits_rho) > 0):
+        while aux_orbits_rho:
             orbit_rho += [[]]
             pos = _find(orbits,
                        aux_orbits_rho[0][0]
@@ -815,7 +891,7 @@ class TatGraph(SageObject):
             del aux_orbits_rho[0]
             finish_cycle = False
 
-            while (finish_cycle == False):
+            while not finish_cycle:
                 aux_pos = _find(orbits,
                                self._rho(orbits
                                                  [
@@ -890,7 +966,7 @@ def blow_up(tat_graph, vertex, epsilon):
         Relative tête-à-tête graph of order 12 on a ribbon graph of genus 3 and 5 boundary components; where 4 boundary components are part of the relative boundary and might be permuted by the automorphism induced.
 
 
-    In the previous example we blew up with two different lenghts, both
+    In the previous example we blew up with two different lengths, both
     smaller than `1/2` which is the length of each dart of T. Now we try to
     blow up with a length greater than that and it raises an AssertionError::
 
@@ -921,16 +997,18 @@ def blow_up(tat_graph, vertex, epsilon):
 
     #check that the lengths of the darts adjacent to the vertices in the orbit
     #are bigger than epsilon (it is enought to check one vertex of the orbit)
-    for i in range(len(aux_sigma[orb_vertex[0]])):
-        assert tat_graph._metric[aux_sigma[orb_vertex[0]][i]] > epsilon
-
-
-    darts = [x for i in range(len(aux_sigma)) for x in aux_sigma[i]]
-    m_dart = max(darts) 
+    for i in aux_sigma[orb_vertex[0]]:
+         assert tat_graph._metric[i] > epsilon
 
     #we hold in one variable the maximun of the darts
+    darts = [x for y in aux_sigma for x in y]
+    m_dart = max(darts) 
+
+    #finally we create the relative tat graph by modifying each vertex
+    #in the orbit. Actually we substitute each vertex for as many vertices
+    #as its valency. Each vertex produces a new relative component.
     for j in range(len(orb_vertex)):
-        darts = [x for i in range(len(aux_sigma)) for x in aux_sigma[i]]
+        darts = [x for y in aux_sigma for x in y]
         m = max(darts)
         aux_ver = aux_sigma[orb_vertex[j]]
         for k in range(len(aux_ver)):
@@ -943,9 +1021,5 @@ def blow_up(tat_graph, vertex, epsilon):
                                    PermutationGroupElement([tuple(x) for x in aux_sigma]), 
                                    PermutationGroupElement([tuple(x) for x in aux_rho])
                                    )
-    aux_ribbon = aux_ribbon
-    aux_bound = aux_ribbon.boundary()
-    for i in range(len(aux_bound)):
-        if min(aux_bound[i]) > m_dart:
-            relative_boundary.append(aux_bound[i])
-    return TatGraph(aux_ribbon, metric, relative_boundary)
+    relative_boundary = [x for x in aux_ribbon.boundary() if min(x) > m_dart]
+    return TatGraph(aux_ribbon, metric, relative_boundary,tat_graph._sf_length)
