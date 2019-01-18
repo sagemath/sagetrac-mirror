@@ -8,39 +8,6 @@ This computes implicitely a finite atomic and coatomic lattices, where every int
 In particular this module calculates quickly the f_vector of polytopes. The input must be a tuple of coatoms given each by a tuple of atoms. The atoms must be labeled 0,...,n.
 
 
-
-
-
-
-Get the face lattice as Finite Poset:
-
-    sage: P = polytopes.permutahedron(7)
-    sage: C = CombinatorialPolyhedron(P)
-    sage: C.face_lattice()
-    Finite lattice containing 47294 elements
-
-One can simplify the labels of the vertices in the face lattice:
-
-    sage: P = polytopes.permutahedron(6)
-    sage: CombinatorialPolyhedron(P).face_lattice(vertices=False,facets=False) #takes around 400ms
-    Finite lattice containing 4684 elements
-    sage: CombinatorialPolyhedron(P).face_lattice(vertices=True,facets=True) #takes around 2.48s
-    Finite lattice containing 4684 elements
-    sage: CombinatorialPolyhedron(P).face_lattice(vertices=True,facets=False) #default, takes about 1.87 seconds
-    Finite lattice containing 4684 elements
-
-Calculate the entries of the flag-vector:
-
-    sage: P = polytopes.permutahedron(7)
-    sage: C = CombinatorialPolyhedron(P)
-    sage: C.flag(1,3)
-    151200
-    sage: C.flag(5,2)
-    67200
-    sage: C.flag(2,4,6)
-    100800
-
-
 AUTHOR:
 
 - Jonathan Kliem (2018-12)
