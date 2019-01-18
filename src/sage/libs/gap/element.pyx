@@ -31,7 +31,7 @@ from sage.rings.all import ZZ, QQ, RDF
 
 from sage.groups.perm_gps.permgroup_element cimport PermutationGroupElement
 from sage.combinat.permutation import Permutation
-from sage.structure.element cimport coercion_model as cm
+from sage.structure.coerce cimport coercion_model as cm
 
 decode_type_number = {
     0: 'T_INT (integer)',
