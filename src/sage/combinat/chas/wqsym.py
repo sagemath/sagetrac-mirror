@@ -73,6 +73,36 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
                                          category=WQSymBases(alg, graded),
                                          bracket="", prefix=self._prefix)
 
+    def __call__(self, expn):
+        """
+        Convert ``expn`` into an element in basis ``self``.
+
+        TESTS:
+
+        Testing conversions::
+
+            sage: M = WordQuasiSymmetricFunctions(QQ).M()
+            sage: X = WordQuasiSymmetricFunctions(QQ).X()
+            sage: x = X.an_element(); M(x)
+            -M[{1}] + 2*M[{1}, {2}]
+            sage: q = QQ.an_element(); M(q)
+            1/2*M[]
+            sage: z = ZZ.an_element(); M(z)
+            M[]
+
+        Testing element construction::
+
+            sage: l = [1,1,2]; w = Word(l)
+            sage: ll = [[1,2],[3]]; op = OrderedSetPartition(ll)
+            sage: M(l) == M(w) == M(ll) == M(op) == M[1,1,2] == M[[1,2],[3]]
+            True
+        """
+        try:
+            morph = self.coerce_map_from(expn.parent())
+            return morph(expn)
+        except (AttributeError, TypeError):
+            return self.__getitem__(expn)
+
     def _repr_term(self, osp):
         r"""
         Return a string representation of an element of WordQuasiSymmetricFunctions
