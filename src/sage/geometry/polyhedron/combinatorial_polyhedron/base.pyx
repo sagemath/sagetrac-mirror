@@ -120,33 +120,44 @@ cdef class CombinatorialPolyhedron:
 
     INPUT:
 
-    - a ``Polyhedron``, i.e. an instance of
-    :class:`~sage.geometry.polyhedron.parent.Polyhedra_base`.
+    - ``data`` -- a ``Polyhedron``, i.e. an instance of
+      :class:`~sage.geometry.polyhedron.parent.Polyhedron_base`.
 
     or
 
-    - a ``LatticePolytope``, i.e. an instance of
-    :class:`~sage.geometry.lattice_polytope.LatticePolytopeClass`.
+    - ``data`` -- a ``LatticePolytope``, i.e. an instance of
+      :class:`~sage.geometry.lattice_polytope.LatticePolytopeClass`.
 
     or
 
-    - an incidence_matrix as in Polyhedron.incidence_matrix()
+    - ``data`` -- an ``incidence_matrix`` as in
+      :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.incidence_matrix`
+      of :class:`~sage.geometry.polyhedron.parent.Polyhedron_base`.
 
-    - a list of vertices/rays/lines, if the rows in the incidence_matrix should correspond to names
+      * ``vertices`` -- a list of ``[vertices, rays, lines]``, if
+        the rows in the incidence_matrix should correspond to names.
 
-    - a list of facets/Hrep, if the columns in the incidence_matrix should correspond to names
+      * ``facets`` -- a list of facets, if
+        the columns in the incidence_matrix should correspond to names.
 
-    - unbounded needs to be set to True, if the Polyhedron is unbounded
+      * ``unbounded`` -- needs to be set to True, if
+        the `Polyhedron` is unbounded.
 
     or
 
-    - data is list of facets -- each facet given as a list of vertices/rays/lines in Vrep
-    the input should correspond to the same rules as the incidence_matrix
+    - ``data`` -- a list of facets,
+      each facet given as a list of ``[vertices, rays, lines]``.
+      If the Polyhedron is unbounded, then rays and lines are required.
+      If the Polyehdron contains no lines the rays can be thought of as
+      the vertices of the facets deleted from a bounded Polyhedron. See
+      :class:`~sage.geometry.polyhedron.parent.Polyhedron_base`
+      on how to use rays and lines.
 
-    - a list of names of the facets, if the facets given should correspond to names
-
-    - unbounded needs to be set to True, if the Polyhedron is unbounded
-
+      * ``facets`` -- a list of names of the facets, if
+        the facets given should correspond to names.
+      
+      * ``unbounded`` -- needs to be set to True, if
+        the `Polyhedron` is unbounded.
 
 
     EXAMPLES:
@@ -175,17 +186,17 @@ cdef class CombinatorialPolyhedron:
         sage: C.Hrepresentation()
         ('myfacet',)
 
-
     You can also give the facets explicitely::
 
         sage: CombinatorialPolyhedron(((1,2,3),(1,2,4),(1,3,4),(2,3,4)))
         The Combinatorial Type of a Polyhedron of dimension 3 with 4 vertices
-        sage: C = CombinatorialPolyhedron(((1,2,3),(1,2,4),(1,3,4),(2,3,4)), facets=['facet0', 'facet1', 'facet2', 'myfacet3'])
+        sage: facetnames = ['facet0', 'facet1', 'facet2', 'myfacet3']
+        sage: facetinc = ((1,2,3),(1,2,4),(1,3,4),(2,3,4))
+        sage: C = CombinatorialPolyhedron(facetinc, facets = facetnames)
         sage: C.Vrepresentation()
         (1, 2, 3, 4)
         sage: C.Hrepresentation()
         ('facet0', 'facet1', 'facet2', 'myfacet3')
-
     """
     cdef CombinatorialPolyhedron_ptr _C
     cdef tuple _V
@@ -198,7 +209,7 @@ cdef class CombinatorialPolyhedron:
     cdef unsigned int _length_Hrep
     cdef unsigned int _length_Vrep
     def __init__(self, data, vertices=None, facets=None, unbounded=False):
-        """
+        r"""
         Initializes the combinatorial polyhedron.
 
         See :class:`CombinatorialPolyhedron` for a description of the input
@@ -346,7 +357,7 @@ cdef class CombinatorialPolyhedron:
 
     def Vrepresentation(self):
         r"""
-        Return a list of names of vertices/rays/lines of the CombinatorialPolyhedron.
+        Return a list of names of ``[vertices, rays, lines]``.
 
         EXAMPLES::
 
@@ -366,7 +377,7 @@ cdef class CombinatorialPolyhedron:
 
     def Hrepresentation(self):
         r"""
-        Returns a list of names of facets of the CombinatorialPolyhedron.
+        Returns a list of names of facets.
 
         EXAMPLES::
 
@@ -389,9 +400,13 @@ cdef class CombinatorialPolyhedron:
 
     def vertices(self, names=True):
         r"""
-        Returns the elements in the Vrepresentation that are actual vertices.
+        Returns the elements in the ``Vrepresentation`` that are vertices.
+        
+        In the case of an unbounded Polyhedron, there might be lines and
+        rays in the Vrepresentation.
 
-        If names is set to False, then the vertices are given by their indices in the Vrepresentation.
+        If ``names`` is set to ``False``, then the vertices are given by
+        their indices in the Vrepresentation.
 
         EXAMPLES::
 
@@ -430,9 +445,10 @@ cdef class CombinatorialPolyhedron:
 
     def facets(self, names=True):
         r"""
-        Returns the facets as lists of vertices/rays/lines.
+        Returns the facets as lists of ``[vertices, rays, lines]``.
 
-        If names is set to False, then the vertices in the facets are given by their indices in the Vrepresentation.
+        If ``names`` is ``False``, then the vertices in the facets
+        are given by their indices in the Vrepresentation.
 
         EXAMPLES::
 
@@ -477,11 +493,18 @@ cdef class CombinatorialPolyhedron:
 
     def edges(self, names=True):
         r"""
-        Returns the edges of the CombinatorialPolyhedron, i.e. the rank 2 faces, which contain 2 vertices.
+        Returns the edges of the CombinatorialPolyhedron,
+        i.e. the rank 1 faces, which contain 2 vertices.
 
-        If names is set to False, then the vertices in the edges are given by their indices in the Vrepresentation.
+        If ``names`` is set to ``False``, then the vertices in the edges
+        are given by their indices in the Vrepresentation.
+        
+        If you want to compute all faces of dimension 1, 
+        please use :meth:`CombinatorialPolyhedron.faces` instead.
 
-        NOTE: If you want to compute edges and f_vector it is recommended to compute edges first.
+        .. NOTE::
+        
+            To compute edges and f_vector, first compute edges.
 
         EXAMPLES::
 
@@ -522,9 +545,10 @@ cdef class CombinatorialPolyhedron:
 
     def edge_graph(self,names=True):
         r"""
-        Returns the edge graph, i.e. the graph of the edges of the CombinatorialPolyhedron with the edges as vertices.
+        Returns the edge graph.
 
-        If names is set to false, the vertices will carry names according to the indexing of the Vrepresentation.
+        If ``names`` is set to ``False``, the vertices will carry names
+        according to the indexing of the Vrepresentation.
 
         EXAMPLES::
 
@@ -542,7 +566,7 @@ cdef class CombinatorialPolyhedron:
 
     def dimension(self):
         r"""
-        Returns the dimension of the CombinatorialPolyhedron.
+        Returns the dimension of the ``CombinatorialPolyehdron``.
 
         EXAMPLES::
 
@@ -562,14 +586,22 @@ cdef class CombinatorialPolyhedron:
 
     def ridges(self, add_equalities=False, names=True):
         r"""
-        Returns the ridges of the CombinatorialPolyhedron, i.e. the faces contained in exactly two facets.
+        Returns the ridges.
+        
+        The ridges of the CombinatorialPolyhedron are the faces
+        contained in exactly two facets.
 
-        The ridges will be given by the two facets, they are contained in.
-        If add_equalities is checked, then equalities the entire Polyhedron satisfies, are added.
+        The ridges will be given by the facets, they are contained in.
+        
+        - If ``add_equalities`` is ``True``, then equalities the entire
+          Polyhedron satisfies, are added.
+        
+        - If ``names`` is ``False``, then the facets in the ridges are
+          given by their indices in the Hrepresentation.
 
-        If names is set to False, then the facets in the riddges are given by their indices in the Hrepresentation.
-
-        NOTE: If you want to compute ridges and f_vector it is recommended to compute ridges first.
+        .. NOTE::
+        
+            To compute ridges and f_vector, compute ridges first.
 
         EXAMPLES::
 
@@ -643,9 +675,13 @@ cdef class CombinatorialPolyhedron:
 
     def ridge_graph(self, names=True):
         r"""
-        Returns the ridge graph of the CombinatorialPolyhedron consisting of ridges as edges and facets as vertices.
+        Returns the ridge graph.
+        
+        The ridge graph of the CombinatorialPolyhedron consists of
+        ridges as edges and facets as vertices.
 
-        If names is set to wrong, the vertices will be the incidences of the facetes in the Hrepresentation.
+        If ``names`` is ``False``, the ``vertices`` of the graph  will
+        be the incidences of the facets in the Hrepresentation.
 
         EXAMPLES::
 
@@ -659,9 +695,15 @@ cdef class CombinatorialPolyhedron:
 
     def f_vector(self):
         r"""
-        Calculates the f_vector of the CombinatorialPolyhedron, i.e. the vector containing the nr of faces of each rank.
+        Calculates the ``f_vector`` of the CombinatorialPolyhedron.
+        
+        The ``f_vector`` contains the number of faces of dimension ``k``
+        for each ``k`` in ``range(-1, self.dimension() + 1)``.
 
-        NOTE: If you also want to compute edges and/or ridges, it is recommended to do that first.
+        .. NOTE::
+        
+            If you also want to compute edges and/or ridges, do so
+            first.
 
         EXAMPLES::
 
@@ -674,8 +716,57 @@ cdef class CombinatorialPolyhedron:
             sage: C = CombinatorialPolyhedron(P)
             sage: C.f_vector()
             (1, 40, 780, 9880, 25940, 25200, 8400, 1)
-
-
+            
+        ALGORITHM:
+        
+        The number of facets is assumed to be at least two here.
+        The algorithm to visit all proper faces exactly once is roughly
+        equivalent to:
+        
+        facets = [set(facet) for facet in self.facets()]
+        ComputeNextStep(facets, [])
+        
+        #this algorithm assumes at each step to receive all facets of
+        #some face except those contained in a face of forbidden
+        def ComputeNextStep(faces, forbidden):
+            
+            for face in faces:
+                pass #do something here with that face
+            
+            while len(faces) > 1:
+                one_face = faces.pop()
+                newfaces = [one_face.intersection(face) for face in faces]
+                #newfaces contains all intersection
+                
+                newfaces2 = []
+                for face1 in newfaces:
+                    #face1 is a facet of one_face iff
+                    #it is not contained in another facet
+                    if all(not face1 < face2 for face2 in newfaces):
+                        newfaces2.append(face1)
+                #newfaces2 contains all facets of one_face not contained
+                #in any one of forbidden and maybe some that are
+                #contained in one of forbidden
+                
+                newfaces3 = []
+                for face1 in newfaces2:
+                    if all(not face1 < face2 for face2 in forbidden):
+                        newfaces3.append(face1)
+                #newfaces3 contains exactly all facets of one_face but
+                #those contained in one face of forbidden
+                
+                #visit all faces in one_face that are not contained in
+                #one of forbidden
+                ComputeNextStep(newfaces3, forbidden)
+                
+                #we have visited all faces in one_face, so we should not
+                #visit one ever again
+                
+                forbidden.append(one_face)
+            
+            return
+                
+        
         """
         if self.is_trivial == 1:
             if self._dimension == -1:
