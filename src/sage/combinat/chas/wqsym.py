@@ -46,6 +46,7 @@ from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.realizations import Category_realization_of_parent
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
+from sage.combinat.packed_words import PackedWords
 from sage.combinat.shuffle import ShuffleProduct_overlapping, ShuffleProduct
 from sage.rings.integer_ring import ZZ
 
@@ -728,10 +729,11 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             WQSymBasis_abstract.__init__(self, alg)
 
             Q = self.realization_of().Q()
-            phi = self.module_morphism(self._Q_to_H, codomain=Q, unitriangular="lower")
+            phi = self.module_morphism(self._H_to_Q, codomain=Q, unitriangular="upper") #TODO probleme avec le triangulaire... revoir ce truc de module_morphism...
             phi.register_as_coercion()
-            phi_inv = Q.module_morphism(self._H_to_Q, codomain=self, unitriangular="lower")
-            phi_inv.register_as_coercion()
+            (~phi).register_as_coercion()
+            # phi_inv = Q.module_morphism(self._Q_to_H, codomain=self, unitriangular="lower")
+            # phi_inv.register_as_coercion()
 
         def some_elements(self):
             """
@@ -749,70 +751,71 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             s = self.base_ring().an_element()
             return [u, o, self([[1,2]]), u + s*o]
 
-        def _Q_to_H(self, P):
+        def _H_to_Q(self, P):
             """
             Return the image of the basis element of ``self`` indexed
             by ``P`` in the Q basis.
 
             EXAMPLES::
 
-                # sage: Q = algebras.WQSym(QQ).Q()
-                # sage: OSP = Q.basis().keys()
-                # sage: Q._Q_to_H(OSP([[2,3],[1,4]]))
-                # H[{2, 3}, {1, 4}]
-                # sage: Q._Q_to_M(OSP([[1,2],[3,4]]))
+                sage: H = algebras.WQSym(QQ).H()
+                sage: OSP = H.basis().keys()
+                sage: H._H_to_Q(OSP([[2,3],[1,4]]))
+                # Q[{2, 3}, {1, 4}]
+                sage: H._H_to_Q(OSP([[1,2],[3,4]]))
                 # M[{1, 2}, {3, 4}] + M[{1, 2, 3, 4}]
             """
             Q = self.realization_of().Q()
             if not P:
-                return self.one()
-
-            OSP = self.basis().keys()
-            R = M.base_ring()
-            one = R.one()
-            return M._from_dict({OSP(G): one for G in P.strongly_fatter()},
-                                coerce=False)
-
-        def _M_to_Q(self, P):
-            """
-            Return the image of the basis element of the monomial
-            basis indexed by ``P`` in the Q basis ``self``.
-
-            EXAMPLES::
-
-                sage: Q = algebras.WQSym(QQ).Q()
-                sage: M = algebras.WQSym(QQ).M()
-                sage: OSP = Q.basis().keys()
-                sage: Q._M_to_Q(OSP([[2,3],[1,4]]))
-                Q[{2, 3}, {1, 4}]
-                sage: Q._M_to_Q(OSP([[1,2],[3,4]]))
-                Q[{1, 2}, {3, 4}] - Q[{1, 2, 3, 4}]
-
-            TESTS::
-
-                sage: Q = algebras.WQSym(QQ).Q()
-                sage: M = algebras.WQSym(QQ).M()
-                sage: OSP4 = OrderedSetPartitions(4)
-                sage: all(M(Q(M[P])) == M[P] for P in OSP4) # long time
-                True
-                sage: all(Q(M(Q[P])) == Q[P] for P in OSP4) # long time
-                True
-            """
-            Q = self
-            if not P:
                 return Q.one()
 
             OSP = self.basis().keys()
-            R = self.base_ring()
+            PW = PackedWords().from_ordered_set_partition(P)
+            R = Q.base_ring()
             one = R.one()
-            lenP = len(P)
-            def sign(R): # the coefficient with which another
-                         # ordered set partition will appear
-                if len(R) % 2 == lenP % 2:
-                    return one
-                return -one
-            return Q._from_dict({OSP(G): sign(G) for G in P.strongly_fatter()},
+            return Q._from_dict({G.to_ordered_set_partition(): one for G in PW.left_weak_order_greater()},
                                 coerce=False)
+
+        # def _M_to_Q(self, P):
+        #     """
+        #     Return the image of the basis element of the monomial
+        #     basis indexed by ``P`` in the Q basis ``self``.
+
+        #     EXAMPLES::
+
+        #         sage: Q = algebras.WQSym(QQ).Q()
+        #         sage: M = algebras.WQSym(QQ).M()
+        #         sage: OSP = Q.basis().keys()
+        #         sage: Q._M_to_Q(OSP([[2,3],[1,4]]))
+        #         Q[{2, 3}, {1, 4}]
+        #         sage: Q._M_to_Q(OSP([[1,2],[3,4]]))
+        #         Q[{1, 2}, {3, 4}] - Q[{1, 2, 3, 4}]
+
+        #     TESTS::
+
+        #         sage: Q = algebras.WQSym(QQ).Q()
+        #         sage: M = algebras.WQSym(QQ).M()
+        #         sage: OSP4 = OrderedSetPartitions(4)
+        #         sage: all(M(Q(M[P])) == M[P] for P in OSP4) # long time
+        #         True
+        #         sage: all(Q(M(Q[P])) == Q[P] for P in OSP4) # long time
+        #         True
+        #     """# TODO see greater_left_basis.....
+        #     Q = self
+        #     if not P:
+        #         return Q.one()
+
+        #     OSP = self.basis().keys()
+        #     R = self.base_ring()
+        #     one = R.one()
+        #     lenP = len(P)
+        #     def sign(R): # the coefficient with which another
+        #                  # ordered set partition will appear
+        #         if len(R) % 2 == lenP % 2:
+        #             return one
+        #         return -one
+        #     return Q._from_dict({OSP(G): sign(G) for G in P.strongly_fatter()},
+        #                         coerce=False)
 
         def product_on_basis(self, x, y):
             r"""
@@ -1025,7 +1028,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 return Q._from_dict({OSPs(A.complement().reversed()): c for (A, c) in self},
                                     remove_zeros=False)
 
-    Q = StronglyCoarser
+    H = Homogeneous
 
     ############### HuxoD End #############
 
