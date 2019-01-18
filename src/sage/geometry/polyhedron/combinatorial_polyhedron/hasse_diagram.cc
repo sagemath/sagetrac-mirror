@@ -356,7 +356,10 @@ unsigned long ** CombinatorialPolyhedron::get_incidences(int dimension_one, int 
         nr_incidences_to_return[0] = nr_incidences;
         return incidences;
     }
-    if ((one == dimension -1) && (two == 0)){//getting the vertex-facet incidence
+    if (f_vector[1] != nr_vertices){
+        unbounded = 1;
+    }
+    if ((one == dimension -1) && (two == 0) && (!unbounded)){//getting the vertex-facet incidence, in the unbounded case we cannot assume the vertices to be actual vertices
         vertex_facet_incidences();
         nr_incidences_to_return[0] = nr_incidences;
         return incidences;
@@ -373,7 +376,7 @@ unsigned long ** CombinatorialPolyhedron::get_incidences(int dimension_one, int 
         nr_incidences_to_return[0] = nr_incidences;
         return incidences;
     }
-    if (two == 0){
+    if ((two == 0) && (!unbounded)){//in the unbounded case, we need to figure out, what the vertices actually are
         if (!allfaces_are_allocated || (allfaces_are_allocated[one] != 2)){
             allocate_allfaces(one);
             record_faces(one);
@@ -385,7 +388,7 @@ unsigned long ** CombinatorialPolyhedron::get_incidences(int dimension_one, int 
         nr_incidences_to_return[0] = nr_incidences;
         return incidences;
     }
-    //at this point we know 0 < two < one < dimension - 1
+    //at this point we know 0 < two < one < dimension - 1 (in the unbounded case 0<= two)
     if (!allfaces_are_allocated || (allfaces_are_allocated[one] != 2) || (allfaces_are_allocated[two] != 2)){
         allocate_allfaces(one);
         allocate_allfaces(two);

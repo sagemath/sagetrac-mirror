@@ -9,48 +9,8 @@ In particular this module calculates quickly the f_vector of polytopes. The inpu
 
 
 
-Get the k-faces:
-
-    sage: P = polytopes.simplex()
-    sage: C = CombinatorialPolyhedron(P)
-    sage: C.faces(1)
-    ((A vertex at (0, 0, 1, 0), A vertex at (0, 1, 0, 0)),
-     (A vertex at (0, 0, 1, 0), A vertex at (1, 0, 0, 0)),
-     (A vertex at (0, 1, 0, 0), A vertex at (1, 0, 0, 0)),
-     (A vertex at (0, 0, 0, 1), A vertex at (0, 1, 0, 0)),
-     (A vertex at (0, 0, 0, 1), A vertex at (1, 0, 0, 0)),
-     (A vertex at (0, 0, 0, 1), A vertex at (0, 0, 1, 0)))
-    sage: C.faces(1,facet_repr=True)
-    ((An equation (1, 1, 1, 1) x - 1 == 0,
-      An inequality (0, -1, -1, -1) x + 1 >= 0,
-      An inequality (0, 0, 0, 1) x + 0 >= 0),
-     (An equation (1, 1, 1, 1) x - 1 == 0,
-      An inequality (0, 1, 0, 0) x + 0 >= 0,
-      An inequality (0, 0, 0, 1) x + 0 >= 0),
-     (An equation (1, 1, 1, 1) x - 1 == 0,
-      An inequality (0, 0, 1, 0) x + 0 >= 0,
-      An inequality (0, 0, 0, 1) x + 0 >= 0),
-     (An equation (1, 1, 1, 1) x - 1 == 0,
-      An inequality (0, -1, -1, -1) x + 1 >= 0,
-      An inequality (0, 0, 1, 0) x + 0 >= 0),
-     (An equation (1, 1, 1, 1) x - 1 == 0,
-      An inequality (0, 1, 0, 0) x + 0 >= 0,
-      An inequality (0, 0, 1, 0) x + 0 >= 0),
-     (An equation (1, 1, 1, 1) x - 1 == 0,
-      An inequality (0, -1, -1, -1) x + 1 >= 0,
-      An inequality (0, 1, 0, 0) x + 0 >= 0))
 
 
-Get the incidences between j-faces and k-faces,
-this is given according to the enumaration of faces(j) and faces(k):
-
-    sage: j = 2
-    sage: k = 3
-    sage: P = polytopes.simplex()
-    sage: C.incidences(2,3)
-    ((0, 0), (1, 0), (2, 0), (3, 0))
-    sage: C.incidences(j,k)
-    ((0, 0), (1, 0), (2, 0), (3, 0))
 
 Get the face lattice as Finite Poset:
 
@@ -179,7 +139,7 @@ cdef class CombinatorialPolyhedron:
 
         sage: data = Polyhedron(rays=[[0,1]]).incidence_matrix()
         sage: CombinatorialPolyhedron(data, unbounded=True)
-        The Combinatorial Type of a half space of dimension 1
+        The Combinatorial Type of a half-space of dimension 1
         sage: C = CombinatorialPolyhedron(data, vertices=['myvertex'], facets=['myfacet'], unbounded=True)
         sage: C.Vrepresentation()
         ('myvertex',)
@@ -352,7 +312,7 @@ cdef class CombinatorialPolyhedron:
                 return "The Combinatorial Type of a trivial Polyhedron of dimension %s"%self._dimension
             return "The Combinatorial Type of the empty Polyhedron"
         if self.is_trivial == 2:
-            return "The Combinatorial Type of a half space of dimension %s"%self._dimension
+            return "The Combinatorial Type of a half-space of dimension %s"%self._dimension
         return "The Combinatorial Type of a Polyhedron of dimension %s with %s vertices"%(self.dimension(),len(self.vertices()))
 
     def Vrepresentation(self):
@@ -500,7 +460,7 @@ cdef class CombinatorialPolyhedron:
         are given by their indices in the Vrepresentation.
         
         If you want to compute all faces of dimension 1, 
-        please use :meth:`CombinatorialPolyhedron.faces` instead.
+        use :meth:`CombinatorialPolyhedron.faces` instead.
 
         .. NOTE::
         
@@ -522,7 +482,13 @@ cdef class CombinatorialPolyhedron:
              (A vertex at (0, 0, 0), A vertex at (1, 1, 1)))
             sage: C.edges(names=False)
             ((0, 4), (1, 4), (2, 4), (3, 4), (0, 3), (1, 3), (0, 2), (1, 2), (0, 1))
-
+            
+            sage: P = Polyhedron(rays=[[-1,0],[1,0]])
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.edges()
+            ()
+            sage: C.faces(1)
+            ((A line in the direction (1, 0), A vertex at (0, 0)),)
         """
         if self.is_trivial > 0:
             return ()
@@ -590,6 +556,9 @@ cdef class CombinatorialPolyhedron:
         
         The ridges of the CombinatorialPolyhedron are the faces
         contained in exactly two facets.
+        
+        If you want to compute all faces of codimension 1, 
+        use :meth:`CombinatorialPolyhedron.faces` instead.
 
         The ridges will be given by the facets, they are contained in.
         
@@ -646,6 +615,16 @@ cdef class CombinatorialPolyhedron:
              (0, 2),
              (1, 2),
              (0, 1))
+             
+            sage: P = Polyhedron(rays=[[1,0]])
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C
+            The Combinatorial Type of a half-space of dimension 1
+            sage: C.ridges()
+            ()
+            sage: C.faces(0, facet_repr=True)
+            ((An equation (0, 1) x + 0 == 0, An inequality (1, 0) x + 0 >= 0),)
+
 
         """
 
@@ -791,32 +770,75 @@ cdef class CombinatorialPolyhedron:
         Gets all k-faces for specified dimenion k.
 
         By default faces are given as tuple of vertices, but one may also choose tuple of facets instead.
+        
+        
+        EXAMPLES::
+        
+            sage: P = polytopes.simplex()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.faces(2)
+            ((A vertex at (0, 0, 0, 1),
+              A vertex at (0, 0, 1, 0),
+              A vertex at (0, 1, 0, 0)),
+             (A vertex at (0, 0, 0, 1),
+              A vertex at (0, 0, 1, 0),
+              A vertex at (1, 0, 0, 0)),
+             (A vertex at (0, 0, 0, 1),
+              A vertex at (0, 1, 0, 0),
+              A vertex at (1, 0, 0, 0)),
+             (A vertex at (0, 0, 1, 0),
+              A vertex at (0, 1, 0, 0),
+              A vertex at (1, 0, 0, 0)))
+            sage: C.faces(2, facet_repr=True)
+            ((An equation (1, 1, 1, 1) x - 1 == 0,
+              An inequality (0, -1, -1, -1) x + 1 >= 0),
+             (An equation (1, 1, 1, 1) x - 1 == 0, An inequality (0, 1, 0, 0) x + 0 >= 0),
+             (An equation (1, 1, 1, 1) x - 1 == 0, An inequality (0, 0, 1, 0) x + 0 >= 0),
+             (An equation (1, 1, 1, 1) x - 1 == 0, An inequality (0, 0, 0, 1) x + 0 >= 0))
+             
+            sage: P = Polyhedron(rays=[[1,0],[0,1]], vertices=[[1,0],[0,1]])
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.faces(1)
+            ((A ray in the direction (0, 1), A vertex at (0, 1)),
+             (A ray in the direction (1, 0), A vertex at (1, 0)),
+             (A vertex at (0, 1), A vertex at (1, 0)))
+            sage: C.faces(1, names=False)
+            ((0, 1), (2, 3), (1, 3))
+            sage: C.faces(1, facet_repr=True)
+            ((An inequality (1, 0) x + 0 >= 0,),
+             (An inequality (0, 1) x + 0 >= 0,),
+             (An inequality (1, 1) x - 1 >= 0,))
+             
+        ALGORITHM:
+        
+        See :meth:`f_vector` for a description
+        on how all faces are visited.
         """
-
-        if self.is_trivial == 1:
+        if self.is_trivial == 1: #the case of a Polyhedron equal to its affine hull
             if dimension == -1:
                 return ((),)
-            if self._dimension == 0 and dimension == 0:
+            if dimension == self._dimension:
                 if facet_repr == True:
                     return ((),)
-                if self._V is not None:
+                if self._V is not None and names == True:
                     return (tuple(self._V),)
                 else:
-                    return (Integer(0),)
-            if self._dimension and dimension == self._dimension:
-                return ((),)
+                    if dimension == 0:
+                        return (Integer(0),)
+                    return ((),)
             return ()
-        if self.is_trivial == 2:
+                    
+        if self.is_trivial == 2: #the case of a half-space
             if dimension == -1:
                 if facet_repr == True:
-                    if self._H is not None:
+                    if self._H is not None and names == True:
                         return (self._equalities + tuple(self._H),)
                     else:
                         return ((Integer(0),),)
                 return ((),)
-            if dimension == self._dimension -1:
+            if dimension == self._dimension - 1:
                 if facet_repr == True:
-                    if self._H is not None:
+                    if self._H is not None and names == True:
                         return (self._equalities + tuple(self._H),)
                     else:
                         return ((Integer(0),),)
@@ -824,9 +846,12 @@ cdef class CombinatorialPolyhedron:
             if dimension == self._dimension:
                 return ((),)
             return ()
+            
         dim = self.dimension()
         if not dimension in range(-1,dim + 1):
             return ()
+        
+        #creating an array of arrays for the C function to store the faces in
         cdef unsigned long number_of_faces = self.f_vector()[dimension + 1]
         cdef unsigned int length_of_face
         if (facet_repr == False):
@@ -837,8 +862,12 @@ cdef class CombinatorialPolyhedron:
         for i in range(number_of_faces):
             faces_to_return[i] = <unsigned int*> PyMem_Malloc(size_of_face * sizeof(unsigned int))
         cdef unsigned int *length_of_faces = <unsigned int*> PyMem_Malloc(number_of_faces * sizeof(unsigned int))
+        
+        #filling the array
+        get_faces(self._C, dimension, facet_repr, faces_to_return, length_of_faces)
+        
+        #translating the result to the desired representation
         addtuple = ()
-
         if (facet_repr):
             facet_repr = 1
             if self._H is not None and names == True:
@@ -852,19 +881,104 @@ cdef class CombinatorialPolyhedron:
                 f = lambda i : self._V[i]
             else:
                 f = lambda i : Integer(i)
-        get_faces(self._C, dimension, facet_repr, faces_to_return, length_of_faces)
+        
         returntuple = tuple(addtuple + tuple(f(faces_to_return[facecounter][j]) for j in range(length_of_faces[facecounter])) for facecounter in range(number_of_faces))
+        
+        #cleaning up
         for i in range(number_of_faces):
             PyMem_Free(faces_to_return[i])
         PyMem_Free(faces_to_return)
         PyMem_Free(length_of_faces)
+        
         return returntuple
 
-    def incidences(self,dimension_one,dimension_two):
+    def incidences(self,dimension_one, dimension_two):
         r"""
-        Gets a tuple of all incidens between faces of dimension dimension_one and dimension_two.
+        Returns all incidences between ``dimension_one``-faces and
+        ``dimension_two``-faces.
 
-        Incidences are given as tuple of integers, where the integer corresponds to the order according to self.faces(dimension)
+        Incidences are given as tuple of integers, where the integer
+        corresponds to the enumeration according to :meth:`faces`
+        
+        EXAMPLES::
+        
+            sage: P = polytopes.cube()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.incidences(0,1)
+            ((1, 0),
+             (5, 0),
+             (4, 1),
+             (5, 1),
+             (0, 2),
+             (1, 2),
+             (0, 3),
+             (4, 3),
+             (2, 4),
+             (6, 4),
+             (4, 5),
+             (6, 5),
+             (0, 6),
+             (2, 6),
+             (1, 7),
+             (3, 7),
+             (2, 8),
+             (3, 8),
+             (5, 9),
+             (7, 9),
+             (6, 10),
+             (7, 10),
+             (3, 11),
+             (7, 11))
+            sage: C.incidences(1,2)
+            ((0, 0),
+             (7, 0),
+             (9, 0),
+             (11, 0),
+             (4, 1),
+             (8, 1),
+             (10, 1),
+             (11, 1),
+             (1, 2),
+             (5, 2),
+             (9, 2),
+             (10, 2),
+             (2, 3),
+             (6, 3),
+             (7, 3),
+             (8, 3),
+             (3, 4),
+             (4, 4),
+             (5, 4),
+             (6, 4),
+             (0, 5),
+             (1, 5),
+             (2, 5),
+             (3, 5))
+            sage: C.incidences(0,2)
+            ((1, 0),
+             (3, 0),
+             (5, 0),
+             (7, 0),
+             (2, 1),
+             (3, 1),
+             (6, 1),
+             (7, 1),
+             (4, 2),
+             (5, 2),
+             (6, 2),
+             (7, 2),
+             (0, 3),
+             (1, 3),
+             (2, 3),
+             (3, 3),
+             (0, 4),
+             (2, 4),
+             (4, 4),
+             (6, 4),
+             (0, 5),
+             (1, 5),
+             (4, 5),
+             (5, 5))
         """
         if self.is_trivial == 1:
             if dimension_one in (-1,self._dimension) and dimension_two in (-1,self._dimension):
@@ -874,6 +988,7 @@ cdef class CombinatorialPolyhedron:
             if dimension_one in (-1,self._dimension,self._dimension -1) and dimension_two in (-1,self._dimension,self._dimension -1):
                 return ((0,0),)
             return ()
+
         cdef unsigned long maxnumberincidences = get_maxnumberincidences()
         cdef unsigned long nr_incidences[1]
         nr_incidences[:] = [0]
@@ -890,33 +1005,86 @@ cdef class CombinatorialPolyhedron:
             incidence_one = lambda i : Integer(incidencepointer[i / maxnumberincidences][2*(i % maxnumberincidences)+1])
         return tuple((incidence_one(i), incidence_two(i)) for i in range(nr_incidences[0]))
 
-    def face_lattice(self,vertices=True,facets=False):
+    def face_lattice(self, vertices=False, facets=False, names=False):
         r"""
         Generates the face-lattice.
 
-        The faces in the face-lattice will be labeled by default by tuples of vertices. They can also be labeled by tuple of facets or both or as 0, 1, 2, ... where the order corresponds to the order of self.faces[0],self.faces[1],self.faces[2],...
+        INPUT:
+        
+        - ``vertices`` -- if set to ``True`` the elements in the lattice
+          will be named according to the vertices they contain.
+          
+        - ``facets`` -- if set to ``True`` the elements in the lattice
+          will be named according to the facets they are contained in.
+          
+        - ``names`` -- if set to ``False``, facets and vertices will be
+          named according to their index.
+          
+        Both vertices and facets can be set to ``True``.
+        
+        In the case of a trivial Polyhedron, which is equal to its own
+        affine hull, ``facets`` will be set to ``False``, as the
+        elements need distinct names.
+        
+        In the case of a half-space ``vertices`` and ``facets`` will be
+        set to ``False``.
+        
+        OUTPUT:
+        
+        - a :class:'~sage.combinat.posets.lattices.FiniteLatticePoset'
+        
+        .. NOTE::
+        
+            As :class:'~sage.combinat.posets.lattices.FiniteLatticePoset'
+            is awfully slow with elements having meaningful labels,
+            the default of this function is to not do so.
+        
+        
+        EXAMPLES::
+        
+            sage: P = Polyhedron(rays=[[1,0],[0,1]])
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.incidences(0,1)
+            ((0, 0), (0, 1))
+            sage: C.face_lattice()
+            Finite lattice containing 5 elements
+            sage: C.face_lattice(vertices=True).atoms()
+            [(A vertex at (0, 0),)]
+            
+            sage: P = Polyhedron(rays=[[1,0,0], [-1,0,0], [0,-1,0], [0,1,0]])
+            sage: C = CombinatorialPolyhedron(P)
+            sage: P1 = Polyhedron(rays=[[1,0], [-1,0]])
+            sage: C1 = CombinatorialPolyhedron(P1)
+            sage: C.face_lattice().is_isomorphic(C1.face_lattice())
+            True
+
+            sage: P = polytopes.permutahedron(7)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.face_lattice()
+            Finite lattice containing 47294 elements
         """
 
-        if self.is_trivial == 1 and self._dimension == -1:
-            D = DiGraph([((),),()], format='vertices_and_edges')
-            return FiniteLatticePoset(D);
+        #we must ignore part of the input to ensure an injective relabeling
         if self.is_trivial == 1:
-            facets = False #the names by the facets will not be distinct
-            if self._dimension > 0:
-                D = DiGraph([(0,1),((1,0),)], format='vertices_and_edges')
-                return FiniteLatticePoset(D);
+            facets = False
         if self.is_trivial == 2:
-            D = DiGraph([(0,1,2),((1,0),(2,1))], format='vertices_and_edges')
-            return FiniteLatticePoset(D)
+            vertices = False
+            facets = False
+        
         f_vector = self.f_vector()
         self._record_all_faces()
         dimension = self.dimension()
         dic = {}
-        for k in range(-1,dimension+1):
+        range_f_vector = [k for k in range(-1, dimension + 1) if f_vector[k+1] > 0]
+        range_f_vector1 = range_f_vector[1:-1]
+        for k in range_f_vector:
             faces = (self.faces(k),self.faces(k,facet_repr=True))
             dic[k] = tuple((faces[0][i],faces[1][i]) for i in range(f_vector[k+1]))
-        edges = tuple((i[0] + sum(f_vector[:k+1]),i[1] + sum(f_vector[:k+2])) for k in range(-1,dimension) for i in self.incidences(k,k+1))
-        all_faces = tuple(i for k in range(-1,dimension+1) for i in dic[k])
+        edges0 = ()
+        if dimension >= 0:
+            edges0 = tuple((i[0],i[1] + 1) for i in self.incidences(-1,range_f_vector[1])) #we must take care of the case, when there are no vertices
+        edges = edges0 + tuple((i[0] + sum(f_vector[:k+1]),i[1] + sum(f_vector[:k+2])) for k in range_f_vector1 for i in self.incidences(k,k+1))
+        all_faces = tuple(i for k in range_f_vector for i in dic[k])
         if vertices and facets:
             f = lambda i : all_faces[i]
         elif vertices:
@@ -932,13 +1100,37 @@ cdef class CombinatorialPolyhedron:
 
     def flag(self,*flag):
         r"""
-        Return counts the elements in that entry of the flag vector.
+        Returns the number of flags of given type.
 
-        flag(i) is equivalent to f_vector(i)
+        flag(i) is equivalent to f_vector(i).
 
-        flag(i_1,...,i_n) will count the number of tuples (face_1,...,face_n), where face_j is and i_j face and face_1 \subset face_2 ...
+        flag(i_1,...,i_n) will count the number of tuples
+        (face_1,...,face_n), where each face_j is an i_j face and
+        face_1 is contained in face_2 is contained in face_3 ...
 
-        The implementation sorts the i_1,...i_n.
+        The implementation sorts the input arguments.
+        
+        EXAMPLES::
+        
+            sage: P = polytopes.cyclic_polytope(8,30)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.flag(1,3,6)
+            14490000
+            
+            sage: P = polytopes.permutahedron(7)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.flag(1,5)
+            75600
+            sage: C.flag(1,5,5)
+            75600
+            sage: C.flag(1,5,5,6)
+            75600
+            sage: C.flag(1,5,4)
+            302400
+            sage: C.flag(1,4,5)
+            302400
+            sage: C.flag(1,3,4,5)
+            907200
         """
         for number in flag:
             if not isinstance(number,Integer):
