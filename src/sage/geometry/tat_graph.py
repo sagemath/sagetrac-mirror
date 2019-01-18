@@ -112,7 +112,7 @@ def safewalk(ribbon_graph, metric, edge, relative_boundary = [], sf_length = 1):
 
     #if the edge in not in the relative boundary we execute one algorithm
     #that takes the safewalk that starts by applying rho.
-    if rel_b == False:
+    if not rel_b:
             while (sf_length > 0):
                 sf_length = sf_length - metric[ribbon_graph._rho(end_point)-1] \
                     - metric[ribbon_graph._sigma(ribbon_graph._rho(end_point))-1]
@@ -124,7 +124,7 @@ def safewalk(ribbon_graph, metric, edge, relative_boundary = [], sf_length = 1):
 
     #if the edge is in the relative boundary we execute another algorithm
     #that returns the end of the boundary safewalk.
-    elif rel_b == True:
+    elif rel_b:
         aux_ind = _find(relative_boundary, edge)
         if (ribbon_graph._rho(edge) == \
            relative_boundary[aux_ind[0]][(aux_ind[1]-1) % 
@@ -202,7 +202,7 @@ def check_tat_property(ribbon_graph, metric, relative_boundary = [], sf_length=1
     #we run a while that checks the tat property on each edge (i.e. each
     #element of rho.
     while (i < len(ribbon_graph._rho.cycle_tuples()) and 
-           prop == True):
+           prop):
         aux_edge = ribbon_graph._rho.cycle_tuples()[i]
         #see definition of safewalk to see that it returns 0
         #if at some point the remaining length to walk is negative.
@@ -453,7 +453,7 @@ class TatGraph(SageObject):
 
         assert sf_length > 0
         assert check_tat_property(ribbon, metric, 
-                                  relative_boundary, sf_length) == True
+                                  relative_boundary, sf_length)
         self._ribbon = ribbon
         self._metric = metric
         self._sigma = ribbon._sigma
