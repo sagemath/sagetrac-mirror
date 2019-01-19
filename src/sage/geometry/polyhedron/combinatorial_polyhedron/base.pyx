@@ -135,6 +135,7 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef int _dimension #in the case of is_trivial we will manually tell the dimension
     cdef unsigned int _length_Hrep
     cdef unsigned int _length_Vrep
+    cdef bint _unbounded
     def __init__(self, data, vertices=None, facets=None, unbounded=False):
         r"""
         Initializes the combinatorial polyhedron.
@@ -149,6 +150,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef unsigned int **incidence_matrix
         cdef unsigned int **facets_pointer
         cdef unsigned int *len_facets
+        self._unbounded = unbounded
         self.is_trivial = 0
         self._equalities = ()
         if is_Polyhedron(data):
@@ -157,8 +159,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                 self._dimension = -1
                 return
             vertices = data.Vrepresentation()
-            facets = tuple(inequality for inequality in data.Hrepresentation() if inequality.is_inequality())
-            self._equalities = tuple(inequality for inequality in data.Hrepresentation() if not inequality.is_inequality())
+            facets = tuple(inequality for inequality in data.Hrepresentation())
             if (len(vertices) == data.n_lines() + 1) and (data.n_lines > 0):#in this case the Polyhedron does not have facets
                 self.is_trivial = 1
                 self._dimension = data.n_lines()
@@ -190,7 +191,15 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._V = None
             self._Vinv = None
         if facets:
-            self._H    = tuple(facets)
+            facets = tuple(facets)
+            test = [0] * len(facets)
+            for i in range(len(facets)):
+                test[i] = 1
+                if hasattr(facets[i], "is_inequality"):
+                    if not facets[i].is_inequality():
+                        test[i] = 0
+            self._H    = tuple(facets[i] for i in range(len(facets)) if test[i]) #only keeping those that are actual inequalities
+            self._equalities = tuple(facets[i] for i in range(len(facets)) if not test[i]) #the inequalities are saved here
             self._Hinv = { v : i for i,v in enumerate(self._H) }
         else:
             self._H = None
@@ -200,6 +209,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         if hasattr(data,"nrows"):#TODO: Better check for matrix
             self._length_Hrep = data.ncols()
             self._length_Vrep = data.nrows()
+            self._unbounded = unbounded
             rg = range(data.nrows())
             tup =  tuple(tuple(data[i,j] for i in rg) for j in range(data.ncols()) if not all(data[i,j] for i in rg))#transpose and get rid of equalities (which all vertices satisfie)
             if len(tup) == 0:#the case of the empty Polyhedron
@@ -225,6 +235,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             self.is_trivial = 1
             self._dimension = data
         else:#assumes the facets are given as a list of vertices/rays/lines
+            self._unbounded = unbounded
             if len(data) == 0:
                     self.is_trivial = 1
                     self._dimension = -1
@@ -282,6 +293,37 @@ cdef class CombinatorialPolyhedron(SageObject):
             return "The Combinatorial Type of a half-space of dimension %s"%self._dimension
         return "The Combinatorial Type of a Polyhedron of dimension %s with %s vertices"%(self.dimension(),len(self.vertices()))
 
+    def __reduce__(self):
+        r"""
+        Override __reduce__ to correctly pickle/unpickle.
+
+        TESTS::
+
+            sage: P = polytopes.permutahedron(5)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C1 = loads(C.dumps())
+            sage: tuple(i for i in C.face_iter(facet_repr=True)) == tuple(i for i in C1.face_iter(facet_repr=True))
+            True
+
+            sage: P = Polyhedron(rays=[[1,0,0], [-1,0,0], [0,-1,0]])
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C1 = loads(C.dumps())
+            sage: tuple(i for i in C.face_iter(facet_repr=True)) == tuple(i for i in C1.face_iter(facet_repr=True))
+            True
+
+            sage: P = Polyhedron(rays=[[1,0,0], [-1,0,0], [0,-1,0], [0,1,0]])
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C1 = loads(C.dumps())
+            sage: C.f_vector() == C1.f_vector()
+            True
+        """
+        if self.is_trivial == 1:
+            return (CombinatorialPolyhedron, (Integer(self._dimension), self.Vrepresentation(), self.Hrepresentation(), self._unbounded))
+        if self.is_trivial == 2:
+            pickletuple = tuple(0 for _ in range(self._dimension + 1))
+            return (CombinatorialPolyhedron, ((pickletuple,), self.Vrepresentation(), self.Hrepresentation(), self._unbounded))#it is important that there is exactly one tuple of the correct length
+        return (CombinatorialPolyhedron, (self.facets(), self.Vrepresentation(), self.Hrepresentation(), self._unbounded))
+
     def Vrepresentation(self):
         r"""
         Return a list of names of ``[vertices, rays, lines]``.
@@ -304,7 +346,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     def Hrepresentation(self):
         r"""
-        Returns a list of names of facets.
+        Returns a list of names of facets and possibly some equalities.
 
         EXAMPLES::
 
