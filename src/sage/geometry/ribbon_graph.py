@@ -26,13 +26,12 @@ from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.rings.integer_ring import ZZ
-from sage.rings.complex_field import *
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
 from copy import deepcopy
-from sage.functions.log import exp
 from sage.functions.trig import cos, sin
-from sage.plot.bezier_path import *
+from sage.plot.bezier_path import bezier_path
+from sage.plot.text import text
 
 #Auxiliary functions that will be used in the classes.
 
@@ -602,7 +601,6 @@ class RibbonGraph(SageObject, UniqueRepresentation):
         #We update rho
         repr_rho.append([k+1,k+2])
 
-        perm_group = self._sigma.parent()
         return RibbonGraph(PermutationGroupElement([tuple(x) for x in repr_sigma]), 
                            PermutationGroupElement([tuple(x) for x in repr_rho]))
 
@@ -1087,7 +1085,7 @@ class RibbonGraph(SageObject, UniqueRepresentation):
                         PermutationGroupElement([tuple(x) for x in aux_rho])
                         )
 
-    def draw_ribbon(self):
+    def draw_ribbon(self, thickening = False, labels = False):
         r"""
         Draw the ribbon graph and the thickening surface.
 
@@ -1095,6 +1093,11 @@ class RibbonGraph(SageObject, UniqueRepresentation):
 
         - An image of the ribbon graph and the thickening surface.
         """
+        #This first while loop organizes the vertices in order to be drawn
+        #in a sensible way. Vertices will be placed on a circle and adjacent
+        #vertices in the graph will be adjacent in the circle as long
+        #as possible
+
         vertices = self.sigma().cycle_tuples(singletons = True)
         nvertices = len(vertices)
         aux_vertices = [list(x) for x in vertices]
@@ -1115,7 +1118,7 @@ class RibbonGraph(SageObject, UniqueRepresentation):
                     break
                 else:
                     continue
-            if (1 == len(verticesp[-1]) -1 ):
+            if (i == len(verticesp[-1]) -1 ):
                 aux_flat = flatten(verticesp)
                 for s in range(len(aux_flat)):
                     if self.rho()(aux_flat[s]) not in aux_flat:
@@ -1132,34 +1135,83 @@ class RibbonGraph(SageObject, UniqueRepresentation):
         points = {v: float(2*3.14*j/nvertices) for (j,v) in enumerate(verticesp)}
         points = {v: (float(cos(points[v])), float(sin(points[v]))) for v in points}
 
+        #short straight lines come out of each vertex before starting to
+        #interpolate between each vertex.
         extremes = {}
+        extremes_plus = {}
+        extremes_thick = {}
+        kplus = 1.1
+        kmin = 0.1
         for v in points:
             v0 = points[v]
             alpha = 3.14/(len(v)-1)
             vort = (-3*v0[1]/(2*nvertices),3*v0[0]/(2*nvertices))
             for (i,n) in enumerate(v):
                 extremes[n] = (v0, (v0[0]+vort[0],v0[1]+vort[1]))
-                vort = (vort[0]*cos(alpha)-vort[1]*sin(alpha),vort[0]*sin(alpha)+vort[1]*cos(alpha))
+                extremes_plus[n] = (v0, (v0[0] + kplus*vort[0], v0[1] + \
+                                                               kplus*vort[1]))
+                extremes_thick[n] = ((v0[0] - kmin*vort[0], v0[1] - \
+                                                               kmin*vort[1]), (v0[0] + kplus*vort[0], v0[1] + \
+                                                               kplus*vort[1]))
+                vort = (vort[0]*cos(alpha)-vort[1]*sin(alpha),
+                        vort[0]*sin(alpha)+vort[1]*cos(alpha))
 
         beziers = []
         used = []
         legend = []
         vertices = []
-        beta = 6.28/(4*nvertices)
+        #coefficient that corrects thickenes in terms of number of vertices
         t = max(10,35-2*nvertices)
-        k = 1
         for e in extremes:
             ot = self.rho()(e)
             if not ot in used:
                 used.append(ot)
                 used.append(e)
-                aux_s = (extremes[e][1][0]+1.2*(extremes[e][1][0]-extremes[e][0][0]),extremes[e][1][1]+1.2*(extremes[e][1][1]-extremes[e][0][1]))
-                aux_f = (extremes[ot][1][0]+1.2*(extremes[ot][1][0]-extremes[ot][0][0]),extremes[ot][1][1]+1.2*(extremes[ot][1][1]-extremes[ot][0][1]))
+                #auxiliary points to smooth the paths
+                aux_s = (extremes[e][1][0] + 1.2*(extremes[e][1][0] - \
+                         extremes[e][0][0]), extremes[e][1][1] + \
+                         1.2*(extremes[e][1][1] - extremes[e][0][1]))
+
+                aux_f = (extremes[ot][1][0] + 1.2*(extremes[ot][1][0] - \
+                         extremes[ot][0][0]), extremes[ot][1][1] + \
+                         1.2*(extremes[ot][1][1] - extremes[ot][0][1]))
+                if thickening:
+                    #boundary
+                    beziers.append(bezier_path([[extremes[e][0], extremes[e][1]]], 
+                                                color = 'black', thickness = t))
+                    beziers.append(bezier_path([[extremes[ot][0], extremes[ot][1]]], 
+                                            color = 'black', thickness = t))
+                    beziers.append(bezier_path([[extremes[e][1], aux_s,aux_f,
+                                                extremes[ot][1]]],color = 'black',
+                                                thickness = t))
+                    #thickening
+                    beziers.append(bezier_path([[extremes_thick[e][0], extremes_thick[e][1]]], 
+                                                color = 'white', thickness = t - 4,
+                                                zorder = nvertices))
+                    beziers.append(bezier_path([[extremes_thick[ot][0], extremes_thick[ot][1]]], 
+                                            color = 'white', thickness = t - 4,
+                                            zorder = nvertices))
+                    beziers.append(bezier_path([[extremes[e][1], aux_s,aux_f,
+                                                extremes[ot][1]]],color = 'white',
+                                                thickness = t - 4))
+                if labels:
+
+                    legend.append(text(str(e), extremes[e][1], fontweight = 'bold',
+                                           color = 'black', zorder = nvertices + 4))
+                    legend.append(text(str(ot), extremes[ot][1], fontweight = 'bold',
+                                      color = 'black', zorder = nvertices + 4))
+                #ribbon graph 
+                beziers.append(bezier_path([[extremes_plus[e][0], extremes_plus[e][1]]], 
+                                            color = 'red', thickness = 1,
+                                            zorder = nvertices + 1))
+                beziers.append(bezier_path([[extremes_plus[ot][0], extremes_plus[ot][1]]], 
+                                           color = 'red', thickness = 1,
+                                           zorder = nvertices+1))
+                beziers.append(bezier_path([[extremes[e][1], aux_s,aux_f,
+                                             extremes[ot][1]]], color = 'red',
+                                             thickness = 1))
                 
-                beziers.append(bezier_path([[extremes[e][0],extremes[e][1]]], color = 'red', thickness=1,zorder=nvertices+1))
-                beziers.append(bezier_path([[extremes[ot][0],extremes[ot][1]]], color = 'red', thickness=1,zorder=nvertices+1))
-                beziers.append(bezier_path([[extremes[e][1],aux_s,aux_f,extremes[ot][1]]],color='red',thickness =1))
-        (sum(beziers)).show(aspect_ratio = 1, axes = False)
+        (sum(beziers) + sum(legend)).show(aspect_ratio = 1, axes = False)
 
 def make_ribbon(g, r):
     r"""
