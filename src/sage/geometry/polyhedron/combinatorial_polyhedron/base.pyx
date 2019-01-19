@@ -39,9 +39,9 @@ from .hasse_diagram cimport   CombinatorialPolyhedron_ptr, init_CombinatorialPol
 from cpython cimport array
 import array
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
+from sage.structure.sage_object cimport SageObject
 
-
-cdef class CombinatorialPolyhedron:
+cdef class CombinatorialPolyhedron(SageObject):
     r"""
     The class of the Combinatorial Type of a Polyehdron, a Polytope.
 
@@ -271,7 +271,7 @@ cdef class CombinatorialPolyhedron:
             return
         delete_CombinatorialPolyhedron(self._C)
 
-    def __repr__(self):
+    def _repr_(self):
         if self.is_trivial == 1:
             if self._dimension == 0:
                 return "The Combinatorial Type of the Polyhedron with one vertex"
