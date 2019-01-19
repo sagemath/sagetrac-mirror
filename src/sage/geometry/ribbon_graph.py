@@ -26,9 +26,13 @@ from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.rings.integer_ring import ZZ
+from sage.rings.complex_field import *
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
 from copy import deepcopy
+from sage.functions.log import exp
+from sage.functions.trig import cos, sin
+from sage.plot.bezier_path import *
 
 #Auxiliary functions that will be used in the classes.
 
@@ -1082,6 +1086,80 @@ class RibbonGraph(SageObject, UniqueRepresentation):
                         PermutationGroupElement([tuple(x) for x in aux_sigma]), 
                         PermutationGroupElement([tuple(x) for x in aux_rho])
                         )
+
+    def draw_ribbon(self):
+        r"""
+        Draw the ribbon graph and the thickening surface.
+
+        OUTPUT:
+
+        - An image of the ribbon graph and the thickening surface.
+        """
+        vertices = self.sigma().cycle_tuples(singletons = True)
+        nvertices = len(vertices)
+        aux_vertices = [list(x) for x in vertices]
+        verticesp= []
+        verticesp.append(aux_vertices[0])
+        aux_vertices.pop(0)
+        while len(aux_vertices):
+            for i in range(len(verticesp[-1])):
+                auxv = self.rho()(verticesp[-1][i])
+                if auxv in flatten(aux_vertices):
+                    pos = _find(aux_vertices, auxv)
+                    atuple = []
+                    aux_l = len(aux_vertices[pos[0]])
+                    for k in range(aux_l):
+                        atuple.append(aux_vertices[pos[0]][(pos[1]+1+k) % aux_l])
+                    verticesp.append(atuple)
+                    aux_vertices.pop(pos[0])
+                    break
+                else:
+                    continue
+            if (1 == len(verticesp[-1]) -1 ):
+                aux_flat = flatten(verticesp)
+                for s in range(len(aux_flat)):
+                    if self.rho()(aux_flat[s]) not in aux_flat:
+                        auxv = self.rho()(aux_flat[s])
+                        pos = _find(aux_vertices,auxv)
+                        atuple = []
+                        aux_l = len(aux_vertices[pos[0]])
+                        for k in range(aux_l):
+                            atuple.append(aux_vertices[pos[0]][(pos[1]+k) % aux_l])
+                        verticesp.append(atuple)
+                        aux_vertices.pop(pos[0])
+                        break
+        verticesp = [tuple(x) for x in verticesp]
+        points = {v: float(2*3.14*j/nvertices) for (j,v) in enumerate(verticesp)}
+        points = {v: (float(cos(points[v])), float(sin(points[v]))) for v in points}
+
+        extremes = {}
+        for v in points:
+            v0 = points[v]
+            alpha = 3.14/(len(v)-1)
+            vort = (-3*v0[1]/(2*nvertices),3*v0[0]/(2*nvertices))
+            for (i,n) in enumerate(v):
+                extremes[n] = (v0, (v0[0]+vort[0],v0[1]+vort[1]))
+                vort = (vort[0]*cos(alpha)-vort[1]*sin(alpha),vort[0]*sin(alpha)+vort[1]*cos(alpha))
+
+        beziers = []
+        used = []
+        legend = []
+        vertices = []
+        beta = 6.28/(4*nvertices)
+        t = max(10,35-2*nvertices)
+        k = 1
+        for e in extremes:
+            ot = self.rho()(e)
+            if not ot in used:
+                used.append(ot)
+                used.append(e)
+                aux_s = (extremes[e][1][0]+1.2*(extremes[e][1][0]-extremes[e][0][0]),extremes[e][1][1]+1.2*(extremes[e][1][1]-extremes[e][0][1]))
+                aux_f = (extremes[ot][1][0]+1.2*(extremes[ot][1][0]-extremes[ot][0][0]),extremes[ot][1][1]+1.2*(extremes[ot][1][1]-extremes[ot][0][1]))
+                
+                beziers.append(bezier_path([[extremes[e][0],extremes[e][1]]], color = 'red', thickness=1,zorder=nvertices+1))
+                beziers.append(bezier_path([[extremes[ot][0],extremes[ot][1]]], color = 'red', thickness=1,zorder=nvertices+1))
+                beziers.append(bezier_path([[extremes[e][1],aux_s,aux_f,extremes[ot][1]]],color='red',thickness =1))
+        (sum(beziers)).show(aspect_ratio = 1, axes = False)
 
 def make_ribbon(g, r):
     r"""
