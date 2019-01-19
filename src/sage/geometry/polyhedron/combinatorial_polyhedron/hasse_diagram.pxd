@@ -9,6 +9,8 @@ cdef extern from "hasse_diagram.h":
     cdef unsigned long ** incidences(CombinatorialPolyhedron_ptr C, int dimension_one, int dimension_two, unsigned long * nr_incidences, unsigned int * twisted)
     cdef void record_all_faces(CombinatorialPolyhedron_ptr C)
     cdef unsigned long get_faces(CombinatorialPolyhedron_ptr C, int dimension, unsigned int facet_repr, unsigned int **faces_to_return, unsigned int *length_of_faces)
+    cdef unsigned int face_iterator(CombinatorialPolyhedron_ptr C, unsigned int *Vface_to_return, unsigned int *Vlength, unsigned int *Hface_to_return, unsigned int *Hlength)
+    cdef void face_iterator_init(CombinatorialPolyhedron_ptr C, int dimension, unsigned int vertex_repr, unsigned int facet_repr)
     cdef unsigned long  get_flag(CombinatorialPolyhedron_ptr C, unsigned int *flagarray, unsigned int length)
     cdef void delete_CombinatorialPolyhedron(CombinatorialPolyhedron_ptr)
     cdef unsigned long get_maxnumberedges()

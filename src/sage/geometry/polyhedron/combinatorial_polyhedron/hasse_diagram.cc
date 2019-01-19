@@ -79,9 +79,9 @@ inline unsigned int trailing_zero_workaround(chunktype chunk){
 
 inline unsigned int naive_popcount(uint64_t A){
     unsigned int count = 0;
-    while (A){ 
-        count += A & 1; 
-        A >>= 1; 
+    while (A){
+        count += A & 1;
+        A >>= 1;
     }
     return count;
 }
@@ -155,6 +155,7 @@ CombinatorialPolyhedron::~CombinatorialPolyhedron(){
         }
         delete[] incidences;
     }
+    face_iterator_destroy();
 }
 
 unsigned int CombinatorialPolyhedron::get_dimension(){
@@ -293,6 +294,106 @@ void CombinatorialPolyhedron::get_faces(int face_dimension, unsigned int facet_r
         return bitrep_to_list(allfaces[face_dimension_unsigned], allfaces_counter[face_dimension_unsigned], faces_to_return, length_of_faces, 0);
     else
         return bitrep_to_list(allfaces_facet_repr[face_dimension_unsigned], allfaces_counter[face_dimension_unsigned], faces_to_return, length_of_faces, 1);
+}
+
+//initializes the face_iterator
+void CombinatorialPolyhedron::face_iterator_init(int record_dimension, unsigned int vertex_repr, unsigned int facet_repr){
+    if (face_iterator_is_initialized){
+        face_iterator_destroy();//in case there is some face_iterator around, that wasn't used up
+    }
+    const unsigned int dim = get_dimension();
+    allocate_newfaces();
+    face_iterator_is_initialized = 1;
+    face_iterator_current_dimension = dimension - 1;
+    if (polar){
+        if (record_dimension < 0){
+            face_iterator_record_dimension = record_dimension;
+        }
+        else {
+            face_iterator_record_dimension = ((int) dimension) - 1 - record_dimension;
+        }
+        face_iterator_vertex_repr = facet_repr;
+        face_iterator_facet_repr = vertex_repr;
+    }
+    else {
+        face_iterator_record_dimension = record_dimension;
+        face_iterator_vertex_repr = vertex_repr;
+        face_iterator_facet_repr = facet_repr;
+    }
+
+    //in case we have already recorded all faces in the given dimension, we might save time, just returning the stored lists
+    if ((0 < face_iterator_record_dimension) && (face_iterator_record_dimension < (int) dimension - 1) && allfaces_are_allocated && allfaces_are_allocated[face_iterator_record_dimension]){
+        face_iterator_counter = 0;
+        face_iterator_is_initialized = 2;
+        return;
+    }
+
+    face_iterator_yet_to_yield = nr_facets;
+    face_iterator_nr_faces = new unsigned int[dim]();
+    face_iterator_nr_faces[dimension -1] = nr_facets;
+    face_iterator_nr_forbidden = new unsigned int[dim]();
+    face_iterator_nr_forbidden[dimension -1] = 0;
+    face_iterator_first_time = new unsigned int[dim]();
+    face_iterator_first_time[dimension - 1] = 1;
+}
+
+
+//returns one face at a time of all faces of record_dimension dimension
+//returns all faces if dimension == -2
+//returns not the faces in dimesion ``-1`` and dimesion ``dimension``
+inline unsigned int CombinatorialPolyhedron::face_iterator_call(unsigned int *Vface_to_return, unsigned int *Vlength, unsigned int *Hface_to_return, unsigned int *Hlength){
+    unsigned int return_length = 0;
+    if (!face_iterator_is_initialized)
+        return 0;
+
+    if (face_iterator_is_initialized == 2){
+        if (face_iterator_counter < allfaces_counter[face_iterator_record_dimension]){
+            if (!polar){
+                if (face_iterator_vertex_repr)
+                    bitrep_to_list(allfaces[face_iterator_record_dimension][face_iterator_counter], Vface_to_return, Vlength, 0);
+                if (face_iterator_facet_repr)
+                    bitrep_to_list(allfaces_facet_repr[face_iterator_record_dimension][face_iterator_counter], Hface_to_return, Hlength, 1);
+                face_iterator_counter++;
+                return 1;
+            }
+            else {
+                if (face_iterator_vertex_repr)
+                    bitrep_to_list(allfaces[face_iterator_record_dimension][face_iterator_counter], Hface_to_return, Hlength, 0);
+                if (face_iterator_facet_repr)
+                    bitrep_to_list(allfaces_facet_repr[face_iterator_record_dimension][face_iterator_counter], Vface_to_return, Vlength, 1);
+                face_iterator_counter++;
+                return 1;
+            }
+        }
+        return 0;
+    }
+
+    while ((!return_length) && (face_iterator_current_dimension != dimension)){
+        if (polar)
+            return_length = face_iterator(Hface_to_return, Hlength, Vface_to_return, Vlength);
+        else
+            return_length = face_iterator(Vface_to_return, Vlength, Hface_to_return, Hlength);
+    }
+
+
+    //in this case the iterator is used up and we should clean up
+    if (!return_length) {
+        face_iterator_destroy();
+    }
+    return return_length;
+}
+
+void CombinatorialPolyhedron::face_iterator_destroy(){
+    face_iterator_is_initialized = 0;
+    if (face_iterator_nr_faces)
+        delete[] face_iterator_nr_faces;
+    if (face_iterator_nr_forbidden)
+        delete[] face_iterator_nr_forbidden;
+    if (face_iterator_first_time)
+        delete[] face_iterator_first_time;
+    face_iterator_nr_faces = NULL;
+    face_iterator_nr_forbidden = NULL;
+    face_iterator_first_time = NULL;
 }
 
 void CombinatorialPolyhedron::record_all_faces(){
@@ -584,11 +685,11 @@ inline unsigned int CombinatorialPolyhedron::get_next_level(chunktype **faces, u
         if(is_subset(nextfaces[j],nextfaces[k])){
         addfacearray[j] = 0;
         break;
-        }   
-    }   
+        }
+    }
     if (!addfacearray[j]) {
         continue;
-    }   
+    }
     for (k = 0; k < nr_forbidden; k++){//we do not want to double count any faces, the faces in forbidden we have considered already
                 if(is_subset(nextfaces[j],forbidden[k])){
                     addfacearray[j] = 0;
@@ -782,7 +883,73 @@ inline void CombinatorialPolyhedron::record_face_facet_repr(chunktype *face, uns
     delete[] array;
 }
 
-
+//copied mostly from record_faces
+inline unsigned int CombinatorialPolyhedron::face_iterator(unsigned int *Vface_to_return, unsigned int *Vlength, unsigned int *Hface_to_return, unsigned int *Hlength){
+    unsigned int current_dimension = face_iterator_current_dimension;
+    if (current_dimension == dimension){
+        return 0;//the function is not supposed to be called in this case
+    }
+    unsigned int nr_faces = face_iterator_nr_faces[current_dimension];
+    unsigned int nr_forbidden = face_iterator_nr_forbidden[current_dimension];
+    chunktype **faces;
+    if (current_dimension == dimension -1)
+        faces = facets;
+    else
+        faces = newfaces2[current_dimension];
+    unsigned int i;
+    unsigned long newfacescounter;
+    if ((face_iterator_record_dimension > -2) && (face_iterator_record_dimension != (int) current_dimension))
+        face_iterator_yet_to_yield = 0;
+    if (face_iterator_yet_to_yield > 0){
+        if (face_iterator_vertex_repr){
+            bitrep_to_list(faces[face_iterator_yet_to_yield - 1], Vface_to_return, Vlength, 0);
+        }
+        if (face_iterator_facet_repr){
+            unsigned int counter = 0;
+            for (i = 0; i < nr_facets; i++){
+                if (is_subset(faces[face_iterator_yet_to_yield - 1], facets[i])){
+                    Hface_to_return[counter] = i;
+                    counter++;
+                }
+            }
+            Hlength[0] = counter;
+        }
+        face_iterator_yet_to_yield--;
+        return 1;
+    }
+    if ((int) current_dimension <= face_iterator_record_dimension){
+        face_iterator_current_dimension++;
+        return 0;
+    }
+    if (current_dimension == 0){
+        face_iterator_current_dimension++;
+        return 0;
+    }
+    if (nr_faces <= 1){
+        face_iterator_current_dimension++;
+        return 0;
+    }
+    i = nr_faces - 1;
+    face_iterator_nr_faces[current_dimension]--;
+    if (!face_iterator_first_time[current_dimension]){ //this is necessary, as we cannot at the new forbidden face at the end of the function
+        forbidden[nr_forbidden] = faces[i+1];
+        face_iterator_nr_forbidden[current_dimension]++;
+        nr_forbidden = face_iterator_nr_forbidden[current_dimension];
+    }
+    else {
+        face_iterator_first_time[current_dimension] = 0;
+    }
+    newfacescounter = get_next_level(faces,i+1,i,newfaces[current_dimension-1],newfaces2[current_dimension-1],nr_forbidden);//get the facets contained in faces[i] but not in any of the forbidden
+    if (newfacescounter){
+        face_iterator_first_time[current_dimension - 1] = 1;
+        face_iterator_nr_faces[current_dimension - 1] = (unsigned int) newfacescounter;//newfacescounter is a small number, I had it be a long in order to fit addition to the f_vector
+        face_iterator_nr_forbidden[current_dimension - 1] = nr_forbidden;
+        face_iterator_yet_to_yield = (unsigned int) newfacescounter;
+        face_iterator_current_dimension--;
+        return 0;
+    }
+    return 0;
+}
 
 void CombinatorialPolyhedron::vertex_facet_incidences(){
     for (unsigned int i = 0; i < nr_facets; i++)
@@ -822,7 +989,7 @@ unsigned long CombinatorialPolyhedron::get_flag_number(unsigned int *array, unsi
     unsigned long **saverarray = new unsigned long *[const_len];
     for (i= 0; i < len; i++){
         const unsigned int len_array = f_vector[array[i]+1];
-        saverarray[i] = new unsigned long [len_array](); 
+        saverarray[i] = new unsigned long [len_array]();
     }
     unsigned int counter = 1;
     if (array[0] == 0){
@@ -1129,7 +1296,7 @@ void CombinatorialPolyhedron::allocate_newfaces(){
     unsigned int i,j;
     const unsigned int const_dimension = dimension;
     const unsigned int const_facets = nr_facets;
-    
+
     forbidden = new chunktype *[const_facets]();
     newfaces = new chunktype **[const_dimension -1 ]();
     newfaces2 = new chunktype **[const_dimension -1 ]();
@@ -1188,7 +1355,7 @@ void CombinatorialPolyhedron::allocate_allfaces(unsigned int dimension_to_alloca
         allfaces_facet_repr = new chunktype **[const_dimension]();
     }
     if ((0 <= dimension_to_allocate) && (dimension_to_allocate < dimension))
-        { 
+        {
         if (!allfaces_are_allocated[dimension_to_allocate]){
             const unsigned long size_one = f_vector[dimension_to_allocate+1];
             allfaces[dimension_to_allocate] = new chunktype *[size_one]();
@@ -1266,6 +1433,14 @@ void record_all_faces(CombinatorialPolyhedron_ptr C){
 
 void get_faces(CombinatorialPolyhedron_ptr C, int dimension, unsigned int facet_repr, unsigned int **faces_to_return, unsigned int *length_of_faces){
     return (*C).get_faces(dimension, facet_repr, faces_to_return, length_of_faces);
+}
+
+unsigned int face_iterator(CombinatorialPolyhedron_ptr C, unsigned int *Vface_to_return, unsigned int *Vlength, unsigned int *Hface_to_return, unsigned int *Hlength){
+    return (*C).face_iterator_call(Vface_to_return, Vlength, Hface_to_return, Hlength);
+}
+
+void face_iterator_init(CombinatorialPolyhedron_ptr C, int dimension, unsigned int vertex_repr, unsigned int facet_repr){
+    return (*C).face_iterator_init(dimension, vertex_repr, facet_repr);
 }
 
 unsigned long get_flag(CombinatorialPolyhedron_ptr C, unsigned int * flagarray, unsigned int length){
