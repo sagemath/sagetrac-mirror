@@ -33,6 +33,7 @@ from sage.functions.trig import cos, sin
 from sage.plot.bezier_path import bezier_path
 from sage.plot.text import text
 from sage.plot.point import point
+from sage.repl.rich_output.pretty_print import show
 
 #Auxiliary functions that will be used in the classes.
 
@@ -1170,58 +1171,120 @@ class RibbonGraph(SageObject, UniqueRepresentation):
                 used.append(e)
                 #auxiliary points to smooth the paths
                 aux_s = (extremes[e][1][0] + 1.2*(extremes[e][1][0] - \
-                         extremes[e][0][0]), extremes[e][1][1] + \
-                         1.2*(extremes[e][1][1] - extremes[e][0][1]))
+                         extremes[e][0][0]),
+                         extremes[e][1][1] + 1.2*(extremes[e][1][1] -  \
+                         extremes[e][0][1]))
 
                 aux_f = (extremes[ot][1][0] + 1.2*(extremes[ot][1][0] - \
-                         extremes[ot][0][0]), extremes[ot][1][1] + \
-                         1.2*(extremes[ot][1][1] - extremes[ot][0][1]))
+                         extremes[ot][0][0]), 
+                         extremes[ot][1][1] + 1.2*(extremes[ot][1][1] - \
+                         extremes[ot][0][1]))
+
                 if thickening:
                     #boundary
-                    beziers.append(bezier_path([[extremes[e][0], extremes[e][1]]], 
-                                                color = 'black', thickness = t))
-                    beziers.append(bezier_path([[extremes[ot][0], extremes[ot][1]]], 
-                                            color = 'black', thickness = t))
-                    beziers.append(bezier_path([[extremes[e][1], aux_s,aux_f,
-                                                extremes[ot][1]]],color = 'black',
-                                                thickness = t))
+                    beziers.append(bezier_path([[extremes[e][0], 
+                                                 extremes[e][1]]], 
+                                                 color = 'black', 
+                                                 thickness = t))
+                    beziers.append(bezier_path([[extremes[ot][0], 
+                                                 extremes[ot][1]]], 
+                                                 color = 'black', 
+                                                 thickness = t))
+                    beziers.append(bezier_path([[extremes[e][1], 
+                                                 aux_s,aux_f,
+                                                 extremes[ot][1]]], 
+                                                 color = 'black',
+                                                 thickness = t))
                     #thickening
-                    beziers.append(bezier_path([[extremes_thick[e][0], extremes_thick[e][1]]], 
-                                                color = 'white', thickness = t - 4,
-                                                zorder = nvertices))
-                    beziers.append(bezier_path([[extremes_thick[ot][0], extremes_thick[ot][1]]], 
-                                            color = 'white', thickness = t - 4,
-                                            zorder = nvertices))
-                    beziers.append(bezier_path([[extremes[e][1], aux_s,aux_f,
-                                                extremes[ot][1]]],color = 'white',
+                    beziers.append(bezier_path([[extremes_thick[e][0],
+                                                 extremes_thick[e][1]]], 
+                                                 color = 'white', 
+                                                 thickness = t - 4,
+                                                 zorder = nvertices))
+                    beziers.append(bezier_path([[extremes_thick[ot][0],
+                                                 extremes_thick[ot][1]]], 
+                                                 color = 'white', 
+                                                 thickness = t - 4,
+                                                 zorder = nvertices))
+                    beziers.append(bezier_path([[extremes[e][1], 
+                                                 aux_s, aux_f,
+                                                 extremes[ot][1]]], 
+                                                 color = 'white',
                                                 thickness = t - 4))
+
+                    #control vertices to make sure that the whole picture is
+                    #shown
+                    beziers.append(point((-1.2,0), size = t,
+                                         color = 'white', 
+                                         zorder = 1))
+                    beziers.append(point((1.2,0), size = t,
+                                         color = 'white', 
+                                         zorder = 1))
+                    beziers.append(point((0,1.2), size = t,
+                                         color = 'white', 
+                                         zorder = 1))
+                    beziers.append(point((0,-1.2), size = t,
+                                         color = 'white', 
+                                         zorder = 1))
                 if labels:
 
-                    beziers.append(text(str(e), extremes[e][1], fontweight = 'bold',
-                                           color = 'black', zorder = nvertices + 4))
+                    beziers.append(text(str(e), extremes[e][1], 
+                                                fontweight = 'bold',
+                                                color = 'black', 
+                                                zorder = nvertices + 4))
                     beziers.append(text(str(ot), extremes[ot][1],
-                                        fontweight = 'bold',
-                                        color = 'black', zorder = nvertices + 4))
+                                                 fontweight = 'bold',
+                                                 color = 'black', 
+                                                 zorder = nvertices + 4))
                 if ribbon:
 
                     #ribbon graph 
-                    beziers.append(bezier_path([[extremes_plus[e][0], extremes_plus[e][1]]], 
-                                                color = 'red', thickness = 1,
-                                                zorder = nvertices + 1))
-                    beziers.append(bezier_path([[extremes_plus[ot][0], extremes_plus[ot][1]]], 
-                                            color = 'red', thickness = 1,
-                                            zorder = nvertices+1))
-                    beziers.append(bezier_path([[extremes[e][1], aux_s,aux_f,
-                                                extremes[ot][1]]], color = 'red',
-                                                thickness = 1))
-                    beziers.append(point(extremes[e][0], size = t,
+                    beziers.append(bezier_path([[extremes[e][0],
+                                                 extremes[e][1]]], 
+                                                 color = 'white', 
+                                                 thickness = 6,
+                                                 zorder = nvertices + 1))
+                    beziers.append(bezier_path([[extremes[ot][0],
+                                                 extremes[ot][1]]], 
+                                                 color = 'white', 
+                                                 thickness = 6,
+                                                 zorder = nvertices+1))
+                    beziers.append(bezier_path([[extremes_plus[e][0],
+                                                 extremes_plus[e][1]]], 
+                                                 color = 'red', 
+                                                 thickness = 1,
+                                                 zorder = nvertices + 1))
+                    beziers.append(bezier_path([[extremes_plus[ot][0],
+                                                 extremes_plus[ot][1]]], 
+                                                 color = 'red', 
+                                                 thickness = 1,
+                                                 zorder = nvertices+1))
+                    beziers.append(bezier_path([[extremes[e][1], 
+                                                 aux_s, aux_f,
+                                                 extremes[ot][1]]], 
+                                                 color = 'white',
+                                                 thickness = 6))
+                    beziers.append(bezier_path([[extremes[e][1], 
+                                                 aux_s, aux_f,
+                                                 extremes[ot][1]]], 
+                                                 color = 'red',
+                                                 thickness = 1))
+                    #vertices
+                    beziers.append(point(extremes[e][0], 
+                                         size = t+2,
                                          color = 'red', 
                                          zorder = nvertices + 4))
-                    beziers.append(point(extremes[ot][0], size = t,
+                    beziers.append(point(extremes[ot][0], 
+                                         size = t+2,
                                          color = 'red', 
                                          zorder = nvertices + 4))
-                
-        (sum(beziers) + sum(legend)).show(aspect_ratio = 1, axes = False)
+
+        #Finally show all the images. Note that the content of beziers depends
+        #on the input in the cached_method-
+
+        show((sum(beziers) + sum(legend)), aspect_ratio = 1, 
+                                           axes = False, 
+                                           figsize = 8)
 
 def make_ribbon(g, r):
     r"""
