@@ -50,8 +50,7 @@ def genus_hash(a,b):
     An integer, the genus of the connected sum of two surfaces having
     genus a and b. See p. 304 of [Neu1981].
 
-    EXAMPLES:
-        sage: from sage.geometry.plumbing_graph import genus_hash
+    EXAMPLES::
         sage: genus_hash(2,3)
         5
         sage: genus_hash(-2,3)
@@ -89,9 +88,8 @@ def big_genus_hash(S):
     An integer, the genus of the connected sum of surfaces with
     genera the entries of S.
 
-    EXAMPLES:
+    EXAMPLES::
 
-        sage: from sage.geometry.plumbing_graph import big_genus_hash
         sage: big_genus_hash([1,2,3])
         6
         sage: big_genus_hash([1,2,-3])
@@ -158,7 +156,7 @@ class PlumbingGraph():
         element in the lists p and n should be a set of one or two integers
         between 0 and N-1.
     
-        EXAMPLES:
+        EXAMPLES::
             sage: mb = [-2,-3]
             sage: g = [1,-1]
             sage: r = [0,1]
@@ -194,9 +192,23 @@ class PlumbingGraph():
 ########################################################################
 # basic construction
     
-    def new_vertex_name(self):
+    def _new_vertex_name(self):
         r"""
         Finds a nonnegative integer which is not the name of any vertex.
+        
+        OUTPUT:
+        
+        A nonnegative integer.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P._new_vertex_name()
+            0
+            sage: P.add_vertex(-2,0,0)
+            0
+            sage: P._new_vertex_name()
+            1
         """
         i = 0
         while i in self.vertices:
@@ -213,8 +225,17 @@ class PlumbingGraph():
         - ``g`` -- the genus associated to the new vertex,
         - ``r`` -- the number of boundary components of the base surface
           associated to the new vertex.
+
+        EXAMPLES::
+            sage: P = PlumbingGraph()
+            sage: P
+            An empty plumbing graph
+            sage: P.add_vertex(-2,0,0)
+            0
+            sage: P
+            A plumbing graph with one vertex
         """
-        n = self.new_vertex_name()
+        n = self._new_vertex_name()
         self.vertices = self.vertices.union({n})
         self.mb.update({n:mb})
         self.g.update({n:g})
@@ -224,10 +245,17 @@ class PlumbingGraph():
     def delete_vertex(self, i):
         r"""
         Deletes the vertex i, and all adjacent edges.
-    
+        
         INPUT:
         
         - ``i`` -- name of the vertex to be deleted.
+        
+        EXAMPLES::
+        
+            sage: P = PlumbingGraph()
+            sage: P.add_vertex(-2,0,1)
+            0
+            sage: P.delete_vertex(0)
         """
         if not i in self.vertices:
             print("Can't delete a vertex which isn't a vertex")
@@ -240,9 +268,25 @@ class PlumbingGraph():
         del self.r[i]
         self.vertices -= {i}
 
-    def new_edge_name(self):
+    def _new_edge_name(self):
         r"""
         Finds a nonnegative integer which is not the name of any edge.
+
+        OUTPUT:
+
+        A nonnegative integer.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P._new_edge_name()
+            0
+            sage: P.add_vertex(-4,3,0)
+            0
+            sage: P.add_edge({0,0})
+            0
+            sage: P._new_edge_name()
+            1
         """
         e = 0
         while e in self.edges:
@@ -257,6 +301,20 @@ class PlumbingGraph():
     
         - ``A`` -- a set of one or two vertices,
         - ``epsilon`` -- either 1 or -1, the decoration of the new edge.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_vertex(-2,3,0)
+            0
+            sage: P.add_vertex(-2,0,0)
+            1
+            sage: P.add_edge({0})
+            0
+            sage: P.add_edge({1},-1)
+            1
+            sage: P.add_edge({0,1},1)
+            2
         """
         if not A.issubset(self.vertices):
             print("Edge must join two vertices")
@@ -264,7 +322,7 @@ class PlumbingGraph():
         if not len(A) in {1,2}:
             print("Edge must join two vertices")
             return
-        e = self.new_edge_name()
+        e = self._new_edge_name()
         self.edges = self.edges.union({e})
         self.adj.update({ e:A })
         self.epsilon.update({ e:epsilon })
@@ -277,6 +335,21 @@ class PlumbingGraph():
         INPUT:
         
         - ``e`` -- the name of the edge to be deleted.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_vertex(-2,3,0)
+            0
+            sage: P.add_vertex(-2,0,0)
+            1
+            sage: P.add_edge({0})
+            0
+            sage: P.add_edge({1},-1)
+            1
+            sage: P.add_edge({0,1},1)
+            2
+            sage: P.delete_edge(2)
         """
         if not e in self.edges:
             print("Can't delete an edge which isn't an edge")
@@ -300,6 +373,14 @@ class PlumbingGraph():
         OUTPUT
 
         The last vertex of the bamboo.
+        
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_bamboo(5/2)
+            1
+            sage: P
+            A plumbing graph with 2 vertices
         """
         # Sage will at some point complain if x is an int. Silly. How do
         # rationals even work in this language?
@@ -326,6 +407,14 @@ class PlumbingGraph():
         OUTPUT:
 
         A vertex on the cycle.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_cycle(9/4)
+            3
+            sage: P
+            A plumbing graph with 4 vertices
         """
         i = self.add_bamboo(x)
         c = self.component(i)
@@ -353,6 +442,14 @@ class PlumbingGraph():
         OUTPUT:
 
         The central vertex of the star-shaped graph.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-2,4,[5/2, 9/4])
+            0
+            sage: P
+            A plumbing graph with 7 vertices
         """
         central = self.add_vertex(mb, g, r)
         for x in X:
@@ -370,6 +467,16 @@ class PlumbingGraph():
         OUTPUT:
         
         Returns a PlumbingGraph object.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-2,4,[2,2])
+            0
+            sage: P.add_bamboo(4/3)
+            5
+            sage: P.induced_subgraph({3,4,5})
+            A plumbing graph with 3 vertices
         """
         R = PlumbingGraph()
         L = list(S)
@@ -397,6 +504,22 @@ class PlumbingGraph():
         OUTPUT:
         
         True or False, depending on whether e is a loop or not.
+
+        EXAMPLES::
+        
+            sage: P = PlumbingGraph()
+            sage: P.add_vertex(-2,0,0)
+            0
+            sage: P.add_vertex(-2,0,0)
+            1
+            sage: P.add_edge({0})
+            0
+            sage: P.add_edge({0,1})
+            1
+            sage: P.is_loop(0)
+            True
+            sage: P.is_loop(1)
+            False
         """
         if len(self.adj[e]) == 1:
             return True
@@ -413,7 +536,23 @@ class PlumbingGraph():
 
         OUTPUT:
 
-        True or False
+        True or False.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_vertex(-2,0,0)
+            0
+            sage: P.add_vertex(-2,0,0)
+            1
+            sage: P.add_edge({0})
+            0
+            sage: P.add_edge({0,1})
+            1
+            sage: P.has_loop(0)
+            True
+            sage: P.has_loop(1)
+            False
         """
         for e in self.adjacent_edges(i):
             if self.is_loop(e):
@@ -431,6 +570,20 @@ class PlumbingGraph():
         OUTPUT:
         
         An integer, the degree of i.
+
+        EXAMPLE:
+        
+        We construct here the E_8 graph, and check some degrees:
+        
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-2,0,[2,3/2,5/3])
+            0
+            sage: P.degree(0)
+            3
+            sage: P.degree(1)
+            1
+            sage: P.degree(2)
+            2
         """
         d = 0
         for e in self.edges:
@@ -454,7 +607,21 @@ class PlumbingGraph():
         The set containing all vertices of self adjacent to i. This
         does not include i, even if i has a loop.
 
-        QUESTION: Should i be included as a neighbor, if it has a loop?
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_vertex(-2,0,0)
+            0
+            sage: P.add_vertex(-2,0,0)
+            1
+            sage: P.add_vertex(-2,0,0)
+            2
+            sage: P.add_edge({0,1})
+            0
+            sage: P.add_edge({1,2})
+            1
+            sage: P.neighbors(1)
+            {0, 2}
         """
         nbrs = set([])
         for e in self.edges:
@@ -474,6 +641,22 @@ class PlumbingGraph():
         OUTPUT:
         
         A vertex (a nonnegative integer) or -1.
+
+        EXAMPLES::
+        
+            sage: P = PlumbingGraph()
+            sage: P.add_vertex(-2,0,0)
+            0
+            sage: P.add_vertex(-2,0,0)
+            1
+            sage: P.add_vertex(-2,0,0)
+            2
+            sage: P.add_edge({1,2})
+            0
+            sage: P.neighbor(0)
+            -1
+            sage: P.neighbor(1)
+            2
         """
         L = list(self.neighbors(i))
         if len(L) == 0:
@@ -493,17 +676,41 @@ class PlumbingGraph():
         
         A set containing those edges in the graph adjacent to the
         vertex i.
+
+        EXAMPLES::
+        
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-2,0,[5/4, 9/2, 5/3, 19/3])
+            0
+            sage: P.adjacent_edges(0)
+            {0, 4, 6, 8}
         """
         return { e for e in self.edges if i in self.adj[e] }
 
     def intersection_matrix(self):
         r"""
-
-        Comment: OK, seriously, how do you want me to define a matrix
-        with integral coefficients? Which library? What?
-
         Returns the intersection matrix associated with the plumbing
         graph.
+
+        OUTPUT:
+
+        An n by n integral matrix, where n is the number of vertices.
+
+        EXAMPLES::
+        
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-2,4,[5/4,5/3,5/2])
+            0
+            sage: P.intersection_matrix()
+            [-2  1  0  0  0  1  0  1  0]
+            [ 1 -2  1  0  0  0  0  0  0]
+            [ 0  1 -2  1  0  0  0  0  0]
+            [ 0  0  1 -2  1  0  0  0  0]
+            [ 0  0  0  1 -2  0  0  0  0]
+            [ 1  0  0  0  0 -2  1  0  0]
+            [ 0  0  0  0  0  1 -3  0  0]
+            [ 1  0  0  0  0  0  0 -3  1]
+            [ 0  0  0  0  0  0  0  1 -2]
         """
         # here we assume no loops, let's clarify what to do with loops.
 
@@ -527,6 +734,23 @@ class PlumbingGraph():
         r"""
         Checks whether the plumbing graph is the graph associated
         with a resolution of an isolated complex surface singularity.
+
+        OUTPUT:
+
+        True or False
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-2,0,[2,3/2,3/2])
+            0
+            sage: P.is_analytic_link()
+            True
+            sage: Q = PlumbingGraph()
+            sage: Q.add_Seifert(-2,0,[-2,-2,-2,-2])
+            0
+            sage: Q.is_analytic_link()
+            False
         """
         for e in self.edges:
             if self.epsilon[e] == -1:
@@ -548,13 +772,24 @@ class PlumbingGraph():
         
         INPUT:
         
-        - ``i`` -- a vertex
-
+        - ``i`` -- a vertex.
+        
         OUTPUT:
-
+        
         The set of vertices in the connected component of the vertex
         i.
-
+        
+        EXAMPLES::
+        
+            sage: P = PlumbingGraph()
+            sage: P.add_bamboo(5/3)
+            1
+            sage: P.add_bamboo(9/8)
+            9
+            sage: P.component(0)
+            {0, 1}
+            sage: P.component(4)
+            {2, 3, 4, 5, 6, 7, 8, 9}
         """
         if not i in self.vertices:
             return
@@ -574,6 +809,20 @@ class PlumbingGraph():
         Returns a list whose elements are the sets of vertices in
         the connected components of the graph. In particular, the
         list has length the number of connected components.
+
+        OUTPUT:
+        
+        A list of sets.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-2,4,[5/3,10/3,11])
+            0
+            sage: P.add_bamboo(14/3)
+            8
+            sage: P.components()
+            [{0, 1, 2, 3, 4, 5, 6}, {7, 8}]
         """
         S = {v for v in self.vertices}
         C = []
@@ -590,12 +839,25 @@ class PlumbingGraph():
         INPUT:
         
         - ``i`` -- a vertex.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-2,4,[5/3,10/3,11])
+            0
+            sage: P.add_bamboo(14/3)
+            8
+            sage: P.components()
+            [{0, 1, 2, 3, 4, 5, 6}, {7, 8}]
+            sage: P.delete_component(0)
+            sage: P
+            A plumbing graph with 2 vertices
         """
         C = self.component(i)
         for j in C:
             self.delete_vertex(j)
 
-    def neighbor_yields_leg(self, i, j):
+    def _neighbor_yields_leg(self, i, j):
         r"""
         This function checks whether, following the neighbour j of i, we
         find a "leg", i.e. a bamboo with an end. This is used in e.g.
@@ -609,6 +871,16 @@ class PlumbingGraph():
         OUTPUT:
 
         True or False.
+
+        EXAMPLES::
+        
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(4,4,[6/5,7/5,4/3])
+            0
+            sage: P._neighbor_yields_leg(0,1)
+            True
+            sage: P._neighbor_yields_leg(5,4)
+            False
         """
         if not {i,j} <= self.vertices:
             return False
@@ -625,7 +897,7 @@ class PlumbingGraph():
             run = list(self.neighbors(run) - S)[0]
         return False
 
-    def minus_two_leaves(self, i):
+    def _minus_two_leaves(self, i):
         r"""
         Returns the set of those neighbours which are leaves, i.e. have
         degree == 1, are rational, i.e. g == 0, and have r == 0 and
@@ -638,6 +910,14 @@ class PlumbingGraph():
         OUTPUT:
 
         A set of vertices.
+
+        EXAMPLES::
+        
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(0,-1,[2,2,3,4])
+            0
+            sage: P._minus_two_leaves(0)
+            {1, 2}
         """
         return { j for j in self.neighbors(i)
             if  self.mb[j] == -2
@@ -653,6 +933,16 @@ class PlumbingGraph():
         OUTPUT:
 
         A set of vertices.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-2,3,[5/3,5/3,5/3])
+            0
+            sage: P.nodes
+            <bound method PlumbingGraph.nodes of A plumbing graph with 7 vertices>
+            sage: P.nodes()
+            {0}
         """
         return { i for i in self.vertices if self.g[i] != 0 or self.r[i] != 0 or self.degree(i) > 2 or self.degree(i) == 0 }
 
@@ -668,6 +958,16 @@ class PlumbingGraph():
         OUTPUT:
         
         A set of vertices.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-2,3,[5/3,5/3,5/3])
+            0
+            sage: P.max_chain(0)
+            set()
+            sage: P.max_chain(1)
+            {1, 2}
         """
         Nds = self.nodes()
         if i not in self.vertices - Nds:
@@ -684,6 +984,29 @@ class PlumbingGraph():
                 Nbrs |= (self.neighbors(r) - R)
     
     def max_chain_is_cycle(self, i):
+        r"""
+        Checks whether the maximal chain on which the vertex i lies is a cycle.
+
+        INTPUT:
+
+        - ``i`` -- a vertex.
+
+        OUTPUT:
+
+        True or False
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_bamboo(8/7)
+            6
+            sage: P.add_cycle(8/7)
+            13
+            sage: P.max_chain_is_cycle(0)
+            False
+            sage: P.max_chain_is_cycle(13)
+            True
+        """
         mc = self.max_chain(i)
         if mc == set():
             return False
@@ -707,6 +1030,16 @@ class PlumbingGraph():
         OUTPUT:
 
         Either a candidate for move number R, or -1 if none exists.
+        
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_vertex(-2,0,0)
+            0
+            sage: P.add_vertex(-1,0,0)
+            1
+            sage: P.find_candidate(1)
+            1
         """
         if R == 1:
             return self.find_R1_candidate()
@@ -737,6 +1070,14 @@ class PlumbingGraph():
         OUTPUT:
         
         True or False.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_vertex(-1,0,0)
+            0
+            sage: P.move_R(1,0)
+            True
         """
         if R == 1:
             return self.blow_down(i)
@@ -769,6 +1110,29 @@ class PlumbingGraph():
         INPUT:
         
         - ``i`` -- a vertex.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-2,0,[3/2,5/2,7/2])
+            0
+            sage: P.intersection_matrix()
+            [-2  1  0  1  0  1  0]
+            [ 1 -2  1  0  0  0  0]
+            [ 0  1 -2  0  0  0  0]
+            [ 1  0  0 -3  1  0  0]
+            [ 0  0  0  1 -2  0  0]
+            [ 1  0  0  0  0 -4  1]
+            [ 0  0  0  0  0  1 -2]
+            sage: P.reverse_edge_signs_pos(0)
+            sage: P.intersection_matrix()
+            [-2 -1  0 -1  0 -1  0]
+            [-1 -2  1  0  0  0  0]
+            [ 0  1 -2  0  0  0  0]
+            [-1  0  0 -3  1  0  0]
+            [ 0  0  0  1 -2  0  0]
+            [-1  0  0  0  0 -4  1]
+            [ 0  0  0  0  0  1 -2]
         """
         if i not in self.vertices:
             return
@@ -786,6 +1150,29 @@ class PlumbingGraph():
         INPUT:
         
         - ``e`` -- an edge.
+
+        EXAPMLES:
+
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-2,-1,[3/2,5/2,7/2])
+            0
+            sage: P.intersection_matrix()
+            [-2  1  0  1  0  1  0]
+            [ 1 -2  1  0  0  0  0]
+            [ 0  1 -2  0  0  0  0]
+            [ 1  0  0 -3  1  0  0]
+            [ 0  0  0  1 -2  0  0]
+            [ 1  0  0  0  0 -4  1]
+            [ 0  0  0  0  0  1 -2]
+            sage: P.reverse_edge_signs_neg(0)
+            sage: P.intersection_matrix()
+            [-2 -1  0  1  0  1  0]
+            [-1 -2  1  0  0  0  0]
+            [ 0  1 -2  0  0  0  0]
+            [ 1  0  0 -3  1  0  0]
+            [ 0  0  0  1 -2  0  0]
+            [ 1  0  0  0  0 -4  1]
+            [ 0  0  0  0  0  1 -2]
         """
         letsgo = 0
         for v in self.adj[e]:
@@ -800,7 +1187,7 @@ class PlumbingGraph():
 ########################################################################
 # R1 - blowing up and down
     
-    def blow_up_disjoint(self, epsilon):
+    def blow_up_disjoint(self, epsilon=-1):
         r"""
         The opposite to R1 in [Neu1981]. Creates a new vertex in the graph
         with g = r = 0 and mb = epsilon.
@@ -812,12 +1199,24 @@ class PlumbingGraph():
         OUTPUT:
 
         Returns the new vertex.
+
+        EXAMPLES::
+
+        Create a plumbing graph having one (-1)-vertex. This corresponds
+        to blowing up the origin in \C^2.
+
+            sage: P = PlumbingGraph()
+            sage: P.blow_up_disjoint(-1)
+            0
+            sage: P
+            A plumbing graph with one vertex
         """
+        assert epsilon*epsilon == 1,"epsilon must be -1 or 1"
         if epsilon*epsilon != 1:
             return
         return self.add_vertex(epsilon,0,0)
 
-    def blow_up_vertex(self, i, epsilon):
+    def blow_up_vertex(self, i, epsilon=-1):
         r"""
         The opposite to R1 in [Neu1981]. Creates a new vertex in the graph
         with g = r = 0 and mb = epsilon, and an edge connecting it
@@ -826,11 +1225,21 @@ class PlumbingGraph():
         INPUT:
         
         - ``i`` -- a vertex.
+        - ``epsilon`` -- -1 or 1.
 
         OUTPUT:
         
         Returns the new vertex.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_bamboo(5/4)
+            3
+            sage: P.blow_up_vertex(3)
+            4
         """
+        assert epsilon*epsilon == 1,"epsilon must be -1 or 1"
         j = self.add_vertex(epsilon,0,0)
         self.add_edge({i,j}, 1)
         self.mb[i] += epsilon
@@ -846,11 +1255,23 @@ class PlumbingGraph():
         INPUT:
         
         - ``e`` -- an edge.
+        - ``epsilon`` -- -1 or 1.
 
         OUTPUT:
 
         Returns the new vertex.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_bamboo(3/2)
+            1
+            sage: P.blow_up_edge(0, epsilon=1)
+            2
+            sage: P
+            A plumbing graph with 3 vertices
         """
+        assert epsilon*epsilon == 1,"epsilon must be -1 or 1"
         i = self.add_vertex(epsilon, 0, 0)
         epsilon0 = self.epsilon[e]
         epsilon1 = 1
@@ -877,7 +1298,18 @@ class PlumbingGraph():
         - ``i`` -- a vertex.
 
         OUTPUT:
+
         Returns True if it really blows down a vertex, otherwise False.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_bamboo(3/2)
+            1
+            sage: P.blow_up_edge(0, epsilon=1)
+            2
+            sage: P.blow_down(2)
+            True
         """
         if not self.R1_candidate(i):
             return False
@@ -914,6 +1346,18 @@ class PlumbingGraph():
         OUTPUT:
 
         Returns True if i is a candidate for a blow-down, otherwise False.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_vertex(-1,0,0)
+            0
+            sage: P.R1_candidate(0)
+            True
+            sage: P.add_vertex(-1,3,0)
+            1
+            sage: P.R1_candidate(1)
+            False
         """
         if not i in self.vertices:
             return False
@@ -938,6 +1382,18 @@ class PlumbingGraph():
         
         Some vertex which can be blown down, if it exists, otherwise
         -1.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_vertex(-2,0,0)
+            0
+            sage: P.find_R1_candidate()
+            -1
+            sage: P.add_vertex(-1,0,0)
+            1
+            sage: P.find_R1_candidate()
+            1
         """
         for i in self.vertices:
             if self.R1_candidate(i):
@@ -955,6 +1411,17 @@ class PlumbingGraph():
         
         - ``j`` -- a vertex,
         - ``i`` -- a vertex.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-1,0,[2,2,9/7])
+            0
+            sage: P
+            A plumbing graph with 7 vertices
+            sage: P.projective_absorb(0,3)
+            sage: P
+            A plumbing graph with 4 vertices
         """
         for k in self.neighbors(j) - {i}:
             self.delete_vertex(k)
@@ -968,6 +1435,24 @@ class PlumbingGraph():
         INPUT:
 
         - ``j`` -- a vertex.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-1,0,[2,2,9/7])
+            0
+            sage: P
+            A plumbing graph with 7 vertices
+            sage: P.projective_absorb(0,3)
+            sage: P
+            A plumbing graph with 4 vertices
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-1,0,[2,2,9/7])
+            0
+            sage: P.R2_candidate(0)
+            True
+            sage: P.R2_candidate(1)
+            False
         """
         if self.R2_candidate_neighbors(j) == set():
             return False
@@ -975,6 +1460,29 @@ class PlumbingGraph():
             return True
 
     def R2_candidate_neighbors(self, j):
+        r"""
+        Let j be the central vertex on p. 305 in [Neu1981] with Euler number
+        delta, and two (-2)-neihbors. The function returns a set of neighbors
+        which may play the role of i in that picture.
+
+        INPUT:
+
+        - ``j`` -- a vertex.
+
+        OUTPUT:
+
+        A set of vertices.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-1,0,[2,2,9/7])
+            0
+            sage: P.R2_candidate_neighbors(0)
+            {3}
+            sage: P.R2_candidate_neighbors(3)
+            set()
+        """
         if self.g[j] != 0:
             return set()
         if self.r[j] != 0:
@@ -1018,15 +1526,15 @@ class PlumbingGraph():
 
         - ``i`` -- a vertex,
         - ``g`` -- an integer, the genus of i after extrusion.
-        - ``d`` -- an integer (delta on p. 305),
-        - ``d1`` -- an integer (delta_1 on p. 305),
-        - ``d2`` -- an integer (delta_2 on p. 305),
+        - ``d`` -- an integer (delta on p. 305 of [Neu1981]),
+        - ``d1`` -- an integer (delta_1 on p. 305 of [Neu1981]),
+        - ``d2`` -- an integer (delta_2 on p. 305 of [Neu1981]),
         
         OUTPUT:
         
         True or False
         
-        EXAMPLE:
+        EXAMPLES::
         
         We construct a Seifert graph with a central vertex with genus -1,
         and extrude it.
@@ -1039,7 +1547,7 @@ class PlumbingGraph():
             sage: P.projective_extrude(0, 0, -1, -1, -1)
             True
             sage: P
-            A plumbing graph with 13 vertice
+            A plumbing graph with 13 vertices
         """
         if self.g[i] != genus_hash(g, -1):
             return False
@@ -1069,11 +1577,29 @@ class PlumbingGraph():
         - ``k`` -- a vertex.
 
         OUTPUT:
+    
+        True, if the operation is executed, False otherwise.
 
-        True, if the operation is executed, false otherwise.
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_bamboo(5/4)
+            3
+            sage: P.add_vertex(0,0,0)
+            4
+            sage: P.add_edge({3,4})
+            3
+            sage: P.add_bamboo(5/4, j=4)
+            8
+            sage: P
+            A plumbing graph with 9 vertices
+            sage: P.zero_chain_absorb(4)
+            True
+            sage: P
+            A plumbing graph with 7 vertices
         """
         if not self.R3_candidate(k):
-            return false
+            return False
 
         l = self.add_vertex(
             sum([self.mb[i] for i in self.neighbors(k)]),
@@ -1089,7 +1615,6 @@ class PlumbingGraph():
                 if self.is_loop(e):
                     self.add_edge({l}, self.epsilon[e])
                 elif k not in self.adj[e]:
-                    print(self.adj[e] - self.neighbors(k) | {l})
                     self.add_edge(
                         self.adj[e] - self.neighbors(k) | {l},
                         self.epsilon[e]*epsilon_prime[a])
@@ -1110,6 +1635,22 @@ class PlumbingGraph():
 
         True or False, depending on whether 0-chain absorption is applicable
         to the vertex k.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_bamboo(5/4)
+            3
+            sage: P.add_vertex(0,0,0)
+            4
+            sage: P.add_edge({3,4})
+            3
+            sage: P.add_bamboo(5/4, j=4)
+            8
+            sage: P.R3_candidate(0)
+            False
+            sage: P.R3_candidate(4)
+            True
         """
         if self.mb[k] != 0:
             return False
@@ -1132,6 +1673,24 @@ class PlumbingGraph():
         
         Some vertex on which R3 can be applied, if it exists, otherwise,
         -1.
+
+        EXAMPLES:
+
+            sage: P = PlumbingGraph()
+            sage: P.add_bamboo(5/4)
+            3
+            sage: P.add_vertex(0,0,0)
+            4
+            sage: P.add_edge({3,4})
+            3
+            sage: P.add_bamboo(5/4, j=4)
+            8
+            sage: P.find_R3_candidate()
+            4
+            sage: P.zero_chain_absorb(4)
+            True
+            sage: P.find_R3_candidate()
+            -1
         """
         for k in self.vertices:
             if self.R3_candidate(k):
@@ -1599,7 +2158,7 @@ class PlumbingGraph():
             return False
         # next see how many neighbors are rational leaves with Euler
         # number -2 and r=0
-        mtl = self.minus_two_leaves(i)
+        mtl = self._minus_two_leaves(i)
         # if there are three such leaves, then it's good
         if len(mtl) == 3:
             return True
@@ -1609,7 +2168,7 @@ class PlumbingGraph():
         # finally, assuming that we have exactly two leaves as above,
         # investigate the third neighbor, it should be the end of a bamboo
         j = list(self.neighbors(i) - mtl)[0]
-        if self.neighbor_yields_leg(i,j):
+        if self._neighbor_yields_leg(i,j):
             return True
         else:
             return False
@@ -1652,11 +2211,11 @@ class PlumbingGraph():
         return True
 
     def N3_obstruction(self, i):
-        mtn = self.minus_two_leaves(i)
+        mtn = self._minus_two_leaves(i)
         nbrs = self.neighbors(i)
         if self.degree(i) == len(nbrs) == 3 and len(mtn) == 2 and self.g[i] == self.r[i] == 0:
             j = list(nbrs - mtn)[0]
-            if not self.neighbor_yields_leg(i,j):
+            if not self._neighbor_yields_leg(i,j):
                 return True
         return False
 
@@ -1735,7 +2294,7 @@ class PlumbingGraph():
         
         if self.g[j] == -1 and self.r[j] == 0 and self.degree(j) == 1:
             i = list(self.neighbors(j))[0]
-            if self.neighbor_yields_leg(j,i):
+            if self._neighbor_yields_leg(j,i):
                 return True
         return False
 
@@ -2213,7 +2772,6 @@ class PlumbingGraph():
         This graph satisfies N1 and N2, and after applying step_3(),
         it also satisfies N3.
         
-            sage: from sage.geometry.plumbing_graph import *
             sage: P = PlumbingGraph()
             sage: P.add_Seifert(5, 0, [2,2,7/5])
             0
@@ -2237,7 +2795,7 @@ class PlumbingGraph():
             if len(L) == 0:
                 return True
             j = L[0]
-            i = list(self.neighbors(j) - self.minus_two_leaves(j))[0]
+            i = list(self.neighbors(j) - self._minus_two_leaves(j))[0]
             M = self.zero_chain_extrude(
                 j,
                 [self.mb[j]+1, -1],
@@ -2246,9 +2804,12 @@ class PlumbingGraph():
                 [
                     {e for e in self.adjacent_edges(j) if i in self.adj[e]},
                     {e for e in self.adjacent_edges(j) if
-                        len(self.minus_two_leaves(j) & self.adj[e]) != 0}
+                        len(self._minus_two_leaves(j) & self.adj[e]) != 0}
                 ])
             self.projective_absorb(M[2], M[1])
+            # the above can break N1 or N2, so let's throw this thing in:
+            self.step_1()
+            self.step_2()
         
         if self.N3():
             return True
