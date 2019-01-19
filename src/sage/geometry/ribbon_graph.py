@@ -32,6 +32,7 @@ from copy import deepcopy
 from sage.functions.trig import cos, sin
 from sage.plot.bezier_path import bezier_path
 from sage.plot.text import text
+from sage.plot.point import point
 
 #Auxiliary functions that will be used in the classes.
 
@@ -1085,7 +1086,7 @@ class RibbonGraph(SageObject, UniqueRepresentation):
                         PermutationGroupElement([tuple(x) for x in aux_rho])
                         )
 
-    def draw_ribbon(self, thickening = False, labels = False):
+    def draw_ribbon(self, ribbon = True, thickening = False, labels = False):
         r"""
         Draw the ribbon graph and the thickening surface.
 
@@ -1196,20 +1197,29 @@ class RibbonGraph(SageObject, UniqueRepresentation):
                                                 thickness = t - 4))
                 if labels:
 
-                    legend.append(text(str(e), extremes[e][1], fontweight = 'bold',
+                    beziers.append(text(str(e), extremes[e][1], fontweight = 'bold',
                                            color = 'black', zorder = nvertices + 4))
-                    legend.append(text(str(ot), extremes[ot][1], fontweight = 'bold',
-                                      color = 'black', zorder = nvertices + 4))
-                #ribbon graph 
-                beziers.append(bezier_path([[extremes_plus[e][0], extremes_plus[e][1]]], 
+                    beziers.append(text(str(ot), extremes[ot][1],
+                                        fontweight = 'bold',
+                                        color = 'black', zorder = nvertices + 4))
+                if ribbon:
+
+                    #ribbon graph 
+                    beziers.append(bezier_path([[extremes_plus[e][0], extremes_plus[e][1]]], 
+                                                color = 'red', thickness = 1,
+                                                zorder = nvertices + 1))
+                    beziers.append(bezier_path([[extremes_plus[ot][0], extremes_plus[ot][1]]], 
                                             color = 'red', thickness = 1,
-                                            zorder = nvertices + 1))
-                beziers.append(bezier_path([[extremes_plus[ot][0], extremes_plus[ot][1]]], 
-                                           color = 'red', thickness = 1,
-                                           zorder = nvertices+1))
-                beziers.append(bezier_path([[extremes[e][1], aux_s,aux_f,
-                                             extremes[ot][1]]], color = 'red',
-                                             thickness = 1))
+                                            zorder = nvertices+1))
+                    beziers.append(bezier_path([[extremes[e][1], aux_s,aux_f,
+                                                extremes[ot][1]]], color = 'red',
+                                                thickness = 1))
+                    beziers.append(point(extremes[e][0], size = t,
+                                         color = 'red', 
+                                         zorder = nvertices + 4))
+                    beziers.append(point(extremes[ot][0], size = t,
+                                         color = 'red', 
+                                         zorder = nvertices + 4))
                 
         (sum(beziers) + sum(legend)).show(aspect_ratio = 1, axes = False)
 
