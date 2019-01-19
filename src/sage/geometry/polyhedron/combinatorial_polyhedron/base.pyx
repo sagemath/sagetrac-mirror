@@ -10,7 +10,7 @@ In particular this module calculates quickly the f_vector of polytopes. The inpu
 
 AUTHOR:
 
-- Jonathan Kliem (2018-12)
+- Jonathan Kliem (2019-01)
 
 
 """
