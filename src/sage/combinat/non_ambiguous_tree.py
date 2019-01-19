@@ -644,13 +644,13 @@ class NonAmbiguousTree( ClonableList ):
         if tree[0] != LabelledBinaryTree( None ):
             if not lfather is None:
                 if tree[0].label() <= lfather.label():
-                    raise ValueError, "This is not a valid Non-ambiguous Tree."
+                    raise ValueError("this is not a valid Non-ambiguous Tree")
                 llabels.append( tree[0].label() )
             self._recursive_check( tree[0], llabels, rlabels, tree[0], rfather )
         if tree[1] != LabelledBinaryTree( None ):
             if not rfather is None:
                 if tree[1].label() <= rfather.label():
-                    raise ValueError, "This is not a valid Non-ambiguous Tree."
+                    raise ValueError("this is not a valid Non-ambiguous Tree")
                 rlabels.append( tree[1].label() )
             self._recursive_check( tree[1], llabels, rlabels, lfather, tree[1] )
 
@@ -680,13 +680,12 @@ class NonAmbiguousTree( ClonableList ):
         rlabels = []
         self._recursive_check( self.get_tree(), llabels, rlabels )
         if len(llabels) != len( Set(llabels) ):
-            raise ValueError, "This is not a valid Non-ambiguous Tree."
+            raise ValueError("this is not a valid non-ambiguous tree")
         if len(rlabels) != len( Set(rlabels) ):
-            raise ValueError, "This is not a valid Non-ambiguous Tree."
+            raise ValueError("this is not a valid non-ambiguous tree")
         if not self.get_tree().is_empty() and self.get_tree().label() != 0:
-            raise ValueError, "The label of the root have to 0 and not %s."%(
-                self.get_tree().label()
-            )
+            raise ValueError("the label of the root have to 0 and not %s" % (
+                self.get_tree().label()))
 
     def __init__(self, parent, nat_data, check=True):
         r'''
@@ -745,7 +744,7 @@ class NonAmbiguousTree( ClonableList ):
             elif isinstance( nat_data, (list, tuple) ) :
                 tree = _recursive_binary_tree( nat_data )
             else:
-                raise ValueError, "Value %s must be a list or a tuple."%(nat_data)
+                raise ValueError("value %s must be a list or a tuple" % nat_data)
             ClonableList.__init__(self, parent, [tree] )
             self.check()
         self._options = None
@@ -1274,7 +1273,7 @@ class NonAmbiguousTreesFactory(SetFactory):
             return NonAmbiguousTrees_size(size, policy)
         if size is None:
             return NonAmbiguousTrees_all(policy)
-        raise ValueError, "Invalide argument for non-ambiguous tee Factory."
+        raise ValueError("invalid argument for non-ambiguous tree factory")
 
     def add_constraints(self, cons, args_opts):
         r"""
@@ -1332,9 +1331,7 @@ class NonAmbiguousTrees_binarytree(ParentWithSetFactory, UniqueRepresentation):
         r'''
         '''
         if BinaryTree( el.get_tree() ) == self.tree():
-            raise ValueError, "The non-ambiguous trees have a Wrong binary tree : %s"%(
-                BinaryTree(el.get_tree())
-            )
+            raise ValueError("the non-ambiguous trees have a wrong binary tree : %s" % BinaryTree(el.get_tree()))
 
     def cardinality( self ):
         r'''
@@ -1421,26 +1418,26 @@ class NonAmbiguousTrees_binarytree(ParentWithSetFactory, UniqueRepresentation):
 
             sage: btree = BinaryTree( [[], None] )
             sage: NAS = NonAmbiguousTrees( tree = btree )
-            sage: generator = iter( NAS )
-            sage: generator.next()
+            sage: generator = iter(NAS)
+            sage: next(generator)
             0[1[., .], .]
 
             sage: btree = BinaryTree( [None, []] )
             sage: NAS = NonAmbiguousTrees( tree = btree )
-            sage: generator = iter( NAS )
-            sage: generator.next()
+            sage: generator = iter(NAS)
+            sage: next(generator)
             0[., 1[., .]]
 
             sage: btree = BinaryTree( [] )
             sage: NAS = NonAmbiguousTrees( tree = btree )
-            sage: generator = iter( NAS )
-            sage: generator.next()
+            sage: generator = iter(NAS)
+            sage: next(generator)
             0[., .]
 
             sage: btree = BinaryTree( )
             sage: NAS = NonAmbiguousTrees( tree = btree )
-            sage: generator = iter( NAS )
-            sage: generator.next()
+            sage: generator = iter(NAS)
+            sage: next(generator)
             .
         '''
         if self.tree().is_empty() :
@@ -1505,7 +1502,7 @@ class NonAmbiguousTrees_size(ParentWithSetFactory, DisjointUnionEnumeratedSets):
             sage: NonAmbiguousTrees( 3 )
             non-ambiguous trees of size 3
         '''
-        return "non-ambiguous trees of size %s"%(self._size)
+        return "non-ambiguous trees of size %s" % self._size
 
     def an_element(self):
         r'''
@@ -1516,9 +1513,8 @@ class NonAmbiguousTrees_size(ParentWithSetFactory, DisjointUnionEnumeratedSets):
         r'''
         '''
         if el.size() != self.size():
-            raise ValueError, "The non-ambiguous trees have a Wrong size : %s"%(
-                el.size()
-            )
+            raise ValueError("the non-ambiguous trees have a Wrong size : %s" %
+                             el.size())
 
     def get_options( self ):
         return self.global_options
