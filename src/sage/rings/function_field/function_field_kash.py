@@ -238,7 +238,13 @@ class RationalFunctionField_kash(RationalFunctionField):
             kZa = kash.IntegerRing().PolynomialAlgebra()
             ka = kZa.Element(list(constant_field.defining_polynomial()))
             self.kash_constant_field = ka.NumberField()
-            self.reverse_map = {self.kash_constant_field.gen(1) : constant_field.gen(0)}
+            # If constant_field is equipped with an embedding (almost surely to QQbar),
+            # we map the kash generator to that target.  Otherwise, we map the kash
+            # generator to the number field generator.
+            if constant_field.gen_embedding():
+                self.reverse_map = {self.kash_constant_field.gen(1) : constant_field.gen_embedding()}
+            else:
+                self.reverse_map = {self.kash_constant_field.gen(1) : constant_field.gen(0)}
         else:
             raise ValueError("The constant field must be either QQ, QQbar, a number field, or a finite field.")
 
@@ -272,7 +278,10 @@ class RationalFunctionField_kash(RationalFunctionField):
         # If we decided to expand our number field, then redo the divisor
         # computation in a new function field
 
-        if constant_field != self.working_constant_field:
+        if constant_field.degree() != self.working_constant_field.degree():
+            import sage.rings.number_field.number_field as number_field
+            constant_field = number_field.NumberField(constant_field.polynomial(), constant_field.gen(),
+                                         embedding = nftoQQbar(constant_field.gen()))
             self._set_working_constant_field(constant_field)
 
     def kash(self):
