@@ -24,7 +24,6 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.set_factories import (
@@ -41,18 +40,16 @@ from sage.rings.integer import Integer
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.sets.family import Family
 from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
 from copy import deepcopy
 from sage.matrix.constructor import matrix
-from sage.combinat.combinat import catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.binary_tree import BinaryTrees, BinaryTree
 from sage.combinat.binary_tree import LabelledBinaryTree, LabelledBinaryTrees
 from sage.functions.other import factorial
 from sage.combinat.posets.posets import Poset
-from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.permutation import Permutation
+
 
 default_non_ambiguous_tikz_options = dict(
     scale=1, line_size=1, point_size=3.5
