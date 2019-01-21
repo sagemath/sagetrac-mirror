@@ -58,6 +58,21 @@ const unsigned int chunksize = 64;
 #define popcount(A) naive_popcount(A)
 #endif
 
+
+
+#if (__GNUC__ >= 5) //checking if GCC has aligned_alloc, this should always be the case for sages build in gcc
+#define free_aligned(one) free(one)
+#else //otherwise falling back to a manual approach
+#define aligned_alloc(one,two) aligned_malloc_workaround(two,one)
+#define free_aligned(one) aligned_free_workaround(one)
+#endif
+
+
+
+
+
+
+
 const unsigned int maxnumberedges = 16348;//^2 (the edges will be build as an array of arrays, such that we can save up to maxnumberedges*maxnumberedges edges, the number should contain a high power of two
 const unsigned int maxnumberincidences = 16348;//^2 the maximal number of incidences between l-faces and k-faces
 

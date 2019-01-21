@@ -97,6 +97,35 @@ inline unsigned int naive_popcount(uint64_t A){
 }
 
 
+// the following two functions are taken from https://github.com/xjw/cpp/blob/master/cpp/memory_alignment.cpp
+// they are a workaround in case that C11 is not available
+void * aligned_malloc_workaround(size_t size, int align) {
+    // alignment could not be less than 0
+    if (size<0) {
+        return NULL;
+    }
+    // allocate necessary memory for 
+    // alignment +
+    // area to store the address of memory returned by malloc
+    void *p = malloc(size + align-1 + sizeof(void *));
+    if (p == NULL) {
+        return NULL;
+    }
+    // address of the aligned memory according to the align parameter
+    void *ptr = (void *) (((unsigned long)p + sizeof(void *) + align-1) & ~(align-1));
+
+    // store th address of mallc() above at the beginning of our total memory area
+    *((void **)ptr -1) = p;
+
+    // return the address of aligned memory
+    return ptr;
+}
+
+void aligned_free_workaround(void *p) {
+    // Get address of the memory from start of total memory area
+    free ( *( (void **)p - 1) );
+}
+
 //initialization with a tuple of facets (each facet a tuple of vertices, vertices labeled 0,1,...)
 CombinatorialPolyhedron::CombinatorialPolyhedron(unsigned int ** facets_pointer, unsigned int nr_facets_given, unsigned int *len_facets, unsigned int nr_vertices_given, int is_unbounded){
     unbounded = is_unbounded;
@@ -750,7 +779,7 @@ unsigned int CombinatorialPolyhedron::calculate_dimension(chunktype **faces, uns
         dim = bitcount;//our face should be a somewhat a vertex, but if the polyhedron is unbounded, than our face will have dimension equal to the number of 'vertices' it contains, where some of the vertices might represent lines
     }
     for (i=0; i < (nr_faces - 1); i++){
-        free(nextfaces_creator[i]);
+        free_aligned(nextfaces_creator[i]);
     }
     return dim;
 }
@@ -788,7 +817,7 @@ void CombinatorialPolyhedron::calculate_ridges(){//this is a much simpler versio
         nr_forbidden++;
     }
     for (i=0; i < (nr_facets - 1); i++){
-        free(nextfaces_creator[i]);
+        free_aligned(nextfaces_creator[i]);
     }
 }
 
@@ -1284,7 +1313,7 @@ void CombinatorialPolyhedron::deallocate_facets(){
     if (!facets_are_allocated)
         return;
     for (i=0;i <nr_facets;i++){
-        free(facets_allocator[i]);
+        free_aligned(facets_allocator[i]);
     }
     delete[] facets;
     delete[] facets_allocator;
@@ -1309,7 +1338,7 @@ void CombinatorialPolyhedron::deallocate_vertices(){
     if (!vertices_are_allocated)
         return;
     for (i=0;i <nr_vertices;i++){
-        free(vertices_allocator[i]);
+        free_aligned(vertices_allocator[i]);
     }
     delete[] vertices;
     delete[] vertices_allocator;
@@ -1343,7 +1372,7 @@ void CombinatorialPolyhedron::deallocate_newfaces(){
     unsigned int i,j;
     for (i=0;i <dimension -1;i++){
         for (j=0; j < nr_facets-1; j++){
-            free(newfaces_allocator[i][j]);
+            free_aligned(newfaces_allocator[i][j]);
         }
     }
     delete[] forbidden;
@@ -1405,8 +1434,8 @@ void CombinatorialPolyhedron::deallocate_allfaces(){
     for (j = 0; j < dimension; j++){
         if (allfaces_are_allocated[j]){
             for (i = 0; i < f_vector[j+1]; i++){
-                free(allfaces_allocator[j][i]);
-                free(allfaces_facet_repr_allocator[j][i]);
+                free_aligned(allfaces_allocator[j][i]);
+                free_aligned(allfaces_facet_repr_allocator[j][i]);
             }
         }
     }
