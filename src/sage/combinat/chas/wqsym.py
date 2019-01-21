@@ -45,8 +45,9 @@ from sage.structure.global_options import GlobalOptions
 from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.realizations import Category_realization_of_parent
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.combinat.set_partition_ordered import OrderedSetPartitions
+from sage.combinat.set_partition_ordered import OrderedSetPartition, OrderedSetPartitions
 from sage.combinat.shuffle import ShuffleProduct_overlapping, ShuffleProduct
+from sage.combinat.words.word import Word_class
 from sage.rings.integer_ring import ZZ
 
 class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
@@ -73,35 +74,80 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
                                          category=WQSymBases(alg, graded),
                                          bracket="", prefix=self._prefix)
 
-    def __call__(self, expn):
+    def __call__(self, x):
         """
-        Convert ``expn`` into an element in basis ``self``.
+        This is a small modification to the generic call method for all parents.
+
+        This modification is necessary to enable the user to index the keys
+        of this parent by either words or ordered set partitions.
+
+        .. SEEALSO::
+
+            :meth:`~sage.structure.parent.Parent.__call__`,
+            :meth:`WQSymBases.ParentMethods.__getitem__`
+
+        When called, this method chooses a map based on the Parent (or type)
+        of x. If a coercion exists, it will always be chosen.
 
         TESTS:
 
         Testing conversions::
 
-            sage: M = WordQuasiSymmetricFunctions(QQ).M()
-            sage: X = WordQuasiSymmetricFunctions(QQ).X()
+            sage: M = algebras.WQSym(QQ).M()
+            sage: X = algebras.WQSym(QQ).X()
             sage: x = X.an_element(); M(x)
             -M[{1}] + 2*M[{1}, {2}]
             sage: q = QQ.an_element(); M(q)
             1/2*M[]
             sage: z = ZZ.an_element(); M(z)
             M[]
+            sage: s = SymmetricFunctions(QQ).schur(); M(s.an_element())
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion defined between 2*s[] + 2*s[1] + 3*s[2]
+             and Word Quasi-symmetric functions over Rational Field in the
+             Monomial basis
 
         Testing element construction::
 
-            sage: l = [1,1,2]; w = Word(l)
+            sage: l = [1,1,2]; w = Word(l); aw = Word('aac')
+            sage: M(l) == M(w) == M(aw) == M[1,1,2]
+            True
             sage: ll = [[1,2],[3]]; op = OrderedSetPartition(ll)
-            sage: M(l) == M(w) == M(ll) == M(op) == M[1,1,2] == M[[1,2],[3]]
+            sage: M(ll) == M(op) == M[[1,2],[3]]
+            True
+            sage: l = [1, [2]]; M(l)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot convert [1, [2]] into an element of Ordered set partitions
+            sage: w = Word(l); M(w)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot convert [1, [2]] into an element of Ordered set partitions
+
+        TODO: track down conversion errors from ``__getitem__`` method::
+
+            sage: l = ['1', [2]]; w = Word(l); M(l)
+            M[{'1'}, {2}]
+            sage: M(l) == M(w)
             True
         """
         try:
-            morph = self.coerce_map_from(expn.parent())
-            return morph(expn)
-        except (AttributeError, TypeError):
-            return self.__getitem__(expn)
+            R = x.parent()
+        except AttributeError:
+            return self.__getitem__(list(x))
+
+        if R is self:
+            return x
+        else:
+            mor = self.coerce_map_from(R)
+
+        if mor:
+            return mor(x)
+        elif isinstance(x, (OrderedSetPartition, Word_class)): # TODO: add PackedWord
+            return self.__getitem__(list(x))
+        else:
+            raise TypeError("no conversion defined between %s and %s"%(x, self))
 
     def _repr_term(self, osp):
         r"""
@@ -276,7 +322,7 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             sage: M.an_element()
             M[{1}] + 2*M[{1}, {2}]
         """
-        return self([[1]]) + 2*self([[1],[2]])
+        return self._element_constructor_([[1]]) + 2*self._element_constructor_([[1],[2]])
 
     def some_elements(self):
         """
@@ -291,9 +337,9 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
              M[] + 1/2*M[{1}]]
         """
         u = self.one()
-        o = self([[1]])
+        o = self._element_constructor_([[1]])
         s = self.base_ring().an_element()
-        return [u, o, self([[1,2]]), o + self([[1],[2]]), u + s*o]
+        return [u, o, self._element_constructor_([[1,2]]), o + self._element_constructor_([[1],[2]]), u + s*o]
 
 class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
@@ -963,9 +1009,9 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 [C[], C[{1}], C[{1, 2}], C[] + 1/2*C[{1}]]
             """
             u = self.one()
-            o = self([[1]])
+            o = self._element_constructor_([[1]])
             s = self.base_ring().an_element()
-            return [u, o, self([[1,2]]), u + s*o]
+            return [u, o, self._element_constructor_([[1,2]]), u + s*o]
 
         def _C_to_X(self, P):
             """
@@ -1098,9 +1144,9 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 [Q[], Q[{1}], Q[{1, 2}], Q[] + 1/2*Q[{1}]]
             """
             u = self.one()
-            o = self([[1]])
+            o = self._element_constructor_([[1]])
             s = self.base_ring().an_element()
-            return [u, o, self([[1,2]]), u + s*o]
+            return [u, o, self._element_constructor_([[1,2]]), u + s*o]
 
         def _Q_to_M(self, P):
             """
@@ -1476,9 +1522,9 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 [Phi[], Phi[{1}], Phi[{1, 2}], Phi[] + 1/2*Phi[{1}]]
             """
             u = self.one()
-            o = self([[1]])
+            o = self._element_constructor_([[1]])
             s = self.base_ring().an_element()
-            return [u, o, self([[1,2]]), u + s*o]
+            return [u, o, self._element_constructor_([[1,2]]), u + s*o]
 
         def _Phi_to_M(self, P):
             """
@@ -2016,6 +2062,13 @@ class WQSymBases(Category_realization_of_parent):
                 sage: M[[[1,2]]] == M[1,1] == M[1/1,2/2] == M[2/1,2/1] == M['aa']
                 True
                 sage: M[1] == M[1,] == M[Word([1])] == M[OrderedSetPartition([[1]])] == M[[1],]
+                True
+
+            #TODO: track down conversion errors from ``call`` method of ``self._indices``::
+
+                sage: l = ['1', [2]]; w = Word(l); M[l]
+                M[{'1'}, {2}]
+                sage: M[l] == M[w]
                 True
             """
             if p in ZZ:
