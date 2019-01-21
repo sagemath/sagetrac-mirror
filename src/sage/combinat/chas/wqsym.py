@@ -45,7 +45,7 @@ from sage.structure.global_options import GlobalOptions
 from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.realizations import Category_realization_of_parent
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.combinat.set_partition_ordered import OrderedSetPartitions
+from sage.combinat.set_partition_ordered import OrderedSetPartitions, OrderedSetPartition
 from sage.combinat.packed_words import PackedWords
 from sage.combinat.shuffle import ShuffleProduct_overlapping, ShuffleProduct
 from sage.rings.integer_ring import ZZ
@@ -497,7 +497,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.M()
 
-    _shorthands = tuple(['M', 'X', 'C', 'Q', 'Phi'])
+    _shorthands = tuple(['M', 'X', 'C', 'Q', 'Phi', 'H'])
 
     # add options to class
     class options(GlobalOptions):
@@ -725,11 +725,107 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: H = algebras.WQSym(QQ).H()
                 sage: TestSuite(H).run()  # long time
+            
+sage: WQSym = algebras.WQSym(QQ)
+sage: WQSym.inject_shorthands()
+sage: H.options.objects = 'words'
+sage: matr_chgmt_base_osp = lambda X,Y, n: matrix([[Y(X(mu)).coefficient(sigma) for mu in OrderedSetPartitions(n)] for sigma in OrderedSetPartitions(n)])
+sage: matr_chgmt_base_osp(H,Q,3)
+[1 0 0 0 0 0 0 0 0 0 0 0 0]
+[1 1 0 0 0 0 0 0 0 0 0 0 0]
+[1 0 1 0 0 0 0 0 0 0 0 0 0]
+[1 1 0 1 0 0 0 0 0 0 0 0 0]
+[1 0 1 0 1 0 0 0 0 0 0 0 0]
+[1 1 1 1 1 1 0 0 0 0 0 0 0]
+[0 0 0 0 0 0 1 0 0 0 0 0 0]
+[0 0 0 0 0 0 0 1 0 0 0 0 0]
+[0 0 0 0 0 0 0 0 1 1 0 0 0]
+[0 0 0 0 0 0 0 0 0 1 0 0 0]
+[0 0 0 0 0 0 0 0 0 0 1 0 0]
+[0 0 0 0 0 0 1 0 0 0 0 1 0]
+[0 0 0 0 0 0 0 0 0 0 0 0 1]
+sage: H(Q[1,3,2])
+sage: H(Q[1,1,2])
+sage: for p in PackedWords(3):
+....:     try:
+....:         print p, H(Q[p])
+....:     except ValueError:
+....:         print p
+# lower & no perm
+[1, 2, 3] [1, 2, 3]
+[1, 3, 2] [1, 3, 2]
+[2, 1, 3] [2, 1, 3]
+[2, 3, 1] H[2, 3, 1] - H[3, 2, 1]
+[3, 1, 2] [3, 1, 2]
+[3, 2, 1] H[3, 2, 1]
+[1, 2, 2] [1, 2, 2]
+[2, 1, 2] H[2, 1, 2]
+[2, 2, 1] H[2, 2, 1]
+[1, 1, 2] [1, 1, 2]
+[1, 2, 1] H[1, 2, 1]
+[2, 1, 1] H[2, 1, 1]
+[1, 1, 1] H[1, 1, 1]
+
+# lower & perm
+[1, 2, 3] [1, 2, 3]
+[1, 3, 2] [1, 3, 2]
+[2, 1, 3] [2, 1, 3]
+[2, 3, 1] H[2, 3, 1] - H[3, 2, 1]
+[3, 1, 2] [3, 1, 2]
+[3, 2, 1] H[3, 2, 1]
+[1, 2, 2] [1, 2, 2]
+[2, 1, 2] H[2, 1, 2]
+[2, 2, 1] H[2, 2, 1]
+[1, 1, 2] [1, 1, 2]
+[1, 2, 1] H[1, 2, 1]
+[2, 1, 1] H[2, 1, 1]
+[1, 1, 1] H[1, 1, 1]
+
+# upper & no perm
+[1, 2, 3] [1, 2, 3]
+[1, 3, 2] [1, 3, 2]
+[2, 1, 3] [2, 1, 3]
+[2, 3, 1] [2, 3, 1]
+[3, 1, 2] H[3, 1, 2] - H[3, 2, 1]
+[3, 2, 1] H[3, 2, 1]
+[1, 2, 2] H[1, 2, 2] - H[2, 1, 1]
+[2, 1, 2] H[2, 1, 2]
+[2, 2, 1] H[2, 2, 1]
+[1, 1, 2] H[1, 1, 2] - H[2, 2, 1]
+[1, 2, 1] H[1, 2, 1]
+[2, 1, 1] H[2, 1, 1]
+[1, 1, 1] H[1, 1, 1]
+
+#upper & perm
+[1, 2, 3] [1, 2, 3]
+[1, 3, 2] [1, 3, 2]
+[2, 1, 3] [2, 1, 3]
+[2, 3, 1] [2, 3, 1]
+[3, 1, 2] H[3, 1, 2] - H[3, 2, 1]
+[3, 2, 1] H[3, 2, 1]
+[1, 2, 2] H[1, 2, 2] - H[2, 1, 1]
+[2, 1, 2] H[2, 1, 2]
+[2, 2, 1] H[2, 2, 1]
+[1, 1, 2] H[1, 1, 2] - H[2, 2, 1]
+[1, 2, 1] H[1, 2, 1]
+[2, 1, 1] H[2, 1, 1]
+[1, 1, 1] H[1, 1, 1]
+
+(Pdb) p self.support()
+[[{1}, {3}, {2}], [{3}, {2}, {1}], [{3}, {1}, {2}]]
+(Pdb) min(self.support(), *args, **kwds)
+[{3}, {1}, {2}]
+
             """
             WQSymBasis_abstract.__init__(self, alg)
 
+            rank = {a:b for b,a in enumerate(OrderedSetPartitions(3))}
+            o1 = OrderedSetPartition([1,1,2])
+            o2 = OrderedSetPartition([2,2,1])
+            rank[o1],rank[o2] = rank[o2],rank[o1]
             Q = self.realization_of().Q()
-            phi = self.module_morphism(self._H_to_Q, codomain=Q, unitriangular="upper") #TODO probleme avec le triangulaire... revoir ce truc de module_morphism...
+            phi = self.module_morphism(self._H_to_Q, codomain=Q, unitriangular="lower", key=lambda a: rank[a])
+            #TODO probleme avec le triangulaire... revoir ce truc de module_morphism... demander une extantion lineaire du graph de la matrice cf topolicol sort trop bien pour PQSym aussi !!!
             phi.register_as_coercion()
             (~phi).register_as_coercion()
             # phi_inv = Q.module_morphism(self._Q_to_H, codomain=self, unitriangular="lower")
@@ -769,43 +865,42 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             if not P:
                 return Q.one()
 
-            OSP = self.basis().keys()
             PW = PackedWords().from_ordered_set_partition(P)
             R = Q.base_ring()
             one = R.one()
             return Q._from_dict({G.to_ordered_set_partition(): one for G in PW.left_weak_order_greater()},
                                 coerce=False)
 
-        # def _M_to_Q(self, P):
+        # def _Q_to_H(self, P):
         #     """
         #     Return the image of the basis element of the monomial
-        #     basis indexed by ``P`` in the Q basis ``self``.
+        #     basis indexed by ``P`` in the H basis ``self``.
 
-        #     EXAMPLES::
+        #     EXAQPLES::
 
+        #         sage: H = algebras.WQSym(QQ).H()
         #         sage: Q = algebras.WQSym(QQ).Q()
-        #         sage: M = algebras.WQSym(QQ).M()
-        #         sage: OSP = Q.basis().keys()
-        #         sage: Q._M_to_Q(OSP([[2,3],[1,4]]))
-        #         Q[{2, 3}, {1, 4}]
-        #         sage: Q._M_to_Q(OSP([[1,2],[3,4]]))
-        #         Q[{1, 2}, {3, 4}] - Q[{1, 2, 3, 4}]
+        #         sage: OSP = H.basis().keys()
+        #         sage: H._Q_to_H(OSP([[2,3],[1,4]]))
+        #         H[{2, 3}, {1, 4}]
+        #         sage: H._Q_to_H(OSP([[1,2],[3,4]]))
+        #         H[{1, 2}, {3, 4}] - H[{1, 2, 3, 4}]
 
         #     TESTS::
 
+        #         sage: H = algebras.WQSym(QQ).H()
         #         sage: Q = algebras.WQSym(QQ).Q()
-        #         sage: M = algebras.WQSym(QQ).M()
         #         sage: OSP4 = OrderedSetPartitions(4)
-        #         sage: all(M(Q(M[P])) == M[P] for P in OSP4) # long time
+        #         sage: all(Q(H(Q[P])) == Q[P] for P in OSP4) # long time
         #         True
-        #         sage: all(Q(M(Q[P])) == Q[P] for P in OSP4) # long time
+        #         sage: all(H(Q(H[P])) == H[P] for P in OSP4) # long time
         #         True
         #     """# TODO see greater_left_basis.....
-        #     Q = self
+        #     H = self
         #     if not P:
-        #         return Q.one()
+        #         return H.one()
 
-        #     OSP = self.basis().keys()
+        #     PW = PackedWords().from_ordered_set_partition(P)
         #     R = self.base_ring()
         #     one = R.one()
         #     lenP = len(P)
@@ -814,7 +909,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         #         if len(R) % 2 == lenP % 2:
         #             return one
         #         return -one
-        #     return Q._from_dict({OSP(G): sign(G) for G in P.strongly_fatter()},
+        #     return H._from_dict({OSP(G): sign(G) for G in P.strongly_fatter()},
         #                         coerce=False)
 
         def product_on_basis(self, x, y):
