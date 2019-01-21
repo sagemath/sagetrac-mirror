@@ -370,6 +370,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             True
         """
         if not isinstance(x, polydict.PolyDict):
+            if hasattr(x, 'dict'):
+                x = x.dict()
             x = polydict.PolyDict(x, parent.base_ring()(0), remove_zero=True)
         MPolynomial_element.__init__(self, parent, x)
 

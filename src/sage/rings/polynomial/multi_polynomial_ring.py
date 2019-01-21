@@ -132,12 +132,13 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         sage: loads(R.dumps()) == R
         True
     """
-    element_class = MPolynomial_polydict
+    _Element = MPolynomial_polydict
 
     def __init__(self, base_ring, n, names, order):
         from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         order = TermOrder(order,n)
         MPolynomialRing_base.__init__(self, base_ring, n, names, order)
+        self.element_class = self._Element
         # Construct the generators
         v = [0] * n
         one = base_ring(1);
