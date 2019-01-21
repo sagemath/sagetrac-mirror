@@ -4321,7 +4321,7 @@ class Polyhedron_base(Element):
 
         Returns a vector whose ``i``-th entry is the number of
         ``i``-dimensional faces of the polytope.
-        
+
         EXAMPLES::
 
             sage: p = Polyhedron(vertices=[[1, 2, 3], [1, 3, 2],
