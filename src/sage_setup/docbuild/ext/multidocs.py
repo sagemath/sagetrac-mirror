@@ -32,6 +32,7 @@ from sphinx.util.console import bold
 from sage.env import SAGE_DOC
 from sage.misc.misc import sage_makedirs
 
+logger = sphinx.util.logging.getLogger(__name__)
 
 CITE_FILENAME = 'citations.pickle'
 
@@ -48,13 +49,13 @@ def merge_environment(app, env):
 
     - domaindata['py']['modules'] # list of python modules
     """
-    app.info(bold('Merging environment/index files...'))
+    logger.info(bold('Merging environment/index files...'))
     for curdoc in app.env.config.multidocs_subdoc_list:
-        app.info("    %s:"%curdoc, nonl=1)
+        logger.info("    %s:"%curdoc, nonl=1)
         docenv = get_env(app, curdoc)
         if docenv is not None:
             fixpath = lambda path: os.path.join(curdoc, path)
-            app.info(" %s todos, %s index, %s citations"%(
+            logger.info(" %s todos, %s index, %s citations"%(
                     len(docenv.todo_all_todos),
                     len(docenv.indexentries),
                     len(docenv.domaindata["std"]["citations"])
@@ -99,8 +100,8 @@ def merge_environment(app, env):
                 six.iteritems(docenv.domaindata['py']['modules'])):
                 newmodules[ind] = (fixpath(modpath),v1,v2,v3)
             env.domaindata['py']['modules'].update(newmodules)
-            app.info(", %s modules"%(len(newmodules)))
-    app.info('... done (%s todos, %s index, %s citations, %s modules)'%(
+            logger.info(", %s modules"%(len(newmodules)))
+    logger.info('... done (%s todos, %s index, %s citations, %s modules)'%(
             len(env.todo_all_todos),
             len(env.indexentries),
             len(env.domaindata["std"]["citations"]),
@@ -118,8 +119,8 @@ def get_env(app, curdoc):
     try:
         f = open(filename, 'rb')
     except IOError:
-        app.info("")
-        app.warn("Unable to fetch %s " % filename)
+        logger.info("")
+        logger.warning("Unable to fetch %s " % filename)
         return None
     docenv = cPickle.load(f)
     f.close()
@@ -130,16 +131,16 @@ def merge_js_index(app):
     """
     Merge the JS indexes of the sub-docs into the main JS index
     """
-    app.info('')
-    app.info(bold('Merging js index files...'))
+    logger.info('')
+    logger.info(bold('Merging js index files...'))
     mapping = app.builder.indexer._mapping
     for curdoc in app.env.config.multidocs_subdoc_list:
-        app.info("    %s:"%curdoc, nonl=1)
+        logger.info("    %s:"%curdoc, nonl=1)
         fixpath = lambda path: os.path.join(curdoc, path)
         index = get_js_index(app, curdoc)
         if index is not None:
             # merge the mappings
-            app.info(" %s js index entries"%(len(index._mapping)))
+            logger.info(" %s js index entries"%(len(index._mapping)))
             for (ref, locs) in six.iteritems(index._mapping):
                 newmapping = set(map(fixpath, locs))
                 if ref in mapping:
@@ -159,8 +160,8 @@ def merge_js_index(app):
             dest = os.path.join(app.outdir, "_sources", curdoc)
             if not os.path.exists(dest):
                 os.symlink(os.path.join("..", curdoc, "_sources"), dest)
-    app.info('... done (%s js index entries)'%(len(mapping)))
-    app.info(bold('Writing js search indexes...'), nonl=1)
+    logger.info('... done (%s js index entries)'%(len(mapping)))
+    logger.info(bold('Writing js search indexes...'), nonl=1)
     return [] # no extra page to setup
 
 
@@ -181,8 +182,8 @@ def get_js_index(app, curdoc):
     try:
         f = open(indexfile, 'r')
     except IOError:
-        app.info("")
-        app.warn("Unable to fetch %s " % indexfile)
+        logger.info("")
+        logger.warning("Unable to fetch %s " % indexfile)
         return None
     indexer.load(f, sphinx.search.js_index)
     f.close()
@@ -238,7 +239,7 @@ def write_citations(app, citations):
     outdir = citation_dir(app)
     with atomic_write(os.path.join(outdir, CITE_FILENAME), binary=True) as f:
         cPickle.dump(citations, f)
-    app.info("Saved pickle file: %s" % CITE_FILENAME)
+    logger.info("Saved pickle file: %s" % CITE_FILENAME)
 
 
 def fetch_citation(app, env):
@@ -265,7 +266,7 @@ def init_subdoc(app):
     doc itself.
     """
     if app.config.multidocs_is_master:
-        app.info(bold("Compiling the master document"))
+        logger.info(bold("Compiling the master document"))
         app.connect('env-updated', merge_environment)
         app.connect('html-collect-pages', merge_js_index)
         if app.config.multidocs_subdoc_list:
@@ -276,7 +277,7 @@ def init_subdoc(app):
             app.builder.load_indexer = load_indexer
 
     else:
-        app.info(bold("Compiling a sub-document"))
+        logger.info(bold("Compiling a sub-document"))
         app.connect('html-page-context', fix_path_html)
         if not app.config.multidoc_first_pass:
             app.connect('env-updated', fetch_citation)
