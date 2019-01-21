@@ -11,8 +11,7 @@ AUTHORS:
 REFERENCES:
 
 .. [ABBS] Jean-Christophe Aval, Adrien Boussicault, Mathilde Bouvel and Matteo Silimbani.
-   *Combinatorics of non-ambiguous trees*,
-   :arxiv:`1305.3716`.
+   *Combinatorics of non-ambiguous trees*, :arxiv:`1305.3716`.
 
 '''
 # ****************************************************************************
@@ -31,7 +30,6 @@ from sage.structure.set_factories import (
     SetFactory, ParentWithSetFactory, TopMostParentPolicy
 )
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.global_options import GlobalOptions
 from sage.sets.set import Set
 from sage.misc.lazy_attribute import lazy_class_attribute
@@ -54,7 +52,7 @@ from sage.combinat.permutation import Permutation
 
 default_non_ambiguous_tikz_options = dict(
     scale=1, line_size=1, point_size=3.5
-    , color_line='red' 
+    , color_line='red'
     , color_root='black'
     , color_left_nodes='red'
     , color_right_nodes='blue'
@@ -74,7 +72,7 @@ NonAmbiguousTreesOptions=GlobalOptions(
         checker=lambda x: Set(x.keys()).issubset(
             Set( [
                 'scale', 'line_size', 'point_size'
-                , 'color_line' 
+                , 'color_line'
                 , 'color_root', 'color_left_nodes', 'color_right_nodes'
                 ,'translation'
                 , 'color_diagram'
@@ -108,10 +106,10 @@ NonAmbiguousTreesOptions=GlobalOptions(
 )
 
 class _poset_s:
-    def __init__( self ):
+    def __init__(self):
         self.vertices = []
         self.edges = []
-    def to_poset( self ):
+    def to_poset(self):
         return Poset( [ self.vertices, self.edges ], cover_relations=True )
 
 def _rec_posets_of_nodes(
@@ -191,63 +189,62 @@ class NonAmbiguousTree(ClonableList):
     r'''
     Non-ambiguous Tree
 
-    A non-ambiguous tree is an array containing 1 and 0 such that each row has 
-    to contain at least one 1; each column has to contain at least one 1;
-    there is a 1 at position (0,0) called the root and to each no root node, 
-    there is :
+    A non-ambiguous tree is an array containing 0s and 1s such that each row
+    contains at least one 1; each column contains at least one 1;
+    there is a 1 at position (0,0) called the root and to each other node
+    (where a node is the position of some 1), there is:
 
     - a node on its left in the same row or
-    - a node on the top in the same column
-    - but not the both.
+    - a node on its top in the same column
+    - but not both.
 
     The non-ambiguous trees are in bijection with labeled binary trees
-    verifying that :
+    verifying that:
 
     - the labels are integers;
-    - if p and f are left (resp. right) sons and if f is a descendant of p ( f 
-      is in the subtree of p with p != f ), then the label of f is 
-      strictely greater than the label of p;
-    - All the label of the left (resp.) sons are different and is an 
+    - if p and f are left (resp. right) sons and if f is a descendant of p ( f
+      is in the subtree of p with p != f ), then the label of f is
+      strictly greater than the label of p;
+    - All the labels of the left (resp.) sons are different and is an
       interval starting from 1.
 
-    The bijection from binary tree to non-ambiguous tree are simple :
+    The bijection from binary trees to non-ambiguous trees is simple:
 
     - The nodes code the 1 in the array;
     - The X and Y coordinates of the root are equal to 0;
-    - The labels of the left (resp.) nodes code the X (resp. Y) 
+    - The labels of the left (resp.) nodes code the X (resp. Y)
       coordinates of the 1 associated with the node;
-    - The Y (resp. X) coordinate of a left (resp. right) son s is the Y 
+    - The Y (resp. X) coordinate of a left (resp. right) son s is the Y
       (resp. X) coordinate of the father of s.
 
     INPUT:
 
-    - ``nat_data`` -- an array or a labeled tree. See the next paragraph to know 
+    - ``nat_data`` -- an array or a labeled tree. See the next paragraph to know
       the format of the labeled tree or of the array.
 
     - ``check`` -- (default: ``True``) whether check for binary should be
       performed or not.
 
-    Two types of input allowed for nat_data are :
+    Two types of input allowed for ``nat_data`` are:
 
-    1) A Labelled binary trees verifying that 
+    1) A Labelled binary tree verifying that
 
        - The labels of left nodes contains the height position of the node.
-       - The labels of right nodes contains the width potition of the node.
+       - The labels of right nodes contains the width position of the node.
        - The height of a right node is the same as its father in the tree.
-       - The width of a left nodes is equals to the height of its father.
+       - The width of a left node is the height of its father.
 
-    2) An array containing of 1 and 0. The 1s represent the nodes of the the
+    2) An array containing 1s and 0s. The 1s represent the nodes of the the
        non-ambiguous tree and 0s nothing. Each row has to contain at least one 1.
        Each column has to contain at least one 1.
        There is a 1 at position (0,0) called the root.
        To each non root node, there is
 
-       - a node on it left in the same row or
-       - a node on the top in the same column
-       - but not the both.
+       - a node on its left in the same row or
+       - a node on its top in the same column
+       - but not both.
 
-    For example,
-    ::
+    For example, ::
 
         1 0 1 1 0
         0 0 1 0 0
@@ -255,8 +252,7 @@ class NonAmbiguousTree(ClonableList):
         0 0 1 0 0
 
     is a non-ambiguous tree and can be represented by the following
-    labeled binary tree, 
-    ::
+    labeled binary tree, ::
 
              x
            /   \
@@ -269,15 +265,14 @@ class NonAmbiguousTree(ClonableList):
             4  3
 
     If we replace each 1 of the previous matrix by the label of its node,
-    in the non-ambiguous tree, we obtain :
-    ::
+    in the non-ambiguous tree, we obtain::
 
                                 Label of
                               right nodes
                                 1 2 3 4
                                 | | | |
                                 V V V V
-        
+
                               x 0 2 3 0
          Label of       1 ->  0 0 1 0 0         x is the root
          left nodes     2 ->  2 1 0 0 4         0 is nothing
@@ -288,7 +283,7 @@ class NonAmbiguousTree(ClonableList):
     EXAMPLES::
 
         sage: nat = NonAmbiguousTree(
-        ....:     [ 
+        ....:     [
         ....:       [1,0,1,1,0],
         ....:       [0,0,1,0,0],
         ....:       [1,1,0,0,1],
@@ -299,7 +294,7 @@ class NonAmbiguousTree(ClonableList):
         0[2[., 1[., 4[., .]]], 2[1[3[., .], .], 3[., .]]]
 
         sage: nat = NonAmbiguousTree(
-        ....:     [ 
+        ....:     [
         ....:       [1,1,0,1,0],
         ....:       [1,0,1,0,1],
         ....:       [0,1,0,0,0]
@@ -346,24 +341,26 @@ class NonAmbiguousTree(ClonableList):
         '''
         return NonAmbiguousTrees()
 
-    def posets_of_nodes( self ):
+    def posets_of_nodes(self):
         r'''
-        Return a pair [pl, pr] of poset where pl is the poset of left nodes of
+        Return a pair [pl, pr] of posets.
+
+        Here pl is the poset of left nodes of
         the tree and pr is the poset of right nodes.
 
-        A left node r1 is lesser than another left node r2 if r1 is a parent of
+        A left node r1 is less than another left node r2 if r1 is a parent of
         r2 in the tree.
         '''
         return _posets_of_nodes( self.get_tree() )
 
-    def get_tree( self ):
+    def get_tree(self):
         r'''
         Return the labeled tree associated with the non-ambiguous tree.
 
         EXAMPLES::
 
             sage: nat = NonAmbiguousTree(
-            ....:     [ 
+            ....:     [
             ....:       [1,1,0,1,0],
             ....:       [1,0,1,0,1],
             ....:       [0,1,0,0,0]
@@ -374,15 +371,15 @@ class NonAmbiguousTree(ClonableList):
         '''
         return self[0]
 
-    def get_permutation_of_left_and_right_sons( self ):
+    def get_permutation_of_left_and_right_sons(self):
         r'''
-        This method return a pair of permutation L and R. 
+        This method return a pair of permutation L and R.
         The entries of L are the left sons of the Non ambiguous tree.
         The entries of R are the right sons of the Non ambiguous tree.
-        The left (resp. right) sons are indexed by integers going from 1 to the 
+        The left (resp. right) sons are indexed by integers going from 1 to the
         number of left (resp. right) sons.
-        To index the left (resp. right) sons, we perform a postfix walk in the 
-        tree starting  from the left subtree (resp. right) and ending with the 
+        To index the left (resp. right) sons, we perform a postfix walk in the
+        tree starting  from the left subtree (resp. right) and ending with the
         right (resp. left) subtree and we number all the left (resp. right) sons
         in the same order of the walk.
 
@@ -485,7 +482,7 @@ class NonAmbiguousTree(ClonableList):
             if len(T) != 0:
                 cpt = parcours_postfix_L( T[0], L, cpt, 0 )
                 cpt = parcours_postfix_L( T[1], L, cpt, 1 )
-                if type_arete == 0 :
+                if type_arete == 0:
                     L[ T.label() - 1 ] = cpt
                     cpt += 1
             return cpt
@@ -493,7 +490,7 @@ class NonAmbiguousTree(ClonableList):
             if len(T) != 0:
                 cpt = parcours_postfix_R( T[1], R, cpt, 1 )
                 cpt = parcours_postfix_R( T[0], R, cpt, 0 )
-                if type_arete == 1 :
+                if type_arete == 1:
                     R[ T.label() - 1 ] = cpt
                     cpt += 1
             return cpt
@@ -501,7 +498,7 @@ class NonAmbiguousTree(ClonableList):
         parcours_postfix_R( T, R, 1, -1 )
         return [ Permutation(L), Permutation(R) ]
 
-    def get_left_permutation( self ):
+    def get_left_permutation(self):
         r'''
         Return the permutation of left sons.
         See the documentation of get_permutation_of_left_and_right_sons().
@@ -551,7 +548,7 @@ class NonAmbiguousTree(ClonableList):
         '''
         return self.get_permutation_of_left_and_right_sons()[0]
 
-    def get_right_permutation( self ):
+    def get_right_permutation(self):
         r'''
         Return the permutation of right sons.
         See the documentation of get_permutation_of_left_and_right_sons().
@@ -602,14 +599,14 @@ class NonAmbiguousTree(ClonableList):
         return self.get_permutation_of_left_and_right_sons()[1]
 
     @combinatorial_map(name = "To binary tree")
-    def to_binary_tree( self ):
+    def to_binary_tree(self):
         r'''
         Return the binary tree of the non ambiguous tree
 
         EXAMPLES::
 
             sage: nat = NonAmbiguousTree(
-            ....:     [ 
+            ....:     [
             ....:       [1,0,1,1,0],
             ....:       [0,0,1,0,0],
             ....:       [1,1,0,0,1],
@@ -651,7 +648,7 @@ class NonAmbiguousTree(ClonableList):
                 rlabels.append( tree[1].label() )
             self._recursive_check( tree[1], llabels, rlabels, lfather, tree[1] )
 
-    def check( self ):
+    def check(self):
         r'''
         This method raise an error if the internal data of the class doesn't
         represent a Non-ambiguous trees.
@@ -738,15 +735,15 @@ class NonAmbiguousTree(ClonableList):
         if check:
             if nat_data in LabelledBinaryTrees():
                 tree = nat_data
-            elif isinstance( nat_data, (list, tuple) ) :
-                tree = _recursive_binary_tree( nat_data )
+            elif isinstance(nat_data, (list, tuple)):
+                tree = _recursive_binary_tree(nat_data)
             else:
                 raise ValueError("value %s must be a list or a tuple" % nat_data)
             ClonableList.__init__(self, parent, [tree] )
             self.check()
         self._options = None
 
-    def left_node_number( self ):
+    def left_node_number(self):
         r'''
         Return the number of left sons in the non-ambiguous tree.
 
@@ -764,7 +761,7 @@ class NonAmbiguousTree(ClonableList):
         '''
         return self.get_tree().left_children_node_number()
 
-    def right_node_number( self ):
+    def right_node_number(self):
         r'''
         Return the number of right sons in the non-ambiguous tree.
 
@@ -782,7 +779,7 @@ class NonAmbiguousTree(ClonableList):
         '''
         return self.get_tree().left_children_node_number(direction='right')
 
-    def width( self ):
+    def width(self):
         r'''
         Return the width of the non-ambiguous tree.
 
@@ -804,7 +801,7 @@ class NonAmbiguousTree(ClonableList):
             return 0
         return 1 + self.right_node_number()
 
-    def height( self ):
+    def height(self):
         r'''
         Return the height of the non-ambiguous tree.
 
@@ -826,9 +823,9 @@ class NonAmbiguousTree(ClonableList):
             return 0
         return 1 + self.left_node_number()
 
-    def get_array( 
-        self, root_label=1, left_node_label=1, right_node_label=1, 
-        empty_cell_label=0 
+    def get_array(
+        self, root_label=1, left_node_label=1, right_node_label=1,
+        empty_cell_label=0
     ):
         r'''
         Return the array associated with the non ambiguous tree.
@@ -868,12 +865,10 @@ class NonAmbiguousTree(ClonableList):
         '''
         if self.get_tree().is_empty():
             return [[]]
-        res = [
-            [ empty_cell_label for w in range(self.width()) ]
-            for h in range(self.height())
-        ]
+        res = [[empty_cell_label for w in range(self.width())]
+               for h in range(self.height())]
         res[0][0] = root_label
-        def init_array( array, tree, lfather=0, rfather=0 ):
+        def init_array(array, tree, lfather=0, rfather=0):
             if tree.is_empty():
                 return
             if not tree[0].is_empty():
@@ -885,28 +880,27 @@ class NonAmbiguousTree(ClonableList):
         init_array( res, self.get_tree() )
         return res
 
-    def get_p( self ):
+    def get_p(self):
         r'''
         Return the p statistic.
 
         Let `A` be an array of width `W` and height `H`.
-        We calls hooks of `A` the sets `H_0`, ..., `H_{min(W,H)-1}` of cells 
+        We call hooks of `A` the sets `H_0`, ..., `H_{min(W,H)-1}` of cells
         defined by
 
-        MATH::
+        .. MATH::
 
             H_k = \{ (i,j) | ( i = k \text{ and } j \ge k ) or ( i \ge k \text{ and } j = k ) \}
 
         For example, in the following array, the cells labeled by i are cells
-        of the hook `H_i` :
-        ::
+        of the hook `H_i`::
 
             0 0 0 0 0 0
             0 1 1 1 1 1
             0 1 2 2 2 2
             0 1 2 3 3 3
 
-        The p statistic is the number of hook of a non-ambiguous tree 
+        The p statistic is the number of hooks of a non-ambiguous tree
         containing at least one 1.
 
         EXAMPLES::
@@ -959,15 +953,15 @@ class NonAmbiguousTree(ClonableList):
             sage: nat.get_p()
             1
 
-        There is a conjecture for the p stastistics : the p statistic is the 
-        p of the following formula : 
+        There is a conjecture for the p statistics: the p statistic is the
+        p of the following formula:
 
         MATH::
 
             NAT_{w,h} = \sum_{p \ge 1} (p-1)! p! S_2(w,p) S_2(h, p)`
 
-        where w and h are the dimensions of the non-ambiguous tree and 
-        `S_2(n,k)` is the stirling number of type 2.
+        where w and h are the dimensions of the non-ambiguous tree and
+        `S_2(n,k)` is the Stirling number of type 2.
 
         EXAMPLES::
 
@@ -1001,16 +995,16 @@ class NonAmbiguousTree(ClonableList):
             ....:             return False
             ....:     return True
 
-            sage: all( [ 
+            sage: all( [
             ....:     all( [ test_p_conjecture( i,j ) for i in range(1,4) ] )
-            ....:     for j in range(1,4) 
+            ....:     for j in range(1,4)
             ....: ] )
             True
 
         '''
         a = self.get_array(
-            root_label=1, left_node_label=1, right_node_label=1, 
-            empty_cell_label=0 
+            root_label=1, left_node_label=1, right_node_label=1,
+            empty_cell_label=0
         )
         p_max = min( self.width(), self.height() )
         res = 0
@@ -1025,7 +1019,7 @@ class NonAmbiguousTree(ClonableList):
                     if a[i][w] == 1:
                         empty = False
                         break
-            if not empty :
+            if not empty:
                 res += 1
         return res
 
@@ -1050,7 +1044,7 @@ class NonAmbiguousTree(ClonableList):
         '''
         return self.get_options()._dispatch(self, '_repr_', 'display')
 
-    def _repr_list( self ):
+    def _repr_list(self):
         r'''
         Return a string representation with list style.
 
@@ -1064,7 +1058,7 @@ class NonAmbiguousTree(ClonableList):
         '''
         return self.get_tree()._repr_()
 
-    def _repr_drawing( self ):
+    def _repr_drawing(self):
         r'''
         Return a string representing a drawing of the non-ambiguous tree.
 
@@ -1078,10 +1072,10 @@ class NonAmbiguousTree(ClonableList):
         '''
         return str( matrix( self.get_array() ) )
 
-    def get_tikz_options( self ):
+    def get_tikz_options(self):
         return self.get_options()['tikz_options']
 
-    def _to_tikz_diagram( self ):
+    def _to_tikz_diagram(self):
         res = ""
         tikz_options = self.get_tikz_options()
 
@@ -1106,20 +1100,22 @@ class NonAmbiguousTree(ClonableList):
         res += self._to_tikz_points();
         return res
 
-    def _to_tikz_points( self ):
+    def _to_tikz_points(self):
         res = ""
         tikz_options = self.get_tikz_options()
 
         array = self.get_array(
-            root_label=1, left_node_label=2, right_node_label=3, 
-            empty_cell_label=0 
+            root_label=1, left_node_label=2, right_node_label=3,
+            empty_cell_label=0
         )
         height = len( array )
         width = len( array[0] )
-        def X( x ):
+
+        def X(x):
             return x
-        def Y( y ):
-            return height-y
+
+        def Y(y):
+            return height - y
 
         for h in range( height ):
             for w in range( width ):
@@ -1137,23 +1133,25 @@ class NonAmbiguousTree(ClonableList):
                     )
         return res
 
-    def _to_tikz_tree( self ):
+    def _to_tikz_tree(self):
         res = ""
         tikz_options = self.get_tikz_options()
 
         array = self.get_array(
-            root_label=1, left_node_label=2, right_node_label=3, 
-            empty_cell_label=0 
+            root_label=1, left_node_label=2, right_node_label=3,
+            empty_cell_label=0
         )
         height = len( array )
         width = len( array[0] )
-        def X( x ):
+
+        def X(x):
             return x
-        def Y( y ):
-            return height-y
+
+        def Y(y):
+            return height - y
 
         # We draw the right edges
-        for h in range( height ):
+        for h in range(height):
             min_w = None
             max_w = None
             for w in range( width ):
@@ -1185,7 +1183,7 @@ class NonAmbiguousTree(ClonableList):
         res += self._to_tikz_points()
         return res
 
-    def to_tikz( self ):
+    def to_tikz(self):
         r'''
         Return the tikz code of the non-ambiguous tree.
 
@@ -1193,9 +1191,9 @@ class NonAmbiguousTree(ClonableList):
         '''
         res = ""
         drawing_components = self.get_options()['drawing_components']
-        if 'diagram' in  drawing_components :
+        if 'diagram' in  drawing_components:
             res += self._to_tikz_diagram()
-        if 'tree' in  drawing_components :
+        if 'tree' in  drawing_components:
             res += self._to_tikz_tree()
         return res
 
@@ -1208,24 +1206,24 @@ class NonAmbiguousTree(ClonableList):
         '''
         return self.get_options()._dispatch(self, '_latex_', 'latex')
 
-    def _latex_drawing( self ):
+    def _latex_drawing(self):
         r'''
         Return a LaTeX version of ``self`` in a drawing style.
         '''
         latex.add_package_to_preamble_if_available("tikz")
         tikz_options = self.get_tikz_options()
-        res = "\n\\begin{tikzpicture}[scale=%s]"%(tikz_options['scale'])
+        res = "\n\\begin{tikzpicture}[scale=%s]"% tikz_options['scale']
         res += self.to_tikz()
         res += "\n\\end{tikzpicture}"
         return res
 
-    def _latex_list( self ):
+    def _latex_list(self):
         r'''
         Return a LaTeX version of ``self`` in a list style.
         '''
         return "\\[%s\\]" % self._repr_list()
 
-    def get_options( self ):
+    def get_options(self):
         r'''
         Return all the options of the object.
 
@@ -1274,7 +1272,7 @@ class NonAmbiguousTreesFactory(SetFactory):
 
     def add_constraints(self, cons, args_opts):
         r"""
-        This function permit to add some enumeration constraint to the 
+        This function permit to add some enumeration constraint to the
         factory. The factory make a family using the given constraints.
 
         :meth:`SetFactory.add_constraints<.set_factories.SetFactory.add_constraints>`.
@@ -1328,9 +1326,9 @@ class NonAmbiguousTrees_binarytree(ParentWithSetFactory, UniqueRepresentation):
         r'''
         '''
         if BinaryTree( el.get_tree() ) == self.tree():
-            raise ValueError("the non-ambiguous trees have a wrong binary tree : %s" % BinaryTree(el.get_tree()))
+            raise ValueError("the non-ambiguous trees have a wrong binary tree: %s" % BinaryTree(el.get_tree()))
 
-    def cardinality( self ):
+    def cardinality(self):
         r'''
         Return the number of non-ambiguous trees.
 
@@ -1347,53 +1345,39 @@ class NonAmbiguousTrees_binarytree(ParentWithSetFactory, UniqueRepresentation):
 
         TESTS::
 
-            sage: NonAmbiguousTrees(0).cardinality()
-            1
-            sage: NonAmbiguousTrees(1).cardinality()
-            1
-            sage: NonAmbiguousTrees(2).cardinality()
-            2
-            sage: NonAmbiguousTrees(3).cardinality()
-            5
-            sage: NonAmbiguousTrees(4).cardinality()
-            16
-            sage: NonAmbiguousTrees(5).cardinality()
-            63
-            sage: NonAmbiguousTrees(6).cardinality()
-            294
-            sage: NonAmbiguousTrees(7).cardinality()
-            1585
-            sage: NonAmbiguousTrees(8).cardinality()
-            9692
+            sage: [NonAmbiguousTrees(k).cardinality() for k in range(8)]
+            [1, 1, 2, 5, 16, 63, 294, 1585]
         '''
-        def rec_cardinality( tree ):
-            res = [ 0, 0, 1, 1 ]
+
+        def rec_cardinality(tree):
+            res = [0, 0, 1, 1]
             if tree.is_empty():
                 return res
-            if not tree[0].is_empty() :
-                lres = rec_cardinality( tree[0] )
-                res[0] += ( 1 + lres[0] )
+            if not tree[0].is_empty():
+                lres = rec_cardinality(tree[0])
+                res[0] += 1 + lres[0]
                 res[1] += lres[1]
-                res[2] *= ( lres[2] * ( 1 + lres[0] ) )
+                res[2] *= lres[2] * (1 + lres[0])
                 res[3] *= lres[3]
-            if not tree[1].is_empty() :
-                rres = rec_cardinality( tree[1] )
+            if not tree[1].is_empty():
+                rres = rec_cardinality(tree[1])
                 res[0] += rres[0]
-                res[1] += ( 1 + rres[1] )
+                res[1] += 1 + rres[1]
                 res[2] *= rres[2]
-                res[3] *= ( rres[3] * ( 1 + rres[1] ) )
+                res[3] *= rres[3] * (1 + rres[1])
             return res
+
         lnode_nb, rnode_nb, prod_lnode_nb, prod_rnode_nb = rec_cardinality(
             self.tree()
         )
         return (
-            ( factorial( lnode_nb )/prod_lnode_nb )
-            * ( factorial( rnode_nb )/prod_rnode_nb )
+            ( factorial(lnode_nb) / prod_lnode_nb )
+            * ( factorial(rnode_nb) / prod_rnode_nb )
         )
 
     def __iter__(self):
         r'''
-        Rerturn a non-ambiguous trees generator.
+        Return a generator for non-ambiguous trees.
 
         EXAMPLES::
 
@@ -1437,7 +1421,7 @@ class NonAmbiguousTrees_binarytree(ParentWithSetFactory, UniqueRepresentation):
             sage: next(generator)
             .
         '''
-        if self.tree().is_empty() :
+        if self.tree().is_empty():
             yield NonAmbiguousTree( LabelledBinaryTree( None ) )
         else:
             lposet, rposet =  _posets_of_nodes( self.tree() )
@@ -1453,13 +1437,13 @@ class NonAmbiguousTrees_binarytree(ParentWithSetFactory, UniqueRepresentation):
                     lbtree.set_immutable()
                     yield NonAmbiguousTree( lbtree )
 
-    def get_options( self ):
+    def get_options(self):
         return self.global_options
 
     def set_options( self, *get_value, **set_value ):
         self.global_options( *get_value, **set_value )
 
-    def tree( self ):
+    def tree(self):
         return self._btree
 
     global_options = NonAmbiguousTreesOptions
@@ -1510,13 +1494,13 @@ class NonAmbiguousTrees_size(ParentWithSetFactory, DisjointUnionEnumeratedSets):
         r'''
         '''
         if el.size() != self.size():
-            raise ValueError("the non-ambiguous trees have a Wrong size : %s" %
+            raise ValueError("the non-ambiguous trees have a wrong size: %s" %
                              el.size())
 
-    def get_options( self ):
+    def get_options(self):
         return self.global_options
 
-    def size( self ):
+    def size(self):
         r'''
         Return the size of the non-ambiguous trees generated by this parent.
 
@@ -1536,13 +1520,14 @@ class NonAmbiguousTrees_size(ParentWithSetFactory, DisjointUnionEnumeratedSets):
 
     global_options = NonAmbiguousTreesOptions
 
+
 class NonAmbiguousTrees_all(ParentWithSetFactory, DisjointUnionEnumeratedSets):
     r'''
     This class enumerate all the non-ambiguous trees.
     '''
     def __init__(self, policy):
         r'''
-        Construct the set af all the non-ambiguous trees.
+        Construct the set of all non-ambiguous trees.
 
         EXAMPLES::
 
@@ -1550,11 +1535,11 @@ class NonAmbiguousTrees_all(ParentWithSetFactory, DisjointUnionEnumeratedSets):
             sage: NATS
             non-ambiguous trees
 
-            sage: NonAmbiguousTree( [[0,1,1],[1,1,0]] )  in NATS
+            sage: NonAmbiguousTree([[0,1,1],[1,1,0]]) in NATS
             True
 
             sage: NATS = NonAmbiguousTrees()
-            sage: next( NATS.__iter__() ) in NATS
+            sage: next(NATS.__iter__()) in NATS
             True
         '''
         ParentWithSetFactory.__init__(
@@ -1568,8 +1553,8 @@ class NonAmbiguousTrees_all(ParentWithSetFactory, DisjointUnionEnumeratedSets):
             category = self.category()
         )
 
-    def _non_ambiguous_trees_size( self, n ):
-        return NonAmbiguousTrees_size( n, policy=self.facade_policy() )
+    def _non_ambiguous_trees_size(self, n):
+        return NonAmbiguousTrees_size(n, policy=self.facade_policy())
 
     def _repr_(self):
         r'''
@@ -1585,7 +1570,7 @@ class NonAmbiguousTrees_all(ParentWithSetFactory, DisjointUnionEnumeratedSets):
 
     def check_element(self, el, check):
         r'''
-        Check is a given element `el` is in the set of non-ambiguous trees.
+        Check if a given element `el` is in the set of non-ambiguous trees.
 
         EXAMPLES::
 
@@ -1595,9 +1580,9 @@ class NonAmbiguousTrees_all(ParentWithSetFactory, DisjointUnionEnumeratedSets):
         '''
         pass
 
-    def get_options( self ):
+    def get_options(self):
         r'''
-        Returns all the aptions associated with the set of non-ambiguous trees.
+        Return all the options associated with the set of non-ambiguous trees.
 
         EXAMPLES::
 
