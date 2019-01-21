@@ -10,7 +10,6 @@
 #*****************************************************************************
 */
 
-#include <Python.h>
 #include <math.h>
 #include "hasse_diagram.h"
 #include <cstdlib> //for aligned_alloc in C++17
