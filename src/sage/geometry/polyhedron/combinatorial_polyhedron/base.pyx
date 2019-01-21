@@ -995,23 +995,23 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = polytopes.permutahedron(7)
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter(dimension=2)
-            sage: it.next()
+            sage: next(it)
             (A vertex at (5, 7, 1, 4, 6, 3, 2),
              A vertex at (5, 7, 2, 4, 6, 3, 1),
              A vertex at (6, 7, 1, 4, 5, 3, 2),
              A vertex at (6, 7, 2, 4, 5, 3, 1))
-            sage: it.next()
+            sage: next(it)
             (A vertex at (5, 6, 1, 4, 7, 3, 2),
              A vertex at (5, 6, 2, 4, 7, 3, 1),
              A vertex at (5, 7, 1, 4, 6, 3, 2),
              A vertex at (5, 7, 2, 4, 6, 3, 1))
             sage: it = C.face_iter(dimension=2, names=False)
-            sage: it.next()
+            sage: next(it)
             (3497, 3521, 4217, 4241)
-            sage: it.next()
+            sage: next(it)
             (3377, 3401, 3497, 3521)
             sage: it = C.face_iter(dimension=2, facet_repr=True)
-            sage: it.next()
+            sage: next(it)
             ((A vertex at (5, 7, 1, 4, 6, 3, 2),
               A vertex at (5, 7, 2, 4, 6, 3, 1),
               A vertex at (6, 7, 1, 4, 5, 3, 2),
@@ -1022,9 +1022,9 @@ cdef class CombinatorialPolyhedron(SageObject):
               An inequality (0, 0, 1, 0, 0, 1, 1) x - 6 >= 0,
               An inequality (0, 0, 1, 1, 0, 1, 1) x - 10 >= 0))
             sage: it = C.face_iter(dimension=2, vertex_repr=False, facet_repr=True, names=False)
-            sage: it.next()
+            sage: next(it)
             (98, 106, 124, 125)
-            sage: it.next()
+            sage: next(it)
             (80, 106, 124, 125)
 
 
