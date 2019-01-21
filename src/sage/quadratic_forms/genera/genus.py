@@ -6,6 +6,7 @@ AUTHORS:
 
 - David Kohel & Gabriele Nebe (2007): First created
 - Simon Brandhorst (2018): various bugfixes and printing
+- Simon Brandhorst (2018): enumeration of genera
 """
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
@@ -93,7 +94,7 @@ def all_genera_by_det(sig_pair, determinant, max_scale=None, even=True):
 
     - ``determinant`` -- an integer the sign is ignored
 
-    - ``max_scale`` -- (default: ``True``) an integer the maximum scale of a jordan block
+    - ``max_scale`` -- (default: ``True``) an integer; the maximum scale of a jordan block
 
     - ``even`` -- bool (default: ``True``)
 
@@ -104,19 +105,22 @@ def all_genera_by_det(sig_pair, determinant, max_scale=None, even=True):
     EXAMPLES::
 
         sage: from sage.quadratic_forms.genera.genus import all_genera_by_det
-        sage: G = all_genera_by_det((4,0), 125, even=True)
-        sage: G     # random
+        sage: all_genera_by_det((4,0), 125, even=True)
         [Genus of
         None
+        Signature:  (4, 0)
         Genus symbol at 2:    1^-4
         Genus symbol at 5:     1^1 5^3, Genus of
         None
+        Signature:  (4, 0)
         Genus symbol at 2:    1^-4
         Genus symbol at 5:     1^-2 5^1 25^-1, Genus of
         None
+        Signature:  (4, 0)
         Genus symbol at 2:    1^-4
         Genus symbol at 5:     1^2 5^1 25^1, Genus of
         None
+        Signature:  (4, 0)
         Genus symbol at 2:    1^-4
         Genus symbol at 5:     1^3 125^1]
     """
@@ -155,7 +159,7 @@ def all_genera_by_det(sig_pair, determinant, max_scale=None, even=True):
     # clever way to directly match the symbols for different primes.
     for g in mrange_iter(local_symbols):
         # create a Genus from a list of local symbols
-        G = GenusSymbol_global_ring(sig_pair, g)
+        G = GenusSymbol_global_ring(sig_pair, g, representative=None, check=True)
         # discard the empty genera
         if is_GlobalGenus(G):
             genera.append(G)
@@ -290,11 +294,15 @@ def _blocks(b, even_only=False):
          [15, 2, 7, 1, 0],
          [15, 2, 3, 1, 4]]
     """
-    from copy import copy
     blocks = []
     rk = b[1]
     # recall: 2-genus_symbol is [scale, rank, det, even/odd, oddity]
-    if rk == 1 and not even_only:
+    if rk == 0:
+        assert b[2] == 1
+        assert b[3] == 0
+        assert b[4] == 0
+        blocks.append(copy(b))
+    elif rk == 1 and not even_only:
         for det in [1, 3, 5, 7]:
             b1 = copy(b)
             b1[2] = det
@@ -354,6 +362,8 @@ def _blocks(b, even_only=False):
                 b1[3] = 1
                 b1[4] = t
                 blocks.append(b1)
+    # convert ints to integers
+    blocks = [[ZZ(i) for i in b] for b in blocks]
     return blocks
 
 def Genus(A, factored_determinant=None):
@@ -1320,23 +1330,26 @@ class Genus_Symbol_p_adic_ring(object):
 
             sage: from sage.quadratic_forms.genera.genus import p_adic_symbol
             sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
+
             sage: A = diagonal_matrix(ZZ, [1,2,3,4])
             sage: p = 2
             sage: s2 = p_adic_symbol(A, p, 2); s2
             [[0, 2, 3, 1, 4], [1, 1, 1, 1, 1], [2, 1, 1, 1, 1]]
-            sage: G2 = Genus_Symbol_p_adic_ring(p,s2);G2
+            sage: G = Genus_Symbol_p_adic_ring(p,s2);G
             Genus symbol at 2:    [1^-2 2^1 4^1]_6
+            sage: G == loads(dumps(G))
+            True
 
             sage: A = diagonal_matrix(ZZ, [1,2,3,4])
             sage: p = 3
             sage: s3 = p_adic_symbol(A, p, 1); s3
             [[0, 3, -1], [1, 1, 1]]
-            sage: G3 = Genus_Symbol_p_adic_ring(p,s3);G3
+            sage: G = Genus_Symbol_p_adic_ring(p,s3);G
             Genus symbol at 3:     1^-3 3^1
-            sage: G2 == loads(dumps(G2))
+            sage: G == loads(dumps(G))
             True
-            sage: G3 == loads(dumps(G3))
-            True
+
+
         """
         if check:
            pass
