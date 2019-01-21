@@ -328,7 +328,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         TESTS::
 
-            sage: P = polytopes.permutahedron(5)
+            sage: P = polytopes.permutahedron(4)
             sage: C = CombinatorialPolyhedron(P)
             sage: C1 = loads(C.dumps())
             sage: tuple(i for i in C.face_iter(facet_repr=True)) == tuple(i for i in C1.face_iter(facet_repr=True))
@@ -632,6 +632,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.ridges(add_equalities=True)
             (((An equation (1, 1) x - 3 == 0, An inequality (0, -1) x + 2 >= 0),
               (An equation (1, 1) x - 3 == 0, An inequality (0, 1) x - 1 >= 0)),)
+
             sage: P = polytopes.cyclic_polytope(4,5)
             sage: C = CombinatorialPolyhedron(P)
             sage: C.ridges()
@@ -737,15 +738,15 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         EXAMPLES::
 
-            sage: P = polytopes.permutahedron(7)
+            sage: P = polytopes.permutahedron(5)
             sage: C = CombinatorialPolyhedron(P)
             sage: C.f_vector()
-            (1, 5040, 15120, 16800, 8400, 1806, 126, 1)
+            (1, 120, 240, 150, 30, 1)
 
-            sage: P = polytopes.cyclic_polytope(6,40)
+            sage: P = polytopes.cyclic_polytope(6,10)
             sage: C = CombinatorialPolyhedron(P)
             sage: C.f_vector()
-            (1, 40, 780, 9880, 25940, 25200, 8400, 1)
+            (1, 10, 45, 120, 185, 150, 50, 1)
 
         ALGORITHM:
 
@@ -1030,7 +1031,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         TESTS::
 
-            sage: P = polytopes.permutahedron(7)
+            sage: P = polytopes.permutahedron(5)
             sage: C = CombinatorialPolyhedron(P)
             sage: f = C.f_vector()
             sage: altf = tuple(len(tuple(C.face_iter(i))) for i in range(-1,C.dimension()+1))
@@ -1376,10 +1377,10 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.face_lattice().is_isomorphic(C1.face_lattice())
             True
 
-            sage: P = polytopes.permutahedron(7)
+            sage: P = polytopes.permutahedron(6)
             sage: C = CombinatorialPolyhedron(P)
             sage: C.face_lattice()
-            Finite lattice containing 47294 elements
+            Finite lattice containing 4684 elements
         """
 
         #we must ignore part of the input to ensure an injective relabeling
@@ -1430,25 +1431,23 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         EXAMPLES::
 
-            sage: P = polytopes.cyclic_polytope(8,30)
+            sage: P = polytopes.cyclic_polytope(8,15)
             sage: C = CombinatorialPolyhedron(P)
             sage: C.flag(1,3,6)
-            14490000
+            378000
 
-            sage: P = polytopes.permutahedron(7)
+            sage: P = polytopes.permutahedron(6)
             sage: C = CombinatorialPolyhedron(P)
-            sage: C.flag(1,5)
-            75600
-            sage: C.flag(1,5,5)
-            75600
-            sage: C.flag(1,5,5,6)
-            75600
-            sage: C.flag(1,5,4)
-            302400
-            sage: C.flag(1,4,5)
-            302400
-            sage: C.flag(1,3,4,5)
-            907200
+            sage: C.flag(1,4)
+            7200
+            sage: C.flag(1,4,4)
+            7200
+            sage: C.flag(1,3,4,4)
+            21600
+            sage: C.flag(1,4,3)
+            21600
+            sage: C.flag(1,2,3,4)
+            43200
         """
         for number in flag:
             if not isinstance(number,Integer):
