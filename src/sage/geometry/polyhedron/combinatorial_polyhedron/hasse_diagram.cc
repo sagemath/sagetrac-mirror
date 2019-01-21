@@ -12,11 +12,10 @@
 
 #include <math.h>
 #include "hasse_diagram.h"
+#include <stdlib.h> //for aligned_alloc in C++11
 #include <cstdlib> //for aligned_alloc in C++17
 #include <cstdio>
-#include <stdio.h>
-#include <stdlib.h>
-
+#include <cstdint>
 
 static uint64_t vertex_to_bit_dictionary[64];
 
@@ -702,6 +701,7 @@ inline void CombinatorialPolyhedron::add_incidence(unsigned long one, unsigned l
 //newfaces2 will point at those of exactly one dimension less which are not contained in any of the faces in 'forbidden'
 //returns the number of those faces
 inline unsigned int CombinatorialPolyhedron::get_next_level(chunktype **faces, unsigned int lenfaces, unsigned int face_to_intersect, chunktype **nextfaces, chunktype **nextfaces2, unsigned int nr_forbidden){
+    const unsigned int constlenfaces = lenfaces;
     unsigned int j,k, addthisface;
     unsigned int newfacescounter = 0;
     unsigned int counter = 0;
@@ -712,7 +712,6 @@ inline unsigned int CombinatorialPolyhedron::get_next_level(chunktype **faces, u
         }
     }
     //we have create all possible intersection with the i_th-face, but some of them might not be of exactly one dimension less
-    const unsigned int constlenfaces = lenfaces;
     int addfacearray[constlenfaces] = { };
     for (j = 0; j< lenfaces-1; j++){
     addfacearray[j] = 1;
