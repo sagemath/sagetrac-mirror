@@ -100,7 +100,10 @@ inline unsigned int naive_popcount(uint64_t A){
 //initialization with a tuple of facets (each facet a tuple of vertices, vertices labeled 0,1,...)
 CombinatorialPolyhedron::CombinatorialPolyhedron(unsigned int ** facets_pointer, unsigned int nr_facets_given, unsigned int *len_facets, unsigned int nr_vertices_given, int is_unbounded){
     unbounded = is_unbounded;
-    nr_lines = 0;
+    if (is_unbounded)
+        nr_lines = (unsigned int) is_unbounded - 1;
+    else
+        nr_lines = 0;
     build_dictionary();
     nr_vertices = nr_vertices_given;
     nr_facets = nr_facets_given;
@@ -118,7 +121,10 @@ CombinatorialPolyhedron::CombinatorialPolyhedron(unsigned int ** facets_pointer,
 //initialization with an incidence matrix given as tuple of tuples
 CombinatorialPolyhedron::CombinatorialPolyhedron(unsigned int ** incidence_matrix, unsigned int nr_facets_given, unsigned int nr_vertices_given, int is_unbounded){
     unbounded = is_unbounded;
-    nr_lines = 0;
+    if (is_unbounded)
+        nr_lines = (unsigned int) is_unbounded - 1;
+    else
+        nr_lines = 0;
     build_dictionary();
     nr_vertices = nr_vertices_given;
     nr_facets = nr_facets_given;
@@ -727,7 +733,6 @@ unsigned int CombinatorialPolyhedron::calculate_dimension(chunktype **faces, uns
         return 0;
     }
     if (nr_faces == 1){//if there is only one facet and this contains bitcount # of vertices/rays/lines then the polyhedron is of dimension bitcount -1
-        nr_lines = bitcount - 1;
         return bitcount;
     }
     if (bitcount == 1){
@@ -753,6 +758,9 @@ unsigned int CombinatorialPolyhedron::calculate_dimension(chunktype **faces, uns
 void CombinatorialPolyhedron::calculate_ridges(){//this is a much simpler version of belows get_f_vector_and_edges
     if (nr_facets <= 1){
         return;
+    }
+    if ((nr_lines > 0) && (dimension - 1 == nr_lines)){
+        return;//in this case it might look like there is a ridge, but actually this is not a face but a line
     }
     unsigned int i,j,counter, addthisface, nr_forbidden = 0;
     unsigned long newfacescounter;
@@ -811,9 +819,6 @@ void CombinatorialPolyhedron::get_f_vector_and_edges(){
 void CombinatorialPolyhedron::get_f_vector_and_edges(chunktype **faces, unsigned int dim, unsigned int nr_faces, unsigned int nr_forbidden){
     unsigned int i;
     unsigned long newfacescounter;
-    if (dim == nr_lines){
-        return;
-    }
     if (dim == 1){
         if (edgemode)//in this case we want to record the edges
         for (i = 0; i < nr_faces; i++){
@@ -822,6 +827,9 @@ void CombinatorialPolyhedron::get_f_vector_and_edges(chunktype **faces, unsigned
     }
     if (nr_faces <= 1){
         return;//there will be no newfaces, in the case of nr_facets == 1, newfaces might not have been initialized properly, however with correct data, one of the above things should happen
+    }
+    if (dim == nr_lines){
+        return;//it might look like faces contain a common vertex, but by user input we know that this is not a vertex but a line, i.e. not a face
     }
     i = nr_faces;
     while (i--){
@@ -855,6 +863,9 @@ void CombinatorialPolyhedron::record_faces(chunktype **faces, unsigned int curre
     }
     if (current_dimension == lowest_dimension){
         return;
+    }
+    if (current_dimension == nr_lines){
+        return;//it might look like faces contain a common vertex, but by user input we know that this is not a vertex but a line, i.e. not a face
     }
     i = nr_faces;
     while (i--){
@@ -938,6 +949,10 @@ inline unsigned int CombinatorialPolyhedron::face_iterator(unsigned int *Vface_t
     if (nr_faces <= 1){
         face_iterator_current_dimension++;
         return 0;
+    }
+    if (current_dimension == nr_lines){
+        face_iterator_current_dimension++;
+        return 0;//it might look like faces contain a common vertex, but by user input we know that this is not a vertex but a line, i.e. not a face
     }
     i = nr_faces - 1;
     face_iterator_nr_faces[current_dimension]--;
