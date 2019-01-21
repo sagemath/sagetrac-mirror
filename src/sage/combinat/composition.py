@@ -1795,12 +1795,12 @@ class Compositions_constraints(IntegerListsLex):
             # This is the unpickling sequence for Compositions(4, max_part=2) in sage <= 4.1.1
             sage: from sage.misc.persist import unpickle_global
             sage: pg_Compositions_constraints = unpickle_global('sage.combinat.composition', 'Compositions_constraints')
-            sage: si = unpickle_newobj(pg_Compositions_constraints, ())
+            sage: si = unpickle_newobj(pg_Compositions_constraints, ())  # optional - explain_pickle
             sage: pg_make_integer = unpickle_global('sage.rings.integer', 'make_integer')
-            sage: unpickle_build(si, {'constraints':{'max_part':pg_make_integer('2')}, 'n':pg_make_integer('4')})
-            sage: si
+            sage: unpickle_build(si, {'constraints':{'max_part':pg_make_integer('2')}, 'n':pg_make_integer('4')})    # optional - explain_pickle
+            sage: si                 # optional - explain_pickle
             Integer lists of sum 4 satisfying certain constraints
-            sage: si.list()
+            sage: si.list()          # optional - explain_pickle
             [[2, 2], [2, 1, 1], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
         """
         n = data['n']

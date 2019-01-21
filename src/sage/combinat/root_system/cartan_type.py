@@ -3068,15 +3068,15 @@ class CartanType_simple_finite(object):
 
             sage: from sage.misc.persist import unpickle_global
             sage: pg_CartanType_simple_finite = unpickle_global('sage.combinat.root_system.cartan_type', 'CartanType_simple_finite')
-            sage: si1 = unpickle_newobj(pg_CartanType_simple_finite, ())
+            sage: si1 = unpickle_newobj(pg_CartanType_simple_finite, ())  # optional - explain_pickle
             sage: pg_unpickleModule = unpickle_global('twisted.persisted.styles', 'unpickleModule')
             sage: pg_make_integer = unpickle_global('sage.rings.integer', 'make_integer')
             sage: si2 = pg_make_integer('4')
-            sage: unpickle_build(si1, {'tools':pg_unpickleModule('sage.combinat.root_system.type_A'), 't':['A', si2], 'letter':'A', 'n':si2})
+            sage: unpickle_build(si1, {'tools':pg_unpickleModule('sage.combinat.root_system.type_A'), 't':['A', si2], 'letter':'A', 'n':si2})  # optional - explain_pickle
 
-            sage: si1
+            sage: si1  # optional - explain_pickle
             ['A', 4]
-            sage: si1.dynkin_diagram()
+            sage: si1.dynkin_diagram()  # optional - explain_pickle
             O---O---O---O
             1   2   3   4
             A4

@@ -314,18 +314,18 @@ def Hom(X, Y, category=None, check=True):
     unpickling, are supported. Case of a parent::
 
         sage: cls = type(Set())
-        sage: S = unpickle_newobj(cls, ())  # A non parent
-        sage: H = Hom(S, S, SimplicialComplexes(), check=False)
-        sage: H = Hom(S, S, Sets(),                check=False)
-        sage: H = Hom(S, S, ChainComplexes(QQ),    check=False)
+        sage: S = unpickle_newobj(cls, ())  # optional - explain_pickle
+        sage: H = Hom(S, S, SimplicialComplexes(), check=False)  # optional - explain_pickle
+        sage: H = Hom(S, S, Sets(),                check=False)  # optional - explain_pickle
+        sage: H = Hom(S, S, ChainComplexes(QQ),    check=False)  # optional - explain_pickle
 
     Case of a non parent::
 
         sage: cls = type(SimplicialComplex([[1,2], [1,4]]))
-        sage: S = unpickle_newobj(cls, ())
-        sage: H = Hom(S, S, Sets(),                check=False)
-        sage: H = Hom(S, S, Groups(),              check=False)
-        sage: H = Hom(S, S, SimplicialComplexes(), check=False)
+        sage: S = unpickle_newobj(cls, ())  # optional - explain_pickle
+        sage: H = Hom(S, S, Sets(),                check=False)  # optional - explain_pickle
+        sage: H = Hom(S, S, Groups(),              check=False)  # optional - explain_pickle
+        sage: H = Hom(S, S, SimplicialComplexes(), check=False)  # optional - explain_pickle
 
     Typical example where unpickling involves calling Hom on an
     unitialized parent::

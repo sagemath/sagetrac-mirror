@@ -101,13 +101,13 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
 
     def __setstate__(self, state):
         r"""
-        For unpickling objects pickled with the old ArithmeticSubgroupElement class.
+        For unpickling objects pickled with the old ``ArithmeticSubgroupElement` class.
 
         EXAMPLES::
 
-            sage: si = unpickle_newobj(sage.modular.arithgroup.arithgroup_element.ArithmeticSubgroupElement, ())
+            sage: si = unpickle_newobj(sage.modular.arithgroup.arithgroup_element.ArithmeticSubgroupElement, ())  # optional - explain_pickle
             sage: x = matrix(ZZ,2,[1,1,0,1])
-            sage: unpickle_build(si, (Gamma0(13), {'_ArithmeticSubgroupElement__x': x}))
+            sage: unpickle_build(si, (Gamma0(13), {'_ArithmeticSubgroupElement__x': x}))  # optional - explain_pickle
         """
         from .congroup_sl2z import SL2Z
         oldparent, kwdict = state
