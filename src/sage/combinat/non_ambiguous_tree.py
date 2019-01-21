@@ -15,14 +15,15 @@ REFERENCES:
    :arxiv:`1305.3716`.
 
 '''
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2014 Adrien Boussicault (boussica@labri.fr),
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from six import add_metaclass
 
 from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
@@ -184,7 +185,9 @@ def _posets_of_nodes( tree ):
     _rec_posets_of_nodes( tree, left_poset, right_poset )
     return [ left_poset.to_poset(), right_poset.to_poset() ]
 
-class NonAmbiguousTree( ClonableList ):
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
+class NonAmbiguousTree(ClonableList):
     r'''
     Non-ambiguous Tree
 
@@ -331,9 +334,6 @@ class NonAmbiguousTree( ClonableList ):
         0[2[5[., .], 2[6[., .], .]], 1[3[7[., .], 4[., .]], 3[1[4[., .], .], .]]]
 
     '''
-    __metaclass__ = ClasscallMetaclass
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
         r'''
@@ -1031,7 +1031,9 @@ class NonAmbiguousTree( ClonableList ):
 
     def _repr_(self):
         r'''
-        Return a string representation of the non-ambious tree.
+        Return a string representation of the non-ambiguous tree.
+
+        This depends on the options.
 
         EXAMPLES::
 
@@ -1135,7 +1137,6 @@ class NonAmbiguousTree( ClonableList ):
                     )
         return res
 
-
     def _to_tikz_tree( self ):
         res = ""
         tikz_options = self.get_tikz_options()
@@ -1222,8 +1223,7 @@ class NonAmbiguousTree( ClonableList ):
         r'''
         Return a LaTeX version of ``self`` in a list style.
         '''
-        return "\\[%s\\]"%(self._repr_list())
-        NotImplemented
+        return "\\[%s\\]" % self._repr_list()
 
     def get_options( self ):
         r'''
@@ -1317,7 +1317,7 @@ class NonAmbiguousTrees_binarytree(ParentWithSetFactory, UniqueRepresentation):
             sage: NonAmbiguousTrees( tree = BinaryTree([[],[]]) )
             non-ambiguous trees of binary tree [[., .], [., .]]
         '''
-        return "non-ambiguous trees of binary tree %s"%(self.tree())
+        return "non-ambiguous trees of binary tree %s" % self.tree()
 
     def an_element(self):
         r'''
