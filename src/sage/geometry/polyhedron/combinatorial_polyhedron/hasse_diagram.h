@@ -53,6 +53,7 @@ const unsigned int chunksize = 64;
 #endif
 
 #if __POPCNT__
+#include <immintrin.h>
 #define popcount(A) _mm_popcnt_u64(A)
 #else
 #define popcount(A) naive_popcount(A)

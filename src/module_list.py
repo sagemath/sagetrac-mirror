@@ -297,8 +297,8 @@ ext_modules = [
               sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/base.pyx',
                         'sage/geometry/polyhedron/combinatorial_polyhedron/hasse_diagram.cc'],
               depends = ['sage/geometry/polyhedron/combinatorial_polyhedron/hasse_diagram.h'],
-          extra_compile_args=['-O3', '-march=native'],#'-march=native' is supposed to enable SSE and AVX where available, not sure if needed
-          language = 'c++'),
+              extra_compile_args=['-O3', '-march=native'],#'-march=native' is supposed to enable SSE and AVX where available, not sure if needed
+              language = 'c++'),
 
     ################################
     ##
