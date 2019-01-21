@@ -642,8 +642,8 @@ class TorsionQuadraticModule(FGP_Module_class):
             Traceback (most recent call last):
             TypeError: all local symbols must be of the same dimension
         """
-        if not self.is_genus((signature_pair)):
-            raise ValueError("this signature=%s and torsion quadratic form do define a genus"%signature_pair)
+        #if not self.is_genus((signature_pair)):
+        #    raise ValueError("this signature=%s and torsion quadratic form do define a genus"%signature_pair)
         from sage.quadratic_forms.genera.genus import (Genus_Symbol_p_adic_ring,
                                                     GenusSymbol_global_ring,
                                                     p_adic_symbol,
@@ -684,7 +684,6 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         # This genus has the right discriminant group
         # but it may be empty
-        genus = GenusSymbol_global_ring(signature_pair, local_symbols)
         sym2 = local_symbols[0].symbol_tuple_list()
 
         if sym2[0][0] != 0:
