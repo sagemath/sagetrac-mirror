@@ -312,6 +312,36 @@ cdef class CombinatorialPolyhedron(SageObject):
         delete_CombinatorialPolyhedron(self._C)
 
     def _repr_(self):
+        r"""
+        Returns a description of the Combinatorial Polyhedron.
+        
+        EXAMPLES::
+        
+            sage: P = polytopes.simplex()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C._repr_()
+            'Combinatorial Type of a Polyhedron of dimension 3 with 4 vertices'
+            
+            sage: P = Polyhedron(vertices=[])
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C._repr_()
+            'Combinatorial Type of the empty Polyhedron'
+            
+            sage: P = Polyhedron(vertices=[[0,0]])
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C._repr_()
+            'Combinatorial Type of the Polyhedron with one vertex'
+            
+            sage: P = Polyhedron(lines=[[0,0,1],[0,1,0]])
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C._repr_()
+            'Combinatorial Type of a trivial Polyhedron of dimension 2'
+            
+            sage: P = Polyhedron(rays=[[1,0,0],[0,1,0],[-1,0,0]])
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C._repr_()
+            'Combinatorial Type of a half-space of dimension 2'
+        """
         if self.is_trivial == 1:
             if self._dimension == 0:
                 return "Combinatorial Type of the Polyhedron with one vertex"
@@ -812,6 +842,12 @@ cdef class CombinatorialPolyhedron(SageObject):
     def _record_all_faces(self):
         r"""
         Records all faces of the Polyhedron, such that they can quickly accessed later.
+        
+        EXAMPLES::
+        
+            sage: P = polytopes.cyclic_polytope(4,10)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C._record_all_faces()
         """
         if self.is_trivial >= 1:
             return
