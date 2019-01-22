@@ -993,40 +993,38 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         EXAMPLES::
 
-            sage: P = polytopes.permutahedron(7)
+            sage: P = polytopes.permutahedron(5)
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter(dimension=2)
             sage: next(it)
-            (A vertex at (5, 7, 1, 4, 6, 3, 2),
-             A vertex at (5, 7, 2, 4, 6, 3, 1),
-             A vertex at (6, 7, 1, 4, 5, 3, 2),
-             A vertex at (6, 7, 2, 4, 5, 3, 1))
+            (A vertex at (4, 1, 5, 2, 3),
+             A vertex at (4, 2, 5, 1, 3),
+             A vertex at (5, 1, 4, 2, 3),
+             A vertex at (5, 2, 4, 1, 3))
             sage: next(it)
-            (A vertex at (5, 6, 1, 4, 7, 3, 2),
-             A vertex at (5, 6, 2, 4, 7, 3, 1),
-             A vertex at (5, 7, 1, 4, 6, 3, 2),
-             A vertex at (5, 7, 2, 4, 6, 3, 1))
+            (A vertex at (4, 1, 5, 2, 3),
+             A vertex at (4, 1, 5, 3, 2),
+             A vertex at (5, 1, 4, 2, 3),
+             A vertex at (5, 1, 4, 3, 2))
             sage: it = C.face_iter(dimension=2, names=False)
             sage: next(it)
-            (3497, 3521, 4217, 4241)
+            (76, 82, 100, 106)
             sage: next(it)
-            (3377, 3401, 3497, 3521)
+            (76, 77, 100, 101)
             sage: it = C.face_iter(dimension=2, facet_repr=True)
             sage: next(it)
-            ((A vertex at (5, 7, 1, 4, 6, 3, 2),
-              A vertex at (5, 7, 2, 4, 6, 3, 1),
-              A vertex at (6, 7, 1, 4, 5, 3, 2),
-              A vertex at (6, 7, 2, 4, 5, 3, 1)),
-             (An equation (1, 1, 1, 1, 1, 1, 1) x - 28 == 0,
-              An inequality (0, -1, 0, 0, 0, 0, 0) x + 7 >= 0,
-              An inequality (0, 0, 1, 0, 0, 0, 1) x - 3 >= 0,
-              An inequality (0, 0, 1, 0, 0, 1, 1) x - 6 >= 0,
-              An inequality (0, 0, 1, 1, 0, 1, 1) x - 10 >= 0))
+            ((A vertex at (4, 1, 5, 2, 3),
+              A vertex at (4, 2, 5, 1, 3),
+              A vertex at (5, 1, 4, 2, 3),
+              A vertex at (5, 2, 4, 1, 3)),
+             (An equation (1, 1, 1, 1, 1) x - 15 == 0,
+              An inequality (0, 1, 0, 1, 0) x - 3 >= 0,
+              An inequality (0, 1, 0, 1, 1) x - 6 >= 0))
             sage: it = C.face_iter(dimension=2, vertex_repr=False, facet_repr=True, names=False)
             sage: next(it)
-            (98, 106, 124, 125)
+            (28, 29)
             sage: next(it)
-            (80, 106, 124, 125)
+            (25, 29)
 
 
         TESTS::
@@ -1377,10 +1375,10 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.face_lattice().is_isomorphic(C1.face_lattice())
             True
 
-            sage: P = polytopes.permutahedron(6)
+            sage: P = polytopes.permutahedron(5)
             sage: C = CombinatorialPolyhedron(P)
             sage: C.face_lattice()
-            Finite lattice containing 4684 elements
+            Finite lattice containing 542 elements
         """
 
         #we must ignore part of the input to ensure an injective relabeling
