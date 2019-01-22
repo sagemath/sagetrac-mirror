@@ -10,57 +10,54 @@
 #*****************************************************************************
 */
 
-#include <math.h>
 #include "hasse_diagram.h"
-#include <stdlib.h> //for aligned_alloc in C++11
-#include <cstdlib> //for aligned_alloc in C++17
-#include <cstdio>
-#include <cstdint>
 
-static uint64_t vertex_to_bit_dictionary[64];
 
-//this dictionary helps storing a vector of 64 incidences as uint64_t, where each bit represents an incidence
+
+static uint64_t_or_uint32_t vertex_to_bit_dictionary[bit64or32];
+
+//this dictionary helps storing a vector of 64 or 32 incidences as uint64_t or uint32_t, where each bit represents an incidence
 void build_dictionary(){
     unsigned int i = 0;
-    uint64_t count = 1;
-    for (i=0; i< 64;i++){
-        vertex_to_bit_dictionary[64-i-1] = count;
+    uint64_t_or_uint32_t count = 1;
+    for (i=0; i< bit64or32;i++){
+        vertex_to_bit_dictionary[bit64or32 -i-1] = count;
         count *= 2;
     }
 }
 
 //taken from https://codingforspeed.com/counting-the-number-of-leading-zeros-for-a-32-bit-integer-signed-or-unsigned/
 //counts the number of leading zero bits of an uint64_t
-inline unsigned int leading_zero_naive3(uint64_t x){
+inline unsigned int leading_zero_naive3(uint64_t_or_uint32_t x){
     unsigned n = 0;
-    if (x == 0) return 64;
+    if (x == 0) return bit64or32;
     while (1) {
-        if (x > 0x7fffffffffffffff) break;
+        if (x > vertex_to_bit_dictionary[0]) break;
         n++;
         x <<= 1;
     }
     return n;
 }
 
-//counts the number of leading zero bits of a chunktype, where chunktype represents 1,2 or 4 uint64_t depending on the processor
+//counts the number of leading zero bits of a chunktype, where chunktype represents 1,2 or 4 uint64_t or uint32_t depending on the processor
 inline unsigned int leading_zero_workaround(chunktype chunk){
     unsigned int i;
     unsigned int count = 0;
-    uint64_t A[chunksize/64];
+    uint64_t_or_uint32_t A[chunksize/bit64or32];
     store_register(A[0],chunk);
-    for (i = 0;i < chunksize/64;i++){
+    for (i = 0;i < chunksize/bit64or32;i++){
         count += leading_zero_naive3(A[i]);
-        if (count < 64*(i+1)){
+        if (count < bit64or32*(i+1)){
             return count;
         }
     }
     return count;
 }
 
-//counts the number of trailing zero bits of an uint64_t
-inline unsigned int trailing_zero_naive3(uint64_t x){
+//counts the number of trailing zero bits of an uint64_t_or_uint32_t
+inline unsigned int trailing_zero_naive3(uint64_t_or_uint32_t x){
     unsigned n = 0;
-    if (x == 0) return sizeof(x) * 8;
+    if (x == 0) return bit64or32;
     while (1) {
         if (x % 2) break;
         n ++;
@@ -73,11 +70,11 @@ inline unsigned int trailing_zero_naive3(uint64_t x){
 inline unsigned int trailing_zero_workaround(chunktype chunk){
     unsigned int i;
     unsigned int count = 0;
-    uint64_t A[chunksize/64];
+    uint64_t_or_uint32_t A[chunksize/bit64or32];
     store_register(A[0],chunk);
-    for (i = 0;i < chunksize/64;i++){
-        count += trailing_zero_naive3(A[chunksize/64-i-1]);
-        if (count < 64*(i+1)){
+    for (i = 0;i < chunksize/bit64or32;i++){
+        count += trailing_zero_naive3(A[chunksize/bit64or32-i-1]);
+        if (count < bit64or32*(i+1)){
             return count;
         }
     }
@@ -85,7 +82,7 @@ inline unsigned int trailing_zero_workaround(chunktype chunk){
 }
 
 
-inline unsigned int naive_popcount(uint64_t A){
+inline unsigned int naive_popcount(uint64_t_or_uint32_t A){
     unsigned int count = 0;
     while (A){
         count += A & 1;
@@ -608,10 +605,10 @@ inline int CombinatorialPolyhedron::is_subset_facet_repr(chunktype *A, chunktype
 inline unsigned int CombinatorialPolyhedron::CountFaceBits(chunktype* A1) {
     //this function is not implemented for speed (it basically gets called dimension times and once to convert a face to a tuple
     unsigned int i,count = 0;
-    const unsigned int length_of_conversion_face = length_of_face*chunksize/64;
-    unsigned long A[length_of_conversion_face];
+    const unsigned int length_of_conversion_face = length_of_face*chunksize/bit64or32;
+    uint64_t_or_uint32_t A[length_of_conversion_face];
     for (i=0;i<length_of_face;i++){
-        store_register(A[i*chunksize/64],A1[i]);
+        store_register(A[i*chunksize/bit64or32],A1[i]);
     }
     for (i=0;i<length_of_conversion_face;i++){
         count += popcount(A[i]);
@@ -622,10 +619,10 @@ inline unsigned int CombinatorialPolyhedron::CountFaceBits(chunktype* A1) {
 inline unsigned int CombinatorialPolyhedron::CountFaceBits_facet_repr(chunktype* A1) {
     //this function is not implemented for speed (it basically gets called dimension times and once to convert a face to a tuple
     unsigned int i,count = 0;
-    const unsigned int length_of_conversion_face = length_of_face_in_facet_repr*chunksize/64;
-    unsigned long A[length_of_conversion_face];
+    const unsigned int length_of_conversion_face = length_of_face_in_facet_repr*chunksize/bit64or32;
+    uint64_t_or_uint32_t A[length_of_conversion_face];
     for (i=0;i<length_of_face_in_facet_repr;i++){
-    store_register(A[i*chunksize/64],A1[i]);
+    store_register(A[i*chunksize/bit64or32],A1[i]);
     }
     for (i=0;i<length_of_conversion_face;i++){
     count += popcount(A[i]);
@@ -916,17 +913,17 @@ inline void CombinatorialPolyhedron::record_face(chunktype *face, unsigned int c
 inline void CombinatorialPolyhedron::record_face_facet_repr(chunktype *face, unsigned int current_dimension){
     unsigned int i;
     unsigned int position, value;
-    const unsigned int size_array = length_of_face_in_facet_repr*chunksize/64;
-    uint64_t *array = new uint64_t [size_array]();
+    const unsigned int size_array = length_of_face_in_facet_repr*chunksize/bit64or32;
+    uint64_t_or_uint32_t *array = new uint64_t_or_uint32_t [size_array]();
     for (i = 0; i < nr_facets; i++){
         if (is_subset(face, facets[i])){
-            value = i % 64;
-            position = i/64;
+            value = i % bit64or32;
+            position = i/bit64or32;
             array[position] += vertex_to_bit_dictionary[value];
         }
     }
     for (i=0;i<length_of_face_in_facet_repr;i++){
-        load_register(allfaces_facet_repr[current_dimension][allfaces_counter[current_dimension]][i],array[i*chunksize/64]);
+        load_register(allfaces_facet_repr[current_dimension][allfaces_counter[current_dimension]][i],array[i*chunksize/bit64or32]);
     }
     delete[] array;
 }
@@ -1011,15 +1008,15 @@ void CombinatorialPolyhedron::vertex_facet_incidences(){
 void CombinatorialPolyhedron::vertex_facet_incidences(chunktype *array1, unsigned int nr_facet){
     unsigned int i,j;
     unsigned int counter = 0;
-    const unsigned int size_array = length_of_face*chunksize/64;
-    uint64_t *array = new uint64_t [size_array]();
+    const unsigned int size_array = length_of_face*chunksize/bit64or32;
+    uint64_t_or_uint32_t *array = new uint64_t_or_uint32_t [size_array]();
     for (i = 0; i < length_of_face;i++){
-        store_register(array[i*chunksize/64],array1[i]);
+        store_register(array[i*chunksize/bit64or32],array1[i]);
     }
     for (i = 0; i < size_array;i++){
-        for (j = 0; j < 64; j++){
+        for (j = 0; j < bit64or32; j++){
             if (array[i] >= vertex_to_bit_dictionary[j]){
-                add_incidence(nr_facet, i*64+j);
+                add_incidence(nr_facet, i*bit64or32+j);
                 counter++;
                 array[i] -= vertex_to_bit_dictionary[j];
             }
@@ -1212,15 +1209,15 @@ inline void CombinatorialPolyhedron::bitrep_to_list(chunktype *array1, unsigned 
         face_length = length_of_face_in_facet_repr;
     }
     unsigned int counter = 0;
-    const unsigned int size_array = face_length*chunksize/64;
-    uint64_t *array = new uint64_t [size_array]();
+    const unsigned int size_array = face_length*chunksize/bit64or32;
+    uint64_t_or_uint32_t *array = new uint64_t_or_uint32_t [size_array]();
     for (i = 0; i < face_length;i++){
-        store_register(array[i*chunksize/64],array1[i]);
+        store_register(array[i*chunksize/bit64or32],array1[i]);
     }
     for (i = 0; i < size_array;i++){
-        for (j = 0; j < 64; j++){
+        for (j = 0; j < bit64or32; j++){
             if (array[i] >= vertex_to_bit_dictionary[j]){
-                face_to_return[counter] = i*64 + j;
+                face_to_return[counter] = i*bit64or32 + j;
                 counter++;
                 array[i] -= vertex_to_bit_dictionary[j];
             }
@@ -1247,18 +1244,18 @@ void CombinatorialPolyhedron::char_from_incidence_list(unsigned int *incidence_l
         face_length = length_of_face;
     }
     unsigned int entry, position, value,i ;
-    const unsigned int size_array = face_length*chunksize/64;
-    uint64_t *array = new uint64_t [size_array]();
+    const unsigned int size_array = face_length*chunksize/bit64or32;
+    uint64_t_or_uint32_t *array = new uint64_t_or_uint32_t [size_array]();
     while (nr_vertices_given--) {
         entry = incidence_list[nr_vertices_given];
         if (entry){
-            value = nr_vertices_given % 64;
-            position = nr_vertices_given/64;
+            value = nr_vertices_given % bit64or32;
+            position = nr_vertices_given/bit64or32;
             array[position] += vertex_to_bit_dictionary[value];
         }
     }
     for (i=0;i<face_length;i++){
-        load_register(array1[i],array[i*chunksize/64]);
+        load_register(array1[i],array[i*chunksize/bit64or32]);
     }
     delete[] array;
 }
@@ -1272,16 +1269,16 @@ void CombinatorialPolyhedron::char_from_array(unsigned int* input, unsigned int 
         face_length = length_of_face;
     }
     unsigned int entry, position, value,i ;
-    const unsigned int size_array = face_length*chunksize/64;
-    uint64_t *array = new uint64_t [size_array]();
+    const unsigned int size_array = face_length*chunksize/bit64or32;
+    uint64_t_or_uint32_t *array = new uint64_t_or_uint32_t [size_array]();
     while (len--) {
         entry = input[len];
-        value = entry % 64;
-        position = entry/64;
+        value = entry % bit64or32;
+        position = entry/bit64or32;
         array[position] += vertex_to_bit_dictionary[value];
     }
     for (i=0;i<face_length;i++){
-        load_register(array1[i],array[i*chunksize/64]);
+        load_register(array1[i],array[i*chunksize/bit64or32]);
     }
     delete[] array;
 }

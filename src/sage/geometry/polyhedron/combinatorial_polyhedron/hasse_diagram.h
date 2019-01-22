@@ -1,5 +1,10 @@
 //Copyright: see base.pyx
 
+#include <math.h>
+#include <cstdint>
+#include <stdlib.h> //for aligned_alloc in C++11
+#include <cstdlib> //for aligned_alloc in C++17
+#include <cstdio>
 #ifndef HASSEDIAGRAM__H
 #define HASSEDIAGRAM__H
 
@@ -13,52 +18,71 @@
 //#define bitwise_intersection(one,two) _mm512_and_si512((one),(two))
 
 #if __AVX2__
-//256 bit commands
-#include <immintrin.h>
-#define chunktype __m256i
-const unsigned int chunksize = 256;
-#define bitwise_intersection(one,two) _mm256_and_si256((one),(two)) // this is supposed to something as (one) & (two)
-#define bitwise_is_not_subset(one,two) !_mm256_testc_si256((two),(one)) // this is supposed to something as (one) & ~(two)
-#define store_register(one,two) _mm256_storeu_si256((__m256i*)&(one),(two)) //this is supposed to be something as one = two, where two is a register
-#define load_register(one,two) (one) = _mm256_loadu_si256((const __m256i*)&(two)) //this is supposed to be somethign as one = two, where one is a register
-#define leading_zero_count(one) leading_zero_workaround(one) //the workaround is not extremely fast, but it is not needed often (only for edges)
-#define trailing_zero_count(one) trailing_zero_workaround(one) //the workaround is not extremely fast, but it is not needed often
+    //256 bit commands
+    #include <immintrin.h>
+    #define chunktype __m256i
+    const unsigned int chunksize = 256;
+    #define bitwise_intersection(one,two) _mm256_and_si256((one),(two)) // this is supposed to something as (one) & (two)
+    #define bitwise_is_not_subset(one,two) !_mm256_testc_si256((two),(one)) // this is supposed to something as (one) & ~(two)
+    #define store_register(one,two) _mm256_storeu_si256((__m256i*)&(one),(two)) //this is supposed to be something as one = two, where two is a register
+    #define load_register(one,two) (one) = _mm256_loadu_si256((const __m256i*)&(two)) //this is supposed to be somethign as one = two, where one is a register
+    #define leading_zero_count(one) leading_zero_workaround(one) //the workaround is not extremely fast, but it is not needed often (only for edges)
+    #define trailing_zero_count(one) trailing_zero_workaround(one) //the workaround is not extremely fast, but it is not needed often
+
+#elif __SSE4_1__
+    //128 bit commands
+    #include <emmintrin.h>
+    #include <smmintrin.h>
+    #define chunktype __m128i
+    const unsigned int chunksize = 128;
+    #define bitwise_intersection(one,two) _mm_and_si128((one),(two))
+    #define bitwise_is_not_subset(one,two) !_mm_testc_si128((two),(one))
+    #define store_register(one,two) _mm_storeu_si128((__m128i*)&(one),(two))
+    #define load_register(one,two) (one) = _mm_loadu_si128((const __m128i*)&(two))
+    #define leading_zero_count(one) leading_zero_workaround(one)
+    #define trailing_zero_count(one) trailing_zero_workaround(one)
+
+#elif INTPTR_MAX == INT64_MAX 
+    //64 bit commands
+    #define chunktype uint64_t
+    const unsigned int chunksize = 64;
+    #define bitwise_intersection(one,two) (one) & (two)
+    #define bitwise_is_not_subset(one,two) (one) & ~(two)
+    #define store_register(one,two) one = two
+    #define load_register(one,two) one = two
+    #define leading_zero_count(one) leading_zero_naive3(one)
+    #define trailing_zero_count(one) trailing_zero_naive3(one)
 
 #else
-#if __SSE4_1__
-//128 bit commands
-#include <emmintrin.h>
-#include <smmintrin.h>
-#define chunktype __m128i
-const unsigned int chunksize = 128;
-#define bitwise_intersection(one,two) _mm_and_si128((one),(two))
-#define bitwise_is_not_subset(one,two) !_mm_testc_si128((two),(one))
-#define store_register(one,two) _mm_storeu_si128((__m128i*)&(one),(two))
-#define load_register(one,two) (one) = _mm_loadu_si128((const __m128i*)&(two))
-#define leading_zero_count(one) leading_zero_workaround(one)
-#define trailing_zero_count(one) trailing_zero_workaround(one)
-
-#else
-//64 bit commands
-#define chunktype uint64_t
-const unsigned int chunksize = 64;
-#define bitwise_intersection(one,two) (one) & (two)
-#define bitwise_is_not_subset(one,two) (one) & ~(two)
-#define store_register(one,two) one = two
-#define load_register(one,two) one = two
-#define leading_zero_count(one) leading_zero_naive3(one)
-#define trailing_zero_count(one) trailing_zero_naive3(one)
-
-#endif
+    //32 bit commands
+    #define chunktype uint32_t
+    const unsigned int chunksize = 32;
+    #define bitwise_intersection(one,two) (one) & (two)
+    #define bitwise_is_not_subset(one,two) (one) & ~(two)
+    #define store_register(one,two) one = two
+    #define load_register(one,two) one = two
+    #define leading_zero_count(one) leading_zero_naive3(one)
+    #define trailing_zero_count(one) trailing_zero_naive3(one)
 #endif
 
 #if __POPCNT__
-#include <immintrin.h>
-#define popcount(A) _mm_popcnt_u64(A)
+    #include <immintrin.h>
+    #if INTPTR_MAX == INT64_MAX //64-bit
+        #define popcount(A) _mm_popcnt_u64(A)
+    #else //assuming 32-bit
+        #define popcount(A) _mm_popcnt_u32(A)
+    #endif
 #else
-#define popcount(A) naive_popcount(A)
+    #define popcount(A) naive_popcount(A)
 #endif
 
+#if INTPTR_MAX == INT64_MAX //64-bit
+    #define uint64_t_or_uint32_t uint64_t
+    #define bit64or32 64
+#else
+    #define uint64_t_or_uint32_t uint32_t
+    #define bit64or32 32
+#endif
 
 
 #if (__GNUC__ >= 5) //checking if GCC has aligned_alloc, this should always be the case for sages build in gcc
