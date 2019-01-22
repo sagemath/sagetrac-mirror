@@ -2674,12 +2674,19 @@ class DegenerateMetric(TensorField):
             self._restrictions[subdomain] = resu
         return self._restrictions[subdomain]
 
-    def determinant(self, frame=None):
+    def determinant(self):
         r"""
         Determinant of a degenerate metric is always '0'
 
+        EXAMPLES::
+
+            sage: S = Manifold(2, 'S')
+            sage: g = M.metric('g', signature=([0,1,1]))
+            sage: g.determinant()
+            Scalar field zero on the 2-dimensional differentiable manifold S
+
         """
-        return 0
+        return self.zero_scalar_field()
 
     det = determinant
 
