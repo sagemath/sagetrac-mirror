@@ -1249,6 +1249,11 @@ class RibbonGraph(SageObject, UniqueRepresentation):
                                                  color = 'white', 
                                                  thickness = 6,
                                                  zorder = nvertices+1))
+                    beziers.append(bezier_path([[extremes[e][1], 
+                                                 aux_s, aux_f,
+                                                 extremes[ot][1]]], 
+                                                 color = 'white',
+                                                 thickness = 6))
                     beziers.append(bezier_path([[extremes_plus[e][0],
                                                  extremes_plus[e][1]]], 
                                                  color = 'red', 
@@ -1259,11 +1264,6 @@ class RibbonGraph(SageObject, UniqueRepresentation):
                                                  color = 'red', 
                                                  thickness = 1,
                                                  zorder = nvertices+1))
-                    beziers.append(bezier_path([[extremes[e][1], 
-                                                 aux_s, aux_f,
-                                                 extremes[ot][1]]], 
-                                                 color = 'white',
-                                                 thickness = 6))
                     beziers.append(bezier_path([[extremes[e][1], 
                                                  aux_s, aux_f,
                                                  extremes[ot][1]]], 
@@ -1279,8 +1279,7 @@ class RibbonGraph(SageObject, UniqueRepresentation):
                                          color = 'red', 
                                          zorder = nvertices + 4))
 
-        #Finally show all the images. Note that the content of beziers depends
-        #on the input in the cached_method-
+        #Finally show all the images. Note that the content of beziers depends on the input in the method
 
         show((sum(beziers) + sum(legend)), aspect_ratio = 1, 
                                            axes = False, 
