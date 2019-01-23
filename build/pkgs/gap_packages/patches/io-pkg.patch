@@ -1,0 +1,15 @@
+diff --git a/pkg/io-4.5.4/src/io.c b/pkg/io-4.5.4/src/io.c
+index 5aa4a08..07e6e31 100644
+--- a/pkg/io-4.5.4/src/io.c
++++ b/pkg/io-4.5.4/src/io.c
+@@ -11,8 +11,8 @@
+ /* Try to use as much of the GNU C library as possible: */
+ #define _GNU_SOURCE
+ 
+-#include "src/compiled.h"          /* GAP headers                */
+-#include "src/iostream.h"          /* Signal Handling            */
++#include "gap/compiled.h"          /* GAP headers                */
++#include "gap/iostream.h"          /* Signal Handling            */
+ 
+ #undef PACKAGE
+ #undef PACKAGE_BUGREPORT

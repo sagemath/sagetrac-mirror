@@ -75,9 +75,6 @@ done
 
 # These packages have a new-style autoconf ./configure
 # that takes --with-gaproot
-# bring GAP headers into the state needed by io
-export CFLAGS="$CFLAGS -I$GAP_ROOT" # headers expected in $GAP_ROOT
-cp -f "$SAGE_LOCAL/include/gap/config.h" "$GAP_ROOT/src/"
 
 for pkg in nq-* io-*
 do
