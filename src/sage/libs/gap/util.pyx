@@ -263,8 +263,8 @@ cdef initialize():
     # Note: we could use RTLD_NOLOAD and avoid the subsequent dlclose() but
     # this isn't portable
     cdef void* handle
-    for suffix in ["so", "dylib", "dll"]:
-        handle = dlopen("libgap."+suffix, RTLD_NOW | RTLD_GLOBAL)
+    for suffix in [b"so", b"dylib", b"dll"]:
+        handle = dlopen(b"libgap."+suffix, RTLD_NOW | RTLD_GLOBAL)
         if handle != NULL:
             break
     if handle == NULL:
