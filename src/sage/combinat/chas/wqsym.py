@@ -37,7 +37,7 @@ We check that the coercion `C \to M` goes through the `X` basis::
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.bindable_class import BindableClass
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -810,21 +810,16 @@ sage: for p in PackedWords(3):
 [1, 2, 1] H[1, 2, 1]
 [2, 1, 1] H[2, 1, 1]
 [1, 1, 1] H[1, 1, 1]
-
-(Pdb) p self.support()
-[[{1}, {3}, {2}], [{3}, {2}, {1}], [{3}, {1}, {2}]]
-(Pdb) min(self.support(), *args, **kwds)
-[{3}, {1}, {2}]
-
             """
             WQSymBasis_abstract.__init__(self, alg)
 
-            rank = {a:b for b,a in enumerate(OrderedSetPartitions(3))}
-            o1 = OrderedSetPartition([1,1,2])
-            o2 = OrderedSetPartition([2,2,1])
-            rank[o1],rank[o2] = rank[o2],rank[o1]
+            @cached_function
+            def new_rank(x):
+                return {a:(str(a.to_composition),a.to_packed_word())
+                        for a in OrderedSetPartitions(x.size())}
+                
             Q = self.realization_of().Q()
-            phi = self.module_morphism(self._H_to_Q, codomain=Q, unitriangular="lower", key=lambda a: rank[a])
+            phi = self.module_morphism(self._H_to_Q, codomain=Q, unitriangular="lower", key=lambda a: new_rank(a)[a])
             #TODO probleme avec le triangulaire... revoir ce truc de module_morphism... demander une extantion lineaire du graph de la matrice cf topolicol sort trop bien pour PQSym aussi !!!
             phi.register_as_coercion()
             (~phi).register_as_coercion()
@@ -871,257 +866,216 @@ sage: for p in PackedWords(3):
             return Q._from_dict({G.to_ordered_set_partition(): one for G in PW.left_weak_order_greater()},
                                 coerce=False)
 
-        # def _Q_to_H(self, P):
-        #     """
-        #     Return the image of the basis element of the monomial
-        #     basis indexed by ``P`` in the H basis ``self``.
+        # def product_on_basis(self, x, y):
+        #     r"""
+        #     Return the (associative) `*` product of the basis elements
+        #     of the Q basis ``self`` indexed by the ordered set partitions
+        #     `x` and `y`.
 
-        #     EXAQPLES::
+        #     This is the shifted shuffle product of `x` and `y`.
 
-        #         sage: H = algebras.WQSym(QQ).H()
-        #         sage: Q = algebras.WQSym(QQ).Q()
-        #         sage: OSP = H.basis().keys()
-        #         sage: H._Q_to_H(OSP([[2,3],[1,4]]))
-        #         H[{2, 3}, {1, 4}]
-        #         sage: H._Q_to_H(OSP([[1,2],[3,4]]))
-        #         H[{1, 2}, {3, 4}] - H[{1, 2, 3, 4}]
+        #     EXAMPLES::
+
+        #         sage: A = algebras.WQSym(QQ).Q()
+        #         sage: x = OrderedSetPartition([[1],[2,3]])
+        #         sage: y = OrderedSetPartition([[1,2]])
+        #         sage: z = OrderedSetPartition([[1,2],[3]])
+        #         sage: A.product_on_basis(x, y)
+        #         Q[{1}, {2, 3}, {4, 5}] + Q[{1}, {4, 5}, {2, 3}]
+        #          + Q[{4, 5}, {1}, {2, 3}]
+        #         sage: A.product_on_basis(x, z)
+        #         Q[{1}, {2, 3}, {4, 5}, {6}] + Q[{1}, {4, 5}, {2, 3}, {6}]
+        #          + Q[{1}, {4, 5}, {6}, {2, 3}] + Q[{4, 5}, {1}, {2, 3}, {6}]
+        #          + Q[{4, 5}, {1}, {6}, {2, 3}] + Q[{4, 5}, {6}, {1}, {2, 3}]
+        #         sage: A.product_on_basis(y, y)
+        #         Q[{1, 2}, {3, 4}] + Q[{3, 4}, {1, 2}]
 
         #     TESTS::
 
-        #         sage: H = algebras.WQSym(QQ).H()
+        #         sage: one = OrderedSetPartition([])
+        #         sage: all(A.product_on_basis(one, z) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
+        #         True
+        #         sage: all(A.product_on_basis(z, one) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
+        #         True
+        #     """
+        #     K = self.basis().keys()
+        #     if not x:
+        #         return self.monomial(y)
+        #     m = max(max(part) for part in x) # The degree of x
+        #     x = [set(part) for part in x]
+        #     yshift = [[val + m for val in part] for part in y]
+        #     def union(X,Y): return X.union(Y)
+        #     return self.sum_of_monomials(ShuffleProduct(x, yshift, K))
+
+        # def coproduct_on_basis(self, x):
+        #     r"""
+        #     Return the coproduct of ``self`` on the basis element
+        #     indexed by the ordered set partition ``x``.
+
+        #     EXAMPLES::
+
         #         sage: Q = algebras.WQSym(QQ).Q()
-        #         sage: OSP4 = OrderedSetPartitions(4)
-        #         sage: all(Q(H(Q[P])) == Q[P] for P in OSP4) # long time
-        #         True
-        #         sage: all(H(Q(H[P])) == H[P] for P in OSP4) # long time
-        #         True
-        #     """# TODO see greater_left_basis.....
-        #     H = self
-        #     if not P:
-        #         return H.one()
 
-        #     PW = PackedWords().from_ordered_set_partition(P)
-        #     R = self.base_ring()
-        #     one = R.one()
-        #     lenP = len(P)
-        #     def sign(R): # the coefficient with which another
-        #                  # ordered set partition will appear
-        #         if len(R) % 2 == lenP % 2:
-        #             return one
-        #         return -one
-        #     return H._from_dict({OSP(G): sign(G) for G in P.strongly_fatter()},
-        #                         coerce=False)
+        #         sage: Q.coproduct(Q.one())  # indirect doctest
+        #         Q[] # Q[]
+        #         sage: Q.coproduct( Q([[1]]) )  # indirect doctest
+        #         Q[] # Q[{1}] + Q[{1}] # Q[]
+        #         sage: Q.coproduct( Q([[1,2]]) )
+        #         Q[] # Q[{1, 2}] + Q[{1, 2}] # Q[]
+        #         sage: Q.coproduct( Q([[1], [2]]) )
+        #         Q[] # Q[{1}, {2}] + Q[{1}] # Q[{1}] + Q[{1}, {2}] # Q[]
+        #         sage: Q[[1,2],[3],[4]].coproduct()
+        #         Q[] # Q[{1, 2}, {3}, {4}] + Q[{1, 2}] # Q[{1}, {2}]
+        #          + Q[{1, 2}, {3}] # Q[{1}] + Q[{1, 2}, {3}, {4}] # Q[]
+        #     """
+        #     # The coproduct on the Q basis satisfies the same formula
+        #     # as on the M basis. This is easily derived from the
+        #     # formula on the M basis.
+        #     if not len(x):
+        #         return self.one().tensor(self.one())
+        #     K = self.indices()
+        #     def standardize(P): # standardize an ordered set partition
+        #         base = sorted(sum((list(part) for part in P), []))
+        #         # base is the ground set of P, as a sorted list.
+        #         d = {val: i+1 for i,val in enumerate(base)}
+        #         # d is the unique order isomorphism from base to
+        #         # {1, 2, ..., |base|} (encoded as dict).
+        #         return K([[d[x] for x in part] for part in P])
+        #     T = self.tensor_square()
+        #     return T.sum_of_monomials((standardize(x[:i]), standardize(x[i:]))
+        #                               for i in range(len(x) + 1))
 
-        def product_on_basis(self, x, y):
-            r"""
-            Return the (associative) `*` product of the basis elements
-            of the Q basis ``self`` indexed by the ordered set partitions
-            `x` and `y`.
+        # class Element(WQSymBasis_abstract.Element):
+        #     def algebraic_complement(self):
+        #         r"""
+        #         Return the image of the element ``self`` of `WQSym`
+        #         under the algebraic complement involution.
 
-            This is the shifted shuffle product of `x` and `y`.
+        #         See
+        #         :meth:`WQSymBases.ElementMethods.algebraic_complement`
+        #         for a definition of the involution and for examples.
 
-            EXAMPLES::
+        #         .. SEEALSO::
 
-                sage: A = algebras.WQSym(QQ).Q()
-                sage: x = OrderedSetPartition([[1],[2,3]])
-                sage: y = OrderedSetPartition([[1,2]])
-                sage: z = OrderedSetPartition([[1,2],[3]])
-                sage: A.product_on_basis(x, y)
-                Q[{1}, {2, 3}, {4, 5}] + Q[{1}, {4, 5}, {2, 3}]
-                 + Q[{4, 5}, {1}, {2, 3}]
-                sage: A.product_on_basis(x, z)
-                Q[{1}, {2, 3}, {4, 5}, {6}] + Q[{1}, {4, 5}, {2, 3}, {6}]
-                 + Q[{1}, {4, 5}, {6}, {2, 3}] + Q[{4, 5}, {1}, {2, 3}, {6}]
-                 + Q[{4, 5}, {1}, {6}, {2, 3}] + Q[{4, 5}, {6}, {1}, {2, 3}]
-                sage: A.product_on_basis(y, y)
-                Q[{1, 2}, {3, 4}] + Q[{3, 4}, {1, 2}]
+        #             :meth:`coalgebraic_complement`, :meth:`star_involution`
 
-            TESTS::
+        #         EXAMPLES::
 
-                sage: one = OrderedSetPartition([])
-                sage: all(A.product_on_basis(one, z) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
-                True
-                sage: all(A.product_on_basis(z, one) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
-                True
-            """
-            K = self.basis().keys()
-            if not x:
-                return self.monomial(y)
-            m = max(max(part) for part in x) # The degree of x
-            x = [set(part) for part in x]
-            yshift = [[val + m for val in part] for part in y]
-            def union(X,Y): return X.union(Y)
-            return self.sum_of_monomials(ShuffleProduct(x, yshift, K))
+        #             sage: WQSym = algebras.WQSym(ZZ)
+        #             sage: Q = WQSym.Q()
+        #             sage: Q[[1,2],[5,6],[3,4]].algebraic_complement()
+        #             Q[{3, 4}, {1, 2, 5, 6}] + Q[{3, 4}, {5, 6}, {1, 2}]
+        #              - Q[{3, 4, 5, 6}, {1, 2}]
+        #             sage: Q[[3], [1, 2], [4]].algebraic_complement()
+        #             Q[{1, 2, 4}, {3}] + Q[{4}, {1, 2}, {3}] - Q[{4}, {1, 2, 3}]
 
-        def coproduct_on_basis(self, x):
-            r"""
-            Return the coproduct of ``self`` on the basis element
-            indexed by the ordered set partition ``x``.
+        #         TESTS::
 
-            EXAMPLES::
+        #             sage: M = WQSym.M()
+        #             sage: all(M(Q[A]).algebraic_complement()  # long time
+        #             ....:     == M(Q[A].algebraic_complement())
+        #             ....:     for A in OrderedSetPartitions(4))
+        #             True
+        #         """
+        #         # See the WQSymBases.ElementMethods.algebraic_complement doc
+        #         # for the formula we're using here.
+        #         BR = self.base_ring()
+        #         one = BR.one()
+        #         mine = -one
+        #         Q = self.parent()
+        #         OSPs = Q.basis().keys()
+        #         from sage.data_structures.blas_dict import linear_combination
+        #         def img(A):
+        #             # The image of the basis element Q[A], written as a
+        #             # dictionary (of its coordinates in the Q-basis).
+        #             Rs = [Rr.reversed() for Rr in A.strongly_fatter()]
+        #             return {OSPs(P): (one if (len(R) % 2 == len(P) % 2)
+        #                               else mine)
+        #                     for R in Rs for P in R.strongly_fatter()}
+        #         return Q._from_dict(linear_combination((img(A), c) for (A, c) in self))
 
-                sage: Q = algebras.WQSym(QQ).Q()
+        #     def coalgebraic_complement(self):
+        #         r"""
+        #         Return the image of the element ``self`` of `WQSym`
+        #         under the coalgebraic complement involution.
 
-                sage: Q.coproduct(Q.one())  # indirect doctest
-                Q[] # Q[]
-                sage: Q.coproduct( Q([[1]]) )  # indirect doctest
-                Q[] # Q[{1}] + Q[{1}] # Q[]
-                sage: Q.coproduct( Q([[1,2]]) )
-                Q[] # Q[{1, 2}] + Q[{1, 2}] # Q[]
-                sage: Q.coproduct( Q([[1], [2]]) )
-                Q[] # Q[{1}, {2}] + Q[{1}] # Q[{1}] + Q[{1}, {2}] # Q[]
-                sage: Q[[1,2],[3],[4]].coproduct()
-                Q[] # Q[{1, 2}, {3}, {4}] + Q[{1, 2}] # Q[{1}, {2}]
-                 + Q[{1, 2}, {3}] # Q[{1}] + Q[{1, 2}, {3}, {4}] # Q[]
-            """
-            # The coproduct on the Q basis satisfies the same formula
-            # as on the M basis. This is easily derived from the
-            # formula on the M basis.
-            if not len(x):
-                return self.one().tensor(self.one())
-            K = self.indices()
-            def standardize(P): # standardize an ordered set partition
-                base = sorted(sum((list(part) for part in P), []))
-                # base is the ground set of P, as a sorted list.
-                d = {val: i+1 for i,val in enumerate(base)}
-                # d is the unique order isomorphism from base to
-                # {1, 2, ..., |base|} (encoded as dict).
-                return K([[d[x] for x in part] for part in P])
-            T = self.tensor_square()
-            return T.sum_of_monomials((standardize(x[:i]), standardize(x[i:]))
-                                      for i in range(len(x) + 1))
+        #         See
+        #         :meth:`WQSymBases.ElementMethods.coalgebraic_complement`
+        #         for a definition of the involution and for examples.
 
-        class Element(WQSymBasis_abstract.Element):
-            def algebraic_complement(self):
-                r"""
-                Return the image of the element ``self`` of `WQSym`
-                under the algebraic complement involution.
+        #         .. SEEALSO::
 
-                See
-                :meth:`WQSymBases.ElementMethods.algebraic_complement`
-                for a definition of the involution and for examples.
+        #             :meth:`algebraic_complement`, :meth:`star_involution`
 
-                .. SEEALSO::
+        #         EXAMPLES::
 
-                    :meth:`coalgebraic_complement`, :meth:`star_involution`
+        #             sage: WQSym = algebras.WQSym(ZZ)
+        #             sage: Q = WQSym.Q()
+        #             sage: Q[[1,2],[5,6],[3,4]].coalgebraic_complement()
+        #             Q[{1, 2, 5, 6}, {3, 4}] + Q[{5, 6}, {1, 2}, {3, 4}] - Q[{5, 6}, {1, 2, 3, 4}]
+        #             sage: Q[[3], [1, 2], [4]].coalgebraic_complement()
+        #             Q[{2}, {1, 3, 4}] + Q[{2}, {3, 4}, {1}] - Q[{2, 3, 4}, {1}]
 
-                EXAMPLES::
+        #         TESTS::
 
-                    sage: WQSym = algebras.WQSym(ZZ)
-                    sage: Q = WQSym.Q()
-                    sage: Q[[1,2],[5,6],[3,4]].algebraic_complement()
-                    Q[{3, 4}, {1, 2, 5, 6}] + Q[{3, 4}, {5, 6}, {1, 2}]
-                     - Q[{3, 4, 5, 6}, {1, 2}]
-                    sage: Q[[3], [1, 2], [4]].algebraic_complement()
-                    Q[{1, 2, 4}, {3}] + Q[{4}, {1, 2}, {3}] - Q[{4}, {1, 2, 3}]
+        #             sage: M = WQSym.M()
+        #             sage: all(M(Q[A]).coalgebraic_complement()  # long time
+        #             ....:     == M(Q[A].coalgebraic_complement())
+        #             ....:     for A in OrderedSetPartitions(4))
+        #             True
+        #         """
+        #         # See the WQSymBases.ElementMethods.coalgebraic_complement doc
+        #         # for the formula we're using here.
+        #         BR = self.base_ring()
+        #         one = BR.one()
+        #         mine = -one
+        #         Q = self.parent()
+        #         OSPs = Q.basis().keys()
+        #         from sage.data_structures.blas_dict import linear_combination
+        #         def img(A):
+        #             # The image of the basis element Q[A], written as a
+        #             # dictionary (of its coordinates in the Q-basis).
+        #             Rs = [Rr.complement() for Rr in A.strongly_fatter()]
+        #             return {OSPs(P): (one if (len(R) % 2 == len(P) % 2)
+        #                               else mine)
+        #                     for R in Rs for P in R.strongly_fatter()}
+        #         return Q._from_dict(linear_combination((img(A), c) for (A, c) in self))
 
-                TESTS::
+        #     def star_involution(self):
+        #         r"""
+        #         Return the image of the element ``self`` of `WQSym`
+        #         under the star involution.
 
-                    sage: M = WQSym.M()
-                    sage: all(M(Q[A]).algebraic_complement()  # long time
-                    ....:     == M(Q[A].algebraic_complement())
-                    ....:     for A in OrderedSetPartitions(4))
-                    True
-                """
-                # See the WQSymBases.ElementMethods.algebraic_complement doc
-                # for the formula we're using here.
-                BR = self.base_ring()
-                one = BR.one()
-                mine = -one
-                Q = self.parent()
-                OSPs = Q.basis().keys()
-                from sage.data_structures.blas_dict import linear_combination
-                def img(A):
-                    # The image of the basis element Q[A], written as a
-                    # dictionary (of its coordinates in the Q-basis).
-                    Rs = [Rr.reversed() for Rr in A.strongly_fatter()]
-                    return {OSPs(P): (one if (len(R) % 2 == len(P) % 2)
-                                      else mine)
-                            for R in Rs for P in R.strongly_fatter()}
-                return Q._from_dict(linear_combination((img(A), c) for (A, c) in self))
+        #         See
+        #         :meth:`WQSymBases.ElementMethods.star_involution`
+        #         for a definition of the involution and for examples.
 
-            def coalgebraic_complement(self):
-                r"""
-                Return the image of the element ``self`` of `WQSym`
-                under the coalgebraic complement involution.
+        #         .. SEEALSO::
 
-                See
-                :meth:`WQSymBases.ElementMethods.coalgebraic_complement`
-                for a definition of the involution and for examples.
+        #             :meth:`algebraic_complement`, :meth:`coalgebraic_complement`
 
-                .. SEEALSO::
+        #         EXAMPLES::
 
-                    :meth:`algebraic_complement`, :meth:`star_involution`
+        #             sage: WQSym = algebras.WQSym(ZZ)
+        #             sage: Q = WQSym.Q()
+        #             sage: Q[[1,2],[5,6],[3,4]].star_involution()
+        #             Q[{3, 4}, {1, 2}, {5, 6}]
+        #             sage: Q[[3], [1, 2], [4]].star_involution()
+        #             Q[{1}, {3, 4}, {2}]
 
-                EXAMPLES::
+        #         TESTS::
 
-                    sage: WQSym = algebras.WQSym(ZZ)
-                    sage: Q = WQSym.Q()
-                    sage: Q[[1,2],[5,6],[3,4]].coalgebraic_complement()
-                    Q[{1, 2, 5, 6}, {3, 4}] + Q[{5, 6}, {1, 2}, {3, 4}] - Q[{5, 6}, {1, 2, 3, 4}]
-                    sage: Q[[3], [1, 2], [4]].coalgebraic_complement()
-                    Q[{2}, {1, 3, 4}] + Q[{2}, {3, 4}, {1}] - Q[{2, 3, 4}, {1}]
-
-                TESTS::
-
-                    sage: M = WQSym.M()
-                    sage: all(M(Q[A]).coalgebraic_complement()  # long time
-                    ....:     == M(Q[A].coalgebraic_complement())
-                    ....:     for A in OrderedSetPartitions(4))
-                    True
-                """
-                # See the WQSymBases.ElementMethods.coalgebraic_complement doc
-                # for the formula we're using here.
-                BR = self.base_ring()
-                one = BR.one()
-                mine = -one
-                Q = self.parent()
-                OSPs = Q.basis().keys()
-                from sage.data_structures.blas_dict import linear_combination
-                def img(A):
-                    # The image of the basis element Q[A], written as a
-                    # dictionary (of its coordinates in the Q-basis).
-                    Rs = [Rr.complement() for Rr in A.strongly_fatter()]
-                    return {OSPs(P): (one if (len(R) % 2 == len(P) % 2)
-                                      else mine)
-                            for R in Rs for P in R.strongly_fatter()}
-                return Q._from_dict(linear_combination((img(A), c) for (A, c) in self))
-
-            def star_involution(self):
-                r"""
-                Return the image of the element ``self`` of `WQSym`
-                under the star involution.
-
-                See
-                :meth:`WQSymBases.ElementMethods.star_involution`
-                for a definition of the involution and for examples.
-
-                .. SEEALSO::
-
-                    :meth:`algebraic_complement`, :meth:`coalgebraic_complement`
-
-                EXAMPLES::
-
-                    sage: WQSym = algebras.WQSym(ZZ)
-                    sage: Q = WQSym.Q()
-                    sage: Q[[1,2],[5,6],[3,4]].star_involution()
-                    Q[{3, 4}, {1, 2}, {5, 6}]
-                    sage: Q[[3], [1, 2], [4]].star_involution()
-                    Q[{1}, {3, 4}, {2}]
-
-                TESTS::
-
-                    sage: M = WQSym.M()
-                    sage: all(M(Q[A]).star_involution() == M(Q[A].star_involution())
-                    ....:     for A in OrderedSetPartitions(4))
-                    True
-                """
-                # See the WQSymBases.ElementMethods.star_involution doc
-                # for the formula we're using here.
-                Q = self.parent()
-                OSPs = Q.basis().keys()
-                return Q._from_dict({OSPs(A.complement().reversed()): c for (A, c) in self},
-                                    remove_zeros=False)
+        #             sage: M = WQSym.M()
+        #             sage: all(M(Q[A]).star_involution() == M(Q[A].star_involution())
+        #             ....:     for A in OrderedSetPartitions(4))
+        #             True
+        #         """
+        #         # See the WQSymBases.ElementMethods.star_involution doc
+        #         # for the formula we're using here.
+        #         Q = self.parent()
+        #         OSPs = Q.basis().keys()
+        #         return Q._from_dict({OSPs(A.complement().reversed()): c for (A, c) in self},
+        #                             remove_zeros=False)
 
     H = Homogeneous
 
