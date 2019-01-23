@@ -265,9 +265,9 @@ cdef initialize():
     cdef void* handle
     for suffix in [b"so", b"dylib", b"dll"]:
         handle = dlopen(b"libgap."+suffix, RTLD_NOW | RTLD_GLOBAL)
-        if handle != NULL:
+        if handle is not NULL:
             break
-    if handle == NULL:
+    if handle is NULL:
         raise RuntimeError(
                 "Could not dlopen() libgap even though it should already "
                 "be loaded!")
