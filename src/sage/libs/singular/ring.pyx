@@ -366,8 +366,6 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     if (_ring is NULL):
         raise ValueError("Failed to allocate Singular ring.")
 
-#~     _ring.ShortOut = 0
-
     rChangeCurrRing(_ring)
 
     rComplete(_ring, 1)
@@ -445,8 +443,7 @@ cdef ring *singular_ring_reference(ring *existing_ring, int *refcount) except NU
         4
 
     By :trac:`13447`, there is no longer a strong cache for multivariate
-    polynomial rings. Thus, we obtain
-    ::
+    polynomial rings. Thus, we obtain::
 
         sage: del P
         sage: _ = gc.collect()

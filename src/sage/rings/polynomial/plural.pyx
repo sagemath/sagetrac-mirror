@@ -415,9 +415,6 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: _ = gc.collect()
         """
         singular_ring_delete(self._ring, self._ring_ref)
-        # It could be that elements are fully deallocated only later,
-        # and thus we need to make the ring reference NULL.
-#~         self._ring = NULL
 
     def _element_constructor_(self, element):
         """

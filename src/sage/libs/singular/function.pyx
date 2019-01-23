@@ -1199,7 +1199,6 @@ cdef class SingularFunction(SageObject):
                     # deletion would result in a segfault, thus, we
                     # prevent it from deletion:
                     currRingHdl.data.uring.ref += 1
-#~                 singular_ring_reference(currRing, ...) ?
 
     cdef BaseCallHandler get_call_handler(self):
         """
@@ -1499,8 +1498,6 @@ cdef inline call_function(SingularFunction self, tuple args, object R, bint sign
     if si_ring != currRing: rChangeCurrRing(si_ring)
 
     if currRingHdl.data.uring!= currRing:
-#~         singular_ring_delete(currRingHdl.data.uring, ...) ?
-#~         currRingHdl.data.uring = singular_ring_reference(currRing, ...) ?
         currRingHdl.data.uring = currRing
 
     cdef Converter argument_list = Converter(args, R, attributes)
