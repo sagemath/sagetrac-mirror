@@ -562,12 +562,7 @@ def PolynomialRing(base_ring, *args, **kwds):
         sage: n == total_ring_reference_count()
         True
 
-
-    .. TODO::
-
-        The following still leaks, likely because of strong refs in the coercion system.
-
-    ::
+    The following still leaks, likely because of strong refs in the coercion system::
 
         sage: from sage.libs.singular.ring import total_ring_reference_count
         sage: n = total_ring_reference_count()
