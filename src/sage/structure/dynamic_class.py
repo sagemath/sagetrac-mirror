@@ -122,10 +122,11 @@ an inheritance can be partially emulated using :meth:`__getattr__`. See
 from sage.misc.cachefunc import weak_cached_function
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.inherit_comparison import InheritComparisonMetaclass, InheritComparisonClasscallMetaclass
+from sage.cpython.type import extension_class
 
 
 def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
-                  prepend_cls_bases=True, cache=True):
+                  prepend_cls_bases=True, cache=True, extension=False):
     r"""
     INPUT:
 
@@ -136,6 +137,9 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
     - ``doccls`` -- a class or ``None``
     - ``prepend_cls_bases`` -- a boolean (default: ``True``)
     - ``cache`` -- a boolean or ``"ignore_reduction"`` (default: ``True``)
+    - ``extension`` -- boolean (default: ``False``). If this is ``True``,
+      then the result is an extension class. This may break things:
+      use at your own risk!
 
     Constructs dynamically a new class ``C`` with name ``name``, and
     bases ``bases``. If ``cls`` is provided, then its methods will be
@@ -150,8 +154,8 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
     The constructed class can safely be pickled (assuming the
     arguments themselves can).
 
-    Unless ``cache`` is ``False``, the result is cached, ensuring unique
-    representation of dynamic classes.
+    Unless ``cache`` is ``False``, the result is weakly cached, ensuring
+    unique representation of dynamic classes.
 
     See :mod:`sage.structure.dynamic_class` for a discussion of the
     dynamic classes paradigm, and its relevance to Sage.
@@ -219,6 +223,17 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
         sage: dyn = dynamic_class("dyn", (Integer,))
         sage: dyn.__dictoffset__
         0
+
+    If the ``extension=True`` argument is given, the resulting class is
+    an extension class (which we check using ``gc.is_tracked``)::
+
+        sage: import gc
+        sage: dyn = dynamic_class("dyn", (Integer,))
+        sage: gc.is_tracked(dyn)
+        True
+        sage: dyn = dynamic_class("dyn", (Integer,), extension=True)
+        sage: gc.is_tracked(dyn)
+        False
 
     .. RUBRIC:: Pickling
 
@@ -324,27 +339,24 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
         True
     """
     bases = tuple(bases)
-    #assert(len(bases) > 0 )
-    try:
-        name = str(name)
-    except UnicodeEncodeError:
-        pass
-    assert(isinstance(name, str))
-    #    assert(cls is None or issubtype(type(cls), type) or type(cls) is classobj)
+    name = str(name)
+    args = (doccls, prepend_cls_bases, extension)
     if cache is True:
-        return dynamic_class_internal(name, bases, cls, reduction, doccls, prepend_cls_bases)
-    elif cache is False:
+        return dynamic_class_internal(name, bases, cls, reduction, *args)
+    elif not cache:
         # bypass the cached method
-        return dynamic_class_internal.f(name, bases, cls, reduction, doccls, prepend_cls_bases)
-    else: # cache = "ignore_reduction"
-        result = dynamic_class_internal(name, bases, cls, False, doccls, prepend_cls_bases)
+        return dynamic_class_internal.f(name, bases, cls, reduction, *args)
+    elif cache == "ignore_reduction":
+        result = dynamic_class_internal(name, bases, cls, False, *args)
         if result._reduction is False:
             result._reduction = reduction
         return result
+    else:
+        raise ValueError("illegal value cache={!r}".format(cache))
 
 
 @weak_cached_function
-def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, prepend_cls_bases=True):
+def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, prepend_cls_bases=True, extension=False):
     r"""
     See sage.structure.dynamic_class.dynamic_class? for indirect doctests.
 
@@ -456,7 +468,11 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
                     metaclass = DynamicInheritComparisonClasscallMetaclass
                 else:
                     raise NotImplementedError("No subclass of %r known that inherits from InheritComparisonMetaclass"%(metaclass,))
-    return metaclass(name, bases, methods)
+    res = metaclass(name, bases, methods)
+    if extension:
+        return extension_class(res)
+    else:
+        return res
 
 
 class DynamicMetaclass(type):
