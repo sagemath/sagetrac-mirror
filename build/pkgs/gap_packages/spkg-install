@@ -48,15 +48,15 @@ install_compiled_pkg()
     # Clean up any build artificts before installing the rest of the package
     # Also remove configure/Makefiles
     # Note: None, if any of the packages really have a proper install target
-    make clean  # Works for some packages but not all
-    rm -rf bin/
-    rm -rf configure configure.* config.* autogen.sh *.m4 Makefile* m4/
 
     # Create the bin/ symlink
     ln -s "$SAGE_LOCAL/lib/gap/pkg/$pkg/bin" bin
 
     # Install the rest of the package files
     sdh_install * "$PKG_DIR/$pkg"
+    make clean  # Works for some packages but not all
+    rm -rf bin/
+    rm -rf configure configure.* config.* autogen.sh *.m4 Makefile* m4/
 }
 
 # Build and install compiled packages:
@@ -73,9 +73,13 @@ do
     cd "$PKG_SRC_DIR"
 done
 
-# These packages (currently just one) have a new-style autoconf ./configure
+# These packages have a new-style autoconf ./configure
 # that takes --with-gaproot
-for pkg in nq-*
+# bring GAP headers into the state needed by io
+export CFLAGS="$CFLAGS -I$GAP_ROOT" # headers expected in $GAP_ROOT
+cp -f "$SAGE_LOCAL/include/gap/config.h" "$GAP_ROOT/src/"
+
+for pkg in nq-* io-*
 do
     cd "$PKG_SRC_DIR/$pkg"
     sdh_configure --with-gaproot="$GAP_ROOT"
