@@ -1,0 +1,18 @@
+Trac #27109: make sure that toolexeclibdir=libdir
+
+When upgrading libffi, this patch should be removed and the
+option --print-multi-os-directory should be passed to configure.
+See https://github.com/libffi/libffi/commit/877ea9bf9a
+
+diff -ru a/configure b/configure
+--- a/configure	2019-01-24 15:35:06.915409000 +0100
++++ b/configure	2019-01-24 15:46:57.248033653 +0100
+@@ -18716,7 +18716,7 @@
+ 
+ # These variables are only ever used when we cross-build to X86_WIN32.
+ # And we only support this with GCC, so...
+-if test "x$GCC" = "xyes"; then
++if false; then
+   if test -n "$with_cross_host" &&
+      test x"$with_cross_host" != x"no"; then
+     toolexecdir="${exec_prefix}"/'$(target_alias)'
