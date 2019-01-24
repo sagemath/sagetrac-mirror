@@ -292,13 +292,9 @@ ext_modules = [
                          'sage/geometry/triangulation/data.h',
                          'sage/geometry/triangulation/triangulations.h'],
               language="c++"),
-    
+              
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.base',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/base.pyx',
-                        'sage/geometry/polyhedron/combinatorial_polyhedron/hasse_diagram.cc'],
-              depends = ['sage/geometry/polyhedron/combinatorial_polyhedron/hasse_diagram.h'],
-              extra_compile_args=['-O3', '-march=native'],
-              language = 'c++'),
+            sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/base.pyx',]),
 
     ################################
     ##
