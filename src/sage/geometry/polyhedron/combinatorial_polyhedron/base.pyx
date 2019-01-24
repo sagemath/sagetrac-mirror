@@ -610,7 +610,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     def __dealloc__(self):
         r"""
-        This function deallocates all the memomory used by the underlying C++-class
+        This function deallocates all the memory used by the underlying C++-class
         """
         if self.is_trivial > 0:
             return
