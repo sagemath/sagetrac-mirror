@@ -589,6 +589,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         vertex_one = lambda i : f(edgepointer[i / maxnumberedges][2*(i % maxnumberedges)])
         vertex_two = lambda i : f(edgepointer[i / maxnumberedges][2*(i % maxnumberedges)+1])
         return tuple((vertex_one(i), vertex_two(i)) for i in range(nr_edges))
+        #TODO: In the unbounded case, one should check if the vertices of edges are vertices of the Polyhedron
+        #P = Polyhedron(vertices=[[0,0],[1,0]], rays=[[0,1]])
 
     def edge_graph(self,names=True):
         r"""
