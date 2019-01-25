@@ -272,7 +272,7 @@ Classes and functions
 # python3
 from __future__ import division, print_function, absolute_import
 
-from six.moves import range
+from six.moves import range, builtins
 from six import iteritems
 
 import copy
@@ -1464,14 +1464,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.sorted([], allow_incomparable=False, remove_duplicates=False)
             []
         """
-        from sage.misc.misc import uniq
-
         v = [self._element_to_vertex(x) for x in l]
-
         if remove_duplicates:
-            o = uniq(v)
-        else:
-            o = sorted(v)
+            v = set(v)
+        o = sorted(v)
 
         if not allow_incomparable:
             H = self._hasse_diagram
@@ -4056,11 +4052,12 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: C2 = Poset({0:[1]})
             sage: C3 = Poset({'a':['b'], 'b':['c']})
-            sage: for x in C3.isomorphic_subposets(C2):
-            ....:     print(x.cover_relations())
-            [['b', 'c']]
-            [['a', 'c']]
+            sage: L = sorted(x.cover_relations() for x in C3.isomorphic_subposets(C2))
+            sage: for x in L: print(x)
             [['a', 'b']]
+            [['a', 'c']]
+            [['b', 'c']]
+
             sage: D = Poset({1:[2,3], 2:[4], 3:[4]})
             sage: N5 = posets.PentagonPoset()
             sage: len(N5.isomorphic_subposets(D))
@@ -4071,19 +4068,15 @@ class FinitePoset(UniqueRepresentation, Parent):
             If this function takes too much time, try using
             :meth:`isomorphic_subposets_iterator`.
         """
-        from sage.misc.misc import uniq
-
         if not hasattr(other, 'hasse_diagram'):
             raise TypeError("'other' is not a finite poset")
         L = self._hasse_diagram.transitive_closure().subgraph_search_iterator(other._hasse_diagram.transitive_closure(), induced=True)
         # Since subgraph_search_iterator returns labelled copies, we
         # remove duplicates.
-        return [self.subposet([self._list[i] for i in x]) for x in uniq([frozenset(y) for y in L])]
+        return [self.subposet([self._list[i] for i in x]) for x in sorted(set(frozenset(y) for y in L))]
 
-    from six.moves import builtins
     # Caveat: list is overridden by the method list above!!!
-
-    def antichains(self, element_constructor = builtins.list):
+    def antichains(self, element_constructor=builtins.list):
         """
         Return the antichains of the poset.
 
@@ -5709,10 +5702,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             ...
             TypeError: 'sage.rings.integer.Integer' object is not iterable
         """
-        from sage.misc.misc import uniq
-
         H = self._hasse_diagram
-        elms = uniq([self._element_to_vertex(e) for e in elements])
+        elms = sorted(set(self._element_to_vertex(e) for e in elements))
 
         if not elms:
             return Poset()
@@ -6268,8 +6259,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P=Poset({'a':['b', 'c'], 'b':['d','e']})
-            sage: P.maximal_antichains()
-            [['a'], ['c', 'b'], ['c', 'e', 'd']]
+            sage: [sorted(anti) for anti in P.maximal_antichains()]
+            [['a'], ['b', 'c'], ['c', 'd', 'e']]
 
             sage: posets.PentagonPoset().maximal_antichains()
             [[0], [1, 2], [1, 3], [4]]

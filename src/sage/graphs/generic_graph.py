@@ -1205,7 +1205,7 @@ class GenericGraph(GenericGraph_pyx):
         A new graph instance that is as close as possible to the original
         graph. The output is always mutable.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: g = Graph({0: [1, 2, 3], 2: [4]}, immutable=True)
             sage: g.weighted(list(range(5)))
@@ -5199,7 +5199,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: cube.genus(circular=['01','10'])
             0
             sage: cube.genus(circular=['01','10'], on_embedding=True)
-            0
+            Traceback (most recent call last):
+            ...
+            ValueError: on_embedding is not a valid option when circular is defined
             sage: cube.genus(circular=['01','10'], maximal=True)
             Traceback (most recent call last):
             ...
@@ -5250,6 +5252,8 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError("'circular' is expected to be a list")
             if maximal:
                 raise NotImplementedError("cannot compute the maximal genus of a genus respecting a boundary")
+            if on_embedding is not None:
+                raise ValueError("on_embedding is not a valid option when circular is defined")
             boundary = circular
             if hasattr(G, '_embedding'):
                 del(G._embedding)
@@ -6170,7 +6174,7 @@ class GenericGraph(GenericGraph_pyx):
             return_value.append(self.edge_boundary(reachable_from_s))
 
             if vertices:
-                return_value.append([reachable_from_s, list(set(self.vertices()).difference(reachable_from_s))])
+                return_value.append([reachable_from_s, list(set(self).difference(reachable_from_s))])
 
             return return_value
 
@@ -8737,7 +8741,7 @@ class GenericGraph(GenericGraph_pyx):
         # edge is strictly less than its capacity, or when there exists a back
         # arc with non-null flow
         residual = DiGraph()
-        residual.add_vertices(self.vertices())
+        residual.add_vertices(self)
 
         # Initializing the variables
         if directed:
@@ -21215,7 +21219,6 @@ class GenericGraph(GenericGraph_pyx):
             False
         """
         from sage.misc.flatten import flatten
-        from sage.misc.misc import uniq
         if sorted(flatten(partition, max_level=1)) != self.vertices():
             raise TypeError("Partition (%s) is not valid for this graph: vertices are incorrect."%partition)
         if any(len(cell)==0 for cell in partition):
@@ -21230,7 +21233,7 @@ class GenericGraph(GenericGraph_pyx):
                     cell_i = partition[i]
                     cell_j = partition[j]
                     degrees = [self.degree_to_cell(u, cell_j) for u in cell_i]
-                    if len(uniq(degrees)) > 1:
+                    if len(set(degrees)) > 1:
                         return False
                     if self._directed:
                         M[i, j] = degrees[0][0]
@@ -21241,7 +21244,7 @@ class GenericGraph(GenericGraph_pyx):
             for cell1 in partition:
                 for cell2 in partition:
                     degrees = [self.degree_to_cell(u, cell2) for u in cell1]
-                    if len(uniq(degrees)) > 1:
+                    if len(set(degrees)) > 1:
                         return False
             return True
 

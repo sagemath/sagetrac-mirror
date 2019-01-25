@@ -1082,11 +1082,10 @@ class Posets(object):
             sage: P2 = posets.SymmetricGroupBruhatIntervalPoset([1,2,3,4], [4,2,3,1])
             sage: ranks1 = [P1.rank(v) for v in P1]
             sage: ranks2 = [P2.rank(v) for v in P2]
-            sage: [ranks1.count(i) for i in uniq(ranks1)]
+            sage: [ranks1.count(i) for i in sorted(set(ranks1))]
             [1, 3, 5, 4, 1]
-            sage: [ranks2.count(i) for i in uniq(ranks2)]
+            sage: [ranks2.count(i) for i in sorted(set(ranks2))]
             [1, 3, 5, 6, 4, 1]
-
         """
         start = Permutation(start)
         end = Permutation(end)
@@ -1979,6 +1978,7 @@ def _random_distributive_lattice(n):
             H = HasseDiagram(D)
     return D
 
+
 def _random_stone_lattice(n):
     """
     Return a random Stone lattice on `n` elements.
@@ -2008,7 +2008,7 @@ def _random_stone_lattice(n):
     from sage.misc.misc_c import prod
     from copy import copy
 
-    factors = sum([[f[0]]*f[1] for f in factor(n)], [])
+    factors = sum([[f[0]] * f[1] for f in factor(n)], [])
     sage.misc.prandom.shuffle(factors)
 
     part_lengths = list(Partitions(len(factors)).random_element())
@@ -2020,9 +2020,9 @@ def _random_stone_lattice(n):
 
     result = DiGraph(1)
     for p in parts:
-        g = _random_distributive_lattice(p-1)
+        g = _random_distributive_lattice(p - 1)
         g = copy(Poset(g).order_ideals_lattice(as_ideals=False)._hasse_diagram)
-        g.add_edge('bottom', 0)
+        g.add_edge(-1, 0)
         result = result.cartesian_product(g)
         result.relabel()
 
