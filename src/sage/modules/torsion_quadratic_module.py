@@ -1629,7 +1629,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         glue_valuation = ZZ(glue_valuation)
         if not glue_valuation >= 0:
             raise ValueError()
-        D, i1, i2, iV1, iV2 = self.direct_sum(other)
+        D, i1, i2, iV1, iV2 = self.direct_sum(other,return_more=True)
         OD = D.orthogonal_group()
         embedG1, embedG2 = direct_sum_embed(D, i1, i2, OD, G1, G2)
 

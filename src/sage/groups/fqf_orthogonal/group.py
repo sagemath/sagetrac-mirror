@@ -349,8 +349,8 @@ class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
             sage: L = IntegralLattice("A2").twist(5)
             sage: L = L.direct_sum(L.twist(-1))
             sage: Oq = L.discriminant_group().orthogonal_group()
-            sage: Oq.det_spin_homomorphism().image(Oq).order()
-            4
+            sage: Oq.det_spin_homomorphism(L.rank(),L.det()).image(Oq).order()
+            8
         """
         from sage.groups.fqf_orthogonal.spinor import GammaA
         S = (2*self.domain().order()).prime_divisors()
@@ -547,7 +547,7 @@ class ActionOnFqf(Action):
             raise ValueError("the action is from the right")
         Action.__init__(self, orthogonal_grp, fqf, is_left, operator.mul)
 
-    def _call_(self, a, g):
+    def _act_(self, g, a):
         r"""
         This defines the group action.
 
