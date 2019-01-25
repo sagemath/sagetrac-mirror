@@ -457,8 +457,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             True
 
         By :trac:`13447`, multivariate polynomial rings are no longer strongly
-        cached. Therefore we have
-        ::
+        cached. Therefore we have::
 
             sage: Q = copy(R)   # indirect doctest
             sage: p = R.gen(0)^2+R.gen(1)^2
