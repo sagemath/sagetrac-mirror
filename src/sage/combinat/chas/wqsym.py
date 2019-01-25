@@ -817,15 +817,61 @@ sage: for p in PackedWords(3):
             def new_rank(x):
                 return {a:(str(a.to_composition),a.to_packed_word())
                         for a in OrderedSetPartitions(x.size())}
-                
+            
             Q = self.realization_of().Q()
             phi = self.module_morphism(self._H_to_Q, codomain=Q, unitriangular="lower", key=lambda a: new_rank(a)[a])
-            #TODO probleme avec le triangulaire... revoir ce truc de module_morphism... demander une extantion lineaire du graph de la matrice cf topolicol sort trop bien pour PQSym aussi !!!
             phi.register_as_coercion()
             (~phi).register_as_coercion()
-            # phi_inv = Q.module_morphism(self._Q_to_H, codomain=self, unitriangular="lower")
-            # phi_inv.register_as_coercion()
+            
+        def _H_to_Q(self, P):
+            """
+            Return the image of the basis element of ``self`` indexed
+            by ``P`` in the Q basis.
 
+            EXAMPLES::
+
+                sage: H = algebras.WQSym(QQ).H()
+                sage: OSP = H.basis().keys()
+                sage: H._H_to_Q(OSP([[2,3],[1,4]]))
+                # Q[{2, 3}, {1, 4}]
+                sage: H._H_to_Q(OSP([[1,2],[3,4]]))
+                # M[{1, 2}, {3, 4}] + M[{1, 2, 3, 4}]
+                sage: H._H_to_Q(OSP([[1],[2],[3],[4],[5],[6]]))
+TODO
+sage: H = algebras.WQSym(QQ).H()
+sage: Q = algebras.WQSym(QQ).Q()
+sage: import time
+sage: t0 = time.time(); H(Q[1,2,3,4,5]); print time.time() - t0
+H[{1}, {2}, {3}, {4}] - H[{4}, {3}, {2}, {1}] + H[{1}, {4}, {3}, {2}] + H[{2}, {1}, {4}, {3}] - H[{1}, {2}, {4}, {3}] - H[{1}, {3}, {2}, {4}] + H[{3}, {2}, {1}, {4}] - H[{2}, {1}, {3}, {4}]
+1.14229607582
+# c'est trop long !!! j'arrive même pas à attendre avec une taille de 5.....
+
+
+d'après pdb c'est la ligne 968 de morphism.py qui prend du temps...
+
+# if not j == self._dominant_item(s)[0]:
+
+
+            sage: Q = H.realization_of().Q()
+            sage: if not P:
+            ....:    print Q.one()
+            sage: PW = PackedWords().from_ordered_set_partition(P)
+            sage: R = Q.base_ring()
+            sage: one = R.one()
+            sage: Q._from_dict({G.to_ordered_set_partition():
+            ....:                    one for G in PW.left_weak_order_greater()}, coerce=False)
+
+            """
+            Q = self.realization_of().Q()
+            if not P:
+                return Q.one()
+            PW = PackedWords().from_ordered_set_partition(P)
+            R = Q.base_ring()
+            one = R.one()
+            import pdb; pdb.set_trace()
+            return Q._from_dict({G.to_ordered_set_partition():
+                                 one for G in PW.left_weak_order_greater()}, coerce=False)
+            
         def some_elements(self):
             """
             Return some elements of the word quasi-symmetric functions
@@ -842,70 +888,42 @@ sage: for p in PackedWords(3):
             s = self.base_ring().an_element()
             return [u, o, self([[1,2]]), u + s*o]
 
-        def _H_to_Q(self, P):
-            """
-            Return the image of the basis element of ``self`` indexed
-            by ``P`` in the Q basis.
+        def product_on_basis(self, x, y):
+            r"""
+            Return the (associative) `*` product of the basis elements
+            of the Homogeneous basis ``self`` indexed by the ordered set partitions
+            `x` and `y`.
+
+            This is the shifted concatenating product of `x` and `y`.
 
             EXAMPLES::
 
-                sage: H = algebras.WQSym(QQ).H()
-                sage: OSP = H.basis().keys()
-                sage: H._H_to_Q(OSP([[2,3],[1,4]]))
-                # Q[{2, 3}, {1, 4}]
-                sage: H._H_to_Q(OSP([[1,2],[3,4]]))
-                # M[{1, 2}, {3, 4}] + M[{1, 2, 3, 4}]
+                sage: A = algebras.WQSym(QQ).H()
+                sage: x = OrderedSetPartition([[1],[2,3]])
+                sage: y = OrderedSetPartition([[1,2]])
+                sage: z = OrderedSetPartition([[1,2],[3]])
+                sage: A.product_on_basis(x, y)
+                H[{1}, {2, 3}, {4, 5}]
+                sage: A.product_on_basis(x, z)
+                H[{1}, {2, 3}, {4, 5}, {6}]
+                sage: A.product_on_basis(y, y)
+                H[{1, 2}, {3, 4}]
+
+            TESTS::
+
+                sage: one = OrderedSetPartition([])
+                sage: all(A.product_on_basis(one, z) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
+                True
+                sage: all(A.product_on_basis(z, one) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
+                True
             """
-            Q = self.realization_of().Q()
-            if not P:
-                return Q.one()
-
-            PW = PackedWords().from_ordered_set_partition(P)
-            R = Q.base_ring()
-            one = R.one()
-            return Q._from_dict({G.to_ordered_set_partition(): one for G in PW.left_weak_order_greater()},
-                                coerce=False)
-
-        # def product_on_basis(self, x, y):
-        #     r"""
-        #     Return the (associative) `*` product of the basis elements
-        #     of the Q basis ``self`` indexed by the ordered set partitions
-        #     `x` and `y`.
-
-        #     This is the shifted shuffle product of `x` and `y`.
-
-        #     EXAMPLES::
-
-        #         sage: A = algebras.WQSym(QQ).Q()
-        #         sage: x = OrderedSetPartition([[1],[2,3]])
-        #         sage: y = OrderedSetPartition([[1,2]])
-        #         sage: z = OrderedSetPartition([[1,2],[3]])
-        #         sage: A.product_on_basis(x, y)
-        #         Q[{1}, {2, 3}, {4, 5}] + Q[{1}, {4, 5}, {2, 3}]
-        #          + Q[{4, 5}, {1}, {2, 3}]
-        #         sage: A.product_on_basis(x, z)
-        #         Q[{1}, {2, 3}, {4, 5}, {6}] + Q[{1}, {4, 5}, {2, 3}, {6}]
-        #          + Q[{1}, {4, 5}, {6}, {2, 3}] + Q[{4, 5}, {1}, {2, 3}, {6}]
-        #          + Q[{4, 5}, {1}, {6}, {2, 3}] + Q[{4, 5}, {6}, {1}, {2, 3}]
-        #         sage: A.product_on_basis(y, y)
-        #         Q[{1, 2}, {3, 4}] + Q[{3, 4}, {1, 2}]
-
-        #     TESTS::
-
-        #         sage: one = OrderedSetPartition([])
-        #         sage: all(A.product_on_basis(one, z) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
-        #         True
-        #         sage: all(A.product_on_basis(z, one) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
-        #         True
-        #     """
-        #     K = self.basis().keys()
-        #     if not x:
-        #         return self.monomial(y)
-        #     m = max(max(part) for part in x) # The degree of x
-        #     x = [set(part) for part in x]
-        #     yshift = [[val + m for val in part] for part in y]
-        #     def union(X,Y): return X.union(Y)
-        #     return self.sum_of_monomials(ShuffleProduct(x, yshift, K))
+            K = self.basis().keys()
+            if not x:
+                return self.monomial(y)
+            m = max(max(part) for part in x) # The degree of x
+            x = [set(part) for part in x]
+            yshift = [[val + m for val in part] for part in y]
+            return self.monomial(K(x + yshift))
 
         # def coproduct_on_basis(self, x):
         #     r"""
