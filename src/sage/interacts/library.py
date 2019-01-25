@@ -91,7 +91,7 @@ def html(obj):
 
 
 @library_interact
-def demo(n=slider(range(10)), m=slider(range(10))):
+def demo(n=slider(list(range(10))), m=slider(list(range(10)))):
     """
     This is a demo interact that sums two numbers.
 
@@ -112,10 +112,11 @@ def demo(n=slider(range(10)), m=slider(range(10))):
     """
     print(n + m)
 
+
 @library_interact
 def taylor_polynomial(
     title = text_control('<h2>Taylor polynomial</h2>'),
-    f=input_box(sin(x)*exp(-x),label="$f(x)=$"), order=slider(range(1,13))):
+    f=input_box(sin(x)*exp(-x),label="$f(x)=$"), order=slider(list(range(1,13)))):
     """
     An interact which illustrates the Taylor polynomial approximation
     of various orders around `x=0`.
