@@ -498,6 +498,19 @@ class PerfectMatching(SetPartition):
                                  for i in range(len(perm) // 2)])
         return SetPartition(perm2.cycle_tuples())
 
+    def rotate(self):
+        r"""
+        Return the rotation of the perfect matching.
+
+        EXAMPLES::
+
+            sage: PerfectMatching([[1,4], [3,2], [5,6]]).rotate()
+            [(1, 6), (2, 5), (3, 4)]
+
+        """
+        n = self.size()
+        return PerfectMatching([((i%n)+1,(j%n)+1) for i,j in self.arcs()])
+
     from sage.misc.superseded import deprecated_function_alias
     to_non_crossing_set_partition = deprecated_function_alias(23982, to_noncrossing_set_partition)
     is_non_crossing = deprecated_function_alias(23982, SetPartition.is_noncrossing)
