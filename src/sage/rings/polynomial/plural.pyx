@@ -1421,6 +1421,14 @@ cdef class NCPolynomial_plural(RingElement):
         """
         self._poly = NULL
         self._parent = parent
+        # During cyclic garbage collection, it can happen that the parent
+        # is deallocated before the element. But in order to deallocate the element,
+        # we need a pointer to a valid libsingular ring. Therefore, the element
+        # should not just store a pointer to the libsingular ring, but we increase
+        # the ring's reference count.
+        # _parent_ring and _parent_ring_ref are the same pointers as _parent._ring
+        # and _parent_ring_ref; this is needed since during deallocation of the
+        # element the parent may already be gone.
         self._parent_ring_ref = parent._ring_ref
         self._parent_ring = singular_ring_reference(parent._ring, self._parent_ring_ref)
 
@@ -2769,6 +2777,14 @@ cdef inline NCPolynomial_plural new_NCP(NCPolynomialRing_plural parent,
     """
     cdef NCPolynomial_plural p = NCPolynomial_plural.__new__(NCPolynomial_plural)
     p._parent = parent
+    # During cyclic garbage collection, it can happen that the parent
+    # is deallocated before the element. But in order to deallocate the element,
+    # we need a pointer to a valid libsingular ring. Therefore, the element
+    # should not just store a pointer to the libsingular ring, but we increase
+    # the ring's reference count.
+    # _parent_ring and _parent_ring_ref are the same pointers as _parent._ring
+    # and _parent_ring_ref; this is needed since during deallocation of the
+    # element the parent may already be gone.
     p._parent_ring_ref = parent._ring_ref
     p._parent_ring = singular_ring_reference(parent._ring, p._parent_ring_ref)
     p._poly = juice
