@@ -1,4 +1,3 @@
-#Created on Sat May 19 07:15:40 2018
 r"""
 Oscillating Tableaux
 
@@ -42,10 +41,10 @@ from sage.rings.integer import Integer
 Here we illustrate one of the main theorems of [PRW2018]_ that
 promotion for oscillating tableaux corresponds to inverse rotation of perfect matchings.
 
-TEST::
+    TEST::
 
-     sage: all(OscillatingTableau(pm) == OscillatingTableau(pm.rotate()).promotion() for pm in PerfectMatchings(6))
-     True
+        sage: all(OscillatingTableau(pm) == OscillatingTableau(pm.rotate()).promotion() for pm in PerfectMatchings(6))
+        True
 
 
 REFERENCES:
@@ -78,6 +77,59 @@ EXAMPLES::
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class OscillatingTableau(ClonableArray,PathTableau):
+    """
+    An oscillating tableau is a sequence of partitions such that at
+    each step either a single box is added or a single box is removed.
+    These are also known as up-down tableaux.
+
+    Usually the sequence will start and end with the empty partition
+    but this is not a requirement.
+
+    These arise in the representation theory of the symplectic groups.
+    Let C be the crystal of the vector representation of Sp(2n).
+    This has 2n vertices which we label 1, 2, ... ,n, -n, ... ,-1.
+    Consider the r-th tensor power of C. This has vertices words of
+    length r in this alphabet. The analogue of the Robinson-Schensted
+    correspondence is a bijection between these words and pairs
+    (P,Q) where P, the insertion tableau, is a symplectic tableau
+    and Q, the recording tableau, is an oscillating tableau.
+    The oscillating tableau has initial shape the empty partition
+    and the final shape is the shape of P.
+
+    There is a bijection between oscillating tableaux whose initial
+    and final shape is the empty partition and perfect matchings.
+    This is called the Sundaram bijection.
+
+    INPUT:
+
+        - a sequence of partitions
+        - a sequence of lists
+            each list is converted to a partition
+        - a sequence of nonzero integers
+            this is converted to a sequence of partitions by starting with
+            the empty partition and at each step adding a box in row i
+            or removing a box in row -i
+        - a perfect matching
+            this is converted to a sequence of partitions by the
+            Sundaram bijection
+
+
+    EXAMPLES::
+
+    sage: OscillatingTableau([Partition([]), Partition([1]), Partition([])])
+    [[], [1], []]
+
+    sage: OscillatingTableau([[], [1], []])
+    [[], [1], []]
+
+    sage: pm = PerfectMatching([[1,2]])
+    sage: OscillatingTableau(pm)
+    [[], [1], []]
+
+    sage: OscillatingTableau([1,-1])
+    [[], [1], []]
+
+    """
 
     @staticmethod
     def __classcall_private__(self, ot):
@@ -87,6 +139,7 @@ class OscillatingTableau(ClonableArray,PathTableau):
         INPUT:
 
             - a sequence of partitions
+            - a sequence of lists
             - a sequence of nonzero integers
             - a perfect matching
 
@@ -365,6 +418,21 @@ class OscillatingTableau(ClonableArray,PathTableau):
 ###############################################################################
 
 class OscillatingTableaux(PathTableaux):
+    """
+    This is the parent class for oscillating tableaux.
 
+    An oscillating tableau is a sequence of partitions such that at
+    each step either a single box is added or a single box is removed.
+    These are also know as up-down tableaux.
+
+    This class can be called to construct an oscillating tableau directly.
+    The input is a sequence of partitions.
+
+    EXAMPLES:
+
+        sage: OscillatingTableaux()([Partition([]), Partition([1]), Partition([])])
+        [[], [1], []]
+
+    """
     Element = OscillatingTableau
 
