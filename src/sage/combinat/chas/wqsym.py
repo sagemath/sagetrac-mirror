@@ -45,6 +45,7 @@ from sage.structure.global_options import GlobalOptions
 from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.realizations import Category_realization_of_parent
 from sage.combinat.free_module import CombinatorialFreeModule
+from sage.combinat.set_partition import SetPartition
 from sage.combinat.set_partition_ordered import OrderedSetPartitions, OrderedSetPartition
 from sage.combinat.packed_words import PackedWords
 from sage.combinat.shuffle import ShuffleProduct_overlapping, ShuffleProduct
@@ -744,82 +745,23 @@ sage: matr_chgmt_base_osp(H,Q,3)
 [0 0 0 0 0 0 0 0 0 0 1 0 0]
 [0 0 0 0 0 0 1 0 0 0 0 1 0]
 [0 0 0 0 0 0 0 0 0 0 0 0 1]
-sage: H(Q[1,3,2])
+sage: H(Q[1,3,1,2])
 sage: H(Q[1,1,2])
-sage: for p in PackedWords(3):
+sage: for p in PackedWords(4):
 ....:     try:
 ....:         print p, H(Q[p])
-....:     except ValueError:
-....:         print p
-# lower & no perm
-[1, 2, 3] [1, 2, 3]
-[1, 3, 2] [1, 3, 2]
-[2, 1, 3] [2, 1, 3]
-[2, 3, 1] H[2, 3, 1] - H[3, 2, 1]
-[3, 1, 2] [3, 1, 2]
-[3, 2, 1] H[3, 2, 1]
-[1, 2, 2] [1, 2, 2]
-[2, 1, 2] H[2, 1, 2]
-[2, 2, 1] H[2, 2, 1]
-[1, 1, 2] [1, 1, 2]
-[1, 2, 1] H[1, 2, 1]
-[2, 1, 1] H[2, 1, 1]
-[1, 1, 1] H[1, 1, 1]
-
-# lower & perm
-[1, 2, 3] [1, 2, 3]
-[1, 3, 2] [1, 3, 2]
-[2, 1, 3] [2, 1, 3]
-[2, 3, 1] H[2, 3, 1] - H[3, 2, 1]
-[3, 1, 2] [3, 1, 2]
-[3, 2, 1] H[3, 2, 1]
-[1, 2, 2] [1, 2, 2]
-[2, 1, 2] H[2, 1, 2]
-[2, 2, 1] H[2, 2, 1]
-[1, 1, 2] [1, 1, 2]
-[1, 2, 1] H[1, 2, 1]
-[2, 1, 1] H[2, 1, 1]
-[1, 1, 1] H[1, 1, 1]
-
-# upper & no perm
-[1, 2, 3] [1, 2, 3]
-[1, 3, 2] [1, 3, 2]
-[2, 1, 3] [2, 1, 3]
-[2, 3, 1] [2, 3, 1]
-[3, 1, 2] H[3, 1, 2] - H[3, 2, 1]
-[3, 2, 1] H[3, 2, 1]
-[1, 2, 2] H[1, 2, 2] - H[2, 1, 1]
-[2, 1, 2] H[2, 1, 2]
-[2, 2, 1] H[2, 2, 1]
-[1, 1, 2] H[1, 1, 2] - H[2, 2, 1]
-[1, 2, 1] H[1, 2, 1]
-[2, 1, 1] H[2, 1, 1]
-[1, 1, 1] H[1, 1, 1]
-
-#upper & perm
-[1, 2, 3] [1, 2, 3]
-[1, 3, 2] [1, 3, 2]
-[2, 1, 3] [2, 1, 3]
-[2, 3, 1] [2, 3, 1]
-[3, 1, 2] H[3, 1, 2] - H[3, 2, 1]
-[3, 2, 1] H[3, 2, 1]
-[1, 2, 2] H[1, 2, 2] - H[2, 1, 1]
-[2, 1, 2] H[2, 1, 2]
-[2, 2, 1] H[2, 2, 1]
-[1, 1, 2] H[1, 1, 2] - H[2, 2, 1]
-[1, 2, 1] H[1, 2, 1]
-[2, 1, 1] H[2, 1, 1]
-[1, 1, 1] H[1, 1, 1]
+....:     except ValueError as E:
+....:         print p, E
             """
             WQSymBasis_abstract.__init__(self, alg)
 
             @cached_function
             def new_rank(x):
-                return {a:(str(a.to_composition),a.to_packed_word())
-                        for a in OrderedSetPartitions(x.size())}
+#                import pdb; pdb.set_trace() # TODO
+                return (SetPartition(x),x.to_packed_word())
             
             Q = self.realization_of().Q()
-            phi = self.module_morphism(self._H_to_Q, codomain=Q, unitriangular="lower", key=lambda a: new_rank(a)[a])
+            phi = self.module_morphism(self._H_to_Q, codomain=Q, unitriangular="lower", key=new_rank)
             phi.register_as_coercion()
             (~phi).register_as_coercion()
             
@@ -833,23 +775,23 @@ sage: for p in PackedWords(3):
                 sage: H = algebras.WQSym(QQ).H()
                 sage: OSP = H.basis().keys()
                 sage: H._H_to_Q(OSP([[2,3],[1,4]]))
-                # Q[{2, 3}, {1, 4}]
+                Q[{2, 3}, {1, 4}]
                 sage: H._H_to_Q(OSP([[1,2],[3,4]]))
-                # M[{1, 2}, {3, 4}] + M[{1, 2, 3, 4}]
-                sage: H._H_to_Q(OSP([[1],[2],[3],[4],[5],[6]]))
-TODO
+                Q[{3, 4}, {1, 2}] + Q[{1, 2}, {3, 4}]
+                sage: H._H_to_Q(OSP([[1],[2,3],[4]]))
+                Q[{4}, {2, 3}, {1}] + Q[{1}, {4}, {2, 3}] + Q[{4}, {1}, {2, 3}] + Q[{2, 3}, {1}, {4}] + Q[{1}, {2, 3}, {4}] + Q[{2, 3}, {4}, {1}]
+
 sage: H = algebras.WQSym(QQ).H()
 sage: Q = algebras.WQSym(QQ).Q()
 sage: import time
-sage: t0 = time.time(); H(Q[1,2,3,4,5]); print time.time() - t0
-H[{1}, {2}, {3}, {4}] - H[{4}, {3}, {2}, {1}] + H[{1}, {4}, {3}, {2}] + H[{2}, {1}, {4}, {3}] - H[{1}, {2}, {4}, {3}] - H[{1}, {3}, {2}, {4}] + H[{3}, {2}, {1}, {4}] - H[{2}, {1}, {3}, {4}]
-1.14229607582
-# c'est trop long !!! j'arrive même pas à attendre avec une taille de 5.....
+sage: t0 = time.time(); m4HQ = matr_chgmt_base_osp(H,Q,4); print time.time() - t0; m4QH = matr_chgm
+....: t_base_osp(Q,H,4); print time.time() - t0
+16.4242839813
+51.6398468018
 
+TODO
+c'est encore long je trouve.... faut que je regarde si c'est aussi long avec les PW... 
 
-d'après pdb c'est la ligne 968 de morphism.py qui prend du temps...
-
-# if not j == self._dominant_item(s)[0]:
 
 
             sage: Q = H.realization_of().Q()
@@ -868,7 +810,6 @@ d'après pdb c'est la ligne 968 de morphism.py qui prend du temps...
             PW = PackedWords().from_ordered_set_partition(P)
             R = Q.base_ring()
             one = R.one()
-            import pdb; pdb.set_trace()
             return Q._from_dict({G.to_ordered_set_partition():
                                  one for G in PW.left_weak_order_greater()}, coerce=False)
             
