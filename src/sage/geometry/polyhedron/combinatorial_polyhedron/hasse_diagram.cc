@@ -445,8 +445,14 @@ class CombinatorialPolyhedron {
                 return bitrep_to_list(allfaces_facet_repr[face_dimension_unsigned], allfaces_counter[face_dimension_unsigned], faces_to_return, length_of_faces, 1);
         }
         
+        void face_iterator_init(){
+            // calls face_iterator init with default values
+            // this is, we want to iterate over all faces 
+            face_iterator_init(-2,0,0);
+        }
+        
         void face_iterator_init(int record_dimension, unsigned int vertex_repr, unsigned int facet_repr){
-            //initializes the face_iterator
+            // initializes the face_iterator
             if (face_iterator_is_initialized){
                 face_iterator_destroy();//in case there is some face_iterator around, that wasn't used up
             }
@@ -460,6 +466,7 @@ class CombinatorialPolyhedron {
                 }
                 else {
                     face_iterator_record_dimension = ((int) dimension) - 1 - record_dimension;
+                    record_dimension = ((int) dimension) - 1 - record_dimension;
                 }
                 face_iterator_vertex_repr = facet_repr;
                 face_iterator_facet_repr = vertex_repr;
@@ -477,6 +484,12 @@ class CombinatorialPolyhedron {
                 return;
             }
         
+            if (record_dimension < 0){
+                face_iterator_lowest_dimension = 0;
+            }
+            else {
+                face_iterator_lowest_dimension = (unsigned int) record_dimension;
+            }
             face_iterator_yet_to_yield = nr_facets;
             face_iterator_nr_faces = new unsigned int[dim]();
             face_iterator_nr_faces[dimension -1] = nr_facets;
@@ -706,6 +719,7 @@ class CombinatorialPolyhedron {
         face_iterator_facet_repr, face_iterator_yet_to_yield, *face_iterator_first_time = NULL;
         int face_iterator_record_dimension;
         unsigned long face_iterator_counter;
+        unsigned int face_iterator_lowest_dimension;
 
         unsigned int *allfaces_are_allocated = NULL;
         // this should be set to 1 if it is just allocated and to 2,
@@ -872,7 +886,215 @@ class CombinatorialPolyhedron {
             delete[] array;
         }
  
-        // ************* N.N. (need to organize this and give it a good name yet) ****************
+        void vertex_facet_incidences(){
+            // will add all the incidences between vertices and facets to
+            // `incidences`
+            for (unsigned int i = 0; i < nr_facets; i++)
+                vertex_facet_incidences(facets[i],i);
+        }
+        
+        void vertex_facet_incidences(chunktype *array1, unsigned int nr_facet){
+            // will add all the incidences between `array1` and its vertices to `incidences`
+            unsigned int i,j;
+            unsigned int counter = 0;
+            const unsigned int size_array = length_of_face*chunksize/bit64or32;
+            uint64_t_or_uint32_t *array = new uint64_t_or_uint32_t [size_array]();
+            for (i = 0; i < length_of_face;i++){
+                store_register(array[i*chunksize/bit64or32],array1[i]);
+            }
+            for (i = 0; i < size_array;i++){
+                for (j = 0; j < bit64or32; j++){
+                    if (array[i] >= vertex_to_bit_dictionary[j]){
+                        add_incidence(nr_facet, i*bit64or32+j);
+                        counter++;
+                        array[i] -= vertex_to_bit_dictionary[j];
+                    }
+                }
+            }
+        }
+        
+        // ************* face iterator ****************
+        // ******** (this is the heart of the entire class) ****************
+        
+        inline chunktype * face_iterator(){
+            // this calls face_iterator loop until it returns a face
+            // or until its consumed
+            // **** Messing with the face_iterator *****
+            // suppose face_iterator returns `face` and you do not want
+            // to visit and farther faces of `face` you can do the following:
+            // forbidden[face_iterator_nr_forbidden] = face;
+            // face_iterator_nr_forbidden++;
+            // This will prevent any faces of `face` of appearing in the face iterator
+            chunktype *face = face_iterator_loop();
+            while ((!face) && (face_iterator_current_dimension != dimension)){
+                face = face_iterator_loop();
+            }
+            return face;
+        }
+        
+        inline chunktype * face_iterator_loop(){
+            // returns on each call one face
+            // might return NULL, if it returns NULL and
+            // `face_iterator_current_dimension == dimension`
+            // then there are no more faces
+            
+            unsigned int current_dimension = face_iterator_current_dimension;
+            if (current_dimension == dimension){
+                //the function is not supposed to be called in this case
+                //just to prevent it from crashing
+                return NULL;
+            }
+            unsigned int nr_faces = face_iterator_nr_faces[current_dimension];
+            unsigned int nr_forbidden = face_iterator_nr_forbidden[current_dimension];
+            chunktype **faces;
+            if (current_dimension == dimension -1)
+                faces = facets;
+            else
+                faces = newfaces2[current_dimension];
+            unsigned int i;
+            unsigned long newfacescounter;
+            if ((face_iterator_record_dimension != (int) current_dimension) && (face_iterator_record_dimension > -2)){
+                // if we are not in dimension `face_iterator_record_dimension`,
+                // then we should yield any faces
+                // (in case `face_iterator_dimension == -2` we want to yield all faces)
+                face_iterator_yet_to_yield = 0;
+            }
+            if (face_iterator_yet_to_yield > 0){
+                // return the next face
+                face_iterator_yet_to_yield--;
+                return faces[face_iterator_yet_to_yield];
+            }
+            if ((int) current_dimension <= face_iterator_record_dimension){
+                // if we do not want to yield lower dimensional faces,
+                // than we should go up one dimension again to look for more faces
+                // (act as if we had visited all faces in lower dimensions already)
+                face_iterator_current_dimension++;
+                return NULL;
+            }
+            if (current_dimension == face_iterator_lowest_dimension){
+                // we will not yield the empty face
+                // we will not yield below what is wanted
+                face_iterator_current_dimension++;
+                return NULL;
+            }
+            if (nr_faces <= 1){
+                //there will be more faces from intersections
+                face_iterator_current_dimension++;
+                return NULL;
+            }
+            if (current_dimension == nr_lines){
+                face_iterator_current_dimension++;
+                // it will look like faces contain a common vertex,
+                // but by user input we know that this is not a vertex but a line, i.e. not a face
+                return NULL;
+            }
+            i = nr_faces - 1;
+            face_iterator_nr_faces[current_dimension]--;
+            if (!face_iterator_first_time[current_dimension]){
+                // if there exists faces[i+1], we have visited all its faces already
+                // hence we should not visit any of them again
+                forbidden[nr_forbidden] = faces[i+1];
+                face_iterator_nr_forbidden[current_dimension]++;
+                nr_forbidden = face_iterator_nr_forbidden[current_dimension];
+            }
+            else {
+                face_iterator_first_time[current_dimension] = 0;
+            }
+            newfacescounter = get_next_level(faces,i+1,newfaces[current_dimension-1],newfaces2[current_dimension-1],nr_forbidden);//get the facets contained in faces[i] but not in any of the forbidden
+            if (newfacescounter){
+                face_iterator_first_time[current_dimension - 1] = 1;
+                face_iterator_nr_faces[current_dimension - 1] = (unsigned int) newfacescounter;//newfacescounter is a small number, I had it be a long in order to fit addition to the f_vector
+                face_iterator_nr_forbidden[current_dimension - 1] = nr_forbidden;
+                face_iterator_yet_to_yield = (unsigned int) newfacescounter;
+                face_iterator_current_dimension--;
+                return NULL;
+            }
+            else {
+                // if there are no faces in lower dimension,
+                // then there is no need to add the face to forbidden
+                // this might become important when calculating simpliness
+                // and simpliality, where we will mess with the iterator
+                // and add some faces to forbidden in order to not consider subfaces
+                face_iterator_first_time[current_dimension] = 1;
+            }
+            return NULL;
+        }
+        
+        // ********** functions that call face iterator *************
+        
+        void get_f_vector_and_edges(){
+            unsigned int i;
+            if (!dimension){
+                get_dimension();
+            }
+            allocate_newfaces();
+            if (!f_vector){
+                const unsigned int const_dimension = dimension;
+                f_vector = new unsigned long[const_dimension + 2]();
+            }
+            else
+            {
+                for (i = 1; i < dimension; i++)
+                    f_vector[i] = 0;
+            }
+            f_vector[0] = 1;
+            f_vector[dimension+1] = 1;
+            face_iterator_init();
+            chunktype * face = face_iterator();
+            while (face){
+                f_vector[face_iterator_current_dimension+1] += 1;
+                if ((face_iterator_current_dimension == 1) && (edgemode)){
+                    add_edge(face);
+                }
+                face = face_iterator();
+            }
+            face_iterator_destroy();
+        }
+        
+        void record_faces(unsigned int lowest_dimension){
+            if (nr_lines > lowest_dimension){
+                lowest_dimension = nr_lines;
+            }
+            face_iterator_init();
+            face_iterator_lowest_dimension = lowest_dimension;
+            chunktype * face = face_iterator();
+            while (face){
+                if ((face_iterator_current_dimension < dimension - 1) && \
+                        (allfaces_are_allocated[face_iterator_current_dimension] == 1)){
+                    record_face(face, face_iterator_current_dimension);
+                }
+                face = face_iterator();
+            }
+            for (unsigned int i = lowest_dimension; i < dimension - 1; i++)
+                if (allfaces_are_allocated[i])
+                    allfaces_are_allocated[i] = 2; //making sure that we record the faces of each dimension at most once
+            face_iterator_destroy();
+        }
+        
+        inline unsigned int face_iterator(unsigned int *Vface_to_return, unsigned int *Vlength, unsigned int *Hface_to_return, unsigned int *Hlength){
+            // calls the face iterator and records the face return
+            // return 1 on sucess and 0 if there are no more faces
+            unsigned int i;
+            chunktype *face = face_iterator();
+            if (!face)
+                return 0;
+            if (face_iterator_vertex_repr){
+                bitrep_to_list(face, Vface_to_return, Vlength, 0);
+            }
+            if (face_iterator_facet_repr){
+                unsigned int counter = 0;
+                for (i = 0; i < nr_facets; i++){
+                    if (is_subset(face, facets[i])){
+                        Hface_to_return[counter] = i;
+                        counter++;
+                    }
+                }
+                Hlength[0] = counter;
+            }
+            return 1;
+        }
+        
+        // ********** other functions ***************
         
         inline unsigned int get_next_level(chunktype **faces, unsigned int lenfaces, chunktype **nextfaces, chunktype **nextfaces2, unsigned int nr_forbidden){
             // intersects the first `lenfaces - 1` faces of `faces` with'faces[lenfaces-1]`
@@ -935,6 +1157,10 @@ class CombinatorialPolyhedron {
         }
         
         unsigned int calculate_dimension(chunktype **faces, unsigned int nr_faces){
+            // before doing pretty much anything, we need to know the dimension of the polyhedron
+            // this is done by calculating the dimension of an arbitrary facet
+            // this dimension is again calculated by calculating the dimension
+            // of an arbitrary facet and so on
             unsigned int i,j,k, newfacescounter, dim;
             if (nr_faces == 0){
                 return 0;//this isn't supposed to happen, but maybe the data is malformed
@@ -967,7 +1193,8 @@ class CombinatorialPolyhedron {
         }
         
         void calculate_ridges(){
-            // this is a much simpler version of belows get_f_vector_and_edges
+            // instead of this approach, one could also iterator over all such faces
+            // however, this approach is more direct
             if (nr_facets <= 1){
                 return;
             }
@@ -1001,212 +1228,6 @@ class CombinatorialPolyhedron {
             }
             for (i=0; i < (nr_facets - 1); i++){
                 free_aligned(nextfaces_creator[i]);
-            }
-        }
-        
-        void get_f_vector_and_edges(){
-            unsigned int i;
-            if (!dimension){
-                get_dimension();
-            }
-            allocate_newfaces();
-            if (!f_vector){
-                const unsigned int const_dimension = dimension;
-                f_vector = new unsigned long[const_dimension + 2]();
-            }
-            else
-            {
-                for (i = 1; i < dimension; i++)
-                    f_vector[i] = 0;
-            }
-            f_vector[0] = 1;
-            f_vector[dimension+1] = 1;
-            f_vector[dimension] = nr_facets;
-            //f_vector[1] = nr_vertices; //this is calculated explicetly in order to make calculations also work for unbounded polyhedra
-            get_f_vector_and_edges(facets,dimension-1,nr_facets,0);
-        }
-        
-        void get_f_vector_and_edges(chunktype **faces, unsigned int dim, unsigned int nr_faces, unsigned int nr_forbidden){
-            // will be called from the initial get_f_vector_and_edges()
-            unsigned int i;
-            unsigned long newfacescounter;
-            if (dim == 1){
-                if (edgemode)//in this case we want to record the edges
-                for (i = 0; i < nr_faces; i++){
-                    add_edge(faces[i]);
-                }
-            }
-            if (nr_faces <= 1){
-                return;//there will be no newfaces, in the case of nr_facets == 1, newfaces might not have been initialized properly, however with correct data, one of the above things should happen
-            }
-            if (dim == nr_lines){
-                return;//it might look like faces contain a common vertex, but by user input we know that this is not a vertex but a line, i.e. not a face
-            }
-            i = nr_faces;
-            while (i--){
-                newfacescounter = get_next_level(faces,i+1,newfaces[dim-1],newfaces2[dim-1],nr_forbidden);//get the facets contained in faces[i] but not in any of the forbidden
-                f_vector[dim] += newfacescounter;
-                if (newfacescounter){
-                    get_f_vector_and_edges(newfaces2[dim-1],dim-1,newfacescounter,nr_forbidden);//add all face in faces[i] to the f_vector, but not those which we have counted already
-                }
-                forbidden[nr_forbidden] = faces[i];//we have counted all faces in faces[i], so we do not want to count them ever again
-                nr_forbidden++;
-            }
-        }
-        
-        void record_faces(unsigned int lowest_dimension){
-            if (nr_lines > lowest_dimension){
-                lowest_dimension = nr_lines;
-            }
-            record_faces(facets,dimension-1,nr_facets,0,lowest_dimension);
-            for (unsigned int i = lowest_dimension; i < dimension - 1; i++)
-                if (allfaces_are_allocated[i])
-                    allfaces_are_allocated[i] = 2;//making sure that we record the faces of each dimension at most once
-        }
-        
-        void record_faces(chunktype **faces, unsigned int current_dimension, unsigned int nr_faces, unsigned int nr_forbidden, unsigned int lowest_dimension){
-            unsigned int i;
-            unsigned long newfacescounter;
-            if ((current_dimension < dimension - 1) && (allfaces_are_allocated[current_dimension] == 1)){
-                for (i = 0; i < nr_faces; i++){
-                    record_face(faces[i], current_dimension);
-                }
-            }
-            if (current_dimension == lowest_dimension){
-                return;
-            }
-            if (current_dimension == nr_lines){
-                return;//it might look like faces contain a common vertex, but by user input we know that this is not a vertex but a line, i.e. not a face
-            }
-            i = nr_faces;
-            while (i--){
-                newfacescounter = get_next_level(faces,i+1,newfaces[current_dimension-1],newfaces2[current_dimension-1],nr_forbidden);//get the facets contained in faces[i] but not in any of the forbidden
-                if (newfacescounter){
-                    record_faces(newfaces2[current_dimension-1],current_dimension-1,(unsigned int) newfacescounter,nr_forbidden, lowest_dimension);//visit all faces in  faces[i], but not those which we visited already
-                }
-                forbidden[nr_forbidden] = faces[i];//we have visited all faces in faces[i], so we do not want to visit them again
-                nr_forbidden++;
-            }
-        }
-        
-        inline unsigned int face_iterator(unsigned int *Vface_to_return, unsigned int *Vlength, unsigned int *Hface_to_return, unsigned int *Hlength){
-            // calls the face iterator and records the face return
-            // return 1 on sucess and 0 if there are no more faces
-            unsigned int i;
-            chunktype *face = face_iterator();
-            if (!face)
-                return 0;
-            if (face_iterator_vertex_repr){
-                bitrep_to_list(face, Vface_to_return, Vlength, 0);
-            }
-            if (face_iterator_facet_repr){
-                unsigned int counter = 0;
-                for (i = 0; i < nr_facets; i++){
-                    if (is_subset(face, facets[i])){
-                        Hface_to_return[counter] = i;
-                        counter++;
-                    }
-                }
-                Hlength[0] = counter;
-            }
-            return 1;
-        }
-        
-        inline chunktype * face_iterator(){
-            // this calls face_iterator loop until it returns a face
-            // or until its consumed
-            chunktype *face = face_iterator_loop();
-            while ((!face) && (face_iterator_current_dimension != dimension)){
-                face = face_iterator_loop();
-            }
-            return face;
-        }
-        
-        inline chunktype * face_iterator_loop(){
-            // copied mostly from record_faces
-            // returns on each call one face
-            // might return NULL, if it returns NULL and
-            // `face_iterator_current_dimension == dimension`
-            // then there are no more faces
-            
-            unsigned int current_dimension = face_iterator_current_dimension;
-            if (current_dimension == dimension){
-                return NULL;//the function is not supposed to be called in this case
-            }
-            unsigned int nr_faces = face_iterator_nr_faces[current_dimension];
-            unsigned int nr_forbidden = face_iterator_nr_forbidden[current_dimension];
-            chunktype **faces;
-            if (current_dimension == dimension -1)
-                faces = facets;
-            else
-                faces = newfaces2[current_dimension];
-            unsigned int i;
-            unsigned long newfacescounter;
-            if ((face_iterator_record_dimension > -2) && (face_iterator_record_dimension != (int) current_dimension))
-                face_iterator_yet_to_yield = 0;
-            if (face_iterator_yet_to_yield > 0){
-                face_iterator_yet_to_yield--;
-                return faces[face_iterator_yet_to_yield];
-            }
-            if ((int) current_dimension <= face_iterator_record_dimension){
-                face_iterator_current_dimension++;
-                return NULL;
-            }
-            if (current_dimension == 0){
-                face_iterator_current_dimension++;
-                return NULL;
-            }
-            if (nr_faces <= 1){
-                face_iterator_current_dimension++;
-                return NULL;
-            }
-            if (current_dimension == nr_lines){
-                face_iterator_current_dimension++;
-                return NULL;//it might look like faces contain a common vertex, but by user input we know that this is not a vertex but a line, i.e. not a face
-            }
-            i = nr_faces - 1;
-            face_iterator_nr_faces[current_dimension]--;
-            if (!face_iterator_first_time[current_dimension]){ //this is necessary, as we cannot at the new forbidden face at the end of the function
-                forbidden[nr_forbidden] = faces[i+1];
-                face_iterator_nr_forbidden[current_dimension]++;
-                nr_forbidden = face_iterator_nr_forbidden[current_dimension];
-            }
-            else {
-                face_iterator_first_time[current_dimension] = 0;
-            }
-            newfacescounter = get_next_level(faces,i+1,newfaces[current_dimension-1],newfaces2[current_dimension-1],nr_forbidden);//get the facets contained in faces[i] but not in any of the forbidden
-            if (newfacescounter){
-                face_iterator_first_time[current_dimension - 1] = 1;
-                face_iterator_nr_faces[current_dimension - 1] = (unsigned int) newfacescounter;//newfacescounter is a small number, I had it be a long in order to fit addition to the f_vector
-                face_iterator_nr_forbidden[current_dimension - 1] = nr_forbidden;
-                face_iterator_yet_to_yield = (unsigned int) newfacescounter;
-                face_iterator_current_dimension--;
-                return NULL;
-            }
-            return NULL;
-        }
-        
-        void vertex_facet_incidences(){
-            for (unsigned int i = 0; i < nr_facets; i++)
-                vertex_facet_incidences(facets[i],i);
-        }
-        
-        void vertex_facet_incidences(chunktype *array1, unsigned int nr_facet){
-            unsigned int i,j;
-            unsigned int counter = 0;
-            const unsigned int size_array = length_of_face*chunksize/bit64or32;
-            uint64_t_or_uint32_t *array = new uint64_t_or_uint32_t [size_array]();
-            for (i = 0; i < length_of_face;i++){
-                store_register(array[i*chunksize/bit64or32],array1[i]);
-            }
-            for (i = 0; i < size_array;i++){
-                for (j = 0; j < bit64or32; j++){
-                    if (array[i] >= vertex_to_bit_dictionary[j]){
-                        add_incidence(nr_facet, i*bit64or32+j);
-                        counter++;
-                        array[i] -= vertex_to_bit_dictionary[j];
-                    }
-                }
             }
         }
         
