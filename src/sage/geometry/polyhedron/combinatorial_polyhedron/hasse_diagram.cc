@@ -874,57 +874,63 @@ class CombinatorialPolyhedron {
  
         // ************* N.N. (need to organize this and give it a good name yet) ****************
         
-        inline unsigned int get_next_level(chunktype **faces, unsigned int lenfaces, unsigned int face_to_intersect, chunktype **nextfaces, chunktype **nextfaces2, unsigned int nr_forbidden){
-            // intersects the first 'lenfaces' faces of 'faces' with the 'face_to_intersect'-th face of faces and stores the result in 'nextfaces'
-            // then determines which ones are exactly of one dimension less by considering containment
-            // newfaces2 will point at those of exactly one dimension less which are not contained in any of the faces in 'forbidden'
+        inline unsigned int get_next_level(chunktype **faces, unsigned int lenfaces, chunktype **nextfaces, chunktype **nextfaces2, unsigned int nr_forbidden){
+            // intersects the first `lenfaces - 1` faces of `faces` with'faces[lenfaces-1]`
+            // determines which ones are exactly of one dimension less
+            // by considering containment
+            // newfaces2 will point at those of exactly one dimension less
+            // which are not contained in any of the faces in 'forbidden'
             // returns the number of those faces
             const unsigned int constlenfaces = lenfaces;
+            int addfacearray[constlenfaces - 1] = { };
             unsigned int j,k, addthisface;
             unsigned int newfacescounter = 0;
-            unsigned int counter = 0;
-            for (j = 0; j < lenfaces; j++){
-                if (j != face_to_intersect){
-                    intersection(faces[j],faces[face_to_intersect],nextfaces[counter]);
-                    counter ++;
-                }
+            for (j = 0; j < lenfaces - 1; j++){
+                intersection(faces[j],faces[lenfaces - 1],nextfaces[j]);
+                addfacearray[j] = 1;
             }
-            //we have create all possible intersection with the i_th-face, but some of them might not be of exactly one dimension less
-            int addfacearray[constlenfaces] = { };
+            // we have create all possible intersection with the i_th-face, but some of them might not be of exactly one dimension less
             for (j = 0; j< lenfaces-1; j++){
-            addfacearray[j] = 1;
-                    for(k = 0; k < j; k++){
-                if(is_subset(nextfaces[j],nextfaces[k])){
-                            addfacearray[j] = 0;
-                            break;
+                for(k = 0; k < j; k++){
+                    // testing if nextfaces[j] is contained in different nextface
+                    if(is_subset(nextfaces[j],nextfaces[k])){
+                        addfacearray[j] = 0;
+                        break;
                         }
                     }
-                    if (!addfacearray[j]) {
-                        continue;
+                if (!addfacearray[j]) {
+                    continue;
+                }
+        
+                for(k = j+1; k < lenfaces-1; k++){
+                    // testing if nextfaces[j] is contained in a different nextface
+                    if(is_subset(nextfaces[j],nextfaces[k])){
+                    addfacearray[j] = 0;
+                    break;
                     }
-            for(k = j+1; k < lenfaces-1; k++){
-                if(is_subset(nextfaces[j],nextfaces[k])){
-                addfacearray[j] = 0;
-                break;
+                }
+                if (!addfacearray[j]) {
+                    continue;
+                }
+                
+                for (k = 0; k < nr_forbidden; k++){
+                    // we do not want to double count any faces,
+                    // we have visited all faces in forbidden again, so we do not want to do that again
+                    if(is_subset(nextfaces[j],forbidden[k])){
+                        addfacearray[j] = 0;
+                        break;
+                    }
                 }
             }
-            if (!addfacearray[j]) {
-                continue;
-            }
-            for (k = 0; k < nr_forbidden; k++){//we do not want to double count any faces, the faces in forbidden we have considered already
-                        if(is_subset(nextfaces[j],forbidden[k])){
-                            addfacearray[j] = 0;
-                            break;
-                        }
-                    }
-            }
+        
             for (j = 0; j < lenfaces -1; j++){
-                    if (!addfacearray[j]) {
-                        continue;
-                    }
-                    nextfaces2[newfacescounter] = nextfaces[j];
-                    newfacescounter++;
+                // let `newfaces2` point to the newfaces we want to consider
+                if (!addfacearray[j]) {
+                    continue;
                 }
+                nextfaces2[newfacescounter] = nextfaces[j];
+                newfacescounter++;
+            }
             return newfacescounter;
         }
         
@@ -949,7 +955,7 @@ class CombinatorialPolyhedron {
                 nextfaces_creator[i] = aligned_alloc(chunksize/8,length_of_face*chunksize/8);
                 nextfaces[i] = (chunktype*) nextfaces_creator[i];
             }
-            newfacescounter = get_next_level(faces,nr_faces,nr_faces-1,nextfaces,nextfaces2,0);//calculates the ridges contained in one facet
+            newfacescounter = get_next_level(faces,nr_faces,nextfaces,nextfaces2,0);//calculates the ridges contained in one facet
             dim =  calculate_dimension(nextfaces2,newfacescounter) + 1;//calculates the dimension of that facet
             if (dim == 1){
                 dim = bitcount;//our face should be a somewhat a vertex, but if the polyhedron is unbounded, than our face will have dimension equal to the number of 'vertices' it contains, where some of the vertices might represent lines
@@ -980,7 +986,7 @@ class CombinatorialPolyhedron {
             }
             i = nr_facets;
             while (i--){
-                newfacescounter = get_next_level(facets,i+1,i,nextfaces,nextfaces2,nr_forbidden);
+                newfacescounter = get_next_level(facets,i+1,nextfaces,nextfaces2,nr_forbidden);
                 if (newfacescounter){
                     counter = 0;
                     for (j = 0; j < newfacescounter; j++){
@@ -1038,7 +1044,7 @@ class CombinatorialPolyhedron {
             }
             i = nr_faces;
             while (i--){
-                newfacescounter = get_next_level(faces,i+1,i,newfaces[dim-1],newfaces2[dim-1],nr_forbidden);//get the facets contained in faces[i] but not in any of the forbidden
+                newfacescounter = get_next_level(faces,i+1,newfaces[dim-1],newfaces2[dim-1],nr_forbidden);//get the facets contained in faces[i] but not in any of the forbidden
                 f_vector[dim] += newfacescounter;
                 if (newfacescounter){
                     get_f_vector_and_edges(newfaces2[dim-1],dim-1,newfacescounter,nr_forbidden);//add all face in faces[i] to the f_vector, but not those which we have counted already
@@ -1074,7 +1080,7 @@ class CombinatorialPolyhedron {
             }
             i = nr_faces;
             while (i--){
-                newfacescounter = get_next_level(faces,i+1,i,newfaces[current_dimension-1],newfaces2[current_dimension-1],nr_forbidden);//get the facets contained in faces[i] but not in any of the forbidden
+                newfacescounter = get_next_level(faces,i+1,newfaces[current_dimension-1],newfaces2[current_dimension-1],nr_forbidden);//get the facets contained in faces[i] but not in any of the forbidden
                 if (newfacescounter){
                     record_faces(newfaces2[current_dimension-1],current_dimension-1,(unsigned int) newfacescounter,nr_forbidden, lowest_dimension);//visit all faces in  faces[i], but not those which we visited already
                 }
@@ -1143,7 +1149,7 @@ class CombinatorialPolyhedron {
             else {
                 face_iterator_first_time[current_dimension] = 0;
             }
-            newfacescounter = get_next_level(faces,i+1,i,newfaces[current_dimension-1],newfaces2[current_dimension-1],nr_forbidden);//get the facets contained in faces[i] but not in any of the forbidden
+            newfacescounter = get_next_level(faces,i+1,newfaces[current_dimension-1],newfaces2[current_dimension-1],nr_forbidden);//get the facets contained in faces[i] but not in any of the forbidden
             if (newfacescounter){
                 face_iterator_first_time[current_dimension - 1] = 1;
                 face_iterator_nr_faces[current_dimension - 1] = (unsigned int) newfacescounter;//newfacescounter is a small number, I had it be a long in order to fit addition to the f_vector
