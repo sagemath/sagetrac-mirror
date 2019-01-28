@@ -80,6 +80,7 @@ cdef void sage_meataxe_error_handler(const MtxErrorRecord_t *err):
 cdef inline meataxe_init():
     ## Assign to a variable that enables MeatAxe to find
     ## its multiplication tables.
+    from sage.env import DOT_SAGE
     global MtxLibDir
     from sage import env
     mtxdir = str_to_bytes(env.MTXLIB)

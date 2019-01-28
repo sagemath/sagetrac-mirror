@@ -523,7 +523,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         """
         cdef char* d
         cdef char* x
-        cdef size_t i
+        cdef int i
         cdef PTR p
         cdef size_t pickle_size
         cdef bytes pickle_str
@@ -745,8 +745,8 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                         for j in range(FfCurrentRowSizeIo-1):
                             y[j] = RandState.c_random()%O
                             sig_check()
-                        for j in range(nc-(nc%MPB), nc):
-                            FfInsert(x, j, FfFromInt( (RandState.c_random()%fl) ))
+                        for k in range(nc-(nc%MPB), nc):
+                            FfInsert(x, k, FfFromInt( (RandState.c_random()%fl) ))
                             sig_check()
                         FfStepPtr(&(x))
                 else:
@@ -758,25 +758,25 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                         FfStepPtr(&(x))
             else:
                 for i in range(nr):
-                    for j in range(nc):
+                    for k in range(nc):
                         if RandState.c_rand_double() < density:
-                            FfInsert(x, j, FfFromInt( (RandState.c_random()%fl) ))
+                            FfInsert(x, k, FfFromInt( (RandState.c_random()%fl) ))
                             sig_check()
                     FfStepPtr(&(x))
         else:
             if density == 1:
                 fl -= 1
                 for i in range(nr):
-                    for j in range(nc):
-                        FfInsert(x, j, FfFromInt( (RandState.c_random()%fl)+1 ))
+                    for k in range(nc):
+                        FfInsert(x, k, FfFromInt( (RandState.c_random()%fl)+1 ))
                         sig_check()
                     FfStepPtr(&(x))
             else:
                 fl -= 1
                 for i in range(nr):
-                    for j in range(nc):
+                    for k in range(nc):
                         if RandState.c_rand_double() < density:
-                            FfInsert(x, j, FfFromInt( (RandState.c_random()%fl)+1 ))
+                            FfInsert(x, k, FfFromInt( (RandState.c_random()%fl)+1 ))
                             sig_check()
                     FfStepPtr(&(x))
 
@@ -896,7 +896,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
              ['18', '8', '7', '6', '17']]
 
         """
-        cdef int k
+        cdef int k, l
         if self.Data:
             FfSetField(self.Data.Field)
             FfSetNoc(self.Data.Noc)
@@ -1021,7 +1021,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         FfSetField(self.Data.Field)
         cdef FEL c = self._converter.field_to_fel(self._base_ring(s))
         cdef ssize_t byte_offset = start_col//MPB     # how many full bytes will remain unchanged?
-        cdef ssize_t remains = start_col % MPB        # how many cols have to be treated separately?
+        cdef int remains = start_col % MPB        # how many cols have to be treated separately?
         cdef ssize_t noc                              # what bunch of cols will be treated together?
         cdef int j
         cdef PTR row_head = MatGetPtr(self.Data, i) + byte_offset
@@ -1094,6 +1094,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         cdef ssize_t noc                              # what bunch of cols will be treated together?
         cdef PTR row_to_head = MatGetPtr(self.Data, row_to)+byte_offset
         cdef PTR row_from_head = MatGetPtr(self.Data, row_from)+byte_offset
+        cdef int j
         if remains:
             for j in range(remains,MPB):
                 FfInsert(row_to_head, j, FfAdd(FfExtract(row_to_head,j), FfMul(FfExtract(row_from_head,j), c)))
@@ -1739,7 +1740,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             sig_off()
         # Now, self.Data is in semi-echelon form.
         r = self.Data.Nor
-        cdef size_t i, j, pos
+        cdef int i, j, pos
         cdef PTR old, dest, src
         cdef FEL piv
         self.cache('rank', r)
@@ -1931,9 +1932,9 @@ def mtx_unpickle(f, int nr, int nc, data, bint m):
     OUT._converter = FieldConverter(OUT._base_ring)
     cdef char *x
     cdef PTR pt
-    cdef size_t lenData = len(Data)
-    cdef size_t pickled_rowsize
-    cdef size_t i
+    cdef int lenData = len(Data)
+    cdef int pickled_rowsize
+    cdef int i
     if Data:
         if nr <= 0 or nc <= 0:
             raise ValueError("This matrix pickle contains data, thus, the number of rows and columns must be positive")
@@ -1950,7 +1951,7 @@ def mtx_unpickle(f, int nr, int nc, data, bint m):
                 sig_check()
         elif pickled_rowsize >= FfCurrentRowSizeIo:
             deprecation(23411, "Reading this pickle may be machine dependent")
-            if pickled_rowsize == FfCurrentRowSize:
+            if <size_t>pickled_rowsize == FfCurrentRowSize:
                 memcpy(OUT.Data.Data, x, OUT.Data.RowSize*OUT.Data.Nor)
             else:
                 pt = OUT.Data.Data
