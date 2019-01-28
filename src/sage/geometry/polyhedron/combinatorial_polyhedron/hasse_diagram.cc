@@ -1090,10 +1090,48 @@ class CombinatorialPolyhedron {
         }
         
         inline unsigned int face_iterator(unsigned int *Vface_to_return, unsigned int *Vlength, unsigned int *Hface_to_return, unsigned int *Hlength){
+            // calls the face iterator and records the face return
+            // return 1 on sucess and 0 if there are no more faces
+            unsigned int i;
+            chunktype *face = face_iterator();
+            if (!face)
+                return 0;
+            if (face_iterator_vertex_repr){
+                bitrep_to_list(face, Vface_to_return, Vlength, 0);
+            }
+            if (face_iterator_facet_repr){
+                unsigned int counter = 0;
+                for (i = 0; i < nr_facets; i++){
+                    if (is_subset(face, facets[i])){
+                        Hface_to_return[counter] = i;
+                        counter++;
+                    }
+                }
+                Hlength[0] = counter;
+            }
+            return 1;
+        }
+        
+        inline chunktype * face_iterator(){
+            // this calls face_iterator loop until it returns a face
+            // or until its consumed
+            chunktype *face = face_iterator_loop();
+            while ((!face) && (face_iterator_current_dimension != dimension)){
+                face = face_iterator_loop();
+            }
+            return face;
+        }
+        
+        inline chunktype * face_iterator_loop(){
             // copied mostly from record_faces
+            // returns on each call one face
+            // might return NULL, if it returns NULL and
+            // `face_iterator_current_dimension == dimension`
+            // then there are no more faces
+            
             unsigned int current_dimension = face_iterator_current_dimension;
             if (current_dimension == dimension){
-                return 0;//the function is not supposed to be called in this case
+                return NULL;//the function is not supposed to be called in this case
             }
             unsigned int nr_faces = face_iterator_nr_faces[current_dimension];
             unsigned int nr_forbidden = face_iterator_nr_forbidden[current_dimension];
@@ -1107,37 +1145,24 @@ class CombinatorialPolyhedron {
             if ((face_iterator_record_dimension > -2) && (face_iterator_record_dimension != (int) current_dimension))
                 face_iterator_yet_to_yield = 0;
             if (face_iterator_yet_to_yield > 0){
-                if (face_iterator_vertex_repr){
-                    bitrep_to_list(faces[face_iterator_yet_to_yield - 1], Vface_to_return, Vlength, 0);
-                }
-                if (face_iterator_facet_repr){
-                    unsigned int counter = 0;
-                    for (i = 0; i < nr_facets; i++){
-                        if (is_subset(faces[face_iterator_yet_to_yield - 1], facets[i])){
-                            Hface_to_return[counter] = i;
-                            counter++;
-                        }
-                    }
-                    Hlength[0] = counter;
-                }
                 face_iterator_yet_to_yield--;
-                return 1;
+                return faces[face_iterator_yet_to_yield];
             }
             if ((int) current_dimension <= face_iterator_record_dimension){
                 face_iterator_current_dimension++;
-                return 0;
+                return NULL;
             }
             if (current_dimension == 0){
                 face_iterator_current_dimension++;
-                return 0;
+                return NULL;
             }
             if (nr_faces <= 1){
                 face_iterator_current_dimension++;
-                return 0;
+                return NULL;
             }
             if (current_dimension == nr_lines){
                 face_iterator_current_dimension++;
-                return 0;//it might look like faces contain a common vertex, but by user input we know that this is not a vertex but a line, i.e. not a face
+                return NULL;//it might look like faces contain a common vertex, but by user input we know that this is not a vertex but a line, i.e. not a face
             }
             i = nr_faces - 1;
             face_iterator_nr_faces[current_dimension]--;
@@ -1156,9 +1181,9 @@ class CombinatorialPolyhedron {
                 face_iterator_nr_forbidden[current_dimension - 1] = nr_forbidden;
                 face_iterator_yet_to_yield = (unsigned int) newfacescounter;
                 face_iterator_current_dimension--;
-                return 0;
+                return NULL;
             }
-            return 0;
+            return NULL;
         }
         
         void vertex_facet_incidences(){
