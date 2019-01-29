@@ -765,6 +765,48 @@ class FunctionField_polymod_kash(FunctionField_polymod):
         """
         return FunctionFieldCompletion_kash(self, place, name=name, prec=prec)
 
+    def places_infinite(self, degree=1):
+        """
+        Return a list of the infinite places of degree ``degree``.
+
+        INPUT:
+
+        - ``degree`` -- positive integer (default: `1`)
+
+        EXAMPLES::
+
+            sage: F.<a>=GF(2)
+            sage: K.<x>=FunctionField(F)
+            sage: R.<t>=PolynomialRing(K)
+            sage: L.<y>=K.extension(t^4+t-x^5)
+            sage: L.places_infinite(1)
+            [Place (1/x, 1/x^4*y^3)]
+        """
+        return [place for place in self._places_infinite(degree)]
+
+    def _places_infinite(self, degree):
+        """
+        Return a generator of *infinite* places of the function field of the degree.
+
+        INPUT:
+
+        - ``degree`` -- positive integer
+
+        EXAMPLES::
+
+            sage: F.<a>=GF(2)
+            sage: K.<x>=FunctionField(F)
+            sage: R.<t>=PolynomialRing(K)
+            sage: L.<y>=K.extension(t^4+t-x^5)
+            sage: L._places_infinite(1)
+            <generator object ...>
+        """
+        Oinf = self.maximal_order_infinite()
+        for prime,_,_ in Oinf.decomposition():
+            place = prime.place()
+            if place.degree() == degree:
+                yield place
+
 class FunctionFieldCompletion_kash(FunctionFieldCompletion):
     """
     Completions on kash function fields.  Currently only supports
@@ -1744,3 +1786,6 @@ class FunctionFieldPlace_kash(FunctionFieldPlace):
         """
         F = self.function_field()
         return self.prime_ideal().ring() == F.maximal_order_infinite()
+
+    def degree(self):
+        return self.kash().Degree()
