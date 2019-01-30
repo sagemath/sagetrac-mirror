@@ -249,13 +249,13 @@ def fetch_citation(app, env):
     Fetch the global citation index from the refman to allow for cross
     references.
     """
-    app.builder.info(bold('loading cross citations... '), nonl=1)
+    logger.info(bold('loading cross citations... '), nonl=1)
     filename = os.path.join(citation_dir(app), '..', CITE_FILENAME)
     if not os.path.isfile(filename):
         return
     with open(filename, 'rb') as f:
         cache = cPickle.load(f)
-    app.builder.info("done (%s citations)."%len(cache))
+    logger.info("done (%s citations)."%len(cache))
     cite = env.domaindata["std"]["citations"]
     for ind, (path, tag, lineno) in six.iteritems(cache):
         if ind not in cite: # don't override local citation
@@ -275,7 +275,7 @@ def init_subdoc(app):
             # Master file with indexes computed by merging indexes:
             # Monkey patch index fetching to silence warning about broken index
             def load_indexer(docnames):
-                app.builder.info(bold('skipping loading of indexes... '), nonl=1)
+                logger.info(bold('skipping loading of indexes... '), nonl=1)
             app.builder.load_indexer = load_indexer
 
     else:
@@ -295,7 +295,7 @@ def init_subdoc(app):
                     def copy_static_files(self):
                     [...]
             """
-            app.builder.info(bold('linking _static directory.'))
+            logger.info(bold('linking _static directory.'))
             static_dir = os.path.join(app.builder.outdir, '_static')
             master_static_dir = os.path.join('..', '_static')
             if os.path.lexists(static_dir):
