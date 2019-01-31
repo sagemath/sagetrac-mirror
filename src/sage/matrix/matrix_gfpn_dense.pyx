@@ -525,12 +525,13 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         cdef char* x
         cdef int i
         cdef PTR p
-        cdef size_t pickle_size
+        cdef Py_ssize_t pickle_size = FfCurrentRowSizeIo
+        nor = self.Data.Nor
         cdef bytes pickle_str
         if self.Data:
             FfSetField(self.Data.Field)
             FfSetNoc(self.Data.Noc)
-            pickle_size = FfCurrentRowSizeIo*self.Data.Nor
+            pickle_size *= self.Data.Nor
             d = <char*>check_malloc(pickle_size)
             p = self.Data.Data
             x = d
@@ -1932,7 +1933,7 @@ def mtx_unpickle(f, int nr, int nc, data, bint m):
     OUT._converter = FieldConverter(OUT._base_ring)
     cdef char *x
     cdef PTR pt
-    cdef int lenData = len(Data)
+    cdef Py_ssize_t lenData = len(Data)
     cdef int pickled_rowsize
     cdef int i
     if Data:
