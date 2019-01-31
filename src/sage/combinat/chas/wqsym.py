@@ -116,26 +116,12 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             sage: ll = [[1,2],[3]]; op = OrderedSetPartition(ll)
             sage: M(ll) == M(op) == M[[1,2],[3]]
             True
-            sage: l = [1, [2]]; M(l)
-            Traceback (most recent call last):
-            ...
-            ValueError: cannot convert [1, [2]] into an element of Ordered set partitions
-            sage: w = Word(l); M(w)
-            Traceback (most recent call last):
-            ...
-            ValueError: cannot convert [1, [2]] into an element of Ordered set partitions
-
-        TODO: track down conversion errors from ``__getitem__`` method::
-
-            sage: l = ['1', [2]]; w = Word(l); M(l)
-            M[{'1'}, {2}]
-            sage: M(l) == M(w)
-            True
         """
         try:
             R = x.parent()
         except AttributeError:
-            return self.__getitem__(list(x))
+            # likely x is a list or tuple
+            return self.__getitem__(x)
 
         if R is self:
             return x
@@ -144,8 +130,10 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
 
         if mor:
             return mor(x)
-        elif isinstance(x, (OrderedSetPartition, Word_class)): # TODO: add PackedWord
-            return self.__getitem__(list(x))
+
+        # two important parents `R` where `mor` will be ``None``
+        if isinstance(x, (OrderedSetPartition, Word_class)): # TODO: add PackedWord
+            return self.__getitem__(x)
         else:
             raise TypeError("no conversion defined between %s and %s"%(x, self))
 
@@ -2053,7 +2041,9 @@ class WQSymBases(Category_realization_of_parent):
                 sage: M[[1,3],[2]]
                 M[{1, 3}, {2}]
 
-            TESTS::
+            TESTS:
+
+            Valid element construction::
 
                 sage: M[[]]
                 M[]
@@ -2064,12 +2054,27 @@ class WQSymBases(Category_realization_of_parent):
                 sage: M[1] == M[1,] == M[Word([1])] == M[OrderedSetPartition([[1]])] == M[[1],]
                 True
 
-            #TODO: track down conversion errors from ``call`` method of ``self._indices``::
+            Bogus element construction::
 
-                sage: l = ['1', [2]]; w = Word(l); M[l]
-                M[{'1'}, {2}]
-                sage: M[l] == M[w]
-                True
+                sage: l = [1, [2]]; M(l)
+                Traceback (most recent call last):
+                ...
+                ValueError: cannot convert [1, [2]] into an element of Ordered set partitions
+
+                sage: w = Word(l); M(w)
+                Traceback (most recent call last):
+                ...
+                ValueError: cannot convert 1,[2] into an element of Ordered set partitions
+
+                sage: l = [[2], [3,4]]; M(l)
+                Traceback (most recent call last):
+                ...
+                ValueError: incorrect base set: [{2}, {3, 4}] is not an element of Ordered set partitions
+
+                sage: l = ['12', [3,4]]; M(l)
+                Traceback (most recent call last):
+                ...
+                ValueError: incorrect base set: [{'1', '2'}, {3, 4}] is not an element of Ordered set partitions
             """
             if p in ZZ:
                 p = [ZZ(p)]
@@ -2078,10 +2083,17 @@ class WQSymBases(Category_realization_of_parent):
 
             if all(isinstance(s, str) for s in p):
                 return self.monomial(self._indices.from_finite_word(p))
+
+            # otherwise, p should behave like a list of sets
             try:
-                return self.monomial(self._indices(p))
+                p = self._indices(p)
             except TypeError:
                 raise ValueError("cannot convert %s into an element of %s"%(p, self._indices))
+            b = p.base_set()
+            if all(x in ZZ for x in b) and sorted(b) == range(1, len(b)+1):
+                return self.monomial(p)
+            else:
+                raise ValueError("incorrect base set: %s is not an element of %s"%(p, self._indices))
 
         def is_field(self, proof=True):
             """
