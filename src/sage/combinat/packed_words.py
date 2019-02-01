@@ -1194,15 +1194,23 @@ class PackedWordsFactory(SetFactory):
     @lazy_attribute
     def _default_policy(self):
         r"""
-        TODO: update this documentation.
+        This is the default policy for Packed Words.
+
         TESTS::
 
-            sage: from sage.structure.set_factories_example import XYPairsFactory
-            sage: XYPairs = XYPairsFactory()
-            sage: XYPairs._default_policy
-            Set factory policy for <class 'sage.structure.set_factories_example.XYPair'> with parent AllPairs[=Factory for XY pairs(())]
+            sage: PackedWords._default_policy
+            Set factory policy for <class 'sage.combinat.packed_words.PackedWord'> with parent Packed words[=Factory for Packed Words(())]
         """
         return TopMostParentPolicy(self, (), PackedWord)
+    
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: PackedWords   # indirect doctest
+            Factory for Packed Words
+        """
+        return "Factory for Packed Words"
 
     def add_constraints(self, cons, args_opts):
         """
