@@ -54,7 +54,7 @@
     #define leading_zero_count(one) leading_zero_workaround(one)
     #define trailing_zero_count(one) trailing_zero_workaround(one)
 
-#elif INTPTR_MAX == INT64_MAX 
+#elif INTPTR_MAX == INT64_MAX
     //64 bit commands
     #define chunktype uint64_t
     const unsigned int chunksize = 64;
@@ -190,12 +190,12 @@ inline unsigned int naive_popcount(uint64_t_or_uint32_t A){
 void * aligned_malloc_workaround(size_t size, int align) {
     //taken from https://github.com/xjw/cpp/blob/master/cpp/memory_alignment.cpp
     //they are a workaround in case that C11 is not available
-    
+
     // alignment could not be less than 0
     if (size<0) {
         return NULL;
     }
-    // allocate necessary memory for 
+    // allocate necessary memory for
     // alignment +
     // area to store the address of memory returned by malloc
     void *p = malloc(size + align-1 + sizeof(void *));
@@ -214,7 +214,7 @@ void * aligned_malloc_workaround(size_t size, int align) {
 
 void aligned_free_workaround(void *p) {
     //taken from https://github.com/xjw/cpp/blob/master/cpp/memory_alignment.cpp
-    
+
     // Get address of the memory from start of total memory area
     free ( *( (void **)p - 1) );
 }
@@ -224,7 +224,7 @@ void aligned_free_workaround(void *p) {
 
 inline void intersection(void *A1, void *B1, void *C1, size_t face_length){
     // will set C to be the intersection of A and B
-    unsigned int i;
+    size_t i;
     chunktype *A = (chunktype *) A1;
     chunktype *B = (chunktype *) B1;
     chunktype *C = (chunktype *) C1;
@@ -236,7 +236,7 @@ inline void intersection(void *A1, void *B1, void *C1, size_t face_length){
 inline int is_subset(void *A1, void *B1, size_t face_length){
     //returns 1 if A is a proper subset of B, otherwise returns 0,
     // this is done by checking if there is an element in A, which is not in B
-    unsigned int i;
+    size_t i;
     chunktype *A = (chunktype *) A1;
     chunktype *B = (chunktype *) B1;
     for (i = 0; i < face_length; i++){
@@ -246,11 +246,12 @@ inline int is_subset(void *A1, void *B1, size_t face_length){
     }
     return 1;
 }
-        
+
 
 inline unsigned int CountFaceBits(void* A2, size_t face_length) {
     // counts the number of vertices in a face by counting bits set to one
-    unsigned int i,count = 0;
+    size_t i;
+    unsigned int count = 0;
     chunktype *A1 = (chunktype *) A2;
     const unsigned int length_of_conversion_face = face_length*chunksize/64;
     uint64_t_or_uint32_t A[length_of_conversion_face];
@@ -263,7 +264,7 @@ inline unsigned int CountFaceBits(void* A2, size_t face_length) {
     return count;
 }
 
- 
+
 inline size_t get_next_level(void **faces, size_t lenfaces, void **nextfaces, void **nextfaces2, void **forbidden, size_t nr_forbidden, size_t face_length){
     // intersects the first `lenfaces - 1` faces of `faces` with'faces[lenfaces-1]`
     // determines which ones are exactly of one dimension less
@@ -302,7 +303,7 @@ inline size_t get_next_level(void **faces, size_t lenfaces, void **nextfaces, vo
         if (!addfacearray[j]) {
             continue;
         }
-        
+
         for (k = 0; k < nr_forbidden; k++){
             // we do not want to double count any faces,
             // we have visited all faces in forbidden again, so we do not want to do that again
@@ -323,7 +324,7 @@ inline size_t get_next_level(void **faces, size_t lenfaces, void **nextfaces, vo
     }
     return newfacescounter;
 }
-       
+
 
 unsigned int calculate_dimension(void **faces, unsigned int nr_faces, size_t face_length){
     // before doing pretty much anything, we need to know the dimension of the polyhedron
@@ -433,7 +434,7 @@ void get_vertices_from_incidence_matrix(unsigned int **incidence_matrix, void **
     }
 }
 
-    
+
 void get_facets_bitrep_from_facets_pointer( \
         unsigned int ** facets_input, unsigned int *len_facets, \
         void ** facets_output, size_t nr_vertices, size_t nr_facets){
@@ -472,265 +473,4 @@ void get_vertices_bitrep_from_facets_pointer( \
                         (chunktype *) vertices_output[i], face_length);
     }
     delete[] old_facets_walker;
-}
-
-class FaceIterator {
-    public:
-        FaceIterator() {}
-        FaceIterator(void ** fcts, void *** newf, void *** newf2, void ** forb, size_t dim, size_t nr_fcts, size_t face_length){
-            length_of_face = face_length;
-            dimension = dim;
-            const size_t constdim = dim;
-            facets = fcts;
-            newfaces = newf;
-            newfaces2 = newf2;
-            nr_facets = nr_fcts;
-            face_iterator_current_dimension = dimension - 1;
-            face_iterator_record_dimension = -2;
-            face_iterator_lowest_dimension = 0;
-            face_iterator_yet_to_yield = nr_facets;
-            face_iterator_nr_faces = new unsigned int[constdim]();
-            face_iterator_nr_faces[constdim -1] = nr_facets;
-            face_iterator_nr_forbidden = new unsigned int[constdim]();
-            face_iterator_nr_forbidden[constdim -1] = 0;
-            face_iterator_first_time = new unsigned int[constdim]();
-            face_iterator_first_time[constdim - 1] = 1;
-        }
-        
-        void set_record_dimension(int dim){
-            face_iterator_record_dimension = dim;
-            if (dim > 0)
-                face_iterator_lowest_dimension = (unsigned int) dim;
-        }
-        
-        void set_lowest_dimension(unsigned int dim){
-            face_iterator_lowest_dimension = dim;
-        }
-        
-        void record_edges(){
-            edgemode = 1;
-        }
-        
-        inline unsigned int ** get_edges(){
-            return edges;
-        }
-        
-        ~FaceIterator(){
-            unsigned int i;
-            delete[] face_iterator_nr_faces;
-            delete[] face_iterator_nr_forbidden;
-            delete[] face_iterator_first_time;
-            if (edges){
-                for (i=0; i< maxnumberedges; i++){
-                    if (edges[i]){
-                        delete[] edges[i];
-                    }
-                }
-                delete[] edges;
-            }
-        }
-        
-        inline int call(){
-            //returns one face at a time of all faces of record_dimension dimension
-            //returns all faces if dimension == -2
-            //returns not the faces in dimesion ``-1`` and dimesion ``dimension``
-            
-            
-            current_face = NULL;
-            while ((!current_face) && (face_iterator_current_dimension != dimension)){
-                current_face = face_iterator();
-            }
-        
-            return face_iterator_current_dimension;
-        }
-    
-    private:
-        void *current_face;
-        void **facets = NULL;  // facets as incidences of vertices
-        void ***newfaces = NULL, ***newfaces2 = NULL, **forbidden = NULL;
-        size_t nr_facets, length_of_face;
-        size_t dimension;
-        unsigned long nr_edges = 0;
-        unsigned int **edges = new unsigned int *[maxnumberedges]();
-        int edgemode = 0;
-
-        //face_iterator
-        unsigned int face_iterator_current_dimension, *face_iterator_nr_faces = NULL, *face_iterator_nr_forbidden = NULL, face_iterator_vertex_repr,
-        face_iterator_facet_repr, face_iterator_yet_to_yield, *face_iterator_first_time = NULL;
-        int face_iterator_record_dimension;
-        unsigned long face_iterator_counter;
-        unsigned int face_iterator_lowest_dimension;
-    
-        // ************* record edges *************************
-        
-        inline void add_edge(void *face1){
-            // adds an edge to the edges list
-            // the edge given as face
-            chunktype *face = (chunktype *) face1;
-            unsigned int i,one = 0,two = 0;
-            for (i = 0; i < length_of_face; i++){
-                one += leading_zero_count(face[i]);
-                if (one < (i+1)*chunksize){
-                    break;
-                }
-            }
-            for (i = 0; i < length_of_face; i++){
-                two += trailing_zero_count(face[length_of_face-i-1]);
-                if (two < (i+1)*chunksize){
-                    break;
-                }
-            }
-            add_edge(one,length_of_face*chunksize - two - 1);
-        }
-        
-        inline void add_edge(unsigned int one, unsigned int two){
-            // adds an edge to the edges list
-            // the edge given as its two vertices
-            if (nr_edges >= maxnumberedges*maxnumberedges){
-                return;
-            }
-            unsigned int position_one = nr_edges / maxnumberedges;
-            unsigned int position_two = 2*(nr_edges % maxnumberedges);
-            if (!position_two){
-                edges[position_one] = new unsigned int [maxnumberedges*2];
-            }
-            edges[position_one][position_two] = one;
-            edges[position_one][position_two + 1] = two;
-            nr_edges += 1;
-        }
- 
-        
-        // ************* face iterator ****************
-        
-        inline void * face_iterator(){
-            // this calls face_iterator loop until it returns a face
-            // or until its consumed
-            // **** Messing with the face_iterator *****
-            // suppose face_iterator returns `face` and you do not want
-            // to visit and farther faces of `face` you can do the following:
-            // forbidden[face_iterator_nr_forbidden] = face;
-            // face_iterator_nr_forbidden++;
-            // This will prevent any faces of `face` of appearing in the face iterator
-            void *face = face_iterator_loop();
-            while ((!face) && (face_iterator_current_dimension != dimension)){
-                face = face_iterator_loop();
-            }
-            return face;
-        }
-        
-        inline void * face_iterator_loop(){
-            // returns on each call one face
-            // might return NULL, if it returns NULL and
-            // `face_iterator_current_dimension == dimension`
-            // then there are no more faces
-            
-            unsigned int current_dimension = face_iterator_current_dimension;
-            if (current_dimension == dimension){
-                //the function is not supposed to be called in this case
-                //just to prevent it from crashing
-                return NULL;
-            }
-            unsigned int nr_faces = face_iterator_nr_faces[current_dimension];
-            unsigned int nr_forbidden = face_iterator_nr_forbidden[current_dimension];
-            void **faces;
-            if (current_dimension == dimension -1)
-                faces = facets;
-            else
-                faces = newfaces2[current_dimension];
-            unsigned int i;
-            unsigned long newfacescounter;
-            if ((face_iterator_record_dimension != (int) current_dimension) && (face_iterator_record_dimension > -2)){
-                // if we are not in dimension `face_iterator_record_dimension`,
-                // then we should yield any faces
-                // (in case `face_iterator_dimension == -2` we want to yield all faces)
-                face_iterator_yet_to_yield = 0;
-            }
-            if (face_iterator_yet_to_yield > 0){
-                // return the next face
-                face_iterator_yet_to_yield--;
-                if ((face_iterator_current_dimension == 1) && edgemode)
-                    add_edge(faces[face_iterator_yet_to_yield]);
-                return faces[face_iterator_yet_to_yield];
-            }
-            if ((int) current_dimension <= face_iterator_record_dimension){
-                // if we do not want to yield lower dimensional faces,
-                // than we should go up one dimension again to look for more faces
-                // (act as if we had visited all faces in lower dimensions already)
-                face_iterator_current_dimension++;
-                return NULL;
-            }
-            if (current_dimension == face_iterator_lowest_dimension){
-                // we will not yield the empty face
-                // we will not yield below what is wanted
-                face_iterator_current_dimension++;
-                return NULL;
-            }
-            if (nr_faces <= 1){
-                //there will be more faces from intersections
-                face_iterator_current_dimension++;
-                return NULL;
-            }
-            i = nr_faces - 1;
-            face_iterator_nr_faces[current_dimension]--;
-            if (!face_iterator_first_time[current_dimension]){
-                // if there exists faces[i+1], we have visited all its faces already
-                // hence we should not visit any of them again
-                forbidden[nr_forbidden] = faces[i+1];
-                face_iterator_nr_forbidden[current_dimension]++;
-                nr_forbidden = face_iterator_nr_forbidden[current_dimension];
-            }
-            else {
-                face_iterator_first_time[current_dimension] = 0;
-            }
-            newfacescounter = get_next_level(faces,i+1,newfaces[current_dimension-1],newfaces2[current_dimension-1],forbidden,nr_forbidden,length_of_face);//get the facets contained in faces[i] but not in any of the forbidden
-            if (newfacescounter){
-                face_iterator_first_time[current_dimension - 1] = 1;
-                face_iterator_nr_faces[current_dimension - 1] = (unsigned int) newfacescounter;//newfacescounter is a small number, I had it be a long in order to fit addition to the f_vector
-                face_iterator_nr_forbidden[current_dimension - 1] = nr_forbidden;
-                face_iterator_yet_to_yield = (unsigned int) newfacescounter;
-                face_iterator_current_dimension--;
-                return NULL;
-            }
-            else {
-                // if there are no faces in lower dimension,
-                // then there is no need to add the face to forbidden
-                // this might become important when calculating simpliness
-                // and simpliality, where we will mess with the iterator
-                // and add some faces to forbidden in order to not consider subfaces
-                face_iterator_first_time[current_dimension] = 1;
-            }
-            return NULL;
-        }
-
-};
-
-typedef FaceIterator* FaceIterator_ptr;
-
-FaceIterator_ptr FaceIterator_init(void ** fcts, void *** newf, void *** newf2, void ** forb, size_t dim, size_t nr_fcts, size_t face_length){
-    FaceIterator_ptr F = new FaceIterator(fcts, newf, newf2, forb, dim, nr_fcts, face_length);
-    return F;
-}
-
-void FaceIterator_set_record_dimension(FaceIterator_ptr F, int dim){
-    return (*F).set_record_dimension(dim);
-}
-
-void FaceIterator_set_lowest_dimension(FaceIterator_ptr F, unsigned int dim){
-    return (*F).set_lowest_dimension(dim);
-}
-
-void FaceIterator_record_edges(FaceIterator_ptr F){
-    return (*F).record_edges();
-}
-
-inline unsigned int ** FaceIterator_get_edges(FaceIterator_ptr F){
-    return (*F).get_edges();
-}
-
-inline int FaceIterator_call(FaceIterator_ptr F){
-    return (*F).call();
-}
-
-void FaceIterator_del(FaceIterator_ptr F){
-    delete(F);
 }
