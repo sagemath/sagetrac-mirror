@@ -49,7 +49,7 @@ import array
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from sage.structure.sage_object cimport SageObject
 from cysignals.memory cimport sig_malloc, sig_free
-from cysignals.signals cimport sig_check, sig_on, sig_off
+from cysignals.signals cimport sig_check, sig_on, sig_off, sig_on_no_except
 
 
 cdef void * aligned_malloc(size_t size, size_t align):
@@ -359,7 +359,7 @@ cdef class FaceIterator:
                     sig_check()
                 f_vector[self.current_dimension + 1] += 1
         except KeyboardInterrupt:
-            raise KeyboardInterrupt
+            raise KeyboardInterrupt()
         return
 
 
@@ -1825,6 +1825,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef int dim = self.dimension()
         if self._f_vector is NULL:
             self._calculate_f_vector()
+        if self._f_vector is NULL:
+            raise KeyboardInterrupt('Interrupt on user intput')
         if self._polar:
             f = tuple(Integer(self._f_vector[dim+1-i]) for i in range(dim + 2))
         else:
@@ -1849,7 +1851,13 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         facets = self.bitrep_facets
         face_iter = FaceIterator(facets, dim, self._nr_lines)
+        if not sig_on_no_except():
+            sig_free(self._f_vector)
+            self._f_vector = NULL
+            raise KeyboardInterrupt('Interrupt on user intput')
         face_iter.get_f_vector(self._f_vector)
+        sig_off()
+
 
 
     def _record_all_faces(self):
