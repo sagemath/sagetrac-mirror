@@ -693,8 +693,11 @@ class DocTestController(SageObject):
         """
         opj = os.path.join
         from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT
-        DOT_GIT = opj(SAGE_ROOT, '.git')
-        have_git = os.path.exists(DOT_GIT)
+        if SAGE_ROOT is None:
+            have_git = False
+        else:
+            DOT_GIT = opj(SAGE_ROOT, '.git')
+            have_git = os.path.exists(DOT_GIT)
 
         def all_files():
             self.files.append(opj(SAGE_SRC, 'sage'))
@@ -1200,7 +1203,10 @@ class DocTestController(SageObject):
             self.test_safe_directory()
             self.create_run_id()
             from sage.env import SAGE_ROOT
-            DOT_GIT = os.path.join(SAGE_ROOT, '.git')
+            if SAGE_ROOT is None:
+                DOT_GIT = ""
+            else:
+                DOT_GIT = os.path.join(SAGE_ROOT, '.git')
             if os.path.isdir(DOT_GIT):
                 import subprocess
                 try:

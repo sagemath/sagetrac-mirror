@@ -76,7 +76,7 @@ def sage_makedirs(dir):
     The following fails because we are trying to create a directory in
     place of an ordinary file (the main Sage executable)::
 
-        sage: sage_executable = os.path.join(SAGE_ROOT, 'sage')
+        sage: sage_executable = os.path.join(SAGE_LOCAL, 'bin', 'sage')
         sage: sage_makedirs(sage_executable)
         Traceback (most recent call last):
         ...
