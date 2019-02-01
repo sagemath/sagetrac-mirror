@@ -1717,23 +1717,31 @@ class PlumbingGraph():
         - ``MB`` -- list of two integers,
         - ``G`` -- list of two integers,
         - ``R`` -- list of two nonnegative integers,
-        - ``E`` -- a list of two sets of i.
+        - ``E`` -- a list of two sets of vertices.
          
-        OUTPUT
+        OUTPUT:
          
         A list of the vertices [i,k,j], where i and j are as in the
         picture on p. 305 of [Neu1981], and k is the newly extruded
         zero-vertex, if the operation goes through, otherwise, the
         empty list.
+        
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_Seifert(-2,-3,[3/2,3/2,3/2,3/2],r=3)
+            0
+            sage: P.add_edge({0})
+            8
+            sage: P.adjacent_edges(0)
+            {0, 2, 4, 6, 8}
+            sage: P.zero_chain_extrude(0,[-1,-1],[1,-1],[1,2],[{0,2,8},{4,6,8}])
+            [9, 11, 10]
         """
-        if len(MB) < 2 or MB[0] + MB[1] != self.mb[l]:
-            return []
-        if len(G) < 2 or genus_hash(G[0], G[1]) != self.g[l]:
-            return []
-        if len(R) < 2 or R[0] + R[1] != self.r[l]:
-            return []
-        if E[0] | E[1] != self.adjacent_edges(l):
-            return []
+        assert len(MB) == 2 and MB[0] + MB[1] == self.mb[l],"Euler numbers don't add up"
+        assert len(G) == 2 and genus_hash(G[0], G[1]) == self.g[l],"Genera don't add up"
+        assert len(R) == 2 and R[0] + R[1] == self.r[l],"r's don't add up"
+        assert len(E) == 2 and E[0] | E[1] == self.adjacent_edges(l),"E must provide a covering of the adjacent edges"
         L = [
             [e for e in E[0]-E[1] if self.is_loop(e)],
             [e for e in E[1]-E[0] if self.is_loop(e)]]
@@ -1765,12 +1773,34 @@ class PlumbingGraph():
         r"""
         R4 in [Neu1981]. Applies unoriented handle absorption to the
         vertex j, if possible.
+
+        INTPUT:
+
+        - ``j`` -- a vertex.
+
+        EXAMPLES::
+        
+            sage: P = PlumbingGraph()
+            sage: P.add_vertex(5,3,2)
+            0
+            sage: P.add_vertex(0,0,0)
+            1
+            sage: P.add_edge({0,1})
+            0
+            sage: P.add_edge({0,1})
+            1
+            sage: P.unoriented_handle_absorb(1)
+            sage: P
+            A plumbing graph with one vertex
         """
-        epsilons = [ self.epsilon[e] for e in self.adjacent_edges(j) ]
-        if epsilons[0] != epsilons[1]:
-            print("epsilons must match for unoriented handle absorption")
-            return
-        i = list(self.neighbors(j))[0]
+        assert self.mb[j] == 0,"vertex must have Euler number zero"
+        assert self.g[j] == 0,"vertex must have genus zero"
+        assert self.r[j] == 0,"vertex must have r zero"
+        assert not self.has_loop(j),"vertex cannot have loop"
+        assert self.degree(j) == 2,"vertex must have degree 2"
+        assert len(self.neighbors(j)) == 1,"vertex must have a unique neighbor"
+        assert len({self.epsilon[e] for e in P.adjacent_edges(j)}) == 1,"signs must agree on adjacent edges"
+        i = self.neighbor(j)
         self.g[i] = genus_hash(self.g[i], -2)
         self.delete_vertex(j)
 
@@ -1785,6 +1815,22 @@ class PlumbingGraph():
         OUTPUT:
 
         True or False
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_vertex(5,3,2)
+            0
+            sage: P.add_vertex(0,0,0)
+            1
+            sage: P.add_edge({0,1})
+            0
+            sage: P.add_edge({0,1})
+            1
+            sage: P.R4_candidate(1)
+            True
+            sage: P.R4_candidate(0)
+            False
         """
         if self.mb[j] != 0:
             return False
@@ -1796,10 +1842,7 @@ class PlumbingGraph():
             return False
         if len(self.neighbors(j)) != 1 or j in self.neighbors(j):
             return False
-        PR = 1
-        for e in self.adjacent_edges(j):
-            PR *= self.epsilon[e]
-        if PR != 1:
+        if len({self.epsilon[e] for e in P.adjacent_edges(j)}) != 1:
             return False
         return True
 
@@ -1812,6 +1855,20 @@ class PlumbingGraph():
         
         Some vertex on which R4 can be applied, if it exists, otherwise,
         -1.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_vertex(5,3,2)
+            0
+            sage: P.add_vertex(0,0,0)
+            1
+            sage: P.add_edge({0,1})
+            0
+            sage: P.add_edge({0,1})
+            1
+            sage: P.find_R4_candidate()
+            1
         """
         for j in self.vertices:
             if self.R4_candidate(j):
@@ -1830,10 +1887,30 @@ class PlumbingGraph():
         INPUT:
         
         - ``j`` -- a vertex.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_vertex(5,3,2)
+            0
+            sage: P.add_vertex(0,0,0)
+            1
+            sage: P.add_edge({0,1})
+            0
+            sage: P.add_edge({0,1}, epsilon=-1)
+            1
+            sage: P.oriented_handle_absorb(1)
+            sage: P
+            A plumbing graph with one vertex
         """
-        if not self.R5_candidate(j):
-            return
-        i = list(self.neighbors(j))[0]
+        assert self.mb[j] == 0,"vertex must have Euler number zero"
+        assert self.g[j] == 0,"vertex must have genus zero"
+        assert self.r[j] == 0,"vertex must have r zero"
+        assert not self.has_loop(j),"vertex cannot have loop"
+        assert self.degree(j) == 2,"vertex must have degree 2"
+        assert len(self.neighbors(j)) == 1,"vertex must have a unique neighbor"
+        assert len({self.epsilon[e] for e in P.adjacent_edges(j)}) == 2,"signs must not agree on adjacent edges"
+        i = self.neighbor(j)
         self.g[i] = genus_hash(self.g[i], 1)
         self.delete_vertex(j)
 
@@ -1848,6 +1925,22 @@ class PlumbingGraph():
         OUTPUT:
 
         True or False
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_vertex(5,3,2)
+            0
+            sage: P.add_vertex(0,0,0)
+            1
+            sage: P.add_edge({0,1})
+            0
+            sage: P.add_edge({0,1}, epsilon=-1)
+            1
+            sage: P.R5_candidate(0)
+            False
+            sage: P.R5_candidate(1)
+            True
         """
         if self.mb[j] != 0:
             return False
@@ -1859,22 +1952,33 @@ class PlumbingGraph():
             return False
         if len(self.neighbors(j)) != 1 or j in self.neighbors(j):
             return False
-        PR = 1
-        for e in self.adjacent_edges(j):
-            PR *= self.epsilon[e]
-        if PR != -1:
+        if len({self.epsilon[e] for e in P.adjacent_edges(j)}) != 2:
             return False
         return True
 
     def find_R5_candidate(self):
         r"""
-        Returns a vertex on which R5 can applied, if it exists,
+        Returns a vertex on which R5 can be applied, if it exists,
         otherwise, return -1.
         
         OUTPUT:
         
         Some vertex on which R5 can be applied, if it exists, otherwise,
         -1.
+
+        EXAMPLES::
+
+            sage: P = PlumbingGraph()
+            sage: P.add_vertex(5,3,2)
+            0
+            sage: P.add_vertex(0,0,0)
+            1
+            sage: P.add_edge({0,1})
+            0
+            sage: P.add_edge({0,1}, epsilon=-1)
+            1
+            sage: P.find_R5_candidate()
+            1
         """
         for j in self.vertices:
             if self.R5_candidate(j):
@@ -1895,9 +1999,9 @@ class PlumbingGraph():
         
         - ``j`` -- a vertex.
         """
-        if not self.R6_candidate(j):
-            return
-        i = list(self.neighbors(j))[0]
+        assert self.R6_candidate(j),"This vertex cannot be split"
+
+        i = self.neighbor(j)
         g = self.g[i]
         r = self.r[i]
         d = self.degree(i)
