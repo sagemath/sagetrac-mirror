@@ -1021,7 +1021,7 @@ def picklejar(obj, dir=None):
         sage: os.chmod(dir, 0o755)
     """
     if dir is None:
-	from sage.env import DOT_SAGE
+        from sage.env import DOT_SAGE
         dir = os.path.join(DOT_SAGE, '/tmp/pickle_jar/')
     try:
         os.makedirs(dir)
