@@ -2,7 +2,7 @@
 # which requires the GMP, MPFR and NTL libraries.
 
 #distutils: language = c++
-##distutils: extra_compile_args = -march=native
+#distutils: extra_compile_args = -march=native
 r"""
 Several algorithms working implicitly with the hasse_diagram
 (of a polytope), including calculating the f_vector, dimension,
@@ -24,7 +24,6 @@ AUTHOR:
 
 
 """
-
 
 
 #*****************************************************************************
@@ -49,8 +48,418 @@ from cpython cimport array
 import array
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from sage.structure.sage_object cimport SageObject
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_check, sig_on, sig_off
+
+
+cdef void * aligned_malloc(size_t size, size_t align):
+    #taken from https://github.com/xjw/cpp/blob/master/cpp/memory_alignment.cpp
+    #they are a workaround in case that C11 is not available
+
+    # alignment could not be less than 0
+    if (size<0):
+        return NULL
+    # allocate necessary memory for
+    # alignment +
+    # area to store the address of memory returned by malloc
+    cdef void *p = sig_malloc(size + align-1 + sizeof(void *))
+    if (p == NULL):
+        raise MemoryError()
+
+    # address of the aligned memory according to the align parameter
+    cdef void *ptr = <void *> ((<unsigned long>p + sizeof(void *) + align-1) & ~(align-1))
+
+    # store th address of mallc() above at the beginning of our total memory area
+    (<void **>ptr -1)[0] = p
+
+    # return the address of aligned memory
+    return ptr
+
+cdef void aligned_free(void *p):
+    #taken from https://github.com/xjw/cpp/blob/master/cpp/memory_alignment.cpp
+
+    # Get address of the memory from start of total memory area
+    sig_free (( <void **>p - 1)[0] )
+
+cdef class list_of_pointers:
+    cdef void ** _data
+    cdef void ** _memory
+    # just to be on the safe side, we keep a pointer to the memory here
+    # if the user messes with `data`, this should not hurt
+    cdef size_t _length
+
+    def __init__(self, size_t length):
+        self._length = length
+        self._memory = <void **> sig_malloc(length * sizeof(void *))
+        self._data = self._memory
+
+    def __dealloc__(self):
+        sig_free(self._memory)
+
+    cdef void ** data(self):
+        return self._data
+
+    cdef size_t length(self):
+        return self._length
+
+cdef class list_of_list_of_pointers:
+    cdef void *** _data
+    cdef void *** _memory
+    cdef void *** _memory1
+    # just to be on the safe side, we keep a pointer to the memory here
+    # if the user messes with `data`, this should not hurt
+    cdef size_t _length1
+    cdef size_t _length2
+
+    def __init__(self, size_t length1, size_t length2):
+        cdef size_t i
+        self._length1 = length1
+        self._length2 = length2
+        self._memory = <void ***> sig_malloc(length1 * sizeof(void **))
+        self._memory1 = <void ***> sig_malloc(length1 * sizeof(void **))
+        for i in range(length1):
+            self._memory1[i] = <void **> sig_malloc(length2 * sizeof(void *))
+            self._memory[i] = self._memory1[i]
+        self._data = self._memory
+
+    def __dealloc(self):
+        cdef size_t i
+        for i in range(self._length1):
+            sig_free(self._memory1[i])
+        sig_free(self._memory)
+        sig_free(self._memory1)
+
+    cdef void *** data(self):
+        return self._data
+
+    cdef size_t length1(self):
+        return self._length1
+
+    cdef size_t length2(self):
+        return self._length2
+
+
+cdef class list_of_faces:
+    cdef void ** _data
+    cdef void ** _memory
+    cdef void ** _memory1
+    cdef size_t _chunksize
+    cdef size_t _nr_faces
+    cdef size_t _length_of_face
+    cdef size_t _max_nr_faces
+    # `_data` is not supposed to change, if memory has been allocated
+    # to be on the safe side, we will store the allocated memory in
+    # in `_memory`
+
+    def __init__ (self, size_t nr_faces, size_t length, size_t chunksize):
+        cdef size_t i
+        self._nr_faces = nr_faces
+        self._length_of_face = ((length - 1)/chunksize + 1)
+        # `_length_of_face` is the length in terms chunks of size `chunksize`
+        self._memory = <void **> sig_malloc(nr_faces * sizeof(void *))
+        self._data = self._memory
+        self._chunksize = chunksize
+        self._memory1 = <void **> PyMem_Malloc(nr_faces * sizeof(void *))
+        for i in range(nr_faces):
+            self._memory1[i] = aligned_malloc(
+                self._length_of_face*chunksize/8, chunksize/8)
+            self._memory[i] = self._memory1[i]
+
+    def __dealloc__(self):
+        cdef size_t i
+        for i in range(self._nr_faces):
+            aligned_free(self._memory1[i])
+        sig_free(self._memory1)
+        sig_free(self._memory)
+
+    cdef make_copy(self):
+        return list_of_faces(
+            self._nr_faces, self.length(),
+            self._chunksize)
+
+    cdef void ** data(self):
+        return self._data
+
+    cdef size_t chunksize(self):
+        return self._chunksize
+
+    cdef size_t nr_faces(self):
+        return self._nr_faces
+
+    cdef size_t length(self):
+        return self._length_of_face*self._chunksize
+
+    cdef size_t length_of_face(self):
+        return self._length_of_face
+
+    cdef size_t max_nr_faces(self):
+        return self._max_nr_faces
+
+cdef class list_of_list_of_faces:
+    cdef void *** _data
+    cdef void *** _memory
+    cdef tuple _lists
+    cdef size_t _nr_lists
+
+    def __init__(self, size_t nr_lists, size_t nr_faces, size_t length, size_t chunksize):
+        cdef size_t i
+        cdef list_of_faces saver
+        self._nr_lists = nr_lists
+        self._memory = <void ***> sig_malloc(nr_lists * sizeof(void **))
+        self._data = self._memory
+        self._lists = tuple(list_of_faces(nr_faces, length, chunksize) for i in range(nr_lists))
+        for i in range(nr_lists):
+            saver = self._lists[i]
+            self._memory[i] = saver.data()
+
+    def __dealloc__(self):
+        sig_free(self._memory)
+
+    cdef void *** data(self):
+        return self._data
+
+    cdef size_t nr_lists(self):
+        return self._nr_lists
+
+    cdef list_of_faces get_list(self, size_t index):
+        return self._lists[index]
+
+
+    """
+    def face_iter_method(self, dimension):
+        facets = self
+        nr_facets = facets.nr_faces
+        face_length = facets.length_of_face
+        newfaces = tuple(facets.make_copy() for _ in range(dimension - 1))
+        newfaces2 = tuple(facets.make_copy(allocation=False) for _ in range(dimension - 1))
+        cdef list_of_faces forbidden = facets.make_copy()
+        cdef list_of_faces saver
+        cdef void *** newfacespointer = <void ***> PyMem_Malloc((dimension - 1) * sizeof(void **))
+        cdef void *** newfaces2pointer = <void ***> PyMem_Malloc((dimension - 1) * sizeof(void **))
+        cdef FaceIterator_ptr it
+        cdef unsigned int face_dimension
+        for i in range(dimension -1):
+            saver = newfaces[i]
+            newfacespointer[i] = saver.data
+            saver = newfaces2[i]
+            newfaces2pointer[i] = saver.data
+        saver = facets
+        yield 2
+        it = FaceIterator_init(saver.data, newfacespointer, newfaces2pointer, forbidden.data, dimension, nr_facets, face_length)
+        yield 2
+        face_dimension = FaceIterator_call(it)
+        while (face_dimension < dimension):
+            yield face_dimension
+            face_dimension = FaceIterator_call(it)
+        FaceIterator_del(it)
+        PyMem_Free(newfacespointer)
+        PyMem_Free(newfaces2pointer)
+    """
+
+
+cdef int calculate_dimension(list_of_faces faces):
+    cdef size_t nr_faces
+    cdef int dim
+    nr_faces = faces.nr_faces()
+    if nr_faces == 0:
+            raise TypeError('Wrong usage of `calculate_dimension`, at least one face needed.')
+
+    return calculate_dimension_loop(faces.data(), nr_faces,
+                                    faces.length_of_face(), faces.chunksize())
+
+
+cdef int calculate_dimension_loop(void ** facesdata, size_t nr_faces, size_t face_length, size_t chunksize):
+    cdef size_t bitcount, new_nr_faces
+    cdef list_of_faces newfaces
+    cdef void ** newfacesdata
+    cdef list_of_pointers newfaces2
+    cdef void ** newfaces2data
+    cdef int dim
+
+    if nr_faces == 0:
+            raise TypeError('Wrong usage of `calculate_dimension_loop`, at least one face needed.')
+
+    if nr_faces == 1:
+        # we expect the face to be a vertex
+        # possibly it contains more than one vertex/rays/lines
+        # the dimension of the Polyhedron with this face as facet is
+        # `bitcount + 1`
+        bitcount = CountFaceBits(facesdata[0], face_length)
+        return int(bitcount)
+
+    newfaces = list_of_faces(nr_faces, face_length*chunksize, chunksize)
+    newfaces2 = list_of_pointers(nr_faces)
+    newfacesdata = newfaces.data()
+    newfaces2data = newfaces2.data()
+    new_nr_faces = get_next_level(facesdata, nr_faces, newfacesdata,
+                         newfaces2data, newfacesdata, 0, face_length)
+    return calculate_dimension_loop(newfaces2data, new_nr_faces,
+                                    face_length, chunksize) + 1
+
+cdef class FaceIterator:
+    cdef void * face
+    cdef int current_dimension, dimension, record_dimension, lowest_dimension
+    cdef list_of_list_of_pointers newfaces2_mem
+    cdef list_of_list_of_faces newfaces_mem
+    cdef list_of_pointers forbidden_mem
+    cdef void *** newfaces2
+    cdef void *** newfaces
+    cdef void ** forbidden
+    cdef size_t * nr_faces
+    cdef size_t * nr_forbidden
+    cdef size_t yet_to_yield
+    cdef int * first_time
+    cdef size_t length_of_face
+
+    def __init__(self, list_of_faces facets, int dimension):
+        if dimension <= 0:
+            raise TypeError('FaceIterator expects positive dimensions')
+        if facets.nr_faces() < 0:
+            raise TypeError('FaceIterator expects non-empty `list_of_faces`')
+        self.dimension = dimension
+        self.current_dimension = dimension - 1
+        self.length_of_face = facets.length_of_face()
+        self.nr_faces = <size_t *> sig_malloc(dimension * sizeof(size_t))
+        self.nr_faces[dimension - 1] = facets.nr_faces()
+        self.nr_forbidden = <size_t *> sig_malloc(dimension * sizeof(size_t))
+        self.nr_forbidden[dimension -1] = 0
+        self.newfaces2_mem = list_of_list_of_pointers(<size_t> dimension,
+                                                      facets.nr_faces())
+        self.newfaces2 = self.newfaces2_mem.data()
+        self.newfaces2[dimension - 1] = facets.data()
+        self.newfaces_mem = \
+            list_of_list_of_faces(dimension -1, facets.nr_faces(),
+                                  facets.length(), facets.chunksize())
+        self.newfaces = self.newfaces_mem.data()
+        self.forbidden_mem = list_of_pointers(facets.nr_faces())
+        self.forbidden = self.forbidden_mem.data()
+        self.yet_to_yield = facets.nr_faces()
+        self.record_dimension = -2
+        self.lowest_dimension = 0
+        self.first_time = <int *> sig_malloc(dimension * sizeof(int))
+        self.first_time[dimension - 1] = 1
+
+
+    def __dealloc__(self):
+        sig_free(self.nr_faces)
+        sig_free(self.nr_forbidden)
+        sig_free(self.first_time)
+
+    cdef void set_record_dimension(self, int dim):
+        self.record_dimension = dim
+        self.lowest_dimension = max(0,dim)
+
+    cdef int next_face(self):
+        # this calls next_face_loop until it sets a new face
+        # or until its consumed and `_current_dimension` is `_dimension`
+        # **** Messing with the face_iterator *****
+        # suppose face_iterator returns `face` and you do not want
+        # to visit and farther faces of `face` you can do the following:
+        # forbidden[face_iterator_nr_forbidden] = face;
+        # face_iterator_nr_forbidden++;
+        # This prevents any faces of `face` of appearing in the face iterator
+        self.face = NULL;
+        try:
+            sig_on()
+            while (not self.face) and (self.current_dimension < self.dimension):
+                self.next_face_loop()
+            sig_off()
+            return self.current_dimension
+        except KeyboardInterrupt:
+            raise TypeError('Something')
+        except AttributeError:
+            raise AttributeError('Something went wrong')
+
+    cdef inline void next_face_loop(self):
+        # sets `self._face` to the next face
+        # might not do so, if so and
+        # `self._current_dimension == self.dimension`
+        # then there are no more faces
+        if (self.current_dimension == self.dimension):
+            # the function is not supposed to be called in this case
+            # just to prevent it from crashing
+            return
+
+        cdef size_t nr_faces = self.nr_faces[self.current_dimension]
+        cdef size_t nr_forbidden = self.nr_forbidden[self.current_dimension]
+        cdef void **faces = self.newfaces2[self.current_dimension]
+        cdef size_t i, newfacescounter
+        if (self.record_dimension > -2) and \
+                (self.record_dimension != self.current_dimension):
+            # if we are not in dimension `record_dimension`,
+            # then we should not yield any faces
+            # (in case `face_iterator_dimension == -2` we yield all faces)
+            self.yet_to_yield = 0
+
+        if self.yet_to_yield > 0:
+            # return the next face
+            self.yet_to_yield -= 1
+            self.face = faces[self.yet_to_yield]
+            return
+
+        if self.current_dimension <= self.record_dimension:
+            # if we do not want to yield lower dimensional faces,
+            # than we should go up one dimension again to look for more faces
+            # (act as if we had visited all faces in lower dimensions already)
+            self.current_dimension += 1
+            return
+
+        if self.current_dimension == self.lowest_dimension:
+            # we will not yield the empty face
+            # we will not yield below what is wanted
+            self.current_dimension += 1
+            return
+
+        if nr_faces <= 1:
+            # there will be no more faces from intersections
+            self.current_dimension += 1
+            return
+
+        i = nr_faces - 1;
+        self.nr_faces[self.current_dimension] -= 1
+        if not self.first_time[self.current_dimension]:
+            # if there exists faces[i+1], we have visited all its faces already
+            # hence we should not visit any of them again
+            self.forbidden[nr_forbidden] = faces[i+1]
+            self.nr_forbidden[self.current_dimension] += 1
+            nr_forbidden = self.nr_forbidden[self.current_dimension]
+
+        else:
+            # we will visit all the faces of faces[nr_faces]
+            # once we have done so, we want to add this face to forbidden
+            self.first_time[self.current_dimension] = 0
+
+        # get the facets contained in faces[i] but not in any of the forbidden
+        newfacescounter = \
+            get_next_level(faces, i+1, self.newfaces[self.current_dimension-1],
+                           self.newfaces2[self.current_dimension-1],
+                           self.forbidden, nr_forbidden, self.length_of_face)
+
+        if newfacescounter:
+            # if there are new faces contained in faces[i+1],
+            # we will set up the variables to correctly visit them on the next
+            # call of `next_face_loop`
+            self.current_dimension -= 1
+            self.first_time[self.current_dimension] = 1
+            self.nr_faces[self.current_dimension] = newfacescounter
+            self.nr_forbidden[self.current_dimension] = nr_forbidden
+            self.yet_to_yield = newfacescounter
+            return
+
+        #else:
+            # if there are no faces in lower dimension,
+            # then there is no need to add the face to forbidden
+            # this might become important when calculating simpliness
+            # and simpliciality, where we will mess with the iterator
+            # and add some faces to forbidden in order to not consider subfaces
+            # self.first_time[self.current_dimension] = 1
+
+        return
+
+
 
 cdef extern from "hasse_diagram.cc":
+    cdef const unsigned int chunksize;
     # A pointer to the underlying C++ class of CombinatorialPolyhedron.
     ctypedef void * CombinatorialPolyhedron_ptr
 
@@ -390,6 +799,40 @@ cdef extern from "hasse_diagram.cc":
 #    """
     cdef unsigned long get_maxnumberincidences()
 
+
+cdef extern from "helper.cc":
+    cdef inline void intersection(void *A1, void *B1, void *C1, size_t face_length)
+
+    cdef inline int is_subset(void *A1, void *B1, size_t face_length)
+
+    cdef size_t get_next_level(void **faces, size_t lenfaces, void **nextfaces, \
+                               void **nextfaces2, void **forbidden, \
+                               size_t nr_forbidden, size_t face_length)
+    # intersects the first `lenfaces - 1` faces of `faces` with'faces[lenfaces-1]`
+    # stores the faces in `newfaces`
+    # determines which ones are exactly of one dimension less
+    # by considering containment
+    # newfaces2 will point at those of exactly one dimension less
+    # which are not contained in any of the faces in 'forbidden'
+    # returns the number of those faces
+
+    cdef inline unsigned int CountFaceBits(void* A1, size_t face_length)
+
+    cdef void get_facets_from_incidence_matrix(unsigned int **incidence_matrix, void **facets, \
+                                      size_t nr_vertices, size_t nr_facets)
+
+    cdef void get_vertices_from_incidence_matrix(unsigned int **incidence_matrix, void **vertices, \
+                                        size_t nr_vertices, size_t nr_facets)
+
+    cdef void get_vertices_bitrep_from_facets_pointer( \
+        unsigned int ** facets_input, unsigned int *len_facets, \
+        void ** vertices_output, size_t nr_vertices, size_t nr_facets)
+
+    cdef void get_facets_bitrep_from_facets_pointer( \
+        unsigned int ** facets_input, unsigned int *len_facets, \
+        void ** facets_output, size_t nr_vertices, size_t nr_facets)
+
+
 cdef class CombinatorialPolyhedron(SageObject):
     r"""
     The class of the Combinatorial Type of a Polyehdron, a Polytope.
@@ -514,6 +957,10 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef unsigned int _length_Vrep
     cdef int _unbounded  # set to 0, if the Polyhedron is bounded,
     # otherwise it is 1 + nr_lines
+    cdef list_of_faces bitrep_facets
+    cdef list_of_faces bitrep_vertices
+    cdef int _polar
+    cdef unsigned int chunksize
 
     def __init__(self, data, vertices=None, facets=None, nr_lines=None):
         r"""
@@ -526,9 +973,11 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C = CombinatorialPolyhedron([[0,1,2],[0,1,3],
             ....: [0,2,3],[1,2,3]])    # indirect doctests
         """
+        self.chunksize = chunksize
         cdef unsigned int ** incidence_matrix
         cdef unsigned int ** facets_pointer
         cdef unsigned int * len_facets
+        self._polar = 0
         if nr_lines is None:
             self._unbounded = 0
         else:
@@ -638,6 +1087,41 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._C = init_CombinatorialPolyhedron(
                 incidence_matrix, len(tup), self._length_Vrep, self._unbounded)
 
+            nr_vertices = self._length_Vrep
+            nr_facets = len(tup)
+            if (nr_facets <= nr_vertices):
+                self._polar = 0
+                # initializing the facets as BitVectors
+                self.bitrep_facets = \
+                    list_of_faces(nr_facets, nr_vertices,
+                                  self.chunksize)
+                get_facets_from_incidence_matrix(
+                    incidence_matrix, self.bitrep_facets.data(),
+                    nr_vertices, nr_facets)
+                # initializing the vertices as BitVectors
+                self.bitrep_vertices = \
+                    list_of_faces(nr_vertices, nr_facets,
+                                  self.chunksize)
+                get_vertices_from_incidence_matrix(
+                    incidence_matrix, self.bitrep_vertices.data(),
+                    nr_vertices, nr_facets)
+            else:
+                self._polar = 1
+                # initializing the vertices as BitVectors
+                self.bitrep_vertices = \
+                    list_of_faces(nr_facets, nr_vertices,
+                                  self.chunksize)
+                get_facets_from_incidence_matrix(
+                    incidence_matrix, self.bitrep_vertices.data(),
+                    nr_vertices, nr_facets)
+                # initializing the facets as BitVectors
+                self.bitrep_facets = \
+                    list_of_faces(nr_vertices, nr_facets,
+                                  self.chunksize)
+                get_vertices_from_incidence_matrix(
+                    incidence_matrix, self.bitrep_facets.data(),
+                    nr_vertices, nr_facets)
+
             # cleanup
             for i in range(len(tup)):
                 PyMem_Free(incidence_matrix[i])
@@ -696,6 +1180,39 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._C = init_CombinatorialPolyhedron(facets_pointer, len(facets),
                                                    len_facets, nr_vertices,
                                                    self._unbounded)
+
+            if (len(facets) <= nr_vertices):
+                self._polar = 0
+                # initializing the facets as BitVectors
+                self.bitrep_facets = \
+                    list_of_faces(len(facets), nr_vertices,
+                                  self.chunksize)
+                get_facets_bitrep_from_facets_pointer(
+                    facets_pointer, len_facets, self.bitrep_facets.data(),
+                    nr_vertices, len(facets))
+                # initializing the vertices as BitVectors
+                self.bitrep_vertices = \
+                    list_of_faces(nr_vertices, len(facets),
+                                  self.chunksize)
+                get_vertices_bitrep_from_facets_pointer(
+                    facets_pointer, len_facets, self.bitrep_vertices.data(),
+                    nr_vertices, len(facets))
+            else:
+                self._polar = 1
+                # initializing the vertices as BitVectors
+                self.bitrep_vertices = \
+                    list_of_faces(len(facets), nr_vertices,
+                                  self.chunksize)
+                get_facets_bitrep_from_facets_pointer(
+                    facets_pointer, len_facets, self.bitrep_vertices.data(),
+                    nr_vertices, len(facets))
+                # initializing the facets as BitVectors
+                self.bitrep_facets = \
+                    list_of_faces(nr_vertices, len(facets),
+                                  self.chunksize)
+                get_vertices_bitrep_from_facets_pointer(
+                    facets_pointer, len_facets, self.bitrep_facets.data(),
+                    nr_vertices, len(facets))
 
             # cleanup
             for i in range(len(facets)):
@@ -756,8 +1273,8 @@ cdef class CombinatorialPolyhedron(SageObject):
             return "Combinatorial Type of a half-space of dimension %s"\
                 % self._dimension
 
-        return "Combinatorial Type of a Polyhedron of dimension \
-            %s with %s vertices" % (self.dimension(), len(self.vertices()))
+        return "Combinatorial Type of a Polyhedron of dimension %s with %s vertices" \
+                % (self.dimension(), len(self.vertices()))
 
     def __reduce__(self):
         r"""
@@ -1072,7 +1589,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         if self.is_trivial > 0:
             return Integer(self._dimension)
-        return Integer(dimension(self._C))
+        bitrep_facets = self.bitrep_facets
+        return Integer(calculate_dimension(bitrep_facets))
 
     def ridges(self, add_equalities=False, names=True):
         r"""
@@ -1257,8 +1775,8 @@ cdef class CombinatorialPolyhedron(SageObject):
 
                 newfaces2 = []
                 for face1 in newfaces:
-                    #face1 is a facet of one_face iff
-                    #it is not contained in another facet
+                    # face1 is a facet of one_face iff
+                    # it is not contained in another facet
                     if all(not face1 < face2 for face2 in newfaces):
                         newfaces2.append(face1)
                 #newfaces2 contains all facets of one_face not contained
@@ -1622,6 +2140,8 @@ cdef class CombinatorialPolyhedron(SageObject):
                         yield fac[i]
             return
 
+        #return face_iter(self.bitrep_facets, self.dimension())
+
         if 0 == dimension:
             if vertex_repr and facet_repr:
                 vert = self.faces(0, names=names)
@@ -1878,6 +2398,37 @@ cdef class CombinatorialPolyhedron(SageObject):
         return tuple((incidence_one(i), incidence_two(i))
                      for i in range(nr_incidences[0]))
 
+    def new_face_iter(self):
+        cdef FaceIterator face_iter
+        cdef list_of_faces facets = self.bitrep_facets
+        cdef int dim = self.dimension()
+        cdef int next_dim
+        face_iter = FaceIterator(facets, dim)
+        next_dim = face_iter.next_face()
+        while next_dim is not dim:
+            yield next_dim
+            next_dim = face_iter.next_face()
+
+    def new_f_vector(self):
+        cdef FaceIterator face_iter
+        cdef list_of_faces facets = self.bitrep_facets
+        cdef int dim = self.dimension()
+        cdef int next_dim
+        cdef list f_new
+        f_new = [0] * (dim + 2)
+        f_new[0] = 1
+        f_new[dim + 1] = 1
+        face_iter = FaceIterator(facets, dim)
+        next_dim = face_iter.next_face()
+        while next_dim is not dim:
+            f_new[next_dim + 1] += 1
+            next_dim = face_iter.next_face()
+        if self._polar:
+            return tuple(f_new[-i-1] for i in range(dim + 2))
+        else:
+            return tuple(f_new)
+
+
     def face_lattice(self, vertices=False, facets=False, names=False):
         r"""
         Generates the face-lattice.
@@ -2032,6 +2583,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                                     if number in range(0, dim)))
         return Integer(get_flag(self._C, flagarray.data.as_uints,
                                 len(flagarray)))
+
 
 # Error checking on intput!
 # check for containments, shouldn't take long but is very nice to the user
